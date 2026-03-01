@@ -648,6 +648,31 @@ class TestAuditWarningLogged:
         assert len(result.warnings) >= 1
 
 
+class TestCopyDbTypeNosql:
+    def test_nosql_common_and_specific(
+        self, assembler: RulesAssembler, src_tree: Path, output_dir: Path,
+    ) -> None:
+        nosql_mongo = src_tree / "databases" / "nosql" / "mongodb"
+        nosql_mongo.mkdir(parents=True)
+        (nosql_mongo / "mongodb-patterns.md").write_text("# Mongo\n", encoding="utf-8")
+        target = output_dir / "target"
+        target.mkdir(parents=True)
+        result = assembler._copy_db_type_files(
+            "mongodb", src_tree / "databases", target,
+        )
+        assert len(result) >= 1
+
+    def test_unknown_db_type_returns_empty(
+        self, assembler: RulesAssembler, src_tree: Path, output_dir: Path,
+    ) -> None:
+        target = output_dir / "target"
+        target.mkdir(parents=True)
+        result = assembler._copy_db_type_files(
+            "unknown-db", src_tree / "databases", target,
+        )
+        assert result == []
+
+
 class TestAssembleFullPipeline:
     def test_full_config_generates_files(
         self, assembler: RulesAssembler, full_config: ProjectConfig,

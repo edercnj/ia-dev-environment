@@ -433,16 +433,14 @@ def _build_identity_content(config: ProjectConfig) -> str:
     """Build the 01-project-identity.md content."""
     ifaces = ", ".join(i.type for i in config.interfaces) or "none"
     fw_ver = f" {config.framework.version}" if config.framework.version else ""
-    lines = _identity_lines(config, ifaces, fw_ver)
+    lines: List[str] = []
+    lines.extend(_identity_header(config, ifaces, fw_ver))
+    lines.extend(_identity_tech_stack(config, fw_ver))
+    lines.extend(_identity_footer())
     return "\n".join(lines) + "\n"
 
 
-def _identity_lines(
-    config: ProjectConfig,
-    ifaces: str,
-    fw_ver: str,
-) -> List[str]:
-    c = config
+def _identity_header(config: ProjectConfig, ifaces: str, fw_ver: str) -> List[str]:
     return [
         "# Global Behavior & Language Policy",
         "- **Output Language**: English ONLY. (Mandatory for all responses and internal reasoning).",
@@ -450,37 +448,47 @@ def _identity_lines(
         "Start responses directly with technical information.",
         "- **Priority**: Maintain 100% fidelity to the technical constraints defined in the original rules below.",
         "",
-        f"# Project Identity — {c.project.name}",
+        f"# Project Identity — {config.project.name}",
         "",
         "## Identity",
-        f"- **Name:** {c.project.name}",
-        f"- **Purpose:** {c.project.purpose}",
-        f"- **Architecture Style:** {c.architecture.style}",
-        f"- **Domain-Driven Design:** {str(c.architecture.domain_driven).lower()}",
-        f"- **Event-Driven:** {str(c.architecture.event_driven).lower()}",
+        f"- **Name:** {config.project.name}",
+        f"- **Purpose:** {config.project.purpose}",
+        f"- **Architecture Style:** {config.architecture.style}",
+        f"- **Domain-Driven Design:** {str(config.architecture.domain_driven).lower()}",
+        f"- **Event-Driven:** {str(config.architecture.event_driven).lower()}",
         f"- **Interfaces:** {ifaces}",
-        f"- **Language:** {c.language.name} {c.language.version}",
-        f"- **Framework:** {c.framework.name}{fw_ver}",
+        f"- **Language:** {config.language.name} {config.language.version}",
+        f"- **Framework:** {config.framework.name}{fw_ver}",
+    ]
+
+
+def _identity_tech_stack(config: ProjectConfig, fw_ver: str) -> List[str]:
+    obs = config.infrastructure.observability
+    return [
         "",
         "## Technology Stack",
         "| Layer | Technology |",
         "|-------|-----------|",
-        f"| Architecture | {c.architecture.style} |",
-        f"| Language | {c.language.name} {c.language.version} |",
-        f"| Framework | {c.framework.name}{fw_ver} |",
-        f"| Build Tool | {c.framework.build_tool} |",
-        f"| Database | {c.data.database.name} |",
-        f"| Migration | {c.data.migration.name} |",
-        f"| Cache | {c.data.cache.name} |",
+        f"| Architecture | {config.architecture.style} |",
+        f"| Language | {config.language.name} {config.language.version} |",
+        f"| Framework | {config.framework.name}{fw_ver} |",
+        f"| Build Tool | {config.framework.build_tool} |",
+        f"| Database | {config.data.database.name} |",
+        f"| Migration | {config.data.migration.name} |",
+        f"| Cache | {config.data.cache.name} |",
         f"| Message Broker | none |",
-        f"| Container | {c.infrastructure.container} |",
-        f"| Orchestrator | {c.infrastructure.orchestrator} |",
-        f"| Observability | {c.infrastructure.observability.tool}"
-        f" ({c.infrastructure.observability.tracing}) |",
+        f"| Container | {config.infrastructure.container} |",
+        f"| Orchestrator | {config.infrastructure.orchestrator} |",
+        f"| Observability | {obs.tool} ({obs.tracing}) |",
         "| Resilience | Mandatory (always enabled) |",
-        f"| Native Build | {str(c.framework.native_build).lower()} |",
-        f"| Smoke Tests | {str(c.testing.smoke_tests).lower()} |",
-        f"| Contract Tests | {str(c.testing.contract_tests).lower()} |",
+        f"| Native Build | {str(config.framework.native_build).lower()} |",
+        f"| Smoke Tests | {str(config.testing.smoke_tests).lower()} |",
+        f"| Contract Tests | {str(config.testing.contract_tests).lower()} |",
+    ]
+
+
+def _identity_footer() -> List[str]:
+    return [
         "",
         "## Source of Truth (Hierarchy)",
         "1. Epics / PRDs (vision and global rules)",

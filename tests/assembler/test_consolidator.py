@@ -90,6 +90,14 @@ class TestConsolidateFrameworkRules:
         assert len(result) == 1
         assert "30-quarkus-core.md" in str(result[0])
 
+    def test_unmatched_file_excluded(self, tmp_path: Path) -> None:
+        source = tmp_path / "fw"
+        self._create_fw_files(source, ["01-quarkus-readme.md"])
+        rules = tmp_path / "rules"
+        rules.mkdir()
+        result = consolidate_framework_rules("quarkus", rules, source)
+        assert result == []
+
     def test_nonexistent_source_returns_empty(self, tmp_path: Path) -> None:
         rules = tmp_path / "rules"
         rules.mkdir()
