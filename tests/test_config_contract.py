@@ -4,11 +4,7 @@ from typing import Dict, List
 
 import pytest
 
-from claude_setup.config import (
-    STACK_MAPPING,
-    TYPE_MAPPING,
-    migrate_v2_to_v3,
-)
+from claude_setup.config import migrate_v2_to_v3
 from claude_setup.models import ProjectConfig
 
 

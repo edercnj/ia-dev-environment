@@ -107,7 +107,7 @@ This module lives in the adapter layer because it depends on Click (framework) f
 | Field | Choices |
 |-------|---------|
 | Architecture style | `library`, `microservice`, `monolith` |
-| Interface type | `rest`, `grpc`, `graphql`, `cli`, `event-consumer`, `tcp`, `websocket` |
+| Interface type | `rest`, `grpc`, `cli`, `event-consumer`, `event-producer` |
 | Language | `java`, `python`, `go`, `kotlin`, `typescript`, `rust` |
 | Framework (per language) | java: `quarkus`, `spring-boot`; python: `fastapi`, `click`, `django`, `flask`; go: `stdlib`, `gin`, `fiber`; kotlin: `ktor`; typescript: `nestjs`, `express`, `fastify`; rust: `axum`, `actix` |
 

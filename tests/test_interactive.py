@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import pytest
 from click.testing import CliRunner
 
 from claude_setup.interactive import run_interactive

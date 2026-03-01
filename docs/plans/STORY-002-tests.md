@@ -101,13 +101,14 @@ project:
 
 ### 2.4 `tests/fixtures/valid_v2_stack_config.yaml`
 
-Legacy v2 format with only `stack` at root level.
+Legacy v2 format with both `type` and `stack` at root level.
 
 ```yaml
-stack: python-fastapi
+type: cli
+stack: python-click-cli
 project:
-  name: "legacy-api"
-  purpose: "Legacy API"
+  name: "legacy-cli"
+  purpose: "Legacy CLI tool"
 ```
 
 ### 2.5 `tests/fixtures/valid_v2_combined_config.yaml`

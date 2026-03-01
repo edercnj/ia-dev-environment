@@ -243,7 +243,7 @@ Create `claude_setup/interactive.py` with the interactive config collection flow
 - Prompts for architecture style: `library`, `microservice`, `monolith`.
 - Prompts for domain_driven (yes/no, default no).
 - Prompts for event_driven (yes/no, default no).
-- Prompts for interface type: `rest`, `grpc`, `graphql`, `cli`, `event-consumer`, `tcp`, `websocket`.
+- Prompts for interface type: `rest`, `grpc`, `cli`, `event-consumer`, `event-producer`.
 - Prompts for language: `java`, `python`, `go`, `kotlin`, `typescript`, `rust`.
 - Prompts for framework (choices depend on selected language):
   - java: `quarkus`, `spring-boot`
