@@ -123,9 +123,10 @@ class TestFlushPatterns:
             FIXTURES_SRC / "patterns" / "data"
             / "repository-pattern.md",
         ]
+        rendered = assembler._render_contents(src_files, engine)
         dest = tmp_path / "refs"
         results = assembler._flush_patterns(
-            src_files, dest, engine,
+            src_files, rendered, dest,
         )
         assert len(results) == 2
         assert (dest / "architectural" / "hexagonal-architecture.md").exists()
@@ -146,10 +147,9 @@ class TestFlushConsolidated:
             FIXTURES_SRC / "patterns" / "data"
             / "repository-pattern.md",
         ]
+        rendered = assembler._render_contents(src_files, engine)
         dest = tmp_path / "SKILL.md"
-        result = assembler._flush_consolidated(
-            src_files, dest, engine,
-        )
+        result = assembler._flush_consolidated(rendered, dest)
         assert result == dest
         content = dest.read_text()
         assert "Hexagonal Architecture" in content
@@ -167,10 +167,9 @@ class TestFlushConsolidated:
             FIXTURES_SRC / "patterns" / "data"
             / "repository-pattern.md",
         ]
+        rendered = assembler._render_contents(src_files, engine)
         dest = tmp_path / "SKILL.md"
-        assembler._flush_consolidated(
-            src_files, dest, engine,
-        )
+        assembler._flush_consolidated(rendered, dest)
         content = dest.read_text()
         assert SECTION_SEPARATOR in content
 
@@ -184,9 +183,8 @@ class TestFlushConsolidated:
             FIXTURES_SRC / "patterns" / "architectural"
             / "hexagonal-architecture.md",
         ]
+        rendered = assembler._render_contents(src_files, engine)
         dest = tmp_path / "SKILL.md"
-        assembler._flush_consolidated(
-            src_files, dest, engine,
-        )
+        assembler._flush_consolidated(rendered, dest)
         content = dest.read_text()
         assert SECTION_SEPARATOR not in content

@@ -50,18 +50,29 @@ class PatternsAssembler:
         engine: TemplateEngine,
     ) -> List[Path]:
         """Generate individual and consolidated output files."""
+        rendered = self._render_contents(pattern_files, engine)
         results: List[Path] = []
         refs_dir = self._build_refs_dir(output_dir)
         results.extend(
-            self._flush_patterns(pattern_files, refs_dir, engine),
+            self._flush_patterns(pattern_files, rendered, refs_dir),
         )
         consolidated = self._build_consolidated_path(output_dir)
         results.append(
-            self._flush_consolidated(
-                pattern_files, consolidated, engine,
-            ),
+            self._flush_consolidated(rendered, consolidated),
         )
         return results
+
+    def _render_contents(
+        self,
+        pattern_files: List[Path],
+        engine: TemplateEngine,
+    ) -> List[str]:
+        """Read and render all pattern files once."""
+        rendered: List[str] = []
+        for src_file in pattern_files:
+            content = src_file.read_text(encoding="utf-8")
+            rendered.append(engine.replace_placeholders(content))
+        return rendered
 
     def _build_refs_dir(self, output_dir: Path) -> Path:
         """Build the references directory path."""
@@ -80,35 +91,27 @@ class PatternsAssembler:
     def _flush_patterns(
         self,
         pattern_files: List[Path],
+        rendered: List[str],
         dest_dir: Path,
-        engine: TemplateEngine,
     ) -> List[Path]:
-        """Copy individual pattern files with placeholder replacement."""
+        """Write pre-rendered pattern files to destination."""
         results: List[Path] = []
-        for src_file in pattern_files:
+        for src_file, content in zip(pattern_files, rendered):
             category = src_file.parent.name
             target_dir = dest_dir / category
             target_dir.mkdir(parents=True, exist_ok=True)
             dest_file = target_dir / src_file.name
-            content = src_file.read_text(encoding="utf-8")
-            replaced = engine.replace_placeholders(content)
-            dest_file.write_text(replaced, encoding="utf-8")
+            dest_file.write_text(content, encoding="utf-8")
             results.append(dest_file)
         return results
 
     def _flush_consolidated(
         self,
-        pattern_files: List[Path],
+        rendered: List[str],
         dest_path: Path,
-        engine: TemplateEngine,
     ) -> Path:
-        """Merge all pattern files into a single consolidated file."""
+        """Merge pre-rendered content into a single consolidated file."""
         dest_path.parent.mkdir(parents=True, exist_ok=True)
-        sections: List[str] = []
-        for src_file in pattern_files:
-            content = src_file.read_text(encoding="utf-8")
-            replaced = engine.replace_placeholders(content)
-            sections.append(replaced)
-        merged = SECTION_SEPARATOR.join(sections)
+        merged = SECTION_SEPARATOR.join(rendered)
         dest_path.write_text(merged, encoding="utf-8")
         return dest_path
