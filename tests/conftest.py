@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import copy
+from pathlib import Path
+from typing import Dict
 
 import pytest
 
 from claude_setup.models import ProjectConfig
 
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 FULL_PROJECT_DICT = {
     "project": {
@@ -100,3 +103,53 @@ def create_project_config():
         return ProjectConfig.from_dict(base)
 
     return _create
+
+
+@pytest.fixture
+def fixtures_dir() -> Path:
+    return FIXTURES_DIR
+
+
+@pytest.fixture
+def valid_v3_path(fixtures_dir: Path) -> Path:
+    return fixtures_dir / "valid_v3_config.yaml"
+
+
+@pytest.fixture
+def valid_v2_type_path(fixtures_dir: Path) -> Path:
+    return fixtures_dir / "valid_v2_type_config.yaml"
+
+
+@pytest.fixture
+def valid_v2_stack_path(fixtures_dir: Path) -> Path:
+    return fixtures_dir / "valid_v2_stack_config.yaml"
+
+
+@pytest.fixture
+def missing_language_path(fixtures_dir: Path) -> Path:
+    return fixtures_dir / "missing_language_config.yaml"
+
+
+@pytest.fixture
+def minimal_v3_path(fixtures_dir: Path) -> Path:
+    return fixtures_dir / "minimal_v3_config.yaml"
+
+
+@pytest.fixture
+def valid_v3_dict() -> Dict:
+    return {
+        "project": {"name": "test-tool", "purpose": "Testing"},
+        "architecture": {"style": "library"},
+        "interfaces": [{"type": "cli"}],
+        "language": {"name": "python", "version": "3.9"},
+        "framework": {"name": "click", "version": "8.1"},
+    }
+
+
+@pytest.fixture
+def valid_v2_dict() -> Dict:
+    return {
+        "type": "api",
+        "stack": "java-quarkus",
+        "project": {"name": "legacy", "purpose": "Legacy"},
+    }

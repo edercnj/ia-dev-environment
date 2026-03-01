@@ -1,0 +1,5 @@
+type: api
+stack: java-quarkus
+project:
+  name: "legacy-service"
+  purpose: "Legacy service"

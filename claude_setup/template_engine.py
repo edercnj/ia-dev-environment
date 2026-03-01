@@ -94,10 +94,14 @@ class TemplateEngine:
     def replace_placeholders(
         self,
         content: str,
-        config: ProjectConfig,
+        config: Optional[ProjectConfig] = None,
     ) -> str:
-        """Replace legacy {placeholder} patterns with config values."""
-        mapping = _build_placeholder_map(config)
+        """Replace legacy {placeholder} patterns with config values.
+
+        Uses self._config when config is not provided.
+        """
+        cfg = config if config is not None else self._config
+        mapping = _build_placeholder_map(cfg)
 
         def _replacer(match: re.Match) -> str:
             key = match.group(1)

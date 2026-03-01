@@ -50,9 +50,7 @@ def test_contract_replace_placeholders_legacy(
     assert result == reference
 
 
-def test_contract_inject_section(
-    engine: TemplateEngine,
-) -> None:
+def test_contract_inject_section() -> None:
     base = (FIXTURES_DIR / "section_base.md").read_text()
     section = (FIXTURES_DIR / "section_inject.md").read_text()
     marker = "<!-- INSERT:rules -->"
@@ -61,9 +59,7 @@ def test_contract_inject_section(
     assert result == reference
 
 
-def test_contract_concat_files(
-    engine: TemplateEngine,
-) -> None:
+def test_contract_concat_files() -> None:
     paths = [
         FIXTURES_DIR / "concat_a.txt",
         FIXTURES_DIR / "concat_b.txt",

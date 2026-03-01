@@ -1,0 +1,10 @@
+project:
+  name: "incomplete-tool"
+  purpose: "Missing language"
+architecture:
+  style: library
+interfaces:
+  - type: cli
+framework:
+  name: click
+  version: "8.1"

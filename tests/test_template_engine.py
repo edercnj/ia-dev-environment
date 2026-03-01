@@ -7,7 +7,6 @@ from jinja2 import StrictUndefined, TemplateNotFound, UndefinedError
 
 from claude_setup.models import ProjectConfig
 from claude_setup.template_engine import (
-    PLACEHOLDER_PATTERN,
     TemplateEngine,
     _build_default_context,
 )
