@@ -47,7 +47,7 @@ def detect_v2_format(data: Dict[str, Any]) -> bool:
 
 def _build_architecture_section(
     data: Dict[str, Any],
-) -> Dict[str, Any]:
+) -> Tuple[Dict[str, Any], List[Dict[str, str]]]:
     """Build architecture and interfaces from v2 type field."""
     v2_type = data.get("type", "")
     style, interfaces = TYPE_MAPPING.get(v2_type, DEFAULT_TYPE_MAPPING)

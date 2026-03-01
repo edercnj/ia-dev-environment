@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import click
 
@@ -68,7 +68,7 @@ def _collect_interfaces() -> List[InterfaceConfig]:
     return [InterfaceConfig(type=iface_type)]
 
 
-def _collect_language_and_framework() -> tuple:
+def _collect_language_and_framework() -> Tuple[LanguageConfig, FrameworkConfig]:
     """Collect language and framework settings from user."""
     lang_name = _prompt_select("Language", LANGUAGE_CHOICES)
     lang_version = _prompt_input("Language version")
