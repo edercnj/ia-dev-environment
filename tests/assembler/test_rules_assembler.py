@@ -464,30 +464,16 @@ class TestCloudKnowledgeWithProvider:
 
 
 class TestIacWithFile:
-    def test_copies_iac_file_when_exists(
-        self, assembler: RulesAssembler, src_tree: Path, output_dir: Path,
+    def test_skipped_when_infra_has_no_iac_attr(
+        self, assembler: RulesAssembler, full_config: ProjectConfig,
+        src_tree: Path, output_dir: Path,
     ) -> None:
-        iac_dir = src_tree / "infrastructure" / "iac"
-        iac_dir.mkdir(parents=True, exist_ok=True)
-        (iac_dir / "terraform-patterns.md").write_text("# TF\n", encoding="utf-8")
-        data = _full_config_dict()
-        data["infrastructure"]["iac"] = "terraform"
-        config = ProjectConfig.from_dict(data)
+        """InfraConfig has no iac field — getattr fallback returns 'none'."""
         kp_dir = output_dir / "kp"
         kp_dir.mkdir(parents=True)
-        result = assembler._copy_iac_files(config, src_tree / "infrastructure", kp_dir)
-        assert len(result) == 1
-        assert result[0].name == "iac-terraform.md"
-
-    def test_missing_iac_file_returns_empty(
-        self, assembler: RulesAssembler, src_tree: Path, output_dir: Path,
-    ) -> None:
-        data = _full_config_dict()
-        data["infrastructure"]["iac"] = "pulumi"
-        config = ProjectConfig.from_dict(data)
-        kp_dir = output_dir / "kp"
-        kp_dir.mkdir(parents=True)
-        result = assembler._copy_iac_files(config, src_tree / "infrastructure", kp_dir)
+        result = assembler._copy_iac_files(
+            full_config, src_tree / "infrastructure", kp_dir,
+        )
         assert result == []
 
 
