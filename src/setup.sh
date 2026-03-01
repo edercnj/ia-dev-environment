@@ -314,6 +314,7 @@ get_stack_pack_name() {
         ktor)        echo "ktor-patterns" ;;
         axum)        echo "axum-patterns" ;;
         dotnet)      echo "dotnet-patterns" ;;
+        click)       echo "click-cli-patterns" ;;
         *)           log_warn "Unknown framework: $fw — no stack knowledge pack available"; echo "" ;;
     esac
 }
