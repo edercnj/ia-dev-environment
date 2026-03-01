@@ -1,7 +1,12 @@
 from __future__ import annotations
 
+import copy
+from pathlib import Path
+from typing import Dict
+
 import pytest
 
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 FULL_PROJECT_DICT = {
     "project": {
@@ -78,14 +83,59 @@ MINIMAL_PROJECT_DICT = {
 
 @pytest.fixture
 def full_project_dict() -> dict:
-    return _deep_copy(FULL_PROJECT_DICT)
+    return copy.deepcopy(FULL_PROJECT_DICT)
 
 
 @pytest.fixture
 def minimal_project_dict() -> dict:
-    return _deep_copy(MINIMAL_PROJECT_DICT)
+    return copy.deepcopy(MINIMAL_PROJECT_DICT)
 
 
-def _deep_copy(data: dict) -> dict:
-    import copy
-    return copy.deepcopy(data)
+@pytest.fixture
+def fixtures_dir() -> Path:
+    return FIXTURES_DIR
+
+
+@pytest.fixture
+def valid_v3_path(fixtures_dir: Path) -> Path:
+    return fixtures_dir / "valid_v3_config.yaml"
+
+
+@pytest.fixture
+def valid_v2_type_path(fixtures_dir: Path) -> Path:
+    return fixtures_dir / "valid_v2_type_config.yaml"
+
+
+@pytest.fixture
+def valid_v2_stack_path(fixtures_dir: Path) -> Path:
+    return fixtures_dir / "valid_v2_stack_config.yaml"
+
+
+@pytest.fixture
+def missing_language_path(fixtures_dir: Path) -> Path:
+    return fixtures_dir / "missing_language_config.yaml"
+
+
+@pytest.fixture
+def minimal_v3_path(fixtures_dir: Path) -> Path:
+    return fixtures_dir / "minimal_v3_config.yaml"
+
+
+@pytest.fixture
+def valid_v3_dict() -> Dict:
+    return {
+        "project": {"name": "test-tool", "purpose": "Testing"},
+        "architecture": {"style": "library"},
+        "interfaces": [{"type": "cli"}],
+        "language": {"name": "python", "version": "3.9"},
+        "framework": {"name": "click", "version": "8.1"},
+    }
+
+
+@pytest.fixture
+def valid_v2_dict() -> Dict:
+    return {
+        "type": "api",
+        "stack": "java-quarkus",
+        "project": {"name": "legacy", "purpose": "Legacy"},
+    }
