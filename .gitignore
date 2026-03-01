@@ -22,3 +22,20 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.bak
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+.venv/
+venv/
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+*.whl
