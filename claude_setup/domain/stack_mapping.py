@@ -134,8 +134,8 @@ FRAMEWORK_LANGUAGE_RULES: Dict[str, List[str]] = {
     "fiber": ["go"],
     "ktor": ["kotlin"],
     "axum": ["rust"],
-    "actix": ["rust"],
-    "dotnet": ["csharp"],
+    "actix-web": ["rust"],
+    "aspnet": ["csharp"],
 }
 
 # --- Native Build Support ---

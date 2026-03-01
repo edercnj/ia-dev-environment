@@ -68,7 +68,7 @@ class TestResolverLanguageCommands:
                 ".rs", "Cargo.toml",
             ),
             (
-                "csharp", "dotnet", "dotnet",
+                "csharp", "dotnet", "aspnet",
                 "dotnet build",
                 "dotnet test",
                 "dotnet build --no-restore --verbosity quiet",
@@ -236,6 +236,10 @@ class TestResolverProtocols:
                 ["openapi", "proto3", "kafka"],
             ),
             (
+                [{"type": "event-producer"}],
+                ["kafka"],
+            ),
+            (
                 [{"type": "cli"}],
                 [],
             ),
@@ -255,8 +259,8 @@ class TestResolverProtocols:
         ],
         ids=[
             "rest-only", "grpc-only",
-            "rest-grpc-event", "cli-only",
-            "all-network-protocols",
+            "rest-grpc-event", "event-producer-only",
+            "cli-only", "all-network-protocols",
         ],
     )
     def test_resolve_stack_derives_protocols(

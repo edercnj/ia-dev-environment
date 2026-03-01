@@ -2,8 +2,8 @@
 
 **ENGINEER:** QA
 **STORY:** STORY-003
-**SCORE:** 13/24 (fixture issue inflated failures; actual ~21/24 after fixture fix)
-**STATUS:** Request Changes
+**SCORE:** 13/24 (post-fix: 22/24)
+**STATUS:** Approved (fixture issue resolved, protocol mapping fixed)
 
 ## PASSED
 - [4] Test naming convention (2/2)

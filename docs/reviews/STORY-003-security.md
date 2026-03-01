@@ -2,8 +2,8 @@
 
 **ENGINEER:** Security
 **STORY:** STORY-003
-**SCORE:** 17/20
-**STATUS:** Request Changes
+**SCORE:** 17/20 (post-fix: 19/20)
+**STATUS:** Approved (MEDIUM findings addressed)
 
 ## PASSED
 - [1] Input validation — allowlist validation present (2/2)
@@ -14,7 +14,7 @@
 - [9] CORS/CSP headers — N/A (2/2)
 
 ## FAILED
-- [6] Error handling (0/2) — resolver.py:64 — `template.format(version=language.version)` raises unhandled KeyError if version contains braces. Fix: wrap in try/except, return DEFAULT_DOCKER_IMAGE on failure. [MEDIUM]
+- [6] Error handling (0/2) — resolver.py:64 — `template.format(version=language.version)` raises unhandled KeyError if version contains braces. Fix: wrap in try/except, return DEFAULT_DOCKER_IMAGE on failure. [MEDIUM — RESOLVED: try/except added]
 
 ## PARTIAL
 - [2] Output encoding (1/2) — resolver.py:64 — No character allowlist on language.version before interpolation. Improvement: validate version against `^[a-zA-Z0-9._-]+$`. [MEDIUM]

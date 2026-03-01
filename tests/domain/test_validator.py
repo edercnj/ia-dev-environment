@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import os
-
 import pytest
 
 from claude_setup.domain.validator import (
@@ -28,6 +26,8 @@ class TestValidatorValidCombos:
             ("go", "gin"),
             ("kotlin", "ktor"),
             ("rust", "axum"),
+            ("rust", "actix-web"),
+            ("csharp", "aspnet"),
         ],
         ids=[
             "java-quarkus", "kotlin-quarkus",
@@ -35,6 +35,7 @@ class TestValidatorValidCombos:
             "ts-nestjs", "ts-express", "ts-fastify",
             "python-fastapi", "python-django", "python-flask",
             "go-gin", "kotlin-ktor", "rust-axum",
+            "rust-actix-web", "csharp-aspnet",
         ],
     )
     def test_validate_stack_valid_combos_no_errors(
@@ -243,6 +244,16 @@ class TestValidatorInterfaceTypes:
     ) -> None:
         config = create_project_config(
             interfaces=[{"type": "rest"}, {"type": "grpc"}],
+        )
+        errors = validate_stack(config)
+        assert errors == []
+
+    def test_validate_stack_event_producer_valid(
+        self,
+        create_project_config,
+    ) -> None:
+        config = create_project_config(
+            interfaces=[{"type": "event-producer"}],
         )
         errors = validate_stack(config)
         assert errors == []

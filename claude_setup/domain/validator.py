@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import os
+from pathlib import Path
 from typing import List, Optional
 
 from claude_setup.domain.stack_mapping import (
@@ -12,7 +12,6 @@ from claude_setup.domain.stack_mapping import (
 from claude_setup.models import ProjectConfig
 
 JAVA_17_MINIMUM = 17
-JAVA_11_VERSION = 11
 PYTHON_310_MINOR = 10
 FRAMEWORK_VERSION_3 = 3
 FRAMEWORK_VERSION_5 = 5
@@ -84,13 +83,13 @@ def _check_java_17_requirement(
 ) -> List[str]:
     """Return error if Java 17+ is required but not met."""
     needs_check = (
-        fw == "quarkus"
-        or (fw == "spring-boot" and fw_major is not None
-            and fw_major >= FRAMEWORK_VERSION_3)
+        fw_major is not None
+        and fw_major >= FRAMEWORK_VERSION_3
+        and fw in ("quarkus", "spring-boot")
     )
     if needs_check and lang_major < JAVA_17_MINIMUM:
         return [
-            f"{fw.title()} 3.x requires Java 17+, "
+            f"{fw.title()} {fw_major}.x requires Java 17+, "
             f"got Java {lang_major}"
         ]
     return []
@@ -162,11 +161,11 @@ def verify_cross_references(
 ) -> List[str]:
     """Verify referenced directories exist on filesystem."""
     errors: List[str] = []
-    if not os.path.isdir(src_dir):
+    src = Path(src_dir)
+    if not src.is_dir():
         return [f"Source directory does not exist: {src_dir}"]
     for directory in EXPECTED_DIRECTORIES:
-        full_path = os.path.join(src_dir, directory)
-        if not os.path.isdir(full_path):
+        if not (src / directory).is_dir():
             errors.append(
                 f"Expected directory not found: {directory}"
             )
