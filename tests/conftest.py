@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import copy
+
 import pytest
+
+from claude_setup.models import ProjectConfig
 
 
 FULL_PROJECT_DICT = {
@@ -78,14 +82,21 @@ MINIMAL_PROJECT_DICT = {
 
 @pytest.fixture
 def full_project_dict() -> dict:
-    return _deep_copy(FULL_PROJECT_DICT)
+    return copy.deepcopy(FULL_PROJECT_DICT)
 
 
 @pytest.fixture
 def minimal_project_dict() -> dict:
-    return _deep_copy(MINIMAL_PROJECT_DICT)
+    return copy.deepcopy(MINIMAL_PROJECT_DICT)
 
 
-def _deep_copy(data: dict) -> dict:
-    import copy
-    return copy.deepcopy(data)
+@pytest.fixture
+def create_project_config():
+    """Factory fixture to build ProjectConfig with overrides."""
+    def _create(**overrides):
+        base = copy.deepcopy(MINIMAL_PROJECT_DICT)
+        for key, value in overrides.items():
+            base[key] = value
+        return ProjectConfig.from_dict(base)
+
+    return _create
