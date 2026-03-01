@@ -95,7 +95,8 @@ class AgentsAssembler:
         self, config: ProjectConfig,
     ) -> str:
         """Return developer agent filename for the language."""
-        return f"{config.language.name}-developer.md"
+        safe_name = Path(config.language.name).name
+        return f"{safe_name}-developer.md"
 
     def _copy_core_agent(
         self,
