@@ -1,0 +1,25 @@
+from __future__ import annotations
+
+from click.testing import CliRunner
+
+from claude_setup.__main__ import main
+
+
+class TestCli:
+
+    def test_help_returns_zero(self) -> None:
+        runner = CliRunner()
+        result = runner.invoke(main, ["--help"])
+        assert result.exit_code == 0
+        assert "usage" in result.output.lower()
+
+    def test_version_returns_version(self) -> None:
+        runner = CliRunner()
+        result = runner.invoke(main, ["--version"])
+        assert result.exit_code == 0
+        assert "0.1.0" in result.output
+
+    def test_no_args_shows_help(self) -> None:
+        runner = CliRunner()
+        result = runner.invoke(main, [])
+        assert "usage" in result.output.lower()
