@@ -2174,12 +2174,27 @@ assemble_skills() {
             if [[ -d "$skill_dir" ]]; then
                 local skill_name
                 skill_name=$(basename "$skill_dir")
+                # Skip lib/ — handled separately below
+                [[ "$skill_name" == "lib" ]] && continue
                 mkdir -p "${skills_dir}/${skill_name}"
                 cp -r "${skill_dir}"* "${skills_dir}/${skill_name}/"
                 replace_placeholders "${skills_dir}/${skill_name}/SKILL.md"
                 log_success "  ${skill_name}"
             fi
         done
+        # Copy internal lib skills (used by other skills, not directly by users)
+        if [[ -d "${SKILLS_TEMPLATES_DIR}/core/lib" ]]; then
+            for lib_dir in "${SKILLS_TEMPLATES_DIR}/core/lib"/*/; do
+                if [[ -d "$lib_dir" ]]; then
+                    local lib_name
+                    lib_name=$(basename "$lib_dir")
+                    mkdir -p "${skills_dir}/${lib_name}"
+                    cp -r "${lib_dir}"* "${skills_dir}/${lib_name}/"
+                    replace_placeholders "${skills_dir}/${lib_name}/SKILL.md"
+                    log_success "  ${lib_name} (lib)"
+                fi
+            done
+        fi
     fi
 
     # Copy conditional skills (feature-gated)
@@ -2188,22 +2203,22 @@ assemble_skills() {
 
         # review-api: requires "rest" in interfaces
         if array_contains "rest" "${INTERFACE_TYPES[@]}"; then
-            copy_conditional_skill "review-api"
+            copy_conditional_skill "x-review-api"
         fi
 
         # review-grpc: requires "grpc" in interfaces
         if array_contains "grpc" "${INTERFACE_TYPES[@]}"; then
-            copy_conditional_skill "review-grpc"
+            copy_conditional_skill "x-review-grpc"
         fi
 
         # review-graphql: requires "graphql" in interfaces
         if array_contains "graphql" "${INTERFACE_TYPES[@]}"; then
-            copy_conditional_skill "review-graphql"
+            copy_conditional_skill "x-review-graphql"
         fi
 
         # review-events: requires event-consumer or event-producer
         if array_contains "event-consumer" "${INTERFACE_TYPES[@]}" || array_contains "event-producer" "${INTERFACE_TYPES[@]}"; then
-            copy_conditional_skill "review-events"
+            copy_conditional_skill "x-review-events"
         fi
 
         # instrument-otel: requires observability != "none"
@@ -2241,12 +2256,12 @@ assemble_skills() {
 
         # security-compliance-review: requires any compliance framework
         if [[ ${#SECURITY_COMPLIANCE[@]} -gt 0 ]]; then
-            copy_conditional_skill "security-compliance-review"
+            copy_conditional_skill "x-review-security"
         fi
 
         # review-gateway: requires api_gateway != none
         if [[ "$API_GATEWAY" != "none" ]]; then
-            copy_conditional_skill "review-gateway"
+            copy_conditional_skill "x-review-gateway"
         fi
     fi
 
