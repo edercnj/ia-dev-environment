@@ -44,6 +44,11 @@ FULL_PROJECT_DICT = {
     "infrastructure": {
         "container": "docker",
         "orchestrator": "kubernetes",
+        "templating": "kustomize",
+        "iac": "terraform",
+        "registry": "ecr",
+        "api_gateway": "kong",
+        "service_mesh": "istio",
         "observability": {
             "tool": "opentelemetry",
             "metrics": "prometheus",
@@ -56,6 +61,7 @@ FULL_PROJECT_DICT = {
     "testing": {
         "smoke_tests": True,
         "contract_tests": True,
+        "performance_tests": True,
         "coverage_line": 95,
         "coverage_branch": 90,
     },

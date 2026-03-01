@@ -27,8 +27,16 @@ def _build_default_context(config: ProjectConfig) -> Dict[str, Any]:
         "event_driven": config.architecture.event_driven,
         "container": config.infrastructure.container,
         "orchestrator": config.infrastructure.orchestrator,
+        "templating": config.infrastructure.templating,
+        "iac": config.infrastructure.iac,
+        "registry": config.infrastructure.registry,
+        "api_gateway": config.infrastructure.api_gateway,
+        "service_mesh": config.infrastructure.service_mesh,
         "database_name": config.data.database.name,
         "cache_name": config.data.cache.name,
+        "smoke_tests": config.testing.smoke_tests,
+        "contract_tests": config.testing.contract_tests,
+        "performance_tests": config.testing.performance_tests,
         "coverage_line": config.testing.coverage_line,
         "coverage_branch": config.testing.coverage_branch,
     }
@@ -60,6 +68,7 @@ class TemplateEngine:
             undefined=StrictUndefined,
         )
         self._default_context = _build_default_context(config)
+        self._placeholder_map = _build_placeholder_map(config)
 
     def _merge_context(
         self,
@@ -100,8 +109,10 @@ class TemplateEngine:
 
         Uses self._config when config is not provided.
         """
-        cfg = config if config is not None else self._config
-        mapping = _build_placeholder_map(cfg)
+        if config is not None:
+            mapping = _build_placeholder_map(config)
+        else:
+            mapping = self._placeholder_map
 
         def _replacer(match: re.Match) -> str:
             key = match.group(1)

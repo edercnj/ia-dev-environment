@@ -308,12 +308,22 @@ class TestInfraConfig:
         cfg = InfraConfig()
         assert cfg.container == "docker"
         assert cfg.orchestrator == "none"
+        assert cfg.templating == "kustomize"
+        assert cfg.iac == "none"
+        assert cfg.registry == "none"
+        assert cfg.api_gateway == "none"
+        assert cfg.service_mesh == "none"
         assert isinstance(cfg.observability, ObservabilityConfig)
 
     def test_from_dict_complete_returns_instance(self) -> None:
         data = {
             "container": "docker",
             "orchestrator": "k8s",
+            "templating": "helm",
+            "iac": "terraform",
+            "registry": "ecr",
+            "api_gateway": "kong",
+            "service_mesh": "istio",
             "observability": {
                 "tool": "otel",
                 "metrics": "prom",
@@ -323,17 +333,33 @@ class TestInfraConfig:
         result = InfraConfig.from_dict(data)
         assert result.container == "docker"
         assert result.orchestrator == "k8s"
+        assert result.templating == "helm"
+        assert result.iac == "terraform"
+        assert result.registry == "ecr"
+        assert result.api_gateway == "kong"
+        assert result.service_mesh == "istio"
         assert result.observability.tool == "otel"
 
     def test_from_dict_empty_returns_defaults(self) -> None:
         result = InfraConfig.from_dict({})
         assert result.container == "docker"
+        assert result.templating == "kustomize"
+        assert result.iac == "none"
+        assert result.registry == "none"
+        assert result.api_gateway == "none"
+        assert result.service_mesh == "none"
         assert result.observability.tool == "none"
 
     def test_init_defaults_independent(self) -> None:
         a = InfraConfig()
         b = InfraConfig()
         assert a.observability is not b.observability
+
+    def test_from_dict_backward_compatible(self) -> None:
+        data = {"container": "docker", "orchestrator": "k8s"}
+        result = InfraConfig.from_dict(data)
+        assert result.templating == "kustomize"
+        assert result.iac == "none"
 
 
 # --- TestingConfig ---
@@ -345,6 +371,7 @@ class TestTestingConfig:
         cfg = TestingConfig()
         assert cfg.smoke_tests is True
         assert cfg.contract_tests is False
+        assert cfg.performance_tests is True
         assert cfg.coverage_line == 95
         assert cfg.coverage_branch == 90
 
@@ -352,19 +379,27 @@ class TestTestingConfig:
         data = {
             "smoke_tests": False,
             "contract_tests": True,
+            "performance_tests": False,
             "coverage_line": 80,
             "coverage_branch": 70,
         }
         result = TestingConfig.from_dict(data)
         assert result.smoke_tests is False
         assert result.contract_tests is True
+        assert result.performance_tests is False
         assert result.coverage_line == 80
         assert result.coverage_branch == 70
 
     def test_from_dict_empty_returns_defaults(self) -> None:
         result = TestingConfig.from_dict({})
         assert result.smoke_tests is True
+        assert result.performance_tests is True
         assert result.coverage_line == 95
+
+    def test_from_dict_backward_compatible(self) -> None:
+        data = {"smoke_tests": True, "contract_tests": False}
+        result = TestingConfig.from_dict(data)
+        assert result.performance_tests is True
 
 
 # --- ProjectConfig ---
