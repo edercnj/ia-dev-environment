@@ -6,18 +6,18 @@
 
 ## 1. Matriz de Dependências
 
-| Story | Título | Blocked By | Blocks | Status |
-| :--- | :--- | :--- | :--- | :--- |
-| STORY-001 | Scaffolding e Modelos | — | STORY-002, 003, 004, 005, 006, 007, 008 | Pendente |
-| STORY-002 | Config Loading | STORY-001 | STORY-009 | Pendente |
-| STORY-003 | Stack Resolution | STORY-001 | STORY-009 | Pendente |
-| STORY-004 | Template Engine | STORY-001 | STORY-005, 006, 007, 008 | Pendente |
-| STORY-005 | Rules Assembly | STORY-001, 004 | STORY-009 | Pendente |
-| STORY-006 | Patterns & Protocols | STORY-001, 004 | STORY-009 | Pendente |
-| STORY-007 | Skills & Agents | STORY-001, 004 | STORY-009 | Pendente |
-| STORY-008 | Hooks, Settings, README | STORY-001, 004 | STORY-009 | Pendente |
-| STORY-009 | CLI Pipeline | STORY-002, 003, 004, 005, 006, 007, 008 | STORY-010 | Pendente |
-| STORY-010 | Tests & Verification | STORY-009 | — | Pendente |
+| Story     | Título                  | Blocked By                              | Blocks                                  | Status   |
+| :-------- | :---------------------- | :-------------------------------------- | :-------------------------------------- | :------- |
+| STORY-001 | Scaffolding e Modelos   | —                                       | STORY-002, 003, 004, 005, 006, 007, 008 | Pendente |
+| STORY-002 | Config Loading          | STORY-001                               | STORY-009                               | Pendente |
+| STORY-003 | Stack Resolution        | STORY-001                               | STORY-009                               | Pendente |
+| STORY-004 | Template Engine         | STORY-001                               | STORY-005, 006, 007, 008                | Pendente |
+| STORY-005 | Rules Assembly          | STORY-001, 004                          | STORY-009                               | Pendente |
+| STORY-006 | Patterns & Protocols    | STORY-001, 004                          | STORY-009                               | Pendente |
+| STORY-007 | Skills & Agents         | STORY-001, 004                          | STORY-009                               | Pendente |
+| STORY-008 | Hooks, Settings, README | STORY-001, 004                          | STORY-009                               | Pendente |
+| STORY-009 | CLI Pipeline            | STORY-002, 003, 004, 005, 006, 007, 008 | STORY-010                               | Pendente |
+| STORY-010 | Tests & Verification    | STORY-009                               | —                                       | Pendente |
 
 > **Nota:** STORY-004 (Template Engine) é dependência indireta de STORY-009 tanto diretamente quanto via assemblers (005-008). Isso torna STORY-004 o nó mais crítico da árvore de dependências.
 
@@ -28,7 +28,7 @@
 > As histórias são agrupadas em fases. Dentro de cada fase, as histórias podem ser implementadas **em paralelo**. Uma fase só pode iniciar quando todas as dependências das fases anteriores estiverem concluídas.
 
 ```
-╔══════════════════════════════════════════════════════════════════════════╗
+╔════════════════════════════════════════════════════════════════════════╗
 ║                   FASE 0 — Foundation                                  ║
 ║                                                                        ║
 ║   ┌─────────────────────────────────────────────────────────────┐      ║
@@ -37,9 +37,9 @@
 ╚══════════════════════════════╪═════════════════════════════════════════╝
                                │
                                ▼
-╔══════════════════════════════════════════════════════════════════════════╗
-║              FASE 1 — Core Modules (paralelo)                          ║
-║                                                                        ║
+╔═══════════════════════════════════════════════════════════════════════╗
+║              FASE 1 — Core Modules (paralelo)                         ║
+║                                                                       ║
 ║   ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                   ║
 ║   │  STORY-002  │  │  STORY-003  │  │  STORY-004  │                   ║
 ║   │  Config     │  │  Stack Res. │  │  Template   │                   ║
@@ -48,7 +48,7 @@
            │                │                │
            │                │                ▼
 ╔══════════╪════════════════╪════════════════════════════════════════════╗
-║          │                │   FASE 2 — Assemblers (paralelo)          ║
+║          │                │   FASE 2 — Assemblers (paralelo)           ║
 ║          │                │                                            ║
 ║          │                │   ┌───────────┐  ┌───────────┐             ║
 ║          │                │   │ STORY-005 │  │ STORY-006 │             ║
@@ -58,26 +58,26 @@
 ║          │                │   │ STORY-007 │  │ STORY-008 │             ║
 ║          │                │   │ Skills    │  │ Hooks/Set │             ║
 ║          │                │   └─────┬─────┘  └─────┬─────┘             ║
-╚══════════╪════════════════╪═════════╪══════════════╪══════════════════╝
+╚══════════╪════════════════╪═════════╪══════════════╪═══════════════════╝
            │                │         │              │
            ▼                ▼         ▼              ▼
-╔══════════════════════════════════════════════════════════════════════════╗
+╔════════════════════════════════════════════════════════════════════════╗
 ║                   FASE 3 — Integration                                 ║
 ║                                                                        ║
 ║   ┌──────────────────────────────────────────────────────────┐         ║
-║   │  STORY-009  CLI Pipeline e Orquestração                   │         ║
+║   │  STORY-009  CLI Pipeline e Orquestração                  │         ║
 ║   │  (← STORY-002, 003, 004, 005, 006, 007, 008)             │         ║
 ║   └──────────────────────────┬───────────────────────────────┘         ║
 ╚══════════════════════════════╪═════════════════════════════════════════╝
                                │
                                ▼
 ╔══════════════════════════════════════════════════════════════════════════╗
-║                   FASE 4 — Verification                                ║
-║                                                                        ║
-║   ┌──────────────────────────────────────────────────────────┐         ║
-║   │  STORY-010  Testes e Verificação End-to-End               │         ║
-║   │  (← STORY-009)                                            │         ║
-║   └──────────────────────────────────────────────────────────┘         ║
+║                   FASE 4 — Verification                                  ║
+║                                                                          ║
+║   ┌──────────────────────────────────────────────────────────┐           ║
+║   │  STORY-010  Testes e Verificação End-to-End              │           ║
+║   │  (← STORY-009)                                           │           ║
+║   └──────────────────────────────────────────────────────────┘           ║
 ╚══════════════════════════════════════════════════════════════════════════╝
 ```
 
@@ -154,13 +154,13 @@ graph TD
 
 ## 5. Resumo por Fase
 
-| Fase | Histórias | Camada | Paralelismo | Pré-requisito |
-| :--- | :--- | :--- | :--- | :--- |
-| 0 | STORY-001 | Foundation | 1 | — |
-| 1 | STORY-002, STORY-003, STORY-004 | Core Modules | 3 paralelas | Fase 0 concluída |
-| 2 | STORY-005, STORY-006, STORY-007, STORY-008 | Assemblers | 4 paralelas | Fase 0 + STORY-004 |
-| 3 | STORY-009 | Integration | 1 | Fases 1 e 2 concluídas |
-| 4 | STORY-010 | Verification | 1 | Fase 3 concluída |
+| Fase | Histórias                                  | Camada       | Paralelismo | Pré-requisito          |
+| :--- | :----------------------------------------- | :----------- | :---------- | :--------------------- |
+| 0    | STORY-001                                  | Foundation   | 1           | —                      |
+| 1    | STORY-002, STORY-003, STORY-004            | Core Modules | 3 paralelas | Fase 0 concluída       |
+| 2    | STORY-005, STORY-006, STORY-007, STORY-008 | Assemblers   | 4 paralelas | Fase 0 + STORY-004     |
+| 3    | STORY-009                                  | Integration  | 1           | Fases 1 e 2 concluídas |
+| 4    | STORY-010                                  | Verification | 1           | Fase 3 concluída       |
 
 **Total: 10 histórias em 5 fases.**
 
@@ -172,8 +172,8 @@ graph TD
 
 ### Fase 0 — Foundation
 
-| Story | Escopo Principal | Artefatos Chave |
-| :--- | :--- | :--- |
+| Story     | Escopo Principal                                         | Artefatos Chave                                           |
+| :-------- | :------------------------------------------------------- | :-------------------------------------------------------- |
 | STORY-001 | Estrutura do projeto Python, dataclasses, pyproject.toml | `claude_setup/models.py`, `pyproject.toml`, `__main__.py` |
 
 **Entregas da Fase 0:**
@@ -184,11 +184,11 @@ graph TD
 
 ### Fase 1 — Core Modules
 
-| Story | Escopo Principal | Artefatos Chave |
-| :--- | :--- | :--- |
-| STORY-002 | YAML loading, migração v2→v3, modo interativo | `config.py` |
-| STORY-003 | Resolução de stack, validação de compatibilidade | `resolver.py`, `validator.py` |
-| STORY-004 | Engine Jinja2, replace placeholders, inject sections | `template_engine.py` |
+| Story     | Escopo Principal                                     | Artefatos Chave               |
+| :-------- | :--------------------------------------------------- | :---------------------------- |
+| STORY-002 | YAML loading, migração v2→v3, modo interativo        | `config.py`                   |
+| STORY-003 | Resolução de stack, validação de compatibilidade     | `resolver.py`, `validator.py` |
+| STORY-004 | Engine Jinja2, replace placeholders, inject sections | `template_engine.py`          |
 
 **Entregas da Fase 1:**
 
@@ -198,12 +198,12 @@ graph TD
 
 ### Fase 2 — Assemblers
 
-| Story | Escopo Principal | Artefatos Chave |
-| :--- | :--- | :--- |
-| STORY-005 | Rules assembly, project identity, consolidação | `assembler/rules.py` |
-| STORY-006 | Patterns selection, protocols derivation | `assembler/patterns.py`, `assembler/protocols.py` |
-| STORY-007 | Skills copying, agents copying, knowledge packs | `assembler/skills.py`, `assembler/agents.py` |
-| STORY-008 | Hooks JSON, settings JSON, README generation | `assembler/hooks.py`, `assembler/settings.py`, `assembler/readme.py` |
+| Story     | Escopo Principal                                | Artefatos Chave                                                      |
+| :-------- | :---------------------------------------------- | :------------------------------------------------------------------- |
+| STORY-005 | Rules assembly, project identity, consolidação  | `assembler/rules.py`                                                 |
+| STORY-006 | Patterns selection, protocols derivation        | `assembler/patterns.py`, `assembler/protocols.py`                    |
+| STORY-007 | Skills copying, agents copying, knowledge packs | `assembler/skills.py`, `assembler/agents.py`                         |
+| STORY-008 | Hooks JSON, settings JSON, README generation    | `assembler/hooks.py`, `assembler/settings.py`, `assembler/readme.py` |
 
 **Entregas da Fase 2:**
 
@@ -212,8 +212,8 @@ graph TD
 
 ### Fase 3 — Integration
 
-| Story | Escopo Principal | Artefatos Chave |
-| :--- | :--- | :--- |
+| Story     | Escopo Principal                                    | Artefatos Chave                               |
+| :-------- | :-------------------------------------------------- | :-------------------------------------------- |
 | STORY-009 | CLI Click, pipeline de orquestração, output atômico | `cli.py`, `assembler/__init__.py`, `utils.py` |
 
 **Entregas da Fase 3:**
@@ -224,8 +224,8 @@ graph TD
 
 ### Fase 4 — Verification
 
-| Story | Escopo Principal | Artefatos Chave |
-| :--- | :--- | :--- |
+| Story     | Escopo Principal                              | Artefatos Chave         |
+| :-------- | :-------------------------------------------- | :---------------------- |
 | STORY-010 | Verifier byte-a-byte, golden files, suíte e2e | `verifier.py`, `tests/` |
 
 **Entregas da Fase 4:**
