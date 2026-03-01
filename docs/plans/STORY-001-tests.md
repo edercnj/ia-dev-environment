@@ -10,43 +10,17 @@
 ## 1. Test Directory Structure
 
 ```
-claude_setup/tests/
+tests/
     __init__.py
-    conftest.py                  # Shared fixtures and factory functions
-    unit/
-        __init__.py
-        test_project_identity.py
-        test_architecture_config.py
-        test_interface_config.py
-        test_language_config.py
-        test_framework_config.py
-        test_tech_component.py
-        test_data_config.py
-        test_encryption_config.py
-        test_security_config.py
-        test_cloud_config.py
-        test_infra_config.py
-        test_observability_config.py
-        test_testing_config.py
-        test_domain_config.py
-        test_git_scope.py
-        test_conventions_config.py
-        test_adaptive_model.py
-        test_skills_config.py
-        test_agents_config.py
-        test_hooks_config.py
-        test_settings_config.py
-        test_project_config.py
-    contract/
-        __init__.py
-        test_from_dict_contracts.py
-    integration/
-        __init__.py
-        test_entry_point.py
-    fixtures/
-        __init__.py
-        model_fixtures.py
+    conftest.py              # Shared fixtures (FULL_PROJECT_DICT, MINIMAL_PROJECT_DICT)
+    test_models.py           # Unit tests for all 12 dataclasses and from_dict() methods
+    test_cli.py              # CLI tests using Click CliRunner
+    test_integration.py      # Integration tests via subprocess
 ```
+
+> **Note:** The plan originally proposed one test file per dataclass in a `unit/` subdirectory.
+> The implementation consolidated all model tests into a single `test_models.py` for simplicity,
+> since all 12 dataclasses are in a single `models.py` file (243 lines).
 
 ---
 

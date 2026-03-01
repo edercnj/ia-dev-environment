@@ -75,8 +75,8 @@ Minimal implementation -- just enough to satisfy `python -m claude_setup --help`
 | Path | Purpose |
 |------|---------|
 | `claude_setup/assembler/__init__.py` | Assembler subpackage placeholder |
-| `claude_setup/tests/__init__.py` | Test package init |
-| `claude_setup/tests/test_models.py` | Unit tests for all dataclasses |
+| `tests/__init__.py` | Test package init |
+| `tests/test_models.py` | Unit tests for all dataclasses |
 
 ---
 
@@ -91,7 +91,7 @@ Minimal implementation -- just enough to satisfy `python -m claude_setup --help`
 ```
 claude_setup/models.py       -> standard library only (dataclasses, typing)
 claude_setup/__main__.py     -> click (framework), claude_setup.models (domain)
-claude_setup/tests/           -> pytest, claude_setup.models
+tests/                        -> pytest, claude_setup.models
 ```
 
 **Validation:**
@@ -172,7 +172,7 @@ dev = [
 claude-setup = "claude_setup.__main__:main"
 
 [tool.pytest.ini_options]
-testpaths = ["claude_setup/tests"]
+testpaths = ["tests"]
 
 [tool.coverage.run]
 source = ["claude_setup"]
@@ -211,8 +211,8 @@ Execute sub-tasks in this sequence:
 3. **Create `claude_setup/models.py`** -- all dataclasses with `from_dict()` factories
 4. **Create `claude_setup/__main__.py`** -- minimal Click entry point
 5. **Create `claude_setup/assembler/__init__.py`** -- empty assembler package
-6. **Create `claude_setup/tests/__init__.py`** -- test package init
-7. **Create `claude_setup/tests/test_models.py`** -- unit tests for all models
+6. **Create `tests/__init__.py`** -- test package init
+7. **Create `tests/test_models.py`** -- unit tests for all models
 8. **Validate** -- `pip install -e .`, `claude-setup --help`, `pytest --cov`
 
 ---
@@ -226,9 +226,12 @@ claude_setup/
     models.py                # All dataclasses + from_dict() factories
     assembler/
         __init__.py          # Empty (placeholder for STORY-005+)
-    tests/
-        __init__.py
-        test_models.py       # Unit tests for all models
+tests/
+    __init__.py
+    conftest.py              # Shared fixtures
+    test_models.py           # Unit tests for all models
+    test_cli.py              # CLI tests with CliRunner
+    test_integration.py      # Integration tests with subprocess
 pyproject.toml               # Build config, deps, scripts
 ```
 

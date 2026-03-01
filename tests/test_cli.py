@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from click.testing import CliRunner
 
+from claude_setup import __version__
 from claude_setup.__main__ import main
 
 
@@ -17,9 +18,10 @@ class TestCli:
         runner = CliRunner()
         result = runner.invoke(main, ["--version"])
         assert result.exit_code == 0
-        assert "0.1.0" in result.output
+        assert __version__ in result.output
 
     def test_no_args_shows_help(self) -> None:
         runner = CliRunner()
         result = runner.invoke(main, [])
+        assert result.exit_code == 0
         assert "usage" in result.output.lower()

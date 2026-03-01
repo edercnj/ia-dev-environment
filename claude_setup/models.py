@@ -1,7 +1,16 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List
+from typing import Any, Dict, List
+
+
+def _require(data: Dict[str, Any], key: str, model: str) -> Any:
+    try:
+        return data[key]
+    except KeyError:
+        raise KeyError(
+            f"Missing required field '{key}' for {model}"
+        ) from None
 
 
 @dataclass
@@ -10,10 +19,10 @@ class ProjectIdentity:
     purpose: str
 
     @classmethod
-    def from_dict(cls, data: dict) -> ProjectIdentity:
+    def from_dict(cls, data: Dict[str, Any]) -> ProjectIdentity:
         return cls(
-            name=data["name"],
-            purpose=data["purpose"],
+            name=_require(data, "name", "ProjectIdentity"),
+            purpose=_require(data, "purpose", "ProjectIdentity"),
         )
 
 
@@ -24,9 +33,9 @@ class ArchitectureConfig:
     event_driven: bool = False
 
     @classmethod
-    def from_dict(cls, data: dict) -> ArchitectureConfig:
+    def from_dict(cls, data: Dict[str, Any]) -> ArchitectureConfig:
         return cls(
-            style=data["style"],
+            style=_require(data, "style", "ArchitectureConfig"),
             domain_driven=data.get("domain_driven", False),
             event_driven=data.get("event_driven", False),
         )
@@ -39,9 +48,9 @@ class InterfaceConfig:
     broker: str = ""
 
     @classmethod
-    def from_dict(cls, data: dict) -> InterfaceConfig:
+    def from_dict(cls, data: Dict[str, Any]) -> InterfaceConfig:
         return cls(
-            type=data["type"],
+            type=_require(data, "type", "InterfaceConfig"),
             spec=data.get("spec", ""),
             broker=data.get("broker", ""),
         )
@@ -53,10 +62,10 @@ class LanguageConfig:
     version: str
 
     @classmethod
-    def from_dict(cls, data: dict) -> LanguageConfig:
+    def from_dict(cls, data: Dict[str, Any]) -> LanguageConfig:
         return cls(
-            name=data["name"],
-            version=data["version"],
+            name=_require(data, "name", "LanguageConfig"),
+            version=_require(data, "version", "LanguageConfig"),
         )
 
 
@@ -68,10 +77,10 @@ class FrameworkConfig:
     native_build: bool = False
 
     @classmethod
-    def from_dict(cls, data: dict) -> FrameworkConfig:
+    def from_dict(cls, data: Dict[str, Any]) -> FrameworkConfig:
         return cls(
-            name=data["name"],
-            version=data["version"],
+            name=_require(data, "name", "FrameworkConfig"),
+            version=_require(data, "version", "FrameworkConfig"),
             build_tool=data.get("build_tool", "pip"),
             native_build=data.get("native_build", False),
         )
@@ -83,7 +92,7 @@ class TechComponent:
     version: str = ""
 
     @classmethod
-    def from_dict(cls, data: dict) -> TechComponent:
+    def from_dict(cls, data: Dict[str, Any]) -> TechComponent:
         return cls(
             name=data.get("name", "none"),
             version=data.get("version", ""),
@@ -107,7 +116,7 @@ class DataConfig:
     )
 
     @classmethod
-    def from_dict(cls, data: dict) -> DataConfig:
+    def from_dict(cls, data: Dict[str, Any]) -> DataConfig:
         return cls(
             database=TechComponent.from_dict(
                 data.get("database", {}),
@@ -126,7 +135,7 @@ class SecurityConfig:
     frameworks: List[str] = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, data: dict) -> SecurityConfig:
+    def from_dict(cls, data: Dict[str, Any]) -> SecurityConfig:
         return cls(
             frameworks=data.get("frameworks", []),
         )
@@ -139,7 +148,7 @@ class ObservabilityConfig:
     tracing: str = "none"
 
     @classmethod
-    def from_dict(cls, data: dict) -> ObservabilityConfig:
+    def from_dict(cls, data: Dict[str, Any]) -> ObservabilityConfig:
         return cls(
             tool=data.get("tool", "none"),
             metrics=data.get("metrics", "none"),
@@ -160,7 +169,7 @@ class InfraConfig:
     )
 
     @classmethod
-    def from_dict(cls, data: dict) -> InfraConfig:
+    def from_dict(cls, data: Dict[str, Any]) -> InfraConfig:
         return cls(
             container=data.get("container", "docker"),
             orchestrator=data.get("orchestrator", "none"),
@@ -178,7 +187,7 @@ class TestingConfig:
     coverage_branch: int = 90
 
     @classmethod
-    def from_dict(cls, data: dict) -> TestingConfig:
+    def from_dict(cls, data: Dict[str, Any]) -> TestingConfig:
         return cls(
             smoke_tests=data.get("smoke_tests", True),
             contract_tests=data.get("contract_tests", False),
@@ -208,25 +217,27 @@ class ProjectConfig:
     )
 
     @classmethod
-    def from_dict(cls, data: dict) -> ProjectConfig:
-        interfaces_raw = data["interfaces"]
+    def from_dict(cls, data: Dict[str, Any]) -> ProjectConfig:
+        interfaces_raw = _require(
+            data, "interfaces", "ProjectConfig",
+        )
         interfaces = [
             InterfaceConfig.from_dict(i)
             for i in interfaces_raw
         ]
         return cls(
             project=ProjectIdentity.from_dict(
-                data["project"],
+                _require(data, "project", "ProjectConfig"),
             ),
             architecture=ArchitectureConfig.from_dict(
-                data["architecture"],
+                _require(data, "architecture", "ProjectConfig"),
             ),
             interfaces=interfaces,
             language=LanguageConfig.from_dict(
-                data["language"],
+                _require(data, "language", "ProjectConfig"),
             ),
             framework=FrameworkConfig.from_dict(
-                data["framework"],
+                _require(data, "framework", "ProjectConfig"),
             ),
             data=DataConfig.from_dict(
                 data.get("data", {}),

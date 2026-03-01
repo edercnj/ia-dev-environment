@@ -34,7 +34,7 @@ G7 depends on G6.
 | T-001 | Create `pyproject.toml` with project metadata, dependencies (`click>=8.1,<9.0`, `pyyaml>=6.0,<7.0`, `jinja2>=3.1,<4.0`), dev dependencies (`pytest>=7.0`, `pytest-cov>=4.0`), `[project.scripts]` entry point, pytest and coverage config. `requires-python = ">=3.9"`. Build backend: `setuptools`. | `pyproject.toml` | Low |
 | T-002 | Create `claude_setup/__init__.py` with `__version__ = "0.1.0"` constant. | `claude_setup/__init__.py` | Low |
 | T-003 | Create `claude_setup/assembler/__init__.py` as empty placeholder package for future assembler implementations (STORY-005+). | `claude_setup/assembler/__init__.py` | Low |
-| T-004 | Create `claude_setup/tests/__init__.py` as empty test package init. | `claude_setup/tests/__init__.py` | Low |
+| T-004 | Create `tests/__init__.py` as empty test package init. | `tests/__init__.py` | Low |
 
 **Parallelism:** T-001 through T-004 are independent and can all be created in parallel.
 
@@ -90,7 +90,7 @@ All dataclasses go in `claude_setup/models.py`. File must start with `from __fut
 
 | Task ID | Description | File | Complexity |
 |---------|-------------|------|------------|
-| T-022 | Create `claude_setup/tests/test_models.py` with comprehensive unit tests covering: (a) Direct instantiation of every dataclass with explicit arguments. (b) `from_dict()` with a full YAML-equivalent dict (all sections populated, interfaces with multiple items). (c) `from_dict()` with a minimal dict (only required fields: project, architecture, interfaces, language, framework) -- optional fields use defaults. (d) `from_dict()` error handling: missing required key raises descriptive error. (e) Default value verification for all optional fields. (f) Nested object construction (DataConfig.database is TechComponent, SecurityConfig.encryption is EncryptionConfig, etc.). Target: 100% line coverage on models.py, >= 90% branch coverage. | `claude_setup/tests/test_models.py` | High |
+| T-022 | Create `tests/test_models.py` with comprehensive unit tests covering: (a) Direct instantiation of every dataclass with explicit arguments. (b) `from_dict()` with a full YAML-equivalent dict (all sections populated, interfaces with multiple items). (c) `from_dict()` with a minimal dict (only required fields: project, architecture, interfaces, language, framework) -- optional fields use defaults. (d) `from_dict()` error handling: missing required key raises descriptive error. (e) Default value verification for all optional fields. (f) Nested object construction (DataConfig.database is TechComponent, SecurityConfig.encryption is EncryptionConfig, etc.). Target: 100% line coverage on models.py, >= 90% branch coverage. | `claude_setup/tests/test_models.py` | High |
 
 **Parallelism:** Single task. Depends on G3 (factory methods) and G4 (entry point exists for import validation).
 
@@ -100,7 +100,7 @@ All dataclasses go in `claude_setup/models.py`. File must start with `from __fut
 
 | Task ID | Description | File | Complexity |
 |---------|-------------|------|------------|
-| T-023 | Create `claude_setup/tests/test_integration.py` with integration tests: (a) Verify `pip install -e .` succeeds (subprocess call). (b) Verify `python -m claude_setup --help` returns exit code 0 and output contains usage info. (c) Verify `claude-setup --help` console script works (subprocess call). (d) Verify `claude-setup --version` outputs version string. | `claude_setup/tests/test_integration.py` | Medium |
+| T-023 | Create `tests/test_integration.py` with integration tests: (a) Verify `pip install -e .` succeeds (subprocess call). (b) Verify `python -m claude_setup --help` returns exit code 0 and output contains usage info. (c) Verify `claude-setup --help` console script works (subprocess call). (d) Verify `claude-setup --version` outputs version string. | `claude_setup/tests/test_integration.py` | Medium |
 
 **Parallelism:** Single task. Depends on G5 (unit tests passing first).
 
@@ -137,6 +137,6 @@ All dataclasses go in `claude_setup/models.py`. File must start with `from __fut
 3. `claude_setup/models.py`
 4. `claude_setup/__main__.py`
 5. `claude_setup/assembler/__init__.py`
-6. `claude_setup/tests/__init__.py`
-7. `claude_setup/tests/test_models.py`
-8. `claude_setup/tests/test_integration.py`
+6. `tests/__init__.py`
+7. `tests/test_models.py`
+8. `tests/test_integration.py`

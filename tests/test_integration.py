@@ -3,6 +3,8 @@ from __future__ import annotations
 import subprocess
 import sys
 
+from claude_setup import __version__
+
 
 class TestEntryPoint:
 
@@ -24,4 +26,4 @@ class TestEntryPoint:
             timeout=10,
         )
         assert result.returncode == 0
-        assert "0.1.0" in result.stdout
+        assert __version__ in result.stdout

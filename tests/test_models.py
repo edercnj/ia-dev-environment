@@ -35,7 +35,7 @@ class TestProjectIdentity:
         assert result.purpose == "My app"
 
     def test_from_dict_missing_name_raises_key_error(self) -> None:
-        with pytest.raises(KeyError):
+        with pytest.raises(KeyError, match="Missing required field 'name'"):
             ProjectIdentity.from_dict({"purpose": "x"})
 
 
@@ -143,7 +143,7 @@ class TestLanguageConfig:
         assert result.version == "3.9"
 
     def test_from_dict_missing_version_raises(self) -> None:
-        with pytest.raises(KeyError):
+        with pytest.raises(KeyError, match="Missing required field 'version'"):
             LanguageConfig.from_dict({"name": "python"})
 
 
@@ -422,7 +422,7 @@ class TestProjectConfig:
         assert len(cfg.interfaces) == 1
 
     def test_from_dict_missing_project_raises(self) -> None:
-        with pytest.raises(KeyError):
+        with pytest.raises(KeyError, match="Missing required field 'project'"):
             ProjectConfig.from_dict({
                 "architecture": {"style": "lib"},
                 "interfaces": [],
@@ -431,7 +431,7 @@ class TestProjectConfig:
             })
 
     def test_from_dict_missing_architecture_raises(self) -> None:
-        with pytest.raises(KeyError):
+        with pytest.raises(KeyError, match="Missing required field 'architecture'"):
             ProjectConfig.from_dict({
                 "project": {"name": "x", "purpose": "y"},
                 "interfaces": [],
@@ -440,7 +440,7 @@ class TestProjectConfig:
             })
 
     def test_from_dict_missing_interfaces_raises(self) -> None:
-        with pytest.raises(KeyError):
+        with pytest.raises(KeyError, match="Missing required field 'interfaces'"):
             ProjectConfig.from_dict({
                 "project": {"name": "x", "purpose": "y"},
                 "architecture": {"style": "lib"},
@@ -449,7 +449,7 @@ class TestProjectConfig:
             })
 
     def test_from_dict_missing_language_raises(self) -> None:
-        with pytest.raises(KeyError):
+        with pytest.raises(KeyError, match="Missing required field 'language'"):
             ProjectConfig.from_dict({
                 "project": {"name": "x", "purpose": "y"},
                 "architecture": {"style": "lib"},
@@ -458,7 +458,7 @@ class TestProjectConfig:
             })
 
     def test_from_dict_missing_framework_raises(self) -> None:
-        with pytest.raises(KeyError):
+        with pytest.raises(KeyError, match="Missing required field 'framework'"):
             ProjectConfig.from_dict({
                 "project": {"name": "x", "purpose": "y"},
                 "architecture": {"style": "lib"},
