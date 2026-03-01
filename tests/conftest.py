@@ -6,6 +6,8 @@ from typing import Dict
 
 import pytest
 
+from claude_setup.models import ProjectConfig
+
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 FULL_PROJECT_DICT = {
@@ -89,6 +91,18 @@ def full_project_dict() -> dict:
 @pytest.fixture
 def minimal_project_dict() -> dict:
     return copy.deepcopy(MINIMAL_PROJECT_DICT)
+
+
+@pytest.fixture
+def create_project_config():
+    """Factory fixture to build ProjectConfig with overrides."""
+    def _create(**overrides):
+        base = copy.deepcopy(MINIMAL_PROJECT_DICT)
+        for key, value in overrides.items():
+            base[key] = value
+        return ProjectConfig.from_dict(base)
+
+    return _create
 
 
 @pytest.fixture
