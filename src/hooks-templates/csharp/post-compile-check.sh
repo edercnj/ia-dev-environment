@@ -9,8 +9,8 @@ if ! command -v jq &>/dev/null; then
     exit 0
 fi
 
-TOOL_INPUT=$(cat)
-FILE_PATH=$(echo "$TOOL_INPUT" | jq -r '.tool_input.file_path // empty')
+TOOL_INPUT="$(cat)"
+FILE_PATH="$(echo "${TOOL_INPUT}" | jq -r '.tool_input.file_path // empty')"
 
 if [[ -z "$FILE_PATH" ]] || [[ "$FILE_PATH" != *.cs ]]; then
     exit 0
@@ -18,13 +18,13 @@ fi
 
 PROJECT_ROOT=$(pwd)
 while [[ "$PROJECT_ROOT" != "/" ]]; do
-    if ls "$PROJECT_ROOT"/*.sln 1>/dev/null 2>&1 || ls "$PROJECT_ROOT"/*.csproj 1>/dev/null 2>&1; then
+    if compgen -G "${PROJECT_ROOT}/*.sln" >/dev/null 2>&1 || compgen -G "${PROJECT_ROOT}/*.csproj" >/dev/null 2>&1; then
         break
     fi
     PROJECT_ROOT=$(dirname "$PROJECT_ROOT")
 done
 
-if ! ls "$PROJECT_ROOT"/*.sln 1>/dev/null 2>&1 && ! ls "$PROJECT_ROOT"/*.csproj 1>/dev/null 2>&1; then
+if ! compgen -G "${PROJECT_ROOT}/*.sln" >/dev/null 2>&1 && ! compgen -G "${PROJECT_ROOT}/*.csproj" >/dev/null 2>&1; then
     exit 0
 fi
 

@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-set -uo pipefail
+set -euo pipefail
 
 # Test script for YAML parsing functions
 # Tests edge cases in YAML value parsing
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 # Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly NC='\033[0m'
 
 # Counters
 PASS_COUNT=0
@@ -21,29 +21,29 @@ TOTAL_COUNT=0
 
 # Create temp directory for test files
 TEST_TMPDIR=$(mktemp -d)
-trap "rm -rf $TEST_TMPDIR" EXIT
+trap 'rm -rf "${TEST_TMPDIR}"' EXIT
 
 # Helper functions
 log_pass() {
-    echo -e "${GREEN}✓${NC} $1"
-    ((PASS_COUNT++))
-    ((TOTAL_COUNT++))
+    echo -e "${GREEN}✓${NC} $*"
+    PASS_COUNT=$((PASS_COUNT + 1))
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
 }
 
 log_fail() {
-    echo -e "${RED}✗${NC} $1"
-    ((FAIL_COUNT++))
-    ((TOTAL_COUNT++))
+    echo -e "${RED}✗${NC} $*" >&2
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+    TOTAL_COUNT=$((TOTAL_COUNT + 1))
 }
 
 log_info() {
-    echo -e "${BLUE}ℹ${NC} $1"
+    echo -e "${BLUE}ℹ${NC} $*"
 }
 
 log_header() {
     echo ""
     echo -e "${BLUE}═══════════════════════════════════════════${NC}"
-    echo -e "${BLUE}$1${NC}"
+    echo -e "${BLUE}$*${NC}"
     echo -e "${BLUE}═══════════════════════════════════════════${NC}"
 }
 
@@ -73,7 +73,7 @@ _extract_functions() {
         p && /^}$/ { p=0 }
     ' "$setup"
 }
-eval "$(_extract_functions)"
+source <(_extract_functions)
 
 # Main test logic
 main() {
@@ -164,7 +164,7 @@ EOF
     local count=0
     while IFS= read -r item; do
         [[ -z "$item" ]] && continue
-        ((count++))
+        count=$((count + 1))
     done < <(parse_yaml_list "$TEST_TMPDIR/test10.yaml" "languages")
     if [[ $count -eq 3 ]]; then
         log_pass "Parse list with 3 items"
@@ -190,7 +190,7 @@ EOF
     local count=0
     while IFS= read -r item; do
         [[ -z "$item" ]] && continue
-        ((count++))
+        count=$((count + 1))
     done < <(parse_yaml_list "$TEST_TMPDIR/test12.yaml" "emptyList")
     if [[ $count -eq 0 ]]; then
         log_pass "Empty list returns no items"

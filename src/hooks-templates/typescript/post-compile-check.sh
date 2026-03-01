@@ -9,8 +9,8 @@ if ! command -v jq &>/dev/null; then
     exit 0
 fi
 
-TOOL_INPUT=$(cat)
-FILE_PATH=$(echo "$TOOL_INPUT" | jq -r '.tool_input.file_path // empty')
+TOOL_INPUT="$(cat)"
+FILE_PATH="$(echo "${TOOL_INPUT}" | jq -r '.tool_input.file_path // empty')"
 
 case "$FILE_PATH" in
     *.ts|*.tsx|*.mts|*.cts) ;;

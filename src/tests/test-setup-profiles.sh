@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-set -uo pipefail
+set -euo pipefail
 
 # Test script for setup.sh configuration profiles
 # Validates that each config-template generates correct .claude/ structure
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 # Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly NC='\033[0m'
 
 # Counters
 PASS_COUNT=0
@@ -21,23 +21,23 @@ TOTAL_PROFILES=0
 
 # Helper functions
 log_pass() {
-    echo -e "${GREEN}✓${NC} $1"
-    ((PASS_COUNT++))
+    echo -e "${GREEN}✓${NC} $*"
+    PASS_COUNT=$((PASS_COUNT + 1))
 }
 
 log_fail() {
-    echo -e "${RED}✗${NC} $1"
-    ((FAIL_COUNT++))
+    echo -e "${RED}✗${NC} $*" >&2
+    FAIL_COUNT=$((FAIL_COUNT + 1))
 }
 
 log_info() {
-    echo -e "${BLUE}ℹ${NC} $1"
+    echo -e "${BLUE}ℹ${NC} $*"
 }
 
 log_header() {
     echo ""
     echo -e "${BLUE}═══════════════════════════════════════════${NC}"
-    echo -e "${BLUE}$1${NC}"
+    echo -e "${BLUE}$*${NC}"
     echo -e "${BLUE}═══════════════════════════════════════════${NC}"
 }
 
@@ -57,7 +57,7 @@ validate_claude_dir() {
     for dir in "${required_dirs[@]}"; do
         if [[ ! -d "${claude_dir}/${dir}" ]]; then
             log_fail "Missing directory: ${dir}/ in profile ${profile}"
-            ((errors++))
+            errors=$((errors + 1))
         else
             log_info "Found ${dir}/ directory"
         fi
@@ -70,7 +70,7 @@ validate_claude_dir() {
             log_pass "Found ${rule_files} rule files in ${profile}"
         else
             log_fail "No rule files found in ${profile}"
-            ((errors++))
+            errors=$((errors + 1))
         fi
     fi
 
@@ -79,7 +79,7 @@ validate_claude_dir() {
         log_pass "Skills directory exists in ${profile}"
     else
         log_fail "Skills directory missing in ${profile}"
-        ((errors++))
+        errors=$((errors + 1))
     fi
 
     # Check for agents directory content
@@ -87,20 +87,20 @@ validate_claude_dir() {
         log_pass "Agents directory exists in ${profile}"
     else
         log_fail "Agents directory missing in ${profile}"
-        ((errors++))
+        errors=$((errors + 1))
     fi
 
     # Check for mandatory files at root
     if [[ ! -f "${claude_dir}/settings.json" ]]; then
         log_fail "Missing settings.json in ${profile}"
-        ((errors++))
+        errors=$((errors + 1))
     else
         log_pass "Found settings.json in ${profile}"
     fi
 
     if [[ ! -f "${claude_dir}/README.md" ]]; then
         log_fail "Missing README.md in ${profile}"
-        ((errors++))
+        errors=$((errors + 1))
     else
         log_pass "Found README.md in ${profile}"
     fi
@@ -112,7 +112,7 @@ validate_claude_dir() {
                 log_pass "settings.json is valid JSON in ${profile}"
             else
                 log_fail "settings.json is invalid JSON in ${profile}"
-                ((errors++))
+                errors=$((errors + 1))
             fi
         else
             log_info "jq not available, skipping JSON validation for ${profile}"
@@ -139,13 +139,14 @@ main() {
     # Process each config template
     while IFS= read -r config_file; do
         local profile=$(basename "$config_file" | sed 's/setup-config\.\(.*\)\.yaml/\1/')
-        ((TOTAL_PROFILES++))
+        TOTAL_PROFILES=$((TOTAL_PROFILES + 1))
 
         log_header "Testing profile: ${profile}"
         log_info "Config file: ${config_file}"
 
         # Create temporary output directory
-        local test_output="/tmp/test-output-${profile}-$$"
+        local test_output
+        test_output="$(mktemp -d)"
         rm -rf "$test_output"
         mkdir -p "$test_output"
 

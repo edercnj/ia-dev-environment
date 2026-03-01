@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-set -uo pipefail
+set -euo pipefail
 
 # Test: Validate that key cross-references between source files are not broken
 # Focuses on known critical references, not exhaustive scanning
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly BLUE='\033[0;34m'
+readonly NC='\033[0m'
 
 PASS=0
 FAIL=0
@@ -19,10 +19,10 @@ check() {
     local desc="$1" file="$2"
     if [[ -f "${PROJECT_ROOT}/${file}" ]] || [[ -d "${PROJECT_ROOT}/${file}" ]]; then
         echo -e "${GREEN}✓${NC} ${desc}"
-        ((PASS++))
+        PASS=$((PASS + 1))
     else
         echo -e "${RED}✗${NC} ${desc} → ${file} NOT FOUND"
-        ((FAIL++))
+        FAIL=$((FAIL + 1))
     fi
 }
 
@@ -48,10 +48,10 @@ check "core-rules/05-quality-gates.md" "core-rules/05-quality-gates.md"
 # Git dedup: 06-git-conventions should NOT exist (was duplicated)
 if [[ ! -f "${PROJECT_ROOT}/core-rules/06-git-conventions.md" ]]; then
     echo -e "${GREEN}✓${NC} core-rules/06-git-conventions.md correctly removed (dedup)"
-    ((PASS++))
+    PASS=$((PASS + 1))
 else
     echo -e "${RED}✗${NC} core-rules/06-git-conventions.md still exists (should be deleted)"
-    ((FAIL++))
+    FAIL=$((FAIL + 1))
 fi
 
 # Security compliance files
@@ -97,17 +97,17 @@ echo ""
 echo -e "${BLUE}--- Cloud-Agnostic Configs ---${NC}"
 if grep -rq 'provider: aws$' "${PROJECT_ROOT}/config-templates/" 2>/dev/null; then
     echo -e "${RED}✗${NC} AWS still hardcoded in config-templates"
-    ((FAIL++))
+    FAIL=$((FAIL + 1))
 else
     echo -e "${GREEN}✓${NC} No hardcoded AWS in config-templates"
-    ((PASS++))
+    PASS=$((PASS + 1))
 fi
 if grep -rq 'registry: ecr$' "${PROJECT_ROOT}/config-templates/" 2>/dev/null; then
     echo -e "${RED}✗${NC} ECR still hardcoded in config-templates"
-    ((FAIL++))
+    FAIL=$((FAIL + 1))
 else
     echo -e "${GREEN}✓${NC} No hardcoded ECR in config-templates"
-    ((PASS++))
+    PASS=$((PASS + 1))
 fi
 
 # Summary

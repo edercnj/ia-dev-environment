@@ -10,22 +10,22 @@ set -euo pipefail
 #   ./setup.sh --config setup-config.yaml  # Config file mode
 #   ./setup.sh --config setup-config.yaml --output /path/to/project/.claude/
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CORE_DIR="${SCRIPT_DIR}/core"
-LANGUAGES_DIR="${SCRIPT_DIR}/languages"
-FRAMEWORKS_DIR="${SCRIPT_DIR}/frameworks"
-DATABASES_DIR="${SCRIPT_DIR}/databases"
-TEMPLATES_DIR="${SCRIPT_DIR}/templates"
-PATTERNS_DIR="${SCRIPT_DIR}/patterns"
-PROTOCOLS_DIR="${SCRIPT_DIR}/protocols"
-SKILLS_TEMPLATES_DIR="${SCRIPT_DIR}/skills-templates"
-AGENTS_TEMPLATES_DIR="${SCRIPT_DIR}/agents-templates"
-HOOKS_TEMPLATES_DIR="${SCRIPT_DIR}/hooks-templates"
-SETTINGS_TEMPLATES_DIR="${SCRIPT_DIR}/settings-templates"
-README_TEMPLATE="${SCRIPT_DIR}/readme-template.md"
-SECURITY_DIR="${SCRIPT_DIR}/security"
-CLOUD_PROVIDERS_DIR="${SCRIPT_DIR}/cloud-providers"
-INFRASTRUCTURE_DIR="${SCRIPT_DIR}/infrastructure"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly CORE_DIR="${SCRIPT_DIR}/core"
+readonly LANGUAGES_DIR="${SCRIPT_DIR}/languages"
+readonly FRAMEWORKS_DIR="${SCRIPT_DIR}/frameworks"
+readonly DATABASES_DIR="${SCRIPT_DIR}/databases"
+readonly TEMPLATES_DIR="${SCRIPT_DIR}/templates"
+readonly PATTERNS_DIR="${SCRIPT_DIR}/patterns"
+readonly PROTOCOLS_DIR="${SCRIPT_DIR}/protocols"
+readonly SKILLS_TEMPLATES_DIR="${SCRIPT_DIR}/skills-templates"
+readonly AGENTS_TEMPLATES_DIR="${SCRIPT_DIR}/agents-templates"
+readonly HOOKS_TEMPLATES_DIR="${SCRIPT_DIR}/hooks-templates"
+readonly SETTINGS_TEMPLATES_DIR="${SCRIPT_DIR}/settings-templates"
+readonly README_TEMPLATE="${SCRIPT_DIR}/readme-template.md"
+readonly SECURITY_DIR="${SCRIPT_DIR}/security"
+readonly CLOUD_PROVIDERS_DIR="${SCRIPT_DIR}/cloud-providers"
+readonly INFRASTRUCTURE_DIR="${SCRIPT_DIR}/infrastructure"
 # Note: PATTERNS_DIR already defined above (line 19)
 
 # Defaults
@@ -116,15 +116,15 @@ DOMAIN_TEMPLATE="none"
 PROTOCOLS=()
 
 # Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly NC='\033[0m' # No Color
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
-    case $1 in
+    case "$1" in
         --config)
             CONFIG_FILE="$2"
             INTERACTIVE=false
@@ -168,12 +168,21 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# ─── Cleanup Trap ────────────────────────────────────────────────────────────
+
+cleanup() {
+    local exit_code=$?
+    find "${OUTPUT_DIR:-}" -name "*.bak" -delete 2>/dev/null || true
+    exit "${exit_code}"
+}
+trap cleanup EXIT
+
 # ─── Helper Functions ────────────────────────────────────────────────────────
 
-log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
-log_success() { echo -e "${GREEN}[OK]${NC} $1"; }
-log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
-log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+log_info()    { echo -e "${BLUE}[INFO]${NC} $*"; }
+log_success() { echo -e "${GREEN}[OK]${NC} $*"; }
+log_warn()    { echo -e "${YELLOW}[WARN]${NC} $*" >&2; }
+log_error()   { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 
 check_dependency() {
     if ! command -v "$1" &> /dev/null; then
@@ -987,12 +996,10 @@ run_config() {
 }
 
 # Parse v3 config format
-run_config_v3() {
-    # Project identity
+parse_project_identity() {
     PROJECT_NAME=$(parse_yaml_value "$CONFIG_FILE" "name" "project")
     PROJECT_PURPOSE=$(parse_yaml_value "$CONFIG_FILE" "purpose" "project")
 
-    # Architecture
     ARCH_STYLE=$(parse_yaml_value "$CONFIG_FILE" "style" "architecture")
     [[ -z "$ARCH_STYLE" ]] && ARCH_STYLE="microservice"
     DOMAIN_DRIVEN=$(parse_yaml_value "$CONFIG_FILE" "domain_driven" "architecture")
@@ -1000,7 +1007,6 @@ run_config_v3() {
     EVENT_DRIVEN=$(parse_yaml_value "$CONFIG_FILE" "event_driven" "architecture")
     [[ -z "$EVENT_DRIVEN" ]] && EVENT_DRIVEN="false"
 
-    # Interfaces (v3 format)
     local iface_list
     iface_list=$(parse_interfaces "$CONFIG_FILE")
     if [[ -n "$iface_list" ]]; then
@@ -1009,15 +1015,17 @@ run_config_v3() {
         done <<< "$iface_list"
     fi
 
-    # Derive PROTOCOLS and PROJECT_TYPE for backward compat
     derive_protocols_from_interfaces
     derive_project_type
+    ARCHITECTURE="hexagonal"
+}
 
-    # Language
+parse_language_config() {
     LANGUAGE_NAME=$(parse_yaml_value "$CONFIG_FILE" "name" "language")
     LANGUAGE_VERSION=$(parse_yaml_value "$CONFIG_FILE" "version" "language")
+}
 
-    # Framework
+parse_framework_config() {
     FRAMEWORK_NAME=$(parse_yaml_value "$CONFIG_FILE" "name" "framework")
     FRAMEWORK_VERSION=$(parse_yaml_value "$CONFIG_FILE" "version" "framework")
     BUILD_TOOL=$(parse_yaml_value "$CONFIG_FILE" "build_tool" "framework")
@@ -1027,44 +1035,23 @@ run_config_v3() {
     if [[ ! "$LANGUAGE_NAME" =~ ^(java|kotlin)$ ]]; then
         NATIVE_BUILD="false"
     fi
+    return 0
+}
 
-    # Data: database
+parse_infrastructure_config() {
     DB_TYPE=$(parse_yaml_nested "$CONFIG_FILE" "data" "database" "type")
     [[ -z "$DB_TYPE" ]] && DB_TYPE="none"
     DB_MIGRATION=$(parse_yaml_nested "$CONFIG_FILE" "data" "database" "migration")
     [[ -z "$DB_MIGRATION" ]] && DB_MIGRATION="none"
-
-    # Data: cache
     CACHE_TYPE=$(parse_yaml_nested "$CONFIG_FILE" "data" "cache" "type")
     [[ -z "$CACHE_TYPE" ]] && CACHE_TYPE="none"
-
-    # Data: message broker
     MESSAGE_BROKER_TYPE=$(parse_yaml_nested "$CONFIG_FILE" "data" "message_broker" "type")
     [[ -z "$MESSAGE_BROKER_TYPE" ]] && MESSAGE_BROKER_TYPE="none"
 
-    # Infrastructure
     CONTAINER=$(parse_yaml_value "$CONFIG_FILE" "container" "infrastructure")
     [[ -z "$CONTAINER" ]] && CONTAINER="none"
     ORCHESTRATOR=$(parse_yaml_value "$CONFIG_FILE" "orchestrator" "infrastructure")
     [[ -z "$ORCHESTRATOR" ]] && ORCHESTRATOR="none"
-
-    # Observability (top-level section)
-    OBSERVABILITY=$(parse_yaml_value "$CONFIG_FILE" "standard" "observability")
-    [[ -z "$OBSERVABILITY" ]] && OBSERVABILITY="opentelemetry"
-    OBSERVABILITY_BACKEND=$(parse_yaml_value "$CONFIG_FILE" "backend" "observability")
-    [[ -z "$OBSERVABILITY_BACKEND" ]] && OBSERVABILITY_BACKEND="grafana-stack"
-
-    # Testing
-    SMOKE_TESTS=$(parse_yaml_value "$CONFIG_FILE" "smoke_tests" "testing")
-    [[ -z "$SMOKE_TESTS" ]] && SMOKE_TESTS="true"
-    PERFORMANCE_TESTS=$(parse_yaml_value "$CONFIG_FILE" "performance_tests" "testing")
-    [[ -z "$PERFORMANCE_TESTS" ]] && PERFORMANCE_TESTS="true"
-    CONTRACT_TESTS=$(parse_yaml_value "$CONFIG_FILE" "contract_tests" "testing")
-    [[ -z "$CONTRACT_TESTS" ]] && CONTRACT_TESTS="false"
-    CHAOS_TESTS=$(parse_yaml_value "$CONFIG_FILE" "chaos_tests" "testing")
-    [[ -z "$CHAOS_TESTS" ]] && CHAOS_TESTS="false"
-
-    # Infrastructure expanded
     TEMPLATING=$(parse_yaml_value "$CONFIG_FILE" "templating" "infrastructure")
     [[ -z "$TEMPLATING" ]] && TEMPLATING="kustomize"
     IAC=$(parse_yaml_value "$CONFIG_FILE" "iac" "infrastructure")
@@ -1076,7 +1063,29 @@ run_config_v3() {
     SERVICE_MESH=$(parse_yaml_value "$CONFIG_FILE" "service_mesh" "infrastructure")
     [[ -z "$SERVICE_MESH" ]] && SERVICE_MESH="none"
 
-    # Security
+    OBSERVABILITY=$(parse_yaml_value "$CONFIG_FILE" "standard" "observability")
+    [[ -z "$OBSERVABILITY" ]] && OBSERVABILITY="opentelemetry"
+    OBSERVABILITY_BACKEND=$(parse_yaml_value "$CONFIG_FILE" "backend" "observability")
+    [[ -z "$OBSERVABILITY_BACKEND" ]] && OBSERVABILITY_BACKEND="grafana-stack"
+
+    SMOKE_TESTS=$(parse_yaml_value "$CONFIG_FILE" "smoke_tests" "testing")
+    [[ -z "$SMOKE_TESTS" ]] && SMOKE_TESTS="true"
+    PERFORMANCE_TESTS=$(parse_yaml_value "$CONFIG_FILE" "performance_tests" "testing")
+    [[ -z "$PERFORMANCE_TESTS" ]] && PERFORMANCE_TESTS="true"
+    CONTRACT_TESTS=$(parse_yaml_value "$CONFIG_FILE" "contract_tests" "testing")
+    [[ -z "$CONTRACT_TESTS" ]] && CONTRACT_TESTS="false"
+    CHAOS_TESTS=$(parse_yaml_value "$CONFIG_FILE" "chaos_tests" "testing")
+    [[ -z "$CHAOS_TESTS" ]] && CHAOS_TESTS="false"
+
+    CLOUD_PROVIDER=$(parse_yaml_value "$CONFIG_FILE" "provider" "cloud")
+    [[ -z "$CLOUD_PROVIDER" ]] && CLOUD_PROVIDER="none"
+
+    DOMAIN_TEMPLATE=$(parse_yaml_value "$CONFIG_FILE" "template" "domain")
+    [[ -z "$DOMAIN_TEMPLATE" ]] && DOMAIN_TEMPLATE="none"
+    return 0
+}
+
+parse_security_config() {
     local compliance_list
     compliance_list=$(parse_yaml_list "$CONFIG_FILE" "compliance")
     if [[ -n "$compliance_list" ]]; then
@@ -1090,17 +1099,15 @@ run_config_v3() {
     [[ -z "$KEY_MANAGEMENT" ]] && KEY_MANAGEMENT="none"
     PENTEST_READINESS=$(parse_yaml_value "$CONFIG_FILE" "pentest_readiness" "security")
     [[ -z "$PENTEST_READINESS" ]] && PENTEST_READINESS="true"
+    return 0
+}
 
-    # Cloud
-    CLOUD_PROVIDER=$(parse_yaml_value "$CONFIG_FILE" "provider" "cloud")
-    [[ -z "$CLOUD_PROVIDER" ]] && CLOUD_PROVIDER="none"
-
-    # Domain template
-    DOMAIN_TEMPLATE=$(parse_yaml_value "$CONFIG_FILE" "template" "domain")
-    [[ -z "$DOMAIN_TEMPLATE" ]] && DOMAIN_TEMPLATE="none"
-
-    # Architecture pattern (for project identity — default to hexagonal)
-    ARCHITECTURE="hexagonal"
+run_config_v3() {
+    parse_project_identity
+    parse_language_config
+    parse_framework_config
+    parse_infrastructure_config
+    parse_security_config
 }
 
 # Parse old v2 config format with backward compatibility
@@ -1941,9 +1948,7 @@ flush_patterns_consolidated() {
     )
 
     for array_name in "${all_arrays[@]}"; do
-        # bash 3.2 compatible indirect array expansion
-        local -a arr=()
-        eval "arr=(\"\${${array_name}[@]}\")"
+        local -n arr="${array_name}"
         for rel_path in "${arr[@]}"; do
             # Skip hexagonal — it goes into the rule, not the knowledge pack
             if [[ "$rel_path" == "architectural/hexagonal-architecture.md" ]]; then
