@@ -76,14 +76,14 @@ class TestConsolidateFrameworkRules:
     def test_consolidate_framework_produces_three_files(
         self, tmp_path: Path,
     ) -> None:
-        src_dir = tmp_path / "src"
-        src_dir.mkdir()
+        source_dir = tmp_path / "src"
+        source_dir.mkdir()
         rules_dir = tmp_path / "rules"
         rules_dir.mkdir()
-        (src_dir / "quarkus-cdi.md").write_text("CDI content")
-        (src_dir / "quarkus-jpa.md").write_text("JPA content")
-        (src_dir / "quarkus-testing.md").write_text("Testing content")
-        result = consolidate_framework_rules("quarkus", rules_dir, src_dir)
+        (source_dir / "quarkus-cdi.md").write_text("CDI content")
+        (source_dir / "quarkus-jpa.md").write_text("JPA content")
+        (source_dir / "quarkus-testing.md").write_text("Testing content")
+        result = consolidate_framework_rules("quarkus", rules_dir, source_dir)
         assert len(result) == 3
         names = [p.name for p in result]
         assert "30-quarkus-core.md" in names
@@ -93,12 +93,12 @@ class TestConsolidateFrameworkRules:
     def test_consolidate_framework_empty_group_not_created(
         self, tmp_path: Path,
     ) -> None:
-        src_dir = tmp_path / "src"
-        src_dir.mkdir()
+        source_dir = tmp_path / "src"
+        source_dir.mkdir()
         rules_dir = tmp_path / "rules"
         rules_dir.mkdir()
-        (src_dir / "quarkus-cdi.md").write_text("CDI only")
-        result = consolidate_framework_rules("quarkus", rules_dir, src_dir)
+        (source_dir / "quarkus-cdi.md").write_text("CDI only")
+        result = consolidate_framework_rules("quarkus", rules_dir, source_dir)
         assert len(result) == 1
         assert result[0].name == "30-quarkus-core.md"
 
@@ -148,12 +148,12 @@ class TestConsolidateFrameworkRules:
         filename: str,
         expected_group: str,
     ) -> None:
-        src_dir = tmp_path / "src"
-        src_dir.mkdir()
+        source_dir = tmp_path / "src"
+        source_dir.mkdir()
         rules_dir = tmp_path / "rules"
         rules_dir.mkdir()
-        (src_dir / filename).write_text(f"{expected_group} content")
-        result = consolidate_framework_rules("fw", rules_dir, src_dir)
+        (source_dir / filename).write_text(f"{expected_group} content")
+        result = consolidate_framework_rules("fw", rules_dir, source_dir)
         assert len(result) == 1
         group_prefixes = {"core": "30", "data": "31", "operations": "32"}
         prefix = group_prefixes[expected_group]

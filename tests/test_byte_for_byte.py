@@ -20,9 +20,9 @@ CONFIG_PROFILES = [
 ]
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-CONFIG_TEMPLATES_DIR = PROJECT_ROOT / "src" / "config-templates"
+CONFIG_TEMPLATES_DIR = PROJECT_ROOT / "resources" / "config-templates"
 GOLDEN_DIR = Path(__file__).resolve().parent / "golden"
-SRC_DIR = PROJECT_ROOT / "src"
+RESOURCES_DIR = PROJECT_ROOT / "resources"
 
 GOLDEN_MISSING_MSG = "Golden files not found. Run: python scripts/generate_golden.py --all"
 
@@ -37,7 +37,7 @@ def _run_pipeline_for_profile(
         / f"setup-config.{profile_name}.yaml"
     )
     config = load_config(config_path)
-    return run_pipeline(config, SRC_DIR, output_dir)
+    return run_pipeline(config, RESOURCES_DIR, output_dir)
 
 
 def _golden_path_for_profile(profile_name: str) -> Path:

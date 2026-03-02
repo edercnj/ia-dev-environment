@@ -23,7 +23,7 @@ def _success_result() -> PipelineResult:
 class TestGenerateWithConfigFile:
 
     @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_src_dir")
+    @patch("claude_setup.__main__.find_resources_dir")
     def test_generate_valid_v3_exits_zero(
         self, mock_find, mock_pipeline, valid_v3_path: Path,
     ) -> None:
@@ -34,7 +34,7 @@ class TestGenerateWithConfigFile:
         assert result.exit_code == 0
 
     @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_src_dir")
+    @patch("claude_setup.__main__.find_resources_dir")
     def test_generate_v2_type_exits_zero(
         self, mock_find, mock_pipeline, valid_v2_type_path: Path,
     ) -> None:
@@ -47,7 +47,7 @@ class TestGenerateWithConfigFile:
         assert result.exit_code == 0
 
     @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_src_dir")
+    @patch("claude_setup.__main__.find_resources_dir")
     def test_generate_v2_stack_exits_zero(
         self, mock_find, mock_pipeline, valid_v2_stack_path: Path,
     ) -> None:
@@ -78,7 +78,7 @@ class TestGenerateWithConfigFile:
         assert result.exit_code == 2
 
     @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_src_dir")
+    @patch("claude_setup.__main__.find_resources_dir")
     def test_generate_minimal_v3_exits_zero(
         self, mock_find, mock_pipeline, minimal_v3_path: Path,
     ) -> None:
@@ -94,7 +94,7 @@ class TestGenerateWithConfigFile:
 class TestGenerateInteractive:
 
     @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_src_dir")
+    @patch("claude_setup.__main__.find_resources_dir")
     @patch("claude_setup.__main__.run_interactive")
     def test_generate_interactive_exits_zero(
         self, mock_interactive, mock_find, mock_pipeline,

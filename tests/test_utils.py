@@ -9,7 +9,7 @@ from claude_setup.utils import (
     _reject_dangerous_path,
     _validate_dest_path,
     atomic_output,
-    find_src_dir,
+    find_resources_dir,
     setup_logging,
 )
 
@@ -169,30 +169,30 @@ class TestSetupLogging:
         assert root.level == logging.INFO
 
 
-class TestFindSrcDir:
+class TestFindResourcesDir:
 
-    def test_returns_existing_src_dir(self) -> None:
-        result = find_src_dir()
+    def test_returns_existing_resources_dir(self) -> None:
+        result = find_resources_dir()
         assert result.exists()
         assert result.is_dir()
 
-    def test_returns_path_ending_in_src(self) -> None:
-        result = find_src_dir()
-        assert result.name == "src"
+    def test_returns_path_ending_in_resources(self) -> None:
+        result = find_resources_dir()
+        assert result.name == "resources"
 
     def test_returns_absolute_path(self) -> None:
-        result = find_src_dir()
+        result = find_resources_dir()
         assert result.is_absolute()
 
-    def test_raises_when_src_missing(self, monkeypatch, tmp_path: Path) -> None:
-        fake_file = tmp_path / "pkg" / "utils.py"
+    def test_raises_when_resources_missing(self, monkeypatch, tmp_path: Path) -> None:
+        fake_file = tmp_path / "src" / "pkg" / "utils.py"
         fake_file.parent.mkdir(parents=True)
         fake_file.write_text("")
         monkeypatch.setattr(
             "claude_setup.utils.__file__",
             str(fake_file),
         )
-        # After monkeypatch, find_src_dir will look for
-        # tmp_path/src which doesn't exist
-        with pytest.raises(FileNotFoundError, match="Source directory not found"):
-            find_src_dir()
+        # After monkeypatch, find_resources_dir will look for
+        # tmp_path/resources which doesn't exist
+        with pytest.raises(FileNotFoundError, match="Resources directory not found"):
+            find_resources_dir()

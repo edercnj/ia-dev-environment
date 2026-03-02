@@ -169,7 +169,7 @@ class TestSelectPatternFiles:
         files = select_pattern_files(FIXTURES_SRC, [])
         assert files == []
 
-    def test_select_pattern_files_nonexistent_src_dir(
+    def test_select_pattern_files_nonexistent_resources_dir(
         self,
     ) -> None:
         files = select_pattern_files(

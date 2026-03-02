@@ -14,13 +14,13 @@ def assembler():
     return AgentsAssembler()
 
 
-def _make_engine(src_dir: Path, config: ProjectConfig) -> TemplateEngine:
-    return TemplateEngine(src_dir, config)
+def _make_engine(resources_dir: Path, config: ProjectConfig) -> TemplateEngine:
+    return TemplateEngine(resources_dir, config)
 
 
-def _create_core_agent(src_dir: Path, name: str, content: str) -> Path:
+def _create_core_agent(resources_dir: Path, name: str, content: str) -> Path:
     """Helper to create a core agent template."""
-    path = src_dir / "agents-templates" / "core"
+    path = resources_dir / "agents-templates" / "core"
     path.mkdir(parents=True, exist_ok=True)
     agent = path / name
     agent.write_text(content, encoding="utf-8")
@@ -28,10 +28,10 @@ def _create_core_agent(src_dir: Path, name: str, content: str) -> Path:
 
 
 def _create_conditional_agent(
-    src_dir: Path, name: str, content: str,
+    resources_dir: Path, name: str, content: str,
 ) -> Path:
     """Helper to create a conditional agent template."""
-    path = src_dir / "agents-templates" / "conditional"
+    path = resources_dir / "agents-templates" / "conditional"
     path.mkdir(parents=True, exist_ok=True)
     agent = path / name
     agent.write_text(content, encoding="utf-8")
@@ -39,10 +39,10 @@ def _create_conditional_agent(
 
 
 def _create_developer_agent(
-    src_dir: Path, name: str, content: str,
+    resources_dir: Path, name: str, content: str,
 ) -> Path:
     """Helper to create a developer agent template."""
-    path = src_dir / "agents-templates" / "developers"
+    path = resources_dir / "agents-templates" / "developers"
     path.mkdir(parents=True, exist_ok=True)
     agent = path / name
     agent.write_text(content, encoding="utf-8")
@@ -50,10 +50,10 @@ def _create_developer_agent(
 
 
 def _create_checklist(
-    src_dir: Path, name: str, content: str,
+    resources_dir: Path, name: str, content: str,
 ) -> Path:
     """Helper to create a checklist template."""
-    path = src_dir / "agents-templates" / "checklists"
+    path = resources_dir / "agents-templates" / "checklists"
     path.mkdir(parents=True, exist_ok=True)
     checklist = path / name
     checklist.write_text(content, encoding="utf-8")

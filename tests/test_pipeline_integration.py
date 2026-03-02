@@ -8,7 +8,7 @@ import pytest
 from claude_setup.assembler import run_pipeline
 from claude_setup.exceptions import PipelineError
 from claude_setup.models import ProjectConfig
-from claude_setup.utils import find_src_dir
+from claude_setup.utils import find_resources_dir
 
 
 def _build_config() -> ProjectConfig:
@@ -28,18 +28,18 @@ class TestPipelineIntegration:
         self, tmp_path: Path,
     ) -> None:
         config = _build_config()
-        src_dir = find_src_dir()
+        resources_dir = find_resources_dir()
         output = tmp_path / "output"
-        result = run_pipeline(config, src_dir, output)
+        result = run_pipeline(config, resources_dir, output)
         assert result.success is True
 
     def test_pipeline_generates_rules_directory(
         self, tmp_path: Path,
     ) -> None:
         config = _build_config()
-        src_dir = find_src_dir()
+        resources_dir = find_resources_dir()
         output = tmp_path / "output"
-        run_pipeline(config, src_dir, output)
+        run_pipeline(config, resources_dir, output)
         rules_dir = output / "rules"
         assert rules_dir.is_dir()
         md_files = list(rules_dir.glob("*.md"))
@@ -49,9 +49,9 @@ class TestPipelineIntegration:
         self, tmp_path: Path,
     ) -> None:
         config = _build_config()
-        src_dir = find_src_dir()
+        resources_dir = find_resources_dir()
         output = tmp_path / "output"
-        run_pipeline(config, src_dir, output)
+        run_pipeline(config, resources_dir, output)
         settings = output / "settings.json"
         assert settings.is_file()
         import json
@@ -62,9 +62,9 @@ class TestPipelineIntegration:
         self, tmp_path: Path,
     ) -> None:
         config = _build_config()
-        src_dir = find_src_dir()
+        resources_dir = find_resources_dir()
         output = tmp_path / "output"
-        run_pipeline(config, src_dir, output)
+        run_pipeline(config, resources_dir, output)
         readme = output / "README.md"
         assert readme.is_file()
 
@@ -72,27 +72,27 @@ class TestPipelineIntegration:
         self, tmp_path: Path,
     ) -> None:
         config = _build_config()
-        src_dir = find_src_dir()
+        resources_dir = find_resources_dir()
         output = tmp_path / "output"
-        result = run_pipeline(config, src_dir, output)
+        result = run_pipeline(config, resources_dir, output)
         assert len(result.files_generated) > 0
 
     def test_pipeline_duration_ms_positive(
         self, tmp_path: Path,
     ) -> None:
         config = _build_config()
-        src_dir = find_src_dir()
+        resources_dir = find_resources_dir()
         output = tmp_path / "output"
-        result = run_pipeline(config, src_dir, output)
+        result = run_pipeline(config, resources_dir, output)
         assert result.duration_ms > 0
 
     def test_pipeline_dry_run_no_output(
         self, tmp_path: Path,
     ) -> None:
         config = _build_config()
-        src_dir = find_src_dir()
+        resources_dir = find_resources_dir()
         output = tmp_path / "output"
-        result = run_pipeline(config, src_dir, output, dry_run=True)
+        result = run_pipeline(config, resources_dir, output, dry_run=True)
         assert result.success is True
         assert not output.exists()
 
@@ -100,21 +100,21 @@ class TestPipelineIntegration:
         self, tmp_path: Path,
     ) -> None:
         config = _build_config()
-        src_dir = find_src_dir()
+        resources_dir = find_resources_dir()
         output = tmp_path / "output"
-        result = run_pipeline(config, src_dir, output, dry_run=True)
+        result = run_pipeline(config, resources_dir, output, dry_run=True)
         assert len(result.files_generated) > 0
 
     def test_pipeline_atomic_cleanup_on_failure(
         self, tmp_path: Path,
     ) -> None:
         config = _build_config()
-        src_dir = find_src_dir()
+        resources_dir = find_resources_dir()
         output = tmp_path / "output"
         with patch(
             "claude_setup.assembler.readme_assembler.ReadmeAssembler.assemble",
             side_effect=RuntimeError("forced failure"),
         ):
             with pytest.raises(PipelineError):
-                run_pipeline(config, src_dir, output)
+                run_pipeline(config, resources_dir, output)
         assert not output.exists()

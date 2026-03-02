@@ -44,7 +44,7 @@ class TestGenerateCommand:
         assert "--dry-run" in result.output
 
     @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_src_dir")
+    @patch("claude_setup.__main__.find_resources_dir")
     def test_generate_config_valid_exits_zero(
         self, mock_find, mock_pipeline, valid_v3_path: Path,
     ) -> None:
@@ -61,7 +61,7 @@ class TestGenerateCommand:
         assert result.exit_code == 2
 
     @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_src_dir")
+    @patch("claude_setup.__main__.find_resources_dir")
     @patch("claude_setup.__main__.run_interactive")
     def test_generate_interactive_exits_zero(
         self, mock_interactive, mock_find, mock_pipeline,
@@ -98,7 +98,7 @@ class TestGenerateCommand:
         assert "required" in result.output.lower()
 
     @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_src_dir")
+    @patch("claude_setup.__main__.find_resources_dir")
     def test_generate_dry_run_shows_plan(
         self, mock_find, mock_pipeline, valid_v3_path: Path,
     ) -> None:
@@ -113,7 +113,7 @@ class TestGenerateCommand:
         assert "dry run" in result.output.lower()
 
     @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_src_dir")
+    @patch("claude_setup.__main__.find_resources_dir")
     def test_generate_verbose_enables_logging(
         self, mock_find, mock_pipeline, valid_v3_path: Path,
     ) -> None:
@@ -127,7 +127,7 @@ class TestGenerateCommand:
         assert result.exit_code == 0
 
     @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_src_dir")
+    @patch("claude_setup.__main__.find_resources_dir")
     def test_generate_output_dir_option(
         self, mock_find, mock_pipeline, valid_v3_path: Path, tmp_path: Path,
     ) -> None:
@@ -143,7 +143,7 @@ class TestGenerateCommand:
         )
         assert result.exit_code == 0
 
-    @patch("claude_setup.__main__.find_src_dir")
+    @patch("claude_setup.__main__.find_resources_dir")
     def test_generate_pipeline_error_exits_one(
         self, mock_find, valid_v3_path: Path,
     ) -> None:
@@ -158,21 +158,21 @@ class TestGenerateCommand:
             assert result.exit_code == 1
 
     @patch("claude_setup.__main__.run_pipeline")
-    def test_generate_src_dir_option(
+    def test_generate_resources_dir_option(
         self, mock_pipeline, valid_v3_path: Path, tmp_path: Path,
     ) -> None:
-        src = tmp_path / "my-src"
-        src.mkdir()
+        resources = tmp_path / "my-resources"
+        resources.mkdir()
         mock_pipeline.return_value = _success_result()
         runner = CliRunner()
         result = runner.invoke(
             main,
-            ["generate", "-c", str(valid_v3_path), "--src-dir", str(src)],
+            ["generate", "-c", str(valid_v3_path), "--resources-dir", str(resources)],
         )
         assert result.exit_code == 0
 
-    @patch("claude_setup.__main__.find_src_dir")
-    def test_generate_find_src_dir_failure_exits_one(
+    @patch("claude_setup.__main__.find_resources_dir")
+    def test_generate_find_resources_dir_failure_exits_one(
         self, mock_find, valid_v3_path: Path,
     ) -> None:
         mock_find.side_effect = FileNotFoundError("not found")
@@ -184,7 +184,7 @@ class TestGenerateCommand:
         assert result.exit_code == 1
 
     @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_src_dir")
+    @patch("claude_setup.__main__.find_resources_dir")
     def test_generate_failed_result_exits_one(
         self, mock_find, mock_pipeline, valid_v3_path: Path,
     ) -> None:
