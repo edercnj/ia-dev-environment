@@ -68,6 +68,7 @@ class TemplateEngine:
             undefined=StrictUndefined,
         )
         self._default_context = _build_default_context(config)
+        self._placeholder_map = _build_placeholder_map(config)
 
     def _merge_context(
         self,
@@ -108,8 +109,10 @@ class TemplateEngine:
 
         Uses self._config when config is not provided.
         """
-        cfg = config if config is not None else self._config
-        mapping = _build_placeholder_map(cfg)
+        if config is not None:
+            mapping = _build_placeholder_map(config)
+        else:
+            mapping = self._placeholder_map
 
         def _replacer(match: re.Match) -> str:
             key = match.group(1)
