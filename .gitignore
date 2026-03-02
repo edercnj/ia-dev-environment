@@ -36,6 +36,7 @@ build/
 venv/
 .coverage
 .coverage.*
+coverage.json
 htmlcov/
 .pytest_cache/
 *.whl
