@@ -72,3 +72,4 @@ O setup.sh (3.214 linhas Bash) será reescrito como uma ferramenta CLI Python cr
 | [STORY-008](./STORY_STORY-008_Hooks-Settings-Readme.md) | Assemblers de Hooks, Settings e README | STORY-001, STORY-004 |
 | [STORY-009](./STORY_STORY-009_CLI-Pipeline.md) | CLI Pipeline e Orquestração | STORY-002, STORY-003, STORY-004, STORY-005, STORY-006, STORY-007, STORY-008 |
 | [STORY-010](./STORY_STORY-010_Tests-Verification.md) | Testes e Verificação End-to-End | STORY-009 |
+| [STORY-011](./STORY_STORY-011_Src-Layout-Migration.md) | Migração para src Layout (PyPA) | STORY-010 |
