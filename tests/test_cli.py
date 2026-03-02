@@ -25,3 +25,13 @@ class TestCli:
         result = runner.invoke(main, [])
         assert result.exit_code == 0
         assert "usage" in result.output.lower()
+
+    def test_help_lists_generate_command(self) -> None:
+        runner = CliRunner()
+        result = runner.invoke(main, ["--help"])
+        assert "generate" in result.output
+
+    def test_help_lists_validate_command(self) -> None:
+        runner = CliRunner()
+        result = runner.invoke(main, ["--help"])
+        assert "validate" in result.output

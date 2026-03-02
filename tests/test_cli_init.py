@@ -1,79 +1,114 @@
 from __future__ import annotations
 
 from pathlib import Path
+from unittest.mock import patch
 
 from click.testing import CliRunner
 
 from claude_setup.__main__ import main
+from claude_setup.models import PipelineResult
 
 
-class TestInitWithConfigFile:
+def _success_result() -> PipelineResult:
+    """Build a successful PipelineResult for mocking."""
+    return PipelineResult(
+        success=True,
+        output_dir=Path("."),
+        files_generated=[Path("rules/01.md")],
+        warnings=[],
+        duration_ms=42,
+    )
 
-    def test_init_valid_v3_exits_zero(self, valid_v3_path: Path) -> None:
-        runner = CliRunner()
-        result = runner.invoke(main, ["init", "-c", str(valid_v3_path)])
-        assert result.exit_code == 0
-        assert "test-cli-tool" in result.output
 
-    def test_init_v2_type_exits_zero(self, valid_v2_type_path: Path) -> None:
-        runner = CliRunner()
-        result = runner.invoke(main, ["init", "-c", str(valid_v2_type_path)])
-        assert result.exit_code == 0
-        assert "legacy-service" in result.output
+class TestGenerateWithConfigFile:
 
-    def test_init_v2_stack_exits_zero(
-        self,
-        valid_v2_stack_path: Path,
+    @patch("claude_setup.__main__.run_pipeline")
+    @patch("claude_setup.__main__.find_src_dir")
+    def test_generate_valid_v3_exits_zero(
+        self, mock_find, mock_pipeline, valid_v3_path: Path,
     ) -> None:
+        mock_find.return_value = Path("src")
+        mock_pipeline.return_value = _success_result()
         runner = CliRunner()
-        result = runner.invoke(main, ["init", "-c", str(valid_v2_stack_path)])
+        result = runner.invoke(main, ["generate", "-c", str(valid_v3_path)])
         assert result.exit_code == 0
-        assert "legacy-cli" in result.output
 
-    def test_init_missing_section_exits_one(
-        self,
-        missing_language_path: Path,
+    @patch("claude_setup.__main__.run_pipeline")
+    @patch("claude_setup.__main__.find_src_dir")
+    def test_generate_v2_type_exits_zero(
+        self, mock_find, mock_pipeline, valid_v2_type_path: Path,
+    ) -> None:
+        mock_find.return_value = Path("src")
+        mock_pipeline.return_value = _success_result()
+        runner = CliRunner()
+        result = runner.invoke(
+            main, ["generate", "-c", str(valid_v2_type_path)],
+        )
+        assert result.exit_code == 0
+
+    @patch("claude_setup.__main__.run_pipeline")
+    @patch("claude_setup.__main__.find_src_dir")
+    def test_generate_v2_stack_exits_zero(
+        self, mock_find, mock_pipeline, valid_v2_stack_path: Path,
+    ) -> None:
+        mock_find.return_value = Path("src")
+        mock_pipeline.return_value = _success_result()
+        runner = CliRunner()
+        result = runner.invoke(
+            main, ["generate", "-c", str(valid_v2_stack_path)],
+        )
+        assert result.exit_code == 0
+
+    def test_generate_missing_section_exits_one(
+        self, missing_language_path: Path,
     ) -> None:
         runner = CliRunner()
         result = runner.invoke(
             main,
-            ["init", "-c", str(missing_language_path)],
+            ["generate", "-c", str(missing_language_path)],
         )
         assert result.exit_code == 1
         assert "language" in result.output.lower()
 
-    def test_init_nonexistent_file_exits_two(self) -> None:
+    def test_generate_nonexistent_file_exits_two(self) -> None:
         runner = CliRunner()
-        result = runner.invoke(main, ["init", "-c", "/no/such/file.yaml"])
+        result = runner.invoke(
+            main, ["generate", "-c", "/no/such/file.yaml"],
+        )
         assert result.exit_code == 2
 
-    def test_init_minimal_v3_exits_zero(
-        self,
-        minimal_v3_path: Path,
+    @patch("claude_setup.__main__.run_pipeline")
+    @patch("claude_setup.__main__.find_src_dir")
+    def test_generate_minimal_v3_exits_zero(
+        self, mock_find, mock_pipeline, minimal_v3_path: Path,
     ) -> None:
+        mock_find.return_value = Path("src")
+        mock_pipeline.return_value = _success_result()
         runner = CliRunner()
-        result = runner.invoke(main, ["init", "-c", str(minimal_v3_path)])
+        result = runner.invoke(
+            main, ["generate", "-c", str(minimal_v3_path)],
+        )
         assert result.exit_code == 0
-        assert "minimal-tool" in result.output
 
 
-class TestInitInteractive:
+class TestGenerateInteractive:
 
-    def test_init_interactive_exits_zero(self) -> None:
+    @patch("claude_setup.__main__.run_pipeline")
+    @patch("claude_setup.__main__.find_src_dir")
+    @patch("claude_setup.__main__.run_interactive")
+    def test_generate_interactive_exits_zero(
+        self, mock_interactive, mock_find, mock_pipeline,
+    ) -> None:
+        from claude_setup.models import ProjectConfig
+        mock_interactive.return_value = ProjectConfig.from_dict({
+            "project": {"name": "my-project", "purpose": "A test project"},
+            "architecture": {"style": "library"},
+            "interfaces": [{"type": "cli"}],
+            "language": {"name": "python", "version": "3.9"},
+            "framework": {"name": "click", "version": "8.1"},
+        })
+        mock_find.return_value = Path("src")
+        mock_pipeline.return_value = _success_result()
         runner = CliRunner()
-        input_text = "\n".join([
-            "my-project",
-            "A test project",
-            "library",
-            "n",
-            "n",
-            "cli",
-            "python",
-            "3.9",
-            "click",
-            "8.1",
-            "pip",
-        ]) + "\n"
-        result = runner.invoke(main, ["init"], input=input_text)
+        result = runner.invoke(main, ["generate", "--interactive"])
         assert result.exit_code == 0
-        assert "my-project" in result.output

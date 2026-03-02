@@ -1,0 +1,130 @@
+from __future__ import annotations
+
+import logging
+from pathlib import Path
+
+import pytest
+
+from claude_setup.utils import atomic_output, find_src_dir, setup_logging
+
+
+class TestAtomicOutput:
+
+    def test_success_copies_files_to_dest(self, tmp_path: Path) -> None:
+        dest = tmp_path / "output"
+        with atomic_output(dest) as temp:
+            (temp / "file.txt").write_text("hello")
+        assert (dest / "file.txt").read_text() == "hello"
+
+    def test_success_preserves_directory_structure(self, tmp_path: Path) -> None:
+        dest = tmp_path / "output"
+        with atomic_output(dest) as temp:
+            nested = temp / "sub" / "deep"
+            nested.mkdir(parents=True)
+            (nested / "data.txt").write_text("nested")
+        assert (dest / "sub" / "deep" / "data.txt").read_text() == "nested"
+
+    def test_success_removes_temp_dir(self, tmp_path: Path) -> None:
+        dest = tmp_path / "output"
+        captured_temp = None
+        with atomic_output(dest) as temp:
+            captured_temp = temp
+            (temp / "file.txt").write_text("data")
+        assert not captured_temp.exists()
+
+    def test_failure_cleans_temp_dir(self, tmp_path: Path) -> None:
+        dest = tmp_path / "output"
+        captured_temp = None
+        with pytest.raises(RuntimeError):
+            with atomic_output(dest) as temp:
+                captured_temp = temp
+                (temp / "file.txt").write_text("data")
+                raise RuntimeError("boom")
+        assert not captured_temp.exists()
+
+    def test_failure_does_not_write_dest(self, tmp_path: Path) -> None:
+        dest = tmp_path / "output"
+        with pytest.raises(RuntimeError):
+            with atomic_output(dest) as temp:
+                (temp / "file.txt").write_text("data")
+                raise RuntimeError("boom")
+        assert not dest.exists()
+
+    def test_failure_reraises_exception(self, tmp_path: Path) -> None:
+        dest = tmp_path / "output"
+        with pytest.raises(ValueError, match="test error"):
+            with atomic_output(dest) as temp:
+                raise ValueError("test error")
+
+    def test_replaces_existing_dest_dir(self, tmp_path: Path) -> None:
+        dest = tmp_path / "output"
+        dest.mkdir()
+        (dest / "old.txt").write_text("old")
+        with atomic_output(dest) as temp:
+            (temp / "new.txt").write_text("new")
+        assert (dest / "new.txt").exists()
+        assert not (dest / "old.txt").exists()
+
+    def test_yields_path_object(self, tmp_path: Path) -> None:
+        dest = tmp_path / "output"
+        with atomic_output(dest) as temp:
+            assert isinstance(temp, Path)
+            assert temp.is_dir()
+
+    def test_temp_dir_is_writable(self, tmp_path: Path) -> None:
+        dest = tmp_path / "output"
+        with atomic_output(dest) as temp:
+            path = temp / "writable.txt"
+            path.write_text("test")
+            assert path.read_text() == "test"
+
+    def test_keyboard_interrupt_cleans_up(self, tmp_path: Path) -> None:
+        dest = tmp_path / "output"
+        captured_temp = None
+        with pytest.raises(KeyboardInterrupt):
+            with atomic_output(dest) as temp:
+                captured_temp = temp
+                raise KeyboardInterrupt()
+        assert not captured_temp.exists()
+
+
+class TestSetupLogging:
+
+    def test_verbose_true_sets_debug_level(self) -> None:
+        setup_logging(verbose=True)
+        root = logging.getLogger()
+        assert root.level == logging.DEBUG
+
+    def test_verbose_false_sets_info_level(self) -> None:
+        setup_logging(verbose=False)
+        root = logging.getLogger()
+        assert root.level == logging.INFO
+
+
+class TestFindSrcDir:
+
+    def test_returns_existing_src_dir(self) -> None:
+        result = find_src_dir()
+        assert result.exists()
+        assert result.is_dir()
+
+    def test_returns_path_ending_in_src(self) -> None:
+        result = find_src_dir()
+        assert result.name == "src"
+
+    def test_returns_absolute_path(self) -> None:
+        result = find_src_dir()
+        assert result.is_absolute()
+
+    def test_raises_when_src_missing(self, monkeypatch, tmp_path: Path) -> None:
+        fake_file = tmp_path / "pkg" / "utils.py"
+        fake_file.parent.mkdir(parents=True)
+        fake_file.write_text("")
+        monkeypatch.setattr(
+            "claude_setup.utils.__file__",
+            str(fake_file),
+        )
+        # After monkeypatch, find_src_dir will look for
+        # tmp_path/src which doesn't exist
+        with pytest.raises(FileNotFoundError, match="Source directory not found"):
+            find_src_dir()
