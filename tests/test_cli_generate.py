@@ -1,0 +1,204 @@
+from __future__ import annotations
+
+from pathlib import Path
+from unittest.mock import patch
+
+import pytest
+from click.testing import CliRunner
+
+from claude_setup.__main__ import main
+from claude_setup.exceptions import PipelineError
+from claude_setup.models import PipelineResult
+
+
+def _success_result(output_dir: Path = Path(".")) -> PipelineResult:
+    """Build a successful PipelineResult for mocking."""
+    return PipelineResult(
+        success=True,
+        output_dir=output_dir,
+        files_generated=[Path("rules/01.md")],
+        warnings=[],
+        duration_ms=42,
+    )
+
+
+def _dry_run_result(output_dir: Path = Path(".")) -> PipelineResult:
+    """Build a dry-run PipelineResult for mocking."""
+    return PipelineResult(
+        success=True,
+        output_dir=output_dir,
+        files_generated=[Path("rules/01.md")],
+        warnings=["Dry run -- no files written"],
+        duration_ms=10,
+    )
+
+
+class TestGenerateCommand:
+
+    def test_generate_help_exits_zero(self) -> None:
+        runner = CliRunner()
+        result = runner.invoke(main, ["generate", "--help"])
+        assert result.exit_code == 0
+        assert "--config" in result.output
+        assert "--interactive" in result.output
+        assert "--dry-run" in result.output
+
+    @patch("claude_setup.__main__.run_pipeline")
+    @patch("claude_setup.__main__.find_src_dir")
+    def test_generate_config_valid_exits_zero(
+        self, mock_find, mock_pipeline, valid_v3_path: Path,
+    ) -> None:
+        mock_find.return_value = Path("src")
+        mock_pipeline.return_value = _success_result()
+        runner = CliRunner()
+        result = runner.invoke(main, ["generate", "-c", str(valid_v3_path)])
+        assert result.exit_code == 0
+        assert "Success" in result.output
+
+    def test_generate_config_missing_file_exits_two(self) -> None:
+        runner = CliRunner()
+        result = runner.invoke(main, ["generate", "-c", "/no/such/file.yaml"])
+        assert result.exit_code == 2
+
+    @patch("claude_setup.__main__.run_pipeline")
+    @patch("claude_setup.__main__.find_src_dir")
+    @patch("claude_setup.__main__.run_interactive")
+    def test_generate_interactive_exits_zero(
+        self, mock_interactive, mock_find, mock_pipeline,
+    ) -> None:
+        from claude_setup.models import ProjectConfig
+        mock_interactive.return_value = ProjectConfig.from_dict({
+            "project": {"name": "test", "purpose": "test"},
+            "architecture": {"style": "library"},
+            "interfaces": [{"type": "cli"}],
+            "language": {"name": "python", "version": "3.9"},
+            "framework": {"name": "click", "version": "8.1"},
+        })
+        mock_find.return_value = Path("src")
+        mock_pipeline.return_value = _success_result()
+        runner = CliRunner()
+        result = runner.invoke(main, ["generate", "--interactive"])
+        assert result.exit_code == 0
+
+    def test_generate_both_config_and_interactive_exits_error(
+        self, valid_v3_path: Path,
+    ) -> None:
+        runner = CliRunner()
+        result = runner.invoke(
+            main,
+            ["generate", "-c", str(valid_v3_path), "--interactive"],
+        )
+        assert result.exit_code != 0
+        assert "mutually exclusive" in result.output.lower()
+
+    def test_generate_neither_config_nor_interactive_exits_error(self) -> None:
+        runner = CliRunner()
+        result = runner.invoke(main, ["generate"])
+        assert result.exit_code != 0
+        assert "required" in result.output.lower()
+
+    @patch("claude_setup.__main__.run_pipeline")
+    @patch("claude_setup.__main__.find_src_dir")
+    def test_generate_dry_run_shows_plan(
+        self, mock_find, mock_pipeline, valid_v3_path: Path,
+    ) -> None:
+        mock_find.return_value = Path("src")
+        mock_pipeline.return_value = _dry_run_result()
+        runner = CliRunner()
+        result = runner.invoke(
+            main,
+            ["generate", "-c", str(valid_v3_path), "--dry-run"],
+        )
+        assert result.exit_code == 0
+        assert "dry run" in result.output.lower()
+
+    @patch("claude_setup.__main__.run_pipeline")
+    @patch("claude_setup.__main__.find_src_dir")
+    def test_generate_verbose_enables_logging(
+        self, mock_find, mock_pipeline, valid_v3_path: Path,
+    ) -> None:
+        mock_find.return_value = Path("src")
+        mock_pipeline.return_value = _success_result()
+        runner = CliRunner()
+        result = runner.invoke(
+            main,
+            ["generate", "-c", str(valid_v3_path), "--verbose"],
+        )
+        assert result.exit_code == 0
+
+    @patch("claude_setup.__main__.run_pipeline")
+    @patch("claude_setup.__main__.find_src_dir")
+    def test_generate_output_dir_option(
+        self, mock_find, mock_pipeline, valid_v3_path: Path, tmp_path: Path,
+    ) -> None:
+        mock_find.return_value = Path("src")
+        mock_pipeline.return_value = _success_result(tmp_path / "custom")
+        runner = CliRunner()
+        result = runner.invoke(
+            main,
+            [
+                "generate", "-c", str(valid_v3_path),
+                "--output-dir", str(tmp_path / "custom"),
+            ],
+        )
+        assert result.exit_code == 0
+
+    @patch("claude_setup.__main__.find_src_dir")
+    def test_generate_pipeline_error_exits_one(
+        self, mock_find, valid_v3_path: Path,
+    ) -> None:
+        mock_find.return_value = Path("src")
+        with patch("claude_setup.__main__.run_pipeline") as mock_pipeline:
+            mock_pipeline.side_effect = PipelineError("Rules", "fail")
+            runner = CliRunner()
+            result = runner.invoke(
+                main,
+                ["generate", "-c", str(valid_v3_path)],
+            )
+            assert result.exit_code == 1
+
+    @patch("claude_setup.__main__.run_pipeline")
+    def test_generate_src_dir_option(
+        self, mock_pipeline, valid_v3_path: Path, tmp_path: Path,
+    ) -> None:
+        src = tmp_path / "my-src"
+        src.mkdir()
+        mock_pipeline.return_value = _success_result()
+        runner = CliRunner()
+        result = runner.invoke(
+            main,
+            ["generate", "-c", str(valid_v3_path), "--src-dir", str(src)],
+        )
+        assert result.exit_code == 0
+
+    @patch("claude_setup.__main__.find_src_dir")
+    def test_generate_find_src_dir_failure_exits_one(
+        self, mock_find, valid_v3_path: Path,
+    ) -> None:
+        mock_find.side_effect = FileNotFoundError("not found")
+        runner = CliRunner()
+        result = runner.invoke(
+            main,
+            ["generate", "-c", str(valid_v3_path)],
+        )
+        assert result.exit_code == 1
+
+    @patch("claude_setup.__main__.run_pipeline")
+    @patch("claude_setup.__main__.find_src_dir")
+    def test_generate_failed_result_exits_one(
+        self, mock_find, mock_pipeline, valid_v3_path: Path,
+    ) -> None:
+        mock_find.return_value = Path("src")
+        mock_pipeline.return_value = PipelineResult(
+            success=False,
+            output_dir=Path("."),
+            files_generated=[],
+            warnings=["something went wrong"],
+            duration_ms=10,
+        )
+        runner = CliRunner()
+        result = runner.invoke(
+            main,
+            ["generate", "-c", str(valid_v3_path)],
+        )
+        assert result.exit_code == 1

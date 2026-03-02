@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Dict, List
 
 
@@ -264,3 +265,14 @@ class ProjectConfig:
                 data.get("testing", {}),
             ),
         )
+
+
+@dataclass
+class PipelineResult:
+    """Outcome of a pipeline execution."""
+
+    success: bool
+    output_dir: Path
+    files_generated: List[Path]
+    warnings: List[str]
+    duration_ms: int
