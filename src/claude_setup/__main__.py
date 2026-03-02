@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
+from typing import Dict, List, Optional
 
 import click
 
@@ -107,11 +107,81 @@ def _display_result(result: PipelineResult) -> None:
     """Display pipeline result summary."""
     if not result.success:
         raise click.ClickException("Pipeline failed")
-    click.echo(f"Pipeline: Success")
-    click.echo(f"Files generated: {len(result.files_generated)}")
-    click.echo(f"Duration: {result.duration_ms}ms")
+    click.echo(f"Pipeline: Success ({result.duration_ms}ms)")
+    click.echo()
+    counts = _classify_files(result.files_generated)
+    _display_summary_table(counts)
+    click.echo(f"Output: {result.output_dir}")
     for warning in result.warnings:
         click.echo(f"Warning: {warning}")
+
+
+def _classify_files(files: List[Path]) -> Dict[str, int]:
+    """Classify generated files by component."""
+    counts: Dict[str, int] = {
+        "Rules": 0,
+        "Skills": 0,
+        "Knowledge Packs": 0,
+        "Agents": 0,
+        "Hooks": 0,
+        "Settings": 0,
+        "README": 0,
+    }
+    for file_path in files:
+        parts = file_path.parts
+        name = file_path.name
+        if "README" in name:
+            counts["README"] += 1
+        elif "settings" in name:
+            counts["Settings"] += 1
+        elif "hooks" in parts:
+            counts["Hooks"] += 1
+        elif "agents" in parts:
+            counts["Agents"] += 1
+        elif "skills" in parts:
+            if _is_knowledge_pack_file(file_path):
+                counts["Knowledge Packs"] += 1
+            else:
+                counts["Skills"] += 1
+        elif "rules" in parts:
+            counts["Rules"] += 1
+    return counts
+
+
+def _is_knowledge_pack_file(file_path: Path) -> bool:
+    """Check if a skill file belongs to a knowledge pack."""
+    if not file_path.is_file():
+        return False
+    skill_md = file_path
+    if file_path.name != "SKILL.md":
+        skill_dir = file_path.parent
+        candidate = skill_dir / "SKILL.md"
+        if candidate.is_file():
+            skill_md = candidate
+        else:
+            return False
+    text = skill_md.read_text(encoding="utf-8")
+    if "user-invocable: false" in text:
+        return True
+    return text.lstrip().startswith("# Knowledge Pack")
+
+
+def _display_summary_table(counts: Dict[str, int]) -> None:
+    """Display formatted summary table."""
+    total = sum(counts.values())
+    label_width = max(len(label) for label in counts)
+    header_label = "Component"
+    header_count = "Files"
+    label_width = max(label_width, len(header_label))
+    click.echo(f"  {header_label:<{label_width}}  {header_count}")
+    separator = "\u2500" * label_width
+    click.echo(f"  {separator}  {'─' * len(header_count)}")
+    for label, count in counts.items():
+        if count > 0:
+            click.echo(f"  {label:<{label_width}}  {count:>{len(header_count)}}")
+    click.echo(f"  {separator}  {'─' * len(header_count)}")
+    click.echo(f"  {'Total':<{label_width}}  {total:>{len(header_count)}}")
+    click.echo()
 
 
 @main.command()

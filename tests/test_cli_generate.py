@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 from click.testing import CliRunner
 
-from claude_setup.__main__ import main
+from claude_setup.__main__ import _classify_files, main
 from claude_setup.exceptions import PipelineError
 from claude_setup.models import PipelineResult
 
@@ -16,7 +16,15 @@ def _success_result(output_dir: Path = Path(".")) -> PipelineResult:
     return PipelineResult(
         success=True,
         output_dir=output_dir,
-        files_generated=[Path("rules/01.md")],
+        files_generated=[
+            Path("rules/01.md"),
+            Path("rules/02.md"),
+            Path("skills/commit/SKILL.md"),
+            Path("agents/dev.md"),
+            Path("hooks/post-compile.sh"),
+            Path("settings.json"),
+            Path("README.md"),
+        ],
         warnings=[],
         duration_ms=42,
     )
@@ -202,3 +210,85 @@ class TestGenerateCommand:
             ["generate", "-c", str(valid_v3_path)],
         )
         assert result.exit_code == 1
+
+
+class TestClassifyFiles:
+
+    def test_classify_rules(self) -> None:
+        files = [Path("rules/01.md"), Path("rules/02.md")]
+        counts = _classify_files(files)
+        assert counts["Rules"] == 2
+
+    def test_classify_skills(self) -> None:
+        files = [Path("skills/commit/SKILL.md")]
+        counts = _classify_files(files)
+        assert counts["Skills"] == 1
+
+    def test_classify_agents(self) -> None:
+        files = [Path("agents/dev.md")]
+        counts = _classify_files(files)
+        assert counts["Agents"] == 1
+
+    def test_classify_hooks(self) -> None:
+        files = [Path("hooks/post-compile.sh")]
+        counts = _classify_files(files)
+        assert counts["Hooks"] == 1
+
+    def test_classify_settings(self) -> None:
+        files = [Path("settings.json"), Path("settings.local.json")]
+        counts = _classify_files(files)
+        assert counts["Settings"] == 2
+
+    def test_classify_readme(self) -> None:
+        files = [Path("README.md")]
+        counts = _classify_files(files)
+        assert counts["README"] == 1
+
+    def test_classify_mixed_files(self) -> None:
+        files = [
+            Path("rules/01.md"),
+            Path("skills/commit/SKILL.md"),
+            Path("agents/dev.md"),
+            Path("hooks/post-compile.sh"),
+            Path("settings.json"),
+            Path("README.md"),
+        ]
+        counts = _classify_files(files)
+        assert counts["Rules"] == 1
+        assert counts["Skills"] == 1
+        assert counts["Agents"] == 1
+        assert counts["Hooks"] == 1
+        assert counts["Settings"] == 1
+        assert counts["README"] == 1
+
+
+class TestDisplayResult:
+
+    @patch("claude_setup.__main__.run_pipeline")
+    @patch("claude_setup.__main__.find_resources_dir")
+    def test_display_result_shows_summary_table(
+        self, mock_find, mock_pipeline, valid_v3_path: Path,
+    ) -> None:
+        mock_find.return_value = Path("src")
+        mock_pipeline.return_value = _success_result()
+        runner = CliRunner()
+        result = runner.invoke(
+            main, ["generate", "-c", str(valid_v3_path)],
+        )
+        assert result.exit_code == 0
+        assert "Component" in result.output
+        assert "Rules" in result.output
+        assert "Total" in result.output
+
+    @patch("claude_setup.__main__.run_pipeline")
+    @patch("claude_setup.__main__.find_resources_dir")
+    def test_display_result_shows_duration(
+        self, mock_find, mock_pipeline, valid_v3_path: Path,
+    ) -> None:
+        mock_find.return_value = Path("src")
+        mock_pipeline.return_value = _success_result()
+        runner = CliRunner()
+        result = runner.invoke(
+            main, ["generate", "-c", str(valid_v3_path)],
+        )
+        assert "42ms" in result.output

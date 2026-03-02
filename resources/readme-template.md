@@ -106,3 +106,9 @@ Configured in `settings.json` under the `hooks` key.
 - **Hooks run automatically** -- compilation after editing source files detects errors early.
 - **To create a new skill**: create `.claude/skills/{name}/SKILL.md` and it appears automatically.
 - **To create a new rule**: add a `.md` file in `.claude/rules/` with the appropriate numbering.
+
+---
+
+## Generation Summary
+
+{{GENERATION_SUMMARY}}

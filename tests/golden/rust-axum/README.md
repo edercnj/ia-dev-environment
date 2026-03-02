@@ -54,28 +54,11 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 
 | Skill | Path | Description |
 |-------|------|-------------|
-| **api-design** | `/api-design` | API design principles: {{LANGUAGE}}-specific patterns for REST/gRPC/GraphQL. URL structure, status codes, RFC 7807 errors, pagination, content negotiation, validation, request/response shaping, versioning strategies, and protocol conventions. |
-| **architecture** | `/architecture` | Full architecture reference: {{ARCHITECTURE}} principles, package structure, dependency rules, thread-safety, mapper patterns, persistence rules, and architecture variants. Read before designing or implementing features. |
-| **axum-patterns** | `/axum-patterns` | Axum-specific patterns: extractors, Router composition, Tower middleware, sqlx async data access, config crate layered config, tokio testing, IntoResponse error handling. Internal reference for agents producing Axum code. |
-| **coding-standards** | `/coding-standards` | Complete coding conventions: Clean Code rules (CC-01 to CC-10), SOLID principles, {{LANGUAGE}} {{LANGUAGE_VERSION}} idioms, naming patterns, constructor injection, mapper conventions, version-specific features, and approved libraries. Read before writing any code. |
-| **compliance** | `/compliance` | Compliance frameworks (conditionally included): GDPR, HIPAA, LGPD, PCI-DSS, SOX. Data classification, rights enforcement, processing records, international transfers, security measures, audit logging, and framework-specific requirements. |
-| **dockerfile** | `/dockerfile` | Dockerfile patterns per language covering multi-stage builds, security hardening, .dockerignore templates, layer optimization, health checks, and OCI labels. Internal reference for agents managing infrastructure. |
-| **iac-terraform** | `/iac-terraform` | Terraform patterns reference covering module structure, remote state, naming conventions, CI/CD workflows, drift detection, and common infrastructure modules. Internal reference for agents managing infrastructure. |
-| **infrastructure** | `/infrastructure` | Infrastructure patterns: Docker multi-stage builds, Kubernetes manifests (cloud-agnostic), security context, 12-Factor App principles, graceful shutdown, resource management, and cloud-native design. |
-| **k8s-deployment** | `/k8s-deployment` | Kubernetes deployment patterns reference covering workload types, pod specifications, resource sizing, probes, autoscaling, network policies, and security contexts. Internal reference for agents managing infrastructure. |
-| **k8s-kustomize** | `/k8s-kustomize` | Kustomize patterns for environment management covering directory structure, patches, components, secret management, generators, and patch types. Internal reference for agents managing infrastructure. |
-| **layer-templates** | `/layer-templates` | Reference code templates for each hexagonal architecture layer. Provides consistent patterns for domain model, ports, DTOs, mappers, entities, repositories, use cases, REST resources, exception mappers, migrations, and configuration. Uses {{LANGUAGE}}, {{FRAMEWORK}} placeholders. |
-| **observability** | `/observability` | Observability principles: distributed tracing (span trees, mandatory attributes), metrics naming conventions, structured logging with mandatory fields, health checks (liveness/readiness/startup), correlation IDs, and OpenTelemetry integration. |
 | **patterns** | `/patterns` |  |
-| **protocols** | `/protocols` | Protocol conventions: REST (OpenAPI 3.1), gRPC (Proto3), GraphQL, WebSocket, and event-driven messaging. URL structure, versioning, error handling per protocol, schema design, and integration patterns. |
-| **resilience** | `/resilience` | Resilience patterns: circuit breaker, rate limiting, bulkhead isolation, timeout control, retry with exponential backoff + jitter, fallback/graceful degradation, backpressure, and resilience metrics. |
 | **run-e2e** | `/run-e2e` | Skill: End-to-End Tests — Runs integration tests that validate the complete flow from request through all application layers to response, using a real database. |
 | **run-perf-test** | `/run-perf-test` | Skill: Performance/Load Tests — Runs performance tests to validate latency SLAs, throughput targets, and resource stability under load. Supports baseline, normal, peak, and sustained scenarios. |
 | **run-smoke-api** | `/run-smoke-api` | Skill: REST API Smoke Tests — Runs automated smoke tests against the REST API using Newman/Postman. Supports local, container-orchestrated, and staging environments. |
-| **security** | `/security` | Complete security reference: OWASP Top 10, security headers, secrets management, input validation, cryptography (TLS, hashing, key management), and pentest readiness checklist. Read during security reviews or when implementing security-sensitive features. |
 | **setup-environment** | `/setup-environment` | Skill: Dev Environment Setup — Sets up the local development environment including container orchestrator, database, and build tools. |
-| **story-planning** | `/story-planning` | Story decomposition and planning: layer-by-layer decomposition (foundation, core domain, extensions, compositions, cross-cutting), story self-containment (data contracts, acceptance criteria), dependency DAG, sizing rules, and phase computation. |
-| **testing** | `/testing` | Complete testing reference: testing philosophy, 8 test categories, coverage thresholds, fixture patterns, data uniqueness, async handling, database strategy, and {{LANGUAGE}}-specific test frameworks. Read before writing tests. |
 | **x-dev-implement** | `/x-dev-implement` | Implements a feature/story following project conventions. Delegates preparation to a subagent that reads architecture and coding KPs, then implements layer-by-layer with intermediate compilation checks. |
 | **x-dev-lifecycle** | `/x-dev-lifecycle` | Orchestrates the complete feature implementation cycle: branch creation, planning, task decomposition, implementation, parallel review, fixes, PR creation, and final verification. Delegates heavy phases to subagents for context efficiency. |
 | **x-git-push** | `/x-git-push` | Git operations: branch creation, atomic commits (Conventional Commits), push, and PR creation. Use for any git workflow task including branching, committing, pushing, creating PRs, or managing version control. |
@@ -112,7 +95,25 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 Knowledge Packs do NOT appear in the `/` menu. They are referenced internally by agents and skills
 to inject domain knowledge. Configured with `user-invocable: false`.
 
-No knowledge packs configured.
+| Pack | Usage |
+|------|-------|
+| `api-design` | Referenced internally by agents |
+| `architecture` | Referenced internally by agents |
+| `axum-patterns` | Referenced internally by agents |
+| `coding-standards` | Referenced internally by agents |
+| `compliance` | Referenced internally by agents |
+| `dockerfile` | Referenced internally by agents |
+| `iac-terraform` | Referenced internally by agents |
+| `infrastructure` | Referenced internally by agents |
+| `k8s-deployment` | Referenced internally by agents |
+| `k8s-kustomize` | Referenced internally by agents |
+| `layer-templates` | Referenced internally by agents |
+| `observability` | Referenced internally by agents |
+| `protocols` | Referenced internally by agents |
+| `resilience` | Referenced internally by agents |
+| `security` | Referenced internally by agents |
+| `story-planning` | Referenced internally by agents |
+| `testing` | Referenced internally by agents |
 
 ---
 
@@ -176,3 +177,18 @@ See the files directly for current configuration.
 - **Hooks run automatically** -- compilation after editing source files detects errors early.
 - **To create a new skill**: create `.claude/skills/{name}/SKILL.md` and it appears automatically.
 - **To create a new rule**: add a `.md` file in `.claude/rules/` with the appropriate numbering.
+
+---
+
+## Generation Summary
+
+| Component | Count |
+|-----------|-------|
+| Rules | 5 |
+| Skills | 21 |
+| Knowledge Packs | 17 |
+| Agents | 10 |
+| Hooks | 1 |
+| Settings | 2 |
+
+Generated by `claude-setup v0.1.0`.

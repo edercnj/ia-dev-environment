@@ -6,7 +6,11 @@ import pytest
 
 from claude_setup.assembler.readme_assembler import (
     ReadmeAssembler,
+    _build_generation_summary,
     _build_rules_table,
+    _count_hooks,
+    _count_knowledge_packs,
+    _count_settings,
     _is_knowledge_pack,
     generate_minimal_readme,
 )
@@ -28,7 +32,8 @@ def _create_readme_src(base: Path) -> Path:
         "{{AGENTS_TABLE}}\n\n"
         "{{HOOKS_SECTION}}\n\n"
         "{{KNOWLEDGE_PACKS_TABLE}}\n\n"
-        "{{SETTINGS_SECTION}}\n",
+        "{{SETTINGS_SECTION}}\n\n"
+        "{{GENERATION_SUMMARY}}\n",
         encoding="utf-8",
     )
     return base
@@ -320,3 +325,68 @@ class TestGenerateMinimalReadme:
         content = generate_minimal_readme(config)
         assert "## Structure" in content
         assert ".claude/" in content
+
+
+class TestCountKnowledgePacks:
+    def test_count_knowledge_packs_with_one_kp(self, tmp_path):
+        _populate_output(tmp_path)
+        assert _count_knowledge_packs(tmp_path) == 1
+
+    def test_count_knowledge_packs_no_skills_dir(self, tmp_path):
+        assert _count_knowledge_packs(tmp_path) == 0
+
+
+class TestCountHooks:
+    def test_count_hooks_with_files(self, tmp_path):
+        hooks = tmp_path / "hooks"
+        hooks.mkdir()
+        (hooks / "post-compile.sh").write_text("#!/bin/sh\n")
+        assert _count_hooks(tmp_path) == 1
+
+    def test_count_hooks_no_dir(self, tmp_path):
+        assert _count_hooks(tmp_path) == 0
+
+
+class TestCountSettings:
+    def test_count_settings_both_files(self, tmp_path):
+        (tmp_path / "settings.json").write_text("{}")
+        (tmp_path / "settings.local.json").write_text("{}")
+        assert _count_settings(tmp_path) == 2
+
+    def test_count_settings_no_files(self, tmp_path):
+        assert _count_settings(tmp_path) == 0
+
+
+class TestBuildGenerationSummary:
+    def test_summary_contains_table_header(self, tmp_path):
+        _populate_output(tmp_path)
+        config = _minimal_config()
+        summary = _build_generation_summary(tmp_path, config)
+        assert "| Component | Count |" in summary
+
+    def test_summary_contains_rules_count(self, tmp_path):
+        _populate_output(tmp_path)
+        config = _minimal_config()
+        summary = _build_generation_summary(tmp_path, config)
+        assert "| Rules | 3 |" in summary
+
+    def test_summary_contains_version(self, tmp_path):
+        _populate_output(tmp_path)
+        config = _minimal_config()
+        summary = _build_generation_summary(tmp_path, config)
+        assert "claude-setup v" in summary
+
+    def test_assemble_populated_dir_includes_generation_summary(
+        self, tmp_path,
+    ):
+        src = _create_readme_src(tmp_path / "src")
+        out = tmp_path / "output"
+        out.mkdir()
+        _populate_output(out)
+        config = _minimal_config()
+        engine = TemplateEngine(src, config)
+        asm = ReadmeAssembler(src)
+        asm.assemble(config, out, engine)
+        content = (out / "README.md").read_text()
+        assert "| Component | Count |" in content
+        assert "claude-setup v" in content
