@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from claude_setup.models import (
     ArchitectureConfig,
     DataConfig,
+    FileDiff,
     FrameworkConfig,
     InfraConfig,
     InterfaceConfig,
@@ -15,6 +18,7 @@ from claude_setup.models import (
     SecurityConfig,
     TechComponent,
     TestingConfig,
+    VerificationResult,
 )
 
 
@@ -523,3 +527,117 @@ class TestProjectConfig:
         assert obs.tool == "opentelemetry"
         assert obs.metrics == "prometheus"
         assert obs.tracing == "jaeger"
+
+
+# --- FileDiff ---
+
+
+class TestFileDiff:
+
+    def test_create_with_all_fields(self) -> None:
+        diff = FileDiff(
+            path=Path("a.md"),
+            diff="--- a\n+++ b\n",
+            python_size=100,
+            reference_size=120,
+        )
+        assert diff.path == Path("a.md")
+        assert diff.diff == "--- a\n+++ b\n"
+        assert diff.python_size == 100
+        assert diff.reference_size == 120
+
+    def test_path_is_path_object(self) -> None:
+        diff = FileDiff(
+            path=Path("sub/file.txt"),
+            diff="",
+            python_size=0,
+            reference_size=0,
+        )
+        assert isinstance(diff.path, Path)
+
+    def test_diff_stores_string(self) -> None:
+        content = "--- ref\n+++ py\n@@ -1 +1 @@\n-old\n+new\n"
+        diff = FileDiff(
+            path=Path("x.txt"),
+            diff=content,
+            python_size=3,
+            reference_size=3,
+        )
+        assert diff.diff == content
+
+    def test_sizes_are_integers(self) -> None:
+        diff = FileDiff(
+            path=Path("f.txt"),
+            diff="",
+            python_size=42,
+            reference_size=99,
+        )
+        assert isinstance(diff.python_size, int)
+        assert isinstance(diff.reference_size, int)
+
+
+# --- VerificationResult ---
+
+
+class TestVerificationResult:
+
+    def test_create_success_result(self) -> None:
+        result = VerificationResult(
+            success=True,
+            total_files=5,
+            mismatches=[],
+            missing_files=[],
+            extra_files=[],
+        )
+        assert result.success is True
+        assert result.total_files == 5
+        assert result.mismatches == []
+
+    def test_create_failure_result(self) -> None:
+        mismatch = FileDiff(
+            path=Path("a.txt"),
+            diff="diff",
+            python_size=10,
+            reference_size=12,
+        )
+        result = VerificationResult(
+            success=False,
+            total_files=3,
+            mismatches=[mismatch],
+            missing_files=[],
+            extra_files=[],
+        )
+        assert result.success is False
+        assert len(result.mismatches) == 1
+
+    def test_total_files_reflects_count(self) -> None:
+        result = VerificationResult(
+            success=True,
+            total_files=10,
+            mismatches=[],
+            missing_files=[],
+            extra_files=[],
+        )
+        assert result.total_files == 10
+
+    def test_missing_files_stores_paths(self) -> None:
+        paths = [Path("a.txt"), Path("b/c.txt")]
+        result = VerificationResult(
+            success=False,
+            total_files=2,
+            mismatches=[],
+            missing_files=paths,
+            extra_files=[],
+        )
+        assert result.missing_files == paths
+
+    def test_extra_files_stores_paths(self) -> None:
+        paths = [Path("extra.md")]
+        result = VerificationResult(
+            success=False,
+            total_files=1,
+            mismatches=[],
+            missing_files=[],
+            extra_files=paths,
+        )
+        assert result.extra_files == paths

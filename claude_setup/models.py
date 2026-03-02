@@ -276,3 +276,24 @@ class PipelineResult:
     files_generated: List[Path]
     warnings: List[str]
     duration_ms: int
+
+
+@dataclass
+class FileDiff:
+    """A single file mismatch between Python output and reference."""
+
+    path: Path
+    diff: str
+    python_size: int
+    reference_size: int
+
+
+@dataclass
+class VerificationResult:
+    """Outcome of a byte-for-byte output verification."""
+
+    success: bool
+    total_files: int
+    mismatches: List[FileDiff]
+    missing_files: List[Path]
+    extra_files: List[Path]
