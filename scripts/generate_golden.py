@@ -78,12 +78,6 @@ def _build_parser() -> argparse.ArgumentParser:
         description="Generate golden reference files",
     )
     parser.add_argument(
-        "--all",
-        action="store_true",
-        default=True,
-        help="Generate for all profiles (default)",
-    )
-    parser.add_argument(
         "--profile",
         type=str,
         default=None,
