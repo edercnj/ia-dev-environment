@@ -7,7 +7,20 @@ from typing import Any, Dict
 import pytest
 
 from claude_setup.assembler.auditor import audit_rules_context
-from claude_setup.assembler.rules_assembler import RulesAssembler
+from claude_setup.assembler.rules_assembler import (
+    RulesAssembler,
+    assemble_cloud_knowledge,
+    assemble_infra_knowledge,
+    assemble_security_rules,
+    copy_cache_refs,
+    copy_container_files,
+    copy_database_refs,
+    copy_db_type_files,
+    copy_db_version_matrix,
+    copy_iac_files,
+    copy_k8s_files,
+    copy_security_base,
+)
 from claude_setup.models import ProjectConfig
 from claude_setup.template_engine import TemplateEngine
 
@@ -309,128 +322,108 @@ class TestCopyDomainTemplate:
 
 class TestCopyDatabaseRefs:
     def test_copies_for_postgresql(
-        self, assembler: RulesAssembler, full_config: ProjectConfig,
+        self, full_config: ProjectConfig,
         src_tree: Path, output_dir: Path,
     ) -> None:
         engine = TemplateEngine(src_tree, full_config)
         skills_dir = output_dir / "skills"
         skills_dir.mkdir(parents=True)
-        result = assembler._copy_database_refs(
-            full_config, src_tree, skills_dir, engine,
-        )
+        result = copy_database_refs(full_config, src_tree, skills_dir, engine)
         assert len(result) >= 2
         names = [p.name for p in result]
         assert "version-matrix.md" in names
 
     def test_skipped_for_none(
-        self, assembler: RulesAssembler, minimal_config: ProjectConfig,
+        self, minimal_config: ProjectConfig,
         src_tree: Path, output_dir: Path,
     ) -> None:
         engine = TemplateEngine(src_tree, minimal_config)
         skills_dir = output_dir / "skills"
         skills_dir.mkdir(parents=True)
-        result = assembler._copy_database_refs(
-            minimal_config, src_tree, skills_dir, engine,
-        )
+        result = copy_database_refs(minimal_config, src_tree, skills_dir, engine)
         assert result == []
 
 
 class TestCopyCacheRefs:
     def test_copies_for_redis(
-        self, assembler: RulesAssembler, full_config: ProjectConfig,
+        self, full_config: ProjectConfig,
         src_tree: Path, output_dir: Path,
     ) -> None:
         skills_dir = output_dir / "skills"
         skills_dir.mkdir(parents=True)
-        result = assembler._copy_cache_refs(
-            full_config, src_tree, skills_dir,
-        )
+        result = copy_cache_refs(full_config, src_tree, skills_dir)
         assert len(result) >= 1
 
     def test_skipped_for_none(
-        self, assembler: RulesAssembler, minimal_config: ProjectConfig,
+        self, minimal_config: ProjectConfig,
         src_tree: Path, output_dir: Path,
     ) -> None:
         skills_dir = output_dir / "skills"
         skills_dir.mkdir(parents=True)
-        result = assembler._copy_cache_refs(
-            minimal_config, src_tree, skills_dir,
-        )
+        result = copy_cache_refs(minimal_config, src_tree, skills_dir)
         assert result == []
 
 
 class TestAssembleSecurityRules:
     def test_copies_when_configured(
-        self, assembler: RulesAssembler, full_config: ProjectConfig,
+        self, full_config: ProjectConfig,
         src_tree: Path, output_dir: Path,
     ) -> None:
         skills_dir = output_dir / "skills"
         skills_dir.mkdir(parents=True)
-        result = assembler._assemble_security_rules(
-            full_config, src_tree, skills_dir,
-        )
+        result = assemble_security_rules(full_config, src_tree, skills_dir)
         assert len(result) >= 2
         names = [p.name for p in result]
         assert "application-security.md" in names
 
     def test_skipped_when_no_frameworks(
-        self, assembler: RulesAssembler, minimal_config: ProjectConfig,
+        self, minimal_config: ProjectConfig,
         src_tree: Path, output_dir: Path,
     ) -> None:
         skills_dir = output_dir / "skills"
         skills_dir.mkdir(parents=True)
-        result = assembler._assemble_security_rules(
-            minimal_config, src_tree, skills_dir,
-        )
+        result = assemble_security_rules(minimal_config, src_tree, skills_dir)
         assert result == []
 
     def test_copies_compliance_files(
-        self, assembler: RulesAssembler, full_config: ProjectConfig,
+        self, full_config: ProjectConfig,
         src_tree: Path, output_dir: Path,
     ) -> None:
         skills_dir = output_dir / "skills"
         skills_dir.mkdir(parents=True)
-        result = assembler._assemble_security_rules(
-            full_config, src_tree, skills_dir,
-        )
+        result = assemble_security_rules(full_config, src_tree, skills_dir)
         names = [p.name for p in result]
         assert "owasp.md" in names
 
 
 class TestAssembleInfraKnowledge:
     def test_copies_k8s_for_kubernetes(
-        self, assembler: RulesAssembler, full_config: ProjectConfig,
+        self, full_config: ProjectConfig,
         src_tree: Path, output_dir: Path,
     ) -> None:
         skills_dir = output_dir / "skills"
         skills_dir.mkdir(parents=True)
-        result = assembler._assemble_infra_knowledge(
-            full_config, src_tree, skills_dir,
-        )
+        result = assemble_infra_knowledge(full_config, src_tree, skills_dir)
         names = [p.name for p in result]
         assert "k8s-deployment.md" in names
 
     def test_copies_container_files(
-        self, assembler: RulesAssembler, full_config: ProjectConfig,
+        self, full_config: ProjectConfig,
         src_tree: Path, output_dir: Path,
     ) -> None:
         skills_dir = output_dir / "skills"
         skills_dir.mkdir(parents=True)
-        result = assembler._assemble_infra_knowledge(
-            full_config, src_tree, skills_dir,
-        )
+        result = assemble_infra_knowledge(full_config, src_tree, skills_dir)
         names = [p.name for p in result]
         assert "dockerfile.md" in names
 
     def test_no_k8s_for_minimal(
-        self, assembler: RulesAssembler, minimal_config: ProjectConfig,
+        self, minimal_config: ProjectConfig,
         src_tree: Path, output_dir: Path,
     ) -> None:
         skills_dir = output_dir / "skills"
         skills_dir.mkdir(parents=True)
-        result = assembler._assemble_infra_knowledge(
-            minimal_config, src_tree, skills_dir,
-        )
+        result = assemble_infra_knowledge(minimal_config, src_tree, skills_dir)
         names = [p.name for p in result]
         assert "k8s-deployment.md" not in names
 
@@ -452,26 +445,24 @@ class TestCopyLangVersionNoMatch:
 
 class TestCloudKnowledgeWithProvider:
     def test_skipped_when_no_cloud_provider_attr(
-        self, assembler: RulesAssembler, full_config: ProjectConfig,
+        self, full_config: ProjectConfig,
         src_tree: Path, output_dir: Path,
     ) -> None:
         skills_dir = output_dir / "skills"
         skills_dir.mkdir(parents=True)
-        result = assembler._assemble_cloud_knowledge(
-            full_config, src_tree, skills_dir,
-        )
+        result = assemble_cloud_knowledge(full_config, src_tree, skills_dir)
         assert result == []
 
 
 class TestIacWithFile:
     def test_skipped_when_infra_has_no_iac_attr(
-        self, assembler: RulesAssembler, full_config: ProjectConfig,
+        self, full_config: ProjectConfig,
         src_tree: Path, output_dir: Path,
     ) -> None:
         """InfraConfig has no iac field — getattr fallback returns 'none'."""
         kp_dir = output_dir / "kp"
         kp_dir.mkdir(parents=True)
-        result = assembler._copy_iac_files(
+        result = copy_iac_files(
             full_config, src_tree / "infrastructure", kp_dir,
         )
         assert result == []
@@ -511,47 +502,42 @@ class TestCopyFwVersion:
 
 class TestCopyDbTypeFiles:
     def test_nosql_mongodb(
-        self, assembler: RulesAssembler, src_tree: Path, output_dir: Path,
+        self, src_tree: Path, output_dir: Path,
     ) -> None:
         nosql_common = src_tree / "databases" / "nosql" / "common"
         nosql_common.mkdir(parents=True)
         (nosql_common / "nosql-patterns.md").write_text("# NoSQL\n", encoding="utf-8")
         target = output_dir / "target"
         target.mkdir(parents=True)
-        result = assembler._copy_db_type_files("mongodb", src_tree / "databases", target)
+        result = copy_db_type_files("mongodb", src_tree / "databases", target)
         assert len(result) >= 1
 
 
 class TestAssembleCloudKnowledge:
     def test_skipped_when_no_provider(
-        self, assembler: RulesAssembler, minimal_config: ProjectConfig,
+        self, minimal_config: ProjectConfig,
         src_tree: Path, output_dir: Path,
     ) -> None:
         skills_dir = output_dir / "skills"
         skills_dir.mkdir(parents=True)
-        result = assembler._assemble_cloud_knowledge(
-            minimal_config, src_tree, skills_dir,
-        )
+        result = assemble_cloud_knowledge(minimal_config, src_tree, skills_dir)
         assert result == []
 
 
 class TestCopyContainerFiles:
-    def test_skipped_when_container_none(
-        self, assembler: RulesAssembler, tmp_path: Path,
-    ) -> None:
+    def test_skipped_when_container_none(self, tmp_path: Path) -> None:
         data = _minimal_config_dict()
         data["infrastructure"] = {"container": "none"}
         config = ProjectConfig.from_dict(data)
-        result = assembler._copy_container_files(config, tmp_path, tmp_path)
+        result = copy_container_files(config, tmp_path, tmp_path)
         assert result == []
 
 
 class TestCopyIacFiles:
     def test_skipped_when_no_iac(
-        self, assembler: RulesAssembler, minimal_config: ProjectConfig,
-        tmp_path: Path,
+        self, minimal_config: ProjectConfig, tmp_path: Path,
     ) -> None:
-        result = assembler._copy_iac_files(minimal_config, tmp_path, tmp_path)
+        result = copy_iac_files(minimal_config, tmp_path, tmp_path)
         assert result == []
 
 
@@ -606,29 +592,24 @@ class TestMissingDirectories:
         result = assembler._copy_fw_common(fw_dir, tmp_path)
         assert result == []
 
-    def test_copy_db_version_matrix_missing(
-        self, assembler: RulesAssembler, tmp_path: Path,
-    ) -> None:
+    def test_copy_db_version_matrix_missing(self, tmp_path: Path) -> None:
         db_dir = tmp_path / "db"
         db_dir.mkdir()
-        result = assembler._copy_db_version_matrix(db_dir, tmp_path)
+        result = copy_db_version_matrix(db_dir, tmp_path)
         assert result == []
 
     def test_copy_k8s_missing_file(
-        self, assembler: RulesAssembler, full_config: ProjectConfig,
-        tmp_path: Path,
+        self, full_config: ProjectConfig, tmp_path: Path,
     ) -> None:
         infra = tmp_path / "infra"
         infra.mkdir()
-        result = assembler._copy_k8s_files(full_config, infra, tmp_path)
+        result = copy_k8s_files(full_config, infra, tmp_path)
         assert result == []
 
-    def test_copy_security_missing_files(
-        self, assembler: RulesAssembler, tmp_path: Path,
-    ) -> None:
+    def test_copy_security_missing_files(self, tmp_path: Path) -> None:
         sec_dir = tmp_path / "sec"
         sec_dir.mkdir()
-        result = assembler._copy_security_base(sec_dir, tmp_path)
+        result = copy_security_base(sec_dir, tmp_path)
         assert result == []
 
 
@@ -650,24 +631,24 @@ class TestAuditWarningLogged:
 
 class TestCopyDbTypeNosql:
     def test_nosql_common_and_specific(
-        self, assembler: RulesAssembler, src_tree: Path, output_dir: Path,
+        self, src_tree: Path, output_dir: Path,
     ) -> None:
         nosql_mongo = src_tree / "databases" / "nosql" / "mongodb"
         nosql_mongo.mkdir(parents=True)
         (nosql_mongo / "mongodb-patterns.md").write_text("# Mongo\n", encoding="utf-8")
         target = output_dir / "target"
         target.mkdir(parents=True)
-        result = assembler._copy_db_type_files(
+        result = copy_db_type_files(
             "mongodb", src_tree / "databases", target,
         )
         assert len(result) >= 1
 
     def test_unknown_db_type_returns_empty(
-        self, assembler: RulesAssembler, src_tree: Path, output_dir: Path,
+        self, src_tree: Path, output_dir: Path,
     ) -> None:
         target = output_dir / "target"
         target.mkdir(parents=True)
-        result = assembler._copy_db_type_files(
+        result = copy_db_type_files(
             "unknown-db", src_tree / "databases", target,
         )
         assert result == []

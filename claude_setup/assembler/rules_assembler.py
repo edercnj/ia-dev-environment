@@ -15,6 +15,7 @@ from claude_setup.template_engine import TemplateEngine
 
 logger = logging.getLogger(__name__)
 
+NONE_VALUE = "none"
 SQL_DB_TYPES = ("postgresql", "oracle", "mysql")
 NOSQL_DB_TYPES = ("mongodb", "cassandra")
 
@@ -41,11 +42,11 @@ class RulesAssembler:
         generated.extend(self._copy_framework_kps(config, src_dir, skills_dir))
         generated.append(self._generate_project_identity(config, rules_dir))
         generated.append(self._copy_domain_template(config, src_dir, rules_dir, engine))
-        generated.extend(self._copy_database_refs(config, src_dir, skills_dir, engine))
-        generated.extend(self._copy_cache_refs(config, src_dir, skills_dir))
-        generated.extend(self._assemble_security_rules(config, src_dir, skills_dir))
-        generated.extend(self._assemble_cloud_knowledge(config, src_dir, skills_dir))
-        generated.extend(self._assemble_infra_knowledge(config, src_dir, skills_dir))
+        generated.extend(copy_database_refs(config, src_dir, skills_dir, engine))
+        generated.extend(copy_cache_refs(config, src_dir, skills_dir))
+        generated.extend(assemble_security_rules(config, src_dir, skills_dir))
+        generated.extend(assemble_cloud_knowledge(config, src_dir, skills_dir))
+        generated.extend(assemble_infra_knowledge(config, src_dir, skills_dir))
         result = audit_rules_context(rules_dir)
         for warning in result.warnings:
             logger.warning(warning)
@@ -228,210 +229,210 @@ class RulesAssembler:
             dest.write_text(_fallback_domain_content(config), encoding="utf-8")
         return dest
 
-    def _copy_database_refs(
-        self,
-        config: ProjectConfig,
-        src_dir: Path,
-        skills_dir: Path,
-        engine: TemplateEngine,
-    ) -> List[Path]:
-        """Conditional: copy database references."""
-        db_name = config.data.database.name
-        if db_name == "none":
-            return []
-        db_dir = src_dir / "databases"
-        target = skills_dir / "database-patterns" / "references"
-        target.mkdir(parents=True, exist_ok=True)
-        generated: List[Path] = []
-        generated.extend(self._copy_db_version_matrix(db_dir, target))
-        generated.extend(self._copy_db_type_files(db_name, db_dir, target))
-        _replace_placeholders_in_dir(target, engine)
-        return generated
 
-    def _copy_db_version_matrix(
-        self,
-        db_dir: Path,
-        target: Path,
-    ) -> List[Path]:
-        matrix = db_dir / "version-matrix.md"
-        if matrix.is_file():
-            dest = target / "version-matrix.md"
-            shutil.copy2(str(matrix), str(dest))
-            return [dest]
+# -- Conditional assembly functions (extracted from class) ------------------
+
+
+def copy_database_refs(
+    config: ProjectConfig,
+    src_dir: Path,
+    skills_dir: Path,
+    engine: TemplateEngine,
+) -> List[Path]:
+    """Conditional: copy database references."""
+    db_name = config.data.database.name
+    if db_name == NONE_VALUE:
         return []
+    db_dir = src_dir / "databases"
+    target = skills_dir / "database-patterns" / "references"
+    target.mkdir(parents=True, exist_ok=True)
+    generated: List[Path] = []
+    generated.extend(copy_db_version_matrix(db_dir, target))
+    generated.extend(copy_db_type_files(db_name, db_dir, target))
+    _replace_placeholders_in_dir(target, engine)
+    return generated
 
-    def _copy_db_type_files(
-        self,
-        db_name: str,
-        db_dir: Path,
-        target: Path,
-    ) -> List[Path]:
-        generated: List[Path] = []
-        if db_name in SQL_DB_TYPES:
-            generated.extend(_copy_md_dir(db_dir / "sql" / "common", target))
-            generated.extend(_copy_md_dir(db_dir / "sql" / db_name, target))
-        elif db_name in NOSQL_DB_TYPES:
-            generated.extend(_copy_md_dir(db_dir / "nosql" / "common", target))
-            generated.extend(_copy_md_dir(db_dir / "nosql" / db_name, target))
-        return generated
 
-    def _copy_cache_refs(
-        self,
-        config: ProjectConfig,
-        src_dir: Path,
-        skills_dir: Path,
-    ) -> List[Path]:
-        """Conditional: copy cache references."""
-        cache_name = config.data.cache.name
-        if cache_name == "none":
-            return []
-        db_dir = src_dir / "databases"
-        target = skills_dir / "database-patterns" / "references"
-        target.mkdir(parents=True, exist_ok=True)
-        generated: List[Path] = []
-        generated.extend(_copy_md_dir(db_dir / "cache" / "common", target))
-        generated.extend(_copy_md_dir(db_dir / "cache" / cache_name, target))
-        return generated
+def copy_db_version_matrix(db_dir: Path, target: Path) -> List[Path]:
+    matrix = db_dir / "version-matrix.md"
+    if matrix.is_file():
+        dest = target / "version-matrix.md"
+        shutil.copy2(str(matrix), str(dest))
+        return [dest]
+    return []
 
-    def _assemble_security_rules(
-        self,
-        config: ProjectConfig,
-        src_dir: Path,
-        skills_dir: Path,
-    ) -> List[Path]:
-        """Conditional: copy security files to security/compliance KPs."""
-        if not config.security.frameworks:
-            return []
-        sec_dir = src_dir / "security"
-        generated: List[Path] = []
-        generated.extend(self._copy_security_base(sec_dir, skills_dir))
-        generated.extend(self._copy_compliance(config, sec_dir, skills_dir))
-        return generated
 
-    def _copy_security_base(
-        self,
-        sec_dir: Path,
-        skills_dir: Path,
-    ) -> List[Path]:
-        sec_kp = skills_dir / "security" / "references"
-        sec_kp.mkdir(parents=True, exist_ok=True)
-        generated: List[Path] = []
-        for name in ("application-security.md", "cryptography.md"):
-            src = sec_dir / name
-            if src.is_file():
-                dest = sec_kp / name
-                shutil.copy2(str(src), str(dest))
-                generated.append(dest)
-        return generated
+def copy_db_type_files(
+    db_name: str,
+    db_dir: Path,
+    target: Path,
+) -> List[Path]:
+    generated: List[Path] = []
+    if db_name in SQL_DB_TYPES:
+        generated.extend(_copy_md_dir(db_dir / "sql" / "common", target))
+        generated.extend(_copy_md_dir(db_dir / "sql" / db_name, target))
+    elif db_name in NOSQL_DB_TYPES:
+        generated.extend(_copy_md_dir(db_dir / "nosql" / "common", target))
+        generated.extend(_copy_md_dir(db_dir / "nosql" / db_name, target))
+    return generated
 
-    def _copy_compliance(
-        self,
-        config: ProjectConfig,
-        sec_dir: Path,
-        skills_dir: Path,
-    ) -> List[Path]:
-        comp_kp = skills_dir / "compliance" / "references"
-        comp_kp.mkdir(parents=True, exist_ok=True)
-        generated: List[Path] = []
-        for framework in config.security.frameworks:
-            src = sec_dir / "compliance" / f"{framework}.md"
-            if src.is_file():
-                dest = comp_kp / f"{framework}.md"
-                shutil.copy2(str(src), str(dest))
-                generated.append(dest)
-        return generated
 
-    def _assemble_cloud_knowledge(
-        self,
-        config: ProjectConfig,
-        src_dir: Path,
-        skills_dir: Path,
-    ) -> List[Path]:
-        """Conditional: copy cloud provider files."""
-        provider = getattr(config.infrastructure, "cloud_provider", "none")
-        if provider == "none" or not provider:
-            return []
-        cloud_dir = src_dir / "cloud-providers"
-        kp_dir = skills_dir / "knowledge-packs"
-        kp_dir.mkdir(parents=True, exist_ok=True)
-        src = cloud_dir / f"{provider}.md"
+def copy_cache_refs(
+    config: ProjectConfig,
+    src_dir: Path,
+    skills_dir: Path,
+) -> List[Path]:
+    """Conditional: copy cache references."""
+    cache_name = config.data.cache.name
+    if cache_name == NONE_VALUE:
+        return []
+    db_dir = src_dir / "databases"
+    target = skills_dir / "database-patterns" / "references"
+    target.mkdir(parents=True, exist_ok=True)
+    generated: List[Path] = []
+    generated.extend(_copy_md_dir(db_dir / "cache" / "common", target))
+    generated.extend(_copy_md_dir(db_dir / "cache" / cache_name, target))
+    return generated
+
+
+def assemble_security_rules(
+    config: ProjectConfig,
+    src_dir: Path,
+    skills_dir: Path,
+) -> List[Path]:
+    """Conditional: copy security files to security/compliance KPs."""
+    if not config.security.frameworks:
+        return []
+    sec_dir = src_dir / "security"
+    generated: List[Path] = []
+    generated.extend(copy_security_base(sec_dir, skills_dir))
+    generated.extend(copy_compliance(config, sec_dir, skills_dir))
+    return generated
+
+
+def copy_security_base(sec_dir: Path, skills_dir: Path) -> List[Path]:
+    sec_kp = skills_dir / "security" / "references"
+    sec_kp.mkdir(parents=True, exist_ok=True)
+    generated: List[Path] = []
+    for name in ("application-security.md", "cryptography.md"):
+        src = sec_dir / name
         if src.is_file():
-            dest = kp_dir / f"cloud-{provider}.md"
+            dest = sec_kp / name
             shutil.copy2(str(src), str(dest))
-            return [dest]
-        return []
+            generated.append(dest)
+    return generated
 
-    def _assemble_infra_knowledge(
-        self,
-        config: ProjectConfig,
-        src_dir: Path,
-        skills_dir: Path,
-    ) -> List[Path]:
-        """Conditional: copy infrastructure knowledge packs."""
-        infra_dir = src_dir / "infrastructure"
-        kp_dir = skills_dir / "knowledge-packs"
-        kp_dir.mkdir(parents=True, exist_ok=True)
-        generated: List[Path] = []
-        generated.extend(self._copy_k8s_files(config, infra_dir, kp_dir))
-        generated.extend(self._copy_container_files(config, infra_dir, kp_dir))
-        generated.extend(self._copy_iac_files(config, infra_dir, kp_dir))
-        return generated
 
-    def _copy_k8s_files(
-        self,
-        config: ProjectConfig,
-        infra_dir: Path,
-        kp_dir: Path,
-    ) -> List[Path]:
-        if config.infrastructure.orchestrator != "kubernetes":
-            return []
-        src = infra_dir / "kubernetes" / "deployment-patterns.md"
+def copy_compliance(
+    config: ProjectConfig,
+    sec_dir: Path,
+    skills_dir: Path,
+) -> List[Path]:
+    comp_kp = skills_dir / "compliance" / "references"
+    comp_kp.mkdir(parents=True, exist_ok=True)
+    generated: List[Path] = []
+    for framework in config.security.frameworks:
+        src = sec_dir / "compliance" / f"{framework}.md"
         if src.is_file():
-            dest = kp_dir / "k8s-deployment.md"
+            dest = comp_kp / f"{framework}.md"
             shutil.copy2(str(src), str(dest))
-            return [dest]
+            generated.append(dest)
+    return generated
+
+
+def assemble_cloud_knowledge(
+    config: ProjectConfig,
+    src_dir: Path,
+    skills_dir: Path,
+) -> List[Path]:
+    """Conditional: copy cloud provider files."""
+    provider = getattr(config.infrastructure, "cloud_provider", NONE_VALUE)
+    if provider == NONE_VALUE or not provider:
         return []
+    cloud_dir = src_dir / "cloud-providers"
+    kp_dir = skills_dir / "knowledge-packs"
+    kp_dir.mkdir(parents=True, exist_ok=True)
+    src = cloud_dir / f"{provider}.md"
+    if src.is_file():
+        dest = kp_dir / f"cloud-{provider}.md"
+        shutil.copy2(str(src), str(dest))
+        return [dest]
+    return []
 
-    def _copy_container_files(
-        self,
-        config: ProjectConfig,
-        infra_dir: Path,
-        kp_dir: Path,
-    ) -> List[Path]:
-        if config.infrastructure.container == "none":
-            return []
-        generated: List[Path] = []
-        for name, dest_name in [
-            ("dockerfile-patterns.md", "dockerfile.md"),
-            ("registry-patterns.md", "registry.md"),
-        ]:
-            src = infra_dir / "containers" / name
-            if src.is_file():
-                dest = kp_dir / dest_name
-                shutil.copy2(str(src), str(dest))
-                generated.append(dest)
-        return generated
 
-    def _copy_iac_files(
-        self,
-        config: ProjectConfig,
-        infra_dir: Path,
-        kp_dir: Path,
-    ) -> List[Path]:
-        iac = getattr(config.infrastructure, "iac", "none")
-        if iac == "none" or not iac:
-            return []
-        src = infra_dir / "iac" / f"{iac}-patterns.md"
+def assemble_infra_knowledge(
+    config: ProjectConfig,
+    src_dir: Path,
+    skills_dir: Path,
+) -> List[Path]:
+    """Conditional: copy infrastructure knowledge packs."""
+    infra_dir = src_dir / "infrastructure"
+    kp_dir = skills_dir / "knowledge-packs"
+    kp_dir.mkdir(parents=True, exist_ok=True)
+    generated: List[Path] = []
+    generated.extend(copy_k8s_files(config, infra_dir, kp_dir))
+    generated.extend(copy_container_files(config, infra_dir, kp_dir))
+    generated.extend(copy_iac_files(config, infra_dir, kp_dir))
+    return generated
+
+
+def copy_k8s_files(
+    config: ProjectConfig,
+    infra_dir: Path,
+    kp_dir: Path,
+) -> List[Path]:
+    if config.infrastructure.orchestrator != "kubernetes":
+        return []
+    src = infra_dir / "kubernetes" / "deployment-patterns.md"
+    if src.is_file():
+        dest = kp_dir / "k8s-deployment.md"
+        shutil.copy2(str(src), str(dest))
+        return [dest]
+    return []
+
+
+def copy_container_files(
+    config: ProjectConfig,
+    infra_dir: Path,
+    kp_dir: Path,
+) -> List[Path]:
+    if config.infrastructure.container == NONE_VALUE:
+        return []
+    generated: List[Path] = []
+    for name, dest_name in [
+        ("dockerfile-patterns.md", "dockerfile.md"),
+        ("registry-patterns.md", "registry.md"),
+    ]:
+        src = infra_dir / "containers" / name
         if src.is_file():
-            dest = kp_dir / f"iac-{iac}.md"
+            dest = kp_dir / dest_name
             shutil.copy2(str(src), str(dest))
-            return [dest]
+            generated.append(dest)
+    return generated
+
+
+def copy_iac_files(
+    config: ProjectConfig,
+    infra_dir: Path,
+    kp_dir: Path,
+) -> List[Path]:
+    iac = getattr(config.infrastructure, "iac", NONE_VALUE)
+    if iac == NONE_VALUE or not iac:
         return []
+    src = infra_dir / "iac" / f"{iac}-patterns.md"
+    if src.is_file():
+        dest = kp_dir / f"iac-{iac}.md"
+        shutil.copy2(str(src), str(dest))
+        return [dest]
+    return []
+
+
+# -- Identity content builders ----------------------------------------------
 
 
 def _build_identity_content(config: ProjectConfig) -> str:
     """Build the 01-project-identity.md content."""
-    ifaces = ", ".join(i.type for i in config.interfaces) or "none"
+    ifaces = ", ".join(i.type for i in config.interfaces) or NONE_VALUE
     fw_ver = f" {config.framework.version}" if config.framework.version else ""
     lines: List[str] = []
     lines.extend(_identity_header(config, ifaces, fw_ver))
@@ -509,6 +510,9 @@ def _identity_footer() -> List[str]:
         "- Horizontal scalability: Application must be stateless",
         "- Externalized configuration: All configuration via environment variables or ConfigMaps",
     ]
+
+
+# -- Utilities --------------------------------------------------------------
 
 
 def _fallback_domain_content(config: ProjectConfig) -> str:
