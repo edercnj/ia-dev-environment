@@ -157,13 +157,13 @@ def _validate_architecture_style(
 
 def verify_cross_references(
     config: ProjectConfig,
-    src_dir: str,
+    resources_dir: str,
 ) -> List[str]:
     """Verify referenced directories exist on filesystem."""
     errors: List[str] = []
-    src = Path(src_dir)
+    src = Path(resources_dir)
     if not src.is_dir():
-        return [f"Source directory does not exist: {src_dir}"]
+        return [f"Source directory does not exist: {resources_dir}"]
     for directory in EXPECTED_DIRECTORIES:
         if not (src / directory).is_dir():
             errors.append(

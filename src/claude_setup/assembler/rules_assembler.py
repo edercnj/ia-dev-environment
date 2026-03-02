@@ -29,23 +29,23 @@ class RulesAssembler:
         engine: TemplateEngine,
     ) -> List[Path]:
         """Orchestrate all assembly layers."""
-        src_dir = Path(__file__).resolve().parent.parent.parent / "src"
+        resources_dir = Path(__file__).resolve().parent.parent.parent.parent / "resources"
         rules_dir = output_dir / "rules"
         skills_dir = output_dir / "skills"
         rules_dir.mkdir(parents=True, exist_ok=True)
         skills_dir.mkdir(parents=True, exist_ok=True)
         generated: List[Path] = []
-        generated.extend(self._copy_core_rules(config, src_dir, rules_dir, engine))
-        generated.extend(self._route_core_to_kps(config, src_dir, skills_dir))
-        generated.extend(self._copy_language_kps(config, src_dir, skills_dir))
-        generated.extend(self._copy_framework_kps(config, src_dir, skills_dir))
+        generated.extend(self._copy_core_rules(config, resources_dir, rules_dir, engine))
+        generated.extend(self._route_core_to_kps(config, resources_dir, skills_dir))
+        generated.extend(self._copy_language_kps(config, resources_dir, skills_dir))
+        generated.extend(self._copy_framework_kps(config, resources_dir, skills_dir))
         generated.append(self._generate_project_identity(config, rules_dir))
-        generated.append(self._copy_domain_template(config, src_dir, rules_dir, engine))
-        generated.extend(copy_database_refs(config, src_dir, skills_dir, engine))
-        generated.extend(copy_cache_refs(config, src_dir, skills_dir))
-        generated.extend(assemble_security_rules(config, src_dir, skills_dir))
-        generated.extend(assemble_cloud_knowledge(config, src_dir, skills_dir))
-        generated.extend(assemble_infra_knowledge(config, src_dir, skills_dir))
+        generated.append(self._copy_domain_template(config, resources_dir, rules_dir, engine))
+        generated.extend(copy_database_refs(config, resources_dir, skills_dir, engine))
+        generated.extend(copy_cache_refs(config, resources_dir, skills_dir))
+        generated.extend(assemble_security_rules(config, resources_dir, skills_dir))
+        generated.extend(assemble_cloud_knowledge(config, resources_dir, skills_dir))
+        generated.extend(assemble_infra_knowledge(config, resources_dir, skills_dir))
         result = audit_rules_context(rules_dir)
         for warning in result.warnings:
             logger.warning(warning)
@@ -54,12 +54,12 @@ class RulesAssembler:
     def _copy_core_rules(
         self,
         config: ProjectConfig,
-        src_dir: Path,
+        resources_dir: Path,
         rules_dir: Path,
         engine: TemplateEngine,
     ) -> List[Path]:
         """Layer 1: Copy core-rules/*.md with placeholder replacement."""
-        core_rules = src_dir / "core-rules"
+        core_rules = resources_dir / "core-rules"
         if not core_rules.is_dir():
             return []
         generated: List[Path] = []
@@ -74,11 +74,11 @@ class RulesAssembler:
     def _route_core_to_kps(
         self,
         config: ProjectConfig,
-        src_dir: Path,
+        resources_dir: Path,
         skills_dir: Path,
     ) -> List[Path]:
         """Layer 1b: Route core detailed rules to knowledge packs."""
-        core_dir = src_dir / "core"
+        core_dir = resources_dir / "core"
         if not core_dir.is_dir():
             return []
         routes = get_active_routes(config)
@@ -97,12 +97,12 @@ class RulesAssembler:
     def _copy_language_kps(
         self,
         config: ProjectConfig,
-        src_dir: Path,
+        resources_dir: Path,
         skills_dir: Path,
     ) -> List[Path]:
         """Layer 2: Route language files to coding-standards and testing KPs."""
         lang = config.language.name
-        lang_dir = src_dir / "languages" / lang
+        lang_dir = resources_dir / "languages" / lang
         if not lang_dir.is_dir():
             return []
         coding_refs = skills_dir / "coding-standards" / "references"
@@ -152,7 +152,7 @@ class RulesAssembler:
     def _copy_framework_kps(
         self,
         config: ProjectConfig,
-        src_dir: Path,
+        resources_dir: Path,
         skills_dir: Path,
     ) -> List[Path]:
         """Layer 3: Route framework files to stack-patterns KP."""
@@ -160,7 +160,7 @@ class RulesAssembler:
         pack_name = get_stack_pack_name(fw)
         if not pack_name:
             return []
-        fw_dir = src_dir / "frameworks" / fw
+        fw_dir = resources_dir / "frameworks" / fw
         if not fw_dir.is_dir():
             return []
         refs_dir = skills_dir / pack_name / "references"
@@ -213,13 +213,13 @@ class RulesAssembler:
     def _copy_domain_template(
         self,
         config: ProjectConfig,
-        src_dir: Path,
+        resources_dir: Path,
         rules_dir: Path,
         engine: TemplateEngine,
     ) -> Path:
         """Layer 4: Copy/generate 02-domain.md."""
         dest = rules_dir / "02-domain.md"
-        template = src_dir / "templates" / "domain-template.md"
+        template = resources_dir / "templates" / "domain-template.md"
         if template.is_file():
             content = template.read_text(encoding="utf-8")
             content = engine.replace_placeholders(content)
@@ -234,7 +234,7 @@ class RulesAssembler:
 
 def copy_database_refs(
     config: ProjectConfig,
-    src_dir: Path,
+    resources_dir: Path,
     skills_dir: Path,
     engine: TemplateEngine,
 ) -> List[Path]:
@@ -242,7 +242,7 @@ def copy_database_refs(
     db_name = config.data.database.name
     if db_name == NONE_VALUE:
         return []
-    db_dir = src_dir / "databases"
+    db_dir = resources_dir / "databases"
     target = skills_dir / "database-patterns" / "references"
     target.mkdir(parents=True, exist_ok=True)
     generated: List[Path] = []
@@ -278,14 +278,14 @@ def copy_db_type_files(
 
 def copy_cache_refs(
     config: ProjectConfig,
-    src_dir: Path,
+    resources_dir: Path,
     skills_dir: Path,
 ) -> List[Path]:
     """Conditional: copy cache references."""
     cache_name = config.data.cache.name
     if cache_name == NONE_VALUE:
         return []
-    db_dir = src_dir / "databases"
+    db_dir = resources_dir / "databases"
     target = skills_dir / "database-patterns" / "references"
     target.mkdir(parents=True, exist_ok=True)
     generated: List[Path] = []
@@ -296,13 +296,13 @@ def copy_cache_refs(
 
 def assemble_security_rules(
     config: ProjectConfig,
-    src_dir: Path,
+    resources_dir: Path,
     skills_dir: Path,
 ) -> List[Path]:
     """Conditional: copy security files to security/compliance KPs."""
     if not config.security.frameworks:
         return []
-    sec_dir = src_dir / "security"
+    sec_dir = resources_dir / "security"
     generated: List[Path] = []
     generated.extend(copy_security_base(sec_dir, skills_dir))
     generated.extend(copy_compliance(config, sec_dir, skills_dir))
@@ -341,14 +341,14 @@ def copy_compliance(
 
 def assemble_cloud_knowledge(
     config: ProjectConfig,
-    src_dir: Path,
+    resources_dir: Path,
     skills_dir: Path,
 ) -> List[Path]:
     """Conditional: copy cloud provider files."""
     provider = getattr(config.infrastructure, "cloud_provider", NONE_VALUE)
     if provider == NONE_VALUE or not provider:
         return []
-    cloud_dir = src_dir / "cloud-providers"
+    cloud_dir = resources_dir / "cloud-providers"
     kp_dir = skills_dir / "knowledge-packs"
     kp_dir.mkdir(parents=True, exist_ok=True)
     src = cloud_dir / f"{provider}.md"
@@ -361,11 +361,11 @@ def assemble_cloud_knowledge(
 
 def assemble_infra_knowledge(
     config: ProjectConfig,
-    src_dir: Path,
+    resources_dir: Path,
     skills_dir: Path,
 ) -> List[Path]:
     """Conditional: copy infrastructure knowledge packs."""
-    infra_dir = src_dir / "infrastructure"
+    infra_dir = resources_dir / "infrastructure"
     kp_dir = skills_dir / "knowledge-packs"
     kp_dir.mkdir(parents=True, exist_ok=True)
     generated: List[Path] = []

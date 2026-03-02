@@ -43,7 +43,7 @@ def select_patterns(config: ProjectConfig) -> List[str]:
 
 
 def select_pattern_files(
-    src_dir: Path,
+    resources_dir: Path,
     pattern_categories: List[str],
 ) -> List[Path]:
     """List .md files from pattern category directories.
@@ -51,7 +51,7 @@ def select_pattern_files(
     Skips missing directories without error.
     Returns sorted list of file paths.
     """
-    patterns_root = src_dir / "patterns"
+    patterns_root = resources_dir / "patterns"
     files: List[Path] = []
     for category in pattern_categories:
         category_dir = patterns_root / category

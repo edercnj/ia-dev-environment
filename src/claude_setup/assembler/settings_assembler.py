@@ -20,9 +20,9 @@ logger = logging.getLogger(__name__)
 class SettingsAssembler:
     """Generates settings.json and settings.local.json."""
 
-    def __init__(self, src_dir: Path) -> None:
-        self._src_dir = src_dir
-        self._templates_dir = src_dir / "settings-templates"
+    def __init__(self, resources_dir: Path) -> None:
+        self._resources_dir = resources_dir
+        self._templates_dir = resources_dir / "settings-templates"
 
     def assemble(
         self,

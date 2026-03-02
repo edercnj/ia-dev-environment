@@ -55,12 +55,12 @@ class TemplateEngine:
 
     def __init__(
         self,
-        src_dir: Path,
+        resources_dir: Path,
         config: ProjectConfig,
     ) -> None:
         self._config = config
         self._env = SandboxedEnvironment(
-            loader=FileSystemLoader(str(src_dir)),
+            loader=FileSystemLoader(str(resources_dir)),
             autoescape=False,
             keep_trailing_newline=True,
             trim_blocks=False,
