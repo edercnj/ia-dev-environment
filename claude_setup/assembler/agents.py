@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import shutil
+import logging
 from pathlib import Path
 from typing import List, Optional, Tuple
 
@@ -8,8 +8,14 @@ from claude_setup.assembler.conditions import (
     has_any_interface,
     has_interface,
 )
+from claude_setup.assembler.copy_helpers import (
+    copy_template_file,
+    copy_template_file_if_exists,
+)
 from claude_setup.models import ProjectConfig
 from claude_setup.template_engine import TemplateEngine
+
+logger = logging.getLogger(__name__)
 
 AGENTS_TEMPLATES_DIR = "agents-templates"
 CORE_DIR = "core"
@@ -48,10 +54,9 @@ class AgentsAssembler:
         self, config: ProjectConfig,
     ) -> List[str]:
         """Select agents based on data configuration."""
-        agents: List[str] = []
         if config.data.database.name != "none":
-            agents.append("database-engineer.md")
-        return agents
+            return ["database-engineer.md"]
+        return []
 
     def _select_infra_agents(
         self, config: ProjectConfig,
@@ -99,76 +104,43 @@ class AgentsAssembler:
         return f"{safe_name}-developer.md"
 
     def _copy_core_agent(
-        self,
-        agent_file: str,
-        src_dir: Path,
-        output_dir: Path,
-        engine: TemplateEngine,
+        self, agent_file: str, src_dir: Path,
+        output_dir: Path, engine: TemplateEngine,
     ) -> Path:
         """Copy a single core agent file with placeholders."""
         src = src_dir / AGENTS_TEMPLATES_DIR / CORE_DIR / agent_file
-        dest_dir = output_dir / AGENTS_OUTPUT
-        dest_dir.mkdir(parents=True, exist_ok=True)
-        dest = dest_dir / agent_file
-        content = src.read_text(encoding="utf-8")
-        replaced = engine.replace_placeholders(content)
-        dest.write_text(replaced, encoding="utf-8")
-        return dest
+        dest = output_dir / AGENTS_OUTPUT / agent_file
+        return copy_template_file(src, dest, engine)
 
     def _copy_conditional_agent(
-        self,
-        agent_file: str,
-        src_dir: Path,
-        output_dir: Path,
-        engine: TemplateEngine,
+        self, agent_file: str, src_dir: Path,
+        output_dir: Path, engine: TemplateEngine,
     ) -> Optional[Path]:
         """Copy a conditional agent if source exists."""
         src = src_dir / AGENTS_TEMPLATES_DIR / CONDITIONAL_DIR / agent_file
-        if not src.exists():
-            return None
-        dest_dir = output_dir / AGENTS_OUTPUT
-        dest_dir.mkdir(parents=True, exist_ok=True)
-        dest = dest_dir / agent_file
-        content = src.read_text(encoding="utf-8")
-        replaced = engine.replace_placeholders(content)
-        dest.write_text(replaced, encoding="utf-8")
-        return dest
+        dest = output_dir / AGENTS_OUTPUT / agent_file
+        return copy_template_file_if_exists(src, dest, engine)
 
     def _copy_developer_agent(
-        self,
-        config: ProjectConfig,
-        src_dir: Path,
-        output_dir: Path,
-        engine: TemplateEngine,
+        self, config: ProjectConfig, src_dir: Path,
+        output_dir: Path, engine: TemplateEngine,
     ) -> Optional[Path]:
         """Copy the language-specific developer agent."""
         agent_file = self.select_developer_agent(config)
         src = src_dir / AGENTS_TEMPLATES_DIR / DEVELOPERS_DIR / agent_file
-        if not src.exists():
-            return None
-        dest_dir = output_dir / AGENTS_OUTPUT
-        dest_dir.mkdir(parents=True, exist_ok=True)
-        dest = dest_dir / agent_file
-        content = src.read_text(encoding="utf-8")
-        replaced = engine.replace_placeholders(content)
-        dest.write_text(replaced, encoding="utf-8")
-        return dest
+        dest = output_dir / AGENTS_OUTPUT / agent_file
+        return copy_template_file_if_exists(src, dest, engine)
 
     def _inject_checklists(
-        self,
-        config: ProjectConfig,
-        output_dir: Path,
-        src_dir: Path,
-        engine: TemplateEngine,
+        self, config: ProjectConfig, output_dir: Path,
+        src_dir: Path, engine: TemplateEngine,
     ) -> None:
         """Inject conditional checklists into agent files."""
-        rules = self._build_checklist_rules(config)
-        for agent_file, checklist_file, condition in rules:
+        for agent_file, checklist_file, condition in self._build_checklist_rules(config):
             if not condition:
                 continue
             self._inject_single_checklist(
-                agent_file, checklist_file,
-                output_dir, src_dir, engine,
+                agent_file, checklist_file, output_dir, src_dir, engine,
             )
 
     def _build_checklist_rules(
@@ -217,12 +189,8 @@ class AgentsAssembler:
         ]
 
     def _inject_single_checklist(
-        self,
-        agent_file: str,
-        checklist_file: str,
-        output_dir: Path,
-        src_dir: Path,
-        engine: TemplateEngine,
+        self, agent_file: str, checklist_file: str,
+        output_dir: Path, src_dir: Path, engine: TemplateEngine,
     ) -> None:
         """Inject a single checklist into an agent file."""
         agent_path = output_dir / AGENTS_OUTPUT / agent_file
@@ -246,24 +214,28 @@ class AgentsAssembler:
         return f"<!-- {name} -->"
 
     def assemble(
-        self,
-        config: ProjectConfig,
-        output_dir: Path,
-        src_dir: Path,
-        engine: TemplateEngine,
+        self, config: ProjectConfig, output_dir: Path,
+        src_dir: Path, engine: TemplateEngine,
     ) -> List[Path]:
         """Main entry point: assemble all agents."""
+        logger.info("Assembling agents for project '%s'", config.project.name)
         results: List[Path] = []
-        results.extend(self._assemble_core(src_dir, output_dir, engine))
-        results.extend(
-            self._assemble_conditional(config, src_dir, output_dir, engine),
+        core = self._assemble_core(src_dir, output_dir, engine)
+        results.extend(core)
+        logger.debug("Assembled %d core agents", len(core))
+        conditional = self._assemble_conditional(
+            config, src_dir, output_dir, engine,
         )
+        results.extend(conditional)
+        logger.debug("Assembled %d conditional agents", len(conditional))
         dev = self._copy_developer_agent(
             config, src_dir, output_dir, engine,
         )
         if dev is not None:
             results.append(dev)
+            logger.debug("Developer agent: %s", dev.name)
         self._inject_checklists(config, output_dir, src_dir, engine)
+        logger.info("Agents assembly complete: %d total artifacts", len(results))
         return results
 
     def _assemble_core(
@@ -276,11 +248,8 @@ class AgentsAssembler:
         ]
 
     def _assemble_conditional(
-        self,
-        config: ProjectConfig,
-        src_dir: Path,
-        output_dir: Path,
-        engine: TemplateEngine,
+        self, config: ProjectConfig, src_dir: Path,
+        output_dir: Path, engine: TemplateEngine,
     ) -> List[Path]:
         """Copy all conditional agents."""
         results: List[Path] = []
