@@ -3,12 +3,9 @@ from __future__ import annotations
 import pytest
 
 from claude_setup.assembler.skills import (
+    CORE_KNOWLEDGE_PACKS,
+    STACK_PACK_MAP,
     SkillsAssembler,
-)
-from claude_setup.domain.skill_registry import CORE_KNOWLEDGE_PACKS
-from claude_setup.domain.stack_pack_mapping import (
-    FRAMEWORK_STACK_PACK,
-    get_stack_pack_name,
 )
 
 
@@ -307,10 +304,10 @@ class TestStackPackMap:
     def test_stack_pack_mapping(
         self, framework_name, expected_pack,
     ) -> None:
-        assert get_stack_pack_name(framework_name) == expected_pack
+        assert STACK_PACK_MAP[framework_name] == expected_pack
 
     def test_map_has_eleven_entries(self) -> None:
-        assert len(FRAMEWORK_STACK_PACK) == 11
+        assert len(STACK_PACK_MAP) == 11
 
 
 # --- select_core_skills ---

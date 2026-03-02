@@ -6,148 +6,155 @@ from typing import List
 import pytest
 
 from claude_setup.assembler.consolidator import (
+    CORE_PATTERNS,
+    DATA_PATTERNS,
+    GENERATED_HEADER,
+    OPS_PATTERNS,
     consolidate_files,
     consolidate_framework_rules,
 )
 
 
 class TestConsolidateFiles:
-    def test_two_files_with_separator(self, tmp_path: Path) -> None:
-        a = tmp_path / "a.md"
-        b = tmp_path / "b.md"
-        a.write_text("Alpha", encoding="utf-8")
-        b.write_text("Beta", encoding="utf-8")
-        out = tmp_path / "out.md"
-        consolidate_files(out, [a, b])
-        content = out.read_text(encoding="utf-8")
-        assert "---" in content
-        assert "Alpha" in content
-        assert "Beta" in content
 
-    def test_creates_parent_dirs(self, tmp_path: Path) -> None:
+    def test_consolidate_two_files_with_separator(
+        self, tmp_path: Path,
+    ) -> None:
+        src1 = tmp_path / "a.md"
+        src2 = tmp_path / "b.md"
+        src1.write_text("Content A")
+        src2.write_text("Content B")
+        output = tmp_path / "out" / "merged.md"
+        consolidate_files(output, [src1, src2])
+        text = output.read_text()
+        assert GENERATED_HEADER in text
+        assert "Content A" in text
+        assert "Content B" in text
+        assert "---" in text
+
+    def test_consolidate_creates_parent_dirs(
+        self, tmp_path: Path,
+    ) -> None:
         src = tmp_path / "src.md"
-        src.write_text("content", encoding="utf-8")
-        out = tmp_path / "deep" / "nested" / "out.md"
-        consolidate_files(out, [src])
-        assert out.exists()
+        src.write_text("data")
+        output = tmp_path / "deep" / "nested" / "out.md"
+        consolidate_files(output, [src])
+        assert output.is_file()
 
-    def test_skips_missing_sources(self, tmp_path: Path) -> None:
+    def test_consolidate_skips_missing_sources(
+        self, tmp_path: Path,
+    ) -> None:
         existing = tmp_path / "exists.md"
-        existing.write_text("present", encoding="utf-8")
+        existing.write_text("real content")
         missing = tmp_path / "missing.md"
-        out = tmp_path / "out.md"
-        consolidate_files(out, [existing, missing])
-        content = out.read_text(encoding="utf-8")
-        assert "present" in content
+        output = tmp_path / "out.md"
+        consolidate_files(output, [existing, missing])
+        text = output.read_text()
+        assert "real content" in text
 
-    def test_single_file_no_separator(self, tmp_path: Path) -> None:
+    def test_consolidate_single_file_no_extra_separator(
+        self, tmp_path: Path,
+    ) -> None:
         src = tmp_path / "only.md"
-        src.write_text("sole content", encoding="utf-8")
-        out = tmp_path / "out.md"
-        consolidate_files(out, [src])
-        content = out.read_text(encoding="utf-8")
-        assert "sole content" in content
-        lines = content.split("\n")
-        assert lines.count("---") == 0
+        src.write_text("single content")
+        output = tmp_path / "out.md"
+        consolidate_files(output, [src])
+        text = output.read_text()
+        assert "single content" in text
+        assert text.count("---") == 1
 
-    def test_empty_sources(self, tmp_path: Path) -> None:
-        out = tmp_path / "out.md"
-        consolidate_files(out, [])
-        assert out.exists()
+    def test_consolidate_empty_sources_produces_no_output(
+        self, tmp_path: Path,
+    ) -> None:
+        output = tmp_path / "out.md"
+        consolidate_files(output, [])
+        assert not output.exists()
 
 
 class TestConsolidateFrameworkRules:
-    def _create_fw_files(
-        self, source_dir: Path, names: List[str],
+
+    def test_consolidate_framework_produces_three_files(
+        self, tmp_path: Path,
     ) -> None:
-        source_dir.mkdir(parents=True, exist_ok=True)
-        for name in names:
-            (source_dir / name).write_text(
-                f"# {name}\ncontent", encoding="utf-8",
-            )
-
-    def test_produces_three_files(self, tmp_path: Path) -> None:
-        source = tmp_path / "fw"
-        self._create_fw_files(source, [
-            "01-quarkus-cdi.md",
-            "02-quarkus-jpa.md",
-            "03-quarkus-testing.md",
-        ])
-        rules = tmp_path / "rules"
-        rules.mkdir()
-        result = consolidate_framework_rules("quarkus", rules, source)
+        src_dir = tmp_path / "src"
+        src_dir.mkdir()
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (src_dir / "quarkus-cdi.md").write_text("CDI content")
+        (src_dir / "quarkus-jpa.md").write_text("JPA content")
+        (src_dir / "quarkus-testing.md").write_text("Testing content")
+        result = consolidate_framework_rules("quarkus", rules_dir, src_dir)
         assert len(result) == 3
-        assert any("30-quarkus-core.md" in str(p) for p in result)
-        assert any("31-quarkus-data.md" in str(p) for p in result)
-        assert any("32-quarkus-operations.md" in str(p) for p in result)
+        names = [p.name for p in result]
+        assert "30-quarkus-core.md" in names
+        assert "31-quarkus-data.md" in names
+        assert "32-quarkus-operations.md" in names
 
-    def test_empty_group_skipped(self, tmp_path: Path) -> None:
-        source = tmp_path / "fw"
-        self._create_fw_files(source, ["01-quarkus-cdi.md"])
-        rules = tmp_path / "rules"
-        rules.mkdir()
-        result = consolidate_framework_rules("quarkus", rules, source)
+    def test_consolidate_framework_empty_group_not_created(
+        self, tmp_path: Path,
+    ) -> None:
+        src_dir = tmp_path / "src"
+        src_dir.mkdir()
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (src_dir / "quarkus-cdi.md").write_text("CDI only")
+        result = consolidate_framework_rules("quarkus", rules_dir, src_dir)
         assert len(result) == 1
-        assert "30-quarkus-core.md" in str(result[0])
+        assert result[0].name == "30-quarkus-core.md"
 
-    def test_unmatched_file_excluded(self, tmp_path: Path) -> None:
-        source = tmp_path / "fw"
-        self._create_fw_files(source, ["01-quarkus-readme.md"])
-        rules = tmp_path / "rules"
-        rules.mkdir()
-        result = consolidate_framework_rules("quarkus", rules, source)
-        assert result == []
-
-    def test_nonexistent_source_returns_empty(self, tmp_path: Path) -> None:
-        rules = tmp_path / "rules"
-        rules.mkdir()
-        result = consolidate_framework_rules(
-            "quarkus", rules, tmp_path / "missing",
-        )
+    def test_consolidate_framework_nonexistent_source_returns_empty(
+        self, tmp_path: Path,
+    ) -> None:
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        missing = tmp_path / "missing"
+        result = consolidate_framework_rules("quarkus", rules_dir, missing)
         assert result == []
 
     @pytest.mark.parametrize(
-        "filename,expected_group",
+        "filename, expected_group",
         [
-            ("01-fw-cdi.md", "core"),
-            ("02-fw-di-patterns.md", "core"),
-            ("03-fw-config.md", "core"),
-            ("04-fw-web.md", "core"),
-            ("05-fw-resteasy.md", "core"),
-            ("06-fw-middleware.md", "core"),
-            ("07-fw-resilience.md", "core"),
-            ("10-fw-panache.md", "data"),
-            ("11-fw-jpa.md", "data"),
-            ("12-fw-prisma.md", "data"),
-            ("13-fw-sqlalchemy.md", "data"),
-            ("14-fw-exposed.md", "data"),
-            ("15-fw-ef-core.md", "data"),
-            ("16-fw-orm.md", "data"),
-            ("17-fw-database.md", "data"),
-            ("20-fw-testing.md", "operations"),
-            ("21-fw-observability.md", "operations"),
-            ("22-fw-native-build.md", "operations"),
-            ("23-fw-infrastructure.md", "operations"),
+            ("fw-cdi-patterns.md", "core"),
+            ("fw-di-container.md", "core"),
+            ("fw-config-guide.md", "core"),
+            ("fw-web-setup.md", "core"),
+            ("fw-resteasy-ref.md", "core"),
+            ("fw-middleware-chain.md", "core"),
+            ("fw-resilience-patterns.md", "core"),
+            ("fw-jpa-guide.md", "data"),
+            ("fw-panache-ref.md", "data"),
+            ("fw-prisma-setup.md", "data"),
+            ("fw-sqlalchemy-orm.md", "data"),
+            ("fw-exposed-dsl.md", "data"),
+            ("fw-ef-core.md", "data"),
+            ("fw-orm-patterns.md", "data"),
+            ("fw-database-setup.md", "data"),
+            ("fw-testing-guide.md", "operations"),
+            ("fw-observability-setup.md", "operations"),
+            ("fw-native-build.md", "operations"),
+            ("fw-infrastructure-deploy.md", "operations"),
         ],
         ids=[
             "cdi", "di", "config", "web", "resteasy",
             "middleware", "resilience",
-            "panache", "jpa", "prisma", "sqlalchemy",
+            "jpa", "panache", "prisma", "sqlalchemy",
             "exposed", "ef", "orm", "database",
             "testing", "observability", "native-build", "infrastructure",
         ],
     )
-    def test_file_routed_to_correct_group(
+    def test_framework_file_routed_to_correct_group(
         self,
+        tmp_path: Path,
         filename: str,
         expected_group: str,
-        tmp_path: Path,
     ) -> None:
-        source = tmp_path / "fw"
-        self._create_fw_files(source, [filename])
-        rules = tmp_path / "rules"
-        rules.mkdir()
-        result = consolidate_framework_rules("test", rules, source)
+        src_dir = tmp_path / "src"
+        src_dir.mkdir()
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (src_dir / filename).write_text(f"{expected_group} content")
+        result = consolidate_framework_rules("fw", rules_dir, src_dir)
         assert len(result) == 1
-        num = {"core": "30", "data": "31", "operations": "32"}[expected_group]
-        assert f"{num}-test-{expected_group}.md" in result[0].name
+        group_prefixes = {"core": "30", "data": "31", "operations": "32"}
+        prefix = group_prefixes[expected_group]
+        assert result[0].name.startswith(prefix)

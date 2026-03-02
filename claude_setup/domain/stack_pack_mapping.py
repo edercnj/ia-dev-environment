@@ -18,5 +18,8 @@ FRAMEWORK_STACK_PACK: Dict[str, str] = {
 
 
 def get_stack_pack_name(framework: str) -> str:
-    """Return the knowledge pack directory name for a framework."""
+    """Return the knowledge pack directory name for a framework.
+
+    Returns empty string for unknown frameworks.
+    """
     return FRAMEWORK_STACK_PACK.get(framework, "")

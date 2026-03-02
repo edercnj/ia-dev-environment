@@ -9,10 +9,13 @@ def find_version_dir(
     name: str,
     version: str,
 ) -> Optional[Path]:
-    """Find version-specific directory with major-version fallback.
+    """Find a version-specific directory with fallback.
 
-    Tries exact match first ({name}-{version}), then major version
-    with .x suffix ({name}-{major}.x). Returns None if not found.
+    Resolution order:
+    1. Exact match: {base_dir}/{name}-{version}
+    2. Major version fallback: {base_dir}/{name}-{major}.x
+
+    Returns None if neither directory exists.
     """
     exact = base_dir / f"{name}-{version}"
     if exact.is_dir():

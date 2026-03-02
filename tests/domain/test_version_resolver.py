@@ -5,44 +5,60 @@ from pathlib import Path
 from claude_setup.domain.version_resolver import find_version_dir
 
 
-class TestFindVersionDir:
-    def test_exact_match_returns_path(self, tmp_path: Path) -> None:
-        exact = tmp_path / "python-3.9"
-        exact.mkdir()
-        result = find_version_dir(tmp_path, "python", "3.9")
-        assert result == exact
+class TestVersionResolver:
 
-    def test_major_fallback_returns_path(self, tmp_path: Path) -> None:
-        fallback = tmp_path / "python-3.x"
-        fallback.mkdir()
+    def test_find_version_dir_exact_match_returns_path(
+        self, tmp_path: Path,
+    ) -> None:
+        exact_dir = tmp_path / "python-3.9"
+        exact_dir.mkdir()
         result = find_version_dir(tmp_path, "python", "3.9")
-        assert result == fallback
+        assert result == exact_dir
 
-    def test_exact_preferred_over_fallback(self, tmp_path: Path) -> None:
-        exact = tmp_path / "python-3.9"
-        exact.mkdir()
-        (tmp_path / "python-3.x").mkdir()
+    def test_find_version_dir_major_fallback_returns_path(
+        self, tmp_path: Path,
+    ) -> None:
+        fallback_dir = tmp_path / "python-3.x"
+        fallback_dir.mkdir()
         result = find_version_dir(tmp_path, "python", "3.9")
-        assert result == exact
+        assert result == fallback_dir
 
-    def test_no_match_returns_none(self, tmp_path: Path) -> None:
+    def test_find_version_dir_no_match_returns_none(
+        self, tmp_path: Path,
+    ) -> None:
         result = find_version_dir(tmp_path, "python", "3.9")
         assert result is None
 
-    def test_multi_dot_version_extracts_major(self, tmp_path: Path) -> None:
-        fallback = tmp_path / "python-3.x"
-        fallback.mkdir()
-        result = find_version_dir(tmp_path, "python", "3.9.1")
-        assert result == fallback
+    def test_find_version_dir_exact_preferred_over_fallback(
+        self, tmp_path: Path,
+    ) -> None:
+        exact_dir = tmp_path / "python-3.9"
+        exact_dir.mkdir()
+        fallback_dir = tmp_path / "python-3.x"
+        fallback_dir.mkdir()
+        result = find_version_dir(tmp_path, "python", "3.9")
+        assert result == exact_dir
 
-    def test_single_segment_version(self, tmp_path: Path) -> None:
-        exact = tmp_path / "java-21"
-        exact.mkdir()
+    def test_find_version_dir_multi_dot_version_extracts_major(
+        self, tmp_path: Path,
+    ) -> None:
+        fallback_dir = tmp_path / "java-3.x"
+        fallback_dir.mkdir()
+        result = find_version_dir(tmp_path, "java", "3.9.1")
+        assert result == fallback_dir
+
+    def test_find_version_dir_single_segment_version(
+        self, tmp_path: Path,
+    ) -> None:
+        exact_dir = tmp_path / "java-21"
+        exact_dir.mkdir()
         result = find_version_dir(tmp_path, "java", "21")
-        assert result == exact
+        assert result == exact_dir
 
-    def test_single_segment_fallback(self, tmp_path: Path) -> None:
-        fallback = tmp_path / "java-21.x"
-        fallback.mkdir()
-        result = find_version_dir(tmp_path, "java", "21.0.1")
-        assert result == fallback
+    def test_find_version_dir_single_segment_fallback(
+        self, tmp_path: Path,
+    ) -> None:
+        fallback_dir = tmp_path / "java-21.x"
+        fallback_dir.mkdir()
+        result = find_version_dir(tmp_path, "java", "21")
+        assert result == fallback_dir
