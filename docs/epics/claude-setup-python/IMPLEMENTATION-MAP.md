@@ -8,15 +8,15 @@
 
 | Story     | Título                  | Blocked By                              | Blocks                                  | Status   |
 | :-------- | :---------------------- | :-------------------------------------- | :-------------------------------------- | :------- |
-| STORY-001 | Scaffolding e Modelos   | —                                       | STORY-002, 003, 004, 005, 006, 007, 008 | Pendente |
-| STORY-002 | Config Loading          | STORY-001                               | STORY-009                               | Pendente |
-| STORY-003 | Stack Resolution        | STORY-001                               | STORY-009                               | Pendente |
-| STORY-004 | Template Engine         | STORY-001                               | STORY-005, 006, 007, 008                | Pendente |
-| STORY-005 | Rules Assembly          | STORY-001, 004                          | STORY-009                               | Pendente |
-| STORY-006 | Patterns & Protocols    | STORY-001, 004                          | STORY-009                               | Pendente |
-| STORY-007 | Skills & Agents         | STORY-001, 004                          | STORY-009                               | Pendente |
-| STORY-008 | Hooks, Settings, README | STORY-001, 004                          | STORY-009                               | Pendente |
-| STORY-009 | CLI Pipeline            | STORY-002, 003, 004, 005, 006, 007, 008 | STORY-010                               | Pendente |
+| STORY-001 | Scaffolding e Modelos   | —                                       | STORY-002, 003, 004, 005, 006, 007, 008 | Done |
+| STORY-002 | Config Loading          | STORY-001                               | STORY-009                               | Done |
+| STORY-003 | Stack Resolution        | STORY-001                               | STORY-009                               | Done |
+| STORY-004 | Template Engine         | STORY-001                               | STORY-005, 006, 007, 008                | Done |
+| STORY-005 | Rules Assembly          | STORY-001, 004                          | STORY-009                               | Done |
+| STORY-006 | Patterns & Protocols    | STORY-001, 004                          | STORY-009                               | Done |
+| STORY-007 | Skills & Agents         | STORY-001, 004                          | STORY-009                               | Done |
+| STORY-008 | Hooks, Settings, README | STORY-001, 004                          | STORY-009                               | Done |
+| STORY-009 | CLI Pipeline            | STORY-002, 003, 004, 005, 006, 007, 008 | STORY-010                               | Done |
 | STORY-010 | Tests & Verification    | STORY-009                               | —                                       | Pendente |
 
 > **Nota:** STORY-004 (Template Engine) é dependência indireta de STORY-009 tanto diretamente quanto via assemblers (005-008). Isso torna STORY-004 o nó mais crítico da árvore de dependências.
