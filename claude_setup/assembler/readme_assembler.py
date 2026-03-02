@@ -159,15 +159,18 @@ def _extract_rule_scope(filename: str) -> str:
 def _build_skills_table(output_dir: Path) -> str:
     skills_dir = output_dir / "skills"
     if not skills_dir.is_dir():
-        return ""
-    lines: List[str] = []
+        return "No skills configured."
+    rows: List[str] = []
     for skill_md in sorted(skills_dir.glob("*/SKILL.md")):
         sname = skill_md.parent.name
         sdesc = _extract_skill_description(skill_md)
         if _is_knowledge_pack(skill_md):
             continue
-        lines.append(f"| **{sname}** | `/{sname}` | {sdesc} |")
-    return "\n".join(lines)
+        rows.append(f"| **{sname}** | `/{sname}` | {sdesc} |")
+    if not rows:
+        return "No skills configured."
+    header = ["| Skill | Path | Description |", "|-------|------|-------------|"]
+    return "\n".join(header + rows)
 
 
 def _extract_skill_description(skill_md: Path) -> str:
@@ -191,12 +194,15 @@ def _is_knowledge_pack(skill_md: Path) -> bool:
 def _build_agents_table(output_dir: Path) -> str:
     agents_dir = output_dir / "agents"
     if not agents_dir.is_dir():
-        return ""
-    lines: List[str] = []
+        return "No agents configured."
+    rows: List[str] = []
     for agent_file in sorted(agents_dir.glob("*.md")):
         aname = agent_file.stem
-        lines.append(f"| **{aname}** | `{agent_file.name}` |")
-    return "\n".join(lines)
+        rows.append(f"| **{aname}** | `{agent_file.name}` |")
+    if not rows:
+        return "No agents configured."
+    header = ["| Agent | File |", "|-------|------|"]
+    return "\n".join(header + rows)
 
 
 def _build_hooks_section(config: ProjectConfig) -> str:

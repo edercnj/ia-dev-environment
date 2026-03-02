@@ -41,7 +41,7 @@ Two new constant dictionaries to add to the existing `stack_mapping.py` module:
 | (language, build_tool) | hook_template_key |
 |------------------------|-------------------|
 | (java, maven) | `"java-maven"` |
-| (java, gradle) | `"java-maven"` |
+| (java, gradle) | `"java-gradle"` |
 | (kotlin, gradle) | `"kotlin"` |
 | (typescript, npm) | `"typescript"` |
 | (python, pip) | `""` (no hook) |

@@ -65,7 +65,7 @@ G7 depends on G2-G4 (module exports).
 |------------------------|-------------------|
 | `("java", "maven")` | `"java-maven"` |
 | `("java", "gradle")` | `"java-gradle"` |
-| `("kotlin", "gradle")` | `"kotlin"` |
+| `("kotlin", "gradle")` | `"java-gradle"` |
 | `("typescript", "npm")` | `"typescript-npm"` |
 | `("python", "pip")` | `"python-pip"` |
 | `("go", "go")` | `"go"` |

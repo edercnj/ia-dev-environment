@@ -114,7 +114,7 @@ def readme_template_path(tmp_path) -> Path:
 | # | Test Name | Scenario | Expected |
 |---|-----------|----------|----------|
 | 9 | `test_hook_template_key_java_maven_returns_java_maven` | Java + Maven config | Key is `"java-maven"` |
-| 10 | `test_hook_template_key_java_gradle_returns_java_maven` | Java + Gradle config | Key is `"java-maven"` (same template) |
+| 10 | `test_hook_template_key_java_gradle_returns_java_gradle` | Java + Gradle config | Key is `"java-gradle"` |
 | 11 | `test_hook_template_key_kotlin_returns_kotlin` | Kotlin config | Key is `"kotlin"` |
 | 12 | `test_hook_template_key_typescript_returns_typescript` | TypeScript config | Key is `"typescript"` |
 | 13 | `test_hook_template_key_python_returns_empty` | Python config | Key is `""` (no hook) |
@@ -128,7 +128,7 @@ def readme_template_path(tmp_path) -> Path:
     "language, build_tool, expected_key",
     [
         ("java", "maven", "java-maven"),
-        ("java", "gradle", "java-maven"),
+        ("java", "gradle", "java-gradle"),
         ("kotlin", "gradle", "kotlin"),
         ("typescript", "npm", "typescript"),
         ("python", "pip", ""),

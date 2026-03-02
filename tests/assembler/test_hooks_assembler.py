@@ -50,7 +50,7 @@ def _go_config() -> ProjectConfig:
 
 
 class TestHooksAssemblerAssemble:
-    def test_assemble_javaMavenConfig_returnsOneHookPath(self, tmp_path):
+    def test_assemble_java_maven_config_returns_one_hook_path(self, tmp_path):
         src = _create_hook_src(tmp_path / "src", "java-maven")
         out = tmp_path / "output"
         out.mkdir()
@@ -61,7 +61,7 @@ class TestHooksAssemblerAssemble:
         assert result[0].name == "post-compile-check.sh"
         assert result[0].is_file()
 
-    def test_assemble_javaMavenConfig_createsHooksDir(self, tmp_path):
+    def test_assemble_java_maven_config_creates_hooks_dir(self, tmp_path):
         src = _create_hook_src(tmp_path / "src", "java-maven")
         out = tmp_path / "output"
         out.mkdir()
@@ -70,7 +70,7 @@ class TestHooksAssemblerAssemble:
         asm.assemble(_java_maven_config(), out, engine)
         assert (out / "hooks").is_dir()
 
-    def test_assemble_javaMavenConfig_setsExecutablePermission(self, tmp_path):
+    def test_assemble_java_maven_config_sets_executable_permission(self, tmp_path):
         src = _create_hook_src(tmp_path / "src", "java-maven")
         out = tmp_path / "output"
         out.mkdir()
@@ -79,7 +79,7 @@ class TestHooksAssemblerAssemble:
         result = asm.assemble(_java_maven_config(), out, engine)
         assert os.access(result[0], os.X_OK)
 
-    def test_assemble_pythonConfig_returnsEmptyList(self, tmp_path):
+    def test_assemble_python_config_returns_empty_list(self, tmp_path):
         src = tmp_path / "src"
         src.mkdir()
         out = tmp_path / "output"
@@ -89,7 +89,7 @@ class TestHooksAssemblerAssemble:
         result = asm.assemble(_python_config(), out, engine)
         assert result == []
 
-    def test_assemble_pythonConfig_noHooksDirCreated(self, tmp_path):
+    def test_assemble_python_config_no_hooks_dir_created(self, tmp_path):
         src = tmp_path / "src"
         src.mkdir()
         out = tmp_path / "output"
@@ -99,7 +99,7 @@ class TestHooksAssemblerAssemble:
         asm.assemble(_python_config(), out, engine)
         assert not (out / "hooks").exists()
 
-    def test_assemble_goConfig_returnsOneHookPath(self, tmp_path):
+    def test_assemble_go_config_returns_one_hook_path(self, tmp_path):
         src = _create_hook_src(tmp_path / "src", "go")
         out = tmp_path / "output"
         out.mkdir()
@@ -108,7 +108,7 @@ class TestHooksAssemblerAssemble:
         result = asm.assemble(_go_config(), out, engine)
         assert len(result) == 1
 
-    def test_assemble_missingTemplate_returnsEmptyList(self, tmp_path):
+    def test_assemble_missing_template_returns_empty_list(self, tmp_path):
         src = tmp_path / "src"
         src.mkdir()
         out = tmp_path / "output"
@@ -119,7 +119,7 @@ class TestHooksAssemblerAssemble:
         result = asm.assemble(config, out, engine)
         assert result == []
 
-    def test_assemble_javaMavenConfig_contentMatchesSource(self, tmp_path):
+    def test_assemble_java_maven_config_content_matches_source(self, tmp_path):
         src = _create_hook_src(tmp_path / "src", "java-maven")
         out = tmp_path / "output"
         out.mkdir()

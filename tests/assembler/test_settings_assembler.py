@@ -78,37 +78,42 @@ def _full_config() -> ProjectConfig:
 
 
 class TestMergeJsonArrays:
-    def test_mergeJsonArrays_noOverlap_returnsConcatenated(self):
+    def test_merge_json_arrays_no_overlap_returns_concatenated(self):
         assert merge_json_arrays(["a", "b"], ["c", "d"]) == ["a", "b", "c", "d"]
 
-    def test_mergeJsonArrays_withOverlap_returnsConcatenated(self):
+    def test_merge_json_arrays_with_overlap_returns_concatenated(self):
         result = merge_json_arrays(["a", "b"], ["b", "c"])
         assert result == ["a", "b", "b", "c"]
 
-    def test_mergeJsonArrays_emptyBase_returnsOverlay(self):
+    def test_merge_json_arrays_empty_base_returns_overlay(self):
         assert merge_json_arrays([], ["a", "b"]) == ["a", "b"]
 
-    def test_mergeJsonArrays_emptyOverlay_returnsBase(self):
+    def test_merge_json_arrays_empty_overlay_returns_base(self):
         assert merge_json_arrays(["a", "b"], []) == ["a", "b"]
 
-    def test_mergeJsonArrays_bothEmpty_returnsEmpty(self):
+    def test_merge_json_arrays_both_empty_returns_empty(self):
         assert merge_json_arrays([], []) == []
 
 
 class TestReadJsonArray:
-    def test_readJsonArray_nonListJson_returnsEmpty(self, tmp_path):
+    def test_read_json_array_non_list_json_returns_empty(self, tmp_path):
         f = tmp_path / "bad.json"
         f.write_text('{"not": "a list"}', encoding="utf-8")
         assert _read_json_array(f) == []
 
-    def test_readJsonArray_validList_returnsList(self, tmp_path):
+    def test_read_json_array_valid_list_returns_list(self, tmp_path):
         f = tmp_path / "good.json"
         f.write_text('["a", "b"]', encoding="utf-8")
         assert _read_json_array(f) == ["a", "b"]
 
+    def test_read_json_array_malformed_json_returns_empty(self, tmp_path):
+        f = tmp_path / "malformed.json"
+        f.write_text("{not valid json", encoding="utf-8")
+        assert _read_json_array(f) == []
+
 
 class TestSettingsAssemblerAssemble:
-    def test_assemble_anyConfig_writesValidJson(self, tmp_path):
+    def test_assemble_any_config_writes_valid_json(self, tmp_path):
         src = _create_settings_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -120,7 +125,7 @@ class TestSettingsAssemblerAssemble:
         assert "permissions" in settings
         assert "allow" in settings["permissions"]
 
-    def test_assemble_anyConfig_returnsTwoPaths(self, tmp_path):
+    def test_assemble_any_config_returns_two_paths(self, tmp_path):
         src = _create_settings_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -133,7 +138,7 @@ class TestSettingsAssemblerAssemble:
         assert "settings.json" in names
         assert "settings.local.json" in names
 
-    def test_assemble_anyConfig_writesSettingsLocal(self, tmp_path):
+    def test_assemble_any_config_writes_settings_local(self, tmp_path):
         src = _create_settings_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -144,7 +149,7 @@ class TestSettingsAssemblerAssemble:
         local = json.loads((out / "settings.local.json").read_text())
         assert local == {"permissions": {"allow": []}}
 
-    def test_assemble_anyConfig_includesBasePermissions(self, tmp_path):
+    def test_assemble_any_config_includes_base_permissions(self, tmp_path):
         src = _create_settings_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -156,7 +161,7 @@ class TestSettingsAssemblerAssemble:
         perms = settings["permissions"]["allow"]
         assert "Bash(git *)" in perms
 
-    def test_assemble_pythonConfig_includesLangPermissions(self, tmp_path):
+    def test_assemble_python_config_includes_lang_permissions(self, tmp_path):
         src = _create_settings_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -168,7 +173,7 @@ class TestSettingsAssemblerAssemble:
         perms = settings["permissions"]["allow"]
         assert "Bash(python3 *)" in perms
 
-    def test_assemble_dockerConfig_includesDockerPermissions(self, tmp_path):
+    def test_assemble_docker_config_includes_docker_permissions(self, tmp_path):
         src = _create_settings_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -180,7 +185,7 @@ class TestSettingsAssemblerAssemble:
         perms = settings["permissions"]["allow"]
         assert "Bash(docker build *)" in perms
 
-    def test_assemble_k8sConfig_includesKubernetesPermissions(self, tmp_path):
+    def test_assemble_k8s_config_includes_kubernetes_permissions(self, tmp_path):
         src = _create_settings_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -192,7 +197,7 @@ class TestSettingsAssemblerAssemble:
         perms = settings["permissions"]["allow"]
         assert "Bash(kubectl *)" in perms
 
-    def test_assemble_postgresqlConfig_includesDbPermissions(self, tmp_path):
+    def test_assemble_postgresql_config_includes_db_permissions(self, tmp_path):
         src = _create_settings_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -204,7 +209,7 @@ class TestSettingsAssemblerAssemble:
         perms = settings["permissions"]["allow"]
         assert "Bash(psql *)" in perms
 
-    def test_assemble_redisConfig_includesCachePermissions(self, tmp_path):
+    def test_assemble_redis_config_includes_cache_permissions(self, tmp_path):
         src = _create_settings_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -216,7 +221,7 @@ class TestSettingsAssemblerAssemble:
         perms = settings["permissions"]["allow"]
         assert "Bash(redis-cli *)" in perms
 
-    def test_assemble_smokeTestsEnabled_includesNewmanPermissions(self, tmp_path):
+    def test_assemble_smoke_tests_enabled_includes_newman_permissions(self, tmp_path):
         src = _create_settings_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -228,7 +233,7 @@ class TestSettingsAssemblerAssemble:
         perms = settings["permissions"]["allow"]
         assert "Bash(newman *)" in perms
 
-    def test_assemble_fullConfig_noDuplicatePermissions(self, tmp_path):
+    def test_assemble_full_config_no_duplicate_permissions(self, tmp_path):
         src = _create_settings_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -240,7 +245,7 @@ class TestSettingsAssemblerAssemble:
         perms = settings["permissions"]["allow"]
         assert len(perms) == len(set(perms))
 
-    def test_assemble_compiledLang_includesHooksSection(self, tmp_path):
+    def test_assemble_compiled_lang_includes_hooks_section(self, tmp_path):
         src = _create_settings_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -252,7 +257,7 @@ class TestSettingsAssemblerAssemble:
         assert "hooks" in settings
         assert "PostToolUse" in settings["hooks"]
 
-    def test_assemble_pythonConfig_noHooksSection(self, tmp_path):
+    def test_assemble_python_config_no_hooks_section(self, tmp_path):
         src = _create_settings_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -263,7 +268,7 @@ class TestSettingsAssemblerAssemble:
         settings = json.loads((out / "settings.json").read_text())
         assert "hooks" not in settings
 
-    def test_assemble_bareConfig_onlyBaseAndLangPermissions(self, tmp_path):
+    def test_assemble_bare_config_only_base_and_lang_permissions(self, tmp_path):
         src = _create_settings_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -284,7 +289,7 @@ class TestSettingsAssemblerAssemble:
         expected = ["Bash(git *)", "Bash(ls *)", "Bash(python3 *)", "Bash(pip *)"]
         assert perms == expected
 
-    def test_assemble_dockerCompose_includesBothDockerAndComposePerms(self, tmp_path):
+    def test_assemble_docker_compose_includes_both_docker_and_compose_perms(self, tmp_path):
         src = _create_settings_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()

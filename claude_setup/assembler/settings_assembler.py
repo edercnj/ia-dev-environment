@@ -16,8 +16,6 @@ from claude_setup.template_engine import TemplateEngine
 
 logger = logging.getLogger(__name__)
 
-NONE_VALUE = "none"
-
 
 class SettingsAssembler:
     """Generates settings.json and settings.local.json."""
@@ -132,7 +130,11 @@ def _deduplicate(items: List[str]) -> List[str]:
 def _read_json_array(path: Path) -> List[str]:
     """Read a JSON file containing an array of strings."""
     text = path.read_text(encoding="utf-8")
-    data = json.loads(text)
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        logger.warning("Malformed JSON in %s; returning empty list.", path)
+        return []
     if not isinstance(data, list):
         return []
     return data

@@ -81,7 +81,7 @@ def _java_config() -> ProjectConfig:
 
 
 class TestReadmeAssemblerAssemble:
-    def test_assemble_populatedDir_writesReadme(self, tmp_path):
+    def test_assemble_populated_dir_writes_readme(self, tmp_path):
         src = _create_readme_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -94,7 +94,7 @@ class TestReadmeAssemblerAssemble:
         assert result[0].name == "README.md"
         assert result[0].is_file()
 
-    def test_assemble_populatedDir_replacesProjectName(self, tmp_path):
+    def test_assemble_populated_dir_replaces_project_name(self, tmp_path):
         src = _create_readme_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -107,7 +107,7 @@ class TestReadmeAssemblerAssemble:
         assert "# my-cli" in content
         assert "{{PROJECT_NAME}}" not in content
 
-    def test_assemble_threeRules_showsCorrectCount(self, tmp_path):
+    def test_assemble_three_rules_shows_correct_count(self, tmp_path):
         src = _create_readme_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -119,7 +119,7 @@ class TestReadmeAssemblerAssemble:
         content = (out / "README.md").read_text()
         assert "Rules: 3" in content
 
-    def test_assemble_threeSkills_showsCorrectCount(self, tmp_path):
+    def test_assemble_three_skills_shows_correct_count(self, tmp_path):
         src = _create_readme_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -131,7 +131,7 @@ class TestReadmeAssemblerAssemble:
         content = (out / "README.md").read_text()
         assert "Skills: 3" in content
 
-    def test_assemble_twoAgents_showsCorrectCount(self, tmp_path):
+    def test_assemble_two_agents_shows_correct_count(self, tmp_path):
         src = _create_readme_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -143,7 +143,7 @@ class TestReadmeAssemblerAssemble:
         content = (out / "README.md").read_text()
         assert "Agents: 2" in content
 
-    def test_assemble_withRules_generatesRulesTable(self, tmp_path):
+    def test_assemble_with_rules_generates_rules_table(self, tmp_path):
         src = _create_readme_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -156,7 +156,7 @@ class TestReadmeAssemblerAssemble:
         assert "| # | File | Scope |" in content
         assert "`01-identity.md`" in content
 
-    def test_assemble_withKnowledgePacks_excludesFromSkillsTable(self, tmp_path):
+    def test_assemble_with_skills_generates_skills_table(self, tmp_path):
         src = _create_readme_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -166,10 +166,11 @@ class TestReadmeAssemblerAssemble:
         asm = ReadmeAssembler(src)
         asm.assemble(config, out, engine)
         content = (out / "README.md").read_text()
+        assert "| Skill | Path | Description |" in content
         assert "**commit**" in content
         assert "**review**" in content
 
-    def test_assemble_withAgents_generatesAgentsTable(self, tmp_path):
+    def test_assemble_with_agents_generates_agents_table(self, tmp_path):
         src = _create_readme_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -179,10 +180,11 @@ class TestReadmeAssemblerAssemble:
         asm = ReadmeAssembler(src)
         asm.assemble(config, out, engine)
         content = (out / "README.md").read_text()
+        assert "| Agent | File |" in content
         assert "**architect**" in content
         assert "**developer**" in content
 
-    def test_assemble_pythonConfig_showsNoHooksConfigured(self, tmp_path):
+    def test_assemble_python_config_shows_no_hooks_configured(self, tmp_path):
         src = _create_readme_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -194,7 +196,7 @@ class TestReadmeAssemblerAssemble:
         content = (out / "README.md").read_text()
         assert "No hooks configured." in content
 
-    def test_assemble_javaConfig_showsPostCompileCheck(self, tmp_path):
+    def test_assemble_java_config_shows_post_compile_check(self, tmp_path):
         src = _create_readme_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -207,7 +209,7 @@ class TestReadmeAssemblerAssemble:
         assert "Post-Compile Check" in content
         assert "PostToolUse" in content
 
-    def test_assemble_withKnowledgePacks_showsInKpTable(self, tmp_path):
+    def test_assemble_with_knowledge_packs_shows_in_kp_table(self, tmp_path):
         src = _create_readme_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -219,7 +221,7 @@ class TestReadmeAssemblerAssemble:
         content = (out / "README.md").read_text()
         assert "testing-kp" in content
 
-    def test_assemble_anyConfig_includesSettingsSection(self, tmp_path):
+    def test_assemble_any_config_includes_settings_section(self, tmp_path):
         src = _create_readme_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -232,7 +234,7 @@ class TestReadmeAssemblerAssemble:
         assert "settings.json" in content
         assert "permissions.allow" in content
 
-    def test_assemble_noTemplate_generatesMinimalReadme(self, tmp_path):
+    def test_assemble_no_template_generates_minimal_readme(self, tmp_path):
         src = tmp_path / "src"
         src.mkdir()
         out = tmp_path / "output"
@@ -245,7 +247,7 @@ class TestReadmeAssemblerAssemble:
         assert "my-cli" in content
         assert "library" in content
 
-    def test_assemble_emptyOutputDir_showsZeroCounts(self, tmp_path):
+    def test_assemble_empty_output_dir_shows_zero_counts(self, tmp_path):
         src = _create_readme_src(tmp_path / "src")
         out = tmp_path / "output"
         out.mkdir()
@@ -258,50 +260,62 @@ class TestReadmeAssemblerAssemble:
         assert "Skills: 0" in content
         assert "Agents: 0" in content
 
+    def test_assemble_empty_output_dir_shows_no_skills_message(self, tmp_path):
+        src = _create_readme_src(tmp_path / "src")
+        out = tmp_path / "output"
+        out.mkdir()
+        config = _minimal_config()
+        engine = TemplateEngine(src, config)
+        asm = ReadmeAssembler(src)
+        asm.assemble(config, out, engine)
+        content = (out / "README.md").read_text()
+        assert "No skills configured." in content
+        assert "No agents configured." in content
+
 
 class TestBuildRulesTable:
-    def test_buildRulesTable_noRulesDir_returnsNoRulesMsg(self, tmp_path):
+    def test_build_rules_table_no_rules_dir_returns_no_rules_msg(self, tmp_path):
         assert _build_rules_table(tmp_path) == "No rules configured."
 
-    def test_buildRulesTable_emptyRulesDir_returnsNoRulesMsg(self, tmp_path):
+    def test_build_rules_table_empty_rules_dir_returns_no_rules_msg(self, tmp_path):
         (tmp_path / "rules").mkdir()
         assert _build_rules_table(tmp_path) == "No rules configured."
 
 
 class TestIsKnowledgePack:
-    def test_isKnowledgePack_userInvocableFalse_returnsTrue(self, tmp_path):
+    def test_is_knowledge_pack_user_invocable_false_returns_true(self, tmp_path):
         skill_md = tmp_path / "SKILL.md"
         skill_md.write_text("description: test\nuser-invocable: false\n")
         assert _is_knowledge_pack(skill_md) is True
 
-    def test_isKnowledgePack_knowledgePackHeader_returnsTrue(self, tmp_path):
+    def test_is_knowledge_pack_knowledge_pack_header_returns_true(self, tmp_path):
         skill_md = tmp_path / "SKILL.md"
         skill_md.write_text("# Knowledge Pack\nSome content\n")
         assert _is_knowledge_pack(skill_md) is True
 
-    def test_isKnowledgePack_normalSkill_returnsFalse(self, tmp_path):
+    def test_is_knowledge_pack_normal_skill_returns_false(self, tmp_path):
         skill_md = tmp_path / "SKILL.md"
         skill_md.write_text('description: "A skill"\nuser-invocable: true\n')
         assert _is_knowledge_pack(skill_md) is False
 
 
 class TestGenerateMinimalReadme:
-    def test_generateMinimalReadme_anyConfig_containsProjectName(self):
+    def test_generate_minimal_readme_any_config_contains_project_name(self):
         config = _minimal_config()
         content = generate_minimal_readme(config)
         assert "my-cli" in content
 
-    def test_generateMinimalReadme_anyConfig_containsArchStyle(self):
+    def test_generate_minimal_readme_any_config_contains_arch_style(self):
         config = _minimal_config()
         content = generate_minimal_readme(config)
         assert "library" in content
 
-    def test_generateMinimalReadme_anyConfig_containsInterfaces(self):
+    def test_generate_minimal_readme_any_config_contains_interfaces(self):
         config = _minimal_config()
         content = generate_minimal_readme(config)
         assert "cli" in content
 
-    def test_generateMinimalReadme_anyConfig_containsStructure(self):
+    def test_generate_minimal_readme_any_config_contains_structure(self):
         config = _minimal_config()
         content = generate_minimal_readme(config)
         assert "## Structure" in content
