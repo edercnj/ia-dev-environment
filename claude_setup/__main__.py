@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import sys
 from pathlib import Path
+from typing import Optional
 
 import click
 
@@ -11,7 +11,7 @@ from claude_setup.config import load_config
 from claude_setup.domain.validator import validate_stack
 from claude_setup.exceptions import ConfigValidationError, PipelineError
 from claude_setup.interactive import run_interactive
-from claude_setup.models import PipelineResult
+from claude_setup.models import PipelineResult, ProjectConfig
 from claude_setup.utils import find_src_dir, setup_logging
 
 
@@ -31,7 +31,14 @@ def main(ctx: click.Context) -> None:
 @click.option("--src-dir", "-s", type=click.Path(exists=True), default=None, help="Source templates directory.")
 @click.option("--verbose", "-v", is_flag=True, default=False, help="Enable verbose logging.")
 @click.option("--dry-run", is_flag=True, default=False, help="Show what would be generated without writing.")
-def generate(config, interactive, output_dir, src_dir, verbose, dry_run) -> None:
+def generate(
+    config: Optional[str],
+    interactive: bool,
+    output_dir: str,
+    src_dir: Optional[str],
+    verbose: bool,
+    dry_run: bool,
+) -> None:
     """Generate project scaffolding from config or interactive mode."""
     _validate_generate_options(config, interactive)
     if verbose:
@@ -43,11 +50,11 @@ def generate(config, interactive, output_dir, src_dir, verbose, dry_run) -> None
         project_config, resolved_src, resolved_output, dry_run,
     )
     _display_result(result)
-    if not result.success:
-        sys.exit(1)
 
 
-def _validate_generate_options(config, interactive) -> None:
+def _validate_generate_options(
+    config: Optional[str], interactive: bool,
+) -> None:
     """Ensure --config and --interactive are mutually exclusive."""
     if config and interactive:
         raise click.UsageError(
@@ -59,7 +66,9 @@ def _validate_generate_options(config, interactive) -> None:
         )
 
 
-def _load_project_config(config, interactive):
+def _load_project_config(
+    config: Optional[str], interactive: bool,
+) -> ProjectConfig:
     """Load project config from file or interactive mode."""
     try:
         if config:
@@ -69,7 +78,7 @@ def _load_project_config(config, interactive):
         raise click.ClickException(str(exc)) from exc
 
 
-def _resolve_src_dir(src_dir) -> Path:
+def _resolve_src_dir(src_dir: Optional[str]) -> Path:
     """Resolve source directory from option or auto-detect."""
     if src_dir:
         return Path(src_dir)
@@ -79,18 +88,26 @@ def _resolve_src_dir(src_dir) -> Path:
         raise click.ClickException(str(exc)) from exc
 
 
-def _execute_generate(project_config, src_dir, output_dir, dry_run) -> PipelineResult:
+def _execute_generate(
+    project_config: ProjectConfig,
+    src_dir: Path,
+    output_dir: Path,
+    dry_run: bool,
+) -> PipelineResult:
     """Run the pipeline with error handling."""
     try:
-        return run_pipeline(project_config, src_dir, output_dir, dry_run=dry_run)
+        return run_pipeline(
+            project_config, src_dir, output_dir, dry_run=dry_run,
+        )
     except PipelineError as exc:
         raise click.ClickException(str(exc)) from exc
 
 
 def _display_result(result: PipelineResult) -> None:
     """Display pipeline result summary."""
-    status = "Success" if result.success else "Failed"
-    click.echo(f"Pipeline: {status}")
+    if not result.success:
+        raise click.ClickException("Pipeline failed")
+    click.echo(f"Pipeline: Success")
     click.echo(f"Files generated: {len(result.files_generated)}")
     click.echo(f"Duration: {result.duration_ms}ms")
     for warning in result.warnings:
@@ -100,20 +117,18 @@ def _display_result(result: PipelineResult) -> None:
 @main.command()
 @click.option("--config", "-c", type=click.Path(exists=True), required=True, help="Path to YAML config file.")
 @click.option("--verbose", "-v", is_flag=True, default=False, help="Enable verbose logging.")
-def validate(config, verbose) -> None:
+def validate(config: str, verbose: bool) -> None:
     """Validate a config file without generating output."""
     if verbose:
         setup_logging(verbose=True)
     try:
         project_config = load_config(Path(config))
     except ConfigValidationError as exc:
-        click.echo(f"Error: {exc}", err=True)
-        sys.exit(1)
+        raise click.ClickException(str(exc)) from exc
     errors = validate_stack(project_config)
     if errors:
-        for error in errors:
-            click.echo(f"Error: {error}", err=True)
-        sys.exit(1)
+        message = "\n".join(str(error) for error in errors)
+        raise click.ClickException(message)
     click.echo("Config is valid.")
 
 

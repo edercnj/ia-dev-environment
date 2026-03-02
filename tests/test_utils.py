@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from claude_setup.utils import (
+    _reject_dangerous_path,
     _validate_dest_path,
     atomic_output,
     find_src_dir,
@@ -122,6 +123,37 @@ class TestValidateDestPath:
         link.symlink_to(real)
         with pytest.raises(ValueError, match="symlink"):
             _validate_dest_path(link)
+
+
+class TestRejectDangerousPath:
+
+    def test_rejects_cwd(self) -> None:
+        cwd = Path.cwd().resolve()
+        with pytest.raises(ValueError, match="current directory"):
+            _reject_dangerous_path(cwd)
+
+    def test_rejects_home(self) -> None:
+        home = Path.home().resolve()
+        with pytest.raises(ValueError, match="home directory"):
+            _reject_dangerous_path(home)
+
+    def test_rejects_root(self) -> None:
+        with pytest.raises(ValueError, match="protected system path"):
+            _reject_dangerous_path(Path("/"))
+
+    def test_rejects_system_paths(self) -> None:
+        for path_str in ("/tmp", "/var", "/etc", "/usr"):
+            with pytest.raises(ValueError, match="protected system path"):
+                _reject_dangerous_path(Path(path_str))
+
+    def test_accepts_subdirectory_of_cwd(self, tmp_path: Path) -> None:
+        safe = tmp_path / "output"
+        _reject_dangerous_path(safe)
+
+    def test_cwd_dest_blocked_in_atomic_output(self) -> None:
+        with pytest.raises(ValueError, match="current directory"):
+            with atomic_output(Path.cwd()):
+                pass
 
 
 class TestSetupLogging:

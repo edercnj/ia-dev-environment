@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -25,13 +24,6 @@ def _make_config() -> ProjectConfig:
         "language": {"name": "python", "version": "3.9"},
         "framework": {"name": "click", "version": "8.1"},
     })
-
-
-def _mock_assembler(name: str, return_files: List[Path] = None):
-    """Create a mock assembler with a proper assemble method."""
-    mock = MagicMock()
-    mock.assemble.return_value = return_files or []
-    return mock
 
 
 class TestBuildAssemblers:

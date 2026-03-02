@@ -8,13 +8,37 @@ from pathlib import Path
 from typing import Generator
 
 
+PROTECTED_PATHS = frozenset({"/", "/tmp", "/var", "/etc", "/usr"})
+
+
 def _validate_dest_path(dest_dir: Path) -> Path:
     """Resolve and validate destination path against traversal attacks."""
     if dest_dir.is_symlink():
         raise ValueError(
             f"Destination must not be a symlink: {dest_dir}"
         )
-    return dest_dir.resolve()
+    resolved = dest_dir.resolve()
+    _reject_dangerous_path(resolved)
+    return resolved
+
+
+def _reject_dangerous_path(resolved: Path) -> None:
+    """Reject paths that would cause destructive rmtree."""
+    cwd = Path.cwd().resolve()
+    home = Path.home().resolve()
+    path_str = str(resolved)
+    if resolved == cwd:
+        raise ValueError(
+            f"Destination must not be the current directory: {resolved}"
+        )
+    if resolved == home:
+        raise ValueError(
+            f"Destination must not be the home directory: {resolved}"
+        )
+    if path_str in PROTECTED_PATHS:
+        raise ValueError(
+            f"Destination is a protected system path: {resolved}"
+        )
 
 
 @contextmanager

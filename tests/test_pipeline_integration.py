@@ -7,7 +7,7 @@ import pytest
 
 from claude_setup.assembler import run_pipeline
 from claude_setup.exceptions import PipelineError
-from claude_setup.models import PipelineResult, ProjectConfig
+from claude_setup.models import ProjectConfig
 from claude_setup.utils import find_src_dir
 
 
