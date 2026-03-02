@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import List
 
 from claude_setup.assembler.auditor import audit_rules_context
-from claude_setup.assembler.consolidator import consolidate_framework_rules
 from claude_setup.domain.core_kp_routing import get_active_routes
 from claude_setup.domain.stack_pack_mapping import get_stack_pack_name
 from claude_setup.domain.version_resolver import find_version_dir
