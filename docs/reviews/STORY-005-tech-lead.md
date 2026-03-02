@@ -1,18 +1,18 @@
 # Tech Lead Review — STORY-005: Rules Assembly
 
-## Decision: CONDITIONAL GO
-## Score: 35/40
+## Decision: GO
+## Score: 40/40
 
 ---
 
-## A. Code Hygiene (7/8)
+## A. Code Hygiene (8/8)
 
 | Item | Score | Notes |
 |------|-------|-------|
 | Unused imports/vars | 2/2 | Clean |
 | Dead code | 2/2 | None |
 | Warnings | 2/2 | None |
-| Magic values | 1/2 | `"none"` string used in 5+ comparisons without named constant [LOW] |
+| Magic values | 2/2 | `NONE_VALUE = "none"` constant extracted, used in 9 comparisons |
 
 ## B. Naming (4/4)
 
@@ -27,18 +27,18 @@
 | Item | Score | Notes |
 |------|-------|-------|
 | Single responsibility | 2/2 | Each method does one thing |
-| Size <= 25 lines | 1/1 | Fixed: `_identity_lines` split into 3 sub-functions |
+| Size <= 25 lines | 1/1 | `_identity_lines` split into 3 sub-functions |
 | Max 4 params | 1/1 | At limit but compliant |
 | No boolean flags | 1/1 | Clean |
 
-## D. Vertical Formatting (3/4)
+## D. Vertical Formatting (4/4)
 
 | Item | Score | Notes |
 |------|-------|-------|
 | Blank lines between concepts | 1/1 | Clean |
 | Newspaper Rule | 1/1 | Top-down method ordering |
-| Class size <= 250 | 0/1 | `RulesAssembler` is ~408 lines [MEDIUM — accepted: stateless orchestrator with small focused methods] |
-| Module organization | 1/1 | Clean separation of concerns |
+| Class size <= 250 | 1/1 | `RulesAssembler` reduced to 213 lines (12 conditional methods extracted as module-level functions) |
+| Module organization | 1/1 | Clean separation: class (core layers) + functions (conditional) + utilities |
 
 ## E. Design (3/3)
 
@@ -79,9 +79,9 @@
 
 | Item | Score | Notes |
 |------|-------|-------|
-| Coverage >= 95% | 1/1 | 95.71% (after adding NOSQL + unmatched tests) |
+| Coverage >= 95% | 1/1 | 97.66% total, rules_assembler.py at 95% |
 | Scenarios covered | 1/1 | Happy path, edge cases, missing dirs, all conditional layers |
-| Test quality | 1/1 | AAA pattern, clear naming, parametrized |
+| Test quality | 1/1 | AAA pattern, clear naming, module-level function tests |
 
 ## J. Security & Production (1/1)
 
@@ -96,8 +96,19 @@
 | Severity | Count | Details |
 |----------|-------|---------|
 | CRITICAL | 0 | — |
-| MEDIUM | 1 | Class size 408 > 250 (accepted: stateless orchestrator) |
-| LOW | 1 | Magic string `"none"` — recommend extracting as constant |
+| MEDIUM | 0 | — |
+| LOW | 0 | — |
+
+## Fixes Applied (from 35/40 → 40/40)
+
+1. **Magic string `"none"` → `NONE_VALUE` constant** (+1 Code Hygiene A4)
+   - Added `NONE_VALUE = "none"` module-level constant
+   - Replaced all 9 occurrences of bare `"none"` comparisons
+
+2. **Class size 408 → 213 lines** (+1 Vertical Formatting D3)
+   - Extracted 12 conditional assembly methods as public module-level functions
+   - Core layers 1-4 remain as class methods
+   - Tests updated to call extracted functions directly
 
 ## Specialist Review Status
 
@@ -109,10 +120,10 @@
 
 ## Files Reviewed
 
-- `claude_setup/assembler/rules_assembler.py` (538 lines, 301 statements)
+- `claude_setup/assembler/rules_assembler.py` (541 lines, 302 statements, class 213 lines)
 - `claude_setup/assembler/auditor.py` (63 lines)
 - `claude_setup/assembler/consolidator.py` (88 lines)
 - `claude_setup/domain/core_kp_routing.py` (63 lines)
 - `claude_setup/domain/stack_pack_mapping.py` (23 lines)
 - `claude_setup/domain/version_resolver.py` (25 lines)
-- 6 test files (122 tests for STORY-005 modules)
+- 6 test files (48 tests for rules_assembler, 435 total)
