@@ -159,3 +159,11 @@ def valid_v2_dict() -> Dict:
         "stack": "java-quarkus",
         "project": {"name": "legacy", "purpose": "Legacy"},
     }
+
+
+def create_file_tree(base: Path, files: Dict[str, str]) -> None:
+    """Create files under base directory from dict."""
+    for rel_path, content in files.items():
+        full_path = base / rel_path
+        full_path.parent.mkdir(parents=True, exist_ok=True)
+        full_path.write_text(content, encoding="utf-8")

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict
 
 import pytest
 
@@ -9,14 +8,7 @@ from claude_setup.verifier import (
     _collect_relative_paths,
     verify_output,
 )
-
-
-def _create_file_tree(base: Path, files: Dict[str, str]) -> None:
-    """Create files under base directory from dict."""
-    for rel_path, content in files.items():
-        full_path = base / rel_path
-        full_path.parent.mkdir(parents=True, exist_ok=True)
-        full_path.write_text(content, encoding="utf-8")
+from tests.conftest import create_file_tree
 
 
 def _create_binary_file(path: Path, data: bytes) -> None:
@@ -33,8 +25,8 @@ class TestVerifyOutput:
         python_dir = tmp_path / "python"
         ref_dir = tmp_path / "reference"
         files = {"a.txt": "hello", "b.txt": "world"}
-        _create_file_tree(python_dir, files)
-        _create_file_tree(ref_dir, files)
+        create_file_tree(python_dir, files)
+        create_file_tree(ref_dir, files)
         result = verify_output(python_dir, ref_dir)
         assert result.success is True
 
@@ -44,8 +36,8 @@ class TestVerifyOutput:
         python_dir = tmp_path / "python"
         ref_dir = tmp_path / "reference"
         files = {"a.txt": "a", "b.txt": "b", "c.txt": "c"}
-        _create_file_tree(python_dir, files)
-        _create_file_tree(ref_dir, files)
+        create_file_tree(python_dir, files)
+        create_file_tree(ref_dir, files)
         result = verify_output(python_dir, ref_dir)
         assert result.total_files == 3
 
@@ -54,8 +46,8 @@ class TestVerifyOutput:
     ) -> None:
         python_dir = tmp_path / "python"
         ref_dir = tmp_path / "reference"
-        _create_file_tree(python_dir, {"a.txt": "new"})
-        _create_file_tree(ref_dir, {"a.txt": "old"})
+        create_file_tree(python_dir, {"a.txt": "new"})
+        create_file_tree(ref_dir, {"a.txt": "old"})
         result = verify_output(python_dir, ref_dir)
         assert result.success is False
         assert len(result.mismatches) == 1
@@ -65,8 +57,8 @@ class TestVerifyOutput:
     ) -> None:
         python_dir = tmp_path / "python"
         ref_dir = tmp_path / "reference"
-        _create_file_tree(python_dir, {"a.txt": "new\n"})
-        _create_file_tree(ref_dir, {"a.txt": "old\n"})
+        create_file_tree(python_dir, {"a.txt": "new\n"})
+        create_file_tree(ref_dir, {"a.txt": "old\n"})
         result = verify_output(python_dir, ref_dir)
         diff_text = result.mismatches[0].diff
         assert "---" in diff_text
@@ -77,8 +69,8 @@ class TestVerifyOutput:
     ) -> None:
         python_dir = tmp_path / "python"
         ref_dir = tmp_path / "reference"
-        _create_file_tree(python_dir, {"a.txt": "short"})
-        _create_file_tree(ref_dir, {"a.txt": "much longer text"})
+        create_file_tree(python_dir, {"a.txt": "short"})
+        create_file_tree(ref_dir, {"a.txt": "much longer text"})
         result = verify_output(python_dir, ref_dir)
         m = result.mismatches[0]
         assert m.python_size == 5
@@ -89,8 +81,8 @@ class TestVerifyOutput:
     ) -> None:
         python_dir = tmp_path / "python"
         ref_dir = tmp_path / "reference"
-        _create_file_tree(python_dir, {"a.txt": "a"})
-        _create_file_tree(ref_dir, {"a.txt": "a", "b.txt": "b"})
+        create_file_tree(python_dir, {"a.txt": "a"})
+        create_file_tree(ref_dir, {"a.txt": "a", "b.txt": "b"})
         result = verify_output(python_dir, ref_dir)
         assert result.success is False
         assert Path("b.txt") in result.missing_files
@@ -100,8 +92,8 @@ class TestVerifyOutput:
     ) -> None:
         python_dir = tmp_path / "python"
         ref_dir = tmp_path / "reference"
-        _create_file_tree(python_dir, {"a.txt": "a", "c.txt": "c"})
-        _create_file_tree(ref_dir, {"a.txt": "a"})
+        create_file_tree(python_dir, {"a.txt": "a", "c.txt": "c"})
+        create_file_tree(ref_dir, {"a.txt": "a"})
         result = verify_output(python_dir, ref_dir)
         assert result.success is False
         assert Path("c.txt") in result.extra_files
@@ -112,8 +104,8 @@ class TestVerifyOutput:
         python_dir = tmp_path / "python"
         ref_dir = tmp_path / "reference"
         files = {"sub/dir/file.txt": "content"}
-        _create_file_tree(python_dir, files)
-        _create_file_tree(ref_dir, files)
+        create_file_tree(python_dir, files)
+        create_file_tree(ref_dir, files)
         result = verify_output(python_dir, ref_dir)
         assert result.success is True
         assert result.total_files == 1
@@ -152,8 +144,8 @@ class TestVerifyOutput:
     ) -> None:
         python_dir = tmp_path / "python"
         ref_dir = tmp_path / "reference"
-        _create_file_tree(python_dir, {"a.txt": "hello "})
-        _create_file_tree(ref_dir, {"a.txt": "hello"})
+        create_file_tree(python_dir, {"a.txt": "hello "})
+        create_file_tree(ref_dir, {"a.txt": "hello"})
         result = verify_output(python_dir, ref_dir)
         assert result.success is False
         assert len(result.mismatches) == 1
@@ -165,7 +157,7 @@ class TestCollectRelativePaths:
         self, tmp_path: Path,
     ) -> None:
         files = {"c.txt": "c", "a.txt": "a", "b.txt": "b"}
-        _create_file_tree(tmp_path, files)
+        create_file_tree(tmp_path, files)
         paths = _collect_relative_paths(tmp_path)
         assert paths == [Path("a.txt"), Path("b.txt"), Path("c.txt")]
 
@@ -173,7 +165,7 @@ class TestCollectRelativePaths:
         self, tmp_path: Path,
     ) -> None:
         files = {"root.txt": "r", "sub/nested.txt": "n"}
-        _create_file_tree(tmp_path, files)
+        create_file_tree(tmp_path, files)
         paths = _collect_relative_paths(tmp_path)
         assert Path("sub/nested.txt") in paths
 

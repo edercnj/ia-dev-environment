@@ -2,34 +2,15 @@ from __future__ import annotations
 
 import copy
 from pathlib import Path
-from typing import Dict
 
 import pytest
 
 from claude_setup.assembler import run_pipeline
 from claude_setup.models import ProjectConfig
 from claude_setup.verifier import verify_output
-
-MINIMAL_PROJECT_DICT = {
-    "project": {
-        "name": "minimal-tool",
-        "purpose": "Minimal CLI tool",
-    },
-    "architecture": {"style": "library"},
-    "interfaces": [{"type": "cli"}],
-    "language": {"name": "python", "version": "3.9"},
-    "framework": {"name": "click", "version": "8.1"},
-}
+from tests.conftest import MINIMAL_PROJECT_DICT, create_file_tree
 
 SRC_DIR = Path(__file__).resolve().parent.parent / "src"
-
-
-def _create_file_tree(base: Path, files: Dict[str, str]) -> None:
-    """Create files under base directory from dict."""
-    for rel_path, content in files.items():
-        full_path = base / rel_path
-        full_path.parent.mkdir(parents=True, exist_ok=True)
-        full_path.write_text(content, encoding="utf-8")
 
 
 def _make_minimal_config() -> ProjectConfig:
@@ -99,7 +80,7 @@ class TestEmptyOutput:
     ) -> None:
         ref_dir = tmp_path / "reference"
         python_dir = tmp_path / "empty_output"
-        _create_file_tree(ref_dir, {"a.txt": "a", "b.txt": "b"})
+        create_file_tree(ref_dir, {"a.txt": "a", "b.txt": "b"})
         python_dir.mkdir()
         result = verify_output(python_dir, ref_dir)
         assert result.success is False
@@ -124,3 +105,23 @@ class TestInvalidDirectories:
         py_dir.mkdir()
         with pytest.raises(ValueError, match="reference_dir"):
             verify_output(py_dir, tmp_path / "nope")
+
+    def test_file_as_python_dir_raises_valueerror(
+        self, tmp_path: Path,
+    ) -> None:
+        file_path = tmp_path / "not_a_dir"
+        file_path.write_text("content")
+        ref_dir = tmp_path / "ref"
+        ref_dir.mkdir()
+        with pytest.raises(ValueError, match="not a directory"):
+            verify_output(file_path, ref_dir)
+
+    def test_file_as_reference_dir_raises_valueerror(
+        self, tmp_path: Path,
+    ) -> None:
+        py_dir = tmp_path / "py"
+        py_dir.mkdir()
+        file_path = tmp_path / "not_a_dir"
+        file_path.write_text("content")
+        with pytest.raises(ValueError, match="not a directory"):
+            verify_output(py_dir, file_path)
