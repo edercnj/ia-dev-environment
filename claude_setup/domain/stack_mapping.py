@@ -195,3 +195,70 @@ DOCKER_BASE_IMAGES: Dict[str, str] = {
 }
 
 DEFAULT_DOCKER_IMAGE = "alpine:latest"
+
+# --- Hook Template Key Mapping ---
+# Maps (language, build_tool) to hook template directory in src/hooks-templates/
+# Empty string means no compile hook (interpreted language)
+
+HOOK_TEMPLATE_MAP: Dict[Tuple[str, str], str] = {
+    ("java", "maven"): "java-maven",
+    ("java", "gradle"): "java-gradle",
+    ("kotlin", "gradle"): "kotlin",
+    ("typescript", "npm"): "typescript",
+    ("python", "pip"): "",
+    ("go", "go"): "go",
+    ("rust", "cargo"): "rust",
+    ("csharp", "dotnet"): "csharp",
+}
+
+# --- Settings Language Key Mapping ---
+# Maps (language, build_tool) to settings JSON filename (without .json)
+
+SETTINGS_LANG_MAP: Dict[Tuple[str, str], str] = {
+    ("java", "maven"): "java-maven",
+    ("java", "gradle"): "java-gradle",
+    ("kotlin", "gradle"): "java-gradle",
+    ("typescript", "npm"): "typescript-npm",
+    ("python", "pip"): "python-pip",
+    ("go", "go"): "go",
+    ("rust", "cargo"): "rust-cargo",
+    ("csharp", "dotnet"): "csharp-dotnet",
+}
+
+# --- Database Settings Key Mapping ---
+
+DATABASE_SETTINGS_MAP: Dict[str, str] = {
+    "postgresql": "database-psql",
+    "mysql": "database-mysql",
+    "oracle": "database-oracle",
+    "mongodb": "database-mongodb",
+    "cassandra": "database-cassandra",
+}
+
+# --- Cache Settings Key Mapping ---
+
+CACHE_SETTINGS_MAP: Dict[str, str] = {
+    "redis": "cache-redis",
+    "dragonfly": "cache-dragonfly",
+    "memcached": "cache-memcached",
+}
+
+
+def get_hook_template_key(language: str, build_tool: str) -> str:
+    """Return hook template directory key, or empty string if none."""
+    return HOOK_TEMPLATE_MAP.get((language, build_tool), "")
+
+
+def get_settings_lang_key(language: str, build_tool: str) -> str:
+    """Return settings language JSON key, or empty string if none."""
+    return SETTINGS_LANG_MAP.get((language, build_tool), "")
+
+
+def get_database_settings_key(db_name: str) -> str:
+    """Return database settings JSON key, or empty string if none."""
+    return DATABASE_SETTINGS_MAP.get(db_name, "")
+
+
+def get_cache_settings_key(cache_name: str) -> str:
+    """Return cache settings JSON key, or empty string if none."""
+    return CACHE_SETTINGS_MAP.get(cache_name, "")
