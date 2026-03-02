@@ -21,11 +21,14 @@ dev = [
 [project.scripts]
 claude-setup = "claude_setup.__main__:main"
 
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
 [tool.coverage.run]
-source = ["claude_setup"]
+source = ["src/claude_setup"]
 branch = true
 
 [tool.coverage.report]
