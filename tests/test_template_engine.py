@@ -27,13 +27,21 @@ EXPECTED_CONTEXT_KEYS = {
     "event_driven",
     "container",
     "orchestrator",
+    "templating",
+    "iac",
+    "registry",
+    "api_gateway",
+    "service_mesh",
     "database_name",
     "cache_name",
+    "smoke_tests",
+    "contract_tests",
+    "performance_tests",
     "coverage_line",
     "coverage_branch",
 }
 
-EXPECTED_CONTEXT_KEY_COUNT = 16
+EXPECTED_CONTEXT_KEY_COUNT = 24
 
 
 @pytest.fixture

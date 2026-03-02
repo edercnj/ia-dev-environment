@@ -164,6 +164,11 @@ def _default_observability() -> ObservabilityConfig:
 class InfraConfig:
     container: str = "docker"
     orchestrator: str = "none"
+    templating: str = "kustomize"
+    iac: str = "none"
+    registry: str = "none"
+    api_gateway: str = "none"
+    service_mesh: str = "none"
     observability: ObservabilityConfig = field(
         default_factory=_default_observability,
     )
@@ -173,6 +178,11 @@ class InfraConfig:
         return cls(
             container=data.get("container", "docker"),
             orchestrator=data.get("orchestrator", "none"),
+            templating=data.get("templating", "kustomize"),
+            iac=data.get("iac", "none"),
+            registry=data.get("registry", "none"),
+            api_gateway=data.get("api_gateway", "none"),
+            service_mesh=data.get("service_mesh", "none"),
             observability=ObservabilityConfig.from_dict(
                 data.get("observability", {}),
             ),
@@ -183,6 +193,7 @@ class InfraConfig:
 class TestingConfig:
     smoke_tests: bool = True
     contract_tests: bool = False
+    performance_tests: bool = True
     coverage_line: int = 95
     coverage_branch: int = 90
 
@@ -191,6 +202,7 @@ class TestingConfig:
         return cls(
             smoke_tests=data.get("smoke_tests", True),
             contract_tests=data.get("contract_tests", False),
+            performance_tests=data.get("performance_tests", True),
             coverage_line=data.get("coverage_line", 95),
             coverage_branch=data.get("coverage_branch", 90),
         )
