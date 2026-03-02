@@ -8,6 +8,8 @@ from claude_setup.models import ProjectConfig
 
 @dataclass(frozen=True)
 class CoreKpRoute:
+    """Maps a core rule source file to a knowledge pack destination."""
+
     source_file: str
     kp_name: str
     dest_file: str
@@ -15,6 +17,8 @@ class CoreKpRoute:
 
 @dataclass(frozen=True)
 class ConditionalCoreKpRoute(CoreKpRoute):
+    """Route that is conditionally included based on config values."""
+
     condition_field: str = ""
     condition_exclude: str = ""
 
@@ -45,19 +49,17 @@ CONDITIONAL_CORE_KP: List[ConditionalCoreKpRoute] = [
 
 
 def get_active_routes(config: ProjectConfig) -> List[CoreKpRoute]:
-    """Return all routes applicable to the given config."""
+    """Return all routes whose conditions are met for the given config."""
     routes: List[CoreKpRoute] = list(CORE_TO_KP_MAPPING)
     for route in CONDITIONAL_CORE_KP:
-        value = _resolve_condition_value(config, route.condition_field)
-        if value != route.condition_exclude:
+        config_value = _resolve_condition_value(config, route.condition_field)
+        if config_value != route.condition_exclude:
             routes.append(route)
     return routes
 
 
-def _resolve_condition_value(
-    config: ProjectConfig,
-    field: str,
-) -> str:
+def _resolve_condition_value(config: ProjectConfig, field: str) -> str:
+    """Resolve a dotted condition field to a config value."""
     if field == "architecture_style":
         return config.architecture.style
     return ""

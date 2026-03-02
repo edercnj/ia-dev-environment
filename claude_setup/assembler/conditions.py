@@ -17,7 +17,5 @@ def has_interface(config: ProjectConfig, iface_type: str) -> bool:
 
 def has_any_interface(config: ProjectConfig, *types: str) -> bool:
     """Check if any of the specified interface types exist."""
-    if not types:
-        return False
     type_set = set(types)
     return any(iface.type in type_set for iface in config.interfaces)
