@@ -10,7 +10,7 @@ from claude_setup.models import ProjectConfig
 from claude_setup.verifier import verify_output
 from tests.conftest import MINIMAL_PROJECT_DICT, create_file_tree
 
-SRC_DIR = Path(__file__).resolve().parent.parent / "src"
+RESOURCES_DIR = Path(__file__).resolve().parent.parent / "resources"
 
 
 def _make_minimal_config() -> ProjectConfig:
@@ -27,7 +27,7 @@ class TestMinimalConfig:
     ) -> None:
         config = _make_minimal_config()
         output_dir = tmp_path / "output"
-        result = run_pipeline(config, SRC_DIR, output_dir)
+        result = run_pipeline(config, RESOURCES_DIR, output_dir)
         assert result.success is True
         assert len(result.files_generated) > 0
 
@@ -37,8 +37,8 @@ class TestMinimalConfig:
         config = _make_minimal_config()
         dir_a = tmp_path / "a"
         dir_b = tmp_path / "b"
-        run_pipeline(config, SRC_DIR, dir_a)
-        run_pipeline(config, SRC_DIR, dir_b)
+        run_pipeline(config, RESOURCES_DIR, dir_a)
+        run_pipeline(config, RESOURCES_DIR, dir_b)
         result = verify_output(dir_a, dir_b)
         assert result.success is True
 
@@ -51,8 +51,8 @@ class TestIdempotency:
         config = _make_minimal_config()
         dir_a = tmp_path / "run1"
         dir_b = tmp_path / "run2"
-        run_pipeline(config, SRC_DIR, dir_a)
-        run_pipeline(config, SRC_DIR, dir_b)
+        run_pipeline(config, RESOURCES_DIR, dir_a)
+        run_pipeline(config, RESOURCES_DIR, dir_b)
         result = verify_output(dir_a, dir_b)
         assert result.success is True
 
@@ -65,7 +65,7 @@ class TestEmptyReference:
         config = _make_minimal_config()
         python_dir = tmp_path / "output"
         ref_dir = tmp_path / "empty_ref"
-        run_pipeline(config, SRC_DIR, python_dir)
+        run_pipeline(config, RESOURCES_DIR, python_dir)
         ref_dir.mkdir()
         result = verify_output(python_dir, ref_dir)
         assert result.success is False

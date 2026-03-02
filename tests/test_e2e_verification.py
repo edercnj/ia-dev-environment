@@ -21,9 +21,9 @@ CONFIG_PROFILES = [
 ]
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-CONFIG_TEMPLATES_DIR = PROJECT_ROOT / "src" / "config-templates"
+CONFIG_TEMPLATES_DIR = PROJECT_ROOT / "resources" / "config-templates"
 GOLDEN_DIR = Path(__file__).resolve().parent / "golden"
-SRC_DIR = PROJECT_ROOT / "src"
+RESOURCES_DIR = PROJECT_ROOT / "resources"
 
 GOLDEN_MISSING_MSG = (
     "Golden files not found. "
@@ -67,7 +67,7 @@ class TestE2EVerification:
         )
         config = load_config(config_path)
         output_dir = tmp_path / "output"
-        result = run_pipeline(config, SRC_DIR, output_dir)
+        result = run_pipeline(config, RESOURCES_DIR, output_dir)
         assert result.success is True
         golden_path = GOLDEN_DIR / profile_name
         verification = verify_output(output_dir, golden_path)

@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 class ReadmeAssembler:
     """Generates README.md from template or minimal fallback."""
 
-    def __init__(self, src_dir: Path) -> None:
-        self._src_dir = src_dir
+    def __init__(self, resources_dir: Path) -> None:
+        self._resources_dir = resources_dir
 
     def assemble(
         self,
@@ -25,7 +25,7 @@ class ReadmeAssembler:
         engine: TemplateEngine,
     ) -> List[Path]:
         """Generate README.md in output_dir."""
-        template = self._src_dir / "readme-template.md"
+        template = self._resources_dir / "readme-template.md"
         if template.is_file():
             content = _generate_readme(config, output_dir, template)
         else:

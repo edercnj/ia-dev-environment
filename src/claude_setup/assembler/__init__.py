@@ -39,37 +39,37 @@ __all__ = [
 ]
 
 
-def _build_assemblers(src_dir: Path) -> List[Tuple[str, object]]:
+def _build_assemblers(resources_dir: Path) -> List[Tuple[str, object]]:
     """Build ordered list of (name, assembler) tuples."""
     return [
         ("RulesAssembler", RulesAssembler()),
         ("SkillsAssembler", SkillsAssembler()),
         ("AgentsAssembler", AgentsAssembler()),
-        ("PatternsAssembler", PatternsAssembler(src_dir)),
-        ("ProtocolsAssembler", ProtocolsAssembler(src_dir)),
-        ("HooksAssembler", HooksAssembler(src_dir)),
-        ("SettingsAssembler", SettingsAssembler(src_dir)),
-        ("ReadmeAssembler", ReadmeAssembler(src_dir)),
+        ("PatternsAssembler", PatternsAssembler(resources_dir)),
+        ("ProtocolsAssembler", ProtocolsAssembler(resources_dir)),
+        ("HooksAssembler", HooksAssembler(resources_dir)),
+        ("SettingsAssembler", SettingsAssembler(resources_dir)),
+        ("ReadmeAssembler", ReadmeAssembler(resources_dir)),
     ]
 
 
-ASSEMBLERS_WITH_SRC_DIR = ("SkillsAssembler", "AgentsAssembler")
+ASSEMBLERS_WITH_RESOURCES_DIR = ("SkillsAssembler", "AgentsAssembler")
 
 
 def _execute_assemblers(
     config: ProjectConfig,
-    src_dir: Path,
+    resources_dir: Path,
     output_dir: Path,
     engine: TemplateEngine,
 ) -> Tuple[List[Path], List[str]]:
     """Run all assemblers in order, collecting results."""
     files: List[Path] = []
     warnings: List[str] = []
-    for name, assembler in _build_assemblers(src_dir):
+    for name, assembler in _build_assemblers(resources_dir):
         try:
-            if name in ASSEMBLERS_WITH_SRC_DIR:
+            if name in ASSEMBLERS_WITH_RESOURCES_DIR:
                 result = assembler.assemble(
-                    config, output_dir, src_dir, engine,
+                    config, output_dir, resources_dir, engine,
                 )
             else:
                 result = assembler.assemble(
@@ -84,14 +84,14 @@ def _execute_assemblers(
 
 def _run_in_temp(
     config: ProjectConfig,
-    src_dir: Path,
+    resources_dir: Path,
 ) -> Tuple[List[Path], List[str]]:
     """Execute pipeline in a temporary directory."""
     temp_dir = Path(tempfile.mkdtemp(prefix="claude-setup-dry-"))
     try:
-        engine = TemplateEngine(src_dir, config)
+        engine = TemplateEngine(resources_dir, config)
         files, warnings = _execute_assemblers(
-            config, src_dir, temp_dir, engine,
+            config, resources_dir, temp_dir, engine,
         )
         return files, warnings
     finally:
@@ -106,25 +106,25 @@ def _compute_duration_ms(start: float, end: float) -> int:
 
 def run_pipeline(
     config: ProjectConfig,
-    src_dir: Path,
+    resources_dir: Path,
     output_dir: Path,
     dry_run: bool = False,
 ) -> PipelineResult:
     """Orchestrate all assemblers with atomic output."""
     start = time.monotonic()
     if dry_run:
-        return _run_dry(config, src_dir, output_dir, start)
-    return _run_real(config, src_dir, output_dir, start)
+        return _run_dry(config, resources_dir, output_dir, start)
+    return _run_real(config, resources_dir, output_dir, start)
 
 
 def _run_dry(
     config: ProjectConfig,
-    src_dir: Path,
+    resources_dir: Path,
     output_dir: Path,
     start: float,
 ) -> PipelineResult:
     """Execute dry-run: run in temp, discard output."""
-    files, warnings = _run_in_temp(config, src_dir)
+    files, warnings = _run_in_temp(config, resources_dir)
     warnings.append(DRY_RUN_WARNING)
     duration = _compute_duration_ms(start, time.monotonic())
     return PipelineResult(
@@ -138,15 +138,15 @@ def _run_dry(
 
 def _run_real(
     config: ProjectConfig,
-    src_dir: Path,
+    resources_dir: Path,
     output_dir: Path,
     start: float,
 ) -> PipelineResult:
     """Execute pipeline with atomic output to dest."""
     with atomic_output(output_dir) as temp_dir:
-        engine = TemplateEngine(src_dir, config)
+        engine = TemplateEngine(resources_dir, config)
         files, warnings = _execute_assemblers(
-            config, src_dir, temp_dir, engine,
+            config, resources_dir, temp_dir, engine,
         )
     duration = _compute_duration_ms(start, time.monotonic())
     return PipelineResult(

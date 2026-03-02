@@ -71,11 +71,11 @@ def setup_logging(verbose: bool) -> None:
     )
 
 
-def find_src_dir() -> Path:
-    """Locate the src/ directory relative to the package."""
-    src = Path(__file__).resolve().parent.parent / "src"
-    if not src.is_dir():
+def find_resources_dir() -> Path:
+    """Locate the resources/ directory relative to the package."""
+    resources = Path(__file__).resolve().parent.parent.parent / "resources"
+    if not resources.is_dir():
         raise FileNotFoundError(
-            f"Source directory not found: {src}"
+            f"Resources directory not found: {resources}"
         )
-    return src
+    return resources

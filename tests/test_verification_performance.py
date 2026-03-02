@@ -21,9 +21,9 @@ CONFIG_PROFILES = [
 ]
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-CONFIG_TEMPLATES_DIR = PROJECT_ROOT / "src" / "config-templates"
+CONFIG_TEMPLATES_DIR = PROJECT_ROOT / "resources" / "config-templates"
 GOLDEN_DIR = Path(__file__).resolve().parent / "golden"
-SRC_DIR = PROJECT_ROOT / "src"
+RESOURCES_DIR = PROJECT_ROOT / "resources"
 
 PIPELINE_TIME_LIMIT_MS = 5000
 VERIFICATION_TIME_LIMIT_MS = 1000
@@ -54,7 +54,7 @@ class TestPerformance:
         config = load_config(config_path)
         output_dir = tmp_path / "output"
         start = time.monotonic()
-        run_pipeline(config, SRC_DIR, output_dir)
+        run_pipeline(config, RESOURCES_DIR, output_dir)
         elapsed_ms = int(
             (time.monotonic() - start) * 1000,
         )
@@ -72,7 +72,7 @@ class TestPerformance:
         )
         config = load_config(config_path)
         output_dir = tmp_path / "output"
-        run_pipeline(config, SRC_DIR, output_dir)
+        run_pipeline(config, RESOURCES_DIR, output_dir)
         golden = GOLDEN_DIR / profile_name
         start = time.monotonic()
         verify_output(output_dir, golden)

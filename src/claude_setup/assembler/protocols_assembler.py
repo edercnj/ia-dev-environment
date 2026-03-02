@@ -20,8 +20,8 @@ CONVENTIONS_SUFFIX = "-conventions.md"
 class ProtocolsAssembler:
     """Assembles protocol knowledge packs from source templates."""
 
-    def __init__(self, src_dir: Path) -> None:
-        self._src_dir = src_dir
+    def __init__(self, resources_dir: Path) -> None:
+        self._resources_dir = resources_dir
 
     def assemble(
         self,
@@ -34,7 +34,7 @@ class ProtocolsAssembler:
         if not protocol_names:
             return []
         protocol_files = derive_protocol_files(
-            self._src_dir, protocol_names, config,
+            self._resources_dir, protocol_names, config,
         )
         if not protocol_files:
             return []

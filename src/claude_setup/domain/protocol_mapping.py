@@ -35,7 +35,7 @@ def derive_protocols(config: ProjectConfig) -> List[str]:
 
 
 def derive_protocol_files(
-    src_dir: Path,
+    resources_dir: Path,
     protocol_names: List[str],
     config: ProjectConfig,
 ) -> Dict[str, List[Path]]:
@@ -44,7 +44,7 @@ def derive_protocol_files(
     Applies broker-specific filtering for messaging protocol.
     Skips missing directories without error.
     """
-    protocols_root = src_dir / "protocols"
+    protocols_root = resources_dir / "protocols"
     result: Dict[str, List[Path]] = {}
     for protocol in protocol_names:
         protocol_dir = protocols_root / protocol

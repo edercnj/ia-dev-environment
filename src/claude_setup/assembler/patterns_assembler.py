@@ -20,8 +20,8 @@ SECTION_SEPARATOR = "\n\n---\n\n"
 class PatternsAssembler:
     """Assembles pattern knowledge packs from source templates."""
 
-    def __init__(self, src_dir: Path) -> None:
-        self._src_dir = src_dir
+    def __init__(self, resources_dir: Path) -> None:
+        self._resources_dir = resources_dir
 
     def assemble(
         self,
@@ -34,7 +34,7 @@ class PatternsAssembler:
         if not categories:
             return []
         pattern_files = select_pattern_files(
-            self._src_dir, categories,
+            self._resources_dir, categories,
         )
         if not pattern_files:
             return []

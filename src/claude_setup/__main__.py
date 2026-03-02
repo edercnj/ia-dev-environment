@@ -12,7 +12,7 @@ from claude_setup.domain.validator import validate_stack
 from claude_setup.exceptions import ConfigValidationError, PipelineError
 from claude_setup.interactive import run_interactive
 from claude_setup.models import PipelineResult, ProjectConfig
-from claude_setup.utils import find_src_dir, setup_logging
+from claude_setup.utils import find_resources_dir, setup_logging
 
 
 @click.group(invoke_without_command=True)
@@ -28,14 +28,14 @@ def main(ctx: click.Context) -> None:
 @click.option("--config", "-c", type=click.Path(exists=True), default=None, help="Path to YAML config file.")
 @click.option("--interactive", "-i", is_flag=True, default=False, help="Run in interactive mode.")
 @click.option("--output-dir", "-o", type=click.Path(), default=".", help="Output directory.")
-@click.option("--src-dir", "-s", type=click.Path(exists=True), default=None, help="Source templates directory.")
+@click.option("--resources-dir", "-s", type=click.Path(exists=True), default=None, help="Resources templates directory.")
 @click.option("--verbose", "-v", is_flag=True, default=False, help="Enable verbose logging.")
 @click.option("--dry-run", is_flag=True, default=False, help="Show what would be generated without writing.")
 def generate(
     config: Optional[str],
     interactive: bool,
     output_dir: str,
-    src_dir: Optional[str],
+    resources_dir: Optional[str],
     verbose: bool,
     dry_run: bool,
 ) -> None:
@@ -44,10 +44,10 @@ def generate(
     if verbose:
         setup_logging(verbose=True)
     project_config = _load_project_config(config, interactive)
-    resolved_src = _resolve_src_dir(src_dir)
+    resolved_resources = _resolve_resources_dir(resources_dir)
     resolved_output = Path(output_dir)
     result = _execute_generate(
-        project_config, resolved_src, resolved_output, dry_run,
+        project_config, resolved_resources, resolved_output, dry_run,
     )
     _display_result(result)
 
@@ -78,26 +78,26 @@ def _load_project_config(
         raise click.ClickException(str(exc)) from exc
 
 
-def _resolve_src_dir(src_dir: Optional[str]) -> Path:
+def _resolve_resources_dir(resources_dir: Optional[str]) -> Path:
     """Resolve source directory from option or auto-detect."""
-    if src_dir:
-        return Path(src_dir)
+    if resources_dir:
+        return Path(resources_dir)
     try:
-        return find_src_dir()
+        return find_resources_dir()
     except FileNotFoundError as exc:
         raise click.ClickException(str(exc)) from exc
 
 
 def _execute_generate(
     project_config: ProjectConfig,
-    src_dir: Path,
+    resources_dir: Path,
     output_dir: Path,
     dry_run: bool,
 ) -> PipelineResult:
     """Run the pipeline with error handling."""
     try:
         return run_pipeline(
-            project_config, src_dir, output_dir, dry_run=dry_run,
+            project_config, resources_dir, output_dir, dry_run=dry_run,
         )
     except PipelineError as exc:
         raise click.ClickException(str(exc)) from exc

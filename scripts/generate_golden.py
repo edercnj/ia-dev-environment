@@ -7,9 +7,9 @@ import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
-SRC_DIR = PROJECT_ROOT / "src"
-CONFIG_DIR = SRC_DIR / "config-templates"
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
+RESOURCES_DIR = PROJECT_ROOT / "resources"
+CONFIG_DIR = RESOURCES_DIR / "config-templates"
 GOLDEN_DIR = PROJECT_ROOT / "tests" / "golden"
 CONFIG_PREFIX = "setup-config."
 CONFIG_SUFFIX = ".yaml"
@@ -39,7 +39,7 @@ def _generate_single_profile(
         shutil.rmtree(str(output_dir))
     output_dir.mkdir(parents=True, exist_ok=True)
     config = load_config(config_path)
-    result = run_pipeline(config, SRC_DIR, output_dir)
+    result = run_pipeline(config, RESOURCES_DIR, output_dir)
     return result.success
 
 

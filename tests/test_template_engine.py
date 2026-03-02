@@ -80,7 +80,7 @@ class TestInit:
         assert env.lstrip_blocks is False
         assert env.undefined is StrictUndefined
 
-    def test_init_nonexistent_src_dir(
+    def test_init_nonexistent_resources_dir(
         self, full_config: ProjectConfig,
     ) -> None:
         nonexistent = Path("/tmp/nonexistent_dir_xyz")

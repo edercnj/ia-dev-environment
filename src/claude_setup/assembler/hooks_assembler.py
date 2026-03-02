@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 class HooksAssembler:
     """Copies post-compile-check.sh for compiled languages."""
 
-    def __init__(self, src_dir: Path) -> None:
-        self._src_dir = src_dir
+    def __init__(self, resources_dir: Path) -> None:
+        self._resources_dir = resources_dir
 
     def assemble(
         self,
@@ -32,7 +32,7 @@ class HooksAssembler:
         if not key:
             logger.info("No compile hook for %s, skipping.", config.language.name)
             return []
-        hook_src = self._src_dir / "hooks-templates" / key / "post-compile-check.sh"
+        hook_src = self._resources_dir / "hooks-templates" / key / "post-compile-check.sh"
         if not hook_src.is_file():
             logger.warning("Hook template not found: %s", hook_src)
             return []

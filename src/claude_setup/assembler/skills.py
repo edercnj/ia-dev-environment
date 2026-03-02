@@ -38,9 +38,9 @@ SKILLS_OUTPUT = "skills"
 class SkillsAssembler:
     """Assembles skills from templates based on project config."""
 
-    def select_core_skills(self, src_dir: Path) -> List[str]:
+    def select_core_skills(self, resources_dir: Path) -> List[str]:
         """Scan core skills directories, returning skill names."""
-        core_path = src_dir / SKILLS_TEMPLATES_DIR / CORE_DIR
+        core_path = resources_dir / SKILLS_TEMPLATES_DIR / CORE_DIR
         if not core_path.exists():
             return []
         skills: List[str] = []
@@ -137,29 +137,29 @@ class SkillsAssembler:
         return []
 
     def _copy_core_skill(
-        self, skill_name: str, src_dir: Path,
+        self, skill_name: str, resources_dir: Path,
         output_dir: Path, engine: TemplateEngine,
     ) -> Path:
         """Copy a single core skill directory with placeholders."""
-        src = src_dir / SKILLS_TEMPLATES_DIR / CORE_DIR / skill_name
+        src = resources_dir / SKILLS_TEMPLATES_DIR / CORE_DIR / skill_name
         dest = output_dir / SKILLS_OUTPUT / skill_name
         return copy_template_tree(src, dest, engine)
 
     def _copy_conditional_skill(
-        self, skill_name: str, src_dir: Path,
+        self, skill_name: str, resources_dir: Path,
         output_dir: Path, engine: TemplateEngine,
     ) -> Optional[Path]:
         """Copy a conditional skill if source exists."""
-        src = src_dir / SKILLS_TEMPLATES_DIR / CONDITIONAL_DIR / skill_name
+        src = resources_dir / SKILLS_TEMPLATES_DIR / CONDITIONAL_DIR / skill_name
         dest = output_dir / SKILLS_OUTPUT / skill_name
         return copy_template_tree_if_exists(src, dest, engine)
 
     def _copy_knowledge_pack(
-        self, pack_name: str, src_dir: Path,
+        self, pack_name: str, resources_dir: Path,
         output_dir: Path, engine: TemplateEngine,
     ) -> Optional[Path]:
         """Copy knowledge pack: overwrite SKILL.md, skip existing."""
-        src = src_dir / SKILLS_TEMPLATES_DIR / KNOWLEDGE_PACKS_DIR / pack_name
+        src = resources_dir / SKILLS_TEMPLATES_DIR / KNOWLEDGE_PACKS_DIR / pack_name
         if not src.exists():
             return None
         dest = output_dir / SKILLS_OUTPUT / pack_name
@@ -184,7 +184,7 @@ class SkillsAssembler:
                 shutil.copy2(item, target)
 
     def _copy_stack_patterns(
-        self, config: ProjectConfig, src_dir: Path,
+        self, config: ProjectConfig, resources_dir: Path,
         output_dir: Path, engine: TemplateEngine,
     ) -> Optional[Path]:
         """Copy stack-specific patterns based on framework."""
@@ -192,14 +192,14 @@ class SkillsAssembler:
         if not pack_name:
             return None
         src = (
-            src_dir / SKILLS_TEMPLATES_DIR
+            resources_dir / SKILLS_TEMPLATES_DIR
             / KNOWLEDGE_PACKS_DIR / STACK_PATTERNS_DIR / pack_name
         )
         dest = output_dir / SKILLS_OUTPUT / pack_name
         return copy_template_tree_if_exists(src, dest, engine)
 
     def _copy_infra_patterns(
-        self, config: ProjectConfig, src_dir: Path,
+        self, config: ProjectConfig, resources_dir: Path,
         output_dir: Path, engine: TemplateEngine,
     ) -> List[Path]:
         """Copy infrastructure knowledge packs based on config."""
@@ -208,7 +208,7 @@ class SkillsAssembler:
             if not condition:
                 continue
             src = (
-                src_dir / SKILLS_TEMPLATES_DIR
+                resources_dir / SKILLS_TEMPLATES_DIR
                 / KNOWLEDGE_PACKS_DIR / INFRA_PATTERNS_DIR / pack_name
             )
             dest = output_dir / SKILLS_OUTPUT / pack_name
@@ -219,67 +219,67 @@ class SkillsAssembler:
 
     def assemble(
         self, config: ProjectConfig, output_dir: Path,
-        src_dir: Path, engine: TemplateEngine,
+        resources_dir: Path, engine: TemplateEngine,
     ) -> List[Path]:
         """Main entry point: assemble all skills."""
         logger.info("Assembling skills for project '%s'", config.project.name)
         results: List[Path] = []
-        core = self._assemble_core(src_dir, output_dir, engine)
+        core = self._assemble_core(resources_dir, output_dir, engine)
         results.extend(core)
         logger.debug("Assembled %d core skills", len(core))
         conditional = self._assemble_conditional(
-            config, src_dir, output_dir, engine,
+            config, resources_dir, output_dir, engine,
         )
         results.extend(conditional)
         logger.debug("Assembled %d conditional skills", len(conditional))
         knowledge = self._assemble_knowledge(
-            config, src_dir, output_dir, engine,
+            config, resources_dir, output_dir, engine,
         )
         results.extend(knowledge)
         logger.info("Skills assembly complete: %d total artifacts", len(results))
         return results
 
     def _assemble_core(
-        self, src_dir: Path, output_dir: Path, engine: TemplateEngine,
+        self, resources_dir: Path, output_dir: Path, engine: TemplateEngine,
     ) -> List[Path]:
         """Copy all core skills."""
         return [
-            self._copy_core_skill(skill, src_dir, output_dir, engine)
-            for skill in self.select_core_skills(src_dir)
+            self._copy_core_skill(skill, resources_dir, output_dir, engine)
+            for skill in self.select_core_skills(resources_dir)
         ]
 
     def _assemble_conditional(
-        self, config: ProjectConfig, src_dir: Path,
+        self, config: ProjectConfig, resources_dir: Path,
         output_dir: Path, engine: TemplateEngine,
     ) -> List[Path]:
         """Copy all conditional skills."""
         results: List[Path] = []
         for skill in self.select_conditional_skills(config):
             path = self._copy_conditional_skill(
-                skill, src_dir, output_dir, engine,
+                skill, resources_dir, output_dir, engine,
             )
             if path is not None:
                 results.append(path)
         return results
 
     def _assemble_knowledge(
-        self, config: ProjectConfig, src_dir: Path,
+        self, config: ProjectConfig, resources_dir: Path,
         output_dir: Path, engine: TemplateEngine,
     ) -> List[Path]:
         """Copy knowledge packs, stack patterns, and infra patterns."""
         results: List[Path] = []
         for pack in self.select_knowledge_packs(config):
             path = self._copy_knowledge_pack(
-                pack, src_dir, output_dir, engine,
+                pack, resources_dir, output_dir, engine,
             )
             if path is not None:
                 results.append(path)
         stack = self._copy_stack_patterns(
-            config, src_dir, output_dir, engine,
+            config, resources_dir, output_dir, engine,
         )
         if stack is not None:
             results.append(stack)
         results.extend(
-            self._copy_infra_patterns(config, src_dir, output_dir, engine),
+            self._copy_infra_patterns(config, resources_dir, output_dir, engine),
         )
         return results

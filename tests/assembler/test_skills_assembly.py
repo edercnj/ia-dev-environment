@@ -15,10 +15,10 @@ def assembler():
 
 
 def _create_skill_template(
-    src_dir: Path, category: str, skill_name: str, content: str,
+    resources_dir: Path, category: str, skill_name: str, content: str,
 ) -> Path:
     """Helper to create a skill template file."""
-    path = src_dir / "skills-templates" / category / skill_name
+    path = resources_dir / "skills-templates" / category / skill_name
     path.mkdir(parents=True, exist_ok=True)
     skill_md = path / "SKILL.md"
     skill_md.write_text(content, encoding="utf-8")
@@ -26,17 +26,17 @@ def _create_skill_template(
 
 
 def _create_kp_template(
-    src_dir: Path, pack_name: str, content: str,
+    resources_dir: Path, pack_name: str, content: str,
 ) -> Path:
     """Helper to create a knowledge pack template."""
-    path = src_dir / "skills-templates" / "knowledge-packs" / pack_name
+    path = resources_dir / "skills-templates" / "knowledge-packs" / pack_name
     path.mkdir(parents=True, exist_ok=True)
     (path / "SKILL.md").write_text(content, encoding="utf-8")
     return path
 
 
-def _make_engine(src_dir: Path, config: ProjectConfig) -> TemplateEngine:
-    return TemplateEngine(src_dir, config)
+def _make_engine(resources_dir: Path, config: ProjectConfig) -> TemplateEngine:
+    return TemplateEngine(resources_dir, config)
 
 
 class TestCopyCoreSkill:
