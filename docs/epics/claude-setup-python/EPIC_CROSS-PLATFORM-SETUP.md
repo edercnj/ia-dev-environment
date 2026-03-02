@@ -17,10 +17,10 @@ O setup.sh (3.214 linhas Bash) será reescrito como uma ferramenta CLI Python cr
 
 ## 2. Anexos e Referências
 
-- `src/setup.sh` — Script original (source of truth para comportamento)
-- `src/config-templates/setup-config.*.yaml` — Schemas de configuração por stack
-- `src/tests/test-*.sh` — Testes de contrato existentes (referência para verificação)
-- `src/templates/_TEMPLATE-*.md` — Templates de documentação do projeto
+- `resources/setup.sh` — Script original (source of truth para comportamento)
+- `resources/config-templates/setup-config.*.yaml` — Schemas de configuração por stack
+- `resources/tests/test-*.sh` — Testes de contrato existentes (referência para verificação)
+- `resources/templates/_TEMPLATE-*.md` — Templates de documentação do projeto
 
 ---
 
