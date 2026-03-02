@@ -197,8 +197,6 @@ class TestExecuteAssemblers:
             bad = MagicMock()
             bad.assemble.side_effect = RuntimeError("disk full")
             mock_build.return_value = [("TestAssembler", bad)]
-            with patch("claude_setup.assembler._call_assembler") as mock_call:
-                mock_call.side_effect = RuntimeError("disk full")
-                with pytest.raises(PipelineError) as exc_info:
-                    _execute_assemblers(config, src, tmp_path, engine)
-                assert "TestAssembler" in str(exc_info.value)
+            with pytest.raises(PipelineError) as exc_info:
+                _execute_assemblers(config, src, tmp_path, engine)
+            assert "TestAssembler" in str(exc_info.value)

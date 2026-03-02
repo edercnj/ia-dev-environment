@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import shutil
 import tempfile
 import time
 from pathlib import Path
@@ -52,18 +53,7 @@ def _build_assemblers(src_dir: Path) -> List[Tuple[str, object]]:
     ]
 
 
-def _call_assembler(
-    name: str,
-    assembler: object,
-    config: ProjectConfig,
-    src_dir: Path,
-    output_dir: Path,
-    engine: TemplateEngine,
-) -> List[Path]:
-    """Call assembler.assemble() with the correct signature."""
-    if name in ("SkillsAssembler", "AgentsAssembler"):
-        return assembler.assemble(config, output_dir, src_dir, engine)
-    return assembler.assemble(config, output_dir, engine)
+ASSEMBLERS_WITH_SRC_DIR = ("SkillsAssembler", "AgentsAssembler")
 
 
 def _execute_assemblers(
@@ -77,9 +67,14 @@ def _execute_assemblers(
     warnings: List[str] = []
     for name, assembler in _build_assemblers(src_dir):
         try:
-            result = _call_assembler(
-                name, assembler, config, src_dir, output_dir, engine,
-            )
+            if name in ASSEMBLERS_WITH_SRC_DIR:
+                result = assembler.assemble(
+                    config, output_dir, src_dir, engine,
+                )
+            else:
+                result = assembler.assemble(
+                    config, output_dir, engine,
+                )
             files.extend(result)
         except Exception as exc:
             logger.debug("Assembler %s failed: %s", name, exc)
@@ -100,7 +95,6 @@ def _run_in_temp(
         )
         return files, warnings
     finally:
-        import shutil
         if temp_dir.exists():
             shutil.rmtree(str(temp_dir))
 
