@@ -8,6 +8,15 @@ from pathlib import Path
 from typing import Generator
 
 
+def _validate_dest_path(dest_dir: Path) -> Path:
+    """Resolve and validate destination path against traversal attacks."""
+    if dest_dir.is_symlink():
+        raise ValueError(
+            f"Destination must not be a symlink: {dest_dir}"
+        )
+    return dest_dir.resolve()
+
+
 @contextmanager
 def atomic_output(dest_dir: Path) -> Generator[Path, None, None]:
     """Context manager that provides atomic file output.
@@ -16,12 +25,13 @@ def atomic_output(dest_dir: Path) -> Generator[Path, None, None]:
     success copies contents to dest_dir. On failure, cleans up
     temp without modifying dest_dir.
     """
+    resolved_dest = _validate_dest_path(dest_dir)
     temp_dir = Path(tempfile.mkdtemp(prefix="claude-setup-"))
     try:
         yield temp_dir
-        if dest_dir.exists():
-            shutil.rmtree(str(dest_dir))
-        shutil.copytree(str(temp_dir), str(dest_dir))
+        if resolved_dest.exists():
+            shutil.rmtree(str(resolved_dest))
+        shutil.copytree(str(temp_dir), str(resolved_dest))
     finally:
         if temp_dir.exists():
             shutil.rmtree(str(temp_dir))

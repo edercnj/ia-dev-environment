@@ -5,7 +5,12 @@ from pathlib import Path
 
 import pytest
 
-from claude_setup.utils import atomic_output, find_src_dir, setup_logging
+from claude_setup.utils import (
+    _validate_dest_path,
+    atomic_output,
+    find_src_dir,
+    setup_logging,
+)
 
 
 class TestAtomicOutput:
@@ -86,6 +91,37 @@ class TestAtomicOutput:
                 captured_temp = temp
                 raise KeyboardInterrupt()
         assert not captured_temp.exists()
+
+    def test_symlink_dest_raises_value_error(self, tmp_path: Path) -> None:
+        real_dir = tmp_path / "real"
+        real_dir.mkdir()
+        link = tmp_path / "link"
+        link.symlink_to(real_dir)
+        with pytest.raises(ValueError, match="symlink"):
+            with atomic_output(link) as temp:
+                pass
+
+    def test_resolves_relative_paths(self, tmp_path: Path) -> None:
+        dest = tmp_path / "a" / ".." / "output"
+        with atomic_output(dest) as temp:
+            (temp / "file.txt").write_text("resolved")
+        resolved = (tmp_path / "output")
+        assert (resolved / "file.txt").read_text() == "resolved"
+
+
+class TestValidateDestPath:
+
+    def test_resolves_path(self, tmp_path: Path) -> None:
+        result = _validate_dest_path(tmp_path / "sub")
+        assert result.is_absolute()
+
+    def test_rejects_symlink(self, tmp_path: Path) -> None:
+        real = tmp_path / "real"
+        real.mkdir()
+        link = tmp_path / "link"
+        link.symlink_to(real)
+        with pytest.raises(ValueError, match="symlink"):
+            _validate_dest_path(link)
 
 
 class TestSetupLogging:

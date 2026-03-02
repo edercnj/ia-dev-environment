@@ -82,7 +82,8 @@ def _execute_assemblers(
             )
             files.extend(result)
         except Exception as exc:
-            raise PipelineError(name, str(exc)) from exc
+            logger.debug("Assembler %s failed: %s", name, exc)
+            raise PipelineError(name, type(exc).__name__) from exc
     return files, warnings
 
 
