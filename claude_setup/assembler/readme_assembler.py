@@ -65,48 +65,46 @@ def _generate_readme(
 def generate_minimal_readme(config: ProjectConfig) -> str:
     """Generate minimal README with basic project info."""
     ifaces = " ".join(i.type for i in config.interfaces) or "none"
-    return (
+    header = (
         f"# .claude/ \u2014 {config.project.name}\n"
         "\n"
         f"This directory contains the Claude Code configuration"
         f" for **{config.project.name}**.\n"
         "\n"
-        "## Structure\n"
-        "\n"
-        "```\n"
+    )
+    structure = _build_structure_block()
+    tips = _build_tips_block(config.architecture.style, ifaces)
+    return header + structure + tips
+
+
+def _build_structure_block() -> str:
+    """Build the directory structure section."""
+    return (
+        "## Structure\n\n```\n"
         ".claude/\n"
         "\u251c\u2500\u2500 README.md               \u2190 You are here\n"
-        "\u251c\u2500\u2500 settings.json           \u2190 Shared config"
-        " (committed to git)\n"
-        "\u251c\u2500\u2500 settings.local.json     \u2190 Local overrides"
-        " (gitignored)\n"
-        "\u251c\u2500\u2500 rules/                  \u2190 Coding rules"
-        " (loaded in system prompt)\n"
-        "\u2502   \u251c\u2500\u2500 patterns/           \u2190 Design patterns"
-        " (architecture-driven)\n"
-        "\u2502   \u2514\u2500\u2500 protocols/          \u2190 Protocol conventions"
-        " (interface-driven)\n"
-        "\u251c\u2500\u2500 skills/                 \u2190 Skills invocable"
-        " via /command\n"
-        "\u251c\u2500\u2500 agents/                 \u2190 AI personas"
-        " (used by skills)\n"
-        "\u2514\u2500\u2500 hooks/                  \u2190 Automation"
-        " (post-compile, etc.)\n"
-        "```\n"
-        "\n"
-        "## Tips\n"
-        "\n"
-        "- **Rules are always active** \u2014 loaded automatically"
-        " in every conversation\n"
-        f"- **Patterns are selected** \u2014 based on architecture style"
-        f" ({config.architecture.style})\n"
-        f"- **Protocols are selected** \u2014 based on interfaces"
-        f" ({ifaces})\n"
+        "\u251c\u2500\u2500 settings.json           \u2190 Shared config (committed to git)\n"
+        "\u251c\u2500\u2500 settings.local.json     \u2190 Local overrides (gitignored)\n"
+        "\u251c\u2500\u2500 rules/                  \u2190 Coding rules (loaded in system prompt)\n"
+        "\u2502   \u251c\u2500\u2500 patterns/           \u2190 Design patterns (architecture-driven)\n"
+        "\u2502   \u2514\u2500\u2500 protocols/          \u2190 Protocol conventions (interface-driven)\n"
+        "\u251c\u2500\u2500 skills/                 \u2190 Skills invocable via /command\n"
+        "\u251c\u2500\u2500 agents/                 \u2190 AI personas (used by skills)\n"
+        "\u2514\u2500\u2500 hooks/                  \u2190 Automation (post-compile, etc.)\n"
+        "```\n\n"
+    )
+
+
+def _build_tips_block(arch_style: str, ifaces: str) -> str:
+    """Build the tips section."""
+    return (
+        "## Tips\n\n"
+        "- **Rules are always active** \u2014 loaded automatically in every conversation\n"
+        f"- **Patterns are selected** \u2014 based on architecture style ({arch_style})\n"
+        f"- **Protocols are selected** \u2014 based on interfaces ({ifaces})\n"
         "- **Skills are lazy** \u2014 only load when you type `/name`\n"
-        "- **Agents are not invoked directly** \u2014"
-        " used by skills internally\n"
-        "- **Hooks run automatically** \u2014"
-        " compile check after editing source files\n"
+        "- **Agents are not invoked directly** \u2014 used by skills internally\n"
+        "- **Hooks run automatically** \u2014 compile check after editing source files\n"
     )
 
 
