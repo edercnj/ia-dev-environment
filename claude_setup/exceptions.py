@@ -11,3 +11,14 @@ class ConfigValidationError(Exception):
         super().__init__(
             f"Missing required config sections: {', '.join(missing_fields)}"
         )
+
+
+class PipelineError(Exception):
+    """Raised when the assembly pipeline fails fatally."""
+
+    def __init__(self, assembler_name: str, reason: str) -> None:
+        self.assembler_name = assembler_name
+        self.reason = reason
+        super().__init__(
+            f"Pipeline failed at '{assembler_name}': {reason}"
+        )
