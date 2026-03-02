@@ -39,13 +39,12 @@ class PatternsAssembler:
         if not pattern_files:
             return []
         return self._generate_output(
-            pattern_files, categories, output_dir, engine,
+            pattern_files, output_dir, engine,
         )
 
     def _generate_output(
         self,
         pattern_files: List[Path],
-        categories: List[str],
         output_dir: Path,
         engine: TemplateEngine,
     ) -> List[Path]:
