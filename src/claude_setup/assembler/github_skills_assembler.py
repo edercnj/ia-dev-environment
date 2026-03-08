@@ -31,6 +31,14 @@ SKILL_GROUPS = {
         "x-review-events",
         "x-review-gateway",
     ),
+    "testing": (
+        "x-test-plan",
+        "x-test-run",
+        "run-e2e",
+        "run-smoke-api",
+        "run-contract-tests",
+        "run-perf-test",
+    ),
 }
 
 
