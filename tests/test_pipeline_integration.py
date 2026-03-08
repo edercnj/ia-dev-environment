@@ -105,6 +105,29 @@ class TestPipelineIntegration:
         result = run_pipeline(config, resources_dir, output, dry_run=True)
         assert len(result.files_generated) > 0
 
+    def test_pipeline_generates_testing_skills(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _build_config()
+        resources_dir = find_resources_dir()
+        output = tmp_path / "output"
+        result = run_pipeline(config, resources_dir, output)
+        testing_skills = [
+            "x-test-plan",
+            "x-test-run",
+            "run-e2e",
+            "run-smoke-api",
+            "run-contract-tests",
+            "run-perf-test",
+        ]
+        generated_names = {
+            p.parent.name for p in result.files_generated
+        }
+        for skill in testing_skills:
+            assert skill in generated_names, (
+                f"Testing skill {skill} missing from pipeline"
+            )
+
     def test_pipeline_atomic_cleanup_on_failure(
         self, tmp_path: Path,
     ) -> None:

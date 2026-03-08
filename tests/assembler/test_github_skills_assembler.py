@@ -18,6 +18,7 @@ from tests.conftest import FULL_PROJECT_DICT, MINIMAL_PROJECT_DICT
 STORY_SKILLS = SKILL_GROUPS["story"]
 DEV_SKILLS = SKILL_GROUPS["dev"]
 REVIEW_SKILLS = SKILL_GROUPS["review"]
+TESTING_SKILLS = SKILL_GROUPS["testing"]
 ALL_SKILLS = tuple(
     name
     for group in SKILL_GROUPS.values()
@@ -554,6 +555,147 @@ class TestReviewSkillDescriptionKeywords:
         assert "proto3" not in api_desc.lower()
         assert "rest" not in grpc_desc.lower()
         assert "rfc 7807" not in grpc_desc.lower()
+
+
+class TestGenerateTestingGroup:
+    def test_generates_testing_skill_files(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config()
+        resources = _create_templates(tmp_path / "res")
+        assembler = GithubSkillsAssembler(resources)
+        engine = TemplateEngine(tmp_path, config)
+
+        result = assembler._generate_group(
+            engine, tmp_path / "output",
+            "testing", TESTING_SKILLS,
+        )
+
+        assert len(result) == 6
+
+
+@pytest.fixture
+def testing_results(tmp_path: Path) -> List[Path]:
+    """Fixture: assemble all skills, return results."""
+    config = _make_config()
+    resources = Path("resources")
+    assembler = GithubSkillsAssembler(resources)
+    output_dir = tmp_path / "output"
+    engine = TemplateEngine(resources, config)
+    return assembler.assemble(config, output_dir, engine)
+
+
+@pytest.mark.parametrize(
+    "skill_name", list(TESTING_SKILLS),
+)
+class TestTestingSkillContent:
+    def test_testing_skill_has_claude_skills_reference(
+        self, testing_results: List[Path],
+        skill_name: str,
+    ) -> None:
+        path = _find_skill(testing_results, skill_name)
+        content = path.read_text(encoding="utf-8")
+        assert ".claude/skills/" in content
+
+    def test_testing_skill_name_is_lowercase_hyphens(
+        self, testing_results: List[Path],
+        skill_name: str,
+    ) -> None:
+        assert skill_name == skill_name.lower()
+        assert " " not in skill_name
+
+    def test_testing_skill_content_in_english(
+        self, testing_results: List[Path],
+        skill_name: str,
+    ) -> None:
+        path = _find_skill(testing_results, skill_name)
+        content = path.read_text(encoding="utf-8")
+        english_keywords = [
+            "test", "coverage", "checklist",
+        ]
+        found = any(
+            kw in content.lower()
+            for kw in english_keywords
+        )
+        assert found, (
+            f"{skill_name} lacks English testing content"
+        )
+
+
+class TestTestingSkillDescriptionKeywords:
+
+    def test_x_test_plan_has_plan_keywords(
+        self, testing_results: List[Path],
+    ) -> None:
+        path = _find_skill(testing_results, "x-test-plan")
+        content = path.read_text(encoding="utf-8")
+        assert "test plan" in content.lower()
+        assert "scenarios" in content.lower()
+        assert "coverage" in content.lower()
+
+    def test_x_test_run_has_coverage_keywords(
+        self, testing_results: List[Path],
+    ) -> None:
+        path = _find_skill(testing_results, "x-test-run")
+        content = path.read_text(encoding="utf-8")
+        assert "coverage" in content.lower()
+        assert "95%" in content
+        assert "90%" in content
+
+    def test_run_e2e_has_e2e_keywords(
+        self, testing_results: List[Path],
+    ) -> None:
+        path = _find_skill(testing_results, "run-e2e")
+        content = path.read_text(encoding="utf-8")
+        assert "end-to-end" in content.lower()
+        assert "database" in content.lower()
+        assert "container" in content.lower()
+
+    def test_run_smoke_api_has_smoke_keywords(
+        self, testing_results: List[Path],
+    ) -> None:
+        path = _find_skill(
+            testing_results, "run-smoke-api",
+        )
+        content = path.read_text(encoding="utf-8")
+        assert "smoke" in content.lower()
+        assert "newman" in content.lower()
+        assert "health" in content.lower()
+
+    def test_run_contract_tests_has_contract_keywords(
+        self, testing_results: List[Path],
+    ) -> None:
+        path = _find_skill(
+            testing_results, "run-contract-tests",
+        )
+        content = path.read_text(encoding="utf-8")
+        assert "contract" in content.lower()
+        assert "pact" in content.lower()
+        assert "consumer" in content.lower()
+
+    def test_run_perf_test_has_performance_keywords(
+        self, testing_results: List[Path],
+    ) -> None:
+        path = _find_skill(
+            testing_results, "run-perf-test",
+        )
+        content = path.read_text(encoding="utf-8")
+        assert "performance" in content.lower()
+        assert "latency" in content.lower()
+        assert "throughput" in content.lower()
+
+    def test_no_keyword_overlap_e2e_and_smoke(
+        self, testing_results: List[Path],
+    ) -> None:
+        e2e_desc = _extract_description(
+            _find_skill(testing_results, "run-e2e"),
+        )
+        smoke_desc = _extract_description(
+            _find_skill(testing_results, "run-smoke-api"),
+        )
+        assert "newman" not in e2e_desc.lower()
+        assert "postman" not in e2e_desc.lower()
+        assert "end-to-end" not in smoke_desc.lower()
 
 
 def _extract_description(path: Path) -> str:
