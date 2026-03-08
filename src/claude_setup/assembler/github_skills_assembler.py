@@ -18,6 +18,11 @@ SKILL_GROUPS = {
         "x-story-epic-full",
         "story-planning",
     ),
+    "dev": (
+        "x-dev-implement",
+        "x-dev-lifecycle",
+        "layer-templates",
+    ),
 }
 
 
