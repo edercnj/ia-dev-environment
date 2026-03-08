@@ -6,9 +6,9 @@
 - **Architecture Style:** microservice
 - **Domain-Driven Design:** true
 - **Event-Driven:** true
-- **Interfaces:** REST, gRPC, event-consumer, event-producer
-- **Language:** Java 21
-- **Framework:** Quarkus 3.17
+- **Interfaces:** REST, GRPC, event-consumer, event-producer
+- **Language:** java 21
+- **Framework:** quarkus 3.17
 
 ## Technology Stack
 
@@ -25,36 +25,19 @@
 | Smoke Tests | true |
 | Contract Tests | true |
 
-## Language Policy
-
-- Output language: English only
-- Code: English (classes, methods, variables)
-- Commits: English (Conventional Commits)
-- Documentation: English
-- Application logs: English
-
 ## Constraints
 
 - Cloud-Agnostic: ZERO dependencies on cloud-specific services
 - Horizontal scalability: Application must be stateless
 - Externalized configuration: All configuration via environment variables or ConfigMaps
 
-## Source of Truth (Hierarchy)
-
-1. Epics / PRDs (vision and global rules)
-2. ADRs (architectural decisions)
-3. Stories / tickets (detailed requirements)
-4. Instructions (`.github/instructions/`)
-5. Source code
-
 ## Contextual Instructions
 
-For detailed guidance on specific topics, the following contextual instructions are
-loaded automatically when relevant:
+The following instruction files provide domain-specific context:
 
-- `instructions/domain.instructions.md` — Domain model, business rules, ubiquitous language
-- `instructions/coding-standards.instructions.md` — Clean Code, SOLID, Java 21 conventions
+- `instructions/domain.instructions.md` — Domain model, business rules, sensitive data
+- `instructions/coding-standards.instructions.md` — Clean Code, SOLID, naming, error handling
 - `instructions/architecture.instructions.md` — Hexagonal architecture, layer rules, package structure
 - `instructions/quality-gates.instructions.md` — Coverage thresholds, test categories, merge checklist
 
-For deep-dive references, see the knowledge packs in `.claude/skills/`.
+For deep-dive references, see the knowledge packs in `.claude/skills/` (generated alongside this structure).

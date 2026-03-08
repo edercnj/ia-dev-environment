@@ -1,14 +1,15 @@
 # Quality Gates
 
-> Full reference: [`.claude/skills/testing/SKILL.md`](../../.claude/skills/testing/SKILL.md)
-> for test patterns, fixtures, and framework-specific conventions.
+> Full reference: `.claude/skills/testing/SKILL.md`
+> (generated alongside this file) for test patterns, fixtures,
+> and framework-specific conventions.
 
 ## Coverage Thresholds (Non-Negotiable)
 
 | Metric | Minimum |
-|--------|---------|
-| Line Coverage | ≥ 95% |
-| Branch Coverage | ≥ 90% |
+|--------|---------  |
+| Line Coverage | ≥ {coverage_line}% |
+| Branch Coverage | ≥ {coverage_branch}% |
 
 ## Test Categories
 
@@ -22,14 +23,14 @@
 
 ## Test Naming
 
-```
+```text
 [methodUnderTest]_[scenario]_[expectedBehavior]
 ```
 
 ## Merge Checklist
 
 - [ ] All tests passing
-- [ ] Coverage ≥ 95% line, ≥ 90% branch
+- [ ] Coverage ≥ {coverage_line}% line, ≥ {coverage_branch}% branch
 - [ ] Zero compiler/linter warnings
 - [ ] DB migration applied and tested (if applicable)
 - [ ] Security review for sensitive changes
