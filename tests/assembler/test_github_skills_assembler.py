@@ -21,6 +21,7 @@ DEV_SKILLS = SKILL_GROUPS["dev"]
 REVIEW_SKILLS = SKILL_GROUPS["review"]
 TESTING_SKILLS = SKILL_GROUPS["testing"]
 INFRA_SKILLS = SKILL_GROUPS["infrastructure"]
+KNOWLEDGE_PACK_SKILLS = SKILL_GROUPS["knowledge-packs"]
 ALL_SKILLS = tuple(
     name
     for group in SKILL_GROUPS.values()
@@ -910,6 +911,230 @@ class TestInfraSkillDescriptionKeywords:
         assert "terraform" in content.lower()
         assert "module" in content.lower()
         assert "remote state" in content.lower()
+
+
+class TestGenerateKnowledgePacksGroup:
+    def test_generates_knowledge_pack_skill_files(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config()
+        resources = _create_templates(tmp_path / "res")
+        assembler = GithubSkillsAssembler(resources)
+        engine = TemplateEngine(tmp_path, config)
+
+        result = assembler._generate_group(
+            engine, tmp_path / "output",
+            "knowledge-packs", KNOWLEDGE_PACK_SKILLS,
+        )
+
+        assert len(result) == 9
+
+    def test_knowledge_packs_always_generated(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config(infrastructure={
+            "container": "none",
+            "orchestrator": "none",
+            "templating": "none",
+            "iac": "none",
+        })
+        resources = _create_templates(tmp_path / "res")
+        assembler = GithubSkillsAssembler(resources)
+        engine = TemplateEngine(tmp_path, config)
+        output_dir = tmp_path / "output"
+
+        result = assembler.assemble(
+            config, output_dir, engine,
+        )
+
+        kp_paths = [
+            p for p in result
+            if p.parent.name in set(KNOWLEDGE_PACK_SKILLS)
+        ]
+        assert len(kp_paths) == 9
+
+
+@pytest.mark.parametrize(
+    "skill_name", list(KNOWLEDGE_PACK_SKILLS),
+)
+class TestKnowledgePackContent:
+    @pytest.fixture
+    def kp_content(
+        self, tmp_path: Path, skill_name: str,
+    ) -> str:
+        result = _assemble_real_templates(tmp_path)
+        path = _find_skill(result, skill_name)
+        return path.read_text(encoding="utf-8")
+
+    def test_kp_has_claude_skills_reference(
+        self, kp_content: str,
+    ) -> None:
+        assert ".claude/skills/" in kp_content
+
+    def test_kp_name_is_lowercase_hyphens(
+        self, skill_name: str,
+    ) -> None:
+        assert skill_name == skill_name.lower()
+        assert " " not in skill_name
+
+    def test_kp_content_in_english(
+        self, kp_content: str, skill_name: str,
+    ) -> None:
+        english_keywords = [
+            "summary", "knowledge pack", "references",
+        ]
+        found = any(
+            kw in kp_content.lower()
+            for kw in english_keywords
+        )
+        assert found, (
+            f"{skill_name} lacks English KP content"
+        )
+
+    def test_kp_body_max_30_lines(
+        self, kp_content: str, skill_name: str,
+    ) -> None:
+        parts = kp_content.split("---", 2)
+        assert len(parts) >= 3
+        body = parts[2].strip()
+        body_lines = [
+            ln for ln in body.split("\n")
+            if ln.strip()
+        ]
+        assert len(body_lines) <= 30, (
+            f"{skill_name} body has {len(body_lines)} "
+            f"non-empty lines, max is 30"
+        )
+
+
+@pytest.mark.parametrize(
+    "skill_name", list(KNOWLEDGE_PACK_SKILLS),
+)
+class TestKnowledgePackFrontmatterValid:
+    def test_yaml_frontmatter_parseable(
+        self, tmp_path: Path, skill_name: str,
+    ) -> None:
+        result = _assemble_real_templates(tmp_path)
+        path = _find_skill(result, skill_name)
+        content = path.read_text(encoding="utf-8")
+        assert content.startswith("---")
+        parts = content.split("---", 2)
+        assert len(parts) >= 3, (
+            f"{skill_name} missing frontmatter closing ---"
+        )
+        fm = yaml.safe_load(parts[1])
+        assert isinstance(fm, dict)
+        assert "name" in fm
+        assert "description" in fm
+        assert fm["name"] == skill_name
+
+
+class TestKnowledgePackDescriptionKeywords:
+    @pytest.fixture
+    def kp_results(self, tmp_path: Path) -> List[Path]:
+        config = _make_config()
+        resources = Path("resources")
+        assembler = GithubSkillsAssembler(resources)
+        output_dir = tmp_path / "output"
+        engine = TemplateEngine(resources, config)
+        return assembler.assemble(config, output_dir, engine)
+
+    def test_architecture_has_hexagonal_keywords(
+        self, kp_results: List[Path],
+    ) -> None:
+        path = _find_skill(kp_results, "architecture")
+        content = path.read_text(encoding="utf-8")
+        assert "hexagonal" in content.lower()
+        assert "dependency" in content.lower()
+        assert "domain" in content.lower()
+
+    def test_coding_standards_has_solid_keywords(
+        self, kp_results: List[Path],
+    ) -> None:
+        path = _find_skill(
+            kp_results, "coding-standards",
+        )
+        content = path.read_text(encoding="utf-8")
+        assert "solid" in content.lower()
+        assert "clean code" in content.lower()
+
+    def test_patterns_has_cqrs_keywords(
+        self, kp_results: List[Path],
+    ) -> None:
+        path = _find_skill(kp_results, "patterns")
+        content = path.read_text(encoding="utf-8")
+        assert "cqrs" in content.lower()
+        assert "pattern" in content.lower()
+
+    def test_protocols_has_grpc_websocket_keywords(
+        self, kp_results: List[Path],
+    ) -> None:
+        path = _find_skill(kp_results, "protocols")
+        content = path.read_text(encoding="utf-8")
+        assert "grpc" in content.lower()
+        assert "websocket" in content.lower()
+        assert "event-driven" in content.lower()
+
+    def test_observability_has_tracing_keywords(
+        self, kp_results: List[Path],
+    ) -> None:
+        path = _find_skill(
+            kp_results, "observability",
+        )
+        content = path.read_text(encoding="utf-8")
+        assert "tracing" in content.lower()
+        assert "metrics" in content.lower()
+        assert "logging" in content.lower()
+
+    def test_resilience_has_circuit_breaker_keywords(
+        self, kp_results: List[Path],
+    ) -> None:
+        path = _find_skill(kp_results, "resilience")
+        content = path.read_text(encoding="utf-8")
+        assert "circuit breaker" in content.lower()
+        assert "retry" in content.lower()
+        assert "backpressure" in content.lower()
+
+    def test_security_has_owasp_keywords(
+        self, kp_results: List[Path],
+    ) -> None:
+        path = _find_skill(kp_results, "security")
+        content = path.read_text(encoding="utf-8")
+        assert "owasp" in content.lower()
+        assert "top 10" in content.lower()
+
+    def test_compliance_has_gdpr_keywords(
+        self, kp_results: List[Path],
+    ) -> None:
+        path = _find_skill(kp_results, "compliance")
+        content = path.read_text(encoding="utf-8")
+        assert "gdpr" in content.lower()
+        assert "lgpd" in content.lower()
+        assert "pci-dss" in content.lower()
+
+    def test_api_design_has_rest_pattern_keywords(
+        self, kp_results: List[Path],
+    ) -> None:
+        path = _find_skill(kp_results, "api-design")
+        content = path.read_text(encoding="utf-8")
+        assert "status code" in content.lower()
+        assert "rest" in content.lower()
+        assert "pagination" in content.lower()
+        assert "rfc 7807" in content.lower()
+
+    def test_no_keyword_overlap_api_design_and_protocols(
+        self, kp_results: List[Path],
+    ) -> None:
+        api_desc = _extract_description(
+            _find_skill(kp_results, "api-design"),
+        )
+        proto_desc = _extract_description(
+            _find_skill(kp_results, "protocols"),
+        )
+        assert "grpc" not in api_desc.lower()
+        assert "websocket" not in api_desc.lower()
+        assert "status code" not in proto_desc.lower()
+        assert "pagination" not in proto_desc.lower()
 
 
 def _extract_description(path: Path) -> str:
