@@ -1339,7 +1339,9 @@ class TestGitTroubleshootDescriptionKeywords:
         assert "commit" in content.lower()
         assert "push" in content.lower()
         assert "branch" in content.lower()
-        assert "pr" in content.lower()
+        assert "pull request" in content.lower() or (
+            "gh pr" in content.lower()
+        )
 
     def test_x_git_push_has_conventional_commits(
         self, gt_results: List[Path],

@@ -365,8 +365,7 @@ class TestPipelineGitTroubleshootSkills:
                 output / "github" / "skills" / skill / "SKILL.md"
             )
             assert skill_path.exists(), (
-                f"Git/troubleshoot {skill} not generated "
-                f"with minimal config"
+                f"Git/troubleshoot {skill} not generated with minimal config"
             )
 
 
