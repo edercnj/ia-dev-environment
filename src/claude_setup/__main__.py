@@ -126,11 +126,14 @@ def _classify_files(files: List[Path]) -> Dict[str, int]:
         "Hooks": 0,
         "Settings": 0,
         "README": 0,
+        "GitHub": 0,
     }
     for file_path in files:
         parts = file_path.parts
         name = file_path.name
-        if "README" in name:
+        if "github" in parts:
+            counts["GitHub"] += 1
+        elif "README" in name:
             counts["README"] += 1
         elif "settings" in name:
             counts["Settings"] += 1
