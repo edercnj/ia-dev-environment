@@ -479,120 +479,75 @@ class TestReviewSkillContent:
 
 
 class TestReviewSkillDescriptionKeywords:
-    def test_x_review_has_parallel_keyword(
-        self, tmp_path: Path,
-    ) -> None:
+    @pytest.fixture
+    def review_results(self, tmp_path: Path) -> List[Path]:
         config = _make_config()
         resources = Path("resources")
         assembler = GithubSkillsAssembler(resources)
         output_dir = tmp_path / "output"
         engine = TemplateEngine(resources, config)
+        return assembler.assemble(config, output_dir, engine)
 
-        result = assembler.assemble(config, output_dir, engine)
-
-        path = _find_skill(result, "x-review")
+    def test_x_review_has_parallel_keyword(
+        self, review_results: List[Path],
+    ) -> None:
+        path = _find_skill(review_results, "x-review")
         content = path.read_text(encoding="utf-8")
         assert "parallel" in content.lower()
         assert "specialist" in content.lower()
 
     def test_x_review_api_has_rest_keywords(
-        self, tmp_path: Path,
+        self, review_results: List[Path],
     ) -> None:
-        config = _make_config()
-        resources = Path("resources")
-        assembler = GithubSkillsAssembler(resources)
-        output_dir = tmp_path / "output"
-        engine = TemplateEngine(resources, config)
-
-        result = assembler.assemble(config, output_dir, engine)
-
-        path = _find_skill(result, "x-review-api")
+        path = _find_skill(review_results, "x-review-api")
         content = path.read_text(encoding="utf-8")
         assert "rest" in content.lower()
         assert "rfc 7807" in content.lower()
         assert "openapi" in content.lower()
 
     def test_x_review_pr_has_tech_lead_keywords(
-        self, tmp_path: Path,
+        self, review_results: List[Path],
     ) -> None:
-        config = _make_config()
-        resources = Path("resources")
-        assembler = GithubSkillsAssembler(resources)
-        output_dir = tmp_path / "output"
-        engine = TemplateEngine(resources, config)
-
-        result = assembler.assemble(config, output_dir, engine)
-
-        path = _find_skill(result, "x-review-pr")
+        path = _find_skill(review_results, "x-review-pr")
         content = path.read_text(encoding="utf-8")
         assert "tech lead" in content.lower()
         assert "40-point" in content.lower()
         assert "go/no-go" in content.lower()
 
     def test_x_review_grpc_has_grpc_keywords(
-        self, tmp_path: Path,
+        self, review_results: List[Path],
     ) -> None:
-        config = _make_config()
-        resources = Path("resources")
-        assembler = GithubSkillsAssembler(resources)
-        output_dir = tmp_path / "output"
-        engine = TemplateEngine(resources, config)
-
-        result = assembler.assemble(config, output_dir, engine)
-
-        path = _find_skill(result, "x-review-grpc")
+        path = _find_skill(review_results, "x-review-grpc")
         content = path.read_text(encoding="utf-8")
         assert "grpc" in content.lower()
         assert "proto3" in content.lower()
         assert "protobuf" in content.lower()
 
     def test_x_review_events_has_event_keywords(
-        self, tmp_path: Path,
+        self, review_results: List[Path],
     ) -> None:
-        config = _make_config()
-        resources = Path("resources")
-        assembler = GithubSkillsAssembler(resources)
-        output_dir = tmp_path / "output"
-        engine = TemplateEngine(resources, config)
-
-        result = assembler.assemble(config, output_dir, engine)
-
-        path = _find_skill(result, "x-review-events")
+        path = _find_skill(review_results, "x-review-events")
         content = path.read_text(encoding="utf-8")
         assert "event" in content.lower()
         assert "dead letter" in content.lower()
         assert "cloudevents" in content.lower()
 
     def test_x_review_gateway_has_gateway_keywords(
-        self, tmp_path: Path,
+        self, review_results: List[Path],
     ) -> None:
-        config = _make_config()
-        resources = Path("resources")
-        assembler = GithubSkillsAssembler(resources)
-        output_dir = tmp_path / "output"
-        engine = TemplateEngine(resources, config)
-
-        result = assembler.assemble(config, output_dir, engine)
-
-        path = _find_skill(result, "x-review-gateway")
+        path = _find_skill(review_results, "x-review-gateway")
         content = path.read_text(encoding="utf-8")
         assert "gateway" in content.lower()
         assert "routing" in content.lower()
 
     def test_no_keyword_overlap_between_api_and_grpc(
-        self, tmp_path: Path,
+        self, review_results: List[Path],
     ) -> None:
-        config = _make_config()
-        resources = Path("resources")
-        assembler = GithubSkillsAssembler(resources)
-        output_dir = tmp_path / "output"
-        engine = TemplateEngine(resources, config)
-
-        result = assembler.assemble(config, output_dir, engine)
-
-        api_path = _find_skill(result, "x-review-api")
+        api_path = _find_skill(review_results, "x-review-api")
         api_desc = _extract_description(api_path)
-        grpc_path = _find_skill(result, "x-review-grpc")
+        grpc_path = _find_skill(
+            review_results, "x-review-grpc",
+        )
         grpc_desc = _extract_description(grpc_path)
 
         assert "grpc" not in api_desc.lower()
