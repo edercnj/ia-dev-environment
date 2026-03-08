@@ -716,47 +716,47 @@ class TestGenerateInfrastructureGroup:
         assert len(result) == 5
 
 
+def _assemble_real_templates(
+    tmp_path: Path,
+) -> List[Path]:
+    """Assemble skills using real resource templates."""
+    config = _make_config()
+    resources = Path("resources")
+    assembler = GithubSkillsAssembler(resources)
+    output_dir = tmp_path / "output"
+    engine = TemplateEngine(resources, config)
+    return assembler.assemble(config, output_dir, engine)
+
+
 @pytest.mark.parametrize("skill_name", list(INFRA_SKILLS))
 class TestInfraSkillContent:
-    def test_infra_skill_has_claude_skills_reference(
+    @pytest.fixture
+    def infra_content(
         self, tmp_path: Path, skill_name: str,
-    ) -> None:
-        config = _make_config()
-        resources = Path("resources")
-        assembler = GithubSkillsAssembler(resources)
-        output_dir = tmp_path / "output"
-        engine = TemplateEngine(resources, config)
-
-        result = assembler.assemble(config, output_dir, engine)
-
+    ) -> str:
+        result = _assemble_real_templates(tmp_path)
         path = _find_skill(result, skill_name)
-        content = path.read_text(encoding="utf-8")
-        assert ".claude/skills/" in content
+        return path.read_text(encoding="utf-8")
+
+    def test_infra_skill_has_claude_skills_reference(
+        self, infra_content: str,
+    ) -> None:
+        assert ".claude/skills/" in infra_content
 
     def test_infra_skill_name_is_lowercase_hyphens(
-        self, tmp_path: Path, skill_name: str,
+        self, skill_name: str,
     ) -> None:
         assert skill_name == skill_name.lower()
         assert " " not in skill_name
 
     def test_infra_skill_content_in_english(
-        self, tmp_path: Path, skill_name: str,
+        self, infra_content: str, skill_name: str,
     ) -> None:
-        config = _make_config()
-        resources = Path("resources")
-        assembler = GithubSkillsAssembler(resources)
-        output_dir = tmp_path / "output"
-        engine = TemplateEngine(resources, config)
-
-        result = assembler.assemble(config, output_dir, engine)
-
-        path = _find_skill(result, skill_name)
-        content = path.read_text(encoding="utf-8")
         english_keywords = [
             "checklist", "execution", "prerequisites",
         ]
         found = any(
-            kw in content.lower()
+            kw in infra_content.lower()
             for kw in english_keywords
         )
         assert found, (
@@ -764,25 +764,15 @@ class TestInfraSkillContent:
         )
 
     def test_infra_skill_cloud_agnostic(
-        self, tmp_path: Path, skill_name: str,
+        self, infra_content: str, skill_name: str,
     ) -> None:
-        config = _make_config()
-        resources = Path("resources")
-        assembler = GithubSkillsAssembler(resources)
-        output_dir = tmp_path / "output"
-        engine = TemplateEngine(resources, config)
-
-        result = assembler.assemble(config, output_dir, engine)
-
-        path = _find_skill(result, skill_name)
-        content = path.read_text(encoding="utf-8")
         cloud_specific = [
             "aws eks", "amazon eks",
             "google gke", "gke cluster",
             "azure aks", "aks cluster",
         ]
         for term in cloud_specific:
-            assert term not in content.lower(), (
+            assert term not in infra_content.lower(), (
                 f"{skill_name} contains cloud-specific "
                 f"reference: {term}"
             )
@@ -795,14 +785,7 @@ class TestInfraFrontmatterValid:
     ) -> None:
         import yaml
 
-        config = _make_config()
-        resources = Path("resources")
-        assembler = GithubSkillsAssembler(resources)
-        output_dir = tmp_path / "output"
-        engine = TemplateEngine(resources, config)
-
-        result = assembler.assemble(config, output_dir, engine)
-
+        result = _assemble_real_templates(tmp_path)
         path = _find_skill(result, skill_name)
         content = path.read_text(encoding="utf-8")
         assert content.startswith("---")

@@ -216,12 +216,8 @@ class TestPipelineInfrastructureSkills:
         config = _make_full_config()
         resources = Path("resources")
         output = tmp_path / "output"
-        result = run_pipeline(config, resources, output)
-        generated_names = {
-            p.name for p in result.files_generated
-        }
+        run_pipeline(config, resources, output)
         for skill in INFRA_SKILL_NAMES:
-            expected = f"SKILL.md"
             skill_path = (
                 output / "github" / "skills" / skill / "SKILL.md"
             )
