@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
+from typing import Optional
 from unittest.mock import MagicMock
 
 import pytest
@@ -20,7 +21,7 @@ from claude_setup.models import (
 
 
 def _make_config(
-    servers: list | None = None,
+    servers: Optional[list] = None,
 ) -> ProjectConfig:
     """Build a minimal ProjectConfig with optional MCP servers."""
     data = {

@@ -6,18 +6,19 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from claude_setup.models import McpServerConfig, ProjectConfig
+from claude_setup.template_engine import TemplateEngine
 
 logger = logging.getLogger(__name__)
 
 
 class GithubMcpAssembler:
-    """Generates .github/copilot-mcp.json from MCP server config."""
+    """Generates github/copilot-mcp.json under the output directory."""
 
     def assemble(
         self,
         config: ProjectConfig,
         output_dir: Path,
-        engine: object,
+        engine: TemplateEngine,
     ) -> List[Path]:
         """Generate copilot-mcp.json if MCP servers are configured."""
         if not config.mcp.servers:

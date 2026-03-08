@@ -43,8 +43,8 @@
 | U-13 | Single server produces correct structure | 1 server: `id="firecrawl-mcp"`, `url="https://mcp.firecrawl.dev/sse"`, `env={"FIRECRAWL_API_KEY": "$FIRECRAWL_API_KEY"}` | `{"mcpServers": {"firecrawl-mcp": {"url": "https://mcp.firecrawl.dev/sse", "env": {"FIRECRAWL_API_KEY": "$FIRECRAWL_API_KEY"}}}}` | Dict structure matches Copilot format |
 | U-14 | Multiple servers all present | 3 servers with distinct ids | `mcpServers` dict contains all 3 keys | No servers lost |
 | U-15 | Server id used as JSON key | `id="my-server"` | `result["mcpServers"]["my-server"]` exists | Id maps to dict key |
-| U-16 | Capabilities excluded from JSON output | Server with `capabilities=["scrape"]` | No `capabilities` key in output dict | Capabilities are metadata only |
-| U-17 | Empty env dict included in output | Server with `env={}` | `{"url": "...", "env": {}}` | Empty env serialized (not omitted) |
+| U-16 | Capabilities included in JSON output when present | Server with `capabilities=["scrape"]` | Output dict contains `"capabilities": ["scrape"]` for that server | Capabilities propagated to Copilot config |
+| U-17 | Empty env dict omitted from output | Server with `env={}` | Output dict for that server has no `env` key | Empty env not serialized (field omitted) |
 | U-18 | Env values reference variables with $ prefix | `env={"API_KEY": "$API_KEY"}` | All env values start with `$` | Security convention enforced |
 
 ### 1.5 `GithubMcpAssembler.assemble()` -- Orchestration
