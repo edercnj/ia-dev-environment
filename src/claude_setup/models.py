@@ -210,6 +210,38 @@ class TestingConfig:
 
 
 @dataclass
+class McpServerConfig:
+    id: str
+    url: str
+    capabilities: List[str] = field(default_factory=list)
+    env: Dict[str, str] = field(default_factory=dict)
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> McpServerConfig:
+        return cls(
+            id=_require(data, "id", "McpServerConfig"),
+            url=_require(data, "url", "McpServerConfig"),
+            capabilities=data.get("capabilities", []),
+            env=data.get("env", {}),
+        )
+
+
+@dataclass
+class McpConfig:
+    servers: List[McpServerConfig] = field(default_factory=list)
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> McpConfig:
+        servers_raw = data.get("servers", [])
+        servers = [McpServerConfig.from_dict(s) for s in servers_raw]
+        return cls(servers=servers)
+
+
+def _default_mcp_config() -> McpConfig:
+    return McpConfig()
+
+
+@dataclass
 class ProjectConfig:
     project: ProjectIdentity
     architecture: ArchitectureConfig
@@ -227,6 +259,9 @@ class ProjectConfig:
     )
     testing: TestingConfig = field(
         default_factory=TestingConfig,
+    )
+    mcp: McpConfig = field(
+        default_factory=_default_mcp_config,
     )
 
     @classmethod
@@ -263,6 +298,9 @@ class ProjectConfig:
             ),
             testing=TestingConfig.from_dict(
                 data.get("testing", {}),
+            ),
+            mcp=McpConfig.from_dict(
+                data.get("mcp", {}),
             ),
         )
 

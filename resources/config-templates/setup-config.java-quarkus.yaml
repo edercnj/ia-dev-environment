@@ -154,3 +154,17 @@ hooks:
 # ═══════════════════════════════════════════════════
 settings:
   auto_generate: true
+
+# ═══════════════════════════════════════════════════
+# SECTION 18: MCP SERVERS
+# ═══════════════════════════════════════════════════
+mcp:
+  servers:
+    - id: "firecrawl-mcp"
+      url: "https://mcp.firecrawl.dev"
+      capabilities:
+        - scrape
+        - crawl
+        - search
+      env:
+        FIRECRAWL_API_KEY: "$FIRECRAWL_API_KEY"

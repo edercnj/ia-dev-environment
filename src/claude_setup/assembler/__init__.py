@@ -9,6 +9,7 @@ from typing import List, Tuple
 
 from claude_setup.assembler.agents import AgentsAssembler
 from claude_setup.assembler.github_instructions_assembler import GithubInstructionsAssembler
+from claude_setup.assembler.github_mcp_assembler import GithubMcpAssembler
 from claude_setup.assembler.hooks_assembler import HooksAssembler
 from claude_setup.assembler.patterns_assembler import PatternsAssembler
 from claude_setup.assembler.protocols_assembler import ProtocolsAssembler
@@ -29,6 +30,7 @@ DRY_RUN_WARNING = "Dry run -- no files written"
 __all__ = [
     "AgentsAssembler",
     "GithubInstructionsAssembler",
+    "GithubMcpAssembler",
     "HooksAssembler",
     "PatternsAssembler",
     "PipelineResult",
@@ -53,6 +55,7 @@ def _build_assemblers(resources_dir: Path) -> List[Tuple[str, object]]:
         ("SettingsAssembler", SettingsAssembler(resources_dir)),
         ("ReadmeAssembler", ReadmeAssembler(resources_dir)),
         ("GithubInstructionsAssembler", GithubInstructionsAssembler(resources_dir)),
+        ("GithubMcpAssembler", GithubMcpAssembler()),
     ]
 
 
