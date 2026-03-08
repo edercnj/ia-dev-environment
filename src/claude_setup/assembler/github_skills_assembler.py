@@ -57,6 +57,10 @@ SKILL_GROUPS = {
         "compliance",
         "api-design",
     ),
+    "git-troubleshooting": (
+        "x-git-push",
+        "x-ops-troubleshoot",
+    ),
 }
 
 # Infrastructure skills gated by config values.

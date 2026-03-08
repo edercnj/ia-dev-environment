@@ -22,6 +22,7 @@ REVIEW_SKILLS = SKILL_GROUPS["review"]
 TESTING_SKILLS = SKILL_GROUPS["testing"]
 INFRA_SKILLS = SKILL_GROUPS["infrastructure"]
 KNOWLEDGE_PACK_SKILLS = SKILL_GROUPS["knowledge-packs"]
+GIT_TROUBLESHOOT_SKILLS = SKILL_GROUPS["git-troubleshooting"]
 ALL_SKILLS = tuple(
     name
     for group in SKILL_GROUPS.values()
@@ -1154,6 +1155,252 @@ def _extract_description(path: Path) -> str:
             else:
                 break
     return " ".join(lines)
+
+
+class TestGenerateGitTroubleshootingGroup:
+    def test_generates_git_troubleshooting_skill_files(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config()
+        resources = _create_templates(tmp_path / "res")
+        assembler = GithubSkillsAssembler(resources)
+        engine = TemplateEngine(tmp_path, config)
+
+        result = assembler._generate_group(
+            engine, tmp_path / "output",
+            "git-troubleshooting", GIT_TROUBLESHOOT_SKILLS,
+        )
+
+        assert len(result) == 2
+
+    def test_git_troubleshoot_always_generated(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config(infrastructure={
+            "container": "none",
+            "orchestrator": "none",
+            "templating": "none",
+            "iac": "none",
+        })
+        resources = _create_templates(tmp_path / "res")
+        assembler = GithubSkillsAssembler(resources)
+        engine = TemplateEngine(tmp_path, config)
+        output_dir = tmp_path / "output"
+
+        result = assembler.assemble(
+            config, output_dir, engine,
+        )
+
+        gt_paths = [
+            p for p in result
+            if p.parent.name in set(GIT_TROUBLESHOOT_SKILLS)
+        ]
+        assert len(gt_paths) == 2
+
+    def test_missing_git_troubleshoot_dir_returns_empty(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_minimal_config()
+        assembler = GithubSkillsAssembler(
+            tmp_path / "nonexistent",
+        )
+        engine = TemplateEngine(tmp_path, config)
+
+        result = assembler._generate_group(
+            engine, tmp_path / "output",
+            "git-troubleshooting", GIT_TROUBLESHOOT_SKILLS,
+        )
+
+        assert result == []
+
+    def test_missing_single_template_skips_gracefully(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_minimal_config()
+        resources = tmp_path / "res"
+        tpl_dir = (
+            resources
+            / "github-skills-templates"
+            / "git-troubleshooting"
+        )
+        tpl_dir.mkdir(parents=True)
+        (tpl_dir / "x-git-push.md").write_text(
+            "---\nname: x-git-push\n"
+            "description: >\n  Git ops.\n---\n\n# Push\n",
+            encoding="utf-8",
+        )
+        assembler = GithubSkillsAssembler(resources)
+        engine = TemplateEngine(tmp_path, config)
+
+        result = assembler._generate_group(
+            engine, tmp_path / "output",
+            "git-troubleshooting", GIT_TROUBLESHOOT_SKILLS,
+        )
+
+        assert len(result) == 1
+        assert result[0].parent.name == "x-git-push"
+
+    def test_git_troubleshoot_skills_in_all_skills(
+        self,
+    ) -> None:
+        assert "x-git-push" in ALL_SKILLS
+        assert "x-ops-troubleshoot" in ALL_SKILLS
+
+    def test_git_troubleshoot_not_filtered_by_infra(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config(infrastructure={
+            "container": "none",
+            "orchestrator": "none",
+            "templating": "none",
+            "iac": "none",
+        })
+        filtered = GithubSkillsAssembler._filter_skills(
+            config,
+            "git-troubleshooting",
+            GIT_TROUBLESHOOT_SKILLS,
+        )
+
+        assert filtered == GIT_TROUBLESHOOT_SKILLS
+
+
+@pytest.mark.parametrize(
+    "skill_name", list(GIT_TROUBLESHOOT_SKILLS),
+)
+class TestGitTroubleshootContent:
+    @pytest.fixture
+    def gt_content(
+        self, tmp_path: Path, skill_name: str,
+    ) -> str:
+        result = _assemble_real_templates(tmp_path)
+        path = _find_skill(result, skill_name)
+        return path.read_text(encoding="utf-8")
+
+    def test_gt_has_claude_skills_reference(
+        self, gt_content: str,
+    ) -> None:
+        assert ".claude/skills/" in gt_content
+
+    def test_gt_name_is_lowercase_hyphens(
+        self, skill_name: str,
+    ) -> None:
+        assert skill_name == skill_name.lower()
+        assert " " not in skill_name
+
+    def test_gt_content_in_english(
+        self, gt_content: str, skill_name: str,
+    ) -> None:
+        english_keywords = [
+            "workflow", "commit", "error", "debug",
+        ]
+        found = any(
+            kw in gt_content.lower()
+            for kw in english_keywords
+        )
+        assert found, (
+            f"{skill_name} lacks English git/troubleshoot "
+            f"content"
+        )
+
+
+@pytest.mark.parametrize(
+    "skill_name", list(GIT_TROUBLESHOOT_SKILLS),
+)
+class TestGitTroubleshootFrontmatterValid:
+    def test_yaml_frontmatter_parseable(
+        self, tmp_path: Path, skill_name: str,
+    ) -> None:
+        result = _assemble_real_templates(tmp_path)
+        path = _find_skill(result, skill_name)
+        content = path.read_text(encoding="utf-8")
+        assert content.startswith("---")
+        parts = content.split("---", 2)
+        assert len(parts) >= 3, (
+            f"{skill_name} missing frontmatter closing ---"
+        )
+        fm = yaml.safe_load(parts[1])
+        assert isinstance(fm, dict)
+        assert "name" in fm
+        assert "description" in fm
+        assert fm["name"] == skill_name
+
+
+class TestGitTroubleshootDescriptionKeywords:
+    @pytest.fixture
+    def gt_results(self, tmp_path: Path) -> List[Path]:
+        return _assemble_real_templates(tmp_path)
+
+    def test_x_git_push_has_git_keywords(
+        self, gt_results: List[Path],
+    ) -> None:
+        path = _find_skill(gt_results, "x-git-push")
+        content = path.read_text(encoding="utf-8")
+        assert "git" in content.lower()
+        assert "commit" in content.lower()
+        assert "push" in content.lower()
+        assert "branch" in content.lower()
+        assert "pull request" in content.lower() or (
+            "gh pr" in content.lower()
+        )
+
+    def test_x_git_push_has_conventional_commits(
+        self, gt_results: List[Path],
+    ) -> None:
+        path = _find_skill(gt_results, "x-git-push")
+        content = path.read_text(encoding="utf-8")
+        assert "conventional commits" in content.lower()
+        assert "type(scope)" in content.lower() or (
+            "type" in content and "scope" in content
+        )
+        assert "feat" in content
+        assert "fix" in content
+        assert "chore" in content
+        assert "refactor" in content
+        assert "test" in content
+        assert "docs" in content
+
+    def test_x_ops_troubleshoot_has_debug_keywords(
+        self, gt_results: List[Path],
+    ) -> None:
+        path = _find_skill(
+            gt_results, "x-ops-troubleshoot",
+        )
+        content = path.read_text(encoding="utf-8")
+        assert "error" in content.lower()
+        assert "stacktrace" in content.lower()
+        assert "debug" in content.lower()
+        assert "diagnose" in content.lower() or (
+            "diagnos" in content.lower()
+        )
+
+    def test_x_ops_troubleshoot_has_5_step_methodology(
+        self, gt_results: List[Path],
+    ) -> None:
+        path = _find_skill(
+            gt_results, "x-ops-troubleshoot",
+        )
+        content = path.read_text(encoding="utf-8")
+        assert "reproduce" in content.lower()
+        assert "locate" in content.lower()
+        assert "understand" in content.lower()
+        assert "fix" in content.lower()
+        assert "verify" in content.lower()
+
+    def test_no_keyword_overlap_git_and_troubleshoot(
+        self, gt_results: List[Path],
+    ) -> None:
+        git_desc = _extract_description(
+            _find_skill(gt_results, "x-git-push"),
+        )
+        troubleshoot_desc = _extract_description(
+            _find_skill(
+                gt_results, "x-ops-troubleshoot",
+            ),
+        )
+        assert "error" not in git_desc.lower()
+        assert "stacktrace" not in git_desc.lower()
+        assert "commit" not in troubleshoot_desc.lower()
+        assert "branch" not in troubleshoot_desc.lower()
 
 
 def _find_skill(result: List[Path], skill_name: str) -> Path:
