@@ -17,7 +17,7 @@ Reviews REST API design for compliance with best practices: RFC 7807 error respo
 ## Prerequisites
 
 - REST API endpoints exist in the codebase
-- spring-boot is configured with REST/HTTP support
+- The application is configured with REST/HTTP support
 - OpenAPI/Swagger dependency is available
 
 ## Knowledge Pack References
@@ -85,6 +85,29 @@ Before reviewing, read the relevant conventions:
 - [ ] ExceptionMapper covers all domain exceptions
 - [ ] No stack traces in production error responses
 - [ ] Rate limit responses return 429 + Retry-After header
+
+## Output Format
+
+```
+## REST API Review -- [Endpoint/Change Description]
+
+### REST Compliance: HIGH / MEDIUM / LOW
+### DTO Quality: HIGH / MEDIUM / LOW
+
+### URL Structure Findings
+1. [Finding with file, line, issue, fix]
+
+### Status Code Findings
+1. [Finding with file, line, issue, fix]
+
+### Error Handling Findings
+1. [Finding with file, line, issue, fix]
+
+### Checklist Results
+[Items that passed / failed / not applicable]
+
+### Verdict: APPROVE / REQUEST CHANGES
+```
 
 ## Detailed References
 
