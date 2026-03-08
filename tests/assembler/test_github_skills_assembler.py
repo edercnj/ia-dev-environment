@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import List
 
 import pytest
+import yaml
 
 from claude_setup.assembler.github_skills_assembler import (
     SKILL_GROUPS,
@@ -19,6 +20,7 @@ STORY_SKILLS = SKILL_GROUPS["story"]
 DEV_SKILLS = SKILL_GROUPS["dev"]
 REVIEW_SKILLS = SKILL_GROUPS["review"]
 TESTING_SKILLS = SKILL_GROUPS["testing"]
+INFRA_SKILLS = SKILL_GROUPS["infrastructure"]
 ALL_SKILLS = tuple(
     name
     for group in SKILL_GROUPS.values()
@@ -696,6 +698,218 @@ class TestTestingSkillDescriptionKeywords:
         assert "newman" not in e2e_desc.lower()
         assert "postman" not in e2e_desc.lower()
         assert "end-to-end" not in smoke_desc.lower()
+
+
+class TestGenerateInfrastructureGroup:
+    def test_generates_infrastructure_skill_files(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config()
+        resources = _create_templates(tmp_path / "res")
+        assembler = GithubSkillsAssembler(resources)
+        engine = TemplateEngine(tmp_path, config)
+
+        result = assembler._generate_group(
+            engine, tmp_path / "output",
+            "infrastructure", INFRA_SKILLS,
+        )
+
+        assert len(result) == 5
+
+    def test_skips_inapplicable_infra_skills(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config(infrastructure={
+            "container": "none",
+            "orchestrator": "none",
+            "templating": "none",
+            "iac": "none",
+        })
+        resources = _create_templates(tmp_path / "res")
+        assembler = GithubSkillsAssembler(resources)
+        engine = TemplateEngine(tmp_path, config)
+        output_dir = tmp_path / "output"
+
+        result = assembler.assemble(
+            config, output_dir, engine,
+        )
+
+        infra_paths = [
+            p for p in result
+            if p.parent.name in set(INFRA_SKILLS)
+        ]
+        assert infra_paths == []
+
+    def test_generates_only_applicable_infra_skills(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config(infrastructure={
+            "container": "docker",
+            "orchestrator": "none",
+            "templating": "none",
+            "iac": "none",
+        })
+        resources = _create_templates(tmp_path / "res")
+        assembler = GithubSkillsAssembler(resources)
+        engine = TemplateEngine(tmp_path, config)
+        output_dir = tmp_path / "output"
+
+        result = assembler.assemble(
+            config, output_dir, engine,
+        )
+
+        infra_names = {
+            p.parent.name for p in result
+            if p.parent.name in set(INFRA_SKILLS)
+        }
+        assert infra_names == {"dockerfile"}
+
+
+def _assemble_real_templates(
+    tmp_path: Path,
+) -> List[Path]:
+    """Assemble skills using real resource templates."""
+    config = _make_config()
+    resources = Path("resources")
+    assembler = GithubSkillsAssembler(resources)
+    output_dir = tmp_path / "output"
+    engine = TemplateEngine(resources, config)
+    return assembler.assemble(config, output_dir, engine)
+
+
+@pytest.mark.parametrize("skill_name", list(INFRA_SKILLS))
+class TestInfraSkillContent:
+    @pytest.fixture
+    def infra_content(
+        self, tmp_path: Path, skill_name: str,
+    ) -> str:
+        result = _assemble_real_templates(tmp_path)
+        path = _find_skill(result, skill_name)
+        return path.read_text(encoding="utf-8")
+
+    def test_infra_skill_has_claude_skills_reference(
+        self, infra_content: str,
+    ) -> None:
+        assert ".claude/skills/" in infra_content
+
+    def test_infra_skill_name_is_lowercase_hyphens(
+        self, skill_name: str,
+    ) -> None:
+        assert skill_name == skill_name.lower()
+        assert " " not in skill_name
+
+    def test_infra_skill_content_in_english(
+        self, infra_content: str, skill_name: str,
+    ) -> None:
+        english_keywords = [
+            "checklist", "execution", "prerequisites",
+        ]
+        found = any(
+            kw in infra_content.lower()
+            for kw in english_keywords
+        )
+        assert found, (
+            f"{skill_name} lacks English infra content"
+        )
+
+    def test_infra_skill_cloud_agnostic(
+        self, infra_content: str, skill_name: str,
+    ) -> None:
+        cloud_specific = [
+            "aws eks", "amazon eks",
+            "google gke", "gke cluster",
+            "azure aks", "aks cluster",
+        ]
+        for term in cloud_specific:
+            assert term not in infra_content.lower(), (
+                f"{skill_name} contains cloud-specific "
+                f"reference: {term}"
+            )
+
+
+@pytest.mark.parametrize("skill_name", list(INFRA_SKILLS))
+class TestInfraFrontmatterValid:
+    def test_yaml_frontmatter_parseable(
+        self, tmp_path: Path, skill_name: str,
+    ) -> None:
+        result = _assemble_real_templates(tmp_path)
+        path = _find_skill(result, skill_name)
+        content = path.read_text(encoding="utf-8")
+        assert content.startswith("---")
+        parts = content.split("---", 2)
+        assert len(parts) >= 3, (
+            f"{skill_name} missing frontmatter closing ---"
+        )
+        fm = yaml.safe_load(parts[1])
+        assert isinstance(fm, dict)
+        assert "name" in fm
+        assert "description" in fm
+        assert fm["name"] == skill_name
+
+
+class TestInfraSkillDescriptionKeywords:
+    @pytest.fixture
+    def infra_results(self, tmp_path: Path) -> List[Path]:
+        config = _make_config()
+        resources = Path("resources")
+        assembler = GithubSkillsAssembler(resources)
+        output_dir = tmp_path / "output"
+        engine = TemplateEngine(resources, config)
+        return assembler.assemble(config, output_dir, engine)
+
+    def test_setup_environment_has_setup_keywords(
+        self, infra_results: List[Path],
+    ) -> None:
+        path = _find_skill(
+            infra_results, "setup-environment",
+        )
+        content = path.read_text(encoding="utf-8")
+        assert "environment" in content.lower()
+        assert "health check" in content.lower()
+
+    def test_k8s_deployment_has_k8s_keywords(
+        self, infra_results: List[Path],
+    ) -> None:
+        path = _find_skill(
+            infra_results, "k8s-deployment",
+        )
+        content = path.read_text(encoding="utf-8")
+        assert "kubernetes" in content.lower()
+        assert "deployment" in content.lower()
+        assert "probe" in content.lower()
+
+    def test_k8s_kustomize_has_kustomize_keywords(
+        self, infra_results: List[Path],
+    ) -> None:
+        path = _find_skill(
+            infra_results, "k8s-kustomize",
+        )
+        content = path.read_text(encoding="utf-8")
+        assert "kustomize" in content.lower()
+        assert "overlay" in content.lower()
+        assert "patch" in content.lower()
+
+    def test_dockerfile_has_docker_keywords(
+        self, infra_results: List[Path],
+    ) -> None:
+        path = _find_skill(
+            infra_results, "dockerfile",
+        )
+        content = path.read_text(encoding="utf-8")
+        assert "multi-stage" in content.lower()
+        assert "security" in content.lower()
+        assert "healthcheck" in content.lower()
+
+    def test_iac_terraform_has_terraform_keywords(
+        self, infra_results: List[Path],
+    ) -> None:
+        path = _find_skill(
+            infra_results, "iac-terraform",
+        )
+        content = path.read_text(encoding="utf-8")
+        assert "terraform" in content.lower()
+        assert "module" in content.lower()
+        assert "remote state" in content.lower()
 
 
 def _extract_description(path: Path) -> str:
