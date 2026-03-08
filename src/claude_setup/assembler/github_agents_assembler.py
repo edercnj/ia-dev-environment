@@ -6,7 +6,6 @@ from typing import List, Optional
 
 from claude_setup.assembler.conditions import (
     has_any_interface,
-    has_interface,
 )
 from claude_setup.models import ProjectConfig
 from claude_setup.template_engine import TemplateEngine
