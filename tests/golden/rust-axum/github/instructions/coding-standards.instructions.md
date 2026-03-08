@@ -1,7 +1,8 @@
 # Coding Standards
 
-> Full reference: [`.claude/skills/coding-standards/SKILL.md`](../../.claude/skills/coding-standards/SKILL.md)
-> for rust 2024-specific idioms, constructor injection patterns, mapper conventions,
+> Full reference: `.claude/skills/coding-standards/SKILL.md`
+> (generated alongside this file) for rust 2024-specific
+> idioms, constructor injection patterns, mapper conventions,
 > and formatting rules.
 
 ## Hard Limits

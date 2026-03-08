@@ -1,62 +1,43 @@
 # Domain Rules
 
 > For the full domain reference template with examples, see
-> [`.claude/rules/02-domain.md`](../../.claude/rules/02-domain.md).
-
-This file captures domain-specific knowledge that must be understood to produce
-correct code. It is about the **business domain**, not coding patterns.
+> `.claude/rules/02-domain.md` (generated alongside this file).
 
 ## Domain Overview
 
-Define in 3-5 sentences: the problem being solved, the role of this system in the
-larger ecosystem, and who the primary users/consumers are.
+my-cli-tool — Describe your CLI tool purpose here
 
 ## System Role
 
-- **Receives:** (define what the system receives)
-- **Processes:** (define what the system processes)
-- **Returns:** (define what the system returns)
-- **Persists:** (define what the system persists)
+Fill in the domain-specific details:
+
+- **Receives:** Define what this system receives
+- **Processes:** Define what this system processes
+- **Returns:** Define what this system returns
+- **Persists:** Define what this system persists
 
 ## Domain Model
 
 ### Core Entities
 
-Define entities with their key attributes. Use the ubiquitous language — every
-developer must use these exact terms.
+Define your core entities, value objects, and aggregates.
 
-| Entity | Description | Key Attributes |
-|--------|-------------|----------------|
-| (Define entities here) | | |
+### Business Rules
 
-### Value Objects
-
-Immutable objects defined by their attributes, not identity.
-Examples: `Money(amount, currency)`, `Address(street, city, zip)`, `DateRange(start, end)`.
-
-### Aggregates and Boundaries
-
-Define aggregate roots and their boundaries. Which entities are always loaded/saved
-together?
-
-## Business Rules
-
-Each rule should have: an ID, a description, and the decision logic. Rules must be
-testable and deterministic.
+Define your domain-specific business rules here.
 
 ## Domain States and Transitions
 
-Define the state machine for key entities. What states can they be in? What events
-trigger transitions?
+Define the state machines for key entities.
 
 ## Sensitive Data
 
-| Data | Classification | Can Log? | Can Persist? | Can Return in API? |
-|------|---------------|----------|--------------|-------------------|
-| (Define per domain) | | | | |
+Define domain-specific data classification.
+
+## Domain Anti-Patterns
+
+Define domain-specific mistakes to avoid.
 
 ## Glossary
 
-| Term | Definition |
-|------|-----------|
-| (Define domain-specific terms) | |
+Define domain-specific terms.

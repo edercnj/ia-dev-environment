@@ -7,8 +7,8 @@
 - **Domain-Driven Design:** false
 - **Event-Driven:** true
 - **Interfaces:** REST, GRPC, event-consumer, event-producer
-- **Language:** Go 1.22
-- **Framework:** Gin
+- **Language:** go 1.22
+- **Framework:** gin
 
 ## Technology Stack
 
@@ -18,20 +18,12 @@
 | Language | Go 1.22 |
 | Framework | Gin |
 | Build Tool | Go-mod |
-| Container | docker |
-| Orchestrator | kubernetes |
+| Container | Docker |
+| Orchestrator | Kubernetes |
 | Resilience | Mandatory (always enabled) |
 | Native Build | false |
 | Smoke Tests | true |
 | Contract Tests | false |
-
-## Language Policy
-
-- Output language: English only
-- Code: English (classes, methods, variables)
-- Commits: English (Conventional Commits)
-- Documentation: English
-- Application logs: English
 
 ## Constraints
 
@@ -39,22 +31,13 @@
 - Horizontal scalability: Application must be stateless
 - Externalized configuration: All configuration via environment variables or ConfigMaps
 
-## Source of Truth (Hierarchy)
-
-1. Epics / PRDs (vision and global rules)
-2. ADRs (architectural decisions)
-3. Stories / tickets (detailed requirements)
-4. Instructions (`.github/instructions/`)
-5. Source code
-
 ## Contextual Instructions
 
-For detailed guidance on specific topics, the following contextual instructions are
-loaded automatically when relevant:
+The following instruction files provide domain-specific context:
 
-- `instructions/domain.instructions.md` — Domain model, business rules, ubiquitous language
-- `instructions/coding-standards.instructions.md` — Clean Code, SOLID, language conventions
-- `instructions/architecture.instructions.md` — Architecture style, layer rules, package structure
+- `instructions/domain.instructions.md` — Domain model, business rules, sensitive data
+- `instructions/coding-standards.instructions.md` — Clean Code, SOLID, naming, error handling
+- `instructions/architecture.instructions.md` — Hexagonal architecture, layer rules, package structure
 - `instructions/quality-gates.instructions.md` — Coverage thresholds, test categories, merge checklist
 
-For deep-dive references, see the knowledge packs in `.claude/skills/`.
+For deep-dive references, see the knowledge packs in `.claude/skills/` (generated alongside this structure).

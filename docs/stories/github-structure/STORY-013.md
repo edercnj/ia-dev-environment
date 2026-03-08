@@ -1,92 +1,107 @@
-# História: README e Validação Final da Estrutura .github
+# Historia: README e Validacao Final da Estrutura .github
 
 **ID:** STORY-013
 
-## 1. Dependências
+## Contexto do Gerador
+
+Esta historia estende o `ReadmeAssembler` existente no gerador Python `claude_setup` para incluir documentacao da estrutura `.github/`, e adiciona um script de validacao end-to-end. O gerador produz AMBAS as estruturas `.claude/` e `.github/` — ambas sao saidas gitignored.
+
+**Arquitetura do gerador:**
+
+| Componente | Caminho |
+| :--- | :--- |
+| Assembler existente | `src/claude_setup/assembler/readme_assembler.py` (estender) |
+| Template README | `resources/readme-templates/` (adicionar secao `.github/`) |
+| Script de validacao | `scripts/validate-github-structure.py` (novo) |
+| Pipeline | Ja registrado em `assembler/__init__.py` via `_build_assemblers()` |
+| Golden files | `tests/golden/readme/` (atualizar) |
+| Testes | `tests/test_byte_for_byte.py` (atualizar cenarios existentes) |
+
+O `ReadmeAssembler` ja implementa `assemble(config, output_dir, engine) -> List[Path]`. Esta historia estende o template para cobrir a documentacao `.github/` e adiciona validacao cross-cutting.
+
+---
+
+## 1. Dependencias
 
 | Blocked By | Blocks |
 | :--- | :--- |
 | STORY-001, STORY-002, STORY-003, STORY-004, STORY-005, STORY-006, STORY-007, STORY-008, STORY-009, STORY-010, STORY-011, STORY-012 | — |
 
-## 2. Regras Transversais Aplicáveis
+## 2. Regras Transversais Aplicaveis
 
-| ID | Título |
+| ID | Titulo |
 | :--- | :--- |
 | RULE-001 | Paridade funcional |
-| RULE-002 | Convenções do Copilot |
-| RULE-003 | Sem duplicação de conteúdo |
+| RULE-002 | Convencoes do Copilot |
+| RULE-003 | Sem duplicacao de conteudo |
 | RULE-004 | Idioma |
 | RULE-005 | Progressive disclosure |
 | RULE-006 | Tool boundaries |
-| RULE-007 | Consistência de hooks |
+| RULE-007 | Consistencia de hooks |
 
-## 3. Descrição
+## 3. Descricao
 
-Como **Tech Lead**, eu quero que o gerador `claude_setup` produza o README.md da estrutura `.github/` e inclua validação automatizada de todos os componentes gerados, garantindo que a adoção do Copilot ocorra com evidências de conformidade e governança completa.
+Como **Tech Lead**, eu quero que o gerador `claude_setup` produza um README.md abrangente cobrindo AMBAS as estruturas geradas (`.claude/` e `.github/`), e que exista um script de validacao transversal de todos os componentes gerados, garantindo que a adocao ocorra com evidencias de conformidade e governanca completa.
 
-Esta é a história final que converge todos os ramos de dependência. Produz documentação de governança e valida end-to-end todos os artefatos gerados: instructions, skills, agents, prompts, hooks e MCP.
+Esta e a historia final que converge todos os ramos de dependencia. Estende o `ReadmeAssembler` existente para incluir documentacao `.github/` e cria um script de validacao end-to-end que verifica a integridade de TODAS as saidas geradas pelo pipeline.
 
-### 3.1 Contexto Técnico (Gerador)
+### 3.1 README.md (gerado pelo ReadmeAssembler estendido)
 
-O `claude_setup` já possui o `ReadmeAssembler` (`src/claude_setup/assembler/readme_assembler.py`) que gera README para a estrutura `.claude/`. A implementação deve estender este assembler para incluir a documentação da estrutura `.github/`.
+- Arvore de diretorios completa de `.claude/` E `.github/` (ambos gerados)
+- Mapeamento `.claude/` <-> `.github/` com tabela de equivalencia
+- Convencoes por tipo de artefato (naming, frontmatter, extensoes)
+- Guia de contribuicao e manutencao (focado nos templates e assemblers)
+- Links para documentacao oficial do GitHub Copilot e Claude Code
+- Nota explicando que ambos diretorios sao saidas geradas pelo `claude_setup`
 
-Para esta história, a implementação envolve:
+### 3.2 Script de Validacao End-to-End
 
-1. **Estender `ReadmeAssembler`** para incluir seção `.github/` no README gerado — árvore de diretórios, tabela de mapeamento `.claude/` ↔ `.github/`, convenções por tipo de artefato
-2. **Criar script de validação** em `scripts/validate_github_structure.py` — valida frontmatter YAML, extensões corretas, JSON válido, tool boundaries, links
-3. **Testes de integração** — rodar `run_pipeline()` completo e validar que a estrutura `.github/` gerada contém todos os artefatos esperados
-4. **Golden files** — garantir que `tests/golden/` inclui `.github/README.md` com árvore completa
-5. **Relatório Go/No-Go** — o script de validação gera relatório automático com decisão GO/NO-GO
+Script Python `scripts/validate-github-structure.py` que valida TODAS as saidas geradas:
 
-### 3.2 README.md gerado
+| Componente | Validacoes |
+| :--- | :--- |
+| Instructions | Extensoes `.instructions.md`, carregamento global, links validos |
+| Skills | YAML frontmatter, name lowercase-hyphens, description presente, progressive disclosure |
+| Agents | Extensao `.agent.md`, tools/disallowed-tools no frontmatter, coerencia persona-tools |
+| Prompts | Extensao `.prompt.md`, frontmatter valido, referencias a skills/agents |
+| Hooks | JSON valido, event types corretos, timeouts <= 60s |
+| MCP | JSON valido, sem segredos hardcoded, capabilities documentadas |
 
-O `ReadmeAssembler` deve gerar conteúdo incluindo:
+### 3.3 Implementacao no gerador
 
-- Árvore de diretórios completa de `.github/`
-- Mapeamento `.claude/` ↔ `.github/` com tabela de equivalência
-- Convenções por tipo de artefato (naming, frontmatter, extensões)
-- Guia de contribuição e manutenção
-- Links para documentação oficial do GitHub Copilot
+1. Estender template README em `resources/readme-templates/` para incluir secao `.github/`
+2. Criar `scripts/validate-github-structure.py`
+3. Atualizar golden files em `tests/golden/readme/`
+4. Atualizar cenarios de teste byte-for-byte em `tests/test_byte_for_byte.py`
 
-### 3.3 Validação End-to-End (script de validação)
-
-Checklist de validação por componente:
-
-| Componente | Assembler que gera | Validações |
-| :--- | :--- | :--- |
-| Instructions | `GithubInstructionsAssembler` | Extensões `.instructions.md`, carregamento global, links válidos |
-| Skills | (skills assemblers da Fase 1) | YAML frontmatter, name lowercase-hyphens, description presente |
-| Agents | `GithubAgentsAssembler` | Extensão `.agent.md`, tools/disallowed-tools no frontmatter |
-| Prompts | `GithubPromptsAssembler` | Extensão `.prompt.md`, frontmatter válido, referências a skills/agents |
-| Hooks | `GithubHooksAssembler` | JSON válido, event types corretos, timeouts ≤ 60s |
-| MCP | (MCP assembler) | JSON válido, sem segredos hardcoded, capabilities documentadas |
-
-## 4. Definições de Qualidade Locais
+## 4. Definicoes de Qualidade Locais
 
 ### DoR Local (Definition of Ready)
 
-- [ ] Todas as 12 histórias anteriores concluídas (todos os assemblers implementados)
-- [ ] Lista completa de artefatos gerados pelo pipeline disponível
-- [ ] Critérios de validação por componente definidos
+- [ ] Todas as 12 historias anteriores concluidas
+- [ ] Lista completa de artefatos gerados disponivel (ambas saidas)
+- [ ] Criterios de validacao por componente definidos
+- [ ] Padrao de assembler validado (referencia: `GithubInstructionsAssembler`)
 
 ### DoD Local (Definition of Done)
 
-- [ ] `ReadmeAssembler` estendido para incluir seção `.github/` no README
-- [ ] Script `scripts/validate_github_structure.py` implementado e funcional
-- [ ] Validação executada em 100% dos artefatos gerados pelo pipeline
-- [ ] Zero erros críticos (frontmatter inválido, extensões erradas, links quebrados)
-- [ ] Relatório Go/No-Go gerado automaticamente pelo script
-- [ ] Golden files atualizados incluindo `.github/README.md`
+- [ ] Template README estendido para cobrir `.claude/` e `.github/`
+- [ ] README gerado contem arvore e mapeamento de AMBAS as estruturas
+- [ ] Script `validate-github-structure.py` criado e funcional
+- [ ] Validacao executada em 100% dos artefatos gerados
+- [ ] Zero erros criticos (frontmatter invalido, extensoes erradas, links quebrados)
+- [ ] Relatorio Go/No-Go produzido
+- [ ] Golden files atualizados e testes byte-for-byte passando
 
 ### Global Definition of Done (DoD)
 
-- **Validação de formato:** 100% dos artefatos gerados validados
-- **Convenções Copilot:** Todos os artefatos seguem convenções
-- **Sem duplicação:** Nenhum conteúdo duplicado verificado
-- **Idioma:** Inglês (exceções pt-BR documentadas)
-- **Documentação:** README.md completo e preciso
-- **Integração:** Testes de integração passando com pipeline completo
-- **Testes:** Golden files + pipeline tests + validation script passando
+- **Validacao de formato:** 100% dos artefatos validados (ambas saidas)
+- **Convencoes Copilot:** Todos os artefatos `.github/` seguem convencoes
+- **Sem duplicacao:** Nenhum conteudo duplicado verificado
+- **Idioma:** Ingles (excecoes pt-BR documentadas)
+- **Documentacao:** README.md completo cobrindo ambas estruturas geradas
+- **Integracao:** Validacao manual com Copilot e Claude Code
+- **Testes:** Golden file tests passando em `test_byte_for_byte.py`
 
 ## 5. Contratos de Dados (Data Contract)
 
@@ -95,82 +110,113 @@ Checklist de validação por componente:
 | Campo | Formato | Request | Response | Origem / Regra |
 | :--- | :--- | :--- | :--- | :--- |
 | `component` | enum(instructions, skills, agents, prompts, hooks, mcp) | — | M | Componente validado |
-| `total_artifacts` | integer | — | M | Total de artefatos gerados pelo assembler |
-| `passed` | integer | — | M | Artefatos que passaram validação |
+| `output_target` | enum(.claude, .github) | — | M | Qual saida gerada |
+| `total_artifacts` | integer | — | M | Total de artefatos no componente |
+| `passed` | integer | — | M | Artefatos que passaram validacao |
 | `failed` | integer | — | M | Artefatos que falharam |
 | `severity` | enum(critical, major, minor) | — | M | Maior severidade encontrada |
-| `decision` | enum(GO, NO-GO) | — | M | Decisão final |
+| `decision` | enum(GO, NO-GO) | — | M | Decisao final |
 
 ## 6. Diagramas
 
-### 6.1 Fluxo de Validação do Gerador
+### 6.1 Pipeline completo do gerador (visao consolidada)
 
 ```mermaid
 sequenceDiagram
-    participant DEV as Desenvolvedor
-    participant P as Pipeline (run_pipeline)
-    participant V as validate_github_structure.py
-    participant FS as Filesystem (output_dir/)
-    participant R as Relatório Go/No-Go
+    participant U as Usuario
+    participant P as run_pipeline()
+    participant A as Assemblers (todos)
+    participant C as output_dir/.claude/
+    participant G as output_dir/.github/
+    participant V as validate-github-structure.py
 
-    DEV->>P: run_pipeline(config, resources_dir, output_dir)
-    P-->>FS: Gera todos os artefatos .github/
-    DEV->>V: python scripts/validate_github_structure.py output_dir/
-    V->>FS: Validar instructions (extensões, frontmatter)
-    V->>FS: Validar skills (frontmatter, naming)
-    V->>FS: Validar agents (tool boundaries, extensão)
-    V->>FS: Validar prompts (frontmatter, referências)
-    V->>FS: Validar hooks (JSON, event types)
-    V->>R: Consolidar resultados
-    R-->>DEV: Relatório Go/No-Go
+    U->>P: claude_setup generate
+    P->>A: _build_assemblers() + _execute_assemblers()
+    A->>C: Gerar .claude/ (rules, skills, agents, hooks, ...)
+    A->>G: Gerar .github/ (instructions, agents, hooks, prompts, ...)
+    A-->>P: List[Path] de todos os arquivos
+    P-->>U: PipelineResult
+    U->>V: Executar validacao
+    V->>C: Validar artefatos .claude/
+    V->>G: Validar artefatos .github/
+    V-->>U: Relatorio Go/No-Go
 ```
 
-## 7. Critérios de Aceite (Gherkin)
+### 6.2 Fluxo de Validacao End-to-End
+
+```mermaid
+sequenceDiagram
+    participant TL as Tech Lead
+    participant V as validate-github-structure.py
+    participant I as Instructions
+    participant S as Skills
+    participant A as Agents
+    participant R as Relatorio
+
+    TL->>V: Iniciar validacao end-to-end
+    V->>I: Validar extensoes e carregamento
+    V->>S: Validar frontmatter e progressive disclosure
+    V->>A: Validar tool boundaries e extensoes
+    I-->>R: Resultado instructions
+    S-->>R: Resultado skills
+    A-->>R: Resultado agents
+    R-->>TL: Relatorio Go/No-Go
+```
+
+## 7. Criterios de Aceite (Gherkin)
 
 ```gherkin
-Cenario: README gerado inclui árvore de diretórios .github/
-  DADO que o pipeline completo é executado
-  QUANDO ReadmeAssembler gera o README
-  ENTÃO o conteúdo inclui árvore de diretórios com todos os artefatos .github/
-  E inclui tabela de mapeamento .claude/ ↔ .github/
+Cenario: README gerado cobre ambas estruturas
+  DADO que o pipeline gerou .claude/ e .github/
+  QUANDO o ReadmeAssembler gera o README.md
+  ENTAO contem arvore de diretorios de AMBAS as estruturas
+  E inclui tabela de mapeamento .claude/ <-> .github/
+  E explica que ambos sao saidas geradas pelo claude_setup
 
-Cenario: Golden file do README corresponde byte a byte
-  DADO que golden files incluem github/README.md
-  QUANDO test_byte_for_byte.py é executado
-  ENTÃO o README gerado é idêntico ao golden file
+Cenario: Golden file test do README atualizado
+  DADO que tests/golden/readme/ contem o README de referencia atualizado
+  QUANDO test_byte_for_byte.py executa o ReadmeAssembler com config fixa
+  ENTAO a saida e identica byte-a-byte ao golden file
 
-Cenario: Script de validação reporta GO para pipeline correto
-  DADO que o pipeline gerou todos os artefatos esperados
-  QUANDO scripts/validate_github_structure.py é executado no output_dir
-  ENTÃO o relatório emite decisão "GO"
-  E todos os componentes têm zero falhas críticas
+Cenario: Validacao de YAML frontmatter em todas as skills
+  DADO que existem 42+ skills geradas em .github/skills/
+  QUANDO o script de validacao parseia o frontmatter de cada SKILL.md
+  ENTAO todos possuem campo "name" em lowercase-hyphens
+  E todos possuem campo "description" nao vazio
 
-Cenario: Script de validação detecta frontmatter inválido
-  DADO que um agent gerado não possui campo "name" no frontmatter
-  QUANDO o script de validação é executado
-  ENTÃO a decisão é "NO-GO"
-  E o erro crítico lista o componente e arquivo afetado
+Cenario: Validacao de tool boundaries em todos os agents
+  DADO que existem 10 agents gerados em .github/agents/
+  QUANDO o script de validacao verifica cada .agent.md
+  ENTAO todos possuem "tools" e "disallowed-tools" no frontmatter
+  E nenhum agent tem whitelist e blacklist vazias simultaneamente
 
-Cenario: Teste de integração valida pipeline completo
-  DADO que test_pipeline.py é executado com config padrão
-  QUANDO PipelineResult é verificado
-  ENTÃO files_generated inclui artefatos de TODOS os assemblers .github/
-  E a contagem total corresponde ao esperado
+Cenario: Relatorio Go/No-Go com zero erros criticos
+  DADO que a validacao end-to-end foi executada em ambas saidas
+  QUANDO todos os componentes passam sem erros criticos
+  ENTAO o relatorio emite decisao "GO"
+  E lista warnings como informativos
 
-Cenario: Validação de extensões em todos os agents gerados
-  DADO que GithubAgentsAssembler gerou 10 agents
-  QUANDO o script de validação verifica extensões
-  ENTÃO todos possuem extensão ".agent.md"
-  E nenhum usa extensão ".md" simples
+Cenario: Relatorio No-Go com erros criticos
+  DADO que a validacao encontra um skill sem campo "name"
+  QUANDO o relatorio e gerado
+  ENTAO a decisao e "NO-GO"
+  E o erro critico e listado com componente, saida (.claude/.github) e arquivo afetado
+  E a severidade e "critical"
 ```
 
 ## 8. Sub-tarefas
 
-- [ ] [Dev] Estender `ReadmeAssembler` para incluir seção `.github/` no README gerado
-- [ ] [Dev] Criar script de validação automatizada (`scripts/validate_github_structure.py`)
-- [ ] [Dev] Implementar validadores por componente (instructions, skills, agents, prompts, hooks, mcp)
-- [ ] [Dev] Implementar geração de relatório Go/No-Go no script
-- [ ] [Test] Testes de integração: rodar `run_pipeline()` completo e validar toda a estrutura `.github/`
-- [ ] [Test] Verificar que golden files incluem `.github/README.md` com árvore completa
-- [ ] [Test] Verificar que o relatório Go/No-Go é gerado automaticamente pelo script
-- [ ] [Test] Atualizar contagem esperada em `test_pipeline.py`
+- [ ] [Dev] Estender template README em `resources/readme-templates/` para cobrir `.github/`
+- [ ] [Dev] Incluir tabela de mapeamento `.claude/` <-> `.github/` no template
+- [ ] [Dev] Documentar que ambos diretorios sao saidas geradas pelo `claude_setup`
+- [ ] [Dev] Criar `scripts/validate-github-structure.py`
+- [ ] [Dev] Atualizar golden files em `tests/golden/readme/`
+- [ ] [Test] Atualizar cenarios em `tests/test_byte_for_byte.py` para README estendido
+- [ ] [Test] Executar validacao de instructions (extensoes, carregamento)
+- [ ] [Test] Executar validacao de skills (frontmatter, progressive disclosure)
+- [ ] [Test] Executar validacao de agents (tool boundaries, extensoes)
+- [ ] [Test] Executar validacao de prompts (frontmatter, referencias)
+- [ ] [Test] Executar validacao de hooks (JSON, event types, timeouts)
+- [ ] [Test] Executar validacao de MCP (JSON, sem segredos)
+- [ ] [Test] Produzir relatorio Go/No-Go consolidado
+- [ ] [Doc] Incluir guia de contribuicao focado em templates e assemblers

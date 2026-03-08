@@ -1,14 +1,15 @@
 # Architecture Summary
 
-> Full reference: [`.claude/skills/architecture/SKILL.md`](../../.claude/skills/architecture/SKILL.md)
-> for detailed patterns, variants, and thread-safety rules.
-> Code templates per layer: [`.claude/skills/layer-templates/SKILL.md`](../../.claude/skills/layer-templates/SKILL.md).
+> Full reference: `.claude/skills/architecture/SKILL.md`
+> (generated alongside this file) for detailed patterns, variants,
+> and thread-safety rules.
+> Code templates per layer: `.claude/skills/layer-templates/SKILL.md`.
 
 ## Architecture Style: Hexagonal (Ports and Adapters)
 
 ## Dependency Direction
 
-```
+```text
 adapter.inbound → application → domain ← adapter.outbound
                                   ↑
                            (ports/interfaces)
@@ -19,7 +20,7 @@ adapter or framework code.
 
 ## Package Structure
 
-```
+```text
 {root}/
 ├── domain/          # Core — zero external dependencies
 │   ├── model/       # Entities, value objects, enums
@@ -35,7 +36,7 @@ adapter or framework code.
 ## Layer Rules
 
 | Layer | Can depend on | Cannot depend on |
-|-------|--------------|-----------------|
+|-------|--------------|--------------------|
 | domain | Standard library only | adapter, application, framework |
 | application | domain.* | adapter.*, framework |
 | adapter.inbound | application, domain.port | adapter.outbound |

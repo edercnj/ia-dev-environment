@@ -9,6 +9,15 @@ from claude_setup.template_engine import TemplateEngine
 
 logger = logging.getLogger(__name__)
 
+TEMPLATES_DIR_NAME = "github-instructions-templates"
+
+CONTEXTUAL_TEMPLATES = (
+    "domain",
+    "coding-standards",
+    "architecture",
+    "quality-gates",
+)
+
 
 class GithubInstructionsAssembler:
     """Generates .github/ instructions adapting .claude/rules/ for Copilot."""
@@ -32,7 +41,7 @@ class GithubInstructionsAssembler:
             self._generate_global(config, github_dir),
         )
         generated.extend(
-            self._generate_contextual(config, instructions_dir, engine),
+            self._generate_contextual(engine, instructions_dir),
         )
         return generated
 
@@ -41,7 +50,7 @@ class GithubInstructionsAssembler:
         config: ProjectConfig,
         github_dir: Path,
     ) -> Path:
-        """Generate copilot-instructions.md from project config."""
+        """Generate the global copilot-instructions.md from config."""
         dest = github_dir / "copilot-instructions.md"
         content = _build_copilot_instructions(config)
         dest.write_text(content, encoding="utf-8")
@@ -49,31 +58,32 @@ class GithubInstructionsAssembler:
 
     def _generate_contextual(
         self,
-        config: ProjectConfig,
-        instructions_dir: Path,
         engine: TemplateEngine,
+        instructions_dir: Path,
     ) -> List[Path]:
-        """Generate contextual .instructions.md files from templates."""
-        templates_dir = self._resources_dir / "github-instructions-templates"
+        """Generate contextual *.instructions.md from templates."""
+        templates_dir = self._resources_dir / TEMPLATES_DIR_NAME
         if not templates_dir.is_dir():
             logger.warning(
-                "GitHub instructions templates not found: %s",
-                templates_dir,
+                "Templates dir not found: %s", templates_dir,
             )
             return []
         generated: List[Path] = []
-        for template_file in sorted(templates_dir.glob("*.md")):
-            dest_name = template_file.stem + ".instructions.md"
-            content = template_file.read_text(encoding="utf-8")
+        for name in CONTEXTUAL_TEMPLATES:
+            template = templates_dir / f"{name}.md"
+            if not template.is_file():
+                logger.warning("Template not found: %s", template)
+                continue
+            content = template.read_text(encoding="utf-8")
             content = engine.replace_placeholders(content)
-            dest = instructions_dir / dest_name
+            dest = instructions_dir / f"{name}.instructions.md"
             dest.write_text(content, encoding="utf-8")
             generated.append(dest)
         return generated
 
 
 def _build_copilot_instructions(config: ProjectConfig) -> str:
-    """Build copilot-instructions.md content from config."""
+    """Build the global copilot-instructions.md content."""
     ifaces = ", ".join(
         i.type.upper() if i.type in ("rest", "grpc") else i.type
         for i in config.interfaces
@@ -83,106 +93,64 @@ def _build_copilot_instructions(config: ProjectConfig) -> str:
         if config.framework.version
         else ""
     )
-    lines: List[str] = []
-    lines.extend(_header(config, ifaces, fw_ver))
-    lines.extend(_tech_stack(config, fw_ver))
-    lines.extend(_language_policy())
-    lines.extend(_constraints())
-    lines.extend(_source_of_truth())
-    lines.extend(_contextual_refs())
-    return "\n".join(lines) + "\n"
-
-
-def _header(
-    config: ProjectConfig,
-    ifaces: str,
-    fw_ver: str,
-) -> List[str]:
-    return [
+    lines = [
         f"# Project Identity — {config.project.name}",
         "",
         "## Identity",
         "",
         f"- **Name:** {config.project.name}",
         f"- **Architecture Style:** {config.architecture.style}",
-        f"- **Domain-Driven Design:** {str(config.architecture.domain_driven).lower()}",
-        f"- **Event-Driven:** {str(config.architecture.event_driven).lower()}",
+        f"- **Domain-Driven Design:** "
+        f"{str(config.architecture.domain_driven).lower()}",
+        f"- **Event-Driven:** "
+        f"{str(config.architecture.event_driven).lower()}",
         f"- **Interfaces:** {ifaces}",
-        f"- **Language:** {config.language.name.capitalize()} {config.language.version}",
-        f"- **Framework:** {config.framework.name.capitalize()}{fw_ver}",
-    ]
-
-
-def _tech_stack(config: ProjectConfig, fw_ver: str) -> List[str]:
-    obs = config.infrastructure.observability
-    return [
+        f"- **Language:** {config.language.name} "
+        f"{config.language.version}",
+        f"- **Framework:** {config.framework.name}{fw_ver}",
         "",
         "## Technology Stack",
         "",
         "| Layer | Technology |",
         "|-------|-----------|",
         f"| Architecture | {config.architecture.style.capitalize()} |",
-        f"| Language | {config.language.name.capitalize()} {config.language.version} |",
+        f"| Language | {config.language.name.capitalize()} "
+        f"{config.language.version} |",
         f"| Framework | {config.framework.name.capitalize()}{fw_ver} |",
         f"| Build Tool | {config.framework.build_tool.capitalize()} |",
-        f"| Container | {config.infrastructure.container} |",
-        f"| Orchestrator | {config.infrastructure.orchestrator} |",
-        f"| Resilience | Mandatory (always enabled) |",
-        f"| Native Build | {str(config.framework.native_build).lower()} |",
-        f"| Smoke Tests | {str(config.testing.smoke_tests).lower()} |",
-        f"| Contract Tests | {str(config.testing.contract_tests).lower()} |",
-    ]
-
-
-def _language_policy() -> List[str]:
-    return [
-        "",
-        "## Language Policy",
-        "",
-        "- Output language: English only",
-        "- Code: English (classes, methods, variables)",
-        "- Commits: English (Conventional Commits)",
-        "- Documentation: English",
-        "- Application logs: English",
-    ]
-
-
-def _constraints() -> List[str]:
-    return [
+        f"| Container | {config.infrastructure.container.capitalize()} |",
+        f"| Orchestrator | "
+        f"{config.infrastructure.orchestrator.capitalize()} |",
+        "| Resilience | Mandatory (always enabled) |",
+        f"| Native Build | "
+        f"{str(config.framework.native_build).lower()} |",
+        f"| Smoke Tests | "
+        f"{str(config.testing.smoke_tests).lower()} |",
+        f"| Contract Tests | "
+        f"{str(config.testing.contract_tests).lower()} |",
         "",
         "## Constraints",
         "",
         "- Cloud-Agnostic: ZERO dependencies on cloud-specific services",
         "- Horizontal scalability: Application must be stateless",
-        "- Externalized configuration: All configuration via environment variables or ConfigMaps",
-    ]
-
-
-def _source_of_truth() -> List[str]:
-    return [
-        "",
-        "## Source of Truth (Hierarchy)",
-        "",
-        "1. Epics / PRDs (vision and global rules)",
-        "2. ADRs (architectural decisions)",
-        "3. Stories / tickets (detailed requirements)",
-        "4. Instructions (`.github/instructions/`)",
-        "5. Source code",
-    ]
-
-
-def _contextual_refs() -> List[str]:
-    return [
+        "- Externalized configuration: All configuration via "
+        "environment variables or ConfigMaps",
         "",
         "## Contextual Instructions",
         "",
-        "For detailed guidance on specific topics, the following contextual instructions are",
-        "loaded automatically when relevant:",
+        "The following instruction files provide domain-specific "
+        "context:",
         "",
-        "- `instructions/domain.instructions.md` — Domain model, business rules, ubiquitous language",
-        "- `instructions/coding-standards.instructions.md` — Clean Code, SOLID, language conventions",
-        "- `instructions/architecture.instructions.md` — Architecture style, layer rules, package structure",
-        "- `instructions/quality-gates.instructions.md` — Coverage thresholds, test categories, merge checklist",
+        "- `instructions/domain.instructions.md` — Domain model, "
+        "business rules, sensitive data",
+        "- `instructions/coding-standards.instructions.md` — "
+        "Clean Code, SOLID, naming, error handling",
+        "- `instructions/architecture.instructions.md` — "
+        "Hexagonal architecture, layer rules, package structure",
+        "- `instructions/quality-gates.instructions.md` — "
+        "Coverage thresholds, test categories, merge checklist",
         "",
-        "For deep-dive references, see the knowledge packs in `.claude/skills/`.",
+        "For deep-dive references, see the knowledge packs in "
+        "`.claude/skills/` (generated alongside this structure).",
     ]
+    return "\n".join(lines) + "\n"

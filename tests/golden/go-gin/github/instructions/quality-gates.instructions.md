@@ -1,12 +1,13 @@
 # Quality Gates
 
-> Full reference: [`.claude/skills/testing/SKILL.md`](../../.claude/skills/testing/SKILL.md)
-> for test patterns, fixtures, and framework-specific conventions.
+> Full reference: `.claude/skills/testing/SKILL.md`
+> (generated alongside this file) for test patterns, fixtures,
+> and framework-specific conventions.
 
 ## Coverage Thresholds (Non-Negotiable)
 
 | Metric | Minimum |
-|--------|---------|
+|--------|---------  |
 | Line Coverage | ≥ 95% |
 | Branch Coverage | ≥ 90% |
 
@@ -22,7 +23,7 @@
 
 ## Test Naming
 
-```
+```text
 [methodUnderTest]_[scenario]_[expectedBehavior]
 ```
 

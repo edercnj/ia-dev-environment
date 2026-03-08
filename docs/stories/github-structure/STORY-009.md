@@ -1,76 +1,91 @@
-# História: Skills de Git e Troubleshooting
+# Historia: Skills de Git e Troubleshooting (Gerador Python)
 
 **ID:** STORY-009
 
-## 1. Dependências
+## 1. Dependencias
 
 | Blocked By | Blocks |
 | :--- | :--- |
 | STORY-001 | STORY-013 |
 
-## 2. Regras Transversais Aplicáveis
+## 2. Regras Transversais Aplicaveis
 
-| ID | Título |
+| ID | Titulo |
 | :--- | :--- |
 | RULE-001 | Paridade funcional |
-| RULE-002 | Convenções do Copilot |
-| RULE-003 | Sem duplicação de conteúdo |
+| RULE-002 | Convencoes do Copilot |
+| RULE-003 | Sem duplicacao de conteudo |
 | RULE-005 | Progressive disclosure |
 
-## 3. Descrição
+## 3. Descricao
 
-Como **Developer**, eu quero que o gerador `claude_setup` produza as skills de git (`x-git-push`) e troubleshooting (`x-ops-troubleshoot`) em `.github/skills/`, garantindo que operações de versionamento e diagnóstico de problemas sigam os mesmos padrões.
+Como **Developer**, eu quero que o gerador Python `claude_setup` produza as skills de git (`x-git-push`) e troubleshooting (`x-ops-troubleshoot`) dentro do diretorio `.github/skills/` gerado, garantindo que operacoes de versionamento e diagnostico de problemas sigam os mesmos padroes.
 
-Estas duas skills são de prioridade média e complementam o fluxo de desenvolvimento: `x-git-push` cuida de branch creation, commits (Conventional Commits), push e PR creation; `x-ops-troubleshoot` diagnostica erros, stacktraces, build failures e runtime exceptions.
+O gerador `claude_setup` ja produz tanto `.claude/` quanto `.github/` como output. Esta story adiciona templates e logica de assembler para gerar as 2 skills de git/troubleshooting na arvore `.github/skills/`. Ambos os diretorios sao gitignored -- sao output do gerador.
+
+Estas duas skills sao de prioridade media e complementam o fluxo de desenvolvimento: `x-git-push` cuida de branch creation, commits (Conventional Commits), push e PR creation; `x-ops-troubleshoot` diagnostica erros, stacktraces, build failures e runtime exceptions.
 
 ### 3.1 Skills a gerar
 
-- `.github/skills/x-git-push/SKILL.md` — Git workflow: branch, commit, push, PR creation
-- `.github/skills/x-ops-troubleshoot/SKILL.md` — Diagnóstico sistemático: reproduce, locate, understand, fix, verify
+- `.github/skills/x-git-push/SKILL.md` -- Git workflow: branch, commit, push, PR creation
+- `.github/skills/x-ops-troubleshoot/SKILL.md` -- Diagnostico sistematico: reproduce, locate, understand, fix, verify
 
-### 3.2 Convenções de commit
+### 3.2 Convencoes de commit
 
-- x-git-push deve referenciar Conventional Commits
+- O template de `x-git-push` deve referenciar Conventional Commits
 - Formato: `type(scope): description`
-- Co-authored-by com identificação do agente
+- Co-authored-by com identificacao do agente
 
-### 3.3 Contexto Técnico (Gerador)
+## Contexto Tecnico (Gerador)
 
-Este trabalho consiste em **estender o gerador Python `claude_setup`** para emitir skills de git e troubleshooting na árvore `.github/skills/`. O padrão segue o mesmo de STORY-005/006/007:
+### Assembler
 
-- **Assembler**: Criar `GithubGitTroubleshootSkillsAssembler` em `src/claude_setup/assembler/github_git_troubleshoot_skills_assembler.py`, implementando `assemble(config, output_dir, engine) -> List[Path]`. Deve iterar sobre os 2 templates, renderizar via `TemplateEngine`, e gravar em `output_dir/github/skills/<skill-name>/SKILL.md`.
-- **Templates**: Criar `resources/github-skills-templates/git-troubleshoot/` com 2 templates Jinja2/placeholder:
-  - `x-git-push.md` — Template com frontmatter + workflow de Conventional Commits, branch naming, push com `-u` flag, PR creation via `gh cli`
-  - `x-ops-troubleshoot.md` — Template com frontmatter + metodologia sistemática (reproduce → locate → understand → fix → verify)
-- **Pipeline**: Registrar `GithubGitTroubleshootSkillsAssembler` em `assembler/__init__.py` → `_build_assemblers()`.
-- **Condicionais**: Ambas as skills são **sempre incluídas** (não dependem de feature gates). São skills core do fluxo de desenvolvimento.
-- **TemplateEngine**: Usar `engine.replace_placeholders()` para injetar valores de `ProjectConfig` (nome do projeto, build tool, etc.).
+- Estender o `GithubSkillsAssembler` (criado em STORY-005) em `src/claude_setup/assembler/` para processar a categoria `git-troubleshooting`.
+- O assembler le templates de `resources/github-skills-templates/git-troubleshooting/` e gera arquivos em `output_dir/github/skills/<skill-name>/SKILL.md`.
+- Se o assembler ja foi registrado em `_build_assemblers()` na STORY-005, basta adicionar a nova categoria de templates.
 
-## 4. Definições de Qualidade Locais
+### Templates
+
+- Criar diretorio `resources/github-skills-templates/git-troubleshooting/` com 2 templates Jinja/Markdown:
+  - `x-git-push.md`, `x-ops-troubleshoot.md`
+- Templates usam placeholders do `TemplateEngine` (ex: `{{PROJECT_NAME}}`).
+- O template `x-git-push.md` deve incluir formato de Conventional Commits e lista de tipos validos.
+
+### Pipeline
+
+- O pipeline `assembler/__init__.py` -> `run_pipeline()` ja orquestra todos os assemblers.
+- O assembler de skills GitHub processa todas as categorias de templates encontradas em `resources/github-skills-templates/`.
+
+### Testes
+
+- **Golden files:** Adicionar fixtures em `tests/golden/github/skills/{x-git-push,x-ops-troubleshoot}/SKILL.md` e validar em `tests/test_byte_for_byte.py`.
+- **Pipeline test:** Estender `tests/test_pipeline.py` para verificar que os 2 arquivos de git/troubleshooting skills aparecem em `PipelineResult.files_generated`.
+- **Unit test:** Testar o assembler isoladamente com config mock e `tmp_path`.
+
+## 4. Definicoes de Qualidade Locais
 
 ### DoR Local (Definition of Ready)
 
-- [ ] STORY-001 concluída (`GithubInstructionsAssembler` funcionando)
-- [ ] Skills `.claude/skills/x-git-push` e `x-ops-troubleshoot` lidas como referência para templates
-- [ ] Estrutura de `resources/github-skills-templates/` definida
+- [ ] STORY-001 concluida (`GithubInstructionsAssembler` funcional)
+- [ ] Skills `.claude/skills/x-git-push` e `x-ops-troubleshoot` lidas e mapeadas como base para templates
+- [ ] Estrutura de `resources/github-skills-templates/` definida (STORY-005)
 
 ### DoD Local (Definition of Done)
 
-- [ ] `GithubGitTroubleshootSkillsAssembler` implementado e registrado no pipeline
-- [ ] 2 templates criados em `resources/github-skills-templates/git-troubleshoot/`
-- [ ] x-git-push com workflow de Conventional Commits
-- [ ] x-ops-troubleshoot com metodologia sistemática
-- [ ] Golden files atualizados e passando byte-for-byte
-- [ ] Pipeline gera `.github/skills/<skill-name>/SKILL.md` corretamente
+- [ ] Assembler gera 2 skills com frontmatter YAML valido
+- [ ] `x-git-push` com workflow de Conventional Commits
+- [ ] `x-ops-troubleshoot` com metodologia sistematica (reproduce -> locate -> understand -> fix -> verify)
+- [ ] Golden files conferem byte-a-byte
+- [ ] `tests/test_pipeline.py` passa com os 2 novos arquivos
 
 ### Global Definition of Done (DoD)
 
-- **Validação de formato:** YAML frontmatter válido e parseável
-- **Convenções Copilot:** `name` em lowercase-hyphens, `description` presente
-- **Sem duplicação:** References linkam para `.claude/skills/`
-- **Idioma:** Inglês
-- **Progressive disclosure:** 3 níveis implementados
-- **Documentação:** README gerado atualizado com skills de git e troubleshooting
+- **Validacao de formato:** YAML frontmatter valido e parseavel
+- **Convencoes Copilot:** `name` em lowercase-hyphens, `description` presente
+- **Sem duplicacao:** References linkam para `.claude/skills/`
+- **Idioma:** Ingles
+- **Progressive disclosure:** 3 niveis implementados
+- **Documentacao:** README.md atualizado
 
 ## 5. Contratos de Dados (Data Contract)
 
@@ -78,125 +93,110 @@ Este trabalho consiste em **estender o gerador Python `claude_setup`** para emit
 
 | Campo | Formato | Request | Response | Origem / Regra |
 | :--- | :--- | :--- | :--- | :--- |
-| `frontmatter.name` | string (lowercase-hyphens) | M | — | `x-git-push` ou `x-ops-troubleshoot` |
-| `frontmatter.description` | string (multiline) | M | — | Keywords: git, commit, push, PR, troubleshoot, error, stacktrace |
-| `workflow_steps` | array[string] | M | — | Passos do workflow |
+| `frontmatter.name` | string (lowercase-hyphens) | M | -- | `x-git-push` ou `x-ops-troubleshoot` |
+| `frontmatter.description` | string (multiline) | M | -- | Keywords: git, commit, push, PR, troubleshoot, error, stacktrace |
+| `workflow_steps` | array[string] | M | -- | Passos do workflow |
 
 ## 6. Diagramas
 
-### 6.1 Pipeline do Gerador para Skills de Git e Troubleshooting
+### 6.1 Fluxo do Gerador para Skills de Git/Troubleshooting
 
 ```mermaid
 sequenceDiagram
-    participant CLI as claude_setup CLI
+    participant CLI as __main__.py
     participant P as run_pipeline()
-    participant A as GithubGitTroubleshootSkillsAssembler
-    participant T as TemplateEngine
-    participant R as resources/github-skills-templates/git-troubleshoot/
+    participant A as GithubSkillsAssembler
+    participant T as resources/github-skills-templates/git-troubleshooting/
     participant O as output_dir/github/skills/
 
     CLI->>P: run_pipeline(config, resources_dir, output_dir)
     P->>A: assemble(config, output_dir, engine)
-    Note over A: Ambas skills são sempre incluídas (sem gates)
-    A->>R: Ler template x-git-push.md
-    R-->>T: Template com {placeholders}
-    T-->>A: Conteúdo renderizado
-    A->>O: Gravar x-git-push/SKILL.md
-    A->>R: Ler template x-ops-troubleshoot.md
-    R-->>T: Template com {placeholders}
-    T-->>A: Conteúdo renderizado
-    A->>O: Gravar x-ops-troubleshoot/SKILL.md
-    A-->>P: List[Path] dos 2 arquivos gerados
+    A->>T: Ler templates git-troubleshooting (2 arquivos)
+    A->>O: Escrever skills (2 SKILL.md)
+    O-->>P: List[Path] com 2 paths gerados
 ```
 
-### 6.2 Fluxo de Git Push (output gerado)
+### 6.2 Fluxo de Git Push (Runtime)
 
 ```mermaid
 sequenceDiagram
-    participant U as Usuário
+    participant U as Usuario
     participant G as x-git-push
-    participant R as Repositório
+    participant R as Repositorio
 
-    U->>G: Solicitar push de mudanças
-    G->>R: Criar branch (se necessário)
+    U->>G: Solicitar push de mudancas
+    G->>R: Criar branch (se necessario)
     G->>R: Stage + commit (Conventional Commits)
     G->>R: Push com -u flag
     G->>R: Criar PR via gh cli
     R-->>U: URL do PR
 ```
 
-### 6.3 Fluxo de Troubleshooting (output gerado)
+### 6.3 Fluxo de Troubleshooting (Runtime)
 
 ```mermaid
 sequenceDiagram
-    participant U as Usuário
+    participant U as Usuario
     participant T as x-ops-troubleshoot
     participant C as Codebase
 
     U->>T: Reportar erro/stacktrace
     T->>C: Reproduce (replicar o problema)
-    T->>C: Locate (encontrar código afetado)
+    T->>C: Locate (encontrar codigo afetado)
     T->>C: Understand (analisar causa raiz)
-    T->>C: Fix (aplicar correção)
+    T->>C: Fix (aplicar correcao)
     T->>C: Verify (executar testes)
-    C-->>U: Problema resolvido com evidência
+    C-->>U: Problema resolvido com evidencia
 ```
 
-## 7. Critérios de Aceite (Gherkin)
+## 7. Criterios de Aceite (Gherkin)
 
 ```gherkin
 Cenario: Gerador produz 2 skills de git e troubleshooting
-  DADO que o pipeline inclui GithubGitTroubleshootSkillsAssembler
-  QUANDO run_pipeline() é executado com qualquer config
-  ENTÃO o output_dir contém github/skills/x-git-push/SKILL.md
-  E contém github/skills/x-ops-troubleshoot/SKILL.md
+  DADO que o config YAML do projeto esta valido
+  QUANDO run_pipeline() e executado
+  ENTAO output_dir/github/skills/ contem 2 subdiretorios: x-git-push, x-ops-troubleshoot
+  E cada subdiretorio contem SKILL.md com frontmatter YAML valido
 
-Cenario: Skills são sempre incluídas (sem feature gates)
-  DADO que a config tem interfaces=[] e orchestrator=none
-  QUANDO run_pipeline() é executado
-  ENTÃO o output_dir contém github/skills/x-git-push/SKILL.md
-  E contém github/skills/x-ops-troubleshoot/SKILL.md
+Cenario: Golden files de git/troubleshooting conferem byte-a-byte
+  DADO que tests/golden/github/skills/{x-git-push,x-ops-troubleshoot}/SKILL.md existem
+  QUANDO test_byte_for_byte.py e executado
+  ENTAO a saida gerada e identica aos golden files
 
 Cenario: Conventional Commits no template x-git-push
-  DADO que o template x-git-push.md foi renderizado
-  QUANDO o body gerado é inspecionado
-  ENTÃO inclui formato "type(scope): description"
-  E lista tipos válidos: feat, fix, chore, refactor, test, docs
+  DADO que o template x-git-push.md define formato de commit
+  QUANDO o SKILL.md e gerado
+  ENTAO o body inclui formato "type(scope): description"
+  E lista tipos validos: feat, fix, chore, refactor, test, docs
 
-Cenario: Troubleshoot com metodologia sistemática
-  DADO que o template x-ops-troubleshoot.md foi renderizado
-  QUANDO o body gerado é inspecionado
-  ENTÃO inclui passos: reproduce, locate, understand, fix, verify
-  E não permite fix antes de understand
+Cenario: Troubleshoot com metodologia sistematica
+  DADO que o template x-ops-troubleshoot.md define workflow
+  QUANDO o SKILL.md e gerado
+  ENTAO o body contem os 5 passos: reproduce, locate, understand, fix, verify
+  E a ordem dos passos e preservada
 
-Cenario: Diferenciação de trigger entre git push e troubleshoot
-  DADO que ambas as skills foram geradas
-  QUANDO as descriptions são comparadas
-  ENTÃO x-git-push contém "git", "commit", "push", "PR"
-  E x-ops-troubleshoot contém "troubleshoot", "error", "stacktrace"
-  E NÃO há sobreposição de keywords primárias
+Cenario: Diferenciacao entre git push e troubleshoot
+  DADO que ambos os SKILL.md gerados possuem descriptions distintas
+  QUANDO o Copilot le os frontmatters
+  ENTAO x-git-push contem keywords "git", "commit", "push", "branch", "PR"
+  E x-ops-troubleshoot contem keywords "error", "stacktrace", "debug", "diagnose"
 
-Cenario: Golden files byte-for-byte
-  DADO que os golden files de git e troubleshoot existem em tests/golden/
-  QUANDO o gerador produz as 2 skills
-  ENTÃO a saída é idêntica byte-for-byte aos golden files
-  E test_byte_for_byte.py passa sem diff
-
-Cenario: Placeholders renderizados pelo TemplateEngine
-  DADO que o template x-git-push.md contém {project_name} e {build_tool}
-  QUANDO o gerador renderiza com config.project.name="my-quarkus-service"
-  ENTÃO o body gerado contém "my-quarkus-service"
-  E contém o build tool configurado
+Cenario: Pipeline test inclui skills de git/troubleshooting
+  DADO que tests/test_pipeline.py valida PipelineResult
+  QUANDO o pipeline roda com config padrao
+  ENTAO PipelineResult.files_generated inclui paths para os 2 SKILL.md
 ```
 
 ## 8. Sub-tarefas
 
-- [ ] [Dev] Criar `GithubGitTroubleshootSkillsAssembler` em `src/claude_setup/assembler/github_git_troubleshoot_skills_assembler.py` com `assemble()` e renderização via `TemplateEngine`
-- [ ] [Dev] Criar template `x-git-push.md` em `resources/github-skills-templates/git-troubleshoot/` com frontmatter + workflow de Conventional Commits
-- [ ] [Dev] Criar template `x-ops-troubleshoot.md` em `resources/github-skills-templates/git-troubleshoot/` com frontmatter + metodologia sistemática
-- [ ] [Dev] Registrar `GithubGitTroubleshootSkillsAssembler` em `assembler/__init__.py` → `_build_assemblers()`
-- [ ] [Test] Testes unitários do assembler: verificar geração das 2 skills com qualquer config
-- [ ] [Test] Testes unitários: verificar renderização de placeholders pelo `TemplateEngine`
-- [ ] [Test] Regenerar golden files e verificar byte-for-byte em `tests/test_byte_for_byte.py`
-- [ ] [Test] Adicionar cenários de pipeline em `tests/test_pipeline.py`
-- [ ] [Doc] Atualizar template de README gerado (`ReadmeAssembler`) para listar skills de git e troubleshooting
+- [ ] [Dev] Criar diretorio `resources/github-skills-templates/git-troubleshooting/` com 2 templates Markdown
+- [ ] [Dev] Estender `GithubSkillsAssembler` para processar categoria `git-troubleshooting` (ou reusar mecanismo de STORY-005)
+- [ ] [Dev] Criar template `x-git-push.md` com workflow de Conventional Commits
+- [ ] [Dev] Criar template `x-ops-troubleshoot.md` com metodologia sistematica (5 passos)
+- [ ] [Test] Criar golden files em `tests/golden/github/skills/{x-git-push,x-ops-troubleshoot}/SKILL.md`
+- [ ] [Test] Adicionar caso em `tests/test_byte_for_byte.py` para os 2 arquivos
+- [ ] [Test] Estender `tests/test_pipeline.py` para validar presenca dos 2 paths
+- [ ] [Test] Testar assembler isolado com config mock e `tmp_path`
+- [ ] [Test] Validar YAML frontmatter parseavel nas 2 skills geradas
+- [ ] [Test] Verificar diferenciacao de keywords entre as 2 skills
+- [ ] [Doc] Documentar skills de git e troubleshooting no README
