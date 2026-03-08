@@ -23,6 +23,14 @@ SKILL_GROUPS = {
         "x-dev-lifecycle",
         "layer-templates",
     ),
+    "review": (
+        "x-review",
+        "x-review-api",
+        "x-review-pr",
+        "x-review-grpc",
+        "x-review-events",
+        "x-review-gateway",
+    ),
 }
 
 

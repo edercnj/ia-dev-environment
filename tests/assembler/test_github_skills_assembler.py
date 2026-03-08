@@ -17,6 +17,7 @@ from tests.conftest import FULL_PROJECT_DICT, MINIMAL_PROJECT_DICT
 
 STORY_SKILLS = SKILL_GROUPS["story"]
 DEV_SKILLS = SKILL_GROUPS["dev"]
+REVIEW_SKILLS = SKILL_GROUPS["review"]
 ALL_SKILLS = tuple(
     name
     for group in SKILL_GROUPS.values()
@@ -412,6 +413,211 @@ class TestLayerTemplatesContent:
         assert "port" in content.lower()
         assert "adapter" in content.lower()
         assert "application" in content.lower()
+
+
+class TestGenerateReviewGroup:
+    def test_generates_review_skill_files(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config()
+        resources = _create_templates(tmp_path / "res")
+        assembler = GithubSkillsAssembler(resources)
+        engine = TemplateEngine(tmp_path, config)
+
+        result = assembler._generate_group(
+            engine, tmp_path / "output",
+            "review", REVIEW_SKILLS,
+        )
+
+        assert len(result) == 6
+
+
+@pytest.mark.parametrize("skill_name", list(REVIEW_SKILLS))
+class TestReviewSkillContent:
+    def test_review_skill_has_claude_skills_reference(
+        self, tmp_path: Path, skill_name: str,
+    ) -> None:
+        config = _make_config()
+        resources = Path("resources")
+        assembler = GithubSkillsAssembler(resources)
+        output_dir = tmp_path / "output"
+        engine = TemplateEngine(resources, config)
+
+        result = assembler.assemble(config, output_dir, engine)
+
+        path = _find_skill(result, skill_name)
+        content = path.read_text(encoding="utf-8")
+        assert ".claude/skills/" in content
+
+    def test_review_skill_name_is_lowercase_hyphens(
+        self, tmp_path: Path, skill_name: str,
+    ) -> None:
+        assert skill_name == skill_name.lower()
+        assert " " not in skill_name
+
+    def test_review_skill_content_in_english(
+        self, tmp_path: Path, skill_name: str,
+    ) -> None:
+        config = _make_config()
+        resources = Path("resources")
+        assembler = GithubSkillsAssembler(resources)
+        output_dir = tmp_path / "output"
+        engine = TemplateEngine(resources, config)
+
+        result = assembler.assemble(config, output_dir, engine)
+
+        path = _find_skill(result, skill_name)
+        content = path.read_text(encoding="utf-8")
+        english_keywords = ["review", "checklist", "findings"]
+        found = any(
+            kw in content.lower()
+            for kw in english_keywords
+        )
+        assert found, (
+            f"{skill_name} lacks English review content"
+        )
+
+
+class TestReviewSkillDescriptionKeywords:
+    def test_x_review_has_parallel_keyword(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config()
+        resources = Path("resources")
+        assembler = GithubSkillsAssembler(resources)
+        output_dir = tmp_path / "output"
+        engine = TemplateEngine(resources, config)
+
+        result = assembler.assemble(config, output_dir, engine)
+
+        path = _find_skill(result, "x-review")
+        content = path.read_text(encoding="utf-8")
+        assert "parallel" in content.lower()
+        assert "specialist" in content.lower()
+
+    def test_x_review_api_has_rest_keywords(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config()
+        resources = Path("resources")
+        assembler = GithubSkillsAssembler(resources)
+        output_dir = tmp_path / "output"
+        engine = TemplateEngine(resources, config)
+
+        result = assembler.assemble(config, output_dir, engine)
+
+        path = _find_skill(result, "x-review-api")
+        content = path.read_text(encoding="utf-8")
+        assert "rest" in content.lower()
+        assert "rfc 7807" in content.lower()
+        assert "openapi" in content.lower()
+
+    def test_x_review_pr_has_tech_lead_keywords(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config()
+        resources = Path("resources")
+        assembler = GithubSkillsAssembler(resources)
+        output_dir = tmp_path / "output"
+        engine = TemplateEngine(resources, config)
+
+        result = assembler.assemble(config, output_dir, engine)
+
+        path = _find_skill(result, "x-review-pr")
+        content = path.read_text(encoding="utf-8")
+        assert "tech lead" in content.lower()
+        assert "40-point" in content.lower()
+        assert "go/no-go" in content.lower()
+
+    def test_x_review_grpc_has_grpc_keywords(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config()
+        resources = Path("resources")
+        assembler = GithubSkillsAssembler(resources)
+        output_dir = tmp_path / "output"
+        engine = TemplateEngine(resources, config)
+
+        result = assembler.assemble(config, output_dir, engine)
+
+        path = _find_skill(result, "x-review-grpc")
+        content = path.read_text(encoding="utf-8")
+        assert "grpc" in content.lower()
+        assert "proto3" in content.lower()
+        assert "protobuf" in content.lower()
+
+    def test_x_review_events_has_event_keywords(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config()
+        resources = Path("resources")
+        assembler = GithubSkillsAssembler(resources)
+        output_dir = tmp_path / "output"
+        engine = TemplateEngine(resources, config)
+
+        result = assembler.assemble(config, output_dir, engine)
+
+        path = _find_skill(result, "x-review-events")
+        content = path.read_text(encoding="utf-8")
+        assert "event" in content.lower()
+        assert "dead letter" in content.lower()
+        assert "cloudevents" in content.lower()
+
+    def test_x_review_gateway_has_gateway_keywords(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config()
+        resources = Path("resources")
+        assembler = GithubSkillsAssembler(resources)
+        output_dir = tmp_path / "output"
+        engine = TemplateEngine(resources, config)
+
+        result = assembler.assemble(config, output_dir, engine)
+
+        path = _find_skill(result, "x-review-gateway")
+        content = path.read_text(encoding="utf-8")
+        assert "gateway" in content.lower()
+        assert "routing" in content.lower()
+
+    def test_no_keyword_overlap_between_api_and_grpc(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config()
+        resources = Path("resources")
+        assembler = GithubSkillsAssembler(resources)
+        output_dir = tmp_path / "output"
+        engine = TemplateEngine(resources, config)
+
+        result = assembler.assemble(config, output_dir, engine)
+
+        api_path = _find_skill(result, "x-review-api")
+        api_desc = _extract_description(api_path)
+        grpc_path = _find_skill(result, "x-review-grpc")
+        grpc_desc = _extract_description(grpc_path)
+
+        assert "grpc" not in api_desc.lower()
+        assert "proto3" not in api_desc.lower()
+        assert "rest" not in grpc_desc.lower()
+        assert "rfc 7807" not in grpc_desc.lower()
+
+
+def _extract_description(path: Path) -> str:
+    """Extract description field from frontmatter."""
+    content = path.read_text(encoding="utf-8")
+    in_desc = False
+    lines = []
+    for line in content.split("\n"):
+        if line.startswith("description:"):
+            in_desc = True
+            rest = line[len("description:"):].strip()
+            if rest and rest != ">":
+                lines.append(rest)
+        elif in_desc:
+            if line.startswith("  "):
+                lines.append(line.strip())
+            else:
+                break
+    return " ".join(lines)
 
 
 def _find_skill(result: List[Path], skill_name: str) -> Path:
