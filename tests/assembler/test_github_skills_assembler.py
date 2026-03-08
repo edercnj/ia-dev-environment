@@ -788,6 +788,35 @@ class TestInfraSkillContent:
             )
 
 
+@pytest.mark.parametrize("skill_name", list(INFRA_SKILLS))
+class TestInfraFrontmatterValid:
+    def test_yaml_frontmatter_parseable(
+        self, tmp_path: Path, skill_name: str,
+    ) -> None:
+        import yaml
+
+        config = _make_config()
+        resources = Path("resources")
+        assembler = GithubSkillsAssembler(resources)
+        output_dir = tmp_path / "output"
+        engine = TemplateEngine(resources, config)
+
+        result = assembler.assemble(config, output_dir, engine)
+
+        path = _find_skill(result, skill_name)
+        content = path.read_text(encoding="utf-8")
+        assert content.startswith("---")
+        parts = content.split("---", 2)
+        assert len(parts) >= 3, (
+            f"{skill_name} missing frontmatter closing ---"
+        )
+        fm = yaml.safe_load(parts[1])
+        assert isinstance(fm, dict)
+        assert "name" in fm
+        assert "description" in fm
+        assert fm["name"] == skill_name
+
+
 class TestInfraSkillDescriptionKeywords:
     @pytest.fixture
     def infra_results(self, tmp_path: Path) -> List[Path]:

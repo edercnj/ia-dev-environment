@@ -55,13 +55,20 @@ Before deploying, read the relevant conventions:
    - Allow DNS resolution
    - Allow egress to required services
 
-5. **Apply security context** -- Harden the deployment:
+5. **Configure observability** -- Enable telemetry:
+   - Set OTEL environment variables (OTEL_SERVICE_NAME, OTEL_EXPORTER_OTLP_ENDPOINT)
+   - Configure trace sampling strategy (parentbased_traceidratio for prod, always_on for dev)
+   - Add Prometheus scrape annotations to pod template
+   - Ensure structured JSON logging to stdout
+   - Inject trace context propagation headers
+
+6. **Apply security context** -- Harden the deployment:
    - Pod-level: runAsNonRoot, seccompProfile RuntimeDefault
    - Container-level: allowPrivilegeEscalation false, readOnlyRootFilesystem true
    - ServiceAccount with disabled token auto-mount
    - Pod Security Standards (PSS) labels on namespace
 
-6. **Validate deployment** -- Verify the deployment:
+7. **Validate deployment** -- Verify the deployment:
    - All pods are running and ready
    - Health checks are passing
    - Network policies are applied
@@ -81,6 +88,10 @@ Before deploying, read the relevant conventions:
 - [ ] OCI labels applied to container image
 - [ ] Rolling update strategy configured (maxSurge, maxUnavailable)
 - [ ] Revision history limit set
+- [ ] OTEL environment variables configured (service name, exporter endpoint)
+- [ ] Trace sampling strategy set per environment
+- [ ] Prometheus scrape annotations on pod template
+- [ ] Structured JSON logging configured
 
 ## Output Format
 

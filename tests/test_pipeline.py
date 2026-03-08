@@ -26,6 +26,27 @@ def _make_config() -> ProjectConfig:
     })
 
 
+def _make_full_config() -> ProjectConfig:
+    """Build a full ProjectConfig with infrastructure."""
+    return ProjectConfig.from_dict({
+        "project": {"name": "test-proj", "purpose": "Testing"},
+        "architecture": {"style": "hexagonal"},
+        "interfaces": [{"type": "rest"}],
+        "language": {"name": "python", "version": "3.9"},
+        "framework": {
+            "name": "fastapi",
+            "version": "0.100",
+            "build_tool": "pip",
+        },
+        "infrastructure": {
+            "container": "docker",
+            "orchestrator": "kubernetes",
+            "templating": "kustomize",
+            "iac": "terraform",
+        },
+    })
+
+
 class TestBuildAssemblers:
 
     def test_returns_eleven_assemblers(self, tmp_path: Path) -> None:
@@ -176,6 +197,56 @@ class TestRunPipeline:
         with pytest.raises(PipelineError):
             run_pipeline(config, src, output)
         assert not output.exists()
+
+
+INFRA_SKILL_NAMES = [
+    "setup-environment",
+    "k8s-deployment",
+    "k8s-kustomize",
+    "dockerfile",
+    "iac-terraform",
+]
+
+
+class TestPipelineInfrastructureSkills:
+
+    def test_pipeline_generates_infrastructure_skills(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_full_config()
+        resources = Path("resources")
+        output = tmp_path / "output"
+        result = run_pipeline(config, resources, output)
+        generated_names = {
+            p.name for p in result.files_generated
+        }
+        for skill in INFRA_SKILL_NAMES:
+            expected = f"SKILL.md"
+            skill_path = (
+                output / "github" / "skills" / skill / "SKILL.md"
+            )
+            assert skill_path.exists(), (
+                f"Infrastructure skill {skill} not generated"
+            )
+
+    def test_pipeline_result_contains_infra_paths(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_full_config()
+        resources = Path("resources")
+        output = tmp_path / "output"
+        result = run_pipeline(config, resources, output)
+        generated_strs = [
+            str(p) for p in result.files_generated
+        ]
+        for skill in INFRA_SKILL_NAMES:
+            found = any(
+                f"github/skills/{skill}/SKILL.md" in s
+                for s in generated_strs
+            )
+            assert found, (
+                f"{skill} not in files_generated"
+            )
 
 
 class TestExecuteAssemblers:

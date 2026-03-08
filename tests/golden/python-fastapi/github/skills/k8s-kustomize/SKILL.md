@@ -59,6 +59,7 @@ Before configuring, read the relevant conventions:
    - Strategic merge patches for simple field changes (replicas, resources)
    - JSON 6902 patches for array operations (sidecar injection, volume addition)
    - Inline patches for small, targeted changes
+   - OTEL sampling strategy per environment (always_on for dev, parentbased_traceidratio for prod)
 
 6. **Configure generators** -- Manage configuration:
    - ConfigMapGenerator from environment files
