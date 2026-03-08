@@ -39,6 +39,13 @@ SKILL_GROUPS = {
         "run-contract-tests",
         "run-perf-test",
     ),
+    "infrastructure": (
+        "setup-environment",
+        "k8s-deployment",
+        "k8s-kustomize",
+        "dockerfile",
+        "iac-terraform",
+    ),
 }
 
 
