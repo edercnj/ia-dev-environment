@@ -144,3 +144,14 @@ hooks:
   post_compile: false          # Interpreted — no compilation step
 settings:
   auto_generate: true
+
+# ═══════════════════════════════════════════════════
+# SECTION 18: MCP SERVERS
+# ═══════════════════════════════════════════════════
+mcp:
+  servers: []
+  # Example:
+  # - id: "my-mcp-server"
+  #   url: "https://mcp.example.com"
+  #   env:
+  #     API_KEY: "$MCP_API_KEY"

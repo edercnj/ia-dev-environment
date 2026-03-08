@@ -28,14 +28,14 @@ def _make_config() -> ProjectConfig:
 
 class TestBuildAssemblers:
 
-    def test_returns_nine_assemblers(self, tmp_path: Path) -> None:
+    def test_returns_ten_assemblers(self, tmp_path: Path) -> None:
         assemblers = _build_assemblers(tmp_path)
-        assert len(assemblers) == 9
+        assert len(assemblers) == 10
 
-    def test_last_assembler_is_github_instructions(self, tmp_path: Path) -> None:
+    def test_last_assembler_is_github_mcp(self, tmp_path: Path) -> None:
         assemblers = _build_assemblers(tmp_path)
         name, _ = assemblers[-1]
-        assert name == "GithubInstructionsAssembler"
+        assert name == "GithubMcpAssembler"
 
     def test_first_assembler_is_rules(self, tmp_path: Path) -> None:
         assemblers = _build_assemblers(tmp_path)
