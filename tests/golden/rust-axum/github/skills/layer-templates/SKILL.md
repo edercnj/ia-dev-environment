@@ -36,7 +36,7 @@ Provides copy-and-adapt code templates for every hexagonal architecture layer. A
 
 ## 1. Domain Model
 
-Pure domain record. Zero framework dependencies. Only JDK types.
+Pure domain record. Zero framework dependencies. Only standard library types.
 
 ```
 // {{LANGUAGE}} — domain/model/{{EntityName}}.{{EXT}}

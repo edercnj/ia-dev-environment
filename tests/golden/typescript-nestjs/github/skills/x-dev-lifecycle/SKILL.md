@@ -18,7 +18,8 @@ description: >
 
 **8 phases (0-7). ALL mandatory. NEVER stop before Phase 7.**
 
-After EACH phase: `>>> Phase N/7 completed. Proceeding to Phase N+1...`
+After each of Phases 0–6: `>>> Phase N/7 completed. Proceeding to Phase N+1...`
+After Phase 7: `>>> Phase 7/7 completed. Lifecycle complete.`
 
 ## Complete Flow
 
@@ -171,7 +172,7 @@ Invoke skill `x-review-pr` for holistic 40-point review. If NO-GO, fix and re-re
 ## Integration Notes
 
 - Invokes: `x-test-plan`, `x-lib-task-decomposer`, `x-lib-group-verifier`, `x-git-push`, `x-review`, `x-review-pr`
-- All placeholders (`{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`, etc.) resolved from project configuration
+- All `{{PLACEHOLDER}}` tokens (e.g. `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
 
 ## Detailed References
 
