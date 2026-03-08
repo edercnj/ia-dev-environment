@@ -19,11 +19,11 @@
 
 ## 3. Descrição
 
-Como **QA Engineer**, eu quero adaptar as 6 skills de testing (`x-test-plan`, `x-test-run`, `run-e2e`, `run-smoke-api`, `run-contract-tests`, `run-perf-test`) para `.github/skills/`, garantindo que a geração e execução de testes siga os padrões de qualidade com coverage ≥ 95% line e ≥ 90% branch.
+Como **QA Engineer**, eu quero que o gerador `claude_setup` produza as 6 skills de testing (`x-test-plan`, `x-test-run`, `run-e2e`, `run-smoke-api`, `run-contract-tests`, `run-perf-test`) em `.github/skills/`, garantindo que a geração e execução de testes siga os padrões de qualidade com coverage ≥ 95% line e ≥ 90% branch.
 
 As skills de testing cobrem todo o espectro: desde planejamento de testes até execução de smoke tests, e2e, contract tests e performance tests.
 
-### 3.1 Skills a criar
+### 3.1 Skills a gerar
 
 - `.github/skills/x-test-plan/SKILL.md` — Geração de plano de testes abrangente
 - `.github/skills/x-test-run/SKILL.md` — Execução de testes com relatório de coverage
@@ -37,20 +37,33 @@ As skills de testing cobrem todo o espectro: desde planejamento de testes até e
 - Todas referenciam `.claude/skills/testing/SKILL.md` para filosofia e padrões
 - Coverage thresholds definidos em instructions/quality-gates.instructions.md
 
+### 3.3 Contexto Técnico (Gerador)
+
+Este trabalho consiste em **estender o gerador Python `claude_setup`** para emitir skills de testing na árvore `.github/skills/`. O padrão segue o mesmo de STORY-005 (review skills):
+
+- **Assembler**: Criar `GithubTestingSkillsAssembler` em `src/claude_setup/assembler/github_testing_skills_assembler.py`, implementando `assemble(config, output_dir, engine) -> List[Path]`. Deve iterar sobre os 6 templates de testing, renderizar via `TemplateEngine`, e gravar em `output_dir/github/skills/<skill-name>/SKILL.md`.
+- **Templates**: Criar `resources/github-skills-templates/testing/` com 6 templates Jinja2/placeholder (um por skill). Cada template deve conter frontmatter YAML (`name` + `description`) e body com workflow específico por tipo de teste.
+- **Pipeline**: Registrar `GithubTestingSkillsAssembler` em `assembler/__init__.py` → `_build_assemblers()`.
+- **Condicionais**: Reutilizar a lógica de gates de `SkillsAssembler._select_testing_skills()`: `run-smoke-api` requer `smoke_tests=true` + interface `rest`; `run-perf-test` requer `performance_tests=true`; `run-contract-tests` requer `contract_tests=true`; `run-e2e` é sempre incluída; `x-test-plan` e `x-test-run` são sempre incluídas.
+- **TemplateEngine**: Usar `engine.replace_placeholders()` para injetar valores de `ProjectConfig` (coverage thresholds, framework, etc.).
+
 ## 4. Definições de Qualidade Locais
 
 ### DoR Local (Definition of Ready)
 
-- [ ] STORY-001 concluída (instructions base disponíveis)
-- [ ] Skills `.claude/skills/x-test-*` e `run-*` lidas e mapeadas
+- [ ] STORY-001 concluída (`GithubInstructionsAssembler` funcionando)
+- [ ] Skills `.claude/skills/x-test-*` e `run-*` lidas e mapeadas como referência para templates
 - [ ] Thresholds de coverage definidos em quality-gates
+- [ ] Estrutura de `resources/github-skills-templates/` definida
 
 ### DoD Local (Definition of Done)
 
-- [ ] 6 skills criadas com frontmatter válido
+- [ ] `GithubTestingSkillsAssembler` implementado e registrado no pipeline
+- [ ] 6 templates de testing criados em `resources/github-skills-templates/testing/`
 - [ ] Cada skill com workflow específico para seu tipo de teste
-- [ ] References linkam para knowledge pack de testing
-- [ ] Copilot ativa skill correta por tipo de teste
+- [ ] References linkam para knowledge pack de testing em `.claude/skills/`
+- [ ] Golden files atualizados e passando byte-for-byte
+- [ ] Pipeline gera `.github/skills/<skill-name>/SKILL.md` corretamente
 
 ### Global Definition of Done (DoD)
 
@@ -59,7 +72,7 @@ As skills de testing cobrem todo o espectro: desde planejamento de testes até e
 - **Sem duplicação:** References linkam para `.claude/skills/`
 - **Idioma:** Inglês
 - **Progressive disclosure:** 3 níveis implementados
-- **Documentação:** README.md atualizado
+- **Documentação:** README gerado atualizado com skills de testing
 
 ## 5. Contratos de Dados (Data Contract)
 
@@ -74,7 +87,30 @@ As skills de testing cobrem todo o espectro: desde planejamento de testes até e
 
 ## 6. Diagramas
 
-### 6.1 Fluxo de Teste e Coverage
+### 6.1 Pipeline do Gerador para Skills de Testing
+
+```mermaid
+sequenceDiagram
+    participant CLI as claude_setup CLI
+    participant P as run_pipeline()
+    participant A as GithubTestingSkillsAssembler
+    participant T as TemplateEngine
+    participant R as resources/github-skills-templates/testing/
+    participant O as output_dir/github/skills/
+
+    CLI->>P: run_pipeline(config, resources_dir, output_dir)
+    P->>A: assemble(config, output_dir, engine)
+    A->>A: select_testing_skills(config)
+    Note over A: x-test-plan, x-test-run: sempre<br/>run-e2e: sempre<br/>run-smoke-api: if smoke_tests + rest<br/>run-contract-tests: if contract_tests<br/>run-perf-test: if performance_tests
+    A->>R: Ler template x-test-plan.md
+    R-->>T: Template com {placeholders}
+    T-->>A: Conteúdo renderizado
+    A->>O: Gravar x-test-plan/SKILL.md
+    Note over A,O: Repetir para cada skill selecionada
+    A-->>P: List[Path] dos arquivos gerados
+```
+
+### 6.2 Fluxo de Teste e Coverage (output gerado)
 
 ```mermaid
 sequenceDiagram
@@ -96,45 +132,61 @@ sequenceDiagram
 ## 7. Critérios de Aceite (Gherkin)
 
 ```gherkin
-Cenario: Trigger correto para geração de plano de testes
-  DADO que .github/skills/x-test-plan/SKILL.md existe
-  QUANDO o usuário solicita "criar plano de testes para STORY-003"
-  ENTÃO o Copilot seleciona x-test-plan
-  E gera plano com categorias: unit, integration, API, contract, e2e, performance
+Cenario: Gerador produz skills de testing conforme config
+  DADO que o pipeline inclui GithubTestingSkillsAssembler
+  E a config tem smoke_tests=true, contract_tests=true, performance_tests=true, interface=rest
+  QUANDO run_pipeline() é executado
+  ENTÃO o output_dir contém github/skills/x-test-plan/SKILL.md
+  E contém github/skills/x-test-run/SKILL.md
+  E contém github/skills/run-e2e/SKILL.md
+  E contém github/skills/run-smoke-api/SKILL.md
+  E contém github/skills/run-contract-tests/SKILL.md
+  E contém github/skills/run-perf-test/SKILL.md
 
-Cenario: Diferenciação entre run-e2e e run-smoke-api
-  DADO que ambas as skills existem em .github/skills/
-  QUANDO o usuário solicita "executar smoke tests"
-  ENTÃO o Copilot seleciona run-smoke-api
-  E NÃO seleciona run-e2e
+Cenario: Skills condicionais respeitam feature gates
+  DADO que a config tem smoke_tests=false e contract_tests=false
+  QUANDO run_pipeline() é executado
+  ENTÃO o output_dir NÃO contém github/skills/run-smoke-api/SKILL.md
+  E NÃO contém github/skills/run-contract-tests/SKILL.md
+  MAS contém github/skills/x-test-plan/SKILL.md (sempre presente)
+  E contém github/skills/x-test-run/SKILL.md (sempre presente)
+  E contém github/skills/run-e2e/SKILL.md (sempre presente)
 
-Cenario: Coverage threshold validado por x-test-run
-  DADO que x-test-run inclui thresholds de coverage no body
-  QUANDO os testes são executados
-  ENTÃO o relatório valida line coverage ≥ 95%
-  E valida branch coverage ≥ 90%
+Cenario: Diferenciação de trigger entre run-e2e e run-smoke-api
+  DADO que ambas as skills foram geradas
+  QUANDO as descriptions são comparadas
+  ENTÃO run-e2e contém "end-to-end" e "containers"
+  E run-smoke-api contém "smoke" e "Newman"
+  E NÃO há sobreposição de keywords primárias
 
-Cenario: Performance test com cenários definidos
-  DADO que .github/skills/run-perf-test/SKILL.md existe
-  QUANDO o body é carregado
-  ENTÃO inclui cenários: baseline, normal, peak, sustained
-  E define métricas de latência e throughput
+Cenario: Coverage thresholds no template de x-test-run
+  DADO que o template x-test-run.md contém placeholders de coverage
+  QUANDO o gerador renderiza com TemplateEngine
+  ENTÃO o body gerado inclui "line coverage ≥ 95%"
+  E inclui "branch coverage ≥ 90%"
+
+Cenario: Golden files byte-for-byte
+  DADO que os golden files de testing existem em tests/golden/
+  QUANDO o gerador produz as skills de testing
+  ENTÃO a saída é idêntica byte-for-byte aos golden files
+  E test_byte_for_byte.py passa sem diff
 
 Cenario: Referência ao knowledge pack de testing
-  DADO que skills de testing referenciam .claude/skills/testing/SKILL.md
-  QUANDO o Copilot precisa de filosofia de testes e fixtures
-  ENTÃO acessa o knowledge pack original via link relativo
+  DADO que as skills geradas referenciam .claude/skills/testing/SKILL.md
+  QUANDO o body gerado é inspecionado
+  ENTÃO contém link relativo para o knowledge pack original
   E NÃO duplica o conteúdo
 ```
 
 ## 8. Sub-tarefas
 
-- [ ] [Dev] Criar `.github/skills/x-test-plan/SKILL.md`
-- [ ] [Dev] Criar `.github/skills/x-test-run/SKILL.md`
-- [ ] [Dev] Criar `.github/skills/run-e2e/SKILL.md`
-- [ ] [Dev] Criar `.github/skills/run-smoke-api/SKILL.md`
-- [ ] [Dev] Criar `.github/skills/run-contract-tests/SKILL.md`
-- [ ] [Dev] Criar `.github/skills/run-perf-test/SKILL.md`
-- [ ] [Test] Validar YAML frontmatter das 6 skills
-- [ ] [Test] Verificar diferenciação de trigger entre skills similares
-- [ ] [Doc] Documentar skills de testing no README
+- [ ] [Dev] Criar `GithubTestingSkillsAssembler` em `src/claude_setup/assembler/github_testing_skills_assembler.py` com `assemble()`, lógica de seleção condicional e renderização via `TemplateEngine`
+- [ ] [Dev] Criar 6 templates de skill de testing em `resources/github-skills-templates/testing/` (`x-test-plan.md`, `x-test-run.md`, `run-e2e.md`, `run-smoke-api.md`, `run-contract-tests.md`, `run-perf-test.md`)
+- [ ] [Dev] Implementar frontmatter YAML com keywords diferenciadas por tipo de teste nos templates
+- [ ] [Dev] Registrar `GithubTestingSkillsAssembler` em `assembler/__init__.py` → `_build_assemblers()`
+- [ ] [Dev] Implementar feature gates condicionais (smoke_tests, contract_tests, performance_tests, interface rest)
+- [ ] [Test] Testes unitários do assembler: verificar seleção de skills por config (todas as combinações de flags)
+- [ ] [Test] Testes unitários: verificar renderização de templates com `TemplateEngine` (placeholders de coverage)
+- [ ] [Test] Regenerar golden files e verificar byte-for-byte em `tests/test_byte_for_byte.py`
+- [ ] [Test] Adicionar cenários de pipeline em `tests/test_pipeline.py`
+- [ ] [Doc] Atualizar template de README gerado (`ReadmeAssembler`) para listar skills de testing

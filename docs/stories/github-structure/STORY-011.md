@@ -18,11 +18,23 @@
 
 ## 3. Descrição
 
-Como **DevOps Engineer**, eu quero criar `.github/hooks/*.json` com hooks determinísticos em formato JSON, garantindo que os mesmos pontos de verificação cobertos por `.claude/hooks/post-compile-check.sh` existam no Copilot, além de hooks adicionais para lint e context loading.
+Como **DevOps Engineer**, eu quero que o gerador `claude_setup` produza `.github/hooks/*.json` com hooks determinísticos em formato JSON, garantindo que os mesmos pontos de verificação cobertos por `.claude/hooks/post-compile-check.sh` existam no Copilot, além de hooks adicionais para lint e context loading.
 
 Os hooks dependem dos agents (STORY-010) porque executam no workflow dos agents. O formato JSON substitui os shell scripts diretos usados no Claude Code, seguindo as convenções do Copilot.
 
-### 3.1 Hooks a implementar
+### 3.1 Contexto Técnico (Gerador)
+
+O `claude_setup` já possui o `HooksAssembler` (`src/claude_setup/assembler/hooks_assembler.py`) que gera hooks para `.claude/hooks/`. Este assembler copia shell scripts de `resources/hooks-templates/{key}/post-compile-check.sh` com base no mapeamento `get_hook_template_key(language, build_tool)`.
+
+Para gerar `.github/hooks/*.json`, a implementação deve:
+
+1. **Criar `GithubHooksAssembler`** em `src/claude_setup/assembler/github_hooks_assembler.py` (ou estender `HooksAssembler`) — seguindo o padrão de `GithubInstructionsAssembler`
+2. **Criar templates JSON** em `resources/github-hooks-templates/` — cada template contém a estrutura JSON com `hooks[]` array
+3. **Registrar** o novo assembler em `assembler/__init__.py` → `_build_assemblers()`
+4. **Usar `TemplateEngine`** para substituir `{placeholder}` nos templates JSON (ex: `{BUILD_COMMAND}`, `{TIMEOUT}`)
+5. **JSON válido** — o assembler deve garantir que os arquivos gerados são parseáveis como JSON
+
+### 3.2 Hooks a gerar
 
 | Hook | Event | Matcher | Comando | Timeout |
 | :--- | :--- | :--- | :--- | :--- |
@@ -30,7 +42,7 @@ Os hooks dependem dos agents (STORY-010) porque executam no workflow dos agents.
 | pre-commit-lint | preToolUse | `{ "tool": "git_commit" }` | `scripts/pre-commit-lint.sh` | 30000ms |
 | session-context-loader | sessionStart | — | `scripts/load-context.sh` | 10000ms |
 
-### 3.2 Formato JSON
+### 3.3 Formato JSON (template em `resources/github-hooks-templates/`)
 
 ```json
 {
@@ -46,33 +58,37 @@ Os hooks dependem dos agents (STORY-010) porque executam no workflow dos agents.
 }
 ```
 
-### 3.3 Paridade com .claude/hooks/
+### 3.4 Paridade com .claude/hooks/
 
-- `post-compile-check.sh` existe em `.claude/hooks/` e deve ter equivalente funcional
-- Hooks adicionais expandem a cobertura para lint e session start
+- `post-compile-check.sh` existe em `.claude/hooks/` e o assembler existente (`HooksAssembler`) já gera esse script
+- O `GithubHooksAssembler` gera a **definição JSON** que referencia esse script, não duplica o script
+- Hooks adicionais (lint, session) expandem a cobertura
 
 ## 4. Definições de Qualidade Locais
 
 ### DoR Local (Definition of Ready)
 
 - [ ] STORY-010 concluída (agents disponíveis)
-- [ ] Hook `.claude/hooks/post-compile-check.sh` lido
+- [ ] `HooksAssembler` existente analisado para entender lógica condicional
 - [ ] Formato JSON de hooks validado com Copilot docs
 
 ### DoD Local (Definition of Done)
 
-- [ ] 3 hooks criados em formato JSON válido
-- [ ] post-compile-check equivalente ao existente em .claude/hooks/
+- [ ] `GithubHooksAssembler` gera 3 hooks em formato JSON válido
+- [ ] post-compile-check referencia o mesmo script funcional de `.claude/hooks/`
 - [ ] Timeouts configurados e documentados
-- [ ] JSON parseável sem erros
+- [ ] Assembler registrado no pipeline (`_build_assemblers()`)
+- [ ] Golden files regenerados e passando em `test_byte_for_byte.py`
+- [ ] Contagem atualizada em `test_pipeline.py`
 
 ### Global Definition of Done (DoD)
 
 - **Validação de formato:** JSON válido e parseável
 - **Convenções Copilot:** Event types válidos, matcher correto
-- **Consistência:** Paridade com hooks .claude/ existentes
+- **Consistência:** Paridade com hooks `.claude/` existentes
 - **Performance:** Timeouts ≤ 60s
 - **Documentação:** README.md atualizado
+- **Testes:** Golden files + pipeline tests passando
 
 ## 5. Contratos de Dados (Data Contract)
 
@@ -88,7 +104,25 @@ Os hooks dependem dos agents (STORY-010) porque executam no workflow dos agents.
 
 ## 6. Diagramas
 
-### 6.1 Fluxo de Hook post-compile-check
+### 6.1 Fluxo do Gerador para Hooks
+
+```mermaid
+sequenceDiagram
+    participant CLI as __main__.py
+    participant P as Pipeline (assembler/__init__.py)
+    participant GH as GithubHooksAssembler
+    participant T as TemplateEngine
+    participant FS as Filesystem
+
+    CLI->>P: run_pipeline(config, resources_dir, output_dir)
+    P->>GH: assemble(config, output_dir, engine)
+    GH->>T: replace_placeholders(json_template)
+    T-->>GH: JSON renderizado com comandos e timeouts
+    GH->>FS: Escrever .github/hooks/*.json
+    GH-->>P: List[Path] (3 arquivos)
+```
+
+### 6.2 Hook post-compile-check (runtime)
 
 ```mermaid
 sequenceDiagram
@@ -109,44 +143,42 @@ sequenceDiagram
 ## 7. Critérios de Aceite (Gherkin)
 
 ```gherkin
-Cenario: JSON válido para hooks
-  DADO que .github/hooks/post-compile-check.json foi criado
-  QUANDO um parser JSON processa o arquivo
-  ENTÃO o parse é bem-sucedido
-  E o array "hooks" contém pelo menos 1 hook
+Cenario: Gerador produz 3 hooks em formato JSON
+  DADO que o pipeline é executado com config padrão
+  QUANDO GithubHooksAssembler.assemble() é chamado
+  ENTÃO 3 arquivos JSON são gerados em output_dir/github/hooks/
+  E cada arquivo é parseável como JSON válido
 
-Cenario: Hook post-compile-check dispara após edit_file
-  DADO que o hook está configurado com event "postToolUse" e matcher "edit_file"
-  QUANDO o Copilot executa uma edição de arquivo
-  ENTÃO o hook post-compile-check.sh é executado
-  E o resultado (pass/fail) é reportado ao Copilot
+Cenario: Hook gerado contém estrutura correta
+  DADO que o gerador produziu post-compile-check.json
+  QUANDO o JSON é parseado
+  ENTÃO o array "hooks" contém pelo menos 1 hook
+  E o hook possui campos event, command, timeout e description
+
+Cenario: Golden files correspondem byte a byte
+  DADO que golden files existem em tests/golden/github/hooks/
+  QUANDO test_byte_for_byte.py é executado
+  ENTÃO cada hook JSON gerado é idêntico ao golden file correspondente
 
 Cenario: Paridade com hook .claude existente
-  DADO que .claude/hooks/post-compile-check.sh existe
-  QUANDO o hook equivalente é criado em .github/hooks/
-  ENTÃO o comando referencia o mesmo script ou equivalente funcional
+  DADO que HooksAssembler já gera post-compile-check.sh para .claude/hooks/
+  QUANDO GithubHooksAssembler gera o equivalente JSON
+  ENTÃO o campo command referencia o mesmo script ou equivalente funcional
   E o timeout é ≤ 60000ms
 
-Cenario: Hook com timeout excedido
-  DADO que session-context-loader tem timeout de 10000ms
-  QUANDO o script demora mais de 10 segundos
-  ENTÃO o hook é cancelado por timeout
-  E o Copilot continua sem o contexto adicional
-
-Cenario: Hook pre-commit-lint bloqueia commit inválido
-  DADO que pre-commit-lint está configurado com event "preToolUse" e matcher "git_commit"
-  QUANDO o código tem violations de lint
-  ENTÃO o hook reporta falha
-  E o commit é bloqueado até correção
+Cenario: Pipeline contabiliza hooks gerados
+  DADO que o pipeline completo é executado
+  QUANDO PipelineResult.files_generated é verificado
+  ENTÃO a contagem inclui os 3 hooks de .github/hooks/
 ```
 
 ## 8. Sub-tarefas
 
-- [ ] [Dev] Criar `.github/hooks/post-compile-check.json` com hook postToolUse
-- [ ] [Dev] Criar `.github/hooks/pre-commit-lint.json` com hook preToolUse
-- [ ] [Dev] Criar `.github/hooks/session-context-loader.json` com hook sessionStart
-- [ ] [Dev] Criar scripts auxiliares se necessário (ou referenciar existentes)
-- [ ] [Test] Validar JSON de todos os 3 hooks
-- [ ] [Test] Verificar event types e matchers válidos
-- [ ] [Test] Testar timeout de cada hook
-- [ ] [Doc] Documentar hooks no README
+- [ ] [Dev] Criar `GithubHooksAssembler` em `src/claude_setup/assembler/github_hooks_assembler.py`
+- [ ] [Dev] Criar templates JSON em `resources/github-hooks-templates/` (3 arquivos)
+- [ ] [Dev] Implementar lógica condicional baseada em `get_hook_template_key()` para post-compile-check
+- [ ] [Dev] Registrar assembler no pipeline (`assembler/__init__.py` → `_build_assemblers()`)
+- [ ] [Dev] Adicionar classificação "GitHub Hooks" em `__main__.py` → `_classify_files()`
+- [ ] [Test] Testes unitários para os 3 hooks JSON gerados (estrutura, event types, timeouts)
+- [ ] [Test] Regenerar golden files em `tests/golden/github/hooks/`
+- [ ] [Test] Atualizar contagem esperada em `test_pipeline.py`

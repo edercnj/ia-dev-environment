@@ -19,11 +19,11 @@
 
 ## 3. Descrição
 
-Como **Tech Lead**, eu quero adaptar as 6 skills de review (`x-review`, `x-review-api`, `x-review-pr`, `x-review-grpc`, `x-review-events`, `x-review-gateway`) para `.github/skills/`, garantindo que o processo de code review automatizado mantenha a mesma cobertura e rigor.
+Como **Tech Lead**, eu quero que o gerador `claude_setup` produza as 6 skills de review (`x-review`, `x-review-api`, `x-review-pr`, `x-review-grpc`, `x-review-events`, `x-review-gateway`) em `.github/skills/`, garantindo que o processo de code review automatizado mantenha a mesma cobertura e rigor.
 
 As skills de review são de alta prioridade e formam o pilar de qualidade do repositório. Cada skill tem um foco especializado (API design, PR holístico, gRPC, eventos, gateway) e produz relatórios com scoring padronizado.
 
-### 3.1 Skills a criar
+### 3.1 Skills a gerar
 
 - `.github/skills/x-review/SKILL.md` — Review paralelo com 8 engenheiros especialistas (Security, QA, Performance, Database, Observability, DevOps, API, Event)
 - `.github/skills/x-review-api/SKILL.md` — Validação REST: RFC 7807, pagination, URL versioning, OpenAPI, status codes
@@ -36,21 +36,34 @@ As skills de review são de alta prioridade e formam o pilar de qualidade do rep
 
 Cada description deve incluir keywords específicas para evitar colisão de trigger entre skills de review similares. Ex: `x-review-api` usa "REST", "RFC 7807", "OpenAPI"; `x-review-grpc` usa "gRPC", "proto3", "protobuf".
 
+### 3.3 Contexto Técnico (Gerador)
+
+Este trabalho consiste em **estender o gerador Python `claude_setup`** para emitir skills de review na árvore `.github/skills/`. O gerador já possui `SkillsAssembler` (`src/claude_setup/assembler/skills.py`) que gera skills para `.claude/skills/`. Para `.github/skills/` de review:
+
+- **Assembler**: Criar `GithubReviewSkillsAssembler` em `src/claude_setup/assembler/github_review_skills_assembler.py`, implementando `assemble(config, output_dir, engine) -> List[Path]`. Ele deve iterar sobre os 6 templates de review, renderizar via `TemplateEngine`, e gravar em `output_dir/github/skills/x-review*/SKILL.md`.
+- **Templates**: Criar `resources/github-skills-templates/review/` com 6 templates Jinja2/placeholder (um por skill). Cada template deve conter frontmatter YAML (`name` + `description`) e body com workflow e formato de output.
+- **Pipeline**: Registrar `GithubReviewSkillsAssembler` em `assembler/__init__.py` → `_build_assemblers()`, após `GithubInstructionsAssembler`.
+- **Condicionais**: Skills condicionais (`x-review-api`, `x-review-grpc`, `x-review-events`, `x-review-gateway`) devem respeitar a mesma lógica de gates já existente em `SkillsAssembler._select_interface_skills()` e `_select_infra_skills()`.
+- **TemplateEngine**: Usar `engine.replace_placeholders()` para injetar valores de `ProjectConfig` (nome do projeto, framework, interfaces).
+
 ## 4. Definições de Qualidade Locais
 
 ### DoR Local (Definition of Ready)
 
-- [ ] STORY-001 concluída (instructions base disponíveis)
-- [ ] Skills `.claude/skills/x-review*` lidas e mapeadas
-- [ ] Padrão de frontmatter validado em STORY-003
+- [ ] STORY-001 concluída (`GithubInstructionsAssembler` funcionando)
+- [ ] Skills `.claude/skills/x-review*` lidas e mapeadas como referência para templates
+- [ ] Padrão de frontmatter YAML validado
+- [ ] Estrutura de `resources/github-skills-templates/` definida
 
 ### DoD Local (Definition of Done)
 
-- [ ] 6 skills criadas com frontmatter válido
+- [ ] `GithubReviewSkillsAssembler` implementado e registrado no pipeline
+- [ ] 6 templates de review criados em `resources/github-skills-templates/review/`
 - [ ] Descriptions diferenciadas para evitar colisão de trigger
 - [ ] Body com workflow de review e formato de output
-- [ ] References linkam para knowledge packs originais
-- [ ] Copilot seleciona skill correta para cada tipo de review
+- [ ] References linkam para knowledge packs originais em `.claude/skills/`
+- [ ] Golden files atualizados e passando byte-for-byte
+- [ ] Pipeline gera `.github/skills/x-review*/SKILL.md` corretamente
 
 ### Global Definition of Done (DoD)
 
@@ -59,7 +72,7 @@ Cada description deve incluir keywords específicas para evitar colisão de trig
 - **Sem duplicação:** References linkam para `.claude/skills/`
 - **Idioma:** Inglês
 - **Progressive disclosure:** 3 níveis implementados
-- **Documentação:** README.md atualizado
+- **Documentação:** README gerado atualizado com skills de review
 
 ## 5. Contratos de Dados (Data Contract)
 
@@ -74,7 +87,29 @@ Cada description deve incluir keywords específicas para evitar colisão de trig
 
 ## 6. Diagramas
 
-### 6.1 Fluxo de Review Paralelo
+### 6.1 Pipeline do Gerador para Skills de Review
+
+```mermaid
+sequenceDiagram
+    participant CLI as claude_setup CLI
+    participant P as run_pipeline()
+    participant A as GithubReviewSkillsAssembler
+    participant T as TemplateEngine
+    participant R as resources/github-skills-templates/review/
+    participant O as output_dir/github/skills/
+
+    CLI->>P: run_pipeline(config, resources_dir, output_dir)
+    P->>A: assemble(config, output_dir, engine)
+    A->>A: select_review_skills(config)
+    A->>R: Ler template x-review.md
+    R-->>T: Template com {placeholders}
+    T-->>A: Conteúdo renderizado
+    A->>O: Gravar x-review/SKILL.md
+    Note over A,O: Repetir para cada uma das 6 skills
+    A-->>P: List[Path] dos arquivos gerados
+```
+
+### 6.2 Fluxo de Review Paralelo (output gerado)
 
 ```mermaid
 sequenceDiagram
@@ -98,46 +133,57 @@ sequenceDiagram
 ## 7. Critérios de Aceite (Gherkin)
 
 ```gherkin
-Cenario: Trigger diferenciado entre x-review-api e x-review-grpc
-  DADO que ambas as skills de review existem em .github/skills/
-  QUANDO o usuário solicita "review da API REST"
-  ENTÃO o Copilot seleciona x-review-api
-  E NÃO seleciona x-review-grpc
+Cenario: Gerador produz 6 skills de review
+  DADO que o pipeline inclui GithubReviewSkillsAssembler
+  QUANDO run_pipeline() é executado com config padrão (interfaces: rest, grpc, event-consumer, event-producer)
+  ENTÃO o output_dir contém github/skills/x-review/SKILL.md
+  E o output_dir contém github/skills/x-review-api/SKILL.md
+  E o output_dir contém github/skills/x-review-pr/SKILL.md
+  E o output_dir contém github/skills/x-review-grpc/SKILL.md
+  E o output_dir contém github/skills/x-review-events/SKILL.md
+  E o output_dir contém github/skills/x-review-gateway/SKILL.md
 
-Cenario: x-review-pr com checklist de 40 pontos
-  DADO que .github/skills/x-review-pr/SKILL.md está carregado
-  QUANDO o Copilot executa o review de um PR
-  ENTÃO o relatório cobre Clean Code, SOLID, arquitetura, testes, segurança
-  E produz decisão GO/NO-GO
+Cenario: Frontmatter YAML válido nas skills geradas
+  DADO que o gerador produziu github/skills/x-review-api/SKILL.md
+  QUANDO o frontmatter YAML é parseado
+  ENTÃO o campo "name" é "x-review-api"
+  E o campo "description" contém keywords "REST", "RFC 7807", "OpenAPI"
 
-Cenario: Review paralelo com subagentes
-  DADO que x-review define 8 especialistas paralelos
-  QUANDO o body da skill é carregado
-  ENTÃO o workflow instrui lançamento de reviews paralelos
-  E consolida resultados em relatório único com score
+Cenario: Skills condicionais respeitam feature gates
+  DADO que a config NÃO inclui interface "grpc"
+  QUANDO run_pipeline() é executado
+  ENTÃO o output_dir NÃO contém github/skills/x-review-grpc/SKILL.md
+  MAS contém github/skills/x-review/SKILL.md (sempre presente)
+  E contém github/skills/x-review-pr/SKILL.md (sempre presente)
 
-Cenario: Description com keywords insuficientes
-  DADO que x-review-events tem description genérica "review events"
-  QUANDO o usuário solicita "validar event schemas"
-  ENTÃO o trigger pode falhar por falta de keywords específicas
-  MAS se a description inclui "event schemas, producer/consumer, dead letter"
-  ENTÃO o trigger é preciso
+Cenario: Descriptions diferenciadas evitam colisão de trigger
+  DADO que as 6 skills de review foram geradas
+  QUANDO as descriptions são comparadas
+  ENTÃO x-review-api contém "REST" e NÃO contém "gRPC"
+  E x-review-grpc contém "gRPC" e NÃO contém "REST"
 
-Cenario: Referência a knowledge pack de security
+Cenario: Golden files byte-for-byte
+  DADO que os golden files de review existem em tests/golden/
+  QUANDO o gerador produz as skills de review
+  ENTÃO a saída é idêntica byte-for-byte aos golden files
+  E test_byte_for_byte.py passa sem diff
+
+Cenario: Referência a knowledge pack sem duplicação
   DADO que x-review referencia .claude/skills/security/SKILL.md
-  QUANDO o review de segurança precisa de detalhes OWASP
-  ENTÃO o link relativo aponta para o knowledge pack original
+  QUANDO o body gerado é inspecionado
+  ENTÃO contém link relativo para o knowledge pack original
   E NÃO duplica o conteúdo em .github/skills/
 ```
 
 ## 8. Sub-tarefas
 
-- [ ] [Dev] Criar `.github/skills/x-review/SKILL.md` com workflow de review paralelo
-- [ ] [Dev] Criar `.github/skills/x-review-api/SKILL.md` com validação REST
-- [ ] [Dev] Criar `.github/skills/x-review-pr/SKILL.md` com checklist de 40 pontos
-- [ ] [Dev] Criar `.github/skills/x-review-grpc/SKILL.md` com validação proto3
-- [ ] [Dev] Criar `.github/skills/x-review-events/SKILL.md` com validação de eventos
-- [ ] [Dev] Criar `.github/skills/x-review-gateway/SKILL.md` com review de gateway
-- [ ] [Test] Validar YAML frontmatter das 6 skills
-- [ ] [Test] Verificar diferenciação de trigger entre skills similares
-- [ ] [Doc] Documentar skills de review no README
+- [ ] [Dev] Criar `GithubReviewSkillsAssembler` em `src/claude_setup/assembler/github_review_skills_assembler.py` com `assemble()`, lógica de seleção condicional e renderização via `TemplateEngine`
+- [ ] [Dev] Criar 6 templates de skill de review em `resources/github-skills-templates/review/` (`x-review.md`, `x-review-api.md`, `x-review-pr.md`, `x-review-grpc.md`, `x-review-events.md`, `x-review-gateway.md`)
+- [ ] [Dev] Implementar lógica de frontmatter YAML (`name` + `description` com keywords diferenciadas) nos templates
+- [ ] [Dev] Registrar `GithubReviewSkillsAssembler` em `assembler/__init__.py` → `_build_assemblers()`
+- [ ] [Dev] Implementar feature gates condicionais (rest → x-review-api, grpc → x-review-grpc, events → x-review-events, gateway → x-review-gateway)
+- [ ] [Test] Testes unitários do assembler: verificar seleção de skills por config
+- [ ] [Test] Testes unitários: verificar renderização de templates com `TemplateEngine`
+- [ ] [Test] Regenerar golden files e verificar byte-for-byte em `tests/test_byte_for_byte.py`
+- [ ] [Test] Adicionar cenários de pipeline em `tests/test_pipeline.py`
+- [ ] [Doc] Atualizar template de README gerado (`ReadmeAssembler`) para listar skills de review

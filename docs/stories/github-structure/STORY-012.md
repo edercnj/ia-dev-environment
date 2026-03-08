@@ -19,11 +19,24 @@
 
 ## 3. Descrição
 
-Como **Product Owner Técnico**, eu quero criar 4 prompts em `.github/prompts/*.prompt.md` que orquestram workflows completos, garantindo que tarefas recorrentes (nova feature, decomposição de spec, code review, troubleshooting) possam ser executadas com menor fricção.
+Como **Product Owner Técnico**, eu quero que o gerador `claude_setup` produza 4 prompts em `.github/prompts/*.prompt.md` que orquestram workflows completos, garantindo que tarefas recorrentes (nova feature, decomposição de spec, code review, troubleshooting) possam ser executadas com menor fricção.
 
 Os prompts são composições de alto nível que conectam skills e agents em fluxos end-to-end. Cada prompt tem YAML frontmatter com `name` e `description`, seguido do template de instruções.
 
-### 3.1 Prompts a criar
+### 3.1 Contexto Técnico (Gerador)
+
+Não existe assembler equivalente para prompts em `.claude/` — este é um artefato novo exclusivo da estrutura `.github/`. A implementação segue o padrão estabelecido por `GithubInstructionsAssembler` (STORY-001).
+
+Para gerar `.github/prompts/*.prompt.md`, a implementação deve:
+
+1. **Criar `GithubPromptsAssembler`** em `src/claude_setup/assembler/github_prompts_assembler.py`
+2. **Criar templates** em `resources/github-prompts-templates/` — cada template contém frontmatter YAML (`name`, `description`) seguido de corpo markdown com instruções do workflow
+3. **Registrar** o novo assembler em `assembler/__init__.py` → `_build_assemblers()`
+4. **Usar `TemplateEngine`** para substituir `{placeholder}` nos templates com valores de `ProjectConfig` (ex: `{LANGUAGE_NAME}`, `{FRAMEWORK_NAME}`)
+5. **Extensão `.prompt.md`** — garantir naming convention do Copilot
+6. **Adicionar classificação** "GitHub Prompts" em `__main__.py` → `_classify_files()`
+
+### 3.2 Prompts a gerar
 
 | Prompt | Baseado em | Skills orquestradas | Agents envolvidos |
 | :--- | :--- | :--- | :--- |
@@ -32,7 +45,7 @@ Os prompts são composições de alto nível que conectam skills e agents em flu
 | `code-review.prompt.md` | Workflow de review | x-review, x-review-api, x-review-pr | tech-lead, security-engineer, qa-engineer |
 | `troubleshoot.prompt.md` | Workflow de troubleshoot | x-ops-troubleshoot | java-developer |
 
-### 3.2 Formato .prompt.md
+### 3.3 Formato .prompt.md (template em `resources/github-prompts-templates/`)
 
 ```yaml
 ---
@@ -52,15 +65,18 @@ Follow these steps to implement a new feature...
 ### DoR Local (Definition of Ready)
 
 - [ ] STORY-003, 004, 005, 010 concluídas (skills e agents disponíveis)
-- [ ] Templates existentes em `resources/templates/` lidos
+- [ ] Templates existentes em `resources/` analisados para padrão de frontmatter
 - [ ] Formato `.prompt.md` validado com Copilot docs
+- [ ] `GithubInstructionsAssembler` (STORY-001) analisado como referência de implementação
 
 ### DoD Local (Definition of Done)
 
-- [ ] 4 prompts criados com extensão `.prompt.md`
-- [ ] Cada prompt com frontmatter YAML válido
+- [ ] `GithubPromptsAssembler` gera 4 prompts com extensão `.prompt.md`
+- [ ] Cada prompt com frontmatter YAML válido (`name`, `description`)
 - [ ] Workflows referenciando skills e agents existentes
-- [ ] Copilot reconhece e lista prompts disponíveis
+- [ ] Assembler registrado no pipeline (`_build_assemblers()`)
+- [ ] Golden files regenerados e passando em `test_byte_for_byte.py`
+- [ ] Contagem atualizada em `test_pipeline.py`
 
 ### Global Definition of Done (DoD)
 
@@ -69,6 +85,7 @@ Follow these steps to implement a new feature...
 - **Sem duplicação:** Orquestra skills/agents, não duplica conteúdo
 - **Idioma:** Inglês
 - **Documentação:** README.md atualizado
+- **Testes:** Golden files + pipeline tests passando
 
 ## 5. Contratos de Dados (Data Contract)
 
@@ -83,7 +100,25 @@ Follow these steps to implement a new feature...
 
 ## 6. Diagramas
 
-### 6.1 Prompt new-feature orquestrando skills
+### 6.1 Fluxo do Gerador para Prompts
+
+```mermaid
+sequenceDiagram
+    participant CLI as __main__.py
+    participant P as Pipeline (assembler/__init__.py)
+    participant GP as GithubPromptsAssembler
+    participant T as TemplateEngine
+    participant FS as Filesystem
+
+    CLI->>P: run_pipeline(config, resources_dir, output_dir)
+    P->>GP: assemble(config, output_dir, engine)
+    GP->>T: replace_placeholders(template_content)
+    T-->>GP: Conteúdo renderizado com frontmatter YAML
+    GP->>FS: Escrever .github/prompts/*.prompt.md
+    GP-->>P: List[Path] (4 arquivos)
+```
+
+### 6.2 Prompt new-feature orquestrando skills (runtime)
 
 ```mermaid
 sequenceDiagram
@@ -107,44 +142,46 @@ sequenceDiagram
 ## 7. Critérios de Aceite (Gherkin)
 
 ```gherkin
-Cenario: Prompt new-feature disponível para seleção
-  DADO que .github/prompts/new-feature.prompt.md existe com frontmatter válido
-  QUANDO o usuário lista prompts disponíveis
-  ENTÃO "new-feature" aparece na lista
-  E a description descreve o workflow de implementação
+Cenario: Gerador produz 4 prompts com extensão .prompt.md
+  DADO que o pipeline é executado com config padrão
+  QUANDO GithubPromptsAssembler.assemble() é chamado
+  ENTÃO 4 arquivos são gerados em output_dir/github/prompts/
+  E todos possuem extensão ".prompt.md"
 
-Cenario: Prompt decompose-spec orquestra x-story-epic-full
-  DADO que decompose-spec.prompt.md referencia x-story-epic-full
-  QUANDO o usuário ativa o prompt com uma spec como input
-  ENTÃO o workflow solicita o caminho da spec
-  E ativa a skill x-story-epic-full para decomposição
+Cenario: Prompt gerado com frontmatter YAML válido
+  DADO que o gerador produziu new-feature.prompt.md
+  QUANDO o frontmatter YAML é parseado
+  ENTÃO os campos name e description estão presentes
+  E name é "new-feature" em lowercase-hyphens
 
-Cenario: Prompt code-review com múltiplos agents
-  DADO que code-review.prompt.md referencia tech-lead, security e qa agents
-  QUANDO o prompt é ativado para um PR
-  ENTÃO o workflow instrui reviews paralelos pelos 3 agents
-  E consolida resultados em relatório único
+Cenario: Golden files correspondem byte a byte
+  DADO que golden files existem em tests/golden/github/prompts/
+  QUANDO test_byte_for_byte.py é executado
+  ENTÃO cada prompt gerado é idêntico ao golden file correspondente
 
-Cenario: Prompt com frontmatter inválido
-  DADO que um .prompt.md não tem campo "name" no frontmatter
-  QUANDO o Copilot tenta indexar o prompt
-  ENTÃO o prompt NÃO aparece na lista de prompts disponíveis
-  E o erro indica campo obrigatório ausente
+Cenario: Prompt referencia skills existentes
+  DADO que o template de code-review.prompt.md contém referências a skills
+  QUANDO o conteúdo gerado é verificado
+  ENTÃO referencia x-review, x-review-api e x-review-pr
 
-Cenario: Prompt troubleshoot com metodologia sistemática
-  DADO que troubleshoot.prompt.md referencia x-ops-troubleshoot
-  QUANDO o usuário ativa o prompt com uma stacktrace
-  ENTÃO o workflow segue: reproduce → locate → understand → fix → verify
-  E não pula etapas do diagnóstico
+Cenario: Pipeline contabiliza prompts gerados
+  DADO que o pipeline completo é executado
+  QUANDO PipelineResult.files_generated é verificado
+  ENTÃO a contagem inclui os 4 prompts de .github/prompts/
+
+Cenario: Placeholders são substituídos nos prompts gerados
+  DADO que o template contém {LANGUAGE_NAME} e {FRAMEWORK_NAME}
+  QUANDO o TemplateEngine processa o template
+  ENTÃO os placeholders são substituídos por valores de ProjectConfig
 ```
 
 ## 8. Sub-tarefas
 
-- [ ] [Dev] Criar `.github/prompts/new-feature.prompt.md`
-- [ ] [Dev] Criar `.github/prompts/decompose-spec.prompt.md`
-- [ ] [Dev] Criar `.github/prompts/code-review.prompt.md`
-- [ ] [Dev] Criar `.github/prompts/troubleshoot.prompt.md`
-- [ ] [Test] Validar YAML frontmatter dos 4 prompts
-- [ ] [Test] Verificar referências a skills e agents existentes
-- [ ] [Test] Validar extensão `.prompt.md`
-- [ ] [Doc] Documentar prompts no README
+- [ ] [Dev] Criar `GithubPromptsAssembler` em `src/claude_setup/assembler/github_prompts_assembler.py`
+- [ ] [Dev] Criar templates em `resources/github-prompts-templates/` (4 arquivos `.prompt.md`)
+- [ ] [Dev] Implementar lógica de geração com frontmatter YAML e corpo markdown
+- [ ] [Dev] Registrar assembler no pipeline (`assembler/__init__.py` → `_build_assemblers()`)
+- [ ] [Dev] Adicionar classificação "GitHub Prompts" em `__main__.py` → `_classify_files()`
+- [ ] [Test] Testes unitários para os 4 prompts gerados (frontmatter, extensão, referências)
+- [ ] [Test] Regenerar golden files em `tests/golden/github/prompts/`
+- [ ] [Test] Atualizar contagem esperada em `test_pipeline.py`

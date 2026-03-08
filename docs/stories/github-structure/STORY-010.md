@@ -18,11 +18,23 @@
 
 ## 3. Descrição
 
-Como **Architect**, eu quero adaptar os 10 custom agents de `.claude/agents/` para `.github/agents/*.agent.md`, garantindo que cada agente tenha persona clara, tools permitidos e tools proibidos explicitamente declarados no frontmatter YAML.
+Como **Architect**, eu quero que o gerador `claude_setup` produza 10 custom agents em `.github/agents/*.agent.md`, garantindo que cada agente tenha persona clara, tools permitidos e tools proibidos explicitamente declarados no frontmatter YAML.
 
 Os agents dependem das skills core (STORY-003, 004, 005) porque suas capabilities são definidas em termos das skills disponíveis. Cada agent tem uma persona (ex: security engineer) com um domínio de atuação delimitado por tool boundaries.
 
-### 3.1 Agents a criar
+### 3.1 Contexto Técnico (Gerador)
+
+O `claude_setup` já possui o `AgentsAssembler` (`src/claude_setup/assembler/agents.py`) que gera agents para `.claude/agents/`. Este assembler implementa `assemble(config, output_dir, resources_dir, engine) -> List[Path]` e utiliza templates de `resources/agents-templates/` com subdirectories `core/`, `conditional/`, `developers/` e `checklists/`.
+
+Para gerar `.github/agents/*.agent.md`, a implementação deve:
+
+1. **Criar `GithubAgentsAssembler`** em `src/claude_setup/assembler/github_agents_assembler.py` (ou estender `AgentsAssembler`) — seguindo o mesmo padrão de `GithubInstructionsAssembler` (STORY-001)
+2. **Criar templates** em `resources/github-agents-templates/` com frontmatter YAML contendo `name`, `description`, `tools` e `disallowed-tools`
+3. **Registrar** o novo assembler em `assembler/__init__.py` → `_build_assemblers()`
+4. **Usar `TemplateEngine`** para substituir `{placeholder}` nos templates com valores de `ProjectConfig`
+5. **Extensão `.agent.md`** — o assembler deve garantir que todos os arquivos gerados usem esta extensão (diferente de `.claude/agents/` que usa `.md`)
+
+### 3.2 Agents a gerar
 
 | Arquivo | Persona | Tools (whitelist) | Disallowed Tools (blacklist) |
 | :--- | :--- | :--- | :--- |
@@ -37,7 +49,7 @@ Os agents dependem das skills core (STORY-003, 004, 005) porque suas capabilitie
 | `event-engineer.agent.md` | Event Engineer | Event/messaging tools, code | Infra, deploy |
 | `product-owner.agent.md` | Product Owner | Read-only, docs/planning | Edit code, deploy, infra |
 
-### 3.2 Formato .agent.md
+### 3.3 Formato .agent.md (template em `resources/github-agents-templates/`)
 
 ```yaml
 ---
@@ -67,13 +79,16 @@ You are a security engineer specializing in application security...
 - [ ] STORY-003, 004, 005 concluídas (skills core disponíveis)
 - [ ] Agents `.claude/agents/` lidos e tool boundaries mapeados
 - [ ] Formato `.agent.md` validado com Copilot docs
+- [ ] `AgentsAssembler` existente analisado para reuso de lógica condicional
 
 ### DoD Local (Definition of Done)
 
-- [ ] 10 agents criados com extensão `.agent.md`
+- [ ] `GithubAgentsAssembler` gera 10 agents com extensão `.agent.md`
 - [ ] Cada agent com `tools` e `disallowed-tools` no frontmatter
 - [ ] Persona coerente com tool boundaries
-- [ ] Copilot reconhece e carrega agents corretamente
+- [ ] Assembler registrado no pipeline (`_build_assemblers()`)
+- [ ] Golden files regenerados e passando em `test_byte_for_byte.py`
+- [ ] Contagem atualizada em `test_pipeline.py`
 
 ### Global Definition of Done (DoD)
 
@@ -82,6 +97,7 @@ You are a security engineer specializing in application security...
 - **Tool boundaries:** Whitelist e blacklist explícitas e coerentes
 - **Idioma:** Inglês
 - **Documentação:** README.md atualizado
+- **Testes:** Golden files + pipeline tests passando
 
 ## 5. Contratos de Dados (Data Contract)
 
@@ -97,7 +113,25 @@ You are a security engineer specializing in application security...
 
 ## 6. Diagramas
 
-### 6.1 Agent com Tool Boundaries
+### 6.1 Fluxo do Gerador para Agents
+
+```mermaid
+sequenceDiagram
+    participant CLI as __main__.py
+    participant P as Pipeline (assembler/__init__.py)
+    participant GA as GithubAgentsAssembler
+    participant T as TemplateEngine
+    participant FS as Filesystem
+
+    CLI->>P: run_pipeline(config, resources_dir, output_dir)
+    P->>GA: assemble(config, output_dir, engine)
+    GA->>T: replace_placeholders(template_content)
+    T-->>GA: Conteúdo renderizado com frontmatter YAML
+    GA->>FS: Escrever .github/agents/*.agent.md
+    GA-->>P: List[Path] (10 arquivos)
+```
+
+### 6.2 Agent com Tool Boundaries (runtime)
 
 ```mermaid
 sequenceDiagram
@@ -117,50 +151,48 @@ sequenceDiagram
 ## 7. Critérios de Aceite (Gherkin)
 
 ```gherkin
-Cenario: Agent com frontmatter válido
-  DADO que .github/agents/security-engineer.agent.md foi criado
+Cenario: Gerador produz 10 agents com extensão .agent.md
+  DADO que o pipeline é executado com config padrão
+  QUANDO GithubAgentsAssembler.assemble() é chamado
+  ENTÃO 10 arquivos são gerados em output_dir/github/agents/
+  E todos possuem extensão ".agent.md"
+
+Cenario: Agent gerado com frontmatter YAML válido
+  DADO que o gerador produziu security-engineer.agent.md
   QUANDO o frontmatter YAML é parseado
   ENTÃO os campos name, description, tools e disallowed-tools estão presentes
   E tools contém "read_file" e "search_code"
   E disallowed-tools contém "edit_file" e "deploy"
 
-Cenario: Tool boundary enforcement
-  DADO que qa-engineer.agent.md proíbe "edit_file" em disallowed-tools
-  QUANDO o agent QA tenta editar código de produção
-  ENTÃO a ação é bloqueada pelo Copilot
-  E o agent recebe feedback de que a tool não é permitida
+Cenario: Golden files correspondem byte a byte
+  DADO que golden files existem em tests/golden/github/agents/
+  QUANDO test_byte_for_byte.py é executado
+  ENTÃO cada agent gerado é idêntico ao golden file correspondente
 
-Cenario: Paridade de agents com .claude/agents/
-  DADO que .claude/agents/ contém 10 agents
-  QUANDO .github/agents/ é criado
-  ENTÃO contém exatamente 10 agents equivalentes
-  E cada agent mantém a mesma persona e domínio
+Cenario: Pipeline contabiliza agents gerados
+  DADO que o pipeline completo é executado
+  QUANDO PipelineResult.files_generated é verificado
+  ENTÃO a contagem inclui os 10 agents de .github/agents/
 
-Cenario: Coerência persona-tools
-  DADO que product-owner.agent.md tem persona de planejamento
-  QUANDO os tools são verificados
+Cenario: Coerência persona-tools no template
+  DADO que o template de product-owner.agent.md está em resources/
+  QUANDO o TemplateEngine renderiza o template
   ENTÃO tools contém "read_file" e planning tools
   E disallowed-tools contém "edit_file", "deploy", "delete_file"
 
-Cenario: Agent com extensão incorreta
-  DADO que um agent usa extensão .md em vez de .agent.md
-  QUANDO o Copilot tenta carregar agents
-  ENTÃO o arquivo com extensão incorreta NÃO é reconhecido como agent
+Cenario: Placeholders são substituídos nos agents gerados
+  DADO que o template contém {LANGUAGE_NAME} e {FRAMEWORK_NAME}
+  QUANDO o TemplateEngine processa o template
+  ENTÃO os placeholders são substituídos por valores de ProjectConfig
 ```
 
 ## 8. Sub-tarefas
 
-- [ ] [Dev] Criar `.github/agents/architect.agent.md`
-- [ ] [Dev] Criar `.github/agents/tech-lead.agent.md`
-- [ ] [Dev] Criar `.github/agents/java-developer.agent.md`
-- [ ] [Dev] Criar `.github/agents/qa-engineer.agent.md`
-- [ ] [Dev] Criar `.github/agents/security-engineer.agent.md`
-- [ ] [Dev] Criar `.github/agents/devops-engineer.agent.md`
-- [ ] [Dev] Criar `.github/agents/performance-engineer.agent.md`
-- [ ] [Dev] Criar `.github/agents/api-engineer.agent.md`
-- [ ] [Dev] Criar `.github/agents/event-engineer.agent.md`
-- [ ] [Dev] Criar `.github/agents/product-owner.agent.md`
-- [ ] [Test] Validar YAML frontmatter de todos os 10 agents
-- [ ] [Test] Verificar coerência persona-tools para cada agent
-- [ ] [Test] Validar extensão `.agent.md` em todos
-- [ ] [Doc] Documentar agents e tool boundaries no README
+- [ ] [Dev] Criar `GithubAgentsAssembler` em `src/claude_setup/assembler/github_agents_assembler.py`
+- [ ] [Dev] Criar templates de agent em `resources/github-agents-templates/` (10 arquivos `.agent.md`)
+- [ ] [Dev] Implementar lógica de frontmatter YAML com `tools` / `disallowed-tools`
+- [ ] [Dev] Registrar assembler no pipeline (`assembler/__init__.py` → `_build_assemblers()`)
+- [ ] [Dev] Adicionar classificação "GitHub Agents" em `__main__.py` → `_classify_files()`
+- [ ] [Test] Testes unitários para os 10 agents gerados (frontmatter, extensão, conteúdo)
+- [ ] [Test] Regenerar golden files em `tests/golden/github/agents/`
+- [ ] [Test] Atualizar contagem esperada em `test_pipeline.py`
