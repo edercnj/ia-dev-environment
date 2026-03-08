@@ -38,5 +38,5 @@ autocontenção, DAG de dependências e dimensionamento.
 ## Referências Completas
 
 Para orientação aprofundada sobre cada tópico, consulte:
-- `../../.claude/skills/story-planning/SKILL.md`
-- `../../.claude/skills/x-story-epic-full/references/decomposition-guide.md`
+- `.claude/skills/story-planning/SKILL.md`
+- `.claude/skills/x-story-epic-full/references/decomposition-guide.md`

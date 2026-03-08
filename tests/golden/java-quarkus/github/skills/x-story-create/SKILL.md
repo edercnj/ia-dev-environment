@@ -29,7 +29,7 @@ Leia os seguintes arquivos antes de iniciar:
 - `.claude/templates/_TEMPLATE-STORY.md` — A estrutura exata a seguir
 
 **Filosofia de decomposição:**
-- `../../.claude/skills/x-story-epic-full/references/decomposition-guide.md`
+- `.claude/skills/x-story-epic-full/references/decomposition-guide.md`
 
 **Entradas obrigatórias do usuário:**
 - O arquivo de especificação do sistema (spec original)
@@ -108,5 +108,5 @@ Salve cada história como `STORY-NNN.md` e reporte o resumo.
 ## Referências Detalhadas
 
 Para orientação aprofundada, consulte:
-- `../../.claude/skills/x-story-create/SKILL.md`
-- `../../.claude/skills/x-story-epic-full/references/decomposition-guide.md`
+- `.claude/skills/x-story-create/SKILL.md`
+- `.claude/skills/x-story-epic-full/references/decomposition-guide.md`

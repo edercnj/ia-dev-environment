@@ -29,7 +29,7 @@ Leia os seguintes arquivos antes de iniciar:
 - `.claude/templates/_TEMPLATE-EPIC.md` — A estrutura exata a seguir
 
 **Filosofia de decomposição:**
-- `../../.claude/skills/x-story-epic-full/references/decomposition-guide.md`
+- `.claude/skills/x-story-epic-full/references/decomposition-guide.md`
 
 Se algum template estiver ausente, pare e informe o usuário.
 
@@ -98,5 +98,5 @@ da estrutura de dependências.
 ## Referências Detalhadas
 
 Para orientação aprofundada sobre decomposição, consulte:
-- `../../.claude/skills/x-story-epic/SKILL.md`
-- `../../.claude/skills/x-story-epic-full/references/decomposition-guide.md`
+- `.claude/skills/x-story-epic/SKILL.md`
+- `.claude/skills/x-story-epic-full/references/decomposition-guide.md`

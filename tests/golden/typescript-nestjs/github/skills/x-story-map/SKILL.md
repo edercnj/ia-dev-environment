@@ -96,5 +96,5 @@ Salve como `IMPLEMENTATION-MAP.md` e reporte o resumo.
 ## Referências Detalhadas
 
 Para orientação aprofundada, consulte:
-- `../../.claude/skills/x-story-map/SKILL.md`
-- `../../.claude/skills/x-story-epic-full/references/decomposition-guide.md`
+- `.claude/skills/x-story-map/SKILL.md`
+- `.claude/skills/x-story-epic-full/references/decomposition-guide.md`

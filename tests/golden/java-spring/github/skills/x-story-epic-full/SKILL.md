@@ -33,7 +33,7 @@ Leia estes arquivos antes de iniciar:
 - `.claude/templates/_TEMPLATE-IMPLEMENTATION-MAP.md`
 
 **Filosofia de decomposição:**
-- `../../.claude/skills/x-story-epic-full/references/decomposition-guide.md`
+- `.claude/skills/x-story-epic-full/references/decomposition-guide.md`
 
 ## Filosofia de Decomposição
 
@@ -113,5 +113,5 @@ Salve todos os arquivos e reporte:
 ## Referências Detalhadas
 
 Para orientação aprofundada, consulte:
-- `../../.claude/skills/x-story-epic-full/SKILL.md`
-- `../../.claude/skills/x-story-epic-full/references/decomposition-guide.md`
+- `.claude/skills/x-story-epic-full/SKILL.md`
+- `.claude/skills/x-story-epic-full/references/decomposition-guide.md`
