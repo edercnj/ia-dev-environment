@@ -16,6 +16,12 @@ from claude_setup.template_engine import TemplateEngine
 from tests.conftest import FULL_PROJECT_DICT, MINIMAL_PROJECT_DICT
 
 STORY_SKILLS = SKILL_GROUPS["story"]
+DEV_SKILLS = SKILL_GROUPS["dev"]
+ALL_SKILLS = tuple(
+    name
+    for group in SKILL_GROUPS.values()
+    for name in group
+)
 
 
 def _make_config(**overrides) -> ProjectConfig:
@@ -33,19 +39,22 @@ def _make_minimal_config(**overrides) -> ProjectConfig:
 
 
 def _create_templates(base: Path) -> Path:
-    """Create template files for story skills."""
-    tpl_dir = base / "github-skills-templates" / "story"
-    tpl_dir.mkdir(parents=True)
-    for name in STORY_SKILLS:
-        (tpl_dir / f"{name}.md").write_text(
-            f"---\nname: {name}\n"
-            f"description: >\n  Skill {name} para {{project_name}}.\n"
-            f"---\n\n# {name}\n\n"
-            f"Projeto: {{project_name}}\n"
-            f"Linguagem: {{language_name}}\n"
-            f"Referência: `../../.claude/skills/{name}/references/`\n",
-            encoding="utf-8",
-        )
+    """Create template files for all skill groups."""
+    for group, names in SKILL_GROUPS.items():
+        tpl_dir = base / "github-skills-templates" / group
+        tpl_dir.mkdir(parents=True)
+        for name in names:
+            (tpl_dir / f"{name}.md").write_text(
+                f"---\nname: {name}\n"
+                f"description: >\n"
+                f"  Skill {name} for {{project_name}}.\n"
+                f"---\n\n# {name}\n\n"
+                f"Project: {{project_name}}\n"
+                f"Language: {{language_name}}\n"
+                f"Reference: `../../.claude/skills/"
+                f"{name}/references/`\n",
+                encoding="utf-8",
+            )
     return base
 
 
@@ -62,11 +71,11 @@ def assembled_skills(tmp_path: Path) -> tuple:
 
 
 class TestAssemble:
-    def test_generates_five_files(
+    def test_generates_all_files(
         self, assembled_skills: tuple,
     ) -> None:
         result, _ = assembled_skills
-        assert len(result) == 5
+        assert len(result) == len(ALL_SKILLS)
 
     def test_all_returned_paths_exist(
         self, assembled_skills: tuple,
@@ -88,7 +97,7 @@ class TestAssemble:
     ) -> None:
         result, _ = assembled_skills
         skill_dirs = {p.parent.name for p in result}
-        assert skill_dirs == set(STORY_SKILLS)
+        assert skill_dirs == set(ALL_SKILLS)
 
     def test_creates_github_skills_directory_structure(
         self, assembled_skills: tuple,
@@ -99,7 +108,7 @@ class TestAssemble:
 
 
 class TestGenerateGroup:
-    def test_generates_skill_files(
+    def test_generates_story_skill_files(
         self, tmp_path: Path,
     ) -> None:
         config = _make_config()
@@ -112,6 +121,20 @@ class TestGenerateGroup:
         )
 
         assert len(result) == 5
+
+    def test_generates_dev_skill_files(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config()
+        resources = _create_templates(tmp_path / "res")
+        assembler = GithubSkillsAssembler(resources)
+        engine = TemplateEngine(tmp_path, config)
+
+        result = assembler._generate_group(
+            engine, tmp_path / "output", "dev", DEV_SKILLS,
+        )
+
+        assert len(result) == 3
 
     def test_missing_templates_dir_returns_empty(
         self, tmp_path: Path,
@@ -151,7 +174,7 @@ class TestGenerateGroup:
         assert result[0].parent.name == "x-story-epic"
 
 
-@pytest.mark.parametrize("skill_name", list(STORY_SKILLS))
+@pytest.mark.parametrize("skill_name", list(ALL_SKILLS))
 class TestFrontmatterPerSkill:
     def test_starts_with_frontmatter(
         self,
@@ -186,7 +209,7 @@ class TestFrontmatterPerSkill:
         assert "description:" in content
 
 
-@pytest.mark.parametrize("skill_name", list(STORY_SKILLS))
+@pytest.mark.parametrize("skill_name", list(ALL_SKILLS))
 class TestSkillContentPerSkill:
     def test_placeholders_replaced(
         self,
@@ -222,7 +245,7 @@ class TestSkillContentPerSkill:
 
 
 class TestSkillContentIntegration:
-    def test_content_in_portuguese(
+    def test_story_content_in_portuguese(
         self, tmp_path: Path,
     ) -> None:
         config = _make_config()
@@ -238,13 +261,46 @@ class TestSkillContentIntegration:
             "Pré-requisitos",
             "especificação",
         ]
-        for path in result:
+        story_results = [
+            p for p in result
+            if p.parent.name in STORY_SKILLS
+        ]
+        for path in story_results:
             content = path.read_text(encoding="utf-8")
             found = any(
                 kw in content for kw in portuguese_keywords
             )
             assert found, (
                 f"{path.parent.name} lacks pt-BR content"
+            )
+
+    def test_dev_content_in_english(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config()
+        resources = Path("resources")
+        assembler = GithubSkillsAssembler(resources)
+        output_dir = tmp_path / "output"
+        engine = TemplateEngine(resources, config)
+
+        result = assembler.assemble(config, output_dir, engine)
+
+        english_keywords = [
+            "implement",
+            "feature",
+            "layer",
+        ]
+        dev_results = [
+            p for p in result
+            if p.parent.name in DEV_SKILLS
+        ]
+        for path in dev_results:
+            content = path.read_text(encoding="utf-8")
+            found = any(
+                kw in content for kw in english_keywords
+            )
+            assert found, (
+                f"{path.parent.name} lacks English content"
             )
 
     def test_no_reference_files_duplicated_in_github(
@@ -259,11 +315,103 @@ class TestSkillContentIntegration:
         assembler.assemble(config, output_dir, engine)
 
         skills_dir = output_dir / "github" / "skills"
-        for skill_name in STORY_SKILLS:
+        for skill_name in ALL_SKILLS:
             refs_dir = skills_dir / skill_name / "references"
             assert not refs_dir.exists(), (
                 f"{skill_name} has duplicated references dir"
             )
+
+
+@pytest.mark.parametrize("skill_name", list(DEV_SKILLS))
+class TestDevSkillContent:
+    def test_dev_skill_has_claude_skills_reference(
+        self, tmp_path: Path, skill_name: str,
+    ) -> None:
+        config = _make_config()
+        resources = Path("resources")
+        assembler = GithubSkillsAssembler(resources)
+        output_dir = tmp_path / "output"
+        engine = TemplateEngine(resources, config)
+
+        result = assembler.assemble(config, output_dir, engine)
+
+        path = _find_skill(result, skill_name)
+        content = path.read_text(encoding="utf-8")
+        assert ".claude/skills/" in content
+
+    def test_dev_skill_name_is_lowercase_hyphens(
+        self, tmp_path: Path, skill_name: str,
+    ) -> None:
+        assert skill_name == skill_name.lower()
+        assert " " not in skill_name
+
+
+class TestDevSkillDescriptionKeywords:
+    def test_x_dev_implement_description(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config()
+        resources = Path("resources")
+        assembler = GithubSkillsAssembler(resources)
+        output_dir = tmp_path / "output"
+        engine = TemplateEngine(resources, config)
+
+        result = assembler.assemble(config, output_dir, engine)
+
+        path = _find_skill(result, "x-dev-implement")
+        content = path.read_text(encoding="utf-8")
+        assert "implement" in content.lower()
+        assert "feature" in content.lower()
+
+    def test_x_dev_lifecycle_description(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config()
+        resources = Path("resources")
+        assembler = GithubSkillsAssembler(resources)
+        output_dir = tmp_path / "output"
+        engine = TemplateEngine(resources, config)
+
+        result = assembler.assemble(config, output_dir, engine)
+
+        path = _find_skill(result, "x-dev-lifecycle")
+        content = path.read_text(encoding="utf-8")
+        assert "lifecycle" in content.lower()
+
+    def test_layer_templates_description(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config()
+        resources = Path("resources")
+        assembler = GithubSkillsAssembler(resources)
+        output_dir = tmp_path / "output"
+        engine = TemplateEngine(resources, config)
+
+        result = assembler.assemble(config, output_dir, engine)
+
+        path = _find_skill(result, "layer-templates")
+        content = path.read_text(encoding="utf-8")
+        assert "layer" in content.lower()
+
+
+class TestLayerTemplatesContent:
+    def test_contains_domain_patterns(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config()
+        resources = Path("resources")
+        assembler = GithubSkillsAssembler(resources)
+        output_dir = tmp_path / "output"
+        engine = TemplateEngine(resources, config)
+
+        result = assembler.assemble(config, output_dir, engine)
+
+        path = _find_skill(result, "layer-templates")
+        content = path.read_text(encoding="utf-8")
+        assert "domain" in content.lower()
+        assert "port" in content.lower()
+        assert "adapter" in content.lower()
+        assert "application" in content.lower()
 
 
 def _find_skill(result: List[Path], skill_name: str) -> Path:
