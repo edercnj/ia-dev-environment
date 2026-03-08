@@ -245,6 +245,72 @@ class TestPipelineInfrastructureSkills:
             )
 
 
+KNOWLEDGE_PACK_SKILL_NAMES = [
+    "architecture",
+    "coding-standards",
+    "patterns",
+    "protocols",
+    "observability",
+    "resilience",
+    "security",
+    "compliance",
+    "api-design",
+]
+
+
+class TestPipelineKnowledgePackSkills:
+
+    def test_pipeline_generates_knowledge_pack_skills(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_full_config()
+        resources = Path("resources")
+        output = tmp_path / "output"
+        run_pipeline(config, resources, output)
+        for skill in KNOWLEDGE_PACK_SKILL_NAMES:
+            skill_path = (
+                output / "github" / "skills" / skill / "SKILL.md"
+            )
+            assert skill_path.exists(), (
+                f"Knowledge pack skill {skill} not generated"
+            )
+
+    def test_pipeline_result_contains_kp_paths(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_full_config()
+        resources = Path("resources")
+        output = tmp_path / "output"
+        result = run_pipeline(config, resources, output)
+        generated_strs = [
+            str(p) for p in result.files_generated
+        ]
+        for skill in KNOWLEDGE_PACK_SKILL_NAMES:
+            found = any(
+                f"github/skills/{skill}/SKILL.md" in s
+                for s in generated_strs
+            )
+            assert found, (
+                f"{skill} not in files_generated"
+            )
+
+    def test_kp_skills_generated_with_minimal_config(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config()
+        resources = Path("resources")
+        output = tmp_path / "output"
+        run_pipeline(config, resources, output)
+        for skill in KNOWLEDGE_PACK_SKILL_NAMES:
+            skill_path = (
+                output / "github" / "skills" / skill / "SKILL.md"
+            )
+            assert skill_path.exists(), (
+                f"Knowledge pack {skill} not generated "
+                f"with minimal config"
+            )
+
+
 class TestExecuteAssemblers:
 
     def test_wraps_exception_in_pipeline_error(self, tmp_path: Path) -> None:

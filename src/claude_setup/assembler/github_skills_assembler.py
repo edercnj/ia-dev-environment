@@ -46,6 +46,17 @@ SKILL_GROUPS = {
         "dockerfile",
         "iac-terraform",
     ),
+    "knowledge-packs": (
+        "architecture",
+        "coding-standards",
+        "patterns",
+        "protocols",
+        "observability",
+        "resilience",
+        "security",
+        "compliance",
+        "api-design",
+    ),
 }
 
 # Infrastructure skills gated by config values.
