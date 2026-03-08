@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import List
 
 import pytest
+import yaml
 
 from claude_setup.assembler.github_skills_assembler import (
     SKILL_GROUPS,
@@ -715,6 +716,54 @@ class TestGenerateInfrastructureGroup:
 
         assert len(result) == 5
 
+    def test_skips_inapplicable_infra_skills(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config(infrastructure={
+            "container": "none",
+            "orchestrator": "none",
+            "templating": "none",
+            "iac": "none",
+        })
+        resources = _create_templates(tmp_path / "res")
+        assembler = GithubSkillsAssembler(resources)
+        engine = TemplateEngine(tmp_path, config)
+        output_dir = tmp_path / "output"
+
+        result = assembler.assemble(
+            config, output_dir, engine,
+        )
+
+        infra_paths = [
+            p for p in result
+            if p.parent.name in set(INFRA_SKILLS)
+        ]
+        assert infra_paths == []
+
+    def test_generates_only_applicable_infra_skills(
+        self, tmp_path: Path,
+    ) -> None:
+        config = _make_config(infrastructure={
+            "container": "docker",
+            "orchestrator": "none",
+            "templating": "none",
+            "iac": "none",
+        })
+        resources = _create_templates(tmp_path / "res")
+        assembler = GithubSkillsAssembler(resources)
+        engine = TemplateEngine(tmp_path, config)
+        output_dir = tmp_path / "output"
+
+        result = assembler.assemble(
+            config, output_dir, engine,
+        )
+
+        infra_names = {
+            p.parent.name for p in result
+            if p.parent.name in set(INFRA_SKILLS)
+        }
+        assert infra_names == {"dockerfile"}
+
 
 def _assemble_real_templates(
     tmp_path: Path,
@@ -783,8 +832,6 @@ class TestInfraFrontmatterValid:
     def test_yaml_frontmatter_parseable(
         self, tmp_path: Path, skill_name: str,
     ) -> None:
-        import yaml
-
         result = _assemble_real_templates(tmp_path)
         path = _find_skill(result, skill_name)
         content = path.read_text(encoding="utf-8")

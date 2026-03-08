@@ -48,6 +48,26 @@ SKILL_GROUPS = {
     ),
 }
 
+# Infrastructure skills gated by config values.
+# Maps skill name -> (config_field, condition_fn).
+INFRA_SKILL_CONDITIONS = {
+    "setup-environment": lambda c: (
+        c.infrastructure.orchestrator != "none"
+    ),
+    "k8s-deployment": lambda c: (
+        c.infrastructure.orchestrator == "kubernetes"
+    ),
+    "k8s-kustomize": lambda c: (
+        c.infrastructure.templating == "kustomize"
+    ),
+    "dockerfile": lambda c: (
+        c.infrastructure.container != "none"
+    ),
+    "iac-terraform": lambda c: (
+        c.infrastructure.iac == "terraform"
+    ),
+}
+
 
 class GithubSkillsAssembler:
     """Generates .github/skills/ from templates."""
@@ -64,12 +84,31 @@ class GithubSkillsAssembler:
         """Generate skill files from all registered groups."""
         generated: List[Path] = []
         for group, skill_names in SKILL_GROUPS.items():
+            names = self._filter_skills(
+                config, group, skill_names,
+            )
             generated.extend(
                 self._generate_group(
-                    engine, output_dir, group, skill_names,
+                    engine, output_dir, group, names,
                 ),
             )
         return generated
+
+    @staticmethod
+    def _filter_skills(
+        config: ProjectConfig,
+        group: str,
+        skill_names: tuple,
+    ) -> tuple:
+        """Filter skills based on config conditions."""
+        if group != "infrastructure":
+            return skill_names
+        return tuple(
+            name for name in skill_names
+            if INFRA_SKILL_CONDITIONS.get(
+                name, lambda _: True,
+            )(config)
+        )
 
     def _generate_group(
         self,
