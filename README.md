@@ -1,4 +1,4 @@
-# Claude Code Boilerplate
+# ia-dev-environment
 
 A **reusable, project-agnostic** generator for complete `.claude/` directories. Produces rules, skills, agents, hooks, settings, and documentation — everything a Claude Code project needs to enforce engineering standards from day one.
 
@@ -16,7 +16,7 @@ A **reusable, project-agnostic** generator for complete `.claude/` directories. 
 ```bash
 # Clone the repository
 git clone <repo-url>
-cd claude-environment
+cd ia-dev-environment
 
 # Create and activate a virtual environment (recommended)
 python3 -m venv .venv
@@ -36,34 +36,34 @@ pip3 install -e ".[dev]"
 
 ```bash
 # Use one of the bundled config profiles
-claude-setup generate --config resources/config-templates/setup-config.python-fastapi.yaml --output-dir /path/to/your-project/.claude/
+ia-dev-env generate --config resources/config-templates/setup-config.python-fastapi.yaml --output-dir /path/to/your-project/.claude/
 
 # Or use your own config file
-claude-setup generate --config my-config.yaml --output-dir .claude/
+ia-dev-env generate --config my-config.yaml --output-dir .claude/
 ```
 
 #### Generate interactively
 
 ```bash
-claude-setup generate --interactive --output-dir .claude/
+ia-dev-env generate --interactive --output-dir .claude/
 ```
 
 #### Validate a config file (without generating output)
 
 ```bash
-claude-setup validate --config my-config.yaml
+ia-dev-env validate --config my-config.yaml
 ```
 
 #### Dry run (preview what would be generated)
 
 ```bash
-claude-setup generate --config my-config.yaml --dry-run
+ia-dev-env generate --config my-config.yaml --dry-run
 ```
 
 #### Verbose output
 
 ```bash
-claude-setup generate --config my-config.yaml --output-dir .claude/ --verbose
+ia-dev-env generate --config my-config.yaml --output-dir .claude/ --verbose
 ```
 
 #### Custom resources directory
@@ -71,13 +71,13 @@ claude-setup generate --config my-config.yaml --output-dir .claude/ --verbose
 By default, the CLI auto-detects the `resources/` directory relative to the installed package. Override it with:
 
 ```bash
-claude-setup generate --config my-config.yaml --resources-dir /path/to/resources --output-dir .claude/
+ia-dev-env generate --config my-config.yaml --resources-dir /path/to/resources --output-dir .claude/
 ```
 
 ### CLI Reference
 
 ```
-claude-setup [OPTIONS] COMMAND [ARGS]...
+ia-dev-env [OPTIONS] COMMAND [ARGS]...
 
 Commands:
   generate    Generate project scaffolding from config or interactive mode
@@ -116,9 +116,9 @@ The repository includes 8 ready-to-use config profiles under `resources/config-t
 ### Project Structure
 
 ```
-claude-environment/
+ia-dev-environment/
 ├── src/
-│   └── claude_setup/          # Python package (src layout)
+│   └── ia_dev_env/            # Python package (src layout)
 │       ├── __init__.py
 │       ├── __main__.py        # CLI entry point (Click)
 │       ├── config.py          # YAML config loading + v2→v3 migration
@@ -210,7 +210,7 @@ pytest tests/test_byte_for_byte.py
 python3 -m build
 
 # Install from built wheel
-pip3 install dist/claude_setup-0.1.0-py3-none-any.whl
+pip3 install dist/ia_dev_environment-0.1.0-py3-none-any.whl
 ```
 
 ## What's Generated
@@ -308,7 +308,7 @@ The 4-layer architecture separates **language** from **framework**, enabling:
 The Python CLI implements a modular assembler pipeline:
 
 ```
-claude-setup generate
+ia-dev-env generate
 ├── Config Loading     <- YAML parsing + v2→v3 auto-migration
 ├── Stack Resolution   <- Language/framework compatibility validation
 ├── Rules Assembly     <- Core + language + framework + project identity + domain

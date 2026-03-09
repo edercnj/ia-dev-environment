@@ -63,13 +63,13 @@ G7 depends on G6 (full integration verification is the final gate).
 | **Group** | G1 (Foundation) |
 
 **Files to modify:**
-- `claude_setup/models.py` -- add `VerificationResult` dataclass after `PipelineResult`
+- `ia_dev_env/models.py` -- add `VerificationResult` dataclass after `PipelineResult`
 
 **Dependencies:** None
 
 **Description:**
 
-Add a `VerificationResult` dataclass to `claude_setup/models.py`. This is a pure domain value object representing the outcome of a byte-for-byte output comparison. It must have zero framework dependencies (stdlib only).
+Add a `VerificationResult` dataclass to `ia_dev_env/models.py`. This is a pure domain value object representing the outcome of a byte-for-byte output comparison. It must have zero framework dependencies (stdlib only).
 
 **Dataclass definition:**
 
@@ -88,21 +88,21 @@ class VerificationResult:
 All fields are required. No `from_dict` factory needed (constructed directly by `verify_output`).
 
 **Acceptance Criteria:**
-- [ ] `VerificationResult` dataclass exists in `claude_setup/models.py`
+- [ ] `VerificationResult` dataclass exists in `ia_dev_env/models.py`
 - [ ] Has all 5 fields: `success`, `total_files`, `mismatches`, `missing_files`, `extra_files`
 - [ ] Uses only stdlib imports (already present: `dataclasses`, `pathlib.Path`, `typing.List`)
-- [ ] Is importable: `from claude_setup.models import VerificationResult`
+- [ ] Is importable: `from ia_dev_env.models import VerificationResult`
 - [ ] Follows existing pattern (same style as `PipelineResult`)
 
 **Checklist:**
 - [ ] Add `VerificationResult` dataclass with type annotations
 - [ ] Ensure `FileDiff` is defined before `VerificationResult` (forward reference)
 - [ ] Verify no circular imports
-- [ ] Verify `python -c "from claude_setup.models import VerificationResult; print('OK')"`
+- [ ] Verify `python -c "from ia_dev_env.models import VerificationResult; print('OK')"`
 
 **Check command:**
 ```bash
-cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.models import VerificationResult; r = VerificationResult(success=True, total_files=5, mismatches=[], missing_files=[], extra_files=[]); assert r.success; print('OK')"
+cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.models import VerificationResult; r = VerificationResult(success=True, total_files=5, mismatches=[], missing_files=[], extra_files=[]); assert r.success; print('OK')"
 ```
 
 ---
@@ -119,13 +119,13 @@ cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.
 | **Group** | G1 (Foundation) |
 
 **Files to modify:**
-- `claude_setup/models.py` -- add `FileDiff` dataclass before `VerificationResult`
+- `ia_dev_env/models.py` -- add `FileDiff` dataclass before `VerificationResult`
 
 **Dependencies:** None (parallel with G1-T1, but must be ordered before `VerificationResult` in the file)
 
 **Description:**
 
-Add a `FileDiff` dataclass to `claude_setup/models.py`. This value object represents a single file mismatch with unified diff content and size information.
+Add a `FileDiff` dataclass to `ia_dev_env/models.py`. This value object represents a single file mismatch with unified diff content and size information.
 
 **Dataclass definition:**
 
@@ -141,27 +141,27 @@ class FileDiff:
 ```
 
 **Acceptance Criteria:**
-- [ ] `FileDiff` dataclass exists in `claude_setup/models.py`
+- [ ] `FileDiff` dataclass exists in `ia_dev_env/models.py`
 - [ ] Has all 4 fields: `path`, `diff`, `python_size`, `reference_size`
 - [ ] Uses only stdlib imports (`pathlib.Path`)
-- [ ] Is importable: `from claude_setup.models import FileDiff`
+- [ ] Is importable: `from ia_dev_env.models import FileDiff`
 - [ ] Positioned before `VerificationResult` in the file (since `VerificationResult` references it)
 
 **Checklist:**
 - [ ] Add `FileDiff` dataclass with type annotations
 - [ ] Place it after `PipelineResult` and before `VerificationResult`
-- [ ] Verify `python -c "from claude_setup.models import FileDiff; print('OK')"`
+- [ ] Verify `python -c "from ia_dev_env.models import FileDiff; print('OK')"`
 
 **Check command:**
 ```bash
-cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.models import FileDiff; d = FileDiff(path=__import__('pathlib').Path('test.md'), diff='--- a\\n+++ b\\n', python_size=100, reference_size=100); assert d.python_size == 100; print('OK')"
+cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.models import FileDiff; d = FileDiff(path=__import__('pathlib').Path('test.md'), diff='--- a\\n+++ b\\n', python_size=100, reference_size=100); assert d.python_size == 100; print('OK')"
 ```
 
 ---
 
 ## G2 -- Core Logic (depends on G1)
 
-### T3: Implement `verify_output()` in `claude_setup/verifier.py`
+### T3: Implement `verify_output()` in `ia_dev_env/verifier.py`
 
 | Attribute | Value |
 |-----------|-------|
@@ -173,13 +173,13 @@ cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.
 | **Group** | G2 (Core Logic) |
 
 **Files to create:**
-- `claude_setup/verifier.py` -- new module with `verify_output()` and helpers
+- `ia_dev_env/verifier.py` -- new module with `verify_output()` and helpers
 
 **Dependencies:** G1-T1 (VerificationResult), G1-T2 (FileDiff)
 
 **Description:**
 
-Create `claude_setup/verifier.py` implementing the byte-for-byte comparison engine. This module depends only on stdlib (`pathlib`, `difflib`, `os`). No framework imports.
+Create `ia_dev_env/verifier.py` implementing the byte-for-byte comparison engine. This module depends only on stdlib (`pathlib`, `difflib`, `os`). No framework imports.
 
 #### Main function: `verify_output(python_dir: Path, reference_dir: Path) -> VerificationResult`
 
@@ -212,7 +212,7 @@ def _generate_text_diff(
 ```
 
 **Acceptance Criteria:**
-- [ ] `verify_output()` function exists in `claude_setup/verifier.py`
+- [ ] `verify_output()` function exists in `ia_dev_env/verifier.py`
 - [ ] Recursively compares all files in both directories
 - [ ] Byte-for-byte comparison using `read_bytes()`
 - [ ] Detects missing files (in reference but not in python output)
@@ -226,17 +226,17 @@ def _generate_text_diff(
 - [ ] File is <= 250 lines total
 
 **Checklist:**
-- [ ] Create `claude_setup/verifier.py`
+- [ ] Create `ia_dev_env/verifier.py`
 - [ ] Add `from __future__ import annotations` at top
 - [ ] Implement `_collect_relative_paths(base_dir)`
 - [ ] Implement `_compare_files(python_file, reference_file, relative_path)`
 - [ ] Implement `_generate_text_diff(python_file, reference_file, relative_path)`
 - [ ] Implement `verify_output(python_dir, reference_dir)`
-- [ ] Verify `python -c "from claude_setup.verifier import verify_output; print('OK')"`
+- [ ] Verify `python -c "from ia_dev_env.verifier import verify_output; print('OK')"`
 
 **Check command:**
 ```bash
-cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.verifier import verify_output; print('OK')"
+cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.verifier import verify_output; print('OK')"
 ```
 
 ---
@@ -387,7 +387,7 @@ cd /Users/edercnj/workspaces/claude-environment && python -m pytest tests/test_m
 
 **Description:**
 
-Unit tests for `claude_setup/verifier.py`. Tests use `tmp_path` fixture to create filesystem structures for comparison.
+Unit tests for `ia_dev_env/verifier.py`. Tests use `tmp_path` fixture to create filesystem structures for comparison.
 
 **Test cases:**
 
@@ -732,7 +732,7 @@ G1-T2 (FileDiff) ─────────────┤                     
 
 | File | Group | Purpose |
 |------|-------|---------|
-| `claude_setup/verifier.py` | G2 | verify_output(), _collect_relative_paths(), _compare_files(), _generate_text_diff() |
+| `ia_dev_env/verifier.py` | G2 | verify_output(), _collect_relative_paths(), _compare_files(), _generate_text_diff() |
 | `scripts/generate_golden.py` | G3 | Golden file generation script for all 8 config profiles |
 | `tests/test_verifier.py` | G4 | Unit tests for verify_output and helpers |
 | `tests/test_byte_for_byte.py` | G5 | Parametrized byte-for-byte tests across all profiles |
@@ -744,7 +744,7 @@ G1-T2 (FileDiff) ─────────────┤                     
 
 | File | Group | Changes |
 |------|-------|---------|
-| `claude_setup/models.py` | G1 | Add `FileDiff` and `VerificationResult` dataclasses |
+| `ia_dev_env/models.py` | G1 | Add `FileDiff` and `VerificationResult` dataclasses |
 | `tests/test_models.py` | G4 | Add `TestFileDiff` and `TestVerificationResult` test classes |
 
 ### Generated Artifacts
@@ -756,5 +756,5 @@ G1-T2 (FileDiff) ─────────────┤                     
 ## Full Validation Command
 
 ```bash
-cd /Users/edercnj/workspaces/claude-environment && python scripts/generate_golden.py --all && python -m pytest tests/test_models.py tests/test_verifier.py tests/test_byte_for_byte.py tests/test_verification_edge_cases.py tests/test_verification_performance.py tests/test_e2e_verification.py -x -q --tb=short && python -m pytest tests/ --cov=claude_setup --cov-report=term-missing --cov-fail-under=95
+cd /Users/edercnj/workspaces/claude-environment && python scripts/generate_golden.py --all && python -m pytest tests/test_models.py tests/test_verifier.py tests/test_byte_for_byte.py tests/test_verification_edge_cases.py tests/test_verification_performance.py tests/test_e2e_verification.py -x -q --tb=short && python -m pytest tests/ --cov=ia_dev_env --cov-report=term-missing --cov-fail-under=95
 ```

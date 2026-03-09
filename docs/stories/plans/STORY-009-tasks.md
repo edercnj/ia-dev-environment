@@ -38,13 +38,13 @@ G4 depends on G3 (tests exercise all layers).
 | **Group** | G1 (Foundation) |
 
 **Files to modify:**
-- `claude_setup/models.py` -- add `PipelineResult` dataclass after `ProjectConfig`
+- `ia_dev_env/models.py` -- add `PipelineResult` dataclass after `ProjectConfig`
 
 **Dependencies:** None
 
 **Description:**
 
-Add a new `PipelineResult` dataclass to `claude_setup/models.py`. This is a pure domain value object representing the outcome of a pipeline execution. It must have zero framework dependencies (stdlib only: `dataclasses`, `pathlib`, `typing`).
+Add a new `PipelineResult` dataclass to `ia_dev_env/models.py`. This is a pure domain value object representing the outcome of a pipeline execution. It must have zero framework dependencies (stdlib only: `dataclasses`, `pathlib`, `typing`).
 
 **Dataclass definition:**
 
@@ -61,21 +61,21 @@ class PipelineResult:
 All fields are required. No `from_dict` factory needed (constructed directly by `run_pipeline`).
 
 **Acceptance Criteria:**
-- [ ] `PipelineResult` dataclass exists in `claude_setup/models.py`
+- [ ] `PipelineResult` dataclass exists in `ia_dev_env/models.py`
 - [ ] Has all 5 fields: `success`, `output_dir`, `files_generated`, `warnings`, `duration_ms`
 - [ ] Uses only stdlib imports (`dataclasses`, `pathlib.Path`, `typing.List`)
-- [ ] Is importable: `from claude_setup.models import PipelineResult`
+- [ ] Is importable: `from ia_dev_env.models import PipelineResult`
 - [ ] Follows existing pattern (same style as `ProjectConfig` and other dataclasses in the file)
 
 **Checklist:**
 - [ ] Add `from pathlib import Path` if not already imported (it is NOT currently imported in models.py)
 - [ ] Add `PipelineResult` dataclass with type annotations
 - [ ] Verify no circular imports
-- [ ] Verify `python -c "from claude_setup.models import PipelineResult; print('OK')"`
+- [ ] Verify `python -c "from ia_dev_env.models import PipelineResult; print('OK')"`
 
 **Check command:**
 ```bash
-cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.models import PipelineResult; r = PipelineResult(success=True, output_dir=__import__('pathlib').Path('.'), files_generated=[], warnings=[], duration_ms=100); assert r.success; print('OK')"
+cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.models import PipelineResult; r = PipelineResult(success=True, output_dir=__import__('pathlib').Path('.'), files_generated=[], warnings=[], duration_ms=100); assert r.success; print('OK')"
 ```
 
 ---
@@ -92,13 +92,13 @@ cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.
 | **Group** | G1 (Foundation) |
 
 **Files to modify:**
-- `claude_setup/exceptions.py` -- add `PipelineError` exception class
+- `ia_dev_env/exceptions.py` -- add `PipelineError` exception class
 
 **Dependencies:** None (parallel with G1-T1)
 
 **Description:**
 
-Add a new `PipelineError` exception class to `claude_setup/exceptions.py`. This exception is raised when the pipeline orchestration encounters a fatal error that prevents completion. It should carry context about which assembler failed and what the error was.
+Add a new `PipelineError` exception class to `ia_dev_env/exceptions.py`. This exception is raised when the pipeline orchestration encounters a fatal error that prevents completion. It should carry context about which assembler failed and what the error was.
 
 **Exception definition:**
 
@@ -115,21 +115,21 @@ class PipelineError(Exception):
 ```
 
 **Acceptance Criteria:**
-- [ ] `PipelineError` exception exists in `claude_setup/exceptions.py`
+- [ ] `PipelineError` exception exists in `ia_dev_env/exceptions.py`
 - [ ] Has `assembler_name` and `reason` attributes for context
 - [ ] Error message includes both assembler name and reason
-- [ ] Is importable: `from claude_setup.exceptions import PipelineError`
+- [ ] Is importable: `from ia_dev_env.exceptions import PipelineError`
 - [ ] Follows existing pattern (same style as `ConfigValidationError`)
 
 **Checklist:**
 - [ ] Add `PipelineError` class with `assembler_name` and `reason` attributes
 - [ ] Include descriptive `__init__` with formatted message
 - [ ] Verify no circular imports
-- [ ] Verify `python -c "from claude_setup.exceptions import PipelineError; print('OK')"`
+- [ ] Verify `python -c "from ia_dev_env.exceptions import PipelineError; print('OK')"`
 
 **Check command:**
 ```bash
-cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.exceptions import PipelineError; e = PipelineError('RulesAssembler', 'src not found'); assert 'RulesAssembler' in str(e); assert e.assembler_name == 'RulesAssembler'; print('OK')"
+cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.exceptions import PipelineError; e = PipelineError('RulesAssembler', 'src not found'); assert 'RulesAssembler' in str(e); assert e.assembler_name == 'RulesAssembler'; print('OK')"
 ```
 
 ---
@@ -148,13 +148,13 @@ cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.
 | **Group** | G2 (Core Logic) |
 
 **Files to create:**
-- `claude_setup/utils.py` -- new module with three utility functions
+- `ia_dev_env/utils.py` -- new module with three utility functions
 
 **Dependencies:** G1-T1, G1-T2 (uses no domain types directly, but logically sequenced after foundation)
 
 **Description:**
 
-Create `claude_setup/utils.py` with three functions. This module depends only on stdlib (`tempfile`, `shutil`, `pathlib`, `logging`, `contextlib`). No framework or domain imports.
+Create `ia_dev_env/utils.py` with three functions. This module depends only on stdlib (`tempfile`, `shutil`, `pathlib`, `logging`, `contextlib`). No framework or domain imports.
 
 #### 3.1 `atomic_output(dest_dir: Path) -> ContextManager[Path]`
 
@@ -163,7 +163,7 @@ Context manager implementing RULE-003 (atomic output):
 ```python
 @contextmanager
 def atomic_output(dest_dir: Path) -> Generator[Path, None, None]:
-    temp_dir = Path(tempfile.mkdtemp(prefix="claude-setup-"))
+    temp_dir = Path(tempfile.mkdtemp(prefix="ia-dev-env-"))
     try:
         yield temp_dir
         if dest_dir.exists():
@@ -175,7 +175,7 @@ def atomic_output(dest_dir: Path) -> Generator[Path, None, None]:
 ```
 
 Contract:
-- Creates `tempfile.mkdtemp()` directory with prefix `"claude-setup-"`.
+- Creates `tempfile.mkdtemp()` directory with prefix `"ia-dev-env-"`.
 - Yields the temp `Path`.
 - On `__exit__` with no exception: copies temp contents to `dest_dir` via `shutil.copytree`, then removes temp.
 - On `__exit__` with exception: removes temp dir via `shutil.rmtree`, re-raises exception.
@@ -204,10 +204,10 @@ def find_src_dir() -> Path:
     return src
 ```
 
-Resolves `Path(__file__).resolve().parent.parent / "src"` (i.e., two levels up from `claude_setup/utils.py` to repo root, then into `src/`). Raises `FileNotFoundError` if directory does not exist.
+Resolves `Path(__file__).resolve().parent.parent / "src"` (i.e., two levels up from `ia_dev_env/utils.py` to repo root, then into `src/`). Raises `FileNotFoundError` if directory does not exist.
 
 **Acceptance Criteria:**
-- [ ] `claude_setup/utils.py` exists with all three functions
+- [ ] `ia_dev_env/utils.py` exists with all three functions
 - [ ] `atomic_output` creates temp dir, yields it, copies to dest on success, cleans up on failure
 - [ ] `atomic_output` removes temp dir in ALL cases (success and failure)
 - [ ] `atomic_output` removes existing `dest_dir` before copying (to avoid merge with old files)
@@ -216,10 +216,10 @@ Resolves `Path(__file__).resolve().parent.parent / "src"` (i.e., two levels up f
 - [ ] `find_src_dir` raises `FileNotFoundError` when `src/` does not exist
 - [ ] Module uses only stdlib imports (zero framework dependencies)
 - [ ] Each function is <= 25 lines
-- [ ] All importable: `from claude_setup.utils import atomic_output, setup_logging, find_src_dir`
+- [ ] All importable: `from ia_dev_env.utils import atomic_output, setup_logging, find_src_dir`
 
 **Checklist:**
-- [ ] Create `claude_setup/utils.py`
+- [ ] Create `ia_dev_env/utils.py`
 - [ ] Implement `atomic_output` context manager with `tempfile.mkdtemp` and `shutil.copytree`
 - [ ] Implement `setup_logging` with `logging.basicConfig`
 - [ ] Implement `find_src_dir` with `Path(__file__)` resolution
@@ -229,7 +229,7 @@ Resolves `Path(__file__).resolve().parent.parent / "src"` (i.e., two levels up f
 
 **Check command:**
 ```bash
-cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.utils import atomic_output, setup_logging, find_src_dir; print(find_src_dir()); print('OK')"
+cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.utils import atomic_output, setup_logging, find_src_dir; print(find_src_dir()); print('OK')"
 ```
 
 ---
@@ -246,13 +246,13 @@ cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.
 | **Group** | G2 (Core Logic) |
 
 **Files to modify:**
-- `claude_setup/assembler/__init__.py` -- add `run_pipeline()` function, update imports and `__all__`
+- `ia_dev_env/assembler/__init__.py` -- add `run_pipeline()` function, update imports and `__all__`
 
 **Dependencies:** G1-T1 (PipelineResult), G1-T2 (PipelineError), G2-T3 (atomic_output)
 
 **Description:**
 
-Add the `run_pipeline()` function to `claude_setup/assembler/__init__.py`. This is the main orchestration entry point that calls all assemblers in sequence with atomic output.
+Add the `run_pipeline()` function to `ia_dev_env/assembler/__init__.py`. This is the main orchestration entry point that calls all assemblers in sequence with atomic output.
 
 **Function signature:**
 
@@ -326,7 +326,7 @@ def _execute_assemblers(
 - Keep existing assembler re-exports
 
 **Acceptance Criteria:**
-- [ ] `run_pipeline()` function exists in `claude_setup/assembler/__init__.py`
+- [ ] `run_pipeline()` function exists in `ia_dev_env/assembler/__init__.py`
 - [ ] Calls all 8 assemblers in the correct order (ReadmeAssembler last)
 - [ ] Uses `atomic_output` context manager for non-dry-run execution
 - [ ] Handles `dry_run=True` by running in temp dir and discarding output
@@ -334,7 +334,7 @@ def _execute_assemblers(
 - [ ] Returns `PipelineResult` with accurate `files_generated`, `warnings`, `duration_ms`
 - [ ] `duration_ms` computed from `time.monotonic()` difference
 - [ ] Each function/method is <= 25 lines
-- [ ] Importable: `from claude_setup.assembler import run_pipeline`
+- [ ] Importable: `from ia_dev_env.assembler import run_pipeline`
 - [ ] No circular imports
 - [ ] Handles both assembler constructor patterns (no-arg and src_dir-arg)
 
@@ -346,11 +346,11 @@ def _execute_assemblers(
 - [ ] Implement dry-run path using temp dir
 - [ ] Add `run_pipeline` and `PipelineResult` to `__all__`
 - [ ] Verify total file length stays <= 250 lines (extract helpers if needed)
-- [ ] Verify `python -c "from claude_setup.assembler import run_pipeline; print('OK')"`
+- [ ] Verify `python -c "from ia_dev_env.assembler import run_pipeline; print('OK')"`
 
 **Check command:**
 ```bash
-cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.assembler import run_pipeline, PipelineResult; print('OK')"
+cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.assembler import run_pipeline, PipelineResult; print('OK')"
 ```
 
 ---
@@ -369,20 +369,20 @@ cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.
 | **Group** | G3 (CLI Layer) |
 
 **Files to modify:**
-- `claude_setup/__main__.py` -- replace `init` command with `generate` and `validate` commands
+- `ia_dev_env/__main__.py` -- replace `init` command with `generate` and `validate` commands
 
 **Dependencies:** G2-T3 (utils), G2-T4 (run_pipeline)
 
 **Description:**
 
-Rewrite `claude_setup/__main__.py` to replace the current `init` command with two new subcommands: `generate` and `validate`. The existing `main` Click group remains as the entry point.
+Rewrite `ia_dev_env/__main__.py` to replace the current `init` command with two new subcommands: `generate` and `validate`. The existing `main` Click group remains as the entry point.
 
 **New command structure:**
 
 ```
-claude-setup generate --config <path> [--output-dir DIR] [--src-dir DIR] [--verbose] [--dry-run]
-claude-setup generate --interactive [--output-dir DIR] [--src-dir DIR] [--verbose] [--dry-run]
-claude-setup validate --config <path> [--verbose]
+ia-dev-env generate --config <path> [--output-dir DIR] [--src-dir DIR] [--verbose] [--dry-run]
+ia-dev-env generate --interactive [--output-dir DIR] [--src-dir DIR] [--verbose] [--dry-run]
+ia-dev-env validate --config <path> [--verbose]
 ```
 
 #### `generate` command:
@@ -463,12 +463,12 @@ Extract a `_display_result(result: PipelineResult)` function to format and echo 
 - [ ] Add `_display_result` helper for PipelineResult output
 - [ ] Import `run_pipeline`, `find_src_dir`, `setup_logging`, `validate_stack`, `PipelineError`
 - [ ] Handle all exceptions with `click.ClickException`
-- [ ] Verify `python -m claude_setup generate --help` works
-- [ ] Verify `python -m claude_setup validate --help` works
+- [ ] Verify `python -m ia_dev_env generate --help` works
+- [ ] Verify `python -m ia_dev_env validate --help` works
 
 **Check command:**
 ```bash
-cd /Users/edercnj/workspaces/claude-environment && python -m claude_setup --help && python -m claude_setup generate --help && python -m claude_setup validate --help
+cd /Users/edercnj/workspaces/claude-environment && python -m ia_dev_env --help && python -m ia_dev_env generate --help && python -m ia_dev_env validate --help
 ```
 
 ---
@@ -493,7 +493,7 @@ cd /Users/edercnj/workspaces/claude-environment && python -m claude_setup --help
 
 **Description:**
 
-Unit tests for `claude_setup/utils.py`. Each function gets its own test class. Tests use `tmp_path` fixture for filesystem operations.
+Unit tests for `ia_dev_env/utils.py`. Each function gets its own test class. Tests use `tmp_path` fixture for filesystem operations.
 
 **Test cases:**
 
@@ -553,7 +553,7 @@ cd /Users/edercnj/workspaces/claude-environment && python -m pytest tests/test_u
 
 **Description:**
 
-Unit tests for `run_pipeline()` in `claude_setup/assembler/__init__.py`. These tests mock individual assemblers to isolate the orchestration logic. The `ProjectConfig` can be constructed from test fixtures.
+Unit tests for `run_pipeline()` in `ia_dev_env/assembler/__init__.py`. These tests mock individual assemblers to isolate the orchestration logic. The `ProjectConfig` can be constructed from test fixtures.
 
 **Test cases:**
 
@@ -773,7 +773,7 @@ G1-T2 (PipelineError) ───┤                                           ─
 
 | File | Group | Purpose |
 |------|-------|---------|
-| `claude_setup/utils.py` | G2 | atomic_output, setup_logging, find_src_dir |
+| `ia_dev_env/utils.py` | G2 | atomic_output, setup_logging, find_src_dir |
 | `tests/test_utils.py` | G4 | Unit tests for utils module |
 | `tests/test_pipeline.py` | G4 | Unit tests for run_pipeline |
 | `tests/test_cli_generate.py` | G4 | CLI tests for generate command |
@@ -784,10 +784,10 @@ G1-T2 (PipelineError) ───┤                                           ─
 
 | File | Group | Changes |
 |------|-------|---------|
-| `claude_setup/models.py` | G1 | Add PipelineResult dataclass |
-| `claude_setup/exceptions.py` | G1 | Add PipelineError exception |
-| `claude_setup/assembler/__init__.py` | G2 | Add run_pipeline(), _build_assemblers(), _execute_assemblers(), update __all__ |
-| `claude_setup/__main__.py` | G3 | Replace init with generate and validate commands |
+| `ia_dev_env/models.py` | G1 | Add PipelineResult dataclass |
+| `ia_dev_env/exceptions.py` | G1 | Add PipelineError exception |
+| `ia_dev_env/assembler/__init__.py` | G2 | Add run_pipeline(), _build_assemblers(), _execute_assemblers(), update __all__ |
+| `ia_dev_env/__main__.py` | G3 | Replace init with generate and validate commands |
 | `tests/test_cli.py` | G4 | Update assertions for new CLI structure |
 
 ### Removed/Replaced Files
@@ -799,5 +799,5 @@ G1-T2 (PipelineError) ───┤                                           ─
 ## Full Validation Command
 
 ```bash
-cd /Users/edercnj/workspaces/claude-environment && python -m pytest tests/ -x -q --tb=short && python -m pytest tests/ --cov=claude_setup --cov-report=term-missing --cov-fail-under=95
+cd /Users/edercnj/workspaces/claude-environment && python -m pytest tests/ -x -q --tb=short && python -m pytest tests/ --cov=ia_dev_env --cov-report=term-missing --cov-fail-under=95
 ```

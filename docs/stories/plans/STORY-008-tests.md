@@ -493,7 +493,7 @@ markers = [
 
 ```bash
 # All STORY-008 tests
-pytest tests/assembler/test_hooks_assembler.py tests/assembler/test_settings_assembler.py tests/assembler/test_readme_assembler.py --cov=claude_setup/assembler --cov-branch --cov-report=html
+pytest tests/assembler/test_hooks_assembler.py tests/assembler/test_settings_assembler.py tests/assembler/test_readme_assembler.py --cov=ia_dev_env/assembler --cov-branch --cov-report=html
 
 # Unit tests only
 pytest tests/assembler/test_hooks_assembler.py tests/assembler/test_settings_assembler.py tests/assembler/test_readme_assembler.py -k "not contract"
@@ -502,7 +502,7 @@ pytest tests/assembler/test_hooks_assembler.py tests/assembler/test_settings_ass
 pytest tests/assembler/test_hooks_contract.py tests/assembler/test_settings_contract.py tests/assembler/test_readme_contract.py -m contract
 
 # Coverage check
-pytest tests/assembler/test_hooks_assembler.py tests/assembler/test_settings_assembler.py tests/assembler/test_readme_assembler.py --cov=claude_setup/assembler --cov-branch --cov-fail-under=95
+pytest tests/assembler/test_hooks_assembler.py tests/assembler/test_settings_assembler.py tests/assembler/test_readme_assembler.py --cov=ia_dev_env/assembler --cov-branch --cov-fail-under=95
 ```
 
 ---

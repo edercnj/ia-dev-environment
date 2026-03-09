@@ -34,14 +34,14 @@
 |-------|-------|
 | **ID** | T-001 |
 | **Group** | G1 |
-| **File** | `claude_setup/exceptions.py` (NEW) |
+| **File** | `ia_dev_env/exceptions.py` (NEW) |
 | **Action** | Create |
 | **Complexity** | Low |
 | **Blocked By** | -- |
 | **Blocks** | T-002, T-003, T-004, T-005, T-006, T-007 |
 
 **Description:**
-Create `claude_setup/exceptions.py` with a single exception class `ConfigValidationError(Exception)`.
+Create `ia_dev_env/exceptions.py` with a single exception class `ConfigValidationError(Exception)`.
 
 **Requirements:**
 - Carries `missing_fields: List[str]` attribute with names of all absent required sections.
@@ -69,14 +69,14 @@ class ConfigValidationError(Exception):
 |-------|-------|
 | **ID** | T-002 |
 | **Group** | G2 |
-| **File** | `claude_setup/config.py` (NEW) |
+| **File** | `ia_dev_env/config.py` (NEW) |
 | **Action** | Create |
 | **Complexity** | Medium |
 | **Blocked By** | T-001 |
 | **Blocks** | T-003, T-004 |
 
 **Description:**
-Create `claude_setup/config.py` with module-level constants for v2-to-v3 migration mappings.
+Create `ia_dev_env/config.py` with module-level constants for v2-to-v3 migration mappings.
 
 **Constants to define:**
 
@@ -107,7 +107,7 @@ Create `claude_setup/config.py` with module-level constants for v2-to-v3 migrati
 - Use `Dict[str, ...]` not `dict[str, ...]` (Python 3.9 compat).
 - Use `from __future__ import annotations` at top.
 - Module imports: `pathlib.Path`, `typing`, `yaml`.
-- Domain imports: `claude_setup.models.ProjectConfig`, `claude_setup.exceptions.ConfigValidationError`.
+- Domain imports: `ia_dev_env.models.ProjectConfig`, `ia_dev_env.exceptions.ConfigValidationError`.
 - Does NOT import `click`.
 
 ---
@@ -118,7 +118,7 @@ Create `claude_setup/config.py` with module-level constants for v2-to-v3 migrati
 |-------|-------|
 | **ID** | T-003 |
 | **Group** | G2 |
-| **File** | `claude_setup/config.py` |
+| **File** | `ia_dev_env/config.py` |
 | **Action** | Add functions |
 | **Complexity** | Medium |
 | **Blocked By** | T-002 |
@@ -154,7 +154,7 @@ Implement the v2 detection and migration functions in `config.py`.
 |-------|-------|
 | **ID** | T-004 |
 | **Group** | G2 |
-| **File** | `claude_setup/config.py` |
+| **File** | `ia_dev_env/config.py` |
 | **Action** | Add function |
 | **Complexity** | Low |
 | **Blocked By** | T-002 |
@@ -182,7 +182,7 @@ Implement validation of required top-level sections.
 |-------|-------|
 | **ID** | T-005 |
 | **Group** | G2 |
-| **File** | `claude_setup/config.py` |
+| **File** | `ia_dev_env/config.py` |
 | **Action** | Add function |
 | **Complexity** | Medium |
 | **Blocked By** | T-003, T-004 |
@@ -217,14 +217,14 @@ Implement the main entry point for config loading.
 |-------|-------|
 | **ID** | T-006 |
 | **Group** | G3 |
-| **File** | `claude_setup/interactive.py` (NEW) |
+| **File** | `ia_dev_env/interactive.py` (NEW) |
 | **Action** | Create |
 | **Complexity** | High |
 | **Blocked By** | T-001 |
 | **Blocks** | T-008 |
 
 **Description:**
-Create `claude_setup/interactive.py` with the interactive config collection flow.
+Create `ia_dev_env/interactive.py` with the interactive config collection flow.
 
 **Functions:**
 
@@ -264,8 +264,8 @@ Create `claude_setup/interactive.py` with the interactive config collection flow
 
 **Rules:**
 - Imports `click` (framework -- allowed in adapter layer).
-- Imports `claude_setup.models.*` (adapter -> domain, correct direction).
-- Does NOT import `claude_setup.config` (no cross-adapter dependency).
+- Imports `ia_dev_env.models.*` (adapter -> domain, correct direction).
+- Does NOT import `ia_dev_env.config` (no cross-adapter dependency).
 - Function length <= 25 lines: split `run_interactive` into helper calls if needed.
 - Always returns valid `ProjectConfig`, never `None`.
 
@@ -279,7 +279,7 @@ Create `claude_setup/interactive.py` with the interactive config collection flow
 |-------|-------|
 | **ID** | T-007 |
 | **Group** | G4 |
-| **File** | `claude_setup/__main__.py` (MODIFY) |
+| **File** | `ia_dev_env/__main__.py` (MODIFY) |
 | **Action** | Modify |
 | **Complexity** | Low |
 
@@ -290,7 +290,7 @@ Create `claude_setup/interactive.py` with the interactive config collection flow
 Add the `init` subcommand to the existing Click group in `__main__.py`.
 
 **Changes:**
-- Add imports: `from pathlib import Path`, `from claude_setup.config import load_config`, `from claude_setup.interactive import run_interactive`.
+- Add imports: `from pathlib import Path`, `from ia_dev_env.config import load_config`, `from ia_dev_env.interactive import run_interactive`.
 - Add `init` command decorated with `@main.command()`.
 - Add `--config` / `-c` option: `click.option("--config", "-c", type=click.Path(exists=True), default=None)`.
 - Logic: if `config` provided, call `load_config(Path(config))`; else call `run_interactive()`.
@@ -361,7 +361,7 @@ v3 config with ONLY the five required sections and minimal field values. No opti
 | **Blocks** | T-012 |
 
 **Description:**
-Create comprehensive unit tests for all functions in `claude_setup/config.py`.
+Create comprehensive unit tests for all functions in `ia_dev_env/config.py`.
 
 **Test cases:**
 
@@ -474,11 +474,11 @@ Integration tests exercising the full CLI flow through `CliRunner`.
 
 | Test Name | Scenario | Expected |
 |-----------|----------|----------|
-| `test_init_with_valid_config_file` | `claude-setup init --config valid_v3_config.yaml` | Exit code 0, output contains project name |
-| `test_init_with_v2_config_file` | `claude-setup init --config valid_v2_type_config.yaml` | Exit code 0, migration warning emitted, output contains project name |
-| `test_init_with_invalid_config_file` | `claude-setup init --config missing_language_config.yaml` | Exit code 1, error message mentions missing section |
-| `test_init_with_nonexistent_file` | `claude-setup init --config nonexistent.yaml` | Exit code 2 (Click file validation), error message |
-| `test_init_interactive_mode` | `claude-setup init` with simulated stdin | Exit code 0, output contains project name |
+| `test_init_with_valid_config_file` | `ia-dev-env init --config valid_v3_config.yaml` | Exit code 0, output contains project name |
+| `test_init_with_v2_config_file` | `ia-dev-env init --config valid_v2_type_config.yaml` | Exit code 0, migration warning emitted, output contains project name |
+| `test_init_with_invalid_config_file` | `ia-dev-env init --config missing_language_config.yaml` | Exit code 1, error message mentions missing section |
+| `test_init_with_nonexistent_file` | `ia-dev-env init --config nonexistent.yaml` | Exit code 2 (Click file validation), error message |
+| `test_init_interactive_mode` | `ia-dev-env init` with simulated stdin | Exit code 0, output contains project name |
 
 ---
 
@@ -499,7 +499,7 @@ Run the complete test suite with coverage measurement and verify thresholds are 
 
 **Commands:**
 ```bash
-pytest --cov=claude_setup --cov-report=html --cov-report=xml --cov-report=term-missing --cov-fail-under=95
+pytest --cov=ia_dev_env --cov-report=html --cov-report=xml --cov-report=term-missing --cov-fail-under=95
 ```
 
 **Verification checklist:**
@@ -507,8 +507,8 @@ pytest --cov=claude_setup --cov-report=html --cov-report=xml --cov-report=term-m
 - [ ] Line coverage >= 95%.
 - [ ] Branch coverage >= 90%.
 - [ ] Zero linter warnings.
-- [ ] `claude-setup init --config tests/fixtures/valid_v3_config.yaml` runs successfully.
-- [ ] `claude-setup init` (interactive) runs successfully with manual input.
+- [ ] `ia-dev-env init --config tests/fixtures/valid_v3_config.yaml` runs successfully.
+- [ ] `ia-dev-env init` (interactive) runs successfully with manual input.
 - [ ] All Gherkin scenarios from STORY-002 are covered by at least one test.
 
 ---
@@ -549,13 +549,13 @@ T-001 (exceptions.py)
 
 | ID | Description | File | Group | Complexity | Blocked By |
 |----|-------------|------|-------|------------|------------|
-| T-001 | Create `ConfigValidationError` exception | `claude_setup/exceptions.py` | G1 | Low | -- |
-| T-002 | Create mapping constants + module scaffold | `claude_setup/config.py` | G2 | Medium | T-001 |
-| T-003 | Implement `detect_v2_format` + `migrate_v2_to_v3` | `claude_setup/config.py` | G2 | Medium | T-002 |
-| T-004 | Implement `validate_config` | `claude_setup/config.py` | G2 | Low | T-002 |
-| T-005 | Implement `load_config` | `claude_setup/config.py` | G2 | Medium | T-003, T-004 |
-| T-006 | Implement `run_interactive` with Click prompts | `claude_setup/interactive.py` | G3 | High | T-001 |
-| T-007 | Wire `init` subcommand into `__main__.py` | `claude_setup/__main__.py` | G4 | Low | T-005, T-006 |
+| T-001 | Create `ConfigValidationError` exception | `ia_dev_env/exceptions.py` | G1 | Low | -- |
+| T-002 | Create mapping constants + module scaffold | `ia_dev_env/config.py` | G2 | Medium | T-001 |
+| T-003 | Implement `detect_v2_format` + `migrate_v2_to_v3` | `ia_dev_env/config.py` | G2 | Medium | T-002 |
+| T-004 | Implement `validate_config` | `ia_dev_env/config.py` | G2 | Low | T-002 |
+| T-005 | Implement `load_config` | `ia_dev_env/config.py` | G2 | Medium | T-003, T-004 |
+| T-006 | Implement `run_interactive` with Click prompts | `ia_dev_env/interactive.py` | G3 | High | T-001 |
+| T-007 | Wire `init` subcommand into `__main__.py` | `ia_dev_env/__main__.py` | G4 | Low | T-005, T-006 |
 | T-008 | Create YAML fixture files (5 files) | `tests/fixtures/*.yaml` | G5 | Medium | T-001 |
 | T-009 | Unit tests for config module | `tests/test_config.py` | G6 | High | T-005, T-008 |
 | T-010 | Contract tests for v2 mappings | `tests/test_config_contract.py` | G6 | Medium | T-003, T-008 |

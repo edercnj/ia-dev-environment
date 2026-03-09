@@ -30,7 +30,7 @@ These tasks create pure data structures and lookup functions with zero external 
 | Field | Value |
 |-------|-------|
 | **Task ID** | G1-T1 |
-| **Module** | `claude_setup/domain/stack_pack_mapping.py` |
+| **Module** | `ia_dev_env/domain/stack_pack_mapping.py` |
 | **Layer** | domain |
 | **Tier** | Junior |
 | **Context Budget** | S |
@@ -60,7 +60,7 @@ Create a module containing the `FRAMEWORK_STACK_PACK` dictionary and the `get_st
 | Field | Value |
 |-------|-------|
 | **Task ID** | G1-T2 |
-| **Module** | `claude_setup/domain/core_kp_routing.py` |
+| **Module** | `ia_dev_env/domain/core_kp_routing.py` |
 | **Layer** | domain |
 | **Tier** | Junior |
 | **Context Budget** | S |
@@ -90,7 +90,7 @@ Create frozen dataclasses `CoreKpRoute` and `ConditionalCoreKpRoute`, plus the s
 | Field | Value |
 |-------|-------|
 | **Task ID** | G1-T3 |
-| **Module** | `claude_setup/assembler/auditor.py` (dataclass only) |
+| **Module** | `ia_dev_env/assembler/auditor.py` (dataclass only) |
 | **Layer** | domain |
 | **Tier** | Junior |
 | **Context Budget** | S |
@@ -125,7 +125,7 @@ These tasks implement domain functions that depend on G1 data structures.
 | Field | Value |
 |-------|-------|
 | **Task ID** | G2-T1 |
-| **Module** | `claude_setup/domain/version_resolver.py` |
+| **Module** | `ia_dev_env/domain/version_resolver.py` |
 | **Layer** | domain |
 | **Tier** | Mid |
 | **Context Budget** | M |
@@ -158,7 +158,7 @@ Create `find_version_dir()` function that resolves version-specific directories 
 | Field | Value |
 |-------|-------|
 | **Task ID** | G2-T2 |
-| **Module** | `claude_setup/domain/core_kp_routing.py` (add function) |
+| **Module** | `ia_dev_env/domain/core_kp_routing.py` (add function) |
 | **Layer** | domain |
 | **Tier** | Mid |
 | **Context Budget** | M |
@@ -170,7 +170,7 @@ Add a `get_active_routes()` function to the `core_kp_routing` module that filter
 **Implementation details:**
 - `get_active_routes(config: ProjectConfig) -> List[CoreKpRoute]` -- returns combined list of unconditional routes + conditional routes whose conditions are met
 - For each `ConditionalCoreKpRoute`: get the config value for `condition_field` via `getattr()`, exclude if value matches `condition_exclude`
-- Uses `claude_setup.models.ProjectConfig` (read-only)
+- Uses `ia_dev_env.models.ProjectConfig` (read-only)
 
 **Acceptance Criteria:**
 - [ ] Returns all 11 unconditional routes for any config
@@ -190,7 +190,7 @@ These tasks create support modules used by the main assembler. Independent of G1
 | Field | Value |
 |-------|-------|
 | **Task ID** | G3-T1 |
-| **Module** | `claude_setup/assembler/consolidator.py` |
+| **Module** | `ia_dev_env/assembler/consolidator.py` |
 | **Layer** | domain |
 | **Tier** | Mid |
 | **Context Budget** | M |
@@ -233,7 +233,7 @@ This is the central orchestration task. Depends on all previous groups.
 | Field | Value |
 |-------|-------|
 | **Task ID** | G4-T1 |
-| **Module** | `claude_setup/assembler/rules_assembler.py` |
+| **Module** | `ia_dev_env/assembler/rules_assembler.py` |
 | **Layer** | domain engine |
 | **Tier** | Senior |
 | **Context Budget** | L |
@@ -319,21 +319,21 @@ Create the `RulesAssembler` class with all assembly layer methods. This is the m
 | Field | Value |
 |-------|-------|
 | **Task ID** | G5-T1 |
-| **Module** | `claude_setup/assembler/__init__.py` |
+| **Module** | `ia_dev_env/assembler/__init__.py` |
 | **Layer** | config |
 | **Tier** | Junior |
 | **Context Budget** | S |
 | **Dependencies** | G4-T1 |
 
 **Description:**
-Update the `claude_setup/assembler/__init__.py` to export `RulesAssembler` as the public API surface for the assembler package.
+Update the `ia_dev_env/assembler/__init__.py` to export `RulesAssembler` as the public API surface for the assembler package.
 
 **Implementation details:**
-- Add `from claude_setup.assembler.rules_assembler import RulesAssembler`
+- Add `from ia_dev_env.assembler.rules_assembler import RulesAssembler`
 - Add `__all__ = ["RulesAssembler"]`
 
 **Acceptance Criteria:**
-- [ ] `from claude_setup.assembler import RulesAssembler` works
+- [ ] `from ia_dev_env.assembler import RulesAssembler` works
 - [ ] No circular import issues
 - [ ] `__all__` explicitly declares public API
 

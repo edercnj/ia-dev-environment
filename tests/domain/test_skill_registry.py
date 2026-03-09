@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from claude_setup.domain.skill_registry import (
+from ia_dev_env.domain.skill_registry import (
     CORE_KNOWLEDGE_PACKS,
     build_infra_pack_rules,
 )

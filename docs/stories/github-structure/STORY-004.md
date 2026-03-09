@@ -20,7 +20,7 @@
 
 ## 3. Descrição
 
-Como **Java Developer**, eu quero que o gerador `claude_setup` produza skills de development (`x-dev-implement`, `x-dev-lifecycle`, `layer-templates`) em `.github/skills/`, garantindo que o fluxo de implementação de features siga os mesmos padrões de qualidade e arquitetura hexagonal.
+Como **Java Developer**, eu quero que o gerador `ia_dev_env` produza skills de development (`x-dev-implement`, `x-dev-lifecycle`, `layer-templates`) em `.github/skills/`, garantindo que o fluxo de implementação de features siga os mesmos padrões de qualidade e arquitetura hexagonal.
 
 Estas skills são de alta prioridade pois representam o core do fluxo de desenvolvimento. O assembler gera os arquivos a partir de templates em `resources/` com placeholder replacement via `TemplateEngine`, orquestrando desde o planning até a implementação layer-by-layer com checks intermediários. Os templates referenciam knowledge packs em `.claude/skills/` via links relativos (ambos gerados no mesmo `output_dir`).
 
@@ -94,7 +94,7 @@ Estas skills são de alta prioridade pois representam o core do fluxo de desenvo
 
 ```mermaid
 sequenceDiagram
-    participant Y as claude-setup.yaml
+    participant Y as ia-dev-env.yaml
     participant P as ProjectConfig
     participant E as TemplateEngine
     participant A as GithubSkillsAssembler

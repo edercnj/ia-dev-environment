@@ -5,13 +5,13 @@ from pathlib import Path
 
 import pytest
 
-from claude_setup.assembler.settings_assembler import (
+from ia_dev_env.assembler.settings_assembler import (
     SettingsAssembler,
     _read_json_array,
     merge_json_arrays,
 )
-from claude_setup.models import ProjectConfig
-from claude_setup.template_engine import TemplateEngine
+from ia_dev_env.models import ProjectConfig
+from ia_dev_env.template_engine import TemplateEngine
 
 
 def _create_settings_src(base: Path) -> Path:

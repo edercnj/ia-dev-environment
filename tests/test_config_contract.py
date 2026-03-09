@@ -4,8 +4,8 @@ from typing import Dict, List
 
 import pytest
 
-from claude_setup.config import migrate_v2_to_v3
-from claude_setup.models import ProjectConfig
+from ia_dev_env.config import migrate_v2_to_v3
+from ia_dev_env.models import ProjectConfig
 
 
 @pytest.mark.parametrize(

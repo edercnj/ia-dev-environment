@@ -24,9 +24,9 @@
 
 | Class / Module | Location | Responsibility |
 |----------------|----------|----------------|
-| `McpServerConfig` | `src/claude_setup/models.py` | Dataclass representing a single MCP server: `id`, `url`, `capabilities`, `env` |
-| `McpConfig` | `src/claude_setup/models.py` | Dataclass wrapping a `List[McpServerConfig]` with `from_dict()` factory |
-| `GithubMcpAssembler` | `src/claude_setup/assembler/github_mcp_assembler.py` | Generates `copilot-mcp.json` programmatically from `ProjectConfig.mcp` |
+| `McpServerConfig` | `src/ia_dev_env/models.py` | Dataclass representing a single MCP server: `id`, `url`, `capabilities`, `env` |
+| `McpConfig` | `src/ia_dev_env/models.py` | Dataclass wrapping a `List[McpServerConfig]` with `from_dict()` factory |
+| `GithubMcpAssembler` | `src/ia_dev_env/assembler/github_mcp_assembler.py` | Generates `copilot-mcp.json` programmatically from `ProjectConfig.mcp` |
 | `_build_copilot_mcp_dict()` | Same file (module-level function) | Builds the `{"mcpServers": {...}}` dict from `McpConfig` |
 
 **Golden files (new):**
@@ -119,12 +119,12 @@ Key design decisions:
 
 | Class / Module | Location | Change Description |
 |----------------|----------|--------------------|
-| `ProjectConfig` | `src/claude_setup/models.py` | Add optional `mcp: McpConfig` field with `default_factory=McpConfig` |
-| `ProjectConfig.from_dict()` | `src/claude_setup/models.py` | Add `mcp=McpConfig.from_dict(data.get("mcp", {}))` |
-| `_build_assemblers()` | `src/claude_setup/assembler/__init__.py` | Add `GithubMcpAssembler` as 10th entry |
-| `__all__` | `src/claude_setup/assembler/__init__.py` | Add `GithubMcpAssembler` to exports |
-| Import block | `src/claude_setup/assembler/__init__.py` | Add import of `GithubMcpAssembler` |
-| `_execute_assemblers()` | `src/claude_setup/assembler/__init__.py` | No change -- `GithubMcpAssembler` follows the standard `assemble(config, output_dir, engine)` signature (no `resources_dir` needed) |
+| `ProjectConfig` | `src/ia_dev_env/models.py` | Add optional `mcp: McpConfig` field with `default_factory=McpConfig` |
+| `ProjectConfig.from_dict()` | `src/ia_dev_env/models.py` | Add `mcp=McpConfig.from_dict(data.get("mcp", {}))` |
+| `_build_assemblers()` | `src/ia_dev_env/assembler/__init__.py` | Add `GithubMcpAssembler` as 10th entry |
+| `__all__` | `src/ia_dev_env/assembler/__init__.py` | Add `GithubMcpAssembler` to exports |
+| Import block | `src/ia_dev_env/assembler/__init__.py` | Add import of `GithubMcpAssembler` |
+| `_execute_assemblers()` | `src/ia_dev_env/assembler/__init__.py` | No change -- `GithubMcpAssembler` follows the standard `assemble(config, output_dir, engine)` signature (no `resources_dir` needed) |
 | `TestBuildAssemblers` | `tests/test_pipeline.py` | Update assembler count from 9 to 10; add ordering assertion |
 
 ### 3.1 ProjectConfig Change
@@ -203,7 +203,7 @@ No circular dependencies. No cross-assembler imports.
 
 ### Data Flow
 
-1. `claude-setup.yaml` is parsed; `mcp` section is deserialized into `McpConfig` within `ProjectConfig`
+1. `ia-dev-env.yaml` is parsed; `mcp` section is deserialized into `McpConfig` within `ProjectConfig`
 2. Pipeline calls `GithubMcpAssembler.assemble(config, output_dir, engine)`
 3. Assembler checks `config.mcp.servers` -- returns empty list if none
 4. For non-empty servers: builds `{"mcpServers": {id: {url, env}}}` dict
@@ -236,10 +236,10 @@ mcp:
 
 | Change | Location | Description |
 |--------|----------|-------------|
-| `McpServerConfig` dataclass | `src/claude_setup/models.py` | New domain value object |
-| `McpConfig` dataclass | `src/claude_setup/models.py` | New domain value object wrapping server list |
-| `ProjectConfig.mcp` field | `src/claude_setup/models.py` | New optional field (defaults to empty) |
-| Assembler registration | `src/claude_setup/assembler/__init__.py` | Position 10 in `_build_assemblers()` |
+| `McpServerConfig` dataclass | `src/ia_dev_env/models.py` | New domain value object |
+| `McpConfig` dataclass | `src/ia_dev_env/models.py` | New domain value object wrapping server list |
+| `ProjectConfig.mcp` field | `src/ia_dev_env/models.py` | New optional field (defaults to empty) |
+| Assembler registration | `src/ia_dev_env/assembler/__init__.py` | Position 10 in `_build_assemblers()` |
 
 No changes to `config.py` validation are needed because `mcp` is optional and `validate_config()` only checks `REQUIRED_SECTIONS`.
 
@@ -300,7 +300,7 @@ mcp:
 
 | File | Type |
 |------|------|
-| `src/claude_setup/assembler/github_mcp_assembler.py` | Production code |
+| `src/ia_dev_env/assembler/github_mcp_assembler.py` | Production code |
 | `tests/test_github_mcp_assembler.py` | Unit tests |
 | `tests/golden/java-quarkus/github/copilot-mcp.json` | Golden file |
 
@@ -308,7 +308,7 @@ mcp:
 
 | File | Change |
 |------|--------|
-| `src/claude_setup/models.py` | Add `McpServerConfig`, `McpConfig`, `ProjectConfig.mcp` |
-| `src/claude_setup/assembler/__init__.py` | Register 10th assembler |
+| `src/ia_dev_env/models.py` | Add `McpServerConfig`, `McpConfig`, `ProjectConfig.mcp` |
+| `src/ia_dev_env/assembler/__init__.py` | Register 10th assembler |
 | `tests/test_pipeline.py` | Update count and ordering |
 | `tests/fixtures/valid_v3_config.yaml` (or new fixture) | Add `mcp` section for testing |

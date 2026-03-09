@@ -4,13 +4,13 @@
 
 ## Contexto do Gerador
 
-Esta historia estende o `ReadmeAssembler` existente no gerador Python `claude_setup` para incluir documentacao da estrutura `.github/`, e adiciona um script de validacao end-to-end. O gerador produz AMBAS as estruturas `.claude/` e `.github/` — ambas sao saidas gitignored.
+Esta historia estende o `ReadmeAssembler` existente no gerador Python `ia_dev_env` para incluir documentacao da estrutura `.github/`, e adiciona um script de validacao end-to-end. O gerador produz AMBAS as estruturas `.claude/` e `.github/` — ambas sao saidas gitignored.
 
 **Arquitetura do gerador:**
 
 | Componente | Caminho |
 | :--- | :--- |
-| Assembler existente | `src/claude_setup/assembler/readme_assembler.py` (estender) |
+| Assembler existente | `src/ia_dev_env/assembler/readme_assembler.py` (estender) |
 | Template README | `resources/readme-templates/` (adicionar secao `.github/`) |
 | Script de validacao | `scripts/validate-github-structure.py` (novo) |
 | Pipeline | Ja registrado em `assembler/__init__.py` via `_build_assemblers()` |
@@ -41,7 +41,7 @@ O `ReadmeAssembler` ja implementa `assemble(config, output_dir, engine) -> List[
 
 ## 3. Descricao
 
-Como **Tech Lead**, eu quero que o gerador `claude_setup` produza um README.md abrangente cobrindo AMBAS as estruturas geradas (`.claude/` e `.github/`), e que exista um script de validacao transversal de todos os componentes gerados, garantindo que a adocao ocorra com evidencias de conformidade e governanca completa.
+Como **Tech Lead**, eu quero que o gerador `ia_dev_env` produza um README.md abrangente cobrindo AMBAS as estruturas geradas (`.claude/` e `.github/`), e que exista um script de validacao transversal de todos os componentes gerados, garantindo que a adocao ocorra com evidencias de conformidade e governanca completa.
 
 Esta e a historia final que converge todos os ramos de dependencia. Estende o `ReadmeAssembler` existente para incluir documentacao `.github/` e cria um script de validacao end-to-end que verifica a integridade de TODAS as saidas geradas pelo pipeline.
 
@@ -52,7 +52,7 @@ Esta e a historia final que converge todos os ramos de dependencia. Estende o `R
 - Convencoes por tipo de artefato (naming, frontmatter, extensoes)
 - Guia de contribuicao e manutencao (focado nos templates e assemblers)
 - Links para documentacao oficial do GitHub Copilot e Claude Code
-- Nota explicando que ambos diretorios sao saidas geradas pelo `claude_setup`
+- Nota explicando que ambos diretorios sao saidas geradas pelo `ia_dev_env`
 
 ### 3.2 Script de Validacao End-to-End
 
@@ -130,7 +130,7 @@ sequenceDiagram
     participant G as output_dir/.github/
     participant V as validate-github-structure.py
 
-    U->>P: claude_setup generate
+    U->>P: ia_dev_env generate
     P->>A: _build_assemblers() + _execute_assemblers()
     A->>C: Gerar .claude/ (rules, skills, agents, hooks, ...)
     A->>G: Gerar .github/ (instructions, agents, hooks, prompts, ...)
@@ -171,7 +171,7 @@ Cenario: README gerado cobre ambas estruturas
   QUANDO o ReadmeAssembler gera o README.md
   ENTAO contem arvore de diretorios de AMBAS as estruturas
   E inclui tabela de mapeamento .claude/ <-> .github/
-  E explica que ambos sao saidas geradas pelo claude_setup
+  E explica que ambos sao saidas geradas pelo ia_dev_env
 
 Cenario: Golden file test do README atualizado
   DADO que tests/golden/readme/ contem o README de referencia atualizado
@@ -208,7 +208,7 @@ Cenario: Relatorio No-Go com erros criticos
 
 - [ ] [Dev] Estender template README em `resources/readme-templates/` para cobrir `.github/`
 - [ ] [Dev] Incluir tabela de mapeamento `.claude/` <-> `.github/` no template
-- [ ] [Dev] Documentar que ambos diretorios sao saidas geradas pelo `claude_setup`
+- [ ] [Dev] Documentar que ambos diretorios sao saidas geradas pelo `ia_dev_env`
 - [ ] [Dev] Criar `scripts/validate-github-structure.py`
 - [ ] [Dev] Atualizar golden files em `tests/golden/readme/`
 - [ ] [Test] Atualizar cenarios em `tests/test_byte_for_byte.py` para README estendido

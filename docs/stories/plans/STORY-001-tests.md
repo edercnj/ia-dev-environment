@@ -153,7 +153,7 @@ MINIMAL_PROJECT_DICT = {
 
 ```python
 import pytest
-from claude_setup.models import (
+from ia_dev_env.models import (
     ProjectIdentity, ArchitectureConfig, InterfaceConfig,
     LanguageConfig, FrameworkConfig, TechComponent, DataConfig,
     EncryptionConfig, SecurityConfig, CloudConfig, InfraConfig,
@@ -161,7 +161,7 @@ from claude_setup.models import (
     ConventionsConfig, AdaptiveModel, SkillsConfig, AgentsConfig,
     HooksConfig, SettingsConfig, ProjectConfig,
 )
-from claude_setup.tests.fixtures.model_fixtures import (
+from ia_dev_env.tests.fixtures.model_fixtures import (
     FULL_PROJECT_DICT,
     MINIMAL_PROJECT_DICT,
 )
@@ -489,9 +489,9 @@ def test_project_config_from_dict_parametrized(input_dict, expected_interface_co
 | Test Name | Scenario | Expected Behavior |
 |-----------|----------|-------------------|
 | `test_pip_install_editable_succeeds` | Run `pip install -e .` | Exit code 0, no errors |
-| `test_python_module_help_returns_zero_exit_code` | Run `python -m claude_setup --help` | Exit code 0, output contains usage info |
-| `test_claude_setup_help_returns_zero_exit_code` | Run `claude-setup --help` | Exit code 0, output contains usage info |
-| `test_claude_setup_version_returns_version_string` | Run `claude-setup --version` | Exit code 0, output contains version |
+| `test_python_module_help_returns_zero_exit_code` | Run `python -m ia_dev_env --help` | Exit code 0, output contains usage info |
+| `test_ia_dev_env_help_returns_zero_exit_code` | Run `ia-dev-env --help` | Exit code 0, output contains usage info |
+| `test_ia_dev_env_version_returns_version_string` | Run `ia-dev-env --version` | Exit code 0, output contains version |
 
 **Implementation approach:** Use `subprocess.run()` to invoke commands and assert on exit codes and stdout content.
 
@@ -500,7 +500,7 @@ import subprocess
 
 def test_python_module_help_returns_zero_exit_code():
     result = subprocess.run(
-        ["python", "-m", "claude_setup", "--help"],
+        ["python", "-m", "ia_dev_env", "--help"],
         capture_output=True,
         text=True,
         timeout=10,
@@ -522,7 +522,7 @@ def test_python_module_help_returns_zero_exit_code():
 ### Coverage Command
 
 ```bash
-pytest --cov=claude_setup --cov-branch --cov-report=html --cov-report=xml --cov-fail-under=95 claude_setup/tests/
+pytest --cov=ia_dev_env --cov-branch --cov-report=html --cov-report=xml --cov-fail-under=95 ia_dev_env/tests/
 ```
 
 ---

@@ -20,7 +20,7 @@
 
 ## 3. Descrição
 
-Como **usuário da ferramenta**, eu quero uma CLI Click que orquestre todo o pipeline de geração, garantindo que posso executar `claude-setup --config config.yaml` ou `claude-setup --interactive` e obter o boilerplate completo do projeto.
+Como **usuário da ferramenta**, eu quero uma CLI Click que orquestre todo o pipeline de geração, garantindo que posso executar `ia-dev-env --config config.yaml` ou `ia-dev-env --interactive` e obter o boilerplate completo do projeto.
 
 Este módulo integra todos os componentes: `cli.py` (entry point Click com comandos e opções), `assembler/__init__.py` (pipeline de orquestração que chama todos os assemblers em sequência), e `utils.py` (funções utilitárias: atomic output, cleanup, logging).
 
@@ -28,9 +28,9 @@ O pipeline implementa RULE-003 (output atômico): gera tudo em temp dir, valida,
 
 ### 3.1 CLI (`cli.py`)
 
-- `claude-setup generate --config <path>` — modo config file
-- `claude-setup generate --interactive` — modo interativo (RULE-006)
-- `claude-setup validate --config <path>` — apenas validação sem geração
+- `ia-dev-env generate --config <path>` — modo config file
+- `ia-dev-env generate --interactive` — modo interativo (RULE-006)
+- `ia-dev-env validate --config <path>` — apenas validação sem geração
 - `--output-dir` — diretório de saída (default: `.`)
 - `--src-dir` — diretório com templates/skills fonte (default: detectado)
 - `--verbose` — logging detalhado
@@ -57,8 +57,8 @@ O pipeline implementa RULE-003 (output atômico): gera tudo em temp dir, valida,
 - [ ] Template engine (STORY-004) implementado
 
 ### DoD Local
-- [ ] `claude-setup generate --config setup-config.java-quarkus.yaml` executa sem erros
-- [ ] `claude-setup generate --interactive` coleta inputs e gera output
+- [ ] `ia-dev-env generate --config setup-config.java-quarkus.yaml` executa sem erros
+- [ ] `ia-dev-env generate --interactive` coleta inputs e gera output
 - [ ] Output atômico: falha intermediária não deixa arquivos parciais
 - [ ] `--dry-run` mostra plano sem modificar filesystem
 - [ ] `--validate` verifica config sem gerar
@@ -108,7 +108,7 @@ sequenceDiagram
     participant TMP as temp dir
     participant DST as output dir
 
-    USR->>CLI: claude-setup generate --config config.yaml
+    USR->>CLI: ia-dev-env generate --config config.yaml
     CLI->>CFG: load_config(path)
     CFG-->>CLI: ProjectConfig
     CLI->>RES: validate_stack(config)
@@ -134,14 +134,14 @@ sequenceDiagram
 ```gherkin
 Cenario: Geração completa com config file
   DADO que tenho setup-config.java-quarkus.yaml
-  QUANDO executo "claude-setup generate --config setup-config.java-quarkus.yaml"
+  QUANDO executo "ia-dev-env generate --config setup-config.java-quarkus.yaml"
   ENTÃO o output contém .claude/rules/, .claude/skills/, .claude/agents/
   E o output contém .claude/settings.json e .claude/hooks.json
   E o output contém README.md
   E o exit code é 0
 
 Cenario: Geração interativa
-  DADO que executo "claude-setup generate --interactive"
+  DADO que executo "ia-dev-env generate --interactive"
   QUANDO respondo todas as perguntas equivalentes a java-quarkus
   ENTÃO o output é idêntico ao gerado com config file
 
@@ -154,13 +154,13 @@ Cenario: Output atômico em caso de falha
 
 Cenario: Dry run
   DADO que tenho um config file válido
-  QUANDO executo "claude-setup generate --config config.yaml --dry-run"
+  QUANDO executo "ia-dev-env generate --config config.yaml --dry-run"
   ENTÃO o output mostra os arquivos que seriam gerados
   E nenhum arquivo é criado no filesystem
 
 Cenario: Validate only
   DADO que tenho um config file com erro
-  QUANDO executo "claude-setup validate --config config.yaml"
+  QUANDO executo "ia-dev-env validate --config config.yaml"
   ENTÃO os erros de validação são exibidos
   E nenhum arquivo é gerado
 ```

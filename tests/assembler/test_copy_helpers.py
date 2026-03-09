@@ -4,15 +4,15 @@ from pathlib import Path
 
 import pytest
 
-from claude_setup.assembler.copy_helpers import (
+from ia_dev_env.assembler.copy_helpers import (
     copy_template_file,
     copy_template_file_if_exists,
     copy_template_tree,
     copy_template_tree_if_exists,
     replace_placeholders_in_dir,
 )
-from claude_setup.models import ProjectConfig
-from claude_setup.template_engine import TemplateEngine
+from ia_dev_env.models import ProjectConfig
+from ia_dev_env.template_engine import TemplateEngine
 
 
 @pytest.fixture

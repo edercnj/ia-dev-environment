@@ -3,14 +3,14 @@ from __future__ import annotations
 import subprocess
 import sys
 
-from claude_setup import __version__
+from ia_dev_env import __version__
 
 
 class TestEntryPoint:
 
     def test_module_help_returns_zero(self) -> None:
         result = subprocess.run(
-            [sys.executable, "-m", "claude_setup", "--help"],
+            [sys.executable, "-m", "ia_dev_env", "--help"],
             capture_output=True,
             text=True,
             timeout=10,
@@ -20,7 +20,7 @@ class TestEntryPoint:
 
     def test_module_version_returns_version(self) -> None:
         result = subprocess.run(
-            [sys.executable, "-m", "claude_setup", "--version"],
+            [sys.executable, "-m", "ia_dev_env", "--version"],
             capture_output=True,
             text=True,
             timeout=10,

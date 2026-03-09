@@ -21,7 +21,7 @@
 
 ## 3. Descrição
 
-Como **Tech Lead de Plataforma**, eu quero que o gerador `claude_setup` produza `copilot-instructions.md` e `instructions/*.instructions.md` adaptando as 5 rules de `.claude/rules/`, garantindo que o Copilot carregue contexto global e contextual seguindo suas convenções nativas.
+Como **Tech Lead de Plataforma**, eu quero que o gerador `ia_dev_env` produza `copilot-instructions.md` e `instructions/*.instructions.md` adaptando as 5 rules de `.claude/rules/`, garantindo que o Copilot carregue contexto global e contextual seguindo suas convenções nativas.
 
 Este é o alicerce de toda a estrutura `.github/` gerada. O `GithubInstructionsAssembler` é o 9º assembler no pipeline e produz output a partir de templates em `resources/github-instructions-templates/` e dados de `ProjectConfig`. O arquivo `copilot-instructions.md` é gerado programaticamente (não a partir de template) com dados extraídos de `ProjectConfig`. Os arquivos `.instructions.md` são gerados a partir de templates com placeholder replacement via `TemplateEngine`.
 
@@ -34,7 +34,7 @@ O mapeamento de rules para instructions geradas:
 
 ### 3.1 Contexto Técnico (Gerador)
 
-**Assembler:** `GithubInstructionsAssembler` em `src/claude_setup/assembler/github_instructions_assembler.py`
+**Assembler:** `GithubInstructionsAssembler` em `src/ia_dev_env/assembler/github_instructions_assembler.py`
 
 - **Pipeline position:** 9º assembler (último) em `_build_assemblers()`
 - **Templates:** `resources/github-instructions-templates/{domain,coding-standards,architecture,quality-gates}.md`
@@ -76,7 +76,7 @@ O mapeamento de rules para instructions geradas:
 
 ### DoD Local (Definition of Done)
 
-- [x] `GithubInstructionsAssembler` implementado em `src/claude_setup/assembler/github_instructions_assembler.py`
+- [x] `GithubInstructionsAssembler` implementado em `src/ia_dev_env/assembler/github_instructions_assembler.py`
 - [x] 4 templates criados em `resources/github-instructions-templates/`
 - [x] Assembler registrado como 9º em `_build_assemblers()` no `assembler/__init__.py`
 - [x] Golden files atualizados em `tests/golden/` com output esperado
@@ -110,7 +110,7 @@ O mapeamento de rules para instructions geradas:
 
 ```mermaid
 sequenceDiagram
-    participant Y as claude-setup.yaml
+    participant Y as ia-dev-env.yaml
     participant P as ProjectConfig
     participant E as TemplateEngine
     participant A as GithubInstructionsAssembler
@@ -163,7 +163,7 @@ Cenario: Arquivo instructions com extensão incorreta
 
 ## 8. Sub-tarefas
 
-- [x] [Dev] Implementar `GithubInstructionsAssembler` em `src/claude_setup/assembler/github_instructions_assembler.py`
+- [x] [Dev] Implementar `GithubInstructionsAssembler` em `src/ia_dev_env/assembler/github_instructions_assembler.py`
 - [x] [Dev] Criar template `resources/github-instructions-templates/domain.md`
 - [x] [Dev] Criar template `resources/github-instructions-templates/coding-standards.md`
 - [x] [Dev] Criar template `resources/github-instructions-templates/architecture.md`

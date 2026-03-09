@@ -25,11 +25,11 @@ Os modelos devem cobrir todas as seções do YAML de configuração (project, ar
 
 ### 3.1 Estrutura de Diretórios
 
-- `claude_setup/` — pacote principal
-- `claude_setup/__main__.py` — entry point (`python -m claude_setup`)
-- `claude_setup/models.py` — todos os dataclasses
-- `claude_setup/assembler/` — subpacote para assemblers (vazio nesta story, com `__init__.py`)
-- `claude_setup/tests/` — diretório de testes
+- `ia_dev_env/` — pacote principal
+- `ia_dev_env/__main__.py` — entry point (`python -m ia_dev_env`)
+- `ia_dev_env/models.py` — todos os dataclasses
+- `ia_dev_env/assembler/` — subpacote para assemblers (vazio nesta story, com `__init__.py`)
+- `ia_dev_env/tests/` — diretório de testes
 - `pyproject.toml` — metadata, dependências (`pyyaml`, `jinja2`, `click`), scripts entry point
 
 ### 3.2 Modelos de Dados
@@ -54,7 +54,7 @@ Os modelos devem cobrir todas as seções do YAML de configuração (project, ar
 
 ### DoD Local
 - [ ] `pyproject.toml` válido com `pip install -e .` funcional
-- [ ] `python -m claude_setup --help` retorna sem erro
+- [ ] `python -m ia_dev_env --help` retorna sem erro
 - [ ] Todos os dataclasses instanciáveis a partir de dicts do YAML
 - [ ] 100% de cobertura nos modelos
 
@@ -87,7 +87,7 @@ Os modelos devem cobrir todas as seções do YAML de configuração (project, ar
 
 ```mermaid
 graph TD
-    A["claude_setup/"] --> B["__main__.py"]
+    A["ia_dev_env/"] --> B["__main__.py"]
     A --> C["models.py"]
     A --> D["assembler/"]
     A --> E["tests/"]
@@ -103,7 +103,7 @@ Cenario: Instalação do pacote
   DADO que o pyproject.toml está configurado
   QUANDO executo "pip install -e ."
   ENTÃO a instalação completa sem erros
-  E o comando "claude-setup --help" está disponível
+  E o comando "ia-dev-env --help" está disponível
 
 Cenario: Criação de ProjectConfig a partir de YAML completo
   DADO que tenho um dict representando setup-config.java-quarkus.yaml
@@ -119,7 +119,7 @@ Cenario: Criação de ProjectConfig com campos opcionais ausentes
 
 Cenario: Entry point funcional
   DADO que o pacote está instalado
-  QUANDO executo "python -m claude_setup --help"
+  QUANDO executo "python -m ia_dev_env --help"
   ENTÃO o output contém informações de uso
   E o exit code é 0
 ```

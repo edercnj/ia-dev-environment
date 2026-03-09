@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from claude_setup.domain.validator import (
+from ia_dev_env.domain.validator import (
     validate_stack,
     verify_cross_references,
 )

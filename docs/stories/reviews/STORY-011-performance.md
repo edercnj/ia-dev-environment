@@ -29,12 +29,12 @@ N/A:
 
 ### Nature of Changes
 
-STORY-011 is a **structural migration** moving from a flat package layout (`claude_setup/`) to a standard Python src layout (`src/claude_setup/`). Simultaneously, non-Python resource files are relocated from `src/` to `resources/`. The changes are primarily:
+STORY-011 is a **structural migration** moving from a flat package layout (`ia_dev_env/`) to a standard Python src layout (`src/ia_dev_env/`). Simultaneously, non-Python resource files are relocated from `src/` to `resources/`. The changes are primarily:
 
 1. **File renames** (R100): 40+ files moved with zero content changes
 2. **Variable renames**: `src_dir` -> `resources_dir`, `find_src_dir` -> `find_resources_dir` across all modules and tests
 3. **Path resolution update**: `find_resources_dir()` in `utils.py` now resolves `resources/` relative to the package via `Path(__file__).resolve().parent.parent.parent / "resources"`
-4. **Build configuration**: `pyproject.toml` updated with `[tool.setuptools.packages.find] where = ["src"]` and coverage source updated to `src/claude_setup`
+4. **Build configuration**: `pyproject.toml` updated with `[tool.setuptools.packages.find] where = ["src"]` and coverage source updated to `src/ia_dev_env`
 
 ### Performance-Relevant Observations
 

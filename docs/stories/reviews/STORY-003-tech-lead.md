@@ -19,11 +19,11 @@
 
 | File | Lines | Layer |
 |------|-------|-------|
-| `claude_setup/domain/resolved_stack.py` | 18 | domain.model |
-| `claude_setup/domain/stack_mapping.py` | 198 | domain.engine |
-| `claude_setup/domain/resolver.py` | 136 | domain.engine |
-| `claude_setup/domain/validator.py` | 198 | domain.engine |
-| `claude_setup/domain/__init__.py` | 0 | domain |
+| `ia_dev_env/domain/resolved_stack.py` | 18 | domain.model |
+| `ia_dev_env/domain/stack_mapping.py` | 198 | domain.engine |
+| `ia_dev_env/domain/resolver.py` | 136 | domain.engine |
+| `ia_dev_env/domain/validator.py` | 198 | domain.engine |
+| `ia_dev_env/domain/__init__.py` | 0 | domain |
 | `tests/conftest.py` | 103 | test |
 | `tests/domain/test_resolved_stack.py` | ~30 | test |
 | `tests/domain/test_stack_mapping.py` | ~80 | test |

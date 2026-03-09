@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import pytest
 
-from claude_setup.assembler.conditions import (
+from ia_dev_env.assembler.conditions import (
     extract_interface_types,
     has_any_interface,
     has_interface,
 )
-from claude_setup.models import ProjectConfig
+from ia_dev_env.models import ProjectConfig
 
 
 class TestExtractInterfaceTypes:

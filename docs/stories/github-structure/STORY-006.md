@@ -19,9 +19,9 @@
 
 ## 3. Descricao
 
-Como **QA Engineer**, eu quero que o gerador Python `claude_setup` produza as 6 skills de testing (`x-test-plan`, `x-test-run`, `run-e2e`, `run-smoke-api`, `run-contract-tests`, `run-perf-test`) dentro do diretorio `.github/skills/` gerado, garantindo que a geracao e execucao de testes siga os padroes de qualidade com coverage >= 95% line e >= 90% branch.
+Como **QA Engineer**, eu quero que o gerador Python `ia_dev_env` produza as 6 skills de testing (`x-test-plan`, `x-test-run`, `run-e2e`, `run-smoke-api`, `run-contract-tests`, `run-perf-test`) dentro do diretorio `.github/skills/` gerado, garantindo que a geracao e execucao de testes siga os padroes de qualidade com coverage >= 95% line e >= 90% branch.
 
-O gerador `claude_setup` ja produz tanto `.claude/` quanto `.github/` como output. Esta story adiciona templates e logica de assembler para gerar as skills de testing na arvore `.github/skills/`. Ambos os diretorios sao gitignored -- sao output do gerador.
+O gerador `ia_dev_env` ja produz tanto `.claude/` quanto `.github/` como output. Esta story adiciona templates e logica de assembler para gerar as skills de testing na arvore `.github/skills/`. Ambos os diretorios sao gitignored -- sao output do gerador.
 
 As skills de testing cobrem todo o espectro: desde planejamento de testes ate execucao de smoke tests, e2e, contract tests e performance tests.
 
@@ -43,7 +43,7 @@ As skills de testing cobrem todo o espectro: desde planejamento de testes ate ex
 
 ### Assembler
 
-- Estender o `GithubSkillsAssembler` (criado em STORY-005, ou criar novo) em `src/claude_setup/assembler/` para processar a categoria `testing`.
+- Estender o `GithubSkillsAssembler` (criado em STORY-005, ou criar novo) em `src/ia_dev_env/assembler/` para processar a categoria `testing`.
 - O assembler le templates de `resources/github-skills-templates/testing/` e gera arquivos em `output_dir/github/skills/<skill-name>/SKILL.md`.
 - Se o assembler ja foi registrado em `_build_assemblers()` na STORY-005, basta adicionar a nova categoria de templates.
 

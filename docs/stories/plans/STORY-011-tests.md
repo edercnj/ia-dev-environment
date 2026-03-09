@@ -16,7 +16,7 @@ sequential phases to guarantee zero regression.
 | Phase | Gate | Blocks |
 |-------|------|--------|
 | 0. Pre-migration baseline | All 923 tests green, coverage thresholds met | Phase 1 |
-| 1. Post-migration smoke | `pip install -e .` + `claude-setup --help` | Phase 2 |
+| 1. Post-migration smoke | `pip install -e .` + `ia-dev-env --help` | Phase 2 |
 | 2. Full regression | All 923 tests green again | Phase 3 |
 | 3. New migration-specific tests | Import protection + resources path | Phase 4 |
 | 4. Golden file comparison | Byte-for-byte output unchanged | Phase 5 |
@@ -35,7 +35,7 @@ sequential phases to guarantee zero regression.
 pytest --tb=short -q 2>&1 | tee baseline-results.txt
 
 # Record coverage
-pytest --cov=claude_setup --cov-report=term-missing --cov-branch \
+pytest --cov=ia_dev_env --cov-report=term-missing --cov-branch \
        -q 2>&1 | tee baseline-coverage.txt
 
 # Generate golden files (if not already present)
@@ -64,10 +64,10 @@ the directory restructure.
 | # | Test Name | Scenario | Expected |
 |---|-----------|----------|----------|
 | 1 | `test_pip_install_editable_succeeds` | Run `pip install -e .` in subprocess | Exit code 0, no errors |
-| 2 | `test_cli_help_returns_zero` | Run `claude-setup --help` in subprocess | Exit code 0, output contains "Usage" |
-| 3 | `test_import_claude_setup_succeeds` | `import claude_setup` after install | No `ModuleNotFoundError` |
-| 4 | `test_import_submodules_succeeds` | Import `claude_setup.config`, `claude_setup.assembler`, `claude_setup.domain` | All resolve without error |
-| 5 | `test_package_location_is_under_src` | Check `claude_setup.__file__` | Path contains `src/claude_setup` |
+| 2 | `test_cli_help_returns_zero` | Run `ia-dev-env --help` in subprocess | Exit code 0, output contains "Usage" |
+| 3 | `test_import_ia_dev_env_succeeds` | `import ia_dev_env` after install | No `ModuleNotFoundError` |
+| 4 | `test_import_submodules_succeeds` | Import `ia_dev_env.config`, `ia_dev_env.assembler`, `ia_dev_env.domain` | All resolve without error |
+| 5 | `test_package_location_is_under_src` | Check `ia_dev_env.__file__` | Path contains `src/ia_dev_env` |
 
 ### 3.2 Implementation Notes
 
@@ -93,7 +93,7 @@ class TestSrcLayoutSmoke:
 
     def test_cli_help_returns_zero(self):
         result = subprocess.run(
-            ["claude-setup", "--help"],
+            ["ia-dev-env", "--help"],
             capture_output=True,
             text=True,
             timeout=30,
@@ -102,9 +102,9 @@ class TestSrcLayoutSmoke:
         assert "Usage" in result.stdout
 
     def test_package_location_is_under_src(self):
-        import claude_setup
-        pkg_path = Path(claude_setup.__file__).resolve()
-        assert "src/claude_setup" in str(pkg_path)
+        import ia_dev_env
+        pkg_path = Path(ia_dev_env.__file__).resolve()
+        assert "src/ia_dev_env" in str(pkg_path)
 ```
 
 ---
@@ -137,8 +137,8 @@ These files reference `src/` paths and must be updated before regression passes:
 |------|-------------------|--------------------------|
 | `tests/test_byte_for_byte.py` line 23 | `PROJECT_ROOT / "src" / "config-templates"` | `PROJECT_ROOT / "resources" / "config-templates"` |
 | `tests/test_byte_for_byte.py` line 25 | `PROJECT_ROOT / "src"` | `PROJECT_ROOT / "resources"` |
-| `claude_setup/utils.py` | `src/` path references | `resources/` path references |
-| `claude_setup/domain/stack_mapping.py` | `src/` path references | `resources/` path references |
+| `ia_dev_env/utils.py` | `src/` path references | `resources/` path references |
+| `ia_dev_env/domain/stack_mapping.py` | `src/` path references | `resources/` path references |
 | `tests/conftest.py` | `FIXTURES_DIR` (relative to `__file__`) | No change needed (relative) |
 
 ---
@@ -147,15 +147,15 @@ These files reference `src/` paths and must be updated before regression passes:
 
 ### 5.1 Test File: `tests/test_import_protection.py`
 
-**Purpose:** Verify the src layout import protection -- `import claude_setup`
+**Purpose:** Verify the src layout import protection -- `import ia_dev_env`
 MUST fail when invoked from the project root without `pip install`.
 
 | # | Test Name | Scenario | Expected |
 |---|-----------|----------|----------|
-| 1 | `test_import_fails_without_install` | Run `python -c "import claude_setup"` from project root in a clean venv | `ModuleNotFoundError` (exit code 1) |
+| 1 | `test_import_fails_without_install` | Run `python -c "import ia_dev_env"` from project root in a clean venv | `ModuleNotFoundError` (exit code 1) |
 | 2 | `test_import_succeeds_after_install` | Run same command after `pip install -e .` | Exit code 0 |
-| 3 | `test_no_claude_setup_dir_in_project_root` | Check filesystem | `PROJECT_ROOT / "claude_setup"` does not exist |
-| 4 | `test_package_exists_under_src` | Check filesystem | `PROJECT_ROOT / "src" / "claude_setup" / "__init__.py"` exists |
+| 3 | `test_no_ia_dev_env_dir_in_project_root` | Check filesystem | `PROJECT_ROOT / "ia_dev_env"` does not exist |
+| 4 | `test_package_exists_under_src` | Check filesystem | `PROJECT_ROOT / "src" / "ia_dev_env" / "__init__.py"` exists |
 
 #### 5.1.1 Implementation Notes
 
@@ -170,16 +170,16 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 class TestImportProtection:
     """Verify src layout prevents accidental imports."""
 
-    def test_no_claude_setup_dir_in_project_root(self):
-        flat_layout_dir = PROJECT_ROOT / "claude_setup"
+    def test_no_ia_dev_env_dir_in_project_root(self):
+        flat_layout_dir = PROJECT_ROOT / "ia_dev_env"
         assert not flat_layout_dir.exists(), (
-            "claude_setup/ must not exist at project root "
+            "ia_dev_env/ must not exist at project root "
             "after src layout migration"
         )
 
     def test_package_exists_under_src(self):
         src_init = (
-            PROJECT_ROOT / "src" / "claude_setup" / "__init__.py"
+            PROJECT_ROOT / "src" / "ia_dev_env" / "__init__.py"
         )
         assert src_init.is_file()
 
@@ -190,8 +190,8 @@ class TestImportProtection:
                 sys.executable, "-c",
                 "import sys; "
                 "sys.path = [p for p in sys.path "
-                "if 'claude_setup' not in p and 'src' not in p]; "
-                "import claude_setup",
+                "if 'ia_dev_env' not in p and 'src' not in p]; "
+                "import ia_dev_env",
             ],
             capture_output=True,
             text=True,
@@ -210,13 +210,13 @@ rename from `src/`.
 | # | Test Name | Scenario | Expected |
 |---|-----------|----------|----------|
 | 1 | `test_resources_dir_exists` | Check `PROJECT_ROOT / "resources"` | Directory exists |
-| 2 | `test_old_src_dir_has_no_assets` | Check `PROJECT_ROOT / "src"` contents | Only `claude_setup/` package, no asset dirs |
+| 2 | `test_old_src_dir_has_no_assets` | Check `PROJECT_ROOT / "src"` contents | Only `ia_dev_env/` package, no asset dirs |
 | 3 | `test_config_templates_in_resources` | Check `resources/config-templates/` | Directory exists with 8 profile YAML files |
 | 4 | `test_core_rules_in_resources` | Check `resources/core-rules/` | Directory exists and is non-empty |
 | 5 | `test_skills_templates_in_resources` | Check `resources/skills-templates/` | Directory exists and is non-empty |
 | 6 | `test_agents_templates_in_resources` | Check `resources/agents-templates/` | Directory exists and is non-empty |
 | 7 | `test_setup_sh_in_resources` | Check `resources/setup.sh` | File exists and is executable |
-| 8 | `test_no_orphan_asset_dirs_in_src` | List `src/` subdirs | Only `claude_setup` present |
+| 8 | `test_no_orphan_asset_dirs_in_src` | List `src/` subdirs | Only `ia_dev_env` present |
 | 9 | `test_pipeline_resolves_resources_path` | Load config + run pipeline with `resources/` as src_dir | Pipeline completes without `FileNotFoundError` |
 | 10 | `test_all_config_profiles_loadable` | Load each of the 8 profile YAMLs from `resources/config-templates/` | All 8 load successfully |
 
@@ -227,7 +227,7 @@ from pathlib import Path
 
 import pytest
 
-from claude_setup.config import load_config
+from ia_dev_env.config import load_config
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 RESOURCES_DIR = PROJECT_ROOT / "resources"
@@ -254,8 +254,8 @@ class TestResourcesPath:
     def test_old_src_dir_has_no_assets(self):
         if SRC_DIR.is_dir():
             children = [d.name for d in SRC_DIR.iterdir()]
-            assert children == ["claude_setup"], (
-                f"src/ should only contain claude_setup/, "
+            assert children == ["ia_dev_env"], (
+                f"src/ should only contain ia_dev_env/, "
                 f"found: {children}"
             )
 
@@ -329,11 +329,11 @@ the new source path.
 ```toml
 # BEFORE
 [tool.coverage.run]
-source = ["claude_setup"]
+source = ["ia_dev_env"]
 
 # AFTER
 [tool.coverage.run]
-source = ["src/claude_setup"]
+source = ["src/ia_dev_env"]
 ```
 
 Additionally, `[tool.setuptools.packages.find]` must be added:
@@ -346,7 +346,7 @@ where = ["src"]
 ### 7.2 Verification Steps
 
 ```bash
-pytest --cov=src/claude_setup --cov-report=term-missing --cov-branch -q
+pytest --cov=src/ia_dev_env --cov-report=term-missing --cov-branch -q
 ```
 
 ### 7.3 Acceptance Criteria
@@ -355,7 +355,7 @@ pytest --cov=src/claude_setup --cov-report=term-missing --cov-branch -q
 |--------|---------|-------|
 | Line coverage | >= 95% | `fail_under = 95` in pyproject.toml |
 | Branch coverage | >= 90% | Verified via `--cov-branch` |
-| Coverage source | `src/claude_setup` | Must not be `claude_setup` (flat layout) |
+| Coverage source | `src/ia_dev_env` | Must not be `ia_dev_env` (flat layout) |
 | Uncovered lines | Same or fewer than Phase 0 baseline | Migration must not reduce coverage |
 
 ---
@@ -381,7 +381,7 @@ pytest --cov=src/claude_setup --cov-report=term-missing --cov-branch -q
 |------|-----------|--------|------------|
 | Existing tests break due to import path changes | Medium | HIGH | Phase 2 runs full regression; `pip install -e .` resolves imports |
 | `conftest.py` fixtures break | Low | HIGH | `FIXTURES_DIR` uses `__file__`-relative path (no change needed) |
-| Coverage drops below threshold | Medium | Medium | Update `[tool.coverage.run] source` to `src/claude_setup` |
+| Coverage drops below threshold | Medium | Medium | Update `[tool.coverage.run] source` to `src/ia_dev_env` |
 | Golden file paths break | High | Medium | Update `SRC_DIR` and `CONFIG_TEMPLATES_DIR` constants |
 | `resources/` path not found at runtime | Medium | HIGH | `test_resources_path.py` validates all expected subdirs |
 | CI breaks due to missing `pip install -e .` step | Low | HIGH | Smoke tests in Phase 1 catch this immediately |

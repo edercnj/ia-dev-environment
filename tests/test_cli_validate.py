@@ -4,7 +4,7 @@ from pathlib import Path
 
 from click.testing import CliRunner
 
-from claude_setup.__main__ import main
+from ia_dev_env.__main__ import main
 
 
 class TestValidateCommand:

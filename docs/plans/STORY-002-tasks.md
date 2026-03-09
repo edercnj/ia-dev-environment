@@ -15,10 +15,10 @@ as an optional field. Backward-compatible: configs without `mcp` get
 
 | Task | Files Affected | Notes |
 |------|---------------|-------|
-| T1.1 Add `McpServerConfig` dataclass | `src/claude_setup/models.py` | Fields: `id` (required), `url` (required), `capabilities` (list, default `[]`), `env` (dict, default `{}`). Uses `_require()` for mandatory fields. |
-| T1.2 Add `McpConfig` dataclass | `src/claude_setup/models.py` | Field: `servers: List[McpServerConfig]` (default `[]`). `from_dict()` iterates `data.get("servers", [])`. |
-| T1.3 Add `mcp` field to `ProjectConfig` | `src/claude_setup/models.py` | `mcp: McpConfig = field(default_factory=McpConfig)` after `testing` field. |
-| T1.4 Update `ProjectConfig.from_dict()` | `src/claude_setup/models.py` | Add `mcp=McpConfig.from_dict(data.get("mcp", {}))` to the constructor call. |
+| T1.1 Add `McpServerConfig` dataclass | `src/ia_dev_env/models.py` | Fields: `id` (required), `url` (required), `capabilities` (list, default `[]`), `env` (dict, default `{}`). Uses `_require()` for mandatory fields. |
+| T1.2 Add `McpConfig` dataclass | `src/ia_dev_env/models.py` | Field: `servers: List[McpServerConfig]` (default `[]`). `from_dict()` iterates `data.get("servers", [])`. |
+| T1.3 Add `mcp` field to `ProjectConfig` | `src/ia_dev_env/models.py` | `mcp: McpConfig = field(default_factory=McpConfig)` after `testing` field. |
+| T1.4 Update `ProjectConfig.from_dict()` | `src/ia_dev_env/models.py` | Add `mcp=McpConfig.from_dict(data.get("mcp", {}))` to the constructor call. |
 
 ---
 
@@ -77,7 +77,7 @@ similar pattern to `SettingsAssembler`.
 
 | Task | Files Affected | Notes |
 |------|---------------|-------|
-| T3.1 Create `GithubMcpAssembler` class | `src/claude_setup/assembler/github_mcp_assembler.py` | New file. No constructor args (no `resources_dir` needed). |
+| T3.1 Create `GithubMcpAssembler` class | `src/ia_dev_env/assembler/github_mcp_assembler.py` | New file. No constructor args (no `resources_dir` needed). |
 | T3.2 Implement `assemble()` method | Same file | Signature: `assemble(config, output_dir, engine) -> List[Path]`. Returns `[]` when `config.mcp.servers` is empty. |
 | T3.3 Implement `_build_copilot_mcp_dict()` | Same file (module-level function) | Builds `{"mcpServers": {server.id: {"url": server.url, "env": server.env}}}`. `capabilities` excluded from JSON output (Copilot format does not support it). |
 | T3.4 Write JSON with `json.dumps(indent=2)` + trailing newline | Same file | Matches `SettingsAssembler` convention for consistent formatting. |
@@ -99,11 +99,11 @@ Register `GithubMcpAssembler` in the pipeline as the 10th assembler.
 
 | Task | Files Affected | Notes |
 |------|---------------|-------|
-| T4.1 Add import of `GithubMcpAssembler` | `src/claude_setup/assembler/__init__.py` | `from claude_setup.assembler.github_mcp_assembler import GithubMcpAssembler` |
-| T4.2 Add entry to `_build_assemblers()` | `src/claude_setup/assembler/__init__.py` | Append as 10th tuple: `("GithubMcpAssembler", GithubMcpAssembler())`. Placed after `GithubInstructionsAssembler`. |
-| T4.3 Add `"GithubMcpAssembler"` to `__all__` | `src/claude_setup/assembler/__init__.py` | Alphabetical insertion in the exports list. |
-| T4.4 Verify `_execute_assemblers()` dispatch | `src/claude_setup/assembler/__init__.py` | No change needed. `GithubMcpAssembler` uses the standard 3-arg signature `assemble(config, output_dir, engine)`. Not in `ASSEMBLERS_WITH_RESOURCES_DIR`. |
-| T4.5 Verify CLI classification | `src/claude_setup/__main__.py` | No change needed. `_classify_files()` already classifies paths containing `"github"` as "GitHub" category. |
+| T4.1 Add import of `GithubMcpAssembler` | `src/ia_dev_env/assembler/__init__.py` | `from ia_dev_env.assembler.github_mcp_assembler import GithubMcpAssembler` |
+| T4.2 Add entry to `_build_assemblers()` | `src/ia_dev_env/assembler/__init__.py` | Append as 10th tuple: `("GithubMcpAssembler", GithubMcpAssembler())`. Placed after `GithubInstructionsAssembler`. |
+| T4.3 Add `"GithubMcpAssembler"` to `__all__` | `src/ia_dev_env/assembler/__init__.py` | Alphabetical insertion in the exports list. |
+| T4.4 Verify `_execute_assemblers()` dispatch | `src/ia_dev_env/assembler/__init__.py` | No change needed. `GithubMcpAssembler` uses the standard 3-arg signature `assemble(config, output_dir, engine)`. Not in `ASSEMBLERS_WITH_RESOURCES_DIR`. |
+| T4.5 Verify CLI classification | `src/ia_dev_env/__main__.py` | No change needed. `_classify_files()` already classifies paths containing `"github"` as "GitHub" category. |
 
 ---
 
@@ -217,7 +217,7 @@ G1 (Domain Model)
 
 | File | Group(s) | Action |
 |------|----------|--------|
-| `src/claude_setup/models.py` | G1 | Modified (add `McpServerConfig`, `McpConfig`, `ProjectConfig.mcp`) |
+| `src/ia_dev_env/models.py` | G1 | Modified (add `McpServerConfig`, `McpConfig`, `ProjectConfig.mcp`) |
 | `resources/config-templates/setup-config.java-quarkus.yaml` | G2 | Modified (add `mcp` section) |
 | `resources/config-templates/setup-config.java-spring.yaml` | G2 | Modified (add `mcp` section) |
 | `resources/config-templates/setup-config.python-fastapi.yaml` | G2 | Modified (add `mcp` section) |
@@ -226,9 +226,9 @@ G1 (Domain Model)
 | `resources/config-templates/setup-config.kotlin-ktor.yaml` | G2 | Modified (add `mcp` section) |
 | `resources/config-templates/setup-config.rust-axum.yaml` | G2 | Modified (add `mcp` section) |
 | `resources/config-templates/setup-config.go-gin.yaml` | G2 | Modified (add `mcp` section) |
-| `src/claude_setup/assembler/github_mcp_assembler.py` | G3 | Created |
-| `src/claude_setup/assembler/__init__.py` | G4 | Modified (import, `_build_assemblers`, `__all__`) |
-| `src/claude_setup/__main__.py` | G4 | Verified (no change) |
+| `src/ia_dev_env/assembler/github_mcp_assembler.py` | G3 | Created |
+| `src/ia_dev_env/assembler/__init__.py` | G4 | Modified (import, `_build_assemblers`, `__all__`) |
+| `src/ia_dev_env/__main__.py` | G4 | Verified (no change) |
 | `tests/golden/java-quarkus/github/copilot-mcp.json` | G5 | Created |
 | `tests/golden/java-spring/github/copilot-mcp.json` | G5 | Created |
 | `tests/golden/python-fastapi/github/copilot-mcp.json` | G5 | Created |

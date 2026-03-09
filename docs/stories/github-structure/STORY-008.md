@@ -19,9 +19,9 @@
 
 ## 3. Descricao
 
-Como **Architect**, eu quero que o gerador Python `claude_setup` produza os 9 knowledge packs (`architecture`, `coding-standards`, `patterns`, `protocols`, `observability`, `resilience`, `security`, `compliance`, `api-design`) dentro do diretorio `.github/skills/` gerado, garantindo que o Copilot tenha acesso ao mesmo corpo de conhecimento tecnico de referencia.
+Como **Architect**, eu quero que o gerador Python `ia_dev_env` produza os 9 knowledge packs (`architecture`, `coding-standards`, `patterns`, `protocols`, `observability`, `resilience`, `security`, `compliance`, `api-design`) dentro do diretorio `.github/skills/` gerado, garantindo que o Copilot tenha acesso ao mesmo corpo de conhecimento tecnico de referencia.
 
-O gerador `claude_setup` ja produz tanto `.claude/` quanto `.github/` como output. Esta story adiciona templates e logica de assembler para gerar os knowledge packs na arvore `.github/skills/`. Ambos os diretorios sao gitignored -- sao output do gerador.
+O gerador `ia_dev_env` ja produz tanto `.claude/` quanto `.github/` como output. Esta story adiciona templates e logica de assembler para gerar os knowledge packs na arvore `.github/skills/`. Ambos os diretorios sao gitignored -- sao output do gerador.
 
 Knowledge packs sao skills de prioridade baixa (material de referencia) mas essenciais como base para skills operacionais. A estrategia principal e referencia (RULE-003): frontmatter com description no Copilot, body com resumo e link para o conteudo completo em `.claude/skills/`.
 
@@ -42,13 +42,13 @@ Knowledge packs sao skills de prioridade baixa (material de referencia) mas esse
 - Frontmatter: description rica para trigger correto
 - Body: resumo executivo (20-30 linhas) com os pontos mais criticos
 - References: link direto para `.claude/skills/*/SKILL.md` e `references/`
-- Templates devem gerar body enxuto -- o conteudo completo vive em `.claude/skills/` (tambem gerado pelo `claude_setup`)
+- Templates devem gerar body enxuto -- o conteudo completo vive em `.claude/skills/` (tambem gerado pelo `ia_dev_env`)
 
 ## Contexto Tecnico (Gerador)
 
 ### Assembler
 
-- Estender o `GithubSkillsAssembler` (criado em STORY-005) em `src/claude_setup/assembler/` para processar a categoria `knowledge-packs`.
+- Estender o `GithubSkillsAssembler` (criado em STORY-005) em `src/ia_dev_env/assembler/` para processar a categoria `knowledge-packs`.
 - O assembler le templates de `resources/github-skills-templates/knowledge-packs/` e gera arquivos em `output_dir/github/skills/<skill-name>/SKILL.md`.
 - Se o assembler ja foi registrado em `_build_assemblers()` na STORY-005, basta adicionar a nova categoria de templates.
 

@@ -130,7 +130,7 @@ All three specialist reviews passed with 100% effective max.
 
 ### LOW-001: coverage.json committed to repository
 
-The `coverage.json` file (250KB) was added to the repository. This is a build artifact that references old `claude_setup/` paths (pre-migration). It should be added to `.gitignore` and removed from tracking. Not a blocker as it has no functional impact.
+The `coverage.json` file (250KB) was added to the repository. This is a build artifact that references old `ia_dev_env/` paths (pre-migration). It should be added to `.gitignore` and removed from tracking. Not a blocker as it has no functional impact.
 
 **File:** `/Users/edercnj/workspaces/claude-environment/coverage.json`
 
@@ -151,13 +151,13 @@ Three files exceed the 250-line limit: `rules_assembler.py` (540), `skills.py` (
 | Zero `find_src_dir` references in src/ or tests/ | PASS (grep verified) |
 | Zero `SRC_DIR` references in src/ or tests/ | PASS (grep verified) |
 | Zero `--src-dir` references in src/ or tests/ | PASS (grep verified) |
-| `pyproject.toml` coverage source points to `src/claude_setup` | PASS |
+| `pyproject.toml` coverage source points to `src/ia_dev_env` | PASS |
 | `pyproject.toml` packages.find has `where = ["src"]` | PASS |
 | `find_resources_dir()` path resolution correct (3x parent) | PASS |
 | `RulesAssembler.assemble()` path resolution correct (4x parent) | PASS |
 | `scripts/generate_golden.py` uses `RESOURCES_DIR` | PASS |
 | `python3 -m py_compile` succeeds on all key files | PASS |
-| `python3 -c "import claude_setup"` succeeds | PASS |
+| `python3 -c "import ia_dev_env"` succeeds | PASS |
 
 ---
 
@@ -165,7 +165,7 @@ Three files exceed the 250-line limit: `rules_assembler.py` (540), `skills.py` (
 
 The STORY-011 src layout migration is a clean structural refactoring that:
 
-1. Correctly moves Python package from `claude_setup/` to `src/claude_setup/` (PyPA-recommended src layout)
+1. Correctly moves Python package from `ia_dev_env/` to `src/ia_dev_env/` (PyPA-recommended src layout)
 2. Correctly moves non-Python assets from `src/` to `resources/`
 3. Updates all path references consistently across 15 source files, 13 test files, 1 script, and 1 configuration file
 4. Maintains 98.48% line coverage and 96.8% branch coverage

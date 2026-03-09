@@ -16,7 +16,7 @@ was already established by previous assemblers.
 
 | Task | Files Affected | Notes |
 |------|---------------|-------|
-| Verify `ProjectConfig` exposes all needed fields | `src/claude_setup/models.py` | No modification needed; fields already present |
+| Verify `ProjectConfig` exposes all needed fields | `src/ia_dev_env/models.py` | No modification needed; fields already present |
 
 ---
 
@@ -47,7 +47,7 @@ Implement the assembler in a single module. Two generation paths: global file
 
 | Task | Files Affected | Notes |
 |------|---------------|-------|
-| T3.1 Create `GithubInstructionsAssembler` class | `src/claude_setup/assembler/github_instructions_assembler.py` | New file. Constructor receives `resources_dir: Path` |
+| T3.1 Create `GithubInstructionsAssembler` class | `src/ia_dev_env/assembler/github_instructions_assembler.py` | New file. Constructor receives `resources_dir: Path` |
 | T3.2 Implement `assemble()` method | Same file | Orchestrates `_generate_global()` and `_generate_contextual()`, returns `List[Path]` |
 | T3.3 Implement `_generate_global()` | Same file | Calls `_build_copilot_instructions(config)`, writes `github/copilot-instructions.md` |
 | T3.4 Implement `_build_copilot_instructions()` | Same file (module-level function) | Extracts identity, stack, constraints, contextual references from `ProjectConfig` |
@@ -65,10 +65,10 @@ Register `GithubInstructionsAssembler` as the 9th (last) assembler in the pipeli
 
 | Task | Files Affected | Notes |
 |------|---------------|-------|
-| T4.1 Add import of `GithubInstructionsAssembler` | `src/claude_setup/assembler/__init__.py` | Import from `github_instructions_assembler` module |
+| T4.1 Add import of `GithubInstructionsAssembler` | `src/ia_dev_env/assembler/__init__.py` | Import from `github_instructions_assembler` module |
 | T4.2 Add entry to `_build_assemblers()` | Same file | Append as 9th tuple: `("GithubInstructionsAssembler", GithubInstructionsAssembler(resources_dir))` |
 | T4.3 Add to `__all__` exports | Same file | Include `"GithubInstructionsAssembler"` in the public API list |
-| T4.4 Verify CLI classification | `src/claude_setup/__main__.py` | No change needed; `_classify_files()` already classifies paths containing `"github"` as "GitHub" category |
+| T4.4 Verify CLI classification | `src/ia_dev_env/__main__.py` | No change needed; `_classify_files()` already classifies paths containing `"github"` as "GitHub" category |
 
 ---
 
@@ -144,14 +144,14 @@ G1 (Foundation)
 
 | File | Group(s) | Action |
 |------|----------|--------|
-| `src/claude_setup/models.py` | G1 | Verified (no change) |
+| `src/ia_dev_env/models.py` | G1 | Verified (no change) |
 | `resources/github-instructions-templates/domain.md` | G2 | Created |
 | `resources/github-instructions-templates/coding-standards.md` | G2 | Created |
 | `resources/github-instructions-templates/architecture.md` | G2 | Created |
 | `resources/github-instructions-templates/quality-gates.md` | G2 | Created |
-| `src/claude_setup/assembler/github_instructions_assembler.py` | G3 | Created |
-| `src/claude_setup/assembler/__init__.py` | G4 | Modified (import, `_build_assemblers`, `__all__`) |
-| `src/claude_setup/__main__.py` | G4 | Verified (no change) |
+| `src/ia_dev_env/assembler/github_instructions_assembler.py` | G3 | Created |
+| `src/ia_dev_env/assembler/__init__.py` | G4 | Modified (import, `_build_assemblers`, `__all__`) |
+| `src/ia_dev_env/__main__.py` | G4 | Verified (no change) |
 | `tests/golden/java-quarkus/github/copilot-instructions.md` | G5 | Created |
 | `tests/golden/java-quarkus/github/instructions/domain.instructions.md` | G5 | Created |
 | `tests/golden/java-quarkus/github/instructions/coding-standards.instructions.md` | G5 | Created |

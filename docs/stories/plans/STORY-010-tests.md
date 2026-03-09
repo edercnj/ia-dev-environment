@@ -273,8 +273,8 @@ def create_file_tree(base: Path, files: dict) -> None:
 
 | File | Lines (est.) | Line Coverage Target | Branch Coverage Target | Key Branches |
 |------|-------------|---------------------|----------------------|--------------|
-| `claude_setup/verifier.py` | ~80 | 98% | 95% | match/mismatch, missing/extra, binary/text, empty dirs, nested recursion |
-| `claude_setup/models.py` (VerificationResult, FileDiff) | ~25 | 100% | 100% | No branches (dataclasses) |
+| `ia_dev_env/verifier.py` | ~80 | 98% | 95% | match/mismatch, missing/extra, binary/text, empty dirs, nested recursion |
+| `ia_dev_env/models.py` (VerificationResult, FileDiff) | ~25 | 100% | 100% | No branches (dataclasses) |
 | Golden generation script | ~30 | 95% | 90% | Per-profile generation, error handling |
 
 **Aggregate estimate:** ~135 new lines of production code, target 97% line coverage, 93% branch coverage.
@@ -336,7 +336,7 @@ make golden
 pytest --generate-golden
 
 # Or manually per profile
-python -m claude_setup.golden_gen --profile java-quarkus --output tests/golden/java-quarkus/
+python -m ia_dev_env.golden_gen --profile java-quarkus --output tests/golden/java-quarkus/
 ```
 
 ### 12.2 Storage Convention

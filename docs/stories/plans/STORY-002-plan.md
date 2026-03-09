@@ -26,7 +26,7 @@
 
 ## 2. New Classes/Interfaces to Create
 
-### 2.1 Domain -- Exceptions (`claude_setup/exceptions.py`)
+### 2.1 Domain -- Exceptions (`ia_dev_env/exceptions.py`)
 
 | Class | Description |
 |-------|-------------|
@@ -37,7 +37,7 @@
 - Exception carries context values (the missing field names), per coding standards.
 - Single class; avoids god-exception anti-pattern.
 
-### 2.2 Domain -- Config Engine (`claude_setup/config.py`)
+### 2.2 Domain -- Config Engine (`ia_dev_env/config.py`)
 
 This is the core module. All functions operate on pure dicts and domain models. No Click or framework imports.
 
@@ -81,12 +81,12 @@ This is the core module. All functions operate on pure dicts and domain models. 
 
 **Dependency validation:**
 - Imports: `pathlib.Path`, `typing`, `yaml` (PyYAML -- already in `pyproject.toml` dependencies).
-- Imports: `claude_setup.models.ProjectConfig` (domain model -- same layer).
-- Imports: `claude_setup.exceptions.ConfigValidationError` (domain exception -- same layer).
+- Imports: `ia_dev_env.models.ProjectConfig` (domain model -- same layer).
+- Imports: `ia_dev_env.exceptions.ConfigValidationError` (domain exception -- same layer).
 - Does NOT import `click` or any framework code.
 - PyYAML (`yaml.safe_load`) is a data-parsing library, not a framework. It is acceptable in the domain layer as a data format library analogous to `json` in stdlib.
 
-### 2.3 Adapter Inbound -- Interactive Config (`claude_setup/interactive.py`)
+### 2.3 Adapter Inbound -- Interactive Config (`ia_dev_env/interactive.py`)
 
 This module lives in the adapter layer because it depends on Click (framework) for user interaction.
 
@@ -113,8 +113,8 @@ This module lives in the adapter layer because it depends on Click (framework) f
 
 **Dependency validation:**
 - Imports `click` (framework -- allowed in adapter layer).
-- Imports `claude_setup.models.*` (domain models -- adapter -> domain direction, correct).
-- Does NOT import `claude_setup.config` (no cross-adapter dependency).
+- Imports `ia_dev_env.models.*` (domain models -- adapter -> domain direction, correct).
+- Does NOT import `ia_dev_env.config` (no cross-adapter dependency).
 
 ### 2.4 Tests
 
@@ -130,8 +130,8 @@ This module lives in the adapter layer because it depends on Click (framework) f
 
 | File | Change | Reason |
 |------|--------|--------|
-| `claude_setup/__main__.py` | Add `init` subcommand that accepts `--config PATH` option and calls `load_config()` or `run_interactive()` | Entry point for config loading flow |
-| `claude_setup/models.py` | No changes required | `from_dict()` factories already handle dict-to-model conversion; `_require()` helper already raises `KeyError` with context |
+| `ia_dev_env/__main__.py` | Add `init` subcommand that accepts `--config PATH` option and calls `load_config()` or `run_interactive()` | Entry point for config loading flow |
+| `ia_dev_env/models.py` | No changes required | `from_dict()` factories already handle dict-to-model conversion; `_require()` helper already raises `KeyError` with context |
 
 **Note on `__main__.py` changes:**
 The `init` subcommand is minimal in this story -- it loads config and echoes success. Full orchestration (calling assemblers) is deferred to STORY-009. The subcommand structure:
@@ -152,11 +152,11 @@ def init(config):
 ## 4. Dependency Direction Validation
 
 ```
-claude_setup/exceptions.py   -> standard library only (DOMAIN)
-claude_setup/config.py       -> yaml (data lib), claude_setup.models, claude_setup.exceptions (DOMAIN)
-claude_setup/interactive.py  -> click (framework), claude_setup.models (ADAPTER -> DOMAIN, correct)
-claude_setup/__main__.py     -> click, claude_setup.config, claude_setup.interactive (ADAPTER -> DOMAIN, correct)
-tests/                       -> pytest, claude_setup.* (TEST -> all layers, correct)
+ia_dev_env/exceptions.py   -> standard library only (DOMAIN)
+ia_dev_env/config.py       -> yaml (data lib), ia_dev_env.models, ia_dev_env.exceptions (DOMAIN)
+ia_dev_env/interactive.py  -> click (framework), ia_dev_env.models (ADAPTER -> DOMAIN, correct)
+ia_dev_env/__main__.py     -> click, ia_dev_env.config, ia_dev_env.interactive (ADAPTER -> DOMAIN, correct)
+tests/                       -> pytest, ia_dev_env.* (TEST -> all layers, correct)
 ```
 
 **Validation checklist:**
@@ -198,9 +198,9 @@ tests/                       -> pytest, claude_setup.* (TEST -> all layers, corr
 **CLI contract additions for this story:**
 
 ```
-claude-setup init --config path/to/config.yaml  -> Load config, print summary, exit 0
-claude-setup init                                -> Interactive mode, prompt for all fields, exit 0
-claude-setup init --config bad.yaml              -> ConfigValidationError, exit 1
+ia-dev-env init --config path/to/config.yaml  -> Load config, print summary, exit 0
+ia-dev-env init                                -> Interactive mode, prompt for all fields, exit 0
+ia-dev-env init --config bad.yaml              -> ConfigValidationError, exit 1
 ```
 
 ---
@@ -254,10 +254,10 @@ New test fixture files needed in `tests/fixtures/`:
 
 Execute sub-tasks in this sequence:
 
-1. **Create `claude_setup/exceptions.py`** -- `ConfigValidationError` with `missing_fields` attribute
-2. **Create `claude_setup/config.py`** -- `V2_TYPE_MAPPING`, `V2_STACK_MAPPING`, `REQUIRED_SECTIONS`, `detect_v2_format()`, `migrate_v2_to_v3()`, `validate_config()`, `load_config()`
-3. **Create `claude_setup/interactive.py`** -- `run_interactive()` with Click prompts
-4. **Modify `claude_setup/__main__.py`** -- add `init` subcommand with `--config` option
+1. **Create `ia_dev_env/exceptions.py`** -- `ConfigValidationError` with `missing_fields` attribute
+2. **Create `ia_dev_env/config.py`** -- `V2_TYPE_MAPPING`, `V2_STACK_MAPPING`, `REQUIRED_SECTIONS`, `detect_v2_format()`, `migrate_v2_to_v3()`, `validate_config()`, `load_config()`
+3. **Create `ia_dev_env/interactive.py`** -- `run_interactive()` with Click prompts
+4. **Modify `ia_dev_env/__main__.py`** -- add `init` subcommand with `--config` option
 5. **Create `tests/fixtures/`** -- all YAML fixture files
 6. **Create `tests/test_config.py`** -- unit tests for config loading, detection, migration, validation
 7. **Create `tests/test_config_contract.py`** -- parametrized contract tests for all v2 mappings
@@ -269,7 +269,7 @@ Execute sub-tasks in this sequence:
 ## File Tree (Final State after STORY-002)
 
 ```
-claude_setup/
+ia_dev_env/
     __init__.py              # (unchanged from STORY-001)
     __main__.py              # MODIFIED: add init subcommand
     models.py                # (unchanged from STORY-001)

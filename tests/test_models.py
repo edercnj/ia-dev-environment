@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from claude_setup.models import (
+from ia_dev_env.models import (
     ArchitectureConfig,
     DataConfig,
     FileDiff,

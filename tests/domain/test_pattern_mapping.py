@@ -5,11 +5,11 @@ from typing import List
 
 import pytest
 
-from claude_setup.domain.pattern_mapping import (
+from ia_dev_env.domain.pattern_mapping import (
     select_pattern_files,
     select_patterns,
 )
-from claude_setup.models import ProjectConfig
+from ia_dev_env.models import ProjectConfig
 
 FIXTURES_SRC = Path(__file__).parent.parent / "fixtures" / "src"
 

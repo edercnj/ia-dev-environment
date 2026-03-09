@@ -19,9 +19,9 @@
 
 ## 3. Descricao
 
-Como **Developer**, eu quero que o gerador Python `claude_setup` produza as skills de git (`x-git-push`) e troubleshooting (`x-ops-troubleshoot`) dentro do diretorio `.github/skills/` gerado, garantindo que operacoes de versionamento e diagnostico de problemas sigam os mesmos padroes.
+Como **Developer**, eu quero que o gerador Python `ia_dev_env` produza as skills de git (`x-git-push`) e troubleshooting (`x-ops-troubleshoot`) dentro do diretorio `.github/skills/` gerado, garantindo que operacoes de versionamento e diagnostico de problemas sigam os mesmos padroes.
 
-O gerador `claude_setup` ja produz tanto `.claude/` quanto `.github/` como output. Esta story adiciona templates e logica de assembler para gerar as 2 skills de git/troubleshooting na arvore `.github/skills/`. Ambos os diretorios sao gitignored -- sao output do gerador.
+O gerador `ia_dev_env` ja produz tanto `.claude/` quanto `.github/` como output. Esta story adiciona templates e logica de assembler para gerar as 2 skills de git/troubleshooting na arvore `.github/skills/`. Ambos os diretorios sao gitignored -- sao output do gerador.
 
 Estas duas skills sao de prioridade media e complementam o fluxo de desenvolvimento: `x-git-push` cuida de branch creation, commits (Conventional Commits), push e PR creation; `x-ops-troubleshoot` diagnostica erros, stacktraces, build failures e runtime exceptions.
 
@@ -40,7 +40,7 @@ Estas duas skills sao de prioridade media e complementam o fluxo de desenvolvime
 
 ### Assembler
 
-- Estender o `GithubSkillsAssembler` (criado em STORY-005) em `src/claude_setup/assembler/` para processar a categoria `git-troubleshooting`.
+- Estender o `GithubSkillsAssembler` (criado em STORY-005) em `src/ia_dev_env/assembler/` para processar a categoria `git-troubleshooting`.
 - O assembler le templates de `resources/github-skills-templates/git-troubleshooting/` e gera arquivos em `output_dir/github/skills/<skill-name>/SKILL.md`.
 - Se o assembler ja foi registrado em `_build_assemblers()` na STORY-005, basta adicionar a nova categoria de templates.
 

@@ -4,13 +4,13 @@
 
 ## Contexto do Gerador
 
-Esta historia implementa o `GithubPromptsAssembler` no gerador Python `claude_setup`. Este assembler nao possui equivalente em `.claude/` — e exclusivo para a saida `.github/`. O assembler le templates de `resources/github-prompts-templates/` e gera os arquivos `.github/prompts/*.prompt.md` no diretorio de saida. Tanto `.claude/` quanto `.github/` sao saidas geradas (ambos gitignored).
+Esta historia implementa o `GithubPromptsAssembler` no gerador Python `ia_dev_env`. Este assembler nao possui equivalente em `.claude/` — e exclusivo para a saida `.github/`. O assembler le templates de `resources/github-prompts-templates/` e gera os arquivos `.github/prompts/*.prompt.md` no diretorio de saida. Tanto `.claude/` quanto `.github/` sao saidas geradas (ambos gitignored).
 
 **Arquitetura do gerador:**
 
 | Componente | Caminho |
 | :--- | :--- |
-| Assembler | `src/claude_setup/assembler/github_prompts_assembler.py` (novo, sem equivalente `.claude/`) |
+| Assembler | `src/ia_dev_env/assembler/github_prompts_assembler.py` (novo, sem equivalente `.claude/`) |
 | Templates | `resources/github-prompts-templates/*.prompt.md.j2` |
 | Pipeline | Registrado em `assembler/__init__.py` via `_build_assemblers()` |
 | Golden files | `tests/golden/github-prompts/` |
@@ -37,7 +37,7 @@ O assembler deve implementar `assemble(config, output_dir, engine) -> List[Path]
 
 ## 3. Descricao
 
-Como **Product Owner Tecnico**, eu quero que o gerador `claude_setup` produza 4 prompts em `.github/prompts/*.prompt.md` que orquestram workflows completos, garantindo que tarefas recorrentes (nova feature, decomposicao de spec, code review, troubleshooting) possam ser executadas com menor friccao.
+Como **Product Owner Tecnico**, eu quero que o gerador `ia_dev_env` produza 4 prompts em `.github/prompts/*.prompt.md` que orquestram workflows completos, garantindo que tarefas recorrentes (nova feature, decomposicao de spec, code review, troubleshooting) possam ser executadas com menor friccao.
 
 O `GithubPromptsAssembler` e um assembler novo sem equivalente no lado `.claude/`. Ele le templates Jinja2 de `resources/github-prompts-templates/`, aplica variaveis do `ProjectConfig`, e escreve os arquivos `.prompt.md` no `output_dir/.github/prompts/`.
 
@@ -69,7 +69,7 @@ Follow these steps to implement a new feature...
 
 ### 3.3 Implementacao no gerador
 
-1. Criar `GithubPromptsAssembler` em `src/claude_setup/assembler/github_prompts_assembler.py`
+1. Criar `GithubPromptsAssembler` em `src/ia_dev_env/assembler/github_prompts_assembler.py`
 2. Criar 4 templates Jinja2 em `resources/github-prompts-templates/`
 3. Registrar no pipeline em `assembler/__init__.py` (`_build_assemblers()`)
 4. Criar golden files em `tests/golden/github-prompts/`
@@ -211,7 +211,7 @@ Cenario: Prompt troubleshoot com metodologia sistematica
 
 ## 8. Sub-tarefas
 
-- [ ] [Dev] Criar `src/claude_setup/assembler/github_prompts_assembler.py` com classe `GithubPromptsAssembler`
+- [ ] [Dev] Criar `src/ia_dev_env/assembler/github_prompts_assembler.py` com classe `GithubPromptsAssembler`
 - [ ] [Dev] Criar template `resources/github-prompts-templates/new-feature.prompt.md.j2`
 - [ ] [Dev] Criar template `resources/github-prompts-templates/decompose-spec.prompt.md.j2`
 - [ ] [Dev] Criar template `resources/github-prompts-templates/code-review.prompt.md.j2`

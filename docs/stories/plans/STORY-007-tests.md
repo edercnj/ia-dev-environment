@@ -70,7 +70,7 @@ from typing import Callable
 
 import pytest
 
-from claude_setup.models import ProjectConfig
+from ia_dev_env.models import ProjectConfig
 
 ASSEMBLER_FIXTURES = Path(__file__).parent.parent / "fixtures" / "assembler"
 
@@ -186,7 +186,7 @@ The `FULL_PROJECT_DICT` and `MINIMAL_PROJECT_DICT` in `tests/conftest.py` must b
 
 ## 4. Unit Tests: `test_conditions.py`
 
-Tests for `claude_setup/assembler/conditions.py`.
+Tests for `ia_dev_env/assembler/conditions.py`.
 
 ### 4.1 `extract_interface_types()`
 
@@ -628,7 +628,7 @@ markers = [
 
 ```bash
 # All assembler tests
-pytest tests/assembler/ --cov=claude_setup/assembler --cov-branch --cov-report=html
+pytest tests/assembler/ --cov=ia_dev_env/assembler --cov-branch --cov-report=html
 
 # Unit tests only (selection logic)
 pytest tests/assembler/test_conditions.py tests/assembler/test_skills_selection.py tests/assembler/test_agents_selection.py
@@ -640,7 +640,7 @@ pytest tests/assembler/test_skills_assembly.py tests/assembler/test_agents_assem
 pytest tests/assembler/test_skills_contract.py tests/assembler/test_agents_contract.py -m contract
 
 # Coverage check
-pytest tests/assembler/ --cov=claude_setup/assembler --cov-branch --cov-fail-under=95
+pytest tests/assembler/ --cov=ia_dev_env/assembler --cov-branch --cov-fail-under=95
 ```
 
 ---

@@ -175,7 +175,7 @@ graph TD
 
 | Story     | Escopo Principal                                         | Artefatos Chave                                           |
 | :-------- | :------------------------------------------------------- | :-------------------------------------------------------- |
-| STORY-001 | Estrutura do projeto Python, dataclasses, pyproject.toml | `claude_setup/models.py`, `pyproject.toml`, `__main__.py` |
+| STORY-001 | Estrutura do projeto Python, dataclasses, pyproject.toml | `ia_dev_env/models.py`, `pyproject.toml`, `__main__.py` |
 
 **Entregas da Fase 0:**
 

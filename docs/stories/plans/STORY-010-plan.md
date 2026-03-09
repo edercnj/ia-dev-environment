@@ -16,7 +16,7 @@
 | domain/model | YES | New `VerificationResult` and `FileDiff` dataclasses in `models.py`. |
 | domain/engine | NO | No new business logic engines. |
 | domain/port | NO | No ports needed -- verifier is a pure function on file trees. |
-| application | YES | New `verify_output()` function in `claude_setup/verifier.py` -- orchestrates recursive byte-for-byte comparison. |
+| application | YES | New `verify_output()` function in `ia_dev_env/verifier.py` -- orchestrates recursive byte-for-byte comparison. |
 | adapter/inbound (CLI) | NO | No CLI changes needed. Verification is invoked from tests only. |
 | adapter/outbound | NO | File operations use stdlib `pathlib` only. |
 | assembler | NO | Existing assemblers are consumers of the verification, not modified. |
@@ -27,7 +27,7 @@
 
 ## 2. New Classes/Interfaces to Create
 
-### 2.1 VerificationResult Dataclass (`claude_setup/models.py` -- extend existing)
+### 2.1 VerificationResult Dataclass (`ia_dev_env/models.py` -- extend existing)
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -49,7 +49,7 @@ class VerificationResult:
 
 Pure domain model. Zero framework dependencies. Located in `models.py` alongside `PipelineResult`.
 
-### 2.2 FileDiff Dataclass (`claude_setup/models.py` -- extend existing)
+### 2.2 FileDiff Dataclass (`ia_dev_env/models.py` -- extend existing)
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -69,7 +69,7 @@ class FileDiff:
 
 Pure value object. Must be defined before `VerificationResult` in the file (forward reference).
 
-### 2.3 Verifier Module (`claude_setup/verifier.py` -- new file)
+### 2.3 Verifier Module (`ia_dev_env/verifier.py` -- new file)
 
 Single public function:
 
@@ -172,7 +172,7 @@ Test classes/functions:
 
 | File | Change | Reason |
 |------|--------|--------|
-| `claude_setup/models.py` | Add `FileDiff` and `VerificationResult` dataclasses | New domain models for verification output |
+| `ia_dev_env/models.py` | Add `FileDiff` and `VerificationResult` dataclasses | New domain models for verification output |
 | `tests/conftest.py` | Add `golden_dir`, `src_dir`, `config_profiles`, `pipeline_output` fixtures | Shared fixtures for verification tests |
 
 No other existing production code requires modification. The verifier is a new module that operates on directory trees produced by the existing pipeline.
@@ -183,27 +183,27 @@ No other existing production code requires modification. The verifier is a new m
 
 ```
 tests/test_verification.py (test code)
-    --> claude_setup/verifier.py (application layer)
-        --> claude_setup/models.py (VerificationResult, FileDiff)
+    --> ia_dev_env/verifier.py (application layer)
+        --> ia_dev_env/models.py (VerificationResult, FileDiff)
         --> stdlib only (pathlib, difflib, os)
-    --> claude_setup/assembler/__init__.py (run_pipeline)
-    --> claude_setup/config.py (load_config)
+    --> ia_dev_env/assembler/__init__.py (run_pipeline)
+    --> ia_dev_env/config.py (load_config)
 
 tests/test_verifier.py (unit tests)
-    --> claude_setup/verifier.py
-        --> claude_setup/models.py
+    --> ia_dev_env/verifier.py
+        --> ia_dev_env/models.py
         --> stdlib only
 
 tests/generate_golden.py (script)
-    --> claude_setup/assembler/__init__.py (run_pipeline)
-    --> claude_setup/config.py (load_config)
-    --> claude_setup/models.py (ProjectConfig)
+    --> ia_dev_env/assembler/__init__.py (run_pipeline)
+    --> ia_dev_env/config.py (load_config)
+    --> ia_dev_env/models.py (ProjectConfig)
 
-claude_setup/verifier.py (new module)
-    --> claude_setup/models.py (FileDiff, VerificationResult)
+ia_dev_env/verifier.py (new module)
+    --> ia_dev_env/models.py (FileDiff, VerificationResult)
     --> stdlib only (pathlib, difflib, os)
 
-claude_setup/models.py (extended)
+ia_dev_env/models.py (extended)
     --> stdlib only (dataclasses, pathlib)
 ```
 
@@ -314,7 +314,7 @@ def pytest_addoption(parser):
 Following the inner-to-outer rule:
 
 1. **Domain models** -- Add `FileDiff` and `VerificationResult` dataclasses to `models.py`
-2. **Verifier module** -- Create `claude_setup/verifier.py` with `verify_output()` function
+2. **Verifier module** -- Create `ia_dev_env/verifier.py` with `verify_output()` function
 3. **Unit tests for verifier** -- Create `tests/test_verifier.py` with synthetic directory comparisons
 4. **Golden file generator** -- Create `tests/generate_golden.py` script
 5. **Test fixtures** -- Extend `tests/conftest.py` with golden/pipeline fixtures
@@ -332,7 +332,7 @@ Following the inner-to-outer rule:
 
 | File | Description |
 |------|-------------|
-| `claude_setup/verifier.py` | Byte-for-byte directory comparison: `verify_output()`, `_collect_files()`, `_compute_diff()` |
+| `ia_dev_env/verifier.py` | Byte-for-byte directory comparison: `verify_output()`, `_collect_files()`, `_compute_diff()` |
 | `tests/test_verifier.py` | Unit tests for `verifier.py` with synthetic directory fixtures |
 | `tests/test_verification.py` | Parametrized end-to-end tests: byte-for-byte match for all 8 config profiles |
 | `tests/generate_golden.py` | Script to generate/regenerate golden reference files for all profiles |
@@ -342,19 +342,19 @@ Following the inner-to-outer rule:
 
 | File | Change |
 |------|--------|
-| `claude_setup/models.py` | Add `FileDiff` and `VerificationResult` dataclasses (~25 lines) |
+| `ia_dev_env/models.py` | Add `FileDiff` and `VerificationResult` dataclasses (~25 lines) |
 | `tests/conftest.py` | Add `golden_dir`, `src_dir`, `config_profiles`, `pipeline_output` fixtures (~40 lines) |
 
 ### Unchanged Files (verified)
 
 | File | Reason |
 |------|--------|
-| `claude_setup/assembler/__init__.py` | `run_pipeline()` used as-is by tests |
-| `claude_setup/__main__.py` | No CLI changes for verification story |
-| `claude_setup/config.py` | `load_config()` used as-is by golden generator |
-| `claude_setup/exceptions.py` | No new exceptions needed |
-| `claude_setup/template_engine.py` | Used indirectly through pipeline, unchanged |
-| `claude_setup/utils.py` | Used indirectly through pipeline, unchanged |
-| All `claude_setup/assembler/*.py` | Assemblers are consumers, not modified |
-| All `claude_setup/domain/*.py` | Domain logic unchanged |
+| `ia_dev_env/assembler/__init__.py` | `run_pipeline()` used as-is by tests |
+| `ia_dev_env/__main__.py` | No CLI changes for verification story |
+| `ia_dev_env/config.py` | `load_config()` used as-is by golden generator |
+| `ia_dev_env/exceptions.py` | No new exceptions needed |
+| `ia_dev_env/template_engine.py` | Used indirectly through pipeline, unchanged |
+| `ia_dev_env/utils.py` | Used indirectly through pipeline, unchanged |
+| All `ia_dev_env/assembler/*.py` | Assemblers are consumers, not modified |
+| All `ia_dev_env/domain/*.py` | Domain logic unchanged |
 | `pyproject.toml` | No new dependencies or entry points |

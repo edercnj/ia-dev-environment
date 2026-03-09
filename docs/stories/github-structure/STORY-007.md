@@ -19,9 +19,9 @@
 
 ## 3. Descricao
 
-Como **DevOps Engineer**, eu quero que o gerador Python `claude_setup` produza as 5 skills de infrastructure (`setup-environment`, `k8s-deployment`, `k8s-kustomize`, `dockerfile`, `iac-terraform`) dentro do diretorio `.github/skills/` gerado, garantindo que o provisionamento e deployment sigam padroes cloud-agnostic e security-hardened.
+Como **DevOps Engineer**, eu quero que o gerador Python `ia_dev_env` produza as 5 skills de infrastructure (`setup-environment`, `k8s-deployment`, `k8s-kustomize`, `dockerfile`, `iac-terraform`) dentro do diretorio `.github/skills/` gerado, garantindo que o provisionamento e deployment sigam padroes cloud-agnostic e security-hardened.
 
-O gerador `claude_setup` ja produz tanto `.claude/` quanto `.github/` como output. Esta story adiciona templates e logica de assembler para gerar as skills de infrastructure na arvore `.github/skills/`. Ambos os diretorios sao gitignored -- sao output do gerador.
+O gerador `ia_dev_env` ja produz tanto `.claude/` quanto `.github/` como output. Esta story adiciona templates e logica de assembler para gerar as skills de infrastructure na arvore `.github/skills/`. Ambos os diretorios sao gitignored -- sao output do gerador.
 
 Estas skills sao de prioridade media pois dependem menos do fluxo principal de desenvolvimento e mais da maturidade da plataforma.
 
@@ -41,7 +41,7 @@ Conforme `01-project-identity.md`: "Cloud-Agnostic: ZERO dependencies on cloud-s
 
 ### Assembler
 
-- Estender o `GithubSkillsAssembler` (criado em STORY-005) em `src/claude_setup/assembler/` para processar a categoria `infrastructure`.
+- Estender o `GithubSkillsAssembler` (criado em STORY-005) em `src/ia_dev_env/assembler/` para processar a categoria `infrastructure`.
 - O assembler le templates de `resources/github-skills-templates/infrastructure/` e gera arquivos em `output_dir/github/skills/<skill-name>/SKILL.md`.
 - Se o assembler ja foi registrado em `_build_assemblers()` na STORY-005, basta adicionar a nova categoria de templates.
 

@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from claude_setup.assembler.agents import AgentsAssembler
-from claude_setup.models import ProjectConfig
-from claude_setup.template_engine import TemplateEngine
+from ia_dev_env.assembler.agents import AgentsAssembler
+from ia_dev_env.models import ProjectConfig
+from ia_dev_env.template_engine import TemplateEngine
 
 
 @pytest.fixture

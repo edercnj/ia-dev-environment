@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from claude_setup.domain.stack_mapping import (
+from ia_dev_env.domain.stack_mapping import (
     get_cache_settings_key,
     get_database_settings_key,
     get_hook_template_key,

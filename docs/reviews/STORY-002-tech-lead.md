@@ -12,9 +12,9 @@
 
 | File | Lines | Role |
 |------|-------|------|
-| `src/claude_setup/assembler/github_mcp_assembler.py` | 63 | New assembler |
-| `src/claude_setup/models.py` (lines 212-265) | ~54 added | New MCP model classes |
-| `src/claude_setup/assembler/__init__.py` | 165 | Pipeline registration |
+| `src/ia_dev_env/assembler/github_mcp_assembler.py` | 63 | New assembler |
+| `src/ia_dev_env/models.py` (lines 212-265) | ~54 added | New MCP model classes |
+| `src/ia_dev_env/assembler/__init__.py` | 165 | Pipeline registration |
 | `tests/assembler/test_github_mcp_assembler.py` | 323 | Unit tests |
 | `tests/test_pipeline.py` | 194 | Pipeline count update |
 | `tests/golden/java-quarkus/github/copilot-mcp.json` | 15 | Golden file |

@@ -3,7 +3,7 @@
 **Status:** DOCUMENTED
 **Date:** 2026-03-08
 **Assembler Under Test:** `GithubInstructionsAssembler`
-**Source:** `src/claude_setup/assembler/github_instructions_assembler.py`
+**Source:** `src/ia_dev_env/assembler/github_instructions_assembler.py`
 
 ---
 
@@ -209,5 +209,5 @@ python scripts/generate_golden.py --all
 
 ### Run with coverage report
 ```bash
-pytest tests/ --cov=claude_setup.assembler.github_instructions_assembler --cov-report=term-missing
+pytest tests/ --cov=ia_dev_env.assembler.github_instructions_assembler --cov-report=term-missing
 ```

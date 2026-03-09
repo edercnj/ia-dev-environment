@@ -3,7 +3,7 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "claude-setup"
+name = "ia-dev-environment"
 version = "0.1.0"
 requires-python = ">=3.9"
 dependencies = [
@@ -19,7 +19,7 @@ dev = [
 ]
 
 [project.scripts]
-claude-setup = "claude_setup.__main__:main"
+ia-dev-env = "ia_dev_env.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -28,7 +28,7 @@ where = ["src"]
 testpaths = ["tests"]
 
 [tool.coverage.run]
-source = ["src/claude_setup"]
+source = ["src/ia_dev_env"]
 branch = true
 
 [tool.coverage.report]

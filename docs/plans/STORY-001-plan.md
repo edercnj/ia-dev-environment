@@ -21,7 +21,7 @@
 
 | Class / Module | Location | Responsibility |
 |----------------|----------|----------------|
-| `GithubInstructionsAssembler` | `src/claude_setup/assembler/github_instructions_assembler.py` | Generates `.github/copilot-instructions.md` (global, from `ProjectConfig`) and `instructions/*.instructions.md` (contextual, from templates) |
+| `GithubInstructionsAssembler` | `src/ia_dev_env/assembler/github_instructions_assembler.py` | Generates `.github/copilot-instructions.md` (global, from `ProjectConfig`) and `instructions/*.instructions.md` (contextual, from templates) |
 | `_build_copilot_instructions()` | Same file (module-level function) | Builds the global `copilot-instructions.md` content string programmatically from `ProjectConfig` fields |
 
 **Templates (new files, not classes):**
@@ -47,9 +47,9 @@
 
 | Class / Module | Location | Change Description |
 |----------------|----------|--------------------|
-| `_build_assemblers()` | `src/claude_setup/assembler/__init__.py` | Added `GithubInstructionsAssembler` as the 9th (last) entry in the assembler list |
-| `__all__` | `src/claude_setup/assembler/__init__.py` | Added `GithubInstructionsAssembler` to the public API exports |
-| Import block | `src/claude_setup/assembler/__init__.py` | Added import of `GithubInstructionsAssembler` from the new module |
+| `_build_assemblers()` | `src/ia_dev_env/assembler/__init__.py` | Added `GithubInstructionsAssembler` as the 9th (last) entry in the assembler list |
+| `__all__` | `src/ia_dev_env/assembler/__init__.py` | Added `GithubInstructionsAssembler` to the public API exports |
+| Import block | `src/ia_dev_env/assembler/__init__.py` | Added import of `GithubInstructionsAssembler` from the new module |
 | `TestBuildAssemblers` | `tests/test_pipeline.py` | Updated `test_returns_nine_assemblers` (count from 8 to 9) and added `test_last_assembler_is_github_instructions` |
 
 ## 4. Dependency Direction Validation
@@ -80,7 +80,7 @@ The assembler follows the same contract as all other assemblers:
 
 ### Data Flow
 
-1. `ProjectConfig` is parsed from `claude-setup.yaml`
+1. `ProjectConfig` is parsed from `ia-dev-env.yaml`
 2. `TemplateEngine` is created with config placeholders
 3. `GithubInstructionsAssembler.assemble()` is called with config, output_dir, and engine
 4. Global file: `_build_copilot_instructions(config)` extracts fields from `ProjectConfig` and writes `copilot-instructions.md`
@@ -114,9 +114,9 @@ None. No events are produced or consumed by this feature.
 | Change | Location | Description |
 |--------|----------|-------------|
 | Templates directory | `resources/github-instructions-templates/` | New directory containing 4 Markdown templates used by the assembler |
-| Assembler registration | `src/claude_setup/assembler/__init__.py` | `GithubInstructionsAssembler` registered as position 9 in `_build_assemblers()` |
+| Assembler registration | `src/ia_dev_env/assembler/__init__.py` | `GithubInstructionsAssembler` registered as position 9 in `_build_assemblers()` |
 
-No changes to `claude-setup.yaml` schema or `ProjectConfig` model were required. The assembler consumes existing fields already present in `ProjectConfig`.
+No changes to `ia-dev-env.yaml` schema or `ProjectConfig` model were required. The assembler consumes existing fields already present in `ProjectConfig`.
 
 ### Template Placeholders Used
 

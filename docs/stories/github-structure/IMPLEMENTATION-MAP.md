@@ -6,7 +6,7 @@
 
 ## 0. Contexto Tecnico do Gerador
 
-O `claude_setup` e um gerador Python que produz **AMBAS** as estruturas `.claude/` e `.github/` como saida. Nenhuma delas e mantida manualmente — ambas sao gitignored e regeneradas pelo pipeline.
+O `ia_dev_env` e um gerador Python que produz **AMBAS** as estruturas `.claude/` e `.github/` como saida. Nenhuma delas e mantida manualmente — ambas sao gitignored e regeneradas pelo pipeline.
 
 **Arquitetura do pipeline:**
 
@@ -31,7 +31,7 @@ class XxxAssembler:
 
 **Cada historia desta epic envolve:**
 
-1. **Assembler** — classe Python em `src/claude_setup/assembler/`
+1. **Assembler** — classe Python em `src/ia_dev_env/assembler/`
 2. **Templates** — arquivos Jinja2 em `resources/<xxx>-templates/`
 3. **Pipeline** — registro em `_build_assemblers()` no `__init__.py`
 4. **Golden files** — arquivos de referencia em `tests/golden/<xxx>/`
@@ -347,7 +347,7 @@ graph TD
 
 Cada historia segue o mesmo ciclo:
 
-1. Criar assembler em `src/claude_setup/assembler/github_<xxx>_assembler.py`
+1. Criar assembler em `src/ia_dev_env/assembler/github_<xxx>_assembler.py`
 2. Criar templates em `resources/github-<xxx>-templates/`
 3. Registrar em `_build_assemblers()` no `__init__.py`
 4. Criar golden files em `tests/golden/github-<xxx>/`

@@ -27,33 +27,33 @@ G7 depends on all previous groups.
 
 ### G1-T1: Add new fields to `InfraConfig`
 
-**File:** `claude_setup/models.py` (lines 163-179)
+**File:** `ia_dev_env/models.py` (lines 163-179)
 **Function:** `InfraConfig` dataclass + `from_dict()`
 **Changes:**
 - Add fields: `templating: str = "kustomize"`, `iac: str = "none"`, `registry: str = "none"`, `api_gateway: str = "none"`, `service_mesh: str = "none"`
 - Update `from_dict()` to parse all five new fields with defaults
 
 **Estimated lines changed:** ~10
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.models import InfraConfig; c = InfraConfig(); assert c.templating == 'kustomize'; assert c.iac == 'none'; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.models import InfraConfig; c = InfraConfig(); assert c.templating == 'kustomize'; assert c.iac == 'none'; print('OK')"`
 
 ---
 
 ### G1-T2: Add `performance_tests` to `TestingConfig`
 
-**File:** `claude_setup/models.py` (lines 182-196)
+**File:** `ia_dev_env/models.py` (lines 182-196)
 **Function:** `TestingConfig` dataclass + `from_dict()`
 **Changes:**
 - Add field: `performance_tests: bool = True`
 - Update `from_dict()` to parse `performance_tests` with default `True`
 
 **Estimated lines changed:** ~3
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.models import TestingConfig; t = TestingConfig(); assert t.performance_tests is True; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.models import TestingConfig; t = TestingConfig(); assert t.performance_tests is True; print('OK')"`
 
 ---
 
 ### G1-T3: Update `_build_default_context()` in template_engine.py
 
-**File:** `claude_setup/template_engine.py` (lines 15-34)
+**File:** `ia_dev_env/template_engine.py` (lines 15-34)
 **Function:** `_build_default_context()`
 **Changes:**
 - Add keys: `templating`, `iac`, `registry`, `api_gateway`, `service_mesh` (from `config.infrastructure.*`)
@@ -61,7 +61,7 @@ G7 depends on all previous groups.
 - Add keys: `smoke_tests`, `contract_tests` (from `config.testing.*`) -- currently missing but needed for assemblers
 
 **Estimated lines changed:** ~8
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.template_engine import _build_default_context; from claude_setup.models import ProjectConfig; c = ProjectConfig.from_dict({'project':{'name':'t','purpose':'t'},'architecture':{'style':'lib'},'interfaces':[{'type':'cli'}],'language':{'name':'py','version':'3.9'},'framework':{'name':'click','version':'8.1'}}); ctx = _build_default_context(c); assert 'templating' in ctx; assert 'performance_tests' in ctx; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.template_engine import _build_default_context; from ia_dev_env.models import ProjectConfig; c = ProjectConfig.from_dict({'project':{'name':'t','purpose':'t'},'architecture':{'style':'lib'},'interfaces':[{'type':'cli'}],'language':{'name':'py','version':'3.9'},'framework':{'name':'click','version':'8.1'}}); ctx = _build_default_context(c); assert 'templating' in ctx; assert 'performance_tests' in ctx; print('OK')"`
 
 ---
 
@@ -82,7 +82,7 @@ G7 depends on all previous groups.
 
 ### G2-T1: Create `assembler/conditions.py`
 
-**File:** `claude_setup/assembler/conditions.py` (new file)
+**File:** `ia_dev_env/assembler/conditions.py` (new file)
 **Functions:**
 - `extract_interface_types(config: ProjectConfig) -> List[str]` -- returns `[iface.type for iface in config.interfaces]`
 - `has_interface(config: ProjectConfig, iface_type: str) -> bool` -- checks if specific interface type exists
@@ -90,11 +90,11 @@ G7 depends on all previous groups.
 
 **Rules:**
 - Pure functions, no side effects
-- Depends only on `claude_setup.models.ProjectConfig`
+- Depends only on `ia_dev_env.models.ProjectConfig`
 - Each function <= 25 lines
 
 **Estimated lines:** ~30 (including imports, docstrings)
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.assembler.conditions import extract_interface_types, has_interface, has_any_interface; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.assembler.conditions import extract_interface_types, has_interface, has_any_interface; print('OK')"`
 
 ---
 
@@ -102,7 +102,7 @@ G7 depends on all previous groups.
 
 ### G3-T1: Create `assembler/skills.py` with `SkillsAssembler` class skeleton
 
-**File:** `claude_setup/assembler/skills.py` (new file)
+**File:** `ia_dev_env/assembler/skills.py` (new file)
 **Class:** `SkillsAssembler`
 **Methods to implement in this task:**
 - `select_core_skills(src_dir: Path) -> List[str]` -- scans `src_dir/skills-templates/core/` directories (excluding `lib/`), plus `core/lib/` entries. Returns skill names.
@@ -110,8 +110,8 @@ G7 depends on all previous groups.
 - `select_knowledge_packs(config: ProjectConfig) -> List[str]` -- evaluates config to determine knowledge packs. Returns pack identifiers.
 
 **Dependencies:**
-- `claude_setup.models.ProjectConfig`
-- `claude_setup.assembler.conditions` (extract_interface_types, has_interface, has_any_interface)
+- `ia_dev_env.models.ProjectConfig`
+- `ia_dev_env.assembler.conditions` (extract_interface_types, has_interface, has_any_interface)
 
 **Conditional Skills Selection Logic (13 rules):**
 
@@ -140,13 +140,13 @@ G7 depends on all previous groups.
 | `database-patterns` | `config.data.database.name != "none" or config.data.cache.name != "none"` |
 
 **Estimated lines:** ~120
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.assembler.skills import SkillsAssembler; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.assembler.skills import SkillsAssembler; print('OK')"`
 
 ---
 
 ### G3-T2: Implement `_copy_core_skill` and `_copy_conditional_skill`
 
-**File:** `claude_setup/assembler/skills.py`
+**File:** `ia_dev_env/assembler/skills.py`
 **Methods:**
 - `_copy_core_skill(skill_name: str, src_dir: Path, output_dir: Path, engine: TemplateEngine) -> Path` -- copies a single core skill directory, runs `engine.replace_placeholders()` on SKILL.md
 - `_copy_conditional_skill(skill_name: str, src_dir: Path, output_dir: Path, engine: TemplateEngine) -> Optional[Path]` -- copies a conditional skill if source directory exists, returns None if missing
@@ -158,13 +158,13 @@ G7 depends on all previous groups.
 - Explicit `encoding="utf-8"` on all file I/O
 
 **Estimated lines:** ~40
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.assembler.skills import SkillsAssembler; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.assembler.skills import SkillsAssembler; print('OK')"`
 
 ---
 
 ### G3-T3: Implement `_copy_knowledge_pack`
 
-**File:** `claude_setup/assembler/skills.py`
+**File:** `ia_dev_env/assembler/skills.py`
 **Method:**
 - `_copy_knowledge_pack(pack_name: str, src_dir: Path, output_dir: Path, engine: TemplateEngine) -> Optional[Path]` -- copies SKILL.md (always overwrite) + merges non-existing items (preserves `references/` already populated). Returns None if source does not exist.
 
@@ -175,7 +175,7 @@ G7 depends on all previous groups.
 - Destination path: `output_dir/skills/{pack_name}/`
 
 **Estimated lines:** ~25
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.assembler.skills import SkillsAssembler; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.assembler.skills import SkillsAssembler; print('OK')"`
 
 ---
 
@@ -183,7 +183,7 @@ G7 depends on all previous groups.
 
 ### G4-T1: Add `STACK_PACK_MAP` constant and `_copy_stack_patterns`
 
-**File:** `claude_setup/assembler/skills.py`
+**File:** `ia_dev_env/assembler/skills.py`
 **Constant:** `STACK_PACK_MAP: Dict[str, str]`
 
 | Framework | Pack Name |
@@ -204,13 +204,13 @@ G7 depends on all previous groups.
 - `_copy_stack_patterns(config: ProjectConfig, src_dir: Path, output_dir: Path, engine: TemplateEngine) -> Optional[Path]` -- resolves `config.framework.name` to pack name via `STACK_PACK_MAP`, copies matching stack-patterns knowledge pack from `src_dir/skills-templates/knowledge-packs/stack-patterns/{pack_name}/`. Returns None if framework not in map.
 
 **Estimated lines:** ~30
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.assembler.skills import STACK_PACK_MAP; assert STACK_PACK_MAP['click'] == 'click-cli-patterns'; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.assembler.skills import STACK_PACK_MAP; assert STACK_PACK_MAP['click'] == 'click-cli-patterns'; print('OK')"`
 
 ---
 
 ### G4-T2: Implement `_copy_infra_patterns`
 
-**File:** `claude_setup/assembler/skills.py`
+**File:** `ia_dev_env/assembler/skills.py`
 **Method:**
 - `_copy_infra_patterns(config: ProjectConfig, src_dir: Path, output_dir: Path, engine: TemplateEngine) -> List[Path]` -- copies infra knowledge packs based on infrastructure config
 
@@ -227,13 +227,13 @@ G7 depends on all previous groups.
 | `iac-crossplane` | `config.infrastructure.iac == "crossplane"` | `infra-patterns/iac-crossplane/` |
 
 **Estimated lines:** ~25
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.assembler.skills import SkillsAssembler; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.assembler.skills import SkillsAssembler; print('OK')"`
 
 ---
 
 ### G4-T3: Implement `assemble()` orchestrator method
 
-**File:** `claude_setup/assembler/skills.py`
+**File:** `ia_dev_env/assembler/skills.py`
 **Method:**
 - `assemble(config: ProjectConfig, output_dir: Path, src_dir: Path, engine: TemplateEngine) -> List[Path]` -- main entry point
 
@@ -246,7 +246,7 @@ G7 depends on all previous groups.
 6. Return aggregated list of all created paths
 
 **Estimated lines:** ~25
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.assembler.skills import SkillsAssembler; s = SkillsAssembler(); print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.assembler.skills import SkillsAssembler; s = SkillsAssembler(); print('OK')"`
 
 ---
 
@@ -254,7 +254,7 @@ G7 depends on all previous groups.
 
 ### G5-T1: Create `assembler/agents.py` with `AgentsAssembler` class + selection methods
 
-**File:** `claude_setup/assembler/agents.py` (new file)
+**File:** `ia_dev_env/assembler/agents.py` (new file)
 **Class:** `AgentsAssembler`
 **Methods:**
 - `select_core_agents(src_dir: Path) -> List[str]` -- scans `src_dir/agents-templates/core/*.md`. Returns agent filenames.
@@ -272,17 +272,17 @@ G7 depends on all previous groups.
 | `event-engineer.md` | `config.architecture.event_driven or has_any_interface(config, "event-consumer", "event-producer")` |
 
 **Dependencies:**
-- `claude_setup.models.ProjectConfig`
-- `claude_setup.assembler.conditions` (has_any_interface)
+- `ia_dev_env.models.ProjectConfig`
+- `ia_dev_env.assembler.conditions` (has_any_interface)
 
 **Estimated lines:** ~70
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.assembler.agents import AgentsAssembler; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.assembler.agents import AgentsAssembler; print('OK')"`
 
 ---
 
 ### G5-T2: Implement copy methods
 
-**File:** `claude_setup/assembler/agents.py`
+**File:** `ia_dev_env/assembler/agents.py`
 **Methods:**
 - `_copy_core_agent(agent_file: str, src_dir: Path, output_dir: Path, engine: TemplateEngine) -> Path` -- copies single core agent .md file with placeholder replacement
 - `_copy_conditional_agent(agent_file: str, src_dir: Path, output_dir: Path, engine: TemplateEngine) -> Optional[Path]` -- copies conditional agent if source exists
@@ -296,13 +296,13 @@ G7 depends on all previous groups.
 **Destination:** `output_dir/agents/{agent_file}`
 
 **Estimated lines:** ~50
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.assembler.agents import AgentsAssembler; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.assembler.agents import AgentsAssembler; print('OK')"`
 
 ---
 
 ### G5-T3: Implement checklist injection logic
 
-**File:** `claude_setup/assembler/agents.py`
+**File:** `ia_dev_env/assembler/agents.py`
 **Method:**
 - `_inject_checklists(config: ProjectConfig, output_dir: Path, src_dir: Path, engine: TemplateEngine) -> None` -- injects conditional checklists into agent files
 
@@ -326,13 +326,13 @@ G7 depends on all previous groups.
 **Checklist source:** `src_dir/agents-templates/checklists/{checklist_file}`
 
 **Estimated lines:** ~40
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.assembler.agents import AgentsAssembler; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.assembler.agents import AgentsAssembler; print('OK')"`
 
 ---
 
 ### G5-T4: Implement `assemble()` orchestrator method
 
-**File:** `claude_setup/assembler/agents.py`
+**File:** `ia_dev_env/assembler/agents.py`
 **Method:**
 - `assemble(config: ProjectConfig, output_dir: Path, src_dir: Path, engine: TemplateEngine) -> List[Path]` -- main entry point
 
@@ -344,7 +344,7 @@ G7 depends on all previous groups.
 5. Return aggregated list of all created paths
 
 **Estimated lines:** ~25
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.assembler.agents import AgentsAssembler; a = AgentsAssembler(); print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.assembler.agents import AgentsAssembler; a = AgentsAssembler(); print('OK')"`
 
 ---
 
@@ -352,7 +352,7 @@ G7 depends on all previous groups.
 
 ### G6-T1: Update `assembler/__init__.py`
 
-**File:** `claude_setup/assembler/__init__.py` (currently empty)
+**File:** `ia_dev_env/assembler/__init__.py` (currently empty)
 **Changes:**
 - Import and export `SkillsAssembler` from `.skills`
 - Import and export `AgentsAssembler` from `.agents`
@@ -360,7 +360,7 @@ G7 depends on all previous groups.
 - Define `__all__`
 
 **Estimated lines:** ~15
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.assembler import SkillsAssembler, AgentsAssembler; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.assembler import SkillsAssembler, AgentsAssembler; print('OK')"`
 
 ---
 
@@ -511,5 +511,5 @@ G7 depends on all previous groups.
 ## Full Validation Command
 
 ```bash
-cd /Users/edercnj/workspaces/claude-environment && python -m pytest tests/ -x -q --tb=short && python -m pytest tests/ --cov=claude_setup --cov-report=term-missing --cov-fail-under=95
+cd /Users/edercnj/workspaces/claude-environment && python -m pytest tests/ -x -q --tb=short && python -m pytest tests/ --cov=ia_dev_env --cov-report=term-missing --cov-fail-under=95
 ```

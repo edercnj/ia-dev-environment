@@ -19,7 +19,7 @@
 | application | NO | No use case orchestration; assemblers invoked directly from pipeline. |
 | adapter/inbound | NO | CLI entrypoint unchanged; assemblers called by the pipeline (STORY-009). |
 | adapter/outbound | NO | File operations use stdlib `pathlib`/`shutil`/`json` -- no adapter needed. |
-| assembler | YES | New `hooks_assembler.py`, `settings_assembler.py`, and `readme_assembler.py` modules under `claude_setup/assembler/`. |
+| assembler | YES | New `hooks_assembler.py`, `settings_assembler.py`, and `readme_assembler.py` modules under `ia_dev_env/assembler/`. |
 | config | NO | No new config parsing needed. |
 | tests | YES | Unit, contract, and integration tests for all three assemblers. |
 
@@ -27,7 +27,7 @@
 
 ## 2. New Classes/Interfaces to Create
 
-### 2.1 Domain Mappings (`claude_setup/domain/stack_mapping.py` -- extend existing)
+### 2.1 Domain Mappings (`ia_dev_env/domain/stack_mapping.py` -- extend existing)
 
 Two new constant dictionaries to add to the existing `stack_mapping.py` module:
 
@@ -69,7 +69,7 @@ Two pure functions:
 | `get_hook_template_key(language, build_tool)` | `(str, str) -> str` | Looks up `HOOK_TEMPLATE_KEY_MAP`, returns empty string if not found or if the language is interpreted. |
 | `get_settings_lang_key(language, build_tool)` | `(str, str) -> str` | Looks up `SETTINGS_LANG_KEY_MAP`, returns empty string if not found. |
 
-### 2.2 Database Settings Key Mapping (`claude_setup/domain/stack_mapping.py` -- extend existing)
+### 2.2 Database Settings Key Mapping (`ia_dev_env/domain/stack_mapping.py` -- extend existing)
 
 | Constant | Type | Description |
 |----------|------|-------------|
@@ -94,7 +94,7 @@ Two pure functions:
 | dragonfly | `"cache-dragonfly"` |
 | memcached | `"cache-memcached"` |
 
-### 2.3 Hooks Assembler (`claude_setup/assembler/hooks_assembler.py`)
+### 2.3 Hooks Assembler (`ia_dev_env/assembler/hooks_assembler.py`)
 
 | Class/Function | Description |
 |----------------|-------------|
@@ -116,7 +116,7 @@ Two pure functions:
 
 > Note: `engine` parameter included for interface consistency with other assemblers, even though hooks assembler does not perform template rendering.
 
-### 2.4 Settings Assembler (`claude_setup/assembler/settings_assembler.py`)
+### 2.4 Settings Assembler (`ia_dev_env/assembler/settings_assembler.py`)
 
 | Class/Function | Description |
 |----------------|-------------|
@@ -175,7 +175,7 @@ Two pure functions:
 }
 ```
 
-### 2.5 README Assembler (`claude_setup/assembler/readme_assembler.py`)
+### 2.5 README Assembler (`ia_dev_env/assembler/readme_assembler.py`)
 
 | Class/Function | Description |
 |----------------|-------------|
@@ -228,8 +228,8 @@ Two pure functions:
 
 | File | Change | Reason |
 |------|--------|--------|
-| `claude_setup/domain/stack_mapping.py` | Add `HOOK_TEMPLATE_KEY_MAP`, `SETTINGS_LANG_KEY_MAP`, `DB_SETTINGS_KEY_MAP`, `CACHE_SETTINGS_KEY_MAP` constants and lookup functions | Domain mapping needed by hooks and settings assemblers |
-| `claude_setup/assembler/__init__.py` | Add exports for `HooksAssembler`, `SettingsAssembler`, `ReadmeAssembler` | Maintain consistent module exports |
+| `ia_dev_env/domain/stack_mapping.py` | Add `HOOK_TEMPLATE_KEY_MAP`, `SETTINGS_LANG_KEY_MAP`, `DB_SETTINGS_KEY_MAP`, `CACHE_SETTINGS_KEY_MAP` constants and lookup functions | Domain mapping needed by hooks and settings assemblers |
+| `ia_dev_env/assembler/__init__.py` | Add exports for `HooksAssembler`, `SettingsAssembler`, `ReadmeAssembler` | Maintain consistent module exports |
 
 ---
 
@@ -347,9 +347,9 @@ Following the inner-to-outer rule:
 
 | File | Description |
 |------|-------------|
-| `claude_setup/assembler/hooks_assembler.py` | HooksAssembler class |
-| `claude_setup/assembler/settings_assembler.py` | SettingsAssembler class with merge_json_arrays |
-| `claude_setup/assembler/readme_assembler.py` | ReadmeAssembler class with full and minimal generation |
+| `ia_dev_env/assembler/hooks_assembler.py` | HooksAssembler class |
+| `ia_dev_env/assembler/settings_assembler.py` | SettingsAssembler class with merge_json_arrays |
+| `ia_dev_env/assembler/readme_assembler.py` | ReadmeAssembler class with full and minimal generation |
 | `tests/assembler/test_hooks_assembler.py` | Unit tests for HooksAssembler |
 | `tests/assembler/test_settings_assembler.py` | Unit tests for SettingsAssembler |
 | `tests/assembler/test_readme_assembler.py` | Unit tests for ReadmeAssembler |
@@ -359,5 +359,5 @@ Following the inner-to-outer rule:
 
 | File | Change |
 |------|--------|
-| `claude_setup/domain/stack_mapping.py` | Add HOOK_TEMPLATE_KEY_MAP, SETTINGS_LANG_KEY_MAP, DB_SETTINGS_KEY_MAP, CACHE_SETTINGS_KEY_MAP + lookup functions |
-| `claude_setup/assembler/__init__.py` | Add HooksAssembler, SettingsAssembler, ReadmeAssembler exports |
+| `ia_dev_env/domain/stack_mapping.py` | Add HOOK_TEMPLATE_KEY_MAP, SETTINGS_LANG_KEY_MAP, DB_SETTINGS_KEY_MAP, CACHE_SETTINGS_KEY_MAP + lookup functions |
+| `ia_dev_env/assembler/__init__.py` | Add HooksAssembler, SettingsAssembler, ReadmeAssembler exports |
