@@ -1,6 +1,6 @@
 # Test Plan -- STORY-003: Models (Python to TypeScript Migration)
 
-**Status:** PLANNED
+**Status:** COMPLETED
 **Date:** 2026-03-09
 **Test Framework:** vitest
 **Test File:** `tests/node/models.test.ts`
@@ -9,32 +9,32 @@
 
 ---
 
-## 1. `require()` Helper Function
+## 1. `requireField()` Helper Function
 
 ### 1.1 Happy Path
 
 | # | Test Name | Input | Expected |
 |---|-----------|-------|----------|
-| 1 | `require_keyExists_returnsValue` | `{ name: "test" }`, key `"name"`, model `"M"` | Returns `"test"` |
-| 2 | `require_valueIsZero_returnsZero` | `{ count: 0 }`, key `"count"`, model `"M"` | Returns `0` |
-| 3 | `require_valueIsFalse_returnsFalse` | `{ flag: false }`, key `"flag"`, model `"M"` | Returns `false` |
-| 4 | `require_valueIsEmptyString_returnsEmptyString` | `{ label: "" }`, key `"label"`, model `"M"` | Returns `""` |
-| 5 | `require_valueIsNull_returnsNull` | `{ x: null }`, key `"x"`, model `"M"` | Returns `null` |
+| 1 | `keyExists_returnsValue` | `{ name: "test" }`, key `"name"`, model `"M"` | Returns `"test"` |
+| 2 | `falsyValue_zero_returnsValue` | `{ v: 0 }`, key `"v"`, model `"M"` | Returns `0` |
+| 3 | `falsyValue_false_returnsValue` | `{ v: false }`, key `"v"`, model `"M"` | Returns `false` |
+| 4 | `falsyValue_emptyString_returnsValue` | `{ v: "" }`, key `"v"`, model `"M"` | Returns `""` |
+| 5 | `falsyValue_null_returnsValue` | `{ v: null }`, key `"v"`, model `"M"` | Returns `null` |
 
 ### 1.2 Error Cases
 
 | # | Test Name | Input | Expected |
 |---|-----------|-------|----------|
-| 6 | `require_keyMissing_throwsErrorWithMessage` | `{}`, key `"name"`, model `"ProjectIdentity"` | Throws `Error` with message `"Missing required field 'name' in ProjectIdentity"` |
-| 7 | `require_keyMissingDifferentModel_includesModelNameInMessage` | `{}`, key `"style"`, model `"ArchitectureConfig"` | Throws `Error` with message containing `"style"` and `"ArchitectureConfig"` |
+| 6 | `keyMissing_throwsErrorWithMessage` | `{}`, key `"name"`, model `"ProjectIdentity"` | Throws `Error` with message `"Missing required field 'name' in ProjectIdentity"` |
+| 7 | `keyMissingDifferentModel_includesModelNameInMessage` | `{}`, key `"style"`, model `"ArchitectureConfig"` | Throws `Error` with message containing `"style"` and `"ArchitectureConfig"` |
 
 ### 1.3 Edge Cases
 
 | # | Test Name | Input | Expected |
 |---|-----------|-------|----------|
-| 8 | `require_valueIsUndefined_throwsError` | `{ name: undefined }` (key not actually in data), key `"name"`, model `"M"` | Throws `Error` (undefined means missing) |
+| 8 | `keyExistsWithUndefinedValue_returnsUndefined` | `{ name: undefined }`, key `"name"`, model `"M"` | Returns `undefined` (key exists via `key in data` check) |
 
-> **Note:** The exact behavior for `undefined` values depends on implementation. If `require` uses `key in data` check, `{ name: undefined }` would pass. If it checks `=== undefined`, it would throw. The test should match the chosen implementation strategy from the plan (which recommends `key in data`).
+> **Note:** Implementation uses `key in data` check, so `{ name: undefined }` passes (key exists) and returns `undefined`. This matches the plan's recommended approach.
 
 ---
 
@@ -328,15 +328,12 @@ function aFullProjectConfigData(): Record<string, unknown> {
 
 ```
 tests/node/models.test.ts
-  describe("require helper")
-    it("require_keyExists_returnsValue")
-    it("require_valueIsZero_returnsZero")
-    it("require_valueIsFalse_returnsFalse")
-    it("require_valueIsEmptyString_returnsEmptyString")
-    it("require_valueIsNull_returnsNull")
-    it("require_keyMissing_throwsErrorWithMessage")
-    it("require_keyMissingDifferentModel_includesModelNameInMessage")
-    it("require_valueIsUndefined_throwsError")
+  describe("requireField helper")
+    it("keyExists_returnsValue")
+    it.each(falsyValues)("falsyValue_$label_returnsValue")
+    it("keyMissing_throwsErrorWithMessage")
+    it("keyMissingDifferentModel_includesModelNameInMessage")
+    it("keyExistsWithUndefinedValue_returnsUndefined")
 
   describe("TechComponent")
     describe("fromDict")
@@ -419,7 +416,7 @@ tests/node/models.test.ts
 
 | Category | Test Count | Models Covered | Branch Points |
 |----------|-----------|----------------|---------------|
-| `require` helper | 8 | 1 function | key present / absent / falsy values |
+| `requireField` helper | 8 | 1 function | key present / absent / falsy values |
 | Leaf model `fromDict` (happy) | 14 | 10 models | All optional field present / absent |
 | Leaf model `fromDict` (error) | 10 | 5 models (with required fields) | Missing each required field |
 | Composite model `fromDict` | 12 | 3 models | Nested present / absent / partial |

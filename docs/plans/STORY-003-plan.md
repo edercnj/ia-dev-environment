@@ -1,6 +1,6 @@
 # Implementation Plan -- STORY-003: Models (Python to TypeScript Migration)
 
-**Status:** PLANNED
+**Status:** COMPLETED
 **Date:** 2026-03-09
 **Blocked By:** STORY-001 (project foundation)
 **Blocks:** STORY-004 (config loader), STORY-006, STORY-007, STORY-008, STORY-017
@@ -13,7 +13,7 @@ This is a **library project** -- no database, no API, no events. All changes are
 
 | Layer | Component | Impact |
 |-------|-----------|--------|
-| Shared / Models | `src/models.ts` | Add 17 model classes with `fromDict` factories + `require` helper, preserving existing `ProjectFoundation` |
+| Shared / Models | `src/models.ts` | Add 17 model classes with `fromDict` factories + `requireField` helper, preserving existing `ProjectFoundation` |
 | Tests | `tests/node/models.test.ts` | New test file covering all `fromDict` methods, defaults, and error cases |
 
 No other source files are modified. No assemblers, CLI, domain modules, exceptions, or utils are touched.
@@ -28,7 +28,7 @@ All new types go in `src/models.ts`, below the existing `ProjectFoundation` inte
 
 | Function | Signature | Responsibility |
 |----------|-----------|----------------|
-| `require` | `(data: Record<string, unknown>, key: string, model: string): unknown` | Extracts a required field from `data` or throws `Error` with message `"Missing required field '{key}' in {model}"` |
+| `requireField` | `(data: Record<string, unknown>, key: string, model: string): unknown` | Extracts a required field from `data` or throws `Error` with message `"Missing required field '{key}' in {model}"` |
 
 **Note:** The story document says message format `"Missing required field '{key}' in {model}"` (section 3.4). The Python source uses `"Missing required field '{key}' for {model}"`. The implementation will use `"Missing required field '{key}' in {model}"` per the story spec since this is the TypeScript contract.
 
@@ -122,7 +122,7 @@ Each Python dataclass maps to a TypeScript class with:
 
 | File | Change |
 |------|--------|
-| `src/models.ts` | Add `require` function and 17 model classes below existing `ProjectFoundation` interface and `DEFAULT_FOUNDATION` constant. No changes to existing code. |
+| `src/models.ts` | Add `requireField` function and 17 model classes below existing `ProjectFoundation` interface and `DEFAULT_FOUNDATION` constant. No changes to existing code. |
 
 No other files require modification.
 
@@ -138,7 +138,7 @@ src/models.ts
 **Assessment: COMPLIANT.**
 
 - `models.ts` has zero dependencies -- pure data model classes with no imports.
-- The `require` helper uses only standard `Error`. No framework imports.
+- The `requireField` helper uses only standard `Error`. No framework imports.
 - The module is a "leaf" dependency -- imported by others, imports nothing from the project.
 - No circular dependencies. No upward dependency violations.
 
@@ -208,7 +208,7 @@ N/A -- No runtime configuration changes. The models themselves represent the con
 
 ## 11. Implementation Order
 
-1. **`require` helper function** in `src/models.ts` -- no dependencies, needed by all `fromDict` methods
+1. **`requireField` helper function** in `src/models.ts` -- no dependencies, needed by all `fromDict` methods
 2. **Leaf models (no nested types):** `TechComponent`, `ProjectIdentity`, `ArchitectureConfig`, `InterfaceConfig`, `LanguageConfig`, `FrameworkConfig`, `SecurityConfig`, `ObservabilityConfig`, `TestingConfig`, `McpServerConfig`
 3. **Composite models (depend on leaf models):** `DataConfig`, `InfraConfig`, `McpConfig`
 4. **Root model:** `ProjectConfig` (depends on all config models)
@@ -251,7 +251,7 @@ class ExampleConfig {
 
   static fromDict(data: Record<string, unknown>): ExampleConfig {
     return new ExampleConfig(
-      require(data, "required_field", "ExampleConfig") as string,
+      requireField(data, "required_field", "ExampleConfig") as string,
       (data["optional_field"] as boolean | undefined) ?? false,
     );
   }
@@ -259,7 +259,7 @@ class ExampleConfig {
 ```
 
 Key patterns:
-- `require()` for mandatory fields, cast result with `as T`
+- `requireField()` for mandatory fields, cast result with `as T`
 - Direct index + `as T | undefined` + `?? default` for optional fields
 - Snake_case keys in `data[]` access (matching YAML input)
 - CamelCase property names on the class

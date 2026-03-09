@@ -1,6 +1,6 @@
 # Task Decomposition -- STORY-003: Models (Python to TypeScript Migration)
 
-**Status:** PLANNED
+**Status:** COMPLETED
 **Date:** 2026-03-09
 **Blocked By:** STORY-001 (project foundation)
 **Blocks:** STORY-004 (config loader), STORY-006, STORY-007, STORY-008, STORY-017
@@ -11,9 +11,9 @@
 
 **Dependencies:** None (leaf helper + leaf model, zero imports)
 
-### T1.1 -- Add `require` helper function
+### T1.1 -- Add `requireField` helper function
 - **File:** `src/models.ts`
-- **Description:** Add exported function `require(data: Record<string, unknown>, key: string, model: string): unknown`. Check if `key in data` -- if not, throw `Error` with message `"Missing required field '${key}' in ${model}"`. If present, return `data[key]`. Place below existing `DEFAULT_FOUNDATION` constant.
+- **Description:** Add exported function `requireField(data: Record<string, unknown>, key: string, model: string): unknown`. Check if `key in data` -- if not, throw `Error` with message `"Missing required field '${key}' in ${model}"`. If present, return `data[key]`. Place below existing `DEFAULT_FOUNDATION` constant.
 - **Estimated lines:** ~8
 - **Tier:** Junior
 - **Notes:** Uses `key in data` guard (not `data[key] === undefined`) to handle `noUncheckedIndexedAccess`. Message uses `"in"` per story spec (Python uses `"for"` -- intentional divergence).
@@ -27,7 +27,7 @@
 
 ### Compilation checkpoint
 ```
-npx tsc --noEmit   # zero errors with require + TechComponent exported
+npx tsc --noEmit   # zero errors with requireField + TechComponent exported
 ```
 **Expected output:** Clean compilation, zero errors.
 
@@ -35,11 +35,11 @@ npx tsc --noEmit   # zero errors with require + TechComponent exported
 
 ## G2 -- Simple Models
 
-**Dependencies:** G1 (`require` helper used in all `fromDict` methods)
+**Dependencies:** G1 (`requireField` helper used in all `fromDict` methods)
 
 ### T2.1 -- Add `ProjectIdentity` class
 - **File:** `src/models.ts`
-- **Description:** Class with `readonly name: string` and `readonly purpose: string` (both required). Constructor takes both as required params. `fromDict` uses `require(data, "name", "ProjectIdentity") as string` and same for `purpose`.
+- **Description:** Class with `readonly name: string` and `readonly purpose: string` (both required). Constructor takes both as required params. `fromDict` uses `requireField(data, "name", "ProjectIdentity") as string` and same for `purpose`.
 - **Estimated lines:** ~14
 - **Tier:** Junior
 - **Python reference:** Lines 18-27 of `models.py`
@@ -60,7 +60,7 @@ npx tsc --noEmit   # zero errors with require + TechComponent exported
 
 ### T2.4 -- Add `LanguageConfig` class
 - **File:** `src/models.ts`
-- **Description:** Class with `readonly name: string` and `readonly version: string` (both required). `fromDict` uses `require` for both.
+- **Description:** Class with `readonly name: string` and `readonly version: string` (both required). `fromDict` uses `requireField` for both.
 - **Estimated lines:** ~14
 - **Tier:** Junior
 - **Python reference:** Lines 60-70 of `models.py`
@@ -133,7 +133,7 @@ npx tsc --noEmit   # zero errors with all composed models
 
 ### T4.2 -- Add `McpServerConfig` class
 - **File:** `src/models.ts`
-- **Description:** Class with `readonly id: string` (required), `readonly url: string` (required), `readonly capabilities: readonly string[]` (default `[]`), `readonly env: Readonly<Record<string, string>>` (default `{}`). `fromDict` uses `require` for `id` and `url`, reads `capabilities` and `env` with defaults.
+- **Description:** Class with `readonly id: string` (required), `readonly url: string` (required), `readonly capabilities: readonly string[]` (default `[]`), `readonly env: Readonly<Record<string, string>>` (default `{}`). `fromDict` uses `requireField` for `id` and `url`, reads `capabilities` and `env` with defaults.
 - **Estimated lines:** ~20
 - **Tier:** Mid
 - **Python reference:** Lines 212-226 of `models.py`
@@ -163,7 +163,7 @@ npx tsc --noEmit   # zero errors with all complex models
 - **Estimated lines:** ~40
 - **Tier:** Senior
 - **Python reference:** Lines 244-305 of `models.py`
-- **Notes:** This is the root model. `fromDict` reads snake_case keys. Required sections (`project`, `architecture`, `interfaces`, `language`, `framework`) use `require()`. Optional sections (`data`, `infrastructure`, `security`, `testing`, `mcp`) use `data["key"] as Record<string, unknown> | undefined` with `?? {}` fallback passed to sub-model `fromDict`.
+- **Notes:** This is the root model. `fromDict` reads snake_case keys. Required sections (`project`, `architecture`, `interfaces`, `language`, `framework`) use `requireField()`. Optional sections (`data`, `infrastructure`, `security`, `testing`, `mcp`) use `data["key"] as Record<string, unknown> | undefined` with `?? {}` fallback passed to sub-model `fromDict`.
 
 ### T5.2 -- Add `PipelineResult` class
 - **File:** `src/models.ts`
@@ -188,9 +188,9 @@ npx tsc --noEmit   # zero errors with all complex models
 
 ### Compilation checkpoint
 ```
-npx tsc --noEmit   # zero errors -- all 17 classes + require helper compile cleanly
+npx tsc --noEmit   # zero errors -- all 17 classes + requireField helper compile cleanly
 ```
-**Expected output:** Clean compilation, zero errors. All 17 model classes and the `require` helper function are exported.
+**Expected output:** Clean compilation, zero errors. All 17 model classes and the `requireField` helper function are exported.
 
 ---
 
@@ -198,9 +198,9 @@ npx tsc --noEmit   # zero errors -- all 17 classes + require helper compile clea
 
 **Dependencies:** G5 (all models implemented)
 
-### T6.1 -- Unit tests for `require` helper
+### T6.1 -- Unit tests for `requireField` helper
 - **File:** `tests/node/models.test.ts` (new file)
-- **Description:** Test that `require` returns the value when key exists in data. Test that `require` throws `Error` with message `"Missing required field 'key' in Model"` when key is missing. Test with various data types (string, number, boolean, object, array). Test that `undefined` value for an existing key still returns (key exists but value is `undefined`).
+- **Description:** Test that `requireField` returns the value when key exists in data. Test that `requireField` throws `Error` with message `"Missing required field 'key' in Model"` when key is missing. Test with various data types (string, number, boolean, object, array). Test that `undefined` value for an existing key still returns (key exists but value is `undefined`).
 - **Estimated lines:** ~25
 - **Tier:** Junior
 
@@ -253,7 +253,7 @@ npm run test:coverage   # line >= 95%, branch >= 90% for src/models.ts
 ## Dependency Graph
 
 ```
-G1 (Foundation: require + TechComponent)
+G1 (Foundation: requireField + TechComponent)
  └──> G2 (Simple Models: ProjectIdentity, ArchitectureConfig, InterfaceConfig, LanguageConfig, FrameworkConfig)
        └──> G3 (Composed Models: DataConfig, SecurityConfig, ObservabilityConfig, TestingConfig)
              └──> G4 (Complex Models: InfraConfig, McpServerConfig, McpConfig)
@@ -275,7 +275,7 @@ G1 --> G2 --> G3 --> G4 --> G5 --> G6
 
 | File | Group(s) | Action |
 |------|----------|--------|
-| `src/models.ts` | G1, G2, G3, G4, G5 | Modified (add `require` helper + 17 model classes below existing `ProjectFoundation` and `DEFAULT_FOUNDATION`) |
+| `src/models.ts` | G1, G2, G3, G4, G5 | Modified (add `requireField` helper + 17 model classes below existing `ProjectFoundation` and `DEFAULT_FOUNDATION`) |
 | `tests/node/models.test.ts` | G6 | Created (new test file) |
 
 ---
@@ -297,8 +297,8 @@ The Python `models.py` is 337 lines. The TypeScript equivalent is estimated at 4
 
 ### `fromDict` pattern (with `noUncheckedIndexedAccess`)
 ```typescript
-// Required field: use require() helper
-require(data, "field_name", "ClassName") as string
+// Required field: use requireField() helper
+requireField(data, "field_name", "ClassName") as string
 
 // Optional field with default: cast + nullish coalescing
 (data["field_name"] as boolean | undefined) ?? false
@@ -312,9 +312,9 @@ const items = (data["items"] as Record<string, unknown>[] | undefined) ?? [];
 items.map((item) => ChildClass.fromDict(item))
 ```
 
-### `require` helper (with `noUncheckedIndexedAccess`)
+### `requireField` helper (with `noUncheckedIndexedAccess`)
 ```typescript
-export function require(
+export function requireField(
   data: Record<string, unknown>,
   key: string,
   model: string,
