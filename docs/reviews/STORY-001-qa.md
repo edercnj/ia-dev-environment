@@ -1,22 +1,25 @@
-# QA Review — STORY-001
+ENGINEER: QA
+STORY: STORY-001
+SCORE: 22/24
+STATUS: Approved
+---
+PASSED:
+- [2] Line coverage >=95% (2/2)
+- [3] Branch coverage >=90% (2/2)
+- [4] Test naming convention follows method_scenario_expected style (2/2)
+- [6] Parameterized tests present via it.each for runtime paths/root normalization (2/2)
+- [7] Exception/error-path tests present (parse rejection, prompt rejection, invalid template, timeout, bootstrap rejection) (2/2)
+- [8] No test interdependency observed; tests isolated (2/2)
+- [10] Unique test data requirement satisfied for scope (2/2)
+- [11] Edge-case coverage includes root path, empty cwd and bootstrap rejection (2/2)
 
-**SCORE:** 12/24
-**STATUS:** Request Changes
+FAILED:
+- None
 
-## PASSED
-- [QA-04] Test naming convention (2/2)
-- [QA-06] Parametrized tests for data-driven (2/2) — 8 config profiles
-- [QA-08] No test interdependency (2/2) — tmp_path fixture isolation
-- [QA-10] Unique test data (2/2)
-- [QA-12] Integration tests for pipeline (2/2)
+PARTIAL:
+- [1] Test exists for each AC, but explicit AC-to-test traceability table is not documented (1/2) -- tests/node/*.test.ts -- Improvement: add AC mapping comments or matrix [MEDIUM]
+- [5] AAA mostly present, some tests combine multiple assertions (1/2) -- tests/node/cli-help.test.ts:62-67,107-116 -- Improvement: split multi-intent tests [LOW]
+- [9] Fixtures not centralized (1/2) -- tests/node/cli-help.test.ts -- Improvement: add tests/node/fixtures factories [LOW]
+- [12] Integration tests for DB/API are out of scope for STORY-001 (1/2) -- tests/node/ -- Improvement: mark N/A explicitly in QA checklist [LOW]
 
-## FAILED
-- [QA-01] Test exists for each AC (0/2) — No dedicated unit test file. Create `tests/assembler/test_github_instructions_assembler.py` [CRITICAL]
-- [QA-02] Line coverage >= 95% (0/2) — Coverage ~88.89%. Missing template fallback paths untested [CRITICAL]
-- [QA-03] Branch coverage >= 90% (0/2) — 2/6 branches uncovered [CRITICAL]
-- [QA-07] Exception paths tested (0/2) — Warning/fallback paths have no dedicated tests [CRITICAL]
-
-## PARTIAL
-- [QA-05] AAA pattern (1/2) — Missing section separation [LOW]
-- [QA-09] Fixtures centralized (1/2) — Config factories could be shared via conftest.py [MEDIUM]
-- [QA-11] Edge cases (1/2) — No tests for empty interfaces, missing framework version [MEDIUM]
+Findings by severity: CRITICAL=0, MEDIUM=1, LOW=3
