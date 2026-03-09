@@ -1,0 +1,10 @@
+{
+  "hooks": [
+    {
+      "event": "sessionStart",
+      "command": "scripts/load-context.sh",
+      "timeout": 10000,
+      "description": "Load project context at session start"
+    }
+  ]
+}
