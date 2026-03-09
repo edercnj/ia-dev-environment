@@ -1,6 +1,6 @@
 ENGINEER: Performance
 STORY: STORY-001
-SCORE: 19/26
+SCORE: 20/26
 STATUS: Request Changes
 ---
 PASSED:
@@ -13,12 +13,13 @@ PASSED:
 - [12] Batch operations (2/2)
 
 FAILED:
-- [7] Timeout on external calls (0/2) -- src/interactive.ts:10 -- Fix: wrap inquirer.prompt with timeout/abort to avoid indefinite block [MEDIUM]
+- None
 
 PARTIAL:
 - [2] Connection pool sized (1/2) -- src/config.ts:9 -- Improvement: reserve pool config keys for future DB use [LOW]
 - [5] Caching strategy (1/2) -- src/template-engine.ts:4 -- Improvement: template cache policy for repeated renders [LOW]
-- [8] Circuit breaker on external (1/2) -- src/interactive.ts:10 -- Improvement: resilience wrapper for IO adapters [MEDIUM]
+- [7] Timeout on external calls (1/2) -- src/interactive.ts:20-38 -- Improvement: timeout exists; keep improving explicit prompt UI teardown guarantees on timeout [MEDIUM]
+- [8] Circuit breaker on external (1/2) -- src/interactive.ts:20-38 -- Improvement: resilience wrapper for IO adapters [MEDIUM]
 - [11] Lazy loading (1/2) -- src/template-engine.ts:1 -- Improvement: lazy-load optional heavy modules [LOW]
 - [13] Index usage (1/2) -- README.md:99 -- Improvement: document index expectations if persistence is introduced [LOW]
 

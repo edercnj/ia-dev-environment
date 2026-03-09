@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "Project foundation for ia-dev-environment Node.js + TypeScript migration.",
   "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -31,5 +34,8 @@
     "tsx": "^4.19.3",
     "typescript": "^5.8.2",
     "vitest": "^3.0.8"
+  },
+  "overrides": {
+    "vite": "^6.3.6"
   }
 }

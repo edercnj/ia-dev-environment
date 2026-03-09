@@ -30,7 +30,7 @@ describe("createCli", () => {
   });
 
   it("runCli_withInjectedRunner_callsParseWithProvidedArgs", async () => {
-    const parseAsync = vi.fn(async () => undefined);
+    const parseAsync = vi.fn(async () => createCli());
 
     await runCli(["node", "ia-dev-env", "--help"], { parseAsync });
 
@@ -102,6 +102,20 @@ describe("foundation modules", () => {
 
   it("promptConfirmation_withInvalidTimeout_throwsCliError", async () => {
     await expect(promptConfirmation("Proceed?", true, 0)).rejects.toThrow("Prompt timeout must be greater than zero.");
+  });
+
+  it("promptConfirmation_whenTimeoutElapses_rejectsWithTimeoutError", async () => {
+    vi.useFakeTimers();
+    promptMock.mockImplementationOnce(() => new Promise(() => undefined));
+
+    try {
+      const promptPromise = promptConfirmation("Proceed?", true, 1);
+      const assertion = expect(promptPromise).rejects.toThrow("Prompt timed out while waiting for user input.");
+      await vi.advanceTimersByTimeAsync(2);
+      await assertion;
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("typeContracts_compileWithReadonlyShape", () => {

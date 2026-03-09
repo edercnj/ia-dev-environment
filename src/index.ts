@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+import { existsSync, realpathSync } from "node:fs";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { runCli } from "./cli.js";
 import { CliError } from "./exceptions.js";
 
@@ -19,4 +22,22 @@ async function main(): Promise<void> {
   }
 }
 
-void main();
+export function shouldRunAsCli(entryUrl = import.meta.url, argv = process.argv): boolean {
+  const entryArg = argv[1];
+  if (!entryArg) {
+    return false;
+  }
+
+  const entryPath = fileURLToPath(entryUrl);
+  const argvPath = resolve(entryArg);
+
+  if (existsSync(entryPath) && existsSync(argvPath)) {
+    return realpathSync(entryPath) === realpathSync(argvPath);
+  }
+
+  return entryPath === argvPath;
+}
+
+if (shouldRunAsCli()) {
+  void main();
+}

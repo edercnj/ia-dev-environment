@@ -1,24 +1,25 @@
 ENGINEER: QA
 STORY: STORY-001
-SCORE: 16/24
-STATUS: Request Changes
+SCORE: 22/24
+STATUS: Approved
 ---
 PASSED:
-- [2] Line coverage >=95% (100%) (2/2)
-- [3] Branch coverage >=90% (100%) (2/2)
+- [2] Line coverage >=95% (2/2)
+- [3] Branch coverage >=90% (2/2)
 - [4] Test naming convention follows method_scenario_expected style (2/2)
+- [6] Parameterized tests present via it.each for runtime paths/root normalization (2/2)
+- [7] Exception/error-path tests present (parse rejection, prompt rejection, invalid template, timeout, bootstrap rejection) (2/2)
 - [8] No test interdependency observed; tests isolated (2/2)
 - [10] Unique test data requirement satisfied for scope (2/2)
+- [11] Edge-case coverage includes root path, empty cwd and bootstrap rejection (2/2)
 
 FAILED:
-- [6] Parameterized tests for data-driven behavior are missing (0/2) -- tests/node/cli-help.test.ts:47-52,40-45 -- Fix: add it.each tables for normalizeDirectory/createRuntimePaths with boundary inputs [MEDIUM]
-- [7] Exception/error paths not tested (0/2) -- src/cli.ts:15, src/interactive.ts:10, src/template-engine.ts:5 -- Fix: add tests for parseAsync rejection propagation, prompt rejection, template render failure [CRITICAL]
-- [11] Edge-case coverage insufficient (0/2) -- src/utils.ts:3-4, src/config.ts:12-17, src/index.ts:5-9 -- Fix: add tests for root path, empty cwd, bootstrap rejection [CRITICAL]
+- None
 
 PARTIAL:
-- [1] Test exists for each AC, but traceability incomplete (1/2) -- tests/node/*.test.ts -- Improvement: AC-to-test mapping notes [MEDIUM]
-- [5] AAA mostly present, some mixed intents (1/2) -- tests/node/cli-help.test.ts:47-52,67-76 -- Improvement: split mixed behavior tests [LOW]
+- [1] Test exists for each AC, but explicit AC-to-test traceability table is not documented (1/2) -- tests/node/*.test.ts -- Improvement: add AC mapping comments or matrix [MEDIUM]
+- [5] AAA mostly present, some tests combine multiple assertions (1/2) -- tests/node/cli-help.test.ts:62-67,107-116 -- Improvement: split multi-intent tests [LOW]
 - [9] Fixtures not centralized (1/2) -- tests/node/cli-help.test.ts -- Improvement: add tests/node/fixtures factories [LOW]
-- [12] Integration tests for DB/API not present (out of scope) (1/2) -- tests/node/ -- Improvement: explicitly mark N/A or add CLI integration smoke [LOW]
+- [12] Integration tests for DB/API are out of scope for STORY-001 (1/2) -- tests/node/ -- Improvement: mark N/A explicitly in QA checklist [LOW]
 
-Findings by severity: CRITICAL=2, MEDIUM=2, LOW=3
+Findings by severity: CRITICAL=0, MEDIUM=1, LOW=3

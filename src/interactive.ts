@@ -18,6 +18,8 @@ export async function promptConfirmation(
   }
 
   let timeoutId: NodeJS.Timeout | undefined;
+  const abortController = new AbortController();
+  const promptOptions: Record<string, unknown> = { signal: abortController.signal };
   const promptPromise = inquirer.prompt<ConfirmationPrompt>([
     {
       type: "confirm",
@@ -25,10 +27,12 @@ export async function promptConfirmation(
       message,
       default: defaultValue,
     },
-  ]);
+  ], promptOptions);
 
   const timeoutPromise = new Promise<never>((_resolve, reject) => {
     timeoutId = setTimeout(() => {
+      abortController.abort();
+      process.stdin.pause();
       reject(new CliError("Prompt timed out while waiting for user input.", "E_PROMPT_TIMEOUT"));
     }, timeoutMs);
   });
