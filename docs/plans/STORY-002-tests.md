@@ -1,235 +1,257 @@
-# Test Plan -- STORY-002: GithubMcpAssembler (copilot-mcp.json)
+# Test Plan -- STORY-002: Exceptions & Utils (TypeScript Migration)
 
-**Status:** DOCUMENTED
-**Date:** 2026-03-08
-**Assembler Under Test:** `GithubMcpAssembler`
-**Source:** `src/ia_dev_env/assembler/github_mcp_assembler.py`
-
----
-
-## 1. Unit Test Scenarios
-
-### 1.1 `McpServerConfig.from_dict()` -- Model Deserialization
-
-| # | Scenario | Input | Expected Output | Acceptance Criteria |
-|---|----------|-------|-----------------|---------------------|
-| U-01 | Full data produces valid config | `{"id": "firecrawl-mcp", "url": "https://mcp.firecrawl.dev/sse", "capabilities": ["scrape"], "env": {"API_KEY": "$API_KEY"}}` | `McpServerConfig` with all fields populated | All attributes match input |
-| U-02 | Minimal data (no env, no capabilities) | `{"id": "simple-mcp", "url": "https://mcp.example.com/sse"}` | `McpServerConfig` with `env={}`, `capabilities=[]` | Defaults applied correctly |
-| U-03 | Missing `id` raises KeyError | `{"url": "https://example.com"}` | `KeyError` with message containing `'id'` | Required field enforcement |
-| U-04 | Missing `url` raises KeyError | `{"id": "test"}` | `KeyError` with message containing `'url'` | Required field enforcement |
-| U-05 | Empty env dict preserved | `{"id": "x", "url": "http://x", "env": {}}` | `McpServerConfig` with `env == {}` | Empty dict not converted to None |
-| U-06 | Empty capabilities list preserved | `{"id": "x", "url": "http://x", "capabilities": []}` | `McpServerConfig` with `capabilities == []` | Empty list not converted to None |
-
-### 1.2 `McpConfig.from_dict()` -- Config Wrapper
-
-| # | Scenario | Input | Expected Output | Acceptance Criteria |
-|---|----------|-------|-----------------|---------------------|
-| U-07 | Populated servers list | `{"servers": [{"id": "a", "url": "http://a"}, {"id": "b", "url": "http://b"}]}` | `McpConfig` with 2 `McpServerConfig` entries | `len(config.servers) == 2` |
-| U-08 | Empty servers list | `{"servers": []}` | `McpConfig` with `servers == []` | Empty list handled |
-| U-09 | Missing servers key defaults to empty | `{}` | `McpConfig` with `servers == []` | Default factory applied |
-| U-10 | Default constructor produces empty servers | `McpConfig()` | `servers == []` | `default_factory=list` works |
-
-### 1.3 `ProjectConfig.mcp` -- Backward Compatibility
-
-| # | Scenario | Input | Expected Output | Acceptance Criteria |
-|---|----------|-------|-----------------|---------------------|
-| U-11 | Config without `mcp` section | `MINIMAL_PROJECT_DICT` (no `mcp` key) | `config.mcp.servers == []` | Backward compatible; no error |
-| U-12 | Config with `mcp` section populated | Dict with `mcp: {servers: [...]}` | `config.mcp.servers` contains deserialized servers | Forward compatible |
-
-### 1.4 `_build_copilot_mcp_dict()` -- JSON Structure Builder
-
-| # | Scenario | Input | Expected Output | Acceptance Criteria |
-|---|----------|-------|-----------------|---------------------|
-| U-13 | Single server produces correct structure | 1 server: `id="firecrawl-mcp"`, `url="https://mcp.firecrawl.dev/sse"`, `env={"FIRECRAWL_API_KEY": "$FIRECRAWL_API_KEY"}` | `{"mcpServers": {"firecrawl-mcp": {"url": "https://mcp.firecrawl.dev/sse", "env": {"FIRECRAWL_API_KEY": "$FIRECRAWL_API_KEY"}}}}` | Dict structure matches Copilot format |
-| U-14 | Multiple servers all present | 3 servers with distinct ids | `mcpServers` dict contains all 3 keys | No servers lost |
-| U-15 | Server id used as JSON key | `id="my-server"` | `result["mcpServers"]["my-server"]` exists | Id maps to dict key |
-| U-16 | Capabilities included in JSON output when present | Server with `capabilities=["scrape"]` | Output dict contains `"capabilities": ["scrape"]` for that server | Capabilities propagated to Copilot config |
-| U-17 | Empty env dict omitted from output | Server with `env={}` | Output dict for that server has no `env` key | Empty env not serialized (field omitted) |
-| U-18 | Env values reference variables with $ prefix | `env={"API_KEY": "$API_KEY"}` | All env values start with `$` | Security convention enforced |
-
-### 1.5 `GithubMcpAssembler.assemble()` -- Orchestration
-
-| # | Scenario | Input | Expected Output | Acceptance Criteria |
-|---|----------|-------|-----------------|---------------------|
-| U-19 | Servers configured -- generates JSON file | Config with 1+ servers | Returns `[Path("github/copilot-mcp.json")]` | File exists, return list has 1 element |
-| U-20 | No servers configured -- returns empty list | Config with `mcp.servers == []` | Returns `[]` | No file generated |
-| U-21 | Output path is `github/copilot-mcp.json` | Any config with servers | Generated file at `output_dir / "github" / "copilot-mcp.json"` | Path convention |
-| U-22 | Creates `github/` directory if missing | `output_dir` with no `github/` subdir | `github/` directory created | `mkdir(parents=True, exist_ok=True)` |
-| U-23 | JSON output is parseable | Config with servers | `json.loads(file_content)` succeeds | Valid JSON |
-| U-24 | JSON uses 2-space indentation | Any config with servers | Output matches `json.dumps(..., indent=2)` format | Consistent with `SettingsAssembler` |
-| U-25 | File ends with trailing newline | Any config with servers | Last char is `\n` | File format convention |
-| U-26 | File is UTF-8 encoded | Any config with servers | File readable with `encoding="utf-8"` | Encoding convention |
-| U-27 | Idempotent on repeated calls | Same config, same output_dir | Second call produces identical output | No side effects |
+**Status:** PLANNED
+**Date:** 2026-03-09
+**Story:** STORY-002
+**Scope:** `ConfigValidationError`, `PipelineError`, `validateDestPath`, `rejectDangerousPath`, `atomicOutput`, `setupLogging`, `findResourcesDir`
+**Framework:** vitest
+**Coverage Targets:** Line >= 95%, Branch >= 90%
 
 ---
 
-## 2. Security Validation
+## 1. Context, Scope, and Assumptions
 
-### 2.1 No Hardcoded Secrets
+This plan covers the exception classes and utility functions introduced in STORY-002. All items are leaf dependencies with zero project imports -- they depend only on Node.js standard library modules.
 
-| # | Scenario | Validation | Acceptance Criteria |
-|---|----------|------------|---------------------|
-| S-01 | All env values use `$` prefix convention | Parse generated JSON, iterate env values | Every value in every server's `env` dict starts with `$` |
-| S-02 | No literal API keys in output | Scan output for patterns like `sk-`, `ghp_`, `xoxb-` | No matches found |
-| S-03 | Input config enforces `$` convention | `McpServerConfig` with `env={"KEY": "literal-secret"}` | Test documents that this value passes through as-is (assembler does not validate; convention is the guard) |
-
----
-
-## 3. Pipeline Integration Test Scenarios
-
-### 3.1 Pipeline Registration
-
-| # | Scenario | Test File | Validation |
-|---|----------|-----------|------------|
-| I-01 | Pipeline includes 10 assemblers | `test_pipeline.py::TestBuildAssemblers::test_returns_ten_assemblers` | `len(assemblers) == 10` |
-| I-02 | GithubMcpAssembler is 10th (last) | `test_pipeline.py::TestBuildAssemblers::test_last_assembler_is_github_mcp` | `assemblers[-1] name == "GithubMcpAssembler"` |
-| I-03 | GithubMcpAssembler follows GithubInstructionsAssembler | `test_pipeline.py::TestBuildAssemblers::test_mcp_after_instructions` | `assemblers[8] == "GithubInstructionsAssembler"`, `assemblers[9] == "GithubMcpAssembler"` |
-| I-04 | Full pipeline succeeds with MCP config | `test_byte_for_byte.py` parametrized | `result.success is True` for profiles with MCP configured |
-| I-05 | Full pipeline succeeds without MCP config | `test_byte_for_byte.py` parametrized | `result.success is True` for profiles without MCP section |
-| I-06 | Pipeline failure wraps in PipelineError | `test_pipeline.py::TestExecuteAssemblers::test_wraps_exception_in_pipeline_error` | `PipelineError` raised with assembler name |
-
-### 3.2 CLI Classification
-
-| # | Scenario | Validation |
-|---|----------|------------|
-| I-07 | `copilot-mcp.json` classified under "GitHub" category | `_classify_files()` groups files with `github` in path under "GitHub" |
+Assumptions:
+- Test naming convention: `[methodUnderTest]_[scenario]_[expectedBehavior]`
+- Test location: `tests/node/exceptions.test.ts` and `tests/node/utils.test.ts`
+- No integration, API, E2E, or contract tests needed -- all functions are pure utilities testable in isolation.
+- Mocking limited to `node:fs/promises`, `process.cwd()`, `os.homedir()`, and `import.meta.url` resolution.
 
 ---
 
-## 4. Golden File / Byte-for-Byte Tests
+## 2. Applicability Matrix
 
-### 4.1 Test Infrastructure
-
-- **Test file:** `tests/test_byte_for_byte.py`
-- **Golden directory:** `tests/golden/{profile}/github/`
-- **Profiles tested:** 8 profiles (go-gin, java-quarkus, java-spring, kotlin-ktor, python-click-cli, python-fastapi, rust-axum, typescript-nestjs)
-- **Regeneration:** `python scripts/generate_golden.py --all`
-
-### 4.2 Golden File Scenarios
-
-| # | Scenario | Test Method | Validation |
-|---|----------|-------------|------------|
-| G-01 | Generated `copilot-mcp.json` matches golden file byte-for-byte | `test_pipeline_matches_golden_files` | `verify_output()` reports no mismatches |
-| G-02 | No missing files vs golden (including `copilot-mcp.json`) | `test_no_missing_files` | `result.missing_files == []` |
-| G-03 | No extra files vs golden | `test_no_extra_files` | `result.extra_files == []` |
-| G-04 | Pipeline succeeds for all profiles | `test_pipeline_success_for_profile` | `result.success is True` |
-
-### 4.3 Golden Files for MCP
-
-| Golden File | Profile | Path |
-|-------------|---------|------|
-| `copilot-mcp.json` | java-quarkus | `tests/golden/java-quarkus/github/copilot-mcp.json` |
-
-Only profiles whose config YAML includes an `mcp` section will have this golden file. Profiles without `mcp` should NOT have a `copilot-mcp.json` golden file.
+| Category | Applicable? | Justification |
+|----------|-------------|---------------|
+| Unit | Yes | All functions are deterministic utilities testable in isolation. |
+| Integration | No | No cross-module orchestration in this story. |
+| API | No | No HTTP/gRPC surface. |
+| E2E | No | No end-to-end flow. |
+| Contract | No | No external data contracts. |
+| Performance | No | No latency SLAs for utilities. |
 
 ---
 
-## 5. Edge Cases
+## 3. Unit Test Scenarios
 
-### 5.1 Empty or Missing Config Values
+### 3.1 `ConfigValidationError` (`tests/node/exceptions.test.ts`)
+
+| # | Scenario Name | Input | Expected Output | Rule |
+|---|---------------|-------|-----------------|------|
+| U-01 | `ConfigValidationError_withSingleField_formatsMessageCorrectly` | `missingFields: ["database"]` | `message === "Missing required config sections: database"` | Plan sec 2.1 |
+| U-02 | `ConfigValidationError_withMultipleFields_joinsWithComma` | `missingFields: ["database", "server", "auth"]` | `message === "Missing required config sections: database, server, auth"` | Plan sec 2.1 |
+| U-03 | `ConfigValidationError_constructor_setsNameProperty` | any fields | `error.name === "ConfigValidationError"` | Plan sec 2.1 |
+| U-04 | `ConfigValidationError_constructor_storesMissingFieldsAsReadonly` | `["a", "b"]` | `error.missingFields` deep equals `["a", "b"]` | Plan sec 2.1 |
+| U-05 | `ConfigValidationError_withEmptyArray_formatsEmptyMessage` | `missingFields: []` | `message === "Missing required config sections: "` | Edge case |
+| U-06 | `ConfigValidationError_instanceof_isError` | any fields | `error instanceof Error === true` | Inheritance |
+
+### 3.2 `PipelineError` (`tests/node/exceptions.test.ts`)
+
+| # | Scenario Name | Input | Expected Output | Rule |
+|---|---------------|-------|-----------------|------|
+| U-07 | `PipelineError_withAssemblerAndReason_formatsMessageCorrectly` | `assemblerName: "RulesAssembler"`, `reason: "template not found"` | `message === "Pipeline failed at 'RulesAssembler': template not found"` | Plan sec 2.1 |
+| U-08 | `PipelineError_constructor_setsNameProperty` | any | `error.name === "PipelineError"` | Plan sec 2.1 |
+| U-09 | `PipelineError_constructor_storesAssemblerNameAsReadonly` | `"SkillsAssembler"` | `error.assemblerName === "SkillsAssembler"` | Plan sec 2.1 |
+| U-10 | `PipelineError_constructor_storesReasonAsReadonly` | `"disk full"` | `error.reason === "disk full"` | Plan sec 2.1 |
+| U-11 | `PipelineError_instanceof_isError` | any | `error instanceof Error === true` | Inheritance |
+| U-12 | `PipelineError_withEmptyStrings_formatsWithEmptyValues` | `assemblerName: ""`, `reason: ""` | `message === "Pipeline failed at '': "` | Edge case |
+
+### 3.3 `rejectDangerousPath` (`tests/node/utils.test.ts`)
+
+| # | Scenario Name | Input | Expected Output | Rule |
+|---|---------------|-------|-----------------|------|
+| U-13 | `rejectDangerousPath_withRootPath_throws` | `"/"` | Throws error mentioning protected path | PROTECTED_PATHS |
+| U-14 | `rejectDangerousPath_withTmpPath_throws` | `"/tmp"` | Throws error | PROTECTED_PATHS |
+| U-15 | `rejectDangerousPath_withVarPath_throws` | `"/var"` | Throws error | PROTECTED_PATHS |
+| U-16 | `rejectDangerousPath_withEtcPath_throws` | `"/etc"` | Throws error | PROTECTED_PATHS |
+| U-17 | `rejectDangerousPath_withUsrPath_throws` | `"/usr"` | Throws error | PROTECTED_PATHS |
+| U-18 | `rejectDangerousPath_withCwd_throws` | `process.cwd()` (mocked) | Throws error mentioning CWD | Plan sec 2.2 |
+| U-19 | `rejectDangerousPath_withHomeDir_throws` | `os.homedir()` (mocked) | Throws error mentioning home dir | Plan sec 2.2 |
+| U-20 | `rejectDangerousPath_withSafePath_doesNotThrow` | `"/home/user/projects/output"` | No error thrown | Happy path |
+| U-21 | `rejectDangerousPath_withSubdirOfProtected_doesNotThrow` | `"/tmp/ia-dev-env-output"` | No error thrown (subdirectory is safe) | Edge case |
+
+### 3.4 `validateDestPath` (`tests/node/utils.test.ts`)
+
+| # | Scenario Name | Input | Expected Output | Rule |
+|---|---------------|-------|-----------------|------|
+| U-22 | `validateDestPath_withSymlink_rejectsWithError` | Symlinked path (created via `fs.symlinkSync` in setup) | Throws error about symlinks | Plan sec 2.2 |
+| U-23 | `validateDestPath_withValidDirectory_returnsResolvedPath` | Real directory path | Returns resolved absolute path | Happy path |
+| U-24 | `validateDestPath_withRelativePath_resolvesToAbsolute` | `"./output"` (relative) | Returns absolute resolved path | Path resolution |
+| U-25 | `validateDestPath_withDangerousPath_delegatesToRejectDangerousPath` | `"/"` | Throws (delegates to `rejectDangerousPath`) | Integration |
+| U-26 | `validateDestPath_withNonExistentPath_handlesGracefully` | Path that does not exist on disk | Either resolves or throws (document actual behavior) | Edge case |
+
+### 3.5 `atomicOutput` (`tests/node/utils.test.ts`)
+
+| # | Scenario Name | Input | Expected Output | Rule |
+|---|---------------|-------|-----------------|------|
+| U-27 | `atomicOutput_withSuccessfulCallback_copiesToDest` | Callback writes a file to tempDir | File exists at destDir after completion | Happy path |
+| U-28 | `atomicOutput_withSuccessfulCallback_cleansTempDir` | Callback succeeds | Temp directory removed after completion | Cleanup guarantee |
+| U-29 | `atomicOutput_withSuccessfulCallback_returnsCallbackResult` | Callback returns `42` | `atomicOutput` resolves to `42` | Generic return |
+| U-30 | `atomicOutput_withFailingCallback_doesNotModifyDest` | Callback throws | Dest directory unchanged (pre-existing content intact) | Atomicity |
+| U-31 | `atomicOutput_withFailingCallback_cleansTempDir` | Callback throws | Temp directory removed despite failure | Cleanup in `finally` |
+| U-32 | `atomicOutput_withFailingCallback_propagatesOriginalError` | Callback throws `new Error("boom")` | Rejects with `"boom"` | Error propagation |
+| U-33 | `atomicOutput_withExistingDestDir_replacesContents` | Dest already has files | Old files replaced with new callback output | Overwrite behavior |
+| U-34 | `atomicOutput_withNonExistentDestDir_createsIt` | Dest does not exist | Dest directory created with callback output | Directory creation |
+| U-35 | `atomicOutput_callbackReceivesTempDir_asFunctionArg` | Inspect callback arg | Callback receives a valid temp directory path | API contract |
+
+### 3.6 `setupLogging` (`tests/node/utils.test.ts`)
+
+| # | Scenario Name | Input | Expected Output | Rule |
+|---|---------------|-------|-----------------|------|
+| U-36 | `setupLogging_withVerboseTrue_setsDebugLevel` | `verbose: true` | Log level set to DEBUG (console.debug enabled) | Plan sec 2.2 |
+| U-37 | `setupLogging_withVerboseFalse_setsInfoLevel` | `verbose: false` | Log level set to INFO (console.debug suppressed) | Plan sec 2.2 |
+
+### 3.7 `findResourcesDir` (`tests/node/utils.test.ts`)
+
+| # | Scenario Name | Input | Expected Output | Rule |
+|---|---------------|-------|-----------------|------|
+| U-38 | `findResourcesDir_fromSourceLayout_resolvesToResourcesDir` | Running from `src/` tree | Returns path ending in `resources/` | Plan sec 2.3 |
+| U-39 | `findResourcesDir_returnedPath_isAbsolute` | Default invocation | Path starts with `/` | Path resolution |
+| U-40 | `findResourcesDir_returnedPath_existsOnDisk` | Default invocation | `fs.existsSync(result) === true` | Validation |
+
+### 3.8 `PROTECTED_PATHS` constant (`tests/node/utils.test.ts`)
+
+| # | Scenario Name | Input | Expected Output | Rule |
+|---|---------------|-------|-----------------|------|
+| U-41 | `PROTECTED_PATHS_contents_containsAllExpectedPaths` | Read constant | Contains exactly `["/", "/tmp", "/var", "/etc", "/usr"]` | Plan sec 2.2 |
+| U-42 | `PROTECTED_PATHS_type_isReadonlySet` | Read constant | `PROTECTED_PATHS instanceof Set === true` | Immutability |
+
+---
+
+## 4. Mock Strategy
+
+### 4.1 `rejectDangerousPath` Tests
+
+| Mock Target | Method | Reason |
+|-------------|--------|--------|
+| `process.cwd` | `vi.spyOn(process, 'cwd')` | Control CWD value to test rejection without depending on actual working directory. |
+| `os.homedir` | `vi.mock('node:os')` or `vi.spyOn` | Control home directory value to test rejection independently. |
+
+### 4.2 `validateDestPath` Tests
+
+| Mock Target | Method | Reason |
+|-------------|--------|--------|
+| `fs/promises.lstat` | `vi.mock('node:fs/promises')` | Simulate symlink detection without creating real symlinks (platform-safe). |
+| `fs/promises.realpath` | Same mock module | Control resolved path value. |
+| Filesystem | Real temp directories via `fs.mkdtempSync` | For happy-path tests, use real filesystem to validate end-to-end behavior. |
+
+Symlink tests should use real `fs.symlinkSync` where possible, with a conditional skip (`it.skipIf`) on platforms where symlink creation requires elevated privileges (Windows CI).
+
+### 4.3 `atomicOutput` Tests
+
+| Mock Target | Method | Reason |
+|-------------|--------|--------|
+| Filesystem | Real temp directories via `os.tmpdir()` + `mkdtemp` | `atomicOutput` performs real I/O; test with real temp dirs for fidelity. |
+| No mocks | N/A | Prefer real filesystem operations. Use `afterEach` cleanup to remove test artifacts. |
+
+### 4.4 `setupLogging` Tests
+
+| Mock Target | Method | Reason |
+|-------------|--------|--------|
+| `console.debug` | `vi.spyOn(console, 'debug')` | Verify logging behavior without producing test output noise. |
+
+### 4.5 `findResourcesDir` Tests
+
+| Mock Target | Method | Reason |
+|-------------|--------|--------|
+| No mocks | N/A | Test against real package layout. Validates both `src/` and `dist/` resolution if both exist. |
+
+---
+
+## 5. Edge Cases Summary
+
+### 5.1 Exception Edge Cases
 
 | # | Scenario | Expected Behavior | Severity |
 |---|----------|-------------------|----------|
-| E-01 | Config YAML has no `mcp` section | `ProjectConfig.mcp` defaults to `McpConfig(servers=[])` -- assembler returns `[]`, no file generated | Low -- backward compatibility |
-| E-02 | `mcp` section present but `servers` key missing | `McpConfig.from_dict({})` produces empty servers list -- no file generated | Low |
-| E-03 | `mcp.servers` is empty list | Assembler returns `[]` -- no file generated | Low |
-| E-04 | Server with empty `env` dict | `env: {}` serialized as `"env": {}` in JSON output | Low |
-| E-05 | Server with no `capabilities` field | `capabilities` defaults to `[]` -- not emitted in JSON (by design) | Low |
+| E-01 | `ConfigValidationError` with empty fields array | Message ends with `": "` (no fields listed) | Low |
+| E-02 | `PipelineError` with empty assemblerName and reason | Message reads `"Pipeline failed at '': "` | Low |
+| E-03 | Both exceptions preserve stack trace | `error.stack` is defined and includes constructor call site | Low |
 
-### 5.2 Env Value Patterns
+### 5.2 Path Validation Edge Cases
 
 | # | Scenario | Expected Behavior | Severity |
 |---|----------|-------------------|----------|
-| E-06 | Env value is `$VAR_NAME` (correct convention) | Passes through as-is to JSON output | Low |
-| E-07 | Env value is literal string without `$` prefix | Passes through as-is (assembler does not validate) -- test documents this behavior | Medium -- convention violation |
-| E-08 | Env value is empty string | Serialized as `""` in JSON | Low |
-| E-09 | Env key contains special characters | Serialized as-is (JSON handles it) | Low |
+| E-04 | Subdirectory of protected path (e.g., `/tmp/output`) | Allowed -- only exact matches are rejected | Medium |
+| E-05 | Path with trailing slashes | Resolved before comparison (trailing slashes stripped) | Low |
+| E-06 | CWD equals a protected path | Rejected by both CWD check and PROTECTED_PATHS check | Low |
+| E-07 | Home directory equals a protected path (unlikely but possible for root user) | Rejected by both checks | Low |
 
-### 5.3 File System Edge Cases
-
-| # | Scenario | Expected Behavior | Severity |
-|---|----------|-------------------|----------|
-| E-10 | Output `github/` directory does not exist | `mkdir(parents=True, exist_ok=True)` creates it | Low |
-| E-11 | Output `github/` directory already exists | `exist_ok=True` prevents error; file overwritten | Low |
-| E-12 | Read-only output directory | `PermissionError` propagated; pipeline wraps in `PipelineError` | Low |
-
-### 5.4 JSON Serialization Edge Cases
+### 5.3 Atomic Output Edge Cases
 
 | # | Scenario | Expected Behavior | Severity |
 |---|----------|-------------------|----------|
-| E-13 | Server URL contains query parameters | URL serialized as-is in JSON | Low |
-| E-14 | Server id contains unicode characters | `json.dumps` with default settings handles it | Low |
-| E-15 | Multiple servers with duplicate ids | Last one wins (dict key override) -- test documents this behavior | Medium -- potential data loss |
+| E-08 | Callback writes nothing to temp dir | Dest dir gets empty directory contents | Low |
+| E-09 | Callback throws synchronously (non-async error) | Caught by `finally`, temp cleaned, error propagated | Medium |
+| E-10 | Dest dir has read-only permissions | `cp` throws `EACCES`, temp cleaned, error propagated | Low |
+| E-11 | Temp dir creation fails (disk full) | `mkdtemp` throws, no cleanup needed (nothing was created) | Low |
+
+### 5.4 Platform Edge Cases
+
+| # | Scenario | Expected Behavior | Severity |
+|---|----------|-------------------|----------|
+| E-12 | PROTECTED_PATHS are Unix-only | Documented limitation. No Windows paths in set. | Low |
+| E-13 | Symlink creation requires elevated privileges (Windows) | Test skipped conditionally with `it.skipIf` | Medium |
 
 ---
 
 ## 6. Coverage Assessment
 
-### 6.1 Test Coverage Map
+### 6.1 Coverage Map
 
-| Area | Covered By | Coverage Level |
-|------|-----------|----------------|
-| `McpServerConfig.from_dict()` | Unit tests U-01 through U-06 | High -- all branches (full data, minimal data, missing required fields) |
-| `McpConfig.from_dict()` | Unit tests U-07 through U-10 | High -- all branches (populated, empty, missing key, default constructor) |
-| `ProjectConfig.mcp` backward compat | Unit tests U-11, U-12 | High -- both with and without `mcp` section |
-| `_build_copilot_mcp_dict()` | Unit tests U-13 through U-18 | High -- structure, multiple servers, capabilities exclusion, env handling |
-| `GithubMcpAssembler.assemble()` | Unit tests U-19 through U-27 | High -- all branches (with servers, without servers, file creation, JSON format) |
-| Pipeline registration | Integration tests I-01 through I-06 | High -- count, ordering, error handling |
-| Golden file match | Golden file tests G-01 through G-04 | High -- byte-for-byte validation |
-| Security (env values) | Security tests S-01 through S-03 | Medium -- convention-based, not runtime-enforced |
+| Module | Public Methods | Branches (est.) | Test Count | Line Coverage (est.) | Branch Coverage (est.) |
+|--------|---------------|-----------------|------------|---------------------|----------------------|
+| `src/exceptions.ts` (new classes) | 2 constructors | 2 | 12 | 100% | 100% |
+| `src/utils.ts` (new functions) | 5 functions + 1 constant | 14 | 28 | 97% | 93% |
+| **Total** | **7** | **16** | **40** | **98%** | **95%** |
 
 ### 6.2 Branch Coverage Analysis
 
 | Branch | Test IDs Covering It |
 |--------|---------------------|
-| `if not config.mcp.servers: return []` (true branch) | U-20, E-01, E-02, E-03 |
-| `if not config.mcp.servers: return []` (false branch) | U-19, U-21 through U-27 |
-| `data.get("servers", [])` with key present | U-07 |
-| `data.get("servers", [])` with key absent | U-09 |
-| `data.get("env", {})` with key present | U-01, U-05 |
-| `data.get("env", {})` with key absent | U-02 |
-| `data.get("capabilities", [])` with key present | U-01, U-06 |
-| `data.get("capabilities", [])` with key absent | U-02 |
+| `rejectDangerousPath`: path in PROTECTED_PATHS (true) | U-13 through U-17 |
+| `rejectDangerousPath`: path in PROTECTED_PATHS (false) | U-20, U-21 |
+| `rejectDangerousPath`: path === CWD (true) | U-18 |
+| `rejectDangerousPath`: path === CWD (false) | U-13 through U-17, U-20 |
+| `rejectDangerousPath`: path === homedir (true) | U-19 |
+| `rejectDangerousPath`: path === homedir (false) | U-13 through U-18, U-20 |
+| `validateDestPath`: lstat detects symlink (true) | U-22 |
+| `validateDestPath`: lstat detects symlink (false) | U-23, U-24 |
+| `atomicOutput`: callback succeeds (true) | U-27 through U-29, U-33 through U-35 |
+| `atomicOutput`: callback throws (false) | U-30 through U-32 |
+| `atomicOutput`: dest exists (true) | U-33 |
+| `atomicOutput`: dest does not exist (false) | U-34 |
+| `setupLogging`: verbose true | U-36 |
+| `setupLogging`: verbose false | U-37 |
 
-### 6.3 Coverage Summary
+### 6.3 Assessment
 
-- **Estimated Line Coverage:** >= 95% (all code paths exercised by unit + golden tests)
-- **Estimated Branch Coverage:** >= 90% (all conditional branches explicitly tested)
-- **Target:** Line >= 95%, Branch >= 90% (per Rule 05)
-- **Assessment:** Plan meets coverage thresholds when fully implemented.
+All conditional branches have at least one test covering each side. Estimated coverage exceeds thresholds: Line >= 95%, Branch >= 90%.
 
 ---
 
 ## 7. Test Execution
 
-### Run unit tests for GithubMcpAssembler
+### Run exception tests
 ```bash
-pytest tests/assembler/test_github_mcp_assembler.py -v
+npx vitest run tests/node/exceptions.test.ts
 ```
 
-### Run pipeline integration tests
+### Run utility tests
 ```bash
-pytest tests/test_pipeline.py -v
+npx vitest run tests/node/utils.test.ts
 ```
 
-### Run golden file tests
+### Run all STORY-002 tests
 ```bash
-pytest tests/test_byte_for_byte.py -v
+npx vitest run tests/node/exceptions.test.ts tests/node/utils.test.ts
 ```
 
-### Run all STORY-002 related tests
+### Run with coverage
 ```bash
-pytest tests/assembler/test_github_mcp_assembler.py tests/test_pipeline.py tests/test_byte_for_byte.py -v
-```
-
-### Regenerate golden files after changes
-```bash
-python scripts/generate_golden.py --all
-```
-
-### Run with coverage report
-```bash
-pytest tests/ --cov=ia_dev_env.assembler.github_mcp_assembler --cov=ia_dev_env.models --cov-report=term-missing
+npx vitest run tests/node/exceptions.test.ts tests/node/utils.test.ts --coverage
 ```
 
 ---
@@ -240,20 +262,20 @@ pytest tests/ --cov=ia_dev_env.assembler.github_mcp_assembler --cov=ia_dev_env.m
 
 | File | Type | Covers |
 |------|------|--------|
-| `tests/assembler/test_github_mcp_assembler.py` | Unit tests | U-13 through U-27, S-01 through S-03 |
-| `tests/test_models.py` (or added to existing) | Unit tests | U-01 through U-12 |
+| `tests/node/exceptions.test.ts` | Unit | U-01 through U-12 (both exception classes) |
+| `tests/node/utils.test.ts` | Unit | U-13 through U-42 (all utility functions and constants) |
 
-### Modified Test Files
+### No Modified Test Files
 
-| File | Change |
-|------|--------|
-| `tests/test_pipeline.py` | Update assembler count from 9 to 10; add ordering assertions for position 10 |
-| `tests/test_byte_for_byte.py` | Validates new `copilot-mcp.json` golden file (no code changes needed if golden files regenerated) |
-| `tests/conftest.py` | Optionally add `FULL_PROJECT_DICT` variant with `mcp` section |
+Existing tests in `tests/node/cli-help.test.ts` and `tests/node/index-bootstrap.test.ts` are not affected by STORY-002 changes.
 
-### New Fixtures / Golden Files
+---
 
-| File | Purpose |
-|------|---------|
-| `tests/golden/java-quarkus/github/copilot-mcp.json` | Golden file for byte-for-byte validation |
-| Config fixture with `mcp` section | Input data for integration tests |
+## 9. Recommended Execution Order
+
+1. Exception tests (U-01 through U-12) -- zero dependencies, fast
+2. `PROTECTED_PATHS` and `rejectDangerousPath` tests (U-13 through U-21, U-41, U-42) -- sync, no I/O
+3. `validateDestPath` tests (U-22 through U-26) -- async, requires filesystem mocks
+4. `atomicOutput` tests (U-27 through U-35) -- async, uses real temp directories
+5. `setupLogging` tests (U-36, U-37) -- console spies
+6. `findResourcesDir` tests (U-38 through U-40) -- real filesystem validation
