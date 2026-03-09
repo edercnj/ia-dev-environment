@@ -1,314 +1,178 @@
-# Implementation Plan -- STORY-002: GithubMcpAssembler (copilot-mcp.json)
+# Implementation Plan -- STORY-002: Exceptions & Utils (Python to TypeScript Migration)
 
 **Status:** PLANNED
-**Date:** 2026-03-08
+**Date:** 2026-03-09
+**Blocked By:** STORY-001 (project foundation)
+**Blocks:** STORY-004 (config loader), STORY-016 (pipeline orchestrator)
 
 ---
 
 ## 1. Affected Layers and Components
 
+This is a **library project** -- no database, no API, no events. All changes are in shared infrastructure modules.
+
 | Layer | Component | Impact |
 |-------|-----------|--------|
-| models | `ProjectConfig`, new `McpServerConfig`, `McpConfig` | New dataclasses and optional `mcp` field on `ProjectConfig` |
-| assembler | `GithubMcpAssembler` (new) | New assembler generating `github/copilot-mcp.json` |
-| assembler | `__init__.py` (pipeline orchestration) | Modified to register 10th assembler |
-| config | `config.py` (`validate_config`, `load_config`) | No changes needed -- `mcp` is optional, `ProjectConfig.from_dict` handles it |
-| CLI | `__main__.py` (`_classify_files`) | No changes needed -- files under `github/` already classified as "GitHub" |
-| tests | `test_pipeline.py` | Updated assembler count from 9 to 10 |
-| tests | `test_github_mcp_assembler.py` (new) | Unit tests for the new assembler |
-| tests | `test_byte_for_byte.py` | Validates generated output against golden files |
-| golden files | `tests/golden/java-quarkus/github/copilot-mcp.json` | New golden file for byte-for-byte validation |
-| fixtures | `tests/fixtures/` | New or updated config YAML with `mcp` section |
+| Shared / Exceptions | `src/exceptions.ts` | Add `ConfigValidationError` and `PipelineError` alongside existing `CliError` |
+| Shared / Utils | `src/utils.ts` | Add `atomicOutput`, `validateDestPath`, `rejectDangerousPath`, `setupLogging`, `findResourcesDir` alongside existing `normalizeDirectory` |
+| Tests | `tests/node/exceptions.test.ts` | New test file for exception classes |
+| Tests | `tests/node/utils.test.ts` | New test file for utility functions |
 
-## 2. New Classes/Interfaces Created
+No other source files are modified. No assemblers, no CLI, no domain modules are touched.
 
-| Class / Module | Location | Responsibility |
-|----------------|----------|----------------|
-| `McpServerConfig` | `src/ia_dev_env/models.py` | Dataclass representing a single MCP server: `id`, `url`, `capabilities`, `env` |
-| `McpConfig` | `src/ia_dev_env/models.py` | Dataclass wrapping a `List[McpServerConfig]` with `from_dict()` factory |
-| `GithubMcpAssembler` | `src/ia_dev_env/assembler/github_mcp_assembler.py` | Generates `copilot-mcp.json` programmatically from `ProjectConfig.mcp` |
-| `_build_copilot_mcp_dict()` | Same file (module-level function) | Builds the `{"mcpServers": {...}}` dict from `McpConfig` |
+---
 
-**Golden files (new):**
+## 2. New Classes/Interfaces to Create
 
-| File | Location |
-|------|----------|
-| `copilot-mcp.json` | `tests/golden/java-quarkus/github/copilot-mcp.json` |
+### 2.1 Exception Classes (`src/exceptions.ts`)
 
-### 2.1 McpServerConfig Dataclass
+| Class | Extends | Properties | Message Format |
+|-------|---------|-----------|----------------|
+| `ConfigValidationError` | `Error` | `readonly missingFields: string[]` | `"Missing required config sections: field1, field2"` |
+| `PipelineError` | `Error` | `readonly assemblerName: string`, `readonly reason: string` | `"Pipeline failed at 'assemblerName': reason"` |
 
-```python
-@dataclass
-class McpServerConfig:
-    id: str                              # e.g. "firecrawl-mcp"
-    url: str                             # e.g. "https://mcp.example.com/sse"
-    capabilities: List[str] = field(default_factory=list)  # e.g. ["scrape", "crawl"]
-    env: Dict[str, str] = field(default_factory=dict)      # e.g. {"API_KEY": "$FIRECRAWL_API_KEY"}
+Both classes set `this.name` to the class name for proper error identification. Both use `readonly` properties (TypeScript strict mode).
 
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> McpServerConfig:
-        return cls(
-            id=_require(data, "id", "McpServerConfig"),
-            url=_require(data, "url", "McpServerConfig"),
-            capabilities=data.get("capabilities", []),
-            env=data.get("env", {}),
-        )
+### 2.2 Utility Functions (`src/utils.ts`)
+
+| Function | Signature | Responsibility |
+|----------|-----------|----------------|
+| `PROTECTED_PATHS` | `ReadonlySet<string>` (module constant) | Frozen set: `["/", "/tmp", "/var", "/etc", "/usr"]` |
+| `validateDestPath` | `(destDir: string) => Promise<string>` | Rejects symlinks via `lstat()`, resolves path, delegates to `rejectDangerousPath`, returns resolved path |
+| `rejectDangerousPath` | `(resolvedPath: string) => void` | Throws `ValueError`-equivalent if path equals CWD, home dir, or is in PROTECTED_PATHS |
+| `atomicOutput` | `<T>(destDir: string, callback: (tempDir: string) => Promise<T>) => Promise<T>` | Creates temp dir, runs callback, copies temp to dest, cleans up temp in `finally` block |
+| `setupLogging` | `(verbose: boolean) => void` | Sets global log level (DEBUG vs INFO); uses `console`-based approach |
+| `findResourcesDir` | `() => string` | Locates `resources/` relative to package root (`__dirname` equivalent via `import.meta.url`) |
+
+### 2.3 Design Decisions
+
+**`atomicOutput` pattern:** The Python version uses a context manager (`@contextmanager`). TypeScript has no direct equivalent. The idiomatic translation is a callback-based async function:
+
+```typescript
+async function atomicOutput<T>(
+  destDir: string,
+  callback: (tempDir: string) => Promise<T>,
+): Promise<T>
 ```
 
-### 2.2 McpConfig Dataclass
+This preserves the "setup -> yield -> teardown" semantics with guaranteed cleanup in `finally`.
 
-```python
-@dataclass
-class McpConfig:
-    servers: List[McpServerConfig] = field(default_factory=list)
+**`validateDestPath` is async:** Uses `fs/promises.lstat()` to check for symlinks, which is inherently async in Node.js. The Python version uses synchronous `Path.is_symlink()` -- the TypeScript version prefers non-blocking I/O.
 
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> McpConfig:
-        servers_raw = data.get("servers", [])
-        return cls(
-            servers=[McpServerConfig.from_dict(s) for s in servers_raw],
-        )
-```
+**`rejectDangerousPath` is sync:** Only performs string comparisons against `process.cwd()`, `os.homedir()`, and the `PROTECTED_PATHS` set. No I/O required.
 
-### 2.3 Copilot MCP JSON Output Format
+**`findResourcesDir` uses `import.meta.url`:** Equivalent to Python's `__file__`. Resolves to package root using `fileURLToPath` + path traversal. Must account for both source (`src/`) and bundled (`dist/`) layouts.
 
-```json
-{
-  "mcpServers": {
-    "firecrawl-mcp": {
-      "url": "https://mcp.example.com/sse",
-      "env": {
-        "FIRECRAWL_API_KEY": "$FIRECRAWL_API_KEY"
-      }
-    }
-  }
-}
-```
+### 2.4 New Test Files
 
-Note: `capabilities` from `McpServerConfig` is project metadata only -- the Copilot `copilot-mcp.json` format does not include a capabilities field per server. Capabilities are retained in `ProjectConfig` for parity tracking with `settings.json` but are not emitted in the JSON output.
+| File | Coverage Target |
+|------|----------------|
+| `tests/node/exceptions.test.ts` | `ConfigValidationError`, `PipelineError` construction and properties |
+| `tests/node/utils.test.ts` | All utility functions, path validation edge cases, atomic output success/failure |
 
-### 2.4 GithubMcpAssembler Skeleton
+---
 
-```python
-class GithubMcpAssembler:
-    """Generates .github/copilot-mcp.json from ProjectConfig MCP data."""
+## 3. Existing Classes to Modify
 
-    def assemble(
-        self,
-        config: ProjectConfig,
-        output_dir: Path,
-        engine: TemplateEngine,
-    ) -> List[Path]:
-        if not config.mcp.servers:
-            return []
-        github_dir = output_dir / "github"
-        github_dir.mkdir(parents=True, exist_ok=True)
-        dest = github_dir / "copilot-mcp.json"
-        mcp_dict = _build_copilot_mcp_dict(config.mcp)
-        content = json.dumps(mcp_dict, indent=2) + "\n"
-        dest.write_text(content, encoding="utf-8")
-        return [dest]
-```
+| File | Change |
+|------|--------|
+| `src/exceptions.ts` | Add `ConfigValidationError` and `PipelineError` below existing `CliError`. No changes to `CliError` itself. |
+| `src/utils.ts` | Add all new functions and the `PROTECTED_PATHS` constant. Existing `normalizeDirectory` and regex constants remain unchanged. |
 
-Key design decisions:
-- No `resources_dir` constructor parameter needed (programmatic generation, no templates)
-- Returns empty list when `config.mcp.servers` is empty (no file generated)
-- Uses `json.dumps` with `indent=2` + trailing newline (matches `SettingsAssembler` convention)
+No other files require modification for this story.
 
-## 3. Existing Classes Modified
-
-| Class / Module | Location | Change Description |
-|----------------|----------|--------------------|
-| `ProjectConfig` | `src/ia_dev_env/models.py` | Add optional `mcp: McpConfig` field with `default_factory=McpConfig` |
-| `ProjectConfig.from_dict()` | `src/ia_dev_env/models.py` | Add `mcp=McpConfig.from_dict(data.get("mcp", {}))` |
-| `_build_assemblers()` | `src/ia_dev_env/assembler/__init__.py` | Add `GithubMcpAssembler` as 10th entry |
-| `__all__` | `src/ia_dev_env/assembler/__init__.py` | Add `GithubMcpAssembler` to exports |
-| Import block | `src/ia_dev_env/assembler/__init__.py` | Add import of `GithubMcpAssembler` |
-| `_execute_assemblers()` | `src/ia_dev_env/assembler/__init__.py` | No change -- `GithubMcpAssembler` follows the standard `assemble(config, output_dir, engine)` signature (no `resources_dir` needed) |
-| `TestBuildAssemblers` | `tests/test_pipeline.py` | Update assembler count from 9 to 10; add ordering assertion |
-
-### 3.1 ProjectConfig Change
-
-Add after the `testing` field:
-
-```python
-mcp: McpConfig = field(
-    default_factory=McpConfig,
-)
-```
-
-Add in `from_dict()`:
-
-```python
-mcp=McpConfig.from_dict(
-    data.get("mcp", {}),
-),
-```
-
-This is fully backward-compatible: existing configs without `mcp` get an empty `McpConfig(servers=[])`.
-
-### 3.2 Pipeline Registration
-
-In `_build_assemblers()`, append:
-
-```python
-("GithubMcpAssembler", GithubMcpAssembler()),
-```
-
-Note: Unlike most assemblers, `GithubMcpAssembler` takes no constructor arguments (no `resources_dir`), similar in simplicity to `RulesAssembler`.
-
-### 3.3 _execute_assemblers Dispatch
-
-`GithubMcpAssembler` does NOT need `resources_dir` since it generates JSON programmatically. It follows the standard 3-arg signature `assemble(config, output_dir, engine)`, so no special-case dispatch is needed in `_execute_assemblers()`.
+---
 
 ## 4. Dependency Direction Validation
 
 ```
-GithubMcpAssembler
-    imports: ProjectConfig, McpConfig (models -- domain layer)
-    imports: TemplateEngine (engine -- unused but part of interface contract)
-    imports: Path, List (stdlib)
-    imports: json (stdlib)
-    imports: logging (stdlib)
+src/exceptions.ts
+    imports: nothing (pure Error subclasses, zero dependencies)
+
+src/utils.ts
+    imports: node:fs/promises (lstat, cp, rm, mkdtemp, realpath, stat)
+    imports: node:os (tmpdir, homedir)
+    imports: node:path (resolve, dirname, join)
+    imports: node:url (fileURLToPath)
 ```
 
-**Assessment: COMPLIANT.** The assembler depends only on domain models (`ProjectConfig`, `McpConfig`, `McpServerConfig`). It does not import any other assembler, framework code, or adapter. Dependencies point inward toward the domain.
+**Assessment: COMPLIANT.**
+
+- `exceptions.ts` has zero dependencies -- pure domain-level error types.
+- `utils.ts` depends only on Node.js standard library modules. No framework imports (commander, inquirer, nunjucks). No cross-module imports to `cli.ts`, `config.ts`, or assemblers.
+- Both modules are "leaf" dependencies -- imported by others, import nothing from the project.
+
+Dependency graph after STORY-002:
 
 ```
-McpServerConfig, McpConfig
-    imports: dataclasses (stdlib)
-    imports: typing (stdlib)
+src/index.ts ──> src/exceptions.ts   (existing, CliError)
+src/cli.ts   ──> (future stories will import utils)
+src/assembler/ ──> src/utils.ts      (future: atomicOutput consumer)
+src/config.ts  ──> src/exceptions.ts (future: ConfigValidationError consumer)
+
+src/exceptions.ts ──> (nothing)
+src/utils.ts      ──> (node:fs, node:os, node:path, node:url only)
 ```
 
-**Assessment: COMPLIANT.** Pure domain value objects with zero external dependencies.
+No circular dependencies. No upward dependency violations.
 
-```
-Dependency graph:
-  assembler/__init__.py → github_mcp_assembler.py → models.py
-                                                      ↑
-  config.py ────────────────────────────────────────────┘
-```
-
-No circular dependencies. No cross-assembler imports.
+---
 
 ## 5. Integration Points
 
-| Integration Point | Direction | Description |
-|--------------------|-----------|-------------|
-| Pipeline orchestration | Inbound | `_execute_assemblers()` calls `assemble()` on `GithubMcpAssembler` as the 10th step |
-| `ProjectConfig.mcp` | Outbound (dependency) | Provides MCP server data: id, url, capabilities, env |
-| File system | Outbound | Writes to `output_dir/github/copilot-mcp.json` |
-| CLI classification | Downstream | `_classify_files()` counts files with `"github"` in path parts under "GitHub" category |
-| Parity with SettingsAssembler | Conceptual only | Both consume `ProjectConfig.mcp` but there is NO code dependency between them |
+| Integration Point | Consumer | When |
+|-------------------|----------|------|
+| `ConfigValidationError` | `src/config.ts` (config loader) | STORY-004 |
+| `PipelineError` | `src/assembler/index.ts` (pipeline orchestrator) | STORY-016 |
+| `atomicOutput` | Pipeline orchestrator | STORY-016 |
+| `validateDestPath` + `rejectDangerousPath` | Called internally by `atomicOutput`; also usable standalone | This story (internal), STORY-016 (external) |
+| `findResourcesDir` | Config loader, assemblers | STORY-004+ |
+| `setupLogging` | CLI entry point | STORY-018 |
 
-### Data Flow
+All integration points are **downstream** -- this story provides foundations consumed by later stories. No upstream dependencies beyond STORY-001 stubs.
 
-1. `ia-dev-env.yaml` is parsed; `mcp` section is deserialized into `McpConfig` within `ProjectConfig`
-2. Pipeline calls `GithubMcpAssembler.assemble(config, output_dir, engine)`
-3. Assembler checks `config.mcp.servers` -- returns empty list if none
-4. For non-empty servers: builds `{"mcpServers": {id: {url, env}}}` dict
-5. Writes JSON to `output_dir/github/copilot-mcp.json`
-6. Returns list containing the generated `Path`
+---
 
-### Config YAML Example
-
-```yaml
-mcp:
-  servers:
-    - id: firecrawl-mcp
-      url: "https://mcp.firecrawl.dev/sse"
-      capabilities:
-        - scrape
-        - crawl
-        - search
-      env:
-        FIRECRAWL_API_KEY: "$FIRECRAWL_API_KEY"
-    - id: github-mcp
-      url: "https://mcp.github.com/sse"
-      capabilities:
-        - issues
-        - pull-requests
-      env:
-        GITHUB_TOKEN: "$GITHUB_TOKEN"
-```
-
-## 6. Configuration Changes
-
-| Change | Location | Description |
-|--------|----------|-------------|
-| `McpServerConfig` dataclass | `src/ia_dev_env/models.py` | New domain value object |
-| `McpConfig` dataclass | `src/ia_dev_env/models.py` | New domain value object wrapping server list |
-| `ProjectConfig.mcp` field | `src/ia_dev_env/models.py` | New optional field (defaults to empty) |
-| Assembler registration | `src/ia_dev_env/assembler/__init__.py` | Position 10 in `_build_assemblers()` |
-
-No changes to `config.py` validation are needed because `mcp` is optional and `validate_config()` only checks `REQUIRED_SECTIONS`.
-
-### Config YAML Schema Addition
-
-```yaml
-# Optional -- omit entirely if no MCP servers
-mcp:
-  servers:                    # List of MCP server configurations
-    - id: string              # Required. Lowercase-hyphen identifier
-      url: string             # Required. MCP server endpoint URL
-      capabilities: [string]  # Optional. Capabilities offered
-      env:                    # Optional. Environment variable references
-        VAR_NAME: "$VAR_NAME" # Key=var name, Value="$VAR_NAME" (reference, not secret)
-```
-
-## 7. Risk Assessment
+## 6. Risk Assessment
 
 | Risk | Severity | Likelihood | Mitigation |
 |------|----------|------------|------------|
-| Empty `mcp` section generates no file | Low | Expected | `assemble()` returns `[]` when no servers; pipeline handles gracefully |
-| Env values contain hardcoded secrets | High | Low | Convention enforces `$VAR_NAME` references; unit test validates no literal values without `$` prefix |
-| Copilot MCP JSON schema changes | Medium | Low | Programmatic generation makes format changes easy; single function to update |
-| `ProjectConfig` backward compatibility | Low | Low | `mcp` defaults to `McpConfig()` (empty servers list); existing configs unaffected |
-| Golden file drift when MCP servers change | Medium | Medium | `test_byte_for_byte.py` catches immediately; golden files regenerated on model change |
-| Pipeline ordering -- GithubMcpAssembler before GithubInstructionsAssembler | Low | Low | Both are independent; ordering does not matter but convention places MCP at position 10 (after instructions at 9) |
-| `capabilities` field unused in output JSON | Low | Low | Retained in model for documentation/parity; explicitly excluded from JSON output with code comment |
-| Constructor inconsistency (no `resources_dir`) | Low | Low | `GithubMcpAssembler()` takes no args like `RulesAssembler`; `_execute_assemblers` dispatch already handles both signatures |
+| **Symlink detection platform differences** | Medium | Medium | `lstat()` behavior is consistent across platforms for symlink detection. Test with `fs.symlinkSync()` in test setup. On Windows CI, symlink creation may require elevated privileges -- skip symlink tests conditionally if `fs.symlinkSync` throws `EPERM`. |
+| **`atomicOutput` partial failure leaves temp dir** | Low | Low | `finally` block ensures cleanup. Test explicitly that temp dir is removed even when callback throws. |
+| **`atomicOutput` race condition on dest dir** | Low | Low | The Python version also has this race (rmtree + copytree is not truly atomic). Accept the same behavior parity. Document in JSDoc that this is "atomic" in the sense of all-or-nothing, not filesystem-level atomic. |
+| **`findResourcesDir` path resolution differs between source and dist** | Medium | Medium | Must handle both `src/utils.ts` (development via `tsx`) and `dist/utils.js` (production via `tsup`). Use `import.meta.url` with upward traversal to package root, then append `resources/`. Verify with both `npm run dev` and `npm run build` + direct execution. |
+| **`cp` recursive not available in older Node.js** | Low | Low | `fs/promises.cp` with `recursive: true` requires Node.js >= 16.7. Project requires Node >= 18 (per `package.json` engines). Safe. |
+| **PROTECTED_PATHS is Unix-only** | Low | Medium | The Python original also uses Unix paths only. This is a CLI tool primarily targeting Unix environments. Accept parity. Document the Unix assumption. |
+| **`process.cwd()` and `os.homedir()` mocking in tests** | Medium | Medium | Use `vi.spyOn` to mock `process.cwd` and `os.homedir` in Vitest. Alternatively, accept parameters for these in `rejectDangerousPath` for testability (but keep the public API simple with defaults). |
+| **Coverage threshold with async operations** | Low | Low | Ensure all branches in `atomicOutput` are covered: success path, callback failure path, dest already exists path, dest does not exist path. |
 
-## 8. Implementation Order
+---
 
-1. **models.py** -- Add `McpServerConfig`, `McpConfig`, and `ProjectConfig.mcp` field
-2. **github_mcp_assembler.py** -- Create assembler with `assemble()` and `_build_copilot_mcp_dict()`
-3. **assembler/__init__.py** -- Register as 10th assembler, update `__all__` and imports
-4. **tests/fixtures/** -- Add or update a config YAML fixture with `mcp` section
-5. **tests/golden/** -- Add `github/copilot-mcp.json` golden file
-6. **test_github_mcp_assembler.py** -- Unit tests for assembler
-7. **test_pipeline.py** -- Update assembler count and ordering assertions
-8. **test_byte_for_byte.py** -- Verify golden file match (may need fixture update)
+## 7. Implementation Order
 
-## 9. Test Strategy Summary
+1. **`src/exceptions.ts`** -- Add `ConfigValidationError` and `PipelineError`
+2. **`tests/node/exceptions.test.ts`** -- Unit tests for both exception classes
+3. **`src/utils.ts`** -- Add `PROTECTED_PATHS`, `rejectDangerousPath`, `validateDestPath`, `atomicOutput`, `setupLogging`, `findResourcesDir`
+4. **`tests/node/utils.test.ts`** -- Unit tests for all utility functions
+5. **Verify** -- `npm run lint` (tsc --noEmit), `npm run test:coverage`, thresholds pass
 
-| Test Type | What | File |
-|-----------|------|------|
-| Unit | `McpServerConfig.from_dict()` with valid/missing fields | `test_models.py` or `test_github_mcp_assembler.py` |
-| Unit | `McpConfig.from_dict()` with empty/populated servers | Same |
-| Unit | `GithubMcpAssembler.assemble()` with servers -- generates valid JSON | `test_github_mcp_assembler.py` |
-| Unit | `GithubMcpAssembler.assemble()` with no servers -- returns empty list | Same |
-| Unit | `_build_copilot_mcp_dict()` output structure validation | Same |
-| Unit | No hardcoded secrets in env values (all start with `$`) | Same |
-| Unit | JSON output is parseable | Same |
-| Contract | Byte-for-byte golden file match | `test_byte_for_byte.py` |
-| Integration | Pipeline with 10 assemblers, correct ordering | `test_pipeline.py` |
+Inner-to-outer: exceptions first (no dependencies), then utils (depends on node stdlib only), then tests.
 
-## 10. Files Inventory (Complete)
+---
 
-### New Files
+## 8. Node.js API Usage Map
 
-| File | Type |
-|------|------|
-| `src/ia_dev_env/assembler/github_mcp_assembler.py` | Production code |
-| `tests/test_github_mcp_assembler.py` | Unit tests |
-| `tests/golden/java-quarkus/github/copilot-mcp.json` | Golden file |
-
-### Modified Files
-
-| File | Change |
-|------|--------|
-| `src/ia_dev_env/models.py` | Add `McpServerConfig`, `McpConfig`, `ProjectConfig.mcp` |
-| `src/ia_dev_env/assembler/__init__.py` | Register 10th assembler |
-| `tests/test_pipeline.py` | Update count and ordering |
-| `tests/fixtures/valid_v3_config.yaml` (or new fixture) | Add `mcp` section for testing |
+| Python API | Node.js Equivalent | Import |
+|------------|-------------------|--------|
+| `Path.is_symlink()` | `lstat()` then check `stat.isSymbolicLink()` | `node:fs/promises` |
+| `Path.resolve()` | `realpath()` or `path.resolve()` | `node:fs/promises`, `node:path` |
+| `Path.cwd()` | `process.cwd()` | global |
+| `Path.home()` | `os.homedir()` | `node:os` |
+| `tempfile.mkdtemp()` | `mkdtemp(path.join(os.tmpdir(), 'ia-dev-env-'))` | `node:fs/promises`, `node:os` |
+| `shutil.copytree()` | `cp(src, dest, { recursive: true })` | `node:fs/promises` |
+| `shutil.rmtree()` | `rm(path, { recursive: true, force: true })` | `node:fs/promises` |
+| `Path.exists()` | `stat()` with try/catch or `access()` | `node:fs/promises` |
+| `Path.is_dir()` | `stat()` then check `stat.isDirectory()` | `node:fs/promises` |
+| `Path(__file__).resolve()` | `fileURLToPath(import.meta.url)` | `node:url` |
+| `logging.basicConfig()` | `console.debug`/`console.info` level control | global |
+| `frozenset` | `Object.freeze(new Set([...]))` or `ReadonlySet` type | native |
