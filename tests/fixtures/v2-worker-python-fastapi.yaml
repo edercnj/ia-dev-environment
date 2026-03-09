@@ -1,0 +1,5 @@
+type: worker
+stack: python-fastapi
+project:
+  name: my-worker
+  purpose: Worker project
