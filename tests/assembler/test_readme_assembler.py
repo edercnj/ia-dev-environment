@@ -368,7 +368,7 @@ class TestBuildGenerationSummary:
         _populate_output(tmp_path)
         config = _minimal_config()
         summary = _build_generation_summary(tmp_path, config)
-        assert "| Rules | 3 |" in summary
+        assert "| Rules (.claude) | 3 |" in summary
 
     def test_summary_contains_version(self, tmp_path):
         _populate_output(tmp_path)
