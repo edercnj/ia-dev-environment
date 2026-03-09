@@ -34,6 +34,13 @@ describe("ConfigValidationError", () => {
     expect(error.missingFields).toEqual(["a", "b"]);
   });
 
+  it("constructor_defensivelyCopiesInput", () => {
+    const fields = ["a", "b"];
+    const error = new ConfigValidationError(fields);
+    fields.push("c");
+    expect(error.missingFields).toEqual(["a", "b"]);
+  });
+
   it("withEmptyArray_formatsEmptyMessage", () => {
     const error = new ConfigValidationError([]);
     expect(error.message).toBe("Missing required config sections: ");

@@ -1,4 +1,4 @@
-import { cp, lstat, mkdtemp, rm, stat } from "node:fs/promises";
+import { cp, lstat, mkdtemp, rename, rm, stat } from "node:fs/promises";
 import { statSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -8,8 +8,12 @@ const DIRECTORY_SEPARATOR_PATTERN = /[\\/]+$/u;
 const ROOT_PATH_PATTERN = /^[\\/]+$/u;
 const WINDOWS_ROOT_PATH_PATTERN = /^[A-Za-z]:[\\/]$/u;
 
-export const PROTECTED_PATHS: ReadonlySet<string> = Object.freeze(
-  new Set(["/", "/tmp", "/var", "/etc", "/usr"]),
+const PROTECTED_PATHS_SET = new Set([
+  "/", "/tmp", "/var", "/etc", "/usr",
+]);
+
+export const PROTECTED_PATHS: ReadonlyArray<string> = Object.freeze(
+  [...PROTECTED_PATHS_SET],
 );
 
 export function normalizeDirectory(path: string): string {
@@ -39,7 +43,7 @@ export function rejectDangerousPath(resolvedPath: string): void {
       `Destination must not be the home directory: ${resolvedPath}`,
     );
   }
-  if (PROTECTED_PATHS.has(resolvedPath)) {
+  if (PROTECTED_PATHS_SET.has(resolvedPath)) {
     throw new Error(
       `Destination is a protected system path: ${resolvedPath}`,
     );
@@ -112,24 +116,38 @@ export async function atomicOutput<T>(
   try {
     const result = await callback(tempDir);
 
-    try {
-      await stat(resolvedDest);
-      await rm(resolvedDest, { recursive: true, force: true });
-    } catch (error: unknown) {
-      if (
-        !(
-          error instanceof Error &&
-          "code" in error &&
-          error.code === "ENOENT"
-        )
-      ) {
-        throw error;
-      }
+    const destExists = await pathExists(resolvedDest);
+    let backupDir: string | undefined;
+
+    if (destExists) {
+      backupDir = `${resolvedDest}.bak-${Date.now()}`;
+      await rename(resolvedDest, backupDir);
     }
 
-    await cp(tempDir, resolvedDest, { recursive: true });
+    try {
+      await cp(tempDir, resolvedDest, { recursive: true });
+    } catch (copyError: unknown) {
+      if (backupDir !== undefined) {
+        await rename(backupDir, resolvedDest);
+      }
+      throw copyError;
+    }
+
+    if (backupDir !== undefined) {
+      await rm(backupDir, { recursive: true, force: true });
+    }
+
     return result;
   } finally {
     await rm(tempDir, { recursive: true, force: true });
+  }
+}
+
+async function pathExists(target: string): Promise<boolean> {
+  try {
+    await stat(target);
+    return true;
+  } catch {
+    return false;
   }
 }

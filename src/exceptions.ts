@@ -9,12 +9,12 @@ export class CliError extends Error {
 }
 
 export class ConfigValidationError extends Error {
-  readonly missingFields: string[];
+  readonly missingFields: readonly string[];
 
-  constructor(missingFields: string[]) {
+  constructor(missingFields: readonly string[]) {
     super(`Missing required config sections: ${missingFields.join(", ")}`);
     this.name = "ConfigValidationError";
-    this.missingFields = missingFields;
+    this.missingFields = [...missingFields];
   }
 }
 

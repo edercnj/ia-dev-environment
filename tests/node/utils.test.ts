@@ -10,7 +10,7 @@ import {
   chmodSync,
 } from "node:fs";
 import { writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import {
   PROTECTED_PATHS,
@@ -25,13 +25,14 @@ describe("PROTECTED_PATHS", () => {
   it("contents_containsAllExpectedPaths", () => {
     const expected = ["/", "/tmp", "/var", "/etc", "/usr"];
     for (const p of expected) {
-      expect(PROTECTED_PATHS.has(p)).toBe(true);
+      expect(PROTECTED_PATHS).toContain(p);
     }
-    expect(PROTECTED_PATHS.size).toBe(5);
+    expect(PROTECTED_PATHS).toHaveLength(5);
   });
 
-  it("type_isReadonlySet", () => {
-    expect(PROTECTED_PATHS).toBeInstanceOf(Set);
+  it("type_isFrozenArray", () => {
+    expect(Array.isArray(PROTECTED_PATHS)).toBe(true);
+    expect(Object.isFrozen(PROTECTED_PATHS)).toBe(true);
   });
 });
 
@@ -76,7 +77,6 @@ describe("rejectDangerousPath", () => {
   });
 
   it("withHomeDir_throws", () => {
-    const { homedir } = require("node:os") as typeof import("node:os");
     const realHome = homedir();
     expect(() => rejectDangerousPath(realHome)).toThrow(
       "home directory",
