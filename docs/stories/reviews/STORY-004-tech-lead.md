@@ -24,7 +24,7 @@
 
 ### L-01: No logging in template_engine.py (H4)
 
-- **File:** `claude_setup/template_engine.py`
+- **File:** `ia_dev_env/template_engine.py`
 - **Severity:** LOW
 - **Note:** Acceptable for a library module. Logging can be added when the module is integrated into the CLI flow.
 

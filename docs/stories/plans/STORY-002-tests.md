@@ -522,7 +522,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["claude_setup"]
+source = ["ia_dev_env"]
 branch = true
 
 [tool.coverage.report]
@@ -538,7 +538,7 @@ exclude_lines = [
 
 ```bash
 # All tests with coverage
-pytest --cov=claude_setup --cov-branch --cov-report=html --cov-report=xml
+pytest --cov=ia_dev_env --cov-branch --cov-report=html --cov-report=xml
 
 # Unit tests only
 pytest tests/test_config.py tests/test_migration.py tests/test_exceptions.py
@@ -550,7 +550,7 @@ pytest tests/test_config_contract.py -m contract
 pytest tests/test_interactive.py
 
 # Coverage check (fail if below threshold)
-pytest --cov=claude_setup --cov-branch --cov-fail-under=95
+pytest --cov=ia_dev_env --cov-branch --cov-fail-under=95
 ```
 
 ---

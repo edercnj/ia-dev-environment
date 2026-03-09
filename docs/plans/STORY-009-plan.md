@@ -18,7 +18,7 @@
 
 | File | Change |
 |------|--------|
-| `src/claude_setup/assembler/github_skills_assembler.py` | Add `git-troubleshooting` to `SKILL_GROUPS` |
+| `src/ia_dev_env/assembler/github_skills_assembler.py` | Add `git-troubleshooting` to `SKILL_GROUPS` |
 | `tests/assembler/test_github_skills_assembler.py` | Add tests for git-troubleshooting group |
 | `tests/test_pipeline.py` | Add `TestPipelineGitTroubleshootSkills` class |
 

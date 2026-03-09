@@ -4,13 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from claude_setup.assembler.patterns_assembler import (
+from ia_dev_env.assembler.patterns_assembler import (
     CONSOLIDATED_FILENAME,
     SECTION_SEPARATOR,
     PatternsAssembler,
 )
-from claude_setup.models import ProjectConfig
-from claude_setup.template_engine import TemplateEngine
+from ia_dev_env.models import ProjectConfig
+from ia_dev_env.template_engine import TemplateEngine
 
 FIXTURES_SRC = Path(__file__).parent.parent / "fixtures" / "src"
 

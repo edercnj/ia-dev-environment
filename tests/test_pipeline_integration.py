@@ -5,10 +5,10 @@ from unittest.mock import patch
 
 import pytest
 
-from claude_setup.assembler import run_pipeline
-from claude_setup.exceptions import PipelineError
-from claude_setup.models import ProjectConfig
-from claude_setup.utils import find_resources_dir
+from ia_dev_env.assembler import run_pipeline
+from ia_dev_env.exceptions import PipelineError
+from ia_dev_env.models import ProjectConfig
+from ia_dev_env.utils import find_resources_dir
 
 
 def _build_config() -> ProjectConfig:
@@ -135,7 +135,7 @@ class TestPipelineIntegration:
         resources_dir = find_resources_dir()
         output = tmp_path / "output"
         with patch(
-            "claude_setup.assembler.readme_assembler.ReadmeAssembler.assemble",
+            "ia_dev_env.assembler.readme_assembler.ReadmeAssembler.assemble",
             side_effect=RuntimeError("forced failure"),
         ):
             with pytest.raises(PipelineError):

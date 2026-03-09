@@ -120,10 +120,10 @@
 
 ## Files Reviewed
 
-- `claude_setup/assembler/rules_assembler.py` (541 lines, 302 statements, class 213 lines)
-- `claude_setup/assembler/auditor.py` (63 lines)
-- `claude_setup/assembler/consolidator.py` (88 lines)
-- `claude_setup/domain/core_kp_routing.py` (63 lines)
-- `claude_setup/domain/stack_pack_mapping.py` (23 lines)
-- `claude_setup/domain/version_resolver.py` (25 lines)
+- `ia_dev_env/assembler/rules_assembler.py` (541 lines, 302 statements, class 213 lines)
+- `ia_dev_env/assembler/auditor.py` (63 lines)
+- `ia_dev_env/assembler/consolidator.py` (88 lines)
+- `ia_dev_env/domain/core_kp_routing.py` (63 lines)
+- `ia_dev_env/domain/stack_pack_mapping.py` (23 lines)
+- `ia_dev_env/domain/version_resolver.py` (25 lines)
 - 6 test files (48 tests for rules_assembler, 435 total)

@@ -19,9 +19,9 @@
 
 ## 3. Descricao
 
-Como **Tech Lead**, eu quero que o gerador Python `claude_setup` produza as 6 skills de review (`x-review`, `x-review-api`, `x-review-pr`, `x-review-grpc`, `x-review-events`, `x-review-gateway`) dentro do diretorio `.github/skills/` gerado, garantindo que o processo de code review automatizado mantenha a mesma cobertura e rigor.
+Como **Tech Lead**, eu quero que o gerador Python `ia_dev_env` produza as 6 skills de review (`x-review`, `x-review-api`, `x-review-pr`, `x-review-grpc`, `x-review-events`, `x-review-gateway`) dentro do diretorio `.github/skills/` gerado, garantindo que o processo de code review automatizado mantenha a mesma cobertura e rigor.
 
-O gerador `claude_setup` ja produz tanto `.claude/` quanto `.github/` como output. Esta story adiciona templates e logica de assembler para gerar as skills de review na arvore `.github/skills/`. Ambos os diretorios (`.claude/` e `.github/`) sao gitignored -- sao output do gerador.
+O gerador `ia_dev_env` ja produz tanto `.claude/` quanto `.github/` como output. Esta story adiciona templates e logica de assembler para gerar as skills de review na arvore `.github/skills/`. Ambos os diretorios (`.claude/` e `.github/`) sao gitignored -- sao output do gerador.
 
 As skills de review sao de alta prioridade e formam o pilar de qualidade do repositorio. Cada skill tem um foco especializado (API design, PR holistico, gRPC, eventos, gateway) e produz relatorios com scoring padronizado.
 
@@ -42,7 +42,7 @@ Cada description deve incluir keywords especificas para evitar colisao de trigge
 
 ### Assembler
 
-- Criar ou estender um assembler em `src/claude_setup/assembler/` (ex: `github_skills_assembler.py`) que implemente `assemble(config, output_dir, engine) -> List[Path]`.
+- Criar ou estender um assembler em `src/ia_dev_env/assembler/` (ex: `github_skills_assembler.py`) que implemente `assemble(config, output_dir, engine) -> List[Path]`.
 - O assembler le templates de `resources/github-skills-templates/review/` e gera arquivos em `output_dir/github/skills/<skill-name>/SKILL.md`.
 - Registrar o novo assembler em `assembler/__init__.py` -> `_build_assemblers()`.
 
@@ -177,7 +177,7 @@ Cenario: Referencia a knowledge pack de security
 ## 8. Sub-tarefas
 
 - [ ] [Dev] Criar diretorio `resources/github-skills-templates/review/` com 6 templates Markdown
-- [ ] [Dev] Implementar `GithubSkillsAssembler` (ou estender existente) em `src/claude_setup/assembler/` com metodo `assemble()`
+- [ ] [Dev] Implementar `GithubSkillsAssembler` (ou estender existente) em `src/ia_dev_env/assembler/` com metodo `assemble()`
 - [ ] [Dev] Registrar assembler em `assembler/__init__.py` -> `_build_assemblers()`
 - [ ] [Dev] Criar template `x-review.md` com workflow de review paralelo
 - [ ] [Dev] Criar template `x-review-api.md` com validacao REST

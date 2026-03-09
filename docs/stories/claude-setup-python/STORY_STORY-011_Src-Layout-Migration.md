@@ -19,15 +19,15 @@
 
 Como **desenvolvedor**, eu quero que o pacote Python siga o src layout recomendado pela PyPA, garantindo que erros de empacotamento sejam detectados durante o desenvolvimento e não em produção.
 
-O projeto atualmente usa flat layout com `claude_setup/` na raiz do repositório. O diretório `src/` existe mas contém assets não-Python (templates, configs, setup.sh). Esta história reorganiza a estrutura: move o pacote Python para `src/claude_setup/`, move os assets não-Python para `resources/`, e atualiza toda a configuração de build/test.
+O projeto atualmente usa flat layout com `ia_dev_env/` na raiz do repositório. O diretório `src/` existe mas contém assets não-Python (templates, configs, setup.sh). Esta história reorganiza a estrutura: move o pacote Python para `src/ia_dev_env/`, move os assets não-Python para `resources/`, e atualiza toda a configuração de build/test.
 
-O src layout impede que `import claude_setup` funcione sem instalação (`pip install -e .`), eliminando uma classe inteira de bugs de empacotamento onde código funciona localmente mas falha ao ser instalado via pip.
+O src layout impede que `import ia_dev_env` funcione sem instalação (`pip install -e .`), eliminando uma classe inteira de bugs de empacotamento onde código funciona localmente mas falha ao ser instalado via pip.
 
 ### 3.1 Mover pacote Python para src/
 
-- Mover `claude_setup/` → `src/claude_setup/` (31 arquivos Python)
+- Mover `ia_dev_env/` → `src/ia_dev_env/` (31 arquivos Python)
 - Manter toda a estrutura interna inalterada (assembler/, domain/)
-- Remover `claude_setup.egg-info/` se existir em `src/`
+- Remover `ia_dev_env.egg-info/` se existir em `src/`
 
 ### 3.2 Mover assets não-Python para resources/
 
@@ -41,8 +41,8 @@ O src layout impede que `import claude_setup` funcione sem instalação (`pip in
 ### 3.3 Atualizar pyproject.toml
 
 - Adicionar `[tool.setuptools.packages.find]` com `where = ["src"]`
-- Atualizar `[tool.coverage.run]` source de `["claude_setup"]` para `["src/claude_setup"]`
-- Entry point `claude-setup = "claude_setup.__main__:main"` permanece igual (setuptools resolve via src)
+- Atualizar `[tool.coverage.run]` source de `["ia_dev_env"]` para `["src/ia_dev_env"]`
+- Entry point `ia-dev-env = "ia_dev_env.__main__:main"` permanece igual (setuptools resolve via src)
 
 ### 3.4 Atualizar referências internas
 
@@ -58,10 +58,10 @@ O src layout impede que `import claude_setup` funcione sem instalação (`pip in
 - [ ] Backup/branch criado antes de iniciar
 
 ### DoD Local
-- [ ] Pacote Python em `src/claude_setup/`
+- [ ] Pacote Python em `src/ia_dev_env/`
 - [ ] Assets não-Python em `resources/`
 - [ ] `pip install -e .` funciona corretamente
-- [ ] `claude-setup --help` funciona após instalação
+- [ ] `ia-dev-env --help` funciona após instalação
 - [ ] Todos os 72+ imports nos testes resolvem corretamente
 - [ ] Output byte-a-byte idêntico ao pré-migração
 
@@ -80,15 +80,15 @@ O src layout impede que `import claude_setup` funcione sem instalação (`pip in
 | Seção | Antes | Depois | Motivo |
 | :--- | :--- | :--- | :--- |
 | `[tool.setuptools.packages.find]` | (ausente) | `where = ["src"]` | Indicar src layout ao setuptools |
-| `[tool.coverage.run] source` | `["claude_setup"]` | `["src/claude_setup"]` | Novo path do pacote |
-| `[project.scripts]` | `claude_setup.__main__:main` | (sem alteração) | setuptools resolve via packages.find |
+| `[tool.coverage.run] source` | `["ia_dev_env"]` | `["src/ia_dev_env"]` | Novo path do pacote |
+| `[project.scripts]` | `ia_dev_env.__main__:main` | (sem alteração) | setuptools resolve via packages.find |
 
 **Referências internas a atualizar:**
 
 | Arquivo | Referência atual | Nova referência |
 | :--- | :--- | :--- |
-| `claude_setup/config.py` | `src/` paths | `resources/` paths |
-| `claude_setup/assembler/*.py` | `src/` paths | `resources/` paths |
+| `ia_dev_env/config.py` | `src/` paths | `resources/` paths |
+| `ia_dev_env/assembler/*.py` | `src/` paths | `resources/` paths |
 | `.claude/rules/*.md` | referências a `src/` | referências a `resources/` |
 
 ## 6. Diagramas
@@ -102,14 +102,14 @@ sequenceDiagram
     participant PIP as pip install -e .
     participant TEST as pytest
 
-    DEV->>FS: git mv claude_setup/ src/claude_setup/
+    DEV->>FS: git mv ia_dev_env/ src/ia_dev_env/
     DEV->>FS: git mv src/{assets} resources/
     DEV->>FS: update pyproject.toml
     DEV->>PIP: pip install -e .
-    PIP->>FS: resolve src/claude_setup via packages.find
+    PIP->>FS: resolve src/ia_dev_env via packages.find
     PIP-->>DEV: installed
     DEV->>TEST: pytest
-    TEST->>PIP: import claude_setup (via installed package)
+    TEST->>PIP: import ia_dev_env (via installed package)
     TEST-->>DEV: all green
 ```
 
@@ -117,14 +117,14 @@ sequenceDiagram
 
 ```gherkin
 Cenário: Pacote Python instalável via src layout
-  DADO que o pacote está em src/claude_setup/
+  DADO que o pacote está em src/ia_dev_env/
   QUANDO executo pip install -e .
   ENTÃO a instalação completa sem erros
-  E claude-setup --help retorna uso válido
+  E ia-dev-env --help retorna uso válido
 
 Cenário: Import protegido contra execução sem instalação
   DADO que NÃO executei pip install
-  QUANDO executo python -c "import claude_setup" da raiz do projeto
+  QUANDO executo python -c "import ia_dev_env" da raiz do projeto
   ENTÃO recebo ModuleNotFoundError
 
 Cenário: Todos os testes passam após migração
@@ -142,18 +142,18 @@ Cenário: Assets não-Python acessíveis em resources/
 Cenário: Nenhum arquivo órfão na raiz
   DADO que a migração foi concluída
   QUANDO listo a raiz do projeto
-  ENTÃO não existe diretório claude_setup/ na raiz
+  ENTÃO não existe diretório ia_dev_env/ na raiz
   E não existem assets não-Python em src/
 ```
 
 ## 8. Sub-tarefas
 
-- [ ] [Dev] Mover `claude_setup/` para `src/claude_setup/`
+- [ ] [Dev] Mover `ia_dev_env/` para `src/ia_dev_env/`
 - [ ] [Dev] Mover assets de `src/` para `resources/`
 - [ ] [Dev] Atualizar `pyproject.toml` com src layout config
 - [ ] [Dev] Atualizar referências de path `src/` → `resources/` no código
 - [ ] [Dev] Atualizar referências em `.claude/rules/` e docs
-- [ ] [Dev] Limpar `claude_setup.egg-info/` e reinstalar
+- [ ] [Dev] Limpar `ia_dev_env.egg-info/` e reinstalar
 - [ ] [Test] Verificar `pip install -e .` funciona
 - [ ] [Test] Rodar suite completa com coverage
 - [ ] [Test] Verificar output byte-a-byte com referência

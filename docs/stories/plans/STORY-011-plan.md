@@ -2,13 +2,13 @@
 
 ## 1. Overview
 
-Migrate the project from flat layout (`claude_setup/` at repo root) to the PyPA-recommended src layout (`src/claude_setup/`). Relocate non-Python assets from the current `src/` directory to `resources/` at the repo root.
+Migrate the project from flat layout (`ia_dev_env/` at repo root) to the PyPA-recommended src layout (`src/ia_dev_env/`). Relocate non-Python assets from the current `src/` directory to `resources/` at the repo root.
 
 ### Current Structure
 
 ```
 repo-root/
-├── claude_setup/          # Python package (flat layout)
+├── ia_dev_env/          # Python package (flat layout)
 ├── src/                   # Non-Python assets (templates, configs, setup.sh)
 │   ├── agents-templates/
 │   ├── cloud-providers/
@@ -30,7 +30,7 @@ repo-root/
 │   ├── skills-templates/
 │   ├── templates/
 │   ├── tests/
-│   └── claude_setup.egg-info/  (artifact -- delete)
+│   └── ia_dev_env.egg-info/  (artifact -- delete)
 ├── tests/
 ├── scripts/
 └── pyproject.toml
@@ -41,7 +41,7 @@ repo-root/
 ```
 repo-root/
 ├── src/
-│   └── claude_setup/      # Python package (src layout)
+│   └── ia_dev_env/      # Python package (src layout)
 │       ├── __init__.py
 │       ├── __main__.py
 │       ├── assembler/
@@ -72,7 +72,7 @@ repo-root/
 
 | Current Path | Target Path | Action |
 |:---|:---|:---|
-| `claude_setup/**` (31 .py files) | `src/claude_setup/**` | `git mv` |
+| `ia_dev_env/**` (31 .py files) | `src/ia_dev_env/**` | `git mv` |
 | `src/agents-templates/` | `resources/agents-templates/` | `git mv` |
 | `src/cloud-providers/` | `resources/cloud-providers/` | `git mv` |
 | `src/config-templates/` | `resources/config-templates/` | `git mv` |
@@ -98,8 +98,8 @@ repo-root/
 
 | Path | Reason |
 |:---|:---|
-| `src/claude_setup.egg-info/` | Build artifact in wrong location |
-| `claude_setup.egg-info/` (if exists at root) | Stale egg-info from flat layout |
+| `src/ia_dev_env.egg-info/` | Build artifact in wrong location |
+| `ia_dev_env.egg-info/` (if exists at root) | Stale egg-info from flat layout |
 
 ---
 
@@ -115,10 +115,10 @@ None required. This is a structural migration only.
 
 | File | Line(s) | Current Reference | New Reference |
 |:---|:---|:---|:---|
-| `claude_setup/utils.py` | 74-81 | `find_src_dir()` returns `parent.parent / "src"` | Rename to `find_resources_dir()`, return `parent.parent / "resources"` |
-| `claude_setup/__main__.py` | 15, 31, 38, 47, 81-88 | `find_src_dir`, `--src-dir` option | Rename to `find_resources_dir`, rename CLI option to `--resources-dir` |
-| `claude_setup/assembler/rules_assembler.py` | 32 | `Path(__file__).resolve().parent.parent.parent / "src"` | Change to `... / "resources"` |
-| `claude_setup/assembler/__init__.py` | 42-53, 56, 61-158 | `src_dir` parameter name throughout | Rename parameter to `resources_dir` (optional; can keep `src_dir` name internally if scope is limited) |
+| `ia_dev_env/utils.py` | 74-81 | `find_src_dir()` returns `parent.parent / "src"` | Rename to `find_resources_dir()`, return `parent.parent / "resources"` |
+| `ia_dev_env/__main__.py` | 15, 31, 38, 47, 81-88 | `find_src_dir`, `--src-dir` option | Rename to `find_resources_dir`, rename CLI option to `--resources-dir` |
+| `ia_dev_env/assembler/rules_assembler.py` | 32 | `Path(__file__).resolve().parent.parent.parent / "src"` | Change to `... / "resources"` |
+| `ia_dev_env/assembler/__init__.py` | 42-53, 56, 61-158 | `src_dir` parameter name throughout | Rename parameter to `resources_dir` (optional; can keep `src_dir` name internally if scope is limited) |
 
 **Decision on parameter naming:** The `src_dir` parameter name is used pervasively in the assembler layer (50+ references). Two options:
 
@@ -136,7 +136,7 @@ None required. This is a structural migration only.
 | `tests/test_verification_edge_cases.py` | 13 | `SRC_DIR = ... / "src"` -> `... / "resources"` |
 | `tests/test_verification_performance.py` | 24, 26 | Same pattern as byte_for_byte |
 | `tests/test_pipeline_integration.py` | 11, 31+ | Uses `find_src_dir()` -- rename import to `find_resources_dir` |
-| `tests/test_cli_generate.py` | 47, 64, 101, 116, 130, 146, 161, 174, 187 | `@patch("claude_setup.__main__.find_src_dir")` -> `find_resources_dir`; mock returns and `--src-dir` option references |
+| `tests/test_cli_generate.py` | 47, 64, 101, 116, 130, 146, 161, 174, 187 | `@patch("ia_dev_env.__main__.find_src_dir")` -> `find_resources_dir`; mock returns and `--src-dir` option references |
 | `tests/test_cli_init.py` | 26, 37, 50, 81, 97 | Same patch target rename |
 | `tests/test_utils.py` | 172-198 | `TestFindSrcDir` class -> `TestFindResourcesDir`; update function calls and assertions (`result.name == "resources"`) |
 | `tests/test_template_engine.py` | 83 | `test_init_nonexistent_src_dir` -- likely cosmetic, verify |
@@ -152,8 +152,8 @@ None required. This is a structural migration only.
 | File | Section | Current | New |
 |:---|:---|:---|:---|
 | `pyproject.toml` | (new section) `[tool.setuptools.packages.find]` | absent | `where = ["src"]` |
-| `pyproject.toml` | `[tool.coverage.run] source` | `["claude_setup"]` | `["src/claude_setup"]` |
-| `pyproject.toml` | `[project.scripts]` | `claude_setup.__main__:main` | No change (setuptools resolves via `packages.find`) |
+| `pyproject.toml` | `[tool.coverage.run] source` | `["ia_dev_env"]` | `["src/ia_dev_env"]` |
+| `pyproject.toml` | `[project.scripts]` | `ia_dev_env.__main__:main` | No change (setuptools resolves via `packages.find`) |
 
 ---
 
@@ -161,9 +161,9 @@ None required. This is a structural migration only.
 
 No new dependencies introduced. The migration is purely structural:
 
-- `src/claude_setup/domain/` still has zero external imports (standard library only).
-- `src/claude_setup/assembler/` still depends on domain and models.
-- `tests/` still imports from `claude_setup.*` (resolved via `pip install -e .`).
+- `src/ia_dev_env/domain/` still has zero external imports (standard library only).
+- `src/ia_dev_env/assembler/` still depends on domain and models.
+- `tests/` still imports from `ia_dev_env.*` (resolved via `pip install -e .`).
 - No circular dependency risk.
 
 ---
@@ -172,19 +172,19 @@ No new dependencies introduced. The migration is purely structural:
 
 ### 6.1 pip install -e .
 
-After migration, `pip install -e .` must be re-run. The editable install will resolve `claude_setup` from `src/claude_setup/` via `[tool.setuptools.packages.find] where = ["src"]`.
+After migration, `pip install -e .` must be re-run. The editable install will resolve `ia_dev_env` from `src/ia_dev_env/` via `[tool.setuptools.packages.find] where = ["src"]`.
 
 ### 6.2 pytest
 
-Tests import `from claude_setup.*` which resolves through the installed package, not direct filesystem access. This continues working after `pip install -e .`.
+Tests import `from ia_dev_env.*` which resolves through the installed package, not direct filesystem access. This continues working after `pip install -e .`.
 
 ### 6.3 Coverage
 
-`[tool.coverage.run] source` must change to `["src/claude_setup"]` so coverage correctly maps to source files in the new location.
+`[tool.coverage.run] source` must change to `["src/ia_dev_env"]` so coverage correctly maps to source files in the new location.
 
 ### 6.4 CI/CD
 
-Any CI scripts that reference `claude_setup/` directly (not via import) need updating. Grep CI configs for hardcoded paths.
+Any CI scripts that reference `ia_dev_env/` directly (not via import) need updating. Grep CI configs for hardcoded paths.
 
 ---
 
@@ -221,13 +221,13 @@ where = ["src"]
 
 # MODIFY existing:
 [tool.coverage.run]
-source = ["src/claude_setup"]   # was: ["claude_setup"]
+source = ["src/ia_dev_env"]   # was: ["ia_dev_env"]
 branch = true
 ```
 
 ### .gitignore
 
-Verify `*.egg-info` pattern covers `src/claude_setup.egg-info/`. Add if needed:
+Verify `*.egg-info` pattern covers `src/ia_dev_env.egg-info/`. Add if needed:
 ```
 src/*.egg-info/
 ```
@@ -254,16 +254,16 @@ Execute in this exact sequence to minimize breakage windows:
 
 ### Phase 1: Prepare (no code changes)
 1. Ensure all tests pass on current branch
-2. Delete `src/claude_setup.egg-info/` (build artifact)
+2. Delete `src/ia_dev_env.egg-info/` (build artifact)
 
 ### Phase 2: Move assets (src/ -> resources/)
 3. `mkdir resources/`
 4. `git mv src/agents-templates resources/agents-templates` (repeat for all 20 asset dirs/files)
 5. Verify: `ls resources/` shows all assets, `src/` is empty or gone
 
-### Phase 3: Move Python package (claude_setup/ -> src/claude_setup/)
-6. `git mv claude_setup/ src/claude_setup/`
-7. Verify: `src/claude_setup/__init__.py` exists
+### Phase 3: Move Python package (ia_dev_env/ -> src/ia_dev_env/)
+6. `git mv ia_dev_env/ src/ia_dev_env/`
+7. Verify: `src/ia_dev_env/__init__.py` exists
 
 ### Phase 4: Update configuration
 8. Update `pyproject.toml`: add `[tool.setuptools.packages.find]`, update coverage source
@@ -280,7 +280,7 @@ Execute in this exact sequence to minimize breakage windows:
 
 ### Phase 7: Verify
 15. `pip install -e .`
-16. `claude-setup --help` (smoke test)
+16. `ia-dev-env --help` (smoke test)
 17. `pytest --cov` (full suite with coverage)
 18. `python scripts/generate_golden.py` (regenerate golden files, verify no diff)
 19. Verify coverage >= 95% line, >= 90% branch
@@ -291,12 +291,12 @@ Execute in this exact sequence to minimize breakage windows:
 
 ### Source files to modify (6 files)
 
-1. `/Users/edercnj/workspaces/claude-environment/claude_setup/utils.py`
-2. `/Users/edercnj/workspaces/claude-environment/claude_setup/__main__.py`
-3. `/Users/edercnj/workspaces/claude-environment/claude_setup/assembler/rules_assembler.py`
+1. `/Users/edercnj/workspaces/claude-environment/ia_dev_env/utils.py`
+2. `/Users/edercnj/workspaces/claude-environment/ia_dev_env/__main__.py`
+3. `/Users/edercnj/workspaces/claude-environment/ia_dev_env/assembler/rules_assembler.py`
 4. `/Users/edercnj/workspaces/claude-environment/pyproject.toml`
 5. `/Users/edercnj/workspaces/claude-environment/scripts/generate_golden.py`
-6. `/Users/edercnj/workspaces/claude-environment/claude_setup/assembler/__init__.py` (no change needed if keeping `src_dir` param name)
+6. `/Users/edercnj/workspaces/claude-environment/ia_dev_env/assembler/__init__.py` (no change needed if keeping `src_dir` param name)
 
 ### Test files to modify (9 files)
 
@@ -312,22 +312,22 @@ Execute in this exact sequence to minimize breakage windows:
 
 ### Files to move (31 Python files + 20 asset directories/files)
 
-- 31 Python files: `claude_setup/` -> `src/claude_setup/` (structure preserved)
+- 31 Python files: `ia_dev_env/` -> `src/ia_dev_env/` (structure preserved)
 - 20 asset items: `src/*` -> `resources/*` (structure preserved)
 
 ### Files to delete
 
-- `src/claude_setup.egg-info/` (build artifact in wrong location)
+- `src/ia_dev_env.egg-info/` (build artifact in wrong location)
 
 ---
 
 ## 14. Acceptance Checklist
 
-- [ ] `claude_setup/` directory no longer exists at repo root
-- [ ] `src/claude_setup/__init__.py` exists and is importable after `pip install -e .`
+- [ ] `ia_dev_env/` directory no longer exists at repo root
+- [ ] `src/ia_dev_env/__init__.py` exists and is importable after `pip install -e .`
 - [ ] Non-Python assets exist under `resources/` (not `src/`)
-- [ ] `claude-setup --help` works after editable install
+- [ ] `ia-dev-env --help` works after editable install
 - [ ] `pytest --cov` passes with >= 95% line coverage, >= 90% branch
 - [ ] `python scripts/generate_golden.py` produces identical output to pre-migration
-- [ ] `python -c "import claude_setup"` from repo root fails without install (src layout protection)
+- [ ] `python -c "import ia_dev_env"` from repo root fails without install (src layout protection)
 - [ ] No references to old `src/` path remain in Python source or test files (verified via grep)

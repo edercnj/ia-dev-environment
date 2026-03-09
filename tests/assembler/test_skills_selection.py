@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import pytest
 
-from claude_setup.assembler.skills import (
+from ia_dev_env.assembler.skills import (
     SkillsAssembler,
 )
-from claude_setup.domain.skill_registry import CORE_KNOWLEDGE_PACKS
-from claude_setup.domain.stack_pack_mapping import (
+from ia_dev_env.domain.skill_registry import CORE_KNOWLEDGE_PACKS
+from ia_dev_env.domain.stack_pack_mapping import (
     FRAMEWORK_STACK_PACK,
     get_stack_pack_name,
 )

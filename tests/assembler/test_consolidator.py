@@ -5,7 +5,7 @@ from typing import List
 
 import pytest
 
-from claude_setup.assembler.consolidator import (
+from ia_dev_env.assembler.consolidator import (
     CORE_PATTERNS,
     DATA_PATTERNS,
     GENERATED_HEADER,

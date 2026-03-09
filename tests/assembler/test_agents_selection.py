@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from claude_setup.assembler.agents import AgentsAssembler
+from ia_dev_env.assembler.agents import AgentsAssembler
 
 
 @pytest.fixture

@@ -22,17 +22,17 @@
 ## LOW Findings
 
 ### L1: PytestCollectionWarning on TestingConfig (A4)
-- **File:** `claude_setup/models.py:173`
+- **File:** `ia_dev_env/models.py:173`
 - **Issue:** `TestingConfig` class name matches pytest's `Test*` collection pattern, causing a warning.
 - **Fix:** Add `__test__ = False` to class or rename (e.g., `TestSuiteConfig`).
 
 ### L2: Untyped dict parameter (A5)
-- **File:** `claude_setup/models.py` (all `from_dict` methods)
+- **File:** `ia_dev_env/models.py` (all `from_dict` methods)
 - **Issue:** `from_dict(cls, data: dict)` lacks value typing. Should be `Dict[str, Any]`.
 - **Fix:** `from typing import Any, Dict` and `data: Dict[str, Any]`.
 
 ### L3: Bottom-up ordering vs Newspaper Rule (D2)
-- **File:** `claude_setup/models.py`
+- **File:** `ia_dev_env/models.py`
 - **Issue:** Leaf types defined before aggregate root. Newspaper Rule suggests high-level first.
 - **Assessment:** Acceptable trade-off — bottom-up avoids forward references and matches dependency order.
 

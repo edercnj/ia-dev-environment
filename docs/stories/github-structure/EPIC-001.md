@@ -9,22 +9,22 @@
 
 **Chave Jira:** EPIC-001
 
-Estender o gerador Python `claude_setup` para produzir a estrutura `.github/` no diretório de saída, complementando a estrutura `.claude/` que já é gerada. O objetivo é que o **mesmo pipeline** — alimentado pelo mesmo YAML de configuração (`ProjectConfig`) — gere output para **ambas** as ferramentas (Claude Code e GitHub Copilot), permitindo que equipes que usam Copilot tenham o mesmo nível de customização, governança e automação. A implementação segue o padrão existente: novos assemblers, templates em `resources/`, registro no pipeline e golden file tests. Tanto `.github/` quanto `.claude/` são **output gerado** (gitignored) — não são arquivos commitados manualmente.
+Estender o gerador Python `ia_dev_env` para produzir a estrutura `.github/` no diretório de saída, complementando a estrutura `.claude/` que já é gerada. O objetivo é que o **mesmo pipeline** — alimentado pelo mesmo YAML de configuração (`ProjectConfig`) — gere output para **ambas** as ferramentas (Claude Code e GitHub Copilot), permitindo que equipes que usam Copilot tenham o mesmo nível de customização, governança e automação. A implementação segue o padrão existente: novos assemblers, templates em `resources/`, registro no pipeline e golden file tests. Tanto `.github/` quanto `.claude/` são **output gerado** (gitignored) — não são arquivos commitados manualmente.
 
 ## 2. Contexto Técnico do Gerador
 
 ### 2.1 Arquitetura do Pipeline
 
-O `claude_setup` é um gerador Python que lê configuração YAML (`ProjectConfig`) e produz arquivos de configuração via pipeline de assemblers:
+O `ia_dev_env` é um gerador Python que lê configuração YAML (`ProjectConfig`) e produz arquivos de configuração via pipeline de assemblers:
 
 ```
-claude-setup.yaml → ProjectConfig → TemplateEngine → [Assembler₁, ..., Assemblerₙ] → output_dir/
+ia-dev-env.yaml → ProjectConfig → TemplateEngine → [Assembler₁, ..., Assemblerₙ] → output_dir/
                                                                                         ├── .claude/
                                                                                         └── .github/
 ```
 
-- **Entry point:** `src/claude_setup/__main__.py` → `run_pipeline()`
-- **Pipeline:** `src/claude_setup/assembler/__init__.py` → `_build_assemblers()` → `_execute_assemblers()`
+- **Entry point:** `src/ia_dev_env/__main__.py` → `run_pipeline()`
+- **Pipeline:** `src/ia_dev_env/assembler/__init__.py` → `_build_assemblers()` → `_execute_assemblers()`
 - **Template engine:** `TemplateEngine` (Jinja2 + `{placeholder}` replacement a partir de `ProjectConfig`)
 - **Output atômico:** `atomic_output()` garante escrita transacional
 - **CLI:** `_classify_files()` categoriza output (inclui categoria "GitHub")
@@ -56,7 +56,7 @@ claude-setup.yaml → ProjectConfig → TemplateEngine → [Assembler₁, ..., A
 
 Cada nova capability segue este fluxo:
 
-1. **Assembler** — classe em `src/claude_setup/assembler/` com `assemble(config, output_dir, engine) -> List[Path]`
+1. **Assembler** — classe em `src/ia_dev_env/assembler/` com `assemble(config, output_dir, engine) -> List[Path]`
 2. **Templates** — arquivos Jinja2/Markdown em `resources/` com placeholders de `ProjectConfig`
 3. **Pipeline** — registrar em `_build_assemblers()` no `assembler/__init__.py`
 4. **CLI** — verificar classificação em `_classify_files()` (categoria "GitHub" já existe)
@@ -66,7 +66,7 @@ Cada nova capability segue este fluxo:
 ## 3. Anexos e Referências
 
 - [SPEC-github-copilot-structure.md](../SPEC-github-copilot-structure.md) — Especificação técnica completa
-- `src/claude_setup/assembler/` — Código-fonte dos assemblers
+- `src/ia_dev_env/assembler/` — Código-fonte dos assemblers
 - `resources/` — Templates usados pelo `TemplateEngine`
 - `tests/golden/` — Golden files para validação byte-a-byte
 - `tests/test_pipeline.py` — Testes de pipeline (ordem e contagem de assemblers)
@@ -87,7 +87,7 @@ Cada nova capability segue este fluxo:
 
 ### Global Definition of Done (DoD)
 
-- **Assembler implementado:** Classe em `src/claude_setup/assembler/` com método `assemble()`
+- **Assembler implementado:** Classe em `src/ia_dev_env/assembler/` com método `assemble()`
 - **Templates criados:** Arquivos em `resources/` com placeholders de `ProjectConfig`
 - **Pipeline registrado:** Assembler adicionado em `_build_assemblers()` na ordem correta
 - **Golden files atualizados:** Expected output em `tests/golden/` reflete novo assembler
@@ -112,7 +112,7 @@ Cada nova capability segue este fluxo:
 | **[RULE-005]** | Progressive disclosure | Skills devem usar o modelo de 3 níveis:<br>1. **Frontmatter** (sempre carregado): `name` + `description` — suficiente para o Copilot decidir se carrega<br>2. **Body** (sob demanda): instruções detalhadas, carregadas quando a skill é ativada<br>3. **References** (deep-dive): arquivos auxiliares no diretório `references/` da skill |
 | **[RULE-006]** | Tool boundaries | Custom agents devem declarar explicitamente no frontmatter YAML: `tools` (whitelist) e `disallowed-tools` (blacklist).<br>Nenhum agent deve ter acesso irrestrito — princípio de menor privilégio.<br>A combinação persona + tools deve ser coerente (ex: `qa-engineer` não tem acesso a deploy tools). |
 | **[RULE-007]** | Consistência de hooks | Hooks em `.github/` devem cobrir os mesmos pontos de verificação que hooks em `.claude/`.<br>O hook `post-compile-check.sh` existente deve ter equivalente funcional no formato JSON do Copilot.<br>Hooks adicionais (`pre-commit-lint`, `session-context-loader`) expandem a cobertura. |
-| **[RULE-008]** | Integração com o gerador | Todo output em `.github/` **deve** ser produzido por assemblers registrados no pipeline `claude_setup`.<br>Nenhum arquivo em `.github/` deve ser criado manualmente — todo conteúdo é gerado a partir de templates em `resources/` e dados de `ProjectConfig`.<br>Novos assemblers devem ter: classe em `assembler/`, templates em `resources/`, registro em `_build_assemblers()`, golden files em `tests/golden/`, e testes unitários + pipeline.<br>`.github/` é gitignored (assim como `.claude/`) — ambos são output gerado. |
+| **[RULE-008]** | Integração com o gerador | Todo output em `.github/` **deve** ser produzido por assemblers registrados no pipeline `ia_dev_env`.<br>Nenhum arquivo em `.github/` deve ser criado manualmente — todo conteúdo é gerado a partir de templates em `resources/` e dados de `ProjectConfig`.<br>Novos assemblers devem ter: classe em `assembler/`, templates em `resources/`, registro em `_build_assemblers()`, golden files em `tests/golden/`, e testes unitários + pipeline.<br>`.github/` é gitignored (assim como `.claude/`) — ambos são output gerado. |
 
 ## 6. Índice de Histórias
 

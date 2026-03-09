@@ -14,14 +14,14 @@
 
 | Class | Package | Purpose |
 |-------|---------|---------|
-| `GithubPromptsAssembler` | `src/claude_setup/assembler/github_prompts_assembler.py` | Renders Jinja2 templates to `.prompt.md` files |
+| `GithubPromptsAssembler` | `src/ia_dev_env/assembler/github_prompts_assembler.py` | Renders Jinja2 templates to `.prompt.md` files |
 
 ## 3. Existing Classes to Modify
 
 | Class | File | Change |
 |-------|------|--------|
-| `_build_assemblers()` | `src/claude_setup/assembler/__init__.py` | Add `GithubPromptsAssembler` entry |
-| `__all__` | `src/claude_setup/assembler/__init__.py` | Add export |
+| `_build_assemblers()` | `src/ia_dev_env/assembler/__init__.py` | Add `GithubPromptsAssembler` entry |
+| `__all__` | `src/ia_dev_env/assembler/__init__.py` | Add export |
 
 ## 4. Design Decisions
 

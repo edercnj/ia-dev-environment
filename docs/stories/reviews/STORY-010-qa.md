@@ -53,8 +53,8 @@ N/A:
 | `tests/test_e2e_verification.py` | 77 | E2E flow per profile with formatted failure messages |
 | `tests/test_verification_edge_cases.py` | 127 | Empty dirs, invalid dirs, idempotency, self-verification |
 | `tests/test_verification_performance.py` | 85 | Pipeline <5s and verification <1s per profile |
-| `claude_setup/verifier.py` | 122 | Clean, well-decomposed, 97% covered |
-| `claude_setup/models.py` | 300 | Dataclasses with from_dict, 100% covered |
+| `ia_dev_env/verifier.py` | 122 | Clean, well-decomposed, 97% covered |
+| `ia_dev_env/models.py` | 300 | Dataclasses with from_dict, 100% covered |
 
 ### Recommendations
 

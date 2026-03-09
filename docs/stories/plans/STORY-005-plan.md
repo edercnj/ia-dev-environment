@@ -26,7 +26,7 @@
 
 ## 2. New Classes/Interfaces to Create
 
-### 2.1 Domain -- Stack Pack Mapping (`claude_setup/domain/stack_pack_mapping.py`)
+### 2.1 Domain -- Stack Pack Mapping (`ia_dev_env/domain/stack_pack_mapping.py`)
 
 Pure data mapping from framework name to knowledge pack directory name. Ports the bash `get_stack_pack_name()` function.
 
@@ -58,7 +58,7 @@ Pure data mapping from framework name to knowledge pack directory name. Ports th
 - Zero external dependencies (standard library only).
 - Pure function with no side effects.
 
-### 2.2 Domain -- Version Directory Resolution (`claude_setup/domain/version_resolver.py`)
+### 2.2 Domain -- Version Directory Resolution (`ia_dev_env/domain/version_resolver.py`)
 
 Ports the bash `find_version_dir()` function (line 736-744).
 
@@ -71,7 +71,7 @@ Ports the bash `find_version_dir()` function (line 736-744).
 - Returns `None` instead of empty string (Python convention, not bash).
 - Pure function with no side effects.
 
-### 2.3 Domain -- Core Rules KP Routing Map (`claude_setup/domain/core_kp_routing.py`)
+### 2.3 Domain -- Core Rules KP Routing Map (`ia_dev_env/domain/core_kp_routing.py`)
 
 Defines the static mapping of core detailed rules to knowledge pack destinations. Ports the bash Layer 1b logic (lines 1267-1326).
 
@@ -110,7 +110,7 @@ class ConditionalCoreKpRoute(CoreKpRoute):
 | `12-cloud-native-principles.md` | `infrastructure` | `cloud-native-principles.md` (**conditional**: only if `architecture_style != "library"`) |
 | `13-story-decomposition.md` | `story-planning` | `story-decomposition.md` |
 
-### 2.4 Domain -- Rules Assembler (`claude_setup/assembler/rules_assembler.py`)
+### 2.4 Domain -- Rules Assembler (`ia_dev_env/assembler/rules_assembler.py`)
 
 Main assembler class. Ports the bash `assemble_rules()` function and its related helpers.
 
@@ -132,7 +132,7 @@ Main assembler class. Ports the bash `assemble_rules()` function and its related
 | `_assemble_cloud_knowledge` | `(config: ProjectConfig, src_dir: Path, skills_dir: Path) -> List[Path]` | Conditional: copy cloud provider file to KPs |
 | `_assemble_infrastructure_knowledge` | `(config: ProjectConfig, src_dir: Path, skills_dir: Path) -> List[Path]` | Conditional: copy infra files (k8s, containers, IaC) to KPs |
 
-### 2.5 Domain -- Rules Consolidator (`claude_setup/assembler/consolidator.py`)
+### 2.5 Domain -- Rules Consolidator (`ia_dev_env/assembler/consolidator.py`)
 
 Ports `consolidate_rules()` (line 1589) and `consolidate_framework_rules()` (line 1612).
 
@@ -149,7 +149,7 @@ Ports `consolidate_rules()` (line 1589) and `consolidate_framework_rules()` (lin
 | Data | `31-{fw}-data.md` | `*-panache*`, `*-jpa*`, `*-prisma*`, `*-sqlalchemy*`, `*-exposed*`, `*-ef*`, `*-orm*`, `*-database*` |
 | Operations | `32-{fw}-operations.md` | `*-testing*`, `*-observability*`, `*-native-build*`, `*-infrastructure*` |
 
-### 2.6 Domain -- Rules Auditor (`claude_setup/assembler/auditor.py`)
+### 2.6 Domain -- Rules Auditor (`ia_dev_env/assembler/auditor.py`)
 
 Ports `audit_rules_context()` (line 1654).
 
@@ -189,29 +189,29 @@ class AuditResult:
 
 | File | Change | Reason |
 |------|--------|--------|
-| `claude_setup/assembler/__init__.py` | Add public imports for `RulesAssembler` | Package API surface |
-| `claude_setup/template_engine.py` | No changes required | `replace_placeholders()`, `concat_files()`, `render_template()` already provide needed functionality |
-| `claude_setup/models.py` | No changes required | `ProjectConfig` and all sub-models already exist |
-| `claude_setup/domain/stack_mapping.py` | No changes required | Read-only dependency for framework validation |
+| `ia_dev_env/assembler/__init__.py` | Add public imports for `RulesAssembler` | Package API surface |
+| `ia_dev_env/template_engine.py` | No changes required | `replace_placeholders()`, `concat_files()`, `render_template()` already provide needed functionality |
+| `ia_dev_env/models.py` | No changes required | `ProjectConfig` and all sub-models already exist |
+| `ia_dev_env/domain/stack_mapping.py` | No changes required | Read-only dependency for framework validation |
 
 ---
 
 ## 4. Dependency Direction Validation
 
 ```
-claude_setup/domain/stack_pack_mapping.py   -> standard library only                          (DOMAIN)
-claude_setup/domain/version_resolver.py     -> standard library only                          (DOMAIN)
-claude_setup/domain/core_kp_routing.py      -> standard library only                          (DOMAIN)
-claude_setup/assembler/rules_assembler.py   -> claude_setup.models                            (DOMAIN -> DOMAIN)
-                                            -> claude_setup.template_engine                    (DOMAIN -> DOMAIN)
-                                            -> claude_setup.domain.stack_pack_mapping          (DOMAIN -> DOMAIN)
-                                            -> claude_setup.domain.version_resolver            (DOMAIN -> DOMAIN)
-                                            -> claude_setup.domain.core_kp_routing             (DOMAIN -> DOMAIN)
-                                            -> claude_setup.assembler.consolidator             (DOMAIN -> DOMAIN)
-                                            -> claude_setup.assembler.auditor                  (DOMAIN -> DOMAIN)
-claude_setup/assembler/consolidator.py      -> standard library only                          (DOMAIN)
-claude_setup/assembler/auditor.py           -> standard library only                          (DOMAIN)
-tests/                                      -> pytest, claude_setup.*                         (TEST -> all layers)
+ia_dev_env/domain/stack_pack_mapping.py   -> standard library only                          (DOMAIN)
+ia_dev_env/domain/version_resolver.py     -> standard library only                          (DOMAIN)
+ia_dev_env/domain/core_kp_routing.py      -> standard library only                          (DOMAIN)
+ia_dev_env/assembler/rules_assembler.py   -> ia_dev_env.models                            (DOMAIN -> DOMAIN)
+                                            -> ia_dev_env.template_engine                    (DOMAIN -> DOMAIN)
+                                            -> ia_dev_env.domain.stack_pack_mapping          (DOMAIN -> DOMAIN)
+                                            -> ia_dev_env.domain.version_resolver            (DOMAIN -> DOMAIN)
+                                            -> ia_dev_env.domain.core_kp_routing             (DOMAIN -> DOMAIN)
+                                            -> ia_dev_env.assembler.consolidator             (DOMAIN -> DOMAIN)
+                                            -> ia_dev_env.assembler.auditor                  (DOMAIN -> DOMAIN)
+ia_dev_env/assembler/consolidator.py      -> standard library only                          (DOMAIN)
+ia_dev_env/assembler/auditor.py           -> standard library only                          (DOMAIN)
+tests/                                      -> pytest, ia_dev_env.*                         (TEST -> all layers)
 ```
 
 **Validation checklist:**
@@ -319,13 +319,13 @@ New test fixture files and directories needed:
 
 Execute sub-tasks in this sequence:
 
-1. **Create `claude_setup/domain/stack_pack_mapping.py`** -- `FRAMEWORK_STACK_PACK` dict, `get_stack_pack_name()` function
-2. **Create `claude_setup/domain/version_resolver.py`** -- `find_version_dir()` function
-3. **Create `claude_setup/domain/core_kp_routing.py`** -- `CoreKpRoute`, `ConditionalCoreKpRoute`, routing constants
-4. **Create `claude_setup/assembler/auditor.py`** -- `AuditResult` dataclass, `audit_rules_context()` function
-5. **Create `claude_setup/assembler/consolidator.py`** -- `consolidate_files()`, `consolidate_framework_rules()` functions
-6. **Create `claude_setup/assembler/rules_assembler.py`** -- `RulesAssembler` class with all layer methods
-7. **Update `claude_setup/assembler/__init__.py`** -- export `RulesAssembler`
+1. **Create `ia_dev_env/domain/stack_pack_mapping.py`** -- `FRAMEWORK_STACK_PACK` dict, `get_stack_pack_name()` function
+2. **Create `ia_dev_env/domain/version_resolver.py`** -- `find_version_dir()` function
+3. **Create `ia_dev_env/domain/core_kp_routing.py`** -- `CoreKpRoute`, `ConditionalCoreKpRoute`, routing constants
+4. **Create `ia_dev_env/assembler/auditor.py`** -- `AuditResult` dataclass, `audit_rules_context()` function
+5. **Create `ia_dev_env/assembler/consolidator.py`** -- `consolidate_files()`, `consolidate_framework_rules()` functions
+6. **Create `ia_dev_env/assembler/rules_assembler.py`** -- `RulesAssembler` class with all layer methods
+7. **Update `ia_dev_env/assembler/__init__.py`** -- export `RulesAssembler`
 8. **Create `tests/domain/test_stack_pack_mapping.py`** -- unit tests for all framework mappings
 9. **Create `tests/domain/test_version_resolver.py`** -- unit tests for version dir resolution
 10. **Create `tests/domain/test_core_kp_routing.py`** -- unit tests for routing map
@@ -338,7 +338,7 @@ Execute sub-tasks in this sequence:
 ## File Tree (Final State after STORY-005)
 
 ```
-claude_setup/
+ia_dev_env/
     __init__.py                          # (unchanged)
     __main__.py                          # (unchanged)
     models.py                            # (unchanged)

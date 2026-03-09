@@ -5,14 +5,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from claude_setup.assembler import (
+from ia_dev_env.assembler import (
     _build_assemblers,
     _execute_assemblers,
     run_pipeline,
 )
-from claude_setup.exceptions import PipelineError
-from claude_setup.models import PipelineResult, ProjectConfig
-from claude_setup.template_engine import TemplateEngine
+from ia_dev_env.exceptions import PipelineError
+from ia_dev_env.models import PipelineResult, ProjectConfig
+from ia_dev_env.template_engine import TemplateEngine
 
 
 def _make_config() -> ProjectConfig:
@@ -66,8 +66,8 @@ class TestBuildAssemblers:
 
 class TestRunPipeline:
 
-    @patch("claude_setup.assembler._execute_assemblers")
-    @patch("claude_setup.assembler.TemplateEngine")
+    @patch("ia_dev_env.assembler._execute_assemblers")
+    @patch("ia_dev_env.assembler.TemplateEngine")
     def test_returns_pipeline_result(
         self, mock_engine, mock_exec, tmp_path: Path,
     ) -> None:
@@ -79,8 +79,8 @@ class TestRunPipeline:
         result = run_pipeline(config, src, output)
         assert isinstance(result, PipelineResult)
 
-    @patch("claude_setup.assembler._execute_assemblers")
-    @patch("claude_setup.assembler.TemplateEngine")
+    @patch("ia_dev_env.assembler._execute_assemblers")
+    @patch("ia_dev_env.assembler.TemplateEngine")
     def test_success_flag_true_on_completion(
         self, mock_engine, mock_exec, tmp_path: Path,
     ) -> None:
@@ -92,8 +92,8 @@ class TestRunPipeline:
         result = run_pipeline(config, src, output)
         assert result.success is True
 
-    @patch("claude_setup.assembler._execute_assemblers")
-    @patch("claude_setup.assembler.TemplateEngine")
+    @patch("ia_dev_env.assembler._execute_assemblers")
+    @patch("ia_dev_env.assembler.TemplateEngine")
     def test_files_generated_contains_assembler_outputs(
         self, mock_engine, mock_exec, tmp_path: Path,
     ) -> None:
@@ -106,8 +106,8 @@ class TestRunPipeline:
         result = run_pipeline(config, src, output)
         assert result.files_generated == expected_files
 
-    @patch("claude_setup.assembler._execute_assemblers")
-    @patch("claude_setup.assembler.TemplateEngine")
+    @patch("ia_dev_env.assembler._execute_assemblers")
+    @patch("ia_dev_env.assembler.TemplateEngine")
     def test_duration_ms_is_positive(
         self, mock_engine, mock_exec, tmp_path: Path,
     ) -> None:
@@ -119,8 +119,8 @@ class TestRunPipeline:
         result = run_pipeline(config, src, output)
         assert result.duration_ms >= 0
 
-    @patch("claude_setup.assembler._execute_assemblers")
-    @patch("claude_setup.assembler.TemplateEngine")
+    @patch("ia_dev_env.assembler._execute_assemblers")
+    @patch("ia_dev_env.assembler.TemplateEngine")
     def test_output_dir_matches_requested(
         self, mock_engine, mock_exec, tmp_path: Path,
     ) -> None:
@@ -132,8 +132,8 @@ class TestRunPipeline:
         result = run_pipeline(config, src, output)
         assert result.output_dir == output
 
-    @patch("claude_setup.assembler._execute_assemblers")
-    @patch("claude_setup.assembler.TemplateEngine")
+    @patch("ia_dev_env.assembler._execute_assemblers")
+    @patch("ia_dev_env.assembler.TemplateEngine")
     def test_dry_run_does_not_write_to_output(
         self, mock_engine, mock_exec, tmp_path: Path,
     ) -> None:
@@ -145,8 +145,8 @@ class TestRunPipeline:
         run_pipeline(config, src, output, dry_run=True)
         assert not output.exists()
 
-    @patch("claude_setup.assembler._execute_assemblers")
-    @patch("claude_setup.assembler.TemplateEngine")
+    @patch("ia_dev_env.assembler._execute_assemblers")
+    @patch("ia_dev_env.assembler.TemplateEngine")
     def test_dry_run_returns_success(
         self, mock_engine, mock_exec, tmp_path: Path,
     ) -> None:
@@ -158,8 +158,8 @@ class TestRunPipeline:
         result = run_pipeline(config, src, output, dry_run=True)
         assert result.success is True
 
-    @patch("claude_setup.assembler._execute_assemblers")
-    @patch("claude_setup.assembler.TemplateEngine")
+    @patch("ia_dev_env.assembler._execute_assemblers")
+    @patch("ia_dev_env.assembler.TemplateEngine")
     def test_dry_run_includes_warning(
         self, mock_engine, mock_exec, tmp_path: Path,
     ) -> None:
@@ -171,8 +171,8 @@ class TestRunPipeline:
         result = run_pipeline(config, src, output, dry_run=True)
         assert any("Dry run" in w for w in result.warnings)
 
-    @patch("claude_setup.assembler._execute_assemblers")
-    @patch("claude_setup.assembler.TemplateEngine")
+    @patch("ia_dev_env.assembler._execute_assemblers")
+    @patch("ia_dev_env.assembler.TemplateEngine")
     def test_assembler_failure_raises_pipeline_error(
         self, mock_engine, mock_exec, tmp_path: Path,
     ) -> None:
@@ -184,8 +184,8 @@ class TestRunPipeline:
         with pytest.raises(PipelineError, match="RulesAssembler"):
             run_pipeline(config, src, output)
 
-    @patch("claude_setup.assembler._execute_assemblers")
-    @patch("claude_setup.assembler.TemplateEngine")
+    @patch("ia_dev_env.assembler._execute_assemblers")
+    @patch("ia_dev_env.assembler.TemplateEngine")
     def test_assembler_failure_cleans_up_temp(
         self, mock_engine, mock_exec, tmp_path: Path,
     ) -> None:
@@ -376,7 +376,7 @@ class TestExecuteAssemblers:
         src = tmp_path / "src"
         src.mkdir()
         engine = MagicMock(spec=TemplateEngine)
-        with patch("claude_setup.assembler._build_assemblers") as mock_build:
+        with patch("ia_dev_env.assembler._build_assemblers") as mock_build:
             bad = MagicMock()
             bad.assemble.side_effect = RuntimeError("disk full")
             mock_build.return_value = [("TestAssembler", bad)]

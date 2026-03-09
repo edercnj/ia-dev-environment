@@ -6,8 +6,8 @@ from typing import Any, Dict
 
 import pytest
 
-from claude_setup.assembler.auditor import audit_rules_context
-from claude_setup.assembler.rules_assembler import (
+from ia_dev_env.assembler.auditor import audit_rules_context
+from ia_dev_env.assembler.rules_assembler import (
     RulesAssembler,
     assemble_cloud_knowledge,
     assemble_infra_knowledge,
@@ -21,8 +21,8 @@ from claude_setup.assembler.rules_assembler import (
     copy_k8s_files,
     copy_security_base,
 )
-from claude_setup.models import ProjectConfig
-from claude_setup.template_engine import TemplateEngine
+from ia_dev_env.models import ProjectConfig
+from ia_dev_env.template_engine import TemplateEngine
 
 
 def _create_src_tree(base: Path) -> Path:

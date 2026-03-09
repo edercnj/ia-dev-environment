@@ -19,7 +19,7 @@ dev = [
 ]
 
 [project.scripts]
-ia-dev-env = "claude_setup.__main__:main"
+ia-dev-env = "ia_dev_env.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -28,7 +28,7 @@ where = ["src"]
 testpaths = ["tests"]
 
 [tool.coverage.run]
-source = ["src/claude_setup"]
+source = ["src/ia_dev_env"]
 branch = true
 
 [tool.coverage.report]

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from claude_setup.assembler.readme_assembler import (
+from ia_dev_env.assembler.readme_assembler import (
     ReadmeAssembler,
     _build_generation_summary,
     _build_rules_table,
@@ -14,8 +14,8 @@ from claude_setup.assembler.readme_assembler import (
     _is_knowledge_pack,
     generate_minimal_readme,
 )
-from claude_setup.models import ProjectConfig
-from claude_setup.template_engine import TemplateEngine
+from ia_dev_env.models import ProjectConfig
+from ia_dev_env.template_engine import TemplateEngine
 
 
 def _create_readme_src(base: Path) -> Path:
@@ -374,7 +374,7 @@ class TestBuildGenerationSummary:
         _populate_output(tmp_path)
         config = _minimal_config()
         summary = _build_generation_summary(tmp_path, config)
-        assert "claude-setup v" in summary
+        assert "ia-dev-env v" in summary
 
     def test_assemble_populated_dir_includes_generation_summary(
         self, tmp_path,
@@ -389,4 +389,4 @@ class TestBuildGenerationSummary:
         asm.assemble(config, out, engine)
         content = (out / "README.md").read_text()
         assert "| Component | Count |" in content
-        assert "claude-setup v" in content
+        assert "ia-dev-env v" in content

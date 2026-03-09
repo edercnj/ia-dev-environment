@@ -5,14 +5,14 @@ from pathlib import Path
 
 import pytest
 
-from claude_setup.assembler.patterns_assembler import (
+from ia_dev_env.assembler.patterns_assembler import (
     PatternsAssembler,
 )
-from claude_setup.assembler.protocols_assembler import (
+from ia_dev_env.assembler.protocols_assembler import (
     ProtocolsAssembler,
 )
-from claude_setup.models import ProjectConfig
-from claude_setup.template_engine import TemplateEngine
+from ia_dev_env.models import ProjectConfig
+from ia_dev_env.template_engine import TemplateEngine
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 FIXTURES_SRC = FIXTURES_DIR / "src"

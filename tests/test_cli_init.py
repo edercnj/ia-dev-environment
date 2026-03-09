@@ -5,8 +5,8 @@ from unittest.mock import patch
 
 from click.testing import CliRunner
 
-from claude_setup.__main__ import main
-from claude_setup.models import PipelineResult
+from ia_dev_env.__main__ import main
+from ia_dev_env.models import PipelineResult
 
 
 def _success_result() -> PipelineResult:
@@ -22,8 +22,8 @@ def _success_result() -> PipelineResult:
 
 class TestGenerateWithConfigFile:
 
-    @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_resources_dir")
+    @patch("ia_dev_env.__main__.run_pipeline")
+    @patch("ia_dev_env.__main__.find_resources_dir")
     def test_generate_valid_v3_exits_zero(
         self, mock_find, mock_pipeline, valid_v3_path: Path,
     ) -> None:
@@ -33,8 +33,8 @@ class TestGenerateWithConfigFile:
         result = runner.invoke(main, ["generate", "-c", str(valid_v3_path)])
         assert result.exit_code == 0
 
-    @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_resources_dir")
+    @patch("ia_dev_env.__main__.run_pipeline")
+    @patch("ia_dev_env.__main__.find_resources_dir")
     def test_generate_v2_type_exits_zero(
         self, mock_find, mock_pipeline, valid_v2_type_path: Path,
     ) -> None:
@@ -46,8 +46,8 @@ class TestGenerateWithConfigFile:
         )
         assert result.exit_code == 0
 
-    @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_resources_dir")
+    @patch("ia_dev_env.__main__.run_pipeline")
+    @patch("ia_dev_env.__main__.find_resources_dir")
     def test_generate_v2_stack_exits_zero(
         self, mock_find, mock_pipeline, valid_v2_stack_path: Path,
     ) -> None:
@@ -77,8 +77,8 @@ class TestGenerateWithConfigFile:
         )
         assert result.exit_code == 2
 
-    @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_resources_dir")
+    @patch("ia_dev_env.__main__.run_pipeline")
+    @patch("ia_dev_env.__main__.find_resources_dir")
     def test_generate_minimal_v3_exits_zero(
         self, mock_find, mock_pipeline, minimal_v3_path: Path,
     ) -> None:
@@ -93,13 +93,13 @@ class TestGenerateWithConfigFile:
 
 class TestGenerateInteractive:
 
-    @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_resources_dir")
-    @patch("claude_setup.__main__.run_interactive")
+    @patch("ia_dev_env.__main__.run_pipeline")
+    @patch("ia_dev_env.__main__.find_resources_dir")
+    @patch("ia_dev_env.__main__.run_interactive")
     def test_generate_interactive_exits_zero(
         self, mock_interactive, mock_find, mock_pipeline,
     ) -> None:
-        from claude_setup.models import ProjectConfig
+        from ia_dev_env.models import ProjectConfig
         mock_interactive.return_value = ProjectConfig.from_dict({
             "project": {"name": "my-project", "purpose": "A test project"},
             "architecture": {"style": "library"},

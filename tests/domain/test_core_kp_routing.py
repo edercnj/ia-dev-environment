@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import pytest
 
-from claude_setup.domain.core_kp_routing import (
+from ia_dev_env.domain.core_kp_routing import (
     CONDITIONAL_CORE_KP,
     CORE_TO_KP_MAPPING,
     ConditionalCoreKpRoute,
     CoreKpRoute,
     get_active_routes,
 )
-from claude_setup.models import ProjectConfig
+from ia_dev_env.models import ProjectConfig
 
 EXPECTED_UNCONDITIONAL_COUNT = 11
 EXPECTED_CONDITIONAL_COUNT = 1

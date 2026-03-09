@@ -31,8 +31,8 @@ def _generate_single_profile(
 ) -> bool:
     """Generate golden files for one profile. Returns True on success."""
     # Lazy imports to avoid import errors when running --help
-    from claude_setup.assembler import run_pipeline
-    from claude_setup.config import load_config
+    from ia_dev_env.assembler import run_pipeline
+    from ia_dev_env.config import load_config
 
     output_dir = GOLDEN_DIR / profile_name
     if output_dir.exists():

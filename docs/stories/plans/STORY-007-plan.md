@@ -19,7 +19,7 @@
 | application | NO | No use case orchestration yet; assemblers invoked directly from pipeline. |
 | adapter/inbound | NO | CLI entrypoint unchanged; assemblers are called by the pipeline (STORY-009). |
 | adapter/outbound | NO | File operations use stdlib `pathlib`/`shutil` -- no adapter needed. |
-| assembler | YES | New `skills.py` and `agents.py` modules under `claude_setup/assembler/`. |
+| assembler | YES | New `skills.py` and `agents.py` modules under `ia_dev_env/assembler/`. |
 | config | MINOR | `config.py` may need to parse the new `InfraConfig` / `TestingConfig` fields from YAML. |
 | tests | YES | Unit, contract, and integration tests for all assembler functions. |
 
@@ -27,7 +27,7 @@
 
 ## 2. New Classes/Interfaces to Create
 
-### 2.1 Skills Assembler (`claude_setup/assembler/skills.py`)
+### 2.1 Skills Assembler (`ia_dev_env/assembler/skills.py`)
 
 | Function/Class | Description |
 |----------------|-------------|
@@ -101,7 +101,7 @@
 
 ---
 
-### 2.2 Agents Assembler (`claude_setup/assembler/agents.py`)
+### 2.2 Agents Assembler (`ia_dev_env/assembler/agents.py`)
 
 | Function/Class | Description |
 |----------------|-------------|
@@ -151,7 +151,7 @@
 
 ---
 
-### 2.3 Helper: Interface Type Extractor (`claude_setup/assembler/conditions.py`)
+### 2.3 Helper: Interface Type Extractor (`ia_dev_env/assembler/conditions.py`)
 
 | Function | Description |
 |----------|-------------|
@@ -167,7 +167,7 @@
 
 ## 3. Existing Classes to Modify
 
-### 3.1 `InfraConfig` in `claude_setup/models.py`
+### 3.1 `InfraConfig` in `ia_dev_env/models.py`
 
 **Current state:** Has `container`, `orchestrator`, and `observability` fields only.
 
@@ -183,7 +183,7 @@
 
 Update `InfraConfig.from_dict()` to parse these from YAML `infrastructure:` section.
 
-### 3.2 `TestingConfig` in `claude_setup/models.py`
+### 3.2 `TestingConfig` in `ia_dev_env/models.py`
 
 **Current state:** Has `smoke_tests`, `contract_tests`, `coverage_line`, `coverage_branch`.
 
@@ -195,13 +195,13 @@ Update `InfraConfig.from_dict()` to parse these from YAML `infrastructure:` sect
 
 Update `TestingConfig.from_dict()` to parse this field.
 
-### 3.3 `_build_default_context()` in `claude_setup/template_engine.py`
+### 3.3 `_build_default_context()` in `ia_dev_env/template_engine.py`
 
 Add new fields to the flat context map so placeholders for the new config fields work:
 - `templating`, `iac`, `registry`, `api_gateway`, `service_mesh`
 - `performance_tests`
 
-### 3.4 `claude_setup/assembler/__init__.py`
+### 3.4 `ia_dev_env/assembler/__init__.py`
 
 Currently empty. Update to export `SkillsAssembler` and `AgentsAssembler`.
 

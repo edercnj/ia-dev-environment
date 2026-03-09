@@ -5,11 +5,11 @@ from typing import List
 
 import pytest
 
-from claude_setup.domain.protocol_mapping import (
+from ia_dev_env.domain.protocol_mapping import (
     derive_protocol_files,
     derive_protocols,
 )
-from claude_setup.models import ProjectConfig
+from ia_dev_env.models import ProjectConfig
 
 FIXTURES_SRC = Path(__file__).parent.parent / "fixtures" / "src"
 

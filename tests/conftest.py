@@ -6,7 +6,7 @@ from typing import Dict
 
 import pytest
 
-from claude_setup.models import ProjectConfig
+from ia_dev_env.models import ProjectConfig
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 

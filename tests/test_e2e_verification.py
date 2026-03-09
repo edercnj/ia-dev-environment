@@ -4,10 +4,10 @@ from pathlib import Path
 
 import pytest
 
-from claude_setup.assembler import run_pipeline
-from claude_setup.config import load_config
-from claude_setup.models import VerificationResult
-from claude_setup.verifier import verify_output
+from ia_dev_env.assembler import run_pipeline
+from ia_dev_env.config import load_config
+from ia_dev_env.models import VerificationResult
+from ia_dev_env.verifier import verify_output
 
 CONFIG_PROFILES = [
     "go-gin",

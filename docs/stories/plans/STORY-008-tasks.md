@@ -30,7 +30,7 @@ G7 depends on G2-G4 (module exports).
 
 ### G1-T1: Add `HOOK_TEMPLATE_MAP` to domain
 
-**File:** `claude_setup/domain/stack_mapping.py`
+**File:** `ia_dev_env/domain/stack_mapping.py`
 **Changes:**
 - Add constant `HOOK_TEMPLATE_MAP: Dict[Tuple[str, str], str]` mapping `(language, build_tool)` to hook template directory key
 - Mapping entries:
@@ -50,13 +50,13 @@ G7 depends on G2-G4 (module exports).
 
 **Dependencies within group:** None
 **Estimated lines:** ~25
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.domain.stack_mapping import get_hook_template_key; assert get_hook_template_key('java', 'maven') == 'java-maven'; assert get_hook_template_key('python', 'pip') == ''; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.domain.stack_mapping import get_hook_template_key; assert get_hook_template_key('java', 'maven') == 'java-maven'; assert get_hook_template_key('python', 'pip') == ''; print('OK')"`
 
 ---
 
 ### G1-T2: Add `SETTINGS_LANG_MAP` to domain
 
-**File:** `claude_setup/domain/stack_mapping.py`
+**File:** `ia_dev_env/domain/stack_mapping.py`
 **Changes:**
 - Add constant `SETTINGS_LANG_MAP: Dict[Tuple[str, str], str]` mapping `(language, build_tool)` to settings template filename key (without `.json` extension)
 - Mapping entries:
@@ -76,13 +76,13 @@ G7 depends on G2-G4 (module exports).
 
 **Dependencies within group:** None (parallel with G1-T1)
 **Estimated lines:** ~25
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.domain.stack_mapping import get_settings_lang_key; assert get_settings_lang_key('python', 'pip') == 'python-pip'; assert get_settings_lang_key('java', 'maven') == 'java-maven'; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.domain.stack_mapping import get_settings_lang_key; assert get_settings_lang_key('python', 'pip') == 'python-pip'; assert get_settings_lang_key('java', 'maven') == 'java-maven'; print('OK')"`
 
 ---
 
 ### G1-T3: Add `DATABASE_SETTINGS_MAP` to domain
 
-**File:** `claude_setup/domain/stack_mapping.py`
+**File:** `ia_dev_env/domain/stack_mapping.py`
 **Changes:**
 - Add constant `DATABASE_SETTINGS_MAP: Dict[str, str]` mapping database name to settings template filename key (without `.json` extension)
 - Mapping entries:
@@ -109,7 +109,7 @@ G7 depends on G2-G4 (module exports).
 
 **Dependencies within group:** None (parallel with G1-T1, G1-T2)
 **Estimated lines:** ~30
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.domain.stack_mapping import get_database_settings_key, get_cache_settings_key; assert get_database_settings_key('postgresql') == 'database-psql'; assert get_cache_settings_key('redis') == 'cache-redis'; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.domain.stack_mapping import get_database_settings_key, get_cache_settings_key; assert get_database_settings_key('postgresql') == 'database-psql'; assert get_cache_settings_key('redis') == 'cache-redis'; print('OK')"`
 
 ---
 
@@ -117,7 +117,7 @@ G7 depends on G2-G4 (module exports).
 
 ### G2-T1: Create `HooksAssembler` class
 
-**File:** `claude_setup/assembler/hooks_assembler.py` (new file)
+**File:** `ia_dev_env/assembler/hooks_assembler.py` (new file)
 **Class:** `HooksAssembler`
 **Constructor:** `__init__(self, src_dir: Path)` -- stores reference to `src/` root directory
 **Methods:**
@@ -131,8 +131,8 @@ G7 depends on G2-G4 (module exports).
   - Returns `[dest_path]`
 
 **Dependencies:**
-- `claude_setup.domain.stack_mapping.get_hook_template_key` (G1-T1)
-- `claude_setup.models.ProjectConfig`
+- `ia_dev_env.domain.stack_mapping.get_hook_template_key` (G1-T1)
+- `ia_dev_env.models.ProjectConfig`
 
 **Design notes:**
 - Follows same pattern as `PatternsAssembler` (constructor takes `src_dir`)
@@ -140,13 +140,13 @@ G7 depends on G2-G4 (module exports).
 - Each method <= 25 lines
 
 **Estimated lines:** ~45
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.assembler.hooks_assembler import HooksAssembler; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.assembler.hooks_assembler import HooksAssembler; print('OK')"`
 
 ---
 
 ### G2-T2: Implement `_build_hooks_json` method
 
-**File:** `claude_setup/assembler/hooks_assembler.py`
+**File:** `ia_dev_env/assembler/hooks_assembler.py`
 **Method:**
 - `_build_hooks_json(self, hook_script_path: Path) -> dict`
   - Constructs the hooks.json structure referencing the hook script path
@@ -169,7 +169,7 @@ G7 depends on G2-G4 (module exports).
 
 **Dependencies within group:** G2-T1
 **Estimated lines:** ~25
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.assembler.hooks_assembler import HooksAssembler; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.assembler.hooks_assembler import HooksAssembler; print('OK')"`
 
 ---
 
@@ -177,7 +177,7 @@ G7 depends on G2-G4 (module exports).
 
 ### G3-T1: Create `SettingsAssembler` class skeleton with `merge_json_arrays`
 
-**File:** `claude_setup/assembler/settings_assembler.py` (new file)
+**File:** `ia_dev_env/assembler/settings_assembler.py` (new file)
 **Class:** `SettingsAssembler`
 **Constructor:** `__init__(self, src_dir: Path)` -- stores reference to `src/` root directory
 
@@ -189,16 +189,16 @@ G7 depends on G2-G4 (module exports).
   - Returns merged list
 
 **Dependencies:**
-- `claude_setup.models.ProjectConfig`
+- `ia_dev_env.models.ProjectConfig`
 
 **Estimated lines:** ~30
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.assembler.settings_assembler import SettingsAssembler; r = SettingsAssembler.merge_json_arrays(['a','b'], ['b','c']); assert r == ['a','b','c']; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.assembler.settings_assembler import SettingsAssembler; r = SettingsAssembler.merge_json_arrays(['a','b'], ['b','c']); assert r == ['a','b','c']; print('OK')"`
 
 ---
 
 ### G3-T2: Implement `_collect_permissions` method
 
-**File:** `claude_setup/assembler/settings_assembler.py`
+**File:** `ia_dev_env/assembler/settings_assembler.py`
 **Method:**
 - `_collect_permissions(self, config: ProjectConfig) -> list`
   - Reads and merges permission arrays from settings template JSON files in order:
@@ -217,13 +217,13 @@ G7 depends on G2-G4 (module exports).
 **Dependencies within group:** G3-T1
 **Dependencies on G1:** G1-T2 (settings_lang_key), G1-T3 (database/cache keys)
 **Estimated lines:** ~40
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.assembler.settings_assembler import SettingsAssembler; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.assembler.settings_assembler import SettingsAssembler; print('OK')"`
 
 ---
 
 ### G3-T3: Implement `_build_settings_dict` and `assemble` methods
 
-**File:** `claude_setup/assembler/settings_assembler.py`
+**File:** `ia_dev_env/assembler/settings_assembler.py`
 **Methods:**
 - `_build_settings_dict(self, config: ProjectConfig, permissions: list, has_hooks: bool) -> dict`
   - Builds the settings.json dict structure:
@@ -252,7 +252,7 @@ G7 depends on G2-G4 (module exports).
 **Dependencies within group:** G3-T1, G3-T2
 **Dependencies on G1:** G1-T1 (hook_template_key for has_hooks check)
 **Estimated lines:** ~50
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.assembler.settings_assembler import SettingsAssembler; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.assembler.settings_assembler import SettingsAssembler; print('OK')"`
 
 ---
 
@@ -260,7 +260,7 @@ G7 depends on G2-G4 (module exports).
 
 ### G4-T1: Create `ReadmeAssembler` class skeleton
 
-**File:** `claude_setup/assembler/readme_assembler.py` (new file)
+**File:** `ia_dev_env/assembler/readme_assembler.py` (new file)
 **Class:** `ReadmeAssembler`
 **Constructor:** `__init__(self, src_dir: Path)` -- stores reference to `src/` root directory
 
@@ -273,13 +273,13 @@ G7 depends on G2-G4 (module exports).
 
 **Dependencies:** None (standalone utility)
 **Estimated lines:** ~30
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.assembler.readme_assembler import ReadmeAssembler; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.assembler.readme_assembler import ReadmeAssembler; print('OK')"`
 
 ---
 
 ### G4-T2: Implement `generate_readme` method
 
-**File:** `claude_setup/assembler/readme_assembler.py`
+**File:** `ia_dev_env/assembler/readme_assembler.py`
 **Method:**
 - `generate_readme(self, config: ProjectConfig, engine: TemplateEngine, output_dir: Path) -> str`
   - Builds full README content from config and output_dir analysis
@@ -296,13 +296,13 @@ G7 depends on G2-G4 (module exports).
 
 **Dependencies within group:** G4-T1
 **Estimated lines:** ~80
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.assembler.readme_assembler import ReadmeAssembler; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.assembler.readme_assembler import ReadmeAssembler; print('OK')"`
 
 ---
 
 ### G4-T3: Implement `generate_minimal_readme` and `assemble` methods
 
-**File:** `claude_setup/assembler/readme_assembler.py`
+**File:** `ia_dev_env/assembler/readme_assembler.py`
 **Methods:**
 - `generate_minimal_readme(self, config: ProjectConfig) -> str`
   - Generates minimal README with only:
@@ -319,7 +319,7 @@ G7 depends on G2-G4 (module exports).
 
 **Dependencies within group:** G4-T1, G4-T2
 **Estimated lines:** ~40
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.assembler.readme_assembler import ReadmeAssembler; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.assembler.readme_assembler import ReadmeAssembler; print('OK')"`
 
 ---
 
@@ -491,16 +491,16 @@ G7 depends on G2-G4 (module exports).
 
 ### G7-T1: Update `assembler/__init__.py` exports
 
-**File:** `claude_setup/assembler/__init__.py`
+**File:** `ia_dev_env/assembler/__init__.py`
 **Changes:**
-- Add import: `from claude_setup.assembler.hooks_assembler import HooksAssembler`
-- Add import: `from claude_setup.assembler.settings_assembler import SettingsAssembler`
-- Add import: `from claude_setup.assembler.readme_assembler import ReadmeAssembler`
+- Add import: `from ia_dev_env.assembler.hooks_assembler import HooksAssembler`
+- Add import: `from ia_dev_env.assembler.settings_assembler import SettingsAssembler`
+- Add import: `from ia_dev_env.assembler.readme_assembler import ReadmeAssembler`
 - Add all three to `__all__` list
 
 **Dependencies:** G2-T1, G3-T1, G4-T1 (all assembler classes must exist)
 **Estimated lines changed:** ~6
-**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from claude_setup.assembler import HooksAssembler, SettingsAssembler, ReadmeAssembler; print('OK')"`
+**Check command:** `cd /Users/edercnj/workspaces/claude-environment && python -c "from ia_dev_env.assembler import HooksAssembler, SettingsAssembler, ReadmeAssembler; print('OK')"`
 
 ---
 
@@ -508,13 +508,13 @@ G7 depends on G2-G4 (module exports).
 
 | Group | Tasks | New Files | Modified Files | Total Est. Lines |
 |-------|-------|-----------|----------------|-----------------|
-| G1 | 3 | 0 | `claude_setup/domain/stack_mapping.py` | ~80 |
-| G2 | 2 | `claude_setup/assembler/hooks_assembler.py` | 0 | ~70 |
-| G3 | 3 | `claude_setup/assembler/settings_assembler.py` | 0 | ~120 |
-| G4 | 3 | `claude_setup/assembler/readme_assembler.py` | 0 | ~150 |
+| G1 | 3 | 0 | `ia_dev_env/domain/stack_mapping.py` | ~80 |
+| G2 | 2 | `ia_dev_env/assembler/hooks_assembler.py` | 0 | ~70 |
+| G3 | 3 | `ia_dev_env/assembler/settings_assembler.py` | 0 | ~120 |
+| G4 | 3 | `ia_dev_env/assembler/readme_assembler.py` | 0 | ~150 |
 | G5 | 4 | `tests/domain/test_stack_mapping_hooks_settings.py`, `tests/assembler/test_hooks_assembler.py`, `tests/assembler/test_settings_assembler.py`, `tests/assembler/test_readme_assembler.py` | 0 | ~600 |
 | G6 | 2 | `tests/assembler/test_hooks_settings_readme_integration.py`, `tests/assembler/test_hooks_settings_contract.py` | 0 | ~230 |
-| G7 | 1 | 0 | `claude_setup/assembler/__init__.py` | ~6 |
+| G7 | 1 | 0 | `ia_dev_env/assembler/__init__.py` | ~6 |
 | **Total** | **18** | **7** | **2** | **~1256** |
 
 ## File Inventory
@@ -523,9 +523,9 @@ G7 depends on G2-G4 (module exports).
 
 | File | Group | Purpose |
 |------|-------|---------|
-| `claude_setup/assembler/hooks_assembler.py` | G2 | HooksAssembler class |
-| `claude_setup/assembler/settings_assembler.py` | G3 | SettingsAssembler class |
-| `claude_setup/assembler/readme_assembler.py` | G4 | ReadmeAssembler class |
+| `ia_dev_env/assembler/hooks_assembler.py` | G2 | HooksAssembler class |
+| `ia_dev_env/assembler/settings_assembler.py` | G3 | SettingsAssembler class |
+| `ia_dev_env/assembler/readme_assembler.py` | G4 | ReadmeAssembler class |
 | `tests/domain/test_stack_mapping_hooks_settings.py` | G5 | Domain mapping unit tests |
 | `tests/assembler/test_hooks_assembler.py` | G5 | Hooks assembler unit tests |
 | `tests/assembler/test_settings_assembler.py` | G5 | Settings assembler unit tests |
@@ -537,11 +537,11 @@ G7 depends on G2-G4 (module exports).
 
 | File | Group | Changes |
 |------|-------|---------|
-| `claude_setup/domain/stack_mapping.py` | G1 | Add HOOK_TEMPLATE_MAP, SETTINGS_LANG_MAP, DATABASE_SETTINGS_MAP, CACHE_SETTINGS_MAP + helpers |
-| `claude_setup/assembler/__init__.py` | G7 | Add imports and exports for 3 new assemblers |
+| `ia_dev_env/domain/stack_mapping.py` | G1 | Add HOOK_TEMPLATE_MAP, SETTINGS_LANG_MAP, DATABASE_SETTINGS_MAP, CACHE_SETTINGS_MAP + helpers |
+| `ia_dev_env/assembler/__init__.py` | G7 | Add imports and exports for 3 new assemblers |
 
 ## Full Validation Command
 
 ```bash
-cd /Users/edercnj/workspaces/claude-environment && python -m pytest tests/ -x -q --tb=short && python -m pytest tests/ --cov=claude_setup --cov-report=term-missing --cov-fail-under=95
+cd /Users/edercnj/workspaces/claude-environment && python -m pytest tests/ -x -q --tb=short && python -m pytest tests/ --cov=ia_dev_env --cov-report=term-missing --cov-fail-under=95
 ```

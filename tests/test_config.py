@@ -7,14 +7,14 @@ from typing import Dict
 import pytest
 import yaml
 
-from claude_setup.config import (
+from ia_dev_env.config import (
     detect_v2_format,
     load_config,
     migrate_v2_to_v3,
     validate_config,
 )
-from claude_setup.exceptions import ConfigValidationError
-from claude_setup.models import ProjectConfig
+from ia_dev_env.exceptions import ConfigValidationError
+from ia_dev_env.models import ProjectConfig
 
 
 class TestDetectV2Format:

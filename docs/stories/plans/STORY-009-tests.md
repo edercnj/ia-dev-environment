@@ -282,11 +282,11 @@ def test_setup_logging_level(verbose, expected_level):
 
 | File | Lines (est.) | Line Coverage Target | Branch Coverage Target | Key Branches |
 |------|-------------|---------------------|----------------------|--------------|
-| `claude_setup/utils.py` | ~40 | 98% | 95% | `atomic_output`: success/failure; `find_src_dir`: exists/not-exists; `setup_logging`: verbose/not |
-| `claude_setup/models.py` (PipelineResult) | ~10 | 100% | 100% | No branches (dataclass) |
-| `claude_setup/exceptions.py` (PipelineError) | ~5 | 100% | 100% | No branches |
-| `claude_setup/assembler/__init__.py` (run_pipeline) | ~60 | 96% | 92% | dry_run branch; per-assembler try/except; success/failure path; atomic_output success/failure |
-| `claude_setup/__main__.py` | ~60 | 96% | 92% | generate: config vs interactive vs neither vs both; validate: valid/invalid; verbose flag; dry-run flag |
+| `ia_dev_env/utils.py` | ~40 | 98% | 95% | `atomic_output`: success/failure; `find_src_dir`: exists/not-exists; `setup_logging`: verbose/not |
+| `ia_dev_env/models.py` (PipelineResult) | ~10 | 100% | 100% | No branches (dataclass) |
+| `ia_dev_env/exceptions.py` (PipelineError) | ~5 | 100% | 100% | No branches |
+| `ia_dev_env/assembler/__init__.py` (run_pipeline) | ~60 | 96% | 92% | dry_run branch; per-assembler try/except; success/failure path; atomic_output success/failure |
+| `ia_dev_env/__main__.py` | ~60 | 96% | 92% | generate: config vs interactive vs neither vs both; validate: valid/invalid; verbose flag; dry-run flag |
 
 **Aggregate estimate:** ~175 new/modified lines, target 96% line coverage, 92% branch coverage.
 

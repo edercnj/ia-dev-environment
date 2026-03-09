@@ -118,7 +118,7 @@ The repository includes 8 ready-to-use config profiles under `resources/config-t
 ```
 ia-dev-environment/
 ├── src/
-│   └── claude_setup/          # Python package (src layout)
+│   └── ia_dev_env/            # Python package (src layout)
 │       ├── __init__.py
 │       ├── __main__.py        # CLI entry point (Click)
 │       ├── config.py          # YAML config loading + v2→v3 migration

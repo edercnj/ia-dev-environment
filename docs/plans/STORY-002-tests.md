@@ -3,7 +3,7 @@
 **Status:** DOCUMENTED
 **Date:** 2026-03-08
 **Assembler Under Test:** `GithubMcpAssembler`
-**Source:** `src/claude_setup/assembler/github_mcp_assembler.py`
+**Source:** `src/ia_dev_env/assembler/github_mcp_assembler.py`
 
 ---
 
@@ -229,7 +229,7 @@ python scripts/generate_golden.py --all
 
 ### Run with coverage report
 ```bash
-pytest tests/ --cov=claude_setup.assembler.github_mcp_assembler --cov=claude_setup.models --cov-report=term-missing
+pytest tests/ --cov=ia_dev_env.assembler.github_mcp_assembler --cov=ia_dev_env.models --cov-report=term-missing
 ```
 
 ---

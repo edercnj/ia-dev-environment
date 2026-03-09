@@ -3,7 +3,7 @@
 ## Affected Components
 
 1. `resources/github-skills-templates/testing/` — 6 new template files
-2. `src/claude_setup/assembler/github_skills_assembler.py` — Add testing group to SKILL_GROUPS
+2. `src/ia_dev_env/assembler/github_skills_assembler.py` — Add testing group to SKILL_GROUPS
 3. `tests/assembler/test_github_skills_assembler.py` — Add testing skill tests
 4. `tests/golden/*/github/skills/{testing-skills}/SKILL.md` — 48 golden files (6 skills × 8 profiles)
 

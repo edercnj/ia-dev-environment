@@ -6,9 +6,9 @@ from unittest.mock import patch
 import pytest
 from click.testing import CliRunner
 
-from claude_setup.__main__ import _classify_files, main
-from claude_setup.exceptions import PipelineError
-from claude_setup.models import PipelineResult
+from ia_dev_env.__main__ import _classify_files, main
+from ia_dev_env.exceptions import PipelineError
+from ia_dev_env.models import PipelineResult
 
 
 def _success_result(output_dir: Path = Path(".")) -> PipelineResult:
@@ -51,8 +51,8 @@ class TestGenerateCommand:
         assert "--interactive" in result.output
         assert "--dry-run" in result.output
 
-    @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_resources_dir")
+    @patch("ia_dev_env.__main__.run_pipeline")
+    @patch("ia_dev_env.__main__.find_resources_dir")
     def test_generate_config_valid_exits_zero(
         self, mock_find, mock_pipeline, valid_v3_path: Path,
     ) -> None:
@@ -68,13 +68,13 @@ class TestGenerateCommand:
         result = runner.invoke(main, ["generate", "-c", "/no/such/file.yaml"])
         assert result.exit_code == 2
 
-    @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_resources_dir")
-    @patch("claude_setup.__main__.run_interactive")
+    @patch("ia_dev_env.__main__.run_pipeline")
+    @patch("ia_dev_env.__main__.find_resources_dir")
+    @patch("ia_dev_env.__main__.run_interactive")
     def test_generate_interactive_exits_zero(
         self, mock_interactive, mock_find, mock_pipeline,
     ) -> None:
-        from claude_setup.models import ProjectConfig
+        from ia_dev_env.models import ProjectConfig
         mock_interactive.return_value = ProjectConfig.from_dict({
             "project": {"name": "test", "purpose": "test"},
             "architecture": {"style": "library"},
@@ -105,8 +105,8 @@ class TestGenerateCommand:
         assert result.exit_code != 0
         assert "required" in result.output.lower()
 
-    @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_resources_dir")
+    @patch("ia_dev_env.__main__.run_pipeline")
+    @patch("ia_dev_env.__main__.find_resources_dir")
     def test_generate_dry_run_shows_plan(
         self, mock_find, mock_pipeline, valid_v3_path: Path,
     ) -> None:
@@ -120,8 +120,8 @@ class TestGenerateCommand:
         assert result.exit_code == 0
         assert "dry run" in result.output.lower()
 
-    @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_resources_dir")
+    @patch("ia_dev_env.__main__.run_pipeline")
+    @patch("ia_dev_env.__main__.find_resources_dir")
     def test_generate_verbose_enables_logging(
         self, mock_find, mock_pipeline, valid_v3_path: Path,
     ) -> None:
@@ -134,8 +134,8 @@ class TestGenerateCommand:
         )
         assert result.exit_code == 0
 
-    @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_resources_dir")
+    @patch("ia_dev_env.__main__.run_pipeline")
+    @patch("ia_dev_env.__main__.find_resources_dir")
     def test_generate_output_dir_option(
         self, mock_find, mock_pipeline, valid_v3_path: Path, tmp_path: Path,
     ) -> None:
@@ -151,12 +151,12 @@ class TestGenerateCommand:
         )
         assert result.exit_code == 0
 
-    @patch("claude_setup.__main__.find_resources_dir")
+    @patch("ia_dev_env.__main__.find_resources_dir")
     def test_generate_pipeline_error_exits_one(
         self, mock_find, valid_v3_path: Path,
     ) -> None:
         mock_find.return_value = Path("src")
-        with patch("claude_setup.__main__.run_pipeline") as mock_pipeline:
+        with patch("ia_dev_env.__main__.run_pipeline") as mock_pipeline:
             mock_pipeline.side_effect = PipelineError("Rules", "fail")
             runner = CliRunner()
             result = runner.invoke(
@@ -165,7 +165,7 @@ class TestGenerateCommand:
             )
             assert result.exit_code == 1
 
-    @patch("claude_setup.__main__.run_pipeline")
+    @patch("ia_dev_env.__main__.run_pipeline")
     def test_generate_resources_dir_option(
         self, mock_pipeline, valid_v3_path: Path, tmp_path: Path,
     ) -> None:
@@ -179,7 +179,7 @@ class TestGenerateCommand:
         )
         assert result.exit_code == 0
 
-    @patch("claude_setup.__main__.find_resources_dir")
+    @patch("ia_dev_env.__main__.find_resources_dir")
     def test_generate_find_resources_dir_failure_exits_one(
         self, mock_find, valid_v3_path: Path,
     ) -> None:
@@ -191,8 +191,8 @@ class TestGenerateCommand:
         )
         assert result.exit_code == 1
 
-    @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_resources_dir")
+    @patch("ia_dev_env.__main__.run_pipeline")
+    @patch("ia_dev_env.__main__.find_resources_dir")
     def test_generate_failed_result_exits_one(
         self, mock_find, mock_pipeline, valid_v3_path: Path,
     ) -> None:
@@ -264,8 +264,8 @@ class TestClassifyFiles:
 
 class TestDisplayResult:
 
-    @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_resources_dir")
+    @patch("ia_dev_env.__main__.run_pipeline")
+    @patch("ia_dev_env.__main__.find_resources_dir")
     def test_display_result_shows_summary_table(
         self, mock_find, mock_pipeline, valid_v3_path: Path,
     ) -> None:
@@ -280,8 +280,8 @@ class TestDisplayResult:
         assert "Rules" in result.output
         assert "Total" in result.output
 
-    @patch("claude_setup.__main__.run_pipeline")
-    @patch("claude_setup.__main__.find_resources_dir")
+    @patch("ia_dev_env.__main__.run_pipeline")
+    @patch("ia_dev_env.__main__.find_resources_dir")
     def test_display_result_shows_duration(
         self, mock_find, mock_pipeline, valid_v3_path: Path,
     ) -> None:

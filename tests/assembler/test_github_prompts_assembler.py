@@ -7,12 +7,12 @@ from pathlib import Path
 import pytest
 import yaml
 
-from claude_setup.assembler.github_prompts_assembler import (
+from ia_dev_env.assembler.github_prompts_assembler import (
     PROMPT_TEMPLATES,
     GithubPromptsAssembler,
 )
-from claude_setup.models import ProjectConfig
-from claude_setup.template_engine import TemplateEngine
+from ia_dev_env.models import ProjectConfig
+from ia_dev_env.template_engine import TemplateEngine
 
 from tests.conftest import FULL_PROJECT_DICT, MINIMAL_PROJECT_DICT
 

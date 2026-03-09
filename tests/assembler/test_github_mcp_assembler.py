@@ -8,12 +8,12 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from claude_setup.assembler.github_mcp_assembler import (
+from ia_dev_env.assembler.github_mcp_assembler import (
     GithubMcpAssembler,
     _build_copilot_mcp_dict,
     _warn_literal_env_values,
 )
-from claude_setup.models import (
+from ia_dev_env.models import (
     McpConfig,
     McpServerConfig,
     ProjectConfig,

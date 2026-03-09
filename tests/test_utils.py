@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from claude_setup.utils import (
+from ia_dev_env.utils import (
     _reject_dangerous_path,
     _validate_dest_path,
     atomic_output,
@@ -189,7 +189,7 @@ class TestFindResourcesDir:
         fake_file.parent.mkdir(parents=True)
         fake_file.write_text("")
         monkeypatch.setattr(
-            "claude_setup.utils.__file__",
+            "ia_dev_env.utils.__file__",
             str(fake_file),
         )
         # After monkeypatch, find_resources_dir will look for

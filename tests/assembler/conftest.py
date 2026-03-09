@@ -4,7 +4,7 @@ from typing import Callable
 
 import pytest
 
-from claude_setup.models import ProjectConfig
+from ia_dev_env.models import ProjectConfig
 
 
 def _full_featured_dict():

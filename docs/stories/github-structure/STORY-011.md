@@ -4,13 +4,13 @@
 
 ## Contexto do Gerador
 
-Esta historia implementa o `GithubHooksAssembler` no gerador Python `claude_setup`. O assembler le templates de `resources/github-hooks-templates/` e gera os arquivos `.github/hooks/*.json` no diretorio de saida. Tanto `.claude/` quanto `.github/` sao saidas geradas (ambos gitignored).
+Esta historia implementa o `GithubHooksAssembler` no gerador Python `ia_dev_env`. O assembler le templates de `resources/github-hooks-templates/` e gera os arquivos `.github/hooks/*.json` no diretorio de saida. Tanto `.claude/` quanto `.github/` sao saidas geradas (ambos gitignored).
 
 **Arquitetura do gerador:**
 
 | Componente | Caminho |
 | :--- | :--- |
-| Assembler | `src/claude_setup/assembler/github_hooks_assembler.py` (novo) ou extensao de `hooks_assembler.py` |
+| Assembler | `src/ia_dev_env/assembler/github_hooks_assembler.py` (novo) ou extensao de `hooks_assembler.py` |
 | Templates | `resources/github-hooks-templates/*.json.j2` |
 | Pipeline | Registrado em `assembler/__init__.py` via `_build_assemblers()` |
 | Golden files | `tests/golden/github-hooks/` |
@@ -36,7 +36,7 @@ O assembler deve implementar `assemble(config, output_dir, engine) -> List[Path]
 
 ## 3. Descricao
 
-Como **DevOps Engineer**, eu quero que o gerador `claude_setup` produza `.github/hooks/*.json` com hooks deterministicos em formato JSON, garantindo que os mesmos pontos de verificacao cobertos pelos hooks gerados em `.claude/hooks/` existam tambem na saida `.github/`, alem de hooks adicionais para lint e context loading.
+Como **DevOps Engineer**, eu quero que o gerador `ia_dev_env` produza `.github/hooks/*.json` com hooks deterministicos em formato JSON, garantindo que os mesmos pontos de verificacao cobertos pelos hooks gerados em `.claude/hooks/` existam tambem na saida `.github/`, alem de hooks adicionais para lint e context loading.
 
 O `GithubHooksAssembler` (ou extensao do `HooksAssembler` existente em `hooks_assembler.py`) le templates Jinja2 de `resources/github-hooks-templates/`, aplica variaveis do `ProjectConfig`, e escreve os arquivos JSON no `output_dir/.github/hooks/`.
 
@@ -74,7 +74,7 @@ Os hooks dependem dos agents (STORY-010) porque executam no workflow dos agents.
 
 ### 3.4 Implementacao no gerador
 
-1. Criar `GithubHooksAssembler` em `src/claude_setup/assembler/github_hooks_assembler.py`
+1. Criar `GithubHooksAssembler` em `src/ia_dev_env/assembler/github_hooks_assembler.py`
 2. Criar 3 templates Jinja2 em `resources/github-hooks-templates/`
 3. Registrar no pipeline em `assembler/__init__.py` (`_build_assemblers()`)
 4. Criar golden files em `tests/golden/github-hooks/`
@@ -213,7 +213,7 @@ Cenario: Hook pre-commit-lint bloqueia commit invalido
 
 ## 8. Sub-tarefas
 
-- [ ] [Dev] Criar `src/claude_setup/assembler/github_hooks_assembler.py` com classe `GithubHooksAssembler`
+- [ ] [Dev] Criar `src/ia_dev_env/assembler/github_hooks_assembler.py` com classe `GithubHooksAssembler`
 - [ ] [Dev] Criar template `resources/github-hooks-templates/post-compile-check.json.j2`
 - [ ] [Dev] Criar template `resources/github-hooks-templates/pre-commit-lint.json.j2`
 - [ ] [Dev] Criar template `resources/github-hooks-templates/session-context-loader.json.j2`

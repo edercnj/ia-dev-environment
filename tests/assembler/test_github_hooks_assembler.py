@@ -6,12 +6,12 @@ import logging
 from pathlib import Path
 import pytest
 
-from claude_setup.assembler.github_hooks_assembler import (
+from ia_dev_env.assembler.github_hooks_assembler import (
     HOOK_TEMPLATES,
     GithubHooksAssembler,
 )
-from claude_setup.models import ProjectConfig
-from claude_setup.template_engine import TemplateEngine
+from ia_dev_env.models import ProjectConfig
+from ia_dev_env.template_engine import TemplateEngine
 
 from tests.conftest import FULL_PROJECT_DICT, MINIMAL_PROJECT_DICT
 

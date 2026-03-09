@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from claude_setup.verifier import (
+from ia_dev_env.verifier import (
     _collect_relative_paths,
     verify_output,
 )

@@ -28,7 +28,7 @@
 
 ## 2. New Classes/Interfaces to Create
 
-### 2.1 PipelineResult Dataclass (`claude_setup/models.py` -- extend existing)
+### 2.1 PipelineResult Dataclass (`ia_dev_env/models.py` -- extend existing)
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -50,7 +50,7 @@ class PipelineResult:
 
 This is a pure domain model with zero framework dependencies. Belongs in `models.py` alongside `ProjectConfig`.
 
-### 2.2 Pipeline Orchestration (`claude_setup/assembler/__init__.py` -- extend existing)
+### 2.2 Pipeline Orchestration (`ia_dev_env/assembler/__init__.py` -- extend existing)
 
 New top-level function:
 
@@ -82,7 +82,7 @@ New top-level function:
 7. `SettingsAssembler.assemble()` -- generates `settings.json`, `settings.local.json`
 8. `ReadmeAssembler.assemble()` -- generates `README.md` (LAST, counts other artifacts)
 
-### 2.3 Utilities Module (`claude_setup/utils.py` -- new file)
+### 2.3 Utilities Module (`ia_dev_env/utils.py` -- new file)
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
@@ -103,16 +103,16 @@ New top-level function:
 - Resolves `Path(__file__).resolve().parent.parent / "src"`.
 - Raises `FileNotFoundError` if the directory does not exist.
 
-### 2.4 CLI Rework (`claude_setup/__main__.py` -- rewrite)
+### 2.4 CLI Rework (`ia_dev_env/__main__.py` -- rewrite)
 
 The current CLI has a single `init` subcommand. STORY-009 requires:
 
 **New command structure:**
 
 ```
-claude-setup generate --config <path> [--output-dir DIR] [--src-dir DIR] [--verbose] [--dry-run]
-claude-setup generate --interactive [--output-dir DIR] [--src-dir DIR] [--verbose] [--dry-run]
-claude-setup validate --config <path> [--verbose]
+ia-dev-env generate --config <path> [--output-dir DIR] [--src-dir DIR] [--verbose] [--dry-run]
+ia-dev-env generate --interactive [--output-dir DIR] [--src-dir DIR] [--verbose] [--dry-run]
+ia-dev-env validate --config <path> [--verbose]
 ```
 
 **`generate` command:**
@@ -153,11 +153,11 @@ Alternative approach (preferred for accuracy): run the full pipeline in a temp d
 
 | File | Change | Reason |
 |------|--------|--------|
-| `claude_setup/models.py` | Add `PipelineResult` dataclass | New domain model for pipeline output |
-| `claude_setup/assembler/__init__.py` | Add `run_pipeline()` function + import `PipelineResult` | Pipeline orchestration entry point |
-| `claude_setup/__main__.py` | Replace `init` command with `generate` and `validate` commands | CLI rework per story requirements |
-| `claude_setup/exceptions.py` | Add `PipelineError` exception class | Error handling for pipeline failures |
-| `pyproject.toml` | Entry point remains `claude_setup.__main__:main` -- no change needed | Verify only |
+| `ia_dev_env/models.py` | Add `PipelineResult` dataclass | New domain model for pipeline output |
+| `ia_dev_env/assembler/__init__.py` | Add `run_pipeline()` function + import `PipelineResult` | Pipeline orchestration entry point |
+| `ia_dev_env/__main__.py` | Replace `init` command with `generate` and `validate` commands | CLI rework per story requirements |
+| `ia_dev_env/exceptions.py` | Add `PipelineError` exception class | Error handling for pipeline failures |
+| `pyproject.toml` | Entry point remains `ia_dev_env.__main__:main` -- no change needed | Verify only |
 
 ### Assembler Interface Normalization
 
@@ -252,9 +252,9 @@ N/A -- This is a CLI tool with no HTTP/gRPC API.
 
 | Before (current) | After (STORY-009) |
 |---|---|
-| `claude-setup init --config <path>` | `claude-setup generate --config <path>` |
-| `claude-setup init` (interactive) | `claude-setup generate --interactive` |
-| N/A | `claude-setup validate --config <path>` |
+| `ia-dev-env init --config <path>` | `ia-dev-env generate --config <path>` |
+| `ia-dev-env init` (interactive) | `ia-dev-env generate --interactive` |
+| N/A | `ia-dev-env validate --config <path>` |
 | N/A | `--output-dir`, `--src-dir`, `--verbose`, `--dry-run` flags |
 
 ---
@@ -276,7 +276,7 @@ No new config files or environment variables. All behavior is controlled by:
 
 ```toml
 [project.scripts]
-claude-setup = "claude_setup.__main__:main"
+ia-dev-env = "ia_dev_env.__main__:main"
 ```
 
 No change needed -- the `main` function remains the Click group entry point.
@@ -321,7 +321,7 @@ Following the inner-to-outer rule:
 
 | File | Description |
 |------|-------------|
-| `claude_setup/utils.py` | Utility functions: `atomic_output`, `setup_logging`, `find_src_dir` |
+| `ia_dev_env/utils.py` | Utility functions: `atomic_output`, `setup_logging`, `find_src_dir` |
 | `tests/test_utils.py` | Unit tests for utils module |
 | `tests/test_pipeline.py` | Unit tests for `run_pipeline` with mocked assemblers |
 | `tests/test_cli_generate.py` | CLI tests for `generate` command |
@@ -331,10 +331,10 @@ Following the inner-to-outer rule:
 
 | File | Change |
 |------|--------|
-| `claude_setup/models.py` | Add `PipelineResult` dataclass |
-| `claude_setup/exceptions.py` | Add `PipelineError` exception class |
-| `claude_setup/assembler/__init__.py` | Add `run_pipeline()` function and `PipelineResult` re-export |
-| `claude_setup/__main__.py` | Replace `init` with `generate` and `validate` subcommands; add `--output-dir`, `--src-dir`, `--verbose`, `--dry-run` options |
+| `ia_dev_env/models.py` | Add `PipelineResult` dataclass |
+| `ia_dev_env/exceptions.py` | Add `PipelineError` exception class |
+| `ia_dev_env/assembler/__init__.py` | Add `run_pipeline()` function and `PipelineResult` re-export |
+| `ia_dev_env/__main__.py` | Replace `init` with `generate` and `validate` subcommands; add `--output-dir`, `--src-dir`, `--verbose`, `--dry-run` options |
 | `tests/test_cli_init.py` | Update/replace tests for new CLI structure |
 | `tests/test_cli.py` | Update tests for new CLI structure |
 
@@ -342,10 +342,10 @@ Following the inner-to-outer rule:
 
 | File | Reason |
 |------|--------|
-| `claude_setup/config.py` | `load_config()` already returns `ProjectConfig` -- no change needed |
-| `claude_setup/interactive.py` | `run_interactive()` already returns `ProjectConfig` -- no change needed |
-| `claude_setup/template_engine.py` | `TemplateEngine` API unchanged |
-| `claude_setup/domain/resolver.py` | `resolve_stack()` not needed by pipeline directly |
-| `claude_setup/domain/validator.py` | Used as-is by `validate` command |
-| `claude_setup/assembler/*.py` (individual assemblers) | All assemblers keep their existing interface |
+| `ia_dev_env/config.py` | `load_config()` already returns `ProjectConfig` -- no change needed |
+| `ia_dev_env/interactive.py` | `run_interactive()` already returns `ProjectConfig` -- no change needed |
+| `ia_dev_env/template_engine.py` | `TemplateEngine` API unchanged |
+| `ia_dev_env/domain/resolver.py` | `resolve_stack()` not needed by pipeline directly |
+| `ia_dev_env/domain/validator.py` | Used as-is by `validate` command |
+| `ia_dev_env/assembler/*.py` (individual assemblers) | All assemblers keep their existing interface |
 | `pyproject.toml` | Entry point unchanged |

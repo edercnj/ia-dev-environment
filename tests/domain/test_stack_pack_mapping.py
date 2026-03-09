@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from claude_setup.domain.stack_pack_mapping import (
+from ia_dev_env.domain.stack_pack_mapping import (
     FRAMEWORK_STACK_PACK,
     get_stack_pack_name,
 )

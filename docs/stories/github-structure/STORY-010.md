@@ -4,13 +4,13 @@
 
 ## Contexto do Gerador
 
-Esta historia implementa o `GithubAgentsAssembler` no gerador Python `claude_setup`. O assembler le templates de `resources/github-agents-templates/` e gera os arquivos `.github/agents/*.agent.md` no diretorio de saida. Tanto `.claude/` quanto `.github/` sao saidas geradas (ambos gitignored).
+Esta historia implementa o `GithubAgentsAssembler` no gerador Python `ia_dev_env`. O assembler le templates de `resources/github-agents-templates/` e gera os arquivos `.github/agents/*.agent.md` no diretorio de saida. Tanto `.claude/` quanto `.github/` sao saidas geradas (ambos gitignored).
 
 **Arquitetura do gerador:**
 
 | Componente | Caminho |
 | :--- | :--- |
-| Assembler | `src/claude_setup/assembler/github_agents_assembler.py` (novo) ou extensao de `agents.py` |
+| Assembler | `src/ia_dev_env/assembler/github_agents_assembler.py` (novo) ou extensao de `agents.py` |
 | Templates | `resources/github-agents-templates/*.agent.md.j2` |
 | Pipeline | Registrado em `assembler/__init__.py` via `_build_assemblers()` |
 | Golden files | `tests/golden/github-agents/` |
@@ -36,7 +36,7 @@ O assembler deve implementar `assemble(config, output_dir, resources_dir, engine
 
 ## 3. Descricao
 
-Como **Architect**, eu quero que o gerador `claude_setup` produza 10 custom agents em `.github/agents/*.agent.md`, adaptando os agents ja gerados em `.claude/agents/`. Cada agent deve ter persona clara, tools permitidos e tools proibidos explicitamente declarados no frontmatter YAML.
+Como **Architect**, eu quero que o gerador `ia_dev_env` produza 10 custom agents em `.github/agents/*.agent.md`, adaptando os agents ja gerados em `.claude/agents/`. Cada agent deve ter persona clara, tools permitidos e tools proibidos explicitamente declarados no frontmatter YAML.
 
 O `GithubAgentsAssembler` (ou extensao do `AgentsAssembler` existente) le templates Jinja2 de `resources/github-agents-templates/`, aplica variaveis do `ProjectConfig`, e escreve os arquivos `.agent.md` no `output_dir/.github/agents/`.
 
@@ -82,7 +82,7 @@ You are a security engineer specializing in application security...
 
 ### 3.3 Implementacao no gerador
 
-1. Criar `GithubAgentsAssembler` em `src/claude_setup/assembler/github_agents_assembler.py`
+1. Criar `GithubAgentsAssembler` em `src/ia_dev_env/assembler/github_agents_assembler.py`
 2. Criar 10 templates Jinja2 em `resources/github-agents-templates/`
 3. Registrar no pipeline em `assembler/__init__.py` (`_build_assemblers()`)
 4. Criar golden files em `tests/golden/github-agents/`
@@ -221,7 +221,7 @@ Cenario: Agent com extensao incorreta
 
 ## 8. Sub-tarefas
 
-- [ ] [Dev] Criar `src/claude_setup/assembler/github_agents_assembler.py` com classe `GithubAgentsAssembler`
+- [ ] [Dev] Criar `src/ia_dev_env/assembler/github_agents_assembler.py` com classe `GithubAgentsAssembler`
 - [ ] [Dev] Criar 10 templates Jinja2 em `resources/github-agents-templates/`
 - [ ] [Dev] Registrar `GithubAgentsAssembler` em `assembler/__init__.py` (`_build_assemblers()`)
 - [ ] [Dev] Criar golden files em `tests/golden/github-agents/` para os 10 agents

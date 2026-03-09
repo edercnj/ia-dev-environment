@@ -5,8 +5,8 @@ from pathlib import Path
 import pytest
 from jinja2 import StrictUndefined, TemplateNotFound, UndefinedError
 
-from claude_setup.models import ProjectConfig
-from claude_setup.template_engine import (
+from ia_dev_env.models import ProjectConfig
+from ia_dev_env.template_engine import (
     TemplateEngine,
     _build_default_context,
 )

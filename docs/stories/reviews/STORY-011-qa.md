@@ -13,7 +13,7 @@ PASSED:
   - AC2 (all tests pass after migration): 923 tests pass, all imports resolve correctly
   - AC3 (assets accessible in resources/): test_byte_for_byte.py, test_e2e_verification.py, test_verification_edge_cases.py all use RESOURCES_DIR
   - AC4 (output byte-identical): test_byte_for_byte.py with 8 golden profiles validates idempotency
-  - AC5 (no orphan files): src/ now contains only claude_setup/, resources/ contains non-Python assets
+  - AC5 (no orphan files): src/ now contains only ia_dev_env/, resources/ contains non-Python assets
 
 - [2] Line coverage >= 95% (2/2)
   - Measured: 98.48% (1943/1963 statements covered). Threshold: 95%.
@@ -72,14 +72,14 @@ N/A:
 
 | Area | Old Reference | New Reference | Status |
 |------|--------------|---------------|--------|
-| Production code (`src/claude_setup/`) | `find_src_dir` | `find_resources_dir` | CLEAN |
-| Production code (`src/claude_setup/`) | `src_dir` param | `resources_dir` param | CLEAN |
+| Production code (`src/ia_dev_env/`) | `find_src_dir` | `find_resources_dir` | CLEAN |
+| Production code (`src/ia_dev_env/`) | `src_dir` param | `resources_dir` param | CLEAN |
 | Test code (`tests/`) | `find_src_dir` | `find_resources_dir` | CLEAN |
 | Test code (`tests/`) | `SRC_DIR` constant | `RESOURCES_DIR` constant | CLEAN |
 | Test code (`tests/`) | `src_dir` variable | `resources_dir` variable | CLEAN |
 | Test mock patches | `find_src_dir` | `find_resources_dir` | CLEAN |
 | CLI option | `--src-dir` | `--resources-dir` | CLEAN |
-| pyproject.toml coverage source | `["claude_setup"]` | `["src/claude_setup"]` | CLEAN |
+| pyproject.toml coverage source | `["ia_dev_env"]` | `["src/ia_dev_env"]` | CLEAN |
 | pyproject.toml packages.find | (absent) | `where = ["src"]` | CLEAN |
 
 Grep verification: zero matches for `find_src_dir`, `SRC_DIR`, or `src_dir` in both `src/` and `tests/` directories.

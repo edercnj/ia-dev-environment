@@ -3,7 +3,7 @@
 This directory contains all Claude Code configuration for the **{{PROJECT_NAME}}** project.
 It includes coding rules, skills (slash commands), knowledge packs, agents, and hooks.
 
-> **Note:** Both `.claude/` and `.github/` directories are **generated outputs** produced by `claude_setup`.
+> **Note:** Both `.claude/` and `.github/` directories are **generated outputs** produced by `ia-dev-env`.
 > The generator writes `.github/` artifacts under `github/` in the output directory; rename to `.github/` when placing in a project root.
 > Do not edit them manually -- regenerate instead.
 
@@ -145,7 +145,7 @@ Configured in `settings.json` under the `hooks` key.
 - **Hooks run automatically** -- compilation after editing source files detects errors early.
 - **To create a new skill**: create `.claude/skills/{name}/SKILL.md` and it appears automatically.
 - **To create a new rule**: add a `.md` file in `.claude/rules/` with the appropriate numbering.
-- **Both directories are generated** -- run `claude_setup generate` to regenerate.
+- **Both directories are generated** -- run `ia-dev-env generate` to regenerate.
 
 ---
 

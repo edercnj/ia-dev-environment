@@ -32,17 +32,17 @@ N/A:
 
 The migration introduces two path resolution changes that were verified for traversal safety:
 
-1. **`find_resources_dir()` in `src/claude_setup/utils.py:74-81`**: Changed from `parent.parent / "src"` to `parent.parent.parent / "resources"`. The extra `.parent` traversal is correct because the package moved one level deeper (`src/claude_setup/` vs `claude_setup/`). The function uses `Path.resolve()` on `__file__`, eliminating symlink-based traversal. Returns only if `.is_dir()` succeeds.
+1. **`find_resources_dir()` in `src/ia_dev_env/utils.py:74-81`**: Changed from `parent.parent / "src"` to `parent.parent.parent / "resources"`. The extra `.parent` traversal is correct because the package moved one level deeper (`src/ia_dev_env/` vs `ia_dev_env/`). The function uses `Path.resolve()` on `__file__`, eliminating symlink-based traversal. Returns only if `.is_dir()` succeeds.
 
-2. **`RulesAssembler.assemble()` in `src/claude_setup/assembler/rules_assembler.py:32`**: Changed from `parent.parent.parent / "src"` to `parent.parent.parent.parent / "resources"`. Same pattern — adds one `.parent` to account for the new `src/` prefix. This is an internal path computed from the installed package location, not from user input.
+2. **`RulesAssembler.assemble()` in `src/ia_dev_env/assembler/rules_assembler.py:32`**: Changed from `parent.parent.parent / "src"` to `parent.parent.parent.parent / "resources"`. Same pattern — adds one `.parent` to account for the new `src/` prefix. This is an internal path computed from the installed package location, not from user input.
 
-3. **CLI `--resources-dir` option in `src/claude_setup/__main__.py:31`**: Uses `click.Path(exists=True)` which validates the path exists before passing to the application. The value is used directly as a `Path()` constructor argument without further sanitization, which is acceptable because Click already validates existence. The downstream `atomic_output()` applies symlink rejection and protected-path checks on the output directory.
+3. **CLI `--resources-dir` option in `src/ia_dev_env/__main__.py:31`**: Uses `click.Path(exists=True)` which validates the path exists before passing to the application. The value is used directly as a `Path()` constructor argument without further sanitization, which is acceptable because Click already validates existence. The downstream `atomic_output()` applies symlink rejection and protected-path checks on the output directory.
 
 ### coverage.json Assessment
 
-The `coverage.json` file committed at the project root contains only code coverage metrics (line numbers, branch counts, percentage summaries). It references internal module paths (`claude_setup/__init__.py`, etc.) but contains no secrets, credentials, or sensitive data. Note: this file appears to reference the old `claude_setup/` paths (pre-migration), suggesting it may have been generated before the layout change. This is not a security concern but may be a staleness issue.
+The `coverage.json` file committed at the project root contains only code coverage metrics (line numbers, branch counts, percentage summaries). It references internal module paths (`ia_dev_env/__init__.py`, etc.) but contains no secrets, credentials, or sensitive data. Note: this file appears to reference the old `ia_dev_env/` paths (pre-migration), suggesting it may have been generated before the layout change. This is not a security concern but may be a staleness issue.
 
 ### Moved Files Assessment
 
-All 300+ file renames are pure directory moves (`src/` to `resources/`, `claude_setup/` to `src/claude_setup/`). Content diffs are limited to variable renames (`src_dir` to `resources_dir`) and path adjustments. No new imports that bypass security boundaries were introduced. No new external dependencies added.
+All 300+ file renames are pure directory moves (`src/` to `resources/`, `ia_dev_env/` to `src/ia_dev_env/`). Content diffs are limited to variable renames (`src_dir` to `resources_dir`) and path adjustments. No new imports that bypass security boundaries were introduced. No new external dependencies added.
 ```

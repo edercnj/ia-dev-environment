@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from claude_setup.domain.resolved_stack import ResolvedStack
+from ia_dev_env.domain.resolved_stack import ResolvedStack
 
 
 class TestResolvedStack:

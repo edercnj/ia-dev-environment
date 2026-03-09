@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from claude_setup.domain.stack_mapping import (
+from ia_dev_env.domain.stack_mapping import (
     DOCKER_BASE_IMAGES,
     FRAMEWORK_HEALTH_PATHS,
     FRAMEWORK_LANGUAGE_RULES,

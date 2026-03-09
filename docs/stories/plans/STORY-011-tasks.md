@@ -24,7 +24,7 @@ G1 (Foundation) ──> G2 (Core Move) ──> G3 (Config) ──> G4 (Path Fixe
 
 G1 tasks have no internal dependencies (parallel).
 G2 depends on G1 (assets must be relocated before Python package moves into `src/`).
-G3 depends on G2 (pyproject.toml needs the package already in `src/claude_setup/`).
+G3 depends on G2 (pyproject.toml needs the package already in `src/ia_dev_env/`).
 G4 depends on G2 (path references must point to `resources/` after the move).
 G5 depends on G4 (test path fixes require production code paths to be final).
 G6 depends on G3+G5 (install and test run require all config and paths updated).
@@ -34,42 +34,42 @@ G7 depends on G6 (cleanup only after verification passes).
 
 ## Current File Inventory
 
-### Production Python files (33 files in `claude_setup/`)
+### Production Python files (33 files in `ia_dev_env/`)
 
 ```
-claude_setup/__init__.py
-claude_setup/__main__.py
-claude_setup/config.py
-claude_setup/exceptions.py
-claude_setup/interactive.py
-claude_setup/models.py
-claude_setup/template_engine.py
-claude_setup/utils.py
-claude_setup/verifier.py
-claude_setup/assembler/__init__.py
-claude_setup/assembler/agents.py
-claude_setup/assembler/auditor.py
-claude_setup/assembler/conditions.py
-claude_setup/assembler/consolidator.py
-claude_setup/assembler/copy_helpers.py
-claude_setup/assembler/hooks_assembler.py
-claude_setup/assembler/patterns_assembler.py
-claude_setup/assembler/protocols_assembler.py
-claude_setup/assembler/readme_assembler.py
-claude_setup/assembler/rules_assembler.py
-claude_setup/assembler/settings_assembler.py
-claude_setup/assembler/skills.py
-claude_setup/domain/__init__.py
-claude_setup/domain/core_kp_routing.py
-claude_setup/domain/pattern_mapping.py
-claude_setup/domain/protocol_mapping.py
-claude_setup/domain/resolved_stack.py
-claude_setup/domain/resolver.py
-claude_setup/domain/skill_registry.py
-claude_setup/domain/stack_mapping.py
-claude_setup/domain/stack_pack_mapping.py
-claude_setup/domain/validator.py
-claude_setup/domain/version_resolver.py
+ia_dev_env/__init__.py
+ia_dev_env/__main__.py
+ia_dev_env/config.py
+ia_dev_env/exceptions.py
+ia_dev_env/interactive.py
+ia_dev_env/models.py
+ia_dev_env/template_engine.py
+ia_dev_env/utils.py
+ia_dev_env/verifier.py
+ia_dev_env/assembler/__init__.py
+ia_dev_env/assembler/agents.py
+ia_dev_env/assembler/auditor.py
+ia_dev_env/assembler/conditions.py
+ia_dev_env/assembler/consolidator.py
+ia_dev_env/assembler/copy_helpers.py
+ia_dev_env/assembler/hooks_assembler.py
+ia_dev_env/assembler/patterns_assembler.py
+ia_dev_env/assembler/protocols_assembler.py
+ia_dev_env/assembler/readme_assembler.py
+ia_dev_env/assembler/rules_assembler.py
+ia_dev_env/assembler/settings_assembler.py
+ia_dev_env/assembler/skills.py
+ia_dev_env/domain/__init__.py
+ia_dev_env/domain/core_kp_routing.py
+ia_dev_env/domain/pattern_mapping.py
+ia_dev_env/domain/protocol_mapping.py
+ia_dev_env/domain/resolved_stack.py
+ia_dev_env/domain/resolver.py
+ia_dev_env/domain/skill_registry.py
+ia_dev_env/domain/stack_mapping.py
+ia_dev_env/domain/stack_pack_mapping.py
+ia_dev_env/domain/validator.py
+ia_dev_env/domain/version_resolver.py
 ```
 
 ### Non-Python assets (current `src/` directory)
@@ -95,7 +95,7 @@ src/setup.sh
 src/skills-templates/
 src/templates/
 src/tests/
-src/claude_setup.egg-info/  (to be deleted)
+src/ia_dev_env.egg-info/  (to be deleted)
 src/.claude/                 (to be deleted or kept)
 src/.editorconfig            (to be deleted or kept)
 src/.shellcheckrc            (to be deleted or kept)
@@ -211,7 +211,7 @@ ls src/        # should only have dotfiles, egg-info, .DS_Store left
 
 ---
 
-### T2: Remove `claude_setup.egg-info/` and other artifacts from `src/`
+### T2: Remove `ia_dev_env.egg-info/` and other artifacts from `src/`
 
 | Attribute | Value |
 |-----------|-------|
@@ -223,7 +223,7 @@ ls src/        # should only have dotfiles, egg-info, .DS_Store left
 
 **What to do:**
 
-1. Delete `src/claude_setup.egg-info/` (build artifact, should not be tracked)
+1. Delete `src/ia_dev_env.egg-info/` (build artifact, should not be tracked)
 2. Decide on `src/.claude/`, `src/.editorconfig`, `src/.shellcheckrc`:
    - If they belong to the resources context, move to `resources/`
    - If they are project-level dotfiles duplicated by mistake, delete them
@@ -232,7 +232,7 @@ ls src/        # should only have dotfiles, egg-info, .DS_Store left
 **Commands:**
 
 ```bash
-rm -rf src/claude_setup.egg-info
+rm -rf src/ia_dev_env.egg-info
 rm -f src/.DS_Store
 # Move or remove dotfiles as appropriate:
 git mv src/.editorconfig resources/.editorconfig 2>/dev/null || true
@@ -249,14 +249,14 @@ ls -la src/  # should be empty (or only __pycache__ which git ignores)
 
 ---
 
-## G2 -- Core Move: Move `claude_setup/` to `src/claude_setup/` (Sequential)
+## G2 -- Core Move: Move `ia_dev_env/` to `src/ia_dev_env/` (Sequential)
 
 ### T3: Move Python package to src layout
 
 | Attribute | Value |
 |-----------|-------|
 | **Task ID** | G2-T3 |
-| **Title** | Move `claude_setup/` directory to `src/claude_setup/` |
+| **Title** | Move `ia_dev_env/` directory to `src/ia_dev_env/` |
 | **Layer** | filesystem |
 | **Depends on** | G1-T1, G1-T2 |
 | **Blocks** | G3-T4, G4-T5, G4-T6, G4-T7 |
@@ -264,12 +264,12 @@ ls -la src/  # should be empty (or only __pycache__ which git ignores)
 **What to do:**
 
 1. Ensure `src/` is empty (all assets moved in G1)
-2. Move `claude_setup/` into `src/claude_setup/`
+2. Move `ia_dev_env/` into `src/ia_dev_env/`
 3. The internal structure remains unchanged:
-   - `src/claude_setup/__init__.py`
-   - `src/claude_setup/__main__.py`
-   - `src/claude_setup/assembler/`
-   - `src/claude_setup/domain/`
+   - `src/ia_dev_env/__init__.py`
+   - `src/ia_dev_env/__main__.py`
+   - `src/ia_dev_env/assembler/`
+   - `src/ia_dev_env/domain/`
    - etc.
 
 **Commands:**
@@ -277,22 +277,22 @@ ls -la src/  # should be empty (or only __pycache__ which git ignores)
 ```bash
 # src/ should be empty at this point (or removed entirely)
 # If src/ still exists but is empty:
-git mv claude_setup src/claude_setup
+git mv ia_dev_env src/ia_dev_env
 
 # If src/ was fully removed:
 mkdir -p src
-git mv claude_setup src/claude_setup
+git mv ia_dev_env src/ia_dev_env
 ```
 
 **Verify:**
 
 ```bash
-ls src/claude_setup/__init__.py          # must exist
-ls src/claude_setup/__main__.py          # must exist
-ls src/claude_setup/assembler/__init__.py # must exist
-ls src/claude_setup/domain/__init__.py    # must exist
-find src/claude_setup -name "*.py" | wc -l  # should be 33
-test ! -d claude_setup && echo "OK: old dir removed"
+ls src/ia_dev_env/__init__.py          # must exist
+ls src/ia_dev_env/__main__.py          # must exist
+ls src/ia_dev_env/assembler/__init__.py # must exist
+ls src/ia_dev_env/domain/__init__.py    # must exist
+find src/ia_dev_env -name "*.py" | wc -l  # should be 33
+test ! -d ia_dev_env && echo "OK: old dir removed"
 ```
 
 ---
@@ -312,8 +312,8 @@ test ! -d claude_setup && echo "OK: old dir removed"
 **What to do:**
 
 1. Add `[tool.setuptools.packages.find]` section with `where = ["src"]`
-2. Update `[tool.coverage.run]` source from `["claude_setup"]` to `["src/claude_setup"]`
-3. Entry point `claude-setup = "claude_setup.__main__:main"` stays the same (setuptools resolves via `packages.find`)
+2. Update `[tool.coverage.run]` source from `["ia_dev_env"]` to `["src/ia_dev_env"]`
+3. Entry point `ia-dev-env = "ia_dev_env.__main__:main"` stays the same (setuptools resolves via `packages.find`)
 
 **Files to modify:**
 
@@ -323,7 +323,7 @@ test ! -d claude_setup && echo "OK: old dir removed"
 
 ```toml
 [tool.coverage.run]
-source = ["claude_setup"]
+source = ["ia_dev_env"]
 branch = true
 ```
 
@@ -334,7 +334,7 @@ branch = true
 where = ["src"]
 
 [tool.coverage.run]
-source = ["src/claude_setup"]
+source = ["src/ia_dev_env"]
 branch = true
 ```
 
@@ -346,8 +346,8 @@ import tomllib
 with open('pyproject.toml', 'rb') as f:
     d = tomllib.load(f)
 assert d['tool']['setuptools']['packages']['find']['where'] == ['src']
-assert d['tool']['coverage']['run']['source'] == ['src/claude_setup']
-assert d['project']['scripts']['claude-setup'] == 'claude_setup.__main__:main'
+assert d['tool']['coverage']['run']['source'] == ['src/ia_dev_env']
+assert d['project']['scripts']['ia-dev-env'] == 'ia_dev_env.__main__:main'
 print('pyproject.toml OK')
 "
 ```
@@ -368,11 +368,11 @@ print('pyproject.toml OK')
 
 **What to do:**
 
-1. In `src/claude_setup/utils.py`:
+1. In `src/ia_dev_env/utils.py`:
    - Rename function `find_src_dir()` to `find_resources_dir()`
    - Update the docstring from "Locate the src/ directory" to "Locate the resources/ directory"
    - Change the path resolution from `parent.parent / "src"` to `parent.parent.parent / "resources"`
-     (After the move, `__file__` is at `src/claude_setup/utils.py`, so `.parent.parent.parent` gets to project root)
+     (After the move, `__file__` is at `src/ia_dev_env/utils.py`, so `.parent.parent.parent` gets to project root)
    - Update error message accordingly
 
 **Before:**
@@ -404,8 +404,8 @@ def find_resources_dir() -> Path:
 **Verify:**
 
 ```bash
-grep -n "find_resources_dir" src/claude_setup/utils.py
-grep -c "find_src_dir" src/claude_setup/utils.py  # should be 0
+grep -n "find_resources_dir" src/ia_dev_env/utils.py
+grep -c "find_src_dir" src/ia_dev_env/utils.py  # should be 0
 ```
 
 ---
@@ -422,7 +422,7 @@ grep -c "find_src_dir" src/claude_setup/utils.py  # should be 0
 
 **What to do:**
 
-1. In `src/claude_setup/__main__.py`:
+1. In `src/ia_dev_env/__main__.py`:
    - Change import from `find_src_dir` to `find_resources_dir`
    - Rename CLI option `--src-dir` to `--resources-dir` (or keep `--src-dir` as deprecated alias -- decision needed)
    - Rename parameter `src_dir` to `resources_dir` throughout
@@ -438,13 +438,13 @@ Recommendation: **(A)** since this is pre-1.0 and the option semantics change.
 
 **Files to modify:**
 
-- `src/claude_setup/__main__.py`
+- `src/ia_dev_env/__main__.py`
 
 **Key changes:**
 
 ```python
 # Import
-from claude_setup.utils import find_resources_dir, setup_logging
+from ia_dev_env.utils import find_resources_dir, setup_logging
 
 # CLI option
 @click.option("--resources-dir", "-s", type=click.Path(exists=True), default=None, help="Resources templates directory.")
@@ -466,8 +466,8 @@ def _resolve_resources_dir(resources_dir: Optional[str]) -> Path:
 **Verify:**
 
 ```bash
-grep -c "find_src_dir\|src_dir" src/claude_setup/__main__.py  # should be 0
-grep -c "find_resources_dir\|resources_dir" src/claude_setup/__main__.py  # should be > 0
+grep -c "find_src_dir\|src_dir" src/ia_dev_env/__main__.py  # should be 0
+grep -c "find_resources_dir\|resources_dir" src/ia_dev_env/__main__.py  # should be > 0
 ```
 
 ---
@@ -492,33 +492,33 @@ This is the largest task. All assembler and domain files that accept a `src_dir:
 
 | File | Changes |
 |------|---------|
-| `src/claude_setup/assembler/__init__.py` | Rename `src_dir` param in `_build_assemblers`, `_assemble_all`, `_run_in_temp`, `_run_dry`, `_run_real`, `run_pipeline`; rename `ASSEMBLERS_WITH_SRC_DIR` constant |
-| `src/claude_setup/assembler/agents.py` | Rename `src_dir` param in all methods (~20 occurrences) |
-| `src/claude_setup/assembler/hooks_assembler.py` | Rename `self._src_dir` to `self._resources_dir`, constructor param |
-| `src/claude_setup/assembler/patterns_assembler.py` | Rename `self._src_dir` to `self._resources_dir`, constructor param |
-| `src/claude_setup/assembler/protocols_assembler.py` | Rename `self._src_dir` to `self._resources_dir`, constructor param |
-| `src/claude_setup/assembler/readme_assembler.py` | Rename `self._src_dir` to `self._resources_dir`, constructor param |
-| `src/claude_setup/assembler/rules_assembler.py` | Rename `src_dir` in all methods + hardcoded path at line 32: `parent.parent.parent / "src"` -> `parent.parent.parent.parent / "resources"` |
-| `src/claude_setup/assembler/settings_assembler.py` | Rename `self._src_dir` to `self._resources_dir`, constructor param |
-| `src/claude_setup/assembler/skills.py` | Rename `src_dir` param in all methods (~20 occurrences) |
-| `src/claude_setup/assembler/copy_helpers.py` | Rename `src_dir` if present |
-| `src/claude_setup/assembler/consolidator.py` | Check for `src_dir` references |
-| `src/claude_setup/domain/pattern_mapping.py` | Rename `src_dir` param |
-| `src/claude_setup/domain/protocol_mapping.py` | Rename `src_dir` param |
-| `src/claude_setup/domain/validator.py` | Rename `src_dir` param and error message |
-| `src/claude_setup/template_engine.py` | Rename `src_dir` param in constructor |
+| `src/ia_dev_env/assembler/__init__.py` | Rename `src_dir` param in `_build_assemblers`, `_assemble_all`, `_run_in_temp`, `_run_dry`, `_run_real`, `run_pipeline`; rename `ASSEMBLERS_WITH_SRC_DIR` constant |
+| `src/ia_dev_env/assembler/agents.py` | Rename `src_dir` param in all methods (~20 occurrences) |
+| `src/ia_dev_env/assembler/hooks_assembler.py` | Rename `self._src_dir` to `self._resources_dir`, constructor param |
+| `src/ia_dev_env/assembler/patterns_assembler.py` | Rename `self._src_dir` to `self._resources_dir`, constructor param |
+| `src/ia_dev_env/assembler/protocols_assembler.py` | Rename `self._src_dir` to `self._resources_dir`, constructor param |
+| `src/ia_dev_env/assembler/readme_assembler.py` | Rename `self._src_dir` to `self._resources_dir`, constructor param |
+| `src/ia_dev_env/assembler/rules_assembler.py` | Rename `src_dir` in all methods + hardcoded path at line 32: `parent.parent.parent / "src"` -> `parent.parent.parent.parent / "resources"` |
+| `src/ia_dev_env/assembler/settings_assembler.py` | Rename `self._src_dir` to `self._resources_dir`, constructor param |
+| `src/ia_dev_env/assembler/skills.py` | Rename `src_dir` param in all methods (~20 occurrences) |
+| `src/ia_dev_env/assembler/copy_helpers.py` | Rename `src_dir` if present |
+| `src/ia_dev_env/assembler/consolidator.py` | Check for `src_dir` references |
+| `src/ia_dev_env/domain/pattern_mapping.py` | Rename `src_dir` param |
+| `src/ia_dev_env/domain/protocol_mapping.py` | Rename `src_dir` param |
+| `src/ia_dev_env/domain/validator.py` | Rename `src_dir` param and error message |
+| `src/ia_dev_env/template_engine.py` | Rename `src_dir` param in constructor |
 
 **Critical path change in `rules_assembler.py` (line 32):**
 
 ```python
-# Before (from src/claude_setup/assembler/rules_assembler.py):
+# Before (from src/ia_dev_env/assembler/rules_assembler.py):
 src_dir = Path(__file__).resolve().parent.parent.parent / "src"
 
 # After:
 resources_dir = Path(__file__).resolve().parent.parent.parent.parent / "resources"
-# Because __file__ is now at src/claude_setup/assembler/rules_assembler.py
-# .parent = src/claude_setup/assembler/
-# .parent.parent = src/claude_setup/
+# Because __file__ is now at src/ia_dev_env/assembler/rules_assembler.py
+# .parent = src/ia_dev_env/assembler/
+# .parent.parent = src/ia_dev_env/
 # .parent.parent.parent = src/
 # .parent.parent.parent.parent = project_root/
 ```
@@ -527,11 +527,11 @@ resources_dir = Path(__file__).resolve().parent.parent.parent.parent / "resource
 
 ```bash
 # No remaining references to src_dir in production code (excluding the src/ directory name itself)
-grep -rn "src_dir" src/claude_setup/ | grep -v "__pycache__"  # should be 0
-grep -rn "find_src_dir" src/claude_setup/  # should be 0
+grep -rn "src_dir" src/ia_dev_env/ | grep -v "__pycache__"  # should be 0
+grep -rn "find_src_dir" src/ia_dev_env/  # should be 0
 
 # Confirm resources_dir is used
-grep -rn "resources_dir" src/claude_setup/ | grep -v "__pycache__" | wc -l  # should be > 50
+grep -rn "resources_dir" src/ia_dev_env/ | grep -v "__pycache__" | wc -l  # should be > 50
 ```
 
 ---
@@ -649,38 +649,38 @@ grep -rn "src_dir" tests/ | grep -v "__pycache__" | grep -v "# legacy"  # should
 2. Reinstall in editable mode
 3. Verify import works
 4. Run full test suite with coverage
-5. Verify `claude-setup --help` works
+5. Verify `ia-dev-env --help` works
 
 **Commands:**
 
 ```bash
 # Step 1: Clean install
-pip uninstall claude-setup -y 2>/dev/null || true
-rm -rf src/claude_setup.egg-info claude_setup.egg-info *.egg-info
+pip uninstall ia-dev-env -y 2>/dev/null || true
+rm -rf src/ia_dev_env.egg-info ia_dev_env.egg-info *.egg-info
 pip install -e ".[dev]"
 
 # Step 2: Verify import
-python -c "import claude_setup; print(claude_setup.__version__)"
+python -c "import ia_dev_env; print(ia_dev_env.__version__)"
 
 # Step 3: Verify import protection (should fail when NOT installed)
 # This test must be run in a clean venv without pip install -e .
 # For now, verify the positive case:
-python -c "from claude_setup.assembler import run_pipeline; print('OK')"
+python -c "from ia_dev_env.assembler import run_pipeline; print('OK')"
 
 # Step 4: Run tests
-pytest tests/ -v --tb=short --cov=claude_setup --cov-report=term-missing --cov-branch
+pytest tests/ -v --tb=short --cov=ia_dev_env --cov-report=term-missing --cov-branch
 
 # Step 5: Verify CLI
-claude-setup --help
-claude-setup generate --help
-claude-setup validate --help
+ia-dev-env --help
+ia-dev-env generate --help
+ia-dev-env validate --help
 ```
 
 **Acceptance criteria:**
 
 - [ ] `pip install -e .` completes without errors
-- [ ] `import claude_setup` works
-- [ ] `claude-setup --help` shows usage
+- [ ] `import ia_dev_env` works
+- [ ] `ia-dev-env --help` shows usage
 - [ ] All tests pass (923+ tests)
 - [ ] Line coverage >= 95%
 - [ ] Branch coverage >= 90%
@@ -740,17 +740,17 @@ pytest tests/test_byte_for_byte.py tests/test_e2e_verification.py -v  # all pass
 
 **What to do:**
 
-1. Verify `claude_setup/` does NOT exist at project root
-2. Verify `src/` contains ONLY `claude_setup/` (no leftover assets)
+1. Verify `ia_dev_env/` does NOT exist at project root
+2. Verify `src/` contains ONLY `ia_dev_env/` (no leftover assets)
 3. Remove any stale `__pycache__` directories in old locations
-4. Remove `claude_setup.egg-info` from project root if present
+4. Remove `ia_dev_env.egg-info` from project root if present
 5. Verify `.gitignore` includes egg-info patterns
 
 **Commands:**
 
 ```bash
 # Verify no orphan directories
-test ! -d claude_setup && echo "OK: no claude_setup/ at root"
+test ! -d ia_dev_env && echo "OK: no ia_dev_env/ at root"
 test ! -f src/setup.sh && echo "OK: no assets in src/"
 test ! -d src/agents-templates && echo "OK: no asset dirs in src/"
 
@@ -758,10 +758,10 @@ test ! -d src/agents-templates && echo "OK: no asset dirs in src/"
 find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 
 # Remove egg-info at root
-rm -rf claude_setup.egg-info
+rm -rf ia_dev_env.egg-info
 
-# Verify src/ only has claude_setup/
-ls src/  # should show only: claude_setup/
+# Verify src/ only has ia_dev_env/
+ls src/  # should show only: ia_dev_env/
 
 # Verify resources/ has all assets
 ls resources/ | wc -l  # should be ~20 items
@@ -782,7 +782,7 @@ ls resources/ | wc -l  # should be ~20 items
 **What to do:**
 
 1. Update `README.md` directory structure section to reflect:
-   - `src/claude_setup/` (Python package)
+   - `src/ia_dev_env/` (Python package)
    - `resources/` (templates, configs, scripts)
 2. Update `scripts/generate_golden.py`:
    - `SRC_DIR = PROJECT_ROOT / "src"` -> `RESOURCES_DIR = PROJECT_ROOT / "resources"`
@@ -800,7 +800,7 @@ ls resources/ | wc -l  # should be ~20 items
 
 ```bash
 # No stale references to "src/" meaning the assets directory (not the Python src layout)
-grep -rn '"src/' README.md scripts/ .claude/rules/ | grep -v "src/claude_setup" | grep -v "__pycache__"
+grep -rn '"src/' README.md scripts/ .claude/rules/ | grep -v "src/ia_dev_env" | grep -v "__pycache__"
 # Should be 0 or only legitimate references to src layout
 ```
 
@@ -824,7 +824,7 @@ grep -rn '"src/' README.md scripts/ .claude/rules/ | grep -v "src/claude_setup" 
 |-------|------|-------|---------|-----------|
 | G1 | T1 | Move asset dirs to `resources/` | -- | 20 dirs |
 | G1 | T2 | Remove egg-info and artifacts | -- | 3-5 items |
-| G2 | T3 | Move `claude_setup/` to `src/claude_setup/` | T1, T2 | 33 files |
+| G2 | T3 | Move `ia_dev_env/` to `src/ia_dev_env/` | T1, T2 | 33 files |
 | G3 | T4 | Update `pyproject.toml` | T3 | 1 file |
 | G4 | T5 | Rename `find_src_dir` in `utils.py` | T3 | 1 file |
 | G4 | T6 | Update `__main__.py` | T3 | 1 file |

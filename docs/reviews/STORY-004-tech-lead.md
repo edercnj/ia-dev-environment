@@ -35,7 +35,7 @@ None.
 
 ## Artifacts Reviewed
 
-- `src/claude_setup/assembler/github_skills_assembler.py` — 5-line addition
+- `src/ia_dev_env/assembler/github_skills_assembler.py` — 5-line addition
 - `resources/github-skills-templates/dev/x-dev-implement.md` — 128 lines
 - `resources/github-skills-templates/dev/x-dev-lifecycle.md` — 182 lines
 - `resources/github-skills-templates/dev/layer-templates.md` — 481 lines

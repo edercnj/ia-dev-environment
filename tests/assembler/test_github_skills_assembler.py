@@ -7,12 +7,12 @@ from typing import List
 import pytest
 import yaml
 
-from claude_setup.assembler.github_skills_assembler import (
+from ia_dev_env.assembler.github_skills_assembler import (
     SKILL_GROUPS,
     GithubSkillsAssembler,
 )
-from claude_setup.models import ProjectConfig
-from claude_setup.template_engine import TemplateEngine
+from ia_dev_env.models import ProjectConfig
+from ia_dev_env.template_engine import TemplateEngine
 
 from tests.conftest import FULL_PROJECT_DICT, MINIMAL_PROJECT_DICT
 

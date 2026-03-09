@@ -5,9 +5,9 @@ from pathlib import Path
 
 import pytest
 
-from claude_setup.assembler.hooks_assembler import HooksAssembler
-from claude_setup.models import ProjectConfig
-from claude_setup.template_engine import TemplateEngine
+from ia_dev_env.assembler.hooks_assembler import HooksAssembler
+from ia_dev_env.models import ProjectConfig
+from ia_dev_env.template_engine import TemplateEngine
 
 
 def _create_hook_src(base: Path, key: str) -> Path:

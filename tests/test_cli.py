@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from click.testing import CliRunner
 
-from claude_setup import __version__
-from claude_setup.__main__ import main
+from ia_dev_env import __version__
+from ia_dev_env.__main__ import main
 
 
 class TestCli:

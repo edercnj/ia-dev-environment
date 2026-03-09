@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from claude_setup.domain.version_resolver import find_version_dir
+from ia_dev_env.domain.version_resolver import find_version_dir
 
 
 class TestVersionResolver:

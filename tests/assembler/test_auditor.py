@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from claude_setup.assembler.auditor import (
+from ia_dev_env.assembler.auditor import (
     MAX_FILE_COUNT,
     MAX_TOTAL_BYTES,
     AuditResult,

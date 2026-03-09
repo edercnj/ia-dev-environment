@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from click.testing import CliRunner
 
-from claude_setup.interactive import run_interactive
-from claude_setup.models import ProjectConfig
+from ia_dev_env.interactive import run_interactive
+from ia_dev_env.models import ProjectConfig
 
 
 def _build_interactive_input(

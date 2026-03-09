@@ -18,13 +18,13 @@
 
 ## 3. Descrição
 
-Como **DevOps Engineer**, eu quero que o gerador `claude_setup` produza `.github/copilot-mcp.json` com a configuração de MCP servers para integrações externas, garantindo paridade com a configuração MCP já gerada em `.claude/settings.json` pelo `SettingsAssembler`.
+Como **DevOps Engineer**, eu quero que o gerador `ia_dev_env` produza `.github/copilot-mcp.json` com a configuração de MCP servers para integrações externas, garantindo paridade com a configuração MCP já gerada em `.claude/settings.json` pelo `SettingsAssembler`.
 
 A configuração MCP é independente de todas as outras histórias e pode ser implementada em paralelo com STORY-001. Um novo assembler (`GithubMcpAssembler`) lê os dados de MCP servers do `ProjectConfig` e gera o JSON no formato Copilot. Tanto `.github/copilot-mcp.json` quanto `.claude/settings.json` são output gerado (gitignored).
 
 ### 3.1 Contexto Técnico (Gerador)
 
-**Novo assembler:** `GithubMcpAssembler` em `src/claude_setup/assembler/github_mcp_assembler.py`
+**Novo assembler:** `GithubMcpAssembler` em `src/ia_dev_env/assembler/github_mcp_assembler.py`
 
 - **Padrão:** Seguir o mesmo padrão de `GithubInstructionsAssembler` e `SettingsAssembler`
 - **Input:** `ProjectConfig` (seção de MCP servers, mesmos dados usados pelo `SettingsAssembler`)
@@ -58,7 +58,7 @@ A configuração MCP é independente de todas as outras histórias e pode ser im
 
 ### DoD Local (Definition of Done)
 
-- [ ] `GithubMcpAssembler` implementado em `src/claude_setup/assembler/github_mcp_assembler.py`
+- [ ] `GithubMcpAssembler` implementado em `src/ia_dev_env/assembler/github_mcp_assembler.py`
 - [ ] Template(s) criado(s) em `resources/github-mcp-templates/` (se aplicável)
 - [ ] Assembler registrado em `_build_assemblers()` na posição correta
 - [ ] Golden files atualizados em `tests/golden/` com output esperado
@@ -94,7 +94,7 @@ A configuração MCP é independente de todas as outras histórias e pode ser im
 
 ```mermaid
 sequenceDiagram
-    participant Y as claude-setup.yaml
+    participant Y as ia-dev-env.yaml
     participant P as ProjectConfig
     participant A as GithubMcpAssembler
     participant T as resources/github-mcp-templates/
@@ -145,7 +145,7 @@ Cenario: Pipeline registra novo assembler
 
 ## 8. Sub-tarefas
 
-- [ ] [Dev] Criar `GithubMcpAssembler` em `src/claude_setup/assembler/github_mcp_assembler.py` com `assemble()`
+- [ ] [Dev] Criar `GithubMcpAssembler` em `src/ia_dev_env/assembler/github_mcp_assembler.py` com `assemble()`
 - [ ] [Dev] Criar template(s) em `resources/github-mcp-templates/` (se geração por template)
 - [ ] [Dev] Registrar assembler em `_build_assemblers()` no `assembler/__init__.py`
 - [ ] [Dev] Mapear dados MCP de `ProjectConfig` para formato JSON Copilot

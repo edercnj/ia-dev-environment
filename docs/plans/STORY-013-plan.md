@@ -5,7 +5,7 @@
 | Component | Action | Path |
 |-----------|--------|------|
 | README template | Extend | `resources/readme-template.md` |
-| ReadmeAssembler | Extend | `src/claude_setup/assembler/readme_assembler.py` |
+| ReadmeAssembler | Extend | `src/ia_dev_env/assembler/readme_assembler.py` |
 | Validation script | Create | `scripts/validate-github-structure.py` |
 | Golden files | Regenerate | `tests/golden/*/README.md` |
 

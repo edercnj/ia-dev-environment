@@ -31,9 +31,9 @@
 | File | Purpose |
 |------|---------|
 | `pyproject.toml` | Project metadata, dependencies, entry points |
-| `claude_setup/__init__.py` | Package init (version constant) |
+| `ia_dev_env/__init__.py` | Package init (version constant) |
 
-### 2.2 Domain Models (`claude_setup/models.py`)
+### 2.2 Domain Models (`ia_dev_env/models.py`)
 
 All classes use `@dataclass` with `from __future__ import annotations` for Python 3.9 forward-reference compatibility. Each dataclass includes a `from_dict(cls, data: dict)` class method factory.
 
@@ -62,19 +62,19 @@ All classes use `@dataclass` with `from __future__ import annotations` for Pytho
 | `SettingsConfig` | Settings toggles | `auto_generate: bool` |
 | `ProjectConfig` | **Aggregate root** | All above as fields; `from_dict()` orchestrates full deserialization |
 
-### 2.3 Entry Point (`claude_setup/__main__.py`)
+### 2.3 Entry Point (`ia_dev_env/__main__.py`)
 
 | Component | Description |
 |-----------|-------------|
 | `main()` | Click group or command with `--help` support, `--version` flag |
 
-Minimal implementation -- just enough to satisfy `python -m claude_setup --help` returning exit code 0.
+Minimal implementation -- just enough to satisfy `python -m ia_dev_env --help` returning exit code 0.
 
 ### 2.4 Scaffolding (Empty Packages)
 
 | Path | Purpose |
 |------|---------|
-| `claude_setup/assembler/__init__.py` | Assembler subpackage placeholder |
+| `ia_dev_env/assembler/__init__.py` | Assembler subpackage placeholder |
 | `tests/__init__.py` | Test package init |
 | `tests/test_models.py` | Unit tests for all dataclasses |
 
@@ -82,16 +82,16 @@ Minimal implementation -- just enough to satisfy `python -m claude_setup --help`
 
 ## 3. Existing Classes to Modify
 
-**None.** This is a greenfield story. The `claude_setup/` package does not exist yet.
+**None.** This is a greenfield story. The `ia_dev_env/` package does not exist yet.
 
 ---
 
 ## 4. Dependency Direction Validation
 
 ```
-claude_setup/models.py       -> standard library only (dataclasses, typing)
-claude_setup/__main__.py     -> click (framework), claude_setup.models (domain)
-tests/                        -> pytest, claude_setup.models
+ia_dev_env/models.py       -> standard library only (dataclasses, typing)
+ia_dev_env/__main__.py     -> click (framework), ia_dev_env.models (domain)
+tests/                        -> pytest, ia_dev_env.models
 ```
 
 **Validation:**
@@ -130,9 +130,9 @@ tests/                        -> pytest, claude_setup.models
 **CLI contract (minimal for this story):**
 
 ```
-claude-setup --help       -> Usage info, exit code 0
-claude-setup --version    -> Version string, exit code 0
-python -m claude_setup --help  -> Same as above
+ia-dev-env --help       -> Usage info, exit code 0
+ia-dev-env --version    -> Version string, exit code 0
+python -m ia_dev_env --help  -> Same as above
 ```
 
 ---
@@ -153,7 +153,7 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.backends._legacy:_Backend"
 
 [project]
-name = "claude-setup"
+name = "ia-dev-env"
 version = "0.1.0"
 requires-python = ">=3.9"
 dependencies = [
@@ -169,13 +169,13 @@ dev = [
 ]
 
 [project.scripts]
-claude-setup = "claude_setup.__main__:main"
+ia-dev-env = "ia_dev_env.__main__:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
 [tool.coverage.run]
-source = ["claude_setup"]
+source = ["ia_dev_env"]
 branch = true
 
 [tool.coverage.report]
@@ -198,7 +198,7 @@ None required for this story.
 | `from_dict()` fragility with missing keys | Medium | Medium | Use `dict.get(key, default)` for all optional fields. Required fields raise `KeyError` with descriptive message wrapping. |
 | Downstream story coupling to model shape | High | High | This is the foundation story. Any model change after Phase 0 forces changes in STORY-002 through STORY-009. Mitigate by covering ALL YAML sections now, including `cloud`, `testing`, `conventions`, `skills`, `agents`, `hooks`, `settings`. |
 | `dataclass` default mutable gotcha | Medium | Medium | Never use mutable defaults (`list`, `dict`) directly. Use `field(default_factory=list)` from `dataclasses`. |
-| Entry point naming collision | Low | Low | Verify `claude-setup` script name does not collide with existing packages on PyPI. |
+| Entry point naming collision | Low | Low | Verify `ia-dev-env` script name does not collide with existing packages on PyPI. |
 
 ---
 
@@ -207,20 +207,20 @@ None required for this story.
 Execute sub-tasks in this sequence:
 
 1. **Create `pyproject.toml`** -- project metadata, dependencies, entry points
-2. **Create `claude_setup/__init__.py`** -- package init with `__version__`
-3. **Create `claude_setup/models.py`** -- all dataclasses with `from_dict()` factories
-4. **Create `claude_setup/__main__.py`** -- minimal Click entry point
-5. **Create `claude_setup/assembler/__init__.py`** -- empty assembler package
+2. **Create `ia_dev_env/__init__.py`** -- package init with `__version__`
+3. **Create `ia_dev_env/models.py`** -- all dataclasses with `from_dict()` factories
+4. **Create `ia_dev_env/__main__.py`** -- minimal Click entry point
+5. **Create `ia_dev_env/assembler/__init__.py`** -- empty assembler package
 6. **Create `tests/__init__.py`** -- test package init
 7. **Create `tests/test_models.py`** -- unit tests for all models
-8. **Validate** -- `pip install -e .`, `claude-setup --help`, `pytest --cov`
+8. **Validate** -- `pip install -e .`, `ia-dev-env --help`, `pytest --cov`
 
 ---
 
 ## File Tree (Final State)
 
 ```
-claude_setup/
+ia_dev_env/
     __init__.py              # __version__ = "0.1.0"
     __main__.py              # Click entry point: main()
     models.py                # All dataclasses + from_dict() factories
@@ -244,5 +244,5 @@ pyproject.toml               # Build config, deps, scripts
 | Package installation (`pip install -e .`) | Sub-task 8: manual + CI validation |
 | `ProjectConfig.from_dict(data)` with full YAML | `test_models.py`: test with Java-Quarkus full config dict |
 | `ProjectConfig.from_dict(data)` with minimal YAML | `test_models.py`: test with only required fields |
-| `python -m claude_setup --help` exits 0 | `test_models.py` or integration test: subprocess call |
+| `python -m ia_dev_env --help` exits 0 | `test_models.py` or integration test: subprocess call |
 | Coverage >= 95% line, >= 90% branch | `pytest --cov` with `fail_under=95` in pyproject.toml |

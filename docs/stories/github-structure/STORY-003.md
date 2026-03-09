@@ -21,13 +21,13 @@
 
 ## 3. Descrição
 
-Como **Product Owner Técnico**, eu quero que o gerador `claude_setup` produza skills de story/planning (`x-story-epic`, `x-story-create`, `x-story-map`, `x-story-epic-full`, `story-planning`) em `.github/skills/`, garantindo que o fluxo de decomposição de specs em épicos e histórias funcione no Copilot com a mesma qualidade.
+Como **Product Owner Técnico**, eu quero que o gerador `ia_dev_env` produza skills de story/planning (`x-story-epic`, `x-story-create`, `x-story-map`, `x-story-epic-full`, `story-planning`) em `.github/skills/`, garantindo que o fluxo de decomposição de specs em épicos e histórias funcione no Copilot com a mesma qualidade.
 
 Este é o primeiro grupo de skills `.github/` a ser gerado e estabelece o padrão canônico para skills Copilot com frontmatter YAML, progressive disclosure em 3 níveis e referências a conteúdo existente. As skills de story são exceção de idioma (pt-BR conforme RULE-004). O assembler gera os arquivos a partir de templates em `resources/` com placeholder replacement via `TemplateEngine`.
 
 ### 3.1 Contexto Técnico (Gerador)
 
-**Novo assembler:** `GithubSkillsAssembler` (ou extensão do pipeline) em `src/claude_setup/assembler/github_skills_assembler.py`
+**Novo assembler:** `GithubSkillsAssembler` (ou extensão do pipeline) em `src/ia_dev_env/assembler/github_skills_assembler.py`
 
 - **Padrão:** Seguir o mesmo padrão de `GithubInstructionsAssembler` (templates + `TemplateEngine`)
 - **Input:** `ProjectConfig` + templates em `resources/github-skills-templates/story/`
@@ -113,7 +113,7 @@ description: >
 
 ```mermaid
 sequenceDiagram
-    participant Y as claude-setup.yaml
+    participant Y as ia-dev-env.yaml
     participant P as ProjectConfig
     participant E as TemplateEngine
     participant A as GithubSkillsAssembler
@@ -169,7 +169,7 @@ Cenario: Referência cruzada sem duplicação no output
 
 ## 8. Sub-tarefas
 
-- [ ] [Dev] Implementar `GithubSkillsAssembler` em `src/claude_setup/assembler/github_skills_assembler.py` (ou extensão do pipeline)
+- [ ] [Dev] Implementar `GithubSkillsAssembler` em `src/ia_dev_env/assembler/github_skills_assembler.py` (ou extensão do pipeline)
 - [ ] [Dev] Criar template `resources/github-skills-templates/story/x-story-epic.md` com frontmatter e body
 - [ ] [Dev] Criar template `resources/github-skills-templates/story/x-story-create.md` com frontmatter e body
 - [ ] [Dev] Criar template `resources/github-skills-templates/story/x-story-map.md` com frontmatter e body
