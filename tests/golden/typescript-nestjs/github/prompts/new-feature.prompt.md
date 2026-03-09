@@ -36,7 +36,7 @@ If you prefer manual control, use **x-dev-implement** for the coding phase:
 ```
 
 This implements layer-by-layer following microservice architecture with
-typescript 5 / nestjs .
+typescript 5 / nestjs.
 
 ### Step 3 — Review
 

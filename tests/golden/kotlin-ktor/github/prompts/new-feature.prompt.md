@@ -36,7 +36,7 @@ If you prefer manual control, use **x-dev-implement** for the coding phase:
 ```
 
 This implements layer-by-layer following microservice architecture with
-kotlin 2.0 / ktor .
+kotlin 2.0 / ktor.
 
 ### Step 3 — Review
 

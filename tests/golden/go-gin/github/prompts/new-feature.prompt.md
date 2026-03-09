@@ -36,7 +36,7 @@ If you prefer manual control, use **x-dev-implement** for the coding phase:
 ```
 
 This implements layer-by-layer following microservice architecture with
-go 1.22 / gin .
+go 1.22 / gin.
 
 ### Step 3 — Review
 

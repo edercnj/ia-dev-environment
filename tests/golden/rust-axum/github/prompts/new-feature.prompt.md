@@ -36,7 +36,7 @@ If you prefer manual control, use **x-dev-implement** for the coding phase:
 ```
 
 This implements layer-by-layer following microservice architecture with
-rust 2024 / axum .
+rust 2024 / axum.
 
 ### Step 3 — Review
 

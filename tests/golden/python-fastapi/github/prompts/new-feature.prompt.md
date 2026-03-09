@@ -36,7 +36,7 @@ If you prefer manual control, use **x-dev-implement** for the coding phase:
 ```
 
 This implements layer-by-layer following microservice architecture with
-python 3.12 / fastapi .
+python 3.12 / fastapi.
 
 ### Step 3 — Review
 
