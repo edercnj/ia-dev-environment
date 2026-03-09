@@ -1,142 +1,134 @@
-# Implementation Plan -- STORY-001: Global and Contextual Copilot Instructions
+# Implementation Plan — STORY-001: Project Foundation (Node.js + TypeScript)
 
-**Status:** IMPLEMENTED
-**Date:** 2026-03-08
+**Status:** PLANNED  
+**Scope:** Foundation only (tooling + stubs), no feature migration yet  
+**Constraints Applied:** RULE-011 (`resources/` must remain unchanged)  
+**Context Notes:** `docs/adr/` was checked and no ADR files were found.
 
 ---
 
-## 1. Affected Layers and Components
+## 1) Affected layers and components
 
-| Layer | Component | Impact |
-|-------|-----------|--------|
-| assembler | `GithubInstructionsAssembler` | New assembler added as 9th in the pipeline |
-| assembler | `__init__.py` (pipeline orchestration) | Modified to register the new assembler |
-| resources | `github-instructions-templates/` | New template directory with 4 contextual templates |
-| CLI | `__main__.py` (`_classify_files`) | Already supported -- files under `github/` path classified as "GitHub" |
-| tests | `test_pipeline.py` | Updated to validate 9 assemblers and ordering |
-| tests | `test_byte_for_byte.py` | Validates generated output against golden files |
-| golden files | `tests/golden/java-quarkus/github/` | New golden files for byte-for-byte validation |
+| Layer | Component | Planned impact |
+|---|---|---|
+| Foundation / Build | `package.json` | Initialize Node package metadata, scripts, runtime/dev dependencies, CLI `bin` mapping |
+| Foundation / TS Compiler | `tsconfig.json` | Enable strict TypeScript + NodeNext ESM output to `dist/` |
+| Foundation / Bundling | `tsup.config.ts` | Bundle CLI entrypoint, emit ESM + d.ts, preserve shebang |
+| Foundation / Testing | `vitest.config.ts` | Configure runner + coverage (v8, thresholds 95/90, excludes) |
+| Inbound CLI adapter (stub) | `src/index.ts`, `src/cli.ts` | Minimal executable CLI entry with `--help` working |
+| Shared core modules (stubs) | `src/config.ts`, `src/models.ts`, `src/template-engine.ts`, `src/utils.ts`, `src/exceptions.ts`, `src/interactive.ts` | Placeholder modules to unblock STORIES 002–005 |
+| Assembly boundary (stub) | `src/assembler/index.ts` | Initial orchestrator contract (no migration logic yet) |
+| Domain boundary (stub) | `src/domain/` | Reserved directory for future domain modules |
+| Test assets | `tests/fixtures/` | Base fixture directory for future Vitest specs |
+| Repo hygiene | `.gitignore` (and optionally README quickstart note) | Add Node artifacts ignore rules; document Node foundation usage if needed |
 
-## 2. New Classes/Interfaces Created
+---
 
-| Class / Module | Location | Responsibility |
-|----------------|----------|----------------|
-| `GithubInstructionsAssembler` | `src/ia_dev_env/assembler/github_instructions_assembler.py` | Generates `.github/copilot-instructions.md` (global, from `ProjectConfig`) and `instructions/*.instructions.md` (contextual, from templates) |
-| `_build_copilot_instructions()` | Same file (module-level function) | Builds the global `copilot-instructions.md` content string programmatically from `ProjectConfig` fields |
+## 2) New classes/interfaces to create (with package locations)
 
-**Templates (new files, not classes):**
+> STORY-001 is intentionally stub-heavy. Interfaces below are minimal contracts to allow later stories to compile cleanly.
 
-| File | Location |
-|------|----------|
-| `domain.md` | `resources/github-instructions-templates/domain.md` |
-| `coding-standards.md` | `resources/github-instructions-templates/coding-standards.md` |
-| `architecture.md` | `resources/github-instructions-templates/architecture.md` |
-| `quality-gates.md` | `resources/github-instructions-templates/quality-gates.md` |
+| Class / Interface / Function | Package location | Responsibility in STORY-001 |
+|---|---|---|
+| `bootstrap()` / CLI entry | `src/index.ts` | Entry point with shebang, invokes CLI command setup |
+| `createCli()` | `src/cli.ts` | Builds Commander program with placeholder command/help |
+| `RuntimePaths` (interface) | `src/config.ts` | Centralize resolved paths (`cwd`, `outputDir`, `resourcesDir`) |
+| `ProjectConfig` (interface stub) | `src/models.ts` | Initial typed config contract placeholder for future stories |
+| `TemplateEngine` (class stub) | `src/template-engine.ts` | Placeholder for Nunjucks integration in STORY-005 |
+| `CliError` / base error hierarchy | `src/exceptions.ts` | Shared typed error foundation for future flows |
+| `prompt*` helpers (stubs) | `src/interactive.ts` | Placeholder interactive helpers for STORY-017 |
+| `Assembler` (interface) | `src/assembler/index.ts` | Pipeline contract placeholder for future assemblers |
+| `src/domain/index.ts` (barrel stub) | `src/domain/index.ts` | Domain namespace root for STORY-006+ |
 
-**Golden files (new):**
+---
 
-| File | Location |
-|------|----------|
-| `copilot-instructions.md` | `tests/golden/java-quarkus/github/copilot-instructions.md` |
-| `domain.instructions.md` | `tests/golden/java-quarkus/github/instructions/domain.instructions.md` |
-| `coding-standards.instructions.md` | `tests/golden/java-quarkus/github/instructions/coding-standards.instructions.md` |
-| `architecture.instructions.md` | `tests/golden/java-quarkus/github/instructions/architecture.instructions.md` |
-| `quality-gates.instructions.md` | `tests/golden/java-quarkus/github/instructions/quality-gates.instructions.md` |
+## 3) Existing classes to modify
 
-## 3. Existing Classes Modified
+| File / Module | Planned change |
+|---|---|
+| `.gitignore` | Add/validate Node/TS ignores (`node_modules/`, `coverage/`, `*.tsbuildinfo`) while preserving existing Python ignores |
+| `README.md` (optional but recommended) | Add “Node.js + TypeScript foundation” section with install/build/test commands; keep current Python docs during migration period |
+| `pyproject.toml` | **No change in STORY-001** (kept temporarily for migration continuity) |
+| `src/ia_dev_env/**` (Python code) | **No change in STORY-001**; migration logic starts in later stories |
 
-| Class / Module | Location | Change Description |
-|----------------|----------|--------------------|
-| `_build_assemblers()` | `src/ia_dev_env/assembler/__init__.py` | Added `GithubInstructionsAssembler` as the 9th (last) entry in the assembler list |
-| `__all__` | `src/ia_dev_env/assembler/__init__.py` | Added `GithubInstructionsAssembler` to the public API exports |
-| Import block | `src/ia_dev_env/assembler/__init__.py` | Added import of `GithubInstructionsAssembler` from the new module |
-| `TestBuildAssemblers` | `tests/test_pipeline.py` | Updated `test_returns_nine_assemblers` (count from 8 to 9) and added `test_last_assembler_is_github_instructions` |
+---
 
-## 4. Dependency Direction Validation
+## 4) Dependency direction validation
 
-```
-GithubInstructionsAssembler
-    imports: ProjectConfig (domain/models)
-    imports: TemplateEngine (engine)
-    imports: Path, List (stdlib)
-    imports: logging (stdlib)
-```
+Planned dependency direction for foundation stubs:
 
-**Assessment: COMPLIANT.** The assembler depends only on domain models (`ProjectConfig`) and the template engine (`TemplateEngine`). It does not import any other assembler, framework code, or adapter layer. Dependencies point inward toward the domain, consistent with the hexagonal architecture rule.
+1. `src/index.ts` (inbound CLI entry) → `src/cli.ts`
+2. `src/cli.ts` (inbound adapter) → shared stubs (`config/models/exceptions/interactive`) and, later, orchestration
+3. `src/assembler/index.ts` (application/orchestration boundary) → domain contracts (`src/domain/**`, `src/models.ts`)
+4. `src/domain/**` (core) → no adapter/framework imports
 
-The assembler follows the same contract as all other assemblers:
-- Constructor receives `resources_dir: Path`
-- `assemble(config, output_dir, engine) -> List[Path]`
+Validation rules to enforce from day 1:
+- `src/domain/**` must not import Commander, Inquirer, filesystem adapters, or CLI modules.
+- Third-party framework libraries (`commander`, `inquirer`) stay in inbound-facing modules.
+- Dependencies point inward toward domain boundaries, consistent with architecture principles.
 
-## 5. Integration Points
+---
 
-| Integration Point | Direction | Description |
-|--------------------|-----------|-------------|
-| Pipeline orchestration | Inbound | `_execute_assemblers()` calls `assemble()` on `GithubInstructionsAssembler` as the 9th step |
-| `TemplateEngine` | Outbound (dependency) | Used for placeholder replacement in contextual templates (`engine.replace_placeholders()`) |
-| `ProjectConfig` | Outbound (dependency) | Provides data for the global file: project name, architecture style, language, framework, interfaces, infrastructure, testing config |
-| File system | Outbound | Writes to `output_dir/github/` and `output_dir/github/instructions/` |
-| CLI classification | Downstream | `_classify_files()` in `__main__.py` counts files with `"github"` in path parts under the "GitHub" category |
+## 5) Integration points
 
-### Data Flow
+| Integration point | Description |
+|---|---|
+| CLI binary resolution | `package.json` maps `ia-dev-env` to `./dist/index.js` |
+| Build output | `tsup` compiles `src/index.ts` to runnable ESM in `dist/` |
+| Local execution | `npx ia-dev-env --help` validates bundled CLI stub |
+| Test harness | Vitest runs even with no tests yet (foundation readiness check) |
+| Existing repository state | Python implementation remains present; Node foundation is added in parallel to unblock incremental migration |
+| Resources contract | `resources/` is only referenced, never modified (RULE-011) |
 
-1. `ProjectConfig` is parsed from `ia-dev-env.yaml`
-2. `TemplateEngine` is created with config placeholders
-3. `GithubInstructionsAssembler.assemble()` is called with config, output_dir, and engine
-4. Global file: `_build_copilot_instructions(config)` extracts fields from `ProjectConfig` and writes `copilot-instructions.md`
-5. Contextual files: For each of the 4 templates, reads the template, runs `engine.replace_placeholders()`, writes `*.instructions.md`
-6. Returns list of all generated `Path` objects
+---
 
-### Rules-to-Instructions Mapping
+## 6) Database changes (if applicable)
 
-| Source Rule | Generated Output | Generation Strategy |
-|-------------|------------------|---------------------|
-| `01-project-identity.md` | `github/copilot-instructions.md` | Programmatic from `ProjectConfig` (no template) |
-| `02-domain.md` | `github/instructions/domain.instructions.md` | Template with placeholder replacement |
-| `03-coding-standards.md` | `github/instructions/coding-standards.instructions.md` | Template with placeholder replacement |
-| `04-architecture-summary.md` | `github/instructions/architecture.instructions.md` | Template with placeholder replacement |
-| `05-quality-gates.md` | `github/instructions/quality-gates.instructions.md` | Template with placeholder replacement |
+Not applicable. STORY-001 has no persistence, schema, migration, or database adapter changes.
 
-## 6. Database Changes
+---
 
-None. This feature is purely a file-generation pipeline component with no persistence layer.
+## 7) API changes (if applicable)
 
-## 7. API Changes
+No HTTP/gRPC/event API changes.  
+CLI surface adds only a basic executable help stub (`ia-dev-env --help`) as foundation behavior.
 
-None. No HTTP/gRPC/event API surface is affected. The assembler operates within the CLI pipeline only.
+---
 
-## 8. Event Changes
+## 8) Event changes (if applicable)
 
-None. No events are produced or consumed by this feature.
+Not applicable. No message bus, domain event, or integration event behavior is introduced in STORY-001.
 
-## 9. Configuration Changes
+---
 
-| Change | Location | Description |
-|--------|----------|-------------|
-| Templates directory | `resources/github-instructions-templates/` | New directory containing 4 Markdown templates used by the assembler |
-| Assembler registration | `src/ia_dev_env/assembler/__init__.py` | `GithubInstructionsAssembler` registered as position 9 in `_build_assemblers()` |
+## 9) Configuration changes
 
-No changes to `ia-dev-env.yaml` schema or `ProjectConfig` model were required. The assembler consumes existing fields already present in `ProjectConfig`.
+| Config artifact | Planned values / behavior |
+|---|---|
+| `package.json` | `name=ia-dev-environment`, `version=0.1.0`, `license=MIT`, `type=module`, `bin.ia-dev-env=./dist/index.js` |
+| npm scripts | `build`, `dev`, `test`, `test:coverage`, `lint` (foundation commands only) |
+| Runtime deps | `commander`, `js-yaml`, `nunjucks`, `inquirer` |
+| Dev deps | `typescript`, `tsup`, `vitest`, `@types/node`, `@types/js-yaml`, `@types/nunjucks`, `tsx` |
+| `tsconfig.json` | `target=ES2022`, `module=NodeNext`, `strict=true`, `rootDir=src`, `outDir=dist`, include/exclude per story |
+| `tsup.config.ts` | Entry `src/index.ts`, ESM output, Node 18 target, bundle enabled, declarations enabled, shebang preserved |
+| `vitest.config.ts` | Coverage provider `v8`, thresholds line 95 / branch 90, excludes include `dist/`, `resources/`, `tests/` |
+| Directory scaffold | Create `src/`, `src/assembler/`, `src/domain/`, `tests/fixtures/` and stub files listed in section 2 |
 
-### Template Placeholders Used
+Execution order:
+1) package + dependency setup  
+2) TS + tsup + vitest configs  
+3) directory/file stubs  
+4) CLI help smoke check (`npx ia-dev-env --help`)
 
-| Placeholder | Template(s) | Source in ProjectConfig |
-|-------------|-------------|------------------------|
-| `{project_name}` | `domain.md` | `config.project.name` |
-| `{project_purpose}` | `domain.md` | `config.project.purpose` |
-| `{language_name}` | `coding-standards.md` | `config.language.name` |
-| `{language_version}` | `coding-standards.md` | `config.language.version` |
-| `{coverage_line}` | `quality-gates.md` | `config.testing.coverage_line` |
-| `{coverage_branch}` | `quality-gates.md` | `config.testing.coverage_branch` |
+---
 
-## 10. Risk Assessment
+## 10) Risk assessment
 
-| Risk | Severity | Likelihood | Mitigation |
-|------|----------|------------|------------|
-| Template directory missing at runtime | Low | Low | `_generate_contextual()` logs a warning and returns empty list gracefully |
-| Individual template file missing | Low | Low | Loop skips missing templates with a warning log; other templates still generated |
-| Copilot does not load `.instructions.md` files | Medium | Low | Extension follows official Copilot documentation conventions; validated in acceptance criteria |
-| Placeholder not replaced in template | Low | Low | `TemplateEngine.replace_placeholders()` leaves unknown placeholders as-is, making them visible in output for debugging |
-| Golden file drift after config model changes | Medium | Medium | `test_byte_for_byte.py` catches any drift immediately; golden files must be regenerated when `ProjectConfig` fields change |
-| Ordering dependency with other assemblers | Low | Low | `GithubInstructionsAssembler` is position 9 (last) and has no dependency on other assemblers' output; it only depends on `ProjectConfig` and templates |
-| Cross-reference links between `.github/` and `.claude/` break | Medium | Low | Templates use relative paths (e.g., `.claude/skills/architecture/SKILL.md`); both directories are generated in the same `output_dir` by the pipeline |
+| Risk | Impact | Mitigation |
+|---|---|---|
+| ESM/NodeNext import resolution issues | Build/runtime failures early in migration | Keep extensions/import style consistent from STORY-001; validate with `npm run build` and CLI smoke run |
+| Shebang not preserved after bundling | Generated binary not executable via `npx ia-dev-env` | Explicit shebang in `src/index.ts` + verify output file header in DoD check |
+| Coverage thresholds with zero tests | `test:coverage` may fail before test stories | Configure Vitest to allow empty suites for foundation and validate coverage behavior explicitly |
+| Parallel Python + Node toolchains cause confusion | Contributors run wrong commands | README section and script names clarify transitional workflow (Python legacy vs Node foundation) |
+| Accidental edits under `resources/` | Violates RULE-011 and risks parity drift | Limit STORY-001 changes to root config + `src/`/`tests/` scaffolding; add review checklist item “resources unchanged” |
+| Over-scaffolding beyond foundation | Scope creep and delayed STORY-001 completion | Keep implementations as stubs/contracts only; defer business logic to STORIES 002+ |

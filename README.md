@@ -74,6 +74,23 @@ By default, the CLI auto-detects the `resources/` directory relative to the inst
 ia-dev-env generate --config my-config.yaml --resources-dir /path/to/resources --output-dir .claude/
 ```
 
+## Node.js + TypeScript Foundation (Story 001)
+
+The repository now includes a minimal Node.js + TypeScript foundation for migration work, while keeping the existing Python workflow available.
+
+```bash
+# Install Node dependencies
+npm install
+
+# Build and test Node foundation
+npm run build
+npm run test
+npm run test:coverage
+
+# Verify CLI stub
+npx ia-dev-env --help
+```
+
 ### CLI Reference
 
 ```
