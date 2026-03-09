@@ -11,6 +11,7 @@ from claude_setup.assembler.agents import AgentsAssembler
 from claude_setup.assembler.github_agents_assembler import GithubAgentsAssembler
 from claude_setup.assembler.github_hooks_assembler import GithubHooksAssembler
 from claude_setup.assembler.github_instructions_assembler import GithubInstructionsAssembler
+from claude_setup.assembler.github_prompts_assembler import GithubPromptsAssembler
 from claude_setup.assembler.github_mcp_assembler import GithubMcpAssembler
 from claude_setup.assembler.github_skills_assembler import GithubSkillsAssembler
 from claude_setup.assembler.hooks_assembler import HooksAssembler
@@ -36,6 +37,7 @@ __all__ = [
     "GithubHooksAssembler",
     "GithubInstructionsAssembler",
     "GithubMcpAssembler",
+    "GithubPromptsAssembler",
     "GithubSkillsAssembler",
     "HooksAssembler",
     "PatternsAssembler",
@@ -65,6 +67,7 @@ def _build_assemblers(resources_dir: Path) -> List[Tuple[str, object]]:
         ("GithubSkillsAssembler", GithubSkillsAssembler(resources_dir)),
         ("GithubAgentsAssembler", GithubAgentsAssembler(resources_dir)),
         ("GithubHooksAssembler", GithubHooksAssembler(resources_dir)),
+        ("GithubPromptsAssembler", GithubPromptsAssembler(resources_dir)),
     ]
 
 
