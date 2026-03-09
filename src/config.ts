@@ -48,6 +48,8 @@ export const TYPE_MAPPING: Record<
   },
 };
 
+const DEFAULT_PROJECT = { name: "unnamed", purpose: "" } as const;
+
 const DEFAULT_TYPE_MAPPING = {
   style: "microservice",
   interfaces: [{ type: "rest" }],
@@ -174,8 +176,7 @@ export function migrateV2ToV3(
 
   const project =
     (data["project"] as Record<string, unknown> | undefined) ?? {
-      name: "unnamed",
-      purpose: "",
+      ...DEFAULT_PROJECT,
     };
 
   const result: Record<string, unknown> = { ...data };
@@ -217,8 +218,9 @@ export function loadConfig(path: string): ProjectConfig {
   let data: unknown;
   try {
     data = yaml.load(content);
-  } catch {
-    throw new ConfigValidationError(["Invalid YAML syntax in config file"]);
+  } catch (error: unknown) {
+    const detail = error instanceof Error ? error.message : "unknown error";
+    throw new ConfigValidationError([`Invalid YAML syntax: ${detail}`]);
   }
 
   if (data == null || typeof data !== "object" || Array.isArray(data)) {
