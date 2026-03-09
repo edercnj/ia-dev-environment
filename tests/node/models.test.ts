@@ -96,23 +96,17 @@ describe("requireField helper", () => {
     );
   });
 
-  it("valueIsZero_returnsZero", () => {
-    expect(requireField({ count: 0 }, "count", "M")).toBe(0);
-  });
-
-  it("valueIsFalse_returnsFalse", () => {
-    expect(requireField({ flag: false }, "flag", "M")).toBe(
-      false,
-    );
-  });
-
-  it("valueIsEmptyString_returnsEmptyString", () => {
-    expect(requireField({ label: "" }, "label", "M")).toBe("");
-  });
-
-  it("valueIsNull_returnsNull", () => {
-    expect(requireField({ x: null }, "x", "M")).toBeNull();
-  });
+  it.each([
+    { label: "zero", data: { v: 0 }, expected: 0 },
+    { label: "false", data: { v: false }, expected: false },
+    { label: "empty string", data: { v: "" }, expected: "" },
+    { label: "null", data: { v: null }, expected: null },
+  ])(
+    "falsyValue_$label_returnsValue",
+    ({ data, expected }) => {
+      expect(requireField(data, "v", "M")).toBe(expected);
+    },
+  );
 
   it("keyMissing_throwsErrorWithMessage", () => {
     expect(() =>
@@ -442,6 +436,35 @@ describe("McpServerConfig", () => {
       ).toThrow(/url.*McpServerConfig/);
     });
   });
+
+  describe("toJSON", () => {
+    it("masksEnvValues_replacesWithAsterisks", () => {
+      const ms = new McpServerConfig(
+        "srv1",
+        "http://localhost",
+        ["read"],
+        { API_KEY: "secret-123", TOKEN: "tok-456" },
+      );
+      const json = ms.toJSON();
+      expect(json["env"]).toEqual({
+        API_KEY: "***",
+        TOKEN: "***",
+      });
+    });
+
+    it("emptyEnv_returnsEmptyObject", () => {
+      const ms = new McpServerConfig("s", "u", [], {});
+      expect(ms.toJSON()["env"]).toEqual({});
+    });
+
+    it("preservesNonSensitiveFields", () => {
+      const ms = new McpServerConfig("s1", "http://a", ["r"], {});
+      const json = ms.toJSON();
+      expect(json["id"]).toBe("s1");
+      expect(json["url"]).toBe("http://a");
+      expect(json["capabilities"]).toEqual(["r"]);
+    });
+  });
 });
 
 describe("DataConfig", () => {
@@ -618,45 +641,22 @@ describe("ProjectConfig", () => {
       expect(pc.mcp.servers).toEqual([]);
     });
 
-    it("missingProject_throwsError", () => {
-      const data = aMinimalProjectConfigData();
-      delete data["project"];
-      expect(() => ProjectConfig.fromDict(data)).toThrow(
-        /project.*ProjectConfig/,
-      );
-    });
-
-    it("missingArchitecture_throwsError", () => {
-      const data = aMinimalProjectConfigData();
-      delete data["architecture"];
-      expect(() => ProjectConfig.fromDict(data)).toThrow(
-        /architecture.*ProjectConfig/,
-      );
-    });
-
-    it("missingInterfaces_throwsError", () => {
-      const data = aMinimalProjectConfigData();
-      delete data["interfaces"];
-      expect(() => ProjectConfig.fromDict(data)).toThrow(
-        /interfaces.*ProjectConfig/,
-      );
-    });
-
-    it("missingLanguage_throwsError", () => {
-      const data = aMinimalProjectConfigData();
-      delete data["language"];
-      expect(() => ProjectConfig.fromDict(data)).toThrow(
-        /language.*ProjectConfig/,
-      );
-    });
-
-    it("missingFramework_throwsError", () => {
-      const data = aMinimalProjectConfigData();
-      delete data["framework"];
-      expect(() => ProjectConfig.fromDict(data)).toThrow(
-        /framework.*ProjectConfig/,
-      );
-    });
+    it.each([
+      "project",
+      "architecture",
+      "interfaces",
+      "language",
+      "framework",
+    ])(
+      "missing_%s_throwsError",
+      (field) => {
+        const data = aMinimalProjectConfigData();
+        delete data[field];
+        expect(() => ProjectConfig.fromDict(data)).toThrow(
+          new RegExp(`${field}.*ProjectConfig`),
+        );
+      },
+    );
 
     it("multipleInterfaces_parsesAll", () => {
       const data = aMinimalProjectConfigData();

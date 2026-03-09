@@ -327,6 +327,7 @@ export class McpServerConfig {
   readonly id: string;
   readonly url: string;
   readonly capabilities: readonly string[];
+  /** May contain sensitive values (API keys, tokens). Use {@link toJSON} for safe serialization. */
   readonly env: Readonly<Record<string, string>>;
 
   constructor(
@@ -350,6 +351,19 @@ export class McpServerConfig {
       (data["capabilities"] as string[] | undefined) ?? [],
       (data["env"] as Record<string, string> | undefined) ?? {},
     );
+  }
+
+  toJSON(): Record<string, unknown> {
+    const maskedEnv: Record<string, string> = {};
+    for (const key of Object.keys(this.env)) {
+      maskedEnv[key] = "***";
+    }
+    return {
+      id: this.id,
+      url: this.url,
+      capabilities: [...this.capabilities],
+      env: maskedEnv,
+    };
   }
 }
 
