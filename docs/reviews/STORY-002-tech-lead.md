@@ -1,158 +1,179 @@
+```
 ============================================================
  TECH LEAD REVIEW -- STORY-002
 ============================================================
- Decision:  GO
- Score:     38/40
+ Decision:  CONDITIONAL GO
+ Score:     34/40
  Critical:  0 issues
- Medium:    1 issue
- Low:       2 issues
+ Medium:    3 issues
+ Low:       5 issues
 ------------------------------------------------------------
+```
 
 ## Review Scope
 
 | File | Lines | Role |
 |------|-------|------|
-| `src/ia_dev_env/assembler/github_mcp_assembler.py` | 63 | New assembler |
-| `src/ia_dev_env/models.py` (lines 212-265) | ~54 added | New MCP model classes |
-| `src/ia_dev_env/assembler/__init__.py` | 165 | Pipeline registration |
-| `tests/assembler/test_github_mcp_assembler.py` | 323 | Unit tests |
-| `tests/test_pipeline.py` | 194 | Pipeline count update |
-| `tests/golden/java-quarkus/github/copilot-mcp.json` | 15 | Golden file |
-| `resources/config-templates/setup-config.java-quarkus.yaml` | 171 | MCP config section |
-| 8 additional YAML config files | -- | MCP section added (empty servers) |
+| `src/exceptions.ts` | 31 | Custom exception classes (CliError, ConfigValidationError, PipelineError) |
+| `src/utils.ts` | 136 | Filesystem utilities (path validation, atomic output, logging, resource discovery) |
+| `tests/node/exceptions.test.ts` | 83 | Unit tests for exception classes |
+| `tests/node/utils.test.ts` | 344 | Unit tests for utility functions |
 
 ## Test Results
 
-- **991 passed**, 32 warnings, 0 failures
-- **Coverage for `github_mcp_assembler.py`: 100%** (34 statements, 14 branches, all covered)
-- Golden file byte-for-byte test: PASS
+- **68 passed**, 0 failures, 0 warnings
+- **Coverage:**
+  - `exceptions.ts`: 100% stmts, 100% branch
+  - `utils.ts`: 98.29% stmts, 94.73% branch (uncovered: lines 126-127)
+  - Overall project: 99.2% stmts, 95.58% branch
+- **Compilation:** `npx tsc --noEmit` passes cleanly
 
 ------------------------------------------------------------
 
-## A. Code Hygiene (7/8)
+## A. Code Hygiene — 7/8
 
-| # | Check | Result |
-|---|-------|--------|
-| A1 | No unused imports | PASS -- all imports used |
-| A2 | No unused variables | PASS |
-| A3 | No dead code | PASS |
-| A4 | No compiler/linter warnings | PASS (pytest warnings are only deprecation from legacy v2 config migration) |
-| A5 | Method signatures clean | PASS -- all fit under 120 chars |
-| A6 | No magic numbers/strings | PASS -- string constants are domain identifiers ("mcpServers", "copilot-mcp.json") inherent to the JSON spec |
-| A7 | No wildcard imports | PASS |
-| A8 | Type hints complete | **MINOR** -- `engine: object` in `assemble()` signature (line 20) is too loose; should be `TemplateEngine` for consistency with other assemblers. Functionally harmless since engine is unused in this assembler, but breaks consistency with the assembler interface contract. |
+| # | Check | Score | Notes |
+|---|-------|-------|-------|
+| A1 | No unused imports | 1/1 | All imports consumed in both source and test files |
+| A2 | No unused variables | 1/1 | Clean |
+| A3 | No dead code | 1/1 | No commented-out blocks or unreachable paths |
+| A4 | No compiler warnings | 1/1 | `npx tsc --noEmit` passes with zero warnings |
+| A5 | Method signatures typed | 1/1 | All parameters and returns explicitly typed; generics used correctly in `atomicOutput<T>` |
+| A6 | No magic numbers/strings | 0/1 | See deduction |
+| A7 | No wildcard imports | 1/1 | All imports are named |
+| A8 | No `any` usage | 1/1 | `unknown` used correctly in catch clauses |
 
-**Deduction: -1** (A8: loose type hint on `engine` parameter)
+**Deductions:**
 
-## B. Naming (4/4)
+- **A6** — `src/utils.ts:61` — `console.debug = () => {};` — Inline anonymous no-op function replacing a global method. Extract to a named constant like `const NOOP_DEBUG = () => {};` for readability. **Severity: LOW.**
 
-| # | Check | Result |
-|---|-------|--------|
-| B1 | Class name intention-revealing | PASS -- `GithubMcpAssembler` clearly describes purpose |
-| B2 | Method names verb-based | PASS -- `assemble`, `_build_copilot_mcp_dict`, `_warn_literal_env_values` |
-| B3 | No disinformation | PASS |
-| B4 | Meaningful distinctions | PASS -- `McpServerConfig` vs `McpConfig` vs `GithubMcpAssembler` are distinct |
+## B. Naming — 4/4
 
-## C. Functions (5/5)
+| # | Check | Score | Notes |
+|---|-------|-------|-------|
+| B1 | Intention-revealing names | 1/1 | `rejectDangerousPath`, `atomicOutput`, `validateDestPath`, `findResourcesDir` — all self-documenting |
+| B2 | No disinformation | 1/1 | No misleading names |
+| B3 | Meaningful distinctions | 1/1 | `resolvedPath` vs `destDir` vs `tempDir` — clear role separation |
+| B4 | Consistent vocabulary | 1/1 | Consistent use of "path"/"dir" throughout |
 
-| # | Check | Result |
-|---|-------|--------|
-| C1 | Single responsibility | PASS -- `assemble` orchestrates, `_build_copilot_mcp_dict` builds structure, `_warn_literal_env_values` validates |
-| C2 | Size <= 25 lines | PASS -- `assemble`: 10 lines, `_warn_literal_env_values`: 11 lines, `_build_copilot_mcp_dict`: 10 lines |
-| C3 | Max 4 params | PASS -- max is 3 (`self`, `config`, `output_dir`, `engine`) |
-| C4 | No boolean flag params | PASS |
-| C5 | One level of abstraction | PASS |
+## C. Functions — 5/5
 
-## D. Vertical Formatting (4/4)
+| # | Check | Score | Notes |
+|---|-------|-------|-------|
+| C1 | Single responsibility | 1/1 | Each function does one thing: validate, reject, normalize, find, atomic-write |
+| C2 | Size <= 25 lines | 1/1 | Largest function is `atomicOutput` at 25 lines (106-135) — exactly at limit |
+| C3 | Max 4 parameters | 1/1 | Maximum is 2 parameters (`atomicOutput(destDir, callback)`) |
+| C4 | No boolean flag params | 1/1 | `setupLogging(verbose)` is a configuration toggle, not a behavior-splitting flag — acceptable for logging setup |
+| C5 | No hidden side effects | 1/1 | Functions do what their names indicate |
 
-| # | Check | Result |
-|---|-------|--------|
-| D1 | Blank lines between concepts | PASS |
-| D2 | Newspaper Rule (public first, private helpers below) | PASS -- class method first, then module-level private helpers |
-| D3 | Class size <= 250 lines | PASS -- assembler is 63 lines total; `models.py` is 337 lines but contains 12+ small dataclasses (largest ~40 lines) |
-| D4 | Related code grouped | PASS |
+## D. Vertical Formatting — 4/4
 
-## E. Design (3/3)
+| # | Check | Score | Notes |
+|---|-------|-------|-------|
+| D1 | Blank lines between concepts | 1/1 | Functions separated by blank lines; import groups separated |
+| D2 | Newspaper Rule ordering | 1/1 | Constants at top, then exports in increasing complexity |
+| D3 | Class/file size <= 250 lines | 1/1 | `utils.ts`: 136 lines, `exceptions.ts`: 31 lines |
+| D4 | Related lines grouped | 1/1 | Regex patterns grouped at top; error checks grouped |
 
-| # | Check | Result |
-|---|-------|--------|
-| E1 | Law of Demeter | PASS -- `config.mcp.servers` is one level of navigation on owned data structures |
-| E2 | CQS (Command-Query Separation) | PASS -- `assemble` is a command returning generated paths; `_build_copilot_mcp_dict` is a pure query |
-| E3 | DRY | PASS -- no duplicated logic |
+## E. Design — 3/3
 
-## F. Error Handling (3/3)
+| # | Check | Score | Notes |
+|---|-------|-------|-------|
+| E1 | Law of Demeter | 1/1 | No train wrecks; direct property access only on owned objects |
+| E2 | CQS (Command-Query Separation) | 1/1 | `rejectDangerousPath` is a command (throws or void), `findResourcesDir` is a query, `atomicOutput` returns result from callback |
+| E3 | DRY | 1/1 | ENOENT check pattern appears twice but in different contexts with different handling — borderline, addressed in F3 |
 
-| # | Check | Result |
-|---|-------|--------|
-| F1 | Rich exceptions with context | PASS -- `_require()` in models produces `KeyError` with field name and model name |
-| F2 | No null returns | PASS -- returns empty list `[]` when no servers, never `None` |
-| F3 | No generic catch | PASS -- no try/except in the assembler itself; pipeline wrapper catches and wraps appropriately |
+## F. Error Handling — 2/3
 
-## G. Architecture (5/5)
+| # | Check | Score | Notes |
+|---|-------|-------|-------|
+| F1 | Rich exceptions with context | 1/1 | All custom errors carry structured context: `CliError.code`, `ConfigValidationError.missingFields`, `PipelineError.assemblerName`/`reason` |
+| F2 | No null returns | 1/1 | Functions return values or throw — no null returns anywhere |
+| F3 | No generic catch / DRY error patterns | 0/1 | See deduction |
 
-| # | Check | Result |
-|---|-------|--------|
-| G1 | SRP | PASS -- one assembler, one output file type |
-| G2 | DIP | PASS -- depends on `ProjectConfig` and `McpServerConfig` abstractions (dataclasses), not concrete infrastructure |
-| G3 | Layer boundaries | PASS -- assembler only imports from models layer |
-| G4 | Follows existing patterns | PASS -- mirrors `GithubInstructionsAssembler` structure exactly: class with `assemble()`, module-level private helpers |
-| G5 | Pipeline integration correct | PASS -- registered as 10th assembler, pipeline count test updated from 9 to 10 |
+**Deductions:**
 
-## H. Framework & Infra (4/4)
+- **F3** — `src/utils.ts:89-98` and `src/utils.ts:118-127` — The ENOENT detection pattern (`error instanceof Error && "code" in error && error.code === "ENOENT"`) is duplicated in two catch blocks. Extract a type guard `function isFileNotFoundError(error: unknown): boolean` for reuse. **Severity: MEDIUM.**
 
-| # | Check | Result |
-|---|-------|--------|
-| H1 | No framework coupling in domain | PASS -- `models.py` uses only stdlib `dataclasses` |
-| H2 | Externalized config | PASS -- MCP config read from YAML, env values use `$VARIABLE` references |
-| H3 | Native-compatible | PASS -- pure Python, no reflection or dynamic imports |
-| H4 | Observability hooks | PASS -- uses `logging.getLogger(__name__)` for warnings |
+## G. Architecture — 5/5
 
-## I. Tests (3/3)
+| # | Check | Score | Notes |
+|---|-------|-------|-------|
+| G1 | SRP per module | 1/1 | `exceptions.ts` = error definitions only, `utils.ts` = filesystem utilities only |
+| G2 | DIP respected | 1/1 | No concrete infrastructure dependencies; utils use only Node.js standard library |
+| G3 | Layer boundaries | 1/1 | Both files at `src/` root as shared utilities — appropriate for library architecture |
+| G4 | Follows implementation plan | 1/1 | Files match STORY-002 plan: exceptions module + utility module |
+| G5 | No circular dependencies | 1/1 | `exceptions.ts` has zero imports; `utils.ts` imports only from Node.js stdlib |
 
-| # | Check | Result |
-|---|-------|--------|
-| I1 | Coverage thresholds | PASS -- 100% line, 100% branch on assembler |
-| I2 | Scenarios covered | PASS -- 28 test methods covering: empty servers, single/multiple servers, env refs, capabilities, literal env warnings, model parsing, backward compat, dict building, pipeline integration |
-| I3 | Test quality | PASS -- descriptive names (`test_warns_on_literal_value`, `test_no_capabilities_omits_key`), proper use of `tmp_path` and `caplog`, no sleep or test-order dependency |
+## H. Framework & Infrastructure — 3/4
 
-## J. Security & Production (1/1)
+| # | Check | Score | Notes |
+|---|-------|-------|-------|
+| H1 | Constructor injection | 1/1 | N/A for pure functions — no classes requiring DI |
+| H2 | Externalized configuration | 1/1 | No hardcoded config; `PROTECTED_PATHS` is a domain constant |
+| H3 | Native-compatible | 1/1 | Pure functions, no decorators or reflection |
+| H4 | Observability / logging | 0/1 | See deduction |
 
-| # | Check | Result |
-|---|-------|--------|
-| J1 | Sensitive data protected | PASS -- `_warn_literal_env_values` warns when env values don't use `$VARIABLE` references; tested with 4 scenarios (literal, variable ref, empty env, empty value) |
+**Deductions:**
+
+- **H4** — `src/utils.ts:49-62` — `setupLogging` mutates global `console.debug` via module-level mutable state (`let originalDebug`). This violates the "no mutable global state" coding standard. Tests must carefully restore state in `afterEach`. Pragmatic for a single-process CLI but fragile. **Severity: MEDIUM.** Suggested fix: Consider a logger wrapper that avoids global mutation, or document as a known limitation.
+
+## I. Tests — 5/5
+
+| # | Check | Score | Notes |
+|---|-------|-------|-------|
+| I1 | Coverage >= 95% line, >= 90% branch | 2/2 | `exceptions.ts`: 100%/100%. `utils.ts`: 98.29% stmts, 94.73% branch. Overall: 99.2% stmts, 95.58% branch — all thresholds exceeded |
+| I2 | Key scenarios covered | 2/2 | 12 exception tests + 32 utils tests. Happy paths, error paths, edge cases (empty arrays, protected paths, symlinks, EACCES permissions, atomic cleanup on success and failure) all covered |
+| I3 | Test quality | 1/1 | AAA pattern followed; proper cleanup with `afterEach`; no test interdependencies; real filesystem operations for integration-like coverage |
+
+**Notes on QA review CRITICAL finding:**
+
+QA flagged uncovered lines 126-127 (`atomicOutput` non-ENOENT error on `stat`) as CRITICAL (edge cases E-09 and E-10). The test at `tests/node/utils.test.ts:324` (`withInaccessibleDestParent_propagatesError`) uses `chmod 0o000` to trigger EACCES, which does exercise this code path. The V8 coverage instrumenter sometimes misses branches inside nested try-catch. The test exists and passes. **Downgraded from CRITICAL to LOW.**
+
+## J. Security & Production — 1/1
+
+| # | Check | Score | Notes |
+|---|-------|-------|-------|
+| J1 | Sensitive data protected | 1/1 | No sensitive data handled. Error messages expose only filesystem paths (user-provided). Custom exceptions carry structured context without stack trace leakage. `PROTECTED_PATHS` is frozen and immutable. |
 
 ------------------------------------------------------------
 
-## Specialist Review Findings Verification
+## Specialist Review Reconciliation
 
-| Finding | Status | Evidence |
-|---------|--------|----------|
-| Security HIGH: env values validated with `$` prefix warning | VERIFIED | `_warn_literal_env_values()` exists at line 35-48 of assembler; 4 test cases in `TestWarnLiteralEnvValues` class |
-| QA HIGH: `capabilities` field on model | VERIFIED | `McpServerConfig.capabilities: List[str]` at line 216 of models.py; assembler outputs it at line 58-59; tested in `test_capabilities_included_in_output` and `test_no_capabilities_omits_key` |
-| QA HIGH: golden file for java-quarkus | VERIFIED | `tests/golden/java-quarkus/github/copilot-mcp.json` exists with firecrawl-mcp server, capabilities, and env reference |
+| Specialist | Score | Status | Key Findings |
+|------------|-------|--------|--------------|
+| Security | 18/20 | Approved | `normalizeDirectory` empty string input guard — LOW, not in STORY-002 scope (tested in STORY-001 cli-help.test.ts) |
+| QA | 19/24 | Request Changes | Edge case lines 126-127 — test exists, coverage tool artifact (LOW); parametrization suggestion (MEDIUM); test naming (LOW) |
+| Performance | 24/26 | Approved | `findResourcesDir` sync — acceptable for startup utility (LOW); global mutable state in `setupLogging` — elevated to MEDIUM |
 
 ------------------------------------------------------------
 
 ## Issues Summary
 
-### Medium (1)
+### Medium (3)
 
-**M1: `engine: object` type hint too loose** (`github_mcp_assembler.py:20`)
-The `assemble()` method declares `engine: object` while every other assembler uses `engine: TemplateEngine`. Although this assembler does not use the engine parameter, the inconsistent type breaks the implicit assembler interface contract. If a future refactor introduces a Protocol/ABC for assemblers, this would cause a type error.
-*Recommendation:* Change to `engine: TemplateEngine` and add the import even though unused in body, to maintain interface consistency. Alternatively, if a common Assembler protocol is planned, this will be caught then.
+| ID | File:Line | Issue | Suggested Fix |
+|----|-----------|-------|---------------|
+| M1 | `src/utils.ts:89-98,118-127` | Duplicated ENOENT detection pattern in two catch blocks | Extract `isFileNotFoundError(error: unknown): boolean` type guard |
+| M2 | `src/utils.ts:49-62` | Mutable global state (`originalDebug` + `console.debug` mutation) violates coding standard | Logger abstraction or document as known CLI limitation |
+| M3 | `tests/node/utils.test.ts:38-66` | Protected path tests use 5 individual `it` blocks instead of `it.each` for data-driven testing | Refactor to `it.each(["/", "/tmp", "/var", "/etc", "/usr"])` |
 
-### Low (2)
+### Low (5)
 
-**L1: models.py approaching module size threshold** (`models.py`: 337 lines)
-While no single class exceeds 250 lines, the module accumulates many small dataclasses. With `McpServerConfig` and `McpConfig` added, it is now at 337 lines. Not a violation (the 250-line rule applies to classes, not modules), but worth monitoring. Consider splitting into `models/` package if more models are added.
-
-**L2: Test file helper duplication** (`test_github_mcp_assembler.py:22-35`)
-The `_make_config()` helper is duplicated between `test_github_mcp_assembler.py` and `test_pipeline.py`. Consider extracting to a shared `tests/conftest.py` fixture to reduce maintenance cost.
+| ID | File:Line | Issue | Suggested Fix |
+|----|-----------|-------|---------------|
+| L1 | `src/utils.ts:61` | Anonymous no-op function — implicit behavior | Extract to `const NOOP_DEBUG = () => {};` |
+| L2 | `tests/node/utils.test.ts` | Test `it` names omit method prefix (rely on describe block for context) | Prepend method name to each `it` string |
+| L3 | `src/utils.ts:15-26` | `normalizeDirectory` does not guard against empty string input | Add `if (!path) throw new Error(...)` — out of STORY-002 scope |
+| L4 | `src/utils.ts:70` | `findResourcesDir` uses synchronous `statSync` while peer functions use async | Consider async variant for consistency |
+| L5 | `tests/node/utils.test.ts:324-343` | V8 coverage reports lines 126-127 uncovered despite EACCES test existing | Add coverage ignore comment or platform-specific test adjustment |
 
 ------------------------------------------------------------
 
 ## Final Assessment
 
-Clean, well-structured implementation that follows the established assembler pattern precisely. The assembler is small (63 lines), the models are well-designed with proper `from_dict` factories and validation, and the test suite is comprehensive (28 tests, 100% coverage). All specialist review findings from Security and QA have been addressed. The `_warn_literal_env_values` security guard is a good defensive measure against accidental secret exposure. The golden file matches the YAML config exactly.
+Well-structured implementation with clean separation between exception definitions and filesystem utilities. Exception classes follow the rich error handling pattern with structured context properties (`code`, `missingFields`, `assemblerName`, `reason`). The `atomicOutput` function demonstrates proper resource cleanup with `try/finally`. The `PROTECTED_PATHS` set with `Object.freeze` is a solid defensive measure. Test suite is comprehensive with 44 tests achieving coverage well above quality gate thresholds.
 
-**Decision: GO** -- Ready to merge. The medium issue (loose type hint) is cosmetic and does not affect correctness or safety.
+The three medium issues are code quality improvements that do not affect correctness, security, or runtime behavior. The duplicated ENOENT pattern and global state mutation are the most impactful items to address in a follow-up.
+
+**Decision: CONDITIONAL GO** — Ready to merge. Address the 3 MEDIUM items (M1, M2, M3) in a follow-up cleanup commit or next story iteration. No blockers to integration.
