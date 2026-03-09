@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import List, Tuple
 
 from claude_setup.assembler.agents import AgentsAssembler
+from claude_setup.assembler.github_agents_assembler import GithubAgentsAssembler
 from claude_setup.assembler.github_instructions_assembler import GithubInstructionsAssembler
 from claude_setup.assembler.github_mcp_assembler import GithubMcpAssembler
 from claude_setup.assembler.github_skills_assembler import GithubSkillsAssembler
@@ -30,6 +31,7 @@ DRY_RUN_WARNING = "Dry run -- no files written"
 
 __all__ = [
     "AgentsAssembler",
+    "GithubAgentsAssembler",
     "GithubInstructionsAssembler",
     "GithubMcpAssembler",
     "GithubSkillsAssembler",
@@ -59,6 +61,7 @@ def _build_assemblers(resources_dir: Path) -> List[Tuple[str, object]]:
         ("GithubInstructionsAssembler", GithubInstructionsAssembler(resources_dir)),
         ("GithubMcpAssembler", GithubMcpAssembler()),
         ("GithubSkillsAssembler", GithubSkillsAssembler(resources_dir)),
+        ("GithubAgentsAssembler", GithubAgentsAssembler(resources_dir)),
     ]
 
 

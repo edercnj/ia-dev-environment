@@ -49,14 +49,14 @@ def _make_full_config() -> ProjectConfig:
 
 class TestBuildAssemblers:
 
-    def test_returns_eleven_assemblers(self, tmp_path: Path) -> None:
+    def test_returns_twelve_assemblers(self, tmp_path: Path) -> None:
         assemblers = _build_assemblers(tmp_path)
-        assert len(assemblers) == 11
+        assert len(assemblers) == 12
 
-    def test_last_assembler_is_github_skills(self, tmp_path: Path) -> None:
+    def test_last_assembler_is_github_agents(self, tmp_path: Path) -> None:
         assemblers = _build_assemblers(tmp_path)
         name, _ = assemblers[-1]
-        assert name == "GithubSkillsAssembler"
+        assert name == "GithubAgentsAssembler"
 
     def test_first_assembler_is_rules(self, tmp_path: Path) -> None:
         assemblers = _build_assemblers(tmp_path)
