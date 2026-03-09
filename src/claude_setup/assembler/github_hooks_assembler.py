@@ -20,7 +20,7 @@ HOOK_TEMPLATES = (
 
 
 class GithubHooksAssembler:
-    """Generates .github/hooks/*.json from templates."""
+    """Generates github/hooks/*.json from templates."""
 
     def __init__(self, resources_dir: Path) -> None:
         self._resources_dir = resources_dir

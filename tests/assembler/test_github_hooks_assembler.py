@@ -4,8 +4,6 @@ import copy
 import json
 import logging
 from pathlib import Path
-from typing import List
-
 import pytest
 
 from claude_setup.assembler.github_hooks_assembler import (
@@ -17,11 +15,7 @@ from claude_setup.template_engine import TemplateEngine
 
 from tests.conftest import FULL_PROJECT_DICT, MINIMAL_PROJECT_DICT
 
-HOOK_NAMES = (
-    "post-compile-check.json",
-    "pre-commit-lint.json",
-    "session-context-loader.json",
-)
+HOOK_NAMES = HOOK_TEMPLATES
 
 EXPECTED_EVENTS = {
     "post-compile-check.json": "postToolUse",
@@ -93,13 +87,6 @@ def _create_hook_templates(resources: Path) -> None:
             encoding="utf-8",
         )
 
-
-def _output_hook_names(output_dir: Path) -> List[str]:
-    """Return sorted list of generated hook filenames."""
-    hooks_dir = output_dir / "github" / "hooks"
-    if not hooks_dir.exists():
-        return []
-    return sorted(f.name for f in hooks_dir.iterdir())
 
 
 @pytest.fixture
