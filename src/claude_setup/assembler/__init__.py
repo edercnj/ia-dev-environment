@@ -61,13 +61,13 @@ def _build_assemblers(resources_dir: Path) -> List[Tuple[str, object]]:
         ("ProtocolsAssembler", ProtocolsAssembler(resources_dir)),
         ("HooksAssembler", HooksAssembler(resources_dir)),
         ("SettingsAssembler", SettingsAssembler(resources_dir)),
-        ("ReadmeAssembler", ReadmeAssembler(resources_dir)),
         ("GithubInstructionsAssembler", GithubInstructionsAssembler(resources_dir)),
         ("GithubMcpAssembler", GithubMcpAssembler()),
         ("GithubSkillsAssembler", GithubSkillsAssembler(resources_dir)),
         ("GithubAgentsAssembler", GithubAgentsAssembler(resources_dir)),
         ("GithubHooksAssembler", GithubHooksAssembler(resources_dir)),
         ("GithubPromptsAssembler", GithubPromptsAssembler(resources_dir)),
+        ("ReadmeAssembler", ReadmeAssembler(resources_dir)),
     ]
 
 

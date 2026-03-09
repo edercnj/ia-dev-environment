@@ -3,9 +3,15 @@
 This directory contains all Claude Code configuration for the **{{PROJECT_NAME}}** project.
 It includes coding rules, skills (slash commands), knowledge packs, agents, and hooks.
 
-> **Note:** The `CLAUDE.md` file at the project root provides an executive summary loaded automatically in EVERY conversation.
+> **Note:** Both `.claude/` and `.github/` directories are **generated outputs** produced by `claude_setup`.
+> The generator writes `.github/` artifacts under `github/` in the output directory; rename to `.github/` when placing in a project root.
+> Do not edit them manually -- regenerate instead.
+
+> The `CLAUDE.md` file at the project root provides an executive summary loaded automatically in EVERY conversation.
 
 ## Structure
+
+### .claude/ (Claude Code)
 
 ```
 CLAUDE.md                   <-- Executive summary (project root, loaded automatically)
@@ -19,6 +25,23 @@ CLAUDE.md                   <-- Executive summary (project root, loaded automati
 |   +-- {knowledge-packs}/  <-- Knowledge packs (not invocable, referenced internally)
 +-- agents/                 <-- AI personas (used by skills and lifecycle)
 ```
+
+### .github/ (GitHub Copilot)
+
+```
+.github/
+|-- copilot-instructions.md     <-- Global instructions (loaded in every Copilot session)
+|-- copilot-mcp.json            <-- MCP server configuration for Copilot
+|-- instructions/               <-- Contextual instructions (*.instructions.md)
+|-- skills/                     <-- Reusable skills (*/SKILL.md)
+|-- agents/                     <-- Agent definitions (*.agent.md)
+|-- prompts/                    <-- Prompt templates (*.prompt.md)
++-- hooks/                      <-- Event hooks (*.json)
+```
+
+### .claude/ <-> .github/ Mapping
+
+{{MAPPING_TABLE}}
 
 ### settings.json vs settings.local.json
 
@@ -97,6 +120,22 @@ Configured in `settings.json` under the `hooks` key.
 
 ---
 
+## Artifact Conventions
+
+| Artifact | Extension | Naming | Frontmatter |
+|----------|-----------|--------|-------------|
+| Rules | `.md` | `NN-name.md` (numbered) | None |
+| Skills | `SKILL.md` | `skills/{name}/SKILL.md` | YAML (name, description) |
+| Agents (.claude) | `.md` | `{name}.md` | None |
+| Agents (.github) | `.agent.md` | `{name}.agent.md` | YAML (tools, disallowed-tools) |
+| Instructions | `.instructions.md` | `{topic}.instructions.md` | None |
+| Prompts | `.prompt.md` | `{name}.prompt.md` | YAML (optional) |
+| Hooks (.claude) | `.sh` / `.json` | Event-based naming | N/A |
+| Hooks (.github) | `.json` | Event-based naming | N/A (JSON) |
+| MCP | `.json` | `copilot-mcp.json` | N/A (JSON) |
+
+---
+
 ## Tips
 
 - **Rules are always active** -- no need to invoke them, Claude already knows them.
@@ -106,6 +145,7 @@ Configured in `settings.json` under the `hooks` key.
 - **Hooks run automatically** -- compilation after editing source files detects errors early.
 - **To create a new skill**: create `.claude/skills/{name}/SKILL.md` and it appears automatically.
 - **To create a new rule**: add a `.md` file in `.claude/rules/` with the appropriate numbering.
+- **Both directories are generated** -- run `claude_setup generate` to regenerate.
 
 ---
 

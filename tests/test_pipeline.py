@@ -53,10 +53,10 @@ class TestBuildAssemblers:
         assemblers = _build_assemblers(tmp_path)
         assert len(assemblers) == 14
 
-    def test_last_assembler_is_github_prompts(self, tmp_path: Path) -> None:
+    def test_last_assembler_is_readme(self, tmp_path: Path) -> None:
         assemblers = _build_assemblers(tmp_path)
         name, _ = assemblers[-1]
-        assert name == "GithubPromptsAssembler"
+        assert name == "ReadmeAssembler"
 
     def test_first_assembler_is_rules(self, tmp_path: Path) -> None:
         assemblers = _build_assemblers(tmp_path)
