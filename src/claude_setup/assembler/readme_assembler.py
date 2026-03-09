@@ -416,11 +416,11 @@ def _build_generation_summary(
 
 
 def _count_github_component(github_dir: Path, component: str) -> int:
-    """Count files in a github/ subdirectory."""
+    """Count files directly under a github/ subdirectory."""
     comp_dir = github_dir / component
     if not comp_dir.is_dir():
         return 0
-    return len(list(comp_dir.glob("*")))
+    return len([p for p in comp_dir.iterdir() if p.is_file()])
 
 
 def _count_github_skills(github_dir: Path) -> int:

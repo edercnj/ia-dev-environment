@@ -3,7 +3,9 @@
 This directory contains all Claude Code configuration for the **my-fastapi-service** project.
 It includes coding rules, skills (slash commands), knowledge packs, agents, and hooks.
 
-> **Note:** Both `.claude/` and `.github/` directories are **generated outputs** produced by `claude_setup`. Do not edit them manually -- regenerate instead.
+> **Note:** Both `.claude/` and `.github/` directories are **generated outputs** produced by `claude_setup`.
+> The generator writes `.github/` artifacts under `github/` in the output directory; rename to `.github/` when placing in a project root.
+> Do not edit them manually -- regenerate instead.
 
 > The `CLAUDE.md` file at the project root provides an executive summary loaded automatically in EVERY conversation.
 

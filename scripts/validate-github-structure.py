@@ -1,4 +1,4 @@
-"""Validate all generated .claude/ and .github/ artifacts end-to-end."""
+"""Validate all generated .github/ artifacts end-to-end."""
 from __future__ import annotations
 
 import json
@@ -7,10 +7,6 @@ import sys
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT / "src"))
-
 
 class Severity(Enum):
     MINOR = "minor"
@@ -96,7 +92,7 @@ def _validate_instructions(output_dir: Path) -> ComponentResult:
         if not f.name.endswith(".instructions.md"):
             result.findings.append(Finding(
                 "instructions", ".github", f.name,
-                f"Wrong extension: expected .instructions.md, got {f.suffix}",
+                f"Wrong extension: expected .instructions.md, got {f.name}",
                 Severity.CRITICAL,
             ))
             result.failed += 1
@@ -196,7 +192,7 @@ def _validate_agents(output_dir: Path) -> ComponentResult:
         if not f.name.endswith(".agent.md"):
             result.findings.append(Finding(
                 "agents", ".github", f.name,
-                f"Wrong extension: expected .agent.md, got {f.suffix}",
+                f"Wrong extension: expected .agent.md, got {f.name}",
                 Severity.CRITICAL,
             ))
             result.failed += 1

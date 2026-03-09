@@ -16,14 +16,13 @@
 - Add `.claude/` ↔ `.github/` mapping table
 - Add conventions per artifact type
 - Add note about both being generated outputs
-- Add new placeholders: `{{GITHUB_TREE}}`, `{{MAPPING_TABLE}}`, `{{GITHUB_SUMMARY}}`
+- Add new placeholder: `{{MAPPING_TABLE}}`
 
 ### G2: Extend ReadmeAssembler
 - Add `_count_github_*()` helper functions
-- Add `_build_github_tree()` for directory tree
 - Add `_build_mapping_table()` for equivalence
-- Add `_build_github_summary()` for component counts
-- Wire new placeholders in `_generate_readme()`
+- Extend `_build_generation_summary()` to include .github/ counts
+- Wire `{{MAPPING_TABLE}}` placeholder in `_generate_readme()`
 
 ### G3: Create validation script
 - `scripts/validate-github-structure.py`
