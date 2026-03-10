@@ -155,18 +155,17 @@ None. No new environment variables or configuration files.
   The "skip existing" semantics require careful handling since `fs.cpSync` does not
   have a built-in skip-if-exists option -- the method must check `fs.existsSync`
   before each copy, matching the Python `target.exists()` guard.
-- **File class line limit**: The Python source is 285 lines. The TS version must
-  stay under 250 lines per Rule 03. This is achievable because:
-  - TS has no `from __future__ import annotations` / typing imports overhead
-  - TS method signatures are more compact (no type hints on separate lines)
-  - Logger calls can be omitted in initial migration (or use `console.debug`)
+- **File class line limit**: The Python source is 285 lines. The TS version
+  splits into two files to stay under 250 per Rule 03:
+  - `skills-selection.ts` (90 lines) — pure selection logic, no file I/O
+  - `skills-assembler.ts` (219 lines) — class with file I/O assembly
 
 ### Mitigation
 
 - Port selection methods first (pure logic, easy to test in isolation)
 - Port assembly methods second (I/O, requires tmp directory fixtures)
-- Verify line count stays under 250; if not, extract `_copyNonSkillItems` and
-  related helpers into a small `skills-copy-helpers.ts` module
+- Selection functions extracted into `skills-selection.ts` to comply with the
+  250-line limit
 
 ## Implementation Order
 

@@ -160,8 +160,7 @@ describe("SkillsAssembler", () => {
   let assembler: SkillsAssembler;
 
   beforeEach(() => {
-    tmpDir = path.join(tmpdir(), `skills-asm-test-${Date.now()}`);
-    fs.mkdirSync(tmpDir, { recursive: true });
+    tmpDir = fs.mkdtempSync(path.join(tmpdir(), "skills-asm-test-"));
     resourcesDir = setupSkillsResources(tmpDir);
     outputDir = path.join(tmpDir, "output");
     fs.mkdirSync(outputDir, { recursive: true });

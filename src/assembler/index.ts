@@ -16,4 +16,5 @@ export * from "./rules-identity.js";
 export * from "./rules-conditionals.js";
 
 // --- STORY-010: SkillsAssembler ---
+export * from "./skills-selection.js";
 export * from "./skills-assembler.js";
