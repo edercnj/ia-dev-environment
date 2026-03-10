@@ -249,6 +249,7 @@ export class InfraConfig {
   readonly registry: string;
   readonly apiGateway: string;
   readonly serviceMesh: string;
+  readonly cloudProvider: string;
   readonly observability: ObservabilityConfig;
 
   constructor(
@@ -260,6 +261,7 @@ export class InfraConfig {
     apiGateway: string = "none",
     serviceMesh: string = "none",
     observability: ObservabilityConfig = new ObservabilityConfig(),
+    cloudProvider: string = "none",
   ) {
     this.container = container;
     this.orchestrator = orchestrator;
@@ -268,6 +270,7 @@ export class InfraConfig {
     this.registry = registry;
     this.apiGateway = apiGateway;
     this.serviceMesh = serviceMesh;
+    this.cloudProvider = cloudProvider;
     this.observability = observability;
   }
 
@@ -285,6 +288,7 @@ export class InfraConfig {
       ObservabilityConfig.fromDict(
         (data["observability"] as Record<string, unknown> | undefined) ?? {},
       ),
+      (data["cloud_provider"] as string | undefined) ?? "none",
     );
   }
 }
