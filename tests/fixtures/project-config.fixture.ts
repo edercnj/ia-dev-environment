@@ -13,6 +13,31 @@ import {
 } from "../../src/models.js";
 
 /**
+ * Build a minimal ProjectConfig for domain mapping tests.
+ *
+ * Overrides: architecture style, event_driven flag, interfaces.
+ */
+export function aDomainTestConfig(
+  overrides: {
+    style?: string;
+    eventDriven?: boolean;
+    interfaces?: InterfaceConfig[];
+  } = {},
+): ProjectConfig {
+  return new ProjectConfig(
+    new ProjectIdentity("test", "test"),
+    new ArchitectureConfig(
+      overrides.style ?? "microservice",
+      false,
+      overrides.eventDriven ?? false,
+    ),
+    overrides.interfaces ?? [new InterfaceConfig("rest")],
+    new LanguageConfig("java", "21"),
+    new FrameworkConfig("quarkus", "3.0", "maven"),
+  );
+}
+
+/**
  * Build a ProjectConfig matching the pre-existing test fixtures
  * (simple_rendered.md, multivar_rendered.md, legacy_replaced.txt, etc.).
  *

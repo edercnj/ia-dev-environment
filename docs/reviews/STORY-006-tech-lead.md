@@ -1,37 +1,44 @@
-# Tech Lead Review -- STORY-006
+# Tech Lead Review — STORY-006
 
 **Decision:** GO
-**Score:** 39/40
-**Critical:** 0 | **Medium:** 0 | **Low:** 1
+**Score:** 36/40
+**Critical:** 0 | **Medium:** 2 | **Low:** 3
 
 ## Section Scores
 
 | Section | Score | Notes |
 |---------|-------|-------|
-| A. Code Hygiene | 8/8 | No unused imports, dead code, or warnings |
-| B. Naming | 4/4 | Intention-revealing, consistent with prior stories |
-| C. Functions | 5/5 | All functions <= 25 lines, max 4 params |
-| D. Vertical Formatting | 4/4 | Newspaper Rule followed, classes well-organized |
-| E. Design | 3/3 | DRY (shared fixture), CQS, Law of Demeter |
-| F. Error Handling | 3/3 | Logger warnings for missing templates, no nulls |
-| G. Architecture | 5/5 | OCP extension via SKILL_GROUPS, layer boundaries respected |
-| H. Framework & Infra | 4/4 | Clean DI, externalized config via templates |
-| I. Tests | 2/3 | 1186 passing, 97.73% coverage; test file size growing |
-| J. Security & Production | 1/1 | No sensitive data, thread-safe |
+| A. Code Hygiene | 7/8 | stack-mapping.ts at 258 lines (limit 250) — declarative constants |
+| B. Naming | 4/4 | Intention-revealing, consistent conventions |
+| C. Functions | 5/5 | All functions <= 25 lines, max 3 params |
+| D. Vertical Formatting | 4/4 | Newspaper Rule, constants top, helpers bottom |
+| E. Design | 3/3 | CQS, DRY (shared fixture), Law of Demeter |
+| F. Error Handling | 3/3 | Safe defaults (empty string/array/undefined), no null returns |
+| G. Architecture | 4/5 | Layer boundaries respected; orphaned DomainModule placeholder |
+| H. Framework & Infra | 4/4 | No DI needed, no env vars, native-compatible |
+| I. Tests | 3/3 | 111 tests, 96.47% line, 90.9% branch, shared fixtures |
+| J. Security & Production | 1/1 | All state readonly, no sensitive data |
 
 ## Findings
 
-### LOW: Test file approaching split threshold
-- `tests/assembler/test_github_skills_assembler.py` (725 lines)
-- No individual class exceeds 250 lines, but the file is growing
-- Suggestion: Consider splitting by skill group in a future story
+### Medium
+- [M1] stack-mapping.ts at 258 lines exceeds 250-line limit — contains 12 readonly constant objects; splitting would reduce cohesion
+- [M2] deriveProtocolFiles borderline at ~29 lines including whitespace — flagged for awareness
 
-## Positive Observations
+### Low
+- [L1] Pre-existing DomainModule/DOMAIN_LAYER in index.ts are orphaned placeholders
+- [L2] Test naming mixes camelCase and underscore_case — functional but inconsistent
+- [L3] Uncovered lines in core-kp-routing.ts:65-66 — unreachable default return
 
-1. Pattern consistency with STORY-004 and STORY-005
-2. Fixture extracted to module level (no repeated Arrange blocks)
-3. All 6 templates well-structured with knowledge pack references
-4. Coverage thresholds correctly present in x-test-run template
-5. Keyword differentiation validated between similar skills
-6. 48 golden files generated and verified byte-for-byte
-7. Pipeline integration test validates 6 testing paths
+## Specialist Reviews
+
+| Specialist | Score | Status |
+|-----------|-------|--------|
+| Security | 18/20 | Approved |
+| QA | 20/24 | Approved |
+| Performance | 26/26 | Approved |
+| **Total** | **64/70 (91%)** | **Approved** |
+
+## Rationale
+
+Zero critical issues. Score 36/40 exceeds 34-point GO threshold. Compilation clean. All 111 tests pass. Domain coverage meets line (96.47%) and branch (90.9%) thresholds. Architecture rules respected: domain has zero external dependencies beyond stdlib and domain models.
