@@ -55,12 +55,11 @@ export function buildDefaultContext(
 }
 
 /**
- * Build a string-only mapping for legacy placeholder replacement.
+ * Derive a string-only mapping from a pre-computed context.
  */
-function buildPlaceholderMap(
-  config: ProjectConfig,
+function toPlaceholderMap(
+  context: Record<string, unknown>,
 ): Record<string, string> {
-  const context = buildDefaultContext(config);
   const map: Record<string, string> = {};
   for (const [key, value] of Object.entries(context)) {
     map[key] = String(value);
@@ -87,6 +86,7 @@ export class TemplateEngine {
    */
   constructor(resourcesDir: string, config: ProjectConfig) {
     const loader = new nunjucks.FileSystemLoader(resourcesDir);
+    // autoescape disabled: output is config/markdown files, not browser-rendered HTML
     this.env = new nunjucks.Environment(loader, {
       autoescape: false,
       trimBlocks: false,
@@ -94,7 +94,7 @@ export class TemplateEngine {
       throwOnUndefined: true,
     });
     this.defaultContext = buildDefaultContext(config);
-    this.placeholderMap = buildPlaceholderMap(config);
+    this.placeholderMap = toPlaceholderMap(this.defaultContext);
   }
 
   /**
@@ -156,7 +156,7 @@ export class TemplateEngine {
     config?: ProjectConfig,
   ): string {
     const mapping = config
-      ? buildPlaceholderMap(config)
+      ? toPlaceholderMap(buildDefaultContext(config))
       : this.placeholderMap;
 
     return content.replace(PLACEHOLDER_PATTERN, (match, key: string) => {

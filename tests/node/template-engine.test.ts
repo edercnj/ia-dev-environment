@@ -13,33 +13,12 @@ import {
   InterfaceConfig,
   LanguageConfig,
   FrameworkConfig,
-  DataConfig,
-  InfraConfig,
-  TechComponent,
-  TestingConfig,
 } from "../../src/models.js";
+import { aProjectConfig } from "../fixtures/project-config.fixture.js";
 
 const FIXTURES_DIR = resolve(__dirname, "../fixtures");
 const TEMPLATES_DIR = resolve(FIXTURES_DIR, "templates");
 const REFERENCE_DIR = resolve(FIXTURES_DIR, "reference");
-
-function aProjectConfig(): ProjectConfig {
-  return new ProjectConfig(
-    new ProjectIdentity("my-service", "A sample service"),
-    new ArchitectureConfig("hexagonal", true, false),
-    [new InterfaceConfig("cli")],
-    new LanguageConfig("python", "3.9"),
-    new FrameworkConfig("click", "8.1", "pip"),
-    new DataConfig(
-      new TechComponent("postgresql"),
-      new TechComponent(),
-      new TechComponent("redis"),
-    ),
-    new InfraConfig("docker", "kubernetes"),
-    undefined,
-    new TestingConfig(true, false, true, 95, 90),
-  );
-}
 
 afterEach(() => {
   vi.restoreAllMocks();
