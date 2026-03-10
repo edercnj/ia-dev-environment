@@ -12,3 +12,8 @@ export * from "./pattern-mapping.js";
 export * from "./protocol-mapping.js";
 export * from "./core-kp-routing.js";
 export * from "./version-resolver.js";
+
+// --- STORY-007: Domain validator, resolver & skill registry ---
+export * from "./validator.js";
+export * from "./resolver.js";
+export * from "./skill-registry.js";
