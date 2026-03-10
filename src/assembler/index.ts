@@ -26,3 +26,7 @@ export * from "./agents-assembler.js";
 // --- STORY-012: PatternsAssembler + ProtocolsAssembler ---
 export * from "./patterns-assembler.js";
 export * from "./protocols-assembler.js";
+
+// --- STORY-013: HooksAssembler + SettingsAssembler ---
+export * from "./hooks-assembler.js";
+export * from "./settings-assembler.js";
