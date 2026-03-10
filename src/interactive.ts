@@ -51,10 +51,10 @@ export const BUILD_TOOL_CHOICES = [
 export const FRAMEWORK_CHOICES: Readonly<Record<string, readonly string[]>> = {
   python: ["fastapi", "click", "django", "flask"],
   java: ["quarkus", "spring-boot"],
-  go: ["stdlib", "gin", "fiber"],
+  go: ["gin"],
   kotlin: ["ktor"],
-  typescript: ["nestjs", "express", "fastify"],
-  rust: ["axum", "actix"],
+  typescript: ["nestjs"],
+  rust: ["axum"],
 };
 
 export async function promptConfirmation(

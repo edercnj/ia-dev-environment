@@ -217,9 +217,9 @@ describe("runInteractive", () => {
     { lang: "python", expected: ["fastapi", "click", "django", "flask"] },
     { lang: "java", expected: ["quarkus", "spring-boot"] },
     { lang: "kotlin", expected: ["ktor"] },
-    { lang: "go", expected: ["stdlib", "gin", "fiber"] },
-    { lang: "typescript", expected: ["nestjs", "express", "fastify"] },
-    { lang: "rust", expected: ["axum", "actix"] },
+    { lang: "go", expected: ["gin"] },
+    { lang: "typescript", expected: ["nestjs"] },
+    { lang: "rust", expected: ["axum"] },
   ])(
     "runInteractive_$langLanguage_frameworkFilteredCorrectly",
     async ({ lang, expected }) => {
