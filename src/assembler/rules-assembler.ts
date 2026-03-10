@@ -1,13 +1,6 @@
 /**
  * RulesAssembler — assembles .claude/rules/ and skills/ from source knowledge packs.
  *
- * @remarks
- * Migrated from Python `assembler/rules_assembler.py` (540 lines).
- * Split into three modules for 250-line compliance:
- * - `rules-assembler.ts` — main class (this file)
- * - `rules-identity.ts` — identity content builders
- * - `rules-conditionals.ts` — conditional assembly functions
- *
  * @module
  */
 import * as fs from "node:fs";

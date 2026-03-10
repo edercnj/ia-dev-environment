@@ -18,7 +18,7 @@ const SQL_DB_TYPES = ["postgresql", "oracle", "mysql"] as const;
 const NOSQL_DB_TYPES = ["mongodb", "cassandra"] as const;
 
 /** Copy .md files from a source directory to target. */
-export function copyMdDir(
+function copyMdDir(
   sourceDir: string,
   target: string,
 ): string[] {

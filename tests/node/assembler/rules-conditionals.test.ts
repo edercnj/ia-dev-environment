@@ -3,7 +3,6 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { tmpdir } from "node:os";
 import {
-  copyMdDir,
   copyDatabaseRefs,
   copyCacheRefs,
   assembleSecurityRules,
@@ -55,60 +54,6 @@ function buildConfig(overrides: {
   );
 }
 
-describe("copyMdDir", () => {
-  let tmpDir: string;
-
-  beforeEach(() => {
-    tmpDir = path.join(tmpdir(), `copymd-test-${Date.now()}`);
-    fs.mkdirSync(tmpDir, { recursive: true });
-  });
-
-  afterEach(() => {
-    fs.rmSync(tmpDir, { recursive: true, force: true });
-  });
-
-  it("copiesMdFiles_fromSourceToTarget", () => {
-    const src = path.join(tmpDir, "src");
-    const tgt = path.join(tmpDir, "tgt");
-    fs.mkdirSync(src, { recursive: true });
-    fs.mkdirSync(tgt, { recursive: true });
-    fs.writeFileSync(path.join(src, "a.md"), "alpha");
-    fs.writeFileSync(path.join(src, "b.md"), "beta");
-    fs.writeFileSync(path.join(src, "c.txt"), "ignored");
-    const result = copyMdDir(src, tgt);
-    expect(result).toHaveLength(2);
-    expect(fs.readFileSync(path.join(tgt, "a.md"), "utf-8")).toBe("alpha");
-    expect(fs.readFileSync(path.join(tgt, "b.md"), "utf-8")).toBe("beta");
-    expect(fs.existsSync(path.join(tgt, "c.txt"))).toBe(false);
-  });
-
-  it("missingSourceDir_returnsEmpty", () => {
-    const result = copyMdDir(path.join(tmpDir, "nope"), path.join(tmpDir, "tgt"));
-    expect(result).toEqual([]);
-  });
-
-  it("skipsNonFileEntries_inSourceDir", () => {
-    const src = path.join(tmpDir, "src");
-    const tgt = path.join(tmpDir, "tgt");
-    fs.mkdirSync(src, { recursive: true });
-    fs.mkdirSync(tgt, { recursive: true });
-    fs.writeFileSync(path.join(src, "real.md"), "content");
-    fs.mkdirSync(path.join(src, "subdir.md"));
-    const result = copyMdDir(src, tgt);
-    expect(result).toHaveLength(1);
-    expect(fs.readFileSync(path.join(tgt, "real.md"), "utf-8")).toBe("content");
-  });
-
-  it("emptySourceDir_returnsEmpty", () => {
-    const src = path.join(tmpDir, "empty");
-    fs.mkdirSync(src, { recursive: true });
-    const tgt = path.join(tmpDir, "tgt");
-    fs.mkdirSync(tgt, { recursive: true });
-    const result = copyMdDir(src, tgt);
-    expect(result).toEqual([]);
-  });
-});
-
 describe("copyDatabaseRefs", () => {
   let tmpDir: string;
   let resourcesDir: string;
@@ -155,11 +100,35 @@ describe("copyDatabaseRefs", () => {
     fs.mkdirSync(nosqlCommon, { recursive: true });
     fs.mkdirSync(nosqlMongo, { recursive: true });
     fs.writeFileSync(path.join(nosqlCommon, "nosql-common.md"), "nosql common");
-    fs.writeFileSync(path.join(nosqlMongo, "mongo.md"), "mongo");
+    fs.writeFileSync(path.join(nosqlMongo, "mongo.md"), "mongo specific");
     const config = buildConfig({ dbName: "mongodb" });
     const engine = new TemplateEngine(resourcesDir, config);
     const result = copyDatabaseRefs(config, resourcesDir, skillsDir, engine);
     expect(result.length).toBeGreaterThanOrEqual(2);
+    const target = path.join(skillsDir, "database-patterns", "references");
+    expect(fs.readFileSync(path.join(target, "nosql-common.md"), "utf-8")).toBe("nosql common");
+    expect(fs.readFileSync(path.join(target, "mongo.md"), "utf-8")).toBe("mongo specific");
+  });
+
+  it("replacesPlaceholders_inCopiedDatabaseFiles", () => {
+    const sqlCommon = path.join(resourcesDir, "databases", "sql", "common");
+    fs.mkdirSync(sqlCommon, { recursive: true });
+    fs.writeFileSync(path.join(sqlCommon, "sql-ref.md"), "DB for {project_name}");
+    const config = buildConfig({ dbName: "postgresql" });
+    const engine = new TemplateEngine(resourcesDir, config);
+    copyDatabaseRefs(config, resourcesDir, skillsDir, engine);
+    const target = path.join(skillsDir, "database-patterns", "references", "sql-ref.md");
+    expect(fs.readFileSync(target, "utf-8")).toBe("DB for test");
+  });
+
+  it("unknownDatabaseType_onlyCopiesVersionMatrix", () => {
+    const dbDir = path.join(resourcesDir, "databases");
+    fs.mkdirSync(dbDir, { recursive: true });
+    fs.writeFileSync(path.join(dbDir, "version-matrix.md"), "matrix");
+    const config = buildConfig({ dbName: "sqlite" });
+    const engine = new TemplateEngine(resourcesDir, config);
+    const result = copyDatabaseRefs(config, resourcesDir, skillsDir, engine);
+    expect(result).toHaveLength(1);
   });
 
   it("copiesVersionMatrix_whenExists", () => {
