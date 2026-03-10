@@ -7,7 +7,7 @@
 import type { InfraConfig } from "../models.js";
 
 /** Core knowledge packs included in every generation (11 entries). */
-export const CORE_KNOWLEDGE_PACKS: readonly string[] = [
+export const CORE_KNOWLEDGE_PACKS: readonly string[] = Object.freeze([
   "coding-standards",
   "architecture",
   "testing",
@@ -19,7 +19,7 @@ export const CORE_KNOWLEDGE_PACKS: readonly string[] = [
   "infrastructure",
   "protocols",
   "story-planning",
-] as const;
+]);
 
 /**
  * Build conditional infrastructure pack rules.
