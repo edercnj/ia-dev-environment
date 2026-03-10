@@ -13,12 +13,6 @@ import {
 } from "../../src/models.js";
 
 /**
- * Build a ProjectConfig matching the pre-existing test fixtures
- * (simple_rendered.md, multivar_rendered.md, legacy_replaced.txt, etc.).
- *
- * Values: my-service / python 3.9 / click 8.1 / hexagonal / postgresql / redis.
- */
-/**
  * Build a minimal ProjectConfig for domain mapping tests.
  *
  * Overrides: architecture style, event_driven flag, interfaces.
@@ -43,6 +37,12 @@ export function aDomainTestConfig(
   );
 }
 
+/**
+ * Build a ProjectConfig matching the pre-existing test fixtures
+ * (simple_rendered.md, multivar_rendered.md, legacy_replaced.txt, etc.).
+ *
+ * Values: my-service / python 3.9 / click 8.1 / hexagonal / postgresql / redis.
+ */
 export function aProjectConfig(): ProjectConfig {
   return new ProjectConfig(
     new ProjectIdentity("my-service", "A sample service"),

@@ -13,9 +13,12 @@ export interface CoreKpRoute {
   readonly destFile: string;
 }
 
+/** Supported condition fields for conditional routing. */
+export type ConditionField = "architecture_style";
+
 /** Route that is conditionally included based on config values. */
 export interface ConditionalCoreKpRoute extends CoreKpRoute {
-  readonly conditionField: string;
+  readonly conditionField: ConditionField;
   readonly conditionExclude: string;
 }
 
@@ -58,9 +61,9 @@ export function getActiveRoutes(config: ProjectConfig): CoreKpRoute[] {
 }
 
 /** Resolve a condition field name to a config value. */
-function resolveConditionValue(config: ProjectConfig, field: string): string {
-  if (field === "architecture_style") {
-    return config.architecture.style;
+function resolveConditionValue(config: ProjectConfig, field: ConditionField): string {
+  switch (field) {
+    case "architecture_style":
+      return config.architecture.style;
   }
-  return "";
 }

@@ -28,19 +28,21 @@ describe("LANGUAGE_COMMANDS", () => {
   });
 
   it.each([
-    ["java-maven", "./mvnw compile -q", "./mvnw verify", ".java", "pom.xml", "maven"],
-    ["java-gradle", "./gradlew compileJava -q", "./gradlew test", ".java", "build.gradle", "gradle"],
-    ["kotlin-gradle", "./gradlew compileKotlin -q", "./gradlew test", ".kt", "build.gradle.kts", "gradle"],
-    ["typescript-npm", "npx --no-install tsc --noEmit", "npm test", ".ts", "package.json", "npm"],
-    ["python-pip", "python3 -m py_compile", "pytest", ".py", "pyproject.toml", "pip"],
-    ["go-go", "go build ./...", "go test ./...", ".go", "go.mod", "go"],
-    ["rust-cargo", "cargo check", "cargo test", ".rs", "Cargo.toml", "cargo"],
-    ["csharp-dotnet", "dotnet build --no-restore --verbosity quiet", "dotnet test", ".cs", "*.csproj", "dotnet"],
-  ])("%s_returnsCorrectCommands", (key, compileCmd, testCmd, ext, buildFile, pkgMgr) => {
+    ["java-maven", "./mvnw compile -q", "./mvnw package -DskipTests", "./mvnw verify", "./mvnw verify jacoco:report", ".java", "pom.xml", "maven"],
+    ["java-gradle", "./gradlew compileJava -q", "./gradlew build -x test", "./gradlew test", "./gradlew test jacocoTestReport", ".java", "build.gradle", "gradle"],
+    ["kotlin-gradle", "./gradlew compileKotlin -q", "./gradlew build -x test", "./gradlew test", "./gradlew test jacocoTestReport", ".kt", "build.gradle.kts", "gradle"],
+    ["typescript-npm", "npx --no-install tsc --noEmit", "npm run build", "npm test", "npm test -- --coverage", ".ts", "package.json", "npm"],
+    ["python-pip", "python3 -m py_compile", "pip install -e .", "pytest", "pytest --cov", ".py", "pyproject.toml", "pip"],
+    ["go-go", "go build ./...", "go build ./...", "go test ./...", "go test -coverprofile=coverage.out ./...", ".go", "go.mod", "go"],
+    ["rust-cargo", "cargo check", "cargo build", "cargo test", "cargo tarpaulin", ".rs", "Cargo.toml", "cargo"],
+    ["csharp-dotnet", "dotnet build --no-restore --verbosity quiet", "dotnet build", "dotnet test", 'dotnet test --collect:"XPlat Code Coverage"', ".cs", "*.csproj", "dotnet"],
+  ])("%s_returnsCorrectCommands", (key, compileCmd, buildCmd, testCmd, coverageCmd, ext, buildFile, pkgMgr) => {
     const cmd = LANGUAGE_COMMANDS[key];
     expect(cmd).toBeDefined();
     expect(cmd!.compileCmd).toBe(compileCmd);
+    expect(cmd!.buildCmd).toBe(buildCmd);
     expect(cmd!.testCmd).toBe(testCmd);
+    expect(cmd!.coverageCmd).toBe(coverageCmd);
     expect(cmd!.fileExtension).toBe(ext);
     expect(cmd!.buildFile).toBe(buildFile);
     expect(cmd!.packageManager).toBe(pkgMgr);

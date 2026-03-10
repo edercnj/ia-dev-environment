@@ -42,13 +42,26 @@ describe("ResolvedStack interface", () => {
     expect(stack.protocols).toEqual([]);
   });
 
-  it("hasAllExpected13Fields", () => {
-    const fieldNames: (keyof ResolvedStack)[] = [
-      "buildCmd", "testCmd", "compileCmd", "coverageCmd",
-      "dockerBaseImage", "healthPath", "packageManager",
-      "defaultPort", "fileExtension", "buildFile",
-      "nativeSupported", "projectType", "protocols",
-    ];
-    expect(fieldNames).toHaveLength(13);
+  it("hasExactlyTheExpectedFields", () => {
+    // Compile-time assertion: if ResolvedStack gains or loses a field,
+    // this type will produce a TS error (excess/missing property).
+    type AssertExactKeys<T, U extends T> = U extends T ? T extends U ? true : false : false;
+    type Expected = {
+      readonly buildCmd: string;
+      readonly testCmd: string;
+      readonly compileCmd: string;
+      readonly coverageCmd: string;
+      readonly dockerBaseImage: string;
+      readonly healthPath: string;
+      readonly packageManager: string;
+      readonly defaultPort: number;
+      readonly fileExtension: string;
+      readonly buildFile: string;
+      readonly nativeSupported: boolean;
+      readonly projectType: string;
+      readonly protocols: readonly string[];
+    };
+    const check: AssertExactKeys<ResolvedStack, Expected> = true;
+    expect(check).toBe(true);
   });
 });
