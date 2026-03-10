@@ -4,24 +4,7 @@ import {
   CONDITIONAL_CORE_KP,
   getActiveRoutes,
 } from "../../../src/domain/core-kp-routing.js";
-import {
-  ProjectConfig,
-  ProjectIdentity,
-  ArchitectureConfig,
-  InterfaceConfig,
-  LanguageConfig,
-  FrameworkConfig,
-} from "../../../src/models.js";
-
-function buildConfig(style: string): ProjectConfig {
-  return new ProjectConfig(
-    new ProjectIdentity("test", "test"),
-    new ArchitectureConfig(style, false, false),
-    [new InterfaceConfig("rest")],
-    new LanguageConfig("java", "21"),
-    new FrameworkConfig("quarkus", "3.0", "maven"),
-  );
-}
+import { aDomainTestConfig } from "../../fixtures/project-config.fixture.js";
 
 describe("CORE_TO_KP_MAPPING", () => {
   it("contains_11_staticRoutes", () => {
@@ -59,13 +42,13 @@ describe("CONDITIONAL_CORE_KP", () => {
 
 describe("getActiveRoutes", () => {
   it("microservice_includes12Routes", () => {
-    const config = buildConfig("microservice");
+    const config = aDomainTestConfig({ style: "microservice" });
     const routes = getActiveRoutes(config);
     expect(routes).toHaveLength(12);
   });
 
   it("library_excludesCloudNative_returns11Routes", () => {
-    const config = buildConfig("library");
+    const config = aDomainTestConfig({ style: "library" });
     const routes = getActiveRoutes(config);
     expect(routes).toHaveLength(11);
     const sourceFiles = routes.map((r) => r.sourceFile);
@@ -73,7 +56,7 @@ describe("getActiveRoutes", () => {
   });
 
   it("monolith_includesCloudNative", () => {
-    const config = buildConfig("monolith");
+    const config = aDomainTestConfig({ style: "monolith" });
     const routes = getActiveRoutes(config);
     expect(routes).toHaveLength(12);
     const sourceFiles = routes.map((r) => r.sourceFile);
@@ -81,7 +64,7 @@ describe("getActiveRoutes", () => {
   });
 
   it("allRoutes_haveAllFields", () => {
-    const config = buildConfig("microservice");
+    const config = aDomainTestConfig({ style: "microservice" });
     const routes = getActiveRoutes(config);
     for (const route of routes) {
       expect(route.sourceFile).toBeTruthy();

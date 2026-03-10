@@ -11,24 +11,8 @@ import {
   selectMessagingFiles,
   extractBroker,
 } from "../../../src/domain/protocol-mapping.js";
-import {
-  ProjectConfig,
-  ProjectIdentity,
-  ArchitectureConfig,
-  InterfaceConfig,
-  LanguageConfig,
-  FrameworkConfig,
-} from "../../../src/models.js";
-
-function buildConfig(interfaces: InterfaceConfig[]): ProjectConfig {
-  return new ProjectConfig(
-    new ProjectIdentity("test", "test"),
-    new ArchitectureConfig("microservice", false, false),
-    interfaces,
-    new LanguageConfig("java", "21"),
-    new FrameworkConfig("quarkus", "3.0", "maven"),
-  );
-}
+import { InterfaceConfig } from "../../../src/models.js";
+import { aDomainTestConfig } from "../../fixtures/project-config.fixture.js";
 
 describe("constants", () => {
   it("interfaceProtocolMap_has7Entries", () => {
@@ -54,16 +38,18 @@ describe("constants", () => {
 
 describe("deriveProtocols", () => {
   it("restInterface_returnsRest", () => {
-    const config = buildConfig([new InterfaceConfig("rest")]);
+    const config = aDomainTestConfig({ interfaces: [new InterfaceConfig("rest")] });
     expect(deriveProtocols(config)).toEqual(["rest"]);
   });
 
   it("multipleInterfaces_returnsDeduplicated", () => {
-    const config = buildConfig([
-      new InterfaceConfig("rest"),
-      new InterfaceConfig("grpc"),
-      new InterfaceConfig("event-consumer"),
-    ]);
+    const config = aDomainTestConfig({
+      interfaces: [
+        new InterfaceConfig("rest"),
+        new InterfaceConfig("grpc"),
+        new InterfaceConfig("event-consumer"),
+      ],
+    });
     const result = deriveProtocols(config);
     expect(result).toContain("rest");
     expect(result).toContain("grpc");
@@ -72,55 +58,61 @@ describe("deriveProtocols", () => {
   });
 
   it("duplicateInterfaces_returnsDeduplicated", () => {
-    const config = buildConfig([
-      new InterfaceConfig("event-consumer"),
-      new InterfaceConfig("event-producer"),
-    ]);
+    const config = aDomainTestConfig({
+      interfaces: [
+        new InterfaceConfig("event-consumer"),
+        new InterfaceConfig("event-producer"),
+      ],
+    });
     const result = deriveProtocols(config);
     expect(result).toEqual(["event-driven", "messaging"]);
   });
 
   it("resultIsSorted", () => {
-    const config = buildConfig([
-      new InterfaceConfig("grpc"),
-      new InterfaceConfig("rest"),
-      new InterfaceConfig("event-consumer"),
-    ]);
+    const config = aDomainTestConfig({
+      interfaces: [
+        new InterfaceConfig("grpc"),
+        new InterfaceConfig("rest"),
+        new InterfaceConfig("event-consumer"),
+      ],
+    });
     const result = deriveProtocols(config);
     const sorted = [...result].sort();
     expect(result).toEqual(sorted);
   });
 
   it("customEventType_addsEventDriven", () => {
-    const config = buildConfig([new InterfaceConfig("event-custom-type")]);
+    const config = aDomainTestConfig({ interfaces: [new InterfaceConfig("event-custom-type")] });
     const result = deriveProtocols(config);
     expect(result).toContain("event-driven");
   });
 
   it("cliInterface_returnsEmpty", () => {
-    const config = buildConfig([new InterfaceConfig("cli")]);
+    const config = aDomainTestConfig({ interfaces: [new InterfaceConfig("cli")] });
     expect(deriveProtocols(config)).toEqual([]);
   });
 });
 
 describe("extractBroker", () => {
   it("noBroker_returnsEmpty", () => {
-    const config = buildConfig([new InterfaceConfig("rest")]);
+    const config = aDomainTestConfig({ interfaces: [new InterfaceConfig("rest")] });
     expect(extractBroker(config)).toBe("");
   });
 
   it("hasBroker_returnsBrokerName", () => {
-    const config = buildConfig([
-      new InterfaceConfig("event-consumer", "", "kafka"),
-    ]);
+    const config = aDomainTestConfig({
+      interfaces: [new InterfaceConfig("event-consumer", "", "kafka")],
+    });
     expect(extractBroker(config)).toBe("kafka");
   });
 
   it("multipleBrokers_returnsFirst", () => {
-    const config = buildConfig([
-      new InterfaceConfig("event-consumer", "", "rabbitmq"),
-      new InterfaceConfig("event-producer", "", "kafka"),
-    ]);
+    const config = aDomainTestConfig({
+      interfaces: [
+        new InterfaceConfig("event-consumer", "", "rabbitmq"),
+        new InterfaceConfig("event-producer", "", "kafka"),
+      ],
+    });
     expect(extractBroker(config)).toBe("rabbitmq");
   });
 });
@@ -139,14 +131,14 @@ describe("deriveProtocolFiles", () => {
   });
 
   it("existingProtocol_returnsFiles", () => {
-    const config = buildConfig([new InterfaceConfig("rest")]);
+    const config = aDomainTestConfig({ interfaces: [new InterfaceConfig("rest")] });
     const result = deriveProtocolFiles(tmpDir, ["rest"], config);
     expect(result["rest"]).toHaveLength(1);
     expect(result["rest"]![0]).toContain("openapi.md");
   });
 
   it("missingProtocol_skipsWithoutError", () => {
-    const config = buildConfig([new InterfaceConfig("rest")]);
+    const config = aDomainTestConfig({ interfaces: [new InterfaceConfig("rest")] });
     const result = deriveProtocolFiles(tmpDir, ["nonexistent"], config);
     expect(result).toEqual({});
   });
@@ -167,24 +159,24 @@ describe("selectMessagingFiles", () => {
   });
 
   it("withBroker_returnsSpecificFile", () => {
-    const config = buildConfig([
-      new InterfaceConfig("event-consumer", "", "kafka"),
-    ]);
+    const config = aDomainTestConfig({
+      interfaces: [new InterfaceConfig("event-consumer", "", "kafka")],
+    });
     const files = selectMessagingFiles(tmpDir, config);
     expect(files).toHaveLength(1);
     expect(files[0]).toContain("kafka.md");
   });
 
   it("withoutBroker_returnsAllFiles", () => {
-    const config = buildConfig([new InterfaceConfig("event-consumer")]);
+    const config = aDomainTestConfig({ interfaces: [new InterfaceConfig("event-consumer")] });
     const files = selectMessagingFiles(tmpDir, config);
     expect(files).toHaveLength(2);
   });
 
   it("withUnknownBroker_returnsAllFiles", () => {
-    const config = buildConfig([
-      new InterfaceConfig("event-consumer", "", "unknown-broker"),
-    ]);
+    const config = aDomainTestConfig({
+      interfaces: [new InterfaceConfig("event-consumer", "", "unknown-broker")],
+    });
     const files = selectMessagingFiles(tmpDir, config);
     expect(files).toHaveLength(2);
   });

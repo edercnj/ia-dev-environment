@@ -9,24 +9,7 @@ import {
   selectPatterns,
   selectPatternFiles,
 } from "../../../src/domain/pattern-mapping.js";
-import {
-  ProjectConfig,
-  ProjectIdentity,
-  ArchitectureConfig,
-  InterfaceConfig,
-  LanguageConfig,
-  FrameworkConfig,
-} from "../../../src/models.js";
-
-function buildConfig(style: string, eventDriven: boolean): ProjectConfig {
-  return new ProjectConfig(
-    new ProjectIdentity("test", "test"),
-    new ArchitectureConfig(style, false, eventDriven),
-    [new InterfaceConfig("rest")],
-    new LanguageConfig("java", "21"),
-    new FrameworkConfig("quarkus", "3.0", "maven"),
-  );
-}
+import { aDomainTestConfig } from "../../fixtures/project-config.fixture.js";
 
 describe("constants", () => {
   it("universalPatterns_containsArchitecturalAndData", () => {
@@ -46,7 +29,7 @@ describe("constants", () => {
 
 describe("selectPatterns", () => {
   it("microservice_includesUniversalAndStylePatterns", () => {
-    const config = buildConfig("microservice", false);
+    const config = aDomainTestConfig({ style: "microservice" });
     const result = selectPatterns(config);
     expect(result).toContain("architectural");
     expect(result).toContain("data");
@@ -56,7 +39,7 @@ describe("selectPatterns", () => {
   });
 
   it("microservice_withEventDriven_includesEventPatterns", () => {
-    const config = buildConfig("microservice", true);
+    const config = aDomainTestConfig({ style: "microservice", eventDriven: true });
     const result = selectPatterns(config);
     expect(result).toContain("saga-pattern");
     expect(result).toContain("outbox-pattern");
@@ -65,7 +48,7 @@ describe("selectPatterns", () => {
   });
 
   it("microservice_resultIsSortedAndDeduplicated", () => {
-    const config = buildConfig("microservice", true);
+    const config = aDomainTestConfig({ style: "microservice", eventDriven: true });
     const result = selectPatterns(config);
     const sorted = [...result].sort();
     expect(result).toEqual(sorted);
@@ -73,19 +56,19 @@ describe("selectPatterns", () => {
   });
 
   it("library_returnsOnlyUniversalPatterns", () => {
-    const config = buildConfig("library", false);
+    const config = aDomainTestConfig({ style: "library" });
     const result = selectPatterns(config);
     expect(result).toEqual(["architectural", "data"]);
   });
 
   it("unknownStyle_returnsEmptyList", () => {
-    const config = buildConfig("unknown-style", false);
+    const config = aDomainTestConfig({ style: "unknown-style" });
     const result = selectPatterns(config);
     expect(result).toEqual([]);
   });
 
   it("hexagonal_includesIntegration", () => {
-    const config = buildConfig("hexagonal", false);
+    const config = aDomainTestConfig({ style: "hexagonal" });
     const result = selectPatterns(config);
     expect(result).toContain("integration");
     expect(result).not.toContain("microservice");

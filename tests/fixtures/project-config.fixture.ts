@@ -18,6 +18,31 @@ import {
  *
  * Values: my-service / python 3.9 / click 8.1 / hexagonal / postgresql / redis.
  */
+/**
+ * Build a minimal ProjectConfig for domain mapping tests.
+ *
+ * Overrides: architecture style, event_driven flag, interfaces.
+ */
+export function aDomainTestConfig(
+  overrides: {
+    style?: string;
+    eventDriven?: boolean;
+    interfaces?: InterfaceConfig[];
+  } = {},
+): ProjectConfig {
+  return new ProjectConfig(
+    new ProjectIdentity("test", "test"),
+    new ArchitectureConfig(
+      overrides.style ?? "microservice",
+      false,
+      overrides.eventDriven ?? false,
+    ),
+    overrides.interfaces ?? [new InterfaceConfig("rest")],
+    new LanguageConfig("java", "21"),
+    new FrameworkConfig("quarkus", "3.0", "maven"),
+  );
+}
+
 export function aProjectConfig(): ProjectConfig {
   return new ProjectConfig(
     new ProjectIdentity("my-service", "A sample service"),
