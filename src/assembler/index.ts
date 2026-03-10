@@ -18,3 +18,7 @@ export * from "./rules-conditionals.js";
 // --- STORY-010: SkillsAssembler ---
 export * from "./skills-selection.js";
 export * from "./skills-assembler.js";
+
+// --- STORY-011: AgentsAssembler ---
+export * from "./agents-selection.js";
+export * from "./agents-assembler.js";
