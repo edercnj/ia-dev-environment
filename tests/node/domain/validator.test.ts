@@ -9,43 +9,9 @@ import {
   extractMajor,
   extractMinor,
 } from "../../../src/domain/validator.js";
-import {
-  ProjectConfig,
-  ProjectIdentity,
-  ArchitectureConfig,
-  InterfaceConfig,
-  LanguageConfig,
-  FrameworkConfig,
-} from "../../../src/models.js";
+import { aValidationTestConfig } from "../../fixtures/project-config.fixture.js";
 
-function buildConfig(overrides: {
-  language?: { name: string; version: string };
-  framework?: {
-    name: string; version: string;
-    buildTool?: string; nativeBuild?: boolean;
-  };
-  architecture?: { style: string };
-  interfaces?: Array<{ type: string }>;
-} = {}): ProjectConfig {
-  const lang = overrides.language ?? { name: "java", version: "21" };
-  const fw = overrides.framework ?? {
-    name: "quarkus", version: "3.0",
-    buildTool: "maven", nativeBuild: false,
-  };
-  const arch = overrides.architecture ?? { style: "microservice" };
-  const ifaces = overrides.interfaces ?? [{ type: "rest" }];
-  return new ProjectConfig(
-    new ProjectIdentity("test", "test"),
-    new ArchitectureConfig(arch.style),
-    ifaces.map((i) => new InterfaceConfig(i.type)),
-    new LanguageConfig(lang.name, lang.version),
-    new FrameworkConfig(
-      fw.name, fw.version,
-      fw.buildTool ?? "maven",
-      fw.nativeBuild ?? false,
-    ),
-  );
-}
+const buildConfig = aValidationTestConfig;
 
 describe("validateStack", () => {
   describe("valid framework-language combos", () => {
