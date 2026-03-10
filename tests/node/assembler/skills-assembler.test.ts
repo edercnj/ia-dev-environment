@@ -228,44 +228,18 @@ describe("SkillsAssembler", () => {
 
   describe("selectConditionalSkills", () => {
     describe("interface skills", () => {
-      it("rest_includesApiReview", () => {
+      it.each([
+        ["rest", "x-review-api"],
+        ["grpc", "x-review-grpc"],
+        ["graphql", "x-review-graphql"],
+        ["event-consumer", "x-review-events"],
+        ["event-producer", "x-review-events"],
+      ])("%s_includes_%s", (ifaceType, expectedSkill) => {
         const config = buildConfig({
-          interfaces: [new InterfaceConfig("rest")],
+          interfaces: [new InterfaceConfig(ifaceType)],
         });
         const result = assembler.selectConditionalSkills(config);
-        expect(result).toContain("x-review-api");
-      });
-
-      it("grpc_includesGrpcReview", () => {
-        const config = buildConfig({
-          interfaces: [new InterfaceConfig("grpc")],
-        });
-        const result = assembler.selectConditionalSkills(config);
-        expect(result).toContain("x-review-grpc");
-      });
-
-      it("graphql_includesGraphqlReview", () => {
-        const config = buildConfig({
-          interfaces: [new InterfaceConfig("graphql")],
-        });
-        const result = assembler.selectConditionalSkills(config);
-        expect(result).toContain("x-review-graphql");
-      });
-
-      it("eventConsumer_includesEventsReview", () => {
-        const config = buildConfig({
-          interfaces: [new InterfaceConfig("event-consumer")],
-        });
-        const result = assembler.selectConditionalSkills(config);
-        expect(result).toContain("x-review-events");
-      });
-
-      it("eventProducer_includesEventsReview", () => {
-        const config = buildConfig({
-          interfaces: [new InterfaceConfig("event-producer")],
-        });
-        const result = assembler.selectConditionalSkills(config);
-        expect(result).toContain("x-review-events");
+        expect(result).toContain(expectedSkill);
       });
 
       it("noMatchingInterface_noInterfaceSkills", () => {
@@ -295,88 +269,49 @@ describe("SkillsAssembler", () => {
     });
 
     describe("infra skills", () => {
-      it("observability_includesOtel", () => {
-        const config = buildConfig({ observabilityTool: "opentelemetry" });
+      it.each([
+        ["observabilityTool", "opentelemetry", "instrument-otel"],
+        ["orchestrator", "kubernetes", "setup-environment"],
+        ["apiGateway", "kong", "x-review-gateway"],
+      ] as const)("%s=%s_includes_%s", (field, value, expectedSkill) => {
+        const config = buildConfig({ [field]: value });
         const result = assembler.selectConditionalSkills(config);
-        expect(result).toContain("instrument-otel");
+        expect(result).toContain(expectedSkill);
       });
 
-      it("noObservability_excludesOtel", () => {
-        const config = buildConfig({ observabilityTool: "none" });
+      it.each([
+        ["observabilityTool", "none", "instrument-otel"],
+        ["orchestrator", "none", "setup-environment"],
+        ["apiGateway", "none", "x-review-gateway"],
+      ] as const)("%s=none_excludes_%s", (field, value, excludedSkill) => {
+        const config = buildConfig({ [field]: value });
         const result = assembler.selectConditionalSkills(config);
-        expect(result).not.toContain("instrument-otel");
-      });
-
-      it("orchestrator_includesSetupEnvironment", () => {
-        const config = buildConfig({ orchestrator: "kubernetes" });
-        const result = assembler.selectConditionalSkills(config);
-        expect(result).toContain("setup-environment");
-      });
-
-      it("noOrchestrator_excludesSetupEnvironment", () => {
-        const config = buildConfig({ orchestrator: "none" });
-        const result = assembler.selectConditionalSkills(config);
-        expect(result).not.toContain("setup-environment");
-      });
-
-      it("apiGateway_includesGatewayReview", () => {
-        const config = buildConfig({ apiGateway: "kong" });
-        const result = assembler.selectConditionalSkills(config);
-        expect(result).toContain("x-review-gateway");
-      });
-
-      it("noApiGateway_excludesGatewayReview", () => {
-        const config = buildConfig({ apiGateway: "none" });
-        const result = assembler.selectConditionalSkills(config);
-        expect(result).not.toContain("x-review-gateway");
+        expect(result).not.toContain(excludedSkill);
       });
     });
 
     describe("testing skills", () => {
-      it("smokeAndRest_includesSmokeApi", () => {
-        const config = buildConfig({
-          smokeTests: true,
-          interfaces: [new InterfaceConfig("rest")],
-        });
-        const result = assembler.selectConditionalSkills(config);
-        expect(result).toContain("run-smoke-api");
-      });
-
-      it("smokeWithoutRest_excludesSmokeApi", () => {
-        const config = buildConfig({
-          smokeTests: true,
-          interfaces: [new InterfaceConfig("grpc")],
-        });
-        const result = assembler.selectConditionalSkills(config);
-        expect(result).not.toContain("run-smoke-api");
-      });
-
-      it("noSmoke_excludesSmokeApi", () => {
-        const config = buildConfig({
-          smokeTests: false,
-          interfaces: [new InterfaceConfig("rest")],
-        });
-        const result = assembler.selectConditionalSkills(config);
-        expect(result).not.toContain("run-smoke-api");
-      });
-
-      it("smokeAndTcpCustom_includesSmokeSocket", () => {
-        const config = buildConfig({
-          smokeTests: true,
-          interfaces: [new InterfaceConfig("tcp-custom")],
-        });
-        const result = assembler.selectConditionalSkills(config);
-        expect(result).toContain("run-smoke-socket");
-      });
-
-      it("noSmokeWithTcpCustom_excludesSmokeSocket", () => {
-        const config = buildConfig({
-          smokeTests: false,
-          interfaces: [new InterfaceConfig("tcp-custom")],
-        });
-        const result = assembler.selectConditionalSkills(config);
-        expect(result).not.toContain("run-smoke-socket");
-      });
+      it.each([
+        [true, "rest", "run-smoke-api", true],
+        [true, "tcp-custom", "run-smoke-socket", true],
+        [true, "grpc", "run-smoke-api", false],
+        [false, "rest", "run-smoke-api", false],
+        [false, "tcp-custom", "run-smoke-socket", false],
+      ])(
+        "smoke=%s+iface=%s_%s_present=%s",
+        (smoke, iface, skill, expected) => {
+          const config = buildConfig({
+            smokeTests: smoke,
+            interfaces: [new InterfaceConfig(iface)],
+          });
+          const result = assembler.selectConditionalSkills(config);
+          if (expected) {
+            expect(result).toContain(skill);
+          } else {
+            expect(result).not.toContain(skill);
+          }
+        },
+      );
 
       it("alwaysIncludesRunE2e", () => {
         const config = buildConfig();
@@ -384,29 +319,23 @@ describe("SkillsAssembler", () => {
         expect(result).toContain("run-e2e");
       });
 
-      it("performanceTests_includesPerfTest", () => {
-        const config = buildConfig({ performanceTests: true });
-        const result = assembler.selectConditionalSkills(config);
-        expect(result).toContain("run-perf-test");
-      });
-
-      it("noPerformanceTests_excludesPerfTest", () => {
-        const config = buildConfig({ performanceTests: false });
-        const result = assembler.selectConditionalSkills(config);
-        expect(result).not.toContain("run-perf-test");
-      });
-
-      it("contractTests_includesContractTests", () => {
-        const config = buildConfig({ contractTests: true });
-        const result = assembler.selectConditionalSkills(config);
-        expect(result).toContain("run-contract-tests");
-      });
-
-      it("noContractTests_excludesContractTests", () => {
-        const config = buildConfig({ contractTests: false });
-        const result = assembler.selectConditionalSkills(config);
-        expect(result).not.toContain("run-contract-tests");
-      });
+      it.each([
+        ["performanceTests", true, "run-perf-test", true],
+        ["performanceTests", false, "run-perf-test", false],
+        ["contractTests", true, "run-contract-tests", true],
+        ["contractTests", false, "run-contract-tests", false],
+      ] as const)(
+        "%s=%s_%s_present=%s",
+        (field, value, skill, expected) => {
+          const config = buildConfig({ [field]: value });
+          const result = assembler.selectConditionalSkills(config);
+          if (expected) {
+            expect(result).toContain(skill);
+          } else {
+            expect(result).not.toContain(skill);
+          }
+        },
+      );
     });
 
     describe("security skills", () => {
@@ -650,49 +579,26 @@ describe("SkillsAssembler", () => {
       expect(result.every((f) => !f.includes("patterns"))).toBe(true);
     });
 
-    it("copiesInfraPatterns_kubernetes", () => {
-      createInfraPattern(resourcesDir, "k8s-deployment");
-      const config = buildConfig({ orchestrator: "kubernetes" });
-      const engine = new TemplateEngine(resourcesDir, config);
-      const result = assembler.assemble(
-        config, outputDir, resourcesDir, engine,
-      );
-      expect(
-        result.some((f) => f.includes("k8s-deployment")),
-      ).toBe(true);
-    });
-
-    it("copiesInfraPatterns_helm", () => {
-      createInfraPattern(resourcesDir, "k8s-helm");
-      const config = buildConfig({ templating: "helm" });
-      const engine = new TemplateEngine(resourcesDir, config);
-      const result = assembler.assemble(
-        config, outputDir, resourcesDir, engine,
-      );
-      expect(result.some((f) => f.includes("k8s-helm"))).toBe(true);
-    });
-
-    it("copiesInfraPatterns_dockerfile", () => {
-      createInfraPattern(resourcesDir, "dockerfile");
-      const config = buildConfig({ container: "docker" });
-      const engine = new TemplateEngine(resourcesDir, config);
-      const result = assembler.assemble(
-        config, outputDir, resourcesDir, engine,
-      );
-      expect(result.some((f) => f.includes("dockerfile"))).toBe(true);
-    });
-
-    it("copiesInfraPatterns_terraform", () => {
-      createInfraPattern(resourcesDir, "iac-terraform");
-      const config = buildConfig({ iac: "terraform" });
-      const engine = new TemplateEngine(resourcesDir, config);
-      const result = assembler.assemble(
-        config, outputDir, resourcesDir, engine,
-      );
-      expect(
-        result.some((f) => f.includes("iac-terraform")),
-      ).toBe(true);
-    });
+    it.each([
+      ["k8s-deployment", { orchestrator: "kubernetes" }],
+      ["k8s-helm", { templating: "helm" }],
+      ["dockerfile", { container: "docker" }],
+      ["iac-terraform", { iac: "terraform" }],
+      ["iac-crossplane", { iac: "crossplane" }],
+      ["container-registry", { registry: "ecr" }],
+      ["k8s-kustomize", { orchestrator: "kubernetes", templating: "kustomize" }],
+    ] as const)(
+      "copiesInfraPattern_%s_whenConditionTrue",
+      (packName, overrides) => {
+        createInfraPattern(resourcesDir, packName);
+        const config = buildConfig(overrides);
+        const engine = new TemplateEngine(resourcesDir, config);
+        const result = assembler.assemble(
+          config, outputDir, resourcesDir, engine,
+        );
+        expect(result.some((f) => f.includes(packName))).toBe(true);
+      },
+    );
 
     it("skipsInfraPatterns_whenConditionFalse", () => {
       createInfraPattern(resourcesDir, "k8s-deployment");
@@ -786,43 +692,5 @@ describe("SkillsAssembler", () => {
       ).toBe(true);
     });
 
-    it("containerRegistry_copiesContainerRegistryPack", () => {
-      createInfraPattern(resourcesDir, "container-registry");
-      const config = buildConfig({ registry: "ecr" });
-      const engine = new TemplateEngine(resourcesDir, config);
-      const result = assembler.assemble(
-        config, outputDir, resourcesDir, engine,
-      );
-      expect(
-        result.some((f) => f.includes("container-registry")),
-      ).toBe(true);
-    });
-
-    it("crossplane_copiesCrossplanePack", () => {
-      createInfraPattern(resourcesDir, "iac-crossplane");
-      const config = buildConfig({ iac: "crossplane" });
-      const engine = new TemplateEngine(resourcesDir, config);
-      const result = assembler.assemble(
-        config, outputDir, resourcesDir, engine,
-      );
-      expect(
-        result.some((f) => f.includes("iac-crossplane")),
-      ).toBe(true);
-    });
-
-    it("kustomize_copiesKustomizePack", () => {
-      createInfraPattern(resourcesDir, "k8s-kustomize");
-      const config = buildConfig({
-        orchestrator: "kubernetes",
-        templating: "kustomize",
-      });
-      const engine = new TemplateEngine(resourcesDir, config);
-      const result = assembler.assemble(
-        config, outputDir, resourcesDir, engine,
-      );
-      expect(
-        result.some((f) => f.includes("k8s-kustomize")),
-      ).toBe(true);
-    });
   });
 });
