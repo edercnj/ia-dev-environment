@@ -75,15 +75,24 @@ export function replacePlaceholdersInDir(
   directory: string,
   engine: TemplateEngine,
 ): void {
-  const entries = fs.readdirSync(directory, {
+  walkAndReplace(directory, engine);
+}
+
+function walkAndReplace(
+  currentDir: string,
+  engine: TemplateEngine,
+): void {
+  const entries = fs.readdirSync(currentDir, {
     withFileTypes: true,
-    recursive: true,
   });
 
   for (const entry of entries) {
+    const fullPath = path.join(currentDir, entry.name);
+    if (entry.isDirectory()) {
+      walkAndReplace(fullPath, engine);
+      continue;
+    }
     if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
-    const parentPath = entry.parentPath ?? entry.path;
-    const fullPath = path.join(parentPath, entry.name);
     const content = fs.readFileSync(fullPath, "utf-8");
     const replaced = engine.replacePlaceholders(content);
     fs.writeFileSync(fullPath, replaced, "utf-8");

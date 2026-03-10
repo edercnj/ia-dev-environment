@@ -22,7 +22,7 @@
 
 - `TemplateEngine` from `src/template-engine.ts` (STORY-005)
 - `ProjectConfig`, `InterfaceConfig` from `src/models.ts` (STORY-003)
-- `node:fs/promises` for async file operations
+- `node:fs` for synchronous file operations (helpers intentionally use sync APIs)
 - `node:path` for path manipulation
 
 ## Implementation Groups

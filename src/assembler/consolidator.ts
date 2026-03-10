@@ -43,13 +43,13 @@ export function consolidateFiles(
   outputPath: string,
   sourcePaths: readonly string[],
 ): void {
-  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-
   const existing = sourcePaths.filter(
     (p) => fs.existsSync(p) && fs.statSync(p).isFile(),
   );
 
   if (existing.length === 0) return;
+
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
   const lines: string[] = [GENERATED_HEADER, ""];
   for (const src of existing) {

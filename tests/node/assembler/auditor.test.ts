@@ -25,7 +25,9 @@ function createMdFile(name: string, sizeBytes: number): void {
 
 describe("auditRulesContext", () => {
   it("auditRulesContext_nonExistentDir_returnsEmpty", () => {
-    const result = auditRulesContext("/no/such/directory");
+    const result = auditRulesContext(
+      path.join(tmpDir, "does-not-exist"),
+    );
     expect(result.totalFiles).toBe(0);
     expect(result.totalBytes).toBe(0);
     expect(result.fileSizes).toEqual([]);

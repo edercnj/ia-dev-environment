@@ -177,26 +177,45 @@ describe("consolidateFrameworkRules", () => {
 });
 
 describe("pattern constants", () => {
-  it.each(CORE_PATTERNS.map((p) => [p]))(
-    "CORE_PATTERNS_contains_%s",
-    (pattern) => {
-      expect(CORE_PATTERNS).toContain(pattern);
-    },
-  );
+  it("CORE_PATTERNS_includesExpectedValues", () => {
+    expect(CORE_PATTERNS).toEqual(
+      expect.arrayContaining([
+        "-cdi",
+        "-di",
+        "-config",
+        "-web",
+        "-resteasy",
+        "-middleware",
+        "-resilience",
+      ]),
+    );
+  });
 
-  it.each(DATA_PATTERNS.map((p) => [p]))(
-    "DATA_PATTERNS_contains_%s",
-    (pattern) => {
-      expect(DATA_PATTERNS).toContain(pattern);
-    },
-  );
+  it("DATA_PATTERNS_includesExpectedValues", () => {
+    expect(DATA_PATTERNS).toEqual(
+      expect.arrayContaining([
+        "-panache",
+        "-jpa",
+        "-prisma",
+        "-sqlalchemy",
+        "-exposed",
+        "-ef",
+        "-orm",
+        "-database",
+      ]),
+    );
+  });
 
-  it.each(OPS_PATTERNS.map((p) => [p]))(
-    "OPS_PATTERNS_contains_%s",
-    (pattern) => {
-      expect(OPS_PATTERNS).toContain(pattern);
-    },
-  );
+  it("OPS_PATTERNS_includesExpectedValues", () => {
+    expect(OPS_PATTERNS).toEqual(
+      expect.arrayContaining([
+        "-testing",
+        "-observability",
+        "-native-build",
+        "-infrastructure",
+      ]),
+    );
+  });
 });
 
 describe("pattern classification via consolidateFrameworkRules", () => {
