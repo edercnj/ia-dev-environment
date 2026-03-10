@@ -30,3 +30,11 @@ export * from "./protocols-assembler.js";
 // --- STORY-013: HooksAssembler + SettingsAssembler ---
 export * from "./hooks-assembler.js";
 export * from "./settings-assembler.js";
+
+// --- STORY-014: GitHub Assemblers ---
+export * from "./github-hooks-assembler.js";
+export * from "./github-mcp-assembler.js";
+export * from "./github-prompts-assembler.js";
+export * from "./github-agents-assembler.js";
+export * from "./github-skills-assembler.js";
+export * from "./github-instructions-assembler.js";
