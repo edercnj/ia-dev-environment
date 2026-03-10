@@ -100,7 +100,10 @@ function checkDjangoPythonVersion(config: ProjectConfig): string[] {
   const pyMajor = extractMajor(config.language.version);
   const pyMinor = extractMinor(config.language.version);
   if (pyMajor === undefined || pyMinor === undefined) return [];
-  if (pyMajor < PYTHON_3_MAJOR || pyMinor < PYTHON_310_MINOR) {
+  if (
+    pyMajor < PYTHON_3_MAJOR
+    || (pyMajor === PYTHON_3_MAJOR && pyMinor < PYTHON_310_MINOR)
+  ) {
     return [
       `Django 5.x requires Python 3.10+, `
       + `got Python ${config.language.version}`,
