@@ -132,7 +132,7 @@ describe("HooksAssembler", () => {
   });
 
   describe("assemble — file permissions", () => {
-    it("assemble_hookFileIsExecutable_chmod755Applied", () => {
+    it("assemble_hookFileIsExecutable_executeBitsSet", () => {
       createHookScript(resourcesDir, "java-maven");
       const config = buildConfig();
       const engine = new TemplateEngine(resourcesDir, config);
@@ -141,7 +141,8 @@ describe("HooksAssembler", () => {
       );
       const stat = fs.statSync(result[0]!);
       const mode = stat.mode & 0o777;
-      expect(mode).toBe(0o755);
+      expect(mode & 0o111).not.toBe(0);
+      expect(mode & 0o600).toBe(0o600);
     });
   });
 

@@ -19,7 +19,7 @@ import { getHookTemplateKey } from "../domain/stack-mapping.js";
 const HOOKS_DIR = "hooks";
 const HOOK_FILENAME = "post-compile-check.sh";
 const HOOKS_TEMPLATES_DIR = "hooks-templates";
-const EXECUTABLE_MODE = 0o755;
+const EXECUTE_BITS = 0o111;
 
 /** Assembles post-compile hook scripts for compiled languages. */
 export class HooksAssembler {
@@ -47,7 +47,8 @@ export class HooksAssembler {
     fs.mkdirSync(hooksDir, { recursive: true });
     const dest = path.join(hooksDir, HOOK_FILENAME);
     fs.copyFileSync(hookSrc, dest);
-    fs.chmodSync(dest, EXECUTABLE_MODE);
+    const currentMode = fs.statSync(dest).mode;
+    fs.chmodSync(dest, currentMode | EXECUTE_BITS);
     return [dest];
   }
 }

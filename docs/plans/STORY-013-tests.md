@@ -23,8 +23,8 @@ directory that is cleaned up in `afterEach`.
 - `buildConfig(overrides?)` helper constructs a `ProjectConfig` accepting optional
   fields: `language`, `buildTool`, `container`, `orchestrator`, `database`,
   `cache`, `smokeTests`. Defaults: `language = "java"`, `buildTool = "maven"`,
-  `container = "docker"`, `orchestrator = "none"`, `database = "none"`,
-  `cache = "none"`, `smokeTests = true`.
+  `container = "none"`, `orchestrator = "none"`, `database = "none"`,
+  `cache = "none"`, `smokeTests = false`.
 - Both assemblers receive `(config, outputDir, resourcesDir, engine)` per the
   established assembler signature.
 - `TemplateEngine` is instantiated with `new TemplateEngine(resourcesDir, config)`.
