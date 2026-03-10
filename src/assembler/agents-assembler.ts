@@ -63,20 +63,26 @@ export class AgentsAssembler {
     engine: TemplateEngine,
   ): AssembleResult {
     const files: string[] = [];
+    const warnings: string[] = [];
     files.push(
       ...this.assembleCore(resourcesDir, outputDir, engine),
     );
     files.push(
-      ...this.assembleConditional(config, resourcesDir, outputDir, engine),
+      ...this.assembleConditional(
+        config, resourcesDir, outputDir, engine, warnings,
+      ),
     );
     const dev = this.copyDeveloperAgent(
       config, resourcesDir, outputDir, engine,
     );
     if (dev !== null) {
       files.push(dev);
+    } else {
+      const expected = this.selectDeveloperAgent(config);
+      warnings.push(`Developer agent template missing: ${expected}`);
     }
-    this.injectChecklists(config, outputDir, resourcesDir);
-    return { files, warnings: [] };
+    this.injectChecklists(config, outputDir, resourcesDir, warnings);
+    return { files, warnings };
   }
 
   private copyCoreAgent(
@@ -114,26 +120,32 @@ export class AgentsAssembler {
   }
 
   private injectChecklists(
-    config: ProjectConfig, outputDir: string, resourcesDir: string,
+    config: ProjectConfig, outputDir: string,
+    resourcesDir: string, warnings: string[],
   ): void {
     for (const rule of buildChecklistRules(config)) {
       if (!rule.active) continue;
       this.injectSingleChecklist(
-        rule.agent, rule.checklist, outputDir, resourcesDir,
+        rule.agent, rule.checklist, outputDir, resourcesDir, warnings,
       );
     }
   }
 
   private injectSingleChecklist(
     agentFile: string, checklistFile: string,
-    outputDir: string, resourcesDir: string,
+    outputDir: string, resourcesDir: string, warnings: string[],
   ): void {
     const agentPath = path.join(outputDir, AGENTS_OUTPUT, agentFile);
     if (!fs.existsSync(agentPath)) return;
     const checklistSrc = path.join(
       resourcesDir, AGENTS_TEMPLATES_DIR, CHECKLISTS_DIR, checklistFile,
     );
-    if (!fs.existsSync(checklistSrc)) return;
+    if (!fs.existsSync(checklistSrc)) {
+      warnings.push(
+        `Checklist template missing: ${checklistFile} for ${agentFile}`,
+      );
+      return;
+    }
     const marker = checklistMarker(checklistFile);
     const section = fs.readFileSync(checklistSrc, "utf-8");
     const base = fs.readFileSync(agentPath, "utf-8");
@@ -151,14 +163,18 @@ export class AgentsAssembler {
 
   private assembleConditional(
     config: ProjectConfig, resourcesDir: string,
-    outputDir: string, engine: TemplateEngine,
+    outputDir: string, engine: TemplateEngine, warnings: string[],
   ): string[] {
     const results: string[] = [];
     for (const agent of this.selectConditionalAgents(config)) {
       const copied = this.copyConditionalAgent(
         agent, resourcesDir, outputDir, engine,
       );
-      if (copied !== null) results.push(copied);
+      if (copied !== null) {
+        results.push(copied);
+      } else {
+        warnings.push(`Conditional agent template missing: ${agent}`);
+      }
     }
     return results;
   }

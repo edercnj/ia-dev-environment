@@ -398,14 +398,13 @@ describe("AgentsAssembler", () => {
   });
 
   describe("assemble", () => {
-    it("returnsEmptyResult_whenNoTemplates", () => {
+    it("returnsEmptyFiles_whenNoTemplates", () => {
       const config = buildConfig();
       const engine = new TemplateEngine(resourcesDir, config);
       const result = assembler.assemble(
         config, outputDir, resourcesDir, engine,
       );
       expect(result.files).toEqual([]);
-      expect(result.warnings).toEqual([]);
     });
 
     it("copiesCoreAgentsToOutput", () => {
@@ -620,6 +619,7 @@ describe("AgentsAssembler", () => {
         "# Security\n<!-- HIPAA_SECURITY -->\nEnd",
       );
       createConditionalAgent(resourcesDir, "database-engineer.md");
+      createConditionalAgent(resourcesDir, "devops-engineer.md");
       createConditionalAgent(
         resourcesDir, "api-engineer.md",
         "# API\n<!-- GRAPHQL_API -->\nEnd",
@@ -644,7 +644,7 @@ describe("AgentsAssembler", () => {
       const result = assembler.assemble(
         config, outputDir, resourcesDir, engine,
       );
-      expect(result.files).toHaveLength(6);
+      expect(result.files).toHaveLength(7);
       expect(result.warnings).toEqual([]);
       const security = fs.readFileSync(
         path.join(outputDir, "agents", "security-engineer.md"), "utf-8",
@@ -738,6 +738,58 @@ describe("AgentsAssembler", () => {
       expect(content).toContain("PRIV");
       expect(content).toContain("HIPAA");
       expect(content).toContain("SOX");
+    });
+
+    it("warnsWhenConditionalAgentTemplateMissing", () => {
+      const config = buildConfig({ dbName: "postgresql" });
+      const engine = new TemplateEngine(resourcesDir, config);
+      const result = assembler.assemble(
+        config, outputDir, resourcesDir, engine,
+      );
+      expect(result.warnings).toContain(
+        "Conditional agent template missing: database-engineer.md",
+      );
+    });
+
+    it("warnsWhenDeveloperAgentTemplateMissing", () => {
+      const config = buildConfig({ language: "rust" });
+      const engine = new TemplateEngine(resourcesDir, config);
+      const result = assembler.assemble(
+        config, outputDir, resourcesDir, engine,
+      );
+      expect(result.warnings).toContain(
+        "Developer agent template missing: rust-developer.md",
+      );
+    });
+
+    it("warnsWhenChecklistTemplateMissing", () => {
+      createCoreAgent(
+        resourcesDir, "security-engineer.md",
+        "# Security\n<!-- PCI_DSS_SECURITY -->\nEnd",
+      );
+      const config = buildConfig({
+        securityFrameworks: ["pci-dss"],
+      });
+      const engine = new TemplateEngine(resourcesDir, config);
+      const result = assembler.assemble(
+        config, outputDir, resourcesDir, engine,
+      );
+      expect(result.warnings).toContain(
+        "Checklist template missing: pci-dss-security.md for security-engineer.md",
+      );
+    });
+
+    it("noWarnings_whenAllTemplatesPresent", () => {
+      createCoreAgent(resourcesDir, "architect.md");
+      createConditionalAgent(resourcesDir, "devops-engineer.md");
+      createConditionalAgent(resourcesDir, "api-engineer.md");
+      createDeveloperAgent(resourcesDir, "java-developer.md");
+      const config = buildConfig({ language: "java" });
+      const engine = new TemplateEngine(resourcesDir, config);
+      const result = assembler.assemble(
+        config, outputDir, resourcesDir, engine,
+      );
+      expect(result.warnings).toEqual([]);
     });
 
     it("injectsAllDevopsChecklists_whenAllInfraActive", () => {
