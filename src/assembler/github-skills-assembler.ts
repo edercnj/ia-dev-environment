@@ -70,10 +70,11 @@ export class GithubSkillsAssembler {
     const results: string[] = [];
     for (const [group, skillNames] of Object.entries(SKILL_GROUPS)) {
       const filtered = this.filterSkills(config, group, skillNames);
+      const srcDir = path.join(
+        resourcesDir, GITHUB_SKILLS_TEMPLATES_DIR, group,
+      );
       results.push(
-        ...this.generateGroup(
-          engine, resourcesDir, outputDir, group, filtered,
-        ),
+        ...this.generateGroup(engine, srcDir, outputDir, filtered),
       );
     }
     return results;
@@ -94,29 +95,34 @@ export class GithubSkillsAssembler {
 
   private generateGroup(
     engine: TemplateEngine,
-    resourcesDir: string,
+    srcDir: string,
     outputDir: string,
-    group: string,
     skillNames: readonly string[],
   ): string[] {
-    const srcDir = path.join(
-      resourcesDir, GITHUB_SKILLS_TEMPLATES_DIR, group,
-    );
     if (!fs.existsSync(srcDir)) return [];
     const results: string[] = [];
     for (const name of skillNames) {
-      const src = path.join(srcDir, `${name}.md`);
-      if (!fs.existsSync(src)) continue;
-      const content = fs.readFileSync(src, "utf-8");
-      const rendered = engine.replacePlaceholders(content);
-      const skillDir = path.join(
-        outputDir, "github", "skills", name,
-      );
-      fs.mkdirSync(skillDir, { recursive: true });
-      const dest = path.join(skillDir, SKILL_MD);
-      fs.writeFileSync(dest, rendered, "utf-8");
-      results.push(dest);
+      const dest = this.renderSkill(engine, srcDir, outputDir, name);
+      if (dest !== null) results.push(dest);
     }
     return results;
+  }
+
+  private renderSkill(
+    engine: TemplateEngine,
+    srcDir: string,
+    outputDir: string,
+    name: string,
+  ): string | null {
+    const src = path.join(srcDir, `${name}.md`);
+    if (!fs.existsSync(src)) return null;
+    const rendered = engine.replacePlaceholders(
+      fs.readFileSync(src, "utf-8"),
+    );
+    const skillDir = path.join(outputDir, "github", "skills", name);
+    fs.mkdirSync(skillDir, { recursive: true });
+    const dest = path.join(skillDir, SKILL_MD);
+    fs.writeFileSync(dest, rendered, "utf-8");
+    return dest;
   }
 }
