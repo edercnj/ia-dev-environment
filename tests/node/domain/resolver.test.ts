@@ -12,55 +12,55 @@ describe("resolveStack", () => {
         "java", "maven", "quarkus",
         "./mvnw package -DskipTests", "./mvnw verify",
         "./mvnw compile -q", "./mvnw verify jacoco:report",
-        ".java", "pom.xml",
+        ".java", "pom.xml", "maven",
       ],
       [
         "java", "gradle", "spring-boot",
         "./gradlew build -x test", "./gradlew test",
         "./gradlew compileJava -q", "./gradlew test jacocoTestReport",
-        ".java", "build.gradle",
+        ".java", "build.gradle", "gradle",
       ],
       [
         "kotlin", "gradle", "ktor",
         "./gradlew build -x test", "./gradlew test",
         "./gradlew compileKotlin -q", "./gradlew test jacocoTestReport",
-        ".kt", "build.gradle.kts",
+        ".kt", "build.gradle.kts", "gradle",
       ],
       [
         "typescript", "npm", "nestjs",
         "npm run build", "npm test",
         "npx --no-install tsc --noEmit", "npm test -- --coverage",
-        ".ts", "package.json",
+        ".ts", "package.json", "npm",
       ],
       [
         "python", "pip", "fastapi",
         "pip install -e .", "pytest",
         "python3 -m py_compile", "pytest --cov",
-        ".py", "pyproject.toml",
+        ".py", "pyproject.toml", "pip",
       ],
       [
         "go", "go", "gin",
         "go build ./...", "go test ./...",
         "go build ./...", "go test -coverprofile=coverage.out ./...",
-        ".go", "go.mod",
+        ".go", "go.mod", "go",
       ],
       [
         "rust", "cargo", "axum",
         "cargo build", "cargo test",
         "cargo check", "cargo tarpaulin",
-        ".rs", "Cargo.toml",
+        ".rs", "Cargo.toml", "cargo",
       ],
       [
         "csharp", "dotnet", "aspnet",
         "dotnet build", "dotnet test",
         "dotnet build --no-restore --verbosity quiet",
         'dotnet test --collect:"XPlat Code Coverage"',
-        ".cs", "*.csproj",
+        ".cs", "*.csproj", "dotnet",
       ],
     ])(
       "%s_%s_returnsCorrectCommands",
       (lang, buildTool, fw, expBuild, expTest, expCompile,
-        expCoverage, expExt, expFile) => {
+        expCoverage, expExt, expFile, expPkgMgr) => {
         const config = buildConfig({
           language: { name: lang, version: "17" },
           framework: {
@@ -75,6 +75,7 @@ describe("resolveStack", () => {
         expect(result.coverageCmd).toBe(expCoverage);
         expect(result.fileExtension).toBe(expExt);
         expect(result.buildFile).toBe(expFile);
+        expect(result.packageManager).toBe(expPkgMgr);
       },
     );
 

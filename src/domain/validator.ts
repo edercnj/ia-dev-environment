@@ -91,13 +91,16 @@ function checkJavaFrameworkVersion(config: ProjectConfig): string[] {
   return checkJava17Requirement(fw, fwMajor, langMajor);
 }
 
+export const PYTHON_3_MAJOR = 3;
+
 function checkDjangoPythonVersion(config: ProjectConfig): string[] {
   if (config.framework.name !== "django") return [];
   const fwMajor = extractMajor(config.framework.version);
   if (fwMajor === undefined || fwMajor < FRAMEWORK_VERSION_5) return [];
+  const pyMajor = extractMajor(config.language.version);
   const pyMinor = extractMinor(config.language.version);
-  if (pyMinor === undefined) return [];
-  if (pyMinor < PYTHON_310_MINOR) {
+  if (pyMajor === undefined || pyMinor === undefined) return [];
+  if (pyMajor < PYTHON_3_MAJOR || pyMinor < PYTHON_310_MINOR) {
     return [
       `Django 5.x requires Python 3.10+, `
       + `got Python ${config.language.version}`,
@@ -169,7 +172,7 @@ function isDirectory(path: string): boolean {
 
 /** Verify referenced directories exist on filesystem. */
 export function verifyCrossReferences(
-  _config: ProjectConfig,
+  config: ProjectConfig,
   resourcesDir: string,
 ): string[] {
   if (!isDirectory(resourcesDir)) {

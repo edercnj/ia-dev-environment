@@ -21,6 +21,26 @@ export const CORE_KNOWLEDGE_PACKS: readonly string[] = Object.freeze([
   "story-planning",
 ]);
 
+/** Fields of InfraConfig used in condition evaluation. */
+type ConditionField =
+  | "orchestrator"
+  | "templating"
+  | "container"
+  | "registry"
+  | "iac";
+
+function fieldEquals(
+  infra: InfraConfig, field: ConditionField, value: string,
+): boolean {
+  return infra[field] === value;
+}
+
+function fieldNotEquals(
+  infra: InfraConfig, field: ConditionField, value: string,
+): boolean {
+  return infra[field] !== value;
+}
+
 /**
  * Build conditional infrastructure pack rules.
  *
@@ -32,12 +52,12 @@ export function buildInfraPackRules(
 ): ReadonlyArray<readonly [string, boolean]> {
   const infra = config.infrastructure;
   return [
-    ["k8s-deployment", infra.orchestrator === "kubernetes"],
-    ["k8s-kustomize", infra.templating === "kustomize"],
-    ["k8s-helm", infra.templating === "helm"],
-    ["dockerfile", infra.container !== "none"],
-    ["container-registry", infra.registry !== "none"],
-    ["iac-terraform", infra.iac === "terraform"],
-    ["iac-crossplane", infra.iac === "crossplane"],
+    ["k8s-deployment", fieldEquals(infra, "orchestrator", "kubernetes")],
+    ["k8s-kustomize", fieldEquals(infra, "templating", "kustomize")],
+    ["k8s-helm", fieldEquals(infra, "templating", "helm")],
+    ["dockerfile", fieldNotEquals(infra, "container", "none")],
+    ["container-registry", fieldNotEquals(infra, "registry", "none")],
+    ["iac-terraform", fieldEquals(infra, "iac", "terraform")],
+    ["iac-crossplane", fieldEquals(infra, "iac", "crossplane")],
   ];
 }

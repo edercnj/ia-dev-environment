@@ -38,13 +38,10 @@ export function aDomainTestConfig(
 }
 
 /**
- * Build a ProjectConfig matching the pre-existing test fixtures
- * (simple_rendered.md, multivar_rendered.md, legacy_replaced.txt, etc.).
- *
- * Values: my-service / python 3.9 / click 8.1 / hexagonal / postgresql / redis.
- */
-/**
  * Build a ProjectConfig for validator/resolver tests with fine-grained overrides.
+ *
+ * Allows overriding language, framework, architecture style, and interfaces
+ * while keeping sensible default values suitable for validation fixtures.
  */
 export function aValidationTestConfig(
   overrides: {

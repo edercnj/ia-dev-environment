@@ -167,6 +167,19 @@ describe("validateStack", () => {
       });
       expect(validateStack(config)).toEqual([]);
     });
+
+    it("python2_12_django5_returnsError", () => {
+      const config = buildConfig({
+        language: { name: "python", version: "2.12" },
+        framework: {
+          name: "django", version: "5.0",
+          buildTool: "pip", nativeBuild: false,
+        },
+      });
+      const errors = validateStack(config);
+      expect(errors.some((e) => e.includes("requires Python 3.10+")))
+        .toBe(true);
+    });
   });
 
   describe("native build", () => {
