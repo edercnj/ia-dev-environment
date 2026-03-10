@@ -153,11 +153,8 @@ export function assembleCloudKnowledge(
   resourcesDir: string,
   skillsDir: string,
 ): string[] {
-  const infra = config.infrastructure as unknown as Record<string, unknown>;
-  const provider = typeof infra["cloudProvider"] === "string"
-    ? (infra["cloudProvider"] as string)
-    : NONE_VALUE;
-  if (provider === NONE_VALUE) return [];
+  const provider = config.infrastructure.cloudProvider;
+  if (provider === NONE_VALUE || !provider) return [];
   const cloudDir = path.join(resourcesDir, "cloud-providers");
   const kpDir = path.join(skillsDir, "knowledge-packs");
   fs.mkdirSync(kpDir, { recursive: true });

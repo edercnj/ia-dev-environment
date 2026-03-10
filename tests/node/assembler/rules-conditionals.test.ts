@@ -31,6 +31,7 @@ function buildConfig(overrides: {
   orchestrator?: string;
   container?: string;
   iac?: string;
+  cloudProvider?: string;
 } = {}): ProjectConfig {
   return new ProjectConfig(
     new ProjectIdentity("test", "test purpose"),
@@ -48,6 +49,11 @@ function buildConfig(overrides: {
       overrides.orchestrator ?? "none",
       "kustomize",
       overrides.iac ?? "none",
+      "none",
+      "none",
+      "none",
+      undefined,
+      overrides.cloudProvider ?? "none",
     ),
     new SecurityConfig(overrides.securityFrameworks ?? []),
     new TestingConfig(),
@@ -253,23 +259,15 @@ describe("assembleCloudKnowledge", () => {
     const cloudDir = path.join(resourcesDir, "cloud-providers");
     fs.mkdirSync(cloudDir, { recursive: true });
     fs.writeFileSync(path.join(cloudDir, "aws.md"), "aws content");
-    const config = buildConfig() as unknown as Record<string, unknown>;
-    const infra = (config as unknown as { infrastructure: Record<string, unknown> }).infrastructure;
-    infra["cloudProvider"] = "aws";
-    const result = assembleCloudKnowledge(
-      config as unknown as ProjectConfig, resourcesDir, skillsDir,
-    );
+    const config = buildConfig({ cloudProvider: "aws" });
+    const result = assembleCloudKnowledge(config, resourcesDir, skillsDir);
     expect(result).toHaveLength(1);
     expect(fs.existsSync(path.join(skillsDir, "knowledge-packs", "cloud-aws.md"))).toBe(true);
   });
 
   it("cloudProviderPresent_noSourceFile_returnsEmpty", () => {
-    const config = buildConfig() as unknown as Record<string, unknown>;
-    const infra = (config as unknown as { infrastructure: Record<string, unknown> }).infrastructure;
-    infra["cloudProvider"] = "gcp";
-    const result = assembleCloudKnowledge(
-      config as unknown as ProjectConfig, resourcesDir, skillsDir,
-    );
+    const config = buildConfig({ cloudProvider: "gcp" });
+    const result = assembleCloudKnowledge(config, resourcesDir, skillsDir);
     expect(result).toEqual([]);
   });
 });
