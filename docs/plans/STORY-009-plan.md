@@ -1,38 +1,64 @@
-# STORY-009 Implementation Plan — Git & Troubleshooting Skills
+# STORY-009: RulesAssembler Migration — Implementation Plan
 
-## Affected Components
+## Affected Layers
 
-1. **Templates**: New `resources/github-skills-templates/git-troubleshooting/` directory with 2 templates
-2. **Assembler**: Add `git-troubleshooting` group to `SKILL_GROUPS` in `github_skills_assembler.py`
-3. **Tests**: Extend `test_github_skills_assembler.py` and `test_pipeline.py`
-4. **Golden Files**: Regenerate via `scripts/generate_golden.py`
+- `src/assembler/` — new files for rules assembly
+- `tests/node/assembler/` — test files
 
 ## New Files
 
-| File | Purpose |
-|------|---------|
-| `resources/github-skills-templates/git-troubleshooting/x-git-push.md` | Git workflow template |
-| `resources/github-skills-templates/git-troubleshooting/x-ops-troubleshoot.md` | Troubleshooting template |
+| File | Lines | Purpose |
+|------|-------|---------|
+| `src/assembler/rules-identity.ts` | ~90 | Identity content builders (Layer 4) |
+| `src/assembler/rules-conditionals.ts` | ~200 | Conditional assembly functions |
+| `src/assembler/rules-assembler.ts` | ~200 | Main RulesAssembler class |
+| `tests/node/assembler/rules-assembler.test.ts` | ~300 | Tests for all layers |
+| `tests/node/assembler/rules-identity.test.ts` | ~150 | Tests for identity builders |
+| `tests/node/assembler/rules-conditionals.test.ts` | ~200 | Tests for conditionals |
 
 ## Modified Files
 
 | File | Change |
 |------|--------|
-| `src/ia_dev_env/assembler/github_skills_assembler.py` | Add `git-troubleshooting` to `SKILL_GROUPS` |
-| `tests/assembler/test_github_skills_assembler.py` | Add tests for git-troubleshooting group |
-| `tests/test_pipeline.py` | Add `TestPipelineGitTroubleshootSkills` class |
+| `src/assembler/index.ts` | Export RulesAssembler + conditionals + identity |
 
-## Implementation Order
+## Layer Mapping
 
-1. Create template files (based on `.claude/skills/` originals)
-2. Register group in `SKILL_GROUPS`
-3. Add unit tests
-4. Add pipeline tests
-5. Regenerate golden files
-6. Run full test suite
+| Layer | Method | Description |
+|-------|--------|-------------|
+| 1 | `copyCoreRules()` | Copy core-rules/*.md with placeholder replacement |
+| 1b | `routeCoreToKps()` | Route core detailed rules to KPs |
+| 2 | `copyLanguageKps()` | Language files to coding-standards + testing KPs |
+| 3 | `copyFrameworkKps()` | Framework files to stack-patterns KP |
+| 4 | `generateProjectIdentity()` | Generate 01-project-identity.md |
+| 4 | `copyDomainTemplate()` | Copy/generate 02-domain.md |
+| C1 | `copyDatabaseRefs()` | Database references (SQL/NoSQL) |
+| C2 | `copyCacheRefs()` | Cache references |
+| C3 | `assembleSecurityRules()` | Security + compliance files |
+| C4 | `assembleCloudKnowledge()` | Cloud provider files |
+| C5 | `assembleInfraKnowledge()` | K8s, containers, IaC files |
+
+## Dependencies Used
+
+- `src/domain/version-resolver.ts` → `findVersionDir()`
+- `src/domain/core-kp-routing.ts` → `getActiveRoutes()`
+- `src/domain/stack-pack-mapping.ts` → `getStackPackName()`
+- `src/assembler/auditor.ts` → `auditRulesContext()`
+- `src/assembler/copy-helpers.ts` → `replacePlaceholdersInDir()`
+- `src/template-engine.ts` → `TemplateEngine`
+- `src/models.ts` → `ProjectConfig`
+
+## Return Type
+
+```typescript
+interface AssembleResult {
+  files: string[];
+  warnings: string[];
+}
+```
 
 ## Risk Assessment
 
-- **Low risk**: Pattern is well-established from STORY-005/007/008
-- Templates are direct copies of `.claude/skills/` with `{{PLACEHOLDER}}` syntax preserved
-- No conditional filtering needed (unlike infrastructure skills)
+- Low risk: all dependencies migrated and tested (STORY-006, 007, 008)
+- Pattern well-established from previous assembler migrations
+- Module split keeps each file under 250-line limit
