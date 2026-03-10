@@ -1,0 +1,5 @@
+type: api
+stack: java-spring
+project:
+  name: my-api
+  purpose: API project

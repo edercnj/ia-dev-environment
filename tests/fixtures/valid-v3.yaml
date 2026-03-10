@@ -1,0 +1,13 @@
+project:
+  name: test-project
+  purpose: Test project for unit tests
+architecture:
+  style: microservice
+interfaces:
+  - type: rest
+language:
+  name: java
+  version: "21"
+framework:
+  name: spring-boot
+  version: "3.4"

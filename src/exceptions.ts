@@ -18,6 +18,16 @@ export class ConfigValidationError extends Error {
   }
 }
 
+export class ConfigParseError extends Error {
+  readonly detail: string;
+
+  constructor(detail: string) {
+    super(`Failed to parse config file: ${detail}`);
+    this.name = "ConfigParseError";
+    this.detail = detail;
+  }
+}
+
 export class PipelineError extends Error {
   readonly assemblerName: string;
   readonly reason: string;
