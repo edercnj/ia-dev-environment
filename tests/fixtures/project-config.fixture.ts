@@ -38,6 +38,43 @@ export function aDomainTestConfig(
 }
 
 /**
+ * Build a ProjectConfig for validator/resolver tests with fine-grained overrides.
+ *
+ * Allows overriding language, framework, architecture style, and interfaces
+ * while keeping sensible default values suitable for validation fixtures.
+ */
+export function aValidationTestConfig(
+  overrides: {
+    language?: { name: string; version: string };
+    framework?: {
+      name: string; version: string;
+      buildTool?: string; nativeBuild?: boolean;
+    };
+    architecture?: { style: string };
+    interfaces?: Array<{ type: string }>;
+  } = {},
+): ProjectConfig {
+  const lang = overrides.language ?? { name: "java", version: "21" };
+  const fw = overrides.framework ?? {
+    name: "quarkus", version: "3.0",
+    buildTool: "maven", nativeBuild: false,
+  };
+  const arch = overrides.architecture ?? { style: "microservice" };
+  const ifaces = overrides.interfaces ?? [{ type: "rest" }];
+  return new ProjectConfig(
+    new ProjectIdentity("test", "test"),
+    new ArchitectureConfig(arch.style),
+    ifaces.map((i) => new InterfaceConfig(i.type)),
+    new LanguageConfig(lang.name, lang.version),
+    new FrameworkConfig(
+      fw.name, fw.version,
+      fw.buildTool ?? "maven",
+      fw.nativeBuild ?? false,
+    ),
+  );
+}
+
+/**
  * Build a ProjectConfig matching the pre-existing test fixtures
  * (simple_rendered.md, multivar_rendered.md, legacy_replaced.txt, etc.).
  *
