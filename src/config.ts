@@ -1,7 +1,7 @@
 import { resolve } from "node:path";
 import { readFileSync } from "node:fs";
 import yaml from "js-yaml";
-import { ConfigValidationError } from "./exceptions.js";
+import { CliError, ConfigParseError, ConfigValidationError } from "./exceptions.js";
 import { ProjectConfig } from "./models.js";
 
 export interface RuntimePaths {
@@ -148,9 +148,11 @@ function buildLanguageFramework(
 ): { language: { name: string; version: string }; framework: { name: string; version: string } } {
   const stackKey = data["stack"] as string | undefined;
   if (stackKey === undefined || !(stackKey in STACK_MAPPING)) {
-    throw new ConfigValidationError([
-      `Unknown stack: '${String(stackKey)}'. Valid stacks: ${Object.keys(STACK_MAPPING).join(", ")}`,
-    ]);
+    const valid = Object.keys(STACK_MAPPING).join(", ");
+    throw new CliError(
+      `Unknown stack: '${String(stackKey)}'. Valid stacks: ${valid}`,
+      "UNKNOWN_STACK",
+    );
   }
   const mapping = STACK_MAPPING[stackKey]!;
   return {
@@ -169,10 +171,10 @@ function buildLanguageFramework(
 export function migrateV2ToV3(
   data: Record<string, unknown>,
 ): Record<string, unknown> {
-  console.warn("Config uses legacy v2 format. Auto-migrating to v3.");
-
   const archSection = buildArchitectureSection(data);
   const langSection = buildLanguageFramework(data);
+
+  console.warn("Config uses legacy v2 format. Auto-migrating to v3.");
 
   const project =
     (data["project"] as Record<string, unknown> | undefined) ?? {
@@ -220,7 +222,7 @@ export function loadConfig(path: string): ProjectConfig {
     data = yaml.load(content);
   } catch (error: unknown) {
     const detail = error instanceof Error ? error.message : "unknown error";
-    throw new ConfigValidationError([`Invalid YAML syntax: ${detail}`]);
+    throw new ConfigParseError(detail);
   }
 
   if (data == null || typeof data !== "object" || Array.isArray(data)) {

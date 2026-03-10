@@ -11,7 +11,7 @@ import {
   TYPE_MAPPING,
   STACK_MAPPING,
 } from "../../src/config.js";
-import { ConfigValidationError } from "../../src/exceptions.js";
+import { CliError, ConfigParseError, ConfigValidationError } from "../../src/exceptions.js";
 import { ProjectConfig } from "../../src/models.js";
 
 const FIXTURES_DIR = resolve(__dirname, "../fixtures");
@@ -175,7 +175,7 @@ describe("migrateV2ToV3 — edge cases", () => {
     });
   });
 
-  it("migrateV2ToV3_unknownStack_throwsConfigValidationError", () => {
+  it("migrateV2ToV3_unknownStack_throwsCliError", () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
     const data = {
       type: "api",
@@ -183,15 +183,46 @@ describe("migrateV2ToV3 — edge cases", () => {
       project: { name: "t", purpose: "" },
     };
 
-    expect(() => migrateV2ToV3(data)).toThrow(
-      ConfigValidationError,
-    );
+    expect(() => migrateV2ToV3(data)).toThrow(CliError);
+  });
+
+  it("migrateV2ToV3_unknownStack_doesNotEmitWarning", () => {
+    const warnSpy = vi
+      .spyOn(console, "warn")
+      .mockImplementation(() => {});
+    const data = {
+      type: "api",
+      stack: "unknown-stack",
+      project: { name: "t", purpose: "" },
+    };
+
+    try {
+      migrateV2ToV3(data);
+    } catch {
+      // expected
+    }
+
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 
   it("migrateV2ToV3_unknownType_usesDefaultTypeMapping", () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
     const data = {
       type: "unknown-type",
+      stack: "java-spring",
+      project: { name: "t", purpose: "" },
+    };
+
+    const result = migrateV2ToV3(data);
+
+    const arch = result["architecture"] as { style: string };
+    expect(arch.style).toBe("microservice");
+    expect(result["interfaces"]).toEqual([{ type: "rest" }]);
+  });
+
+  it("migrateV2ToV3_absentType_usesDefaultTypeMapping", () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const data = {
       stack: "java-spring",
       project: { name: "t", purpose: "" },
     };
@@ -229,52 +260,52 @@ describe("validateConfig", () => {
       };
       delete data[section];
 
-      expect(() => validateConfig(data)).toThrow(
-        ConfigValidationError,
-      );
+      let caught: ConfigValidationError | undefined;
       try {
         validateConfig(data);
       } catch (e) {
-        const err = e as ConfigValidationError;
-        expect(err.missingFields).toContain(section);
+        caught = e as ConfigValidationError;
       }
+
+      expect(caught).toBeInstanceOf(ConfigValidationError);
+      expect(caught!.missingFields).toContain(section);
     },
   );
 
   it("validateConfig_nullInput_throwsWithAllSections", () => {
-    expect(() => validateConfig(null)).toThrow(
-      ConfigValidationError,
-    );
+    let caught: ConfigValidationError | undefined;
     try {
       validateConfig(null);
     } catch (e) {
-      const err = e as ConfigValidationError;
-      expect(err.missingFields).toEqual([...REQUIRED_SECTIONS]);
+      caught = e as ConfigValidationError;
     }
+
+    expect(caught).toBeInstanceOf(ConfigValidationError);
+    expect(caught!.missingFields).toEqual([...REQUIRED_SECTIONS]);
   });
 
   it("validateConfig_undefinedInput_throwsWithAllSections", () => {
-    expect(() => validateConfig(undefined)).toThrow(
-      ConfigValidationError,
-    );
+    let caught: ConfigValidationError | undefined;
     try {
       validateConfig(undefined);
     } catch (e) {
-      const err = e as ConfigValidationError;
-      expect(err.missingFields).toEqual([...REQUIRED_SECTIONS]);
+      caught = e as ConfigValidationError;
     }
+
+    expect(caught).toBeInstanceOf(ConfigValidationError);
+    expect(caught!.missingFields).toEqual([...REQUIRED_SECTIONS]);
   });
 
   it("validateConfig_emptyObject_throwsWithAllSections", () => {
-    expect(() => validateConfig({})).toThrow(
-      ConfigValidationError,
-    );
+    let caught: ConfigValidationError | undefined;
     try {
       validateConfig({});
     } catch (e) {
-      const err = e as ConfigValidationError;
-      expect(err.missingFields).toEqual([...REQUIRED_SECTIONS]);
+      caught = e as ConfigValidationError;
     }
+
+    expect(caught).toBeInstanceOf(ConfigValidationError);
+    expect(caught!.missingFields).toEqual([...REQUIRED_SECTIONS]);
   });
 });
 
@@ -351,14 +382,12 @@ describe("loadConfig", () => {
     expect(() => loadConfig("/nonexistent/path.yaml")).toThrow();
   });
 
-  it("loadConfig_malformedYaml_throwsConfigValidationError", () => {
+  it("loadConfig_malformedYaml_throwsConfigParseError", () => {
     tempDir = mkdtempSync(join(tmpdir(), "config-test-"));
     const filePath = join(tempDir, "bad.yaml");
     writeFileSync(filePath, ":\n  invalid: [unclosed");
 
-    expect(() => loadConfig(filePath)).toThrow(
-      ConfigValidationError,
-    );
+    expect(() => loadConfig(filePath)).toThrow(ConfigParseError);
   });
 
   it("loadConfig_emptyFile_throwsConfigValidationError", () => {
