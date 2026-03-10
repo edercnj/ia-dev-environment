@@ -38,14 +38,14 @@ export class PatternsAssembler {
     outputDir: string,
     resourcesDir: string,
     engine: TemplateEngine,
-  ): AssembleResult;
+  ): string[];
 }
 ```
 
-Return type is `AssembleResult` (reusing `{ files: string[]; warnings: string[] }`
-from `rules-assembler.ts`) — the story data contract specifies this shape.
-The Python source returns `List[Path]` with no warnings, so `warnings` will always
-be `[]` for `PatternsAssembler`.
+Return type is `string[]` (list of written file paths), matching the established TS
+convention from `SkillsAssembler`. The story data contract suggested
+`{ files: string[]; warnings: string[] }`, but all existing assemblers return
+`string[]` and keeping the same shape avoids an inconsistent API surface.
 
 ### 3.2 ProtocolsAssembler
 
@@ -56,13 +56,13 @@ export class ProtocolsAssembler {
     outputDir: string,
     resourcesDir: string,
     engine: TemplateEngine,
-  ): AssembleResult;
+  ): string[];
 }
 ```
 
 `engine` is accepted for API consistency with all other assemblers, but is **not
 used** — protocols are concatenated raw (no placeholder replacement). This mirrors
-the Python source exactly. `warnings` will always be `[]`.
+the Python source exactly.
 
 ## 4. Key Implementation Details
 
@@ -97,7 +97,7 @@ const CONVENTIONS_SUFFIX   = "-conventions.md";
 | Directory creation | `target_dir.mkdir(parents=True, exist_ok=True)` | `fs.mkdirSync(dir, { recursive: true })` |
 | Template rendering | `engine.replace_placeholders(content)` | `engine.replacePlaceholders(content)` |
 | Dict iteration (protocols) | `for protocol, files in sorted(protocol_files.items())` | `for (const protocol of Object.keys(protocolFiles).sort())` |
-| Return type | `List[Path]` | `AssembleResult` |
+| Return type | `List[Path]` | `string[]` |
 
 ### 4.3 PatternsAssembler: Critical Design Notes
 
@@ -115,7 +115,7 @@ Output paths:
 - Consolidated: `{outputDir}/skills/patterns/SKILL.md`
 
 Early-exit: if `selectPatterns()` returns `[]` or `selectPatternFiles()` returns
-`[]`, return `{ files: [], warnings: [] }` immediately (no directories created).
+`[]`, return `[]` immediately (no directories created).
 
 Private method structure (all ≤ 25 lines):
 ```
@@ -157,14 +157,12 @@ patterns-assembler.ts
   |-- import --> src/domain/pattern-mapping.ts   (selectPatterns, selectPatternFiles)
   |-- import --> src/models.ts                   (ProjectConfig)
   |-- import --> src/template-engine.ts          (TemplateEngine)
-  |-- import --> src/assembler/rules-assembler.ts (AssembleResult type)
   |-- import --> node:fs, node:path
 
 protocols-assembler.ts
   |-- import --> src/domain/protocol-mapping.ts  (deriveProtocols, deriveProtocolFiles)
   |-- import --> src/models.ts                   (ProjectConfig)
   |-- import --> src/template-engine.ts          (TemplateEngine — param only, unused)
-  |-- import --> src/assembler/rules-assembler.ts (AssembleResult type)
   |-- import --> node:fs, node:path
 ```
 
@@ -185,8 +183,8 @@ function setupResources(tmpDir: string): string  // returns resourcesDir
 
 | Group | Scenarios | Technique |
 |-------|-----------|-----------|
-| `assemble — empty result` | Unknown arch style returns `{ files: [], warnings: [] }` | Config with style `"unknown"` — no fs fixture needed |
-| `assemble — empty result` | Known style with no pattern files in resourcesDir returns `{ files: [], warnings: [] }` | Config with `"microservice"` but no pattern dirs created |
+| `assemble — empty result` | Unknown arch style returns `[]` | Config with style `"unknown"` — no fs fixture needed |
+| `assemble — empty result` | Known style with no pattern files in resourcesDir returns `[]` | Config with `"microservice"` but no pattern dirs created |
 | `assemble — references written` | Microservice: resilience + integration + architectural + data categories written to `references/` | Create fixture files per category, assert all paths present |
 | `assemble — references path structure` | Files land at `skills/patterns/references/{category}/{name}.md` | Assert exact path |
 | `assemble — SKILL.md consolidated` | `skills/patterns/SKILL.md` exists and contains all rendered content | Read output, check content includes each file's content |
@@ -195,8 +193,7 @@ function setupResources(tmpDir: string): string  // returns resourcesDir
 | `assemble — event-driven` | `eventDriven: true` adds saga, outbox, event-sourcing, dead-letter-queue patterns | Create fixtures, assert all four categories present |
 | `assemble — library style` | `style: "library"` → only universal patterns (architectural + data) | Assert only 2 categories |
 | `assemble — universal always present` | Any valid style always includes `architectural` and `data` | |
-| `assemble — files returned` | `files` array contains all written paths (refs + SKILL.md) | Assert length and paths |
-| `assemble — warnings empty` | `warnings` is always `[]` | |
+| `assemble — files returned` | Returned `string[]` contains all written paths (refs + SKILL.md) | Assert length and paths |
 
 **Data-driven with `it.each`:**
 ```typescript
@@ -221,7 +218,7 @@ function setupResources(tmpDir: string): string
 
 | Group | Scenarios | Technique |
 |-------|-----------|-----------|
-| `assemble — empty result` | No interfaces returns `{ files: [], warnings: [] }` | Config with `interfaces: ["cli"]` |
+| `assemble — empty result` | No interfaces returns `[]` | Config with `interfaces: ["cli"]` |
 | `assemble — empty result` | Interfaces that produce no files (no fixtures) returns `[]` | Config with `"rest"` but no protocol dirs |
 | `assemble — REST protocol` | `rest` interface → `rest-conventions.md` in `references/` | Create fixture, assert path |
 | `assemble — gRPC protocol` | `grpc` interface → `grpc-conventions.md` | |
@@ -233,7 +230,6 @@ function setupResources(tmpDir: string): string
 | `assemble — broker filtering` | `event-consumer` with `broker: "kafka"` → only `kafka.md` from messaging dir | Create `kafka.md` + `rabbitmq.md`, assert only kafka content |
 | `assemble — broker fallback` | `event-consumer` with unknown broker → all messaging files included | Create multiple files, no specific broker file |
 | `assemble — sorted output` | Multiple protocols written in alphabetical order | Assert files list is sorted |
-| `assemble — warnings empty` | `warnings` is always `[]` | |
 | `assemble — engine param unused` | Accepts engine but does not alter file content | |
 
 **Data-driven with `it.each`:**
@@ -281,4 +277,4 @@ checklist injection) and SkillsAssembler (no multi-category template scanning).
 | Category subdir derived from source path parent | Low — straightforward `path.basename(path.dirname(src))` | Test with real fixture files |
 | Protocol dict iteration order must be sorted | Low | Use `Object.keys(...).sort()` explicitly |
 | `engine` accepted but unused in `ProtocolsAssembler` | Low — by design | Add JSDoc `@param engine - Accepted for API consistency; not used` |
-| `AssembleResult` import creates dependency on `rules-assembler.ts` | Negligible | Same pattern as `agents-assembler.ts` |
+| Return type `string[]` diverges from story contract `AssembleResult` | Negligible | Matches existing TS assemblers (SkillsAssembler, AgentsAssembler) |

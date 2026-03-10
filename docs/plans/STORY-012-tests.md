@@ -17,8 +17,9 @@ and `tests/node/assembler/protocols-assembler.test.ts`
 ## Conventions
 
 - Test names follow `[methodOrBehavior]_[scenario]_[expectedBehavior]`.
-- `buildConfig(overrides?)` helper mirrors the one in `skills-assembler.test.ts`,
-  accepting at minimum `architectureStyle`, `eventDriven`, and `interfaces`.
+- `buildConfig(overrides?)` helper mirrors the one in `skills-assembler.test.ts`;
+  tests typically override `style` (mapped to `architecture.style`) and, for
+  protocol scenarios, `interfaces`.
 - `createPatternFile(resourcesDir, category, filename, content)` helper creates
   `{resourcesDir}/patterns/{category}/{filename}`.
 - `createProtocolFile(resourcesDir, protocol, filename, content)` helper creates
@@ -111,11 +112,16 @@ and `tests/node/assembler/protocols-assembler.test.ts`
 ---
 
 **Test PA-06**
-- **Name:** `assemble_libraryStyle_returnsEmptyArray`
-- **Scenario:** `architecture.style = "library"` maps to an empty category list in
-  `ARCHITECTURE_PATTERNS` (`[]`), so `select_patterns` returns `[]`.
-- **Setup:** Pattern files exist on disk for various categories.
-- **Expected:** Return value is `[]`.
+- **Name:** `assemble_libraryStyle_includesUniversalArchitecturalAndDataPatterns`
+- **Scenario:** `architecture.style = "library"` maps to an empty list in
+  `ARCHITECTURE_PATTERNS`, but `selectPatterns` still returns the
+  `UNIVERSAL_PATTERNS` set (`architectural` + `data`) for any known style.
+- **Setup:** Pattern files exist on disk for `architectural`, `data`, and at
+  least one non-universal category such as `integration`.
+- **Expected:**
+  - Returned paths include only `architectural` and `data` category files.
+  - No files from non-universal categories (e.g. `integration`, `resilience`)
+    are included in the result.
 
 ---
 
@@ -568,7 +574,7 @@ and `tests/node/assembler/protocols-assembler.test.ts`
 | PA-03 | Patterns | Unknown style + no files → empty return | First guard branch |
 | PA-04 | Patterns | Microservice: architectural+data+resilience+integration files written | 5 paths returned |
 | PA-05 | Patterns | Hexagonal: only architectural+data+integration selected | `resilience` absent |
-| PA-06 | Patterns | Library style → empty return (empty category list) | `result === []` |
+| PA-06 | Patterns | Library style → only universal patterns (architectural + data) | Universal categories present, non-universal absent |
 | PA-07 | Patterns | eventDriven=true → saga+outbox+ES+DLQ patterns included | 4 extra files |
 | PA-08 | Patterns | eventDriven=false → event-driven patterns excluded | Paths absent |
 | PA-09 | Patterns | eventDriven=true, only some dirs exist → no error | Graceful skip |
