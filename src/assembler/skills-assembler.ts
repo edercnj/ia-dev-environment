@@ -29,6 +29,67 @@ const LIB_DIR = "lib";
 const SKILL_MD = "SKILL.md";
 const SKILLS_OUTPUT = "skills";
 
+/** Select skills based on interface types. */
+function selectInterfaceSkills(config: ProjectConfig): string[] {
+  const skills: string[] = [];
+  if (hasInterface(config, "rest")) skills.push("x-review-api");
+  if (hasInterface(config, "grpc")) skills.push("x-review-grpc");
+  if (hasInterface(config, "graphql")) skills.push("x-review-graphql");
+  if (hasAnyInterface(config, "event-consumer", "event-producer")) {
+    skills.push("x-review-events");
+  }
+  return skills;
+}
+
+/** Select skills based on infrastructure config. */
+function selectInfraSkills(config: ProjectConfig): string[] {
+  const skills: string[] = [];
+  if (config.infrastructure.observability.tool !== "none") {
+    skills.push("instrument-otel");
+  }
+  if (config.infrastructure.orchestrator !== "none") {
+    skills.push("setup-environment");
+  }
+  if (config.infrastructure.apiGateway !== "none") {
+    skills.push("x-review-gateway");
+  }
+  return skills;
+}
+
+/** Select skills based on testing config. */
+function selectTestingSkills(config: ProjectConfig): string[] {
+  const skills: string[] = [];
+  if (config.testing.smokeTests && hasInterface(config, "rest")) {
+    skills.push("run-smoke-api");
+  }
+  if (config.testing.smokeTests && hasInterface(config, "tcp-custom")) {
+    skills.push("run-smoke-socket");
+  }
+  skills.push("run-e2e");
+  if (config.testing.performanceTests) skills.push("run-perf-test");
+  if (config.testing.contractTests) skills.push("run-contract-tests");
+  return skills;
+}
+
+/** Select skills based on security config. */
+function selectSecuritySkills(config: ProjectConfig): string[] {
+  if (config.security.frameworks.length > 0) {
+    return ["x-review-security"];
+  }
+  return [];
+}
+
+/** Select data-related knowledge packs. */
+function selectDataPacks(config: ProjectConfig): string[] {
+  if (
+    config.data.database.name !== "none" ||
+    config.data.cache.name !== "none"
+  ) {
+    return ["database-patterns"];
+  }
+  return [];
+}
+
 /** Assembles skills from templates based on project config. */
 export class SkillsAssembler {
   /** Scan core skills directories, returning skill names. */
@@ -59,10 +120,10 @@ export class SkillsAssembler {
   /** Evaluate feature gates and return conditional skill names. */
   selectConditionalSkills(config: ProjectConfig): string[] {
     return [
-      ...this.selectInterfaceSkills(config),
-      ...this.selectInfraSkills(config),
-      ...this.selectTestingSkills(config),
-      ...this.selectSecuritySkills(config),
+      ...selectInterfaceSkills(config),
+      ...selectInfraSkills(config),
+      ...selectTestingSkills(config),
+      ...selectSecuritySkills(config),
     ];
   }
 
@@ -70,7 +131,7 @@ export class SkillsAssembler {
   selectKnowledgePacks(config: ProjectConfig): string[] {
     const packs = [...CORE_KNOWLEDGE_PACKS];
     packs.push("layer-templates");
-    packs.push(...this.selectDataPacks(config));
+    packs.push(...selectDataPacks(config));
     return packs;
   }
 
@@ -92,67 +153,9 @@ export class SkillsAssembler {
     return results;
   }
 
-  private selectInterfaceSkills(config: ProjectConfig): string[] {
-    const skills: string[] = [];
-    if (hasInterface(config, "rest")) skills.push("x-review-api");
-    if (hasInterface(config, "grpc")) skills.push("x-review-grpc");
-    if (hasInterface(config, "graphql")) skills.push("x-review-graphql");
-    if (hasAnyInterface(config, "event-consumer", "event-producer")) {
-      skills.push("x-review-events");
-    }
-    return skills;
-  }
-
-  private selectInfraSkills(config: ProjectConfig): string[] {
-    const skills: string[] = [];
-    if (config.infrastructure.observability.tool !== "none") {
-      skills.push("instrument-otel");
-    }
-    if (config.infrastructure.orchestrator !== "none") {
-      skills.push("setup-environment");
-    }
-    if (config.infrastructure.apiGateway !== "none") {
-      skills.push("x-review-gateway");
-    }
-    return skills;
-  }
-
-  private selectTestingSkills(config: ProjectConfig): string[] {
-    const skills: string[] = [];
-    if (config.testing.smokeTests && hasInterface(config, "rest")) {
-      skills.push("run-smoke-api");
-    }
-    if (config.testing.smokeTests && hasInterface(config, "tcp-custom")) {
-      skills.push("run-smoke-socket");
-    }
-    skills.push("run-e2e");
-    if (config.testing.performanceTests) skills.push("run-perf-test");
-    if (config.testing.contractTests) skills.push("run-contract-tests");
-    return skills;
-  }
-
-  private selectSecuritySkills(config: ProjectConfig): string[] {
-    if (config.security.frameworks.length > 0) {
-      return ["x-review-security"];
-    }
-    return [];
-  }
-
-  private selectDataPacks(config: ProjectConfig): string[] {
-    if (
-      config.data.database.name !== "none" ||
-      config.data.cache.name !== "none"
-    ) {
-      return ["database-patterns"];
-    }
-    return [];
-  }
-
   private copyCoreSkill(
-    skillName: string,
-    resourcesDir: string,
-    outputDir: string,
-    engine: TemplateEngine,
+    skillName: string, resourcesDir: string,
+    outputDir: string, engine: TemplateEngine,
   ): string {
     const src = path.join(
       resourcesDir, SKILLS_TEMPLATES_DIR, CORE_DIR, skillName,
@@ -162,10 +165,8 @@ export class SkillsAssembler {
   }
 
   private copyConditionalSkill(
-    skillName: string,
-    resourcesDir: string,
-    outputDir: string,
-    engine: TemplateEngine,
+    skillName: string, resourcesDir: string,
+    outputDir: string, engine: TemplateEngine,
   ): string | null {
     const src = path.join(
       resourcesDir, SKILLS_TEMPLATES_DIR, CONDITIONAL_DIR, skillName,
@@ -175,10 +176,8 @@ export class SkillsAssembler {
   }
 
   private copyKnowledgePack(
-    packName: string,
-    resourcesDir: string,
-    outputDir: string,
-    engine: TemplateEngine,
+    packName: string, resourcesDir: string,
+    outputDir: string, engine: TemplateEngine,
   ): string | null {
     const src = path.join(
       resourcesDir, SKILLS_TEMPLATES_DIR, KNOWLEDGE_PACKS_DIR, packName,
@@ -210,10 +209,8 @@ export class SkillsAssembler {
   }
 
   private copyStackPatterns(
-    config: ProjectConfig,
-    resourcesDir: string,
-    outputDir: string,
-    engine: TemplateEngine,
+    config: ProjectConfig, resourcesDir: string,
+    outputDir: string, engine: TemplateEngine,
   ): string | null {
     const packName = getStackPackName(config.framework.name);
     if (!packName) return null;
@@ -226,10 +223,8 @@ export class SkillsAssembler {
   }
 
   private copyInfraPatterns(
-    config: ProjectConfig,
-    resourcesDir: string,
-    outputDir: string,
-    engine: TemplateEngine,
+    config: ProjectConfig, resourcesDir: string,
+    outputDir: string, engine: TemplateEngine,
   ): string[] {
     const results: string[] = [];
     for (const [packName, condition] of buildInfraPackRules(config)) {
@@ -246,9 +241,7 @@ export class SkillsAssembler {
   }
 
   private assembleCore(
-    resourcesDir: string,
-    outputDir: string,
-    engine: TemplateEngine,
+    resourcesDir: string, outputDir: string, engine: TemplateEngine,
   ): string[] {
     return this.selectCoreSkills(resourcesDir).map(
       (skill) => this.copyCoreSkill(skill, resourcesDir, outputDir, engine),
@@ -256,10 +249,8 @@ export class SkillsAssembler {
   }
 
   private assembleConditional(
-    config: ProjectConfig,
-    resourcesDir: string,
-    outputDir: string,
-    engine: TemplateEngine,
+    config: ProjectConfig, resourcesDir: string,
+    outputDir: string, engine: TemplateEngine,
   ): string[] {
     const results: string[] = [];
     for (const skill of this.selectConditionalSkills(config)) {
@@ -272,10 +263,8 @@ export class SkillsAssembler {
   }
 
   private assembleKnowledge(
-    config: ProjectConfig,
-    resourcesDir: string,
-    outputDir: string,
-    engine: TemplateEngine,
+    config: ProjectConfig, resourcesDir: string,
+    outputDir: string, engine: TemplateEngine,
   ): string[] {
     const results: string[] = [];
     for (const pack of this.selectKnowledgePacks(config)) {

@@ -213,6 +213,17 @@ describe("SkillsAssembler", () => {
       const libSkills = result.filter((s) => s.startsWith("lib/"));
       expect(libSkills).toEqual(["lib/a-lib", "lib/z-lib"]);
     });
+
+    it("skipsNonDirectoryEntriesInsideLib", () => {
+      createLibSkill(resourcesDir, "real-lib");
+      const libDir = path.join(
+        resourcesDir, "skills-templates", "core", "lib",
+      );
+      fs.writeFileSync(path.join(libDir, "readme.txt"), "ignore");
+      const result = assembler.selectCoreSkills(resourcesDir);
+      const libSkills = result.filter((s) => s.startsWith("lib/"));
+      expect(libSkills).toEqual(["lib/real-lib"]);
+    });
   });
 
   describe("selectConditionalSkills", () => {
@@ -356,6 +367,15 @@ describe("SkillsAssembler", () => {
         });
         const result = assembler.selectConditionalSkills(config);
         expect(result).toContain("run-smoke-socket");
+      });
+
+      it("noSmokeWithTcpCustom_excludesSmokeSocket", () => {
+        const config = buildConfig({
+          smokeTests: false,
+          interfaces: [new InterfaceConfig("tcp-custom")],
+        });
+        const result = assembler.selectConditionalSkills(config);
+        expect(result).not.toContain("run-smoke-socket");
       });
 
       it("alwaysIncludesRunE2e", () => {
