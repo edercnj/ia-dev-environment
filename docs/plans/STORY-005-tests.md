@@ -206,8 +206,8 @@ Recommendation: **Option A** for byte-for-byte parity with Python output.
 
 ## Risks and Gaps
 
-1. **Boolean parity**: Nunjucks renders `true`/`false` vs Jinja2 `True`/`False` — requires explicit conversion
-2. **`injectSection` replaces first occurrence only**: JavaScript `.replace(string, string)` replaces only the first match — Python `.replace()` replaces all. Need `.replaceAll()` or global approach
-3. **Trailing newline**: Nunjucks does NOT have `keep_trailing_newline` config — need to verify default behavior
-4. **Nunjucks error types**: May differ from Jinja2's `UndefinedError` — test for generic `Error` with message match
-5. **File encoding**: `concatFiles` uses `fs.readFileSync` default encoding — must specify `"utf-8"`
+1. **Boolean parity**: MITIGATED — `buildDefaultContext` converts booleans to Python-style `"True"`/`"False"` strings
+2. **`injectSection` replaces first occurrence only**: MITIGATED — implementation uses `.replaceAll()` for all occurrences
+3. **Trailing newline**: MITIGATED — Nunjucks preserves trailing newlines by default; confirmed by test
+4. **Nunjucks error types**: MITIGATED — tests use generic `.toThrow()` matching
+5. **File encoding**: MITIGATED — `concatFiles` explicitly passes `"utf-8"` to `readFileSync`

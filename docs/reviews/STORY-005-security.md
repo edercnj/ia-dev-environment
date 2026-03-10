@@ -14,4 +14,6 @@
 
 ## Partial
 - [1] Input validation (1/2) — src/template-engine.ts:88 — resourcesDir not validated for existence/absoluteness. FileSystemLoader scopes resolution but explicit check would be defense-in-depth. [LOW]
-- [2] Output encoding (1/2) — src/template-engine.ts:90 — autoescape: false is correct but rationale should be documented in code comment. [LOW]
+
+## Resolved
+- [2] Output encoding — ~~rationale not documented~~ → Fixed: inline comment added at src/template-engine.ts:90

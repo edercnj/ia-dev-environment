@@ -190,9 +190,8 @@ describe("renderTemplate", () => {
   });
 
   it("renderTemplate_undefinedVariable_throwsError", () => {
-    const minimalEngine = new TemplateEngine(TEMPLATES_DIR, aProjectConfig());
     expect(() =>
-      minimalEngine.renderString("{{ unknown_var }}"),
+      engine.renderTemplate("undefined_var.md.j2"),
     ).toThrow();
   });
 

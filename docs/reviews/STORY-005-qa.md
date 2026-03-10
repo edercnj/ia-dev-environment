@@ -16,4 +16,6 @@
 
 ## Partial
 - [4] Test naming convention (1/2) — Minor `should`-style mixing and constant-name usage in a few tests. [LOW]
-- [9] Fixtures centralized (1/2) — `aProjectConfig()` factory is inline in test file; should be extracted to shared fixture module for reuse across stories. [MEDIUM]
+
+## Resolved
+- [9] Fixtures centralized — ~~factory inline in test file~~ → Fixed: extracted to `tests/fixtures/project-config.fixture.ts`

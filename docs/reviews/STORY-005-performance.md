@@ -15,5 +15,7 @@
 - [10] Resource cleanup (2/2) — No persistent handles
 
 ## Partial
-- [11] Lazy loading (1/2) — src/template-engine.ts:97 — buildPlaceholderMap recomputes context already built on line 96. Derive from defaultContext instead. [LOW]
 - [12] Batch operations (1/2) — src/template-engine.ts:201-205 — concatFiles holds all content in memory. Acceptable for CLI but worth noting. [LOW]
+
+## Resolved
+- [11] Lazy loading — ~~buildPlaceholderMap recomputes context~~ → Fixed: uses `toPlaceholderMap(this.defaultContext)` derived from cached context

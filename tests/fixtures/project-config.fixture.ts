@@ -7,6 +7,7 @@ import {
   FrameworkConfig,
   DataConfig,
   InfraConfig,
+  SecurityConfig,
   TechComponent,
   TestingConfig,
 } from "../../src/models.js";
@@ -30,7 +31,7 @@ export function aProjectConfig(): ProjectConfig {
       new TechComponent("redis"),
     ),
     new InfraConfig("docker", "kubernetes"),
-    undefined,
+    new SecurityConfig(),
     new TestingConfig(true, false, true, 95, 90),
   );
 }
