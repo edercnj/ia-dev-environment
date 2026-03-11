@@ -1,0 +1,172 @@
+/**
+ * Pipeline Orchestrator — coordinates all 14 assemblers in RULE-008 order.
+ *
+ * Migrated from Python `assembler/__init__.py`.
+ * Supports real mode (atomic output) and dry-run mode (temp dir, discard).
+ *
+ * @module
+ */
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join, relative, resolve } from "node:path";
+import type { ProjectConfig } from "../models.js";
+import { PipelineResult } from "../models.js";
+import { PipelineError } from "../exceptions.js";
+import { atomicOutput } from "../utils.js";
+import { TemplateEngine } from "../template-engine.js";
+import type { AssembleResult } from "./rules-assembler.js";
+import { RulesAssembler } from "./rules-assembler.js";
+import { SkillsAssembler } from "./skills-assembler.js";
+import { AgentsAssembler } from "./agents-assembler.js";
+import { PatternsAssembler } from "./patterns-assembler.js";
+import { ProtocolsAssembler } from "./protocols-assembler.js";
+import { HooksAssembler } from "./hooks-assembler.js";
+import { SettingsAssembler } from "./settings-assembler.js";
+import { GithubInstructionsAssembler } from "./github-instructions-assembler.js";
+import { GithubMcpAssembler } from "./github-mcp-assembler.js";
+import { GithubSkillsAssembler } from "./github-skills-assembler.js";
+import { GithubAgentsAssembler } from "./github-agents-assembler.js";
+import { GithubHooksAssembler } from "./github-hooks-assembler.js";
+import { GithubPromptsAssembler } from "./github-prompts-assembler.js";
+import { ReadmeAssembler } from "./readme-assembler.js";
+
+/** Warning appended to dry-run results. */
+export const DRY_RUN_WARNING = "Dry run -- no files written";
+
+/** Pairs a display name with an assembler instance. */
+export interface AssemblerDescriptor {
+  readonly name: string;
+  readonly assembler: {
+    assemble(
+      config: ProjectConfig,
+      outputDir: string,
+      resourcesDir: string,
+      engine: TemplateEngine,
+    ): string[] | AssembleResult;
+  };
+}
+
+/** Aggregated files and warnings from assembler execution. */
+interface NormalizedResult {
+  files: string[];
+  warnings: string[];
+}
+
+/** Normalize assembler return value to { files, warnings }. */
+export function normalizeResult(
+  result: string[] | AssembleResult,
+): NormalizedResult {
+  if (Array.isArray(result)) {
+    return { files: [...result], warnings: [] };
+  }
+  return { files: [...result.files], warnings: [...result.warnings] };
+}
+
+/** Build the ordered list of 14 assemblers per RULE-008. */
+export function buildAssemblers(): readonly AssemblerDescriptor[] {
+  return [
+    { name: "RulesAssembler", assembler: new RulesAssembler() },
+    { name: "SkillsAssembler", assembler: new SkillsAssembler() },
+    { name: "AgentsAssembler", assembler: new AgentsAssembler() },
+    { name: "PatternsAssembler", assembler: new PatternsAssembler() },
+    { name: "ProtocolsAssembler", assembler: new ProtocolsAssembler() },
+    { name: "HooksAssembler", assembler: new HooksAssembler() },
+    { name: "SettingsAssembler", assembler: new SettingsAssembler() },
+    { name: "GithubInstructionsAssembler", assembler: new GithubInstructionsAssembler() },
+    { name: "GithubMcpAssembler", assembler: new GithubMcpAssembler() },
+    { name: "GithubSkillsAssembler", assembler: new GithubSkillsAssembler() },
+    { name: "GithubAgentsAssembler", assembler: new GithubAgentsAssembler() },
+    { name: "GithubHooksAssembler", assembler: new GithubHooksAssembler() },
+    { name: "GithubPromptsAssembler", assembler: new GithubPromptsAssembler() },
+    { name: "ReadmeAssembler", assembler: new ReadmeAssembler() },
+  ];
+}
+
+/** Execute assemblers sequentially, aggregating files and warnings. */
+export function executeAssemblers(
+  assemblers: readonly AssemblerDescriptor[],
+  config: ProjectConfig,
+  outputDir: string,
+  resourcesDir: string,
+  engine: TemplateEngine,
+): NormalizedResult {
+  const files: string[] = [];
+  const warnings: string[] = [];
+  for (const { name, assembler } of assemblers) {
+    try {
+      const raw = assembler.assemble(
+        config, outputDir, resourcesDir, engine,
+      );
+      const normalized = normalizeResult(raw);
+      files.push(...normalized.files);
+      warnings.push(...normalized.warnings);
+    } catch (error: unknown) {
+      if (error instanceof PipelineError) throw error;
+      const reason = error instanceof Error
+        ? error.message
+        : String(error);
+      throw new PipelineError(name, reason);
+    }
+  }
+  return { files, warnings };
+}
+
+/** Execute assemblers in a temporary directory, then clean up. */
+async function runDry(
+  config: ProjectConfig,
+  resourcesDir: string,
+): Promise<NormalizedResult> {
+  const tempDir = await mkdtemp(
+    join(tmpdir(), "ia-dev-env-dry-"),
+  );
+  try {
+    const engine = new TemplateEngine(resourcesDir, config);
+    const result = executeAssemblers(
+      buildAssemblers(), config, tempDir, resourcesDir, engine,
+    );
+    result.warnings.push(DRY_RUN_WARNING);
+    return result;
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+}
+
+/** Execute pipeline with atomic output to destination directory. */
+async function runReal(
+  config: ProjectConfig,
+  resourcesDir: string,
+  outputDir: string,
+): Promise<NormalizedResult> {
+  const resolvedDest = resolve(outputDir);
+  const { tempDir, files, warnings } = await atomicOutput(
+    outputDir,
+    async (tempDir) => {
+      const engine = new TemplateEngine(resourcesDir, config);
+      const result = executeAssemblers(
+        buildAssemblers(), config, tempDir, resourcesDir, engine,
+      );
+      return { tempDir, ...result };
+    },
+  );
+  return {
+    files: files.map((f) => join(resolvedDest, relative(tempDir, f))),
+    warnings,
+  };
+}
+
+/** Orchestrate all assemblers with atomic output or dry-run. */
+export async function runPipeline(
+  config: ProjectConfig,
+  resourcesDir: string,
+  outputDir: string,
+  dryRun: boolean,
+): Promise<PipelineResult> {
+  const start = performance.now();
+  const result = dryRun
+    ? await runDry(config, resourcesDir)
+    : await runReal(config, resourcesDir, outputDir);
+  const durationMs = Math.round(performance.now() - start);
+  return new PipelineResult(
+    true, outputDir, result.files, result.warnings, durationMs,
+  );
+}
