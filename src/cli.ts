@@ -186,6 +186,32 @@ async function handleValidate(
   }
 }
 
+/** Register the generate subcommand on a program. */
+function registerGenerateCommand(program: Command): void {
+  program
+    .command("generate")
+    .description(
+      "Generate project scaffolding from config or interactive mode.",
+    )
+    .option("-c, --config <path>", "Path to YAML config file.")
+    .option("-i, --interactive", "Run in interactive mode.")
+    .option("-o, --output-dir <path>", "Output directory.", ".")
+    .option("-s, --resources-dir <path>", "Resources templates directory.")
+    .option("-v, --verbose", "Enable verbose logging.")
+    .option("--dry-run", "Show what would be generated without writing.")
+    .action(handleGenerate);
+}
+
+/** Register the validate subcommand on a program. */
+function registerValidateCommand(program: Command): void {
+  program
+    .command("validate")
+    .description("Validate a config file without generating output.")
+    .requiredOption("-c, --config <path>", "Path to YAML config file.")
+    .option("-v, --verbose", "Enable verbose logging.")
+    .action(handleValidate);
+}
+
 /**
  * Create the CLI program with generate and validate subcommands.
  *
@@ -197,37 +223,8 @@ export function createCli(): Command {
     .description(PROGRAM_DESCRIPTION)
     .version(DEFAULT_FOUNDATION.version);
 
-  program
-    .command("generate")
-    .description(
-      "Generate project scaffolding from config or interactive mode.",
-    )
-    .option("-c, --config <path>", "Path to YAML config file.")
-    .option("-i, --interactive", "Run in interactive mode.")
-    .option("-o, --output-dir <path>", "Output directory.", ".")
-    .option(
-      "-s, --resources-dir <path>",
-      "Resources templates directory.",
-    )
-    .option("-v, --verbose", "Enable verbose logging.")
-    .option(
-      "--dry-run",
-      "Show what would be generated without writing.",
-    )
-    .action(handleGenerate);
-
-  program
-    .command("validate")
-    .description(
-      "Validate a config file without generating output.",
-    )
-    .requiredOption(
-      "-c, --config <path>",
-      "Path to YAML config file.",
-    )
-    .option("-v, --verbose", "Enable verbose logging.")
-    .action(handleValidate);
-
+  registerGenerateCommand(program);
+  registerValidateCommand(program);
   return program;
 }
 

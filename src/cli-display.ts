@@ -6,9 +6,10 @@
  *
  * @module
  */
-import { existsSync, readFileSync } from "node:fs";
-import { basename, dirname, join } from "node:path";
 import type { PipelineResult } from "./models.js";
+import { isKnowledgePackFile } from "./cli-kp-detect.js";
+
+export { isKnowledgePackFile } from "./cli-kp-detect.js";
 
 /** Category counts for the summary table. */
 export interface ComponentCounts {
@@ -22,9 +23,6 @@ export interface ComponentCounts {
   readonly github: number;
 }
 
-const SKILL_MD_FILENAME = "SKILL.md";
-const KP_MARKER_INVOCABLE = "user-invocable: false";
-const KP_MARKER_HEADING = "# Knowledge Pack";
 const SEPARATOR_CHAR = "\u2500";
 const HEADER_LABEL = "Component";
 const HEADER_COUNT = "Files";
@@ -42,79 +40,7 @@ const CATEGORY_LABELS: ReadonlyArray<readonly [string, keyof ComponentCounts]> =
   ["GitHub", "github"],
 ];
 
-/**
- * Resolve the SKILL.md path for a given file path.
- *
- * @param filePath - Path to a file within a skill directory.
- * @returns The resolved SKILL.md path, or undefined if not found.
- */
-function resolveSkillMdPath(filePath: string): string | undefined {
-  if (!existsSync(filePath)) {
-    return undefined;
-  }
-  if (basename(filePath) === SKILL_MD_FILENAME) {
-    return filePath;
-  }
-  const candidate = join(dirname(filePath), SKILL_MD_FILENAME);
-  return existsSync(candidate) ? candidate : undefined;
-}
-
-/**
- * Check whether a SKILL.md content indicates a knowledge pack.
- *
- * @param content - The SKILL.md file content.
- * @returns true if the content matches knowledge pack markers.
- */
-function isKnowledgePackContent(content: string): boolean {
-  if (content.includes(KP_MARKER_INVOCABLE)) {
-    return true;
-  }
-  return content.trimStart().startsWith(KP_MARKER_HEADING);
-}
-
-/**
- * Check whether a skill file belongs to a knowledge pack.
- *
- * If the file is not SKILL.md itself, looks for SKILL.md in the same directory.
- * Returns true if SKILL.md contains "user-invocable: false"
- * or starts with "# Knowledge Pack".
- *
- * @param filePath - Absolute or relative path to a file within a skill directory.
- * @param cache - Optional cache to avoid redundant SKILL.md reads.
- * @returns true if the file belongs to a knowledge pack, false otherwise.
- */
-export function isKnowledgePackFile(
-  filePath: string,
-  cache?: Map<string, boolean>,
-): boolean {
-  const skillMdPath = resolveSkillMdPath(filePath);
-  if (skillMdPath === undefined) {
-    return false;
-  }
-
-  if (cache !== undefined) {
-    const cached = cache.get(skillMdPath);
-    if (cached !== undefined) {
-      return cached;
-    }
-  }
-
-  const content = readFileSync(skillMdPath, "utf-8");
-  const result = isKnowledgePackContent(content);
-
-  if (cache !== undefined) {
-    cache.set(skillMdPath, result);
-  }
-
-  return result;
-}
-
-/**
- * Split a file path into its directory and filename segments.
- *
- * @param filePath - File path to split.
- * @returns Array of path segments.
- */
+/** Split a file path into its directory and filename segments. */
 function splitPathSegments(filePath: string): readonly string[] {
   return filePath.split(/[\\/]/);
 }
@@ -124,6 +50,7 @@ function splitPathSegments(filePath: string): readonly string[] {
  *
  * @param filePath - Path to classify.
  * @param segments - Pre-split path segments.
+ * @param kpCache - Cache for knowledge pack detection.
  * @returns The matching category key, or undefined if no match.
  */
 function classifySingleFile(
@@ -183,12 +110,7 @@ export function classifyFiles(
   return counts;
 }
 
-/**
- * Compute the total count from all categories.
- *
- * @param counts - Component counts.
- * @returns Sum of all category counts.
- */
+/** Compute the total count from all categories. */
 function computeTotal(counts: ComponentCounts): number {
   return CATEGORY_LABELS.reduce(
     (sum, [, key]) => sum + counts[key],
@@ -196,12 +118,7 @@ function computeTotal(counts: ComponentCounts): number {
   );
 }
 
-/**
- * Compute the label column width for alignment.
- *
- * @param counts - Component counts.
- * @returns Width of the widest label or header, whichever is larger.
- */
+/** Compute the label column width for alignment. */
 function computeLabelWidth(counts: ComponentCounts): number {
   let maxWidth = HEADER_LABEL.length;
   for (const [label, key] of CATEGORY_LABELS) {
@@ -213,6 +130,22 @@ function computeLabelWidth(counts: ComponentCounts): number {
     maxWidth = TOTAL_LABEL.length;
   }
   return maxWidth;
+}
+
+/** Build the data rows (non-zero categories) for the summary table. */
+function buildDataRows(
+  counts: ComponentCounts,
+  labelWidth: number,
+  countWidth: number,
+): string[] {
+  const rows: string[] = [];
+  for (const [label, key] of CATEGORY_LABELS) {
+    if (counts[key] > 0) {
+      const countStr = String(counts[key]).padStart(countWidth);
+      rows.push(`  ${label.padEnd(labelWidth)}  ${countStr}`);
+    }
+  }
+  return rows;
 }
 
 /**
@@ -230,27 +163,14 @@ export function formatSummaryTable(
   const total = computeTotal(counts);
   const labelWidth = computeLabelWidth(counts);
   const countWidth = HEADER_COUNT.length;
-  const separator = SEPARATOR_CHAR.repeat(labelWidth);
-  const countSeparator = SEPARATOR_CHAR.repeat(countWidth);
+  const sep = SEPARATOR_CHAR.repeat(labelWidth);
+  const cSep = SEPARATOR_CHAR.repeat(countWidth);
+  const header = `  ${HEADER_LABEL.padEnd(labelWidth)}  ${HEADER_COUNT}`;
+  const divider = `  ${sep}  ${cSep}`;
+  const dataRows = buildDataRows(counts, labelWidth, countWidth);
+  const totalRow = `  ${TOTAL_LABEL.padEnd(labelWidth)}  ${String(total).padStart(countWidth)}`;
 
-  const lines: string[] = [];
-  lines.push(
-    `  ${HEADER_LABEL.padEnd(labelWidth)}  ${HEADER_COUNT}`,
-  );
-  lines.push(`  ${separator}  ${countSeparator}`);
-
-  for (const [label, key] of CATEGORY_LABELS) {
-    if (counts[key] > 0) {
-      const countStr = String(counts[key]).padStart(countWidth);
-      lines.push(`  ${label.padEnd(labelWidth)}  ${countStr}`);
-    }
-  }
-
-  lines.push(`  ${separator}  ${countSeparator}`);
-  const totalStr = String(total).padStart(countWidth);
-  lines.push(`  ${TOTAL_LABEL.padEnd(labelWidth)}  ${totalStr}`);
-
-  return lines.join("\n");
+  return [header, divider, ...dataRows, divider, totalRow].join("\n");
 }
 
 /**
