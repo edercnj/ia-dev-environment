@@ -7,8 +7,9 @@
 # Claude Code — entire directory is generated output of the boilerplate
 .claude/
 
-# GitHub Copilot — entire directory is generated output of the boilerplate
-.github/
+# GitHub Copilot — generated output of the boilerplate (except CI workflows)
+.github/*
+!.github/workflows/
 
 # OS files
 .DS_Store
@@ -26,23 +27,22 @@ Thumbs.db
 *.tmp
 *.bak
 
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-*.egg-info/
-*.egg
+# Dependencies
 node_modules/
+
+# Build output
 dist/
 build/
-.eggs/
-.venv/
-venv/
-.coverage
-.coverage.*
+*.tsbuildinfo
+
+# Coverage
 coverage/
 coverage.json
-htmlcov/
-.pytest_cache/
-*.whl
-*.tsbuildinfo
+
+# Environment files
+.env
+.env.*
+.env.local
+
+# npm pack artifacts
+*.tgz

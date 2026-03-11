@@ -7,7 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **BREAKING: Python removal** -- Removed all Python source code (`src/ia_dev_env/`),
+  Python tests (`tests/*.py`, `tests/assembler/*.py`, `tests/domain/*.py`),
+  `pyproject.toml`, and Python scripts (`scripts/`). The project is now Node.js/TypeScript only.
+- **README rewrite** -- Updated all documentation to reflect Node.js/TypeScript CLI.
+  Removed all Python references.
+
 ### Added
+- **GitHub Actions CI** -- Lint, build, test workflow with Node.js 20/22 matrix.
+  Coverage upload on Node 22. Pack verification job.
+- **npm packaging** -- `files` field, `prepublishOnly` script for publish gating.
 - **Framework knowledge packs (8 new):** NestJS, Express, FastAPI, Django, Gin, Ktor, Axum, .NET knowledge packs with DI, data access, web/HTTP, configuration, testing, and anti-pattern sections. All frameworks now have dedicated knowledge packs matching the Quarkus/Spring Boot reference format.
 - **Infrastructure knowledge packs (7 new):** k8s-deployment (pod specs, resource sizing, probes), k8s-kustomize (base/overlays, patches), k8s-helm (chart structure, GitOps), dockerfile (multi-stage per language), container-registry (tagging, scanning, retention), iac-terraform (modules, state, CI/CD), iac-crossplane (XRD, Composition, Claims).
 - **Rules consolidation strategy:** All protocols consolidated into single `13-protocol-conventions.md`, all patterns into `14-architecture-patterns.md`, security into max 2 files (`15-security-principles.md` + `16-compliance-requirements.md`), framework rules into max 3 files (core, data, operations). Target: ≤30 rule files for any configuration.
