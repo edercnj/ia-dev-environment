@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Removed all Python references.
 
 ### Added
-- **GitHub Actions CI** -- Lint, build, test workflow with Node.js 18/20/22 matrix.
+- **GitHub Actions CI** -- Lint, build, test workflow with Node.js 20/22 matrix.
   Coverage upload on Node 22. Pack verification job.
 - **npm packaging** -- `files` field, `prepublishOnly` script for publish gating.
 - **Framework knowledge packs (8 new):** NestJS, Express, FastAPI, Django, Gin, Ktor, Axum, .NET knowledge packs with DI, data access, web/HTTP, configuration, testing, and anti-pattern sections. All frameworks now have dedicated knowledge packs matching the Quarkus/Spring Boot reference format.

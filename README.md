@@ -4,7 +4,7 @@ A CLI tool that generates complete `.claude/` and `.github/` boilerplate for AI-
 
 ## Prerequisites
 
-- Node.js >= 18
+- Node.js >= 20
 
 ## Installation
 
