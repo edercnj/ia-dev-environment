@@ -12,16 +12,19 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import type { ProjectConfig } from "../models.js";
-import { DEFAULT_FOUNDATION } from "../models.js";
 import type { TemplateEngine } from "../template-engine.js";
 import {
-  getHookTemplateKey,
-  LANGUAGE_COMMANDS,
-} from "../domain/stack-mapping.js";
+  buildRulesTable, buildSkillsTable, buildAgentsTable,
+  buildKnowledgePacksTable, buildHooksSection,
+  buildSettingsSection, buildMappingTable, buildGenerationSummary,
+} from "./readme-tables.js";
 
-// ---------------------------------------------------------------------------
-// G1: Counting functions
-// ---------------------------------------------------------------------------
+// Re-export table builders so consumers can import from one module
+export {
+  buildRulesTable, buildSkillsTable, buildAgentsTable,
+  buildKnowledgePacksTable, buildHooksSection,
+  buildSettingsSection, buildMappingTable, buildGenerationSummary,
+} from "./readme-tables.js";
 
 /** Count `.md` files in `outputDir/rules/`. Returns 0 if dir missing. */
 export function countRules(outputDir: string): number {
@@ -110,10 +113,6 @@ export function countGithubSkills(githubDir: string): number {
     )).length;
 }
 
-// ---------------------------------------------------------------------------
-// G1: Detection and extraction
-// ---------------------------------------------------------------------------
-
 /** Return true if SKILL.md content flags a knowledge pack. */
 export function isKnowledgePack(skillMdPath: string): boolean {
   const text = fs.readFileSync(skillMdPath, "utf-8");
@@ -149,4 +148,103 @@ export function extractSkillDescription(
     }
   }
   return "";
+}
+
+/** Build full README from template with `{{PLACEHOLDER}}` tokens. */
+export function generateReadme(
+  config: ProjectConfig,
+  outputDir: string,
+  templatePath: string,
+): string {
+  let content = fs.readFileSync(templatePath, "utf-8");
+  content = content.replace("{{PROJECT_NAME}}", config.project.name);
+  content = content.replace("{{RULES_COUNT}}", String(countRules(outputDir)));
+  content = content.replace("{{SKILLS_COUNT}}", String(countSkills(outputDir)));
+  content = content.replace("{{AGENTS_COUNT}}", String(countAgents(outputDir)));
+  content = content.replace("{{RULES_TABLE}}", buildRulesTable(outputDir));
+  content = content.replace("{{SKILLS_TABLE}}", buildSkillsTable(outputDir));
+  content = content.replace("{{AGENTS_TABLE}}", buildAgentsTable(outputDir));
+  content = content.replace("{{HOOKS_SECTION}}", buildHooksSection(config));
+  content = content.replace("{{KNOWLEDGE_PACKS_TABLE}}", buildKnowledgePacksTable(outputDir));
+  content = content.replace("{{SETTINGS_SECTION}}", buildSettingsSection());
+  content = content.replace("{{MAPPING_TABLE}}", buildMappingTable(outputDir));
+  content = content.replace("{{GENERATION_SUMMARY}}", buildGenerationSummary(outputDir, config));
+  return content;
+}
+
+/** Generate minimal README with basic project info. */
+export function generateMinimalReadme(
+  config: ProjectConfig,
+): string {
+  const ifaces = config.interfaces
+    .map((i) => i.type).join(" ") || "none";
+  const header =
+    `# .claude/ \u2014 ${config.project.name}\n`
+    + "\n"
+    + "This directory contains the Claude Code configuration"
+    + ` for **${config.project.name}**.\n`
+    + "\n";
+  const structure = buildStructureBlock();
+  const tips = buildTipsBlock(config.architecture.style, ifaces);
+  return header + structure + tips;
+}
+
+/** Build the directory structure section for minimal README. */
+export function buildStructureBlock(): string {
+  return (
+    "## Structure\n\n```\n"
+    + ".claude/\n"
+    + "\u251c\u2500\u2500 README.md               \u2190 You are here\n"
+    + "\u251c\u2500\u2500 settings.json           \u2190 Shared config (committed to git)\n"
+    + "\u251c\u2500\u2500 settings.local.json     \u2190 Local overrides (gitignored)\n"
+    + "\u251c\u2500\u2500 rules/                  \u2190 Coding rules (loaded in system prompt)\n"
+    + "\u2502   \u251c\u2500\u2500 patterns/           \u2190 Design patterns (architecture-driven)\n"
+    + "\u2502   \u2514\u2500\u2500 protocols/          \u2190 Protocol conventions (interface-driven)\n"
+    + "\u251c\u2500\u2500 skills/                 \u2190 Skills invocable via /command\n"
+    + "\u251c\u2500\u2500 agents/                 \u2190 AI personas (used by skills)\n"
+    + "\u2514\u2500\u2500 hooks/                  \u2190 Automation (post-compile, etc.)\n"
+    + "```\n\n"
+  );
+}
+
+/** Build the tips section for minimal README. */
+export function buildTipsBlock(
+  archStyle: string, ifaces: string,
+): string {
+  return (
+    "## Tips\n\n"
+    + "- **Rules are always active** \u2014 loaded automatically in every conversation\n"
+    + `- **Patterns are selected** \u2014 based on architecture style (${archStyle})\n`
+    + `- **Protocols are selected** \u2014 based on interfaces (${ifaces})\n`
+    + "- **Skills are lazy** \u2014 only load when you type `/name`\n"
+    + "- **Agents are not invoked directly** \u2014 used by skills internally\n"
+    + "- **Hooks run automatically** \u2014 compile check after editing source files\n"
+  );
+}
+
+/**
+ * Generates README.md from template or minimal fallback.
+ *
+ * The `engine` parameter is accepted for API uniformity with other
+ * assemblers but is not used; README uses `{{DOUBLE_BRACE}}` tokens
+ * replaced via `String.replace()`, not the TemplateEngine.
+ */
+export class ReadmeAssembler {
+  /** Generate README.md in outputDir. */
+  assemble(
+    config: ProjectConfig,
+    outputDir: string,
+    resourcesDir: string,
+    _engine: TemplateEngine,
+  ): string[] {
+    const templatePath = path.join(
+      resourcesDir, "readme-template.md",
+    );
+    const content = fs.existsSync(templatePath)
+      ? generateReadme(config, outputDir, templatePath)
+      : generateMinimalReadme(config);
+    const dest = path.join(outputDir, "README.md");
+    fs.writeFileSync(dest, content, "utf-8");
+    return [dest];
+  }
 }
