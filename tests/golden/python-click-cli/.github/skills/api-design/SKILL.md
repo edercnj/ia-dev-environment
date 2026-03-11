@@ -37,4 +37,7 @@ All errors return `application/problem+json` with: `type`, `title`, `status`, `d
 
 ## References
 
-- `.github/skills/api-design/SKILL.md` -- Full API design reference
+- [RFC 7231 — HTTP Semantics](https://datatracker.ietf.org/doc/html/rfc7231) -- HTTP methods, status codes, and content negotiation
+- [RFC 7807 — Problem Details for HTTP APIs](https://datatracker.ietf.org/doc/html/rfc7807) -- Standard error response format
+- [OpenAPI Specification 3.1](https://spec.openapis.org/oas/v3.1.0) -- REST API description standard
+- [Microsoft REST API Guidelines](https://github.com/microsoft/api-guidelines) -- Industry API design best practices

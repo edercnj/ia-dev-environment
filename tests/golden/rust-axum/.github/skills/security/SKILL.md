@@ -44,4 +44,7 @@ Security conventions for my-rust-service using rust 2024 with axum.
 
 ## References
 
-- `.github/skills/security/SKILL.md` -- Full security reference
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/) -- Common web application risks and prevention guidance
+- [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/) -- Practical security hardening checklists
+- [MDN Web Docs: Security](https://developer.mozilla.org/docs/Web/Security) -- Web platform security and secure headers
+- [NIST SP 800-63](https://pages.nist.gov/800-63-3/) -- Digital identity and authentication best practices

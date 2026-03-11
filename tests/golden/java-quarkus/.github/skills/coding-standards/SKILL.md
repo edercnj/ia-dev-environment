@@ -44,4 +44,6 @@ Coding conventions for my-quarkus-service using java 21 with quarkus 3.17.
 
 ## References
 
-- `.github/skills/coding-standards/SKILL.md` -- Full coding conventions
+- [Clean Code — Robert C. Martin](https://www.oreilly.com/library/view/clean-code-a/9780136083238/) -- Naming, functions, and code organization principles
+- [SOLID Principles](https://en.wikipedia.org/wiki/SOLID) -- Single responsibility, open-closed, Liskov, interface segregation, dependency inversion
+- [Refactoring — Martin Fowler](https://refactoring.com/) -- Code smells and refactoring techniques

@@ -35,4 +35,6 @@ Resilience patterns for my-nestjs-service using typescript 5 with nestjs.
 
 ## References
 
-- `.github/skills/resilience/SKILL.md` -- Full resilience reference
+- [Release It! — Michael Nygard](https://pragprog.com/titles/mnee2/release-it-second-edition/) -- Stability patterns: circuit breaker, bulkhead, timeout
+- [Microsoft Cloud Design Patterns](https://learn.microsoft.com/en-us/azure/architecture/patterns/) -- Retry, circuit breaker, throttling, and bulkhead patterns
+- [Google SRE Book — Handling Overload](https://sre.google/sre-book/handling-overload/) -- Load shedding, backpressure, and graceful degradation
