@@ -865,7 +865,7 @@ The constant contains the 4 template filenames:
 - **Name:** `assemble_validConfig_generates4Prompts`
 - **Scenario:** All 4 Nunjucks template files exist.
 - **Setup:** Create all 4 `.j2` templates with Nunjucks content using
-  `{{ project.name }}`.
+  `{{ project_name }}`.
 - **Expected:**
   - Return array has length 4.
   - All 4 files exist at `{outputDir}/github/prompts/`.
@@ -902,9 +902,9 @@ The constant contains the 4 template filenames:
 
 **Test GPR-05**
 - **Name:** `assemble_rendersNunjucksTemplates_notJustPlaceholders`
-- **Scenario:** Template uses Nunjucks syntax `{{ project.name }}` (not legacy
+- **Scenario:** Template uses Nunjucks syntax `{{ project_name }}` (not legacy
   `{project_name}` placeholders).
-- **Setup:** Create template with `"Project: {{ project.name }}"`.
+- **Setup:** Create template with `"Project: {{ project_name }}"`.
 - **Expected:**
   - Output file contains `"Project: my-app"` (Nunjucks rendered).
 
@@ -929,7 +929,7 @@ The constant contains the 4 template filenames:
 **Test GPR-08**
 - **Name:** `assemble_usesRenderTemplate_notReplacePlaceholders`
 - **Scenario:** Template uses full Nunjucks syntax (conditionals, loops).
-- **Setup:** Create template with `{% if project.name %}{{ project.name }}{% endif %}`.
+- **Setup:** Create template with `{% if project_name %}{{ project_name }}{% endif %}`.
 - **Expected:**
   - Output contains the project name (rendered via Nunjucks, not simple
     placeholder replacement).

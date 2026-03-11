@@ -76,9 +76,6 @@ describe("GithubSkillsAssembler — filterSkills", () => {
 
   it("filterSkills_nonInfraGroup_returnsAllSkills", () => {
     const config = buildConfig();
-    const engine = new TemplateEngine(
-      fs.mkdtempSync(path.join(tmpdir(), "filter-")), config,
-    );
     const storySkills = SKILL_GROUPS["story"]!;
     const tmpDir = fs.mkdtempSync(
       path.join(tmpdir(), "filter-test-"),
@@ -90,6 +87,7 @@ describe("GithubSkillsAssembler — filterSkills", () => {
     }
     const outputDir = path.join(tmpDir, "output");
     fs.mkdirSync(outputDir, { recursive: true });
+    const engine = new TemplateEngine(resourcesDir, config);
     const result = assembler.assemble(
       config, outputDir, resourcesDir, engine,
     );
