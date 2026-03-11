@@ -1,0 +1,42 @@
+project:
+  name: "my-go-service"
+  purpose: "Go Gin microservice with gRPC"
+architecture:
+  style: microservice
+  domain_driven: false
+  event_driven: true
+interfaces:
+  - type: rest
+    spec: openapi
+  - type: grpc
+    spec: proto3
+  - type: event-consumer
+    broker: kafka
+  - type: event-producer
+    broker: kafka
+language:
+  name: go
+  version: "1.23"
+framework:
+  name: gin
+  version: ""
+  build_tool: go-mod
+  native_build: false
+data:
+  database:
+    name: postgresql
+    version: "17"
+  cache:
+    name: redis
+    version: "7.4"
+infrastructure:
+  container: docker
+  orchestrator: kubernetes
+  iac: terraform
+  api_gateway: kong
+security:
+  frameworks: []
+testing:
+  smoke_tests: true
+  contract_tests: false
+  performance_tests: true

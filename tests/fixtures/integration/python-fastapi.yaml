@@ -1,0 +1,39 @@
+project:
+  name: "my-fastapi-service"
+  purpose: "Python FastAPI microservice with REST"
+architecture:
+  style: microservice
+  domain_driven: true
+  event_driven: true
+interfaces:
+  - type: rest
+    spec: openapi
+  - type: websocket
+  - type: event-consumer
+    broker: kafka
+  - type: event-producer
+    broker: kafka
+language:
+  name: python
+  version: "3.12"
+framework:
+  name: fastapi
+  version: ""
+  build_tool: pip
+  native_build: false
+data:
+  database:
+    name: postgresql
+    version: "17"
+  cache:
+    name: redis
+    version: "7.4"
+infrastructure:
+  container: docker
+  orchestrator: kubernetes
+security:
+  frameworks: []
+testing:
+  smoke_tests: true
+  contract_tests: true
+  performance_tests: true

@@ -1,0 +1,5 @@
+type: cli
+stack: python-click-cli
+project:
+  name: "legacy-cli"
+  purpose: "Legacy v2 format config"
