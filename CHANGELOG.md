@@ -7,13 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-- **BREAKING: Python removal** -- Removed all Python source code (`src/ia_dev_env/`),
-  Python tests (`tests/*.py`, `tests/assembler/*.py`, `tests/domain/*.py`),
-  `pyproject.toml`, and Python scripts (`scripts/`). The project is now Node.js/TypeScript only.
-- **README rewrite** -- Updated all documentation to reflect Node.js/TypeScript CLI.
-  Removed all Python references.
-
 ### Added
 - **GitHub Actions CI** -- Lint, build, test workflow with Node.js 20/22 matrix.
   Coverage upload on Node 22. Pack verification job.

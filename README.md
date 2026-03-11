@@ -16,13 +16,39 @@ npm install -g ia-dev-environment
 npx ia-dev-env generate --help
 ```
 
+### Install from source (development)
+
+```bash
+# Clone and install dependencies
+git clone https://github.com/edercnj/ia-dev-environment.git
+cd ia-dev-environment
+npm install
+
+# Build and link globally
+npm run build
+npm link
+
+# Verify
+ia-dev-env --version
+```
+
+### Uninstall
+
+```bash
+# If installed globally from npm
+npm uninstall -g ia-dev-environment
+
+# If installed via npm link (from the project directory)
+npm unlink
+```
+
 ## Usage
 
 ### Generate from a config file
 
 ```bash
 # Use one of the bundled config profiles
-ia-dev-env generate --config resources/config-templates/setup-config.python-fastapi.yaml --output-dir /path/to/your-project/
+ia-dev-env generate --config resources/config-templates/setup-config.typescript-nestjs.yaml --output-dir /path/to/your-project/
 
 # Or use your own config file
 ia-dev-env generate --config my-config.yaml --output-dir .claude/
