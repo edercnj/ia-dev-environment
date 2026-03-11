@@ -25,7 +25,7 @@ describe("createCli", () => {
     const program = createCli();
 
     expect(program.name()).toBe("ia-dev-env");
-    expect(program.description()).toContain("STORY-001");
+    expect(program.description()).toContain("Claude Setup");
     expect(program.helpInformation()).toContain("Usage: ia-dev-env");
   });
 
