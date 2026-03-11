@@ -48,4 +48,7 @@ Protocol conventions for my-go-service using go 1.22 with gin.
 
 ## References
 
-- `.github/skills/protocols/SKILL.md` -- Full protocol conventions
+- [OpenAPI Specification 3.1](https://spec.openapis.org/oas/v3.1.0) -- REST API description format
+- [gRPC Documentation](https://grpc.io/docs/) -- Protocol Buffers, service definitions, and streaming patterns
+- [GraphQL Specification](https://spec.graphql.org/) -- Query language and schema design
+- [CloudEvents Specification](https://cloudevents.io/) -- Event envelope format and metadata standard

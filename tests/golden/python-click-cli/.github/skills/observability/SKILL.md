@@ -42,4 +42,7 @@ Observability conventions for my-cli-tool using python 3.9 with click.
 
 ## References
 
-- `.github/skills/observability/SKILL.md` -- Full observability reference
+- [OpenTelemetry Documentation](https://opentelemetry.io/docs/) -- Traces, metrics, and logs instrumentation standard
+- [W3C Trace Context](https://www.w3.org/TR/trace-context/) -- Distributed tracing context propagation
+- [The RED Method](https://grafana.com/blog/2018/08/02/the-red-method-how-to-instrument-your-services/) -- Rate, Errors, Duration monitoring methodology
+- [Google SRE Book — Monitoring](https://sre.google/sre-book/monitoring-distributed-systems/) -- Distributed systems observability practices

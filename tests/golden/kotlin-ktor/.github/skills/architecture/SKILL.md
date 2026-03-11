@@ -37,4 +37,6 @@ Inner layers first: domain → ports → application → adapters → inbound �
 
 ## References
 
-- `.github/skills/architecture/SKILL.md` -- Full architecture reference
+- [Hexagonal Architecture — Alistair Cockburn](https://alistair.cockburn.us/hexagonal-architecture/) -- Original ports and adapters pattern
+- [Clean Architecture — Robert C. Martin](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html) -- Dependency rule and layer boundaries
+- [Domain-Driven Design Reference — Eric Evans](https://www.domainlanguage.com/ddd/reference/) -- DDD building blocks and patterns

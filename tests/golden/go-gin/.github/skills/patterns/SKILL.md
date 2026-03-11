@@ -45,4 +45,7 @@ Design patterns and CQRS conventions for my-go-service using go 1.22.
 
 ## References
 
-- `.github/skills/patterns/SKILL.md` -- Full CQRS and patterns reference
+- [CQRS — Martin Fowler](https://martinfowler.com/bliki/CQRS.html) -- Command Query Responsibility Segregation overview
+- [Event Sourcing — Martin Fowler](https://martinfowler.com/eaaDev/EventSourcing.html) -- Event-driven state management pattern
+- [Domain-Driven Design — Eric Evans](https://www.domainlanguage.com/ddd/) -- Aggregates, value objects, and domain patterns
+- [Patterns of Enterprise Application Architecture](https://martinfowler.com/eaaCatalog/) -- Repository, strategy, and specification patterns

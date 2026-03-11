@@ -37,4 +37,7 @@ Compliance frameworks and data protection conventions for my-fastapi-service.
 
 ## References
 
-- `.github/skills/compliance/SKILL.md` -- Full compliance reference
+- [GDPR Official Text](https://gdpr-info.eu/) -- General Data Protection Regulation full text and guidance
+- [PCI DSS v4.0](https://www.pcisecuritystandards.org/) -- Payment Card Industry Data Security Standard
+- [LGPD — Brazilian Data Protection Law](https://www.gov.br/cidadania/pt-br/acesso-a-informacao/lgpd) -- Lei Geral de Protecao de Dados
+- [HIPAA Security Rule](https://www.hhs.gov/hipaa/for-professionals/security/) -- Health information security requirements
