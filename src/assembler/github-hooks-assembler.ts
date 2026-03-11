@@ -32,7 +32,7 @@ export class GithubHooksAssembler {
   ): string[] {
     const srcDir = path.join(resourcesDir, TEMPLATES_DIR_NAME);
     if (!fs.existsSync(srcDir)) return [];
-    const hooksDir = path.join(outputDir, "github", "hooks");
+    const hooksDir = path.join(outputDir, "hooks");
     fs.mkdirSync(hooksDir, { recursive: true });
     const results: string[] = [];
     for (const template of GITHUB_HOOK_TEMPLATES) {

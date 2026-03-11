@@ -33,7 +33,7 @@ export class GithubPromptsAssembler {
   ): string[] {
     const srcDir = path.join(resourcesDir, TEMPLATES_DIR_NAME);
     if (!fs.existsSync(srcDir)) return [];
-    const promptsDir = path.join(outputDir, "github", "prompts");
+    const promptsDir = path.join(outputDir, "prompts");
     fs.mkdirSync(promptsDir, { recursive: true });
     const results: string[] = [];
     for (const templateName of GITHUB_PROMPT_TEMPLATES) {

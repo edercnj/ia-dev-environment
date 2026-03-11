@@ -212,7 +212,7 @@ describe("classifyFiles", () => {
 
   it("classifyFiles_githubPath_countsAsGithub", () => {
     const result = classifyFiles([
-      "/out/github/instructions/foo.md",
+      "/out/.github/instructions/foo.md",
     ]);
 
     expect(result.github).toBe(1);
@@ -220,7 +220,7 @@ describe("classifyFiles", () => {
 
   it("classifyFiles_githubSkillsPath_countsAsGithub_notSkills", () => {
     const result = classifyFiles([
-      "/out/github/skills/bar/SKILL.md",
+      "/out/.github/skills/bar/SKILL.md",
     ]);
 
     expect(result.github).toBe(1);
@@ -229,7 +229,7 @@ describe("classifyFiles", () => {
 
   it("classifyFiles_githubAgentsPath_countsAsGithub_notAgents", () => {
     const result = classifyFiles([
-      "/out/github/agents/dev.agent.md",
+      "/out/.github/agents/dev.agent.md",
     ]);
 
     expect(result.github).toBe(1);
@@ -255,7 +255,7 @@ describe("classifyFiles", () => {
       "/out/rules/01-id.md",
       "/out/rules/02-domain.md",
       "/out/agents/architect.md",
-      "/out/github/instructions/coding.md",
+      "/out/.github/instructions/coding.md",
       "/out/hooks/post.sh",
       "/out/settings.json",
       "/out/README.md",

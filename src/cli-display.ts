@@ -59,7 +59,7 @@ function classifySingleFile(
   kpCache: Map<string, boolean>,
 ): keyof ComponentCounts | undefined {
   const fileName = segments[segments.length - 1] ?? "";
-  if (segments.includes("github")) return "github";
+  if (segments.includes(".github")) return "github";
   if (fileName.includes("README")) return "readme";
   if (fileName.includes("settings")) return "settings";
   if (segments.includes("hooks")) return "hooks";

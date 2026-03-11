@@ -131,7 +131,7 @@ describe("GithubPromptsAssembler", () => {
       const engine = new TemplateEngine(resourcesDir, config);
       assembler.assemble(config, outputDir, resourcesDir, engine);
       const content = fs.readFileSync(
-        path.join(outputDir, "github", "prompts", "new-feature.prompt.md"),
+        path.join(outputDir, "prompts", "new-feature.prompt.md"),
         "utf-8",
       );
       expect(content).toBe("Project: my-app");
@@ -146,7 +146,7 @@ describe("GithubPromptsAssembler", () => {
       const engine = new TemplateEngine(resourcesDir, config);
       assembler.assemble(config, outputDir, resourcesDir, engine);
       const content = fs.readFileSync(
-        path.join(outputDir, "github", "prompts", "new-feature.prompt.md"),
+        path.join(outputDir, "prompts", "new-feature.prompt.md"),
         "utf-8",
       );
       expect(content).not.toContain("{{");
@@ -162,7 +162,7 @@ describe("GithubPromptsAssembler", () => {
       const config = buildConfig();
       const engine = new TemplateEngine(resourcesDir, config);
       assembler.assemble(config, outputDir, resourcesDir, engine);
-      const promptsDir = path.join(outputDir, "github", "prompts");
+      const promptsDir = path.join(outputDir, "prompts");
       expect(fs.existsSync(promptsDir)).toBe(true);
       expect(fs.statSync(promptsDir).isDirectory()).toBe(true);
     });
@@ -176,7 +176,7 @@ describe("GithubPromptsAssembler", () => {
       const engine = new TemplateEngine(resourcesDir, config);
       assembler.assemble(config, outputDir, resourcesDir, engine);
       const content = fs.readFileSync(
-        path.join(outputDir, "github", "prompts", "new-feature.prompt.md"),
+        path.join(outputDir, "prompts", "new-feature.prompt.md"),
         "utf-8",
       );
       expect(content).toBe("my-app");

@@ -142,10 +142,9 @@ export class GithubInstructionsAssembler {
     engine: TemplateEngine,
   ): string[] {
     const results: string[] = [];
-    const githubDir = path.join(outputDir, "github");
-    fs.mkdirSync(githubDir, { recursive: true });
-    results.push(this.generateGlobal(config, githubDir));
-    const instructionsDir = path.join(githubDir, "instructions");
+    fs.mkdirSync(outputDir, { recursive: true });
+    results.push(this.generateGlobal(config, outputDir));
+    const instructionsDir = path.join(outputDir, "instructions");
     fs.mkdirSync(instructionsDir, { recursive: true });
     results.push(
       ...this.generateContextual(

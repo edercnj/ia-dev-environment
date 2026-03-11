@@ -229,12 +229,12 @@ describe("GithubAgentsAssembler", () => {
       );
       expect(
         fs.existsSync(
-          path.join(outputDir, "github", "agents", "architect.agent.md"),
+          path.join(outputDir, "agents", "architect.agent.md"),
         ),
       ).toBe(true);
       expect(
         fs.existsSync(
-          path.join(outputDir, "github", "agents", "tech-lead.agent.md"),
+          path.join(outputDir, "agents", "tech-lead.agent.md"),
         ),
       ).toBe(true);
       expect(result.files).toHaveLength(2);
@@ -251,7 +251,7 @@ describe("GithubAgentsAssembler", () => {
       );
       expect(result.files).toContain(
         path.join(
-          outputDir, "github", "agents", "devops-engineer.agent.md",
+          outputDir, "agents", "devops-engineer.agent.md",
         ),
       );
     });
@@ -267,7 +267,7 @@ describe("GithubAgentsAssembler", () => {
       );
       expect(result.files).toContain(
         path.join(
-          outputDir, "github", "agents",
+          outputDir, "agents",
           "typescript-developer.agent.md",
         ),
       );
@@ -310,7 +310,7 @@ describe("GithubAgentsAssembler", () => {
       assembler.assemble(config, outputDir, resourcesDir, engine);
       const content = fs.readFileSync(
         path.join(
-          outputDir, "github", "agents", "architect.agent.md",
+          outputDir, "agents", "architect.agent.md",
         ),
         "utf-8",
       );
@@ -389,7 +389,7 @@ describe("GithubAgentsAssembler", () => {
       const config = buildConfig();
       const engine = new TemplateEngine(resourcesDir, config);
       assembler.assemble(config, outputDir, resourcesDir, engine);
-      const agentsDir = path.join(outputDir, "github", "agents");
+      const agentsDir = path.join(outputDir, "agents");
       expect(fs.existsSync(agentsDir)).toBe(true);
       expect(fs.statSync(agentsDir).isDirectory()).toBe(true);
     });

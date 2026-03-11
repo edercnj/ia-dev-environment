@@ -78,7 +78,7 @@ describe("GithubHooksAssembler", () => {
       );
       expect(result).toHaveLength(3);
       for (const template of GITHUB_HOOK_TEMPLATES) {
-        const dest = path.join(outputDir, "github", "hooks", template);
+        const dest = path.join(outputDir, "hooks", template);
         expect(fs.existsSync(dest)).toBe(true);
       }
     });
@@ -90,7 +90,7 @@ describe("GithubHooksAssembler", () => {
         config, outputDir, resourcesDir, engine,
       );
       expect(result).toEqual([]);
-      const hooksDir = path.join(outputDir, "github", "hooks");
+      const hooksDir = path.join(outputDir, "hooks");
       expect(fs.existsSync(hooksDir)).toBe(false);
     });
 
@@ -104,7 +104,7 @@ describe("GithubHooksAssembler", () => {
       );
       expect(result).toHaveLength(2);
       const missing = path.join(
-        outputDir, "github", "hooks", "session-context-loader.json",
+        outputDir, "hooks", "session-context-loader.json",
       );
       expect(fs.existsSync(missing)).toBe(false);
     });
@@ -116,7 +116,7 @@ describe("GithubHooksAssembler", () => {
       const config = buildConfig();
       const engine = new TemplateEngine(resourcesDir, config);
       assembler.assemble(config, outputDir, resourcesDir, engine);
-      const hooksDir = path.join(outputDir, "github", "hooks");
+      const hooksDir = path.join(outputDir, "hooks");
       expect(fs.existsSync(hooksDir)).toBe(true);
       expect(fs.statSync(hooksDir).isDirectory()).toBe(true);
     });

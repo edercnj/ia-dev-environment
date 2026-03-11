@@ -202,7 +202,7 @@ describe("GithubInstructionsAssembler", () => {
         config, outputDir, resourcesDir, engine,
       );
       const globalFile = path.join(
-        outputDir, "github", "copilot-instructions.md",
+        outputDir, "copilot-instructions.md",
       );
       expect(result).toContain(globalFile);
       expect(fs.existsSync(globalFile)).toBe(true);
@@ -224,7 +224,7 @@ describe("GithubInstructionsAssembler", () => {
       expect(result).toHaveLength(5);
       for (const name of CONTEXTUAL_INSTRUCTIONS) {
         const dest = path.join(
-          outputDir, "github", "instructions",
+          outputDir, "instructions",
           `${name}.instructions.md`,
         );
         expect(fs.existsSync(dest)).toBe(true);
@@ -261,7 +261,7 @@ describe("GithubInstructionsAssembler", () => {
       assembler.assemble(config, outputDir, resourcesDir, engine);
       const content = fs.readFileSync(
         path.join(
-          outputDir, "github", "instructions",
+          outputDir, "instructions",
           "domain.instructions.md",
         ),
         "utf-8",
@@ -273,11 +273,9 @@ describe("GithubInstructionsAssembler", () => {
       const config = buildConfig();
       const engine = new TemplateEngine(resourcesDir, config);
       assembler.assemble(config, outputDir, resourcesDir, engine);
+      expect(fs.existsSync(outputDir)).toBe(true);
       expect(fs.existsSync(
-        path.join(outputDir, "github"),
-      )).toBe(true);
-      expect(fs.existsSync(
-        path.join(outputDir, "github", "instructions"),
+        path.join(outputDir, "instructions"),
       )).toBe(true);
     });
 

@@ -84,11 +84,11 @@ function createSettings(
 }
 
 function createGithubArtifacts(
-  outputDir: string,
+  baseDir: string,
   structure: Record<string, string[]>,
 ): void {
   for (const [dir, files] of Object.entries(structure)) {
-    const fullDir = path.join(outputDir, "github", dir);
+    const fullDir = path.join(baseDir, dir);
     fs.mkdirSync(fullDir, { recursive: true });
     for (const file of files) {
       fs.writeFileSync(path.join(fullDir, file), "content");
@@ -209,12 +209,12 @@ describe("ReadmeAssembler", () => {
     });
 
     it("countGithubFiles_recursiveCounting", () => {
-      createGithubArtifacts(outputDir, {
+      const ghDir = path.join(outputDir, "github");
+      createGithubArtifacts(ghDir, {
         agents: ["a.md", "b.md"],
         instructions: ["c.md"],
         "skills/x": ["SKILL.md"],
       });
-      const ghDir = path.join(outputDir, "github");
       expect(countGithubFiles(ghDir)).toBe(4);
     });
 
@@ -223,10 +223,10 @@ describe("ReadmeAssembler", () => {
     });
 
     it("countGithubComponent_countsDirectFiles", () => {
-      createGithubArtifacts(outputDir, {
+      const ghDir = path.join(outputDir, "github");
+      createGithubArtifacts(ghDir, {
         agents: ["a.md", "b.md", "c.md"],
       });
-      const ghDir = path.join(outputDir, "github");
       expect(countGithubComponent(ghDir, "agents")).toBe(3);
     });
 
@@ -236,11 +236,11 @@ describe("ReadmeAssembler", () => {
     });
 
     it("countGithubSkills_countsSkillMdInSubdirs", () => {
-      createGithubArtifacts(outputDir, {
+      const ghDir = path.join(outputDir, "github");
+      createGithubArtifacts(ghDir, {
         "skills/x": ["SKILL.md"],
         "skills/y": ["SKILL.md"],
       });
-      const ghDir = path.join(outputDir, "github");
       expect(countGithubSkills(ghDir)).toBe(2);
     });
 
@@ -431,7 +431,8 @@ describe("ReadmeAssembler", () => {
     });
 
     it("buildMappingTable_withGithubDir_includesTotal", () => {
-      createGithubArtifacts(outputDir, {
+      const siblingGhDir = path.join(path.dirname(outputDir), ".github");
+      createGithubArtifacts(siblingGhDir, {
         agents: ["a.md", "b.md"],
       });
       const result = buildMappingTable(outputDir);
@@ -487,7 +488,7 @@ describe("ReadmeAssembler", () => {
     });
 
     it("buildGenerationSummary_githubMcpCountedWhenExists", () => {
-      const ghDir = path.join(outputDir, "github");
+      const ghDir = path.join(path.dirname(outputDir), ".github");
       fs.mkdirSync(ghDir, { recursive: true });
       fs.writeFileSync(
         path.join(ghDir, "copilot-mcp.json"), "{}",
@@ -504,10 +505,10 @@ describe("ReadmeAssembler", () => {
     });
 
     it("buildGenerationSummary_githubInstructionsIncludesGlobal", () => {
-      createGithubArtifacts(outputDir, {
+      const ghDir = path.join(path.dirname(outputDir), ".github");
+      createGithubArtifacts(ghDir, {
         instructions: ["a.md", "b.md", "c.md"],
       });
-      const ghDir = path.join(outputDir, "github");
       fs.writeFileSync(
         path.join(ghDir, "copilot-instructions.md"), "global",
       );

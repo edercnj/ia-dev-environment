@@ -60,7 +60,7 @@ export class GithubAgentsAssembler {
     resourcesDir: string,
     engine: TemplateEngine,
   ): AssembleResult {
-    const agentsDir = path.join(outputDir, "github", "agents");
+    const agentsDir = path.join(outputDir, "agents");
     fs.mkdirSync(agentsDir, { recursive: true });
     const files: string[] = [];
     const warnings: string[] = [];
