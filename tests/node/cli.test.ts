@@ -597,8 +597,9 @@ describe("index.ts error handling", () => {
   it("main_pipelineError_printsFriendlyMessage", async () => {
     vi.resetModules();
 
+    const pipelineError = new PipelineError("TestAssembler", "broke");
     const mockRunCli = vi.fn(async () => {
-      throw new PipelineError("TestAssembler", "broke");
+      throw pipelineError;
     });
 
     vi.doMock("../../src/cli.js", () => ({
@@ -614,15 +615,9 @@ describe("index.ts error handling", () => {
       const { bootstrap } = await import("../../src/index.js");
       process.exitCode = undefined;
 
-      try {
-        await bootstrap(["node", "ia-dev-env"]);
-      } catch {
-        // may propagate
-      }
-
-      // bootstrap propagates the error; main() catches it
-      // but bootstrap is called directly here so it throws
-      // The important test is that the error IS a PipelineError
+      await expect(
+        bootstrap(["node", "ia-dev-env"]),
+      ).rejects.toThrow(pipelineError);
     } finally {
       errorSpyLocal.mockRestore();
       process.exitCode = originalExitCode;

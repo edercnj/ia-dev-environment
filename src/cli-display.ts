@@ -43,6 +43,36 @@ const CATEGORY_LABELS: ReadonlyArray<readonly [string, keyof ComponentCounts]> =
 ];
 
 /**
+ * Resolve the SKILL.md path for a given file path.
+ *
+ * @param filePath - Path to a file within a skill directory.
+ * @returns The resolved SKILL.md path, or undefined if not found.
+ */
+function resolveSkillMdPath(filePath: string): string | undefined {
+  if (!existsSync(filePath)) {
+    return undefined;
+  }
+  if (basename(filePath) === SKILL_MD_FILENAME) {
+    return filePath;
+  }
+  const candidate = join(dirname(filePath), SKILL_MD_FILENAME);
+  return existsSync(candidate) ? candidate : undefined;
+}
+
+/**
+ * Check whether a SKILL.md content indicates a knowledge pack.
+ *
+ * @param content - The SKILL.md file content.
+ * @returns true if the content matches knowledge pack markers.
+ */
+function isKnowledgePackContent(content: string): boolean {
+  if (content.includes(KP_MARKER_INVOCABLE)) {
+    return true;
+  }
+  return content.trimStart().startsWith(KP_MARKER_HEADING);
+}
+
+/**
  * Check whether a skill file belongs to a knowledge pack.
  *
  * If the file is not SKILL.md itself, looks for SKILL.md in the same directory.
@@ -50,27 +80,33 @@ const CATEGORY_LABELS: ReadonlyArray<readonly [string, keyof ComponentCounts]> =
  * or starts with "# Knowledge Pack".
  *
  * @param filePath - Absolute or relative path to a file within a skill directory.
+ * @param cache - Optional cache to avoid redundant SKILL.md reads.
  * @returns true if the file belongs to a knowledge pack, false otherwise.
  */
-export function isKnowledgePackFile(filePath: string): boolean {
-  if (!existsSync(filePath)) {
+export function isKnowledgePackFile(
+  filePath: string,
+  cache?: Map<string, boolean>,
+): boolean {
+  const skillMdPath = resolveSkillMdPath(filePath);
+  if (skillMdPath === undefined) {
     return false;
   }
 
-  let skillMdPath = filePath;
-  if (basename(filePath) !== SKILL_MD_FILENAME) {
-    const candidate = join(dirname(filePath), SKILL_MD_FILENAME);
-    if (!existsSync(candidate)) {
-      return false;
+  if (cache !== undefined) {
+    const cached = cache.get(skillMdPath);
+    if (cached !== undefined) {
+      return cached;
     }
-    skillMdPath = candidate;
   }
 
   const content = readFileSync(skillMdPath, "utf-8");
-  if (content.includes(KP_MARKER_INVOCABLE)) {
-    return true;
+  const result = isKnowledgePackContent(content);
+
+  if (cache !== undefined) {
+    cache.set(skillMdPath, result);
   }
-  return content.trimStart().startsWith(KP_MARKER_HEADING);
+
+  return result;
 }
 
 /**
@@ -93,6 +129,7 @@ function splitPathSegments(filePath: string): readonly string[] {
 function classifySingleFile(
   filePath: string,
   segments: readonly string[],
+  kpCache: Map<string, boolean>,
 ): keyof ComponentCounts | undefined {
   const fileName = segments[segments.length - 1] ?? "";
   if (segments.includes("github")) return "github";
@@ -101,7 +138,7 @@ function classifySingleFile(
   if (segments.includes("hooks")) return "hooks";
   if (segments.includes("agents")) return "agents";
   if (segments.includes("skills")) {
-    return isKnowledgePackFile(filePath)
+    return isKnowledgePackFile(filePath, kpCache)
       ? "knowledgePacks"
       : "skills";
   }
@@ -134,9 +171,10 @@ export function classifyFiles(
     github: 0,
   };
 
+  const kpCache = new Map<string, boolean>();
   for (const filePath of filePaths) {
     const segments = splitPathSegments(filePath);
-    const category = classifySingleFile(filePath, segments);
+    const category = classifySingleFile(filePath, segments, kpCache);
     if (category !== undefined) {
       counts[category]++;
     }
