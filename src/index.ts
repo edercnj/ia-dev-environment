@@ -4,7 +4,12 @@ import { existsSync, realpathSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { runCli } from "./cli.js";
-import { CliError } from "./exceptions.js";
+import {
+  CliError,
+  ConfigParseError,
+  ConfigValidationError,
+  PipelineError,
+} from "./exceptions.js";
 
 const GENERIC_ERROR_MESSAGE = "Command failed. Run with --help for usage.";
 
@@ -16,7 +21,14 @@ async function main(): Promise<void> {
   try {
     await bootstrap();
   } catch (error: unknown) {
-    const safeMessage = error instanceof CliError ? error.message : GENERIC_ERROR_MESSAGE;
+    const isKnownError =
+      error instanceof CliError
+      || error instanceof ConfigValidationError
+      || error instanceof ConfigParseError
+      || error instanceof PipelineError;
+    const safeMessage = isKnownError
+      ? (error as Error).message
+      : GENERIC_ERROR_MESSAGE;
     console.error(safeMessage);
     process.exitCode = 1;
   }
