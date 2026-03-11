@@ -6,6 +6,7 @@ import {
   GithubSkillsAssembler,
   SKILL_GROUPS,
   INFRA_SKILL_CONDITIONS,
+  NESTED_GROUPS,
 } from "../../../src/assembler/github-skills-assembler.js";
 import { TemplateEngine } from "../../../src/template-engine.js";
 import {
@@ -62,8 +63,22 @@ function createAllInfraSkills(resourcesDir: string): void {
 }
 
 describe("SKILL_GROUPS and INFRA_SKILL_CONDITIONS", () => {
-  it("SKILL_GROUPS_has7Groups", () => {
-    expect(Object.keys(SKILL_GROUPS)).toHaveLength(7);
+  it("SKILL_GROUPS_has8Groups", () => {
+    expect(Object.keys(SKILL_GROUPS)).toHaveLength(8);
+  });
+
+  it("SKILL_GROUPS_libGroup_contains3Skills", () => {
+    expect(SKILL_GROUPS["lib"]).toEqual([
+      "x-lib-task-decomposer",
+      "x-lib-audit-rules",
+      "x-lib-group-verifier",
+    ]);
+  });
+
+  it("SKILL_GROUPS_libSkillNames_followNamingConvention", () => {
+    for (const name of SKILL_GROUPS["lib"]!) {
+      expect(name).toMatch(/^x-lib-/);
+    }
   });
 
   it("INFRA_SKILL_CONDITIONS_has5Entries", () => {
@@ -311,5 +326,177 @@ describe("GithubSkillsAssembler — assemble", () => {
     );
     expect(fs.existsSync(skillDir)).toBe(true);
     expect(fs.statSync(skillDir).isDirectory()).toBe(true);
+  });
+});
+
+function createAllLibSkills(resourcesDir: string): void {
+  for (const name of SKILL_GROUPS["lib"]!) {
+    createSkillTemplate(resourcesDir, "lib", name);
+  }
+}
+
+describe("NESTED_GROUPS constant", () => {
+  it("NESTED_GROUPS_containsLib", () => {
+    expect(NESTED_GROUPS.has("lib")).toBe(true);
+  });
+
+  it("NESTED_GROUPS_excludesNonNestedGroups", () => {
+    for (const group of ["story", "dev", "review", "testing",
+      "infrastructure", "knowledge-packs", "git-troubleshooting"]) {
+      expect(NESTED_GROUPS.has(group)).toBe(false);
+    }
+  });
+});
+
+describe("GithubSkillsAssembler — lib group", () => {
+  let tmpDir: string;
+  let resourcesDir: string;
+  let outputDir: string;
+  let assembler: GithubSkillsAssembler;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(
+      path.join(tmpdir(), "gh-skills-lib-test-"),
+    );
+    resourcesDir = path.join(tmpDir, "resources");
+    fs.mkdirSync(resourcesDir, { recursive: true });
+    outputDir = path.join(tmpDir, "output");
+    fs.mkdirSync(outputDir, { recursive: true });
+    assembler = new GithubSkillsAssembler();
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("assemble_libGroup_generates3Skills", () => {
+    createAllLibSkills(resourcesDir);
+    const config = buildConfig();
+    const engine = new TemplateEngine(resourcesDir, config);
+    const result = assembler.assemble(
+      config, outputDir, resourcesDir, engine,
+    );
+    expect(result).toHaveLength(3);
+  });
+
+  it("assemble_libGroup_nestedUnderLibDir", () => {
+    createAllLibSkills(resourcesDir);
+    const config = buildConfig();
+    const engine = new TemplateEngine(resourcesDir, config);
+    const result = assembler.assemble(
+      config, outputDir, resourcesDir, engine,
+    );
+    for (const file of result) {
+      expect(file).toContain(
+        path.join("github", "skills", "lib"),
+      );
+    }
+  });
+
+  it("assemble_libGroup_exactOutputPaths", () => {
+    createAllLibSkills(resourcesDir);
+    const config = buildConfig();
+    const engine = new TemplateEngine(resourcesDir, config);
+    const result = assembler.assemble(
+      config, outputDir, resourcesDir, engine,
+    );
+    const expected = SKILL_GROUPS["lib"]!.map((name) =>
+      path.join(
+        outputDir, "github", "skills", "lib", name, "SKILL.md",
+      ),
+    );
+    expect(result).toEqual(expected);
+  });
+
+  it("assemble_libGroup_appliesPlaceholderReplacement", () => {
+    createSkillTemplate(
+      resourcesDir, "lib", "x-lib-task-decomposer",
+      "# Decomposer for {project_name}",
+    );
+    const config = buildConfig();
+    const engine = new TemplateEngine(resourcesDir, config);
+    assembler.assemble(config, outputDir, resourcesDir, engine);
+    const content = fs.readFileSync(
+      path.join(
+        outputDir, "github", "skills", "lib",
+        "x-lib-task-decomposer", "SKILL.md",
+      ),
+      "utf-8",
+    );
+    expect(content).toBe("# Decomposer for my-app");
+  });
+
+  it("assemble_libGroup_createsNestedDirectory", () => {
+    createAllLibSkills(resourcesDir);
+    const config = buildConfig();
+    const engine = new TemplateEngine(resourcesDir, config);
+    assembler.assemble(config, outputDir, resourcesDir, engine);
+    const libDir = path.join(
+      outputDir, "github", "skills", "lib",
+    );
+    expect(fs.existsSync(libDir)).toBe(true);
+    expect(fs.statSync(libDir).isDirectory()).toBe(true);
+  });
+
+  it("assemble_libGroup_templateMissing_skipsSkill", () => {
+    createSkillTemplate(resourcesDir, "lib", "x-lib-task-decomposer");
+    const config = buildConfig();
+    const engine = new TemplateEngine(resourcesDir, config);
+    const result = assembler.assemble(
+      config, outputDir, resourcesDir, engine,
+    );
+    expect(result).toHaveLength(1);
+    expect(result[0]).toContain("x-lib-task-decomposer");
+  });
+
+  it("assemble_libGroup_unconditional_noConfigFiltering", () => {
+    createAllLibSkills(resourcesDir);
+    const config = buildConfig({
+      orchestrator: "none", container: "none",
+      iac: "none", templating: "none",
+    });
+    const engine = new TemplateEngine(resourcesDir, config);
+    const result = assembler.assemble(
+      config, outputDir, resourcesDir, engine,
+    );
+    expect(result).toHaveLength(3);
+  });
+
+  it("assemble_mixedGroups_libNestedOthersFlat", () => {
+    createSkillTemplate(resourcesDir, "dev", "x-dev-implement");
+    createAllLibSkills(resourcesDir);
+    const config = buildConfig();
+    const engine = new TemplateEngine(resourcesDir, config);
+    const result = assembler.assemble(
+      config, outputDir, resourcesDir, engine,
+    );
+    const devFile = result.find((f) => f.includes("x-dev-implement"));
+    const libFile = result.find(
+      (f) => f.includes("x-lib-task-decomposer"),
+    );
+    expect(devFile).toBe(
+      path.join(
+        outputDir, "github", "skills",
+        "x-dev-implement", "SKILL.md",
+      ),
+    );
+    expect(libFile).toBe(
+      path.join(
+        outputDir, "github", "skills", "lib",
+        "x-lib-task-decomposer", "SKILL.md",
+      ),
+    );
+  });
+
+  it("assemble_libGroup_dirMissing_skipsGroup", () => {
+    const config = buildConfig();
+    const engine = new TemplateEngine(resourcesDir, config);
+    const result = assembler.assemble(
+      config, outputDir, resourcesDir, engine,
+    );
+    const libFiles = result.filter(
+      (f) => f.includes(path.join("skills", "lib")),
+    );
+    expect(libFiles).toHaveLength(0);
   });
 });
