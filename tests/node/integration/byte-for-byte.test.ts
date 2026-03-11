@@ -7,48 +7,17 @@ import { runPipeline } from "../../../src/assembler/pipeline.js";
 import { verifyOutput } from "../../../src/verifier.js";
 import type { VerificationResult } from "../../../src/models.js";
 import type { PipelineResult } from "../../../src/models.js";
-
-const CONFIG_PROFILES = [
-  "go-gin",
-  "java-quarkus",
-  "java-spring",
-  "kotlin-ktor",
-  "python-click-cli",
-  "python-fastapi",
-  "rust-axum",
-  "typescript-nestjs",
-] as const;
-
-const PROJECT_ROOT = path.resolve(__dirname, "../../..");
-const CONFIG_TEMPLATES_DIR = path.join(
-  PROJECT_ROOT, "resources", "config-templates",
-);
-const GOLDEN_DIR = path.join(PROJECT_ROOT, "tests", "golden");
-const RESOURCES_DIR = path.join(PROJECT_ROOT, "resources");
-
-function formatMismatches(result: VerificationResult): string {
-  const lines: string[] = [];
-  for (const m of result.mismatches) {
-    lines.push(
-      `MISMATCH: ${m.path} (actual=${m.pythonSize}B, ref=${m.referenceSize}B)`,
-    );
-    lines.push(m.diff.slice(0, 500));
-  }
-  for (const p of result.missingFiles) {
-    lines.push(`MISSING: ${p}`);
-  }
-  for (const p of result.extraFiles) {
-    lines.push(`EXTRA: ${p}`);
-  }
-  return lines.join("\n");
-}
-
-function goldenExists(profileName: string): boolean {
-  return fs.existsSync(path.join(GOLDEN_DIR, profileName));
-}
+import {
+  CONFIG_PROFILES,
+  CONFIG_TEMPLATES_DIR,
+  GOLDEN_DIR,
+  RESOURCES_DIR,
+  formatVerificationFailures,
+  goldenExists,
+} from "../../helpers/integration-constants.js";
 
 describe("byte-for-byte parity", { timeout: 60000 }, () => {
-  describe.each(CONFIG_PROFILES)("profile: %s", (profileName) => {
+  describe.sequential.each(CONFIG_PROFILES)("profile: %s", (profileName) => {
     let tmpDir: string;
     let pipelineResult: PipelineResult;
     let verification: VerificationResult | undefined;
@@ -86,7 +55,7 @@ describe("byte-for-byte parity", { timeout: 60000 }, () => {
       () => {
         expect(
           verification!.success,
-          formatMismatches(verification!),
+          formatVerificationFailures(verification!),
         ).toBe(true);
       },
     );

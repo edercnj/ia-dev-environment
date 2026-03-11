@@ -9,6 +9,7 @@ import { FileDiff, VerificationResult } from "./models.js";
 
 export const BINARY_DIFF_MESSAGE = "<binary files differ>";
 export const MAX_DIFF_LINES = 200;
+const BINARY_PROBE_BYTES = 8192;
 
 /** @internal Validate that a path exists and is a directory. */
 export function validateDirectory(
@@ -44,7 +45,7 @@ export function collectRelativePaths(
 }
 
 function isBinaryBuffer(buffer: Buffer): boolean {
-  for (let i = 0; i < Math.min(buffer.length, 8192); i++) {
+  for (let i = 0; i < Math.min(buffer.length, BINARY_PROBE_BYTES); i++) {
     if (buffer[i] === 0) return true;
   }
   return false;
