@@ -70,7 +70,15 @@ export function isKnowledgePackFile(
     }
   }
 
-  const content = readFileSync(skillMdPath, "utf-8");
+  let content: string;
+  try {
+    content = readFileSync(skillMdPath, "utf-8");
+  } catch {
+    if (cache !== undefined) {
+      cache.set(skillMdPath, false);
+    }
+    return false;
+  }
   const result = isKnowledgePackContent(content);
 
   if (cache !== undefined) {

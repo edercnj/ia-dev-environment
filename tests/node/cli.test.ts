@@ -1,5 +1,5 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PipelineResult } from "../../src/models.js";
@@ -554,40 +554,40 @@ describe("CLI help and version", () => {
 
 describe("index.ts error handling", () => {
   it("main_configValidationError_printsFriendlyMessage", async () => {
+    const originalArgv = process.argv;
+    const originalExitCode = process.exitCode;
+    const entryPath = resolve(process.cwd(), "src/index.ts");
+
     vi.resetModules();
 
-    const mockRunCli = vi.fn(async () => {
-      throw new ConfigValidationError(["project"]);
-    });
+    // Import from fresh module graph so instanceof matches in index.ts
+    const { ConfigValidationError: FreshCVE } =
+      await import("../../src/exceptions.js");
 
     vi.doMock("../../src/cli.js", () => ({
-      runCli: mockRunCli,
+      runCli: vi.fn(async () => {
+        throw new FreshCVE(["project"]);
+      }),
     }));
 
     const errorSpyLocal = vi
       .spyOn(console, "error")
       .mockImplementation(() => undefined);
-    const originalExitCode = process.exitCode;
+
+    process.argv = ["node", entryPath];
+    process.exitCode = undefined;
 
     try {
-      const { bootstrap } = await import("../../src/index.js");
-      process.exitCode = undefined;
+      await import("../../src/index.js");
+      await new Promise((tick) => setImmediate(tick));
 
-      try {
-        await bootstrap(["node", "ia-dev-env"]);
-      } catch {
-        // bootstrap may throw
-      }
-
-      // If the error was caught by main(), we check exitCode
-      // If bootstrap propagated it, we check here
-      if (process.exitCode === 1) {
-        expect(errorSpyLocal).toHaveBeenCalledWith(
-          expect.stringContaining("Missing required config sections"),
-        );
-      }
+      expect(errorSpyLocal).toHaveBeenCalledWith(
+        expect.stringContaining("Missing required config sections"),
+      );
+      expect(process.exitCode).toBe(1);
     } finally {
       errorSpyLocal.mockRestore();
+      process.argv = originalArgv;
       process.exitCode = originalExitCode;
       vi.doUnmock("../../src/cli.js");
       vi.resetModules();
@@ -595,31 +595,40 @@ describe("index.ts error handling", () => {
   });
 
   it("main_pipelineError_printsFriendlyMessage", async () => {
+    const originalArgv = process.argv;
+    const originalExitCode = process.exitCode;
+    const entryPath = resolve(process.cwd(), "src/index.ts");
+
     vi.resetModules();
 
-    const pipelineError = new PipelineError("TestAssembler", "broke");
-    const mockRunCli = vi.fn(async () => {
-      throw pipelineError;
-    });
+    // Import from fresh module graph so instanceof matches in index.ts
+    const { PipelineError: FreshPE } =
+      await import("../../src/exceptions.js");
 
     vi.doMock("../../src/cli.js", () => ({
-      runCli: mockRunCli,
+      runCli: vi.fn(async () => {
+        throw new FreshPE("TestAssembler", "broke");
+      }),
     }));
 
     const errorSpyLocal = vi
       .spyOn(console, "error")
       .mockImplementation(() => undefined);
-    const originalExitCode = process.exitCode;
+
+    process.argv = ["node", entryPath];
+    process.exitCode = undefined;
 
     try {
-      const { bootstrap } = await import("../../src/index.js");
-      process.exitCode = undefined;
+      await import("../../src/index.js");
+      await new Promise((tick) => setImmediate(tick));
 
-      await expect(
-        bootstrap(["node", "ia-dev-env"]),
-      ).rejects.toThrow(pipelineError);
+      expect(errorSpyLocal).toHaveBeenCalledWith(
+        expect.stringContaining("Pipeline failed at 'TestAssembler'"),
+      );
+      expect(process.exitCode).toBe(1);
     } finally {
       errorSpyLocal.mockRestore();
+      process.argv = originalArgv;
       process.exitCode = originalExitCode;
       vi.doUnmock("../../src/cli.js");
       vi.resetModules();

@@ -65,6 +65,8 @@ function classifySingleFile(
   if (segments.includes("hooks")) return "hooks";
   if (segments.includes("agents")) return "agents";
   if (segments.includes("skills")) {
+    // In dry-run mode, files may not exist on disk (temp dir deleted).
+    // isKnowledgePackFile returns false for missing files — matches Python behavior.
     return isKnowledgePackFile(filePath, kpCache)
       ? "knowledgePacks"
       : "skills";

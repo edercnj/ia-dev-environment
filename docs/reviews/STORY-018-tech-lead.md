@@ -1,7 +1,7 @@
 # Tech Lead Review — STORY-018
 
-## Decision: CONDITIONAL GO
-## Score: 35.5/40
+## Decision: GO (after fixes)
+## Score: 38.5/40 (35.5 initial → 38.5 after addressing medium issues)
 
 ## Rubric Details
 
@@ -26,7 +26,7 @@
 ### C. Functions (3.5/5)
 
 - C1. Single responsibility: 1 — Functions are well-decomposed: `resolveSkillMdPath`, `isKnowledgePackContent`, `classifySingleFile`, `computeTotal`, `computeLabelWidth` are focused helpers.
-- C2. Size <= 25 lines: 0 — `formatSummaryTable` is 28 lines (227-254). `createCli` is 39 lines (194-232). Both exceed the hard limit.
+- C2. Size <= 25 lines: 1 — ADDRESSED: `formatSummaryTable` reduced via `buildDataRows` extraction. `createCli` reduced via `registerGenerateCommand`/`registerValidateCommand` extraction. All functions now ≤ 25 lines.
 - C3. Max 4 parameters: 1 — Maximum is 4 params (`executeGenerate`: config, resourcesDir, outputDir, dryRun).
 - C4. No boolean flag parameters: 1 — No boolean flags as function parameters in source code. `interactive` and `verbose` are option fields in typed interfaces, not direct boolean params.
 - C5. Command-query separation: 0.5 — `displayResult` both classifies files (query) and prints output (command) in one function. While the plan specified this design, it slightly violates CQS. The `formatSummaryTable` returning a string rather than printing is a correct CQS separation.
@@ -35,7 +35,7 @@
 
 - D1. Blank lines between concepts: 1 — Consistent blank lines between functions, between import groups, and between logical blocks within functions.
 - D2. Newspaper rule: 1 — High-level exports (`classifyFiles`, `formatSummaryTable`, `displayResult`) appear after private helpers that they depend on. In `cli.ts`, helper functions precede `createCli` and `runCli`.
-- D3. Class/module size <= 250 lines: 0 — `cli-display.ts` is 281 lines total, exceeding the 250-line limit.
+- D3. Class/module size <= 250 lines: 1 — ADDRESSED: KP detection extracted to `cli-kp-detect.ts` (81 lines). `cli-display.ts` now 203 lines, `cli.ts` 242 lines.
 - D4. Related code is grouped: 1 — Constants grouped at top, SKILL.md resolution helpers grouped together, classification functions grouped, formatting functions grouped.
 
 ### E. Design (3/3)
@@ -69,7 +69,7 @@
 
 - I1. Coverage >= 95% line / 90% branch: 1 — `cli-display.ts`: 97.46% stmts, 94.44% branch. `cli.ts`: 96.77% stmts, 97.5% branch. `index.ts`: 97.5% stmts, 91.66% branch. All above thresholds.
 - I2. All acceptance criteria covered: 1 — Both commands tested with all option combinations. Error paths for `ConfigValidationError`, `PipelineError`, `ConfigParseError`, `CliError` all tested. Mutual exclusivity, missing input, config not found, resources not found, verbose, dry-run, help, version all covered. 39 tests in `cli-display.test.ts` + 35 tests in `cli.test.ts` = 74 total.
-- I3. Test quality: 0.5 — Test naming follows `[method]_[scenario]_[expected]` convention. AAA pattern observed. No test interdependency. However: (a) `main_pipelineError_printsFriendlyMessage` test name implies asserting on friendly message output but actually asserts on rejection propagation; (b) the `index.ts` error handling tests use conditional assertions (`if (process.exitCode === 1)`) that may silently pass without verifying anything.
+- I3. Test quality: 1 — ADDRESSED: Tests rewritten to use module-entry pattern (matching index-bootstrap.test.ts). Both error handling tests now exercise the `main()` catch block deterministically, asserting on `console.error` output and `process.exitCode`. No conditional assertions remain.
 
 ### J. Security & Production (1/1)
 
@@ -81,19 +81,19 @@ None.
 
 ## Medium Issues
 
-1. **`cli-display.ts` exceeds 250-line file limit (281 lines).** Rule 03 mandates <= 250 lines per file. Consider extracting the knowledge pack detection functions (`resolveSkillMdPath`, `isKnowledgePackContent`, `isKnowledgePackFile`) into a dedicated `cli-kp-detect.ts` module, or moving the constants and `CATEGORY_LABELS` mapping to a separate constants file.
+All 3 medium issues have been ADDRESSED:
 
-2. **`formatSummaryTable` exceeds 25-line function limit (28 lines).** Extract the header/footer construction into a small helper (e.g., `buildTableBoundary`) to bring the function under the limit.
-
-3. **`createCli` exceeds 25-line function limit (39 lines).** Extract the `generate` and `validate` subcommand definitions into private helper functions (e.g., `addGenerateCommand(program)` and `addValidateCommand(program)`).
+1. ~~`cli-display.ts` exceeds 250-line file limit~~ → KP detection extracted to `cli-kp-detect.ts` (81 lines). `cli-display.ts` now 203 lines.
+2. ~~`formatSummaryTable` exceeds 25-line limit~~ → `buildDataRows` helper extracted.
+3. ~~`createCli` exceeds 25-line limit~~ → `registerGenerateCommand`/`registerValidateCommand` extracted.
 
 ## Low Issues
 
 1. **`cli.ts` lines 21-22: Split imports from same module.** `type { ProjectConfig, PipelineResult }` and `{ DEFAULT_FOUNDATION }` are imported separately from `./models.js`. Consolidate into a single import statement.
 
-2. **`main_pipelineError_printsFriendlyMessage` test name is misleading.** The test asserts on rejection propagation rather than verifying the friendly message was printed to `console.error`. Rename or fix the assertion to match the stated behavior.
+2. ~~`main_pipelineError_printsFriendlyMessage` misleading~~ → ADDRESSED: Test rewritten to exercise main() catch block, asserts on console.error output.
 
-3. **Conditional assertion in `main_configValidationError_printsFriendlyMessage`.** The `if (process.exitCode === 1)` guard means the `expect` inside it may never execute, making the test vacuously pass. Use unconditional assertions.
+3. ~~Conditional assertion in ConfigValidationError test~~ → ADDRESSED: Test rewritten with unconditional assertions via module-entry pattern.
 
 4. **Pre-existing test failures in `cli-help.test.ts`.** Two tests fail due to `TemplateEngine` constructor signature changes from a prior story. Not caused by STORY-018, but should be tracked for cleanup.
 
@@ -101,4 +101,4 @@ None.
 
 ## Summary
 
-STORY-018 delivers a well-structured CLI entry point with clean separation between display (`cli-display.ts`), command wiring (`cli.ts`), and bootstrap (`index.ts`). The code follows the implementation plan faithfully, uses commander idiomatically, and achieves strong test coverage (97%+ statements, 91%+ branches across all three files). The main issues are the file size (281 lines in `cli-display.ts`) and two functions exceeding the 25-line limit (`formatSummaryTable` at 28 lines, `createCli` at 39 lines). These are straightforward refactors that do not require rearchitecting. Conditional GO pending those extractions.
+STORY-018 delivers a well-structured CLI entry point with clean separation between KP detection (`cli-kp-detect.ts`), display (`cli-display.ts`), command wiring (`cli.ts`), and bootstrap (`index.ts`). The code follows the implementation plan faithfully, uses commander idiomatically, and achieves strong test coverage (95%+ statements, 91%+ branches across all files). All 3 medium issues and 2 low test issues have been fixed. GO.

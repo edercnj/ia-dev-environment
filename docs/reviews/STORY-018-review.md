@@ -28,12 +28,12 @@ Severity: CRITICAL: 0 | MEDIUM: 0 | LOW: 5
 
 **PARTIAL:**
 - Parametrized tests (1/2) — classifyFiles category tests could use it.each. [LOW]
-- Edge cases (1/2) — PipelineError integration test has no assertion on error output. [LOW]
+- Edge cases (1/2) — PipelineError integration test has no assertion on error output. [LOW, ADDRESSED — tests rewritten to exercise main() catch block with deterministic assertions]
 
 ## Performance (23/26)
 
 **PASSED:** Async handling (2/2), No unbounded lists (2/2), Resource cleanup (2/2), Lazy loading (2/2), plus 7 N/A auto-pass items.
 
 **PARTIAL:**
-- Caching strategy (1/2) — isKnowledgePackFile re-reads SKILL.md for files in same directory. [LOW]
+- Caching strategy (1/2) — originally, isKnowledgePackFile re-read SKILL.md for files in same directory; now uses a shared Map cache in classifyFiles. [LOW, ADDRESSED]
 - Batch operations (1/2) — classifyFiles could use two-pass approach to reduce I/O. [LOW]
