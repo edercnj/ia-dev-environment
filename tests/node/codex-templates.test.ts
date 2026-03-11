@@ -7,7 +7,6 @@ import {
   buildDefaultContext,
 } from "../../src/template-engine.js";
 import {
-  aProjectConfig,
   aMinimalProjectConfig,
   aFullProjectConfig,
 } from "../fixtures/project-config.fixture.js";
@@ -115,7 +114,7 @@ describe("Section rendering", () => {
     { field: "cache_name", label: "Cache" },
     { field: "orchestrator", label: "Orchestrator" },
     { field: "observability", label: "Observability" },
-  ])("techStack_${field}None_omits${label}Row", ({ field, label }) => {
+  ])("techStack_$fieldNone_omits$labelRow", ({ field, label }) => {
     const result = engine.renderTemplate(section("tech-stack"), {
       ...ctx,
       [field]: "none",
@@ -470,7 +469,7 @@ describe("Edge cases — quality gates conditionals", () => {
     { field: "smoke_tests", value: "False", label: "Smoke", present: false },
     { field: "contract_tests", value: "False", label: "Contract", present: false },
     { field: "performance_tests", value: "False", label: "Performance", present: false },
-  ])("qualityGates_$field$value_$label", ({ field, value, label, present }) => {
+  ])("qualityGates_$field_$value_$label", ({ field, value, label, present }) => {
     const result = engine.renderTemplate(section("quality-gates"), {
       ...ctx,
       [field]: value,

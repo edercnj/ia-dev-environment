@@ -101,12 +101,12 @@ Follow python 3.9 idiomatic conventions for formatting, constructor injection, a
 
 ### Test Categories
 
-1. **Unit** — domain models, engines, business rules
-2. **Integration** — database + framework
-3. **API** — HTTP/gRPC/GraphQL endpoints
-5. **E2E** — full flow with real database
-6. **Performance** — latency SLAs, throughput, resource usage
-7. **Smoke** — black-box against running environment
+- **Unit** — domain models, engines, business rules
+- **Integration** — database + framework
+- **API** — HTTP/gRPC/GraphQL endpoints
+- **E2E** — full flow with real database
+- **Performance** — latency SLAs, throughput, resource usage
+- **Smoke** — black-box against running environment
 
 ### Test Naming
 
@@ -293,10 +293,10 @@ Follow go 1.22 idiomatic conventions for formatting, constructor injection, and 
 
 ### Test Categories
 
-1. **Unit** — domain models, engines, business rules
-2. **Integration** — database + framework
-3. **API** — HTTP/gRPC/GraphQL endpoints
-5. **E2E** — full flow with real database
+- **Unit** — domain models, engines, business rules
+- **Integration** — database + framework
+- **API** — HTTP/gRPC/GraphQL endpoints
+- **E2E** — full flow with real database
 
 ### Test Naming
 

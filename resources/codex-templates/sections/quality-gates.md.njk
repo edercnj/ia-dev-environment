@@ -9,18 +9,18 @@
 
 ### Test Categories
 
-1. **Unit** — domain models, engines, business rules
-2. **Integration** — database + framework
-3. **API** — HTTP/gRPC/GraphQL endpoints
+- **Unit** — domain models, engines, business rules
+- **Integration** — database + framework
+- **API** — HTTP/gRPC/GraphQL endpoints
 {%- if contract_tests == "True" %}
-4. **Contract** — parametrized business rules
+- **Contract** — parametrized business rules
 {%- endif %}
-5. **E2E** — full flow with real database
+- **E2E** — full flow with real database
 {%- if performance_tests == "True" %}
-6. **Performance** — latency SLAs, throughput, resource usage
+- **Performance** — latency SLAs, throughput, resource usage
 {%- endif %}
 {%- if smoke_tests == "True" %}
-7. **Smoke** — black-box against running environment
+- **Smoke** — black-box against running environment
 {%- endif %}
 
 ### Test Naming
