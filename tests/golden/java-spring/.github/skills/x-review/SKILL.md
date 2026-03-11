@@ -69,7 +69,8 @@ Launch one `general-purpose` subagent per applicable engineer.
 > Run `git diff main` and review all changes against the standards you just read.
 >
 > **Step 3 -- Score & Report:**
-> Apply the following checklist and score each item (0 = fail, 1 = partial, 2 = pass):
+> Apply the following checklist and score each item (0 = fail, 1 = partial, 2 = pass).
+> **ALL items MUST score 2/2 for approval.** Any item scoring 0 or 1 blocks the review.
 >
 > {CHECKLIST}
 >
@@ -78,15 +79,18 @@ Launch one `general-purpose` subagent per applicable engineer.
 > ENGINEER: {ENGINEER}
 > STORY: {STORY_ID}
 > SCORE: XX/YY
-> STATUS: Approved | Request Changes
+> STATUS: Approved | Rejected
 > ---
 > PASSED:
 > - [ID] Description (2/2)
 > FAILED:
-> - [ID] Description (0/2) -- file:line -- Fix: suggestion [CRITICAL|MEDIUM|LOW]
+> - [ID] Description (0/2) -- file:line -- Fix: suggestion [SEVERITY]
 > PARTIAL:
-> - [ID] Description (1/2) -- file:line -- Improvement: suggestion [MEDIUM|LOW]
+> - [ID] Description (1/2) -- file:line -- Improvement: suggestion [SEVERITY]
 > ```
+>
+> **STATUS = Approved** only if ALL items score 2/2.
+> **STATUS = Rejected** if ANY item scores 0 or 1.
 
 ### Engineer -> Knowledge Pack Mapping
 
@@ -130,19 +134,21 @@ Parse each subagent's output. Build consolidated table:
 |    Review     | Score |      Status        |
 +---------------+-------+--------------------+
 | Security      | XX/20 | Approved           |
-| QA            | XX/24 | Request Changes    |
+| QA            | XX/24 | Rejected           |
 | ...           | ...   | ...                |
 +---------------+-------+--------------------+
 Total: XXX/YYY (XX%)
+OVERALL: APPROVED | REJECTED
 ```
 
 ### 3b. Issue Summary
 
-Group by severity: `CRITICAL: N | MEDIUM: N | LOW: N`
+Group all findings by severity: `CRITICAL: N | MEDIUM: N | LOW: N`
 
 ```
-CRITICAL > 0 -> Corrections required before merge.
-Only MEDIUM/LOW -> Evaluate whether to fix now or defer.
+ANY item with score < 2 -> MUST be fixed before merge. No exceptions.
+Approval requires ALL engineers with STATUS: Approved (every item at 2/2).
+OVERALL: APPROVED only when every engineer has STATUS: Approved.
 ```
 
 ### 3c. Save Artifacts

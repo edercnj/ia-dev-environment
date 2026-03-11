@@ -128,7 +128,7 @@ Collect the consolidated review report with scores and severity counts.
 
 ## Phase 4 — Fixes + Feedback (Orchestrator — Inline)
 
-1. Fix CRITICAL issues from Phase 3 review
+1. Fix ALL failed items from Phase 3 review (every specialist engineer must reach STATUS: Approved — all items at 2/2)
 2. Run `{{COMPILE_COMMAND}}` + `{{TEST_COMMAND}}`
 3. Update common-mistakes document with newly found errors
 
@@ -139,7 +139,7 @@ Collect the consolidated review report with scores and severity counts.
 
 ## Phase 6 — Tech Lead Review
 
-Invoke skill `x-review-pr` for holistic 40-point review. If NO-GO, fix and re-review (max 2 cycles).
+Invoke skill `x-review-pr` for holistic 40-point review. Requires 40/40 for GO. If NO-GO, fix all failed items and re-review (max 2 cycles).
 
 ## Phase 7 — Final Verification + Cleanup (Orchestrator — Inline)
 

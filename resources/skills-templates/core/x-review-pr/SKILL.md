@@ -88,9 +88,8 @@ The Tech Lead review covers:
 
 | Condition                   | Decision        |
 | --------------------------- | --------------- |
-| Zero critical + >= 34/40    | GO              |
-| Zero critical + 30-33/40    | CONDITIONAL GO  |
-| Any critical OR < 30/40     | NO-GO           |
+| 40/40 + zero issues         | GO              |
+| < 40/40 OR any issue        | NO-GO           |
 
 ### Step 4 -- Process Result
 
@@ -98,7 +97,7 @@ The Tech Lead review covers:
 ============================================================
  TECH LEAD REVIEW -- [STORY_ID]
 ============================================================
- Decision:  GO | CONDITIONAL GO | NO-GO
+ Decision:  GO | NO-GO
  Score:     XX/40
  Critical:  N issues
  Medium:    N issues
