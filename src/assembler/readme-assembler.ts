@@ -15,14 +15,14 @@ import type { ProjectConfig } from "../models.js";
 import type { TemplateEngine } from "../template-engine.js";
 import {
   buildRulesTable, buildSkillsTable, buildAgentsTable,
-  buildKnowledgePacksTable, buildHooksSection,
+  buildKnowledgePacksTable, buildReadmeHooksSection,
   buildSettingsSection, buildMappingTable, buildGenerationSummary,
 } from "./readme-tables.js";
 
 // Re-export table builders so consumers can import from one module
 export {
   buildRulesTable, buildSkillsTable, buildAgentsTable,
-  buildKnowledgePacksTable, buildHooksSection,
+  buildKnowledgePacksTable, buildReadmeHooksSection,
   buildSettingsSection, buildMappingTable, buildGenerationSummary,
 } from "./readme-tables.js";
 
@@ -164,7 +164,7 @@ export function generateReadme(
   content = content.replace("{{RULES_TABLE}}", buildRulesTable(outputDir));
   content = content.replace("{{SKILLS_TABLE}}", buildSkillsTable(outputDir));
   content = content.replace("{{AGENTS_TABLE}}", buildAgentsTable(outputDir));
-  content = content.replace("{{HOOKS_SECTION}}", buildHooksSection(config));
+  content = content.replace("{{HOOKS_SECTION}}", buildReadmeHooksSection(config));
   content = content.replace("{{KNOWLEDGE_PACKS_TABLE}}", buildKnowledgePacksTable(outputDir));
   content = content.replace("{{SETTINGS_SECTION}}", buildSettingsSection());
   content = content.replace("{{MAPPING_TABLE}}", buildMappingTable(outputDir));

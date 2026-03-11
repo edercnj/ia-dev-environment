@@ -38,3 +38,6 @@ export * from "./github-prompts-assembler.js";
 export * from "./github-agents-assembler.js";
 export * from "./github-skills-assembler.js";
 export * from "./github-instructions-assembler.js";
+
+// --- STORY-015: ReadmeAssembler ---
+export * from "./readme-assembler.js";

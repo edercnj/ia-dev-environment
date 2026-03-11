@@ -114,7 +114,7 @@ export function buildKnowledgePacksTable(
 }
 
 /** Build hooks documentation section. */
-export function buildHooksSection(config: ProjectConfig): string {
+export function buildReadmeHooksSection(config: ProjectConfig): string {
   const key = getHookTemplateKey(
     config.language.name, config.framework.buildTool,
   );
