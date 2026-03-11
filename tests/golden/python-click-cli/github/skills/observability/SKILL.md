@@ -42,5 +42,4 @@ Observability conventions for my-cli-tool using python 3.9 with click.
 
 ## References
 
-- `.claude/skills/observability/SKILL.md` -- Full observability reference
-- `.claude/skills/observability/references/` -- Detailed documentation
+- `.github/skills/observability/SKILL.md` -- Full observability reference

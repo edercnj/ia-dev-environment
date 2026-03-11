@@ -37,5 +37,4 @@ All errors return `application/problem+json` with: `type`, `title`, `status`, `d
 
 ## References
 
-- `.claude/skills/api-design/SKILL.md` -- Full API design reference
-- `.claude/skills/api-design/references/` -- Detailed documentation
+- `.github/skills/api-design/SKILL.md` -- Full API design reference

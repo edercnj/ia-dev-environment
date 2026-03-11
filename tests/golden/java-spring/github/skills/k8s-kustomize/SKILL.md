@@ -24,9 +24,9 @@ Provides production-grade Kustomize patterns for managing Kubernetes manifests f
 ## Knowledge Pack References
 
 Before configuring, read the relevant conventions:
-- `.claude/skills/k8s-kustomize/SKILL.md` -- Directory structure, patches, components, secret management, generators, patch types
-- `.claude/skills/k8s-deployment/SKILL.md` -- Base deployment manifests and pod specifications
-- `.claude/skills/infrastructure/SKILL.md` -- Infrastructure principles and security context
+- `.github/skills/k8s-kustomize/SKILL.md` -- Directory structure, patches, components, secret management, generators, patch types
+- `.github/skills/k8s-deployment/SKILL.md` -- Base deployment manifests and pod specifications
+- `.github/skills/infrastructure/SKILL.md` -- Infrastructure principles and security context
 
 ## Execution Flow
 
@@ -113,6 +113,6 @@ Before configuring, read the relevant conventions:
 ## Detailed References
 
 For in-depth guidance on Kustomize patterns, consult:
-- `.claude/skills/k8s-kustomize/SKILL.md`
-- `.claude/skills/k8s-deployment/SKILL.md`
-- `.claude/skills/infrastructure/SKILL.md`
+- `.github/skills/k8s-kustomize/SKILL.md`
+- `.github/skills/k8s-deployment/SKILL.md`
+- `.github/skills/infrastructure/SKILL.md`

@@ -48,5 +48,4 @@ Protocol conventions for my-cli-tool using python 3.9 with click.
 
 ## References
 
-- `.claude/skills/protocols/SKILL.md` -- Full protocol conventions
-- `.claude/skills/protocols/references/` -- Detailed documentation
+- `.github/skills/protocols/SKILL.md` -- Full protocol conventions

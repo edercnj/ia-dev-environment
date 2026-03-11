@@ -25,8 +25,8 @@ Runs or implements performance tests to validate the application meets latency S
 ## Knowledge Pack References
 
 Before running performance tests, read:
-- `.claude/skills/testing/references/testing-philosophy.md` — test categories, data uniqueness
-- `.claude/skills/resilience/references/resilience-principles.md` — timeout, circuit breaker, resource limits
+- `.github/skills/testing/SKILL.md` — test categories, data uniqueness
+- `.github/skills/resilience/SKILL.md` — timeout, circuit breaker, resource limits
 
 ## Test Scenarios
 
@@ -75,5 +75,5 @@ Before running performance tests, read:
 ## Detailed References
 
 For in-depth guidance on performance testing, consult:
-- `.claude/skills/run-perf-test/SKILL.md`
-- `.claude/skills/testing/SKILL.md`
+- `.github/skills/run-perf-test/SKILL.md`
+- `.github/skills/testing/SKILL.md`

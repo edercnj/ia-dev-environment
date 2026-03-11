@@ -37,5 +37,4 @@ Compliance frameworks and data protection conventions for my-cli-tool.
 
 ## References
 
-- `.claude/skills/compliance/SKILL.md` -- Full compliance reference
-- `.claude/skills/compliance/references/` -- Detailed documentation
+- `.github/skills/compliance/SKILL.md` -- Full compliance reference

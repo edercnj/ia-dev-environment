@@ -23,7 +23,7 @@ Reviews gRPC service definitions, implementation patterns, and operational readi
 ## Knowledge Pack References
 
 Before reviewing, read the gRPC conventions:
-- `.claude/skills/protocols/references/grpc-conventions.md` -- Proto3 style guide, naming, streaming patterns, error codes, health checks
+- `.github/skills/protocols/SKILL.md` -- Proto3 style guide, naming, streaming patterns, error codes, health checks
 
 ## Execution Flow
 
@@ -122,5 +122,5 @@ Before reviewing, read the gRPC conventions:
 ## Detailed References
 
 For in-depth guidance on gRPC patterns, consult:
-- `.claude/skills/x-review-grpc/SKILL.md`
-- `.claude/skills/protocols/SKILL.md`
+- `.github/skills/x-review-grpc/SKILL.md`
+- `.github/skills/protocols/SKILL.md`

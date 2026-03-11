@@ -48,5 +48,4 @@ Protocol conventions for my-quarkus-service using java 21 with quarkus.
 
 ## References
 
-- `.claude/skills/protocols/SKILL.md` -- Full protocol conventions
-- `.claude/skills/protocols/references/` -- Detailed documentation
+- `.github/skills/protocols/SKILL.md` -- Full protocol conventions

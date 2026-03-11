@@ -24,9 +24,9 @@ Provides production-grade Kubernetes deployment patterns for my-quarkus-service.
 ## Knowledge Pack References
 
 Before deploying, read the relevant conventions:
-- `.claude/skills/k8s-deployment/SKILL.md` -- Workload types, pod specs, resource sizing, probes, autoscaling, network policies, security contexts
-- `.claude/skills/infrastructure/SKILL.md` -- Infrastructure principles, 12-Factor App, security context
-- `.claude/skills/observability/SKILL.md` -- Prometheus annotations, health check endpoints
+- `.github/skills/k8s-deployment/SKILL.md` -- Workload types, pod specs, resource sizing, probes, autoscaling, network policies, security contexts
+- `.github/skills/infrastructure/SKILL.md` -- Infrastructure principles, 12-Factor App, security context
+- `.github/skills/observability/SKILL.md` -- Prometheus annotations, health check endpoints
 
 ## Execution Flow
 
@@ -114,6 +114,6 @@ Before deploying, read the relevant conventions:
 ## Detailed References
 
 For in-depth guidance on Kubernetes deployment, consult:
-- `.claude/skills/k8s-deployment/SKILL.md`
-- `.claude/skills/infrastructure/SKILL.md`
-- `.claude/skills/security/SKILL.md`
+- `.github/skills/k8s-deployment/SKILL.md`
+- `.github/skills/infrastructure/SKILL.md`
+- `.github/skills/security/SKILL.md`

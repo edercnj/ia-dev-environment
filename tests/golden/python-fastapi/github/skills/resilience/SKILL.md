@@ -35,5 +35,4 @@ Resilience patterns for my-fastapi-service using python 3.12 with fastapi.
 
 ## References
 
-- `.claude/skills/resilience/SKILL.md` -- Full resilience reference
-- `.claude/skills/resilience/references/` -- Detailed documentation
+- `.github/skills/resilience/SKILL.md` -- Full resilience reference

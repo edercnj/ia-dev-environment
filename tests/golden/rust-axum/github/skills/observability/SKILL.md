@@ -42,5 +42,4 @@ Observability conventions for my-rust-service using rust 2024 with axum.
 
 ## References
 
-- `.claude/skills/observability/SKILL.md` -- Full observability reference
-- `.claude/skills/observability/references/` -- Detailed documentation
+- `.github/skills/observability/SKILL.md` -- Full observability reference

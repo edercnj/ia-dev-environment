@@ -37,10 +37,9 @@ Launch a **single** `general-purpose` subagent:
 > Extract: acceptance criteria, sub-tasks, test scenarios, dependencies.
 >
 > **Step 2 — Read project conventions:**
-> - `.claude/skills/architecture/references/architecture-principles.md` — layer structure, dependency direction
-> - `.claude/skills/coding-standards/references/coding-conventions.md` — {{LANGUAGE}} coding conventions
-> - `.claude/skills/coding-standards/references/version-features.md` — {{LANGUAGE}} {{LANGUAGE_VERSION}} idioms
-> - `.claude/skills/layer-templates/SKILL.md` — code templates per architecture layer (defines implementation order)
+> - `.github/skills/architecture/SKILL.md` — layer structure, dependency direction
+> - `.github/skills/coding-standards/SKILL.md` — {{LANGUAGE}} coding conventions and {{LANGUAGE_VERSION}} idioms
+> - `.github/skills/layer-templates/SKILL.md` — code templates per architecture layer (defines implementation order)
 >
 > **Step 3 — Review existing code** in the target packages to identify patterns to follow.
 >
@@ -123,6 +122,6 @@ git commit -m "feat(scope): add feature description"
 ## Detailed References
 
 For in-depth guidance on implementation patterns, consult:
-- `.claude/skills/x-dev-implement/SKILL.md`
-- `.claude/skills/layer-templates/SKILL.md`
-- `.claude/skills/coding-standards/SKILL.md`
+- `.github/skills/x-dev-implement/SKILL.md`
+- `.github/skills/layer-templates/SKILL.md`
+- `.github/skills/coding-standards/SKILL.md`

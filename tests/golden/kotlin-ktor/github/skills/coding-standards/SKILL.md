@@ -44,5 +44,4 @@ Coding conventions for my-ktor-service using kotlin 2.0 with ktor .
 
 ## References
 
-- `.claude/skills/coding-standards/SKILL.md` -- Full coding conventions
-- `.claude/skills/coding-standards/references/` -- Detailed documentation
+- `.github/skills/coding-standards/SKILL.md` -- Full coding conventions

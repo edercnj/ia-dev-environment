@@ -44,5 +44,4 @@ Coding conventions for {project_name} using {language_name} {language_version} w
 
 ## References
 
-- `.claude/skills/coding-standards/SKILL.md` -- Full coding conventions
-- `.claude/skills/coding-standards/references/` -- Detailed documentation
+- `.github/skills/coding-standards/SKILL.md` -- Full coding conventions

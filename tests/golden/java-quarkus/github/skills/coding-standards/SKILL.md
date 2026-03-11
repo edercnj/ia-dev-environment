@@ -44,5 +44,4 @@ Coding conventions for my-quarkus-service using java 21 with quarkus 3.17.
 
 ## References
 
-- `.claude/skills/coding-standards/SKILL.md` -- Full coding conventions
-- `.claude/skills/coding-standards/references/` -- Detailed documentation
+- `.github/skills/coding-standards/SKILL.md` -- Full coding conventions

@@ -44,5 +44,4 @@ Coding conventions for my-cli-tool using python 3.9 with click 8.1.
 
 ## References
 
-- `.claude/skills/coding-standards/SKILL.md` -- Full coding conventions
-- `.claude/skills/coding-standards/references/` -- Detailed documentation
+- `.github/skills/coding-standards/SKILL.md` -- Full coding conventions

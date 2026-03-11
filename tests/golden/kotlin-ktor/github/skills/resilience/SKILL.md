@@ -35,5 +35,4 @@ Resilience patterns for my-ktor-service using kotlin 2.0 with ktor.
 
 ## References
 
-- `.claude/skills/resilience/SKILL.md` -- Full resilience reference
-- `.claude/skills/resilience/references/` -- Detailed documentation
+- `.github/skills/resilience/SKILL.md` -- Full resilience reference

@@ -22,7 +22,7 @@ Reviews API gateway configuration against best practices: routing rules, authent
 ## Knowledge Pack References
 
 Before reviewing, read the gateway conventions:
-- `.claude/skills/infrastructure/references/infrastructure-principles.md` -- gateway patterns, security, observability
+- `.github/skills/infrastructure/SKILL.md` -- gateway patterns, security, observability
 
 ## Execution Flow
 
@@ -66,5 +66,5 @@ Before reviewing, read the gateway conventions:
 ## Detailed References
 
 For in-depth guidance on gateway configuration, consult:
-- `.claude/skills/x-review-gateway/SKILL.md`
-- `.claude/skills/infrastructure/SKILL.md`
+- `.github/skills/x-review-gateway/SKILL.md`
+- `.github/skills/infrastructure/SKILL.md`

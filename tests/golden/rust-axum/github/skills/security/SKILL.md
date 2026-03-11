@@ -44,5 +44,4 @@ Security conventions for my-rust-service using rust 2024 with axum.
 
 ## References
 
-- `.claude/skills/security/SKILL.md` -- Full security reference
-- `.claude/skills/security/references/` -- Detailed documentation
+- `.github/skills/security/SKILL.md` -- Full security reference

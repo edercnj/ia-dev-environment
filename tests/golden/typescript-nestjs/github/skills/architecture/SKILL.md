@@ -37,5 +37,4 @@ Inner layers first: domain → ports → application → adapters → inbound �
 
 ## References
 
-- `.claude/skills/architecture/SKILL.md` -- Full architecture reference
-- `.claude/skills/architecture/references/` -- Detailed documentation
+- `.github/skills/architecture/SKILL.md` -- Full architecture reference

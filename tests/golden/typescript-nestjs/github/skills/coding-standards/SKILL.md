@@ -44,5 +44,4 @@ Coding conventions for my-nestjs-service using typescript 5 with nestjs .
 
 ## References
 
-- `.claude/skills/coding-standards/SKILL.md` -- Full coding conventions
-- `.claude/skills/coding-standards/references/` -- Detailed documentation
+- `.github/skills/coding-standards/SKILL.md` -- Full coding conventions

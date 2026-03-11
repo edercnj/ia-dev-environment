@@ -24,9 +24,8 @@ Produces a comprehensive, actionable test plan BEFORE any test code is written. 
 ## Knowledge Pack References
 
 Before planning tests, read:
-- `.claude/skills/testing/references/testing-philosophy.md` — 8 test categories, fixture patterns, data uniqueness
-- `.claude/skills/testing/references/testing-conventions.md` — typescript-specific test frameworks, naming conventions
-- `.claude/skills/architecture/references/architecture-principles.md` — layer boundaries for unit vs integration decisions
+- `.github/skills/testing/SKILL.md` — 8 test categories, fixture patterns, data uniqueness, typescript-specific test frameworks, naming conventions
+- `.github/skills/architecture/SKILL.md` — layer boundaries for unit vs integration decisions
 
 ## Execution Flow (Orchestrator Pattern)
 
@@ -86,5 +85,5 @@ Save to: `docs/plans/STORY-ID-tests.md`
 ## Detailed References
 
 For in-depth guidance on test planning, consult:
-- `.claude/skills/x-test-plan/SKILL.md`
-- `.claude/skills/testing/SKILL.md`
+- `.github/skills/x-test-plan/SKILL.md`
+- `.github/skills/testing/SKILL.md`

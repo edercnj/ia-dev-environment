@@ -44,5 +44,4 @@ Security conventions for my-ktor-service using kotlin 2.0 with ktor.
 
 ## References
 
-- `.claude/skills/security/SKILL.md` -- Full security reference
-- `.claude/skills/security/references/` -- Detailed documentation
+- `.github/skills/security/SKILL.md` -- Full security reference

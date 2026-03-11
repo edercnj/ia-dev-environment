@@ -23,7 +23,7 @@ Reviews event-driven patterns: event schema design, producer/consumer implementa
 ## Knowledge Pack References
 
 Before reviewing, read the event-driven conventions:
-- `.claude/skills/protocols/references/event-driven-conventions.md` -- CloudEvents envelope, event naming, schema registry, ordering guarantees, broker patterns
+- `.github/skills/protocols/SKILL.md` -- CloudEvents envelope, event naming, schema registry, ordering guarantees, broker patterns
 
 ## Execution Flow
 
@@ -129,5 +129,5 @@ Before reviewing, read the event-driven conventions:
 ## Detailed References
 
 For in-depth guidance on event-driven patterns, consult:
-- `.claude/skills/x-review-events/SKILL.md`
-- `.claude/skills/protocols/SKILL.md`
+- `.github/skills/x-review-events/SKILL.md`
+- `.github/skills/protocols/SKILL.md`

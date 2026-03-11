@@ -44,5 +44,4 @@ Security conventions for my-spring-service using java 21 with spring-boot.
 
 ## References
 
-- `.claude/skills/security/SKILL.md` -- Full security reference
-- `.claude/skills/security/references/` -- Detailed documentation
+- `.github/skills/security/SKILL.md` -- Full security reference

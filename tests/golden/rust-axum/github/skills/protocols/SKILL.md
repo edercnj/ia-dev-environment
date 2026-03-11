@@ -48,5 +48,4 @@ Protocol conventions for my-rust-service using rust 2024 with axum.
 
 ## References
 
-- `.claude/skills/protocols/SKILL.md` -- Full protocol conventions
-- `.claude/skills/protocols/references/` -- Detailed documentation
+- `.github/skills/protocols/SKILL.md` -- Full protocol conventions

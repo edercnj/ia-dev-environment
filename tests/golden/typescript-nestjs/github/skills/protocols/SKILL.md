@@ -48,5 +48,4 @@ Protocol conventions for my-nestjs-service using typescript 5 with nestjs.
 
 ## References
 
-- `.claude/skills/protocols/SKILL.md` -- Full protocol conventions
-- `.claude/skills/protocols/references/` -- Detailed documentation
+- `.github/skills/protocols/SKILL.md` -- Full protocol conventions

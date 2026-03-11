@@ -25,8 +25,8 @@ Orchestrates black-box smoke tests against the application's REST API using Newm
 ## Knowledge Pack References
 
 Before running smoke tests, read:
-- `.claude/skills/testing/references/testing-philosophy.md` — test categories, data uniqueness
-- `.claude/skills/api-design/references/api-design-principles.md` — REST conventions, status codes
+- `.github/skills/testing/SKILL.md` — test categories, data uniqueness
+- `.github/skills/api-design/SKILL.md` — REST conventions, status codes
 
 ## Execution Flow
 
@@ -73,5 +73,5 @@ Before running smoke tests, read:
 ## Detailed References
 
 For in-depth guidance on smoke testing, consult:
-- `.claude/skills/run-smoke-api/SKILL.md`
-- `.claude/skills/testing/SKILL.md`
+- `.github/skills/run-smoke-api/SKILL.md`
+- `.github/skills/testing/SKILL.md`

@@ -4,7 +4,7 @@ description: >
   Git operations: branch creation, atomic commits (Conventional Commits),
   push, and PR creation. Use for any git workflow task including branching,
   committing, pushing, creating PRs, or managing version control.
-  Reference: `../../.claude/skills/x-git-push/references/`
+  Reference: `.github/skills/x-git-push/SKILL.md`
 ---
 
 # Skill: Commit and Push
@@ -154,4 +154,4 @@ git push origin v0.1.0
 - Used by `x-dev-lifecycle` during Phase 0 (branch) and Phase 5 (push + PR)
 - Can be used standalone for any git workflow task
 - Commit message scopes should match the project's package/module structure
-- Reference: `../../.claude/skills/x-git-push/SKILL.md`
+- Reference: `.github/skills/x-git-push/SKILL.md`

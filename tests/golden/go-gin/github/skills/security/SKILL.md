@@ -44,5 +44,4 @@ Security conventions for my-go-service using go 1.22 with gin.
 
 ## References
 
-- `.claude/skills/security/SKILL.md` -- Full security reference
-- `.claude/skills/security/references/` -- Detailed documentation
+- `.github/skills/security/SKILL.md` -- Full security reference

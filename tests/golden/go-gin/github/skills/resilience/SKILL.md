@@ -35,5 +35,4 @@ Resilience patterns for my-go-service using go 1.22 with gin.
 
 ## References
 
-- `.claude/skills/resilience/SKILL.md` -- Full resilience reference
-- `.claude/skills/resilience/references/` -- Detailed documentation
+- `.github/skills/resilience/SKILL.md` -- Full resilience reference

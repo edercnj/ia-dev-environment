@@ -44,5 +44,4 @@ Coding conventions for my-fastapi-service using python 3.12 with fastapi .
 
 ## References
 
-- `.claude/skills/coding-standards/SKILL.md` -- Full coding conventions
-- `.claude/skills/coding-standards/references/` -- Detailed documentation
+- `.github/skills/coding-standards/SKILL.md` -- Full coding conventions

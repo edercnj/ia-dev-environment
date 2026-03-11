@@ -42,5 +42,4 @@ Observability conventions for my-quarkus-service using java 21 with quarkus.
 
 ## References
 
-- `.claude/skills/observability/SKILL.md` -- Full observability reference
-- `.claude/skills/observability/references/` -- Detailed documentation
+- `.github/skills/observability/SKILL.md` -- Full observability reference

@@ -476,6 +476,6 @@ public interface {{EntityName}}Config {
 ## Detailed References
 
 For in-depth guidance on layer patterns, consult:
-- `.claude/skills/layer-templates/SKILL.md`
-- `.claude/skills/architecture/references/architecture-principles.md`
-- `.claude/skills/coding-standards/references/coding-conventions.md`
+- `.github/skills/layer-templates/SKILL.md`
+- `.github/skills/architecture/SKILL.md`
+- `.github/skills/coding-standards/SKILL.md`

@@ -24,9 +24,9 @@ Provides production-grade Terraform patterns for my-go-service infrastructure. C
 ## Knowledge Pack References
 
 Before provisioning, read the relevant conventions:
-- `.claude/skills/iac-terraform/SKILL.md` -- Module structure, remote state, naming conventions, CI/CD workflows, drift detection, common modules
-- `.claude/skills/infrastructure/SKILL.md` -- Infrastructure principles, cloud-agnostic design, security context
-- `.claude/skills/security/SKILL.md` -- Security hardening, encryption at rest, IAM best practices
+- `.github/skills/iac-terraform/SKILL.md` -- Module structure, remote state, naming conventions, CI/CD workflows, drift detection, common modules
+- `.github/skills/infrastructure/SKILL.md` -- Infrastructure principles, cloud-agnostic design, security context
+- `.github/skills/security/SKILL.md` -- Security hardening, encryption at rest, IAM best practices
 
 ## Execution Flow
 
@@ -119,6 +119,6 @@ Before provisioning, read the relevant conventions:
 ## Detailed References
 
 For in-depth guidance on Terraform patterns, consult:
-- `.claude/skills/iac-terraform/SKILL.md`
-- `.claude/skills/infrastructure/SKILL.md`
-- `.claude/skills/security/SKILL.md`
+- `.github/skills/iac-terraform/SKILL.md`
+- `.github/skills/infrastructure/SKILL.md`
+- `.github/skills/security/SKILL.md`

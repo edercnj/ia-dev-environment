@@ -48,5 +48,4 @@ Protocol conventions for {project_name} using {language_name} {language_version}
 
 ## References
 
-- `.claude/skills/protocols/SKILL.md` -- Full protocol conventions
-- `.claude/skills/protocols/references/` -- Detailed documentation
+- `.github/skills/protocols/SKILL.md` -- Full protocol conventions

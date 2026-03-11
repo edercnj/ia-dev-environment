@@ -44,5 +44,4 @@ Security conventions for my-nestjs-service using typescript 5 with nestjs.
 
 ## References
 
-- `.claude/skills/security/SKILL.md` -- Full security reference
-- `.claude/skills/security/references/` -- Detailed documentation
+- `.github/skills/security/SKILL.md` -- Full security reference

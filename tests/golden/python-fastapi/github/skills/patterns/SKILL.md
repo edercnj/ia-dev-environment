@@ -45,5 +45,4 @@ Design patterns and CQRS conventions for my-fastapi-service using python 3.12.
 
 ## References
 
-- `.claude/skills/patterns/SKILL.md` -- Full CQRS and patterns reference
-- `.claude/skills/patterns/references/` -- Detailed documentation
+- `.github/skills/patterns/SKILL.md` -- Full CQRS and patterns reference

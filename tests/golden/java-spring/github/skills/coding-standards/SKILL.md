@@ -44,5 +44,4 @@ Coding conventions for my-spring-service using java 21 with spring-boot 3.x.
 
 ## References
 
-- `.claude/skills/coding-standards/SKILL.md` -- Full coding conventions
-- `.claude/skills/coding-standards/references/` -- Detailed documentation
+- `.github/skills/coding-standards/SKILL.md` -- Full coding conventions

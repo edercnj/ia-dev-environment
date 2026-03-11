@@ -23,8 +23,7 @@ Runs consumer-driven contract tests to verify API compatibility between services
 ## Knowledge Pack References
 
 Before running contract tests, read:
-- `.claude/skills/testing/references/testing-philosophy.md` — test categories, fixture patterns
-- `.claude/skills/testing/references/testing-conventions.md` — {language_name}-specific test conventions
+- `.github/skills/testing/SKILL.md` — test categories, fixture patterns, {language_name}-specific test conventions
 
 ## Execution Flow
 
@@ -77,5 +76,5 @@ Before running contract tests, read:
 ## Detailed References
 
 For in-depth guidance on contract testing, consult:
-- `.claude/skills/run-contract-tests/SKILL.md`
-- `.claude/skills/testing/SKILL.md`
+- `.github/skills/run-contract-tests/SKILL.md`
+- `.github/skills/testing/SKILL.md`

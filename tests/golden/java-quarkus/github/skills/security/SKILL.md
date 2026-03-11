@@ -44,5 +44,4 @@ Security conventions for my-quarkus-service using java 21 with quarkus.
 
 ## References
 
-- `.claude/skills/security/SKILL.md` -- Full security reference
-- `.claude/skills/security/references/` -- Detailed documentation
+- `.github/skills/security/SKILL.md` -- Full security reference

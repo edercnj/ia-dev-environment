@@ -48,5 +48,4 @@ Protocol conventions for my-fastapi-service using python 3.12 with fastapi.
 
 ## References
 
-- `.claude/skills/protocols/SKILL.md` -- Full protocol conventions
-- `.claude/skills/protocols/references/` -- Detailed documentation
+- `.github/skills/protocols/SKILL.md` -- Full protocol conventions

@@ -42,5 +42,4 @@ Observability conventions for my-go-service using go 1.22 with gin.
 
 ## References
 
-- `.claude/skills/observability/SKILL.md` -- Full observability reference
-- `.claude/skills/observability/references/` -- Detailed documentation
+- `.github/skills/observability/SKILL.md` -- Full observability reference

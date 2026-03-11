@@ -42,5 +42,4 @@ Observability conventions for my-ktor-service using kotlin 2.0 with ktor.
 
 ## References
 
-- `.claude/skills/observability/SKILL.md` -- Full observability reference
-- `.claude/skills/observability/references/` -- Detailed documentation
+- `.github/skills/observability/SKILL.md` -- Full observability reference

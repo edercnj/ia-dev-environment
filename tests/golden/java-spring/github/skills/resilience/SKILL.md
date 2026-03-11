@@ -35,5 +35,4 @@ Resilience patterns for my-spring-service using java 21 with spring-boot.
 
 ## References
 
-- `.claude/skills/resilience/SKILL.md` -- Full resilience reference
-- `.claude/skills/resilience/references/` -- Detailed documentation
+- `.github/skills/resilience/SKILL.md` -- Full resilience reference

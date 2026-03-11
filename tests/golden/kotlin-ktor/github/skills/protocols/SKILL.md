@@ -48,5 +48,4 @@ Protocol conventions for my-ktor-service using kotlin 2.0 with ktor.
 
 ## References
 
-- `.claude/skills/protocols/SKILL.md` -- Full protocol conventions
-- `.claude/skills/protocols/references/` -- Detailed documentation
+- `.github/skills/protocols/SKILL.md` -- Full protocol conventions

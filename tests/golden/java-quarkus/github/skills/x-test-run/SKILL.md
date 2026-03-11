@@ -24,8 +24,7 @@ Testing is critical in my-quarkus-service. The project enforces strict coverage 
 ## Knowledge Pack References
 
 Before running tests, read:
-- `.claude/skills/testing/references/testing-philosophy.md` — 8 test categories, fixture patterns, data uniqueness
-- `.claude/skills/testing/references/testing-conventions.md` — java-specific test frameworks, assertion libraries
+- `.github/skills/testing/SKILL.md` — 8 test categories, fixture patterns, data uniqueness, java-specific test frameworks, assertion libraries
 
 ## Coverage Thresholds
 
@@ -95,5 +94,5 @@ Global Coverage: XX% line / XX% branch
 ## Detailed References
 
 For in-depth guidance on test execution, consult:
-- `.claude/skills/x-test-run/SKILL.md`
-- `.claude/skills/testing/SKILL.md`
+- `.github/skills/x-test-run/SKILL.md`
+- `.github/skills/testing/SKILL.md`

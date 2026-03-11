@@ -24,8 +24,7 @@ Runs or implements end-to-end tests that validate the complete application flow:
 ## Knowledge Pack References
 
 Before writing or running E2E tests, read:
-- `.claude/skills/testing/references/testing-philosophy.md` — real vs in-memory DB decisions, fixture patterns, data uniqueness
-- `.claude/skills/testing/references/testing-conventions.md` — {language_name}-specific test framework, assertion library, directory structure
+- `.github/skills/testing/SKILL.md` — real vs in-memory DB decisions, fixture patterns, data uniqueness, {language_name}-specific test framework, assertion library, directory structure
 
 ## Execution Flow
 
@@ -76,5 +75,5 @@ Before writing or running E2E tests, read:
 ## Detailed References
 
 For in-depth guidance on E2E testing, consult:
-- `.claude/skills/run-e2e/SKILL.md`
-- `.claude/skills/testing/SKILL.md`
+- `.github/skills/run-e2e/SKILL.md`
+- `.github/skills/testing/SKILL.md`

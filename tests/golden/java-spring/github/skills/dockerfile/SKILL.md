@@ -24,9 +24,9 @@ Provides production-grade Dockerfile patterns for my-spring-service using java 2
 ## Knowledge Pack References
 
 Before building, read the relevant conventions:
-- `.claude/skills/dockerfile/SKILL.md` -- Multi-stage builds, security hardening, .dockerignore, layer optimization, health checks, OCI labels
-- `.claude/skills/infrastructure/SKILL.md` -- Infrastructure principles, container security, 12-Factor App
-- `.claude/skills/security/SKILL.md` -- Security hardening and vulnerability scanning
+- `.github/skills/dockerfile/SKILL.md` -- Multi-stage builds, security hardening, .dockerignore, layer optimization, health checks, OCI labels
+- `.github/skills/infrastructure/SKILL.md` -- Infrastructure principles, container security, 12-Factor App
+- `.github/skills/security/SKILL.md` -- Security hardening and vulnerability scanning
 
 ## Execution Flow
 
@@ -119,6 +119,6 @@ Before building, read the relevant conventions:
 ## Detailed References
 
 For in-depth guidance on Dockerfile patterns, consult:
-- `.claude/skills/dockerfile/SKILL.md`
-- `.claude/skills/infrastructure/SKILL.md`
-- `.claude/skills/security/SKILL.md`
+- `.github/skills/dockerfile/SKILL.md`
+- `.github/skills/infrastructure/SKILL.md`
+- `.github/skills/security/SKILL.md`

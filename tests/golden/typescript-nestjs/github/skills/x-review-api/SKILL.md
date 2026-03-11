@@ -23,8 +23,8 @@ Reviews REST API design for compliance with best practices: RFC 7807 error respo
 ## Knowledge Pack References
 
 Before reviewing, read the relevant conventions:
-- `.claude/skills/api-design/references/api-design-principles.md` -- URL structure, status codes, error format, pagination
-- `.claude/skills/protocols/references/rest-conventions.md` -- REST resource naming, HTTP methods, versioning, RFC 7807
+- `.github/skills/api-design/SKILL.md` -- URL structure, status codes, error format, pagination
+- `.github/skills/protocols/SKILL.md` -- REST resource naming, HTTP methods, versioning, RFC 7807
 
 ## Execution Flow
 
@@ -112,6 +112,6 @@ Before reviewing, read the relevant conventions:
 ## Detailed References
 
 For in-depth guidance on REST API design, consult:
-- `.claude/skills/x-review-api/SKILL.md`
-- `.claude/skills/api-design/SKILL.md`
-- `.claude/skills/protocols/SKILL.md`
+- `.github/skills/x-review-api/SKILL.md`
+- `.github/skills/api-design/SKILL.md`
+- `.github/skills/protocols/SKILL.md`

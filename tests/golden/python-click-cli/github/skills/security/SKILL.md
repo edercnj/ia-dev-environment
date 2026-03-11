@@ -44,5 +44,4 @@ Security conventions for my-cli-tool using python 3.9 with click.
 
 ## References
 
-- `.claude/skills/security/SKILL.md` -- Full security reference
-- `.claude/skills/security/references/` -- Detailed documentation
+- `.github/skills/security/SKILL.md` -- Full security reference
