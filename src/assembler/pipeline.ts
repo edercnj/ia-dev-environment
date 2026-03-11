@@ -33,9 +33,13 @@ import { ReadmeAssembler } from "./readme-assembler.js";
 /** Warning appended to dry-run results. */
 export const DRY_RUN_WARNING = "Dry run -- no files written";
 
-/** Pairs a display name with an assembler instance. */
+/** Target output directory for an assembler. */
+export type AssemblerTarget = "claude" | "github";
+
+/** Pairs a display name with an assembler instance and its target directory. */
 export interface AssemblerDescriptor {
   readonly name: string;
+  readonly target: AssemblerTarget;
   readonly assembler: {
     assemble(
       config: ProjectConfig,
@@ -65,20 +69,20 @@ export function normalizeResult(
 /** Build the ordered list of 14 assemblers per RULE-008. */
 export function buildAssemblers(): readonly AssemblerDescriptor[] {
   return [
-    { name: "RulesAssembler", assembler: new RulesAssembler() },
-    { name: "SkillsAssembler", assembler: new SkillsAssembler() },
-    { name: "AgentsAssembler", assembler: new AgentsAssembler() },
-    { name: "PatternsAssembler", assembler: new PatternsAssembler() },
-    { name: "ProtocolsAssembler", assembler: new ProtocolsAssembler() },
-    { name: "HooksAssembler", assembler: new HooksAssembler() },
-    { name: "SettingsAssembler", assembler: new SettingsAssembler() },
-    { name: "GithubInstructionsAssembler", assembler: new GithubInstructionsAssembler() },
-    { name: "GithubMcpAssembler", assembler: new GithubMcpAssembler() },
-    { name: "GithubSkillsAssembler", assembler: new GithubSkillsAssembler() },
-    { name: "GithubAgentsAssembler", assembler: new GithubAgentsAssembler() },
-    { name: "GithubHooksAssembler", assembler: new GithubHooksAssembler() },
-    { name: "GithubPromptsAssembler", assembler: new GithubPromptsAssembler() },
-    { name: "ReadmeAssembler", assembler: new ReadmeAssembler() },
+    { name: "RulesAssembler", target: "claude", assembler: new RulesAssembler() },
+    { name: "SkillsAssembler", target: "claude", assembler: new SkillsAssembler() },
+    { name: "AgentsAssembler", target: "claude", assembler: new AgentsAssembler() },
+    { name: "PatternsAssembler", target: "claude", assembler: new PatternsAssembler() },
+    { name: "ProtocolsAssembler", target: "claude", assembler: new ProtocolsAssembler() },
+    { name: "HooksAssembler", target: "claude", assembler: new HooksAssembler() },
+    { name: "SettingsAssembler", target: "claude", assembler: new SettingsAssembler() },
+    { name: "GithubInstructionsAssembler", target: "github", assembler: new GithubInstructionsAssembler() },
+    { name: "GithubMcpAssembler", target: "github", assembler: new GithubMcpAssembler() },
+    { name: "GithubSkillsAssembler", target: "github", assembler: new GithubSkillsAssembler() },
+    { name: "GithubAgentsAssembler", target: "github", assembler: new GithubAgentsAssembler() },
+    { name: "GithubHooksAssembler", target: "github", assembler: new GithubHooksAssembler() },
+    { name: "GithubPromptsAssembler", target: "github", assembler: new GithubPromptsAssembler() },
+    { name: "ReadmeAssembler", target: "claude", assembler: new ReadmeAssembler() },
   ];
 }
 
@@ -90,12 +94,15 @@ export function executeAssemblers(
   resourcesDir: string,
   engine: TemplateEngine,
 ): NormalizedResult {
+  const claudeDir = join(outputDir, ".claude");
+  const githubDir = join(outputDir, ".github");
   const files: string[] = [];
   const warnings: string[] = [];
-  for (const { name, assembler } of assemblers) {
+  for (const { name, target, assembler } of assemblers) {
     try {
+      const targetDir = target === "github" ? githubDir : claudeDir;
       const raw = assembler.assemble(
-        config, outputDir, resourcesDir, engine,
+        config, targetDir, resourcesDir, engine,
       );
       const normalized = normalizeResult(raw);
       files.push(...normalized.files);

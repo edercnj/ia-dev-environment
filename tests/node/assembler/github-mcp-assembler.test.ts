@@ -184,7 +184,7 @@ describe("GithubMcpAssembler", () => {
         config, outputDir, resourcesDir, engine,
       );
       expect(result.files).toHaveLength(1);
-      const dest = path.join(outputDir, "github", "copilot-mcp.json");
+      const dest = path.join(outputDir, "copilot-mcp.json");
       expect(result.files[0]).toBe(dest);
       expect(fs.existsSync(dest)).toBe(true);
       const parsed = JSON.parse(
@@ -201,7 +201,7 @@ describe("GithubMcpAssembler", () => {
       const engine = new TemplateEngine(resourcesDir, config);
       assembler.assemble(config, outputDir, resourcesDir, engine);
       const raw = fs.readFileSync(
-        path.join(outputDir, "github", "copilot-mcp.json"), "utf-8",
+        path.join(outputDir, "copilot-mcp.json"), "utf-8",
       );
       expect(raw).toContain("  ");
       expect(raw.endsWith("\n")).toBe(true);
@@ -230,9 +230,8 @@ describe("GithubMcpAssembler", () => {
       });
       const engine = new TemplateEngine(resourcesDir, config);
       assembler.assemble(config, outputDir, resourcesDir, engine);
-      const githubDir = path.join(outputDir, "github");
-      expect(fs.existsSync(githubDir)).toBe(true);
-      expect(fs.statSync(githubDir).isDirectory()).toBe(true);
+      expect(fs.existsSync(outputDir)).toBe(true);
+      expect(fs.statSync(outputDir).isDirectory()).toBe(true);
     });
   });
 });

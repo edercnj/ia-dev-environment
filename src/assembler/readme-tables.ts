@@ -154,6 +154,11 @@ export function buildSettingsSection(): string {
   ].join("\n");
 }
 
+/** Resolve the sibling .github/ directory relative to the .claude/ outputDir. */
+function resolveGithubDir(outputDir: string): string {
+  return path.join(path.dirname(outputDir), ".github");
+}
+
 /** Build the `.claude/ <-> .github/` mapping table. */
 export function buildMappingTable(outputDir: string): string {
   const rows = buildMappingRows();
@@ -164,7 +169,7 @@ export function buildMappingTable(outputDir: string): string {
   for (const [claude, github, notes] of rows) {
     lines.push(`| ${claude} | ${github} | ${notes} |`);
   }
-  const githubDir = path.join(outputDir, "github");
+  const githubDir = resolveGithubDir(outputDir);
   const ghTotal = fs.existsSync(githubDir)
     ? countGithubFiles(githubDir) : 0;
   if (ghTotal > 0) {
@@ -178,7 +183,7 @@ export function buildMappingTable(outputDir: string): string {
 export function buildGenerationSummary(
   outputDir: string, config: ProjectConfig,
 ): string {
-  const githubDir = path.join(outputDir, "github");
+  const githubDir = resolveGithubDir(outputDir);
   const rows = buildSummaryRows(outputDir, githubDir);
   const lines = ["| Component | Count |", "|-----------|-------|"];
   for (const [label, count] of rows) {

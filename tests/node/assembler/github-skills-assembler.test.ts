@@ -128,7 +128,7 @@ describe("GithubSkillsAssembler — filterSkills", () => {
       config, outputDir, resourcesDir, engine,
     );
     const infraFiles = result.filter(
-      (f) => f.includes("github/skills/"),
+      (f) => f.includes("skills/"),
     );
     const names = infraFiles.map(
       (f) => path.basename(path.dirname(f)),
@@ -282,7 +282,7 @@ describe("GithubSkillsAssembler — assemble", () => {
     assembler.assemble(config, outputDir, resourcesDir, engine);
     const content = fs.readFileSync(
       path.join(
-        outputDir, "github", "skills", "x-dev-implement", "SKILL.md",
+        outputDir, "skills", "x-dev-implement", "SKILL.md",
       ),
       "utf-8",
     );
@@ -298,7 +298,7 @@ describe("GithubSkillsAssembler — assemble", () => {
     );
     expect(result[0]).toBe(
       path.join(
-        outputDir, "github", "skills", "x-dev-implement", "SKILL.md",
+        outputDir, "skills", "x-dev-implement", "SKILL.md",
       ),
     );
   });
@@ -322,7 +322,7 @@ describe("GithubSkillsAssembler — assemble", () => {
     const engine = new TemplateEngine(resourcesDir, config);
     assembler.assemble(config, outputDir, resourcesDir, engine);
     const skillDir = path.join(
-      outputDir, "github", "skills", "x-dev-implement",
+      outputDir, "skills", "x-dev-implement",
     );
     expect(fs.existsSync(skillDir)).toBe(true);
     expect(fs.statSync(skillDir).isDirectory()).toBe(true);
@@ -388,7 +388,7 @@ describe("GithubSkillsAssembler — lib group", () => {
     );
     for (const file of result) {
       expect(file).toContain(
-        path.join("github", "skills", "lib"),
+        path.join("skills", "lib"),
       );
     }
   });
@@ -402,7 +402,7 @@ describe("GithubSkillsAssembler — lib group", () => {
     );
     const expected = SKILL_GROUPS["lib"]!.map((name) =>
       path.join(
-        outputDir, "github", "skills", "lib", name, "SKILL.md",
+        outputDir, "skills", "lib", name, "SKILL.md",
       ),
     );
     expect(result).toEqual(expected);
@@ -418,7 +418,7 @@ describe("GithubSkillsAssembler — lib group", () => {
     assembler.assemble(config, outputDir, resourcesDir, engine);
     const content = fs.readFileSync(
       path.join(
-        outputDir, "github", "skills", "lib",
+        outputDir, "skills", "lib",
         "x-lib-task-decomposer", "SKILL.md",
       ),
       "utf-8",
@@ -432,7 +432,7 @@ describe("GithubSkillsAssembler — lib group", () => {
     const engine = new TemplateEngine(resourcesDir, config);
     assembler.assemble(config, outputDir, resourcesDir, engine);
     const libDir = path.join(
-      outputDir, "github", "skills", "lib",
+      outputDir, "skills", "lib",
     );
     expect(fs.existsSync(libDir)).toBe(true);
     expect(fs.statSync(libDir).isDirectory()).toBe(true);
@@ -476,13 +476,13 @@ describe("GithubSkillsAssembler — lib group", () => {
     );
     expect(devFile).toBe(
       path.join(
-        outputDir, "github", "skills",
+        outputDir, "skills",
         "x-dev-implement", "SKILL.md",
       ),
     );
     expect(libFile).toBe(
       path.join(
-        outputDir, "github", "skills", "lib",
+        outputDir, "skills", "lib",
         "x-lib-task-decomposer", "SKILL.md",
       ),
     );

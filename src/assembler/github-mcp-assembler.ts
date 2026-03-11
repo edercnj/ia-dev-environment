@@ -70,11 +70,10 @@ export class GithubMcpAssembler {
       return { files: [], warnings: [] };
     }
     const warnings = warnLiteralEnvValues(config.mcp.servers);
-    const githubDir = path.join(outputDir, "github");
-    fs.mkdirSync(githubDir, { recursive: true });
+    fs.mkdirSync(outputDir, { recursive: true });
     const dict = buildCopilotMcpDict(config);
     const content = JSON.stringify(dict, null, 2) + "\n";
-    const dest = path.join(githubDir, "copilot-mcp.json");
+    const dest = path.join(outputDir, "copilot-mcp.json");
     fs.writeFileSync(dest, content, "utf-8");
     return { files: [dest], warnings };
   }

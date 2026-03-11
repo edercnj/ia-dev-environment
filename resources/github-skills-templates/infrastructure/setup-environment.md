@@ -24,9 +24,9 @@ Manages the local development environment lifecycle for {project_name}. Handles 
 ## Knowledge Pack References
 
 Before executing, read the relevant conventions:
-- `.claude/skills/infrastructure/SKILL.md` -- Infrastructure principles, 12-Factor App, graceful shutdown
-- `.claude/skills/dockerfile/SKILL.md` -- Container image build patterns and security hardening
-- `.claude/skills/k8s-deployment/SKILL.md` -- Kubernetes deployment patterns and probes
+- `.github/skills/infrastructure/SKILL.md` -- Infrastructure principles, 12-Factor App, graceful shutdown
+- `.github/skills/dockerfile/SKILL.md` -- Container image build patterns and security hardening
+- `.github/skills/k8s-deployment/SKILL.md` -- Kubernetes deployment patterns and probes
 
 ## Execution Flow
 
@@ -105,6 +105,6 @@ Before executing, read the relevant conventions:
 ## Detailed References
 
 For in-depth guidance on environment setup, consult:
-- `.claude/skills/setup-environment/SKILL.md`
-- `.claude/skills/infrastructure/SKILL.md`
-- `.claude/skills/dockerfile/SKILL.md`
+- `.github/skills/setup-environment/SKILL.md`
+- `.github/skills/infrastructure/SKILL.md`
+- `.github/skills/dockerfile/SKILL.md`

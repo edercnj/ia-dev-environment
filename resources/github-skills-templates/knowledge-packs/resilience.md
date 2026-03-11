@@ -35,5 +35,4 @@ Resilience patterns for {project_name} using {language_name} {language_version} 
 
 ## References
 
-- `.claude/skills/resilience/SKILL.md` -- Full resilience reference
-- `.claude/skills/resilience/references/` -- Detailed documentation
+- `.github/skills/resilience/SKILL.md` -- Full resilience reference

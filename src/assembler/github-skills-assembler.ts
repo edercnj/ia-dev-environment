@@ -129,7 +129,7 @@ export class GithubSkillsAssembler {
     const rendered = engine.replacePlaceholders(
       fs.readFileSync(src, "utf-8"),
     );
-    const segments = [outputDir, "github", "skills"];
+    const segments = [outputDir, "skills"];
     if (subDir !== undefined) segments.push(subDir);
     segments.push(name);
     const skillDir = path.join(...segments);

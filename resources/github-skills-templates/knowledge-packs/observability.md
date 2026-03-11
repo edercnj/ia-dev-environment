@@ -42,5 +42,4 @@ Observability conventions for {project_name} using {language_name} {language_ver
 
 ## References
 
-- `.claude/skills/observability/SKILL.md` -- Full observability reference
-- `.claude/skills/observability/references/` -- Detailed documentation
+- `.github/skills/observability/SKILL.md` -- Full observability reference
