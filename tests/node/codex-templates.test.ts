@@ -110,36 +110,17 @@ describe("Section rendering", () => {
     expect(result).toContain("opentelemetry");
   });
 
-  it("techStack_databaseNone_omitsDatabaseRow", () => {
+  it.each([
+    { field: "database_name", label: "Database" },
+    { field: "cache_name", label: "Cache" },
+    { field: "orchestrator", label: "Orchestrator" },
+    { field: "observability", label: "Observability" },
+  ])("techStack_${field}None_omits${label}Row", ({ field, label }) => {
     const result = engine.renderTemplate(section("tech-stack"), {
       ...ctx,
-      database_name: "none",
+      [field]: "none",
     });
-    expect(result).not.toMatch(/\|\s*Database\s*\|/);
-  });
-
-  it("techStack_cacheNone_omitsCacheRow", () => {
-    const result = engine.renderTemplate(section("tech-stack"), {
-      ...ctx,
-      cache_name: "none",
-    });
-    expect(result).not.toMatch(/\|\s*Cache\s*\|/);
-  });
-
-  it("techStack_orchestratorNone_omitsOrchestratorRow", () => {
-    const result = engine.renderTemplate(section("tech-stack"), {
-      ...ctx,
-      orchestrator: "none",
-    });
-    expect(result).not.toMatch(/\|\s*Orchestrator\s*\|/);
-  });
-
-  it("techStack_observabilityNone_omitsObservabilityRow", () => {
-    const result = engine.renderTemplate(section("tech-stack"), {
-      ...ctx,
-      observability: "none",
-    });
-    expect(result).not.toMatch(/\|\s*Observability\s*\|/);
+    expect(result).not.toMatch(new RegExp(`\\|\\s*${label}\\s*\\|`));
   });
 
   it("commands_fullContext_rendersAllCommands", () => {
@@ -482,20 +463,23 @@ describe("Edge cases — quality gates conditionals", () => {
   const engine = new TemplateEngine(RESOURCES_DIR, aFullProjectConfig());
   const ctx = fullContext();
 
-  it("qualityGates_smokeTestsTrue_rendersSmokeLine", () => {
+  it.each([
+    { field: "smoke_tests", value: "True", label: "Smoke", present: true },
+    { field: "contract_tests", value: "True", label: "Contract", present: true },
+    { field: "performance_tests", value: "True", label: "Performance", present: true },
+    { field: "smoke_tests", value: "False", label: "Smoke", present: false },
+    { field: "contract_tests", value: "False", label: "Contract", present: false },
+    { field: "performance_tests", value: "False", label: "Performance", present: false },
+  ])("qualityGates_$field$value_$label", ({ field, value, label, present }) => {
     const result = engine.renderTemplate(section("quality-gates"), {
       ...ctx,
-      smoke_tests: "True",
+      [field]: value,
     });
-    expect(result).toContain("Smoke");
-  });
-
-  it("qualityGates_contractTestsFalse_omitsContractLine", () => {
-    const result = engine.renderTemplate(section("quality-gates"), {
-      ...ctx,
-      contract_tests: "False",
-    });
-    expect(result).not.toContain("Contract");
+    if (present) {
+      expect(result).toContain(label);
+    } else {
+      expect(result).not.toContain(label);
+    }
   });
 
   it("qualityGates_customThresholds_rendersCustomValues", () => {
