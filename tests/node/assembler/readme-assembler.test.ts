@@ -396,6 +396,15 @@ describe("ReadmeAssembler", () => {
         .toBe("No knowledge packs configured.");
     });
 
+    it("buildKnowledgePacksTable_dirWithoutSkillMd_skipped", () => {
+      const dir = path.join(outputDir, "skills", "empty-dir");
+      fs.mkdirSync(dir, { recursive: true });
+      createSkill(outputDir, "coding-std", "Standards", true);
+      const result = buildKnowledgePacksTable(outputDir);
+      expect(result).not.toContain("empty-dir");
+      expect(result).toContain("coding-std");
+    });
+
     it("buildReadmeHooksSection_typescriptNpm_returnsPostCompileCheck", () => {
       const config = buildConfig({
         language: "typescript", buildTool: "npm",
@@ -475,6 +484,23 @@ describe("ReadmeAssembler", () => {
       const config = buildConfig();
       const result = buildGenerationSummary(outputDir, config);
       expect(result).toContain("| Skills (.claude) | 2 |");
+    });
+
+    it("buildGenerationSummary_githubMcpCountedWhenExists", () => {
+      const ghDir = path.join(outputDir, "github");
+      fs.mkdirSync(ghDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(ghDir, "copilot-mcp.json"), "{}",
+      );
+      const config = buildConfig();
+      const result = buildGenerationSummary(outputDir, config);
+      expect(result).toContain("| MCP (.github) | 1 |");
+    });
+
+    it("buildGenerationSummary_githubMcpZeroWhenMissing", () => {
+      const config = buildConfig();
+      const result = buildGenerationSummary(outputDir, config);
+      expect(result).toContain("| MCP (.github) | 0 |");
     });
 
     it("buildGenerationSummary_githubInstructionsIncludesGlobal", () => {
