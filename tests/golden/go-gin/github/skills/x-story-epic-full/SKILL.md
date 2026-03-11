@@ -36,7 +36,7 @@ Read these files before starting:
 - `resources/templates/_TEMPLATE-IMPLEMENTATION-MAP.md`
 
 **Decomposition philosophy:**
-- `.github/skills/x-story-epic-full/references/decomposition-guide.md`
+- `.github/skills/x-story-epic-full/SKILL.md`
 
 If any template is missing, stop and tell the user.
 
@@ -147,4 +147,4 @@ Before delivering, verify:
 
 For in-depth guidance, see:
 - `.github/skills/x-story-epic-full/SKILL.md`
-- `.github/skills/x-story-epic-full/references/decomposition-guide.md`
+- `.github/skills/x-story-epic-full/SKILL.md`

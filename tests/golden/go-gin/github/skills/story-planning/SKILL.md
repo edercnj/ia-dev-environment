@@ -37,4 +37,4 @@ rules, dependency DAG, and sizing.
 
 For in-depth guidance on each topic, see:
 - `.github/skills/story-planning/SKILL.md`
-- `.github/skills/x-story-epic-full/references/decomposition-guide.md`
+- `.github/skills/x-story-epic-full/SKILL.md`

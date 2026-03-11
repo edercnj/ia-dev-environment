@@ -32,7 +32,7 @@ Read the following files before starting:
 - `resources/templates/_TEMPLATE-EPIC.md` — The exact structure to follow
 
 **Decomposition philosophy (how to identify stories and rules):**
-- `.github/skills/x-story-epic-full/references/decomposition-guide.md`
+- `.github/skills/x-story-epic-full/SKILL.md`
 
 If any template file is missing, stop and tell the user. The templates define the output structure
 and must be read fresh from disk every time (never hardcode the structure).
@@ -68,7 +68,7 @@ when rules can conflict.
 
 ### Step 3: Identify Stories
 
-Read the decomposition guide (`.github/skills/x-story-epic-full/references/decomposition-guide.md`) for
+Read the decomposition guide (`.github/skills/x-story-epic-full/SKILL.md`) for
 the layer-by-layer approach. In summary:
 
 1. **Foundation (Layer 0):** Infrastructure stories — servers, schemas, base APIs, protocol adapters
@@ -139,4 +139,4 @@ Report: number of rules extracted, number of stories identified, dependency stru
 
 For in-depth guidance, see:
 - `.github/skills/x-story-epic/SKILL.md`
-- `.github/skills/x-story-epic-full/references/decomposition-guide.md`
+- `.github/skills/x-story-epic-full/SKILL.md`

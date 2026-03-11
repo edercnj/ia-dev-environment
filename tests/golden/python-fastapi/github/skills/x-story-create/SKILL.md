@@ -33,7 +33,7 @@ Read the following files before starting:
 - `resources/templates/_TEMPLATE-STORY.md` — The exact structure to follow
 
 **Decomposition philosophy (sizing and boundary heuristics):**
-- `.github/skills/x-story-epic-full/references/decomposition-guide.md`
+- `.github/skills/x-story-epic-full/SKILL.md`
 
 **Required inputs from the user:**
 - The system specification file (original spec)
@@ -196,4 +196,4 @@ Report: total stories generated, dependency graph summary, any inconsistencies f
 
 For in-depth guidance, see:
 - `.github/skills/x-story-create/SKILL.md`
-- `.github/skills/x-story-epic-full/references/decomposition-guide.md`
+- `.github/skills/x-story-epic-full/SKILL.md`

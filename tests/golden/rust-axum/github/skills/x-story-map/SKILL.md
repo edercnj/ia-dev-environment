@@ -185,4 +185,4 @@ Report: total stories, phases, critical path length, maximum parallelism, main b
 
 For in-depth guidance, see:
 - `.github/skills/x-story-map/SKILL.md`
-- `.github/skills/x-story-epic-full/references/decomposition-guide.md`
+- `.github/skills/x-story-epic-full/SKILL.md`
