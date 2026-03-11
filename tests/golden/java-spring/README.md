@@ -52,7 +52,7 @@ CLAUDE.md                   <-- Executive summary (project root, loaded automati
 | N/A | MCP (`copilot-mcp.json`) | GitHub Copilot MCP server configuration |
 | N/A | Global instructions (`copilot-instructions.md`) | Loaded in every Copilot session |
 
-**Total .github/ artifacts: 58**
+**Total .github/ artifacts: 61**
 
 ### settings.json vs settings.local.json
 
@@ -89,27 +89,27 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | Skill | Path | Description |
 |-------|------|-------------|
 | **patterns** | `/patterns` |  |
-| **run-contract-tests** | `/run-contract-tests` | Skill: Contract Tests — Runs consumer-driven contract tests (Pact, Spring Cloud Contract) to verify API compatibility between services. |
-| **run-e2e** | `/run-e2e` | Skill: End-to-End Tests — Runs integration tests that validate the complete flow from request through all application layers to response, using a real database. |
-| **run-perf-test** | `/run-perf-test` | Skill: Performance/Load Tests — Runs performance tests to validate latency SLAs, throughput targets, and resource stability under load. Supports baseline, normal, peak, and sustained scenarios. |
-| **run-smoke-api** | `/run-smoke-api` | Skill: REST API Smoke Tests — Runs automated smoke tests against the REST API using Newman/Postman. Supports local, container-orchestrated, and staging environments. |
-| **setup-environment** | `/setup-environment` | Skill: Dev Environment Setup — Sets up the local development environment including container orchestrator, database, and build tools. |
+| **run-contract-tests** | `/run-contract-tests` | Skill |
+| **run-e2e** | `/run-e2e` | Skill |
+| **run-perf-test** | `/run-perf-test` | Skill |
+| **run-smoke-api** | `/run-smoke-api` | Skill |
+| **setup-environment** | `/setup-environment` | Skill |
 | **x-dev-implement** | `/x-dev-implement` | Implements a feature/story following project conventions. Delegates preparation to a subagent that reads architecture and coding KPs, then implements layer-by-layer with intermediate compilation checks. |
-| **x-dev-lifecycle** | `/x-dev-lifecycle` | Orchestrates the complete feature implementation cycle: branch creation, planning, task decomposition, implementation, parallel review, fixes, PR creation, and final verification. Delegates heavy phases to subagents for context efficiency. |
-| **x-git-push** | `/x-git-push` | Git operations: branch creation, atomic commits (Conventional Commits), push, and PR creation. Use for any git workflow task including branching, committing, pushing, creating PRs, or managing version control. |
-| **x-ops-troubleshoot** | `/x-ops-troubleshoot` | Diagnoses errors, stacktraces, build failures, and unexpected behavior. Systematic approach: reproduce, locate, understand, fix, verify. Use whenever something fails: compilation errors, test failures, runtime exceptions, coverage gaps, or performance issues. |
+| **x-dev-lifecycle** | `/x-dev-lifecycle` | Orchestrates the complete feature implementation cycle |
+| **x-git-push** | `/x-git-push` | Git operations |
+| **x-ops-troubleshoot** | `/x-ops-troubleshoot` | Diagnoses errors, stacktraces, build failures, and unexpected behavior. Systematic approach |
 | **x-review** | `/x-review` | Parallel code review with specialist engineers (Security, QA, Performance, Database, Observability, DevOps, API, Event). Launches parallel subagents, each reading their own knowledge pack, then consolidates into a scored report. Use for pre-PR quality validation. |
-| **x-review-api** | `/x-review-api` | Skill: REST API Design Review — Validates REST API endpoints for RFC 7807 error responses, pagination, URL versioning, OpenAPI documentation, status codes, and DTO patterns. |
-| **x-review-events** | `/x-review-events` | Skill: Event-Driven Review — Validates event schemas, producer/consumer patterns, error handling, dead letter topics, and operational readiness. |
+| **x-review-api** | `/x-review-api` | Skill |
+| **x-review-events** | `/x-review-events` | Skill |
 | **x-review-gateway** | `/x-review-gateway` | Review API gateway configuration for best practices |
-| **x-review-grpc** | `/x-review-grpc` | Skill: gRPC Service Review — Validates gRPC service definitions, proto3 conventions, implementation patterns, and operational readiness. |
+| **x-review-grpc** | `/x-review-grpc` | Skill |
 | **x-review-pr** | `/x-review-pr` | Tech Lead holistic review with 40-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge. |
 | **x-story-create** | `/x-story-create` | > |
 | **x-story-epic** | `/x-story-epic` | > |
 | **x-story-epic-full** | `/x-story-epic-full` | > |
 | **x-story-map** | `/x-story-map` | > |
 | **x-test-plan** | `/x-test-plan` | Generates a comprehensive test plan before implementation. Delegates KP reading to a context-gathering subagent, then produces structured test scenarios covering unit, integration, API, E2E, contract, and performance tests. |
-| **x-test-run** | `/x-test-run` | Runs tests with coverage reporting and threshold validation. Use whenever writing, running, or analyzing tests. Triggers on: test, coverage, TDD, unit test, integration test, test failure, coverage gap, or Definition of Done validation. |
+| **x-test-run** | `/x-test-run` | Runs tests with coverage reporting and threshold validation. Use whenever writing, running, or analyzing tests. Triggers on |
 
 **Total: 39 skills**
 

@@ -17,6 +17,7 @@
     "dev": "tsx src/index.ts",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:integration": "vitest run tests/node/integration/",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
