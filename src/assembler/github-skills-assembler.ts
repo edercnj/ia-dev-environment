@@ -16,6 +16,9 @@ const GITHUB_SKILLS_TEMPLATES_DIR = "github-skills-templates";
 const SKILL_MD = "SKILL.md";
 const INFRA_GROUP = "infrastructure";
 
+/** Groups whose skills are nested under a subdirectory in the output. */
+export const NESTED_GROUPS: ReadonlySet<string> = new Set(["lib"]);
+
 /** Skill groups mapping group name to template filenames (without .md). */
 export const SKILL_GROUPS: Record<string, readonly string[]> = {
   "story": [
@@ -45,6 +48,10 @@ export const SKILL_GROUPS: Record<string, readonly string[]> = {
   "git-troubleshooting": [
     "x-git-push", "x-ops-troubleshoot",
   ],
+  "lib": [
+    "x-lib-task-decomposer", "x-lib-audit-rules",
+    "x-lib-group-verifier",
+  ],
 };
 
 /** Infrastructure skill conditions: maps skill name to config predicate. */
@@ -73,8 +80,9 @@ export class GithubSkillsAssembler {
       const srcDir = path.join(
         resourcesDir, GITHUB_SKILLS_TEMPLATES_DIR, group,
       );
+      const subDir = NESTED_GROUPS.has(group) ? group : undefined;
       results.push(
-        ...this.generateGroup(engine, srcDir, outputDir, filtered),
+        ...this.generateGroup(engine, srcDir, outputDir, filtered, subDir),
       );
     }
     return results;
@@ -98,11 +106,12 @@ export class GithubSkillsAssembler {
     srcDir: string,
     outputDir: string,
     skillNames: readonly string[],
+    subDir?: string,
   ): string[] {
     if (!fs.existsSync(srcDir)) return [];
     const results: string[] = [];
     for (const name of skillNames) {
-      const dest = this.renderSkill(engine, srcDir, outputDir, name);
+      const dest = this.renderSkill(engine, srcDir, outputDir, name, subDir);
       if (dest !== null) results.push(dest);
     }
     return results;
@@ -113,13 +122,17 @@ export class GithubSkillsAssembler {
     srcDir: string,
     outputDir: string,
     name: string,
+    subDir?: string,
   ): string | null {
     const src = path.join(srcDir, `${name}.md`);
     if (!fs.existsSync(src)) return null;
     const rendered = engine.replacePlaceholders(
       fs.readFileSync(src, "utf-8"),
     );
-    const skillDir = path.join(outputDir, "github", "skills", name);
+    const segments = [outputDir, "github", "skills"];
+    if (subDir !== undefined) segments.push(subDir);
+    segments.push(name);
+    const skillDir = path.join(...segments);
     fs.mkdirSync(skillDir, { recursive: true });
     const dest = path.join(skillDir, SKILL_MD);
     fs.writeFileSync(dest, rendered, "utf-8");
