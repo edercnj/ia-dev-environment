@@ -28,8 +28,8 @@ Decomposes an implementation plan into granular, single-layer tasks using a **fi
 ### STEP 0 -- Read Architecture Context
 
 Before decomposing, read the project's architecture and layer definitions:
-- `skills/architecture/references/architecture-principles.md` -- layer structure, dependency direction, package organization
-- `skills/layer-templates/SKILL.md` -- complete layer catalog with package locations, code templates, and checklist per layer
+- `.claude/skills/architecture/references/architecture-principles.md` -- layer structure, dependency direction, package organization
+- `.claude/skills/layer-templates/SKILL.md` -- complete layer catalog with package locations, code templates, and checklist per layer
 
 ### STEP 1 -- Read Story Context
 
