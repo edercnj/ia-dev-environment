@@ -29,7 +29,7 @@ import {
   extractRuleNumber,
   extractRuleScope,
   extractSkillDescription,
-} from "./readme-assembler.js";
+} from "./readme-utils.js";
 
 /** Build markdown table of rules with number, file, and scope. */
 export function buildRulesTable(outputDir: string): string {

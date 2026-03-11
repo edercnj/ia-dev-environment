@@ -1,0 +1,146 @@
+/**
+ * ReadmeAssembler shared utilities — counting, detection, extraction.
+ *
+ * Extracted to break circular dependency between readme-assembler
+ * and readme-tables. Both modules import from here.
+ *
+ * @module
+ */
+import * as fs from "node:fs";
+import * as path from "node:path";
+
+/** Count `.md` files in `outputDir/rules/`. Returns 0 if dir missing. */
+export function countRules(outputDir: string): number {
+  const rulesDir = path.join(outputDir, "rules");
+  if (!fs.existsSync(rulesDir)) return 0;
+  return fs.readdirSync(rulesDir)
+    .filter((f) => f.endsWith(".md")).length;
+}
+
+/** Count `SKILL.md` files in `outputDir/skills/` subdirs. */
+export function countSkills(outputDir: string): number {
+  const skillsDir = path.join(outputDir, "skills");
+  if (!fs.existsSync(skillsDir)) return 0;
+  return fs.readdirSync(skillsDir, { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .filter((d) => fs.existsSync(
+      path.join(skillsDir, d.name, "SKILL.md"),
+    )).length;
+}
+
+/** Count `.md` files in `outputDir/agents/`. */
+export function countAgents(outputDir: string): number {
+  const agentsDir = path.join(outputDir, "agents");
+  if (!fs.existsSync(agentsDir)) return 0;
+  return fs.readdirSync(agentsDir)
+    .filter((f) => f.endsWith(".md")).length;
+}
+
+/** Count skills where `isKnowledgePack()` returns true. */
+export function countKnowledgePacks(outputDir: string): number {
+  const skillsDir = path.join(outputDir, "skills");
+  if (!fs.existsSync(skillsDir)) return 0;
+  return fs.readdirSync(skillsDir, { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .filter((d) => {
+      const p = path.join(skillsDir, d.name, "SKILL.md");
+      return fs.existsSync(p) && isKnowledgePack(p);
+    }).length;
+}
+
+/** Count all entries in `outputDir/hooks/`. */
+export function countHooks(outputDir: string): number {
+  const hooksDir = path.join(outputDir, "hooks");
+  if (!fs.existsSync(hooksDir)) return 0;
+  return fs.readdirSync(hooksDir).length;
+}
+
+/** Count `settings.json` and `settings.local.json`. */
+export function countSettings(outputDir: string): number {
+  let count = 0;
+  if (fs.existsSync(path.join(outputDir, "settings.json"))) {
+    count += 1;
+  }
+  if (fs.existsSync(path.join(outputDir, "settings.local.json"))) {
+    count += 1;
+  }
+  return count;
+}
+
+/** Recursively count all files under a directory (Node 18 safe). */
+export function countGithubFiles(githubDir: string): number {
+  if (!fs.existsSync(githubDir)) return 0;
+  return countFilesRecursive(githubDir);
+}
+
+/** Count files directly under `githubDir/{component}/`. */
+export function countGithubComponent(
+  githubDir: string, component: string,
+): number {
+  const compDir = path.join(githubDir, component);
+  if (!fs.existsSync(compDir)) return 0;
+  return fs.readdirSync(compDir, { withFileTypes: true })
+    .filter((e) => e.isFile()).length;
+}
+
+/** Count `SKILL.md` in `githubDir/skills/` subdirs. */
+export function countGithubSkills(githubDir: string): number {
+  const skillsDir = path.join(githubDir, "skills");
+  if (!fs.existsSync(skillsDir)) return 0;
+  return fs.readdirSync(skillsDir, { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .filter((d) => fs.existsSync(
+      path.join(skillsDir, d.name, "SKILL.md"),
+    )).length;
+}
+
+/** Return true if SKILL.md content flags a knowledge pack. */
+export function isKnowledgePack(skillMdPath: string): boolean {
+  const text = fs.readFileSync(skillMdPath, "utf-8");
+  if (text.includes("user-invocable: false")) return true;
+  for (const line of text.split("\n")) {
+    if (line.startsWith("# Knowledge Pack")) return true;
+  }
+  return false;
+}
+
+/** Extract leading digits from a rule filename. */
+export function extractRuleNumber(filename: string): string {
+  const match = filename.match(/^(\d+)/);
+  return match?.[1] ?? "";
+}
+
+/** Strip leading number+hyphen and `.md`, replace hyphens with spaces. */
+export function extractRuleScope(filename: string): string {
+  let name = filename.replace(/^\d+-/, "");
+  name = name.replace(/\.md$/, "");
+  return name.replace(/-/g, " ");
+}
+
+/** Read SKILL.md and extract `description:` value. */
+export function extractSkillDescription(
+  skillMdPath: string,
+): string {
+  const text = fs.readFileSync(skillMdPath, "utf-8");
+  for (const line of text.split("\n")) {
+    if (line.startsWith("description:")) {
+      const desc = (line.split(":", 2)[1] ?? "").trim();
+      return desc.replace(/^["']|["']$/g, "");
+    }
+  }
+  return "";
+}
+
+/** Walk a directory tree counting files (Node 18 compatible). */
+function countFilesRecursive(dir: string): number {
+  let count = 0;
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    if (entry.isFile()) {
+      count += 1;
+    } else if (entry.isDirectory()) {
+      count += countFilesRecursive(path.join(dir, entry.name));
+    }
+  }
+  return count;
+}
