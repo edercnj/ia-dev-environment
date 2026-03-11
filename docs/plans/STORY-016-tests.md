@@ -2,23 +2,21 @@
 
 ## Summary
 
-- Total test classes: 1 (`pipeline-orchestrator.test.ts`)
+- Total test classes: 1 (`pipeline.test.ts`)
 - Total test methods: ~52 (estimated)
 - Categories covered: Unit, Integration, Contract (parametrized)
 - Estimated line coverage: ~97%
 - Estimated branch coverage: ~93%
 
-## Test File: `tests/node/assembler/pipeline-orchestrator.test.ts`
+## Test File: `tests/node/assembler/pipeline.test.ts`
 
 ### Key Dependencies Under Test
 
 | Module | Export | Description |
 |--------|--------|-------------|
-| `src/assembler/index.ts` | `runPipeline` | Main entry point |
-| `src/assembler/index.ts` | `_buildAssemblers` | Builds ordered list of 14 assemblers |
-| `src/assembler/index.ts` | `_executeAssemblers` | Sequential execution loop |
-| `src/assembler/index.ts` | `_runReal` | Real mode with atomicOutput |
-| `src/assembler/index.ts` | `_runDry` | Dry-run mode with temp dir |
+| `src/assembler/pipeline.ts` | `runPipeline` | Main entry point |
+| `src/assembler/pipeline.ts` | `buildAssemblers` | Builds ordered list of 14 assemblers |
+| `src/assembler/pipeline.ts` | `executeAssemblers` | Sequential execution loop |
 | `src/models.ts` | `PipelineResult` | Aggregated result type |
 | `src/exceptions.ts` | `PipelineError` | Error type with assemblerName + reason |
 | `src/utils.ts` | `atomicOutput` | Async callback-based atomic write |

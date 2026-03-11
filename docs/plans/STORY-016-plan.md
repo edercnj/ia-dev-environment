@@ -138,7 +138,7 @@ Each assembler is instantiated with no constructor args (key difference from Pyt
 - Iterates assemblers sequentially via `for...of`.
 - Calls `assembler.assemble(config, outputDir, resourcesDir, engine)` — uniform 4-arg signature (key difference from Python where some used 3 args, some 4).
 - Normalizes return values: if result is an `AssembleResult` (has `files` and `warnings` properties), extracts both arrays. If result is `string[]`, treats it as files with no warnings.
-- On any exception, wraps it in `PipelineError(name, error.constructor.name)` and rethrows.
+- On any exception, wraps it in `PipelineError(name, reason)` where `reason` is `error.message` if present, otherwise `String(error)`, and rethrows.
 - Returns aggregated `{ files, warnings }`.
 
 **`runPipeline()`:**

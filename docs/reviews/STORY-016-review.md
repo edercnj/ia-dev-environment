@@ -16,7 +16,7 @@
 
 ### MEDIUM
 
-- **[QA-11]** Missing test for PipelineError re-throw branch (pipeline.ts:104) and no runPipeline-level test for temp dir cleanup on failure — **FIXED**: Added `executeAssemblers_pipelineErrorRethrown_notDoubleWrapped` test. Coverage now 100% line/branch/function/statement.
+- **[QA-11]** Missing test for PipelineError re-throw branch (pipeline.ts:104) — **FIXED**: Added `executeAssemblers_pipelineErrorRethrown_notDoubleWrapped` test. Coverage now 100% line/branch/function/statement. Note: runPipeline-level dry-run temp-dir cleanup on failure is not explicitly validated (covered implicitly by the `finally` block pattern).
 
 ### LOW
 

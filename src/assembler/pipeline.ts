@@ -8,7 +8,7 @@
  */
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, relative, resolve } from "node:path";
 import type { ProjectConfig } from "../models.js";
 import { PipelineResult } from "../models.js";
 import { PipelineError } from "../exceptions.js";
@@ -57,7 +57,7 @@ export function normalizeResult(
   result: string[] | AssembleResult,
 ): NormalizedResult {
   if (Array.isArray(result)) {
-    return { files: result, warnings: [] };
+    return { files: [...result], warnings: [] };
   }
   return { files: [...result.files], warnings: [...result.warnings] };
 }
@@ -137,12 +137,21 @@ async function runReal(
   resourcesDir: string,
   outputDir: string,
 ): Promise<NormalizedResult> {
-  return atomicOutput(outputDir, async (tempDir) => {
-    const engine = new TemplateEngine(resourcesDir, config);
-    return executeAssemblers(
-      buildAssemblers(), config, tempDir, resourcesDir, engine,
-    );
-  });
+  const resolvedDest = resolve(outputDir);
+  const { tempDir, files, warnings } = await atomicOutput(
+    outputDir,
+    async (tempDir) => {
+      const engine = new TemplateEngine(resourcesDir, config);
+      const result = executeAssemblers(
+        buildAssemblers(), config, tempDir, resourcesDir, engine,
+      );
+      return { tempDir, ...result };
+    },
+  );
+  return {
+    files: files.map((f) => join(resolvedDest, relative(tempDir, f))),
+    warnings,
+  };
 }
 
 /** Orchestrate all assemblers with atomic output or dry-run. */

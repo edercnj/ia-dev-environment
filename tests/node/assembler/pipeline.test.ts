@@ -413,6 +413,16 @@ describe("runPipeline", () => {
       );
       expect(result).toBeInstanceOf(PipelineResult);
     });
+
+    it("runPipeline_real_filesGeneratedRootedAtOutputDir", async () => {
+      const result = await runPipeline(
+        buildConfig(), resourcesDir, outputDir, false,
+      );
+      const resolvedOutput = path.resolve(outputDir);
+      for (const file of result.filesGenerated) {
+        expect(file.startsWith(resolvedOutput)).toBe(true);
+      }
+    });
   });
 
   describe("duration measurement", () => {
