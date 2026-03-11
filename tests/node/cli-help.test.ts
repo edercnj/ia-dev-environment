@@ -11,6 +11,7 @@ import { promptConfirmation } from "../../src/interactive.js";
 import { DEFAULT_FOUNDATION } from "../../src/models.js";
 import { TemplateEngine } from "../../src/template-engine.js";
 import { normalizeDirectory } from "../../src/utils.js";
+import { aProjectConfig } from "../fixtures/project-config.fixture.js";
 
 const promptMock = vi.hoisted(() => vi.fn(async () => ({ confirmed: true })));
 
@@ -60,9 +61,10 @@ describe("foundation modules", () => {
   );
 
   it("templateAndUtils_withSimpleInput_returnExpectedValues", () => {
-    const engine = new TemplateEngine();
+    const resourcesDir = `${process.cwd()}/resources`;
+    const engine = new TemplateEngine(resourcesDir, aProjectConfig());
 
-    expect(engine.render("Hello {{ name }}", { name: "Node" })).toBe("Hello Node");
+    expect(engine.renderString("Hello {{ name }}", { name: "Node" })).toBe("Hello Node");
     expect(normalizeDirectory("/tmp/project///")).toBe("/tmp/project");
   });
 
@@ -76,9 +78,10 @@ describe("foundation modules", () => {
   });
 
   it("templateEngine_withInvalidTemplate_throws", () => {
-    const engine = new TemplateEngine();
+    const resourcesDir = `${process.cwd()}/resources`;
+    const engine = new TemplateEngine(resourcesDir, aProjectConfig());
 
-    expect(() => engine.render("{{", {})).toThrow();
+    expect(() => engine.renderString("{{", {})).toThrow();
   });
 
   it("cliError_constructor_setsNameAndCode", () => {

@@ -1,0 +1,10 @@
+project:
+  name: "broken"
+  purpose: "Missing language section"
+architecture:
+  style: library
+interfaces:
+  - type: cli
+framework:
+  name: click
+  version: "8.1"
