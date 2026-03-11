@@ -4,7 +4,7 @@
   "description": "CLI tool that generates .claude/ and .github/ boilerplate for AI-assisted development environments",
   "license": "MIT",
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "type": "module",
   "main": "./dist/index.js",

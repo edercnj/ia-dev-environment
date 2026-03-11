@@ -39,5 +39,10 @@ build/
 coverage/
 coverage.json
 
+# Environment files
+.env
+.env.*
+.env.local
+
 # npm pack artifacts
 *.tgz
