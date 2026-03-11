@@ -92,14 +92,14 @@ Launch one `general-purpose` subagent per applicable engineer.
 
 | Engineer | KP Paths to Read |
 |----------|-----------------|
-| Security | `.claude/skills/security/SKILL.md` -> then read `references/application-security.md`, `references/cryptography.md` |
-| QA | `.claude/skills/testing/references/testing-philosophy.md`, `.claude/skills/testing/references/testing-conventions.md` |
-| Performance | `.claude/skills/resilience/references/resilience-principles.md` |
-| Database | `.claude/skills/database-patterns/SKILL.md` -> then read files listed in references/ |
-| Observability | `.claude/skills/observability/references/observability-principles.md` |
-| DevOps | `.claude/skills/infrastructure/references/infrastructure-principles.md` |
-| API | `.claude/skills/api-design/references/api-design-principles.md` + relevant protocol ref from `.claude/skills/protocols/references/` |
-| Event | `.claude/skills/protocols/references/event-driven-conventions.md` |
+| Security | `.github/skills/security/SKILL.md` |
+| QA | `.github/skills/testing/SKILL.md` |
+| Performance | `.github/skills/resilience/SKILL.md` |
+| Database | `.github/skills/database-patterns/SKILL.md` |
+| Observability | `.github/skills/observability/SKILL.md` |
+| DevOps | `.github/skills/infrastructure/SKILL.md` |
+| API | `.github/skills/api-design/SKILL.md` + `.github/skills/protocols/SKILL.md` |
+| Event | `.github/skills/protocols/SKILL.md` |
 
 ### Engineer Checklists (include in subagent prompt)
 
@@ -163,7 +163,7 @@ If CRITICAL or MEDIUM findings exist, ask the user whether to generate a correct
 ## Detailed References
 
 For in-depth guidance on review patterns, consult:
-- `.claude/skills/x-review/SKILL.md`
-- `.claude/skills/security/SKILL.md`
-- `.claude/skills/testing/SKILL.md`
-- `.claude/skills/observability/SKILL.md`
+- `.github/skills/x-review/SKILL.md`
+- `.github/skills/security/SKILL.md`
+- `.github/skills/testing/SKILL.md`
+- `.github/skills/observability/SKILL.md`

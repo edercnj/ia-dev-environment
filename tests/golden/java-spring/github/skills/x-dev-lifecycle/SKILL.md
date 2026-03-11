@@ -50,8 +50,8 @@ Launch a **single** `general-purpose` subagent:
 >
 > **Step 1 — Read context:**
 > - Read story file: `{STORY_PATH}`
-> - Read `.claude/skills/architecture/references/architecture-principles.md` — layer structure, dependency direction
-> - Read `.claude/skills/layer-templates/SKILL.md` — code templates per architecture layer
+> - Read `.github/skills/architecture/SKILL.md` — layer structure, dependency direction
+> - Read `.github/skills/layer-templates/SKILL.md` — code templates per architecture layer
 > - Read any relevant ADRs in `docs/adr/`
 >
 > **Step 2 — Produce implementation plan** with these sections:
@@ -82,7 +82,7 @@ Invoke skill `x-lib-task-decomposer` → produces `docs/plans/STORY-ID-tasks.md`
 Launch `general-purpose` subagent:
 
 > You are an **Event Engineer** designing event schemas.
-> Read `.claude/skills/protocols/references/event-driven-conventions.md` for standards.
+> Read `.github/skills/protocols/SKILL.md` for standards.
 > Read the implementation plan at `docs/plans/STORY-ID-plan.md`.
 > Produce event schema design: event names (past tense), CloudEvents envelope, topic naming, partition key, producer/consumer contracts.
 > Save to `docs/plans/STORY-ID-events.md`.
@@ -91,8 +91,8 @@ Launch `general-purpose` subagent:
 Launch `general-purpose` subagent:
 
 > You are a **Security Engineer** assessing compliance impact.
-> Read `.claude/skills/security/SKILL.md` → then read its references.
-> Read `.claude/skills/compliance/SKILL.md` → then read its references.
+> Read `.github/skills/security/SKILL.md`.
+> Read `.github/skills/compliance/SKILL.md`.
 > Read the implementation plan at `docs/plans/STORY-ID-plan.md`.
 > Produce compliance impact assessment: data classification, encryption requirements, audit logging needs, regulatory considerations.
 > Save to `docs/plans/STORY-ID-compliance.md`.
@@ -106,10 +106,9 @@ Launch a **single** `general-purpose` subagent for implementation:
 > **Step 1 — Read context:**
 > - Read implementation plan: `docs/plans/STORY-ID-plan.md`
 > - Read task breakdown: `docs/plans/STORY-ID-tasks.md`
-> - Read `.claude/skills/coding-standards/references/coding-conventions.md` — {{LANGUAGE}} conventions
-> - Read `.claude/skills/coding-standards/references/version-features.md` — {{LANGUAGE}} {{LANGUAGE_VERSION}} features
-> - Read `.claude/skills/layer-templates/SKILL.md` — code templates per layer
-> - Read `.claude/skills/architecture/references/architecture-principles.md` — layer boundaries
+> - Read `.github/skills/coding-standards/SKILL.md` — {{LANGUAGE}} conventions and {{LANGUAGE_VERSION}} features
+> - Read `.github/skills/layer-templates/SKILL.md` — code templates per layer
+> - Read `.github/skills/architecture/SKILL.md` — layer boundaries
 >
 > **Step 2 — Implement groups G1-G7** following the task breakdown:
 > - For each group: implement all tasks, then compile: `{{COMPILE_COMMAND}}`
@@ -177,7 +176,7 @@ Invoke skill `x-review-pr` for holistic 40-point review. If NO-GO, fix and re-re
 ## Detailed References
 
 For in-depth guidance on the lifecycle phases, consult:
-- `.claude/skills/x-dev-lifecycle/SKILL.md`
-- `.claude/skills/x-dev-implement/SKILL.md`
-- `.claude/skills/x-review/SKILL.md`
-- `.claude/skills/x-review-pr/SKILL.md`
+- `.github/skills/x-dev-lifecycle/SKILL.md`
+- `.github/skills/x-dev-implement/SKILL.md`
+- `.github/skills/x-review/SKILL.md`
+- `.github/skills/x-review-pr/SKILL.md`

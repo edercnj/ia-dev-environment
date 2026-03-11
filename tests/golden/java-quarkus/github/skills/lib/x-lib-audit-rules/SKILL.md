@@ -5,7 +5,7 @@ description: >
   source code. Launches parallel subagents (one per rule/knowledge-pack)
   for scanning, then aggregates into a unified report with severity
   classification and story suggestions.
-  Reference: `../../.claude/skills/lib/x-lib-audit-rules/`
+  Reference: `.github/skills/lib/x-lib-audit-rules/SKILL.md`
 ---
 
 # Skill: Audit Rules & Patterns (Codebase Compliance Review)
@@ -33,11 +33,11 @@ description: >
 
 ### 1a. Discover Rules
 
-List all rules in `.claude/rules/*.md`. Filter by `--rules` argument if provided.
+List all rules in `.github/instructions/*.instructions.md`. Filter by `--rules` argument if provided.
 
 ### 1b. Discover Knowledge Packs
 
-Find all reference files in `.claude/skills/*/references/*.md`. Group by knowledge pack.
+Find all skill files in `.github/skills/*/SKILL.md`. Group by knowledge pack.
 
 ### 1c. Build Scan Plan
 
@@ -80,4 +80,4 @@ For each violation found, report:
 
 - Can be run independently of the feature lifecycle
 - Complements `/x-review` (diff-based) with full codebase scanning
-- Reference: `../../.claude/skills/lib/x-lib-audit-rules/SKILL.md`
+- Reference: `.github/skills/lib/x-lib-audit-rules/SKILL.md`

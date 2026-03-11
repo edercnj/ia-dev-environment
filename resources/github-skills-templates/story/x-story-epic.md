@@ -1,102 +1,142 @@
 ---
 name: x-story-epic
 description: >
-  Gerar um documento Epic a partir de uma especificação de sistema. Lê uma spec técnica
-  e produz um arquivo Epic com regras de negócio transversais, definições de qualidade
-  globais (DoR/DoD) e índice completo de histórias com declarações de dependência.
-  Acione quando o usuário pedir para criar um epic, gerar epic a partir de spec,
-  extrair regras de negócio, decompor especificação em epic, construir índice de histórias,
-  ou qualquer variação de "leia esta spec e crie um epic".
+  Generate an Epic document from a system specification file. This skill reads a technical spec
+  and produces an Epic file with cross-cutting business rules, global quality definitions
+  (DoR/DoD), and a complete story index with dependency declarations. Use this skill whenever
+  the user asks to create an epic, generate an epic from a spec, extract business rules from
+  a system document, decompose a specification into an epic, build a story index, or any
+  variation of "read this spec and create an epic". Also trigger when the user mentions
+  extracting cross-cutting rules, defining quality gates for a project, or building a story
+  backlog from a technical document — even if they don't use the word "epic" explicitly.
 ---
 
-# Criar Epic a partir de Especificação de Sistema
+# Create Epic from System Specification
 
-Esta skill lê um documento de especificação de sistema e gera um arquivo Epic — o artefato
-de nível superior que define escopo, regras transversais, critérios de qualidade e índice
-de histórias para um esforço de desenvolvimento.
+This skill reads a system specification document and generates an Epic file — the top-level
+artifact that defines the scope, cross-cutting rules, quality criteria, and story index for
+a development effort.
 
-## Por Que Isso Importa
+## Why This Matters
 
-O Epic é a fonte única de verdade para uma decomposição. Captura regras que abrangem múltiplas
-histórias (evitando duplicação ou contradição), define quality gates que toda história deve
-atender, e fornece o índice completo de histórias com relacionamentos de dependência.
+The Epic is the single source of truth for a decomposition. It captures rules that span multiple
+stories (so they don't get duplicated or contradicted), defines quality gates that every story
+must meet, and provides the complete story index with dependency relationships. Getting the Epic
+right makes story generation and implementation planning straightforward.
 
-## Pré-requisitos
+## Prerequisites
 
-Leia os seguintes arquivos antes de iniciar:
+Read the following files before starting:
 
-**Template (estrutura de saída):**
-- `.claude/templates/_TEMPLATE-EPIC.md` — A estrutura exata a seguir
+**Template (output structure):**
+- `resources/templates/_TEMPLATE-EPIC.md` — The exact structure to follow
 
-**Filosofia de decomposição:**
-- `.claude/skills/x-story-epic-full/references/decomposition-guide.md`
+**Decomposition philosophy (how to identify stories and rules):**
+- `.github/skills/x-story-epic-full/references/decomposition-guide.md`
 
-Se algum template estiver ausente, pare e informe o usuário.
+If any template file is missing, stop and tell the user. The templates define the output structure
+and must be read fresh from disk every time (never hardcode the structure).
 
-## Fluxo de Trabalho
+## Workflow
 
-### Passo 1: Ler a Spec de Entrada
+### Step 1: Read the Input Spec
 
-Leia toda a especificação de sistema fornecida pelo usuário. Compreenda o escopo completo
-antes de iniciar a extração.
+Read the entire system specification file provided by the user. This file follows the `_TEMPLATE.md`
+format with sections like Overview, Business Rules, Platform Specs, Data Contracts, Journeys,
+Sync Journeys, Dependencies, and Interfaces.
 
-### Passo 2: Extrair Regras de Negócio Transversais
+Understand the full scope before starting extraction.
 
-Busque na spec regras de negócio que se aplicam a mais de uma jornada. Estas tornam-se
-a tabela de Regras do Epic com IDs únicos (RULE-001, RULE-002, ...).
+### Step 2: Extract Cross-Cutting Business Rules
 
-**O que qualifica como regra transversal:**
-- Lógica de decisão que afeta múltiplas jornadas
-- Restrição de plataforma (ex: "chave de idempotência obrigatória em todas as mutações")
-- Política comportamental (ex: "tratamento de timeout: N segundos de sleep antes da resposta")
-- Validação que controla múltiplas operações
+Scan the spec for business rules that apply to more than one journey or operation. These become
+the Epic's Rules table with unique IDs (RULE-001, RULE-002, ...).
 
-**O que permanece em histórias individuais:**
-- Regras que se aplicam a apenas uma jornada
-- Detalhes de implementação específicos de um handler
+**What qualifies as a cross-cutting rule:**
+- A decision logic that affects multiple journeys (e.g., "cents-based approval applies to all transaction types")
+- A platform-wide constraint (e.g., "idempotency key required on all mutations")
+- A behavioral policy (e.g., "timeout handling: N seconds sleep before response")
+- A validation that gates multiple operations (e.g., "entity must be active for any operation")
 
-### Passo 3: Identificar Histórias
+**What stays in individual stories:**
+- Rules that apply to only one journey (e.g., "bulk import only allowed via async endpoint")
+- Implementation details specific to one handler
 
-Siga a abordagem camada por camada:
+Each rule gets a description detailed enough that a developer can implement it without going
+back to the spec. Use `<br>` for line breaks within table cells. Include priority/precedence
+when rules can conflict.
 
-1. **Fundação (Camada 0):** Infraestrutura — servidores, schemas, APIs base
-2. **Domínio Core (Camada 1):** Operação central que estabelece padrões arquiteturais
-3. **Extensões (Camada 2):** Operações adicionais reutilizando padrões do core
-4. **Composições (Camada 3):** Histórias combinando múltiplas capacidades
-5. **Transversal (Camada 4):** Testes, observabilidade, segurança, tech debt
+### Step 3: Identify Stories
 
-### Passo 4: Definir Critérios de Qualidade
+Read the decomposition guide (`.github/skills/x-story-epic-full/references/decomposition-guide.md`) for
+the layer-by-layer approach. In summary:
 
-**DoR Global:** Especificações técnicas validadas, dependências resolvidas, contratos revisados.
+1. **Foundation (Layer 0):** Infrastructure stories — servers, schemas, base APIs, protocol adapters
+2. **Core Domain (Layer 1):** The central operation that establishes architectural patterns
+3. **Extensions (Layer 2):** Additional operations reusing core patterns
+4. **Compositions (Layer 3):** Stories combining multiple extension capabilities
+5. **Cross-Cutting (Layer 4):** Testing, observability, security, tech debt
 
-**DoD Global:** Metas de cobertura, tipos de teste obrigatórios, requisitos de documentação,
-SLOs de performance.
+For each story, determine:
+- **Title**: Concise, action-oriented (e.g., "Infraestrutura Socket e Echo Test (1804)")
+- **Blocked By**: Which stories must be done first (structural, data, or pattern dependencies)
+- **Blocks**: Which stories depend on this one
 
-### Passo 5: Gerar o Arquivo Epic
+Validate the dependency graph: no circular dependencies, every extension depends on the core,
+compositions depend on their constituent extensions.
 
-Escreva o Epic seguindo a estrutura do `_TEMPLATE-EPIC.md`:
+### Step 4: Define Quality Criteria
 
-1. **Header**: Título, autor, data, versão, status
-2. **Visão Geral**: Escopo derivado da spec
-3. **Anexos e Referências**: Links para spec e documentos relacionados
-4. **Definições de Qualidade Globais**: DoR e DoD
-5. **Regras de Negócio Transversais**: Tabela de regras
-6. **Índice de Histórias**: Índice com links e dependências
+**Global Definition of Ready (DoR):**
+Extract from the spec's quality requirements, or derive sensible defaults:
+- Technical specifications validated
+- Dependencies resolved
+- Data contracts reviewed
 
-### Passo 6: Salvar e Reportar
+**Global Definition of Done (DoD):**
+Extract from the spec, or derive from the tech stack:
+- Coverage targets (line, branch)
+- Required test types (unit, integration, E2E)
+- Documentation requirements
+- Performance SLOs
+- Persistence/data integrity criteria
 
-Salve o arquivo e reporte: número de regras extraídas, histórias identificadas, resumo
-da estrutura de dependências.
+### Step 5: Generate the Epic File
 
-## Regras de Idioma
+Write the Epic following the `_TEMPLATE-EPIC.md` structure exactly:
 
-- Todo conteúdo gerado deve estar em **Português Brasileiro (pt-BR)**
-- Termos técnicos padrão da indústria permanecem em inglês
-- Identificadores de código e nomes de campo permanecem em inglês
-- IDs usam formato inglês: RULE-NNN, STORY-NNN
+1. **Header**: Title, author, date, version, status
+2. **Section 1 — Overview**: Scope derived from the spec's Overview section
+3. **Section 2 — Attachments and References**: Links to the input spec and related documents
+4. **Section 3 — Global Quality Definitions**: DoR and DoD from Step 4
+5. **Section 4 — Cross-Cutting Business Rules**: Rules table from Step 2
+6. **Section 5 — Story Index**: Story index from Step 3, with links and dependencies
 
-## Referências Detalhadas
+**File naming**: `EPIC-NNN.md` where NNN is sequential. Ask the user if unsure.
 
-Para orientação aprofundada sobre decomposição, consulte:
-- `.claude/skills/x-story-epic/SKILL.md`
-- `.claude/skills/x-story-epic-full/references/decomposition-guide.md`
+### Step 6: Save and Report
+
+Save the file to the same directory as the input spec (or where the user specifies).
+Report: number of rules extracted, number of stories identified, dependency structure summary.
+
+## Language Rules
+
+- All generated content must be in **Brazilian Portuguese (pt-BR)**
+- Technical terms that are industry-standard in English stay in English (cache, timeout, circuit breaker, handler, endpoint, state machine)
+- Code identifiers, field names, enum values stay in English
+- Rule IDs use the format RULE-NNN (English)
+- Story IDs use the format STORY-NNN (English)
+
+## Common Mistakes
+
+- **Missing rules**: If a validation appears in 3+ journeys, it's cross-cutting — extract it
+- **Rules too vague**: "Validate entity" is useless. "Entity must be active (status=ACTIVE) in L1/L2 cache → DB. If inactive, return 400 ENTITY_INACTIVE" is useful
+- **Dependency gaps**: If Story B uses a table created by Story A, declare the dependency
+- **Circular dependencies**: If A blocks B and B blocks A, they're probably one story
+- **Story count too low**: A spec with 8 journeys typically generates 12-20 stories (infrastructure + journeys + cross-cutting). If you have fewer than 8 stories, you're probably bundling too much
+
+## Detailed References
+
+For in-depth guidance, see:
+- `.github/skills/x-story-epic/SKILL.md`
+- `.github/skills/x-story-epic-full/references/decomposition-guide.md`

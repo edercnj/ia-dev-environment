@@ -43,9 +43,9 @@ git diff [BASE_BRANCH] --name-only
 ### Step 2 -- Gather Context
 
 Read knowledge packs to calibrate the review:
-- `.claude/skills/coding-standards/references/coding-conventions.md` -- rust naming, injection, mapper conventions
-- `.claude/skills/architecture/references/architecture-principles.md` -- layer boundaries, dependency direction
-- `.claude/rules/05-quality-gates.md` -- coverage thresholds, merge checklist
+- `.github/skills/coding-standards/SKILL.md` -- rust naming, injection, mapper conventions
+- `.github/skills/architecture/SKILL.md` -- layer boundaries, dependency direction
+- `.github/instructions/05-quality-gates.instructions.md` -- coverage thresholds, merge checklist
 
 Check for existing artifacts:
 - Specialist review reports (`docs/reviews/STORY-ID-*.md`)
@@ -122,6 +122,6 @@ If fixing: apply corrections, commit, re-run review (max 2 cycles).
 ## Detailed References
 
 For in-depth guidance on the Tech Lead review process, consult:
-- `.claude/skills/x-review-pr/SKILL.md`
-- `.claude/skills/coding-standards/SKILL.md`
-- `.claude/skills/architecture/SKILL.md`
+- `.github/skills/x-review-pr/SKILL.md`
+- `.github/skills/coding-standards/SKILL.md`
+- `.github/skills/architecture/SKILL.md`

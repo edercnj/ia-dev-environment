@@ -4,7 +4,7 @@ description: >
   Decomposes an architect's implementation plan into parallelizable tasks
   by layer. Uses the Layer Task Catalog to assign model tiers, context
   budgets, and parallelism groups. Produces a task breakdown document.
-  Reference: `../../.claude/skills/lib/x-lib-task-decomposer/`
+  Reference: `.github/skills/lib/x-lib-task-decomposer/SKILL.md`
 ---
 
 # Skill: Task Decomposer (Layer-Based)
@@ -28,8 +28,8 @@ Decomposes an implementation plan into granular, single-layer tasks using a **fi
 ### STEP 0 -- Read Architecture Context
 
 Before decomposing, read the project's architecture and layer definitions:
-- `.claude/skills/architecture/references/architecture-principles.md` -- layer structure, dependency direction, package organization
-- `.claude/skills/layer-templates/SKILL.md` -- complete layer catalog with package locations, code templates, and checklist per layer
+- `.github/skills/architecture/SKILL.md` -- layer structure, dependency direction, package organization
+- `.github/skills/layer-templates/SKILL.md` -- complete layer catalog with package locations, code templates, and checklist per layer
 
 ### STEP 1 -- Read Story Context
 
@@ -97,4 +97,4 @@ G7: TESTS -- PARALLEL (max 4 concurrent), depends on ALL previous
 
 - Invoked by `x-dev-lifecycle` during Phase 1C
 - Output consumed by Phase 2 (group-based implementation)
-- Reference: `../../.claude/skills/lib/x-lib-task-decomposer/SKILL.md`
+- Reference: `.github/skills/lib/x-lib-task-decomposer/SKILL.md`

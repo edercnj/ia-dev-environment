@@ -4,7 +4,7 @@ description: >
   Build gate verification between parallelism groups. Compiles code,
   classifies errors, decides retry vs escalate, extracts outputs for
   next group. Used between each implementation group in Phase 2.
-  Reference: `../../.claude/skills/lib/x-lib-group-verifier/`
+  Reference: `.github/skills/lib/x-lib-group-verifier/SKILL.md`
 ---
 
 # Skill: Group Verifier (Build Gate)
@@ -90,4 +90,4 @@ Additional checks for the test group:
 
 - Invoked by `x-dev-lifecycle` during Phase 2 after each group
 - Uses `{{COMPILE_COMMAND}}` for G1-G6, `{{BUILD_COMMAND}}` for G7
-- Reference: `../../.claude/skills/lib/x-lib-group-verifier/SKILL.md`
+- Reference: `.github/skills/lib/x-lib-group-verifier/SKILL.md`

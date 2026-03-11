@@ -1,42 +1,40 @@
 ---
 name: story-planning
 description: >
-  Pacote de conhecimento sobre decomposição e planejamento de histórias: decomposição camada
-  por camada (fundação, domínio core, extensões, composições, transversal), autocontenção
-  de histórias (contratos de dados, critérios de aceite), DAG de dependências, regras de
-  dimensionamento e computação de fases. Acione quando o usuário pedir orientação sobre
-  planejamento de histórias, decomposição de backlog, dimensionamento de stories, ou
-  gerenciamento de dependências entre histórias.
+  Knowledge pack on story decomposition and planning: layer-by-layer decomposition (foundation,
+  core domain, extensions, compositions, cross-cutting), story self-containment (data contracts,
+  acceptance criteria), dependency DAG, sizing rules, and phase computation. Use this when the
+  user asks for guidance on story planning, backlog decomposition, story sizing, or dependency
+  management between stories.
 ---
 
-# Pacote de Conhecimento: Planejamento de Histórias
+# Knowledge Pack: Story Planning
 
-## Propósito
+## Purpose
 
-Fornece padrões de decomposição e planejamento de histórias para traduzir especificações
-de sistema em itens de trabalho independentemente implementáveis. Habilita decomposição
-em camadas, gerenciamento de dependências, consistência de dimensionamento e planejamento
-de entrega faseada.
+Provides story decomposition and planning patterns for translating system specifications
+into independently implementable work items. Enables layered decomposition, dependency
+management, sizing consistency, and phased delivery planning.
 
-## Referência Rápida
+## Quick Reference
 
-Consulte os guias de referência para o resumo essencial de decomposição de histórias:
-5 camadas (fundação, domínio core, extensões, composições, transversal), regras de
-autocontenção, DAG de dependências e dimensionamento.
+See the reference guides for the essential story decomposition summary:
+5 layers (foundation, core domain, extensions, compositions, cross-cutting), self-containment
+rules, dependency DAG, and sizing.
 
-## Referências Detalhadas
+## Detailed References
 
-| Referência | Conteúdo |
-|-----------|----------|
-| Decomposição em Camadas | 5 camadas (Camada 0: infraestrutura de fundação, Camada 1: estabelecimento de padrão de domínio core, Camada 2: extensões reutilizando Camada 1, Camada 3: composições combinando múltiplas capacidades, Camada 4: qualidade/observabilidade transversal) |
-| Autocontenção de Histórias | Contratos de dados (todos os campos com tipo, obrigatório/opcional, regras de derivação), critérios de aceite Gherkin (valores concretos), diagramas de sequência Mermaid (nomes reais de componentes), sub-tarefas (estimáveis em 2-4 horas, tagueadas [Dev]/[Test]/[Doc]) |
-| DAG de Dependências | Construção de grafo acíclico dirigido, detecção de dependências circulares, tipos de dependência (estrutural, dados, padrão), consistência bidirecional |
-| Regras Transversais | Padrões de extração de regras, IDs sequenciais únicos (RULE-001), descrições prontas para implementação |
-| Dimensionamento de Histórias | Métricas (endpoints por história: máx 2, fluxos de protocolo: máx 1, cenários Gherkin: 2-8, sub-tarefas: máx 10) |
-| Computação de Fases | Derivação automática de fases a partir do DAG, identificação de caminho crítico, paralelização de fases |
+| Reference | Content |
+|-----------|---------|
+| Layered Decomposition | 5 layers (Layer 0: foundation infrastructure, Layer 1: core domain pattern establishment, Layer 2: extensions reusing Layer 1, Layer 3: compositions combining multiple capabilities, Layer 4: cross-cutting quality/observability) |
+| Story Self-Containment | Data contracts (all fields with type, mandatory/optional, derivation rules), Gherkin acceptance criteria (concrete values), Mermaid sequence diagrams (real component names), sub-tasks (estimable at 2-4 hours, tagged [Dev]/[Test]/[Doc]) |
+| Dependency DAG | Directed acyclic graph construction, circular dependency detection, dependency types (structural, data, pattern), bidirectional consistency |
+| Cross-Cutting Rules | Rule extraction patterns, unique sequential IDs (RULE-001), implementation-ready descriptions |
+| Story Sizing | Metrics (endpoints per story: max 2, protocol flows: max 1, Gherkin scenarios: 2-8, sub-tasks: max 10) |
+| Phase Computation | Automatic phase derivation from DAG, critical path identification, phase parallelization |
 
-## Referências Completas
+## Full References
 
-Para orientação aprofundada sobre cada tópico, consulte:
-- `.claude/skills/story-planning/SKILL.md`
-- `.claude/skills/x-story-epic-full/references/decomposition-guide.md`
+For in-depth guidance on each topic, see:
+- `.github/skills/story-planning/SKILL.md`
+- `.github/skills/x-story-epic-full/references/decomposition-guide.md`

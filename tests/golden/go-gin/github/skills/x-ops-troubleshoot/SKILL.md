@@ -5,7 +5,7 @@ description: >
   Systematic approach: reproduce, locate, understand, fix, verify.
   Use whenever something fails: compilation errors, test failures, runtime
   exceptions, coverage gaps, or performance issues.
-  Reference: `../../.claude/skills/x-ops-troubleshoot/references/`
+  Reference: `.github/skills/x-ops-troubleshoot/SKILL.md`
 ---
 
 # Skill: Troubleshoot
@@ -129,4 +129,4 @@ When troubleshooting within the feature lifecycle, classify errors for the `x-li
 - Referenced by `x-lib-group-verifier` when compilation fails
 - Referenced by `x-dev-lifecycle` during Phase 4 (fixes)
 - Can be used standalone for any debugging task
-- Reference: `../../.claude/skills/x-ops-troubleshoot/SKILL.md`
+- Reference: `.github/skills/x-ops-troubleshoot/SKILL.md`
