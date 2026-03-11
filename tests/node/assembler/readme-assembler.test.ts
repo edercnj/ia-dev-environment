@@ -639,7 +639,7 @@ describe("ReadmeAssembler", () => {
   });
 
   describe("buildStructureBlock", () => {
-    it("containsDirectoryTree", () => {
+    it("buildStructureBlock_default_containsDirectoryTree", () => {
       const result = buildStructureBlock();
       expect(result).toContain(".claude/");
       expect(result).toContain("rules/");
@@ -649,7 +649,7 @@ describe("ReadmeAssembler", () => {
   });
 
   describe("buildTipsBlock", () => {
-    it("includesArchStyleAndInterfaces", () => {
+    it("buildTipsBlock_withArchAndIfaces_includesValues", () => {
       const result = buildTipsBlock("library", "cli rest");
       expect(result).toContain("library");
       expect(result).toContain("cli rest");
