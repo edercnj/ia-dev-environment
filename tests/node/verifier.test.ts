@@ -6,7 +6,6 @@ import {
   verifyOutput,
   validateDirectory,
   collectRelativePaths,
-  BINARY_DIFF_MESSAGE,
 } from "../../src/verifier.js";
 import { createFileTree, createBinaryFile } from "../helpers/file-tree.js";
 

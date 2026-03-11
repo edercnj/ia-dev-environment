@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { tmpdir } from "node:os";
@@ -15,22 +15,21 @@ import {
 } from "../../helpers/integration-constants.js";
 
 describe("E2E verification", { timeout: 60000 }, () => {
-  let tmpDir: string;
+  describe.each(CONFIG_PROFILES)("profile: %s", (profileName) => {
+    let tmpDir: string;
+    const hasGolden = goldenExists(profileName);
 
-  beforeEach(() => {
-    tmpDir = fs.mkdtempSync(
-      path.join(tmpdir(), "e2e-verify-"),
-    );
-  });
+    beforeAll(async () => {
+      tmpDir = fs.mkdtempSync(
+        path.join(tmpdir(), "e2e-verify-"),
+      );
+    });
 
-  afterEach(() => {
-    fs.rmSync(tmpDir, { recursive: true, force: true });
-  });
+    afterAll(() => {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    });
 
-  it.each(CONFIG_PROFILES)(
-    "fullFlowForProfile_%s",
-    async (profileName) => {
-      if (!goldenExists(profileName)) return;
+    it.skipIf(!hasGolden)("fullFlowForProfile", async () => {
       const configPath = path.join(
         CONFIG_TEMPLATES_DIR,
         `setup-config.${profileName}.yaml`,
@@ -47,6 +46,6 @@ describe("E2E verification", { timeout: 60000 }, () => {
         verification.success,
         formatVerificationFailures(verification),
       ).toBe(true);
-    },
-  );
+    });
+  });
 });

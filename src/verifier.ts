@@ -28,19 +28,23 @@ export function validateDirectory(
 export function collectRelativePaths(
   baseDir: string,
 ): string[] {
-  const entries = readdirSync(baseDir, {
-    recursive: true,
-    withFileTypes: true,
-  });
   const paths: string[] = [];
-  for (const entry of entries) {
-    if (!entry.isFile()) continue;
-    const parentDir = entry.parentPath ?? entry.path;
-    const fullPath = join(parentDir, entry.name);
-    const relPath = relative(baseDir, fullPath)
-      .split("\\").join("/");
-    paths.push(relPath);
+  function walk(currentDir: string): void {
+    const entries = readdirSync(currentDir, {
+      withFileTypes: true,
+    });
+    for (const entry of entries) {
+      const fullPath = join(currentDir, entry.name);
+      if (entry.isDirectory()) {
+        walk(fullPath);
+      } else if (entry.isFile()) {
+        const relPath = relative(baseDir, fullPath)
+          .split("\\").join("/");
+        paths.push(relPath);
+      }
+    }
   }
+  walk(baseDir);
   return paths.sort();
 }
 
