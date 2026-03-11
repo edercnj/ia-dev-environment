@@ -1,7 +1,7 @@
 {
   "name": "ia-dev-environment",
   "version": "0.1.0",
-  "description": "Project foundation for ia-dev-environment Node.js + TypeScript migration.",
+  "description": "CLI tool that generates .claude/ and .github/ boilerplate for AI-assisted development environments",
   "license": "MIT",
   "engines": {
     "node": ">=18"
@@ -12,13 +12,18 @@
   "bin": {
     "ia-dev-env": "./dist/index.js"
   },
+  "files": [
+    "dist",
+    "resources"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsx src/index.ts",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:integration": "vitest run tests/node/integration/",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "npm run build && npm test"
   },
   "dependencies": {
     "commander": "^12.1.0",
