@@ -27,26 +27,17 @@ Thumbs.db
 *.tmp
 *.bak
 
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-*.egg-info/
-*.egg
+# Dependencies
 node_modules/
+
+# Build output
 dist/
 build/
-.eggs/
-.venv/
-venv/
-.coverage
-.coverage.*
+*.tsbuildinfo
+
+# Coverage
 coverage/
 coverage.json
-htmlcov/
-.pytest_cache/
-*.whl
-*.tsbuildinfo
 
 # npm pack artifacts
 *.tgz
