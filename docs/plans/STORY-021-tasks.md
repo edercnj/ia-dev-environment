@@ -1,209 +1,401 @@
-# Task Decomposition -- STORY-021: Lib Skills in GitHub Skills Assembler
+# Task Decomposition -- STORY-021: Codex Nunjucks Templates
 
 **Status:** PENDING
 **Date:** 2026-03-11
-**Blocked By:** STORY-014 (GitHub Assemblers) -- complete
-**Blocks:** STORY-016 (pipeline orchestrator)
+**Blocked By:** EPIC-001/STORY-005 (Template Engine) -- complete
+**Blocks:** STORY-022 (CodexAgentsMdAssembler), STORY-023 (CodexConfigAssembler)
 
 ---
 
-## G1 -- Foundation (GitHub lib skill templates)
+## G1 -- Foundation (directory structure + simple section templates)
 
-**Purpose:** Create the 3 GitHub skill template files for lib skills. These are pure markdown data files adapted from the existing `.claude/skills/` source templates (`resources/skills-templates/core/lib/`) to the GitHub Copilot format (YAML frontmatter with `name` + `description`, markdown body). No TypeScript code changes.
+**Purpose:** Create the `resources/codex-templates/` directory structure and the three simplest section templates that use only flat string interpolation with no conditional logic or iteration.
 **Dependencies:** None
-**Compiles independently:** N/A -- no TypeScript changes in this group.
+**Compiles independently:** N/A -- pure resource files, no TypeScript changes.
 
-### T1.1 -- Create `x-lib-task-decomposer.md` GitHub skill template
+### T1.1 -- Create directory structure
 
-- **File:** `resources/github-skills-templates/lib/x-lib-task-decomposer.md` (create)
-- **What to implement:**
-  - YAML frontmatter with `name: x-lib-task-decomposer` and `description: ...` (adapted from source at `resources/skills-templates/core/lib/x-lib-task-decomposer/SKILL.md`)
-  - Markdown body adapted for GitHub Copilot context (remove Claude-specific references like `.claude/skills/`, adapt paths to `.github/skills/` equivalents)
-  - Keep `{project_name}` single-brace placeholders for `TemplateEngine.replacePlaceholders()` processing
-  - Follow the format of existing GitHub skill templates (e.g., `resources/github-skills-templates/dev/x-dev-implement.md`)
-- **Source reference:** `resources/skills-templates/core/lib/x-lib-task-decomposer/SKILL.md`
+- **Directories:** `resources/codex-templates/` and `resources/codex-templates/sections/`
+- **What to implement:** Create both directories (empty initially).
 - **Dependencies on other tasks:** None
-- **Estimated complexity:** S
+- **Estimated complexity:** XS
 
-### T1.2 -- Create `x-lib-audit-rules.md` GitHub skill template
+### T1.2 -- Create `sections/header.md.njk`
 
-- **File:** `resources/github-skills-templates/lib/x-lib-audit-rules.md` (create)
+- **File:** `resources/codex-templates/sections/header.md.njk` (create)
+- **Context consumed:** `project_name`, `project_purpose`
 - **What to implement:**
-  - YAML frontmatter with `name: x-lib-audit-rules` and `description: ...` (adapted from source at `resources/skills-templates/core/lib/x-lib-audit-rules/SKILL.md`)
-  - Markdown body adapted for GitHub Copilot context
-  - Same conventions as T1.1
-- **Source reference:** `resources/skills-templates/core/lib/x-lib-audit-rules/SKILL.md`
-- **Dependencies on other tasks:** None
-- **Estimated complexity:** S
+  - Render `# {{ project_name }}` heading
+  - Render `{{ project_purpose }}` paragraph below
+  - No conditional logic -- both fields are always present
+- **Dependencies on other tasks:** T1.1
+- **Estimated complexity:** XS
 
-### T1.3 -- Create `x-lib-group-verifier.md` GitHub skill template
+### T1.3 -- Create `sections/architecture.md.njk`
 
-- **File:** `resources/github-skills-templates/lib/x-lib-group-verifier.md` (create)
+- **File:** `resources/codex-templates/sections/architecture.md.njk` (create)
+- **Context consumed:** `architecture_style`, `language_name`, `language_version`, `framework_name`, `framework_version`
 - **What to implement:**
-  - YAML frontmatter with `name: x-lib-group-verifier` and `description: ...` (adapted from source at `resources/skills-templates/core/lib/x-lib-group-verifier/SKILL.md`)
-  - Markdown body adapted for GitHub Copilot context
-  - Same conventions as T1.1
-- **Source reference:** `resources/skills-templates/core/lib/x-lib-group-verifier/SKILL.md`
-- **Dependencies on other tasks:** None
+  - `## Architecture` heading
+  - Architecture style, package structure, dependency direction rules
+  - All fields are always-present strings (no conditionals needed)
+- **Dependencies on other tasks:** T1.1
 - **Estimated complexity:** S
 
-### Compilation checkpoint G1
+### T1.4 -- Create `sections/conventions.md.njk`
 
-```
-# No compilation needed -- pure resource files
-ls resources/github-skills-templates/lib/   # verify 3 files exist
-```
-
----
-
-## G2 -- Core (assembler modifications for lib group + nesting)
-
-**Purpose:** Add the "lib" group to `SKILL_GROUPS`, introduce `NESTED_GROUPS` set, and modify `generateGroup`/`renderSkill` to support an optional subdirectory prefix so lib skills are output under `github/skills/lib/{skillName}/SKILL.md` instead of the flat `github/skills/{skillName}/SKILL.md`.
-**Dependencies:** G1 (templates must exist for integration testing, but compilation is independent)
-**Compiles independently:** Yes -- no new imports or dependencies introduced.
-
-### T2.1 -- Add `NESTED_GROUPS` constant and "lib" group to `SKILL_GROUPS`
-
-- **File:** `src/assembler/github-skills-assembler.ts` (modify)
+- **File:** `resources/codex-templates/sections/conventions.md.njk` (create)
+- **Context consumed:** `language_name`
 - **What to implement:**
-  1. Add `const NESTED_GROUPS = new Set(["lib"]);` after the existing `INFRA_GROUP` constant (line 17), and export it for testability.
-  2. Add `"lib"` entry to `SKILL_GROUPS` after the `"git-troubleshooting"` entry:
-     ```typescript
-     "lib": ["x-lib-task-decomposer", "x-lib-audit-rules", "x-lib-group-verifier"],
-     ```
-  3. Group count increases from 7 to 8.
-- **Dependencies on other tasks:** None
+  - `## Conventions` heading
+  - Commit format (Conventional Commits), branch naming, code language (English), documentation language
+  - No conditional logic -- `language_name` is always present
+- **Dependencies on other tasks:** T1.1
 - **Estimated complexity:** S
 
-### T2.2 -- Add `subDir` parameter to `renderSkill` for nested output paths
+### Verification checkpoint G1
 
-- **File:** `src/assembler/github-skills-assembler.ts` (modify)
-- **What to implement:**
-  1. Add optional `subDir?: string` parameter to `renderSkill` method signature.
-  2. Modify the `skillDir` path calculation:
-     ```typescript
-     const skillDir = subDir
-       ? path.join(outputDir, "github", "skills", subDir, name)
-       : path.join(outputDir, "github", "skills", name);
-     ```
-  3. All existing calls to `renderSkill` continue to work without `subDir` (parameter is optional, defaults to `undefined`).
-- **Dependencies on other tasks:** None (can be done in parallel with T2.1)
-- **Estimated complexity:** S
-
-### T2.3 -- Add `subDir` parameter to `generateGroup` and wire nesting in `assemble`
-
-- **File:** `src/assembler/github-skills-assembler.ts` (modify)
-- **What to implement:**
-  1. Add optional `subDir?: string` parameter to `generateGroup` method signature.
-  2. Pass `subDir` through to each `renderSkill` call:
-     ```typescript
-     const dest = this.renderSkill(engine, srcDir, outputDir, name, subDir);
-     ```
-  3. In the `assemble` method, compute `subDir` for each group and pass it to `generateGroup`:
-     ```typescript
-     const subDir = NESTED_GROUPS.has(group) ? group : undefined;
-     results.push(
-       ...this.generateGroup(engine, srcDir, outputDir, filtered, subDir),
-     );
-     ```
-- **Dependencies on other tasks:** T2.1 (needs `NESTED_GROUPS`), T2.2 (needs `renderSkill` updated)
-- **Estimated complexity:** S
-
-### Compilation checkpoint G2
-
-```
-npx tsc --noEmit   # zero errors with lib group + nesting support
+```bash
+ls resources/codex-templates/sections/   # verify header.md.njk, architecture.md.njk, conventions.md.njk
 ```
 
 ---
 
-## G3 -- Tests (unit tests for lib group, nesting, assemble output)
+## G2 -- Data-Driven Sections (conditional rows and object access)
 
-**Purpose:** Add comprehensive unit tests covering the new lib group, subdirectory nesting, and all edge cases. Update existing group count assertion.
-**Dependencies:** G1 (templates for reference), G2 (source code must compile)
-**Pattern reference:** Existing tests in `tests/node/assembler/github-skills-assembler.test.ts` for structure, temp dir management, and helper conventions.
+**Purpose:** Create section templates that involve conditional row rendering (tech-stack omits rows when value is `"none"`) and object property access (commands from `resolved_stack`).
+**Dependencies:** G1 (directory structure must exist)
+**Compiles independently:** N/A -- pure resource files.
 
-### T3.1 -- Update existing group count test and add `createAllLibSkills` helper
+### T2.1 -- Create `sections/tech-stack.md.njk`
 
-- **File:** `tests/node/assembler/github-skills-assembler.test.ts` (modify)
+- **File:** `resources/codex-templates/sections/tech-stack.md.njk` (create)
+- **Context consumed:** `language_name`, `language_version`, `framework_name`, `framework_version`, `build_tool`, `database_name`, `cache_name`, `container`, `orchestrator`, `observability`
 - **What to implement:**
-  1. Update `SKILL_GROUPS_has7Groups` test: change assertion from `toHaveLength(7)` to `toHaveLength(8)`. Rename test to `SKILL_GROUPS_has8Groups`.
-  2. Add `NESTED_GROUPS` to the import from `github-skills-assembler.js`.
-  3. Add helper function following the `createAllInfraSkills` pattern:
-     ```typescript
-     function createAllLibSkills(resourcesDir: string): void {
-       for (const name of SKILL_GROUPS["lib"]!) {
-         createSkillTemplate(resourcesDir, "lib", name);
-       }
-     }
-     ```
-- **Dependencies on other tasks:** G2 (needs `NESTED_GROUPS` export, `SKILL_GROUPS` with "lib")
-- **Estimated complexity:** S
-
-### T3.2 -- Add `describe("GithubSkillsAssembler -- lib group")` test block
-
-- **File:** `tests/node/assembler/github-skills-assembler.test.ts` (modify, append new describe block)
-- **What to implement:**
-  New describe block with `beforeEach`/`afterEach` temp dir management (same pattern as existing `"GithubSkillsAssembler -- assemble"` block), containing:
-
-  1. `assemble_libGroup_generates3LibSkills` -- Create all 3 lib templates via `createAllLibSkills`, assemble, verify result contains 3 lib skill paths.
-  2. `assemble_libGroup_outputNestedUnderLib` -- Verify all output paths contain `github/skills/lib/` segment (not flat `github/skills/x-lib-*`).
-  3. `assemble_libGroup_templateDirMissing_skipsGroup` -- No lib template dir in resources, verify 0 lib files in result.
-  4. `assemble_libGroup_partialTemplates_generatesAvailable` -- Only 1 of 3 lib templates exists (e.g., `x-lib-task-decomposer`), verify only 1 file generated.
-  5. `assemble_libGroup_appliesPlaceholderReplacement` -- Template contains `{project_name}`, verify output file contains `my-app`.
-  6. `assemble_libGroup_outputStructure_lib_skillName_SKILL_md` -- Verify exact path: `outputDir/github/skills/lib/x-lib-task-decomposer/SKILL.md`.
-  7. `assemble_mixedGroups_libNestedOthersFlat` -- Create both lib templates and dev templates. Verify lib skills are under `github/skills/lib/` while dev skills remain flat under `github/skills/` (no nesting).
-  8. `assemble_libGroupNotFiltered_allSkillsGenerated` -- Use config with all infra set to `"none"` (which filters out infra skills). Verify lib skills are still generated (unconditional, no config-based filtering).
-  9. `NESTED_GROUPS_containsLib` -- Verify `NESTED_GROUPS.has("lib")` returns `true` and `NESTED_GROUPS.size` is `1`.
-- **Dependencies on other tasks:** T3.1 (needs helper and updated imports)
+  - `## Tech Stack` heading
+  - Markdown table with Language, Framework, Build Tool, Container as always-present rows
+  - Conditional rows for Database, Cache, Orchestrator, Observability: use `{% if field != "none" %}` guards per row to omit when value is `"none"`
+  - `observability` is an extended context field provided by the assembler (not in `buildDefaultContext()`)
+- **Dependencies on other tasks:** T1.1
 - **Estimated complexity:** M
 
-### Test execution checkpoint G3
+### T2.2 -- Create `sections/commands.md.njk`
 
-```
-npx vitest run tests/node/assembler/github-skills-assembler.test.ts
+- **File:** `resources/codex-templates/sections/commands.md.njk` (create)
+- **Context consumed:** `resolved_stack` (object with `buildCmd`, `testCmd`, `compileCmd`, `coverageCmd`)
+- **What to implement:**
+  - `## Commands` heading
+  - Markdown table with Build, Test, Compile, Coverage rows
+  - Access nested properties: `{{ resolved_stack.buildCmd }}`, etc.
+  - No conditional logic -- `resolved_stack` is always present with all 4 commands
+- **Dependencies on other tasks:** T1.1
+- **Estimated complexity:** S
+
+### Verification checkpoint G2
+
+```bash
+ls resources/codex-templates/sections/   # verify tech-stack.md.njk, commands.md.njk added
 ```
 
 ---
 
-## G4 -- Verification (coverage validation, compilation check)
+## G3 -- Standards Sections (static content with minimal interpolation)
 
-**Purpose:** Final verification that all code compiles cleanly, all tests pass, and coverage thresholds are met for the modified assembler.
-**Dependencies:** G1, G2, G3 all complete.
+**Purpose:** Create coding-standards and quality-gates section templates. These contain substantial static Markdown content derived from Rule 03 and Rule 05 with a few interpolated values.
+**Dependencies:** G1 (directory structure)
+**Compiles independently:** N/A -- pure resource files.
 
-### T4.1 -- Full compilation check
+### T3.1 -- Create `sections/coding-standards.md.njk`
+
+- **File:** `resources/codex-templates/sections/coding-standards.md.njk` (create)
+- **Context consumed:** `language_name`, `language_version`
+- **What to implement:**
+  - `## Coding Standards` heading
+  - Hard limits table: method length <= 25 lines, class <= 250 lines, parameters <= 4, line width <= 120
+  - SOLID one-liners (SRP, OCP, LSP, ISP, DIP)
+  - Error handling rules (no null returns, no null args, exceptions with context)
+  - Forbidden patterns list (boolean flags, mutable global state, god classes, wildcard imports, sleep for sync)
+  - Content derived from Rule 03 (`resources/core-rules/03-coding-standards.md`)
+- **Dependencies on other tasks:** T1.1
+- **Estimated complexity:** S
+
+### T3.2 -- Create `sections/quality-gates.md.njk`
+
+- **File:** `resources/codex-templates/sections/quality-gates.md.njk` (create)
+- **Context consumed:** `coverage_line`, `coverage_branch`, `smoke_tests`, `contract_tests`, `performance_tests`
+- **What to implement:**
+  - `## Quality Gates` heading
+  - Coverage thresholds table with `{{ coverage_line }}` and `{{ coverage_branch }}` values
+  - Test categories list (Unit, Integration, API, Contract, E2E, Performance, Smoke)
+  - Conditional rows for smoke/contract/performance tests based on their `"True"`/`"False"` string values
+  - Test naming convention: `[method]_[scenario]_[expected]`
+  - Merge checklist
+  - Content derived from Rule 05 (`resources/core-rules/05-quality-gates.md`)
+- **Dependencies on other tasks:** T1.1
+- **Estimated complexity:** S
+
+### Verification checkpoint G3
+
+```bash
+ls resources/codex-templates/sections/   # verify coding-standards.md.njk, quality-gates.md.njk added
+```
+
+---
+
+## G4 -- Conditional Sections (guarded by orchestrator-level {% if %})
+
+**Purpose:** Create the four section templates that are conditionally included by the orchestrator. These sections use `{% for %}` loops or are only rendered when their guard condition is true.
+**Dependencies:** G1 (directory structure)
+**Compiles independently:** N/A -- pure resource files.
+
+### T4.1 -- Create `sections/domain.md.njk`
+
+- **File:** `resources/codex-templates/sections/domain.md.njk` (create)
+- **Context consumed:** None directly (the orchestrator guards with `domain_driven == "True"`)
+- **What to implement:**
+  - `## Domain` heading
+  - Domain model structural scaffolding with guidance comments
+  - Placeholders for entities, value objects, aggregates, business rules
+  - This section provides a template for project-specific domain content that cannot be auto-generated from config
+- **Dependencies on other tasks:** T1.1
+- **Estimated complexity:** S
+
+### T4.2 -- Create `sections/security.md.njk`
+
+- **File:** `resources/codex-templates/sections/security.md.njk` (create)
+- **Context consumed:** `security_frameworks` (array of strings)
+- **What to implement:**
+  - `## Security` heading
+  - `{% for framework in security_frameworks %}` loop to list each framework
+  - Security guidelines based on configured frameworks
+  - Only included when `security_frameworks` is non-empty (guarded by orchestrator)
+- **Dependencies on other tasks:** T1.1
+- **Estimated complexity:** S
+
+### T4.3 -- Create `sections/skills.md.njk`
+
+- **File:** `resources/codex-templates/sections/skills.md.njk` (create)
+- **Context consumed:** `skills_list` (array of `{ name, description, user_invocable }`)
+- **What to implement:**
+  - `## Available Skills` heading
+  - Markdown table with Skill and Description columns
+  - `{% for skill in skills_list %}{% if skill.user_invocable %}` to filter to user-invocable skills only
+  - Only included when `skills_list` is non-empty (guarded by orchestrator)
+- **Dependencies on other tasks:** T1.1
+- **Estimated complexity:** S
+
+### T4.4 -- Create `sections/agents.md.njk`
+
+- **File:** `resources/codex-templates/sections/agents.md.njk` (create)
+- **Context consumed:** `agents_list` (array of `{ name, description }`)
+- **What to implement:**
+  - `## Agent Personas` heading
+  - Markdown table with Agent and Role columns
+  - `{% for agent in agents_list %}` loop to render each row
+  - Only included when `agents_list` is non-empty (guarded by orchestrator)
+- **Dependencies on other tasks:** T1.1
+- **Estimated complexity:** S
+
+### Verification checkpoint G4
+
+```bash
+ls resources/codex-templates/sections/   # verify all 11 section files exist
+```
+
+---
+
+## G5 -- Orchestrator + Config Templates
+
+**Purpose:** Create the two top-level templates: `agents-md.md.njk` (orchestrator that includes all sections with conditional guards) and `config.toml.njk` (standalone TOML template).
+**Dependencies:** G1-G4 (all section templates must exist for includes to resolve)
+**Compiles independently:** N/A -- pure resource files.
+
+### T5.1 -- Create `agents-md.md.njk` (orchestrator)
+
+- **File:** `resources/codex-templates/agents-md.md.njk` (create)
+- **What to implement:**
+  - Nunjucks comment: `{# Codex AGENTS.md -- consolidated project instructions #}`
+  - Always-included sections (6): `{% include "codex-templates/sections/header.md.njk" %}`, architecture, tech-stack, commands, coding-standards, quality-gates
+  - Conditionally-included sections (4):
+    - `{% if domain_driven == "True" %}{% include "codex-templates/sections/domain.md.njk" %}{% endif %}`
+    - `{% if security_frameworks and security_frameworks.length > 0 %}{% include "codex-templates/sections/security.md.njk" %}{% endif %}`
+    - `{% if skills_list and skills_list.length > 0 %}{% include "codex-templates/sections/skills.md.njk" %}{% endif %}`
+    - `{% if agents_list and agents_list.length > 0 %}{% include "codex-templates/sections/agents.md.njk" %}{% endif %}`
+  - Always-included section: conventions
+  - Include paths MUST use `codex-templates/sections/` prefix (FileSystemLoader root is `resourcesDir`)
+  - Whitespace control: use `{%- -%}` trim markers on conditional closing tags where needed to avoid excess blank lines
+  - Blank line separators between each `{% include %}` block
+- **Dependencies on other tasks:** G1-G4 (all 11 section files)
+- **Estimated complexity:** M
+
+### T5.2 -- Create `config.toml.njk`
+
+- **File:** `resources/codex-templates/config.toml.njk` (create)
+- **Context consumed:** `model`, `approval_policy`, `sandbox_mode`, `project_name`, `mcp_servers` (optional array of `{ id, command, env }`)
+- **What to implement:**
+  - TOML comment: `# Codex CLI configuration for {{ project_name }}`
+  - Generated-file warning comment
+  - Top-level keys: `model = "{{ model }}"`, `approval_policy = "{{ approval_policy }}"`
+  - `[sandbox]` section: `mode = "{{ sandbox_mode }}"`
+  - Conditional MCP servers section: `{% if mcp_servers and mcp_servers.length > 0 %}`
+    - `{% for server in mcp_servers %}` loop producing `[mcp_servers.{{ server.id }}]` sections
+    - Command array rendering: `command = [{% for part in server.command %}"{{ part }}"{% if not loop.last %}, {% endif %}{% endfor %}]`
+    - Environment variables: `{% for key, value in server.env %}` producing key-value pairs under `[mcp_servers.{{ server.id }}.env]`
+  - Proper TOML quoting (double quotes around string values)
+- **Dependencies on other tasks:** T1.1 (directory only)
+- **Estimated complexity:** M
+
+### Verification checkpoint G5
+
+```bash
+ls resources/codex-templates/   # verify agents-md.md.njk, config.toml.njk at root level
+ls resources/codex-templates/sections/   # verify all 11 section files
+# Total: 13 template files
+```
+
+---
+
+## G6 -- Tests
+
+**Purpose:** Create the test file `tests/node/codex-templates.test.ts` with all 35 test scenarios covering individual section rendering, orchestrator composition, config.toml generation, conditional logic, and snapshots.
+**Dependencies:** G5 (all 13 templates must exist for rendering tests)
+**Compiles independently:** Yes -- imports from existing `src/template-engine.ts` and `src/models.ts`.
+
+### T6.1 -- Create test file with fixtures
+
+- **File:** `tests/node/codex-templates.test.ts` (create)
+- **What to implement:**
+  - Import `TemplateEngine`, `buildDefaultContext` from `src/template-engine.ts`
+  - Import model classes from `src/models.ts`
+  - Use the real `resources/` directory (read-only, no temp dir needed since `renderTemplate` does not write to disk)
+  - Two fixture functions:
+    - `fullContext()` -- all sections enabled, all arrays populated, `domain_driven = "True"`, `security_frameworks = ["owasp", "pci-dss"]`
+    - `minimalContext()` -- conditional sections disabled, empty arrays, `domain_driven = "False"`, `security_frameworks = []`
+  - Construct `TemplateEngine` with the project's `resources/` directory and a suitable `ProjectConfig`
+- **Dependencies on other tasks:** G5
+- **Estimated complexity:** S
+
+### T6.2 -- Section rendering tests (15 tests)
+
+- **File:** `tests/node/codex-templates.test.ts` (extend)
+- **What to implement:**
+  - `describe("Section rendering")` block containing:
+  1. `header_fullContext_rendersProjectNameAndPurpose` -- render `codex-templates/sections/header.md.njk`, assert contains `# my-service` and purpose text
+  2. `architecture_fullContext_rendersStyleAndLanguage` -- assert contains `architecture_style`, `language_name`
+  3. `techStack_fullContext_rendersAllRows` -- assert contains database, cache, container rows
+  4. `techStack_databaseNone_omitsDatabaseRow` -- override `database_name = "none"`, assert does NOT contain "Database" row
+  5. `techStack_cacheNone_omitsCacheRow` -- override `cache_name = "none"`, assert does NOT contain "Cache" row
+  6. `techStack_orchestratorNone_omitsOrchestratorRow` -- override `orchestrator = "none"`, assert does NOT contain "Orchestrator" row
+  7. `techStack_observabilityNone_omitsObservabilityRow` -- override `observability = "none"`, assert does NOT contain "Observability" row
+  8. `commands_fullContext_rendersAllCommands` -- assert contains buildCmd, testCmd, compileCmd, coverageCmd values
+  9. `codingStandards_fullContext_rendersHardLimits` -- assert contains "25 lines", "250 lines", SOLID references
+  10. `qualityGates_fullContext_rendersCoverageThresholds` -- assert contains `coverage_line` and `coverage_branch` values
+  11. `domain_fullContext_rendersDomainSection` -- assert contains "## Domain" heading
+  12. `security_fullContext_rendersFrameworks` -- assert contains "owasp", "pci-dss"
+  13. `conventions_fullContext_rendersCommitConventions` -- assert contains "Conventional Commits"
+  14. `skills_fullContext_rendersSkillsTable` -- assert contains "x-dev-implement", "x-review"; does NOT contain "x-lib-audit"
+  15. `agents_fullContext_rendersAgentsTable` -- assert contains "architect", "tech-lead", "qa-engineer"
+- **Dependencies on other tasks:** T6.1
+- **Estimated complexity:** M
+
+### T6.3 -- Orchestrator template tests (8 tests)
+
+- **File:** `tests/node/codex-templates.test.ts` (extend)
+- **What to implement:**
+  - `describe("Orchestrator -- agents-md.md.njk")` block containing:
+  16. `agentsMd_fullContext_containsAllSections` -- render `codex-templates/agents-md.md.njk` with full context, assert contains all 11 section headings
+  17. `agentsMd_fullContext_noTemplateArtifacts` -- assert output does NOT match `/{[{%]/` regex
+  18. `agentsMd_fullContext_validMarkdown` -- assert no `{{`, no `{%`, no `{#` in output
+  19. `agentsMd_minimalContext_omitsDomainSection` -- minimal context (`domain_driven="False"`), assert does NOT contain "## Domain"
+  20. `agentsMd_minimalContext_omitsSecuritySection` -- minimal context (`security_frameworks=[]`), assert does NOT contain "## Security"
+  21. `agentsMd_minimalContext_omitsSkillsSection` -- minimal context (`skills_list=[]`), assert does NOT contain "## Available Skills"
+  22. `agentsMd_minimalContext_omitsAgentsSection` -- minimal context (`agents_list=[]`), assert does NOT contain "## Agent Personas"
+  23. `agentsMd_minimalContext_includesAlwaysPresentSections` -- minimal context, assert contains Header, Architecture, Tech Stack, Commands, Coding Standards, Quality Gates, Conventions
+- **Dependencies on other tasks:** T6.1
+- **Estimated complexity:** M
+
+### T6.4 -- Config TOML tests (8 tests)
+
+- **File:** `tests/node/codex-templates.test.ts` (extend)
+- **What to implement:**
+  - `describe("Config -- config.toml.njk")` block containing:
+  24. `configToml_fullContext_rendersModelAndPolicy` -- assert contains `model = "o4-mini"`, `approval_policy = "on-request"`
+  25. `configToml_fullContext_rendersMcpServers` -- assert contains `[mcp_servers.firecrawl]`
+  26. `configToml_noMcpServers_omitsMcpSection` -- minimal context, assert does NOT contain `[mcp_servers`
+  27. `configToml_noHooks_usesUntrustedPolicy` -- minimal context, assert contains `approval_policy = "untrusted"`
+  28. `configToml_withHooks_usesOnRequestPolicy` -- full context, assert contains `approval_policy = "on-request"`
+  29. `configToml_fullContext_noTemplateArtifacts` -- assert no `{{`, `{%`, `{#`
+  30. `configToml_fullContext_validTomlStructure` -- assert contains valid TOML key-value pairs, proper quoting
+  31. `configToml_rendersSandboxMode` -- assert contains `mode = "workspace-write"`
+- **Dependencies on other tasks:** T6.1
+- **Estimated complexity:** M
+
+### T6.5 -- Snapshot tests (4 tests)
+
+- **File:** `tests/node/codex-templates.test.ts` (extend)
+- **What to implement:**
+  - `describe("Snapshots")` block containing:
+  32. `agentsMd_fullContext_matchesSnapshot` -- `toMatchSnapshot()`
+  33. `agentsMd_minimalContext_matchesSnapshot` -- `toMatchSnapshot()`
+  34. `configToml_fullContext_matchesSnapshot` -- `toMatchSnapshot()`
+  35. `configToml_minimalContext_matchesSnapshot` -- `toMatchSnapshot()`
+  - Run `npx vitest run -u tests/node/codex-templates.test.ts` to generate initial snapshots
+- **Dependencies on other tasks:** T6.2, T6.3, T6.4 (all tests must render successfully first)
+- **Estimated complexity:** S
+
+### Test execution checkpoint G6
+
+```bash
+npx vitest run tests/node/codex-templates.test.ts          # all 35 tests pass
+npx vitest run -u tests/node/codex-templates.test.ts       # generate/update snapshots
+```
+
+---
+
+## G7 -- Validation (compilation + coverage verification)
+
+**Purpose:** Final verification that the entire project compiles cleanly, all tests pass (including existing ones), and coverage thresholds are met.
+**Dependencies:** G6 (tests must exist and pass)
+
+### T7.1 -- Full compilation check
 
 - **Command:** `npx tsc --noEmit`
 - **Expected:** Zero errors across the entire project.
-- **Dependencies on other tasks:** G2
+- **Dependencies on other tasks:** G6
 
-### T4.2 -- Run all GithubSkillsAssembler tests
+### T7.2 -- Run codex template tests with coverage
 
-- **Command:** `npx vitest run tests/node/assembler/github-skills-assembler.test.ts`
-- **Expected:** All tests pass (existing + new).
-- **Dependencies on other tasks:** G3
-
-### T4.3 -- Coverage verification
-
-- **Command:** `npx vitest run --coverage tests/node/assembler/github-skills-assembler.test.ts`
-- **Expected:** >= 95% line coverage, >= 90% branch coverage on `src/assembler/github-skills-assembler.ts`.
+- **Command:** `npx vitest run --coverage tests/node/codex-templates.test.ts`
+- **Expected:** >= 95% line coverage, >= 90% branch coverage.
 - **Coverage strategy:**
-  - `NESTED_GROUPS.has(group)` exercised for both `true` (lib) and `false` (dev, story, etc.)
-  - `subDir` present/undefined branch exercised in `renderSkill` and `generateGroup`
-  - Lib template exists/missing branches exercised
-  - Mixed groups (lib nested + non-lib flat) in single `assemble` call
-  - Lib group not subject to `filterSkills` config-based filtering (unconditional)
-- **Dependencies on other tasks:** G3
+  - Every template line exercised via full + minimal contexts
+  - Every `{% if %}` guard exercised in both true (full context) and false (minimal context) states
+  - Every `{% for %}` loop exercised with non-empty (full) and empty (minimal) arrays
+  - All conditional tech-stack rows exercised individually (database, cache, orchestrator, observability set to `"none"`)
+  - Skills filtering: `user_invocable: true` and `user_invocable: false` both in fixture
+- **Dependencies on other tasks:** T6.5
 
-### T4.4 -- Verify output structure parity with story acceptance criteria
+### T7.3 -- Full test suite regression check
 
-- **What to verify (manual or via test):**
-  1. 3 lib skills generated in `github/skills/lib/` directory
-  2. Templates exist in `resources/github-skills-templates/lib/`
-  3. Group "lib" present in `SKILL_GROUPS` with 3 skills
-  4. Nesting preserved: files in `github/skills/lib/` not `github/skills/`
-  5. Lib skills have GitHub Copilot-compatible format (YAML frontmatter)
-- **Dependencies on other tasks:** G1, G2, G3
+- **Command:** `npx vitest run`
+- **Expected:** All 1,384+ tests pass (existing + 35 new). Zero regressions.
+- **Dependencies on other tasks:** T7.2
+
+### T7.4 -- Acceptance criteria verification
+
+- **What to verify:**
+  1. 13 templates exist in `resources/codex-templates/` (1 orchestrator + 11 sections + 1 config.toml)
+  2. Full context rendering produces Markdown with all sections (Header, Architecture, Tech Stack, Commands, Coding Standards, Quality Gates, Domain, Security, Conventions, Skills, Agents)
+  3. No template artifacts (`{{`, `{%`, `{#}`) in rendered output
+  4. Domain section omitted when `domain_driven == "False"`
+  5. Security section omitted when `security_frameworks` is empty
+  6. Tech Stack omits rows when values are `"none"`
+  7. config.toml renders valid TOML with model, approval_policy, sandbox_mode
+  8. config.toml includes/omits MCP servers section based on `mcp_servers` array
+  9. `approval_policy` derived correctly from `has_hooks`
+  10. Coverage >= 95% line, >= 90% branch
+  11. All tests passing, zero compiler warnings
+- **Dependencies on other tasks:** T7.1, T7.2, T7.3
 
 ---
 
@@ -211,51 +403,78 @@ npx vitest run tests/node/assembler/github-skills-assembler.test.ts
 
 | Group | Purpose | Files to Create | Files to Modify | Tasks | Test Cases | Complexity |
 |-------|---------|----------------|----------------|-------|------------|------------|
-| G1 | Lib GitHub skill templates | 3 (resources) | 0 | 3 | 0 | S |
-| G2 | Assembler: lib group + nesting | 0 | 1 (src) | 3 | 0 | S |
-| G3 | Unit tests | 0 | 1 (test) | 2 | ~9 | M |
-| G4 | Verification | 0 | 0 | 4 | 0 (verification) | S |
-| **Total** | | **3 new files** | **2 modified** | **12 tasks** | **~9 test cases** | |
+| G1 | Foundation: dirs + simple sections | 3 templates | 0 | 4 | 0 | XS-S |
+| G2 | Data-driven sections (tech-stack, commands) | 2 templates | 0 | 2 | 0 | S-M |
+| G3 | Standards sections (coding, quality) | 2 templates | 0 | 2 | 0 | S |
+| G4 | Conditional sections (domain, security, skills, agents) | 4 templates | 0 | 4 | 0 | S |
+| G5 | Orchestrator + config.toml | 2 templates | 0 | 2 | 0 | M |
+| G6 | Tests | 1 test file | 0 | 5 | 35 | M |
+| G7 | Validation | 0 | 0 | 4 | 0 (verification) | S |
+| **Total** | | **13 templates + 1 test** | **0** | **23 tasks** | **35 test cases** | |
 
 ## Dependency Graph
 
 ```
-G1: FOUNDATION (templates) ----+
-                                |
-G2: CORE (assembler changes) --+--> G3: TESTS --> G4: VERIFICATION
+G1: FOUNDATION (dirs + header, architecture, conventions)
+ |
+ +---> G2: DATA-DRIVEN (tech-stack, commands)
+ |
+ +---> G3: STANDARDS (coding-standards, quality-gates)
+ |
+ +---> G4: CONDITIONAL (domain, security, skills, agents)
+ |
+ +---> G5: ORCHESTRATOR + CONFIG (agents-md.md.njk, config.toml.njk)
+             |
+             v
+         G6: TESTS (35 test scenarios)
+             |
+             v
+         G7: VALIDATION (compile, coverage, regression)
 ```
 
-- G1 and G2 are independent of each other for compilation purposes (G1 is pure resources, G2 is TypeScript).
-- G3 depends on both G1 (templates as source reference) and G2 (compiled source).
-- G4 depends on G3 (tests must exist to verify coverage).
+- G1 must be done first (creates directory structure).
+- G2, G3, G4 can be done in parallel (independent section templates, all depend only on G1 for directories).
+- G5 depends on G1-G4 (orchestrator `{% include %}` directives reference all section templates).
+- G6 depends on G5 (tests render templates that must exist).
+- G7 depends on G6 (verification requires tests).
 
 ## File Inventory
 
-### Resource files (3 new)
+### Template files (13 new)
+
+| File | Type | Content |
+|------|------|---------|
+| `resources/codex-templates/agents-md.md.njk` | Orchestrator | Includes all sections with conditional guards |
+| `resources/codex-templates/config.toml.njk` | Standalone | TOML config with model, sandbox, MCP servers |
+| `resources/codex-templates/sections/header.md.njk` | Section | Project name + purpose |
+| `resources/codex-templates/sections/architecture.md.njk` | Section | Architecture style, structure, dependencies |
+| `resources/codex-templates/sections/tech-stack.md.njk` | Section | Technology table with conditional rows |
+| `resources/codex-templates/sections/commands.md.njk` | Section | Build/test/compile/coverage commands |
+| `resources/codex-templates/sections/coding-standards.md.njk` | Section | Hard limits, SOLID, error handling, forbidden |
+| `resources/codex-templates/sections/quality-gates.md.njk` | Section | Coverage thresholds, test categories, checklist |
+| `resources/codex-templates/sections/domain.md.njk` | Section (conditional) | Domain model scaffolding |
+| `resources/codex-templates/sections/security.md.njk` | Section (conditional) | Security frameworks list |
+| `resources/codex-templates/sections/conventions.md.njk` | Section | Commit, branch, language conventions |
+| `resources/codex-templates/sections/skills.md.njk` | Section (conditional) | Skills table (user-invocable only) |
+| `resources/codex-templates/sections/agents.md.njk` | Section (conditional) | Agent personas table |
+
+### Test files (1 new)
 
 | File | Content |
 |------|---------|
-| `resources/github-skills-templates/lib/x-lib-task-decomposer.md` | GitHub skill template (YAML frontmatter + markdown) |
-| `resources/github-skills-templates/lib/x-lib-audit-rules.md` | GitHub skill template (YAML frontmatter + markdown) |
-| `resources/github-skills-templates/lib/x-lib-group-verifier.md` | GitHub skill template (YAML frontmatter + markdown) |
+| `tests/node/codex-templates.test.ts` | 35 test scenarios across 5 describe blocks |
 
-### Source files (1 modified)
+### Source files modified
 
-| File | Change |
-|------|--------|
-| `src/assembler/github-skills-assembler.ts` | Add `NESTED_GROUPS` constant, add "lib" to `SKILL_GROUPS`, add `subDir` param to `renderSkill`/`generateGroup`, wire nesting in `assemble` |
-
-### Test files (1 modified)
-
-| File | Change |
-|------|--------|
-| `tests/node/assembler/github-skills-assembler.test.ts` | Update group count test (7->8), add `createAllLibSkills` helper, add `NESTED_GROUPS` import, add 9 new tests in lib group describe block |
+None. This story is pure template creation + tests.
 
 ## Key Implementation Notes
 
-1. **Nesting is opt-in via `NESTED_GROUPS`:** Only the "lib" group uses subdirectory nesting. All other groups continue with the flat `github/skills/{name}/` structure. This avoids breaking changes.
-2. **Lib skills are unconditional:** Unlike infrastructure skills which are filtered by config predicates, lib skills are always generated. The `filterSkills` method returns all skills for non-infrastructure groups, so no change needed.
-3. **Template format consistency:** The 3 new GitHub skill templates must follow the same YAML frontmatter + markdown body format as existing templates (e.g., `x-dev-implement.md`). Adapt content from `.claude/skills/` source templates, not copy verbatim.
-4. **`{single_brace}` placeholders:** Templates use `{project_name}` for TemplateEngine processing. Do not use `{{double_brace}}` in these templates.
-5. **Existing `createSkillTemplate` helper works for lib:** The test helper creates templates at `resourcesDir/github-skills-templates/{group}/{skillName}.md`. For lib, group is `"lib"` and `mkdirSync({ recursive: true })` handles the nested path.
-6. **`countGithubSkills` in ReadmeAssembler (STORY-015) already handles nesting:** The recursive `SKILL.md` counting under `github/skills/` will automatically discover lib skills in the nested `lib/` subdirectory.
+1. **Include path prefix:** All `{% include %}` paths in the orchestrator must use `codex-templates/sections/` prefix because the Nunjucks FileSystemLoader root is `resourcesDir` (the `resources/` directory), NOT `codex-templates/`.
+2. **`throwOnUndefined: true`:** Every variable referenced in any template MUST exist in the rendering context. The orchestrator guards optional sections with `{% if %}` before including their templates. Test fixtures must provide ALL variables (even if empty arrays or `"none"` strings).
+3. **Whitespace control:** `trimBlocks: false` and `lstripBlocks: false` in the TemplateEngine config. Use `{%- -%}` trim markers on conditional tags where blank lines would accumulate. Snapshot tests catch whitespace regressions.
+4. **`observability` not in `buildDefaultContext()`:** The existing function returns 24 fields. `observability` is provided as an extended context field by the assembler (STORY-022). Templates accept it as a string.
+5. **Python-style booleans:** `domain_driven`, `smoke_tests`, `contract_tests`, `performance_tests` are `"True"`/`"False"` strings (not JavaScript booleans). Conditionals must compare against `"True"` as a string.
+6. **Test approach:** Use the real `resources/` directory (read-only) since templates are static files and `renderTemplate()` does not write to disk. No temp directory management needed for rendering tests.
+7. **Fixture configs:** Build `ProjectConfig` instances in the test file using existing model constructors (see `tests/fixtures/project-config.fixture.ts` for patterns). Extend with `SecurityConfig(["owasp", "pci-dss"])` for full context, `SecurityConfig()` for minimal.
+8. **MCP `env` iteration:** Nunjucks supports `{% for key, value in obj %}` for object iteration. Test with at least one env variable to validate this syntax.

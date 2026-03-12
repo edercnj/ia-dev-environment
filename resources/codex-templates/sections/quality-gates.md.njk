@@ -1,0 +1,37 @@
+## Quality Gates
+
+### Coverage Thresholds
+
+| Metric | Minimum |
+|--------|---------|
+| Line Coverage | ≥ {{ coverage_line }}% |
+| Branch Coverage | ≥ {{ coverage_branch }}% |
+
+### Test Categories
+
+- **Unit** — domain models, engines, business rules
+- **Integration** — database + framework
+- **API** — HTTP/gRPC/GraphQL endpoints
+{%- if contract_tests == "True" %}
+- **Contract** — parametrized business rules
+{%- endif %}
+- **E2E** — full flow with real database
+{%- if performance_tests == "True" %}
+- **Performance** — latency SLAs, throughput, resource usage
+{%- endif %}
+{%- if smoke_tests == "True" %}
+- **Smoke** — black-box against running environment
+{%- endif %}
+
+### Test Naming
+
+```
+[methodUnderTest]_[scenario]_[expectedBehavior]
+```
+
+### Merge Checklist
+
+- [ ] All tests passing
+- [ ] Coverage ≥ {{ coverage_line }}% line, ≥ {{ coverage_branch }}% branch
+- [ ] Zero compiler/linter warnings
+- [ ] Security review for sensitive changes

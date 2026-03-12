@@ -10,6 +10,7 @@ import {
   SecurityConfig,
   TechComponent,
   TestingConfig,
+  ObservabilityConfig,
 } from "../../src/models.js";
 
 /**
@@ -94,6 +95,59 @@ export function aProjectConfig(): ProjectConfig {
     ),
     new InfraConfig("docker", "kubernetes"),
     new SecurityConfig(),
+    new TestingConfig(true, false, true, 95, 90),
+  );
+}
+
+/**
+ * Build a minimal ProjectConfig with conditional sections disabled.
+ *
+ * Values: minimal-api / go 1.22 / gin 1.9 / layered / no database / no cache.
+ * domain_driven=false, security_frameworks=[], orchestrator="none".
+ */
+export function aMinimalProjectConfig(): ProjectConfig {
+  return new ProjectConfig(
+    new ProjectIdentity("minimal-api", "A minimal API service"),
+    new ArchitectureConfig("layered", false, false),
+    [new InterfaceConfig("rest")],
+    new LanguageConfig("go", "1.22"),
+    new FrameworkConfig("gin", "1.9", "go"),
+    new DataConfig(),
+    new InfraConfig("docker", "none"),
+    new SecurityConfig(),
+    new TestingConfig(false, false, false, 80, 70),
+  );
+}
+
+/**
+ * Build a full ProjectConfig with all conditional sections enabled.
+ *
+ * Values: my-service / python 3.9 / click 8.1 / hexagonal / postgresql / redis.
+ * domain_driven=true, security_frameworks=["owasp","pci-dss"], orchestrator="kubernetes".
+ */
+export function aFullProjectConfig(): ProjectConfig {
+  return new ProjectConfig(
+    new ProjectIdentity("my-service", "A sample service"),
+    new ArchitectureConfig("hexagonal", true, false),
+    [new InterfaceConfig("cli")],
+    new LanguageConfig("python", "3.9"),
+    new FrameworkConfig("click", "8.1", "pip"),
+    new DataConfig(
+      new TechComponent("postgresql"),
+      new TechComponent(),
+      new TechComponent("redis"),
+    ),
+    new InfraConfig(
+      "docker",
+      "kubernetes",
+      "kustomize",
+      "none",
+      "none",
+      "none",
+      "none",
+      new ObservabilityConfig("opentelemetry"),
+    ),
+    new SecurityConfig(["owasp", "pci-dss"]),
     new TestingConfig(true, false, true, 95, 90),
   );
 }
