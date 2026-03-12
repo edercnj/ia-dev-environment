@@ -3,7 +3,7 @@
 ## Summary
 
 - New test file: `tests/node/codex-templates.test.ts`
-- Total test methods: 52
+- Total test methods: 55
 - Categories: Unit (section rendering), Conditional rendering, Orchestrator integration, TOML validity, Snapshot, Edge cases
 - Coverage targets: >= 95% line, >= 90% branch
 - Templates under test: 13 Nunjucks templates in `resources/codex-templates/`
