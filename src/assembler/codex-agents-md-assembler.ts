@@ -16,6 +16,14 @@ import type { TemplateEngine } from "../template-engine.js";
 import { buildDefaultContext } from "../template-engine.js";
 import { resolveStack } from "../domain/resolver.js";
 import type { AssembleResult } from "./rules-assembler.js";
+import {
+  DEFAULT_MODEL,
+  SANDBOX_WORKSPACE_WRITE,
+  isAccessibleDirectory,
+  detectHooks,
+  deriveApprovalPolicy,
+  mapMcpServers,
+} from "./codex-shared.js";
 
 /** Metadata extracted from a generated agent .md file. */
 export interface AgentInfo {
@@ -31,19 +39,6 @@ export interface SkillInfo {
 }
 
 const TEMPLATE_PATH = "codex-templates/agents-md.md.njk";
-const DEFAULT_MODEL = "o4-mini";
-const POLICY_ON_REQUEST = "on-request";
-const POLICY_UNTRUSTED = "untrusted";
-const SANDBOX_WORKSPACE_WRITE = "workspace-write";
-
-/** Check if path exists and is a readable directory. */
-function isAccessibleDirectory(dirPath: string): boolean {
-  try {
-    return fs.statSync(dirPath).isDirectory();
-  } catch {
-    return false;
-  }
-}
 
 /**
  * Scan a directory for agent .md files.
@@ -165,14 +160,10 @@ export function buildExtendedContext(
     agents_list: agents,
     skills_list: skills.map(toTemplateSkill),
     has_hooks: hasHooks,
-    mcp_servers: config.mcp.servers.map((s) => ({
-      id: s.id,
-      command: s.url ? s.url.split(/\s+/) : [],
-      env: { ...s.env },
-    })),
+    mcp_servers: mapMcpServers(config),
     security_frameworks: [...config.security.frameworks],
     model: DEFAULT_MODEL,
-    approval_policy: hasHooks ? POLICY_ON_REQUEST : POLICY_UNTRUSTED,
+    approval_policy: deriveApprovalPolicy(hasHooks),
     sandbox_mode: SANDBOX_WORKSPACE_WRITE,
   };
 }
@@ -195,7 +186,8 @@ function collectContext(
 ): { agents: AgentInfo[]; skills: SkillInfo[]; hasHooks: boolean } {
   const agents = scanAgents(path.join(claudeDir, "agents"));
   const skills = scanSkills(path.join(claudeDir, "skills"));
-  const hasHooks = fs.existsSync(path.join(claudeDir, "hooks"));
+  const hooksDir = path.join(claudeDir, "hooks");
+  const hasHooks = detectHooks(hooksDir);
   if (agents.length === 0) {
     warnings.push("No agents found in output directory");
   }
