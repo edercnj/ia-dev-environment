@@ -24,7 +24,7 @@ import {
 export {
   countRules, countSkills, countAgents, countKnowledgePacks,
   countHooks, countSettings, countGithubFiles,
-  countGithubComponent, countGithubSkills,
+  countGithubComponent, countGithubSkills, countCodexFiles,
   isKnowledgePack, extractRuleNumber, extractRuleScope,
   extractSkillDescription,
 } from "./readme-utils.js";

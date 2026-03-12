@@ -84,9 +84,9 @@ export function buildAssemblers(): readonly AssemblerDescriptor[] {
     { name: "GithubAgentsAssembler", target: "github", assembler: new GithubAgentsAssembler() },
     { name: "GithubHooksAssembler", target: "github", assembler: new GithubHooksAssembler() },
     { name: "GithubPromptsAssembler", target: "github", assembler: new GithubPromptsAssembler() },
-    { name: "ReadmeAssembler", target: "claude", assembler: new ReadmeAssembler() },
     { name: "CodexAgentsMdAssembler", target: "codex", assembler: new CodexAgentsMdAssembler() },
     { name: "CodexConfigAssembler", target: "codex", assembler: new CodexConfigAssembler() },
+    { name: "ReadmeAssembler", target: "claude", assembler: new ReadmeAssembler() },
   ];
 }
 

@@ -39,6 +39,7 @@ function createStubDescriptor(
 ): AssemblerDescriptor {
   return {
     name,
+    target: "claude",
     assembler: {
       assemble: () => warnings !== undefined
         ? { files, warnings }
@@ -53,6 +54,7 @@ function createFailingDescriptor(
 ): AssemblerDescriptor {
   return {
     name,
+    target: "claude",
     assembler: {
       assemble: () => { throw error; },
     },
@@ -105,9 +107,9 @@ describe("buildAssemblers", () => {
     "GithubAgentsAssembler",
     "GithubHooksAssembler",
     "GithubPromptsAssembler",
-    "ReadmeAssembler",
     "CodexAgentsMdAssembler",
     "CodexConfigAssembler",
+    "ReadmeAssembler",
   ];
 
   it("buildAssemblers_returns16Assemblers", () => {
@@ -158,18 +160,21 @@ describe("executeAssemblers", () => {
     const assemblers: AssemblerDescriptor[] = [
       {
         name: "First",
+        target: "claude",
         assembler: {
           assemble: () => { callOrder.push("First"); return []; },
         },
       },
       {
         name: "Second",
+        target: "claude",
         assembler: {
           assemble: () => { callOrder.push("Second"); return []; },
         },
       },
       {
         name: "Third",
+        target: "claude",
         assembler: {
           assemble: () => { callOrder.push("Third"); return []; },
         },
@@ -252,6 +257,7 @@ describe("executeAssemblers", () => {
   it("executeAssemblers_nonErrorThrown_wrapsAsString", () => {
     const assemblers: AssemblerDescriptor[] = [{
       name: "StringThrower",
+      target: "claude",
       assembler: {
         assemble: () => { throw "raw string error"; },
       },
@@ -294,12 +300,14 @@ describe("executeAssemblers", () => {
     const assemblers: AssemblerDescriptor[] = [
       {
         name: "First",
+        target: "claude",
         assembler: {
           assemble: () => { called.push("First"); throw new Error("fail"); },
         },
       },
       {
         name: "Second",
+        target: "claude",
         assembler: {
           assemble: () => { called.push("Second"); return []; },
         },
