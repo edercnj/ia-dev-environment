@@ -25,6 +25,7 @@ import {
   countGithubFiles,
   countGithubComponent,
   countGithubSkills,
+  countCodexFiles,
   isKnowledgePack,
   extractRuleNumber,
   extractRuleScope,
@@ -159,15 +160,20 @@ function resolveGithubDir(outputDir: string): string {
   return path.join(path.dirname(outputDir), ".github");
 }
 
-/** Build the `.claude/ <-> .github/` mapping table. */
+/** Resolve the sibling .codex/ directory relative to the .claude/ outputDir. */
+function resolveCodexDir(outputDir: string): string {
+  return path.join(path.dirname(outputDir), ".codex");
+}
+
+/** Build the `.claude/ <-> .github/ <-> .codex/` mapping table. */
 export function buildMappingTable(outputDir: string): string {
   const rows = buildMappingRows();
   const lines = [
-    "| .claude/ | .github/ | Notes |",
-    "|----------|----------|-------|",
+    "| .claude/ | .github/ | .codex/ | Notes |",
+    "|----------|----------|---------|-------|",
   ];
-  for (const [claude, github, notes] of rows) {
-    lines.push(`| ${claude} | ${github} | ${notes} |`);
+  for (const [claude, github, codex, notes] of rows) {
+    lines.push(`| ${claude} | ${github} | ${codex} | ${notes} |`);
   }
   const githubDir = resolveGithubDir(outputDir);
   const ghTotal = fs.existsSync(githubDir)
@@ -195,16 +201,16 @@ export function buildGenerationSummary(
   return lines.join("\n");
 }
 
-function buildMappingRows(): [string, string, string][] {
+function buildMappingRows(): [string, string, string, string][] {
   return [
-    ["Rules (`rules/*.md`)", "Instructions (`instructions/*.instructions.md`)", "Rules are system-prompt loaded; instructions are contextual"],
-    ["Skills (`skills/*/SKILL.md`)", "Skills (`skills/*/SKILL.md`)", "Same structure, same YAML frontmatter"],
-    ["Agents (`agents/*.md`)", "Agents (`agents/*.agent.md`)", "GitHub agents use `.agent.md` extension with YAML frontmatter"],
-    ["Hooks (`hooks/`)", "Hooks (`hooks/*.json`)", "Both define event-driven automations"],
-    ["Settings (`settings*.json`)", "N/A", "Claude Code specific"],
-    ["N/A", "Prompts (`prompts/*.prompt.md`)", "GitHub Copilot prompt templates"],
-    ["N/A", "MCP (`copilot-mcp.json`)", "GitHub Copilot MCP server configuration"],
-    ["N/A", "Global instructions (`copilot-instructions.md`)", "Loaded in every Copilot session"],
+    ["Rules (`rules/*.md`)", "Instructions (`instructions/*.instructions.md`)", "Sections in AGENTS.md", "Rules \u2192 consolidated sections"],
+    ["Skills (`skills/*/SKILL.md`)", "Skills (`skills/*/SKILL.md`)", "Reference in AGENTS.md", "Skills listed in AGENTS.md"],
+    ["Agents (`agents/*.md`)", "Agents (`agents/*.agent.md`)", "Agent personas in AGENTS.md", "Agents as section"],
+    ["Hooks (`hooks/`)", "Hooks (`hooks/*.json`)", "Reference in AGENTS.md", "Hooks influence approval_policy"],
+    ["Settings (`settings*.json`)", "N/A", "`config.toml`", "Permissions \u2192 approval policy"],
+    ["N/A", "Prompts (`prompts/*.prompt.md`)", "N/A", "GitHub Copilot prompt templates"],
+    ["N/A", "MCP (`copilot-mcp.json`)", "N/A", "GitHub Copilot MCP server configuration"],
+    ["N/A", "Global instructions (`copilot-instructions.md`)", "N/A", "Loaded in every Copilot session"],
   ];
 }
 
@@ -218,6 +224,8 @@ function buildSummaryRows(
   const ghMcp = fs.existsSync(
     path.join(githubDir, "copilot-mcp.json"),
   ) ? 1 : 0;
+  const codexDir = resolveCodexDir(outputDir);
+  const codexCount = countCodexFiles(codexDir);
   return [
     ["Rules (.claude)", countRules(outputDir)],
     ["Skills (.claude)", countSkills(outputDir) - kps],
@@ -231,5 +239,6 @@ function buildSummaryRows(
     ["Prompts (.github)", countGithubComponent(githubDir, "prompts")],
     ["Hooks (.github)", countGithubComponent(githubDir, "hooks")],
     ["MCP (.github)", ghMcp],
+    ["Codex (.codex)", codexCount],
   ];
 }

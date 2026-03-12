@@ -94,6 +94,13 @@ export function countGithubSkills(githubDir: string): number {
     )).length;
 }
 
+/** Count all files in a `.codex/` directory. Returns 0 if dir missing. */
+export function countCodexFiles(codexDir: string): number {
+  if (!fs.existsSync(codexDir)) return 0;
+  return fs.readdirSync(codexDir, { withFileTypes: true })
+    .filter((e) => e.isFile()).length;
+}
+
 /** Return true if SKILL.md content flags a knowledge pack. */
 export function isKnowledgePack(skillMdPath: string): boolean {
   const text = fs.readFileSync(skillMdPath, "utf-8");

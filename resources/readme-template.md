@@ -39,7 +39,15 @@ CLAUDE.md                   <-- Executive summary (project root, loaded automati
 +-- hooks/                      <-- Event hooks (*.json)
 ```
 
-### .claude/ <-> .github/ Mapping
+### .codex/ (OpenAI Codex)
+
+```
+.codex/
+|-- AGENTS.md                   <-- Agent instructions (generated from .claude/ context)
++-- config.toml                 <-- Codex configuration (model, approval, sandbox)
+```
+
+### .claude/ <-> .github/ <-> .codex/ Mapping
 
 {{MAPPING_TABLE}}
 

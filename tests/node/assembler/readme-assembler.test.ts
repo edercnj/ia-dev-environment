@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import {
   countRules, countSkills, countAgents, countKnowledgePacks,
   countHooks, countSettings, countGithubFiles,
-  countGithubComponent, countGithubSkills,
+  countGithubComponent, countGithubSkills, countCodexFiles,
   isKnowledgePack, extractRuleNumber, extractRuleScope,
   extractSkillDescription,
   buildRulesTable, buildSkillsTable, buildAgentsTable,
@@ -94,6 +94,13 @@ function createGithubArtifacts(
       fs.writeFileSync(path.join(fullDir, file), "content");
     }
   }
+}
+
+function createCodexArtifacts(baseDir: string): void {
+  const codexDir = path.join(baseDir, ".codex");
+  fs.mkdirSync(codexDir, { recursive: true });
+  fs.writeFileSync(path.join(codexDir, "AGENTS.md"), "# Agents");
+  fs.writeFileSync(path.join(codexDir, "config.toml"), "[codex]");
 }
 
 function createReadmeTemplate(resourcesDir: string): void {
@@ -247,6 +254,31 @@ describe("ReadmeAssembler", () => {
     it("countGithubSkills_dirMissing_returnsZero", () => {
       const ghDir = path.join(outputDir, "github");
       expect(countGithubSkills(ghDir)).toBe(0);
+    });
+
+    it("countCodexFiles_withFiles_returnsCount", () => {
+      const codexDir = path.join(outputDir, "codex");
+      fs.mkdirSync(codexDir, { recursive: true });
+      fs.writeFileSync(path.join(codexDir, "AGENTS.md"), "# A");
+      fs.writeFileSync(path.join(codexDir, "config.toml"), "[c]");
+      expect(countCodexFiles(codexDir)).toBe(2);
+    });
+
+    it("countCodexFiles_dirMissing_returnsZero", () => {
+      expect(countCodexFiles(path.join(outputDir, "codex"))).toBe(0);
+    });
+
+    it("countCodexFiles_emptyDir_returnsZero", () => {
+      const codexDir = path.join(outputDir, "codex");
+      fs.mkdirSync(codexDir, { recursive: true });
+      expect(countCodexFiles(codexDir)).toBe(0);
+    });
+
+    it("countCodexFiles_ignoresSubdirectories", () => {
+      const codexDir = path.join(outputDir, "codex");
+      fs.mkdirSync(path.join(codexDir, "subdir"), { recursive: true });
+      fs.writeFileSync(path.join(codexDir, "AGENTS.md"), "# A");
+      expect(countCodexFiles(codexDir)).toBe(1);
     });
   });
 
@@ -453,6 +485,21 @@ describe("ReadmeAssembler", () => {
       expect(dataRows).toHaveLength(8);
     });
 
+    it("buildMappingTable_includesCodexColumn", () => {
+      const result = buildMappingTable(outputDir);
+      expect(result).toContain("| .claude/ | .github/ | .codex/ | Notes |");
+    });
+
+    it("buildMappingTable_codexColumnHasConfigToml", () => {
+      const result = buildMappingTable(outputDir);
+      expect(result).toContain("`config.toml`");
+    });
+
+    it("buildMappingTable_codexColumnHasAgentsMd", () => {
+      const result = buildMappingTable(outputDir);
+      expect(result).toContain("Sections in AGENTS.md");
+    });
+
     it("buildGenerationSummary_countsAllComponents", () => {
       createRule(outputDir, "01-identity.md");
       createSkill(outputDir, "commit", "Commit");
@@ -502,6 +549,19 @@ describe("ReadmeAssembler", () => {
       const config = buildConfig();
       const result = buildGenerationSummary(outputDir, config);
       expect(result).toContain("| MCP (.github) | 0 |");
+    });
+
+    it("buildGenerationSummary_codexCountWhenExists", () => {
+      createCodexArtifacts(path.dirname(outputDir));
+      const config = buildConfig();
+      const result = buildGenerationSummary(outputDir, config);
+      expect(result).toContain("| Codex (.codex) | 2 |");
+    });
+
+    it("buildGenerationSummary_codexCountZeroWhenMissing", () => {
+      const config = buildConfig();
+      const result = buildGenerationSummary(outputDir, config);
+      expect(result).toContain("| Codex (.codex) | 0 |");
     });
 
     it("buildGenerationSummary_githubInstructionsIncludesGlobal", () => {
@@ -588,7 +648,7 @@ describe("ReadmeAssembler", () => {
       const config = buildConfig();
       const tpl = path.join(resourcesDir, "readme-template.md");
       const result = generateReadme(config, outputDir, tpl);
-      expect(result).toContain("| .claude/ | .github/ | Notes |");
+      expect(result).toContain("| .claude/ | .github/ | .codex/ | Notes |");
     });
 
     it("generateReadme_containsGenerationSummary", () => {
@@ -741,6 +801,46 @@ describe("ReadmeAssembler", () => {
       expect(content).not.toMatch(
         /\| \*\*coding-std\*\* \| `\/coding-std`/,
       );
+    });
+
+    it("assemble_fullReadme_codexCountInSummary", () => {
+      createReadmeTemplate(resourcesDir);
+      createCodexArtifacts(path.dirname(outputDir));
+      const config = buildConfig();
+      const engine = new TemplateEngine(resourcesDir, config);
+      const assembler = new ReadmeAssembler();
+      assembler.assemble(config, outputDir, resourcesDir, engine);
+      const content = fs.readFileSync(
+        path.join(outputDir, "README.md"), "utf-8",
+      );
+      expect(content).toContain("| Codex (.codex) | 2 |");
+    });
+
+    it("assemble_fullReadme_codexMappingColumnPresent", () => {
+      createReadmeTemplate(resourcesDir);
+      const config = buildConfig();
+      const engine = new TemplateEngine(resourcesDir, config);
+      const assembler = new ReadmeAssembler();
+      assembler.assemble(config, outputDir, resourcesDir, engine);
+      const content = fs.readFileSync(
+        path.join(outputDir, "README.md"), "utf-8",
+      );
+      expect(content).toContain(".codex/");
+      expect(content).toContain("`config.toml`");
+    });
+
+    it("assemble_fullReadme_codexStructureSectionPresent", () => {
+      createReadmeTemplate(resourcesDir);
+      const config = buildConfig();
+      const engine = new TemplateEngine(resourcesDir, config);
+      const assembler = new ReadmeAssembler();
+      assembler.assemble(config, outputDir, resourcesDir, engine);
+      const content = fs.readFileSync(
+        path.join(outputDir, "README.md"), "utf-8",
+      );
+      expect(content).toContain("### .codex/ (OpenAI Codex)");
+      expect(content).toContain("AGENTS.md");
+      expect(content).toContain("config.toml");
     });
 
     it("assemble_engineNotUsed_noError", () => {
