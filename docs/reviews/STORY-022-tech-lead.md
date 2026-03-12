@@ -1,241 +1,241 @@
-# Tech Lead Review — STORY-022: GitHub Skills Copilot Compatibility Audit & Fix
-
-**Reviewer:** Tech Lead
-**Date:** 2026-03-11
-**Branch:** `feat/STORY-022-github-skills-copilot-compat`
-**Base:** `main`
-**Commits:** 3 (`57bb478`, `2df8ce8`, `8dd0cc0`)
-
----
-
-## Content Quality (20 points)
-
-### 1. All `.claude/` references replaced with `.github/` equivalents in ALL templates (4/4)
-
-**PASS.** Zero `.claude/` references remain in `resources/github-skills-templates/`:
-
 ```
-grep -r '\.claude/' resources/github-skills-templates/ => 0 matches
+============================================================
+ TECH LEAD REVIEW -- STORY-022 (CodexAgentsMdAssembler)
+============================================================
+ Decision:  CONDITIONAL GO
+ Score:     36/40
+ Critical:  0 issues
+ Medium:    2 issues
+ Low:       2 issues
+------------------------------------------------------------
+
+A. Code Hygiene (7/8)
+
+ 1. [PASS] No unused imports or variables
+    All imports in codex-agents-md-assembler.ts are consumed.
+    Pipeline imports (CodexAgentsMdAssembler, AssemblerTarget) all used.
+
+ 2. [PASS] No dead code or commented-out code
+    Clean implementation, no commented blocks.
+
+ 3. [PASS] Zero compiler warnings
+    `npx tsc --noEmit` exits cleanly with zero output.
+
+ 4. [PASS] Method signatures match their intent
+    scanAgents, scanSkills, buildExtendedContext, assemble —
+    all signatures accurately describe their behavior.
+
+ 5. [FAIL] No magic numbers or strings (use named constants)
+    - "o4-mini" hardcoded at line 160 — should be a named constant
+      (e.g., `DEFAULT_CODEX_MODEL`).
+    - "on-request" / "untrusted" / "workspace-write" at lines 161-162
+      are policy strings that would benefit from named constants.
+    Severity: LOW.
+
+ 6. [PASS] Consistent formatting
+    Follows project Prettier/ESLint conventions throughout.
+
+ 7. [PASS] Proper JSDoc on public APIs
+    Module-level doc, JSDoc on all exported functions and the class.
+    Parameter descriptions on scanAgents and scanSkills.
+
+ 8. [PASS] No wildcard imports
+    All imports are named; no wildcard (`*`) re-exports from this module.
+
+B. Naming (4/4)
+
+ 9. [PASS] Intention-revealing names
+    scanAgents, scanSkills, buildExtendedContext, parseSkillFrontmatter,
+    extractDescription — all clearly convey purpose.
+
+10. [PASS] No disinformation (misleading names)
+    Names accurately reflect behavior.
+
+11. [PASS] Meaningful distinctions (no noise words)
+    AgentInfo vs SkillInfo clearly distinguish the two metadata types.
+    TEMPLATE_PATH is unambiguous.
+
+12. [PASS] Consistent naming conventions
+    camelCase for functions, PascalCase for class/interface/type.
+    Note: SkillInfo.user_invocable uses snake_case intentionally for
+    Nunjucks template compatibility — acceptable deviation.
+
+C. Functions (4/5)
+
+13. [PASS] Single responsibility per function
+    Each function has a clear single purpose: scan, parse, build, render.
+
+14. [FAIL] Function body <= 25 lines
+    `assemble()` method body spans 38 lines (lines 175-212).
+    Exceeds the 25-line limit by 13 lines.
+    The method has clear phase comments and delegates to helper functions,
+    but should be split further (e.g., extract phases 1 and 3 into
+    private methods like `collectContext()` and `renderAndWrite()`).
+    Severity: MEDIUM.
+
+15. [PASS] Max 4 parameters per function
+    All functions have <= 4 parameters. assemble() has exactly 4.
+
+16. [PASS] No boolean flag parameters
+    buildExtendedContext has `hasHooks: boolean` but this is a data
+    field, not a behavioral flag — acceptable.
+
+17. [PASS] Functions do what their name implies
+    All function behaviors match their names precisely.
+
+D. Vertical Formatting (4/4)
+
+18. [PASS] Blank lines between concepts
+    Proper spacing between interface declarations, function definitions,
+    and phase comments within assemble().
+
+19. [PASS] Newspaper Rule (high-level first, details later)
+    File flows: interfaces -> constants -> public functions ->
+    private helpers -> class. Logical top-down organization.
+
+20. [PASS] Class size <= 250 lines
+    CodexAgentsMdAssembler class is ~47 lines (167-214).
+
+21. [PASS] File size <= 250 lines
+    codex-agents-md-assembler.ts is 214 lines.
+    pipeline.ts is 186 lines. Both under 250.
+
+E. Design (3/3)
+
+22. [PASS] Law of Demeter respected (no train wrecks)
+    `config.infrastructure.observability.tool` at line 144 is a 3-level
+    deep access, but this is accessing an immutable config structure,
+    consistent with all other assemblers in the codebase.
+
+23. [PASS] CQS (Command-Query Separation)
+    scanAgents/scanSkills are queries (return data, no side effects).
+    assemble() is a command (writes files) that returns a result — same
+    pattern as all other assemblers in the project.
+
+24. [PASS] DRY (no duplicated logic)
+    Common logic (buildDefaultContext, resolveStack) is properly reused.
+    No duplicated patterns within the file.
+
+F. Error Handling (2/3)
+
+25. [PASS] Rich exceptions with context
+    Pipeline wraps errors with PipelineError including assembler name
+    and reason. Template failure captured with path info.
+
+26. [PASS] No null returns (use empty collections)
+    scanAgents/scanSkills return empty arrays for missing directories.
+    assemble() returns { files: [], warnings } on failure.
+
+27. [FAIL] No generic catch-all (or justified)
+    Line 203: `catch {}` catches ALL errors and reports "Template not
+    found" regardless of actual cause (could be a syntax error, missing
+    variable, rendering bug). The catch should distinguish template-not-
+    found from other rendering errors, or at minimum include the actual
+    error message in the warning.
+    Severity: MEDIUM.
+
+G. Architecture (5/5)
+
+28. [PASS] SRP at class level
+    CodexAgentsMdAssembler has one responsibility: generate AGENTS.md.
+    Helper functions (scanAgents, scanSkills, buildExtendedContext) are
+    appropriately extracted as module-level functions.
+
+29. [PASS] DIP (depends on abstractions, not concretes)
+    Depends on TemplateEngine and ProjectConfig interfaces.
+    Uses AssembleResult interface for return type.
+
+30. [PASS] Layer boundaries respected
+    Imports only from models, template-engine, domain/resolver,
+    and assembler types. No cross-layer violations.
+
+31. [PASS] No circular dependencies
+    codex-agents-md-assembler imports from models, template-engine,
+    domain/resolver, rules-assembler (type only). No cycles.
+
+32. [PASS] Implementation follows the plan
+    3-phase approach (collect, build context, render) matches the
+    documented pattern. Pipeline integration with target "codex" added
+    correctly. Index barrel export added.
+
+H. Framework & Infra (4/4)
+
+33. [PASS] Dependency injection pattern followed
+    TemplateEngine injected via assemble() parameter — consistent
+    with all other assemblers.
+
+34. [PASS] Configuration externalized where needed
+    TEMPLATE_PATH is a module-level constant. Config flows through
+    ProjectConfig. No hardcoded file paths.
+
+35. [PASS] Consistent with existing codebase patterns
+    Follows identical patterns to AgentsAssembler, GithubAgentsAssembler,
+    ReadmeAssembler. Same return type, same parameter order, same
+    barrel export convention.
+
+36. [PASS] Follows pipeline integration conventions
+    Added to buildAssemblers() at position 15 (after ReadmeAssembler).
+    AssemblerTarget union extended with "codex". executeAssemblers()
+    routes "codex" target to .codex/ directory. Consistent with
+    existing "claude" and "github" routing.
+
+I. Tests (3/3)
+
+37. [PASS] Coverage >= 95% lines, >= 90% branches
+    codex-agents-md-assembler.ts: 100% stmts, 97.72% branch,
+    100% funcs, 100% lines.
+    pipeline.ts: 100% across all metrics.
+
+38. [PASS] All acceptance criteria have corresponding tests
+    42 tests for the assembler covering:
+    - scanAgents (9 tests): empty, missing, single, multiple, sorting,
+      description extraction, non-md filter, empty content, blank lines
+    - scanSkills (9 tests): empty, missing, single, multiple, sorting,
+      invocable true/false, missing SKILL.md, no frontmatter, pre-content
+    - buildExtendedContext (9 tests): all fields present, resolved stack,
+      agents/skills lists, hooks true/false, security frameworks, MCP
+      mapping, empty MCP
+    - assemble (13 tests): file generation, result shape, all sections,
+      minimal config conditionals, no agents/skills warnings, directory
+      creation, template artifact check, render failure, blank line check
+    - Pipeline integration (2 tests): list inclusion, ordering
+
+39. [PASS] Test quality (clear names, AAA, no interdependency)
+    Test names follow [method]_[scenario]_[expectedBehavior] convention.
+    Each test is independent with beforeEach/afterEach temp dir lifecycle.
+    AAA pattern consistently applied.
+
+J. Security & Production (1/1)
+
+40. [PASS] Sensitive data protected
+    MCP env vars (e.g., API_KEY) are included in the rendering context
+    via `{ ...s.env }` but are NOT referenced by any Nunjucks template
+    section. The rendered AGENTS.md output does not contain env var
+    values. The shallow copy prevents mutation of the original config.
+
+------------------------------------------------------------
+ISSUES:
+
+- [MEDIUM] assemble() method body is 38 lines, exceeding the 25-line
+  limit by 13 lines. Extract phase 1 (scan + warnings) and phase 3
+  (render + write) into separate private methods.
+  File: src/assembler/codex-agents-md-assembler.ts:169-213
+
+- [MEDIUM] Generic catch-all at line 203 swallows all rendering errors
+  and reports "Template not found" regardless of actual cause. Include
+  the caught error message in the warning string, or distinguish
+  template-not-found (e.g., check file existence) from render errors.
+  File: src/assembler/codex-agents-md-assembler.ts:203-207
+
+- [LOW] Magic strings "o4-mini", "on-request", "untrusted",
+  "workspace-write" should be named constants at module level.
+  File: src/assembler/codex-agents-md-assembler.ts:160-162
+
+- [LOW] Test helpers createStubDescriptor() and createFailingDescriptor()
+  in pipeline.test.ts omit the required `target` property from
+  AssemblerDescriptor. Tests compile only because tests/ is excluded
+  from tsconfig.json. Add `target: "claude" as const` to both helpers.
+  File: tests/node/assembler/pipeline.test.ts:35-60
+
+============================================================
 ```
-
-The initial commit (`57bb478`) addressed the 7 templates explicitly listed in the story scope. The second commit (`2df8ce8`) expanded the fix to ALL remaining GitHub skill templates — infrastructure (5 files), knowledge-packs (9 files), testing (6 files), review sub-specialists (4 files), dev/x-dev-implement, dev/layer-templates, and git-troubleshooting/x-git-push. This exceeds the story's DoD and fully resolves the original review's CRITICAL finding of 26 remaining references.
-
-### 2. Path replacement is correct (4/4)
-
-**PASS.** All path mappings verified correct:
-
-| Pattern | Status |
-|---------|--------|
-| `.claude/skills/{pack}/SKILL.md` -> `.github/skills/{pack}/SKILL.md` | Correct |
-| `.claude/skills/{pack}/references/{file}.md` -> `.github/skills/{pack}/SKILL.md` | Correct |
-| `../../.claude/skills/{name}/` -> `.github/skills/{name}/SKILL.md` | Correct |
-| `.claude/templates/_TEMPLATE-*.md` -> `resources/templates/_TEMPLATE-*.md` | Correct |
-| `.claude/rules/*.md` -> `.github/instructions/*.instructions.md` | Correct |
-
-The `resources/templates/` path is verified to exist:
-- `resources/templates/_TEMPLATE-EPIC.md`
-- `resources/templates/_TEMPLATE-STORY.md`
-- `resources/templates/_TEMPLATE-IMPLEMENTATION-MAP.md`
-
-### 3. `references/*.md` paths simplified to `SKILL.md` (3/4)
-
-**PARTIAL.** Most `references/` paths were correctly collapsed to `SKILL.md`. However, **9 occurrences** of `.github/skills/x-story-epic-full/references/decomposition-guide.md` remain across 5 story templates:
-
-| File | Occurrences |
-|------|-------------|
-| `story/x-story-create.md` | 2 (lines 36, 199) |
-| `story/x-story-epic.md` | 3 (lines 35, 71, 142) |
-| `story/x-story-map.md` | 1 (line 188) |
-| `story/x-story-epic-full.md` | 2 (lines 39, 150) |
-| `story/story-planning.md` | 1 (line 40) |
-
-This path is **broken in the GitHub Copilot context** because `references/` subdirectories are not generated by the GithubSkillsAssembler — only `SKILL.md` exists under each skill directory. The file exists in the `.claude/` context (at `.claude/skills/x-story-epic-full/references/decomposition-guide.md`) but not in `.github/skills/`.
-
-**Severity:** MEDIUM. The `references/decomposition-guide.md` is a key dependency for the story-generation workflow. Copilot users invoking these skills will get "file not found" for this reference.
-
-**Note:** This path was correctly translated from `.claude/` to `.github/` (so it does not show up in `.claude/` grep checks), but the GAP-4 simplification (`references/X.md` -> `SKILL.md`) was not applied to this specific path.
-
-### 4. No broken paths introduced (4/4)
-
-**PASS** (with the exception noted in item 3). All `.github/skills/{name}/SKILL.md` paths reference valid skill directories that exist in the generated output. The `resources/templates/` paths point to files that exist. The `.github/instructions/*.instructions.md` path pattern is correct for the instructions assembler output.
-
-### 5. KP mapping table in x-review.md is complete and correct (4/4)
-
-**PASS.** The KP mapping table at lines 93-102 of `x-review.md` correctly maps all 8 engineers to `.github/skills/{pack}/SKILL.md`:
-
-| Engineer | Path | Status |
-|----------|------|--------|
-| Security | `.github/skills/security/SKILL.md` | Correct |
-| QA | `.github/skills/testing/SKILL.md` | Correct |
-| Performance | `.github/skills/resilience/SKILL.md` | Correct |
-| Database | `.github/skills/database-patterns/SKILL.md` | Correct |
-| Observability | `.github/skills/observability/SKILL.md` | Correct |
-| DevOps | `.github/skills/infrastructure/SKILL.md` | Correct |
-| API | `.github/skills/api-design/SKILL.md` + `.github/skills/protocols/SKILL.md` | Correct |
-| Event | `.github/skills/protocols/SKILL.md` | Correct |
-
-No `references/` subdirectory paths remain in the mapping table. All 8 entries simplified correctly.
-
-**Content Quality Subtotal: 19/20**
-
----
-
-## Translation Quality (10 points)
-
-### 6. All 5 story templates in English (2/2)
-
-**PASS.** All 5 story templates are in English:
-- `story-planning.md` — 40 lines, fully English
-- `x-story-create.md` — 199 lines, fully English (body is English; pt-BR output rules preserved as business logic)
-- `x-story-epic.md` — 142 lines, fully English
-- `x-story-epic-full.md` — 150 lines, fully English
-- `x-story-map.md` — 188 lines, fully English
-
-Portuguese text that remains is intentional business logic:
-- Language Rules sections specifying pt-BR output for generated content
-- Example table headers in Portuguese (`Campo`, `Obrigatório`, `Descrição`) — these are output format examples
-- Gherkin keyword references (`DADO`, `QUANDO`, `ENTÃO`) — these are the Portuguese Gherkin keywords to use
-
-### 7. YAML frontmatter `description` fields in English (2/2)
-
-**PASS.** All 5 story templates have English YAML `description` fields that match their Claude Code counterparts word-for-word. Verified by diff comparison with `resources/skills-templates/core/x-story-*/SKILL.md`.
-
-### 8. Translation uses Claude Code counterparts as reference (2/2)
-
-**PASS.** The translated GitHub templates are byte-for-byte identical to their Claude Code counterparts in structure and prose, with only two types of differences:
-1. Path prefix: `.claude/` -> `.github/`
-2. Template path: `.claude/templates/` -> `resources/templates/`
-
-This was verified for all 4 story skills by comparing descriptions, section headers, and body text.
-
-### 9. No Portuguese text remains outside intentional pt-BR output rules (2/2)
-
-**PASS.** Grep for Portuguese characters (`[àáâãéêíóôõúçÀÁÂÃÉÊÍÓÔÕÚÇ]`) shows only intentional occurrences:
-- "Fundação" (phase name example in Language Rules)
-- "Campo", "Obrigatório", "Descrição" (data contract table headers — output format)
-- "ENTÃO" (Gherkin keyword reference)
-- "DADO que o sistema está funcionando" (anti-pattern example)
-- "Cenario" (Gherkin keyword reference)
-
-All are within Language Rules, Common Mistakes, or output format example sections — intentional business logic.
-
-### 10. Section headers match Claude Code counterpart structure (2/2)
-
-**PASS.** Verified section header structure for all 4 story templates:
-
-| Template | Headers Match |
-|----------|--------------|
-| x-story-create | Identical: Prerequisites, Workflow (Steps 1-3), Language Rules, Sizing Heuristics, Common Mistakes, Detailed References |
-| x-story-epic | Identical: Prerequisites, Workflow (Steps 1-6), Language Rules, Common Mistakes, Detailed References |
-| x-story-map | Identical: Prerequisites, Workflow (Steps 1-8), Language Rules, Common Mistakes, Detailed References |
-| x-story-epic-full | Identical: Prerequisites, Decomposition Philosophy, Complete Workflow (Phases A-E), Language Rules, Quality Checklist, Detailed References |
-
-**Translation Quality Subtotal: 10/10**
-
----
-
-## Test & Golden Files (5 points)
-
-### 11. All 1,384 tests passing (2/2)
-
-**PASS.**
-
-```
-Test Files  46 passed (46)
-     Tests  1384 passed (1384)
-  Duration  4.22s
-```
-
-### 12. Coverage >= 95% lines, >= 90% branches (1/1)
-
-**PASS.**
-
-| Metric | Result | Threshold |
-|--------|--------|-----------|
-| Line Coverage | 99.6% | >= 95% |
-| Branch Coverage | 97.92% | >= 90% |
-| Function Coverage | 100% | N/A |
-
-### 13. Golden files regenerated for all 8 profiles (1/1)
-
-**PASS.** Verified all 8 profiles have updated golden files:
-- `go-gin` — 32 skill SKILL.md files updated
-- `java-quarkus` — 32 skill SKILL.md files updated
-- `java-spring` — 32 skill SKILL.md files updated
-- `kotlin-ktor` — 32 skill SKILL.md files updated
-- `python-click-cli` — 28 skill SKILL.md files updated (no infra templates)
-- `python-fastapi` — 32 skill SKILL.md files updated
-- `rust-axum` — 32 skill SKILL.md files updated
-- `typescript-nestjs` — 32 skill SKILL.md files updated
-
-Story templates match byte-for-byte across all 8 profiles (no profile-specific placeholders in story skills). x-review template also matches across all 8 profiles.
-
-### 14. No stale golden files (1/1)
-
-**PASS.** Zero `.claude/` references remain in `tests/golden/*/github/skills/**/*.md` (verified with ripgrep). The 48 `.claude/` references found in `tests/golden/*/github/instructions/` and `copilot-instructions.md` are out-of-scope (instruction templates, not skills).
-
-**Test & Golden Files Subtotal: 5/5**
-
----
-
-## Git & Documentation (5 points)
-
-### 15. Commit messages follow Conventional Commits (1/1)
-
-**PASS.** All 3 commits use Conventional Commits format:
-1. `fix(story-022): replace .claude/ paths with .github/ in GitHub skill templates`
-2. `fix(story-022): replace .claude/ paths in all remaining GitHub skill templates`
-3. `docs(story-022): add story file and review report`
-
-### 16. PR description complete with test plan (0/1)
-
-**N/A** — No PR has been created yet. Branch is local only. Deducting 0 points (adjusted: will be verified at PR creation time).
-
-### 17. Story file present (1/1)
-
-**PASS.** Story file at `docs/stories/migration-python-to-node-ts/STORY_STORY-022_github-skills-copilot-compat.md` (336 lines) with complete gap analysis, acceptance criteria, and sub-tasks.
-
-### 18. Review report present (1/1)
-
-**PASS.** Initial review report at `docs/reviews/STORY-022-review.md` (63 lines) with 8 check items and findings.
-
-### 19. Implementation plan present (1/1)
-
-**PASS.** Implementation plan at `docs/plans/STORY-022-plan.md` (423 lines) with detailed file-by-file change specifications, path replacement mapping, translation approach, and golden file regeneration strategy.
-
-**Git & Documentation Subtotal: 4/5** (PR not yet created)
-
----
-
-## Summary of Findings
-
-### MEDIUM: Broken `references/decomposition-guide.md` path in story templates
-
-**9 occurrences** of `.github/skills/x-story-epic-full/references/decomposition-guide.md` remain across 5 story templates. This path does not exist in the GitHub Copilot context (the GithubSkillsAssembler does not copy `references/` subdirectories). The decomposition guide content should be referenced via `.github/skills/x-story-epic-full/SKILL.md` instead.
-
-**Impact:** Story generation skills (x-story-create, x-story-epic, x-story-map, x-story-epic-full) will fail to read the decomposition guide in Copilot context.
-
-**Fix:** Replace all 9 occurrences of `.github/skills/x-story-epic-full/references/decomposition-guide.md` with `.github/skills/x-story-epic-full/SKILL.md`.
-
-### LOW: Story DoD criterion was overly broad (resolved)
-
-The original story DoD stated "Zero grep results for `\.claude/skills/` in `resources/github-skills-templates/`" but the initial commit only fixed the 7 explicitly scoped templates. The second commit (`2df8ce8`) fixed all remaining templates, fully satisfying the DoD criterion. This is now resolved.
-
----
-
-## Score
-
-| Category | Score | Max |
-|----------|-------|-----|
-| Content Quality | 19 | 20 |
-| Translation Quality | 10 | 10 |
-| Test & Golden Files | 5 | 5 |
-| Git & Documentation | 4 | 5 |
-| **Total** | **38** | **40** |
-
-## Decision: **GO**
-
-Score 38/40 exceeds the 36-point threshold. The single MEDIUM finding (broken `references/decomposition-guide.md` path) should be addressed in a quick follow-up commit before PR merge, but does not block the overall GO decision since:
-1. The path was correctly translated from `.claude/` to `.github/` (the prefix fix is correct)
-2. The broken reference exists identically in the Claude Code counterparts (it is a pre-existing structural issue, not a regression)
-3. The core story objectives (path prefix fix, Portuguese-to-English translation, KP mapping simplification, golden file regeneration) are fully achieved

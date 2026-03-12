@@ -25,6 +25,7 @@
 Como **desenvolvedor do ia-dev-environment**, eu quero ter o `CodexAgentsMdAssembler` implementado em TypeScript, garantindo que a geração do `.codex/AGENTS.md` consolide informações de rules, architecture, coding standards, quality gates, domain, security, agents e skills em um único Markdown estruturado.
 
 O `CodexAgentsMdAssembler` é o assembler mais complexo deste épico. Ele opera em 3 fases:
+
 1. **Coleta de contexto estendido** — Lê agents e skills já gerados pelo pipeline para montar listas
 2. **Construção do context de renderização** — Combina o context flat de 25 campos com ResolvedStack e listas coletadas
 3. **Renderização** — Passa o context completo ao template `agents-md.md.njk` e escreve o resultado em `.codex/AGENTS.md`
@@ -50,6 +51,7 @@ export class CodexAgentsMdAssembler implements Assembler {
 ### 3.3 Fases de Execução
 
 **Fase 1 — Coleta de contexto estendido:**
+
 - Escanear `{outputDir}/.claude/agents/` para coletar nomes e descrições de agents
 - Escanear `{outputDir}/.claude/skills/` para coletar nomes e descrições de skills (ler SKILL.md frontmatter)
 - Verificar existência de `{outputDir}/.claude/hooks/` para determinar `has_hooks`
@@ -57,10 +59,12 @@ export class CodexAgentsMdAssembler implements Assembler {
 - Ler `config.security.frameworks` para security frameworks
 
 **Fase 2 — Construção do context:**
+
 - Usar `engine.buildContext(config)` para obter os 25 campos flat
 - Adicionar campos estendidos: `resolved_stack`, `agents_list`, `skills_list`, `has_hooks`, `mcp_servers`, `security_frameworks`
 
 **Fase 3 — Renderização:**
+
 - `engine.renderTemplate('codex-templates/agents-md.md.njk', context)`
 - Criar diretório `.codex/` no outputDir
 - Escrever resultado em `{outputDir}/.codex/AGENTS.md`
@@ -68,6 +72,7 @@ export class CodexAgentsMdAssembler implements Assembler {
 ### 3.4 Scan de Agents
 
 Para cada arquivo `*.md` em `{outputDir}/.claude/agents/`:
+
 - Extrair nome do arquivo (sem extensão): `architect.md` → `architect`
 - Extrair primeira linha como descrição (ou título `# ...`)
 - Retornar array `[{ name, description }]`
@@ -75,6 +80,7 @@ Para cada arquivo `*.md` em `{outputDir}/.claude/agents/`:
 ### 3.5 Scan de Skills
 
 Para cada diretório em `{outputDir}/.claude/skills/` que contenha `SKILL.md`:
+
 - Ler frontmatter YAML do `SKILL.md`
 - Extrair `name`, `description`, `user-invocable`
 - Retornar array `[{ name, description, user_invocable }]`
