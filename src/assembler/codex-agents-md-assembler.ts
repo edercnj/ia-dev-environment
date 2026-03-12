@@ -10,6 +10,7 @@
  */
 import * as fs from "node:fs";
 import * as path from "node:path";
+import yaml from "js-yaml";
 import type { ProjectConfig } from "../models.js";
 import type { TemplateEngine } from "../template-engine.js";
 import { buildDefaultContext } from "../template-engine.js";
@@ -26,7 +27,7 @@ export interface AgentInfo {
 export interface SkillInfo {
   readonly name: string;
   readonly description: string;
-  readonly user_invocable: boolean;
+  readonly userInvocable: boolean;
 }
 
 const TEMPLATE_PATH = "codex-templates/agents-md.md.njk";
@@ -35,6 +36,15 @@ const POLICY_ON_REQUEST = "on-request";
 const POLICY_UNTRUSTED = "untrusted";
 const SANDBOX_WORKSPACE_WRITE = "workspace-write";
 
+/** Check if path exists and is a readable directory. */
+function isAccessibleDirectory(dirPath: string): boolean {
+  try {
+    return fs.statSync(dirPath).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Scan a directory for agent .md files.
  *
@@ -42,7 +52,7 @@ const SANDBOX_WORKSPACE_WRITE = "workspace-write";
  * @returns Sorted array of AgentInfo with name and description.
  */
 export function scanAgents(agentsDir: string): AgentInfo[] {
-  if (!fs.existsSync(agentsDir)) return [];
+  if (!isAccessibleDirectory(agentsDir)) return [];
   const files = fs.readdirSync(agentsDir)
     .filter((f) => f.endsWith(".md"))
     .sort();
@@ -75,10 +85,10 @@ function extractDescription(content: string): string {
  * Scan a directory for skill subdirs containing SKILL.md.
  *
  * @param skillsDir - Absolute path to the skills directory.
- * @returns Sorted array of SkillInfo with name, description, user_invocable.
+ * @returns Sorted array of SkillInfo with name, description, userInvocable.
  */
 export function scanSkills(skillsDir: string): SkillInfo[] {
-  if (!fs.existsSync(skillsDir)) return [];
+  if (!isAccessibleDirectory(skillsDir)) return [];
   const entries = fs.readdirSync(skillsDir, { withFileTypes: true })
     .filter((d) => d.isDirectory())
     .sort((a, b) => a.name.localeCompare(b.name));
@@ -89,42 +99,42 @@ export function scanSkills(skillsDir: string): SkillInfo[] {
     );
     if (!fs.existsSync(skillMdPath)) continue;
     const content = fs.readFileSync(skillMdPath, "utf-8");
-    const parsed = parseSkillFrontmatter(content, entry.name);
-    skills.push({
-      name: parsed.name,
-      description: parsed.description,
-      user_invocable: parsed.userInvocable,
-    });
+    skills.push(parseSkillFrontmatter(content, entry.name));
   }
   return skills;
 }
 
-/** Parse YAML frontmatter from SKILL.md content. */
+/** Extract raw YAML frontmatter block between --- delimiters. */
+function extractFrontmatterBlock(content: string): string | null {
+  const lines = content.split("\n");
+  if (lines.length === 0 || lines[0]!.trim() !== "---") return null;
+  for (let i = 1; i < lines.length; i++) {
+    if (lines[i]!.trim() === "---") {
+      return lines.slice(1, i).join("\n");
+    }
+  }
+  return null;
+}
+
+/** Parse YAML frontmatter from SKILL.md content using js-yaml. */
 function parseSkillFrontmatter(
   content: string,
   dirName: string,
-): { name: string; description: string; userInvocable: boolean } {
-  let name = dirName;
-  let description = "";
-  let userInvocable = true;
-  let inFrontmatter = false;
-  for (const line of content.split("\n")) {
-    if (line.trim() === "---") {
-      if (inFrontmatter) break;
-      inFrontmatter = true;
-      continue;
-    }
-    if (!inFrontmatter) continue;
-    if (line.startsWith("name:")) {
-      name = line.slice(5).trim().replace(/^["']|["']$/g, "");
-    } else if (line.startsWith("description:")) {
-      description = line.slice(12).trim()
-        .replace(/^["']|["']$/g, "");
-    } else if (line.startsWith("user-invocable:")) {
-      const value = line.slice(15).trim().toLowerCase();
-      userInvocable = value !== "false";
-    }
+): SkillInfo {
+  const block = extractFrontmatterBlock(content);
+  if (!block) {
+    return { name: dirName, description: "", userInvocable: true };
   }
+  const parsed = yaml.load(block) as Record<string, unknown> | null;
+  if (!parsed || typeof parsed !== "object") {
+    return { name: dirName, description: "", userInvocable: true };
+  }
+  const name = typeof parsed["name"] === "string"
+    ? parsed["name"] : dirName;
+  const rawDesc = parsed["description"];
+  const description = typeof rawDesc === "string"
+    ? rawDesc.trim() : "";
+  const userInvocable = parsed["user-invocable"] !== false;
   return { name, description, userInvocable };
 }
 
@@ -153,7 +163,7 @@ export function buildExtendedContext(
       coverageCmd: resolved.coverageCmd,
     },
     agents_list: agents,
-    skills_list: skills,
+    skills_list: skills.map(toTemplateSkill),
     has_hooks: hasHooks,
     mcp_servers: config.mcp.servers.map((s) => ({
       id: s.id,
@@ -164,6 +174,17 @@ export function buildExtendedContext(
     model: DEFAULT_MODEL,
     approval_policy: hasHooks ? POLICY_ON_REQUEST : POLICY_UNTRUSTED,
     sandbox_mode: SANDBOX_WORKSPACE_WRITE,
+  };
+}
+
+/** Map SkillInfo (camelCase) to template context (snake_case). */
+function toTemplateSkill(
+  s: SkillInfo,
+): { name: string; description: string; user_invocable: boolean } {
+  return {
+    name: s.name,
+    description: s.description,
+    user_invocable: s.userInvocable,
   };
 }
 
@@ -195,11 +216,14 @@ function renderAndWrite(
   try {
     rendered = engine.renderTemplate(TEMPLATE_PATH, context);
   } catch (error: unknown) {
-    const reason = error instanceof Error
+    const message = error instanceof Error
       ? error.message
       : String(error);
-    warnings.push(`Template rendering failed: ${reason}`);
-    return { files: [], warnings };
+    if (message.includes("not found") || message.includes("ENOENT")) {
+      warnings.push(`Template not found: ${TEMPLATE_PATH}`);
+      return { files: [], warnings };
+    }
+    throw error;
   }
   fs.mkdirSync(outputDir, { recursive: true });
   const dest = path.join(outputDir, "AGENTS.md");

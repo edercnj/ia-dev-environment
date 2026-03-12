@@ -190,6 +190,12 @@ describe("scanAgents", () => {
       "Actual first line content.",
     );
   });
+
+  it("scanAgents_pathIsFile_returnsEmptyArray", async () => {
+    const filePath = join(tempDir, "agents-file");
+    await writeFile(filePath, "not a directory");
+    expect(scanAgents(filePath)).toEqual([]);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -218,7 +224,7 @@ describe("scanSkills", () => {
     expect(result[0]).toEqual({
       name: "x-dev-implement",
       description: "Implements a feature following project conventions",
-      user_invocable: true,
+      userInvocable: true,
     });
   });
 
@@ -246,7 +252,7 @@ describe("scanSkills", () => {
     await mkdir(skillDir, { recursive: true });
     await writeFile(join(skillDir, "SKILL.md"), SKILL_INVOCABLE);
     const result = scanSkills(skillsDir);
-    expect(result[0]!.user_invocable).toBe(true);
+    expect(result[0]!.userInvocable).toBe(true);
   });
 
   it("scanSkills_userInvocableFalse_setsFalse", async () => {
@@ -255,7 +261,7 @@ describe("scanSkills", () => {
     await mkdir(skillDir, { recursive: true });
     await writeFile(join(skillDir, "SKILL.md"), SKILL_KP);
     const result = scanSkills(skillsDir);
-    expect(result[0]!.user_invocable).toBe(false);
+    expect(result[0]!.userInvocable).toBe(false);
   });
 
   it("scanSkills_dirWithoutSkillMd_ignoresDirectory", async () => {
@@ -282,10 +288,10 @@ describe("scanSkills", () => {
     expect(result).toHaveLength(1);
     expect(result[0]!.name).toBe("my-skill");
     expect(result[0]!.description).toBe("");
-    expect(result[0]!.user_invocable).toBe(true);
+    expect(result[0]!.userInvocable).toBe(true);
   });
 
-  it("scanSkills_contentBeforeFrontmatter_ignoresPreContent", async () => {
+  it("scanSkills_contentBeforeFrontmatter_usesDirectoryDefaults", async () => {
     const skillsDir = join(tempDir, "skills");
     const skillDir = join(skillsDir, "pre-content");
     await mkdir(skillDir, { recursive: true });
@@ -294,8 +300,45 @@ describe("scanSkills", () => {
       "Some preamble text\n---\nname: actual-name\ndescription: Actual description\n---\n",
     );
     const result = scanSkills(skillsDir);
-    expect(result[0]!.name).toBe("actual-name");
-    expect(result[0]!.description).toBe("Actual description");
+    expect(result[0]!.name).toBe("pre-content");
+    expect(result[0]!.description).toBe("");
+    expect(result[0]!.userInvocable).toBe(true);
+  });
+
+  it("scanSkills_markdownHorizontalRules_treatsAsNoFrontmatter", async () => {
+    const skillsDir = join(tempDir, "skills");
+    const skillDir = join(skillsDir, "patterns");
+    await mkdir(skillDir, { recursive: true });
+    await writeFile(
+      join(skillDir, "SKILL.md"),
+      "# Pattern Title\n\nContent here.\n\n---\n\n# Another Pattern\n\nMore content.\n\n---\n",
+    );
+    const result = scanSkills(skillsDir);
+    expect(result[0]!.name).toBe("patterns");
+    expect(result[0]!.description).toBe("");
+  });
+
+  it("scanSkills_pathIsFile_returnsEmptyArray", async () => {
+    const filePath = join(tempDir, "skills-file");
+    await writeFile(filePath, "not a directory");
+    expect(scanSkills(filePath)).toEqual([]);
+  });
+
+  it("scanSkills_blockScalarDescription_parsesMultilineValue", async () => {
+    const skillsDir = join(tempDir, "skills");
+    const skillDir = join(skillsDir, "x-story-epic");
+    await mkdir(skillDir, { recursive: true });
+    await writeFile(
+      join(skillDir, "SKILL.md"),
+      "---\nname: x-story-epic\ndescription: >\n  Generate an Epic document\n  from a system specification.\nuser-invocable: true\n---\n# Content",
+    );
+    const result = scanSkills(skillsDir);
+    expect(result).toHaveLength(1);
+    expect(result[0]!.name).toBe("x-story-epic");
+    expect(result[0]!.description).toBe(
+      "Generate an Epic document from a system specification.",
+    );
+    expect(result[0]!.userInvocable).toBe(true);
   });
 });
 
@@ -311,10 +354,10 @@ describe("buildExtendedContext", () => {
     { name: "qa-engineer", description: "Quality assurance" },
   ];
   const skills: Array<{
-    name: string; description: string; user_invocable: boolean;
+    name: string; description: string; userInvocable: boolean;
   }> = [
-    { name: "x-dev-implement", description: "Implement features", user_invocable: true },
-    { name: "coding-standards", description: "Standards pack", user_invocable: false },
+    { name: "x-dev-implement", description: "Implement features", userInvocable: true },
+    { name: "coding-standards", description: "Standards pack", userInvocable: false },
   ];
 
   it("buildExtendedContext_fullConfig_returnsAllFields", () => {
@@ -358,7 +401,10 @@ describe("buildExtendedContext", () => {
       fullConfig, agents, skills, true,
     );
     expect(ctx.skills_list).toHaveLength(2);
-    expect(ctx.skills_list).toEqual(skills);
+    expect(ctx.skills_list).toEqual([
+      { name: "x-dev-implement", description: "Implement features", user_invocable: true },
+      { name: "coding-standards", description: "Standards pack", user_invocable: false },
+    ]);
   });
 
   it("buildExtendedContext_withHooks_setsHasHooksTrue", () => {
@@ -608,7 +654,7 @@ describe("assemble", () => {
     );
     expect(result.files).toEqual([]);
     expect(
-      result.warnings.some((w) => w.startsWith("Template rendering failed:")),
+      result.warnings.some((w) => w.startsWith("Template not found:")),
     ).toBe(true);
   });
 
