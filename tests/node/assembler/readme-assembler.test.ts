@@ -257,7 +257,7 @@ describe("ReadmeAssembler", () => {
     });
 
     it("countCodexFiles_withFiles_returnsCount", () => {
-      const codexDir = path.join(outputDir, "codex");
+      const codexDir = path.join(outputDir, ".codex");
       fs.mkdirSync(codexDir, { recursive: true });
       fs.writeFileSync(path.join(codexDir, "AGENTS.md"), "# A");
       fs.writeFileSync(path.join(codexDir, "config.toml"), "[c]");
@@ -265,17 +265,17 @@ describe("ReadmeAssembler", () => {
     });
 
     it("countCodexFiles_dirMissing_returnsZero", () => {
-      expect(countCodexFiles(path.join(outputDir, "codex"))).toBe(0);
+      expect(countCodexFiles(path.join(outputDir, ".codex"))).toBe(0);
     });
 
     it("countCodexFiles_emptyDir_returnsZero", () => {
-      const codexDir = path.join(outputDir, "codex");
+      const codexDir = path.join(outputDir, ".codex");
       fs.mkdirSync(codexDir, { recursive: true });
       expect(countCodexFiles(codexDir)).toBe(0);
     });
 
     it("countCodexFiles_ignoresSubdirectories", () => {
-      const codexDir = path.join(outputDir, "codex");
+      const codexDir = path.join(outputDir, ".codex");
       fs.mkdirSync(path.join(codexDir, "subdir"), { recursive: true });
       fs.writeFileSync(path.join(codexDir, "AGENTS.md"), "# A");
       expect(countCodexFiles(codexDir)).toBe(1);
