@@ -32,10 +32,19 @@ export function assertValidToml(
   return parsed as Record<string, unknown>;
 }
 
+/** Fail fast if path does not exist or is not a directory. */
+function assertDirectory(dir: string): void {
+  if (!fs.existsSync(dir)) {
+    throw new Error(`Directory does not exist: ${dir}`);
+  }
+  if (!fs.statSync(dir).isDirectory()) {
+    throw new Error(`Path is not a directory: ${dir}`);
+  }
+}
+
 /** Recursively collect all file paths relative to a base directory. */
 function collectFiles(dir: string, base: string): string[] {
   const result: string[] = [];
-  if (!fs.existsSync(dir)) return result;
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   for (const entry of entries) {
     const full = path.join(dir, entry.name);
@@ -52,16 +61,17 @@ function collectFiles(dir: string, base: string): string[] {
 export function assertDirsIdentical(
   dir1: string, dir2: string,
 ): void {
+  assertDirectory(dir1);
+  assertDirectory(dir2);
   const files1 = collectFiles(dir1, dir1);
   const files2 = collectFiles(dir2, dir2);
   expect(files1).toEqual(files2);
   for (const rel of files1) {
-    const content1 = fs.readFileSync(
-      path.join(dir1, rel), "utf-8",
-    );
-    const content2 = fs.readFileSync(
-      path.join(dir2, rel), "utf-8",
-    );
-    expect(content1, `File mismatch: ${rel}`).toBe(content2);
+    const buf1 = fs.readFileSync(path.join(dir1, rel));
+    const buf2 = fs.readFileSync(path.join(dir2, rel));
+    expect(
+      buf1.equals(buf2),
+      `File mismatch: ${rel}`,
+    ).toBe(true);
   }
 }
