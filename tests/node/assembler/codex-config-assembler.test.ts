@@ -4,13 +4,16 @@ import { mkdtemp, rm, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { parse as parseToml } from "smol-toml";
 import {
   CodexConfigAssembler,
+  buildConfigContext,
+} from "../../../src/assembler/codex-config-assembler.js";
+import {
   detectHooks,
   deriveApprovalPolicy,
   mapMcpServers,
-  buildConfigContext,
-} from "../../../src/assembler/codex-config-assembler.js";
+} from "../../../src/assembler/codex-shared.js";
 import { buildAssemblers } from "../../../src/assembler/pipeline.js";
 import { TemplateEngine } from "../../../src/template-engine.js";
 import {
@@ -61,6 +64,17 @@ function configWithMcp(
   ) as typeof base;
   Object.defineProperty(config, "mcp", { value: mcpConfig });
   return config;
+}
+
+function assembleAndRead(
+  config: ProjectConfig,
+  rootDir: string,
+): string {
+  const engine = new TemplateEngine(RESOURCES_DIR, config);
+  const assembler = new CodexConfigAssembler();
+  const codexDir = join(rootDir, ".codex");
+  assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
+  return fs.readFileSync(join(codexDir, "config.toml"), "utf-8");
 }
 
 // ---------------------------------------------------------------------------
@@ -263,63 +277,28 @@ describe("assemble", () => {
   });
 
   it("assemble_simpleConfig_containsModelField", async () => {
-    const config = aFullProjectConfig();
-    const engine = new TemplateEngine(RESOURCES_DIR, config);
-    const assembler = new CodexConfigAssembler();
-    const codexDir = join(tempDir, ".codex");
-    assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
-    const content = fs.readFileSync(
-      join(codexDir, "config.toml"), "utf-8",
-    );
+    const content = assembleAndRead(aFullProjectConfig(), tempDir);
     expect(content).toContain('model = "o4-mini"');
   });
 
   it("assemble_noHooks_setsUntrustedPolicy", async () => {
-    const config = aFullProjectConfig();
-    const engine = new TemplateEngine(RESOURCES_DIR, config);
-    const assembler = new CodexConfigAssembler();
-    const codexDir = join(tempDir, ".codex");
-    assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
-    const content = fs.readFileSync(
-      join(codexDir, "config.toml"), "utf-8",
-    );
+    const content = assembleAndRead(aFullProjectConfig(), tempDir);
     expect(content).toContain('approval_policy = "untrusted"');
   });
 
   it("assemble_withHooks_setsOnRequestPolicy", async () => {
     await seedHooksDir(tempDir);
-    const config = aFullProjectConfig();
-    const engine = new TemplateEngine(RESOURCES_DIR, config);
-    const assembler = new CodexConfigAssembler();
-    const codexDir = join(tempDir, ".codex");
-    assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
-    const content = fs.readFileSync(
-      join(codexDir, "config.toml"), "utf-8",
-    );
+    const content = assembleAndRead(aFullProjectConfig(), tempDir);
     expect(content).toContain('approval_policy = "on-request"');
   });
 
   it("assemble_simpleConfig_containsSandboxMode", async () => {
-    const config = aFullProjectConfig();
-    const engine = new TemplateEngine(RESOURCES_DIR, config);
-    const assembler = new CodexConfigAssembler();
-    const codexDir = join(tempDir, ".codex");
-    assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
-    const content = fs.readFileSync(
-      join(codexDir, "config.toml"), "utf-8",
-    );
+    const content = assembleAndRead(aFullProjectConfig(), tempDir);
     expect(content).toContain('mode = "workspace-write"');
   });
 
   it("assemble_noMcpServers_omitsMcpSection", async () => {
-    const config = aFullProjectConfig();
-    const engine = new TemplateEngine(RESOURCES_DIR, config);
-    const assembler = new CodexConfigAssembler();
-    const codexDir = join(tempDir, ".codex");
-    assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
-    const content = fs.readFileSync(
-      join(codexDir, "config.toml"), "utf-8",
-    );
+    const content = assembleAndRead(aFullProjectConfig(), tempDir);
     expect(content).not.toContain("[mcp_servers");
   });
 
@@ -329,13 +308,7 @@ describe("assemble", () => {
         "firecrawl", "npx -y @anthropic-ai/firecrawl-mcp",
       ),
     ]);
-    const engine = new TemplateEngine(RESOURCES_DIR, config);
-    const assembler = new CodexConfigAssembler();
-    const codexDir = join(tempDir, ".codex");
-    assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
-    const content = fs.readFileSync(
-      join(codexDir, "config.toml"), "utf-8",
-    );
+    const content = assembleAndRead(config, tempDir);
     expect(content).toContain("[mcp_servers.firecrawl]");
   });
 
@@ -345,13 +318,7 @@ describe("assemble", () => {
         "firecrawl", "npx -y @anthropic-ai/firecrawl-mcp",
       ),
     ]);
-    const engine = new TemplateEngine(RESOURCES_DIR, config);
-    const assembler = new CodexConfigAssembler();
-    const codexDir = join(tempDir, ".codex");
-    assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
-    const content = fs.readFileSync(
-      join(codexDir, "config.toml"), "utf-8",
-    );
+    const content = assembleAndRead(config, tempDir);
     expect(content).toContain(
       'command = ["npx", "-y", "@anthropic-ai/firecrawl-mcp"]',
     );
@@ -363,13 +330,7 @@ describe("assemble", () => {
         "docs", "docs-server", [], { API_KEY: "test-value" },
       ),
     ]);
-    const engine = new TemplateEngine(RESOURCES_DIR, config);
-    const assembler = new CodexConfigAssembler();
-    const codexDir = join(tempDir, ".codex");
-    assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
-    const content = fs.readFileSync(
-      join(codexDir, "config.toml"), "utf-8",
-    );
+    const content = assembleAndRead(config, tempDir);
     expect(content).toContain("[mcp_servers.docs.env]");
     expect(content).toContain('API_KEY = "test-value"');
   });
@@ -383,13 +344,7 @@ describe("assemble", () => {
         "docs", "docs-server", [], { API_KEY: "value" },
       ),
     ]);
-    const engine = new TemplateEngine(RESOURCES_DIR, config);
-    const assembler = new CodexConfigAssembler();
-    const codexDir = join(tempDir, ".codex");
-    assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
-    const content = fs.readFileSync(
-      join(codexDir, "config.toml"), "utf-8",
-    );
+    const content = assembleAndRead(config, tempDir);
     expect(content).toContain("[mcp_servers.firecrawl]");
     expect(content).toContain("[mcp_servers.docs]");
   });
@@ -421,26 +376,12 @@ describe("assemble", () => {
   });
 
   it("assemble_fullConfig_containsProjectComment", async () => {
-    const config = aFullProjectConfig();
-    const engine = new TemplateEngine(RESOURCES_DIR, config);
-    const assembler = new CodexConfigAssembler();
-    const codexDir = join(tempDir, ".codex");
-    assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
-    const content = fs.readFileSync(
-      join(codexDir, "config.toml"), "utf-8",
-    );
+    const content = assembleAndRead(aFullProjectConfig(), tempDir);
     expect(content).toContain("my-service");
   });
 
   it("assemble_fullConfig_noTemplateArtifacts", async () => {
-    const config = aFullProjectConfig();
-    const engine = new TemplateEngine(RESOURCES_DIR, config);
-    const assembler = new CodexConfigAssembler();
-    const codexDir = join(tempDir, ".codex");
-    assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
-    const content = fs.readFileSync(
-      join(codexDir, "config.toml"), "utf-8",
-    );
+    const content = assembleAndRead(aFullProjectConfig(), tempDir);
     expect(content).not.toMatch(/\{\{/);
     expect(content).not.toMatch(/\{%/);
     expect(content).not.toMatch(/\{#/);
@@ -463,14 +404,7 @@ describe("assemble", () => {
   });
 
   it("assemble_minimalConfig_generatesValidOutput", async () => {
-    const config = aMinimalProjectConfig();
-    const engine = new TemplateEngine(RESOURCES_DIR, config);
-    const assembler = new CodexConfigAssembler();
-    const codexDir = join(tempDir, ".codex");
-    assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
-    const content = fs.readFileSync(
-      join(codexDir, "config.toml"), "utf-8",
-    );
+    const content = assembleAndRead(aMinimalProjectConfig(), tempDir);
     expect(content).toContain('model = "o4-mini"');
     expect(content).toContain('approval_policy = "untrusted"');
     expect(content).toContain('mode = "workspace-write"');
@@ -501,14 +435,7 @@ describe("assemble", () => {
   it("assemble_emptyHooksDir_setsUntrustedPolicy", async () => {
     const hooksDir = join(tempDir, ".claude", "hooks");
     await mkdir(hooksDir, { recursive: true });
-    const config = aFullProjectConfig();
-    const engine = new TemplateEngine(RESOURCES_DIR, config);
-    const assembler = new CodexConfigAssembler();
-    const codexDir = join(tempDir, ".codex");
-    assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
-    const content = fs.readFileSync(
-      join(codexDir, "config.toml"), "utf-8",
-    );
+    const content = assembleAndRead(aFullProjectConfig(), tempDir);
     expect(content).toContain('approval_policy = "untrusted"');
   });
 
@@ -516,15 +443,106 @@ describe("assemble", () => {
     const config = configWithMcp([
       new McpServerConfig("simple", "simple-server"),
     ]);
-    const engine = new TemplateEngine(RESOURCES_DIR, config);
-    const assembler = new CodexConfigAssembler();
-    const codexDir = join(tempDir, ".codex");
-    assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
-    const content = fs.readFileSync(
-      join(codexDir, "config.toml"), "utf-8",
-    );
+    const content = assembleAndRead(config, tempDir);
     expect(content).toContain("[mcp_servers.simple]");
     expect(content).not.toContain("[mcp_servers.simple.env]");
+  });
+
+  it("assemble_unexpectedRenderError_rethrowsError", () => {
+    const config = aFullProjectConfig();
+    const engine = new TemplateEngine(RESOURCES_DIR, config);
+    const original = engine.renderTemplate.bind(engine);
+    engine.renderTemplate = () => {
+      throw new Error("Unexpected render failure");
+    };
+    const assembler = new CodexConfigAssembler();
+    const codexDir = join(tempDir, ".codex");
+    expect(() =>
+      assembler.assemble(config, codexDir, RESOURCES_DIR, engine),
+    ).toThrow("Unexpected render failure");
+    engine.renderTemplate = original;
+  });
+
+  it("assemble_nonErrorThrown_convertsToString", () => {
+    const config = aFullProjectConfig();
+    const engine = new TemplateEngine(RESOURCES_DIR, config);
+    engine.renderTemplate = () => {
+      throw "template not found at path";
+    };
+    const assembler = new CodexConfigAssembler();
+    const codexDir = join(tempDir, ".codex");
+    const result = assembler.assemble(
+      config, codexDir, RESOURCES_DIR, engine,
+    );
+    expect(result.files).toEqual([]);
+    expect(
+      result.warnings.some((w) => w.startsWith("Template not found:")),
+    ).toBe(true);
+  });
+
+  it("assemble_enoentError_returnsWarning", () => {
+    const config = aFullProjectConfig();
+    const engine = new TemplateEngine(RESOURCES_DIR, config);
+    engine.renderTemplate = () => {
+      throw new Error("ENOENT: no such file or directory");
+    };
+    const assembler = new CodexConfigAssembler();
+    const codexDir = join(tempDir, ".codex");
+    const result = assembler.assemble(
+      config, codexDir, RESOURCES_DIR, engine,
+    );
+    expect(result.files).toEqual([]);
+    expect(
+      result.warnings.some((w) => w.startsWith("Template not found:")),
+    ).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// TOML validity
+// ---------------------------------------------------------------------------
+
+describe("TOML validity", () => {
+  it("assemble_simpleConfig_producesValidToml", () => {
+    const content = assembleAndRead(aFullProjectConfig(), tempDir);
+    const parsed = parseToml(content);
+    expect(parsed.model).toBe("o4-mini");
+    expect(parsed.approval_policy).toBe("untrusted");
+  });
+
+  it("assemble_withMcpServers_producesValidToml", () => {
+    const config = configWithMcp([
+      new McpServerConfig(
+        "firecrawl", "npx -y @anthropic-ai/firecrawl-mcp",
+        [], { API_KEY: "test-key" },
+      ),
+    ]);
+    const content = assembleAndRead(config, tempDir);
+    const parsed = parseToml(content);
+    expect(parsed.model).toBe("o4-mini");
+    const mcpServers = parsed.mcp_servers as Record<
+      string, Record<string, unknown>
+    >;
+    expect(mcpServers.firecrawl).toBeDefined();
+    expect(mcpServers.firecrawl.command).toEqual([
+      "npx", "-y", "@anthropic-ai/firecrawl-mcp",
+    ]);
+  });
+
+  it("assemble_minimalConfig_producesValidToml", () => {
+    const content = assembleAndRead(aMinimalProjectConfig(), tempDir);
+    const parsed = parseToml(content);
+    expect(parsed.model).toBe("o4-mini");
+    expect(parsed.approval_policy).toBe("untrusted");
+    const sandbox = parsed.sandbox as Record<string, string>;
+    expect(sandbox.mode).toBe("workspace-write");
+  });
+
+  it("assemble_withHooks_producesValidToml", async () => {
+    await seedHooksDir(tempDir);
+    const content = assembleAndRead(aFullProjectConfig(), tempDir);
+    const parsed = parseToml(content);
+    expect(parsed.approval_policy).toBe("on-request");
   });
 });
 

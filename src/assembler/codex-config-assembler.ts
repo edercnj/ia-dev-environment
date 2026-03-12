@@ -13,57 +13,15 @@ import type { ProjectConfig } from "../models.js";
 import type { TemplateEngine } from "../template-engine.js";
 import { buildDefaultContext } from "../template-engine.js";
 import type { AssembleResult } from "./rules-assembler.js";
+import {
+  DEFAULT_MODEL,
+  SANDBOX_WORKSPACE_WRITE,
+  detectHooks,
+  deriveApprovalPolicy,
+  mapMcpServers,
+} from "./codex-shared.js";
 
 const TEMPLATE_PATH = "codex-templates/config.toml.njk";
-const DEFAULT_MODEL = "o4-mini";
-const POLICY_ON_REQUEST = "on-request";
-const POLICY_UNTRUSTED = "untrusted";
-const SANDBOX_WORKSPACE_WRITE = "workspace-write";
-
-/**
- * Detect if hooks exist in the given directory.
- *
- * @param hooksDir - Absolute path to the hooks directory.
- * @returns true if directory exists and contains at least 1 file.
- */
-export function detectHooks(hooksDir: string): boolean {
-  try {
-    if (!fs.statSync(hooksDir).isDirectory()) return false;
-  } catch {
-    return false;
-  }
-  return fs.readdirSync(hooksDir).length > 0;
-}
-
-/**
- * Derive the approval policy based on hooks presence.
- *
- * @param hasHooks - Whether hooks are detected.
- * @returns "on-request" if hooks exist, "untrusted" otherwise.
- */
-export function deriveApprovalPolicy(hasHooks: boolean): string {
-  return hasHooks ? POLICY_ON_REQUEST : POLICY_UNTRUSTED;
-}
-
-/**
- * Map MCP server configurations to template-ready objects.
- *
- * @param config - Project configuration.
- * @returns Array of objects with id, command array, and env for template rendering.
- */
-export function mapMcpServers(
-  config: ProjectConfig,
-): Array<{
-  id: string;
-  command: string[];
-  env: Record<string, string> | null;
-}> {
-  return config.mcp.servers.map((s) => ({
-    id: s.id,
-    command: s.url ? s.url.split(/\s+/) : [],
-    env: Object.keys(s.env).length > 0 ? { ...s.env } : null,
-  }));
-}
 
 /**
  * Build the template context for config.toml rendering.
