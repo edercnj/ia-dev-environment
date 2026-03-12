@@ -1,0 +1,31 @@
+# Java + Spring Boot, microservice, hooks enabled, no MCP
+project:
+  name: "codex-java-spring-test"
+  purpose: "Java Spring integration test fixture"
+architecture:
+  style: microservice
+  domain_driven: true
+  event_driven: false
+interfaces:
+  - type: rest
+    spec: openapi
+language:
+  name: java
+  version: "21"
+framework:
+  name: spring-boot
+  version: "3.x"
+  build_tool: gradle
+  native_build: true
+data:
+  database:
+    type: postgresql
+    version: "17"
+    migration: flyway
+  cache:
+    type: none
+    version: ""
+hooks:
+  post_compile: true
+settings:
+  auto_generate: true
