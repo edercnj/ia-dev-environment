@@ -19,6 +19,7 @@ import {
   detectHooks,
   deriveApprovalPolicy,
   mapMcpServers,
+  isValidTomlBareKey,
 } from "./codex-shared.js";
 
 const TEMPLATE_PATH = "codex-templates/config.toml.njk";
@@ -59,6 +60,13 @@ export class CodexConfigAssembler {
       path.dirname(outputDir), ".claude", "hooks",
     );
     const hasHooks = detectHooks(hooksDir);
+    for (const server of config.mcp.servers) {
+      if (!isValidTomlBareKey(server.id)) {
+        warnings.push(
+          `MCP server id "${server.id}" contains invalid TOML characters`,
+        );
+      }
+    }
     const context = buildConfigContext(config, hasHooks);
     let rendered: string;
     try {

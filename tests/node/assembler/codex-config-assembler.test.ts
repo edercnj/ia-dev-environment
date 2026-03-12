@@ -13,6 +13,8 @@ import {
   detectHooks,
   deriveApprovalPolicy,
   mapMcpServers,
+  escapeTomlValue,
+  isValidTomlBareKey,
 } from "../../../src/assembler/codex-shared.js";
 import { buildAssemblers } from "../../../src/assembler/pipeline.js";
 import { TemplateEngine } from "../../../src/template-engine.js";
@@ -543,6 +545,144 @@ describe("TOML validity", () => {
     const content = assembleAndRead(aFullProjectConfig(), tempDir);
     const parsed = parseToml(content);
     expect(parsed.approval_policy).toBe("on-request");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// escapeTomlValue
+// ---------------------------------------------------------------------------
+
+describe("escapeTomlValue", () => {
+  it("escapeTomlValue_plainString_returnsUnchanged", () => {
+    expect(escapeTomlValue("hello")).toBe("hello");
+  });
+
+  it("escapeTomlValue_doubleQuotes_escapesQuotes", () => {
+    expect(escapeTomlValue('value "with" quotes')).toBe(
+      'value \\"with\\" quotes',
+    );
+  });
+
+  it("escapeTomlValue_backslashes_escapesBackslashes", () => {
+    expect(escapeTomlValue("path\\to\\file")).toBe(
+      "path\\\\to\\\\file",
+    );
+  });
+
+  it("escapeTomlValue_newlines_escapesNewlines", () => {
+    expect(escapeTomlValue("line1\nline2")).toBe("line1\\nline2");
+  });
+
+  it("escapeTomlValue_tabs_escapesTabs", () => {
+    expect(escapeTomlValue("col1\tcol2")).toBe("col1\\tcol2");
+  });
+
+  it("escapeTomlValue_carriageReturn_escapesCR", () => {
+    expect(escapeTomlValue("line1\rline2")).toBe("line1\\rline2");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// isValidTomlBareKey
+// ---------------------------------------------------------------------------
+
+describe("isValidTomlBareKey", () => {
+  it("isValidTomlBareKey_alphanumeric_returnsTrue", () => {
+    expect(isValidTomlBareKey("firecrawl")).toBe(true);
+  });
+
+  it("isValidTomlBareKey_withHyphens_returnsTrue", () => {
+    expect(isValidTomlBareKey("firecrawl-mcp")).toBe(true);
+  });
+
+  it("isValidTomlBareKey_withUnderscores_returnsTrue", () => {
+    expect(isValidTomlBareKey("my_server")).toBe(true);
+  });
+
+  it("isValidTomlBareKey_withDots_returnsFalse", () => {
+    expect(isValidTomlBareKey("my.server")).toBe(false);
+  });
+
+  it("isValidTomlBareKey_withSpaces_returnsFalse", () => {
+    expect(isValidTomlBareKey("my server")).toBe(false);
+  });
+
+  it("isValidTomlBareKey_withBrackets_returnsFalse", () => {
+    expect(isValidTomlBareKey("server[1]")).toBe(false);
+  });
+
+  it("isValidTomlBareKey_emptyString_returnsFalse", () => {
+    expect(isValidTomlBareKey("")).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// mapMcpServers — edge cases
+// ---------------------------------------------------------------------------
+
+describe("mapMcpServers edge cases", () => {
+  it("mapMcpServers_whitespaceOnlyUrl_returnsEmptyCommandArray", () => {
+    const config = configWithMcp([
+      new McpServerConfig("ws", "   "),
+    ]);
+    const result = mapMcpServers(config);
+    expect(result[0]!.command).toEqual([]);
+  });
+
+  it("mapMcpServers_urlWithLeadingTrailingSpaces_trimsParts", () => {
+    const config = configWithMcp([
+      new McpServerConfig("spaced", "  npx firecrawl-mcp  "),
+    ]);
+    const result = mapMcpServers(config);
+    expect(result[0]!.command).toEqual(["npx", "firecrawl-mcp"]);
+  });
+
+  it("mapMcpServers_envWithQuotes_escapesValues", () => {
+    const config = configWithMcp([
+      new McpServerConfig(
+        "quoted", "cmd", [],
+        { TOKEN: 'value "with" quotes' },
+      ),
+    ]);
+    const result = mapMcpServers(config);
+    expect(result[0]!.env).toEqual({
+      TOKEN: 'value \\"with\\" quotes',
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// assemble — validation warnings
+// ---------------------------------------------------------------------------
+
+describe("assemble validation", () => {
+  it("assemble_invalidMcpServerId_emitsWarning", () => {
+    const config = configWithMcp([
+      new McpServerConfig("my.server", "cmd"),
+    ]);
+    const engine = new TemplateEngine(RESOURCES_DIR, config);
+    const assembler = new CodexConfigAssembler();
+    const codexDir = join(tempDir, ".codex");
+    const result = assembler.assemble(
+      config, codexDir, RESOURCES_DIR, engine,
+    );
+    expect(result.warnings).toContain(
+      'MCP server id "my.server" contains invalid TOML characters',
+    );
+    expect(result.files).toHaveLength(1);
+  });
+
+  it("assemble_validMcpServerId_noWarning", () => {
+    const config = configWithMcp([
+      new McpServerConfig("firecrawl-mcp", "npx firecrawl"),
+    ]);
+    const engine = new TemplateEngine(RESOURCES_DIR, config);
+    const assembler = new CodexConfigAssembler();
+    const codexDir = join(tempDir, ".codex");
+    const result = assembler.assemble(
+      config, codexDir, RESOURCES_DIR, engine,
+    );
+    expect(result.warnings).toEqual([]);
   });
 });
 

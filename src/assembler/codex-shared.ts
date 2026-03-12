@@ -57,6 +57,19 @@ export function deriveApprovalPolicy(hasHooks: boolean): string {
   return hasHooks ? POLICY_ON_REQUEST : POLICY_UNTRUSTED;
 }
 
+/** Pattern for valid TOML bare keys (used as MCP server section names). */
+const TOML_BARE_KEY = /^[A-Za-z0-9_-]+$/;
+
+/** Escape a string value for safe TOML rendering inside double quotes. */
+export function escapeTomlValue(value: string): string {
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, "\\n")
+    .replace(/\r/g, "\\r")
+    .replace(/\t/g, "\\t");
+}
+
 /** MCP server context ready for template rendering. */
 export interface McpServerContext {
   readonly id: string;
@@ -67,15 +80,38 @@ export interface McpServerContext {
 /**
  * Map MCP server configurations to template-ready objects.
  *
+ * Trims/filters URL parts to avoid empty command elements.
+ * Escapes env values for safe TOML rendering.
+ *
  * @param config - Project configuration.
  * @returns Array of MCP server contexts for template rendering.
  */
 export function mapMcpServers(
   config: ProjectConfig,
 ): McpServerContext[] {
-  return config.mcp.servers.map((s) => ({
-    id: s.id,
-    command: s.url ? s.url.split(/\s+/) : [],
-    env: Object.keys(s.env).length > 0 ? { ...s.env } : null,
-  }));
+  return config.mcp.servers.map((s) => {
+    const trimmed = s.url ? s.url.trim() : "";
+    const command = trimmed.length > 0
+      ? trimmed.split(/\s+/)
+      : [];
+    const rawEnv = s.env;
+    let env: Record<string, string> | null = null;
+    if (Object.keys(rawEnv).length > 0) {
+      env = {};
+      for (const key of Object.keys(rawEnv)) {
+        env[key] = escapeTomlValue(rawEnv[key]!);
+      }
+    }
+    return { id: s.id, command, env };
+  });
+}
+
+/**
+ * Validate that an MCP server id is a safe TOML bare key.
+ *
+ * @param id - Server identifier to validate.
+ * @returns true if id is a valid TOML bare key.
+ */
+export function isValidTomlBareKey(id: string): boolean {
+  return TOML_BARE_KEY.test(id);
 }
