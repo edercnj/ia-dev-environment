@@ -45,5 +45,8 @@ export * from "./readme-assembler.js";
 // --- STORY-022: CodexAgentsMdAssembler ---
 export * from "./codex-agents-md-assembler.js";
 
+// --- STORY-023: CodexConfigAssembler ---
+export * from "./codex-config-assembler.js";
+
 // --- STORY-016: Pipeline Orchestrator ---
 export * from "./pipeline.js";

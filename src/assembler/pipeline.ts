@@ -1,5 +1,5 @@
 /**
- * Pipeline Orchestrator — coordinates all 15 assemblers in RULE-008 order.
+ * Pipeline Orchestrator — coordinates all 16 assemblers in RULE-008 order.
  *
  * Migrated from Python `assembler/__init__.py`.
  * Supports real mode (atomic output) and dry-run mode (temp dir, discard).
@@ -30,6 +30,7 @@ import { GithubHooksAssembler } from "./github-hooks-assembler.js";
 import { GithubPromptsAssembler } from "./github-prompts-assembler.js";
 import { ReadmeAssembler } from "./readme-assembler.js";
 import { CodexAgentsMdAssembler } from "./codex-agents-md-assembler.js";
+import { CodexConfigAssembler } from "./codex-config-assembler.js";
 
 /** Warning appended to dry-run results. */
 export const DRY_RUN_WARNING = "Dry run -- no files written";
@@ -67,7 +68,7 @@ export function normalizeResult(
   return { files: [...result.files], warnings: [...result.warnings] };
 }
 
-/** Build the ordered list of 15 assemblers per RULE-008. */
+/** Build the ordered list of 16 assemblers per RULE-008. */
 export function buildAssemblers(): readonly AssemblerDescriptor[] {
   return [
     { name: "RulesAssembler", target: "claude", assembler: new RulesAssembler() },
@@ -85,6 +86,7 @@ export function buildAssemblers(): readonly AssemblerDescriptor[] {
     { name: "GithubPromptsAssembler", target: "github", assembler: new GithubPromptsAssembler() },
     { name: "ReadmeAssembler", target: "claude", assembler: new ReadmeAssembler() },
     { name: "CodexAgentsMdAssembler", target: "codex", assembler: new CodexAgentsMdAssembler() },
+    { name: "CodexConfigAssembler", target: "codex", assembler: new CodexConfigAssembler() },
   ];
 }
 
