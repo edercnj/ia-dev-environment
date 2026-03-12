@@ -16,6 +16,10 @@ import {
   aFullProjectConfig,
   aMinimalProjectConfig,
 } from "../../fixtures/project-config.fixture.js";
+import {
+  McpConfig,
+  McpServerConfig,
+} from "../../../src/models.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -164,6 +168,28 @@ describe("scanAgents", () => {
     expect(result).toHaveLength(1);
     expect(result[0]!.name).toBe("agent");
   });
+
+  it("scanAgents_emptyContentFile_returnsEmptyDescription", async () => {
+    const agentsDir = join(tempDir, "agents");
+    await mkdir(agentsDir, { recursive: true });
+    await writeFile(join(agentsDir, "empty.md"), "");
+    const result = scanAgents(agentsDir);
+    expect(result).toHaveLength(1);
+    expect(result[0]!.description).toBe("");
+  });
+
+  it("scanAgents_leadingBlankLines_extractsFirstNonBlankLine", async () => {
+    const agentsDir = join(tempDir, "agents");
+    await mkdir(agentsDir, { recursive: true });
+    await writeFile(
+      join(agentsDir, "spaced.md"),
+      "\n\n\nActual first line content.\n",
+    );
+    const result = scanAgents(agentsDir);
+    expect(result[0]!.description).toBe(
+      "Actual first line content.",
+    );
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -243,6 +269,33 @@ describe("scanSkills", () => {
     const result = scanSkills(skillsDir);
     expect(result).toHaveLength(1);
     expect(result[0]!.name).toBe("x-dev-implement");
+  });
+
+  it("scanSkills_noFrontmatter_usesDirectoryNameAsDefault", async () => {
+    const skillsDir = join(tempDir, "skills");
+    const skillDir = join(skillsDir, "my-skill");
+    await mkdir(skillDir, { recursive: true });
+    await writeFile(
+      join(skillDir, "SKILL.md"), "# No frontmatter here\nJust content.",
+    );
+    const result = scanSkills(skillsDir);
+    expect(result).toHaveLength(1);
+    expect(result[0]!.name).toBe("my-skill");
+    expect(result[0]!.description).toBe("");
+    expect(result[0]!.user_invocable).toBe(true);
+  });
+
+  it("scanSkills_contentBeforeFrontmatter_ignoresPreContent", async () => {
+    const skillsDir = join(tempDir, "skills");
+    const skillDir = join(skillsDir, "pre-content");
+    await mkdir(skillDir, { recursive: true });
+    await writeFile(
+      join(skillDir, "SKILL.md"),
+      "Some preamble text\n---\nname: actual-name\ndescription: Actual description\n---\n",
+    );
+    const result = scanSkills(skillsDir);
+    expect(result[0]!.name).toBe("actual-name");
+    expect(result[0]!.description).toBe("Actual description");
   });
 });
 
@@ -328,6 +381,36 @@ describe("buildExtendedContext", () => {
       fullConfig, agents, skills, true,
     );
     expect(ctx.security_frameworks).toEqual(["owasp", "pci-dss"]);
+  });
+
+  it("buildExtendedContext_configWithMcp_mapsServersCorrectly", () => {
+    const configWithMcp = aFullProjectConfig();
+    const mcpConfig = new McpConfig([
+      new McpServerConfig(
+        "firecrawl", "npx firecrawl-mcp", [], { API_KEY: "key1" },
+      ),
+    ]);
+    // Override mcp via creating a new config-like object
+    const config = Object.create(
+      Object.getPrototypeOf(configWithMcp),
+      Object.getOwnPropertyDescriptors(configWithMcp),
+    ) as typeof configWithMcp;
+    Object.defineProperty(config, "mcp", { value: mcpConfig });
+    const ctx = buildExtendedContext(config, agents, skills, true);
+    const servers = ctx.mcp_servers as Array<{
+      id: string; command: string[]; env: Record<string, string>;
+    }>;
+    expect(servers).toHaveLength(1);
+    expect(servers[0]!.id).toBe("firecrawl");
+    expect(servers[0]!.command).toEqual(["npx", "firecrawl-mcp"]);
+    expect(servers[0]!.env).toEqual({ API_KEY: "key1" });
+  });
+
+  it("buildExtendedContext_noMcpServers_returnsEmptyArray", () => {
+    const ctx = buildExtendedContext(
+      fullConfig, agents, skills, true,
+    );
+    expect(ctx.mcp_servers).toEqual([]);
   });
 });
 
@@ -508,6 +591,25 @@ describe("assemble", () => {
     expect(content).not.toMatch(/\{\{/);
     expect(content).not.toMatch(/\{%/);
     expect(content).not.toMatch(/\{#/);
+  });
+
+  it("assemble_templateRenderingFails_returnsWarningAndEmptyFiles", async () => {
+    await seedAgentsDir(tempDir, [
+      { name: "architect", content: AGENT_PLAIN },
+    ]);
+    const config = aFullProjectConfig();
+    const fakeResourcesDir = join(tempDir, "empty-resources");
+    fs.mkdirSync(fakeResourcesDir, { recursive: true });
+    const engine = new TemplateEngine(fakeResourcesDir, config);
+    const assembler = new CodexAgentsMdAssembler();
+    const codexDir = join(tempDir, ".codex");
+    const result = assembler.assemble(
+      config, codexDir, fakeResourcesDir, engine,
+    );
+    expect(result.files).toEqual([]);
+    expect(result.warnings).toContain(
+      "Template not found: codex-templates/agents-md.md.njk",
+    );
   });
 
   it("assemble_fullConfig_noExcessiveBlankLines", async () => {
