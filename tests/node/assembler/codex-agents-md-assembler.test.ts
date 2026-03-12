@@ -607,9 +607,9 @@ describe("assemble", () => {
       config, codexDir, fakeResourcesDir, engine,
     );
     expect(result.files).toEqual([]);
-    expect(result.warnings).toContain(
-      "Template not found: codex-templates/agents-md.md.njk",
-    );
+    expect(
+      result.warnings.some((w) => w.startsWith("Template rendering failed:")),
+    ).toBe(true);
   });
 
   it("assemble_fullConfig_noExcessiveBlankLines", async () => {

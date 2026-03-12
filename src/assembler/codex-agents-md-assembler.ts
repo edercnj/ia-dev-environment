@@ -30,6 +30,10 @@ export interface SkillInfo {
 }
 
 const TEMPLATE_PATH = "codex-templates/agents-md.md.njk";
+const DEFAULT_MODEL = "o4-mini";
+const POLICY_ON_REQUEST = "on-request";
+const POLICY_UNTRUSTED = "untrusted";
+const SANDBOX_WORKSPACE_WRITE = "workspace-write";
 
 /**
  * Scan a directory for agent .md files.
@@ -157,10 +161,50 @@ export function buildExtendedContext(
       env: { ...s.env },
     })),
     security_frameworks: [...config.security.frameworks],
-    model: "o4-mini",
-    approval_policy: hasHooks ? "on-request" : "untrusted",
-    sandbox_mode: "workspace-write",
+    model: DEFAULT_MODEL,
+    approval_policy: hasHooks ? POLICY_ON_REQUEST : POLICY_UNTRUSTED,
+    sandbox_mode: SANDBOX_WORKSPACE_WRITE,
   };
+}
+
+/** Collect agents, skills, and hooks from .claude/ output directory. */
+function collectContext(
+  claudeDir: string,
+  warnings: string[],
+): { agents: AgentInfo[]; skills: SkillInfo[]; hasHooks: boolean } {
+  const agents = scanAgents(path.join(claudeDir, "agents"));
+  const skills = scanSkills(path.join(claudeDir, "skills"));
+  const hasHooks = fs.existsSync(path.join(claudeDir, "hooks"));
+  if (agents.length === 0) {
+    warnings.push("No agents found in output directory");
+  }
+  if (skills.length === 0) {
+    warnings.push("No skills found in output directory");
+  }
+  return { agents, skills, hasHooks };
+}
+
+/** Render template and write AGENTS.md to outputDir. */
+function renderAndWrite(
+  engine: TemplateEngine,
+  context: Record<string, unknown>,
+  outputDir: string,
+  warnings: string[],
+): AssembleResult {
+  let rendered: string;
+  try {
+    rendered = engine.renderTemplate(TEMPLATE_PATH, context);
+  } catch (error: unknown) {
+    const reason = error instanceof Error
+      ? error.message
+      : String(error);
+    warnings.push(`Template rendering failed: ${reason}`);
+    return { files: [], warnings };
+  }
+  fs.mkdirSync(outputDir, { recursive: true });
+  const dest = path.join(outputDir, "AGENTS.md");
+  fs.writeFileSync(dest, rendered, "utf-8");
+  return { files: [dest], warnings };
 }
 
 /** Generates .codex/AGENTS.md from Nunjucks template. */
@@ -169,46 +213,17 @@ export class CodexAgentsMdAssembler {
   assemble(
     config: ProjectConfig,
     outputDir: string,
-    resourcesDir: string,
+    _resourcesDir: string,
     engine: TemplateEngine,
   ): AssembleResult {
     const warnings: string[] = [];
-    const rootDir = path.dirname(outputDir);
-    const claudeDir = path.join(rootDir, ".claude");
-
-    // Phase 1 — Collect extended context
-    const agentsDir = path.join(claudeDir, "agents");
-    const skillsDir = path.join(claudeDir, "skills");
-    const hooksDir = path.join(claudeDir, "hooks");
-    const agents = scanAgents(agentsDir);
-    const skills = scanSkills(skillsDir);
-    const hasHooks = fs.existsSync(hooksDir);
-
-    if (agents.length === 0) {
-      warnings.push("No agents found in output directory");
-    }
-    if (skills.length === 0) {
-      warnings.push("No skills found in output directory");
-    }
-
-    // Phase 2 — Build rendering context
+    const claudeDir = path.join(path.dirname(outputDir), ".claude");
+    const { agents, skills, hasHooks } = collectContext(
+      claudeDir, warnings,
+    );
     const context = buildExtendedContext(
       config, agents, skills, hasHooks,
     );
-
-    // Phase 3 — Render and write
-    let rendered: string;
-    try {
-      rendered = engine.renderTemplate(TEMPLATE_PATH, context);
-    } catch {
-      warnings.push(
-        `Template not found: ${TEMPLATE_PATH}`,
-      );
-      return { files: [], warnings };
-    }
-    fs.mkdirSync(outputDir, { recursive: true });
-    const dest = path.join(outputDir, "AGENTS.md");
-    fs.writeFileSync(dest, rendered, "utf-8");
-    return { files: [dest], warnings };
+    return renderAndWrite(engine, context, outputDir, warnings);
   }
 }
