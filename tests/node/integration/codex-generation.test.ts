@@ -42,7 +42,7 @@ describe("Codex generation integration", { timeout: 60000 }, () => {
         config, RESOURCES_DIR, outputDir, false,
       );
       agentsMd = fs.readFileSync(
-        path.join(outputDir, ".codex", "AGENTS.md"), "utf-8",
+        path.join(outputDir, "AGENTS.md"), "utf-8",
       );
       configToml = fs.readFileSync(
         path.join(outputDir, ".codex", "config.toml"), "utf-8",
@@ -118,7 +118,11 @@ describe("Codex generation integration", { timeout: 60000 }, () => {
       const codexFiles = result.filesGenerated.filter(
         (f) => f.includes(".codex"),
       );
-      expect(codexFiles.length).toBeGreaterThanOrEqual(2);
+      expect(codexFiles.length).toBeGreaterThanOrEqual(1);
+      const rootAgentsMd = result.filesGenerated.filter(
+        (f) => f.endsWith("AGENTS.md") && !f.includes(".codex"),
+      );
+      expect(rootAgentsMd.length).toBe(1);
     });
   });
 
@@ -140,7 +144,7 @@ describe("Codex generation integration", { timeout: 60000 }, () => {
         config, RESOURCES_DIR, outputDir, false,
       );
       agentsMd = fs.readFileSync(
-        path.join(outputDir, ".codex", "AGENTS.md"), "utf-8",
+        path.join(outputDir, "AGENTS.md"), "utf-8",
       );
       configToml = fs.readFileSync(
         path.join(outputDir, ".codex", "config.toml"), "utf-8",
@@ -197,7 +201,7 @@ describe("Codex generation integration", { timeout: 60000 }, () => {
         config, RESOURCES_DIR, outputDir, false,
       );
       agentsMd = fs.readFileSync(
-        path.join(outputDir, ".codex", "AGENTS.md"), "utf-8",
+        path.join(outputDir, "AGENTS.md"), "utf-8",
       );
       configToml = fs.readFileSync(
         path.join(outputDir, ".codex", "config.toml"), "utf-8",

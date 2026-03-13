@@ -99,7 +99,7 @@ function createGithubArtifacts(
 function createCodexArtifacts(baseDir: string): void {
   const codexDir = path.join(baseDir, ".codex");
   fs.mkdirSync(codexDir, { recursive: true });
-  fs.writeFileSync(path.join(codexDir, "AGENTS.md"), "# Agents");
+  fs.writeFileSync(path.join(baseDir, "AGENTS.md"), "# Agents");
   fs.writeFileSync(path.join(codexDir, "config.toml"), "[codex]");
 }
 
@@ -476,13 +476,13 @@ describe("ReadmeAssembler", () => {
       expect(result).not.toContain("Total .github/ artifacts");
     });
 
-    it("buildMappingTable_contains8Rows", () => {
+    it("buildMappingTable_contains9Rows", () => {
       const result = buildMappingTable(outputDir);
       const dataRows = result.split("\n")
         .filter((l) => l.startsWith("| "))
         .filter((l) => !l.startsWith("| .claude/"))
         .filter((l) => !l.startsWith("|---"));
-      expect(dataRows).toHaveLength(8);
+      expect(dataRows).toHaveLength(9);
     });
 
     it("buildMappingTable_includesCodexColumn", () => {
@@ -492,12 +492,12 @@ describe("ReadmeAssembler", () => {
 
     it("buildMappingTable_codexColumnHasConfigToml", () => {
       const result = buildMappingTable(outputDir);
-      expect(result).toContain("`config.toml`");
+      expect(result).toContain("`.codex/config.toml`");
     });
 
     it("buildMappingTable_codexColumnHasAgentsMd", () => {
       const result = buildMappingTable(outputDir);
-      expect(result).toContain("Sections in AGENTS.md");
+      expect(result).toContain("`AGENTS.md` (project root)");
     });
 
     it("buildGenerationSummary_countsAllComponents", () => {
@@ -555,7 +555,7 @@ describe("ReadmeAssembler", () => {
       createCodexArtifacts(path.dirname(outputDir));
       const config = buildConfig();
       const result = buildGenerationSummary(outputDir, config);
-      expect(result).toContain("| Codex (.codex) | 2 |");
+      expect(result).toContain("| Codex (.codex) | 1 |");
     });
 
     it("buildGenerationSummary_codexCountZeroWhenMissing", () => {
@@ -813,7 +813,7 @@ describe("ReadmeAssembler", () => {
       const content = fs.readFileSync(
         path.join(outputDir, "README.md"), "utf-8",
       );
-      expect(content).toContain("| Codex (.codex) | 2 |");
+      expect(content).toContain("| Codex (.codex) | 1 |");
     });
 
     it("assemble_fullReadme_codexMappingColumnPresent", () => {
@@ -825,8 +825,8 @@ describe("ReadmeAssembler", () => {
       const content = fs.readFileSync(
         path.join(outputDir, "README.md"), "utf-8",
       );
-      expect(content).toContain(".codex/");
-      expect(content).toContain("`config.toml`");
+      expect(content).toContain("`.codex/config.toml`");
+      expect(content).toContain("`AGENTS.md` (project root)");
     });
 
     it("assemble_fullReadme_codexStructureSectionPresent", () => {

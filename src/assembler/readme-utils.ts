@@ -101,6 +101,12 @@ export function countCodexFiles(codexDir: string): number {
     .filter((e) => e.isFile()).length;
 }
 
+/** Count all files recursively in a `.agents/` directory. Returns 0 if missing. */
+export function countCodexAgentsFiles(agentsDir: string): number {
+  if (!fs.existsSync(agentsDir)) return 0;
+  return countFilesRecursive(agentsDir);
+}
+
 /** Return true if SKILL.md content flags a knowledge pack. */
 export function isKnowledgePack(skillMdPath: string): boolean {
   const text = fs.readFileSync(skillMdPath, "utf-8");
