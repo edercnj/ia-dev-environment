@@ -46,6 +46,7 @@ export * from "./readme-assembler.js";
 export * from "./codex-shared.js";
 export * from "./codex-agents-md-assembler.js";
 export * from "./codex-config-assembler.js";
+export * from "./codex-skills-assembler.js";
 
 // --- STORY-016: Pipeline Orchestrator ---
 export * from "./pipeline.js";

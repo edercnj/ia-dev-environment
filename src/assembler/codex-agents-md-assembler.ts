@@ -223,9 +223,9 @@ function renderAndWrite(
   return { files: [dest], warnings };
 }
 
-/** Generates .codex/AGENTS.md from Nunjucks template. */
+/** Generates AGENTS.md at the project root for OpenAI Codex CLI. */
 export class CodexAgentsMdAssembler {
-  /** Generate .codex/AGENTS.md by scanning .claude/ output and rendering template. */
+  /** Generate AGENTS.md by scanning .claude/ output and rendering template. */
   assemble(
     config: ProjectConfig,
     outputDir: string,
@@ -233,7 +233,7 @@ export class CodexAgentsMdAssembler {
     engine: TemplateEngine,
   ): AssembleResult {
     const warnings: string[] = [];
-    const claudeDir = path.join(path.dirname(outputDir), ".claude");
+    const claudeDir = path.join(outputDir, ".claude");
     const { agents, skills, hasHooks } = collectContext(
       claudeDir, warnings,
     );

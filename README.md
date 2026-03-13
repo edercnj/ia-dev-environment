@@ -48,7 +48,7 @@ npm unlink
 
 ```bash
 # Use one of the bundled config profiles
-ia-dev-env generate --config resources/config-templates/setup-config.typescript-nestjs.yaml --output-dir /path/to/your-project/
+ia-dev-env generate --config resources/config-templates/setup-config.typescript-commander-cli.yaml --output-dir /path/to/your-project/
 
 # Or use your own config file
 ia-dev-env generate --config my-config.yaml --output-dir .claude/

@@ -483,9 +483,8 @@ describe("assemble", () => {
     const config = aFullProjectConfig();
     const engine = new TemplateEngine(RESOURCES_DIR, config);
     const assembler = new CodexAgentsMdAssembler();
-    const codexDir = join(tempDir, ".codex");
-    assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
-    expect(fs.existsSync(join(codexDir, "AGENTS.md"))).toBe(true);
+    assembler.assemble(config, tempDir, RESOURCES_DIR, engine);
+    expect(fs.existsSync(join(tempDir, "AGENTS.md"))).toBe(true);
   });
 
   it("assemble_fullConfig_returnsFileAndNoWarnings", async () => {
@@ -493,9 +492,8 @@ describe("assemble", () => {
     const config = aFullProjectConfig();
     const engine = new TemplateEngine(RESOURCES_DIR, config);
     const assembler = new CodexAgentsMdAssembler();
-    const codexDir = join(tempDir, ".codex");
     const result = assembler.assemble(
-      config, codexDir, RESOURCES_DIR, engine,
+      config, tempDir, RESOURCES_DIR, engine,
     );
     expect(result.files).toHaveLength(1);
     expect(result.files[0]).toContain("AGENTS.md");
@@ -507,10 +505,9 @@ describe("assemble", () => {
     const config = aFullProjectConfig();
     const engine = new TemplateEngine(RESOURCES_DIR, config);
     const assembler = new CodexAgentsMdAssembler();
-    const codexDir = join(tempDir, ".codex");
-    assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
+    assembler.assemble(config, tempDir, RESOURCES_DIR, engine);
     const content = fs.readFileSync(
-      join(codexDir, "AGENTS.md"), "utf-8",
+      join(tempDir, "AGENTS.md"), "utf-8",
     );
     expect(content).toContain("## Architecture");
     expect(content).toContain("## Tech Stack");
@@ -529,10 +526,9 @@ describe("assemble", () => {
     const config = aMinimalProjectConfig();
     const engine = new TemplateEngine(RESOURCES_DIR, config);
     const assembler = new CodexAgentsMdAssembler();
-    const codexDir = join(tempDir, ".codex");
-    assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
+    assembler.assemble(config, tempDir, RESOURCES_DIR, engine);
     const content = fs.readFileSync(
-      join(codexDir, "AGENTS.md"), "utf-8",
+      join(tempDir, "AGENTS.md"), "utf-8",
     );
     expect(content).not.toContain("## Domain");
   });
@@ -542,10 +538,9 @@ describe("assemble", () => {
     const config = aMinimalProjectConfig();
     const engine = new TemplateEngine(RESOURCES_DIR, config);
     const assembler = new CodexAgentsMdAssembler();
-    const codexDir = join(tempDir, ".codex");
-    assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
+    assembler.assemble(config, tempDir, RESOURCES_DIR, engine);
     const content = fs.readFileSync(
-      join(codexDir, "AGENTS.md"), "utf-8",
+      join(tempDir, "AGENTS.md"), "utf-8",
     );
     expect(content).not.toContain("## Security");
   });
@@ -557,9 +552,8 @@ describe("assemble", () => {
     const config = aFullProjectConfig();
     const engine = new TemplateEngine(RESOURCES_DIR, config);
     const assembler = new CodexAgentsMdAssembler();
-    const codexDir = join(tempDir, ".codex");
     const result = assembler.assemble(
-      config, codexDir, RESOURCES_DIR, engine,
+      config, tempDir, RESOURCES_DIR, engine,
     );
     expect(result.warnings).toContain(
       "No agents found in output directory",
@@ -573,9 +567,8 @@ describe("assemble", () => {
     const config = aFullProjectConfig();
     const engine = new TemplateEngine(RESOURCES_DIR, config);
     const assembler = new CodexAgentsMdAssembler();
-    const codexDir = join(tempDir, ".codex");
     const result = assembler.assemble(
-      config, codexDir, RESOURCES_DIR, engine,
+      config, tempDir, RESOURCES_DIR, engine,
     );
     expect(result.warnings).toContain(
       "No skills found in output directory",
@@ -589,10 +582,9 @@ describe("assemble", () => {
     const config = aFullProjectConfig();
     const engine = new TemplateEngine(RESOURCES_DIR, config);
     const assembler = new CodexAgentsMdAssembler();
-    const codexDir = join(tempDir, ".codex");
-    assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
+    assembler.assemble(config, tempDir, RESOURCES_DIR, engine);
     const content = fs.readFileSync(
-      join(codexDir, "AGENTS.md"), "utf-8",
+      join(tempDir, "AGENTS.md"), "utf-8",
     );
     expect(content).not.toContain("## Agent Personas");
   });
@@ -604,24 +596,20 @@ describe("assemble", () => {
     const config = aFullProjectConfig();
     const engine = new TemplateEngine(RESOURCES_DIR, config);
     const assembler = new CodexAgentsMdAssembler();
-    const codexDir = join(tempDir, ".codex");
-    assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
+    assembler.assemble(config, tempDir, RESOURCES_DIR, engine);
     const content = fs.readFileSync(
-      join(codexDir, "AGENTS.md"), "utf-8",
+      join(tempDir, "AGENTS.md"), "utf-8",
     );
     expect(content).not.toContain("## Available Skills");
   });
 
-  it("assemble_codexDirNotExists_createsDirectory", async () => {
+  it("assemble_rootDir_createsAgentsMdAtRoot", async () => {
     await setupFullContext(tempDir);
     const config = aFullProjectConfig();
     const engine = new TemplateEngine(RESOURCES_DIR, config);
     const assembler = new CodexAgentsMdAssembler();
-    const codexDir = join(tempDir, ".codex");
-    expect(fs.existsSync(codexDir)).toBe(false);
-    assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
-    expect(fs.existsSync(codexDir)).toBe(true);
-    expect(fs.existsSync(join(codexDir, "AGENTS.md"))).toBe(true);
+    assembler.assemble(config, tempDir, RESOURCES_DIR, engine);
+    expect(fs.existsSync(join(tempDir, "AGENTS.md"))).toBe(true);
   });
 
   it("assemble_fullConfig_noTemplateArtifacts", async () => {
@@ -629,10 +617,9 @@ describe("assemble", () => {
     const config = aFullProjectConfig();
     const engine = new TemplateEngine(RESOURCES_DIR, config);
     const assembler = new CodexAgentsMdAssembler();
-    const codexDir = join(tempDir, ".codex");
-    assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
+    assembler.assemble(config, tempDir, RESOURCES_DIR, engine);
     const content = fs.readFileSync(
-      join(codexDir, "AGENTS.md"), "utf-8",
+      join(tempDir, "AGENTS.md"), "utf-8",
     );
     expect(content).not.toMatch(/\{\{/);
     expect(content).not.toMatch(/\{%/);
@@ -648,9 +635,8 @@ describe("assemble", () => {
     fs.mkdirSync(fakeResourcesDir, { recursive: true });
     const engine = new TemplateEngine(fakeResourcesDir, config);
     const assembler = new CodexAgentsMdAssembler();
-    const codexDir = join(tempDir, ".codex");
     const result = assembler.assemble(
-      config, codexDir, fakeResourcesDir, engine,
+      config, tempDir, fakeResourcesDir, engine,
     );
     expect(result.files).toEqual([]);
     expect(
@@ -663,10 +649,9 @@ describe("assemble", () => {
     const config = aFullProjectConfig();
     const engine = new TemplateEngine(RESOURCES_DIR, config);
     const assembler = new CodexAgentsMdAssembler();
-    const codexDir = join(tempDir, ".codex");
-    assembler.assemble(config, codexDir, RESOURCES_DIR, engine);
+    assembler.assemble(config, tempDir, RESOURCES_DIR, engine);
     const content = fs.readFileSync(
-      join(codexDir, "AGENTS.md"), "utf-8",
+      join(tempDir, "AGENTS.md"), "utf-8",
     );
     expect(content).not.toMatch(/\n{5,}/);
   });

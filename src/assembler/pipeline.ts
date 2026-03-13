@@ -31,12 +31,13 @@ import { GithubPromptsAssembler } from "./github-prompts-assembler.js";
 import { ReadmeAssembler } from "./readme-assembler.js";
 import { CodexAgentsMdAssembler } from "./codex-agents-md-assembler.js";
 import { CodexConfigAssembler } from "./codex-config-assembler.js";
+import { CodexSkillsAssembler } from "./codex-skills-assembler.js";
 
 /** Warning appended to dry-run results. */
 export const DRY_RUN_WARNING = "Dry run -- no files written";
 
 /** Target output directory for an assembler. */
-export type AssemblerTarget = "claude" | "github" | "codex";
+export type AssemblerTarget = "claude" | "github" | "codex" | "codex-agents" | "root";
 
 /** Pairs a display name with an assembler instance and its target directory. */
 export interface AssemblerDescriptor {
@@ -84,8 +85,9 @@ export function buildAssemblers(): readonly AssemblerDescriptor[] {
     { name: "GithubAgentsAssembler", target: "github", assembler: new GithubAgentsAssembler() },
     { name: "GithubHooksAssembler", target: "github", assembler: new GithubHooksAssembler() },
     { name: "GithubPromptsAssembler", target: "github", assembler: new GithubPromptsAssembler() },
-    { name: "CodexAgentsMdAssembler", target: "codex", assembler: new CodexAgentsMdAssembler() },
+    { name: "CodexAgentsMdAssembler", target: "root", assembler: new CodexAgentsMdAssembler() },
     { name: "CodexConfigAssembler", target: "codex", assembler: new CodexConfigAssembler() },
+    { name: "CodexSkillsAssembler", target: "codex-agents", assembler: new CodexSkillsAssembler() },
     { name: "ReadmeAssembler", target: "claude", assembler: new ReadmeAssembler() },
   ];
 }
@@ -101,15 +103,20 @@ export function executeAssemblers(
   const claudeDir = join(outputDir, ".claude");
   const githubDir = join(outputDir, ".github");
   const codexDir = join(outputDir, ".codex");
+  const agentsDir = join(outputDir, ".agents");
   const files: string[] = [];
   const warnings: string[] = [];
   for (const { name, target, assembler } of assemblers) {
     try {
-      const targetDir = target === "github"
-        ? githubDir
-        : target === "codex"
-          ? codexDir
-          : claudeDir;
+      const targetDir = target === "root"
+        ? outputDir
+        : target === "github"
+          ? githubDir
+          : target === "codex"
+            ? codexDir
+            : target === "codex-agents"
+              ? agentsDir
+              : claudeDir;
       const raw = assembler.assemble(
         config, targetDir, resourcesDir, engine,
       );

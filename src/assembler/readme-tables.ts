@@ -26,6 +26,7 @@ import {
   countGithubComponent,
   countGithubSkills,
   countCodexFiles,
+  countCodexAgentsFiles,
   isKnowledgePack,
   extractRuleNumber,
   extractRuleScope,
@@ -165,6 +166,11 @@ function resolveCodexDir(outputDir: string): string {
   return path.join(path.dirname(outputDir), ".codex");
 }
 
+/** Resolve the sibling .agents/ directory relative to the .claude/ outputDir. */
+function resolveAgentsDir(outputDir: string): string {
+  return path.join(path.dirname(outputDir), ".agents");
+}
+
 /** Build the `.claude/ <-> .github/ <-> .codex/` mapping table. */
 export function buildMappingTable(outputDir: string): string {
   const rows = buildMappingRows();
@@ -203,11 +209,12 @@ export function buildGenerationSummary(
 
 function buildMappingRows(): [string, string, string, string][] {
   return [
-    ["Rules (`rules/*.md`)", "Instructions (`instructions/*.instructions.md`)", "Sections in AGENTS.md", "Rules \u2192 consolidated sections"],
-    ["Skills (`skills/*/SKILL.md`)", "Skills (`skills/*/SKILL.md`)", "Reference in AGENTS.md", "Skills listed in AGENTS.md"],
-    ["Agents (`agents/*.md`)", "Agents (`agents/*.agent.md`)", "Agent personas in AGENTS.md", "Agents as section"],
-    ["Hooks (`hooks/`)", "Hooks (`hooks/*.json`)", "Reference in AGENTS.md", "Hooks influence approval_policy"],
-    ["Settings (`settings*.json`)", "N/A", "`config.toml`", "Permissions \u2192 approval policy"],
+    ["Rules (`rules/*.md`)", "Instructions (`instructions/*.instructions.md`)", "Sections in `AGENTS.md`", "Rules \u2192 consolidated sections"],
+    ["Skills (`skills/*/SKILL.md`)", "Skills (`skills/*/SKILL.md`)", "Skills (`.agents/skills/`)", "Same structure across platforms"],
+    ["Agents (`agents/*.md`)", "Agents (`agents/*.agent.md`)", "Agent personas in `AGENTS.md`", "Agents as section"],
+    ["Hooks (`hooks/`)", "Hooks (`hooks/*.json`)", "Reference in `AGENTS.md`", "Hooks influence approval_policy"],
+    ["Settings (`settings*.json`)", "N/A", "`.codex/config.toml`", "Permissions \u2192 approval policy"],
+    ["N/A", "N/A", "`AGENTS.md` (project root)", "Codex project instructions"],
     ["N/A", "Prompts (`prompts/*.prompt.md`)", "N/A", "GitHub Copilot prompt templates"],
     ["N/A", "MCP (`copilot-mcp.json`)", "N/A", "GitHub Copilot MCP server configuration"],
     ["N/A", "Global instructions (`copilot-instructions.md`)", "N/A", "Loaded in every Copilot session"],
@@ -226,6 +233,12 @@ function buildSummaryRows(
   ) ? 1 : 0;
   const codexDir = resolveCodexDir(outputDir);
   const codexCount = countCodexFiles(codexDir);
+  const agentsDir = resolveAgentsDir(outputDir);
+  const agentsCount = countCodexAgentsFiles(agentsDir);
+  const rootDir = path.dirname(outputDir);
+  const agentsMdCount = fs.existsSync(
+    path.join(rootDir, "AGENTS.md"),
+  ) ? 1 : 0;
   return [
     ["Rules (.claude)", countRules(outputDir)],
     ["Skills (.claude)", countSkills(outputDir) - kps],
@@ -239,6 +252,8 @@ function buildSummaryRows(
     ["Prompts (.github)", countGithubComponent(githubDir, "prompts")],
     ["Hooks (.github)", countGithubComponent(githubDir, "hooks")],
     ["MCP (.github)", ghMcp],
+    ["AGENTS.md (root)", agentsMdCount],
     ["Codex (.codex)", codexCount],
+    ["Skills (.agents)", agentsCount],
   ];
 }

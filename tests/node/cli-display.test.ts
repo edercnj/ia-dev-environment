@@ -26,6 +26,7 @@ function buildComponentCounts(
     settings: 0,
     readme: 0,
     github: 0,
+    codex: 0,
     ...overrides,
   };
 }
@@ -236,6 +237,45 @@ describe("classifyFiles", () => {
     expect(result.agents).toBe(0);
   });
 
+  it("classifyFiles_codexConfigPath_countsAsCodex", () => {
+    const result = classifyFiles(["/out/.codex/config.toml"]);
+
+    expect(result.codex).toBe(1);
+  });
+
+  it("classifyFiles_rootAgentsMdPath_countsAsCodex", () => {
+    const result = classifyFiles(["/out/AGENTS.md"]);
+
+    expect(result.codex).toBe(1);
+  });
+
+  it("classifyFiles_agentsSkillsPath_countsAsCodex", () => {
+    const result = classifyFiles([
+      "/out/.agents/skills/x-dev/SKILL.md",
+    ]);
+
+    expect(result.codex).toBe(1);
+  });
+
+  it("classifyFiles_agentsSkillsRefsPath_countsAsCodex", () => {
+    const result = classifyFiles([
+      "/out/.agents/skills/coding/references/clean-code.md",
+    ]);
+
+    expect(result.codex).toBe(1);
+  });
+
+  it("classifyFiles_agentsAndCodexPaths_bothCountAsCodex", () => {
+    const result = classifyFiles([
+      "/out/.codex/config.toml",
+      "/out/.codex/AGENTS.md",
+      "/out/.agents/skills/x-dev/SKILL.md",
+      "/out/.agents/skills/x-test/SKILL.md",
+    ]);
+
+    expect(result.codex).toBe(4);
+  });
+
   it("classifyFiles_emptyArray_returnsAllZeros", () => {
     const result = classifyFiles([]);
     const expected = buildComponentCounts();
@@ -317,6 +357,7 @@ describe("formatSummaryTable", () => {
       settings: 2,
       readme: 1,
       github: 52,
+      codex: 2,
     });
 
     const table = formatSummaryTable(counts);
@@ -331,6 +372,7 @@ describe("formatSummaryTable", () => {
     expect(table).toContain("Settings (.claude)");
     expect(table).toContain("README");
     expect(table).toContain("GitHub");
+    expect(table).toContain("Codex");
   });
 
   it("formatSummaryTable_onlyNonZero_displaysSubset", () => {
@@ -367,6 +409,7 @@ describe("formatSummaryTable", () => {
       settings: 2,
       readme: 1,
       github: 52,
+      codex: 2,
     });
 
     const table = formatSummaryTable(counts);
@@ -374,7 +417,7 @@ describe("formatSummaryTable", () => {
       (line) => line.includes("Total"),
     );
 
-    expect(totalLine).toContain("96");
+    expect(totalLine).toContain("98");
   });
 
   it("formatSummaryTable_containsSeparatorLines", () => {

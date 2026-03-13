@@ -21,6 +21,7 @@ export interface ComponentCounts {
   readonly settings: number;
   readonly readme: number;
   readonly github: number;
+  readonly codex: number;
 }
 
 const SEPARATOR_CHAR = "\u2500";
@@ -38,6 +39,7 @@ const CATEGORY_LABELS: ReadonlyArray<readonly [string, keyof ComponentCounts]> =
   ["Settings (.claude)", "settings"],
   ["README", "readme"],
   ["GitHub", "github"],
+  ["Codex", "codex"],
 ];
 
 /** Split a file path into its directory and filename segments. */
@@ -59,6 +61,8 @@ function classifySingleFile(
   kpCache: Map<string, boolean>,
 ): keyof ComponentCounts | undefined {
   const fileName = segments[segments.length - 1] ?? "";
+  if (segments.includes(".agents")) return "codex";
+  if (segments.includes(".codex")) return "codex";
   if (segments.includes(".github")) return "github";
   if (fileName.includes("README")) return "readme";
   if (fileName.includes("settings")) return "settings";
@@ -72,6 +76,7 @@ function classifySingleFile(
       : "skills";
   }
   if (segments.includes("rules")) return "rules";
+  if (fileName === "AGENTS.md") return "codex";
   return undefined;
 }
 
@@ -98,6 +103,7 @@ export function classifyFiles(
     settings: 0,
     readme: 0,
     github: 0,
+    codex: 0,
   };
 
   const kpCache = new Map<string, boolean>();
