@@ -22,7 +22,7 @@ PASSED:
 
 ### Analysis Summary
 
-**Scope:** 19 files changed (1 source Markdown + 16 golden file copies + 2 plan/test documents). Zero TypeScript code changes. Net addition of ~32 lines to a 244-line Markdown file, duplicated across 16 golden fixtures via the existing `fs.copyFileSync` pipeline.
+**Scope:** 19 non-review files changed (1 source Markdown + 16 golden file copies + 2 plan/test documents), excluding this review document and related review artifacts. Zero TypeScript code changes. Net addition of ~32 lines to a 244-line Markdown file, duplicated across 16 golden fixtures via the existing `fs.copyFileSync` pipeline.
 
 **Performance impact assessment:**
 - **Build time:** Negligible. The 16 golden files are byte-for-byte copies; the ~32 additional lines per file add <1KB each, totaling <16KB across all copies. No measurable impact on `fs.copyFileSync` performance.

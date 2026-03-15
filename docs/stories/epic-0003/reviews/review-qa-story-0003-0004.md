@@ -21,7 +21,7 @@ PASSED:
 
 ### Review Notes
 
-**Scope verification:** 19 files changed total — 1 source of truth Markdown, 16 golden file copies (byte-for-byte identical, confirmed via MD5), 2 documentation files (implementation plan + test plan). Zero TypeScript, zero JSON, zero configuration changes.
+**Scope verification:** 19 content files changed total — 1 source of truth Markdown, 16 golden file copies (byte-for-byte identical, confirmed via MD5), 2 documentation files (implementation plan + test plan); excludes this review file and other review artifacts. Zero TypeScript, zero JSON, zero configuration changes.
 
 **Content consistency:** All four content additions (SD-02 Gherkin Completeness, SD-05 minimum 2->4, SD-05a Scenario Ordering, Anti-Patterns) are present in the source and replicated identically across all 16 golden files. The diff hunks are structurally identical across all 17 Markdown files.
 
