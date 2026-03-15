@@ -36,7 +36,7 @@ Each profile produces `x-review/SKILL.md` in three output directories:
 **Verify:**
 - QA checklist line starts with `**QA (18 items, /36):**`
 - All 12 original items remain present: `Test exists for each AC`, `line coverage`, `branch coverage`, `test naming convention`, `AAA pattern`, `parametrized tests`, `exception paths tested`, `no test interdependency`, `fixtures centralized`, `unique test data`, `edge cases`, `integration tests for DB/API`
-- All 6 new TDD items are present: `test-first workflow`, `Red-Green-Refactor`, `Transformation Priority Premise`, `atomic TDD commits`, `refactoring without behavior change`, `Double-Loop TDD`
+- All 6 new TDD items are present: `commits show test-first pattern`, `explicit refactoring after green`, `tests follow TPP progression`, `no test written after implementation`, `acceptance tests validate E2E behavior`, `TDD coverage thresholds maintained`
 
 ### 2. QA score denominator updated to /36 in checklist line
 
@@ -58,7 +58,7 @@ Each profile produces `x-review/SKILL.md` in three output directories:
 **Type:** Content assertion
 **Files:** All 24 golden files + both source templates
 **Verify:**
-- QA row in "Engineer -> Knowledge Pack Mapping" table references TDD-related paths from the testing KP (e.g., `references/tdd-methodology.md` or equivalent TDD section from `skills/testing/`)
+- QA row in "Engineer -> Knowledge Pack Mapping" table includes focus instruction: `focus on TDD Workflow, Double-Loop TDD, and TPP sections`
 - Original QA KP paths (`testing-philosophy.md`, `testing-conventions.md`) remain present
 
 ### 5. Other engineer checklists unchanged
