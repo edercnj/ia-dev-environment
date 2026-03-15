@@ -193,24 +193,28 @@ Make atomic commits per TDD cycle. Each commit contains the test AND its impleme
 # Per TDD cycle (UT-N):
 git add [test-file-for-UT-N]
 git add [implementation-files-for-UT-N]
-git commit -m "feat(scope): add [behavior] (UT-N)
-
-- RED: [test description]
-- GREEN: [minimum implementation]
-- REFACTOR: [what was improved, or 'noop']"
+git commit -m "feat(scope): add [behavior] (UT-N)" \
+  -m "- RED: [test description]" \
+  -m "- GREEN: [minimum implementation]" \
+  -m "- REFACTOR: [what was improved, or 'noop']"
 ```
 
-For acceptance tests, commit after they turn GREEN:
+For acceptance tests, commit when introduced (RED) and again when they turn GREEN (if updated):
 
 ```bash
+# RED: introduce failing acceptance test
 git add [acceptance-test-file]
-git commit -m "test(scope): add acceptance test for [AT-N scenario]"
+git commit -m "test(scope): add acceptance test for [AT-N scenario] (RED)"
+
+# Later, when the AT turns GREEN and you've updated it if needed:
+git add [acceptance-test-file]
+git commit -m "test(scope): update acceptance test for [AT-N scenario] (GREEN)"
 ```
 
 **Commit ordering must reflect TDD progression:**
 1. Acceptance test commit (RED) — first
 2. Unit test + implementation commits (UT-1, UT-2, ...) — in TPP order
-3. Final commit when AT turns GREEN (if AT needed updates)
+3. Final commit when AT turns GREEN (if AT content changed)
 
 ## Integration Notes
 
