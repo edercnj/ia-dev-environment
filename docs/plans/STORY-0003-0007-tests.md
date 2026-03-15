@@ -19,13 +19,13 @@
 
 **Rationale:** The existing byte-for-byte test suite (`describe.sequential.each` over all 8 `CONFIG_PROFILES`) automatically validates that pipeline output matches golden files. No code changes to this file -- only 24 golden files are updated to reflect the new Double-Loop + TPP format.
 
-### New
+### Planned (not included in this PR)
 
-**Path:** `tests/node/content/x-test-plan-double-loop-tpp.test.ts`
+**Planned path:** `tests/node/content/x-test-plan-double-loop-tpp.test.ts`
 
-**Rationale:** Content validation tests that verify the structural integrity of the restructured x-test-plan skill. These are unit-level tests that read the source template files and assert section presence, ordering, TPP markers, and dependency metadata. Separated from byte-for-byte tests because they validate semantic content, not binary equality.
+**Rationale:** Planned content validation tests that will verify the structural integrity of the restructured x-test-plan skill. These unit-level tests will read the source template files and assert section presence, ordering, TPP markers, and dependency metadata. They are separated from byte-for-byte tests because they validate semantic content, not binary equality. To be added in a follow-up change.
 
-**Naming convention:** `[sectionUnderTest]_[scenario]_[expectedBehavior]` per Rule 05.
+**Naming convention (planned):** `[sectionUnderTest]_[scenario]_[expectedBehavior]` per Rule 05.
 
 ---
 

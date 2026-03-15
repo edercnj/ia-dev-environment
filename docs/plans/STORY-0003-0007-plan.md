@@ -418,7 +418,7 @@ Since x-test-plan golden files are identical across all profiles for `.claude/` 
 The `byte-for-byte.test.ts` integration test (`tests/node/integration/byte-for-byte.test.ts`) will automatically validate that pipeline output matches golden files. Run:
 
 ```bash
-npm test -- --testPathPattern=byte-for-byte
+npx vitest run tests/node/integration/byte-for-byte.test.ts
 ```
 
 ### 5.4 Profile-Specific Differences

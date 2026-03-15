@@ -19,12 +19,12 @@ Produces a Double-Loop TDD test plan that drives implementation order. With line
 
 - Story file with acceptance criteria and sub-tasks
 - Existing codebase with established test patterns
-- Knowledge of typescript test frameworks and conventions
+- Knowledge of TypeScript test frameworks and conventions
 
 ## Knowledge Pack References
 
 Before planning tests, read:
-- `.github/skills/testing/SKILL.md` — 8 test categories, fixture patterns, data uniqueness, typescript-specific test frameworks, naming conventions
+- `.github/skills/testing/SKILL.md` — 8 test categories, fixture patterns, data uniqueness, TypeScript-specific test frameworks, naming conventions
 - `.github/skills/architecture/SKILL.md` — layer boundaries for unit vs integration decisions
 
 ## Execution Flow (Orchestrator Pattern)
@@ -50,7 +50,7 @@ Using the gathered context, generate a Double-Loop TDD test plan:
 **Acceptance Tests (Outer Loop):**
 - One AT per Gherkin scenario
 - Status RED until all related unit tests pass
-- Includes component list and acceptance criteria
+- Includes component list, acceptance criteria, dependency markers (Depends on, Parallel)
 
 **Unit Tests (Inner Loop — TPP Order):**
 

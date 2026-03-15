@@ -50,7 +50,7 @@ Using the gathered context, generate a Double-Loop TDD test plan:
 **Acceptance Tests (Outer Loop):**
 - One AT per Gherkin scenario
 - Status RED until all related unit tests pass
-- Includes component list and acceptance criteria
+- Includes component list, acceptance criteria, dependency markers (Depends on, Parallel)
 
 **Unit Tests (Inner Loop — TPP Order):**
 

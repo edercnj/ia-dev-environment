@@ -346,7 +346,7 @@ grep -r '{language_name}' tests/golden/*/.github/skills/x-test-plan/SKILL.md  # 
 
 ### T7.2 -- Run byte-for-byte parity tests
 
-- **Command:** `npm test -- --testPathPattern=byte-for-byte`
+- **Command:** `npx vitest run tests/node/integration/byte-for-byte.test.ts`
 - **Expected:** All 8 profiles pass. The `byte-for-byte.test.ts` integration test runs the pipeline for each profile and compares output against golden files.
 - **Test mechanism:** `tests/node/integration/byte-for-byte.test.ts` uses `describe.sequential.each` over 8 profiles. For each profile:
   1. Loads config from `resources/config-templates/setup-config.{profile}.yaml`

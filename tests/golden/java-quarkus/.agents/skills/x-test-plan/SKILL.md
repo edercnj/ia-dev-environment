@@ -78,6 +78,8 @@ For each Gherkin scenario in the story, generate an acceptance test entry:
 | Status | RED until all unit tests for this acceptance criteria complete |
 | Components | List of classes/modules under test |
 | Test Type | Integration, API, or E2E (depending on story scope) |
+| Depends on | UT/IT IDs that must pass for this AT to go GREEN, or `--` |
+| Parallel | `yes` if independent of other ATs |
 
 ### 2.2 Unit Tests (Inner Loop — TPP Order)
 
@@ -185,6 +187,8 @@ Save to: `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md` (extract epic I
 - **Status**: RED until all unit tests complete
 - **Components**: [list of components under test]
 - **Acceptance Criteria**: [what must be true for this AT to pass]
+- **Depends on**: UT-1, UT-2, ... (UTs that must pass)
+- **Parallel**: yes/no
 
 ## Unit Tests (Inner Loop — TPP Order)
 
