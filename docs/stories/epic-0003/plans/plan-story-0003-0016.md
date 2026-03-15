@@ -18,7 +18,7 @@ resources/skills-templates/core/x-review-pr/SKILL.md   <-- SOURCE OF TRUTH (Clau
         | copyTemplateTree (no {{placeholders}} in this file)
         | via: src/assembler/skills-assembler.ts :: assembleCore()
         v
-{outputDir}/skills/x-review-pr/SKILL.md                <-- pipeline output (.claude)
+{outputDir}/.claude/skills/x-review-pr/SKILL.md        <-- pipeline output (.claude)
         |
         | mirror from .claude/skills/
         | via: src/assembler/codex-skills-assembler.ts
@@ -32,7 +32,7 @@ resources/github-skills-templates/review/x-review-pr.md <-- SOURCE OF TRUTH (Git
         | renderSkill (no {{placeholders}} in this file)
         | via: src/assembler/github-skills-assembler.ts
         v
-{outputDir}/github/skills/x-review-pr/SKILL.md         <-- pipeline output (.github)
+{outputDir}/.github/skills/x-review-pr/SKILL.md        <-- pipeline output (.github)
 ```
 
 Key properties:
@@ -60,9 +60,9 @@ Key properties:
 
 4. **Cleaner GO/NO-GO rule:** With a separate category K, the NO-GO rule can state "any K item = 0 triggers NO-GO" without tangling with existing I items.
 
-5. **Point total:** The rubric goes from 40 to 46 points (6 new items in K), matching the 6-item variant from the story description. The agent already has 45 points (5 TDD items); the skill adds one more (K6: acceptance tests) for comprehensive coverage.
+5. **Point total:** The rubric goes from 40 to 45 points (5 new items in K), matching the existing "TDD Process (41-45)" structure in the tech-lead agent rubric. The skill rubric's Category K mirrors that agent rubric with five TDD items.
 
-**Point total update:** 40 -> 46 (6 new points in category K).
+**Point total update:** 40 -> 45 (5 new points in category K).
 
 ---
 
@@ -291,7 +291,7 @@ This change is **purely additive**:
 - No existing rubric categories (A-J) are removed or modified.
 - All 40 original rubric points remain intact with their original descriptions.
 - The new category K adds 5 additional points (total becomes 45).
-- The GO/NO-GO logic changes from `45/45 + zero issues` to `45/45 + zero issues` (same structure, different denominator).
+- The GO/NO-GO logic changes from `40/40 + zero issues` to `45/45 + zero issues` (same structure, higher maximum score).
 - Stories previously reviewed under the 40-point rubric are not invalidated.
 - The skill's scoring output format changes from `XX/40` to `XX/45`, which is a cosmetic change in the artifact output.
 
