@@ -4,8 +4,6 @@
 # FUSE hidden files
 .fuse_hidden*
 
-# Claude Code — entire directory is generated output of the boilerplate
-.claude/
 
 # GitHub Copilot — generated output of the boilerplate (except CI workflows)
 .github/*
