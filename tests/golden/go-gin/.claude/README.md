@@ -102,7 +102,7 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **run-perf-test** | `/run-perf-test` | Skill |
 | **run-smoke-api** | `/run-smoke-api` | Skill |
 | **setup-environment** | `/setup-environment` | Skill |
-| **x-dev-implement** | `/x-dev-implement` | Implements a feature/story following project conventions. Delegates preparation to a subagent that reads architecture and coding KPs, then implements layer-by-layer with intermediate compilation checks. |
+| **x-dev-implement** | `/x-dev-implement` | Implements a feature/story using TDD (Red-Green-Refactor) workflow. Delegates preparation to a subagent that reads architecture, coding, and test plan KPs, then implements test-first with Double-Loop TDD, layer-by-layer with compile checks after each cycle. |
 | **x-dev-lifecycle** | `/x-dev-lifecycle` | Orchestrates the complete feature implementation cycle |
 | **x-git-push** | `/x-git-push` | Git operations |
 | **x-ops-troubleshoot** | `/x-ops-troubleshoot` | Diagnoses errors, stacktraces, build failures, and unexpected behavior. Systematic approach |
