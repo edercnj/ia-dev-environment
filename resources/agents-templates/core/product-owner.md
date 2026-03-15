@@ -88,7 +88,7 @@ Follow `.claude/templates/_TEMPLATE-IMPLEMENTATION-MAP.md` structure. Save in th
 17. Critical path is identified and its calendar impact is explained
 18. Main bottleneck is identified with impact analysis (how many stories it blocks and why)
 19. Leaf stories (no dependents) are identified as schedule variance absorbers
-20. Strategic observations are actionable and specific (not "STORY-002 is important")
+20. Strategic observations are actionable and specific (not "story-0001-0002 is important")
 
 ## Conditional Sections
 

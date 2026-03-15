@@ -53,7 +53,7 @@ simulator.iso.dialect.default=base-1993
 - The simulator configures the `IsoDialect` with the appropriate version
 - The `applyAnnexJ` flag controls backward compatibility
 
-## Cross-Cutting Rules (EPIC-001)
+## Cross-Cutting Rules (epic-0001)
 
 ### RULE-001: Cents Rule
 The cents of the transaction amount (DE-4) determine the Response Code:

@@ -55,8 +55,8 @@ matrix:
 If inconsistencies are found, fix them and note the corrections.
 
 Add a `> **Nota:**` block for any implicit dependencies not declared in the stories but
-functionally required (e.g., "STORY-009 provides configuration data that STORY-002 needs even
-though STORY-002 doesn't explicitly declare it").
+functionally required (e.g., "story-0001-0009 provides configuration data that story-0001-0002 needs even
+though story-0001-0002 doesn't explicitly declare it").
 
 ### Step 2: Compute Phases
 
@@ -82,10 +82,10 @@ Count phases, not individual stories.
 
 Render as a simple ASCII diagram:
 ```
-STORY-001 ─┐
-            ├──→ STORY-002 → STORY-003 ──┐
-STORY-009 ─┘                              ├──→ STORY-011
-                 STORY-002 → STORY-010 ──┘
+story-0001-0001 ─┐
+            ├──→ story-0001-0002 → story-0001-0003 ──┐
+story-0001-0009 ─┘                              ├──→ story-0001-0011
+                 story-0001-0002 → story-0001-0010 ──┘
    Fase 0           Fase 1       Fase 2            Fase 3
 ```
 
@@ -115,7 +115,7 @@ Assign classDef by phase. Group edges by phase transition (comment with `%% Fase
 
 | Fase | Histórias | Camada | Paralelismo | Pré-requisito |
 | :--- | :--- | :--- | :--- | :--- |
-| 0 | STORY-001, STORY-009 | Infra + API | 2 paralelas | — |
+| 0 | story-0001-0001, story-0001-0009 | Infra + API | 2 paralelas | — |
 
 Include total count: **N histórias em M fases**.
 
@@ -173,9 +173,9 @@ Report: total stories, phases, critical path length, maximum parallelism, main b
 
 - **Phase computation error**: Forgetting that a story can only enter a phase when ALL its
   dependencies (not just some) are in earlier phases
-- **Missing convergence analysis**: When STORY-011 depends on STORY-003 AND STORY-010 from
+- **Missing convergence analysis**: When story-0001-0011 depends on story-0001-0003 AND story-0001-0010 from
   different branches, this creates a convergence point that deserves a callout
-- **Generic observations**: "STORY-002 is important" says nothing. "STORY-002 blocks 6 stories
+- **Generic observations**: "story-0001-0002 is important" says nothing. "story-0001-0002 blocks 6 stories
   and establishes the decision engine pattern that all Phase 2 handlers reuse — investing
   extra design time here prevents refactoring 6 handlers later" is useful
 - **Inconsistent status**: If a story is marked Done in the matrix but Pending in the phase

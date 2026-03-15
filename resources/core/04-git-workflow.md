@@ -19,9 +19,9 @@ fix/{TICKET}-short-kebab-description
 ```
 
 Maximum 50 characters. Examples:
-- `feat/STORY-001-user-authentication`
-- `feat/STORY-009-merchant-api`
-- `fix/STORY-004-parsing-error`
+- `feat/story-0001-0001-user-authentication`
+- `feat/story-0001-0009-merchant-api`
+- `fix/story-0001-0004-parsing-error`
 
 ## Commit Format (Conventional Commits)
 

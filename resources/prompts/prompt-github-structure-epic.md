@@ -43,7 +43,7 @@ Contexto adicional:
 
 5. Output:
    - Salvar Epic, Stories e Implementation Map em resources/specs/github-structure/
-   - Nomear como EPIC-001.md, STORY-001.md..N, IMPLEMENTATION-MAP.md
+   - Nomear como epic-0001.md, story-0001-0001.md..N, implementation-map-0001.md
 ```
 
 ---
@@ -56,25 +56,25 @@ Contexto adicional:
 Use a skill x-story-epic para gerar o Epic a partir de:
 resources/specs/SPEC-github-copilot-structure.md
 
-Salvar em resources/specs/github-structure/EPIC-001.md
+Salvar em docs/stories/epic-0001/epic-0001.md
 ```
 
 ### Só as Stories (a partir de um Epic existente)
 
 ```
 Use a skill x-story-create para gerar as Stories a partir do Epic:
-resources/specs/github-structure/EPIC-001.md
+docs/stories/epic-0001/epic-0001.md
 
 Spec original: resources/specs/SPEC-github-copilot-structure.md
-Salvar em resources/specs/github-structure/
+Salvar em docs/stories/epic-0001/
 ```
 
 ### Só o Implementation Map (a partir de Epic + Stories)
 
 ```
 Use a skill x-story-map para gerar o Implementation Map a partir de:
-- Epic: resources/specs/github-structure/EPIC-001.md
-- Stories: resources/specs/github-structure/STORY-*.md
+- Epic: docs/stories/epic-0001/epic-0001.md
+- Stories: docs/stories/epic-0001/story-0001-*.md
 
-Salvar em resources/specs/github-structure/IMPLEMENTATION-MAP.md
+Salvar em docs/stories/epic-0001/IMPLEMENTATION-MAP.md
 ```
