@@ -62,8 +62,8 @@ stories in dependency order (foundations first, then core, then extensions).
 | :--- | :--- |
 | Stories this one depends on | Stories that depend on this one |
 
-Must be consistent with the Epic's index. Cross-check: if STORY-003 lists STORY-002 as
-blocker, then STORY-002 must list STORY-003 in its Blocks column.
+Must be consistent with the Epic's index. Cross-check: if story-0001-0003 lists story-0001-0002 as
+blocker, then story-0001-0002 must list story-0001-0003 in its Blocks column.
 
 #### Section 2 — Regras Transversais Aplicáveis
 
@@ -156,7 +156,8 @@ Use checkboxes `- [ ]` for tracking.
 
 ### Step 3: Save and Report
 
-Save each story as `STORY-NNN.md` in the same directory as the Epic.
+Save each story as `story-XXXX-YYYY.md` in the same directory as the Epic (inside `docs/stories/epic-XXXX/`).
+The XXXX is the epic number (extracted from the Epic file) and YYYY is the story sequence (from the Epic's index).
 Report: total stories generated, dependency graph summary, any inconsistencies found.
 
 ## Language Rules
@@ -165,7 +166,8 @@ Report: total stories generated, dependency graph summary, any inconsistencies f
 - Technical terms in English: cache, timeout, handler, endpoint, state machine, request, response
 - Code identifiers and field names stay in English
 - Gherkin keywords in Portuguese: `Cenario`, `DADO`, `QUANDO`, `ENTÃO`, `E`, `MAS`
-- Story IDs: `STORY-NNN` (English format)
+- Story IDs: `story-XXXX-YYYY` (composite format: epic number + story sequence)
+- Epic IDs: `epic-XXXX` (kebab-case)
 
 ## Sizing Heuristics
 
@@ -189,5 +191,5 @@ Report: total stories generated, dependency graph summary, any inconsistencies f
 - **Vague data contracts**: "Enviar dados do cartão" is useless. The contract must list every field with type, format, and mandatory flag
 - **Abstract Gherkin**: "DADO que o sistema está funcionando" tests nothing. Use concrete preconditions
 - **Missing error scenarios**: Every story should have at least 2 error Gherkin scenarios
-- **Inconsistent dependencies**: If STORY-003 says "Blocked By: STORY-002" but STORY-002 doesn't list STORY-003 in Blocks, there's a bug
+- **Inconsistent dependencies**: If story-0001-0003 says "Blocked By: story-0001-0002" but story-0001-0002 doesn't list story-0001-0003 in Blocks, there's a bug
 - **Copy-paste from spec without adaptation**: The spec describes the system. The story describes the work. Reframe the spec's content from "the system does X" to "implement X so that Y"

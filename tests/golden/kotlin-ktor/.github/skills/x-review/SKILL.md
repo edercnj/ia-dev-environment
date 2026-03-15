@@ -153,13 +153,13 @@ OVERALL: APPROVED only when every engineer has STATUS: Approved.
 
 ### 3c. Save Artifacts
 
-Save each engineer's report to `docs/reviews/{STORY_ID}-{engineer}.md`.
+Save each engineer's report to `docs/stories/epic-XXXX/reviews/review-{engineer}-story-XXXX-YYYY.md` (extract epic ID XXXX and story sequence YYYY from the story ID). Ensure directory exists: `mkdir -p docs/stories/epic-XXXX/reviews`.
 
 ## Phase 4: Story Generation for Findings (Orchestrator -- Inline)
 
 This phase runs ONLY when CRITICAL or MEDIUM findings exist.
 
-If CRITICAL or MEDIUM findings exist, ask the user whether to generate a correction story. If yes, transform each finding into a Gherkin scenario and save to `docs/reviews/{STORY_ID}-correction-story.md`.
+If CRITICAL or MEDIUM findings exist, ask the user whether to generate a correction story. If yes, transform each finding into a Gherkin scenario and save to `docs/stories/epic-XXXX/reviews/correction-story-XXXX-YYYY.md`.
 
 ## Integration Notes
 

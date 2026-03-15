@@ -157,7 +157,7 @@ OVERALL: APPROVED only when every engineer has STATUS: Approved.
 
 ### 3c. Save Artifacts
 
-Save each engineer's report to `docs/reviews/{STORY_ID}-{engineer}.md`.
+Save each engineer's report to `docs/stories/epic-XXXX/reviews/review-{engineer}-story-XXXX-YYYY.md` (extract epic ID XXXX and story sequence YYYY from the story ID). Ensure directory exists: `mkdir -p docs/stories/epic-XXXX/reviews`.
 
 ## Phase 4: Story Generation for Findings (Orchestrator — Inline)
 
@@ -211,7 +211,7 @@ If the user selects **"Sim"**, generate a correction story following these steps
    - **Sub-tarefas**: One `[Dev]` task per CRITICAL finding, grouped `[Dev]` tasks for MEDIUM findings by engineer, one `[Test]` task to re-run `/x-review` after fixes
    - **DoD Local**: All CRITICAL findings resolved, all MEDIUM findings resolved or justified, `/x-review` re-run with no new CRITICAL findings
 
-3. **Save the story** to `docs/reviews/{STORY_ID}-correction-story.md`
+3. **Save the story** to `docs/stories/epic-XXXX/reviews/correction-story-XXXX-YYYY.md`
 
 4. **Report** to the user: story file path, number of findings converted, and suggested next step (`/x-dev-implement` or manual fix).
 

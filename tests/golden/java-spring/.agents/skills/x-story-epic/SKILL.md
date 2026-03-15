@@ -112,11 +112,16 @@ Write the Epic following the `_TEMPLATE-EPIC.md` structure exactly:
 5. **Section 4 — Regras de Negócio Transversais**: Rules table from Step 2
 6. **Section 5 — Índice de Histórias**: Story index from Step 3, with links and dependencies
 
-**File naming**: `EPIC-NNN.md` where NNN is sequential. Ask the user if unsure.
+**Directory and file naming** (mandatory — see SD-09 in decomposition guide):
+1. Determine the epic number: scan `docs/stories/` for existing `epic-XXXX` folders and use the next available number (default `0001` if none exist). Ask the user if unsure.
+2. Create the directory `docs/stories/epic-XXXX/`
+3. Save the Epic file as `docs/stories/epic-XXXX/epic-XXXX.md`
+4. Story IDs in the index use composite format: `story-XXXX-YYYY` (where XXXX = epic number, YYYY = story sequence)
+5. Story links in the index point to `./story-XXXX-YYYY.md` (relative to the epic folder)
 
 ### Step 6: Save and Report
 
-Save the file to the same directory as the input spec (or where the user specifies).
+Save the file to `docs/stories/epic-XXXX/epic-XXXX.md`.
 Report: number of rules extracted, number of stories identified, dependency structure summary.
 
 ## Language Rules
@@ -125,7 +130,8 @@ Report: number of rules extracted, number of stories identified, dependency stru
 - Technical terms that are industry-standard in English stay in English (cache, timeout, circuit breaker, handler, endpoint, state machine)
 - Code identifiers, field names, enum values stay in English
 - Rule IDs use the format RULE-NNN (English)
-- Story IDs use the format STORY-NNN (English)
+- Story IDs use composite format: `story-XXXX-YYYY` (epic number + story sequence)
+- Epic IDs use kebab-case format: `epic-XXXX`
 
 ## Common Mistakes
 

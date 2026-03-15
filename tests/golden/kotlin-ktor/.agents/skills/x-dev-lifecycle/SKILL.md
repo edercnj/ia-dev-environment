@@ -43,7 +43,9 @@ Phase 7: Verification          (orchestrator — inline)
 
 1. Read story file and extract acceptance criteria, sub-tasks, dependencies
 2. Verify dependencies (predecessor stories complete)
-3. Create branch: `git checkout -b feat/STORY-ID-description`
+3. Extract epic ID from story ID (e.g., `story-0001-0003` → epic ID `0001`)
+4. Ensure directories exist: `mkdir -p docs/stories/epic-XXXX/plans docs/stories/epic-XXXX/reviews`
+5. Create branch: `git checkout -b feat/STORY-ID-description`
 
 ## Phase 1 — Architecture Planning (Subagent via Task)
 
@@ -69,26 +71,26 @@ Launch a **single** `general-purpose` subagent:
 > 9. Configuration changes
 > 10. Risk assessment
 >
-> Save to `docs/plans/STORY-ID-plan.md`.
+> Save to `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (where XXXX is the epic ID and YYYY is the story sequence, extracted from the story ID).
 
 ## Phases 1B-1E — Parallel Planning (Subagents via Task — SINGLE message)
 
 **CRITICAL: ALL planning subagents MUST be launched in a SINGLE message.**
 
 ### 1B: Test Planning
-Invoke skill `x-test-plan` → produces `docs/plans/STORY-ID-tests.md`
+Invoke skill `x-test-plan` → produces `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
 
 ### 1C: Task Decomposition
-Invoke skill `x-lib-task-decomposer` → produces `docs/plans/STORY-ID-tasks.md`
+Invoke skill `x-lib-task-decomposer` → produces `docs/stories/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`
 
 ### 1D: Event Schema Design (if event_driven)
 Launch `general-purpose` subagent:
 
 > You are an **Event Engineer** designing event schemas.
 > Read `skills/protocols/references/event-driven-conventions.md` for standards.
-> Read the implementation plan at `docs/plans/STORY-ID-plan.md`.
+> Read the implementation plan at `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`.
 > Produce event schema design: event names (past tense), CloudEvents envelope, topic naming, partition key, producer/consumer contracts.
-> Save to `docs/plans/STORY-ID-events.md`.
+> Save to `docs/stories/epic-XXXX/plans/events-story-XXXX-YYYY.md`.
 
 ### 1E: Compliance Assessment (if compliance active)
 Launch `general-purpose` subagent:
@@ -96,9 +98,9 @@ Launch `general-purpose` subagent:
 > You are a **Security Engineer** assessing compliance impact.
 > Read `skills/security/SKILL.md` → then read its references.
 > Read `skills/compliance/SKILL.md` → then read its references.
-> Read the implementation plan at `docs/plans/STORY-ID-plan.md`.
+> Read the implementation plan at `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`.
 > Produce compliance impact assessment: data classification, encryption requirements, audit logging needs, regulatory considerations.
-> Save to `docs/plans/STORY-ID-compliance.md`.
+> Save to `docs/stories/epic-XXXX/plans/compliance-story-XXXX-YYYY.md`.
 
 ## Phase 2 — Group-Based Implementation (Subagent via Task)
 
@@ -107,8 +109,8 @@ Launch a **single** `general-purpose` subagent for implementation:
 > You are a **Developer** implementing story {STORY_ID} for {{PROJECT_NAME}}.
 >
 > **Step 1 — Read context:**
-> - Read implementation plan: `docs/plans/STORY-ID-plan.md`
-> - Read task breakdown: `docs/plans/STORY-ID-tasks.md`
+> - Read implementation plan: `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`
+> - Read task breakdown: `docs/stories/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`
 > - Read `skills/coding-standards/references/coding-conventions.md` — {{LANGUAGE}} conventions
 > - Read `skills/coding-standards/references/version-features.md` — {{LANGUAGE}} {{LANGUAGE_VERSION}} features
 > - Read `skills/layer-templates/SKILL.md` — code templates per layer

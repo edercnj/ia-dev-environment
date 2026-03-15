@@ -47,10 +47,10 @@ Read knowledge packs to calibrate the review:
 - `.github/skills/architecture/SKILL.md` -- layer boundaries, dependency direction
 - `.github/instructions/05-quality-gates.instructions.md` -- coverage thresholds, merge checklist
 
-Check for existing artifacts:
-- Specialist review reports (`docs/reviews/STORY-ID-*.md`)
-- Implementation plan (`docs/plans/STORY-ID-plan.md`)
-- Test plan (`docs/plans/STORY-ID-tests.md`)
+Check for existing artifacts (extract epic ID XXXX and story sequence YYYY from story ID):
+- Specialist review reports (`docs/stories/epic-XXXX/reviews/review-*-story-XXXX-YYYY.md`)
+- Implementation plan (`docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`)
+- Test plan (`docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`)
 
 ### Step 3 -- Execute Tech Lead Review
 
@@ -96,7 +96,7 @@ The Tech Lead review covers:
  Medium:    N issues
  Low:       N issues
 ------------------------------------------------------------
- Report: docs/reviews/[STORY_ID]-tech-lead.md
+ Report: docs/stories/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md
 ============================================================
 ```
 
@@ -111,7 +111,7 @@ If fixing: apply corrections, commit, re-run review (max 2 cycles).
 
 ## Output Artifacts
 
-- `docs/reviews/STORY-ID-tech-lead.md`
+- `docs/stories/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md`
 
 ## Integration Notes
 

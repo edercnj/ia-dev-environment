@@ -144,7 +144,7 @@ public class JpaAuditingConfig {
 
 ```sql
 -- V1__create_merchants_table.sql
--- Story: STORY-009
+-- Story: story-XXXX-YYYY
 -- Description: Creates the merchants table
 
 BEGIN;
@@ -172,7 +172,7 @@ COMMIT;
 
 ```sql
 -- V2__create_terminals_table.sql
--- Story: STORY-009
+-- Story: story-XXXX-YYYY
 -- Description: Creates the terminals table
 
 BEGIN;
@@ -203,7 +203,7 @@ COMMIT;
 
 ```sql
 -- V3__create_transactions_table.sql
--- Story: STORY-001
+-- Story: story-XXXX-YYYY
 -- Description: Creates the transactions table
 
 BEGIN;
