@@ -79,7 +79,7 @@ Follow the instructions in `.claude/skills/x-story-epic/SKILL.md`:
 - Create directory `docs/stories/epic-XXXX/`
 - Extract rules → RULE-001..N table
 - Build story index with titles and dependencies (using `story-XXXX-YYYY` IDs)
-- Define DoR/DoD from spec quality requirements
+- Define DoR/DoD from spec quality requirements — the DoD must include TDD Compliance (test-first commits, explicit refactoring after green, incremental tests via TPP) and Double-Loop TDD (acceptance tests from Gherkin as outer loop, unit tests as inner loop)
 - Generate `docs/stories/epic-XXXX/epic-XXXX.md` following `_TEMPLATE-EPIC.md`
 
 ### Phase C: Generate the Stories
@@ -92,7 +92,7 @@ For each story in the Epic's index:
 - User story description + technical context
 - Data contracts (precise: field names, types, formats, derivation rules)
 - Mermaid sequence diagrams (real component names from the spec)
-- Gherkin acceptance criteria (happy path + errors + edge cases)
+- Gherkin acceptance criteria with mandatory categories (degenerate case, happy path, error paths, boundary values) ordered by Transformation Priority Premise (simplest degenerate → complex edge cases)
 - Sub-tasks tagged `[Dev]`, `[Test]`, `[Doc]`
 
 Generate files as `docs/stories/epic-XXXX/story-XXXX-YYYY.md` following `_TEMPLATE-STORY.md`.
@@ -142,5 +142,9 @@ Before delivering, verify:
 - [ ] Critical path is the actual longest chain (not just the deepest phase)
 - [ ] Data contracts match the spec exactly (field names, types, formats)
 - [ ] Each story has at least 4 Gherkin scenarios (happy + 2 errors + 1 edge case)
+- [ ] Each story has at least 4 Gherkin scenarios with mandatory categories (degenerate, happy path, error paths, boundary values)
+- [ ] Gherkin scenarios are ordered by TPP (degenerate → edge cases)
+- [ ] Epic DoD includes TDD Compliance and Double-Loop TDD
+- [ ] Boundary values use triplet pattern (at-min, at-max, past-max)
 - [ ] Implementation map observations are specific, not generic
 - [ ] All files follow their respective templates exactly
