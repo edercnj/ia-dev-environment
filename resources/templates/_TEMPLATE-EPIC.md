@@ -32,6 +32,8 @@
 - **Documentação:** <Artefatos de documentação que devem estar atualizados>
 - **Persistência:** <Critério de integridade de dados, se aplicável>
 - **Performance:** <SLO de latência/throughput>
+- **TDD Compliance:** Commits show test-first pattern. Explicit refactoring after green. Tests are incremental (from simple to complex via TPP — Transformation Priority Premise).
+- **Double-Loop TDD:** Acceptance tests derived from Gherkin scenarios (outer loop). Unit tests guided by TPP (inner loop).
 
 ## 4. Regras de Negócio Transversais (Source of Truth)
 
