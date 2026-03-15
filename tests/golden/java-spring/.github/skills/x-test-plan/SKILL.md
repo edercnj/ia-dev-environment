@@ -19,12 +19,12 @@ Produces a Double-Loop TDD test plan that drives implementation order. With line
 
 - Story file with acceptance criteria and sub-tasks
 - Existing codebase with established test patterns
-- Knowledge of Java test frameworks and conventions
+- Knowledge of java test frameworks and conventions
 
 ## Knowledge Pack References
 
 Before planning tests, read:
-- `.github/skills/testing/SKILL.md` — 8 test categories, fixture patterns, data uniqueness, Java-specific test frameworks, naming conventions
+- `.github/skills/testing/SKILL.md` — 8 test categories, fixture patterns, data uniqueness, java-specific test frameworks, naming conventions
 - `.github/skills/architecture/SKILL.md` — layer boundaries for unit vs integration decisions
 
 ## Execution Flow (Orchestrator Pattern)
