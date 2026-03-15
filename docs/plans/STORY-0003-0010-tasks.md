@@ -10,7 +10,7 @@
 
 ## G1 -- Source Template Update (Claude Copy)
 
-**Purpose:** Modify the Claude/Agents source template to add TDD-related cross-cutting rules extraction guidance in Step 2 and TDD DoD items in Step 4. All changes are additive (RULE-003: Backward Compatibility).
+**Purpose:** Modify the Claude/Agents source template to add TDD cross-cutting rules extraction guidance in Step 2 and TDD DoD items in Step 4. All changes are additive (RULE-003: Backward Compatibility).
 **Dependencies:** None (story-0003-0005 already delivered)
 **Compiles independently:** N/A -- markdown template file, no TypeScript changes.
 
@@ -19,7 +19,7 @@
 - **File:** `resources/skills-templates/core/x-story-epic/SKILL.md` (modify)
 - **What to implement:**
   - Append new content **after** the existing "What stays in individual stories" block and after the paragraph ending with "when rules can conflict." (line 67)
-  - New subsection: "**TDD-related cross-cutting rules (extract when applicable):**"
+  - New subsection: "**TDD cross-cutting rules:**"
   - Content describes when and how to extract TDD cross-cutting rules:
     - **Red-Green-Refactor**: All production code follows the Red-Green-Refactor cycle. Test must fail first (RED), then minimum code to pass (GREEN), then design improvement (REFACTOR). Refactoring never adds behavior.
     - **Atomic TDD Commits**: Each Red-Green-Refactor cycle produces one or more atomic commits following Conventional Commits format. Test commit precedes or accompanies implementation commit.
@@ -48,7 +48,7 @@
 # Verify template is well-formed markdown
 head -12 resources/skills-templates/core/x-story-epic/SKILL.md  # YAML frontmatter intact
 # Verify Step 2 contains TDD rules extraction guidance
-grep 'TDD-related cross-cutting rules' resources/skills-templates/core/x-story-epic/SKILL.md
+grep 'TDD cross-cutting rules' resources/skills-templates/core/x-story-epic/SKILL.md
 grep 'Red-Green-Refactor' resources/skills-templates/core/x-story-epic/SKILL.md
 grep 'Atomic TDD Commits' resources/skills-templates/core/x-story-epic/SKILL.md
 grep 'Gherkin Completeness' resources/skills-templates/core/x-story-epic/SKILL.md
@@ -103,7 +103,7 @@ git diff -- resources/skills-templates/core/x-story-epic/SKILL.md
 
 ```bash
 # Verify GitHub template contains TDD content
-grep 'TDD-related cross-cutting rules' resources/github-skills-templates/story/x-story-epic.md
+grep 'TDD cross-cutting rules' resources/github-skills-templates/story/x-story-epic.md
 grep 'TDD Compliance' resources/github-skills-templates/story/x-story-epic.md
 grep 'Double-Loop TDD' resources/github-skills-templates/story/x-story-epic.md
 # Verify no placeholders were introduced (this skill has no profile-specific placeholders)

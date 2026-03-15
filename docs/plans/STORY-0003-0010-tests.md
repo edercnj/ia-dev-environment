@@ -19,13 +19,13 @@
 
 **Rationale:** The existing byte-for-byte test suite (`describe.sequential.each` over all 8 `CONFIG_PROFILES`) automatically validates that pipeline output matches golden files. No code changes to this file -- only 24 golden files are updated to reflect the new TDD DoD items and TDD rules extraction instructions.
 
-### New
+### Planned (not part of this PR)
 
-**Path:** `tests/node/content/x-story-epic-tdd-dod.test.ts`
+**Planned path:** `tests/node/content/x-story-epic-tdd-dod.test.ts` (to be added in a follow-up change)
 
-**Rationale:** Content validation tests that verify the structural integrity and semantic correctness of the TDD additions to the x-story-epic skill. These unit-level tests read the source template files and assert section presence, keyword presence, and backward compatibility. They are separated from byte-for-byte tests because they validate semantic content, not binary equality.
+**Rationale:** Future content validation tests that will verify the structural integrity and semantic correctness of the TDD additions to the x-story-epic skill. This PR only updates golden files; the content validation test file itself will be introduced separately.
 
-**Naming convention:** `[sectionUnderTest]_[scenario]_[expectedBehavior]` per Rule 05.
+**Naming convention (for the future test file):** `[sectionUnderTest]_[scenario]_[expectedBehavior]` per Rule 05.
 
 ---
 
@@ -181,7 +181,7 @@ These are the concrete tests that drive implementation. They follow TPP order: d
 ### UT-7: Step 2 TDD rules extraction section exists -- TPP Level 2
 
 - **Test**: `step2Rules_tddExtraction_containsTDDRulesSubsection`
-- **Implementation**: Verify Step 2 contains a subsection or paragraph about TDD-related cross-cutting rules extraction (e.g., "TDD-related cross-cutting rules")
+- **Implementation**: Verify Step 2 contains a subsection or paragraph about TDD cross-cutting rules extraction (e.g., "TDD cross-cutting rules")
 - **Transform**: `constant->variable` (new subsection appears in Step 2)
 - **Components**: Claude template Step 2
 - **Depends on**: --

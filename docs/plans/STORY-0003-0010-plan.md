@@ -131,21 +131,11 @@ Add a new subsection after the existing "What stays in individual stories" block
 New content to append to Step 2:
 
 ```markdown
-**TDD-related cross-cutting rules (extract when applicable):**
-
-When the system specification indicates TDD adoption or the project's quality gates require
-test-first development, extract the following as cross-cutting rules:
-
-- **Red-Green-Refactor**: All production code follows the Red-Green-Refactor cycle. Test
-  must fail first (RED), then minimum code to pass (GREEN), then design improvement (REFACTOR).
-  Refactoring never adds behavior.
-- **Atomic TDD Commits**: Each Red-Green-Refactor cycle produces one or more atomic commits
-  following Conventional Commits format. Test commit precedes or accompanies implementation commit.
-- **Gherkin Completeness**: Every user-facing behavior has a corresponding Gherkin scenario.
-  Acceptance tests are derived from Gherkin and drive the outer TDD loop.
-
-These rules should appear in the Rules table with unique IDs (e.g., RULE-NNN) alongside
-other cross-cutting rules. Only include TDD rules when the spec or project context justifies them.
+**TDD cross-cutting rules:**
+When the spec describes a system that follows TDD practices, extract these as cross-cutting rules:
+- **Red-Green-Refactor**: Mandatory cycle for all production code — write failing test, make it pass, refactor
+- **Atomic TDD Commits**: Each Red-Green-Refactor cycle produces atomic commits with Conventional Commits format
+- **Gherkin Completeness**: Every acceptance criterion must have corresponding Gherkin scenarios
 ```
 
 **Step 4 -- DoD Extension for TDD Items (Lines ~88-103)**
