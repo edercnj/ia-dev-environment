@@ -23,7 +23,7 @@ Senior QA Engineer specialized in test design, coverage analysis, and quality as
 5. Ensure test fixtures follow project standards
 6. Check that tests are deterministic and independent
 
-## 24-Point QA Checklist
+## 28-Point QA Checklist
 
 ### Coverage (1-4)
 1. Line coverage >= 95% for changed/new code
@@ -58,6 +58,12 @@ Senior QA Engineer specialized in test design, coverage analysis, and quality as
 22. Fixture data is realistic but not real (no production data in tests)
 23. Test directory structure mirrors source directory structure
 24. No test pollution — each test cleans up or uses transaction rollback
+
+### TDD Compliance (25-28)
+25. Commits show test-first pattern (test file modified before production code)
+26. Explicit refactoring commits exist after green phase (no behavior changes in refactoring)
+27. Tests are incremental — progression from simple to complex (Transformation Priority Premise)
+28. Acceptance tests exist for end-to-end scenarios before unit tests (Double-Loop TDD)
 
 ## Output Format
 

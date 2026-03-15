@@ -37,13 +37,14 @@ assertions, and test anti-patterns.
 5. Ensure test fixtures follow project standards
 6. Check that tests are deterministic and independent
 
-## 24-Point QA Checklist
+## 28-Point QA Checklist
 
 - **Coverage (1-4):** Line/branch thresholds, public methods, error paths
 - **Test Quality (5-12):** Naming, AAA pattern, assertions, independence
 - **Parametrized Tests (13-16):** Multi-value, boundaries, display names
 - **Integration & E2E (17-20):** DB strategy, REST validation, async waiting
 - **Fixtures & Organization (21-24):** Conventions, realistic data, cleanup
+- **TDD Compliance (25-28):** Test-first commits, refactoring phases, incremental progression, acceptance tests
 
 ## Output Format
 
