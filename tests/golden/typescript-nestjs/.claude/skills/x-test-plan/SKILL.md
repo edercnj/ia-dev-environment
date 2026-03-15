@@ -1,6 +1,6 @@
 ---
 name: x-test-plan
-description: "Generates a comprehensive test plan before implementation. Delegates KP reading to a context-gathering subagent, then produces structured test scenarios covering unit, integration, API, E2E, contract, and performance tests."
+description: "Generates a Double-Loop TDD test plan with TPP-ordered scenarios before implementation. Delegates KP reading to a context-gathering subagent, then produces structured Acceptance Tests (outer loop) and Unit Tests in Transformation Priority Premise order (inner loop)."
 allowed-tools: Read, Grep, Glob
 argument-hint: "[STORY-ID]"
 ---
@@ -15,7 +15,7 @@ argument-hint: "[STORY-ID]"
 
 ## Purpose
 
-Produces a comprehensive, actionable test plan BEFORE any test code is written. With 95% line / 90% branch coverage enforced, upfront planning avoids coverage whack-a-mole.
+Produces a Double-Loop TDD test plan that drives implementation order. With 95% line / 90% branch coverage enforced, the plan serves as the implementation roadmap — each test scenario maps to one Red-Green-Refactor cycle, ordered by Transformation Priority Premise (TPP).
 
 ## Input
 
@@ -27,7 +27,7 @@ If no story provided, ask which story to plan.
 
 ```
 1. GATHER CONTEXT  -> Subagent reads testing + architecture KPs, story, existing code
-2. PLAN TESTS      -> Orchestrator generates scenarios using returned context (inline)
+2. PLAN TESTS      -> Orchestrator generates Double-Loop + TPP-ordered scenarios (inline)
 3. ESTIMATE        -> Orchestrator estimates coverage and validates completeness (inline)
 ```
 
@@ -64,34 +64,82 @@ Launch a **single** `general-purpose` subagent:
 
 ## Step 2: Generate Test Scenarios (Orchestrator — Inline)
 
-Using the context returned by the subagent, generate scenarios by category:
+Using the context returned by the subagent, generate a Double-Loop TDD test plan.
+Organize scenarios by implementation order (TPP), NOT by test category.
 
-### 2.1 Happy Path
-For every public method, at least one scenario with valid input → expected result.
+### 2.1 Acceptance Tests (Outer Loop)
 
-### 2.2 Error Path
-Map each exception to: trigger condition → test method name. Verify: exception type + message + context data.
+For each Gherkin scenario in the story, generate an acceptance test entry:
 
-### 2.3 Boundary Tests
-Triplet pattern per boundary: at-min, at-max, past-max.
+| Field | Description |
+|-------|-------------|
+| ID | `AT-N` (sequential) |
+| Gherkin | Reference to the original scenario |
+| Status | RED until all unit tests for this acceptance criteria complete |
+| Components | List of classes/modules under test |
+| Test Type | Integration, API, or E2E (depending on story scope) |
 
-### 2.4 Parametrized Tests
-Identify data matrices. Use CSV source for simple type/value/expected. Use method source for complex objects. Estimate row count.
+### 2.2 Unit Tests (Inner Loop — TPP Order)
 
-### 2.5 Integration Tests
-Scenarios requiring framework context (DB, HTTP, messaging): CRUD, transactions, concurrent access.
+Generate unit test scenarios in strict TPP order. Each scenario represents one
+Red-Green-Refactor cycle.
 
-### 2.6 API Tests (if applicable)
-Valid → expected status, Invalid → 400, Not found → 404, Conflict → 409, Rate limited → 429.
+#### TPP Level 1 — Degenerate Cases
+- Null, empty, zero inputs → return default/error
+- Transform: `{}→nil` or `nil→constant`
 
-### 2.7 E2E Tests (if applicable)
-Full flow: entry point → processing → persistence → response.
+#### TPP Level 2 — Unconditional Paths
+- Single valid input → direct output (no branching)
+- Transform: `constant→variable`
 
-### 2.8 Contract Tests (if testing.contract_tests == true)
-Consumer contracts, provider verification, schema compatibility.
+#### TPP Level 3 — Simple Conditions
+- Single if/else branching
+- Transform: `unconditional→conditional`
 
-### 2.9 Chaos Tests (if testing.chaos_tests == true)
-Network partition, latency injection, resource exhaustion, dependency failure.
+#### TPP Level 4 — Complex Conditions
+- Multiple branches, switch/match, compound boolean
+- Transform: deeper conditional logic
+
+#### TPP Level 5 — Iterations
+- Collection processing, loops, map/filter/reduce
+- Transform: `scalar→collection`, `statement→recursion/iteration`
+
+#### TPP Level 6 — Edge Cases
+- Boundary values (at-min, at-max, past-max)
+- Transform: `value→mutated value`
+
+For each unit test entry, include:
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| ID | M | `UT-N` (sequential within TPP order) |
+| Test | M | What to test (method + scenario + expected) |
+| Implementation | O | Minimum code to pass this test |
+| Transform | M | TPP transformation applied |
+| TPP Level | M | 1-6 |
+| Components | M | Classes/modules needed |
+| Depends on | M | Previous test IDs that are prerequisites, or `--` |
+| Parallel | M | `yes` if independent of other tests at same level |
+
+### 2.3 Integration Tests (Cross-Component)
+
+Position AFTER the unit tests of the components involved.
+Include only when multiple components interact (DB, HTTP, messaging).
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| ID | M | `IT-N` (sequential) |
+| Test | M | What to test |
+| Components | M | Interacting components |
+| Depends on | M | UT IDs that must pass first |
+| Parallel | M | `yes`/`no` |
+
+### 2.4 CRUD-Only Story Optimization
+
+When a story describes a purely CRUD operation without branching logic:
+- UTs should cover: degenerate (Level 1) → constant (Level 1) → variable (Level 2)
+- Do NOT generate conditional or iteration UTs unless the business rules demand them
+- Acceptance tests should focus on the full CRUD flow
 
 ## Step 3: Estimate & Validate (Orchestrator — Inline)
 
@@ -105,13 +153,16 @@ Flag any class where estimated coverage < 95% line / 90% branch.
 
 ### Quality Checks
 
-1. Every acceptance criterion maps to ≥1 test
-2. Every exception has ≥1 error path test
-3. All applicable test categories represented
-4. Boundary values use triplet pattern
-5. Parametrized matrices are complete
-6. Estimated coverage meets thresholds
-7. Test naming follows convention
+1. Every Gherkin scenario maps to ≥1 acceptance test (AT)
+2. Every acceptance criterion maps to ≥1 unit test chain (UT)
+3. UT-1 is ALWAYS a degenerate case (TPP Level 1)
+4. UTs follow non-decreasing TPP level order
+5. Every exception has ≥1 error path test
+6. Boundary values use triplet pattern (at-min, at-max, past-max)
+7. Dependency markers are complete (no orphan UTs)
+8. Estimated coverage meets thresholds (≥ 95% line, ≥ 90% branch)
+9. Test naming follows convention: `[method]_[scenario]_[expected]`
+10. No unnecessary UTs for CRUD-only stories (max Level 3 unless justified)
 
 ## Output
 
@@ -121,24 +172,47 @@ Save to: `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md` (extract epic I
 # Test Plan -- STORY-ID: [Title]
 
 ## Summary
-- Total test classes: X
-- Total test methods: ~Y (estimated)
-- Categories covered: [list]
-- Estimated line coverage: ~Z%
+- Acceptance tests: X (from Y Gherkin scenarios)
+- Unit tests: ~Z (in TPP order)
+- Integration tests: ~W
+- Estimated line coverage: ~P%
+- Estimated branch coverage: ~Q%
 
-## Test Class 1: [ClassNameTest]
+## Acceptance Tests (Outer Loop)
 
-### Happy Path
-| # | Method | Test Name | Description |
+### AT-1: [Gherkin scenario name]
+- **Gherkin**: [reference to story scenario]
+- **Status**: RED until all unit tests complete
+- **Components**: [list of components under test]
+- **Acceptance Criteria**: [what must be true for this AT to pass]
 
-### Error Path
-| # | Exception | Test Name | Trigger |
+## Unit Tests (Inner Loop — TPP Order)
 
-### Boundary
-| # | Boundary | Test Name | Values Tested |
+### UT-1: [degenerate case description] — TPP Level 1
+- **Test**: [methodUnderTest]_[scenario]_[expectedBehavior]
+- **Implementation**: [minimum code to pass]
+- **Transform**: {}→nil
+- **Components**: [class/module]
+- **Depends on**: --
+- **Parallel**: yes
 
-### Parametrized
-| # | Matrix | Test Name | Source | Rows |
+### UT-2: [next case description] — TPP Level 2
+- **Test**: [methodUnderTest]_[scenario]_[expectedBehavior]
+- **Implementation**: [minimum code to pass]
+- **Transform**: constant→variable
+- **Components**: [class/module]
+- **Depends on**: UT-1
+- **Parallel**: no
+
+...
+
+## Integration Tests (Cross-Component)
+
+### IT-1: [integration scenario]
+- **Test**: [description]
+- **Components**: [interacting components]
+- **Depends on**: UT-3, UT-7
+- **Parallel**: no
 
 ## Coverage Estimation
 [table]
@@ -151,6 +225,7 @@ Save to: `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md` (extract epic I
 ## Anti-Patterns
 
 - Do NOT write test code — only plan scenarios
+- Do NOT organize test plan by category (Happy Path, Error Path, etc.) — use TPP ordering
 - Do NOT skip error paths
 - Do NOT forget boundary values (0, -1, max, empty, null)
 - Do NOT plan tests for trivial getters/setters
@@ -160,5 +235,6 @@ Save to: `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md` (extract epic I
 ## Integration Notes
 
 - Invoked by `x-dev-lifecycle` during Phase 1B
+- Output uses Double-Loop TDD format with TPP-ordered scenarios
 - Output consumed by Phase 2 (developers) and Phase 3 (QA engineer validates coverage)
 - Can be used standalone before any implementation task
