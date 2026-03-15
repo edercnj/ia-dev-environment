@@ -159,20 +159,20 @@ When following TDD, use these commit format variants:
 
 | Format | When to use |
 | ------ | ----------- |
-| `feat(scope): implement [behavior] [TDD]` | **Recommended.** Test + implementation in one commit (one Red-Green cycle) |
-| `test(scope): add test for [behavior] [TDD:RED]` | Test only (Red phase, when separating test from implementation) |
-| `feat(scope): implement [behavior] [TDD:GREEN]` | Implementation only (Green phase, paired with a prior RED commit) |
-| `refactor(scope): [improvement] [TDD:REFACTOR]` | Refactoring only (no new behavior, immediately after Green) |
+| `feat(scope): implement [behavior] [TDD]` | **Recommended default.** Complete Red-Green(-Refactor) cycle in one commit: test + implementation (+ trivial refactor) |
+| `test(scope): add test for [behavior] [TDD:RED]` | **Optional, fine-grained.** Test-only Red phase; must be paired with a `[TDD:GREEN]` commit before push |
+| `feat(scope): implement [behavior] [TDD:GREEN]` | **Optional, fine-grained.** Implementation-only Green phase; must immediately follow a paired `[TDD:RED]` commit |
+| `refactor(scope): [improvement] [TDD:REFACTOR]` | **Optional.** Non-trivial refactor-only commit (no new behavior), immediately after the corresponding Green commit |
 
-The combined format `[TDD]` is the **recommended default**. Use the separate `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]` tags only when you need finer granularity in the git history.
+The combined format `[TDD]` is the **recommended default** for most work: one green commit per complete Red-Green(-Refactor) cycle. Use the separate `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]` tags **only** when you need finer granularity in the git history, and always keep RED/GREEN commits paired (no orphaned test-only commits on shared branches).
 
 TDD tags are **additive suffixes** -- they do not replace the Conventional Commits type. All existing types (`feat`, `test`, `fix`, `refactor`, `docs`, `build`, `chore`, `infra`) remain valid.
 
 ## Atomic TDD Commit Rules
 
-1. **One commit per Red-Green-Refactor cycle** -- each commit represents a complete TDD cycle
-2. **Test and implementation in the SAME commit** -- avoid orphaned test-only commits
-3. **Refactoring may be a separate commit** -- but must immediately follow the Green commit
+1. **Default: one combined commit per Red-Green-Refactor cycle** -- use the `[TDD]` suffix for a complete cycle in a single commit
+2. **Test and implementation in the SAME commit** -- RED-only `[TDD:RED]` commits are allowed locally for fine-grained work, but must be paired with a corresponding `[TDD:GREEN]` commit before push (no orphaned test-only commits on shared branches)
+3. **Refactoring may be a separate commit for non-trivial changes** -- use `[TDD:REFACTOR]` immediately after the Green commit, adding no new behavior
 4. **Each commit adds ONE testable behavior** -- keep changes focused and reviewable
 5. **Maximum ~50 lines changed per commit** -- larger commits should be split into smaller TDD cycles
 
