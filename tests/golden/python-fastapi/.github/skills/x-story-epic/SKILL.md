@@ -66,6 +66,12 @@ Each rule gets a description detailed enough that a developer can implement it w
 back to the spec. Use `<br>` for line breaks within table cells. Include priority/precedence
 when rules can conflict.
 
+**TDD cross-cutting rules:**
+When the spec describes a system that follows TDD practices, extract these as cross-cutting rules:
+- **Red-Green-Refactor**: Mandatory cycle for all production code — write failing test, make it pass, refactor
+- **Atomic TDD Commits**: Each Red-Green-Refactor cycle produces atomic commits with Conventional Commits format
+- **Gherkin Completeness**: Every acceptance criterion must have corresponding Gherkin scenarios
+
 ### Step 3: Identify Stories
 
 Read the decomposition guide (`.github/skills/x-story-epic-full/SKILL.md`) for
@@ -100,6 +106,8 @@ Extract from the spec, or derive from the tech stack:
 - Documentation requirements
 - Performance SLOs
 - Persistence/data integrity criteria
+- TDD Compliance: commits show test-first pattern (test precedes implementation in git log), explicit refactoring after green, tests are incremental (simple to complex via Transformation Priority Premise)
+- Double-Loop TDD: acceptance tests derived from Gherkin scenarios (outer loop), unit tests guided by Transformation Priority Premise (inner loop)
 
 ### Step 5: Generate the Epic File
 
