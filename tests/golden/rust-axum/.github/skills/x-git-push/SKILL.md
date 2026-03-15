@@ -17,12 +17,12 @@ Standardizes the Git workflow for {{PROJECT_NAME}}. Every feature starts with a 
 
 ```
 main (stable, always green)
-  +-- feat/STORY-NNN-short-description
+  +-- feat/story-XXXX-YYYY-short-description
 ```
 
 ### Branch Naming
 
-**Pattern:** `feat/STORY-NNN-short-kebab-description`
+**Pattern:** `feat/story-XXXX-YYYY-short-kebab-description`
 
 **Rules:**
 - Always prefix with `feat/` (or `fix/`, `refactor/` as appropriate)
@@ -35,7 +35,7 @@ main (stable, always green)
 ```bash
 git checkout main
 git pull origin main
-git checkout -b feat/STORY-NNN-description
+git checkout -b feat/story-XXXX-YYYY-description
 ```
 
 ## Commit Convention (Conventional Commits)
@@ -81,7 +81,7 @@ Use the module, package, or component name as scope. Define project-specific sco
 ```bash
 git checkout main
 git pull origin main
-git checkout -b feat/STORY-NNN-description
+git checkout -b feat/story-XXXX-YYYY-description
 git status
 ```
 
@@ -106,7 +106,7 @@ git log --oneline main..HEAD
 git diff main...HEAD --stat
 
 # 3. Push
-git push -u origin feat/STORY-NNN-description
+git push -u origin feat/story-XXXX-YYYY-description
 ```
 
 ## Pull Request
@@ -115,7 +115,7 @@ git push -u origin feat/STORY-NNN-description
 
 ```bash
 gh pr create \
-  --title "feat(scope): implement STORY-NNN -- title" \
+  --title "feat(scope): implement story-XXXX-YYYY -- title" \
   --body "$(cat <<'EOF'
 ## Summary
 <1-3 bullet points describing what was built>
@@ -130,7 +130,7 @@ EOF
 
 ### PR Title Convention
 
-- **Format:** `feat(scope): implement STORY-NNN -- short title`
+- **Format:** `feat(scope): implement story-XXXX-YYYY -- short title`
 - **Max length:** 70 characters
 
 ### Useful Commands

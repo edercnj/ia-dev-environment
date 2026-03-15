@@ -55,8 +55,8 @@ matrix:
 If inconsistencies are found, fix them and note the corrections.
 
 Add a `> **Nota:**` block for any implicit dependencies not declared in the stories but
-functionally required (e.g., "STORY-009 provides configuration data that STORY-002 needs even
-though STORY-002 doesn't explicitly declare it").
+functionally required (e.g., "story-0001-0009 provides configuration data that story-0001-0002 needs even
+though story-0001-0002 doesn't explicitly declare it").
 
 ### Step 2: Compute Phases
 
@@ -82,10 +82,10 @@ Count phases, not individual stories.
 
 Render as a simple ASCII diagram:
 ```
-STORY-001 ─┐
-            ├──→ STORY-002 → STORY-003 ──┐
-STORY-009 ─┘                              ├──→ STORY-011
-                 STORY-002 → STORY-010 ──┘
+story-0001-0001 ─┐
+            ├──→ story-0001-0002 → story-0001-0003 ──┐
+story-0001-0009 ─┘                              ├──→ story-0001-0011
+                 story-0001-0002 → story-0001-0010 ──┘
    Fase 0           Fase 1       Fase 2            Fase 3
 ```
 
@@ -96,7 +96,7 @@ Explain the impact: any delay in a critical path story directly delays the final
 
 Create a full `graph TD` with all stories and their dependency edges.
 
-**Naming convention**: `SNNN["STORY-NNN<br/>Short Title"]`
+**Naming convention**: `SXXXX_YYYY["story-XXXX-YYYY<br/>Short Title"]`
 
 **Phase coloring** (use these exact classDef values for consistency):
 ```
@@ -115,7 +115,7 @@ Assign classDef by phase. Group edges by phase transition (comment with `%% Fase
 
 | Fase | Histórias | Camada | Paralelismo | Pré-requisito |
 | :--- | :--- | :--- | :--- | :--- |
-| 0 | STORY-001, STORY-009 | Infra + API | 2 paralelas | — |
+| 0 | story-0001-0001, story-0001-0009 | Infra + API | 2 paralelas | — |
 
 Include total count: **N histórias em M fases**.
 
@@ -156,7 +156,8 @@ checkpoint before expanding scope? What does it validate (patterns, pipeline, in
 
 ### Step 8: Save and Report
 
-Save as `IMPLEMENTATION-MAP.md` in the same directory as the Epic and Stories.
+Save as `implementation-map-XXXX.md` in the same directory as the Epic and Stories (inside `docs/stories/epic-XXXX/`).
+The XXXX is the epic number extracted from the Epic file.
 Report: total stories, phases, critical path length, maximum parallelism, main bottleneck.
 
 ## Language Rules
@@ -165,15 +166,16 @@ Report: total stories, phases, critical path length, maximum parallelism, main b
 - Mermaid node IDs and classDef names stay in English
 - Phase names in Portuguese (e.g., "Fase 0 — Fundação")
 - Technical terms: "critical path" → "caminho crítico", "bottleneck" → "gargalo"
-- Story and phase IDs in English format
+- Story IDs: `story-XXXX-YYYY` (composite format)
+- Epic IDs: `epic-XXXX` (kebab-case)
 
 ## Common Mistakes
 
 - **Phase computation error**: Forgetting that a story can only enter a phase when ALL its
   dependencies (not just some) are in earlier phases
-- **Missing convergence analysis**: When STORY-011 depends on STORY-003 AND STORY-010 from
+- **Missing convergence analysis**: When story-0001-0011 depends on story-0001-0003 AND story-0001-0010 from
   different branches, this creates a convergence point that deserves a callout
-- **Generic observations**: "STORY-002 is important" says nothing. "STORY-002 blocks 6 stories
+- **Generic observations**: "story-0001-0002 is important" says nothing. "story-0001-0002 blocks 6 stories
   and establishes the decision engine pattern that all Phase 2 handlers reuse — investing
   extra design time here prevents refactoring 6 handlers later" is useful
 - **Inconsistent status**: If a story is marked Done in the matrix but Pending in the phase

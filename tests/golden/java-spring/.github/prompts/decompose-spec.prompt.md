@@ -32,10 +32,10 @@ This produces three deliverables:
 
 ### Step 2 — Review Output
 
-Verify the generated artifacts:
-- Epic file in `docs/epics/`
-- Story files in `docs/stories/`
-- Implementation map in `docs/plans/`
+Verify the generated artifacts inside `docs/stories/epic-XXXX/`:
+- Epic file: `docs/stories/epic-XXXX/epic-XXXX.md`
+- Story files: `docs/stories/epic-XXXX/story-XXXX-YYYY.md`
+- Implementation map: `docs/stories/epic-XXXX/implementation-map-XXXX.md`
 
 ### Step 3 — Validate Dependencies
 

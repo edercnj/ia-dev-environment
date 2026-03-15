@@ -75,10 +75,12 @@ The guide also covers:
 
 Follow the instructions in `.github/skills/x-story-epic/SKILL.md`:
 
-- Extract rules -> RULE-001..N table
-- Build story index with titles and dependencies
+- Determine the epic number (scan `docs/stories/` for existing `epic-XXXX` folders, use next available; default `0001`)
+- Create directory `docs/stories/epic-XXXX/`
+- Extract rules → RULE-001..N table
+- Build story index with titles and dependencies (using `story-XXXX-YYYY` IDs)
 - Define DoR/DoD from spec quality requirements
-- Generate `EPIC-NNN.md` following `_TEMPLATE-EPIC.md`
+- Generate `docs/stories/epic-XXXX/epic-XXXX.md` following `_TEMPLATE-EPIC.md`
 
 ### Phase C: Generate the Stories
 
@@ -93,7 +95,7 @@ For each story in the Epic's index:
 - Gherkin acceptance criteria (happy path + errors + edge cases)
 - Sub-tasks tagged `[Dev]`, `[Test]`, `[Doc]`
 
-Generate files as `STORY-NNN.md` following `_TEMPLATE-STORY.md`.
+Generate files as `docs/stories/epic-XXXX/story-XXXX-YYYY.md` following `_TEMPLATE-STORY.md`.
 
 ### Phase D: Generate the Implementation Map
 
@@ -106,11 +108,11 @@ Follow the instructions in `.github/skills/x-story-map/SKILL.md`:
 - Phase summary and detail tables
 - Strategic observations (bottleneck, leaves, parallelism, convergences, validation milestone)
 
-Generate `IMPLEMENTATION-MAP.md` following `_TEMPLATE-IMPLEMENTATION-MAP.md`.
+Generate `docs/stories/epic-XXXX/implementation-map-XXXX.md` following `_TEMPLATE-IMPLEMENTATION-MAP.md`.
 
 ### Phase E: Save and Report
 
-Save all files to the same directory as the input spec (or where the user specifies).
+All files are saved inside `docs/stories/epic-XXXX/` (the epic's dedicated folder).
 
 Report summary:
 - Total rules extracted
@@ -126,7 +128,7 @@ Report summary:
 - Technical terms in English stay in English (cache, timeout, handler, endpoint, etc.)
 - Code identifiers, field names, enum values stay in English
 - Gherkin in Portuguese: `Cenario`, `DADO`, `QUANDO`, `ENTÃO`, `E`, `MAS`
-- IDs in English format: RULE-NNN, STORY-NNN, EPIC-NNN
+- IDs: RULE-NNN (English format), story-XXXX-YYYY (composite), epic-XXXX (kebab-case)
 
 ## Quality Checklist
 

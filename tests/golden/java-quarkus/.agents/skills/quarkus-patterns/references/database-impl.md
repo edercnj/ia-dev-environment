@@ -54,7 +54,7 @@ Two underscores between version and description. Location: `src/main/resources/d
 
 ```sql
 -- V{N}__{description}.sql
--- Story: STORY-NNN
+-- Story: story-XXXX-YYYY
 -- Description: [what this migration does]
 
 BEGIN;
