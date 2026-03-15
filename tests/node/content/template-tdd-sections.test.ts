@@ -199,19 +199,46 @@ describe("Epic template — backward compatibility", () => {
 describe("Structure validation", () => {
   it("storyTemplate_allHeadingsUseValidMarkdownSyntax", () => {
     const lines = storyContent.split("\n");
-    for (const line of lines) {
-      if (line.match(/^#{1,6}\s/)) {
-        expect(line).toMatch(/^#{1,6}\s+\S/);
-      }
+    const headingLines = lines.filter((line) => line.match(/^#{1,6}\s/));
+    expect(headingLines.length).toBeGreaterThan(0);
+    for (const line of headingLines) {
+      expect(line).toMatch(/^#{1,6}\s+\S/);
     }
   });
 
   it("epicTemplate_allHeadingsUseValidMarkdownSyntax", () => {
     const lines = epicContent.split("\n");
-    for (const line of lines) {
-      if (line.match(/^#{1,6}\s/)) {
-        expect(line).toMatch(/^#{1,6}\s+\S/);
-      }
+    const headingLines = lines.filter((line) => line.match(/^#{1,6}\s/));
+    expect(headingLines.length).toBeGreaterThan(0);
+    for (const line of headingLines) {
+      expect(line).toMatch(/^#{1,6}\s+\S/);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Empty TDD Section Validity
+// ---------------------------------------------------------------------------
+
+describe("Template with empty TDD sections — validity", () => {
+  it("storyTemplate_withDefaultTddContent_remainsParseableMarkdown", () => {
+    const h2Sections = storyContent.match(/^## \d+\./gm) || [];
+    const h3Sections = storyContent.match(/^### \d+\.\d+/gm) || [];
+    expect(h2Sections.length).toBeGreaterThanOrEqual(8);
+    expect(h3Sections.length).toBeGreaterThan(0);
+    expect(storyContent).toMatch(/^# /m);
+  });
+
+  it("storyTemplate_tddChecklistItems_haveUncheckedDefaults", () => {
+    const checkboxes = storyContent.match(/- \[ \] .*(Degenerate|Happy|Error|Boundary)/g) || [];
+    expect(checkboxes.length).toBe(4);
+    for (const cb of checkboxes) {
+      expect(cb).toMatch(/^- \[ \]/);
+    }
+  });
+
+  it("epicTemplate_tddDodItems_haveCompletePlaceholderText", () => {
+    expect(epicContent).toMatch(/\*\*TDD Compliance:\*\*/);
+    expect(epicContent).toMatch(/\*\*Double-Loop TDD:\*\*/);
   });
 });
