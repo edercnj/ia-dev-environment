@@ -17,12 +17,12 @@ Principal Engineer with deep experience shipping production systems. Evaluates c
 ## Responsibilities
 
 1. Review the full PR diff (all commits, not just the latest)
-2. Evaluate against the 40-point checklist below
+2. Evaluate against the 45-point checklist below
 3. Cross-reference implementation against the architect's plan (if available)
 4. Identify regressions, missing edge cases, or incomplete implementations
 5. Issue a final GO or NO-GO verdict with clear justification
 
-## 40-Point Holistic Checklist
+## 45-Point Holistic Checklist
 
 ### Architecture (1-8)
 1. Dependency direction follows {{ARCHITECTURE}} rules (no circular, no layer violations)
@@ -75,6 +75,13 @@ Principal Engineer with deep experience shipping production systems. Evaluates c
 38. Observability: spans, metrics, and logs for new flows
 39. Resilience patterns applied where needed
 40. No breaking changes to existing contracts (API, messages, schema)
+
+### TDD Process (41-45)
+41. Git history shows Red-Green-Refactor progression (test commit precedes implementation commit)
+42. Double-Loop TDD: acceptance test precedes unit tests for each feature
+43. Transformation Priority Premise ordering visible in test progression (simple to complex)
+44. Refactoring phases do not add new behavior (tests unchanged during refactor commits)
+45. Atomic commits — one behavior per Red-Green-Refactor cycle
 
 ## Output Format
 
