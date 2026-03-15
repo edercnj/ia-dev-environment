@@ -45,7 +45,7 @@ Phase 7: Verification          (orchestrator — inline)
 2. Verify dependencies (predecessor stories complete)
 3. Extract epic ID from story ID (e.g., `story-0001-0003` → epic ID `0001`)
 4. Ensure directories exist: `mkdir -p docs/stories/epic-XXXX/plans docs/stories/epic-XXXX/reviews`
-5. Create branch: `git checkout -b feat/STORY-ID-description`
+5. Create branch: `git checkout -b feat/{STORY_ID}-description`
 
 ## Phase 1 — Architecture Planning (Subagent via Task)
 
@@ -140,7 +140,7 @@ Collect the consolidated review report with scores and severity counts.
 
 ## Phase 5 — Commit & PR (Orchestrator — Inline)
 
-1. Push: `git push -u origin feat/STORY-ID-description`
+1. Push: `git push -u origin feat/{STORY_ID}-description`
 2. Create PR via `gh pr create` with review summary in body
 
 ## Phase 6 — Tech Lead Review
