@@ -141,9 +141,7 @@ Before delivering, verify:
 - [ ] Phase computation is correct (stories only enter phase when ALL deps are in earlier phases)
 - [ ] Critical path is the actual longest chain (not just the deepest phase)
 - [ ] Data contracts match the spec exactly (field names, types, formats)
-- [ ] Each story has at least 4 Gherkin scenarios (happy + 2 errors + 1 edge case)
-- [ ] Each story has at least 4 Gherkin scenarios with mandatory categories (degenerate, happy path, error paths, boundary values)
-- [ ] Gherkin scenarios are ordered by TPP (degenerate → edge cases)
+- [ ] Each story has at least 4 Gherkin scenarios covering all mandatory categories (degenerate, happy path, error paths, boundary values), ordered by TPP (degenerate → edge cases)
 - [ ] Epic DoD includes TDD Compliance and Double-Loop TDD
 - [ ] Boundary values use triplet pattern (at-min, at-max, past-max)
 - [ ] Implementation map observations are specific, not generic

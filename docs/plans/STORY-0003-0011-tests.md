@@ -36,7 +36,7 @@ Golden file byte-for-byte parity (existing test infrastructure in `tests/node/in
 ### 6. Byte-for-byte parity (existing test)
 
 **Type:** Integration
-**Verify:** `npm test -- --run tests/node/integration/byte-for-byte.test.ts` passes for all 8 profiles
+**Verify:** `npm test -- tests/node/integration/byte-for-byte.test.ts` passes for all 8 profiles
 
 ## Execution
 
