@@ -124,7 +124,7 @@ Follow rust 2024 idiomatic conventions for formatting, constructor injection, an
 - [ ] Commits show test-first pattern (test precedes implementation in git log)
 - [ ] Explicit refactoring after green
 - [ ] Tests are incremental (simple to complex via TPP)
-- [ ] No test written AFTER implementation
+- [ ] Tests precede or accompany implementation (no test-after in later commits)
 - [ ] Acceptance tests exist and validate end-to-end behavior
 
 ### TDD Compliance

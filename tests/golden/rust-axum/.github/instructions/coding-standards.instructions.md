@@ -55,4 +55,4 @@
 - Refactoring NEVER adds behavior — if behavior changes, write a new failing test first
 - Test-first commits: test must appear in git history before or in the same commit as its implementation
 
-> **Full TDD reference:** Read `skills/testing/SKILL.md` for Double-Loop TDD, Transformation Priority Premise, and advanced TDD patterns.
+> **Full TDD reference:** Read `.claude/skills/testing/SKILL.md` for Double-Loop TDD, Transformation Priority Premise, and advanced TDD patterns.
