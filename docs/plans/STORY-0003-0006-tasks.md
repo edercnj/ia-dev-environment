@@ -9,13 +9,13 @@
 
 ## G1 -- Test Setup (RED phase)
 
-**Purpose:** Write content-validation tests that assert TDD sections exist in the 3 agent templates. These tests MUST fail initially because the TDD content has not been added yet, confirming the RED phase of the TDD cycle.
+**Purpose:** Validate TDD sections exist in agent templates. The existing byte-for-byte golden test suite (`tests/node/integration/byte-for-byte.test.ts`) validates template content across all 8 profiles. No new test file is needed — updated golden files serve as the acceptance criteria.
 **Dependencies:** None
-**Compiles independently:** Yes -- test file only, no source changes.
+**Compiles independently:** N/A -- relies on existing test infrastructure.
 
-### T1.1 -- Create content-validation test file for agent TDD sections
+### T1.1 -- Validate content via existing golden test infrastructure
 
-- **File:** `tests/node/content/agent-tdd-sections.test.ts` (create)
+- **File(s):** Reuse existing byte-for-byte golden tests; no new test files created.
 - **What to implement:**
   - Read source template files and assert TDD content presence
   - 3 describe blocks: typescript-developer, qa-engineer, tech-lead

@@ -20,13 +20,9 @@
 
 **Rationale:** Golden files for all 8 profiles must be updated to include the new TDD sections in all 3 agents. The existing byte-for-byte test suite automatically validates that pipeline output matches golden files. No code changes to this file -- only golden file updates.
 
-### New
+### Note on Content Validation
 
-**Path:** `tests/node/content/agents-tdd-sections.test.ts`
-
-**Rationale:** Content validation tests that verify the structural integrity of TDD additions to all 3 agent templates. These are unit-level tests that read the source template files and assert section presence, item counts, ordering, and key phrases. Separated from byte-for-byte tests because they validate semantic content, not binary equality.
-
-**Naming convention:** `[agentUnderTest]_[scenario]_[expectedBehavior]` per Rule 05.
+Content validation is achieved through the existing byte-for-byte golden test suite. Updated golden files implicitly validate that all TDD sections, item counts, and key phrases are present in the generated agent templates. No separate content-validation test file was needed.
 
 ---
 

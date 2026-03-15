@@ -338,11 +338,12 @@ golden files.
 | Byte-for-byte parity | `tests/node/integration/byte-for-byte.test.ts` | Generated output matches golden files for all 8 profiles |
 | E2E verification | `tests/node/integration/e2e-verification.test.ts` | Pipeline runs successfully, file counts correct |
 
-### 8.3 No New Tests Required
+### 8.3 Test Strategy
 
-The existing byte-for-byte test suite already validates that generated agents match golden files.
-Since this story only modifies template content (not pipeline logic), no new test files are needed.
-The updated golden files serve as the acceptance criteria.
+The existing byte-for-byte test suite validates that generated agents match golden files across all
+8 profiles. Since this story only modifies template content (not pipeline logic), no new test files
+are needed. The updated golden files serve as the acceptance criteria — each profile's generated
+output must match the golden file byte-for-byte, implicitly validating TDD content presence.
 
 ### 8.4 Manual Verification Checklist
 
