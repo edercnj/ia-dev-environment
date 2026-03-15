@@ -97,7 +97,7 @@ Launch one `general-purpose` subagent per applicable engineer.
 | Engineer | KP Paths to Read |
 |----------|-----------------|
 | Security | `.github/skills/security/SKILL.md` |
-| QA | `.github/skills/testing/SKILL.md` |
+| QA | `.github/skills/testing/SKILL.md` -- focus on TDD Workflow, Double-Loop TDD, and TPP sections |
 | Performance | `.github/skills/resilience/SKILL.md` |
 | Database | `.github/skills/database-patterns/SKILL.md` |
 | Observability | `.github/skills/observability/SKILL.md` |
@@ -109,7 +109,7 @@ Launch one `general-purpose` subagent per applicable engineer.
 
 **Security (10 items, /20):** Input validation, output encoding, authentication checks, authorization checks, sensitive data masking, error handling (no stack traces), cryptography usage, dependency vulnerabilities, CORS/CSP headers, audit logging.
 
-**QA (12 items, /24):** Test exists for each AC, line coverage >=95%, branch coverage >=90%, test naming convention, AAA pattern, parametrized tests for data-driven, exception paths tested, no test interdependency, fixtures centralized, unique test data, edge cases, integration tests for DB/API.
+**QA (18 items, /36):** Test exists for each AC, line coverage >=95%, branch coverage >=90%, test naming convention, AAA pattern, parametrized tests for data-driven, exception paths tested, no test interdependency, fixtures centralized, unique test data, edge cases, integration tests for DB/API, commits show test-first pattern, explicit refactoring after green, tests follow TPP progression, no test written after implementation, acceptance tests validate E2E behavior, TDD coverage thresholds maintained.
 
 **Performance (13 items, /26):** No N+1 queries, connection pool sized, async where applicable, pagination on collections, caching strategy, no unbounded lists, timeout on external calls, circuit breaker on external, thread safety, resource cleanup, lazy loading, batch operations, index usage.
 
@@ -134,7 +134,7 @@ Parse each subagent's output. Build consolidated table:
 |    Review     | Score |      Status        |
 +---------------+-------+--------------------+
 | Security      | XX/20 | Approved           |
-| QA            | XX/24 | Rejected           |
+| QA            | XX/36 | Rejected           |
 | ...           | ...   | ...                |
 +---------------+-------+--------------------+
 Total: XXX/YYY (XX%)
