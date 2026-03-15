@@ -19,12 +19,12 @@ Produces a Double-Loop TDD test plan that drives implementation order. With line
 
 - Story file with acceptance criteria and sub-tasks
 - Existing codebase with established test patterns
-- Knowledge of Kotlin test frameworks and conventions
+- Knowledge of kotlin test frameworks and conventions
 
 ## Knowledge Pack References
 
 Before planning tests, read:
-- `.github/skills/testing/SKILL.md` — 8 test categories, fixture patterns, data uniqueness, Kotlin-specific test frameworks, naming conventions
+- `.github/skills/testing/SKILL.md` — 8 test categories, fixture patterns, data uniqueness, kotlin-specific test frameworks, naming conventions
 - `.github/skills/architecture/SKILL.md` — layer boundaries for unit vs integration decisions
 
 ## Execution Flow (Orchestrator Pattern)
