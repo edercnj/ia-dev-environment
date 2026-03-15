@@ -4,8 +4,8 @@
 
 - Modified source files: `resources/templates/_TEMPLATE-STORY.md`, `resources/templates/_TEMPLATE-EPIC.md`
 - New test file: `tests/node/content/template-tdd-sections.test.ts`
-- Total test methods: 30
-- Categories: Story Template Content Validation (14), Epic Template Content Validation (6), Backward Compatibility (8), Structure Validation (2)
+- Total test methods: 41
+- Categories: Story Template Content Validation (14), Epic Template Content Validation (7), Backward Compatibility (15), Structure Validation (2), Empty Section Validity (3)
 - Coverage targets: >= 95% line, >= 90% branch
 - No new production code -- templates are static reference files not processed by the pipeline. No golden file updates required.
 - No routing or assembler changes -- templates in `resources/templates/` are used by AI skills (x-story-create, x-story-epic) as structural guides, not by the build pipeline.

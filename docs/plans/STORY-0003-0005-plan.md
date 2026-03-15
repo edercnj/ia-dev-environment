@@ -2,7 +2,7 @@
 
 ## Summary
 
-Add TDD-specific sections to two static markdown template files used by AI skills (`x-story-create`, `x-story-epic`) for story and epic generation. Specifically: (1) add a new section 8 "TDD Scenarios" to `_TEMPLATE-STORY.md` (after section 7 Gherkin, renumbering current section 8 to 9), and (2) add two TDD items to the Global DoD in `_TEMPLATE-EPIC.md`. Create a new content-validation test file to assert these templates contain the required TDD content. No pipeline, assembler, golden file, or routing changes are needed -- these are static reference documents.
+Add TDD-specific sections to two static markdown template files used by AI skills (`x-story-create`, `x-story-epic`) for story and epic generation. Specifically: (1) add TDD-focused subsections (7.1, 7.2, 7.3) under section 7 "Criterios de Aceite (Gherkin)" in `_TEMPLATE-STORY.md` (keeping the existing section 8 "Sub-tarefas" and its numbering unchanged), and (2) add two TDD items to the Global DoD in `_TEMPLATE-EPIC.md`. Create a new content-validation test file to assert these templates contain the required TDD content. No pipeline, assembler, golden file, or routing changes are needed -- these are static reference documents.
 
 ---
 
@@ -10,9 +10,9 @@ Add TDD-specific sections to two static markdown template files used by AI skill
 
 | File | Type | Impact |
 |------|------|--------|
-| `resources/templates/_TEMPLATE-STORY.md` | Static template | **Modify**: Add new section 8 (TDD Scenarios), renumber old section 8 to 9 |
+| `resources/templates/_TEMPLATE-STORY.md` | Static template | **Modify**: Add TDD subsections 7.1-7.3 under section 7, keep section 8 "Sub-tarefas" unchanged |
 | `resources/templates/_TEMPLATE-EPIC.md` | Static template | **Modify**: Add 2 TDD items to Global DoD (section 3) |
-| `tests/node/content/template-tdd-content.test.ts` | Test | **New file**: Content-validation tests for TDD sections |
+| `tests/node/content/template-tdd-sections.test.ts` | Test | **New file**: Content-validation tests for TDD sections |
 
 **Total: 2 modified files + 1 new file = 3 files**
 
@@ -33,7 +33,7 @@ Add TDD-specific sections to two static markdown template files used by AI skill
 8. Sub-tarefas
 ```
 
-### Target Structure (9 sections)
+### Target Structure (8 sections, with TDD subsections under 7)
 
 ```
 1. Dependencias                          (unchanged)
@@ -42,49 +42,42 @@ Add TDD-specific sections to two static markdown template files used by AI skill
 4. Definicoes de Qualidade Locais        (unchanged)
 5. Contratos de Dados (Data Contract)    (unchanged)
 6. Diagramas                             (unchanged)
-7. Criterios de Aceite (Gherkin)         (unchanged)
-8. TDD Scenarios                         (NEW)
-9. Sub-tarefas                           (renumbered from 8)
+7. Criterios de Aceite (Gherkin)         (now includes subsections 7.1-7.3 for TDD content)
+8. Sub-tarefas                           (unchanged)
 ```
 
-### New Section 8 Content
+### New TDD Subsections under Section 7
 
-Insert after the closing ``` of the Gherkin block (line 106) and before the current `## 8. Sub-tarefas`:
+Insert new TDD-specific subsections 7.1-7.3 within section 7 "Criterios de Aceite (Gherkin)", after the closing ``` of the Gherkin block (line 106) and before `## 8. Sub-tarefas`, keeping the subsequent section 8 header and its numbering unchanged:
 
 ```markdown
-## 8. TDD Scenarios
+### 7.1 Scenario Ordering (TPP)
 
-### Scenario Ordering (TPP — Transformation Priority Premise)
+> Scenarios MUST follow the Transformation Priority Premise (TPP) order, from simplest to most
+> complex: degenerate -> unconditional -> conditions -> iterations -> edge cases.
+> This ordering ensures incremental complexity in both tests and implementation.
 
-> Order scenarios from simplest transformation to most complex. Follow Kent Beck's TPP:
-> `{} -> nil -> constant -> constant+ -> scalar -> scalar+ -> collection -> collection+ -> recursion`
->
-> Each new scenario should require exactly ONE transformation to pass.
+### 7.2 Mandatory Scenario Categories
 
-### Mandatory Scenario Categories
+Every story MUST include scenarios covering all of the following categories:
 
-- [ ] **Degenerate cases**: null input, empty collections, zero-value, missing fields
-- [ ] **Happy path**: standard successful flow with valid data
-- [ ] **Error paths**: invalid input, business rule violations, infrastructure failures
-- [ ] **Boundary values**: min/max limits, off-by-one, type limits, empty-to-one transitions
+- [ ] Degenerate cases (null, empty, zero)
+- [ ] Happy path (basic success)
+- [ ] Error paths (each error type)
+- [ ] Boundary values (at-min, at-max, past-max)
 
-### TDD Implementation Notes (Double-Loop TDD)
+### 7.3 TDD Implementation Notes
 
-> **Outer loop (Acceptance):** Write one failing acceptance test from a Gherkin scenario above.
-> **Inner loop (Unit):** Implement using Red-Green-Refactor micro-cycles, following TPP ordering.
->
-> - Each commit must be test-first: test written BEFORE production code.
-> - Refactoring happens ONLY when all tests are GREEN.
-> - Every scenario in section 7 must have a corresponding acceptance test.
+- **Double-Loop TDD**: The primeiro cenario Gherkin becomes the acceptance test (outer loop).
+  Subsequent scenarios guide unit tests (inner loop).
+- The first scenario defines the walking skeleton -- the simplest end-to-end path.
+- Unit tests are driven by TPP: start with the simplest transformation and progress to more
+  complex ones.
 ```
-
-### Renumbering
-
-Change `## 8. Sub-tarefas` to `## 9. Sub-tarefas`.
 
 ### Final Line Count
 
-Current: 115 lines. After addition: ~135 lines (approximately +20 lines for the new section).
+Current: 115 lines. After addition: ~138 lines (approximately +23 lines for the new subsections).
 
 ---
 
@@ -108,8 +101,8 @@ Current: 115 lines. After addition: ~135 lines (approximately +20 lines for the 
 Append two new items after the existing `- **Performance:**` line:
 
 ```markdown
-- **TDD Compliance:** Commits follow test-first discipline; refactoring occurs only after green; scenario ordering follows TPP (Transformation Priority Premise)
-- **Double-Loop TDD:** Acceptance tests derived from Gherkin scenarios (outer loop); unit tests from TPP-ordered scenarios (inner loop)
+- **TDD Compliance:** Commits show test-first pattern. Explicit refactoring after green. Tests are incremental (from simple to complex via TPP -- Transformation Priority Premise).
+- **Double-Loop TDD:** Acceptance tests derived from Gherkin scenarios (outer loop). Unit tests guided by TPP (inner loop).
 ```
 
 ### Final Line Count
@@ -118,7 +111,7 @@ Current: 52 lines. After addition: 54 lines (+2 lines).
 
 ---
 
-## 4. New Test File: `tests/node/content/template-tdd-content.test.ts`
+## 4. New Test File: `tests/node/content/template-tdd-sections.test.ts`
 
 ### Rationale
 
@@ -131,65 +124,21 @@ These templates are NOT processed by the Nunjucks engine and are NOT part of the
 
 The test reads the raw file content via `fs.readFileSync` and asserts the presence of required sections and keywords. Follows the exact pattern from `tests/node/content/refactoring-guidelines-content.test.ts`.
 
-```typescript
-// tests/node/content/template-tdd-content.test.ts
-import { describe, it, expect } from "vitest";
-import * as fs from "node:fs";
-import * as path from "node:path";
+### Test Groups (41 tests across 10 describe blocks)
 
-const TEMPLATES_DIR = path.resolve(__dirname, "../../..", "resources/templates");
-
-const storyContent = fs.readFileSync(
-  path.join(TEMPLATES_DIR, "_TEMPLATE-STORY.md"),
-  "utf-8",
-);
-const epicContent = fs.readFileSync(
-  path.join(TEMPLATES_DIR, "_TEMPLATE-EPIC.md"),
-  "utf-8",
-);
-```
-
-### Test Cases for `_TEMPLATE-STORY.md`
-
-| Test Name | Assertion |
-|-----------|-----------|
-| `storyTemplate_containsTddScenariosSection` | Contains `## 8. TDD Scenarios` |
-| `storyTemplate_containsScenarioOrderingSubsection` | Contains `### Scenario Ordering (TPP` |
-| `storyTemplate_containsTransformationPriorityPremise` | Contains `Transformation Priority Premise` |
-| `storyTemplate_containsTppSequence` | Contains `nil -> constant -> constant+` |
-| `storyTemplate_containsMandatoryScenarioCategoriesSubsection` | Contains `### Mandatory Scenario Categories` |
-| `storyTemplate_containsDegenerateCasesCategory` | Contains `Degenerate cases` |
-| `storyTemplate_containsHappyPathCategory` | Contains `Happy path` |
-| `storyTemplate_containsErrorPathsCategory` | Contains `Error paths` |
-| `storyTemplate_containsBoundaryValuesCategory` | Contains `Boundary values` |
-| `storyTemplate_containsTddImplementationNotesSubsection` | Contains `### TDD Implementation Notes (Double-Loop TDD)` |
-| `storyTemplate_containsOuterLoopReference` | Contains `Outer loop (Acceptance)` |
-| `storyTemplate_containsInnerLoopReference` | Contains `Inner loop (Unit)` |
-| `storyTemplate_containsTestFirstCommitRule` | Contains `test-first` |
-| `storyTemplate_containsRefactoringOnlyOnGreen` | Contains `Refactoring happens ONLY when all tests are GREEN` |
-| `storyTemplate_preservesGherkinSection` | Contains `## 7. Criterios de Aceite (Gherkin)` |
-| `storyTemplate_subtasksRenumberedToNine` | Contains `## 9. Sub-tarefas` |
-| `storyTemplate_preservesAllOriginalSections` | Contains sections 1-7 headings (parameterized) |
-| `storyTemplate_tddSectionAfterGherkin` | Index of `## 8. TDD` > index of `## 7. Criterios` |
-| `storyTemplate_tddSectionBeforeSubtasks` | Index of `## 8. TDD` < index of `## 9. Sub-tarefas` |
-
-### Test Cases for `_TEMPLATE-EPIC.md`
-
-| Test Name | Assertion |
-|-----------|-----------|
-| `epicTemplate_containsTddComplianceDoD` | Contains `TDD Compliance` |
-| `epicTemplate_containsTestFirstInTddCompliance` | Contains `test-first` |
-| `epicTemplate_containsTppInTddCompliance` | Contains `TPP` |
-| `epicTemplate_containsDoubleLoopTddDoD` | Contains `Double-Loop TDD` |
-| `epicTemplate_containsAcceptanceTestReference` | Contains `Acceptance tests` |
-| `epicTemplate_containsGherkinReference` | Contains `Gherkin` |
-| `epicTemplate_preservesAllOriginalSections` | Contains sections 1-5 headings (parameterized) |
-| `epicTemplate_preservesOriginalDodItems` | Contains `Cobertura`, `Testes Automatizados`, `Performance` |
-| `epicTemplate_tddItemsInsideDodSection` | TDD items appear between `### Global Definition of Done (DoD)` and `## 4.` |
-
-### Estimated Test Count
-
-**28 test cases** across 4 describe blocks.
+| Group | Description | Count |
+|-------|-------------|-------|
+| Story — TDD mandatory scenario categories | Checks 4 categories + checkbox syntax + boundary specifics | 6 |
+| Story — TPP ordering note | TPP reference + ordering guidance | 2 |
+| Story — TDD Implementation Notes | Double-Loop + acceptance test + unit test references | 3 |
+| Story — TDD section structure | Heading exists + after Gherkin + before Sub-tarefas | 3 |
+| Epic — TDD Compliance in DoD | Compliance item + test-first + refactoring + TPP | 4 |
+| Epic — Double-Loop TDD in DoD | Double-Loop item + acceptance + unit tests | 3 |
+| Story — backward compatibility | All 8 original sections + section count | 9 |
+| Epic — backward compatibility | All 5 original sections + section count | 6 |
+| Structure validation | Valid markdown headings for both templates | 2 |
+| Empty TDD section validity | Parseable markdown + unchecked defaults + placeholder text | 3 |
+| **Total** | | **41** |
 
 ---
 
@@ -197,22 +146,10 @@ const epicContent = fs.readFileSync(
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|------------|
-| Backward compatibility: AI skills depend on section numbering | **Medium** | **Medium** | Verify `x-story-create` and `x-story-epic` skills reference section headings by name, not number. If they use regex on `## 8.`, the renumbering could break them. Mitigated by searching all skills for numeric section references. |
-| Template language mismatch (Portuguese vs English) | **Low** | **Minor** | Existing template uses Portuguese section headings. New TDD section uses English (per project RULE-012 for generated content). This is consistent with the template being a reference scaffold, not generated output. The TDD content describes methodology in English; existing structure headings remain in Portuguese. |
-| No pipeline impact (no golden file changes) | **None** | **None** | These files are static references, not processed by the Nunjucks engine. No assembler, pipeline, or golden file changes required. Verified by checking that no `*.njk` template or assembler references `_TEMPLATE-STORY.md` or `_TEMPLATE-EPIC.md`. |
+| Backward compatibility: AI skills depend on section numbering | **None** | **None** | Subsection approach (7.1-7.3) preserves all original section numbers. Section 8 "Sub-tarefas" is unchanged. No renumbering required. |
+| Template language mismatch (Portuguese vs English) | **Low** | **Minor** | Existing template uses Portuguese section headings. New TDD subsections use English (per project RULE-012 for generated content). This is consistent with the template being a reference scaffold. |
+| No pipeline impact (no golden file changes) | **None** | **None** | These files are static references, not processed by the Nunjucks engine. No assembler, pipeline, or golden file changes required. |
 | Test coverage impact | **None** | **None** | The new test file tests static file content (not source code branches). Source code coverage is unaffected since no `.ts` source files are modified. |
-| Section ordering assumption | **Low** | **Low** | The plan places TDD Scenarios (section 8) between Gherkin (section 7) and Sub-tasks (old section 8, now 9). This is the natural location: TDD scenarios are derived from Gherkin acceptance criteria and inform the sub-task breakdown. |
-
-### Pre-Implementation Verification
-
-Before modifying the templates, run:
-
-```bash
-# Verify no skill or agent references section numbers by digit
-grep -r "## 8\." .claude/skills/ .claude/agents/ resources/
-```
-
-If any matches reference `## 8. Sub-tarefas` by number, those references must be updated to `## 9.`.
 
 ---
 
@@ -227,7 +164,7 @@ resources/templates/_TEMPLATE-EPIC.md    (static markdown, no code dependency)
 .claude/skills/x-story-epic/            (reads template at runtime via AI skill)
          |
          v
-tests/node/content/template-tdd-content.test.ts  (reads file, asserts content)
+tests/node/content/template-tdd-sections.test.ts  (reads file, asserts content)
 ```
 
 No inward dependency violations. Templates are leaf nodes -- nothing depends on them at compile time. Skills reference them as runtime context. Tests validate content only.
@@ -242,10 +179,9 @@ None. This story modifies only static markdown templates and adds a content-vali
 
 ## 8. Implementation Order
 
-1. **Search for section-number references**: Verify no skill/agent hardcodes `## 8.` for Sub-tarefas
-2. **Modify `_TEMPLATE-STORY.md`**: Add section 8 (TDD Scenarios), renumber old section 8 to 9
-3. **Modify `_TEMPLATE-EPIC.md`**: Append TDD Compliance and Double-Loop TDD items to Global DoD
-4. **Create test file**: `tests/node/content/template-tdd-content.test.ts`
-5. **Run new tests**: `npx vitest run tests/node/content/template-tdd-content.test.ts`
-6. **Run full test suite**: `npx vitest run` to confirm no regressions
-7. **Verify coverage**: Ensure >= 95% line, >= 90% branch coverage is maintained
+1. **Modify `_TEMPLATE-STORY.md`**: Add subsections 7.1, 7.2, 7.3 under section 7 (Gherkin)
+2. **Modify `_TEMPLATE-EPIC.md`**: Append TDD Compliance and Double-Loop TDD items to Global DoD
+3. **Create test file**: `tests/node/content/template-tdd-sections.test.ts`
+4. **Run new tests**: `npx vitest run tests/node/content/template-tdd-sections.test.ts`
+5. **Run full test suite**: `npx vitest run` to confirm no regressions
+6. **Verify coverage**: Ensure >= 95% line, >= 90% branch coverage is maintained
