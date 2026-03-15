@@ -23,7 +23,7 @@ Decomposes an implementation plan into granular, single-layer tasks using a **fi
 
 ## Inputs Required
 
-1. `docs/plans/STORY-ID-plan.md` -- Architect's design
+1. `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md` -- Architect's design
 2. Story requirements file
 
 ## Procedure
@@ -39,7 +39,7 @@ These files define the available layers for YOUR project. The Layer Task Catalog
 ### STEP 1 -- Read Story Context
 
 Read these files:
-- `docs/plans/STORY-ID-plan.md` (Architect's plan)
+- `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (Architect's plan)
 - Story requirements file
 
 ### STEP 2 -- Identify Affected Layers
@@ -58,7 +58,7 @@ For complex domain logic tasks, read the Architect's plan carefully:
 
 ### STEP 5 -- Generate Output
 
-Save to: `docs/plans/STORY-ID-tasks.md`
+Save to: `docs/stories/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` (extract epic ID XXXX and story sequence YYYY from the story ID). Ensure directory exists: `mkdir -p docs/stories/epic-XXXX/plans`.
 
 ---
 

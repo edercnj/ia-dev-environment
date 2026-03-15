@@ -157,19 +157,42 @@ docs/stories/
     ├── story-XXXX-0001.md                  ← First story of this epic
     ├── story-XXXX-0002.md                  ← Second story
     ├── story-XXXX-YYYY.md                  ← Nth story
-    └── implementation-map-XXXX.md          ← Implementation map for this epic
+    ├── implementation-map-XXXX.md          ← Implementation map for this epic
+    ├── plans/                              ← Planning artifacts for this epic's stories
+    │   ├── plan-story-XXXX-YYYY.md         ← Architecture implementation plan
+    │   ├── tasks-story-XXXX-YYYY.md        ← Task decomposition
+    │   ├── tests-story-XXXX-YYYY.md        ← Test plan
+    │   ├── events-story-XXXX-YYYY.md       ← Event schema design (if event_driven)
+    │   └── compliance-story-XXXX-YYYY.md   ← Compliance assessment (if compliance active)
+    └── reviews/                            ← Review artifacts for this epic's stories
+        ├── review-security-story-XXXX-YYYY.md
+        ├── review-qa-story-XXXX-YYYY.md
+        ├── review-performance-story-XXXX-YYYY.md
+        ├── review-database-story-XXXX-YYYY.md    (if database active)
+        ├── review-observability-story-XXXX-YYYY.md (if observability active)
+        ├── review-devops-story-XXXX-YYYY.md      (if container/orch active)
+        ├── review-api-story-XXXX-YYYY.md         (if protocols defined)
+        ├── review-event-story-XXXX-YYYY.md       (if event_driven)
+        ├── review-tech-lead-story-XXXX-YYYY.md
+        └── correction-story-XXXX-YYYY.md         (if CRITICAL/MEDIUM findings)
 ```
 
 **Naming rules:**
 - Epic IDs use 4-digit zero-padded format: `epic-0001`, `epic-0002`, ...
 - Story IDs carry their parent epic ID: `story-XXXX-YYYY` where `XXXX` = epic number, `YYYY` = story sequence within that epic
 - Implementation map carries its epic ID: `implementation-map-XXXX`
+- Planning artifacts use prefix `{type}-story-XXXX-YYYY.md` (e.g., `plan-story-0001-0003.md`, `tasks-story-0001-0003.md`)
+- Review artifacts use prefix `review-{engineer}-story-XXXX-YYYY.md` (e.g., `review-security-story-0001-0003.md`)
+- Correction stories use `correction-story-XXXX-YYYY.md`
 - All filenames are lowercase kebab-case
 
 **Directory rules:**
 - Each epic gets its own folder: `docs/stories/epic-XXXX/`
-- ALL artifacts for an epic (epic file, stories, implementation map) live inside this folder
+- ALL artifacts for an epic (epic file, stories, implementation map, plans, reviews) live inside this folder
+- Planning artifacts go in `docs/stories/epic-XXXX/plans/`
+- Review artifacts go in `docs/stories/epic-XXXX/reviews/`
 - The `docs/stories/` root directory must be created if it does not exist
+- The `plans/` and `reviews/` subdirectories must be created when the first artifact of that type is saved
 - When the user provides a different base path, replace `docs/stories/` with the user-specified path but maintain the `epic-XXXX/` subfolder structure
 
 **Sequential ID assignment:**
@@ -177,7 +200,7 @@ docs/stories/
 - When adding an epic to a project with existing epics, scan `docs/stories/` for existing `epic-XXXX` folders and use the next available number
 - Story numbering always starts at `0001` within each epic
 
-**FORBIDDEN**: Saving epic/story files at the project root or in flat directories without the `epic-XXXX/` folder structure.
+**FORBIDDEN**: Saving epic/story/plan/review files at the project root, in flat directories, or in `docs/plans/` / `docs/reviews/` outside the `epic-XXXX/` folder structure.
 
 ## Anti-Patterns (FORBIDDEN)
 
