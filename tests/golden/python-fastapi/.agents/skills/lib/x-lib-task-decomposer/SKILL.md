@@ -14,7 +14,7 @@ argument-hint: "[STORY-ID]"
 
 ## Purpose
 
-Decomposes an implementation plan into granular tasks. When a test plan exists (from `x-test-plan`), derives tasks from test scenarios using TDD structure (RED/GREEN/REFACTOR). Falls back to the Layer Task Catalog (G1-G7) when no test plan is available. Each task is assigned a model tier (Junior/Mid/Senior), context budget, and parallelism group.
+Decomposes an implementation plan into granular tasks. When a test plan exists (from `x-test-plan`), derives tasks from test scenarios using TDD structure (RED/GREEN/REFACTOR) with a per-task `Parallel` flag. Falls back to the Layer Task Catalog (G1-G7) when no test plan is available, where tasks are additionally assigned to parallelism groups. Each task is assigned a model tier (Junior/Mid/Senior) and context budget.
 
 ## When to Use
 
@@ -47,13 +47,13 @@ Read these files:
 
 Check if test plan exists at `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`:
 
-1. **File exists AND has TPP markers** (e.g., `TPP Level`, `UT-`, `AT-` annotations):
+1. **File exists AND has structured TPP scenario markers** (scenario IDs like `UT-01:`, `AT-01:`, `IT-01:` at start of line under a dedicated scenarios section):
    - Use **TEST-DRIVEN MODE** (proceed to STEP 2A)
    - Derive tasks from test scenarios with RED/GREEN/REFACTOR structure
 
-2. **File exists but NO TPP markers**:
+2. **File exists but NO structured TPP markers** (may mention TPP/UT/AT in prose but lacks scenario ID lines):
    - Use **LAYER-BASED MODE** (proceed to STEP 2B)
-   - Emit warning: "Test plan found but lacks TPP markers. Falling back to layer-based decomposition (G1-G7)."
+   - Emit warning: "Test plan found but lacks structured TPP markers. Falling back to layer-based decomposition (G1-G7)."
 
 3. **File absent**:
    - Use **LAYER-BASED MODE** (proceed to STEP 2B)
@@ -66,7 +66,7 @@ Check if test plan exists at `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY
 
 For each test scenario in the test plan (ordered by TPP level):
 
-1. **Map scenario to task**: One task per UT/AT scenario
+1. **Map scenario to task**: One task per test scenario (UT/IT/AT)
 2. **Identify layer components**: Which layers does this scenario touch?
 3. **Determine dependencies**: Which tasks must complete before this one?
 4. **Assess parallelism**: Can this task run concurrently with others?
@@ -78,7 +78,7 @@ Each generated task MUST contain:
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| Test Scenario | M | Reference to UT-N or AT-N from test plan |
+| Test Scenario | M | Reference to UT-N, IT-N, or AT-N from test plan |
 | TPP Level | M | 1-7 from TPP ordering |
 | RED | M | What the test asserts (expected behavior) |
 | GREEN | M | Minimum implementation to make test pass |
