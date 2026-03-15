@@ -31,6 +31,15 @@ Each story MUST be implementable without consulting the original system specific
 - **Mermaid sequence diagrams** using real component names from the spec
 - **Sub-tasks** individually estimable at 2-4 hours, tagged `[Dev]`, `[Test]`, or `[Doc]`
 
+### Gherkin Completeness Requirements
+
+Every story's Gherkin acceptance criteria MUST include:
+
+- **Degenerate cases** (mandatory): At minimum, scenarios for null input, empty collection, zero value, and missing required field
+- **Boundary values** (mandatory): Triplet pattern for each bounded input — (at-minimum, at-maximum, past-maximum)
+- **Error paths** (complete): Every documented error type in the specification MUST have a corresponding Gherkin scenario with expected error code/message
+- **Minimum floor**: 4 scenarios per story (1 happy path + 2 error paths + 1 edge case is the floor, not the ceiling)
+
 ```
 // BAD — forces developer back to the spec
 "Implementar a operação principal conforme a especificação"
@@ -38,7 +47,7 @@ Each story MUST be implementable without consulting the original system specific
 // GOOD — developer has everything needed
 "Implementar endpoint POST /api/v1/operations"
 + Data contract table with all fields
-+ 6 Gherkin scenarios (happy path + 3 errors + 2 edge cases)
++ 6 Gherkin scenarios (minimum 4: happy + errors + edge cases)
 + Sequence diagram showing Client → Controller → Service → Repository → DB
 + 6 sub-tasks: [Dev] Controller, [Dev] Service, [Dev] Repository, [Dev] Migration, [Test] Unit, [Test] Integration
 ```
@@ -100,10 +109,25 @@ A well-sized story is implementable by one developer in 1-3 sprints.
 | Metric | Minimum | Action if below |
 |--------|---------|-----------------|
 | Testable endpoint/flow | 1 | Merge with another story |
-| Gherkin scenarios | 2 | Merge — too small to be a story |
+| Gherkin scenarios | 4 | Add degenerate/boundary/error scenarios or merge if scope too narrow |
 
 **Split signal**: "AND" in the title (e.g., "Operation X AND Operation Y").
 **Merge signal**: "Helper" or "Utility" in the title — likely a sub-task, not a story.
+
+### SD-05a: Scenario Ordering (TPP-Based)
+
+Gherkin scenarios within each story MUST be ordered following the Transformation Priority Premise (TPP):
+
+| Order | Category | Rationale |
+|-------|----------|-----------|
+| 1 | Degenerate cases | Null, empty, zero — simplest transformations, fail-fast guards |
+| 2 | Happy path (basic) | Single successful flow with minimal valid input |
+| 3 | Happy path (variations) | Alternate valid inputs, optional fields present |
+| 4 | Error paths | Business rule violations, validation failures |
+| 5 | Boundary values | At-min, at-max, past-max for each bounded input |
+| 6 | Complex edge cases | Combinations, race conditions, state transitions |
+
+**Rationale:** TPP ordering ensures the implementation grows incrementally from simple to complex, matching the natural TDD red-green-refactor cycle.
 
 ## SD-06: Phase Computation
 
@@ -214,3 +238,7 @@ docs/stories/
 - Rule in Epic that applies to only one journey → **MOVE TO STORY**
 - Dependency declared in one direction only (A blocks B but B doesn't list A) → **FORBIDDEN**
 - Hardcoded template structure (not reading from `.claude/templates/`) → **FORBIDDEN**
+- Story with fewer than 4 Gherkin scenarios → **FORBIDDEN** (add degenerate/boundary/error)
+- Gherkin scenarios without degenerate cases (null, empty, zero) → **FORBIDDEN**
+- Boundary-dependent behavior without triplet scenarios (at-min, at-max, past-max) → **FORBIDDEN**
+- Gherkin scenarios ordered happy-path-first (degenerate cases must come first) → **REORDER**
