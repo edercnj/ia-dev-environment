@@ -144,7 +144,7 @@ After all UT-N cycles for a given acceptance test (AT-N) are complete:
 ### 2.3 Code Conventions (from subagent's plan)
 
 - Named constants (never magic numbers/strings)
-- Methods <= 25 lines, classes <= 250 lines
+- Methods ≤ 25 lines, classes ≤ 250 lines
 - Self-documenting code (comments only for "why")
 - Never return null — use Optional/empty types
 - Constructor/initializer injection
@@ -173,8 +173,8 @@ All TDD cycles are complete. Run final validation:
 |-----------|-------------|
 | All acceptance tests (AT-N) GREEN | Run full test suite |
 | All unit tests (UT-N) GREEN | Run full test suite |
-| Line coverage >= 95% | Coverage report |
-| Branch coverage >= 90% | Coverage report |
+| Line coverage ≥ 95% | Coverage report |
+| Branch coverage ≥ 90% | Coverage report |
 | Code compiles cleanly | `{{COMPILE_COMMAND}}` with no warnings |
 | All tests pass | `{{TEST_COMMAND}}` |
 | Tests written BEFORE implementation | Verify test-first pattern in each cycle |
