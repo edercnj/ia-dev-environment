@@ -46,6 +46,6 @@
 
 | ID | Título | Dependências (Blocked By) |
 | :--- | :--- | :--- |
-| [STORY-001](./STORY_STORY-001_<Slug>.md) | <Título da história> | - |
-| [STORY-002](./STORY_STORY-002_<Slug>.md) | <Título da história> | STORY-001 |
-| [STORY-00N](./STORY_STORY-00N_<Slug>.md) | <Título da história> | <Dependências separadas por vírgula> |
+| [story-XXXX-0001](./story-XXXX-0001.md) | <Título da história> | - |
+| [story-XXXX-0002](./story-XXXX-0002.md) | <Título da história> | story-XXXX-0001 |
+| [story-XXXX-YYYY](./story-XXXX-YYYY.md) | <Título da história> | <Dependências separadas por vírgula> |

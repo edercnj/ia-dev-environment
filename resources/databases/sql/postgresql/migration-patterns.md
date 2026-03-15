@@ -34,7 +34,7 @@ src/main/resources/db/migration/
 
 ```sql
 -- V{N}__{description}.sql
--- Story: STORY-NNN
+-- Story: story-XXXX-YYYY
 -- Description: Brief description of what this migration does
 
 BEGIN;

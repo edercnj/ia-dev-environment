@@ -1,12 +1,12 @@
 # História: <Título da História>
 
-**ID:** <STORY-NNN>
+**ID:** <story-XXXX-YYYY>
 
 ## 1. Dependências
 
 | Blocked By | Blocks |
 | :--- | :--- |
-| <STORY-NNN ou -> | <STORY-NNN ou -> |
+| <story-XXXX-YYYY ou -> | <story-XXXX-YYYY ou -> |
 
 ## 2. Regras Transversais Aplicáveis
 

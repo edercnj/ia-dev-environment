@@ -156,7 +156,8 @@ Use checkboxes `- [ ]` for tracking.
 
 ### Step 3: Save and Report
 
-Save each story as `STORY-NNN.md` in the same directory as the Epic.
+Save each story as `story-XXXX-YYYY.md` in the same directory as the Epic (inside `docs/stories/epic-XXXX/`).
+The XXXX is the epic number (extracted from the Epic file) and YYYY is the story sequence (from the Epic's index).
 Report: total stories generated, dependency graph summary, any inconsistencies found.
 
 ## Language Rules
@@ -165,7 +166,8 @@ Report: total stories generated, dependency graph summary, any inconsistencies f
 - Technical terms in English stay in English: cache, timeout, handler, endpoint, state machine, request, response
 - Code identifiers and field names stay in English
 - Gherkin keywords in Portuguese: `Cenario`, `DADO`, `QUANDO`, `ENTÃO`, `E`, `MAS`
-- Story IDs: `STORY-NNN` (English format)
+- Story IDs: `story-XXXX-YYYY` (composite format: epic number + story sequence)
+- Epic IDs: `epic-XXXX` (kebab-case)
 
 ## Sizing Heuristics
 

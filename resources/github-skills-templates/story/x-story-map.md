@@ -96,7 +96,7 @@ Explain the impact: any delay in a critical path story directly delays the final
 
 Create a full `graph TD` with all stories and their dependency edges.
 
-**Naming convention**: `SNNN["STORY-NNN<br/>Short Title"]`
+**Naming convention**: `SXXXX_YYYY["story-XXXX-YYYY<br/>Short Title"]`
 
 **Phase coloring** (use these exact classDef values for consistency):
 ```
@@ -156,7 +156,8 @@ checkpoint before expanding scope? What does it validate (patterns, pipeline, in
 
 ### Step 8: Save and Report
 
-Save as `IMPLEMENTATION-MAP.md` in the same directory as the Epic and Stories.
+Save as `implementation-map-XXXX.md` in the same directory as the Epic and Stories (inside `docs/stories/epic-XXXX/`).
+The XXXX is the epic number extracted from the Epic file.
 Report: total stories, phases, critical path length, maximum parallelism, main bottleneck.
 
 ## Language Rules
@@ -165,7 +166,8 @@ Report: total stories, phases, critical path length, maximum parallelism, main b
 - Mermaid node IDs and classDef names stay in English
 - Phase names in Portuguese (e.g., "Fase 0 — Fundação")
 - Technical terms: "critical path" -> "caminho critico", "bottleneck" -> "gargalo"
-- Story and phase IDs in English format
+- Story IDs: `story-XXXX-YYYY` (composite format)
+- Epic IDs: `epic-XXXX` (kebab-case)
 
 ## Common Mistakes
 

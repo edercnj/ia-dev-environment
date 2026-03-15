@@ -1,6 +1,6 @@
 # Mapa de Implementação — <Nome do Projeto/Épico>
 
-**Gerado a partir das dependências BlockedBy/Blocks de cada história do <EPIC-NNN>.**
+**Gerado a partir das dependências BlockedBy/Blocks de cada história do <epic-XXXX>.**
 
 ---
 
@@ -8,7 +8,7 @@
 
 | Story | Título | Blocked By | Blocks | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| <STORY-NNN> | <Título> | — | <STORY-NNN> | <Status> |
+| <story-XXXX-YYYY> | <Título> | — | <story-XXXX-YYYY> | <Status> |
 
 > **Nota:** <Observações sobre dependências implícitas ou funcionais que não estão declaradas explicitamente nas histórias mas existem na prática.>
 
@@ -23,7 +23,7 @@
 ║                   FASE 0 — <Nome da Fase> (paralelo)                   ║
 ║                                                                        ║
 ║   ┌─────────────┐                   ┌─────────────┐                    ║
-║   │  STORY-NNN  │  <Escopo curto>   │  STORY-NNN  │  <Escopo curto>    ║
+║   │  story-XXXX-YYYY  │  <Escopo curto>   │  story-XXXX-YYYY  │  <Escopo curto>    ║
 ║   └──────┬──────┘                   └──────┬──────┘                    ║
 ╚══════════╪═════════════════════════════════╪════════════════════════════╝
            │                                 │
@@ -32,7 +32,7 @@
 ║                   FASE 1 — <Nome da Fase>                              ║
 ║                                                                        ║
 ║   ┌──────────────────────────────────────────────────────────┐         ║
-║   │  STORY-NNN  <Escopo>                                     │         ║
+║   │  story-XXXX-YYYY  <Escopo>                                     │         ║
 ║   │  (← dependências)                                        │         ║
 ║   └──────────────────────────┬───────────────────────────────┘         ║
 ╚══════════════════════════════╪═════════════════════════════════════════╝
@@ -42,7 +42,7 @@
 ║                   FASE N — <Nome da Fase> (paralelo)                   ║
 ║                                                                        ║
 ║   ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                   ║
-║   │  STORY-NNN  │  │  STORY-NNN  │  │  STORY-NNN  │                   ║
+║   │  story-XXXX-YYYY  │  │  story-XXXX-YYYY  │  │  story-XXXX-YYYY  │                   ║
 ║   │  <Escopo>   │  │  <Escopo>   │  │  <Escopo>   │                   ║
 ║   └─────────────┘  └─────────────┘  └─────────────┘                   ║
 ╚══════════════════════════════════════════════════════════════════════════╝
@@ -55,10 +55,10 @@
 > O caminho crítico (a sequência mais longa de dependências) determina o tempo mínimo de implementação do projeto.
 
 ```
-STORY-NNN ─┐
-            ├──→ STORY-NNN → STORY-NNN ──┐
-STORY-NNN ─┘                              ├──→ STORY-NNN
-                 STORY-NNN → STORY-NNN ──┘
+story-XXXX-YYYY ─┐
+            ├──→ story-XXXX-YYYY → story-XXXX-YYYY ──┐
+story-XXXX-YYYY ─┘                              ├──→ story-XXXX-YYYY
+                 story-XXXX-YYYY → story-XXXX-YYYY ──┘
    Fase 0           Fase 1       Fase 2            Fase 3
 ```
 
@@ -72,11 +72,11 @@ STORY-NNN ─┘                              ├──→ STORY-NNN
 
 ```mermaid
 graph TD
-    S001["STORY-NNN<br/><Título curto>"]
-    S002["STORY-NNN<br/><Título curto>"]
+    S0001["story-XXXX-YYYY<br/><Título curto>"]
+    S0002["story-XXXX-YYYY<br/><Título curto>"]
 
     %% Fase 0 → 1
-    S001 --> S002
+    S0001 --> S0002
 
     %% Estilos por fase
     classDef fase0 fill:#1a1a2e,stroke:#e94560,color:#fff
@@ -87,8 +87,8 @@ graph TD
     classDef faseTD fill:#2d3436,stroke:#fdcb6e,color:#fff
     classDef faseCR fill:#6c5ce7,stroke:#a29bfe,color:#fff
 
-    class S001 fase0
-    class S002 fase1
+    class S0001 fase0
+    class S0002 fase1
 ```
 
 ---
@@ -97,9 +97,9 @@ graph TD
 
 | Fase | Histórias | Camada | Paralelismo | Pré-requisito |
 | :--- | :--- | :--- | :--- | :--- |
-| 0 | <STORY-NNN, STORY-NNN> | <Camada arquitetural> | <N paralelas> | — |
-| 1 | <STORY-NNN> | <Camada> | <N> | Fase 0 concluída |
-| N | <STORY-NNN, NNN, NNN> | <Camada> | <N paralelas> | <Pré-requisito> |
+| 0 | <story-XXXX-YYYY, story-XXXX-YYYY> | <Camada arquitetural> | <N paralelas> | — |
+| 1 | <story-XXXX-YYYY> | <Camada> | <N> | Fase 0 concluída |
+| N | <story-XXXX-YYYY, NNN, NNN> | <Camada> | <N paralelas> | <Pré-requisito> |
 
 **Total: <N> histórias em <N> fases.**
 
@@ -113,7 +113,7 @@ graph TD
 
 | Story | Escopo Principal | Artefatos Chave |
 | :--- | :--- | :--- |
-| <STORY-NNN> | <Descrição do escopo> | <Classes/componentes/migrations gerados> |
+| <story-XXXX-YYYY> | <Descrição do escopo> | <Classes/componentes/migrations gerados> |
 
 **Entregas da Fase 0:**
 
@@ -124,7 +124,7 @@ graph TD
 
 | Story | Escopo Principal | Artefatos Chave |
 | :--- | :--- | :--- |
-| <STORY-NNN> | <Descrição> | <Artefatos> |
+| <story-XXXX-YYYY> | <Descrição> | <Artefatos> |
 
 **Entregas da Fase N:**
 

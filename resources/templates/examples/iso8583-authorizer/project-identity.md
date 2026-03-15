@@ -16,9 +16,9 @@
 - **ISO Dependency:** com.bifrost:b8583 (ISO 8583 parsing/packing library)
 
 ## Source of Truth (Hierarchy)
-1. EPIC-001 (vision and global rules)
+1. epic-XXXX (vision and global rules)
 2. ADRs (architectural decisions)
-3. STORY-NNN (detailed requirements)
+3. story-XXXX-YYYY (detailed requirements)
 4. Rules (.claude/rules/)
 5. Source code
 
