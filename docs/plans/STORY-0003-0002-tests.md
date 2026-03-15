@@ -6,7 +6,7 @@
 - New routing entry: `src/domain/core-kp-routing.ts` (1 static route added)
 - Affected golden files: 16 new files across 8 profiles (`.claude/` + `.agents/` copies)
 - Modified test file: `tests/node/domain/core-kp-routing.test.ts` (assertion updates)
-- New test file: `tests/node/content/refactoring-guidelines-sections.test.ts`
+- New test file: `tests/node/content/refactoring-guidelines-content.test.ts`
 - Total test methods: 32
 - Categories: Unit (6), Golden File Integration (8), Content Validation (10), Backward Compatibility (4), Dual Copy Consistency (4)
 - Coverage targets: >= 95% line, >= 90% branch
@@ -36,7 +36,7 @@
 
 ### New
 
-**Path:** `tests/node/content/refactoring-guidelines-sections.test.ts`
+**Path:** `tests/node/content/refactoring-guidelines-content.test.ts`
 
 **Rationale:** Content validation tests that verify the structural integrity of the 3 required sub-sections in the new refactoring guidelines file. Separated from byte-for-byte tests because they validate semantic content, not binary equality.
 
@@ -166,7 +166,7 @@ npx vitest run tests/node/integration/byte-for-byte.test.ts
 
 ### Group 3: Content Validation -- Refactoring Guidelines Section (3 tests)
 
-**Path:** `tests/node/content/refactoring-guidelines-sections.test.ts`
+**Path:** `tests/node/content/refactoring-guidelines-content.test.ts`
 
 Verify the top-level `## Refactoring Guidelines` section exists and contains the required 3 sub-sections.
 
@@ -412,12 +412,12 @@ No new branches. The new route is a static entry (no conditional logic). The onl
 |-------|-------------|------------|------|------|
 | G1: Unit -- Routing Table | Route count, new entry, position | 6 | Unit (modified) | `core-kp-routing.test.ts` |
 | G2: Golden File Integration | Byte-for-byte parity across 8 profiles | 8 | Integration (existing, golden files updated) | `byte-for-byte.test.ts` |
-| G3: Refactoring Guidelines Sections | H2 header, 3 sub-sections, English-only | 3 | Content Validation | `refactoring-guidelines-sections.test.ts` |
-| G4: Refactoring Triggers | 25-line limit, 250-line limit, naming | 3 | Content Validation | `refactoring-guidelines-sections.test.ts` |
-| G5: Prioritized Techniques | Extract Method first, 6+ techniques | 2 | Content Validation | `refactoring-guidelines-sections.test.ts` |
-| G6: Safety Rules | Never add behavior, 5+ rules | 2 | Content Validation | `refactoring-guidelines-sections.test.ts` |
+| G3: Refactoring Guidelines Sections | H2 header, 3 sub-sections, English-only | 3 | Content Validation | `refactoring-guidelines-content.test.ts` |
+| G4: Refactoring Triggers | 25-line limit, 250-line limit, naming | 3 | Content Validation | `refactoring-guidelines-content.test.ts` |
+| G5: Prioritized Techniques | Extract Method first, 6+ techniques | 2 | Content Validation | `refactoring-guidelines-content.test.ts` |
+| G6: Safety Rules | Never add behavior, 5+ rules | 2 | Content Validation | `refactoring-guidelines-content.test.ts` |
 | G7: Backward Compatibility | Existing files preserved, routes preserved | 4 | Content Validation + Unit | Mixed |
-| G8: Dual Copy Consistency | `.claude/` == `.agents/` for representative profiles | 4 (or 8) | Content Validation | `refactoring-guidelines-sections.test.ts` |
+| G8: Dual Copy Consistency | `.claude/` == `.agents/` for representative profiles | 4 (or 8) | Content Validation | `refactoring-guidelines-content.test.ts` |
 | **Total** | | **32** (or **36** if all 8 profiles in G8) | | |
 
 ---
@@ -433,7 +433,7 @@ npx vitest run tests/node/domain/core-kp-routing.test.ts
 ### Run Content Validation Tests Only
 
 ```bash
-npx vitest run tests/node/content/refactoring-guidelines-sections.test.ts
+npx vitest run tests/node/content/refactoring-guidelines-content.test.ts
 ```
 
 ### Run Golden File Tests Only
@@ -445,7 +445,7 @@ npx vitest run tests/node/integration/byte-for-byte.test.ts
 ### Run All Story-Related Tests
 
 ```bash
-npx vitest run tests/node/domain/core-kp-routing.test.ts tests/node/content/refactoring-guidelines-sections.test.ts tests/node/integration/byte-for-byte.test.ts
+npx vitest run tests/node/domain/core-kp-routing.test.ts tests/node/content/refactoring-guidelines-content.test.ts tests/node/integration/byte-for-byte.test.ts
 ```
 
 ### Full Test Suite (regression check)
@@ -478,7 +478,7 @@ Run the pipeline for each profile and copy the new file to golden directories:
 for profile in go-gin java-quarkus java-spring kotlin-ktor python-click-cli python-fastapi rust-axum typescript-nestjs; do
   npx ts-node src/cli.ts generate \
     --config resources/config-templates/setup-config.${profile}.yaml \
-    --output /tmp/golden-${profile}
+    --output-dir /tmp/golden-${profile}
   cp /tmp/golden-${profile}/.claude/skills/coding-standards/references/refactoring-guidelines.md \
      tests/golden/${profile}/.claude/skills/coding-standards/references/refactoring-guidelines.md
   cp /tmp/golden-${profile}/.agents/skills/coding-standards/references/refactoring-guidelines.md \
@@ -557,7 +557,7 @@ library_excludesCloudNative_returns12Routes
 monolith_includesCloudNative (count updated to 13)
 ```
 
-### New (in `refactoring-guidelines-sections.test.ts`)
+### New (in `refactoring-guidelines-content.test.ts`)
 
 ```
 refactoringGuidelines_sectionExists_containsH2Header

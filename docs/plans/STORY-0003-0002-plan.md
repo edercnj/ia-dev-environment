@@ -2,7 +2,7 @@
 
 ## Summary
 
-Add a new core resource file `14-refactoring-guidelines.md` containing refactoring triggers, prioritized techniques, and safety rules. Route it to the `coding-standards` knowledge pack via `core-kp-routing.ts`. Update all 8 golden-file profiles (3 output directories each: `.claude/`, `.agents/`, `.github/`). Adjust unit test assertions for the new route count.
+Add a new core resource file `14-refactoring-guidelines.md` containing refactoring triggers, prioritized techniques, and safety rules. Route it to the `coding-standards` knowledge pack via `core-kp-routing.ts`. Update all 8 golden-file profiles for `.claude/` and `.agents/` outputs. Adjust unit test assertions for the new route count.
 
 ---
 
@@ -41,7 +41,7 @@ Add a new core resource file `14-refactoring-guidelines.md` containing refactori
 **Change:** Add one entry to the `CORE_TO_KP_MAPPING` array.
 
 ```typescript
-// Add after the line for "02-solid-principles.md" (keeps coding-standards routes grouped)
+// Add after the line for "13-story-decomposition.md" to maintain numeric filename ordering
 { sourceFile: "14-refactoring-guidelines.md", kpName: "coding-standards", destFile: "refactoring-guidelines.md" },
 ```
 
@@ -51,7 +51,7 @@ Add a new core resource file `14-refactoring-guidelines.md` containing refactori
 
 **Changes:**
 - `contains_11_staticRoutes` assertion: update `toHaveLength(11)` to `toHaveLength(12)`
-- `lastRoute_isStoryDecomposition` assertion: update index from `[10]` to `[11]` (the new route is inserted at position 2, shifting subsequent indices)
+- `lastRoute_isStoryDecomposition` assertion: update index from `[10]` to `[11]` (a new 12th route is appended at the end, so the last index shifts from 10 to 11)
 - `microservice_includes12Routes` assertion: update `toHaveLength(12)` to `toHaveLength(13)`
 - `library_excludesCloudNative_returns11Routes` assertion: update `toHaveLength(11)` to `toHaveLength(12)`
 - `monolith_includesCloudNative` assertion: update `toHaveLength(12)` to `toHaveLength(13)`
