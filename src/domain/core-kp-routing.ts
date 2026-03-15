@@ -22,7 +22,7 @@ export interface ConditionalCoreKpRoute extends CoreKpRoute {
   readonly conditionExclude: string;
 }
 
-/** 11 static routes from core rules to knowledge packs. */
+/** 12 static routes from core rules to knowledge packs. */
 export const CORE_TO_KP_MAPPING: readonly CoreKpRoute[] = [
   { sourceFile: "01-clean-code.md", kpName: "coding-standards", destFile: "clean-code.md" },
   { sourceFile: "02-solid-principles.md", kpName: "coding-standards", destFile: "solid-principles.md" },
@@ -35,6 +35,7 @@ export const CORE_TO_KP_MAPPING: readonly CoreKpRoute[] = [
   { sourceFile: "10-infrastructure-principles.md", kpName: "infrastructure", destFile: "infrastructure-principles.md" },
   { sourceFile: "11-database-principles.md", kpName: "database-patterns", destFile: "database-principles.md" },
   { sourceFile: "13-story-decomposition.md", kpName: "story-planning", destFile: "story-decomposition.md" },
+  { sourceFile: "14-refactoring-guidelines.md", kpName: "coding-standards", destFile: "refactoring-guidelines.md" },
 ];
 
 /** 1 conditional route: cloud-native excluded for library style. */

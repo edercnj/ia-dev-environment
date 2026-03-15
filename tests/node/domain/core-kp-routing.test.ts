@@ -7,8 +7,8 @@ import {
 import { aDomainTestConfig } from "../../fixtures/project-config.fixture.js";
 
 describe("CORE_TO_KP_MAPPING", () => {
-  it("contains_11_staticRoutes", () => {
-    expect(CORE_TO_KP_MAPPING).toHaveLength(11);
+  it("contains_12_staticRoutes", () => {
+    expect(CORE_TO_KP_MAPPING).toHaveLength(12);
   });
 
   it("firstRoute_isCleanCode", () => {
@@ -18,11 +18,17 @@ describe("CORE_TO_KP_MAPPING", () => {
     expect(first.destFile).toBe("clean-code.md");
   });
 
-  it("lastRoute_isStoryDecomposition", () => {
-    const last = CORE_TO_KP_MAPPING[10]!;
-    expect(last.sourceFile).toBe("13-story-decomposition.md");
-    expect(last.kpName).toBe("story-planning");
-    expect(last.destFile).toBe("story-decomposition.md");
+  it("lastRoute_isRefactoringGuidelines", () => {
+    const last = CORE_TO_KP_MAPPING[11]!;
+    expect(last.sourceFile).toBe("14-refactoring-guidelines.md");
+    expect(last.kpName).toBe("coding-standards");
+    expect(last.destFile).toBe("refactoring-guidelines.md");
+  });
+
+  it("allDestFiles_areUnique_noDuplicates", () => {
+    const destFiles = CORE_TO_KP_MAPPING.map((r) => r.destFile);
+    const uniqueDestFiles = new Set(destFiles);
+    expect(uniqueDestFiles.size).toBe(destFiles.length);
   });
 });
 
@@ -41,16 +47,16 @@ describe("CONDITIONAL_CORE_KP", () => {
 });
 
 describe("getActiveRoutes", () => {
-  it("microservice_includes12Routes", () => {
+  it("microservice_includes13Routes", () => {
     const config = aDomainTestConfig({ style: "microservice" });
     const routes = getActiveRoutes(config);
-    expect(routes).toHaveLength(12);
+    expect(routes).toHaveLength(13);
   });
 
-  it("library_excludesCloudNative_returns11Routes", () => {
+  it("library_excludesCloudNative_returns12Routes", () => {
     const config = aDomainTestConfig({ style: "library" });
     const routes = getActiveRoutes(config);
-    expect(routes).toHaveLength(11);
+    expect(routes).toHaveLength(12);
     const sourceFiles = routes.map((r) => r.sourceFile);
     expect(sourceFiles).not.toContain("12-cloud-native-principles.md");
   });
@@ -58,7 +64,7 @@ describe("getActiveRoutes", () => {
   it("monolith_includesCloudNative", () => {
     const config = aDomainTestConfig({ style: "monolith" });
     const routes = getActiveRoutes(config);
-    expect(routes).toHaveLength(12);
+    expect(routes).toHaveLength(13);
     const sourceFiles = routes.map((r) => r.sourceFile);
     expect(sourceFiles).toContain("12-cloud-native-principles.md");
   });
