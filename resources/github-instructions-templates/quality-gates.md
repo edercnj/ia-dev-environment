@@ -35,6 +35,11 @@
 - [ ] DB migration applied and tested (if applicable)
 - [ ] Security review for sensitive changes
 - [ ] Infrastructure manifests updated (if applicable)
+- [ ] Commits show test-first pattern (test precedes implementation in git log)
+- [ ] Explicit refactoring after green
+- [ ] Tests are incremental (simple to complex via TPP)
+- [ ] Tests precede or accompany implementation (no test-after in later commits)
+- [ ] Acceptance tests exist and validate end-to-end behavior
 
 ## Forbidden
 
@@ -43,3 +48,10 @@
 - Using production data in tests
 - Depending on test execution order
 - `sleep()` for async waiting (use polling with timeout)
+
+## TDD Compliance
+
+- **Double-Loop TDD**: Outer loop (acceptance test, failing) drives inner loop (unit tests, Red-Green-Refactor)
+- **Transformation Priority Premise (TPP)**: Order tests from simple to complex — `{} → nil → constant → constant+ → scalar → collection → …`
+- **Atomic TDD commits**: Each Red-Green-Refactor cycle produces one or more atomic commits with Conventional Commits format
+- Coverage thresholds (see above) are NOT a substitute for TDD — high coverage with test-after is insufficient

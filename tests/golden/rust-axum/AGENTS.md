@@ -80,6 +80,13 @@ adapter.inbound → application → domain ← adapter.outbound
 - Wildcard imports
 - `sleep()` for synchronization
 
+### TDD Practices
+
+- **Red-Green-Refactor** is mandatory for all production code
+- Refactoring criteria: extract method when > 25 lines, eliminate duplication, improve naming
+- Refactoring NEVER adds behavior
+- Full TDD reference: `skills/testing/SKILL.md`
+
 ### Language-Specific
 
 Follow rust 2024 idiomatic conventions for formatting, constructor injection, and mapper patterns.
@@ -114,6 +121,17 @@ Follow rust 2024 idiomatic conventions for formatting, constructor injection, an
 - [ ] Coverage ≥ 95% line, ≥ 90% branch
 - [ ] Zero compiler/linter warnings
 - [ ] Security review for sensitive changes
+- [ ] Commits show test-first pattern (test precedes implementation in git log)
+- [ ] Explicit refactoring after green
+- [ ] Tests are incremental (simple to complex via TPP)
+- [ ] Tests precede or accompany implementation (no test-after in later commits)
+- [ ] Acceptance tests exist and validate end-to-end behavior
+
+### TDD Compliance
+
+- **Double-Loop TDD**: Outer loop (acceptance test) drives inner loop (unit tests)
+- **TPP**: Order tests from simple to complex
+- **Atomic TDD commits**: Each cycle produces atomic commits
 
 ## Conventions
 
