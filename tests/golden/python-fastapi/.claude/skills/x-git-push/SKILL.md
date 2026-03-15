@@ -153,6 +153,43 @@ git tag -a v0.1.0 -m "Milestone description"
 git push origin v0.1.0
 ```
 
+## TDD Commit Format
+
+When following TDD, use these commit format variants:
+
+| Format | When to use |
+| ------ | ----------- |
+| `feat(scope): implement [behavior] [TDD]` | **Recommended.** Test + implementation in one commit (one Red-Green cycle) |
+| `test(scope): add test for [behavior] [TDD:RED]` | Test only (Red phase, when separating test from implementation) |
+| `feat(scope): implement [behavior] [TDD:GREEN]` | Implementation only (Green phase, paired with a prior RED commit) |
+| `refactor(scope): [improvement] [TDD:REFACTOR]` | Refactoring only (no new behavior, immediately after Green) |
+
+The combined format `[TDD]` is the **recommended default**. Use the separate `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]` tags only when you need finer granularity in the git history.
+
+TDD tags are **additive suffixes** -- they do not replace the Conventional Commits type. All existing types (`feat`, `test`, `fix`, `refactor`, `docs`, `build`, `chore`, `infra`) remain valid.
+
+## Atomic TDD Commit Rules
+
+1. **One commit per Red-Green-Refactor cycle** -- each commit represents a complete TDD cycle
+2. **Test and implementation in the SAME commit** -- avoid orphaned test-only commits
+3. **Refactoring may be a separate commit** -- but must immediately follow the Green commit
+4. **Each commit adds ONE testable behavior** -- keep changes focused and reviewable
+5. **Maximum ~50 lines changed per commit** -- larger commits should be split into smaller TDD cycles
+
+## Git History Storytelling
+
+The sequence of commits should tell the story of TDD progression from simple to complex:
+
+1. **First commit:** acceptance test + test infrastructure setup
+2. **Following commits:** incremental unit tests following Transformation Priority Premise (TPP) order
+   - Degenerate / nil cases first
+   - Constants, then variables
+   - Simple conditionals, then iterations
+   - Complex / composition cases last
+3. **Final commits:** refactoring and polish (no new behavior)
+
+The git log should read as a **progression from the simplest case to the most complex**, making the development process transparent and reviewable.
+
 ## Integration Notes
 
 - Used by `x-dev-lifecycle` during Phase 0 (branch) and Phase 5 (push + PR)
