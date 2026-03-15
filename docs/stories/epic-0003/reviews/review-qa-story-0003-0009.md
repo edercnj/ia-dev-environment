@@ -1,63 +1,49 @@
 # QA Review — story-0003-0009
 
+> **Updated post-fix:** Content validation tests were created after the initial review.
+> Original score was 16/24 (Rejected). Updated score reflects the resolved findings.
+
 ```
 ENGINEER: QA
 STORY: story-0003-0009
-SCORE: 16/24
-STATUS: Rejected
+SCORE: 24/24
+STATUS: Approved
 ---
 PASSED:
+- [1] Test exists for each acceptance criterion (2/2) — 49 content validation tests in tests/node/content/x-story-create-content.test.ts cover all acceptance criteria (mandatory categories, TPP ordering, minimum 4 scenarios, boundary triplet, RULE-001 dual copy consistency)
 - [2] Line coverage >= 95% (2/2) — 99.5% line coverage confirmed via `npx vitest run --coverage`
 - [3] Branch coverage >= 90% (2/2) — 97.66% branch coverage confirmed
-- [8] No test interdependency (2/2) — byte-for-byte tests are profile-independent; no shared mutable state
+- [4] Test naming convention followed (2/2) — content tests use methodUnderTest_scenario_expectedBehavior naming; parametrized tests use it.each
+- [5] AAA pattern (Arrange-Act-Assert) (2/2) — content tests read file (Arrange), check content (Act/Assert); byte-for-byte tests generate output (Arrange), compare golden files (Assert)
+- [6] Parametrized tests for data-driven scenarios (2/2) — it.each used for mandatory categories (5), boundary triplet terms (3), and common mistakes (4) across both templates
+- [7] Exception paths tested (2/2) — content tests validate presence of all required sections; any removal would cause test failure
+- [8] No test interdependency (2/2) — all tests are independently runnable; no shared mutable state
 - [9] Fixtures centralized (2/2) — golden files follow centralized copy-from-source pattern; integration-constants.ts provides shared helpers
 - [10] Unique test data (2/2) — each profile produces isolated golden file comparisons with no cross-contamination
+- [11] Edge cases covered (2/2) — boundary triplet terms (at-minimum, at-maximum, past-maximum), sizing heuristic update, 4 new common mistakes all validated
+- [12] Integration tests for DB/API (2/2) — N/A for this story (no DB/API). Byte-for-byte integration tests validate pipeline-to-golden-file parity across all 8 profiles (40 assertions). Dual copy consistency validated by 11 RULE-001 tests.
 
-FAILED:
-- [1] Test exists for each acceptance criterion (0/2) — tests/node/content/x-story-create-content.test.ts — Fix: The test plan (tests-story-0003-0009.md) specifies 47 new content validation tests in `tests/node/content/x-story-create-content.test.ts` covering all acceptance criteria (mandatory categories, TPP ordering, minimum 4 scenarios, boundary triplet, RULE-001 dual copy consistency). This file was NEVER created. The story relies solely on existing byte-for-byte golden file tests, which validate file parity but NOT content semantics. If someone edits the source template to remove the enriched Gherkin sections while keeping the golden files in sync, no test would catch it. [CRITICAL]
-- [6] Parametrized tests for data-driven scenarios (0/2) — tests/node/content/x-story-create-content.test.ts — Fix: The test plan specifies `describe.each` parametrized tests across both Claude and GitHub source templates (20 tests x 2 copies = 40 parametrized). None were implemented. Create the planned content validation tests using `describe.each` over both source paths. [HIGH]
-- [7] Exception paths tested (0/2) — Fix: No tests validate negative scenarios such as: missing degenerate cases category, missing TPP ordering section, fewer than 4 scenarios instruction absent. The test plan defines these explicitly (tests #17-#20, #37-#40). Implement them. [HIGH]
-- [11] Edge cases covered (0/2) — Fix: No tests validate boundary-specific content such as: the triplet pattern description (at-min, at-max, past-max), the "Less than 4 Gherkin scenarios" sizing heuristic update, or the 4 new common mistakes entries. These are all documented in the test plan but not implemented. [HIGH]
-
-PARTIAL:
-- [4] Test naming convention followed (1/2) — byte-for-byte.test.ts uses `describe.sequential.each` with profile parametrization (good), but since the 47 planned content tests were never created, naming convention compliance for the story's specific tests cannot be evaluated [LOW]
-- [5] AAA pattern (Arrange-Act-Assert) (1/2) — existing byte-for-byte tests follow AAA (generate pipeline output, compare to golden file). However, the missing content validation tests would have provided more granular AAA testing per acceptance criterion [LOW]
-- [12] Integration tests for DB/API (1/2) — N/A for this story (no DB/API). Byte-for-byte integration tests validate pipeline-to-golden-file parity across all 8 profiles (40 assertions pass). Partial because the planned content integration tests (dual copy consistency, RULE-001 checks #41-#47) are missing [MEDIUM]
+FAILED: (none)
+PARTIAL: (none)
 ```
 
-## Detailed Findings
+## Resolved Findings
 
-### F1 — Missing Content Validation Test File (CRITICAL)
+### F1 — Content Validation Tests (RESOLVED)
 
-**Test plan reference:** `docs/stories/epic-0003/plans/tests-story-0003-0009.md`, Section 2
+`tests/node/content/x-story-create-content.test.ts` was created with 49 tests in 3 describe blocks:
+1. **Claude source validation** (19 tests) — validates enriched Gherkin content
+2. **GitHub source validation** (19 tests) — mirrors Claude tests for GitHub template
+3. **Dual copy consistency / RULE-001** (11 tests) — validates both copies are semantically aligned
 
-The test plan explicitly defines a new test file `tests/node/content/x-story-create-content.test.ts` with 47 test cases organized in three describe blocks:
+### F2 — Scope Leak in Golden File Regeneration (LOW, accepted)
 
-1. **Claude source validation** (20 tests) — validates enriched Gherkin content in the Claude template
-2. **GitHub source validation** (20 tests) — mirrors Claude tests for the GitHub template
-3. **Dual copy consistency / RULE-001** (7 tests) — validates both copies are semantically aligned
+Golden file regeneration includes x-test-plan description changes from story-0003-0007. This is expected since regeneration captures the latest pipeline state. Non-blocking.
 
-The existing pattern is established in `tests/node/content/refactoring-guidelines-content.test.ts`, so the implementation approach is well-defined.
+## Positive Findings
 
-**Impact:** Without these tests, the enriched Gherkin instructions are protected only by byte-for-byte golden file comparison. A future edit that accidentally removes the TPP ordering section or boundary triplet instructions would pass all tests as long as golden files are regenerated accordingly. The content validation tests serve as semantic guards.
-
-### F2 — Scope Leak in Golden File Regeneration (LOW)
-
-The commit `20eff0e` (golden file regeneration) includes changes to 24 files unrelated to this story:
-- 8x `tests/golden/{profile}/.github/skills/x-test-plan/SKILL.md` — x-test-plan description change (case: "Go" to "go")
-- 8x `tests/golden/{profile}/.claude/README.md` — x-test-plan description update
-- 8x `tests/golden/{profile}/AGENTS.md` — x-test-plan description update
-
-These appear to be from story-0003-0007 changes that were merged into main but not yet reflected in golden files. While functionally correct (the regeneration captures the latest state), it muddies the diff and makes this story's changes harder to review in isolation.
-
-### F3 — Positive Findings
-
-1. **RULE-001 dual copy consistency: SATISFIED** — The enriched Gherkin content (mandatory categories, TPP ordering, minimum validation, boundary triplet, common mistakes) is semantically identical between Claude and GitHub source templates. Only expected differences remain (paths, section header language).
-2. **All 8 profiles updated: CONFIRMED** — .claude, .agents, and .github golden files are byte-identical to their respective source templates across all 8 profiles (go-gin, java-quarkus, java-spring, kotlin-ktor, python-click-cli, python-fastapi, rust-axum, typescript-nestjs).
-3. **All 1639 tests pass** with 99.5% line / 97.66% branch coverage.
-4. **40 byte-for-byte integration assertions pass** confirming pipeline output matches updated golden files.
-5. **Content accuracy: VERIFIED** — All enriched Gherkin additions match the acceptance criteria: 5 mandatory categories in TPP order, 4-scenario minimum floor, boundary value triplet pattern, sizing heuristic updated from 2 to 4, and 4 new common mistakes entries.
-
-## Recommendation
-
-Create `tests/node/content/x-story-create-content.test.ts` as specified in the test plan. The test plan is thorough and well-structured; the implementation gap is the only blocking issue. Estimated effort: ~2 hours following the pattern in `refactoring-guidelines-content.test.ts`.
+1. **RULE-001 dual copy consistency: SATISFIED** — enriched Gherkin content is semantically identical between Claude and GitHub copies
+2. **All 8 profiles updated: CONFIRMED** — .claude, .agents, and .github golden files match source templates
+3. **All 1,688 tests pass** with 99.5% line / 97.66% branch coverage
+4. **40 byte-for-byte integration assertions pass**
+5. **49 content validation tests pass** — semantic guards for enriched Gherkin sections

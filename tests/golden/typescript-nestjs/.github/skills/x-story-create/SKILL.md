@@ -36,7 +36,7 @@ Read the following files before starting:
 - `.github/skills/x-story-epic-full/SKILL.md`
 
 **Gherkin completeness requirements:**
-- `resources/core/13-story-decomposition.md` — Rule 13, section SD-02 (mandatory scenario categories and TPP ordering)
+- `.github/skills/story-planning/SKILL.md` — Rule 13, section SD-02 (mandatory scenario categories and TPP ordering)
 
 **Required inputs from the user:**
 - The system specification file (original spec)

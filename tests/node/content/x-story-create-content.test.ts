@@ -41,7 +41,7 @@ const NEW_COMMON_MISTAKES = [
 describe("x-story-create content validation", () => {
   describe("Claude source template", () => {
     it("containsRule13Reference_prerequisiteSection_referencesStoryDecomposition", () => {
-      expect(claudeSource).toContain("13-story-decomposition.md");
+      expect(claudeSource).toContain("story-planning/references/story-decomposition.md");
     });
 
     it("containsMandatoryCategoriesSection_gherkinSection_hasMandatoryScenarioCategories", () => {
@@ -112,7 +112,7 @@ describe("x-story-create content validation", () => {
 
   describe("GitHub source template", () => {
     it("containsRule13Reference_prerequisiteSection_referencesStoryDecomposition", () => {
-      expect(githubSource).toContain("13-story-decomposition.md");
+      expect(githubSource).toContain("story-planning/SKILL.md");
     });
 
     it("containsMandatoryCategoriesSection_gherkinSection_hasMandatoryScenarioCategories", () => {

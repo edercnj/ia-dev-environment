@@ -79,7 +79,7 @@ Key properties:
 
 ```markdown
 **Gherkin completeness (mandatory categories and ordering):**
-- `.claude/rules/13-story-decomposition.md` — Read SD-02 (Gherkin Completeness Requirements) and SD-05a (Scenario Ordering)
+- `.claude/skills/story-planning/references/story-decomposition.md` — Read SD-02 (Gherkin Completeness Requirements) and SD-05a (Scenario Ordering)
 ```
 
 #### 3.1.2 Section 7 — Replace Gherkin Requirements
@@ -338,7 +338,7 @@ All 8 profiles x 5 test assertions = 40 test cases should pass.
 | Golden file mismatch after edit | HIGH | LOW | Mechanical copy script (Section 9) eliminates drift. Run byte-for-byte tests immediately after copy. |
 | Inconsistency between Claude and GitHub source templates | HIGH | MEDIUM | After editing both, run a semantic diff to verify only path references and language differ. The enriched Gherkin content must be identical. |
 | Skill becomes too long / verbose | LOW | MEDIUM | The additions are ~40 lines total. Current skill is 196 lines; new skill will be ~240 lines, well within the acceptable range for a skill instruction file. |
-| Path references to Rule 13 incorrect | MEDIUM | LOW | The Claude copy references `.claude/rules/13-story-decomposition.md` which may not exist in all project layouts. However, this is consistent with the existing pattern (other skills reference `.claude/` paths). The file is actually routed to `skills/story-planning/references/story-decomposition.md` in the output — the skill should reference that path instead. **ACTION:** Verify the correct runtime path for Rule 13 in the generated output and use that path. |
+| Path references to Rule 13 incorrect | MEDIUM | LOW | The Claude copy references `.claude/skills/story-planning/references/story-decomposition.md` which may not exist in all project layouts. However, this is consistent with the existing pattern (other skills reference `.claude/` paths). The file is actually routed to `skills/story-planning/references/story-decomposition.md` in the output — the skill should reference that path instead. **ACTION:** Verify the correct runtime path for Rule 13 in the generated output and use that path. |
 | `_TEMPLATE-STORY.md` stale vs enriched skill | LOW | LOW | Decided not to modify template (Section 3.3). If users follow the template literally instead of the skill instructions, they get minimal Gherkin. This is acceptable because the skill explicitly overrides the template's generic examples. |
 | Backward compatibility — stories generated before this change | LOW | LOW | Previously generated stories remain valid. The change is additive: new stories will have enriched Gherkin, but old stories are not invalidated. |
 | Merge conflict with other story-0003-XXXX branches | LOW | MEDIUM | This story modifies different files than story-0003-0004 (Rule 13) and story-0003-0005 (templates). No overlap expected. |

@@ -36,7 +36,7 @@ Read the following files before starting:
 - `.claude/skills/x-story-epic-full/references/decomposition-guide.md`
 
 **Gherkin completeness requirements:**
-- `resources/core/13-story-decomposition.md` — Rule 13, section SD-02 (mandatory scenario categories and TPP ordering)
+- `.claude/skills/story-planning/references/story-decomposition.md` — Rule 13, section SD-02 (mandatory scenario categories and TPP ordering)
 
 **Required inputs from the user:**
 - The system specification file (original spec)
