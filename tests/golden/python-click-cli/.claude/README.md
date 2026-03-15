@@ -104,7 +104,7 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-git-push** | `/x-git-push` | Git operations |
 | **x-ops-troubleshoot** | `/x-ops-troubleshoot` | Diagnoses errors, stacktraces, build failures, and unexpected behavior. Systematic approach |
 | **x-review** | `/x-review` | Parallel code review with specialist engineers (Security, QA, Performance, Database, Observability, DevOps, API, Event). Launches parallel subagents, each reading their own knowledge pack, then consolidates into a scored report. Use for pre-PR quality validation. |
-| **x-review-pr** | `/x-review-pr` | Tech Lead holistic review with 40-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge. |
+| **x-review-pr** | `/x-review-pr` | Tech Lead holistic review with 45-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, TDD process, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge. |
 | **x-story-create** | `/x-story-create` | > |
 | **x-story-epic** | `/x-story-epic` | > |
 | **x-story-epic-full** | `/x-story-epic-full` | > |

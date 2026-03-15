@@ -112,7 +112,7 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-review-events** | `/x-review-events` | Skill |
 | **x-review-gateway** | `/x-review-gateway` | Review API gateway configuration for best practices |
 | **x-review-grpc** | `/x-review-grpc` | Skill |
-| **x-review-pr** | `/x-review-pr` | Tech Lead holistic review with 40-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge. |
+| **x-review-pr** | `/x-review-pr` | Tech Lead holistic review with 45-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, TDD process, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge. |
 | **x-story-create** | `/x-story-create` | > |
 | **x-story-epic** | `/x-story-epic` | > |
 | **x-story-epic-full** | `/x-story-epic-full` | > |
