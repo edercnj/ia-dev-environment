@@ -80,6 +80,13 @@ adapter.inbound → application → domain ← adapter.outbound
 - Wildcard imports
 - `sleep()` for synchronization
 
+### TDD Practices
+
+- **Red-Green-Refactor** is mandatory for all production code
+- Refactoring criteria: extract method when > 25 lines, eliminate duplication, improve naming
+- Refactoring NEVER adds behavior
+- Full TDD reference: `skills/testing/SKILL.md`
+
 ### Language-Specific
 
 Follow python 3.12 idiomatic conventions for formatting, constructor injection, and mapper patterns.
@@ -115,6 +122,17 @@ Follow python 3.12 idiomatic conventions for formatting, constructor injection, 
 - [ ] Coverage ≥ 95% line, ≥ 90% branch
 - [ ] Zero compiler/linter warnings
 - [ ] Security review for sensitive changes
+- [ ] Commits show test-first pattern (test precedes implementation in git log)
+- [ ] Explicit refactoring after green
+- [ ] Tests are incremental (simple to complex via TPP)
+- [ ] No test written AFTER implementation
+- [ ] Acceptance tests exist and validate end-to-end behavior
+
+### TDD Compliance
+
+- **Double-Loop TDD**: Outer loop (acceptance test) drives inner loop (unit tests)
+- **TPP**: Order tests from simple to complex
+- **Atomic TDD commits**: Each cycle produces atomic commits
 
 ## Domain
 

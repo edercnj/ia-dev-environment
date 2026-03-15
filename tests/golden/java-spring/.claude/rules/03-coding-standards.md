@@ -42,6 +42,18 @@
 - Wildcard imports
 - `sleep()` for synchronization (use condition-based polling)
 
+## TDD Practices
+
+- **Red-Green-Refactor** is mandatory for all production code
+  1. **Red**: Write a failing test that defines the expected behavior
+  2. **Green**: Write the minimum code to make the test pass
+  3. **Refactor**: Improve design without changing behavior
+- Refactoring criteria: extract method when > 25 lines, eliminate duplication, improve naming
+- Refactoring NEVER adds behavior — if behavior changes, write a new failing test first
+- Test-first commits: test must appear in git history before or in the same commit as its implementation
+
+> **Full TDD reference:** Read `skills/testing/SKILL.md` for Double-Loop TDD, Transformation Priority Premise, and advanced TDD patterns.
+
 ## Language-Specific Conventions
 
 > Read `skills/coding-standards/SKILL.md` for {{LANGUAGE}} {{LANGUAGE_VERSION}}-specific idioms, constructor injection patterns, mapper conventions, and formatting rules.
