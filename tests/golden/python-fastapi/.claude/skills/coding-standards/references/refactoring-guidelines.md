@@ -3,7 +3,7 @@
 - **Token Optimization**: Eliminate all greetings, apologies, and conversational fluff. Start responses directly with technical information.
 - **Priority**: Maintain 100% fidelity to the technical constraints defined in the original rules below.
 
-# Refactoring Guidelines
+# Rule 14 — Refactoring Guidelines
 
 ## Purpose
 Refactoring is the disciplined technique of restructuring existing code without changing its external behavior.
