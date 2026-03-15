@@ -87,7 +87,7 @@ The test plan is the **implementation roadmap** for Phase 2. It produces:
 - Acceptance tests (AT-N) as outer loop (Double-Loop TDD)
 - Unit tests (UT-N) in TPP order as inner loop (Levels 1-6: degenerate → edge cases)
 - Integration tests (IT-N) positioned after related UTs
-- `Depends on` and `Parallel` markers per scenario
+- `Depends On: TASK-N` and `Parallel` markers per scenario
 
 **Gate:** If Phase 1B fails or produces no output, Phase 2 MUST use G1-G7 fallback mode.
 
@@ -251,6 +251,6 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
 
 ## Integration Notes
 
-- Invokes: `x-test-plan`, `x-lib-task-decomposer`, `x-dev-implement`, `x-lib-group-verifier` (fallback only), `x-git-push`, `x-review`, `x-review-pr`
+- Invokes: `x-test-plan`, `x-lib-task-decomposer`, `x-lib-group-verifier` (fallback only), `x-git-push`, `x-review`, `x-review-pr`
 - TDD commit format follows `x-git-push` conventions (`[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]` suffixes)
-- All placeholders (`{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`, etc.) resolved from project configuration
+- All `{{PLACEHOLDER}}` tokens (e.g. `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
