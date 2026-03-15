@@ -105,6 +105,29 @@ Cenario: <Nome do cenário de edge case>
   ENTÃO <comportamento esperado>
 ```
 
+### 7.1 Scenario Ordering (TPP)
+
+> Scenarios MUST follow the Transformation Priority Premise (TPP) order, from simplest to most
+> complex: degenerate → unconditional → conditions → iterations → edge cases.
+> This ordering ensures incremental complexity in both tests and implementation.
+
+### 7.2 Mandatory Scenario Categories
+
+Every story MUST include scenarios covering all of the following categories:
+
+- [ ] Degenerate cases (null, empty, zero)
+- [ ] Happy path (basic success)
+- [ ] Error paths (each error type)
+- [ ] Boundary values (at-min, at-max, past-max)
+
+### 7.3 TDD Implementation Notes
+
+- **Double-Loop TDD**: The primeiro cenário Gherkin becomes the acceptance test (outer loop).
+  Subsequent scenarios guide unit tests (inner loop).
+- The first scenario defines the walking skeleton — the simplest end-to-end path.
+- Unit tests are driven by TPP: start with the simplest transformation and progress to more
+  complex ones.
+
 ## 8. Sub-tarefas
 
 - [ ] [Dev] <Implementação do componente principal>
