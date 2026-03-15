@@ -1,17 +1,17 @@
 ---
 name: x-lib-task-decomposer
 description: >
-  Decomposes an architect's implementation plan into parallelizable tasks
-  by layer. Uses the Layer Task Catalog to assign model tiers, context
-  budgets, and parallelism groups. Produces a task breakdown document.
+  Decomposes an implementation plan into tasks. Primary mode: derives tasks
+  from test scenarios (x-test-plan output) using TDD structure (RED/GREEN/REFACTOR).
+  Fallback mode: uses Layer Task Catalog (G1-G7) when no test plan exists.
   Reference: `.github/skills/lib/x-lib-task-decomposer/SKILL.md`
 ---
 
-# Skill: Task Decomposer (Layer-Based)
+# Skill: Task Decomposer (Test-Driven + Layer Fallback)
 
 ## Purpose
 
-Decomposes an implementation plan into granular, single-layer tasks using a **fixed Layer Task Catalog**. Each task is assigned a model tier (Junior/Mid/Senior), context budget, and parallelism group based on its architectural layer.
+Decomposes an implementation plan into granular tasks. When a test plan exists (from `x-test-plan`), derives tasks from test scenarios using TDD structure (RED/GREEN/REFACTOR). Falls back to the Layer Task Catalog (G1-G7) when no test plan is available. Each task is assigned a model tier (Junior/Mid/Senior), context budget, and parallelism group.
 
 ## When to Use
 
@@ -22,6 +22,7 @@ Decomposes an implementation plan into granular, single-layer tasks using a **fi
 
 1. `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md` -- Architect's design
 2. Story requirements file
+3. `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md` -- Test plan (from x-test-plan) [OPTIONAL]
 
 ## Procedure
 
@@ -37,15 +38,118 @@ Read these files:
 - `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (Architect's plan)
 - Story requirements file
 
-### STEP 2 -- Identify Affected Layers
+### STEP 1.5 -- Detect Decomposition Mode
+
+Check if test plan exists at `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`:
+
+1. **File exists AND has TPP markers** (e.g., `TPP Level`, `UT-`, `AT-` annotations):
+   - Use **TEST-DRIVEN MODE** (proceed to STEP 2A)
+   - Derive tasks from test scenarios with RED/GREEN/REFACTOR structure
+
+2. **File exists but NO TPP markers**:
+   - Use **LAYER-BASED MODE** (proceed to STEP 2B)
+   - Emit warning: "Test plan found but lacks TPP markers. Falling back to layer-based decomposition (G1-G7)."
+
+3. **File absent**:
+   - Use **LAYER-BASED MODE** (proceed to STEP 2B)
+   - Emit warning: "No test plan found. Falling back to layer-based decomposition (G1-G7)."
+
+### STEP 2A -- Test-Driven Decomposition (Primary Mode)
+
+> Used when a test plan with TPP markers is available at
+> `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`.
+
+For each test scenario in the test plan (ordered by TPP level):
+
+1. **Map scenario to task**: One task per UT/AT scenario
+2. **Identify layer components**: Which layers does this scenario touch?
+3. **Determine dependencies**: Which tasks must complete before this one?
+4. **Assess parallelism**: Can this task run concurrently with others?
+5. **Assign tier**: Based on the highest-complexity layer touched
+
+#### TDD Task Structure
+
+Each generated task MUST contain:
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| Test Scenario | M | Reference to UT-N or AT-N from test plan |
+| TPP Level | M | 1-7 from TPP ordering |
+| RED | M | What the test asserts (expected behavior) |
+| GREEN | M | Minimum implementation to make test pass |
+| REFACTOR | O | Refactoring opportunities after green |
+| Layer Components | M | Which layers/classes are touched |
+| Parallel | M | yes/no -- can run concurrently with other tasks |
+| Depends On | M | List of prerequisite TASK-N references |
+| Tier | M | Junior/Mid/Senior based on complexity |
+| Budget | M | S/M/L context budget |
+
+#### Parallelism Detection
+
+A task is parallelizable when ALL of:
+1. Its test scenario operates on different layers than concurrent tasks
+2. No shared state with concurrent tasks
+3. No dependency on output of concurrent tasks
+
+#### Ordering Rules
+
+1. Unit test tasks ordered by TPP level (degenerate first, complex last)
+2. Within same TPP level, inner layers before outer layers
+3. Acceptance test tasks ALWAYS come after ALL related unit test tasks
+4. Tasks with dependencies come after their prerequisites
+
+#### Task Type Classification
+
+| Scenario Type | Task Marker | Dependency Rule |
+|--------------|-------------|-----------------|
+| UT (Unit Test) | `[UT]` | Depends on earlier TPP-level tasks that create shared components |
+| AT (Acceptance Test) | `[AT]` | Depends on ALL related UT tasks |
+| IT (Integration Test) | `[IT]` | Depends on UT tasks for involved components |
+
+#### TDD Task Output Format
+
+When using test-driven mode, generate tasks in this format:
+
+```
+### TASK-N: [UT-X/AT-X] scenario-name
+- **TPP Level:** N
+- **Type:** UT | AT | IT
+- **Tier:** Junior | Mid | Senior
+- **Budget:** S | M | L
+- **Parallel:** yes | no
+- **Depends On:** TASK-N, TASK-M (or "none")
+
+**RED:** [What the test asserts -- expected behavior]
+
+**GREEN:** [Minimum implementation steps]
+- Layer: component to create/modify
+- Layer: component to create/modify
+
+**REFACTOR:** [Optional refactoring opportunities]
+
+**Layer Components:**
+- domain.model: EntityName
+- domain.port: PortName
+- adapter.outbound: RepositoryName
+```
+
+After generating all TDD tasks, proceed to STEP 5 (Generate Output).
+
+### STEP 2B -- Identify Affected Layers (Layer-Based Fallback)
+
+> Used when no test plan with TPP markers is available.
 
 For each section in the Architect's plan, check which architectural layers are involved. Mark each layer as active or inactive.
 
-### STEP 3 -- Apply the Layer Task Catalog
+### STEP 3B -- Apply the Layer Task Catalog (Layer-Based Fallback)
+
+> Used when no test plan with TPP markers is available.
 
 For each active layer, create ONE task using the fixed catalog below.
 
-### STEP 4 -- Variable Tier Decision
+### STEP 4B -- Variable Tier Decision (Layer-Based Fallback)
+
+> Used when no test plan with TPP markers is available.
 
 For complex domain logic tasks, read the Architect's plan carefully:
 - **Simple mapping/lookup** (1 decision, no state) -> Mid tier
@@ -55,7 +159,11 @@ For complex domain logic tasks, read the Architect's plan carefully:
 
 Save to: `docs/stories/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` (extract epic ID XXXX and story sequence YYYY from the story ID). Ensure directory exists: `mkdir -p docs/stories/epic-XXXX/plans`.
 
-## Layer Task Catalog
+## Fallback: Layer Task Catalog (G1-G7)
+
+> **When to use:** Only when no test plan with TPP markers exists at
+> `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`.
+> Prefer test-driven decomposition when test plan is available.
 
 | Task Type | Architecture Layer | Tier | Budget | Group |
 | --- | --- | --- | --- | --- |
@@ -81,7 +189,11 @@ Save to: `docs/stories/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` (extract epic I
 | API Tests | test | Mid | M | G7 |
 | E2E Tests | test | Mid | M | G7 |
 
-## Layer Dependency Graph
+## Fallback: Layer Dependency Graph (G1-G7)
+
+> **When to use:** Only when no test plan with TPP markers exists at
+> `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`.
+> Prefer test-driven decomposition when test plan is available.
 
 ```
 G1: FOUNDATION (Migration + Domain Models) -- PARALLEL
@@ -96,5 +208,9 @@ G7: TESTS -- PARALLEL (max 4 concurrent), depends on ALL previous
 ## Integration Notes
 
 - Invoked by `x-dev-lifecycle` during Phase 1C
-- Output consumed by Phase 2 (group-based implementation)
+- Consumes test plan from `x-test-plan` (Phase 1B output) when available
+- Output consumed by Phase 2 (group-based or TDD-based implementation)
+- Works with any layered architecture (hexagonal, clean, onion) — layer names derived from project rules
+- When test plan present: generates TDD tasks with RED/GREEN/REFACTOR structure
+- When test plan absent: generates layer-based tasks using G1-G7 catalog (backward compatible)
 - Reference: `.github/skills/lib/x-lib-task-decomposer/SKILL.md`
