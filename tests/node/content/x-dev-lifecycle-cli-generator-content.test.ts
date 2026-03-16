@@ -2,6 +2,10 @@ import { describe, it, expect } from "vitest";
 import * as fs from "node:fs";
 import * as path from "node:path";
 
+// ---------------------------------------------------------------------------
+// Shared constants
+// ---------------------------------------------------------------------------
+
 const CLAUDE_SOURCE = path.resolve(
   __dirname,
   "../../..",
@@ -12,434 +16,220 @@ const GITHUB_SOURCE = path.resolve(
   "../../..",
   "resources/github-skills-templates/dev/x-dev-lifecycle.md",
 );
+const DEPLOYED_COPY = path.resolve(
+  __dirname,
+  "../../..",
+  ".claude/skills/x-dev-lifecycle/SKILL.md",
+);
 
 const claudeContent = fs.readFileSync(CLAUDE_SOURCE, "utf-8");
 const githubContent = fs.readFileSync(GITHUB_SOURCE, "utf-8");
+const deployedContent = fs.readFileSync(DEPLOYED_COPY, "utf-8");
+
+const OUTPUT_FORMAT_SECTIONS = [
+  "CLI Reference",
+  "Quick Start",
+  "Global Flags",
+  "Command:",
+  "Subcommand:",
+  "Exit Codes",
+] as const;
+
+const FRAMEWORK_PATTERNS: [string, string][] = [
+  ["Commander.js", ".command()"],
+  ["Click", "@click.command()"],
+  ["Cobra", "cobra.Command"],
+  ["Clap", "derive(Parser)"],
+];
+
+const PLACEHOLDER_TOKENS = [
+  "PROJECT_NAME",
+  "LANGUAGE",
+  "COMPILE_COMMAND",
+  "TEST_COMMAND",
+  "COVERAGE_COMMAND",
+] as const;
+
+const DISPATCH_INTERFACES: [string, string][] = [
+  ["rest", "OpenAPI"],
+  ["grpc", "gRPC"],
+  ["cli", "CLI"],
+  ["websocket", "Event"],
+  ["kafka", "Event"],
+];
+
+const RENAMED_PHASES: [number, string][] = [
+  [4, "Review"],
+  [5, "Fixes"],
+  [6, "Commit & PR"],
+  [7, "Tech Lead Review"],
+  [8, "Final Verification"],
+];
+
+const SOURCES: [string, string][] = [
+  ["Claude", claudeContent],
+  ["GitHub", githubContent],
+];
 
 // ---------------------------------------------------------------------------
-// Claude source — Documentation Phase exists
+// Documentation Phase exists (both sources)
 // ---------------------------------------------------------------------------
 
-describe("Claude source — Documentation Phase exists", () => {
-  it("claudeSource_documentationPhase_hasPhase3Heading", () => {
-    expect(claudeContent).toMatch(
-      /^## Phase 3 — Documentation/m,
-    );
-  });
+describe.each(SOURCES)(
+  "%s source — Documentation Phase exists",
+  (_label, content) => {
+    it("documentationPhase_hasPhase3Heading", () => {
+      expect(content).toMatch(/^## Phase 3 — Documentation/m);
+    });
 
-  it("claudeSource_phaseCount_shows9Phases0To8", () => {
-    expect(claudeContent).toContain("9 phases (0-8)");
-  });
+    it("phaseCount_shows9Phases0To8", () => {
+      expect(content).toContain("9 phases (0-8)");
+    });
 
-  it("claudeSource_criticalRule_neverStopBeforePhase8", () => {
-    expect(claudeContent).toContain(
-      "NEVER stop before Phase 8",
-    );
-  });
+    it("criticalRule_neverStopBeforePhase8", () => {
+      expect(content).toContain("NEVER stop before Phase 8");
+    });
 
-  it("claudeSource_phaseOrder_phase3BetweenPhase2AndPhase4", () => {
-    const phase2Idx = claudeContent.indexOf(
-      "## Phase 2",
-    );
-    const phase3Idx = claudeContent.indexOf(
-      "## Phase 3 — Documentation",
-    );
-    const phase4Idx = claudeContent.indexOf(
-      "## Phase 4",
-    );
-    expect(phase2Idx).toBeGreaterThan(-1);
-    expect(phase3Idx).toBeGreaterThan(-1);
-    expect(phase4Idx).toBeGreaterThan(-1);
-    expect(phase3Idx).toBeGreaterThan(phase2Idx);
-    expect(phase3Idx).toBeLessThan(phase4Idx);
-  });
+    it("phaseOrder_phase3BetweenPhase2AndPhase4", () => {
+      const phase2Idx = content.indexOf("## Phase 2");
+      const phase3Idx = content.indexOf("## Phase 3 — Documentation");
+      const phase4Idx = content.indexOf("## Phase 4");
+      expect(phase2Idx).toBeGreaterThan(-1);
+      expect(phase3Idx).toBeGreaterThan(phase2Idx);
+      expect(phase4Idx).toBeGreaterThan(phase3Idx);
+    });
 
-  it("claudeSource_completeFlow_showsPhase3Documentation", () => {
-    expect(claudeContent).toMatch(
-      /Phase 3: Documentation/,
-    );
-  });
-});
+    it("completeFlow_showsPhase3Documentation", () => {
+      expect(content).toMatch(/Phase 3: Documentation/);
+    });
+  },
+);
 
 // ---------------------------------------------------------------------------
-// Claude source — CLI generator section
+// CLI generator section (both sources)
 // ---------------------------------------------------------------------------
 
-describe("Claude source — CLI generator section", () => {
-  it("claudeSource_cliGenerator_hasHeading", () => {
-    expect(claudeContent).toContain(
-      "CLI Documentation Generator",
+describe.each(SOURCES)(
+  "%s source — CLI generator section",
+  (_label, content) => {
+    it("cliGenerator_hasHeading", () => {
+      expect(content).toContain("CLI Documentation Generator");
+    });
+
+    it("cliGenerator_hasInterfaceCondition", () => {
+      expect(content).toMatch(/interface.*cli|interfaces.*cli/i);
+    });
+
+    it("cliGenerator_hasOutputPath", () => {
+      expect(content).toContain("docs/api/cli-reference.md");
+    });
+
+    it.each(
+      OUTPUT_FORMAT_SECTIONS.map((s) => [s]),
+    )("cliGenerator_outputFormat_contains_%s", (section) => {
+      expect(content).toContain(section);
+    });
+
+    it("cliGenerator_flagsTable_hasColumns", () => {
+      expect(content).toMatch(/Flag.*Type.*Default.*Description/);
+    });
+
+    it("cliGenerator_argsTable_hasColumns", () => {
+      expect(content).toMatch(/Argument.*Type.*Required.*Description/);
+    });
+
+    it("cliGenerator_usageLine_hasPattern", () => {
+      expect(content).toMatch(/\$.*\{tool-name\}.*\{command\}/);
+    });
+
+    it("cliGenerator_commandSection_requiresExample", () => {
+      expect(content).toMatch(
+        /example.*code block|at least 1 example/i,
+      );
+    });
+
+    it.each(FRAMEWORK_PATTERNS)(
+      "cliGenerator_frameworkPattern_%s_contains_%s",
+      (framework, pattern) => {
+        expect(content).toContain(framework);
+        expect(content).toContain(pattern);
+      },
     );
-  });
 
-  it("claudeSource_cliGenerator_hasInterfaceCondition", () => {
-    expect(claudeContent).toMatch(
-      /interface.*cli|interfaces.*cli/i,
-    );
-  });
+    it("cliGenerator_quickStart_requiresAtLeast2Examples", () => {
+      expect(content).toMatch(
+        /at least 2.*example|2.*usage example/i,
+      );
+    });
 
-  it("claudeSource_cliGenerator_hasOutputPath", () => {
-    expect(claudeContent).toContain(
-      "docs/api/cli-reference.md",
-    );
-  });
+    it("cliGenerator_exitCodes_hasCodeAndMeaning", () => {
+      expect(content).toMatch(/Code.*Meaning/);
+    });
 
-  it.each([
-    ["CLI Reference"],
-    ["Quick Start"],
-    ["Global Flags"],
-    ["Command:"],
-    ["Subcommand:"],
-    ["Exit Codes"],
-  ])(
-    "claudeSource_cliGenerator_outputFormat_contains_%s",
-    (section) => {
-      expect(claudeContent).toContain(section);
-    },
-  );
-
-  it("claudeSource_cliGenerator_flagsTable_hasColumns", () => {
-    expect(claudeContent).toMatch(
-      /Flag.*Type.*Default.*Description/,
-    );
-  });
-
-  it("claudeSource_cliGenerator_argsTable_hasColumns", () => {
-    expect(claudeContent).toMatch(
-      /Argument.*Type.*Required.*Description/,
-    );
-  });
-
-  it("claudeSource_cliGenerator_usageLine_hasPattern", () => {
-    expect(claudeContent).toMatch(
-      /\$.*\{tool-name\}.*\{command\}/,
-    );
-  });
-
-  it("claudeSource_cliGenerator_commandSection_requiresExample", () => {
-    expect(claudeContent).toMatch(
-      /example.*code block|at least 1 example/i,
-    );
-  });
-
-  it.each([
-    ["Commander.js", ".command()"],
-    ["Click", "@click.command()"],
-    ["Cobra", "cobra.Command"],
-    ["Clap", "derive(Parser)"],
-  ])(
-    "claudeSource_cliGenerator_frameworkPattern_%s_contains_%s",
-    (framework, pattern) => {
-      expect(claudeContent).toContain(framework);
-      expect(claudeContent).toContain(pattern);
-    },
-  );
-
-  it("claudeSource_cliGenerator_quickStart_requiresAtLeast2Examples", () => {
-    expect(claudeContent).toMatch(
-      /at least 2.*example|2.*usage example/i,
-    );
-  });
-
-  it("claudeSource_cliGenerator_exitCodes_hasCodeAndMeaning", () => {
-    expect(claudeContent).toMatch(
-      /Code.*Meaning/,
-    );
-  });
-
-  it("claudeSource_cliGenerator_skipBehavior_skipsSilently", () => {
-    expect(claudeContent).toMatch(
-      /skip silently/i,
-    );
-  });
-});
+    it("cliGenerator_skipBehavior_skipsSilently", () => {
+      expect(content).toMatch(/skip silently/i);
+    });
+  },
+);
 
 // ---------------------------------------------------------------------------
-// Claude source — Phase renumbering
+// Phase renumbering (both sources)
 // ---------------------------------------------------------------------------
 
-describe("Claude source — Phase renumbering", () => {
-  it("claudeSource_phase4_isReview", () => {
-    expect(claudeContent).toMatch(
-      /^## Phase 4 — .*Review/m,
+describe.each(SOURCES)(
+  "%s source — Phase renumbering",
+  (_label, content) => {
+    it.each(RENAMED_PHASES)(
+      "phase%i_is_%s",
+      (phaseNum, phaseName) => {
+        const pattern = new RegExp(
+          `^## Phase ${phaseNum} — .*${phaseName}`,
+          "m",
+        );
+        expect(content).toMatch(pattern);
+      },
     );
-  });
-
-  it("claudeSource_phase5_isFixes", () => {
-    expect(claudeContent).toMatch(
-      /^## Phase 5 — Fixes/m,
-    );
-  });
-
-  it("claudeSource_phase6_isCommitAndPR", () => {
-    expect(claudeContent).toMatch(
-      /^## Phase 6 — Commit & PR/m,
-    );
-  });
-
-  it("claudeSource_phase7_isTechLeadReview", () => {
-    expect(claudeContent).toMatch(
-      /^## Phase 7 — Tech Lead Review/m,
-    );
-  });
-
-  it("claudeSource_phase8_isVerification", () => {
-    expect(claudeContent).toMatch(
-      /^## Phase 8 — Final Verification/m,
-    );
-  });
-});
+  },
+);
 
 // ---------------------------------------------------------------------------
-// Claude source — Structural preservation
+// Structural preservation (both sources)
 // ---------------------------------------------------------------------------
 
-describe("Claude source — Structural preservation", () => {
-  it("claudeSource_preservation_phase1ArchitectSubagent", () => {
-    expect(claudeContent).toContain(
-      "Senior Architect",
-    );
-  });
+describe.each(SOURCES)(
+  "%s source — Structural preservation",
+  (_label, content) => {
+    it("preservation_phase1ArchitectSubagent", () => {
+      expect(content).toContain("Senior Architect");
+    });
 
-  it("claudeSource_preservation_phase2TDDHeading", () => {
-    expect(claudeContent).toMatch(
-      /^## Phase 2 — TDD Implementation/m,
-    );
-  });
+    it("preservation_phase2TDDHeading", () => {
+      expect(content).toMatch(/^## Phase 2 — TDD Implementation/m);
+    });
 
-  it("claudeSource_preservation_g1g7Fallback", () => {
-    expect(claudeContent).toContain(
-      "G1-G7 Fallback",
-    );
-  });
+    it("preservation_g1g7Fallback", () => {
+      expect(content).toContain("G1-G7 Fallback");
+    });
 
-  it("claudeSource_preservation_integrationNotes", () => {
-    expect(claudeContent).toContain(
-      "## Integration Notes",
-    );
-  });
+    it("preservation_integrationNotes", () => {
+      expect(content).toContain("## Integration Notes");
+    });
 
-  it.each([
-    ["PROJECT_NAME"],
-    ["LANGUAGE"],
-    ["COMPILE_COMMAND"],
-    ["TEST_COMMAND"],
-    ["COVERAGE_COMMAND"],
-  ])(
-    "claudeSource_preservation_placeholderToken_%s",
-    (token) => {
-      expect(claudeContent).toContain(`{{${token}}}`);
-    },
-  );
-});
+    it.each(
+      PLACEHOLDER_TOKENS.map((t) => [t]),
+    )("preservation_placeholderToken_%s", (token) => {
+      expect(content).toContain(`{{${token}}}`);
+    });
+  },
+);
 
 // ---------------------------------------------------------------------------
-// GitHub source — Documentation Phase exists
+// GitHub source — additional structural preservation
 // ---------------------------------------------------------------------------
 
-describe("GitHub source — Documentation Phase exists", () => {
-  it("githubSource_documentationPhase_hasPhase3Heading", () => {
-    expect(githubContent).toMatch(
-      /^## Phase 3 — Documentation/m,
-    );
-  });
-
-  it("githubSource_phaseCount_shows9Phases0To8", () => {
-    expect(githubContent).toContain("9 phases (0-8)");
-  });
-
-  it("githubSource_criticalRule_neverStopBeforePhase8", () => {
-    expect(githubContent).toContain(
-      "NEVER stop before Phase 8",
-    );
-  });
-
-  it("githubSource_phaseOrder_phase3BetweenPhase2AndPhase4", () => {
-    const phase2Idx = githubContent.indexOf(
-      "## Phase 2",
-    );
-    const phase3Idx = githubContent.indexOf(
-      "## Phase 3 — Documentation",
-    );
-    const phase4Idx = githubContent.indexOf(
-      "## Phase 4",
-    );
-    expect(phase2Idx).toBeGreaterThan(-1);
-    expect(phase3Idx).toBeGreaterThan(-1);
-    expect(phase4Idx).toBeGreaterThan(-1);
-    expect(phase3Idx).toBeGreaterThan(phase2Idx);
-    expect(phase3Idx).toBeLessThan(phase4Idx);
-  });
-
-  it("githubSource_completeFlow_showsPhase3Documentation", () => {
-    expect(githubContent).toMatch(
-      /Phase 3: Documentation/,
-    );
-  });
-});
-
-// ---------------------------------------------------------------------------
-// GitHub source — CLI generator section
-// ---------------------------------------------------------------------------
-
-describe("GitHub source — CLI generator section", () => {
-  it("githubSource_cliGenerator_hasHeading", () => {
-    expect(githubContent).toContain(
-      "CLI Documentation Generator",
-    );
-  });
-
-  it("githubSource_cliGenerator_hasInterfaceCondition", () => {
-    expect(githubContent).toMatch(
-      /interface.*cli|interfaces.*cli/i,
-    );
-  });
-
-  it("githubSource_cliGenerator_hasOutputPath", () => {
-    expect(githubContent).toContain(
-      "docs/api/cli-reference.md",
-    );
-  });
-
-  it.each([
-    ["CLI Reference"],
-    ["Quick Start"],
-    ["Global Flags"],
-    ["Command:"],
-    ["Subcommand:"],
-    ["Exit Codes"],
-  ])(
-    "githubSource_cliGenerator_outputFormat_contains_%s",
-    (section) => {
-      expect(githubContent).toContain(section);
-    },
-  );
-
-  it("githubSource_cliGenerator_flagsTable_hasColumns", () => {
-    expect(githubContent).toMatch(
-      /Flag.*Type.*Default.*Description/,
-    );
-  });
-
-  it("githubSource_cliGenerator_argsTable_hasColumns", () => {
-    expect(githubContent).toMatch(
-      /Argument.*Type.*Required.*Description/,
-    );
-  });
-
-  it("githubSource_cliGenerator_usageLine_hasPattern", () => {
-    expect(githubContent).toMatch(
-      /\$.*\{tool-name\}.*\{command\}/,
-    );
-  });
-
-  it("githubSource_cliGenerator_commandSection_requiresExample", () => {
-    expect(githubContent).toMatch(
-      /example.*code block|at least 1 example/i,
-    );
-  });
-
-  it.each([
-    ["Commander.js", ".command()"],
-    ["Click", "@click.command()"],
-    ["Cobra", "cobra.Command"],
-    ["Clap", "derive(Parser)"],
-  ])(
-    "githubSource_cliGenerator_frameworkPattern_%s_contains_%s",
-    (framework, pattern) => {
-      expect(githubContent).toContain(framework);
-      expect(githubContent).toContain(pattern);
-    },
-  );
-
-  it("githubSource_cliGenerator_quickStart_requiresAtLeast2Examples", () => {
-    expect(githubContent).toMatch(
-      /at least 2.*example|2.*usage example/i,
-    );
-  });
-
-  it("githubSource_cliGenerator_exitCodes_hasCodeAndMeaning", () => {
-    expect(githubContent).toMatch(
-      /Code.*Meaning/,
-    );
-  });
-
-  it("githubSource_cliGenerator_skipBehavior_skipsSilently", () => {
-    expect(githubContent).toMatch(
-      /skip silently/i,
-    );
-  });
-});
-
-// ---------------------------------------------------------------------------
-// GitHub source — Phase renumbering
-// ---------------------------------------------------------------------------
-
-describe("GitHub source — Phase renumbering", () => {
-  it("githubSource_phase4_isReview", () => {
-    expect(githubContent).toMatch(
-      /^## Phase 4 — .*Review/m,
-    );
-  });
-
-  it("githubSource_phase5_isFixes", () => {
-    expect(githubContent).toMatch(
-      /^## Phase 5 — Fixes/m,
-    );
-  });
-
-  it("githubSource_phase6_isCommitAndPR", () => {
-    expect(githubContent).toMatch(
-      /^## Phase 6 — Commit & PR/m,
-    );
-  });
-
-  it("githubSource_phase7_isTechLeadReview", () => {
-    expect(githubContent).toMatch(
-      /^## Phase 7 — Tech Lead Review/m,
-    );
-  });
-
-  it("githubSource_phase8_isVerification", () => {
-    expect(githubContent).toMatch(
-      /^## Phase 8 — Final Verification/m,
-    );
-  });
-});
-
-// ---------------------------------------------------------------------------
-// GitHub source — Structural preservation
-// ---------------------------------------------------------------------------
-
-describe("GitHub source — Structural preservation", () => {
-  it("githubSource_preservation_phase1ArchitectSubagent", () => {
-    expect(githubContent).toContain(
-      "Senior Architect",
-    );
-  });
-
-  it("githubSource_preservation_phase2TDDHeading", () => {
-    expect(githubContent).toMatch(
-      /^## Phase 2 — TDD Implementation/m,
-    );
-  });
-
-  it("githubSource_preservation_g1g7Fallback", () => {
-    expect(githubContent).toContain(
-      "G1-G7 Fallback",
-    );
-  });
-
-  it("githubSource_preservation_integrationNotes", () => {
-    expect(githubContent).toContain(
-      "## Integration Notes",
-    );
-  });
-
+describe("GitHub source — additional preservation", () => {
   it("githubSource_preservation_detailedReferences", () => {
-    expect(githubContent).toContain(
-      "## Detailed References",
-    );
+    expect(githubContent).toContain("## Detailed References");
   });
 
   it("githubSource_preservation_lifecycleCompleteMessage_phase8of8", () => {
@@ -447,97 +237,38 @@ describe("GitHub source — Structural preservation", () => {
       "Phase 8/8 completed. Lifecycle complete.",
     );
   });
-
-  it.each([
-    ["PROJECT_NAME"],
-    ["LANGUAGE"],
-    ["COMPILE_COMMAND"],
-    ["TEST_COMMAND"],
-    ["COVERAGE_COMMAND"],
-  ])(
-    "githubSource_preservation_placeholderToken_%s",
-    (token) => {
-      expect(githubContent).toContain(`{{${token}}}`);
-    },
-  );
 });
 
 // ---------------------------------------------------------------------------
-// Claude source — Documentation Phase dispatch table
+// Documentation Phase dispatch table (both sources)
 // ---------------------------------------------------------------------------
 
-describe("Claude source — Documentation Phase dispatch table", () => {
-  it.each([
-    ["rest", "OpenAPI"],
-    ["grpc", "gRPC"],
-    ["cli", "CLI"],
-    ["websocket", "Event"],
-    ["kafka", "Event"],
-  ])(
-    "claudeSource_dispatchTable_contains_%s_interface_with_%s_generator",
-    (iface, generator) => {
-      expect(claudeContent).toContain(iface);
-      expect(claudeContent).toContain(generator);
-    },
-  );
-
-  it("claudeSource_dispatchTable_containsChangelogEntry", () => {
-    expect(claudeContent).toMatch(
-      /[Cc]hangelog/,
+describe.each(SOURCES)(
+  "%s source — Documentation Phase dispatch table",
+  (_label, content) => {
+    it.each(DISPATCH_INTERFACES)(
+      "dispatchTable_contains_%s_interface_with_%s_generator",
+      (iface, generator) => {
+        expect(content).toContain(iface);
+        expect(content).toContain(generator);
+      },
     );
-  });
 
-  it("claudeSource_dispatchTable_skipWhenNoInterfaces", () => {
-    expect(claudeContent).toMatch(
-      /[Nn]o documentable interfaces/,
-    );
-  });
-});
+    it("dispatchTable_containsChangelogEntry", () => {
+      expect(content).toMatch(/[Cc]hangelog/);
+    });
 
-// ---------------------------------------------------------------------------
-// GitHub source — Documentation Phase dispatch table
-// ---------------------------------------------------------------------------
-
-describe("GitHub source — Documentation Phase dispatch table", () => {
-  it.each([
-    ["rest", "OpenAPI"],
-    ["grpc", "gRPC"],
-    ["cli", "CLI"],
-    ["websocket", "Event"],
-    ["kafka", "Event"],
-  ])(
-    "githubSource_dispatchTable_contains_%s_interface_with_%s_generator",
-    (iface, generator) => {
-      expect(githubContent).toContain(iface);
-      expect(githubContent).toContain(generator);
-    },
-  );
-
-  it("githubSource_dispatchTable_containsChangelogEntry", () => {
-    expect(githubContent).toMatch(
-      /[Cc]hangelog/,
-    );
-  });
-
-  it("githubSource_dispatchTable_skipWhenNoInterfaces", () => {
-    expect(githubContent).toMatch(
-      /[Nn]o documentable interfaces/,
-    );
-  });
-});
+    it("dispatchTable_skipWhenNoInterfaces", () => {
+      expect(content).toMatch(/[Nn]o documentable interfaces/);
+    });
+  },
+);
 
 // ---------------------------------------------------------------------------
 // Deployed copy matches source template
 // ---------------------------------------------------------------------------
 
 describe("Deployed copy matches source template", () => {
-  const deployedPath = path.resolve(
-    __dirname,
-    "../../..",
-    ".claude/skills/x-dev-lifecycle/SKILL.md",
-  );
-  const deployedContent = fs.readFileSync(deployedPath, "utf-8");
-
   it("deployedCopy_matchesClaudeSourceTemplate_byteForByte", () => {
     expect(deployedContent).toBe(claudeContent);
   });
@@ -549,68 +280,38 @@ describe("Deployed copy matches source template", () => {
 
 describe("Dual copy consistency (RULE-001)", () => {
   it("bothContain_documentationPhaseHeading", () => {
-    expect(claudeContent).toMatch(
-      /^## Phase 3 — Documentation/m,
-    );
-    expect(githubContent).toMatch(
-      /^## Phase 3 — Documentation/m,
-    );
+    expect(claudeContent).toMatch(/^## Phase 3 — Documentation/m);
+    expect(githubContent).toMatch(/^## Phase 3 — Documentation/m);
   });
 
   it("bothContain_cliGeneratorHeading", () => {
-    expect(claudeContent).toContain(
-      "CLI Documentation Generator",
-    );
-    expect(githubContent).toContain(
-      "CLI Documentation Generator",
-    );
+    expect(claudeContent).toContain("CLI Documentation Generator");
+    expect(githubContent).toContain("CLI Documentation Generator");
   });
 
   it("bothContain_interfaceCliCondition", () => {
-    expect(claudeContent).toMatch(
-      /interface.*cli|interfaces.*cli/i,
-    );
-    expect(githubContent).toMatch(
-      /interface.*cli|interfaces.*cli/i,
-    );
+    expect(claudeContent).toMatch(/interface.*cli|interfaces.*cli/i);
+    expect(githubContent).toMatch(/interface.*cli|interfaces.*cli/i);
   });
 
   it("bothContain_outputPath", () => {
-    expect(claudeContent).toContain(
-      "docs/api/cli-reference.md",
-    );
-    expect(githubContent).toContain(
-      "docs/api/cli-reference.md",
-    );
+    expect(claudeContent).toContain("docs/api/cli-reference.md");
+    expect(githubContent).toContain("docs/api/cli-reference.md");
   });
 
-  it.each([
-    ["CLI Reference"],
-    ["Quick Start"],
-    ["Global Flags"],
-    ["Command:"],
-    ["Subcommand:"],
-    ["Exit Codes"],
-  ])(
-    "bothContain_outputFormatSection_%s",
-    (section) => {
-      expect(claudeContent).toContain(section);
-      expect(githubContent).toContain(section);
-    },
-  );
+  it.each(
+    OUTPUT_FORMAT_SECTIONS.map((s) => [s]),
+  )("bothContain_outputFormatSection_%s", (section) => {
+    expect(claudeContent).toContain(section);
+    expect(githubContent).toContain(section);
+  });
 
-  it.each([
-    ["Commander.js"],
-    ["Click"],
-    ["Cobra"],
-    ["Clap"],
-  ])(
-    "bothContain_frameworkPattern_%s",
-    (framework) => {
-      expect(claudeContent).toContain(framework);
-      expect(githubContent).toContain(framework);
-    },
-  );
+  it.each(
+    FRAMEWORK_PATTERNS.map(([f]) => [f]),
+  )("bothContain_frameworkPattern_%s", (framework) => {
+    expect(claudeContent).toContain(framework);
+    expect(githubContent).toContain(framework);
+  });
 
   it("bothContain_skipBehavior", () => {
     expect(claudeContent).toMatch(/skip silently/i);
