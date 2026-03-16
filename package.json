@@ -1,6 +1,6 @@
 {
   "name": "ia-dev-environment",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "CLI tool that generates .claude/ and .github/ boilerplate for AI-assisted development environments",
   "license": "MIT",
   "engines": {
