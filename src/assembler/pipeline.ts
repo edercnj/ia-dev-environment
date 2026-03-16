@@ -102,26 +102,19 @@ export function executeAssemblers(
   resourcesDir: string,
   engine: TemplateEngine,
 ): NormalizedResult {
-  const claudeDir = join(outputDir, ".claude");
-  const githubDir = join(outputDir, ".github");
-  const codexDir = join(outputDir, ".codex");
-  const agentsDir = join(outputDir, ".agents");
-  const docsDir = join(outputDir, "docs");
+  const targetDirs: Record<AssemblerTarget, string> = {
+    root: outputDir,
+    claude: join(outputDir, ".claude"),
+    github: join(outputDir, ".github"),
+    codex: join(outputDir, ".codex"),
+    "codex-agents": join(outputDir, ".agents"),
+    docs: join(outputDir, "docs"),
+  };
   const files: string[] = [];
   const warnings: string[] = [];
   for (const { name, target, assembler } of assemblers) {
     try {
-      const targetDir = target === "root"
-        ? outputDir
-        : target === "github"
-          ? githubDir
-          : target === "codex"
-            ? codexDir
-            : target === "codex-agents"
-              ? agentsDir
-              : target === "docs"
-                ? docsDir
-                : claudeDir;
+      const targetDir = targetDirs[target];
       const raw = assembler.assemble(
         config, targetDir, resourcesDir, engine,
       );
