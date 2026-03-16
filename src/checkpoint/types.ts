@@ -81,3 +81,13 @@ export type IntegrityGateInput = Omit<
   IntegrityGateEntry,
   "timestamp"
 >;
+
+export interface CreateCheckpointInput {
+  readonly epicId: string;
+  readonly branch: string;
+  readonly stories: ReadonlyArray<{
+    readonly id: string;
+    readonly phase: number;
+  }>;
+  readonly mode: ExecutionMode;
+}

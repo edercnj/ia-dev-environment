@@ -9,6 +9,7 @@ export type {
   StoryEntryUpdate,
   MetricsUpdate,
   IntegrityGateInput,
+  CreateCheckpointInput,
 } from "./types.js";
 export {
   createCheckpoint,

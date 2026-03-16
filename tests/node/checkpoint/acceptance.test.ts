@@ -25,7 +25,10 @@ import {
   CheckpointIOError,
   CheckpointValidationError,
 } from "../../../src/exceptions.js";
-import type { ExecutionMode } from "../../../src/checkpoint/types.js";
+import type {
+  CreateCheckpointInput,
+  ExecutionMode,
+} from "../../../src/checkpoint/types.js";
 
 // --- Template Tests (IT-01 through IT-04) ---
 
@@ -109,6 +112,18 @@ const DEFAULT_MODE: ExecutionMode = {
   skipReview: false,
 };
 
+function anInput(
+  overrides?: Partial<CreateCheckpointInput>,
+): CreateCheckpointInput {
+  return {
+    epicId: "0042",
+    branch: "feat/epic-0042",
+    stories: [],
+    mode: DEFAULT_MODE,
+    ...overrides,
+  };
+}
+
 describe("acceptance tests", () => {
   let tmpDir: string;
 
@@ -126,10 +141,7 @@ describe("acceptance tests", () => {
     await expect(
       createCheckpoint(
         "/tmp/nonexistent-epic-9999",
-        "9999",
-        "feat/epic-9999",
-        [],
-        DEFAULT_MODE,
+        anInput({ epicId: "9999", branch: "feat/epic-9999" }),
       ),
     ).rejects.toThrow(CheckpointIOError);
   });
@@ -195,10 +207,10 @@ describe("acceptance tests", () => {
     ];
     const state = await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042-full-implementation",
-      stories,
-      DEFAULT_MODE,
+      anInput({
+        branch: "feat/epic-0042-full-implementation",
+        stories,
+      }),
     );
     expect(existsSync(
       join(tmpDir, "execution-state.json"),
@@ -220,10 +232,7 @@ describe("acceptance tests", () => {
     ];
     await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042",
-      stories,
-      DEFAULT_MODE,
+      anInput({ stories }),
     );
     const state = await readCheckpoint(tmpDir);
     expect(state.epicId).toBe("0042");
@@ -244,10 +253,7 @@ describe("acceptance tests", () => {
     ];
     await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042",
-      stories,
-      DEFAULT_MODE,
+      anInput({ stories }),
     );
     const state = await updateStoryStatus(
       tmpDir,
@@ -273,10 +279,9 @@ describe("acceptance tests", () => {
   it("updateStoryStatus_setFailedWithRetryIncrement_updatesStatusAndRetries", async () => {
     await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042",
-      [{ id: "0042-0003", phase: 2 }],
-      DEFAULT_MODE,
+      anInput({
+        stories: [{ id: "0042-0003", phase: 2 }],
+      }),
     );
     await updateStoryStatus(tmpDir, "0042-0003", {
       status: "IN_PROGRESS",
@@ -295,10 +300,9 @@ describe("acceptance tests", () => {
   it("updateIntegrityGate_phaseZeroPass_recordsResultWithAutoTimestamp", async () => {
     await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042",
-      [{ id: "0042-0001", phase: 1 }],
-      DEFAULT_MODE,
+      anInput({
+        stories: [{ id: "0042-0001", phase: 1 }],
+      }),
     );
     const before = new Date().toISOString();
     const state = await updateIntegrityGate(tmpDir, 0, {
@@ -335,10 +339,9 @@ describe("integration round-trip", () => {
   it("checkpointRoundTrip_createThenRead_returnsEquivalentState", async () => {
     const created = await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042",
-      [{ id: "0042-0001", phase: 1 }],
-      DEFAULT_MODE,
+      anInput({
+        stories: [{ id: "0042-0001", phase: 1 }],
+      }),
     );
     const read = await readCheckpoint(tmpDir);
     expect(read.epicId).toBe(created.epicId);
@@ -352,10 +355,9 @@ describe("integration round-trip", () => {
   it("checkpointRoundTrip_createUpdateRead_reflectsUpdate", async () => {
     await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042",
-      [{ id: "0042-0001", phase: 1 }],
-      DEFAULT_MODE,
+      anInput({
+        stories: [{ id: "0042-0001", phase: 1 }],
+      }),
     );
     await updateStoryStatus(tmpDir, "0042-0001", {
       status: "SUCCESS",
@@ -373,13 +375,12 @@ describe("integration round-trip", () => {
   it("checkpointRoundTrip_multipleUpdates_allChangesPersistedCorrectly", async () => {
     await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042",
-      [
-        { id: "0042-0001", phase: 1 },
-        { id: "0042-0002", phase: 2 },
-      ],
-      DEFAULT_MODE,
+      anInput({
+        stories: [
+          { id: "0042-0001", phase: 1 },
+          { id: "0042-0002", phase: 2 },
+        ],
+      }),
     );
     await updateStoryStatus(tmpDir, "0042-0001", {
       status: "SUCCESS",
@@ -408,10 +409,9 @@ describe("integration round-trip", () => {
   it("atomicWrite_afterSuccessfulWrite_tmpFileDoesNotExist", async () => {
     await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042",
-      [{ id: "0042-0001", phase: 1 }],
-      DEFAULT_MODE,
+      anInput({
+        stories: [{ id: "0042-0001", phase: 1 }],
+      }),
     );
     await updateStoryStatus(tmpDir, "0042-0001", {
       status: "SUCCESS",
@@ -426,10 +426,9 @@ describe("integration round-trip", () => {
   it("atomicWrite_duringWrite_noCorruptedFileOnDisk", async () => {
     await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042",
-      [{ id: "0042-0001", phase: 1 }],
-      DEFAULT_MODE,
+      anInput({
+        stories: [{ id: "0042-0001", phase: 1 }],
+      }),
     );
     const state = await readCheckpoint(tmpDir);
     expect(state.epicId).toBe("0042");

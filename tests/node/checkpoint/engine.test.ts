@@ -20,6 +20,7 @@ import {
   CheckpointValidationError,
 } from "../../../src/exceptions.js";
 import type {
+  CreateCheckpointInput,
   ExecutionMode,
   ExecutionState,
 } from "../../../src/checkpoint/types.js";
@@ -30,6 +31,18 @@ const DEFAULT_MODE: ExecutionMode = {
   parallel: false,
   skipReview: false,
 };
+
+function anInput(
+  overrides?: Partial<CreateCheckpointInput>,
+): CreateCheckpointInput {
+  return {
+    epicId: "0042",
+    branch: "feat/epic-0042",
+    stories: [],
+    mode: DEFAULT_MODE,
+    ...overrides,
+  };
+}
 
 function threeStories(): ReadonlyArray<{
   readonly id: string;
@@ -112,10 +125,7 @@ describe("createCheckpoint", () => {
     await expect(
       createCheckpoint(
         "/tmp/nonexistent-dir-999",
-        "0042",
-        "feat/epic-0042",
-        [],
-        DEFAULT_MODE,
+        anInput(),
       ),
     ).rejects.toThrow(CheckpointIOError);
   });
@@ -124,23 +134,14 @@ describe("createCheckpoint", () => {
     const filePath = join(tmpDir, "not-a-dir.txt");
     writeFileSync(filePath, "hello", "utf-8");
     await expect(
-      createCheckpoint(
-        filePath,
-        "0042",
-        "feat/epic-0042",
-        [],
-        DEFAULT_MODE,
-      ),
+      createCheckpoint(filePath, anInput()),
     ).rejects.toThrow(CheckpointIOError);
   });
 
   it("createCheckpoint_emptyStoriesList_createsFileWithEmptyStoriesMap", async () => {
     const state = await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042",
-      [],
-      DEFAULT_MODE,
+      anInput(),
     );
     expect(Object.keys(state.stories)).toHaveLength(0);
   });
@@ -148,10 +149,9 @@ describe("createCheckpoint", () => {
   it("createCheckpoint_singleStory_createsFileWithOnePendingEntry", async () => {
     const state = await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042",
-      [{ id: "0042-0001", phase: 1 }],
-      DEFAULT_MODE,
+      anInput({
+        stories: [{ id: "0042-0001", phase: 1 }],
+      }),
     );
     expect(Object.keys(state.stories)).toHaveLength(1);
     expect(state.stories["0042-0001"]?.status).toBe(
@@ -162,10 +162,7 @@ describe("createCheckpoint", () => {
   it("createCheckpoint_fiveStories_allStatusPending", async () => {
     const state = await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042",
-      fiveStories(),
-      DEFAULT_MODE,
+      anInput({ stories: fiveStories() }),
     );
     for (const entry of Object.values(state.stories)) {
       expect(entry.status).toBe("PENDING");
@@ -175,10 +172,7 @@ describe("createCheckpoint", () => {
   it("createCheckpoint_fiveStories_allRetriesZero", async () => {
     const state = await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042",
-      fiveStories(),
-      DEFAULT_MODE,
+      anInput({ stories: fiveStories() }),
     );
     for (const entry of Object.values(state.stories)) {
       expect(entry.retries).toBe(0);
@@ -188,10 +182,7 @@ describe("createCheckpoint", () => {
   it("createCheckpoint_fiveStories_metricsStoriesCompletedIsZero", async () => {
     const state = await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042",
-      fiveStories(),
-      DEFAULT_MODE,
+      anInput({ stories: fiveStories() }),
     );
     expect(state.metrics.storiesCompleted).toBe(0);
   });
@@ -199,10 +190,7 @@ describe("createCheckpoint", () => {
   it("createCheckpoint_fiveStories_metricsStoriesTotalIsFive", async () => {
     const state = await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042",
-      fiveStories(),
-      DEFAULT_MODE,
+      anInput({ stories: fiveStories() }),
     );
     expect(state.metrics.storiesTotal).toBe(5);
   });
@@ -210,10 +198,7 @@ describe("createCheckpoint", () => {
   it("createCheckpoint_setsEpicIdCorrectly", async () => {
     const state = await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042",
-      [],
-      DEFAULT_MODE,
+      anInput(),
     );
     expect(state.epicId).toBe("0042");
   });
@@ -221,10 +206,7 @@ describe("createCheckpoint", () => {
   it("createCheckpoint_setBranchCorrectly", async () => {
     const state = await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042-full",
-      [],
-      DEFAULT_MODE,
+      anInput({ branch: "feat/epic-0042-full" }),
     );
     expect(state.branch).toBe("feat/epic-0042-full");
   });
@@ -233,10 +215,7 @@ describe("createCheckpoint", () => {
     const before = new Date().toISOString();
     const state = await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042",
-      [],
-      DEFAULT_MODE,
+      anInput(),
     );
     const after = new Date().toISOString();
     expect(state.startedAt >= before).toBe(true);
@@ -246,10 +225,7 @@ describe("createCheckpoint", () => {
   it("createCheckpoint_setsCurrentPhaseToZero", async () => {
     const state = await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042",
-      [],
-      DEFAULT_MODE,
+      anInput(),
     );
     expect(state.currentPhase).toBe(0);
   });
@@ -261,10 +237,7 @@ describe("createCheckpoint", () => {
     };
     const state = await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042",
-      [],
-      mode,
+      anInput({ mode }),
     );
     expect(state.mode.parallel).toBe(true);
     expect(state.mode.skipReview).toBe(true);
@@ -273,10 +246,9 @@ describe("createCheckpoint", () => {
   it("createCheckpoint_writesValidJsonToFile", async () => {
     await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042",
-      [{ id: "0042-0001", phase: 1 }],
-      DEFAULT_MODE,
+      anInput({
+        stories: [{ id: "0042-0001", phase: 1 }],
+      }),
     );
     const raw = readFileSync(
       join(tmpDir, "execution-state.json"),
@@ -290,13 +262,7 @@ describe("createCheckpoint", () => {
   });
 
   it("createCheckpoint_noTmpFileRemainsAfterWrite", async () => {
-    await createCheckpoint(
-      tmpDir,
-      "0042",
-      "feat/epic-0042",
-      [],
-      DEFAULT_MODE,
-    );
+    await createCheckpoint(tmpDir, anInput());
     expect(
       existsSync(
         join(tmpDir, ".execution-state.json.tmp"),
@@ -307,10 +273,7 @@ describe("createCheckpoint", () => {
   it("createCheckpoint_returnsExecutionStateObject", async () => {
     const state = await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042",
-      threeStories(),
-      DEFAULT_MODE,
+      anInput({ stories: threeStories() }),
     );
     expect(state.epicId).toBeDefined();
     expect(state.branch).toBeDefined();
@@ -322,10 +285,7 @@ describe("createCheckpoint", () => {
   it("createCheckpoint_integrityGatesInitializedEmpty", async () => {
     const state = await createCheckpoint(
       tmpDir,
-      "0042",
-      "feat/epic-0042",
-      [],
-      DEFAULT_MODE,
+      anInput(),
     );
     expect(
       Object.keys(state.integrityGates),

@@ -2,7 +2,7 @@ import { readFile, rename, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { CheckpointIOError, CheckpointValidationError } from "../exceptions.js";
 import type {
-  ExecutionMode,
+  CreateCheckpointInput,
   ExecutionState,
   IntegrityGateInput,
   MetricsUpdate,
@@ -70,26 +70,20 @@ function buildInitialStories(
 
 export async function createCheckpoint(
   epicDir: string,
-  epicId: string,
-  branch: string,
-  stories: ReadonlyArray<{
-    readonly id: string;
-    readonly phase: number;
-  }>,
-  mode: ExecutionMode,
+  input: CreateCheckpointInput,
 ): Promise<ExecutionState> {
   await assertDirectoryExists(epicDir);
   const state: ExecutionState = {
-    epicId,
-    branch,
+    epicId: input.epicId,
+    branch: input.branch,
     startedAt: new Date().toISOString(),
     currentPhase: 0,
-    mode,
-    stories: buildInitialStories(stories),
+    mode: input.mode,
+    stories: buildInitialStories(input.stories),
     integrityGates: {},
     metrics: {
       storiesCompleted: 0,
-      storiesTotal: stories.length,
+      storiesTotal: input.stories.length,
     },
   };
   await atomicWriteJson(epicDir, state);

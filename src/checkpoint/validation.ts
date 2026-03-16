@@ -146,62 +146,75 @@ export function validateMetrics(
   requireNumber(m, "storiesTotal", "metrics");
 }
 
+function requireNonNullObject(
+  data: unknown,
+  context: string,
+): Record<string, unknown> {
+  if (data === null || data === undefined) {
+    throw new CheckpointValidationError(
+      context,
+      "input is null or undefined",
+    );
+  }
+  if (typeof data !== "object" || Array.isArray(data)) {
+    throw new CheckpointValidationError(
+      context,
+      "input must be an object",
+    );
+  }
+  return data as Record<string, unknown>;
+}
+
+function requireBoolean(
+  data: Record<string, unknown>,
+  field: string,
+  context: string,
+): void {
+  if (typeof data[field] !== "boolean") {
+    throw new CheckpointValidationError(
+      field,
+      `must be a boolean in ${context}`,
+    );
+  }
+}
+
 function validateMode(
   data: Record<string, unknown>,
 ): void {
   const mode = requireObject(data, "mode", "ExecutionState");
-  const m = mode;
-  if (typeof m["parallel"] !== "boolean") {
-    throw new CheckpointValidationError(
-      "mode.parallel",
-      "must be a boolean in ExecutionState",
-    );
+  requireBoolean(mode, "parallel", "ExecutionState");
+  requireBoolean(mode, "skipReview", "ExecutionState");
+}
+
+function validateStoriesMap(
+  data: Record<string, unknown>,
+): void {
+  const stories = requireObject(data, "stories", "ExecutionState");
+  for (const key of Object.keys(stories)) {
+    validateStoryEntry(stories[key], key);
   }
-  if (typeof m["skipReview"] !== "boolean") {
-    throw new CheckpointValidationError(
-      "mode.skipReview",
-      "must be a boolean in ExecutionState",
-    );
+}
+
+function validateGatesMap(
+  data: Record<string, unknown>,
+): void {
+  const gates = requireObject(data, "integrityGates", "ExecutionState");
+  for (const key of Object.keys(gates)) {
+    validateIntegrityGateEntry(gates[key], key);
   }
 }
 
 export function validateExecutionState(
   data: unknown,
 ): ExecutionState {
-  if (data === null || data === undefined) {
-    throw new CheckpointValidationError(
-      "ExecutionState",
-      "input is null or undefined",
-    );
-  }
-  if (typeof data !== "object" || Array.isArray(data)) {
-    throw new CheckpointValidationError(
-      "ExecutionState",
-      "input must be an object",
-    );
-  }
-  const d = data as Record<string, unknown>;
+  const d = requireNonNullObject(data, "ExecutionState");
   requireString(d, "epicId", "ExecutionState");
   requireString(d, "branch", "ExecutionState");
   requireString(d, "startedAt", "ExecutionState");
   requireNumber(d, "currentPhase", "ExecutionState");
   validateMode(d);
-  const stories = requireObject(
-    d,
-    "stories",
-    "ExecutionState",
-  );
-  for (const key of Object.keys(stories)) {
-    validateStoryEntry(stories[key], key);
-  }
-  requireObject(d, "integrityGates", "ExecutionState");
-  const gates = d["integrityGates"] as Record<
-    string,
-    unknown
-  >;
-  for (const key of Object.keys(gates)) {
-    validateIntegrityGateEntry(gates[key], key);
-  }
+  validateStoriesMap(d);
+  validateGatesMap(d);
   validateMetrics(
     requireObject(d, "metrics", "ExecutionState"),
   );
