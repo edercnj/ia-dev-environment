@@ -40,6 +40,22 @@ const githubEventGenSection = extractSection(
 );
 
 // ---------------------------------------------------------------------------
+// extractSection helper — edge case (QA item 7)
+// ---------------------------------------------------------------------------
+
+describe("extractSection helper — edge cases", () => {
+  it("extractSection_returnsEmptyString_whenHeadingNotFound", () => {
+    const result = extractSection(claudeContent, /###.*NonExistentSection/);
+    expect(result).toBe("");
+  });
+
+  it("extractSection_returnsNonEmpty_whenHeadingExists", () => {
+    expect(eventGenSection.length).toBeGreaterThan(0);
+    expect(githubEventGenSection.length).toBeGreaterThan(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // UT-1: Event-Driven generator heading exists in Phase 3
 // ---------------------------------------------------------------------------
 
@@ -142,6 +158,20 @@ describe("x-dev-lifecycle Event-Driven generator — payload schema", () => {
 
   it("githubSource_eventGen_payloadSchemaTable", () => {
     expect(githubEventGenSection).toMatch(/[Pp]ayload.*[Ss]chema/i);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// UT-5b: Headers table (optional per AC data contract)
+// ---------------------------------------------------------------------------
+
+describe("x-dev-lifecycle Event-Driven generator — headers table", () => {
+  it("claudeSource_eventGen_mentionsHeaders", () => {
+    expect(eventGenSection).toMatch(/[Hh]eaders/i);
+  });
+
+  it("claudeSource_eventGen_mentionsCorrelationId", () => {
+    expect(eventGenSection).toMatch(/correlation.id/i);
   });
 });
 
@@ -297,6 +327,18 @@ describe("x-dev-lifecycle Event-Driven generator — dispatch table", () => {
 
   it("githubSource_dispatchTable_storyReference", () => {
     expect(githubContent).toContain("story-0004-0010");
+  });
+
+  it("claudeSource_dispatchTable_websocketMapsToEventDriven", () => {
+    expect(claudeContent).toMatch(
+      /websocket.*event-consumer.*event-producer.*Event.Driven/is,
+    );
+  });
+
+  it("githubSource_dispatchTable_websocketMapsToEventDriven", () => {
+    expect(githubContent).toMatch(
+      /websocket.*event-consumer.*event-producer.*Event.Driven/is,
+    );
   });
 });
 
