@@ -17,3 +17,6 @@ export * from "./version-resolver.js";
 export * from "./validator.js";
 export * from "./resolver.js";
 export * from "./skill-registry.js";
+
+// --- STORY-0005-0004: Implementation Map Parser ---
+export * from "./implementation-map/index.js";
