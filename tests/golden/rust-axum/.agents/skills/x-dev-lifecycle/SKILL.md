@@ -234,8 +234,21 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
    - Gateway configuration updated (if api_gateway != none)
    - gRPC proto backward compatible (if interfaces contain grpc)
    - GraphQL schema backward compatible (if interfaces contain graphql)
-6. Report PASS/FAIL result
-7. `git checkout main && git pull origin main`
+   - Post-deploy verification passed or skipped (if testing.smoke_tests == true)
+6. Post-Deploy Verification (conditional: `smoke_tests == true`):
+   - If `smoke_tests` is `false` in project identity → SKIP with log: "Post-deploy verification skipped (smoke_tests=false)"
+   - If `smoke_tests` is `true`, execute the following checks (invoke `/run-e2e` or configured smoke test script):
+     - **Health Check**: GET /health (or configured endpoint) → 200 OK
+     - **Critical Path**: Execute primary request flow → valid response
+     - **Response Time**: Verify p95 latency < configured SLO
+     - **Error Rate**: Verify error rate < 1% threshold
+   - Result outcomes:
+     - **PASS**: All checks green → "Deploy confirmed"
+     - **FAIL**: Any check red → "Investigate rollback"
+     - **SKIP**: smoke_tests=false → "Verification skipped"
+   - Non-blocking: emit result for human decision, do NOT auto-rollback
+7. Report PASS/FAIL result
+8. `git checkout main && git pull origin main`
 
 **Phase 7 is the ONLY legitimate stopping point.**
 
