@@ -63,14 +63,14 @@ describe("openapi-generator content validation", () => {
       expect(content).toMatch(/paths|endpoints/i);
     });
 
-    it("templateContent_containsFrameworkPlaceholder_doubleOrSingleBrace", () => {
+    it("templateContent_containsFrameworkPlaceholder_doubleBrace", () => {
       const content = fs.readFileSync(CLAUDE_SOURCE_PATH, "utf-8");
-      expect(content).toMatch(/\{\{FRAMEWORK\}\}|\{framework_name\}/);
+      expect(content).toMatch(/\{\{FRAMEWORK\}\}/);
     });
 
-    it("templateContent_containsLanguagePlaceholder_doubleOrSingleBrace", () => {
+    it("templateContent_containsLanguagePlaceholder_doubleBrace", () => {
       const content = fs.readFileSync(CLAUDE_SOURCE_PATH, "utf-8");
-      expect(content).toMatch(/\{\{LANGUAGE\}\}|\{language_name\}/);
+      expect(content).toMatch(/\{\{LANGUAGE\}\}/);
     });
 
     it("templateContent_containsOutputPath_docsApiOpenapiYaml", () => {

@@ -36,15 +36,12 @@ Content scope:
 - RFC 7807 Problem Details for error responses
 - `$ref` usage for schema deduplication
 - Output path: `docs/api/openapi.yaml`
-- Template placeholders: `{{PROJECT_NAME}}`, `{{FRAMEWORK}}`, `{{LANGUAGE}}`
+- Runtime placeholders: `{{FRAMEWORK}}`, `{{LANGUAGE}}` (resolved by AI agent at runtime)
+- Build-time placeholders: `{project_name}` (resolved by TemplateEngine during generation)
 
 ### 2.2 GitHub Skills Template (Dual Copy — RULE-001)
 
-**Path:** `resources/github-skills-templates/dev/references/openapi-generator.md`
-
-OR, depending on how story-0004-0005 structures the documentation generators:
-
-**Path:** `resources/github-skills-templates/documentation/openapi-generator.md`
+**Path:** `resources/github-skills-templates/dev/references/x-dev-lifecycle/openapi-generator.md`
 
 This is the dual copy of the same generator content, adapted for GitHub Copilot context (e.g., referencing `.github/skills/` paths instead of `.claude/skills/` paths).
 

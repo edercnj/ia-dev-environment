@@ -16,7 +16,7 @@ an OpenAPI 3.1 specification in YAML format. The output file is `docs/api/openap
 
 Scan all **inbound REST adapters** in the project source code:
 
-- **Controllers** (e.g., `@Controller`, `@RestController` in spring-boot)
+- **Controllers** (annotation-based: `@Controller`, `@RestController`, `@Path`)
 - **Handlers** (e.g., route handler functions)
 - **Resources** (e.g., JAX-RS `@Path` annotated classes)
 - **Router definitions** (e.g., Express/Gin/Axum route registrations)
@@ -191,9 +191,9 @@ schema:
 
 ### 4.2 DTO Mapping Rules
 
-Map java DTOs to JSON Schema types:
+Map source DTOs to JSON Schema types:
 
-| java Type | JSON Schema Type |
+| Common DTO Type | JSON Schema Type |
 |----------------------|------------------|
 | `string` | `type: "string"` |
 | `number` / `int` | `type: "integer"` |
