@@ -32,12 +32,13 @@ import { ReadmeAssembler } from "./readme-assembler.js";
 import { CodexAgentsMdAssembler } from "./codex-agents-md-assembler.js";
 import { CodexConfigAssembler } from "./codex-config-assembler.js";
 import { CodexSkillsAssembler } from "./codex-skills-assembler.js";
+import { DocsAssembler } from "./docs-assembler.js";
 
 /** Warning appended to dry-run results. */
 export const DRY_RUN_WARNING = "Dry run -- no files written";
 
 /** Target output directory for an assembler. */
-export type AssemblerTarget = "claude" | "github" | "codex" | "codex-agents" | "root";
+export type AssemblerTarget = "claude" | "github" | "codex" | "codex-agents" | "root" | "docs";
 
 /** Pairs a display name with an assembler instance and its target directory. */
 export interface AssemblerDescriptor {
@@ -69,7 +70,7 @@ export function normalizeResult(
   return { files: [...result.files], warnings: [...result.warnings] };
 }
 
-/** Build the ordered list of 16 assemblers per RULE-008. */
+/** Build the ordered list of 18 assemblers per RULE-008. */
 export function buildAssemblers(): readonly AssemblerDescriptor[] {
   return [
     { name: "RulesAssembler", target: "claude", assembler: new RulesAssembler() },
@@ -85,6 +86,7 @@ export function buildAssemblers(): readonly AssemblerDescriptor[] {
     { name: "GithubAgentsAssembler", target: "github", assembler: new GithubAgentsAssembler() },
     { name: "GithubHooksAssembler", target: "github", assembler: new GithubHooksAssembler() },
     { name: "GithubPromptsAssembler", target: "github", assembler: new GithubPromptsAssembler() },
+    { name: "DocsAssembler", target: "docs", assembler: new DocsAssembler() },
     { name: "CodexAgentsMdAssembler", target: "root", assembler: new CodexAgentsMdAssembler() },
     { name: "CodexConfigAssembler", target: "codex", assembler: new CodexConfigAssembler() },
     { name: "CodexSkillsAssembler", target: "codex-agents", assembler: new CodexSkillsAssembler() },
@@ -104,6 +106,7 @@ export function executeAssemblers(
   const githubDir = join(outputDir, ".github");
   const codexDir = join(outputDir, ".codex");
   const agentsDir = join(outputDir, ".agents");
+  const docsDir = join(outputDir, "docs");
   const files: string[] = [];
   const warnings: string[] = [];
   for (const { name, target, assembler } of assemblers) {
@@ -116,7 +119,9 @@ export function executeAssemblers(
             ? codexDir
             : target === "codex-agents"
               ? agentsDir
-              : claudeDir;
+              : target === "docs"
+                ? docsDir
+                : claudeDir;
       const raw = assembler.assemble(
         config, targetDir, resourcesDir, engine,
       );
