@@ -47,6 +47,13 @@ function buildReadmeContent(
   return lines.join("\n");
 }
 
+/** Check that the ADR template contains all mandatory sections. */
+function hasAllMandatorySections(templateContent: string): boolean {
+  return MANDATORY_SECTIONS.every(
+    (section) => templateContent.includes(section),
+  );
+}
+
 /** Generates docs/adr/README.md at the project root. */
 export class DocsAdrAssembler {
   assemble(
@@ -59,6 +66,10 @@ export class DocsAdrAssembler {
       resourcesDir, TEMPLATES_SUBDIR, TEMPLATE_FILENAME,
     );
     if (!fs.existsSync(templatePath)) {
+      return [];
+    }
+    const templateContent = fs.readFileSync(templatePath, "utf-8");
+    if (!hasAllMandatorySections(templateContent)) {
       return [];
     }
     const adrDir = path.join(outputDir, ADR_OUTPUT_SUBDIR);
