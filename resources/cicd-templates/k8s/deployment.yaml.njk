@@ -14,11 +14,23 @@ spec:
       labels:
         app: {{ project_name }}
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: {{ project_name }}
           image: {{ project_name }}:latest
           ports:
             - containerPort: {{ framework_port }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
           livenessProbe:
             httpGet:
               path: {{ health_path }}
@@ -38,6 +50,12 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           envFrom:
             - configMapRef:
                 name: {{ project_name }}-config
+      volumes:
+        - name: tmp
+          emptyDir: {}

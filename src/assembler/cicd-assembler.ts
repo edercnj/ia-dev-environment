@@ -1,12 +1,4 @@
-/**
- * CicdAssembler — generates CI/CD artifacts conditionally.
- *
- * Produces: GitHub Actions CI workflow, Dockerfile, Docker Compose,
- * Kubernetes manifests, smoke test config, and deploy runbook.
- * Conditional logic based on container, orchestrator, and smokeTests.
- *
- * @module
- */
+/** @module CicdAssembler — generates CI/CD artifacts conditionally. */
 import * as fs from "node:fs";
 import * as path from "node:path";
 import type { ProjectConfig } from "../models.js";
@@ -36,6 +28,18 @@ const K8S_MANIFESTS: readonly string[] = [
   "configmap.yaml",
 ];
 
+const LINT_COMMANDS: Readonly<Record<string, string>> = {
+  "java-maven": "./mvnw checkstyle:check",
+  "java-gradle": "./gradlew spotlessCheck",
+  "kotlin-gradle": "./gradlew ktlintCheck",
+  "typescript-npm": "npm run lint",
+  "python-pip": "ruff check .",
+  "go-go": "golangci-lint run",
+  "go-go-mod": "golangci-lint run",
+  "rust-cargo": "cargo clippy -- -D warnings",
+};
+const DEFAULT_LINT_CMD = "echo 'No linter configured'";
+
 /** Build stack-specific template context from mapping constants. */
 function buildStackContext(
   config: ProjectConfig,
@@ -56,12 +60,14 @@ function buildStackContext(
     build_cmd: commands?.buildCmd ?? "",
     test_cmd: commands?.testCmd ?? "",
     coverage_cmd: commands?.coverageCmd ?? "",
+    lint_cmd: LINT_COMMANDS[langKey] ?? DEFAULT_LINT_CMD,
     file_extension: commands?.fileExtension ?? "",
     build_file: commands?.buildFile ?? "",
     package_manager: commands?.packageManager ?? "",
     framework_port: port,
     health_path: healthPath,
     docker_base_image: resolvedImage,
+    container: config.infrastructure.container,
   };
 }
 

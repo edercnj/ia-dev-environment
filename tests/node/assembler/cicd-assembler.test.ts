@@ -873,4 +873,106 @@ describe("CicdAssembler", () => {
       },
     );
   });
+
+  describe("review fix — lint, security context, image scan", () => {
+    it("assemble_ciWorkflow_containsLintStep", () => {
+      const config = buildConfig();
+      const engine = new TemplateEngine(REAL_RESOURCES_DIR, config);
+      assembler.assemble(
+        config, outputDir, REAL_RESOURCES_DIR, engine,
+      );
+      const content = fs.readFileSync(
+        path.join(outputDir, ".github", "workflows", "ci.yml"),
+        "utf-8",
+      );
+      expect(content).toContain("Lint");
+      expect(content).toContain("npm run lint");
+    });
+
+    it("assemble_ciWorkflow_containsImageScanWhenDocker", () => {
+      const config = buildConfig({ container: "docker" });
+      const engine = new TemplateEngine(REAL_RESOURCES_DIR, config);
+      assembler.assemble(
+        config, outputDir, REAL_RESOURCES_DIR, engine,
+      );
+      const content = fs.readFileSync(
+        path.join(outputDir, ".github", "workflows", "ci.yml"),
+        "utf-8",
+      );
+      expect(content).toContain("image-scan");
+      expect(content).toContain("trivy");
+    });
+
+    it("assemble_ciWorkflow_noImageScanWhenNoDocker", () => {
+      const config = buildConfig({ container: "none" });
+      const engine = new TemplateEngine(REAL_RESOURCES_DIR, config);
+      assembler.assemble(
+        config, outputDir, REAL_RESOURCES_DIR, engine,
+      );
+      const content = fs.readFileSync(
+        path.join(outputDir, ".github", "workflows", "ci.yml"),
+        "utf-8",
+      );
+      expect(content).not.toContain("image-scan");
+    });
+
+    it("assemble_k8sDeployment_containsSecurityContext", () => {
+      const config = buildConfig({ orchestrator: "kubernetes" });
+      const engine = new TemplateEngine(REAL_RESOURCES_DIR, config);
+      assembler.assemble(
+        config, outputDir, REAL_RESOURCES_DIR, engine,
+      );
+      const content = fs.readFileSync(
+        path.join(outputDir, "k8s", "deployment.yaml"),
+        "utf-8",
+      );
+      expect(content).toContain("runAsNonRoot: true");
+      expect(content).toContain("allowPrivilegeEscalation: false");
+      expect(content).toContain("readOnlyRootFilesystem: true");
+      expect(content).toContain("seccompProfile");
+    });
+
+    it("assemble_k8sDeployment_dropsAllCapabilities", () => {
+      const config = buildConfig({ orchestrator: "kubernetes" });
+      const engine = new TemplateEngine(REAL_RESOURCES_DIR, config);
+      assembler.assemble(
+        config, outputDir, REAL_RESOURCES_DIR, engine,
+      );
+      const content = fs.readFileSync(
+        path.join(outputDir, "k8s", "deployment.yaml"),
+        "utf-8",
+      );
+      expect(content).toContain("drop:");
+      expect(content).toContain("- ALL");
+    });
+
+    it("assemble_perStack_ciWorkflowContainsLintCmd", () => {
+      const stacks = [
+        { lang: "java", bt: "gradle", lv: "21", lint: "spotlessCheck" },
+        { lang: "python", bt: "pip", lv: "3.12", lint: "ruff check" },
+        { lang: "rust", bt: "cargo", lv: "1.75", lint: "cargo clippy" },
+        { lang: "go", bt: "go", lv: "1.22", lint: "golangci-lint" },
+      ];
+      for (const s of stacks) {
+        const config = buildConfig({
+          language: s.lang,
+          buildTool: s.bt,
+          languageVersion: s.lv,
+        });
+        const engine = new TemplateEngine(
+          REAL_RESOURCES_DIR, config,
+        );
+        const out = path.join(outputDir, s.lang);
+        fs.mkdirSync(out, { recursive: true });
+        assembler.assemble(
+          config, out, REAL_RESOURCES_DIR, engine,
+        );
+        const content = fs.readFileSync(
+          path.join(out, ".github", "workflows", "ci.yml"),
+          "utf-8",
+        );
+        expect(content).toContain(s.lint);
+      }
+    });
+  });
 });
