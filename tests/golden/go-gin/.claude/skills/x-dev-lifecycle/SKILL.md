@@ -268,6 +268,18 @@ If the implemented feature affects the request path, startup, or memory footprin
 
 This step is recommended but not mandatory. Skip does not block the phase.
 
+**Architecture Document Update (Recommended):**
+If an architecture plan exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`:
+1. Invoke `x-dev-arch-update` to incrementally update `docs/architecture/service-architecture.md`
+2. New components, integrations, flows, and ADR references are added to the appropriate sections
+3. Change History (Section 10) is updated with the story reference
+4. If `docs/architecture/service-architecture.md` does not exist, create it from the template
+
+If no architecture plan found: skip with log
+`"No architecture plan found; skipping architecture doc update"`.
+
+This step is recommended but not mandatory. Skip does not block the phase.
+
 ### CLI Documentation Generator (interface: cli)
 
 > Invoked when project identity `interfaces` contains `"cli"`.
@@ -377,6 +389,7 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
    - Gateway configuration updated (if api_gateway != none)
    - gRPC proto backward compatible (if interfaces contain grpc)
    - GraphQL schema backward compatible (if interfaces contain graphql)
+   - [ ] Threat model updated (if security findings with severity >= Medium) — extract findings from Phase 3 review reports, map to STRIDE categories, and update `docs/security/threat-model.md` using `resources/templates/_TEMPLATE-THREAT-MODEL.md` as format reference. See `/x-review` Phase 3d for the incremental update algorithm.
 6. Report PASS/FAIL result
 7. `git checkout main && git pull origin main`
 
