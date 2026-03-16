@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import {
+  extractSection,
+  extractFrontmatter,
+} from "../../helpers/content-helpers.js";
 
 const SKILL_PATH = path.resolve(
   __dirname,
@@ -18,17 +22,6 @@ beforeAll(() => {
   skillContent = fs.readFileSync(SKILL_PATH, "utf-8");
   githubSkillContent = fs.readFileSync(GITHUB_SKILL_PATH, "utf-8");
 });
-
-function extractSection(content: string, heading: string): string {
-  const parts = content.split(`## ${heading}`);
-  if (parts.length < 2) return "";
-  return parts[1]!.split(/\n## (?!#)/)[0]!;
-}
-
-function extractFrontmatter(content: string): string {
-  const match = content.match(/^---\n([\s\S]*?)\n---/);
-  return match ? match[1]! : "";
-}
 
 // ---------------------------------------------------------------------------
 // 1. Degenerate

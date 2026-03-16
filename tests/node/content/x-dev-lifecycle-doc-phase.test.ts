@@ -651,12 +651,11 @@ describe("x-dev-lifecycle GitHub source — Performance Baseline", () => {
 // ---------------------------------------------------------------------------
 
 describe("x-dev-lifecycle Claude source — Architecture Doc Update", () => {
-  it("claudeSource_phase3_containsArchDocUpdateHeading", () => {
+  it("claudeSource_archDocUpdateHeading_existsInContent", () => {
     expect(claudeContent).toMatch(/Architecture Document Update/);
   });
 
-  it("claudeSource_phase3_archDocUpdateRecommended", () => {
-    // Must appear within Phase 3 context
+  it("claudeSource_archDocUpdateInPhase3_markedAsRecommended", () => {
     const phase3to4 = claudeContent.slice(
       claudeContent.search(/## Phase 3/),
       claudeContent.search(/## Phase 4/),
@@ -664,15 +663,15 @@ describe("x-dev-lifecycle Claude source — Architecture Doc Update", () => {
     expect(phase3to4).toMatch(/[Rr]ecommended/);
   });
 
-  it("claudeSource_phase3_archDocUpdateReferencesArchPlan", () => {
+  it("claudeSource_archDocUpdate_referencesArchPlanPath", () => {
     expect(claudeContent).toMatch(/architecture-story-XXXX-YYYY\.md/);
   });
 
-  it("claudeSource_phase3_archDocUpdateReferencesServiceArchDoc", () => {
+  it("claudeSource_archDocUpdate_referencesServiceArchDoc", () => {
     expect(claudeContent).toContain("docs/architecture/service-architecture.md");
   });
 
-  it("claudeSource_phase3_archDocUpdateWithinPhase3", () => {
+  it("claudeSource_archDocUpdatePosition_betweenPhase3AndPhase4", () => {
     const phase3Idx = claudeContent.search(/## Phase 3/);
     const phase4Idx = claudeContent.search(/## Phase 4/);
     const archDocIdx = claudeContent.search(/Architecture Document Update/);
@@ -680,41 +679,41 @@ describe("x-dev-lifecycle Claude source — Architecture Doc Update", () => {
     expect(archDocIdx).toBeLessThan(phase4Idx);
   });
 
-  it("claudeSource_phase3_archDocUpdateSkipWhenNoPlan", () => {
+  it("claudeSource_archDocUpdateNoPlan_containsSkipLog", () => {
     expect(claudeContent).toMatch(/[Nn]o architecture plan found/);
   });
 
-  it("claudeSource_phase3_archDocUpdateInvokesSkill", () => {
+  it("claudeSource_archDocUpdate_invokesArchUpdateSkill", () => {
     expect(claudeContent).toContain("x-dev-arch-update");
   });
 });
 
 describe("x-dev-lifecycle GitHub source — Architecture Doc Update", () => {
-  it("githubSource_phase3_containsArchDocUpdateHeading", () => {
+  it("githubSource_archDocUpdateHeading_existsInContent", () => {
     expect(githubContent).toMatch(/Architecture Document Update/);
   });
 
-  it("githubSource_phase3_archDocUpdateReferencesServiceArchDoc", () => {
+  it("githubSource_archDocUpdate_referencesServiceArchDoc", () => {
     expect(githubContent).toContain("docs/architecture/service-architecture.md");
   });
 
-  it("githubSource_phase3_archDocUpdateSkipWhenNoPlan", () => {
+  it("githubSource_archDocUpdateNoPlan_containsSkipLog", () => {
     expect(githubContent).toMatch(/[Nn]o architecture plan found/);
   });
 });
 
 describe("x-dev-lifecycle dual copy — Architecture Doc Update", () => {
-  it("dualCopy_bothContainArchDocUpdateHeading", () => {
+  it("dualCopy_archDocUpdateHeading_existsInBothSources", () => {
     expect(claudeContent).toMatch(/Architecture Document Update/);
     expect(githubContent).toMatch(/Architecture Document Update/);
   });
 
-  it("dualCopy_bothReferenceServiceArchDoc_archUpdate", () => {
+  it("dualCopy_serviceArchDocRef_existsInBothSources", () => {
     expect(claudeContent).toContain("docs/architecture/service-architecture.md");
     expect(githubContent).toContain("docs/architecture/service-architecture.md");
   });
 
-  it("dualCopy_bothContainSkipLog_archUpdate", () => {
+  it("dualCopy_skipLogMessage_existsInBothSources", () => {
     expect(claudeContent).toMatch(/[Nn]o architecture plan found/);
     expect(githubContent).toMatch(/[Nn]o architecture plan found/);
   });
