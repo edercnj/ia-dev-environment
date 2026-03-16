@@ -110,12 +110,13 @@ describe("buildAssemblers", () => {
     "CodexAgentsMdAssembler",
     "CodexConfigAssembler",
     "CodexSkillsAssembler",
+    "DocsAdrAssembler",
     "ReadmeAssembler",
   ];
 
-  it("buildAssemblers_returns17Assemblers", () => {
+  it("buildAssemblers_returns18Assemblers", () => {
     const assemblers = buildAssemblers();
-    expect(assemblers).toHaveLength(17);
+    expect(assemblers).toHaveLength(18);
   });
 
   it.each(
@@ -130,6 +131,13 @@ describe("buildAssemblers", () => {
     for (const desc of assemblers) {
       expect(typeof desc.assembler.assemble).toBe("function");
     }
+  });
+
+  it("buildAssemblers_docsAdrAssembler_hasRootTarget", () => {
+    const assemblers = buildAssemblers();
+    const adr = assemblers.find((a) => a.name === "DocsAdrAssembler");
+    expect(adr).toBeDefined();
+    expect(adr!.target).toBe("root");
   });
 
   it("buildAssemblers_orderMatchesRule008", () => {
