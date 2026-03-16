@@ -108,6 +108,7 @@ describe("buildAssemblers", () => {
     "GithubHooksAssembler",
     "GithubPromptsAssembler",
     "DocsAssembler",
+    "GrpcDocsAssembler",
     "RunbookAssembler",
     "CodexAgentsMdAssembler",
     "CodexConfigAssembler",
@@ -116,9 +117,9 @@ describe("buildAssemblers", () => {
     "ReadmeAssembler",
   ];
 
-  it("buildAssemblers_returns20Assemblers", () => {
+  it("buildAssemblers_returns21Assemblers", () => {
     const assemblers = buildAssemblers();
-    expect(assemblers).toHaveLength(20);
+    expect(assemblers).toHaveLength(21);
   });
 
   it.each(
