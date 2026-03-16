@@ -202,14 +202,19 @@ Always generate a changelog entry regardless of interfaces.
 | `rest` | OpenAPI/Swagger generator | `docs/api/openapi.yaml` |
 | `grpc` | gRPC/Proto documentation generator | `docs/api/grpc-reference.md` |
 | `cli` | CLI documentation generator | `docs/api/cli-reference.md` |
-| `websocket`, `kafka` | Event-driven documentation generator | `docs/api/event-reference.md` |
+| `graphql` | GraphQL schema documentation generator | `docs/api/graphql-reference.md` |
+| `websocket`, `kafka`, `event-consumer`, `event-producer` | Event-driven documentation generator | `docs/api/event-reference.md` |
 
 If no documentable interfaces configured: skip interface generators with log
 `"No documentable interfaces configured"`. Always generate changelog entry.
 
+Documentation output saved to `docs/` with subdirectories per type:
+- API docs → `docs/api/`
+- Architecture docs → `docs/architecture/`
+
 **Changelog Entry:**
-- Read commits since branch point
-- Generate Conventional Commits summary by type (feat, fix, refactor)
+- Read commits since branch point (`git log main..HEAD --oneline`)
+- Generate Conventional Commits summary by type (feat, fix, refactor, test, docs, chore)
 - Append to CHANGELOG.md
 
 ### CLI Documentation Generator (interface: cli)
