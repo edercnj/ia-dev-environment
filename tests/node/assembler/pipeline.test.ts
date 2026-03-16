@@ -114,12 +114,13 @@ describe("buildAssemblers", () => {
     "CodexConfigAssembler",
     "CodexSkillsAssembler",
     "DocsAdrAssembler",
+    "CicdAssembler",
     "ReadmeAssembler",
   ];
 
-  it("buildAssemblers_returns21Assemblers", () => {
+  it("buildAssemblers_returns22Assemblers", () => {
     const assemblers = buildAssemblers();
-    expect(assemblers).toHaveLength(21);
+    expect(assemblers).toHaveLength(22);
   });
 
   it.each(

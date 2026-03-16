@@ -321,14 +321,6 @@ describe("x-dev-lifecycle Event-Driven generator — positioning", () => {
 // ---------------------------------------------------------------------------
 
 describe("x-dev-lifecycle Event-Driven generator — dispatch table", () => {
-  it("claudeSource_dispatchTable_storyReference", () => {
-    expect(claudeContent).toContain("story-0004-0010");
-  });
-
-  it("githubSource_dispatchTable_storyReference", () => {
-    expect(githubContent).toContain("story-0004-0010");
-  });
-
   it("claudeSource_dispatchTable_websocketMapsToEventDriven", () => {
     expect(claudeContent).toMatch(
       /websocket.*event-consumer.*event-producer.*Event.Driven/is,
@@ -482,8 +474,8 @@ describe("x-dev-lifecycle Event-Driven generator — dual copy (RULE-001)", () =
     expect(githubEventGenSection).toMatch(/[Cc]onsumer/);
   });
 
-  it("dualCopy_bothContainStoryReference", () => {
-    expect(claudeContent).toContain("story-0004-0010");
-    expect(githubContent).toContain("story-0004-0010");
+  it("dualCopy_bothContainEventDrivenDocGenerator", () => {
+    expect(claudeContent).toMatch(/###.*Event.Driven.*Doc.*Generator/i);
+    expect(githubContent).toMatch(/###.*Event.Driven.*Doc.*Generator/i);
   });
 });
