@@ -9,8 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Epic Execution Report Template (story-0005-0002):** New `_TEMPLATE-EPIC-EXECUTION-REPORT.md` with 8 sections and 18 runtime placeholders for epic orchestration. `EpicReportAssembler` copies the template verbatim to `docs/epic/`, `.claude/templates/`, and `.github/templates/`. Pipeline now has 23 assemblers.
-
-### Added (previous)
+- **Execution State Schema** (`src/checkpoint/types.ts`) -- Typed interfaces for epic execution state: `ExecutionState`, `StoryEntry`, `IntegrityGateEntry`, `ExecutionMetrics`, `SubagentResult`, `StoryStatus` enum. Foundation for orchestrator resumability.
+- **Checkpoint Engine** (`src/checkpoint/engine.ts`) -- CRUD operations for `execution-state.json` with atomic write (tmp file + rename). Functions: `createCheckpoint`, `readCheckpoint`, `updateStoryStatus`, `updateIntegrityGate`, `updateMetrics`.
+- **Schema Validation** (`src/checkpoint/validation.ts`) -- Hand-written validation for checkpoint JSON: field presence, type checks, enum guards. `validateExecutionState` returns typed state or throws `CheckpointValidationError`.
+- **Checkpoint Error Classes** (`src/exceptions.ts`) -- `CheckpointValidationError` (field + detail) and `CheckpointIOError` (path + operation) for structured error handling.
+- **Execution State Template** (`resources/templates/_TEMPLATE-EXECUTION-STATE.json`) -- Reference JSON template for execution state with example values.
 - **GitHub Actions CI** -- Lint, build, test workflow with Node.js 20/22 matrix.
   Coverage upload on Node 22. Pack verification job.
 - **npm packaging** -- `files` field, `prepublishOnly` script for publish gating.
