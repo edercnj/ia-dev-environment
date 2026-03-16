@@ -15,7 +15,7 @@ const TEMPLATE_FILENAME = "_TEMPLATE-ADR.md";
 const TEMPLATES_SUBDIR = "templates";
 const ADR_OUTPUT_SUBDIR = "docs/adr";
 const README_FILENAME = "README.md";
-const ADR_FILE_PATTERN = /^ADR-(\d{4})-.*\.md$/;
+const ADR_FILE_PATTERN = /^ADR-(\d{4,})-.*\.md$/;
 const ADR_NUMBER_PAD_WIDTH = 4;
 const ADR_TITLE_HEADING = "# Architecture Decision Records";
 
@@ -74,10 +74,12 @@ export class DocsAdrAssembler {
     }
     const adrDir = path.join(outputDir, ADR_OUTPUT_SUBDIR);
     fs.mkdirSync(adrDir, { recursive: true });
-    const content = buildReadmeContent(config.project.name);
-    const dest = path.join(adrDir, README_FILENAME);
-    fs.writeFileSync(dest, content, "utf-8");
-    return [dest];
+    const readmeContent = buildReadmeContent(config.project.name);
+    const readmeDest = path.join(adrDir, README_FILENAME);
+    fs.writeFileSync(readmeDest, readmeContent, "utf-8");
+    const templateDest = path.join(adrDir, TEMPLATE_FILENAME);
+    fs.writeFileSync(templateDest, templateContent, "utf-8");
+    return [readmeDest, templateDest];
   }
 }
 
@@ -114,10 +116,11 @@ export function formatAdrFilename(
   title: string,
 ): string {
   const padded = String(num).padStart(ADR_NUMBER_PAD_WIDTH, "0");
-  const kebab = title
+  const sanitized = title
     .toLowerCase()
     .replace(/[^a-z0-9-]+/g, "-")
     .replace(/-{2,}/g, "-")
     .replace(/^-|-$/g, "");
-  return `ADR-${padded}-${kebab}.md`;
+  const slug = sanitized === "" ? "untitled" : sanitized;
+  return `ADR-${padded}-${slug}.md`;
 }
