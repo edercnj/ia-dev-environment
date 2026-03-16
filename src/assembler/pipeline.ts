@@ -1,5 +1,5 @@
 /**
- * Pipeline Orchestrator — coordinates all 16 assemblers in RULE-008 order.
+ * Pipeline Orchestrator — coordinates all 18 assemblers in RULE-008 order.
  *
  * Migrated from Python `assembler/__init__.py`.
  * Supports real mode (atomic output) and dry-run mode (temp dir, discard).
