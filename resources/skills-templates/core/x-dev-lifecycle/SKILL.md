@@ -20,9 +20,10 @@ argument-hint: "[STORY-ID or feature-name]"
 
 ## CRITICAL EXECUTION RULE
 
-**8 phases (0-7). ALL mandatory. NEVER stop before Phase 7.**
+**9 phases (0-8). ALL mandatory. NEVER stop before Phase 8.**
 
-After EACH phase: `>>> Phase N/7 completed. Proceeding to Phase N+1...`
+After each phase 0–7: `>>> Phase N/8 completed. Proceeding to Phase N+1...`
+After Phase 8: `>>> Phase 8/8 completed. Lifecycle complete.`
 
 ## Complete Flow
 
@@ -31,10 +32,11 @@ Phase 0: Preparation          (orchestrator — inline)
 Phase 1: Planning              (subagent — reads architecture KPs)
 Phase 1B-1E: Parallel Planning (up to 4 subagents — SINGLE message)
 Phase 2: Implementation        (subagent — reads coding + layer KPs)
-Phase 3: Review                (invoke /x-review skill — launches its own subagents)
-Phase 4-5: Fixes + PR          (orchestrator — inline)
-Phase 6: Tech Lead Review      (invoke /x-review-pr skill)
-Phase 7: Verification          (orchestrator — inline)
+Phase 3: Documentation         (orchestrator — inline)
+Phase 4: Review                (invoke /x-review skill — launches its own subagents)
+Phase 5-6: Fixes + PR          (orchestrator — inline)
+Phase 7: Tech Lead Review      (invoke /x-review-pr skill)
+Phase 8: Verification          (orchestrator — inline)
 ```
 
 ---
@@ -46,11 +48,39 @@ Phase 7: Verification          (orchestrator — inline)
 3. Check if test plan exists at `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
    - If present: Phase 2 will use TDD mode
    - If absent: Phase 1B will produce it; if 1B also fails, Phase 2 falls back to G1-G7
-4. Extract epic ID from story ID (e.g., `story-0001-0003` → epic ID `0001`)
-5. Ensure directories exist: `mkdir -p docs/stories/epic-XXXX/plans docs/stories/epic-XXXX/reviews`
-6. Create branch: `git checkout -b feat/{STORY_ID}-description`
+4. Check if architecture plan exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
+   - If present: Phase 1 will skip architecture planning (use existing plan)
+   - If absent: Phase 1 will evaluate decision tree and invoke x-dev-architecture-plan
+5. Extract epic ID from story ID (e.g., `story-0001-0003` → epic ID `0001`)
+6. Ensure directories exist: `mkdir -p docs/stories/epic-XXXX/plans docs/stories/epic-XXXX/reviews`
+7. Create branch: `git checkout -b feat/{STORY_ID}-description`
 
-## Phase 1 — Architecture Planning (Subagent via Task)
+## Phase 1 — Architecture Planning (Skill Invocation + Subagent Fallback)
+
+**If the architecture plan file already exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` (as checked in Phase 0), skip Step 1A and proceed directly to Step 1B, ensuring Step 1B reads the existing plan.**
+
+### Step 1A: Architecture Plan via x-dev-architecture-plan
+
+Evaluate change scope using the decision tree:
+
+| Condition | Plan Level |
+|-----------|-----------|
+| New service / new integration / contract change / infra change | **Full** |
+| New feature, no contract or infra change | **Simplified** |
+| Bug fix / refactor / docs-only | **Skip** |
+
+**If Full or Simplified:**
+
+Invoke skill `/x-dev-architecture-plan {STORY_PATH}`.
+
+- Output: `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
+- If the skill invocation fails: emit `WARNING: Architecture plan generation failed. Continuing without architecture plan.` and proceed to Step 1B.
+
+**If Skip:**
+
+Log `"Architecture plan not needed for this change scope"` and proceed to Step 1B.
+
+### Step 1B: Implementation Plan (Subagent via Task)
 
 Launch a **single** `general-purpose` subagent:
 
@@ -61,6 +91,7 @@ Launch a **single** `general-purpose` subagent:
 > - Read `skills/architecture/references/architecture-principles.md` — layer structure, dependency direction
 > - Read `skills/layer-templates/SKILL.md` — code templates per architecture layer
 > - Read any relevant ADRs in `docs/adr/`
+> - If architecture plan exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`, read it for architectural decisions and constraints
 >
 > **Step 2 — Produce implementation plan** with these sections:
 > 1. Affected layers and components
@@ -75,6 +106,16 @@ Launch a **single** `general-purpose` subagent:
 > 10. Risk assessment
 >
 > Save to `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (where XXXX is the epic ID and YYYY is the story sequence, extracted from the story ID).
+
+### Fallback: Inline Architecture Planning
+
+If skill `x-dev-architecture-plan` is not available in the project (skill file `skills/x-dev-architecture-plan/SKILL.md` does not exist), combine architecture planning into the Step 1B subagent by expanding its prompt to also read:
+- `skills/protocols/references/` — protocol conventions
+- `skills/security/references/` — OWASP, headers, secrets
+- `skills/observability/references/` — tracing, metrics, logging
+- `skills/resilience/references/` — circuit breaker, retry, fallback
+
+This preserves the pre-integration behavior for projects that do not include the architecture-plan skill.
 
 ## Phases 1B-1E — Parallel Planning (Subagents via Task — SINGLE message)
 
@@ -126,6 +167,7 @@ Launch a **single** `general-purpose` subagent for implementation:
 > **Step 1 — Read context:**
 > - Read test plan: `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md` — **MANDATORY** (implementation roadmap)
 > - Read implementation plan: `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`
+> - If architecture plan was generated in Phase 1, read `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` for architectural decisions and constraints; if it does not exist, proceed without it
 > - Read task breakdown: `docs/stories/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`
 > - Read `skills/coding-standards/references/coding-conventions.md` — {{LANGUAGE}} conventions
 > - Read `skills/coding-standards/references/version-features.md` — {{LANGUAGE}} {{LANGUAGE_VERSION}} features
@@ -187,23 +229,124 @@ If no test plan with TPP markers was produced by Phase 1B, use legacy group-base
 
 Emit warning: `WARNING: No TDD test plan available. Using G1-G7 group-based implementation. Consider running /x-test-plan for future implementations.`
 
-## Phase 3 — Parallel Review
+## Phase 3 — Documentation (Orchestrator — Inline)
+
+Read the `interfaces` field from the project identity to determine which documentation
+generators to invoke. For each configured interface, launch the corresponding generator.
+Always generate a changelog entry regardless of interfaces.
+
+**Interface Dispatch:**
+
+| Interface | Generator | Output |
+|-----------|-----------|--------|
+| `rest` | OpenAPI/Swagger generator | `docs/api/openapi.yaml` |
+| `grpc` | gRPC/Proto documentation generator | `docs/api/grpc-reference.md` |
+| `cli` | CLI documentation generator | `docs/api/cli-reference.md` |
+| `graphql` | GraphQL schema documentation generator | `docs/api/graphql-reference.md` |
+| `websocket`, `kafka`, `event-consumer`, `event-producer` | Event-driven documentation generator | `docs/api/event-reference.md` |
+
+If no documentable interfaces configured: skip interface generators with log
+`"No documentable interfaces configured"`. Always generate changelog entry.
+
+Documentation output saved to `docs/` with subdirectories per type:
+- API docs → `docs/api/`
+- Architecture docs → `docs/architecture/`
+
+**Changelog Entry:**
+- Read commits since branch point (`git log main..HEAD --oneline`)
+- Generate Conventional Commits summary by type (feat, fix, refactor, test, docs, chore)
+- Append to CHANGELOG.md
+
+**Performance Baseline (Recommended):**
+If the implemented feature affects the request path, startup, or memory footprint:
+1. Read `.claude/templates/_TEMPLATE-PERFORMANCE-BASELINE.md` for measurement guide
+2. Record "before" metrics (prior to the feature branch)
+3. Record "after" metrics (with the feature branch)
+4. Append a row to `docs/performance/baselines.md`
+5. If Delta > 10%, add a WARNING note
+6. If Delta > 25%, add an INVESTIGATION note with optimization plan
+
+This step is recommended but not mandatory. Skip does not block the phase.
+
+### CLI Documentation Generator (interface: cli)
+
+> Invoked when project identity `interfaces` contains `"cli"`.
+> Output: `docs/api/cli-reference.md`
+
+**Scan** the project's CLI command definitions using framework-specific patterns:
+- **Commander.js**: `.command()`, `.option()`, `.argument()` chains
+- **Click**: `@click.command()`, `@click.option()`, `@click.argument()` decorators
+- **Cobra**: `cobra.Command{}` structs
+- **Clap**: `#[derive(Parser)]` and `#[arg()]` attributes
+
+**Generate** `docs/api/cli-reference.md` with:
+
+1. `# CLI Reference` — title with project name
+2. `## Quick Start` — at least 2 basic usage examples in code blocks
+3. `## Global Flags` — table of flags applicable to all commands
+   (columns: Flag, Type, Default, Description)
+4. `## Command: {name}` — one section per top-level command:
+   - Usage line: `$ {tool-name} {command} [flags] [args]`
+   - Flags table: | Flag | Type | Default | Required | Description |
+   - Arguments table: | Argument | Type | Required | Description |
+   - At least 1 example in code block
+5. `### Subcommand: {parent} {child}` — nested sections with same structure
+6. `## Exit Codes` — table: | Code | Meaning |
+
+If `interfaces` does NOT contain `"cli"`: skip silently (no output, no warning).
+
+### Event-Driven Documentation Doc Generator
+
+**Trigger:** Invoke when `interfaces` contains `websocket`, `event-consumer`, or `event-producer`.
+
+Launch a `general-purpose` subagent:
+
+> You are a **Documentation Engineer** generating an event catalog for {{PROJECT_NAME}}.
+>
+> **Step 1 — Read context:**
+> - Read `skills/protocols/references/event-driven-conventions.md` — event naming, CloudEvents envelope, topic naming
+> - Read `skills/protocols/references/websocket-conventions.md` — WebSocket channel and message conventions
+> - Read the project source code to identify event definitions: producers, consumers, schemas, topics, channels
+>
+> **Step 2 — Generate `docs/api/event-catalog.md`** with the following structure:
+>
+> 1. **Topics Overview** table: Topic/Channel, Events, Partitioning/Routing
+> 2. **Per-event sections** (one `## Event: {name}` per event):
+>    - Topic/Channel name
+>    - Producer service
+>    - Consumer services
+>    - Payload Schema table: Field, Type, Required, Description
+>    - Headers table (if applicable): correlation-id, content-type, custom headers
+> 3. **Event Flows**: Mermaid `sequenceDiagram` showing Producer → Broker → Consumer for each flow
+> 4. **CloudEvents envelope** details (if applicable): specversion, type, source, subject, datacontenttype
+> 5. **Schema versioning** and backward compatibility notes
+>
+> **Step 3 — Protocol-specific handling:**
+> - For `event-consumer`/`event-producer` (Kafka): document topics, partition keys, consumer groups, offset management
+> - For `websocket`: document channels, message types, connection lifecycle
+> - If both are present, produce a unified catalog covering multiple protocol types
+>
+> Save output to `docs/api/event-catalog.md`.
+
+## Phase 4 — Parallel Review
 
 Invoke skill `/x-review` for the current story. The review skill launches its own parallel subagents (one per specialist engineer), each reading their own knowledge pack.
 
 If `x-review` includes TDD checklist items, it validates: test-first pattern, TPP ordering, atomic TDD commits. If TDD checklist is not yet available, the review proceeds with existing criteria (backward compatible).
 
+If an architecture plan was generated in Phase 1 (`docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`), provide it as additional context to reviewers. Reviewers validate that the implementation conforms to the architectural decisions documented in the plan.
+
 Collect the consolidated review report with scores and severity counts.
 
-## Phase 4 — Fixes + Feedback (Orchestrator — Inline)
+## Phase 5 — Fixes + Feedback (Orchestrator — Inline)
 
-1. Fix ALL failed items from Phase 3 review (every specialist engineer must reach STATUS: Approved — all items at 2/2)
+1. Fix ALL failed items from Phase 4 review (every specialist engineer must reach STATUS: Approved — all items at 2/2)
 2. For each fix, follow TDD discipline: write/update the test FIRST, then apply the fix
 3. Use atomic TDD commits for fixes (same commit format as Phase 2)
 4. Run `{{COMPILE_COMMAND}}` + `{{TEST_COMMAND}}`
 5. Update common-mistakes document with newly found errors
 
-## Phase 5 — Commit & PR (Orchestrator — Inline)
+## Phase 6 — Commit & PR (Orchestrator — Inline)
 
 1. Push: `git push -u origin feat/{STORY_ID}-description`
 2. Create PR via `gh pr create` with review summary in body, including TDD compliance:
@@ -211,13 +354,13 @@ Collect the consolidated review report with scores and severity counts.
    - Test-first pattern verified
    - TPP progression in commit history
 
-## Phase 6 — Tech Lead Review
+## Phase 7 — Tech Lead Review
 
 Invoke skill `x-review-pr` for holistic 40-point review. Requires 40/40 for GO. If NO-GO, fix all failed items and re-review (max 2 cycles).
 
 If `x-review-pr` includes TDD criteria, it validates TDD compliance in the checklist. If TDD criteria are not yet available, the review proceeds with existing checklist (backward compatible).
 
-## Phase 7 — Final Verification + Cleanup (Orchestrator — Inline)
+## Phase 8 — Final Verification + Cleanup (Orchestrator — Inline)
 
 1. Update README if needed
 2. Update IMPLEMENTATION-MAP
@@ -237,7 +380,7 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
 6. Report PASS/FAIL result
 7. `git checkout main && git pull origin main`
 
-**Phase 7 is the ONLY legitimate stopping point.**
+**Phase 8 is the ONLY legitimate stopping point.**
 
 ## Roles and Models (Adaptive)
 
@@ -246,11 +389,11 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
 | Architect | Phase 1 | Senior |
 | Task Decomposer | Phase 1C | Mid |
 | Developer | Phase 2 | Adaptive (per Layer Task Catalog) |
-| Specialist Reviews | Phase 3 | Adaptive (max task tier in domain) |
-| Tech Lead | Phase 6 | Adaptive (story max tier) |
+| Specialist Reviews | Phase 4 | Adaptive (max task tier in domain) |
+| Tech Lead | Phase 7 | Adaptive (story max tier) |
 
 ## Integration Notes
 
-- Invokes: `x-test-plan`, `x-lib-task-decomposer`, `x-lib-group-verifier` (fallback only), `x-git-push`, `x-review`, `x-review-pr`
+- Invokes: `x-dev-architecture-plan` (Phase 1, conditional), `x-test-plan`, `x-lib-task-decomposer`, `x-lib-group-verifier` (fallback only), `x-git-push`, `x-review`, `x-review-pr`
 - TDD commit format follows `x-git-push` conventions (`[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]` suffixes)
 - All `{{PLACEHOLDER}}` tokens (e.g. `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
