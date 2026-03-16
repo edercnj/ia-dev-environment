@@ -85,6 +85,12 @@ function renderAndWrite(
   }
 }
 
+/** Collected output from assembler generation steps. */
+interface GenerationOutput {
+  readonly files: string[];
+  readonly warnings: string[];
+}
+
 /** Generates CI/CD artifacts conditionally based on config. */
 export class CicdAssembler {
   /** Assemble CI/CD artifacts and return files + warnings. */
@@ -94,29 +100,15 @@ export class CicdAssembler {
     resourcesDir: string,
     engine: TemplateEngine,
   ): AssembleResult {
-    const files: string[] = [];
-    const warnings: string[] = [];
+    const out: GenerationOutput = { files: [], warnings: [] };
     const ctx = buildStackContext(config);
-    this.generateCiWorkflow(
-      outputDir, engine, ctx, files, warnings,
-    );
-    this.generateDockerfile(
-      config, outputDir, resourcesDir, engine, ctx,
-      files, warnings,
-    );
-    this.generateDockerCompose(
-      config, outputDir, engine, ctx, files, warnings,
-    );
-    this.generateK8sManifests(
-      config, outputDir, engine, ctx, files, warnings,
-    );
-    this.generateSmokeTestConfig(
-      config, outputDir, resourcesDir, files, warnings,
-    );
-    this.generateDeployRunbook(
-      outputDir, engine, ctx, files, warnings,
-    );
-    return { files, warnings };
+    this.generateCiWorkflow(outputDir, engine, ctx, out);
+    this.generateDockerfile(config, outputDir, resourcesDir, engine, ctx, out);
+    this.generateDockerCompose(config, outputDir, engine, ctx, out);
+    this.generateK8sManifests(config, outputDir, engine, ctx, out);
+    this.generateSmokeTestConfig(config, outputDir, resourcesDir, out);
+    this.generateDeployRunbook(outputDir, engine, ctx, out);
+    return { files: out.files, warnings: out.warnings };
   }
 
   /** CI workflow — always generated. */
@@ -124,16 +116,15 @@ export class CicdAssembler {
     outputDir: string,
     engine: TemplateEngine,
     ctx: Record<string, unknown>,
-    files: string[],
-    warnings: string[],
+    out: GenerationOutput,
   ): void {
     const dest = path.join(
       outputDir, ".github", "workflows", "ci.yml",
     );
     if (renderAndWrite(engine, CI_TEMPLATE, dest, ctx)) {
-      files.push(dest);
+      out.files.push(dest);
     } else {
-      warnings.push("CI workflow template not found");
+      out.warnings.push("CI workflow template not found");
     }
   }
 
@@ -144,27 +135,24 @@ export class CicdAssembler {
     resourcesDir: string,
     engine: TemplateEngine,
     ctx: Record<string, unknown>,
-    files: string[],
-    warnings: string[],
+    out: GenerationOutput,
   ): void {
     if (config.infrastructure.container !== DOCKER_CONDITION) {
-      warnings.push("Dockerfile skipped: container is not docker");
+      out.warnings.push("Dockerfile skipped: container is not docker");
       return;
     }
     const stackKey = `${config.language.name}-${config.framework.buildTool}`;
-    const templateFile = `dockerfile/Dockerfile.${stackKey}.njk`;
-    const srcPath = path.join(
-      resourcesDir, CICD_TEMPLATES, templateFile,
-    );
+    const tpl = `dockerfile/Dockerfile.${stackKey}.njk`;
+    const srcPath = path.join(resourcesDir, CICD_TEMPLATES, tpl);
     if (!fs.existsSync(srcPath)) {
-      warnings.push(
+      out.warnings.push(
         `Dockerfile template not found for stack: ${stackKey}`,
       );
       return;
     }
     const dest = path.join(outputDir, "Dockerfile");
-    if (renderAndWrite(engine, templateFile, dest, ctx)) {
-      files.push(dest);
+    if (renderAndWrite(engine, tpl, dest, ctx)) {
+      out.files.push(dest);
     }
   }
 
@@ -174,18 +162,17 @@ export class CicdAssembler {
     outputDir: string,
     engine: TemplateEngine,
     ctx: Record<string, unknown>,
-    files: string[],
-    warnings: string[],
+    out: GenerationOutput,
   ): void {
     if (config.infrastructure.container !== DOCKER_CONDITION) {
-      warnings.push(
+      out.warnings.push(
         "Docker Compose skipped: container is not docker",
       );
       return;
     }
     const dest = path.join(outputDir, "docker-compose.yml");
     if (renderAndWrite(engine, COMPOSE_TEMPLATE, dest, ctx)) {
-      files.push(dest);
+      out.files.push(dest);
     }
   }
 
@@ -195,11 +182,10 @@ export class CicdAssembler {
     outputDir: string,
     engine: TemplateEngine,
     ctx: Record<string, unknown>,
-    files: string[],
-    warnings: string[],
+    out: GenerationOutput,
   ): void {
     if (config.infrastructure.orchestrator !== K8S_CONDITION) {
-      warnings.push(
+      out.warnings.push(
         "K8s manifests skipped: orchestrator is not kubernetes",
       );
       return;
@@ -208,7 +194,7 @@ export class CicdAssembler {
       const dest = path.join(outputDir, "k8s", manifest);
       const tpl = `k8s/${manifest.replace(".yaml", ".yaml.njk")}`;
       if (renderAndWrite(engine, tpl, dest, ctx)) {
-        files.push(dest);
+        out.files.push(dest);
       }
     }
   }
@@ -218,11 +204,10 @@ export class CicdAssembler {
     config: ProjectConfig,
     outputDir: string,
     resourcesDir: string,
-    files: string[],
-    warnings: string[],
+    out: GenerationOutput,
   ): void {
     if (!config.testing.smokeTests) {
-      warnings.push(
+      out.warnings.push(
         "Smoke test config skipped: smokeTests is false",
       );
       return;
@@ -236,7 +221,7 @@ export class CicdAssembler {
     );
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.copyFileSync(src, dest);
-    files.push(dest);
+    out.files.push(dest);
   }
 
   /** Deploy runbook — always generated. */
@@ -244,16 +229,15 @@ export class CicdAssembler {
     outputDir: string,
     engine: TemplateEngine,
     ctx: Record<string, unknown>,
-    files: string[],
-    warnings: string[],
+    out: GenerationOutput,
   ): void {
     const dest = path.join(
       outputDir, "docs", "runbook", "deploy-runbook.md",
     );
     if (renderAndWrite(engine, RUNBOOK_TEMPLATE, dest, ctx)) {
-      files.push(dest);
+      out.files.push(dest);
     } else {
-      warnings.push("Deploy runbook template not found");
+      out.warnings.push("Deploy runbook template not found");
     }
   }
 }
