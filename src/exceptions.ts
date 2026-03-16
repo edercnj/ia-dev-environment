@@ -39,3 +39,31 @@ export class PipelineError extends Error {
     this.reason = reason;
   }
 }
+
+export class CheckpointValidationError extends Error {
+  readonly field: string;
+  readonly detail: string;
+
+  constructor(field: string, detail: string) {
+    super(
+      `Checkpoint validation failed: ${field} -- ${detail}`,
+    );
+    this.name = "CheckpointValidationError";
+    this.field = field;
+    this.detail = detail;
+  }
+}
+
+export class CheckpointIOError extends Error {
+  readonly path: string;
+  readonly operation: string;
+
+  constructor(path: string, operation: string) {
+    super(
+      `Checkpoint I/O failed during '${operation}': ${path}`,
+    );
+    this.name = "CheckpointIOError";
+    this.path = path;
+    this.operation = operation;
+  }
+}
