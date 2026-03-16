@@ -81,17 +81,22 @@ describe("SKILL_GROUPS and INFRA_SKILL_CONDITIONS", () => {
     }
   });
 
-  it("SKILL_GROUPS_devGroup_contains4Skills", () => {
+  it("SKILL_GROUPS_devGroup_contains5Skills", () => {
     expect(SKILL_GROUPS["dev"]).toEqual([
       "x-dev-implement",
       "x-dev-lifecycle",
       "x-dev-architecture-plan",
+      "x-dev-arch-update",
       "layer-templates",
     ]);
   });
 
   it("SKILL_GROUPS_devGroup_includesArchitecturePlan", () => {
     expect(SKILL_GROUPS["dev"]).toContain("x-dev-architecture-plan");
+  });
+
+  it("SKILL_GROUPS_devGroup_includesArchUpdate", () => {
+    expect(SKILL_GROUPS["dev"]).toContain("x-dev-arch-update");
   });
 
   it("INFRA_SKILL_CONDITIONS_has5Entries", () => {
