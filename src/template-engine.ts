@@ -19,7 +19,7 @@ function toPythonBool(value: boolean): string {
 /**
  * Build a flat context dictionary from a {@link ProjectConfig}.
  *
- * Returns 24 fields matching the Python `_build_default_context`
+ * Returns 25 fields matching the Python `_build_default_context`
  * function. Boolean values are converted to Python-style strings
  * (`"True"` / `"False"`) for rendering parity with Jinja2.
  */
@@ -51,6 +51,8 @@ export function buildDefaultContext(
     performance_tests: toPythonBool(config.testing.performanceTests),
     coverage_line: config.testing.coverageLine,
     coverage_branch: config.testing.coverageBranch,
+    interfaces_list:
+      config.interfaces.map((i) => i.type).join(", ") || "none",
   };
 }
 
