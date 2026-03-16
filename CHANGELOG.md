@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Implementation Map Parser (story-0005-0004):** New `src/domain/implementation-map/` module that parses `IMPLEMENTATION-MAP.md` files and builds a dependency DAG. Features: markdown table extraction, DAG construction with adjacency lists, symmetry validation with auto-correction, cycle detection (DFS three-color), phase computation, critical path identification (topological-sort longest path), and `getExecutableStories()` with critical path priority sorting. Pure-function design with zero external dependencies. 76 tests, 100% line coverage, 92.36% branch coverage.
 - **GitHub Actions CI** -- Lint, build, test workflow with Node.js 20/22 matrix.
   Coverage upload on Node 22. Pack verification job.
 - **npm packaging** -- `files` field, `prepublishOnly` script for publish gating.
