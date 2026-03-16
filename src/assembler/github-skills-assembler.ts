@@ -11,6 +11,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import type { ProjectConfig } from "../models.js";
 import type { TemplateEngine } from "../template-engine.js";
+import { replacePlaceholdersInDir } from "./copy-helpers.js";
 
 const GITHUB_SKILLS_TEMPLATES_DIR = "github-skills-templates";
 const SKILL_MD = "SKILL.md";
@@ -137,6 +138,20 @@ export class GithubSkillsAssembler {
     fs.mkdirSync(skillDir, { recursive: true });
     const dest = path.join(skillDir, SKILL_MD);
     fs.writeFileSync(dest, rendered, "utf-8");
+    this.copyReferences(srcDir, skillDir, name, engine);
     return dest;
+  }
+
+  private copyReferences(
+    srcDir: string,
+    skillDir: string,
+    name: string,
+    engine: TemplateEngine,
+  ): void {
+    const refsDir = path.join(srcDir, "references", name);
+    if (!fs.existsSync(refsDir)) return;
+    const destRefs = path.join(skillDir, "references");
+    fs.cpSync(refsDir, destRefs, { recursive: true });
+    replacePlaceholdersInDir(destRefs, engine);
   }
 }

@@ -513,3 +513,163 @@ describe("GithubSkillsAssembler — lib group", () => {
     expect(libFiles).toHaveLength(0);
   });
 });
+
+function createSkillWithReferences(
+  resourcesDir: string,
+  group: string,
+  skillName: string,
+  refFiles: Record<string, string>,
+  skillContent: string = "# Skill\n{project_name}",
+): void {
+  createSkillTemplate(resourcesDir, group, skillName, skillContent);
+  const refsDir = path.join(
+    resourcesDir, "github-skills-templates", group,
+    "references", skillName,
+  );
+  fs.mkdirSync(refsDir, { recursive: true });
+  for (const [name, content] of Object.entries(refFiles)) {
+    fs.writeFileSync(path.join(refsDir, name), content, "utf-8");
+  }
+}
+
+describe("GithubSkillsAssembler — references", () => {
+  let tmpDir: string;
+  let resourcesDir: string;
+  let outputDir: string;
+  let assembler: GithubSkillsAssembler;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(
+      path.join(tmpdir(), "gh-skills-refs-test-"),
+    );
+    resourcesDir = path.join(tmpDir, "resources");
+    fs.mkdirSync(resourcesDir, { recursive: true });
+    outputDir = path.join(tmpDir, "output");
+    fs.mkdirSync(outputDir, { recursive: true });
+    assembler = new GithubSkillsAssembler();
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("renderSkill_withReferencesDir_copiesReferencesToOutput", () => {
+    createSkillWithReferences(
+      resourcesDir, "dev", "x-dev-lifecycle",
+      { "openapi-generator.md": "# OpenAPI\n{project_name}" },
+    );
+    const config = buildConfig();
+    const engine = new TemplateEngine(resourcesDir, config);
+    assembler.assemble(config, outputDir, resourcesDir, engine);
+    const refPath = path.join(
+      outputDir, "skills", "x-dev-lifecycle",
+      "references", "openapi-generator.md",
+    );
+    expect(fs.existsSync(refPath)).toBe(true);
+  });
+
+  it("renderSkill_withoutReferencesDir_behaviorUnchanged", () => {
+    createSkillTemplate(resourcesDir, "dev", "x-dev-implement");
+    const config = buildConfig();
+    const engine = new TemplateEngine(resourcesDir, config);
+    assembler.assemble(config, outputDir, resourcesDir, engine);
+    const refsDir = path.join(
+      outputDir, "skills", "x-dev-implement", "references",
+    );
+    expect(fs.existsSync(refsDir)).toBe(false);
+  });
+
+  it("renderSkill_referencesContent_placeholdersReplaced", () => {
+    createSkillWithReferences(
+      resourcesDir, "dev", "x-dev-lifecycle",
+      { "ref.md": "# Ref for {project_name}" },
+    );
+    const config = buildConfig();
+    const engine = new TemplateEngine(resourcesDir, config);
+    assembler.assemble(config, outputDir, resourcesDir, engine);
+    const refPath = path.join(
+      outputDir, "skills", "x-dev-lifecycle",
+      "references", "ref.md",
+    );
+    const content = fs.readFileSync(refPath, "utf-8");
+    expect(content).toBe("# Ref for my-app");
+  });
+
+  it("renderSkill_multipleReferenceFiles_allCopied", () => {
+    createSkillWithReferences(
+      resourcesDir, "dev", "x-dev-lifecycle",
+      {
+        "openapi-generator.md": "# OpenAPI",
+        "grpc-generator.md": "# gRPC",
+      },
+    );
+    const config = buildConfig();
+    const engine = new TemplateEngine(resourcesDir, config);
+    assembler.assemble(config, outputDir, resourcesDir, engine);
+    const refsDir = path.join(
+      outputDir, "skills", "x-dev-lifecycle", "references",
+    );
+    const files = fs.readdirSync(refsDir).sort();
+    expect(files).toEqual([
+      "grpc-generator.md", "openapi-generator.md",
+    ]);
+  });
+
+  it("renderSkill_libGroupWithReferences_copiedToNestedPath", () => {
+    createSkillWithReferences(
+      resourcesDir, "lib", "x-lib-task-decomposer",
+      { "guide.md": "# Guide\n{project_name}" },
+    );
+    const config = buildConfig();
+    const engine = new TemplateEngine(resourcesDir, config);
+    assembler.assemble(config, outputDir, resourcesDir, engine);
+    const refPath = path.join(
+      outputDir, "skills", "lib", "x-lib-task-decomposer",
+      "references", "guide.md",
+    );
+    expect(fs.existsSync(refPath)).toBe(true);
+    const content = fs.readFileSync(refPath, "utf-8");
+    expect(content).toBe("# Guide\nmy-app");
+  });
+
+  it("renderSkill_emptyReferencesDir_createsEmptyRefsDir", () => {
+    createSkillTemplate(resourcesDir, "dev", "x-dev-lifecycle");
+    const refsDir = path.join(
+      resourcesDir, "github-skills-templates", "dev",
+      "references", "x-dev-lifecycle",
+    );
+    fs.mkdirSync(refsDir, { recursive: true });
+    const config = buildConfig();
+    const engine = new TemplateEngine(resourcesDir, config);
+    assembler.assemble(config, outputDir, resourcesDir, engine);
+    const outRefs = path.join(
+      outputDir, "skills", "x-dev-lifecycle", "references",
+    );
+    expect(fs.existsSync(outRefs)).toBe(true);
+    expect(fs.readdirSync(outRefs)).toHaveLength(0);
+  });
+
+  it("renderSkill_nonMdFilesInReferences_copiedWithoutReplacement", () => {
+    createSkillTemplate(resourcesDir, "dev", "x-dev-lifecycle");
+    const refsDir = path.join(
+      resourcesDir, "github-skills-templates", "dev",
+      "references", "x-dev-lifecycle",
+    );
+    fs.mkdirSync(refsDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(refsDir, "schema.json"),
+      '{"key": "{project_name}"}',
+      "utf-8",
+    );
+    const config = buildConfig();
+    const engine = new TemplateEngine(resourcesDir, config);
+    assembler.assemble(config, outputDir, resourcesDir, engine);
+    const outFile = path.join(
+      outputDir, "skills", "x-dev-lifecycle",
+      "references", "schema.json",
+    );
+    expect(fs.existsSync(outFile)).toBe(true);
+    const content = fs.readFileSync(outFile, "utf-8");
+    expect(content).toBe('{"key": "{project_name}"}');
+  });
+});
