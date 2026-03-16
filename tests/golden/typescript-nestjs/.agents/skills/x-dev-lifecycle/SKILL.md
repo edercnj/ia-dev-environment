@@ -22,7 +22,8 @@ argument-hint: "[STORY-ID or feature-name]"
 
 **9 phases (0-8). ALL mandatory. NEVER stop before Phase 8.**
 
-After EACH phase: `>>> Phase N/8 completed. Proceeding to Phase N+1...`
+After each phase 0–7: `>>> Phase N/8 completed. Proceeding to Phase N+1...`
+After Phase 8: `>>> Phase 8/8 completed. Lifecycle complete.`
 
 ## Complete Flow
 

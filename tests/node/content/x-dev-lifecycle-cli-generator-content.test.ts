@@ -215,6 +215,12 @@ describe.each(SOURCES)(
       expect(content).toContain("## Integration Notes");
     });
 
+    it("preservation_lifecycleCompleteMessage_phase8of8", () => {
+      expect(content).toContain(
+        "Phase 8/8 completed. Lifecycle complete.",
+      );
+    });
+
     it.each(
       PLACEHOLDER_TOKENS.map((t) => [t]),
     )("preservation_placeholderToken_%s", (token) => {
@@ -230,12 +236,6 @@ describe.each(SOURCES)(
 describe("GitHub source — additional preservation", () => {
   it("githubSource_preservation_detailedReferences", () => {
     expect(githubContent).toContain("## Detailed References");
-  });
-
-  it("githubSource_preservation_lifecycleCompleteMessage_phase8of8", () => {
-    expect(githubContent).toContain(
-      "Phase 8/8 completed. Lifecycle complete.",
-    );
   });
 });
 

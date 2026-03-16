@@ -140,8 +140,8 @@ These tests ensure the CLI generator addition does not break existing template s
 
 | # | ID | Test Name | What It Validates | Depends On | Parallel |
 |---|-----|-----------|-------------------|------------|----------|
-| 25 | UT-24 | `claudeSource_preservesPhaseCount` | "8 phases (0-7)" wording is preserved | TASK-1 | Yes (with UT-25 through UT-30) |
-| 26 | UT-25 | `claudeSource_preservesCriticalExecutionRule` | "NEVER stop before Phase 7" rule is preserved | TASK-1 | Yes (with UT-24, UT-26 through UT-30) |
+| 25 | UT-24 | `claudeSource_preservesPhaseCount` | "9 phases (0-8)" wording is preserved | TASK-1 | Yes (with UT-25 through UT-30) |
+| 26 | UT-25 | `claudeSource_preservesCriticalExecutionRule` | "NEVER stop before Phase 8" rule is preserved | TASK-1 | Yes (with UT-24, UT-26 through UT-30) |
 | 27 | UT-26 | `claudeSource_preservesPhase2TDDHeading` | Phase 2 heading with "TDD" is preserved | TASK-1 | Yes (with UT-24, UT-25, UT-27 through UT-30) |
 | 28 | UT-27 | `claudeSource_preservesG1G7Fallback` | G1-G7 Fallback section is preserved | TASK-1 | Yes (with UT-24 through UT-26, UT-28 through UT-30) |
 | 29 | UT-28 | `claudeSource_preservesPhase1ArchitectSubagent` | Phase 1 "Senior Architect" subagent prompt preserved | TASK-1 | Yes (with UT-24 through UT-27, UT-29, UT-30) |
@@ -202,7 +202,7 @@ Same 23 CLI generator content tests as Section 3.2, but targeting the GitHub cop
 | 73 | DC-9 | `dualCopy_bothContainSkipBehavior` | Both sources describe silent skip when no CLI interface | TASK-1 + TASK-2 | Yes |
 | 74 | DC-10 | `dualCopy_bothContainFourFrameworkPatterns` | Both sources reference scan patterns for Commander.js, Click, Cobra, and Clap | TASK-1 + TASK-2 | Yes |
 | 75 | DC-11 | `dualCopy_bothContainFlagsTableColumns` | Both sources specify the same flags table columns (Flag, Type, Default, Description) | TASK-1 + TASK-2 | Yes |
-| 76 | DC-12 | `dualCopy_phaseCount_identical` | Both sources still declare "8 phases (0-7)" | TASK-1 + TASK-2 | Yes |
+| 76 | DC-12 | `dualCopy_phaseCount_identical` | Both sources still declare "9 phases (0-8)" | TASK-1 + TASK-2 | Yes |
 | 77 | DC-13 | `dualCopy_pathDifferences_onlyExpected` | The only differences between the two templates in the CLI generator section are expected path references (`skills/` vs `.github/skills/`) and structural differences documented in RULE-001 | TASK-1 + TASK-2 | No |
 
 ---
@@ -344,8 +344,8 @@ These tests ensure no existing functionality is removed:
 
 | Verification | How Tested |
 |--------------|-----------|
-| 8 phases (0-7) count preserved | UT-24/UT-54: regex match `8 phases.*0-7` |
-| "NEVER stop before Phase 7" preserved | UT-25/UT-55: exact substring match |
+| 9 phases (0-8) count preserved | UT-24/UT-54: regex match `9 phases.*0-8` |
+| "NEVER stop before Phase 8" preserved | UT-25/UT-55: exact substring match |
 | Phase 2 TDD heading preserved | UT-26/UT-56: substring match |
 | G1-G7 Fallback preserved | UT-27/UT-57: substring match |
 | Phase 1 architect subagent preserved | UT-28/UT-58: "Senior Architect" text preserved |

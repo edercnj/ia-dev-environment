@@ -25,6 +25,6 @@ PARTIAL:
 
 This changeset is exclusively documentation-phase content:
 - 27 Markdown files: identical additions of a "Phase 3 — Documentation" section to the `x-dev-lifecycle` SKILL.md template, with CLI Documentation Generator subsection, plus renumbering of subsequent phases (old 3-7 becomes 4-8).
-- 1 test file (`tests/node/content/x-dev-lifecycle-cli-generator-content.test.ts`): 543 lines of read-only content validation using `fs.readFileSync` on hardcoded paths and Vitest string assertions.
+- 1 test file (`tests/node/content/x-dev-lifecycle-cli-generator-content.test.ts`): 325 lines of read-only content validation using `fs.readFileSync` on hardcoded paths and Vitest string assertions.
 
 No TypeScript source code, runtime logic, API endpoints, authentication flows, data processing, or dependency changes are included. All 10 security checklist items pass as not applicable — there is no attack surface introduced by this changeset.
