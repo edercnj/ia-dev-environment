@@ -502,4 +502,146 @@ describe("x-dev-lifecycle dual copy consistency (RULE-001)", () => {
     expect(claudeMatch![1]).toBe(githubMatch![1]);
     expect(claudeMatch![2]).toBe(githubMatch![2]);
   });
+
+  // UT-32: Both contain Performance Baseline heading
+  it("dualCopy_bothContainPerformanceBaselineHeading", () => {
+    expect(claudeContent).toMatch(/Performance Baseline/);
+    expect(githubContent).toMatch(/Performance Baseline/);
+  });
+
+  // UT-33: Both contain "recommended" language
+  it("dualCopy_bothContainPerformanceBaselineRecommended", () => {
+    expect(claudeContent).toMatch(/[Rr]ecommended/);
+    expect(githubContent).toMatch(/[Rr]ecommended/);
+  });
+
+  // UT-34: Both reference template file
+  it("dualCopy_bothReferenceTemplateFile", () => {
+    expect(claudeContent).toContain(
+      "_TEMPLATE-PERFORMANCE-BASELINE.md",
+    );
+    expect(githubContent).toContain(
+      "_TEMPLATE-PERFORMANCE-BASELINE.md",
+    );
+  });
+
+  // UT-35: Both reference output file
+  it("dualCopy_bothReferenceOutputFile", () => {
+    expect(claudeContent).toContain("docs/performance/baselines.md");
+    expect(githubContent).toContain("docs/performance/baselines.md");
+  });
+
+  // UT-36: Both contain 10% warning threshold
+  it("dualCopy_bothContainDeltaWarningThreshold", () => {
+    expect(claudeContent).toMatch(/10%/);
+    expect(githubContent).toMatch(/10%/);
+  });
+
+  // UT-37: Both contain 25% investigation threshold
+  it("dualCopy_bothContainInvestigationThreshold", () => {
+    expect(claudeContent).toMatch(/25%/);
+    expect(githubContent).toMatch(/25%/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AT-9: Claude source — Performance Baseline prompt in Phase 3
+// ---------------------------------------------------------------------------
+
+describe("x-dev-lifecycle Claude source — Performance Baseline", () => {
+  // UT-17: Contains Performance Baseline heading
+  it("claudeSource_phase3_containsPerformanceBaselineHeading", () => {
+    expect(claudeContent).toMatch(/Performance Baseline/);
+  });
+
+  // UT-18: Contains "recommended" or "Recommended"
+  it("claudeSource_phase3_performanceBaselineRecommended", () => {
+    expect(claudeContent).toMatch(/[Rr]ecommended/);
+  });
+
+  // UT-19: Skip does not block phase
+  it("claudeSource_phase3_performanceBaselineSkipNotBlock", () => {
+    expect(claudeContent).toMatch(
+      /[Ss]kip does not block the phase/,
+    );
+  });
+
+  // UT-20: References template file
+  it("claudeSource_phase3_referencesTemplateFile", () => {
+    expect(claudeContent).toContain(
+      "_TEMPLATE-PERFORMANCE-BASELINE.md",
+    );
+  });
+
+  // UT-21: References output file
+  it("claudeSource_phase3_referencesOutputFile", () => {
+    expect(claudeContent).toContain("docs/performance/baselines.md");
+  });
+
+  // UT-22: Contains 10% warning threshold
+  it("claudeSource_phase3_containsDeltaWarningThreshold", () => {
+    expect(claudeContent).toMatch(/10%/);
+  });
+
+  // UT-23: Contains 25% investigation threshold
+  it("claudeSource_phase3_containsInvestigationThreshold", () => {
+    expect(claudeContent).toMatch(/25%/);
+  });
+
+  // UT-24: Performance Baseline within Phase 3 (after Phase 3, before Phase 4)
+  it("claudeSource_performanceBaseline_withinPhase3", () => {
+    const phase3Idx = claudeContent.search(/## Phase 3/);
+    const phase4Idx = claudeContent.search(/## Phase 4/);
+    const perfBaselineIdx = claudeContent.search(/Performance Baseline/);
+    expect(phase3Idx).toBeGreaterThan(-1);
+    expect(phase4Idx).toBeGreaterThan(-1);
+    expect(perfBaselineIdx).toBeGreaterThan(-1);
+    expect(perfBaselineIdx).toBeGreaterThan(phase3Idx);
+    expect(perfBaselineIdx).toBeLessThan(phase4Idx);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AT-11: GitHub source — Performance Baseline prompt in Phase 3
+// ---------------------------------------------------------------------------
+
+describe("x-dev-lifecycle GitHub source — Performance Baseline", () => {
+  // UT-25: Contains Performance Baseline heading
+  it("githubSource_phase3_containsPerformanceBaselineHeading", () => {
+    expect(githubContent).toMatch(/Performance Baseline/);
+  });
+
+  // UT-26: Contains "recommended" or "Recommended"
+  it("githubSource_phase3_performanceBaselineRecommended", () => {
+    expect(githubContent).toMatch(/[Rr]ecommended/);
+  });
+
+  // UT-27: Skip does not block phase
+  it("githubSource_phase3_performanceBaselineSkipNotBlock", () => {
+    expect(githubContent).toMatch(
+      /[Ss]kip does not block the phase/,
+    );
+  });
+
+  // UT-28: References template file
+  it("githubSource_phase3_referencesTemplateFile", () => {
+    expect(githubContent).toContain(
+      "_TEMPLATE-PERFORMANCE-BASELINE.md",
+    );
+  });
+
+  // UT-29: References output file
+  it("githubSource_phase3_referencesOutputFile", () => {
+    expect(githubContent).toContain("docs/performance/baselines.md");
+  });
+
+  // UT-30: Contains 10% warning threshold
+  it("githubSource_phase3_containsDeltaWarningThreshold", () => {
+    expect(githubContent).toMatch(/10%/);
+  });
+
+  // UT-31: Contains 25% investigation threshold
+  it("githubSource_phase3_containsInvestigationThreshold", () => {
+    expect(githubContent).toMatch(/25%/);
+  });
 });
