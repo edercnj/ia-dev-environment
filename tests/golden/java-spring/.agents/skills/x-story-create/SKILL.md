@@ -131,6 +131,70 @@ Include:
 - Response construction
 - Error paths (at least one error scenario)
 
+##### Diagram Requirement Matrix
+
+| Story Type | Sequence Diagram | Deployment Diagram | Activity Diagram |
+|:---|:---|:---|:---|
+| Request→Response flow (REST, gRPC, TCP) | **MANDATORY** | — | Recommended if 3+ branches |
+| Event-driven flow (producer→broker→consumer) | **MANDATORY** | — | Recommended if 3+ branches |
+| Infrastructure / deployment change | — | **MANDATORY** | — |
+| Complex business logic (3+ decision branches) | Recommended | — | **MANDATORY** |
+| Documentation / configuration only | Not required | Not required | Not required |
+| Refactoring (no behavior change) | Recommended | — | — |
+
+Rules:
+- A story involving data flow between 2+ components MUST include a sequence diagram.
+- A story altering infrastructure MUST include a deployment diagram.
+- A story with no data flow and no infrastructure change MAY omit diagrams but should note "Diagram not required for this story type."
+
+##### Inter-Layer Sequence Diagram Template
+
+Use this template as the starting point for stories involving request→response flows:
+
+```mermaid
+sequenceDiagram
+    participant Client as Client
+    participant Inbound as Inbound Adapter<br/>(REST/gRPC/CLI)
+    participant App as Application<br/>(Use Case)
+    participant Domain as Domain<br/>(Engine/Model)
+    participant Outbound as Outbound Adapter<br/>(DB/API/Queue)
+
+    Client->>Inbound: Request (DTO)
+    Inbound->>Inbound: Validate & Map DTO→Command
+    Inbound->>App: Execute(Command)
+    App->>Domain: Process(Entity)
+    Domain->>Domain: Apply business rules
+    Domain-->>App: Result
+    App->>Outbound: Persist/Send
+    Outbound-->>App: Confirmation
+    App-->>Inbound: Response
+    Inbound-->>Client: Response (DTO)
+
+    alt Validation Error
+        Inbound-->>Client: 400 Bad Request
+    end
+
+    alt Domain Rule Violation
+        Domain-->>App: BusinessException
+        App-->>Inbound: Error Result
+        Inbound-->>Client: 422 Unprocessable Entity
+    end
+```
+
+Participant naming rules:
+- Use actual component names from the spec (not generic "Service A").
+- Must show at least: trigger → validation → business logic → persistence → response.
+- Must include at least 1 error scenario with `alt` block.
+
+##### Diagram Validation Checklist
+
+- [ ] Participants use real component names (not "Service A", "Service B")
+- [ ] Diagram shows at least 3 architecture layers (e.g., Inbound → Application → Domain)
+- [ ] At least 1 error path is shown using `alt` block
+- [ ] All data transformations are visible (DTO→Command, Entity→Domain)
+- [ ] Async operations (if any) are distinguished from sync calls
+- [ ] Response construction path is complete (from domain result back to client)
+
 #### Section 7 — Critérios de Aceite (Gherkin)
 
 Write Gherkin scenarios in Portuguese (DADO/QUANDO/ENTÃO/E/MAS).

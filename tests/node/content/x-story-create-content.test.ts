@@ -38,6 +38,55 @@ const NEW_COMMON_MISTAKES = [
   "Under-counting scenarios",
 ];
 
+const DIAGRAM_REQUIREMENT_MATRIX_ROWS = [
+  "Request",
+  "Event-driven",
+  "Infrastructure",
+  "Documentation",
+  "Complex business logic",
+  "Refactoring",
+];
+
+const DIAGRAM_TYPES = [
+  "Sequence",
+  "Deployment",
+  "Activity",
+];
+
+const DIAGRAM_OBLIGATION_LEVELS = [
+  "MANDATORY",
+  "Recommended",
+  "Not required",
+];
+
+const SEQUENCE_DIAGRAM_PARTICIPANTS = [
+  "Inbound",
+  "Application",
+  "Domain",
+  "Outbound",
+];
+
+const DIAGRAM_CHECKLIST_ITEMS = [
+  "real component names",
+  "error path",
+  "architecture layers",
+  "data transformations",
+];
+
+function extractSection(source: string, heading: string): string {
+  const start = source.indexOf(heading);
+  if (start === -1) return "";
+  const afterHeading = source.indexOf("\n", start);
+  const level = heading.match(/^#+/)?.[0] ?? "#####";
+  const nextHeadingPattern = new RegExp(
+    `^#{1,${level.length}}\\s`,
+    "m",
+  );
+  const rest = source.slice(afterHeading + 1);
+  const nextMatch = rest.search(nextHeadingPattern);
+  return nextMatch === -1 ? rest : rest.slice(0, nextMatch);
+}
+
 describe("x-story-create content validation", () => {
   describe("Claude source template", () => {
     it("containsRule13Reference_prerequisiteSection_referencesStoryDecomposition", () => {
@@ -107,6 +156,136 @@ describe("x-story-create content validation", () => {
 
     it("containsTPPOrderingRationale_gherkinSection_explainsTPPOrdering", () => {
       expect(claudeSource).toContain("TPP ordering rationale");
+    });
+
+    describe("diagram requirement matrix", () => {
+      const matrixSection = extractSection(
+        claudeSource,
+        "##### Diagram Requirement Matrix",
+      );
+
+      it("containsDiagramRequirementMatrix_section6_hasHeading", () => {
+        expect(claudeSource).toContain("Diagram Requirement Matrix");
+      });
+
+      it.each(
+        DIAGRAM_REQUIREMENT_MATRIX_ROWS.map((row) => [row]),
+      )(
+        "containsMatrixRow_%s_inRequirementMatrix",
+        (row) => {
+          expect(matrixSection).toContain(row);
+        },
+      );
+
+      it.each(
+        DIAGRAM_TYPES.map((type) => [type]),
+      )(
+        "containsDiagramType_%s_inRequirementMatrix",
+        (type) => {
+          expect(matrixSection).toContain(type);
+        },
+      );
+
+      it.each(
+        DIAGRAM_OBLIGATION_LEVELS.map((level) => [level]),
+      )(
+        "containsObligationLevel_%s_inRequirementMatrix",
+        (level) => {
+          expect(matrixSection).toContain(level);
+        },
+      );
+
+      it("matrixMandatesSequenceDiagram_requestResponseStory_mandatory", () => {
+        const requestRow = matrixSection.split("\n").find(
+          (line) => line.includes("Request") && line.includes("Response"),
+        );
+        expect(requestRow).toBeDefined();
+        expect(requestRow).toContain("MANDATORY");
+      });
+
+      it("matrixMandatesDeploymentDiagram_infrastructureStory_mandatory", () => {
+        const infraRow = matrixSection.split("\n").find(
+          (line) => line.includes("Infrastructure"),
+        );
+        expect(infraRow).toBeDefined();
+        expect(infraRow).toContain("MANDATORY");
+      });
+
+      it("matrixAllowsNoDiagram_documentationStory_notRequired", () => {
+        const docRow = matrixSection.split("\n").find(
+          (line) => line.includes("Documentation"),
+        );
+        expect(docRow).toBeDefined();
+        expect(docRow).toContain("Not required");
+      });
+    });
+
+    describe("inter-layer sequence diagram template", () => {
+      const diagramSection = extractSection(
+        claudeSource,
+        "##### Inter-Layer Sequence Diagram Template",
+      );
+
+      it("containsMermaidSequenceDiagram_section6_hasSequenceDiagramBlock", () => {
+        expect(diagramSection).toContain("sequenceDiagram");
+      });
+
+      it.each(
+        SEQUENCE_DIAGRAM_PARTICIPANTS.map((p) => [p]),
+      )(
+        "containsParticipant_%s_inSequenceDiagram",
+        (participant) => {
+          expect(diagramSection).toContain(participant);
+        },
+      );
+
+      it("containsAltBlock_sequenceDiagram_hasErrorScenario", () => {
+        expect(diagramSection).toContain("alt");
+      });
+
+      it("sequenceDiagramShowsFlow_triggerToResponse_completeInteraction", () => {
+        expect(diagramSection).toContain("Request");
+        expect(diagramSection).toContain("business rules");
+        expect(diagramSection).toContain("Persist");
+        expect(diagramSection).toContain("Response");
+      });
+    });
+
+    describe("diagram validation checklist", () => {
+      const checklistSection = extractSection(
+        claudeSource,
+        "##### Diagram Validation Checklist",
+      );
+
+      it("containsDiagramValidationChecklist_section6_hasChecklistHeading", () => {
+        expect(claudeSource).toContain("Diagram Validation Checklist");
+      });
+
+      it.each(
+        DIAGRAM_CHECKLIST_ITEMS.map((item) => [item]),
+      )(
+        "containsChecklistItem_%s_inValidationChecklist",
+        (item) => {
+          expect(checklistSection).toContain(item);
+        },
+      );
+
+      it("checklistHasMinimumItems_validationChecklist_atLeastFourItems", () => {
+        const checkboxCount = (
+          checklistSection.match(/- \[ \]/g) || []
+        ).length;
+        expect(checkboxCount).toBeGreaterThanOrEqual(4);
+      });
+    });
+
+    describe("backward compatibility", () => {
+      it("preservesExistingSection6Content_diagramSection_originalContentIntact", () => {
+        expect(claudeSource).toContain(
+          "Create Mermaid sequence diagrams showing the complete flow",
+        );
+        expect(claudeSource).toContain("The trigger (client request");
+        expect(claudeSource).toContain("Error paths (at least one error scenario)");
+      });
     });
   });
 
@@ -179,6 +358,136 @@ describe("x-story-create content validation", () => {
     it("containsTPPOrderingRationale_gherkinSection_explainsTPPOrdering", () => {
       expect(githubSource).toContain("TPP ordering rationale");
     });
+
+    describe("diagram requirement matrix", () => {
+      const matrixSection = extractSection(
+        githubSource,
+        "##### Diagram Requirement Matrix",
+      );
+
+      it("containsDiagramRequirementMatrix_section6_hasHeading", () => {
+        expect(githubSource).toContain("Diagram Requirement Matrix");
+      });
+
+      it.each(
+        DIAGRAM_REQUIREMENT_MATRIX_ROWS.map((row) => [row]),
+      )(
+        "containsMatrixRow_%s_inRequirementMatrix",
+        (row) => {
+          expect(matrixSection).toContain(row);
+        },
+      );
+
+      it.each(
+        DIAGRAM_TYPES.map((type) => [type]),
+      )(
+        "containsDiagramType_%s_inRequirementMatrix",
+        (type) => {
+          expect(matrixSection).toContain(type);
+        },
+      );
+
+      it.each(
+        DIAGRAM_OBLIGATION_LEVELS.map((level) => [level]),
+      )(
+        "containsObligationLevel_%s_inRequirementMatrix",
+        (level) => {
+          expect(matrixSection).toContain(level);
+        },
+      );
+
+      it("matrixMandatesSequenceDiagram_requestResponseStory_mandatory", () => {
+        const requestRow = matrixSection.split("\n").find(
+          (line) => line.includes("Request") && line.includes("Response"),
+        );
+        expect(requestRow).toBeDefined();
+        expect(requestRow).toContain("MANDATORY");
+      });
+
+      it("matrixMandatesDeploymentDiagram_infrastructureStory_mandatory", () => {
+        const infraRow = matrixSection.split("\n").find(
+          (line) => line.includes("Infrastructure"),
+        );
+        expect(infraRow).toBeDefined();
+        expect(infraRow).toContain("MANDATORY");
+      });
+
+      it("matrixAllowsNoDiagram_documentationStory_notRequired", () => {
+        const docRow = matrixSection.split("\n").find(
+          (line) => line.includes("Documentation"),
+        );
+        expect(docRow).toBeDefined();
+        expect(docRow).toContain("Not required");
+      });
+    });
+
+    describe("inter-layer sequence diagram template", () => {
+      const diagramSection = extractSection(
+        githubSource,
+        "##### Inter-Layer Sequence Diagram Template",
+      );
+
+      it("containsMermaidSequenceDiagram_section6_hasSequenceDiagramBlock", () => {
+        expect(diagramSection).toContain("sequenceDiagram");
+      });
+
+      it.each(
+        SEQUENCE_DIAGRAM_PARTICIPANTS.map((p) => [p]),
+      )(
+        "containsParticipant_%s_inSequenceDiagram",
+        (participant) => {
+          expect(diagramSection).toContain(participant);
+        },
+      );
+
+      it("containsAltBlock_sequenceDiagram_hasErrorScenario", () => {
+        expect(diagramSection).toContain("alt");
+      });
+
+      it("sequenceDiagramShowsFlow_triggerToResponse_completeInteraction", () => {
+        expect(diagramSection).toContain("Request");
+        expect(diagramSection).toContain("business rules");
+        expect(diagramSection).toContain("Persist");
+        expect(diagramSection).toContain("Response");
+      });
+    });
+
+    describe("diagram validation checklist", () => {
+      const checklistSection = extractSection(
+        githubSource,
+        "##### Diagram Validation Checklist",
+      );
+
+      it("containsDiagramValidationChecklist_section6_hasChecklistHeading", () => {
+        expect(githubSource).toContain("Diagram Validation Checklist");
+      });
+
+      it.each(
+        DIAGRAM_CHECKLIST_ITEMS.map((item) => [item]),
+      )(
+        "containsChecklistItem_%s_inValidationChecklist",
+        (item) => {
+          expect(checklistSection).toContain(item);
+        },
+      );
+
+      it("checklistHasMinimumItems_validationChecklist_atLeastFourItems", () => {
+        const checkboxCount = (
+          checklistSection.match(/- \[ \]/g) || []
+        ).length;
+        expect(checkboxCount).toBeGreaterThanOrEqual(4);
+      });
+    });
+
+    describe("backward compatibility", () => {
+      it("preservesExistingSection6Content_diagramSection_originalContentIntact", () => {
+        expect(githubSource).toContain(
+          "Create Mermaid sequence diagrams showing the complete flow",
+        );
+        expect(githubSource).toContain("The trigger (client request");
+        expect(githubSource).toContain("Error paths (at least one error scenario)");
+      });
+    });
   });
 
   describe("dual copy consistency (RULE-001)", () => {
@@ -237,5 +546,40 @@ describe("x-story-create content validation", () => {
       expect(githubCount).toBe(NEW_COMMON_MISTAKES.length);
       expect(claudeCount).toBe(githubCount);
     });
+
+    it("bothContainDiagramRequirementMatrix_dualCopy_sameContent", () => {
+      expect(claudeSource).toContain("Diagram Requirement Matrix");
+      expect(githubSource).toContain("Diagram Requirement Matrix");
+    });
+
+    it("bothContainSequenceDiagramTemplate_dualCopy_sameContent", () => {
+      expect(claudeSource).toContain("sequenceDiagram");
+      expect(githubSource).toContain("sequenceDiagram");
+    });
+
+    it("bothContainDiagramChecklist_dualCopy_sameContent", () => {
+      expect(claudeSource).toContain("Diagram Validation Checklist");
+      expect(githubSource).toContain("Diagram Validation Checklist");
+    });
+
+    it.each(
+      SEQUENCE_DIAGRAM_PARTICIPANTS.map((p) => [p]),
+    )(
+      "bothContainParticipant_%s_dualCopy_sameParticipants",
+      (participant) => {
+        expect(claudeSource).toContain(participant);
+        expect(githubSource).toContain(participant);
+      },
+    );
+
+    it.each(
+      DIAGRAM_REQUIREMENT_MATRIX_ROWS.map((row) => [row]),
+    )(
+      "bothContainMatrixRow_%s_dualCopy_sameStoryTypes",
+      (row) => {
+        expect(claudeSource).toContain(row);
+        expect(githubSource).toContain(row);
+      },
+    );
   });
 });
