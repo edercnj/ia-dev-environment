@@ -1,5 +1,5 @@
 /**
- * Pipeline Orchestrator — coordinates all 18 assemblers in RULE-008 order.
+ * Pipeline Orchestrator — coordinates all 20 assemblers in RULE-008 order.
  *
  * Migrated from Python `assembler/__init__.py`.
  * Supports real mode (atomic output) and dry-run mode (temp dir, discard).
@@ -32,6 +32,7 @@ import { ReadmeAssembler } from "./readme-assembler.js";
 import { CodexAgentsMdAssembler } from "./codex-agents-md-assembler.js";
 import { CodexConfigAssembler } from "./codex-config-assembler.js";
 import { CodexSkillsAssembler } from "./codex-skills-assembler.js";
+import { DocsAssembler } from "./docs-assembler.js";
 import { DocsAdrAssembler } from "./docs-adr-assembler.js";
 import { RunbookAssembler } from "./runbook-assembler.js";
 
@@ -39,7 +40,7 @@ import { RunbookAssembler } from "./runbook-assembler.js";
 export const DRY_RUN_WARNING = "Dry run -- no files written";
 
 /** Target output directory for an assembler. */
-export type AssemblerTarget = "claude" | "github" | "codex" | "codex-agents" | "root";
+export type AssemblerTarget = "claude" | "github" | "codex" | "codex-agents" | "root" | "docs";
 
 /** Pairs a display name with an assembler instance and its target directory. */
 export interface AssemblerDescriptor {
@@ -71,7 +72,7 @@ export function normalizeResult(
   return { files: [...result.files], warnings: [...result.warnings] };
 }
 
-/** Build the ordered list of 19 assemblers per RULE-008. */
+/** Build the ordered list of 20 assemblers per RULE-008. */
 export function buildAssemblers(): readonly AssemblerDescriptor[] {
   return [
     { name: "RulesAssembler", target: "claude", assembler: new RulesAssembler() },
@@ -87,6 +88,7 @@ export function buildAssemblers(): readonly AssemblerDescriptor[] {
     { name: "GithubAgentsAssembler", target: "github", assembler: new GithubAgentsAssembler() },
     { name: "GithubHooksAssembler", target: "github", assembler: new GithubHooksAssembler() },
     { name: "GithubPromptsAssembler", target: "github", assembler: new GithubPromptsAssembler() },
+    { name: "DocsAssembler", target: "docs", assembler: new DocsAssembler() },
     { name: "RunbookAssembler", target: "root", assembler: new RunbookAssembler() },
     { name: "CodexAgentsMdAssembler", target: "root", assembler: new CodexAgentsMdAssembler() },
     { name: "CodexConfigAssembler", target: "codex", assembler: new CodexConfigAssembler() },
@@ -104,23 +106,19 @@ export function executeAssemblers(
   resourcesDir: string,
   engine: TemplateEngine,
 ): NormalizedResult {
-  const claudeDir = join(outputDir, ".claude");
-  const githubDir = join(outputDir, ".github");
-  const codexDir = join(outputDir, ".codex");
-  const agentsDir = join(outputDir, ".agents");
+  const targetDirs: Record<AssemblerTarget, string> = {
+    root: outputDir,
+    claude: join(outputDir, ".claude"),
+    github: join(outputDir, ".github"),
+    codex: join(outputDir, ".codex"),
+    "codex-agents": join(outputDir, ".agents"),
+    docs: join(outputDir, "docs"),
+  };
   const files: string[] = [];
   const warnings: string[] = [];
   for (const { name, target, assembler } of assemblers) {
     try {
-      const targetDir = target === "root"
-        ? outputDir
-        : target === "github"
-          ? githubDir
-          : target === "codex"
-            ? codexDir
-            : target === "codex-agents"
-              ? agentsDir
-              : claudeDir;
+      const targetDir = targetDirs[target];
       const raw = assembler.assemble(
         config, targetDir, resourcesDir, engine,
       );

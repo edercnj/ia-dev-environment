@@ -107,6 +107,7 @@ describe("buildAssemblers", () => {
     "GithubAgentsAssembler",
     "GithubHooksAssembler",
     "GithubPromptsAssembler",
+    "DocsAssembler",
     "RunbookAssembler",
     "CodexAgentsMdAssembler",
     "CodexConfigAssembler",
@@ -115,9 +116,9 @@ describe("buildAssemblers", () => {
     "ReadmeAssembler",
   ];
 
-  it("buildAssemblers_returns19Assemblers", () => {
+  it("buildAssemblers_returns20Assemblers", () => {
     const assemblers = buildAssemblers();
-    expect(assemblers).toHaveLength(19);
+    expect(assemblers).toHaveLength(20);
   });
 
   it.each(
@@ -145,6 +146,22 @@ describe("buildAssemblers", () => {
     const assemblers = buildAssemblers();
     const names = assemblers.map((a) => a.name);
     expect(names).toEqual(EXPECTED_ORDER);
+  });
+
+  it("buildAssemblers_docsAssemblerBeforeReadme", () => {
+    const assemblers = buildAssemblers();
+    const names = assemblers.map((a) => a.name);
+    const docsIdx = names.indexOf("DocsAssembler");
+    const readmeIdx = names.indexOf("ReadmeAssembler");
+    expect(docsIdx).toBeGreaterThan(-1);
+    expect(docsIdx).toBeLessThan(readmeIdx);
+  });
+
+  it("buildAssemblers_docsAssemblerTargetIsDocs", () => {
+    const assemblers = buildAssemblers();
+    const docs = assemblers.find((a) => a.name === "DocsAssembler");
+    expect(docs).toBeDefined();
+    expect(docs!.target).toBe("docs");
   });
 });
 
@@ -327,6 +344,19 @@ describe("executeAssemblers", () => {
       assemblers, config, tmpDir, tmpDir, engine,
     )).toThrow(PipelineError);
     expect(called).toEqual(["First"]);
+  });
+
+  it("executeAssemblers_docsTarget_resolvesToDocsSubdir", () => {
+    let receivedDir = "";
+    const assemblers: AssemblerDescriptor[] = [{
+      name: "DocsStub",
+      target: "docs",
+      assembler: {
+        assemble: (_c, dir) => { receivedDir = dir; return []; },
+      },
+    }];
+    executeAssemblers(assemblers, config, tmpDir, tmpDir, engine);
+    expect(receivedDir).toBe(path.join(tmpDir, "docs"));
   });
 });
 
