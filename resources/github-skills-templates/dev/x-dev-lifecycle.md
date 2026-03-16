@@ -53,6 +53,8 @@ Phase 8: Verification          (orchestrator — inline)
 
 ## Phase 1 — Architecture Planning (Skill Invocation + Subagent Fallback)
 
+**If the architecture plan file already exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` (as checked in Phase 0), skip Step 1A and proceed directly to Step 1B, ensuring Step 1B reads the existing plan.**
+
 ### Step 1A: Architecture Plan via x-dev-architecture-plan
 
 Evaluate change scope using the decision tree:
@@ -103,7 +105,7 @@ Launch a **single** `general-purpose` subagent:
 
 ### Fallback: Inline Architecture Planning
 
-If skill `x-dev-architecture-plan` is not available in the project (skill file does not exist), combine architecture planning into the Step 1B subagent by expanding its prompt to also read:
+If skill `x-dev-architecture-plan` is not available in the project (skill file `.github/skills/x-dev-architecture-plan/SKILL.md` does not exist), combine architecture planning into the Step 1B subagent by expanding its prompt to also read:
 - `.github/skills/protocols/SKILL.md` — protocol conventions
 - `.github/skills/security/SKILL.md` — OWASP, headers, secrets
 - `.github/skills/observability/SKILL.md` — tracing, metrics, logging
@@ -161,7 +163,7 @@ Launch a **single** `general-purpose` subagent for implementation:
 > **Step 1 — Read context:**
 > - Read test plan: `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md` — **MANDATORY** (implementation roadmap)
 > - Read implementation plan: `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`
-> - Read architecture plan: `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` — architectural decisions and constraints (if generated in Phase 1)
+> - If architecture plan was generated in Phase 1, read `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` for architectural decisions and constraints; if it does not exist, proceed without it
 > - Read task breakdown: `docs/stories/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`
 > - Read `.github/skills/coding-standards/SKILL.md` — {{LANGUAGE}} conventions and {{LANGUAGE_VERSION}} features
 > - Read `.github/skills/layer-templates/SKILL.md` — code templates per layer

@@ -123,6 +123,37 @@ describe("x-dev-lifecycle — Phase 1 Decision Tree", () => {
   });
 });
 
+// ─── UT-2B: Phase 1 — Existing Plan Pre-check ──────────────
+
+describe("x-dev-lifecycle — Phase 1 Existing Plan Pre-check", () => {
+  it("phase1_containsSkipStep1AIfPlanExists", () => {
+    const phase1 = extractSection(
+      claudeContent,
+      "Phase 1",
+    );
+    expect(phase1).toMatch(
+      /skip Step 1A.*proceed.*Step 1B/i,
+    );
+  });
+
+  it("dualCopy_existingPlanPreCheck_existsInBothTemplates", () => {
+    const claudePhase1 = extractSection(
+      claudeContent,
+      "Phase 1",
+    );
+    const githubPhase1 = extractSection(
+      githubContent,
+      "Phase 1",
+    );
+    expect(claudePhase1).toMatch(
+      /skip Step 1A/i,
+    );
+    expect(githubPhase1).toMatch(
+      /skip Step 1A/i,
+    );
+  });
+});
+
 // ─── UT-3: Phase 1 — Skill Invocation ──────────────────────
 
 describe("x-dev-lifecycle — Phase 1 Skill Invocation", () => {
@@ -235,7 +266,7 @@ describe("x-dev-lifecycle — Phase 2 Architecture Plan Context", () => {
       claudeContent,
       "Phase 2",
     );
-    expect(phase2).toMatch(/if generated/i);
+    expect(phase2).toMatch(/if.*generated in Phase 1|if it does not exist/i);
   });
 });
 
