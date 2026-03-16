@@ -4,6 +4,14 @@
 # FUSE hidden files
 .fuse_hidden*
 
+.claude/
+.github/
+.codex/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # GitHub Copilot — generated output of the boilerplate (except CI workflows)
 .github/*
