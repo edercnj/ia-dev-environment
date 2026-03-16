@@ -163,81 +163,104 @@ function extractPhase1(): string {
 describe("x-dev-epic-implement SKILL.md — Phase 1 content", () => {
   const phase1 = extractPhase1();
 
-  it("skillMd_phase1_containsCheckpointIntegration", () => {
-    expect(phase1).toContain("createCheckpoint");
-    expect(phase1).toContain("updateStoryStatus");
+  // TPP Level 2: Scalar — single keyword pair assertions
+  describe("TPP Level 2 — scalar keyword assertions", () => {
+    it("skillMd_phase1_containsCheckpointIntegration", () => {
+      expect(phase1).toContain("createCheckpoint");
+      expect(phase1).toContain("updateStoryStatus");
+    });
+
+    it("skillMd_phase1_containsMapParserIntegration", () => {
+      expect(phase1).toContain("parseImplementationMap");
+      expect(phase1).toContain("getExecutableStories");
+    });
+
+    it("skillMd_phase1_containsBranchManagement", () => {
+      expect(phase1).toContain("feat/epic-");
+      expect(phase1).toMatch(/git checkout|branch/i);
+    });
+
+    it("skillMd_phase1_containsCriticalPathPriority", () => {
+      expect(phase1).toMatch(/critical.?path/i);
+    });
+
+    it("skillMd_phase1_containsContextIsolation", () => {
+      expect(phase1).toMatch(
+        /RULE-001|context isolation|clean context/i,
+      );
+    });
   });
 
-  it("skillMd_phase1_containsMapParserIntegration", () => {
-    expect(phase1).toContain("parseImplementationMap");
-    expect(phase1).toContain("getExecutableStories");
+  // TPP Level 3: Collection — multiple field/reference assertions
+  describe("TPP Level 3 — collection assertions", () => {
+    it("skillMd_phase1_containsSubagentDispatch", () => {
+      expect(phase1).toContain("Agent");
+      expect(phase1).toContain("SubagentResult");
+      expect(phase1).toContain("x-dev-lifecycle");
+    });
+
+    it("skillMd_phase1_containsResultValidation", () => {
+      expect(phase1).toContain("status");
+      expect(phase1).toContain("findingsCount");
+      expect(phase1).toContain("summary");
+      expect(phase1).toContain("commitSha");
+      expect(phase1).toMatch(/RULE-008/);
+    });
+
+    it("skillMd_phase1_containsStatusValues", () => {
+      expect(phase1).toContain("IN_PROGRESS");
+      expect(phase1).toContain("SUCCESS");
+      expect(phase1).toContain("FAILED");
+    });
+
+    it("skillMd_phase1_containsExtensionPlaceholders", () => {
+      const refs = [
+        "story-0005-0006", "story-0005-0007",
+        "story-0005-0008", "story-0005-0010",
+        "story-0005-0011", "story-0005-0013",
+      ];
+      const matchCount = refs.filter(
+        (r) => phase1.includes(r),
+      ).length;
+      expect(matchCount).toBeGreaterThanOrEqual(3);
+    });
+
+    it("skillMd_phase1_referencesRuleMarkers", () => {
+      const ruleRefs = ["RULE-001", "RULE-002", "RULE-007", "RULE-008"];
+      const matchCount = ruleRefs.filter(
+        (r) => phase1.includes(r),
+      ).length;
+      expect(matchCount).toBeGreaterThanOrEqual(3);
+    });
   });
 
-  it("skillMd_phase1_containsSubagentDispatch", () => {
-    expect(phase1).toContain("Agent");
-    expect(phase1).toContain("SubagentResult");
-    expect(phase1).toContain("x-dev-lifecycle");
-  });
+  // TPP Level 4: Composite — structural and ordering assertions
+  describe("TPP Level 4 — structural assertions", () => {
+    it("skillMd_phase1_containsMinimumSubsections", () => {
+      const subsectionMatches = phase1.match(/^###\s+1\.\d/gm);
+      expect(subsectionMatches).not.toBeNull();
+      expect(subsectionMatches!.length).toBeGreaterThanOrEqual(7);
+    });
 
-  it("skillMd_phase1_containsResultValidation", () => {
-    expect(phase1).toContain("status");
-    expect(phase1).toContain("findingsCount");
-    expect(phase1).toContain("summary");
-    expect(phase1).toContain("commitSha");
-    expect(phase1).toMatch(/RULE-008/);
-  });
+    it("skillMd_phase1_subsectionsInLogicalOrder", () => {
+      const initIdx = phase1.indexOf("Initialize");
+      const branchIdx = phase1.indexOf("Branch");
+      const coreIdx = phase1.indexOf("Core Loop");
+      const dispatchIdx = phase1.indexOf("Dispatch");
+      const validationIdx = phase1.indexOf("Validation");
+      expect(initIdx).toBeGreaterThan(-1);
+      expect(coreIdx).toBeGreaterThan(-1);
+      expect(initIdx).toBeLessThan(coreIdx);
+      expect(branchIdx).toBeLessThan(coreIdx);
+      expect(coreIdx).toBeLessThan(
+        Math.max(dispatchIdx, validationIdx),
+      );
+    });
 
-  it("skillMd_phase1_containsBranchManagement", () => {
-    expect(phase1).toContain("feat/epic-");
-    expect(phase1).toMatch(/git checkout|branch/i);
-  });
-
-  it("skillMd_phase1_containsCriticalPathPriority", () => {
-    expect(phase1).toMatch(/critical.?path/i);
-  });
-
-  it("skillMd_phase1_containsContextIsolation", () => {
-    expect(phase1).toMatch(
-      /RULE-001|context isolation|clean context/i,
-    );
-  });
-
-  it("skillMd_phase1_containsExtensionPlaceholders", () => {
-    const refs = [
-      "story-0005-0006", "story-0005-0007",
-      "story-0005-0008", "story-0005-0010",
-      "story-0005-0011", "story-0005-0013",
-    ];
-    const matchCount = refs.filter(
-      (r) => phase1.includes(r),
-    ).length;
-    expect(matchCount).toBeGreaterThanOrEqual(3);
-  });
-
-  it("skillMd_phase1_containsStatusValues", () => {
-    expect(phase1).toContain("IN_PROGRESS");
-    expect(phase1).toContain("SUCCESS");
-    expect(phase1).toContain("FAILED");
-  });
-
-  it("skillMd_phase1_doesNotContainSourceImports", () => {
-    expect(phase1).not.toMatch(/^import .* from/m);
-    expect(phase1).not.toMatch(/require\(/);
-  });
-
-  it("skillMd_phase1_subsectionsInLogicalOrder", () => {
-    const initIdx = phase1.indexOf("Initialize");
-    const branchIdx = phase1.indexOf("Branch");
-    const coreIdx = phase1.indexOf("Core Loop");
-    const dispatchIdx = phase1.indexOf("Dispatch");
-    const validationIdx = phase1.indexOf("Validation");
-    expect(initIdx).toBeGreaterThan(-1);
-    expect(coreIdx).toBeGreaterThan(-1);
-    expect(initIdx).toBeLessThan(coreIdx);
-    expect(branchIdx).toBeLessThan(coreIdx);
-    expect(coreIdx).toBeLessThan(
-      Math.max(dispatchIdx, validationIdx),
-    );
+    it("skillMd_phase1_doesNotContainSourceImports", () => {
+      expect(phase1).not.toMatch(/^import .* from/m);
+      expect(phase1).not.toMatch(/require\(/);
+    });
   });
 });
 
