@@ -44,8 +44,8 @@ describe("buildDefaultContext", () => {
   const config = aProjectConfig();
   const context = buildDefaultContext(config);
 
-  it("buildDefaultContext_validConfig_returns24Fields", () => {
-    expect(Object.keys(context)).toHaveLength(24);
+  it("buildDefaultContext_validConfig_returns25Fields", () => {
+    expect(Object.keys(context)).toHaveLength(25);
   });
 
   it("buildDefaultContext_validConfig_mapsProjectFields", () => {
@@ -118,12 +118,49 @@ describe("buildDefaultContext", () => {
     ["performance_tests", "True"],
     ["coverage_line", 95],
     ["coverage_branch", 90],
+    ["interfaces_list", "cli"],
   ] as const)(
     "buildDefaultContext_field_%s_mapsCorrectly",
     (field, expected) => {
       expect(context[field]).toBe(expected);
     },
   );
+
+  it("buildDefaultContext_multipleInterfaces_joinsInterfaceTypes", () => {
+    const multiConfig = new ProjectConfig(
+      new ProjectIdentity("svc", "svc"),
+      new ArchitectureConfig("hexagonal"),
+      [new InterfaceConfig("rest"), new InterfaceConfig("grpc")],
+      new LanguageConfig("java", "21"),
+      new FrameworkConfig("quarkus", "3.0", "maven"),
+    );
+    const ctx = buildDefaultContext(multiConfig);
+    expect(ctx["interfaces_list"]).toBe("rest, grpc");
+  });
+
+  it("buildDefaultContext_singleInterface_returnsType", () => {
+    const singleConfig = new ProjectConfig(
+      new ProjectIdentity("svc", "svc"),
+      new ArchitectureConfig("hexagonal"),
+      [new InterfaceConfig("rest")],
+      new LanguageConfig("java", "21"),
+      new FrameworkConfig("quarkus", "3.0", "maven"),
+    );
+    const ctx = buildDefaultContext(singleConfig);
+    expect(ctx["interfaces_list"]).toBe("rest");
+  });
+
+  it("buildDefaultContext_noInterfaces_returnsNone", () => {
+    const emptyConfig = new ProjectConfig(
+      new ProjectIdentity("svc", "svc"),
+      new ArchitectureConfig("hexagonal"),
+      [],
+      new LanguageConfig("java", "21"),
+      new FrameworkConfig("quarkus", "3.0", "maven"),
+    );
+    const ctx = buildDefaultContext(emptyConfig);
+    expect(ctx["interfaces_list"]).toBe("none");
+  });
 });
 
 // ---------------------------------------------------------------------------

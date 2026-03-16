@@ -116,17 +116,17 @@ describe("x-dev-lifecycle Claude source — item renumbering", () => {
 // ---------------------------------------------------------------------------
 
 describe("x-dev-lifecycle Claude source — backward compatibility", () => {
-  it("claudeSource_preserves8PhaseCount", () => {
-    expect(claudeContent).toMatch(/8 phases.*0-7/);
+  it("claudeSource_preserves9PhaseCount", () => {
+    expect(claudeContent).toMatch(/9 phases.*0-8/);
   });
 
   it("claudeSource_preservesCriticalExecutionRule", () => {
-    expect(claudeContent).toContain("NEVER stop before Phase 7");
+    expect(claudeContent).toContain("NEVER stop before Phase 8");
   });
 
   it("claudeSource_preservesPhase7OnlyLegitimateStoppingPoint", () => {
     expect(claudeContent).toContain(
-      "Phase 7 is the ONLY legitimate stopping point",
+      "Phase 8 is the ONLY legitimate stopping point",
     );
   });
 
@@ -168,7 +168,7 @@ describe("x-dev-lifecycle Claude source — backward compatibility", () => {
 
   it("claudeSource_preservesCompleteFlowDiagram", () => {
     expect(claudeContent).toContain("Phase 0: Preparation");
-    expect(claudeContent).toContain("Phase 7: Verification");
+    expect(claudeContent).toContain("Phase 8: Verification");
   });
 
   it("claudeSource_preservesRolesAndModelsTable", () => {
@@ -273,17 +273,17 @@ describe("x-dev-lifecycle GitHub source — conditional DoD & renumbering", () =
 // ---------------------------------------------------------------------------
 
 describe("x-dev-lifecycle GitHub source — backward compatibility", () => {
-  it("githubSource_preserves8PhaseCount", () => {
-    expect(githubContent).toMatch(/8 phases.*0-7/);
+  it("githubSource_preserves9PhaseCount", () => {
+    expect(githubContent).toMatch(/9 phases.*0-8/);
   });
 
   it("githubSource_preservesCriticalExecutionRule", () => {
-    expect(githubContent).toContain("NEVER stop before Phase 7");
+    expect(githubContent).toContain("NEVER stop before Phase 8");
   });
 
   it("githubSource_preservesPhase7OnlyLegitimateStoppingPoint", () => {
     expect(githubContent).toContain(
-      "Phase 7 is the ONLY legitimate stopping point",
+      "Phase 8 is the ONLY legitimate stopping point",
     );
   });
 
@@ -325,7 +325,7 @@ describe("x-dev-lifecycle GitHub source — backward compatibility", () => {
 
   it("githubSource_preservesCompleteFlowDiagram", () => {
     expect(githubContent).toContain("Phase 0: Preparation");
-    expect(githubContent).toContain("Phase 7: Verification");
+    expect(githubContent).toContain("Phase 8: Verification");
   });
 
   it("githubSource_preservesRolesAndModelsTable", () => {
@@ -400,8 +400,8 @@ describe("x-dev-lifecycle dual copy consistency (RULE-001)", () => {
   });
 
   it("dualCopy_phaseCount_identical", () => {
-    expect(claudeContent).toMatch(/8 phases.*0-7/);
-    expect(githubContent).toMatch(/8 phases.*0-7/);
+    expect(claudeContent).toMatch(/9 phases.*0-8/);
+    expect(githubContent).toMatch(/9 phases.*0-8/);
   });
 
   it("dualCopy_bothContainRenumberedItems", () => {
@@ -412,14 +412,14 @@ describe("x-dev-lifecycle dual copy consistency (RULE-001)", () => {
   });
 
   it("dualCopy_pathDifferences_onlyExpected", () => {
-    const claudePhase7 = claudeContent.slice(
-      claudeContent.indexOf("## Phase 7"),
+    const claudePhase8 = claudeContent.slice(
+      claudeContent.indexOf("## Phase 8"),
       claudeContent.indexOf("## Roles and Models"),
     );
-    const githubPhase7 = githubContent.slice(
-      githubContent.indexOf("## Phase 7"),
+    const githubPhase8 = githubContent.slice(
+      githubContent.indexOf("## Phase 8"),
       githubContent.indexOf("## Roles and Models"),
     );
-    expect(claudePhase7).toBe(githubPhase7);
+    expect(claudePhase8).toBe(githubPhase8);
   });
 });
