@@ -20,15 +20,20 @@ const OUTPUT_FILENAME = "service-architecture.md";
 export class DocsAssembler {
   /** Generate service architecture documentation. */
   assemble(
-    _config: ProjectConfig,
+    config: ProjectConfig,
     outputDir: string,
     resourcesDir: string,
-    _engine: TemplateEngine,
+    engine: TemplateEngine,
   ): string[] {
     const templateFile = path.join(resourcesDir, TEMPLATE_PATH);
     if (!fs.existsSync(templateFile)) {
       return [];
     }
-    return [];
+    const rendered = engine.renderTemplate(TEMPLATE_PATH);
+    const destDir = path.join(outputDir, OUTPUT_SUBDIR);
+    fs.mkdirSync(destDir, { recursive: true });
+    const destFile = path.join(destDir, OUTPUT_FILENAME);
+    fs.writeFileSync(destFile, rendered, "utf-8");
+    return [destFile];
   }
 }
