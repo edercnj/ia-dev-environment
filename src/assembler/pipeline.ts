@@ -1,5 +1,5 @@
 /**
- * Pipeline Orchestrator — coordinates all 20 assemblers in RULE-008 order.
+ * Pipeline Orchestrator — coordinates all 21 assemblers in RULE-008 order.
  *
  * Migrated from Python `assembler/__init__.py`.
  * Supports real mode (atomic output) and dry-run mode (temp dir, discard).
@@ -35,6 +35,7 @@ import { CodexSkillsAssembler } from "./codex-skills-assembler.js";
 import { DocsAssembler } from "./docs-assembler.js";
 import { DocsAdrAssembler } from "./docs-adr-assembler.js";
 import { RunbookAssembler } from "./runbook-assembler.js";
+import { GrpcDocsAssembler } from "./grpc-docs-assembler.js";
 
 /** Warning appended to dry-run results. */
 export const DRY_RUN_WARNING = "Dry run -- no files written";
@@ -72,7 +73,7 @@ export function normalizeResult(
   return { files: [...result.files], warnings: [...result.warnings] };
 }
 
-/** Build the ordered list of 20 assemblers per RULE-008. */
+/** Build the ordered list of 21 assemblers per RULE-008. */
 export function buildAssemblers(): readonly AssemblerDescriptor[] {
   return [
     { name: "RulesAssembler", target: "claude", assembler: new RulesAssembler() },
@@ -89,6 +90,7 @@ export function buildAssemblers(): readonly AssemblerDescriptor[] {
     { name: "GithubHooksAssembler", target: "github", assembler: new GithubHooksAssembler() },
     { name: "GithubPromptsAssembler", target: "github", assembler: new GithubPromptsAssembler() },
     { name: "DocsAssembler", target: "docs", assembler: new DocsAssembler() },
+    { name: "GrpcDocsAssembler", target: "docs", assembler: new GrpcDocsAssembler() },
     { name: "RunbookAssembler", target: "root", assembler: new RunbookAssembler() },
     { name: "CodexAgentsMdAssembler", target: "root", assembler: new CodexAgentsMdAssembler() },
     { name: "CodexConfigAssembler", target: "codex", assembler: new CodexConfigAssembler() },
