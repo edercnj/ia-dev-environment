@@ -323,3 +323,79 @@ that does not affect correctness, testability, or maintainability. All specialis
 blocking issues have been resolved.
 
 **Decision: GO** — Approved for merge.
+
+------------------------------------------------------------
+
+============================================================
+ TECH LEAD RE-REVIEW (Cycle 2/2) -- story-0004-0011
+============================================================
+ Decision:  GO
+ Score:     40/40
+ C3 Fix:    VERIFIED
+ Regressions: NONE
+------------------------------------------------------------
+
+### C3 Fix Verification
+
+The `GenerationContext` interface (lines 95-103) bundles all shared parameters into a
+single object: `config`, `outputDir`, `resourcesDir`, `engine`, `ctx`, `files`, `warnings`.
+
+Updated parameter counts for ALL functions/methods:
+
+| Function/Method | Parameters | Count | Status |
+|-----------------|-----------|-------|--------|
+| `buildStackContext` (module-level) | `config` | 1 | PASS |
+| `renderAndWrite` (module-level) | `engine, templateRelPath, destPath, extraContext` | 4 | PASS (at limit) |
+| `assemble` (public) | `config, outputDir, resourcesDir, engine` | 4 | PASS (at limit) |
+| `generateCiWorkflow` (private) | `gc` | 1 | PASS (was 4) |
+| `generateDockerfile` (private) | `gc` | 1 | PASS (was 6) |
+| `generateDockerCompose` (private) | `gc` | 1 | PASS (was 5) |
+| `generateK8sManifests` (private) | `gc` | 1 | PASS (was 5) |
+| `generateSmokeTestConfig` (private) | `gc` | 1 | PASS (was 4) |
+| `generateDeployRunbook` (private) | `gc` | 1 | PASS (was 4) |
+
+All 9 functions/methods are at or below the 4-parameter limit. **C3 now scores 1/1.**
+
+### Regression Check
+
+| Item | Previous | Current | Status |
+|------|----------|---------|--------|
+| A1 — No unused imports | 1/1 | 1/1 | No regression |
+| A2 — No dead code | 1/1 | 1/1 | No regression |
+| A3 — Zero compiler warnings | 1/1 | 1/1 | `tsc --noEmit` clean |
+| A4 — Consistent signatures | 1/1 | 1/1 | Public API unchanged |
+| C2 — Functions <= 25 lines | 1/1 | 1/1 | All verified |
+| C3 — Max 4 params | 0/1 | 1/1 | FIXED |
+| D3 — File <= 250 lines | 1/1 | 1/1 | 223 lines (was 249) |
+| Tests | 1797/1797 | 1797/1797 | All passing |
+
+### Design Quality of the Fix
+
+The refactoring is clean and well-executed:
+- `GenerationContext` consolidates both the input parameters AND the mutable output
+  accumulators (`files`, `warnings`) into one object, eliminating the separate `out`
+  parameter entirely.
+- The interface is declared at module scope (line 95) with `readonly` on all fields
+  except the mutable arrays — correct immutability discipline.
+- The `assemble` method builds the `GenerationContext` once and passes it to all
+  private methods — zero overhead, zero duplication.
+- File shrank from 249 to 223 lines — the refactoring reduced boilerplate.
+- No behavioral changes — all 1797 tests pass without modification.
+
+### Updated Score: 40/40
+
+| Category | Previous | Current |
+|----------|----------|---------|
+| A. Code Hygiene | 8/8 | 8/8 |
+| B. Naming | 4/4 | 4/4 |
+| C. Functions | 4/5 | 5/5 |
+| D. Vertical Formatting | 4/4 | 4/4 |
+| E. Design | 3/3 | 3/3 |
+| F. Error Handling | 3/3 | 3/3 |
+| G. Architecture | 5/5 | 5/5 |
+| H. Framework & Infra | 4/4 | 4/4 |
+| I. Tests | 3/3 | 3/3 |
+| J. Security | 1/1 | 1/1 |
+| **Total** | **39/40** | **40/40** |
+
+**Decision: GO** — All 40 checklist items pass. No regressions. Approved for merge.
