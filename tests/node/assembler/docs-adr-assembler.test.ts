@@ -82,9 +82,23 @@ describe("DocsAdrAssembler", () => {
     const result = assembler.assemble(
       config, tempDir, RESOURCES_DIR, engine,
     );
-    expect(result).toHaveLength(1);
-    expect(result[0]).toContain("docs");
+    expect(result).toHaveLength(2);
     expect(result[0]).toContain("README.md");
+    expect(result[1]).toContain("_TEMPLATE-ADR.md");
+  });
+
+  it("assemble_validConfig_copiesTemplateToOutputDir", () => {
+    const config = aFullProjectConfig();
+    const engine = new TemplateEngine(RESOURCES_DIR, config);
+    const assembler = new DocsAdrAssembler();
+    assembler.assemble(config, tempDir, RESOURCES_DIR, engine);
+    const templateDest = join(
+      tempDir, "docs", "adr", "_TEMPLATE-ADR.md",
+    );
+    expect(fs.existsSync(templateDest)).toBe(true);
+    const content = fs.readFileSync(templateDest, "utf-8");
+    expect(content).toContain("## Status");
+    expect(content).toContain("## Decision");
   });
 
   // --- Cycle 5: README content validation ---
@@ -118,7 +132,7 @@ describe("DocsAdrAssembler", () => {
     const result = assembler.assemble(
       config, tempDir, RESOURCES_DIR, engine,
     );
-    expect(result).toHaveLength(1);
+    expect(result).toHaveLength(2);
     const readmePath = join(tempDir, "docs", "adr", "README.md");
     expect(fs.existsSync(readmePath)).toBe(true);
   });
@@ -224,7 +238,7 @@ describe("DocsAdrAssembler", () => {
     const result = assembler.assemble(
       config, tempDir, fakeResourcesDir, engine,
     );
-    expect(result).toHaveLength(1);
+    expect(result).toHaveLength(2);
   });
 
   // --- Fix: Backward compatibility acceptance test (AC #6) ---
@@ -313,6 +327,13 @@ describe("getNextAdrNumber", () => {
     await writeFile(join(adrDir, "ADR-0001-foo.md"), "");
     expect(getNextAdrNumber(adrDir)).toBe(2);
   });
+
+  it("getNextAdrNumber_fiveDigitAdr_recognizesCorrectly", async () => {
+    const adrDir = join(tempDir, "adr");
+    await mkdir(adrDir, { recursive: true });
+    await writeFile(join(adrDir, "ADR-10000-overflow.md"), "");
+    expect(getNextAdrNumber(adrDir)).toBe(10001);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -363,8 +384,8 @@ describe("formatAdrFilename", () => {
 
   // --- Fix: Edge cases ---
 
-  it("formatAdrFilename_emptyTitle_returnsFilenameWithoutTitle", () => {
-    expect(formatAdrFilename(1, "")).toBe("ADR-0001-.md");
+  it("formatAdrFilename_emptyTitle_returnsUntitledFallback", () => {
+    expect(formatAdrFilename(1, "")).toBe("ADR-0001-untitled.md");
   });
 
   it("formatAdrFilename_fiveDigitNumber_padsCorrectly", () => {
@@ -421,7 +442,7 @@ describe("Template Structure Validation", () => {
     expect(templateContent).toContain("## Story Reference");
   });
 
-  it("template_containsProjectNamePlaceholder", () => {
-    expect(templateContent).toContain("{{PROJECT_NAME}}");
+  it("template_containsStoryRefPlaceholder", () => {
+    expect(templateContent).toContain("<story-id-or-link>");
   });
 });
