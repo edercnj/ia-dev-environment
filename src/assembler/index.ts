@@ -57,5 +57,9 @@ export * from "./docs-adr-assembler.js";
 // --- STORY-0004-0003: RunbookAssembler ---
 export * from "./runbook-assembler.js";
 
+// --- STORY-0004-0011: CicdAssembler ---
+export * from "./cicd-assembler.js";
+
+
 // --- STORY-016: Pipeline Orchestrator ---
 export * from "./pipeline.js";
