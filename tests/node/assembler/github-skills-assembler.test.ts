@@ -618,4 +618,45 @@ describe("GithubSkillsAssembler — references", () => {
     const content = fs.readFileSync(refPath, "utf-8");
     expect(content).toBe("# Guide\nmy-app");
   });
+
+  it("renderSkill_emptyReferencesDir_createsEmptyRefsDir", () => {
+    createSkillTemplate(resourcesDir, "dev", "x-dev-lifecycle");
+    const refsDir = path.join(
+      resourcesDir, "github-skills-templates", "dev",
+      "references", "x-dev-lifecycle",
+    );
+    fs.mkdirSync(refsDir, { recursive: true });
+    const config = buildConfig();
+    const engine = new TemplateEngine(resourcesDir, config);
+    assembler.assemble(config, outputDir, resourcesDir, engine);
+    const outRefs = path.join(
+      outputDir, "skills", "x-dev-lifecycle", "references",
+    );
+    expect(fs.existsSync(outRefs)).toBe(true);
+    expect(fs.readdirSync(outRefs)).toHaveLength(0);
+  });
+
+  it("renderSkill_nonMdFilesInReferences_copiedWithoutReplacement", () => {
+    createSkillTemplate(resourcesDir, "dev", "x-dev-lifecycle");
+    const refsDir = path.join(
+      resourcesDir, "github-skills-templates", "dev",
+      "references", "x-dev-lifecycle",
+    );
+    fs.mkdirSync(refsDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(refsDir, "schema.json"),
+      '{"key": "{project_name}"}',
+      "utf-8",
+    );
+    const config = buildConfig();
+    const engine = new TemplateEngine(resourcesDir, config);
+    assembler.assemble(config, outputDir, resourcesDir, engine);
+    const outFile = path.join(
+      outputDir, "skills", "x-dev-lifecycle",
+      "references", "schema.json",
+    );
+    expect(fs.existsSync(outFile)).toBe(true);
+    const content = fs.readFileSync(outFile, "utf-8");
+    expect(content).toBe('{"key": "{project_name}"}');
+  });
 });
