@@ -206,6 +206,16 @@ Emit warning: `WARNING: No TDD test plan available. Using G1-G7 group-based impl
 6. Documentation output saved to `docs/` with subdirectories per type (RULE-009):
    - API docs → `docs/api/`
    - Architecture docs → `docs/architecture/`
+7. **Performance Baseline (Recommended)**
+   If the implemented feature affects the request path, startup, or memory footprint:
+   1. Read `resources/templates/_TEMPLATE-PERFORMANCE-BASELINE.md` for measurement guide
+   2. Record "before" metrics (prior to the feature branch)
+   3. Record "after" metrics (with the feature branch)
+   4. Append a row to `docs/performance/baselines.md`
+   5. If Delta > 10%, add a WARNING note
+   6. If Delta > 25%, add an INVESTIGATION note with optimization plan
+
+   This step is recommended but not mandatory. Skip does not block the phase.
 
 ## Phase 4 — Parallel Review
 
