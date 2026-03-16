@@ -120,6 +120,21 @@ export function aMinimalProjectConfig(): ProjectConfig {
 }
 
 /**
+ * Build a ProjectConfig for gRPC-enabled projects.
+ *
+ * Values: my-grpc-service / go 1.22 / gin 1.9 / microservice / grpc(proto3).
+ */
+export function aGrpcProjectConfig(): ProjectConfig {
+  return new ProjectConfig(
+    new ProjectIdentity("my-grpc-service", "A gRPC service"),
+    new ArchitectureConfig("microservice"),
+    [new InterfaceConfig("grpc", "proto3")],
+    new LanguageConfig("go", "1.22"),
+    new FrameworkConfig("gin", "1.9", "go-mod"),
+  );
+}
+
+/**
  * Build a full ProjectConfig with all conditional sections enabled.
  *
  * Values: my-service / python 3.9 / click 8.1 / hexagonal / postgresql / redis.
