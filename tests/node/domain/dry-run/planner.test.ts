@@ -4,6 +4,8 @@ import type {
   DryRunOptions,
   StoryNode,
   DryRunPhaseInfo,
+  ExecutionState,
+  StoryEntry,
 } from "../../../../src/domain/dry-run/types.js";
 import { buildDryRunPlan } from "../../../../src/domain/dry-run/planner.js";
 
@@ -106,6 +108,16 @@ function dag14Phase4(): StoryNode[] {
     makeStory({ id: storyId(13), title: "S13", phase: 4, blockedBy: [storyId(10), storyId(11)], isOnCriticalPath: true }),
     makeStory({ id: storyId(14), title: "S14", phase: 4, blockedBy: [storyId(12)] }),
   ];
+}
+
+function makeExecutionState(
+  entries: readonly StoryEntry[],
+): ExecutionState {
+  const stories = new Map<string, StoryEntry>();
+  for (const entry of entries) {
+    stories.set(entry.id, entry);
+  }
+  return { epicId: EPIC_ID, stories };
 }
 
 function assertPhaseStoryCounts(
@@ -330,5 +342,253 @@ describe("buildDryRunPlan", () => {
 
     assertPhaseStoryCounts(plan.phases, [3, 3, 3, 3, 2]);
     expect(plan.criticalPath).toHaveLength(5);
+  });
+
+  it("resume_mergesCheckpointStatus", () => {
+    const s1 = makeStory({
+      id: "0042-0001",
+      title: "Done Story",
+      phase: 0,
+    });
+    const s2 = makeStory({
+      id: "0042-0002",
+      title: "Pending Story",
+      phase: 0,
+    });
+    const parsed: ParsedMap = {
+      stories: new Map([
+        ["0042-0001", s1],
+        ["0042-0002", s2],
+      ]),
+      phases: [0],
+      criticalPath: [],
+    };
+    const state = makeExecutionState([
+      { id: "0042-0001", status: "SUCCESS" },
+    ]);
+
+    const plan = buildDryRunPlan(
+      parsed,
+      EPIC_ID,
+      defaultOptions({
+        resume: true,
+        executionState: state,
+      }),
+    );
+
+    const stories = plan.phases[0]!.stories;
+    const done = stories.find((s) => s.id === "0042-0001");
+    const pending = stories.find((s) => s.id === "0042-0002");
+    expect(done!.status).toBe("COMPLETED");
+    expect(pending!.status).toBe("PENDING");
+  });
+
+  it("resume_mixedStatuses_correctlyCategorized", () => {
+    const parsed = build14StoryDag();
+    const successIds = [1, 2, 3, 4, 5].map(storyId);
+    const entries: StoryEntry[] = successIds.map((id) => ({
+      id,
+      status: "SUCCESS" as const,
+    }));
+    const state = makeExecutionState(entries);
+
+    const plan = buildDryRunPlan(
+      parsed,
+      EPIC_ID,
+      defaultOptions({
+        resume: true,
+        executionState: state,
+      }),
+    );
+
+    const allStories = plan.phases.flatMap((p) => p.stories);
+    const completed = allStories.filter(
+      (s) => s.status === "COMPLETED",
+    );
+    const pending = allStories.filter(
+      (s) => s.status === "PENDING",
+    );
+    expect(completed).toHaveLength(5);
+    expect(pending).toHaveLength(9);
+  });
+
+  it("phaseFilter_returnsOnlyFilteredPhase", () => {
+    const parsed = build14StoryDag();
+
+    const plan = buildDryRunPlan(
+      parsed,
+      EPIC_ID,
+      defaultOptions({ phaseFilter: 1 }),
+    );
+
+    expect(plan.mode).toBe("phase");
+    expect(plan.phases).toHaveLength(1);
+    expect(plan.phases[0]!.phase).toBe(1);
+    expect(plan.phases[0]!.stories).toHaveLength(3);
+    expect(plan.totalStories).toBe(14);
+    expect(plan.totalPhases).toBe(5);
+  });
+
+  it("phaseFilter_dependencySatisfaction", () => {
+    const a = makeStory({
+      id: "0042-0001",
+      title: "Root",
+      phase: 0,
+      blocks: ["0042-0002"],
+    });
+    const b = makeStory({
+      id: "0042-0002",
+      title: "Dep",
+      phase: 1,
+      blockedBy: ["0042-0001"],
+      blocks: ["0042-0003"],
+    });
+    const c = makeStory({
+      id: "0042-0003",
+      title: "No Dep",
+      phase: 1,
+    });
+    const parsed: ParsedMap = {
+      stories: new Map([
+        ["0042-0001", a],
+        ["0042-0002", b],
+        ["0042-0003", c],
+      ]),
+      phases: [0, 1],
+      criticalPath: [],
+    };
+
+    const plan = buildDryRunPlan(
+      parsed,
+      EPIC_ID,
+      defaultOptions({ phaseFilter: 1 }),
+    );
+
+    const dep = plan.phases[0]!.stories.find(
+      (s) => s.id === "0042-0002",
+    );
+    const noDep = plan.phases[0]!.stories.find(
+      (s) => s.id === "0042-0003",
+    );
+    expect(dep!.dependenciesSatisfied).toBe(false);
+    expect(noDep!.dependenciesSatisfied).toBe(true);
+  });
+
+  it("phaseFilter_invalidPhase_throwsError", () => {
+    const parsed = build14StoryDag();
+
+    expect(() =>
+      buildDryRunPlan(
+        parsed,
+        EPIC_ID,
+        defaultOptions({ phaseFilter: 99 }),
+      ),
+    ).toThrow(/phase 99/i);
+
+    expect(() =>
+      buildDryRunPlan(
+        parsed,
+        EPIC_ID,
+        defaultOptions({ phaseFilter: -1 }),
+      ),
+    ).toThrow(/phase -1/i);
+  });
+
+  it("parallelMode_showsParallelCount", () => {
+    const parsed = build14StoryDag();
+
+    const plan = buildDryRunPlan(
+      parsed,
+      EPIC_ID,
+      defaultOptions({ parallelMode: true }),
+    );
+
+    expect(plan.phases[0]!.parallelCount).toBe(3);
+    expect(plan.phases[1]!.parallelCount).toBe(3);
+    expect(plan.phases[4]!.parallelCount).toBe(2);
+  });
+
+  it("parallelMode_excludesSamePhaseBlockedStories", () => {
+    const a = makeStory({
+      id: "0042-0001",
+      title: "Independent A",
+      phase: 1,
+      blocks: ["0042-0003"],
+    });
+    const b = makeStory({
+      id: "0042-0002",
+      title: "Independent B",
+      phase: 1,
+    });
+    const c = makeStory({
+      id: "0042-0003",
+      title: "Blocked by same-phase",
+      phase: 1,
+      blockedBy: ["0042-0001"],
+    });
+    const parsed: ParsedMap = {
+      stories: new Map([
+        ["0042-0001", a],
+        ["0042-0002", b],
+        ["0042-0003", c],
+      ]),
+      phases: [1],
+      criticalPath: [],
+    };
+
+    const plan = buildDryRunPlan(
+      parsed,
+      EPIC_ID,
+      defaultOptions({ parallelMode: true }),
+    );
+
+    expect(plan.phases[0]!.stories).toHaveLength(3);
+    expect(plan.phases[0]!.parallelCount).toBe(2);
+  });
+
+  it("storyFilter_returnsStoryDetail", () => {
+    const parsed = build14StoryDag();
+    const targetId = storyId(5);
+
+    const plan = buildDryRunPlan(
+      parsed,
+      EPIC_ID,
+      defaultOptions({ storyFilter: targetId }),
+    );
+
+    expect(plan.mode).toBe("story");
+    expect(plan.storyDetail).toBeDefined();
+    expect(plan.storyDetail!.id).toBe(targetId);
+    expect(plan.storyDetail!.title).toBe("S5");
+    expect(plan.storyDetail!.phase).toBe(1);
+    expect(plan.storyDetail!.status).toBe("PENDING");
+  });
+
+  it("storyFilter_upstreamDownstream", () => {
+    const parsed = build14StoryDag();
+    const targetId = storyId(5);
+
+    const plan = buildDryRunPlan(
+      parsed,
+      EPIC_ID,
+      defaultOptions({ storyFilter: targetId }),
+    );
+
+    expect(plan.storyDetail!.dependencies).toEqual([
+      storyId(2),
+    ]);
+    expect(plan.storyDetail!.dependents).toEqual([storyId(8)]);
+  });
+
+  it("storyFilter_nonExistent_throwsError", () => {
+    const parsed = build14StoryDag();
+
+    expect(() =>
+      buildDryRunPlan(
+        parsed,
+        EPIC_ID,
+        defaultOptions({ storyFilter: "9999-9999" }),
+      ),
+    ).toThrow(/9999-9999/);
   });
 });
