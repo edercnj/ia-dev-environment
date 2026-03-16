@@ -52,7 +52,7 @@ describe("DocsAssembler — degenerate", () => {
     const engine = new TemplateEngine(fakeResources, config);
     const assembler = new DocsAssembler();
     assembler.assemble(config, tempDir, fakeResources, engine);
-    expect(fs.existsSync(join(tempDir, "docs"))).toBe(false);
+    expect(fs.existsSync(join(tempDir, "architecture"))).toBe(false);
   });
 });
 
@@ -70,7 +70,7 @@ describe("DocsAssembler — happy path", () => {
     const engine = new TemplateEngine(RESOURCES_DIR, config);
     const assembler = new DocsAssembler();
     const result = assembler.assemble(config, tempDir, RESOURCES_DIR, engine);
-    const outputFile = join(tempDir, "docs", "architecture", "service-architecture.md");
+    const outputFile = join(tempDir, "architecture", "service-architecture.md");
     return { result, outputFile };
   }
 
@@ -80,11 +80,11 @@ describe("DocsAssembler — happy path", () => {
     expect(result[0]).toContain("service-architecture.md");
   });
 
-  it("assemble_templateExists_createsDocsArchitectureDir", () => {
+  it("assemble_templateExists_createsArchitectureDir", () => {
     assembleWithRealTemplate();
-    const docsArchDir = join(tempDir, "docs", "architecture");
-    expect(fs.existsSync(docsArchDir)).toBe(true);
-    expect(fs.statSync(docsArchDir).isDirectory()).toBe(true);
+    const archDir = join(tempDir, "architecture");
+    expect(fs.existsSync(archDir)).toBe(true);
+    expect(fs.statSync(archDir).isDirectory()).toBe(true);
   });
 
   it("assemble_templateExists_writesServiceArchitectureMd", () => {
@@ -175,7 +175,7 @@ describe("DocsAssembler — edge cases", () => {
     const assembler = new DocsAssembler();
     const result = assembler.assemble(config, deepOutput, RESOURCES_DIR, engine);
     expect(result).toHaveLength(1);
-    const outputFile = join(deepOutput, "docs", "architecture", "service-architecture.md");
+    const outputFile = join(deepOutput, "architecture", "service-architecture.md");
     expect(fs.existsSync(outputFile)).toBe(true);
   });
 
@@ -190,7 +190,7 @@ describe("DocsAssembler — edge cases", () => {
     const engine = new TemplateEngine(RESOURCES_DIR, multiConfig);
     const assembler = new DocsAssembler();
     assembler.assemble(multiConfig, tempDir, RESOURCES_DIR, engine);
-    const outputFile = join(tempDir, "docs", "architecture", "service-architecture.md");
+    const outputFile = join(tempDir, "architecture", "service-architecture.md");
     const content = fs.readFileSync(outputFile, "utf-8");
     expect(content).toContain("rest, grpc");
   });
@@ -206,7 +206,7 @@ describe("DocsAssembler — edge cases", () => {
     const engine = new TemplateEngine(RESOURCES_DIR, singleConfig);
     const assembler = new DocsAssembler();
     assembler.assemble(singleConfig, tempDir, RESOURCES_DIR, engine);
-    const outputFile = join(tempDir, "docs", "architecture", "service-architecture.md");
+    const outputFile = join(tempDir, "architecture", "service-architecture.md");
     const content = fs.readFileSync(outputFile, "utf-8");
     expect(content).toContain("**Interfaces:** rest");
     expect(content).not.toMatch(/rest,/);
@@ -223,7 +223,7 @@ describe("DocsAssembler — edge cases", () => {
     const engine = new TemplateEngine(RESOURCES_DIR, emptyConfig);
     const assembler = new DocsAssembler();
     assembler.assemble(emptyConfig, tempDir, RESOURCES_DIR, engine);
-    const outputFile = join(tempDir, "docs", "architecture", "service-architecture.md");
+    const outputFile = join(tempDir, "architecture", "service-architecture.md");
     const content = fs.readFileSync(outputFile, "utf-8");
     expect(content).toContain("**Interfaces:** none");
   });
@@ -240,7 +240,7 @@ describe("DocsAssembler — acceptance", () => {
     const assembler = new DocsAssembler();
     const result = assembler.assemble(config, tempDir, RESOURCES_DIR, engine);
     expect(result).toHaveLength(1);
-    const outputFile = join(tempDir, "docs", "architecture", "service-architecture.md");
+    const outputFile = join(tempDir, "architecture", "service-architecture.md");
     const content = fs.readFileSync(outputFile, "utf-8");
     // All 10 sections present
     for (let i = 1; i <= 10; i++) {
@@ -267,6 +267,6 @@ describe("DocsAssembler — acceptance", () => {
     const assembler = new DocsAssembler();
     const result = assembler.assemble(config, tempDir, fakeResources, engine);
     expect(result).toEqual([]);
-    expect(fs.existsSync(join(tempDir, "docs"))).toBe(false);
+    expect(fs.existsSync(join(tempDir, "architecture"))).toBe(false);
   });
 });
