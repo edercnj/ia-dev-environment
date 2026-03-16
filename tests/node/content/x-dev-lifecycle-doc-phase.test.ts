@@ -645,3 +645,77 @@ describe("x-dev-lifecycle GitHub source — Performance Baseline", () => {
     expect(githubContent).toMatch(/25%/);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Architecture Document Update in Phase 3
+// ---------------------------------------------------------------------------
+
+describe("x-dev-lifecycle Claude source — Architecture Doc Update", () => {
+  it("claudeSource_phase3_containsArchDocUpdateHeading", () => {
+    expect(claudeContent).toMatch(/Architecture Document Update/);
+  });
+
+  it("claudeSource_phase3_archDocUpdateRecommended", () => {
+    // Must appear within Phase 3 context
+    const phase3to4 = claudeContent.slice(
+      claudeContent.search(/## Phase 3/),
+      claudeContent.search(/## Phase 4/),
+    );
+    expect(phase3to4).toMatch(/[Rr]ecommended/);
+  });
+
+  it("claudeSource_phase3_archDocUpdateReferencesArchPlan", () => {
+    expect(claudeContent).toMatch(/architecture-story-XXXX-YYYY\.md/);
+  });
+
+  it("claudeSource_phase3_archDocUpdateReferencesServiceArchDoc", () => {
+    expect(claudeContent).toContain("docs/architecture/service-architecture.md");
+  });
+
+  it("claudeSource_phase3_archDocUpdateWithinPhase3", () => {
+    const phase3Idx = claudeContent.search(/## Phase 3/);
+    const phase4Idx = claudeContent.search(/## Phase 4/);
+    const archDocIdx = claudeContent.search(/Architecture Document Update/);
+    expect(archDocIdx).toBeGreaterThan(phase3Idx);
+    expect(archDocIdx).toBeLessThan(phase4Idx);
+  });
+
+  it("claudeSource_phase3_archDocUpdateSkipWhenNoPlan", () => {
+    expect(claudeContent).toMatch(/[Nn]o architecture plan found/);
+  });
+
+  it("claudeSource_phase3_archDocUpdateInvokesSkill", () => {
+    expect(claudeContent).toContain("x-dev-arch-update");
+  });
+});
+
+describe("x-dev-lifecycle GitHub source — Architecture Doc Update", () => {
+  it("githubSource_phase3_containsArchDocUpdateHeading", () => {
+    expect(githubContent).toMatch(/Architecture Document Update/);
+  });
+
+  it("githubSource_phase3_archDocUpdateReferencesServiceArchDoc", () => {
+    expect(githubContent).toContain("docs/architecture/service-architecture.md");
+  });
+
+  it("githubSource_phase3_archDocUpdateSkipWhenNoPlan", () => {
+    expect(githubContent).toMatch(/[Nn]o architecture plan found/);
+  });
+});
+
+describe("x-dev-lifecycle dual copy — Architecture Doc Update", () => {
+  it("dualCopy_bothContainArchDocUpdateHeading", () => {
+    expect(claudeContent).toMatch(/Architecture Document Update/);
+    expect(githubContent).toMatch(/Architecture Document Update/);
+  });
+
+  it("dualCopy_bothReferenceServiceArchDoc_archUpdate", () => {
+    expect(claudeContent).toContain("docs/architecture/service-architecture.md");
+    expect(githubContent).toContain("docs/architecture/service-architecture.md");
+  });
+
+  it("dualCopy_bothContainSkipLog_archUpdate", () => {
+    expect(claudeContent).toMatch(/[Nn]o architecture plan found/);
+    expect(githubContent).toMatch(/[Nn]o architecture plan found/);
+  });
+});
