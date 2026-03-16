@@ -85,8 +85,8 @@ describe("SKILL_GROUPS and INFRA_SKILL_CONDITIONS", () => {
     expect(SKILL_GROUPS["dev"]).toEqual([
       "x-dev-implement",
       "x-dev-lifecycle",
-      "layer-templates",
       "x-dev-architecture-plan",
+      "layer-templates",
     ]);
   });
 
