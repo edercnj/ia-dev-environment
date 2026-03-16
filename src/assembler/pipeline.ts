@@ -37,6 +37,7 @@ import { DocsAdrAssembler } from "./docs-adr-assembler.js";
 import { RunbookAssembler } from "./runbook-assembler.js";
 import { GrpcDocsAssembler } from "./grpc-docs-assembler.js";
 import { CicdAssembler } from "./cicd-assembler.js";
+import { EpicReportAssembler } from "./epic-report-assembler.js";
 
 /** Warning appended to dry-run results. */
 export const DRY_RUN_WARNING = "Dry run -- no files written";
@@ -74,7 +75,7 @@ export function normalizeResult(
   return { files: [...result.files], warnings: [...result.warnings] };
 }
 
-/** Build the ordered list of 22 assemblers per RULE-008. */
+/** Build the ordered list of 23 assemblers per RULE-008. */
 export function buildAssemblers(): readonly AssemblerDescriptor[] {
   return [
     { name: "RulesAssembler", target: "claude", assembler: new RulesAssembler() },
@@ -98,6 +99,7 @@ export function buildAssemblers(): readonly AssemblerDescriptor[] {
     { name: "CodexSkillsAssembler", target: "codex-agents", assembler: new CodexSkillsAssembler() },
     { name: "DocsAdrAssembler", target: "root", assembler: new DocsAdrAssembler() },
     { name: "CicdAssembler", target: "root", assembler: new CicdAssembler() },
+    { name: "EpicReportAssembler", target: "root", assembler: new EpicReportAssembler() },
     { name: "ReadmeAssembler", target: "claude", assembler: new ReadmeAssembler() },
   ];
 }
