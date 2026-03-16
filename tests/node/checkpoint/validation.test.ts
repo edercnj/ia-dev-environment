@@ -77,6 +77,18 @@ describe("validateExecutionState", () => {
     );
   });
 
+  it("validateExecutionState_arrayInput_throwsValidationError", () => {
+    expect(() => validateExecutionState([1, 2])).toThrow(
+      CheckpointValidationError,
+    );
+  });
+
+  it("validateExecutionState_primitiveInput_throwsValidationError", () => {
+    expect(() => validateExecutionState("hello")).toThrow(
+      CheckpointValidationError,
+    );
+  });
+
   it("validateExecutionState_emptyObject_throwsWithEpicIdRequired", () => {
     expect(() => validateExecutionState({})).toThrow(
       /epicId/,

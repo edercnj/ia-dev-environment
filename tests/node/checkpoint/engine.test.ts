@@ -120,6 +120,20 @@ describe("createCheckpoint", () => {
     ).rejects.toThrow(CheckpointIOError);
   });
 
+  it("createCheckpoint_pathIsFile_throwsCheckpointIOError", async () => {
+    const filePath = join(tmpDir, "not-a-dir.txt");
+    writeFileSync(filePath, "hello", "utf-8");
+    await expect(
+      createCheckpoint(
+        filePath,
+        "0042",
+        "feat/epic-0042",
+        [],
+        DEFAULT_MODE,
+      ),
+    ).rejects.toThrow(CheckpointIOError);
+  });
+
   it("createCheckpoint_emptyStoriesList_createsFileWithEmptyStoriesMap", async () => {
     const state = await createCheckpoint(
       tmpDir,
