@@ -32,6 +32,7 @@ import { ReadmeAssembler } from "./readme-assembler.js";
 import { CodexAgentsMdAssembler } from "./codex-agents-md-assembler.js";
 import { CodexConfigAssembler } from "./codex-config-assembler.js";
 import { CodexSkillsAssembler } from "./codex-skills-assembler.js";
+import { DocsAdrAssembler } from "./docs-adr-assembler.js";
 import { RunbookAssembler } from "./runbook-assembler.js";
 
 /** Warning appended to dry-run results. */
@@ -70,7 +71,7 @@ export function normalizeResult(
   return { files: [...result.files], warnings: [...result.warnings] };
 }
 
-/** Build the ordered list of 18 assemblers per RULE-008. */
+/** Build the ordered list of 19 assemblers per RULE-008. */
 export function buildAssemblers(): readonly AssemblerDescriptor[] {
   return [
     { name: "RulesAssembler", target: "claude", assembler: new RulesAssembler() },
@@ -90,6 +91,7 @@ export function buildAssemblers(): readonly AssemblerDescriptor[] {
     { name: "CodexAgentsMdAssembler", target: "root", assembler: new CodexAgentsMdAssembler() },
     { name: "CodexConfigAssembler", target: "codex", assembler: new CodexConfigAssembler() },
     { name: "CodexSkillsAssembler", target: "codex-agents", assembler: new CodexSkillsAssembler() },
+    { name: "DocsAdrAssembler", target: "root", assembler: new DocsAdrAssembler() },
     { name: "ReadmeAssembler", target: "claude", assembler: new ReadmeAssembler() },
   ];
 }
