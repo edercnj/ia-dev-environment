@@ -143,7 +143,7 @@ OVERALL: APPROVED | REJECTED
 
 ### 3b. Issue Summary
 
-Group all findings by severity: `CRITICAL: N | MEDIUM: N | LOW: N`
+Group all findings by severity: `CRITICAL: N | HIGH: N | MEDIUM: N | LOW: N`
 
 ```
 ANY item with score < 2 -> MUST be fixed before merge. No exceptions.
@@ -155,9 +155,34 @@ OVERALL: APPROVED only when every engineer has STATUS: Approved.
 
 Save each engineer's report to `docs/stories/epic-XXXX/reviews/review-{engineer}-story-XXXX-YYYY.md` (extract epic ID XXXX and story sequence YYYY from the story ID). Ensure directory exists: `mkdir -p docs/stories/epic-XXXX/reviews`.
 
+### 3d. Threat Model Update
+
+After saving review artifacts, extract security findings from the Security Engineer's report and update the project threat model incrementally.
+
+1. **Check for security findings:** Parse the Security Engineer's report for items with severity Critical, High, or Medium. If no security findings exist, skip this step.
+
+2. **Read or create threat model:** If `docs/security/threat-model.md` exists, read it. Otherwise, create it from the template `resources/templates/_TEMPLATE-THREAT-MODEL.md`.
+
+3. **Map findings to STRIDE categories:** Classify each security finding into one of the 6 STRIDE categories (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege) based on the nature of the threat.
+
+4. **Apply severity-based auto-add rules:**
+
+   | Finding Severity | Auto-Add? | Initial Status |
+   |-----------------|-----------|----------------|
+   | Critical | Yes | `Open` |
+   | High | Yes | `Open` |
+   | Medium | Yes | `Under Review` |
+   | Low | No | N/A (noted in review only) |
+
+5. **Incremental update behavior:** Append new threats to the appropriate STRIDE category table. Preserve all existing entries — never remove or overwrite. If a finding matches an existing threat by description, update the existing entry instead of duplicating.
+
+6. **Recompute Risk Summary:** Update the severity counts table in the Risk Summary section to reflect current Open and Under Review threats.
+
+7. **Append Change History:** Add a new row with the current date, story reference, and summary of threats added or updated.
+
 ## Phase 4: Story Generation for Findings (Orchestrator -- Inline)
 
-This phase runs ONLY when CRITICAL or MEDIUM findings exist.
+This phase runs ONLY when CRITICAL, HIGH, or MEDIUM findings exist.
 
 If CRITICAL or MEDIUM findings exist, ask the user whether to generate a correction story. If yes, transform each finding into a Gherkin scenario and save to `docs/stories/epic-XXXX/reviews/correction-story-XXXX-YYYY.md`.
 
