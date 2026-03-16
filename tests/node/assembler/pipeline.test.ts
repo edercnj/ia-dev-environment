@@ -115,12 +115,13 @@ describe("buildAssemblers", () => {
     "CodexSkillsAssembler",
     "DocsAdrAssembler",
     "CicdAssembler",
+    "EpicReportAssembler",
     "ReadmeAssembler",
   ];
 
-  it("buildAssemblers_returns22Assemblers", () => {
+  it("buildAssemblers_returns23Assemblers", () => {
     const assemblers = buildAssemblers();
-    expect(assemblers).toHaveLength(22);
+    expect(assemblers).toHaveLength(23);
   });
 
   it.each(
