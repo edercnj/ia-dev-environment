@@ -61,5 +61,8 @@ export * from "./runbook-assembler.js";
 export * from "./cicd-assembler.js";
 
 
+// --- STORY-0005-0002: EpicReportAssembler ---
+export * from "./epic-report-assembler.js";
+
 // --- STORY-016: Pipeline Orchestrator ---
 export * from "./pipeline.js";
