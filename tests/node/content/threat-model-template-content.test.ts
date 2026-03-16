@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 import * as fs from "node:fs";
 import * as path from "node:path";
 
@@ -29,12 +29,30 @@ const GITHUB_LIFECYCLE_PATH = path.resolve(
   "resources/github-skills-templates/dev/x-dev-lifecycle.md",
 );
 
-// --- Read content once ---
-const templateContent = fs.readFileSync(TEMPLATE_PATH, "utf-8");
-const claudeXReview = fs.readFileSync(CLAUDE_XREVIEW_PATH, "utf-8");
-const githubXReview = fs.readFileSync(GITHUB_XREVIEW_PATH, "utf-8");
-const claudeLifecycle = fs.readFileSync(CLAUDE_LIFECYCLE_PATH, "utf-8");
-const githubLifecycle = fs.readFileSync(GITHUB_LIFECYCLE_PATH, "utf-8");
+// --- Read content in beforeAll to avoid module-scope crashes ---
+let templateContent = "";
+let claudeXReview = "";
+let githubXReview = "";
+let claudeLifecycle = "";
+let githubLifecycle = "";
+
+beforeAll(() => {
+  if (fs.existsSync(TEMPLATE_PATH)) {
+    templateContent = fs.readFileSync(TEMPLATE_PATH, "utf-8");
+  }
+  if (fs.existsSync(CLAUDE_XREVIEW_PATH)) {
+    claudeXReview = fs.readFileSync(CLAUDE_XREVIEW_PATH, "utf-8");
+  }
+  if (fs.existsSync(GITHUB_XREVIEW_PATH)) {
+    githubXReview = fs.readFileSync(GITHUB_XREVIEW_PATH, "utf-8");
+  }
+  if (fs.existsSync(CLAUDE_LIFECYCLE_PATH)) {
+    claudeLifecycle = fs.readFileSync(CLAUDE_LIFECYCLE_PATH, "utf-8");
+  }
+  if (fs.existsSync(GITHUB_LIFECYCLE_PATH)) {
+    githubLifecycle = fs.readFileSync(GITHUB_LIFECYCLE_PATH, "utf-8");
+  }
+});
 
 const STRIDE_CATEGORIES = [
   "Spoofing",

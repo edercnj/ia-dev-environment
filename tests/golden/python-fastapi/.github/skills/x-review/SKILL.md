@@ -143,7 +143,7 @@ OVERALL: APPROVED | REJECTED
 
 ### 3b. Issue Summary
 
-Group all findings by severity: `CRITICAL: N | MEDIUM: N | LOW: N`
+Group all findings by severity: `CRITICAL: N | HIGH: N | MEDIUM: N | LOW: N`
 
 ```
 ANY item with score < 2 -> MUST be fixed before merge. No exceptions.
@@ -182,7 +182,7 @@ After saving review artifacts, extract security findings from the Security Engin
 
 ## Phase 4: Story Generation for Findings (Orchestrator -- Inline)
 
-This phase runs ONLY when CRITICAL or MEDIUM findings exist.
+This phase runs ONLY when CRITICAL, HIGH, or MEDIUM findings exist.
 
 If CRITICAL or MEDIUM findings exist, ask the user whether to generate a correction story. If yes, transform each finding into a Gherkin scenario and save to `docs/stories/epic-XXXX/reviews/correction-story-XXXX-YYYY.md`.
 

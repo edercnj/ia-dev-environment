@@ -147,7 +147,7 @@ OVERALL: APPROVED | REJECTED
 
 ### 3b. Issue Summary
 
-Group all findings by severity: `CRITICAL: N | MEDIUM: N | LOW: N`
+Group all findings by severity: `CRITICAL: N | HIGH: N | MEDIUM: N | LOW: N`
 
 ```
 ANY item with score < 2 → MUST be fixed before merge. No exceptions.
@@ -186,11 +186,11 @@ After saving review artifacts, extract security findings from the Security Engin
 
 ## Phase 4: Story Generation for Findings (Orchestrator — Inline)
 
-This phase runs ONLY when CRITICAL or MEDIUM findings exist.
+This phase runs ONLY when CRITICAL, HIGH, or MEDIUM findings exist.
 
 ### 4a. Check Findings
 
-After consolidation, evaluate if there are findings with severity CRITICAL or MEDIUM.
+After consolidation, evaluate if there are findings with severity CRITICAL, HIGH, or MEDIUM.
 If all findings are LOW or there are no findings, skip this phase entirely.
 
 ### 4b. Ask User Confirmation
