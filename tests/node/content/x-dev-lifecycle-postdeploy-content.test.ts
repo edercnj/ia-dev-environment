@@ -410,4 +410,16 @@ describe("x-dev-lifecycle dual copy consistency (RULE-001)", () => {
     expect(claudeContent).toMatch(/^8\.\s+`git checkout main/m);
     expect(githubContent).toMatch(/^8\.\s+`git checkout main/m);
   });
+
+  it("dualCopy_pathDifferences_onlyExpected", () => {
+    const claudePhase7 = claudeContent.slice(
+      claudeContent.indexOf("## Phase 7"),
+      claudeContent.indexOf("## Roles and Models"),
+    );
+    const githubPhase7 = githubContent.slice(
+      githubContent.indexOf("## Phase 7"),
+      githubContent.indexOf("## Roles and Models"),
+    );
+    expect(claudePhase7).toBe(githubPhase7);
+  });
 });
