@@ -244,6 +244,39 @@ Documentation output saved to `docs/` with subdirectories per type:
 
 If `interfaces` does NOT contain `"cli"`: skip silently (no output, no warning).
 
+### Event-Driven Documentation Doc Generator
+
+**Trigger:** Invoke when `interfaces` contains `websocket`, `event-consumer`, or `event-producer`.
+
+Launch a `general-purpose` subagent:
+
+> You are a **Documentation Engineer** generating an event catalog for {{PROJECT_NAME}}.
+>
+> **Step 1 — Read context:**
+> - Read `skills/protocols/references/event-driven-conventions.md` — event naming, CloudEvents envelope, topic naming
+> - Read `skills/protocols/references/websocket-conventions.md` — WebSocket channel and message conventions
+> - Read the project source code to identify event definitions: producers, consumers, schemas, topics, channels
+>
+> **Step 2 — Generate `docs/api/event-catalog.md`** with the following structure:
+>
+> 1. **Topics Overview** table: Topic/Channel, Events, Partitioning/Routing
+> 2. **Per-event sections** (one `## Event: {name}` per event):
+>    - Topic/Channel name
+>    - Producer service
+>    - Consumer services
+>    - Payload Schema table: Field, Type, Required, Description
+>    - Headers table (if applicable): correlation-id, content-type, custom headers
+> 3. **Event Flows**: Mermaid `sequenceDiagram` showing Producer → Broker → Consumer for each flow
+> 4. **CloudEvents envelope** details (if applicable): specversion, type, source, subject, datacontenttype
+> 5. **Schema versioning** and backward compatibility notes
+>
+> **Step 3 — Protocol-specific handling:**
+> - For `event-consumer`/`event-producer` (Kafka): document topics, partition keys, consumer groups, offset management
+> - For `websocket`: document channels, message types, connection lifecycle
+> - If both are present, produce a unified catalog covering multiple protocol types
+>
+> Save output to `docs/api/event-catalog.md`.
+
 ## Phase 4 — Parallel Review
 
 Invoke skill `/x-review` for the current story. The review skill launches its own parallel subagents (one per specialist engineer), each reading their own knowledge pack.
