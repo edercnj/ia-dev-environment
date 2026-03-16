@@ -268,6 +268,11 @@ describe("x-dev-epic-implement dual copy consistency (RULE-001)", () => {
     "Phase 1",
     "Phase 2",
     "Phase 3",
+    "getExecutableStories",
+    "SubagentResult",
+    "IN_PROGRESS",
+    "createCheckpoint",
+    "RULE-008",
   ];
 
   it.each(
