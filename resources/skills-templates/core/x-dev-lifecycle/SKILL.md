@@ -217,6 +217,17 @@ Documentation output saved to `docs/` with subdirectories per type:
 - Generate Conventional Commits summary by type (feat, fix, refactor, test, docs, chore)
 - Append to CHANGELOG.md
 
+**Performance Baseline (Recommended):**
+If the implemented feature affects the request path, startup, or memory footprint:
+1. Read `.claude/templates/_TEMPLATE-PERFORMANCE-BASELINE.md` for measurement guide
+2. Record "before" metrics (prior to the feature branch)
+3. Record "after" metrics (with the feature branch)
+4. Append a row to `docs/performance/baselines.md`
+5. If Delta > 10%, add a WARNING note
+6. If Delta > 25%, add an INVESTIGATION note with optimization plan
+
+This step is recommended but not mandatory. Skip does not block the phase.
+
 ### CLI Documentation Generator (interface: cli)
 
 > Invoked when project identity `interfaces` contains `"cli"`.
