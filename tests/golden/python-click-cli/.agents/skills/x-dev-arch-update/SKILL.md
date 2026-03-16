@@ -32,20 +32,20 @@ argument-hint: "[STORY-ID or architecture-plan-path]"
 
 ### Section Update Protocol
 
-For each of the 10 sections in `service-architecture.md`:
+For each of the 10 numbered sections in `service-architecture.md` (match headings by numeric prefix):
 
-| # | Section | Update Action |
-|---|---------|---------------|
-| 1 | Overview | Append new interfaces or technology changes |
-| 2 | C4 Diagrams | Add new nodes and edges to existing Mermaid diagrams |
-| 3 | Integrations | Append new rows to the integration table |
-| 4 | Data Model | Add new entities and relationships to the ER diagram |
-| 5 | Critical Flows | Add new sequence diagrams as new subsections |
-| 6 | NFRs | Update targets only if changed; never remove rows |
-| 7 | Architectural Decisions | Append new ADR references to the table |
-| 8 | Observability | Add new metrics, alerts, or dashboard entries |
-| 9 | Resilience | Add new circuit breaker, retry, or fallback configurations |
-| 10 | Change History | Append a new changelog entry with date, story ID, and summary |
+| # | Section Heading | Update Action |
+|---|-----------------|---------------|
+| 1 | 1. Overview | Append new interfaces or technology changes |
+| 2 | 2. C4 Diagrams | Add new nodes and edges to existing Mermaid diagrams |
+| 3 | 3. Integrations | Append new rows to the integration table |
+| 4 | 4. Data Model | Add new entities and relationships to the ER diagram |
+| 5 | 5. Critical Flows | Add new sequence diagrams as new subsections |
+| 6 | 6. NFRs | Update targets only if changed; never remove rows |
+| 7 | 7. Architectural Decisions | Append new ADR references to the table |
+| 8 | 8. Observability | Add new metrics, alerts, or dashboard entries |
+| 9 | 9. Resilience | Add new circuit breaker, retry, or fallback configurations |
+| 10 | 10. Change History | Append a new changelog entry with date, story ID, and summary |
 
 ### Change History Entry Format
 
