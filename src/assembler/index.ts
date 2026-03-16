@@ -48,5 +48,8 @@ export * from "./codex-agents-md-assembler.js";
 export * from "./codex-config-assembler.js";
 export * from "./codex-skills-assembler.js";
 
+// --- STORY-0004-0003: RunbookAssembler ---
+export * from "./runbook-assembler.js";
+
 // --- STORY-016: Pipeline Orchestrator ---
 export * from "./pipeline.js";
