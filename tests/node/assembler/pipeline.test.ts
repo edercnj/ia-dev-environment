@@ -133,6 +133,13 @@ describe("buildAssemblers", () => {
     }
   });
 
+  it("buildAssemblers_docsAdrAssembler_hasRootTarget", () => {
+    const assemblers = buildAssemblers();
+    const adr = assemblers.find((a) => a.name === "DocsAdrAssembler");
+    expect(adr).toBeDefined();
+    expect(adr!.target).toBe("root");
+  });
+
   it("buildAssemblers_orderMatchesRule008", () => {
     const assemblers = buildAssemblers();
     const names = assemblers.map((a) => a.name);

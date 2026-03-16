@@ -136,6 +136,114 @@ describe("DocsAdrAssembler", () => {
     );
     expect(fs.existsSync(readmePath)).toBe(true);
   });
+
+  // --- Fix: AC #5 — Template mandatory section validation ---
+
+  it("assemble_templateMissingMandatorySection_returnsEmptyArray", async () => {
+    const config = aFullProjectConfig();
+    const fakeResourcesDir = join(tempDir, "resources-incomplete");
+    const templatesDir = join(fakeResourcesDir, "templates");
+    await mkdir(templatesDir, { recursive: true });
+    const incompleteTemplate = [
+      "---",
+      "status: Proposed",
+      "date: 2026-01-01",
+      "deciders:",
+      "  - Alice",
+      "---",
+      "",
+      "# ADR-NNNN: Title",
+      "",
+      "## Status",
+      "",
+      "Proposed",
+      "",
+      "## Context",
+      "",
+      "Some context.",
+      "",
+      "## Consequences",
+      "",
+      "### Positive",
+      "",
+      "- Good thing",
+      "",
+    ].join("\n");
+    await writeFile(
+      join(templatesDir, "_TEMPLATE-ADR.md"),
+      incompleteTemplate,
+    );
+    const engine = new TemplateEngine(fakeResourcesDir, config);
+    const assembler = new DocsAdrAssembler();
+    const result = assembler.assemble(
+      config, tempDir, fakeResourcesDir, engine,
+    );
+    expect(result).toEqual([]);
+  });
+
+  it("assemble_templateWithAllSectionsPresent_generatesReadme", async () => {
+    const config = aFullProjectConfig();
+    const fakeResourcesDir = join(tempDir, "resources-complete");
+    const templatesDir = join(fakeResourcesDir, "templates");
+    await mkdir(templatesDir, { recursive: true });
+    const completeTemplate = [
+      "---",
+      "status: Proposed",
+      "date: 2026-01-01",
+      "deciders:",
+      "  - Alice",
+      "---",
+      "",
+      "# ADR-NNNN: Title",
+      "",
+      "## Status",
+      "",
+      "Proposed",
+      "",
+      "## Context",
+      "",
+      "Some context.",
+      "",
+      "## Decision",
+      "",
+      "We decided X.",
+      "",
+      "## Consequences",
+      "",
+      "### Positive",
+      "",
+      "- Good thing",
+      "",
+    ].join("\n");
+    await writeFile(
+      join(templatesDir, "_TEMPLATE-ADR.md"),
+      completeTemplate,
+    );
+    const engine = new TemplateEngine(fakeResourcesDir, config);
+    const assembler = new DocsAdrAssembler();
+    const result = assembler.assemble(
+      config, tempDir, fakeResourcesDir, engine,
+    );
+    expect(result).toHaveLength(1);
+  });
+
+  // --- Fix: Backward compatibility acceptance test (AC #6) ---
+
+  it("assemble_existingFilesInOutputDir_doesNotModifyThem", async () => {
+    const config = aFullProjectConfig();
+    const engine = new TemplateEngine(RESOURCES_DIR, config);
+    const assembler = new DocsAdrAssembler();
+    const existingDir = join(tempDir, "src");
+    await mkdir(existingDir, { recursive: true });
+    const existingFile = join(existingDir, "index.ts");
+    const existingContent = "export const x = 1;";
+    await writeFile(existingFile, existingContent);
+    assembler.assemble(config, tempDir, RESOURCES_DIR, engine);
+    const preserved = fs.readFileSync(existingFile, "utf-8");
+    expect(preserved).toBe(existingContent);
+    expect(fs.existsSync(join(tempDir, "docs", "adr", "README.md")))
+      .toBe(true);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -194,6 +302,17 @@ describe("getNextAdrNumber", () => {
       expect(getNextAdrNumber(adrDir)).toBe(expected);
     },
   );
+
+  // --- Fix: Edge cases ---
+
+  it("getNextAdrNumber_nonAdrFilesInDir_ignoresThem", async () => {
+    const adrDir = join(tempDir, "adr");
+    await mkdir(adrDir, { recursive: true });
+    await writeFile(join(adrDir, "README.md"), "");
+    await writeFile(join(adrDir, "notes.txt"), "");
+    await writeFile(join(adrDir, "ADR-0001-foo.md"), "");
+    expect(getNextAdrNumber(adrDir)).toBe(2);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -241,6 +360,18 @@ describe("formatAdrFilename", () => {
       expect(formatAdrFilename(num, title)).toBe(expected);
     },
   );
+
+  // --- Fix: Edge cases ---
+
+  it("formatAdrFilename_emptyTitle_returnsFilenameWithoutTitle", () => {
+    expect(formatAdrFilename(1, "")).toBe("ADR-0001-.md");
+  });
+
+  it("formatAdrFilename_fiveDigitNumber_padsCorrectly", () => {
+    expect(formatAdrFilename(10000, "overflow")).toBe(
+      "ADR-10000-overflow.md",
+    );
+  });
 });
 
 // ---------------------------------------------------------------------------
