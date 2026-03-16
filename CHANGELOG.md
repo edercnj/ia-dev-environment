@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **x-dev-epic-implement skill skeleton (story-0005-0003):** New core skill template `x-dev-epic-implement` with YAML frontmatter, input parsing (epic ID + 6 optional flags), 5 prerequisite checks with error messages, Phase 0 preparation flow, and Phase 1-3 placeholders for future stories. Registered in GitHub skills assembler. Golden files updated for all 8 profiles.
+
+### Added (previous)
 - **GitHub Actions CI** -- Lint, build, test workflow with Node.js 20/22 matrix.
   Coverage upload on Node 22. Pack verification job.
 - **npm packaging** -- `files` field, `prepublishOnly` script for publish gating.
