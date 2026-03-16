@@ -81,32 +81,69 @@ function dag14Phase0(): StoryNode[] {
 
 function dag14Phase1(): StoryNode[] {
   return [
-    makeStory({ id: storyId(4), title: "S4", phase: 1, blockedBy: [storyId(1)], isOnCriticalPath: true, blocks: [storyId(7)] }),
-    makeStory({ id: storyId(5), title: "S5", phase: 1, blockedBy: [storyId(2)], blocks: [storyId(8)] }),
-    makeStory({ id: storyId(6), title: "S6", phase: 1, blockedBy: [storyId(3)], blocks: [storyId(9)] }),
+    makeStory({
+      id: storyId(4), title: "S4", phase: 1,
+      blockedBy: [storyId(1)], isOnCriticalPath: true,
+      blocks: [storyId(7)],
+    }),
+    makeStory({
+      id: storyId(5), title: "S5", phase: 1,
+      blockedBy: [storyId(2)], blocks: [storyId(8)],
+    }),
+    makeStory({
+      id: storyId(6), title: "S6", phase: 1,
+      blockedBy: [storyId(3)], blocks: [storyId(9)],
+    }),
   ];
 }
 
 function dag14Phase2(): StoryNode[] {
   return [
-    makeStory({ id: storyId(7), title: "S7", phase: 2, blockedBy: [storyId(4)], isOnCriticalPath: true, blocks: [storyId(10)] }),
-    makeStory({ id: storyId(8), title: "S8", phase: 2, blockedBy: [storyId(5)], blocks: [storyId(11)] }),
-    makeStory({ id: storyId(9), title: "S9", phase: 2, blockedBy: [storyId(6)], blocks: [storyId(12)] }),
+    makeStory({
+      id: storyId(7), title: "S7", phase: 2,
+      blockedBy: [storyId(4)], isOnCriticalPath: true,
+      blocks: [storyId(10)],
+    }),
+    makeStory({
+      id: storyId(8), title: "S8", phase: 2,
+      blockedBy: [storyId(5)], blocks: [storyId(11)],
+    }),
+    makeStory({
+      id: storyId(9), title: "S9", phase: 2,
+      blockedBy: [storyId(6)], blocks: [storyId(12)],
+    }),
   ];
 }
 
 function dag14Phase3(): StoryNode[] {
   return [
-    makeStory({ id: storyId(10), title: "S10", phase: 3, blockedBy: [storyId(7)], isOnCriticalPath: true, blocks: [storyId(13)] }),
-    makeStory({ id: storyId(11), title: "S11", phase: 3, blockedBy: [storyId(8)], blocks: [storyId(13)] }),
-    makeStory({ id: storyId(12), title: "S12", phase: 3, blockedBy: [storyId(9)], blocks: [storyId(14)] }),
+    makeStory({
+      id: storyId(10), title: "S10", phase: 3,
+      blockedBy: [storyId(7)], isOnCriticalPath: true,
+      blocks: [storyId(13)],
+    }),
+    makeStory({
+      id: storyId(11), title: "S11", phase: 3,
+      blockedBy: [storyId(8)], blocks: [storyId(13)],
+    }),
+    makeStory({
+      id: storyId(12), title: "S12", phase: 3,
+      blockedBy: [storyId(9)], blocks: [storyId(14)],
+    }),
   ];
 }
 
 function dag14Phase4(): StoryNode[] {
   return [
-    makeStory({ id: storyId(13), title: "S13", phase: 4, blockedBy: [storyId(10), storyId(11)], isOnCriticalPath: true }),
-    makeStory({ id: storyId(14), title: "S14", phase: 4, blockedBy: [storyId(12)] }),
+    makeStory({
+      id: storyId(13), title: "S13", phase: 4,
+      blockedBy: [storyId(10), storyId(11)],
+      isOnCriticalPath: true,
+    }),
+    makeStory({
+      id: storyId(14), title: "S14", phase: 4,
+      blockedBy: [storyId(12)],
+    }),
   ];
 }
 
