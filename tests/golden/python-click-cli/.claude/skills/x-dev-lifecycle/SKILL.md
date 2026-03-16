@@ -234,6 +234,7 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
    - Gateway configuration updated (if api_gateway != none)
    - gRPC proto backward compatible (if interfaces contain grpc)
    - GraphQL schema backward compatible (if interfaces contain graphql)
+   - [ ] Threat model updated (if security findings with severity >= Medium) — extract findings from Phase 3 review reports, map to STRIDE categories, and update `docs/security/threat-model.md` using `resources/templates/_TEMPLATE-THREAT-MODEL.md` as format reference. See `/x-review` Phase 3d for the incremental update algorithm.
 6. Report PASS/FAIL result
 7. `git checkout main && git pull origin main`
 
