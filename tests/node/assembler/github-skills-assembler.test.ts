@@ -81,10 +81,11 @@ describe("SKILL_GROUPS and INFRA_SKILL_CONDITIONS", () => {
     }
   });
 
-  it("SKILL_GROUPS_devGroup_contains5Skills", () => {
+  it("SKILL_GROUPS_devGroup_contains7Skills", () => {
     expect(SKILL_GROUPS["dev"]).toEqual([
       "x-dev-implement",
       "x-dev-lifecycle",
+      "x-dev-epic-implement",
       "x-dev-architecture-plan",
       "x-dev-arch-update",
       "layer-templates",
