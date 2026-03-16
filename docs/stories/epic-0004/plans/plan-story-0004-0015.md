@@ -1,6 +1,6 @@
 # Implementation Plan — story-0004-0015: ADR Automation
 
-**Story:** ADR Automation — Geração e Indexação Automática
+**Story:** ADR Automation — Automatic Generation and Indexing
 **Dependencies:** story-0004-0001 (ADR Template), story-0004-0006 (Architecture Plan Skill)
 
 ---
@@ -11,10 +11,10 @@ This is a **CLI library** project (not hexagonal). The codebase has three logica
 
 | Layer | Role | Affected? |
 |-------|------|-----------|
-| `src/domain/` | Pure logic, mappings, registry | Yes — new ADR domain logic |
-| `src/assembler/` | File I/O assemblers + pipeline orchestrator | Yes — new `AdrAssembler` |
-| `resources/` | Templates, skill files (source of truth) | Yes — ADR template + skill template |
-| `tests/` | Unit + integration + golden file tests | Yes — new test files |
+| `src/domain/` | Pure logic, mappings, registry | No — ADR automation runs as SKILL template in agent, no new TS domain logic |
+| `src/assembler/` | File I/O assemblers + pipeline orchestrator | Yes — register ADR automation skill in existing `GithubSkillsAssembler.SKILL_GROUPS` |
+| `resources/` | Templates, skill files (source of truth) | Yes — ADR automation SKILL template (Claude + GitHub variants) |
+| `tests/` | Unit + integration + golden file tests | Yes — new content validation tests + golden file updates |
 
 **Key insight:** Story-0004-0015 is a **skill** (invoked by Claude/agents at runtime), NOT a pipeline assembler that runs during `ia-dev-env generate`. The ADR automation logic is a **SKILL.md template** that gets copied into `.claude/skills/` during generation. The runtime logic (extract mini-ADRs, expand, number, index) executes inside the AI agent context, not as TypeScript code.
 
@@ -72,9 +72,9 @@ Followed by markdown sections:
 
 ### 2.3 No New TypeScript Source Files Required
 
-The `SkillsAssembler` already auto-discovers core skills by scanning `resources/skills-templates/core/*/`. Placing `x-dev-adr-automation/SKILL.md` in the core directory is sufficient. No new assembler, no new domain class, no pipeline modification needed.
+The `SkillsAssembler` already auto-discovers core skills by scanning `resources/skills-templates/core/*/`. Placing `x-dev-adr-automation/SKILL.md` in the core directory is sufficient for the Claude/.agents copies. No new assembler, no new domain class, no pipeline modification needed; only a registry update in the existing GitHub skills assembler is required.
 
-**Verification:** In `skills-assembler.ts`, `selectCoreSkills()` iterates `resources/skills-templates/core/` entries and includes any directory as a skill. The new `x-dev-adr-automation/` directory will be automatically picked up.
+**Verification:** In `skills-assembler.ts`, `selectCoreSkills()` iterates `resources/skills-templates/core/` entries and includes any directory as a skill, so the new `x-dev-adr-automation/` directory will be automatically picked up. Additionally, `src/assembler/github-skills-assembler.ts` must be updated to register `x-dev-adr-automation` under `SKILL_GROUPS.dev` so that the GitHub skills registry generates the `.github/skills/` copy.
 
 ---
 
@@ -82,13 +82,13 @@ The `SkillsAssembler` already auto-discovers core skills by scanning `resources/
 
 | File | Change | Reason |
 |------|--------|--------|
-| None | — | `SkillsAssembler.selectCoreSkills()` auto-discovers core skills by directory scan |
+| `src/assembler/github-skills-assembler.ts` | Add `"x-dev-adr-automation"` to `SKILL_GROUPS.dev` | Register skill in GitHub skill registry for `.github/skills/` dual copy |
 
-**No source code modifications required.** The existing pipeline handles this automatically:
-- `SkillsAssembler` scans `resources/skills-templates/core/` directories
-- `copyTemplateTree` copies the skill directory with placeholder replacement
+**No new pipeline or domain logic is required; only a minimal GitHub skill registry update.** The existing pipeline handles the rest automatically:
+- `SkillsAssembler` scans `resources/skills-templates/core/` directories and auto-discovers the new `x-dev-adr-automation` core skill
+- `copyTemplateTree` copies the skill directory with placeholder replacement into `.claude/skills/`
 - `ReadmeAssembler` counts and lists skills in the generated README.md
-- Golden file tests for all 8 profiles will need updates (new skill in output)
+- Golden file tests for all 8 profiles will need updates (new skill in output and GitHub skill registry entry)
 
 ---
 
@@ -144,7 +144,7 @@ The skill must be generated in both:
 - `.claude/skills/x-dev-adr-automation/SKILL.md`
 - `.github/skills/x-dev-adr-automation/SKILL.md`
 
-The `GithubSkillsAssembler` already mirrors core skills to `.github/skills/`. No additional code needed.
+The `GithubSkillsAssembler` uses a hardcoded `SKILL_GROUPS` registry. The skill must be added to `SKILL_GROUPS.dev` and a GitHub template created at `resources/github-skills-templates/dev/x-dev-adr-automation.md`.
 
 ---
 
@@ -176,7 +176,7 @@ No changes to `ProjectConfig`, `setup-config.*.yaml`, or any configuration model
 
 ### Low Risk
 - **Auto-discovery works:** `SkillsAssembler.selectCoreSkills()` scans directories — adding a new directory is zero-code-change.
-- **Dual copy handled:** `GithubSkillsAssembler` already mirrors all core skills.
+- **Dual copy handled:** `GithubSkillsAssembler` generates `.github/skills/` copy after registering in `SKILL_GROUPS.dev`.
 - **Template engine handles placeholders:** `{project_name}` etc. in SKILL.md will be replaced automatically.
 
 ### Medium Risk

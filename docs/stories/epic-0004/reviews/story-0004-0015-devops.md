@@ -13,7 +13,7 @@ PASSED:
 - [6] Probes configured (2/2) — N/A: No liveness/readiness/startup probe changes. No K8s manifests in scope.
 - [7] Config externalized (2/2) — N/A: The new skill template does not introduce any hardcoded configuration values. The SKILL.md uses argument parameters (architecture-plan-path, story-id) passed at invocation time, following the externalized config pattern. The assembler change adds the skill name to a constant array, consistent with existing patterns.
 - [8] Secrets via vault/sealed-secrets (2/2) — N/A: No secret management changes. The skill templates contain no credentials, API keys, or sensitive data. No ConfigMap or Secret manifests modified.
-- [9] CI pipeline passing (2/2) — N/A: No CI pipeline configuration files (.github/workflows, Jenkinsfile, etc.) changed. The one-line assembler registration and golden file updates are covered by existing integration tests (byte-for-byte golden comparison + new content test at tests/node/content/x-dev-adr-automation-content.test.ts with 25 test cases).
+- [9] CI pipeline passing (2/2) — N/A: No CI pipeline configuration files (.github/workflows, Jenkinsfile, etc.) changed. The one-line assembler registration and golden file updates are covered by existing integration tests (byte-for-byte golden comparison + new content test at tests/node/content/x-dev-adr-automation-content.test.ts with 40 test cases, including parameterized cases).
 - [10] Image scanning (2/2) — N/A: No container image changes. No base image updates, no dependency additions that would affect container scanning.
 FAILED:
 (none)
@@ -27,7 +27,7 @@ This PR adds a new ADR Automation skill template (`x-dev-adr-automation`) to the
 
 - **2 new markdown skill templates** (Claude + GitHub variants)
 - **1 line in `github-skills-assembler.ts`** registering the skill in `SKILL_GROUPS.dev`
-- **1 new content test file** (25 test cases covering frontmatter, sections, dual-copy consistency)
+- **1 new content test file** (40 test cases covering frontmatter, sections, dual-copy consistency, including parameterized cases)
 - **40 golden file updates** (auto-generated README counts and skill table entries across 8 profiles)
 
 No infrastructure artifacts (Dockerfiles, K8s manifests, CI pipelines, docker-compose, Kustomize overlays, secrets, or container configurations) are present in the diff. All 10 DevOps checklist items are genuinely not applicable to this change and score 2/2.
