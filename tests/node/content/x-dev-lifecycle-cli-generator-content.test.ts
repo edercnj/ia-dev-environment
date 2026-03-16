@@ -463,6 +463,87 @@ describe("GitHub source — Structural preservation", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Claude source — Documentation Phase dispatch table
+// ---------------------------------------------------------------------------
+
+describe("Claude source — Documentation Phase dispatch table", () => {
+  it.each([
+    ["rest", "OpenAPI"],
+    ["grpc", "gRPC"],
+    ["cli", "CLI"],
+    ["websocket", "Event"],
+    ["kafka", "Event"],
+  ])(
+    "claudeSource_dispatchTable_contains_%s_interface_with_%s_generator",
+    (iface, generator) => {
+      expect(claudeContent).toContain(iface);
+      expect(claudeContent).toContain(generator);
+    },
+  );
+
+  it("claudeSource_dispatchTable_containsChangelogEntry", () => {
+    expect(claudeContent).toMatch(
+      /[Cc]hangelog/,
+    );
+  });
+
+  it("claudeSource_dispatchTable_skipWhenNoInterfaces", () => {
+    expect(claudeContent).toMatch(
+      /[Nn]o documentable interfaces/,
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GitHub source — Documentation Phase dispatch table
+// ---------------------------------------------------------------------------
+
+describe("GitHub source — Documentation Phase dispatch table", () => {
+  it.each([
+    ["rest", "OpenAPI"],
+    ["grpc", "gRPC"],
+    ["cli", "CLI"],
+    ["websocket", "Event"],
+    ["kafka", "Event"],
+  ])(
+    "githubSource_dispatchTable_contains_%s_interface_with_%s_generator",
+    (iface, generator) => {
+      expect(githubContent).toContain(iface);
+      expect(githubContent).toContain(generator);
+    },
+  );
+
+  it("githubSource_dispatchTable_containsChangelogEntry", () => {
+    expect(githubContent).toMatch(
+      /[Cc]hangelog/,
+    );
+  });
+
+  it("githubSource_dispatchTable_skipWhenNoInterfaces", () => {
+    expect(githubContent).toMatch(
+      /[Nn]o documentable interfaces/,
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Deployed copy matches source template
+// ---------------------------------------------------------------------------
+
+describe("Deployed copy matches source template", () => {
+  const deployedPath = path.resolve(
+    __dirname,
+    "../../..",
+    ".claude/skills/x-dev-lifecycle/SKILL.md",
+  );
+  const deployedContent = fs.readFileSync(deployedPath, "utf-8");
+
+  it("deployedCopy_matchesClaudeSourceTemplate_byteForByte", () => {
+    expect(deployedContent).toBe(claudeContent);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Dual copy consistency (RULE-001)
 // ---------------------------------------------------------------------------
 
