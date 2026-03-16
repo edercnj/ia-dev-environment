@@ -44,11 +44,39 @@ Phase 8: Verification          (orchestrator — inline)
 3. Check if test plan exists at `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
    - If present: Phase 2 will use TDD mode
    - If absent: Phase 1B will produce it; if 1B also fails, Phase 2 falls back to G1-G7
-4. Extract epic ID from story ID (e.g., `story-0001-0003` → epic ID `0001`)
-5. Ensure directories exist: `mkdir -p docs/stories/epic-XXXX/plans docs/stories/epic-XXXX/reviews`
-6. Create branch: `git checkout -b feat/{STORY_ID}-description`
+4. Check if architecture plan exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
+   - If present: Phase 1 will skip architecture planning (use existing plan)
+   - If absent: Phase 1 will evaluate decision tree and invoke x-dev-architecture-plan
+5. Extract epic ID from story ID (e.g., `story-0001-0003` → epic ID `0001`)
+6. Ensure directories exist: `mkdir -p docs/stories/epic-XXXX/plans docs/stories/epic-XXXX/reviews`
+7. Create branch: `git checkout -b feat/{STORY_ID}-description`
 
-## Phase 1 — Architecture Planning (Subagent via Task)
+## Phase 1 — Architecture Planning (Skill Invocation + Subagent Fallback)
+
+**If the architecture plan file already exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` (as checked in Phase 0), skip Step 1A and proceed directly to Step 1B, ensuring Step 1B reads the existing plan.**
+
+### Step 1A: Architecture Plan via x-dev-architecture-plan
+
+Evaluate change scope using the decision tree:
+
+| Condition | Plan Level |
+|-----------|-----------|
+| New service / new integration / contract change / infra change | **Full** |
+| New feature, no contract or infra change | **Simplified** |
+| Bug fix / refactor / docs-only | **Skip** |
+
+**If Full or Simplified:**
+
+Invoke skill `/x-dev-architecture-plan {STORY_PATH}`.
+
+- Output: `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
+- If the skill invocation fails: emit `WARNING: Architecture plan generation failed. Continuing without architecture plan.` and proceed to Step 1B.
+
+**If Skip:**
+
+Log `"Architecture plan not needed for this change scope"` and proceed to Step 1B.
+
+### Step 1B: Implementation Plan (Subagent via Task)
 
 Launch a **single** `general-purpose` subagent:
 
@@ -59,6 +87,7 @@ Launch a **single** `general-purpose` subagent:
 > - Read `.github/skills/architecture/SKILL.md` — layer structure, dependency direction
 > - Read `.github/skills/layer-templates/SKILL.md` — code templates per architecture layer
 > - Read any relevant ADRs in `docs/adr/`
+> - If architecture plan exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`, read it for architectural decisions and constraints
 >
 > **Step 2 — Produce implementation plan** with these sections:
 > 1. Affected layers and components
@@ -73,6 +102,16 @@ Launch a **single** `general-purpose` subagent:
 > 10. Risk assessment
 >
 > Save to `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (where XXXX is the epic ID and YYYY is the story sequence, extracted from the story ID).
+
+### Fallback: Inline Architecture Planning
+
+If skill `x-dev-architecture-plan` is not available in the project (skill file `.github/skills/x-dev-architecture-plan/SKILL.md` does not exist), combine architecture planning into the Step 1B subagent by expanding its prompt to also read:
+- `.github/skills/protocols/SKILL.md` — protocol conventions
+- `.github/skills/security/SKILL.md` — OWASP, headers, secrets
+- `.github/skills/observability/SKILL.md` — tracing, metrics, logging
+- `.github/skills/resilience/SKILL.md` — circuit breaker, retry, fallback
+
+This preserves the pre-integration behavior for projects that do not include the architecture-plan skill.
 
 ## Phases 1B-1E — Parallel Planning (Subagents via Task — SINGLE message)
 
@@ -124,6 +163,7 @@ Launch a **single** `general-purpose` subagent for implementation:
 > **Step 1 — Read context:**
 > - Read test plan: `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md` — **MANDATORY** (implementation roadmap)
 > - Read implementation plan: `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`
+> - If architecture plan was generated in Phase 1, read `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` for architectural decisions and constraints; if it does not exist, proceed without it
 > - Read task breakdown: `docs/stories/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`
 > - Read `.github/skills/coding-standards/SKILL.md` — {{LANGUAGE}} conventions and {{LANGUAGE_VERSION}} features
 > - Read `.github/skills/layer-templates/SKILL.md` — code templates per layer
@@ -289,6 +329,8 @@ Invoke skill `/x-review` for the current story. The review skill launches its ow
 
 If `x-review` includes TDD checklist items, it validates: test-first pattern, TPP ordering, atomic TDD commits. If TDD checklist is not yet available, the review proceeds with existing criteria (backward compatible).
 
+If an architecture plan was generated in Phase 1 (`docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`), provide it as additional context to reviewers. Reviewers validate that the implementation conforms to the architectural decisions documented in the plan.
+
 Collect the consolidated review report with scores and severity counts.
 
 ## Phase 5 — Fixes + Feedback (Orchestrator — Inline)
@@ -347,7 +389,7 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
 
 ## Integration Notes
 
-- Invokes: `x-test-plan`, `x-lib-task-decomposer`, `x-lib-group-verifier` (fallback only), `x-git-push`, `x-review`, `x-review-pr`
+- Invokes: `x-dev-architecture-plan` (Phase 1, conditional), `x-test-plan`, `x-lib-task-decomposer`, `x-lib-group-verifier` (fallback only), `x-git-push`, `x-review`, `x-review-pr`
 - TDD commit format follows `x-git-push` conventions (`[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]` suffixes)
 - All `{{PLACEHOLDER}}` tokens (e.g. `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
 
