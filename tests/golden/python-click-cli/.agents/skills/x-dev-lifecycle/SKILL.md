@@ -391,9 +391,9 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
    - GraphQL schema backward compatible (if interfaces contain graphql)
    - [ ] Threat model updated (if security findings with severity >= Medium) — extract findings from Phase 3 review reports, map to STRIDE categories, and update `docs/security/threat-model.md` using `resources/templates/_TEMPLATE-THREAT-MODEL.md` as format reference. See `/x-review` Phase 3d for the incremental update algorithm.
    - Post-deploy verification passed or skipped (if testing.smoke_tests == true)
-6. Post-Deploy Verification (conditional: `smoke_tests == true`):
-   - If `smoke_tests` is `false` in project identity → SKIP with log: "Post-deploy verification skipped (smoke_tests=false)"
-   - If `smoke_tests` is `true`, execute the following checks (invoke `/run-e2e` or configured smoke test script):
+6. Post-Deploy Verification (conditional: `testing.smoke_tests == true`):
+   - If `testing.smoke_tests` is `false` in project identity → SKIP with log: "Post-deploy verification skipped (testing.smoke_tests=false)"
+   - If `testing.smoke_tests` is `true`, execute the following checks (invoke `/run-e2e` or configured smoke test script):
      - **Health Check**: GET /health (or configured endpoint) → 200 OK
      - **Critical Path**: Execute primary request flow → valid response
      - **Response Time**: Verify p95 latency < configured SLO
@@ -401,9 +401,9 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
    - Result outcomes:
      - **PASS**: All checks green → "Deploy confirmed"
      - **FAIL**: Any check red → "Investigate rollback"
-     - **SKIP**: smoke_tests=false → "Verification skipped"
+     - **SKIP**: testing.smoke_tests=false → "Verification skipped"
    - Non-blocking: emit result for human decision, do NOT auto-rollback
-7. Report PASS/FAIL result
+7. Report PASS/FAIL/SKIP result
 8. `git checkout main && git pull origin main`
 
 **Phase 8 is the ONLY legitimate stopping point.**

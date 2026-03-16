@@ -60,7 +60,7 @@ describe("x-dev-lifecycle Claude source — post-deploy result semantics", () =>
   });
 
   it("claudeSource_phase7_postDeployResultSKIP", () => {
-    expect(claudeContent).toMatch(/SKIP.*smoke_tests|smoke_tests.*SKIP/is);
+    expect(claudeContent).toMatch(/SKIP.*testing\.smoke_tests|testing\.smoke_tests.*SKIP/is);
   });
 
   it("claudeSource_phase7_postDeployIsNonBlocking", () => {
@@ -103,7 +103,7 @@ describe("x-dev-lifecycle Claude source — conditional DoD item", () => {
 
 describe("x-dev-lifecycle Claude source — item renumbering", () => {
   it("claudeSource_phase7_reportPassFailIsRenumbered", () => {
-    expect(claudeContent).toMatch(/^7\.\s+Report PASS\/FAIL result/m);
+    expect(claudeContent).toMatch(/^7\.\s+Report PASS\/FAIL\/SKIP result/m);
   });
 
   it("claudeSource_phase7_gitCheckoutMainIsRenumbered", () => {
@@ -229,7 +229,7 @@ describe("x-dev-lifecycle GitHub source — post-deploy result semantics", () =>
   });
 
   it("githubSource_phase7_postDeployResultSKIP", () => {
-    expect(githubContent).toMatch(/SKIP.*smoke_tests|smoke_tests.*SKIP/is);
+    expect(githubContent).toMatch(/SKIP.*testing\.smoke_tests|testing\.smoke_tests.*SKIP/is);
   });
 
   it("githubSource_phase7_postDeployIsNonBlocking", () => {
@@ -260,7 +260,7 @@ describe("x-dev-lifecycle GitHub source — conditional DoD & renumbering", () =
   });
 
   it("githubSource_phase7_reportPassFailIsRenumbered", () => {
-    expect(githubContent).toMatch(/^7\.\s+Report PASS\/FAIL result/m);
+    expect(githubContent).toMatch(/^7\.\s+Report PASS\/FAIL\/SKIP result/m);
   });
 
   it("githubSource_phase7_gitCheckoutMainIsRenumbered", () => {
@@ -405,21 +405,25 @@ describe("x-dev-lifecycle dual copy consistency (RULE-001)", () => {
   });
 
   it("dualCopy_bothContainRenumberedItems", () => {
-    expect(claudeContent).toMatch(/^7\.\s+Report PASS\/FAIL result/m);
-    expect(githubContent).toMatch(/^7\.\s+Report PASS\/FAIL result/m);
+    expect(claudeContent).toMatch(/^7\.\s+Report PASS\/FAIL\/SKIP result/m);
+    expect(githubContent).toMatch(/^7\.\s+Report PASS\/FAIL\/SKIP result/m);
     expect(claudeContent).toMatch(/^8\.\s+`git checkout main/m);
     expect(githubContent).toMatch(/^8\.\s+`git checkout main/m);
   });
 
   it("dualCopy_pathDifferences_onlyExpected", () => {
-    const claudePhase8 = claudeContent.slice(
-      claudeContent.indexOf("## Phase 8"),
-      claudeContent.indexOf("## Roles and Models"),
-    );
-    const githubPhase8 = githubContent.slice(
-      githubContent.indexOf("## Phase 8"),
-      githubContent.indexOf("## Roles and Models"),
-    );
+    const claudePhase8Start = claudeContent.indexOf("## Phase 8");
+    const claudeRolesStart = claudeContent.indexOf("## Roles and Models");
+    expect(claudePhase8Start).toBeGreaterThanOrEqual(0);
+    expect(claudeRolesStart).toBeGreaterThanOrEqual(0);
+
+    const githubPhase8Start = githubContent.indexOf("## Phase 8");
+    const githubRolesStart = githubContent.indexOf("## Roles and Models");
+    expect(githubPhase8Start).toBeGreaterThanOrEqual(0);
+    expect(githubRolesStart).toBeGreaterThanOrEqual(0);
+
+    const claudePhase8 = claudeContent.slice(claudePhase8Start, claudeRolesStart);
+    const githubPhase8 = githubContent.slice(githubPhase8Start, githubRolesStart);
     expect(claudePhase8).toBe(githubPhase8);
   });
 });
