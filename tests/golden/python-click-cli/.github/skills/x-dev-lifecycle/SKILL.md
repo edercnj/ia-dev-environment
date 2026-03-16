@@ -192,6 +192,7 @@ Emit warning: `WARNING: No TDD test plan available. Using G1-G7 group-based impl
    - `rest` → OpenAPI/Swagger generator (story-0004-0007)
    - `grpc` → gRPC/Proto doc generator (story-0004-0008)
    - `cli` → CLI doc generator (story-0004-0009)
+   - `graphql` → GraphQL schema doc generator (story-0004-0011)
    - `websocket`, `event-consumer`, `event-producer` → Event-Driven doc generator (story-0004-0010)
 4. If no documentable interfaces configured: emit log `"No documentable interfaces configured. Skipping interface documentation."`
 5. Generate changelog entry (ALWAYS, regardless of interfaces):

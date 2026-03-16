@@ -75,6 +75,10 @@ describe("x-dev-lifecycle Claude source — Phase 3 Documentation", () => {
     expect(claudeContent).toMatch(/cli.*doc|CLI.*generator/i);
   });
 
+  it("claudeSource_phase3_containsGraphqlDispatch", () => {
+    expect(claudeContent).toMatch(/graphql.*doc|GraphQL.*generator/i);
+  });
+
   it("claudeSource_phase3_containsEventDispatch", () => {
     expect(claudeContent).toMatch(
       /websocket|event.*driven|event-consumer|event-producer/i,
@@ -365,6 +369,10 @@ describe("x-dev-lifecycle GitHub source — Documentation phase", () => {
 
   it("githubSource_phase3_containsInterfaceDispatchMechanism", () => {
     expect(githubContent).toMatch(/interfaces.*field|Read.*interfaces/i);
+  });
+
+  it("githubSource_phase3_containsGraphqlDispatch", () => {
+    expect(githubContent).toMatch(/graphql.*doc|GraphQL.*generator/i);
   });
 
   it("githubSource_phase3_containsNoInterfaceSkipLog", () => {

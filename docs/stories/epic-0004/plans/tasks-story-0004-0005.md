@@ -7,14 +7,14 @@
 
 ## Summary
 
-This story inserts a new Phase 3 (Documentation) into the x-dev-lifecycle SKILL.md template, renumbers all subsequent phases (+1), and updates all cross-references. Two source templates and 8 golden files are affected. No TypeScript source code changes are required.
+This story inserts a new Phase 3 (Documentation) into the x-dev-lifecycle SKILL.md template, renumbers all subsequent phases (+1), and updates all cross-references. Two source templates and 24 golden files are affected. No TypeScript source code changes are required.
 
 **Files modified (Source of Truth):**
 1. `resources/skills-templates/core/x-dev-lifecycle/SKILL.md` (Claude template)
 2. `resources/github-skills-templates/dev/x-dev-lifecycle.md` (GitHub template)
 
 **Files regenerated (Golden Files):**
-3-10. `tests/golden/{profile}/.agents/skills/x-dev-lifecycle/SKILL.md` (8 profiles)
+3-26. `tests/golden/{profile}/{.agents,.claude,.github}/skills/x-dev-lifecycle/SKILL.md` (8 profiles × 3 variants)
 
 ---
 

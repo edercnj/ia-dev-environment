@@ -27,7 +27,7 @@ This story (story-0004-0005) adds a **Documentation Phase** (Phase 3) to the `x-
 
 - **3 source template files**: `.claude/skills/x-dev-lifecycle/SKILL.md`, `resources/skills-templates/core/x-dev-lifecycle/SKILL.md`, `resources/github-skills-templates/dev/x-dev-lifecycle.md`
 - **24 golden files**: Identical changes propagated across 8 profiles (go-gin, java-quarkus, java-spring, kotlin-ktor, python-click-cli, python-fastapi, rust-axum, typescript-nestjs) in `.agents/`, `.claude/`, and `.github/` skill directories
-- **1 new test file**: `tests/integration/node/content/x-dev-lifecycle-doc-phase.test.ts` (497 lines)
+- **1 new test file**: `tests/node/content/x-dev-lifecycle-doc-phase.test.ts` (497 lines)
 
 All changes are **markdown content** (phase renumbering from 0-7 to 0-8, new Phase 3 Documentation section) and test assertions. Zero infrastructure artifacts (Dockerfile, Kubernetes manifests, CI/CD pipelines, Docker Compose, Kustomize overlays, Helm charts, container configs) were added, modified, or removed.
 
