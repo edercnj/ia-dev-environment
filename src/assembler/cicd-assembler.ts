@@ -17,7 +17,6 @@ import {
 const CICD_TEMPLATES = "cicd-templates";
 const CI_TEMPLATE = "ci-workflow/ci.yml.njk";
 const COMPOSE_TEMPLATE = "docker-compose/docker-compose.yml.njk";
-const RUNBOOK_TEMPLATE = "deploy-runbook/deploy-runbook.md.njk";
 const SMOKE_SOURCE = "smoke-tests/smoke-config.md";
 const DOCKER_CONDITION = "docker";
 const K8S_CONDITION = "kubernetes";
@@ -121,7 +120,6 @@ export class CicdAssembler {
     this.generateDockerCompose(gc);
     this.generateK8sManifests(gc);
     this.generateSmokeTestConfig(gc);
-    this.generateDeployRunbook(gc);
     return { files: gc.files, warnings: gc.warnings };
   }
 
@@ -218,18 +216,5 @@ export class CicdAssembler {
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.copyFileSync(src, dest);
     gc.files.push(dest);
-  }
-
-  /** Deploy runbook — always generated. */
-  private generateDeployRunbook(gc: GenerationContext): void {
-    const dest = path.join(
-      gc.outputDir, "docs", "runbook", "deploy-runbook.md",
-    );
-    const err = renderAndWrite(gc.engine, RUNBOOK_TEMPLATE, dest, gc.ctx);
-    if (err === null) {
-      gc.files.push(dest);
-    } else {
-      gc.warnings.push(err);
-    }
   }
 }

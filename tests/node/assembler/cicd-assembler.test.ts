@@ -94,23 +94,6 @@ describe("CicdAssembler", () => {
       expect(fs.existsSync(ciPath)).toBe(true);
     });
 
-    it("assemble_minimalConfig_generatesDeployRunbook", () => {
-      const config = buildConfig({
-        container: "none",
-        orchestrator: "none",
-        smokeTests: false,
-      });
-      const engine = new TemplateEngine(REAL_RESOURCES_DIR, config);
-      const result = assembler.assemble(
-        config, outputDir, REAL_RESOURCES_DIR, engine,
-      ) as AssembleResult;
-      const runbookPath = path.join(
-        outputDir, "docs", "runbook", "deploy-runbook.md",
-      );
-      expect(result.files).toContain(runbookPath);
-      expect(fs.existsSync(runbookPath)).toBe(true);
-    });
-
     it("assemble_minimalConfig_resultIsAssembleResult", () => {
       const config = buildConfig({
         container: "none",
@@ -273,7 +256,7 @@ describe("CicdAssembler", () => {
       const result = assembler.assemble(
         config, outputDir, REAL_RESOURCES_DIR, engine,
       ) as AssembleResult;
-      const expectedMinFiles = 8;
+      const expectedMinFiles = 7;
       expect(result.files.length).toBeGreaterThanOrEqual(
         expectedMinFiles,
       );
@@ -332,7 +315,7 @@ describe("CicdAssembler", () => {
   });
 
   describe("minimal config — all disabled", () => {
-    it("assemble_allDisabled_onlyGeneratesCiAndRunbook", () => {
+    it("assemble_allDisabled_onlyGeneratesCiWorkflow", () => {
       const config = buildConfig({
         container: "none",
         orchestrator: "none",
@@ -342,7 +325,7 @@ describe("CicdAssembler", () => {
       const result = assembler.assemble(
         config, outputDir, REAL_RESOURCES_DIR, engine,
       ) as AssembleResult;
-      const expectedFileCount = 2;
+      const expectedFileCount = 1;
       expect(result.files).toHaveLength(expectedFileCount);
     });
 
@@ -536,21 +519,6 @@ describe("CicdAssembler", () => {
       expect(content).not.toContain(" }}");
     });
 
-    it("assemble_anyConfig_runbookNoRawPlaceholders", () => {
-      const config = buildConfig();
-      const engine = new TemplateEngine(REAL_RESOURCES_DIR, config);
-      assembler.assemble(
-        config, outputDir, REAL_RESOURCES_DIR, engine,
-      );
-      const content = fs.readFileSync(
-        path.join(
-          outputDir, "docs", "runbook", "deploy-runbook.md",
-        ),
-        "utf-8",
-      );
-      expect(content).not.toContain("{{ ");
-      expect(content).not.toContain(" }}");
-    });
   });
 
   describe("K8s template variable substitution", () => {
@@ -652,68 +620,6 @@ describe("CicdAssembler", () => {
     });
   });
 
-  describe("deploy runbook content", () => {
-    it("assemble_runbook_containsProcedureSection", () => {
-      const config = buildConfig();
-      const engine = new TemplateEngine(REAL_RESOURCES_DIR, config);
-      assembler.assemble(
-        config, outputDir, REAL_RESOURCES_DIR, engine,
-      );
-      const content = fs.readFileSync(
-        path.join(
-          outputDir, "docs", "runbook", "deploy-runbook.md",
-        ),
-        "utf-8",
-      );
-      expect(content).toContain("Deploy Procedure");
-    });
-
-    it("assemble_runbook_containsVerificationSection", () => {
-      const config = buildConfig();
-      const engine = new TemplateEngine(REAL_RESOURCES_DIR, config);
-      assembler.assemble(
-        config, outputDir, REAL_RESOURCES_DIR, engine,
-      );
-      const content = fs.readFileSync(
-        path.join(
-          outputDir, "docs", "runbook", "deploy-runbook.md",
-        ),
-        "utf-8",
-      );
-      expect(content).toContain("Verification");
-    });
-
-    it("assemble_runbook_containsRollbackSection", () => {
-      const config = buildConfig();
-      const engine = new TemplateEngine(REAL_RESOURCES_DIR, config);
-      assembler.assemble(
-        config, outputDir, REAL_RESOURCES_DIR, engine,
-      );
-      const content = fs.readFileSync(
-        path.join(
-          outputDir, "docs", "runbook", "deploy-runbook.md",
-        ),
-        "utf-8",
-      );
-      expect(content).toContain("Rollback");
-    });
-
-    it("assemble_runbook_containsProjectName", () => {
-      const config = buildConfig({ projectName: "my-app" });
-      const engine = new TemplateEngine(REAL_RESOURCES_DIR, config);
-      assembler.assemble(
-        config, outputDir, REAL_RESOURCES_DIR, engine,
-      );
-      const content = fs.readFileSync(
-        path.join(
-          outputDir, "docs", "runbook", "deploy-runbook.md",
-        ),
-        "utf-8",
-      );
-      expect(content).toContain("my-app");
-    });
-  });
-
   describe("directory creation", () => {
     it("assemble_createsWorkflowsDirectory", () => {
       const config = buildConfig();
@@ -735,18 +641,6 @@ describe("CicdAssembler", () => {
       );
       const k8sDir = path.join(outputDir, "k8s");
       expect(fs.existsSync(k8sDir)).toBe(true);
-    });
-
-    it("assemble_createsRunbookDirectory", () => {
-      const config = buildConfig();
-      const engine = new TemplateEngine(REAL_RESOURCES_DIR, config);
-      assembler.assemble(
-        config, outputDir, REAL_RESOURCES_DIR, engine,
-      );
-      const runbookDir = path.join(
-        outputDir, "docs", "runbook",
-      );
-      expect(fs.existsSync(runbookDir)).toBe(true);
     });
 
     it("assemble_createsSmokeDir_whenEnabled", () => {

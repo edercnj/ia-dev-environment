@@ -107,16 +107,20 @@ describe("buildAssemblers", () => {
     "GithubAgentsAssembler",
     "GithubHooksAssembler",
     "GithubPromptsAssembler",
+    "DocsAssembler",
+    "GrpcDocsAssembler",
+    "RunbookAssembler",
     "CodexAgentsMdAssembler",
     "CodexConfigAssembler",
     "CodexSkillsAssembler",
+    "DocsAdrAssembler",
     "CicdAssembler",
     "ReadmeAssembler",
   ];
 
-  it("buildAssemblers_returns18Assemblers", () => {
+  it("buildAssemblers_returns22Assemblers", () => {
     const assemblers = buildAssemblers();
-    expect(assemblers).toHaveLength(18);
+    expect(assemblers).toHaveLength(22);
   });
 
   it.each(
@@ -133,10 +137,33 @@ describe("buildAssemblers", () => {
     }
   });
 
+  it("buildAssemblers_docsAdrAssembler_hasRootTarget", () => {
+    const assemblers = buildAssemblers();
+    const adr = assemblers.find((a) => a.name === "DocsAdrAssembler");
+    expect(adr).toBeDefined();
+    expect(adr!.target).toBe("root");
+  });
+
   it("buildAssemblers_orderMatchesRule008", () => {
     const assemblers = buildAssemblers();
     const names = assemblers.map((a) => a.name);
     expect(names).toEqual(EXPECTED_ORDER);
+  });
+
+  it("buildAssemblers_docsAssemblerBeforeReadme", () => {
+    const assemblers = buildAssemblers();
+    const names = assemblers.map((a) => a.name);
+    const docsIdx = names.indexOf("DocsAssembler");
+    const readmeIdx = names.indexOf("ReadmeAssembler");
+    expect(docsIdx).toBeGreaterThan(-1);
+    expect(docsIdx).toBeLessThan(readmeIdx);
+  });
+
+  it("buildAssemblers_docsAssemblerTargetIsDocs", () => {
+    const assemblers = buildAssemblers();
+    const docs = assemblers.find((a) => a.name === "DocsAssembler");
+    expect(docs).toBeDefined();
+    expect(docs!.target).toBe("docs");
   });
 });
 
@@ -319,6 +346,19 @@ describe("executeAssemblers", () => {
       assemblers, config, tmpDir, tmpDir, engine,
     )).toThrow(PipelineError);
     expect(called).toEqual(["First"]);
+  });
+
+  it("executeAssemblers_docsTarget_resolvesToDocsSubdir", () => {
+    let receivedDir = "";
+    const assemblers: AssemblerDescriptor[] = [{
+      name: "DocsStub",
+      target: "docs",
+      assembler: {
+        assemble: (_c, dir) => { receivedDir = dir; return []; },
+      },
+    }];
+    executeAssemblers(assemblers, config, tmpDir, tmpDir, engine);
+    expect(receivedDir).toBe(path.join(tmpDir, "docs"));
   });
 });
 

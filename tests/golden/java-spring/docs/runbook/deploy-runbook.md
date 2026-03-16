@@ -4,63 +4,106 @@
 
 | Field | Value |
 |-------|-------|
-| Service Name | my-spring-service |
-| Language | java 21 |
-| Framework | spring-boot |
-| Build Tool | gradle |
-| Container | docker |
-| Orchestrator | kubernetes |
+| Name | my-spring-service |
+| Version | `vX.Y.Z` |
+| Environment | `production` |
+| Date | `YYYY-MM-DD` |
 
 ## 2. Pre-conditions
 
-- [ ] All CI checks passing on the target branch
-- [ ] Code review approved and merged
-- [ ] Artifacts built and pushed to registry
-
-
-- [ ] Docker image built and tagged
-
-
-- [ ] Kubernetes manifests updated with new image tag
+- [ ] All tests passing in CI
+- [ ] Artifact built and published
+- [ ] Configuration reviewed and updated
+- [ ] Monitoring dashboards accessible
 
 
 ## 3. Deploy Procedure
 
+### Step-by-step
 
-1. Update image tag in Kubernetes deployment manifest
-2. Apply manifests: `kubectl apply -f k8s/`
-3. Monitor rollout: `kubectl rollout status deployment/my-spring-service`
+1. Verify pre-conditions checklist above
+2. Notify the team in the operations channel
 
+
+
+### Kubernetes Deployment
+
+```bash
+# Apply the new deployment
+kubectl apply -f k8s/deployment.yaml
+
+# Monitor rollout status
+kubectl rollout status deployment/my-spring-service
+
+# Verify pods are running
+kubectl get pods -l app=my-spring-service
+```
+
+
+
+3. Verify deployment status
+4. Run post-deploy verification
 
 ## 4. Post-Deploy Verification
 
-- [ ] Health endpoint responds with 200
-- [ ] Application logs show successful startup
-- [ ] No error spikes in monitoring dashboards
+### Health Checks
 
+- [ ] Application health endpoint returns `200 OK`
+- [ ] All dependent services are reachable
+- [ ] No error spikes in logs
+
+### Smoke Tests
+
+- [ ] Core business flow validated
+- [ ] API responses match expected format
+- [ ] Latency within acceptable thresholds
 
 ## 5. Rollback Procedure
 
+### When to Rollback
 
-1. Roll back deployment: `kubectl rollout undo deployment/my-spring-service`
-2. Verify rollback: `kubectl rollout status deployment/my-spring-service`
+- Health checks failing after deployment
+- Error rate exceeds acceptable threshold
+- Critical business flow broken
 
-3. Verify health endpoint responds with 200
-4. Notify team of rollback
+### Rollback Steps
+
+1. Notify the team about rollback decision
+
+
+
+### Kubernetes Rollback
+
+```bash
+# Undo the last deployment
+kubectl rollout undo deployment/my-spring-service
+
+# Verify rollback status
+kubectl rollout status deployment/my-spring-service
+
+# Confirm pods are running previous version
+kubectl get pods -l app=my-spring-service
+```
+
+
+
+
+2. Verify rollback was successful
+3. Investigate root cause
 
 ## 6. Troubleshooting
 
-| Symptom | Possible Cause | Action |
-|---------|---------------|--------|
-| Health check fails | Application not started | Check application logs |
-| Connection refused | Port mismatch | Verify port configuration |
-| High error rate | Bad deployment | Initiate rollback procedure |
-
+| Problem | Cause | Solution |
+|---------|-------|----------|
+| Pods not starting | Image pull error | Verify image tag and registry credentials |
+| Health check failing | Application crash | Check application logs and configuration |
+| High latency | Resource constraints | Scale up or check resource limits |
+| Connection refused | Network policy | Verify service endpoints and network config |
 
 ## 7. Contacts
 
 | Role | Contact |
 |------|---------|
-| On-call Engineer | TBD |
-| Team Lead | TBD |
-| DevOps | TBD |
+| Oncall Engineer | `@oncall` |
+| Team Lead | `@team-lead` |
+| Escalation | `@engineering-manager` |

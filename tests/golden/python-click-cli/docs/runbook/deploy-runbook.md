@@ -4,61 +4,104 @@
 
 | Field | Value |
 |-------|-------|
-| Service Name | my-cli-tool |
-| Language | python 3.9 |
-| Framework | click |
-| Build Tool | pip |
-| Container | docker |
-| Orchestrator | none |
+| Name | my-cli-tool |
+| Version | `vX.Y.Z` |
+| Environment | `production` |
+| Date | `YYYY-MM-DD` |
 
 ## 2. Pre-conditions
 
-- [ ] All CI checks passing on the target branch
-- [ ] Code review approved and merged
-- [ ] Artifacts built and pushed to registry
-
-
-- [ ] Docker image built and tagged
-
+- [ ] All tests passing in CI
+- [ ] Artifact built and published
+- [ ] Configuration reviewed and updated
+- [ ] Monitoring dashboards accessible
 
 
 ## 3. Deploy Procedure
 
+### Step-by-step
 
-1. Pull latest Docker image
-2. Stop existing container: `docker compose down`
-3. Start updated container: `docker compose up -d`
+1. Verify pre-conditions checklist above
+2. Notify the team in the operations channel
 
+
+
+### Docker Deployment
+
+```bash
+# Pull the new image
+docker compose pull
+
+# Deploy with zero downtime
+docker compose up -d --remove-orphans
+
+# Verify container is running
+docker compose ps
+```
+
+
+
+3. Verify deployment status
+4. Run post-deploy verification
 
 ## 4. Post-Deploy Verification
 
-- [ ] Health endpoint responds with 200
-- [ ] Application logs show successful startup
-- [ ] No error spikes in monitoring dashboards
+### Health Checks
 
+- [ ] Application health endpoint returns `200 OK`
+- [ ] All dependent services are reachable
+- [ ] No error spikes in logs
+
+### Smoke Tests
+
+- [ ] Core business flow validated
+- [ ] API responses match expected format
+- [ ] Latency within acceptable thresholds
 
 ## 5. Rollback Procedure
 
+### When to Rollback
 
-1. Stop current container: `docker compose down`
-2. Redeploy previous image tag: `docker compose up -d`
+- Health checks failing after deployment
+- Error rate exceeds acceptable threshold
+- Critical business flow broken
 
-3. Verify health endpoint responds with 200
-4. Notify team of rollback
+### Rollback Steps
+
+1. Notify the team about rollback decision
+
+
+
+### Docker Rollback
+
+```bash
+# Rollback to previous image
+docker compose down
+docker compose up -d --remove-orphans
+
+# Verify container is running
+docker compose ps
+```
+
+
+
+
+2. Verify rollback was successful
+3. Investigate root cause
 
 ## 6. Troubleshooting
 
-| Symptom | Possible Cause | Action |
-|---------|---------------|--------|
-| Health check fails | Application not started | Check application logs |
-| Connection refused | Port mismatch | Verify port configuration |
-| High error rate | Bad deployment | Initiate rollback procedure |
-
+| Problem | Cause | Solution |
+|---------|-------|----------|
+| Pods not starting | Image pull error | Verify image tag and registry credentials |
+| Health check failing | Application crash | Check application logs and configuration |
+| High latency | Resource constraints | Scale up or check resource limits |
+| Connection refused | Network policy | Verify service endpoints and network config |
 
 ## 7. Contacts
 
 | Role | Contact |
 |------|---------|
-| On-call Engineer | TBD |
-| Team Lead | TBD |
-| DevOps | TBD |
+| Oncall Engineer | `@oncall` |
+| Team Lead | `@team-lead` |
+| Escalation | `@engineering-manager` |
