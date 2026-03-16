@@ -186,22 +186,58 @@ Emit warning: `WARNING: No TDD test plan available. Using G1-G7 group-based impl
 
 ## Phase 3 — Documentation (Orchestrator — Inline)
 
-1. Read `interfaces` field from project identity (Rule 01)
-2. Build list of documentable interfaces: `rest`, `grpc`, `graphql`, `cli`, `websocket`, `event-consumer`, `event-producer`
-3. For each configured interface, dispatch the corresponding documentation generator:
-   - `rest` → OpenAPI/Swagger generator (story-0004-0007)
-   - `grpc` → gRPC/Proto doc generator (story-0004-0008)
-   - `cli` → CLI doc generator (story-0004-0009)
-   - `graphql` → GraphQL schema doc generator (story-0004-0011)
-   - `websocket`, `event-consumer`, `event-producer` → Event-Driven doc generator (story-0004-0010)
-4. If no documentable interfaces configured: emit log `"No documentable interfaces configured. Skipping interface documentation."`
-5. Generate changelog entry (ALWAYS, regardless of interfaces):
-   - Read commits since branch point (`git log main..HEAD --oneline`)
-   - Group by Conventional Commits type (feat, fix, refactor, test, docs, chore)
-   - Append formatted entry to `CHANGELOG.md`
-6. Documentation output saved to `docs/` with subdirectories per type (RULE-009):
-   - API docs → `docs/api/`
-   - Architecture docs → `docs/architecture/`
+Read the `interfaces` field from the project identity to determine which documentation
+generators to invoke. For each configured interface, launch the corresponding generator.
+Always generate a changelog entry regardless of interfaces.
+
+**Interface Dispatch:**
+
+| Interface | Generator | Output |
+|-----------|-----------|--------|
+| `rest` | OpenAPI/Swagger generator | `docs/api/openapi.yaml` |
+| `grpc` | gRPC/Proto documentation generator | `docs/api/grpc-reference.md` |
+| `cli` | CLI documentation generator | `docs/api/cli-reference.md` |
+| `graphql` | GraphQL schema documentation generator | `docs/api/graphql-reference.md` |
+| `websocket`, `kafka`, `event-consumer`, `event-producer` | Event-driven documentation generator | `docs/api/event-reference.md` |
+
+If no documentable interfaces configured: skip interface generators with log
+`"No documentable interfaces configured"`. Always generate changelog entry.
+
+Documentation output saved to `docs/` with subdirectories per type:
+- API docs → `docs/api/`
+- Architecture docs → `docs/architecture/`
+
+**Changelog Entry:**
+- Read commits since branch point (`git log main..HEAD --oneline`)
+- Generate Conventional Commits summary by type (feat, fix, refactor, test, docs, chore)
+- Append to CHANGELOG.md
+
+### CLI Documentation Generator (interface: cli)
+
+> Invoked when project identity `interfaces` contains `"cli"`.
+> Output: `docs/api/cli-reference.md`
+
+**Scan** the project's CLI command definitions using framework-specific patterns:
+- **Commander.js**: `.command()`, `.option()`, `.argument()` chains
+- **Click**: `@click.command()`, `@click.option()`, `@click.argument()` decorators
+- **Cobra**: `cobra.Command{}` structs
+- **Clap**: `#[derive(Parser)]` and `#[arg()]` attributes
+
+**Generate** `docs/api/cli-reference.md` with:
+
+1. `# CLI Reference` — title with project name
+2. `## Quick Start` — at least 2 basic usage examples in code blocks
+3. `## Global Flags` — table of flags applicable to all commands
+   (columns: Flag, Type, Default, Description)
+4. `## Command: {name}` — one section per top-level command:
+   - Usage line: `$ {tool-name} {command} [flags] [args]`
+   - Flags table: | Flag | Type | Default | Required | Description |
+   - Arguments table: | Argument | Type | Required | Description |
+   - At least 1 example in code block
+5. `### Subcommand: {parent} {child}` — nested sections with same structure
+6. `## Exit Codes` — table: | Code | Meaning |
+
+If `interfaces` does NOT contain `"cli"`: skip silently (no output, no warning).
 
 ## Phase 4 — Parallel Review
 
