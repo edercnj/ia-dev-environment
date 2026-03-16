@@ -127,6 +127,18 @@ describe("openapi-generator content validation", () => {
       const content = fs.readFileSync(CLAUDE_SOURCE_PATH, "utf-8");
       expect(content).toMatch(/rest|REST/);
     });
+
+    it("templateContent_containsSkipInstruction_nonRESTProjectsSkipped", () => {
+      const content = fs.readFileSync(CLAUDE_SOURCE_PATH, "utf-8");
+      expect(content).toMatch(/[Ss]kip/);
+      expect(content).toMatch(/non-REST|no REST|not.*REST/i);
+    });
+
+    it("templateContent_containsIncrementalUpdate_preserveExistingEndpoints", () => {
+      const content = fs.readFileSync(CLAUDE_SOURCE_PATH, "utf-8");
+      expect(content).toMatch(/[Pp]reserve/);
+      expect(content).toMatch(/[Ii]ncremental/);
+    });
   });
 
   describe("GitHub source template", () => {
