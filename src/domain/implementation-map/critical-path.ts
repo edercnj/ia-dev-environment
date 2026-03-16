@@ -6,7 +6,10 @@
  */
 import type { DagNode } from "./types.js";
 
-/** Compute topological order of the DAG. */
+const INITIAL_DISTANCE = 0;
+const INITIAL_MAX_DISTANCE = -1;
+
+/** Compute topological order of the DAG using Kahn's algorithm. */
 function topologicalSort(dag: Map<string, DagNode>): string[] {
   const inDegree = new Map<string, number>();
   for (const [id, node] of dag) {
@@ -20,14 +23,17 @@ function topologicalSort(dag: Map<string, DagNode>): string[] {
 
   const sorted: string[] = [];
   while (queue.length > 0) {
-    const current = queue.shift()!;
-    sorted.push(current);
-    const node = dag.get(current);
+    const nodeId = queue.shift();
+    if (nodeId === undefined) break;
+    sorted.push(nodeId);
+    const node = dag.get(nodeId);
     if (node === undefined) continue;
     for (const depId of node.blocks) {
-      const deg = (inDegree.get(depId) ?? 0) - 1;
-      inDegree.set(depId, deg);
-      if (deg === 0) queue.push(depId);
+      const currentDeg = inDegree.get(depId);
+      if (currentDeg === undefined) continue;
+      const newDeg = currentDeg - 1;
+      inDegree.set(depId, newDeg);
+      if (newDeg === 0) queue.push(depId);
     }
   }
   return sorted;
@@ -59,25 +65,27 @@ export function findCriticalPath(
   const pred = new Map<string, string | undefined>();
 
   for (const id of sorted) {
-    dist.set(id, 0);
+    dist.set(id, INITIAL_DISTANCE);
     pred.set(id, undefined);
   }
 
   for (const id of sorted) {
     const node = dag.get(id);
     if (node === undefined) continue;
-    const currentDist = dist.get(id) ?? 0;
+    const currentDist = dist.get(id);
+    if (currentDist === undefined) continue;
     for (const depId of node.blocks) {
+      const depDist = dist.get(depId);
       const newDist = currentDist + 1;
-      if (newDist > (dist.get(depId) ?? 0)) {
+      if (depDist === undefined || newDist > depDist) {
         dist.set(depId, newDist);
         pred.set(depId, id);
       }
     }
   }
 
-  let maxDist = -1;
-  let endNode = sorted[0] ?? "";
+  let maxDist = INITIAL_MAX_DISTANCE;
+  let endNode = "";
   for (const [id, d] of dist) {
     if (d > maxDist) {
       maxDist = d;
@@ -85,6 +93,7 @@ export function findCriticalPath(
     }
   }
 
+  if (endNode === "") return [];
   return reconstructPath(endNode, pred);
 }
 
@@ -94,7 +103,7 @@ export function markCriticalPath(
   criticalPath: readonly string[],
 ): void {
   const pathSet = new Set(criticalPath);
-  for (const [id, node] of dag) {
-    node.isOnCriticalPath = pathSet.has(id);
+  for (const [, node] of dag) {
+    node.isOnCriticalPath = pathSet.has(node.storyId);
   }
 }

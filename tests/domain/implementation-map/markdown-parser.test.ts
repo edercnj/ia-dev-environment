@@ -4,6 +4,7 @@ import {
   extractDependencyMatrix,
   extractPhaseSummary,
 } from "../../../src/domain/implementation-map/markdown-parser.js";
+import { MapParseError } from "../../../src/domain/implementation-map/types.js";
 import { readFixture } from "./helpers.js";
 
 describe("extractDependencyMatrix", () => {
@@ -162,5 +163,87 @@ describe("extractPhaseSummary", () => {
     expect(result).toHaveLength(2);
     expect(result[0]?.stories).toEqual(["0001", "0002"]);
     expect(result[0]?.parallelism).toBe("2 paralelas");
+  });
+
+  it("extractPhaseSummary_nonNumericPhase_skipsRow", () => {
+    const content = [
+      "## 5. Resumo por Fase",
+      "",
+      "| Fase | Historias | Camada | Paralelismo | Pre-requisito |",
+      "| :--- | :--- | :--- | :--- | :--- |",
+      "| N/A | 0001 | Foundation | 1 | - |",
+    ].join("\n");
+    const result = extractPhaseSummary(content);
+    expect(result).toEqual([]);
+  });
+});
+
+describe("MapParseError", () => {
+  it("MapParseError_canBeConstructedWithMessage", () => {
+    const error = new MapParseError("bad markdown at line 5");
+    expect(error).toBeInstanceOf(Error);
+    expect(error.name).toBe("MapParseError");
+    expect(error.message).toBe("bad markdown at line 5");
+  });
+});
+
+describe("extractDependencyMatrix edge cases", () => {
+  it("extractDependencyMatrix_rowWithTooFewCells_skipsRow", () => {
+    const content = [
+      "## 1. Matriz de Dependencias",
+      "",
+      "| Story | Titulo | Blocked By | Blocks | Status |",
+      "| :--- | :--- | :--- | :--- | :--- |",
+      "| story-0042-0001 | only two cells |",
+      "| story-0042-0002 | Full Row | - | - | Pendente |",
+    ].join("\n");
+    const result = extractDependencyMatrix(content);
+    expect(result).toHaveLength(1);
+    expect(result[0]?.storyId).toBe("story-0042-0002");
+  });
+
+  it("extractDependencyMatrix_contentWithNoSection1_returnsEmpty", () => {
+    const content = [
+      "## 3. Some Other Section",
+      "",
+      "| Story | Titulo | Blocked By | Blocks | Status |",
+      "| :--- | :--- | :--- | :--- | :--- |",
+      "| story-0042-0001 | S1 | - | - | Pendente |",
+    ].join("\n");
+    const result = extractDependencyMatrix(content);
+    expect(result).toEqual([]);
+  });
+
+  it("extractDependencyMatrix_section1StopsAtSection2", () => {
+    const content = [
+      "## 1. Matriz de Dependencias",
+      "",
+      "| Story | Titulo | Blocked By | Blocks | Status |",
+      "| :--- | :--- | :--- | :--- | :--- |",
+      "| story-0042-0001 | S1 | - | - | Pendente |",
+      "",
+      "## 2. Fases de Implementacao",
+      "",
+      "| story-0042-0002 | S2 | - | - | Pendente |",
+    ].join("\n");
+    const result = extractDependencyMatrix(content);
+    expect(result).toHaveLength(1);
+    expect(result[0]?.storyId).toBe("story-0042-0001");
+  });
+});
+
+describe("extractPhaseSummary edge cases", () => {
+  it("extractPhaseSummary_rowWithTooFewCells_skipsRow", () => {
+    const content = [
+      "## 5. Resumo por Fase",
+      "",
+      "| Fase | Historias | Camada | Paralelismo | Pre-requisito |",
+      "| :--- | :--- | :--- | :--- | :--- |",
+      "| 0 | too few |",
+      "| 1 | 0001 | Core | 1 | Fase 0 |",
+    ].join("\n");
+    const result = extractPhaseSummary(content);
+    expect(result).toHaveLength(1);
+    expect(result[0]?.phase).toBe(1);
   });
 });

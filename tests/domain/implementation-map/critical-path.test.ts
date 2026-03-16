@@ -77,4 +77,16 @@ describe("findCriticalPath", () => {
     }
     expect(dag.get("0003")?.isOnCriticalPath).toBe(false);
   });
+
+  it("findCriticalPath_twoDisconnectedRoots_selectsLongestBranch", () => {
+    const dag = createDag([
+      { id: "0001" },
+      { id: "0002", blocks: ["0003"] },
+      { id: "0003", blockedBy: ["0002"] },
+    ]);
+    const phases = computePhases(dag);
+    const result = findCriticalPath(dag, phases);
+
+    expect(result).toEqual(["0002", "0003"]);
+  });
 });

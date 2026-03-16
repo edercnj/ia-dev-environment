@@ -139,3 +139,40 @@ describe("validateRoots", () => {
     expect(() => validateRoots(dag)).toThrow(InvalidDagError);
   });
 });
+
+describe("validateSymmetry edge cases", () => {
+  it("validateSymmetry_blocksReferencesNonexistentNode_noWarning", () => {
+    const dag = createDag([
+      { id: "0001", blocks: ["nonexistent"] },
+    ]);
+    const warnings = validateSymmetry(dag);
+    expect(warnings).toEqual([]);
+  });
+
+  it("validateSymmetry_blockedByReferencesNonexistentNode_noWarning", () => {
+    const dag = createDag([
+      { id: "0001", blockedBy: ["nonexistent"] },
+    ]);
+    const warnings = validateSymmetry(dag);
+    expect(warnings).toEqual([]);
+  });
+});
+
+describe("detectCycles edge cases", () => {
+  it("detectCycles_nodeBlocksNonexistentNode_doesNotThrow", () => {
+    const dag = createDag([
+      { id: "0001", blocks: ["nonexistent"] },
+    ]);
+    expect(() => detectCycles(dag)).not.toThrow();
+  });
+
+  it("detectCycles_multipleDisconnectedComponents_doesNotThrow", () => {
+    const dag = createDag([
+      { id: "0001", blocks: ["0002"] },
+      { id: "0002", blockedBy: ["0001"] },
+      { id: "0003", blocks: ["0004"] },
+      { id: "0004", blockedBy: ["0003"] },
+    ]);
+    expect(() => detectCycles(dag)).not.toThrow();
+  });
+});

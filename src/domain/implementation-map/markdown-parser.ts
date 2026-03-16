@@ -12,6 +12,8 @@ const NEXT_SECTION_PATTERN = /^##\s+\d+\.\s/;
 const SEPARATOR_ROW_PATTERN = /^\|\s*:?-+/;
 const TABLE_ROW_PATTERN = /^\|/;
 const EMPTY_CELL_MARKERS = ["-", "\u2014", ""];
+const DEPENDENCY_MATRIX_CELL_COUNT = 5;
+const PHASE_SUMMARY_CELL_COUNT = 5;
 
 /** Split a pipe-delimited table row into trimmed cells. */
 function splitTableRow(line: string): string[] {
@@ -21,7 +23,12 @@ function splitTableRow(line: string): string[] {
     .filter((_, index, arr) => index > 0 && index < arr.length - 1);
 }
 
-/** Parse a comma-separated list of story IDs, returning empty array for dashes. */
+/** Get a cell value from an array, returning empty string if absent. */
+function cellAt(cells: string[], index: number): string {
+  return cells[index] ?? "";
+}
+
+/** Parse a comma-separated list of story IDs. */
 function parseStoryList(cell: string): string[] {
   const trimmed = cell.trim();
   if (EMPTY_CELL_MARKERS.includes(trimmed)) return [];
@@ -68,19 +75,17 @@ function filterDataRows(lines: readonly string[]): string[] {
   return dataRows;
 }
 
-const DEPENDENCY_MATRIX_CELL_COUNT = 5;
-
 /** Parse a single dependency matrix row into a typed object. */
 function parseDependencyRow(line: string): DependencyMatrixRow | undefined {
   const cells = splitTableRow(line);
   if (cells.length < DEPENDENCY_MATRIX_CELL_COUNT) return undefined;
 
   return {
-    storyId: (cells[0] ?? "").trim(),
-    title: (cells[1] ?? "").trim(),
-    blockedBy: parseStoryList(cells[2] ?? ""),
-    blocks: parseStoryList(cells[3] ?? ""),
-    status: (cells[4] ?? "").trim(),
+    storyId: cellAt(cells, 0).trim(),
+    title: cellAt(cells, 1).trim(),
+    blockedBy: parseStoryList(cellAt(cells, 2)),
+    blocks: parseStoryList(cellAt(cells, 3)),
+    status: cellAt(cells, 4).trim(),
   };
 }
 
@@ -99,18 +104,16 @@ export function extractDependencyMatrix(
     .filter((row): row is DependencyMatrixRow => row !== undefined);
 }
 
-const PHASE_SUMMARY_CELL_COUNT = 5;
-
 /** Parse a single phase summary row into a typed object. */
 function parsePhaseSummaryRow(line: string): PhaseSummaryRow | undefined {
   const cells = splitTableRow(line);
   if (cells.length < PHASE_SUMMARY_CELL_COUNT) return undefined;
 
-  const phaseStr = (cells[0] ?? "").trim();
+  const phaseStr = cellAt(cells, 0).trim();
   const phase = parseInt(phaseStr, 10);
   if (Number.isNaN(phase)) return undefined;
 
-  const storiesRaw = (cells[1] ?? "").trim();
+  const storiesRaw = cellAt(cells, 1).trim();
   const stories = storiesRaw
     .split(",")
     .map((s) => s.trim())
@@ -119,9 +122,9 @@ function parsePhaseSummaryRow(line: string): PhaseSummaryRow | undefined {
   return {
     phase,
     stories,
-    layer: (cells[2] ?? "").trim(),
-    parallelism: (cells[3] ?? "").trim(),
-    prerequisite: (cells[4] ?? "").trim(),
+    layer: cellAt(cells, 2).trim(),
+    parallelism: cellAt(cells, 3).trim(),
+    prerequisite: cellAt(cells, 4).trim(),
   };
 }
 

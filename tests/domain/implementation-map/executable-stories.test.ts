@@ -180,6 +180,56 @@ describe("getExecutableStories", () => {
     expect(result[1]).toBe("0004");
   });
 
+  it("getExecutableStories_storyMissingFromState_excludedGracefully", () => {
+    const stories = new Map([
+      ["0001", createDagNode({ storyId: "0001", phase: 0 })],
+    ]);
+    const parsedMap = createParsedMap({
+      stories,
+      phases: new Map([[0, ["0001"]]]),
+    });
+    const state = createExecutionState({});
+
+    const result = getExecutableStories(parsedMap, state);
+    expect(result).toEqual([]);
+  });
+
+  it("getExecutableStories_depMissingFromState_excludesStory", () => {
+    const stories = new Map([
+      ["0001", createDagNode({ storyId: "0001", blocks: ["0002"], phase: 0 })],
+      ["0002", createDagNode({ storyId: "0002", blockedBy: ["0001"], phase: 1 })],
+    ]);
+    const parsedMap = createParsedMap({
+      stories,
+      phases: new Map([[0, ["0001"]], [1, ["0002"]]]),
+    });
+    const state = createExecutionState({
+      "0002": StoryStatus.PENDING,
+    });
+
+    const result = getExecutableStories(parsedMap, state);
+    expect(result).toEqual([]);
+  });
+
+  it("getExecutableStories_nonCriticalBeforeCritical_sortsCriticalFirst", () => {
+    const stories = new Map([
+      ["0002", createDagNode({ storyId: "0002", phase: 0, isOnCriticalPath: false })],
+      ["0001", createDagNode({ storyId: "0001", phase: 0, isOnCriticalPath: true })],
+    ]);
+    const parsedMap = createParsedMap({
+      stories,
+      phases: new Map([[0, ["0002", "0001"]]]),
+    });
+    const state = createExecutionState({
+      "0001": StoryStatus.PENDING,
+      "0002": StoryStatus.PENDING,
+    });
+
+    const result = getExecutableStories(parsedMap, state);
+    expect(result[0]).toBe("0001");
+    expect(result[1]).toBe("0002");
+  });
+
   it("getExecutableStories_noneExecutable_returnsEmptyArray", () => {
     const dag = createDag([
       { id: "0001", blocks: ["0002"] },
