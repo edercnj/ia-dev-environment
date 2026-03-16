@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-quarkus-service
+  labels:
+    app: my-quarkus-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: my-quarkus-service
+  template:
+    metadata:
+      labels:
+        app: my-quarkus-service
+    spec:
+      containers:
+        - name: my-quarkus-service
+          image: my-quarkus-service:latest
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /q/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /q/health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          envFrom:
+            - configMapRef:
+                name: my-quarkus-service-config
