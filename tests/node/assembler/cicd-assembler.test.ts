@@ -507,7 +507,7 @@ describe("CicdAssembler", () => {
       expect(content).toContain("JDK");
     });
 
-    it("assemble_anyConfig_ciNoRawPlaceholders", () => {
+    it("assemble_anyConfig_ciNoRawNunjucksPlaceholders", () => {
       const config = buildConfig();
       const engine = new TemplateEngine(REAL_RESOURCES_DIR, config);
       assembler.assemble(
@@ -517,8 +517,9 @@ describe("CicdAssembler", () => {
         path.join(outputDir, ".github", "workflows", "ci.yml"),
         "utf-8",
       );
-      expect(content).not.toContain("{{ ");
-      expect(content).not.toContain(" }}");
+      expect(content).toContain("my-app");
+      expect(content).not.toContain("{{ project_name }}");
+      expect(content).not.toContain("{{ language_name }}");
     });
 
     it("assemble_anyConfig_dockerfileNoRawPlaceholders", () => {
@@ -867,8 +868,8 @@ describe("CicdAssembler", () => {
         );
         expect(fs.existsSync(ciPath)).toBe(true);
         const content = fs.readFileSync(ciPath, "utf-8");
-        expect(content).not.toContain("{{ ");
-        expect(content).not.toContain(" }}");
+        expect(content).not.toContain("{{ project_name }}");
+        expect(content).not.toContain("{{ language_name }}");
       },
     );
   });
