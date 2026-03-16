@@ -8,7 +8,7 @@
 
 | Story | Título | Blocked By | Blocks | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| story-0005-0001 | Execution State Schema + Checkpoint Engine | — | story-0005-0004, story-0005-0005, story-0005-0008 | Pendente |
+| story-0005-0001 | Execution State Schema + Checkpoint Engine | — | story-0005-0004, story-0005-0005, story-0005-0008 | Concluída |
 | story-0005-0002 | Epic Execution Report Template | — | story-0005-0011 | Pendente |
 | story-0005-0003 | SKILL.md Skeleton + Input Parsing | — | story-0005-0005 | Pendente |
 | story-0005-0004 | Implementation Map Parser | story-0005-0001 | story-0005-0005, story-0005-0012 | Pendente |

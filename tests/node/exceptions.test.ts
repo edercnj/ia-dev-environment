@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
+  CheckpointIOError,
+  CheckpointValidationError,
   ConfigValidationError,
   PipelineError,
 } from "../../src/exceptions.js";
@@ -86,5 +88,78 @@ describe("PipelineError", () => {
   it("withEmptyStrings_formatsWithEmptyValues", () => {
     const error = new PipelineError("", "");
     expect(error.message).toBe("Pipeline failed at '': ");
+  });
+});
+
+describe("CheckpointValidationError", () => {
+  it("withFieldAndDetail_formatsMessageCorrectly", () => {
+    const error = new CheckpointValidationError(
+      "epicId",
+      "is required",
+    );
+    expect(error.message).toBe(
+      "Checkpoint validation failed: epicId -- is required",
+    );
+  });
+
+  it("constructor_setsNameProperty", () => {
+    const error = new CheckpointValidationError("f", "d");
+    expect(error.name).toBe("CheckpointValidationError");
+  });
+
+  it("constructor_storesFieldAsReadonly", () => {
+    const error = new CheckpointValidationError(
+      "branch",
+      "missing",
+    );
+    expect(error.field).toBe("branch");
+  });
+
+  it("constructor_storesDetailAsReadonly", () => {
+    const error = new CheckpointValidationError(
+      "branch",
+      "must be a string",
+    );
+    expect(error.detail).toBe("must be a string");
+  });
+
+  it("instanceof_isError", () => {
+    const error = new CheckpointValidationError("x", "y");
+    expect(error).toBeInstanceOf(Error);
+  });
+});
+
+describe("CheckpointIOError", () => {
+  it("withPathAndOperation_formatsMessageCorrectly", () => {
+    const error = new CheckpointIOError(
+      "/tmp/epic-0042",
+      "read",
+    );
+    expect(error.message).toBe(
+      "Checkpoint I/O failed during 'read': /tmp/epic-0042",
+    );
+  });
+
+  it("constructor_setsNameProperty", () => {
+    const error = new CheckpointIOError("/tmp", "write");
+    expect(error.name).toBe("CheckpointIOError");
+  });
+
+  it("constructor_storesPathAsReadonly", () => {
+    const error = new CheckpointIOError(
+      "/tmp/epic-0042",
+      "stat",
+    );
+    expect(error.path).toBe("/tmp/epic-0042");
+  });
+
+  it("constructor_storesOperationAsReadonly", () => {
+    const error = new CheckpointIOError("/tmp", "rename");
+    expect(error.operation).toBe("rename");
+  });
+
+  it("instanceof_isError", () => {
+    const error = new CheckpointIOError("/tmp", "read");
+    expect(error).toBeInstanceOf(Error);
   });
 });
