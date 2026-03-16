@@ -91,8 +91,13 @@ function renderAndWrite(
   }
 }
 
-/** Collected output from assembler generation steps. */
-interface GenerationOutput {
+/** Bundled context for generation methods (max 4 params rule). */
+interface GenerationContext {
+  readonly config: ProjectConfig;
+  readonly outputDir: string;
+  readonly resourcesDir: string;
+  readonly engine: TemplateEngine;
+  readonly ctx: Record<string, unknown>;
   readonly files: string[];
   readonly warnings: string[];
 }
@@ -106,144 +111,113 @@ export class CicdAssembler {
     resourcesDir: string,
     engine: TemplateEngine,
   ): AssembleResult {
-    const out: GenerationOutput = { files: [], warnings: [] };
-    const ctx = buildStackContext(config);
-    this.generateCiWorkflow(outputDir, engine, ctx, out);
-    this.generateDockerfile(config, outputDir, resourcesDir, engine, ctx, out);
-    this.generateDockerCompose(config, outputDir, engine, ctx, out);
-    this.generateK8sManifests(config, outputDir, engine, ctx, out);
-    this.generateSmokeTestConfig(config, outputDir, resourcesDir, out);
-    this.generateDeployRunbook(outputDir, engine, ctx, out);
-    return { files: out.files, warnings: out.warnings };
+    const gc: GenerationContext = {
+      config, outputDir, resourcesDir, engine,
+      ctx: buildStackContext(config), files: [], warnings: [],
+    };
+    this.generateCiWorkflow(gc);
+    this.generateDockerfile(gc);
+    this.generateDockerCompose(gc);
+    this.generateK8sManifests(gc);
+    this.generateSmokeTestConfig(gc);
+    this.generateDeployRunbook(gc);
+    return { files: gc.files, warnings: gc.warnings };
   }
 
   /** CI workflow — always generated. */
-  private generateCiWorkflow(
-    outputDir: string,
-    engine: TemplateEngine,
-    ctx: Record<string, unknown>,
-    out: GenerationOutput,
-  ): void {
+  private generateCiWorkflow(gc: GenerationContext): void {
     const dest = path.join(
-      outputDir, ".github", "workflows", "ci.yml",
+      gc.outputDir, ".github", "workflows", "ci.yml",
     );
-    if (renderAndWrite(engine, CI_TEMPLATE, dest, ctx)) {
-      out.files.push(dest);
+    if (renderAndWrite(gc.engine, CI_TEMPLATE, dest, gc.ctx)) {
+      gc.files.push(dest);
     } else {
-      out.warnings.push("CI workflow template not found");
+      gc.warnings.push("CI workflow template not found");
     }
   }
 
   /** Dockerfile — conditional on container === "docker". */
-  private generateDockerfile(
-    config: ProjectConfig,
-    outputDir: string,
-    resourcesDir: string,
-    engine: TemplateEngine,
-    ctx: Record<string, unknown>,
-    out: GenerationOutput,
-  ): void {
-    if (config.infrastructure.container !== DOCKER_CONDITION) {
-      out.warnings.push("Dockerfile skipped: container is not docker");
+  private generateDockerfile(gc: GenerationContext): void {
+    if (gc.config.infrastructure.container !== DOCKER_CONDITION) {
+      gc.warnings.push("Dockerfile skipped: container is not docker");
       return;
     }
-    const stackKey = `${config.language.name}-${config.framework.buildTool}`;
+    const stackKey =
+      `${gc.config.language.name}-${gc.config.framework.buildTool}`;
     const tpl = `dockerfile/Dockerfile.${stackKey}.njk`;
-    const srcPath = path.join(resourcesDir, CICD_TEMPLATES, tpl);
+    const srcPath = path.join(gc.resourcesDir, CICD_TEMPLATES, tpl);
     if (!fs.existsSync(srcPath)) {
-      out.warnings.push(
+      gc.warnings.push(
         `Dockerfile template not found for stack: ${stackKey}`,
       );
       return;
     }
-    const dest = path.join(outputDir, "Dockerfile");
-    if (renderAndWrite(engine, tpl, dest, ctx)) {
-      out.files.push(dest);
+    const dest = path.join(gc.outputDir, "Dockerfile");
+    if (renderAndWrite(gc.engine, tpl, dest, gc.ctx)) {
+      gc.files.push(dest);
     }
   }
 
   /** Docker Compose — conditional on container === "docker". */
-  private generateDockerCompose(
-    config: ProjectConfig,
-    outputDir: string,
-    engine: TemplateEngine,
-    ctx: Record<string, unknown>,
-    out: GenerationOutput,
-  ): void {
-    if (config.infrastructure.container !== DOCKER_CONDITION) {
-      out.warnings.push(
+  private generateDockerCompose(gc: GenerationContext): void {
+    if (gc.config.infrastructure.container !== DOCKER_CONDITION) {
+      gc.warnings.push(
         "Docker Compose skipped: container is not docker",
       );
       return;
     }
-    const dest = path.join(outputDir, "docker-compose.yml");
-    if (renderAndWrite(engine, COMPOSE_TEMPLATE, dest, ctx)) {
-      out.files.push(dest);
+    const dest = path.join(gc.outputDir, "docker-compose.yml");
+    if (renderAndWrite(gc.engine, COMPOSE_TEMPLATE, dest, gc.ctx)) {
+      gc.files.push(dest);
     }
   }
 
   /** K8s manifests — conditional on orchestrator === "kubernetes". */
-  private generateK8sManifests(
-    config: ProjectConfig,
-    outputDir: string,
-    engine: TemplateEngine,
-    ctx: Record<string, unknown>,
-    out: GenerationOutput,
-  ): void {
-    if (config.infrastructure.orchestrator !== K8S_CONDITION) {
-      out.warnings.push(
+  private generateK8sManifests(gc: GenerationContext): void {
+    if (gc.config.infrastructure.orchestrator !== K8S_CONDITION) {
+      gc.warnings.push(
         "K8s manifests skipped: orchestrator is not kubernetes",
       );
       return;
     }
     for (const manifest of K8S_MANIFESTS) {
-      const dest = path.join(outputDir, "k8s", manifest);
+      const dest = path.join(gc.outputDir, "k8s", manifest);
       const tpl = `k8s/${manifest.replace(".yaml", ".yaml.njk")}`;
-      if (renderAndWrite(engine, tpl, dest, ctx)) {
-        out.files.push(dest);
+      if (renderAndWrite(gc.engine, tpl, dest, gc.ctx)) {
+        gc.files.push(dest);
       }
     }
   }
 
   /** Smoke test config — conditional on smokeTests === true. */
-  private generateSmokeTestConfig(
-    config: ProjectConfig,
-    outputDir: string,
-    resourcesDir: string,
-    out: GenerationOutput,
-  ): void {
-    if (!config.testing.smokeTests) {
-      out.warnings.push(
+  private generateSmokeTestConfig(gc: GenerationContext): void {
+    if (!gc.config.testing.smokeTests) {
+      gc.warnings.push(
         "Smoke test config skipped: smokeTests is false",
       );
       return;
     }
     const src = path.join(
-      resourcesDir, CICD_TEMPLATES, SMOKE_SOURCE,
+      gc.resourcesDir, CICD_TEMPLATES, SMOKE_SOURCE,
     );
     if (!fs.existsSync(src)) return;
     const dest = path.join(
-      outputDir, "tests", "smoke", "smoke-config.md",
+      gc.outputDir, "tests", "smoke", "smoke-config.md",
     );
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.copyFileSync(src, dest);
-    out.files.push(dest);
+    gc.files.push(dest);
   }
 
   /** Deploy runbook — always generated. */
-  private generateDeployRunbook(
-    outputDir: string,
-    engine: TemplateEngine,
-    ctx: Record<string, unknown>,
-    out: GenerationOutput,
-  ): void {
+  private generateDeployRunbook(gc: GenerationContext): void {
     const dest = path.join(
-      outputDir, "docs", "runbook", "deploy-runbook.md",
+      gc.outputDir, "docs", "runbook", "deploy-runbook.md",
     );
-    if (renderAndWrite(engine, RUNBOOK_TEMPLATE, dest, ctx)) {
-      out.files.push(dest);
+    if (renderAndWrite(gc.engine, RUNBOOK_TEMPLATE, dest, gc.ctx)) {
+      gc.files.push(dest);
     } else {
-      out.warnings.push("Deploy runbook template not found");
+      gc.warnings.push("Deploy runbook template not found");
     }
   }
 }
