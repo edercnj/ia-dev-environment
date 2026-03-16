@@ -109,7 +109,7 @@ jobs:
         run: docker build -t {{ project_name }}:{% raw %}${{ github.sha }}{% endraw %} .
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: {{ project_name }}:{% raw %}${{ github.sha }}{% endraw %}
           format: table

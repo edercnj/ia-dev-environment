@@ -71,13 +71,13 @@ function buildStackContext(
   };
 }
 
-/** Renders a template and writes result to disk. */
+/** Renders a template and writes to disk. Returns null on success, error on failure. */
 function renderAndWrite(
   engine: TemplateEngine,
   templateRelPath: string,
   destPath: string,
   extraContext: Record<string, unknown>,
-): boolean {
+): string | null {
   try {
     const content = engine.renderTemplate(
       `${CICD_TEMPLATES}/${templateRelPath}`,
@@ -85,9 +85,10 @@ function renderAndWrite(
     );
     fs.mkdirSync(path.dirname(destPath), { recursive: true });
     fs.writeFileSync(destPath, content, "utf-8");
-    return true;
-  } catch {
-    return false;
+    return null;
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return `Failed to render ${templateRelPath}: ${msg}`;
   }
 }
 
@@ -129,10 +130,11 @@ export class CicdAssembler {
     const dest = path.join(
       gc.outputDir, ".github", "workflows", "ci.yml",
     );
-    if (renderAndWrite(gc.engine, CI_TEMPLATE, dest, gc.ctx)) {
+    const err = renderAndWrite(gc.engine, CI_TEMPLATE, dest, gc.ctx);
+    if (err === null) {
       gc.files.push(dest);
     } else {
-      gc.warnings.push("CI workflow template not found");
+      gc.warnings.push(err);
     }
   }
 
@@ -153,8 +155,11 @@ export class CicdAssembler {
       return;
     }
     const dest = path.join(gc.outputDir, "Dockerfile");
-    if (renderAndWrite(gc.engine, tpl, dest, gc.ctx)) {
+    const err = renderAndWrite(gc.engine, tpl, dest, gc.ctx);
+    if (err === null) {
       gc.files.push(dest);
+    } else {
+      gc.warnings.push(err);
     }
   }
 
@@ -167,8 +172,11 @@ export class CicdAssembler {
       return;
     }
     const dest = path.join(gc.outputDir, "docker-compose.yml");
-    if (renderAndWrite(gc.engine, COMPOSE_TEMPLATE, dest, gc.ctx)) {
+    const err = renderAndWrite(gc.engine, COMPOSE_TEMPLATE, dest, gc.ctx);
+    if (err === null) {
       gc.files.push(dest);
+    } else {
+      gc.warnings.push(err);
     }
   }
 
@@ -183,8 +191,11 @@ export class CicdAssembler {
     for (const manifest of K8S_MANIFESTS) {
       const dest = path.join(gc.outputDir, "k8s", manifest);
       const tpl = `k8s/${manifest.replace(".yaml", ".yaml.njk")}`;
-      if (renderAndWrite(gc.engine, tpl, dest, gc.ctx)) {
+      const err = renderAndWrite(gc.engine, tpl, dest, gc.ctx);
+      if (err === null) {
         gc.files.push(dest);
+      } else {
+        gc.warnings.push(err);
       }
     }
   }
@@ -214,10 +225,11 @@ export class CicdAssembler {
     const dest = path.join(
       gc.outputDir, "docs", "runbook", "deploy-runbook.md",
     );
-    if (renderAndWrite(gc.engine, RUNBOOK_TEMPLATE, dest, gc.ctx)) {
+    const err = renderAndWrite(gc.engine, RUNBOOK_TEMPLATE, dest, gc.ctx);
+    if (err === null) {
       gc.files.push(dest);
     } else {
-      gc.warnings.push("Deploy runbook template not found");
+      gc.warnings.push(err);
     }
   }
 }
