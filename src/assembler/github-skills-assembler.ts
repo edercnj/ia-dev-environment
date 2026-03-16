@@ -27,6 +27,7 @@ export const SKILL_GROUPS: Record<string, readonly string[]> = {
   ],
   "dev": [
     "x-dev-implement", "x-dev-lifecycle", "layer-templates",
+    "x-dev-architecture-plan",
   ],
   "review": [
     "x-review", "x-review-api", "x-review-pr",
