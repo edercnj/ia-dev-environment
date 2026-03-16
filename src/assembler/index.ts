@@ -54,5 +54,8 @@ export * from "./codex-skills-assembler.js";
 // --- STORY-0004-0001: DocsAdrAssembler ---
 export * from "./docs-adr-assembler.js";
 
+// --- STORY-0004-0003: RunbookAssembler ---
+export * from "./runbook-assembler.js";
+
 // --- STORY-016: Pipeline Orchestrator ---
 export * from "./pipeline.js";

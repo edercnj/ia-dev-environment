@@ -714,8 +714,8 @@ describe("Pipeline integration", () => {
     expect(descriptor!.target).toBe("codex");
   });
 
-  it("pipeline_assemblerCount_isNineteen", () => {
+  it("pipeline_assemblerCount_isTwenty", () => {
     const assemblers = buildAssemblers();
-    expect(assemblers).toHaveLength(19);
+    expect(assemblers).toHaveLength(20);
   });
 });
