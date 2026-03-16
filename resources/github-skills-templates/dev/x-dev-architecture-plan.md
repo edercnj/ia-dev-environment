@@ -55,7 +55,7 @@ Read these knowledge packs **in order** before generating the architecture plan:
 | 2 | Protocols | `.github/skills/protocols/SKILL.md` | REST, gRPC, GraphQL, WebSocket, event-driven conventions |
 | 3 | Security | `.github/skills/security/SKILL.md` | OWASP Top 10, security headers, secrets management |
 | 4 | Observability | `.github/skills/observability/SKILL.md` | Tracing, metrics, logging, health checks |
-| 5 | Infrastructure | `.github/skills/dockerfile/SKILL.md` | Docker, Kubernetes, 12-factor app |
+| 5 | Infrastructure | `.github/skills/dockerfile/SKILL.md` | Dockerfile authoring, image structure, multi-stage builds |
 | 6 | Resilience | `.github/skills/resilience/SKILL.md` | Circuit breaker, retry, fallback, bulkhead |
 | 7 | Compliance | `.github/skills/compliance/SKILL.md` | GDPR, HIPAA, LGPD (if compliance is active) |
 
@@ -133,6 +133,7 @@ Launch a **single** `general-purpose` subagent:
 > - `.github/skills/security/SKILL.md` — security standards
 > - `.github/skills/observability/SKILL.md` — observability patterns
 > - `.github/skills/resilience/SKILL.md` — resilience patterns
+> - `.github/skills/dockerfile/SKILL.md` — infrastructure and deployment topology
 > - `.github/skills/compliance/SKILL.md` — only if compliance frameworks are active
 >
 > For Simplified Plan: read only Architecture KP + KPs relevant to affected sections.

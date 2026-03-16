@@ -70,7 +70,7 @@ describe("x-dev-architecture-plan SKILL.md — Frontmatter Fields", () => {
 
   it("frontmatter_argumentHint_containsStoryIdOrFeatureName", () => {
     const fm = extractFrontmatter(skillContent);
-    expect(fm).toMatch(/argument-hint:.*STORY-ID|feature/i);
+    expect(fm).toMatch(/argument-hint:.*(STORY-ID|feature)/i);
   });
 
   it("frontmatter_doesNotContain_userInvocableFalse", () => {
