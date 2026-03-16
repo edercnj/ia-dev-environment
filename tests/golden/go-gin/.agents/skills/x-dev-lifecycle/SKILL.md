@@ -208,7 +208,7 @@ Emit warning: `WARNING: No TDD test plan available. Using G1-G7 group-based impl
    - Architecture docs → `docs/architecture/`
 7. **Performance Baseline (Recommended)**
    If the implemented feature affects the request path, startup, or memory footprint:
-   1. Read `resources/templates/_TEMPLATE-PERFORMANCE-BASELINE.md` for measurement guide
+   1. Read `.claude/templates/_TEMPLATE-PERFORMANCE-BASELINE.md` for measurement guide
    2. Record "before" metrics (prior to the feature branch)
    3. Record "after" metrics (with the feature branch)
    4. Append a row to `docs/performance/baselines.md`
