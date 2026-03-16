@@ -14,7 +14,7 @@ import {
   LanguageConfig,
   FrameworkConfig,
 } from "../../../src/models.js";
-import { aProjectConfig } from "../../fixtures/project-config.fixture.js";
+import { aGrpcProjectConfig } from "../../fixtures/project-config.fixture.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -30,26 +30,21 @@ afterEach(() => {
   rmSync(tempDir, { recursive: true, force: true });
 });
 
-function grpcConfig(): ProjectConfig {
-  return new ProjectConfig(
-    new ProjectIdentity("my-grpc-service", "A gRPC service"),
-    new ArchitectureConfig("microservice"),
-    [new InterfaceConfig("grpc", "proto3")],
-    new LanguageConfig("go", "1.22"),
-    new FrameworkConfig("gin", "1.9", "go-mod"),
-  );
-}
-
 function assembleWithRealTemplate(config?: ProjectConfig): {
   result: string[];
   outputFile: string;
 } {
-  const cfg = config ?? grpcConfig();
+  const cfg = config ?? aGrpcProjectConfig();
   const engine = new TemplateEngine(RESOURCES_DIR, cfg);
   const assembler = new GrpcDocsAssembler();
   const result = assembler.assemble(cfg, tempDir, RESOURCES_DIR, engine);
   const outputFile = join(tempDir, "api", "grpc-reference.md");
   return { result, outputFile };
+}
+
+function readOutput(): string {
+  const { outputFile } = assembleWithRealTemplate();
+  return fs.readFileSync(outputFile, "utf-8");
 }
 
 // ---------------------------------------------------------------------------
@@ -60,7 +55,7 @@ describe("GrpcDocsAssembler — degenerate", () => {
   it("assemble_templateMissing_returnsEmptyArray", () => {
     const fakeResources = join(tempDir, "empty-resources");
     fs.mkdirSync(fakeResources, { recursive: true });
-    const config = grpcConfig();
+    const config = aGrpcProjectConfig();
     const engine = new TemplateEngine(fakeResources, config);
     const assembler = new GrpcDocsAssembler();
     const result = assembler.assemble(
@@ -72,7 +67,7 @@ describe("GrpcDocsAssembler — degenerate", () => {
   it("assemble_templateMissing_doesNotCreateApiDir", () => {
     const fakeResources = join(tempDir, "empty-resources");
     fs.mkdirSync(fakeResources, { recursive: true });
-    const config = grpcConfig();
+    const config = aGrpcProjectConfig();
     const engine = new TemplateEngine(fakeResources, config);
     const assembler = new GrpcDocsAssembler();
     assembler.assemble(config, tempDir, fakeResources, engine);
@@ -151,86 +146,73 @@ describe("GrpcDocsAssembler — happy path", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Content Validation
+// Content Validation — Placeholder Resolution
 // ---------------------------------------------------------------------------
 
-describe("GrpcDocsAssembler — content validation", () => {
-  it("assemble_grpcInterface_rendersProjectName", () => {
-    const { outputFile } = assembleWithRealTemplate();
-    const content = fs.readFileSync(outputFile, "utf-8");
-    expect(content).toContain("my-grpc-service");
-    expect(content).not.toContain("{{ project_name }}");
-  });
+describe("GrpcDocsAssembler — placeholder resolution", () => {
+  it.each([
+    ["project_name", "my-grpc-service", "{{ project_name }}"],
+    ["language_name", "go", "{{ language_name }}"],
+    ["framework_name", "gin", "{{ framework_name }}"],
+  ])(
+    "assemble_grpcInterface_resolves_%s",
+    (_placeholder, expected, rawToken) => {
+      const content = readOutput();
+      expect(content).toContain(expected);
+      expect(content).not.toContain(rawToken);
+    },
+  );
+});
 
-  it("assemble_grpcInterface_rendersLanguageName", () => {
-    const { outputFile } = assembleWithRealTemplate();
-    const content = fs.readFileSync(outputFile, "utf-8");
-    expect(content).toContain("go");
-    expect(content).not.toContain("{{ language_name }}");
-  });
+// ---------------------------------------------------------------------------
+// Content Validation — Sections and Structure
+// ---------------------------------------------------------------------------
 
-  it("assemble_grpcInterface_rendersFrameworkName", () => {
-    const { outputFile } = assembleWithRealTemplate();
-    const content = fs.readFileSync(outputFile, "utf-8");
-    expect(content).toContain("gin");
-    expect(content).not.toContain("{{ framework_name }}");
-  });
+describe("GrpcDocsAssembler — section structure", () => {
+  it.each([
+    ["Overview", "## Overview"],
+    ["Service", "## Service:"],
+    ["Message", "### Message:"],
+    ["Backward Compatibility", "## Backward Compatibility"],
+    ["Change History", "## Change History"],
+  ])(
+    "assemble_grpcInterface_contains%sSection",
+    (_name, marker) => {
+      const content = readOutput();
+      expect(content).toContain(marker);
+    },
+  );
 
-  it("assemble_grpcInterface_containsOverviewSection", () => {
-    const { outputFile } = assembleWithRealTemplate();
-    const content = fs.readFileSync(outputFile, "utf-8");
-    expect(content).toContain("## Overview");
-  });
-
-  it("assemble_grpcInterface_containsServiceSection", () => {
-    const { outputFile } = assembleWithRealTemplate();
-    const content = fs.readFileSync(outputFile, "utf-8");
-    expect(content).toContain("## Service:");
-  });
-
-  it("assemble_grpcInterface_containsRpcTable", () => {
-    const { outputFile } = assembleWithRealTemplate();
-    const content = fs.readFileSync(outputFile, "utf-8");
+  it("assemble_grpcInterface_containsRpcTableHeaders", () => {
+    const content = readOutput();
     expect(content).toContain("| Method |");
     expect(content).toContain("| Request |");
     expect(content).toContain("| Response |");
     expect(content).toContain("| Type |");
   });
 
-  it("assemble_grpcInterface_containsMessageSection", () => {
-    const { outputFile } = assembleWithRealTemplate();
-    const content = fs.readFileSync(outputFile, "utf-8");
-    expect(content).toContain("### Message:");
-  });
-
-  it("assemble_grpcInterface_containsFieldTable", () => {
-    const { outputFile } = assembleWithRealTemplate();
-    const content = fs.readFileSync(outputFile, "utf-8");
+  it("assemble_grpcInterface_containsFieldTableHeaders", () => {
+    const content = readOutput();
     expect(content).toContain("| Field |");
-    expect(content).toContain("| Type |");
     expect(content).toContain("| Number |");
-    expect(content).toContain("| Description |");
   });
 
-  it("assemble_grpcInterface_containsAllRpcTypes", () => {
-    const { outputFile } = assembleWithRealTemplate();
-    const content = fs.readFileSync(outputFile, "utf-8");
-    expect(content).toContain("Unary");
-    expect(content).toContain("Server Streaming");
-    expect(content).toContain("Client Streaming");
-    expect(content).toContain("Bidirectional");
-  });
+  it.each([
+    ["Unary"],
+    ["Server Streaming"],
+    ["Client Streaming"],
+    ["Bidirectional"],
+  ])(
+    "assemble_grpcInterface_containsRpcType_%s",
+    (rpcType) => {
+      const content = readOutput();
+      expect(content).toContain(rpcType);
+    },
+  );
 
   it("assemble_grpcInterface_containsDeprecatedMarker", () => {
-    const { outputFile } = assembleWithRealTemplate();
-    const content = fs.readFileSync(outputFile, "utf-8");
+    const content = readOutput();
     expect(content).toContain("[DEPRECATED]");
-  });
-
-  it("assemble_grpcInterface_containsBackwardCompatSection", () => {
-    const { outputFile } = assembleWithRealTemplate();
-    const content = fs.readFileSync(outputFile, "utf-8");
-    expect(content).toContain("## Backward Compatibility");
   });
 });
 
@@ -241,7 +223,7 @@ describe("GrpcDocsAssembler — content validation", () => {
 describe("GrpcDocsAssembler — edge cases", () => {
   it("assemble_deepOutputDir_createsRecursively", () => {
     const deepOutput = join(tempDir, "deep", "nested", "output");
-    const config = grpcConfig();
+    const config = aGrpcProjectConfig();
     const engine = new TemplateEngine(RESOURCES_DIR, config);
     const assembler = new GrpcDocsAssembler();
     const result = assembler.assemble(
@@ -287,7 +269,7 @@ describe("GrpcDocsAssembler — edge cases", () => {
 
 describe("GrpcDocsAssembler — acceptance", () => {
   it("assemble_fullGrpcConfig_generatesCompleteReference", () => {
-    const config = grpcConfig();
+    const config = aGrpcProjectConfig();
     const engine = new TemplateEngine(RESOURCES_DIR, config);
     const assembler = new GrpcDocsAssembler();
     const result = assembler.assemble(
@@ -296,25 +278,20 @@ describe("GrpcDocsAssembler — acceptance", () => {
     expect(result).toHaveLength(1);
     const outputFile = join(tempDir, "api", "grpc-reference.md");
     const content = fs.readFileSync(outputFile, "utf-8");
-    // All major sections present
     expect(content).toContain("# gRPC API Reference");
     expect(content).toContain("## Overview");
     expect(content).toContain("## Service:");
     expect(content).toContain("### Message:");
     expect(content).toContain("## Backward Compatibility");
     expect(content).toContain("## Change History");
-    // Placeholders resolved
     expect(content).toContain("my-grpc-service");
     expect(content).toContain("go");
     expect(content).toContain("gin");
-    // All 4 RPC types
     expect(content).toContain("Unary");
     expect(content).toContain("Server Streaming");
     expect(content).toContain("Client Streaming");
     expect(content).toContain("Bidirectional");
-    // Deprecated marker
     expect(content).toContain("[DEPRECATED]");
-    // No unresolved Nunjucks tokens
     expect(content).not.toMatch(/\{\{[^}]*\}\}/);
   });
 });
