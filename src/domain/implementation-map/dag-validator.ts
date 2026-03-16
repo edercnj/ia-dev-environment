@@ -20,7 +20,8 @@ function checkBlocksSymmetry(
     for (const targetId of node.blocks) {
       const target = dag.get(targetId);
       if (target === undefined) continue;
-      if (!target.blockedBy.includes(nodeId)) {
+      const blockedBySet = new Set(target.blockedBy);
+      if (!blockedBySet.has(nodeId)) {
         target.blockedBy.push(nodeId);
         warnings.push({
           type: "asymmetric-dependency",
@@ -40,7 +41,8 @@ function checkBlockedBySymmetry(
     for (const depId of node.blockedBy) {
       const dep = dag.get(depId);
       if (dep === undefined) continue;
-      if (!dep.blocks.includes(nodeId)) {
+      const blocksSet = new Set(dep.blocks);
+      if (!blocksSet.has(nodeId)) {
         dep.blocks.push(nodeId);
         warnings.push({
           type: "asymmetric-dependency",

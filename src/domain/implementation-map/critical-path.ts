@@ -22,8 +22,9 @@ function topologicalSort(dag: Map<string, DagNode>): string[] {
   }
 
   const sorted: string[] = [];
-  while (queue.length > 0) {
-    const nodeId = queue.shift();
+  let front = 0;
+  while (front < queue.length) {
+    const nodeId = queue[front++];
     if (nodeId === undefined) break;
     sorted.push(nodeId);
     const node = dag.get(nodeId);
@@ -47,9 +48,10 @@ function reconstructPath(
   const path: string[] = [];
   let current: string | undefined = endNode;
   while (current !== undefined) {
-    path.unshift(current);
+    path.push(current);
     current = predecessors.get(current);
   }
+  path.reverse();
   return path;
 }
 
