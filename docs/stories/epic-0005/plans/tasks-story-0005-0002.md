@@ -3,9 +3,7 @@
 **Story:** [story-0005-0002](../story-0005-0002.md)
 **Plan:** [plan-story-0005-0002](./plan-story-0005-0002.md)
 **Date:** 2026-03-16
-**Mode:** Layer-Based (no test plan with TPP markers found)
-
-> Warning: No test plan found at `docs/stories/epic-0005/plans/tests-story-0005-0002.md`. Falling back to layer-based decomposition adapted for template + assembler story.
+**Mode:** TPP-Driven (test plan present at `docs/stories/epic-0005/plans/tests-story-0005-0002.md`)
 
 ---
 
@@ -42,7 +40,7 @@
    - `## Commits e SHAs`
    - `## Issues Nao Resolvidos`
    - `## PR Link`
-4. Template contains all 16 placeholders (parametrized `it.each`):
+4. Template contains all 18 placeholders (parametrized `it.each`):
    - `{{EPIC_ID}}`, `{{BRANCH}}`, `{{STARTED_AT}}`, `{{FINISHED_AT}}`
    - `{{STORIES_COMPLETED}}`, `{{STORIES_FAILED}}`, `{{STORIES_BLOCKED}}`, `{{STORIES_TOTAL}}`
    - `{{COMPLETION_PERCENTAGE}}`
@@ -52,9 +50,9 @@
    - `{{COMMIT_LOG}}`, `{{UNRESOLVED_ISSUES}}`, `{{PR_LINK}}`
 5. Template follows naming convention `_TEMPLATE-EPIC-EXECUTION-REPORT.md`
 6. Valid markdown heading hierarchy: single `# h1`, all `## h2` sections, no heading level skips
-7. First heading is `# Epic Execution Report`
+7. First heading is `# Epic Execution Report -- {{EPIC_ID}}`
 
-**GREEN:** Create `resources/templates/_TEMPLATE-EPIC-EXECUTION-REPORT.md` with all 8 sections and 16 placeholders, following the exact structure defined in the implementation plan (section 2.1).
+**GREEN:** Create `resources/templates/_TEMPLATE-EPIC-EXECUTION-REPORT.md` with all 8 sections and 18 placeholders, following the exact structure defined in the implementation plan (section 2.1).
 
 **Layer Components:**
 - `resources/templates/_TEMPLATE-EPIC-EXECUTION-REPORT.md` (CREATE)
@@ -211,7 +209,7 @@
 7. **Full test suite:** Run complete test suite and verify all 1384+ tests pass (including the new ones)
 8. **DoD checklist:**
    - [ ] Template `_TEMPLATE-EPIC-EXECUTION-REPORT.md` in `resources/templates/`
-   - [ ] All 8 sections and 16 placeholders present
+   - [ ] All 8 sections and 18 placeholders present
    - [ ] Template registered in pipeline (dual copy to 3 destinations)
    - [ ] Golden file tests passing for all 8 profiles
    - [ ] Coverage >= 95% line, >= 90% branch

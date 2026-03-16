@@ -79,7 +79,7 @@ This story is scoped to the **assembler layer** (generation pipeline), the **res
 {{PR_LINK}}
 ```
 
-All 16 placeholders from the story spec (section 3.2) are present:
+All 18 placeholders from the implementation plan (section 2.1) are present:
 - `{{EPIC_ID}}`, `{{BRANCH}}`, `{{STARTED_AT}}`, `{{FINISHED_AT}}`
 - `{{STORIES_COMPLETED}}`, `{{STORIES_FAILED}}`, `{{STORIES_BLOCKED}}`, `{{STORIES_TOTAL}}`
 - `{{COMPLETION_PERCENTAGE}}`
@@ -136,7 +136,7 @@ Returns an array of 3 file paths on success, or `[]` if template is missing or i
 | File | Location | Description |
 |------|----------|-------------|
 | `epic-report-assembler.test.ts` | `tests/node/assembler/epic-report-assembler.test.ts` | Unit tests for `EpicReportAssembler`: degenerate cases, happy path, file paths, section validation, dual copy |
-| `epic-execution-report-content.test.ts` | `tests/node/content/epic-execution-report-content.test.ts` | Template structure validation: all 8 sections present, all 16 placeholders present, valid markdown hierarchy, naming convention |
+| `epic-execution-report-content.test.ts` | `tests/node/content/epic-execution-report-content.test.ts` | Template structure validation: all 8 sections present, all 18 placeholders present, valid markdown hierarchy, naming convention |
 
 ---
 
@@ -298,7 +298,7 @@ The `buildAssemblers()` function comment will update from the current assembler 
 
    If any section is missing, return `[]` (graceful no-op, matching `DocsAdrAssembler` precedent).
 
-3. **Placeholder validation.** A content test should verify all 16 placeholders from the story spec are present in the template. This is a test-only concern, not an assembler concern.
+3. **Placeholder validation.** A content test should verify all 18 placeholders are present in the template. This is a test-only concern, not an assembler concern.
 
 4. **Markdown validity.** The template should follow strict heading hierarchy: single `# h1` followed by `## h2` sections. No heading level skips.
 
@@ -312,7 +312,7 @@ Following TPP (Transformation Priority Premise):
 2. **Green:** Create the template file with all sections and placeholders
 3. **Red:** Write content test: template contains all 8 mandatory sections
 4. **Green:** (Already satisfied by step 2)
-5. **Red:** Write content test: template contains all 16 placeholders
+5. **Red:** Write content test: template contains all 18 placeholders
 6. **Green:** (Already satisfied by step 2)
 7. **Red:** Write content test: valid markdown heading hierarchy
 8. **Green:** (Already satisfied by step 2)

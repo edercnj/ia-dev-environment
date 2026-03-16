@@ -72,18 +72,18 @@ These tests validate the acceptance criteria from the Gherkin scenarios in the s
 
 ---
 
-### AT-3: Generated template contains all 16 placeholders
+### AT-3: Generated template contains all 18 placeholders
 
 | Field | Value |
 |-------|-------|
 | **Test ID** | AT-3 |
-| **Test Name** | `pipelineOutput_epicReportTemplate_containsAllSixteenPlaceholders` |
+| **Test Name** | `pipelineOutput_epicReportTemplate_containsAllEighteenPlaceholders` |
 | **Depends On** | AT-1 (template must exist) |
 | **Parallel** | Yes |
-| **TPP Level** | collection (16 placeholders checked) |
+| **TPP Level** | collection (18 placeholders checked) |
 | **Gherkin** | "Template contém todos os placeholders definidos" |
 
-**Description:** Read the template from any output path. Assert all 16 `{{PLACEHOLDER}}` tokens are present:
+**Description:** Read the template from any output path. Assert all 18 `{{PLACEHOLDER}}` tokens are present:
 `EPIC_ID`, `BRANCH`, `STARTED_AT`, `FINISHED_AT`, `STORIES_COMPLETED`, `STORIES_FAILED`, `STORIES_BLOCKED`, `STORIES_TOTAL`, `COMPLETION_PERCENTAGE`, `PHASE_TIMELINE_TABLE`, `STORY_STATUS_TABLE`, `FINDINGS_SUMMARY`, `COVERAGE_BEFORE`, `COVERAGE_AFTER`, `COVERAGE_DELTA`, `COMMIT_LOG`, `UNRESOLVED_ISSUES`, `PR_LINK`.
 
 ---
@@ -355,18 +355,18 @@ For each section: `expect(templateContent).toContain(section)`.
 
 ---
 
-### CV-3: Template contains all 16 placeholders per data contract
+### CV-3: Template contains all 18 placeholders per data contract
 
 | Field | Value |
 |-------|-------|
 | **Test ID** | CV-3 |
-| **Test Name** | `templateContent_placeholders_containsAllSixteen` |
+| **Test Name** | `templateContent_placeholders_containsAllEighteen` |
 | **Depends On** | Template file created (Task 2.1) |
 | **Parallel** | Yes |
-| **TPP Level** | collection (16 items) |
+| **TPP Level** | collection (18 items) |
 | **Gherkin** | "Template contém todos os placeholders definidos" |
 
-**Description:** Use `it.each` with the 16 placeholders from the story spec data contract (section 5):
+**Description:** Use `it.each` with the 18 placeholders from the story spec data contract (section 5):
 
 ```typescript
 const REQUIRED_PLACEHOLDERS = [
@@ -393,7 +393,7 @@ const REQUIRED_PLACEHOLDERS = [
 
 For each placeholder: `expect(templateContent).toContain(placeholder)`.
 
-**Note:** The story spec section 3.2 lists 16 placeholders. The implementation plan section 2.1 confirms 18 tokens (16 from spec + `{{PHASE_TIMELINE_TABLE}}` and `{{STORY_STATUS_TABLE}}` which were implicit in the spec's "tabela gerada dinamicamente" references). The test uses the full 18-token list from the plan.
+**Note:** The implementation plan section 2.1 defines all 18 tokens. The test uses the full 18-token list.
 
 **Additional sub-tests (parametrized):**
 
@@ -431,7 +431,7 @@ The following table shows the recommended implementation sequence following Doub
 | 1 | Content | CV-4 | Red: template file does not exist at `resources/templates/` | Failing |
 | 2 | Content | CV-4 | Green: create `_TEMPLATE-EPIC-EXECUTION-REPORT.md` with all sections/placeholders | Passing |
 | 3 | Content | CV-2 | Red: check 8 mandatory sections (already Green from step 2) | Passing |
-| 4 | Content | CV-3 | Red: check 16 placeholders (already Green from step 2) | Passing |
+| 4 | Content | CV-3 | Red: check 18 placeholders (already Green from step 2) | Passing |
 | 5 | Content | CV-1 | Red: heading hierarchy validation (already Green from step 2) | Passing |
 | 6 | Inner | UT-1 | Red: `EpicReportAssembler` class does not exist | Failing |
 | 7 | Inner | UT-1 | Green: create class with missing-template guard | Passing |
