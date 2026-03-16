@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, it, expect } from "vitest";
 
 import {
@@ -9,6 +10,8 @@ import {
   StoryStatus,
 } from "../../../src/domain/implementation-map/index.js";
 import { readFixture, createExecutionState } from "./helpers.js";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 describe("parseImplementationMap (Acceptance Tests)", () => {
   it("AT-01: empty map returns empty ParsedMap with totalPhases 0", () => {
@@ -126,7 +129,7 @@ describe("parseImplementationMap (Acceptance Tests)", () => {
 
 describe("parseImplementationMap (Integration Tests)", () => {
   const EPIC_0005_MAP_PATH = join(
-    import.meta.dirname,
+    __dirname,
     "..",
     "..",
     "..",
@@ -137,7 +140,7 @@ describe("parseImplementationMap (Integration Tests)", () => {
   );
 
   const EPIC_0004_MAP_PATH = join(
-    import.meta.dirname,
+    __dirname,
     "..",
     "..",
     "..",

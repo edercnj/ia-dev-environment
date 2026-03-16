@@ -5,6 +5,7 @@
  * Phase 0 = roots (no dependencies), Phase N = all deps in phases 0..N-1.
  */
 import type { DagNode } from "./types.js";
+import { InvalidDagError } from "./types.js";
 
 /** Check if all dependencies of a node are already resolved. */
 function allDependenciesResolved(
@@ -12,6 +13,18 @@ function allDependenciesResolved(
   resolved: Set<string>,
 ): boolean {
   return node.blockedBy.every((dep) => resolved.has(dep));
+}
+
+/** Build a diagnostic message for unresolvable stories. */
+function buildUnresolvedDiagnostic(
+  dag: Map<string, DagNode>,
+  resolved: Set<string>,
+): string {
+  const unresolvedIds: string[] = [];
+  for (const [id] of dag) {
+    if (!resolved.has(id)) unresolvedIds.push(id);
+  }
+  return `Cannot compute phases: unresolvable stories (${unresolvedIds.join(", ")})`;
 }
 
 /** Compute implementation phases from the validated DAG. */
@@ -33,7 +46,11 @@ export function computePhases(
       }
     }
 
-    if (phaseStories.length === 0) break;
+    if (phaseStories.length === 0) {
+      throw new InvalidDagError(
+        buildUnresolvedDiagnostic(dag, resolved),
+      );
+    }
 
     phases.set(currentPhase, phaseStories);
     for (const id of phaseStories) {

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 
 import { computePhases } from "../../../src/domain/implementation-map/phase-computer.js";
+import { InvalidDagError } from "../../../src/domain/implementation-map/types.js";
 import { createDag } from "./helpers.js";
 
 describe("computePhases", () => {
@@ -71,5 +72,16 @@ describe("computePhases", () => {
 
     expect(dag.get("0001")?.phase).toBe(0);
     expect(dag.get("0002")?.phase).toBe(1);
+  });
+
+  it("computePhases_nodeWithMissingDependency_throwsInvalidDagError", () => {
+    const dag = createDag([
+      { id: "0001" },
+      { id: "0002", blockedBy: ["missing-node"] },
+    ]);
+
+    expect(() => computePhases(dag)).toThrow(InvalidDagError);
+    expect(() => computePhases(dag)).toThrow(/unresolvable stories/);
+    expect(() => computePhases(dag)).toThrow(/0002/);
   });
 });

@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import type {
   DagNode,
@@ -10,8 +11,10 @@ import type {
 } from "../../../src/domain/implementation-map/types.js";
 import { StoryStatus } from "../../../src/domain/implementation-map/types.js";
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
 const FIXTURES_DIR = join(
-  import.meta.dirname,
+  __dirname,
   "..",
   "..",
   "fixtures",
