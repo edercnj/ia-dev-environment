@@ -8,6 +8,10 @@ import type {
   StoryEntry,
 } from "../../../../src/domain/dry-run/types.js";
 import { buildDryRunPlan } from "../../../../src/domain/dry-run/planner.js";
+import {
+  formatPlan,
+  formatStoryDetail,
+} from "../../../../src/domain/dry-run/formatter.js";
 
 const EPIC_ID = "EPIC-0042";
 
@@ -449,6 +453,44 @@ describe("buildDryRunPlan", () => {
     expect(pending).toHaveLength(9);
   });
 
+  it.each([
+    ["SUCCESS", "COMPLETED"],
+    ["FAILED", "FAILED"],
+    ["IN_PROGRESS", "IN_PROGRESS"],
+    ["BLOCKED", "BLOCKED"],
+    ["PENDING", "PENDING"],
+  ] as const)(
+    "resume_status_%s_mapsTo_%s",
+    (inputStatus, expectedOutput) => {
+      const s = makeStory({
+        id: "0042-0001",
+        title: "S1",
+        phase: 0,
+      });
+      const parsed: ParsedMap = {
+        stories: new Map([["0042-0001", s]]),
+        phases: [0],
+        criticalPath: [],
+      };
+      const state = makeExecutionState([
+        { id: "0042-0001", status: inputStatus },
+      ]);
+
+      const plan = buildDryRunPlan(
+        parsed,
+        EPIC_ID,
+        defaultOptions({
+          resume: true,
+          executionState: state,
+        }),
+      );
+
+      expect(plan.phases[0]!.stories[0]!.status).toBe(
+        expectedOutput,
+      );
+    },
+  );
+
   it("phaseFilter_returnsOnlyFilteredPhase", () => {
     const parsed = build14StoryDag();
 
@@ -627,5 +669,92 @@ describe("buildDryRunPlan", () => {
         defaultOptions({ storyFilter: "9999-9999" }),
       ),
     ).toThrow(/9999-9999/);
+  });
+});
+
+describe("acceptance: planner -> formatter E2E", () => {
+  it("AT-1: complete plan renders all stories", () => {
+    const parsed = build14StoryDag();
+    const plan = buildDryRunPlan(
+      parsed,
+      EPIC_ID,
+      defaultOptions(),
+    );
+    const output = formatPlan(plan);
+
+    expect(output).toContain("14 stories");
+    expect(output).toContain("5 phases");
+    expect(output).toContain("Phase 0");
+    expect(output).toContain("Phase 4");
+    expect(output).toContain("[CRITICAL]");
+    expect(output).toContain(storyId(1));
+    expect(output).toContain(storyId(14));
+  });
+
+  it("AT-2: resume plan shows status markers", () => {
+    const parsed = build14StoryDag();
+    const entries: StoryEntry[] = [1, 2, 3, 4, 5].map(
+      (n) => ({
+        id: storyId(n),
+        status: "SUCCESS" as const,
+      }),
+    );
+    const state = makeExecutionState(entries);
+    const plan = buildDryRunPlan(
+      parsed,
+      EPIC_ID,
+      defaultOptions({
+        resume: true,
+        executionState: state,
+      }),
+    );
+    const output = formatPlan(plan);
+
+    expect(output).toContain("[COMPLETED]");
+    expect(output).toContain("[PENDING]");
+  });
+
+  it("AT-3: phase filter renders only one phase", () => {
+    const parsed = build14StoryDag();
+    const plan = buildDryRunPlan(
+      parsed,
+      EPIC_ID,
+      defaultOptions({ phaseFilter: 2 }),
+    );
+    const output = formatPlan(plan);
+
+    expect(output).toContain("mode: phase");
+    expect(output).toContain("Phase 2");
+    expect(output).not.toContain("Phase 0 (");
+    expect(output).not.toContain("Phase 1 (");
+  });
+
+  it("AT-4: parallel mode shows count", () => {
+    const parsed = build14StoryDag();
+    const plan = buildDryRunPlan(
+      parsed,
+      EPIC_ID,
+      defaultOptions({ parallelMode: true }),
+    );
+    const output = formatPlan(plan);
+
+    expect(output).toContain("parallel: 3");
+  });
+
+  it("AT-5: story filter renders detail", () => {
+    const parsed = build14StoryDag();
+    const plan = buildDryRunPlan(
+      parsed,
+      EPIC_ID,
+      defaultOptions({ storyFilter: storyId(5) }),
+    );
+    const detail = plan.storyDetail!;
+    const output = formatStoryDetail(detail);
+
+    expect(output).toContain(storyId(5));
+    expect(output).toContain("S5");
+    expect(output).toContain("Phase: 1");
+    expect(output).toContain(storyId(2));
+    expect(output).toContain(storyId(8));
   });
 });

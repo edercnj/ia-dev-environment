@@ -186,10 +186,8 @@ function buildStoryDetail(
   if (options.storyFilter === undefined) {
     return undefined;
   }
-  const story = parsedMap.stories.get(options.storyFilter);
-  if (!story) {
-    return undefined;
-  }
+  // Safe: validateStoryFilter already confirmed existence
+  const story = parsedMap.stories.get(options.storyFilter)!;
   return toStoryDetail(story, options);
 }
 

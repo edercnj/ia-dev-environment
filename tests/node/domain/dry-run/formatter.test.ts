@@ -105,6 +105,105 @@ describe("formatPlan", () => {
       "0042-0002" + ".*CRITICAL",
     );
   });
+
+  it("plan_withResumeStatuses_showsStatusMarkers", () => {
+    const phase: DryRunPhaseInfo = {
+      phase: 0,
+      stories: [
+        {
+          id: "0042-0001",
+          title: "Completed",
+          status: "COMPLETED",
+          isCriticalPath: false,
+          dependenciesSatisfied: true,
+          blockedBy: [],
+        },
+        {
+          id: "0042-0002",
+          title: "Failed",
+          status: "FAILED",
+          isCriticalPath: true,
+          dependenciesSatisfied: true,
+          blockedBy: [],
+        },
+      ],
+      parallelCount: 2,
+    };
+    const plan: DryRunPlan = {
+      epicId: EPIC_ID,
+      mode: "full",
+      totalStories: 2,
+      totalPhases: 1,
+      criticalPath: ["0042-0002"],
+      phases: [phase],
+    };
+
+    const output = formatPlan(plan);
+
+    expect(output).toContain("[COMPLETED]");
+    expect(output).toContain("[FAILED]");
+    expect(output).toContain("[CRITICAL]");
+  });
+
+  it("plan_phaseMode_showsModeInHeader", () => {
+    const phase: DryRunPhaseInfo = {
+      phase: 2,
+      stories: [
+        {
+          id: "0042-0005",
+          title: "Phase 2 story",
+          status: "PENDING",
+          isCriticalPath: false,
+          dependenciesSatisfied: true,
+          blockedBy: [],
+        },
+      ],
+      parallelCount: 1,
+    };
+    const plan: DryRunPlan = {
+      epicId: EPIC_ID,
+      mode: "phase",
+      totalStories: 10,
+      totalPhases: 5,
+      criticalPath: [],
+      phases: [phase],
+    };
+
+    const output = formatPlan(plan);
+
+    expect(output).toContain("mode: phase");
+    expect(output).toContain("Phase 2");
+    expect(output).toContain("10 stories");
+  });
+
+  it("plan_multipleBlockedBy_showsAllDeps", () => {
+    const phase: DryRunPhaseInfo = {
+      phase: 1,
+      stories: [
+        {
+          id: "0042-0003",
+          title: "Multi-blocked",
+          status: "PENDING",
+          isCriticalPath: false,
+          dependenciesSatisfied: false,
+          blockedBy: ["0042-0001", "0042-0002"],
+        },
+      ],
+      parallelCount: 0,
+    };
+    const plan: DryRunPlan = {
+      epicId: EPIC_ID,
+      mode: "full",
+      totalStories: 1,
+      totalPhases: 1,
+      criticalPath: [],
+      phases: [phase],
+    };
+
+    const output = formatPlan(plan);
+
+    expect(output).toContain("blocked by: 0042-0001, 0042-0002");
+  });
 });
 
 describe("formatStoryDetail", () => {
