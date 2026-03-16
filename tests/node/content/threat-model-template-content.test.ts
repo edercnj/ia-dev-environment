@@ -263,9 +263,9 @@ describe("x-dev-lifecycle Claude source — threat model reference", () => {
     expect(claudeLifecycle.toLowerCase()).toContain("threat model");
   });
 
-  it("xDevLifecycleClaude_preserves8PhaseStructure", () => {
-    expect(claudeLifecycle).toMatch(/8 phases.*0-7/i);
-    expect(claudeLifecycle).toContain("NEVER stop before Phase 7");
+  it("xDevLifecycleClaude_preserves9PhaseStructure", () => {
+    expect(claudeLifecycle).toMatch(/9 phases.*0-8/i);
+    expect(claudeLifecycle).toContain("NEVER stop before Phase 8");
   });
 });
 
@@ -278,9 +278,9 @@ describe("x-dev-lifecycle GitHub source — threat model reference", () => {
     expect(githubLifecycle.toLowerCase()).toContain("threat model");
   });
 
-  it("xDevLifecycleGithub_preserves8PhaseStructure", () => {
-    expect(githubLifecycle).toMatch(/8 phases.*0-7/i);
-    expect(githubLifecycle).toContain("NEVER stop before Phase 7");
+  it("xDevLifecycleGithub_preserves9PhaseStructure", () => {
+    expect(githubLifecycle).toMatch(/9 phases.*0-8/i);
+    expect(githubLifecycle).toContain("NEVER stop before Phase 8");
   });
 });
 

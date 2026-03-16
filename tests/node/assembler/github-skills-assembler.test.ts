@@ -88,6 +88,7 @@ describe("SKILL_GROUPS and INFRA_SKILL_CONDITIONS", () => {
       "x-dev-architecture-plan",
       "x-dev-arch-update",
       "layer-templates",
+      "x-dev-adr-automation",
     ]);
   });
 
