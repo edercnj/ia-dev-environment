@@ -106,9 +106,9 @@ Re-exports public API:
 - All types and interfaces from `types.ts`
 - `StoryStatus` const object
 - All engine functions from `engine.ts`
-- `isValidStoryStatus` type guard from `validation.ts`
+- `isValidStoryStatus` type guard and `validateExecutionState` from `validation.ts`
 
-Internal validation functions (`validateExecutionState`, `validateStoryEntry`) remain non-public -- consumed only by `engine.ts`.
+Other validation helpers (e.g., `validateStoryEntry`) remain non-public -- consumed only by `engine.ts`.
 
 ### 2.5 `resources/templates/_TEMPLATE-EXECUTION-STATE.json`
 
@@ -128,7 +128,7 @@ export class CheckpointValidationError extends Error {
   readonly detail: string;
 
   constructor(field: string, detail: string) {
-    super(`Checkpoint validation failed for '${field}': ${detail}`);
+    super(`Checkpoint validation failed: ${field} -- ${detail}`);
     this.name = "CheckpointValidationError";
     this.field = field;
     this.detail = detail;
@@ -144,7 +144,7 @@ export class CheckpointIOError extends Error {
   readonly operation: string;
 
   constructor(path: string, operation: string) {
-    super(`Checkpoint I/O failed during '${operation}' at: ${path}`);
+    super(`Checkpoint I/O failed during '${operation}': ${path}`);
     this.name = "CheckpointIOError";
     this.path = path;
     this.operation = operation;

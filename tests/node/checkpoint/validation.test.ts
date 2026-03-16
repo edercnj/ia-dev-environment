@@ -296,6 +296,72 @@ describe("validateStoryEntry", () => {
       ),
     ).toThrow(CheckpointValidationError);
   });
+
+  it("validateStoryEntry_stringInput_throwsValidationError", () => {
+    expect(() =>
+      validateStoryEntry("not-an-object", "0042-0001"),
+    ).toThrow(CheckpointValidationError);
+  });
+
+  it("validateStoryEntry_arrayInput_throwsValidationError", () => {
+    expect(() =>
+      validateStoryEntry([1, 2], "0042-0001"),
+    ).toThrow(CheckpointValidationError);
+  });
+
+  it("validateStoryEntry_commitShaNotString_throwsValidationError", () => {
+    expect(() =>
+      validateStoryEntry(
+        aValidStoryEntry({ commitSha: 123 }),
+        "0042-0001",
+      ),
+    ).toThrow(CheckpointValidationError);
+  });
+
+  it("validateStoryEntry_durationNotString_throwsValidationError", () => {
+    expect(() =>
+      validateStoryEntry(
+        aValidStoryEntry({ duration: true }),
+        "0042-0001",
+      ),
+    ).toThrow(CheckpointValidationError);
+  });
+
+  it("validateStoryEntry_summaryNotString_throwsValidationError", () => {
+    expect(() =>
+      validateStoryEntry(
+        aValidStoryEntry({ summary: 42 }),
+        "0042-0001",
+      ),
+    ).toThrow(CheckpointValidationError);
+  });
+
+  it("validateStoryEntry_findingsCountNotNumber_throwsValidationError", () => {
+    expect(() =>
+      validateStoryEntry(
+        aValidStoryEntry({ findingsCount: "two" }),
+        "0042-0001",
+      ),
+    ).toThrow(CheckpointValidationError);
+  });
+
+  it("validateStoryEntry_blockedByNotArray_throwsValidationError", () => {
+    expect(() =>
+      validateStoryEntry(
+        aValidStoryEntry({ blockedBy: "0042-0002" }),
+        "0042-0001",
+      ),
+    ).toThrow(CheckpointValidationError);
+  });
+
+  it("validateStoryEntry_blockedByWithNonString_throwsValidationError", () => {
+    expect(() =>
+      validateStoryEntry(
+        aValidStoryEntry({ blockedBy: [123] }),
+        "0042-0001",
+      ),
+    ).toThrow(CheckpointValidationError);
+  });
 });
 
 // --- 3.3 isValidStoryStatus ---
@@ -411,6 +477,48 @@ describe("validateIntegrityGateEntry", () => {
       ),
     ).toThrow(/timestamp/);
   });
+
+  it("validateIntegrityGateEntry_stringInput_throwsValidationError", () => {
+    expect(() =>
+      validateIntegrityGateEntry("not-an-object", "phase-0"),
+    ).toThrow(CheckpointValidationError);
+  });
+
+  it("validateIntegrityGateEntry_arrayInput_throwsValidationError", () => {
+    expect(() =>
+      validateIntegrityGateEntry([1, 2], "phase-0"),
+    ).toThrow(CheckpointValidationError);
+  });
+
+  it("validateIntegrityGateEntry_failedTestsNotArray_throwsValidationError", () => {
+    expect(() =>
+      validateIntegrityGateEntry(
+        aValidIntegrityGate({ failedTests: "test1" }),
+        "phase-0",
+      ),
+    ).toThrow(CheckpointValidationError);
+  });
+
+  it("validateIntegrityGateEntry_failedTestsWithNonString_throwsValidationError", () => {
+    expect(() =>
+      validateIntegrityGateEntry(
+        aValidIntegrityGate({ failedTests: [123] }),
+        "phase-0",
+      ),
+    ).toThrow(CheckpointValidationError);
+  });
+
+  it("validateIntegrityGateEntry_validWithFailedTests_doesNotThrow", () => {
+    expect(() =>
+      validateIntegrityGateEntry(
+        aValidIntegrityGate({
+          status: "FAIL",
+          failedTests: ["test1", "test2"],
+        }),
+        "phase-0",
+      ),
+    ).not.toThrow();
+  });
 });
 
 // --- 3.5 validateMetrics ---
@@ -464,6 +572,28 @@ describe("validateMetrics", () => {
     expect(() =>
       validateMetrics(
         aValidMetrics({ storiesTotal: "five" }),
+      ),
+    ).toThrow(CheckpointValidationError);
+  });
+
+  it("validateMetrics_stringInput_throwsValidationError", () => {
+    expect(() => validateMetrics("not-an-object")).toThrow(
+      CheckpointValidationError,
+    );
+  });
+
+  it("validateMetrics_arrayInput_throwsValidationError", () => {
+    expect(() => validateMetrics([1, 2])).toThrow(
+      CheckpointValidationError,
+    );
+  });
+
+  it("validateMetrics_estimatedRemainingMinutesNotNumber_throwsValidationError", () => {
+    expect(() =>
+      validateMetrics(
+        aValidMetrics({
+          estimatedRemainingMinutes: "thirty",
+        }),
       ),
     ).toThrow(CheckpointValidationError);
   });

@@ -28,17 +28,11 @@ function requireString(
   context: string,
 ): string {
   const value = data[field];
-  if (value === undefined || value === null) {
-    throw new CheckpointValidationError(
-      field,
-      `is required in ${context}`,
-    );
-  }
   if (typeof value !== "string") {
-    throw new CheckpointValidationError(
-      field,
-      `must be a string in ${context}`,
-    );
+    const detail = value == null
+      ? `is required in ${context}`
+      : `must be a string in ${context}`;
+    throw new CheckpointValidationError(field, detail);
   }
   return value;
 }
@@ -49,17 +43,11 @@ function requireNumber(
   context: string,
 ): number {
   const value = data[field];
-  if (value === undefined || value === null) {
-    throw new CheckpointValidationError(
-      field,
-      `is required in ${context}`,
-    );
-  }
   if (typeof value !== "number") {
-    throw new CheckpointValidationError(
-      field,
-      `must be a number in ${context}`,
-    );
+    const detail = value == null
+      ? `is required in ${context}`
+      : `must be a number in ${context}`;
+    throw new CheckpointValidationError(field, detail);
   }
   return value;
 }
@@ -85,17 +73,62 @@ function requireObject(
   return value as Record<string, unknown>;
 }
 
+function optionalString(
+  data: Record<string, unknown>,
+  field: string,
+  ctx: string,
+): void {
+  const v = data[field];
+  if (v !== undefined && typeof v !== "string") {
+    throw new CheckpointValidationError(
+      field,
+      `must be a string in ${ctx}`,
+    );
+  }
+}
+
+function optionalNumber(
+  data: Record<string, unknown>,
+  field: string,
+  ctx: string,
+): void {
+  const v = data[field];
+  if (v !== undefined && typeof v !== "number") {
+    throw new CheckpointValidationError(
+      field,
+      `must be a number in ${ctx}`,
+    );
+  }
+}
+
+function optionalStringArray(
+  data: Record<string, unknown>,
+  field: string,
+  ctx: string,
+): void {
+  const v = data[field];
+  if (v === undefined) return;
+  if (!Array.isArray(v)) {
+    throw new CheckpointValidationError(
+      field,
+      `must be an array in ${ctx}`,
+    );
+  }
+  for (const item of v) {
+    if (typeof item !== "string") {
+      throw new CheckpointValidationError(
+        field,
+        `must be an array of strings in ${ctx}`,
+      );
+    }
+  }
+}
+
 export function validateStoryEntry(
   entry: unknown,
   storyId: string,
 ): void {
-  if (entry === null || entry === undefined) {
-    throw new CheckpointValidationError(
-      storyId,
-      "story entry is null or undefined",
-    );
-  }
-  const data = entry as Record<string, unknown>;
+  const data = requireNonNullObject(entry, storyId);
   const ctx = `story '${storyId}'`;
   const status = requireString(data, "status", ctx);
   if (!isValidStoryStatus(status)) {
@@ -106,19 +139,18 @@ export function validateStoryEntry(
   }
   requireNumber(data, "phase", ctx);
   requireNumber(data, "retries", ctx);
+  optionalString(data, "commitSha", ctx);
+  optionalString(data, "duration", ctx);
+  optionalString(data, "summary", ctx);
+  optionalNumber(data, "findingsCount", ctx);
+  optionalStringArray(data, "blockedBy", ctx);
 }
 
 export function validateIntegrityGateEntry(
   entry: unknown,
   gateKey: string,
 ): void {
-  if (entry === null || entry === undefined) {
-    throw new CheckpointValidationError(
-      gateKey,
-      "integrity gate entry is null or undefined",
-    );
-  }
-  const data = entry as Record<string, unknown>;
+  const data = requireNonNullObject(entry, gateKey);
   const ctx = `gate '${gateKey}'`;
   const status = requireString(data, "status", ctx);
   if (!VALID_GATE_STATUSES.has(status)) {
@@ -130,20 +162,16 @@ export function validateIntegrityGateEntry(
   requireString(data, "timestamp", ctx);
   requireNumber(data, "testCount", ctx);
   requireNumber(data, "coverage", ctx);
+  optionalStringArray(data, "failedTests", ctx);
 }
 
 export function validateMetrics(
   data: unknown,
 ): void {
-  if (data === null || data === undefined) {
-    throw new CheckpointValidationError(
-      "metrics",
-      "metrics is null or undefined",
-    );
-  }
-  const m = data as Record<string, unknown>;
+  const m = requireNonNullObject(data, "metrics");
   requireNumber(m, "storiesCompleted", "metrics");
   requireNumber(m, "storiesTotal", "metrics");
+  optionalNumber(m, "estimatedRemainingMinutes", "metrics");
 }
 
 function requireNonNullObject(

@@ -127,7 +127,7 @@ export async function updateStoryStatus(
   ) as Partial<StoryEntry>;
   const updated: StoryEntry = { ...existing, ...cleaned };
   const stories = { ...current.stories, [storyId]: updated };
-  const state: ExecutionState = { ...current, stories };
+  const state = validateExecutionState({ ...current, stories });
   await atomicWriteJson(epicDir, state);
   return state;
 }
@@ -147,10 +147,10 @@ export async function updateIntegrityGate(
     ...current.integrityGates,
     [key]: entry,
   };
-  const state: ExecutionState = {
+  const state = validateExecutionState({
     ...current,
     integrityGates,
-  };
+  });
   await atomicWriteJson(epicDir, state);
   return state;
 }
@@ -164,7 +164,7 @@ export async function updateMetrics(
     update as Record<string, unknown>,
   ) as Partial<ExecutionState["metrics"]>;
   const metrics = { ...current.metrics, ...cleaned };
-  const state: ExecutionState = { ...current, metrics };
+  const state = validateExecutionState({ ...current, metrics });
   await atomicWriteJson(epicDir, state);
   return state;
 }
