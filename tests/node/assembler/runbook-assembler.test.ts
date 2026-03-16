@@ -48,6 +48,27 @@ function copyTemplate(resourcesDir: string): void {
   );
 }
 
+const OUTPUT_FILE = path.join("docs", "runbook", "deploy-runbook.md");
+
+function assembleAndRead(
+  resourcesDir: string,
+  outputDir: string,
+  assembler: RunbookAssembler,
+  overrides?: {
+    container?: string;
+    orchestrator?: string;
+    databaseName?: string;
+  },
+): string {
+  copyTemplate(resourcesDir);
+  const config = buildConfig(overrides);
+  const engine = new TemplateEngine(resourcesDir, config);
+  assembler.assemble(config, outputDir, resourcesDir, engine);
+  return fs.readFileSync(
+    path.join(outputDir, OUTPUT_FILE), "utf-8",
+  );
+}
+
 describe("RunbookAssembler", () => {
   let tmpDir: string;
   let resourcesDir: string;
@@ -109,15 +130,8 @@ describe("RunbookAssembler", () => {
 
     // UT-13: Renders project name (no raw {{ }})
     it("assemble_validConfig_rendersProjectName", () => {
-      copyTemplate(resourcesDir);
-      const config = buildConfig();
-      const engine = new TemplateEngine(resourcesDir, config);
-      assembler.assemble(config, outputDir, resourcesDir, engine);
-      const content = fs.readFileSync(
-        path.join(
-          outputDir, "docs", "runbook", "deploy-runbook.md",
-        ),
-        "utf-8",
+      const content = assembleAndRead(
+        resourcesDir, outputDir, assembler,
       );
       expect(content).toContain("my-service");
       expect(content).not.toContain("{{ project_name }}");
@@ -127,54 +141,27 @@ describe("RunbookAssembler", () => {
   describe("assemble — conditional rendering", () => {
     // UT-14: Docker+K8s config -> kubectl commands
     it("assemble_dockerKubernetes_containsKubectlCommands", () => {
-      copyTemplate(resourcesDir);
-      const config = buildConfig({
-        container: "docker",
-        orchestrator: "kubernetes",
-      });
-      const engine = new TemplateEngine(resourcesDir, config);
-      assembler.assemble(config, outputDir, resourcesDir, engine);
-      const content = fs.readFileSync(
-        path.join(
-          outputDir, "docs", "runbook", "deploy-runbook.md",
-        ),
-        "utf-8",
+      const content = assembleAndRead(
+        resourcesDir, outputDir, assembler,
+        { container: "docker", orchestrator: "kubernetes" },
       );
       expect(content).toContain("kubectl");
     });
 
     // UT-15: K8s config -> kubectl rollout undo in rollback
     it("assemble_dockerKubernetes_containsKubectlRolloutUndo", () => {
-      copyTemplate(resourcesDir);
-      const config = buildConfig({
-        container: "docker",
-        orchestrator: "kubernetes",
-      });
-      const engine = new TemplateEngine(resourcesDir, config);
-      assembler.assemble(config, outputDir, resourcesDir, engine);
-      const content = fs.readFileSync(
-        path.join(
-          outputDir, "docs", "runbook", "deploy-runbook.md",
-        ),
-        "utf-8",
+      const content = assembleAndRead(
+        resourcesDir, outputDir, assembler,
+        { container: "docker", orchestrator: "kubernetes" },
       );
       expect(content).toContain("kubectl rollout undo");
     });
 
     // UT-16: Docker without K8s -> docker commands, no kubectl
     it("assemble_dockerNoOrchestrator_containsDockerCommands", () => {
-      copyTemplate(resourcesDir);
-      const config = buildConfig({
-        container: "docker",
-        orchestrator: "none",
-      });
-      const engine = new TemplateEngine(resourcesDir, config);
-      assembler.assemble(config, outputDir, resourcesDir, engine);
-      const content = fs.readFileSync(
-        path.join(
-          outputDir, "docs", "runbook", "deploy-runbook.md",
-        ),
-        "utf-8",
+      const content = assembleAndRead(
+        resourcesDir, outputDir, assembler,
+        { container: "docker", orchestrator: "none" },
       );
       expect(content).toContain("docker compose");
       expect(content).not.toContain("kubectl");
@@ -182,33 +169,18 @@ describe("RunbookAssembler", () => {
 
     // UT-17: With database -> migration section
     it("assemble_withDatabase_containsMigrationSection", () => {
-      copyTemplate(resourcesDir);
-      const config = buildConfig({ databaseName: "postgresql" });
-      const engine = new TemplateEngine(resourcesDir, config);
-      assembler.assemble(config, outputDir, resourcesDir, engine);
-      const content = fs.readFileSync(
-        path.join(
-          outputDir, "docs", "runbook", "deploy-runbook.md",
-        ),
-        "utf-8",
+      const content = assembleAndRead(
+        resourcesDir, outputDir, assembler,
+        { databaseName: "postgresql" },
       );
       expect(content).toContain("### Database Migration");
     });
 
     // UT-18: No container -> no docker/kubectl
     it("assemble_noContainer_noDockerOrKubectl", () => {
-      copyTemplate(resourcesDir);
-      const config = buildConfig({
-        container: "none",
-        orchestrator: "none",
-      });
-      const engine = new TemplateEngine(resourcesDir, config);
-      assembler.assemble(config, outputDir, resourcesDir, engine);
-      const content = fs.readFileSync(
-        path.join(
-          outputDir, "docs", "runbook", "deploy-runbook.md",
-        ),
-        "utf-8",
+      const content = assembleAndRead(
+        resourcesDir, outputDir, assembler,
+        { container: "none", orchestrator: "none" },
       );
       expect(content).not.toContain("docker");
       expect(content).not.toContain("kubectl");
@@ -216,15 +188,9 @@ describe("RunbookAssembler", () => {
 
     // UT-19: No database -> no migration section
     it("assemble_noDatabase_noMigrationSection", () => {
-      copyTemplate(resourcesDir);
-      const config = buildConfig({ databaseName: "none" });
-      const engine = new TemplateEngine(resourcesDir, config);
-      assembler.assemble(config, outputDir, resourcesDir, engine);
-      const content = fs.readFileSync(
-        path.join(
-          outputDir, "docs", "runbook", "deploy-runbook.md",
-        ),
-        "utf-8",
+      const content = assembleAndRead(
+        resourcesDir, outputDir, assembler,
+        { databaseName: "none" },
       );
       expect(content).not.toContain("### Database Migration");
     });
@@ -256,19 +222,9 @@ describe("RunbookAssembler", () => {
 
     // UT-22: All conditions false -> only mandatory sections
     it("assemble_allConditionsFalse_containsOnlyMandatorySections", () => {
-      copyTemplate(resourcesDir);
-      const config = buildConfig({
-        container: "none",
-        orchestrator: "none",
-        databaseName: "none",
-      });
-      const engine = new TemplateEngine(resourcesDir, config);
-      assembler.assemble(config, outputDir, resourcesDir, engine);
-      const content = fs.readFileSync(
-        path.join(
-          outputDir, "docs", "runbook", "deploy-runbook.md",
-        ),
-        "utf-8",
+      const content = assembleAndRead(
+        resourcesDir, outputDir, assembler,
+        { container: "none", orchestrator: "none", databaseName: "none" },
       );
       expect(content).toContain("## 1. Service Info");
       expect(content).toContain("## 7. Contacts");
@@ -279,19 +235,9 @@ describe("RunbookAssembler", () => {
 
     // UT-23: All conditions true -> all conditional sections
     it("assemble_allConditionsTrue_containsAllConditionalSections", () => {
-      copyTemplate(resourcesDir);
-      const config = buildConfig({
-        container: "docker",
-        orchestrator: "kubernetes",
-        databaseName: "postgresql",
-      });
-      const engine = new TemplateEngine(resourcesDir, config);
-      assembler.assemble(config, outputDir, resourcesDir, engine);
-      const content = fs.readFileSync(
-        path.join(
-          outputDir, "docs", "runbook", "deploy-runbook.md",
-        ),
-        "utf-8",
+      const content = assembleAndRead(
+        resourcesDir, outputDir, assembler,
+        { container: "docker", orchestrator: "kubernetes", databaseName: "postgresql" },
       );
       expect(content).toContain("kubectl");
       expect(content).toContain("kubectl rollout undo");
