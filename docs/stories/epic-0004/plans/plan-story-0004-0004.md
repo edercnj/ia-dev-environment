@@ -41,7 +41,7 @@ Key properties:
 - The GitHub copy is a separate source file with different path references (`.github/` instead of `.claude/`).
 - All 8 profiles produce identical copies (the skill is profile-independent).
 
-Additionally, there is a `_TEMPLATE-STORY.md` file at `resources/templates/_TEMPLATE-STORY.md` that defines the output structure of generated stories. This template's Section 6 is currently minimal and should also be enhanced with the new diagram requirements.
+Additionally, there is a `_TEMPLATE-STORY.md` file at `resources/templates/_TEMPLATE-STORY.md` that defines the output structure of generated stories. This template's Section 6 is currently minimal and **is not changed in this story**; enhancing it with the new diagram requirements will be handled in a future story.
 
 ---
 
@@ -51,13 +51,13 @@ Additionally, there is a `_TEMPLATE-STORY.md` file at `resources/templates/_TEMP
 |-------|-----------|--------|
 | Resources (Claude source) | `resources/skills-templates/core/x-story-create/SKILL.md` | **MODIFIED** — enhance Section 6 with diagram requirement matrix, inter-layer sequence template, validation checklist |
 | Resources (GitHub source) | `resources/github-skills-templates/story/x-story-create.md` | **MODIFIED** — parallel changes with GitHub-specific path references |
-| Resources (Template) | `resources/templates/_TEMPLATE-STORY.md` | **MODIFIED** — enhance Section 6 with diagram validation checklist and template |
+| Resources (Template) | `resources/templates/_TEMPLATE-STORY.md` | **NO CHANGE IN THIS STORY** — remains with minimal Section 6; future story will enhance |
 | Golden files (.claude) | `tests/golden/{profile}/.claude/skills/x-story-create/SKILL.md` | **MUST UPDATE** — 8 files |
 | Golden files (.agents) | `tests/golden/{profile}/.agents/skills/x-story-create/SKILL.md` | **MUST UPDATE** — 8 files |
 | Golden files (.github) | `tests/golden/{profile}/.github/skills/x-story-create/SKILL.md` | **MUST UPDATE** — 8 files |
 | Content tests | `tests/node/content/x-story-create-content.test.ts` | **MODIFIED** — add assertions for new content |
 
-**Total: 3 source templates + 24 golden files + 1 test file = 28 files modified.**
+**Total: 2 source templates + 24 golden files + 1 test file = 27 files modified.**
 
 ---
 

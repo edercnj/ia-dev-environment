@@ -73,6 +73,20 @@ const DIAGRAM_CHECKLIST_ITEMS = [
   "data transformations",
 ];
 
+function extractSection(source: string, heading: string): string {
+  const start = source.indexOf(heading);
+  if (start === -1) return "";
+  const afterHeading = source.indexOf("\n", start);
+  const level = heading.match(/^#+/)?.[0] ?? "#####";
+  const nextHeadingPattern = new RegExp(
+    `^#{1,${level.length}}\\s`,
+    "m",
+  );
+  const rest = source.slice(afterHeading + 1);
+  const nextMatch = rest.search(nextHeadingPattern);
+  return nextMatch === -1 ? rest : rest.slice(0, nextMatch);
+}
+
 describe("x-story-create content validation", () => {
   describe("Claude source template", () => {
     it("containsRule13Reference_prerequisiteSection_referencesStoryDecomposition", () => {
@@ -145,6 +159,11 @@ describe("x-story-create content validation", () => {
     });
 
     describe("diagram requirement matrix", () => {
+      const matrixSection = extractSection(
+        claudeSource,
+        "##### Diagram Requirement Matrix",
+      );
+
       it("containsDiagramRequirementMatrix_section6_hasHeading", () => {
         expect(claudeSource).toContain("Diagram Requirement Matrix");
       });
@@ -154,7 +173,7 @@ describe("x-story-create content validation", () => {
       )(
         "containsMatrixRow_%s_inRequirementMatrix",
         (row) => {
-          expect(claudeSource).toContain(row);
+          expect(matrixSection).toContain(row);
         },
       );
 
@@ -163,7 +182,7 @@ describe("x-story-create content validation", () => {
       )(
         "containsDiagramType_%s_inRequirementMatrix",
         (type) => {
-          expect(claudeSource).toContain(type);
+          expect(matrixSection).toContain(type);
         },
       );
 
@@ -172,15 +191,11 @@ describe("x-story-create content validation", () => {
       )(
         "containsObligationLevel_%s_inRequirementMatrix",
         (level) => {
-          expect(claudeSource).toContain(level);
+          expect(matrixSection).toContain(level);
         },
       );
 
       it("matrixMandatesSequenceDiagram_requestResponseStory_mandatory", () => {
-        const matrixStart = claudeSource.indexOf(
-          "Diagram Requirement Matrix",
-        );
-        const matrixSection = claudeSource.slice(matrixStart, matrixStart + 800);
         const requestRow = matrixSection.split("\n").find(
           (line) => line.includes("Request") && line.includes("Response"),
         );
@@ -189,10 +204,6 @@ describe("x-story-create content validation", () => {
       });
 
       it("matrixMandatesDeploymentDiagram_infrastructureStory_mandatory", () => {
-        const matrixStart = claudeSource.indexOf(
-          "Diagram Requirement Matrix",
-        );
-        const matrixSection = claudeSource.slice(matrixStart, matrixStart + 800);
         const infraRow = matrixSection.split("\n").find(
           (line) => line.includes("Infrastructure"),
         );
@@ -201,10 +212,6 @@ describe("x-story-create content validation", () => {
       });
 
       it("matrixAllowsNoDiagram_documentationStory_notRequired", () => {
-        const matrixStart = claudeSource.indexOf(
-          "Diagram Requirement Matrix",
-        );
-        const matrixSection = claudeSource.slice(matrixStart, matrixStart + 800);
         const docRow = matrixSection.split("\n").find(
           (line) => line.includes("Documentation"),
         );
@@ -214,8 +221,13 @@ describe("x-story-create content validation", () => {
     });
 
     describe("inter-layer sequence diagram template", () => {
+      const diagramSection = extractSection(
+        claudeSource,
+        "##### Inter-Layer Sequence Diagram Template",
+      );
+
       it("containsMermaidSequenceDiagram_section6_hasSequenceDiagramBlock", () => {
-        expect(claudeSource).toContain("sequenceDiagram");
+        expect(diagramSection).toContain("sequenceDiagram");
       });
 
       it.each(
@@ -223,27 +235,28 @@ describe("x-story-create content validation", () => {
       )(
         "containsParticipant_%s_inSequenceDiagram",
         (participant) => {
-          expect(claudeSource).toContain(participant);
+          expect(diagramSection).toContain(participant);
         },
       );
 
       it("containsAltBlock_sequenceDiagram_hasErrorScenario", () => {
-        const mermaidStart = claudeSource.indexOf("sequenceDiagram");
-        const mermaidSection = claudeSource.slice(mermaidStart, mermaidStart + 1200);
-        expect(mermaidSection).toContain("alt");
+        expect(diagramSection).toContain("alt");
       });
 
       it("sequenceDiagramShowsFlow_triggerToResponse_completeInteraction", () => {
-        const mermaidStart = claudeSource.indexOf("sequenceDiagram");
-        const mermaidSection = claudeSource.slice(mermaidStart, mermaidStart + 1200);
-        expect(mermaidSection).toContain("Request");
-        expect(mermaidSection).toContain("business rules");
-        expect(mermaidSection).toContain("Persist");
-        expect(mermaidSection).toContain("Response");
+        expect(diagramSection).toContain("Request");
+        expect(diagramSection).toContain("business rules");
+        expect(diagramSection).toContain("Persist");
+        expect(diagramSection).toContain("Response");
       });
     });
 
     describe("diagram validation checklist", () => {
+      const checklistSection = extractSection(
+        claudeSource,
+        "##### Diagram Validation Checklist",
+      );
+
       it("containsDiagramValidationChecklist_section6_hasChecklistHeading", () => {
         expect(claudeSource).toContain("Diagram Validation Checklist");
       });
@@ -253,19 +266,14 @@ describe("x-story-create content validation", () => {
       )(
         "containsChecklistItem_%s_inValidationChecklist",
         (item) => {
-          expect(claudeSource).toContain(item);
+          expect(checklistSection).toContain(item);
         },
       );
 
       it("checklistHasMinimumItems_validationChecklist_atLeastFourItems", () => {
-        const checklistStart = claudeSource.indexOf(
-          "Diagram Validation Checklist",
-        );
-        const checklistSection = claudeSource.slice(
-          checklistStart,
-          checklistStart + 600,
-        );
-        const checkboxCount = (checklistSection.match(/- \[ \]/g) || []).length;
+        const checkboxCount = (
+          checklistSection.match(/- \[ \]/g) || []
+        ).length;
         expect(checkboxCount).toBeGreaterThanOrEqual(4);
       });
     });
@@ -352,6 +360,11 @@ describe("x-story-create content validation", () => {
     });
 
     describe("diagram requirement matrix", () => {
+      const matrixSection = extractSection(
+        githubSource,
+        "##### Diagram Requirement Matrix",
+      );
+
       it("containsDiagramRequirementMatrix_section6_hasHeading", () => {
         expect(githubSource).toContain("Diagram Requirement Matrix");
       });
@@ -361,7 +374,7 @@ describe("x-story-create content validation", () => {
       )(
         "containsMatrixRow_%s_inRequirementMatrix",
         (row) => {
-          expect(githubSource).toContain(row);
+          expect(matrixSection).toContain(row);
         },
       );
 
@@ -370,7 +383,7 @@ describe("x-story-create content validation", () => {
       )(
         "containsDiagramType_%s_inRequirementMatrix",
         (type) => {
-          expect(githubSource).toContain(type);
+          expect(matrixSection).toContain(type);
         },
       );
 
@@ -379,15 +392,11 @@ describe("x-story-create content validation", () => {
       )(
         "containsObligationLevel_%s_inRequirementMatrix",
         (level) => {
-          expect(githubSource).toContain(level);
+          expect(matrixSection).toContain(level);
         },
       );
 
       it("matrixMandatesSequenceDiagram_requestResponseStory_mandatory", () => {
-        const matrixStart = githubSource.indexOf(
-          "Diagram Requirement Matrix",
-        );
-        const matrixSection = githubSource.slice(matrixStart, matrixStart + 800);
         const requestRow = matrixSection.split("\n").find(
           (line) => line.includes("Request") && line.includes("Response"),
         );
@@ -396,10 +405,6 @@ describe("x-story-create content validation", () => {
       });
 
       it("matrixMandatesDeploymentDiagram_infrastructureStory_mandatory", () => {
-        const matrixStart = githubSource.indexOf(
-          "Diagram Requirement Matrix",
-        );
-        const matrixSection = githubSource.slice(matrixStart, matrixStart + 800);
         const infraRow = matrixSection.split("\n").find(
           (line) => line.includes("Infrastructure"),
         );
@@ -408,10 +413,6 @@ describe("x-story-create content validation", () => {
       });
 
       it("matrixAllowsNoDiagram_documentationStory_notRequired", () => {
-        const matrixStart = githubSource.indexOf(
-          "Diagram Requirement Matrix",
-        );
-        const matrixSection = githubSource.slice(matrixStart, matrixStart + 800);
         const docRow = matrixSection.split("\n").find(
           (line) => line.includes("Documentation"),
         );
@@ -421,8 +422,13 @@ describe("x-story-create content validation", () => {
     });
 
     describe("inter-layer sequence diagram template", () => {
+      const diagramSection = extractSection(
+        githubSource,
+        "##### Inter-Layer Sequence Diagram Template",
+      );
+
       it("containsMermaidSequenceDiagram_section6_hasSequenceDiagramBlock", () => {
-        expect(githubSource).toContain("sequenceDiagram");
+        expect(diagramSection).toContain("sequenceDiagram");
       });
 
       it.each(
@@ -430,27 +436,28 @@ describe("x-story-create content validation", () => {
       )(
         "containsParticipant_%s_inSequenceDiagram",
         (participant) => {
-          expect(githubSource).toContain(participant);
+          expect(diagramSection).toContain(participant);
         },
       );
 
       it("containsAltBlock_sequenceDiagram_hasErrorScenario", () => {
-        const mermaidStart = githubSource.indexOf("sequenceDiagram");
-        const mermaidSection = githubSource.slice(mermaidStart, mermaidStart + 1200);
-        expect(mermaidSection).toContain("alt");
+        expect(diagramSection).toContain("alt");
       });
 
       it("sequenceDiagramShowsFlow_triggerToResponse_completeInteraction", () => {
-        const mermaidStart = githubSource.indexOf("sequenceDiagram");
-        const mermaidSection = githubSource.slice(mermaidStart, mermaidStart + 1200);
-        expect(mermaidSection).toContain("Request");
-        expect(mermaidSection).toContain("business rules");
-        expect(mermaidSection).toContain("Persist");
-        expect(mermaidSection).toContain("Response");
+        expect(diagramSection).toContain("Request");
+        expect(diagramSection).toContain("business rules");
+        expect(diagramSection).toContain("Persist");
+        expect(diagramSection).toContain("Response");
       });
     });
 
     describe("diagram validation checklist", () => {
+      const checklistSection = extractSection(
+        githubSource,
+        "##### Diagram Validation Checklist",
+      );
+
       it("containsDiagramValidationChecklist_section6_hasChecklistHeading", () => {
         expect(githubSource).toContain("Diagram Validation Checklist");
       });
@@ -460,19 +467,14 @@ describe("x-story-create content validation", () => {
       )(
         "containsChecklistItem_%s_inValidationChecklist",
         (item) => {
-          expect(githubSource).toContain(item);
+          expect(checklistSection).toContain(item);
         },
       );
 
       it("checklistHasMinimumItems_validationChecklist_atLeastFourItems", () => {
-        const checklistStart = githubSource.indexOf(
-          "Diagram Validation Checklist",
-        );
-        const checklistSection = githubSource.slice(
-          checklistStart,
-          checklistStart + 600,
-        );
-        const checkboxCount = (checklistSection.match(/- \[ \]/g) || []).length;
+        const checkboxCount = (
+          checklistSection.match(/- \[ \]/g) || []
+        ).length;
         expect(checkboxCount).toBeGreaterThanOrEqual(4);
       });
     });
