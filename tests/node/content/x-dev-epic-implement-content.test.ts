@@ -111,15 +111,7 @@ describe("x-dev-epic-implement SKILL.md — prerequisites check", () => {
 });
 
 describe("x-dev-epic-implement SKILL.md — phase structure", () => {
-  it("skillMd_phases1to3_arePlaceholders", () => {
-    const phase1Idx = content.indexOf("Phase 1");
-    const phase1Content = content.slice(
-      phase1Idx, content.indexOf("Phase 2", phase1Idx),
-    );
-    expect(phase1Content).toMatch(
-      /placeholder|story-0005|TODO|implemented in|extended by/i,
-    );
-
+  it("skillMd_phases2And3_remainPlaceholders", () => {
     const phase2Idx = content.indexOf("Phase 2");
     const phase2Content = content.slice(
       phase2Idx, content.indexOf("Phase 3", phase2Idx),
@@ -133,6 +125,19 @@ describe("x-dev-epic-implement SKILL.md — phase structure", () => {
     expect(phase3Content).toMatch(
       /placeholder|story-0005|TODO|implemented in|extended by/i,
     );
+  });
+
+  it("skillMd_phase1_isNotPlaceholder_containsSubstantiveContent", () => {
+    const phase1Idx = content.indexOf("Phase 1");
+    const phase2Idx = content.indexOf("Phase 2", phase1Idx);
+    const phase1Content = content.slice(phase1Idx, phase2Idx);
+    expect(phase1Content).not.toMatch(
+      /^[^]*>\s*\*?\*?Placeholder\*?\*?:/im,
+    );
+    const lines = phase1Content.split("\n").filter(
+      (l) => l.trim().length > 0,
+    );
+    expect(lines.length).toBeGreaterThanOrEqual(50);
   });
 
   it("skillMd_phase0_containsPreparationSteps", () => {
