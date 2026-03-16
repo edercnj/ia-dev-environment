@@ -48,5 +48,8 @@ export * from "./codex-agents-md-assembler.js";
 export * from "./codex-config-assembler.js";
 export * from "./codex-skills-assembler.js";
 
+// --- STORY-0004-0011: CicdAssembler ---
+export * from "./cicd-assembler.js";
+
 // --- STORY-016: Pipeline Orchestrator ---
 export * from "./pipeline.js";
