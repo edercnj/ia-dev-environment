@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Epic Execution Report Template (story-0005-0002):** New `_TEMPLATE-EPIC-EXECUTION-REPORT.md` with 8 sections and 18 runtime placeholders for epic orchestration. `EpicReportAssembler` copies the template verbatim to `docs/epic/`, `.claude/templates/`, and `.github/templates/`. Pipeline now has 23 assemblers.
+
+### Added (previous)
 - **GitHub Actions CI** -- Lint, build, test workflow with Node.js 20/22 matrix.
   Coverage upload on Node 22. Pack verification job.
 - **npm packaging** -- `files` field, `prepublishOnly` script for publish gating.
