@@ -55,10 +55,10 @@ export type DryRunMode = "full" | "phase" | "story";
 
 export interface DryRunOptions {
   readonly resume: boolean;
-  readonly executionState?: ExecutionState | undefined;
-  readonly phaseFilter?: number | undefined;
+  readonly executionState?: ExecutionState;
+  readonly phaseFilter?: number;
   readonly parallelMode: boolean;
-  readonly storyFilter?: string | undefined;
+  readonly storyFilter?: string;
 }
 
 export interface DryRunStoryInfo {

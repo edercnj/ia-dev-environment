@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and `formatPlan()`/`formatStoryDetail()` compute and render the plan without side effects.
   Supports flag combinations: `--resume` (checkpoint status merge), `--phase N` (filter),
   `--parallel` (concurrency indicators), `--story XXXX-YYYY` (single story detail).
-  20 unit tests, 98.1% line / 95.3% branch coverage.
+  35 tests (28 planner + 7 formatter), 98.94% line / 98.55% branch coverage.
 - **GitHub Actions CI** -- Lint, build, test workflow with Node.js 20/22 matrix.
   Coverage upload on Node 22. Pack verification job.
 - **npm packaging** -- `files` field, `prepublishOnly` script for publish gating.

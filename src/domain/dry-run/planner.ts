@@ -12,10 +12,11 @@ import type {
   DryRunStoryStatus,
   DryRunStoryDetail,
   StoryNode,
+  StoryStatus,
   ExecutionState,
 } from "./types.js";
 
-const STATUS_MAP: Record<string, DryRunStoryStatus> = {
+const STATUS_MAP: Record<StoryStatus, DryRunStoryStatus> = {
   SUCCESS: "COMPLETED",
   FAILED: "FAILED",
   IN_PROGRESS: "IN_PROGRESS",
@@ -47,8 +48,34 @@ function validateOptions(
   parsedMap: ParsedMap,
   options: DryRunOptions,
 ): void {
+  validateResumeOptions(options);
+  validateFilterExclusivity(options);
   validatePhaseFilter(parsedMap, options);
   validateStoryFilter(parsedMap, options);
+}
+
+function validateResumeOptions(
+  options: DryRunOptions,
+): void {
+  if (options.resume && !options.executionState) {
+    throw new Error(
+      "Resume mode requires executionState.",
+    );
+  }
+}
+
+function validateFilterExclusivity(
+  options: DryRunOptions,
+): void {
+  if (
+    options.phaseFilter !== undefined &&
+    options.storyFilter !== undefined
+  ) {
+    throw new Error(
+      "Cannot combine phaseFilter and storyFilter. " +
+        "Use one or the other.",
+    );
+  }
 }
 
 function validatePhaseFilter(
@@ -224,5 +251,5 @@ function mapCheckpointStatus(
   if (!entry) {
     return "PENDING";
   }
-  return STATUS_MAP[entry.status] ?? "PENDING";
+  return STATUS_MAP[entry.status];
 }

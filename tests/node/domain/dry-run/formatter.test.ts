@@ -101,9 +101,7 @@ describe("formatPlan", () => {
     expect(output).toContain("Setup project");
     expect(output).toContain("[CRITICAL]");
     expect(output).toContain("0042-0002");
-    expect(output).not.toContain(
-      "0042-0002" + ".*CRITICAL",
-    );
+    expect(output).not.toMatch(/0042-0002.*CRITICAL/);
   });
 
   it("plan_withResumeStatuses_showsStatusMarkers", () => {

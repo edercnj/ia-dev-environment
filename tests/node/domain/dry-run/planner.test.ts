@@ -670,6 +670,33 @@ describe("buildDryRunPlan", () => {
       ),
     ).toThrow(/9999-9999/);
   });
+
+  it("resume_withoutExecutionState_throwsError", () => {
+    const parsed = build14StoryDag();
+
+    expect(() =>
+      buildDryRunPlan(
+        parsed,
+        EPIC_ID,
+        defaultOptions({ resume: true }),
+      ),
+    ).toThrow(/resume.*executionState/i);
+  });
+
+  it("phaseFilter_andStoryFilter_throwsError", () => {
+    const parsed = build14StoryDag();
+
+    expect(() =>
+      buildDryRunPlan(
+        parsed,
+        EPIC_ID,
+        defaultOptions({
+          phaseFilter: 0,
+          storyFilter: storyId(1),
+        }),
+      ),
+    ).toThrow(/phaseFilter.*storyFilter/i);
+  });
 });
 
 describe("acceptance: planner -> formatter E2E", () => {
