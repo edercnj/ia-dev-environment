@@ -11,7 +11,6 @@ import type {
 
 const MS_PER_SECOND = 1000;
 const MS_PER_MINUTE = 60000;
-const MS_PER_HOUR = 3600000;
 const SECONDS_PER_MINUTE = 60;
 const MINUTES_PER_HOUR = 60;
 
@@ -40,7 +39,8 @@ export function formatDuration(ms: number): string {
 export function formatPhaseStart(event: PhaseStartEvent): string {
   const storiesLabel = event.storiesCount === 1 ? "story" : "stories";
   const count = `${String(event.storiesCount)} ${storiesLabel}`;
-  return `\u2550\u2550\u2550 Phase ${String(event.phase)}/${String(event.totalPhases)} \u2014 ${event.phaseName} (${count}) \u2550\u2550\u2550`;
+  const phase = `${String(event.phase)}/${String(event.totalPhases)}`;
+  return `\u2550\u2550\u2550 Phase ${phase} \u2014 ${event.phaseName} (${count}) \u2550\u2550\u2550`;
 }
 
 export function formatStoryStart(event: StoryStartEvent): string {
@@ -54,12 +54,16 @@ export function formatStoryComplete(
   const symbol = STATUS_SYMBOLS[event.status] ?? "?";
   const duration = formatDuration(event.durationMs);
   const sha = event.commitSha ? ` [${event.commitSha}]` : "";
-  return `  [${String(ctx.storyIndex)}/${String(ctx.storiesTotal)}] story-${event.storyId} ... ${symbol} ${event.status} (${duration})${sha}`;
+  const idx = `${String(ctx.storyIndex)}/${String(ctx.storiesTotal)}`;
+  const suffix = `${symbol} ${event.status} (${duration})${sha}`;
+  return `  [${idx}] story-${event.storyId} ... ${suffix}`;
 }
 
 export function formatGateResult(event: GateResultEvent): string {
   const cov = event.coverage.toFixed(1);
-  return `  \u2500\u2500 Gate Phase ${String(event.phase)}: ${event.status} (${String(event.testCount)} tests, ${cov}% coverage) \u2500\u2500`;
+  const phase = `Gate Phase ${String(event.phase)}`;
+  const detail = `${String(event.testCount)} tests, ${cov}% coverage`;
+  return `  \u2500\u2500 ${phase}: ${event.status} (${detail}) \u2500\u2500`;
 }
 
 export function formatRetry(event: RetryEvent): string {
@@ -72,9 +76,12 @@ export function formatBlock(event: BlockEvent): string {
 }
 
 export function formatEpicComplete(event: EpicCompleteEvent): string {
-  const pct = formatPercent((event.storiesCompleted / event.storiesTotal) * 100);
+  const pct = formatPercent(
+    (event.storiesCompleted / event.storiesTotal) * 100,
+  );
   const duration = formatDuration(event.elapsedMs);
-  return `\u2550\u2550\u2550 Epic Complete: ${String(event.storiesCompleted)}/${String(event.storiesTotal)} (${pct}%) | Total: ${duration} \u2550\u2550\u2550`;
+  const ratio = `${String(event.storiesCompleted)}/${String(event.storiesTotal)}`;
+  return `\u2550\u2550\u2550 Epic Complete: ${ratio} (${pct}%) | Total: ${duration} \u2550\u2550\u2550`;
 }
 
 export function formatProgressSummary(

@@ -135,6 +135,14 @@ async function persistIfEnabled(state: ReporterState): Promise<void> {
   await updateMetrics(state.epicDir, metricsUpdate);
 }
 
+function handleBlockEvent(
+  event: ProgressEvent & { readonly type: "BLOCK" },
+  state: ReporterState,
+): void {
+  state.storiesBlocked++;
+  state.writeFn(formatBlock(event));
+}
+
 async function handleEmit(
   event: ProgressEvent,
   state: ReporterState,
@@ -142,35 +150,27 @@ async function handleEmit(
   initializeStartTime(state);
   switch (event.type) {
     case ProgressEventType.PHASE_START:
-      handlePhaseStart(event, state);
-      break;
+      handlePhaseStart(event, state); break;
     case ProgressEventType.STORY_START:
-      handleStoryStart(event, state);
-      break;
+      handleStoryStart(event, state); break;
     case ProgressEventType.STORY_COMPLETE:
       handleStoryComplete(event, state);
-      await persistIfEnabled(state);
-      break;
+      await persistIfEnabled(state); break;
     case ProgressEventType.GATE_RESULT:
-      state.writeFn(formatGateResult(event));
-      break;
+      state.writeFn(formatGateResult(event)); break;
     case ProgressEventType.RETRY:
-      state.writeFn(formatRetry(event));
-      break;
+      state.writeFn(formatRetry(event)); break;
     case ProgressEventType.BLOCK:
-      state.storiesBlocked++;
-      state.writeFn(formatBlock(event));
-      break;
+      handleBlockEvent(event, state); break;
     case ProgressEventType.EPIC_COMPLETE:
-      handleEpicComplete(event, state);
-      break;
+      handleEpicComplete(event, state); break;
   }
 }
 
-export function createProgressReporter(
+function buildInitialState(
   config: ProgressReporterConfig,
-): ProgressReporter {
-  const state: ReporterState = {
+): ReporterState {
+  return {
     storyDurations: new Map(),
     phaseDurations: new Map(),
     phaseStartTimes: new Map(),
@@ -185,6 +185,12 @@ export function createProgressReporter(
     lastStoryIndex: 0,
     lastStoriesTotal: 0,
   };
+}
+
+export function createProgressReporter(
+  config: ProgressReporterConfig,
+): ProgressReporter {
+  const state = buildInitialState(config);
   let pendingEmit: Promise<void> = Promise.resolve();
   return {
     emit: (event: ProgressEvent) => {
