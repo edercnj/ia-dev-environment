@@ -35,7 +35,16 @@ export function parsePartialExecutionMode(
       { phase, storyId },
     );
   }
-  if (phase !== undefined) return { kind: "phase", phase };
+  if (phase !== undefined) {
+    if (!Number.isInteger(phase)) {
+      throw new PartialExecutionError(
+        "--phase must be an integer",
+        "INVALID_PHASE",
+        { phase },
+      );
+    }
+    return { kind: "phase", phase };
+  }
   if (storyId !== undefined) return { kind: "story", storyId };
   return { kind: "full" };
 }
@@ -47,7 +56,7 @@ export function validatePhasePrerequisites(
   executionState: ExecutionState,
 ): PrerequisiteResult {
   const maxPhase = parsedMap.totalPhases - 1;
-  if (phase < 0 || phase >= parsedMap.totalPhases) {
+  if (!Number.isInteger(phase) || phase < 0 || phase >= parsedMap.totalPhases) {
     return {
       valid: false,
       error: `Phase ${String(phase)} does not exist. Max phase is ${String(maxPhase)}.`,

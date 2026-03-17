@@ -67,41 +67,27 @@ This story is pure domain logic (precondition validation) plus template content 
 ```
 src/domain/implementation-map/partial-execution.ts
   --> ./types.ts (PartialExecutionMode, PrerequisiteResult, ParsedMap, ExecutionState, StoryStatus)
-  --> ../exceptions.ts? NO -- PartialExecutionError lives in src/exceptions.ts
-
-src/exceptions.ts
-  --> (no imports, standalone)
-```
-
-**Revised dependency approach:** `partial-execution.ts` is a pure domain module. It must NOT import from `src/exceptions.ts` (which is an infrastructure-level module shared across layers). Instead, the validation functions return `PrerequisiteResult` objects (value objects with error details). The **caller** (orchestrator in the SKILL.md template) decides whether to throw or display the error.
-
-This means `PartialExecutionError` goes in `src/exceptions.ts` for use by consumers, but `partial-execution.ts` itself only returns result objects -- no throws.
-
-**Exception:** `parsePartialExecutionMode` could throw for mutual exclusivity since that is an argument parsing concern. However, to keep the domain module pure, it will also return a result-style value. The caller handles error display.
-
-**Final dependency graph:**
-
-```
-src/domain/implementation-map/partial-execution.ts
-  --> ./types.ts (within module only)
+  --> ../../exceptions.ts (PartialExecutionError)
 
 src/domain/implementation-map/index.ts
   --> ./partial-execution.ts (re-export)
 
 src/exceptions.ts
-  --> (standalone, PartialExecutionError added for consumer use)
+  --> (no imports, standalone)
 ```
 
+**Dependency approach:** `partial-execution.ts` imports from `./types.ts` for domain types and from `../../exceptions.ts` for `PartialExecutionError`. The validation functions (`validatePhasePrerequisites`, `validateStoryPrerequisites`) return `PrerequisiteResult` objects (no-throw pattern). The argument parser (`parsePartialExecutionMode`) throws `PartialExecutionError` for mutual exclusivity and invalid phase violations, since these are input validation errors rather than domain preconditions.
+
 **Verification checklist:**
-- [ ] `partial-execution.ts` imports ONLY from `./types.ts`
-- [ ] No import from `src/assembler/`
-- [ ] No import from `src/cli*.ts`
-- [ ] No import from `src/config.ts`
-- [ ] No import from `src/models.ts`
-- [ ] No import from `node:fs` or `node:path`
-- [ ] No import from any npm package
-- [ ] Only standard library types used (Map, Set, Array, string, number, boolean)
-- [ ] `PartialExecutionError` in `src/exceptions.ts` has no domain imports
+- [x] `partial-execution.ts` imports from `./types.ts` and `../../exceptions.ts` only
+- [x] No import from `src/assembler/`
+- [x] No import from `src/cli*.ts`
+- [x] No import from `src/config.ts`
+- [x] No import from `src/models.ts`
+- [x] No import from `node:fs` or `node:path`
+- [x] No import from any npm package
+- [x] Only standard library types used (Map, Set, Array, string, number, boolean)
+- [x] `PartialExecutionError` in `src/exceptions.ts` has no domain imports
 
 ---
 

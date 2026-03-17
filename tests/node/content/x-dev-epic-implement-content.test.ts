@@ -174,18 +174,20 @@ describe("x-dev-epic-implement SKILL.md — partial execution", () => {
 
   it("skillMd_partialExecution_containsPhaseFlowDescription", () => {
     const partialIdx = content.indexOf("## Partial Execution");
-    const partialSection = content.slice(
-      partialIdx, content.indexOf("## Phase 0", partialIdx),
-    );
+    expect(partialIdx).toBeGreaterThanOrEqual(0);
+    const phase0Idx = content.indexOf("## Phase 0", partialIdx);
+    expect(phase0Idx).toBeGreaterThan(partialIdx);
+    const partialSection = content.slice(partialIdx, phase0Idx);
     expect(partialSection).toContain("--phase");
     expect(partialSection).toContain("integrity gate");
   });
 
   it("skillMd_partialExecution_containsStoryFlowDescription", () => {
     const partialIdx = content.indexOf("## Partial Execution");
-    const partialSection = content.slice(
-      partialIdx, content.indexOf("## Phase 0", partialIdx),
-    );
+    expect(partialIdx).toBeGreaterThanOrEqual(0);
+    const phase0Idx = content.indexOf("## Phase 0", partialIdx);
+    expect(phase0Idx).toBeGreaterThan(partialIdx);
+    const partialSection = content.slice(partialIdx, phase0Idx);
     expect(partialSection).toContain("--story");
     expect(partialSection).toContain("no integrity gate");
   });

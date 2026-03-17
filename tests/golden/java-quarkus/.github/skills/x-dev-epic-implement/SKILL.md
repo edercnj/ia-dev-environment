@@ -25,7 +25,7 @@ description: >
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
 | `--phase N` | number | (all) | Execute only phase N (0-3) |
-| `--story XXXX-YYYY` | string | (all) | Execute only a specific story |
+| `--story story-XXXX-YYYY` | string | (all) | Execute only a specific story |
 | `--skip-review` | boolean | `false` | Skip review phases in subagents |
 | `--dry-run` | boolean | `false` | Generate plan without executing |
 | `--resume` | boolean | `false` | Continue from last checkpoint (execution-state.json) |
@@ -68,14 +68,14 @@ Execute only stories belonging to phase N.
 
 Phase 0 requires no prerequisite validation (no prior phases to check).
 
-### Mode: `--story XXXX-YYYY`
+### Mode: `--story story-XXXX-YYYY`
 
 Execute a single story in isolation.
 
 1. Read checkpoint (required for single story mode)
 2. Validate that ALL dependencies of the story have status SUCCESS
 3. If validation fails, abort:
-   - Story not in map: `Story {XXXX-YYYY} not found in implementation map`
+   - Story not in map: `Story {storyId} not found in implementation map`
    - Dependencies not met: `Dependencies not satisfied: [{list}]`
 4. Dispatch subagent for the specific story
 5. Collect result and update checkpoint

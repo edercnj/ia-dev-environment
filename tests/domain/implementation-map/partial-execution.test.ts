@@ -56,6 +56,28 @@ describe("parsePartialExecutionMode", () => {
     const result = parsePartialExecutionMode(0, undefined);
     expect(result).toEqual({ kind: "phase", phase: 0 });
   });
+
+  it("parsePartialExecutionMode_nonIntegerPhase_throwsPartialExecutionError", () => {
+    expect(() => parsePartialExecutionMode(1.5, undefined))
+      .toThrow(PartialExecutionError);
+  });
+
+  it("parsePartialExecutionMode_nanPhase_throwsPartialExecutionError", () => {
+    expect(() => parsePartialExecutionMode(NaN, undefined))
+      .toThrow(PartialExecutionError);
+  });
+
+  it("parsePartialExecutionMode_nonIntegerPhase_errorCodeIsInvalidPhase", () => {
+    try {
+      parsePartialExecutionMode(2.7, undefined);
+      expect.unreachable("Should have thrown");
+    } catch (err: unknown) {
+      expect(err).toBeInstanceOf(PartialExecutionError);
+      const pe = err as PartialExecutionError;
+      expect(pe.code).toBe("INVALID_PHASE");
+      expect(pe.context).toEqual({ phase: 2.7 });
+    }
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -185,6 +207,27 @@ describe("validatePhasePrerequisites", () => {
     });
     const state = createExecutionState({});
     const result = validatePhasePrerequisites(-1, parsedMap, state);
+    expect(result.valid).toBe(false);
+  });
+
+  it("validatePhasePrerequisites_nonIntegerPhase_returnsInvalid", () => {
+    const parsedMap = createParsedMap({
+      phases: new Map([[0, ["0001"]], [1, ["0002"]]]),
+      totalPhases: 2,
+    });
+    const state = createExecutionState({});
+    const result = validatePhasePrerequisites(0.5, parsedMap, state);
+    expect(result.valid).toBe(false);
+    expect(result.error).toContain("does not exist");
+  });
+
+  it("validatePhasePrerequisites_nanPhase_returnsInvalid", () => {
+    const parsedMap = createParsedMap({
+      phases: new Map([[0, ["0001"]], [1, ["0002"]]]),
+      totalPhases: 2,
+    });
+    const state = createExecutionState({});
+    const result = validatePhasePrerequisites(NaN, parsedMap, state);
     expect(result.valid).toBe(false);
   });
 });
