@@ -519,6 +519,106 @@ describe("validateIntegrityGateEntry", () => {
       ),
     ).not.toThrow();
   });
+
+  it("validateIntegrityGateEntry_branchCoverageValidNumber_doesNotThrow", () => {
+    expect(() =>
+      validateIntegrityGateEntry(
+        aValidIntegrityGate({ branchCoverage: 92.5 }),
+        "phase-0",
+      ),
+    ).not.toThrow();
+  });
+
+  it("validateIntegrityGateEntry_branchCoverageZero_doesNotThrow", () => {
+    expect(() =>
+      validateIntegrityGateEntry(
+        aValidIntegrityGate({ branchCoverage: 0 }),
+        "phase-0",
+      ),
+    ).not.toThrow();
+  });
+
+  it("validateIntegrityGateEntry_branchCoverageNotNumber_throwsValidationError", () => {
+    expect(() =>
+      validateIntegrityGateEntry(
+        aValidIntegrityGate({ branchCoverage: "90" }),
+        "phase-0",
+      ),
+    ).toThrow(CheckpointValidationError);
+  });
+
+  it("validateIntegrityGateEntry_branchCoverageBoolean_throwsValidationError", () => {
+    expect(() =>
+      validateIntegrityGateEntry(
+        aValidIntegrityGate({ branchCoverage: true }),
+        "phase-0",
+      ),
+    ).toThrow(CheckpointValidationError);
+  });
+
+  it("validateIntegrityGateEntry_regressionSourceValidString_doesNotThrow", () => {
+    expect(() =>
+      validateIntegrityGateEntry(
+        aValidIntegrityGate({ regressionSource: "0042-0005" }),
+        "phase-0",
+      ),
+    ).not.toThrow();
+  });
+
+  it("validateIntegrityGateEntry_regressionSourceEmptyString_doesNotThrow", () => {
+    expect(() =>
+      validateIntegrityGateEntry(
+        aValidIntegrityGate({ regressionSource: "" }),
+        "phase-0",
+      ),
+    ).not.toThrow();
+  });
+
+  it("validateIntegrityGateEntry_regressionSourceNotString_throwsValidationError", () => {
+    expect(() =>
+      validateIntegrityGateEntry(
+        aValidIntegrityGate({ regressionSource: 42 }),
+        "phase-0",
+      ),
+    ).toThrow(CheckpointValidationError);
+  });
+
+  it("validateIntegrityGateEntry_regressionSourceArray_throwsValidationError", () => {
+    expect(() =>
+      validateIntegrityGateEntry(
+        aValidIntegrityGate({
+          regressionSource: ["0042-0005"],
+        }),
+        "phase-0",
+      ),
+    ).toThrow(CheckpointValidationError);
+  });
+
+  it("validateIntegrityGateEntry_bothNewFieldsPresent_doesNotThrow", () => {
+    expect(() =>
+      validateIntegrityGateEntry(
+        aValidIntegrityGate({
+          branchCoverage: 91.2,
+          regressionSource: "0042-0005",
+        }),
+        "phase-0",
+      ),
+    ).not.toThrow();
+  });
+
+  it("validateIntegrityGateEntry_failWithAllOptionalFields_doesNotThrow", () => {
+    expect(() =>
+      validateIntegrityGateEntry(
+        aValidIntegrityGate({
+          status: "FAIL",
+          failedTests: ["test-a"],
+          branchCoverage: 88.0,
+          regressionSource: "0042-0003",
+        }),
+        "phase-0",
+      ),
+    ).not.toThrow();
+  });
 });
 
 // --- 3.5 validateMetrics ---

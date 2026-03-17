@@ -1,4 +1,4 @@
-export { StoryStatus } from "./types.js";
+export { StoryStatus, MAX_RETRIES } from "./types.js";
 export type {
   ExecutionState,
   StoryEntry,
@@ -10,6 +10,7 @@ export type {
   MetricsUpdate,
   IntegrityGateInput,
   CreateCheckpointInput,
+  ReclassificationEntry,
 } from "./types.js";
 export {
   createCheckpoint,
@@ -22,3 +23,8 @@ export {
   validateExecutionState,
   isValidStoryStatus,
 } from "./validation.js";
+export {
+  reclassifyStories,
+  reevaluateBlocked,
+  prepareResume,
+} from "./resume.js";
