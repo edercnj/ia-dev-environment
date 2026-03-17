@@ -189,15 +189,20 @@ describe("x-dev-epic-implement dual copy consistency (RULE-001)", () => {
 describe("x-dev-epic-implement SKILL.md — resume workflow", () => {
   const ghContent = fs.readFileSync(GITHUB_SKILL_PATH, "utf-8");
 
+  function extractResumeSection(text: string): string {
+    const startIdx = text.indexOf("Resume Workflow");
+    expect(startIdx).toBeGreaterThanOrEqual(0);
+    const endIdx = text.indexOf("Phase 1", startIdx);
+    expect(endIdx).toBeGreaterThan(startIdx);
+    return text.slice(startIdx, endIdx);
+  }
+
   it("skillMd_containsResumeWorkflowSection", () => {
     expect(content).toMatch(/##\s+Resume Workflow/);
   });
 
   it("skillMd_resumeSection_containsReclassificationTable", () => {
-    const resumeIdx = content.indexOf("Resume Workflow");
-    const resumeContent = content.slice(
-      resumeIdx, content.indexOf("Phase 1", resumeIdx),
-    );
+    const resumeContent = extractResumeSection(content);
     expect(resumeContent).toContain("IN_PROGRESS");
     expect(resumeContent).toContain("SUCCESS");
     expect(resumeContent).toContain("FAILED");
@@ -206,18 +211,12 @@ describe("x-dev-epic-implement SKILL.md — resume workflow", () => {
   });
 
   it("skillMd_resumeSection_containsBranchRecovery", () => {
-    const resumeIdx = content.indexOf("Resume Workflow");
-    const resumeContent = content.slice(
-      resumeIdx, content.indexOf("Phase 1", resumeIdx),
-    );
+    const resumeContent = extractResumeSection(content);
     expect(resumeContent).toMatch(/checkout/i);
   });
 
   it("skillMd_resumeSection_containsReevaluate", () => {
-    const resumeIdx = content.indexOf("Resume Workflow");
-    const resumeContent = content.slice(
-      resumeIdx, content.indexOf("Phase 1", resumeIdx),
-    );
+    const resumeContent = extractResumeSection(content);
     expect(resumeContent).toMatch(/reevaluat/i);
   });
 
