@@ -597,4 +597,102 @@ describe("validateMetrics", () => {
       ),
     ).toThrow(CheckpointValidationError);
   });
+
+  // --- UT-35 through UT-38d: Extended metrics fields ---
+
+  it("validateMetrics_allNewFieldsPresent_doesNotThrow", () => {
+    expect(() =>
+      validateMetrics(
+        aValidMetrics({
+          storiesFailed: 2,
+          storiesBlocked: 1,
+          elapsedMs: 900000,
+          estimatedRemainingMs: 600000,
+          averageStoryDurationMs: 150000,
+          storyDurations: { "0001": 100000, "0002": 200000 },
+          phaseDurations: { "0": 500000 },
+        }),
+      ),
+    ).not.toThrow();
+  });
+
+  it("validateMetrics_storiesFailedNotNumber_throwsValidationError", () => {
+    expect(() =>
+      validateMetrics(
+        aValidMetrics({ storiesFailed: "two" }),
+      ),
+    ).toThrow(/storiesFailed/);
+  });
+
+  it("validateMetrics_storiesBlockedNotNumber_throwsValidationError", () => {
+    expect(() =>
+      validateMetrics(
+        aValidMetrics({ storiesBlocked: true }),
+      ),
+    ).toThrow(/storiesBlocked/);
+  });
+
+  it("validateMetrics_elapsedMsNotNumber_throwsValidationError", () => {
+    expect(() =>
+      validateMetrics(
+        aValidMetrics({ elapsedMs: "900000" }),
+      ),
+    ).toThrow(/elapsedMs/);
+  });
+
+  it("validateMetrics_estimatedRemainingMsNotNumber_throwsValidationError", () => {
+    expect(() =>
+      validateMetrics(
+        aValidMetrics({ estimatedRemainingMs: null }),
+      ),
+    ).toThrow(CheckpointValidationError);
+  });
+
+  it("validateMetrics_averageStoryDurationMsNotNumber_throwsValidationError", () => {
+    expect(() =>
+      validateMetrics(
+        aValidMetrics({ averageStoryDurationMs: "150000" }),
+      ),
+    ).toThrow(/averageStoryDurationMs/);
+  });
+
+  it("validateMetrics_storyDurationsNotObject_throwsValidationError", () => {
+    expect(() =>
+      validateMetrics(
+        aValidMetrics({ storyDurations: "not-an-object" }),
+      ),
+    ).toThrow(/storyDurations/);
+  });
+
+  it("validateMetrics_storyDurationsIsArray_throwsValidationError", () => {
+    expect(() =>
+      validateMetrics(
+        aValidMetrics({ storyDurations: [100, 200] }),
+      ),
+    ).toThrow(/storyDurations/);
+  });
+
+  it("validateMetrics_storyDurationsWithNonNumberValues_throwsValidationError", () => {
+    expect(() =>
+      validateMetrics(
+        aValidMetrics({ storyDurations: { "0001": "fast" } }),
+      ),
+    ).toThrow(/storyDurations/);
+  });
+
+  it("validateMetrics_phaseDurationsNotObject_throwsValidationError", () => {
+    expect(() =>
+      validateMetrics(
+        aValidMetrics({ phaseDurations: 42 }),
+      ),
+    ).toThrow(/phaseDurations/);
+  });
+
+  it("validateMetrics_phaseDurationsWithNonNumberValues_throwsValidationError", () => {
+    expect(() =>
+      validateMetrics(
+        aValidMetrics({ phaseDurations: { "0": "slow" } }),
+      ),
+    ).toThrow(/phaseDurations/);
+  });
 });
