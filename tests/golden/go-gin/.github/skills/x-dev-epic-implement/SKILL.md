@@ -59,6 +59,22 @@ Abort on first failure with clear error message.
 
 > Placeholder: Implemented in story-0005-0005.
 
+### Integrity Gate (Between Phases)
+
+After all stories in a phase complete, dispatch an integrity gate subagent:
+
+1. **Compile**: `{{COMPILE_COMMAND}}`
+2. **Test**: `{{TEST_COMMAND}}` (full suite)
+3. **Coverage**: `{{COVERAGE_COMMAND}}` (thresholds: >= 95% line, >= 90% branch)
+
+**Result**: `{ status: PASS|FAIL, testCount, coverage, branchCoverage?, failedTests?, regressionSource? }`
+
+**On PASS**: Advance to next phase
+**On FAIL + regression identified**: `git revert` culprit story, mark FAILED, propagate blocks
+**On FAIL + unidentified**: Pause execution, report to user
+
+Gate result stored via `updateIntegrityGate(epicDir, phase, result)`. Mandatory per RULE-004.
+
 ## Phase 2 — Consolidation
 
 > Placeholder: Implemented in story-0005-0011.

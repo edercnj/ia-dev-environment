@@ -163,6 +163,37 @@ describe("x-dev-epic-implement GitHub template", () => {
   });
 });
 
+describe("x-dev-epic-implement SKILL.md — integrity gate section", () => {
+  it("skillMd_containsSection_IntegrityGate", () => {
+    expect(content).toContain("Integrity Gate");
+  });
+
+  it("skillMd_integrityGate_referencesCompileCommand", () => {
+    expect(content).toContain("{{COMPILE_COMMAND}}");
+  });
+
+  it("skillMd_integrityGate_referencesTestCommand", () => {
+    expect(content).toContain("{{TEST_COMMAND}}");
+  });
+
+  it("skillMd_integrityGate_referencesCoverageCommand", () => {
+    expect(content).toContain("{{COVERAGE_COMMAND}}");
+  });
+
+  it("skillMd_integrityGate_referencesRegressionDiagnosis", () => {
+    expect(content).toMatch(/regression/i);
+    expect(content).toMatch(/correlat|diagnos|identif/i);
+  });
+
+  it("skillMd_integrityGate_referencesGitRevert", () => {
+    expect(content).toMatch(/git revert/i);
+  });
+
+  it("skillMd_integrityGate_referencesUpdateIntegrityGate", () => {
+    expect(content).toContain("updateIntegrityGate");
+  });
+});
+
 describe("x-dev-epic-implement dual copy consistency (RULE-001)", () => {
   const ghContent = fs.readFileSync(GITHUB_SKILL_PATH, "utf-8");
   const CRITICAL_TERMS = [
@@ -176,6 +207,8 @@ describe("x-dev-epic-implement dual copy consistency (RULE-001)", () => {
     "Phase 1",
     "Phase 2",
     "Phase 3",
+    "Integrity Gate",
+    "updateIntegrityGate",
   ];
 
   it.each(
@@ -183,5 +216,12 @@ describe("x-dev-epic-implement dual copy consistency (RULE-001)", () => {
   )("bothContainTerm_%s_dualCopyConsistency", (term) => {
     expect(content).toContain(term);
     expect(ghContent).toContain(term);
+  });
+
+  it("githubSkillMd_containsIntegrityGateSection", () => {
+    expect(ghContent).toContain("Integrity Gate");
+    expect(ghContent).toContain("{{COMPILE_COMMAND}}");
+    expect(ghContent).toContain("{{TEST_COMMAND}}");
+    expect(ghContent).toContain("{{COVERAGE_COMMAND}}");
   });
 });

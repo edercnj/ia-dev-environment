@@ -319,6 +319,31 @@ describe("acceptance tests", () => {
     expect(gate!.timestamp >= before).toBe(true);
     expect(gate!.timestamp <= after).toBe(true);
   });
+
+  it("updateIntegrityGate_failWithRegressionSourceAndBranchCoverage_roundTripsCorrectly", async () => {
+    await createCheckpoint(
+      tmpDir,
+      anInput({
+        stories: [{ id: "0042-0001", phase: 1 }],
+      }),
+    );
+    const state = await updateIntegrityGate(tmpDir, 0, {
+      status: "FAIL",
+      testCount: 100,
+      coverage: 93.2,
+      branchCoverage: 85.5,
+      failedTests: ["test-a"],
+      regressionSource: "0042-0003",
+    });
+    const gate = state.integrityGates["phase-0"];
+    expect(gate).toBeDefined();
+    expect(gate?.status).toBe("FAIL");
+    expect(gate?.testCount).toBe(100);
+    expect(gate?.coverage).toBe(93.2);
+    expect(gate?.branchCoverage).toBe(85.5);
+    expect(gate?.failedTests).toEqual(["test-a"]);
+    expect(gate?.regressionSource).toBe("0042-0003");
+  });
 });
 
 // --- Integration Round-Trip Tests (IT-05 through IT-09) ---
@@ -434,6 +459,35 @@ describe("integration round-trip", () => {
     expect(state.epicId).toBe("0042");
     expect(state.stories["0042-0001"]?.status).toBe(
       "PENDING",
+    );
+  });
+
+  it("checkpointRoundTrip_integrityGateWithAllFields_preservesAllFields", async () => {
+    await createCheckpoint(
+      tmpDir,
+      anInput({
+        stories: [{ id: "0042-0001", phase: 1 }],
+      }),
+    );
+    await updateIntegrityGate(tmpDir, 0, {
+      status: "FAIL",
+      testCount: 100,
+      coverage: 93.2,
+      branchCoverage: 85.5,
+      failedTests: ["test-a"],
+      regressionSource: "0042-0003",
+    });
+    const read = await readCheckpoint(tmpDir);
+    const gate = read.integrityGates["phase-0"];
+    expect(gate).toBeDefined();
+    expect(gate?.status).toBe("FAIL");
+    expect(gate?.testCount).toBe(100);
+    expect(gate?.coverage).toBe(93.2);
+    expect(gate?.branchCoverage).toBe(85.5);
+    expect(gate?.failedTests).toEqual(["test-a"]);
+    expect(gate?.regressionSource).toBe("0042-0003");
+    expect(gate?.timestamp).toMatch(
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/,
     );
   });
 });

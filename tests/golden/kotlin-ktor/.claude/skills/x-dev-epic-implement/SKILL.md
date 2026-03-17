@@ -108,6 +108,59 @@ ERROR: No checkpoint found (execution-state.json missing). Cannot resume. Run wi
 > It will contain the story-by-story execution loop, worktree management,
 > checkpoint persistence, and error handling/retry logic.
 
+### Integrity Gate (Between Phases)
+
+After ALL stories in a phase complete, dispatch an integrity gate subagent before advancing to the next phase.
+
+#### Gate Subagent Prompt
+
+Launch a `general-purpose` subagent:
+
+> You are an **Integrity Gate Validator** for {{PROJECT_NAME}}.
+>
+> **Step 1 — Compile:** Run `{{COMPILE_COMMAND}}` (e.g., `tsc --noEmit`).
+> **Step 2 — Test:** Run `{{TEST_COMMAND}}` to execute the full test suite (not just current phase tests).
+> **Step 3 — Coverage:** Run `{{COVERAGE_COMMAND}}` to collect coverage metrics.
+> **Step 4 — Evaluate:**
+> - If compilation fails → `{ status: "FAIL", testCount: 0, coverage: 0 }`
+> - If any tests fail → correlate failed tests with commits from stories in the current phase
+> - If line coverage < 95% or branch coverage < 90% → FAIL with coverage details
+> - Otherwise → PASS
+>
+> Return: `{ status: "PASS"|"FAIL", testCount, coverage, branchCoverage?, failedTests?, regressionSource? }`
+
+#### Regression Diagnosis
+
+If tests fail, the subagent:
+1. Analyzes which tests broke (`failedTests` array)
+2. Correlates failed tests with commits from stories in the current phase (via `git log`)
+3. Identifies the most likely story as regression source (`regressionSource`)
+4. If identified: orchestrator executes `git revert <commitSha>` for that story
+5. Story is marked FAILED with summary: `"Regression detected by integrity gate"`
+6. Block propagation is executed for dependents of the failed story
+
+#### Gate Result Registration
+
+```
+updateIntegrityGate(epicDir, phaseNumber, {
+  status: "PASS" | "FAIL",
+  testCount: number,
+  coverage: number,        // line coverage %
+  branchCoverage?: number, // branch coverage %
+  failedTests?: string[],
+  regressionSource?: string // story ID
+});
+```
+
+- **PASS**: Advance to next phase
+- **FAIL + regression identified**: revert + mark FAILED + block propagation
+- **FAIL + regression unidentified**: pause execution, report to user
+
+#### Gate Enforcement (RULE-004)
+
+The integrity gate is **mandatory** — there is no bypass. Every phase transition requires a PASS gate
+result. The gate runs after phase 0, 1, 2, and 3 — one gate per phase.
+
 ## Phase 2 — Consolidation
 
 > **Placeholder**: This phase will be implemented in story-0005-0011.
