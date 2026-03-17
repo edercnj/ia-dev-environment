@@ -5,7 +5,7 @@
 
 ## Executive Summary
 
-This story adds a failure handling subsystem to the epic orchestrator, introducing three resilience levels: (1) retry with budget and error context, (2) transitive block propagation via BFS on the dependency DAG, and (3) integration point for integrity gate failures. The implementation lives entirely within the existing `src/checkpoint/` module (new `failure-handler.ts`) and a new `src/domain/failure/` module for the pure-logic block propagation algorithm. No new external connections, no API changes, no infrastructure changes.
+This story adds a failure handling subsystem to the epic orchestrator, introducing three resilience levels: (1) retry with budget and error context, (2) transitive block propagation via BFS on the dependency DAG, and (3) integration point for integrity gate failures. In this story, the implementation lives in the new `src/domain/failure/` module (pure functions) with a re-export from `src/domain/index.ts`; there are no changes to the existing `src/checkpoint/` module in this PR. No new external connections, no API changes, no infrastructure changes.
 
 ## Component Diagram
 

@@ -24,12 +24,22 @@ export function propagateBlocks(
     return { failedStory: failedStoryId, blockedStories: [] };
   }
 
-  const blocked: BlockedStoryEntry[] = [];
+  const blockedByMap = new Map<string, Set<string>>();
   const visited = new Set<string>([failedStoryId]);
-  const queue: Array<{ storyId: string; blockedBy: string }> = [];
+  const queue: string[] = [];
 
-  enqueueDirectDependents(failedNode, failedStoryId, visited, queue);
-  processQueue(dag, visited, queue, blocked);
+  enqueueDirectDependents(
+    failedNode, failedStoryId, visited, queue, blockedByMap,
+  );
+  processQueue(dag, visited, queue, blockedByMap);
+
+  const blocked: BlockedStoryEntry[] = [];
+  for (const [storyId, blockers] of blockedByMap) {
+    blocked.push({
+      storyId,
+      blockedBy: Array.from(blockers),
+    });
+  }
 
   return { failedStory: failedStoryId, blockedStories: blocked };
 }
@@ -38,38 +48,46 @@ function enqueueDirectDependents(
   node: DagNode,
   sourceId: string,
   visited: Set<string>,
-  queue: Array<{ storyId: string; blockedBy: string }>,
+  queue: string[],
+  blockedByMap: Map<string, Set<string>>,
 ): void {
   for (const dependentId of node.blocks) {
+    addBlocker(blockedByMap, dependentId, sourceId);
     if (!visited.has(dependentId)) {
       visited.add(dependentId);
-      queue.push({ storyId: dependentId, blockedBy: sourceId });
+      queue.push(dependentId);
     }
   }
+}
+
+function addBlocker(
+  blockedByMap: Map<string, Set<string>>,
+  storyId: string,
+  blockerId: string,
+): void {
+  let blockers = blockedByMap.get(storyId);
+  if (!blockers) {
+    blockers = new Set<string>();
+    blockedByMap.set(storyId, blockers);
+  }
+  blockers.add(blockerId);
 }
 
 function processQueue(
   dag: ReadonlyMap<string, DagNode>,
   visited: Set<string>,
-  queue: Array<{ storyId: string; blockedBy: string }>,
-  blocked: BlockedStoryEntry[],
+  queue: string[],
+  blockedByMap: Map<string, Set<string>>,
 ): void {
   let head = 0;
   while (head < queue.length) {
-    const current = queue[head]!;
+    const currentId = queue[head]!;
     head += 1;
-    blocked.push({
-      storyId: current.storyId,
-      blockedBy: [current.blockedBy],
-    });
 
-    const currentNode = dag.get(current.storyId);
+    const currentNode = dag.get(currentId);
     if (currentNode) {
       enqueueDirectDependents(
-        currentNode,
-        current.storyId,
-        visited,
-        queue,
+        currentNode, currentId, visited, queue, blockedByMap,
       );
     }
   }

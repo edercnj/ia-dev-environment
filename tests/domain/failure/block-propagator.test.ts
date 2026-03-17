@@ -128,6 +128,21 @@ describe("propagateBlocks", () => {
     expect(result.blockedStories).toHaveLength(3);
   });
 
+  it("propagateBlocks_diamondDag_aggregatesAllBlockersForSharedDependent", () => {
+    const dag = createDag([
+      { id: "A", blocks: ["B", "C"] },
+      { id: "B", blockedBy: ["A"], blocks: ["D"] },
+      { id: "C", blockedBy: ["A"], blocks: ["D"] },
+      { id: "D", blockedBy: ["B", "C"], blocks: [] },
+    ]);
+
+    const result = propagateBlocks("A", dag);
+    const entryD = result.blockedStories.find((e) => e.storyId === "D");
+
+    expect(entryD).toBeDefined();
+    expect(entryD!.blockedBy.sort()).toEqual(["B", "C"]);
+  });
+
   it("propagateBlocks_fanOut_returnsAllDirectDependents", () => {
     const dag = createDag([
       { id: "A", blocks: ["B", "C", "D"] },
@@ -192,6 +207,10 @@ describe("propagateBlocks", () => {
 
     // No duplicates
     expect(new Set(blockedIds).size).toBe(blockedIds.length);
+
+    // D has both B and C as blockers (diamond convergence)
+    const entryD = result.blockedStories.find((e) => e.storyId === "D");
+    expect(entryD!.blockedBy.sort()).toEqual(["B", "C"]);
 
     // Result carries the failed story ID
     expect(result.failedStory).toBe("A");
