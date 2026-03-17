@@ -57,7 +57,50 @@ Abort on first failure with clear error message.
 
 ## Phase 1 — Execution Loop
 
-> Placeholder: Implemented in story-0005-0005.
+### 1.1 Initialize Execution State
+
+- Read `IMPLEMENTATION-MAP.md`, call `parseImplementationMap(content)` to get `ParsedMap`
+- Build stories array with `{ id, phase }` from the parsed map
+- Call `createCheckpoint(epicDir, input)` to create initial `ExecutionState`
+
+### 1.2 Branch Management
+
+- `git checkout main && git pull origin main`
+- Create branch: `git checkout -b feat/epic-{epicId}-full-implementation`
+- Resume mode: checkout existing branch if it already exists
+
+### 1.3 Core Loop Algorithm
+
+- For each phase, call `getExecutableStories(parsedMap, executionState)` sorted by critical path priority
+- For each executable story: mark `IN_PROGRESS`, dispatch subagent, validate result, update checkpoint
+- BLOCKED stories are never dispatched (filtered by `getExecutableStories`)
+
+### 1.4 Subagent Dispatch
+
+- Use `Agent` tool to launch a clean context subagent (RULE-001 context isolation)
+- Subagent executes x-dev-lifecycle logic and returns `SubagentResult`
+- Result fields: `status` (`SUCCESS`/`FAILED`/`PARTIAL`), `commitSha`, `findingsCount`, `summary`
+
+### 1.5 Result Validation (RULE-008)
+
+- Validate `SubagentResult` contract: `status`, `findingsCount`, `summary` required
+- If `status === "SUCCESS"`, `commitSha` must be present
+- On invalid result: mark story as `FAILED` with descriptive summary
+
+### 1.6 Checkpoint Update (RULE-002)
+
+- Call `updateStoryStatus(epicDir, storyId, result)` after each story
+- Checkpoint persisted atomically to `execution-state.json`
+
+### 1.7 Extension Points
+
+- [Placeholder: integrity gate — story-0005-0006]
+- [Placeholder: retry + block propagation — story-0005-0007]
+- [Placeholder: resume from checkpoint — story-0005-0008]
+- [Placeholder: partial execution filter — story-0005-0009]
+- [Placeholder: parallel worktree dispatch — story-0005-0010]
+- [Placeholder: consolidation + verification — story-0005-0011]
+- [Placeholder: progress reporting — story-0005-0013]
 
 ### Integrity Gate (Between Phases)
 
