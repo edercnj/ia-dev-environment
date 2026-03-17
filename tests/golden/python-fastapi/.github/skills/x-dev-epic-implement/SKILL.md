@@ -25,7 +25,7 @@ description: >
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
 | `--phase N` | number | (all) | Execute only phase N (0-3) |
-| `--story XXXX-YYYY` | string | (all) | Execute only a specific story |
+| `--story story-XXXX-YYYY` | string | (all) | Execute only a specific story |
 | `--skip-review` | boolean | `false` | Skip review phases in subagents |
 | `--dry-run` | boolean | `false` | Generate plan without executing |
 | `--resume` | boolean | `false` | Continue from last checkpoint (execution-state.json) |
@@ -100,6 +100,22 @@ Abort on first failure with clear error message.
 - [Placeholder: partial execution filter — story-0005-0009]
 - [Placeholder: parallel worktree dispatch — story-0005-0010]
 - [Placeholder: progress reporting — story-0005-0013]
+
+### Integrity Gate (Between Phases)
+
+After all stories in a phase complete, dispatch an integrity gate subagent:
+
+1. **Compile**: `{{COMPILE_COMMAND}}`
+2. **Test**: `{{TEST_COMMAND}}` (full suite)
+3. **Coverage**: `{{COVERAGE_COMMAND}}` (thresholds: >= 95% line, >= 90% branch)
+
+**Result**: `{ status: PASS|FAIL, testCount, coverage, branchCoverage?, failedTests?, regressionSource? }`
+
+**On PASS**: Advance to next phase
+**On FAIL + regression identified**: `git revert` culprit story, mark FAILED, propagate blocks
+**On FAIL + unidentified**: Pause execution, report to user
+
+Gate result stored via `updateIntegrityGate(epicDir, phase, result)`. Mandatory per RULE-004.
 
 ## Phase 2 — Consolidation
 

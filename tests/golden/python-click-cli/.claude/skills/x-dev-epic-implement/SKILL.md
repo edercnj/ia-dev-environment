@@ -2,7 +2,7 @@
 name: x-dev-epic-implement
 description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
-argument-hint: "[EPIC-ID] [--phase N] [--story XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--parallel]"
+argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--parallel]"
 ---
 
 ## Global Output Policy
@@ -39,7 +39,7 @@ ERROR: Epic ID is required. Usage: /x-dev-epic-implement [EPIC-ID] [flags]
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
 | `--phase N` | number | (all phases) | Execute only phase N (0-3) |
-| `--story XXXX-YYYY` | string | (all stories) | Execute only a specific story by ID |
+| `--story story-XXXX-YYYY` | string | (all stories) | Execute only a specific story by ID |
 | `--skip-review` | boolean | `false` | Skip review phases in x-dev-lifecycle subagents |
 | `--dry-run` | boolean | `false` | Generate execution plan without executing |
 | `--resume` | boolean | `false` | Continue from last checkpoint (execution-state.json) |
@@ -239,6 +239,59 @@ The following sections are placeholders for downstream stories:
 - [Placeholder: partial execution filter — story-0005-0009]
 - [Placeholder: parallel worktree dispatch — story-0005-0010]
 - [Placeholder: progress reporting — story-0005-0013]
+
+### Integrity Gate (Between Phases)
+
+After ALL stories in a phase complete, dispatch an integrity gate subagent before advancing to the next phase.
+
+#### Gate Subagent Prompt
+
+Launch a `general-purpose` subagent:
+
+> You are an **Integrity Gate Validator** for {{PROJECT_NAME}}.
+>
+> **Step 1 — Compile:** Run `{{COMPILE_COMMAND}}` (e.g., `tsc --noEmit`).
+> **Step 2 — Test:** Run `{{TEST_COMMAND}}` to execute the full test suite (not just current phase tests).
+> **Step 3 — Coverage:** Run `{{COVERAGE_COMMAND}}` to collect coverage metrics.
+> **Step 4 — Evaluate:**
+> - If compilation fails → `{ status: "FAIL", testCount: 0, coverage: 0 }`
+> - If any tests fail → correlate failed tests with commits from stories in the current phase
+> - If line coverage < 95% or branch coverage < 90% → FAIL with coverage details
+> - Otherwise → PASS
+>
+> Return: `{ status: "PASS"|"FAIL", testCount, coverage, branchCoverage?, failedTests?, regressionSource? }`
+
+#### Regression Diagnosis
+
+If tests fail, the subagent:
+1. Analyzes which tests broke (`failedTests` array)
+2. Correlates failed tests with commits from stories in the current phase (via `git log`)
+3. Identifies the most likely story as regression source (`regressionSource`)
+4. If identified: orchestrator executes `git revert <commitSha>` for that story
+5. Story is marked FAILED with summary: `"Regression detected by integrity gate"`
+6. Block propagation is executed for dependents of the failed story
+
+#### Gate Result Registration
+
+```
+updateIntegrityGate(epicDir, phaseNumber, {
+  status: "PASS" | "FAIL",
+  testCount: number,
+  coverage: number,        // line coverage %
+  branchCoverage?: number, // branch coverage %
+  failedTests?: string[],
+  regressionSource?: string // story ID
+});
+```
+
+- **PASS**: Advance to next phase
+- **FAIL + regression identified**: revert + mark FAILED + block propagation
+- **FAIL + regression unidentified**: pause execution, report to user
+
+#### Gate Enforcement (RULE-004)
+
+The integrity gate is **mandatory** — there is no bypass. Every phase transition requires a PASS gate
+result. The gate runs after phase 0, 1, 2, and 3 — one gate per phase.
 
 ## Phase 2 — Consolidation
 
