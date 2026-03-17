@@ -20,7 +20,7 @@
 | story-0005-0010 | Parallel Execution with Worktrees | story-0005-0005, story-0005-0007 | story-0005-0014 | Pendente |
 | story-0005-0011 | Consolidação Final — Review + Report + PR | story-0005-0002, story-0005-0005 | story-0005-0014 | Pendente |
 | story-0005-0012 | Dry-run Mode (`--dry-run`) | story-0005-0004 | story-0005-0014 | Pendente |
-| story-0005-0013 | Progress Reporting + Execution Metrics | story-0005-0005 | story-0005-0014 | Pendente |
+| story-0005-0013 | Progress Reporting + Execution Metrics | story-0005-0005 | story-0005-0014 | Concluída |
 | story-0005-0014 | E2E Tests + Generator Integration | story-0005-0005, story-0005-0006, story-0005-0007, story-0005-0008, story-0005-0009, story-0005-0010, story-0005-0011, story-0005-0012, story-0005-0013 | — | Pendente |
 
 > **Nota:** story-0005-0005 (Orchestrator Core Loop) é o maior fan-out node, bloqueando 8 stories diretamente. É o gargalo central do projeto. story-0005-0014 (E2E Tests) é o maior fan-in node, dependendo de 9 stories — só pode ser implementada quando todo o resto estiver pronto. story-0005-0002 (Report Template) e story-0005-0003 (SKILL.md Skeleton) são raízes independentes que podem iniciar imediatamente.
