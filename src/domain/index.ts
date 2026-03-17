@@ -20,3 +20,6 @@ export * from "./skill-registry.js";
 
 // --- STORY-0005-0004: Implementation Map Parser ---
 export * from "./implementation-map/index.js";
+
+// --- STORY-0005-0007: Failure Handling (Retry + Block Propagation) ---
+export * from "./failure/index.js";

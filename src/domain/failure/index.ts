@@ -9,3 +9,5 @@ export type {
 } from "./types.js";
 
 export { MAX_RETRIES } from "./types.js";
+export { evaluateRetry } from "./retry-evaluator.js";
+export { propagateBlocks } from "./block-propagator.js";
