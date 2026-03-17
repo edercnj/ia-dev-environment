@@ -14,6 +14,15 @@ import type {
 import { StoryStatus } from "./types.js";
 import { PartialExecutionError } from "../../exceptions.js";
 
+/** Check if a story has completed successfully in the execution state. */
+function isStoryComplete(
+  storyId: string,
+  executionState: ExecutionState,
+): boolean {
+  const entry = executionState.stories[storyId];
+  return entry !== undefined && entry.status === StoryStatus.SUCCESS;
+}
+
 /** Parse --phase and --story flags into a typed execution mode. */
 export function parsePartialExecutionMode(
   phase: number | undefined,
@@ -49,8 +58,7 @@ export function validatePhasePrerequisites(
   for (let p = 0; p < phase; p++) {
     const stories = parsedMap.phases.get(p) ?? [];
     for (const sid of stories) {
-      const entry = executionState.stories[sid];
-      if (entry === undefined || entry.status !== StoryStatus.SUCCESS) {
+      if (!isStoryComplete(sid, executionState)) {
         return {
           valid: false,
           error: `Phases 0..${String(phase - 1)} must be complete before phase ${String(phase)}`,
@@ -78,8 +86,7 @@ export function validateStoryPrerequisites(
 
   const unsatisfied: string[] = [];
   for (const depId of node.blockedBy) {
-    const entry = executionState.stories[depId];
-    if (entry === undefined || entry.status !== StoryStatus.SUCCESS) {
+    if (!isStoryComplete(depId, executionState)) {
       unsatisfied.push(depId);
     }
   }
