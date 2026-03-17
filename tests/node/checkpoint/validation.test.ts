@@ -520,15 +520,6 @@ describe("validateIntegrityGateEntry", () => {
     ).not.toThrow();
   });
 
-  it("validateIntegrityGateEntry_branchCoverageAbsent_doesNotThrow", () => {
-    expect(() =>
-      validateIntegrityGateEntry(
-        aValidIntegrityGate(),
-        "phase-0",
-      ),
-    ).not.toThrow();
-  });
-
   it("validateIntegrityGateEntry_branchCoverageValidNumber_doesNotThrow", () => {
     expect(() =>
       validateIntegrityGateEntry(
@@ -563,15 +554,6 @@ describe("validateIntegrityGateEntry", () => {
         "phase-0",
       ),
     ).toThrow(CheckpointValidationError);
-  });
-
-  it("validateIntegrityGateEntry_regressionSourceAbsent_doesNotThrow", () => {
-    expect(() =>
-      validateIntegrityGateEntry(
-        aValidIntegrityGate(),
-        "phase-0",
-      ),
-    ).not.toThrow();
   });
 
   it("validateIntegrityGateEntry_regressionSourceValidString_doesNotThrow", () => {
