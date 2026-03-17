@@ -280,7 +280,7 @@ Regenerate golden files and verify byte-for-byte parity via existing `byte-for-b
 | `engine.ts` | >= 95% | >= 90% | UT-4 through UT-6 cover presence and absence of new fields in `updateIntegrityGate`. No new branches in engine code (spread operator handles all cases). |
 | SKILL.md templates | N/A | N/A | Content tests (CT-1 through CT-6) validate textual content. Golden file tests (IT-2) validate byte-for-byte output. |
 
-**Total new test count:** 18 unit (UT-1a through UT-7c) + 2 integration (IT-1, IT-2) + 6 content (CT-1 through CT-6) = **26 test scenarios**
+**Total new test count:** 18 unit (UT-1a through UT-7c) + 1 integration (IT-1; IT-2 reuses existing golden-file coverage) + 6 content (CT-1 through CT-6) = **25 new test scenarios**
 
 ---
 
