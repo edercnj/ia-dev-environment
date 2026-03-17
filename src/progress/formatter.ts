@@ -21,6 +21,7 @@ const STATUS_SYMBOLS: Readonly<Record<string, string>> = {
 };
 
 function formatPercent(value: number): string {
+  if (!Number.isFinite(value)) return "0";
   const fixed = value.toFixed(1);
   return fixed.endsWith(".0") ? fixed.slice(0, -2) : fixed;
 }

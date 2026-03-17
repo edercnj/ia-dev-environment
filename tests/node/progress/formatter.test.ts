@@ -321,4 +321,12 @@ describe("formatProgressSummary", () => {
     expect(result).toContain("14.3%");
     expect(result).not.toContain("Est. remaining");
   });
+
+  it("formatProgressSummary_zeroTotal_returnsSafeOutput", () => {
+    const result = formatProgressSummary(0, 0, 0, undefined);
+    expect(result).toContain("0/0");
+    expect(result).toContain("0%");
+    expect(result).not.toContain("NaN");
+    expect(result).not.toContain("Infinity");
+  });
 });

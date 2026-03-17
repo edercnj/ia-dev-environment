@@ -2,6 +2,7 @@ import type {
   ProgressEvent,
   ProgressReporter,
   ProgressReporterConfig,
+  StoryCompleteContext,
   WriteFn,
 } from "./types.js";
 import { ProgressEventType } from "./types.js";
@@ -28,7 +29,6 @@ function handlePhaseStart(
 ): void {
   computePreviousPhaseDuration(event.phase, state);
   state.phaseStartTimes.set(event.phase, Date.now());
-  state.storiesTotal = Math.max(state.storiesTotal, event.storiesCount);
   state.writeFn(formatPhaseStart(event));
 }
 
@@ -37,8 +37,10 @@ function handleStoryStart(
   state: ReporterState,
 ): void {
   state.storiesTotal = Math.max(state.storiesTotal, event.storiesTotal);
-  state.lastStoryIndex = event.storyIndex;
-  state.lastStoriesTotal = event.storiesTotal;
+  state.storyContexts.set(event.storyId, {
+    storyIndex: event.storyIndex,
+    storiesTotal: event.storiesTotal,
+  });
   state.writeFn(formatStoryStart(event));
 }
 
@@ -47,18 +49,21 @@ function handleStoryComplete(
   state: ReporterState,
 ): void {
   state.storyDurations.set(event.storyId, event.durationMs);
-  incrementCounters(event.status, state);
-  const ctx = {
-    storyIndex: state.lastStoryIndex,
-    storiesTotal: state.lastStoriesTotal,
+  incrementCounters(event.storyId, event.status, state);
+  const ctx = state.storyContexts.get(event.storyId) ?? {
+    storyIndex: 0,
+    storiesTotal: state.storiesTotal,
   };
   state.writeFn(formatStoryComplete(event, ctx));
 }
 
 function incrementCounters(
+  storyId: string,
   status: "SUCCESS" | "FAILED" | "PARTIAL",
   state: ReporterState,
 ): void {
+  if (state.completedStoryIds.has(storyId)) return;
+  state.completedStoryIds.add(storyId);
   state.storiesCompleted++;
   if (status === "FAILED") state.storiesFailed++;
 }
@@ -102,6 +107,8 @@ interface ReporterState {
   readonly storyDurations: Map<string, number>;
   readonly phaseDurations: Map<number, number>;
   readonly phaseStartTimes: Map<number, number>;
+  readonly storyContexts: Map<string, StoryCompleteContext>;
+  readonly completedStoryIds: Set<string>;
   readonly writeFn: WriteFn;
   readonly epicDir: string;
   readonly persistMetrics: boolean;
@@ -110,8 +117,6 @@ interface ReporterState {
   storiesFailed: number;
   storiesBlocked: number;
   storiesTotal: number;
-  lastStoryIndex: number;
-  lastStoriesTotal: number;
 }
 
 function initializeStartTime(state: ReporterState): void {
@@ -174,6 +179,8 @@ function buildInitialState(
     storyDurations: new Map(),
     phaseDurations: new Map(),
     phaseStartTimes: new Map(),
+    storyContexts: new Map(),
+    completedStoryIds: new Set(),
     writeFn: config.writeFn ?? DEFAULT_WRITE_FN,
     epicDir: config.epicDir,
     persistMetrics: config.persistMetrics ?? true,
@@ -182,8 +189,6 @@ function buildInitialState(
     storiesFailed: 0,
     storiesBlocked: 0,
     storiesTotal: 0,
-    lastStoryIndex: 0,
-    lastStoriesTotal: 0,
   };
 }
 
@@ -194,10 +199,11 @@ export function createProgressReporter(
   let pendingEmit: Promise<void> = Promise.resolve();
   return {
     emit: (event: ProgressEvent) => {
-      pendingEmit = pendingEmit.then(() =>
-        handleEmit(event, state),
-      );
-      return pendingEmit;
+      const next = pendingEmit
+        .catch(() => {})
+        .then(() => handleEmit(event, state));
+      pendingEmit = next;
+      return next;
     },
     getStoryDurations: () => new Map(state.storyDurations),
     getPhaseDurations: () => new Map(state.phaseDurations),

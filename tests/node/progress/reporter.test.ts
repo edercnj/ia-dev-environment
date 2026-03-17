@@ -5,7 +5,7 @@ import {
   beforeEach,
   afterEach,
 } from "vitest";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { createProgressReporter } from "../../../src/progress/reporter.js";
@@ -577,7 +577,7 @@ describe("Unit Tests", () => {
       });
       await reporter.emit(aStoryStartEvent({ storiesTotal: 3 }));
       await reporter.emit(aStoryCompleteEvent());
-      const files = require("node:fs").readdirSync(tmpDir) as string[];
+      const files = readdirSync(tmpDir) as string[];
       expect(files).not.toContain("execution-state.json");
     } finally {
       rmSync(tmpDir, { recursive: true, force: true });
@@ -624,6 +624,100 @@ describe("Unit Tests", () => {
       expect(
         Object.keys(state.metrics.storyDurations!),
       ).toHaveLength(2);
+    } finally {
+      rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  it("emit_duplicateStoryComplete_countsOnlyOnce", async () => {
+    const { writeFn } = createCapturingWriteFn();
+    const tmpDir = mkdtempSync(join(tmpdir(), "ut-dedup-"));
+    try {
+      await createCheckpoint(tmpDir, {
+        epicId: "0042",
+        branch: "feat/epic-0042",
+        stories: [
+          { id: "0042-0001", phase: 0 },
+          { id: "0042-0002", phase: 0 },
+        ],
+        mode: { parallel: false, skipReview: false },
+      });
+      const reporter = createProgressReporter({
+        epicDir: tmpDir,
+        writeFn,
+        persistMetrics: true,
+      });
+      await reporter.emit(aStoryStartEvent({ storiesTotal: 2 }));
+      await reporter.emit(
+        aStoryCompleteEvent({
+          storyId: "0042-0001",
+          status: "FAILED",
+          durationMs: 100000,
+        }),
+      );
+      await reporter.emit(
+        aStoryCompleteEvent({
+          storyId: "0042-0001",
+          status: "SUCCESS",
+          durationMs: 120000,
+        }),
+      );
+      const state = await readCheckpoint(tmpDir);
+      expect(state.metrics.storiesCompleted).toBe(1);
+    } finally {
+      rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  it("emit_outOfOrderStarts_usesCorrectPerStoryContext", async () => {
+    const { writeFn, lines } = createCapturingWriteFn();
+    const reporter = createProgressReporter({
+      epicDir: "/tmp/test-ctx",
+      writeFn,
+      persistMetrics: false,
+    });
+    await reporter.emit(
+      aStoryStartEvent({
+        storyId: "0042-0001",
+        storyIndex: 1,
+        storiesTotal: 14,
+      }),
+    );
+    await reporter.emit(
+      aStoryStartEvent({
+        storyId: "0042-0002",
+        storyIndex: 2,
+        storiesTotal: 14,
+      }),
+    );
+    await reporter.emit(
+      aStoryCompleteEvent({
+        storyId: "0042-0001",
+        status: "SUCCESS",
+        durationMs: 100000,
+      }),
+    );
+    const completeLine = lines.find(
+      (l) => l.includes("0042-0001") && l.includes("SUCCESS"),
+    );
+    expect(completeLine).toContain("[1/14]");
+  });
+
+  it("emit_afterPreviousEmitFails_continuesProcessing", async () => {
+    const { writeFn, lines } = createCapturingWriteFn();
+    const tmpDir = mkdtempSync(join(tmpdir(), "ut-recover-"));
+    try {
+      const reporter = createProgressReporter({
+        epicDir: tmpDir,
+        writeFn,
+        persistMetrics: true,
+      });
+      await reporter.emit(aStoryStartEvent({ storiesTotal: 3 }));
+      await reporter
+        .emit(aStoryCompleteEvent({ storyId: "0042-0001" }))
+        .catch(() => {});
+      await reporter.emit(aRetryEvent());
+      expect(lines.some((l) => l.includes("retry 1/2"))).toBe(true);
     } finally {
       rmSync(tmpDir, { recursive: true, force: true });
     }
