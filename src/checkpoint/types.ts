@@ -31,7 +31,9 @@ export interface IntegrityGateEntry {
   readonly timestamp: string;
   readonly testCount: number;
   readonly coverage: number;
+  readonly branchCoverage?: number | undefined;
   readonly failedTests?: readonly string[] | undefined;
+  readonly regressionSource?: string | undefined;
 }
 
 export interface ExecutionMetrics {
@@ -90,4 +92,12 @@ export interface CreateCheckpointInput {
     readonly phase: number;
   }>;
   readonly mode: ExecutionMode;
+}
+
+export const MAX_RETRIES = 2;
+
+export interface ReclassificationEntry {
+  readonly storyId: string;
+  readonly from: StoryStatus;
+  readonly to: StoryStatus;
 }
