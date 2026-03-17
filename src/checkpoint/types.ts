@@ -31,7 +31,9 @@ export interface IntegrityGateEntry {
   readonly timestamp: string;
   readonly testCount: number;
   readonly coverage: number;
+  readonly branchCoverage?: number | undefined;
   readonly failedTests?: readonly string[] | undefined;
+  readonly regressionSource?: string | undefined;
 }
 
 export interface ExecutionMetrics {

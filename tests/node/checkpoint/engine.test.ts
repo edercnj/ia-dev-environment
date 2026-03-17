@@ -654,6 +654,77 @@ describe("updateIntegrityGate", () => {
     expect(state.epicId).toBe("0042");
     expect(state.integrityGates["phase-0"]).toBeDefined();
   });
+
+  it("updateIntegrityGate_withBranchCoverage_storesBranchCoverage", async () => {
+    writeStateFile(tmpDir, aValidStateJson());
+    const state = await updateIntegrityGate(tmpDir, 0, {
+      status: "PASS",
+      testCount: 42,
+      coverage: 96.3,
+      branchCoverage: 91.5,
+    });
+    expect(
+      state.integrityGates["phase-0"]?.branchCoverage,
+    ).toBe(91.5);
+  });
+
+  it("updateIntegrityGate_withoutBranchCoverage_fieldIsUndefined", async () => {
+    writeStateFile(tmpDir, aValidStateJson());
+    const state = await updateIntegrityGate(tmpDir, 0, {
+      status: "PASS",
+      testCount: 42,
+      coverage: 96.3,
+    });
+    expect(
+      state.integrityGates["phase-0"]?.branchCoverage,
+    ).toBeUndefined();
+  });
+
+  it("updateIntegrityGate_withRegressionSource_storesRegressionSource", async () => {
+    writeStateFile(tmpDir, aValidStateJson());
+    const state = await updateIntegrityGate(tmpDir, 1, {
+      status: "FAIL",
+      testCount: 100,
+      coverage: 88,
+      failedTests: ["test-a"],
+      regressionSource: "0042-0005",
+    });
+    expect(
+      state.integrityGates["phase-1"]?.regressionSource,
+    ).toBe("0042-0005");
+  });
+
+  it("updateIntegrityGate_withoutRegressionSource_fieldIsUndefined", async () => {
+    writeStateFile(tmpDir, aValidStateJson());
+    const state = await updateIntegrityGate(tmpDir, 0, {
+      status: "PASS",
+      testCount: 42,
+      coverage: 96.3,
+    });
+    expect(
+      state.integrityGates["phase-0"]?.regressionSource,
+    ).toBeUndefined();
+  });
+
+  it("updateIntegrityGate_failWithRegressionSource_storesAllFields", async () => {
+    writeStateFile(tmpDir, aValidStateJson());
+    const state = await updateIntegrityGate(tmpDir, 1, {
+      status: "FAIL",
+      testCount: 100,
+      coverage: 88,
+      branchCoverage: 85.5,
+      failedTests: ["test-a", "test-b"],
+      regressionSource: "0042-0005",
+    });
+    const gate = state.integrityGates["phase-1"];
+    expect(gate?.status).toBe("FAIL");
+    expect(gate?.testCount).toBe(100);
+    expect(gate?.coverage).toBe(88);
+    expect(gate?.branchCoverage).toBe(85.5);
+    expect(gate?.failedTests).toEqual(["test-a", "test-b"]);
+    expect(gate?.regressionSource).toBe("0042-0005");
+    expect(gate?.timestamp).toBeDefined();
+  });
 });
 
 // --- 4.6 updateMetrics ---

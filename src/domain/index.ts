@@ -23,3 +23,6 @@ export * from "./implementation-map/index.js";
 
 // --- STORY-0005-0007: Failure Handling (Retry + Block Propagation) ---
 export * from "./failure/index.js";
+
+// --- STORY-0005-0012: Dry-run planner and formatter ---
+export * from "./dry-run/index.js";

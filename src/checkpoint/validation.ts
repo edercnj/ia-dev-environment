@@ -162,7 +162,9 @@ export function validateIntegrityGateEntry(
   requireString(data, "timestamp", ctx);
   requireNumber(data, "testCount", ctx);
   requireNumber(data, "coverage", ctx);
+  optionalNumber(data, "branchCoverage", ctx);
   optionalStringArray(data, "failedTests", ctx);
+  optionalString(data, "regressionSource", ctx);
 }
 
 export function validateMetrics(
