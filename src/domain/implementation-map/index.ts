@@ -11,6 +11,12 @@ export { validateSymmetry, detectCycles, validateRoots } from "./dag-validator.j
 export { computePhases } from "./phase-computer.js";
 export { findCriticalPath, markCriticalPath } from "./critical-path.js";
 export { getExecutableStories } from "./executable-stories.js";
+export {
+  parsePartialExecutionMode,
+  validatePhasePrerequisites,
+  validateStoryPrerequisites,
+  getStoriesForPhase,
+} from "./partial-execution.js";
 
 import type { ParsedMap } from "./types.js";
 import { extractDependencyMatrix } from "./markdown-parser.js";
