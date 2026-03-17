@@ -54,8 +54,10 @@ function processQueue(
   queue: Array<{ storyId: string; blockedBy: string }>,
   blocked: BlockedStoryEntry[],
 ): void {
-  while (queue.length > 0) {
-    const current = queue.shift()!;
+  let head = 0;
+  while (head < queue.length) {
+    const current = queue[head]!;
+    head += 1;
     blocked.push({
       storyId: current.storyId,
       blockedBy: [current.blockedBy],

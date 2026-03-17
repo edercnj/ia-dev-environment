@@ -1,7 +1,20 @@
 import { describe, it, expect } from "vitest";
 
 import { propagateBlocks } from "../../../src/domain/failure/block-propagator.js";
+import {
+  propagateBlocks as propagateBlocksBarrel,
+  MAX_RETRIES as maxRetriesBarrel,
+  evaluateRetry as evaluateRetryBarrel,
+} from "../../../src/domain/failure/index.js";
 import { createDag } from "../implementation-map/helpers.js";
+
+describe("barrel exports", () => {
+  it("barrelExports_allPublicSymbols_resolveCorrectly", () => {
+    expect(propagateBlocksBarrel).toBe(propagateBlocks);
+    expect(typeof evaluateRetryBarrel).toBe("function");
+    expect(maxRetriesBarrel).toBe(2);
+  });
+});
 
 describe("propagateBlocks", () => {
   // --- Cycle 3.1: Degenerate cases (UT-10, UT-11) ---
