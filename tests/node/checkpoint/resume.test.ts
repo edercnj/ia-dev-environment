@@ -1,9 +1,24 @@
-import { describe, it, expect } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+} from "vitest";
+import { mkdtempSync, rmSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 import {
   reclassifyStories,
   reevaluateBlocked,
   prepareResume,
 } from "../../../src/checkpoint/resume.js";
+import {
+  createCheckpoint,
+  readCheckpoint,
+  updateStoryStatus,
+} from "../../../src/checkpoint/engine.js";
+import { CheckpointIOError } from "../../../src/exceptions.js";
 import {
   MAX_RETRIES,
   StoryStatus,
@@ -591,5 +606,266 @@ describe("MAX_RETRIES constant", () => {
   it("maxRetries_isPositiveInteger", () => {
     expect(Number.isInteger(MAX_RETRIES)).toBe(true);
     expect(MAX_RETRIES).toBeGreaterThan(0);
+  });
+});
+
+// --- Integration: prepareResume with real checkpoint file ---
+
+describe("integration: prepareResume with real checkpoint", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), "resume-int-"));
+  });
+
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("integration_readAndPrepareResume_reclassifiesFromDisk", async () => {
+    await createCheckpoint(tmpDir, {
+      epicId: "0042",
+      branch: "feat/epic-0042",
+      mode: { parallel: false, skipReview: false },
+      stories: [
+        { id: "0042-0001", phase: 1 },
+        { id: "0042-0002", phase: 1 },
+      ],
+    });
+    await updateStoryStatus(tmpDir, "0042-0001", {
+      status: "SUCCESS",
+    });
+    await updateStoryStatus(tmpDir, "0042-0002", {
+      status: "IN_PROGRESS",
+    });
+
+    const checkpoint = await readCheckpoint(tmpDir);
+    const result = prepareResume(checkpoint);
+
+    expect(result.state.stories["0042-0001"].status).toBe("SUCCESS");
+    expect(result.state.stories["0042-0002"].status).toBe("PENDING");
+    expect(result.reclassified).toContainEqual({
+      storyId: "0042-0002",
+      from: "IN_PROGRESS",
+      to: "PENDING",
+    });
+  });
+
+  it("integration_noCheckpointFile_throwsCheckpointIOError", async () => {
+    await expect(readCheckpoint(tmpDir)).rejects.toThrow(
+      CheckpointIOError,
+    );
+  });
+
+  it("integration_realCheckpoint_preservesBranchName", async () => {
+    const branchName = "feat/epic-0042-full-implementation";
+    await createCheckpoint(tmpDir, {
+      epicId: "0042",
+      branch: branchName,
+      mode: { parallel: false, skipReview: false },
+      stories: [{ id: "0042-0001", phase: 1 }],
+    });
+
+    const checkpoint = await readCheckpoint(tmpDir);
+    const result = prepareResume(checkpoint);
+
+    expect(result.state.branch).toBe(branchName);
+  });
+});
+
+// --- Acceptance: Gherkin scenarios (Double-Loop outer tests) ---
+
+describe("acceptance: resume workflow Gherkin scenarios", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), "resume-at-"));
+  });
+
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("scenario1_mixedStatuses_reclassifiesCorrectly", async () => {
+    await createCheckpoint(tmpDir, {
+      epicId: "0042",
+      branch: "feat/epic-0042-full-implementation",
+      mode: { parallel: false, skipReview: false },
+      stories: [
+        { id: "0042-0001", phase: 1 },
+        { id: "0042-0002", phase: 1 },
+        { id: "0042-0003", phase: 1 },
+        { id: "0042-0004", phase: 2 },
+        { id: "0042-0005", phase: 2 },
+      ],
+    });
+    await updateStoryStatus(tmpDir, "0042-0001", {
+      status: "SUCCESS",
+    });
+    await updateStoryStatus(tmpDir, "0042-0002", {
+      status: "SUCCESS",
+    });
+    await updateStoryStatus(tmpDir, "0042-0003", {
+      status: "IN_PROGRESS",
+    });
+    await updateStoryStatus(tmpDir, "0042-0005", {
+      status: "FAILED",
+      retries: 1,
+    });
+
+    const checkpoint = await readCheckpoint(tmpDir);
+    const result = prepareResume(checkpoint);
+
+    expect(result.state.stories["0042-0001"].status).toBe("SUCCESS");
+    expect(result.state.stories["0042-0002"].status).toBe("SUCCESS");
+    expect(result.state.stories["0042-0003"].status).toBe("PENDING");
+    expect(result.state.stories["0042-0004"].status).toBe("PENDING");
+    expect(result.state.stories["0042-0005"].status).toBe("PENDING");
+  });
+
+  it("scenario2_successPreserved_commitShasIntact", async () => {
+    await createCheckpoint(tmpDir, {
+      epicId: "0042",
+      branch: "feat/epic-0042",
+      mode: { parallel: false, skipReview: false },
+      stories: [
+        { id: "0042-0001", phase: 1 },
+        { id: "0042-0002", phase: 1 },
+        { id: "0042-0003", phase: 1 },
+      ],
+    });
+    await updateStoryStatus(tmpDir, "0042-0001", {
+      status: "SUCCESS",
+      commitSha: "abc111",
+    });
+    await updateStoryStatus(tmpDir, "0042-0002", {
+      status: "SUCCESS",
+      commitSha: "abc222",
+    });
+    await updateStoryStatus(tmpDir, "0042-0003", {
+      status: "SUCCESS",
+      commitSha: "abc333",
+    });
+
+    const checkpoint = await readCheckpoint(tmpDir);
+    const result = prepareResume(checkpoint);
+
+    expect(result.state.stories["0042-0001"].status).toBe("SUCCESS");
+    expect(result.state.stories["0042-0001"].commitSha).toBe("abc111");
+    expect(result.state.stories["0042-0002"].status).toBe("SUCCESS");
+    expect(result.state.stories["0042-0002"].commitSha).toBe("abc222");
+    expect(result.state.stories["0042-0003"].status).toBe("SUCCESS");
+    expect(result.state.stories["0042-0003"].commitSha).toBe("abc333");
+    expect(result.reclassified).toEqual([]);
+  });
+
+  it("scenario3_blockedDepResolved_becomesPending", async () => {
+    await createCheckpoint(tmpDir, {
+      epicId: "0042",
+      branch: "feat/epic-0042",
+      mode: { parallel: false, skipReview: false },
+      stories: [
+        { id: "0042-0003", phase: 1 },
+        { id: "0042-0006", phase: 2 },
+      ],
+    });
+    await updateStoryStatus(tmpDir, "0042-0003", {
+      status: "SUCCESS",
+    });
+    await updateStoryStatus(tmpDir, "0042-0006", {
+      status: "BLOCKED",
+      blockedBy: ["0042-0003"],
+    });
+
+    const checkpoint = await readCheckpoint(tmpDir);
+    const result = prepareResume(checkpoint);
+
+    expect(result.state.stories["0042-0006"].status).toBe("PENDING");
+  });
+
+  it("scenario4_blockedDepNotResolved_staysBlocked", async () => {
+    await createCheckpoint(tmpDir, {
+      epicId: "0042",
+      branch: "feat/epic-0042",
+      mode: { parallel: false, skipReview: false },
+      stories: [
+        { id: "0042-0003", phase: 1 },
+        { id: "0042-0006", phase: 2 },
+      ],
+    });
+    await updateStoryStatus(tmpDir, "0042-0003", {
+      status: "FAILED",
+      retries: MAX_RETRIES,
+    });
+    await updateStoryStatus(tmpDir, "0042-0006", {
+      status: "BLOCKED",
+      blockedBy: ["0042-0003"],
+    });
+
+    const checkpoint = await readCheckpoint(tmpDir);
+    const result = prepareResume(checkpoint);
+
+    expect(result.state.stories["0042-0006"].status).toBe("BLOCKED");
+  });
+
+  it("scenario5_failedExhaustedRetries_staysFailed", async () => {
+    await createCheckpoint(tmpDir, {
+      epicId: "0042",
+      branch: "feat/epic-0042",
+      mode: { parallel: false, skipReview: false },
+      stories: [{ id: "0042-0005", phase: 1 }],
+    });
+    await updateStoryStatus(tmpDir, "0042-0005", {
+      status: "FAILED",
+      retries: MAX_RETRIES,
+    });
+
+    const checkpoint = await readCheckpoint(tmpDir);
+    const result = prepareResume(checkpoint);
+
+    expect(result.state.stories["0042-0005"].status).toBe("FAILED");
+  });
+
+  it("scenario6_branchFromCheckpoint_preservedForCheckout", async () => {
+    const branchName = "feat/epic-0042-full-implementation";
+    await createCheckpoint(tmpDir, {
+      epicId: "0042",
+      branch: branchName,
+      mode: { parallel: false, skipReview: false },
+      stories: [{ id: "0042-0001", phase: 1 }],
+    });
+
+    const checkpoint = await readCheckpoint(tmpDir);
+    const result = prepareResume(checkpoint);
+
+    expect(result.state.branch).toBe(branchName);
+  });
+
+  it("scenario7_branchNameAvailable_callerCanValidate", async () => {
+    const branchName = "feat/epic-0042-full-implementation";
+    await createCheckpoint(tmpDir, {
+      epicId: "0042",
+      branch: branchName,
+      mode: { parallel: false, skipReview: false },
+      stories: [{ id: "0042-0001", phase: 1 }],
+    });
+
+    const checkpoint = await readCheckpoint(tmpDir);
+    const result = prepareResume(checkpoint);
+
+    // Caller receives branch name for validation and checkout.
+    // If branch doesn't exist, caller aborts with error.
+    expect(typeof result.state.branch).toBe("string");
+    expect(result.state.branch.length).toBeGreaterThan(0);
+    expect(result.state.branch).toBe(branchName);
+  });
+
+  it("scenario8_noCheckpointExists_throwsCheckpointIOError", async () => {
+    await expect(readCheckpoint(tmpDir)).rejects.toThrow(
+      CheckpointIOError,
+    );
+    await expect(readCheckpoint(tmpDir)).rejects.toThrow(
+      /Checkpoint I\/O failed/,
+    );
   });
 });
