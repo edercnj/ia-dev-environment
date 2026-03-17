@@ -93,3 +93,11 @@ export interface CreateCheckpointInput {
   }>;
   readonly mode: ExecutionMode;
 }
+
+export const MAX_RETRIES = 2;
+
+export interface ReclassificationEntry {
+  readonly storyId: string;
+  readonly from: StoryStatus;
+  readonly to: StoryStatus;
+}

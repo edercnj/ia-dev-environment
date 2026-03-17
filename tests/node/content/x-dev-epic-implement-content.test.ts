@@ -518,3 +518,56 @@ describe("x-dev-epic-implement dual copy consistency (RULE-001)", () => {
     expect(ghContent).toContain("{{COVERAGE_COMMAND}}");
   });
 });
+
+describe("x-dev-epic-implement SKILL.md — resume workflow", () => {
+  const ghContent = fs.readFileSync(GITHUB_SKILL_PATH, "utf-8");
+
+  function extractResumeSection(text: string): string {
+    const startIdx = text.indexOf("Resume Workflow");
+    expect(startIdx).toBeGreaterThanOrEqual(0);
+    const endIdx = text.indexOf("Phase 1", startIdx);
+    expect(endIdx).toBeGreaterThan(startIdx);
+    return text.slice(startIdx, endIdx);
+  }
+
+  it("skillMd_containsResumeWorkflowSection", () => {
+    expect(content).toMatch(/##\s+Resume Workflow/);
+  });
+
+  it("skillMd_resumeSection_containsReclassificationTable", () => {
+    const resumeContent = extractResumeSection(content);
+    expect(resumeContent).toContain("IN_PROGRESS");
+    expect(resumeContent).toContain("SUCCESS");
+    expect(resumeContent).toContain("FAILED");
+    expect(resumeContent).toContain("BLOCKED");
+    expect(resumeContent).toContain("PENDING");
+  });
+
+  it("skillMd_resumeSection_containsBranchRecovery", () => {
+    const resumeContent = extractResumeSection(content);
+    expect(resumeContent).toMatch(/checkout/i);
+  });
+
+  it("skillMd_resumeSection_containsReevaluate", () => {
+    const resumeContent = extractResumeSection(content);
+    expect(resumeContent).toMatch(/reevaluat/i);
+  });
+
+  it("dualCopy_bothContainResumeWorkflow", () => {
+    expect(content).toMatch(/Resume Workflow/);
+    expect(ghContent).toMatch(/Resume Workflow/);
+  });
+
+  it("dualCopy_bothContainReclassificationTerms", () => {
+    const RESUME_TERMS = [
+      "IN_PROGRESS",
+      "MAX_RETRIES",
+      "BLOCKED",
+      "PENDING",
+    ];
+    for (const term of RESUME_TERMS) {
+      expect(content).toContain(term);
+      expect(ghContent).toContain(term);
+    }
+  });
+});

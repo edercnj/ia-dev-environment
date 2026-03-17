@@ -52,8 +52,39 @@ Abort on first failure with clear error message.
 5. Glob story files, determine execution order
 6. Create branch: `git checkout -b feat/epic-{epicId}-implementation`
 7. If `--dry-run`: output plan and stop
-8. If `--resume`: read execution-state.json, skip completed stories
+8. If `--resume`: run the Resume Workflow (see below) before delegation
 9. Delegate per-story execution to x-dev-lifecycle
+
+## Resume Workflow
+
+When `--resume` is set, load `execution-state.json` and apply two-pass reclassification before re-entering the execution loop.
+
+### Reclassification Table
+
+| Current Status | New Status | Condition |
+|----------------|------------|-----------|
+| IN_PROGRESS | PENDING | Always (interrupted) |
+| SUCCESS | SUCCESS | Preserved |
+| FAILED (retries < MAX_RETRIES) | PENDING | Retry candidate |
+| FAILED (retries >= MAX_RETRIES) | FAILED | Budget exhausted |
+| PARTIAL | PENDING | Treat as interrupted |
+| BLOCKED | BLOCKED | Deferred to reevaluation |
+| PENDING | PENDING | No change |
+
+### Branch Recovery
+
+Checkout the branch from checkpoint: `git checkout {state.branch}`. If not found locally, try `git checkout -b {state.branch} origin/{state.branch}`.
+
+### BLOCKED Reevaluation
+
+After reclassification, reevaluate each BLOCKED story:
+
+- `blockedBy` undefined → keep BLOCKED (conservative)
+- `blockedBy` empty → reclassify to PENDING (vacuously satisfied)
+- All deps SUCCESS → reclassify to PENDING
+- Any dep non-SUCCESS or missing → keep BLOCKED
+
+Single-pass evaluation (no cascade). After reevaluation, feed updated state into `getExecutableStories()` — only PENDING stories enter the execution loop.
 
 ## Phase 1 — Execution Loop
 

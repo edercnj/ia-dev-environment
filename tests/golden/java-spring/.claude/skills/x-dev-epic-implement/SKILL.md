@@ -99,8 +99,47 @@ ERROR: No checkpoint found (execution-state.json missing). Cannot resume. Run wi
 6. **Determine execution order**: Use the dependency graph from IMPLEMENTATION-MAP.md to order stories; stories without dependencies can run in parallel if `--parallel` is set
 7. **Create branch**: `git checkout -b feat/epic-{epicId}-implementation`
 8. **Dry-run exit**: If `--dry-run` is set, output the execution plan (story order, dependencies, estimated phases) and stop
-9. **Resume handling**: If `--resume` is set, read `execution-state.json` and skip already-completed stories
+9. **Resume handling**: If `--resume` is set, run the Resume Workflow (see below) before delegation
 10. **Delegate**: For each story in execution order, invoke `/x-dev-lifecycle` with appropriate flags
+
+## Resume Workflow
+
+When `--resume` is set, the orchestrator loads `execution-state.json` and applies a two-pass reclassification before re-entering the execution loop.
+
+### Step 1 — Reclassify Story Statuses
+
+Apply the following status transitions to every story in the checkpoint:
+
+| Current Status | New Status | Condition |
+|----------------|------------|-----------|
+| IN_PROGRESS | PENDING | Always (interrupted work) |
+| SUCCESS | SUCCESS | Preserved — never re-execute |
+| FAILED (retries < MAX_RETRIES) | PENDING | Retry candidate |
+| FAILED (retries >= MAX_RETRIES) | FAILED | Retry budget exhausted |
+| PARTIAL | PENDING | Treat as interrupted |
+| BLOCKED | BLOCKED | Deferred to reevaluation step |
+| PENDING | PENDING | No change |
+
+`MAX_RETRIES` defaults to 2. All other story fields (phase, commitSha, retries, summary, duration, findingsCount) are preserved.
+
+### Step 2 — Reevaluate BLOCKED Stories
+
+After reclassification, evaluate each BLOCKED story:
+
+- If `blockedBy` is **undefined** → keep BLOCKED (conservative: unknown dependencies)
+- If `blockedBy` is **empty array** → reclassify to PENDING (no dependencies = vacuously satisfied)
+- If **all** dependencies in `blockedBy` have status SUCCESS → reclassify to PENDING
+- If **any** dependency is non-SUCCESS or missing from the stories map → keep BLOCKED
+
+This is a **single-pass** evaluation (no cascade). Stories unblocked in this pass will not trigger further unblocking of stories that depend on them.
+
+### Step 3 — Branch Recovery
+
+Checkout the branch recorded in the checkpoint: `git checkout {state.branch}`. If the branch does not exist locally, attempt `git checkout -b {state.branch} origin/{state.branch}`.
+
+### Step 4 — Resume Execution
+
+After reclassification and branch recovery, feed the updated state into `getExecutableStories()` to determine which stories are ready for execution. Only stories with status PENDING proceed to the execution loop.
 
 ## Phase 1 — Execution Loop
 
