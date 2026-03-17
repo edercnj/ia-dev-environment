@@ -104,9 +104,142 @@ ERROR: No checkpoint found (execution-state.json missing). Cannot resume. Run wi
 
 ## Phase 1 — Execution Loop
 
-> **Placeholder**: This phase will be implemented in story-0005-0005.
-> It will contain the story-by-story execution loop, worktree management,
-> checkpoint persistence, and error handling/retry logic.
+### 1.1 Initialize Execution State
+
+1. Read `IMPLEMENTATION-MAP.md` content from the epic directory
+2. Call `parseImplementationMap(content)` to obtain a `ParsedMap` containing:
+   - `stories`: Map of story IDs to `DagNode` (with phase, dependencies, critical path flag)
+   - `phases`: Map of phase numbers to story ID arrays
+   - `criticalPath`: Ordered array of story IDs on the critical path
+   - `totalPhases`: Number of execution phases
+3. Build the stories array with `{ id, phase }` entries from the `ParsedMap`
+4. Call `createCheckpoint(epicDir, input)` where input is:
+   - `epicId`: The parsed epic ID
+   - `branch`: `feat/epic-{epicId}-full-implementation`
+   - `stories`: Array of `{ id, phase }` from step 3
+   - `mode`: `{ parallel: false, skipReview: <from flags> }`
+5. The returned `ExecutionState` tracks all story statuses, metrics, and integrity gates
+
+### 1.2 Branch Management
+
+1. Ensure a clean starting point:
+   ```
+   git checkout main && git pull origin main
+   ```
+2. Create the epic branch:
+   ```
+   git checkout -b feat/epic-{epicId}-full-implementation
+   ```
+3. If the branch already exists (resume scenario):
+   ```
+   git checkout feat/epic-{epicId}-full-implementation
+   ```
+   [Placeholder: resume from checkpoint — story-0005-0008]
+
+### 1.3 Core Loop Algorithm
+
+Execute stories phase-by-phase in dependency order:
+
+```
+For each phase in (0..totalPhases-1):
+  1. Call getExecutableStories(parsedMap, executionState)
+     → Returns stories sorted by critical path priority (RULE-007)
+     → Only PENDING stories with all dependencies SUCCESS are returned
+  2. If no executable stories and some remain PENDING:
+     → Phase is blocked; log warning and advance to next phase
+  3. For each executable story:
+     a. updateStoryStatus(epicDir, storyId, { status: "IN_PROGRESS" })
+     b. Dispatch subagent (see 1.4)
+     c. Validate result (see 1.5)
+     d. Update checkpoint (see 1.6)
+  4. [Placeholder: integrity gate between phases — story-0005-0006]
+  5. [Placeholder: progress reporting — story-0005-0013]
+  6. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
+```
+
+The loop ensures that:
+- Stories are dispatched in dependency-safe order
+- BLOCKED stories are never dispatched (filtered by `getExecutableStories`)
+- Each phase completes before the next begins (sequential mode)
+- [Placeholder: partial execution filter — story-0005-0009]
+
+### 1.4 Subagent Dispatch (Sequential Mode)
+
+For each executable story, launch a clean-context subagent using the `Agent` tool:
+
+**Subagent Configuration:**
+- Tool: `Agent` with `subagent_type: "general-purpose"`
+- Context isolation (RULE-001): The orchestrator passes ONLY metadata to the subagent.
+  Never pass source code, knowledge packs, or diffs. The subagent is born with
+  clean context and dies after completion.
+
+**Prompt Template for Subagent:**
+```
+You are implementing story {storyId} for epic {epicId}.
+
+Story file: docs/stories/epic-{epicId}/story-{storyId}.md
+Branch: {branchName}
+Phase: {currentPhase}
+Skip review: {skipReview}
+
+Execute the x-dev-lifecycle workflow:
+1. Read the story file for requirements
+2. Create implementation plan
+3. Implement following TDD (Red-Green-Refactor)
+4. Run tests and verify coverage
+5. Commit changes with Conventional Commits
+
+Return a JSON result with this exact structure (SubagentResult):
+{
+  "status": "SUCCESS" | "FAILED" | "PARTIAL",
+  "commitSha": "<git commit SHA if SUCCESS>",
+  "findingsCount": <number of review findings>,
+  "summary": "<brief description of what was done>"
+}
+```
+
+- [Placeholder: parallel worktree dispatch — story-0005-0010]
+
+### 1.5 Result Validation (RULE-008)
+
+After receiving the subagent response, validate the `SubagentResult` contract:
+
+1. **`status` field**: MUST be present, MUST be one of: `SUCCESS`, `FAILED`, `PARTIAL`
+2. **`findingsCount` field**: MUST be present and be a number
+3. **`summary` field**: MUST be present and be a string
+4. **`commitSha` field**: If `status === "SUCCESS"`, MUST be present and be a string
+
+**On validation failure:**
+- Mark the story as FAILED
+- Set summary to: `"Invalid subagent result: missing {field} field"`
+- Continue to checkpoint update (1.6)
+
+[Placeholder: retry with error context — story-0005-0007]
+
+### 1.6 Checkpoint Update (RULE-002)
+
+After each story completes (success or failure), persist the result:
+
+1. Call `updateStoryStatus(epicDir, storyId, update)` where update contains:
+   - `status`: The validated status (`SUCCESS`, `FAILED`, or `PARTIAL`)
+   - `commitSha`: The commit SHA (if status is `SUCCESS`)
+   - `findingsCount`: Number of review findings from the subagent
+   - `summary`: Brief description of what the subagent accomplished
+2. Update metrics: increment `storiesCompleted` counter
+3. The checkpoint is persisted atomically to `execution-state.json` via the checkpoint engine
+4. Between story completions, the checkpoint always reflects the current execution state
+
+### 1.7 Extension Points
+
+The following sections are placeholders for downstream stories:
+
+- [Placeholder: integrity gate between phases — story-0005-0006]
+- [Placeholder: retry + block propagation — story-0005-0007]
+- [Placeholder: resume from checkpoint — story-0005-0008]
+- [Placeholder: partial execution filter — story-0005-0009]
+- [Placeholder: parallel worktree dispatch — story-0005-0010]
+- [Placeholder: consolidation + verification — story-0005-0011]
+- [Placeholder: progress reporting — story-0005-0013]
 
 ## Phase 2 — Consolidation
 
