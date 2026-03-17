@@ -2,7 +2,7 @@
 name: x-dev-epic-implement
 description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
-argument-hint: "[EPIC-ID] [--phase N] [--story XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--parallel]"
+argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--parallel]"
 ---
 
 ## Global Output Policy
@@ -39,7 +39,7 @@ ERROR: Epic ID is required. Usage: /x-dev-epic-implement [EPIC-ID] [flags]
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
 | `--phase N` | number | (all phases) | Execute only phase N (0-3) |
-| `--story XXXX-YYYY` | string | (all stories) | Execute only a specific story by ID |
+| `--story story-XXXX-YYYY` | string | (all stories) | Execute only a specific story by ID |
 | `--skip-review` | boolean | `false` | Skip review phases in x-dev-lifecycle subagents |
 | `--dry-run` | boolean | `false` | Generate execution plan without executing |
 | `--resume` | boolean | `false` | Continue from last checkpoint (execution-state.json) |

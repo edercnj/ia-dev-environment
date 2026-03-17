@@ -25,7 +25,7 @@ description: >
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
 | `--phase N` | number | (all) | Execute only phase N (0-3) |
-| `--story XXXX-YYYY` | string | (all) | Execute only a specific story |
+| `--story story-XXXX-YYYY` | string | (all) | Execute only a specific story |
 | `--skip-review` | boolean | `false` | Skip review phases in subagents |
 | `--dry-run` | boolean | `false` | Generate plan without executing |
 | `--resume` | boolean | `false` | Continue from last checkpoint (execution-state.json) |
