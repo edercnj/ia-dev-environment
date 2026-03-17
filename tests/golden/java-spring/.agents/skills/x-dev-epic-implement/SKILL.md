@@ -238,22 +238,178 @@ The following sections are placeholders for downstream stories:
 - [Placeholder: resume from checkpoint — story-0005-0008]
 - [Placeholder: partial execution filter — story-0005-0009]
 - [Placeholder: parallel worktree dispatch — story-0005-0010]
-- [Placeholder: consolidation + verification — story-0005-0011]
 - [Placeholder: progress reporting — story-0005-0013]
 
 ## Phase 2 — Consolidation
 
-> **Placeholder**: This phase will be implemented in story-0005-0011.
-> It will contain cross-story consolidation, branch merging, conflict
-> resolution, and epic-level documentation generation.
+After all stories complete (or reach terminal state), the orchestrator runs three
+sequential consolidation actions. Each action is dispatched to a clean-context
+subagent (RULE-001) to keep the orchestrator's context lightweight.
+
+### 2.1 Tech Lead Review Subagent
+
+Dispatch a subagent that executes `x-review-pr` logic on the full epic diff:
+
+**Subagent Configuration:**
+- Tool: `Agent` with `subagent_type: "general-purpose"`
+- Context isolation (RULE-001): pass only branch name and base branch
+
+**Prompt Template:**
+```
+You are a Tech Lead reviewing the full diff for epic {epicId}.
+
+Branch: feat/epic-{epicId}-full-implementation
+Base: main
+
+Execute the x-review-pr review logic on the complete diff (all commits
+from all stories). Return a JSON ReviewResult:
+{
+  "score": "XX/40",
+  "decision": "GO" | "NO-GO",
+  "findings": [{ "item": "...", "severity": "...", "suggestion": "..." }]
+}
+```
+
+**Result Handling:**
+- On SUCCESS: record `ReviewResult` in checkpoint for report generation
+- On subagent failure: log warning, continue (review is informational, not blocking)
+- The review covers the COMPLETE epic diff (branch vs main), not individual stories
+
+### 2.2 Report Generation Subagent
+
+Dispatch a subagent that generates `epic-execution-report.md`:
+
+**Subagent Prompt:**
+```
+You are generating the epic execution report for EPIC-{epicId}.
+
+1. Read template: _TEMPLATE-EPIC-EXECUTION-REPORT.md
+2. Read checkpoint: execution-state.json from the epic directory
+3. Resolve ALL {{PLACEHOLDER}} tokens with real data:
+   - {{EPIC_ID}}, {{BRANCH}}, {{STARTED_AT}}, {{FINISHED_AT}}
+   - {{STORIES_COMPLETED}}, {{STORIES_FAILED}}, {{STORIES_BLOCKED}}, {{STORIES_TOTAL}}
+   - {{COMPLETION_PERCENTAGE}}: completed/total × 100
+   - {{PHASE_TIMELINE_TABLE}}: phase start/end times from checkpoint
+   - {{STORY_STATUS_TABLE}}: per-story status with commit SHAs
+   - {{FINDINGS_SUMMARY}}: consolidated findings from tech lead review
+   - {{COVERAGE_BEFORE}}, {{COVERAGE_AFTER}}, {{COVERAGE_DELTA}}
+   - {{COMMIT_LOG}}: git log main..HEAD --oneline
+   - {{UNRESOLVED_ISSUES}}: findings with severity >= Medium
+   - {{PR_LINK}}: populated after PR creation (or "Pending")
+4. Validate: no unresolved {{...}} placeholders remain in output
+5. Write epic-execution-report.md to docs/stories/epic-{epicId}/
+```
+
+**Validation:** After generation, scan the output file for any remaining `{{...}}`
+patterns. If found, log a warning with the unresolved placeholder names.
+
+### 2.3 PR Creation
+
+Push the epic branch and create a PR via `gh` CLI:
+
+1. **Push:** `git push -u origin feat/epic-{epicId}-full-implementation`
+2. **Title format:**
+   - Full completion: `feat(epic): implement EPIC-{epicId} — {title}`
+   - Partial completion: `[PARTIAL] feat(epic): implement EPIC-{epicId} — {title}`
+   - Include `[PARTIAL]` when completion percentage < 100%
+3. **Body structure:**
+   ```
+   ## Summary
+   - Stories completed: {completed}/{total}
+   - Stories failed: {failed}
+   - Stories blocked: {blocked}
+   - Completion: {percentage}%
+
+   ## Tech Lead Review
+   - Score: {score} ({decision}: GO or NO-GO)
+
+   ## Metrics
+   - Line coverage: {lineCoverage}%
+   - Branch coverage: {branchCoverage}%
+
+   ## Report
+   - See `docs/stories/epic-{epicId}/epic-execution-report.md`
+   ```
+4. **Create:** `gh pr create --title "{title}" --body "{body}" --base main`
+
+**Error handling:** If `git push` fails (e.g., remote not accessible), log the error,
+generate the report without a PR link, and persist the failure in checkpoint.
+
+### 2.4 Partial Completion Handling
+
+Consolidation executes regardless of whether all stories succeeded:
+
+- If stories are FAILED: the report lists them with failure reasons and summaries
+- If stories are BLOCKED: the report lists them with unsatisfied dependency chains
+- The PR body explicitly indicates partial implementation with counts
+- The PR title includes `[PARTIAL]` when any story is not SUCCESS
+- The tech lead review still runs on whatever code was produced
+
+### 2.5 Checkpoint Finalization
+
+After consolidation actions complete, persist final state:
+
+1. Register PR URL in checkpoint: `updateCheckpoint(epicDir, { prUrl })`
+2. Register report path: `updateCheckpoint(epicDir, { reportPath })`
+3. Set `finishedAt` timestamp
+4. Persist final `execution-state.json` with all metrics
 
 ## Phase 3 — Verification
 
-> **Placeholder**: This phase will be implemented in story-0005-0011.
-> It will contain epic-level verification, cross-story integration
-> testing, final DoD checklist, and epic completion reporting.
+Final verification validates the epic as a whole before declaring completion.
+
+### 3.1 Epic-Level Test Suite
+
+Run the full test suite on the epic branch to validate cross-story integration:
+
+1. Execute: `{{TEST_COMMAND}}` (all unit, integration, and API tests)
+2. Coverage thresholds (non-negotiable): >=95% line, >=90% branch
+3. If any test fails: log failures, mark epic as requiring attention
+4. Record coverage results in checkpoint for the report
+
+### 3.2 DoD Checklist Validation
+
+Verify the Definition of Done (DoD) for the epic:
+
+- [ ] All stories completed (or documented as FAILED/BLOCKED in report)
+- [ ] Coverage thresholds met (>=95% line, >=90% branch)
+- [ ] Zero compiler/linter warnings
+- [ ] Tech lead review executed (Phase 2.1)
+- [ ] Epic execution report generated with no unresolved placeholders (Phase 2.2)
+- [ ] PR created or failure documented (Phase 2.3)
+- [ ] All findings with severity >= Medium addressed or documented
+
+### 3.3 Final Status Determination
+
+Compute the final epic status based on story outcomes:
+
+- **COMPLETE**: All stories reached SUCCESS status and all DoD items pass
+- **PARTIAL**: Some stories FAILED or BLOCKED, but critical path stories succeeded
+- **FAILED**: One or more critical path stories failed
+
+Persist final status to checkpoint: `updateCheckpoint(epicDir, { finalStatus })`
+
+### 3.4 Completion Output
+
+Display the final summary to the user:
+
+```
+Epic: EPIC-{epicId} — {title}
+Status: COMPLETE | PARTIAL | FAILED
+Stories: {completed}/{total} completed, {failed} failed, {blocked} blocked
+Coverage: line {lineCoverage}%, branch {branchCoverage}%
+Tech Lead: {score} ({decision})
+PR: {prUrl}
+Report: docs/stories/epic-{epicId}/epic-execution-report.md
+Elapsed: {totalElapsedTime}
+```
+
+Return to main branch: `git checkout main && git pull origin main`
 
 ## Integration Notes
 
 - Invokes: `x-dev-lifecycle` (per-story execution), `x-story-map` (if map missing, via error guidance)
+- Invokes: `x-review-pr` (tech lead review on full epic diff, Phase 2.1)
+- Uses: `gh pr create` (PR creation with summary body, Phase 2.3)
+- Reads: `_TEMPLATE-EPIC-EXECUTION-REPORT.md` (report template), `execution-state.json` (checkpoint data)
 - All `{{PLACEHOLDER}}` tokens are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
