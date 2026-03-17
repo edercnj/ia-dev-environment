@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Consolidation Final — Review + Report + PR (story-0005-0011):** Replaced Phase 2 (Consolidation) and Phase 3 (Verification) placeholders in `x-dev-epic-implement` SKILL.md with full implementation content. Phase 2 dispatches tech lead review via `x-review-pr` subagent, generates `epic-execution-report.md` from template with all 18 placeholders resolved, creates PR via `gh pr create` with `[PARTIAL]` handling for incomplete epics. Phase 3 covers epic-level test suite validation, DoD checklist, final status determination (COMPLETE/PARTIAL/FAILED), and completion output. 28 new content tests, 7 new dual-copy consistency terms, golden files regenerated for all 8 profiles. Extension point placeholder for story-0005-0011 removed from Phase 1.
 - **Dry-run mode (story-0005-0012):** Domain module `src/domain/dry-run/` implementing
   execution plan simulation for the epic orchestrator. Pure functions `buildDryRunPlan()`
   and `formatPlan()`/`formatStoryDetail()` compute and render the plan without side effects.
