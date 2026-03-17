@@ -38,6 +38,13 @@ export interface ExecutionMetrics {
   readonly storiesCompleted: number;
   readonly storiesTotal: number;
   readonly estimatedRemainingMinutes?: number | undefined;
+  readonly storiesFailed?: number | undefined;
+  readonly storiesBlocked?: number | undefined;
+  readonly elapsedMs?: number | undefined;
+  readonly estimatedRemainingMs?: number | undefined;
+  readonly averageStoryDurationMs?: number | undefined;
+  readonly storyDurations?: Readonly<Record<string, number>> | undefined;
+  readonly phaseDurations?: Readonly<Record<string, number>> | undefined;
 }
 
 export interface SubagentResult {
@@ -75,6 +82,13 @@ export interface MetricsUpdate {
   readonly storiesCompleted?: number | undefined;
   readonly storiesTotal?: number | undefined;
   readonly estimatedRemainingMinutes?: number | undefined;
+  readonly storiesFailed?: number | undefined;
+  readonly storiesBlocked?: number | undefined;
+  readonly elapsedMs?: number | undefined;
+  readonly estimatedRemainingMs?: number | undefined;
+  readonly averageStoryDurationMs?: number | undefined;
+  readonly storyDurations?: Readonly<Record<string, number>> | undefined;
+  readonly phaseDurations?: Readonly<Record<string, number>> | undefined;
 }
 
 export type IntegrityGateInput = Omit<
