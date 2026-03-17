@@ -19,7 +19,8 @@
       "status": "PASS",
       "timestamp": "2024-01-01T00:00:00.000Z",
       "testCount": 0,
-      "coverage": 0
+      "coverage": 0,
+      "branchCoverage": 0
     }
   },
   "metrics": {
