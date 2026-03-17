@@ -185,8 +185,14 @@ export function createProgressReporter(
     lastStoryIndex: 0,
     lastStoriesTotal: 0,
   };
+  let pendingEmit: Promise<void> = Promise.resolve();
   return {
-    emit: (event: ProgressEvent) => handleEmit(event, state),
+    emit: (event: ProgressEvent) => {
+      pendingEmit = pendingEmit.then(() =>
+        handleEmit(event, state),
+      );
+      return pendingEmit;
+    },
     getStoryDurations: () => new Map(state.storyDurations),
     getPhaseDurations: () => new Map(state.phaseDurations),
     getElapsedMs: () =>

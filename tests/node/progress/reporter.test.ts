@@ -584,6 +584,51 @@ describe("Unit Tests", () => {
     }
   });
 
+  it("emit_concurrentCalls_serializedWithoutRaceCondition", async () => {
+    const tmpDir = mkdtempSync(join(tmpdir(), "ut-serial-"));
+    try {
+      await createCheckpoint(tmpDir, {
+        epicId: "0042",
+        branch: "feat/epic-0042",
+        stories: [
+          { id: "0042-0001", phase: 0 },
+          { id: "0042-0002", phase: 0 },
+          { id: "0042-0003", phase: 0 },
+        ],
+        mode: { parallel: false, skipReview: false },
+      });
+      const { writeFn } = createCapturingWriteFn();
+      const reporter = createProgressReporter({
+        epicDir: tmpDir,
+        writeFn,
+        persistMetrics: true,
+      });
+      await reporter.emit(aStoryStartEvent({ storiesTotal: 3 }));
+      const p1 = reporter.emit(
+        aStoryCompleteEvent({
+          storyId: "0042-0001",
+          durationMs: 100000,
+          commitSha: undefined,
+        }),
+      );
+      const p2 = reporter.emit(
+        aStoryCompleteEvent({
+          storyId: "0042-0002",
+          durationMs: 200000,
+          commitSha: undefined,
+        }),
+      );
+      await Promise.all([p1, p2]);
+      const state = await readCheckpoint(tmpDir);
+      expect(state.metrics.storiesCompleted).toBe(2);
+      expect(
+        Object.keys(state.metrics.storyDurations!),
+      ).toHaveLength(2);
+    } finally {
+      rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
   it("emit_phaseStart_recordsPhaseStartTime", async () => {
     const { writeFn } = createCapturingWriteFn();
     const reporter = createProgressReporter({
