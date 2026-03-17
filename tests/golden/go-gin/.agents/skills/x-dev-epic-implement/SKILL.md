@@ -89,6 +89,44 @@ If `--resume` flag is set, check that `execution-state.json` exists in the epic 
 ERROR: No checkpoint found (execution-state.json missing). Cannot resume. Run without --resume.
 ```
 
+## Partial Execution
+
+The `--phase` and `--story` flags enable partial execution of an epic.
+These flags are **mutually exclusive** — providing both aborts with:
+
+```
+ERROR: --phase and --story are mutually exclusive
+```
+
+### Mode: `--phase N`
+
+Execute only stories belonging to phase N.
+
+1. Read checkpoint (or verify existing code if no checkpoint)
+2. Validate that phases 0..N-1 are complete (all stories have status SUCCESS)
+3. If validation fails, abort:
+   - Phase out of range: `Phase {N} does not exist. Max phase is {M}.`
+   - Prior phases incomplete: `Phases 0..{N-1} must be complete before phase {N}`
+4. Filter stories to phase N only
+5. Execute core loop for phase N stories
+6. Run integrity gate at end of phase N
+7. Update checkpoint
+
+Phase 0 requires no prerequisite validation (no prior phases to check).
+
+### Mode: `--story story-XXXX-YYYY`
+
+Execute a single story in isolation.
+
+1. Read checkpoint (required for single story mode)
+2. Validate that ALL dependencies of the story have status SUCCESS
+3. If validation fails, abort:
+   - Story not in map: `Story {storyId} not found in implementation map`
+   - Dependencies not met: `Dependencies not satisfied: [{list}]`
+4. Dispatch subagent for the specific story
+5. Collect result and update checkpoint
+6. Do **not** run integrity gate (single story execution has no integrity gate)
+
 ## Phase 0 — Preparation (Orchestrator — Inline)
 
 1. **Parse arguments**: Extract epic ID from positional argument and all optional flags

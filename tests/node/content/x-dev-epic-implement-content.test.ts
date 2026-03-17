@@ -444,6 +444,46 @@ describe("x-dev-epic-implement GitHub template", () => {
   });
 });
 
+describe("x-dev-epic-implement SKILL.md — partial execution", () => {
+  it("skillMd_containsPartialExecutionSection", () => {
+    expect(content).toContain("Partial Execution");
+  });
+
+  it("skillMd_partialExecution_containsMutualExclusivityRule", () => {
+    expect(content).toContain("mutually exclusive");
+  });
+
+  it("skillMd_partialExecution_containsPhaseFlowDescription", () => {
+    const partialIdx = content.indexOf("## Partial Execution");
+    expect(partialIdx).toBeGreaterThanOrEqual(0);
+    const phase0Idx = content.indexOf("## Phase 0", partialIdx);
+    expect(phase0Idx).toBeGreaterThan(partialIdx);
+    const partialSection = content.slice(partialIdx, phase0Idx);
+    expect(partialSection).toContain("--phase");
+    expect(partialSection).toContain("integrity gate");
+  });
+
+  it("skillMd_partialExecution_containsStoryFlowDescription", () => {
+    const partialIdx = content.indexOf("## Partial Execution");
+    expect(partialIdx).toBeGreaterThanOrEqual(0);
+    const phase0Idx = content.indexOf("## Phase 0", partialIdx);
+    expect(phase0Idx).toBeGreaterThan(partialIdx);
+    const partialSection = content.slice(partialIdx, phase0Idx);
+    expect(partialSection).toContain("--story");
+    expect(partialSection).toContain("no integrity gate");
+  });
+
+  it.each([
+    ["does not exist. Max phase is"],
+    ["must be complete before phase"],
+    ["not found in implementation map"],
+    ["Dependencies not satisfied"],
+    ["mutually exclusive"],
+  ])("skillMd_partialExecution_containsErrorSpec_%s", (pattern) => {
+    expect(content).toContain(pattern);
+  });
+});
+
 describe("x-dev-epic-implement SKILL.md — integrity gate section", () => {
   it("skillMd_containsSection_IntegrityGate", () => {
     expect(content).toContain("Integrity Gate");
@@ -474,7 +514,6 @@ describe("x-dev-epic-implement SKILL.md — integrity gate section", () => {
     expect(content).toContain("updateIntegrityGate");
   });
 });
-
 describe("x-dev-epic-implement dual copy consistency (RULE-001)", () => {
   const ghContent = fs.readFileSync(GITHUB_SKILL_PATH, "utf-8");
   const CRITICAL_TERMS = [
@@ -507,6 +546,21 @@ describe("x-dev-epic-implement dual copy consistency (RULE-001)", () => {
   it.each(
     CRITICAL_TERMS.map((term) => [term]),
   )("bothContainTerm_%s_dualCopyConsistency", (term) => {
+    expect(content).toContain(term);
+    expect(ghContent).toContain(term);
+  });
+
+  const PARTIAL_EXECUTION_TERMS = [
+    "Partial Execution",
+    "mutually exclusive",
+    "integrity gate",
+    "does not exist. Max phase is",
+    "Dependencies not satisfied",
+  ];
+
+  it.each(
+    PARTIAL_EXECUTION_TERMS.map((term) => [term]),
+  )("bothContainPartialExecTerm_%s_dualCopyConsistency", (term) => {
     expect(content).toContain(term);
     expect(ghContent).toContain(term);
   });
