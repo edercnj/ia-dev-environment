@@ -397,7 +397,7 @@ The E2E tests verify these data flow paths end-to-end:
 - `domain/dry-run/types.ts`: `ParsedMap` uses `readonly number[]` for `phases`, `StoryNode` interface
 - `domain/implementation-map/types.ts`: `ParsedMap` uses `ReadonlyMap<number, readonly string[]>` for `phases`, `DagNode` interface
 
-**Mitigation:** AT-1 (dry-run scenario) uses the dry-run planner's own `ParsedMap` type directly. The scenario runner converts the implementation-map `ParsedMap` to the dry-run `ParsedMap` format via an adapter function within `scenario-runner.ts`. This adapter is tested in UT-17..UT-19.
+**Mitigation:** The E2E scenarios (including AT-1) execute against the implementation-map pipeline only and do not exercise the dry-run planner or its `ParsedMap` type. The `scenario-runner.ts` helper does not perform adaptation between the two `ParsedMap` representations; compatibility between dry-run and implementation-map types is covered by the dry-run module's own unit tests.
 
 ---
 

@@ -15,13 +15,11 @@ import {
   updateStoryStatus,
 } from "../../../../src/checkpoint/engine.js";
 import { prepareResume } from "../../../../src/checkpoint/resume.js";
-import {
-  MAX_RETRIES,
-  StoryStatus,
-} from "../../../../src/checkpoint/types.js";
+import { StoryStatus } from "../../../../src/checkpoint/types.js";
 import type { ExecutionState } from "../../../../src/checkpoint/types.js";
 import { propagateBlocks } from "../../../../src/domain/failure/block-propagator.js";
 import { evaluateRetry } from "../../../../src/domain/failure/retry-evaluator.js";
+import { MAX_RETRIES } from "../../../../src/domain/failure/types.js";
 import {
   getExecutableStories,
   parseImplementationMap,
@@ -274,10 +272,12 @@ function countByStatus(
 
 export async function runScenario(
   config: ScenarioConfig,
+  cleanupDirs?: string[],
 ): Promise<ScenarioResult> {
   const tmpDir = mkdtempSync(
     join(tmpdir(), "e2e-orchestrator-"),
   );
+  cleanupDirs?.push(tmpDir);
   const epicDir = join(tmpDir, `epic-${EPIC_ID}`);
   mkdirSync(epicDir, { recursive: true });
 

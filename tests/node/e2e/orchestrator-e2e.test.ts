@@ -6,7 +6,7 @@
  * a mock subagent dispatch boundary.
  *
  * Scenarios follow TPP ordering:
- *   1. Dry-run (degenerate — no execution)
+ *   1. Dry-run (degenerate — parse only, no orchestration)
  *   2. Happy path (all SUCCESS)
  *   3. Failure path (retry + block propagation)
  *   4. Resume path (continue from checkpoint)
@@ -33,7 +33,6 @@ import {
   SUCCESS_RESULT,
 } from "./helpers/mock-subagent.js";
 import { runScenario } from "./helpers/scenario-runner.js";
-import type { ScenarioResult } from "./helpers/scenario-runner.js";
 
 const MAP_CONTENT = buildMiniImplementationMap();
 
@@ -80,49 +79,34 @@ describe("Orchestrator E2E", { timeout: 30_000 }, () => {
     tmpDirs.length = 0;
   });
 
-  function trackResult(result: ScenarioResult): ScenarioResult {
-    tmpDirs.push(result.tmpDir);
-    return result;
-  }
-
-  // --- Scenario 1: Dry-run ---
+  // --- Scenario 1: Dry-run (parse only, no orchestration) ---
 
   describe("dry-run path", () => {
-    it("dryRun_validMap_noDispatchAndNoCheckpoint", () => {
-      const mockDispatch = createMockDispatch({
-        results: {},
-        defaultResult: SUCCESS_RESULT,
-      });
+    it("dryRun_parseOnly_producesCorrectStoriesAndPhases", () => {
       const parsedMap = parseImplementationMap(MAP_CONTENT);
 
-      expect(mockDispatch.callLog).toHaveLength(0);
       expect(parsedMap.totalPhases).toBe(TOTAL_PHASES);
       expect(parsedMap.stories.size).toBe(TOTAL_STORIES);
-    });
-
-    it("dryRun_validMap_planContainsAllStoriesAndPhases", () => {
-      const parsedMap = parseImplementationMap(MAP_CONTENT);
-
       for (const storyId of STORY_IDS) {
         expect(parsedMap.stories.has(storyId)).toBe(true);
       }
+    });
+
+    it("dryRun_parseOnly_phasesContainExpectedStories", () => {
+      const parsedMap = parseImplementationMap(MAP_CONTENT);
+
       for (let phase = 0; phase < TOTAL_PHASES; phase++) {
         expect(parsedMap.phases.has(phase)).toBe(true);
       }
 
-      const phase0 = parsedMap.phases.get(0)!;
-      expect(phase0).toContain("story-e2e-0001");
-
-      const phase1 = parsedMap.phases.get(1)!;
-      expect(phase1).toContain("story-e2e-0002");
-      expect(phase1).toContain("story-e2e-0003");
-
-      const phase2 = parsedMap.phases.get(2)!;
-      expect(phase2).toContain("story-e2e-0004");
-      expect(phase2).toContain("story-e2e-0005");
+      expect(parsedMap.phases.get(0)).toContain("story-e2e-0001");
+      expect(parsedMap.phases.get(1)).toContain("story-e2e-0002");
+      expect(parsedMap.phases.get(1)).toContain("story-e2e-0003");
+      expect(parsedMap.phases.get(2)).toContain("story-e2e-0004");
+      expect(parsedMap.phases.get(2)).toContain("story-e2e-0005");
     });
 
-    it("dryRun_validMap_criticalPathIsNonEmpty", () => {
+    it("dryRun_parseOnly_criticalPathStartsAtRoot", () => {
       const parsedMap = parseImplementationMap(MAP_CONTENT);
       expect(parsedMap.criticalPath.length).toBeGreaterThan(0);
       expect(parsedMap.criticalPath[0]).toBe("story-e2e-0001");
@@ -138,8 +122,9 @@ describe("Orchestrator E2E", { timeout: 30_000 }, () => {
         defaultResult: SUCCESS_RESULT,
       });
 
-      const result = trackResult(
-        await runScenario({ mapContent: MAP_CONTENT, mockDispatch }),
+      const result = await runScenario(
+        { mapContent: MAP_CONTENT, mockDispatch },
+        tmpDirs,
       );
       const { state, callLog, output } = result;
 
@@ -172,8 +157,9 @@ describe("Orchestrator E2E", { timeout: 30_000 }, () => {
         defaultResult: SUCCESS_RESULT,
       });
 
-      const result = trackResult(
-        await runScenario({ mapContent: MAP_CONTENT, mockDispatch }),
+      const result = await runScenario(
+        { mapContent: MAP_CONTENT, mockDispatch },
+        tmpDirs,
       );
       const dispatched = result.callLog.map((e) => e.storyId);
 
@@ -205,8 +191,9 @@ describe("Orchestrator E2E", { timeout: 30_000 }, () => {
         defaultResult: SUCCESS_RESULT,
       });
 
-      const result = trackResult(
-        await runScenario({ mapContent: MAP_CONTENT, mockDispatch }),
+      const result = await runScenario(
+        { mapContent: MAP_CONTENT, mockDispatch },
+        tmpDirs,
       );
       const { state, callLog, output } = result;
 
@@ -264,13 +251,14 @@ describe("Orchestrator E2E", { timeout: 30_000 }, () => {
         defaultResult: SUCCESS_RESULT,
       });
 
-      const result = trackResult(
-        await runScenario({
+      const result = await runScenario(
+        {
           mapContent: MAP_CONTENT,
           mockDispatch,
           resume: true,
           preExistingState: preExisting,
-        }),
+        },
+        tmpDirs,
       );
       const { state, callLog } = result;
 
@@ -305,13 +293,14 @@ describe("Orchestrator E2E", { timeout: 30_000 }, () => {
         defaultResult: SUCCESS_RESULT,
       });
 
-      const result = trackResult(
-        await runScenario({
+      const result = await runScenario(
+        {
           mapContent: MAP_CONTENT,
           mockDispatch,
           resume: true,
           preExistingState: preExisting,
-        }),
+        },
+        tmpDirs,
       );
 
       expect(result.callLog).toHaveLength(4);
@@ -362,13 +351,14 @@ describe("Orchestrator E2E", { timeout: 30_000 }, () => {
         defaultResult: SUCCESS_RESULT,
       });
 
-      const result = trackResult(
-        await runScenario({
+      const result = await runScenario(
+        {
           mapContent: MAP_CONTENT,
           mockDispatch,
           phaseFilter: 2,
           preExistingState: preExisting,
-        }),
+        },
+        tmpDirs,
       );
       const { state, callLog } = result;
 
@@ -395,12 +385,13 @@ describe("Orchestrator E2E", { timeout: 30_000 }, () => {
         defaultResult: SUCCESS_RESULT,
       });
 
-      const result = trackResult(
-        await runScenario({
+      const result = await runScenario(
+        {
           mapContent: MAP_CONTENT,
           mockDispatch,
           parallel: true,
-        }),
+        },
+        tmpDirs,
       );
       const { state, callLog } = result;
 
@@ -421,12 +412,13 @@ describe("Orchestrator E2E", { timeout: 30_000 }, () => {
         defaultResult: SUCCESS_RESULT,
       });
 
-      const result = trackResult(
-        await runScenario({
+      const result = await runScenario(
+        {
           mapContent: MAP_CONTENT,
           mockDispatch,
           parallel: true,
-        }),
+        },
+        tmpDirs,
       );
 
       const phase1Stories = result.callLog.filter(
@@ -475,8 +467,9 @@ describe("Orchestrator E2E", { timeout: 30_000 }, () => {
         defaultResult: SUCCESS_RESULT,
       });
 
-      const result = trackResult(
-        await runScenario({ mapContent: MAP_CONTENT, mockDispatch }),
+      const result = await runScenario(
+        { mapContent: MAP_CONTENT, mockDispatch },
+        tmpDirs,
       );
 
       const stateFile = join(
