@@ -87,23 +87,21 @@ describe("EpicReportAssembler", () => {
       config, deepOutputDir, RESOURCES_DIR, engine,
     );
     expect(result.length).toBeGreaterThan(0);
-    const docsPath = join(
-      deepOutputDir, "docs", "epic", TEMPLATE_FILENAME,
+    const claudePath = join(
+      deepOutputDir, ".claude", "templates", TEMPLATE_FILENAME,
     );
-    expect(fs.existsSync(docsPath)).toBe(true);
+    expect(fs.existsSync(claudePath)).toBe(true);
   });
 
-  // --- Cycle 4: Copy to docs/epic/ ---
+  // --- Cycle 4: docs/epic/ is NOT created ---
 
-  it("assemble_validTemplate_copiesToDocsEpicPath", () => {
+  it("assemble_validTemplate_doesNotCreateDocsEpicDirectory", () => {
     const config = aFullProjectConfig();
     const engine = new TemplateEngine(RESOURCES_DIR, config);
     const assembler = new EpicReportAssembler();
     assembler.assemble(config, tempDir, RESOURCES_DIR, engine);
-    const destPath = join(
-      tempDir, "docs", "epic", TEMPLATE_FILENAME,
-    );
-    expect(fs.existsSync(destPath)).toBe(true);
+    const docsEpicDir = join(tempDir, "docs", "epic");
+    expect(fs.existsSync(docsEpicDir)).toBe(false);
   });
 
   // --- Cycle 5: Copy to .claude/templates/ ---
@@ -144,43 +142,40 @@ describe("EpicReportAssembler", () => {
     );
     const sourceContent = fs.readFileSync(sourcePath, "utf-8");
     const outputPath = join(
-      tempDir, "docs", "epic", TEMPLATE_FILENAME,
+      tempDir, ".claude", "templates", TEMPLATE_FILENAME,
     );
     const outputContent = fs.readFileSync(outputPath, "utf-8");
     expect(outputContent).toBe(sourceContent);
   });
 
-  // --- Cycle 8: Return array with 3 paths ---
+  // --- Cycle 8: Return array with 2 paths ---
 
-  it("assemble_validTemplate_returnsThreeFilePaths", () => {
+  it("assemble_validTemplate_returnsTwoFilePaths", () => {
     const config = aFullProjectConfig();
     const engine = new TemplateEngine(RESOURCES_DIR, config);
     const assembler = new EpicReportAssembler();
     const result = assembler.assemble(
       config, tempDir, RESOURCES_DIR, engine,
     );
-    expect(result).toHaveLength(3);
+    expect(result).toHaveLength(2);
     expect(result[0]).toContain(
-      join("docs", "epic", TEMPLATE_FILENAME),
-    );
-    expect(result[1]).toContain(
       join(".claude", "templates", TEMPLATE_FILENAME),
     );
-    expect(result[2]).toContain(
+    expect(result[1]).toContain(
       join(".github", "templates", TEMPLATE_FILENAME),
     );
+    expect(
+      result.some((p) => p.includes(join("docs", "epic"))),
+    ).toBe(false);
   });
 
   // --- Cycle 9: Dual copy parity ---
 
-  it("assemble_validTemplate_allThreeOutputsAreIdentical", () => {
+  it("assemble_validTemplate_bothOutputsAreIdentical", () => {
     const config = aFullProjectConfig();
     const engine = new TemplateEngine(RESOURCES_DIR, config);
     const assembler = new EpicReportAssembler();
     assembler.assemble(config, tempDir, RESOURCES_DIR, engine);
-    const docsContent = fs.readFileSync(
-      join(tempDir, "docs", "epic", TEMPLATE_FILENAME), "utf-8",
-    );
     const claudeContent = fs.readFileSync(
       join(tempDir, ".claude", "templates", TEMPLATE_FILENAME),
       "utf-8",
@@ -189,8 +184,7 @@ describe("EpicReportAssembler", () => {
       join(tempDir, ".github", "templates", TEMPLATE_FILENAME),
       "utf-8",
     );
-    expect(claudeContent).toBe(docsContent);
-    expect(githubContent).toBe(docsContent);
+    expect(githubContent).toBe(claudeContent);
   });
 
   // --- Cycle 10: Existing files preserved ---

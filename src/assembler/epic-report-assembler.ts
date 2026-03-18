@@ -1,6 +1,6 @@
 /**
  * EpicReportAssembler — copies the epic execution report template
- * to three output locations for runtime resolution.
+ * to two output locations for runtime resolution.
  *
  * The template contains {{PLACEHOLDER}} tokens intended for
  * runtime resolution by the consolidation subagent (story-0005-0011),
@@ -15,7 +15,6 @@ import type { TemplateEngine } from "../template-engine.js";
 
 const TEMPLATE_FILENAME = "_TEMPLATE-EPIC-EXECUTION-REPORT.md";
 const TEMPLATES_SUBDIR = "templates";
-const DOCS_OUTPUT_SUBDIR = path.join("docs", "epic");
 const CLAUDE_OUTPUT_SUBDIR = path.join(".claude", "templates");
 const GITHUB_OUTPUT_SUBDIR = path.join(".github", "templates");
 
@@ -38,7 +37,7 @@ function hasAllMandatorySections(content: string): boolean {
 
 /**
  * Copies _TEMPLATE-EPIC-EXECUTION-REPORT.md verbatim to
- * docs/epic/, .claude/templates/, and .github/templates/.
+ * .claude/templates/ and .github/templates/.
  */
 export class EpicReportAssembler {
   assemble(
@@ -58,7 +57,6 @@ export class EpicReportAssembler {
       return [];
     }
     const outputs = [
-      DOCS_OUTPUT_SUBDIR,
       CLAUDE_OUTPUT_SUBDIR,
       GITHUB_OUTPUT_SUBDIR,
     ];
