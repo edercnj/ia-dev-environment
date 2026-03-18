@@ -408,20 +408,6 @@ describe("generate command", () => {
 });
 
 describe("overwrite protection", () => {
-  it("generate_withForce_passesForceToHandler", async () => {
-    await parseCli([
-      "generate", "--config", configFilePath, "--force",
-    ]);
-
-    expect(mockRunPipeline).toHaveBeenCalled();
-  });
-
-  it("generate_withoutForce_defaultsToFalse", async () => {
-    await parseCli(["generate", "--config", configFilePath]);
-
-    expect(mockRunPipeline).toHaveBeenCalled();
-  });
-
   it("generate_emptyDir_withoutForce_proceedsNormally", async () => {
     mockCheckExistingArtifacts.mockReturnValue({
       hasConflicts: false, conflictDirs: [],

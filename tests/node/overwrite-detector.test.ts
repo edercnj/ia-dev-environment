@@ -64,14 +64,18 @@ describe("checkExistingArtifacts", () => {
   it("checkExistingArtifacts_withAllArtifactDirs_returnsAllConflicts", async () => {
     await mkdir(join(tempDir, ".claude"), { recursive: true });
     await mkdir(join(tempDir, ".github"), { recursive: true });
+    await mkdir(join(tempDir, ".codex"), { recursive: true });
+    await mkdir(join(tempDir, ".agents"), { recursive: true });
     await mkdir(join(tempDir, "docs"), { recursive: true });
 
     const result = checkExistingArtifacts(tempDir);
 
     expect(result.hasConflicts).toBe(true);
-    expect(result.conflictDirs).toHaveLength(3);
+    expect(result.conflictDirs).toHaveLength(5);
     expect(result.conflictDirs).toContain(".claude/");
     expect(result.conflictDirs).toContain(".github/");
+    expect(result.conflictDirs).toContain(".codex/");
+    expect(result.conflictDirs).toContain(".agents/");
     expect(result.conflictDirs).toContain("docs/");
   });
 

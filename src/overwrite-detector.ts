@@ -11,7 +11,9 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 
 /** Directories that the pipeline generates as top-level output. */
-const ARTIFACT_DIRS = [".claude", ".github", "docs"] as const;
+const ARTIFACT_DIRS = [
+  ".claude", ".github", ".codex", ".agents", "docs",
+] as const;
 
 /** Result of checking for existing artifacts in the output directory. */
 export interface OverwriteCheckResult {

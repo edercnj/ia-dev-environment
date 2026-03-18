@@ -18,7 +18,7 @@ This story touches two concerns:
 |-----------|------|-------------|
 | EpicReportAssembler | `src/assembler/epic-report-assembler.ts` | MODIFY -- remove `docs/epic/` output |
 | CLI (generate command) | `src/cli.ts` | MODIFY -- add `--force` flag, overwrite detection |
-| Exceptions | `src/exceptions.ts` | MODIFY -- add `OverwriteError` class |
+| Exceptions | `src/exceptions.ts` | NO CHANGE -- CLI throws `CliError` directly for overwrite conflicts |
 | Golden files (8 profiles) | `tests/golden/{profile}/docs/epic/` | DELETE -- remove `docs/epic/` directory from all 8 profiles |
 | EpicReportAssembler tests | `tests/node/assembler/epic-report-assembler.test.ts` | MODIFY -- update expectations from 3 to 2 outputs |
 | CLI tests | `tests/node/cli.test.ts` | MODIFY -- add `--force` flag tests |

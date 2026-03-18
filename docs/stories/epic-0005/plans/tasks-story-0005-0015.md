@@ -111,7 +111,7 @@
   - `src/overwrite-detector.ts` (new file)
 - **Action:** Create `src/overwrite-detector.ts` with:
   1. Export interface `OverwriteCheckResult { hasConflicts: boolean; conflictDirs: string[] }`.
-  2. Export constant `ARTIFACT_DIRS = [".claude", ".github", ".agents", ".codex", "docs", "k8s", "tests"]` -- the known generated output directories.
+  2. Export constant `ARTIFACT_DIRS = [".claude", ".github", ".codex", ".agents", "docs"]` -- the known generated output directories (matching pipeline targets).
   3. Export function `checkExistingArtifacts(outputDir: string): OverwriteCheckResult` that checks `fs.existsSync` for each artifact directory under `outputDir` and returns the list of existing ones with trailing `/`.
 - **Acceptance:** All 3 RED tests from TASK-4, TASK-5, TASK-6 pass.
 
