@@ -93,3 +93,33 @@ export class MapParseError extends Error {
     this.name = "MapParseError";
   }
 }
+
+/** Execute a single phase. */
+export interface PhaseExecutionMode {
+  readonly kind: "phase";
+  readonly phase: number;
+}
+
+/** Execute a single story. */
+export interface StoryExecutionMode {
+  readonly kind: "story";
+  readonly storyId: string;
+}
+
+/** Execute all phases (default). */
+export interface FullExecutionMode {
+  readonly kind: "full";
+}
+
+/** Discriminated union for partial execution modes. */
+export type PartialExecutionMode =
+  | PhaseExecutionMode
+  | StoryExecutionMode
+  | FullExecutionMode;
+
+/** Result of a prerequisite validation check. */
+export interface PrerequisiteResult {
+  readonly valid: boolean;
+  readonly error?: string;
+  readonly unsatisfiedDeps?: readonly string[];
+}

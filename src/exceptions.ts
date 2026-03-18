@@ -67,3 +67,19 @@ export class CheckpointIOError extends Error {
     this.operation = operation;
   }
 }
+
+export class PartialExecutionError extends Error {
+  readonly code: string;
+  readonly context: Readonly<Record<string, unknown>>;
+
+  constructor(
+    message: string,
+    code: string,
+    context: Record<string, unknown>,
+  ) {
+    super(message);
+    this.name = "PartialExecutionError";
+    this.code = code;
+    this.context = context;
+  }
+}

@@ -162,7 +162,32 @@ export function validateIntegrityGateEntry(
   requireString(data, "timestamp", ctx);
   requireNumber(data, "testCount", ctx);
   requireNumber(data, "coverage", ctx);
+  optionalNumber(data, "branchCoverage", ctx);
   optionalStringArray(data, "failedTests", ctx);
+  optionalString(data, "regressionSource", ctx);
+}
+
+function optionalRecord(
+  data: Record<string, unknown>,
+  field: string,
+  ctx: string,
+): void {
+  const v = data[field];
+  if (v === undefined) return;
+  if (typeof v !== "object" || v === null || Array.isArray(v)) {
+    throw new CheckpointValidationError(
+      field,
+      `must be an object in ${ctx}`,
+    );
+  }
+  for (const val of Object.values(v as Record<string, unknown>)) {
+    if (typeof val !== "number") {
+      throw new CheckpointValidationError(
+        field,
+        `all values must be numbers in ${ctx}`,
+      );
+    }
+  }
 }
 
 export function validateMetrics(
@@ -172,6 +197,13 @@ export function validateMetrics(
   requireNumber(m, "storiesCompleted", "metrics");
   requireNumber(m, "storiesTotal", "metrics");
   optionalNumber(m, "estimatedRemainingMinutes", "metrics");
+  optionalNumber(m, "storiesFailed", "metrics");
+  optionalNumber(m, "storiesBlocked", "metrics");
+  optionalNumber(m, "elapsedMs", "metrics");
+  optionalNumber(m, "estimatedRemainingMs", "metrics");
+  optionalNumber(m, "averageStoryDurationMs", "metrics");
+  optionalRecord(m, "storyDurations", "metrics");
+  optionalRecord(m, "phaseDurations", "metrics");
 }
 
 function requireNonNullObject(

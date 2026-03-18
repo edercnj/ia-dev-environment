@@ -443,6 +443,76 @@ describe("x-dev-epic-implement GitHub template", () => {
   });
 });
 
+describe("x-dev-epic-implement SKILL.md — partial execution", () => {
+  it("skillMd_containsPartialExecutionSection", () => {
+    expect(content).toContain("Partial Execution");
+  });
+
+  it("skillMd_partialExecution_containsMutualExclusivityRule", () => {
+    expect(content).toContain("mutually exclusive");
+  });
+
+  it("skillMd_partialExecution_containsPhaseFlowDescription", () => {
+    const partialIdx = content.indexOf("## Partial Execution");
+    expect(partialIdx).toBeGreaterThanOrEqual(0);
+    const phase0Idx = content.indexOf("## Phase 0", partialIdx);
+    expect(phase0Idx).toBeGreaterThan(partialIdx);
+    const partialSection = content.slice(partialIdx, phase0Idx);
+    expect(partialSection).toContain("--phase");
+    expect(partialSection).toContain("integrity gate");
+  });
+
+  it("skillMd_partialExecution_containsStoryFlowDescription", () => {
+    const partialIdx = content.indexOf("## Partial Execution");
+    expect(partialIdx).toBeGreaterThanOrEqual(0);
+    const phase0Idx = content.indexOf("## Phase 0", partialIdx);
+    expect(phase0Idx).toBeGreaterThan(partialIdx);
+    const partialSection = content.slice(partialIdx, phase0Idx);
+    expect(partialSection).toContain("--story");
+    expect(partialSection).toContain("no integrity gate");
+  });
+
+  it.each([
+    ["does not exist. Max phase is"],
+    ["must be complete before phase"],
+    ["not found in implementation map"],
+    ["Dependencies not satisfied"],
+    ["mutually exclusive"],
+  ])("skillMd_partialExecution_containsErrorSpec_%s", (pattern) => {
+    expect(content).toContain(pattern);
+  });
+});
+
+describe("x-dev-epic-implement SKILL.md — integrity gate section", () => {
+  it("skillMd_containsSection_IntegrityGate", () => {
+    expect(content).toContain("Integrity Gate");
+  });
+
+  it("skillMd_integrityGate_referencesCompileCommand", () => {
+    expect(content).toContain("{{COMPILE_COMMAND}}");
+  });
+
+  it("skillMd_integrityGate_referencesTestCommand", () => {
+    expect(content).toContain("{{TEST_COMMAND}}");
+  });
+
+  it("skillMd_integrityGate_referencesCoverageCommand", () => {
+    expect(content).toContain("{{COVERAGE_COMMAND}}");
+  });
+
+  it("skillMd_integrityGate_referencesRegressionDiagnosis", () => {
+    expect(content).toMatch(/regression/i);
+    expect(content).toMatch(/correlat|diagnos|identif/i);
+  });
+
+  it("skillMd_integrityGate_referencesGitRevert", () => {
+    expect(content).toMatch(/git revert/i);
+  });
+
+  it("skillMd_integrityGate_referencesUpdateIntegrityGate", () => {
+    expect(content).toContain("updateIntegrityGate");
+  });
+});
 describe("x-dev-epic-implement dual copy consistency (RULE-001)", () => {
   const ghContent = fs.readFileSync(GITHUB_SKILL_PATH, "utf-8");
   const CRITICAL_TERMS = [
@@ -456,6 +526,8 @@ describe("x-dev-epic-implement dual copy consistency (RULE-001)", () => {
     "Phase 1",
     "Phase 2",
     "Phase 3",
+    "Integrity Gate",
+    "updateIntegrityGate",
     "getExecutableStories",
     "SubagentResult",
     "IN_PROGRESS",
@@ -475,6 +547,81 @@ describe("x-dev-epic-implement dual copy consistency (RULE-001)", () => {
   )("bothContainTerm_%s_dualCopyConsistency", (term) => {
     expect(content).toContain(term);
     expect(ghContent).toContain(term);
+  });
+
+  const PARTIAL_EXECUTION_TERMS = [
+    "Partial Execution",
+    "mutually exclusive",
+    "integrity gate",
+    "does not exist. Max phase is",
+    "Dependencies not satisfied",
+  ];
+
+  it.each(
+    PARTIAL_EXECUTION_TERMS.map((term) => [term]),
+  )("bothContainPartialExecTerm_%s_dualCopyConsistency", (term) => {
+    expect(content).toContain(term);
+    expect(ghContent).toContain(term);
+  });
+
+  it("githubSkillMd_containsIntegrityGateSection", () => {
+    expect(ghContent).toContain("Integrity Gate");
+    expect(ghContent).toContain("{{COMPILE_COMMAND}}");
+    expect(ghContent).toContain("{{TEST_COMMAND}}");
+    expect(ghContent).toContain("{{COVERAGE_COMMAND}}");
+  });
+});
+
+describe("x-dev-epic-implement SKILL.md — resume workflow", () => {
+  const ghContent = fs.readFileSync(GITHUB_SKILL_PATH, "utf-8");
+
+  function extractResumeSection(text: string): string {
+    const startIdx = text.indexOf("Resume Workflow");
+    expect(startIdx).toBeGreaterThanOrEqual(0);
+    const endIdx = text.indexOf("Phase 1", startIdx);
+    expect(endIdx).toBeGreaterThan(startIdx);
+    return text.slice(startIdx, endIdx);
+  }
+
+  it("skillMd_containsResumeWorkflowSection", () => {
+    expect(content).toMatch(/##\s+Resume Workflow/);
+  });
+
+  it("skillMd_resumeSection_containsReclassificationTable", () => {
+    const resumeContent = extractResumeSection(content);
+    expect(resumeContent).toContain("IN_PROGRESS");
+    expect(resumeContent).toContain("SUCCESS");
+    expect(resumeContent).toContain("FAILED");
+    expect(resumeContent).toContain("BLOCKED");
+    expect(resumeContent).toContain("PENDING");
+  });
+
+  it("skillMd_resumeSection_containsBranchRecovery", () => {
+    const resumeContent = extractResumeSection(content);
+    expect(resumeContent).toMatch(/checkout/i);
+  });
+
+  it("skillMd_resumeSection_containsReevaluate", () => {
+    const resumeContent = extractResumeSection(content);
+    expect(resumeContent).toMatch(/reevaluat/i);
+  });
+
+  it("dualCopy_bothContainResumeWorkflow", () => {
+    expect(content).toMatch(/Resume Workflow/);
+    expect(ghContent).toMatch(/Resume Workflow/);
+  });
+
+  it("dualCopy_bothContainReclassificationTerms", () => {
+    const RESUME_TERMS = [
+      "IN_PROGRESS",
+      "MAX_RETRIES",
+      "BLOCKED",
+      "PENDING",
+    ];
+    for (const term of RESUME_TERMS) {
+      expect(content).toContain(term);
+      expect(ghContent).toContain(term);
+    }
   });
 });
 

@@ -2,7 +2,7 @@
 name: x-dev-epic-implement
 description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
-argument-hint: "[EPIC-ID] [--phase N] [--story XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--parallel]"
+argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--parallel]"
 ---
 
 ## Global Output Policy
@@ -39,7 +39,7 @@ ERROR: Epic ID is required. Usage: /x-dev-epic-implement [EPIC-ID] [flags]
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
 | `--phase N` | number | (all phases) | Execute only phase N (0-3) |
-| `--story XXXX-YYYY` | string | (all stories) | Execute only a specific story by ID |
+| `--story story-XXXX-YYYY` | string | (all stories) | Execute only a specific story by ID |
 | `--skip-review` | boolean | `false` | Skip review phases in x-dev-lifecycle subagents |
 | `--dry-run` | boolean | `false` | Generate execution plan without executing |
 | `--resume` | boolean | `false` | Continue from last checkpoint (execution-state.json) |
@@ -89,6 +89,44 @@ If `--resume` flag is set, check that `execution-state.json` exists in the epic 
 ERROR: No checkpoint found (execution-state.json missing). Cannot resume. Run without --resume.
 ```
 
+## Partial Execution
+
+The `--phase` and `--story` flags enable partial execution of an epic.
+These flags are **mutually exclusive** — providing both aborts with:
+
+```
+ERROR: --phase and --story are mutually exclusive
+```
+
+### Mode: `--phase N`
+
+Execute only stories belonging to phase N.
+
+1. Read checkpoint (or verify existing code if no checkpoint)
+2. Validate that phases 0..N-1 are complete (all stories have status SUCCESS)
+3. If validation fails, abort:
+   - Phase out of range: `Phase {N} does not exist. Max phase is {M}.`
+   - Prior phases incomplete: `Phases 0..{N-1} must be complete before phase {N}`
+4. Filter stories to phase N only
+5. Execute core loop for phase N stories
+6. Run integrity gate at end of phase N
+7. Update checkpoint
+
+Phase 0 requires no prerequisite validation (no prior phases to check).
+
+### Mode: `--story story-XXXX-YYYY`
+
+Execute a single story in isolation.
+
+1. Read checkpoint (required for single story mode)
+2. Validate that ALL dependencies of the story have status SUCCESS
+3. If validation fails, abort:
+   - Story not in map: `Story {storyId} not found in implementation map`
+   - Dependencies not met: `Dependencies not satisfied: [{list}]`
+4. Dispatch subagent for the specific story
+5. Collect result and update checkpoint
+6. Do **not** run integrity gate (single story execution has no integrity gate)
+
 ## Phase 0 — Preparation (Orchestrator — Inline)
 
 1. **Parse arguments**: Extract epic ID from positional argument and all optional flags
@@ -99,8 +137,47 @@ ERROR: No checkpoint found (execution-state.json missing). Cannot resume. Run wi
 6. **Determine execution order**: Use the dependency graph from IMPLEMENTATION-MAP.md to order stories; stories without dependencies can run in parallel if `--parallel` is set
 7. **Create branch**: `git checkout -b feat/epic-{epicId}-implementation`
 8. **Dry-run exit**: If `--dry-run` is set, output the execution plan (story order, dependencies, estimated phases) and stop
-9. **Resume handling**: If `--resume` is set, read `execution-state.json` and skip already-completed stories
+9. **Resume handling**: If `--resume` is set, run the Resume Workflow (see below) before delegation
 10. **Delegate**: For each story in execution order, invoke `/x-dev-lifecycle` with appropriate flags
+
+## Resume Workflow
+
+When `--resume` is set, the orchestrator loads `execution-state.json` and applies a two-pass reclassification before re-entering the execution loop.
+
+### Step 1 — Reclassify Story Statuses
+
+Apply the following status transitions to every story in the checkpoint:
+
+| Current Status | New Status | Condition |
+|----------------|------------|-----------|
+| IN_PROGRESS | PENDING | Always (interrupted work) |
+| SUCCESS | SUCCESS | Preserved — never re-execute |
+| FAILED (retries < MAX_RETRIES) | PENDING | Retry candidate |
+| FAILED (retries >= MAX_RETRIES) | FAILED | Retry budget exhausted |
+| PARTIAL | PENDING | Treat as interrupted |
+| BLOCKED | BLOCKED | Deferred to reevaluation step |
+| PENDING | PENDING | No change |
+
+`MAX_RETRIES` defaults to 2. All other story fields (phase, commitSha, retries, summary, duration, findingsCount) are preserved.
+
+### Step 2 — Reevaluate BLOCKED Stories
+
+After reclassification, evaluate each BLOCKED story:
+
+- If `blockedBy` is **undefined** → keep BLOCKED (conservative: unknown dependencies)
+- If `blockedBy` is **empty array** → reclassify to PENDING (no dependencies = vacuously satisfied)
+- If **all** dependencies in `blockedBy` have status SUCCESS → reclassify to PENDING
+- If **any** dependency is non-SUCCESS or missing from the stories map → keep BLOCKED
+
+This is a **single-pass** evaluation (no cascade). Stories unblocked in this pass will not trigger further unblocking of stories that depend on them.
+
+### Step 3 — Branch Recovery
+
+Checkout the branch recorded in the checkpoint: `git checkout {state.branch}`. If the branch does not exist locally, attempt `git checkout -b {state.branch} origin/{state.branch}`.
+
+### Step 4 — Resume Execution
+
+After reclassification and branch recovery, feed the updated state into `getExecutableStories()` to determine which stories are ready for execution. Only stories with status PENDING proceed to the execution loop.
 
 ## Phase 1 — Execution Loop
 
@@ -347,6 +424,59 @@ The following sections are placeholders for downstream stories:
 - [Placeholder: resume from checkpoint — story-0005-0008]
 - [Placeholder: partial execution filter — story-0005-0009]
 - [Placeholder: progress reporting — story-0005-0013]
+
+### Integrity Gate (Between Phases)
+
+After ALL stories in a phase complete, dispatch an integrity gate subagent before advancing to the next phase.
+
+#### Gate Subagent Prompt
+
+Launch a `general-purpose` subagent:
+
+> You are an **Integrity Gate Validator** for {{PROJECT_NAME}}.
+>
+> **Step 1 — Compile:** Run `{{COMPILE_COMMAND}}` (e.g., `tsc --noEmit`).
+> **Step 2 — Test:** Run `{{TEST_COMMAND}}` to execute the full test suite (not just current phase tests).
+> **Step 3 — Coverage:** Run `{{COVERAGE_COMMAND}}` to collect coverage metrics.
+> **Step 4 — Evaluate:**
+> - If compilation fails → `{ status: "FAIL", testCount: 0, coverage: 0 }`
+> - If any tests fail → correlate failed tests with commits from stories in the current phase
+> - If line coverage < 95% or branch coverage < 90% → FAIL with coverage details
+> - Otherwise → PASS
+>
+> Return: `{ status: "PASS"|"FAIL", testCount, coverage, branchCoverage?, failedTests?, regressionSource? }`
+
+#### Regression Diagnosis
+
+If tests fail, the subagent:
+1. Analyzes which tests broke (`failedTests` array)
+2. Correlates failed tests with commits from stories in the current phase (via `git log`)
+3. Identifies the most likely story as regression source (`regressionSource`)
+4. If identified: orchestrator executes `git revert <commitSha>` for that story
+5. Story is marked FAILED with summary: `"Regression detected by integrity gate"`
+6. Block propagation is executed for dependents of the failed story
+
+#### Gate Result Registration
+
+```
+updateIntegrityGate(epicDir, phaseNumber, {
+  status: "PASS" | "FAIL",
+  testCount: number,
+  coverage: number,        // line coverage %
+  branchCoverage?: number, // branch coverage %
+  failedTests?: string[],
+  regressionSource?: string // story ID
+});
+```
+
+- **PASS**: Advance to next phase
+- **FAIL + regression identified**: revert + mark FAILED + block propagation
+- **FAIL + regression unidentified**: pause execution, report to user
+
+#### Gate Enforcement (RULE-004)
+
+The integrity gate is **mandatory** — there is no bypass. Every phase transition requires a PASS gate
+result. The gate runs after phase 0, 1, 2, and 3 — one gate per phase.
 
 ## Phase 2 — Consolidation
 

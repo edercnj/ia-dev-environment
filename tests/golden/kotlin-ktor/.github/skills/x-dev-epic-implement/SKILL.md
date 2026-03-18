@@ -25,7 +25,7 @@ description: >
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
 | `--phase N` | number | (all) | Execute only phase N (0-3) |
-| `--story XXXX-YYYY` | string | (all) | Execute only a specific story |
+| `--story story-XXXX-YYYY` | string | (all) | Execute only a specific story |
 | `--skip-review` | boolean | `false` | Skip review phases in subagents |
 | `--dry-run` | boolean | `false` | Generate plan without executing |
 | `--resume` | boolean | `false` | Continue from last checkpoint (execution-state.json) |
@@ -43,6 +43,44 @@ Missing epic ID aborts with: `ERROR: Epic ID is required.`
 
 Abort on first failure with clear error message.
 
+## Partial Execution
+
+The `--phase` and `--story` flags enable partial execution of an epic.
+These flags are **mutually exclusive** — providing both aborts with:
+
+```
+ERROR: --phase and --story are mutually exclusive
+```
+
+### Mode: `--phase N`
+
+Execute only stories belonging to phase N.
+
+1. Read checkpoint (or verify existing code if no checkpoint)
+2. Validate that phases 0..N-1 are complete (all stories have status SUCCESS)
+3. If validation fails, abort:
+   - Phase out of range: `Phase {N} does not exist. Max phase is {M}.`
+   - Prior phases incomplete: `Phases 0..{N-1} must be complete before phase {N}`
+4. Filter stories to phase N only
+5. Execute core loop for phase N stories
+6. Run integrity gate at end of phase N
+7. Update checkpoint
+
+Phase 0 requires no prerequisite validation (no prior phases to check).
+
+### Mode: `--story story-XXXX-YYYY`
+
+Execute a single story in isolation.
+
+1. Read checkpoint (required for single story mode)
+2. Validate that ALL dependencies of the story have status SUCCESS
+3. If validation fails, abort:
+   - Story not in map: `Story {storyId} not found in implementation map`
+   - Dependencies not met: `Dependencies not satisfied: [{list}]`
+4. Dispatch subagent for the specific story
+5. Collect result and update checkpoint
+6. Do **not** run integrity gate (single story execution has no integrity gate)
+
 ## Phase 0 — Preparation
 
 1. Parse arguments (epic ID + flags)
@@ -52,8 +90,39 @@ Abort on first failure with clear error message.
 5. Glob story files, determine execution order
 6. Create branch: `git checkout -b feat/epic-{epicId}-implementation`
 7. If `--dry-run`: output plan and stop
-8. If `--resume`: read execution-state.json, skip completed stories
+8. If `--resume`: run the Resume Workflow (see below) before delegation
 9. Delegate per-story execution to x-dev-lifecycle
+
+## Resume Workflow
+
+When `--resume` is set, load `execution-state.json` and apply two-pass reclassification before re-entering the execution loop.
+
+### Reclassification Table
+
+| Current Status | New Status | Condition |
+|----------------|------------|-----------|
+| IN_PROGRESS | PENDING | Always (interrupted) |
+| SUCCESS | SUCCESS | Preserved |
+| FAILED (retries < MAX_RETRIES) | PENDING | Retry candidate |
+| FAILED (retries >= MAX_RETRIES) | FAILED | Budget exhausted |
+| PARTIAL | PENDING | Treat as interrupted |
+| BLOCKED | BLOCKED | Deferred to reevaluation |
+| PENDING | PENDING | No change |
+
+### Branch Recovery
+
+Checkout the branch from checkpoint: `git checkout {state.branch}`. If not found locally, try `git checkout -b {state.branch} origin/{state.branch}`.
+
+### BLOCKED Reevaluation
+
+After reclassification, reevaluate each BLOCKED story:
+
+- `blockedBy` undefined → keep BLOCKED (conservative)
+- `blockedBy` empty → reclassify to PENDING (vacuously satisfied)
+- All deps SUCCESS → reclassify to PENDING
+- Any dep non-SUCCESS or missing → keep BLOCKED
+
+Single-pass evaluation (no cascade). After reevaluation, feed updated state into `getExecutableStories()` — only PENDING stories enter the execution loop.
 
 ## Phase 1 — Execution Loop
 
@@ -135,6 +204,22 @@ Sequential merge of worktree branches into epic branch, ordered by critical path
 - [Placeholder: resume from checkpoint — story-0005-0008]
 - [Placeholder: partial execution filter — story-0005-0009]
 - [Placeholder: progress reporting — story-0005-0013]
+
+### Integrity Gate (Between Phases)
+
+After all stories in a phase complete, dispatch an integrity gate subagent:
+
+1. **Compile**: `{{COMPILE_COMMAND}}`
+2. **Test**: `{{TEST_COMMAND}}` (full suite)
+3. **Coverage**: `{{COVERAGE_COMMAND}}` (thresholds: >= 95% line, >= 90% branch)
+
+**Result**: `{ status: PASS|FAIL, testCount, coverage, branchCoverage?, failedTests?, regressionSource? }`
+
+**On PASS**: Advance to next phase
+**On FAIL + regression identified**: `git revert` culprit story, mark FAILED, propagate blocks
+**On FAIL + unidentified**: Pause execution, report to user
+
+Gate result stored via `updateIntegrityGate(epicDir, phase, result)`. Mandatory per RULE-004.
 
 ## Phase 2 — Consolidation
 

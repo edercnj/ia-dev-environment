@@ -519,6 +519,106 @@ describe("validateIntegrityGateEntry", () => {
       ),
     ).not.toThrow();
   });
+
+  it("validateIntegrityGateEntry_branchCoverageValidNumber_doesNotThrow", () => {
+    expect(() =>
+      validateIntegrityGateEntry(
+        aValidIntegrityGate({ branchCoverage: 92.5 }),
+        "phase-0",
+      ),
+    ).not.toThrow();
+  });
+
+  it("validateIntegrityGateEntry_branchCoverageZero_doesNotThrow", () => {
+    expect(() =>
+      validateIntegrityGateEntry(
+        aValidIntegrityGate({ branchCoverage: 0 }),
+        "phase-0",
+      ),
+    ).not.toThrow();
+  });
+
+  it("validateIntegrityGateEntry_branchCoverageNotNumber_throwsValidationError", () => {
+    expect(() =>
+      validateIntegrityGateEntry(
+        aValidIntegrityGate({ branchCoverage: "90" }),
+        "phase-0",
+      ),
+    ).toThrow(CheckpointValidationError);
+  });
+
+  it("validateIntegrityGateEntry_branchCoverageBoolean_throwsValidationError", () => {
+    expect(() =>
+      validateIntegrityGateEntry(
+        aValidIntegrityGate({ branchCoverage: true }),
+        "phase-0",
+      ),
+    ).toThrow(CheckpointValidationError);
+  });
+
+  it("validateIntegrityGateEntry_regressionSourceValidString_doesNotThrow", () => {
+    expect(() =>
+      validateIntegrityGateEntry(
+        aValidIntegrityGate({ regressionSource: "0042-0005" }),
+        "phase-0",
+      ),
+    ).not.toThrow();
+  });
+
+  it("validateIntegrityGateEntry_regressionSourceEmptyString_doesNotThrow", () => {
+    expect(() =>
+      validateIntegrityGateEntry(
+        aValidIntegrityGate({ regressionSource: "" }),
+        "phase-0",
+      ),
+    ).not.toThrow();
+  });
+
+  it("validateIntegrityGateEntry_regressionSourceNotString_throwsValidationError", () => {
+    expect(() =>
+      validateIntegrityGateEntry(
+        aValidIntegrityGate({ regressionSource: 42 }),
+        "phase-0",
+      ),
+    ).toThrow(CheckpointValidationError);
+  });
+
+  it("validateIntegrityGateEntry_regressionSourceArray_throwsValidationError", () => {
+    expect(() =>
+      validateIntegrityGateEntry(
+        aValidIntegrityGate({
+          regressionSource: ["0042-0005"],
+        }),
+        "phase-0",
+      ),
+    ).toThrow(CheckpointValidationError);
+  });
+
+  it("validateIntegrityGateEntry_bothNewFieldsPresent_doesNotThrow", () => {
+    expect(() =>
+      validateIntegrityGateEntry(
+        aValidIntegrityGate({
+          branchCoverage: 91.2,
+          regressionSource: "0042-0005",
+        }),
+        "phase-0",
+      ),
+    ).not.toThrow();
+  });
+
+  it("validateIntegrityGateEntry_failWithAllOptionalFields_doesNotThrow", () => {
+    expect(() =>
+      validateIntegrityGateEntry(
+        aValidIntegrityGate({
+          status: "FAIL",
+          failedTests: ["test-a"],
+          branchCoverage: 88.0,
+          regressionSource: "0042-0003",
+        }),
+        "phase-0",
+      ),
+    ).not.toThrow();
+  });
 });
 
 // --- 3.5 validateMetrics ---
@@ -596,5 +696,103 @@ describe("validateMetrics", () => {
         }),
       ),
     ).toThrow(CheckpointValidationError);
+  });
+
+  // --- UT-35 through UT-38d: Extended metrics fields ---
+
+  it("validateMetrics_allNewFieldsPresent_doesNotThrow", () => {
+    expect(() =>
+      validateMetrics(
+        aValidMetrics({
+          storiesFailed: 2,
+          storiesBlocked: 1,
+          elapsedMs: 900000,
+          estimatedRemainingMs: 600000,
+          averageStoryDurationMs: 150000,
+          storyDurations: { "0001": 100000, "0002": 200000 },
+          phaseDurations: { "0": 500000 },
+        }),
+      ),
+    ).not.toThrow();
+  });
+
+  it("validateMetrics_storiesFailedNotNumber_throwsValidationError", () => {
+    expect(() =>
+      validateMetrics(
+        aValidMetrics({ storiesFailed: "two" }),
+      ),
+    ).toThrow(/storiesFailed/);
+  });
+
+  it("validateMetrics_storiesBlockedNotNumber_throwsValidationError", () => {
+    expect(() =>
+      validateMetrics(
+        aValidMetrics({ storiesBlocked: true }),
+      ),
+    ).toThrow(/storiesBlocked/);
+  });
+
+  it("validateMetrics_elapsedMsNotNumber_throwsValidationError", () => {
+    expect(() =>
+      validateMetrics(
+        aValidMetrics({ elapsedMs: "900000" }),
+      ),
+    ).toThrow(/elapsedMs/);
+  });
+
+  it("validateMetrics_estimatedRemainingMsNotNumber_throwsValidationError", () => {
+    expect(() =>
+      validateMetrics(
+        aValidMetrics({ estimatedRemainingMs: null }),
+      ),
+    ).toThrow(CheckpointValidationError);
+  });
+
+  it("validateMetrics_averageStoryDurationMsNotNumber_throwsValidationError", () => {
+    expect(() =>
+      validateMetrics(
+        aValidMetrics({ averageStoryDurationMs: "150000" }),
+      ),
+    ).toThrow(/averageStoryDurationMs/);
+  });
+
+  it("validateMetrics_storyDurationsNotObject_throwsValidationError", () => {
+    expect(() =>
+      validateMetrics(
+        aValidMetrics({ storyDurations: "not-an-object" }),
+      ),
+    ).toThrow(/storyDurations/);
+  });
+
+  it("validateMetrics_storyDurationsIsArray_throwsValidationError", () => {
+    expect(() =>
+      validateMetrics(
+        aValidMetrics({ storyDurations: [100, 200] }),
+      ),
+    ).toThrow(/storyDurations/);
+  });
+
+  it("validateMetrics_storyDurationsWithNonNumberValues_throwsValidationError", () => {
+    expect(() =>
+      validateMetrics(
+        aValidMetrics({ storyDurations: { "0001": "fast" } }),
+      ),
+    ).toThrow(/storyDurations/);
+  });
+
+  it("validateMetrics_phaseDurationsNotObject_throwsValidationError", () => {
+    expect(() =>
+      validateMetrics(
+        aValidMetrics({ phaseDurations: 42 }),
+      ),
+    ).toThrow(/phaseDurations/);
+  });
+
+  it("validateMetrics_phaseDurationsWithNonNumberValues_throwsValidationError", () => {
+    expect(() =>
+      validateMetrics(
+        aValidMetrics({ phaseDurations: { "0": "slow" } }),
+      ),
+    ).toThrow(/phaseDurations/);
   });
 });
