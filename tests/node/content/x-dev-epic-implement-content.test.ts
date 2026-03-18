@@ -238,8 +238,7 @@ describe("x-dev-epic-implement SKILL.md — Phase 1 content", () => {
     it("skillMd_phase1_containsExtensionPlaceholders", () => {
       const refs = [
         "story-0005-0006", "story-0005-0007",
-        "story-0005-0008", "story-0005-0010",
-        "story-0005-0013",
+        "story-0005-0008", "story-0005-0013",
       ];
       const matchCount = refs.filter(
         (r) => phase1.includes(r),
@@ -623,5 +622,169 @@ describe("x-dev-epic-implement SKILL.md — resume workflow", () => {
       expect(content).toContain(term);
       expect(ghContent).toContain(term);
     }
+  });
+});
+
+// === story-0005-0010: Parallel Execution with Worktrees ===
+
+function extractParallelSections(): string {
+  const phase1 = extractPhase1();
+  const parallelIdx = phase1.search(
+    /parallel.*worktree.*dispatch|worktree.*dispatch/i,
+  );
+  if (parallelIdx === -1) return "";
+  return phase1.slice(parallelIdx);
+}
+
+describe("x-dev-epic-implement SKILL.md — Parallel Execution (story-0005-0010)", () => {
+  const phase1 = extractPhase1();
+
+  // TPP Level 1: Degenerate — placeholder removed
+  describe("TPP Level 1 — degenerate (placeholder removal)", () => {
+    it("skillMd_phase1_parallelPlaceholder_removed", () => {
+      expect(phase1).not.toMatch(
+        /\[Placeholder.*parallel.*worktree.*story-0005-0010\]/i,
+      );
+    });
+
+    it("skillMd_phase1_extensionPoint0010_removedFromList", () => {
+      const extIdx = phase1.indexOf("Extension Points");
+      expect(extIdx).toBeGreaterThanOrEqual(0);
+      const extPoints = phase1.slice(extIdx);
+      expect(extPoints).not.toMatch(
+        /\[Placeholder.*parallel.*story-0005-0010\]/i,
+      );
+    });
+  });
+
+  // TPP Level 2: Scalar — keyword pair assertions
+  describe("TPP Level 2 — scalar keyword assertions", () => {
+    it("skillMd_phase1_containsWorktreeIsolationKeyword", () => {
+      expect(phase1).toContain("isolation");
+      expect(phase1).toMatch(/worktree/i);
+    });
+
+    it("skillMd_phase1_containsSingleMessageDispatch", () => {
+      expect(phase1).toMatch(/SINGLE message/i);
+    });
+
+    it("skillMd_phase1_containsMergeStrategy", () => {
+      expect(phase1).toMatch(/merge.*strategy|merge.*sequen/i);
+    });
+
+    it("skillMd_phase1_containsConflictResolution", () => {
+      expect(phase1).toMatch(/conflict.*resol/i);
+    });
+
+    it("skillMd_phase1_containsWorktreeCleanup", () => {
+      expect(phase1).toMatch(/worktree.*clean|cleanup/i);
+    });
+  });
+
+  // TPP Level 3: Collection — multiple keyword assertions
+  describe("TPP Level 3 — collection assertions", () => {
+    it("skillMd_phase1_parallelDispatch_referencesRequiredKeywords", () => {
+      const keywords = [
+        "Agent", "isolation", "worktree",
+        "SINGLE message", "getExecutableStories",
+      ];
+      const matchCount = keywords.filter(
+        (kw) => phase1.includes(kw),
+      ).length;
+      expect(matchCount).toBeGreaterThanOrEqual(4);
+    });
+
+    it("skillMd_phase1_mergeStrategy_referencesRuleMarkers", () => {
+      const markers = [
+        "RULE-002", "RULE-007",
+        "updateStoryStatus", "checkpoint",
+      ];
+      const matchCount = markers.filter(
+        (m) => phase1.includes(m),
+      ).length;
+      expect(matchCount).toBeGreaterThanOrEqual(3);
+    });
+
+    it("skillMd_phase1_parallelFallback_documentsSequentialDefault", () => {
+      expect(phase1).toMatch(/--parallel/);
+      expect(phase1).toMatch(/sequential|sequen/i);
+    });
+
+    it("skillMd_phase1_conflictResolution_containsSuccessAndFailure", () => {
+      const parallelContent = extractParallelSections();
+      expect(parallelContent.length).toBeGreaterThan(0);
+      expect(parallelContent).toMatch(/conflict/i);
+      expect(parallelContent).toMatch(/irresol|FAILED|fail/i);
+    });
+  });
+
+  // TPP Level 4: Composite — structural assertions
+  describe("TPP Level 4 — structural assertions", () => {
+    it("skillMd_phase1_parallelSections_haveMinimumSubsections", () => {
+      const parallelKeywords = [
+        /parallel.*dispatch|worktree.*dispatch/i,
+        /merge.*strategy|merge.*sequen/i,
+        /conflict.*resol/i,
+        /worktree.*clean|cleanup/i,
+      ];
+      const matchCount = parallelKeywords.filter(
+        (re) => re.test(phase1),
+      ).length;
+      expect(matchCount).toBeGreaterThanOrEqual(4);
+    });
+
+    it("skillMd_phase1_parallelSections_inLogicalOrder", () => {
+      const dispatchIdx = phase1.search(
+        /parallel.*worktree.*dispatch|worktree.*dispatch/i,
+      );
+      const mergeIdx = phase1.search(
+        /merge.*strategy|merge.*sequen/i,
+      );
+      const conflictIdx = phase1.search(
+        /conflict.*resolution.*subagent/i,
+      );
+      const cleanupIdx = phase1.search(
+        /worktree.*cleanup/i,
+      );
+      expect(dispatchIdx).toBeGreaterThan(-1);
+      expect(mergeIdx).toBeGreaterThan(-1);
+      expect(conflictIdx).toBeGreaterThan(-1);
+      expect(cleanupIdx).toBeGreaterThan(-1);
+      expect(dispatchIdx).toBeLessThan(mergeIdx);
+      expect(mergeIdx).toBeLessThan(conflictIdx);
+      expect(conflictIdx).toBeLessThan(cleanupIdx);
+    });
+
+    it("skillMd_phase1_parallelSections_referenceFailureHandling", () => {
+      expect(phase1).toMatch(
+        /story-0005-0007|failure handling|retry|block propagation/i,
+      );
+    });
+
+    it("skillMd_phase1_checkpointTiming_afterMergeNotAfterSubagent", () => {
+      expect(phase1).toMatch(
+        /checkpoint.*after.*merge|after.*each.*merge|merge.*checkpoint/i,
+      );
+    });
+  });
+});
+
+describe("x-dev-epic-implement SKILL.md — Parallel dual-copy (story-0005-0010)", () => {
+  const ghContent = fs.readFileSync(GITHUB_SKILL_PATH, "utf-8");
+
+  const PARALLEL_TERMS = [
+    "worktree",
+    "SINGLE message",
+    "conflict",
+    "merge",
+    "cleanup",
+  ];
+
+  // TPP Level 5: Edge — dual-copy consistency for new terms
+  it.each(
+    PARALLEL_TERMS.map((term) => [term]),
+  )("bothContainParallelTerm_%s_dualCopyConsistency", (term) => {
+    expect(content).toMatch(new RegExp(term, "i"));
+    expect(ghContent).toMatch(new RegExp(term, "i"));
   });
 });
