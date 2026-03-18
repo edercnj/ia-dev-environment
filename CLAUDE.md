@@ -90,6 +90,7 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 |-------|------|-------------|
 | **patterns** | `/patterns` |  |
 | **run-e2e** | `/run-e2e` | Skill: End-to-End Tests — Runs integration tests that validate the complete flow from request through all application layers to response, using a real database. |
+| **x-dev-epic-implement** | `/x-dev-epic-implement` | Orchestrates epic execution: parses implementation map, dispatches stories via subagents, manages checkpoints, integrity gates, retry/block propagation, resume, partial execution, dry-run, and progress reporting. |
 | **x-dev-implement** | `/x-dev-implement` | Implements a feature/story following project conventions. Delegates preparation to a subagent that reads architecture and coding KPs, then implements layer-by-layer with intermediate compilation checks. |
 | **x-dev-lifecycle** | `/x-dev-lifecycle` | Orchestrates the complete feature implementation cycle: branch creation, planning, task decomposition, implementation, parallel review, fixes, PR creation, and final verification. Delegates heavy phases to subagents for context efficiency. |
 | **x-git-push** | `/x-git-push` | Git operations: branch creation, atomic commits (Conventional Commits), push, and PR creation. Use for any git workflow task including branching, committing, pushing, creating PRs, or managing version control. |
@@ -103,7 +104,7 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-test-plan** | `/x-test-plan` | Generates a comprehensive test plan before implementation. Delegates KP reading to a context-gathering subagent, then produces structured test scenarios covering unit, integration, API, E2E, contract, and performance tests. |
 | **x-test-run** | `/x-test-run` | Runs tests with coverage reporting and threshold validation. Use whenever writing, running, or analyzing tests. Triggers on: test, coverage, TDD, unit test, integration test, test failure, coverage gap, or Definition of Done validation. |
 
-**Total: 27 skills**
+**Total: 28 skills**
 
 ### Usage Examples
 
