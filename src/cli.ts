@@ -18,6 +18,10 @@ import {
   ConfigValidationError,
   PipelineError,
 } from "./exceptions.js";
+import {
+  checkExistingArtifacts,
+  formatConflictMessage,
+} from "./overwrite-detector.js";
 import type { ProjectConfig, PipelineResult } from "./models.js";
 import { DEFAULT_FOUNDATION } from "./models.js";
 import { displayResult } from "./cli-display.js";
@@ -127,6 +131,7 @@ interface GenerateOptions {
   readonly resourcesDir?: string;
   readonly verbose?: boolean;
   readonly dryRun?: boolean;
+  readonly force?: boolean;
 }
 
 /** Action handler for the generate subcommand. */
@@ -144,6 +149,15 @@ async function handleGenerate(
     const resourcesDir = resolveResourcesDir(
       options.resourcesDir,
     );
+    if (!options.dryRun && !options.force) {
+      const check = checkExistingArtifacts(options.outputDir);
+      if (check.hasConflicts) {
+        throw new CliError(
+          formatConflictMessage(check.conflictDirs),
+          "OVERWRITE_CONFLICT",
+        );
+      }
+    }
     await executeGenerate(
       config,
       resourcesDir,
@@ -199,6 +213,7 @@ function registerGenerateCommand(program: Command): void {
     .option("-s, --resources-dir <path>", "Resources templates directory.")
     .option("-v, --verbose", "Enable verbose logging.")
     .option("--dry-run", "Show what would be generated without writing.")
+    .option("-f, --force", "Overwrite existing generated artifacts.", false)
     .action(handleGenerate);
 }
 
