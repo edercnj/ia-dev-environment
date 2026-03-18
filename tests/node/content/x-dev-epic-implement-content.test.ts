@@ -596,10 +596,10 @@ describe("x-dev-epic-implement SKILL.md — Parallel Execution (story-0005-0010)
         /merge.*strategy|merge.*sequen/i,
       );
       const conflictIdx = phase1.search(
-        /conflict.*resol/i,
+        /conflict.*resolution.*subagent/i,
       );
       const cleanupIdx = phase1.search(
-        /worktree.*clean|cleanup/i,
+        /worktree.*cleanup/i,
       );
       expect(dispatchIdx).toBeGreaterThan(-1);
       expect(mergeIdx).toBeGreaterThan(-1);

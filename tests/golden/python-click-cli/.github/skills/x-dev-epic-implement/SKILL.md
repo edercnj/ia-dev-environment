@@ -75,11 +75,47 @@ Abort on first failure with clear error message.
 - For each executable story: mark `IN_PROGRESS`, dispatch subagent, validate result, update checkpoint
 - BLOCKED stories are never dispatched (filtered by `getExecutableStories`)
 
-### 1.4 Subagent Dispatch
+### 1.4 Subagent Dispatch (Sequential Mode)
 
 - Use `Agent` tool to launch a clean context subagent (RULE-001 context isolation)
 - Subagent executes x-dev-lifecycle logic and returns `SubagentResult`
 - Result fields: `status` (`SUCCESS`/`FAILED`/`PARTIAL`), `commitSha`, `findingsCount`, `summary`
+
+### 1.4a Parallel Worktree Dispatch (Conditional: `--parallel`)
+
+When `--parallel` is active, dispatch all executable stories in the current phase
+concurrently in a SINGLE message via `Agent` with `isolation: "worktree"`.
+
+- Call `getExecutableStories(parsedMap, executionState)` for the current phase
+- Mark all as `IN_PROGRESS`, then launch in SINGLE message with `isolation: "worktree"`
+- Each worktree operates on branch `feat/epic-{epicId}-{storyId}`
+- Context isolation (RULE-001): each worktree subagent gets clean context
+- When `--parallel` is NOT active (default), sequential dispatch (1.4) is used unchanged
+- Wait for ALL subagents to complete before merge
+
+### 1.4b Merge Strategy (After Parallel Dispatch)
+
+Sequential merge of worktree branches into epic branch, ordered by critical path priority (RULE-007):
+
+1. Sort SUCCESS stories by critical path priority
+2. For each: `git merge feat/epic-{epicId}-{storyId}` into epic branch
+3. On success: `updateStoryStatus(epicDir, storyId, { status: "SUCCESS", commitSha })` (RULE-002)
+4. On conflict: dispatch conflict resolution subagent (1.4c)
+5. FAILED stories from dispatch: skip merge, delegate to failure handling (story-0005-0007)
+6. Checkpoint updated after EACH merge, not in batch
+
+### 1.4c Conflict Resolution Subagent
+
+- Dispatch `Agent` subagent with conflict file list, epic branch, and worktree branch
+- Subagent analyzes diff from both sides and resolves preserving intent of both stories
+- Returns `{ status: "SUCCESS" | "FAILED", summary }` — on FAILED, mark story FAILED
+- On irresolvable conflict: trigger block propagation for dependents (story-0005-0007)
+
+### 1.4d Worktree Cleanup
+
+- SUCCESS + merged: worktree cleaned up automatically after merge
+- FAILED stories: worktree preserved for diagnostic investigation
+- No-change worktrees: Agent tool auto-cleanup when no changes were made
 
 ### 1.5 Result Validation (RULE-008)
 
@@ -98,7 +134,6 @@ Abort on first failure with clear error message.
 - [Placeholder: retry + block propagation — story-0005-0007]
 - [Placeholder: resume from checkpoint — story-0005-0008]
 - [Placeholder: partial execution filter — story-0005-0009]
-- [Placeholder: parallel worktree dispatch — story-0005-0010]
 - [Placeholder: progress reporting — story-0005-0013]
 
 ## Phase 2 — Consolidation
