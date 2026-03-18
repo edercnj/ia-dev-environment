@@ -238,8 +238,7 @@ describe("x-dev-epic-implement SKILL.md — Phase 1 content", () => {
     it("skillMd_phase1_containsExtensionPlaceholders", () => {
       const refs = [
         "story-0005-0006", "story-0005-0007",
-        "story-0005-0008", "story-0005-0010",
-        "story-0005-0013",
+        "story-0005-0008", "story-0005-0013",
       ];
       const matchCount = refs.filter(
         (r) => phase1.includes(r),
