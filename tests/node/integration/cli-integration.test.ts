@@ -121,6 +121,107 @@ describe("CLI integration", { timeout: 30000 }, () => {
     });
   });
 
+  describe("OverwriteProtection", () => {
+    it("generate_withForceInDirWithArtifacts_succeeds", async () => {
+      const outputDir = path.join(tmpDir, "output");
+      fs.mkdirSync(path.join(outputDir, ".claude"), {
+        recursive: true,
+      });
+      fs.writeFileSync(
+        path.join(outputDir, ".claude", "dummy.md"), "old",
+      );
+      fs.mkdirSync(path.join(outputDir, ".github"), {
+        recursive: true,
+      });
+      const configPath = path.join(FIXTURES_DIR, "minimal.yaml");
+      const cli = createCli();
+      await cli.parseAsync([
+        "node", "test", "generate",
+        "--config", configPath,
+        "--output-dir", outputDir,
+        "--resources-dir", RESOURCES_DIR,
+        "--force",
+      ]);
+      expect(exitSpy).not.toHaveBeenCalledWith(1);
+    });
+
+    it("generate_withoutForceInDirWithArtifacts_showsError", async () => {
+      const outputDir = path.join(tmpDir, "output");
+      fs.mkdirSync(path.join(outputDir, ".claude"), {
+        recursive: true,
+      });
+      const configPath = path.join(FIXTURES_DIR, "minimal.yaml");
+      const cli = createCli();
+      await cli.parseAsync([
+        "node", "test", "generate",
+        "--config", configPath,
+        "--output-dir", outputDir,
+        "--resources-dir", RESOURCES_DIR,
+      ]);
+      const allErrors = errorSpy.mock.calls
+        .map((c) => String(c[0])).join("\n");
+      expect(allErrors).toContain(
+        "existing generated artifacts",
+      );
+      expect(exitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it("generate_dryRunInDirWithArtifacts_succeeds", async () => {
+      const outputDir = path.join(tmpDir, "output");
+      fs.mkdirSync(path.join(outputDir, ".claude"), {
+        recursive: true,
+      });
+      const configPath = path.join(FIXTURES_DIR, "minimal.yaml");
+      const cli = createCli();
+      await cli.parseAsync([
+        "node", "test", "generate",
+        "--config", configPath,
+        "--output-dir", outputDir,
+        "--resources-dir", RESOURCES_DIR,
+        "--dry-run",
+      ]);
+      expect(exitSpy).not.toHaveBeenCalledWith(1);
+    });
+
+    it("generate_helpText_includesForceOption", () => {
+      const cli = createCli();
+      const generateCmd = cli.commands.find(
+        (cmd) => cmd.name() === "generate",
+      );
+      const help = generateCmd!.helpInformation();
+      expect(help).toContain("--force");
+      expect(help.toLowerCase()).toContain("overwrite");
+    });
+
+    it("generate_fullPipeline_docsEpicNotInOutput", async () => {
+      const outputDir = path.join(tmpDir, "output");
+      fs.mkdirSync(outputDir);
+      const configPath = path.join(FIXTURES_DIR, "minimal.yaml");
+      const cli = createCli();
+      await cli.parseAsync([
+        "node", "test", "generate",
+        "--config", configPath,
+        "--output-dir", outputDir,
+        "--resources-dir", RESOURCES_DIR,
+      ]);
+      expect(
+        fs.existsSync(path.join(outputDir, "docs", "epic")),
+      ).toBe(false);
+      expect(
+        fs.existsSync(path.join(
+          outputDir, ".claude", "templates",
+          "_TEMPLATE-EPIC-EXECUTION-REPORT.md",
+        )),
+      ).toBe(true);
+      expect(
+        fs.existsSync(path.join(
+          outputDir, ".github", "templates",
+          "_TEMPLATE-EPIC-EXECUTION-REPORT.md",
+        )),
+      ).toBe(true);
+    });
+  });
+
   describe("ErrorHandling", () => {
     it("generate_invalidConfigPath_showsError", async () => {
       const cli = createCli();

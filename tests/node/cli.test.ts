@@ -28,6 +28,9 @@ const mockFindResourcesDir = vi.fn<() => string>();
 const mockSetupLogging = vi.fn<(verbose: boolean) => void>();
 const mockValidateStack = vi.fn<(config: ProjectConfig) => string[]>();
 const mockDisplayResult = vi.fn<(result: PipelineResult) => void>();
+const mockCheckExistingArtifacts = vi.fn<
+  (outputDir: string) => { hasConflicts: boolean; conflictDirs: string[] }
+>();
 
 vi.mock("../../src/config.js", () => ({
   loadConfig: (...args: unknown[]) => mockLoadConfig(args[0] as string),
@@ -58,6 +61,23 @@ vi.mock("../../src/domain/validator.js", () => ({
 
 vi.mock("../../src/cli-display.js", () => ({
   displayResult: (r: PipelineResult) => mockDisplayResult(r),
+}));
+
+vi.mock("../../src/overwrite-detector.js", () => ({
+  checkExistingArtifacts: (...args: unknown[]) =>
+    mockCheckExistingArtifacts(args[0] as string),
+  formatConflictMessage: (dirs: string[]) => {
+    const dirList = dirs
+      .map((d: string) => `  - ${d} (exists)`)
+      .join("\n");
+    return [
+      "Output directory contains existing generated artifacts:",
+      dirList,
+      "",
+      "Use --force to overwrite existing files,",
+      "or specify a different --output-dir.",
+    ].join("\n");
+  },
 }));
 
 import { createCli } from "../../src/cli.js";
@@ -107,6 +127,9 @@ beforeEach(() => {
   mockRunInteractive.mockResolvedValue(buildTestConfig());
   mockFindResourcesDir.mockReturnValue("/mock/resources");
   mockValidateStack.mockReturnValue([]);
+  mockCheckExistingArtifacts.mockReturnValue({
+    hasConflicts: false, conflictDirs: [],
+  });
 
   exitSpy = vi.spyOn(process, "exit").mockImplementation(
     (() => undefined) as never,
@@ -384,6 +407,110 @@ describe("generate command", () => {
   });
 });
 
+describe("overwrite protection", () => {
+  it("generate_withForce_passesForceToHandler", async () => {
+    await parseCli([
+      "generate", "--config", configFilePath, "--force",
+    ]);
+
+    expect(mockRunPipeline).toHaveBeenCalled();
+  });
+
+  it("generate_withoutForce_defaultsToFalse", async () => {
+    await parseCli(["generate", "--config", configFilePath]);
+
+    expect(mockRunPipeline).toHaveBeenCalled();
+  });
+
+  it("generate_emptyDir_withoutForce_proceedsNormally", async () => {
+    mockCheckExistingArtifacts.mockReturnValue({
+      hasConflicts: false, conflictDirs: [],
+    });
+
+    await parseCli([
+      "generate", "--config", configFilePath,
+      "--output-dir", tmpDir,
+    ]);
+
+    expect(mockRunPipeline).toHaveBeenCalled();
+    expect(exitSpy).not.toHaveBeenCalledWith(1);
+  });
+
+  it("generate_withoutForce_existingArtifacts_showsConflictError", async () => {
+    mockCheckExistingArtifacts.mockReturnValue({
+      hasConflicts: true,
+      conflictDirs: [".claude/", ".github/"],
+    });
+
+    await parseCli([
+      "generate", "--config", configFilePath,
+      "--output-dir", tmpDir,
+    ]);
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "existing generated artifacts",
+      ),
+    );
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    expect(mockRunPipeline).not.toHaveBeenCalled();
+  });
+
+  it("generate_withForce_existingArtifacts_proceedsNormally", async () => {
+    mockCheckExistingArtifacts.mockReturnValue({
+      hasConflicts: true,
+      conflictDirs: [".claude/", ".github/"],
+    });
+
+    await parseCli([
+      "generate", "--config", configFilePath,
+      "--output-dir", tmpDir, "--force",
+    ]);
+
+    expect(mockRunPipeline).toHaveBeenCalled();
+    expect(exitSpy).not.toHaveBeenCalledWith(1);
+  });
+
+  it("generate_dryRun_existingArtifacts_skipsOverwriteCheck", async () => {
+    mockCheckExistingArtifacts.mockReturnValue({
+      hasConflicts: true,
+      conflictDirs: [".claude/"],
+    });
+
+    await parseCli([
+      "generate", "--config", configFilePath,
+      "--output-dir", tmpDir, "--dry-run",
+    ]);
+
+    expect(mockRunPipeline).toHaveBeenCalledWith(
+      expect.any(ProjectConfig),
+      "/mock/resources",
+      tmpDir,
+      true,
+    );
+    expect(mockCheckExistingArtifacts).not.toHaveBeenCalled();
+  });
+
+  it("generate_conflictError_listsConflictingDirectories", async () => {
+    mockCheckExistingArtifacts.mockReturnValue({
+      hasConflicts: true,
+      conflictDirs: [".claude/", ".github/", "docs/"],
+    });
+
+    await parseCli([
+      "generate", "--config", configFilePath,
+      "--output-dir", tmpDir,
+    ]);
+
+    const allErrors = errorSpy.mock.calls
+      .map((c) => String(c[0])).join("\n");
+    expect(allErrors).toContain(".claude/");
+    expect(allErrors).toContain(".github/");
+    expect(allErrors).toContain("docs/");
+    expect(allErrors).toContain("--force");
+  });
+});
+
 describe("validate command", () => {
   it("validate_validConfig_printsValidMessage", async () => {
     mockValidateStack.mockReturnValue([]);
@@ -510,6 +637,7 @@ describe("CLI help and version", () => {
     expect(help).toContain("--resources-dir");
     expect(help).toContain("--verbose");
     expect(help).toContain("--dry-run");
+    expect(help).toContain("--force");
   });
 
   it("cli_validateHelp_showsAllOptions", () => {
