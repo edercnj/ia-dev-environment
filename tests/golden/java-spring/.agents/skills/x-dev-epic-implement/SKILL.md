@@ -250,13 +250,18 @@ into the epic branch, ordered by critical path priority (RULE-007).
       - Dispatch conflict resolution subagent (see Section 1.4c)
       - If resolution succeeds: commit merge, update checkpoint as SUCCESS
       - If resolution fails: mark story as FAILED, trigger failure handling
-4. For stories with `status: "FAILED"` from subagent dispatch:
+4. For stories with `status: "FAILED"` or `PARTIAL` from subagent dispatch:
    - Do NOT attempt merge
-   - Delegate to failure handling (retry + block propagation per story-0005-0007)
+   - Persist failure to checkpoint before delegating:
+     `updateStoryStatus(epicDir, storyId, { status: "FAILED", summary, lastAttemptSha })`
+     (RULE-002). This MUST move the story out of `IN_PROGRESS` so it is not left stuck
+     in the checkpoint from the 1.4a dispatch phase.
+   - Then delegate to failure handling (retry + block propagation per story-0005-0007)
 
 **Checkpoint Timing (RULE-002):** The checkpoint is updated after each individual
-merge operation, ensuring atomic persistence. If the orchestrator crashes mid-merge,
-the checkpoint reflects the last successfully merged story.
+merge operation or explicit failure-status update, ensuring atomic persistence.
+If the orchestrator crashes mid-merge, the checkpoint reflects the last successfully
+merged or explicitly failed story.
 
 ### 1.4c Conflict Resolution Subagent
 

@@ -501,9 +501,9 @@ describe("x-dev-epic-implement SKILL.md — Parallel Execution (story-0005-0010)
     });
 
     it("skillMd_phase1_extensionPoint0010_removedFromList", () => {
-      const extPoints = phase1.slice(
-        phase1.indexOf("Extension Points"),
-      );
+      const extIdx = phase1.indexOf("Extension Points");
+      expect(extIdx).toBeGreaterThanOrEqual(0);
+      const extPoints = phase1.slice(extIdx);
       expect(extPoints).not.toMatch(
         /\[Placeholder.*parallel.*story-0005-0010\]/i,
       );
@@ -565,10 +565,9 @@ describe("x-dev-epic-implement SKILL.md — Parallel Execution (story-0005-0010)
 
     it("skillMd_phase1_conflictResolution_containsSuccessAndFailure", () => {
       const parallelContent = extractParallelSections();
-      if (parallelContent.length === 0) {
-        expect(phase1).toMatch(/conflict/i);
-      }
-      expect(phase1).toMatch(/irresol|FAILED|fail/i);
+      expect(parallelContent.length).toBeGreaterThan(0);
+      expect(parallelContent).toMatch(/conflict/i);
+      expect(parallelContent).toMatch(/irresol|FAILED|fail/i);
     });
   });
 

@@ -101,8 +101,8 @@ Sequential merge of worktree branches into epic branch, ordered by critical path
 2. For each: `git merge feat/epic-{epicId}-{storyId}` into epic branch
 3. On success: `updateStoryStatus(epicDir, storyId, { status: "SUCCESS", commitSha })` (RULE-002)
 4. On conflict: dispatch conflict resolution subagent (1.4c)
-5. FAILED stories from dispatch: skip merge, delegate to failure handling (story-0005-0007)
-6. Checkpoint updated after EACH merge, not in batch
+5. FAILED or PARTIAL stories from dispatch: do NOT merge; first persist result with `updateStoryStatus(epicDir, storyId, { status: "FAILED" | "PARTIAL", summary, lastAttemptSha })`, then delegate to failure handling (story-0005-0007)
+6. Checkpoint updated after EACH merge or FAILED/PARTIAL status update, not in batch
 
 ### 1.4c Conflict Resolution Subagent
 
