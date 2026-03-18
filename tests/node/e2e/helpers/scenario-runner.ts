@@ -54,7 +54,24 @@ export interface ScenarioResult {
   readonly parsedMap: ParsedMap;
 }
 
-function toDomainState(state: ExecutionState): DomainExecutionState {
+interface StoryContext {
+  readonly epicDir: string;
+  readonly storyId: string;
+  readonly phase: number;
+  readonly storyIndex: number;
+  readonly storiesTotal: number;
+  readonly config: ScenarioConfig;
+  readonly parsedMap: ParsedMap;
+  readonly reporter: ReturnType<typeof createProgressReporter>;
+}
+
+const GATE_TEST_COUNT = 42;
+const GATE_COVERAGE = 98.5;
+const GATE_BRANCH_COVERAGE = 95;
+
+function toDomainState(
+  state: ExecutionState,
+): DomainExecutionState {
   const stories: Record<
     string,
     { readonly status: DomainStoryStatus }
@@ -87,116 +104,184 @@ async function initCheckpoint(
     }
     return;
   }
-  const storyInputs = Array.from(parsedMap.stories.entries()).map(
-    ([id, node]) => ({ id, phase: node.phase }),
-  );
+  const storyInputs = Array.from(
+    parsedMap.stories.entries(),
+  ).map(([id, node]) => ({ id, phase: node.phase }));
   await createCheckpoint(epicDir, {
     epicId: EPIC_ID,
     branch: BRANCH,
     stories: storyInputs,
-    mode: { parallel: config.parallel ?? false, skipReview: false },
+    mode: {
+      parallel: config.parallel ?? false,
+      skipReview: false,
+    },
   });
 }
 
-async function processStory(
-  epicDir: string,
-  storyId: string,
-  phase: number,
-  storyIndex: number,
-  storiesTotal: number,
-  config: ScenarioConfig,
-  parsedMap: ParsedMap,
-  reporter: ReturnType<typeof createProgressReporter>,
+async function handleFailure(
+  ctx: StoryContext,
+  startMs: number,
+  retries: number,
+  result: { summary: string; findingsCount: number },
 ): Promise<void> {
-  await reporter.emit({
-    type: "STORY_START",
-    storyId,
-    phase,
-    storyIndex,
-    storiesTotal,
+  await updateStoryStatus(ctx.epicDir, ctx.storyId, {
+    status: StoryStatus.FAILED,
+    retries,
+    summary: result.summary,
+    findingsCount: result.findingsCount,
   });
-  await updateStoryStatus(epicDir, storyId, {
+  await ctx.reporter.emit({
+    type: "STORY_COMPLETE",
+    storyId: ctx.storyId,
+    status: "FAILED",
+    durationMs: Date.now() - startMs,
+  });
+  const blockResult = propagateBlocks(
+    ctx.storyId,
+    ctx.parsedMap.stories,
+  );
+  for (const blocked of blockResult.blockedStories) {
+    await updateStoryStatus(ctx.epicDir, blocked.storyId, {
+      status: StoryStatus.BLOCKED,
+      blockedBy: blocked.blockedBy,
+    });
+  }
+  if (blockResult.blockedStories.length > 0) {
+    await ctx.reporter.emit({
+      type: "BLOCK",
+      storyId: ctx.storyId,
+      blockedStories: blockResult.blockedStories.map(
+        (b) => b.storyId,
+      ),
+    });
+  }
+}
+
+async function processStory(ctx: StoryContext): Promise<void> {
+  await ctx.reporter.emit({
+    type: "STORY_START",
+    storyId: ctx.storyId,
+    phase: ctx.phase,
+    storyIndex: ctx.storyIndex,
+    storiesTotal: ctx.storiesTotal,
+  });
+  await updateStoryStatus(ctx.epicDir, ctx.storyId, {
     status: StoryStatus.IN_PROGRESS,
   });
 
   const startMs = Date.now();
-  let result = config.mockDispatch.dispatch(storyId);
+  let result = ctx.config.mockDispatch.dispatch(ctx.storyId);
   let retries = 0;
 
   while (result.status === "FAILED") {
     const decision = evaluateRetry(
-      storyId,
+      ctx.storyId,
       retries,
       result.summary,
       BRANCH,
     );
     if (!decision.shouldRetry) {
-      await updateStoryStatus(epicDir, storyId, {
-        status: StoryStatus.FAILED,
-        retries,
-        summary: result.summary,
-        findingsCount: result.findingsCount,
-      });
-      await reporter.emit({
-        type: "STORY_COMPLETE",
-        storyId,
-        status: "FAILED",
-        durationMs: Date.now() - startMs,
-      });
-      const blockResult = propagateBlocks(storyId, parsedMap.stories);
-      for (const blocked of blockResult.blockedStories) {
-        await updateStoryStatus(epicDir, blocked.storyId, {
-          status: StoryStatus.BLOCKED,
-          blockedBy: blocked.blockedBy,
-        });
-      }
-      if (blockResult.blockedStories.length > 0) {
-        await reporter.emit({
-          type: "BLOCK",
-          storyId,
-          blockedStories: blockResult.blockedStories.map(
-            (b) => b.storyId,
-          ),
-        });
-      }
+      await handleFailure(ctx, startMs, retries, result);
       return;
     }
     retries++;
-    await reporter.emit({
+    await ctx.reporter.emit({
       type: "RETRY",
-      storyId,
+      storyId: ctx.storyId,
       retryNumber: retries,
       maxRetries: MAX_RETRIES,
       previousError: result.summary,
     });
-    result = config.mockDispatch.dispatch(storyId);
+    result = ctx.config.mockDispatch.dispatch(ctx.storyId);
   }
 
-  await updateStoryStatus(epicDir, storyId, {
+  await updateStoryStatus(ctx.epicDir, ctx.storyId, {
     status: StoryStatus.SUCCESS,
     retries,
     commitSha: result.commitSha,
     findingsCount: result.findingsCount,
     summary: result.summary,
   });
-  await reporter.emit({
+  await ctx.reporter.emit({
     type: "STORY_COMPLETE",
-    storyId,
+    storyId: ctx.storyId,
     status: "SUCCESS",
     durationMs: Date.now() - startMs,
     commitSha: result.commitSha,
   });
 }
 
+async function executePhase(
+  epicDir: string,
+  phase: number,
+  config: ScenarioConfig,
+  parsedMap: ParsedMap,
+  reporter: ReturnType<typeof createProgressReporter>,
+): Promise<void> {
+  const phaseStoryIds = parsedMap.phases.get(phase) ?? [];
+  await reporter.emit({
+    type: "PHASE_START",
+    phase,
+    totalPhases: parsedMap.totalPhases,
+    phaseName: `Phase ${phase}`,
+    storiesCount: phaseStoryIds.length,
+  });
+
+  const state = await readCheckpoint(epicDir);
+  const executable = getExecutableStories(
+    parsedMap,
+    toDomainState(state),
+  ).filter((id) => phaseStoryIds.includes(id));
+
+  let storyIndex = 0;
+  for (const storyId of executable) {
+    storyIndex++;
+    await processStory({
+      epicDir,
+      storyId,
+      phase,
+      storyIndex,
+      storiesTotal: phaseStoryIds.length,
+      config,
+      parsedMap,
+      reporter,
+    });
+  }
+
+  await updateIntegrityGate(epicDir, phase, {
+    status: "PASS",
+    testCount: GATE_TEST_COUNT,
+    coverage: GATE_COVERAGE,
+    branchCoverage: GATE_BRANCH_COVERAGE,
+  });
+  await reporter.emit({
+    type: "GATE_RESULT",
+    phase,
+    status: "PASS",
+    testCount: GATE_TEST_COUNT,
+    coverage: GATE_COVERAGE,
+  });
+}
+
+function countByStatus(
+  state: ExecutionState,
+  status: string,
+): number {
+  return Object.values(state.stories).filter(
+    (s) => s.status === status,
+  ).length;
+}
+
 export async function runScenario(
   config: ScenarioConfig,
 ): Promise<ScenarioResult> {
-  const tmpDir = mkdtempSync(join(tmpdir(), "e2e-orchestrator-"));
+  const tmpDir = mkdtempSync(
+    join(tmpdir(), "e2e-orchestrator-"),
+  );
   const epicDir = join(tmpDir, `epic-${EPIC_ID}`);
   mkdirSync(epicDir, { recursive: true });
 
   const parsedMap = parseImplementationMap(config.mapContent);
-
   await initCheckpoint(epicDir, config, parsedMap);
 
   const output: string[] = [];
@@ -210,74 +295,29 @@ export async function runScenario(
   const phases =
     config.phaseFilter !== undefined
       ? [config.phaseFilter]
-      : Array.from({ length: parsedMap.totalPhases }, (_, i) => i);
+      : Array.from(
+          { length: parsedMap.totalPhases },
+          (_, i) => i,
+        );
 
   for (const phase of phases) {
-    const phaseStoryIds = parsedMap.phases.get(phase) ?? [];
-    await reporter.emit({
-      type: "PHASE_START",
-      phase,
-      totalPhases: parsedMap.totalPhases,
-      phaseName: `Phase ${phase}`,
-      storiesCount: phaseStoryIds.length,
-    });
-
-    const state = await readCheckpoint(epicDir);
-    const executable = getExecutableStories(
-      parsedMap,
-      toDomainState(state),
-    ).filter((id) => phaseStoryIds.includes(id));
-
-    let storyIndex = 0;
-    for (const storyId of executable) {
-      storyIndex++;
-      await processStory(
-        epicDir,
-        storyId,
-        phase,
-        storyIndex,
-        phaseStoryIds.length,
-        config,
-        parsedMap,
-        reporter,
-      );
-    }
-
-    await updateIntegrityGate(epicDir, phase, {
-      status: "PASS",
-      testCount: 42,
-      coverage: 98.5,
-      branchCoverage: 95,
-    });
-    await reporter.emit({
-      type: "GATE_RESULT",
-      phase,
-      status: "PASS",
-      testCount: 42,
-      coverage: 98.5,
-    });
+    await executePhase(epicDir, phase, config, parsedMap, reporter);
   }
 
   const finalState = await readCheckpoint(epicDir);
-  const stories = Object.values(finalState.stories);
-  const successCount = stories.filter(
-    (s) => s.status === StoryStatus.SUCCESS,
-  ).length;
-  const failedCount = stories.filter(
-    (s) => s.status === StoryStatus.FAILED,
-  ).length;
-  const blockedCount = stories.filter(
-    (s) => s.status === StoryStatus.BLOCKED,
-  ).length;
+  const totalRetries = Object.values(finalState.stories).reduce(
+    (sum, s) => sum + s.retries,
+    0,
+  );
 
   await reporter.emit({
     type: "EPIC_COMPLETE",
-    storiesCompleted: successCount,
-    storiesTotal: stories.length,
-    storiesFailed: failedCount,
-    storiesBlocked: blockedCount,
+    storiesCompleted: countByStatus(finalState, StoryStatus.SUCCESS),
+    storiesTotal: Object.keys(finalState.stories).length,
+    storiesFailed: countByStatus(finalState, StoryStatus.FAILED),
+    storiesBlocked: countByStatus(finalState, StoryStatus.BLOCKED),
     elapsedMs: reporter.getElapsedMs(),
-    retryCount: stories.reduce((sum, s) => sum + s.retries, 0),
+    retryCount: totalRetries,
   });
 
   return {
