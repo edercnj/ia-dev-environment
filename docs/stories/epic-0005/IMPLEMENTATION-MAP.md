@@ -17,7 +17,7 @@
 | story-0005-0007 | Failure Handling — Retry + Block Propagation | story-0005-0005 | story-0005-0010, story-0005-0014 | Pendente |
 | story-0005-0008 | Resumability (`--resume`) | story-0005-0001, story-0005-0005 | story-0005-0014 | Concluída |
 | story-0005-0009 | Partial Execution (`--phase N`, `--story`) | story-0005-0005 | story-0005-0014 | Pendente |
-| story-0005-0010 | Parallel Execution with Worktrees | story-0005-0005, story-0005-0007 | story-0005-0014 | Pendente |
+| story-0005-0010 | Parallel Execution with Worktrees | story-0005-0005, story-0005-0007 | story-0005-0014 | Concluída |
 | story-0005-0011 | Consolidação Final — Review + Report + PR | story-0005-0002, story-0005-0005 | story-0005-0014 | Pendente |
 | story-0005-0012 | Dry-run Mode (`--dry-run`) | story-0005-0004 | story-0005-0014 | Pendente |
 | story-0005-0013 | Progress Reporting + Execution Metrics | story-0005-0005 | story-0005-0014 | Concluída |
