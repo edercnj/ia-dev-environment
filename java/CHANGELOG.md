@@ -19,10 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Codex configuration and agents
   - CI/CD workflows, Dockerfiles, docker-compose, Kubernetes manifests
   - Documentation templates (stories, epics, ADRs, threat models)
-- 9 bundled stack profiles:
+- 8 bundled stack profiles:
   - go-gin, java-quarkus, java-spring, kotlin-ktor
-  - python-click-cli, python-fastapi, rust-axum
-  - typescript-nestjs, typescript-commander-cli
+  - python-click-cli, python-fastapi, rust-axum, typescript-nestjs
 - Stack validation with language-framework compatibility checks
 - Path security: rejects dangerous output paths (home dir, root, etc.)
 - Overwrite detection: warns when output directories already exist

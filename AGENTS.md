@@ -79,6 +79,13 @@ adapter.inbound → application → domain ← adapter.outbound
 - Wildcard imports
 - `sleep()` for synchronization
 
+### TDD Practices
+
+- **Red-Green-Refactor** is mandatory for all production code
+- Refactoring criteria: extract method when > 25 lines, eliminate duplication, improve naming
+- Refactoring NEVER adds behavior
+- Full TDD reference: `skills/testing/SKILL.md`
+
 ### Language-Specific
 
 Follow typescript 5 idiomatic conventions for formatting, constructor injection, and mapper patterns.
@@ -112,6 +119,17 @@ Follow typescript 5 idiomatic conventions for formatting, constructor injection,
 - [ ] Coverage ≥ 95% line, ≥ 90% branch
 - [ ] Zero compiler/linter warnings
 - [ ] Security review for sensitive changes
+- [ ] Commits show test-first pattern (test precedes implementation in git log)
+- [ ] Explicit refactoring after green
+- [ ] Tests are incremental (simple to complex via TPP)
+- [ ] Tests precede or accompany implementation (no test-after in later commits)
+- [ ] Acceptance tests exist and validate end-to-end behavior
+
+### TDD Compliance
+
+- **Double-Loop TDD**: Outer loop (acceptance test) drives inner loop (unit tests)
+- **TPP**: Order tests from simple to complex
+- **Atomic TDD commits**: Each cycle produces atomic commits
 
 ## Conventions
 
@@ -156,17 +174,21 @@ Follow typescript 5 idiomatic conventions for formatting, constructor injection,
 | security | Complete security reference: OWASP Top 10, security headers, secrets management, input validation, cryptography (TLS, hashing, key management), and pentest readiness checklist. Read during security reviews or when implementing security-sensitive features. |
 | story-planning | Story decomposition and planning: layer-by-layer decomposition (foundation, core domain, extensions, compositions, cross-cutting), story self-containment (data contracts, acceptance criteria), dependency DAG, sizing rules, and phase computation. |
 | testing | Complete testing reference: testing philosophy, 8 test categories, coverage thresholds, fixture patterns, data uniqueness, async handling, database strategy, and {{LANGUAGE}}-specific test frameworks. Read before writing tests. |
-| x-dev-implement | Implements a feature/story following project conventions. Delegates preparation to a subagent that reads architecture and coding KPs, then implements layer-by-layer with intermediate compilation checks. |
+| x-dev-adr-automation | Automates ADR generation from architecture plan mini-ADRs: extracts inline decisions, expands to full ADR format, assigns sequential numbering, updates the ADR index, and adds cross-references. |
+| x-dev-arch-update | Incrementally updates the service architecture document with changes from architecture plans. Adds new components, integrations, flows, and ADR references without rewriting existing content. Use after implementation to keep architecture documentation current. |
+| x-dev-architecture-plan | Generates a comprehensive architecture plan with component diagrams, sequence diagrams, deployment topology, mini-ADRs, NFRs, and resilience/observability strategies. Use before implementation to document design decisions. |
+| x-dev-epic-implement | Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents. |
+| x-dev-implement | Implements a feature/story using TDD (Red-Green-Refactor) workflow. Delegates preparation to a subagent that reads architecture, coding, and test plan KPs, then implements test-first with Double-Loop TDD, layer-by-layer with compile checks after each cycle. |
 | x-dev-lifecycle | Orchestrates the complete feature implementation cycle: branch creation, planning, task decomposition, implementation, parallel review, fixes, PR creation, and final verification. Delegates heavy phases to subagents for context efficiency. |
 | x-git-push | Git operations: branch creation, atomic commits (Conventional Commits), push, and PR creation. Use for any git workflow task including branching, committing, pushing, creating PRs, or managing version control. |
 | x-ops-troubleshoot | Diagnoses errors, stacktraces, build failures, and unexpected behavior. Systematic approach: reproduce, locate, understand, fix, verify. Use whenever something fails: compilation errors, test failures, runtime exceptions, coverage gaps, or performance issues. |
 | x-review | Parallel code review with specialist engineers (Security, QA, Performance, Database, Observability, DevOps, API, Event). Launches parallel subagents, each reading their own knowledge pack, then consolidates into a scored report. Use for pre-PR quality validation. |
-| x-review-pr | Tech Lead holistic review with 40-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge. |
+| x-review-pr | Tech Lead holistic review with 45-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, TDD process, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge. |
 | x-story-create | Generate detailed User Story files from an Epic and system specification. This skill reads an Epic file (with its story index and rules table) and the original system spec, then produces one file per story with full data contracts, Gherkin acceptance criteria, Mermaid sequence diagrams, dependency declarations, and tagged sub-tasks. Use this skill whenever the user asks to create stories, generate user stories from an epic, detail stories with acceptance criteria, write Gherkin scenarios for a spec, create story files with data contracts, or any variation of "generate stories from this epic/spec". Also trigger when the user mentions writing acceptance criteria, detailing technical stories, creating story files with contracts and diagrams, or breaking an epic into implementable stories — even if they don't use the word "story" explicitly. |
 | x-story-epic | Generate an Epic document from a system specification file. This skill reads a technical spec (following the _TEMPLATE.md format) and produces an Epic file with cross-cutting business rules, global quality definitions (DoR/DoD), and a complete story index with dependency declarations. Use this skill whenever the user asks to create an epic, generate an epic from a spec, extract business rules from a system document, decompose a specification into an epic, build a story index, or any variation of "read this spec and create an epic". Also trigger when the user mentions extracting cross-cutting rules, defining quality gates for a project, or building a story backlog from a technical document — even if they don't use the word "epic" explicitly. |
 | x-story-epic-full | Complete decomposition of a system specification into an Epic, individual Story files, and an Implementation Map with dependency graph and phased execution plan. This is the orchestrator skill that guides the full workflow: spec analysis, rule extraction, story identification, and implementation planning. Use this skill whenever the user asks to decompose a spec into stories and epic, break down a system document into implementable work items, generate a complete project backlog from a specification, create epic stories and implementation plan from a technical document, or any variation of "read this spec and create everything". Also trigger when the user wants the full decomposition pipeline — epic + stories + map — in a single pass, or mentions planning the complete implementation of a system from its specification. Prefer this skill over the individual x-story-epic, x-story-create, or x-story-map skills when the user wants all three deliverables. |
 | x-story-map | Generate an Implementation Map from an Epic and its Stories. This skill computes implementation phases from the dependency graph, identifies the critical path, produces ASCII phase diagrams, Mermaid dependency graphs, and strategic observations about bottlenecks and parallelism. Use this skill whenever the user asks to create an implementation map, generate a dependency graph, compute implementation phases, identify the critical path, plan implementation order, build a phase diagram from stories, or any variation of "create a plan from these stories". Also trigger when the user mentions sequencing stories, finding bottlenecks in a backlog, computing parallel work streams, or building a roadmap from an epic — even if they don't use the phrase "implementation map" explicitly. |
-| x-test-plan | Generates a comprehensive test plan before implementation. Delegates KP reading to a context-gathering subagent, then produces structured test scenarios covering unit, integration, API, E2E, contract, and performance tests. |
+| x-test-plan | Generates a Double-Loop TDD test plan with TPP-ordered scenarios before implementation. Delegates KP reading to a context-gathering subagent, then produces structured Acceptance Tests (outer loop) and Unit Tests in Transformation Priority Premise order (inner loop). |
 | x-test-run | Runs tests with coverage reporting and threshold validation. Use whenever writing, running, or analyzing tests. Triggers on: test, coverage, TDD, unit test, integration test, test failure, coverage gap, or Definition of Done validation. |
 
 

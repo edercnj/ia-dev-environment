@@ -21,12 +21,12 @@ Standardizes the Git workflow for {{PROJECT_NAME}}. Every feature starts with a 
 
 ```
 main (stable, always green)
-  +-- feat/STORY-NNN-short-description
+  +-- feat/story-XXXX-YYYY-short-description
 ```
 
 ### Branch Naming
 
-**Pattern:** `feat/STORY-NNN-short-kebab-description`
+**Pattern:** `feat/story-XXXX-YYYY-short-kebab-description`
 
 **Rules:**
 - Always prefix with `feat/` (or `fix/`, `refactor/` as appropriate)
@@ -39,7 +39,7 @@ main (stable, always green)
 ```bash
 git checkout main
 git pull origin main
-git checkout -b feat/STORY-NNN-description
+git checkout -b feat/story-XXXX-YYYY-description
 ```
 
 ## Commit Convention (Conventional Commits)
@@ -85,7 +85,7 @@ Use the module, package, or component name as scope. Define project-specific sco
 ```bash
 git checkout main
 git pull origin main
-git checkout -b feat/STORY-NNN-description
+git checkout -b feat/story-XXXX-YYYY-description
 git status
 ```
 
@@ -110,7 +110,7 @@ git log --oneline main..HEAD
 git diff main...HEAD --stat
 
 # 3. Push
-git push -u origin feat/STORY-NNN-description
+git push -u origin feat/story-XXXX-YYYY-description
 ```
 
 ## Pull Request
@@ -119,7 +119,7 @@ git push -u origin feat/STORY-NNN-description
 
 ```bash
 gh pr create \
-  --title "feat(scope): implement STORY-NNN -- title" \
+  --title "feat(scope): implement story-XXXX-YYYY -- title" \
   --body "$(cat <<'EOF'
 ## Summary
 <1-3 bullet points describing what was built>
@@ -134,7 +134,7 @@ EOF
 
 ### PR Title Convention
 
-- **Format:** `feat(scope): implement STORY-NNN -- short title`
+- **Format:** `feat(scope): implement story-XXXX-YYYY -- short title`
 - **Max length:** 70 characters
 
 ### Useful Commands
@@ -152,6 +152,43 @@ gh pr merge <number> --squash --delete-branch
 git tag -a v0.1.0 -m "Milestone description"
 git push origin v0.1.0
 ```
+
+## TDD Commit Format
+
+When following TDD, use these commit format variants:
+
+| Format | When to use |
+| ------ | ----------- |
+| `feat(scope): implement [behavior] [TDD]` | **Recommended default.** Complete Red-Green(-Refactor) cycle in one commit: test + implementation (+ trivial refactor) |
+| `test(scope): add test for [behavior] [TDD:RED]` | **Optional, fine-grained.** Test-only Red phase; must be paired with a `[TDD:GREEN]` commit before push |
+| `feat(scope): implement [behavior] [TDD:GREEN]` | **Optional, fine-grained.** Implementation-only Green phase; must immediately follow a paired `[TDD:RED]` commit |
+| `refactor(scope): [improvement] [TDD:REFACTOR]` | **Optional.** Non-trivial refactor-only commit (no new behavior), immediately after the corresponding Green commit |
+
+The combined format `[TDD]` is the **recommended default** for most work: one green commit per complete Red-Green(-Refactor) cycle. Use the separate `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]` tags **only** when you need finer granularity in the git history, and always keep RED/GREEN commits paired (no orphaned test-only commits on shared branches).
+
+TDD tags are **additive suffixes** -- they do not replace the Conventional Commits type. All existing types (`feat`, `test`, `fix`, `refactor`, `docs`, `build`, `chore`, `infra`) remain valid.
+
+## Atomic TDD Commit Rules
+
+1. **Default: one combined commit per Red-Green-Refactor cycle** -- use the `[TDD]` suffix for a complete cycle in a single commit
+2. **Test and implementation in the SAME commit** -- RED-only `[TDD:RED]` commits are allowed locally for fine-grained work, but must be paired with a corresponding `[TDD:GREEN]` commit before push (no orphaned test-only commits on shared branches)
+3. **Refactoring may be a separate commit for non-trivial changes** -- use `[TDD:REFACTOR]` immediately after the Green commit, adding no new behavior
+4. **Each commit adds ONE testable behavior** -- keep changes focused and reviewable
+5. **Maximum ~50 lines changed per commit** -- larger commits should be split into smaller TDD cycles
+
+## Git History Storytelling
+
+The sequence of commits should tell the story of TDD progression from simple to complex:
+
+1. **First commit:** acceptance test + test infrastructure setup
+2. **Following commits:** incremental unit tests following Transformation Priority Premise (TPP) order
+   - Degenerate / nil cases first
+   - Constants, then variables
+   - Simple conditionals, then iterations
+   - Complex / composition cases last
+3. **Final commits:** refactoring and polish (no new behavior)
+
+The git log should read as a **progression from the simplest case to the most complex**, making the development process transparent and reviewable.
 
 ## Integration Notes
 

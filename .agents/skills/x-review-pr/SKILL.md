@@ -1,6 +1,6 @@
 ---
 name: x-review-pr
-description: "Tech Lead holistic review with 40-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge."
+description: "Tech Lead holistic review with 45-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, TDD process, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[PR-number or STORY-ID]"
 ---
@@ -15,7 +15,7 @@ argument-hint: "[PR-number or STORY-ID]"
 
 ## Description
 
-Senior-level holistic review with a 40-point rubric. This is the standalone version of Phase 6 from the x-dev-lifecycle. The Tech Lead reviews the consolidated PR diff for cross-file consistency and overall quality.
+Senior-level holistic review with a 45-point rubric. This is the standalone version of Phase 6 from the x-dev-lifecycle. The Tech Lead reviews the consolidated PR diff for cross-file consistency and overall quality.
 
 ## Triggers
 
@@ -51,11 +51,12 @@ Read knowledge packs to calibrate the review:
 - `skills/coding-standards/references/coding-conventions.md` — {{LANGUAGE}} naming, injection, mapper conventions
 - `skills/architecture/references/architecture-principles.md` — layer boundaries, dependency direction
 - `rules/05-quality-gates.md` — coverage thresholds, merge checklist
+- `skills/testing/references/testing-philosophy.md` — TDD workflow, Double-Loop TDD, TPP ordering
 
-Check for existing artifacts:
-- Specialist review reports (`docs/reviews/STORY-ID-*.md`)
-- Implementation plan (`docs/plans/STORY-ID-plan.md`)
-- Test plan (`docs/plans/STORY-ID-tests.md`)
+Check for existing artifacts (extract epic ID XXXX and story sequence YYYY from story ID):
+- Specialist review reports (`docs/stories/epic-XXXX/reviews/review-*-story-XXXX-YYYY.md`)
+- Implementation plan (`docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`)
+- Test plan (`docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`)
 - Common mistakes document
 
 ### Step 3 -- Execute Tech Lead Review
@@ -64,12 +65,12 @@ The Tech Lead review covers:
 
 1. List ALL modified files: `git diff [BASE_BRANCH] --name-only`
 2. View FULL diff: `git diff [BASE_BRANCH]`
-3. For EACH source file, read FULL content and apply 40-point checklist
+3. For EACH source file, read FULL content and apply 45-point checklist
 4. Focus on CROSS-FILE issues (inconsistencies, cross imports, repeated patterns)
 5. Compile and verify: `{{COMPILE_COMMAND}}` + `{{BUILD_COMMAND}}`
 6. If specialist reports exist, verify CRITICAL issues were fixed
 
-## 40-Point Rubric
+## 45-Point Rubric
 
 | Section                  | Points | What it checks                                                      |
 | ------------------------ | ------ | ------------------------------------------------------------------- |
@@ -83,13 +84,14 @@ The Tech Lead review covers:
 | H. Framework & Infra     | 4      | DI, externalized config, native-compatible, observability           |
 | I. Tests                 | 3      | Coverage thresholds, scenarios covered, test quality                |
 | J. Security & Production | 1      | Sensitive data protected, thread-safe                               |
+| K. TDD Process           | 5      | Test-first commits, Double-Loop TDD, TPP progression, atomic cycles |
 
 ## Decision Criteria
 
 | Condition                   | Decision        |
 | --------------------------- | --------------- |
-| 40/40 + zero issues         | GO              |
-| < 40/40 OR any issue        | NO-GO           |
+| 45/45 + zero issues         | GO              |
+| < 45/45 OR any issue        | NO-GO           |
 
 ### Step 4 -- Process Result
 
@@ -98,12 +100,12 @@ The Tech Lead review covers:
  TECH LEAD REVIEW -- [STORY_ID]
 ============================================================
  Decision:  GO | NO-GO
- Score:     XX/40
+ Score:     XX/45
  Critical:  N issues
  Medium:    N issues
  Low:       N issues
 ------------------------------------------------------------
- Report: docs/reviews/[STORY_ID]-tech-lead.md
+ Report: docs/stories/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md
 ============================================================
 ```
 
@@ -118,7 +120,7 @@ If fixing: apply corrections, commit, re-run review (max 2 cycles).
 
 ## Output Artifacts
 
-- `docs/reviews/STORY-ID-tech-lead.md`
+- `docs/stories/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md`
 
 ## Integration Notes
 
