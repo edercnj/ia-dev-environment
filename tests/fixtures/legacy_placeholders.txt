@@ -1,3 +1,0 @@
-Project: {project_name}
-Framework: {framework_name}
-DB: {database_name}

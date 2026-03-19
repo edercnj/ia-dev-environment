@@ -1,5 +1,0 @@
-# Header
-
-<!-- INSERT:rules -->
-
-# Footer

@@ -33,27 +33,22 @@ Thumbs.db
 *.tmp
 *.bak
 
-# Python (legacy)
-.venv/
-__pycache__/
-*.pyc
+# Java
+java/target/
+java/dependency-reduced-pom.xml
+*.class
+*.jar
+!java/lib/*.jar
 
-# Dependencies
-node_modules/
-
-# Build output
-dist/
-build/
-*.tsbuildinfo
+# Maven
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
 
 # Coverage
-coverage/
-coverage.json
+java/target/site/
+*.exec
 
-# Environment files
-.env
-.env.*
-.env.local
-
-# npm pack artifacts
-*.tgz
+# Test output
+test-output/
+test-output-ts/
+output/

@@ -1,3 +1,0 @@
-Project: my-service
-Framework: click
-DB: postgresql

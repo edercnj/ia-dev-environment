@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: my-spring-service-config
-  labels:
-    app: my-spring-service
-data:
-  APP_ENV: "production"
-  LOG_LEVEL: "info"

@@ -1,6 +1,0 @@
-  Leading spaces
-my-service
-
-Blank line above
-
-Trailing newline below
