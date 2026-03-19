@@ -378,11 +378,7 @@ public final class SkillsAssembler implements Assembler {
     }
 
     private static Path resolveClasspathResources() {
-        var url = SkillsAssembler.class.getClassLoader()
-                .getResource(SKILLS_TEMPLATES_DIR);
-        if (url == null) {
-            return Path.of("src/main/resources");
-        }
-        return Path.of(url.getPath()).getParent();
+        return dev.iadev.util.ResourceResolver
+                .resolveResourcesRoot(SKILLS_TEMPLATES_DIR);
     }
 }

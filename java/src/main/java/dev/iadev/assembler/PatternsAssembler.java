@@ -268,12 +268,8 @@ public final class PatternsAssembler implements Assembler {
     }
 
     private static Path resolveClasspathResources() {
-        var url = PatternsAssembler.class.getClassLoader()
-                .getResource(PATTERNS_DIR);
-        if (url == null) {
-            return Path.of("src/main/resources");
-        }
-        return Path.of(url.getPath()).getParent();
+        return dev.iadev.util.ResourceResolver
+                .resolveResourcesRoot(PATTERNS_DIR);
     }
 
     /**

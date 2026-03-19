@@ -263,11 +263,7 @@ public final class ProtocolsAssembler implements Assembler {
     }
 
     private static Path resolveClasspathResources() {
-        var url = ProtocolsAssembler.class.getClassLoader()
-                .getResource(PROTOCOLS_RES_DIR);
-        if (url == null) {
-            return Path.of("src/main/resources");
-        }
-        return Path.of(url.getPath()).getParent();
+        return dev.iadev.util.ResourceResolver
+                .resolveResourcesRoot(PROTOCOLS_RES_DIR);
     }
 }

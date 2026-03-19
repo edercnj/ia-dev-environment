@@ -437,12 +437,7 @@ public final class GithubInstructionsAssembler
     }
 
     private static Path resolveClasspathResources() {
-        var url = GithubInstructionsAssembler.class
-                .getClassLoader()
-                .getResource(TEMPLATES_DIR);
-        if (url == null) {
-            return Path.of("src/main/resources");
-        }
-        return Path.of(url.getPath()).getParent();
+        return dev.iadev.util.ResourceResolver
+                .resolveResourcesRoot(TEMPLATES_DIR);
     }
 }

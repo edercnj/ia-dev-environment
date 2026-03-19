@@ -428,11 +428,8 @@ public final class SettingsAssembler implements Assembler {
     }
 
     private static Path resolveClasspathResources() {
-        var url = SettingsAssembler.class.getClassLoader()
-                .getResource(SETTINGS_TEMPLATES_DIR);
-        if (url == null) {
-            return Path.of("src/main/resources");
-        }
-        return Path.of(url.getPath()).getParent();
+        return dev.iadev.util.ResourceResolver
+                .resolveResourcesRoot(
+                        SETTINGS_TEMPLATES_DIR);
     }
 }

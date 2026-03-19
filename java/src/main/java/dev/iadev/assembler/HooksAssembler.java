@@ -141,11 +141,7 @@ public final class HooksAssembler implements Assembler {
     }
 
     private static Path resolveClasspathResources() {
-        var url = HooksAssembler.class.getClassLoader()
-                .getResource(HOOKS_TEMPLATES_DIR);
-        if (url == null) {
-            return Path.of("src/main/resources");
-        }
-        return Path.of(url.getPath()).getParent();
+        return dev.iadev.util.ResourceResolver
+                .resolveResourcesRoot(HOOKS_TEMPLATES_DIR);
     }
 }

@@ -117,13 +117,7 @@ public final class GrpcDocsAssembler implements Assembler {
     }
 
     private static Path resolveClasspathResources() {
-        var url = GrpcDocsAssembler.class.getClassLoader()
-                .getResource(TEMPLATE_PATH);
-        if (url == null) {
-            return Path.of("src/main/resources");
-        }
-        // Go up 2 levels: file -> templates dir -> resources
-        return Path.of(url.getPath())
-                .getParent().getParent();
+        return dev.iadev.util.ResourceResolver
+                .resolveResourcesRoot(TEMPLATE_PATH, 2);
     }
 }

@@ -260,15 +260,10 @@ public final class DocsAdrAssembler implements Assembler {
     }
 
     private static Path resolveClasspathResources() {
-        var url = DocsAdrAssembler.class.getClassLoader()
-                .getResource(
+        return dev.iadev.util.ResourceResolver
+                .resolveResourcesRoot(
                         TEMPLATES_SUBDIR + "/"
-                                + TEMPLATE_FILENAME);
-        if (url == null) {
-            return Path.of("src/main/resources");
-        }
-        // Go up 2 levels: file -> templates dir -> resources
-        return Path.of(url.getPath())
-                .getParent().getParent();
+                                + TEMPLATE_FILENAME,
+                        2);
     }
 }

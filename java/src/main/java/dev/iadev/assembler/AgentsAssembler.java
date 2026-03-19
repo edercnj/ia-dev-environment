@@ -320,11 +320,7 @@ public final class AgentsAssembler implements Assembler {
     }
 
     private static Path resolveClasspathResources() {
-        var url = AgentsAssembler.class.getClassLoader()
-                .getResource(AGENTS_TEMPLATES_DIR);
-        if (url == null) {
-            return Path.of("src/main/resources");
-        }
-        return Path.of(url.getPath()).getParent();
+        return dev.iadev.util.ResourceResolver
+                .resolveResourcesRoot(AGENTS_TEMPLATES_DIR);
     }
 }

@@ -430,11 +430,7 @@ public final class RulesAssembler implements Assembler {
     }
 
     private static Path resolveClasspathResources() {
-        var url = RulesAssembler.class.getClassLoader()
-                .getResource("core-rules");
-        if (url == null) {
-            return Path.of("src/main/resources");
-        }
-        return Path.of(url.getPath()).getParent();
+        return dev.iadev.util.ResourceResolver
+                .resolveResourcesRoot("core-rules");
     }
 }

@@ -152,14 +152,10 @@ public final class EpicReportAssembler
     }
 
     private static Path resolveClasspathResources() {
-        var url = EpicReportAssembler.class.getClassLoader()
-                .getResource(
+        return dev.iadev.util.ResourceResolver
+                .resolveResourcesRoot(
                         TEMPLATES_SUBDIR + "/"
-                                + TEMPLATE_FILENAME);
-        if (url == null) {
-            return Path.of("src/main/resources");
-        }
-        return Path.of(url.getPath())
-                .getParent().getParent();
+                                + TEMPLATE_FILENAME,
+                        2);
     }
 }

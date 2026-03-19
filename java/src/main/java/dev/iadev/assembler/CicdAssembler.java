@@ -419,13 +419,8 @@ public final class CicdAssembler implements Assembler {
     }
 
     private static Path resolveClasspathResources() {
-        var url = CicdAssembler.class.getClassLoader()
-                .getResource(CICD_TEMPLATES);
-        if (url == null) {
-            return Path.of("src/main/resources");
-        }
-        // Go up 1 level: cicd-templates dir -> resources
-        return Path.of(url.getPath()).getParent();
+        return dev.iadev.util.ResourceResolver
+                .resolveResourcesRoot(CICD_TEMPLATES);
     }
 
     /**

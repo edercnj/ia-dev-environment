@@ -343,12 +343,7 @@ public final class GithubSkillsAssembler
     }
 
     private static Path resolveClasspathResources() {
-        var url = GithubSkillsAssembler.class
-                .getClassLoader()
-                .getResource(TEMPLATES_DIR);
-        if (url == null) {
-            return Path.of("src/main/resources");
-        }
-        return Path.of(url.getPath()).getParent();
+        return dev.iadev.util.ResourceResolver
+                .resolveResourcesRoot(TEMPLATES_DIR);
     }
 }

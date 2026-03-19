@@ -254,11 +254,8 @@ public final class ReadmeAssembler implements Assembler {
     }
 
     private static Path resolveClasspathResources() {
-        var url = ReadmeAssembler.class.getClassLoader()
-                .getResource("readme-template.md");
-        if (url == null) {
-            return Path.of("src/main/resources");
-        }
-        return Path.of(url.getPath()).getParent();
+        return dev.iadev.util.ResourceResolver
+                .resolveResourcesRoot(
+                        "readme-template.md");
     }
 }
