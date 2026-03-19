@@ -168,8 +168,10 @@ public final class AssemblerPipeline {
                         "EpicReportAssembler",
                         AssemblerTarget.ROOT,
                         new EpicReportAssembler()),
-                stub("ReadmeAssembler",
-                        AssemblerTarget.CLAUDE));
+                new AssemblerDescriptor(
+                        "ReadmeAssembler",
+                        AssemblerTarget.CLAUDE,
+                        new ReadmeAssembler()));
     }
 
     /**
@@ -297,12 +299,6 @@ public final class AssemblerPipeline {
             return new TemplateEngine(options.resourcesDir());
         }
         return new TemplateEngine();
-    }
-
-    private static AssemblerDescriptor stub(
-            String name, AssemblerTarget target) {
-        return new AssemblerDescriptor(
-                name, target, (c, e, p) -> List.of());
     }
 
     private static void deleteQuietly(Path dir) {
