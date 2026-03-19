@@ -56,7 +56,8 @@ public final class StackValidator {
      * @param config the project configuration
      * @return list of error messages (empty if compatible)
      */
-    static List<String> validateLanguageFramework(ProjectConfig config) {
+    public static List<String> validateLanguageFramework(
+            ProjectConfig config) {
         String frameworkName = config.framework().name();
         String languageName = config.language().name();
         List<String> validLanguages =
@@ -79,7 +80,8 @@ public final class StackValidator {
      * @param config the project configuration
      * @return list of error messages
      */
-    static List<String> validateVersionRequirements(ProjectConfig config) {
+    public static List<String> validateVersionRequirements(
+            ProjectConfig config) {
         List<String> errors = new ArrayList<>();
         errors.addAll(checkJavaFrameworkVersion(config));
         errors.addAll(checkDjangoPythonVersion(config));
@@ -165,7 +167,8 @@ public final class StackValidator {
      * @param config the project configuration
      * @return list of error messages
      */
-    static List<String> validateInterfaceTypes(ProjectConfig config) {
+    public static List<String> validateInterfaceTypes(
+            ProjectConfig config) {
         List<String> errors = new ArrayList<>();
         for (var iface : config.interfaces()) {
             if (!StackMapping.VALID_INTERFACE_TYPES.contains(iface.type())) {
@@ -184,7 +187,8 @@ public final class StackValidator {
      * @param config the project configuration
      * @return list of error messages
      */
-    static List<String> validateArchitectureStyle(ProjectConfig config) {
+    public static List<String> validateArchitectureStyle(
+            ProjectConfig config) {
         String style = config.architecture().style();
         if (!StackMapping.VALID_ARCHITECTURE_STYLES.contains(style)) {
             return List.of(
