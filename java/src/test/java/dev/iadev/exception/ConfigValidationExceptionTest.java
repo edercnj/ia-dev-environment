@@ -131,4 +131,29 @@ class ConfigValidationExceptionTest {
                 .contains("language")
                 .contains("framework");
     }
+
+    @Test
+    @DisplayName("toString without missingSections"
+            + " includes message only")
+    void toString_noMissingSections() {
+        var ex = new ConfigValidationException(
+                "name", "ProjectIdentity");
+
+        assertThat(ex.toString())
+                .contains("ConfigValidationException")
+                .contains("Missing required field");
+    }
+
+    @Test
+    @DisplayName("toString with empty missingSections"
+            + " uses short format")
+    void toString_emptyMissingSections() {
+        var ex = new ConfigValidationException(
+                "Some error", List.of());
+
+        assertThat(ex.toString())
+                .contains("ConfigValidationException")
+                .contains("Some error")
+                .doesNotContain("missingSections");
+    }
 }
