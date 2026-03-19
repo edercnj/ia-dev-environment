@@ -1,176 +1,667 @@
 package dev.iadev.cli;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import picocli.CommandLine;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit tests for {@link GenerateCommand}.
  *
- * <p>Tests follow TPP ordering: help → option parsing → mutual exclusivity.
+ * <p>Tests follow TPP ordering:
+ * help/options -> no-input error -> config not found ->
+ * valid stack -> dry-run -> force -> verbose -> overwrite
+ * -> dangerous path -> exit codes.
  */
+@DisplayName("GenerateCommand")
 class GenerateCommandTest {
 
-    @Test
-    void help_displaysUsage() {
-        var cmd = buildCommandLine();
-        var sw = new java.io.StringWriter();
-        cmd.setOut(new java.io.PrintWriter(sw));
+    @TempDir
+    Path tempDir;
 
-        int exitCode = cmd.execute("generate", "--help");
+    private static final String VALID_CONFIG = """
+            project:
+              name: "test-app"
+              purpose: "A test microservice"
+            architecture:
+              style: microservice
+            interfaces:
+              - type: rest
+            language:
+              name: java
+              version: "21"
+            framework:
+              name: spring-boot
+              version: "3.4"
+              build_tool: maven
+            """;
 
-        assertThat(exitCode).isZero();
-        assertThat(sw.toString()).contains("generate");
+    @Nested
+    @DisplayName("Help and Options")
+    class HelpAndOptions {
+
+        @Test
+        void help_displaysUsage() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            int exitCode = cmd.execute(
+                    "generate", "--help");
+
+            assertThat(exitCode).isZero();
+            assertThat(sw.toString()).contains("generate");
+        }
+
+        @Test
+        void help_showsConfigOption() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            cmd.execute("generate", "--help");
+
+            assertThat(sw.toString())
+                    .contains("-c", "--config");
+        }
+
+        @Test
+        void help_showsInteractiveOption() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            cmd.execute("generate", "--help");
+
+            assertThat(sw.toString())
+                    .contains("-i", "--interactive");
+        }
+
+        @Test
+        void help_showsOutputOption() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            cmd.execute("generate", "--help");
+
+            assertThat(sw.toString())
+                    .contains("-o", "--output");
+        }
+
+        @Test
+        void help_showsStackOption() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            cmd.execute("generate", "--help");
+
+            assertThat(sw.toString())
+                    .contains("-s", "--stack");
+        }
+
+        @Test
+        void help_showsVerboseOption() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            cmd.execute("generate", "--help");
+
+            assertThat(sw.toString())
+                    .contains("-v", "--verbose");
+        }
+
+        @Test
+        void help_showsDryRunOption() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            cmd.execute("generate", "--help");
+
+            assertThat(sw.toString()).contains("--dry-run");
+        }
+
+        @Test
+        void help_showsForceOption() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            cmd.execute("generate", "--help");
+
+            assertThat(sw.toString())
+                    .contains("-f", "--force");
+        }
     }
 
-    @Test
-    void help_showsConfigOption() {
-        var cmd = buildCommandLine();
-        var sw = new java.io.StringWriter();
-        cmd.setOut(new java.io.PrintWriter(sw));
+    @Nested
+    @DisplayName("Mutual exclusivity")
+    class MutualExclusivity {
 
-        cmd.execute("generate", "--help");
+        @Test
+        void configAndInteractive_returnsNonZero() {
+            var cmd = buildCommandLine();
+            var errSw = new StringWriter();
+            cmd.setErr(new PrintWriter(errSw));
 
-        assertThat(sw.toString()).contains("-c", "--config");
+            int exitCode = cmd.execute(
+                    "generate", "--config", "x.yaml",
+                    "--interactive");
+
+            assertThat(exitCode).isNotZero();
+        }
+
+        @Test
+        void configAndInteractive_showsMutuallyExclusiveMsg() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            var errSw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+            cmd.setErr(new PrintWriter(errSw));
+
+            cmd.execute("generate", "--config", "x.yaml",
+                    "--interactive");
+
+            String combined = sw.toString() + errSw.toString();
+            assertThat(combined)
+                    .containsIgnoringCase("mutually exclusive");
+        }
     }
 
-    @Test
-    void help_showsInteractiveOption() {
-        var cmd = buildCommandLine();
-        var sw = new java.io.StringWriter();
-        cmd.setOut(new java.io.PrintWriter(sw));
+    @Nested
+    @DisplayName("No input provided")
+    class NoInput {
 
-        cmd.execute("generate", "--help");
+        @Test
+        void noOptions_returnsValidationError() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
 
-        assertThat(sw.toString()).contains("-i", "--interactive");
+            int exitCode = cmd.execute("generate");
+
+            assertThat(exitCode)
+                    .isEqualTo(GenerateCommand.EXIT_VALIDATION);
+        }
+
+        @Test
+        void noOptions_showsMissingInputMessage() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            cmd.execute("generate");
+
+            assertThat(sw.toString())
+                    .contains("--config", "--interactive",
+                            "--stack");
+        }
     }
 
-    @Test
-    void help_showsOutputOption() {
-        var cmd = buildCommandLine();
-        var sw = new java.io.StringWriter();
-        cmd.setOut(new java.io.PrintWriter(sw));
+    @Nested
+    @DisplayName("Config file not found")
+    class ConfigNotFound {
 
-        cmd.execute("generate", "--help");
+        @Test
+        void nonExistentConfig_returnsValidationError() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
 
-        assertThat(sw.toString()).contains("-o", "--output");
+            int exitCode = cmd.execute(
+                    "generate", "-c",
+                    "/nonexistent/config.yaml");
+
+            assertThat(exitCode).isNotZero();
+        }
+
+        @Test
+        void nonExistentConfig_showsErrorMessage() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            cmd.execute(
+                    "generate", "-c",
+                    "/nonexistent/config.yaml");
+
+            assertThat(sw.toString()).contains("Error:");
+        }
     }
 
-    @Test
-    void help_showsStackOption() {
-        var cmd = buildCommandLine();
-        var sw = new java.io.StringWriter();
-        cmd.setOut(new java.io.PrintWriter(sw));
+    @Nested
+    @DisplayName("Stack profile")
+    class StackProfile {
 
-        cmd.execute("generate", "--help");
+        @Test
+        void validStack_dryRun_returnsZero() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
 
-        assertThat(sw.toString()).contains("-s", "--stack");
+            int exitCode = cmd.execute(
+                    "generate", "-s", "java-quarkus",
+                    "--dry-run",
+                    "-o", tempDir.toString());
+
+            assertThat(exitCode).isZero();
+        }
+
+        @Test
+        void validStack_dryRun_showsSuccess() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            cmd.execute(
+                    "generate", "-s", "java-quarkus",
+                    "--dry-run",
+                    "-o", tempDir.toString());
+
+            assertThat(sw.toString())
+                    .contains("Pipeline: Success");
+        }
+
+        @Test
+        void invalidStack_returnsNonZero() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            int exitCode = cmd.execute(
+                    "generate", "-s", "invalid-stack",
+                    "--dry-run",
+                    "-o", tempDir.toString());
+
+            assertThat(exitCode).isNotZero();
+        }
     }
 
-    @Test
-    void help_showsVerboseOption() {
-        var cmd = buildCommandLine();
-        var sw = new java.io.StringWriter();
-        cmd.setOut(new java.io.PrintWriter(sw));
+    @Nested
+    @DisplayName("Dry-run mode")
+    class DryRunMode {
 
-        cmd.execute("generate", "--help");
+        @Test
+        void dryRun_showsDryRunHeader() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
 
-        assertThat(sw.toString()).contains("-v", "--verbose");
+            cmd.execute(
+                    "generate", "-s", "java-quarkus",
+                    "--dry-run",
+                    "-o", tempDir.toString());
+
+            assertThat(sw.toString()).contains("[DRY RUN]");
+        }
+
+        @Test
+        void dryRun_doesNotWriteFiles() {
+            Path outputDir = tempDir.resolve("dry-run-output");
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            cmd.execute(
+                    "generate", "-s", "java-quarkus",
+                    "--dry-run",
+                    "-o", outputDir.toString());
+
+            assertThat(outputDir.resolve(".claude"))
+                    .doesNotExist();
+            assertThat(outputDir.resolve(".github"))
+                    .doesNotExist();
+        }
+
+        @Test
+        void dryRun_showsSummaryTable() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            cmd.execute(
+                    "generate", "-s", "java-quarkus",
+                    "--dry-run",
+                    "-o", tempDir.toString());
+
+            assertThat(sw.toString())
+                    .contains("Category")
+                    .contains("Count")
+                    .contains("Total");
+        }
+
+        @Test
+        void dryRun_returnsZero() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            int exitCode = cmd.execute(
+                    "generate", "-s", "java-quarkus",
+                    "--dry-run",
+                    "-o", tempDir.toString());
+
+            assertThat(exitCode).isZero();
+        }
     }
 
-    @Test
-    void help_showsDryRunOption() {
-        var cmd = buildCommandLine();
-        var sw = new java.io.StringWriter();
-        cmd.setOut(new java.io.PrintWriter(sw));
+    @Nested
+    @DisplayName("Force mode")
+    class ForceMode {
 
-        cmd.execute("generate", "--help");
+        @Test
+        void force_withExistingArtifacts_returnsZero()
+                throws IOException {
+            Path outputDir = tempDir.resolve("force-output");
+            Files.createDirectories(
+                    outputDir.resolve(".claude"));
+            Files.createDirectories(
+                    outputDir.resolve(".github"));
 
-        assertThat(sw.toString()).contains("--dry-run");
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            int exitCode = cmd.execute(
+                    "generate", "-s", "java-quarkus",
+                    "--force",
+                    "-o", outputDir.toString());
+
+            assertThat(exitCode).isZero();
+        }
+
+        @Test
+        void force_showsOverwriteWarning()
+                throws IOException {
+            Path outputDir = tempDir.resolve("force-warn");
+            Files.createDirectories(
+                    outputDir.resolve(".claude"));
+
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            cmd.execute(
+                    "generate", "-s", "java-quarkus",
+                    "--force",
+                    "-o", outputDir.toString());
+
+            assertThat(sw.toString())
+                    .contains("Overwriting existing artifacts");
+        }
     }
 
-    @Test
-    void help_showsForceOption() {
-        var cmd = buildCommandLine();
-        var sw = new java.io.StringWriter();
-        cmd.setOut(new java.io.PrintWriter(sw));
+    @Nested
+    @DisplayName("Overwrite detection without --force")
+    class OverwriteDetection {
 
-        cmd.execute("generate", "--help");
+        @Test
+        void existingArtifacts_noForce_returnsOne()
+                throws IOException {
+            Path outputDir = tempDir.resolve("overwrite");
+            Files.createDirectories(
+                    outputDir.resolve(".claude"));
+            Files.createDirectories(
+                    outputDir.resolve(".github"));
 
-        assertThat(sw.toString()).contains("-f", "--force");
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            int exitCode = cmd.execute(
+                    "generate", "-s", "java-quarkus",
+                    "-o", outputDir.toString());
+
+            assertThat(exitCode)
+                    .isEqualTo(GenerateCommand.EXIT_VALIDATION);
+        }
+
+        @Test
+        void existingArtifacts_noForce_showsConflicts()
+                throws IOException {
+            Path outputDir =
+                    tempDir.resolve("overwrite-msg");
+            Files.createDirectories(
+                    outputDir.resolve(".claude"));
+
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            cmd.execute(
+                    "generate", "-s", "java-quarkus",
+                    "-o", outputDir.toString());
+
+            assertThat(sw.toString())
+                    .contains("existing")
+                    .contains(".claude/")
+                    .contains("--force");
+        }
     }
 
-    @Test
-    void call_withConfigOption_returnsZero() {
-        var cmd = buildCommandLine();
-        var sw = new java.io.StringWriter();
-        cmd.setOut(new java.io.PrintWriter(sw));
+    @Nested
+    @DisplayName("Dangerous path rejection")
+    class DangerousPath {
 
-        int exitCode = cmd.execute("generate", "-c", "config.yaml");
+        @Test
+        void homePath_returnsNonZero() {
+            String home = System.getProperty("user.home");
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
 
-        assertThat(exitCode).isZero();
+            int exitCode = cmd.execute(
+                    "generate", "-s", "java-quarkus",
+                    "-o", home);
+
+            assertThat(exitCode).isNotZero();
+        }
+
+        @Test
+        void homePath_showsRejectionMessage() {
+            String home = System.getProperty("user.home");
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            cmd.execute(
+                    "generate", "-s", "java-quarkus",
+                    "-o", home);
+
+            assertThat(sw.toString())
+                    .contains("dangerous")
+                    .containsIgnoringCase("home");
+        }
+
+        @Test
+        void rootPath_returnsNonZero() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            int exitCode = cmd.execute(
+                    "generate", "-s", "java-quarkus",
+                    "-o", "/");
+
+            assertThat(exitCode).isNotZero();
+        }
     }
 
-    @Test
-    void call_withInteractiveOption_returnsZero() {
-        var cmd = buildCommandLine();
-        var sw = new java.io.StringWriter();
-        cmd.setOut(new java.io.PrintWriter(sw));
+    @Nested
+    @DisplayName("Verbose mode")
+    class VerboseMode {
 
-        int exitCode = cmd.execute("generate", "-i");
+        @Test
+        void verbose_showsAssemblerNames() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
 
-        assertThat(exitCode).isZero();
+            cmd.execute(
+                    "generate", "-s", "java-quarkus",
+                    "--dry-run", "-v",
+                    "-o", tempDir.toString());
+
+            assertThat(sw.toString())
+                    .contains("Running RulesAssembler...");
+        }
+
+        @Test
+        void verbose_showsCompletedTimes() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            cmd.execute(
+                    "generate", "-s", "java-quarkus",
+                    "--dry-run", "-v",
+                    "-o", tempDir.toString());
+
+            assertThat(sw.toString())
+                    .contains("completed in");
+        }
+
+        @Test
+        void verbose_showsStackLoadMessage() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            cmd.execute(
+                    "generate", "-s", "java-quarkus",
+                    "--dry-run", "-v",
+                    "-o", tempDir.toString());
+
+            assertThat(sw.toString())
+                    .contains("Loading bundled stack profile");
+        }
     }
 
-    @Test
-    void call_withConfigAndInteractive_returnsNonZero() {
-        var cmd = buildCommandLine();
-        var errSw = new java.io.StringWriter();
-        cmd.setErr(new java.io.PrintWriter(errSw));
+    @Nested
+    @DisplayName("Valid config file")
+    class ValidConfigFile {
 
-        int exitCode = cmd.execute(
-                "generate", "--config", "x.yaml", "--interactive");
+        @Test
+        void validConfig_dryRun_returnsZero()
+                throws IOException {
+            Path configFile = tempDir.resolve("config.yaml");
+            Files.writeString(configFile, VALID_CONFIG,
+                    StandardCharsets.UTF_8);
+            Path outputDir =
+                    tempDir.resolve("config-output");
 
-        assertThat(exitCode).isNotZero();
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            int exitCode = cmd.execute(
+                    "generate", "-c",
+                    configFile.toString(),
+                    "--dry-run",
+                    "-o", outputDir.toString());
+
+            assertThat(exitCode).isZero();
+        }
+
+        @Test
+        void validConfig_dryRun_showsSuccess()
+                throws IOException {
+            Path configFile =
+                    tempDir.resolve("config2.yaml");
+            Files.writeString(configFile, VALID_CONFIG,
+                    StandardCharsets.UTF_8);
+            Path outputDir =
+                    tempDir.resolve("config-output2");
+
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            cmd.execute(
+                    "generate", "-c",
+                    configFile.toString(),
+                    "--dry-run",
+                    "-o", outputDir.toString());
+
+            assertThat(sw.toString())
+                    .contains("Pipeline: Success");
+        }
     }
 
-    @Test
-    void call_withConfigAndInteractive_showsMutuallyExclusiveMessage() {
-        var cmd = buildCommandLine();
-        var sw = new java.io.StringWriter();
-        var errSw = new java.io.StringWriter();
-        cmd.setOut(new java.io.PrintWriter(sw));
-        cmd.setErr(new java.io.PrintWriter(errSw));
+    @Nested
+    @DisplayName("Invalid config")
+    class InvalidConfig {
 
-        cmd.execute("generate", "--config", "x.yaml", "--interactive");
+        @Test
+        void missingLanguageSection_returnsValidationError()
+                throws IOException {
+            String invalidConfig = """
+                    project:
+                      name: "test"
+                      purpose: "Testing"
+                    architecture:
+                      style: microservice
+                    interfaces:
+                      - type: rest
+                    framework:
+                      name: spring-boot
+                      version: "3.4"
+                      build_tool: maven
+                    """;
+            Path configFile =
+                    tempDir.resolve("invalid.yaml");
+            Files.writeString(configFile, invalidConfig,
+                    StandardCharsets.UTF_8);
 
-        String combinedOutput = sw.toString() + errSw.toString();
-        assertThat(combinedOutput).containsIgnoringCase("mutually exclusive");
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            int exitCode = cmd.execute(
+                    "generate", "-c",
+                    configFile.toString(),
+                    "-o", tempDir.resolve("inv").toString());
+
+            assertThat(exitCode).isNotZero();
+        }
     }
 
-    @Test
-    void call_withAllOptions_returnsZero() {
-        var cmd = buildCommandLine();
+    @Nested
+    @DisplayName("Performance")
+    class Performance {
 
-        int exitCode = cmd.execute("generate",
-                "-c", "config.yaml",
-                "-o", "/tmp/output",
-                "-s", "java-spring",
-                "-v",
-                "--dry-run",
-                "-f");
+        @Test
+        void fullPipeline_completesUnder2Seconds() {
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
 
-        assertThat(exitCode).isZero();
-    }
+            long start = System.nanoTime();
 
-    @Test
-    void call_withNoOptions_returnsZero() {
-        var cmd = buildCommandLine();
+            int exitCode = cmd.execute(
+                    "generate", "-s", "java-quarkus",
+                    "--dry-run",
+                    "-o", tempDir.toString());
 
-        int exitCode = cmd.execute("generate");
+            long durationMs =
+                    (System.nanoTime() - start) / 1_000_000;
 
-        assertThat(exitCode).isZero();
+            assertThat(exitCode).isZero();
+            assertThat(durationMs).isLessThan(2000);
+        }
     }
 
     private CommandLine buildCommandLine() {
