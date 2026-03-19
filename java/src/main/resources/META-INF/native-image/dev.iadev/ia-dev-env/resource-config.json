@@ -1,0 +1,34 @@
+{
+  "resources": {
+    "includes": [
+      { "pattern": "templates/.*" },
+      { "pattern": "config-templates/.*" },
+      { "pattern": "agents-templates/.*" },
+      { "pattern": "cicd-templates/.*" },
+      { "pattern": "cloud-providers/.*" },
+      { "pattern": "codex-templates/.*" },
+      { "pattern": "core/.*" },
+      { "pattern": "core-rules/.*" },
+      { "pattern": "databases/.*" },
+      { "pattern": "docs/.*" },
+      { "pattern": "frameworks/.*" },
+      { "pattern": "github-agents-templates/.*" },
+      { "pattern": "github-hooks-templates/.*" },
+      { "pattern": "github-instructions-templates/.*" },
+      { "pattern": "github-prompts-templates/.*" },
+      { "pattern": "github-skills-templates/.*" },
+      { "pattern": "hooks-templates/.*" },
+      { "pattern": "infrastructure/.*" },
+      { "pattern": "languages/.*" },
+      { "pattern": "patterns/.*" },
+      { "pattern": "prompts/.*" },
+      { "pattern": "protocols/.*" },
+      { "pattern": "security/.*" },
+      { "pattern": "settings-templates/.*" },
+      { "pattern": "skills-templates/.*" },
+      { "pattern": "readme-template\\.md" },
+      { "pattern": "logback\\.xml" },
+      { "pattern": "META-INF/services/.*" }
+    ]
+  }
+}
