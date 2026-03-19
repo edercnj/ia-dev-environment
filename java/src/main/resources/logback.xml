@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="STDERR"
+              class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.err</target>
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Suppress Pebble debug logs by default -->
+    <logger name="io.pebbletemplates" level="WARN"/>
+
+    <!-- Suppress SLF4J internals -->
+    <logger name="org.slf4j" level="WARN"/>
+
+    <root level="WARN">
+        <appender-ref ref="STDERR"/>
+    </root>
+</configuration>
