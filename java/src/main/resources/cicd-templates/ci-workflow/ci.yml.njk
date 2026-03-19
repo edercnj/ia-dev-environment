@@ -31,7 +31,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: {% raw %}${{ runner.os }}{% endraw %}-gradle-{% raw %}${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}{% endraw %}
+          key: {% verbatim %}${{ runner.os }}{% endverbatim %}-gradle-{% verbatim %}${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}{% endverbatim %}
 {% endif %}
 {% if build_tool == "maven" %}
 
@@ -39,7 +39,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository
-          key: {% raw %}${{ runner.os }}{% endraw %}-maven-{% raw %}${{ hashFiles('**/pom.xml') }}{% endraw %}
+          key: {% verbatim %}${{ runner.os }}{% endverbatim %}-maven-{% verbatim %}${{ hashFiles('**/pom.xml') }}{% endverbatim %}
 {% endif %}
 {% endif %}
 {% if language_name == "typescript" %}
@@ -82,7 +82,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: {% raw %}${{ runner.os }}{% endraw %}-cargo-{% raw %}${{ hashFiles('**/Cargo.lock') }}{% endraw %}
+          key: {% verbatim %}${{ runner.os }}{% endverbatim %}-cargo-{% verbatim %}${{ hashFiles('**/Cargo.lock') }}{% endverbatim %}
 {% endif %}
 
       - name: Lint
@@ -106,12 +106,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build Docker image
-        run: docker build -t {{ project_name }}:{% raw %}${{ github.sha }}{% endraw %} .
+        run: docker build -t {{ project_name }}:{% verbatim %}${{ github.sha }}{% endverbatim %} .
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: {{ project_name }}:{% raw %}${{ github.sha }}{% endraw %}
+          image-ref: {{ project_name }}:{% verbatim %}${{ github.sha }}{% endverbatim %}
           format: table
           exit-code: "1"
           severity: CRITICAL,HIGH
