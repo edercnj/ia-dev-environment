@@ -1,0 +1,30 @@
+{
+  "epicId": "XXXX",
+  "branch": "feat/epic-XXXX-full-implementation",
+  "startedAt": "2024-01-01T00:00:00.000Z",
+  "currentPhase": 0,
+  "mode": {
+    "parallel": false,
+    "skipReview": false
+  },
+  "stories": {
+    "XXXX-0001": {
+      "status": "PENDING",
+      "phase": 1,
+      "retries": 0
+    }
+  },
+  "integrityGates": {
+    "phase-0": {
+      "status": "PASS",
+      "timestamp": "2024-01-01T00:00:00.000Z",
+      "testCount": 0,
+      "coverage": 0,
+      "branchCoverage": 0
+    }
+  },
+  "metrics": {
+    "storiesCompleted": 0,
+    "storiesTotal": 1
+  }
+}

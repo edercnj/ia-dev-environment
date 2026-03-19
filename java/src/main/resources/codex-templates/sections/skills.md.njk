@@ -1,0 +1,6 @@
+## Available Skills
+
+| Skill | Description |
+|-------|-------------|
+{% for skill in skills_list %}{% if skill.user_invocable %}| {{ skill.name }} | {{ skill.description }} |
+{% endif %}{% endfor %}
