@@ -1,0 +1,153 @@
+# Claude Code Boilerplate — Java 21 + Picocli CLI (Command-Line Tool)
+# Run: ia-dev-env generate --config setup-config.java-picocli-cli.yaml
+#
+# Picocli-based CLI tool with template rendering and YAML configuration.
+# Targets Java 21+ with fat JAR or GraalVM native image packaging.
+# No web framework — all interaction via command-line interface.
+# Uses Maven for build and dependency management.
+
+# ═══════════════════════════════════════════════════
+# SECTION 1: PROJECT IDENTITY
+# ═══════════════════════════════════════════════════
+project:
+  name: "my-java-cli"
+  purpose: "Describe your CLI tool purpose here"
+
+# ═══════════════════════════════════════════════════
+# SECTION 2: ARCHITECTURE
+# ═══════════════════════════════════════════════════
+architecture:
+  style: library                   # CLI tool — not a microservice
+  domain_driven: true              # Clean domain separation via ports
+  event_driven: false
+
+# ═══════════════════════════════════════════════════
+# SECTION 3: INTERFACES
+# ═══════════════════════════════════════════════════
+interfaces:
+  - type: cli                      # Picocli command-line interface
+
+# ═══════════════════════════════════════════════════
+# SECTION 4: LANGUAGE
+# ═══════════════════════════════════════════════════
+language:
+  name: java
+  version: "21"
+
+# ═══════════════════════════════════════════════════
+# SECTION 5: FRAMEWORK
+# ═══════════════════════════════════════════════════
+framework:
+  name: picocli                    # Framework-less CLI — Picocli is the only framework
+  version: "4.7"
+  build_tool: maven                # pom.xml + maven-shade-plugin for fat JAR
+  native_build: false              # Set true for GraalVM native image
+
+# ═══════════════════════════════════════════════════
+# SECTION 6: DATA
+# ═══════════════════════════════════════════════════
+data:
+  database:
+    type: none                     # CLI tool — file-based I/O, no database
+    version: ""
+    migration: none
+
+  cache:
+    type: none
+    version: ""
+
+  message_broker:
+    type: none
+    version: ""
+
+# ═══════════════════════════════════════════════════
+# SECTION 7: SECURITY
+# ═══════════════════════════════════════════════════
+security:
+  compliance: []                   # Adjust if CLI handles sensitive data
+  encryption:
+    at_rest: false
+    key_management: none
+  pentest_readiness: false
+
+# ═══════════════════════════════════════════════════
+# SECTION 8: CLOUD PROVIDER
+# ═══════════════════════════════════════════════════
+cloud:
+  provider: none                   # CLI tool — cloud-agnostic
+
+# ═══════════════════════════════════════════════════
+# SECTION 9: INFRASTRUCTURE
+# ═══════════════════════════════════════════════════
+infrastructure:
+  container: docker                # Optional — for reproducible builds
+  orchestrator: none               # CLI tool — no orchestration needed
+  templating: none
+  iac: none
+  registry: none
+  api_gateway: none
+  service_mesh: none
+
+# ═══════════════════════════════════════════════════
+# SECTION 10: OBSERVABILITY
+# ═══════════════════════════════════════════════════
+observability:
+  standard: none                   # CLI uses SLF4J/Logback to stderr
+  backend: none
+
+# ═══════════════════════════════════════════════════
+# SECTION 11: TESTING
+# ═══════════════════════════════════════════════════
+testing:
+  smoke_tests: true                # Verify CLI entrypoints work after install
+  performance_tests: false
+  contract_tests: false
+  chaos_tests: false
+
+# ═══════════════════════════════════════════════════
+# SECTION 12: DOMAIN TEMPLATE
+# ═══════════════════════════════════════════════════
+domain:
+  template: none
+
+# ═══════════════════════════════════════════════════
+# SECTION 13: CONVENTIONS
+# ═══════════════════════════════════════════════════
+conventions:
+  code_language: en
+  commit_language: en
+  documentation_language: en
+  git_scopes:
+    - { scope: "cli", area: "Picocli commands and subcommands" }
+    - { scope: "core", area: "Core business logic and pipeline" }
+    - { scope: "domain", area: "Domain models and value objects" }
+    - { scope: "template", area: "Template engine and rendering" }
+    - { scope: "config", area: "Configuration loading and validation" }
+    - { scope: "util", area: "Utilities and helpers" }
+
+# ═══════════════════════════════════════════════════
+# SECTION 14: SKILLS / AGENTS / HOOKS / SETTINGS
+# ═══════════════════════════════════════════════════
+skills:
+  override: auto
+agents:
+  override: auto
+  adaptive_model:
+    junior: "haiku"
+    mid: "sonnet"
+    senior: "opus"
+hooks:
+  post_compile: true               # Java — run javac/mvn compile check after edits
+settings:
+  auto_generate: true
+
+# ═══════════════════════════════════════════════════
+# SECTION 18: MCP SERVERS
+# ═══════════════════════════════════════════════════
+mcp:
+  servers: []
+  # Example:
+  # - id: "my-mcp-server"
+  #   url: "https://mcp.example.com"
+  #   env:
+  #     API_KEY: "$MCP_API_KEY"

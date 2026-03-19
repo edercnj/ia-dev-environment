@@ -16,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class ConfigProfilesTest {
 
     private static final List<String> ALL_STACKS = List.of(
+            "java-picocli-cli",
             "java-quarkus",
             "java-spring",
             "python-fastapi",
@@ -31,12 +32,12 @@ class ConfigProfilesTest {
     class AvailableStacks {
 
         @Test
-        @DisplayName("returns all 8 stack keys")
-        void getAvailableStacks_returns8Keys() {
+        @DisplayName("returns all 9 stack keys")
+        void getAvailableStacks_returns9Keys() {
             List<String> stacks =
                     ConfigProfiles.getAvailableStacks();
 
-            assertThat(stacks).hasSize(8);
+            assertThat(stacks).hasSize(9);
             assertThat(stacks).containsAll(ALL_STACKS);
         }
     }
@@ -47,10 +48,11 @@ class ConfigProfilesTest {
 
         @ParameterizedTest
         @ValueSource(strings = {
-                "java-quarkus", "java-spring",
-                "python-fastapi", "python-click-cli",
-                "go-gin", "kotlin-ktor",
-                "typescript-nestjs", "rust-axum"})
+                "java-picocli-cli", "java-quarkus",
+                "java-spring", "python-fastapi",
+                "python-click-cli", "go-gin",
+                "kotlin-ktor", "typescript-nestjs",
+                "rust-axum"})
         @DisplayName("returns true for valid stack keys")
         void isValidStack_validKey_returnsTrue(String key) {
             assertThat(ConfigProfiles.isValidStack(key)).isTrue();
@@ -242,10 +244,11 @@ class ConfigProfilesTest {
 
         @ParameterizedTest
         @ValueSource(strings = {
-                "java-quarkus", "java-spring",
-                "python-fastapi", "python-click-cli",
-                "go-gin", "kotlin-ktor",
-                "typescript-nestjs", "rust-axum"})
+                "java-picocli-cli", "java-quarkus",
+                "java-spring", "python-fastapi",
+                "python-click-cli", "go-gin",
+                "kotlin-ktor", "typescript-nestjs",
+                "rust-axum"})
         @DisplayName("each stack has non-null required fields")
         void getStack_eachStack_hasRequiredFields(String key) {
             ProjectConfig config =
