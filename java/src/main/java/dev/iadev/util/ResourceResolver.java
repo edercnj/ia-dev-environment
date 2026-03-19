@@ -45,7 +45,7 @@ import java.util.Map;
 public final class ResourceResolver {
 
     private static final Object LOCK = new Object();
-    private static volatile Path cachedExtractedDir;
+    static volatile Path cachedExtractedDir;
 
     private ResourceResolver() {
         // Utility class
@@ -126,7 +126,7 @@ public final class ResourceResolver {
         }
     }
 
-    private static Path resolveFromJar(URL url) {
+    static Path resolveFromJar(URL url) {
         synchronized (LOCK) {
             if (cachedExtractedDir != null
                     && Files.exists(cachedExtractedDir)) {
@@ -138,7 +138,7 @@ public final class ResourceResolver {
         }
     }
 
-    private static Path extractJarResources(URL url) {
+    static Path extractJarResources(URL url) {
         try {
             Path tempDir = Files.createTempDirectory(
                     "ia-dev-env-res-");
@@ -204,7 +204,7 @@ public final class ResourceResolver {
         }
     }
 
-    private static boolean shouldSkip(Path dir) {
+    static boolean shouldSkip(Path dir) {
         String name = dir.getFileName() == null
                 ? "" : dir.getFileName().toString();
         return "META-INF".equals(name);
@@ -217,7 +217,7 @@ public final class ResourceResolver {
                         "ia-dev-env-cleanup"));
     }
 
-    private static void deleteQuietly(Path dir) {
+    static void deleteQuietly(Path dir) {
         try {
             if (Files.exists(dir)) {
                 Files.walkFileTree(dir,

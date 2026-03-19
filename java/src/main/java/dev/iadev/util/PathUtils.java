@@ -27,8 +27,10 @@ import java.util.Set;
  */
 public final class PathUtils {
 
+    private static final String ROOT_PATH = "/";
+
     private static final Set<String> DANGEROUS_SYSTEM_PATHS = Set.of(
-            "/", "/usr", "/etc", "/var", "/bin", "/sbin"
+            "/usr", "/etc", "/var", "/bin", "/sbin"
     );
 
     private PathUtils() {
@@ -75,12 +77,26 @@ public final class PathUtils {
                     1);
         }
 
-        if (DANGEROUS_SYSTEM_PATHS.contains(pathStr)) {
+        Path rootPath = Path.of(ROOT_PATH)
+                .toAbsolutePath().normalize();
+        if (normalized.equals(rootPath)) {
             throw new CliException(
                     ("Rejected dangerous destination path: %s "
                             + "(protected system directory)")
                             .formatted(pathStr),
                     1);
+        }
+
+        for (String dangerous : DANGEROUS_SYSTEM_PATHS) {
+            Path dangerousPath = Path.of(dangerous)
+                    .toAbsolutePath().normalize();
+            if (normalized.equals(dangerousPath)) {
+                throw new CliException(
+                        ("Rejected dangerous destination path: %s "
+                                + "(protected system directory)")
+                                .formatted(pathStr),
+                        1);
+            }
         }
     }
 

@@ -10,7 +10,6 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,8 +49,6 @@ public final class CodexConfigAssembler
             ProjectConfig config,
             TemplateEngine engine,
             Path outputDir) {
-        List<String> warnings = new ArrayList<>();
-
         Path hooksDir = outputDir.getParent()
                 .resolve(".claude").resolve("hooks");
         boolean hasHooks =
@@ -61,8 +58,8 @@ public final class CodexConfigAssembler
                 : config.mcp().servers()) {
             if (!CodexShared.isValidTomlBareKey(
                     server.id())) {
-                warnings.add(
-                        "MCP server id \""
+                System.err.println(
+                        "WARNING: MCP server id \""
                                 + server.id()
                                 + "\" contains invalid"
                                 + " TOML characters");

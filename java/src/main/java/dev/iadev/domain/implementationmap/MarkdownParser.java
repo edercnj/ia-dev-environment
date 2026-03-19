@@ -37,8 +37,7 @@ public final class MarkdownParser {
      * Parses a markdown string to extract dependency matrix rows.
      *
      * @param markdown the full markdown content
-     * @return list of parsed rows
-     * @throws MapParseException if the markdown has no valid table
+     * @return list of parsed rows (empty if no table found)
      */
     public static List<DependencyMatrixRow> parse(String markdown) {
         if (markdown == null || markdown.isBlank()) {

@@ -4,10 +4,9 @@ import dev.iadev.model.ProjectConfig;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Provides pre-defined configuration profiles for the 8 bundled
@@ -58,7 +57,7 @@ public final class ConfigProfiles {
     private static final String TEMPLATE_PATH_SUFFIX = ".yaml";
 
     private static final Map<String, ProjectConfig> CACHE =
-            Collections.synchronizedMap(new LinkedHashMap<>());
+            new ConcurrentHashMap<>();
 
     private ConfigProfiles() {
         // utility class
