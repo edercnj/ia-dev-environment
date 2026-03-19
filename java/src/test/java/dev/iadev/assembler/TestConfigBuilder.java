@@ -55,6 +55,8 @@ final class TestConfigBuilder {
     private String apiGateway = "none";
     private String registry = "none";
     private String observabilityTool = "none";
+    private String serviceMesh = "none";
+    private String templating = "kustomize";
     private List<String> securityFrameworksList =
             Collections.emptyList();
     private final List<InterfaceConfig> interfaces =
@@ -209,6 +211,16 @@ final class TestConfigBuilder {
         return this;
     }
 
+    TestConfigBuilder serviceMesh(String mesh) {
+        this.serviceMesh = mesh;
+        return this;
+    }
+
+    TestConfigBuilder templating(String templating) {
+        this.templating = templating;
+        return this;
+    }
+
     TestConfigBuilder securityFrameworks(String... frameworks) {
         this.securityFrameworksList = List.of(frameworks);
         return this;
@@ -245,8 +257,8 @@ final class TestConfigBuilder {
                                 cacheName, cacheVersion)),
                 new InfraConfig(
                         container, orchestrator,
-                        "kustomize", iac,
-                        registry, apiGateway, "none",
+                        templating, iac,
+                        registry, apiGateway, serviceMesh,
                         cloudProvider,
                         new ObservabilityConfig(
                                 observabilityTool,
