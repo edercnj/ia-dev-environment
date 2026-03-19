@@ -144,12 +144,18 @@ public final class AssemblerPipeline {
                         "RunbookAssembler",
                         AssemblerTarget.ROOT,
                         new RunbookAssembler()),
-                stub("CodexAgentsMdAssembler",
-                        AssemblerTarget.ROOT),
-                stub("CodexConfigAssembler",
-                        AssemblerTarget.CODEX),
-                stub("CodexSkillsAssembler",
-                        AssemblerTarget.CODEX_AGENTS),
+                new AssemblerDescriptor(
+                        "CodexAgentsMdAssembler",
+                        AssemblerTarget.ROOT,
+                        new CodexAgentsMdAssembler()),
+                new AssemblerDescriptor(
+                        "CodexConfigAssembler",
+                        AssemblerTarget.CODEX,
+                        new CodexConfigAssembler()),
+                new AssemblerDescriptor(
+                        "CodexSkillsAssembler",
+                        AssemblerTarget.CODEX_AGENTS,
+                        new CodexSkillsAssembler()),
                 new AssemblerDescriptor(
                         "DocsAdrAssembler",
                         AssemblerTarget.ROOT,
@@ -158,8 +164,10 @@ public final class AssemblerPipeline {
                         "CicdAssembler",
                         AssemblerTarget.ROOT,
                         new CicdAssembler()),
-                stub("EpicReportAssembler",
-                        AssemblerTarget.ROOT),
+                new AssemblerDescriptor(
+                        "EpicReportAssembler",
+                        AssemblerTarget.ROOT,
+                        new EpicReportAssembler()),
                 stub("ReadmeAssembler",
                         AssemblerTarget.CLAUDE));
     }

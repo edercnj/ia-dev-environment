@@ -8,13 +8,13 @@
 {%- if domain_driven == "True" %}
 {% include "codex-templates/sections/domain.md.njk" %}
 {%- endif %}
-{%- if security_frameworks and security_frameworks.length > 0 %}
+{%- if security_frameworks is not empty %}
 {% include "codex-templates/sections/security.md.njk" %}
 {%- endif %}
 {% include "codex-templates/sections/conventions.md.njk" %}
-{%- if skills_list and skills_list.length > 0 %}
+{%- if skills_list is not empty %}
 {% include "codex-templates/sections/skills.md.njk" %}
 {%- endif %}
-{%- if agents_list and agents_list.length > 0 %}
+{%- if agents_list is not empty %}
 {% include "codex-templates/sections/agents.md.njk" %}
 {%- endif %}
