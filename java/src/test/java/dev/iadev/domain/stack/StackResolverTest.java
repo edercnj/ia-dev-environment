@@ -1,0 +1,513 @@
+package dev.iadev.domain.stack;
+
+import dev.iadev.model.InterfaceConfig;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.List;
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@DisplayName("StackResolver")
+class StackResolverTest {
+
+    @Nested
+    @DisplayName("resolve() for all 8 stacks")
+    class ResolveAllStacks {
+
+        @Test
+        @DisplayName("java-quarkus returns all fields correctly")
+        void resolve_javaQuarkus_allFieldsCorrect() {
+            var config = new TestProjectConfigBuilder()
+                    .language("java", "21")
+                    .framework("quarkus", "3.17")
+                    .buildTool("maven")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.compileCmd())
+                    .isEqualTo("./mvnw compile -q");
+            assertThat(result.buildCmd())
+                    .isEqualTo("./mvnw package -DskipTests");
+            assertThat(result.testCmd()).isEqualTo("./mvnw verify");
+            assertThat(result.coverageCmd())
+                    .contains("jacoco");
+            assertThat(result.fileExtension()).isEqualTo(".java");
+            assertThat(result.buildFile()).isEqualTo("pom.xml");
+            assertThat(result.packageManager()).isEqualTo("maven");
+            assertThat(result.defaultPort()).isEqualTo(8080);
+            assertThat(result.healthPath()).isEqualTo("/q/health");
+            assertThat(result.dockerBaseImage())
+                    .contains("eclipse-temurin");
+            assertThat(result.dockerBaseImage()).contains("21");
+        }
+
+        @Test
+        @DisplayName("java-spring-boot with gradle returns correct values")
+        void resolve_javaSpringBootGradle_allFieldsCorrect() {
+            var config = new TestProjectConfigBuilder()
+                    .language("java", "21")
+                    .framework("spring-boot", "3.4")
+                    .buildTool("gradle")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.compileCmd())
+                    .isEqualTo("./gradlew compileJava -q");
+            assertThat(result.buildCmd())
+                    .isEqualTo("./gradlew build -x test");
+            assertThat(result.testCmd()).isEqualTo("./gradlew test");
+            assertThat(result.coverageCmd()).contains("jacocoTestReport");
+            assertThat(result.fileExtension()).isEqualTo(".java");
+            assertThat(result.buildFile()).isEqualTo("build.gradle");
+            assertThat(result.packageManager()).isEqualTo("gradle");
+            assertThat(result.defaultPort()).isEqualTo(8080);
+            assertThat(result.healthPath())
+                    .isEqualTo("/actuator/health");
+        }
+
+        @Test
+        @DisplayName("typescript-nestjs returns port 3000")
+        void resolve_typescriptNestjs_port3000() {
+            var config = new TestProjectConfigBuilder()
+                    .language("typescript", "5")
+                    .framework("nestjs", "10")
+                    .buildTool("npm")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.defaultPort()).isEqualTo(3000);
+            assertThat(result.compileCmd()).contains("tsc");
+            assertThat(result.fileExtension()).isEqualTo(".ts");
+            assertThat(result.buildFile()).isEqualTo("package.json");
+            assertThat(result.packageManager()).isEqualTo("npm");
+        }
+
+        @Test
+        @DisplayName("python-fastapi returns port 8000")
+        void resolve_pythonFastapi_port8000() {
+            var config = new TestProjectConfigBuilder()
+                    .language("python", "3.12")
+                    .framework("fastapi", "0.115")
+                    .buildTool("pip")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.defaultPort()).isEqualTo(8000);
+            assertThat(result.fileExtension()).isEqualTo(".py");
+            assertThat(result.buildFile()).isEqualTo("pyproject.toml");
+            assertThat(result.packageManager()).isEqualTo("pip");
+            assertThat(result.dockerBaseImage()).contains("python");
+            assertThat(result.dockerBaseImage()).contains("3.12");
+        }
+
+        @Test
+        @DisplayName("go-gin returns port 8080")
+        void resolve_goGin_port8080() {
+            var config = new TestProjectConfigBuilder()
+                    .language("go", "1.23")
+                    .framework("gin", "1.10")
+                    .buildTool("go")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.defaultPort()).isEqualTo(8080);
+            assertThat(result.fileExtension()).isEqualTo(".go");
+            assertThat(result.buildFile()).isEqualTo("go.mod");
+            assertThat(result.packageManager()).isEqualTo("go");
+            assertThat(result.dockerBaseImage()).contains("golang");
+        }
+
+        @Test
+        @DisplayName("kotlin-ktor returns port 8080")
+        void resolve_kotlinKtor_port8080() {
+            var config = new TestProjectConfigBuilder()
+                    .language("kotlin", "2.1")
+                    .framework("ktor", "3.0")
+                    .buildTool("gradle")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.defaultPort()).isEqualTo(8080);
+            assertThat(result.fileExtension()).isEqualTo(".kt");
+            assertThat(result.buildFile()).isEqualTo("build.gradle.kts");
+            assertThat(result.packageManager()).isEqualTo("gradle");
+            assertThat(result.dockerBaseImage()).contains("eclipse-temurin");
+        }
+
+        @Test
+        @DisplayName("rust-axum returns port 3000")
+        void resolve_rustAxum_port3000() {
+            var config = new TestProjectConfigBuilder()
+                    .language("rust", "1.83")
+                    .framework("axum", "0.7")
+                    .buildTool("cargo")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.defaultPort()).isEqualTo(3000);
+            assertThat(result.fileExtension()).isEqualTo(".rs");
+            assertThat(result.buildFile()).isEqualTo("Cargo.toml");
+            assertThat(result.packageManager()).isEqualTo("cargo");
+            assertThat(result.dockerBaseImage()).contains("rust");
+        }
+
+        @Test
+        @DisplayName("csharp-aspnet returns port 5000")
+        void resolve_csharpAspnet_port5000() {
+            var config = new TestProjectConfigBuilder()
+                    .language("csharp", "8")
+                    .framework("aspnet", "8")
+                    .buildTool("dotnet")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.defaultPort()).isEqualTo(5000);
+            assertThat(result.fileExtension()).isEqualTo(".cs");
+            assertThat(result.buildFile()).isEqualTo("*.csproj");
+            assertThat(result.packageManager()).isEqualTo("dotnet");
+            assertThat(result.dockerBaseImage()).contains("dotnet");
+        }
+    }
+
+    @Nested
+    @DisplayName("Docker image resolution")
+    class DockerImageTests {
+
+        @Test
+        @DisplayName("java language produces eclipse-temurin image")
+        void resolveDockerImage_java_eclipseTemurin() {
+            var config = new TestProjectConfigBuilder()
+                    .language("java", "21")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.dockerBaseImage())
+                    .isEqualTo("eclipse-temurin:21-jre-alpine");
+        }
+
+        @Test
+        @DisplayName("unknown language falls back to alpine:latest")
+        void resolveDockerImage_unknown_alpine() {
+            var config = new TestProjectConfigBuilder()
+                    .language("haskell", "9")
+                    .framework("unknown", "1.0")
+                    .buildTool("cabal")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.dockerBaseImage())
+                    .isEqualTo("alpine:latest");
+        }
+    }
+
+    @Nested
+    @DisplayName("Health path resolution")
+    class HealthPathTests {
+
+        @Test
+        @DisplayName("unknown framework defaults to /health")
+        void resolveHealthPath_unknown_defaultHealth() {
+            var config = new TestProjectConfigBuilder()
+                    .framework("unknown", "1.0")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.healthPath()).isEqualTo("/health");
+        }
+    }
+
+    @Nested
+    @DisplayName("Port resolution")
+    class PortTests {
+
+        @Test
+        @DisplayName("unknown framework defaults to 8080")
+        void resolvePort_unknown_default8080() {
+            var config = new TestProjectConfigBuilder()
+                    .framework("unknown", "1.0")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.defaultPort()).isEqualTo(8080);
+        }
+    }
+
+    @Nested
+    @DisplayName("Native build inference")
+    class NativeBuildTests {
+
+        @Test
+        @DisplayName("quarkus with nativeBuild=true returns true")
+        void nativeBuild_quarkusEnabled_true() {
+            var config = new TestProjectConfigBuilder()
+                    .framework("quarkus", "3.17")
+                    .nativeBuild(true)
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.nativeSupported()).isTrue();
+        }
+
+        @Test
+        @DisplayName("quarkus with nativeBuild=false returns false")
+        void nativeBuild_quarkusDisabled_false() {
+            var config = new TestProjectConfigBuilder()
+                    .framework("quarkus", "3.17")
+                    .nativeBuild(false)
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.nativeSupported()).isFalse();
+        }
+
+        @Test
+        @DisplayName("nestjs with nativeBuild=true returns false")
+        void nativeBuild_nestjsEnabled_false() {
+            var config = new TestProjectConfigBuilder()
+                    .language("typescript", "5")
+                    .framework("nestjs", "10")
+                    .buildTool("npm")
+                    .nativeBuild(true)
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.nativeSupported()).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("Project type derivation")
+    class ProjectTypeTests {
+
+        @Test
+        @DisplayName("microservice with rest is api")
+        void projectType_microserviceRest_api() {
+            var config = new TestProjectConfigBuilder()
+                    .architectureStyle("microservice")
+                    .clearInterfaces()
+                    .addInterface("rest", "", "")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.projectType()).isEqualTo("api");
+        }
+
+        @Test
+        @DisplayName("microservice with only event-consumer is worker")
+        void projectType_microserviceEventOnly_worker() {
+            var config = new TestProjectConfigBuilder()
+                    .architectureStyle("microservice")
+                    .clearInterfaces()
+                    .addInterface("event-consumer", "", "kafka")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.projectType()).isEqualTo("worker");
+        }
+
+        @Test
+        @DisplayName("microservice with both rest and event is api")
+        void projectType_microserviceBoth_api() {
+            var config = new TestProjectConfigBuilder()
+                    .architectureStyle("microservice")
+                    .clearInterfaces()
+                    .addInterface("rest", "", "")
+                    .addInterface("event-consumer", "", "kafka")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.projectType()).isEqualTo("api");
+        }
+
+        @Test
+        @DisplayName("library with cli is cli")
+        void projectType_libraryCli_cli() {
+            var config = new TestProjectConfigBuilder()
+                    .architectureStyle("library")
+                    .clearInterfaces()
+                    .addInterface("cli", "", "")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.projectType()).isEqualTo("cli");
+        }
+
+        @Test
+        @DisplayName("library without cli is library")
+        void projectType_libraryNoCli_library() {
+            var config = new TestProjectConfigBuilder()
+                    .architectureStyle("library")
+                    .clearInterfaces()
+                    .addInterface("rest", "", "")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.projectType()).isEqualTo("library");
+        }
+
+        @ParameterizedTest
+        @MethodSource(
+                "dev.iadev.domain.stack.StackResolverTest"
+                        + "#apiArchitectureStyles")
+        @DisplayName("architecture style {0} derives to api")
+        void projectType_variousStyles_api(String style) {
+            var config = new TestProjectConfigBuilder()
+                    .architectureStyle(style)
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.projectType()).isEqualTo("api");
+        }
+    }
+
+    static Stream<Arguments> apiArchitectureStyles() {
+        return Stream.of(
+                Arguments.of("monolith"),
+                Arguments.of("modular-monolith"),
+                Arguments.of("serverless")
+        );
+    }
+
+    @Nested
+    @DisplayName("Project type - unknown style")
+    class UnknownStyleTests {
+
+        @Test
+        @DisplayName("unknown architecture style defaults to api")
+        void projectType_unknownStyle_api() {
+            var config = new TestProjectConfigBuilder()
+                    .architectureStyle("unknown-style")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.projectType()).isEqualTo("api");
+        }
+
+        @Test
+        @DisplayName("event-consumer without rest in microservice is worker")
+        void projectType_eventOnlyMicroservice_worker() {
+            var config = new TestProjectConfigBuilder()
+                    .architectureStyle("microservice")
+                    .clearInterfaces()
+                    .addInterface("event-consumer", "", "kafka")
+                    .addInterface("grpc", "", "")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.projectType()).isEqualTo("worker");
+        }
+    }
+
+    @Nested
+    @DisplayName("Protocol derivation")
+    class ProtocolTests {
+
+        @Test
+        @DisplayName("rest interface produces openapi protocol")
+        void protocols_rest_openapi() {
+            var config = new TestProjectConfigBuilder()
+                    .clearInterfaces()
+                    .addInterface("rest", "", "")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.protocols()).containsExactly("openapi");
+        }
+
+        @Test
+        @DisplayName("grpc interface produces proto3 protocol")
+        void protocols_grpc_proto3() {
+            var config = new TestProjectConfigBuilder()
+                    .clearInterfaces()
+                    .addInterface("grpc", "", "")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.protocols()).containsExactly("proto3");
+        }
+
+        @Test
+        @DisplayName("multiple interfaces produce multiple protocols")
+        void protocols_multiple_correctList() {
+            var config = new TestProjectConfigBuilder()
+                    .clearInterfaces()
+                    .addInterface("rest", "", "")
+                    .addInterface("grpc", "", "")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.protocols())
+                    .containsExactly("openapi", "proto3");
+        }
+
+        @Test
+        @DisplayName("unknown interface type produces no protocol")
+        void protocols_unknownInterface_empty() {
+            var config = new TestProjectConfigBuilder()
+                    .clearInterfaces()
+                    .addInterface("scheduled", "", "")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.protocols()).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("Unknown stack key")
+    class UnknownStackTests {
+
+        @Test
+        @DisplayName("unknown language/buildTool returns empty commands")
+        void resolve_unknownStack_emptyCommands() {
+            var config = new TestProjectConfigBuilder()
+                    .language("haskell", "9")
+                    .framework("unknown", "1.0")
+                    .buildTool("cabal")
+                    .build();
+
+            var result = StackResolver.resolve(config);
+
+            assertThat(result.compileCmd()).isEmpty();
+            assertThat(result.buildCmd()).isEmpty();
+            assertThat(result.testCmd()).isEmpty();
+            assertThat(result.coverageCmd()).isEmpty();
+            assertThat(result.fileExtension()).isEmpty();
+            assertThat(result.buildFile()).isEmpty();
+            assertThat(result.packageManager()).isEmpty();
+        }
+    }
+}
