@@ -1,0 +1,428 @@
+package dev.iadev.assembler;
+
+import dev.iadev.model.ProjectConfig;
+import dev.iadev.template.TemplateEngine;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * Tests for ProtocolsAssembler — the fifth assembler in
+ * the pipeline, generating .claude/skills/protocols/
+ * references with concatenated protocol convention files.
+ */
+@DisplayName("ProtocolsAssembler")
+class ProtocolsAssemblerTest {
+
+    @Nested
+    @DisplayName("assemble — implements Assembler interface")
+    class ImplementsAssembler {
+
+        @Test
+        @DisplayName("is instance of Assembler")
+        void isAssemblerInstance() {
+            ProtocolsAssembler assembler =
+                    new ProtocolsAssembler();
+
+            assertThat(assembler)
+                    .isInstanceOf(Assembler.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("assemble — REST interface generates"
+            + " REST/OpenAPI conventions")
+    class RestProtocol {
+
+        @Test
+        @DisplayName("interfaces=[rest] generates"
+                + " rest-conventions.md")
+        void restGeneratesConventions(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            ProtocolsAssembler assembler =
+                    new ProtocolsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .clearInterfaces()
+                            .addInterface("rest")
+                            .build();
+
+            List<String> files = assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            assertThat(files).isNotEmpty();
+            Path refsDir = outputDir.resolve(
+                    "skills/protocols/references");
+            assertThat(refsDir.resolve(
+                    "rest-conventions.md"))
+                    .exists();
+        }
+
+        @Test
+        @DisplayName("rest-conventions.md contains"
+                + " OpenAPI content")
+        void restConventionsContainOpenapi(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            ProtocolsAssembler assembler =
+                    new ProtocolsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .clearInterfaces()
+                            .addInterface("rest")
+                            .build();
+
+            assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "skills/protocols/references/"
+                                    + "rest-conventions.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("OpenAPI");
+        }
+    }
+
+    @Nested
+    @DisplayName("assemble — gRPC interface generates"
+            + " gRPC/Proto3 conventions")
+    class GrpcProtocol {
+
+        @Test
+        @DisplayName("interfaces=[grpc] generates"
+                + " grpc-conventions.md")
+        void grpcGeneratesConventions(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            ProtocolsAssembler assembler =
+                    new ProtocolsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .clearInterfaces()
+                            .addInterface("grpc")
+                            .build();
+
+            List<String> files = assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            assertThat(files).isNotEmpty();
+            Path refsDir = outputDir.resolve(
+                    "skills/protocols/references");
+            assertThat(refsDir.resolve(
+                    "grpc-conventions.md"))
+                    .exists();
+        }
+
+        @Test
+        @DisplayName("grpc-conventions.md contains"
+                + " Proto3 content")
+        void grpcConventionsContainProto3(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            ProtocolsAssembler assembler =
+                    new ProtocolsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .clearInterfaces()
+                            .addInterface("grpc")
+                            .build();
+
+            assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "skills/protocols/references/"
+                                    + "grpc-conventions.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("Proto3");
+        }
+    }
+
+    @Nested
+    @DisplayName("assemble — no interfaces generates"
+            + " no files")
+    class NoInterfaces {
+
+        @Test
+        @DisplayName("empty interfaces returns empty list")
+        void emptyInterfacesReturnsEmpty(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            ProtocolsAssembler assembler =
+                    new ProtocolsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .clearInterfaces()
+                            .addInterface("cli")
+                            .build();
+
+            List<String> files = assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            assertThat(files).isEmpty();
+        }
+
+        @Test
+        @DisplayName("cli-only config creates no"
+                + " protocols directory")
+        void cliOnlyCreatesNoDir(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            ProtocolsAssembler assembler =
+                    new ProtocolsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .clearInterfaces()
+                            .addInterface("cli")
+                            .build();
+
+            assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            Path refsDir = outputDir.resolve(
+                    "skills/protocols/references");
+            assertThat(refsDir).doesNotExist();
+        }
+    }
+
+    @Nested
+    @DisplayName("assemble — event interfaces with broker")
+    class EventWithBroker {
+
+        @Test
+        @DisplayName("event-consumer with kafka generates"
+                + " messaging-conventions.md with kafka"
+                + " content")
+        void kafkaBrokerSelectsKafka(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            ProtocolsAssembler assembler =
+                    new ProtocolsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .clearInterfaces()
+                            .addInterface(
+                                    "event-consumer",
+                                    "", "kafka")
+                            .build();
+
+            assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            Path refsDir = outputDir.resolve(
+                    "skills/protocols/references");
+            assertThat(refsDir.resolve(
+                    "messaging-conventions.md"))
+                    .exists();
+            assertThat(refsDir.resolve(
+                    "event-driven-conventions.md"))
+                    .exists();
+        }
+    }
+
+    @Nested
+    @DisplayName("assemble — golden file parity")
+    class GoldenFile {
+
+        @Test
+        @DisplayName("all protocol convention files match"
+                + " golden files for go-gin profile")
+        void allProtocolsMatchGolden(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            ProtocolsAssembler assembler =
+                    new ProtocolsAssembler();
+            ProjectConfig config = buildGoGinConfig();
+
+            assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            String[] conventionFiles = {
+                    "event-driven-conventions.md",
+                    "grpc-conventions.md",
+                    "messaging-conventions.md",
+                    "rest-conventions.md"
+            };
+
+            for (String file : conventionFiles) {
+                String goldenPath =
+                        "golden/go-gin/.claude/skills/"
+                                + "protocols/references/"
+                                + file;
+                String expected =
+                        loadResource(goldenPath);
+                if (expected != null) {
+                    String actual = Files.readString(
+                            outputDir.resolve(
+                                    "skills/protocols/"
+                                            + "references/"
+                                            + file),
+                            StandardCharsets.UTF_8);
+                    assertThat(actual)
+                            .as("Protocol: " + file)
+                            .isEqualTo(expected);
+                }
+            }
+        }
+
+        @Test
+        @DisplayName("go-gin generates exactly 4"
+                + " convention files")
+        void goGinGeneratesExactlyFour(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            ProtocolsAssembler assembler =
+                    new ProtocolsAssembler();
+            ProjectConfig config = buildGoGinConfig();
+
+            List<String> files = assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            assertThat(files).hasSize(4);
+        }
+
+        private String loadResource(String path) {
+            var url = getClass().getClassLoader()
+                    .getResource(path);
+            if (url == null) {
+                return null;
+            }
+            try {
+                return Files.readString(
+                        Path.of(url.getPath()),
+                        StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                return null;
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("assemble — edge cases")
+    class EdgeCases {
+
+        @Test
+        @DisplayName("custom resourcesDir with no"
+                + " protocols dir returns empty")
+        void emptyResourcesReturnsEmpty(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path resourceDir = tempDir.resolve("res");
+            Files.createDirectories(resourceDir);
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            ProtocolsAssembler assembler =
+                    new ProtocolsAssembler(resourceDir);
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .clearInterfaces()
+                            .addInterface("rest")
+                            .build();
+
+            List<String> files = assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            assertThat(files).isEmpty();
+        }
+
+        @Test
+        @DisplayName("multiple event interfaces produce"
+                + " deduplicated protocols")
+        void deduplicatedEventProtocols(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            ProtocolsAssembler assembler =
+                    new ProtocolsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .clearInterfaces()
+                            .addInterface(
+                                    "event-consumer",
+                                    "", "kafka")
+                            .addInterface(
+                                    "event-producer",
+                                    "", "kafka")
+                            .build();
+
+            List<String> files = assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            // event-driven and messaging (deduplicated)
+            assertThat(files).hasSize(2);
+        }
+    }
+
+    private static ProjectConfig buildGoGinConfig() {
+        return TestConfigBuilder.builder()
+                .projectName("my-go-service")
+                .purpose(
+                        "Describe your service purpose here")
+                .archStyle("microservice")
+                .domainDriven(false)
+                .eventDriven(true)
+                .language("go", "1.22")
+                .framework("gin", "")
+                .buildTool("go-mod")
+                .nativeBuild(false)
+                .container("docker")
+                .orchestrator("kubernetes")
+                .iac("terraform")
+                .apiGateway("kong")
+                .smokeTests(true)
+                .contractTests(false)
+                .performanceTests(true)
+                .clearInterfaces()
+                .addInterface("rest")
+                .addInterface("grpc")
+                .addInterface("event-consumer",
+                        "", "kafka")
+                .addInterface("event-producer",
+                        "", "kafka")
+                .build();
+    }
+}

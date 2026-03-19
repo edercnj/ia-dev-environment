@@ -92,10 +92,14 @@ public final class AssemblerPipeline {
                         "AgentsAssembler",
                         AssemblerTarget.CLAUDE,
                         new AgentsAssembler()),
-                stub("PatternsAssembler",
-                        AssemblerTarget.CLAUDE),
-                stub("ProtocolsAssembler",
-                        AssemblerTarget.CLAUDE),
+                new AssemblerDescriptor(
+                        "PatternsAssembler",
+                        AssemblerTarget.CLAUDE,
+                        new PatternsAssembler()),
+                new AssemblerDescriptor(
+                        "ProtocolsAssembler",
+                        AssemblerTarget.CLAUDE,
+                        new ProtocolsAssembler()),
                 stub("HooksAssembler",
                         AssemblerTarget.CLAUDE),
                 stub("SettingsAssembler",
