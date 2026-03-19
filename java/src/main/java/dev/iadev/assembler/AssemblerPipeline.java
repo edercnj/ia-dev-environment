@@ -124,10 +124,14 @@ public final class AssemblerPipeline {
                         "GithubAgentsAssembler",
                         AssemblerTarget.GITHUB,
                         new GithubAgentsAssembler()),
-                stub("GithubHooksAssembler",
-                        AssemblerTarget.GITHUB),
-                stub("GithubPromptsAssembler",
-                        AssemblerTarget.GITHUB),
+                new AssemblerDescriptor(
+                        "GithubHooksAssembler",
+                        AssemblerTarget.GITHUB,
+                        new GithubHooksAssembler()),
+                new AssemblerDescriptor(
+                        "GithubPromptsAssembler",
+                        AssemblerTarget.GITHUB,
+                        new GithubPromptsAssembler()),
                 stub("DocsAssembler",
                         AssemblerTarget.DOCS),
                 stub("GrpcDocsAssembler",
