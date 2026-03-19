@@ -108,10 +108,14 @@ public final class AssemblerPipeline {
                         "SettingsAssembler",
                         AssemblerTarget.CLAUDE,
                         new SettingsAssembler()),
-                stub("GithubInstructionsAssembler",
-                        AssemblerTarget.GITHUB),
-                stub("GithubMcpAssembler",
-                        AssemblerTarget.GITHUB),
+                new AssemblerDescriptor(
+                        "GithubInstructionsAssembler",
+                        AssemblerTarget.GITHUB,
+                        new GithubInstructionsAssembler()),
+                new AssemblerDescriptor(
+                        "GithubMcpAssembler",
+                        AssemblerTarget.GITHUB,
+                        new GithubMcpAssembler()),
                 stub("GithubSkillsAssembler",
                         AssemblerTarget.GITHUB),
                 stub("GithubAgentsAssembler",

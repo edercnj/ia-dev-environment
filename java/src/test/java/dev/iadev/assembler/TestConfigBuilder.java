@@ -14,6 +14,8 @@ import dev.iadev.model.SecurityConfig;
 import dev.iadev.model.TechComponent;
 import dev.iadev.model.TestingConfig;
 
+import dev.iadev.model.McpServerConfig;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -56,6 +58,8 @@ final class TestConfigBuilder {
     private List<String> securityFrameworksList =
             Collections.emptyList();
     private final List<InterfaceConfig> interfaces =
+            new ArrayList<>();
+    private final List<McpServerConfig> mcpServers =
             new ArrayList<>();
 
     private TestConfigBuilder() {
@@ -210,6 +214,16 @@ final class TestConfigBuilder {
         return this;
     }
 
+    TestConfigBuilder addMcpServer(McpServerConfig server) {
+        this.mcpServers.add(server);
+        return this;
+    }
+
+    TestConfigBuilder clearMcpServers() {
+        this.mcpServers.clear();
+        return this;
+    }
+
     ProjectConfig build() {
         return new ProjectConfig(
                 new ProjectIdentity(
@@ -241,6 +255,6 @@ final class TestConfigBuilder {
                 new TestingConfig(
                         smokeTests, contractTests,
                         performanceTests, 95, 90),
-                McpConfig.fromMap(Map.of()));
+                new McpConfig(mcpServers));
     }
 }
