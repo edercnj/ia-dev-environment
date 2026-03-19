@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
  *   <li>{@link #renderString(String, Map)} — renders an inline
  *       template string</li>
  *   <li>{@link #replacePlaceholders(String, Map)} — replaces
- *       legacy {@code {{KEY}}} placeholders</li>
+ *       legacy {@code {KEY}} placeholders</li>
  * </ul>
  *
  * <p>Configuration (matching Nunjucks behavior):
@@ -47,12 +47,12 @@ import java.util.regex.Pattern;
 public final class TemplateEngine {
 
     /**
-     * Regex pattern for legacy {@code {{PLACEHOLDER}}}
-     * replacement. Matches double-brace uppercase/word
-     * placeholders.
+     * Regex pattern for legacy {@code {PLACEHOLDER}}
+     * replacement. Matches single-brace word placeholders,
+     * matching the TypeScript {@code /\{(\w+)\}/g} pattern.
      */
     static final Pattern PLACEHOLDER_PATTERN =
-            Pattern.compile("\\{\\{(\\w+)\\}\\}");
+            Pattern.compile("(?<!\\{)\\{(\\w+)\\}(?!\\})");
 
     private final PebbleEngine fileEngine;
     private final PebbleEngine stringEngine;
@@ -127,7 +127,7 @@ public final class TemplateEngine {
     }
 
     /**
-     * Replaces legacy {@code {{KEY}}} placeholders in content
+     * Replaces legacy {@code {KEY}} placeholders in content
      * with values from the context map.
      *
      * <p>For each match, the placeholder key is converted to

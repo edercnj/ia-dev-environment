@@ -1,5 +1,6 @@
 package dev.iadev.assembler;
 
+import dev.iadev.config.ContextBuilder;
 import dev.iadev.domain.stack.SkillRegistry;
 import dev.iadev.domain.stack.StackPackMapping;
 import dev.iadev.model.ProjectConfig;
@@ -104,15 +105,17 @@ public final class SkillsAssembler implements Assembler {
             ProjectConfig config,
             TemplateEngine engine,
             Path outputDir) {
+        java.util.Map<String, Object> context =
+                ContextBuilder.buildContext(config);
         List<String> generated = new ArrayList<>();
         generated.addAll(
-                assembleCore(outputDir, engine));
+                assembleCore(outputDir, engine, context));
         generated.addAll(
                 assembleConditional(
-                        config, outputDir, engine));
+                        config, outputDir, engine, context));
         generated.addAll(
                 assembleKnowledge(
-                        config, outputDir, engine));
+                        config, outputDir, engine, context));
         return generated;
     }
 
@@ -149,11 +152,13 @@ public final class SkillsAssembler implements Assembler {
     }
 
     private List<String> assembleCore(
-            Path outputDir, TemplateEngine engine) {
+            Path outputDir,
+            TemplateEngine engine,
+            java.util.Map<String, Object> context) {
         List<String> generated = new ArrayList<>();
         for (String skill : selectCoreSkills()) {
             String result = copyCoreSkill(
-                    skill, outputDir, engine);
+                    skill, outputDir, engine, context);
             generated.add(result);
         }
         return generated;
@@ -162,14 +167,15 @@ public final class SkillsAssembler implements Assembler {
     private List<String> assembleConditional(
             ProjectConfig config,
             Path outputDir,
-            TemplateEngine engine) {
+            TemplateEngine engine,
+            java.util.Map<String, Object> context) {
         List<String> generated = new ArrayList<>();
         List<String> conditional =
                 SkillsSelection.selectConditionalSkills(
                         config);
         for (String skill : conditional) {
             String result = copyConditionalSkill(
-                    skill, outputDir, engine);
+                    skill, outputDir, engine, context);
             if (result != null) {
                 generated.add(result);
             }
@@ -180,43 +186,49 @@ public final class SkillsAssembler implements Assembler {
     private List<String> assembleKnowledge(
             ProjectConfig config,
             Path outputDir,
-            TemplateEngine engine) {
+            TemplateEngine engine,
+            java.util.Map<String, Object> context) {
         List<String> generated = new ArrayList<>();
         List<String> packs =
                 SkillsSelection.selectKnowledgePacks(config);
         for (String pack : packs) {
             String result = copyKnowledgePack(
-                    pack, outputDir, engine);
+                    pack, outputDir, engine, context);
             if (result != null) {
                 generated.add(result);
             }
         }
         String stack = copyStackPatterns(
-                config, outputDir, engine);
+                config, outputDir, engine, context);
         if (stack != null) {
             generated.add(stack);
         }
         generated.addAll(copyInfraPatterns(
-                config, outputDir, engine));
+                config, outputDir, engine, context));
         return generated;
     }
 
     private String copyCoreSkill(
             String skillName,
             Path outputDir,
-            TemplateEngine engine) {
+            TemplateEngine engine,
+            java.util.Map<String, Object> context) {
         Path src = resourcesDir.resolve(
                 SKILLS_TEMPLATES_DIR + "/"
                         + CORE_DIR + "/" + skillName);
         Path dest = outputDir.resolve(
                 SKILLS_OUTPUT + "/" + skillName);
-        return CopyHelpers.copyDirectory(src, dest);
+        CopyHelpers.copyDirectory(src, dest);
+        CopyHelpers.replacePlaceholdersInDir(
+                dest, engine, context);
+        return dest.toString();
     }
 
     private String copyConditionalSkill(
             String skillName,
             Path outputDir,
-            TemplateEngine engine) {
+            TemplateEngine engine,
+            java.util.Map<String, Object> context) {
         Path src = resourcesDir.resolve(
                 SKILLS_TEMPLATES_DIR + "/"
                         + CONDITIONAL_DIR + "/"
@@ -227,13 +239,17 @@ public final class SkillsAssembler implements Assembler {
         }
         Path dest = outputDir.resolve(
                 SKILLS_OUTPUT + "/" + skillName);
-        return CopyHelpers.copyDirectory(src, dest);
+        CopyHelpers.copyDirectory(src, dest);
+        CopyHelpers.replacePlaceholdersInDir(
+                dest, engine, context);
+        return dest.toString();
     }
 
     private String copyKnowledgePack(
             String packName,
             Path outputDir,
-            TemplateEngine engine) {
+            TemplateEngine engine,
+            java.util.Map<String, Object> context) {
         Path src = resourcesDir.resolve(
                 SKILLS_TEMPLATES_DIR + "/"
                         + KNOWLEDGE_PACKS_DIR + "/"
@@ -252,16 +268,19 @@ public final class SkillsAssembler implements Assembler {
                     skillMdSrc,
                     dest.resolve(SKILL_MD),
                     engine,
-                    java.util.Map.of());
+                    context);
         }
         copyNonSkillItems(src, dest);
+        CopyHelpers.replacePlaceholdersInDir(
+                dest, engine, context);
         return dest.toString();
     }
 
     private String copyStackPatterns(
             ProjectConfig config,
             Path outputDir,
-            TemplateEngine engine) {
+            TemplateEngine engine,
+            java.util.Map<String, Object> context) {
         String packName = StackPackMapping
                 .getStackPackName(config.framework().name());
         if (packName.isEmpty()) {
@@ -278,13 +297,17 @@ public final class SkillsAssembler implements Assembler {
         }
         Path dest = outputDir.resolve(
                 SKILLS_OUTPUT + "/" + packName);
-        return CopyHelpers.copyDirectory(src, dest);
+        CopyHelpers.copyDirectory(src, dest);
+        CopyHelpers.replacePlaceholdersInDir(
+                dest, engine, context);
+        return dest.toString();
     }
 
     private List<String> copyInfraPatterns(
             ProjectConfig config,
             Path outputDir,
-            TemplateEngine engine) {
+            TemplateEngine engine,
+            java.util.Map<String, Object> context) {
         List<String> generated = new ArrayList<>();
         var rules = SkillRegistry.buildInfraPackRules(
                 config.infrastructure());
@@ -303,8 +326,10 @@ public final class SkillsAssembler implements Assembler {
             }
             Path dest = outputDir.resolve(
                     SKILLS_OUTPUT + "/" + rule.packName());
-            generated.add(
-                    CopyHelpers.copyDirectory(src, dest));
+            CopyHelpers.copyDirectory(src, dest);
+            CopyHelpers.replacePlaceholdersInDir(
+                    dest, engine, context);
+            generated.add(dest.toString());
         }
         return generated;
     }

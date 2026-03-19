@@ -1,5 +1,6 @@
 package dev.iadev.assembler;
 
+import dev.iadev.config.ContextBuilder;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
@@ -116,6 +117,8 @@ public final class GithubAgentsAssembler
             ProjectConfig config,
             TemplateEngine engine,
             Path outputDir) {
+        Map<String, Object> context =
+                ContextBuilder.buildContext(config);
         Path agentsDir =
                 outputDir.resolve(AGENTS_OUTPUT);
         CopyHelpers.ensureDirectory(agentsDir);
@@ -124,12 +127,13 @@ public final class GithubAgentsAssembler
         List<String> warnings = new ArrayList<>();
 
         files.addAll(assembleCore(
-                agentsDir, engine));
+                agentsDir, engine, context));
         files.addAll(assembleConditional(
-                config, agentsDir, engine, warnings));
+                config, agentsDir, engine,
+                warnings, context));
 
         String dev = assembleDeveloper(
-                config, agentsDir, engine);
+                config, agentsDir, engine, context);
         if (dev != null) {
             files.add(dev);
         } else {
@@ -201,7 +205,8 @@ public final class GithubAgentsAssembler
      */
     List<String> assembleCore(
             Path agentsDir,
-            TemplateEngine engine) {
+            TemplateEngine engine,
+            Map<String, Object> context) {
         Path coreDir = resourcesDir.resolve(
                 TEMPLATES_DIR + "/" + CORE_DIR);
         if (!Files.exists(coreDir)) {
@@ -221,7 +226,7 @@ public final class GithubAgentsAssembler
         List<String> results = new ArrayList<>();
         for (Path entry : entries) {
             results.add(renderAgent(
-                    entry, agentsDir, engine));
+                    entry, agentsDir, engine, context));
         }
         return results;
     }
@@ -230,7 +235,8 @@ public final class GithubAgentsAssembler
             ProjectConfig config,
             Path agentsDir,
             TemplateEngine engine,
-            List<String> warnings) {
+            List<String> warnings,
+            Map<String, Object> context) {
         Path condDir = resourcesDir.resolve(
                 TEMPLATES_DIR + "/" + CONDITIONAL_DIR);
         if (!Files.exists(condDir)) {
@@ -247,7 +253,7 @@ public final class GithubAgentsAssembler
                 continue;
             }
             results.add(renderAgent(
-                    src, agentsDir, engine));
+                    src, agentsDir, engine, context));
         }
         return results;
     }
@@ -265,7 +271,8 @@ public final class GithubAgentsAssembler
     String assembleDeveloper(
             ProjectConfig config,
             Path agentsDir,
-            TemplateEngine engine) {
+            TemplateEngine engine,
+            Map<String, Object> context) {
         Path devDir = resourcesDir.resolve(
                 TEMPLATES_DIR + "/" + DEVELOPERS_DIR);
         if (!Files.exists(devDir)) {
@@ -277,7 +284,8 @@ public final class GithubAgentsAssembler
         if (!Files.exists(template)) {
             return null;
         }
-        return renderAgent(template, agentsDir, engine);
+        return renderAgent(
+                template, agentsDir, engine, context);
     }
 
     /**
@@ -293,9 +301,28 @@ public final class GithubAgentsAssembler
             Path srcPath,
             Path agentsDir,
             TemplateEngine engine) {
+        return renderAgent(
+                srcPath, agentsDir, engine, Map.of());
+    }
+
+    /**
+     * Renders a single agent template with context-aware
+     * placeholder replacement.
+     *
+     * @param srcPath   the source template file path
+     * @param agentsDir the agents output directory
+     * @param engine    the template engine
+     * @param context   the context map for replacement
+     * @return the destination file path
+     */
+    String renderAgent(
+            Path srcPath,
+            Path agentsDir,
+            TemplateEngine engine,
+            Map<String, Object> context) {
         String content = readFile(srcPath);
         String rendered = engine.replacePlaceholders(
-                content, Map.of());
+                content, context);
         String fileName =
                 srcPath.getFileName().toString();
         String stem = fileName.endsWith(MD_EXTENSION)

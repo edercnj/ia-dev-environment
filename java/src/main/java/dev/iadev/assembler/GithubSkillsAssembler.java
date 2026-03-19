@@ -1,5 +1,6 @@
 package dev.iadev.assembler;
 
+import dev.iadev.config.ContextBuilder;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
@@ -175,6 +176,8 @@ public final class GithubSkillsAssembler
             ProjectConfig config,
             TemplateEngine engine,
             Path outputDir) {
+        Map<String, Object> context =
+                ContextBuilder.buildContext(config);
         List<String> results = new ArrayList<>();
         for (Map.Entry<String, List<String>> entry
                 : SKILL_GROUPS.entrySet()) {
@@ -188,7 +191,7 @@ public final class GithubSkillsAssembler
                     ? group : null;
             results.addAll(generateGroup(
                     engine, srcDir, outputDir,
-                    filtered, subDir));
+                    filtered, subDir, context));
         }
         return results;
     }
@@ -227,7 +230,8 @@ public final class GithubSkillsAssembler
             Path srcDir,
             Path outputDir,
             List<String> skillNames,
-            String subDir) {
+            String subDir,
+            Map<String, Object> context) {
         if (!Files.exists(srcDir)) {
             return List.of();
         }
@@ -235,7 +239,7 @@ public final class GithubSkillsAssembler
         for (String name : skillNames) {
             String dest = renderSkill(
                     engine, srcDir, outputDir,
-                    name, subDir);
+                    name, subDir, context);
             if (dest != null) {
                 results.add(dest);
             }
@@ -262,14 +266,15 @@ public final class GithubSkillsAssembler
             Path srcDir,
             Path outputDir,
             String name,
-            String subDir) {
+            String subDir,
+            Map<String, Object> context) {
         Path src = srcDir.resolve(name + ".md");
         if (!Files.exists(src)) {
             return null;
         }
         String content = readFile(src);
         String rendered = engine.replacePlaceholders(
-                content, Map.of());
+                content, context);
 
         Path skillDir;
         if (subDir != null) {
@@ -284,7 +289,8 @@ public final class GithubSkillsAssembler
 
         Path dest = skillDir.resolve(SKILL_MD);
         writeFile(dest, rendered);
-        copyReferences(srcDir, skillDir, name, engine);
+        copyReferences(
+                srcDir, skillDir, name, engine, context);
         return dest.toString();
     }
 
@@ -302,7 +308,8 @@ public final class GithubSkillsAssembler
             Path srcDir,
             Path skillDir,
             String name,
-            TemplateEngine engine) {
+            TemplateEngine engine,
+            Map<String, Object> context) {
         Path refsDir = srcDir.resolve(
                 "references/" + name);
         if (!Files.exists(refsDir)) {
@@ -311,7 +318,7 @@ public final class GithubSkillsAssembler
         Path destRefs = skillDir.resolve("references");
         CopyHelpers.copyDirectory(refsDir, destRefs);
         CopyHelpers.replacePlaceholdersInDir(
-                destRefs, engine, Map.of());
+                destRefs, engine, context);
     }
 
     private static String readFile(Path path) {

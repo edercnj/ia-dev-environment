@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -310,7 +311,7 @@ class GithubSkillsAssemblerTest {
 
             String result = assembler.renderSkill(
                     engine, srcDir, outputDir,
-                    "test-skill", null);
+                    "test-skill", null, Map.of());
 
             assertThat(result).isNotNull();
             Path skillMd = outputDir.resolve(
@@ -331,7 +332,7 @@ class GithubSkillsAssemblerTest {
 
             String result = assembler.renderSkill(
                     engine, srcDir, outputDir,
-                    "nonexistent", null);
+                    "nonexistent", null, Map.of());
 
             assertThat(result).isNull();
         }
@@ -357,7 +358,7 @@ class GithubSkillsAssemblerTest {
 
             String result = assembler.renderSkill(
                     engine, srcDir, outputDir,
-                    "x-lib-test", "lib");
+                    "x-lib-test", "lib", Map.of());
 
             assertThat(result).isNotNull();
             Path skillMd = outputDir.resolve(
@@ -395,7 +396,7 @@ class GithubSkillsAssemblerTest {
 
             assembler.copyReferences(
                     srcDir, skillDir,
-                    "test-skill", engine);
+                    "test-skill", engine, Map.of());
 
             Path destRef = skillDir.resolve(
                     "references/ref.md");
@@ -421,7 +422,7 @@ class GithubSkillsAssemblerTest {
 
             assembler.copyReferences(
                     srcDir, skillDir,
-                    "test-skill", engine);
+                    "test-skill", engine, Map.of());
 
             Path refs = skillDir.resolve("references");
             assertThat(refs).doesNotExist();

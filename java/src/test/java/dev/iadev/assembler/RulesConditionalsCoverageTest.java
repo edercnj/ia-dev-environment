@@ -662,7 +662,7 @@ class RulesConditionalsCoverageTest {
             Files.createDirectories(dbDir);
             Files.writeString(
                     dbDir.resolve("version-matrix.md"),
-                    "DB: {{DATABASE_NAME}}");
+                    "DB: {DATABASE_NAME}");
 
             Path skillsDir = tempDir.resolve("skills");
             Map<String, Object> context = Map.of(

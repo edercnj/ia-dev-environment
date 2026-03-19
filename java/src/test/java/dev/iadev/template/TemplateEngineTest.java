@@ -127,7 +127,7 @@ class TemplateEngineTest {
         @DisplayName("replaces known keys")
         void replacePlaceholders_knownKeys_replacesAll() {
             String result = engine.replacePlaceholders(
-                    "Stack: {{LANGUAGE_NAME}} {{LANGUAGE_VERSION}}",
+                    "Stack: {LANGUAGE_NAME} {LANGUAGE_VERSION}",
                     Map.of("language_name", "java",
                             "language_version", "21"));
 
@@ -138,21 +138,21 @@ class TemplateEngineTest {
         @DisplayName("preserves unknown keys")
         void replacePlaceholders_unknownKey_preservesOriginal() {
             String result = engine.replacePlaceholders(
-                    "{{UNKNOWN_KEY}}",
+                    "{UNKNOWN_KEY}",
                     Map.of("other_key", "value"));
 
-            assertThat(result).isEqualTo("{{UNKNOWN_KEY}}");
+            assertThat(result).isEqualTo("{UNKNOWN_KEY}");
         }
 
         @Test
         @DisplayName("replaces known, preserves unknown")
         void replacePlaceholders_mixed_replacesOnlyKnown() {
             String result = engine.replacePlaceholders(
-                    "{{PROJECT_NAME}} and {{UNKNOWN}}",
+                    "{PROJECT_NAME} and {UNKNOWN}",
                     Map.of("project_name", "my-app"));
 
             assertThat(result)
-                    .isEqualTo("my-app and {{UNKNOWN}}");
+                    .isEqualTo("my-app and {UNKNOWN}");
         }
 
         @Test
@@ -177,7 +177,7 @@ class TemplateEngineTest {
         @DisplayName("key lookup is case-insensitive")
         void replacePlaceholders_uppercaseKey_matchesLowercase() {
             String result = engine.replacePlaceholders(
-                    "{{PROJECT_NAME}}",
+                    "{PROJECT_NAME}",
                     Map.of("project_name", "my-app"));
 
             assertThat(result).isEqualTo("my-app");
@@ -187,7 +187,7 @@ class TemplateEngineTest {
         @DisplayName("non-string values converted via toString")
         void replacePlaceholders_intValue_convertedToString() {
             String result = engine.replacePlaceholders(
-                    "{{COVERAGE_LINE}}",
+                    "{COVERAGE_LINE}",
                     Map.of("coverage_line", 95));
 
             assertThat(result).isEqualTo("95");

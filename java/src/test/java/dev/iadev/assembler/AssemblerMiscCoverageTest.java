@@ -143,7 +143,8 @@ class AssemblerMiscCoverageTest {
 
             List<String> core =
                     assembler.assembleCore(
-                            outputDir, new TemplateEngine());
+                            outputDir, new TemplateEngine(),
+                            java.util.Map.of());
 
             assertThat(core).isEmpty();
         }
@@ -547,11 +548,11 @@ class AssemblerMiscCoverageTest {
             Files.createDirectories(dir);
             Files.writeString(
                     dir.resolve("test.md"),
-                    "Hello {{NAME}}",
+                    "Hello {NAME}",
                     StandardCharsets.UTF_8);
             Files.writeString(
                     dir.resolve("skip.txt"),
-                    "Not {{REPLACED}}",
+                    "Not {REPLACED}",
                     StandardCharsets.UTF_8);
 
             CopyHelpers.replacePlaceholdersInDir(
@@ -567,7 +568,7 @@ class AssemblerMiscCoverageTest {
                     dir.resolve("skip.txt"),
                     StandardCharsets.UTF_8);
             assertThat(txt)
-                    .contains("Not {{REPLACED}}");
+                    .contains("Not {REPLACED}");
         }
     }
 }

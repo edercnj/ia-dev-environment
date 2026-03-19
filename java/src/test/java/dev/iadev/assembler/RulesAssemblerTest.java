@@ -170,7 +170,7 @@ class RulesAssemblerTest {
             Files.createDirectories(coreRules);
             Files.writeString(
                     coreRules.resolve("03-test.md"),
-                    "Project: {{PROJECT_NAME}}\n",
+                    "Project: {PROJECT_NAME}\n",
                     StandardCharsets.UTF_8);
 
             Path templates = resourceDir.resolve(

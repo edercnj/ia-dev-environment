@@ -30,7 +30,7 @@ class CopyHelpersTest {
                 throws IOException {
             Path src = tempDir.resolve("source.md");
             Files.writeString(src,
-                    "Project: {{PROJECT_NAME}}\n",
+                    "Project: {PROJECT_NAME}\n",
                     StandardCharsets.UTF_8);
 
             Path dest = tempDir.resolve("output/result.md");
@@ -194,11 +194,11 @@ class CopyHelpersTest {
                 throws IOException {
             Path mdFile = tempDir.resolve("test.md");
             Files.writeString(mdFile,
-                    "Name: {{PROJECT_NAME}}\n");
+                    "Name: {PROJECT_NAME}\n");
 
             Path txtFile = tempDir.resolve("test.txt");
             Files.writeString(txtFile,
-                    "Name: {{PROJECT_NAME}}\n");
+                    "Name: {PROJECT_NAME}\n");
 
             Map<String, Object> context =
                     Map.of("project_name", "replaced");
@@ -210,7 +210,7 @@ class CopyHelpersTest {
                     .contains("replaced");
             // .txt files should NOT be replaced
             assertThat(Files.readString(txtFile))
-                    .contains("{{PROJECT_NAME}}");
+                    .contains("{PROJECT_NAME}");
         }
 
         @Test
@@ -221,7 +221,7 @@ class CopyHelpersTest {
             Files.createDirectories(sub);
             Path nested = sub.resolve("deep.md");
             Files.writeString(nested,
-                    "{{PROJECT_NAME}} value");
+                    "{PROJECT_NAME} value");
 
             Map<String, Object> context =
                     Map.of("project_name", "deep-val");

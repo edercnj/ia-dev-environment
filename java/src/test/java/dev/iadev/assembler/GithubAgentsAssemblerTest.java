@@ -421,7 +421,8 @@ class GithubAgentsAssemblerTest {
 
             List<String> files =
                     assembler.assembleCore(
-                            agentsDir, engine);
+                            agentsDir, engine,
+                            java.util.Map.of());
 
             assertThat(files).isNotEmpty();
             assertThat(files)
@@ -443,7 +444,8 @@ class GithubAgentsAssemblerTest {
 
             List<String> files =
                     assembler.assembleCore(
-                            agentsDir, engine);
+                            agentsDir, engine,
+                            java.util.Map.of());
 
             List<String> fileNames = files.stream()
                     .map(f -> Path.of(f).getFileName()
@@ -468,7 +470,8 @@ class GithubAgentsAssemblerTest {
 
             List<String> files =
                     assembler.assembleCore(
-                            agentsDir, engine);
+                            agentsDir, engine,
+                            java.util.Map.of());
 
             assertThat(files).isEmpty();
         }
@@ -497,7 +500,8 @@ class GithubAgentsAssemblerTest {
 
             String result =
                     assembler.assembleDeveloper(
-                            config, agentsDir, engine);
+                            config, agentsDir, engine,
+                            java.util.Map.of());
 
             assertThat(result).isNotNull();
             assertThat(result).endsWith(
@@ -522,7 +526,8 @@ class GithubAgentsAssemblerTest {
 
             String result =
                     assembler.assembleDeveloper(
-                            config, agentsDir, engine);
+                            config, agentsDir, engine,
+                            java.util.Map.of());
 
             assertThat(result).isNull();
         }
@@ -547,7 +552,8 @@ class GithubAgentsAssemblerTest {
 
             String result =
                     assembler.assembleDeveloper(
-                            config, agentsDir, engine);
+                            config, agentsDir, engine,
+                            java.util.Map.of());
 
             assertThat(result).isNull();
         }
