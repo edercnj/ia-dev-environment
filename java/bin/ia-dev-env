@@ -1,0 +1,128 @@
+#!/usr/bin/env bash
+# Wrapper script for ia-dev-env CLI
+# Detects Java 21+ and executes the fat JAR
+#
+# Environment variables:
+#   IA_DEV_ENV_JAVA_OPTS  Extra JVM options (e.g. -Xmx512m)
+#   JAVA_HOME             Path to Java installation
+
+set -euo pipefail
+
+readonly REQUIRED_JAVA_VERSION=21
+readonly JAR_NAME="ia-dev-env-2.0.0-SNAPSHOT.jar"
+
+# Resolve the directory where this script lives,
+# following symlinks.
+resolve_script_dir() {
+    local source="${BASH_SOURCE[0]}"
+    while [ -L "$source" ]; do
+        local dir
+        dir="$(cd -P "$(dirname "$source")" && pwd)"
+        source="$(readlink "$source")"
+        [[ "$source" != /* ]] && source="$dir/$source"
+    done
+    cd -P "$(dirname "$source")" && pwd
+}
+
+# Find the java executable: prefer JAVA_HOME, then PATH.
+find_java() {
+    if [ -n "${JAVA_HOME:-}" ] && \
+       [ -x "$JAVA_HOME/bin/java" ]; then
+        echo "$JAVA_HOME/bin/java"
+        return 0
+    fi
+    if command -v java >/dev/null 2>&1; then
+        command -v java
+        return 0
+    fi
+    return 1
+}
+
+# Extract the major version number from java -version.
+get_java_major_version() {
+    local java_cmd="$1"
+    local version_output
+    version_output=$("$java_cmd" -version 2>&1)
+    # Parse version string: handles "21.0.1", "1.8.0_xxx"
+    local version
+    version=$(echo "$version_output" \
+        | head -1 \
+        | sed -E 's/.*"([^"]+)".*/\1/' \
+        | cut -d. -f1)
+    # Handle legacy 1.x format
+    if [ "$version" = "1" ]; then
+        version=$(echo "$version_output" \
+            | head -1 \
+            | sed -E 's/.*"([^"]+)".*/\1/' \
+            | cut -d. -f2)
+    fi
+    echo "$version"
+}
+
+# Print error and installation suggestions, then exit.
+print_java_not_found() {
+    cat >&2 <<'ERRMSG'
+ERROR: Java not found.
+
+ia-dev-env requires Java 21 or later. Install it via:
+
+  SDKMAN:   sdk install java 21-tem
+  Homebrew: brew install openjdk@21
+  Manual:   https://adoptium.net/temurin/releases/
+
+Then either set JAVA_HOME or add java to your PATH.
+ERRMSG
+    exit 1
+}
+
+# Print version mismatch error and exit.
+print_version_mismatch() {
+    local found_version="$1"
+    cat >&2 <<ERRMSG
+ERROR: Java $REQUIRED_JAVA_VERSION or later is required, \
+but found Java $found_version.
+
+Upgrade via:
+  SDKMAN:   sdk install java 21-tem
+  Homebrew: brew install openjdk@21
+  Manual:   https://adoptium.net/temurin/releases/
+ERRMSG
+    exit 1
+}
+
+main() {
+    # 1. Find java
+    local java_cmd
+    if ! java_cmd=$(find_java); then
+        print_java_not_found
+    fi
+
+    # 2. Check version
+    local major_version
+    major_version=$(get_java_major_version "$java_cmd")
+    if [ -z "$major_version" ] || \
+       [ "$major_version" -lt "$REQUIRED_JAVA_VERSION" ] \
+       2>/dev/null; then
+        print_version_mismatch "${major_version:-unknown}"
+    fi
+
+    # 3. Resolve JAR path relative to this script
+    local script_dir
+    script_dir=$(resolve_script_dir)
+    local jar_path="$script_dir/../target/$JAR_NAME"
+
+    if [ ! -f "$jar_path" ]; then
+        echo "ERROR: JAR not found at $jar_path" >&2
+        echo "Run 'mvn package' first." >&2
+        exit 1
+    fi
+
+    # 4. Execute
+    # shellcheck disable=SC2086
+    exec "$java_cmd" \
+        ${IA_DEV_ENV_JAVA_OPTS:-} \
+        -jar "$jar_path" \
+        "$@"
+}
+
+main "$@"

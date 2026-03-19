@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+  {{ project_name }}:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "{{ framework_port }}:{{ framework_port }}"
+    environment:
+      - APP_ENV=development
+{% if database_name != "none" %}
+      - DATABASE_URL={{ database_name }}://dbuser:dbpass@db:5432/{{ project_name }}
+{% endif %}
+{% if cache_name != "none" %}
+      - CACHE_URL={{ cache_name }}://cache:6379
+{% endif %}
+{% if database_name != "none" or cache_name != "none" %}
+    depends_on:
+{% endif %}
+{% if database_name != "none" %}
+      - db
+{% endif %}
+{% if cache_name != "none" %}
+      - cache
+{% endif %}
+{% if database_name != "none" %}
+
+  db:
+    image: {{ database_name }}:latest
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB={{ project_name }}
+      - POSTGRES_USER=dbuser
+      - POSTGRES_PASSWORD=dbpass
+    volumes:
+      - db-data:/var/lib/postgresql/data
+{% endif %}
+{% if cache_name != "none" %}
+
+  cache:
+    image: {{ cache_name }}:latest
+    ports:
+      - "6379:6379"
+{% endif %}
+{% if database_name != "none" or cache_name != "none" %}
+
+volumes:
+{% endif %}
+{% if database_name != "none" %}
+  db-data:
+{% endif %}
