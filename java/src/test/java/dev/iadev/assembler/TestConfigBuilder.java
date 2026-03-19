@@ -15,6 +15,7 @@ import dev.iadev.model.TechComponent;
 import dev.iadev.model.TestingConfig;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +50,11 @@ final class TestConfigBuilder {
     private boolean contractTests = false;
     private boolean performanceTests = true;
     private String purpose = "Test purpose";
+    private String apiGateway = "none";
+    private String registry = "none";
+    private String observabilityTool = "none";
+    private List<String> securityFrameworksList =
+            Collections.emptyList();
     private final List<InterfaceConfig> interfaces =
             new ArrayList<>();
 
@@ -184,6 +190,26 @@ final class TestConfigBuilder {
         return this;
     }
 
+    TestConfigBuilder apiGateway(String gateway) {
+        this.apiGateway = gateway;
+        return this;
+    }
+
+    TestConfigBuilder registry(String registry) {
+        this.registry = registry;
+        return this;
+    }
+
+    TestConfigBuilder observabilityTool(String tool) {
+        this.observabilityTool = tool;
+        return this;
+    }
+
+    TestConfigBuilder securityFrameworks(String... frameworks) {
+        this.securityFrameworksList = List.of(frameworks);
+        return this;
+    }
+
     ProjectConfig build() {
         return new ProjectConfig(
                 new ProjectIdentity(
@@ -206,11 +232,12 @@ final class TestConfigBuilder {
                 new InfraConfig(
                         container, orchestrator,
                         "kustomize", iac,
-                        "none", "none", "none",
+                        registry, apiGateway, "none",
                         cloudProvider,
                         new ObservabilityConfig(
-                                "none", "none", "none")),
-                SecurityConfig.fromMap(Map.of()),
+                                observabilityTool,
+                                "none", "none")),
+                new SecurityConfig(securityFrameworksList),
                 new TestingConfig(
                         smokeTests, contractTests,
                         performanceTests, 95, 90),

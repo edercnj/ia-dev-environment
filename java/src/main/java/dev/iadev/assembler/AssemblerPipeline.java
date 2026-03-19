@@ -84,8 +84,10 @@ public final class AssemblerPipeline {
                         "RulesAssembler",
                         AssemblerTarget.CLAUDE,
                         new RulesAssembler()),
-                stub("SkillsAssembler",
-                        AssemblerTarget.CLAUDE),
+                new AssemblerDescriptor(
+                        "SkillsAssembler",
+                        AssemblerTarget.CLAUDE,
+                        new SkillsAssembler()),
                 stub("AgentsAssembler",
                         AssemblerTarget.CLAUDE),
                 stub("PatternsAssembler",
