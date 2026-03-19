@@ -100,10 +100,14 @@ public final class AssemblerPipeline {
                         "ProtocolsAssembler",
                         AssemblerTarget.CLAUDE,
                         new ProtocolsAssembler()),
-                stub("HooksAssembler",
-                        AssemblerTarget.CLAUDE),
-                stub("SettingsAssembler",
-                        AssemblerTarget.CLAUDE),
+                new AssemblerDescriptor(
+                        "HooksAssembler",
+                        AssemblerTarget.CLAUDE,
+                        new HooksAssembler()),
+                new AssemblerDescriptor(
+                        "SettingsAssembler",
+                        AssemblerTarget.CLAUDE,
+                        new SettingsAssembler()),
                 stub("GithubInstructionsAssembler",
                         AssemblerTarget.GITHUB),
                 stub("GithubMcpAssembler",
