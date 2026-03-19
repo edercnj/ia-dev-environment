@@ -39,6 +39,16 @@ final class TestConfigBuilder {
     private String dbVersion = "";
     private String cacheName = "none";
     private String cacheVersion = "";
+    private String migrationName = "none";
+    private String migrationVersion = "";
+    private String container = "docker";
+    private String orchestrator = "none";
+    private String cloudProvider = "none";
+    private String iac = "none";
+    private boolean smokeTests = true;
+    private boolean contractTests = false;
+    private boolean performanceTests = true;
+    private String purpose = "Test purpose";
     private final List<InterfaceConfig> interfaces =
             new ArrayList<>();
 
@@ -127,22 +137,83 @@ final class TestConfigBuilder {
         return this;
     }
 
+    TestConfigBuilder purpose(String purpose) {
+        this.purpose = purpose;
+        return this;
+    }
+
+    TestConfigBuilder migration(
+            String name, String version) {
+        this.migrationName = name;
+        this.migrationVersion = version;
+        return this;
+    }
+
+    TestConfigBuilder container(String container) {
+        this.container = container;
+        return this;
+    }
+
+    TestConfigBuilder orchestrator(String orchestrator) {
+        this.orchestrator = orchestrator;
+        return this;
+    }
+
+    TestConfigBuilder cloudProvider(String provider) {
+        this.cloudProvider = provider;
+        return this;
+    }
+
+    TestConfigBuilder iac(String iac) {
+        this.iac = iac;
+        return this;
+    }
+
+    TestConfigBuilder smokeTests(boolean enabled) {
+        this.smokeTests = enabled;
+        return this;
+    }
+
+    TestConfigBuilder contractTests(boolean enabled) {
+        this.contractTests = enabled;
+        return this;
+    }
+
+    TestConfigBuilder performanceTests(boolean enabled) {
+        this.performanceTests = enabled;
+        return this;
+    }
+
     ProjectConfig build() {
         return new ProjectConfig(
-                new ProjectIdentity(projectName, projectPurpose),
+                new ProjectIdentity(
+                        projectName, purpose),
                 new ArchitectureConfig(
-                        archStyle, domainDriven, eventDriven),
+                        archStyle, domainDriven,
+                        eventDriven),
                 interfaces,
                 new LanguageConfig(langName, langVersion),
                 new FrameworkConfig(
-                        fwName, fwVersion, buildTool, nativeBuild),
+                        fwName, fwVersion,
+                        buildTool, nativeBuild),
                 new DataConfig(
                         new TechComponent(dbName, dbVersion),
-                        TechComponent.fromMap(Map.of()),
-                        new TechComponent(cacheName, cacheVersion)),
-                InfraConfig.fromMap(Map.of()),
+                        new TechComponent(
+                                migrationName,
+                                migrationVersion),
+                        new TechComponent(
+                                cacheName, cacheVersion)),
+                new InfraConfig(
+                        container, orchestrator,
+                        "kustomize", iac,
+                        "none", "none", "none",
+                        cloudProvider,
+                        new ObservabilityConfig(
+                                "none", "none", "none")),
                 SecurityConfig.fromMap(Map.of()),
-                TestingConfig.fromMap(Map.of()),
+                new TestingConfig(
+                        smokeTests, contractTests,
+                        performanceTests, 95, 90),
                 McpConfig.fromMap(Map.of()));
     }
 }

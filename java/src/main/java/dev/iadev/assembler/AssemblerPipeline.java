@@ -80,8 +80,10 @@ public final class AssemblerPipeline {
      */
     public static List<AssemblerDescriptor> buildAssemblers() {
         return List.of(
-                stub("RulesAssembler",
-                        AssemblerTarget.CLAUDE),
+                new AssemblerDescriptor(
+                        "RulesAssembler",
+                        AssemblerTarget.CLAUDE,
+                        new RulesAssembler()),
                 stub("SkillsAssembler",
                         AssemblerTarget.CLAUDE),
                 stub("AgentsAssembler",
