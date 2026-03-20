@@ -1,4 +1,4 @@
-package dev.iadev.cli;
+package dev.iadev.exception;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

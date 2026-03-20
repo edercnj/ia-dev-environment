@@ -1,11 +1,14 @@
-package dev.iadev.util;
+package dev.iadev.exception;
 
 /**
- * Thrown when a resource cannot be found via any search strategy.
+ * Thrown when a required resource (file, template, configuration)
+ * cannot be found via any search strategy.
  *
  * <p>Carries the resource path that was searched for and a description
  * of the strategies that were attempted (classpath, filesystem, etc.),
  * enabling clear diagnosis of missing resources.</p>
+ *
+ * <p>Application-level exception — used across multiple layers.</p>
  *
  * <p>Example usage:
  * <pre>{@code

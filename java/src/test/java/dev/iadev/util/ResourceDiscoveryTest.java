@@ -1,5 +1,6 @@
 package dev.iadev.util;
 
+import dev.iadev.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

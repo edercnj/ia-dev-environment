@@ -1,5 +1,7 @@
 package dev.iadev.util;
 
+import dev.iadev.exception.ResourceNotFoundException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;

@@ -1,5 +1,6 @@
 package dev.iadev.cli;
 
+import dev.iadev.exception.GenerationCancelledException;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;

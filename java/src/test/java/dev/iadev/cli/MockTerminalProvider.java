@@ -1,5 +1,7 @@
 package dev.iadev.cli;
 
+import dev.iadev.exception.GenerationCancelledException;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;

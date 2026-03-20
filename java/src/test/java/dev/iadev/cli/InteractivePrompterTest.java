@@ -1,5 +1,6 @@
 package dev.iadev.cli;
 
+import dev.iadev.exception.GenerationCancelledException;
 import dev.iadev.model.ProjectConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

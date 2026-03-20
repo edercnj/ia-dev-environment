@@ -1,5 +1,6 @@
 package dev.iadev.cli;
 
+import dev.iadev.exception.GenerationCancelledException;
 import dev.iadev.model.ArchitectureConfig;
 import dev.iadev.model.DataConfig;
 import dev.iadev.model.FrameworkConfig;
