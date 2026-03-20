@@ -2,7 +2,7 @@
   "epicId": "0008",
   "branch": "feat/epic-0008-full-implementation",
   "startedAt": "2026-03-20T00:00:00Z",
-  "finishedAt": null,
+  "finishedAt": "2026-03-20T23:59:00Z",
   "mode": {
     "parallel": false,
     "skipReview": false
@@ -51,7 +51,7 @@
     "phase2": { "status": "PASS", "testCount": 2268, "coverage": 95.68, "branchCoverage": 91.96, "failedTests": [], "regressionSource": null },
     "phase3": { "status": "PASS", "testCount": 2247, "coverage": 95.53, "branchCoverage": 92.03, "failedTests": [], "regressionSource": null }
   },
-  "prUrl": null,
+  "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/119",
   "reportPath": "docs/stories/epic-0008/epic-execution-report.md",
   "finalStatus": "COMPLETE"
 }
