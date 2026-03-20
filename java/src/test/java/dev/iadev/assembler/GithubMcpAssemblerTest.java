@@ -101,7 +101,7 @@ class GithubMcpAssemblerTest {
             ProjectConfig config =
                     TestConfigBuilder.minimal();
 
-            GithubMcpAssembler.AssembleResult result =
+            AssemblerResult result =
                     assembler.assembleWithWarnings(
                             config,
                             Path.of("/tmp/unused"));
@@ -132,7 +132,7 @@ class GithubMcpAssemblerTest {
                                                     "$SECRET")))
                             .build();
 
-            GithubMcpAssembler.AssembleResult result =
+            AssemblerResult result =
                     assembler.assembleWithWarnings(
                             config, outputDir);
 
@@ -162,7 +162,7 @@ class GithubMcpAssemblerTest {
                                                     "literal-value")))
                             .build();
 
-            GithubMcpAssembler.AssembleResult result =
+            AssemblerResult result =
                     assembler.assembleWithWarnings(
                             config, outputDir);
 
@@ -522,14 +522,14 @@ class GithubMcpAssemblerTest {
     }
 
     @Nested
-    @DisplayName("AssembleResult — record contract")
-    class AssembleResultContract {
+    @DisplayName("AssemblerResult — record contract")
+    class AssemblerResultContract {
 
         @Test
         @DisplayName("immutable files and warnings")
         void immutableCollections() {
-            GithubMcpAssembler.AssembleResult result =
-                    new GithubMcpAssembler.AssembleResult(
+            AssemblerResult result =
+                    AssemblerResult.of(
                             List.of("file1"),
                             List.of("warn1"));
 
@@ -542,9 +542,8 @@ class GithubMcpAssemblerTest {
         @Test
         @DisplayName("empty result has empty lists")
         void emptyResult() {
-            GithubMcpAssembler.AssembleResult result =
-                    new GithubMcpAssembler.AssembleResult(
-                            List.of(), List.of());
+            AssemblerResult result =
+                    AssemblerResult.empty();
 
             assertThat(result.files()).isEmpty();
             assertThat(result.warnings()).isEmpty();

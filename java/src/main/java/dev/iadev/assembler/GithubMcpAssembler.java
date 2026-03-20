@@ -81,19 +81,18 @@ public final class GithubMcpAssembler
     /**
      * Generates copilot-mcp.json with full result including
      * warnings. This method provides the complete
-     * {@link AssembleResult} for callers that need warning
+     * {@link AssemblerResult} for callers that need warning
      * information.
      *
      * @param config    the project configuration
      * @param outputDir the target output directory
      * @return result with generated files and warnings
      */
-    public AssembleResult assembleWithWarnings(
+    public AssemblerResult assembleWithWarnings(
             ProjectConfig config,
             Path outputDir) {
         if (config.mcp().servers().isEmpty()) {
-            return new AssembleResult(
-                    List.of(), List.of());
+            return AssemblerResult.empty();
         }
 
         List<String> warnings = warnLiteralEnvValues(
@@ -105,7 +104,7 @@ public final class GithubMcpAssembler
                 outputDir.resolve("copilot-mcp.json");
         CopyHelpers.writeFile(dest, content);
 
-        return new AssembleResult(
+        return AssemblerResult.of(
                 List.of(dest.toString()), warnings);
     }
 
@@ -258,23 +257,4 @@ public final class GithubMcpAssembler
         sb.append(JsonHelpers.indent(3)).append("}\n");
     }
 
-    /**
-     * Result of MCP assembler execution, containing
-     * generated file paths and validation warnings.
-     *
-     * @param files    list of generated file paths
-     * @param warnings list of validation warnings
-     */
-    public record AssembleResult(
-            List<String> files,
-            List<String> warnings) {
-
-        /**
-         * Creates an AssembleResult with immutable lists.
-         */
-        public AssembleResult {
-            files = List.copyOf(files);
-            warnings = List.copyOf(warnings);
-        }
-    }
 }

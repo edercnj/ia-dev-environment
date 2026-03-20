@@ -190,7 +190,7 @@ public final class AssemblerPipeline {
      * @return aggregated files and warnings
      * @throws PipelineException if any assembler fails
      */
-    public static NormalizedResult executeAssemblers(
+    public static AssemblerResult executeAssemblers(
             List<AssemblerDescriptor> descriptors,
             ProjectConfig config,
             Path outputDir,
@@ -217,7 +217,7 @@ public final class AssemblerPipeline {
             }
         }
 
-        return new NormalizedResult(files, warnings);
+        return AssemblerResult.of(files, warnings);
     }
 
     /**
@@ -242,7 +242,7 @@ public final class AssemblerPipeline {
 
         TemplateEngine engine = createEngine(options);
 
-        NormalizedResult result;
+        AssemblerResult result;
         if (options.dryRun()) {
             result = runDry(config, engine);
         } else {
@@ -260,7 +260,7 @@ public final class AssemblerPipeline {
                 durationMs);
     }
 
-    private NormalizedResult runDry(
+    private AssemblerResult runDry(
             ProjectConfig config,
             TemplateEngine engine) {
         Path tempDir;
@@ -273,19 +273,19 @@ public final class AssemblerPipeline {
         }
 
         try {
-            NormalizedResult result = executeAssemblers(
+            AssemblerResult result = executeAssemblers(
                     descriptors, config, tempDir, engine);
             List<String> warnings =
                     new ArrayList<>(result.warnings());
             warnings.add(DRY_RUN_WARNING);
-            return new NormalizedResult(
+            return AssemblerResult.of(
                     result.files(), warnings);
         } finally {
             deleteQuietly(tempDir);
         }
     }
 
-    private NormalizedResult runReal(
+    private AssemblerResult runReal(
             ProjectConfig config,
             Path outputDir,
             TemplateEngine engine) {
@@ -334,22 +334,4 @@ public final class AssemblerPipeline {
         }
     }
 
-    /**
-     * Aggregated files and warnings from assembler execution.
-     *
-     * @param files    the list of generated file paths
-     * @param warnings the list of non-fatal warnings
-     */
-    public record NormalizedResult(
-            List<String> files,
-            List<String> warnings) {
-
-        /**
-         * Creates a NormalizedResult with immutable lists.
-         */
-        public NormalizedResult {
-            files = List.copyOf(files);
-            warnings = List.copyOf(warnings);
-        }
-    }
 }

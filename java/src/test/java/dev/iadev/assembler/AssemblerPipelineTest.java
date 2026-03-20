@@ -130,7 +130,7 @@ class AssemblerPipelineTest {
                     TestConfigBuilder.minimal();
             TemplateEngine engine = new TemplateEngine();
 
-            AssemblerPipeline.NormalizedResult result =
+            AssemblerResult result =
                     AssemblerPipeline.executeAssemblers(
                             descriptors, config, tempDir, engine);
 
@@ -148,7 +148,7 @@ class AssemblerPipelineTest {
                     descriptor("Y", (c, e, p) ->
                             List.of("y1.md")));
 
-            AssemblerPipeline.NormalizedResult result =
+            AssemblerResult result =
                     AssemblerPipeline.executeAssemblers(
                             descriptors,
                             TestConfigBuilder.minimal(),

@@ -580,7 +580,7 @@ class GithubAgentsAssemblerTest {
                             .build();
             TemplateEngine engine = new TemplateEngine();
 
-            GithubAgentsAssembler.AssembleResult result =
+            AssemblerResult result =
                     assembler.assembleWithWarnings(
                             config, engine, outputDir);
 
@@ -605,7 +605,7 @@ class GithubAgentsAssemblerTest {
                             .build();
             TemplateEngine engine = new TemplateEngine();
 
-            GithubAgentsAssembler.AssembleResult result =
+            AssemblerResult result =
                     assembler.assembleWithWarnings(
                             config, engine, outputDir);
 
@@ -632,7 +632,7 @@ class GithubAgentsAssemblerTest {
                             .build();
             TemplateEngine engine = new TemplateEngine();
 
-            GithubAgentsAssembler.AssembleResult result =
+            AssemblerResult result =
                     assembler.assembleWithWarnings(
                             config, engine, outputDir);
 
@@ -701,15 +701,14 @@ class GithubAgentsAssemblerTest {
     }
 
     @Nested
-    @DisplayName("AssembleResult — record contract")
-    class AssembleResultContract {
+    @DisplayName("AssemblerResult — record contract")
+    class AssemblerResultContract {
 
         @Test
         @DisplayName("immutable files and warnings")
         void immutableCollections() {
-            GithubAgentsAssembler.AssembleResult result =
-                    new GithubAgentsAssembler
-                            .AssembleResult(
+            AssemblerResult result =
+                    AssemblerResult.of(
                             List.of("file1"),
                             List.of("warn1"));
 
@@ -722,10 +721,8 @@ class GithubAgentsAssemblerTest {
         @Test
         @DisplayName("empty result has empty lists")
         void emptyResult() {
-            GithubAgentsAssembler.AssembleResult result =
-                    new GithubAgentsAssembler
-                            .AssembleResult(
-                            List.of(), List.of());
+            AssemblerResult result =
+                    AssemblerResult.empty();
 
             assertThat(result.files()).isEmpty();
             assertThat(result.warnings()).isEmpty();

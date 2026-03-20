@@ -40,7 +40,7 @@ import java.util.stream.Stream;
  * <pre>{@code
  * GithubAgentsAssembler agents =
  *     new GithubAgentsAssembler();
- * AssembleResult result = agents.assembleWithWarnings(
+ * AssemblerResult result = agents.assembleWithWarnings(
  *     config, engine, outputDir);
  * }</pre>
  * </p>
@@ -94,7 +94,7 @@ public final class GithubAgentsAssembler
             ProjectConfig config,
             TemplateEngine engine,
             Path outputDir) {
-        AssembleResult result =
+        AssemblerResult result =
                 assembleWithWarnings(
                         config, engine, outputDir);
         for (String warning : result.warnings()) {
@@ -112,7 +112,7 @@ public final class GithubAgentsAssembler
      * @param outputDir the target output directory
      * @return result with generated files and warnings
      */
-    public AssembleResult assembleWithWarnings(
+    public AssemblerResult assembleWithWarnings(
             ProjectConfig config,
             TemplateEngine engine,
             Path outputDir) {
@@ -143,7 +143,7 @@ public final class GithubAgentsAssembler
                             + expected);
         }
 
-        return new AssembleResult(files, warnings);
+        return AssemblerResult.of(files, warnings);
     }
 
     /**
@@ -347,24 +347,4 @@ public final class GithubAgentsAssembler
                 .resolveResourcesRoot(TEMPLATES_DIR);
     }
 
-    /**
-     * Result of GitHub agents assembler execution,
-     * containing generated file paths and warnings for
-     * missing templates.
-     *
-     * @param files    list of generated file paths
-     * @param warnings list of warning messages
-     */
-    public record AssembleResult(
-            List<String> files,
-            List<String> warnings) {
-
-        /**
-         * Creates an AssembleResult with immutable lists.
-         */
-        public AssembleResult {
-            files = List.copyOf(files);
-            warnings = List.copyOf(warnings);
-        }
-    }
 }
