@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Discovers and reads resources from the classpath or an external
@@ -101,18 +102,12 @@ public class ResourceDiscovery {
      * @throws ResourceNotFoundException if resource is not found
      */
     public URL findResource(String relativePath) {
-        URL url = findInFilesystem(relativePath);
-        if (url != null) {
-            return url;
-        }
-
-        url = findInClasspath(relativePath);
-        if (url != null) {
-            return url;
-        }
-
-        throw new ResourceNotFoundException(
-                relativePath, buildStrategiesDescription());
+        return findInFilesystem(relativePath)
+                .or(() -> findInClasspath(relativePath))
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                relativePath,
+                                buildStrategiesDescription()));
     }
 
     /**
@@ -161,23 +156,27 @@ public class ResourceDiscovery {
         return getClassLoader().getResource(relativePath) != null;
     }
 
-    private URL findInFilesystem(String relativePath) {
+    private Optional<URL> findInFilesystem(
+            String relativePath) {
         if (resourcesDir == null) {
-            return null;
+            return Optional.empty();
         }
         Path filePath = resourcesDir.resolve(relativePath);
         if (Files.exists(filePath)) {
             try {
-                return filePath.toUri().toURL();
+                return Optional.of(
+                        filePath.toUri().toURL());
             } catch (MalformedURLException e) {
-                return null;
+                return Optional.empty();
             }
         }
-        return null;
+        return Optional.empty();
     }
 
-    private URL findInClasspath(String relativePath) {
-        return getClassLoader().getResource(relativePath);
+    private Optional<URL> findInClasspath(
+            String relativePath) {
+        return Optional.ofNullable(
+                getClassLoader().getResource(relativePath));
     }
 
     private List<String> listFromFilesystem(String directory) {

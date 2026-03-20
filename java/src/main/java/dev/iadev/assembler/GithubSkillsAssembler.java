@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -164,11 +165,8 @@ public final class GithubSkillsAssembler
         }
         List<String> results = new ArrayList<>();
         for (String name : skillNames) {
-            String dest = renderSkill(
-                    engine, ctx, name);
-            if (dest != null) {
-                results.add(dest);
-            }
+            renderSkill(engine, ctx, name)
+                    .ifPresent(results::add);
         }
         return results;
     }
@@ -183,15 +181,16 @@ public final class GithubSkillsAssembler
      * @param engine the template engine
      * @param ctx    the skill render context
      * @param name   the skill name
-     * @return the destination path, or null if missing
+     * @return Optional containing the destination path,
+     *         or empty if template is missing
      */
-    String renderSkill(
+    Optional<String> renderSkill(
             TemplateEngine engine,
             SkillRenderContext ctx,
             String name) {
         Path src = ctx.srcDir().resolve(name + ".md");
         if (!Files.exists(src)) {
-            return null;
+            return Optional.empty();
         }
         String content = CopyHelpers.readFile(src);
         String rendered = engine.replacePlaceholders(
@@ -211,7 +210,7 @@ public final class GithubSkillsAssembler
         Path dest = skillDir.resolve(SKILL_MD);
         CopyHelpers.writeFile(dest, rendered);
         copyReferences(ctx, engine, skillDir, name);
-        return dest.toString();
+        return Optional.of(dest.toString());
     }
 
     /**

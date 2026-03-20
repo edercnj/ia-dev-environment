@@ -313,18 +313,18 @@ class GithubSkillsAssemblerTest {
                     new SkillRenderContext(
                             srcDir, outputDir,
                             null, Map.of());
-            String result = assembler.renderSkill(
+            var result = assembler.renderSkill(
                     engine, ctx, "test-skill");
 
-            assertThat(result).isNotNull();
+            assertThat(result).isPresent();
             Path skillMd = outputDir.resolve(
                     "skills/test-skill/SKILL.md");
             assertThat(skillMd).exists();
         }
 
         @Test
-        @DisplayName("returns null for missing template")
-        void returnsNullForMissing(
+        @DisplayName("returns empty for missing template")
+        void returnsEmptyForMissing(
                 @TempDir Path tempDir) {
             Path srcDir = tempDir.resolve("src");
             Path outputDir = tempDir.resolve("output");
@@ -337,10 +337,10 @@ class GithubSkillsAssemblerTest {
                     new SkillRenderContext(
                             srcDir, outputDir,
                             null, Map.of());
-            String result = assembler.renderSkill(
+            var result = assembler.renderSkill(
                     engine, ctx, "nonexistent");
 
-            assertThat(result).isNull();
+            assertThat(result).isEmpty();
         }
 
         @Test
@@ -366,10 +366,10 @@ class GithubSkillsAssemblerTest {
                     new SkillRenderContext(
                             srcDir, outputDir,
                             "lib", Map.of());
-            String result = assembler.renderSkill(
+            var result = assembler.renderSkill(
                     engine, ctx, "x-lib-test");
 
-            assertThat(result).isNotNull();
+            assertThat(result).isPresent();
             Path skillMd = outputDir.resolve(
                     "skills/lib/x-lib-test/SKILL.md");
             assertThat(skillMd).exists();

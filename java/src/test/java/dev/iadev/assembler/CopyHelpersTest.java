@@ -70,30 +70,38 @@ class CopyHelpersTest {
     class CopyTemplateFileIfExists {
 
         @Test
-        @DisplayName("returns path when source exists")
-        void sourceExists_returnsPath(@TempDir Path tempDir)
+        @DisplayName("returns present Optional when"
+                + " source exists")
+        void sourceExists_returnsPresent(
+                @TempDir Path tempDir)
                 throws IOException {
             Path src = tempDir.resolve("exists.md");
             Files.writeString(src, "hello");
             Path dest = tempDir.resolve("out.md");
 
-            String result = CopyHelpers.copyTemplateFileIfExists(
-                    src, dest, new TemplateEngine(), Map.of());
+            var result =
+                    CopyHelpers.copyTemplateFileIfExists(
+                            src, dest,
+                            new TemplateEngine(), Map.of());
 
-            assertThat(result).isNotNull();
+            assertThat(result).isPresent();
             assertThat(dest).exists();
         }
 
         @Test
-        @DisplayName("returns null when source missing")
-        void sourceMissing_returnsNull(@TempDir Path tempDir) {
+        @DisplayName("returns empty Optional when"
+                + " source missing")
+        void sourceMissing_returnsEmpty(
+                @TempDir Path tempDir) {
             Path src = tempDir.resolve("nonexistent.md");
             Path dest = tempDir.resolve("out.md");
 
-            String result = CopyHelpers.copyTemplateFileIfExists(
-                    src, dest, new TemplateEngine(), Map.of());
+            var result =
+                    CopyHelpers.copyTemplateFileIfExists(
+                            src, dest,
+                            new TemplateEngine(), Map.of());
 
-            assertThat(result).isNull();
+            assertThat(result).isEmpty();
             assertThat(dest).doesNotExist();
         }
     }

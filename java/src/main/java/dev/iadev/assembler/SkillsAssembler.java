@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -174,11 +175,9 @@ public final class SkillsAssembler implements Assembler {
                 SkillsSelection.selectConditionalSkills(
                         config);
         for (String skill : conditional) {
-            String result = copyConditionalSkill(
-                    skill, outputDir, engine, context);
-            if (result != null) {
-                generated.add(result);
-            }
+            copyConditionalSkill(
+                    skill, outputDir, engine, context)
+                    .ifPresent(generated::add);
         }
         return generated;
     }
@@ -192,17 +191,13 @@ public final class SkillsAssembler implements Assembler {
         List<String> packs =
                 SkillsSelection.selectKnowledgePacks(config);
         for (String pack : packs) {
-            String result = copyKnowledgePack(
-                    pack, outputDir, engine, context);
-            if (result != null) {
-                generated.add(result);
-            }
+            copyKnowledgePack(
+                    pack, outputDir, engine, context)
+                    .ifPresent(generated::add);
         }
-        String stack = copyStackPatterns(
-                config, outputDir, engine, context);
-        if (stack != null) {
-            generated.add(stack);
-        }
+        copyStackPatterns(
+                config, outputDir, engine, context)
+                .ifPresent(generated::add);
         generated.addAll(copyInfraPatterns(
                 config, outputDir, engine, context));
         return generated;
@@ -224,7 +219,7 @@ public final class SkillsAssembler implements Assembler {
         return dest.toString();
     }
 
-    private String copyConditionalSkill(
+    private Optional<String> copyConditionalSkill(
             String skillName,
             Path outputDir,
             TemplateEngine engine,
@@ -235,17 +230,17 @@ public final class SkillsAssembler implements Assembler {
                         + skillName);
         if (!Files.exists(src)
                 || !Files.isDirectory(src)) {
-            return null;
+            return Optional.empty();
         }
         Path dest = outputDir.resolve(
                 SKILLS_OUTPUT + "/" + skillName);
         CopyHelpers.copyDirectory(src, dest);
         CopyHelpers.replacePlaceholdersInDir(
                 dest, engine, context);
-        return dest.toString();
+        return Optional.of(dest.toString());
     }
 
-    private String copyKnowledgePack(
+    private Optional<String> copyKnowledgePack(
             String packName,
             Path outputDir,
             TemplateEngine engine,
@@ -256,7 +251,7 @@ public final class SkillsAssembler implements Assembler {
                         + packName);
         if (!Files.exists(src)
                 || !Files.isDirectory(src)) {
-            return null;
+            return Optional.empty();
         }
         Path dest = outputDir.resolve(
                 SKILLS_OUTPUT + "/" + packName);
@@ -273,10 +268,10 @@ public final class SkillsAssembler implements Assembler {
         copyNonSkillItems(src, dest);
         CopyHelpers.replacePlaceholdersInDir(
                 dest, engine, context);
-        return dest.toString();
+        return Optional.of(dest.toString());
     }
 
-    private String copyStackPatterns(
+    private Optional<String> copyStackPatterns(
             ProjectConfig config,
             Path outputDir,
             TemplateEngine engine,
@@ -284,7 +279,7 @@ public final class SkillsAssembler implements Assembler {
         String packName = StackPackMapping
                 .getStackPackName(config.framework().name());
         if (packName.isEmpty()) {
-            return null;
+            return Optional.empty();
         }
         Path src = resourcesDir.resolve(
                 SKILLS_TEMPLATES_DIR + "/"
@@ -293,14 +288,14 @@ public final class SkillsAssembler implements Assembler {
                         + packName);
         if (!Files.exists(src)
                 || !Files.isDirectory(src)) {
-            return null;
+            return Optional.empty();
         }
         Path dest = outputDir.resolve(
                 SKILLS_OUTPUT + "/" + packName);
         CopyHelpers.copyDirectory(src, dest);
         CopyHelpers.replacePlaceholdersInDir(
                 dest, engine, context);
-        return dest.toString();
+        return Optional.of(dest.toString());
     }
 
     private List<String> copyInfraPatterns(

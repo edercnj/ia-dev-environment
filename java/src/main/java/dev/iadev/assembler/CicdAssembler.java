@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Assembles CI/CD pipeline artifacts conditionally based on
@@ -237,12 +238,12 @@ public final class CicdAssembler implements Assembler {
                 .resolve(".github")
                 .resolve("workflows")
                 .resolve("ci.yml");
-        String err = renderAndWrite(
+        Optional<String> err = renderAndWrite(
                 gc.engine, CI_TEMPLATE, dest, gc.ctx);
-        if (err == null) {
+        if (err.isEmpty()) {
             gc.files.add(dest.toString());
         } else {
-            gc.warnings.add(err);
+            gc.warnings.add(err.orElseThrow());
         }
     }
 
@@ -274,12 +275,12 @@ public final class CicdAssembler implements Assembler {
             return;
         }
         Path dest = gc.outputDir.resolve("Dockerfile");
-        String err = renderAndWrite(
+        Optional<String> err = renderAndWrite(
                 gc.engine, tpl, dest, gc.ctx);
-        if (err == null) {
+        if (err.isEmpty()) {
             gc.files.add(dest.toString());
         } else {
-            gc.warnings.add(err);
+            gc.warnings.add(err.orElseThrow());
         }
     }
 
@@ -300,13 +301,13 @@ public final class CicdAssembler implements Assembler {
         }
         Path dest = gc.outputDir
                 .resolve("docker-compose.yml");
-        String err = renderAndWrite(
+        Optional<String> err = renderAndWrite(
                 gc.engine, COMPOSE_TEMPLATE,
                 dest, gc.ctx);
-        if (err == null) {
+        if (err.isEmpty()) {
             gc.files.add(dest.toString());
         } else {
-            gc.warnings.add(err);
+            gc.warnings.add(err.orElseThrow());
         }
     }
 
@@ -333,12 +334,12 @@ public final class CicdAssembler implements Assembler {
             String tpl = "k8s/"
                     + manifest.replace(
                     ".yaml", ".yaml.njk");
-            String err = renderAndWrite(
+            Optional<String> err = renderAndWrite(
                     gc.engine, tpl, dest, gc.ctx);
-            if (err == null) {
+            if (err.isEmpty()) {
                 gc.files.add(dest.toString());
             } else {
-                gc.warnings.add(err);
+                gc.warnings.add(err.orElseThrow());
             }
         }
     }
@@ -380,9 +381,9 @@ public final class CicdAssembler implements Assembler {
      *                        cicd-templates/
      * @param destPath        the destination file path
      * @param extraContext    additional context variables
-     * @return null on success, error message on failure
+     * @return empty on success, error message on failure
      */
-    private String renderAndWrite(
+    private Optional<String> renderAndWrite(
             TemplateEngine engine,
             String templateRelPath,
             Path destPath,
@@ -397,11 +398,12 @@ public final class CicdAssembler implements Assembler {
             Files.writeString(
                     destPath, content,
                     StandardCharsets.UTF_8);
-            return null;
+            return Optional.empty();
         } catch (Exception e) {
-            return "Failed to render %s: %s"
-                    .formatted(templateRelPath,
-                            e.getMessage());
+            return Optional.of(
+                    "Failed to render %s: %s"
+                            .formatted(templateRelPath,
+                                    e.getMessage()));
         }
     }
 

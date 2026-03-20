@@ -501,19 +501,19 @@ class GithubAgentsAssemblerTest {
                             .build();
             TemplateEngine engine = new TemplateEngine();
 
-            String result =
+            var result =
                     assembler.assembleDeveloper(
                             config, agentsDir, engine,
                             java.util.Map.of());
 
-            assertThat(result).isNotNull();
-            assertThat(result).endsWith(
+            assertThat(result).isPresent();
+            assertThat(result.orElseThrow()).endsWith(
                     "typescript-developer.agent.md");
         }
 
         @Test
-        @DisplayName("returns null for unknown language")
-        void returnsNullForUnknown(
+        @DisplayName("returns empty for unknown language")
+        void returnsEmptyForUnknown(
                 @TempDir Path tempDir)
                 throws IOException {
             Path agentsDir = tempDir.resolve("agents");
@@ -527,18 +527,18 @@ class GithubAgentsAssemblerTest {
                             .build();
             TemplateEngine engine = new TemplateEngine();
 
-            String result =
+            var result =
                     assembler.assembleDeveloper(
                             config, agentsDir, engine,
                             java.util.Map.of());
 
-            assertThat(result).isNull();
+            assertThat(result).isEmpty();
         }
 
         @Test
-        @DisplayName("returns null when developers"
+        @DisplayName("returns empty when developers"
                 + " dir absent")
-        void returnsNullWhenDirAbsent(
+        void returnsEmptyWhenDirAbsent(
                 @TempDir Path tempDir)
                 throws IOException {
             Path agentsDir = tempDir.resolve("agents");
@@ -553,12 +553,12 @@ class GithubAgentsAssemblerTest {
                             .build();
             TemplateEngine engine = new TemplateEngine();
 
-            String result =
+            var result =
                     assembler.assembleDeveloper(
                             config, agentsDir, engine,
                             java.util.Map.of());
 
-            assertThat(result).isNull();
+            assertThat(result).isEmpty();
         }
     }
 

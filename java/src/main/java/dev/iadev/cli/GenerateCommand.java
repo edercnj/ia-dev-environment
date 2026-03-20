@@ -23,6 +23,7 @@ import picocli.CommandLine.Spec;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 
 /**
@@ -180,10 +181,12 @@ public class GenerateCommand implements Callable<Integer> {
     }
 
     private int executeGeneration(PrintWriter out) {
-        ProjectConfig config = loadConfig(out);
-        if (config == null) {
+        Optional<ProjectConfig> configOpt =
+                loadConfig(out);
+        if (configOpt.isEmpty()) {
             return EXIT_VALIDATION;
         }
+        ProjectConfig config = configOpt.orElseThrow();
         int validationResult =
                 validateConfig(config, out);
         if (validationResult != EXIT_SUCCESS) {
@@ -235,33 +238,36 @@ public class GenerateCommand implements Callable<Integer> {
         return EXIT_SUCCESS;
     }
 
-    private ProjectConfig loadConfig(PrintWriter out) {
+    private Optional<ProjectConfig> loadConfig(
+            PrintWriter out) {
         if (stack != null && !stack.isEmpty()) {
             logVerbose(out,
                     "Loading bundled stack profile: "
                             + stack);
-            return ConfigProfiles.getStack(stack);
+            return Optional.of(
+                    ConfigProfiles.getStack(stack));
         }
         if (configSource == null) {
             out.println(
                     "Either --config, --interactive, "
                             + "or --stack is required.");
-            return null;
+            return Optional.empty();
         }
         if (configSource.interactive) {
-            return loadInteractive(out);
+            return Optional.of(loadInteractive(out));
         }
         if (configSource.configPath != null) {
             logVerbose(out,
                     "Loading config: "
                             + configSource.configPath);
-            return ConfigLoader.loadConfig(
-                    configSource.configPath);
+            return Optional.of(
+                    ConfigLoader.loadConfig(
+                            configSource.configPath));
         }
         out.println(
                 "Either --config, --interactive, "
                         + "or --stack is required.");
-        return null;
+        return Optional.empty();
     }
 
     private ProjectConfig loadInteractive(

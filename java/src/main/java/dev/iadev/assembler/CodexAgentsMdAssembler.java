@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Generates {@code AGENTS.md} at the project root for
@@ -196,13 +197,15 @@ public final class CodexAgentsMdAssembler
      * {@code ---} delimiters.
      *
      * @param content the file content
-     * @return the YAML block or null if not found
+     * @return Optional containing the YAML block,
+     *         or empty if not found
      */
-    static String extractFrontmatterBlock(String content) {
+    static Optional<String> extractFrontmatterBlock(
+            String content) {
         String[] lines = content.split("\n");
         if (lines.length == 0
                 || !"---".equals(lines[0].trim())) {
-            return null;
+            return Optional.empty();
         }
         for (int i = 1; i < lines.length; i++) {
             if ("---".equals(lines[i].trim())) {
@@ -213,10 +216,10 @@ public final class CodexAgentsMdAssembler
                     }
                     sb.append(lines[j]);
                 }
-                return sb.toString();
+                return Optional.of(sb.toString());
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     /**
@@ -230,10 +233,12 @@ public final class CodexAgentsMdAssembler
     @SuppressWarnings("unchecked")
     static SkillInfo parseSkillFrontmatter(
             String content, String dirName) {
-        String block = extractFrontmatterBlock(content);
-        if (block == null) {
+        Optional<String> blockOpt =
+                extractFrontmatterBlock(content);
+        if (blockOpt.isEmpty()) {
             return new SkillInfo(dirName, "", true);
         }
+        String block = blockOpt.orElseThrow();
         Yaml yaml = new Yaml(new SafeConstructor(
                 new LoaderOptions()));
         Object parsed = yaml.load(block);

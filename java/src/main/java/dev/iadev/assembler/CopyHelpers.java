@@ -13,6 +13,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -82,17 +83,19 @@ public final class CopyHelpers {
      * @param dest    the destination file path
      * @param engine  the template engine for replacement
      * @param context the context map for placeholder values
-     * @return the destination path, or null if source missing
+     * @return Optional containing the destination path,
+     *         or empty if source is missing
      */
-    public static String copyTemplateFileIfExists(
+    public static Optional<String> copyTemplateFileIfExists(
             Path src,
             Path dest,
             TemplateEngine engine,
             Map<String, Object> context) {
         if (!Files.exists(src)) {
-            return null;
+            return Optional.empty();
         }
-        return copyTemplateFile(src, dest, engine, context);
+        return Optional.of(
+                copyTemplateFile(src, dest, engine, context));
     }
 
     /**

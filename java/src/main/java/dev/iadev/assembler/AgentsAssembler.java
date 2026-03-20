@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -110,11 +111,9 @@ public final class AgentsAssembler implements Assembler {
         files.addAll(assembleConditional(
                 config, outputDir, engine, context));
 
-        String dev = copyDeveloperAgent(
-                config, outputDir, engine, context);
-        if (dev != null) {
-            files.add(dev);
-        }
+        copyDeveloperAgent(
+                config, outputDir, engine, context)
+                .ifPresent(files::add);
 
         injectChecklists(config, outputDir);
         return files;
@@ -171,11 +170,9 @@ public final class AgentsAssembler implements Assembler {
                 AgentsSelection.selectConditionalAgents(
                         config);
         for (String agent : conditional) {
-            String result = copyConditionalAgent(
-                    agent, outputDir, engine, context);
-            if (result != null) {
-                generated.add(result);
-            }
+            copyConditionalAgent(
+                    agent, outputDir, engine, context)
+                    .ifPresent(generated::add);
         }
         return generated;
     }
@@ -194,7 +191,7 @@ public final class AgentsAssembler implements Assembler {
                 src, dest, engine, context);
     }
 
-    private String copyConditionalAgent(
+    private Optional<String> copyConditionalAgent(
             String agentFile,
             Path outputDir,
             TemplateEngine engine,
@@ -209,7 +206,7 @@ public final class AgentsAssembler implements Assembler {
                 src, dest, engine, context);
     }
 
-    private String copyDeveloperAgent(
+    private Optional<String> copyDeveloperAgent(
             ProjectConfig config,
             Path outputDir,
             TemplateEngine engine,

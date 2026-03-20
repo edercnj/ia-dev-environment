@@ -2,6 +2,7 @@ package dev.iadev.domain.implementationmap;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -49,10 +50,7 @@ public final class MarkdownParser {
         var rows = new ArrayList<DependencyMatrixRow>();
 
         for (var line : dataRows) {
-            var row = parseRow(line);
-            if (row != null) {
-                rows.add(row);
-            }
+            parseRow(line).ifPresent(rows::add);
         }
 
         return List.copyOf(rows);
@@ -82,17 +80,20 @@ public final class MarkdownParser {
         return tableLines;
     }
 
-    private static DependencyMatrixRow parseRow(String line) {
+    private static Optional<DependencyMatrixRow> parseRow(
+            String line) {
         var cells = splitTableRow(line);
         if (cells.size() < MIN_CELLS) {
-            return null;
+            return Optional.empty();
         }
 
         var storyId = cells.get(0).trim();
         var title = cells.get(1).trim();
         var blockedBy = parseStoryList(cells.get(2));
 
-        return new DependencyMatrixRow(storyId, title, blockedBy);
+        return Optional.of(
+                new DependencyMatrixRow(
+                        storyId, title, blockedBy));
     }
 
     private static List<String> splitTableRow(String line) {

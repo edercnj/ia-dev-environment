@@ -529,13 +529,13 @@ class AssemblerMiscCoverageTest {
             Path dest = tempDir.resolve(
                     "output/copied.md");
 
-            String result =
+            var result =
                     CopyHelpers.copyTemplateFileIfExists(
                             src, dest,
                             new TemplateEngine(),
                             Map.of("key", "value"));
 
-            assertThat(result).isNotNull();
+            assertThat(result).isPresent();
             assertThat(dest).exists();
         }
 

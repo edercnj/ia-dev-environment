@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -131,10 +132,10 @@ public final class GithubAgentsAssembler
                 config, agentsDir, engine,
                 warnings, context));
 
-        String dev = assembleDeveloper(
+        Optional<String> dev = assembleDeveloper(
                 config, agentsDir, engine, context);
-        if (dev != null) {
-            files.add(dev);
+        if (dev.isPresent()) {
+            files.add(dev.orElseThrow());
         } else {
             String expected = config.language().name()
                     + "-developer.md";
@@ -264,10 +265,11 @@ public final class GithubAgentsAssembler
      * @param config    the project configuration
      * @param agentsDir the agents output directory
      * @param engine    the template engine
-     * @return the generated file path, or null if the
-     *         template is missing
+     * @param context   the context map for replacement
+     * @return Optional containing the generated file path,
+     *         or empty if the template is missing
      */
-    String assembleDeveloper(
+    Optional<String> assembleDeveloper(
             ProjectConfig config,
             Path agentsDir,
             TemplateEngine engine,
@@ -275,16 +277,16 @@ public final class GithubAgentsAssembler
         Path devDir = resourcesDir.resolve(
                 TEMPLATES_DIR + "/" + DEVELOPERS_DIR);
         if (!Files.exists(devDir)) {
-            return null;
+            return Optional.empty();
         }
         String safeName = config.language().name();
         Path template = devDir.resolve(
                 safeName + "-developer.md");
         if (!Files.exists(template)) {
-            return null;
+            return Optional.empty();
         }
-        return renderAgent(
-                template, agentsDir, engine, context);
+        return Optional.of(renderAgent(
+                template, agentsDir, engine, context));
     }
 
     /**

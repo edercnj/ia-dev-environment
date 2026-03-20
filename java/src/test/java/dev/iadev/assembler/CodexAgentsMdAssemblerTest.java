@@ -246,25 +246,27 @@ class CodexAgentsMdAssemblerTest {
                     "---\nname: test\n---\nBody";
             assertThat(CodexAgentsMdAssembler
                     .extractFrontmatterBlock(content))
-                    .isEqualTo("name: test");
+                    .isPresent()
+                    .hasValue("name: test");
         }
 
         @Test
-        @DisplayName("returns null when no frontmatter")
-        void returnsNullWhenNoFrontmatter() {
+        @DisplayName("returns empty when no frontmatter")
+        void returnsEmptyWhenNoFrontmatter() {
             assertThat(CodexAgentsMdAssembler
                     .extractFrontmatterBlock(
                             "No frontmatter"))
-                    .isNull();
+                    .isEmpty();
         }
 
         @Test
-        @DisplayName("returns null for unclosed frontmatter")
-        void returnsNullForUnclosed() {
+        @DisplayName("returns empty for unclosed"
+                + " frontmatter")
+        void returnsEmptyForUnclosed() {
             assertThat(CodexAgentsMdAssembler
                     .extractFrontmatterBlock(
                             "---\nname: test\nNo close"))
-                    .isNull();
+                    .isEmpty();
         }
     }
 
