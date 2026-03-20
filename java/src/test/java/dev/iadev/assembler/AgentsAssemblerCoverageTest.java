@@ -1,5 +1,6 @@
 package dev.iadev.assembler;
 
+import dev.iadev.config.ContextBuilder;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 import org.junit.jupiter.api.DisplayName;
@@ -203,11 +204,11 @@ class AgentsAssemblerCoverageTest {
     }
 
     @Nested
-    @DisplayName("buildContext — all entries")
+    @DisplayName("context via ContextBuilder — all entries")
     class BuildContextFull {
 
         @Test
-        @DisplayName("context has all 14 entries")
+        @DisplayName("context has all 25 entries")
         void allEntries() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
@@ -226,16 +227,16 @@ class AgentsAssemblerCoverageTest {
                     .build();
 
             Map<String, Object> context =
-                    AgentsAssembler.buildContext(config);
+                    ContextBuilder.buildContext(config);
 
-            assertThat(context).hasSize(14);
+            assertThat(context).hasSize(25);
             assertThat(context)
                     .containsEntry("project_name",
                             "agent-test")
                     .containsEntry("language_name", "go")
                     .containsEntry("framework_name", "gin")
-                    .containsEntry("domain_driven", "true")
-                    .containsEntry("event_driven", "false")
+                    .containsEntry("domain_driven", "True")
+                    .containsEntry("event_driven", "False")
                     .containsEntry("database_name",
                             "mongodb")
                     .containsEntry("cache_name", "redis");

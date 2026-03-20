@@ -1,5 +1,6 @@
 package dev.iadev.assembler;
 
+import dev.iadev.config.ContextBuilder;
 import dev.iadev.domain.stack.PatternMapping;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
@@ -98,7 +99,7 @@ public final class PatternsAssembler implements Assembler {
         }
 
         Map<String, Object> context =
-                buildContext(config);
+                ContextBuilder.buildContext(config);
         List<String> rendered =
                 renderContents(patternFiles, engine, context);
 
@@ -221,25 +222,6 @@ public final class PatternsAssembler implements Assembler {
                 String.join(SECTION_SEPARATOR, rendered);
         CopyHelpers.writeFile(destPath, merged);
         return destPath.toString();
-    }
-
-    /**
-     * Builds the placeholder context map from config.
-     *
-     * @param config the project configuration
-     * @return context map for placeholder replacement
-     */
-    private Map<String, Object> buildContext(
-            ProjectConfig config) {
-        return Map.ofEntries(
-                Map.entry("language_name",
-                        config.language().name()),
-                Map.entry("language_version",
-                        config.language().version()),
-                Map.entry("framework_name",
-                        config.framework().name()),
-                Map.entry("architecture_style",
-                        config.architecture().style()));
     }
 
     private static List<Path> listMdFilesSorted(Path dir) {

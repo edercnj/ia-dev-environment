@@ -1,5 +1,6 @@
 package dev.iadev.assembler;
 
+import dev.iadev.config.ContextBuilder;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 import org.junit.jupiter.api.DisplayName;
@@ -456,12 +457,12 @@ class RulesAssemblerCoverageTest {
     }
 
     @Nested
-    @DisplayName("buildContext — all entries present")
+    @DisplayName("context via ContextBuilder — all entries")
     class BuildContextFull {
 
         @Test
-        @DisplayName("context contains all 14 expected keys")
-        void allFourteenKeys() {
+        @DisplayName("context contains all 25 expected keys")
+        void allTwentyFiveKeys() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .projectName("ctx-full")
                     .purpose("full purpose")
@@ -478,9 +479,9 @@ class RulesAssemblerCoverageTest {
                     .build();
 
             Map<String, Object> context =
-                    RulesAssembler.buildContext(config);
+                    ContextBuilder.buildContext(config);
 
-            assertThat(context).hasSize(14);
+            assertThat(context).hasSize(25);
             assertThat(context)
                     .containsEntry("project_name", "ctx-full")
                     .containsEntry("project_purpose",
@@ -493,8 +494,8 @@ class RulesAssemblerCoverageTest {
                     .containsEntry("build_tool", "npm")
                     .containsEntry("architecture_style",
                             "hexagonal")
-                    .containsEntry("domain_driven", "true")
-                    .containsEntry("event_driven", "true")
+                    .containsEntry("domain_driven", "True")
+                    .containsEntry("event_driven", "True")
                     .containsEntry("container", "docker")
                     .containsEntry("orchestrator",
                             "kubernetes")

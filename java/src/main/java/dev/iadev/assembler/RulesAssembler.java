@@ -1,5 +1,6 @@
 package dev.iadev.assembler;
 
+import dev.iadev.config.ContextBuilder;
 import dev.iadev.domain.stack.CoreKpRouting;
 import dev.iadev.domain.stack.StackPackMapping;
 import dev.iadev.domain.stack.VersionResolver;
@@ -91,7 +92,7 @@ public final class RulesAssembler implements Assembler {
         CopyHelpers.ensureDirectory(skillsDir);
 
         Map<String, Object> context =
-                buildContext(config);
+                ContextBuilder.buildContext(config);
 
         List<String> generated = new ArrayList<>();
         generated.addAll(
@@ -112,50 +113,6 @@ public final class RulesAssembler implements Assembler {
                         config, skillsDir, engine, context));
 
         return generated;
-    }
-
-    /**
-     * Builds the placeholder context map from config.
-     *
-     * @param config the project configuration
-     * @return context map for placeholder replacement
-     */
-    static Map<String, Object> buildContext(
-            ProjectConfig config) {
-        return Map.ofEntries(
-                Map.entry("project_name",
-                        config.project().name()),
-                Map.entry("project_purpose",
-                        config.project().purpose()),
-                Map.entry("language_name",
-                        config.language().name()),
-                Map.entry("language_version",
-                        config.language().version()),
-                Map.entry("framework_name",
-                        config.framework().name()),
-                Map.entry("framework_version",
-                        config.framework().version()),
-                Map.entry("build_tool",
-                        config.framework().buildTool()),
-                Map.entry("architecture_style",
-                        config.architecture().style()),
-                Map.entry("domain_driven",
-                        String.valueOf(
-                                config.architecture()
-                                        .domainDriven())),
-                Map.entry("event_driven",
-                        String.valueOf(
-                                config.architecture()
-                                        .eventDriven())),
-                Map.entry("container",
-                        config.infrastructure().container()),
-                Map.entry("orchestrator",
-                        config.infrastructure()
-                                .orchestrator()),
-                Map.entry("database_name",
-                        config.data().database().name()),
-                Map.entry("cache_name",
-                        config.data().cache().name()));
     }
 
     private List<String> copyCoreRules(

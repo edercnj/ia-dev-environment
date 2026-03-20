@@ -1,5 +1,6 @@
 package dev.iadev.assembler;
 
+import dev.iadev.config.ContextBuilder;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 import org.junit.jupiter.api.DisplayName;
@@ -305,7 +306,7 @@ class RulesAssemblerTest {
     }
 
     @Nested
-    @DisplayName("buildContext")
+    @DisplayName("context via ContextBuilder")
     class BuildContext {
 
         @Test
@@ -321,7 +322,7 @@ class RulesAssemblerTest {
                     .build();
 
             Map<String, Object> context =
-                    RulesAssembler.buildContext(config);
+                    ContextBuilder.buildContext(config);
 
             assertThat(context)
                     .containsEntry("project_name",
