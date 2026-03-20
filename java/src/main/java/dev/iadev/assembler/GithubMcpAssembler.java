@@ -38,11 +38,24 @@ import java.util.TreeMap;
 public final class GithubMcpAssembler
         implements Assembler {
 
+    private final Path resourcesDir;
+
     /**
-     * Creates a GithubMcpAssembler.
+     * Creates a GithubMcpAssembler using classpath
+     * resources.
      */
     public GithubMcpAssembler() {
-        // Default constructor
+        this(resolveClasspathResources());
+    }
+
+    /**
+     * Creates a GithubMcpAssembler with an explicit
+     * resources directory.
+     *
+     * @param resourcesDir the base resources directory
+     */
+    public GithubMcpAssembler(Path resourcesDir) {
+        this.resourcesDir = resourcesDir;
     }
 
     /**
@@ -254,6 +267,11 @@ public final class GithubMcpAssembler
             sb.append('\n');
         }
         sb.append(JsonHelpers.indent(3)).append("}\n");
+    }
+
+    private static Path resolveClasspathResources() {
+        return dev.iadev.util.ResourceResolver
+                .resolveResourcesRoot("core");
     }
 
 }

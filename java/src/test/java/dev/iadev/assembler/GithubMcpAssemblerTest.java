@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Tests for GithubMcpAssembler — the ninth assembler in
@@ -518,6 +519,130 @@ class GithubMcpAssemblerTest {
                     .contains("\"capabilities\":"
                             + " [\"cap1\"]")
                     .contains("\"K\": \"$V\"");
+        }
+    }
+
+    @Nested
+    @DisplayName("constructor — two-constructor pattern")
+    class TwoConstructorPattern {
+
+        @Test
+        @DisplayName("default constructor creates"
+                + " valid instance")
+        void defaultConstructor_createsInstance() {
+            GithubMcpAssembler assembler =
+                    new GithubMcpAssembler();
+
+            assertThat(assembler).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Path constructor creates"
+                + " valid instance")
+        void pathConstructor_createsInstance(
+                @TempDir Path tempDir) {
+            GithubMcpAssembler assembler =
+                    new GithubMcpAssembler(tempDir);
+
+            assertThat(assembler).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Path constructor assembles"
+                + " with custom resourcesDir")
+        void pathConstructor_assemblesCorrectly(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            GithubMcpAssembler assembler =
+                    new GithubMcpAssembler(tempDir);
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .addMcpServer(
+                                    new McpServerConfig(
+                                            "test",
+                                            "https://mcp.test",
+                                            List.of("read"),
+                                            Map.of("K",
+                                                    "$V")))
+                            .build();
+
+            List<String> files = assembler.assemble(
+                    config, new TemplateEngine(),
+                    outputDir);
+
+            assertThat(files).hasSize(1);
+            Path mcpFile =
+                    outputDir.resolve("copilot-mcp.json");
+            assertThat(mcpFile).exists();
+            String content = Files.readString(
+                    mcpFile, StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("\"mcpServers\"")
+                    .contains("\"test\"");
+        }
+
+        @Test
+        @DisplayName("default constructor assembles"
+                + " identically to before")
+        void defaultConstructor_assemblesIdentically(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            GithubMcpAssembler assembler =
+                    new GithubMcpAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .addMcpServer(
+                                    new McpServerConfig(
+                                            "srv",
+                                            "https://mcp.test",
+                                            List.of(),
+                                            Map.of()))
+                            .build();
+
+            List<String> files = assembler.assemble(
+                    config, new TemplateEngine(),
+                    outputDir);
+
+            assertThat(files).hasSize(1);
+            Path mcpFile =
+                    outputDir.resolve("copilot-mcp.json");
+            assertThat(mcpFile).exists();
+        }
+
+        @Test
+        @DisplayName("assembleWithWarnings works"
+                + " with Path constructor")
+        void pathConstructor_assembleWithWarnings(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            GithubMcpAssembler assembler =
+                    new GithubMcpAssembler(tempDir);
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .addMcpServer(
+                                    new McpServerConfig(
+                                            "srv",
+                                            "https://mcp.test",
+                                            List.of(),
+                                            Map.of("KEY",
+                                                    "literal")))
+                            .build();
+
+            AssemblerResult result =
+                    assembler.assembleWithWarnings(
+                            config, outputDir);
+
+            assertThat(result.files()).hasSize(1);
+            assertThat(result.warnings()).hasSize(1);
         }
     }
 
