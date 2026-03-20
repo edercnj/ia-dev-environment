@@ -100,7 +100,7 @@ class PathUtilsTest {
                             ((CliException) ex).getErrorCode())
                             .isEqualTo(1))
                     .hasMessageContaining(
-                            "protected directory");
+                            "filesystem root");
         }
 
         @ParameterizedTest

@@ -78,7 +78,7 @@ final class GithubAgentRenderer {
             Path agentsDir,
             TemplateEngine engine,
             Map<String, Object> context) {
-        if (!Files.exists(coreDir)) {
+        if (!Files.isDirectory(coreDir)) {
             return List.of();
         }
         List<Path> entries;

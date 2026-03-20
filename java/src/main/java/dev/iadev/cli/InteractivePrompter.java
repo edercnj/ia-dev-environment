@@ -82,7 +82,7 @@ public class InteractivePrompter {
         displaySummary(summary);
 
         boolean confirmed = terminal.confirm(
-                "Proceed with generation? [Y/n]",
+                "Proceed with generation?",
                 ConfirmDefault.DEFAULT_YES);
         if (!confirmed) {
             throw new GenerationCancelledException(CANCELLED);

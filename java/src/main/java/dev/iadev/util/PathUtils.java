@@ -14,7 +14,7 @@ import java.util.Set;
  *
  * <p>Dangerous paths include the user's home directory, filesystem
  * root, and standard system directories ({@code /usr}, {@code /etc},
- * {@code /var}, {@code /bin}, {@code /sbin}).
+ * {@code /bin}, {@code /sbin}, and {@code /var} by exact match).
  *
  * <p>Example usage:
  * <pre>{@code
@@ -61,8 +61,10 @@ public final class PathUtils {
      *
      * <p>Rejects the user's home directory, filesystem root, and
      * standard system directories ({@code /usr}, {@code /etc},
-     * {@code /var}, {@code /bin}, {@code /sbin}) as well as any
-     * path that starts with (is a child of) these directories.
+     * {@code /bin}, {@code /sbin}) and their children, plus
+     * {@code /var} by exact match only (children like
+     * {@code /var/folders} are allowed for macOS temp directory
+     * compatibility).
      *
      * @param path the path to validate (should be absolute)
      * @throws CliException with errorCode 1 if the path is
@@ -96,8 +98,8 @@ public final class PathUtils {
                 .toAbsolutePath().normalize();
         if (normalized.equals(rootPath)) {
             throw new CliException(
-                    "Path rejected: target is within "
-                            + "a protected directory", 1);
+                    "Path rejected: %s is the filesystem root"
+                            .formatted(normalized), 1);
         }
     }
 
@@ -109,8 +111,10 @@ public final class PathUtils {
                     || normalized.startsWith(
                     dangerousPath)) {
                 throw new CliException(
-                        "Path rejected: target is within "
-                                + "a protected directory",
+                        ("Path rejected: %s is within "
+                                + "protected directory %s")
+                                .formatted(
+                                        normalized, dangerous),
                         1);
             }
         }
@@ -123,8 +127,10 @@ public final class PathUtils {
                     .toAbsolutePath().normalize();
             if (normalized.equals(dangerousPath)) {
                 throw new CliException(
-                        "Path rejected: target is within "
-                                + "a protected directory",
+                        ("Path rejected: %s matches "
+                                + "protected directory %s")
+                                .formatted(
+                                        normalized, dangerous),
                         1);
             }
         }

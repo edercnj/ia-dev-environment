@@ -102,6 +102,11 @@ public class ValidateCommand implements Callable<Integer> {
         } catch (Exception e) {
             out.println("Error: An unexpected error "
                     + "occurred during validation");
+            if (verbose) {
+                out.println("Details: %s"
+                        .formatted(e.getMessage()));
+                e.printStackTrace(out);
+            }
             return EXIT_FAILURE;
         }
         return runValidations(config, out);

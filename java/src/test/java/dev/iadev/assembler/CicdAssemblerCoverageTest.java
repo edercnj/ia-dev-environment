@@ -230,7 +230,7 @@ class CicdAssemblerCoverageTest {
 
         @Test
         @DisplayName("all 8 entries present")
-        void lINT_COMMANDS_allEntriesPresent_succeeds() {
+        void lintCommands_allEntriesPresent_succeeds() {
             assertThat(CicdAssembler.LINT_COMMANDS)
                     .hasSize(8)
                     .containsKey("java-maven")
