@@ -2,26 +2,19 @@ package dev.iadev.assembler;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
 /**
- * Counting and extraction utilities for README generation.
+ * Counting utilities for README generation.
  *
- * <p>Provides static methods for counting artifacts (rules,
- * skills, agents, knowledge packs, hooks, settings) and
- * extracting metadata from file names and SKILL.md content.
- * All methods are null-safe and return 0 or empty strings
- * when directories are missing.</p>
- *
- * <p>Extracted from ReadmeAssembler to break circular
- * dependencies between readme-assembler and readme-tables.
- * Both classes import from here.</p>
+ * <p>GitHub/Codex counting: {@link ReadmeGithubCounter}.
+ * Metadata extraction: {@link ReadmeMetadata}.</p>
  *
  * @see ReadmeAssembler
- * @see ReadmeTables
+ * @see ReadmeGithubCounter
+ * @see ReadmeMetadata
  */
 public final class ReadmeUtils {
 
@@ -29,12 +22,7 @@ public final class ReadmeUtils {
         // utility class
     }
 
-    /**
-     * Counts {@code .md} files in {@code outputDir/rules/}.
-     *
-     * @param outputDir the .claude/ output directory
-     * @return count of rule files, 0 if dir missing
-     */
+    /** Counts .md files in outputDir/rules/. */
     public static int countRules(Path outputDir) {
         Path rulesDir = outputDir.resolve("rules");
         if (!Files.exists(rulesDir)) {
@@ -43,13 +31,7 @@ public final class ReadmeUtils {
         return countMdFiles(rulesDir);
     }
 
-    /**
-     * Counts {@code SKILL.md} files in subdirs of
-     * {@code outputDir/skills/}.
-     *
-     * @param outputDir the .claude/ output directory
-     * @return count of skill directories with SKILL.md
-     */
+    /** Counts SKILL.md files in subdirs of skills/. */
     public static int countSkills(Path outputDir) {
         Path skillsDir = outputDir.resolve("skills");
         if (!Files.exists(skillsDir)) {
@@ -58,12 +40,7 @@ public final class ReadmeUtils {
         return countSkillMdFiles(skillsDir);
     }
 
-    /**
-     * Counts {@code .md} files in {@code outputDir/agents/}.
-     *
-     * @param outputDir the .claude/ output directory
-     * @return count of agent files, 0 if dir missing
-     */
+    /** Counts .md files in outputDir/agents/. */
     public static int countAgents(Path outputDir) {
         Path agentsDir = outputDir.resolve("agents");
         if (!Files.exists(agentsDir)) {
@@ -72,12 +49,7 @@ public final class ReadmeUtils {
         return countMdFiles(agentsDir);
     }
 
-    /**
-     * Counts skills where {@link #isKnowledgePack} is true.
-     *
-     * @param outputDir the .claude/ output directory
-     * @return count of knowledge packs
-     */
+    /** Counts knowledge packs in skills dir. */
     public static int countKnowledgePacks(Path outputDir) {
         Path skillsDir = outputDir.resolve("skills");
         if (!Files.exists(skillsDir)) {
@@ -99,12 +71,7 @@ public final class ReadmeUtils {
         }
     }
 
-    /**
-     * Counts entries in {@code outputDir/hooks/}.
-     *
-     * @param outputDir the .claude/ output directory
-     * @return count of hook files, 0 if dir missing
-     */
+    /** Counts entries in outputDir/hooks/. */
     public static int countHooks(Path outputDir) {
         Path hooksDir = outputDir.resolve("hooks");
         if (!Files.exists(hooksDir)) {
@@ -118,13 +85,7 @@ public final class ReadmeUtils {
         }
     }
 
-    /**
-     * Counts settings files (settings.json and
-     * settings.local.json).
-     *
-     * @param outputDir the .claude/ output directory
-     * @return count of settings files (0, 1, or 2)
-     */
+    /** Counts settings files (0, 1, or 2). */
     public static int countSettings(Path outputDir) {
         int count = 0;
         if (Files.exists(
@@ -132,191 +93,72 @@ public final class ReadmeUtils {
             count++;
         }
         if (Files.exists(
-                outputDir.resolve("settings.local.json"))) {
+                outputDir.resolve(
+                        "settings.local.json"))) {
             count++;
         }
         return count;
     }
 
-    /**
-     * Recursively counts all files under a .github/ directory.
-     *
-     * @param githubDir the .github/ directory
-     * @return total file count, 0 if dir missing
-     */
+    /** Delegates to {@link ReadmeGithubCounter}. */
     public static int countGithubFiles(Path githubDir) {
-        if (!Files.exists(githubDir)) {
-            return 0;
-        }
-        return countFilesRecursive(githubDir);
+        return ReadmeGithubCounter
+                .countGithubFiles(githubDir);
     }
 
-    /**
-     * Counts files directly under
-     * {@code githubDir/{component}/}.
-     *
-     * @param githubDir the .github/ directory
-     * @param component the component subdirectory name
-     * @return count of files in the component dir
-     */
+    /** Delegates to {@link ReadmeGithubCounter}. */
     public static int countGithubComponent(
             Path githubDir, String component) {
-        Path compDir = githubDir.resolve(component);
-        if (!Files.exists(compDir)) {
-            return 0;
-        }
-        try (Stream<Path> entries = Files.list(compDir)) {
-            return (int) entries
-                    .filter(Files::isRegularFile)
-                    .count();
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to list component: "
-                            + component, e);
-        }
+        return ReadmeGithubCounter
+                .countGithubComponent(
+                        githubDir, component);
     }
 
-    /**
-     * Counts {@code SKILL.md} in {@code githubDir/skills/}
-     * subdirs.
-     *
-     * @param githubDir the .github/ directory
-     * @return count of GitHub skill directories
-     */
+    /** Delegates to {@link ReadmeGithubCounter}. */
     public static int countGithubSkills(Path githubDir) {
-        Path skillsDir = githubDir.resolve("skills");
-        if (!Files.exists(skillsDir)) {
-            return 0;
-        }
-        return countSkillMdFiles(skillsDir);
+        return ReadmeGithubCounter
+                .countGithubSkills(githubDir);
     }
 
-    /**
-     * Counts files in a {@code .codex/} directory.
-     *
-     * @param codexDir the .codex/ directory
-     * @return count of files, 0 if dir missing
-     */
+    /** Delegates to {@link ReadmeGithubCounter}. */
     public static int countCodexFiles(Path codexDir) {
-        if (!Files.exists(codexDir)) {
-            return 0;
-        }
-        try (Stream<Path> entries = Files.list(codexDir)) {
-            return (int) entries
-                    .filter(Files::isRegularFile)
-                    .count();
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to list codex dir", e);
-        }
+        return ReadmeGithubCounter
+                .countCodexFiles(codexDir);
     }
 
-    /**
-     * Recursively counts all files in a {@code .agents/}
-     * directory.
-     *
-     * @param agentsDir the .agents/ directory
-     * @return total file count, 0 if dir missing
-     */
+    /** Delegates to {@link ReadmeGithubCounter}. */
     public static int countCodexAgentsFiles(
             Path agentsDir) {
-        if (!Files.exists(agentsDir)) {
-            return 0;
-        }
-        return countFilesRecursive(agentsDir);
+        return ReadmeGithubCounter
+                .countCodexAgentsFiles(agentsDir);
     }
 
-    /**
-     * Returns true if the SKILL.md flags a knowledge pack.
-     *
-     * <p>Checks for {@code user-invocable: false} anywhere
-     * in the content, or a line starting with
-     * {@code # Knowledge Pack}.</p>
-     *
-     * @param skillMdPath path to SKILL.md
-     * @return true if it is a knowledge pack
-     */
-    public static boolean isKnowledgePack(Path skillMdPath) {
-        try {
-            String text = Files.readString(
-                    skillMdPath, StandardCharsets.UTF_8);
-            if (text.contains("user-invocable: false")) {
-                return true;
-            }
-            for (String line : text.split("\n")) {
-                if (line.startsWith("# Knowledge Pack")) {
-                    return true;
-                }
-            }
-            return false;
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to read SKILL.md: "
-                            + skillMdPath, e);
-        }
+    /** Delegates to {@link ReadmeMetadata}. */
+    public static boolean isKnowledgePack(
+            Path skillMdPath) {
+        return ReadmeMetadata.isKnowledgePack(skillMdPath);
     }
 
-    /**
-     * Extracts leading digits from a rule filename.
-     *
-     * @param filename the rule filename
-     * @return the leading digits, or empty string
-     */
-    public static String extractRuleNumber(String filename) {
-        var matcher = java.util.regex.Pattern
-                .compile("^(\\d+)")
-                .matcher(filename);
-        return matcher.find() ? matcher.group(1) : "";
+    /** Delegates to {@link ReadmeMetadata}. */
+    public static String extractRuleNumber(
+            String filename) {
+        return ReadmeMetadata.extractRuleNumber(filename);
     }
 
-    /**
-     * Strips leading number+hyphen and {@code .md} extension,
-     * then replaces hyphens with spaces.
-     *
-     * @param filename the rule filename
-     * @return the extracted scope
-     */
-    public static String extractRuleScope(String filename) {
-        String name = filename.replaceFirst("^\\d+-", "");
-        name = name.replaceFirst("\\.md$", "");
-        return name.replace('-', ' ');
+    /** Delegates to {@link ReadmeMetadata}. */
+    public static String extractRuleScope(
+            String filename) {
+        return ReadmeMetadata.extractRuleScope(filename);
     }
 
-    /**
-     * Reads SKILL.md and extracts the {@code description:}
-     * value from frontmatter.
-     *
-     * @param skillMdPath path to SKILL.md
-     * @return the description, or empty string
-     */
+    /** Delegates to {@link ReadmeMetadata}. */
     public static String extractSkillDescription(
             Path skillMdPath) {
-        try {
-            String text = Files.readString(
-                    skillMdPath, StandardCharsets.UTF_8);
-            for (String line : text.split("\n")) {
-                if (line.startsWith("description:")) {
-                    String[] parts = line.split(":", 2);
-                    String desc = parts.length > 1
-                            ? parts[1].trim() : "";
-                    return desc
-                            .replaceAll("^[\"']|[\"']$", "");
-                }
-            }
-            return "";
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to read SKILL.md: "
-                            + skillMdPath, e);
-        }
+        return ReadmeMetadata.extractSkillDescription(
+                skillMdPath);
     }
 
-    /**
-     * Recursively counts all files in a directory tree.
-     *
-     * @param dir the directory to walk
-     * @return total file count
-     */
+    /** Recursively counts all files in a directory. */
     static int countFilesRecursive(Path dir) {
         try (Stream<Path> walk = Files.walk(dir)) {
             return (int) walk
@@ -340,7 +182,8 @@ public final class ReadmeUtils {
         }
     }
 
-    private static int countSkillMdFiles(Path skillsDir) {
+    private static int countSkillMdFiles(
+            Path skillsDir) {
         try (Stream<Path> dirs = Files.list(skillsDir)) {
             return (int) dirs
                     .filter(Files::isDirectory)

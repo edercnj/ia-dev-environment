@@ -10,11 +10,11 @@ import java.util.Map;
 /**
  * Formats pipeline results for terminal display.
  *
- * <p>Classifies generated file paths into categories based
- * on path prefixes, formats a summary table with counts,
- * and produces a complete result display.</p>
+ * <p>File path categorization is delegated to
+ * {@link FileCategorizer}.</p>
  *
  * @see PipelineResult
+ * @see FileCategorizer
  */
 public final class CliDisplay {
 
@@ -29,15 +29,10 @@ public final class CliDisplay {
     }
 
     /**
-     * Classifies file paths into categories based on path
-     * prefixes.
-     *
-     * <p>Each path is matched against known prefix patterns
-     * and grouped into a category. Unknown paths are classified
-     * as "Other".</p>
+     * Classifies file paths into categories.
      *
      * @param paths the list of file paths to classify
-     * @return ordered map of category name to list of paths
+     * @return ordered map of category to paths
      */
     public static Map<String, List<String>> classifyFiles(
             List<String> paths) {
@@ -45,8 +40,10 @@ public final class CliDisplay {
                 new LinkedHashMap<>();
 
         for (String path : paths) {
-            String normalized = normalizePath(path);
-            String category = categorize(normalized);
+            String normalized =
+                    FileCategorizer.normalizePath(path);
+            String category =
+                    FileCategorizer.categorize(normalized);
             classified.computeIfAbsent(
                     category, k -> new ArrayList<>())
                     .add(path);
@@ -57,10 +54,6 @@ public final class CliDisplay {
 
     /**
      * Formats a summary table from the classified file map.
-     *
-     * <p>Produces a table with category names, counts, and a
-     * total row. Uses U+2500 box-drawing horizontal character
-     * for separator lines.</p>
      *
      * @param classified the classified file map
      * @return formatted table string
@@ -109,7 +102,8 @@ public final class CliDisplay {
                 .append(pad(TOTAL_LABEL, labelWidth))
                 .append("  ")
                 .append(padLeft(
-                        String.valueOf(total), countWidth));
+                        String.valueOf(total),
+                        countWidth));
 
         return sb.toString();
     }
@@ -117,12 +111,8 @@ public final class CliDisplay {
     /**
      * Formats the complete pipeline result for display.
      *
-     * <p>Includes success status with duration, summary table,
-     * output directory, and any warnings. In dry-run mode,
-     * prefixes with "[DRY RUN]" and lists all files.</p>
-     *
      * @param result      the pipeline result
-     * @param displayMode the display mode (LIVE or DRY_RUN)
+     * @param displayMode the display mode
      * @return formatted result string
      */
     public static String formatResult(
@@ -145,7 +135,8 @@ public final class CliDisplay {
 
         if (displayMode.isDryRun()
                 && !result.filesGenerated().isEmpty()) {
-            sb.append("\n\nFiles that would be generated:\n");
+            sb.append(
+                    "\n\nFiles that would be generated:\n");
             for (String file : result.filesGenerated()) {
                 sb.append("  ").append(file).append('\n');
             }
@@ -159,8 +150,7 @@ public final class CliDisplay {
     }
 
     /**
-     * Formats verbose output for a single assembler
-     * execution.
+     * Formats verbose output for an assembler execution.
      *
      * @param assemblerName the assembler name
      * @param fileCount     number of files generated
@@ -174,62 +164,6 @@ public final class CliDisplay {
         return "%s completed in %dms (%d files)"
                 .formatted(assemblerName,
                         durationMs, fileCount);
-    }
-
-    private static String normalizePath(String path) {
-        return path.replace('\\', '/');
-    }
-
-    private static String categorize(String path) {
-        if (path.startsWith(".claude/rules/")) {
-            return "Rules";
-        }
-        if (path.startsWith(".claude/skills/")) {
-            return "Skills";
-        }
-        if (path.startsWith(".claude/agents/")) {
-            return "Agents";
-        }
-        if (path.startsWith(".claude/hooks/")) {
-            return "Hooks";
-        }
-        if (path.startsWith(".claude/settings")) {
-            return "Settings";
-        }
-        if (path.startsWith(".github/instructions/")) {
-            return "GitHub Instructions";
-        }
-        if (path.startsWith(".github/skills/")) {
-            return "GitHub Skills";
-        }
-        if (path.startsWith(".github/agents/")) {
-            return "GitHub Agents";
-        }
-        if (path.startsWith(".github/hooks/")) {
-            return "GitHub Hooks";
-        }
-        if (path.startsWith(".github/prompts/")) {
-            return "GitHub Prompts";
-        }
-        if (path.startsWith(".github/copilot-")
-                || path.startsWith(".github/copilot_")) {
-            return "GitHub Config";
-        }
-        if (path.startsWith(".codex/")) {
-            return "Codex";
-        }
-        if (path.startsWith(".agents/")) {
-            return "Agents MD";
-        }
-        if (path.startsWith("docs/")) {
-            return "Documentation";
-        }
-        if ("CLAUDE.md".equals(path)
-                || "README.md".equals(path)
-                || "AGENTS.md".equals(path)) {
-            return "Root Files";
-        }
-        return "Other";
     }
 
     private static int computeLabelWidth(

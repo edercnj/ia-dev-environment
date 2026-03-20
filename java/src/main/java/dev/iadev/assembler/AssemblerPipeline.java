@@ -16,32 +16,11 @@ import java.util.List;
  * Orchestrates the execution of 23 assemblers in the fixed
  * order defined by RULE-005.
  *
- * <p>Execution flow:
- * <ol>
- *   <li>{@link #buildAssemblers()} — instantiates 23
- *       assemblers in the correct order</li>
- *   <li>{@link #executeAssemblers} — sequential loop invoking
- *       {@code assemble()} on each assembler</li>
- *   <li>{@link #runPipeline} — main entry point that creates
- *       a temp directory, executes assemblers, and handles
- *       dry-run vs. real output</li>
- * </ol>
- *
- * <p>In dry-run mode, files are generated in a temp directory
- * that is cleaned up after execution. In real mode, files are
- * generated in the output directory directly (atomic output
- * is handled externally via RULE-008).</p>
- *
- * <p>Example usage:
- * <pre>{@code
- * AssemblerPipeline pipeline = new AssemblerPipeline(
- *     AssemblerPipeline.buildAssemblers());
- * PipelineResult result = pipeline.runPipeline(
- *     config, outputDir, PipelineOptions.defaults());
- * }</pre>
- * </p>
+ * <p>Assembler construction is delegated to
+ * {@link AssemblerFactory}.</p>
  *
  * @see Assembler
+ * @see AssemblerFactory
  * @see PipelineOptions
  */
 public final class AssemblerPipeline {
@@ -53,7 +32,8 @@ public final class AssemblerPipeline {
     private final List<AssemblerDescriptor> descriptors;
 
     /**
-     * Creates a pipeline with the given assembler descriptors.
+     * Creates a pipeline with the given assembler
+     * descriptors.
      *
      * @param descriptors the ordered list of assembler
      *                    descriptors
@@ -64,124 +44,18 @@ public final class AssemblerPipeline {
     }
 
     /**
-     * Builds the ordered list of 23 assemblers per RULE-005.
-     *
-     * <p>Order: Rules, Skills, Agents, Patterns, Protocols,
-     * Hooks, Settings, GithubInstructions, GithubMcp,
-     * GithubSkills, GithubAgents, GithubHooks, GithubPrompts,
-     * Docs, GrpcDocs, Runbook, CodexAgentsMd, CodexConfig,
-     * CodexSkills, DocsAdr, Cicd, EpicReport, Readme</p>
-     *
-     * <p>Each assembler is a no-op stub that returns an empty
-     * list. Concrete implementations are provided by downstream
-     * stories (0010-0021).</p>
+     * Delegates to {@link AssemblerFactory#buildAssemblers}.
      *
      * @return immutable ordered list of assembler descriptors
      */
-    public static List<AssemblerDescriptor> buildAssemblers() {
-        return List.of(
-                new AssemblerDescriptor(
-                        "RulesAssembler",
-                        AssemblerTarget.CLAUDE,
-                        new RulesAssembler()),
-                new AssemblerDescriptor(
-                        "SkillsAssembler",
-                        AssemblerTarget.CLAUDE,
-                        new SkillsAssembler()),
-                new AssemblerDescriptor(
-                        "AgentsAssembler",
-                        AssemblerTarget.CLAUDE,
-                        new AgentsAssembler()),
-                new AssemblerDescriptor(
-                        "PatternsAssembler",
-                        AssemblerTarget.CLAUDE,
-                        new PatternsAssembler()),
-                new AssemblerDescriptor(
-                        "ProtocolsAssembler",
-                        AssemblerTarget.CLAUDE,
-                        new ProtocolsAssembler()),
-                new AssemblerDescriptor(
-                        "HooksAssembler",
-                        AssemblerTarget.CLAUDE,
-                        new HooksAssembler()),
-                new AssemblerDescriptor(
-                        "SettingsAssembler",
-                        AssemblerTarget.CLAUDE,
-                        new SettingsAssembler()),
-                new AssemblerDescriptor(
-                        "GithubInstructionsAssembler",
-                        AssemblerTarget.GITHUB,
-                        new GithubInstructionsAssembler()),
-                new AssemblerDescriptor(
-                        "GithubMcpAssembler",
-                        AssemblerTarget.GITHUB,
-                        new GithubMcpAssembler()),
-                new AssemblerDescriptor(
-                        "GithubSkillsAssembler",
-                        AssemblerTarget.GITHUB,
-                        new GithubSkillsAssembler()),
-                new AssemblerDescriptor(
-                        "GithubAgentsAssembler",
-                        AssemblerTarget.GITHUB,
-                        new GithubAgentsAssembler()),
-                new AssemblerDescriptor(
-                        "GithubHooksAssembler",
-                        AssemblerTarget.GITHUB,
-                        new GithubHooksAssembler()),
-                new AssemblerDescriptor(
-                        "GithubPromptsAssembler",
-                        AssemblerTarget.GITHUB,
-                        new GithubPromptsAssembler()),
-                new AssemblerDescriptor(
-                        "DocsAssembler",
-                        AssemblerTarget.DOCS,
-                        new DocsAssembler()),
-                new AssemblerDescriptor(
-                        "GrpcDocsAssembler",
-                        AssemblerTarget.DOCS,
-                        new GrpcDocsAssembler()),
-                new AssemblerDescriptor(
-                        "RunbookAssembler",
-                        AssemblerTarget.ROOT,
-                        new RunbookAssembler()),
-                new AssemblerDescriptor(
-                        "CodexAgentsMdAssembler",
-                        AssemblerTarget.ROOT,
-                        new CodexAgentsMdAssembler()),
-                new AssemblerDescriptor(
-                        "CodexConfigAssembler",
-                        AssemblerTarget.CODEX,
-                        new CodexConfigAssembler()),
-                new AssemblerDescriptor(
-                        "CodexSkillsAssembler",
-                        AssemblerTarget.CODEX_AGENTS,
-                        new CodexSkillsAssembler()),
-                new AssemblerDescriptor(
-                        "DocsAdrAssembler",
-                        AssemblerTarget.ROOT,
-                        new DocsAdrAssembler()),
-                new AssemblerDescriptor(
-                        "CicdAssembler",
-                        AssemblerTarget.ROOT,
-                        new CicdAssembler()),
-                new AssemblerDescriptor(
-                        "EpicReportAssembler",
-                        AssemblerTarget.ROOT,
-                        new EpicReportAssembler()),
-                new AssemblerDescriptor(
-                        "ReadmeAssembler",
-                        AssemblerTarget.CLAUDE,
-                        new ReadmeAssembler()));
+    public static List<AssemblerDescriptor>
+            buildAssemblers() {
+        return AssemblerFactory.buildAssemblers();
     }
 
     /**
-     * Executes assemblers sequentially, aggregating files and
-     * warnings.
-     *
-     * <p>Each assembler receives the resolved target directory
-     * based on its {@link AssemblerTarget}. Exceptions from
-     * assemblers are wrapped in {@link PipelineException}
-     * unless already a PipelineException.</p>
+     * Executes assemblers sequentially, aggregating files
+     * and warnings.
      *
      * @param descriptors the ordered assembler descriptors
      * @param config      the project configuration
@@ -222,11 +96,6 @@ public final class AssemblerPipeline {
 
     /**
      * Runs the full pipeline with dry-run or real output.
-     *
-     * <p>In dry-run mode, generates files in a temporary
-     * directory and returns the result without persisting
-     * files to the output directory. In real mode, generates
-     * files directly in the output directory.</p>
      *
      * @param config    the project configuration
      * @param outputDir the final output directory
@@ -296,9 +165,9 @@ public final class AssemblerPipeline {
     private TemplateEngine createEngine(
             PipelineOptions options) {
         if (options.resourcesDir() != null) {
-            return new TemplateEngine(options.resourcesDir());
+            return new TemplateEngine(
+                    options.resourcesDir());
         }
         return new TemplateEngine();
     }
-
 }

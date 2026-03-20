@@ -7,24 +7,27 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Validates language-framework compatibility, version constraints,
- * native build support, interface types, and architecture styles.
+ * Validates language-framework compatibility, version
+ * constraints, native build support, interface types, and
+ * architecture styles.
  *
- * <p>All methods are static and the class is stateless.
- * Zero external framework dependencies (RULE-007).</p>
+ * <p>Version-specific checks are delegated to
+ * {@link StackVersionValidator}.</p>
+ *
+ * @see StackVersionValidator
  */
 public final class StackValidator {
 
-    /** Minimum Java version for Quarkus 3+ and Spring Boot 3+. */
+    /** Minimum Java version for Quarkus 3+. */
     public static final int JAVA_17_MINIMUM = 17;
 
-    /** Minimum Python minor version for FastAPI 0.100+ (3.10). */
+    /** Minimum Python minor version for FastAPI. */
     public static final int PYTHON_310_MINOR = 10;
 
-    /** Framework major version threshold for Java 17 requirement. */
+    /** Framework major version threshold. */
     public static final int FRAMEWORK_VERSION_3 = 3;
 
-    /** Django major version threshold for Python 3.10 requirement. */
+    /** Django major version threshold. */
     public static final int FRAMEWORK_VERSION_5 = 5;
 
     /** Python major version constant. */
@@ -40,7 +43,8 @@ public final class StackValidator {
      * @param config the project configuration to validate
      * @return list of error messages (empty means valid)
      */
-    public static List<String> validateStack(ProjectConfig config) {
+    public static List<String> validateStack(
+            ProjectConfig config) {
         List<String> errors = new ArrayList<>();
         errors.addAll(validateLanguageFramework(config));
         errors.addAll(validateVersionRequirements(config));
@@ -51,113 +55,64 @@ public final class StackValidator {
     }
 
     /**
-     * Validates that the framework is compatible with the language.
+     * Validates framework-language compatibility.
      *
      * @param config the project configuration
-     * @return list of error messages (empty if compatible)
+     * @return list of error messages
      */
     public static List<String> validateLanguageFramework(
             ProjectConfig config) {
         String frameworkName = config.framework().name();
         String languageName = config.language().name();
         List<String> validLanguages =
-                StackMapping.FRAMEWORK_LANGUAGE_RULES.get(frameworkName);
+                StackMapping.FRAMEWORK_LANGUAGE_RULES
+                        .get(frameworkName);
         if (validLanguages == null) {
             return List.of();
         }
         if (!validLanguages.contains(languageName)) {
-            String expected = String.join(", ", validLanguages);
+            String expected = String.join(
+                    ", ", validLanguages);
             return List.of(
-                    "Framework '%s' requires language '%s', got '%s'"
-                            .formatted(frameworkName, expected,
+                    ("Framework '%s' requires language"
+                            + " '%s', got '%s'")
+                            .formatted(frameworkName,
+                                    expected,
                                     languageName));
         }
         return List.of();
     }
 
     /**
-     * Validates version requirements across all known rules.
+     * Delegates to {@link StackVersionValidator}.
      *
      * @param config the project configuration
      * @return list of error messages
      */
     public static List<String> validateVersionRequirements(
             ProjectConfig config) {
-        List<String> errors = new ArrayList<>();
-        errors.addAll(checkJavaFrameworkVersion(config));
-        errors.addAll(checkDjangoPythonVersion(config));
-        return errors;
+        return StackVersionValidator
+                .validateVersionRequirements(config);
     }
 
     /**
-     * Checks Java 17+ requirement for Quarkus 3+ and Spring Boot 3+.
+     * Validates that native build is only for supported
+     * frameworks.
      *
      * @param config the project configuration
      * @return list of error messages
      */
-    static List<String> checkJavaFrameworkVersion(ProjectConfig config) {
-        String fw = config.framework().name();
-        String lang = config.language().name();
-        if (!"java".equals(lang)
-                || (!"quarkus".equals(fw) && !"spring-boot".equals(fw))) {
-            return List.of();
-        }
-        Optional<Integer> fwMajor =
-                extractMajor(config.framework().version());
-        Optional<Integer> langMajor =
-                extractMajor(config.language().version());
-        if (langMajor.isEmpty()) {
-            return List.of();
-        }
-        return checkJava17Requirement(fw, fwMajor, langMajor.get());
-    }
-
-    /**
-     * Checks Django 5+ requires Python 3.10+.
-     *
-     * @param config the project configuration
-     * @return list of error messages
-     */
-    static List<String> checkDjangoPythonVersion(ProjectConfig config) {
-        if (!"django".equals(config.framework().name())) {
-            return List.of();
-        }
-        Optional<Integer> fwMajor =
-                extractMajor(config.framework().version());
-        if (fwMajor.isEmpty() || fwMajor.get() < FRAMEWORK_VERSION_5) {
-            return List.of();
-        }
-        Optional<Integer> pyMajor =
-                extractMajor(config.language().version());
-        Optional<Integer> pyMinor =
-                extractMinor(config.language().version());
-        if (pyMajor.isEmpty() || pyMinor.isEmpty()) {
-            return List.of();
-        }
-        if (pyMajor.get() < PYTHON_3_MAJOR
-                || (pyMajor.get() == PYTHON_3_MAJOR
-                && pyMinor.get() < PYTHON_310_MINOR)) {
-            return List.of(
-                    "Django 5.x requires Python 3.10+, got Python %s"
-                            .formatted(config.language().version()));
-        }
-        return List.of();
-    }
-
-    /**
-     * Validates that native build is only enabled for supported frameworks.
-     *
-     * @param config the project configuration
-     * @return list of error messages
-     */
-    static List<String> validateNativeBuild(ProjectConfig config) {
+    static List<String> validateNativeBuild(
+            ProjectConfig config) {
         if (!config.framework().nativeBuild()) {
             return List.of();
         }
         String fw = config.framework().name();
-        if (!StackMapping.NATIVE_SUPPORTED_FRAMEWORKS.contains(fw)) {
+        if (!StackMapping.NATIVE_SUPPORTED_FRAMEWORKS
+                .contains(fw)) {
             return List.of(
-                    "Native build is not supported for framework '%s'"
+                    ("Native build is not supported"
+                            + " for framework '%s'")
                             .formatted(fw));
         }
         return List.of();
@@ -173,9 +128,11 @@ public final class StackValidator {
             ProjectConfig config) {
         List<String> errors = new ArrayList<>();
         for (var iface : config.interfaces()) {
-            if (!StackMapping.VALID_INTERFACE_TYPES.contains(iface.type())) {
+            if (!StackMapping.VALID_INTERFACE_TYPES
+                    .contains(iface.type())) {
                 errors.add(
-                        "Invalid interface type: '%s'. Valid: %s"
+                        ("Invalid interface type: '%s'."
+                                + " Valid: %s")
                                 .formatted(iface.type(),
                                         String.join(", ",
                                                 StackMapping
@@ -194,9 +151,11 @@ public final class StackValidator {
     public static List<String> validateArchitectureStyle(
             ProjectConfig config) {
         String style = config.architecture().style();
-        if (!StackMapping.VALID_ARCHITECTURE_STYLES.contains(style)) {
+        if (!StackMapping.VALID_ARCHITECTURE_STYLES
+                .contains(style)) {
             return List.of(
-                    "Invalid architecture style: '%s'. Valid: %s"
+                    ("Invalid architecture style: '%s'."
+                            + " Valid: %s")
                             .formatted(style,
                                     String.join(", ",
                                             StackMapping
@@ -206,30 +165,35 @@ public final class StackValidator {
     }
 
     /**
-     * Extracts the major version number from a version string.
+     * Extracts the major version number from a version
+     * string.
      *
-     * @param version the version string (e.g. "21", "3.4.1")
-     * @return the major version, or empty if unparseable
+     * @param version the version string
+     * @return the major version, or empty
      */
-    public static Optional<Integer> extractMajor(String version) {
+    public static Optional<Integer> extractMajor(
+            String version) {
         if (version == null || version.isEmpty()) {
             return Optional.empty();
         }
         String[] parts = version.split("\\.");
         try {
-            return Optional.of(Integer.parseInt(parts[0]));
+            return Optional.of(
+                    Integer.parseInt(parts[0]));
         } catch (NumberFormatException e) {
             return Optional.empty();
         }
     }
 
     /**
-     * Extracts the minor version number from a version string.
+     * Extracts the minor version number from a version
+     * string.
      *
-     * @param version the version string (e.g. "3.10.1")
-     * @return the minor version, or empty if unparseable
+     * @param version the version string
+     * @return the minor version, or empty
      */
-    public static Optional<Integer> extractMinor(String version) {
+    public static Optional<Integer> extractMinor(
+            String version) {
         if (version == null || version.isEmpty()) {
             return Optional.empty();
         }
@@ -238,27 +202,34 @@ public final class StackValidator {
             return Optional.empty();
         }
         try {
-            return Optional.of(Integer.parseInt(parts[1]));
+            return Optional.of(
+                    Integer.parseInt(parts[1]));
         } catch (NumberFormatException e) {
             return Optional.empty();
         }
     }
 
-    private static List<String> checkJava17Requirement(
-            String fw,
-            Optional<Integer> fwMajor,
-            int langMajor) {
-        boolean needsCheck = fwMajor.isPresent()
-                && fwMajor.get() >= FRAMEWORK_VERSION_3
-                && ("quarkus".equals(fw) || "spring-boot".equals(fw));
-        if (needsCheck && langMajor < JAVA_17_MINIMUM) {
-            String fwTitle = fw.substring(0, 1).toUpperCase()
-                    + fw.substring(1);
-            return List.of(
-                    "%s %d.x requires Java 17+, got Java %d"
-                            .formatted(fwTitle, fwMajor.get(),
-                                    langMajor));
-        }
-        return List.of();
+    /**
+     * Delegates to {@link StackVersionValidator}.
+     *
+     * @param config the project configuration
+     * @return list of error messages
+     */
+    static List<String> checkJavaFrameworkVersion(
+            ProjectConfig config) {
+        return StackVersionValidator
+                .checkJavaFrameworkVersion(config);
+    }
+
+    /**
+     * Delegates to {@link StackVersionValidator}.
+     *
+     * @param config the project configuration
+     * @return list of error messages
+     */
+    static List<String> checkDjangoPythonVersion(
+            ProjectConfig config) {
+        return StackVersionValidator
+                .checkDjangoPythonVersion(config);
     }
 }

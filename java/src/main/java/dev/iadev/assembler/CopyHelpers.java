@@ -14,26 +14,16 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * Utilities for copying template files with placeholder
  * replacement during artifact generation.
  *
- * <p>All operations use synchronous I/O by design. This module
- * is consumed exclusively by assemblers that run sequentially
- * in the pipeline.</p>
- *
- * <p>Example usage:
- * <pre>{@code
- * CopyHelpers.copyTemplateFile(
- *     src, dest, engine, context);
- * CopyHelpers.copyStaticFile(src, dest);
- * CopyHelpers.ensureDirectory(outputDir);
- * }</pre>
- * </p>
+ * <p>File tree walking, deletion, and section validation
+ * are in {@link CopyTreeWalker}.</p>
  *
  * @see Assembler
+ * @see CopyTreeWalker
  */
 public final class CopyHelpers {
 
@@ -44,10 +34,6 @@ public final class CopyHelpers {
     /**
      * Copies a single template file with placeholder
      * replacement.
-     *
-     * <p>Creates parent directories if needed. Reads the source
-     * file, replaces {@code {{KEY}}} placeholders using the
-     * engine and context, then writes the result to dest.</p>
      *
      * @param src     the source template file
      * @param dest    the destination file path
@@ -100,8 +86,6 @@ public final class CopyHelpers {
 
     /**
      * Copies a file without any template rendering.
-     *
-     * <p>Creates parent directories if needed.</p>
      *
      * @param src  the source file
      * @param dest the destination file
@@ -172,7 +156,6 @@ public final class CopyHelpers {
      *
      * @param path    target file path
      * @param content file content (UTF-8)
-     * @throws UncheckedIOException if I/O fails
      */
     public static void writeFile(
             Path path, String content) {
@@ -192,7 +175,6 @@ public final class CopyHelpers {
      *
      * @param path source file path
      * @return file content
-     * @throws UncheckedIOException if I/O fails
      */
     public static String readFile(Path path) {
         try {
@@ -208,9 +190,6 @@ public final class CopyHelpers {
     /**
      * Creates a directory and all parent directories.
      *
-     * <p>Idempotent — does nothing if the directory already
-     * exists.</p>
-     *
      * @param dir the directory to create
      */
     public static void ensureDirectory(Path dir) {
@@ -223,135 +202,29 @@ public final class CopyHelpers {
         }
     }
 
-    /**
-     * Replaces placeholders in all {@code .md} files within
-     * a directory tree recursively.
-     *
-     * <p>Only processes files ending with {@code .md}.
-     * Non-markdown files are left unchanged.</p>
-     *
-     * @param directory the root directory to process
-     * @param engine    the template engine for replacement
-     * @param context   the context map for placeholder values
-     */
+    /** Delegates to {@link CopyTreeWalker}. */
     public static void replacePlaceholdersInDir(
             Path directory,
             TemplateEngine engine,
             Map<String, Object> context) {
-        try {
-            Files.walkFileTree(directory,
-                    new SimpleFileVisitor<>() {
-
-                @Override
-                public FileVisitResult visitFile(
-                        Path file,
-                        BasicFileAttributes attrs)
-                        throws IOException {
-                    if (file.toString().endsWith(".md")) {
-                        String content = Files.readString(
-                                file, StandardCharsets.UTF_8);
-                        String replaced =
-                                engine.replacePlaceholders(
-                                        content, context);
-                        Files.writeString(file, replaced,
-                                StandardCharsets.UTF_8);
-                    }
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to replace placeholders in: %s"
-                            .formatted(directory), e);
-        }
+        CopyTreeWalker.replacePlaceholdersInDir(
+                directory, engine, context);
     }
 
-    /**
-     * Lists all {@code .md} files in the given directory,
-     * sorted by filename.
-     *
-     * <p>Only regular files are included; subdirectories
-     * whose names end in {@code .md} are excluded.</p>
-     *
-     * @param dir directory to scan
-     * @return sorted list of .md file paths; empty list
-     *         if directory contains no .md files
-     * @throws UncheckedIOException if I/O fails
-     */
+    /** Delegates to {@link CopyTreeWalker}. */
     public static List<Path> listMdFilesSorted(Path dir) {
-        try (Stream<Path> stream = Files.list(dir)) {
-            return stream
-                    .filter(f -> f.toString()
-                            .endsWith(".md"))
-                    .filter(Files::isRegularFile)
-                    .sorted()
-                    .toList();
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to list directory: %s"
-                            .formatted(dir), e);
-        }
+        return CopyTreeWalker.listMdFilesSorted(dir);
     }
 
-    /**
-     * Deletes a file or directory without throwing
-     * exceptions. For directories, deletes recursively.
-     *
-     * @param path path to delete
-     * @return true if deleted successfully, false otherwise
-     */
+    /** Delegates to {@link CopyTreeWalker}. */
     public static boolean deleteQuietly(Path path) {
-        try {
-            if (!Files.exists(path)) {
-                return false;
-            }
-            if (Files.isDirectory(path)) {
-                deleteTreeQuietly(path);
-            } else {
-                Files.deleteIfExists(path);
-            }
-            return true;
-        } catch (IOException e) {
-            return false;
-        }
+        return CopyTreeWalker.deleteQuietly(path);
     }
 
-    private static void deleteTreeQuietly(Path dir)
-            throws IOException {
-        Files.walkFileTree(dir,
-                new SimpleFileVisitor<>() {
-            @Override
-            public FileVisitResult visitFile(
-                    Path file,
-                    BasicFileAttributes attrs)
-                    throws IOException {
-                Files.delete(file);
-                return FileVisitResult.CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult postVisitDirectory(
-                    Path d, IOException exc)
-                    throws IOException {
-                Files.delete(d);
-                return FileVisitResult.CONTINUE;
-            }
-        });
-    }
-
-    /**
-     * Checks whether a Markdown content string contains
-     * all required H2 sections.
-     *
-     * @param content  Markdown content
-     * @param sections list of expected section names
-     *                 (without {@code "## "} prefix)
-     * @return true if all sections are present
-     */
+    /** Delegates to {@link CopyTreeWalker}. */
     public static boolean hasAllMandatorySections(
             String content, List<String> sections) {
-        return sections.stream()
-                .allMatch(section ->
-                        content.contains("## " + section));
+        return CopyTreeWalker.hasAllMandatorySections(
+                content, sections);
     }
 }
