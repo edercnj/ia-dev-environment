@@ -3,9 +3,6 @@ package dev.iadev.assembler;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -92,7 +89,8 @@ public final class EpicReportAssembler
             return List.of();
         }
 
-        String content = readFile(templatePath);
+        String content =
+                CopyHelpers.readFile(templatePath);
         if (!hasAllMandatorySections(content)) {
             return List.of();
         }
@@ -107,7 +105,7 @@ public final class EpicReportAssembler
             CopyHelpers.ensureDirectory(destDir);
             Path destPath =
                     destDir.resolve(TEMPLATE_FILENAME);
-            writeFile(destPath, content);
+            CopyHelpers.writeFile(destPath, content);
             results.add(destPath.toString());
         }
 
@@ -128,27 +126,6 @@ public final class EpicReportAssembler
             }
         }
         return true;
-    }
-
-    private static String readFile(Path path) {
-        try {
-            return Files.readString(
-                    path, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to read file: " + path, e);
-        }
-    }
-
-    private static void writeFile(
-            Path dest, String content) {
-        try {
-            Files.writeString(
-                    dest, content, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to write file: " + dest, e);
-        }
     }
 
     private static Path resolveClasspathResources() {

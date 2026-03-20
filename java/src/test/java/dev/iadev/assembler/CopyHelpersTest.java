@@ -7,12 +7,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Tests for CopyHelpers — template copy and rendering utilities.
@@ -231,6 +234,95 @@ class CopyHelpersTest {
 
             assertThat(Files.readString(nested))
                     .contains("deep-val");
+        }
+    }
+
+    @Nested
+    @DisplayName("writeFile")
+    class WriteFile {
+
+        @Test
+        @DisplayName("creates parent dirs and writes UTF-8")
+        void writeFile_parentDirsMissing_createsAndWrites(
+                @TempDir Path tempDir) throws IOException {
+            Path dest = tempDir.resolve("a/b/c/out.txt");
+
+            CopyHelpers.writeFile(dest, "hello UTF-8");
+
+            assertThat(dest).exists();
+            assertThat(Files.readString(
+                    dest, StandardCharsets.UTF_8))
+                    .isEqualTo("hello UTF-8");
+        }
+
+        @Test
+        @DisplayName("overwrites existing file content")
+        void writeFile_existingFile_overwritesContent(
+                @TempDir Path tempDir) throws IOException {
+            Path dest = tempDir.resolve("file.txt");
+            Files.writeString(dest, "old");
+
+            CopyHelpers.writeFile(dest, "new");
+
+            assertThat(Files.readString(
+                    dest, StandardCharsets.UTF_8))
+                    .isEqualTo("new");
+        }
+
+        @Test
+        @DisplayName("writes empty content")
+        void writeFile_emptyContent_writesEmptyFile(
+                @TempDir Path tempDir) throws IOException {
+            Path dest = tempDir.resolve("empty.txt");
+
+            CopyHelpers.writeFile(dest, "");
+
+            assertThat(dest).exists();
+            assertThat(Files.readString(dest)).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("readFile")
+    class ReadFile {
+
+        @Test
+        @DisplayName("reads entire file content as UTF-8")
+        void readFile_existingFile_returnsContent(
+                @TempDir Path tempDir) throws IOException {
+            Path src = tempDir.resolve("input.txt");
+            Files.writeString(
+                    src, "hello world",
+                    StandardCharsets.UTF_8);
+
+            String result = CopyHelpers.readFile(src);
+
+            assertThat(result).isEqualTo("hello world");
+        }
+
+        @Test
+        @DisplayName("throws UncheckedIOException for missing file")
+        void readFile_missingFile_throwsUncheckedIO(
+                @TempDir Path tempDir) {
+            Path missing = tempDir.resolve("no-such-file.txt");
+
+            assertThatThrownBy(
+                    () -> CopyHelpers.readFile(missing))
+                    .isInstanceOf(UncheckedIOException.class)
+                    .hasCauseInstanceOf(
+                            NoSuchFileException.class);
+        }
+
+        @Test
+        @DisplayName("reads empty file as empty string")
+        void readFile_emptyFile_returnsEmptyString(
+                @TempDir Path tempDir) throws IOException {
+            Path src = tempDir.resolve("empty.txt");
+            Files.writeString(src, "");
+
+            String result = CopyHelpers.readFile(src);
+
+            assertThat(result).isEmpty();
         }
     }
 }

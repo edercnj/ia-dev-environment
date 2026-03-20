@@ -6,7 +6,6 @@ import dev.iadev.template.TemplateEngine;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -320,7 +319,7 @@ public final class GithubAgentsAssembler
             Path agentsDir,
             TemplateEngine engine,
             Map<String, Object> context) {
-        String content = readFile(srcPath);
+        String content = CopyHelpers.readFile(srcPath);
         String rendered = engine.replacePlaceholders(
                 content, context);
         String fileName =
@@ -332,7 +331,7 @@ public final class GithubAgentsAssembler
                 : fileName;
         String outputName = stem + AGENT_MD_EXTENSION;
         Path dest = agentsDir.resolve(outputName);
-        writeFile(dest, rendered);
+        CopyHelpers.writeFile(dest, rendered);
         return dest.toString();
     }
 
@@ -341,27 +340,6 @@ public final class GithubAgentsAssembler
         Set<String> typeSet = Set.of(types);
         return config.interfaces().stream()
                 .anyMatch(i -> typeSet.contains(i.type()));
-    }
-
-    private static String readFile(Path path) {
-        try {
-            return Files.readString(
-                    path, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to read template: " + path, e);
-        }
-    }
-
-    private static void writeFile(
-            Path path, String content) {
-        try {
-            Files.writeString(
-                    path, content, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to write file: " + path, e);
-        }
     }
 
     private static Path resolveClasspathResources() {

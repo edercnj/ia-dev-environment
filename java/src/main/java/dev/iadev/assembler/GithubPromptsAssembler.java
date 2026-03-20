@@ -4,9 +4,6 @@ import dev.iadev.config.ContextBuilder;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -116,21 +113,10 @@ public final class GithubPromptsAssembler
                     TEMPLATES_DIR + "/" + templateName,
                     context);
             Path dest = promptsDir.resolve(outputName);
-            writeFile(dest, content);
+            CopyHelpers.writeFile(dest, content);
             results.add(dest.toString());
         }
         return results;
-    }
-
-    private static void writeFile(
-            Path path, String content) {
-        try {
-            Files.writeString(
-                    path, content, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to write file: " + path, e);
-        }
     }
 
     private static Path resolveClasspathResources() {

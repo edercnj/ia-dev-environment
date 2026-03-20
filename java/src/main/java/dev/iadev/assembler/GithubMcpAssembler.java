@@ -4,10 +4,6 @@ import dev.iadev.model.McpServerConfig;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -78,7 +74,7 @@ public final class GithubMcpAssembler
         String content = buildCopilotMcpJson(config);
         Path dest =
                 outputDir.resolve("copilot-mcp.json");
-        writeFile(dest, content);
+        CopyHelpers.writeFile(dest, content);
 
         return List.of(dest.toString());
     }
@@ -108,7 +104,7 @@ public final class GithubMcpAssembler
         String content = buildCopilotMcpJson(config);
         Path dest =
                 outputDir.resolve("copilot-mcp.json");
-        writeFile(dest, content);
+        CopyHelpers.writeFile(dest, content);
 
         return new AssembleResult(
                 List.of(dest.toString()), warnings);
@@ -266,17 +262,6 @@ public final class GithubMcpAssembler
     private static String escapeJson(String value) {
         return value.replace("\\", "\\\\")
                 .replace("\"", "\\\"");
-    }
-
-    private static void writeFile(
-            Path path, String content) {
-        try {
-            Files.writeString(
-                    path, content, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to write file: " + path, e);
-        }
     }
 
     /**

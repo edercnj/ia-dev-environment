@@ -4,9 +4,6 @@ import dev.iadev.config.ContextBuilder;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -276,7 +273,7 @@ public final class GithubSkillsAssembler
         if (!Files.exists(src)) {
             return null;
         }
-        String content = readFile(src);
+        String content = CopyHelpers.readFile(src);
         String rendered = engine.replacePlaceholders(
                 content, context);
 
@@ -292,7 +289,7 @@ public final class GithubSkillsAssembler
         CopyHelpers.ensureDirectory(skillDir);
 
         Path dest = skillDir.resolve(SKILL_MD);
-        writeFile(dest, rendered);
+        CopyHelpers.writeFile(dest, rendered);
         copyReferences(
                 srcDir, skillDir, name, engine, context);
         return dest.toString();
@@ -323,27 +320,6 @@ public final class GithubSkillsAssembler
         CopyHelpers.copyDirectory(refsDir, destRefs);
         CopyHelpers.replacePlaceholdersInDir(
                 destRefs, engine, context);
-    }
-
-    private static String readFile(Path path) {
-        try {
-            return Files.readString(
-                    path, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to read template: " + path, e);
-        }
-    }
-
-    private static void writeFile(
-            Path path, String content) {
-        try {
-            Files.writeString(
-                    path, content, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to write file: " + path, e);
-        }
     }
 
     private static Path resolveClasspathResources() {

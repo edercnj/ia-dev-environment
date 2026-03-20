@@ -86,7 +86,7 @@ public final class CodexAgentsMdAssembler
 
         CopyHelpers.ensureDirectory(outputDir);
         Path dest = outputDir.resolve("AGENTS.md");
-        writeFile(dest, rendered);
+        CopyHelpers.writeFile(dest, rendered);
 
         List<String> files = new ArrayList<>(warnings);
         files.clear();
@@ -321,14 +321,4 @@ public final class CodexAgentsMdAssembler
         return ctx;
     }
 
-    private static void writeFile(
-            Path dest, String content) {
-        try {
-            Files.writeString(
-                    dest, content, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to write file: " + dest, e);
-        }
-    }
 }

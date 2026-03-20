@@ -195,7 +195,7 @@ public final class PatternsAssembler implements Assembler {
             CopyHelpers.ensureDirectory(targetDir);
             Path destFile = targetDir.resolve(
                     pf.path().getFileName().toString());
-            writeFile(destFile, content);
+            CopyHelpers.writeFile(destFile, content);
             results.add(destFile.toString());
         }
         return results;
@@ -219,7 +219,7 @@ public final class PatternsAssembler implements Assembler {
         CopyHelpers.ensureDirectory(destPath.getParent());
         String merged =
                 String.join(SECTION_SEPARATOR, rendered);
-        writeFile(destPath, merged);
+        CopyHelpers.writeFile(destPath, merged);
         return destPath.toString();
     }
 
@@ -253,17 +253,6 @@ public final class PatternsAssembler implements Assembler {
         } catch (IOException e) {
             throw new UncheckedIOException(
                     "Failed to list directory: " + dir, e);
-        }
-    }
-
-    private static void writeFile(
-            Path dest, String content) {
-        try {
-            Files.writeString(
-                    dest, content, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to write file: " + dest, e);
         }
     }
 

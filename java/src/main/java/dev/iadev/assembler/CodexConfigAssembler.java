@@ -5,10 +5,6 @@ import dev.iadev.model.McpServerConfig;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -74,7 +70,7 @@ public final class CodexConfigAssembler
 
         CopyHelpers.ensureDirectory(outputDir);
         Path dest = outputDir.resolve("config.toml");
-        writeFile(dest, rendered);
+        CopyHelpers.writeFile(dest, rendered);
 
         return List.of(dest.toString());
     }
@@ -104,14 +100,4 @@ public final class CodexConfigAssembler
         return ctx;
     }
 
-    private static void writeFile(
-            Path dest, String content) {
-        try {
-            Files.writeString(
-                    dest, content, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to write file: " + dest, e);
-        }
-    }
 }

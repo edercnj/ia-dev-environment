@@ -4,9 +4,6 @@ import dev.iadev.config.ContextBuilder;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -101,19 +98,8 @@ public final class GrpcDocsAssembler implements Assembler {
         CopyHelpers.ensureDirectory(destDir);
         Path destFile =
                 destDir.resolve(OUTPUT_FILENAME);
-        writeFile(destFile, rendered);
+        CopyHelpers.writeFile(destFile, rendered);
         return List.of(destFile.toString());
-    }
-
-    private static void writeFile(
-            Path dest, String content) {
-        try {
-            Files.writeString(
-                    dest, content, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to write file: " + dest, e);
-        }
     }
 
     private static Path resolveClasspathResources() {

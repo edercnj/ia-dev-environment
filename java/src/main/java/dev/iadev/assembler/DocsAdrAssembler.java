@@ -4,8 +4,6 @@ import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -120,7 +118,8 @@ public final class DocsAdrAssembler implements Assembler {
         if (!Files.exists(templatePath)) {
             return List.of();
         }
-        String templateContent = readFile(templatePath);
+        String templateContent =
+                CopyHelpers.readFile(templatePath);
         if (!hasAllMandatorySections(templateContent)) {
             return List.of();
         }
@@ -132,11 +131,11 @@ public final class DocsAdrAssembler implements Assembler {
                 buildReadmeContent(config.project().name());
         Path readmeDest =
                 adrDir.resolve(README_FILENAME);
-        writeFile(readmeDest, readmeContent);
+        CopyHelpers.writeFile(readmeDest, readmeContent);
 
         Path templateDest =
                 adrDir.resolve(TEMPLATE_FILENAME);
-        writeFile(templateDest, templateContent);
+        CopyHelpers.writeFile(templateDest, templateContent);
 
         return List.of(
                 readmeDest.toString(),
@@ -236,27 +235,6 @@ public final class DocsAdrAssembler implements Assembler {
         String slug = sanitized.isEmpty()
                 ? "untitled" : sanitized;
         return "ADR-" + padded + "-" + slug + ".md";
-    }
-
-    private static String readFile(Path path) {
-        try {
-            return Files.readString(
-                    path, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to read file: " + path, e);
-        }
-    }
-
-    private static void writeFile(
-            Path dest, String content) {
-        try {
-            Files.writeString(
-                    dest, content, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to write file: " + dest, e);
-        }
     }
 
     private static Path resolveClasspathResources() {

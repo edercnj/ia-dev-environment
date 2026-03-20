@@ -159,6 +159,43 @@ public final class CopyHelpers {
     }
 
     /**
+     * Writes content to a file, creating parent directories
+     * if needed.
+     *
+     * @param path    target file path
+     * @param content file content (UTF-8)
+     * @throws UncheckedIOException if I/O fails
+     */
+    public static void writeFile(
+            Path path, String content) {
+        try {
+            Files.createDirectories(path.getParent());
+            Files.writeString(
+                    path, content, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException(
+                    "Failed to write file: " + path, e);
+        }
+    }
+
+    /**
+     * Reads entire file content as a UTF-8 string.
+     *
+     * @param path source file path
+     * @return file content
+     * @throws UncheckedIOException if I/O fails
+     */
+    public static String readFile(Path path) {
+        try {
+            return Files.readString(
+                    path, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException(
+                    "Failed to read file: " + path, e);
+        }
+    }
+
+    /**
      * Creates a directory and all parent directories.
      *
      * <p>Idempotent — does nothing if the directory already

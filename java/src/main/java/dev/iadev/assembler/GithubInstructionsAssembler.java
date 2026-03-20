@@ -4,9 +4,6 @@ import dev.iadev.model.InterfaceConfig;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -309,7 +306,7 @@ public final class GithubInstructionsAssembler
                 buildCopilotInstructions(config);
         Path dest =
                 githubDir.resolve("copilot-instructions.md");
-        writeFile(dest, content);
+        CopyHelpers.writeFile(dest, content);
         return dest.toString();
     }
 
@@ -331,13 +328,13 @@ public final class GithubInstructionsAssembler
             if (!Files.exists(src)) {
                 continue;
             }
-            String content = readFile(src);
+            String content = CopyHelpers.readFile(src);
             String rendered =
                     replaceSingleBracePlaceholders(
                             content, context);
             Path dest = instructionsDir.resolve(
                     name + ".instructions.md");
-            writeFile(dest, rendered);
+            CopyHelpers.writeFile(dest, rendered);
             results.add(dest.toString());
         }
 
@@ -413,27 +410,6 @@ public final class GithubInstructionsAssembler
         }
         matcher.appendTail(sb);
         return sb.toString();
-    }
-
-    private static String readFile(Path path) {
-        try {
-            return Files.readString(
-                    path, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to read template: " + path, e);
-        }
-    }
-
-    private static void writeFile(
-            Path path, String content) {
-        try {
-            Files.writeString(
-                    path, content, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to write file: " + path, e);
-        }
     }
 
     private static Path resolveClasspathResources() {
