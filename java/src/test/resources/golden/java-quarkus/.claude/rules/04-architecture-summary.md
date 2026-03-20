@@ -38,8 +38,29 @@ adapter.inbound → application → domain ← adapter.outbound
 | adapter.inbound | application, domain.port | adapter.outbound |
 | adapter.outbound | domain.port, domain.model | adapter.inbound |
 
+## Domain Purity (Non-Negotiable)
+
+Domain layer MUST have **zero** external library imports. Allowed:
+- Standard library only
+- Project's own `domain.*` packages
+
+Forbidden in domain:
+- Serialization libraries (Jackson, Gson, serde, encoding/json)
+- I/O operations (filesystem, network, database)
+- Framework annotations or types
+
+If domain needs I/O or serialization → define a **port interface**, implement in adapter.
+
+## Inbound Adapter Rules
+
+Inbound adapters (CLI, REST, gRPC) MUST call application-layer use cases. Direct orchestration of domain services or assemblers from the adapter is forbidden.
+
 ## Implementation Order
 
 Inner layers first, outer layers last: domain → ports → adapters → application → inbound → tests.
 
 > Read `skills/layer-templates/SKILL.md` for code templates per layer and `skills/architecture/SKILL.md` for full patterns.
+
+## Deviations
+
+Any deviation from this package structure MUST be documented as an ADR with rationale. Undocumented deviations are treated as violations.

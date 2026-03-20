@@ -29,9 +29,9 @@ class RulesAssemblerTest {
     class CoreRules {
 
         @Test
-        @DisplayName("generates 5 core rule files for"
+        @DisplayName("generates 6 core rule files for"
                 + " minimal config")
-        void assemble_whenCalled_generatesFiveCoreRules(
+        void assemble_whenCalled_generatesSixCoreRules(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = createMinimalResources(
@@ -61,6 +61,9 @@ class RulesAssemblerTest {
                     .exists();
             assertThat(rulesDir.resolve(
                     "05-quality-gates.md")).exists();
+            assertThat(rulesDir.resolve(
+                    "06-security-baseline.md"))
+                    .exists();
         }
 
         @Test
@@ -413,6 +416,19 @@ class RulesAssemblerTest {
                     .contains("90%");
         }
 
+        @Test
+        @DisplayName("06-security-baseline matches golden"
+                + " file")
+        void golden_securityBaseline_matchesGoldenFile()
+                throws IOException {
+            String expected = loadGoldenFile(
+                    "06-security-baseline.md");
+
+            assertThat(expected)
+                    .contains("Security Baseline")
+                    .contains("Secure Defaults");
+        }
+
         private String loadGoldenFile(String filename)
                 throws IOException {
             var url = getClass().getClassLoader()
@@ -480,6 +496,11 @@ class RulesAssemblerTest {
         Files.writeString(
                 coreRules.resolve("05-quality-gates.md"),
                 "# Quality Gates\n",
+                StandardCharsets.UTF_8);
+        Files.writeString(
+                coreRules.resolve(
+                        "06-security-baseline.md"),
+                "# Security Baseline\n",
                 StandardCharsets.UTF_8);
     }
 

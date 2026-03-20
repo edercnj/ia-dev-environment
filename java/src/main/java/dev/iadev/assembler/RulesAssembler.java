@@ -16,7 +16,7 @@ import java.util.Map;
  *
  * <p>This is the first assembler in the pipeline (position 1 of
  * 23 per RULE-005). It delegates to specialized writers:
- * {@link CoreRulesWriter} for core rules and conditionals,
+ * {@link CoreRulesWriter} for 6 core rules and conditionals,
  * {@link LanguageKpWriter} for language knowledge packs, and
  * {@link FrameworkKpWriter} for framework knowledge packs.</p>
  *

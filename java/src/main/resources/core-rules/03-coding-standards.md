@@ -10,13 +10,14 @@
 | Class/module length | ≤ 250 lines |
 | Parameters per function | ≤ 4 (use parameter object if more) |
 | Line width | ≤ 120 characters |
+| Train wreck depth | ≤ 2 levels across object boundaries |
 
 ## Naming
 
 - Intent-revealing: `elapsedTimeInMs` not `d`
 - Verbs for methods: `processTransaction()`, `extractAmount()`
 - Nouns for types: `TransactionHandler`, `DecisionEngine`
-- Named constants: never magic numbers or strings
+- Extract ALL literals: named constants for numbers, enums for categorical values (colors, states, types)
 
 ## SOLID (one-liners)
 
@@ -41,6 +42,17 @@
 - God classes / train wrecks (chained calls across objects)
 - Wildcard imports
 - `sleep()` for synchronization (use condition-based polling)
+- `System.out` / `System.err` / `print()` in production code (use structured logging or propagate via return types)
+- String concatenation with `+` in messages or content building (use {{LANGUAGE}}-idiomatic formatting)
+- Fully qualified class names when an import suffices
+- Dead code: unreachable branches, unused methods, test-only code in production source
+- Mutable fields in immutable data carriers (records, data classes, frozen dataclasses)
+- Duplicated utility methods across files (extract to shared helper immediately)
+
+## Code Hygiene
+
+- **DRY**: If a utility method exists in > 1 file, extract to a shared helper immediately
+- **Single source of truth**: One canonical implementation per algorithm; local variants are forbidden
 
 ## TDD Practices
 

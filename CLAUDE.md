@@ -73,8 +73,9 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 03 | `03-coding-standards.md` | coding standards |
 | 04 | `04-architecture-summary.md` | architecture summary |
 | 05 | `05-quality-gates.md` | quality gates |
+| 06 | `06-security-baseline.md` | security baseline |
 
-**Total: 5 rules**
+**Total: 6 rules**
 
 ### Numbering
 
@@ -223,7 +224,7 @@ See the files directly for current configuration.
 
 | Component | Count |
 |-----------|-------|
-| Rules (.claude) | 5 |
+| Rules (.claude) | 6 |
 | Skills (.claude) | 14 |
 | Knowledge Packs (.claude) | 13 |
 | Agents (.claude) | 8 |

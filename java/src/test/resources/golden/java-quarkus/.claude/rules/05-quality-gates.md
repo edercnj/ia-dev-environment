@@ -25,6 +25,15 @@
 [methodUnderTest]_[scenario]_[expectedBehavior]
 ```
 
+- `@DisplayName` / docstrings provide readability but do NOT replace method name convention
+- Non-conforming names are treated as violations during review
+
+## Cross-File Consistency
+
+- Error handling pattern MUST be uniform across classes of the same role (e.g., all assemblers, all controllers)
+- Constructor patterns, return types, and internal type definitions MUST follow the same shape within a module
+- Inconsistency across files of the same role is a MEDIUM-severity violation
+
 ## Merge Checklist
 
 - [ ] All tests passing
@@ -38,6 +47,8 @@
 - [ ] Tests are incremental (simple to complex via TPP)
 - [ ] Tests precede or accompany implementation (no test-after in later commits)
 - [ ] Acceptance tests exist and validate end-to-end behavior
+- [ ] No cross-file consistency violations (uniform patterns within module)
+- [ ] No weak assertions (every test verifies specific behavior)
 
 ## Forbidden
 
@@ -46,6 +57,9 @@
 - Using production data in tests
 - Depending on test execution order
 - `sleep()` for async waiting (use polling with timeout)
+- Weak assertions: `isNotNull()` alone is never sufficient — assert specific values, sizes, or content
+- Test files > 250 lines without nested class / inner module organization
+- Duplicate type definitions (records, classes) across test files — extract to shared fixtures
 
 ## TDD Compliance
 
