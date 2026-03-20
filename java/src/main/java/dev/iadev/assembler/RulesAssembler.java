@@ -57,6 +57,7 @@ import java.util.stream.Stream;
 public final class RulesAssembler implements Assembler {
 
     private final Path resourcesDir;
+    private final VersionResolver versionResolver;
 
     /**
      * Creates a RulesAssembler using classpath resources.
@@ -72,7 +73,22 @@ public final class RulesAssembler implements Assembler {
      * @param resourcesDir the base resources directory
      */
     public RulesAssembler(Path resourcesDir) {
+        this(resourcesDir,
+                new VersionResolver(
+                        new FileSystemVersionProvider()));
+    }
+
+    /**
+     * Creates a RulesAssembler with explicit resources
+     * directory and version resolver.
+     *
+     * @param resourcesDir the base resources directory
+     * @param versionResolver the version resolver
+     */
+    RulesAssembler(Path resourcesDir,
+            VersionResolver versionResolver) {
         this.resourcesDir = resourcesDir;
+        this.versionResolver = versionResolver;
     }
 
     /**
@@ -216,7 +232,7 @@ public final class RulesAssembler implements Assembler {
             ProjectConfig config,
             Path langDir, Path codingRefs) {
         Optional<Path> versionDir =
-                VersionResolver.findVersionDir(
+                versionResolver.findVersionDir(
                         langDir,
                         config.language().name(),
                         config.language().version());
@@ -285,7 +301,7 @@ public final class RulesAssembler implements Assembler {
             ProjectConfig config,
             Path fwDir, Path refsDir) {
         Optional<Path> versionDir =
-                VersionResolver.findVersionDir(
+                versionResolver.findVersionDir(
                         fwDir,
                         config.framework().name(),
                         config.framework().version());
