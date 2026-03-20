@@ -14,6 +14,11 @@ import java.util.Map;
  */
 public final class CheckpointEngine {
 
+    /**
+     * Conversion factor from milliseconds to minutes.
+     */
+    private static final double MILLIS_PER_MINUTE = 60_000.0;
+
     private final CheckpointPersistence persistence;
 
     /**
@@ -117,7 +122,7 @@ public final class CheckpointEngine {
 
         int remaining = stories.size() - completed;
         double estimatedRemainingMinutes = completed > 0
-                ? (remaining * avgDuration) / 60_000.0
+                ? (remaining * avgDuration) / MILLIS_PER_MINUTE
                 : 0.0;
 
         long elapsedMs = storyDurations.values().stream()

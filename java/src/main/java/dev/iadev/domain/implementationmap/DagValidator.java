@@ -14,16 +14,12 @@ import java.util.Map;
  *   <li><b>Symmetry</b>: auto-corrects asymmetric edges and
  *       emits warnings</li>
  *   <li><b>Cycle detection</b>: DFS with three-color marking
- *       (WHITE/GRAY/BLACK)</li>
+ *       ({@link DagColor})</li>
  *   <li><b>Root validation</b>: at least one node must have
  *       empty blockedBy</li>
  * </ol>
  */
 public final class DagValidator {
-
-    private static final int WHITE = 0;
-    private static final int GRAY = 1;
-    private static final int BLACK = 2;
 
     private DagValidator() {
     }
@@ -51,13 +47,13 @@ public final class DagValidator {
      * @throws CircularDependencyException if a cycle is found
      */
     public static void detectCycles(Map<String, DagNode> dag) {
-        var colors = new HashMap<String, Integer>();
+        var colors = new HashMap<String, DagColor>();
         for (var id : dag.keySet()) {
-            colors.put(id, WHITE);
+            colors.put(id, DagColor.WHITE);
         }
 
         for (var id : dag.keySet()) {
-            if (colors.get(id) == WHITE) {
+            if (colors.get(id) == DagColor.WHITE) {
                 dfsVisit(id, dag, colors, new ArrayList<>());
             }
         }
@@ -187,28 +183,33 @@ public final class DagValidator {
     private static void dfsVisit(
             String nodeId,
             Map<String, DagNode> dag,
-            Map<String, Integer> colors,
+            Map<String, DagColor> colors,
             List<String> stack) {
-        colors.put(nodeId, GRAY);
+        colors.put(nodeId, DagColor.GRAY);
         stack.add(nodeId);
 
         var node = dag.get(nodeId);
         if (node != null) {
             for (var neighborId : node.blocks()) {
-                var color = colors.getOrDefault(neighborId, WHITE);
-                if (color == GRAY) {
-                    int cycleStart = stack.indexOf(neighborId);
+                var color = colors.getOrDefault(
+                        neighborId, DagColor.WHITE);
+                if (color == DagColor.GRAY) {
+                    int cycleStart =
+                            stack.indexOf(neighborId);
                     var cycle = new ArrayList<>(
-                            stack.subList(cycleStart, stack.size()));
-                    throw new CircularDependencyException(cycle);
+                            stack.subList(
+                                    cycleStart, stack.size()));
+                    throw new CircularDependencyException(
+                            cycle);
                 }
-                if (color == WHITE) {
-                    dfsVisit(neighborId, dag, colors, stack);
+                if (color == DagColor.WHITE) {
+                    dfsVisit(
+                            neighborId, dag, colors, stack);
                 }
             }
         }
 
         stack.removeLast();
-        colors.put(nodeId, BLACK);
+        colors.put(nodeId, DagColor.BLACK);
     }
 }

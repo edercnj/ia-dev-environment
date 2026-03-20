@@ -99,6 +99,13 @@ public final class CicdAssembler implements Assembler {
     private static final String DEFAULT_LINT_CMD =
             "echo 'No linter configured'";
 
+    /**
+     * Initial capacity for the CI/CD context map, optimized
+     * to avoid rehash with approximately 10 CI/CD config
+     * entries.
+     */
+    private static final int INITIAL_CICD_MAP_CAPACITY = 16;
+
     private final Path resourcesDir;
 
     /**
@@ -186,7 +193,7 @@ public final class CicdAssembler implements Assembler {
                 config.language().version());
 
         Map<String, Object> ctx =
-                new LinkedHashMap<>(16);
+                new LinkedHashMap<>(INITIAL_CICD_MAP_CAPACITY);
         ctx.put("compile_cmd",
                 commands != null
                         ? commands.compileCmd() : "");

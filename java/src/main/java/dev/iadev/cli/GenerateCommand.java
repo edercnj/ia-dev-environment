@@ -327,12 +327,17 @@ public class GenerateCommand implements Callable<Integer> {
                 pipeline.runPipeline(
                         config, destPath, options);
 
+        int assemblerCount = assemblers.size();
+        long avgDurationPerAssembler =
+                assemblerCount > 0
+                        ? result.durationMs() / assemblerCount
+                        : 0;
         for (AssemblerDescriptor desc : assemblers) {
             out.println(
                     CliDisplay.formatAssemblerVerbose(
                             desc.name(),
                             0,
-                            result.durationMs() / assemblers.size()));
+                            avgDurationPerAssembler));
         }
 
         return result;

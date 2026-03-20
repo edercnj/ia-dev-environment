@@ -53,6 +53,12 @@ import java.util.stream.Collectors;
  */
 public final class ContextBuilder {
 
+    /**
+     * Initial capacity for the context map, optimized to avoid
+     * rehash with approximately 20 context entries.
+     */
+    private static final int INITIAL_CONTEXT_CAPACITY = 32;
+
     private static final String PYTHON_TRUE = "True";
     private static final String PYTHON_FALSE = "False";
 
@@ -73,7 +79,8 @@ public final class ContextBuilder {
      */
     public static Map<String, Object> buildContext(
             ProjectConfig config) {
-        Map<String, Object> ctx = new LinkedHashMap<>(32);
+        Map<String, Object> ctx =
+                new LinkedHashMap<>(INITIAL_CONTEXT_CAPACITY);
 
         // Project identity (fields 1-2)
         ctx.put("project_name", config.project().name());
