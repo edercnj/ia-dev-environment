@@ -135,18 +135,24 @@ Validate Options:
 
 10 ready-to-use profiles available via `--stack <name>`:
 
-| Profile | Language | Framework | Database | Notes |
-|---------|----------|-----------|----------|-------|
-| `go-gin` | Go 1.22 | Gin | PostgreSQL | REST API |
-| `java-picocli-cli` | Java 21 | Picocli 4.7 | — | CLI tool |
-| `java-quarkus` | Java 21 | Quarkus 3.17 | PostgreSQL | Cloud-native |
-| `java-spring` | Java 21 | Spring Boot 3.4 | PostgreSQL | Enterprise |
-| `kotlin-ktor` | Kotlin 2.0 | Ktor | PostgreSQL | Lightweight |
-| `python-click-cli` | Python 3.9 | Click 8.1 | — | CLI tool |
-| `python-fastapi` | Python 3.12 | FastAPI | PostgreSQL | Async API |
-| `rust-axum` | Rust 2024 | Axum | PostgreSQL | High-performance |
-| `typescript-commander-cli` | TypeScript 5 | Commander | — | CLI tool |
-| `typescript-nestjs` | TypeScript 5 | NestJS | PostgreSQL | Full-stack |
+| Profile | Language | Framework | Database | Notes | Command |
+|---------|----------|-----------|----------|-------|---------|
+| `go-gin` | Go 1.22 | Gin | PostgreSQL | REST API | `ia-dev-env generate --stack go-gin -o ./my-project` |
+| `java-picocli-cli` | Java 21 | Picocli 4.7 | — | CLI tool | `ia-dev-env generate --stack java-picocli-cli -o ./my-project` |
+| `java-quarkus` | Java 21 | Quarkus 3.17 | PostgreSQL | Cloud-native | `ia-dev-env generate --stack java-quarkus -o ./my-project` |
+| `java-spring` | Java 21 | Spring Boot 3.4 | PostgreSQL | Enterprise | `ia-dev-env generate --stack java-spring -o ./my-project` |
+| `kotlin-ktor` | Kotlin 2.0 | Ktor | PostgreSQL | Lightweight | `ia-dev-env generate --stack kotlin-ktor -o ./my-project` |
+| `python-click-cli` | Python 3.9 | Click 8.1 | — | CLI tool | `ia-dev-env generate --stack python-click-cli -o ./my-project` |
+| `python-fastapi` | Python 3.12 | FastAPI | PostgreSQL | Async API | `ia-dev-env generate --stack python-fastapi -o ./my-project` |
+| `rust-axum` | Rust 2024 | Axum | PostgreSQL | High-performance | `ia-dev-env generate --stack rust-axum -o ./my-project` |
+| `typescript-commander-cli` | TypeScript 5 | Commander | — | CLI tool | `ia-dev-env generate --stack typescript-commander-cli -o ./my-project` |
+| `typescript-nestjs` | TypeScript 5 | NestJS | PostgreSQL | Full-stack | `ia-dev-env generate --stack typescript-nestjs -o ./my-project` |
+
+You can also use your own config file instead of a bundled profile:
+
+```bash
+ia-dev-env generate --config path/to/setup-config.yaml -o ./my-project
+```
 
 Each profile generates the complete set of skills, agents, and rules tailored to that stack.
 
