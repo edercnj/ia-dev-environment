@@ -33,7 +33,7 @@ class GenerateCommandE2ETest {
     class FullGeneration {
 
         @Test
-        void javaQuarkus_generatesClaudeDir() {
+        void javaQuarkus_withStackProfile_generatesClaudeDir() {
             Path outputDir =
                     tempDir.resolve("full-gen");
 
@@ -52,7 +52,7 @@ class GenerateCommandE2ETest {
         }
 
         @Test
-        void javaQuarkus_generatesRulesDir() {
+        void javaQuarkus_whenCalled_generatesRulesDir() {
             Path outputDir =
                     tempDir.resolve("rules-gen");
 
@@ -71,7 +71,7 @@ class GenerateCommandE2ETest {
         }
 
         @Test
-        void javaQuarkus_generatesGithubDir() {
+        void javaQuarkus_whenCalled_generatesGithubDir() {
             Path outputDir =
                     tempDir.resolve("github-gen");
 
@@ -89,7 +89,7 @@ class GenerateCommandE2ETest {
         }
 
         @Test
-        void javaQuarkus_outputContainsSuccess() {
+        void javaQuarkus_output_containsSuccess() {
             Path outputDir =
                     tempDir.resolve("success-gen");
 
@@ -107,7 +107,7 @@ class GenerateCommandE2ETest {
         }
 
         @Test
-        void javaQuarkus_outputContainsSummaryTable() {
+        void javaQuarkus_output_containsSummaryTable() {
             Path outputDir =
                     tempDir.resolve("table-gen");
 
@@ -127,7 +127,7 @@ class GenerateCommandE2ETest {
         }
 
         @Test
-        void typescriptNestjs_generatesClaudeDir() {
+        void typescriptNestjs_whenCalled_generatesClaudeDir() {
             Path outputDir =
                     tempDir.resolve("ts-gen");
 
@@ -151,7 +151,7 @@ class GenerateCommandE2ETest {
     class ConfigFileE2E {
 
         @Test
-        void validYamlConfig_generatesOutput()
+        void validYamlConfig_whenCalled_generatesOutput()
                 throws IOException {
             String config = """
                     project:
@@ -191,7 +191,7 @@ class GenerateCommandE2ETest {
         }
 
         @Test
-        void invalidYamlConfig_returnsNonZero()
+        void invalidYamlConfig_whenCalled_returnsNonZero()
                 throws IOException {
             String config = """
                     project:
@@ -222,7 +222,7 @@ class GenerateCommandE2ETest {
     class ExitCodes {
 
         @Test
-        void success_returnsZero() {
+        void success_whenCalled_returnsZero() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));
@@ -237,7 +237,7 @@ class GenerateCommandE2ETest {
         }
 
         @Test
-        void validationError_returnsOne() {
+        void validationError_whenCalled_returnsOne() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));
@@ -250,7 +250,7 @@ class GenerateCommandE2ETest {
         }
 
         @Test
-        void dangerousPath_returnsOne() {
+        void dangerousPath_whenCalled_returnsOne() {
             String home =
                     System.getProperty("user.home");
             var cmd = buildCommandLine();
@@ -267,7 +267,7 @@ class GenerateCommandE2ETest {
         }
 
         @Test
-        void overwriteConflict_returnsOne()
+        void overwriteConflict_whenCalled_returnsOne()
                 throws IOException {
             Path outputDir =
                     tempDir.resolve("exit-code-ow");

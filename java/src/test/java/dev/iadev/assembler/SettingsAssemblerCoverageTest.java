@@ -29,7 +29,7 @@ class SettingsAssemblerCoverageTest {
         @Test
         @DisplayName("postgresql database adds db"
                 + " permissions")
-        void postgresqlAddsDbPerms(
+        void assemble_postgresql_addsDbPerms(
                 @TempDir Path tempDir) throws IOException {
             Path templatesDir = setupTemplatesDir(tempDir);
             Files.writeString(
@@ -57,7 +57,7 @@ class SettingsAssemblerCoverageTest {
 
         @Test
         @DisplayName("redis cache adds cache permissions")
-        void redisCacheAddsPerms(
+        void assemble_redisCache_addsPerms(
                 @TempDir Path tempDir) throws IOException {
             Path templatesDir = setupTemplatesDir(tempDir);
             Files.writeString(
@@ -90,7 +90,7 @@ class SettingsAssemblerCoverageTest {
 
         @Test
         @DisplayName("handles escaped quotes in strings")
-        void handlesEscapedQuotes() {
+        void parseJsonStringArray_whenCalled_handlesEscapedQuotes() {
             List<String> result = SettingsAssembler
                     .parseJsonStringArray(
                             "[\"a\\\"b\"]");
@@ -100,7 +100,7 @@ class SettingsAssemblerCoverageTest {
 
         @Test
         @DisplayName("handles whitespace-only inner")
-        void handlesWhitespaceOnly() {
+        void parseJsonStringArray_whenCalled_handlesWhitespaceOnly() {
             List<String> result = SettingsAssembler
                     .parseJsonStringArray("[   ]");
 
@@ -109,7 +109,7 @@ class SettingsAssemblerCoverageTest {
 
         @Test
         @DisplayName("handles single element")
-        void handlesSingleElement() {
+        void parseJsonStringArray_whenCalled_handlesSingleElement() {
             List<String> result = SettingsAssembler
                     .parseJsonStringArray(
                             "[\"single\"]");
@@ -120,7 +120,7 @@ class SettingsAssemblerCoverageTest {
 
         @Test
         @DisplayName("handles multiline JSON")
-        void handlesMultiline() {
+        void parseJsonStringArray_whenCalled_handlesMultiline() {
             String json = "[\n"
                     + "  \"first\",\n"
                     + "  \"second\"\n"
@@ -134,7 +134,7 @@ class SettingsAssemblerCoverageTest {
 
         @Test
         @DisplayName("empty string returns empty")
-        void emptyStringReturnsEmpty() {
+        void parseJsonStringArray_emptyString_returnsEmpty() {
             List<String> result = SettingsAssembler
                     .parseJsonStringArray("");
 
@@ -143,7 +143,7 @@ class SettingsAssemblerCoverageTest {
 
         @Test
         @DisplayName("non-bracket text returns empty")
-        void nonBracketReturnsEmpty() {
+        void parseJsonStringArray_nonBracket_returnsEmpty() {
             List<String> result = SettingsAssembler
                     .parseJsonStringArray("just text");
 
@@ -157,7 +157,7 @@ class SettingsAssemblerCoverageTest {
 
         @Test
         @DisplayName("non-existent file returns empty")
-        void nonExistentReturnsEmpty(
+        void readJsonArray_nonExistent_returnsEmpty(
                 @TempDir Path tempDir) {
             Path missing = tempDir.resolve("missing.json");
 
@@ -169,7 +169,7 @@ class SettingsAssemblerCoverageTest {
 
         @Test
         @DisplayName("valid file returns parsed array")
-        void validFileReturnsParsed(
+        void readJsonArray_validFile_returnsParsed(
                 @TempDir Path tempDir) throws IOException {
             Path file = tempDir.resolve("test.json");
             Files.writeString(file, "[\"a\", \"b\"]",
@@ -190,7 +190,7 @@ class SettingsAssemblerCoverageTest {
         @Test
         @DisplayName("empty permissions produces"
                 + " empty allow array")
-        void emptyPermissions() {
+        void buildSettingsJson_emptyPermissions_succeeds() {
             String json = SettingsAssembler
                     .buildSettingsJson(List.of(), HookPresence.WITHOUT_HOOKS);
 
@@ -202,7 +202,7 @@ class SettingsAssemblerCoverageTest {
         @Test
         @DisplayName("multiple permissions separated"
                 + " by commas")
-        void multiplePermissions() {
+        void buildSettingsJson_multiplePermissions_succeeds() {
             List<String> perms = List.of(
                     "Bash(git *)",
                     "Bash(mvn *)",
@@ -229,7 +229,7 @@ class SettingsAssemblerCoverageTest {
         @Test
         @DisplayName("podman adds docker permissions"
                 + " via collectPermissions")
-        void podmanAddsDockerPerms(
+        void collectInfra_podman_addsDockerPerms(
                 @TempDir Path tempDir) throws IOException {
             Path templatesDir = setupTemplatesDir(tempDir);
 

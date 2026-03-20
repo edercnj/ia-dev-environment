@@ -15,20 +15,20 @@ class ProtocolMappingTest {
 
         @Test
         @DisplayName("INTERFACE_PROTOCOL_MAP has 7 entries")
-        void interfaceProtocolMap_sevenEntries() {
+        void interfaceProtocolMap_whenCalled_sevenEntries() {
             assertThat(ProtocolMapping.INTERFACE_PROTOCOL_MAP).hasSize(7);
         }
 
         @Test
         @DisplayName("rest maps to [rest]")
-        void interfaceProtocolMap_rest() {
+        void interfaceProtocolMap_whenCalled_rest() {
             assertThat(ProtocolMapping.INTERFACE_PROTOCOL_MAP.get("rest"))
                     .containsExactly("rest");
         }
 
         @Test
         @DisplayName("event-consumer maps to [event-driven, messaging]")
-        void interfaceProtocolMap_eventConsumer() {
+        void interfaceProtocolMap_whenCalled_eventConsumer() {
             assertThat(ProtocolMapping.INTERFACE_PROTOCOL_MAP
                     .get("event-consumer"))
                     .containsExactly("event-driven", "messaging");
@@ -36,20 +36,20 @@ class ProtocolMappingTest {
 
         @Test
         @DisplayName("cli maps to empty list")
-        void interfaceProtocolMap_cli() {
+        void interfaceProtocolMap_whenCalled_cli() {
             assertThat(ProtocolMapping.INTERFACE_PROTOCOL_MAP.get("cli"))
                     .isEmpty();
         }
 
         @Test
         @DisplayName("EVENT_PREFIX is event-")
-        void eventPrefix() {
+        void map_whenCalled_eventPrefix() {
             assertThat(ProtocolMapping.EVENT_PREFIX).isEqualTo("event-");
         }
 
         @Test
         @DisplayName("EVENT_DRIVEN_PROTOCOL is event-driven")
-        void eventDrivenProtocol() {
+        void map_whenCalled_eventDrivenProtocol() {
             assertThat(ProtocolMapping.EVENT_DRIVEN_PROTOCOL)
                     .isEqualTo("event-driven");
         }

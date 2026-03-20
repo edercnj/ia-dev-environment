@@ -10,7 +10,7 @@ class TerminalProviderTest {
 
     @Test
     @DisplayName("interface_isImplementedByMock")
-    void interface_isImplementedByMock() {
+    void interface_whenCalled_isImplementedByMock() {
         TerminalProvider provider = new MockTerminalProvider();
 
         assertThat(provider)
@@ -19,7 +19,7 @@ class TerminalProviderTest {
 
     @Test
     @DisplayName("interface_hasSixMethods")
-    void interface_hasSixMethods() {
+    void interface_whenCalled_hasSixMethods() {
         var methods = TerminalProvider.class.getDeclaredMethods();
 
         assertThat(methods).hasSize(6);

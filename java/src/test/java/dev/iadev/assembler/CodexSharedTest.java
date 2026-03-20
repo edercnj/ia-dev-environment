@@ -28,7 +28,7 @@ class CodexSharedTest {
 
         @Test
         @DisplayName("returns true for existing directory")
-        void returnsTrueForDirectory(
+        void create_forDirectory_returnsTrue(
                 @TempDir Path tempDir) {
             assertThat(CodexShared.isAccessibleDirectory(
                     tempDir)).isTrue();
@@ -36,7 +36,7 @@ class CodexSharedTest {
 
         @Test
         @DisplayName("returns false for nonexistent path")
-        void returnsFalseForNonexistent(
+        void create_forNonexistent_returnsFalse(
                 @TempDir Path tempDir) {
             Path missing = tempDir.resolve("nope");
             assertThat(CodexShared.isAccessibleDirectory(
@@ -45,7 +45,7 @@ class CodexSharedTest {
 
         @Test
         @DisplayName("returns false for file path")
-        void returnsFalseForFile(
+        void create_forFile_returnsFalse(
                 @TempDir Path tempDir) throws IOException {
             Path file = tempDir.resolve("file.txt");
             Files.writeString(file, "content",
@@ -61,7 +61,7 @@ class CodexSharedTest {
 
         @Test
         @DisplayName("returns true when directory has files")
-        void returnsTrueWhenHasFiles(
+        void create_returnsTrueWhen_hasFiles(
                 @TempDir Path tempDir) throws IOException {
             Path hooksDir = tempDir.resolve("hooks");
             Files.createDirectories(hooksDir);
@@ -75,7 +75,7 @@ class CodexSharedTest {
 
         @Test
         @DisplayName("returns false for empty directory")
-        void returnsFalseForEmpty(
+        void create_forEmpty_returnsFalse(
                 @TempDir Path tempDir) throws IOException {
             Path hooksDir = tempDir.resolve("hooks");
             Files.createDirectories(hooksDir);
@@ -85,7 +85,7 @@ class CodexSharedTest {
 
         @Test
         @DisplayName("returns false for missing directory")
-        void returnsFalseForMissing(
+        void create_forMissing_returnsFalse(
                 @TempDir Path tempDir) {
             Path hooksDir = tempDir.resolve("hooks");
             assertThat(CodexShared.detectHooks(hooksDir))
@@ -99,7 +99,7 @@ class CodexSharedTest {
 
         @Test
         @DisplayName("returns on-request when hooks present")
-        void returnsOnRequest() {
+        void create_whenCalled_returnsOnRequest() {
             assertThat(
                     CodexShared.deriveApprovalPolicy(
                             HookPresence.WITH_HOOKS))
@@ -108,7 +108,7 @@ class CodexSharedTest {
 
         @Test
         @DisplayName("returns untrusted when no hooks")
-        void returnsUntrusted() {
+        void create_whenCalled_returnsUntrusted() {
             assertThat(
                     CodexShared.deriveApprovalPolicy(
                             HookPresence.WITHOUT_HOOKS))
@@ -122,7 +122,7 @@ class CodexSharedTest {
 
         @Test
         @DisplayName("accepts alphanumeric with hyphens")
-        void acceptsValid() {
+        void create_whenCalled_acceptsValid() {
             assertThat(
                     CodexShared.isValidTomlBareKey(
                             "my-server-1"))
@@ -131,7 +131,7 @@ class CodexSharedTest {
 
         @Test
         @DisplayName("accepts underscores")
-        void acceptsUnderscores() {
+        void create_whenCalled_acceptsUnderscores() {
             assertThat(
                     CodexShared.isValidTomlBareKey(
                             "my_server"))
@@ -140,7 +140,7 @@ class CodexSharedTest {
 
         @Test
         @DisplayName("rejects spaces")
-        void rejectsSpaces() {
+        void create_whenCalled_rejectsSpaces() {
             assertThat(
                     CodexShared.isValidTomlBareKey(
                             "my server"))
@@ -149,7 +149,7 @@ class CodexSharedTest {
 
         @Test
         @DisplayName("rejects special characters")
-        void rejectsSpecialChars() {
+        void create_whenCalled_rejectsSpecialChars() {
             assertThat(
                     CodexShared.isValidTomlBareKey(
                             "server@home"))
@@ -158,7 +158,7 @@ class CodexSharedTest {
 
         @Test
         @DisplayName("rejects dots")
-        void rejectsDots() {
+        void create_whenCalled_rejectsDots() {
             assertThat(
                     CodexShared.isValidTomlBareKey(
                             "server.name"))
@@ -167,7 +167,7 @@ class CodexSharedTest {
 
         @Test
         @DisplayName("rejects empty string")
-        void rejectsEmpty() {
+        void create_whenCalled_rejectsEmpty() {
             assertThat(
                     CodexShared.isValidTomlBareKey(""))
                     .isFalse();
@@ -180,7 +180,7 @@ class CodexSharedTest {
 
         @Test
         @DisplayName("escapes backslashes")
-        void escapesBackslashes() {
+        void create_whenCalled_escapesBackslashes() {
             assertThat(
                     CodexShared.escapeTomlValue("a\\b"))
                     .isEqualTo("a\\\\b");
@@ -188,7 +188,7 @@ class CodexSharedTest {
 
         @Test
         @DisplayName("escapes double quotes")
-        void escapesQuotes() {
+        void create_whenCalled_escapesQuotes() {
             assertThat(
                     CodexShared.escapeTomlValue("a\"b"))
                     .isEqualTo("a\\\"b");
@@ -196,7 +196,7 @@ class CodexSharedTest {
 
         @Test
         @DisplayName("escapes newlines and tabs")
-        void escapesControlChars() {
+        void create_whenCalled_escapesControlChars() {
             assertThat(
                     CodexShared.escapeTomlValue("a\nb\tc"))
                     .isEqualTo("a\\nb\\tc");
@@ -204,7 +204,7 @@ class CodexSharedTest {
 
         @Test
         @DisplayName("preserves plain strings")
-        void preservesPlain() {
+        void create_whenCalled_preservesPlain() {
             assertThat(
                     CodexShared.escapeTomlValue("hello"))
                     .isEqualTo("hello");
@@ -217,7 +217,7 @@ class CodexSharedTest {
 
         @Test
         @DisplayName("returns empty list for no servers")
-        void returnsEmptyForNoServers() {
+        void create_forNoServers_returnsEmpty() {
             ProjectConfig config =
                     TestConfigBuilder.minimal();
             assertThat(CodexShared.mapMcpServers(config))
@@ -226,7 +226,7 @@ class CodexSharedTest {
 
         @Test
         @DisplayName("maps server with URL to command list")
-        void mapsServerWithUrl() {
+        void create_withUrl_mapsServer() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .addMcpServer(
@@ -252,7 +252,7 @@ class CodexSharedTest {
 
         @Test
         @DisplayName("escapes env values")
-        void escapesEnvValues() {
+        void create_whenCalled_escapesEnvValues() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .addMcpServer(
@@ -276,7 +276,7 @@ class CodexSharedTest {
 
         @Test
         @DisplayName("env is null when empty")
-        void envNullWhenEmpty() {
+        void create_whenEmpty_envNull() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .addMcpServer(

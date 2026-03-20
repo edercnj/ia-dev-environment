@@ -27,7 +27,7 @@ class ReadmeTablesCoverageTest {
         @Test
         @DisplayName("skills dir with no SKILL.md"
                 + " returns fallback")
-        void noSkillMdReturnsFallback(
+        void buildTable_noSkillMd_returnsFallback(
                 @TempDir Path tempDir) throws IOException {
             Path skillsDir = Files.createDirectories(
                     tempDir.resolve("skills"));
@@ -41,7 +41,7 @@ class ReadmeTablesCoverageTest {
 
         @Test
         @DisplayName("skills with empty description")
-        void skillsWithEmptyDescription(
+        void buildTable_whenCalled_skillsWithEmptyDescription(
                 @TempDir Path tempDir) throws IOException {
             Path skillsDir = Files.createDirectories(
                     tempDir.resolve("skills"));
@@ -63,7 +63,7 @@ class ReadmeTablesCoverageTest {
 
         @Test
         @DisplayName("agents dir empty returns fallback")
-        void emptyDirReturnsFallback(
+        void buildAgentsTable_emptyDir_returnsFallback(
                 @TempDir Path tempDir) throws IOException {
             Files.createDirectories(
                     tempDir.resolve("agents"));
@@ -80,7 +80,7 @@ class ReadmeTablesCoverageTest {
 
         @Test
         @DisplayName("skills with no KPs returns fallback")
-        void noKpsReturnsFallback(@TempDir Path tempDir)
+        void buildKnowledgePacksTable_noKps_returnsFallback(@TempDir Path tempDir)
                 throws IOException {
             Path skillsDir = Files.createDirectories(
                     tempDir.resolve("skills"));
@@ -97,7 +97,7 @@ class ReadmeTablesCoverageTest {
         @Test
         @DisplayName("skills dir with no SKILL.md"
                 + " returns fallback")
-        void noSkillMdReturnsFallback(
+        void buildKnowledgePacksTable_noSkillMd_returnsFallback(
                 @TempDir Path tempDir) throws IOException {
             Path skillsDir = Files.createDirectories(
                     tempDir.resolve("skills"));
@@ -118,7 +118,7 @@ class ReadmeTablesCoverageTest {
         @Test
         @DisplayName("java with maven returns hooks"
                 + " section")
-        void javaWithMavenHooks() {
+        void buildReadmeHooksSection_whenCalled_javaWithMavenHooks() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .language("java", "21")
@@ -138,7 +138,7 @@ class ReadmeTablesCoverageTest {
         @Test
         @DisplayName("rust with cargo returns hooks"
                 + " section")
-        void rustWithCargoHooks() {
+        void buildReadmeHooksSection_whenCalled_rustWithCargoHooks() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .language("rust", "2024")
@@ -156,7 +156,7 @@ class ReadmeTablesCoverageTest {
         @Test
         @DisplayName("go with go buildTool returns"
                 + " hooks section")
-        void goHooks() {
+        void buildReadmeHooksSection_whenCalled_goHooks() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .language("go", "1.22")
@@ -178,7 +178,7 @@ class ReadmeTablesCoverageTest {
 
         @Test
         @DisplayName("no github dir omits total line")
-        void noGithubDirOmitsTotal(
+        void buildMappingTable_noGithubDirOmitsTotal_succeeds(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir = Files.createDirectories(
                     tempDir.resolve(".claude"));
@@ -199,7 +199,7 @@ class ReadmeTablesCoverageTest {
         @Test
         @DisplayName("summary with codex, agents,"
                 + " and AGENTS.md")
-        void summaryWithAllExtras(
+        void buildGenerationSummary_whenCalled_summaryWithAllExtras(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir = Files.createDirectories(
                     tempDir.resolve(".claude"));
@@ -244,7 +244,7 @@ class ReadmeTablesCoverageTest {
         @Test
         @DisplayName("summary with github skills"
                 + " and instructions")
-        void summaryWithGithubSkills(
+        void buildGenerationSummary_whenCalled_summaryWithGithubSkills(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir = Files.createDirectories(
                     tempDir.resolve(".claude"));

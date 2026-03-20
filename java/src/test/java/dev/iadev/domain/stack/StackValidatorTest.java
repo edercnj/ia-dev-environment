@@ -334,7 +334,7 @@ class StackValidatorTest {
 
         @Test
         @DisplayName("non-django framework skips check")
-        void nonDjango_skipped() {
+        void nonDjango_whenCalled_skipped() {
             var config = new TestProjectConfigBuilder()
                     .language("python", "3.8")
                     .framework("fastapi", "0.115")

@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ExecutionMetricsTest {
 
     @Test
-    void initial_createsZeroMetrics() {
+    void initial_whenCalled_createsZeroMetrics() {
         var metrics = ExecutionMetrics.initial(10);
 
         assertThat(metrics.storiesCompleted()).isZero();

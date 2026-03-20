@@ -27,7 +27,7 @@ class SmokeTestAssemblerTest {
 
         @Test
         @DisplayName("generates smoke-config.md")
-        void generatesSmokeConfig(
+        void assemble_whenCalled_generatesSmokeConfig(
                 @TempDir Path tempDir) {
             SmokeTestAssembler assembler =
                     new SmokeTestAssembler();
@@ -50,7 +50,7 @@ class SmokeTestAssemblerTest {
 
         @Test
         @DisplayName("smoke-config.md exists on disk")
-        void fileExistsOnDisk(@TempDir Path tempDir) {
+        void assemble_whenCalled_fileExistsOnDisk(@TempDir Path tempDir) {
             SmokeTestAssembler assembler =
                     new SmokeTestAssembler();
             ProjectConfig config = TestConfigBuilder
@@ -77,7 +77,7 @@ class SmokeTestAssemblerTest {
         @Test
         @DisplayName("skips smoke-config.md when"
                 + " smokeTests=false")
-        void skipsSmokeConfig(@TempDir Path tempDir) {
+        void assemble_whenCalled_skipsSmokeConfig(@TempDir Path tempDir) {
             SmokeTestAssembler assembler =
                     new SmokeTestAssembler();
             ProjectConfig config = TestConfigBuilder
@@ -105,7 +105,7 @@ class SmokeTestAssemblerTest {
         @Test
         @DisplayName("returns empty result when"
                 + " source file does not exist")
-        void emptyWhenSourceMissing(
+        void assemble_emptyWhenSourceMissing_succeeds(
                 @TempDir Path tempDir)
                 throws IOException {
             SmokeTestAssembler assembler =

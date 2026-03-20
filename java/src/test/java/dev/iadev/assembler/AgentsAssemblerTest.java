@@ -30,7 +30,7 @@ class AgentsAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void instanceOf_whenCreated_implementsAssemblerInterface() {
             AgentsAssembler assembler =
                     new AgentsAssembler();
 
@@ -45,7 +45,7 @@ class AgentsAssemblerTest {
 
         @Test
         @DisplayName("generates 6 core agents for any config")
-        void generatesCoreAgents(
+        void assemble_whenCalled_generatesCoreAgents(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -88,7 +88,7 @@ class AgentsAssemblerTest {
 
         @Test
         @DisplayName("core agents are sorted alphabetically")
-        void coreAgentsSorted() {
+        void assemble_coreAgents_sorted() {
             AgentsAssembler assembler =
                     new AgentsAssembler();
 
@@ -101,7 +101,7 @@ class AgentsAssemblerTest {
         @Test
         @DisplayName("core agents contain exactly"
                 + " expected files")
-        void coreAgentsContainExpected() {
+        void assemble_whenCalled_coreAgentsContainExpected() {
             AgentsAssembler assembler =
                     new AgentsAssembler();
 
@@ -119,7 +119,7 @@ class AgentsAssemblerTest {
 
         @Test
         @DisplayName("returned list is not empty")
-        void returnedListNotEmpty(
+        void assemble_whenCalled_returnedListNotEmpty(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -144,7 +144,7 @@ class AgentsAssemblerTest {
         @Test
         @DisplayName("config with language=java generates"
                 + " java-developer.md")
-        void javaGeneratesJavaDeveloper(
+        void assemble_java_generatesJavaDeveloper(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -167,7 +167,7 @@ class AgentsAssemblerTest {
         @Test
         @DisplayName("config with language=typescript"
                 + " generates typescript-developer.md")
-        void tsGeneratesTsDeveloper(
+        void assemble_ts_generatesTsDeveloper(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -193,7 +193,7 @@ class AgentsAssemblerTest {
         @Test
         @DisplayName("config with language=go generates"
                 + " go-developer.md")
-        void goGeneratesGoDeveloper(
+        void assemble_go_generatesGoDeveloper(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -216,7 +216,7 @@ class AgentsAssemblerTest {
         @Test
         @DisplayName("developer agent contains language-"
                 + "specific content")
-        void developerAgentHasContent(
+        void assemble_developerAgent_hasContent(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -248,7 +248,7 @@ class AgentsAssemblerTest {
         @Test
         @DisplayName("config with database generates"
                 + " database-engineer.md")
-        void databaseGeneratesDbEngineer(
+        void assemble_database_generatesDbEngineer(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -271,7 +271,7 @@ class AgentsAssemblerTest {
         @Test
         @DisplayName("config with events generates"
                 + " event-engineer.md")
-        void eventsGenerateEventEngineer(
+        void assemble_whenCalled_eventsGenerateEventEngineer(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -294,7 +294,7 @@ class AgentsAssemblerTest {
         @Test
         @DisplayName("config without database does not"
                 + " generate database-engineer.md")
-        void noDbExcludesDbEngineer(
+        void assemble_noDb_excludesDbEngineer(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -322,7 +322,7 @@ class AgentsAssemblerTest {
         @Test
         @DisplayName("config with REST generates"
                 + " api-engineer.md")
-        void restGeneratesApiEngineer(
+        void assemble_rest_generatesApiEngineer(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -346,7 +346,7 @@ class AgentsAssemblerTest {
         @Test
         @DisplayName("full-featured config generates"
                 + " more than 8 agents")
-        void fullFeaturedGeneratesMany(
+        void assemble_fullFeatured_generatesMany(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -370,7 +370,7 @@ class AgentsAssemblerTest {
         @Test
         @DisplayName("security checklist injected into"
                 + " security-engineer.md when lgpd active")
-        void securityChecklistInjected(
+        void assemble_whenCalled_securityChecklistInjected(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -406,7 +406,7 @@ class AgentsAssemblerTest {
         @Test
         @DisplayName("go-gin profile generates all"
                 + " expected agent files")
-        void goGinGeneratesExpectedAgents(
+        void assemble_goGin_generatesExpectedAgents(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -455,7 +455,7 @@ class AgentsAssemblerTest {
         @Test
         @DisplayName("architect.md matches golden file"
                 + " for go-gin profile")
-        void architectMatchesGolden(
+        void assemble_architect_matchesGolden(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -484,7 +484,7 @@ class AgentsAssemblerTest {
         @Test
         @DisplayName("go-developer.md matches golden file"
                 + " for go-gin profile")
-        void goDeveloperMatchesGolden(
+        void assemble_goDeveloper_matchesGolden(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -513,7 +513,7 @@ class AgentsAssemblerTest {
         @Test
         @DisplayName("security-engineer.md matches golden"
                 + " file for go-gin profile")
-        void securityEngineerMatchesGolden(
+        void assemble_securityEngineer_matchesGolden(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -543,7 +543,7 @@ class AgentsAssemblerTest {
         @Test
         @DisplayName("all agent files match golden files"
                 + " byte-for-byte for go-gin profile")
-        void allAgentsMatchGolden(
+        void assemble_allAgentsMatchGolden_succeeds(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -610,7 +610,7 @@ class AgentsAssemblerTest {
         @Test
         @DisplayName("custom resourcesDir with empty"
                 + " core returns empty core list")
-        void emptyResourcesReturnsEmptyCore(
+        void assemble_emptyResources_returnsEmptyCore(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
@@ -632,7 +632,7 @@ class AgentsAssemblerTest {
         @Test
         @DisplayName("missing developer template does not"
                 + " add to list")
-        void missingDeveloperTemplateSkipped(
+        void assemble_missingDeveloperTemplateSkipped_succeeds(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
@@ -668,7 +668,7 @@ class AgentsAssemblerTest {
         @Test
         @DisplayName("missing conditional template does"
                 + " not add to list")
-        void missingConditionalTemplateSkipped(
+        void assemble_missingConditionalTemplateSkipped_succeeds(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
@@ -707,7 +707,7 @@ class AgentsAssemblerTest {
         @Test
         @DisplayName("selectCoreAgents returns empty when"
                 + " core dir missing")
-        void selectCoreAgentsEmptyWhenMissing(
+        void assemble_whenCalled_selectCoreAgentsEmptyWhenMissing(
                 @TempDir Path tempDir) {
             Path resourceDir = tempDir.resolve("res");
             AgentsAssembler assembler =

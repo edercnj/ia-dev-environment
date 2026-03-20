@@ -29,7 +29,7 @@ class HooksAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void instanceOf_whenCreated_implementsAssemblerInterface() {
             HooksAssembler assembler =
                     new HooksAssembler();
 
@@ -45,7 +45,7 @@ class HooksAssemblerTest {
         @Test
         @DisplayName("generates post-compile-check.sh"
                 + " for kotlin-gradle")
-        void generatesHookForKotlin(
+        void assemble_whenCalled_generatesHookForKotlin(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -72,7 +72,7 @@ class HooksAssemblerTest {
         @Test
         @DisplayName("generates post-compile-check.sh"
                 + " for java-maven")
-        void generatesHookForJavaMaven(
+        void assemble_whenCalled_generatesHookForJavaMaven(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -99,7 +99,7 @@ class HooksAssemblerTest {
         @Test
         @DisplayName("generates post-compile-check.sh"
                 + " for typescript-npm")
-        void generatesHookForTypescript(
+        void assemble_whenCalled_generatesHookForTypescript(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -123,7 +123,7 @@ class HooksAssemblerTest {
         @Test
         @DisplayName("returns empty list for python"
                 + " (no hook template)")
-        void returnsEmptyForPython(
+        void assemble_whenCalled_returnsEmptyForPython(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -151,7 +151,7 @@ class HooksAssemblerTest {
 
         @Test
         @DisplayName("hook script starts with shebang line")
-        void hookStartsWithShebang(
+        void assemble_whenCalled_hookStartsWithShebang(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -179,7 +179,7 @@ class HooksAssemblerTest {
 
         @Test
         @DisplayName("hook script has executable permission")
-        void hookIsExecutable(
+        void assemble_hook_isExecutable(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -206,7 +206,7 @@ class HooksAssemblerTest {
         @Test
         @DisplayName("kotlin hook contains compileKotlin"
                 + " command")
-        void kotlinHookContainsCompileKotlin(
+        void assemble_kotlinHook_containsCompileKotlin(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -234,7 +234,7 @@ class HooksAssemblerTest {
 
         @Test
         @DisplayName("java-maven hook contains mvn compile")
-        void javaMavenHookContainsMvnCompile(
+        void assemble_javaMavenHook_containsMvnCompile(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -268,7 +268,7 @@ class HooksAssemblerTest {
         @Test
         @DisplayName("post-compile-check.sh matches"
                 + " golden file for kotlin-ktor")
-        void hookMatchesGolden(
+        void assemble_hook_matchesGolden(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -322,7 +322,7 @@ class HooksAssemblerTest {
         @Test
         @DisplayName("missing hook template returns"
                 + " empty list")
-        void missingTemplateReturnsEmpty(
+        void assemble_missingTemplate_returnsEmpty(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
@@ -349,7 +349,7 @@ class HooksAssemblerTest {
 
         @Test
         @DisplayName("unknown language returns empty list")
-        void unknownLanguageReturnsEmpty(
+        void assemble_unknownLanguage_returnsEmpty(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");

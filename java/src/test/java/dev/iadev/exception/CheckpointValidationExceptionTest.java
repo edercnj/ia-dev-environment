@@ -10,7 +10,7 @@ class CheckpointValidationExceptionTest {
 
     @Test
     @DisplayName("carries message and field")
-    void constructor_carriesMessageAndField() {
+    void constructor_whenCalled_carriesMessageAndField() {
         var ex = new CheckpointValidationException(
                 "Invalid checkpoint state", "status");
 
@@ -21,7 +21,7 @@ class CheckpointValidationExceptionTest {
 
     @Test
     @DisplayName("extends RuntimeException")
-    void extendsRuntimeException() {
+    void create_whenCalled_extendsRuntimeException() {
         var ex = new CheckpointValidationException(
                 "error", "field");
 
@@ -30,7 +30,7 @@ class CheckpointValidationExceptionTest {
 
     @Test
     @DisplayName("toString includes field name")
-    void toString_includesField() {
+    void toString_whenCalled_includesField() {
         var ex = new CheckpointValidationException(
                 "Missing required field", "storyId");
 

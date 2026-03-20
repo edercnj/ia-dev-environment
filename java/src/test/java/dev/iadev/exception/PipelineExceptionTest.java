@@ -12,7 +12,7 @@ class PipelineExceptionTest {
 
     @Test
     @DisplayName("carries message, assemblerName, and cause")
-    void constructor_carriesAllFields() {
+    void constructor_whenCalled_carriesAllFields() {
         var cause = new IOException("disk full");
         var ex = new PipelineException(
                 "Pipeline failed at RulesAssembler",
@@ -26,7 +26,7 @@ class PipelineExceptionTest {
 
     @Test
     @DisplayName("extends RuntimeException")
-    void extendsRuntimeException() {
+    void create_whenCalled_extendsRuntimeException() {
         var ex = new PipelineException(
                 "error", "assembler", new RuntimeException());
 
@@ -35,7 +35,7 @@ class PipelineExceptionTest {
 
     @Test
     @DisplayName("toString includes assemblerName")
-    void toString_includesAssemblerName() {
+    void toString_whenCalled_includesAssemblerName() {
         var ex = new PipelineException(
                 "Pipeline failed", "SkillsAssembler",
                 new RuntimeException());
@@ -47,7 +47,7 @@ class PipelineExceptionTest {
 
     @Test
     @DisplayName("preserves original IOException as cause")
-    void preservesOriginalCause() {
+    void create_whenCalled_preservesOriginalCause() {
         var ioException = new IOException("permission denied");
         var ex = new PipelineException(
                 "Write failed", "AgentsAssembler", ioException);

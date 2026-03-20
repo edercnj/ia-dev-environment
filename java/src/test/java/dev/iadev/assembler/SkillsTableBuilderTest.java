@@ -29,7 +29,7 @@ class SkillsTableBuilderTest {
 
         @Test
         @DisplayName("returns fallback when dir missing")
-        void fallbackWhenMissing(@TempDir Path tempDir) {
+        void build_whenMissing_fallback(@TempDir Path tempDir) {
             assertThat(
                     builder.buildRulesTable(tempDir))
                     .isEqualTo("No rules configured.");
@@ -37,7 +37,7 @@ class SkillsTableBuilderTest {
 
         @Test
         @DisplayName("returns fallback when dir empty")
-        void fallbackWhenEmpty(@TempDir Path tempDir)
+        void build_whenEmpty_fallback(@TempDir Path tempDir)
                 throws IOException {
             Files.createDirectories(
                     tempDir.resolve("rules"));
@@ -49,7 +49,7 @@ class SkillsTableBuilderTest {
 
         @Test
         @DisplayName("builds table with rows")
-        void buildsTableWithRows(@TempDir Path tempDir)
+        void build_withRows_buildsTable(@TempDir Path tempDir)
                 throws IOException {
             Path rulesDir =
                     Files.createDirectories(
@@ -77,7 +77,7 @@ class SkillsTableBuilderTest {
 
         @Test
         @DisplayName("returns fallback when dir missing")
-        void fallbackWhenMissing(@TempDir Path tempDir) {
+        void build_whenMissing_fallback(@TempDir Path tempDir) {
             assertThat(
                     builder.buildSkillsTable(tempDir))
                     .isEqualTo("No skills configured.");
@@ -85,7 +85,7 @@ class SkillsTableBuilderTest {
 
         @Test
         @DisplayName("excludes knowledge packs")
-        void excludesKnowledgePacks(@TempDir Path tempDir)
+        void build_whenCalled_excludesKnowledgePacks(@TempDir Path tempDir)
                 throws IOException {
             Path skillsDir =
                     Files.createDirectories(
@@ -106,7 +106,7 @@ class SkillsTableBuilderTest {
 
         @Test
         @DisplayName("returns fallback when all KPs")
-        void fallbackWhenAllKps(@TempDir Path tempDir)
+        void build_whenAllKps_fallback(@TempDir Path tempDir)
                 throws IOException {
             Path skillsDir =
                     Files.createDirectories(
@@ -122,7 +122,7 @@ class SkillsTableBuilderTest {
 
         @Test
         @DisplayName("no SKILL.md returns fallback")
-        void noSkillMdReturnsFallback(
+        void build_noSkillMd_returnsFallback(
                 @TempDir Path tempDir) throws IOException {
             Path skillsDir = Files.createDirectories(
                     tempDir.resolve("skills"));
@@ -141,7 +141,7 @@ class SkillsTableBuilderTest {
 
         @Test
         @DisplayName("returns fallback when dir missing")
-        void fallbackWhenMissing(@TempDir Path tempDir) {
+        void build_whenMissing_fallback(@TempDir Path tempDir) {
             assertThat(
                     builder.buildAgentsTable(tempDir))
                     .isEqualTo("No agents configured.");
@@ -149,7 +149,7 @@ class SkillsTableBuilderTest {
 
         @Test
         @DisplayName("returns fallback when dir empty")
-        void fallbackWhenEmpty(@TempDir Path tempDir)
+        void build_whenEmpty_fallback(@TempDir Path tempDir)
                 throws IOException {
             Files.createDirectories(
                     tempDir.resolve("agents"));
@@ -161,7 +161,7 @@ class SkillsTableBuilderTest {
 
         @Test
         @DisplayName("builds table with name and file")
-        void buildsTableWithNameAndFile(
+        void build_withNameAndFile_buildsTable(
                 @TempDir Path tempDir) throws IOException {
             Path agentsDir =
                     Files.createDirectories(
@@ -186,7 +186,7 @@ class SkillsTableBuilderTest {
 
         @Test
         @DisplayName("returns fallback when dir missing")
-        void fallbackWhenMissing(@TempDir Path tempDir) {
+        void build_whenMissing_fallback(@TempDir Path tempDir) {
             assertThat(
                     builder.buildKnowledgePacksTable(
                             tempDir))
@@ -196,7 +196,7 @@ class SkillsTableBuilderTest {
 
         @Test
         @DisplayName("includes only knowledge packs")
-        void includesOnlyKps(@TempDir Path tempDir)
+        void build_whenCalled_includesOnlyKps(@TempDir Path tempDir)
                 throws IOException {
             Path skillsDir =
                     Files.createDirectories(
@@ -217,7 +217,7 @@ class SkillsTableBuilderTest {
 
         @Test
         @DisplayName("no KPs returns fallback")
-        void noKpsReturnsFallback(@TempDir Path tempDir)
+        void build_noKps_returnsFallback(@TempDir Path tempDir)
                 throws IOException {
             Path skillsDir = Files.createDirectories(
                     tempDir.resolve("skills"));
@@ -237,7 +237,7 @@ class SkillsTableBuilderTest {
 
         @Test
         @DisplayName("kotlin returns hooks section")
-        void kotlinReturnsHooksSection() {
+        void build_kotlin_returnsHooksSection() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .language("kotlin", "2.0")
@@ -256,7 +256,7 @@ class SkillsTableBuilderTest {
 
         @Test
         @DisplayName("python returns fallback")
-        void pythonReturnsFallback() {
+        void build_python_returnsFallback() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .language("python", "3.12")
@@ -271,7 +271,7 @@ class SkillsTableBuilderTest {
 
         @Test
         @DisplayName("java returns hooks section")
-        void javaReturnsHooksSection() {
+        void build_java_returnsHooksSection() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .language("java", "21")

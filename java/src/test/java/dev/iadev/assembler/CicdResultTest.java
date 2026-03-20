@@ -24,7 +24,7 @@ class CicdResultTest {
 
         @Test
         @DisplayName("files list is immutable")
-        void filesImmutable() {
+        void create_whenCalled_filesImmutable() {
             CicdResult result = new CicdResult(
                     List.of("file1"), List.of());
 
@@ -37,7 +37,7 @@ class CicdResultTest {
 
         @Test
         @DisplayName("warnings list is immutable")
-        void warningsImmutable() {
+        void create_whenCalled_warningsImmutable() {
             CicdResult result = new CicdResult(
                     List.of(), List.of("warn1"));
 
@@ -51,7 +51,7 @@ class CicdResultTest {
         @Test
         @DisplayName("modifying original files list"
                 + " does not affect result")
-        void originalFilesModificationSafe() {
+        void create_whenCalled_originalFilesModificationSafe() {
             List<String> mutable = new ArrayList<>();
             mutable.add("file1");
 
@@ -68,7 +68,7 @@ class CicdResultTest {
         @Test
         @DisplayName("modifying original warnings list"
                 + " does not affect result")
-        void originalWarningsModificationSafe() {
+        void create_whenCalled_originalWarningsModificationSafe() {
             List<String> mutable = new ArrayList<>();
             mutable.add("warn1");
 
@@ -87,7 +87,7 @@ class CicdResultTest {
 
         @Test
         @DisplayName("returns empty files and warnings")
-        void emptyResult() {
+        void empty_emptyResult_succeeds() {
             CicdResult result = CicdResult.empty();
 
             assertThat(result.files()).isEmpty();
@@ -101,7 +101,7 @@ class CicdResultTest {
 
         @Test
         @DisplayName("merges multiple results")
-        void mergesResults() {
+        void create_whenCalled_mergesResults() {
             CicdResult r1 = new CicdResult(
                     List.of("f1"), List.of("w1"));
             CicdResult r2 = new CicdResult(
@@ -120,7 +120,7 @@ class CicdResultTest {
 
         @Test
         @DisplayName("merging empty list returns empty")
-        void mergesEmpty() {
+        void create_whenCalled_mergesEmpty() {
             CicdResult merged =
                     CicdResult.merge(List.of());
 

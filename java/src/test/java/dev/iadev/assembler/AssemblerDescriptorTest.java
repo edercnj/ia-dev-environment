@@ -15,7 +15,7 @@ class AssemblerDescriptorTest {
 
     @Test
     @DisplayName("stores name, target, and assembler instance")
-    void constructor_storesAllFields() {
+    void constructor_whenCalled_storesAllFields() {
         Assembler mockAssembler = (c, e, p) -> List.of();
 
         var descriptor = new AssemblerDescriptor(
@@ -33,7 +33,7 @@ class AssemblerDescriptorTest {
 
     @Test
     @DisplayName("equals and hashCode based on all fields")
-    void equalsHashCode_basedOnAllFields() {
+    void equalsHashCode_whenCalled_basedOnAllFields() {
         Assembler assembler = (c, e, p) -> List.of();
 
         var d1 = new AssemblerDescriptor(
@@ -47,7 +47,7 @@ class AssemblerDescriptorTest {
 
     @Test
     @DisplayName("toString contains name")
-    void toString_containsName() {
+    void toString_whenCalled_containsName() {
         var descriptor = new AssemblerDescriptor(
                 "AgentsAssembler",
                 AssemblerTarget.CLAUDE,

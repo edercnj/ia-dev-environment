@@ -24,7 +24,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("config with database includes"
                 + " database-engineer.md")
-        void databaseIncludesDbEngineer() {
+        void select_database_includesDbEngineer() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .database("postgresql", "16")
                     .build();
@@ -40,7 +40,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("config without database excludes"
                 + " database-engineer.md")
-        void noDatabaseExcludesDbEngineer() {
+        void select_noDatabase_excludesDbEngineer() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .build();
 
@@ -55,7 +55,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("config with observability includes"
                 + " observability-engineer.md")
-        void observabilityIncludesObsEngineer() {
+        void select_observability_includesObsEngineer() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .observabilityTool("prometheus")
                     .build();
@@ -71,7 +71,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("config without observability excludes"
                 + " observability-engineer.md")
-        void noObservabilityExcludesObsEngineer() {
+        void select_noObservability_excludesObsEngineer() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .build();
 
@@ -87,7 +87,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("config with container includes"
                 + " devops-engineer.md")
-        void containerIncludesDevops() {
+        void select_container_includesDevops() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .container("docker")
                     .orchestrator("none")
@@ -105,7 +105,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("config with orchestrator includes"
                 + " devops-engineer.md")
-        void orchestratorIncludesDevops() {
+        void select_orchestrator_includesDevops() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .container("none")
                     .orchestrator("kubernetes")
@@ -122,7 +122,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("config with iac includes"
                 + " devops-engineer.md")
-        void iacIncludesDevops() {
+        void select_iac_includesDevops() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .container("none")
                     .orchestrator("none")
@@ -140,7 +140,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("config with no infra excludes"
                 + " devops-engineer.md")
-        void noInfraExcludesDevops() {
+        void select_noInfra_excludesDevops() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .container("none")
                     .orchestrator("none")
@@ -158,7 +158,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("config with REST includes"
                 + " api-engineer.md")
-        void restIncludesApiEngineer() {
+        void select_rest_includesApiEngineer() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("rest")
@@ -175,7 +175,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("config with gRPC includes"
                 + " api-engineer.md")
-        void grpcIncludesApiEngineer() {
+        void select_grpc_includesApiEngineer() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("grpc")
@@ -192,7 +192,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("config with GraphQL includes"
                 + " api-engineer.md")
-        void graphqlIncludesApiEngineer() {
+        void select_graphql_includesApiEngineer() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("graphql")
@@ -209,7 +209,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("config without REST/gRPC/GraphQL"
                 + " excludes api-engineer.md")
-        void noApiExcludesApiEngineer() {
+        void select_noApi_excludesApiEngineer() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("cli")
@@ -226,7 +226,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("config with eventDriven includes"
                 + " event-engineer.md")
-        void eventDrivenIncludesEventEngineer() {
+        void select_eventDriven_includesEventEngineer() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .eventDriven(true)
                     .clearInterfaces()
@@ -244,7 +244,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("config with event-consumer includes"
                 + " event-engineer.md")
-        void eventConsumerIncludesEventEngineer() {
+        void select_eventConsumer_includesEventEngineer() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .eventDriven(false)
                     .clearInterfaces()
@@ -262,7 +262,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("config with event-producer includes"
                 + " event-engineer.md")
-        void eventProducerIncludesEventEngineer() {
+        void select_eventProducer_includesEventEngineer() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .eventDriven(false)
                     .clearInterfaces()
@@ -280,7 +280,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("config without events excludes"
                 + " event-engineer.md")
-        void noEventsExcludesEventEngineer() {
+        void select_noEvents_excludesEventEngineer() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .eventDriven(false)
                     .clearInterfaces()
@@ -298,7 +298,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("aggregates all conditional agents"
                 + " for full-featured config")
-        void aggregatesAllConditionals() {
+        void select_whenCalled_aggregatesAllConditionals() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .database("postgresql", "16")
                     .observabilityTool("prometheus")
@@ -330,7 +330,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("language=java returns"
                 + " java-developer.md")
-        void javaReturnsJavaDeveloper() {
+        void select_java_returnsJavaDeveloper() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .language("java", "21")
                     .build();
@@ -346,7 +346,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("language=typescript returns"
                 + " typescript-developer.md")
-        void tsReturnsTsDeveloper() {
+        void select_ts_returnsTsDeveloper() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .language("typescript", "5")
                     .build();
@@ -362,7 +362,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("language=go returns"
                 + " go-developer.md")
-        void goReturnsGoDeveloper() {
+        void select_go_returnsGoDeveloper() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .language("go", "1.22")
                     .build();
@@ -378,7 +378,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("language=python returns"
                 + " python-developer.md")
-        void pythonReturnsPythonDeveloper() {
+        void select_python_returnsPythonDeveloper() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .language("python", "3.12")
                     .build();
@@ -394,7 +394,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("language=kotlin returns"
                 + " kotlin-developer.md")
-        void kotlinReturnsKotlinDeveloper() {
+        void select_kotlin_returnsKotlinDeveloper() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .language("kotlin", "2.0")
                     .build();
@@ -410,7 +410,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("language=rust returns"
                 + " rust-developer.md")
-        void rustReturnsRustDeveloper() {
+        void select_rust_returnsRustDeveloper() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .language("rust", "1.77")
                     .build();
@@ -426,7 +426,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("language=csharp returns"
                 + " csharp-developer.md")
-        void csharpReturnsCsharpDeveloper() {
+        void select_csharp_returnsCsharpDeveloper() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .language("csharp", "12")
                     .build();
@@ -447,7 +447,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("pci-dss security framework"
                 + " activates pci-dss-security checklist")
-        void pciDssActivatesChecklist() {
+        void select_whenCalled_pciDssActivatesChecklist() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .securityFrameworks("pci-dss")
                     .build();
@@ -466,7 +466,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("lgpd security framework"
                 + " activates privacy-security checklist")
-        void lgpdActivatesPrivacyChecklist() {
+        void select_whenCalled_lgpdActivatesPrivacyChecklist() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .securityFrameworks("lgpd")
                     .build();
@@ -485,7 +485,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("gdpr security framework"
                 + " activates privacy-security checklist")
-        void gdprActivatesPrivacyChecklist() {
+        void select_whenCalled_gdprActivatesPrivacyChecklist() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .securityFrameworks("gdpr")
                     .build();
@@ -504,7 +504,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("grpc interface activates"
                 + " grpc-api checklist")
-        void grpcActivatesGrpcChecklist() {
+        void select_whenCalled_grpcActivatesGrpcChecklist() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("grpc")
@@ -524,7 +524,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("helm templating activates"
                 + " helm-devops checklist")
-        void helmActivatesHelmChecklist() {
+        void select_whenCalled_helmActivatesHelmChecklist() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .build();
 
@@ -543,7 +543,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("no security frameworks means"
                 + " all security checklists inactive")
-        void noFrameworksMeansInactive() {
+        void select_whenCalled_noFrameworksMeansInactive() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .build();
 
@@ -569,7 +569,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("derives marker from checklist"
                 + " filename")
-        void derivesMarkerFromFilename() {
+        void select_whenCalled_derivesMarkerFromFilename() {
             String marker = AgentsSelection.checklistMarker(
                     "pci-dss-security.md");
 
@@ -581,7 +581,7 @@ class AgentsSelectionTest {
         @Test
         @DisplayName("handles single-word checklist"
                 + " filename")
-        void handlesSingleWord() {
+        void select_whenCalled_handlesSingleWord() {
             String marker = AgentsSelection.checklistMarker(
                     "simple.md");
 

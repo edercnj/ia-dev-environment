@@ -28,7 +28,7 @@ class FrameworkKpWriterTest {
 
         @Test
         @DisplayName("unknown framework returns empty")
-        void unknownFrameworkReturnsEmpty(
+        void write_unknownFramework_returnsEmpty(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(resourceDir);
@@ -52,7 +52,7 @@ class FrameworkKpWriterTest {
 
         @Test
         @DisplayName("framework dir missing returns empty")
-        void frameworkDirMissingReturnsEmpty(
+        void write_frameworkDirMissing_returnsEmpty(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(resourceDir);
@@ -77,7 +77,7 @@ class FrameworkKpWriterTest {
         @Test
         @DisplayName("framework dir is a file returns"
                 + " empty")
-        void frameworkDirIsFileReturnsEmpty(
+        void write_frameworkDirIsFile_returnsEmpty(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path frameworks =
@@ -106,7 +106,7 @@ class FrameworkKpWriterTest {
 
         @Test
         @DisplayName("copies common framework files")
-        void copiesCommonFiles(
+        void write_whenCalled_copiesCommonFiles(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path common = resourceDir.resolve(
@@ -138,7 +138,7 @@ class FrameworkKpWriterTest {
 
         @Test
         @DisplayName("missing common dir still works")
-        void missingCommonDirStillWorks(
+        void write_whenCalled_missingCommonDirStillWorks(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path fwDir = resourceDir.resolve(

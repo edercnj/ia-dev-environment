@@ -29,7 +29,7 @@ class CodexAgentsMdAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void instanceOf_whenCreated_implementsAssemblerInterface() {
             assertThat(new CodexAgentsMdAssembler())
                     .isInstanceOf(Assembler.class);
         }
@@ -42,7 +42,7 @@ class CodexAgentsMdAssemblerTest {
         @Test
         @DisplayName("extracts agent name and description"
                 + " from .md files")
-        void extractsAgentInfo(
+        void assemble_whenCalled_extractsAgentInfo(
                 @TempDir Path tempDir) throws IOException {
             Path agentsDir = tempDir.resolve("agents");
             Files.createDirectories(agentsDir);
@@ -70,7 +70,7 @@ class CodexAgentsMdAssemblerTest {
 
         @Test
         @DisplayName("returns empty list for missing dir")
-        void returnsEmptyForMissing(
+        void assemble_forMissing_returnsEmpty(
                 @TempDir Path tempDir) {
             List<AgentInfo> agents =
                     CodexAgentsMdAssembler.scanAgents(
@@ -80,7 +80,7 @@ class CodexAgentsMdAssemblerTest {
 
         @Test
         @DisplayName("returns sorted list")
-        void returnsSorted(
+        void assemble_whenCalled_returnsSorted(
                 @TempDir Path tempDir) throws IOException {
             Path agentsDir = tempDir.resolve("agents");
             Files.createDirectories(agentsDir);
@@ -105,7 +105,7 @@ class CodexAgentsMdAssemblerTest {
         @Test
         @DisplayName("extracts first non-empty line"
                 + " when no heading")
-        void extractsFirstLine(
+        void assemble_whenCalled_extractsFirstLine(
                 @TempDir Path tempDir) throws IOException {
             Path agentsDir = tempDir.resolve("agents");
             Files.createDirectories(agentsDir);
@@ -129,7 +129,7 @@ class CodexAgentsMdAssemblerTest {
 
         @Test
         @DisplayName("extracts heading text without #")
-        void extractsHeading() {
+        void assemble_whenCalled_extractsHeading() {
             assertThat(
                     CodexAgentsMdAssembler
                             .extractDescription(
@@ -139,7 +139,7 @@ class CodexAgentsMdAssemblerTest {
 
         @Test
         @DisplayName("returns first non-empty line")
-        void returnsFirstLine() {
+        void assemble_whenCalled_returnsFirstLine() {
             assertThat(
                     CodexAgentsMdAssembler
                             .extractDescription(
@@ -149,7 +149,7 @@ class CodexAgentsMdAssemblerTest {
 
         @Test
         @DisplayName("returns empty for empty content")
-        void returnsEmptyForEmpty() {
+        void assemble_forEmpty_returnsEmpty() {
             assertThat(
                     CodexAgentsMdAssembler
                             .extractDescription(""))
@@ -163,7 +163,7 @@ class CodexAgentsMdAssemblerTest {
 
         @Test
         @DisplayName("extracts skill info from frontmatter")
-        void extractsSkillInfo(
+        void assemble_whenCalled_extractsSkillInfo(
                 @TempDir Path tempDir) throws IOException {
             Path skillsDir = tempDir.resolve("skills");
             Path skill1 = skillsDir.resolve("my-skill");
@@ -191,7 +191,7 @@ class CodexAgentsMdAssemblerTest {
 
         @Test
         @DisplayName("uses dir name when no frontmatter")
-        void usesDirNameFallback(
+        void assemble_whenCalled_usesDirNameFallback(
                 @TempDir Path tempDir) throws IOException {
             Path skillsDir = tempDir.resolve("skills");
             Path skill1 = skillsDir.resolve("fallback");
@@ -211,7 +211,7 @@ class CodexAgentsMdAssemblerTest {
 
         @Test
         @DisplayName("returns empty for missing dir")
-        void returnsEmptyForMissing(
+        void assemble_forMissing_returnsEmpty(
                 @TempDir Path tempDir) {
             List<SkillInfo> skills =
                     CodexAgentsMdAssembler.scanSkills(
@@ -221,7 +221,7 @@ class CodexAgentsMdAssemblerTest {
 
         @Test
         @DisplayName("skips dirs without SKILL.md")
-        void skipsDirsWithoutSkillMd(
+        void assemble_withoutSkillMd_skipsDirs(
                 @TempDir Path tempDir) throws IOException {
             Path skillsDir = tempDir.resolve("skills");
             Files.createDirectories(
@@ -241,7 +241,7 @@ class CodexAgentsMdAssemblerTest {
 
         @Test
         @DisplayName("extracts YAML between --- delimiters")
-        void extractsYaml() {
+        void assemble_whenCalled_extractsYaml() {
             String content =
                     "---\nname: test\n---\nBody";
             assertThat(CodexAgentsMdAssembler
@@ -252,7 +252,7 @@ class CodexAgentsMdAssemblerTest {
 
         @Test
         @DisplayName("returns empty when no frontmatter")
-        void returnsEmptyWhenNoFrontmatter() {
+        void assemble_whenNoFrontmatter_returnsEmpty() {
             assertThat(CodexAgentsMdAssembler
                     .extractFrontmatterBlock(
                             "No frontmatter"))
@@ -262,7 +262,7 @@ class CodexAgentsMdAssemblerTest {
         @Test
         @DisplayName("returns empty for unclosed"
                 + " frontmatter")
-        void returnsEmptyForUnclosed() {
+        void assemble_forUnclosed_returnsEmpty() {
             assertThat(CodexAgentsMdAssembler
                     .extractFrontmatterBlock(
                             "---\nname: test\nNo close"))
@@ -277,7 +277,7 @@ class CodexAgentsMdAssemblerTest {
         @Test
         @DisplayName("parses name, description,"
                 + " user-invocable")
-        void parsesAll() {
+        void assemble_whenCalled_parsesAll() {
             String content =
                     "---\nname: x-review\n"
                             + "description: Code review\n"
@@ -295,7 +295,7 @@ class CodexAgentsMdAssemblerTest {
 
         @Test
         @DisplayName("defaults user-invocable to true")
-        void defaultsUserInvocable() {
+        void assemble_whenCalled_defaultsUserInvocable() {
             String content =
                     "---\nname: kp\n---\n";
             SkillInfo info =
@@ -308,7 +308,7 @@ class CodexAgentsMdAssemblerTest {
         @Test
         @DisplayName("user-invocable false"
                 + " when set to false")
-        void userInvocableFalse() {
+        void assemble_whenCalled_userInvocableFalse() {
             String content =
                     "---\nname: hidden\n"
                             + "user-invocable: false\n"
@@ -322,7 +322,7 @@ class CodexAgentsMdAssemblerTest {
 
         @Test
         @DisplayName("uses dir name when name absent")
-        void usesDirName() {
+        void assemble_whenCalled_usesDirName() {
             String content = "---\ndescription: D\n---\n";
             SkillInfo info =
                     CodexAgentsMdAssembler
@@ -339,7 +339,7 @@ class CodexAgentsMdAssemblerTest {
         @Test
         @DisplayName("contains 25 base fields plus"
                 + " extended fields")
-        void containsBaseAndExtended() {
+        void assemble_whenCalled_containsBaseAndExtended() {
             ProjectConfig config =
                     TestConfigBuilder.minimal();
             List<AgentInfo> agents = List.of(
@@ -374,7 +374,7 @@ class CodexAgentsMdAssemblerTest {
 
         @Test
         @DisplayName("model is o4-mini")
-        void modelIsDefault() {
+        void assemble_whenCalled_modelIsDefault() {
             ProjectConfig config =
                     TestConfigBuilder.minimal();
             Map<String, Object> ctx =
@@ -390,7 +390,7 @@ class CodexAgentsMdAssemblerTest {
         @Test
         @DisplayName("approval_policy is on-request"
                 + " with hooks")
-        void approvalPolicyWithHooks() {
+        void assemble_withHooks_approvalPolicy() {
             ProjectConfig config =
                     TestConfigBuilder.minimal();
             Map<String, Object> ctx =
@@ -406,7 +406,7 @@ class CodexAgentsMdAssemblerTest {
         @Test
         @DisplayName("skills_list maps to"
                 + " snake_case format")
-        void skillsListSnakeCase() {
+        void assemble_whenCalled_skillsListSnakeCase() {
             ProjectConfig config =
                     TestConfigBuilder.minimal();
             List<SkillInfo> skills = List.of(
@@ -436,7 +436,7 @@ class CodexAgentsMdAssemblerTest {
 
         @Test
         @DisplayName("generates AGENTS.md at root")
-        void generatesAgentsMd(
+        void assemble_whenCalled_generatesAgentsMd(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = tempDir.resolve("output");
             setupClaudeDir(outputDir);
@@ -464,7 +464,7 @@ class CodexAgentsMdAssemblerTest {
 
         @Test
         @DisplayName("AGENTS.md includes agent info")
-        void includesAgentInfo(
+        void assemble_whenCalled_includesAgentInfo(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = tempDir.resolve("output");
             setupClaudeDir(outputDir);
@@ -488,7 +488,7 @@ class CodexAgentsMdAssemblerTest {
 
         @Test
         @DisplayName("AGENTS.md includes skill info")
-        void includesSkillInfo(
+        void assemble_whenCalled_includesSkillInfo(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = tempDir.resolve("output");
             setupClaudeDir(outputDir);

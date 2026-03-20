@@ -29,7 +29,7 @@ class ContextualInstructionsAssemblerTest {
         @Test
         @DisplayName("generates 4 instruction files from"
                 + " classpath resources")
-        void generates4Files(@TempDir Path tempDir)
+        void assemble_whenCalled_generates4Files(@TempDir Path tempDir)
                 throws IOException {
             Path resourceDir =
                     resolveClasspathResources();
@@ -51,7 +51,7 @@ class ContextualInstructionsAssemblerTest {
 
         @Test
         @DisplayName("missing templates dir returns empty")
-        void missingTemplatesReturnsEmpty(
+        void assemble_missingTemplates_returnsEmpty(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir =
@@ -76,7 +76,7 @@ class ContextualInstructionsAssemblerTest {
         @Test
         @DisplayName("missing individual template skips"
                 + " that file")
-        void missingTemplateSkipsFile(
+        void assemble_missingTemplate_skipsFile(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir =
@@ -115,7 +115,7 @@ class ContextualInstructionsAssemblerTest {
 
         @Test
         @DisplayName("contains all 10 expected keys")
-        void containsAllKeys() {
+        void assemble_whenCalled_containsAllKeys() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .projectName("my-project")
@@ -154,7 +154,7 @@ class ContextualInstructionsAssemblerTest {
 
         @Test
         @DisplayName("replaces known placeholders")
-        void replacesKnown() {
+        void assemble_whenCalled_replacesKnown() {
             String content = "Hello {name}, v{version}";
             Map<String, String> context = Map.of(
                     "name", "world",
@@ -171,7 +171,7 @@ class ContextualInstructionsAssemblerTest {
 
         @Test
         @DisplayName("preserves unknown placeholders")
-        void preservesUnknown() {
+        void assemble_whenCalled_preservesUnknown() {
             String content = "Value: {unknown}";
             Map<String, String> context = Map.of();
 
@@ -186,7 +186,7 @@ class ContextualInstructionsAssemblerTest {
 
         @Test
         @DisplayName("does not match double braces")
-        void doesNotMatchDoubleBraces() {
+        void assemble_whenCalled_doesNotMatchDoubleBraces() {
             String content = "Keep {{this}} intact";
             Map<String, String> context = Map.of(
                     "this", "replaced");
@@ -207,7 +207,7 @@ class ContextualInstructionsAssemblerTest {
 
         @Test
         @DisplayName("has 4 entries")
-        void has4Entries() {
+        void assemble_whenCalled_has4Entries() {
             assertThat(ContextualInstructionsAssembler
                     .CONTEXTUAL_INSTRUCTIONS)
                     .hasSize(4)

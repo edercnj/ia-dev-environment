@@ -28,7 +28,7 @@ class LanguageKpWriterTest {
 
         @Test
         @DisplayName("missing language dir returns empty")
-        void missingDirReturnsEmpty(
+        void write_missingDir_returnsEmpty(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(resourceDir);
@@ -52,7 +52,7 @@ class LanguageKpWriterTest {
 
         @Test
         @DisplayName("language dir is a file returns empty")
-        void languageDirIsFileReturnsEmpty(
+        void write_languageDirIsFile_returnsEmpty(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path langParent =
@@ -81,7 +81,7 @@ class LanguageKpWriterTest {
 
         @Test
         @DisplayName("copies common and version files")
-        void copiesCommonAndVersionFiles(
+        void write_whenCalled_copiesCommonAndVersionFiles(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path common = resourceDir.resolve(
@@ -123,7 +123,7 @@ class LanguageKpWriterTest {
 
         @Test
         @DisplayName("missing common dir still works")
-        void missingCommonDirStillWorks(
+        void write_whenCalled_missingCommonDirStillWorks(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path langDir = resourceDir.resolve(

@@ -377,7 +377,7 @@ class ProjectConfigTest {
 
         @Test
         @DisplayName("convenience accessors are identical to chained calls")
-        void convenienceAccessors_matchChainedCalls() {
+        void convenienceAccessors_whenCalled_matchChainedCalls() {
             var config = ProjectConfig.fromMap(
                     buildFullConfig());
 

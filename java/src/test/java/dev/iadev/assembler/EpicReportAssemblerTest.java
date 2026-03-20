@@ -69,7 +69,7 @@ class EpicReportAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void implements_whenCalled_isAssemblerInstance() {
             assertThat(new EpicReportAssembler())
                     .isInstanceOf(Assembler.class);
         }
@@ -81,7 +81,7 @@ class EpicReportAssemblerTest {
 
         @Test
         @DisplayName("returns true for complete template")
-        void returnsTrueForComplete() {
+        void assemble_forComplete_returnsTrue() {
             assertThat(EpicReportAssembler
                     .hasAllMandatorySections(
                             TEMPLATE_CONTENT))
@@ -90,7 +90,7 @@ class EpicReportAssemblerTest {
 
         @Test
         @DisplayName("returns false when section missing")
-        void returnsFalseWhenMissing() {
+        void assemble_whenMissing_returnsFalse() {
             String incomplete = TEMPLATE_CONTENT
                     .replace(
                             "## PR Link",
@@ -102,7 +102,7 @@ class EpicReportAssemblerTest {
 
         @Test
         @DisplayName("returns false for empty content")
-        void returnsFalseForEmpty() {
+        void assemble_forEmpty_returnsFalse() {
             assertThat(EpicReportAssembler
                     .hasAllMandatorySections(""))
                     .isFalse();
@@ -116,7 +116,7 @@ class EpicReportAssemblerTest {
         @Test
         @DisplayName("copies template to .claude/templates/"
                 + " and .github/templates/")
-        void copiesToBothDestinations(
+        void assemble_whenCalled_copiesToBothDestinations(
                 @TempDir Path tempDir) throws IOException {
             Path resourcesDir = setupResources(tempDir);
             Path outputDir = tempDir.resolve("output");
@@ -146,7 +146,7 @@ class EpicReportAssemblerTest {
         @Test
         @DisplayName("content is verbatim copy"
                 + " (no rendering)")
-        void contentIsVerbatim(
+        void assemble_content_isVerbatim(
                 @TempDir Path tempDir) throws IOException {
             Path resourcesDir = setupResources(tempDir);
             Path outputDir = tempDir.resolve("output");
@@ -177,7 +177,7 @@ class EpicReportAssemblerTest {
 
         @Test
         @DisplayName("returns empty when template missing")
-        void returnsEmptyWhenMissing(
+        void assemble_whenCalled_returnsEmptyWhenMissing(
                 @TempDir Path tempDir) throws IOException {
             Path resourcesDir = tempDir.resolve("empty");
             Files.createDirectories(resourcesDir);
@@ -198,7 +198,7 @@ class EpicReportAssemblerTest {
         @Test
         @DisplayName("returns empty when sections"
                 + " incomplete")
-        void returnsEmptyWhenIncomplete(
+        void assemble_whenCalled_returnsEmptyWhenIncomplete(
                 @TempDir Path tempDir) throws IOException {
             Path resourcesDir = tempDir.resolve("res");
             Path templateDir =
@@ -228,7 +228,7 @@ class EpicReportAssemblerTest {
         @Test
         @DisplayName("preserves {{PLACEHOLDER}} tokens"
                 + " for runtime resolution")
-        void preservesPlaceholders(
+        void assemble_whenCalled_preservesPlaceholders(
                 @TempDir Path tempDir) throws IOException {
             Path resourcesDir = setupResources(tempDir);
             Path outputDir = tempDir.resolve("output");
@@ -258,7 +258,7 @@ class EpicReportAssemblerTest {
 
         @Test
         @DisplayName("both copies are identical")
-        void bothCopiesIdentical(
+        void assemble_both_copiesIdentical(
                 @TempDir Path tempDir) throws IOException {
             Path resourcesDir = setupResources(tempDir);
             Path outputDir = tempDir.resolve("output");
@@ -314,7 +314,7 @@ class EpicReportAssemblerTest {
         @Test
         @DisplayName("output matches golden file for"
                 + " kotlin-ktor")
-        void matchesGoldenFile(
+        void assemble_whenCalled_matchesGoldenFile(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = tempDir.resolve("output");
             Files.createDirectories(outputDir);

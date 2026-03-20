@@ -25,14 +25,14 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("returns 0 when rules dir missing")
-        void zeroWhenMissing(@TempDir Path tempDir) {
+        void create_whenMissing_zero(@TempDir Path tempDir) {
             assertThat(ReadmeUtils.countRules(tempDir))
                     .isZero();
         }
 
         @Test
         @DisplayName("returns 0 when rules dir empty")
-        void zeroWhenEmpty(@TempDir Path tempDir)
+        void create_whenEmpty_zero(@TempDir Path tempDir)
                 throws IOException {
             Files.createDirectories(
                     tempDir.resolve("rules"));
@@ -43,7 +43,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("counts 1 md file")
-        void countsOneMdFile(@TempDir Path tempDir)
+        void create_whenCalled_countsOneMdFile(@TempDir Path tempDir)
                 throws IOException {
             Path rulesDir =
                     Files.createDirectories(
@@ -58,7 +58,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("counts 5 md files")
-        void countsFiveMdFiles(@TempDir Path tempDir)
+        void create_whenCalled_countsFiveMdFiles(@TempDir Path tempDir)
                 throws IOException {
             Path rulesDir =
                     Files.createDirectories(
@@ -77,7 +77,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("ignores non-md files")
-        void ignoresNonMdFiles(@TempDir Path tempDir)
+        void create_whenCalled_ignoresNonMdFiles(@TempDir Path tempDir)
                 throws IOException {
             Path rulesDir =
                     Files.createDirectories(
@@ -100,14 +100,14 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("returns 0 when skills dir missing")
-        void zeroWhenMissing(@TempDir Path tempDir) {
+        void create_whenMissing_zero(@TempDir Path tempDir) {
             assertThat(ReadmeUtils.countSkills(tempDir))
                     .isZero();
         }
 
         @Test
         @DisplayName("counts subdirs with SKILL.md")
-        void countsSkillMdSubdirs(@TempDir Path tempDir)
+        void create_whenCalled_countsSkillMdSubdirs(@TempDir Path tempDir)
                 throws IOException {
             Path skillsDir =
                     Files.createDirectories(
@@ -123,7 +123,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("ignores subdirs without SKILL.md")
-        void ignoresSubdirsWithoutSkillMd(
+        void create_withoutSkillMd_ignoresSubdirs(
                 @TempDir Path tempDir)
                 throws IOException {
             Path skillsDir =
@@ -145,14 +145,14 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("returns 0 when agents dir missing")
-        void zeroWhenMissing(@TempDir Path tempDir) {
+        void create_whenMissing_zero(@TempDir Path tempDir) {
             assertThat(ReadmeUtils.countAgents(tempDir))
                     .isZero();
         }
 
         @Test
         @DisplayName("counts md files in agents dir")
-        void countsMdFiles(@TempDir Path tempDir)
+        void create_whenCalled_countsMdFiles(@TempDir Path tempDir)
                 throws IOException {
             Path agentsDir =
                     Files.createDirectories(
@@ -175,7 +175,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("returns 0 when skills dir missing")
-        void zeroWhenMissing(@TempDir Path tempDir) {
+        void create_whenMissing_zero(@TempDir Path tempDir) {
             assertThat(
                     ReadmeUtils.countKnowledgePacks(tempDir))
                     .isZero();
@@ -183,7 +183,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("counts only knowledge packs")
-        void countsOnlyKnowledgePacks(
+        void create_whenCalled_countsOnlyKnowledgePacks(
                 @TempDir Path tempDir) throws IOException {
             Path skillsDir =
                     Files.createDirectories(
@@ -209,14 +209,14 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("returns 0 when hooks dir missing")
-        void zeroWhenMissing(@TempDir Path tempDir) {
+        void create_whenMissing_zero(@TempDir Path tempDir) {
             assertThat(ReadmeUtils.countHooks(tempDir))
                     .isZero();
         }
 
         @Test
         @DisplayName("counts all entries in hooks dir")
-        void countsEntries(@TempDir Path tempDir)
+        void create_whenCalled_countsEntries(@TempDir Path tempDir)
                 throws IOException {
             Path hooksDir =
                     Files.createDirectories(
@@ -238,14 +238,14 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("returns 0 when no settings files")
-        void zeroWhenNoFiles(@TempDir Path tempDir) {
+        void create_whenNoFiles_zero(@TempDir Path tempDir) {
             assertThat(ReadmeUtils.countSettings(tempDir))
                     .isZero();
         }
 
         @Test
         @DisplayName("returns 2 when both files exist")
-        void twoBothExist(@TempDir Path tempDir)
+        void create_whenCalled_twoBothExist(@TempDir Path tempDir)
                 throws IOException {
             Files.writeString(
                     tempDir.resolve("settings.json"),
@@ -260,7 +260,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("returns 1 when only settings.json")
-        void oneWhenOnlyMain(@TempDir Path tempDir)
+        void create_whenOnlyMain_one(@TempDir Path tempDir)
                 throws IOException {
             Files.writeString(
                     tempDir.resolve("settings.json"),
@@ -277,7 +277,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("returns 0 when dir missing")
-        void zeroWhenMissing(@TempDir Path tempDir) {
+        void create_whenMissing_zero(@TempDir Path tempDir) {
             assertThat(ReadmeUtils.countGithubFiles(
                     tempDir.resolve(".github")))
                     .isZero();
@@ -285,7 +285,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("counts files recursively")
-        void countsRecursive(@TempDir Path tempDir)
+        void create_whenCalled_countsRecursive(@TempDir Path tempDir)
                 throws IOException {
             Path ghDir =
                     Files.createDirectories(
@@ -312,7 +312,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("returns 0 when component missing")
-        void zeroWhenMissing(@TempDir Path tempDir) {
+        void create_whenMissing_zero(@TempDir Path tempDir) {
             assertThat(ReadmeUtils.countGithubComponent(
                     tempDir, "instructions"))
                     .isZero();
@@ -320,7 +320,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("counts files in component dir")
-        void countsFiles(@TempDir Path tempDir)
+        void create_whenCalled_countsFiles(@TempDir Path tempDir)
                 throws IOException {
             Path instrDir =
                     Files.createDirectories(
@@ -344,7 +344,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("returns 0 when skills dir missing")
-        void zeroWhenMissing(@TempDir Path tempDir) {
+        void create_whenMissing_zero(@TempDir Path tempDir) {
             assertThat(ReadmeUtils.countGithubSkills(
                     tempDir))
                     .isZero();
@@ -352,7 +352,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("counts SKILL.md in subdirs")
-        void countsSkillMd(@TempDir Path tempDir)
+        void create_whenCalled_countsSkillMd(@TempDir Path tempDir)
                 throws IOException {
             Path skillsDir =
                     Files.createDirectories(
@@ -374,7 +374,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("returns 0 when dir missing")
-        void zeroWhenMissing(@TempDir Path tempDir) {
+        void create_whenMissing_zero(@TempDir Path tempDir) {
             assertThat(ReadmeUtils.countCodexFiles(
                     tempDir.resolve(".codex")))
                     .isZero();
@@ -382,7 +382,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("counts only files, not dirs")
-        void countsOnlyFiles(@TempDir Path tempDir)
+        void create_whenCalled_countsOnlyFiles(@TempDir Path tempDir)
                 throws IOException {
             Path codexDir =
                     Files.createDirectories(
@@ -405,7 +405,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("returns 0 when dir missing")
-        void zeroWhenMissing(@TempDir Path tempDir) {
+        void create_whenMissing_zero(@TempDir Path tempDir) {
             assertThat(ReadmeUtils.countCodexAgentsFiles(
                     tempDir.resolve(".agents")))
                     .isZero();
@@ -413,7 +413,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("counts files recursively")
-        void countsRecursive(@TempDir Path tempDir)
+        void create_whenCalled_countsRecursive(@TempDir Path tempDir)
                 throws IOException {
             Path agentsDir =
                     Files.createDirectories(
@@ -441,7 +441,7 @@ class ReadmeUtilsTest {
         @Test
         @DisplayName("returns true for user-invocable:"
                 + " false")
-        void trueForUserInvocableFalse(
+        void create_forUserInvocableFalse_true(
                 @TempDir Path tempDir) throws IOException {
             Path skillMd =
                     tempDir.resolve("SKILL.md");
@@ -457,7 +457,7 @@ class ReadmeUtilsTest {
         @Test
         @DisplayName("returns true for # Knowledge Pack"
                 + " header")
-        void trueForKnowledgePackHeader(
+        void create_forKnowledgePackHeader_true(
                 @TempDir Path tempDir) throws IOException {
             Path skillMd =
                     tempDir.resolve("SKILL.md");
@@ -471,7 +471,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("returns false for regular skill")
-        void falseForRegularSkill(
+        void create_forRegularSkill_false(
                 @TempDir Path tempDir) throws IOException {
             Path skillMd =
                     tempDir.resolve("SKILL.md");
@@ -491,7 +491,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("extracts leading digits")
-        void extractsLeadingDigits() {
+        void create_whenCalled_extractsLeadingDigits() {
             assertThat(
                     ReadmeUtils.extractRuleNumber(
                             "01-project-identity.md"))
@@ -500,7 +500,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("extracts multi-digit number")
-        void extractsMultiDigit() {
+        void create_whenCalled_extractsMultiDigit() {
             assertThat(
                     ReadmeUtils.extractRuleNumber(
                             "123-some-rule.md"))
@@ -509,7 +509,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("returns empty for no leading digits")
-        void emptyForNoDigits() {
+        void create_forNoDigits_empty() {
             assertThat(
                     ReadmeUtils.extractRuleNumber(
                             "name.md"))
@@ -524,7 +524,7 @@ class ReadmeUtilsTest {
         @Test
         @DisplayName("strips number and extension,"
                 + " replaces hyphens")
-        void stripsNumberAndExtension() {
+        void create_whenCalled_stripsNumberAndExtension() {
             assertThat(
                     ReadmeUtils.extractRuleScope(
                             "01-project-identity.md"))
@@ -533,7 +533,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("handles filename without number")
-        void handlesNoNumber() {
+        void create_whenCalled_handlesNoNumber() {
             assertThat(
                     ReadmeUtils.extractRuleScope(
                             "coding-standards.md"))
@@ -542,7 +542,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("handles single word scope")
-        void handlesSingleWord() {
+        void create_whenCalled_handlesSingleWord() {
             assertThat(
                     ReadmeUtils.extractRuleScope(
                             "05-domain.md"))
@@ -557,7 +557,7 @@ class ReadmeUtilsTest {
         @Test
         @DisplayName("extracts description from"
                 + " frontmatter")
-        void extractsDescription(@TempDir Path tempDir)
+        void create_whenCalled_extractsDescription(@TempDir Path tempDir)
                 throws IOException {
             Path skillMd =
                     tempDir.resolve("SKILL.md");
@@ -573,7 +573,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("strips quotes from description")
-        void stripsQuotes(@TempDir Path tempDir)
+        void create_whenCalled_stripsQuotes(@TempDir Path tempDir)
                 throws IOException {
             Path skillMd =
                     tempDir.resolve("SKILL.md");
@@ -589,7 +589,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("returns empty when no description")
-        void emptyWhenNoDescription(@TempDir Path tempDir)
+        void create_whenNoDescription_empty(@TempDir Path tempDir)
                 throws IOException {
             Path skillMd =
                     tempDir.resolve("SKILL.md");
@@ -609,7 +609,7 @@ class ReadmeUtilsTest {
 
         @Test
         @DisplayName("counts files in nested dirs")
-        void countsNestedFiles(@TempDir Path tempDir)
+        void create_whenCalled_countsNestedFiles(@TempDir Path tempDir)
                 throws IOException {
             Files.writeString(
                     tempDir.resolve("file1.md"),

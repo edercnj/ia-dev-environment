@@ -26,7 +26,7 @@ class CicdAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void instanceOf_whenCreated_implementsAssemblerInterface() {
             CicdAssembler assembler =
                     new CicdAssembler();
 
@@ -42,7 +42,7 @@ class CicdAssemblerTest {
         @Test
         @DisplayName("resolves compile_cmd for"
                 + " java-maven")
-        void resolvesCompileCmd() {
+        void buildStackContext_whenCalled_resolvesCompileCmd() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .language("java", "21")
@@ -59,7 +59,7 @@ class CicdAssemblerTest {
 
         @Test
         @DisplayName("resolves test_cmd for java-maven")
-        void resolvesTestCmd() {
+        void buildStackContext_whenCalled_resolvesTestCmd() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .language("java", "21")
@@ -76,7 +76,7 @@ class CicdAssemblerTest {
 
         @Test
         @DisplayName("resolves lint_cmd for java-maven")
-        void resolvesLintCmd() {
+        void buildStackContext_whenCalled_resolvesLintCmd() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .language("java", "21")
@@ -94,7 +94,7 @@ class CicdAssemblerTest {
         @Test
         @DisplayName("resolves framework_port for"
                 + " spring-boot")
-        void resolvesFrameworkPort() {
+        void buildStackContext_whenCalled_resolvesFrameworkPort() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .framework("spring-boot", "3.2")
@@ -113,7 +113,7 @@ class CicdAssemblerTest {
         @Test
         @DisplayName("resolves health_path for"
                 + " spring-boot")
-        void resolvesHealthPath() {
+        void buildStackContext_whenCalled_resolvesHealthPath() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .framework("spring-boot", "3.2")
@@ -132,7 +132,7 @@ class CicdAssemblerTest {
         @Test
         @DisplayName("resolves docker_base_image with"
                 + " version")
-        void resolvesDockerBaseImage() {
+        void buildStackContext_whenCalled_resolvesDockerBaseImage() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .language("java", "21")
@@ -157,7 +157,7 @@ class CicdAssemblerTest {
         @Test
         @DisplayName("resolves lint_cmd for"
                 + " typescript-npm")
-        void resolvesLintCmd() {
+        void buildStackContext_whenCalled_resolvesLintCmd() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .language("typescript", "5.0")
@@ -176,7 +176,7 @@ class CicdAssemblerTest {
         @Test
         @DisplayName("resolves test_cmd for"
                 + " typescript-npm")
-        void resolvesTestCmd() {
+        void buildStackContext_whenCalled_resolvesTestCmd() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .language("typescript", "5.0")
@@ -200,7 +200,7 @@ class CicdAssemblerTest {
         @Test
         @DisplayName("uses default lint cmd for"
                 + " unknown stack")
-        void defaultLintCmd() {
+        void buildStackContext_defaultLintCmd_succeeds() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .language("cobol", "85")
@@ -220,7 +220,7 @@ class CicdAssemblerTest {
         @Test
         @DisplayName("uses empty strings for unknown"
                 + " commands")
-        void emptyCommandsForUnknown() {
+        void buildStackContext_emptyCommandsForUnknown_succeeds() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .language("cobol", "85")
@@ -244,7 +244,7 @@ class CicdAssemblerTest {
 
         @Test
         @DisplayName("contains java-maven entry")
-        void containsJavaMaven() {
+        void assemble_whenCalled_containsJavaMaven() {
             assertThat(CicdAssembler.LINT_COMMANDS)
                     .containsEntry("java-maven",
                             "./mvnw checkstyle:check");
@@ -252,7 +252,7 @@ class CicdAssemblerTest {
 
         @Test
         @DisplayName("contains typescript-npm entry")
-        void containsTypescriptNpm() {
+        void assemble_whenCalled_containsTypescriptNpm() {
             assertThat(CicdAssembler.LINT_COMMANDS)
                     .containsEntry("typescript-npm",
                             "npm run lint");
@@ -260,7 +260,7 @@ class CicdAssemblerTest {
 
         @Test
         @DisplayName("contains python-pip entry")
-        void containsPythonPip() {
+        void assemble_whenCalled_containsPythonPip() {
             assertThat(CicdAssembler.LINT_COMMANDS)
                     .containsEntry("python-pip",
                             "ruff check .");
@@ -268,7 +268,7 @@ class CicdAssemblerTest {
 
         @Test
         @DisplayName("contains go-go entry")
-        void containsGoGo() {
+        void assemble_whenCalled_containsGoGo() {
             assertThat(CicdAssembler.LINT_COMMANDS)
                     .containsEntry("go-go",
                             "golangci-lint run");
@@ -276,7 +276,7 @@ class CicdAssemblerTest {
 
         @Test
         @DisplayName("contains rust-cargo entry")
-        void containsRustCargo() {
+        void assemble_whenCalled_containsRustCargo() {
             assertThat(CicdAssembler.LINT_COMMANDS)
                     .containsEntry("rust-cargo",
                             "cargo clippy -- -D warnings");
@@ -284,7 +284,7 @@ class CicdAssemblerTest {
 
         @Test
         @DisplayName("contains kotlin-gradle entry")
-        void containsKotlinGradle() {
+        void assemble_whenCalled_containsKotlinGradle() {
             assertThat(CicdAssembler.LINT_COMMANDS)
                     .containsEntry("kotlin-gradle",
                             "./gradlew ktlintCheck");
@@ -292,7 +292,7 @@ class CicdAssemblerTest {
 
         @Test
         @DisplayName("contains java-gradle entry")
-        void containsJavaGradle() {
+        void assemble_whenCalled_containsJavaGradle() {
             assertThat(CicdAssembler.LINT_COMMANDS)
                     .containsEntry("java-gradle",
                             "./gradlew spotlessCheck");
@@ -300,7 +300,7 @@ class CicdAssemblerTest {
 
         @Test
         @DisplayName("has exactly 8 entries")
-        void hasEightEntries() {
+        void assemble_whenCalled_hasEightEntries() {
             assertThat(CicdAssembler.LINT_COMMANDS)
                     .hasSize(8);
         }
@@ -312,7 +312,7 @@ class CicdAssemblerTest {
 
         @Test
         @DisplayName("generates ci.yml in .github/workflows")
-        void generatesCiWorkflow(
+        void assemble_whenCalled_generatesCiWorkflow(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -349,7 +349,7 @@ class CicdAssemblerTest {
         @Test
         @DisplayName("generates Dockerfile when"
                 + " container=docker")
-        void generatesDockerfile(
+        void assemble_whenCalled_generatesDockerfile(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -375,7 +375,7 @@ class CicdAssemblerTest {
         @Test
         @DisplayName("skips Dockerfile when"
                 + " container=none")
-        void skipsDockerfileWhenNone(
+        void assemble_whenCalled_skipsDockerfileWhenNone(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -406,7 +406,7 @@ class CicdAssemblerTest {
         @Test
         @DisplayName("generates docker-compose.yml when"
                 + " container=docker")
-        void generatesDockerCompose(
+        void assemble_whenCalled_generatesDockerCompose(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -433,7 +433,7 @@ class CicdAssemblerTest {
         @Test
         @DisplayName("skips docker-compose.yml when"
                 + " container=none")
-        void skipsDockerComposeWhenNone(
+        void assemble_whenCalled_skipsDockerComposeWhenNone(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -465,7 +465,7 @@ class CicdAssemblerTest {
         @Test
         @DisplayName("generates K8s manifests when"
                 + " orchestrator=kubernetes")
-        void generatesK8sManifests(
+        void assemble_whenCalled_generatesK8sManifests(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -503,7 +503,7 @@ class CicdAssemblerTest {
         @Test
         @DisplayName("skips K8s manifests when"
                 + " orchestrator=none")
-        void skipsK8sWhenNone(
+        void assemble_whenCalled_skipsK8sWhenNone(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -536,7 +536,7 @@ class CicdAssemblerTest {
         @Test
         @DisplayName("generates smoke-config.md when"
                 + " smokeTests=true")
-        void generatesSmokeConfig(
+        void assemble_whenCalled_generatesSmokeConfig(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -563,7 +563,7 @@ class CicdAssemblerTest {
         @Test
         @DisplayName("skips smoke-config.md when"
                 + " smokeTests=false")
-        void skipsSmokeWhenFalse(
+        void assemble_whenCalled_skipsSmokeWhenFalse(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -596,7 +596,7 @@ class CicdAssemblerTest {
         @DisplayName("generates all artifacts for"
                 + " java-maven with docker+kubernetes"
                 + "+smoke")
-        void generatesAllArtifacts(
+        void assemble_whenCalled_generatesAllArtifacts(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -624,7 +624,7 @@ class CicdAssemblerTest {
         @Test
         @DisplayName("generates minimum artifacts when"
                 + " no docker, no k8s, no smoke")
-        void generatesMinimumArtifacts(
+        void assemble_whenCalled_generatesMinimumArtifacts(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 

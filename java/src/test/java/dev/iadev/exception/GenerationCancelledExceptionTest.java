@@ -21,7 +21,7 @@ class GenerationCancelledExceptionTest {
 
     @Test
     @DisplayName("exception_isRuntimeException")
-    void exception_isRuntimeException() {
+    void exception_whenCalled_isRuntimeException() {
         var exception = new GenerationCancelledException("test");
 
         assertThat(exception)
@@ -30,7 +30,7 @@ class GenerationCancelledExceptionTest {
 
     @Test
     @DisplayName("exception_canBeThrown")
-    void exception_canBeThrown() {
+    void exception_whenCalled_canBeThrown() {
         assertThatThrownBy(() -> {
             throw new GenerationCancelledException("cancelled");
         })

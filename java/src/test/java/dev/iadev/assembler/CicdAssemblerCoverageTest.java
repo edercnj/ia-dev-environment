@@ -30,7 +30,7 @@ class CicdAssemblerCoverageTest {
         @Test
         @DisplayName("unknown language returns empty"
                 + " commands")
-        void unknownLanguageEmptyCommands() {
+        void assemble_whenCalled_unknownLanguageEmptyCommands() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .language("unknown-lang", "1.0")
@@ -56,7 +56,7 @@ class CicdAssemblerCoverageTest {
         @Test
         @DisplayName("java-maven resolves correct"
                 + " commands")
-        void javaMavenCommands() {
+        void assemble_whenCalled_javaMavenCommands() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .language("java", "21")
@@ -80,7 +80,7 @@ class CicdAssemblerCoverageTest {
         @Test
         @DisplayName("unknown framework uses default"
                 + " port and health")
-        void unknownFrameworkDefaults() {
+        void assemble_whenCalled_unknownFrameworkDefaults() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .framework("unknown-fw", "1.0")
@@ -97,7 +97,7 @@ class CicdAssemblerCoverageTest {
         @Test
         @DisplayName("version placeholder replaced"
                 + " in docker image")
-        void versionReplacedInImage() {
+        void assemble_whenCalled_versionReplacedInImage() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .language("java", "21")
@@ -123,7 +123,7 @@ class CicdAssemblerCoverageTest {
         @Test
         @DisplayName("no docker skips Dockerfile"
                 + " and Compose")
-        void noDockerSkipsFiles(@TempDir Path tempDir)
+        void assemble_noDocker_skipsFiles(@TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
             Files.createDirectories(outputDir);
@@ -148,7 +148,7 @@ class CicdAssemblerCoverageTest {
 
         @Test
         @DisplayName("no kubernetes skips K8s manifests")
-        void noK8sSkipsManifests(@TempDir Path tempDir)
+        void assemble_noK8s_skipsManifests(@TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
             Files.createDirectories(outputDir);
@@ -171,7 +171,7 @@ class CicdAssemblerCoverageTest {
         @Test
         @DisplayName("smokeTests=false skips smoke"
                 + " config")
-        void noSmokeTests(@TempDir Path tempDir)
+        void assemble_noSmokeTests_succeeds(@TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
             Files.createDirectories(outputDir);
@@ -198,7 +198,7 @@ class CicdAssemblerCoverageTest {
         @Test
         @DisplayName("Dockerfile template not found"
                 + " for unknown stack adds warning")
-        void dockerfileNotFound(@TempDir Path tempDir)
+        void assemble_whenCalled_dockerfileNotFound(@TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(
@@ -230,7 +230,7 @@ class CicdAssemblerCoverageTest {
 
         @Test
         @DisplayName("all 8 entries present")
-        void allEntriesPresent() {
+        void lINT_COMMANDS_allEntriesPresent_succeeds() {
             assertThat(CicdAssembler.LINT_COMMANDS)
                     .hasSize(8)
                     .containsKey("java-maven")
@@ -250,7 +250,7 @@ class CicdAssemblerCoverageTest {
 
         @Test
         @DisplayName("default constructor resolves")
-        void defaultConstructorResolves() {
+        void constructor_withDefaults_resolvesCorrectly() {
             CicdAssembler assembler =
                     new CicdAssembler();
 

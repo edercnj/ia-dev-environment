@@ -28,7 +28,7 @@ class MappingTableBuilderTest {
 
         @Test
         @DisplayName("contains 9 mapping rows")
-        void containsNineMappingRows(
+        void build_whenCalled_containsNineMappingRows(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir =
                     Files.createDirectories(
@@ -52,7 +52,7 @@ class MappingTableBuilderTest {
 
         @Test
         @DisplayName("contains mapping arrow unicode")
-        void containsMappingArrow(
+        void build_whenCalled_containsMappingArrow(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir =
                     Files.createDirectories(
@@ -66,7 +66,7 @@ class MappingTableBuilderTest {
         @Test
         @DisplayName("includes github total when dir"
                 + " exists")
-        void includesGithubTotal(
+        void build_whenCalled_includesGithubTotal(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir =
                     Files.createDirectories(
@@ -87,7 +87,7 @@ class MappingTableBuilderTest {
 
         @Test
         @DisplayName("no github dir omits total line")
-        void noGithubDirOmitsTotal(
+        void build_noGithubDirOmitsTotal_succeeds(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir = Files.createDirectories(
                     tempDir.resolve(".claude"));
@@ -100,7 +100,7 @@ class MappingTableBuilderTest {
 
         @Test
         @DisplayName("contains platform names")
-        void containsPlatformNames(
+        void build_whenCalled_containsPlatformNames(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir = Files.createDirectories(
                     tempDir.resolve(".claude"));

@@ -32,7 +32,7 @@ class GithubMcpAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void instanceOf_whenCreated_implementsAssemblerInterface() {
             GithubMcpAssembler assembler =
                     new GithubMcpAssembler();
 
@@ -48,7 +48,7 @@ class GithubMcpAssemblerTest {
         @Test
         @DisplayName("returns empty list when"
                 + " no MCP servers configured")
-        void returnsEmptyForNoServers(
+        void assemble_whenCalled_returnsEmptyForNoServers(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -69,7 +69,7 @@ class GithubMcpAssemblerTest {
         @Test
         @DisplayName("does not create file when"
                 + " no MCP servers")
-        void doesNotCreateFile(
+        void assemble_whenCalled_doesNotCreateFile(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -96,7 +96,7 @@ class GithubMcpAssemblerTest {
         @Test
         @DisplayName("returns empty result when"
                 + " no servers configured")
-        void returnsEmptyResult() {
+        void assembleWithWarnings_whenCalled_returnsEmptyResult() {
             GithubMcpAssembler assembler =
                     new GithubMcpAssembler();
             ProjectConfig config =
@@ -114,7 +114,7 @@ class GithubMcpAssemblerTest {
         @Test
         @DisplayName("returns files and no warnings"
                 + " for valid env vars")
-        void returnsFilesNoWarnings(
+        void assembleWithWarnings_whenCalled_returnsFilesNoWarnings(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -144,7 +144,7 @@ class GithubMcpAssemblerTest {
         @Test
         @DisplayName("returns warnings for literal"
                 + " env values")
-        void returnsWarningsForLiterals(
+        void assembleWithWarnings_whenCalled_returnsWarningsForLiterals(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -182,7 +182,7 @@ class GithubMcpAssemblerTest {
 
         @Test
         @DisplayName("no warning for $VARIABLE format")
-        void noWarningForDollarVariable() {
+        void warnLiteralEnvValues_noWarningForDollarVariable_succeeds() {
             List<McpServerConfig> servers = List.of(
                     new McpServerConfig(
                             "s1", "https://mcp.test",
@@ -199,7 +199,7 @@ class GithubMcpAssemblerTest {
 
         @Test
         @DisplayName("warning for literal value")
-        void warningForLiteralValue() {
+        void warnLiteralEnvValues_whenCalled_warningForLiteralValue() {
             List<McpServerConfig> servers = List.of(
                     new McpServerConfig(
                             "firecrawl",
@@ -224,7 +224,7 @@ class GithubMcpAssemblerTest {
         @Test
         @DisplayName("multiple warnings for"
                 + " multiple literals")
-        void multipleWarnings() {
+        void warnLiteralEnvValues_multipleWarnings_succeeds() {
             List<McpServerConfig> servers = List.of(
                     new McpServerConfig(
                             "s1", "https://mcp.test",
@@ -247,7 +247,7 @@ class GithubMcpAssemblerTest {
         @Test
         @DisplayName("empty env map produces"
                 + " no warnings")
-        void emptyEnvNoWarnings() {
+        void warnLiteralEnvValues_emptyEnvNoWarnings_succeeds() {
             List<McpServerConfig> servers = List.of(
                     new McpServerConfig(
                             "s1", "https://mcp.test",
@@ -269,7 +269,7 @@ class GithubMcpAssemblerTest {
         @Test
         @DisplayName("generates copilot-mcp.json"
                 + " with valid structure")
-        void generatesValidJson(
+        void assemble_whenCalled_generatesValidJson(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -316,7 +316,7 @@ class GithubMcpAssemblerTest {
 
         @Test
         @DisplayName("JSON has 2-space indentation")
-        void jsonHas2SpaceIndent(
+        void assemble_json_has2SpaceIndent(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -348,7 +348,7 @@ class GithubMcpAssemblerTest {
 
         @Test
         @DisplayName("JSON has trailing newline")
-        void jsonHasTrailingNewline(
+        void assemble_json_hasTrailingNewline(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -380,7 +380,7 @@ class GithubMcpAssemblerTest {
         @Test
         @DisplayName("server without capabilities"
                 + " omits capabilities key")
-        void serverWithoutCapabilities(
+        void assemble_whenCalled_serverWithoutCapabilities(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -413,7 +413,7 @@ class GithubMcpAssemblerTest {
         @Test
         @DisplayName("server without env omits"
                 + " env key")
-        void serverWithoutEnv(
+        void assemble_whenCalled_serverWithoutEnv(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -447,7 +447,7 @@ class GithubMcpAssemblerTest {
         @Test
         @DisplayName("multiple servers serialized"
                 + " correctly")
-        void multipleServers(
+        void assemble_multipleServers_succeeds(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -494,7 +494,7 @@ class GithubMcpAssemblerTest {
 
         @Test
         @DisplayName("builds valid JSON structure")
-        void buildsValidStructure() {
+        void buildCopilotMcpJson_whenCalled_buildsValidStructure() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .addMcpServer(
@@ -529,7 +529,7 @@ class GithubMcpAssemblerTest {
         @Test
         @DisplayName("default constructor creates"
                 + " valid instance")
-        void defaultConstructor_createsInstance() {
+        void defaultConstructor_whenCalled_createsInstance() {
             GithubMcpAssembler assembler =
                     new GithubMcpAssembler();
 
@@ -539,7 +539,7 @@ class GithubMcpAssemblerTest {
         @Test
         @DisplayName("Path constructor creates"
                 + " valid instance")
-        void pathConstructor_createsInstance(
+        void pathConstructor_whenCalled_createsInstance(
                 @TempDir Path tempDir) {
             GithubMcpAssembler assembler =
                     new GithubMcpAssembler(tempDir);
@@ -550,7 +550,7 @@ class GithubMcpAssemblerTest {
         @Test
         @DisplayName("Path constructor assembles"
                 + " with custom resourcesDir")
-        void pathConstructor_assemblesCorrectly(
+        void pathConstructor_withCustomResourcesdir_assemblesCorrectly(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -587,7 +587,7 @@ class GithubMcpAssemblerTest {
         @Test
         @DisplayName("default constructor assembles"
                 + " identically to before")
-        void defaultConstructor_assemblesIdentically(
+        void defaultConstructor_whenCalled_assemblesIdentically(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -618,7 +618,7 @@ class GithubMcpAssemblerTest {
         @Test
         @DisplayName("assembleWithWarnings works"
                 + " with Path constructor")
-        void pathConstructor_assembleWithWarnings(
+        void pathConstructor_withPathConstructor_assembleWithWarnings(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -652,7 +652,7 @@ class GithubMcpAssemblerTest {
 
         @Test
         @DisplayName("immutable files and warnings")
-        void immutableCollections() {
+        void create_whenCalled_immutableCollections() {
             AssemblerResult result =
                     AssemblerResult.of(
                             List.of("file1"),
@@ -666,7 +666,7 @@ class GithubMcpAssemblerTest {
 
         @Test
         @DisplayName("empty result has empty lists")
-        void emptyResult() {
+        void create_emptyResult_succeeds() {
             AssemblerResult result =
                     AssemblerResult.empty();
 

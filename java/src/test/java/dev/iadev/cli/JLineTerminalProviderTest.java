@@ -310,7 +310,7 @@ class JLineTerminalProviderTest {
 
         @Test
         @DisplayName("display_writesMessage")
-        void display_writesMessage() {
+        void display_whenCalled_writesMessage() {
             var sw = new StringWriter();
             var pw = new PrintWriter(sw, true);
             var provider = createProviderWithWriter(pw);

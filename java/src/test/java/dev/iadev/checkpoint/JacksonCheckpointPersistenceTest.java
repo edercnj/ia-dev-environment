@@ -66,7 +66,7 @@ class JacksonCheckpointPersistenceTest {
     }
 
     @Test
-    void save_producesIndentedJson() throws Exception {
+    void save_whenCalled_producesIndentedJson() throws Exception {
         var state = createSampleState();
         var path = tempDir.resolve("formatted.json");
 
@@ -113,7 +113,7 @@ class JacksonCheckpointPersistenceTest {
     }
 
     @Test
-    void saveAndLoad_preservesStoryFields() {
+    void saveAndLoad_whenCalled_preservesStoryFields() {
         var original = createSampleState();
         var path = tempDir.resolve("execution-state.json");
 
@@ -134,7 +134,7 @@ class JacksonCheckpointPersistenceTest {
     }
 
     @Test
-    void saveAndLoad_preservesIntegrityGates() {
+    void saveAndLoad_whenCalled_preservesIntegrityGates() {
         var original = createSampleState();
         var path = tempDir.resolve("execution-state.json");
 
@@ -152,7 +152,7 @@ class JacksonCheckpointPersistenceTest {
     }
 
     @Test
-    void saveAndLoad_preservesInstantPrecision() {
+    void saveAndLoad_whenCalled_preservesInstantPrecision() {
         var instant = Instant.parse(
                 "2026-03-19T10:00:00.123Z"
         );
@@ -271,7 +271,7 @@ class JacksonCheckpointPersistenceTest {
     }
 
     @Test
-    void implementsCheckpointPersistenceInterface() {
+    void create_whenCalled_implementsCheckpointPersistenceInterface() {
         assertThat(persistence)
                 .isInstanceOf(CheckpointPersistence.class);
     }

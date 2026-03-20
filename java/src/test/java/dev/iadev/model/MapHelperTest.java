@@ -256,7 +256,7 @@ class MapHelperTest {
 
         @Test
         @DisplayName("returned list is immutable")
-        void optionalStringList_immutable() {
+        void optionalStringList_whenCalled_immutable() {
             var map = Map.<String, Object>of(
                     "items", List.of("a"));
 
@@ -291,7 +291,7 @@ class MapHelperTest {
 
         @Test
         @DisplayName("returned map is immutable")
-        void optionalStringMap_immutable() {
+        void optionalStringMap_whenCalled_immutable() {
             var map = Map.<String, Object>of(
                     "env", Map.of("K", "V"));
 

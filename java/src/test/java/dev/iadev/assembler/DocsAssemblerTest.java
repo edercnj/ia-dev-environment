@@ -30,7 +30,7 @@ class DocsAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void instanceOf_whenCreated_implementsAssemblerInterface() {
             DocsAssembler assembler =
                     new DocsAssembler();
 
@@ -46,7 +46,7 @@ class DocsAssemblerTest {
         @Test
         @DisplayName("generates service-architecture.md in"
                 + " architecture/ subdirectory")
-        void generatesServiceArchFile(
+        void assemble_whenCalled_generatesServiceArchFile(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -67,7 +67,7 @@ class DocsAssemblerTest {
 
         @Test
         @DisplayName("creates architecture/ subdirectory")
-        void createsArchitectureSubdir(
+        void assemble_whenCalled_createsArchitectureSubdir(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -87,7 +87,7 @@ class DocsAssemblerTest {
 
         @Test
         @DisplayName("resolves project_name variable")
-        void resolvesProjectName(
+        void assemble_whenCalled_resolvesProjectName(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -113,7 +113,7 @@ class DocsAssemblerTest {
         @Test
         @DisplayName("resolves language and framework"
                 + " variables")
-        void resolvesLanguageAndFramework(
+        void assemble_whenCalled_resolvesLanguageAndFramework(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -137,7 +137,7 @@ class DocsAssemblerTest {
 
         @Test
         @DisplayName("resolves architecture_style variable")
-        void resolvesArchStyle(
+        void assemble_whenCalled_resolvesArchStyle(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -160,7 +160,7 @@ class DocsAssemblerTest {
         @Test
         @DisplayName("no unresolved Pebble variables in"
                 + " output")
-        void noUnresolvedVariables(
+        void assemble_noUnresolvedVariables_succeeds(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -186,7 +186,7 @@ class DocsAssemblerTest {
 
         @Test
         @DisplayName("returns file path in result list")
-        void returnsFilePath(
+        void assemble_whenCalled_returnsFilePath(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -212,7 +212,7 @@ class DocsAssemblerTest {
         @Test
         @DisplayName("returns empty list when template"
                 + " file absent")
-        void returnsEmptyWhenTemplateAbsent(
+        void assemble_whenCalled_returnsEmptyWhenTemplateAbsent(
                 @TempDir Path tempDir) {
             Path resourcesDir =
                     tempDir.resolve("nonexistent");
@@ -233,7 +233,7 @@ class DocsAssemblerTest {
         @Test
         @DisplayName("does not create output directory"
                 + " when template absent")
-        void doesNotCreateOutputDir(
+        void assemble_whenCalled_doesNotCreateOutputDir(
                 @TempDir Path tempDir) {
             Path resourcesDir =
                     tempDir.resolve("nonexistent");
@@ -258,7 +258,7 @@ class DocsAssemblerTest {
         @Test
         @DisplayName("uses engine.render not"
                 + " replacePlaceholders")
-        void usesRenderNotReplace(
+        void assemble_whenCalled_usesRenderNotReplace(
                 @TempDir Path tempDir)
                 throws IOException {
             Path templatesDir =

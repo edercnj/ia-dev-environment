@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class FatJarContentTest {
 
     @Test
-    void manifest_containsMainClass() throws IOException {
+    void manifest_whenCalled_containsMainClass() throws IOException {
         try (InputStream is = getClass().getClassLoader()
                 .getResourceAsStream(
                         "META-INF/MANIFEST.MF")) {
@@ -38,35 +38,35 @@ class FatJarContentTest {
     }
 
     @Test
-    void configTemplates_javaQuarkusExists() {
+    void configTemplates_whenCalled_javaQuarkusExists() {
         assertResourceExists(
                 "config-templates/"
                         + "setup-config.java-quarkus.yaml");
     }
 
     @Test
-    void configTemplates_javaSpringExists() {
+    void configTemplates_whenCalled_javaSpringExists() {
         assertResourceExists(
                 "config-templates/"
                         + "setup-config.java-spring.yaml");
     }
 
     @Test
-    void configTemplates_goGinExists() {
+    void configTemplates_whenCalled_goGinExists() {
         assertResourceExists(
                 "config-templates/"
                         + "setup-config.go-gin.yaml");
     }
 
     @Test
-    void configTemplates_kotlinKtorExists() {
+    void configTemplates_whenCalled_kotlinKtorExists() {
         assertResourceExists(
                 "config-templates/"
                         + "setup-config.kotlin-ktor.yaml");
     }
 
     @Test
-    void configTemplates_pythonFastapiExists() {
+    void configTemplates_whenCalled_pythonFastapiExists() {
         assertResourceExists(
                 "config-templates/"
                         + "setup-config.python-fastapi"
@@ -74,7 +74,7 @@ class FatJarContentTest {
     }
 
     @Test
-    void configTemplates_pythonClickCliExists() {
+    void configTemplates_whenCalled_pythonClickCliExists() {
         assertResourceExists(
                 "config-templates/"
                         + "setup-config.python-click-cli"
@@ -82,14 +82,14 @@ class FatJarContentTest {
     }
 
     @Test
-    void configTemplates_rustAxumExists() {
+    void configTemplates_whenCalled_rustAxumExists() {
         assertResourceExists(
                 "config-templates/"
                         + "setup-config.rust-axum.yaml");
     }
 
     @Test
-    void configTemplates_typescriptNestjsExists() {
+    void configTemplates_whenCalled_typescriptNestjsExists() {
         assertResourceExists(
                 "config-templates/"
                         + "setup-config"
@@ -97,7 +97,7 @@ class FatJarContentTest {
     }
 
     @Test
-    void configTemplates_typescriptCommanderExists() {
+    void configTemplates_whenCalled_typescriptCommanderExists() {
         assertResourceExists(
                 "config-templates/"
                         + "setup-config"
@@ -106,54 +106,54 @@ class FatJarContentTest {
     }
 
     @Test
-    void templates_projectIdentityExists() {
+    void templates_whenCalled_projectIdentityExists() {
         assertResourceExists(
                 "templates/project-identity-template.md");
     }
 
     @Test
-    void templates_domainTemplateExists() {
+    void templates_whenCalled_domainTemplateExists() {
         assertResourceExists(
                 "templates/domain-template.md");
     }
 
     @Test
-    void templates_epicTemplateExists() {
+    void templates_whenCalled_epicTemplateExists() {
         assertResourceExists(
                 "templates/_TEMPLATE-EPIC.md");
     }
 
     @Test
-    void templates_storyTemplateExists() {
+    void templates_whenCalled_storyTemplateExists() {
         assertResourceExists(
                 "templates/_TEMPLATE-STORY.md");
     }
 
     @Test
-    void templates_systemSpecsExists() {
+    void templates_whenCalled_systemSpecsExists() {
         assertResourceExists(
                 "templates/SYSTEM_SPECS.md");
     }
 
     @Test
-    void coreRules_exist() {
+    void coreRules_whenCalled_exist() {
         assertResourceExists(
                 "core-rules/01-project-identity.md");
     }
 
     @Test
-    void settingsTemplates_exist() {
+    void settingsTemplates_whenCalled_exist() {
         assertResourceExists(
                 "settings-templates/base.json");
     }
 
     @Test
-    void logback_configExists() {
+    void logback_whenCalled_configExists() {
         assertResourceExists("logback.xml");
     }
 
     @Test
-    void nativeImage_reflectConfigExists() {
+    void nativeImage_whenCalled_reflectConfigExists() {
         assertResourceExists(
                 "META-INF/native-image/"
                         + "dev.iadev/ia-dev-env/"
@@ -161,7 +161,7 @@ class FatJarContentTest {
     }
 
     @Test
-    void nativeImage_resourceConfigExists() {
+    void nativeImage_whenCalled_resourceConfigExists() {
         assertResourceExists(
                 "META-INF/native-image/"
                         + "dev.iadev/ia-dev-env/"

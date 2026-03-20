@@ -15,14 +15,14 @@ class PatternMappingTest {
 
         @Test
         @DisplayName("UNIVERSAL_PATTERNS has architectural and data")
-        void universalPatterns_twoEntries() {
+        void universalPatterns_whenCalled_twoEntries() {
             assertThat(PatternMapping.UNIVERSAL_PATTERNS)
                     .containsExactly("architectural", "data");
         }
 
         @Test
         @DisplayName("ARCHITECTURE_PATTERNS has 4 entries")
-        void architecturePatterns_fourEntries() {
+        void architecturePatterns_whenCalled_fourEntries() {
             assertThat(PatternMapping.ARCHITECTURE_PATTERNS).hasSize(4);
         }
 
@@ -44,7 +44,7 @@ class PatternMappingTest {
 
         @Test
         @DisplayName("EVENT_DRIVEN_PATTERNS has 4 entries")
-        void eventDrivenPatterns_fourEntries() {
+        void eventDrivenPatterns_whenCalled_fourEntries() {
             assertThat(PatternMapping.EVENT_DRIVEN_PATTERNS).hasSize(4);
             assertThat(PatternMapping.EVENT_DRIVEN_PATTERNS)
                     .contains("saga-pattern", "outbox-pattern",
@@ -139,7 +139,7 @@ class PatternMappingTest {
 
         @Test
         @DisplayName("result is sorted")
-        void selectPatterns_sorted() {
+        void selectPatterns_whenCalled_sorted() {
             var config = new TestProjectConfigBuilder()
                     .architectureStyle("microservice")
                     .eventDriven(true)
@@ -152,7 +152,7 @@ class PatternMappingTest {
 
         @Test
         @DisplayName("result is deduplicated")
-        void selectPatterns_deduplicated() {
+        void selectPatterns_whenCalled_deduplicated() {
             var config = new TestProjectConfigBuilder()
                     .architectureStyle("microservice")
                     .build();

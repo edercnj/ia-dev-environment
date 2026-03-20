@@ -254,7 +254,7 @@ class JsonHelpersTest {
 
         @Test
         @DisplayName("class is final")
-        void classFinal() {
+        void utility_whenCalled_classFinal() {
             assertThat(
                     java.lang.reflect.Modifier.isFinal(
                             JsonHelpers.class

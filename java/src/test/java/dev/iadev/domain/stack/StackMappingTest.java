@@ -186,14 +186,14 @@ class StackMappingTest {
 
         @Test
         @DisplayName("quarkus has /q/health")
-        void frameworkHealthPaths_quarkus() {
+        void frameworkHealthPaths_whenCalled_quarkus() {
             assertThat(StackMapping.FRAMEWORK_HEALTH_PATHS.get("quarkus"))
                     .isEqualTo("/q/health");
         }
 
         @Test
         @DisplayName("spring-boot has /actuator/health")
-        void frameworkHealthPaths_springBoot() {
+        void frameworkHealthPaths_whenCalled_springBoot() {
             assertThat(StackMapping.FRAMEWORK_HEALTH_PATHS.get("spring-boot"))
                     .isEqualTo("/actuator/health");
         }
@@ -222,42 +222,42 @@ class StackMappingTest {
 
         @Test
         @DisplayName("quarkus accepts java and kotlin")
-        void frameworkLanguageRules_quarkus() {
+        void frameworkLanguageRules_whenCalled_quarkus() {
             assertThat(StackMapping.FRAMEWORK_LANGUAGE_RULES.get("quarkus"))
                     .containsExactly("java", "kotlin");
         }
 
         @Test
         @DisplayName("nestjs requires typescript")
-        void frameworkLanguageRules_nestjs() {
+        void frameworkLanguageRules_whenCalled_nestjs() {
             assertThat(StackMapping.FRAMEWORK_LANGUAGE_RULES.get("nestjs"))
                     .containsExactly("typescript");
         }
 
         @Test
         @DisplayName("fastapi requires python")
-        void frameworkLanguageRules_fastapi() {
+        void frameworkLanguageRules_whenCalled_fastapi() {
             assertThat(StackMapping.FRAMEWORK_LANGUAGE_RULES.get("fastapi"))
                     .containsExactly("python");
         }
 
         @Test
         @DisplayName("gin requires go")
-        void frameworkLanguageRules_gin() {
+        void frameworkLanguageRules_whenCalled_gin() {
             assertThat(StackMapping.FRAMEWORK_LANGUAGE_RULES.get("gin"))
                     .containsExactly("go");
         }
 
         @Test
         @DisplayName("axum requires rust")
-        void frameworkLanguageRules_axum() {
+        void frameworkLanguageRules_whenCalled_axum() {
             assertThat(StackMapping.FRAMEWORK_LANGUAGE_RULES.get("axum"))
                     .containsExactly("rust");
         }
 
         @Test
         @DisplayName("aspnet requires csharp")
-        void frameworkLanguageRules_aspnet() {
+        void frameworkLanguageRules_whenCalled_aspnet() {
             assertThat(StackMapping.FRAMEWORK_LANGUAGE_RULES.get("aspnet"))
                     .containsExactly("csharp");
         }
@@ -269,14 +269,14 @@ class StackMappingTest {
 
         @Test
         @DisplayName("NATIVE_SUPPORTED_FRAMEWORKS has quarkus and spring-boot")
-        void nativeSupportedFrameworks_twoEntries() {
+        void nativeSupportedFrameworks_whenCalled_twoEntries() {
             assertThat(StackMapping.NATIVE_SUPPORTED_FRAMEWORKS)
                     .containsExactly("quarkus", "spring-boot");
         }
 
         @Test
         @DisplayName("VALID_INTERFACE_TYPES has 9 entries")
-        void validInterfaceTypes_nine() {
+        void validInterfaceTypes_whenCalled_nine() {
             assertThat(StackMapping.VALID_INTERFACE_TYPES).hasSize(9);
             assertThat(StackMapping.VALID_INTERFACE_TYPES)
                     .contains("rest", "grpc", "graphql", "websocket",
@@ -286,7 +286,7 @@ class StackMappingTest {
 
         @Test
         @DisplayName("VALID_ARCHITECTURE_STYLES has 5 entries")
-        void validArchitectureStyles_five() {
+        void validArchitectureStyles_whenCalled_five() {
             assertThat(StackMapping.VALID_ARCHITECTURE_STYLES).hasSize(5);
             assertThat(StackMapping.VALID_ARCHITECTURE_STYLES)
                     .contains("microservice", "modular-monolith",
@@ -295,33 +295,33 @@ class StackMappingTest {
 
         @Test
         @DisplayName("DEFAULT_PORT_FALLBACK is 8080")
-        void defaultPortFallback() {
+        void map_whenCalled_defaultPortFallback() {
             assertThat(StackMapping.DEFAULT_PORT_FALLBACK).isEqualTo(8080);
         }
 
         @Test
         @DisplayName("DEFAULT_HEALTH_PATH is /health")
-        void defaultHealthPath() {
+        void map_whenCalled_defaultHealthPath() {
             assertThat(StackMapping.DEFAULT_HEALTH_PATH)
                     .isEqualTo("/health");
         }
 
         @Test
         @DisplayName("DEFAULT_DOCKER_IMAGE is alpine:latest")
-        void defaultDockerImage() {
+        void map_whenCalled_defaultDockerImage() {
             assertThat(StackMapping.DEFAULT_DOCKER_IMAGE)
                     .isEqualTo("alpine:latest");
         }
 
         @Test
         @DisplayName("DOCKER_BASE_IMAGES has 7 entries")
-        void dockerBaseImages_seven() {
+        void dockerBaseImages_whenCalled_seven() {
             assertThat(StackMapping.DOCKER_BASE_IMAGES).hasSize(7);
         }
 
         @Test
         @DisplayName("INTERFACE_SPEC_PROTOCOL_MAP has 7 entries")
-        void interfaceSpecProtocolMap_seven() {
+        void interfaceSpecProtocolMap_whenCalled_seven() {
             assertThat(StackMapping.INTERFACE_SPEC_PROTOCOL_MAP).hasSize(7);
         }
     }

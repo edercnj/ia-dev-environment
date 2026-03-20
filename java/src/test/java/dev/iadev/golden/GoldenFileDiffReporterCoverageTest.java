@@ -27,7 +27,7 @@ class GoldenFileDiffReporterCoverageTest {
     @Test
     @DisplayName("content without trailing newline"
             + " produces diff")
-    void noTrailingNewline_producesDiff() {
+    void noTrailingNewline_whenCalled_producesDiff() {
         String diff = GoldenFileDiffReporter.generateDiff(
                 "test.md",
                 "line-without-newline",

@@ -27,7 +27,7 @@ class CicdContextTest {
         @Test
         @DisplayName("ctx map is immutable after"
                 + " construction")
-        void ctxIsImmutable() {
+        void create_whenCalled_ctxIsImmutable() {
             Map<String, Object> mutable =
                     new HashMap<>();
             mutable.put("key", "value");
@@ -51,7 +51,7 @@ class CicdContextTest {
         @Test
         @DisplayName("modifying original map does not"
                 + " affect context")
-        void originalMapModificationSafe() {
+        void create_whenCalled_originalMapModificationSafe() {
             Map<String, Object> mutable =
                     new HashMap<>();
             mutable.put("key", "original");
@@ -78,7 +78,7 @@ class CicdContextTest {
 
         @Test
         @DisplayName("returns all fields correctly")
-        void returnsAllFields() {
+        void create_whenCalled_returnsAllFields() {
             ProjectConfig config =
                     TestConfigBuilder.minimal();
             Path outputDir = Path.of("/tmp/out");

@@ -24,14 +24,14 @@ class SkillGroupRegistryTest {
 
         @Test
         @DisplayName("contains exactly 8 groups")
-        void containsEightGroups() {
+        void register_whenCalled_containsEightGroups() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS)
                     .hasSize(8);
         }
 
         @Test
         @DisplayName("contains all expected group names")
-        void containsExpectedGroupNames() {
+        void register_whenCalled_containsExpectedGroupNames() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
                     .keySet())
                     .containsExactly(
@@ -43,56 +43,56 @@ class SkillGroupRegistryTest {
 
         @Test
         @DisplayName("story group has 5 skills")
-        void storyGroupSize() {
+        void register_whenCalled_storyGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
                     .get("story")).hasSize(5);
         }
 
         @Test
         @DisplayName("dev group has 8 skills")
-        void devGroupSize() {
+        void register_whenCalled_devGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
                     .get("dev")).hasSize(8);
         }
 
         @Test
         @DisplayName("review group has 8 skills")
-        void reviewGroupSize() {
+        void register_whenCalled_reviewGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
                     .get("review")).hasSize(8);
         }
 
         @Test
         @DisplayName("testing group has 6 skills")
-        void testingGroupSize() {
+        void register_whenCalled_testingGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
                     .get("testing")).hasSize(6);
         }
 
         @Test
         @DisplayName("infrastructure group has 5 skills")
-        void infrastructureGroupSize() {
+        void register_whenCalled_infrastructureGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
                     .get("infrastructure")).hasSize(5);
         }
 
         @Test
         @DisplayName("knowledge-packs group has 9 skills")
-        void knowledgePacksGroupSize() {
+        void register_whenCalled_knowledgePacksGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
                     .get("knowledge-packs")).hasSize(9);
         }
 
         @Test
         @DisplayName("git-troubleshooting has 4 skills")
-        void gitTroubleshootingGroupSize() {
+        void register_whenCalled_gitTroubleshootingGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
                     .get("git-troubleshooting")).hasSize(4);
         }
 
         @Test
         @DisplayName("lib group has 3 skills")
-        void libGroupSize() {
+        void register_whenCalled_libGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
                     .get("lib")).hasSize(3);
         }
@@ -100,7 +100,7 @@ class SkillGroupRegistryTest {
         @Test
         @DisplayName("data matches GithubSkillsAssembler"
                 + " delegate")
-        void dataMatchesDelegate() {
+        void register_data_matchesDelegate() {
             assertThat(GithubSkillsAssembler.SKILL_GROUPS)
                     .isSameAs(
                             SkillGroupRegistry.SKILL_GROUPS);
@@ -113,7 +113,7 @@ class SkillGroupRegistryTest {
 
         @Test
         @DisplayName("contains exactly 5 conditions")
-        void containsFiveConditions() {
+        void register_whenCalled_containsFiveConditions() {
             assertThat(SkillGroupRegistry
                     .INFRA_SKILL_CONDITIONS)
                     .hasSize(5);
@@ -121,7 +121,7 @@ class SkillGroupRegistryTest {
 
         @Test
         @DisplayName("contains expected skill names")
-        void containsExpectedSkillNames() {
+        void register_whenCalled_containsExpectedSkillNames() {
             assertThat(SkillGroupRegistry
                     .INFRA_SKILL_CONDITIONS.keySet())
                     .containsExactly(
@@ -135,7 +135,7 @@ class SkillGroupRegistryTest {
         @Test
         @DisplayName("setup-environment requires"
                 + " non-none orchestrator")
-        void setupEnvironmentCondition() {
+        void register_whenCalled_setupEnvironmentCondition() {
             Predicate<ProjectConfig> cond =
                     SkillGroupRegistry
                             .INFRA_SKILL_CONDITIONS
@@ -150,7 +150,7 @@ class SkillGroupRegistryTest {
 
         @Test
         @DisplayName("k8s-deployment requires kubernetes")
-        void k8sDeploymentCondition() {
+        void register_whenCalled_k8sDeploymentCondition() {
             Predicate<ProjectConfig> cond =
                     SkillGroupRegistry
                             .INFRA_SKILL_CONDITIONS
@@ -166,7 +166,7 @@ class SkillGroupRegistryTest {
         @Test
         @DisplayName("dockerfile requires non-none"
                 + " container")
-        void dockerfileCondition() {
+        void register_whenCalled_dockerfileCondition() {
             Predicate<ProjectConfig> cond =
                     SkillGroupRegistry
                             .INFRA_SKILL_CONDITIONS
@@ -183,7 +183,7 @@ class SkillGroupRegistryTest {
 
         @Test
         @DisplayName("iac-terraform requires terraform")
-        void iacTerraformCondition() {
+        void register_whenCalled_iacTerraformCondition() {
             Predicate<ProjectConfig> cond =
                     SkillGroupRegistry
                             .INFRA_SKILL_CONDITIONS
@@ -199,7 +199,7 @@ class SkillGroupRegistryTest {
         @Test
         @DisplayName("data matches GithubSkillsAssembler"
                 + " delegate")
-        void dataMatchesDelegate() {
+        void register_data_matchesDelegate() {
             assertThat(GithubSkillsAssembler
                     .INFRA_SKILL_CONDITIONS)
                     .isSameAs(SkillGroupRegistry

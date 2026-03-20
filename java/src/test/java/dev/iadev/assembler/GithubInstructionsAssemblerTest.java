@@ -31,7 +31,7 @@ class GithubInstructionsAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void instanceOf_whenCreated_implementsAssemblerInterface() {
             GithubInstructionsAssembler assembler =
                     new GithubInstructionsAssembler();
 
@@ -47,7 +47,7 @@ class GithubInstructionsAssemblerTest {
 
         @Test
         @DisplayName("contains project identity header")
-        void containsIdentityHeader() {
+        void buildCopilotInstructions_whenCalled_containsIdentityHeader() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .projectName("my-project")
@@ -65,7 +65,7 @@ class GithubInstructionsAssemblerTest {
         @Test
         @DisplayName("contains Identity section"
                 + " with all fields")
-        void containsIdentitySection() {
+        void buildCopilotInstructions_whenCalled_containsIdentitySection() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .projectName("api-pagamentos")
@@ -101,7 +101,7 @@ class GithubInstructionsAssemblerTest {
 
         @Test
         @DisplayName("contains Technology Stack table")
-        void containsStackTable() {
+        void buildCopilotInstructions_whenCalled_containsStackTable() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .archStyle("microservice")
@@ -139,7 +139,7 @@ class GithubInstructionsAssemblerTest {
 
         @Test
         @DisplayName("contains Constraints section")
-        void containsConstraints() {
+        void buildCopilotInstructions_whenCalled_containsConstraints() {
             ProjectConfig config =
                     TestConfigBuilder.minimal();
 
@@ -159,7 +159,7 @@ class GithubInstructionsAssemblerTest {
         @Test
         @DisplayName("contains Contextual Instructions"
                 + " references")
-        void containsContextualRefs() {
+        void buildCopilotInstructions_whenCalled_containsContextualRefs() {
             ProjectConfig config =
                     TestConfigBuilder.minimal();
 
@@ -186,7 +186,7 @@ class GithubInstructionsAssemblerTest {
 
         @Test
         @DisplayName("ends with trailing newline")
-        void endsWithTrailingNewline() {
+        void buildCopilotInstructions_whenCalled_endsWithTrailingNewline() {
             ProjectConfig config =
                     TestConfigBuilder.minimal();
 
@@ -202,7 +202,7 @@ class GithubInstructionsAssemblerTest {
         @Test
         @DisplayName("framework version appended"
                 + " when present")
-        void frameworkVersionAppended() {
+        void buildCopilotInstructions_whenCalled_frameworkVersionAppended() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .framework("quarkus", "3.17")
@@ -220,7 +220,7 @@ class GithubInstructionsAssemblerTest {
         @Test
         @DisplayName("framework version omitted"
                 + " when empty")
-        void frameworkVersionOmitted() {
+        void buildCopilotInstructions_whenCalled_frameworkVersionOmitted() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .framework("axum", "")
@@ -242,7 +242,7 @@ class GithubInstructionsAssemblerTest {
 
         @Test
         @DisplayName("REST uppercased")
-        void restUppercased() {
+        void formatInterfaces_whenCalled_restUppercased() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .clearInterfaces()
@@ -258,7 +258,7 @@ class GithubInstructionsAssemblerTest {
 
         @Test
         @DisplayName("GRPC uppercased")
-        void grpcUppercased() {
+        void formatInterfaces_whenCalled_grpcUppercased() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .clearInterfaces()
@@ -275,7 +275,7 @@ class GithubInstructionsAssemblerTest {
         @Test
         @DisplayName("mixed interfaces formatted"
                 + " correctly")
-        void mixedInterfaces() {
+        void formatInterfaces_whenCalled_mixedInterfaces() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .clearInterfaces()
@@ -295,7 +295,7 @@ class GithubInstructionsAssemblerTest {
 
         @Test
         @DisplayName("empty interfaces returns none")
-        void emptyInterfacesReturnsNone() {
+        void formatInterfaces_emptyInterfaces_returnsNone() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .clearInterfaces()
@@ -316,7 +316,7 @@ class GithubInstructionsAssemblerTest {
         @Test
         @DisplayName("returns space-prefixed version"
                 + " when present")
-        void returnsVersionWithSpace() {
+        void assemble_withSpace_returnsVersion() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .framework("spring", "3.4")
@@ -333,7 +333,7 @@ class GithubInstructionsAssemblerTest {
         @Test
         @DisplayName("returns empty string when"
                 + " version empty")
-        void returnsEmptyWhenNoVersion() {
+        void assemble_whenNoVersion_returnsEmpty() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .framework("axum", "")
@@ -354,7 +354,7 @@ class GithubInstructionsAssemblerTest {
 
         @Test
         @DisplayName("replaces known placeholders")
-        void replacesKnownPlaceholders() {
+        void assemble_whenCalled_replacesKnownPlaceholders() {
             String content = "Hello {name}, v{version}";
             Map<String, String> context = Map.of(
                     "name", "world",
@@ -371,7 +371,7 @@ class GithubInstructionsAssemblerTest {
 
         @Test
         @DisplayName("preserves unknown placeholders")
-        void preservesUnknownPlaceholders() {
+        void assemble_whenCalled_preservesUnknownPlaceholders() {
             String content = "Value: {unknown}";
             Map<String, String> context = Map.of();
 
@@ -386,7 +386,7 @@ class GithubInstructionsAssemblerTest {
 
         @Test
         @DisplayName("does not match double braces")
-        void doesNotMatchDoubleBraces() {
+        void assemble_whenCalled_doesNotMatchDoubleBraces() {
             String content = "Keep {{this}} intact";
             Map<String, String> context = Map.of(
                     "this", "replaced");
@@ -407,7 +407,7 @@ class GithubInstructionsAssemblerTest {
 
         @Test
         @DisplayName("generates copilot-instructions.md")
-        void generatesCopilotInstructions(
+        void assemble_whenCalled_generatesCopilotInstructions(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -436,7 +436,7 @@ class GithubInstructionsAssemblerTest {
 
         @Test
         @DisplayName("generates 4 contextual files")
-        void generates4ContextualFiles(
+        void assemble_whenCalled_generates4ContextualFiles(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -471,7 +471,7 @@ class GithubInstructionsAssemblerTest {
         @Test
         @DisplayName("contextual files have"
                 + " placeholders replaced")
-        void contextualFilesHavePlaceholdersReplaced(
+        void assemble_whenCalled_contextualFilesHavePlaceholdersReplaced(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -503,7 +503,7 @@ class GithubInstructionsAssemblerTest {
         @Test
         @DisplayName("quality gates has coverage"
                 + " values replaced")
-        void qualityGatesCoverageReplaced(
+        void assemble_whenCalled_qualityGatesCoverageReplaced(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -538,7 +538,7 @@ class GithubInstructionsAssemblerTest {
         @Test
         @DisplayName("copilot-instructions.md matches"
                 + " golden file for rust-axum")
-        void copilotInstructionsMatchesGolden(
+        void assemble_copilotInstructions_matchesGolden(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -575,7 +575,7 @@ class GithubInstructionsAssemblerTest {
         @Test
         @DisplayName("domain.instructions.md matches"
                 + " golden file for rust-axum")
-        void domainInstructionsMatchesGolden(
+        void assemble_domainInstructions_matchesGolden(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -614,7 +614,7 @@ class GithubInstructionsAssemblerTest {
         @Test
         @DisplayName("coding-standards.instructions.md"
                 + " matches golden for rust-axum")
-        void codingStandardsMatchesGolden(
+        void assemble_codingStandards_matchesGolden(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -654,7 +654,7 @@ class GithubInstructionsAssemblerTest {
         @Test
         @DisplayName("architecture.instructions.md"
                 + " matches golden for rust-axum")
-        void architectureMatchesGolden(
+        void assemble_architecture_matchesGolden(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -694,7 +694,7 @@ class GithubInstructionsAssemblerTest {
         @Test
         @DisplayName("quality-gates.instructions.md"
                 + " matches golden for rust-axum")
-        void qualityGatesMatchesGolden(
+        void assemble_qualityGates_matchesGolden(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -754,7 +754,7 @@ class GithubInstructionsAssemblerTest {
         @Test
         @DisplayName("missing templates directory"
                 + " returns global file only")
-        void missingTemplatesReturnsGlobal(
+        void assemble_missingTemplates_returnsGlobal(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir =
@@ -781,7 +781,7 @@ class GithubInstructionsAssemblerTest {
         @Test
         @DisplayName("CONTEXTUAL_INSTRUCTIONS constant"
                 + " has 4 entries")
-        void contextualInstructionsHas4Entries() {
+        void assemble_contextualInstructions_has4Entries() {
             assertThat(GithubInstructionsAssembler
                     .CONTEXTUAL_INSTRUCTIONS)
                     .hasSize(4)

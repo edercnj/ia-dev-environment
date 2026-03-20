@@ -84,7 +84,7 @@ class ProgressFormatterTest {
         }
 
         @Test
-        void formatProgressBar_barHasExactly20Characters() {
+        void formatProgressBar_whenCalled_barHasExactly20Characters() {
             var result = ProgressFormatter
                     .formatProgressBar(7, 10);
 

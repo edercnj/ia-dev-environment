@@ -10,7 +10,7 @@ class PartialExecutionExceptionTest {
 
     @Test
     @DisplayName("carries message and storyId")
-    void constructor_carriesMessageAndStoryId() {
+    void constructor_whenCalled_carriesMessageAndStoryId() {
         var ex = new PartialExecutionException(
                 "Story executed partially", "story-0006-0003");
 
@@ -21,7 +21,7 @@ class PartialExecutionExceptionTest {
 
     @Test
     @DisplayName("extends RuntimeException")
-    void extendsRuntimeException() {
+    void create_whenCalled_extendsRuntimeException() {
         var ex = new PartialExecutionException(
                 "error", "story-id");
 
@@ -30,7 +30,7 @@ class PartialExecutionExceptionTest {
 
     @Test
     @DisplayName("toString includes storyId")
-    void toString_includesStoryId() {
+    void toString_whenCalled_includesStoryId() {
         var ex = new PartialExecutionException(
                 "Partial execution", "story-0006-0010");
 

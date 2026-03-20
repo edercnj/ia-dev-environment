@@ -27,7 +27,7 @@ class GlobalInstructionsAssemblerTest {
         @Test
         @DisplayName("generates copilot-instructions.md"
                 + " at output dir")
-        void generatesFile(@TempDir Path tempDir)
+        void assemble_whenCalled_generatesFile(@TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
             Files.createDirectories(outputDir);
@@ -60,7 +60,7 @@ class GlobalInstructionsAssemblerTest {
 
         @Test
         @DisplayName("builds all sections")
-        void buildsAllSections() {
+        void assemble_whenCalled_buildsAllSections() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .projectName("my-project")
@@ -87,7 +87,7 @@ class GlobalInstructionsAssemblerTest {
 
         @Test
         @DisplayName("REST uppercased")
-        void restUppercased() {
+        void assemble_whenCalled_restUppercased() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .clearInterfaces()
@@ -103,7 +103,7 @@ class GlobalInstructionsAssemblerTest {
 
         @Test
         @DisplayName("empty interfaces returns none")
-        void emptyReturnsNone() {
+        void assemble_empty_returnsNone() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .clearInterfaces()
@@ -123,7 +123,7 @@ class GlobalInstructionsAssemblerTest {
 
         @Test
         @DisplayName("returns space-prefixed version")
-        void returnsVersionWithSpace() {
+        void assemble_withSpace_returnsVersion() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .framework("spring", "3.4")
@@ -138,7 +138,7 @@ class GlobalInstructionsAssemblerTest {
 
         @Test
         @DisplayName("returns empty for null version")
-        void returnsEmptyForNull() {
+        void assemble_forNull_returnsEmpty() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .framework("axum", null)
@@ -153,7 +153,7 @@ class GlobalInstructionsAssemblerTest {
 
         @Test
         @DisplayName("returns empty for blank version")
-        void returnsEmptyForBlank() {
+        void assemble_forBlank_returnsEmpty() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .framework("axum", "")
@@ -173,7 +173,7 @@ class GlobalInstructionsAssemblerTest {
 
         @Test
         @DisplayName("capitalizes normal string")
-        void capitalizesNormalString() {
+        void capitalize_whenCalled_capitalizesNormalString() {
             assertThat(
                     GlobalInstructionsAssembler
                             .capitalize("docker"))
@@ -182,7 +182,7 @@ class GlobalInstructionsAssemblerTest {
 
         @Test
         @DisplayName("returns null for null input")
-        void returnsNullForNull() {
+        void capitalize_whenCalled_returnsNullForNull() {
             assertThat(
                     GlobalInstructionsAssembler
                             .capitalize(null))
@@ -191,7 +191,7 @@ class GlobalInstructionsAssemblerTest {
 
         @Test
         @DisplayName("returns empty for empty input")
-        void returnsEmptyForEmpty() {
+        void capitalize_whenCalled_returnsEmptyForEmpty() {
             assertThat(
                     GlobalInstructionsAssembler
                             .capitalize(""))

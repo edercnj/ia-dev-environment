@@ -490,7 +490,7 @@ class ConfigLoaderTest {
 
         @Test
         @DisplayName("contains the five required section names")
-        void requiredSections_containsFiveSections() {
+        void requiredSections_whenCalled_containsFiveSections() {
             assertThat(ConfigLoader.REQUIRED_SECTIONS)
                     .containsExactly("project", "architecture",
                             "interfaces", "language", "framework");

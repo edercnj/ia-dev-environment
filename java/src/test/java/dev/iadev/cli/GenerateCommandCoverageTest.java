@@ -38,7 +38,7 @@ class GenerateCommandCoverageTest {
         @DisplayName(
                 "incompatible config returns validation"
                         + " error with printed errors")
-        void incompatibleConfig_returnsValidation()
+        void incompatibleConfig_whenCalled_returnsValidation()
                 throws IOException {
             String config = """
                     project:
@@ -84,7 +84,7 @@ class GenerateCommandCoverageTest {
         @DisplayName(
                 "incompatible config prints each"
                         + " error with dash prefix")
-        void incompatibleConfig_printsErrors()
+        void incompatibleConfig_whenCalled_printsErrors()
                 throws IOException {
             String config = """
                     project:
@@ -130,7 +130,7 @@ class GenerateCommandCoverageTest {
         @DisplayName(
                 "verbose with config file shows"
                         + " loading message")
-        void verboseConfig_showsLoadingMessage()
+        void verboseConfig_whenCalled_showsLoadingMessage()
                 throws IOException {
             String config = """
                     project:

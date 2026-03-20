@@ -102,7 +102,7 @@ class NativeImageConfigTest {
 
         @Test
         @DisplayName("picocliEntries_haveFullReflectionAccess")
-        void picocliEntries_haveFullReflectionAccess()
+        void picocliEntries_whenCalled_haveFullReflectionAccess()
                 throws IOException {
             List<Map<String, Object>> entries = loadEntries();
             List<String> picocliClasses = List.of(
@@ -131,7 +131,7 @@ class NativeImageConfigTest {
 
         @Test
         @DisplayName("referencedClasses_existOnClasspath")
-        void referencedClasses_existOnClasspath()
+        void referencedClasses_whenCalled_existOnClasspath()
                 throws IOException {
             Set<String> classNames = extractClassNames();
             for (String className : classNames) {

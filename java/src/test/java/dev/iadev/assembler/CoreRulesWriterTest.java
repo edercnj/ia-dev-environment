@@ -31,7 +31,7 @@ class CoreRulesWriterTest {
         @Test
         @DisplayName("copies core rule files with"
                 + " placeholder replacement")
-        void copiesWithPlaceholders(
+        void write_withPlaceholders_copies(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path coreRules =
@@ -62,7 +62,7 @@ class CoreRulesWriterTest {
 
         @Test
         @DisplayName("missing core-rules dir returns empty")
-        void missingDirReturnsEmpty(
+        void write_missingDir_returnsEmpty(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(resourceDir);
@@ -86,7 +86,7 @@ class CoreRulesWriterTest {
 
         @Test
         @DisplayName("missing core dir returns empty")
-        void missingCoreDirReturnsEmpty(
+        void write_missingCoreDir_returnsEmpty(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(resourceDir);
@@ -108,7 +108,7 @@ class CoreRulesWriterTest {
         @Test
         @DisplayName("core dir present but no route source"
                 + " files skips")
-        void missingRouteSourceSkips(
+        void write_missingRouteSource_skips(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path coreDir = resourceDir.resolve("core");
@@ -134,7 +134,7 @@ class CoreRulesWriterTest {
         @Test
         @DisplayName("route source is a directory not file"
                 + " triggers continue")
-        void routeSourceIsDirectorySkips(
+        void write_routeSourceIsDirectory_skips(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path coreDir = resourceDir.resolve("core");
@@ -167,7 +167,7 @@ class CoreRulesWriterTest {
 
         @Test
         @DisplayName("generates 01-project-identity.md")
-        void generatesFile(
+        void write_whenCalled_generatesFile(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(resourceDir);
@@ -200,7 +200,7 @@ class CoreRulesWriterTest {
 
         @Test
         @DisplayName("copies from template when present")
-        void copiesFromTemplate(
+        void write_whenCalled_copiesFromTemplate(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path templates =
@@ -231,7 +231,7 @@ class CoreRulesWriterTest {
 
         @Test
         @DisplayName("uses fallback when template missing")
-        void usesFallback(
+        void write_whenCalled_usesFallback(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(resourceDir);
@@ -264,7 +264,7 @@ class CoreRulesWriterTest {
         @Test
         @DisplayName("minimal config returns empty"
                 + " conditionals")
-        void minimalConfigReturnsEmpty(
+        void write_minimalConfig_returnsEmpty(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(resourceDir);

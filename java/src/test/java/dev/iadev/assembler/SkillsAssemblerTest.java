@@ -29,7 +29,7 @@ class SkillsAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void instanceOf_whenCreated_implementsAssemblerInterface() {
             SkillsAssembler assembler =
                     new SkillsAssembler();
 
@@ -45,7 +45,7 @@ class SkillsAssemblerTest {
         @Test
         @DisplayName("generates core skill directories"
                 + " with SKILL.md")
-        void generatesCoreSkillsWithSkillMd(
+        void assemble_whenCalled_generatesCoreSkillsWithSkillMd(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -88,7 +88,7 @@ class SkillsAssemblerTest {
 
         @Test
         @DisplayName("generates lib sub-skills")
-        void generatesLibSubSkills(
+        void assemble_whenCalled_generatesLibSubSkills(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -110,7 +110,7 @@ class SkillsAssemblerTest {
 
         @Test
         @DisplayName("core skill references are copied")
-        void coreSkillReferencesAreCopied(
+        void assemble_coreSkillReferences_areCopied(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -131,7 +131,7 @@ class SkillsAssemblerTest {
 
         @Test
         @DisplayName("returned list is not empty")
-        void returnedListNotEmpty(
+        void assemble_whenCalled_returnedListNotEmpty(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -156,7 +156,7 @@ class SkillsAssemblerTest {
         @Test
         @DisplayName("config with REST generates"
                 + " x-review-api skill")
-        void restConfigGeneratesApiReviewSkill(
+        void assemble_restConfig_generatesApiReviewSkill(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -180,7 +180,7 @@ class SkillsAssemblerTest {
         @Test
         @DisplayName("config with gRPC generates"
                 + " x-review-grpc skill")
-        void grpcConfigGeneratesGrpcReviewSkill(
+        void assemble_grpcConfig_generatesGrpcReviewSkill(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -204,7 +204,7 @@ class SkillsAssemblerTest {
         @Test
         @DisplayName("config without REST does not"
                 + " generate x-review-api")
-        void noRestExcludesApiReviewSkill(
+        void assemble_noRest_excludesApiReviewSkill(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -228,7 +228,7 @@ class SkillsAssemblerTest {
         @Test
         @DisplayName("config without database does not"
                 + " generate database conditional skills")
-        void noDatabaseExcludesDbSkills(
+        void assemble_noDatabase_excludesDbSkills(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -261,7 +261,7 @@ class SkillsAssemblerTest {
 
         @Test
         @DisplayName("generates all core knowledge packs")
-        void generatesAllCoreKnowledgePacks(
+        void assemble_whenCalled_generatesAllCoreKnowledgePacks(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -317,7 +317,7 @@ class SkillsAssemblerTest {
         @Test
         @DisplayName("generates stack patterns for"
                 + " known framework")
-        void generatesStackPatternsForKnownFramework(
+        void assemble_whenCalled_generatesStackPatternsForKnownFramework(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -340,7 +340,7 @@ class SkillsAssemblerTest {
         @Test
         @DisplayName("generates infra patterns when"
                 + " container is not none")
-        void generatesDockerfileWhenContainerSet(
+        void assemble_whenCalled_generatesDockerfileWhenContainerSet(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -363,7 +363,7 @@ class SkillsAssemblerTest {
         @Test
         @DisplayName("generates k8s-deployment when"
                 + " orchestrator is kubernetes")
-        void generatesK8sDeployment(
+        void assemble_whenCalled_generatesK8sDeployment(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -386,7 +386,7 @@ class SkillsAssemblerTest {
         @Test
         @DisplayName("database-patterns included when"
                 + " database not none")
-        void databasePatternsIncludedWithDatabase(
+        void assemble_whenCalled_databasePatternsIncludedWithDatabase(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -409,7 +409,7 @@ class SkillsAssemblerTest {
         @Test
         @DisplayName("database-patterns excluded when"
                 + " database is none")
-        void databasePatternsExcludedWithoutDatabase(
+        void assemble_whenCalled_databasePatternsExcludedWithoutDatabase(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -436,7 +436,7 @@ class SkillsAssemblerTest {
         @Test
         @DisplayName("core skill SKILL.md matches golden"
                 + " file for java-quarkus profile")
-        void coreSkillMatchesGoldenFile(
+        void golden_coreSkill_matchesGoldenFile(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -466,7 +466,7 @@ class SkillsAssemblerTest {
         @Test
         @DisplayName("knowledge pack SKILL.md matches"
                 + " golden file")
-        void kpMatchesGoldenFile(
+        void golden_kp_matchesGoldenFile(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -516,7 +516,7 @@ class SkillsAssemblerTest {
         @Test
         @DisplayName("custom resourcesDir with empty"
                 + " skills-templates returns empty list")
-        void emptyResourcesReturnsEmpty(
+        void assemble_emptyResources_returnsEmpty(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
@@ -540,7 +540,7 @@ class SkillsAssemblerTest {
         @Test
         @DisplayName("selectCoreSkills returns empty when"
                 + " core dir missing")
-        void selectCoreSkillsEmptyWhenCoreMissing(
+        void assemble_whenCalled_selectCoreSkillsEmptyWhenCoreMissing(
                 @TempDir Path tempDir) {
             Path resourceDir = tempDir.resolve("res");
             SkillsAssembler assembler =
@@ -555,7 +555,7 @@ class SkillsAssemblerTest {
         @Test
         @DisplayName("conditional skill not found in"
                 + " resources is skipped")
-        void conditionalSkillNotFoundIsSkipped(
+        void assemble_conditionalSkillNotFound_isSkipped(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
@@ -583,7 +583,7 @@ class SkillsAssemblerTest {
         @Test
         @DisplayName("knowledge pack not found in"
                 + " resources is skipped")
-        void knowledgePackNotFoundIsSkipped(
+        void assemble_knowledgePackNotFound_isSkipped(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
@@ -612,7 +612,7 @@ class SkillsAssemblerTest {
         @Test
         @DisplayName("stack patterns skipped when"
                 + " framework not mapped")
-        void stackPatternsSkippedWhenNotMapped(
+        void assemble_whenCalled_stackPatternsSkippedWhenNotMapped(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -637,7 +637,7 @@ class SkillsAssemblerTest {
         @Test
         @DisplayName("copyNonSkillItems copies files and"
                 + " directories from KP")
-        void copyNonSkillItemsFromKp(
+        void assemble_whenCalled_copyNonSkillItemsFromKp(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
@@ -691,7 +691,7 @@ class SkillsAssemblerTest {
         @Test
         @DisplayName("infra patterns skipped when dir"
                 + " does not exist")
-        void infraPatternsSkippedWhenDirMissing(
+        void assemble_whenCalled_infraPatternsSkippedWhenDirMissing(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");

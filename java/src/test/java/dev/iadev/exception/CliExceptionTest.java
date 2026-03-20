@@ -11,7 +11,7 @@ class CliExceptionTest {
 
     @Test
     @DisplayName("carries message and errorCode")
-    void constructor_carriesMessageAndErrorCode() {
+    void constructor_whenCalled_carriesMessageAndErrorCode() {
         var ex = new CliException("Invalid argument", 1);
 
         assertThat(ex.getMessage()).isEqualTo("Invalid argument");
@@ -20,7 +20,7 @@ class CliExceptionTest {
 
     @Test
     @DisplayName("extends RuntimeException")
-    void extendsRuntimeException() {
+    void create_whenCalled_extendsRuntimeException() {
         var ex = new CliException("error", 1);
 
         assertThat(ex).isInstanceOf(RuntimeException.class);
@@ -28,7 +28,7 @@ class CliExceptionTest {
 
     @Test
     @DisplayName("errorCode 1 for usage errors")
-    void errorCode1_usageError() {
+    void errorCode1_forUsageErrors_usageError() {
         var ex = new CliException("Missing required flag", 1);
 
         assertThat(ex.getErrorCode()).isEqualTo(1);
@@ -36,7 +36,7 @@ class CliExceptionTest {
 
     @Test
     @DisplayName("errorCode 2 for execution errors")
-    void errorCode2_executionError() {
+    void errorCode2_forExecutionErrors_executionError() {
         var ex = new CliException("Generation failed", 2);
 
         assertThat(ex.getErrorCode()).isEqualTo(2);
@@ -44,7 +44,7 @@ class CliExceptionTest {
 
     @Test
     @DisplayName("toString includes errorCode")
-    void toString_includesErrorCode() {
+    void toString_whenCalled_includesErrorCode() {
         var ex = new CliException("Invalid argument", 1);
 
         assertThat(ex.toString())
@@ -55,7 +55,7 @@ class CliExceptionTest {
 
     @Test
     @DisplayName("is catchable as RuntimeException")
-    void catchableAsRuntimeException() {
+    void create_whenCalled_catchableAsRuntimeException() {
         Throwable thrown = catchThrowable(() -> {
             throw new CliException("test", 1);
         });

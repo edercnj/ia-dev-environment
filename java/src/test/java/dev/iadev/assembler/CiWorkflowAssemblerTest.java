@@ -26,7 +26,7 @@ class CiWorkflowAssemblerTest {
         @Test
         @DisplayName("generates ci.yml in"
                 + " .github/workflows")
-        void generatesCiYml(@TempDir Path tempDir) {
+        void assemble_whenCalled_generatesCiYml(@TempDir Path tempDir) {
             CiWorkflowAssembler assembler =
                     new CiWorkflowAssembler();
             ProjectConfig config = TestConfigBuilder
@@ -52,7 +52,7 @@ class CiWorkflowAssemblerTest {
 
         @Test
         @DisplayName("ci.yml file exists on disk")
-        void ciYmlExistsOnDisk(@TempDir Path tempDir) {
+        void assemble_whenCalled_ciYmlExistsOnDisk(@TempDir Path tempDir) {
             CiWorkflowAssembler assembler =
                     new CiWorkflowAssembler();
             ProjectConfig config = TestConfigBuilder

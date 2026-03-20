@@ -22,7 +22,7 @@ class OverwriteDetectorTest {
 
         @Test
         @DisplayName("returns empty list for empty directory")
-        void emptyDirectory_returnsEmptyList(@TempDir Path tempDir) {
+        void emptyDirectory_whenCalled_returnsEmptyList(@TempDir Path tempDir) {
             List<String> conflicts =
                     OverwriteDetector.checkExistingArtifacts(tempDir);
 
@@ -31,7 +31,7 @@ class OverwriteDetectorTest {
 
         @Test
         @DisplayName("returns empty list for non-existing directory")
-        void nonExistingDir_returnsEmptyList(@TempDir Path tempDir) {
+        void nonExistingDir_forNonExistingdirectory_returnsemptylist(@TempDir Path tempDir) {
             Path nonExisting = tempDir.resolve("does-not-exist");
 
             List<String> conflicts =
@@ -42,7 +42,7 @@ class OverwriteDetectorTest {
 
         @Test
         @DisplayName("detects .claude/ directory")
-        void detectsClaude(@TempDir Path tempDir) throws IOException {
+        void detect_whenCalled_detectsClaude(@TempDir Path tempDir) throws IOException {
             Files.createDirectories(tempDir.resolve(".claude"));
 
             List<String> conflicts =
@@ -53,7 +53,7 @@ class OverwriteDetectorTest {
 
         @Test
         @DisplayName("detects .github/ directory")
-        void detectsGithub(@TempDir Path tempDir) throws IOException {
+        void detect_whenCalled_detectsGithub(@TempDir Path tempDir) throws IOException {
             Files.createDirectories(tempDir.resolve(".github"));
 
             List<String> conflicts =
@@ -64,7 +64,7 @@ class OverwriteDetectorTest {
 
         @Test
         @DisplayName("detects .codex/ directory")
-        void detectsCodex(@TempDir Path tempDir) throws IOException {
+        void detect_whenCalled_detectsCodex(@TempDir Path tempDir) throws IOException {
             Files.createDirectories(tempDir.resolve(".codex"));
 
             List<String> conflicts =
@@ -75,7 +75,7 @@ class OverwriteDetectorTest {
 
         @Test
         @DisplayName("detects .agents/ directory")
-        void detectsAgents(@TempDir Path tempDir) throws IOException {
+        void detect_whenCalled_detectsAgents(@TempDir Path tempDir) throws IOException {
             Files.createDirectories(tempDir.resolve(".agents"));
 
             List<String> conflicts =
@@ -86,7 +86,7 @@ class OverwriteDetectorTest {
 
         @Test
         @DisplayName("detects docs/ directory")
-        void detectsDocs(@TempDir Path tempDir) throws IOException {
+        void detect_whenCalled_detectsDocs(@TempDir Path tempDir) throws IOException {
             Files.createDirectories(tempDir.resolve("docs"));
 
             List<String> conflicts =
@@ -97,7 +97,7 @@ class OverwriteDetectorTest {
 
         @Test
         @DisplayName("detects multiple conflicting directories")
-        void multipleConflicts_detected(@TempDir Path tempDir)
+        void multipleConflicts_whenCalled_detected(@TempDir Path tempDir)
                 throws IOException {
             Files.createDirectories(tempDir.resolve(".claude"));
             Files.createDirectories(tempDir.resolve(".github"));
@@ -111,7 +111,7 @@ class OverwriteDetectorTest {
 
         @Test
         @DisplayName("detects all five artifact directories")
-        void allFive_detected(@TempDir Path tempDir) throws IOException {
+        void allFive_whenCalled_detected(@TempDir Path tempDir) throws IOException {
             Files.createDirectories(tempDir.resolve(".claude"));
             Files.createDirectories(tempDir.resolve(".github"));
             Files.createDirectories(tempDir.resolve(".codex"));
@@ -129,7 +129,7 @@ class OverwriteDetectorTest {
 
         @Test
         @DisplayName("ignores regular files, only detects directories")
-        void regularFiles_ignored(@TempDir Path tempDir)
+        void regularFiles_whenCalled_ignored(@TempDir Path tempDir)
                 throws IOException {
             Files.writeString(tempDir.resolve(".claude"), "not a dir");
 
@@ -141,7 +141,7 @@ class OverwriteDetectorTest {
 
         @Test
         @DisplayName("ignores unrelated directories")
-        void unrelatedDirs_ignored(@TempDir Path tempDir)
+        void unrelatedDirs_whenCalled_ignored(@TempDir Path tempDir)
                 throws IOException {
             Files.createDirectories(tempDir.resolve("src"));
             Files.createDirectories(tempDir.resolve("lib"));
@@ -159,7 +159,7 @@ class OverwriteDetectorTest {
 
         @Test
         @DisplayName("returns empty string for empty conflict list")
-        void emptyList_returnsEmptyString() {
+        void emptyList_whenCalled_returnsEmptyString() {
             String message = OverwriteDetector.formatConflictMessage(
                     Collections.emptyList());
 
@@ -168,7 +168,7 @@ class OverwriteDetectorTest {
 
         @Test
         @DisplayName("formats single conflict with --force suggestion")
-        void singleConflict_formatsWithForce() {
+        void singleConflict_formatsWithForce_succeeds() {
             String message = OverwriteDetector.formatConflictMessage(
                     List.of(".claude/"));
 
@@ -179,7 +179,7 @@ class OverwriteDetectorTest {
 
         @Test
         @DisplayName("formats multiple conflicts with all listed")
-        void multipleConflicts_allListed() {
+        void multipleConflicts_withAllListed_allListed() {
             String message = OverwriteDetector.formatConflictMessage(
                     List.of(".claude/", ".github/"));
 
@@ -190,7 +190,7 @@ class OverwriteDetectorTest {
 
         @Test
         @DisplayName("each conflict appears on its own line")
-        void conflicts_eachOnOwnLine() {
+        void conflicts_whenCalled_eachOnOwnLine() {
             String message = OverwriteDetector.formatConflictMessage(
                     List.of(".claude/", ".github/", "docs/"));
 
@@ -201,7 +201,7 @@ class OverwriteDetectorTest {
 
         @Test
         @DisplayName("message uses LF line endings only")
-        void lfLineEndings() {
+        void detect_whenCalled_lfLineEndings() {
             String message = OverwriteDetector.formatConflictMessage(
                     List.of(".claude/"));
 

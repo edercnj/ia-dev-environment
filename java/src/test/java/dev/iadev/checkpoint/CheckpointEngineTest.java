@@ -86,7 +86,7 @@ class CheckpointEngineTest {
     }
 
     @Test
-    void saveAndLoad_preservesStoryFields() {
+    void saveAndLoad_whenCalled_preservesStoryFields() {
         var original = createSampleState();
         var path = tempDir.resolve("execution-state.json");
 
@@ -105,7 +105,7 @@ class CheckpointEngineTest {
     }
 
     @Test
-    void saveAndLoad_preservesIntegrityGates() {
+    void saveAndLoad_whenCalled_preservesIntegrityGates() {
         var original = createSampleState();
         var path = tempDir.resolve("execution-state.json");
 
@@ -123,7 +123,7 @@ class CheckpointEngineTest {
     }
 
     @Test
-    void saveAndLoad_preservesInstantPrecision() {
+    void saveAndLoad_whenCalled_preservesInstantPrecision() {
         var instant = Instant.parse("2026-03-19T10:00:00.123Z");
         var stories = Map.of(
                 "s1", StoryEntry.pending(0)
@@ -142,7 +142,7 @@ class CheckpointEngineTest {
     }
 
     @Test
-    void save_producesIndentedJson() throws Exception {
+    void save_whenCalled_producesIndentedJson() throws Exception {
         var state = createSampleState();
         var path = tempDir.resolve("formatted.json");
 
@@ -204,7 +204,7 @@ class CheckpointEngineTest {
     }
 
     @Test
-    void updateStory_pendingToInProgressToSuccess() {
+    void updateStory_whenCalled_pendingToInProgressToSuccess() {
         var state = createSampleState();
 
         var inProgress = CheckpointEngine.updateStory(
@@ -231,7 +231,7 @@ class CheckpointEngineTest {
     }
 
     @Test
-    void updateStory_failedIncrementsRetries() {
+    void updateStory_whenCalled_failedIncrementsRetries() {
         var state = createSampleState();
 
         var failed = CheckpointEngine.updateStory(
@@ -250,7 +250,7 @@ class CheckpointEngineTest {
     }
 
     @Test
-    void updateMetrics_calculatesFromStoryStates() {
+    void updateMetrics_whenCalled_calculatesFromStoryStates() {
         var stories = new LinkedHashMap<String, StoryEntry>();
         stories.put(
                 "s1",
@@ -300,7 +300,7 @@ class CheckpointEngineTest {
     }
 
     @Test
-    void updateMetrics_countsFailedAndBlocked() {
+    void updateMetrics_whenCalled_countsFailedAndBlocked() {
         var stories = new LinkedHashMap<String, StoryEntry>();
         stories.put(
                 "s1",
@@ -355,7 +355,7 @@ class CheckpointEngineTest {
     }
 
     @Test
-    void updateMetrics_tracksPhaseDurations() {
+    void updateMetrics_whenCalled_tracksPhaseDurations() {
         var stories = new LinkedHashMap<String, StoryEntry>();
         stories.put(
                 "s1",
@@ -391,7 +391,7 @@ class CheckpointEngineTest {
     }
 
     @Test
-    void updateMetrics_tracksStoryDurations() {
+    void updateMetrics_whenCalled_tracksStoryDurations() {
         var stories = new LinkedHashMap<String, StoryEntry>();
         stories.put(
                 "s1",
@@ -421,7 +421,7 @@ class CheckpointEngineTest {
     }
 
     @Test
-    void fullRoundTrip_saveLoadUpdateSaveLoad() {
+    void fullRoundTrip_whenCalled_saveLoadUpdateSaveLoad() {
         var state = createSampleState();
         var path = tempDir.resolve("roundtrip.json");
 

@@ -32,7 +32,7 @@ class RulesAssemblerCoverageTest {
         @Test
         @DisplayName("core-rules dir missing returns"
                 + " only identity and domain")
-        void noCoreRulesDir(@TempDir Path tempDir)
+        void assemble_noCoreRulesDir_succeeds(@TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(resourceDir);
@@ -62,7 +62,7 @@ class RulesAssemblerCoverageTest {
         @Test
         @DisplayName("core-rules is a file not directory"
                 + " returns only identity and domain")
-        void coreRulesIsFile(@TempDir Path tempDir)
+        void assemble_coreRules_isFile(@TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(resourceDir);
@@ -98,7 +98,7 @@ class RulesAssemblerCoverageTest {
         @Test
         @DisplayName("core dir missing returns empty"
                 + " kp list")
-        void noCoreDir(@TempDir Path tempDir)
+        void routeCoreToKps_noCoreDir_succeeds(@TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path coreRules = resourceDir.resolve("core-rules");
@@ -126,7 +126,7 @@ class RulesAssemblerCoverageTest {
 
         @Test
         @DisplayName("core dir is a file returns empty")
-        void coreDirIsFile(@TempDir Path tempDir)
+        void routeCoreToKps_coreDir_isFile(@TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path coreRules = resourceDir.resolve("core-rules");
@@ -157,7 +157,7 @@ class RulesAssemblerCoverageTest {
         @Test
         @DisplayName("core dir present but route source"
                 + " files missing triggers continue")
-        void routeSourceFileMissing(
+        void routeCoreToKps_whenCalled_routeSourceFileMissing(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = setupMinimalRes(tempDir);
             Path coreDir = resourceDir.resolve("core");
@@ -187,7 +187,7 @@ class RulesAssemblerCoverageTest {
 
         @Test
         @DisplayName("language dir missing returns empty")
-        void noLanguageDir(@TempDir Path tempDir)
+        void copyLanguageKps_noLanguageDir_succeeds(@TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = setupMinimalRes(tempDir);
             Path outputDir = tempDir.resolve("output");
@@ -209,7 +209,7 @@ class RulesAssemblerCoverageTest {
 
         @Test
         @DisplayName("language dir is a file returns empty")
-        void languageDirIsFile(@TempDir Path tempDir)
+        void copyLanguageKps_languageDir_isFile(@TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = setupMinimalRes(tempDir);
             Path langParent = resourceDir.resolve(
@@ -236,7 +236,7 @@ class RulesAssemblerCoverageTest {
 
         @Test
         @DisplayName("common subdir missing still works")
-        void noCommonSubdir(@TempDir Path tempDir)
+        void copyLanguageKps_noCommonSubdir_succeeds(@TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = setupMinimalRes(tempDir);
             Path langDir = resourceDir.resolve(
@@ -262,7 +262,7 @@ class RulesAssemblerCoverageTest {
         @Test
         @DisplayName("common with testing file routes"
                 + " to testing refs")
-        void testingFileRoutesToTestingRefs(
+        void copyLanguageKps_whenCalled_testingFileRoutesToTestingRefs(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = setupMinimalRes(tempDir);
             Path common = resourceDir.resolve(
@@ -300,7 +300,7 @@ class RulesAssemblerCoverageTest {
         @Test
         @DisplayName("version dir empty returns no"
                 + " version files")
-        void noVersionDir(@TempDir Path tempDir)
+        void copyLanguageKps_noVersionDir_succeeds(@TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = setupMinimalRes(tempDir);
             Path langDir = resourceDir.resolve(
@@ -330,7 +330,7 @@ class RulesAssemblerCoverageTest {
 
         @Test
         @DisplayName("unknown framework returns empty")
-        void unknownFramework(@TempDir Path tempDir)
+        void copyFrameworkKps_whenCalled_unknownFramework(@TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = setupMinimalRes(tempDir);
             Path outputDir = tempDir.resolve("output");
@@ -351,7 +351,7 @@ class RulesAssemblerCoverageTest {
 
         @Test
         @DisplayName("framework dir missing returns empty")
-        void frameworkDirMissing(@TempDir Path tempDir)
+        void copyFrameworkKps_whenCalled_frameworkDirMissing(@TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = setupMinimalRes(tempDir);
             Path outputDir = tempDir.resolve("output");
@@ -373,7 +373,7 @@ class RulesAssemblerCoverageTest {
         @Test
         @DisplayName("framework dir is a file returns"
                 + " empty fw files")
-        void frameworkDirIsFile(@TempDir Path tempDir)
+        void copyFrameworkKps_frameworkDir_isFile(@TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = setupMinimalRes(tempDir);
             Path frameworks = resourceDir.resolve(
@@ -402,7 +402,7 @@ class RulesAssemblerCoverageTest {
         @Test
         @DisplayName("framework with common and version"
                 + " copies both")
-        void frameworkCommonAndVersion(
+        void copyFrameworkKps_whenCalled_frameworkCommonAndVersion(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = setupMinimalRes(tempDir);
             Path fwDir = resourceDir.resolve(
@@ -432,7 +432,7 @@ class RulesAssemblerCoverageTest {
 
         @Test
         @DisplayName("framework common missing still works")
-        void frameworkNoCommon(@TempDir Path tempDir)
+        void copyFrameworkKps_whenCalled_frameworkNoCommon(@TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = setupMinimalRes(tempDir);
             Path fwDir = resourceDir.resolve(
@@ -462,7 +462,7 @@ class RulesAssemblerCoverageTest {
 
         @Test
         @DisplayName("context contains all 25 expected keys")
-        void allTwentyFiveKeys() {
+        void context_allTwentyFiveKeys_succeeds() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .projectName("ctx-full")
                     .purpose("full purpose")
@@ -511,7 +511,7 @@ class RulesAssemblerCoverageTest {
 
         @Test
         @DisplayName("default constructor resolves resources")
-        void defaultConstructorWorks() {
+        void default_defaultConstructorWorks_succeeds() {
             RulesAssembler assembler = new RulesAssembler();
             assertThat(assembler)
                     .isInstanceOf(Assembler.class);
@@ -525,7 +525,7 @@ class RulesAssemblerCoverageTest {
         @Test
         @DisplayName("all assembly layers produce files"
                 + " for rich config")
-        void allLayersForRichConfig(
+        void assemble_allLayersForRichConfig_succeeds(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = tempDir.resolve("output");
             Files.createDirectories(outputDir);

@@ -28,7 +28,7 @@ class DockerfileAssemblerTest {
         @Test
         @DisplayName("generates Dockerfile for"
                 + " java-maven")
-        void generatesDockerfile(@TempDir Path tempDir) {
+        void assemble_whenCalled_generatesDockerfile(@TempDir Path tempDir) {
             DockerfileAssembler assembler =
                     new DockerfileAssembler();
             ProjectConfig config = TestConfigBuilder
@@ -50,7 +50,7 @@ class DockerfileAssemblerTest {
 
         @Test
         @DisplayName("Dockerfile exists on disk")
-        void dockerfileExistsOnDisk(
+        void assemble_whenCalled_dockerfileExistsOnDisk(
                 @TempDir Path tempDir) {
             DockerfileAssembler assembler =
                     new DockerfileAssembler();
@@ -77,7 +77,7 @@ class DockerfileAssemblerTest {
         @Test
         @DisplayName("skips Dockerfile when"
                 + " container=none")
-        void skipsDockerfile(@TempDir Path tempDir) {
+        void assemble_whenCalled_skipsDockerfile(@TempDir Path tempDir) {
             DockerfileAssembler assembler =
                     new DockerfileAssembler();
             ProjectConfig config = TestConfigBuilder
@@ -103,7 +103,7 @@ class DockerfileAssemblerTest {
         @Test
         @DisplayName("warns when template not found"
                 + " for unknown stack")
-        void warnsForUnknownStack(@TempDir Path tempDir)
+        void assemble_whenCalled_warnsForUnknownStack(@TempDir Path tempDir)
                 throws IOException {
             DockerfileAssembler assembler =
                     new DockerfileAssembler();

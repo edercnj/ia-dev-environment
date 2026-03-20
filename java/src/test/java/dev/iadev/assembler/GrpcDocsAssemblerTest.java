@@ -29,7 +29,7 @@ class GrpcDocsAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void instanceOf_whenCreated_implementsAssemblerInterface() {
             GrpcDocsAssembler assembler =
                     new GrpcDocsAssembler();
 
@@ -45,7 +45,7 @@ class GrpcDocsAssemblerTest {
         @Test
         @DisplayName("generates grpc-reference.md in"
                 + " api/ subdirectory")
-        void generatesGrpcReferenceFile(
+        void assemble_whenCalled_generatesGrpcReferenceFile(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -68,7 +68,7 @@ class GrpcDocsAssemblerTest {
 
         @Test
         @DisplayName("creates api/ subdirectory")
-        void createsApiSubdir(
+        void assemble_whenCalled_createsApiSubdir(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -89,7 +89,7 @@ class GrpcDocsAssemblerTest {
 
         @Test
         @DisplayName("resolves project_name variable")
-        void resolvesProjectName(
+        void assemble_whenCalled_resolvesProjectName(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -115,7 +115,7 @@ class GrpcDocsAssemblerTest {
 
         @Test
         @DisplayName("resolves framework_name variable")
-        void resolvesFrameworkName(
+        void assemble_whenCalled_resolvesFrameworkName(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -138,7 +138,7 @@ class GrpcDocsAssemblerTest {
 
         @Test
         @DisplayName("no unresolved Pebble variables")
-        void noUnresolvedVariables(
+        void assemble_noUnresolvedVariables_succeeds(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -164,7 +164,7 @@ class GrpcDocsAssemblerTest {
 
         @Test
         @DisplayName("returns file path in result list")
-        void returnsFilePath(
+        void assemble_whenCalled_returnsFilePath(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -192,7 +192,7 @@ class GrpcDocsAssemblerTest {
         @Test
         @DisplayName("returns empty list when no grpc"
                 + " interface")
-        void returnsEmptyWhenNoGrpc(
+        void assemble_whenCalled_returnsEmptyWhenNoGrpc(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -211,7 +211,7 @@ class GrpcDocsAssemblerTest {
         @Test
         @DisplayName("returns empty list when only rest"
                 + " interface")
-        void returnsEmptyWhenOnlyRest(
+        void assemble_whenCalled_returnsEmptyWhenOnlyRest(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -233,7 +233,7 @@ class GrpcDocsAssemblerTest {
         @Test
         @DisplayName("does not create api/ directory"
                 + " when grpc absent")
-        void doesNotCreateOutputDir(
+        void assemble_whenCalled_doesNotCreateOutputDir(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -256,7 +256,7 @@ class GrpcDocsAssemblerTest {
         @Test
         @DisplayName("returns empty list when grpc present"
                 + " but template absent")
-        void returnsEmptyWhenTemplateAbsent(
+        void assemble_whenCalled_returnsEmptyWhenTemplateAbsent(
                 @TempDir Path tempDir) {
             Path resourcesDir =
                     tempDir.resolve("nonexistent");
@@ -279,7 +279,7 @@ class GrpcDocsAssemblerTest {
         @Test
         @DisplayName("does not create output dir when"
                 + " template absent")
-        void doesNotCreateOutputDirForMissingTemplate(
+        void assemble_whenCalled_doesNotCreateOutputDirForMissingTemplate(
                 @TempDir Path tempDir) {
             Path resourcesDir =
                     tempDir.resolve("nonexistent");
@@ -306,7 +306,7 @@ class GrpcDocsAssemblerTest {
         @Test
         @DisplayName("uses engine.render not"
                 + " replacePlaceholders")
-        void usesRenderNotReplace(
+        void assemble_whenCalled_usesRenderNotReplace(
                 @TempDir Path tempDir)
                 throws IOException {
             Path templatesDir =

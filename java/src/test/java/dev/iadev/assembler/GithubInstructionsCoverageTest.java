@@ -30,7 +30,7 @@ class GithubInstructionsCoverageTest {
 
         @Test
         @DisplayName("null framework version handled")
-        void nullFrameworkVersion() {
+        void assemble_nullFrameworkVersion_succeeds() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .framework("axum", "")
@@ -47,7 +47,7 @@ class GithubInstructionsCoverageTest {
 
         @Test
         @DisplayName("capitalize handles null input")
-        void capitalizeNull() {
+        void assemble_whenCalled_capitalizeNull() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .projectName("test")
@@ -68,7 +68,7 @@ class GithubInstructionsCoverageTest {
 
         @Test
         @DisplayName("contains all 10 expected keys")
-        void allKeysPresent() {
+        void create_whenCalled_allKeysPresent() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .projectName("ctx-test")
@@ -111,7 +111,7 @@ class GithubInstructionsCoverageTest {
         @Test
         @DisplayName("no placeholders returns content"
                 + " unchanged")
-        void noPlaceholders() {
+        void replaceSingleBracePlaceholders_noPlaceholders_succeeds() {
             String content = "No placeholders here";
             Map<String, String> context = Map.of(
                     "key", "value");
@@ -128,7 +128,7 @@ class GithubInstructionsCoverageTest {
         @Test
         @DisplayName("multiple replacements in same"
                 + " line")
-        void multipleInSameLine() {
+        void replaceSingleBracePlaceholders_multipleInSameLine_succeeds() {
             String content = "{a} and {b} and {c}";
             Map<String, String> context = Map.of(
                     "a", "A", "b", "B", "c", "C");
@@ -145,7 +145,7 @@ class GithubInstructionsCoverageTest {
         @Test
         @DisplayName("mixed known and unknown"
                 + " placeholders")
-        void mixedKnownUnknown() {
+        void replaceSingleBracePlaceholders_whenCalled_mixedKnownUnknown() {
             String content = "{known} and {unknown}";
             Map<String, String> context = Map.of(
                     "known", "REPLACED");
@@ -161,7 +161,7 @@ class GithubInstructionsCoverageTest {
 
         @Test
         @DisplayName("empty content returns empty")
-        void emptyContent() {
+        void replaceSingleBracePlaceholders_emptyContent_succeeds() {
             String result =
                     GithubInstructionsAssembler
                             .replaceSingleBracePlaceholders(
@@ -178,7 +178,7 @@ class GithubInstructionsCoverageTest {
         @Test
         @DisplayName("template file missing for one"
                 + " instruction is skipped")
-        void templateMissing(@TempDir Path tempDir)
+        void generateContextual_whenCalled_templateMissing(@TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path templatesDir = resourceDir.resolve(
@@ -221,7 +221,7 @@ class GithubInstructionsCoverageTest {
 
         @Test
         @DisplayName("single event-consumer interface")
-        void singleEventConsumer() {
+        void formatInterfaces_singleEventConsumer_succeeds() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .clearInterfaces()

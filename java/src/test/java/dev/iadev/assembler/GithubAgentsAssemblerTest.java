@@ -30,7 +30,7 @@ class GithubAgentsAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void instanceOf_whenCreated_implementsAssemblerInterface() {
             GithubAgentsAssembler assembler =
                     new GithubAgentsAssembler();
 
@@ -46,7 +46,7 @@ class GithubAgentsAssemblerTest {
         @Test
         @DisplayName("devops-engineer when container"
                 + " is docker")
-        void devopsWhenDocker() {
+        void assemble_whenDocker_devops() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .container("docker")
@@ -66,7 +66,7 @@ class GithubAgentsAssemblerTest {
         @Test
         @DisplayName("devops-engineer when orchestrator"
                 + " is kubernetes")
-        void devopsWhenKubernetes() {
+        void assemble_whenKubernetes_devops() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .container("none")
@@ -85,7 +85,7 @@ class GithubAgentsAssemblerTest {
 
         @Test
         @DisplayName("devops-engineer when iac present")
-        void devopsWhenIac() {
+        void assemble_whenIac_devops() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .container("none")
@@ -105,7 +105,7 @@ class GithubAgentsAssemblerTest {
         @Test
         @DisplayName("devops-engineer when service"
                 + " mesh present")
-        void devopsWhenServiceMesh() {
+        void assemble_whenServiceMesh_devops() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .container("none")
@@ -125,7 +125,7 @@ class GithubAgentsAssemblerTest {
 
         @Test
         @DisplayName("no devops-engineer when all none")
-        void noDevopsWhenAllNone() {
+        void assemble_whenAllNone_noDevops() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .container("none")
@@ -146,7 +146,7 @@ class GithubAgentsAssemblerTest {
 
         @Test
         @DisplayName("api-engineer when REST interface")
-        void apiEngineerWhenRest() {
+        void assemble_whenRest_apiEngineer() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .container("none")
@@ -167,7 +167,7 @@ class GithubAgentsAssemblerTest {
 
         @Test
         @DisplayName("api-engineer when gRPC interface")
-        void apiEngineerWhenGrpc() {
+        void assemble_whenGrpc_apiEngineer() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .container("none")
@@ -189,7 +189,7 @@ class GithubAgentsAssemblerTest {
         @Test
         @DisplayName("api-engineer when GraphQL"
                 + " interface")
-        void apiEngineerWhenGraphql() {
+        void assemble_whenGraphql_apiEngineer() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .container("none")
@@ -211,7 +211,7 @@ class GithubAgentsAssemblerTest {
         @Test
         @DisplayName("no api-engineer when no REST"
                 + " gRPC or GraphQL")
-        void noApiEngineerWhenNoApiInterface() {
+        void assemble_whenNoApiInterface_noApiEngineer() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .container("none")
@@ -232,7 +232,7 @@ class GithubAgentsAssemblerTest {
 
         @Test
         @DisplayName("event-engineer when event-driven")
-        void eventEngineerWhenEventDriven() {
+        void assemble_whenEventDriven_eventEngineer() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .container("none")
@@ -254,7 +254,7 @@ class GithubAgentsAssemblerTest {
         @Test
         @DisplayName("event-engineer when"
                 + " event-consumer interface")
-        void eventEngineerWhenEventConsumer() {
+        void assemble_whenEventConsumer_eventEngineer() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .container("none")
@@ -276,7 +276,7 @@ class GithubAgentsAssemblerTest {
         @Test
         @DisplayName("event-engineer when"
                 + " event-producer interface")
-        void eventEngineerWhenEventProducer() {
+        void assemble_whenEventProducer_eventEngineer() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .container("none")
@@ -298,7 +298,7 @@ class GithubAgentsAssemblerTest {
         @Test
         @DisplayName("no event-engineer when not"
                 + " event-driven and no event interfaces")
-        void noEventEngineerWhenNoEvents() {
+        void assemble_whenNoEvents_noEventEngineer() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .container("none")
@@ -320,7 +320,7 @@ class GithubAgentsAssemblerTest {
 
         @Test
         @DisplayName("empty when all conditions false")
-        void emptyWhenAllFalse() {
+        void assemble_whenAllFalse_empty() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .container("none")
@@ -346,7 +346,7 @@ class GithubAgentsAssemblerTest {
 
         @Test
         @DisplayName("renames .md to .agent.md")
-        void renamesMdToAgentMd(
+        void renderAgent_whenCalled_renamesMdToAgentMd(
                 @TempDir Path tempDir)
                 throws IOException {
             Path srcFile = tempDir.resolve(
@@ -376,7 +376,7 @@ class GithubAgentsAssemblerTest {
 
         @Test
         @DisplayName("applies placeholder replacement")
-        void appliesPlaceholderReplacement(
+        void renderAgent_whenCalled_appliesPlaceholderReplacement(
                 @TempDir Path tempDir)
                 throws IOException {
             Path srcFile = tempDir.resolve(
@@ -412,7 +412,7 @@ class GithubAgentsAssemblerTest {
         @Test
         @DisplayName("generates core agents from"
                 + " classpath templates")
-        void generatesCoreAgents(
+        void assembleCore_whenCalled_generatesCoreAgents(
                 @TempDir Path tempDir)
                 throws IOException {
             Path agentsDir = tempDir.resolve("agents");
@@ -435,7 +435,7 @@ class GithubAgentsAssemblerTest {
 
         @Test
         @DisplayName("core agents sorted alphabetically")
-        void coreAgentsSortedAlphabetically(
+        void assembleCore_coreAgents_sortedAlphabetically(
                 @TempDir Path tempDir)
                 throws IOException {
             Path agentsDir = tempDir.resolve("agents");
@@ -460,7 +460,7 @@ class GithubAgentsAssemblerTest {
         @Test
         @DisplayName("returns empty for missing"
                 + " core directory")
-        void returnsEmptyForMissingDir(
+        void assembleCore_whenCalled_returnsEmptyForMissingDir(
                 @TempDir Path tempDir)
                 throws IOException {
             Path agentsDir = tempDir.resolve("agents");
@@ -487,7 +487,7 @@ class GithubAgentsAssemblerTest {
         @Test
         @DisplayName("generates developer agent for"
                 + " known language")
-        void generatesDeveloperForKnown(
+        void assembleDeveloper_whenCalled_generatesDeveloperForKnown(
                 @TempDir Path tempDir)
                 throws IOException {
             Path agentsDir = tempDir.resolve("agents");
@@ -513,7 +513,7 @@ class GithubAgentsAssemblerTest {
 
         @Test
         @DisplayName("returns empty for unknown language")
-        void returnsEmptyForUnknown(
+        void assembleDeveloper_whenCalled_returnsEmptyForUnknown(
                 @TempDir Path tempDir)
                 throws IOException {
             Path agentsDir = tempDir.resolve("agents");
@@ -538,7 +538,7 @@ class GithubAgentsAssemblerTest {
         @Test
         @DisplayName("returns empty when developers"
                 + " dir absent")
-        void returnsEmptyWhenDirAbsent(
+        void assembleDeveloper_whenCalled_returnsEmptyWhenDirAbsent(
                 @TempDir Path tempDir)
                 throws IOException {
             Path agentsDir = tempDir.resolve("agents");
@@ -569,7 +569,7 @@ class GithubAgentsAssemblerTest {
         @Test
         @DisplayName("returns files and no warnings"
                 + " for known language")
-        void returnsFilesNoWarnings(
+        void assembleWithWarnings_whenCalled_returnsFilesNoWarnings(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -594,7 +594,7 @@ class GithubAgentsAssemblerTest {
         @Test
         @DisplayName("warning for unknown developer"
                 + " language")
-        void warningForUnknownLanguage(
+        void assembleWithWarnings_whenCalled_warningForUnknownLanguage(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -621,7 +621,7 @@ class GithubAgentsAssemblerTest {
         @Test
         @DisplayName("all agents have .agent.md"
                 + " extension")
-        void allAgentsHaveAgentMdExtension(
+        void assembleWithWarnings_allAgentsHaveAgentMdExtension_succeeds(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -652,7 +652,7 @@ class GithubAgentsAssemblerTest {
         @Test
         @DisplayName("generates agents from classpath"
                 + " templates")
-        void generatesAgentsFromClasspath(
+        void assemble_whenCalled_generatesAgentsFromClasspath(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -678,7 +678,7 @@ class GithubAgentsAssemblerTest {
         @Test
         @DisplayName("includes conditional agents"
                 + " based on config")
-        void includesConditionalAgents(
+        void assemble_whenCalled_includesConditionalAgents(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -709,7 +709,7 @@ class GithubAgentsAssemblerTest {
 
         @Test
         @DisplayName("immutable files and warnings")
-        void immutableCollections() {
+        void create_whenCalled_immutableCollections() {
             AssemblerResult result =
                     AssemblerResult.of(
                             List.of("file1"),
@@ -723,7 +723,7 @@ class GithubAgentsAssemblerTest {
 
         @Test
         @DisplayName("empty result has empty lists")
-        void emptyResult() {
+        void create_emptyResult_succeeds() {
             AssemblerResult result =
                     AssemblerResult.empty();
 

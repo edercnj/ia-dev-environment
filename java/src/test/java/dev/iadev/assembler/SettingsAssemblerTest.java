@@ -30,7 +30,7 @@ class SettingsAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void instanceOf_whenCreated_implementsAssemblerInterface() {
             SettingsAssembler assembler =
                     new SettingsAssembler();
 
@@ -46,7 +46,7 @@ class SettingsAssemblerTest {
         @Test
         @DisplayName("generates settings.json and"
                 + " settings.local.json")
-        void generatesBothFiles(
+        void assemble_whenCalled_generatesBothFiles(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -76,7 +76,7 @@ class SettingsAssemblerTest {
         @Test
         @DisplayName("settings.json contains maven commands"
                 + " for java-quarkus")
-        void containsMavenCommands(
+        void assemble_whenCalled_containsMavenCommands(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -104,7 +104,7 @@ class SettingsAssemblerTest {
         @Test
         @DisplayName("settings.json contains universal"
                 + " git commands")
-        void containsGitCommands(
+        void assemble_whenCalled_containsGitCommands(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -137,7 +137,7 @@ class SettingsAssemblerTest {
         @Test
         @DisplayName("settings.json contains npm commands"
                 + " for typescript-nestjs")
-        void containsNpmCommands(
+        void assemble_whenCalled_containsNpmCommands(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -167,7 +167,7 @@ class SettingsAssemblerTest {
         @Test
         @DisplayName("npm config does NOT contain maven"
                 + " commands")
-        void doesNotContainMavenCommands(
+        void assemble_whenCalled_doesNotContainMavenCommands(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -203,7 +203,7 @@ class SettingsAssemblerTest {
         @Test
         @DisplayName("settings.json contains PostToolUse"
                 + " hooks for compiled language")
-        void containsHooksForCompiledLang(
+        void assemble_whenCalled_containsHooksForCompiledLang(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -235,7 +235,7 @@ class SettingsAssemblerTest {
         @Test
         @DisplayName("settings.json does NOT contain hooks"
                 + " for python (no compile)")
-        void noHooksForPython(
+        void assemble_noHooksForPython_succeeds(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -270,7 +270,7 @@ class SettingsAssemblerTest {
         @Test
         @DisplayName("settings.json is valid JSON with"
                 + " required keys")
-        void settingsIsValidJson(
+        void assemble_settings_isValidJson(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -305,7 +305,7 @@ class SettingsAssemblerTest {
         @Test
         @DisplayName("settings.local.json is valid JSON"
                 + " with empty allow list")
-        void settingsLocalIsValidJson(
+        void assemble_settingsLocal_isValidJson(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -336,7 +336,7 @@ class SettingsAssemblerTest {
         @Test
         @DisplayName("without hooks produces permissions"
                 + " only")
-        void withoutHooksPermissionsOnly() {
+        void buildSettingsJson_withoutHooksPermissionsOnly_succeeds() {
             List<String> perms = List.of("Bash(git *)");
             String json = SettingsAssembler
                     .buildSettingsJson(perms, HookPresence.WITHOUT_HOOKS);
@@ -351,7 +351,7 @@ class SettingsAssemblerTest {
         @Test
         @DisplayName("with hooks includes PostToolUse"
                 + " section")
-        void withHooksIncludesPostToolUse() {
+        void buildSettingsJson_withHooks_includesPostToolUse() {
             List<String> perms = List.of("Bash(git *)");
             String json = SettingsAssembler
                     .buildSettingsJson(perms, HookPresence.WITH_HOOKS);
@@ -372,7 +372,7 @@ class SettingsAssemblerTest {
 
         @Test
         @DisplayName("produces empty permissions")
-        void producesEmptyPermissions() {
+        void buildSettingsLocalJson_whenCalled_producesEmptyPermissions() {
             String json = SettingsAssembler
                     .buildSettingsLocalJson();
 
@@ -388,7 +388,7 @@ class SettingsAssemblerTest {
 
         @Test
         @DisplayName("parses simple JSON array")
-        void parsesSimpleArray() {
+        void parseJsonStringArray_whenCalled_parsesSimpleArray() {
             List<String> result = SettingsAssembler
                     .parseJsonStringArray(
                             "[\"a\", \"b\", \"c\"]");
@@ -399,7 +399,7 @@ class SettingsAssemblerTest {
 
         @Test
         @DisplayName("returns empty for empty array")
-        void emptyForEmptyArray() {
+        void parseJsonStringArray_emptyForEmptyArray_succeeds() {
             List<String> result = SettingsAssembler
                     .parseJsonStringArray("[]");
 
@@ -408,7 +408,7 @@ class SettingsAssemblerTest {
 
         @Test
         @DisplayName("returns empty for non-array")
-        void emptyForNonArray() {
+        void parseJsonStringArray_emptyForNonArray_succeeds() {
             List<String> result = SettingsAssembler
                     .parseJsonStringArray("{}");
 
@@ -417,7 +417,7 @@ class SettingsAssemblerTest {
 
         @Test
         @DisplayName("handles entries with parentheses")
-        void handlesParentheses() {
+        void parseJsonStringArray_whenCalled_handlesParentheses() {
             List<String> result = SettingsAssembler
                     .parseJsonStringArray(
                             "[\"Bash(git *)\","
@@ -431,7 +431,7 @@ class SettingsAssemblerTest {
 
         @Test
         @DisplayName("handles entries with special chars")
-        void handlesSpecialChars() {
+        void parseJsonStringArray_whenCalled_handlesSpecialChars() {
             List<String> result = SettingsAssembler
                     .parseJsonStringArray(
                             "[\"WebFetch"
@@ -450,7 +450,7 @@ class SettingsAssemblerTest {
         @Test
         @DisplayName("preserves order and removes"
                 + " duplicates")
-        void preservesOrderRemovesDupes() {
+        void deduplicate_preservesOrder_removesDupes() {
             List<String> input = List.of(
                     "a", "b", "a", "c", "b");
 
@@ -463,7 +463,7 @@ class SettingsAssemblerTest {
 
         @Test
         @DisplayName("returns same list when no duplicates")
-        void noDuplicatesUnchanged() {
+        void deduplicate_noDuplicatesUnchanged_succeeds() {
             List<String> input = List.of("a", "b", "c");
 
             List<String> result =
@@ -481,7 +481,7 @@ class SettingsAssemblerTest {
         @Test
         @DisplayName("maven config includes base + maven"
                 + " permissions")
-        void mavenIncludesBaseAndMaven(
+        void collectPermissions_maven_includesBaseAndMaven(
                 @TempDir Path tempDir)
                 throws IOException {
             Path templatesDir =
@@ -511,7 +511,7 @@ class SettingsAssemblerTest {
         @Test
         @DisplayName("docker container adds docker"
                 + " permissions")
-        void dockerAddsDockerPerms(
+        void collectPermissions_docker_addsDockerPerms(
                 @TempDir Path tempDir)
                 throws IOException {
             Path templatesDir =
@@ -540,7 +540,7 @@ class SettingsAssemblerTest {
         @Test
         @DisplayName("kubernetes orchestrator adds k8s"
                 + " permissions")
-        void k8sAddsK8sPerms(
+        void collectPermissions_k8s_addsK8sPerms(
                 @TempDir Path tempDir)
                 throws IOException {
             Path templatesDir =
@@ -568,7 +568,7 @@ class SettingsAssemblerTest {
 
         @Test
         @DisplayName("smoke tests add newman permissions")
-        void smokeTestsAddNewman(
+        void collectPermissions_whenCalled_smokeTestsAddNewman(
                 @TempDir Path tempDir)
                 throws IOException {
             Path templatesDir =
@@ -633,7 +633,7 @@ class SettingsAssemblerTest {
         @Test
         @DisplayName("settings.json matches golden file"
                 + " for kotlin-ktor")
-        void settingsMatchesGolden(
+        void assemble_settings_matchesGolden(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -668,7 +668,7 @@ class SettingsAssemblerTest {
         @Test
         @DisplayName("settings.local.json matches golden"
                 + " file for kotlin-ktor")
-        void settingsLocalMatchesGolden(
+        void assemble_settingsLocal_matchesGolden(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -724,7 +724,7 @@ class SettingsAssemblerTest {
         @Test
         @DisplayName("unknown language still includes"
                 + " base permissions")
-        void unknownLanguageIncludesBase(
+        void assemble_unknownLanguage_includesBase(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -755,7 +755,7 @@ class SettingsAssemblerTest {
         @Test
         @DisplayName("podman container adds docker"
                 + " permissions")
-        void podmanAddsDockerPerms(
+        void assemble_podman_addsDockerPerms(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -781,7 +781,7 @@ class SettingsAssemblerTest {
         @Test
         @DisplayName("docker-compose orchestrator adds"
                 + " compose permissions")
-        void composeAddsComposePerms(
+        void assemble_compose_addsComposePerms(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");

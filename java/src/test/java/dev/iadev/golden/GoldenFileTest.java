@@ -85,7 +85,7 @@ class GoldenFileTest {
     @ParameterizedTest(
             name = "{0} — byte-for-byte parity")
     @MethodSource("profiles")
-    void profile_matchesGoldenFiles(String profile)
+    void profile_whenCalled_matchesGoldenFiles(String profile)
             throws IOException {
         Path outputDir = tempDir.resolve(profile);
         Files.createDirectories(outputDir);

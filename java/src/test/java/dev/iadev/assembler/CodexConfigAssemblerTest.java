@@ -30,7 +30,7 @@ class CodexConfigAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void instanceOf_whenCreated_implementsAssemblerInterface() {
             assertThat(new CodexConfigAssembler())
                     .isInstanceOf(Assembler.class);
         }
@@ -43,7 +43,7 @@ class CodexConfigAssemblerTest {
         @Test
         @DisplayName("contains model, approval_policy,"
                 + " sandbox_mode")
-        void containsCodexFields() {
+        void assemble_whenCalled_containsCodexFields() {
             ProjectConfig config =
                     TestConfigBuilder.minimal();
             Map<String, Object> ctx =
@@ -61,7 +61,7 @@ class CodexConfigAssemblerTest {
 
         @Test
         @DisplayName("has_mcp is false when no servers")
-        void hasMcpFalseWhenEmpty() {
+        void assemble_whenEmpty_hasMcpFalse() {
             ProjectConfig config =
                     TestConfigBuilder.minimal();
             Map<String, Object> ctx =
@@ -75,7 +75,7 @@ class CodexConfigAssemblerTest {
 
         @Test
         @DisplayName("has_mcp is true when servers exist")
-        void hasMcpTrueWhenServers() {
+        void assemble_whenServers_hasMcpTrue() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .addMcpServer(
@@ -96,7 +96,7 @@ class CodexConfigAssemblerTest {
         @Test
         @DisplayName("approval_policy on-request"
                 + " with hooks")
-        void approvalPolicyWithHooks() {
+        void assemble_withHooks_approvalPolicy() {
             ProjectConfig config =
                     TestConfigBuilder.minimal();
             Map<String, Object> ctx =
@@ -115,7 +115,7 @@ class CodexConfigAssemblerTest {
 
         @Test
         @DisplayName("generates config.toml in outputDir")
-        void generatesConfigToml(
+        void assemble_whenCalled_generatesConfigToml(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = setupDirs(tempDir);
 
@@ -135,7 +135,7 @@ class CodexConfigAssemblerTest {
 
         @Test
         @DisplayName("config.toml contains model value")
-        void containsModelValue(
+        void assemble_whenCalled_containsModelValue(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = setupDirs(tempDir);
 
@@ -156,7 +156,7 @@ class CodexConfigAssemblerTest {
 
         @Test
         @DisplayName("config.toml contains project name")
-        void containsProjectName(
+        void assemble_whenCalled_containsProjectName(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = setupDirs(tempDir);
 
@@ -179,7 +179,7 @@ class CodexConfigAssemblerTest {
 
         @Test
         @DisplayName("config.toml contains sandbox mode")
-        void containsSandboxMode(
+        void assemble_whenCalled_containsSandboxMode(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = setupDirs(tempDir);
 
@@ -201,7 +201,7 @@ class CodexConfigAssemblerTest {
         @Test
         @DisplayName("config.toml has untrusted policy"
                 + " without hooks")
-        void untrustedWithoutHooks(
+        void assemble_whenCalled_untrustedWithoutHooks(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = setupDirs(tempDir);
 
@@ -225,7 +225,7 @@ class CodexConfigAssemblerTest {
         @Test
         @DisplayName("config.toml has on-request policy"
                 + " with hooks")
-        void onRequestWithHooks(
+        void assemble_whenCalled_onRequestWithHooks(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = setupDirs(tempDir);
 
@@ -257,7 +257,7 @@ class CodexConfigAssemblerTest {
 
         @Test
         @DisplayName("golden file parity for kotlin-ktor")
-        void goldenFileParity(
+        void assemble_whenCalled_goldenFileParity(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = setupDirs(tempDir);
 
@@ -329,7 +329,7 @@ class CodexConfigAssemblerTest {
 
         @Test
         @DisplayName("no warnings for valid server IDs")
-        void noWarningsForValid() {
+        void assemble_forValid_noWarnings() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .addMcpServer(
@@ -350,7 +350,7 @@ class CodexConfigAssemblerTest {
 
         @Test
         @DisplayName("warning for invalid TOML bare key")
-        void warningForInvalidKey() {
+        void assemble_forInvalidKey_warning() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .addMcpServer(
@@ -374,7 +374,7 @@ class CodexConfigAssemblerTest {
 
         @Test
         @DisplayName("no warnings when no MCP servers")
-        void noWarningsWhenNoServers() {
+        void assemble_whenNoServers_noWarnings() {
             ProjectConfig config =
                     TestConfigBuilder.minimal();
 
@@ -389,7 +389,7 @@ class CodexConfigAssemblerTest {
         @Test
         @DisplayName("multiple warnings for multiple"
                 + " invalid IDs")
-        void multipleWarnings() {
+        void assemble_whenCalled_multipleWarnings() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .addMcpServer(
@@ -428,7 +428,7 @@ class CodexConfigAssemblerTest {
 
         @Test
         @DisplayName("no warnings for valid config")
-        void noWarnings(
+        void assembleWithResult_noWarnings_succeeds(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = setupDirs(tempDir);
@@ -451,7 +451,7 @@ class CodexConfigAssemblerTest {
         @Test
         @DisplayName("warnings for invalid TOML keys"
                 + " propagated via result")
-        void warningsForInvalidKeys(
+        void assembleWithResult_whenCalled_warningsForInvalidKeys(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = setupDirs(tempDir);

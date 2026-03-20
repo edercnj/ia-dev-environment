@@ -30,7 +30,7 @@ class AgentsAssemblerCoverageTest {
 
         @Test
         @DisplayName("core dir missing returns empty")
-        void coreDirMissing(@TempDir Path tempDir) {
+        void selectCoreAgents_whenCalled_coreDirMissing(@TempDir Path tempDir) {
             AgentsAssembler assembler =
                     new AgentsAssembler(tempDir);
 
@@ -42,7 +42,7 @@ class AgentsAssemblerCoverageTest {
 
         @Test
         @DisplayName("core dir is file returns empty")
-        void coreDirIsFile(@TempDir Path tempDir)
+        void selectCoreAgents_coreDir_isFile(@TempDir Path tempDir)
                 throws IOException {
             Files.createDirectories(
                     tempDir.resolve("agents-templates"));
@@ -63,7 +63,7 @@ class AgentsAssemblerCoverageTest {
         @Test
         @DisplayName("core dir with non-md files"
                 + " filters them out")
-        void nonMdFilesFiltered(@TempDir Path tempDir)
+        void selectCoreAgents_nonMdFilesFiltered_succeeds(@TempDir Path tempDir)
                 throws IOException {
             Path core = tempDir.resolve(
                     "agents-templates/core");
@@ -93,7 +93,7 @@ class AgentsAssemblerCoverageTest {
         @Test
         @DisplayName("conditional agent source missing"
                 + " returns null (filtered out)")
-        void conditionalMissing(@TempDir Path tempDir)
+        void assembleConditional_whenCalled_conditionalMissing(@TempDir Path tempDir)
                 throws IOException {
             Path core = tempDir.resolve(
                     "agents-templates/core");
@@ -123,7 +123,7 @@ class AgentsAssemblerCoverageTest {
         @Test
         @DisplayName("developer agent source missing"
                 + " returns null (filtered out)")
-        void developerMissing(@TempDir Path tempDir)
+        void copyDeveloperAgent_whenCalled_developerMissing(@TempDir Path tempDir)
                 throws IOException {
             Path core = tempDir.resolve(
                     "agents-templates/core");
@@ -151,7 +151,7 @@ class AgentsAssemblerCoverageTest {
         @Test
         @DisplayName("checklist injection when agent"
                 + " file missing is skipped")
-        void agentFileMissing(@TempDir Path tempDir)
+        void injectChecklists_whenCalled_agentFileMissing(@TempDir Path tempDir)
                 throws IOException {
             Path core = tempDir.resolve(
                     "agents-templates/core");
@@ -176,7 +176,7 @@ class AgentsAssemblerCoverageTest {
         @Test
         @DisplayName("checklist source file missing"
                 + " is skipped")
-        void checklistSourceMissing(@TempDir Path tempDir)
+        void injectChecklists_whenCalled_checklistSourceMissing(@TempDir Path tempDir)
                 throws IOException {
             Path core = tempDir.resolve(
                     "agents-templates/core");
@@ -209,7 +209,7 @@ class AgentsAssemblerCoverageTest {
 
         @Test
         @DisplayName("context has all 25 entries")
-        void allEntries() {
+        void buildContext_withAllFields_returnsExpectedEntries() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .projectName("agent-test")
@@ -249,7 +249,7 @@ class AgentsAssemblerCoverageTest {
 
         @Test
         @DisplayName("default constructor resolves")
-        void defaultConstructorResolves() {
+        void constructor_withDefaults_resolvesCorrectly() {
             AgentsAssembler assembler =
                     new AgentsAssembler();
 

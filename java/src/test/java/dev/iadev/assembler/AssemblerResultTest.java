@@ -65,7 +65,7 @@ class AssemblerResultTest {
 
         @Test
         @DisplayName("files_returnsImmutableList")
-        void files_returnsImmutableList() {
+        void files_whenCalled_returnsImmutableList() {
             AssemblerResult result =
                     new AssemblerResult(
                             List.of("a.md", "b.md"),
@@ -80,7 +80,7 @@ class AssemblerResultTest {
 
         @Test
         @DisplayName("warnings_returnsImmutableList")
-        void warnings_returnsImmutableList() {
+        void warnings_whenCalled_returnsImmutableList() {
             AssemblerResult result =
                     new AssemblerResult(
                             List.of(),
@@ -96,7 +96,7 @@ class AssemblerResultTest {
         @Test
         @DisplayName("mutableInputList_"
                 + "doesNotAffectResult")
-        void mutableInputList_doesNotAffectResult() {
+        void mutableInputList_whenCalled_doesNotAffectResult() {
             List<String> mutableFiles =
                     new ArrayList<>(List.of("x.md"));
             List<String> mutableWarnings =
@@ -122,7 +122,7 @@ class AssemblerResultTest {
 
         @Test
         @DisplayName("empty_returnsEmptyFilesAndWarnings")
-        void empty_returnsEmptyFilesAndWarnings() {
+        void empty_whenCalled_returnsEmptyFilesAndWarnings() {
             AssemblerResult result =
                     AssemblerResult.empty();
 
@@ -132,7 +132,7 @@ class AssemblerResultTest {
 
         @Test
         @DisplayName("empty_filesAreImmutable")
-        void empty_filesAreImmutable() {
+        void empty_whenCalled_filesAreImmutable() {
             AssemblerResult result =
                     AssemblerResult.empty();
 
@@ -150,7 +150,7 @@ class AssemblerResultTest {
 
         @Test
         @DisplayName("of_preservesFilesAndWarnings")
-        void of_preservesFilesAndWarnings() {
+        void of_whenCalled_preservesFilesAndWarnings() {
             AssemblerResult result =
                     AssemblerResult.of(
                             List.of("f1", "f2"),
@@ -215,7 +215,7 @@ class AssemblerResultTest {
 
         @Test
         @DisplayName("toString_containsFieldValues")
-        void toString_containsFieldValues() {
+        void toString_whenCalled_containsFieldValues() {
             AssemblerResult result = AssemblerResult.of(
                     List.of("file.md"), List.of("warn"));
 

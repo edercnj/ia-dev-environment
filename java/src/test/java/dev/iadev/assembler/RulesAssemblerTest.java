@@ -31,7 +31,7 @@ class RulesAssemblerTest {
         @Test
         @DisplayName("generates 5 core rule files for"
                 + " minimal config")
-        void generatesFiveCoreRules(
+        void assemble_whenCalled_generatesFiveCoreRules(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = createMinimalResources(
@@ -66,7 +66,7 @@ class RulesAssemblerTest {
         @Test
         @DisplayName("01-project-identity.md contains"
                 + " project data")
-        void identityContainsProjectData(
+        void assemble_identity_containsProjectData(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = createMinimalResources(
@@ -101,7 +101,7 @@ class RulesAssemblerTest {
 
         @Test
         @DisplayName("02-domain.md generated from template")
-        void domainFromTemplate(
+        void assemble_whenCalled_domainFromTemplate(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = createMinimalResources(
@@ -129,7 +129,7 @@ class RulesAssemblerTest {
         @Test
         @DisplayName("02-domain.md uses fallback when"
                 + " template missing")
-        void domainFallbackWhenTemplateMissing(
+        void assemble_whenTemplateMissing_domainFallback(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
@@ -162,7 +162,7 @@ class RulesAssemblerTest {
 
         @Test
         @DisplayName("core rules have placeholders replaced")
-        void coreRulesPlaceholdersReplaced(
+        void assemble_whenCalled_coreRulesPlaceholdersReplaced(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
@@ -213,7 +213,7 @@ class RulesAssemblerTest {
         @Test
         @DisplayName("config without database generates"
                 + " exactly core rules")
-        void noDatabaseGeneratesOnlyCoreRules(
+        void assemble_noDatabase_generatesOnlyCoreRules(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = createMinimalResources(
@@ -249,7 +249,7 @@ class RulesAssemblerTest {
 
         @Test
         @DisplayName("returned list is not empty")
-        void returnedListNotEmpty(
+        void assemble_whenCalled_returnedListNotEmpty(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = createMinimalResources(
@@ -270,7 +270,7 @@ class RulesAssemblerTest {
 
         @Test
         @DisplayName("returned paths include identity rule")
-        void includesIdentityRule(
+        void assemble_whenCalled_includesIdentityRule(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = createMinimalResources(
@@ -297,7 +297,7 @@ class RulesAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void assemble_whenCalled_isAssemblerInstance() {
             RulesAssembler assembler = new RulesAssembler();
 
             assertThat(assembler)
@@ -311,7 +311,7 @@ class RulesAssemblerTest {
 
         @Test
         @DisplayName("contains all expected keys")
-        void containsAllKeys() {
+        void context_whenCalled_containsAllKeys() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .projectName("ctx-test")
@@ -350,7 +350,7 @@ class RulesAssemblerTest {
         @Test
         @DisplayName("01-project-identity matches golden"
                 + " file for java-quarkus profile")
-        void identityMatchesGoldenFile()
+        void golden_identity_matchesGoldenFile()
                 throws IOException {
             ProjectConfig config = buildQuarkusConfig();
 
@@ -365,7 +365,7 @@ class RulesAssemblerTest {
 
         @Test
         @DisplayName("02-domain matches golden file")
-        void domainMatchesGoldenFile()
+        void golden_domain_matchesGoldenFile()
                 throws IOException {
             String expected = loadGoldenFile(
                     "02-domain.md");
@@ -378,7 +378,7 @@ class RulesAssemblerTest {
         @Test
         @DisplayName("03-coding-standards matches golden"
                 + " file (unreplaced placeholders)")
-        void codingStandardsMatchesGoldenFile()
+        void golden_codingStandards_matchesGoldenFile()
                 throws IOException {
             String expected = loadGoldenFile(
                     "03-coding-standards.md");
@@ -391,7 +391,7 @@ class RulesAssemblerTest {
         @Test
         @DisplayName("04-architecture matches golden file"
                 + " (unreplaced placeholders)")
-        void architectureMatchesGoldenFile()
+        void golden_architecture_matchesGoldenFile()
                 throws IOException {
             String expected = loadGoldenFile(
                     "04-architecture-summary.md");
@@ -403,7 +403,7 @@ class RulesAssemblerTest {
 
         @Test
         @DisplayName("05-quality-gates matches golden file")
-        void qualityGatesMatchesGoldenFile()
+        void golden_qualityGates_matchesGoldenFile()
                 throws IOException {
             String expected = loadGoldenFile(
                     "05-quality-gates.md");

@@ -166,7 +166,7 @@ class ResumeHandlerTest {
     }
 
     @Test
-    void prepareResume_recalculatesMetrics() {
+    void prepareResume_whenCalled_recalculatesMetrics() {
         var stories = new LinkedHashMap<String, StoryEntry>();
         stories.put(
                 "story-001",
@@ -290,7 +290,7 @@ class ResumeHandlerTest {
     }
 
     @Test
-    void reclassifyStories_preservesNonRetriableStatuses() {
+    void reclassifyStories_whenCalled_preservesNonRetriableStatuses() {
         var stories = Map.of(
                 "s1",
                 StoryEntry.pending(0)

@@ -51,7 +51,7 @@ class GenerateCommandTest {
     class HelpAndOptions {
 
         @Test
-        void help_displaysUsage() {
+        void help_whenCalled_displaysUsage() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));
@@ -64,7 +64,7 @@ class GenerateCommandTest {
         }
 
         @Test
-        void help_showsConfigOption() {
+        void help_whenCalled_showsConfigOption() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));
@@ -76,7 +76,7 @@ class GenerateCommandTest {
         }
 
         @Test
-        void help_showsInteractiveOption() {
+        void help_whenCalled_showsInteractiveOption() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));
@@ -88,7 +88,7 @@ class GenerateCommandTest {
         }
 
         @Test
-        void help_showsOutputOption() {
+        void help_whenCalled_showsOutputOption() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));
@@ -100,7 +100,7 @@ class GenerateCommandTest {
         }
 
         @Test
-        void help_showsStackOption() {
+        void help_whenCalled_showsStackOption() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));
@@ -112,7 +112,7 @@ class GenerateCommandTest {
         }
 
         @Test
-        void help_showsVerboseOption() {
+        void help_whenCalled_showsVerboseOption() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));
@@ -124,7 +124,7 @@ class GenerateCommandTest {
         }
 
         @Test
-        void help_showsDryRunOption() {
+        void help_whenCalled_showsDryRunOption() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));
@@ -135,7 +135,7 @@ class GenerateCommandTest {
         }
 
         @Test
-        void help_showsForceOption() {
+        void help_whenCalled_showsForceOption() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));
@@ -152,7 +152,7 @@ class GenerateCommandTest {
     class MutualExclusivity {
 
         @Test
-        void configAndInteractive_returnsNonZero() {
+        void configAndInteractive_whenCalled_returnsNonZero() {
             var cmd = buildCommandLine();
             var errSw = new StringWriter();
             cmd.setErr(new PrintWriter(errSw));
@@ -165,7 +165,7 @@ class GenerateCommandTest {
         }
 
         @Test
-        void configAndInteractive_showsMutuallyExclusiveMsg() {
+        void configAndInteractive_whenCalled_showsMutuallyExclusiveMsg() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             var errSw = new StringWriter();
@@ -186,7 +186,7 @@ class GenerateCommandTest {
     class NoInput {
 
         @Test
-        void noOptions_returnsValidationError() {
+        void noOptions_whenCalled_returnsValidationError() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));
@@ -198,7 +198,7 @@ class GenerateCommandTest {
         }
 
         @Test
-        void noOptions_showsMissingInputMessage() {
+        void noOptions_whenCalled_showsMissingInputMessage() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));
@@ -216,7 +216,7 @@ class GenerateCommandTest {
     class ConfigNotFound {
 
         @Test
-        void nonExistentConfig_returnsValidationError() {
+        void nonExistentConfig_whenCalled_returnsValidationError() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));
@@ -229,7 +229,7 @@ class GenerateCommandTest {
         }
 
         @Test
-        void nonExistentConfig_showsErrorMessage() {
+        void nonExistentConfig_whenCalled_showsErrorMessage() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));
@@ -276,7 +276,7 @@ class GenerateCommandTest {
         }
 
         @Test
-        void invalidStack_returnsNonZero() {
+        void invalidStack_whenCalled_returnsNonZero() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));
@@ -295,7 +295,7 @@ class GenerateCommandTest {
     class DryRunMode {
 
         @Test
-        void dryRun_showsDryRunHeader() {
+        void dryRun_whenCalled_showsDryRunHeader() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));
@@ -309,7 +309,7 @@ class GenerateCommandTest {
         }
 
         @Test
-        void dryRun_doesNotWriteFiles() {
+        void dryRun_whenCalled_doesNotWriteFiles() {
             Path outputDir = tempDir.resolve("dry-run-output");
             var cmd = buildCommandLine();
             var sw = new StringWriter();
@@ -327,7 +327,7 @@ class GenerateCommandTest {
         }
 
         @Test
-        void dryRun_showsSummaryTable() {
+        void dryRun_whenCalled_showsSummaryTable() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));
@@ -344,7 +344,7 @@ class GenerateCommandTest {
         }
 
         @Test
-        void dryRun_returnsZero() {
+        void dryRun_whenCalled_returnsZero() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));
@@ -384,7 +384,7 @@ class GenerateCommandTest {
         }
 
         @Test
-        void force_showsOverwriteWarning()
+        void force_whenCalled_showsOverwriteWarning()
                 throws IOException {
             Path outputDir = tempDir.resolve("force-warn");
             Files.createDirectories(
@@ -457,7 +457,7 @@ class GenerateCommandTest {
     class DangerousPath {
 
         @Test
-        void homePath_returnsNonZero() {
+        void homePath_whenCalled_returnsNonZero() {
             String home = System.getProperty("user.home");
             var cmd = buildCommandLine();
             var sw = new StringWriter();
@@ -471,7 +471,7 @@ class GenerateCommandTest {
         }
 
         @Test
-        void homePath_showsRejectionMessage() {
+        void homePath_whenCalled_showsRejectionMessage() {
             String home = System.getProperty("user.home");
             var cmd = buildCommandLine();
             var sw = new StringWriter();
@@ -487,7 +487,7 @@ class GenerateCommandTest {
         }
 
         @Test
-        void rootPath_returnsNonZero() {
+        void rootPath_whenCalled_returnsNonZero() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));
@@ -505,7 +505,7 @@ class GenerateCommandTest {
     class VerboseMode {
 
         @Test
-        void verbose_showsAssemblerNames() {
+        void verbose_whenCalled_showsAssemblerNames() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));
@@ -520,7 +520,7 @@ class GenerateCommandTest {
         }
 
         @Test
-        void verbose_showsCompletedTimes() {
+        void verbose_whenCalled_showsCompletedTimes() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));
@@ -535,7 +535,7 @@ class GenerateCommandTest {
         }
 
         @Test
-        void verbose_showsStackLoadMessage() {
+        void verbose_whenCalled_showsStackLoadMessage() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));
@@ -606,7 +606,7 @@ class GenerateCommandTest {
     class InvalidConfig {
 
         @Test
-        void missingLanguageSection_returnsValidationError()
+        void missingLanguageSection_whenCalled_returnsValidationError()
                 throws IOException {
             String invalidConfig = """
                     project:
@@ -644,7 +644,7 @@ class GenerateCommandTest {
     class Performance {
 
         @Test
-        void fullPipeline_completesUnder2Seconds() {
+        void fullPipeline_whenCalled_completesUnder2Seconds() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));

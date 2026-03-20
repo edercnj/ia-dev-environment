@@ -28,7 +28,7 @@ class CheckpointEngineCoverageTest {
 
     @Test
     @DisplayName("save delegates to persistence port")
-    void save_delegatesToPersistence() {
+    void save_whenCalled_delegatesToPersistence() {
         var engine = new CheckpointEngine(persistence);
         var state = createMinimalState();
         var path = Path.of("/tmp/test-checkpoint.json");
@@ -40,7 +40,7 @@ class CheckpointEngineCoverageTest {
 
     @Test
     @DisplayName("load delegates to persistence port")
-    void load_delegatesToPersistence() {
+    void load_whenCalled_delegatesToPersistence() {
         var engine = new CheckpointEngine(persistence);
         var path = Path.of("/tmp/test-checkpoint.json");
         var expected = createMinimalState();

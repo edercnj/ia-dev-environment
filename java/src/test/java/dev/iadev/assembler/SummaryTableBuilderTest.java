@@ -28,7 +28,7 @@ class SummaryTableBuilderTest {
 
         @Test
         @DisplayName("contains 15 component rows")
-        void containsFifteenComponents(
+        void build_whenCalled_containsFifteenComponents(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
 
@@ -52,7 +52,7 @@ class SummaryTableBuilderTest {
 
         @Test
         @DisplayName("contains ia-dev-env version")
-        void containsVersion(
+        void build_whenCalled_containsVersion(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
 
@@ -67,7 +67,7 @@ class SummaryTableBuilderTest {
 
         @Test
         @DisplayName("includes all component labels")
-        void includesAllLabels(
+        void build_whenCalled_includesAllLabels(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
 
@@ -95,7 +95,7 @@ class SummaryTableBuilderTest {
 
         @Test
         @DisplayName("summary with codex and agents")
-        void summaryWithAllExtras(
+        void build_withAllExtras_summary(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir = Files.createDirectories(
                     tempDir.resolve(".claude"));
@@ -142,7 +142,7 @@ class SummaryTableBuilderTest {
 
         @Test
         @DisplayName("contains settings.json description")
-        void containsSettingsJsonDesc() {
+        void build_whenCalled_containsSettingsJsonDesc() {
             String section =
                     builder.buildSettingsSection();
 

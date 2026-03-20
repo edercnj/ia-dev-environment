@@ -26,7 +26,7 @@ class ReadmeUtilsCoverageTest {
         @Test
         @DisplayName("returns 1 when only"
                 + " settings.local.json")
-        void oneWhenOnlyLocal(@TempDir Path tempDir)
+        void render_whenCalled_oneWhenOnlyLocal(@TempDir Path tempDir)
                 throws IOException {
             Files.writeString(
                     tempDir.resolve("settings.local.json"),
@@ -44,7 +44,7 @@ class ReadmeUtilsCoverageTest {
         @Test
         @DisplayName("knowledge pack header not at"
                 + " line start is not matched")
-        void headerNotAtStartNotMatched(
+        void isKnowledgePack_whenCalled_headerNotAtStartNotMatched(
                 @TempDir Path tempDir) throws IOException {
             Path skillMd = tempDir.resolve("SKILL.md");
             Files.writeString(skillMd,
@@ -59,7 +59,7 @@ class ReadmeUtilsCoverageTest {
 
         @Test
         @DisplayName("empty file is not knowledge pack")
-        void emptyFileNotKp(@TempDir Path tempDir)
+        void isKnowledgePack_emptyFileNotKp_succeeds(@TempDir Path tempDir)
                 throws IOException {
             Path skillMd = tempDir.resolve("SKILL.md");
             Files.writeString(skillMd, "",
@@ -77,7 +77,7 @@ class ReadmeUtilsCoverageTest {
         @Test
         @DisplayName("description with single quotes"
                 + " stripped")
-        void singleQuotesStripped(@TempDir Path tempDir)
+        void extractSkillDescription_singleQuotesStripped_succeeds(@TempDir Path tempDir)
                 throws IOException {
             Path skillMd = tempDir.resolve("SKILL.md");
             Files.writeString(skillMd,
@@ -93,7 +93,7 @@ class ReadmeUtilsCoverageTest {
         @Test
         @DisplayName("description with only key and"
                 + " colon returns empty")
-        void descriptionOnlyColonReturnsEmpty(
+        void extractSkillDescription_descriptionOnlyColon_returnsEmpty(
                 @TempDir Path tempDir) throws IOException {
             Path skillMd = tempDir.resolve("SKILL.md");
             Files.writeString(skillMd,
@@ -112,7 +112,7 @@ class ReadmeUtilsCoverageTest {
 
         @Test
         @DisplayName("digits in middle not extracted")
-        void digitsInMiddle() {
+        void extractRuleNumber_whenCalled_digitsInMiddle() {
             assertThat(ReadmeUtils.extractRuleNumber(
                     "rule-01.md"))
                     .isEmpty();
@@ -120,7 +120,7 @@ class ReadmeUtilsCoverageTest {
 
         @Test
         @DisplayName("empty string returns empty")
-        void emptyReturnsEmpty() {
+        void extractRuleNumber_empty_returnsEmpty() {
             assertThat(ReadmeUtils.extractRuleNumber(""))
                     .isEmpty();
         }
@@ -132,7 +132,7 @@ class ReadmeUtilsCoverageTest {
 
         @Test
         @DisplayName("double hyphen in name preserved")
-        void doubleHyphen() {
+        void extractRuleScope_whenCalled_doubleHyphen() {
             assertThat(ReadmeUtils.extractRuleScope(
                     "01-some--rule.md"))
                     .isEqualTo("some  rule");
@@ -140,7 +140,7 @@ class ReadmeUtilsCoverageTest {
 
         @Test
         @DisplayName("file without .md extension")
-        void noMdExtension() {
+        void extractRuleScope_noMdExtension_succeeds() {
             assertThat(ReadmeUtils.extractRuleScope(
                     "01-identity"))
                     .isEqualTo("identity");
@@ -154,7 +154,7 @@ class ReadmeUtilsCoverageTest {
 
         @Test
         @DisplayName("ignores subdirectories")
-        void ignoresSubdirectories(@TempDir Path tempDir)
+        void countGithubComponent_whenCalled_ignoresSubdirectories(@TempDir Path tempDir)
                 throws IOException {
             Path compDir = Files.createDirectories(
                     tempDir.resolve("agents"));
@@ -176,7 +176,7 @@ class ReadmeUtilsCoverageTest {
 
         @Test
         @DisplayName("empty codex dir returns 0")
-        void emptyDirReturnsZero(@TempDir Path tempDir)
+        void countCodexFiles_emptyDir_returnsZero(@TempDir Path tempDir)
                 throws IOException {
             Path codexDir = Files.createDirectories(
                     tempDir.resolve(".codex"));
@@ -192,7 +192,7 @@ class ReadmeUtilsCoverageTest {
 
         @Test
         @DisplayName("empty directory returns 0")
-        void emptyDirReturnsZero(@TempDir Path tempDir) {
+        void countFilesRecursive_emptyDir_returnsZero(@TempDir Path tempDir) {
             assertThat(
                     ReadmeUtils.countFilesRecursive(tempDir))
                     .isZero();

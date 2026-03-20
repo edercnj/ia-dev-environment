@@ -27,7 +27,7 @@ class ResourceDiscoveryCoverageTest {
         @Test
         @DisplayName("directory not found returns"
                 + " empty list")
-        void directoryNotFound(@TempDir Path tempDir) {
+        void discover_whenCalled_directoryNotFound(@TempDir Path tempDir) {
             var discovery =
                     new ResourceDiscovery(tempDir);
 
@@ -41,7 +41,7 @@ class ResourceDiscoveryCoverageTest {
         @Test
         @DisplayName("directory with files lists"
                 + " regular files only")
-        void listsRegularFilesOnly(
+        void discover_whenCalled_listsRegularFilesOnly(
                 @TempDir Path tempDir) throws IOException {
             Path dir = tempDir.resolve("test-dir");
             Files.createDirectories(dir);
@@ -70,7 +70,7 @@ class ResourceDiscoveryCoverageTest {
         @Test
         @DisplayName("file (not directory) returns"
                 + " empty list")
-        void fileNotDirectory(@TempDir Path tempDir)
+        void discover_whenCalled_fileNotDirectory(@TempDir Path tempDir)
                 throws IOException {
             Files.writeString(
                     tempDir.resolve("not-a-dir"),
@@ -94,7 +94,7 @@ class ResourceDiscoveryCoverageTest {
         @Test
         @DisplayName("classpath listing returns empty"
                 + " (not reliably supported)")
-        void classpathReturnsEmpty() {
+        void listResources_classpath_returnsEmpty() {
             var discovery = new ResourceDiscovery();
 
             List<String> result =
@@ -111,7 +111,7 @@ class ResourceDiscoveryCoverageTest {
 
         @Test
         @DisplayName("reads file from filesystem")
-        void readsFromFilesystem(
+        void readResource_whenCalled_readsFromFilesystem(
                 @TempDir Path tempDir) throws IOException {
             Files.writeString(
                     tempDir.resolve("test.md"),

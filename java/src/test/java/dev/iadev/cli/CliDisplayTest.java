@@ -26,7 +26,7 @@ class CliDisplayTest {
     class ClassifyFiles {
 
         @Test
-        void emptyList_returnsEmptyMap() {
+        void emptyList_whenCalled_returnsEmptyMap() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(List.of());
 
@@ -34,7 +34,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void rulesPath_classifiedAsRules() {
+        void rulesPath_whenCalled_classifiedAsRules() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(
                             List.of(".claude/rules/01-identity.md"));
@@ -46,7 +46,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void skillsPath_classifiedAsSkills() {
+        void skillsPath_whenCalled_classifiedAsSkills() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(
                             List.of(".claude/skills/x-dev/SKILL.md"));
@@ -58,7 +58,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void agentsPath_classifiedAsAgents() {
+        void agentsPath_whenCalled_classifiedAsAgents() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(
                             List.of(".claude/agents/architect.md"));
@@ -70,7 +70,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void hooksPath_classifiedAsHooks() {
+        void hooksPath_whenCalled_classifiedAsHooks() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(
                             List.of(".claude/hooks/post-compile.sh"));
@@ -82,7 +82,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void settingsPath_classifiedAsSettings() {
+        void settingsPath_whenCalled_classifiedAsSettings() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(
                             List.of(".claude/settings.json"));
@@ -93,7 +93,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void githubInstructionsPath_classifiedCorrectly() {
+        void githubInstructionsPath_whenCalled_classifiedCorrectly() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(List.of(
                             ".github/instructions/coding.instructions.md"));
@@ -103,7 +103,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void githubSkillsPath_classifiedCorrectly() {
+        void githubSkillsPath_whenCalled_classifiedCorrectly() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(List.of(
                             ".github/skills/dev/SKILL.md"));
@@ -112,7 +112,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void githubAgentsPath_classifiedCorrectly() {
+        void githubAgentsPath_whenCalled_classifiedCorrectly() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(List.of(
                             ".github/agents/architect.agent.md"));
@@ -121,7 +121,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void githubHooksPath_classifiedCorrectly() {
+        void githubHooksPath_whenCalled_classifiedCorrectly() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(List.of(
                             ".github/hooks/post-push.json"));
@@ -130,7 +130,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void githubPromptsPath_classifiedCorrectly() {
+        void githubPromptsPath_whenCalled_classifiedCorrectly() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(List.of(
                             ".github/prompts/review.prompt.md"));
@@ -139,7 +139,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void githubCopilotConfig_classifiedCorrectly() {
+        void githubCopilotConfig_whenCalled_classifiedCorrectly() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(List.of(
                             ".github/copilot-instructions.md"));
@@ -148,7 +148,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void codexPath_classifiedCorrectly() {
+        void codexPath_whenCalled_classifiedCorrectly() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(
                             List.of(".codex/config.toml"));
@@ -157,7 +157,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void agentsMdPath_classifiedCorrectly() {
+        void agentsMdPath_whenCalled_classifiedCorrectly() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(
                             List.of(".agents/skills/dev/SKILL.md"));
@@ -166,7 +166,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void docsPath_classifiedCorrectly() {
+        void docsPath_whenCalled_classifiedCorrectly() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(
                             List.of("docs/adr/001.md"));
@@ -175,7 +175,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void claudeMd_classifiedAsRootFiles() {
+        void claudeMd_whenCalled_classifiedAsRootFiles() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(
                             List.of("CLAUDE.md"));
@@ -184,7 +184,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void readmeMd_classifiedAsRootFiles() {
+        void readmeMd_whenCalled_classifiedAsRootFiles() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(
                             List.of("README.md"));
@@ -193,7 +193,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void unknownPath_classifiedAsOther() {
+        void unknownPath_whenCalled_classifiedAsOther() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(
                             List.of("random/file.txt"));
@@ -202,7 +202,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void multiplePaths_groupedCorrectly() {
+        void multiplePaths_whenCalled_groupedCorrectly() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(List.of(
                             ".claude/rules/01-identity.md",
@@ -223,7 +223,7 @@ class CliDisplayTest {
     class FormatSummaryTable {
 
         @Test
-        void emptyMap_returnsHeaderAndTotalZero() {
+        void emptyMap_whenCalled_returnsHeaderAndTotalZero() {
             String table =
                     CliDisplay.formatSummaryTable(Map.of());
 
@@ -233,7 +233,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void singleCategory_showsCountAndTotal() {
+        void singleCategory_whenCalled_showsCountAndTotal() {
             Map<String, List<String>> classified = Map.of(
                     "Rules", List.of("a.md", "b.md", "c.md"));
 
@@ -246,7 +246,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void multipleCategories_showsAllCountsAndTotal() {
+        void multipleCategories_whenCalled_showsAllCountsAndTotal() {
             Map<String, List<String>> classified = Map.of(
                     "Rules", List.of("a", "b", "c", "d", "e"),
                     "Skills", List.of("s1", "s2"),
@@ -265,7 +265,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void table_containsSeparatorLines() {
+        void table_whenCalled_containsSeparatorLines() {
             Map<String, List<String>> classified = Map.of(
                     "Rules", List.of("a"));
 
@@ -281,7 +281,7 @@ class CliDisplayTest {
     class FormatResult {
 
         @Test
-        void successResult_containsPipelineSuccess() {
+        void successResult_whenCalled_containsPipelineSuccess() {
             PipelineResult result = new PipelineResult(
                     true, "/tmp/output",
                     List.of(".claude/rules/01.md"),
@@ -296,7 +296,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void dryRunResult_containsDryRunHeader() {
+        void dryRunResult_whenCalled_containsDryRunHeader() {
             PipelineResult result = new PipelineResult(
                     true, "/tmp/output",
                     List.of(".claude/rules/01.md"),
@@ -309,7 +309,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void resultWithWarnings_showsWarnings() {
+        void resultWithWarnings_whenCalled_showsWarnings() {
             PipelineResult result = new PipelineResult(
                     true, "/tmp/output",
                     List.of(".claude/rules/01.md"),
@@ -323,7 +323,7 @@ class CliDisplayTest {
         }
 
         @Test
-        void dryRunResult_listsAllFiles() {
+        void dryRunResult_whenCalled_listsAllFiles() {
             PipelineResult result = new PipelineResult(
                     true, "/tmp/output",
                     List.of(".claude/rules/01.md",

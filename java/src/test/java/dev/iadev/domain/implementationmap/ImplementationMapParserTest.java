@@ -211,7 +211,7 @@ class ImplementationMapParserTest {
         }
 
         @Test
-        void filterByPhase_phase0And2NotIncluded() {
+        void filterByPhase_whenCalled_phase0And2NotIncluded() {
             var parsed = ImplementationMapParser.parse(
                     fiveStoryMarkdown());
 

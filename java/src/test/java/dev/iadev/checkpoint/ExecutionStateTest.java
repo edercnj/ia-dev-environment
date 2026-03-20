@@ -31,7 +31,7 @@ class ExecutionStateTest {
     }
 
     @Test
-    void constructor_preservesAllFields() {
+    void constructor_whenCalled_preservesAllFields() {
         var state = createSampleState();
 
         assertThat(state.epicId()).isEqualTo("EPIC-0006");
@@ -46,7 +46,7 @@ class ExecutionStateTest {
     }
 
     @Test
-    void withStory_addsNewStory() {
+    void withStory_whenCalled_addsNewStory() {
         var state = createSampleState();
         var newEntry = StoryEntry.pending(2);
 
@@ -59,7 +59,7 @@ class ExecutionStateTest {
     }
 
     @Test
-    void withStory_updatesExistingStory() {
+    void withStory_whenCalled_updatesExistingStory() {
         var state = createSampleState();
         var updatedEntry = StoryEntry.pending(0)
                 .withStatus(StoryStatus.SUCCESS);
@@ -73,7 +73,7 @@ class ExecutionStateTest {
     }
 
     @Test
-    void withMetrics_returnsNewStateWithUpdatedMetrics() {
+    void withMetrics_whenCalled_returnsNewStateWithUpdatedMetrics() {
         var state = createSampleState();
         var newMetrics = new ExecutionMetrics(
                 1, 2, 0, 0, 1.0, 60_000L, 60_000.0,
@@ -87,7 +87,7 @@ class ExecutionStateTest {
     }
 
     @Test
-    void withStories_replacesEntireMap() {
+    void withStories_whenCalled_replacesEntireMap() {
         var state = createSampleState();
         var newStories = Map.of(
                 "story-X", StoryEntry.pending(0)
@@ -101,7 +101,7 @@ class ExecutionStateTest {
     }
 
     @Test
-    void withIntegrityGate_addsGate() {
+    void withIntegrityGate_whenCalled_addsGate() {
         var state = createSampleState();
         var gate = IntegrityGateEntry.pass("compilation");
 
@@ -114,7 +114,7 @@ class ExecutionStateTest {
     }
 
     @Test
-    void withCurrentPhase_updatesPhase() {
+    void withCurrentPhase_whenCalled_updatesPhase() {
         var state = createSampleState();
         var updated = state.withCurrentPhase(3);
 
@@ -123,7 +123,7 @@ class ExecutionStateTest {
     }
 
     @Test
-    void immutability_withStoryDoesNotMutateOriginal() {
+    void immutability_withStory_doesNotMutateOriginal() {
         var state = createSampleState();
         var originalStories = state.stories();
 

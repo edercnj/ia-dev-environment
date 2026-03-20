@@ -29,7 +29,7 @@ class RulesConditionalsCoverageTest {
 
         @Test
         @DisplayName("mysql copies SQL common + mysql dir")
-        void mysqlCopiesSqlFiles(@TempDir Path tempDir)
+        void assemble_mysql_copiesSqlFiles(@TempDir Path tempDir)
                 throws IOException {
             ProjectConfig config = TestConfigBuilder
                     .builder()
@@ -68,7 +68,7 @@ class RulesConditionalsCoverageTest {
 
         @Test
         @DisplayName("oracle copies SQL common + oracle dir")
-        void oracleCopiesSqlFiles(@TempDir Path tempDir)
+        void assemble_oracle_copiesSqlFiles(@TempDir Path tempDir)
                 throws IOException {
             ProjectConfig config = TestConfigBuilder
                     .builder()
@@ -103,7 +103,7 @@ class RulesConditionalsCoverageTest {
         @Test
         @DisplayName("cassandra copies NoSQL common"
                 + " + cassandra dir")
-        void cassandraCopiesNosqlFiles(
+        void copyDatabaseRefs_cassandra_copiesNosqlFiles(
                 @TempDir Path tempDir) throws IOException {
             ProjectConfig config = TestConfigBuilder
                     .builder()
@@ -139,7 +139,7 @@ class RulesConditionalsCoverageTest {
 
         @Test
         @DisplayName("unknown db type copies no type files")
-        void unknownDbNoCopy(@TempDir Path tempDir)
+        void copyDatabaseRefs_whenCalled_unknownDbNoCopy(@TempDir Path tempDir)
                 throws IOException {
             ProjectConfig config = TestConfigBuilder
                     .builder()
@@ -169,7 +169,7 @@ class RulesConditionalsCoverageTest {
 
         @Test
         @DisplayName("no version matrix file returns empty")
-        void noVersionMatrixReturnsEmpty(
+        void copyDatabaseRefs_noVersionMatrix_returnsEmpty(
                 @TempDir Path tempDir) throws IOException {
             ProjectConfig config = TestConfigBuilder
                     .builder()
@@ -201,7 +201,7 @@ class RulesConditionalsCoverageTest {
         @Test
         @DisplayName("cache common dir missing returns"
                 + " only specific cache")
-        void cacheCommonMissing(@TempDir Path tempDir)
+        void copyCacheRefs_whenCalled_cacheCommonMissing(@TempDir Path tempDir)
                 throws IOException {
             ProjectConfig config = TestConfigBuilder
                     .builder()
@@ -227,7 +227,7 @@ class RulesConditionalsCoverageTest {
         @Test
         @DisplayName("cache specific dir missing returns"
                 + " only common")
-        void cacheSpecificMissing(@TempDir Path tempDir)
+        void copyCacheRefs_whenCalled_cacheSpecificMissing(@TempDir Path tempDir)
                 throws IOException {
             ProjectConfig config = TestConfigBuilder
                     .builder()
@@ -258,7 +258,7 @@ class RulesConditionalsCoverageTest {
         @Test
         @DisplayName("security frameworks copies base"
                 + " and compliance files")
-        void copiesBaseAndCompliance(
+        void assembleSecurityRules_whenCalled_copiesBaseAndCompliance(
                 @TempDir Path tempDir) throws IOException {
             ProjectConfig config = TestConfigBuilder
                     .builder()
@@ -303,7 +303,7 @@ class RulesConditionalsCoverageTest {
         @Test
         @DisplayName("security base files missing"
                 + " returns only compliance")
-        void baseFilesMissing(@TempDir Path tempDir)
+        void assembleSecurityRules_whenCalled_baseFilesMissing(@TempDir Path tempDir)
                 throws IOException {
             ProjectConfig config = TestConfigBuilder
                     .builder()
@@ -329,7 +329,7 @@ class RulesConditionalsCoverageTest {
         @Test
         @DisplayName("compliance file missing for"
                 + " framework is skipped")
-        void complianceFileMissing(@TempDir Path tempDir)
+        void assembleSecurityRules_whenCalled_complianceFileMissing(@TempDir Path tempDir)
                 throws IOException {
             ProjectConfig config = TestConfigBuilder
                     .builder()
@@ -361,7 +361,7 @@ class RulesConditionalsCoverageTest {
 
         @Test
         @DisplayName("aws provider copies cloud file")
-        void awsCopiesCloudFile(@TempDir Path tempDir)
+        void assembleCloudKnowledge_aws_copiesCloudFile(@TempDir Path tempDir)
                 throws IOException {
             ProjectConfig config = TestConfigBuilder
                     .builder()
@@ -388,7 +388,7 @@ class RulesConditionalsCoverageTest {
 
         @Test
         @DisplayName("provider file missing returns empty")
-        void providerFileMissing(@TempDir Path tempDir)
+        void assembleCloudKnowledge_whenCalled_providerFileMissing(@TempDir Path tempDir)
                 throws IOException {
             ProjectConfig config = TestConfigBuilder
                     .builder()
@@ -410,7 +410,7 @@ class RulesConditionalsCoverageTest {
 
         @Test
         @DisplayName("empty provider returns empty")
-        void emptyProviderReturnsEmpty(
+        void assembleCloudKnowledge_emptyProvider_returnsEmpty(
                 @TempDir Path tempDir) {
             ProjectConfig config = TestConfigBuilder
                     .builder()
@@ -435,7 +435,7 @@ class RulesConditionalsCoverageTest {
         @Test
         @DisplayName("kubernetes copies k8s deployment"
                 + " patterns")
-        void k8sCopiesDeployment(@TempDir Path tempDir)
+        void assembleInfraKnowledge_k8s_copiesDeployment(@TempDir Path tempDir)
                 throws IOException {
             ProjectConfig config = TestConfigBuilder
                     .builder()
@@ -463,7 +463,7 @@ class RulesConditionalsCoverageTest {
         @Test
         @DisplayName("kubernetes file missing returns empty"
                 + " k8s result")
-        void k8sFileMissing(@TempDir Path tempDir)
+        void assembleInfraKnowledge_whenCalled_k8sFileMissing(@TempDir Path tempDir)
                 throws IOException {
             ProjectConfig config = TestConfigBuilder
                     .builder()
@@ -486,7 +486,7 @@ class RulesConditionalsCoverageTest {
 
         @Test
         @DisplayName("docker copies container files")
-        void dockerCopiesContainerFiles(
+        void assembleInfraKnowledge_docker_copiesContainerFiles(
                 @TempDir Path tempDir) throws IOException {
             ProjectConfig config = TestConfigBuilder
                     .builder()
@@ -521,7 +521,7 @@ class RulesConditionalsCoverageTest {
         @Test
         @DisplayName("container=none returns no"
                 + " container files")
-        void noContainerFiles(@TempDir Path tempDir)
+        void assembleInfraKnowledge_noContainerFiles_succeeds(@TempDir Path tempDir)
                 throws IOException {
             ProjectConfig config = TestConfigBuilder
                     .builder()
@@ -543,7 +543,7 @@ class RulesConditionalsCoverageTest {
         @Test
         @DisplayName("container files missing returns"
                 + " empty")
-        void containerFilesMissing(@TempDir Path tempDir)
+        void assembleInfraKnowledge_whenCalled_containerFilesMissing(@TempDir Path tempDir)
                 throws IOException {
             ProjectConfig config = TestConfigBuilder
                     .builder()
@@ -563,7 +563,7 @@ class RulesConditionalsCoverageTest {
 
         @Test
         @DisplayName("terraform copies IaC patterns")
-        void terraformCopiesIac(@TempDir Path tempDir)
+        void assembleInfraKnowledge_terraform_copiesIac(@TempDir Path tempDir)
                 throws IOException {
             ProjectConfig config = TestConfigBuilder
                     .builder()
@@ -590,7 +590,7 @@ class RulesConditionalsCoverageTest {
 
         @Test
         @DisplayName("iac=none returns no IaC files")
-        void noIacFiles(@TempDir Path tempDir) {
+        void assembleInfraKnowledge_noIacFiles_succeeds(@TempDir Path tempDir) {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .iac("none")
@@ -608,7 +608,7 @@ class RulesConditionalsCoverageTest {
 
         @Test
         @DisplayName("empty iac returns no IaC files")
-        void emptyIacReturnsEmpty(@TempDir Path tempDir) {
+        void assembleInfraKnowledge_emptyIac_returnsEmpty(@TempDir Path tempDir) {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .iac("")
@@ -626,7 +626,7 @@ class RulesConditionalsCoverageTest {
 
         @Test
         @DisplayName("iac file missing returns empty")
-        void iacFileMissing(@TempDir Path tempDir)
+        void assembleInfraKnowledge_whenCalled_iacFileMissing(@TempDir Path tempDir)
                 throws IOException {
             ProjectConfig config = TestConfigBuilder
                     .builder()
@@ -656,7 +656,7 @@ class RulesConditionalsCoverageTest {
         @Test
         @DisplayName("database files have placeholders"
                 + " replaced")
-        void placeholdersReplaced(@TempDir Path tempDir)
+        void copyDatabaseRefs_whenCalled_placeholdersReplaced(@TempDir Path tempDir)
                 throws IOException {
             ProjectConfig config = TestConfigBuilder
                     .builder()

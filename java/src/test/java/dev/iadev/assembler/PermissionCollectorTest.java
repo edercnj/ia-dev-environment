@@ -28,7 +28,7 @@ class PermissionCollectorTest {
         @Test
         @DisplayName("returns deduplicated permissions"
                 + " for java-maven")
-        void deduplicatedForJavaMaven(
+        void collect_forJavaMaven_deduplicated(
                 @TempDir Path tempDir) throws IOException {
             Path templatesDir =
                     setupTemplatesDir(tempDir);
@@ -60,7 +60,7 @@ class PermissionCollectorTest {
 
         @Test
         @DisplayName("java-maven includes base + maven")
-        void javaMavenIncludesBaseAndMaven(
+        void collectRaw_javaMaven_includesBaseAndMaven(
                 @TempDir Path tempDir) throws IOException {
             Path templatesDir =
                     setupTemplatesDir(tempDir);
@@ -88,7 +88,7 @@ class PermissionCollectorTest {
         @Test
         @DisplayName("docker container adds docker"
                 + " permissions")
-        void dockerAddsDockerPerms(
+        void collectRaw_docker_addsDockerPerms(
                 @TempDir Path tempDir) throws IOException {
             Path templatesDir =
                     setupTemplatesDir(tempDir);
@@ -111,7 +111,7 @@ class PermissionCollectorTest {
 
         @Test
         @DisplayName("podman adds docker permissions")
-        void podmanAddsDockerPerms(
+        void collectRaw_podman_addsDockerPerms(
                 @TempDir Path tempDir) throws IOException {
             Path templatesDir =
                     setupTemplatesDir(tempDir);
@@ -134,7 +134,7 @@ class PermissionCollectorTest {
 
         @Test
         @DisplayName("kubernetes adds k8s permissions")
-        void k8sAddsK8sPerms(
+        void collectRaw_k8s_addsK8sPerms(
                 @TempDir Path tempDir) throws IOException {
             Path templatesDir =
                     setupTemplatesDir(tempDir);
@@ -158,7 +158,7 @@ class PermissionCollectorTest {
         @Test
         @DisplayName("docker-compose adds compose"
                 + " permissions")
-        void composeAddsComposePerms(
+        void collectRaw_compose_addsComposePerms(
                 @TempDir Path tempDir) throws IOException {
             Path templatesDir =
                     setupTemplatesDir(tempDir);
@@ -181,7 +181,7 @@ class PermissionCollectorTest {
 
         @Test
         @DisplayName("smoke tests add newman permissions")
-        void smokeTestsAddNewman(
+        void collectRaw_whenCalled_smokeTestsAddNewman(
                 @TempDir Path tempDir) throws IOException {
             Path templatesDir =
                     setupTemplatesDir(tempDir);
@@ -204,7 +204,7 @@ class PermissionCollectorTest {
 
         @Test
         @DisplayName("database adds db permissions")
-        void databaseAddsDbPerms(
+        void collectRaw_database_addsDbPerms(
                 @TempDir Path tempDir) throws IOException {
             Path templatesDir =
                     setupTemplatesDir(tempDir);
@@ -232,7 +232,7 @@ class PermissionCollectorTest {
 
         @Test
         @DisplayName("cache adds cache permissions")
-        void cacheAddsCachePerms(
+        void collectRaw_cache_addsCachePerms(
                 @TempDir Path tempDir) throws IOException {
             Path templatesDir =
                     setupTemplatesDir(tempDir);
@@ -265,7 +265,7 @@ class PermissionCollectorTest {
 
         @Test
         @DisplayName("preserves order and removes dupes")
-        void preservesOrderRemovesDupes() {
+        void deduplicate_preservesOrder_removesDupes() {
             List<String> input = List.of(
                     "a", "b", "a", "c", "b");
 
@@ -278,7 +278,7 @@ class PermissionCollectorTest {
 
         @Test
         @DisplayName("no duplicates returns same")
-        void noDuplicatesUnchanged() {
+        void deduplicate_noDuplicatesUnchanged_succeeds() {
             List<String> input = List.of("a", "b", "c");
 
             List<String> result =
@@ -295,7 +295,7 @@ class PermissionCollectorTest {
 
         @Test
         @DisplayName("parses simple JSON array")
-        void parsesSimpleArray() {
+        void parseJsonStringArray_whenCalled_parsesSimpleArray() {
             List<String> result = PermissionCollector
                     .parseJsonStringArray(
                             "[\"a\", \"b\", \"c\"]");
@@ -306,7 +306,7 @@ class PermissionCollectorTest {
 
         @Test
         @DisplayName("returns empty for empty array")
-        void emptyForEmptyArray() {
+        void parseJsonStringArray_emptyForEmptyArray_succeeds() {
             List<String> result = PermissionCollector
                     .parseJsonStringArray("[]");
 
@@ -315,7 +315,7 @@ class PermissionCollectorTest {
 
         @Test
         @DisplayName("returns empty for non-array")
-        void emptyForNonArray() {
+        void parseJsonStringArray_emptyForNonArray_succeeds() {
             List<String> result = PermissionCollector
                     .parseJsonStringArray("{}");
 
@@ -324,7 +324,7 @@ class PermissionCollectorTest {
 
         @Test
         @DisplayName("handles parentheses in entries")
-        void handlesParentheses() {
+        void parseJsonStringArray_whenCalled_handlesParentheses() {
             List<String> result = PermissionCollector
                     .parseJsonStringArray(
                             "[\"Bash(git *)\","
@@ -338,7 +338,7 @@ class PermissionCollectorTest {
 
         @Test
         @DisplayName("handles escaped quotes")
-        void handlesEscapedQuotes() {
+        void parseJsonStringArray_whenCalled_handlesEscapedQuotes() {
             List<String> result = PermissionCollector
                     .parseJsonStringArray(
                             "[\"a\\\"b\"]");
@@ -348,7 +348,7 @@ class PermissionCollectorTest {
 
         @Test
         @DisplayName("handles whitespace-only inner")
-        void handlesWhitespaceOnly() {
+        void parseJsonStringArray_whenCalled_handlesWhitespaceOnly() {
             List<String> result = PermissionCollector
                     .parseJsonStringArray("[   ]");
 
@@ -357,7 +357,7 @@ class PermissionCollectorTest {
 
         @Test
         @DisplayName("empty string returns empty")
-        void emptyStringReturnsEmpty() {
+        void parseJsonStringArray_emptyString_returnsEmpty() {
             List<String> result = PermissionCollector
                     .parseJsonStringArray("");
 
@@ -366,7 +366,7 @@ class PermissionCollectorTest {
 
         @Test
         @DisplayName("multiline JSON parsed correctly")
-        void handlesMultiline() {
+        void parseJsonStringArray_whenCalled_handlesMultiline() {
             String json = "[\n"
                     + "  \"first\",\n"
                     + "  \"second\"\n"
@@ -385,7 +385,7 @@ class PermissionCollectorTest {
 
         @Test
         @DisplayName("non-existent file returns empty")
-        void nonExistentReturnsEmpty(
+        void readJsonArray_nonExistent_returnsEmpty(
                 @TempDir Path tempDir) {
             Path missing = tempDir.resolve("missing.json");
 
@@ -397,7 +397,7 @@ class PermissionCollectorTest {
 
         @Test
         @DisplayName("valid file returns parsed array")
-        void validFileReturnsParsed(
+        void readJsonArray_validFile_returnsParsed(
                 @TempDir Path tempDir) throws IOException {
             Path file = tempDir.resolve("test.json");
             Files.writeString(file, "[\"a\", \"b\"]",

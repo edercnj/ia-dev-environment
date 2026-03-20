@@ -25,7 +25,7 @@ class AtomicOutputTest {
 
         @Test
         @DisplayName("writes single file to destination")
-        void singleFile_writtenToDestination(@TempDir Path tempDir)
+        void singleFile_whenCalled_writtenToDestination(@TempDir Path tempDir)
                 throws IOException {
             Path dest = tempDir.resolve("output");
             Map<String, String> files = Map.of(
@@ -41,7 +41,7 @@ class AtomicOutputTest {
 
         @Test
         @DisplayName("writes multiple files to destination")
-        void multipleFiles_writtenToDestination(@TempDir Path tempDir)
+        void multipleFiles_whenCalled_writtenToDestination(@TempDir Path tempDir)
                 throws IOException {
             Path dest = tempDir.resolve("output");
             Map<String, String> files = new LinkedHashMap<>();
@@ -67,7 +67,7 @@ class AtomicOutputTest {
 
         @Test
         @DisplayName("creates nested subdirectories automatically")
-        void nestedSubdirs_createdAutomatically(@TempDir Path tempDir)
+        void nestedSubdirs_whenCalled_createdAutomatically(@TempDir Path tempDir)
                 throws IOException {
             Path dest = tempDir.resolve("output");
             Map<String, String> files = Map.of(
@@ -84,7 +84,7 @@ class AtomicOutputTest {
 
         @Test
         @DisplayName("all files written with UTF-8 encoding")
-        void filesWrittenWithUtf8(@TempDir Path tempDir)
+        void create_withUtf8_filesWritten(@TempDir Path tempDir)
                 throws IOException {
             Path dest = tempDir.resolve("output");
             String utf8Content =
@@ -102,7 +102,7 @@ class AtomicOutputTest {
 
         @Test
         @DisplayName("all files written with LF line endings")
-        void filesWrittenWithLf(@TempDir Path tempDir)
+        void create_withLf_filesWritten(@TempDir Path tempDir)
                 throws IOException {
             Path dest = tempDir.resolve("output");
             String content = "line1\nline2\nline3\n";
@@ -120,7 +120,7 @@ class AtomicOutputTest {
 
         @Test
         @DisplayName("handles empty file map gracefully")
-        void emptyFileMap_createsEmptyDestination(@TempDir Path tempDir)
+        void emptyFileMap_whenCalled_createsEmptyDestination(@TempDir Path tempDir)
                 throws IOException {
             Path dest = tempDir.resolve("output");
             Map<String, String> files = Map.of();
@@ -133,7 +133,7 @@ class AtomicOutputTest {
 
         @Test
         @DisplayName("overwrites existing destination on success")
-        void existingDest_overwritten(@TempDir Path tempDir)
+        void existingDest_whenCalled_overwritten(@TempDir Path tempDir)
                 throws IOException {
             Path dest = tempDir.resolve("output");
             Files.createDirectories(dest);
@@ -154,7 +154,7 @@ class AtomicOutputTest {
 
         @Test
         @DisplayName("preserves temp dir info in exception on failure")
-        void failedWrite_preservesTempDirInMessage(
+        void failedWrite_whenCalled_preservesTempDirInMessage(
                 @TempDir Path tempDir) {
             // Use a path under a non-writable parent to force move
             // failure. We'll create a dest inside /dev/null which
@@ -173,7 +173,7 @@ class AtomicOutputTest {
 
         @Test
         @DisplayName("rejects null destination path")
-        void nullDestination_rejected() {
+        void nullDestination_whenCalled_rejected() {
             Map<String, String> files = Map.of("a.txt", "content");
 
             assertThatThrownBy(
@@ -183,7 +183,7 @@ class AtomicOutputTest {
 
         @Test
         @DisplayName("rejects null file map")
-        void nullFileMap_rejected(@TempDir Path tempDir) {
+        void nullFileMap_whenCalled_rejected(@TempDir Path tempDir) {
             Path dest = tempDir.resolve("output");
 
             assertThatThrownBy(
@@ -198,7 +198,7 @@ class AtomicOutputTest {
 
         @Test
         @DisplayName("uses ia-dev-env- prefix for temp directory")
-        void tempDirPrefix(@TempDir Path tempDir) throws IOException {
+        void write_whenCalled_tempDirPrefix(@TempDir Path tempDir) throws IOException {
             // Verify that the method works end-to-end; the temp dir
             // prefix is an internal detail, but we can verify the
             // output is correct

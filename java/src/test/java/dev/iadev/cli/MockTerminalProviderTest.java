@@ -90,7 +90,7 @@ class MockTerminalProviderTest {
 
         @Test
         @DisplayName("selectFromList_returnsQueuedSelection")
-        void selectFromList_returnsQueuedSelection() {
+        void selectFromList_whenCalled_returnsQueuedSelection() {
             var mock = new MockTerminalProvider()
                     .addSelect("option2");
 
@@ -119,7 +119,7 @@ class MockTerminalProviderTest {
 
         @Test
         @DisplayName("selectMultiple_returnsQueuedSelection")
-        void selectMultiple_returnsQueuedSelection() {
+        void selectMultiple_whenCalled_returnsQueuedSelection() {
             var mock = new MockTerminalProvider()
                     .addMultiSelect(List.of("a", "c"));
 
@@ -161,7 +161,7 @@ class MockTerminalProviderTest {
 
         @Test
         @DisplayName("display_recordsMessages")
-        void display_recordsMessages() {
+        void display_whenCalled_recordsMessages() {
             var mock = new MockTerminalProvider();
 
             mock.display("hello");

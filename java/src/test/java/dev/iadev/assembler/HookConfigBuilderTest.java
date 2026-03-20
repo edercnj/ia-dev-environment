@@ -19,7 +19,7 @@ class HookConfigBuilderTest {
 
         @Test
         @DisplayName("contains PostToolUse event")
-        void containsPostToolUse() {
+        void load_whenCalled_containsPostToolUse() {
             StringBuilder sb = new StringBuilder();
 
             HookConfigBuilder.appendHooksSection(sb);
@@ -31,7 +31,7 @@ class HookConfigBuilderTest {
 
         @Test
         @DisplayName("contains Write|Edit matcher")
-        void containsWriteEditMatcher() {
+        void load_whenCalled_containsWriteEditMatcher() {
             StringBuilder sb = new StringBuilder();
 
             HookConfigBuilder.appendHooksSection(sb);
@@ -43,7 +43,7 @@ class HookConfigBuilderTest {
 
         @Test
         @DisplayName("contains post-compile-check script")
-        void containsPostCompileScript() {
+        void load_whenCalled_containsPostCompileScript() {
             StringBuilder sb = new StringBuilder();
 
             HookConfigBuilder.appendHooksSection(sb);
@@ -55,7 +55,7 @@ class HookConfigBuilderTest {
 
         @Test
         @DisplayName("contains timeout of 60 seconds")
-        void containsTimeout() {
+        void load_whenCalled_containsTimeout() {
             StringBuilder sb = new StringBuilder();
 
             HookConfigBuilder.appendHooksSection(sb);
@@ -67,7 +67,7 @@ class HookConfigBuilderTest {
 
         @Test
         @DisplayName("contains status message")
-        void containsStatusMessage() {
+        void load_whenCalled_containsStatusMessage() {
             StringBuilder sb = new StringBuilder();
 
             HookConfigBuilder.appendHooksSection(sb);
@@ -79,7 +79,7 @@ class HookConfigBuilderTest {
 
         @Test
         @DisplayName("contains command type")
-        void containsCommandType() {
+        void load_whenCalled_containsCommandType() {
             StringBuilder sb = new StringBuilder();
 
             HookConfigBuilder.appendHooksSection(sb);
@@ -92,7 +92,7 @@ class HookConfigBuilderTest {
         @Test
         @DisplayName("hooks section references CLAUDE"
                 + " project dir")
-        void referencesProjectDir() {
+        void load_whenCalled_referencesProjectDir() {
             StringBuilder sb = new StringBuilder();
 
             HookConfigBuilder.appendHooksSection(sb);

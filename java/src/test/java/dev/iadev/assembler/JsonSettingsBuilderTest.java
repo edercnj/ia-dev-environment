@@ -25,7 +25,7 @@ class JsonSettingsBuilderTest {
         @Test
         @DisplayName("without hooks produces permissions"
                 + " only")
-        void withoutHooksPermissionsOnly() {
+        void build_withoutHooksPermissionsOnly_succeeds() {
             List<String> perms = List.of("Bash(git *)");
 
             String json = builder.build(
@@ -40,7 +40,7 @@ class JsonSettingsBuilderTest {
 
         @Test
         @DisplayName("with hooks includes PostToolUse")
-        void withHooksIncludesPostToolUse() {
+        void build_withHooks_includesPostToolUse() {
             List<String> perms = List.of("Bash(git *)");
 
             String json = builder.build(
@@ -58,7 +58,7 @@ class JsonSettingsBuilderTest {
         @Test
         @DisplayName("empty permissions produces empty"
                 + " allow array")
-        void emptyPermissions() {
+        void build_emptyPermissions_succeeds() {
             String json = builder.build(
                     List.of(), HookPresence.WITHOUT_HOOKS);
 
@@ -70,7 +70,7 @@ class JsonSettingsBuilderTest {
         @Test
         @DisplayName("multiple permissions separated"
                 + " by commas")
-        void multiplePermissions() {
+        void build_multiplePermissions_succeeds() {
             List<String> perms = List.of(
                     "Bash(git *)",
                     "Bash(mvn *)",
@@ -91,7 +91,7 @@ class JsonSettingsBuilderTest {
 
         @Test
         @DisplayName("JSON starts and ends with braces")
-        void validJsonStructure() {
+        void build_validJsonStructure_succeeds() {
             String json = builder.build(
                     List.of("Bash(git *)"),
                     HookPresence.WITHOUT_HOOKS);
@@ -107,7 +107,7 @@ class JsonSettingsBuilderTest {
 
         @Test
         @DisplayName("produces empty permissions")
-        void producesEmptyPermissions() {
+        void buildLocal_whenCalled_producesEmptyPermissions() {
             String json = builder.buildLocal();
 
             assertThat(json)
@@ -117,7 +117,7 @@ class JsonSettingsBuilderTest {
 
         @Test
         @DisplayName("valid JSON structure")
-        void validJsonStructure() {
+        void buildLocal_validJsonStructure_succeeds() {
             String json = builder.buildLocal();
 
             assertThat(json.trim()).startsWith("{");

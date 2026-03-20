@@ -25,7 +25,7 @@ class K8sManifestAssemblerTest {
 
         @Test
         @DisplayName("generates 3 K8s manifests")
-        void generatesManifests(@TempDir Path tempDir) {
+        void assemble_whenCalled_generatesManifests(@TempDir Path tempDir) {
             K8sManifestAssembler assembler =
                     new K8sManifestAssembler();
             ProjectConfig config = TestConfigBuilder
@@ -53,7 +53,7 @@ class K8sManifestAssemblerTest {
 
         @Test
         @DisplayName("K8s files exist on disk")
-        void filesExistOnDisk(@TempDir Path tempDir) {
+        void assemble_whenCalled_filesExistOnDisk(@TempDir Path tempDir) {
             K8sManifestAssembler assembler =
                     new K8sManifestAssembler();
             ProjectConfig config = TestConfigBuilder
@@ -84,7 +84,7 @@ class K8sManifestAssemblerTest {
         @Test
         @DisplayName("skips K8s manifests when"
                 + " orchestrator=none")
-        void skipsManifests(@TempDir Path tempDir) {
+        void assemble_whenCalled_skipsManifests(@TempDir Path tempDir) {
             K8sManifestAssembler assembler =
                     new K8sManifestAssembler();
             ProjectConfig config = TestConfigBuilder

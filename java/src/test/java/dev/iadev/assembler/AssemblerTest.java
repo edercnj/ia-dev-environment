@@ -19,7 +19,7 @@ class AssemblerTest {
 
     @Test
     @DisplayName("interface defines assemble method returning List<String>")
-    void assemble_returnsFileList(@TempDir Path tempDir) {
+    void assemble_whenCalled_returnsFileList(@TempDir Path tempDir) {
         Assembler assembler = (config, engine, outputDir) ->
                 List.of("file1.md", "file2.md");
 
@@ -35,7 +35,7 @@ class AssemblerTest {
 
     @Test
     @DisplayName("assembler can return empty list")
-    void assemble_returnsEmptyList(@TempDir Path tempDir) {
+    void assemble_whenCalled_returnsEmptyList(@TempDir Path tempDir) {
         Assembler assembler = (config, engine, outputDir) ->
                 List.of();
 
@@ -48,7 +48,7 @@ class AssemblerTest {
 
     @Test
     @DisplayName("interface is a functional interface")
-    void assembler_isFunctionalInterface() {
+    void assembler_whenCalled_isFunctionalInterface() {
         // Verify Assembler can be used as lambda
         Assembler lambda = (c, e, p) -> List.of();
         assertThat(lambda).isNotNull();

@@ -509,7 +509,7 @@ class InteractivePrompterTest {
 
         @Test
         @DisplayName("buildConfig_setsCorrectDefaults")
-        void buildConfig_setsCorrectDefaults() {
+        void buildConfig_whenCalled_setsCorrectDefaults() {
             var prompter = new InteractivePrompter(
                     new MockTerminalProvider());
 
@@ -542,7 +542,7 @@ class InteractivePrompterTest {
 
         @Test
         @DisplayName("buildConfig_interfacesCreatedCorrectly")
-        void buildConfig_interfacesCreatedCorrectly() {
+        void buildConfig_whenCalled_interfacesCreatedCorrectly() {
             var prompter = new InteractivePrompter(
                     new MockTerminalProvider());
 

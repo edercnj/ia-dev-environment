@@ -30,7 +30,7 @@ class CopyHelpersTest {
 
         @Test
         @DisplayName("copies and renders template placeholders")
-        void rendersPlaceholders(@TempDir Path tempDir)
+        void create_whenCalled_rendersPlaceholders(@TempDir Path tempDir)
                 throws IOException {
             Path src = tempDir.resolve("source.md");
             Files.writeString(src,
@@ -52,7 +52,7 @@ class CopyHelpersTest {
 
         @Test
         @DisplayName("creates parent directories")
-        void createsParentDirs(@TempDir Path tempDir)
+        void create_whenCalled_createsParentDirs(@TempDir Path tempDir)
                 throws IOException {
             Path src = tempDir.resolve("in.md");
             Files.writeString(src, "content");
@@ -72,7 +72,7 @@ class CopyHelpersTest {
         @Test
         @DisplayName("returns present Optional when"
                 + " source exists")
-        void sourceExists_returnsPresent(
+        void sourceExists_whenSourceExists_returnsPresent(
                 @TempDir Path tempDir)
                 throws IOException {
             Path src = tempDir.resolve("exists.md");
@@ -91,7 +91,7 @@ class CopyHelpersTest {
         @Test
         @DisplayName("returns empty Optional when"
                 + " source missing")
-        void sourceMissing_returnsEmpty(
+        void sourceMissing_whenSourceMissing_returnsEmpty(
                 @TempDir Path tempDir) {
             Path src = tempDir.resolve("nonexistent.md");
             Path dest = tempDir.resolve("out.md");
@@ -112,7 +112,7 @@ class CopyHelpersTest {
 
         @Test
         @DisplayName("copies file without rendering")
-        void copiesWithoutRendering(@TempDir Path tempDir)
+        void create_withoutRendering_copies(@TempDir Path tempDir)
                 throws IOException {
             Path src = tempDir.resolve("static.txt");
             String content = "{{NOT_REPLACED}}";
@@ -129,7 +129,7 @@ class CopyHelpersTest {
 
         @Test
         @DisplayName("creates parent directories")
-        void createsParentDirs(@TempDir Path tempDir)
+        void create_whenCalled_createsParentDirs(@TempDir Path tempDir)
                 throws IOException {
             Path src = tempDir.resolve("in.txt");
             Files.writeString(src, "data");
@@ -147,7 +147,7 @@ class CopyHelpersTest {
 
         @Test
         @DisplayName("copies directory recursively")
-        void copiesRecursively(@TempDir Path tempDir)
+        void create_whenCalled_copiesRecursively(@TempDir Path tempDir)
                 throws IOException {
             Path srcDir = tempDir.resolve("srcDir");
             Files.createDirectories(srcDir.resolve("sub"));
@@ -175,7 +175,7 @@ class CopyHelpersTest {
 
         @Test
         @DisplayName("creates directory and parents")
-        void createsDirectoryAndParents(@TempDir Path tempDir) {
+        void create_whenCalled_createsDirectoryAndParents(@TempDir Path tempDir) {
             Path dir = tempDir.resolve("x/y/z");
 
             CopyHelpers.ensureDirectory(dir);
@@ -185,7 +185,7 @@ class CopyHelpersTest {
 
         @Test
         @DisplayName("is idempotent for existing directory")
-        void existingDir_noError(@TempDir Path tempDir)
+        void existingDir_forExistingDirectory_noError(@TempDir Path tempDir)
                 throws IOException {
             Path dir = tempDir.resolve("existing");
             Files.createDirectories(dir);
@@ -202,7 +202,7 @@ class CopyHelpersTest {
 
         @Test
         @DisplayName("replaces placeholders in .md files")
-        void replacesInMdFiles(@TempDir Path tempDir)
+        void create_whenCalled_replacesInMdFiles(@TempDir Path tempDir)
                 throws IOException {
             Path mdFile = tempDir.resolve("test.md");
             Files.writeString(mdFile,
@@ -227,7 +227,7 @@ class CopyHelpersTest {
 
         @Test
         @DisplayName("replaces in nested directories")
-        void replacesInNestedDirs(@TempDir Path tempDir)
+        void create_whenCalled_replacesInNestedDirs(@TempDir Path tempDir)
                 throws IOException {
             Path sub = tempDir.resolve("sub");
             Files.createDirectories(sub);

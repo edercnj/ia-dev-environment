@@ -25,7 +25,7 @@ class DockerComposeAssemblerTest {
 
         @Test
         @DisplayName("generates docker-compose.yml")
-        void generatesDockerCompose(
+        void assemble_whenCalled_generatesDockerCompose(
                 @TempDir Path tempDir) {
             DockerComposeAssembler assembler =
                     new DockerComposeAssembler();
@@ -48,7 +48,7 @@ class DockerComposeAssemblerTest {
 
         @Test
         @DisplayName("docker-compose.yml exists on disk")
-        void fileExistsOnDisk(@TempDir Path tempDir) {
+        void assemble_whenCalled_fileExistsOnDisk(@TempDir Path tempDir) {
             DockerComposeAssembler assembler =
                     new DockerComposeAssembler();
             ProjectConfig config = TestConfigBuilder
@@ -75,7 +75,7 @@ class DockerComposeAssemblerTest {
         @Test
         @DisplayName("skips docker-compose.yml when"
                 + " container=none")
-        void skipsDockerCompose(@TempDir Path tempDir) {
+        void assemble_whenCalled_skipsDockerCompose(@TempDir Path tempDir) {
             DockerComposeAssembler assembler =
                     new DockerComposeAssembler();
             ProjectConfig config = TestConfigBuilder

@@ -33,7 +33,7 @@ class ConfigProfilesTest {
 
         @Test
         @DisplayName("returns all 9 stack keys")
-        void getAvailableStacks_returns9Keys() {
+        void getAvailableStacks_whenCalled_returns9Keys() {
             List<String> stacks =
                     ConfigProfiles.getAvailableStacks();
 

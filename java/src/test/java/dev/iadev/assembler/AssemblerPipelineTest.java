@@ -54,7 +54,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("returns exactly 23 assembler descriptors")
-        void returnsExactly23() {
+        void assemble_whenCalled_returnsExactly23() {
             List<AssemblerDescriptor> descriptors =
                     AssemblerPipeline.buildAssemblers();
 
@@ -63,7 +63,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("assemblers are in RULE-005 order")
-        void correctOrder() {
+        void assemble_whenCalled_correctOrder() {
             List<AssemblerDescriptor> descriptors =
                     AssemblerPipeline.buildAssemblers();
 
@@ -76,7 +76,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("assembler targets match specification")
-        void targetsMatchSpec() {
+        void assemble_whenCalled_targetsMatchSpec() {
             List<AssemblerDescriptor> descriptors =
                     AssemblerPipeline.buildAssemblers();
 
@@ -97,7 +97,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("each descriptor has non-null assembler")
-        void allAssemblersNotNull() {
+        void assemble_whenCalled_allAssemblersNotNull() {
             List<AssemblerDescriptor> descriptors =
                     AssemblerPipeline.buildAssemblers();
 
@@ -115,7 +115,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("executes all assemblers sequentially")
-        void executesAll(@TempDir Path tempDir) {
+        void assemble_whenCalled_executesAll(@TempDir Path tempDir) {
             List<String> executionOrder = new ArrayList<>();
 
             List<AssemblerDescriptor> descriptors = List.of(
@@ -141,7 +141,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("collects files from all assemblers")
-        void collectsFiles(@TempDir Path tempDir) {
+        void assemble_whenCalled_collectsFiles(@TempDir Path tempDir) {
             List<AssemblerDescriptor> descriptors = List.of(
                     descriptor("X", (c, e, p) ->
                             List.of("x1.md", "x2.md")),
@@ -161,7 +161,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("wraps exceptions in PipelineException")
-        void wrapsExceptions(@TempDir Path tempDir) {
+        void assemble_whenCalled_wrapsExceptions(@TempDir Path tempDir) {
             Assembler failing = (c, e, p) -> {
                 throw new RuntimeException("boom");
             };
@@ -181,7 +181,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("preserves PipelineException as-is")
-        void preservesPipelineException(@TempDir Path tempDir) {
+        void assemble_whenCalled_preservesPipelineException(@TempDir Path tempDir) {
             PipelineException original =
                     new PipelineException(
                             "original", "Inner", null);
@@ -203,7 +203,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("stops at first failure")
-        void stopsAtFirstFailure(@TempDir Path tempDir) {
+        void assemble_whenCalled_stopsAtFirstFailure(@TempDir Path tempDir) {
             List<String> executed = new ArrayList<>();
 
             List<AssemblerDescriptor> descriptors = List.of(
@@ -229,7 +229,7 @@ class AssemblerPipelineTest {
         @Test
         @DisplayName("collects warnings from assemblers"
                 + " via assembleWithResult")
-        void collectsWarnings(@TempDir Path tempDir) {
+        void assemble_whenCalled_collectsWarnings(@TempDir Path tempDir) {
             Assembler withWarnings =
                     new WarningAssembler(
                             List.of("f1.md"),
@@ -259,7 +259,7 @@ class AssemblerPipelineTest {
         @Test
         @DisplayName("consolidates warnings from"
                 + " multiple assemblers in order")
-        void consolidatesWarningsInOrder(
+        void assemble_whenCalled_consolidatesWarningsInOrder(
                 @TempDir Path tempDir) {
             Assembler asm1 = new WarningAssembler(
                     List.of(), List.of("warn-A"));
@@ -290,7 +290,7 @@ class AssemblerPipelineTest {
         @Test
         @DisplayName("assembler without warnings"
                 + " returns empty warnings")
-        void noWarningsFromDefaultAssembler(
+        void assemble_whenCalled_noWarningsFromDefaultAssembler(
                 @TempDir Path tempDir) {
             Assembler simple = (c, e, p) ->
                     List.of("out.md");
@@ -315,7 +315,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("dry-run returns result without writing")
-        void dryRun_noFilesWritten(@TempDir Path tempDir) {
+        void dryRun_whenCalled_noFilesWritten(@TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
             PipelineOptions opts = new PipelineOptions(
                     true, false, false, null);
@@ -340,7 +340,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("real run returns successful result")
-        void realRun_returnsSuccess(@TempDir Path tempDir) {
+        void realRun_whenCalled_returnsSuccess(@TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
             PipelineOptions opts = PipelineOptions.defaults();
 
@@ -359,7 +359,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("pipeline failure wraps in PipelineException")
-        void failure_throwsPipelineException(
+        void failure_whenCalled_throwsPipelineException(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
             Assembler failing = (c, e, p) -> {
@@ -386,7 +386,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("result contains fileCount matching files")
-        void result_fileCountMatchesFiles(
+        void result_fileCount_matchesFiles(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
             PipelineOptions opts = new PipelineOptions(
@@ -412,7 +412,7 @@ class AssemblerPipelineTest {
         @Test
         @DisplayName("default wraps assemble with"
                 + " empty warnings")
-        void defaultWrapsAssemble(
+        void assembleWithResult_defaultWrapsAssemble_succeeds(
                 @TempDir Path tempDir) {
             Assembler simple = (c, e, p) ->
                     List.of("file.md");
@@ -430,7 +430,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("override provides warnings")
-        void overrideProvides(
+        void assembleWithResult_whenCalled_overrideProvides(
                 @TempDir Path tempDir) {
             Assembler withWarn = new WarningAssembler(
                     List.of("x.md"),
