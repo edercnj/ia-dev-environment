@@ -32,37 +32,43 @@ class JacksonCheckpointPersistenceTest {
     }
 
     private ExecutionState createSampleState() {
-        var stories = new LinkedHashMap<String, StoryEntry>();
-        stories.put(
-                "story-0006-0001",
-                new StoryEntry(
-                        StoryStatus.SUCCESS, "abc123", 0,
-                        120_000L, 0, List.of(),
-                        "Projeto Maven criado", 0
-                )
-        );
-        stories.put("story-0006-0002", StoryEntry.pending(0));
-        stories.put("story-0006-0003", StoryEntry.pending(1));
-
-        var gates = new LinkedHashMap<String, IntegrityGateEntry>();
-        gates.put(
-                "compilation",
-                new IntegrityGateEntry(
-                        "compilation", true, null,
-                        Instant.parse("2026-03-19T10:05:00Z")
-                )
-        );
-
+        var stories = buildSampleStories();
+        var gates = buildSampleGates();
         return new ExecutionState(
-                "EPIC-0006",
-                "feat/epic-0006",
+                "EPIC-0006", "feat/epic-0006",
                 Instant.parse("2026-03-19T10:00:00Z"),
-                0,
-                ExecutionMode.FULL,
+                0, ExecutionMode.FULL,
                 Map.copyOf(stories),
                 Map.copyOf(gates),
-                ExecutionMetrics.initial(3)
-        );
+                ExecutionMetrics.initial(3));
+    }
+
+    private LinkedHashMap<String, StoryEntry>
+            buildSampleStories() {
+        var stories =
+                new LinkedHashMap<String, StoryEntry>();
+        stories.put("story-0006-0001",
+                new StoryEntry(
+                        StoryStatus.SUCCESS, "abc123",
+                        0, 120_000L, 0, List.of(),
+                        "Projeto Maven criado", 0));
+        stories.put("story-0006-0002",
+                StoryEntry.pending(0));
+        stories.put("story-0006-0003",
+                StoryEntry.pending(1));
+        return stories;
+    }
+
+    private LinkedHashMap<String, IntegrityGateEntry>
+            buildSampleGates() {
+        var gates = new LinkedHashMap<
+                String, IntegrityGateEntry>();
+        gates.put("compilation",
+                new IntegrityGateEntry(
+                        "compilation", true, null,
+                        Instant.parse(
+                                "2026-03-19T10:05:00Z")));
+        return gates;
     }
 
     @Test

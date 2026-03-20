@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -256,30 +257,31 @@ class SettingsAssemblerCoverageTest {
         Path templatesDir = tempDir.resolve(
                 "settings-templates");
         Files.createDirectories(templatesDir);
-        Files.writeString(
-                templatesDir.resolve("base.json"),
-                "[\"Bash(git *)\"]",
-                StandardCharsets.UTF_8);
-        Files.writeString(
-                templatesDir.resolve("java-maven.json"),
-                "[\"Bash(mvn *)\"]",
-                StandardCharsets.UTF_8);
-        Files.writeString(
-                templatesDir.resolve("docker.json"),
-                "[\"Bash(docker build *)\"]",
-                StandardCharsets.UTF_8);
-        Files.writeString(
-                templatesDir.resolve("kubernetes.json"),
-                "[\"Bash(kubectl get *)\"]",
-                StandardCharsets.UTF_8);
-        Files.writeString(
-                templatesDir.resolve("docker-compose.json"),
-                "[\"Bash(docker compose *)\"]",
-                StandardCharsets.UTF_8);
-        Files.writeString(
-                templatesDir.resolve("testing-newman.json"),
-                "[\"Bash(newman *)\"]",
-                StandardCharsets.UTF_8);
+        writeTemplateFiles(templatesDir);
         return templatesDir;
+    }
+
+    private static void writeTemplateFiles(
+            Path templatesDir) throws IOException {
+        Map.of(
+                "base.json", "[\"Bash(git *)\"]",
+                "java-maven.json", "[\"Bash(mvn *)\"]",
+                "docker.json",
+                        "[\"Bash(docker build *)\"]",
+                "kubernetes.json",
+                        "[\"Bash(kubectl get *)\"]",
+                "docker-compose.json",
+                        "[\"Bash(docker compose *)\"]",
+                "testing-newman.json",
+                        "[\"Bash(newman *)\"]"
+        ).forEach((name, content) -> {
+            try {
+                Files.writeString(
+                        templatesDir.resolve(name),
+                        content, StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                throw new java.io.UncheckedIOException(e);
+            }
+        });
     }
 }

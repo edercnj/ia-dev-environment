@@ -46,30 +46,36 @@ public final class CopyTreeWalker {
             Map<String, Object> context) {
         try {
             Files.walkFileTree(directory,
-                    new SimpleFileVisitor<>() {
-
-                @Override
-                public FileVisitResult visitFile(
-                        Path file,
-                        BasicFileAttributes attrs)
-                        throws IOException {
-                    if (file.toString().endsWith(".md")) {
-                        String content = Files.readString(
-                                file, StandardCharsets.UTF_8);
-                        String replaced =
-                                engine.replacePlaceholders(
-                                        content, context);
-                        Files.writeString(file, replaced,
-                                StandardCharsets.UTF_8);
-                    }
-                    return FileVisitResult.CONTINUE;
-                }
-            });
+                    newPlaceholderVisitor(engine, context));
         } catch (IOException e) {
             throw new UncheckedIOException(
                     "Failed to replace placeholders in: %s"
                             .formatted(directory), e);
         }
+    }
+
+    private static SimpleFileVisitor<Path>
+            newPlaceholderVisitor(
+            TemplateEngine engine,
+            Map<String, Object> context) {
+        return new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult visitFile(
+                    Path file,
+                    BasicFileAttributes attrs)
+                    throws IOException {
+                if (file.toString().endsWith(".md")) {
+                    String content = Files.readString(
+                            file, StandardCharsets.UTF_8);
+                    String replaced =
+                            engine.replacePlaceholders(
+                                    content, context);
+                    Files.writeString(file, replaced,
+                            StandardCharsets.UTF_8);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+        };
     }
 
     /**

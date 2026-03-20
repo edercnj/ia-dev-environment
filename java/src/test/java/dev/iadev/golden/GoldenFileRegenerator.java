@@ -45,37 +45,46 @@ public final class GoldenFileRegenerator {
         };
 
         for (String profile : profiles) {
-            System.out.println(
-                    "Regenerating: " + profile);
-            Path tempDir = Files.createTempDirectory(
-                    "golden-regen-");
-            try {
-                ProjectConfig config =
-                        ConfigProfiles.getStack(profile);
-                AssemblerPipeline pipeline =
-                        new AssemblerPipeline(
-                                AssemblerPipeline
-                                        .buildAssemblers());
-                pipeline.runPipeline(config, tempDir,
-                        new PipelineOptions(
-                                false, true, false, null));
-
-                Path goldenDir =
-                        goldenRoot.resolve(profile);
-                copyTree(tempDir, goldenDir);
-                System.out.println(
-                        "  OK: " + profile);
-            } finally {
-                deleteTree(tempDir);
-            }
+            regenerateProfile(profile, goldenRoot);
         }
         System.out.println("Done.");
+    }
+
+    private static void regenerateProfile(
+            String profile, Path goldenRoot)
+            throws IOException {
+        System.out.println("Regenerating: " + profile);
+        Path tempDir = Files.createTempDirectory(
+                "golden-regen-");
+        try {
+            ProjectConfig config =
+                    ConfigProfiles.getStack(profile);
+            AssemblerPipeline pipeline =
+                    new AssemblerPipeline(
+                            AssemblerPipeline
+                                    .buildAssemblers());
+            pipeline.runPipeline(config, tempDir,
+                    new PipelineOptions(
+                            false, true, false, null));
+
+            Path goldenDir =
+                    goldenRoot.resolve(profile);
+            copyTree(tempDir, goldenDir);
+            System.out.println("  OK: " + profile);
+        } finally {
+            deleteTree(tempDir);
+        }
     }
 
     private static void copyTree(Path src, Path dest)
             throws IOException {
         Files.walkFileTree(src,
-                new SimpleFileVisitor<>() {
+                newCopyVisitor(src, dest));
+    }
+
+    private static SimpleFileVisitor<Path> newCopyVisitor(
+            Path src, Path dest) {
+        return new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult preVisitDirectory(
                     Path dir,
@@ -99,7 +108,7 @@ public final class GoldenFileRegenerator {
                                 .REPLACE_EXISTING);
                 return FileVisitResult.CONTINUE;
             }
-        });
+        };
     }
 
     private static void deleteTree(Path dir)

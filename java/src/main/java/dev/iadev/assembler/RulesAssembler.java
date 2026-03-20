@@ -115,6 +115,20 @@ public final class RulesAssembler implements Assembler {
                 ContextBuilder.buildContext(config);
 
         List<String> generated = new ArrayList<>();
+        assembleCoreRulesAndKps(
+                config, engine, rulesDir,
+                skillsDir, context, generated);
+        assembleIdentityAndConditionals(
+                config, engine, rulesDir,
+                skillsDir, context, generated);
+        return generated;
+    }
+
+    private void assembleCoreRulesAndKps(
+            ProjectConfig config, TemplateEngine engine,
+            Path rulesDir, Path skillsDir,
+            Map<String, Object> context,
+            List<String> generated) {
         generated.addAll(
                 coreWriter.copyCoreRules(
                         rulesDir, engine, context));
@@ -127,17 +141,24 @@ public final class RulesAssembler implements Assembler {
         generated.addAll(
                 frameworkWriter.copyFrameworkKps(
                         config, skillsDir));
+    }
+
+    private void assembleIdentityAndConditionals(
+            ProjectConfig config, TemplateEngine engine,
+            Path rulesDir, Path skillsDir,
+            Map<String, Object> context,
+            List<String> generated) {
         generated.add(
                 coreWriter.generateProjectIdentity(
                         config, rulesDir));
         generated.add(
                 coreWriter.copyDomainTemplate(
-                        config, rulesDir, engine, context));
+                        config, rulesDir, engine,
+                        context));
         generated.addAll(
                 coreWriter.copyConditionals(
-                        config, skillsDir, engine, context));
-
-        return generated;
+                        config, skillsDir, engine,
+                        context));
     }
 
     private static Path resolveClasspathResources() {

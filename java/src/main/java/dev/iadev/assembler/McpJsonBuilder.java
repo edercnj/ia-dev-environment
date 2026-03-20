@@ -57,36 +57,40 @@ final class McpJsonBuilder {
     private static void appendServer(
             StringBuilder sb,
             McpServerConfig server) {
+        appendServerHeader(sb, server);
+        appendServerBody(sb, server);
+        sb.append(JsonHelpers.indent(2)).append("}\n");
+    }
+
+    private static void appendServerHeader(
+            StringBuilder sb,
+            McpServerConfig server) {
         sb.append(JsonHelpers.indent(2))
                 .append('"')
                 .append(JsonHelpers.escapeJson(server.id()))
                 .append("\": {\n");
+    }
+
+    private static void appendServerBody(
+            StringBuilder sb,
+            McpServerConfig server) {
+        boolean hasCaps =
+                !server.capabilities().isEmpty();
+        boolean hasEnv = !server.env().isEmpty();
 
         sb.append(JsonHelpers.indent(3))
                 .append("\"url\": \"")
                 .append(JsonHelpers.escapeJson(server.url()))
                 .append('"');
-
-        boolean hasCaps =
-                !server.capabilities().isEmpty();
-        boolean hasEnv = !server.env().isEmpty();
-
-        if (hasCaps || hasEnv) {
-            sb.append(",\n");
-        } else {
-            sb.append('\n');
-        }
+        sb.append(hasCaps || hasEnv ? ",\n" : "\n");
 
         if (hasCaps) {
-            appendCapabilities(sb, server.capabilities(),
-                    hasEnv);
+            appendCapabilities(
+                    sb, server.capabilities(), hasEnv);
         }
-
         if (hasEnv) {
             appendEnv(sb, server.env());
         }
-
-        sb.append(JsonHelpers.indent(2)).append("}\n");
     }
 
     private static void appendCapabilities(

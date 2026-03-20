@@ -172,30 +172,42 @@ class GoldenFileTest {
         extra.removeAll(goldenFiles);
 
         if (!missing.isEmpty() || !extra.isEmpty()) {
-            StringBuilder msg = new StringBuilder();
-            msg.append("[").append(profile)
-                    .append("] File count mismatch: golden=")
-                    .append(goldenFiles.size())
-                    .append(" generated=")
-                    .append(generatedFiles.size())
-                    .append("\n");
+            fail(buildMismatchMessage(
+                    profile, goldenFiles.size(),
+                    generatedFiles.size(),
+                    missing, extra));
+        }
+    }
 
-            if (!missing.isEmpty()) {
-                msg.append("Missing files (in golden, "
-                        + "not generated):\n");
-                missing.forEach(f ->
-                        msg.append("  - ").append(f)
-                                .append("\n"));
-            }
-            if (!extra.isEmpty()) {
-                msg.append("Extra files (generated, "
-                        + "not in golden):\n");
-                extra.forEach(f ->
-                        msg.append("  - ").append(f)
-                                .append("\n"));
-            }
+    private String buildMismatchMessage(
+            String profile, int goldenCount,
+            int generatedCount,
+            Set<String> missing, Set<String> extra) {
+        StringBuilder msg = new StringBuilder();
+        msg.append("[").append(profile)
+                .append("] File count mismatch: golden=")
+                .append(goldenCount)
+                .append(" generated=")
+                .append(generatedCount).append("\n");
+        appendFileList(
+                msg, missing,
+                "Missing files (in golden, "
+                        + "not generated):");
+        appendFileList(
+                msg, extra,
+                "Extra files (generated, "
+                        + "not in golden):");
+        return msg.toString();
+    }
 
-            fail(msg.toString());
+    private void appendFileList(
+            StringBuilder msg,
+            Set<String> files, String header) {
+        if (!files.isEmpty()) {
+            msg.append(header).append("\n");
+            files.forEach(f ->
+                    msg.append("  - ").append(f)
+                            .append("\n"));
         }
     }
 

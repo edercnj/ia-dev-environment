@@ -94,18 +94,46 @@ public final class GithubAgentsAssembler
         List<String> files = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
 
+        assembleCoreAgents(
+                agentsDir, engine, context, files);
+        assembleConditionalAgents(
+                config, agentsDir, engine,
+                context, files, warnings);
+        assembleDeveloperAgent(
+                config, agentsDir, engine,
+                context, files, warnings);
+
+        return AssemblerResult.of(files, warnings);
+    }
+
+    private void assembleCoreAgents(
+            Path agentsDir, TemplateEngine engine,
+            Map<String, Object> context,
+            List<String> files) {
         Path coreDir = resourcesDir.resolve(
                 TEMPLATES_DIR + "/" + CORE_DIR);
         files.addAll(GithubAgentRenderer.assembleCore(
                 coreDir, agentsDir, engine, context));
+    }
 
+    private void assembleConditionalAgents(
+            ProjectConfig config, Path agentsDir,
+            TemplateEngine engine,
+            Map<String, Object> context,
+            List<String> files, List<String> warnings) {
         Path condDir = resourcesDir.resolve(
                 TEMPLATES_DIR + "/" + CONDITIONAL_DIR);
         files.addAll(
                 GithubAgentRenderer.assembleConditional(
                         condDir, config, agentsDir,
                         engine, warnings, context));
+    }
 
+    private void assembleDeveloperAgent(
+            ProjectConfig config, Path agentsDir,
+            TemplateEngine engine,
+            Map<String, Object> context,
+            List<String> files, List<String> warnings) {
         Path devDir = resourcesDir.resolve(
                 TEMPLATES_DIR + "/" + DEVELOPERS_DIR);
         Optional<String> dev =
@@ -121,8 +149,6 @@ public final class GithubAgentsAssembler
                     "Developer agent template missing: %s"
                             .formatted(expected));
         }
-
-        return AssemblerResult.of(files, warnings);
     }
 
     /**

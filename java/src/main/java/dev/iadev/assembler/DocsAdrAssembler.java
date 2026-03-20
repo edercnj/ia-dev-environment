@@ -112,30 +112,46 @@ public final class DocsAdrAssembler implements Assembler {
             ProjectConfig config,
             TemplateEngine engine,
             Path outputDir) {
+        String templateContent =
+                loadValidatedTemplate();
+        if (templateContent == null) {
+            return List.of();
+        }
+        return writeAdrFiles(
+                config, outputDir, templateContent);
+    }
+
+    private String loadValidatedTemplate() {
         Path templatePath = resourcesDir
                 .resolve(TEMPLATES_SUBDIR)
                 .resolve(TEMPLATE_FILENAME);
         if (!Files.exists(templatePath)) {
-            return List.of();
+            return null;
         }
-        String templateContent =
+        String content =
                 CopyHelpers.readFile(templatePath);
-        if (!hasAllMandatorySections(templateContent)) {
-            return List.of();
-        }
+        return hasAllMandatorySections(content)
+                ? content : null;
+    }
+
+    private List<String> writeAdrFiles(
+            ProjectConfig config, Path outputDir,
+            String templateContent) {
         Path adrDir =
                 outputDir.resolve(ADR_OUTPUT_SUBDIR);
         CopyHelpers.ensureDirectory(adrDir);
 
         String readmeContent =
-                buildReadmeContent(config.project().name());
+                buildReadmeContent(
+                        config.project().name());
         Path readmeDest =
                 adrDir.resolve(README_FILENAME);
         CopyHelpers.writeFile(readmeDest, readmeContent);
 
         Path templateDest =
                 adrDir.resolve(TEMPLATE_FILENAME);
-        CopyHelpers.writeFile(templateDest, templateContent);
+        CopyHelpers.writeFile(
+                templateDest, templateContent);
 
         return List.of(
                 readmeDest.toString(),

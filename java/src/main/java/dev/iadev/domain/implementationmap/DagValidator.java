@@ -188,28 +188,40 @@ public final class DagValidator {
         colors.put(nodeId, DagColor.GRAY);
         stack.add(nodeId);
 
-        var node = dag.get(nodeId);
-        if (node != null) {
-            for (var neighborId : node.blocks()) {
-                var color = colors.getOrDefault(
-                        neighborId, DagColor.WHITE);
-                if (color == DagColor.GRAY) {
-                    int cycleStart =
-                            stack.indexOf(neighborId);
-                    var cycle = new ArrayList<>(
-                            stack.subList(
-                                    cycleStart, stack.size()));
-                    throw new CircularDependencyException(
-                            cycle);
-                }
-                if (color == DagColor.WHITE) {
-                    dfsVisit(
-                            neighborId, dag, colors, stack);
-                }
-            }
-        }
+        visitNeighbors(nodeId, dag, colors, stack);
 
         stack.removeLast();
         colors.put(nodeId, DagColor.BLACK);
+    }
+
+    private static void visitNeighbors(
+            String nodeId,
+            Map<String, DagNode> dag,
+            Map<String, DagColor> colors,
+            List<String> stack) {
+        var node = dag.get(nodeId);
+        if (node == null) {
+            return;
+        }
+        for (var neighborId : node.blocks()) {
+            var color = colors.getOrDefault(
+                    neighborId, DagColor.WHITE);
+            if (color == DagColor.GRAY) {
+                throwCycleDetected(neighborId, stack);
+            }
+            if (color == DagColor.WHITE) {
+                dfsVisit(
+                        neighborId, dag, colors, stack);
+            }
+        }
+    }
+
+    private static void throwCycleDetected(
+            String neighborId, List<String> stack) {
+        int cycleStart = stack.indexOf(neighborId);
+        var cycle = new ArrayList<>(
+                stack.subList(
+                        cycleStart, stack.size()));
+        throw new CircularDependencyException(cycle);
     }
 }

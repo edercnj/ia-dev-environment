@@ -124,41 +124,56 @@ public record ProjectConfig(
      * @throws dev.iadev.exception.ConfigValidationException if required sections are missing
      */
     @SuppressWarnings("unchecked")
-    public static ProjectConfig fromMap(Map<String, Object> map) {
-        var interfacesRaw = MapHelper.requireField(
-                map, "interfaces", "ProjectConfig");
+    public static ProjectConfig fromMap(
+            Map<String, Object> map) {
+        List<InterfaceConfig> interfaceList =
+                parseInterfaces(map);
+        return buildFromMap(map, interfaceList);
+    }
 
-        List<InterfaceConfig> interfaceList;
-        if (interfacesRaw instanceof List<?> list) {
-            interfaceList = list.stream()
+    @SuppressWarnings("unchecked")
+    private static List<InterfaceConfig> parseInterfaces(
+            Map<String, Object> map) {
+        var raw = MapHelper.requireField(
+                map, "interfaces", "ProjectConfig");
+        if (raw instanceof List<?> list) {
+            return list.stream()
                     .map(item -> InterfaceConfig.fromMap(
                             (Map<String, Object>) item))
                     .toList();
-        } else {
-            throw new dev.iadev.exception.ConfigValidationException(
-                    "interfaces", "List", "ProjectConfig");
         }
+        throw new dev.iadev.exception
+                .ConfigValidationException(
+                "interfaces", "List", "ProjectConfig");
+    }
 
+    private static ProjectConfig buildFromMap(
+            Map<String, Object> map,
+            List<InterfaceConfig> interfaceList) {
         return new ProjectConfig(
-                ProjectIdentity.fromMap(
-                        MapHelper.requireMap(map, "project", "ProjectConfig")),
-                ArchitectureConfig.fromMap(
-                        MapHelper.requireMap(map, "architecture", "ProjectConfig")),
+                ProjectIdentity.fromMap(MapHelper
+                        .requireMap(map, "project",
+                                "ProjectConfig")),
+                ArchitectureConfig.fromMap(MapHelper
+                        .requireMap(map, "architecture",
+                                "ProjectConfig")),
                 interfaceList,
-                LanguageConfig.fromMap(
-                        MapHelper.requireMap(map, "language", "ProjectConfig")),
-                FrameworkConfig.fromMap(
-                        MapHelper.requireMap(map, "framework", "ProjectConfig")),
-                DataConfig.fromMap(
-                        MapHelper.optionalMap(map, "data")),
-                InfraConfig.fromMap(
-                        MapHelper.optionalMap(map, "infrastructure")),
-                SecurityConfig.fromMap(
-                        MapHelper.optionalMap(map, "security")),
-                TestingConfig.fromMap(
-                        MapHelper.optionalMap(map, "testing")),
-                McpConfig.fromMap(
-                        MapHelper.optionalMap(map, "mcp"))
-        );
+                LanguageConfig.fromMap(MapHelper
+                        .requireMap(map, "language",
+                                "ProjectConfig")),
+                FrameworkConfig.fromMap(MapHelper
+                        .requireMap(map, "framework",
+                                "ProjectConfig")),
+                DataConfig.fromMap(MapHelper
+                        .optionalMap(map, "data")),
+                InfraConfig.fromMap(MapHelper
+                        .optionalMap(map,
+                                "infrastructure")),
+                SecurityConfig.fromMap(MapHelper
+                        .optionalMap(map, "security")),
+                TestingConfig.fromMap(MapHelper
+                        .optionalMap(map, "testing")),
+                McpConfig.fromMap(MapHelper
+                        .optionalMap(map, "mcp")));
     }
 }

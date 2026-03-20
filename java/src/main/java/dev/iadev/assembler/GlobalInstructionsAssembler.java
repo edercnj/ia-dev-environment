@@ -137,11 +137,21 @@ public final class GlobalInstructionsAssembler {
     private static List<String> buildStackSection(
             ProjectConfig config,
             String fwVer) {
+        List<String> lines = new ArrayList<>();
+        lines.add("## Technology Stack");
+        lines.add("");
+        lines.add("| Layer | Technology |");
+        lines.add("|-------|-----------|");
+        lines.addAll(buildCoreStackRows(config, fwVer));
+        lines.addAll(buildInfraStackRows(config));
+        lines.addAll(buildQualityStackRows(config));
+        lines.add("");
+        return lines;
+    }
+
+    private static List<String> buildCoreStackRows(
+            ProjectConfig config, String fwVer) {
         return List.of(
-                "## Technology Stack",
-                "",
-                "| Layer | Technology |",
-                "|-------|-----------|",
                 "| Architecture | "
                         + capitalize(
                         config.architecture().style())
@@ -158,7 +168,12 @@ public final class GlobalInstructionsAssembler {
                 "| Build Tool | "
                         + capitalize(
                         config.framework().buildTool())
-                        + " |",
+                        + " |");
+    }
+
+    private static List<String> buildInfraStackRows(
+            ProjectConfig config) {
+        return List.of(
                 "| Container | "
                         + capitalize(
                         config.infrastructure()
@@ -168,7 +183,12 @@ public final class GlobalInstructionsAssembler {
                         config.infrastructure()
                                 .orchestrator()) + " |",
                 "| Resilience | Mandatory"
-                        + " (always enabled) |",
+                        + " (always enabled) |");
+    }
+
+    private static List<String> buildQualityStackRows(
+            ProjectConfig config) {
+        return List.of(
                 "| Native Build | "
                         + String.valueOf(
                         config.framework().nativeBuild())
@@ -180,8 +200,7 @@ public final class GlobalInstructionsAssembler {
                 "| Contract Tests | "
                         + String.valueOf(
                         config.testing().contractTests())
-                        + " |",
-                "");
+                        + " |");
     }
 
     private static List<String> buildConstraintsSection() {
@@ -199,12 +218,23 @@ public final class GlobalInstructionsAssembler {
     }
 
     private static List<String> buildContextualRefsSection() {
+        List<String> lines = new ArrayList<>();
+        lines.add("## Contextual Instructions");
+        lines.add("");
+        lines.add("The following instruction files provide"
+                + " domain-specific context:");
+        lines.add("");
+        lines.addAll(contextualRefItems());
+        lines.add("");
+        lines.add("For deep-dive references, see the"
+                + " knowledge packs in"
+                + " `.claude/skills/` (generated"
+                + " alongside this structure).");
+        return lines;
+    }
+
+    private static List<String> contextualRefItems() {
         return List.of(
-                "## Contextual Instructions",
-                "",
-                "The following instruction files provide"
-                        + " domain-specific context:",
-                "",
                 "- `instructions/domain.instructions.md`"
                         + " \u2014 Domain model, business"
                         + " rules, sensitive data",
@@ -219,12 +249,7 @@ public final class GlobalInstructionsAssembler {
                 "- `instructions/quality-gates"
                         + ".instructions.md` \u2014"
                         + " Coverage thresholds, test"
-                        + " categories, merge checklist",
-                "",
-                "For deep-dive references, see the"
-                        + " knowledge packs in"
-                        + " `.claude/skills/` (generated"
-                        + " alongside this structure).");
+                        + " categories, merge checklist");
     }
 
     static String capitalize(String s) {

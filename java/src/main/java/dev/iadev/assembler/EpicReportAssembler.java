@@ -81,20 +81,29 @@ public final class EpicReportAssembler
             ProjectConfig config,
             TemplateEngine engine,
             Path outputDir) {
+        String content = loadValidatedTemplate();
+        if (content == null) {
+            return List.of();
+        }
+        return copyToOutputDirs(content, outputDir);
+    }
+
+    private String loadValidatedTemplate() {
         Path templatePath = resourcesDir
                 .resolve(TEMPLATES_SUBDIR)
                 .resolve(TEMPLATE_FILENAME);
 
         if (!Files.exists(templatePath)) {
-            return List.of();
+            return null;
         }
-
         String content =
                 CopyHelpers.readFile(templatePath);
-        if (!hasAllMandatorySections(content)) {
-            return List.of();
-        }
+        return hasAllMandatorySections(content)
+                ? content : null;
+    }
 
+    private List<String> copyToOutputDirs(
+            String content, Path outputDir) {
         List<String> results = new ArrayList<>();
         List<String> outputSubdirs = List.of(
                 CLAUDE_OUTPUT_SUBDIR,
@@ -108,7 +117,6 @@ public final class EpicReportAssembler
             CopyHelpers.writeFile(destPath, content);
             results.add(destPath.toString());
         }
-
         return results;
     }
 

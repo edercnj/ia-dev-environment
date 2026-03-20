@@ -85,17 +85,29 @@ public final class CheckpointEngine {
     public static ExecutionState updateMetrics(
             ExecutionState state) {
         var stories = state.stories();
+        var counts = countByStatus(stories);
+        var durations = collectDurations(stories);
+
+        double avgDuration = counts.completed > 0
+                ? (double) counts.totalDuration
+                / counts.completed
+                : 0.0;
+
+        var metrics = buildMetrics(
+                stories.size(), counts, durations,
+                avgDuration);
+
+        return state.withMetrics(metrics);
+    }
+
+    private static StatusCounts countByStatus(
+            Map<String, StoryEntry> stories) {
         int completed = 0;
         int failed = 0;
         int blocked = 0;
         long totalDuration = 0;
-        var storyDurations =
-                new LinkedHashMap<String, Long>();
-        var phaseDurations =
-                new LinkedHashMap<Integer, Long>();
 
-        for (var e : stories.entrySet()) {
-            var entry = e.getValue();
+        for (var entry : stories.values()) {
             switch (entry.status()) {
                 case SUCCESS -> {
                     completed++;
@@ -103,43 +115,63 @@ public final class CheckpointEngine {
                 }
                 case FAILED -> failed++;
                 case BLOCKED -> blocked++;
-                default -> { /* PENDING, IN_PROGRESS, PARTIAL */ }
+                default -> { /* PENDING, IN_PROGRESS */ }
             }
+        }
+        return new StatusCounts(
+                completed, failed, blocked, totalDuration);
+    }
 
+    private static DurationMaps collectDurations(
+            Map<String, StoryEntry> stories) {
+        var storyDurations =
+                new LinkedHashMap<String, Long>();
+        var phaseDurations =
+                new LinkedHashMap<Integer, Long>();
+
+        for (var e : stories.entrySet()) {
+            var entry = e.getValue();
             if (entry.duration() > 0) {
                 storyDurations.put(
-                        e.getKey(), entry.duration()
-                );
+                        e.getKey(), entry.duration());
             }
             phaseDurations.merge(
-                    entry.phase(), entry.duration(), Long::sum
-            );
+                    entry.phase(), entry.duration(),
+                    Long::sum);
         }
+        return new DurationMaps(
+                storyDurations, phaseDurations);
+    }
 
-        double avgDuration = completed > 0
-                ? (double) totalDuration / completed
+    private static ExecutionMetrics buildMetrics(
+            int totalStories,
+            StatusCounts counts,
+            DurationMaps durations,
+            double avgDuration) {
+        int remaining = totalStories - counts.completed;
+        double eta = counts.completed > 0
+                ? (remaining * avgDuration)
+                / MILLIS_PER_MINUTE
                 : 0.0;
 
-        int remaining = stories.size() - completed;
-        double estimatedRemainingMinutes = completed > 0
-                ? (remaining * avgDuration) / MILLIS_PER_MINUTE
-                : 0.0;
+        long elapsedMs = durations.storyDurations.values()
+                .stream().mapToLong(Long::longValue).sum();
 
-        long elapsedMs = storyDurations.values().stream()
-                .mapToLong(Long::longValue).sum();
+        return new ExecutionMetrics(
+                counts.completed, totalStories,
+                counts.failed, counts.blocked, eta,
+                elapsedMs, avgDuration,
+                Map.copyOf(durations.storyDurations),
+                Map.copyOf(durations.phaseDurations));
+    }
 
-        var metrics = new ExecutionMetrics(
-                completed,
-                stories.size(),
-                failed,
-                blocked,
-                estimatedRemainingMinutes,
-                elapsedMs,
-                avgDuration,
-                Map.copyOf(storyDurations),
-                Map.copyOf(phaseDurations)
-        );
+    private record StatusCounts(
+            int completed, int failed,
+            int blocked, long totalDuration) {
+    }
 
-        return state.withMetrics(metrics);
+    private record DurationMaps(
+            LinkedHashMap<String, Long> storyDurations,
+            LinkedHashMap<Integer, Long> phaseDurations) {
     }
 }

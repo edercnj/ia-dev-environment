@@ -62,27 +62,39 @@ final class ChecklistInjector {
             Path outputDir) {
         Path agentPath = outputDir.resolve(
                 AGENTS_OUTPUT + "/" + agentFile);
-        if (!Files.exists(agentPath)) {
+        Path checklistSrc = resolveChecklistSrc(
+                resourcesDir, checklistFile);
+
+        if (!Files.exists(agentPath)
+                || !Files.exists(checklistSrc)) {
             return;
         }
-        Path checklistSrc = resourcesDir.resolve(
+
+        performInjection(
+                agentPath, checklistSrc, checklistFile);
+    }
+
+    private static Path resolveChecklistSrc(
+            Path resourcesDir, String checklistFile) {
+        return resourcesDir.resolve(
                 AGENTS_TEMPLATES_DIR + "/"
                         + CHECKLISTS_DIR + "/"
                         + checklistFile);
-        if (!Files.exists(checklistSrc)) {
-            return;
-        }
+    }
+
+    private static void performInjection(
+            Path agentPath, Path checklistSrc,
+            String checklistFile) {
         try {
-            String marker = AgentsSelection.checklistMarker(
-                    checklistFile);
+            String marker = AgentsSelection
+                    .checklistMarker(checklistFile);
             String section = Files.readString(
                     checklistSrc, StandardCharsets.UTF_8);
             String base = Files.readString(
                     agentPath, StandardCharsets.UTF_8);
             String result = TemplateEngine.injectSection(
                     base, section, marker);
-            Files.writeString(
-                    agentPath, result,
+            Files.writeString(agentPath, result,
                     StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new UncheckedIOException(

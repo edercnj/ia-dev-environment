@@ -61,25 +61,37 @@ public final class CliDisplay {
     public static String formatSummaryTable(
             Map<String, List<String>> classified) {
         int total = classified.values().stream()
-                .mapToInt(List::size)
-                .sum();
-
+                .mapToInt(List::size).sum();
         int labelWidth = computeLabelWidth(classified);
         int countWidth = HEADER_COUNT.length();
 
+        StringBuilder sb = new StringBuilder();
+        appendHeader(sb, labelWidth, countWidth);
+        appendCategoryRows(
+                sb, classified, labelWidth, countWidth);
+        appendFooter(
+                sb, total, labelWidth, countWidth);
+
+        return sb.toString();
+    }
+
+    private static void appendHeader(
+            StringBuilder sb,
+            int labelWidth, int countWidth) {
         String sep = SEPARATOR_CHAR.repeat(labelWidth);
         String cSep = SEPARATOR_CHAR.repeat(countWidth);
-
-        StringBuilder sb = new StringBuilder();
         sb.append("  ")
                 .append(pad(HEADER_LABEL, labelWidth))
-                .append("  ")
-                .append(HEADER_COUNT)
+                .append("  ").append(HEADER_COUNT)
                 .append('\n');
         sb.append("  ").append(sep)
-                .append("  ").append(cSep)
-                .append('\n');
+                .append("  ").append(cSep).append('\n');
+    }
 
+    private static void appendCategoryRows(
+            StringBuilder sb,
+            Map<String, List<String>> classified,
+            int labelWidth, int countWidth) {
         for (Map.Entry<String, List<String>> entry
                 : classified.entrySet()) {
             int count = entry.getValue().size();
@@ -94,18 +106,21 @@ public final class CliDisplay {
                         .append('\n');
             }
         }
+    }
 
+    private static void appendFooter(
+            StringBuilder sb, int total,
+            int labelWidth, int countWidth) {
+        String sep = SEPARATOR_CHAR.repeat(labelWidth);
+        String cSep = SEPARATOR_CHAR.repeat(countWidth);
         sb.append("  ").append(sep)
-                .append("  ").append(cSep)
-                .append('\n');
+                .append("  ").append(cSep).append('\n');
         sb.append("  ")
                 .append(pad(TOTAL_LABEL, labelWidth))
                 .append("  ")
                 .append(padLeft(
                         String.valueOf(total),
                         countWidth));
-
-        return sb.toString();
     }
 
     /**
@@ -119,20 +134,36 @@ public final class CliDisplay {
             PipelineResult result,
             DisplayMode displayMode) {
         StringBuilder sb = new StringBuilder();
+        appendPipelineHeader(sb, result, displayMode);
+        appendSummarySection(sb, result);
+        appendDryRunDetails(sb, result, displayMode);
+        appendWarnings(sb, result);
+        return sb.toString();
+    }
 
+    private static void appendPipelineHeader(
+            StringBuilder sb, PipelineResult result,
+            DisplayMode displayMode) {
         if (displayMode.isDryRun()) {
             sb.append("[DRY RUN] ");
         }
         sb.append("Pipeline: Success (")
                 .append(result.durationMs())
                 .append("ms)\n\n");
+    }
 
+    private static void appendSummarySection(
+            StringBuilder sb, PipelineResult result) {
         Map<String, List<String>> classified =
                 classifyFiles(result.filesGenerated());
         sb.append(formatSummaryTable(classified));
         sb.append("\n\n");
         sb.append("Output: ").append(result.outputDir());
+    }
 
+    private static void appendDryRunDetails(
+            StringBuilder sb, PipelineResult result,
+            DisplayMode displayMode) {
         if (displayMode.isDryRun()
                 && !result.filesGenerated().isEmpty()) {
             sb.append(
@@ -141,12 +172,13 @@ public final class CliDisplay {
                 sb.append("  ").append(file).append('\n');
             }
         }
+    }
 
+    private static void appendWarnings(
+            StringBuilder sb, PipelineResult result) {
         for (String warning : result.warnings()) {
             sb.append("\nWarning: ").append(warning);
         }
-
-        return sb.toString();
     }
 
     /**

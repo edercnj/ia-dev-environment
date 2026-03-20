@@ -64,57 +64,94 @@ public final class GoldenFileDiffReporter {
         diffLines.add("--- golden/%s".formatted(filePath));
         diffLines.add("+++ generated/%s".formatted(filePath));
 
-        int maxLen = Math.max(
-                expectedLines.size(), actualLines.size());
-        boolean firstDiff = true;
-
-        for (int i = 0; i < maxLen; i++) {
-            if (diffLines.size() >= MAX_DIFF_LINES) {
-                diffLines.add(
-                        "... (truncated, >%d lines)"
-                                .formatted(MAX_DIFF_LINES));
-                break;
-            }
-
-            String expLine = i < expectedLines.size()
-                    ? expectedLines.get(i) : null;
-            String actLine = i < actualLines.size()
-                    ? actualLines.get(i) : null;
-
-            if (expLine != null && actLine != null
-                    && expLine.equals(actLine)) {
-                continue;
-            }
-
-            if (firstDiff) {
-                addContextBefore(
-                        diffLines, expectedLines, i);
-                firstDiff = false;
-            }
-
-            if (expLine != null && actLine != null) {
-                diffLines.add(
-                        "@@ line %d @@".formatted(i + 1));
-                diffLines.add(
-                        "- %s".formatted(visualize(expLine)));
-                diffLines.add(
-                        "+ %s".formatted(visualize(actLine)));
-            } else if (expLine == null) {
-                diffLines.add(
-                        "@@ line %d (added) @@"
-                                .formatted(i + 1));
-                diffLines.add(
-                        "+ %s".formatted(visualize(actLine)));
-            } else {
-                diffLines.add(
-                        "@@ line %d (removed) @@"
-                                .formatted(i + 1));
-                diffLines.add(
-                        "- %s".formatted(visualize(expLine)));
-            }
-        }
+        appendLineDiffs(
+                diffLines, expectedLines, actualLines);
 
         return String.join("\n", diffLines);
+    }
+
+    private static void appendLineDiffs(
+            List<String> diffLines,
+            List<String> expectedLines,
+            List<String> actualLines) {
+        int maxLen = Math.max(
+                expectedLines.size(),
+                actualLines.size());
+        boolean[] firstDiff = {true};
+
+        for (int i = 0; i < maxLen; i++) {
+            if (isTruncated(diffLines)) {
+                break;
+            }
+            processLine(diffLines, expectedLines,
+                    actualLines, i, firstDiff);
+        }
+    }
+
+    private static boolean isTruncated(
+            List<String> diffLines) {
+        if (diffLines.size() >= MAX_DIFF_LINES) {
+            diffLines.add(
+                    "... (truncated, >%d lines)"
+                            .formatted(MAX_DIFF_LINES));
+            return true;
+        }
+        return false;
+    }
+
+    private static void processLine(
+            List<String> diffLines,
+            List<String> expectedLines,
+            List<String> actualLines,
+            int i, boolean[] firstDiff) {
+        String expLine = i < expectedLines.size()
+                ? expectedLines.get(i) : null;
+        String actLine = i < actualLines.size()
+                ? actualLines.get(i) : null;
+
+        if (linesMatch(expLine, actLine)) {
+            return;
+        }
+        if (firstDiff[0]) {
+            addContextBefore(
+                    diffLines, expectedLines, i);
+            firstDiff[0] = false;
+        }
+        appendDiffEntry(
+                diffLines, expLine, actLine, i);
+    }
+
+    private static boolean linesMatch(
+            String expLine, String actLine) {
+        return expLine != null && actLine != null
+                && expLine.equals(actLine);
+    }
+
+    private static void appendDiffEntry(
+            List<String> diffLines,
+            String expLine,
+            String actLine,
+            int index) {
+        if (expLine != null && actLine != null) {
+            diffLines.add(
+                    "@@ line %d @@".formatted(index + 1));
+            diffLines.add(
+                    "- %s".formatted(visualize(expLine)));
+            diffLines.add(
+                    "+ %s".formatted(visualize(actLine)));
+        } else if (expLine == null) {
+            diffLines.add(
+                    "@@ line %d (added) @@"
+                            .formatted(index + 1));
+            diffLines.add(
+                    "+ %s".formatted(visualize(actLine)));
+        } else {
+            diffLines.add(
+                    "@@ line %d (removed) @@"
+                            .formatted(index + 1));
+            diffLines.add(
+                    "- %s".formatted(visualize(expLine)));
+        }
     }
 
     private static List<String> splitLines(String content) {

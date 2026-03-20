@@ -514,6 +514,13 @@ class CodexAgentsMdAssemblerTest {
                 throws IOException {
             Path claudeDir = outputDir.getParent()
                     .resolve(".claude");
+            setupAgentsDir(claudeDir);
+            setupSkillsDir(claudeDir);
+            setupHooksDir(claudeDir);
+        }
+
+        private void setupAgentsDir(Path claudeDir)
+                throws IOException {
             Path agentsDir =
                     claudeDir.resolve("agents");
             Files.createDirectories(agentsDir);
@@ -521,11 +528,12 @@ class CodexAgentsMdAssemblerTest {
                     agentsDir.resolve("architect.md"),
                     "# Architecture Expert",
                     StandardCharsets.UTF_8);
+        }
 
-            Path skillsDir =
-                    claudeDir.resolve("skills");
-            Path skillDir =
-                    skillsDir.resolve("x-review");
+        private void setupSkillsDir(Path claudeDir)
+                throws IOException {
+            Path skillDir = claudeDir
+                    .resolve("skills/x-review");
             Files.createDirectories(skillDir);
             Files.writeString(
                     skillDir.resolve("SKILL.md"),
@@ -534,7 +542,10 @@ class CodexAgentsMdAssemblerTest {
                             + "user-invocable: true\n"
                             + "---\nBody",
                     StandardCharsets.UTF_8);
+        }
 
+        private void setupHooksDir(Path claudeDir)
+                throws IOException {
             Path hooksDir =
                     claudeDir.resolve("hooks");
             Files.createDirectories(hooksDir);

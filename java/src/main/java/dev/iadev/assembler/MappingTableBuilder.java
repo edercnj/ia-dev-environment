@@ -55,6 +55,18 @@ public final class MappingTableBuilder {
     }
 
     private static String[][] buildMappingRows() {
+        var core = coreArtifactRows();
+        var extra = additionalArtifactRows();
+        var result = new String[core.length
+                + extra.length][];
+        System.arraycopy(core, 0, result, 0,
+                core.length);
+        System.arraycopy(extra, 0, result,
+                core.length, extra.length);
+        return result;
+    }
+
+    private static String[][] coreArtifactRows() {
         return new String[][]{
                 {"Rules (`rules/*.md`)",
                         "Instructions (`instructions/"
@@ -81,6 +93,11 @@ public final class MappingTableBuilder {
                         "`.codex/config.toml`",
                         "Permissions \u2192 approval"
                                 + " policy"},
+        };
+    }
+
+    private static String[][] additionalArtifactRows() {
+        return new String[][]{
                 {"N/A", "N/A",
                         "`AGENTS.md` (project root)",
                         "Codex project instructions"},

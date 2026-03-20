@@ -83,6 +83,14 @@ public final class RulesIdentity {
             ProjectConfig config,
             String ifaces,
             String fwVer) {
+        List<String> lines = new ArrayList<>();
+        lines.addAll(buildGlobalBehaviorPolicy());
+        lines.addAll(
+                buildIdentityFields(config, ifaces, fwVer));
+        return lines;
+    }
+
+    private static List<String> buildGlobalBehaviorPolicy() {
         return List.of(
                 "# Global Behavior & Language Policy",
                 "- **Output Language**: English ONLY."
@@ -97,7 +105,14 @@ public final class RulesIdentity {
                         + " to the technical constraints"
                         + " defined in the original"
                         + " rules below.",
-                "",
+                "");
+    }
+
+    private static List<String> buildIdentityFields(
+            ProjectConfig config,
+            String ifaces,
+            String fwVer) {
+        return List.of(
                 "# Project Identity — "
                         + config.project().name(),
                 "",
@@ -126,11 +141,20 @@ public final class RulesIdentity {
 
     private static List<String> buildTechStack(
             ProjectConfig config, String fwVer) {
+        List<String> lines = new ArrayList<>();
+        lines.add("");
+        lines.add("## Technology Stack");
+        lines.add("| Layer | Technology |");
+        lines.add("|-------|-----------|");
+        lines.addAll(buildCoreStackRows(config, fwVer));
+        lines.addAll(buildInfraStackRows(config));
+        lines.addAll(buildQualityStackRows(config));
+        return lines;
+    }
+
+    private static List<String> buildCoreStackRows(
+            ProjectConfig config, String fwVer) {
         return List.of(
-                "",
-                "## Technology Stack",
-                "| Layer | Technology |",
-                "|-------|-----------|",
                 "| Architecture | "
                         + config.architecture().style()
                         + " |",
@@ -145,15 +169,17 @@ public final class RulesIdentity {
                         + config.framework().buildTool()
                         + " |",
                 "| Database | "
-                        + config.databaseName()
-                        + " |",
+                        + config.databaseName() + " |",
                 "| Migration | "
-                        + config.migrationName()
-                        + " |",
+                        + config.migrationName() + " |",
                 "| Cache | "
-                        + config.cacheName()
-                        + " |",
-                "| Message Broker | none |",
+                        + config.cacheName() + " |",
+                "| Message Broker | none |");
+    }
+
+    private static List<String> buildInfraStackRows(
+            ProjectConfig config) {
+        return List.of(
                 "| Container | "
                         + config.infrastructure().container()
                         + " |",
@@ -166,7 +192,12 @@ public final class RulesIdentity {
                         + config.observabilityTracing()
                         + ") |",
                 "| Resilience | Mandatory"
-                        + " (always enabled) |",
+                        + " (always enabled) |");
+    }
+
+    private static List<String> buildQualityStackRows(
+            ProjectConfig config) {
+        return List.of(
                 "| Native Build | "
                         + String.valueOf(
                         config.framework().nativeBuild())
@@ -182,6 +213,14 @@ public final class RulesIdentity {
     }
 
     private static List<String> buildFooter() {
+        List<String> lines = new ArrayList<>();
+        lines.addAll(buildSourceOfTruth());
+        lines.addAll(buildLanguagePolicy());
+        lines.addAll(buildConstraints());
+        return lines;
+    }
+
+    private static List<String> buildSourceOfTruth() {
         return List.of(
                 "",
                 "## Source of Truth (Hierarchy)",
@@ -190,7 +229,11 @@ public final class RulesIdentity {
                 "3. Stories / tickets"
                         + " (detailed requirements)",
                 "4. Rules (.claude/rules/)",
-                "5. Source code",
+                "5. Source code");
+    }
+
+    private static List<String> buildLanguagePolicy() {
+        return List.of(
                 "",
                 "## Language",
                 "- Code: English"
@@ -199,7 +242,11 @@ public final class RulesIdentity {
                         + " (Conventional Commits)",
                 "- Documentation: English"
                         + " (customize as needed)",
-                "- Application logs: English",
+                "- Application logs: English");
+    }
+
+    private static List<String> buildConstraints() {
+        return List.of(
                 "",
                 "## Constraints",
                 "<!-- Customize constraints"

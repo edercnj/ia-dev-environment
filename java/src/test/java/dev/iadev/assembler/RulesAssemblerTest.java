@@ -457,11 +457,19 @@ class RulesAssemblerTest {
     private static Path createMinimalResources(
             Path tempDir) throws IOException {
         Path resourceDir = tempDir.resolve("res");
+        createCoreRules(resourceDir);
+        createTemplatesDir(resourceDir);
+        return resourceDir;
+    }
 
-        Path coreRules = resourceDir.resolve("core-rules");
+    private static void createCoreRules(
+            Path resourceDir) throws IOException {
+        Path coreRules =
+                resourceDir.resolve("core-rules");
         Files.createDirectories(coreRules);
         Files.writeString(
-                coreRules.resolve("03-coding-standards.md"),
+                coreRules.resolve(
+                        "03-coding-standards.md"),
                 "# Coding Standards\n",
                 StandardCharsets.UTF_8);
         Files.writeString(
@@ -473,14 +481,16 @@ class RulesAssemblerTest {
                 coreRules.resolve("05-quality-gates.md"),
                 "# Quality Gates\n",
                 StandardCharsets.UTF_8);
+    }
 
-        Path templates = resourceDir.resolve("templates");
+    private static void createTemplatesDir(
+            Path resourceDir) throws IOException {
+        Path templates =
+                resourceDir.resolve("templates");
         Files.createDirectories(templates);
         Files.writeString(
                 templates.resolve("domain-template.md"),
                 "# Rule — {DOMAIN_NAME} Domain\n",
                 StandardCharsets.UTF_8);
-
-        return resourceDir;
     }
 }

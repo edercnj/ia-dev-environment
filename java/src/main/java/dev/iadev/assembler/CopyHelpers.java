@@ -116,38 +116,42 @@ public final class CopyHelpers {
             Path srcDir, Path destDir) {
         try {
             Files.walkFileTree(srcDir,
-                    new SimpleFileVisitor<>() {
-
-                @Override
-                public FileVisitResult preVisitDirectory(
-                        Path dir,
-                        BasicFileAttributes attrs)
-                        throws IOException {
-                    Path target = destDir.resolve(
-                            srcDir.relativize(dir));
-                    Files.createDirectories(target);
-                    return FileVisitResult.CONTINUE;
-                }
-
-                @Override
-                public FileVisitResult visitFile(
-                        Path file,
-                        BasicFileAttributes attrs)
-                        throws IOException {
-                    Files.copy(file,
-                            destDir.resolve(
-                                    srcDir.relativize(file)),
-                            StandardCopyOption
-                                    .REPLACE_EXISTING);
-                    return FileVisitResult.CONTINUE;
-                }
-            });
+                    newCopyVisitor(srcDir, destDir));
             return destDir.toString();
         } catch (IOException e) {
             throw new UncheckedIOException(
                     "Failed to copy directory: %s"
                             .formatted(srcDir), e);
         }
+    }
+
+    private static SimpleFileVisitor<Path> newCopyVisitor(
+            Path srcDir, Path destDir) {
+        return new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult preVisitDirectory(
+                    Path dir,
+                    BasicFileAttributes attrs)
+                    throws IOException {
+                Path target = destDir.resolve(
+                        srcDir.relativize(dir));
+                Files.createDirectories(target);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(
+                    Path file,
+                    BasicFileAttributes attrs)
+                    throws IOException {
+                Files.copy(file,
+                        destDir.resolve(
+                                srcDir.relativize(file)),
+                        StandardCopyOption
+                                .REPLACE_EXISTING);
+                return FileVisitResult.CONTINUE;
+            }
+        };
     }
 
     /**

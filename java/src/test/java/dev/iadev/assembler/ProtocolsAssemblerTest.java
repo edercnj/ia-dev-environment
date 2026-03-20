@@ -398,7 +398,7 @@ class ProtocolsAssemblerTest {
     }
 
     private static ProjectConfig buildGoGinConfig() {
-        return TestConfigBuilder.builder()
+        var builder = TestConfigBuilder.builder()
                 .projectName("my-go-service")
                 .purpose(
                         "Describe your service purpose here")
@@ -408,7 +408,13 @@ class ProtocolsAssemblerTest {
                 .language("go", "1.22")
                 .framework("gin", "")
                 .buildTool("go-mod")
-                .nativeBuild(false)
+                .nativeBuild(false);
+        return configureGoInfra(builder).build();
+    }
+
+    private static TestConfigBuilder configureGoInfra(
+            TestConfigBuilder builder) {
+        return builder
                 .container("docker")
                 .orchestrator("kubernetes")
                 .iac("terraform")
@@ -422,7 +428,6 @@ class ProtocolsAssemblerTest {
                 .addInterface("event-consumer",
                         "", "kafka")
                 .addInterface("event-producer",
-                        "", "kafka")
-                .build();
+                        "", "kafka");
     }
 }

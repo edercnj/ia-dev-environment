@@ -159,18 +159,28 @@ public class InteractivePrompter {
     }
 
     private void displaySummary(ProjectSummary ps) {
+        String langDisplay = formatLanguageDisplay(
+                ps.language());
+        String text = formatSummaryText(ps, langDisplay);
+        terminal.display(text);
+    }
+
+    private String formatLanguageDisplay(String language) {
         String langVersion =
                 LanguageFrameworkMapping.defaultVersionFor(
-                        ps.language());
-        String langDisplay = langVersion.isEmpty()
-                ? ps.language()
-                : ps.language() + " " + langVersion;
+                        language);
+        return langVersion.isEmpty()
+                ? language
+                : language + " " + langVersion;
+    }
+
+    private String formatSummaryText(
+            ProjectSummary ps, String langDisplay) {
         String db = ps.database().isBlank()
                 ? "none" : ps.database();
         String ch = ps.cache().isBlank()
                 ? "none" : ps.cache();
-
-        String text = """
+        return """
 
                 Project Configuration Summary:
                   Name:          %s
@@ -184,10 +194,10 @@ public class InteractivePrompter {
                   Cache:          %s
                 """.formatted(
                 ps.name(), ps.purpose(), ps.archStyle(),
-                langDisplay, ps.framework(), ps.buildTool(),
+                langDisplay, ps.framework(),
+                ps.buildTool(),
                 String.join(", ", ps.interfaces()),
                 db, ch);
-        terminal.display(text);
     }
 
     ProjectConfig buildConfig(ProjectSummary ps) {

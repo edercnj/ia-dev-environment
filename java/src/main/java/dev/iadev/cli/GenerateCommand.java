@@ -121,6 +121,16 @@ public class GenerateCommand implements Callable<Integer> {
             return EXIT_VALIDATION;
         }
         ProjectConfig config = configOpt.orElseThrow();
+        int validationResult =
+                validateConfig(config, out);
+        if (validationResult != EXIT_SUCCESS) {
+            return validationResult;
+        }
+        return generateOutput(config, out);
+    }
+
+    private int validateConfig(
+            ProjectConfig config, PrintWriter out) {
         List<String> errors =
                 StackValidator.validateStack(config);
         if (!errors.isEmpty()) {
@@ -130,6 +140,11 @@ public class GenerateCommand implements Callable<Integer> {
             }
             return EXIT_VALIDATION;
         }
+        return EXIT_SUCCESS;
+    }
+
+    private int generateOutput(
+            ProjectConfig config, PrintWriter out) {
         Path destPath =
                 PathUtils.normalizeDirectory(outputDir);
         PathUtils.rejectDangerousPath(destPath);

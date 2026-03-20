@@ -86,13 +86,16 @@ public class ValidateCommand implements Callable<Integer> {
             return EXIT_FAILURE;
         }
 
+        return loadAndValidate(out);
+    }
+
+    private int loadAndValidate(PrintWriter out) {
         ProjectConfig config;
         try {
             config = ConfigLoader.loadConfig(configPath);
         } catch (ConfigParseException e) {
-            out.println(
-                    "Error: Invalid YAML: %s"
-                            .formatted(e.getMessage()));
+            out.println("Error: Invalid YAML: %s"
+                    .formatted(e.getMessage()));
             return EXIT_FAILURE;
         } catch (ConfigValidationException e) {
             return handleValidationException(e, out);
@@ -101,7 +104,6 @@ public class ValidateCommand implements Callable<Integer> {
                     + "occurred during validation");
             return EXIT_FAILURE;
         }
-
         return runValidations(config, out);
     }
 
@@ -131,8 +133,21 @@ public class ValidateCommand implements Callable<Integer> {
 
     private int runValidations(
             ProjectConfig config, PrintWriter out) {
-        List<String> allErrors = new ArrayList<>();
+        List<String> allErrors =
+                collectAllErrors(config, out);
 
+        if (allErrors.isEmpty()) {
+            out.println("Configuration is valid");
+            return EXIT_SUCCESS;
+        }
+
+        printValidationFailed(allErrors, out);
+        return EXIT_FAILURE;
+    }
+
+    private List<String> collectAllErrors(
+            ProjectConfig config, PrintWriter out) {
+        List<String> allErrors = new ArrayList<>();
         allErrors.addAll(runCategory(
                 "Mandatory sections present",
                 c -> List.of(), config, out));
@@ -152,14 +167,7 @@ public class ValidateCommand implements Callable<Integer> {
                 "Interface types",
                 StackValidator::validateInterfaceTypes,
                 config, out));
-
-        if (allErrors.isEmpty()) {
-            out.println("Configuration is valid");
-            return EXIT_SUCCESS;
-        }
-
-        printValidationFailed(allErrors, out);
-        return EXIT_FAILURE;
+        return allErrors;
     }
 
     private List<String> runCategory(

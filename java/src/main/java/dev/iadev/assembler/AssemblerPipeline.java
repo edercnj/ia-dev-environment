@@ -73,31 +73,40 @@ public final class AssemblerPipeline {
         List<String> warnings = new ArrayList<>();
 
         for (AssemblerDescriptor desc : descriptors) {
-            try {
-                Path targetDir =
-                        desc.target().resolve(outputDir);
-                AssemblerResult result =
-                        desc.assembler()
-                                .assembleWithResult(
-                                        config, engine,
-                                        targetDir);
-                files.addAll(result.files());
-                for (String w : result.warnings()) {
-                    warnings.add("[WARN] %s: %s"
-                            .formatted(desc.name(), w));
-                }
-            } catch (PipelineException pe) {
-                throw pe;
-            } catch (Exception e) {
-                throw new PipelineException(
-                        "Pipeline failed at %s: %s"
-                                .formatted(desc.name(),
-                                        e.getMessage()),
-                        desc.name(), e);
-            }
+            executeSingleAssembler(
+                    desc, config, outputDir, engine,
+                    files, warnings);
         }
 
         return AssemblerResult.of(files, warnings);
+    }
+
+    private static void executeSingleAssembler(
+            AssemblerDescriptor desc,
+            ProjectConfig config,
+            Path outputDir, TemplateEngine engine,
+            List<String> files,
+            List<String> warnings) {
+        try {
+            Path targetDir =
+                    desc.target().resolve(outputDir);
+            AssemblerResult result =
+                    desc.assembler().assembleWithResult(
+                            config, engine, targetDir);
+            files.addAll(result.files());
+            for (String w : result.warnings()) {
+                warnings.add("[WARN] %s: %s"
+                        .formatted(desc.name(), w));
+            }
+        } catch (PipelineException pe) {
+            throw pe;
+        } catch (Exception e) {
+            throw new PipelineException(
+                    "Pipeline failed at %s: %s"
+                            .formatted(desc.name(),
+                                    e.getMessage()),
+                    desc.name(), e);
+        }
     }
 
     /**

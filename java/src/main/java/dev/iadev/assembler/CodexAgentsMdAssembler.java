@@ -43,32 +43,15 @@ public final class CodexAgentsMdAssembler
             ProjectConfig config,
             TemplateEngine engine,
             Path outputDir) {
-        List<String> warnings = new ArrayList<>();
-
         Path claudeDir = outputDir.getParent()
                 .resolve(".claude");
 
-        List<AgentInfo> agents = CodexScanner.scanAgents(
-                claudeDir.resolve("agents"));
-        List<SkillInfo> skills = CodexScanner.scanSkills(
-                claudeDir.resolve("skills"));
-        HookPresence hookPresence = HookPresence.of(
-                CodexShared.detectHooks(
-                        claudeDir.resolve("hooks")));
-
-        if (agents.isEmpty()) {
-            warnings.add(
-                    "No agents found in output directory");
-        }
-        if (skills.isEmpty()) {
-            warnings.add(
-                    "No skills found in output directory");
-        }
-
+        var scanned = scanClaudeDir(claudeDir);
         Map<String, Object> context =
                 buildExtendedContext(
-                        config, agents, skills,
-                        hookPresence);
+                        config, scanned.agents,
+                        scanned.skills,
+                        scanned.hookPresence);
 
         String rendered = engine.render(
                 TEMPLATE_PATH, context);
@@ -76,10 +59,26 @@ public final class CodexAgentsMdAssembler
         CopyHelpers.ensureDirectory(outputDir);
         Path dest = outputDir.resolve("AGENTS.md");
         CopyHelpers.writeFile(dest, rendered);
+        return List.of(dest.toString());
+    }
 
-        List<String> result = new ArrayList<>();
-        result.add(dest.toString());
-        return result;
+    private static ScannedOutput scanClaudeDir(
+            Path claudeDir) {
+        List<AgentInfo> agents = CodexScanner.scanAgents(
+                claudeDir.resolve("agents"));
+        List<SkillInfo> skills = CodexScanner.scanSkills(
+                claudeDir.resolve("skills"));
+        HookPresence hookPresence = HookPresence.of(
+                CodexShared.detectHooks(
+                        claudeDir.resolve("hooks")));
+        return new ScannedOutput(
+                agents, skills, hookPresence);
+    }
+
+    private record ScannedOutput(
+            List<AgentInfo> agents,
+            List<SkillInfo> skills,
+            HookPresence hookPresence) {
     }
 
     /**
