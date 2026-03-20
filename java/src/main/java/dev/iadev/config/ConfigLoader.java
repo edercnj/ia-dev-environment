@@ -3,7 +3,9 @@ package dev.iadev.config;
 import dev.iadev.exception.ConfigParseException;
 import dev.iadev.exception.ConfigValidationException;
 import dev.iadev.model.ProjectConfig;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -122,7 +124,8 @@ public final class ConfigLoader {
     private static Object parseYaml(
             String content, String filePath) {
         try {
-            return new Yaml().load(content);
+            return new Yaml(new SafeConstructor(
+                    new LoaderOptions())).load(content);
         } catch (Exception e) {
             throw new ConfigParseException(
                     "Failed to parse YAML: %s"

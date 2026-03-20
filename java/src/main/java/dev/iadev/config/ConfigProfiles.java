@@ -1,7 +1,9 @@
 package dev.iadev.config;
 
 import dev.iadev.model.ProjectConfig;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.io.InputStream;
 import java.util.List;
@@ -120,7 +122,8 @@ public final class ConfigProfiles {
                                 + resourcePath);
             }
 
-            Object parsed = new Yaml().load(is);
+            Object parsed = new Yaml(new SafeConstructor(
+                    new LoaderOptions())).load(is);
             if (!(parsed instanceof Map<?, ?> map)) {
                 throw new IllegalStateException(
                         "Config template is not a valid YAML map: "

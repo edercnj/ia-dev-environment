@@ -4,7 +4,9 @@ import dev.iadev.config.ContextBuilder;
 import dev.iadev.domain.stack.StackResolver;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -234,7 +236,8 @@ public final class CodexAgentsMdAssembler
         if (block == null) {
             return new SkillInfo(dirName, "", true);
         }
-        Yaml yaml = new Yaml();
+        Yaml yaml = new Yaml(new SafeConstructor(
+                new LoaderOptions()));
         Object parsed = yaml.load(block);
         if (!(parsed instanceof Map)) {
             return new SkillInfo(dirName, "", true);
