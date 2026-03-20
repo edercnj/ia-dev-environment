@@ -86,11 +86,14 @@ public final class GithubSkillsAssembler
                 "x-dev-architecture-plan",
                 "x-dev-arch-update",
                 "layer-templates",
-                "x-dev-adr-automation"));
+                "x-dev-adr-automation",
+                "x-mcp-recommend"));
         SKILL_GROUPS.put("review", List.of(
                 "x-review", "x-review-api", "x-review-pr",
                 "x-review-grpc", "x-review-events",
-                "x-review-gateway"));
+                "x-review-gateway",
+                "x-codebase-audit",
+                "x-dependency-audit"));
         SKILL_GROUPS.put("testing", List.of(
                 "x-test-plan", "x-test-run", "run-e2e",
                 "run-smoke-api", "run-contract-tests",
@@ -105,7 +108,8 @@ public final class GithubSkillsAssembler
                 "resilience", "security", "compliance",
                 "api-design"));
         SKILL_GROUPS.put("git-troubleshooting", List.of(
-                "x-git-push", "x-ops-troubleshoot"));
+                "x-git-push", "x-ops-troubleshoot",
+                "x-fix-pr-comments", "x-changelog"));
         SKILL_GROUPS.put("lib", List.of(
                 "x-lib-task-decomposer",
                 "x-lib-audit-rules",
