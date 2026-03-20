@@ -350,7 +350,8 @@ class CodexAgentsMdAssemblerTest {
                     CodexAgentsMdAssembler
                             .buildExtendedContext(
                                     config, agents,
-                                    skills, true);
+                                    skills,
+                                    HookPresence.WITH_HOOKS);
 
             // Base fields
             assertThat(ctx).containsKey("project_name");
@@ -378,7 +379,7 @@ class CodexAgentsMdAssemblerTest {
                     CodexAgentsMdAssembler
                             .buildExtendedContext(
                                     config, List.of(),
-                                    List.of(), false);
+                                    List.of(), HookPresence.WITHOUT_HOOKS);
 
             assertThat(ctx.get("model"))
                     .isEqualTo("o4-mini");
@@ -394,7 +395,7 @@ class CodexAgentsMdAssemblerTest {
                     CodexAgentsMdAssembler
                             .buildExtendedContext(
                                     config, List.of(),
-                                    List.of(), true);
+                                    List.of(), HookPresence.WITH_HOOKS);
 
             assertThat(ctx.get("approval_policy"))
                     .isEqualTo("on-request");
@@ -414,7 +415,8 @@ class CodexAgentsMdAssemblerTest {
                     CodexAgentsMdAssembler
                             .buildExtendedContext(
                                     config, List.of(),
-                                    skills, false);
+                                    skills,
+                                    HookPresence.WITHOUT_HOOKS);
 
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> skillsList =

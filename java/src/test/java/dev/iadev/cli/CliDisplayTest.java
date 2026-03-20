@@ -288,7 +288,7 @@ class CliDisplayTest {
                     List.of(), 150);
 
             String output =
-                    CliDisplay.formatResult(result, false);
+                    CliDisplay.formatResult(result, DisplayMode.LIVE);
 
             assertThat(output).contains("Success");
             assertThat(output).contains("150ms");
@@ -303,7 +303,7 @@ class CliDisplayTest {
                     List.of(), 100);
 
             String output =
-                    CliDisplay.formatResult(result, true);
+                    CliDisplay.formatResult(result, DisplayMode.DRY_RUN);
 
             assertThat(output).contains("[DRY RUN]");
         }
@@ -316,7 +316,7 @@ class CliDisplayTest {
                     List.of("Some warning"), 100);
 
             String output =
-                    CliDisplay.formatResult(result, false);
+                    CliDisplay.formatResult(result, DisplayMode.LIVE);
 
             assertThat(output).contains("Warning:");
             assertThat(output).contains("Some warning");
@@ -331,7 +331,7 @@ class CliDisplayTest {
                     List.of(), 100);
 
             String output =
-                    CliDisplay.formatResult(result, true);
+                    CliDisplay.formatResult(result, DisplayMode.DRY_RUN);
 
             assertThat(output)
                     .contains(".claude/rules/01.md");

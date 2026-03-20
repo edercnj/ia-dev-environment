@@ -201,7 +201,7 @@ public class GenerateCommand implements Callable<Integer> {
         PipelineResult result =
                 runPipeline(config, destPath, out);
         out.println(CliDisplay.formatResult(
-                result, dryRun));
+                result, DisplayMode.of(dryRun)));
         return EXIT_SUCCESS;
     }
 

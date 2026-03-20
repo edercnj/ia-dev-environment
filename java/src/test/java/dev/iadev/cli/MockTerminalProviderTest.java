@@ -141,7 +141,7 @@ class MockTerminalProviderTest {
             var mock = new MockTerminalProvider()
                     .addConfirm(true);
 
-            assertThat(mock.confirm("proceed?", true)).isTrue();
+            assertThat(mock.confirm("proceed?", ConfirmDefault.DEFAULT_YES)).isTrue();
         }
 
         @Test
@@ -150,7 +150,7 @@ class MockTerminalProviderTest {
             var mock = new MockTerminalProvider()
                     .addConfirm(false);
 
-            assertThat(mock.confirm("proceed?", true)).isFalse();
+            assertThat(mock.confirm("proceed?", ConfirmDefault.DEFAULT_YES)).isFalse();
         }
     }
 

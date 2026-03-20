@@ -78,11 +78,14 @@ public final class CodexShared {
     /**
      * Derives the approval policy based on hooks presence.
      *
-     * @param hasHooks whether hooks are detected
-     * @return "on-request" if hooks exist, "untrusted" otherwise
+     * @param hookPresence whether hooks are detected
+     * @return "on-request" if hooks exist, "untrusted"
+     *         otherwise
      */
-    public static String deriveApprovalPolicy(boolean hasHooks) {
-        return hasHooks ? POLICY_ON_REQUEST : POLICY_UNTRUSTED;
+    public static String deriveApprovalPolicy(
+            HookPresence hookPresence) {
+        return hookPresence.hasHooks()
+                ? POLICY_ON_REQUEST : POLICY_UNTRUSTED;
     }
 
     /**

@@ -65,8 +65,9 @@ public final class CodexAgentsMdAssembler
                 claudeDir.resolve("agents"));
         List<SkillInfo> skills = scanSkills(
                 claudeDir.resolve("skills"));
-        boolean hasHooks = CodexShared.detectHooks(
-                claudeDir.resolve("hooks"));
+        HookPresence hookPresence = HookPresence.of(
+                CodexShared.detectHooks(
+                        claudeDir.resolve("hooks")));
 
         if (agents.isEmpty()) {
             warnings.add(
@@ -79,7 +80,8 @@ public final class CodexAgentsMdAssembler
 
         Map<String, Object> context =
                 buildExtendedContext(
-                        config, agents, skills, hasHooks);
+                        config, agents, skills,
+                        hookPresence);
 
         String rendered = engine.render(
                 TEMPLATE_PATH, context);
@@ -261,17 +263,17 @@ public final class CodexAgentsMdAssembler
      * observability, model, approval_policy,
      * sandbox_mode.</p>
      *
-     * @param config   the project configuration
-     * @param agents   the scanned agents
-     * @param skills   the scanned skills
-     * @param hasHooks whether hooks were detected
+     * @param config       the project configuration
+     * @param agents       the scanned agents
+     * @param skills       the scanned skills
+     * @param hookPresence whether hooks were detected
      * @return the template context map
      */
     static Map<String, Object> buildExtendedContext(
             ProjectConfig config,
             List<AgentInfo> agents,
             List<SkillInfo> skills,
-            boolean hasHooks) {
+            HookPresence hookPresence) {
         var resolved = StackResolver.resolve(config);
         Map<String, Object> ctx =
                 new LinkedHashMap<>(
@@ -306,7 +308,7 @@ public final class CodexAgentsMdAssembler
         }
         ctx.put("skills_list", templateSkills);
 
-        ctx.put("has_hooks", hasHooks);
+        ctx.put("has_hooks", hookPresence.hasHooks());
         ctx.put("mcp_servers",
                 CodexShared.mapMcpServers(config));
         ctx.put("security_frameworks",
@@ -314,7 +316,8 @@ public final class CodexAgentsMdAssembler
                         config.security().frameworks()));
         ctx.put("model", CodexShared.DEFAULT_MODEL);
         ctx.put("approval_policy",
-                CodexShared.deriveApprovalPolicy(hasHooks));
+                CodexShared.deriveApprovalPolicy(
+                        hookPresence));
         ctx.put("sandbox_mode",
                 CodexShared.SANDBOX_WORKSPACE_WRITE);
 

@@ -78,7 +78,8 @@ public class InteractivePrompter {
                 framework, buildTool, interfaces, database, cache);
 
         boolean confirmed = terminal.confirm(
-                "Proceed with generation? [Y/n]", true);
+                "Proceed with generation? [Y/n]",
+                ConfirmDefault.DEFAULT_YES);
         if (!confirmed) {
             throw new GenerationCancelledException(CANCELLED);
         }

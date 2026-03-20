@@ -47,8 +47,8 @@ public final class CodexConfigAssembler
             Path outputDir) {
         Path hooksDir = outputDir.getParent()
                 .resolve(".claude").resolve("hooks");
-        boolean hasHooks =
-                CodexShared.detectHooks(hooksDir);
+        HookPresence hookPresence = HookPresence.of(
+                CodexShared.detectHooks(hooksDir));
 
         for (McpServerConfig server
                 : config.mcp().servers()) {
@@ -63,7 +63,7 @@ public final class CodexConfigAssembler
         }
 
         Map<String, Object> context =
-                buildConfigContext(config, hasHooks);
+                buildConfigContext(config, hookPresence);
 
         String rendered = engine.render(
                 TEMPLATE_PATH, context);
@@ -79,20 +79,21 @@ public final class CodexConfigAssembler
      * Builds the template context for {@code config.toml}
      * rendering.
      *
-     * @param config   the project configuration
-     * @param hasHooks whether hooks were detected
+     * @param config       the project configuration
+     * @param hookPresence whether hooks were detected
      * @return the template context map
      */
     static Map<String, Object> buildConfigContext(
             ProjectConfig config,
-            boolean hasHooks) {
+            HookPresence hookPresence) {
         List<Map<String, Object>> mcpServers =
                 CodexShared.mapMcpServers(config);
         Map<String, Object> ctx = new LinkedHashMap<>(
                 ContextBuilder.buildContext(config));
         ctx.put("model", CodexShared.DEFAULT_MODEL);
         ctx.put("approval_policy",
-                CodexShared.deriveApprovalPolicy(hasHooks));
+                CodexShared.deriveApprovalPolicy(
+                        hookPresence));
         ctx.put("sandbox_mode",
                 CodexShared.SANDBOX_WORKSPACE_WRITE);
         ctx.put("mcp_servers", mcpServers);

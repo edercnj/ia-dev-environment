@@ -110,13 +110,15 @@ public final class SettingsAssembler implements Assembler {
         List<String> raw =
                 collectPermissions(config, templatesDir);
         List<String> permissions = deduplicate(raw);
-        boolean hasHooks = !StackMapping.getHookTemplateKey(
-                config.language().name(),
-                config.framework().buildTool()).isEmpty();
+        HookPresence hookPresence = HookPresence.of(
+                !StackMapping.getHookTemplateKey(
+                        config.language().name(),
+                        config.framework().buildTool())
+                        .isEmpty());
 
         List<String> results = new ArrayList<>();
         results.add(writeSettings(
-                outputDir, permissions, hasHooks));
+                outputDir, permissions, hookPresence));
         results.add(writeSettingsLocal(outputDir));
         return results;
     }
@@ -308,10 +310,10 @@ public final class SettingsAssembler implements Assembler {
     private String writeSettings(
             Path outputDir,
             List<String> permissions,
-            boolean hasHooks) {
+            HookPresence hookPresence) {
         Path dest = outputDir.resolve(SETTINGS_FILENAME);
         String content = buildSettingsJson(
-                permissions, hasHooks);
+                permissions, hookPresence);
         try {
             Files.writeString(
                     dest, content, StandardCharsets.UTF_8);
@@ -341,12 +343,13 @@ public final class SettingsAssembler implements Assembler {
      * Builds the settings.json content as a formatted JSON
      * string.
      *
-     * @param permissions the list of allowed commands
-     * @param hasHooks    whether to include hooks section
+     * @param permissions  the list of allowed commands
+     * @param hookPresence whether to include hooks section
      * @return formatted JSON string
      */
     static String buildSettingsJson(
-            List<String> permissions, boolean hasHooks) {
+            List<String> permissions,
+            HookPresence hookPresence) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\n");
         sb.append(JsonHelpers.indent(1))
@@ -365,7 +368,7 @@ public final class SettingsAssembler implements Assembler {
             sb.append('\n');
         }
         sb.append(JsonHelpers.indent(2)).append("]\n");
-        if (hasHooks) {
+        if (hookPresence.hasHooks()) {
             sb.append(JsonHelpers.indent(1))
                     .append("},\n");
             appendHooksSection(sb);

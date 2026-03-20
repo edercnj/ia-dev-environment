@@ -254,7 +254,7 @@ class JLineTerminalProviderTest {
                     .thenReturn("y");
             var provider = createProvider();
 
-            assertThat(provider.confirm("proceed?", false))
+            assertThat(provider.confirm("proceed?", ConfirmDefault.DEFAULT_NO))
                     .isTrue();
         }
 
@@ -265,7 +265,7 @@ class JLineTerminalProviderTest {
                     .thenReturn("yes");
             var provider = createProvider();
 
-            assertThat(provider.confirm("proceed?", false))
+            assertThat(provider.confirm("proceed?", ConfirmDefault.DEFAULT_NO))
                     .isTrue();
         }
 
@@ -276,7 +276,7 @@ class JLineTerminalProviderTest {
                     .thenReturn("n");
             var provider = createProvider();
 
-            assertThat(provider.confirm("proceed?", true))
+            assertThat(provider.confirm("proceed?", ConfirmDefault.DEFAULT_YES))
                     .isFalse();
         }
 
@@ -287,7 +287,7 @@ class JLineTerminalProviderTest {
                     .thenReturn("");
             var provider = createProvider();
 
-            assertThat(provider.confirm("proceed?", true))
+            assertThat(provider.confirm("proceed?", ConfirmDefault.DEFAULT_YES))
                     .isTrue();
         }
 
@@ -298,7 +298,7 @@ class JLineTerminalProviderTest {
                     .thenReturn("");
             var provider = createProvider();
 
-            assertThat(provider.confirm("proceed?", false))
+            assertThat(provider.confirm("proceed?", ConfirmDefault.DEFAULT_NO))
                     .isFalse();
         }
     }

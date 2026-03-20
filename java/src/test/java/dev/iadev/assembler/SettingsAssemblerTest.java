@@ -339,7 +339,7 @@ class SettingsAssemblerTest {
         void withoutHooksPermissionsOnly() {
             List<String> perms = List.of("Bash(git *)");
             String json = SettingsAssembler
-                    .buildSettingsJson(perms, false);
+                    .buildSettingsJson(perms, HookPresence.WITHOUT_HOOKS);
 
             assertThat(json)
                     .contains("\"permissions\"")
@@ -354,7 +354,7 @@ class SettingsAssemblerTest {
         void withHooksIncludesPostToolUse() {
             List<String> perms = List.of("Bash(git *)");
             String json = SettingsAssembler
-                    .buildSettingsJson(perms, true);
+                    .buildSettingsJson(perms, HookPresence.WITH_HOOKS);
 
             assertThat(json)
                     .contains("\"hooks\"")

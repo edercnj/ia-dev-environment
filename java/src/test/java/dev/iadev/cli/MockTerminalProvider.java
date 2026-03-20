@@ -146,12 +146,13 @@ public class MockTerminalProvider implements TerminalProvider {
     }
 
     @Override
-    public boolean confirm(String prompt, boolean defaultValue) {
+    public boolean confirm(String prompt,
+                           ConfirmDefault confirmDefault) {
         checkCancellation();
         if (confirmResponses.isEmpty()) {
             throw new IllegalStateException(
-                    "No confirm response configured for prompt: "
-                            + prompt);
+                    "No confirm response configured"
+                            + " for prompt: " + prompt);
         }
         return confirmResponses.poll();
     }

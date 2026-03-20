@@ -101,7 +101,8 @@ class CodexSharedTest {
         @DisplayName("returns on-request when hooks present")
         void returnsOnRequest() {
             assertThat(
-                    CodexShared.deriveApprovalPolicy(true))
+                    CodexShared.deriveApprovalPolicy(
+                            HookPresence.WITH_HOOKS))
                     .isEqualTo("on-request");
         }
 
@@ -109,7 +110,8 @@ class CodexSharedTest {
         @DisplayName("returns untrusted when no hooks")
         void returnsUntrusted() {
             assertThat(
-                    CodexShared.deriveApprovalPolicy(false))
+                    CodexShared.deriveApprovalPolicy(
+                            HookPresence.WITHOUT_HOOKS))
                     .isEqualTo("untrusted");
         }
     }

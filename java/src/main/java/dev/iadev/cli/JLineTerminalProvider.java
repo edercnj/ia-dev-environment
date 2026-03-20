@@ -140,14 +140,17 @@ public class JLineTerminalProvider implements TerminalProvider {
     }
 
     @Override
-    public boolean confirm(String prompt, boolean defaultValue) {
-        String defHint = defaultValue ? "[Y/n]" : "[y/N]";
+    public boolean confirm(String prompt,
+                           ConfirmDefault confirmDefault) {
+        String defHint = confirmDefault.isYes()
+                ? "[Y/n]" : "[y/N]";
         String input = readLine(prompt + " " + defHint);
         if (input.isBlank()) {
-            return defaultValue;
+            return confirmDefault.isYes();
         }
         String trimmed = input.trim().toLowerCase();
-        return "y".equals(trimmed) || "yes".equals(trimmed);
+        return "y".equals(trimmed)
+                || "yes".equals(trimmed);
     }
 
     @Override

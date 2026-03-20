@@ -121,15 +121,16 @@ public final class CliDisplay {
      * output directory, and any warnings. In dry-run mode,
      * prefixes with "[DRY RUN]" and lists all files.</p>
      *
-     * @param result the pipeline result
-     * @param dryRun whether this was a dry-run execution
+     * @param result      the pipeline result
+     * @param displayMode the display mode (LIVE or DRY_RUN)
      * @return formatted result string
      */
     public static String formatResult(
-            PipelineResult result, boolean dryRun) {
+            PipelineResult result,
+            DisplayMode displayMode) {
         StringBuilder sb = new StringBuilder();
 
-        if (dryRun) {
+        if (displayMode.isDryRun()) {
             sb.append("[DRY RUN] ");
         }
         sb.append("Pipeline: Success (")
@@ -142,7 +143,8 @@ public final class CliDisplay {
         sb.append("\n\n");
         sb.append("Output: ").append(result.outputDir());
 
-        if (dryRun && !result.filesGenerated().isEmpty()) {
+        if (displayMode.isDryRun()
+                && !result.filesGenerated().isEmpty()) {
             sb.append("\n\nFiles that would be generated:\n");
             for (String file : result.filesGenerated()) {
                 sb.append("  ").append(file).append('\n');

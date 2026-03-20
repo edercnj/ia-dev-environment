@@ -49,7 +49,7 @@ class CodexConfigAssemblerTest {
             Map<String, Object> ctx =
                     CodexConfigAssembler
                             .buildConfigContext(
-                                    config, false);
+                                    config, HookPresence.WITHOUT_HOOKS);
 
             assertThat(ctx.get("model"))
                     .isEqualTo("o4-mini");
@@ -67,7 +67,7 @@ class CodexConfigAssemblerTest {
             Map<String, Object> ctx =
                     CodexConfigAssembler
                             .buildConfigContext(
-                                    config, false);
+                                    config, HookPresence.WITHOUT_HOOKS);
 
             assertThat(ctx.get("has_mcp"))
                     .isEqualTo(false);
@@ -87,7 +87,7 @@ class CodexConfigAssemblerTest {
             Map<String, Object> ctx =
                     CodexConfigAssembler
                             .buildConfigContext(
-                                    config, false);
+                                    config, HookPresence.WITHOUT_HOOKS);
 
             assertThat(ctx.get("has_mcp"))
                     .isEqualTo(true);
@@ -102,7 +102,7 @@ class CodexConfigAssemblerTest {
             Map<String, Object> ctx =
                     CodexConfigAssembler
                             .buildConfigContext(
-                                    config, true);
+                                    config, HookPresence.WITH_HOOKS);
 
             assertThat(ctx.get("approval_policy"))
                     .isEqualTo("on-request");
