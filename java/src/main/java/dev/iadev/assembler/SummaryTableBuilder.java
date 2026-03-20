@@ -89,24 +89,20 @@ public final class SummaryTableBuilder {
 
     private static Object[][] buildSummaryRows(
             Path outputDir, Path githubDir) {
+        Object[][] claudeRows =
+                buildClaudeRows(outputDir);
+        Object[][] githubRows =
+                buildGithubRows(outputDir, githubDir);
+        Object[][] extRows =
+                buildExtensionRows(outputDir);
+        return concatRows(
+                claudeRows, githubRows, extRows);
+    }
+
+    private static Object[][] buildClaudeRows(
+            Path outputDir) {
         int kps = ReadmeUtils
                 .countKnowledgePacks(outputDir);
-        int ghGlobal = Files.exists(
-                githubDir.resolve(
-                        "copilot-instructions.md")) ? 1 : 0;
-        int ghMcp = Files.exists(
-                githubDir.resolve(
-                        "copilot-mcp.json")) ? 1 : 0;
-        Path codexDir = resolveCodexDir(outputDir);
-        int codexCount =
-                ReadmeUtils.countCodexFiles(codexDir);
-        Path agentsDir = resolveAgentsDir(outputDir);
-        int agentsCount =
-                ReadmeUtils.countCodexAgentsFiles(agentsDir);
-        Path rootDir = outputDir.getParent();
-        int agentsMdCount = Files.exists(
-                rootDir.resolve("AGENTS.md")) ? 1 : 0;
-
         return new Object[][]{
                 {"Rules (.claude)",
                         ReadmeUtils.countRules(outputDir)},
@@ -119,28 +115,74 @@ public final class SummaryTableBuilder {
                 {"Hooks (.claude)",
                         ReadmeUtils.countHooks(outputDir)},
                 {"Settings (.claude)",
-                        ReadmeUtils
-                                .countSettings(outputDir)},
+                        ReadmeUtils.countSettings(outputDir)},
+        };
+    }
+
+    private static Object[][] buildGithubRows(
+            Path outputDir, Path githubDir) {
+        int ghGlobal = existsAsInt(
+                githubDir, "copilot-instructions.md");
+        int ghMcp = existsAsInt(
+                githubDir, "copilot-mcp.json");
+        return new Object[][]{
                 {"Instructions (.github)",
-                        ReadmeUtils.countGithubComponent(
-                                githubDir, "instructions")
-                                + ghGlobal},
+                        ghComponent(githubDir,
+                                "instructions") + ghGlobal},
                 {"Skills (.github)",
                         ReadmeUtils.countGithubSkills(
                                 githubDir)},
                 {"Agents (.github)",
-                        ReadmeUtils.countGithubComponent(
-                                githubDir, "agents")},
+                        ghComponent(githubDir, "agents")},
                 {"Prompts (.github)",
-                        ReadmeUtils.countGithubComponent(
-                                githubDir, "prompts")},
+                        ghComponent(githubDir, "prompts")},
                 {"Hooks (.github)",
-                        ReadmeUtils.countGithubComponent(
-                                githubDir, "hooks")},
+                        ghComponent(githubDir, "hooks")},
                 {"MCP (.github)", ghMcp},
+        };
+    }
+
+    private static int existsAsInt(
+            Path dir, String filename) {
+        return Files.exists(dir.resolve(filename)) ? 1 : 0;
+    }
+
+    private static int ghComponent(
+            Path githubDir, String name) {
+        return ReadmeUtils.countGithubComponent(
+                githubDir, name);
+    }
+
+    private static Object[][] buildExtensionRows(
+            Path outputDir) {
+        Path codexDir = resolveCodexDir(outputDir);
+        int codexCount =
+                ReadmeUtils.countCodexFiles(codexDir);
+        Path agentsDir = resolveAgentsDir(outputDir);
+        int agentsCount =
+                ReadmeUtils.countCodexAgentsFiles(agentsDir);
+        Path rootDir = outputDir.getParent();
+        int agentsMdCount = Files.exists(
+                rootDir.resolve("AGENTS.md")) ? 1 : 0;
+        return new Object[][]{
                 {"AGENTS.md (root)", agentsMdCount},
                 {"Codex (.codex)", codexCount},
                 {"Skills (.agents)", agentsCount},
         };
+    }
+
+    private static Object[][] concatRows(
+            Object[][]... groups) {
+        int total = 0;
+        for (Object[][] g : groups) {
+            total += g.length;
+        }
+        Object[][] result = new Object[total][];
+        int idx = 0;
+        for (Object[][] g : groups) {
+            System.arraycopy(g, 0, result, idx, g.length);
+            idx += g.length;
+        }
+        return result;
     }
 }

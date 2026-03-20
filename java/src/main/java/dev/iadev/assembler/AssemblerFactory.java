@@ -1,5 +1,6 @@
 package dev.iadev.assembler;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,108 +22,133 @@ public final class AssemblerFactory {
     /**
      * Builds the ordered list of 23 assemblers per RULE-005.
      *
-     * <p>Order: Rules, Skills, Agents, Patterns, Protocols,
-     * Hooks, Settings, GithubInstructions, GithubMcp,
-     * GithubSkills, GithubAgents, GithubHooks,
-     * GithubPrompts, Docs, GrpcDocs, Runbook,
-     * CodexAgentsMd, CodexConfig, CodexSkills, DocsAdr,
-     * Cicd, EpicReport, Readme</p>
+     * <p>Delegates to group builders by category:
+     * core, github, docs, codex, cicd, and readme.</p>
      *
      * @return immutable ordered list of assembler descriptors
      */
-    public static List<AssemblerDescriptor> buildAssemblers() {
+    public static List<AssemblerDescriptor>
+            buildAssemblers() {
+        List<AssemblerDescriptor> all = new ArrayList<>();
+        all.addAll(buildClaudeRulesAssemblers());
+        all.addAll(buildClaudeConfigAssemblers());
+        all.addAll(buildGithubInputAssemblers());
+        all.addAll(buildGithubOutputAssemblers());
+        all.addAll(buildDocsAssemblers());
+        all.addAll(buildCodexAssemblers());
+        all.addAll(buildCicdAssemblers());
+        return List.copyOf(all);
+    }
+
+    private static List<AssemblerDescriptor>
+            buildClaudeRulesAssemblers() {
         return List.of(
-                new AssemblerDescriptor(
-                        "RulesAssembler",
+                desc("RulesAssembler",
                         AssemblerTarget.CLAUDE,
                         new RulesAssembler()),
-                new AssemblerDescriptor(
-                        "SkillsAssembler",
+                desc("SkillsAssembler",
                         AssemblerTarget.CLAUDE,
                         new SkillsAssembler()),
-                new AssemblerDescriptor(
-                        "AgentsAssembler",
+                desc("AgentsAssembler",
                         AssemblerTarget.CLAUDE,
                         new AgentsAssembler()),
-                new AssemblerDescriptor(
-                        "PatternsAssembler",
+                desc("PatternsAssembler",
                         AssemblerTarget.CLAUDE,
-                        new PatternsAssembler()),
-                new AssemblerDescriptor(
-                        "ProtocolsAssembler",
+                        new PatternsAssembler()));
+    }
+
+    private static List<AssemblerDescriptor>
+            buildClaudeConfigAssemblers() {
+        return List.of(
+                desc("ProtocolsAssembler",
                         AssemblerTarget.CLAUDE,
                         new ProtocolsAssembler()),
-                new AssemblerDescriptor(
-                        "HooksAssembler",
+                desc("HooksAssembler",
                         AssemblerTarget.CLAUDE,
                         new HooksAssembler()),
-                new AssemblerDescriptor(
-                        "SettingsAssembler",
+                desc("SettingsAssembler",
                         AssemblerTarget.CLAUDE,
-                        new SettingsAssembler()),
-                new AssemblerDescriptor(
-                        "GithubInstructionsAssembler",
+                        new SettingsAssembler()));
+    }
+
+    private static List<AssemblerDescriptor>
+            buildGithubInputAssemblers() {
+        return List.of(
+                desc("GithubInstructionsAssembler",
                         AssemblerTarget.GITHUB,
                         new GithubInstructionsAssembler()),
-                new AssemblerDescriptor(
-                        "GithubMcpAssembler",
+                desc("GithubMcpAssembler",
                         AssemblerTarget.GITHUB,
                         new GithubMcpAssembler()),
-                new AssemblerDescriptor(
-                        "GithubSkillsAssembler",
+                desc("GithubSkillsAssembler",
                         AssemblerTarget.GITHUB,
-                        new GithubSkillsAssembler()),
-                new AssemblerDescriptor(
-                        "GithubAgentsAssembler",
+                        new GithubSkillsAssembler()));
+    }
+
+    private static List<AssemblerDescriptor>
+            buildGithubOutputAssemblers() {
+        return List.of(
+                desc("GithubAgentsAssembler",
                         AssemblerTarget.GITHUB,
                         new GithubAgentsAssembler()),
-                new AssemblerDescriptor(
-                        "GithubHooksAssembler",
+                desc("GithubHooksAssembler",
                         AssemblerTarget.GITHUB,
                         new GithubHooksAssembler()),
-                new AssemblerDescriptor(
-                        "GithubPromptsAssembler",
+                desc("GithubPromptsAssembler",
                         AssemblerTarget.GITHUB,
-                        new GithubPromptsAssembler()),
-                new AssemblerDescriptor(
-                        "DocsAssembler",
+                        new GithubPromptsAssembler()));
+    }
+
+    private static List<AssemblerDescriptor>
+            buildDocsAssemblers() {
+        return List.of(
+                desc("DocsAssembler",
                         AssemblerTarget.DOCS,
                         new DocsAssembler()),
-                new AssemblerDescriptor(
-                        "GrpcDocsAssembler",
+                desc("GrpcDocsAssembler",
                         AssemblerTarget.DOCS,
                         new GrpcDocsAssembler()),
-                new AssemblerDescriptor(
-                        "RunbookAssembler",
+                desc("RunbookAssembler",
                         AssemblerTarget.ROOT,
-                        new RunbookAssembler()),
-                new AssemblerDescriptor(
-                        "CodexAgentsMdAssembler",
+                        new RunbookAssembler()));
+    }
+
+    private static List<AssemblerDescriptor>
+            buildCodexAssemblers() {
+        return List.of(
+                desc("CodexAgentsMdAssembler",
                         AssemblerTarget.ROOT,
                         new CodexAgentsMdAssembler()),
-                new AssemblerDescriptor(
-                        "CodexConfigAssembler",
+                desc("CodexConfigAssembler",
                         AssemblerTarget.CODEX,
                         new CodexConfigAssembler()),
-                new AssemblerDescriptor(
-                        "CodexSkillsAssembler",
+                desc("CodexSkillsAssembler",
                         AssemblerTarget.CODEX_AGENTS,
                         new CodexSkillsAssembler()),
-                new AssemblerDescriptor(
-                        "DocsAdrAssembler",
+                desc("DocsAdrAssembler",
                         AssemblerTarget.ROOT,
-                        new DocsAdrAssembler()),
-                new AssemblerDescriptor(
-                        "CicdAssembler",
+                        new DocsAdrAssembler()));
+    }
+
+    private static List<AssemblerDescriptor>
+            buildCicdAssemblers() {
+        return List.of(
+                desc("CicdAssembler",
                         AssemblerTarget.ROOT,
                         new CicdAssembler()),
-                new AssemblerDescriptor(
-                        "EpicReportAssembler",
+                desc("EpicReportAssembler",
                         AssemblerTarget.ROOT,
                         new EpicReportAssembler()),
-                new AssemblerDescriptor(
-                        "ReadmeAssembler",
+                desc("ReadmeAssembler",
                         AssemblerTarget.CLAUDE,
                         new ReadmeAssembler()));
+    }
+
+    private static AssemblerDescriptor desc(
+            String name,
+            AssemblerTarget target,
+            Assembler assembler) {
+        return new AssemblerDescriptor(
+                name, target, assembler);
     }
 }

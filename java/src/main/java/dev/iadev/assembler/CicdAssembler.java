@@ -139,8 +139,62 @@ public final class CicdAssembler implements Assembler {
             ProjectConfig config) {
         String langKey = config.language().name()
                 + "-" + config.framework().buildTool();
+
+        Map<String, Object> ctx =
+                new LinkedHashMap<>(
+                        INITIAL_CICD_MAP_CAPACITY);
+        addCommandEntries(langKey, ctx);
+        addEnvironmentEntries(config, ctx);
+        return ctx;
+    }
+
+    private static void addCommandEntries(
+            String langKey,
+            Map<String, Object> ctx) {
         LanguageCommandSet commands =
                 StackMapping.LANGUAGE_COMMANDS.get(langKey);
+        addBuildCommands(commands, ctx);
+        addToolingCommands(langKey, commands, ctx);
+    }
+
+    private static void addBuildCommands(
+            LanguageCommandSet commands,
+            Map<String, Object> ctx) {
+        ctx.put("compile_cmd",
+                cmd(commands, LanguageCommandSet::compileCmd));
+        ctx.put("build_cmd",
+                cmd(commands, LanguageCommandSet::buildCmd));
+        ctx.put("test_cmd",
+                cmd(commands, LanguageCommandSet::testCmd));
+        ctx.put("coverage_cmd",
+                cmd(commands, LanguageCommandSet::coverageCmd));
+    }
+
+    private static void addToolingCommands(
+            String langKey,
+            LanguageCommandSet commands,
+            Map<String, Object> ctx) {
+        ctx.put("lint_cmd",
+                LINT_COMMANDS.getOrDefault(
+                        langKey, DEFAULT_LINT_CMD));
+        ctx.put("file_extension",
+                cmd(commands, LanguageCommandSet::fileExtension));
+        ctx.put("build_file",
+                cmd(commands, LanguageCommandSet::buildFile));
+        ctx.put("package_manager",
+                cmd(commands, LanguageCommandSet::packageManager));
+    }
+
+    private static String cmd(
+            LanguageCommandSet commands,
+            java.util.function.Function<
+                    LanguageCommandSet, String> getter) {
+        return commands != null ? getter.apply(commands) : "";
+    }
+
+    private static void addEnvironmentEntries(
+            ProjectConfig config,
+            Map<String, Object> ctx) {
         int port = StackMapping.FRAMEWORK_PORTS.getOrDefault(
                 config.framework().name(),
                 StackMapping.DEFAULT_PORT_FALLBACK);
@@ -158,39 +212,11 @@ public final class CicdAssembler implements Assembler {
                 "{version}",
                 config.language().version());
 
-        Map<String, Object> ctx =
-                new LinkedHashMap<>(
-                        INITIAL_CICD_MAP_CAPACITY);
-        ctx.put("compile_cmd",
-                commands != null
-                        ? commands.compileCmd() : "");
-        ctx.put("build_cmd",
-                commands != null
-                        ? commands.buildCmd() : "");
-        ctx.put("test_cmd",
-                commands != null
-                        ? commands.testCmd() : "");
-        ctx.put("coverage_cmd",
-                commands != null
-                        ? commands.coverageCmd() : "");
-        ctx.put("lint_cmd",
-                LINT_COMMANDS.getOrDefault(
-                        langKey, DEFAULT_LINT_CMD));
-        ctx.put("file_extension",
-                commands != null
-                        ? commands.fileExtension() : "");
-        ctx.put("build_file",
-                commands != null
-                        ? commands.buildFile() : "");
-        ctx.put("package_manager",
-                commands != null
-                        ? commands.packageManager() : "");
         ctx.put("framework_port", port);
         ctx.put("health_path", healthPath);
         ctx.put("docker_base_image", resolvedImage);
         ctx.put("container",
                 config.infrastructure().container());
-        return ctx;
     }
 
     private static Map<String, Object> mergeContexts(
