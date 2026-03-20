@@ -329,7 +329,7 @@ class AssemblerMiscCoverageTest {
 
             String result = assembler.renderAgent(
                     src, agentsDir,
-                    new TemplateEngine());
+                    new TemplateEngine(), Map.of());
 
             assertThat(result)
                     .contains("architect.agent.md");

@@ -92,8 +92,6 @@ public final class CodexAgentsMdAssembler
         Path dest = outputDir.resolve("AGENTS.md");
         CopyHelpers.writeFile(dest, rendered);
 
-        List<String> files = new ArrayList<>(warnings);
-        files.clear();
         List<String> result = new ArrayList<>();
         result.add(dest.toString());
         return result;

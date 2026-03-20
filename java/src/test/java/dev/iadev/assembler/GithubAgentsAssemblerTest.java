@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -363,7 +364,8 @@ class GithubAgentsAssemblerTest {
             TemplateEngine engine = new TemplateEngine();
 
             String result = assembler.renderAgent(
-                    srcFile, agentsDir, engine);
+                    srcFile, agentsDir, engine,
+                    Map.of());
 
             assertThat(result)
                     .endsWith("test-agent.agent.md");
@@ -391,7 +393,8 @@ class GithubAgentsAssemblerTest {
             TemplateEngine engine = new TemplateEngine();
 
             assembler.renderAgent(
-                    srcFile, agentsDir, engine);
+                    srcFile, agentsDir, engine,
+                    Map.of());
 
             Path dest = agentsDir.resolve(
                     "my-agent.agent.md");

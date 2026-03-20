@@ -289,24 +289,8 @@ public final class GithubAgentsAssembler
 
     /**
      * Renders a single agent template to the output
-     * directory with {@code .agent.md} extension.
-     *
-     * @param srcPath   the source template file path
-     * @param agentsDir the agents output directory
-     * @param engine    the template engine
-     * @return the destination file path
-     */
-    String renderAgent(
-            Path srcPath,
-            Path agentsDir,
-            TemplateEngine engine) {
-        return renderAgent(
-                srcPath, agentsDir, engine, Map.of());
-    }
-
-    /**
-     * Renders a single agent template with context-aware
-     * placeholder replacement.
+     * directory with {@code .agent.md} extension and
+     * context-aware placeholder replacement.
      *
      * @param srcPath   the source template file path
      * @param agentsDir the agents output directory
