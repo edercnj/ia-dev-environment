@@ -280,8 +280,7 @@ public final class CodexAgentsMdAssembler
                         ContextBuilder.buildContext(config));
 
         ctx.put("observability",
-                config.infrastructure()
-                        .observability().tool());
+                config.observabilityTool());
 
         Map<String, String> resolvedStack =
                 new LinkedHashMap<>();

@@ -126,7 +126,6 @@ public final class RulesIdentity {
 
     private static List<String> buildTechStack(
             ProjectConfig config, String fwVer) {
-        var obs = config.infrastructure().observability();
         return List.of(
                 "",
                 "## Technology Stack",
@@ -146,13 +145,13 @@ public final class RulesIdentity {
                         + config.framework().buildTool()
                         + " |",
                 "| Database | "
-                        + config.data().database().name()
+                        + config.databaseName()
                         + " |",
                 "| Migration | "
-                        + config.data().migration().name()
+                        + config.migrationName()
                         + " |",
                 "| Cache | "
-                        + config.data().cache().name()
+                        + config.cacheName()
                         + " |",
                 "| Message Broker | none |",
                 "| Container | "
@@ -162,7 +161,9 @@ public final class RulesIdentity {
                         + config.infrastructure()
                         .orchestrator() + " |",
                 "| Observability | "
-                        + obs.tool() + " (" + obs.tracing()
+                        + config.observabilityTool()
+                        + " ("
+                        + config.observabilityTracing()
                         + ") |",
                 "| Resilience | Mandatory"
                         + " (always enabled) |",

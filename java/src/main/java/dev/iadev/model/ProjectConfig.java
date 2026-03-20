@@ -49,6 +49,70 @@ public record ProjectConfig(
         interfaces = List.copyOf(interfaces);
     }
 
+    // --- Convenience accessors (Law of Demeter) ---
+
+    /**
+     * Returns the observability tool name, breaking the
+     * 3-level chain {@code infrastructure().observability().tool()}.
+     *
+     * @return the observability tool (e.g. "prometheus", "none")
+     */
+    public String observabilityTool() {
+        return infrastructure().observability().tool();
+    }
+
+    /**
+     * Returns the observability tracing backend, breaking the
+     * 3-level chain {@code infrastructure().observability().tracing()}.
+     *
+     * @return the tracing backend (e.g. "jaeger", "none")
+     */
+    public String observabilityTracing() {
+        return infrastructure().observability().tracing();
+    }
+
+    /**
+     * Returns the observability metrics backend, breaking the
+     * 3-level chain {@code infrastructure().observability().metrics()}.
+     *
+     * @return the metrics backend (e.g. "micrometer", "none")
+     */
+    public String observabilityMetrics() {
+        return infrastructure().observability().metrics();
+    }
+
+    /**
+     * Returns the database name, breaking the
+     * 3-level chain {@code data().database().name()}.
+     *
+     * @return the database name (e.g. "postgresql", "none")
+     */
+    public String databaseName() {
+        return data().database().name();
+    }
+
+    /**
+     * Returns the migration tool name, breaking the
+     * 3-level chain {@code data().migration().name()}.
+     *
+     * @return the migration tool name (e.g. "flyway", "none")
+     */
+    public String migrationName() {
+        return data().migration().name();
+    }
+
+    /**
+     * Returns the cache name, breaking the
+     * 3-level chain {@code data().cache().name()}.
+     *
+     * @return the cache name (e.g. "redis", "none")
+     */
+    public String cacheName() {
+        return data().cache().name();
+    }
+
+    // --- End convenience accessors ---
+
     /**
      * Creates a ProjectConfig from a YAML-parsed map.
      *

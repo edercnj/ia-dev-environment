@@ -125,9 +125,9 @@ public final class ContextBuilder {
 
         // Data (fields 18-19)
         ctx.put("database_name",
-                config.data().database().name());
+                config.databaseName());
         ctx.put("cache_name",
-                config.data().cache().name());
+                config.cacheName());
 
         // Testing booleans — Python-bool (fields 20-22)
         ctx.put("smoke_tests",
