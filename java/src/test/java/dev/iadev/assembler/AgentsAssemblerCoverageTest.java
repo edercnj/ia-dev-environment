@@ -112,7 +112,7 @@ class AgentsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isEmpty();
         }
     }
 
@@ -140,7 +140,7 @@ class AgentsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isEmpty();
         }
     }
 
@@ -170,7 +170,7 @@ class AgentsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isEmpty();
         }
 
         @Test
@@ -199,7 +199,7 @@ class AgentsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isNotEmpty();
         }
     }
 

@@ -51,6 +51,9 @@ class AssemblerTest {
     void assembler_whenCalled_isFunctionalInterface() {
         // Verify Assembler can be used as lambda
         Assembler lambda = (c, e, p) -> List.of();
-        assertThat(lambda).isNotNull();
+        assertThat(lambda)
+                .isInstanceOf(Assembler.class);
+        assertThat(lambda.assemble(null, null, null))
+                .isEmpty();
     }
 }

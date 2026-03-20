@@ -72,9 +72,9 @@ class ResourceDiscoveryTest {
             URL url = discovery.findResource(
                     "config-templates/setup-config.java-spring.yaml");
 
-            assertThat(url).isNotNull();
             assertThat(url.toString()).contains(
                     "config-templates/setup-config.java-spring.yaml");
+            assertThat(url.getProtocol()).isIn("file", "jar");
         }
 
         @Test
@@ -84,7 +84,9 @@ class ResourceDiscoveryTest {
 
             URL url = discovery.findResource("core/01-clean-code.md");
 
-            assertThat(url).isNotNull();
+            assertThat(url.toString())
+                    .contains("core/01-clean-code.md");
+            assertThat(url.getProtocol()).isIn("file", "jar");
         }
     }
 
@@ -120,7 +122,8 @@ class ResourceDiscoveryTest {
             URL url = discovery.findResource(
                     "config-templates/setup-config.java-spring.yaml");
 
-            assertThat(url).isNotNull();
+            assertThat(url.toString()).contains(
+                    "config-templates/setup-config.java-spring.yaml");
         }
     }
 

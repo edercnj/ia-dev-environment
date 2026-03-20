@@ -654,7 +654,7 @@ class SettingsAssemblerTest {
             String expected = loadResource(goldenPath);
             assertThat(expected)
                     .as("Golden file must exist")
-                    .isNotNull();
+                    .isNotEmpty();
 
             String actual = Files.readString(
                     outputDir.resolve("settings.json"),
@@ -689,7 +689,7 @@ class SettingsAssemblerTest {
             String expected = loadResource(goldenPath);
             assertThat(expected)
                     .as("Golden file must exist")
-                    .isNotNull();
+                    .isNotEmpty();
 
             String actual = Files.readString(
                     outputDir.resolve(

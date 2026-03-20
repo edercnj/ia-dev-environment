@@ -174,6 +174,10 @@ class FatJarContentTest {
             assertThat(is)
                     .as("Resource should exist: " + path)
                     .isNotNull();
+            assertThat(is.available())
+                    .as("Resource should have content: "
+                            + path)
+                    .isGreaterThan(0);
         } catch (IOException e) {
             throw new AssertionError(
                     "Failed to read resource: " + path,

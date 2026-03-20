@@ -269,9 +269,8 @@ class CodexSharedTest {
             Map<String, String> env =
                     (Map<String, String>) result
                             .getFirst().get("env");
-            assertThat(env).isNotNull();
-            assertThat(env.get("KEY"))
-                    .isEqualTo("val\\\"ue");
+            assertThat(env)
+                    .containsEntry("KEY", "val\\\"ue");
         }
 
         @Test

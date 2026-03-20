@@ -104,7 +104,7 @@ class AssemblerPipelineTest {
             for (AssemblerDescriptor d : descriptors) {
                 assertThat(d.assembler())
                         .as("assembler for %s", d.name())
-                        .isNotNull();
+                        .isInstanceOf(Assembler.class);
             }
         }
     }

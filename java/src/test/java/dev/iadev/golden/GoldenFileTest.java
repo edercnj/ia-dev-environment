@@ -155,7 +155,9 @@ class GoldenFileTest {
                 GOLDEN_ROOT + profile);
         assertThat(url)
                 .as("Golden dir must exist for: " + profile)
-                .isNotNull();
+                .satisfies(u -> assertThat(
+                        u.toString())
+                        .contains(profile));
         return Path.of(url.getPath());
     }
 

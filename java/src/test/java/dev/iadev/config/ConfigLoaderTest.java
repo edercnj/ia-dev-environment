@@ -250,7 +250,8 @@ class ConfigLoaderTest {
                         assertThat(cpe.getFilePath())
                                 .isEqualTo(file.toString());
                         assertThat(cpe.getCause())
-                                .isNotNull();
+                                .isInstanceOf(
+                                        Exception.class);
                     });
         }
 

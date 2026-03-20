@@ -533,7 +533,8 @@ class GithubMcpAssemblerTest {
             GithubMcpAssembler assembler =
                     new GithubMcpAssembler();
 
-            assertThat(assembler).isNotNull();
+            assertThat(assembler)
+                    .isInstanceOf(Assembler.class);
         }
 
         @Test
@@ -544,7 +545,8 @@ class GithubMcpAssemblerTest {
             GithubMcpAssembler assembler =
                     new GithubMcpAssembler(tempDir);
 
-            assertThat(assembler).isNotNull();
+            assertThat(assembler)
+                    .isInstanceOf(Assembler.class);
         }
 
         @Test

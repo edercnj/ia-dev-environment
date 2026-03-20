@@ -196,7 +196,9 @@ class AssemblerMiscCoverageTest {
                     config, new TemplateEngine(),
                     outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isNotEmpty();
+            assertThat(files).anyMatch(
+                    f -> f.contains("AGENTS.md"));
         }
     }
 
@@ -362,7 +364,7 @@ class AssemblerMiscCoverageTest {
                     config, new TemplateEngine(),
                     outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isEmpty();
         }
     }
 

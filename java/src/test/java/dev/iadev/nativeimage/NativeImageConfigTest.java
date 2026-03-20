@@ -266,13 +266,14 @@ class NativeImageConfigTest {
 
         @Test
         @DisplayName("exists_whenLoaded_resourceNotNull")
-        void exists_whenLoaded_resourceNotNull() {
-            InputStream stream = getClass().getClassLoader()
-                    .getResourceAsStream(CONFIG_BASE
-                            + "native-image.properties");
-            assertThat(stream)
-                    .as("native-image.properties must exist")
-                    .isNotNull();
+        void exists_whenLoaded_resourceNotNull()
+                throws IOException {
+            String content = loadResourceAsString(
+                    "native-image.properties");
+            assertThat(content)
+                    .as("native-image.properties must exist"
+                            + " and have content")
+                    .isNotEmpty();
         }
 
         @Test

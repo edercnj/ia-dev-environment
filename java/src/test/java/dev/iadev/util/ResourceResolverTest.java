@@ -45,9 +45,10 @@ class ResourceResolverTest {
                     .resolveResourcesRoot(
                             "skills-templates");
 
-            assertThat(root).isNotNull();
             assertThat(root).isAbsolute();
             assertThat(Files.isDirectory(root)).isTrue();
+            assertThat(root.getFileName().toString())
+                    .isNotEmpty();
         }
 
         @Test
@@ -73,9 +74,10 @@ class ResourceResolverTest {
                     .resolveResourcesRoot(
                             "config-templates", 1);
 
-            assertThat(root).isNotNull();
             assertThat(root).isAbsolute();
             assertThat(Files.isDirectory(root)).isTrue();
+            assertThat(root.getFileName().toString())
+                    .isNotEmpty();
         }
 
         @Test
@@ -85,7 +87,6 @@ class ResourceResolverTest {
                     .resolveResourcesRoot(
                             "config-templates", 0);
 
-            assertThat(root).isNotNull();
             assertThat(root.getFileName().toString())
                     .isEqualTo("config-templates");
         }
@@ -109,8 +110,8 @@ class ResourceResolverTest {
                     .resolveResourcesRoot(
                             "config-templates", 2);
 
-            assertThat(root).isNotNull();
             assertThat(root).isAbsolute();
+            assertThat(Files.isDirectory(root)).isTrue();
         }
     }
 
@@ -206,7 +207,6 @@ class ResourceResolverTest {
             Path result = ResourceResolver
                     .extractJarResources(jarUrl);
 
-            assertThat(result).isNotNull();
             assertThat(Files.isDirectory(result))
                     .isTrue();
             assertThat(result.resolve(

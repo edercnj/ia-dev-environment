@@ -58,7 +58,9 @@ class GithubInstructionsCoverageTest {
                             .buildCopilotInstructions(
                                     config);
 
-            assertThat(result).isNotNull();
+            assertThat(result)
+                    .isNotEmpty()
+                    .contains("test");
         }
     }
 

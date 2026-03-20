@@ -423,7 +423,9 @@ class RulesAssemblerTest {
             assertThat(url)
                     .as("Golden file %s must exist",
                             filename)
-                    .isNotNull();
+                    .satisfies(u -> assertThat(
+                            u.toString())
+                            .contains(filename));
             return Files.readString(
                     Path.of(url.getPath()),
                     StandardCharsets.UTF_8);

@@ -31,7 +31,8 @@ class IntegrityGateEntryTest {
         assertThat(gate.gateName()).isEqualTo("tests");
         assertThat(gate.passed()).isTrue();
         assertThat(gate.message()).isNull();
-        assertThat(gate.timestamp()).isNotNull();
+        assertThat(gate.timestamp())
+                .isBeforeOrEqualTo(Instant.now());
     }
 
     @Test
@@ -43,7 +44,8 @@ class IntegrityGateEntryTest {
         assertThat(gate.gateName()).isEqualTo("coverage");
         assertThat(gate.passed()).isFalse();
         assertThat(gate.message()).isEqualTo("Below 95%");
-        assertThat(gate.timestamp()).isNotNull();
+        assertThat(gate.timestamp())
+                .isBeforeOrEqualTo(Instant.now());
     }
 
     @Test

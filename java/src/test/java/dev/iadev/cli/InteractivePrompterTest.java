@@ -369,7 +369,8 @@ class InteractivePrompterTest {
             var prompter = new InteractivePrompter(mock);
 
             ProjectConfig config = prompter.prompt();
-            assertThat(config).isNotNull();
+            assertThat(config.project().name())
+                    .isEqualTo("my-project");
         }
     }
 
@@ -653,16 +654,25 @@ class InteractivePrompterTest {
 
             ProjectConfig config = prompter.prompt();
 
-            assertThat(config.project()).isNotNull();
-            assertThat(config.architecture()).isNotNull();
+            assertThat(config.project().name())
+                    .isEqualTo("my-project");
+            assertThat(config.architecture().style())
+                    .isNotBlank();
             assertThat(config.interfaces()).isNotEmpty();
-            assertThat(config.language()).isNotNull();
-            assertThat(config.framework()).isNotNull();
-            assertThat(config.data()).isNotNull();
-            assertThat(config.infrastructure()).isNotNull();
-            assertThat(config.security()).isNotNull();
-            assertThat(config.testing()).isNotNull();
-            assertThat(config.mcp()).isNotNull();
+            assertThat(config.language().name())
+                    .isNotBlank();
+            assertThat(config.framework().name())
+                    .isNotBlank();
+            assertThat(config.data().database().name())
+                    .isEqualTo("postgresql");
+            assertThat(config.infrastructure().container())
+                    .isNotBlank();
+            assertThat(config.security().frameworks())
+                    .isInstanceOf(List.class);
+            assertThat(config.testing().coverageLine())
+                    .isGreaterThan(0);
+            assertThat(config.mcp().servers())
+                    .isInstanceOf(List.class);
         }
 
         @Test

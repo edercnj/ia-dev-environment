@@ -108,7 +108,7 @@ class SkillsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isEmpty();
         }
     }
 
@@ -136,7 +136,7 @@ class SkillsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isEmpty();
         }
 
         @Test
@@ -175,7 +175,9 @@ class SkillsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isNotEmpty();
+            assertThat(files).anyMatch(
+                    f -> f.contains("architecture"));
         }
 
         @Test
@@ -207,7 +209,7 @@ class SkillsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isNotEmpty();
         }
     }
 
@@ -237,7 +239,7 @@ class SkillsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isEmpty();
         }
 
         @Test
@@ -262,7 +264,7 @@ class SkillsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isEmpty();
         }
     }
 
@@ -293,7 +295,7 @@ class SkillsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isEmpty();
         }
 
         @Test
@@ -319,7 +321,7 @@ class SkillsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isEmpty();
         }
     }
 

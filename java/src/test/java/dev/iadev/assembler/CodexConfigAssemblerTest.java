@@ -292,7 +292,7 @@ class CodexConfigAssemblerTest {
                             + ".codex/config.toml");
             assertThat(expected)
                     .as("Golden file must exist")
-                    .isNotNull();
+                    .isNotEmpty();
             assertThat(actual)
                     .as("Must match golden file"
                             + " byte-for-byte")
