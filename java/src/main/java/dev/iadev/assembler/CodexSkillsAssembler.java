@@ -190,7 +190,8 @@ public final class CodexSkillsAssembler
                     StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new UncheckedIOException(
-                    "Failed to copy file: " + src, e);
+                    "Failed to copy file: %s"
+                            .formatted(src), e);
         }
     }
 }

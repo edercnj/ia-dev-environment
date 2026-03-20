@@ -161,17 +161,21 @@ public class GenerateCommand implements Callable<Integer> {
         try {
             return executeGeneration(out);
         } catch (CliException e) {
-            out.println("Error: " + e.getMessage());
+            out.println("Error: %s".formatted(
+                    e.getMessage()));
             return e.getErrorCode();
         } catch (ConfigParseException
                  | ConfigValidationException e) {
-            out.println("Error: " + e.getMessage());
+            out.println("Error: %s".formatted(
+                    e.getMessage()));
             return EXIT_VALIDATION;
         } catch (PipelineException e) {
-            out.println("Error: " + e.getMessage());
+            out.println("Error: %s".formatted(
+                    e.getMessage()));
             return EXIT_EXECUTION;
         } catch (Exception e) {
-            out.println("Error: " + e.getMessage());
+            out.println("Error: %s".formatted(
+                    e.getMessage()));
             return EXIT_EXECUTION;
         }
     }
@@ -313,7 +317,8 @@ public class GenerateCommand implements Callable<Integer> {
             List<AssemblerDescriptor> assemblers,
             PrintWriter out) {
         for (AssemblerDescriptor desc : assemblers) {
-            out.println("Running " + desc.name() + "...");
+            out.println("Running %s...".formatted(
+                    desc.name()));
         }
 
         AssemblerPipeline pipeline =
@@ -337,7 +342,7 @@ public class GenerateCommand implements Callable<Integer> {
             List<String> errors, PrintWriter out) {
         out.println("Validation failed:");
         for (String error : errors) {
-            out.println("- " + error);
+            out.println("- %s".formatted(error));
         }
     }
 }

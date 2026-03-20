@@ -68,8 +68,9 @@ public final class StackValidator {
         if (!validLanguages.contains(languageName)) {
             String expected = String.join(", ", validLanguages);
             return List.of(
-                    "Framework '" + frameworkName + "' requires language '"
-                            + expected + "', got '" + languageName + "'");
+                    "Framework '%s' requires language '%s', got '%s'"
+                            .formatted(frameworkName, expected,
+                                    languageName));
         }
         return List.of();
     }
@@ -137,8 +138,8 @@ public final class StackValidator {
                 || (pyMajor.get() == PYTHON_3_MAJOR
                 && pyMinor.get() < PYTHON_310_MINOR)) {
             return List.of(
-                    "Django 5.x requires Python 3.10+, got Python "
-                            + config.language().version());
+                    "Django 5.x requires Python 3.10+, got Python %s"
+                            .formatted(config.language().version()));
         }
         return List.of();
     }
@@ -156,7 +157,8 @@ public final class StackValidator {
         String fw = config.framework().name();
         if (!StackMapping.NATIVE_SUPPORTED_FRAMEWORKS.contains(fw)) {
             return List.of(
-                    "Native build is not supported for framework '" + fw + "'");
+                    "Native build is not supported for framework '%s'"
+                            .formatted(fw));
         }
         return List.of();
     }
@@ -173,9 +175,11 @@ public final class StackValidator {
         for (var iface : config.interfaces()) {
             if (!StackMapping.VALID_INTERFACE_TYPES.contains(iface.type())) {
                 errors.add(
-                        "Invalid interface type: '" + iface.type() + "'. "
-                                + "Valid: " + String.join(", ",
-                                StackMapping.VALID_INTERFACE_TYPES));
+                        "Invalid interface type: '%s'. Valid: %s"
+                                .formatted(iface.type(),
+                                        String.join(", ",
+                                                StackMapping
+                                                        .VALID_INTERFACE_TYPES)));
             }
         }
         return errors;
@@ -192,9 +196,11 @@ public final class StackValidator {
         String style = config.architecture().style();
         if (!StackMapping.VALID_ARCHITECTURE_STYLES.contains(style)) {
             return List.of(
-                    "Invalid architecture style: '" + style + "'. "
-                            + "Valid: " + String.join(", ",
-                            StackMapping.VALID_ARCHITECTURE_STYLES));
+                    "Invalid architecture style: '%s'. Valid: %s"
+                            .formatted(style,
+                                    String.join(", ",
+                                            StackMapping
+                                                    .VALID_ARCHITECTURE_STYLES)));
         }
         return List.of();
     }
@@ -249,8 +255,9 @@ public final class StackValidator {
             String fwTitle = fw.substring(0, 1).toUpperCase()
                     + fw.substring(1);
             return List.of(
-                    fwTitle + " " + fwMajor.get()
-                            + ".x requires Java 17+, got Java " + langMajor);
+                    "%s %d.x requires Java 17+, got Java %d"
+                            .formatted(fwTitle, fwMajor.get(),
+                                    langMajor));
         }
         return List.of();
     }

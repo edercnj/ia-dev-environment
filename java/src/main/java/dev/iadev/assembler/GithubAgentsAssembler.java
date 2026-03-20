@@ -139,8 +139,8 @@ public final class GithubAgentsAssembler
             String expected = config.language().name()
                     + "-developer.md";
             warnings.add(
-                    "Developer agent template missing: "
-                            + expected);
+                    "Developer agent template missing: %s"
+                            .formatted(expected));
         }
 
         return AssemblerResult.of(files, warnings);
@@ -219,8 +219,8 @@ public final class GithubAgentsAssembler
                     .toList();
         } catch (IOException e) {
             throw new UncheckedIOException(
-                    "Failed to list core agents: "
-                            + coreDir, e);
+                    "Failed to list core agents: %s"
+                            .formatted(coreDir), e);
         }
         List<String> results = new ArrayList<>();
         for (Path entry : entries) {

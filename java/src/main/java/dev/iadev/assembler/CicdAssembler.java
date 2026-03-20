@@ -262,8 +262,8 @@ public final class CicdAssembler implements Assembler {
                 .resolve(CICD_TEMPLATES).resolve(tpl);
         if (!Files.exists(srcPath)) {
             gc.warnings.add(
-                    "Dockerfile template not found"
-                            + " for stack: " + stackKey);
+                    "Dockerfile template not found for stack: %s"
+                            .formatted(stackKey));
             return;
         }
         Path dest = gc.outputDir.resolve("Dockerfile");
@@ -392,9 +392,9 @@ public final class CicdAssembler implements Assembler {
                     StandardCharsets.UTF_8);
             return null;
         } catch (Exception e) {
-            return "Failed to render "
-                    + templateRelPath + ": "
-                    + e.getMessage();
+            return "Failed to render %s: %s"
+                    .formatted(templateRelPath,
+                            e.getMessage());
         }
     }
 
@@ -405,7 +405,8 @@ public final class CicdAssembler implements Assembler {
                     StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new UncheckedIOException(
-                    "Failed to copy file: " + src, e);
+                    "Failed to copy file: %s"
+                            .formatted(src), e);
         }
     }
 

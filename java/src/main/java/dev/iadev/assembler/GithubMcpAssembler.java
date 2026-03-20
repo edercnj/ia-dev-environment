@@ -126,13 +126,12 @@ public final class GithubMcpAssembler
                 if (value != null
                         && !value.startsWith("$")) {
                     warnings.add(
-                            "MCP server '"
-                                    + server.id()
-                                    + "': env var '"
-                                    + entry.getKey()
-                                    + "' uses literal value"
-                                    + " instead of"
-                                    + " $VARIABLE format");
+                            ("MCP server '%s': env var"
+                                    + " '%s' uses literal"
+                                    + " value instead of"
+                                    + " $VARIABLE format")
+                                    .formatted(server.id(),
+                                            entry.getKey()));
                 }
             }
         }

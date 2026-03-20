@@ -70,7 +70,8 @@ public final class CopyHelpers {
             return dest.toString();
         } catch (IOException e) {
             throw new UncheckedIOException(
-                    "Failed to copy template: " + src, e);
+                    "Failed to copy template: %s"
+                            .formatted(src), e);
         }
     }
 
@@ -112,7 +113,8 @@ public final class CopyHelpers {
             return dest.toString();
         } catch (IOException e) {
             throw new UncheckedIOException(
-                    "Failed to copy file: " + src, e);
+                    "Failed to copy file: %s"
+                            .formatted(src), e);
         }
     }
 
@@ -156,7 +158,8 @@ public final class CopyHelpers {
             return destDir.toString();
         } catch (IOException e) {
             throw new UncheckedIOException(
-                    "Failed to copy directory: " + srcDir, e);
+                    "Failed to copy directory: %s"
+                            .formatted(srcDir), e);
         }
     }
 
@@ -176,7 +179,8 @@ public final class CopyHelpers {
                     path, content, StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new UncheckedIOException(
-                    "Failed to write file: " + path, e);
+                    "Failed to write file: %s"
+                            .formatted(path), e);
         }
     }
 
@@ -193,7 +197,8 @@ public final class CopyHelpers {
                     path, StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new UncheckedIOException(
-                    "Failed to read file: " + path, e);
+                    "Failed to read file: %s"
+                            .formatted(path), e);
         }
     }
 
@@ -210,7 +215,8 @@ public final class CopyHelpers {
             Files.createDirectories(dir);
         } catch (IOException e) {
             throw new UncheckedIOException(
-                    "Failed to create directory: " + dir, e);
+                    "Failed to create directory: %s"
+                            .formatted(dir), e);
         }
     }
 
@@ -252,8 +258,8 @@ public final class CopyHelpers {
             });
         } catch (IOException e) {
             throw new UncheckedIOException(
-                    "Failed to replace placeholders in: "
-                            + directory, e);
+                    "Failed to replace placeholders in: %s"
+                            .formatted(directory), e);
         }
     }
 
@@ -279,7 +285,8 @@ public final class CopyHelpers {
                     .toList();
         } catch (IOException e) {
             throw new UncheckedIOException(
-                    "Failed to list directory: " + dir, e);
+                    "Failed to list directory: %s"
+                            .formatted(dir), e);
         }
     }
 

@@ -55,10 +55,10 @@ public final class CodexConfigAssembler
             if (!CodexShared.isValidTomlBareKey(
                     server.id())) {
                 System.err.println(
-                        "WARNING: MCP server id \""
-                                + server.id()
-                                + "\" contains invalid"
-                                + " TOML characters");
+                        ("WARNING: MCP server id \"%s\""
+                                + " contains invalid"
+                                + " TOML characters")
+                                .formatted(server.id()));
             }
         }
 

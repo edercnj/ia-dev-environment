@@ -107,8 +107,8 @@ public final class HooksAssembler implements Assembler {
             makeExecutable(dest);
         } catch (IOException e) {
             throw new UncheckedIOException(
-                    "Failed to copy hook script: "
-                            + hookSrc, e);
+                    "Failed to copy hook script: %s"
+                            .formatted(hookSrc), e);
         }
         return List.of(dest.toString());
     }
@@ -135,8 +135,8 @@ public final class HooksAssembler implements Assembler {
             // Non-POSIX filesystem (e.g., Windows)
         } catch (IOException e) {
             throw new UncheckedIOException(
-                    "Failed to set executable permission: "
-                            + file, e);
+                    "Failed to set executable permission: %s"
+                            .formatted(file), e);
         }
     }
 

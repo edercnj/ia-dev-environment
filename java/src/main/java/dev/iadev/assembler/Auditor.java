@@ -79,7 +79,8 @@ public final class Auditor {
                     .toList();
         } catch (IOException e) {
             throw new UncheckedIOException(
-                    "Failed to list rules: " + rulesDir, e);
+                    "Failed to list rules: %s"
+                            .formatted(rulesDir), e);
         }
 
         List<Map.Entry<String, Long>> sizes =
@@ -91,8 +92,8 @@ public final class Auditor {
                 sizes.add(Map.entry(entry, size));
             } catch (IOException e) {
                 throw new UncheckedIOException(
-                        "Failed to stat file: "
-                                + fullPath, e);
+                        "Failed to stat file: %s"
+                                .formatted(fullPath), e);
             }
         }
 
@@ -107,15 +108,18 @@ public final class Auditor {
             int totalFiles, long totalBytes) {
         List<String> warnings = new ArrayList<>();
         if (totalFiles > MAX_FILE_COUNT) {
-            warnings.add(totalFiles
-                    + " rule files exceeds recommended"
-                    + " maximum of " + MAX_FILE_COUNT + ".");
+            warnings.add(
+                    ("%d rule files exceeds recommended"
+                    + " maximum of %d.")
+                            .formatted(totalFiles,
+                                    MAX_FILE_COUNT));
         }
         if (totalBytes > MAX_TOTAL_BYTES) {
             long totalKb = totalBytes / 1024;
-            warnings.add(totalKb
-                    + "KB total rules exceeds recommended"
-                    + " maximum of 50KB.");
+            warnings.add(
+                    ("%dKB total rules exceeds recommended"
+                    + " maximum of 50KB.")
+                            .formatted(totalKb));
         }
         return warnings;
     }

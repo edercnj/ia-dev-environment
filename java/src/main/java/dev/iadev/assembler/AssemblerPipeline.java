@@ -210,9 +210,9 @@ public final class AssemblerPipeline {
                 throw pe;
             } catch (Exception e) {
                 throw new PipelineException(
-                        "Pipeline failed at "
-                                + desc.name()
-                                + ": " + e.getMessage(),
+                        "Pipeline failed at %s: %s"
+                                .formatted(desc.name(),
+                                        e.getMessage()),
                         desc.name(), e);
             }
         }

@@ -96,8 +96,8 @@ public final class Consolidator {
                     StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new UncheckedIOException(
-                    "Failed to consolidate files to: "
-                            + outputPath, e);
+                    "Failed to consolidate files to: %s"
+                            .formatted(outputPath), e);
         }
     }
 
@@ -131,8 +131,8 @@ public final class Consolidator {
                     .toList();
         } catch (IOException e) {
             throw new UncheckedIOException(
-                    "Failed to list directory: "
-                            + sourceDir, e);
+                    "Failed to list directory: %s"
+                            .formatted(sourceDir), e);
         }
 
         List<Path> core = new ArrayList<>();

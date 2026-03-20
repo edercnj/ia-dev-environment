@@ -81,9 +81,9 @@ public final class AtomicOutput {
             writeFilesToTempDir(tempDir, files);
         } catch (Exception ex) {
             throw new IOException(
-                    "Failed to write files. "
-                            + "Temp dir preserved for debug: "
-                            + tempDir.toAbsolutePath(),
+                    ("Failed to write files. "
+                            + "Temp dir preserved for debug: %s")
+                            .formatted(tempDir.toAbsolutePath()),
                     ex);
         }
 

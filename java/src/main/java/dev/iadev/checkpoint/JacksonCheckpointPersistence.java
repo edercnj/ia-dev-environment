@@ -88,8 +88,9 @@ public final class JacksonCheckpointPersistence
             if (!errors.isEmpty()) {
                 throw new dev.iadev.exception
                         .CheckpointValidationException(
-                        "Invalid checkpoint: "
-                                + String.join("; ", errors),
+                        "Invalid checkpoint: %s"
+                                .formatted(
+                                        String.join("; ", errors)),
                         "ExecutionState"
                 );
             }

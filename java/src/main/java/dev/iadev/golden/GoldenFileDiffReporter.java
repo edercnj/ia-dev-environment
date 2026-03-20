@@ -61,8 +61,8 @@ public final class GoldenFileDiffReporter {
         List<String> actualLines = splitLines(actual);
 
         List<String> diffLines = new ArrayList<>();
-        diffLines.add("--- golden/" + filePath);
-        diffLines.add("+++ generated/" + filePath);
+        diffLines.add("--- golden/%s".formatted(filePath));
+        diffLines.add("+++ generated/%s".formatted(filePath));
 
         int maxLen = Math.max(
                 expectedLines.size(), actualLines.size());
@@ -71,9 +71,8 @@ public final class GoldenFileDiffReporter {
         for (int i = 0; i < maxLen; i++) {
             if (diffLines.size() >= MAX_DIFF_LINES) {
                 diffLines.add(
-                        "... (truncated, >"
-                                + MAX_DIFF_LINES
-                                + " lines)");
+                        "... (truncated, >%d lines)"
+                                .formatted(MAX_DIFF_LINES));
                 break;
             }
 
@@ -94,21 +93,24 @@ public final class GoldenFileDiffReporter {
             }
 
             if (expLine != null && actLine != null) {
-                diffLines.add("@@ line " + (i + 1) + " @@");
                 diffLines.add(
-                        "- " + visualize(expLine));
+                        "@@ line %d @@".formatted(i + 1));
                 diffLines.add(
-                        "+ " + visualize(actLine));
+                        "- %s".formatted(visualize(expLine)));
+                diffLines.add(
+                        "+ %s".formatted(visualize(actLine)));
             } else if (expLine == null) {
-                diffLines.add("@@ line " + (i + 1)
-                        + " (added) @@");
                 diffLines.add(
-                        "+ " + visualize(actLine));
+                        "@@ line %d (added) @@"
+                                .formatted(i + 1));
+                diffLines.add(
+                        "+ %s".formatted(visualize(actLine)));
             } else {
-                diffLines.add("@@ line " + (i + 1)
-                        + " (removed) @@");
                 diffLines.add(
-                        "- " + visualize(expLine));
+                        "@@ line %d (removed) @@"
+                                .formatted(i + 1));
+                diffLines.add(
+                        "- %s".formatted(visualize(expLine)));
             }
         }
 

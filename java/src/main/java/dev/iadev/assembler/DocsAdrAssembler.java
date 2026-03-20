@@ -154,10 +154,10 @@ public final class DocsAdrAssembler implements Assembler {
      */
     static String buildReadmeContent(
             String projectName) {
-        return ADR_TITLE_HEADING + "\n"
+        return (ADR_TITLE_HEADING + "\n"
                 + "\n"
-                + "> Architecture Decision Records for **"
-                + projectName + "**.\n"
+                + "> Architecture Decision Records for"
+                + " **%s**.\n"
                 + "\n"
                 + "| ID | Title | Status | Date |\n"
                 + "|----|-------|--------|------|\n"
@@ -166,7 +166,8 @@ public final class DocsAdrAssembler implements Assembler {
                 + "\n"
                 + "Copy `_TEMPLATE-ADR.md` and follow the"
                 + " naming convention:\n"
-                + "`ADR-NNNN-title-in-kebab-case.md`\n";
+                + "`ADR-NNNN-title-in-kebab-case.md`\n")
+                        .formatted(projectName);
     }
 
     /**
@@ -226,15 +227,14 @@ public final class DocsAdrAssembler implements Assembler {
      */
     public static String formatAdrFilename(
             int num, String title) {
-        String padded = String.format(
-                "%0" + ADR_NUMBER_PAD_WIDTH + "d", num);
+        String padded = "%04d".formatted(num);
         String sanitized = title.toLowerCase()
                 .replaceAll("[^a-z0-9-]+", "-")
                 .replaceAll("-{2,}", "-")
                 .replaceAll("^-|-$", "");
         String slug = sanitized.isEmpty()
                 ? "untitled" : sanitized;
-        return "ADR-" + padded + "-" + slug + ".md";
+        return "ADR-%s-%s.md".formatted(padded, slug);
     }
 
     private static Path resolveClasspathResources() {

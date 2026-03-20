@@ -59,10 +59,13 @@ public final class ProgressFormatter {
                 - metrics.storiesFailed()
                 - metrics.storiesBlocked();
 
-        return "SUCCESS: " + metrics.storiesCompleted()
-                + " | FAILED: " + metrics.storiesFailed()
-                + " | BLOCKED: " + metrics.storiesBlocked()
-                + " | PENDING: " + pending;
+        return ("SUCCESS: %d | FAILED: %d"
+                + " | BLOCKED: %d | PENDING: %d")
+                        .formatted(
+                                metrics.storiesCompleted(),
+                                metrics.storiesFailed(),
+                                metrics.storiesBlocked(),
+                                pending);
     }
 
     /**
@@ -75,8 +78,9 @@ public final class ProgressFormatter {
         if (estimatedMinutes < 0) {
             return "Estimated remaining: unknown";
         }
-        return "Estimated remaining: "
-                + formatOneDecimal(estimatedMinutes) + " min";
+        return "Estimated remaining: %s min"
+                .formatted(
+                        formatOneDecimal(estimatedMinutes));
     }
 
     /**
@@ -88,8 +92,8 @@ public final class ProgressFormatter {
      */
     public static String formatPhaseProgress(
             int currentPhase, int totalPhases) {
-        return "Phase " + currentPhase + "/"
-                + totalPhases + " in progress";
+        return "Phase %d/%d in progress"
+                .formatted(currentPhase, totalPhases);
     }
 
     /**
@@ -100,8 +104,8 @@ public final class ProgressFormatter {
      */
     public static String formatThroughput(double avgMs) {
         double minutes = avgMs / MS_PER_MINUTE;
-        return "Average: "
-                + formatOneDecimal(minutes) + " min/story";
+        return "Average: %s min/story"
+                .formatted(formatOneDecimal(minutes));
     }
 
     /**
@@ -115,16 +119,17 @@ public final class ProgressFormatter {
     public static String format(
             ExecutionMetrics metrics,
             int currentPhase, int totalPhases) {
-        return formatProgressBar(
-                    metrics.storiesCompleted(),
-                    metrics.storiesTotal())
-                + "\n" + formatStatusSummary(metrics)
-                + "\n" + formatPhaseProgress(
-                        currentPhase, totalPhases)
-                + "\n" + formatEta(
-                        metrics.estimatedRemainingMinutes())
-                + "\n" + formatThroughput(
-                        metrics.averageStoryDurationMs());
+        return "%s\n%s\n%s\n%s\n%s".formatted(
+                formatProgressBar(
+                        metrics.storiesCompleted(),
+                        metrics.storiesTotal()),
+                formatStatusSummary(metrics),
+                formatPhaseProgress(
+                        currentPhase, totalPhases),
+                formatEta(
+                        metrics.estimatedRemainingMinutes()),
+                formatThroughput(
+                        metrics.averageStoryDurationMs()));
     }
 
     private static int computeFilledCount(
@@ -144,6 +149,6 @@ public final class ProgressFormatter {
     }
 
     private static String formatOneDecimal(double value) {
-        return String.format("%.1f", value);
+        return "%.1f".formatted(value);
     }
 }

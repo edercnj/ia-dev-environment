@@ -113,7 +113,8 @@ public final class ConfigLoader {
                     Path.of(filePath), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new ConfigParseException(
-                    "Failed to read config file: " + filePath,
+                    "Failed to read config file: %s"
+                            .formatted(filePath),
                     filePath, e);
         }
     }
@@ -124,7 +125,8 @@ public final class ConfigLoader {
             return new Yaml().load(content);
         } catch (Exception e) {
             throw new ConfigParseException(
-                    "Failed to parse YAML: " + e.getMessage(),
+                    "Failed to parse YAML: %s"
+                            .formatted(e.getMessage()),
                     filePath, e);
         }
     }
@@ -180,7 +182,8 @@ public final class ConfigLoader {
         }
         if (!missing.isEmpty()) {
             throw new ConfigValidationException(
-                    "Missing required config sections: " + missing,
+                    "Missing required config sections: %s"
+                            .formatted(missing),
                     missing);
         }
     }
