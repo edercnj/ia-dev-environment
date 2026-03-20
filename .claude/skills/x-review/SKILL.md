@@ -147,7 +147,7 @@ OVERALL: APPROVED | REJECTED
 
 ### 3b. Issue Summary
 
-Group all findings by severity: `CRITICAL: N | MEDIUM: N | LOW: N`
+Group all findings by severity: `CRITICAL: N | HIGH: N | MEDIUM: N | LOW: N`
 
 ```
 ANY item with score < 2 → MUST be fixed before merge. No exceptions.
@@ -157,15 +157,40 @@ OVERALL: APPROVED only when every engineer has STATUS: Approved.
 
 ### 3c. Save Artifacts
 
-Save each engineer's report to `docs/reviews/{STORY_ID}-{engineer}.md`.
+Save each engineer's report to `docs/stories/epic-XXXX/reviews/review-{engineer}-story-XXXX-YYYY.md` (extract epic ID XXXX and story sequence YYYY from the story ID). Ensure directory exists: `mkdir -p docs/stories/epic-XXXX/reviews`.
+
+### 3d. Threat Model Update
+
+After saving review artifacts, extract security findings from the Security Engineer's report and update the project threat model incrementally.
+
+1. **Check for security findings:** Parse the Security Engineer's report for items with severity Critical, High, or Medium. If no security findings exist, skip this step.
+
+2. **Read or create threat model:** If `docs/security/threat-model.md` exists, read it. Otherwise, create it from the template `resources/templates/_TEMPLATE-THREAT-MODEL.md`.
+
+3. **Map findings to STRIDE categories:** Classify each security finding into one of the 6 STRIDE categories (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege) based on the nature of the threat.
+
+4. **Apply severity-based auto-add rules:**
+
+   | Finding Severity | Auto-Add? | Initial Status |
+   |-----------------|-----------|----------------|
+   | Critical | Yes | `Open` |
+   | High | Yes | `Open` |
+   | Medium | Yes | `Under Review` |
+   | Low | No | N/A (noted in review only) |
+
+5. **Incremental update behavior:** Append new threats to the appropriate STRIDE category table. Preserve all existing entries — never remove or overwrite. If a finding matches an existing threat by description, update the existing entry instead of duplicating.
+
+6. **Recompute Risk Summary:** Update the severity counts table in the Risk Summary section to reflect current Open and Under Review threats.
+
+7. **Append Change History:** Add a new row with the current date, story reference, and summary of threats added or updated.
 
 ## Phase 4: Story Generation for Findings (Orchestrator — Inline)
 
-This phase runs ONLY when CRITICAL or MEDIUM findings exist.
+This phase runs ONLY when CRITICAL, HIGH, or MEDIUM findings exist.
 
 ### 4a. Check Findings
 
-After consolidation, evaluate if there are findings with severity CRITICAL or MEDIUM.
+After consolidation, evaluate if there are findings with severity CRITICAL, HIGH, or MEDIUM.
 If all findings are LOW or there are no findings, skip this phase entirely.
 
 ### 4b. Ask User Confirmation
@@ -211,7 +236,7 @@ If the user selects **"Sim"**, generate a correction story following these steps
    - **Sub-tarefas**: One `[Dev]` task per CRITICAL finding, grouped `[Dev]` tasks for MEDIUM findings by engineer, one `[Test]` task to re-run `/x-review` after fixes
    - **DoD Local**: All CRITICAL findings resolved, all MEDIUM findings resolved or justified, `/x-review` re-run with no new CRITICAL findings
 
-3. **Save the story** to `docs/reviews/{STORY_ID}-correction-story.md`
+3. **Save the story** to `docs/stories/epic-XXXX/reviews/correction-story-XXXX-YYYY.md`
 
 4. **Report** to the user: story file path, number of findings converted, and suggested next step (`/x-dev-implement` or manual fix).
 

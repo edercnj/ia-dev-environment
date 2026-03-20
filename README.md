@@ -1,45 +1,41 @@
 # ia-dev-environment
 
-A CLI tool that generates complete `.claude/` and `.github/` boilerplate for AI-assisted development environments. Produces rules, skills, agents, hooks, settings, and documentation -- everything a Claude Code or GitHub Copilot project needs to enforce engineering standards from day one.
+A CLI tool that generates complete `.claude/`, `.github/`, `.codex/`, and `.agents/` boilerplate for AI-assisted development environments. Produces rules, skills, agents, hooks, settings, and documentation -- everything a Claude Code, GitHub Copilot, or OpenAI Codex project needs to enforce engineering standards from day one.
 
 ## Prerequisites
 
-- Node.js >= 20
+- Java 21 or later
 
 ## Installation
 
-```bash
-# Install globally from npm
-npm install -g ia-dev-environment
-
-# Or run directly with npx
-npx ia-dev-env generate --help
-```
-
-### Install from source (development)
+### From JAR (recommended)
 
 ```bash
-# Clone and install dependencies
+# Clone and build
 git clone https://github.com/edercnj/ia-dev-environment.git
-cd ia-dev-environment
-npm install
+cd ia-dev-environment/java
+mvn clean package -DskipTests
 
-# Build and link globally
-npm run build
-npm link
-
-# Verify
-ia-dev-env --version
+# Run
+java -jar target/ia-dev-env-2.0.0-SNAPSHOT.jar --help
 ```
 
-### Uninstall
+### Using the wrapper script
 
 ```bash
-# If installed globally from npm
-npm uninstall -g ia-dev-environment
+# Make the wrapper executable
+chmod +x bin/ia-dev-env
 
-# If installed via npm link (from the project directory)
-npm unlink
+# Run (auto-detects Java 21)
+./bin/ia-dev-env --help
+```
+
+### GraalVM native image (optional)
+
+```bash
+cd java
+mvn clean package -Pnative -DskipTests
+./target/ia-dev-env --help
 ```
 
 ## Usage
@@ -47,29 +43,29 @@ npm unlink
 ### Generate from a config file
 
 ```bash
-# Use one of the bundled config profiles
-ia-dev-env generate --config resources/config-templates/setup-config.typescript-commander-cli.yaml --output-dir /path/to/your-project/
+# Use a bundled stack profile
+java -jar java/target/ia-dev-env-2.0.0-SNAPSHOT.jar generate --stack java-spring --output ./my-project
 
-# Or use your own config file
-ia-dev-env generate --config my-config.yaml --output-dir .claude/
+# Use your own config file
+java -jar java/target/ia-dev-env-2.0.0-SNAPSHOT.jar generate --config my-config.yaml --output ./my-project
 ```
 
 ### Generate interactively
 
 ```bash
-ia-dev-env generate --interactive --output-dir .claude/
+java -jar java/target/ia-dev-env-2.0.0-SNAPSHOT.jar generate --interactive --output ./my-project
 ```
 
-### Validate a config file (without generating output)
+### Validate a config file
 
 ```bash
-ia-dev-env validate --config my-config.yaml
+java -jar java/target/ia-dev-env-2.0.0-SNAPSHOT.jar validate --config my-config.yaml --verbose
 ```
 
-### Dry run (preview what would be generated)
+### Dry run (preview without writing)
 
 ```bash
-ia-dev-env generate --config my-config.yaml --dry-run
+java -jar java/target/ia-dev-env-2.0.0-SNAPSHOT.jar generate --config my-config.yaml --dry-run
 ```
 
 ### CLI Reference
@@ -78,112 +74,148 @@ ia-dev-env generate --config my-config.yaml --dry-run
 ia-dev-env [OPTIONS] COMMAND [ARGS]...
 
 Commands:
-  generate    Generate project scaffolding from config or interactive mode
-  validate    Validate a config file without generating output
+  generate    Generate AI dev environment boilerplate from config or interactive mode
+  validate    Validate a YAML configuration file
 
 Global Options:
-  --version   Show the version and exit
-  --help      Show this message and exit
+  -V, --version   Print version information and exit
+  -h, --help      Show this help message and exit
 
 Generate Options:
-  -c, --config PATH         Path to YAML config file
-  -i, --interactive         Run in interactive mode
-  -o, --output-dir PATH     Output directory (default: .)
-  -s, --resources-dir PATH  Resources templates directory (auto-detected)
-  -v, --verbose             Enable verbose logging
-  --dry-run                 Show what would be generated without writing
+  -c, --config <path>    Path to YAML config file
+  -i, --interactive      Run in interactive mode (mutually exclusive with --config)
+  -s, --stack <name>     Use a bundled stack profile
+  -o, --output <dir>     Output directory (default: .)
+  -v, --verbose          Enable verbose logging
+  -f, --force            Overwrite existing files without prompting
+  --dry-run              Show what would be generated without writing
+
+Validate Options:
+  -c, --config <path>    Path to YAML config file (required)
+  -v, --verbose          Enable verbose output with per-category results
 ```
 
-## Bundled Config Profiles
+## Bundled Stack Profiles
 
-The repository includes 8 ready-to-use config profiles under `resources/config-templates/`:
+8 ready-to-use profiles available via `--stack <name>`:
 
-| Profile | File | Stack |
-|---------|------|-------|
-| Go + Gin | `setup-config.go-gin.yaml` | Go 1.22, Gin, PostgreSQL |
-| Java + Quarkus | `setup-config.java-quarkus.yaml` | Java 21, Quarkus 3.17, PostgreSQL |
-| Java + Spring | `setup-config.java-spring.yaml` | Java 21, Spring Boot 3.4, PostgreSQL |
-| Kotlin + Ktor | `setup-config.kotlin-ktor.yaml` | Kotlin 2.0, Ktor, PostgreSQL |
-| Python + Click | `setup-config.python-click-cli.yaml` | Python 3.9, Click 8.1 |
-| Python + FastAPI | `setup-config.python-fastapi.yaml` | Python 3.12, FastAPI, PostgreSQL |
-| Rust + Axum | `setup-config.rust-axum.yaml` | Rust 2024, Axum, PostgreSQL |
-| TypeScript + NestJS | `setup-config.typescript-nestjs.yaml` | TypeScript 5, NestJS, PostgreSQL |
+| Profile | Stack |
+|---------|-------|
+| `go-gin` | Go 1.22, Gin, PostgreSQL |
+| `java-quarkus` | Java 21, Quarkus 3.17, PostgreSQL |
+| `java-spring` | Java 21, Spring Boot 3.4, PostgreSQL |
+| `kotlin-ktor` | Kotlin 2.0, Ktor, PostgreSQL |
+| `python-click-cli` | Python 3.9, Click 8.1 |
+| `python-fastapi` | Python 3.12, FastAPI, PostgreSQL |
+| `rust-axum` | Rust 2024, Axum, PostgreSQL |
+| `typescript-nestjs` | TypeScript 5, NestJS, PostgreSQL |
 
 ## What's Generated
 
-The generator produces a complete `.claude/` directory and `.github/` directory:
+The generator produces boilerplate for multiple AI coding assistants:
 
 ```
-.claude/
-├── README.md               <- Auto-generated project guide
-├── settings.json           <- Permissions and hooks
-├── settings.local.json     <- Local overrides template
-├── rules/                  <- Coding rules (<=30 consolidated files)
-├── skills/                 <- Skills invocable via /command
-├── agents/                 <- AI personas for planning, implementation, review
-└── hooks/                  <- Automation scripts
+.claude/                          # Claude Code configuration
+├── README.md                     # Auto-generated project guide
+├── settings.json                 # Permissions and hooks
+├── settings.local.json           # Local overrides template
+├── rules/                        # Coding rules (loaded into system prompt)
+├── skills/                       # Skills invocable via /command
+│   └── {knowledge-packs}/        # Internal context for agents
+├── agents/                       # AI personas (architect, tech-lead, etc.)
+└── hooks/                        # Automation scripts (post-compile, etc.)
 
-.github/
-├── copilot-instructions.md <- Global Copilot instructions
-├── instructions/           <- Contextual instructions
-├── skills/                 <- Reusable Copilot skills
-├── agents/                 <- Agent definitions
-├── prompts/                <- Prompt templates
-└── hooks/                  <- Event hooks
+.github/                          # GitHub Copilot configuration
+├── copilot-instructions.md       # Global Copilot instructions
+├── instructions/                 # Contextual instructions
+├── skills/                       # Reusable Copilot skills
+├── agents/                       # Agent definitions (*.agent.md)
+├── prompts/                      # Prompt templates
+└── hooks/                        # Event hooks
+
+.codex/                           # OpenAI Codex configuration
+├── config.toml                   # Model, approval, sandbox settings
+└── (AGENTS.md at project root)   # Consolidated agent instructions
+
+.agents/                          # Shared skills (cross-platform)
+└── skills/                       # Mirrored skills for Codex agents
+
+docs/                             # Documentation templates
+├── architecture/                 # Service architecture doc
+├── adr/                          # ADR template and index
+└── runbook/                      # Deploy runbook template
 ```
+
+Plus CI/CD artifacts: `Dockerfile`, `docker-compose.yml`, `.github/workflows/ci.yml`, and Kubernetes manifests (when applicable).
 
 ## Development
 
 ```bash
-# Install dependencies
-npm install
+cd java
 
 # Build
-npm run build
+mvn clean package
 
 # Run tests
-npm test
+mvn test
 
-# Run tests with coverage
-npm run test:coverage
+# Run tests with coverage report
+mvn verify
 
-# Run integration tests only
-npm run test:integration
+# Run only unit tests
+mvn test -Punit-tests
 
-# Type check
-npm run lint
+# Run integration tests (golden file parity)
+mvn verify -Pintegration-tests
+
+# Run all tests
+mvn verify -Pall-tests
 ```
 
 ### Project Structure
 
 ```
 ia-dev-environment/
-├── src/                      # TypeScript source
-│   ├── index.ts              # CLI entry point (Commander)
-│   ├── cli.ts                # Command definitions
-│   ├── config.ts             # YAML config loading + validation
-│   ├── models.ts             # Type definitions
-│   ├── template-engine.ts    # Nunjucks template engine
-│   ├── assembler/            # Modular assemblers (rules, skills, agents, etc.)
-│   └── domain/               # Domain logic (stack resolution, validation)
-├── resources/                # Templates, configs, rules (runtime dependency)
-├── tests/
-│   ├── node/                 # TypeScript test files
-│   ├── fixtures/             # Test fixtures
-│   ├── golden/               # Golden reference files (8 profiles)
-│   └── helpers/              # Shared test helpers
-├── package.json
-├── tsconfig.json
-├── tsup.config.ts
-└── vitest.config.ts
+├── .claude/                      # Claude Code project config (generated)
+├── .github/                      # GitHub Copilot config (generated)
+├── .agents/                      # Shared agent skills (generated)
+├── .codex/                       # Codex config (generated)
+├── docs/                         # Stories, specs, epics
+│   ├── specs/                    # System specifications
+│   └── stories/                  # Epic stories and implementation maps
+├── java/                         # Java 21 source (single codebase)
+│   ├── pom.xml                   # Maven build (JUnit 5, JaCoCo, Picocli, Pebble)
+│   ├── bin/                      # Wrapper script with Java 21 detection
+│   ├── src/main/java/dev/iadev/
+│   │   ├── cli/                  # Picocli commands (generate, validate)
+│   │   ├── config/               # YAML loading, profiles, context builder
+│   │   ├── model/                # 17 immutable data records
+│   │   ├── domain/               # Stack resolution, DAG, implementation map
+│   │   ├── assembler/            # 23 assemblers (rules, skills, agents, ...)
+│   │   ├── template/             # Pebble engine with Python-bool filter
+│   │   ├── checkpoint/           # Execution state management
+│   │   ├── progress/             # Metrics and reporting
+│   │   ├── exception/            # 7 context-rich exceptions
+│   │   └── util/                 # I/O, path safety, resource discovery
+│   ├── src/main/resources/       # ~464 template files on classpath
+│   │   ├── config-templates/     # 8 bundled stack profiles (YAML)
+│   │   └── templates/            # Pebble/Nunjucks templates
+│   └── src/test/
+│       ├── java/                 # 1959 tests (unit + integration + golden)
+│       └── resources/golden/     # Golden files for 8 profiles
+├── CLAUDE.md                     # Executive summary (auto-loaded)
+├── AGENTS.md                     # Codex agent instructions
+└── README.md                     # This file
 ```
 
-### Coverage Targets
+### Coverage
 
 | Metric | Minimum | Current |
 |--------|---------|---------|
-| Line Coverage | >= 95% | 99.6% |
-| Branch Coverage | >= 90% | 97.84% |
+| Line Coverage | >= 95% | 95.23% |
+| Branch Coverage | >= 90% | 91.12% |
+
+Enforced by JaCoCo in `mvn verify`. Build fails if thresholds are not met.
 
 ## License
 

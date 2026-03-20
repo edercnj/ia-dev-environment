@@ -414,7 +414,7 @@ Database schema change script.
 ```sql
 -- V{N}__create_{{table_name}}_table.sql
 -- Description: Create {{table_name}} table
--- Story: STORY-NNN
+-- Story: story-XXXX-YYYY
 
 BEGIN;
 

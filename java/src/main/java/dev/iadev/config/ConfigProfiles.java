@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Provides pre-defined configuration profiles for the 8 bundled
+ * Provides pre-defined configuration profiles for the 9 bundled
  * technology stacks.
  *
  * <p>Each profile is loaded from a YAML config template on the
@@ -19,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>Supported stacks:
  * <ul>
+ *   <li>java-picocli-cli</li>
  *   <li>java-quarkus</li>
  *   <li>java-spring</li>
  *   <li>python-fastapi</li>
@@ -41,6 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class ConfigProfiles {
 
     private static final List<String> STACK_KEYS = List.of(
+            "java-picocli-cli",
             "java-quarkus",
             "java-spring",
             "python-fastapi",
@@ -87,7 +89,7 @@ public final class ConfigProfiles {
     /**
      * Returns the list of all available stack keys.
      *
-     * @return unmodifiable list of 8 stack key strings
+     * @return unmodifiable list of 9 stack key strings
      */
     public static List<String> getAvailableStacks() {
         return STACK_KEYS;

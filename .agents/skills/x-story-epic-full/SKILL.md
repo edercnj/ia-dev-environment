@@ -75,10 +75,12 @@ The guide also covers:
 
 Follow the instructions in `.claude/skills/x-story-epic/SKILL.md`:
 
+- Determine the epic number (scan `docs/stories/` for existing `epic-XXXX` folders, use next available; default `0001`)
+- Create directory `docs/stories/epic-XXXX/`
 - Extract rules → RULE-001..N table
-- Build story index with titles and dependencies
-- Define DoR/DoD from spec quality requirements
-- Generate `EPIC-NNN.md` following `_TEMPLATE-EPIC.md`
+- Build story index with titles and dependencies (using `story-XXXX-YYYY` IDs)
+- Define DoR/DoD from spec quality requirements — the DoD must include TDD Compliance (test-first commits, explicit refactoring after green, incremental tests via TPP) and Double-Loop TDD (acceptance tests from Gherkin as outer loop, unit tests as inner loop)
+- Generate `docs/stories/epic-XXXX/epic-XXXX.md` following `_TEMPLATE-EPIC.md`
 
 ### Phase C: Generate the Stories
 
@@ -90,10 +92,10 @@ For each story in the Epic's index:
 - User story description + technical context
 - Data contracts (precise: field names, types, formats, derivation rules)
 - Mermaid sequence diagrams (real component names from the spec)
-- Gherkin acceptance criteria (happy path + errors + edge cases)
+- Gherkin acceptance criteria with mandatory categories (degenerate case, happy path, error paths, boundary values) ordered by Transformation Priority Premise (simplest degenerate → complex edge cases)
 - Sub-tasks tagged `[Dev]`, `[Test]`, `[Doc]`
 
-Generate files as `STORY-NNN.md` following `_TEMPLATE-STORY.md`.
+Generate files as `docs/stories/epic-XXXX/story-XXXX-YYYY.md` following `_TEMPLATE-STORY.md`.
 
 ### Phase D: Generate the Implementation Map
 
@@ -106,11 +108,11 @@ Follow the instructions in `.claude/skills/x-story-map/SKILL.md`:
 - Phase summary and detail tables
 - Strategic observations (bottleneck, leaves, parallelism, convergences, validation milestone)
 
-Generate `IMPLEMENTATION-MAP.md` following `_TEMPLATE-IMPLEMENTATION-MAP.md`.
+Generate `docs/stories/epic-XXXX/implementation-map-XXXX.md` following `_TEMPLATE-IMPLEMENTATION-MAP.md`.
 
 ### Phase E: Save and Report
 
-Save all files to the same directory as the input spec (or where the user specifies).
+All files are saved inside `docs/stories/epic-XXXX/` (the epic's dedicated folder).
 
 Report summary:
 - Total rules extracted
@@ -126,7 +128,7 @@ Report summary:
 - Technical terms in English stay in English (cache, timeout, handler, endpoint, etc.)
 - Code identifiers, field names, enum values stay in English
 - Gherkin in Portuguese: `Cenario`, `DADO`, `QUANDO`, `ENTÃO`, `E`, `MAS`
-- IDs in English format: RULE-NNN, STORY-NNN, EPIC-NNN
+- IDs: RULE-NNN (English format), story-XXXX-YYYY (composite), epic-XXXX (kebab-case)
 
 ## Quality Checklist
 
@@ -139,6 +141,8 @@ Before delivering, verify:
 - [ ] Phase computation is correct (stories only enter phase when ALL deps are in earlier phases)
 - [ ] Critical path is the actual longest chain (not just the deepest phase)
 - [ ] Data contracts match the spec exactly (field names, types, formats)
-- [ ] Each story has at least 4 Gherkin scenarios (happy + 2 errors + 1 edge case)
+- [ ] Each story has at least 4 Gherkin scenarios covering all mandatory categories (degenerate, happy path, error paths, boundary values), ordered by TPP (degenerate → edge cases)
+- [ ] Epic DoD includes TDD Compliance and Double-Loop TDD
+- [ ] Boundary values use triplet pattern (at-min, at-max, past-max)
 - [ ] Implementation map observations are specific, not generic
 - [ ] All files follow their respective templates exactly
