@@ -30,8 +30,9 @@ Automates the process of addressing PR review comments for {{PROJECT_NAME}}. Rea
 3. CLASSIFY   -> Categorize each comment (actionable/suggestion/question/praise/resolved)
 4. FIX        -> Implement fixes for actionable comments
 5. VERIFY     -> Compile and test after each fix
-6. COMMIT     -> Commit with conventional commit message
-7. REPORT     -> Summarize actions taken
+6. REPLY      -> Reply to each comment thread in PT-BR (fix summary or rejection reason)
+7. COMMIT     -> Commit with conventional commit message
+8. REPORT     -> Summarize actions taken
 ```
 
 ### Step 1 -- Detect PR
@@ -111,7 +112,55 @@ After each fix (or batch of fixes per file):
 If compilation fails, revert the last change and try an alternative approach.
 If tests fail, analyze the failure and adjust the fix.
 
-### Step 6 -- Commit
+### Step 6 -- Reply to Comments (PT-BR)
+
+After each comment is processed (fixed, skipped, or rejected), reply to the review comment thread **in Portuguese (pt-BR)** explaining the action taken.
+
+**Reply command:**
+```bash
+# Reply to an inline review comment thread
+gh api repos/{owner}/{repo}/pulls/{PR_NUMBER}/comments/{comment_id}/replies \
+  -f body="{message_in_portuguese}"
+```
+
+**Reply templates by classification:**
+
+| Classification | Reply Template (PT-BR) |
+|---------------|----------------------|
+| **Actionable (fixed)** | `Corrigido. {descricao da alteracao feita}. Commit: {short_hash}` |
+| **Suggestion (accepted)** | `Sugestao aceita. {descricao da alteracao feita}. Commit: {short_hash}` |
+| **Suggestion (rejected)** | `Sugestao analisada, mas nao aplicada. Motivo: {razao tecnica pela qual nao faz sentido no contexto atual}` |
+| **Actionable (rejected)** | `Observacao analisada, mas nao faz sentido neste contexto. Motivo: {explicacao tecnica detalhada}` |
+| **Actionable (failed)** | `Tentei corrigir, mas a alteracao causou falha na compilacao/testes. Necessita intervencao manual.` |
+| **Question** | _(no reply — requires human response)_ |
+| **Praise** | _(no reply)_ |
+| **Resolved** | _(no reply — already resolved)_ |
+
+**Rules:**
+- ALL replies MUST be in Portuguese (pt-BR)
+- Be specific: describe exactly what was changed and why
+- When rejecting, provide technical justification (reference project rules, architecture constraints, or coding standards)
+- Include commit hash when a fix was applied
+- Never reply to praise or already-resolved comments
+
+**Examples:**
+
+Fix applied:
+```
+Corrigido. Renomeei a variavel `d` para `elapsedTimeInMs` conforme padrao de naming do projeto. Commit: abc1234
+```
+
+Suggestion rejected:
+```
+Sugestao analisada, mas nao aplicada. Motivo: o metodo precisa ser publico porque implementa a interface Assembler, que define o contrato do pipeline. Tornar package-private quebraria o polimorfismo.
+```
+
+Comment doesn't make sense:
+```
+Observacao analisada, mas nao faz sentido neste contexto. Motivo: o null check sugerido e desnecessario aqui — o parametro vem de um Optional.orElseThrow() na linha 42, garantindo que nunca sera null neste ponto.
+```
+
+### Step 7 -- Commit
 
 After all fixes for a logical group are verified:
 
@@ -127,7 +176,7 @@ Addresses review comments on PR #{PR_NUMBER}"
 
 **Scope** should match the module/layer affected (e.g., `domain`, `api`, `config`).
 
-### Step 7 -- Report
+### Step 8 -- Report
 
 Output a summary table:
 
@@ -138,12 +187,13 @@ Output a summary table:
 **Total comments:** N
 **Processed:** M
 
-| # | File | Line | Type | Action | Status |
-|---|------|------|------|--------|--------|
-| 1 | src/main/Foo.java | 42 | Actionable | Renamed variable | Fixed |
-| 2 | src/main/Bar.java | 15 | Suggestion | Added null check | Fixed |
-| 3 | src/main/Baz.java | 88 | Question | — | Skipped (needs human) |
-| 4 | src/main/Qux.java | 3 | Praise | — | Skipped |
+| # | File | Line | Type | Action | Status | Reply |
+|---|------|------|------|--------|--------|-------|
+| 1 | src/main/Foo.java | 42 | Actionable | Renamed variable | Fixed | Replied |
+| 2 | src/main/Bar.java | 15 | Suggestion | Added null check | Fixed | Replied |
+| 3 | src/main/Baz.java | 20 | Actionable | — | Rejected | Replied |
+| 4 | src/main/Baz.java | 88 | Question | — | Skipped | — |
+| 5 | src/main/Qux.java | 3 | Praise | — | Skipped | — |
 
 ### Questions Requiring Human Response
 

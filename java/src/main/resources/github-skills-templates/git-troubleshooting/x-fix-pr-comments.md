@@ -26,8 +26,9 @@ Automates the process of addressing PR review comments for {{PROJECT_NAME}}. Rea
 3. CLASSIFY   -> Categorize each comment (actionable/suggestion/question/praise/resolved)
 4. FIX        -> Implement fixes for actionable comments
 5. VERIFY     -> Compile and test after each fix
-6. COMMIT     -> Commit with conventional commit message
-7. REPORT     -> Summarize actions taken
+6. REPLY      -> Reply to each comment thread in PT-BR (fix summary or rejection reason)
+7. COMMIT     -> Commit with conventional commit message
+8. REPORT     -> Summarize actions taken
 ```
 
 ### Step 1 -- Detect PR
@@ -81,7 +82,33 @@ For each actionable comment:
 
 If compilation or tests fail, revert and try alternative approach.
 
-### Step 6 -- Commit
+### Step 6 -- Reply to Comments (PT-BR)
+
+After each comment is processed, reply to the thread **in Portuguese (pt-BR)**:
+
+```bash
+gh api repos/{owner}/{repo}/pulls/{PR_NUMBER}/comments/{comment_id}/replies \
+  -f body="{message_in_portuguese}"
+```
+
+**Reply templates:**
+
+| Classification | Reply (PT-BR) |
+|---------------|--------------|
+| **Fixed** | `Corrigido. {descricao da alteracao}. Commit: {hash}` |
+| **Suggestion accepted** | `Sugestao aceita. {descricao}. Commit: {hash}` |
+| **Suggestion rejected** | `Sugestao analisada, mas nao aplicada. Motivo: {razao tecnica}` |
+| **Doesn't make sense** | `Observacao analisada, mas nao faz sentido neste contexto. Motivo: {explicacao}` |
+| **Failed to fix** | `Tentei corrigir, mas a alteracao causou falha. Necessita intervencao manual.` |
+| **Question/Praise** | _(no reply)_ |
+
+**Rules:**
+- ALL replies in Portuguese (pt-BR)
+- Be specific: what changed and why
+- When rejecting, provide technical justification
+- Include commit hash for applied fixes
+
+### Step 7 -- Commit
 
 ```bash
 git add {modified-files}
@@ -90,7 +117,7 @@ git commit -m "fix({scope}): address PR review comments
 Addresses review comments on PR #{PR_NUMBER}"
 ```
 
-### Step 7 -- Report
+### Step 8 -- Report
 
 ```markdown
 ## PR Review Comments — Fix Report
@@ -98,10 +125,11 @@ Addresses review comments on PR #{PR_NUMBER}"
 **PR:** #{PR_NUMBER}
 **Total comments:** N | **Processed:** M
 
-| # | File | Line | Type | Action | Status |
-|---|------|------|------|--------|--------|
-| 1 | path/file | 42 | Actionable | Fixed | Done |
-| 2 | path/file | 15 | Question | — | Skipped |
+| # | File | Line | Type | Action | Status | Reply |
+|---|------|------|------|--------|--------|-------|
+| 1 | path/file | 42 | Actionable | Fixed | Done | Replied |
+| 2 | path/file | 20 | Actionable | — | Rejected | Replied |
+| 3 | path/file | 15 | Question | — | Skipped | — |
 ```
 
 ## Error Handling
