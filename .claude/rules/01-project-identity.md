@@ -3,25 +3,25 @@
 - **Token Optimization**: Eliminate all greetings, apologies, and conversational fluff. Start responses directly with technical information.
 - **Priority**: Maintain 100% fidelity to the technical constraints defined in the original rules below.
 
-# Project Identity — ia-dev-environment
+# Project Identity — my-java-cli
 
 ## Identity
-- **Name:** ia-dev-environment
-- **Purpose:** CLI tool that generates .claude/ and .github/ boilerplate for AI-assisted development environments, with config-driven templates, skills, agents, hooks, and MCP server setup
+- **Name:** my-java-cli
+- **Purpose:** Describe your CLI tool purpose here
 - **Architecture Style:** library
-- **Domain-Driven Design:** false
+- **Domain-Driven Design:** true
 - **Event-Driven:** false
 - **Interfaces:** cli
-- **Language:** typescript 5
-- **Framework:** commander
+- **Language:** java 21
+- **Framework:** picocli 4.7
 
 ## Technology Stack
 | Layer | Technology |
 |-------|-----------|
 | Architecture | library |
-| Language | typescript 5 |
-| Framework | commander |
-| Build Tool | npm |
+| Language | java 21 |
+| Framework | picocli 4.7 |
+| Build Tool | maven |
 | Database | none |
 | Migration | none |
 | Cache | none |

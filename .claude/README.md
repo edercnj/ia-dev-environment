@@ -1,6 +1,6 @@
 # .claude/ -- Usage Guide
 
-This directory contains all Claude Code configuration for the **ia-dev-environment** project.
+This directory contains all Claude Code configuration for the **my-java-cli** project.
 It includes coding rules, skills (slash commands), knowledge packs, agents, and hooks.
 
 > **Note:** Both `.claude/` and `.github/` directories are **generated outputs** produced by `ia-dev-env`.
@@ -61,7 +61,7 @@ CLAUDE.md                   <-- Executive summary (project root, loaded automati
 | N/A | MCP (`copilot-mcp.json`) | N/A | GitHub Copilot MCP server configuration |
 | N/A | Global instructions (`copilot-instructions.md`) | N/A | Loaded in every Copilot session |
 
-**Total .github/ artifacts: 62**
+**Total .github/ artifacts: 67**
 
 ### settings.json vs settings.local.json
 
@@ -98,15 +98,20 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | Skill | Path | Description |
 |-------|------|-------------|
 | **patterns** | `/patterns` |  |
-| **run-e2e** | `/run-e2e` | Skill |
-| **x-dev-adr-automation** | `/x-dev-adr-automation` | Automates ADR generation from architecture plan mini-ADRs |
+| **run-e2e** | `/run-e2e` | Skill: End-to-End Tests — Runs integration tests that validate the complete flow from request through all application layers to response, using a real database. |
+| **x-changelog** | `/x-changelog` | Generates CHANGELOG.md from Conventional Commits history. Parses git log, groups by commit type, maps to Keep a Changelog sections (Added, Changed, Fixed, etc.), and performs incremental updates preserving existing entries. |
+| **x-codebase-audit** | `/x-codebase-audit` | Full codebase review against all project standards. Launches parallel subagents per audit dimension (Clean Code, SOLID, Architecture, Tests, Security, Cross-file), consolidates findings into a severity-categorized report with score. Use for periodic quality validation. |
+| **x-dependency-audit** | `/x-dependency-audit` | Checks project dependencies for vulnerabilities, outdated versions, and license issues. Detects build tool automatically, runs language-specific audit commands, and generates a severity-categorized report. |
+| **x-dev-adr-automation** | `/x-dev-adr-automation` | Automates ADR generation from architecture plan mini-ADRs: extracts inline decisions, expands to full ADR format, assigns sequential numbering, updates the ADR index, and adds cross-references. |
 | **x-dev-arch-update** | `/x-dev-arch-update` | Incrementally updates the service architecture document with changes from architecture plans. Adds new components, integrations, flows, and ADR references without rewriting existing content. Use after implementation to keep architecture documentation current. |
 | **x-dev-architecture-plan** | `/x-dev-architecture-plan` | Generates a comprehensive architecture plan with component diagrams, sequence diagrams, deployment topology, mini-ADRs, NFRs, and resilience/observability strategies. Use before implementation to document design decisions. |
 | **x-dev-epic-implement** | `/x-dev-epic-implement` | Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents. |
 | **x-dev-implement** | `/x-dev-implement` | Implements a feature/story using TDD (Red-Green-Refactor) workflow. Delegates preparation to a subagent that reads architecture, coding, and test plan KPs, then implements test-first with Double-Loop TDD, layer-by-layer with compile checks after each cycle. |
-| **x-dev-lifecycle** | `/x-dev-lifecycle` | Orchestrates the complete feature implementation cycle |
-| **x-git-push** | `/x-git-push` | Git operations |
-| **x-ops-troubleshoot** | `/x-ops-troubleshoot` | Diagnoses errors, stacktraces, build failures, and unexpected behavior. Systematic approach |
+| **x-dev-lifecycle** | `/x-dev-lifecycle` | Orchestrates the complete feature implementation cycle: branch creation, planning, task decomposition, implementation, parallel review, fixes, PR creation, and final verification. Delegates heavy phases to subagents for context efficiency. |
+| **x-fix-pr-comments** | `/x-fix-pr-comments` | Reads PR review comments and fixes actionable ones automatically. Detects PR from argument or branch, classifies comments (actionable/suggestion/question/praise), implements fixes, and commits with proper conventional commit messages. |
+| **x-git-push** | `/x-git-push` | Git operations: branch creation, atomic commits (Conventional Commits), push, and PR creation. Use for any git workflow task including branching, committing, pushing, creating PRs, or managing version control. |
+| **x-mcp-recommend** | `/x-mcp-recommend` | Analyzes project tech stack and recommends relevant MCP (Model Context Protocol) servers. Auto-detects language, framework, database, cache, and message broker from project config, then matches against a built-in catalog of MCP servers with installation instructions. |
+| **x-ops-troubleshoot** | `/x-ops-troubleshoot` | Diagnoses errors, stacktraces, build failures, and unexpected behavior. Systematic approach: reproduce, locate, understand, fix, verify. Use whenever something fails: compilation errors, test failures, runtime exceptions, coverage gaps, or performance issues. |
 | **x-review** | `/x-review` | Parallel code review with specialist engineers (Security, QA, Performance, Database, Observability, DevOps, API, Event). Launches parallel subagents, each reading their own knowledge pack, then consolidates into a scored report. Use for pre-PR quality validation. |
 | **x-review-pr** | `/x-review-pr` | Tech Lead holistic review with 45-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, TDD process, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge. |
 | **x-story-create** | `/x-story-create` | > |
@@ -114,9 +119,9 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-story-epic-full** | `/x-story-epic-full` | > |
 | **x-story-map** | `/x-story-map` | > |
 | **x-test-plan** | `/x-test-plan` | Generates a Double-Loop TDD test plan with TPP-ordered scenarios before implementation. Delegates KP reading to a context-gathering subagent, then produces structured Acceptance Tests (outer loop) and Unit Tests in Transformation Priority Premise order (inner loop). |
-| **x-test-run** | `/x-test-run` | Runs tests with coverage reporting and threshold validation. Use whenever writing, running, or analyzing tests. Triggers on |
+| **x-test-run** | `/x-test-run` | Runs tests with coverage reporting and threshold validation. Use whenever writing, running, or analyzing tests. Triggers on: test, coverage, TDD, unit test, integration test, test failure, coverage gap, or Definition of Done validation. |
 
-**Total: 31 skills**
+**Total: 36 skills**
 
 ### Usage Examples
 
@@ -162,12 +167,12 @@ they are used by skills (via Task tool) to delegate work to agents with specific
 |-------|------|
 | **architect** | `architect.md` |
 | **devops-engineer** | `devops-engineer.md` |
+| **java-developer** | `java-developer.md` |
 | **performance-engineer** | `performance-engineer.md` |
 | **product-owner** | `product-owner.md` |
 | **qa-engineer** | `qa-engineer.md` |
 | **security-engineer** | `security-engineer.md` |
 | **tech-lead** | `tech-lead.md` |
-| **typescript-developer** | `typescript-developer.md` |
 
 **Total: 8 agents**
 
@@ -182,7 +187,7 @@ Configured in `settings.json` under the `hooks` key.
 
 - **Event:** `PostToolUse` (after `Write` or `Edit`)
 - **Script:** `.claude/hooks/post-compile-check.sh`
-- **Behavior:** When a `.ts` file is modified, runs `npx --no-install tsc --noEmit` automatically
+- **Behavior:** When a `.java` file is modified, runs `./mvnw compile -q` automatically
 - **Purpose:** Catch compilation errors immediately after file changes
 
 ---
@@ -236,19 +241,19 @@ See the files directly for current configuration.
 | Component | Count |
 |-----------|-------|
 | Rules (.claude) | 5 |
-| Skills (.claude) | 18 |
+| Skills (.claude) | 23 |
 | Knowledge Packs (.claude) | 13 |
 | Agents (.claude) | 8 |
 | Hooks (.claude) | 1 |
 | Settings (.claude) | 2 |
 | Instructions (.github) | 5 |
-| Skills (.github) | 36 |
+| Skills (.github) | 41 |
 | Agents (.github) | 8 |
 | Prompts (.github) | 4 |
 | Hooks (.github) | 3 |
 | MCP (.github) | 0 |
 | AGENTS.md (root) | 1 |
 | Codex (.codex) | 1 |
-| Skills (.agents) | 59 |
+| Skills (.agents) | 64 |
 
 Generated by `ia-dev-env v0.1.0`.

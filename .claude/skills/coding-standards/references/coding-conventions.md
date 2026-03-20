@@ -3,174 +3,263 @@
 - **Token Optimization**: Eliminate all greetings, apologies, and conversational fluff. Start responses directly with technical information.
 - **Priority**: Maintain 100% fidelity to the technical constraints defined in the original rules below.
 
-# TypeScript Coding Conventions
+# Java — Coding Conventions
 
-## Strict Mode
-
-- `"strict": true` in `tsconfig.json` is mandatory
-- ESLint with `@typescript-eslint` plugin enforced
-- Prettier for formatting (integrated with ESLint)
+> Common conventions for all Java versions. Version-specific features are in separate version files.
 
 ## Naming Conventions
 
-| Element         | Convention     | Example                    |
-| --------------- | -------------- | -------------------------- |
-| Interface       | PascalCase     | `MerchantService`          |
-| Type Alias      | PascalCase     | `TransactionResult`        |
-| Class           | PascalCase     | `OrderProcessor`           |
-| Enum            | PascalCase     | `OrderStatus`              |
-| Enum Member     | PascalCase     | `OrderStatus.Pending`      |
-| Function        | camelCase      | `processOrder()`           |
-| Variable        | camelCase      | `merchantName`             |
-| Constant        | UPPER_SNAKE    | `MAX_RETRY_COUNT`          |
-| File (module)   | kebab-case     | `order-processor.ts`       |
-| File (component)| PascalCase     | `OrderList.tsx`            |
+| Element         | Convention                                 | Example                        |
+| --------------- | ------------------------------------------ | ------------------------------ |
+| Class           | PascalCase                                 | `TransactionHandler`           |
+| Interface       | PascalCase (no I prefix)                   | `AuthorizationEngine`          |
+| Method          | camelCase, verb                            | `processTransaction()`         |
+| Variable        | camelCase                                  | `responseCode`                 |
+| Constant        | UPPER_SNAKE                               | `MAX_TIMEOUT_SECONDS`          |
+| Enum            | PascalCase (type), UPPER_SNAKE (values)   | `TransactionType.DEBIT_SALE`   |
+| Package         | lowercase                                 | `com.example.domain`           |
+| Entity          | PascalCase + Entity suffix                | `TransactionEntity`            |
+| Repository      | PascalCase + Repository suffix            | `TransactionRepository`        |
+| Resource (REST) | PascalCase + Resource suffix              | `MerchantResource`             |
+| Controller      | PascalCase + Controller suffix            | `MerchantController`           |
+| DTO Request     | PascalCase + Request suffix               | `CreateMerchantRequest`        |
+| DTO Response    | PascalCase + Response suffix              | `MerchantResponse`             |
+| Service         | PascalCase + Service suffix               | `TransactionService`           |
 
-## Type Safety
+## Anti-Patterns (FORBIDDEN in any Java version)
 
-```typescript
-// FORBIDDEN - never use `any`
-function process(data: any): any { ... }
+- ❌ Return `null` — use `Optional<T>` or empty collection
+- ❌ `System.out.println` — use SLF4J or framework logging
+- ❌ Magic numbers/strings — use constants or enums
+- ❌ Field injection without constructor — prefer constructor injection
+- ❌ Mutable state in singleton beans
+- ❌ Boolean flag as method parameter — create two distinct methods
+- ❌ `String` concatenation with `+` in error messages — use `String.formatted()` (17+) or `String.format()`
 
-// CORRECT - use `unknown` when type is unclear
-function process(data: unknown): Result {
-    if (isValidPayload(data)) {
-        return handle(data);
-    }
-    throw new ValidationError("Invalid payload");
-}
-```
+## Constructor Injection (Universal)
 
-## Interfaces vs Types
+Prefer constructor injection over field injection. Works with any DI framework (CDI, Spring, Guice).
 
-```typescript
-// CORRECT - interface for object shapes (extendable)
-interface Merchant {
-    id: string;
-    name: string;
-    status: MerchantStatus;
-}
+```java
+// ✅ CORRECT — Constructor injection
+public class TransactionService {
+    private final TransactionRepository repository;
+    private final AuthorizationEngine engine;
 
-interface PremiumMerchant extends Merchant {
-    tier: string;
-}
-
-// CORRECT - type for unions, intersections, mapped types
-type Result = Success | Failure;
-type ReadonlyMerchant = Readonly<Merchant>;
-```
-
-## Functions
-
-```typescript
-// CORRECT - arrow functions for callbacks
-const filtered = items.filter((item) => item.active);
-
-// CORRECT - named functions for exports
-export function calculateDiscount(price: number, rate: number): number {
-    return price * rate;
-}
-
-// CORRECT - destructuring for parameters
-export function createOrder({ merchantId, amount, currency }: CreateOrderParams): Order {
-    return { merchantId, amount, currency, status: OrderStatus.Pending };
-}
-```
-
-## Null Handling
-
-```typescript
-// CORRECT - optional chaining + nullish coalescing
-const city = merchant?.address?.city ?? "Unknown";
-
-// CORRECT - explicit null checks
-function findMerchant(id: string): Merchant | undefined {
-    return merchants.get(id);
-}
-```
-
-## Exports
-
-```typescript
-// FORBIDDEN - default exports
-export default class OrderService { ... }
-
-// CORRECT - named exports only
-export class OrderService { ... }
-export function createOrder(params: CreateOrderParams): Order { ... }
-export interface OrderRepository { ... }
-```
-
-## Error Handling
-
-```typescript
-// CORRECT - custom Error classes with context
-export class MerchantNotFoundError extends Error {
-    constructor(public readonly merchantId: string) {
-        super(`Merchant not found: ${merchantId}`);
-        this.name = "MerchantNotFoundError";
+    public TransactionService(TransactionRepository repository, AuthorizationEngine engine) {
+        this.repository = repository;
+        this.engine = engine;
     }
 }
 
-// FORBIDDEN - throwing plain strings
-throw "Something went wrong";
-```
-
-## Size Limits
-
-- Max **25 lines** per function
-- Max **250 lines** per file
-- Max **4 parameters** per function (use object destructuring for more)
-
-## Import Ordering
-
-```typescript
-// 1. Node builtins
-import { readFile } from "node:fs/promises";
-
-// 2. External packages
-import { z } from "zod";
-import express from "express";
-
-// 3. Internal modules (absolute paths)
-import { MerchantService } from "@/services/merchant-service";
-
-// 4. Relative imports
-import { createMerchantSchema } from "./schemas";
-```
-
-## Mapper Pattern
-
-```typescript
-// CORRECT - pure functions in dedicated mapper files
-// merchant.mapper.ts
-export function toMerchantResponse(merchant: Merchant): MerchantResponse {
-    return {
-        id: merchant.id,
-        name: merchant.name,
-        documentMasked: maskDocument(merchant.document),
-        status: merchant.status,
-        createdAt: merchant.createdAt.toISOString(),
-    };
-}
-
-export function toDomain(request: CreateMerchantRequest): Merchant {
-    return {
-        mid: request.mid,
-        name: request.name,
-        document: request.document,
-        status: MerchantStatus.Active,
-    };
+// ❌ WRONG — Field injection
+public class TransactionService {
+    @Inject
+    TransactionRepository repository;
 }
 ```
 
-## Anti-Patterns (FORBIDDEN)
+## Formatting
 
-- `any` type anywhere in codebase
-- Default exports
-- `var` keyword (use `const` or `let`)
-- String concatenation with `+` (use template literals)
-- Nested ternaries deeper than 1 level
-- `console.log` for application logging (use structured logger)
-- Mutable global state
-- `@ts-ignore` without explanation comment
+- Indentation: **4 spaces** (no tabs)
+- Maximum width: **120 characters** per line
+- Braces: **K&R style** (opening brace on same line)
+- Imports: no wildcard (`*`), organized: java → jakarta/javax → com.{project} → others
+
+### Method Signature — ONE LINE
+
+Method signatures MUST fit on a single line, including all parameters.
+Only break into multiple lines if exceeding 120 characters.
+
+```java
+// ✅ GOOD — signature on one line
+private byte[] routeMessage(String mti, IsoMessage isoMessage, byte[] rawMessage, ConnectionContext context) {
+    // ...
+}
+
+// ❌ BAD — unnecessary parameter break
+private byte[] routeMessage(
+        String mti,
+        IsoMessage isoMessage,
+        byte[] rawMessage,
+        ConnectionContext context) {
+```
+
+## Mapper Pattern (Static Utility Classes)
+
+Mappers convert between layers of architecture. Structure: `final class` + `private` constructor + `static` methods.
+
+```java
+public final class MerchantDtoMapper {
+
+    private MerchantDtoMapper() {}
+
+    public static Merchant toDomain(CreateMerchantRequest request) {
+        return new Merchant(request.mid(), request.name(), request.document());
+    }
+
+    public static MerchantResponse toResponse(Merchant merchant) {
+        return new MerchantResponse(merchant.id(), merchant.mid(), merchant.name(),
+            maskDocument(merchant.document()));
+    }
+
+    private static String maskDocument(String document) {
+        if (document == null || document.length() < 5) return "****";
+        return document.substring(0, 3) + "****" + document.substring(document.length() - 2);
+    }
+}
+```
+
+### Mapper Rules
+
+| Rule         | Detail |
+|--------------|--------|
+| Structure    | `final class` + `private` constructor + `static` methods |
+| CDI/Spring   | NOT a managed bean — not needed |
+| MapStruct    | **FORBIDDEN** unless explicitly required by project config |
+| Masking      | Masking logic lives in mapper that **exposes** data externally |
+| Null safety  | Check nulls on optional fields before mapping |
+| Location     | DTO Mapper in inbound adapter, Entity Mapper in outbound adapter |
+
+> **Exception:** Mappers needing injected dependencies MAY be managed beans with constructor injection and instance methods.
+
+## Domain Exception with Context
+
+```java
+public class MerchantNotFoundException extends RuntimeException {
+
+    private final String identifier;
+
+    public MerchantNotFoundException(String identifier) {
+        super("Merchant not found: %s".formatted(identifier));
+        this.identifier = identifier;
+    }
+
+    public String getIdentifier() {
+        return identifier;
+    }
+}
+```
+
+### Domain Exception Rules
+
+| Rule            | Detail |
+|-----------------|--------|
+| Inheritance     | Extends `RuntimeException` (unchecked) — NEVER checked exceptions |
+| Context         | Private field with value that caused error |
+| Getter          | Getter for context field — used by ExceptionMapper |
+| Message         | `String.formatted()` (Java 15+) or `String.format()` (older) — NEVER `+` concatenation |
+| Sensitive data  | Mask in exception message |
+| Location        | `domain.model` or `domain.exception` package |
+| Naming          | `{Entity}{Problem}Exception` — e.g., `MerchantNotFoundException` |
+
+## Clean Code Rules (CC-01 to CC-10)
+
+### CC-01: Names That Reveal Intent
+
+- Names should reveal intent: `elapsedTimeInMs` not `d`
+- Avoid misinformation: don't use `accountList` if not a `List`
+- Meaningful distinctions: `source` / `destination` not `a1` / `a2`
+- Pronounceable names: `createdAt` not `crtdTmst`
+- Searchable names: named constants, not literal values
+- No Hungarian prefixes: `name` not `strName`
+- Verbs for methods: `processTransaction()`, `extractAmount()`
+- Nouns for classes: `TransactionHandler`, `MerchantRepository`
+
+### CC-02: Functions Do ONE Thing
+
+- Maximum **25 lines** per method
+- Maximum **4 parameters** (if more → create a Record/class as parameter)
+- One level of abstraction per function (Stepdown Rule)
+- ❌ FORBIDDEN `boolean` flag as parameter — create two distinct methods
+- ❌ FORBIDDEN hidden side effects
+
+### CC-03: Single Responsibility
+
+- Maximum **250 lines** per class
+- One class = one reason to change
+
+### CC-04: No Magic Values
+
+```java
+// ✅ GOOD
+private static final String RESPONSE_APPROVED = "00";
+private static final int TIMEOUT_SECONDS = 35;
+
+// ❌ BAD
+if (responseCode.equals("00")) ...
+Thread.sleep(35000);
+```
+
+### CC-05: DRY (Don't Repeat Yourself)
+
+If you copy code → extract method or utility class.
+
+### CC-06: Rich Error Handling
+
+- NEVER return `null` — use `Optional<T>` or empty collection
+- NEVER pass `null` as argument
+- Prefer unchecked exceptions (RuntimeException)
+- Catch at the right level
+
+### CC-07: Self-Documenting Code
+
+- Javadoc ONLY when it adds real value
+- FORBIDDEN Javadoc boilerplate that repeats method name
+- Inline comments ONLY for non-obvious business logic
+
+### CC-08: Vertical Formatting
+
+| Where                                         | Blank line? |
+| --------------------------------------------- | ----------- |
+| Between constants and fields                  | ✅ Yes      |
+| Between fields and constructor                | ✅ Yes      |
+| Between constructor and public methods        | ✅ Yes      |
+| Between methods                               | ✅ Always   |
+| Within method: between logical blocks         | ✅ Yes      |
+| Within method: related lines                  | ❌ No       |
+| After class opening `{`                       | ❌ No       |
+| Before closing `}`                            | ❌ No       |
+
+**Ordering within class (Newspaper Rule):**
+1. Constants (`private static final`)
+2. Logger
+3. Instance fields (`private final`)
+4. Constructor(s)
+5. Public methods
+6. Package-private methods
+7. Private methods (in order called by public methods)
+
+### CC-09: Law of Demeter
+
+```java
+// ❌ BAD — train wreck
+var mcc = transaction.getMerchant().getTerminal().getMcc();
+
+// ✅ GOOD — ask directly
+var mcc = transaction.getMerchantMcc();
+```
+
+### CC-10: Class Organization
+
+- Classes should be small — measured by responsibilities
+- High cohesion: methods use most fields
+- If a method subset uses only a field subset → extract class
+
+## SOLID Principles (Java)
+
+### SRP — Single Responsibility
+Each class has ONE reason to change.
+
+### OCP — Open/Closed
+New behavior = new class, NEVER modify existing handlers. Use interfaces with Strategy pattern.
+
+### LSP — Liskov Substitution
+Every implementation must be substitutable without breaking callers.
+
+### ISP — Interface Segregation
+Small, focused interfaces. Prefer many small interfaces over one large interface.
+
+### DIP — Dependency Inversion
+- Domain NEVER depends on infrastructure
+- Use interfaces (ports), not concrete implementations

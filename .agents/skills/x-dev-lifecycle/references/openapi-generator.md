@@ -49,8 +49,8 @@ Generate the specification following OpenAPI 3.1.0 format. The output MUST be va
 ```yaml
 openapi: "3.1.0"
 info:
-  title: "ia-dev-environment API"
-  description: "REST API specification for ia-dev-environment"
+  title: "my-java-cli API"
+  description: "REST API specification for my-java-cli"
   version: "1.0.0"
 servers:
   - url: "http://localhost:8080"
@@ -78,7 +78,7 @@ components:
 |---------|---------|----------|
 | `openapi` | Version string `"3.1.0"` | Mandatory |
 | `info` | API title, description, version | Mandatory |
-| `info.title` | `ia-dev-environment API` | Mandatory |
+| `info.title` | `my-java-cli API` | Mandatory |
 | `info.version` | Service version from config or `"1.0.0"` | Mandatory |
 | `servers` | At least local development URL | Mandatory |
 | `tags` | One tag per controller/resource class | Mandatory |

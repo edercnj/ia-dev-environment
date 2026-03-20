@@ -13,9 +13,10 @@
       "Bash(command -v *)",
       "WebSearch",
       "WebFetch(domain:github.com)",
-      "Bash(npm *)",
-      "Bash(npx *)",
-      "Bash(node *)",
+      "Bash(mvn *)",
+      "Bash(java *)",
+      "Bash(jar *)",
+      "Bash(javap *)",
       "Bash(docker build *)",
       "Bash(docker compose *)",
       "Bash(docker run *)",
@@ -24,7 +25,8 @@
       "Bash(docker exec *)",
       "Bash(docker stop *)",
       "Bash(docker info *)",
-      "Bash(newman *)"
+      "Bash(newman *)",
+      "Bash(npx *)"
     ]
   },
   "hooks": {

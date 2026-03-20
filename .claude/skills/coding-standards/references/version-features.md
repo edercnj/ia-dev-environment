@@ -3,189 +3,88 @@
 - **Token Optimization**: Eliminate all greetings, apologies, and conversational fluff. Start responses directly with technical information.
 - **Priority**: Maintain 100% fidelity to the technical constraints defined in the original rules below.
 
-# TypeScript 5.x Version Features
+# Java 21 — Version-Specific Features
 
-## `satisfies` Operator
+> Extends: `languages/java/common/coding-conventions.md`
 
-Type-checks a value against a type without widening the inferred type.
+## Mandatory Features
 
-```typescript
-type ColorMap = Record<string, string | number[]>;
+| Feature                   | Usage                                      | Since  |
+| ------------------------- | ------------------------------------------ | ------ |
+| Records                   | DTOs, Value Objects, Events, Responses    | Java 16 |
+| Sealed Interfaces         | Decision strategies, handler hierarchies  | Java 17 |
+| Pattern Matching (switch) | Routing, type-based decisions              | Java 21 |
+| Text Blocks               | Complex SQL queries, log templates, JSON   | Java 13 |
+| Optional                  | Search returns (NEVER return null)         | Java 8  |
+| var                       | Local variables with obvious type          | Java 10 |
 
-// CORRECT - satisfies preserves the narrowed type
-const colors = {
-    red: "#ff0000",
-    green: [0, 255, 0],
-} satisfies ColorMap;
+## Records — Mandatory for DTOs
 
-// `colors.red` is inferred as `string`, not `string | number[]`
-colors.red.toUpperCase(); // Works
-colors.green.map((v) => v * 2); // Works
+Records MUST be used for all data transfer objects, value objects, and responses.
 
-// Without satisfies, this would be `string | number[]`
-const colorsOld: ColorMap = { red: "#ff0000", green: [0, 255, 0] };
-// colorsOld.red.toUpperCase(); // Error: might be number[]
+```java
+// ✅ GOOD (Java 21)
+public record MerchantResponse(Long id, String mid, String name, String status) {}
+
+// ❌ BAD (Java 21) — unnecessary class when Record suffices
+public class MerchantResponse {
+    private final Long id;
+    private final String mid;
+    // ... boilerplate
+}
 ```
 
-### Use Cases
+## Sealed Interfaces — Mandatory for Strategies
 
-```typescript
-// Configuration objects with known structure
-const config = {
-    port: 8080,
-    host: "localhost",
-    debug: false,
-} satisfies Record<string, string | number | boolean>;
+```java
+public sealed interface TransactionHandler permits
+    DebitSaleHandler, CreditSaleHandler, ReversalHandler, EchoTestHandler {
 
-// Route definitions
-const routes = {
-    home: "/",
-    merchants: "/api/v1/merchants",
-    terminals: "/api/v1/terminals",
-} satisfies Record<string, string>;
+    boolean supports(String mti, String processingCode);
+    TransactionResult process(IsoMessage request);
+}
 ```
 
-## `const` Type Parameters
+## Pattern Matching Switch — Mandatory for Routing
 
-Infer literal types from generic arguments without requiring `as const`.
-
-```typescript
-// Without const type parameter
-function createRoute<T extends string[]>(paths: T): T {
-    return paths;
-}
-const routes = createRoute(["home", "about"]); // string[]
-
-// CORRECT - with const type parameter
-function createRouteConst<const T extends string[]>(paths: T): T {
-    return paths;
-}
-const routesConst = createRouteConst(["home", "about"]); // readonly ["home", "about"]
-```
-
-### Practical Example
-
-```typescript
-function defineEndpoints<const T extends Record<string, { method: string; path: string }>>(
-    endpoints: T,
-): T {
-    return endpoints;
-}
-
-const api = defineEndpoints({
-    listMerchants: { method: "GET", path: "/api/v1/merchants" },
-    createMerchant: { method: "POST", path: "/api/v1/merchants" },
-});
-
-// api.listMerchants.method is "GET", not string
-```
-
-## Decorators (Stage 3)
-
-Standard TC39 decorators, stable and interoperable.
-
-```typescript
-function logged(originalMethod: Function, context: ClassMethodDecoratorContext) {
-    return function (this: unknown, ...args: unknown[]) {
-        console.log(`Calling ${String(context.name)} with`, args);
-        const result = originalMethod.apply(this, args);
-        console.log(`${String(context.name)} returned`, result);
-        return result;
-    };
-}
-
-class MerchantService {
-    @logged
-    findByMid(mid: string): Merchant | undefined {
-        return this.repository.findByMid(mid);
+```java
+var problemDetail = switch (exception) {
+    case MerchantNotFoundException e -> ProblemDetail.notFound(e.getMessage(), path);
+    case DuplicateException e -> ProblemDetail.conflict(e.getMessage(), path);
+    case ValidationException e -> ProblemDetail.badRequest(e.getMessage(), path);
+    default -> {
+        LOG.error("Unexpected error", exception);
+        yield ProblemDetail.internalError("Internal error", path);
     }
-}
+};
 ```
 
-### Class Field Decorators
+## Text Blocks
 
-```typescript
-function validate(schema: z.ZodType) {
-    return function (_: undefined, context: ClassFieldDecoratorContext) {
-        return function (initialValue: unknown) {
-            return schema.parse(initialValue);
-        };
-    };
-}
+```java
+var query = """
+    SELECT t.id, t.mti, t.stan, t.response_code
+    FROM simulator.transactions t
+    WHERE t.merchant_id = :merchantId
+      AND t.created_at >= :startDate
+    ORDER BY t.created_at DESC
+    """;
 ```
 
-## `using` Keyword (Explicit Resource Management)
+## Virtual Threads (Java 21)
 
-Automatic cleanup via the `Symbol.dispose` protocol.
+Consider virtual threads for I/O-bound operations. Framework support required:
+- Quarkus 3.17+ supports virtual threads natively
+- Spring Boot 3.2+ supports virtual threads via configuration
 
-```typescript
-class DatabaseConnection implements Disposable {
-    [Symbol.dispose](): void {
-        this.close();
-    }
+**Note:** Virtual threads are NOT a replacement for reactive programming. Use them for blocking I/O operations only.
 
-    close(): void {
-        // Release connection back to pool
-    }
-}
+## Sequenced Collections (Java 21)
 
-// CORRECT - automatic disposal at end of scope
-function queryMerchant(id: string): Merchant {
-    using connection = new DatabaseConnection();
-    return connection.query("SELECT * FROM merchants WHERE id = $1", [id]);
-    // connection.[Symbol.dispose]() called automatically
-}
-
-// Async version
-class AsyncFileHandle implements AsyncDisposable {
-    async [Symbol.asyncDispose](): Promise<void> {
-        await this.close();
-    }
-}
-
-async function processFile(path: string): Promise<void> {
-    await using handle = await openFile(path);
-    await handle.write("data");
-    // handle.[Symbol.asyncDispose]() called automatically
-}
-```
-
-## Type Parameter Defaults Improvements
-
-```typescript
-// Improved inference with defaults
-interface Repository<T, ID = string> {
-    findById(id: ID): Promise<T | undefined>;
-    save(entity: T): Promise<T>;
-    deleteById(id: ID): Promise<void>;
-}
-
-// ID defaults to string
-class MerchantRepository implements Repository<Merchant> {
-    async findById(id: string): Promise<Merchant | undefined> { ... }
-}
-
-// Override with number
-class LegacyRepository implements Repository<Order, number> {
-    async findById(id: number): Promise<Order | undefined> { ... }
-}
-```
-
-## tsconfig.json Recommended Settings (TS 5.x)
-
-```json
-{
-    "compilerOptions": {
-        "target": "ES2023",
-        "module": "NodeNext",
-        "moduleResolution": "NodeNext",
-        "strict": true,
-        "noUncheckedIndexedAccess": true,
-        "exactOptionalPropertyTypes": true,
-        "noImplicitOverride": true,
-        "verbatimModuleSyntax": true,
-        "isolatedModules": true,
-        "skipLibCheck": true
-    }
-}
+```java
+SequencedCollection<String> list = new ArrayList<>();
+list.addFirst("first");
+list.addLast("last");
+String first = list.getFirst();
+String last = list.getLast();
 ```
