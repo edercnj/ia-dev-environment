@@ -2,6 +2,9 @@ package dev.iadev.assembler;
 
 import dev.iadev.model.ProjectConfig;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -149,8 +152,8 @@ public final class RulesConditionals {
                 skillsDir.resolve("knowledge-packs");
         CopyHelpers.ensureDirectory(kpDir);
         Path src = cloudDir.resolve(provider + ".md");
-        if (java.nio.file.Files.exists(src)
-                && java.nio.file.Files.isRegularFile(src)) {
+        if (Files.exists(src)
+                && Files.isRegularFile(src)) {
             Path dest = kpDir.resolve(
                     "cloud-" + provider + ".md");
             return List.of(
@@ -188,9 +191,8 @@ public final class RulesConditionals {
     private static List<String> copyDbVersionMatrix(
             Path dbDir, Path target) {
         Path matrix = dbDir.resolve("version-matrix.md");
-        if (java.nio.file.Files.exists(matrix)
-                && java.nio.file.Files
-                .isRegularFile(matrix)) {
+        if (Files.exists(matrix)
+                && Files.isRegularFile(matrix)) {
             Path dest = target.resolve("version-matrix.md");
             return List.of(
                     CopyHelpers.copyStaticFile(
@@ -219,21 +221,18 @@ public final class RulesConditionals {
 
     private static List<String> copyMdDir(
             Path sourceDir, Path target) {
-        if (!java.nio.file.Files.exists(sourceDir)
-                || !java.nio.file.Files
-                .isDirectory(sourceDir)) {
+        if (!Files.exists(sourceDir)
+                || !Files.isDirectory(sourceDir)) {
             return List.of();
         }
         List<String> generated = new ArrayList<>();
-        try (var stream =
-                     java.nio.file.Files.list(sourceDir)) {
+        try (var stream = Files.list(sourceDir)) {
             List<Path> entries = stream
                     .filter(f -> f.toString().endsWith(".md"))
                     .sorted()
                     .toList();
             for (Path entry : entries) {
-                if (!java.nio.file.Files
-                        .isRegularFile(entry)) {
+                if (!Files.isRegularFile(entry)) {
                     continue;
                 }
                 Path dest = target.resolve(
@@ -242,8 +241,8 @@ public final class RulesConditionals {
                         CopyHelpers.copyStaticFile(
                                 entry, dest));
             }
-        } catch (java.io.IOException e) {
-            throw new java.io.UncheckedIOException(
+        } catch (IOException e) {
+            throw new UncheckedIOException(
                     "Failed to list directory: "
                             + sourceDir, e);
         }
@@ -260,9 +259,8 @@ public final class RulesConditionals {
                 "application-security.md",
                 "cryptography.md")) {
             Path src = secDir.resolve(name);
-            if (java.nio.file.Files.exists(src)
-                    && java.nio.file.Files
-                    .isRegularFile(src)) {
+            if (Files.exists(src)
+                    && Files.isRegularFile(src)) {
                 Path dest = secKp.resolve(name);
                 generated.add(
                         CopyHelpers.copyStaticFile(
@@ -283,9 +281,8 @@ public final class RulesConditionals {
                 config.security().frameworks()) {
             Path src = secDir.resolve(
                     "compliance/" + framework + ".md");
-            if (java.nio.file.Files.exists(src)
-                    && java.nio.file.Files
-                    .isRegularFile(src)) {
+            if (Files.exists(src)
+                    && Files.isRegularFile(src)) {
                 Path dest = compKp.resolve(
                         framework + ".md");
                 generated.add(
@@ -305,9 +302,8 @@ public final class RulesConditionals {
         }
         Path src = infraDir.resolve(
                 "kubernetes/deployment-patterns.md");
-        if (java.nio.file.Files.exists(src)
-                && java.nio.file.Files
-                .isRegularFile(src)) {
+        if (Files.exists(src)
+                && Files.isRegularFile(src)) {
             Path dest = kpDir.resolve(
                     "k8s-deployment.md");
             return List.of(
@@ -333,9 +329,8 @@ public final class RulesConditionals {
         for (String[] pair : filePairs) {
             Path src = infraDir.resolve(
                     "containers/" + pair[0]);
-            if (java.nio.file.Files.exists(src)
-                    && java.nio.file.Files
-                    .isRegularFile(src)) {
+            if (Files.exists(src)
+                    && Files.isRegularFile(src)) {
                 Path dest = kpDir.resolve(pair[1]);
                 generated.add(
                         CopyHelpers.copyStaticFile(
@@ -355,9 +350,8 @@ public final class RulesConditionals {
         }
         Path src = infraDir.resolve(
                 "iac/" + iac + "-patterns.md");
-        if (java.nio.file.Files.exists(src)
-                && java.nio.file.Files
-                .isRegularFile(src)) {
+        if (Files.exists(src)
+                && Files.isRegularFile(src)) {
             Path dest = kpDir.resolve(
                     "iac-" + iac + ".md");
             return List.of(
