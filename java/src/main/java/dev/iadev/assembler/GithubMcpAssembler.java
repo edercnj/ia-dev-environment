@@ -3,6 +3,7 @@ package dev.iadev.assembler;
 import dev.iadev.model.McpServerConfig;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
+import dev.iadev.util.JsonHelpers;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -36,8 +37,6 @@ import java.util.TreeMap;
  */
 public final class GithubMcpAssembler
         implements Assembler {
-
-    private static final int JSON_INDENT = 2;
 
     /**
      * Creates a GithubMcpAssembler.
@@ -153,7 +152,8 @@ public final class GithubMcpAssembler
             ProjectConfig config) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\n");
-        sb.append(indent(1)).append("\"mcpServers\": {\n");
+        sb.append(JsonHelpers.indent(1))
+                .append("\"mcpServers\": {\n");
 
         List<McpServerConfig> servers =
                 config.mcp().servers();
@@ -166,7 +166,7 @@ public final class GithubMcpAssembler
             }
         }
 
-        sb.append(indent(1)).append("}\n");
+        sb.append(JsonHelpers.indent(1)).append("}\n");
         sb.append("}\n");
         return sb.toString();
     }
@@ -174,14 +174,14 @@ public final class GithubMcpAssembler
     private static void appendServer(
             StringBuilder sb,
             McpServerConfig server) {
-        sb.append(indent(2))
+        sb.append(JsonHelpers.indent(2))
                 .append('"')
-                .append(escapeJson(server.id()))
+                .append(JsonHelpers.escapeJson(server.id()))
                 .append("\": {\n");
 
-        sb.append(indent(3))
+        sb.append(JsonHelpers.indent(3))
                 .append("\"url\": \"")
-                .append(escapeJson(server.url()))
+                .append(JsonHelpers.escapeJson(server.url()))
                 .append('"');
 
         boolean hasCaps =
@@ -203,21 +203,21 @@ public final class GithubMcpAssembler
             appendEnv(sb, server.env());
         }
 
-        sb.append(indent(2)).append("}\n");
+        sb.append(JsonHelpers.indent(2)).append("}\n");
     }
 
     private static void appendCapabilities(
             StringBuilder sb,
             List<String> capabilities,
             boolean hasMore) {
-        sb.append(indent(3))
+        sb.append(JsonHelpers.indent(3))
                 .append("\"capabilities\": [");
         for (int i = 0; i < capabilities.size(); i++) {
             if (i > 0) {
                 sb.append(", ");
             }
             sb.append('"')
-                    .append(escapeJson(
+                    .append(JsonHelpers.escapeJson(
                             capabilities.get(i)))
                     .append('"');
         }
@@ -232,7 +232,8 @@ public final class GithubMcpAssembler
     private static void appendEnv(
             StringBuilder sb,
             Map<String, String> env) {
-        sb.append(indent(3)).append("\"env\": {\n");
+        sb.append(JsonHelpers.indent(3))
+                .append("\"env\": {\n");
 
         Map<String, String> sorted = new TreeMap<>(env);
         List<Map.Entry<String, String>> entries =
@@ -241,27 +242,20 @@ public final class GithubMcpAssembler
         for (int i = 0; i < entries.size(); i++) {
             Map.Entry<String, String> entry =
                     entries.get(i);
-            sb.append(indent(4))
+            sb.append(JsonHelpers.indent(4))
                     .append('"')
-                    .append(escapeJson(entry.getKey()))
+                    .append(JsonHelpers.escapeJson(
+                            entry.getKey()))
                     .append("\": \"")
-                    .append(escapeJson(entry.getValue()))
+                    .append(JsonHelpers.escapeJson(
+                            entry.getValue()))
                     .append('"');
             if (i < entries.size() - 1) {
                 sb.append(',');
             }
             sb.append('\n');
         }
-        sb.append(indent(3)).append("}\n");
-    }
-
-    private static String indent(int level) {
-        return "  ".repeat(level);
-    }
-
-    private static String escapeJson(String value) {
-        return value.replace("\\", "\\\\")
-                .replace("\"", "\\\"");
+        sb.append(JsonHelpers.indent(3)).append("}\n");
     }
 
     /**

@@ -3,6 +3,7 @@ package dev.iadev.assembler;
 import dev.iadev.domain.stack.StackMapping;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
+import dev.iadev.util.JsonHelpers;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -71,7 +72,6 @@ public final class SettingsAssembler implements Assembler {
     private static final String ORCH_KUBERNETES = "kubernetes";
     private static final String ORCH_COMPOSE =
             "docker-compose";
-    private static final int JSON_INDENT = 2;
     private static final int HOOK_TIMEOUT = 60;
 
     private final Path resourcesDir;
@@ -349,24 +349,29 @@ public final class SettingsAssembler implements Assembler {
             List<String> permissions, boolean hasHooks) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\n");
-        sb.append(indent(1)).append("\"permissions\": {\n");
-        sb.append(indent(2)).append("\"allow\": [\n");
+        sb.append(JsonHelpers.indent(1))
+                .append("\"permissions\": {\n");
+        sb.append(JsonHelpers.indent(2))
+                .append("\"allow\": [\n");
         for (int i = 0; i < permissions.size(); i++) {
-            sb.append(indent(3))
+            sb.append(JsonHelpers.indent(3))
                     .append('"')
-                    .append(escapeJson(permissions.get(i)))
+                    .append(JsonHelpers.escapeJson(
+                            permissions.get(i)))
                     .append('"');
             if (i < permissions.size() - 1) {
                 sb.append(',');
             }
             sb.append('\n');
         }
-        sb.append(indent(2)).append("]\n");
+        sb.append(JsonHelpers.indent(2)).append("]\n");
         if (hasHooks) {
-            sb.append(indent(1)).append("},\n");
+            sb.append(JsonHelpers.indent(1))
+                    .append("},\n");
             appendHooksSection(sb);
         } else {
-            sb.append(indent(1)).append("}\n");
+            sb.append(JsonHelpers.indent(1))
+                    .append("}\n");
         }
         sb.append("}\n");
         return sb.toString();
@@ -374,33 +379,35 @@ public final class SettingsAssembler implements Assembler {
 
     private static void appendHooksSection(
             StringBuilder sb) {
-        sb.append(indent(1)).append("\"hooks\": {\n");
-        sb.append(indent(2))
+        sb.append(JsonHelpers.indent(1))
+                .append("\"hooks\": {\n");
+        sb.append(JsonHelpers.indent(2))
                 .append("\"PostToolUse\": [\n");
-        sb.append(indent(3)).append("{\n");
-        sb.append(indent(4))
+        sb.append(JsonHelpers.indent(3)).append("{\n");
+        sb.append(JsonHelpers.indent(4))
                 .append("\"matcher\": \"Write|Edit\",\n");
-        sb.append(indent(4)).append("\"hooks\": [\n");
-        sb.append(indent(5)).append("{\n");
-        sb.append(indent(6))
+        sb.append(JsonHelpers.indent(4))
+                .append("\"hooks\": [\n");
+        sb.append(JsonHelpers.indent(5)).append("{\n");
+        sb.append(JsonHelpers.indent(6))
                 .append("\"type\": \"command\",\n");
-        sb.append(indent(6))
+        sb.append(JsonHelpers.indent(6))
                 .append("\"command\": ")
                 .append("\"\\\"$CLAUDE_PROJECT_DIR\\\"")
                 .append("/.claude/hooks/")
                 .append("post-compile-check.sh\",\n");
-        sb.append(indent(6))
+        sb.append(JsonHelpers.indent(6))
                 .append("\"timeout\": ")
                 .append(HOOK_TIMEOUT)
                 .append(",\n");
-        sb.append(indent(6))
+        sb.append(JsonHelpers.indent(6))
                 .append("\"statusMessage\": ")
                 .append("\"Checking compilation...\"\n");
-        sb.append(indent(5)).append("}\n");
-        sb.append(indent(4)).append("]\n");
-        sb.append(indent(3)).append("}\n");
-        sb.append(indent(2)).append("]\n");
-        sb.append(indent(1)).append("}\n");
+        sb.append(JsonHelpers.indent(5)).append("}\n");
+        sb.append(JsonHelpers.indent(4)).append("]\n");
+        sb.append(JsonHelpers.indent(3)).append("}\n");
+        sb.append(JsonHelpers.indent(2)).append("]\n");
+        sb.append(JsonHelpers.indent(1)).append("}\n");
     }
 
     /**
@@ -411,20 +418,13 @@ public final class SettingsAssembler implements Assembler {
     static String buildSettingsLocalJson() {
         StringBuilder sb = new StringBuilder();
         sb.append("{\n");
-        sb.append(indent(1)).append("\"permissions\": {\n");
-        sb.append(indent(2)).append("\"allow\": []\n");
-        sb.append(indent(1)).append("}\n");
+        sb.append(JsonHelpers.indent(1))
+                .append("\"permissions\": {\n");
+        sb.append(JsonHelpers.indent(2))
+                .append("\"allow\": []\n");
+        sb.append(JsonHelpers.indent(1)).append("}\n");
         sb.append("}\n");
         return sb.toString();
-    }
-
-    private static String indent(int level) {
-        return "  ".repeat(level);
-    }
-
-    private static String escapeJson(String value) {
-        return value.replace("\\", "\\\\")
-                .replace("\"", "\\\"");
     }
 
     private static Path resolveClasspathResources() {
