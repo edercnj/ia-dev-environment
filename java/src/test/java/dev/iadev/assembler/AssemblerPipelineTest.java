@@ -54,7 +54,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("returns exactly 23 assembler descriptors")
-        void returnsExactly23() {
+        void assemble_whenCalled_returnsExactly23() {
             List<AssemblerDescriptor> descriptors =
                     AssemblerPipeline.buildAssemblers();
 
@@ -63,7 +63,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("assemblers are in RULE-005 order")
-        void correctOrder() {
+        void assemble_whenCalled_correctOrder() {
             List<AssemblerDescriptor> descriptors =
                     AssemblerPipeline.buildAssemblers();
 
@@ -76,7 +76,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("assembler targets match specification")
-        void targetsMatchSpec() {
+        void assemble_whenCalled_targetsMatchSpec() {
             List<AssemblerDescriptor> descriptors =
                     AssemblerPipeline.buildAssemblers();
 
@@ -97,14 +97,14 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("each descriptor has non-null assembler")
-        void allAssemblersNotNull() {
+        void assemble_whenCalled_allAssemblersNotNull() {
             List<AssemblerDescriptor> descriptors =
                     AssemblerPipeline.buildAssemblers();
 
             for (AssemblerDescriptor d : descriptors) {
                 assertThat(d.assembler())
                         .as("assembler for %s", d.name())
-                        .isNotNull();
+                        .isInstanceOf(Assembler.class);
             }
         }
     }
@@ -115,7 +115,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("executes all assemblers sequentially")
-        void executesAll(@TempDir Path tempDir) {
+        void assemble_whenCalled_executesAll(@TempDir Path tempDir) {
             List<String> executionOrder = new ArrayList<>();
 
             List<AssemblerDescriptor> descriptors = List.of(
@@ -130,7 +130,7 @@ class AssemblerPipelineTest {
                     TestConfigBuilder.minimal();
             TemplateEngine engine = new TemplateEngine();
 
-            AssemblerPipeline.NormalizedResult result =
+            AssemblerResult result =
                     AssemblerPipeline.executeAssemblers(
                             descriptors, config, tempDir, engine);
 
@@ -141,14 +141,14 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("collects files from all assemblers")
-        void collectsFiles(@TempDir Path tempDir) {
+        void assemble_whenCalled_collectsFiles(@TempDir Path tempDir) {
             List<AssemblerDescriptor> descriptors = List.of(
                     descriptor("X", (c, e, p) ->
                             List.of("x1.md", "x2.md")),
                     descriptor("Y", (c, e, p) ->
                             List.of("y1.md")));
 
-            AssemblerPipeline.NormalizedResult result =
+            AssemblerResult result =
                     AssemblerPipeline.executeAssemblers(
                             descriptors,
                             TestConfigBuilder.minimal(),
@@ -161,7 +161,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("wraps exceptions in PipelineException")
-        void wrapsExceptions(@TempDir Path tempDir) {
+        void assemble_whenCalled_wrapsExceptions(@TempDir Path tempDir) {
             Assembler failing = (c, e, p) -> {
                 throw new RuntimeException("boom");
             };
@@ -181,7 +181,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("preserves PipelineException as-is")
-        void preservesPipelineException(@TempDir Path tempDir) {
+        void assemble_whenCalled_preservesPipelineException(@TempDir Path tempDir) {
             PipelineException original =
                     new PipelineException(
                             "original", "Inner", null);
@@ -203,7 +203,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("stops at first failure")
-        void stopsAtFirstFailure(@TempDir Path tempDir) {
+        void assemble_whenCalled_stopsAtFirstFailure(@TempDir Path tempDir) {
             List<String> executed = new ArrayList<>();
 
             List<AssemblerDescriptor> descriptors = List.of(
@@ -225,6 +225,88 @@ class AssemblerPipelineTest {
 
             assertThat(executed).containsExactly("OK");
         }
+
+        @Test
+        @DisplayName("collects warnings from assemblers"
+                + " via assembleWithResult")
+        void assemble_whenCalled_collectsWarnings(@TempDir Path tempDir) {
+            Assembler withWarnings =
+                    new WarningAssembler(
+                            List.of("f1.md"),
+                            List.of("missing ref"));
+            Assembler noWarnings = (c, e, p) ->
+                    List.of("f2.md");
+
+            List<AssemblerDescriptor> descriptors = List.of(
+                    descriptor("WarnAsm", withWarnings),
+                    descriptor("OkAsm", noWarnings));
+
+            AssemblerResult result =
+                    AssemblerPipeline.executeAssemblers(
+                            descriptors,
+                            TestConfigBuilder.minimal(),
+                            tempDir,
+                            new TemplateEngine());
+
+            assertThat(result.files())
+                    .containsExactly("f1.md", "f2.md");
+            assertThat(result.warnings()).hasSize(1);
+            assertThat(result.warnings().get(0))
+                    .startsWith("[WARN] WarnAsm:")
+                    .contains("missing ref");
+        }
+
+        @Test
+        @DisplayName("consolidates warnings from"
+                + " multiple assemblers in order")
+        void assemble_whenCalled_consolidatesWarningsInOrder(
+                @TempDir Path tempDir) {
+            Assembler asm1 = new WarningAssembler(
+                    List.of(), List.of("warn-A"));
+            Assembler asm2 = new WarningAssembler(
+                    List.of(), List.of());
+            Assembler asm3 = new WarningAssembler(
+                    List.of(), List.of("warn-C"));
+
+            List<AssemblerDescriptor> descriptors = List.of(
+                    descriptor("First", asm1),
+                    descriptor("Second", asm2),
+                    descriptor("Third", asm3));
+
+            AssemblerResult result =
+                    AssemblerPipeline.executeAssemblers(
+                            descriptors,
+                            TestConfigBuilder.minimal(),
+                            tempDir,
+                            new TemplateEngine());
+
+            assertThat(result.warnings())
+                    .hasSize(2)
+                    .containsExactly(
+                            "[WARN] First: warn-A",
+                            "[WARN] Third: warn-C");
+        }
+
+        @Test
+        @DisplayName("assembler without warnings"
+                + " returns empty warnings")
+        void assemble_whenCalled_noWarningsFromDefaultAssembler(
+                @TempDir Path tempDir) {
+            Assembler simple = (c, e, p) ->
+                    List.of("out.md");
+
+            List<AssemblerDescriptor> descriptors = List.of(
+                    descriptor("Simple", simple));
+
+            AssemblerResult result =
+                    AssemblerPipeline.executeAssemblers(
+                            descriptors,
+                            TestConfigBuilder.minimal(),
+                            tempDir,
+                            new TemplateEngine());
+
+            assertThat(result.warnings()).isEmpty();
+        }
     }
 
     @Nested
@@ -233,7 +315,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("dry-run returns result without writing")
-        void dryRun_noFilesWritten(@TempDir Path tempDir) {
+        void dryRun_whenCalled_noFilesWritten(@TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
             PipelineOptions opts = new PipelineOptions(
                     true, false, false, null);
@@ -258,7 +340,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("real run returns successful result")
-        void realRun_returnsSuccess(@TempDir Path tempDir) {
+        void realRun_whenCalled_returnsSuccess(@TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
             PipelineOptions opts = PipelineOptions.defaults();
 
@@ -277,7 +359,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("pipeline failure wraps in PipelineException")
-        void failure_throwsPipelineException(
+        void failure_whenCalled_throwsPipelineException(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
             Assembler failing = (c, e, p) -> {
@@ -304,7 +386,7 @@ class AssemblerPipelineTest {
 
         @Test
         @DisplayName("result contains fileCount matching files")
-        void result_fileCountMatchesFiles(
+        void result_fileCount_matchesFiles(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
             PipelineOptions opts = new PipelineOptions(
@@ -320,6 +402,50 @@ class AssemblerPipelineTest {
             assertThat(result.filesGenerated().size())
                     .isEqualTo(
                             result.filesGenerated().size());
+        }
+    }
+
+    @Nested
+    @DisplayName("assembleWithResult — default method")
+    class AssembleWithResultDefault {
+
+        @Test
+        @DisplayName("default wraps assemble with"
+                + " empty warnings")
+        void assembleWithResult_defaultWrapsAssemble_succeeds(
+                @TempDir Path tempDir) {
+            Assembler simple = (c, e, p) ->
+                    List.of("file.md");
+
+            AssemblerResult result =
+                    simple.assembleWithResult(
+                            TestConfigBuilder.minimal(),
+                            new TemplateEngine(),
+                            tempDir);
+
+            assertThat(result.files())
+                    .containsExactly("file.md");
+            assertThat(result.warnings()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("override provides warnings")
+        void assembleWithResult_whenCalled_overrideProvides(
+                @TempDir Path tempDir) {
+            Assembler withWarn = new WarningAssembler(
+                    List.of("x.md"),
+                    List.of("some warning"));
+
+            AssemblerResult result =
+                    withWarn.assembleWithResult(
+                            TestConfigBuilder.minimal(),
+                            new TemplateEngine(),
+                            tempDir);
+
+            assertThat(result.files())
+                    .containsExactly("x.md");
+            assertThat(result.warnings())
+                    .containsExactly("some warning");
         }
     }
 
@@ -347,5 +473,39 @@ class AssemblerPipelineTest {
                 new AssemblerDescriptor(
                         "StubB", AssemblerTarget.GITHUB,
                         (c, e, p) -> List.of("b.md")));
+    }
+
+    /**
+     * Test helper: assembler that returns fixed files
+     * and overrides assembleWithResult with warnings.
+     */
+    private static final class WarningAssembler
+            implements Assembler {
+
+        private final List<String> files;
+        private final List<String> warnings;
+
+        WarningAssembler(
+                List<String> files,
+                List<String> warnings) {
+            this.files = files;
+            this.warnings = warnings;
+        }
+
+        @Override
+        public List<String> assemble(
+                ProjectConfig config,
+                TemplateEngine engine,
+                Path outputDir) {
+            return files;
+        }
+
+        @Override
+        public AssemblerResult assembleWithResult(
+                ProjectConfig config,
+                TemplateEngine engine,
+                Path outputDir) {
+            return AssemblerResult.of(files, warnings);
+        }
     }
 }

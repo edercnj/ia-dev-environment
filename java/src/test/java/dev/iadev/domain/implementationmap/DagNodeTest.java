@@ -51,7 +51,7 @@ class DagNodeTest {
     class Mutation {
 
         @Test
-        void setPhase_updatesPhase() {
+        void setPhase_whenCalled_updatesPhase() {
             var node = new DagNode(
                     "s-001", "Root",
                     new ArrayList<>(), new ArrayList<>());
@@ -62,7 +62,7 @@ class DagNodeTest {
         }
 
         @Test
-        void setOnCriticalPath_updatesFlag() {
+        void setOnCriticalPath_whenCalled_updatesFlag() {
             var node = new DagNode(
                     "s-001", "Root",
                     new ArrayList<>(), new ArrayList<>());
@@ -74,7 +74,7 @@ class DagNodeTest {
     }
 
     @Test
-    void toString_containsStoryIdAndPhase() {
+    void toString_whenCalled_containsStoryIdAndPhase() {
         var node = new DagNode(
                 "s-001", "Root",
                 new ArrayList<>(), new ArrayList<>());

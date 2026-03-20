@@ -26,7 +26,7 @@ class AuditorTest {
         @Test
         @DisplayName("returns empty result when dir"
                 + " does not exist")
-        void emptyResultForMissingDir(
+        void audit_forMissingDir_emptyResult(
                 @TempDir Path tempDir) {
             Path rulesDir =
                     tempDir.resolve("nonexistent");
@@ -43,7 +43,7 @@ class AuditorTest {
         @Test
         @DisplayName("returns empty result when path"
                 + " is a file not directory")
-        void emptyResultForFile(@TempDir Path tempDir)
+        void audit_forFile_emptyResult(@TempDir Path tempDir)
                 throws IOException {
             Path file = tempDir.resolve("not-a-dir");
             Files.writeString(file, "x",
@@ -64,7 +64,7 @@ class AuditorTest {
         @Test
         @DisplayName("no warnings when file count and"
                 + " bytes within limits")
-        void noWarningsWithinLimits(@TempDir Path tempDir)
+        void auditRulesContext_noWarningsWithinLimits_succeeds(@TempDir Path tempDir)
                 throws IOException {
             Path rulesDir =
                     Files.createDirectories(
@@ -90,7 +90,7 @@ class AuditorTest {
         @Test
         @DisplayName("exactly 10 files produces no"
                 + " warning")
-        void exactlyMaxNoWarning(@TempDir Path tempDir)
+        void auditRulesContext_whenCalled_exactlyMaxNoWarning(@TempDir Path tempDir)
                 throws IOException {
             Path rulesDir =
                     Files.createDirectories(
@@ -119,7 +119,7 @@ class AuditorTest {
 
         @Test
         @DisplayName("warns when file count exceeds maximum")
-        void warnsFileCountExceeded(@TempDir Path tempDir)
+        void auditRulesContext_whenCalled_warnsFileCountExceeded(@TempDir Path tempDir)
                 throws IOException {
             Path rulesDir =
                     Files.createDirectories(
@@ -148,7 +148,7 @@ class AuditorTest {
         @Test
         @DisplayName("warns when total bytes exceeds"
                 + " maximum")
-        void warnsBytesExceeded(@TempDir Path tempDir)
+        void auditRulesContext_whenCalled_warnsBytesExceeded(@TempDir Path tempDir)
                 throws IOException {
             Path rulesDir =
                     Files.createDirectories(
@@ -178,7 +178,7 @@ class AuditorTest {
         @Test
         @DisplayName("both warnings when both thresholds"
                 + " exceeded")
-        void bothWarnings(@TempDir Path tempDir)
+        void auditRulesContext_whenCalled_bothWarnings(@TempDir Path tempDir)
                 throws IOException {
             Path rulesDir =
                     Files.createDirectories(
@@ -206,7 +206,7 @@ class AuditorTest {
 
         @Test
         @DisplayName("fileSizes sorted by size descending")
-        void sortedBySizeDescending(@TempDir Path tempDir)
+        void auditRulesContext_whenCalled_sortedBySizeDescending(@TempDir Path tempDir)
                 throws IOException {
             Path rulesDir =
                     Files.createDirectories(
@@ -243,7 +243,7 @@ class AuditorTest {
 
         @Test
         @DisplayName("ignores non-md files")
-        void ignoresNonMdFiles(@TempDir Path tempDir)
+        void auditRulesContext_whenCalled_ignoresNonMdFiles(@TempDir Path tempDir)
                 throws IOException {
             Path rulesDir =
                     Files.createDirectories(
@@ -269,14 +269,14 @@ class AuditorTest {
 
         @Test
         @DisplayName("MAX_FILE_COUNT is 10")
-        void maxFileCountIs10() {
+        void audit_whenCalled_maxFileCountIs10() {
             assertThat(Auditor.MAX_FILE_COUNT)
                     .isEqualTo(10);
         }
 
         @Test
         @DisplayName("MAX_TOTAL_BYTES is 51200 (50KB)")
-        void maxTotalBytesIs51200() {
+        void audit_whenCalled_maxTotalBytesIs51200() {
             assertThat(Auditor.MAX_TOTAL_BYTES)
                     .isEqualTo(51_200L);
         }

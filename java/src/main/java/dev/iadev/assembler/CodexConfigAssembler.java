@@ -5,11 +5,8 @@ import dev.iadev.model.McpServerConfig;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,54 +46,80 @@ public final class CodexConfigAssembler
             ProjectConfig config,
             TemplateEngine engine,
             Path outputDir) {
+        return assembleWithResult(
+                config, engine, outputDir).files();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public AssemblerResult assembleWithResult(
+            ProjectConfig config,
+            TemplateEngine engine,
+            Path outputDir) {
         Path hooksDir = outputDir.getParent()
                 .resolve(".claude").resolve("hooks");
-        boolean hasHooks =
-                CodexShared.detectHooks(hooksDir);
+        HookPresence hookPresence = HookPresence.of(
+                CodexShared.detectHooks(hooksDir));
 
-        for (McpServerConfig server
-                : config.mcp().servers()) {
-            if (!CodexShared.isValidTomlBareKey(
-                    server.id())) {
-                System.err.println(
-                        "WARNING: MCP server id \""
-                                + server.id()
-                                + "\" contains invalid"
-                                + " TOML characters");
-            }
-        }
+        List<String> warnings =
+                collectTomlKeyWarnings(config);
 
         Map<String, Object> context =
-                buildConfigContext(config, hasHooks);
+                buildConfigContext(config, hookPresence);
 
         String rendered = engine.render(
                 TEMPLATE_PATH, context);
 
         CopyHelpers.ensureDirectory(outputDir);
         Path dest = outputDir.resolve("config.toml");
-        writeFile(dest, rendered);
+        CopyHelpers.writeFile(dest, rendered);
 
-        return List.of(dest.toString());
+        return AssemblerResult.of(
+                List.of(dest.toString()), warnings);
+    }
+
+    /**
+     * Validates MCP server IDs for TOML bare key
+     * compliance.
+     *
+     * @param config the project configuration
+     * @return list of warning messages for invalid IDs
+     */
+    static List<String> collectTomlKeyWarnings(
+            ProjectConfig config) {
+        List<String> warnings = new ArrayList<>();
+        for (McpServerConfig server
+                : config.mcp().servers()) {
+            if (!CodexShared.isValidTomlBareKey(
+                    server.id())) {
+                warnings.add(
+                        ("MCP server id \"%s\" contains"
+                                + " invalid TOML characters")
+                                .formatted(server.id()));
+            }
+        }
+        return warnings;
     }
 
     /**
      * Builds the template context for {@code config.toml}
      * rendering.
      *
-     * @param config   the project configuration
-     * @param hasHooks whether hooks were detected
+     * @param config       the project configuration
+     * @param hookPresence whether hooks were detected
      * @return the template context map
      */
     static Map<String, Object> buildConfigContext(
             ProjectConfig config,
-            boolean hasHooks) {
+            HookPresence hookPresence) {
         List<Map<String, Object>> mcpServers =
                 CodexShared.mapMcpServers(config);
         Map<String, Object> ctx = new LinkedHashMap<>(
                 ContextBuilder.buildContext(config));
         ctx.put("model", CodexShared.DEFAULT_MODEL);
         ctx.put("approval_policy",
-                CodexShared.deriveApprovalPolicy(hasHooks));
+                CodexShared.deriveApprovalPolicy(
+                        hookPresence));
         ctx.put("sandbox_mode",
                 CodexShared.SANDBOX_WORKSPACE_WRITE);
         ctx.put("mcp_servers", mcpServers);
@@ -104,14 +127,4 @@ public final class CodexConfigAssembler
         return ctx;
     }
 
-    private static void writeFile(
-            Path dest, String content) {
-        try {
-            Files.writeString(
-                    dest, content, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to write file: " + dest, e);
-        }
-    }
 }

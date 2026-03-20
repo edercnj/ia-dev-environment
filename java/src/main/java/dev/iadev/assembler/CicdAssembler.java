@@ -6,49 +6,31 @@ import dev.iadev.domain.stack.StackMapping;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Assembles CI/CD pipeline artifacts conditionally based on
- * the project configuration.
+ * Coordinator that assembles CI/CD pipeline artifacts by
+ * delegating to five specialized sub-assemblers.
  *
  * <p>This is the twenty-first assembler in the pipeline
- * (position 21 of 23 per RULE-005). It generates up to five
- * types of artifacts:
+ * (position 21 of 23 per RULE-005). It delegates to:
  * <ol>
- *   <li>CI workflow ({@code .github/workflows/ci.yml}) —
- *       always generated</li>
- *   <li>Dockerfile — conditional on
+ *   <li>{@link CiWorkflowAssembler} — always generated</li>
+ *   <li>{@link DockerfileAssembler} — conditional on
  *       {@code container == "docker"}</li>
- *   <li>Docker Compose — conditional on
+ *   <li>{@link DockerComposeAssembler} — conditional on
  *       {@code container == "docker"}</li>
- *   <li>K8s manifests (deployment, service, configmap) —
- *       conditional on
+ *   <li>{@link K8sManifestAssembler} — conditional on
  *       {@code orchestrator == "kubernetes"}</li>
- *   <li>Smoke test config — conditional on
+ *   <li>{@link SmokeTestAssembler} — conditional on
  *       {@code smokeTests == true}</li>
  * </ol>
  *
  * <p>Uses {@link #buildStackContext(ProjectConfig)} to resolve
- * stack-specific commands (compile, build, test, coverage,
- * lint) from {@link StackMapping} constants.</p>
- *
- * <p>Example usage:
- * <pre>{@code
- * Assembler cicd = new CicdAssembler();
- * List<String> files = cicd.assemble(
- *     config, engine, outputDir);
- * }</pre>
- * </p>
+ * stack-specific commands from {@link StackMapping}.</p>
  *
  * @see Assembler
  * @see StackMapping
@@ -57,22 +39,6 @@ public final class CicdAssembler implements Assembler {
 
     private static final String CICD_TEMPLATES =
             "cicd-templates";
-    private static final String CI_TEMPLATE =
-            "ci-workflow/ci.yml.njk";
-    private static final String COMPOSE_TEMPLATE =
-            "docker-compose/docker-compose.yml.njk";
-    private static final String SMOKE_SOURCE =
-            "smoke-tests/smoke-config.md";
-    private static final String DOCKER_CONDITION =
-            "docker";
-    private static final String K8S_CONDITION =
-            "kubernetes";
-
-    private static final List<String> K8S_MANIFESTS =
-            List.of(
-                    "deployment.yaml",
-                    "service.yaml",
-                    "configmap.yaml");
 
     /**
      * Lint command mapping per language-buildTool key.
@@ -99,7 +65,14 @@ public final class CicdAssembler implements Assembler {
     private static final String DEFAULT_LINT_CMD =
             "echo 'No linter configured'";
 
+    private static final int INITIAL_CICD_MAP_CAPACITY = 16;
+
     private final Path resourcesDir;
+    private final CiWorkflowAssembler ciWorkflow;
+    private final DockerfileAssembler dockerfile;
+    private final DockerComposeAssembler dockerCompose;
+    private final K8sManifestAssembler k8sManifest;
+    private final SmokeTestAssembler smokeTest;
 
     /**
      * Creates a CicdAssembler using classpath resources.
@@ -116,14 +89,19 @@ public final class CicdAssembler implements Assembler {
      */
     public CicdAssembler(Path resourcesDir) {
         this.resourcesDir = resourcesDir;
+        this.ciWorkflow = new CiWorkflowAssembler();
+        this.dockerfile = new DockerfileAssembler();
+        this.dockerCompose = new DockerComposeAssembler();
+        this.k8sManifest = new K8sManifestAssembler();
+        this.smokeTest = new SmokeTestAssembler();
     }
 
     /**
      * {@inheritDoc}
      *
-     * <p>Builds a stack context, then generates CI/CD
-     * artifacts conditionally. Returns the list of generated
-     * file paths.</p>
+     * <p>Builds a stack context, then delegates to five
+     * specialized sub-assemblers. Returns the merged list
+     * of generated file paths.</p>
      */
     @Override
     public List<String> assemble(
@@ -136,28 +114,23 @@ public final class CicdAssembler implements Assembler {
                 mergeContexts(
                         ContextBuilder.buildContext(config),
                         ctx);
-        GenerationContext gc = new GenerationContext(
+        CicdContext cicdCtx = new CicdContext(
                 config, outputDir, resourcesDir,
-                engine, fullContext,
-                new ArrayList<>(), new ArrayList<>());
+                engine, fullContext);
 
-        generateCiWorkflow(gc);
-        generateDockerfile(gc);
-        generateDockerCompose(gc);
-        generateK8sManifests(gc);
-        generateSmokeTestConfig(gc);
+        CicdResult result = CicdResult.merge(List.of(
+                ciWorkflow.assemble(cicdCtx),
+                dockerfile.assemble(cicdCtx),
+                dockerCompose.assemble(cicdCtx),
+                k8sManifest.assemble(cicdCtx),
+                smokeTest.assemble(cicdCtx)));
 
-        return gc.files;
+        return result.files();
     }
 
     /**
      * Builds a stack-specific template context from
      * {@link StackMapping} constants.
-     *
-     * <p>Resolves compile, build, test, coverage, and lint
-     * commands for the language/build-tool combination.
-     * Also resolves framework port, health path, and Docker
-     * base image.</p>
      *
      * @param config the project configuration
      * @return the stack context map
@@ -166,8 +139,62 @@ public final class CicdAssembler implements Assembler {
             ProjectConfig config) {
         String langKey = config.language().name()
                 + "-" + config.framework().buildTool();
+
+        Map<String, Object> ctx =
+                new LinkedHashMap<>(
+                        INITIAL_CICD_MAP_CAPACITY);
+        addCommandEntries(langKey, ctx);
+        addEnvironmentEntries(config, ctx);
+        return ctx;
+    }
+
+    private static void addCommandEntries(
+            String langKey,
+            Map<String, Object> ctx) {
         LanguageCommandSet commands =
                 StackMapping.LANGUAGE_COMMANDS.get(langKey);
+        addBuildCommands(commands, ctx);
+        addToolingCommands(langKey, commands, ctx);
+    }
+
+    private static void addBuildCommands(
+            LanguageCommandSet commands,
+            Map<String, Object> ctx) {
+        ctx.put("compile_cmd",
+                cmd(commands, LanguageCommandSet::compileCmd));
+        ctx.put("build_cmd",
+                cmd(commands, LanguageCommandSet::buildCmd));
+        ctx.put("test_cmd",
+                cmd(commands, LanguageCommandSet::testCmd));
+        ctx.put("coverage_cmd",
+                cmd(commands, LanguageCommandSet::coverageCmd));
+    }
+
+    private static void addToolingCommands(
+            String langKey,
+            LanguageCommandSet commands,
+            Map<String, Object> ctx) {
+        ctx.put("lint_cmd",
+                LINT_COMMANDS.getOrDefault(
+                        langKey, DEFAULT_LINT_CMD));
+        ctx.put("file_extension",
+                cmd(commands, LanguageCommandSet::fileExtension));
+        ctx.put("build_file",
+                cmd(commands, LanguageCommandSet::buildFile));
+        ctx.put("package_manager",
+                cmd(commands, LanguageCommandSet::packageManager));
+    }
+
+    private static String cmd(
+            LanguageCommandSet commands,
+            java.util.function.Function<
+                    LanguageCommandSet, String> getter) {
+        return commands != null ? getter.apply(commands) : "";
+    }
+
+    private static void addEnvironmentEntries(
+            ProjectConfig config,
+            Map<String, Object> ctx) {
         int port = StackMapping.FRAMEWORK_PORTS.getOrDefault(
                 config.framework().name(),
                 StackMapping.DEFAULT_PORT_FALLBACK);
@@ -185,228 +212,11 @@ public final class CicdAssembler implements Assembler {
                 "{version}",
                 config.language().version());
 
-        Map<String, Object> ctx =
-                new LinkedHashMap<>(16);
-        ctx.put("compile_cmd",
-                commands != null
-                        ? commands.compileCmd() : "");
-        ctx.put("build_cmd",
-                commands != null
-                        ? commands.buildCmd() : "");
-        ctx.put("test_cmd",
-                commands != null
-                        ? commands.testCmd() : "");
-        ctx.put("coverage_cmd",
-                commands != null
-                        ? commands.coverageCmd() : "");
-        ctx.put("lint_cmd",
-                LINT_COMMANDS.getOrDefault(
-                        langKey, DEFAULT_LINT_CMD));
-        ctx.put("file_extension",
-                commands != null
-                        ? commands.fileExtension() : "");
-        ctx.put("build_file",
-                commands != null
-                        ? commands.buildFile() : "");
-        ctx.put("package_manager",
-                commands != null
-                        ? commands.packageManager() : "");
         ctx.put("framework_port", port);
         ctx.put("health_path", healthPath);
         ctx.put("docker_base_image", resolvedImage);
         ctx.put("container",
                 config.infrastructure().container());
-        return ctx;
-    }
-
-    /**
-     * CI workflow — always generated.
-     *
-     * @param gc the generation context
-     */
-    private void generateCiWorkflow(
-            GenerationContext gc) {
-        Path dest = gc.outputDir
-                .resolve(".github")
-                .resolve("workflows")
-                .resolve("ci.yml");
-        String err = renderAndWrite(
-                gc.engine, CI_TEMPLATE, dest, gc.ctx);
-        if (err == null) {
-            gc.files.add(dest.toString());
-        } else {
-            gc.warnings.add(err);
-        }
-    }
-
-    /**
-     * Dockerfile — conditional on container == "docker".
-     *
-     * @param gc the generation context
-     */
-    private void generateDockerfile(
-            GenerationContext gc) {
-        if (!DOCKER_CONDITION.equals(
-                gc.config.infrastructure().container())) {
-            gc.warnings.add(
-                    "Dockerfile skipped:"
-                            + " container is not docker");
-            return;
-        }
-        String stackKey = gc.config.language().name()
-                + "-"
-                + gc.config.framework().buildTool();
-        String tpl = "dockerfile/Dockerfile."
-                + stackKey + ".njk";
-        Path srcPath = gc.resourcesDir
-                .resolve(CICD_TEMPLATES).resolve(tpl);
-        if (!Files.exists(srcPath)) {
-            gc.warnings.add(
-                    "Dockerfile template not found"
-                            + " for stack: " + stackKey);
-            return;
-        }
-        Path dest = gc.outputDir.resolve("Dockerfile");
-        String err = renderAndWrite(
-                gc.engine, tpl, dest, gc.ctx);
-        if (err == null) {
-            gc.files.add(dest.toString());
-        } else {
-            gc.warnings.add(err);
-        }
-    }
-
-    /**
-     * Docker Compose — conditional on
-     * container == "docker".
-     *
-     * @param gc the generation context
-     */
-    private void generateDockerCompose(
-            GenerationContext gc) {
-        if (!DOCKER_CONDITION.equals(
-                gc.config.infrastructure().container())) {
-            gc.warnings.add(
-                    "Docker Compose skipped:"
-                            + " container is not docker");
-            return;
-        }
-        Path dest = gc.outputDir
-                .resolve("docker-compose.yml");
-        String err = renderAndWrite(
-                gc.engine, COMPOSE_TEMPLATE,
-                dest, gc.ctx);
-        if (err == null) {
-            gc.files.add(dest.toString());
-        } else {
-            gc.warnings.add(err);
-        }
-    }
-
-    /**
-     * K8s manifests — conditional on
-     * orchestrator == "kubernetes".
-     *
-     * @param gc the generation context
-     */
-    private void generateK8sManifests(
-            GenerationContext gc) {
-        if (!K8S_CONDITION.equals(
-                gc.config.infrastructure()
-                        .orchestrator())) {
-            gc.warnings.add(
-                    "K8s manifests skipped:"
-                            + " orchestrator is not"
-                            + " kubernetes");
-            return;
-        }
-        for (String manifest : K8S_MANIFESTS) {
-            Path dest = gc.outputDir
-                    .resolve("k8s").resolve(manifest);
-            String tpl = "k8s/"
-                    + manifest.replace(
-                    ".yaml", ".yaml.njk");
-            String err = renderAndWrite(
-                    gc.engine, tpl, dest, gc.ctx);
-            if (err == null) {
-                gc.files.add(dest.toString());
-            } else {
-                gc.warnings.add(err);
-            }
-        }
-    }
-
-    /**
-     * Smoke test config — conditional on
-     * smokeTests == true.
-     *
-     * @param gc the generation context
-     */
-    private void generateSmokeTestConfig(
-            GenerationContext gc) {
-        if (!gc.config.testing().smokeTests()) {
-            gc.warnings.add(
-                    "Smoke test config skipped:"
-                            + " smokeTests is false");
-            return;
-        }
-        Path src = gc.resourcesDir
-                .resolve(CICD_TEMPLATES)
-                .resolve(SMOKE_SOURCE);
-        if (!Files.exists(src)) {
-            return;
-        }
-        Path dest = gc.outputDir
-                .resolve("tests")
-                .resolve("smoke")
-                .resolve("smoke-config.md");
-        CopyHelpers.ensureDirectory(dest.getParent());
-        copyFile(src, dest);
-        gc.files.add(dest.toString());
-    }
-
-    /**
-     * Renders a template and writes to disk.
-     *
-     * @param engine          the template engine
-     * @param templateRelPath template path relative to
-     *                        cicd-templates/
-     * @param destPath        the destination file path
-     * @param extraContext    additional context variables
-     * @return null on success, error message on failure
-     */
-    private String renderAndWrite(
-            TemplateEngine engine,
-            String templateRelPath,
-            Path destPath,
-            Map<String, Object> extraContext) {
-        try {
-            String content = engine.render(
-                    CICD_TEMPLATES + "/"
-                            + templateRelPath,
-                    extraContext);
-            CopyHelpers.ensureDirectory(
-                    destPath.getParent());
-            Files.writeString(
-                    destPath, content,
-                    StandardCharsets.UTF_8);
-            return null;
-        } catch (Exception e) {
-            return "Failed to render "
-                    + templateRelPath + ": "
-                    + e.getMessage();
-        }
-    }
-
-    private static void copyFile(
-            Path src, Path dest) {
-        try {
-            Files.copy(src, dest,
-                    StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to copy file: " + src, e);
-        }
     }
 
     private static Map<String, Object> mergeContexts(
@@ -421,26 +231,5 @@ public final class CicdAssembler implements Assembler {
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
                 .resolveResourcesRoot(CICD_TEMPLATES);
-    }
-
-    /**
-     * Bundled context for generation methods.
-     *
-     * @param config      the project configuration
-     * @param outputDir   the output directory
-     * @param resourcesDir the resources directory
-     * @param engine      the template engine
-     * @param ctx         the merged template context
-     * @param files       mutable list of generated files
-     * @param warnings    mutable list of warnings
-     */
-    private record GenerationContext(
-            ProjectConfig config,
-            Path outputDir,
-            Path resourcesDir,
-            TemplateEngine engine,
-            Map<String, Object> ctx,
-            List<String> files,
-            List<String> warnings) {
     }
 }

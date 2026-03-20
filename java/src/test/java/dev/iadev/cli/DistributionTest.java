@@ -35,28 +35,28 @@ class DistributionTest {
     class HelpOutput {
 
         @Test
-        void help_containsUsageLine() {
+        void help_whenCalled_containsUsageLine() {
             StringWriter sw = execute("--help");
             assertThat(sw.toString())
                     .contains("Usage: ia-dev-env");
         }
 
         @Test
-        void help_listsGenerateSubcommand() {
+        void help_whenCalled_listsGenerateSubcommand() {
             StringWriter sw = execute("--help");
             assertThat(sw.toString())
                     .contains("generate");
         }
 
         @Test
-        void help_listsValidateSubcommand() {
+        void help_whenCalled_listsValidateSubcommand() {
             StringWriter sw = execute("--help");
             assertThat(sw.toString())
                     .contains("validate");
         }
 
         @Test
-        void help_exitCodeIsZero() {
+        void help_whenCalled_exitCodeIsZero() {
             int exitCode = executeWithCode("--help");
             assertThat(exitCode).isZero();
         }
@@ -67,14 +67,14 @@ class DistributionTest {
     class VersionOutput {
 
         @Test
-        void version_contains2dot0dot0() {
+        void version_whenCalled_contains2dot0dot0() {
             StringWriter sw = execute("--version");
             assertThat(sw.toString().trim())
                     .contains("2.0.0");
         }
 
         @Test
-        void version_exitCodeIsZero() {
+        void version_whenCalled_exitCodeIsZero() {
             int exitCode =
                     executeWithCode("--version");
             assertThat(exitCode).isZero();
@@ -86,7 +86,7 @@ class DistributionTest {
     class ValidateCmd {
 
         @Test
-        void validConfig_exitCodeZero() {
+        void validConfig_whenCalled_exitCodeZero() {
             int exitCode = executeWithCode(
                     "validate", "-c",
                     configPath("java-quarkus"));
@@ -94,7 +94,7 @@ class DistributionTest {
         }
 
         @Test
-        void validConfig_outputContainsValid() {
+        void validConfig_output_containsValid() {
             StringWriter sw = execute(
                     "validate", "-c",
                     configPath("java-quarkus"));
@@ -103,7 +103,7 @@ class DistributionTest {
         }
 
         @Test
-        void missingFile_exitCodeOne() {
+        void missingFile_whenCalled_exitCodeOne() {
             int exitCode = executeWithCode(
                     "validate", "-c",
                     "/nonexistent/config.yaml");
@@ -189,7 +189,7 @@ class DistributionTest {
     class DryRunMode {
 
         @Test
-        void dryRun_exitCodeZero() {
+        void dryRun_whenCalled_exitCodeZero() {
             int exitCode = executeWithCode(
                     "generate", "-s", "java-quarkus",
                     "--dry-run",
@@ -198,7 +198,7 @@ class DistributionTest {
         }
 
         @Test
-        void dryRun_outputContainsWarning() {
+        void dryRun_output_containsWarning() {
             StringWriter sw = execute(
                     "generate", "-s", "java-quarkus",
                     "--dry-run",
@@ -213,7 +213,7 @@ class DistributionTest {
     class ForceMode {
 
         @Test
-        void force_overwritesExisting() {
+        void force_whenCalled_overwritesExisting() {
             Path outputDir =
                     tempDir.resolve("force-test");
 
@@ -236,7 +236,7 @@ class DistributionTest {
     class VerboseMode {
 
         @Test
-        void verbose_showsAssemblerNames() {
+        void verbose_whenCalled_showsAssemblerNames() {
             Path outputDir =
                     tempDir.resolve("verbose-test");
             StringWriter sw = execute(

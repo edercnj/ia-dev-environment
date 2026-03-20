@@ -1,5 +1,6 @@
 package dev.iadev.cli;
 
+import dev.iadev.exception.GenerationCancelledException;
 import dev.iadev.model.ArchitectureConfig;
 import dev.iadev.model.DataConfig;
 import dev.iadev.model.FrameworkConfig;
@@ -74,17 +75,20 @@ public class InteractivePrompter {
         String database = promptOptionalField("Database (optional):");
         String cache = promptOptionalField("Cache (optional):");
 
-        displaySummary(name, purpose, archStyle, language,
-                framework, buildTool, interfaces, database, cache);
+        ProjectSummary summary = new ProjectSummary(
+                name, purpose, archStyle, language,
+                framework, buildTool, interfaces,
+                database, cache);
+        displaySummary(summary);
 
         boolean confirmed = terminal.confirm(
-                "Proceed with generation? [Y/n]", true);
+                "Proceed with generation?",
+                ConfirmDefault.DEFAULT_YES);
         if (!confirmed) {
             throw new GenerationCancelledException(CANCELLED);
         }
 
-        return buildConfig(name, purpose, archStyle, language,
-                framework, buildTool, interfaces, database, cache);
+        return buildConfig(summary);
     }
 
     private String promptProjectName() {
@@ -154,18 +158,29 @@ public class InteractivePrompter {
         return KEBAB_CASE.matcher(input.trim()).matches();
     }
 
-    private void displaySummary(
-            String name, String purpose, String archStyle,
-            String language, String framework, String buildTool,
-            List<String> interfaces, String database, String cache) {
-        String langVersion =
-                LanguageFrameworkMapping.defaultVersionFor(language);
-        String langDisplay = langVersion.isEmpty()
-                ? language : language + " " + langVersion;
-        String db = database.isBlank() ? "none" : database;
-        String ch = cache.isBlank() ? "none" : cache;
+    private void displaySummary(ProjectSummary ps) {
+        String langDisplay = formatLanguageDisplay(
+                ps.language());
+        String text = formatSummaryText(ps, langDisplay);
+        terminal.display(text);
+    }
 
-        String summary = """
+    private String formatLanguageDisplay(String language) {
+        String langVersion =
+                LanguageFrameworkMapping.defaultVersionFor(
+                        language);
+        return langVersion.isEmpty()
+                ? language
+                : language + " " + langVersion;
+    }
+
+    private String formatSummaryText(
+            ProjectSummary ps, String langDisplay) {
+        String db = ps.database().isBlank()
+                ? "none" : ps.database();
+        String ch = ps.cache().isBlank()
+                ? "none" : ps.cache();
+        return """
 
                 Project Configuration Summary:
                   Name:          %s
@@ -178,45 +193,50 @@ public class InteractivePrompter {
                   Database:       %s
                   Cache:          %s
                 """.formatted(
-                name, purpose, archStyle, langDisplay,
-                framework, buildTool,
-                String.join(", ", interfaces),
+                ps.name(), ps.purpose(), ps.archStyle(),
+                langDisplay, ps.framework(),
+                ps.buildTool(),
+                String.join(", ", ps.interfaces()),
                 db, ch);
-        terminal.display(summary);
     }
 
-    ProjectConfig buildConfig(
-            String name, String purpose, String archStyle,
-            String language, String framework, String buildTool,
-            List<String> interfaces, String database, String cache) {
-        var project = new ProjectIdentity(name, purpose);
+    ProjectConfig buildConfig(ProjectSummary ps) {
+        var project = new ProjectIdentity(
+                ps.name(), ps.purpose());
         var architecture = new ArchitectureConfig(
-                archStyle, false, false);
-        var interfaceList = interfaces.stream()
+                ps.archStyle(), false, false);
+        var interfaceList = ps.interfaces().stream()
                 .map(type -> new InterfaceConfig(type, "", ""))
                 .toList();
         String langVersion =
-                LanguageFrameworkMapping.defaultVersionFor(language);
-        var lang = new LanguageConfig(language, langVersion);
+                LanguageFrameworkMapping.defaultVersionFor(
+                        ps.language());
+        var lang = new LanguageConfig(
+                ps.language(), langVersion);
         String fwVersion =
-                LanguageFrameworkMapping.frameworkVersionFor(framework);
+                LanguageFrameworkMapping.frameworkVersionFor(
+                        ps.framework());
         var fw = new FrameworkConfig(
-                framework, fwVersion, buildTool, false);
+                ps.framework(), fwVersion,
+                ps.buildTool(), false);
         var data = new DataConfig(
-                buildTechComponent(database),
+                buildTechComponent(ps.database()),
                 new TechComponent("none", ""),
-                buildTechComponent(cache));
+                buildTechComponent(ps.cache()));
         var infra = new InfraConfig(
                 "docker", "none", "kustomize", "none",
                 "none", "none", "none", "none",
-                new ObservabilityConfig("none", "none", "none"));
+                new ObservabilityConfig(
+                        "none", "none", "none"));
         var security = new SecurityConfig(List.of());
-        var testing = new TestingConfig(true, false, true, 95, 90);
+        var testing = new TestingConfig(
+                true, false, true, 95, 90);
         var mcp = new McpConfig(List.of());
 
         return new ProjectConfig(
-                project, architecture, interfaceList, lang, fw,
-                data, infra, security, testing, mcp);
+                project, architecture, interfaceList,
+                lang, fw, data, infra, security,
+                testing, mcp);
     }
 
     private TechComponent buildTechComponent(String value) {

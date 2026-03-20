@@ -1,4 +1,4 @@
-package dev.iadev.util;
+package dev.iadev.exception;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,7 +10,7 @@ class ResourceNotFoundExceptionTest {
 
     @Test
     @DisplayName("carries resource path and strategies in message")
-    void constructor_carriesPathAndStrategies() {
+    void constructor_whenCalled_carriesPathAndStrategies() {
         var ex = new ResourceNotFoundException(
                 "templates/missing.txt",
                 "classpath, filesystem(/tmp/res)");
@@ -22,7 +22,7 @@ class ResourceNotFoundExceptionTest {
 
     @Test
     @DisplayName("extends RuntimeException")
-    void extendsRuntimeException() {
+    void create_whenCalled_extendsRuntimeException() {
         var ex = new ResourceNotFoundException("path", "classpath");
 
         assertThat(ex).isInstanceOf(RuntimeException.class);
@@ -30,7 +30,7 @@ class ResourceNotFoundExceptionTest {
 
     @Test
     @DisplayName("getResourcePath returns the path")
-    void getResourcePath_returnsPath() {
+    void getResourcePath_whenCalled_returnsPath() {
         var ex = new ResourceNotFoundException(
                 "core/01-clean-code.md", "classpath");
 
@@ -40,7 +40,7 @@ class ResourceNotFoundExceptionTest {
 
     @Test
     @DisplayName("getSearchStrategies returns strategies tried")
-    void getSearchStrategies_returnsStrategies() {
+    void getSearchStrategies_whenCalled_returnsStrategies() {
         var ex = new ResourceNotFoundException(
                 "missing.txt", "classpath, filesystem(/tmp)");
 
@@ -50,7 +50,7 @@ class ResourceNotFoundExceptionTest {
 
     @Test
     @DisplayName("toString includes class name and details")
-    void toString_includesDetails() {
+    void toString_whenCalled_includesDetails() {
         var ex = new ResourceNotFoundException(
                 "foo/bar.txt", "classpath");
 

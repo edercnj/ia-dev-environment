@@ -39,12 +39,31 @@ public final class CriticalPathFinder {
         var sorted = topologicalSort(dag);
         var dist = new HashMap<String, Integer>();
         var pred = new HashMap<String, String>();
+        initDistances(sorted, dist, pred);
+        relaxEdges(sorted, dag, dist, pred);
 
+        String endNode = findFarthestNode(dist);
+        if (endNode.isEmpty()) {
+            return List.of();
+        }
+        return reconstructPath(endNode, pred);
+    }
+
+    private static void initDistances(
+            List<String> sorted,
+            Map<String, Integer> dist,
+            Map<String, String> pred) {
         for (var id : sorted) {
             dist.put(id, 0);
             pred.put(id, null);
         }
+    }
 
+    private static void relaxEdges(
+            List<String> sorted,
+            Map<String, DagNode> dag,
+            Map<String, Integer> dist,
+            Map<String, String> pred) {
         for (var id : sorted) {
             var node = dag.get(id);
             if (node == null) {
@@ -53,14 +72,16 @@ public final class CriticalPathFinder {
             int currentDist = dist.getOrDefault(id, 0);
             for (var depId : node.blocks()) {
                 int newDist = currentDist + 1;
-                int depDist = dist.getOrDefault(depId, 0);
-                if (newDist > depDist) {
+                if (newDist > dist.getOrDefault(depId, 0)) {
                     dist.put(depId, newDist);
                     pred.put(depId, id);
                 }
             }
         }
+    }
 
+    private static String findFarthestNode(
+            Map<String, Integer> dist) {
         int maxDist = -1;
         String endNode = "";
         for (var entry : dist.entrySet()) {
@@ -69,12 +90,7 @@ public final class CriticalPathFinder {
                 endNode = entry.getKey();
             }
         }
-
-        if (endNode.isEmpty()) {
-            return List.of();
-        }
-
-        return reconstructPath(endNode, pred);
+        return endNode;
     }
 
     /**
@@ -96,19 +112,36 @@ public final class CriticalPathFinder {
 
     private static List<String> topologicalSort(
             Map<String, DagNode> dag) {
+        var inDegree = computeInDegrees(dag);
+        var queue = collectRoots(inDegree);
+        return bfsTraverse(queue, dag, inDegree);
+    }
+
+    private static Map<String, Integer> computeInDegrees(
+            Map<String, DagNode> dag) {
         var inDegree = new HashMap<String, Integer>();
         for (var entry : dag.entrySet()) {
             inDegree.put(entry.getKey(),
                     entry.getValue().blockedBy().size());
         }
+        return inDegree;
+    }
 
-        var queue = new ArrayList<String>();
+    private static List<String> collectRoots(
+            Map<String, Integer> inDegree) {
+        var roots = new ArrayList<String>();
         for (var entry : inDegree.entrySet()) {
             if (entry.getValue() == 0) {
-                queue.add(entry.getKey());
+                roots.add(entry.getKey());
             }
         }
+        return roots;
+    }
 
+    private static List<String> bfsTraverse(
+            List<String> queue,
+            Map<String, DagNode> dag,
+            Map<String, Integer> inDegree) {
         var sorted = new ArrayList<String>();
         int front = 0;
         while (front < queue.size()) {
@@ -130,7 +163,6 @@ public final class CriticalPathFinder {
                 }
             }
         }
-
         return sorted;
     }
 

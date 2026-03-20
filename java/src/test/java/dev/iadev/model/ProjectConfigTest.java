@@ -247,4 +247,158 @@ class ProjectConfigTest {
                 new InterfaceConfig("grpc", "", "")))
                 .isInstanceOf(UnsupportedOperationException.class);
     }
+
+    @Nested
+    @DisplayName("Convenience accessors (Law of Demeter)")
+    class ConvenienceAccessors {
+
+        @Test
+        @DisplayName("observabilityTool returns value from nested config")
+        void observabilityTool_fullConfig_returnsValue() {
+            var config = ProjectConfig.fromMap(
+                    buildFullConfig());
+
+            assertThat(config.observabilityTool())
+                    .isEqualTo(config.infrastructure()
+                            .observability().tool());
+        }
+
+        @Test
+        @DisplayName("observabilityTool returns none for minimal config")
+        void observabilityTool_minimalConfig_returnsNone() {
+            var config = ProjectConfig.fromMap(
+                    buildMinimalConfig());
+
+            assertThat(config.observabilityTool())
+                    .isEqualTo("none");
+        }
+
+        @Test
+        @DisplayName("observabilityTracing returns value from nested config")
+        void observabilityTracing_fullConfig_returnsValue() {
+            var config = ProjectConfig.fromMap(
+                    buildFullConfig());
+
+            assertThat(config.observabilityTracing())
+                    .isEqualTo(config.infrastructure()
+                            .observability().tracing());
+        }
+
+        @Test
+        @DisplayName("observabilityTracing returns none for minimal config")
+        void observabilityTracing_minimalConfig_returnsNone() {
+            var config = ProjectConfig.fromMap(
+                    buildMinimalConfig());
+
+            assertThat(config.observabilityTracing())
+                    .isEqualTo("none");
+        }
+
+        @Test
+        @DisplayName("observabilityMetrics returns value from nested config")
+        void observabilityMetrics_fullConfig_returnsValue() {
+            var config = ProjectConfig.fromMap(
+                    buildFullConfig());
+
+            assertThat(config.observabilityMetrics())
+                    .isEqualTo(config.infrastructure()
+                            .observability().metrics());
+        }
+
+        @Test
+        @DisplayName("observabilityMetrics returns none for minimal config")
+        void observabilityMetrics_minimalConfig_returnsNone() {
+            var config = ProjectConfig.fromMap(
+                    buildMinimalConfig());
+
+            assertThat(config.observabilityMetrics())
+                    .isEqualTo("none");
+        }
+
+        @Test
+        @DisplayName("databaseName returns value from nested data config")
+        void databaseName_fullConfig_returnsPostgresql() {
+            var config = ProjectConfig.fromMap(
+                    buildFullConfig());
+
+            assertThat(config.databaseName())
+                    .isEqualTo("postgresql");
+        }
+
+        @Test
+        @DisplayName("databaseName returns none for minimal config")
+        void databaseName_minimalConfig_returnsNone() {
+            var config = ProjectConfig.fromMap(
+                    buildMinimalConfig());
+
+            assertThat(config.databaseName())
+                    .isEqualTo("none");
+        }
+
+        @Test
+        @DisplayName("migrationName returns value from nested data config")
+        void migrationName_fullConfig_returnsValue() {
+            var config = ProjectConfig.fromMap(
+                    buildFullConfig());
+
+            assertThat(config.migrationName())
+                    .isEqualTo(config.data().migration().name());
+        }
+
+        @Test
+        @DisplayName("migrationName returns none for minimal config")
+        void migrationName_minimalConfig_returnsNone() {
+            var config = ProjectConfig.fromMap(
+                    buildMinimalConfig());
+
+            assertThat(config.migrationName())
+                    .isEqualTo("none");
+        }
+
+        @Test
+        @DisplayName("cacheName returns value from nested data config")
+        void cacheName_fullConfig_returnsRedis() {
+            var config = ProjectConfig.fromMap(
+                    buildFullConfig());
+
+            assertThat(config.cacheName())
+                    .isEqualTo("redis");
+        }
+
+        @Test
+        @DisplayName("cacheName returns none for minimal config")
+        void cacheName_minimalConfig_returnsNone() {
+            var config = ProjectConfig.fromMap(
+                    buildMinimalConfig());
+
+            assertThat(config.cacheName())
+                    .isEqualTo("none");
+        }
+
+        @Test
+        @DisplayName("convenience accessors are identical to chained calls")
+        void convenienceAccessors_whenCalled_matchChainedCalls() {
+            var config = ProjectConfig.fromMap(
+                    buildFullConfig());
+
+            assertThat(config.observabilityTool())
+                    .isEqualTo(config.infrastructure()
+                            .observability().tool());
+            assertThat(config.observabilityTracing())
+                    .isEqualTo(config.infrastructure()
+                            .observability().tracing());
+            assertThat(config.observabilityMetrics())
+                    .isEqualTo(config.infrastructure()
+                            .observability().metrics());
+            assertThat(config.databaseName())
+                    .isEqualTo(config.data()
+                            .database().name());
+            assertThat(config.migrationName())
+                    .isEqualTo(config.data()
+                            .migration().name());
+            assertThat(config.cacheName())
+                    .isEqualTo(config.data()
+                            .cache().name());
+        }
+    }
 }

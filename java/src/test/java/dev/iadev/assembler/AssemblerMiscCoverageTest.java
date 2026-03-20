@@ -31,7 +31,7 @@ class AssemblerMiscCoverageTest {
         @Test
         @DisplayName("MCP server with invalid TOML key"
                 + " runs through validation loop")
-        void invalidMcpServerIdRunsValidation(
+        void assemble_whenCalled_invalidMcpServerIdRunsValidation(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir = tempDir.resolve(".claude");
             Files.createDirectories(claudeDir);
@@ -61,7 +61,7 @@ class AssemblerMiscCoverageTest {
         @Test
         @DisplayName("MCP server with valid key"
                 + " passes validation")
-        void validMcpServerPassesValidation(
+        void assemble_whenCalled_validMcpServerPassesValidation(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir = tempDir.resolve(".claude");
             Files.createDirectories(claudeDir);
@@ -96,7 +96,7 @@ class AssemblerMiscCoverageTest {
         @Test
         @DisplayName("missing conditional template adds"
                 + " warning")
-        void missingConditionalAddsWarning(
+        void assemble_missingConditional_addsWarning(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path coreDir = resourceDir.resolve(
@@ -130,7 +130,7 @@ class AssemblerMiscCoverageTest {
         @Test
         @DisplayName("core dir missing returns"
                 + " empty core agents")
-        void coreDirMissing(@TempDir Path tempDir)
+        void assemble_whenCalled_coreDirMissing(@TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(resourceDir);
@@ -156,7 +156,7 @@ class AssemblerMiscCoverageTest {
 
         @Test
         @DisplayName("skill without SKILL.md is skipped")
-        void skillWithoutSkillMdSkipped(
+        void assemble_whenCalled_skillWithoutSkillMdSkipped(
                 @TempDir Path tempDir) throws IOException {
             Path emptySkill =
                     tempDir.resolve("src/empty-skill");
@@ -182,7 +182,7 @@ class AssemblerMiscCoverageTest {
         @Test
         @DisplayName("assemble with no claude dir"
                 + " still generates output")
-        void noClaudeDirGenerates(
+        void assemble_noClaudeDir_generates(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = tempDir.resolve("output");
             Files.createDirectories(outputDir);
@@ -196,7 +196,9 @@ class AssemblerMiscCoverageTest {
                     config, new TemplateEngine(),
                     outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isNotEmpty();
+            assertThat(files).anyMatch(
+                    f -> f.contains("AGENTS.md"));
         }
     }
 
@@ -207,7 +209,7 @@ class AssemblerMiscCoverageTest {
         @Test
         @DisplayName("custom resourceDir with no"
                 + " patterns returns empty")
-        void noPatternsDirReturnsEmpty(
+        void assemble_noPatternsDir_returnsEmpty(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(resourceDir);
@@ -231,7 +233,7 @@ class AssemblerMiscCoverageTest {
         @Test
         @DisplayName("pattern category dir missing"
                 + " skips category")
-        void categoryDirMissing(@TempDir Path tempDir)
+        void assemble_whenCalled_categoryDirMissing(@TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path patternsDir = resourceDir.resolve(
@@ -262,7 +264,7 @@ class AssemblerMiscCoverageTest {
         @Test
         @DisplayName("custom resourceDir with no ADR"
                 + " templates returns empty")
-        void noAdrTemplatesEmpty(@TempDir Path tempDir)
+        void assemble_noAdrTemplatesEmpty_succeeds(@TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(resourceDir);
@@ -288,7 +290,7 @@ class AssemblerMiscCoverageTest {
         @Test
         @DisplayName("python language returns empty"
                 + " hooks")
-        void pythonNoHooks(@TempDir Path tempDir)
+        void assemble_whenCalled_pythonNoHooks(@TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
             Files.createDirectories(outputDir);
@@ -316,7 +318,7 @@ class AssemblerMiscCoverageTest {
         @Test
         @DisplayName("renderAgent with .md file renames"
                 + " to .agent.md")
-        void renderWithMdFile(@TempDir Path tempDir)
+        void assemble_whenCalled_renderWithMdFile(@TempDir Path tempDir)
                 throws IOException {
             Path src = tempDir.resolve("architect.md");
             Files.writeString(src, "Agent content",
@@ -329,7 +331,7 @@ class AssemblerMiscCoverageTest {
 
             String result = assembler.renderAgent(
                     src, agentsDir,
-                    new TemplateEngine());
+                    new TemplateEngine(), Map.of());
 
             assertThat(result)
                     .contains("architect.agent.md");
@@ -338,7 +340,7 @@ class AssemblerMiscCoverageTest {
         @Test
         @DisplayName("assemble with warnings triggers"
                 + " stderr output via assemble()")
-        void assembleTriggersWarningOutput(
+        void assemble_whenCalled_assembleTriggersWarningOutput(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path coreDir = resourceDir.resolve(
@@ -362,7 +364,7 @@ class AssemblerMiscCoverageTest {
                     config, new TemplateEngine(),
                     outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isEmpty();
         }
     }
 
@@ -373,7 +375,7 @@ class AssemblerMiscCoverageTest {
         @Test
         @DisplayName("custom resourceDir with no skills"
                 + " returns empty list")
-        void noSkillsReturnsEmpty(
+        void assemble_noSkills_returnsEmpty(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(resourceDir);
@@ -399,7 +401,7 @@ class AssemblerMiscCoverageTest {
         @Test
         @DisplayName("custom resourceDir with no prompts"
                 + " returns empty")
-        void noPromptsReturnsEmpty(
+        void assemble_noPrompts_returnsEmpty(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(resourceDir);
@@ -426,7 +428,7 @@ class AssemblerMiscCoverageTest {
         @Test
         @DisplayName("custom resourceDir with no hooks"
                 + " returns empty")
-        void noHooksReturnsEmpty(
+        void assemble_noHooks_returnsEmpty(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(resourceDir);
@@ -452,7 +454,7 @@ class AssemblerMiscCoverageTest {
         @Test
         @DisplayName("full pipeline with all features"
                 + " exercises maximum code paths")
-        void fullPipelineAllFeatures(
+        void assemble_whenCalled_fullPipelineAllFeatures(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = tempDir.resolve("output");
             Files.createDirectories(outputDir);
@@ -520,7 +522,7 @@ class AssemblerMiscCoverageTest {
         @Test
         @DisplayName("copyTemplateFileIfExists with"
                 + " existing file copies it")
-        void copyIfExistsWithFile(@TempDir Path tempDir)
+        void copy_whenCalled_copyIfExistsWithFile(@TempDir Path tempDir)
                 throws IOException {
             Path src = tempDir.resolve("src.md");
             Files.writeString(src,
@@ -529,20 +531,20 @@ class AssemblerMiscCoverageTest {
             Path dest = tempDir.resolve(
                     "output/copied.md");
 
-            String result =
+            var result =
                     CopyHelpers.copyTemplateFileIfExists(
                             src, dest,
                             new TemplateEngine(),
                             Map.of("key", "value"));
 
-            assertThat(result).isNotNull();
+            assertThat(result).isPresent();
             assertThat(dest).exists();
         }
 
         @Test
         @DisplayName("replacePlaceholdersInDir replaces"
                 + " in nested md files")
-        void replacePlaceholdersInDir(
+        void copy_whenCalled_replacePlaceholdersInDir(
                 @TempDir Path tempDir) throws IOException {
             Path dir = tempDir.resolve("content");
             Files.createDirectories(dir);

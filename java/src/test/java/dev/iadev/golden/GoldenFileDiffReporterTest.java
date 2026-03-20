@@ -21,7 +21,7 @@ class GoldenFileDiffReporterTest {
     class IdenticalContent {
 
         @Test
-        void identicalStrings_returnsEmpty() {
+        void identicalStrings_whenCalled_returnsEmpty() {
             String content = "line1\nline2\nline3\n";
 
             String diff = GoldenFileDiffReporter.generateDiff(
@@ -31,7 +31,7 @@ class GoldenFileDiffReporterTest {
         }
 
         @Test
-        void emptyStrings_returnsEmpty() {
+        void emptyStrings_whenCalled_returnsEmpty() {
             String diff = GoldenFileDiffReporter.generateDiff(
                     "test.md", "", "");
 
@@ -44,7 +44,7 @@ class GoldenFileDiffReporterTest {
     class DifferingContent {
 
         @Test
-        void singleLineDifference_showsContext() {
+        void singleLineDifference_whenCalled_showsContext() {
             String expected = "line1\nline2\nline3\n";
             String actual = "line1\nmodified\nline3\n";
 
@@ -58,7 +58,7 @@ class GoldenFileDiffReporterTest {
         }
 
         @Test
-        void addedLine_showsAddition() {
+        void addedLine_whenCalled_showsAddition() {
             String expected = "line1\nline2\n";
             String actual = "line1\nline2\nline3\n";
 
@@ -71,7 +71,7 @@ class GoldenFileDiffReporterTest {
         }
 
         @Test
-        void removedLine_showsRemoval() {
+        void removedLine_whenCalled_showsRemoval() {
             String expected = "line1\nline2\nline3\n";
             String actual = "line1\nline3\n";
 
@@ -89,7 +89,7 @@ class GoldenFileDiffReporterTest {
     class WhitespaceDifferences {
 
         @Test
-        void trailingSpaces_detected() {
+        void trailingSpaces_whenCalled_detected() {
             String expected = "line1\nline2\n";
             String actual = "line1\nline2 \n";
 
@@ -100,7 +100,7 @@ class GoldenFileDiffReporterTest {
         }
 
         @Test
-        void crlfVsLf_detected() {
+        void crlfVsLf_whenCalled_detected() {
             String expected = "line1\nline2\n";
             String actual = "line1\r\nline2\r\n";
 
@@ -118,7 +118,7 @@ class GoldenFileDiffReporterTest {
     class OutputLimiting {
 
         @Test
-        void longDiff_truncatedToMaxLines() {
+        void longDiff_whenCalled_truncatedToMaxLines() {
             StringBuilder expected = new StringBuilder();
             StringBuilder actual = new StringBuilder();
             for (int i = 0; i < 100; i++) {

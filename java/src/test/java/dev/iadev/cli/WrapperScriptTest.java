@@ -25,18 +25,18 @@ class WrapperScriptTest {
             Path.of("bin/ia-dev-env");
 
     @Test
-    void wrapperScript_exists() {
+    void wrapperScript_whenCalled_exists() {
         assertThat(SCRIPT_PATH).exists();
     }
 
     @Test
-    void wrapperScript_isExecutable() {
+    void wrapperScript_whenCalled_isExecutable() {
         assertThat(SCRIPT_PATH.toFile().canExecute())
                 .isTrue();
     }
 
     @Test
-    void wrapperScript_startsWithShebang()
+    void wrapperScript_whenCalled_startsWithShebang()
             throws IOException {
         String content = Files.readString(SCRIPT_PATH);
         assertThat(content)
@@ -44,7 +44,7 @@ class WrapperScriptTest {
     }
 
     @Test
-    void wrapperScript_containsJavaVersionCheck()
+    void wrapperScript_whenCalled_containsJavaVersionCheck()
             throws IOException {
         String content = Files.readString(SCRIPT_PATH);
         assertThat(content)
@@ -52,21 +52,21 @@ class WrapperScriptTest {
     }
 
     @Test
-    void wrapperScript_containsJavaHomeDetection()
+    void wrapperScript_whenCalled_containsJavaHomeDetection()
             throws IOException {
         String content = Files.readString(SCRIPT_PATH);
         assertThat(content).contains("JAVA_HOME");
     }
 
     @Test
-    void wrapperScript_containsPathDetection()
+    void wrapperScript_whenCalled_containsPathDetection()
             throws IOException {
         String content = Files.readString(SCRIPT_PATH);
         assertThat(content).contains("command -v java");
     }
 
     @Test
-    void wrapperScript_supportsJavaOpts()
+    void wrapperScript_whenCalled_supportsJavaOpts()
             throws IOException {
         String content = Files.readString(SCRIPT_PATH);
         assertThat(content)
@@ -74,7 +74,7 @@ class WrapperScriptTest {
     }
 
     @Test
-    void wrapperScript_containsInstallSuggestions()
+    void wrapperScript_whenCalled_containsInstallSuggestions()
             throws IOException {
         String content = Files.readString(SCRIPT_PATH);
         assertThat(content)
@@ -84,7 +84,7 @@ class WrapperScriptTest {
     }
 
     @Test
-    void wrapperScript_containsVersionMismatchError()
+    void wrapperScript_whenCalled_containsVersionMismatchError()
             throws IOException {
         String content = Files.readString(SCRIPT_PATH);
         assertThat(content)
@@ -92,7 +92,7 @@ class WrapperScriptTest {
     }
 
     @Test
-    void wrapperScript_containsJarResolution()
+    void wrapperScript_whenCalled_containsJarResolution()
             throws IOException {
         String content = Files.readString(SCRIPT_PATH);
         assertThat(content)
@@ -101,21 +101,21 @@ class WrapperScriptTest {
     }
 
     @Test
-    void wrapperScript_forwardsArguments()
+    void wrapperScript_forwardsArguments_succeeds()
             throws IOException {
         String content = Files.readString(SCRIPT_PATH);
         assertThat(content).contains("\"$@\"");
     }
 
     @Test
-    void wrapperScript_usesExecForProcess()
+    void wrapperScript_whenCalled_usesExecForProcess()
             throws IOException {
         String content = Files.readString(SCRIPT_PATH);
         assertThat(content).contains("exec \"$java_cmd\"");
     }
 
     @Test
-    void wrapperScript_exitsOnJavaNotFound()
+    void wrapperScript_whenCalled_exitsOnJavaNotFound()
             throws IOException {
         String content = Files.readString(SCRIPT_PATH);
         assertThat(content)
@@ -123,7 +123,7 @@ class WrapperScriptTest {
     }
 
     @Test
-    void wrapperScript_containsJarName()
+    void wrapperScript_whenCalled_containsJarName()
             throws IOException {
         String content = Files.readString(SCRIPT_PATH);
         assertThat(content)
@@ -131,7 +131,7 @@ class WrapperScriptTest {
     }
 
     @Test
-    void wrapperScript_handlesLegacyJavaVersion()
+    void wrapperScript_whenCalled_handlesLegacyJavaVersion()
             throws IOException {
         String content = Files.readString(SCRIPT_PATH);
         // Handles legacy 1.x format (e.g., Java 1.8)

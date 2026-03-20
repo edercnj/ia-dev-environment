@@ -133,7 +133,7 @@ class ValidateCommandTest {
 
         @Test
         @DisplayName("help displays usage with validate command")
-        void help_displaysUsage() {
+        void help_whenCalled_displaysUsage() {
             var result = execute("validate", "--help");
 
             assertThat(result.exitCode()).isZero();
@@ -142,7 +142,7 @@ class ValidateCommandTest {
 
         @Test
         @DisplayName("help shows --config option")
-        void help_showsConfigOption() {
+        void help_whenCalled_showsConfigOption() {
             var result = execute("validate", "--help");
 
             assertThat(result.stdout())
@@ -151,7 +151,7 @@ class ValidateCommandTest {
 
         @Test
         @DisplayName("help shows --verbose option")
-        void help_showsVerboseOption() {
+        void help_whenCalled_showsVerboseOption() {
             var result = execute("validate", "--help");
 
             assertThat(result.stdout())

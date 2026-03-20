@@ -3,9 +3,6 @@ package dev.iadev.assembler;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -40,14 +37,14 @@ public final class EpicReportAssembler
 
     /** The 8 mandatory sections that must be present. */
     static final List<String> MANDATORY_SECTIONS = List.of(
-            "## Sumario Executivo",
-            "## Timeline de Execucao",
-            "## Status Final por Story",
-            "## Findings Consolidados",
-            "## Coverage Delta",
-            "## Commits e SHAs",
-            "## Issues Nao Resolvidos",
-            "## PR Link"
+            "Sumario Executivo",
+            "Timeline de Execucao",
+            "Status Final por Story",
+            "Findings Consolidados",
+            "Coverage Delta",
+            "Commits e SHAs",
+            "Issues Nao Resolvidos",
+            "PR Link"
     );
 
     private final Path resourcesDir;
@@ -84,19 +81,29 @@ public final class EpicReportAssembler
             ProjectConfig config,
             TemplateEngine engine,
             Path outputDir) {
+        String content = loadValidatedTemplate();
+        if (content == null) {
+            return List.of();
+        }
+        return copyToOutputDirs(content, outputDir);
+    }
+
+    private String loadValidatedTemplate() {
         Path templatePath = resourcesDir
                 .resolve(TEMPLATES_SUBDIR)
                 .resolve(TEMPLATE_FILENAME);
 
         if (!Files.exists(templatePath)) {
-            return List.of();
+            return null;
         }
+        String content =
+                CopyHelpers.readFile(templatePath);
+        return hasAllMandatorySections(content)
+                ? content : null;
+    }
 
-        String content = readFile(templatePath);
-        if (!hasAllMandatorySections(content)) {
-            return List.of();
-        }
-
+    private List<String> copyToOutputDirs(
+            String content, Path outputDir) {
         List<String> results = new ArrayList<>();
         List<String> outputSubdirs = List.of(
                 CLAUDE_OUTPUT_SUBDIR,
@@ -107,10 +114,9 @@ public final class EpicReportAssembler
             CopyHelpers.ensureDirectory(destDir);
             Path destPath =
                     destDir.resolve(TEMPLATE_FILENAME);
-            writeFile(destPath, content);
+            CopyHelpers.writeFile(destPath, content);
             results.add(destPath.toString());
         }
-
         return results;
     }
 
@@ -122,33 +128,8 @@ public final class EpicReportAssembler
      * @return true if all mandatory sections are present
      */
     static boolean hasAllMandatorySections(String content) {
-        for (String section : MANDATORY_SECTIONS) {
-            if (!content.contains(section)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static String readFile(Path path) {
-        try {
-            return Files.readString(
-                    path, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to read file: " + path, e);
-        }
-    }
-
-    private static void writeFile(
-            Path dest, String content) {
-        try {
-            Files.writeString(
-                    dest, content, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to write file: " + dest, e);
-        }
+        return CopyHelpers.hasAllMandatorySections(
+                content, MANDATORY_SECTIONS);
     }
 
     private static Path resolveClasspathResources() {

@@ -27,31 +27,43 @@ class ContextBuilderTest {
 
     private ProjectConfig buildFullConfig() {
         return new ProjectConfig(
-                new ProjectIdentity("my-app", "A microservice"),
+                new ProjectIdentity(
+                        "my-app", "A microservice"),
                 new ArchitectureConfig(
                         "microservice", true, false),
                 List.of(
-                        new InterfaceConfig("rest", "openapi", ""),
-                        new InterfaceConfig("grpc", "proto3", "")),
+                        new InterfaceConfig(
+                                "rest", "openapi", ""),
+                        new InterfaceConfig(
+                                "grpc", "proto3", "")),
                 new LanguageConfig("java", "21"),
                 new FrameworkConfig(
-                        "spring-boot", "3.4", "maven", true),
-                new DataConfig(
-                        new TechComponent("postgresql", "16"),
-                        new TechComponent("flyway", "9"),
-                        new TechComponent("redis", "7")),
-                new InfraConfig(
-                        "docker", "kubernetes", "kustomize",
-                        "terraform", "ecr", "kong", "istio",
-                        "aws",
-                        new ObservabilityConfig(
-                                "prometheus", "micrometer",
-                                "jaeger")),
+                        "spring-boot", "3.4",
+                        "maven", true),
+                buildFullDataConfig(),
+                buildFullInfraConfig(),
                 new SecurityConfig(
                         List.of("spring-security")),
                 new TestingConfig(
                         true, true, true, 95, 90),
                 new McpConfig(List.of()));
+    }
+
+    private DataConfig buildFullDataConfig() {
+        return new DataConfig(
+                new TechComponent("postgresql", "16"),
+                new TechComponent("flyway", "9"),
+                new TechComponent("redis", "7"));
+    }
+
+    private InfraConfig buildFullInfraConfig() {
+        return new InfraConfig(
+                "docker", "kubernetes", "kustomize",
+                "terraform", "ecr", "kong", "istio",
+                "aws",
+                new ObservabilityConfig(
+                        "prometheus", "micrometer",
+                        "jaeger"));
     }
 
     private ProjectConfig buildMinimalConfig() {

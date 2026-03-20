@@ -23,7 +23,7 @@ class PathUtilsTest {
 
         @Test
         @DisplayName("resolves relative path to absolute")
-        void relativePath_resolvesToAbsolute() {
+        void relativePath_whenCalled_resolvesToAbsolute() {
             Path result = PathUtils.normalizeDirectory("some/relative/path");
 
             assertThat(result).isAbsolute();
@@ -32,7 +32,7 @@ class PathUtilsTest {
 
         @Test
         @DisplayName("normalizes dots in path")
-        void dotsInPath_normalized() {
+        void dotsInPath_whenCalled_normalized() {
             Path result = PathUtils.normalizeDirectory(
                     "/tmp/foo/../bar/./baz");
 
@@ -42,7 +42,7 @@ class PathUtilsTest {
 
         @Test
         @DisplayName("returns absolute path unchanged")
-        void absolutePath_returnedNormalized() {
+        void absolutePath_whenCalled_returnedNormalized() {
             Path result = PathUtils.normalizeDirectory("/tmp/output");
 
             assertThat(result).isAbsolute();
@@ -51,7 +51,7 @@ class PathUtilsTest {
 
         @Test
         @DisplayName("handles current directory marker")
-        void currentDirectory_resolved() {
+        void currentDirectory_whenCalled_resolved() {
             Path result = PathUtils.normalizeDirectory(".");
 
             assertThat(result).isAbsolute();
@@ -60,7 +60,7 @@ class PathUtilsTest {
 
         @Test
         @DisplayName("handles empty string as current directory")
-        void emptyString_resolvesToCurrent() {
+        void emptyString_whenCalled_resolvesToCurrent() {
             Path result = PathUtils.normalizeDirectory("");
 
             assertThat(result).isAbsolute();
@@ -73,26 +73,13 @@ class PathUtilsTest {
 
         @Test
         @DisplayName("rejects home directory")
-        void homeDirectory_rejected() {
-            Path homePath = Path.of(System.getProperty("user.home"));
+        void homeDirectory_whenCalled_rejected() {
+            Path homePath = Path.of(
+                    System.getProperty("user.home"));
 
             assertThatThrownBy(
-                    () -> PathUtils.rejectDangerousPath(homePath))
-                    .isInstanceOf(CliException.class)
-                    .satisfies(ex -> assertThat(
-                            ((CliException) ex).getErrorCode())
-                            .isEqualTo(1))
-                    .hasMessageContaining("dangerous")
-                    .hasMessageContaining(homePath.toString());
-        }
-
-        @Test
-        @DisplayName("rejects root path")
-        void rootPath_rejected() {
-            Path rootPath = Path.of("/");
-
-            assertThatThrownBy(
-                    () -> PathUtils.rejectDangerousPath(rootPath))
+                    () -> PathUtils.rejectDangerousPath(
+                            homePath))
                     .isInstanceOf(CliException.class)
                     .satisfies(ex -> assertThat(
                             ((CliException) ex).getErrorCode())
@@ -100,48 +87,92 @@ class PathUtilsTest {
                     .hasMessageContaining("dangerous");
         }
 
-        @ParameterizedTest
-        @ValueSource(strings = {"/usr", "/etc", "/var", "/bin", "/sbin"})
-        @DisplayName("rejects system directories")
-        void systemDirectories_rejected(String path) {
-            Path systemPath = Path.of(path);
+        @Test
+        @DisplayName("rejects root path")
+        void rootPath_whenCalled_rejected() {
+            Path rootPath = Path.of("/");
 
             assertThatThrownBy(
-                    () -> PathUtils.rejectDangerousPath(systemPath))
+                    () -> PathUtils.rejectDangerousPath(
+                            rootPath))
                     .isInstanceOf(CliException.class)
                     .satisfies(ex -> assertThat(
                             ((CliException) ex).getErrorCode())
                             .isEqualTo(1))
-                    .hasMessageContaining("dangerous")
-                    .hasMessageContaining(path);
+                    .hasMessageContaining(
+                            "filesystem root");
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "/usr", "/etc", "/var", "/bin", "/sbin"})
+        @DisplayName("rejects system directories")
+        void systemDirectories_whenCalled_rejected(String path) {
+            Path systemPath = Path.of(path);
+
+            assertThatThrownBy(
+                    () -> PathUtils.rejectDangerousPath(
+                            systemPath))
+                    .isInstanceOf(CliException.class)
+                    .satisfies(ex -> assertThat(
+                            ((CliException) ex).getErrorCode())
+                            .isEqualTo(1))
+                    .hasMessageContaining(
+                            "protected directory");
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "/etc/passwd", "/usr/local/bin",
+                "/bin/sh", "/sbin/init"})
+        @DisplayName("rejects children of system dirs")
+        void childOfSystemDir_whenCalled_rejected(String path) {
+            Path childPath = Path.of(path);
+
+            assertThatThrownBy(
+                    () -> PathUtils.rejectDangerousPath(
+                            childPath))
+                    .isInstanceOf(CliException.class)
+                    .satisfies(ex -> assertThat(
+                            ((CliException) ex).getErrorCode())
+                            .isEqualTo(1))
+                    .hasMessageContaining(
+                            "protected directory");
+        }
+
+        @Test
+        @DisplayName(
+                "accepts child of /var for temp compat")
+        void childOfVar_whenCalled_accepted() {
+            Path varChild = Path.of(
+                    "/var/folders/test/output");
+
+            assertThatCode(
+                    () -> PathUtils.rejectDangerousPath(
+                            varChild))
+                    .doesNotThrowAnyException();
         }
 
         @Test
         @DisplayName("accepts valid project directory")
-        void validProjectDir_accepted(@TempDir Path tempDir) {
+        void validProjectDir_whenCalled_accepted(
+                @TempDir Path tempDir) {
             assertThatCode(
-                    () -> PathUtils.rejectDangerousPath(tempDir))
+                    () -> PathUtils.rejectDangerousPath(
+                            tempDir))
                     .doesNotThrowAnyException();
         }
 
         @Test
         @DisplayName("accepts subdirectory of home")
-        void subOfHome_accepted() {
+        void subOfHome_whenCalled_accepted() {
             Path subPath = Path.of(
-                    System.getProperty("user.home"), "projects", "my-app");
+                    System.getProperty("user.home"),
+                    "projects", "my-app");
 
             assertThatCode(
-                    () -> PathUtils.rejectDangerousPath(subPath))
-                    .doesNotThrowAnyException();
-        }
-
-        @Test
-        @DisplayName("accepts subdirectory of /var")
-        void subOfVar_accepted() {
-            Path subPath = Path.of("/var/data/my-project");
-
-            assertThatCode(
-                    () -> PathUtils.rejectDangerousPath(subPath))
+                    () -> PathUtils.rejectDangerousPath(
+                            subPath))
                     .doesNotThrowAnyException();
         }
     }
@@ -152,7 +183,7 @@ class PathUtilsTest {
 
         @Test
         @DisplayName("accepts valid writable directory")
-        void validWritableDir_accepted(@TempDir Path tempDir) {
+        void validWritableDir_whenCalled_accepted(@TempDir Path tempDir) {
             Path dest = tempDir.resolve("output");
 
             assertThatCode(
@@ -162,11 +193,12 @@ class PathUtilsTest {
 
         @Test
         @DisplayName("rejects dangerous path via validation")
-        void dangerousPath_rejected() {
+        void dangerousPath_whenCalled_rejected() {
             Path rootPath = Path.of("/");
 
             assertThatThrownBy(
-                    () -> PathUtils.validateDestPath(rootPath))
+                    () -> PathUtils.validateDestPath(
+                            rootPath))
                     .isInstanceOf(CliException.class)
                     .satisfies(ex -> assertThat(
                             ((CliException) ex).getErrorCode())
@@ -175,7 +207,7 @@ class PathUtilsTest {
 
         @Test
         @DisplayName("normalizes before rejecting")
-        void normalizesBeforeRejecting() {
+        void create_whenCalled_normalizesBeforeRejecting() {
             Path sneakyPath = Path.of("/usr/local/../");
 
             assertThatThrownBy(

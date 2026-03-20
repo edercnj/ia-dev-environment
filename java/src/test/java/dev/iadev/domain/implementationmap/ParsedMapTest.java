@@ -17,7 +17,7 @@ class ParsedMapTest {
     class Construction {
 
         @Test
-        void create_allFieldsAccessible() {
+        void create_whenCalled_allFieldsAccessible() {
             var stories = new LinkedHashMap<String, DagNode>();
             stories.put("s-001", new DagNode("s-001", "Root",
                     new ArrayList<>(), new ArrayList<>()));

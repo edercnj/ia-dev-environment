@@ -1,5 +1,7 @@
 package dev.iadev.cli;
 
+import dev.iadev.exception.GenerationCancelledException;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -146,12 +148,13 @@ public class MockTerminalProvider implements TerminalProvider {
     }
 
     @Override
-    public boolean confirm(String prompt, boolean defaultValue) {
+    public boolean confirm(String prompt,
+                           ConfirmDefault confirmDefault) {
         checkCancellation();
         if (confirmResponses.isEmpty()) {
             throw new IllegalStateException(
-                    "No confirm response configured for prompt: "
-                            + prompt);
+                    "No confirm response configured"
+                            + " for prompt: " + prompt);
         }
         return confirmResponses.poll();
     }

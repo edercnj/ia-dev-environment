@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class StoryStatusTest {
 
     @Test
-    void values_containsSixStatuses() {
+    void values_whenCalled_containsSixStatuses() {
         assertThat(StoryStatus.values()).hasSize(6);
     }
 
@@ -51,7 +51,7 @@ class StoryStatusTest {
     }
 
     @Test
-    void name_returnsExpectedStrings() {
+    void name_whenCalled_returnsExpectedStrings() {
         assertThat(StoryStatus.PENDING.name()).isEqualTo("PENDING");
         assertThat(StoryStatus.IN_PROGRESS.name())
                 .isEqualTo("IN_PROGRESS");

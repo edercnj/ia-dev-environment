@@ -20,7 +20,7 @@ class PipelineOptionsTest {
 
         @Test
         @DisplayName("factory method creates defaults")
-        void defaults_allFalseAndNullPath() {
+        void defaults_whenCalled_allFalseAndNullPath() {
             PipelineOptions opts = PipelineOptions.defaults();
 
             assertThat(opts.dryRun()).isFalse();
@@ -36,7 +36,7 @@ class PipelineOptionsTest {
 
         @Test
         @DisplayName("all fields set correctly")
-        void allFields_setCorrectly() {
+        void allFields_whenCalled_setCorrectly() {
             Path resources = Path.of("/tmp/resources");
 
             var opts = new PipelineOptions(
@@ -51,7 +51,7 @@ class PipelineOptionsTest {
 
         @Test
         @DisplayName("dryRun only")
-        void dryRunOnly() {
+        void custom_whenCalled_dryRunOnly() {
             var opts = new PipelineOptions(
                     true, false, false, null);
 
@@ -66,7 +66,7 @@ class PipelineOptionsTest {
 
         @Test
         @DisplayName("equal options are equal")
-        void equalOptions() {
+        void create_whenCalled_equalOptions() {
             var a = PipelineOptions.defaults();
             var b = PipelineOptions.defaults();
 
@@ -76,7 +76,7 @@ class PipelineOptionsTest {
 
         @Test
         @DisplayName("different options are not equal")
-        void differentOptions() {
+        void create_whenCalled_differentOptions() {
             var a = PipelineOptions.defaults();
             var b = new PipelineOptions(
                     true, false, false, null);

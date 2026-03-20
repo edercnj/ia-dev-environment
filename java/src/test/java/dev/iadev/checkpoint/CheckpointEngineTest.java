@@ -1,6 +1,7 @@
 package dev.iadev.checkpoint;
 
 import dev.iadev.exception.CheckpointIOException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -23,37 +24,53 @@ class CheckpointEngineTest {
     @TempDir
     Path tempDir;
 
+    private CheckpointEngine engine;
+
+    @BeforeEach
+    void setUp() {
+        engine = new CheckpointEngine(
+                new JacksonCheckpointPersistence()
+        );
+    }
+
     private ExecutionState createSampleState() {
-        var stories = new LinkedHashMap<String, StoryEntry>();
-        stories.put(
-                "story-0006-0001",
-                new StoryEntry(
-                        StoryStatus.SUCCESS, "abc123", 0, 120_000L,
-                        0, List.of(), "Projeto Maven criado", 0
-                )
-        );
-        stories.put("story-0006-0002", StoryEntry.pending(0));
-        stories.put("story-0006-0003", StoryEntry.pending(1));
-
-        var gates = new LinkedHashMap<String, IntegrityGateEntry>();
-        gates.put(
-                "compilation",
-                new IntegrityGateEntry(
-                        "compilation", true, null,
-                        Instant.parse("2026-03-19T10:05:00Z")
-                )
-        );
-
+        var stories = buildSampleStories();
+        var gates = buildSampleGates();
         return new ExecutionState(
-                "EPIC-0006",
-                "feat/epic-0006",
+                "EPIC-0006", "feat/epic-0006",
                 Instant.parse("2026-03-19T10:00:00Z"),
-                0,
-                ExecutionMode.FULL,
+                0, ExecutionMode.FULL,
                 Map.copyOf(stories),
                 Map.copyOf(gates),
-                ExecutionMetrics.initial(3)
-        );
+                ExecutionMetrics.initial(3));
+    }
+
+    private LinkedHashMap<String, StoryEntry>
+            buildSampleStories() {
+        var stories =
+                new LinkedHashMap<String, StoryEntry>();
+        stories.put("story-0006-0001",
+                new StoryEntry(
+                        StoryStatus.SUCCESS, "abc123",
+                        0, 120_000L, 0, List.of(),
+                        "Projeto Maven criado", 0));
+        stories.put("story-0006-0002",
+                StoryEntry.pending(0));
+        stories.put("story-0006-0003",
+                StoryEntry.pending(1));
+        return stories;
+    }
+
+    private LinkedHashMap<String, IntegrityGateEntry>
+            buildSampleGates() {
+        var gates = new LinkedHashMap<
+                String, IntegrityGateEntry>();
+        gates.put("compilation",
+                new IntegrityGateEntry(
+                        "compilation", true, null,
+                        Instant.parse(
+                                "2026-03-19T10:05:00Z")));
+        return gates;
     }
 
     @Test
@@ -61,8 +78,8 @@ class CheckpointEngineTest {
         var original = createSampleState();
         var path = tempDir.resolve("execution-state.json");
 
-        CheckpointEngine.save(original, path);
-        var loaded = CheckpointEngine.load(path);
+        engine.save(original, path);
+        var loaded = engine.load(path);
 
         assertThat(loaded.epicId()).isEqualTo(original.epicId());
         assertThat(loaded.branch()).isEqualTo(original.branch());
@@ -76,12 +93,12 @@ class CheckpointEngineTest {
     }
 
     @Test
-    void saveAndLoad_preservesStoryFields() {
+    void saveAndLoad_whenCalled_preservesStoryFields() {
         var original = createSampleState();
         var path = tempDir.resolve("execution-state.json");
 
-        CheckpointEngine.save(original, path);
-        var loaded = CheckpointEngine.load(path);
+        engine.save(original, path);
+        var loaded = engine.load(path);
 
         var story = loaded.stories().get("story-0006-0001");
         assertThat(story.status()).isEqualTo(StoryStatus.SUCCESS);
@@ -95,12 +112,12 @@ class CheckpointEngineTest {
     }
 
     @Test
-    void saveAndLoad_preservesIntegrityGates() {
+    void saveAndLoad_whenCalled_preservesIntegrityGates() {
         var original = createSampleState();
         var path = tempDir.resolve("execution-state.json");
 
-        CheckpointEngine.save(original, path);
-        var loaded = CheckpointEngine.load(path);
+        engine.save(original, path);
+        var loaded = engine.load(path);
 
         var gate = loaded.integrityGates().get("compilation");
         assertThat(gate.gateName()).isEqualTo("compilation");
@@ -113,7 +130,7 @@ class CheckpointEngineTest {
     }
 
     @Test
-    void saveAndLoad_preservesInstantPrecision() {
+    void saveAndLoad_whenCalled_preservesInstantPrecision() {
         var instant = Instant.parse("2026-03-19T10:00:00.123Z");
         var stories = Map.of(
                 "s1", StoryEntry.pending(0)
@@ -125,18 +142,18 @@ class CheckpointEngineTest {
         );
         var path = tempDir.resolve("instant-test.json");
 
-        CheckpointEngine.save(state, path);
-        var loaded = CheckpointEngine.load(path);
+        engine.save(state, path);
+        var loaded = engine.load(path);
 
         assertThat(loaded.startedAt()).isEqualTo(instant);
     }
 
     @Test
-    void save_producesIndentedJson() throws Exception {
+    void save_whenCalled_producesIndentedJson() throws Exception {
         var state = createSampleState();
         var path = tempDir.resolve("formatted.json");
 
-        CheckpointEngine.save(state, path);
+        engine.save(state, path);
         var json = Files.readString(path);
 
         assertThat(json).contains("\n");
@@ -150,7 +167,7 @@ class CheckpointEngineTest {
         var path = tempDir.resolve("atomic.json");
         var tmpPath = tempDir.resolve(".atomic.json.tmp");
 
-        CheckpointEngine.save(state, path);
+        engine.save(state, path);
 
         assertThat(path).exists();
         assertThat(tmpPath).doesNotExist();
@@ -160,7 +177,7 @@ class CheckpointEngineTest {
     void load_nonExistentFile_throwsCheckpointIOException() {
         var path = tempDir.resolve("missing.json");
 
-        assertThatThrownBy(() -> CheckpointEngine.load(path))
+        assertThatThrownBy(() -> engine.load(path))
                 .isInstanceOf(CheckpointIOException.class)
                 .hasMessageContaining("Failed to load checkpoint");
     }
@@ -171,7 +188,7 @@ class CheckpointEngineTest {
         var path = tempDir.resolve("bad.json");
         Files.writeString(path, "not valid json {{{");
 
-        assertThatThrownBy(() -> CheckpointEngine.load(path))
+        assertThatThrownBy(() -> engine.load(path))
                 .isInstanceOf(CheckpointIOException.class);
     }
 
@@ -194,7 +211,7 @@ class CheckpointEngineTest {
     }
 
     @Test
-    void updateStory_pendingToInProgressToSuccess() {
+    void updateStory_whenCalled_pendingToInProgressToSuccess() {
         var state = createSampleState();
 
         var inProgress = CheckpointEngine.updateStory(
@@ -221,7 +238,7 @@ class CheckpointEngineTest {
     }
 
     @Test
-    void updateStory_failedIncrementsRetries() {
+    void updateStory_whenCalled_failedIncrementsRetries() {
         var state = createSampleState();
 
         var failed = CheckpointEngine.updateStory(
@@ -240,7 +257,7 @@ class CheckpointEngineTest {
     }
 
     @Test
-    void updateMetrics_calculatesFromStoryStates() {
+    void updateMetrics_whenCalled_calculatesFromStoryStates() {
         var stories = new LinkedHashMap<String, StoryEntry>();
         stories.put(
                 "s1",
@@ -290,7 +307,7 @@ class CheckpointEngineTest {
     }
 
     @Test
-    void updateMetrics_countsFailedAndBlocked() {
+    void updateMetrics_whenCalled_countsFailedAndBlocked() {
         var stories = new LinkedHashMap<String, StoryEntry>();
         stories.put(
                 "s1",
@@ -345,7 +362,7 @@ class CheckpointEngineTest {
     }
 
     @Test
-    void updateMetrics_tracksPhaseDurations() {
+    void updateMetrics_whenCalled_tracksPhaseDurations() {
         var stories = new LinkedHashMap<String, StoryEntry>();
         stories.put(
                 "s1",
@@ -381,7 +398,7 @@ class CheckpointEngineTest {
     }
 
     @Test
-    void updateMetrics_tracksStoryDurations() {
+    void updateMetrics_whenCalled_tracksStoryDurations() {
         var stories = new LinkedHashMap<String, StoryEntry>();
         stories.put(
                 "s1",
@@ -411,12 +428,12 @@ class CheckpointEngineTest {
     }
 
     @Test
-    void fullRoundTrip_saveLoadUpdateSaveLoad() {
+    void fullRoundTrip_whenCalled_saveLoadUpdateSaveLoad() {
         var state = createSampleState();
         var path = tempDir.resolve("roundtrip.json");
 
-        CheckpointEngine.save(state, path);
-        var loaded1 = CheckpointEngine.load(path);
+        engine.save(state, path);
+        var loaded1 = engine.load(path);
 
         var updated = CheckpointEngine.updateStory(
                 loaded1, "story-0006-0002",
@@ -427,8 +444,8 @@ class CheckpointEngineTest {
         );
         updated = CheckpointEngine.updateMetrics(updated);
 
-        CheckpointEngine.save(updated, path);
-        var loaded2 = CheckpointEngine.load(path);
+        engine.save(updated, path);
+        var loaded2 = engine.load(path);
 
         assertThat(loaded2.stories()
                 .get("story-0006-0002").status())

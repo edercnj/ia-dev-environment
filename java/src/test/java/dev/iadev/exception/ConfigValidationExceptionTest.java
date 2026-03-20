@@ -19,7 +19,7 @@ class ConfigValidationExceptionTest {
 
         @Test
         @DisplayName("includes field and model in message")
-        void missingField_messageContainsFieldAndModel() {
+        void missingField_message_containsFieldAndModel() {
             var ex = new ConfigValidationException(
                     "name", "ProjectIdentity");
 
@@ -36,7 +36,7 @@ class ConfigValidationExceptionTest {
 
         @Test
         @DisplayName("includes field, type, and model in message")
-        void invalidType_messageContainsFieldTypeAndModel() {
+        void invalidType_message_containsFieldTypeAndModel() {
             var ex = new ConfigValidationException(
                     "name", "String", "ProjectIdentity");
 
@@ -54,7 +54,7 @@ class ConfigValidationExceptionTest {
 
         @Test
         @DisplayName("preserves message and cause")
-        void causeConstructor_preservesMessageAndCause() {
+        void causeConstructor_whenCalled_preservesMessageAndCause() {
             var cause = new RuntimeException("root cause");
             var ex = new ConfigValidationException(
                     "Custom error message", cause);
@@ -71,7 +71,7 @@ class ConfigValidationExceptionTest {
 
         @Test
         @DisplayName("carries message and missingSections list")
-        void constructor_carriesMessageAndMissingSections() {
+        void constructor_whenCalled_carriesMessageAndMissingSections() {
             var sections = List.of("language", "framework");
             var ex = new ConfigValidationException(
                     "Missing required sections", sections);
@@ -84,7 +84,7 @@ class ConfigValidationExceptionTest {
 
         @Test
         @DisplayName("returned list is immutable")
-        void missingSections_isImmutable() {
+        void missingSections_whenCalled_isImmutable() {
             var mutableList = new ArrayList<>(
                     List.of("language", "framework"));
             var ex = new ConfigValidationException(
@@ -98,7 +98,7 @@ class ConfigValidationExceptionTest {
 
         @Test
         @DisplayName("mutations to original list do not affect exception")
-        void missingSections_defensiveCopy() {
+        void missingSections_whenCalled_defensiveCopy() {
             var mutableList = new ArrayList<>(
                     List.of("language", "framework"));
             var ex = new ConfigValidationException(
@@ -113,7 +113,7 @@ class ConfigValidationExceptionTest {
 
     @Test
     @DisplayName("extends RuntimeException")
-    void extendsRuntimeException() {
+    void missing_whenCalled_extendsRuntimeException() {
         var ex = new ConfigValidationException("field", "Model");
 
         assertThat(ex).isInstanceOf(RuntimeException.class);
@@ -121,7 +121,7 @@ class ConfigValidationExceptionTest {
 
     @Test
     @DisplayName("toString includes context information")
-    void toString_includesContext() {
+    void toString_whenCalled_includesContext() {
         var ex = new ConfigValidationException(
                 "Validation failed",
                 List.of("language", "framework"));
@@ -135,7 +135,7 @@ class ConfigValidationExceptionTest {
     @Test
     @DisplayName("toString without missingSections"
             + " includes message only")
-    void toString_noMissingSections() {
+    void toString_whenCalled_noMissingSections() {
         var ex = new ConfigValidationException(
                 "name", "ProjectIdentity");
 
@@ -147,7 +147,7 @@ class ConfigValidationExceptionTest {
     @Test
     @DisplayName("toString with empty missingSections"
             + " uses short format")
-    void toString_emptyMissingSections() {
+    void toString_withEmptyMissingsectionsUsesShortFormat_emptyMissingSections() {
         var ex = new ConfigValidationException(
                 "Some error", List.of());
 

@@ -1,12 +1,13 @@
 package dev.iadev.assembler;
 
 import dev.iadev.model.ProjectConfig;
-import dev.iadev.template.TemplateEngine;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -14,20 +15,14 @@ import java.util.Set;
  * conditional resource files to skill knowledge packs.
  *
  * <p>Each conditional function checks a project feature
- * (database, cache, security, cloud, infrastructure) and
- * copies the corresponding resource files when the feature
- * is enabled. Output must match the TypeScript implementation
- * byte-for-byte (RULE-001).</p>
+ * (database, cache, security) and copies the corresponding
+ * resource files when the feature is enabled.</p>
  *
- * <p>Example usage:
- * <pre>{@code
- * List<String> files = RulesConditionals
- *     .copyDatabaseRefs(config, resourcesDir,
- *         skillsDir, engine, context);
- * }</pre>
- * </p>
+ * <p>Infrastructure and cloud conditionals are in
+ * {@link RulesInfraConditionals}.</p>
  *
  * @see RulesAssembler
+ * @see RulesInfraConditionals
  * @see ConditionEvaluator
  */
 public final class RulesConditionals {
@@ -46,25 +41,19 @@ public final class RulesConditionals {
      * Copies database reference files when database is
      * configured.
      *
-     * @param config      the project configuration
-     * @param resourceDir the resources root directory
-     * @param skillsDir   the skills output directory
-     * @param engine      the template engine
-     * @param context     the placeholder context map
+     * @param ctx the conditional copy context
      * @return list of generated file paths
      */
     public static List<String> copyDatabaseRefs(
-            ProjectConfig config,
-            Path resourceDir,
-            Path skillsDir,
-            TemplateEngine engine,
-            Map<String, Object> context) {
-        String dbName = config.data().database().name();
+            ConditionalCopyContext ctx) {
+        String dbName =
+                ctx.config().data().database().name();
         if (NONE_VALUE.equals(dbName)) {
             return List.of();
         }
-        Path dbDir = resourceDir.resolve("databases");
-        Path target = skillsDir.resolve(
+        Path dbDir =
+                ctx.resourceDir().resolve("databases");
+        Path target = ctx.skillsDir().resolve(
                 "database-patterns/references");
         CopyHelpers.ensureDirectory(target);
         List<String> generated = new ArrayList<>();
@@ -73,7 +62,7 @@ public final class RulesConditionals {
         generated.addAll(
                 copyDbTypeFiles(dbName, dbDir, target));
         CopyHelpers.replacePlaceholdersInDir(
-                target, engine, context);
+                target, ctx.engine(), ctx.context());
         return generated;
     }
 
@@ -131,73 +120,31 @@ public final class RulesConditionals {
         return generated;
     }
 
-    /**
-     * Copies cloud provider files when cloud is configured.
-     *
-     * @param config      the project configuration
-     * @param resourceDir the resources root directory
-     * @param skillsDir   the skills output directory
-     * @return list of generated file paths
-     */
+    /** Delegates to {@link RulesInfraConditionals}. */
     public static List<String> assembleCloudKnowledge(
             ProjectConfig config,
             Path resourceDir,
             Path skillsDir) {
-        String provider =
-                config.infrastructure().cloudProvider();
-        if (NONE_VALUE.equals(provider)
-                || provider == null
-                || provider.isEmpty()) {
-            return List.of();
-        }
-        Path cloudDir =
-                resourceDir.resolve("cloud-providers");
-        Path kpDir =
-                skillsDir.resolve("knowledge-packs");
-        CopyHelpers.ensureDirectory(kpDir);
-        Path src = cloudDir.resolve(provider + ".md");
-        if (java.nio.file.Files.exists(src)
-                && java.nio.file.Files.isRegularFile(src)) {
-            Path dest = kpDir.resolve(
-                    "cloud-" + provider + ".md");
-            return List.of(
-                    CopyHelpers.copyStaticFile(src, dest));
-        }
-        return List.of();
+        return RulesInfraConditionals
+                .assembleCloudKnowledge(
+                        config, resourceDir, skillsDir);
     }
 
-    /**
-     * Copies infrastructure knowledge packs when infra
-     * features are configured.
-     *
-     * @param config      the project configuration
-     * @param resourceDir the resources root directory
-     * @param skillsDir   the skills output directory
-     * @return list of generated file paths
-     */
+    /** Delegates to {@link RulesInfraConditionals}. */
     public static List<String> assembleInfraKnowledge(
             ProjectConfig config,
             Path resourceDir,
             Path skillsDir) {
-        Path infraDir = resourceDir.resolve("infrastructure");
-        Path kpDir = skillsDir.resolve("knowledge-packs");
-        CopyHelpers.ensureDirectory(kpDir);
-        List<String> generated = new ArrayList<>();
-        generated.addAll(
-                copyK8sFiles(config, infraDir, kpDir));
-        generated.addAll(
-                copyContainerFiles(config, infraDir, kpDir));
-        generated.addAll(
-                copyIacFiles(config, infraDir, kpDir));
-        return generated;
+        return RulesInfraConditionals
+                .assembleInfraKnowledge(
+                        config, resourceDir, skillsDir);
     }
 
     private static List<String> copyDbVersionMatrix(
             Path dbDir, Path target) {
         Path matrix = dbDir.resolve("version-matrix.md");
-        if (java.nio.file.Files.exists(matrix)
-                && java.nio.file.Files
-                .isRegularFile(matrix)) {
+        if (Files.exists(matrix)
+                && Files.isRegularFile(matrix)) {
             Path dest = target.resolve("version-matrix.md");
             return List.of(
                     CopyHelpers.copyStaticFile(
@@ -213,7 +160,8 @@ public final class RulesConditionals {
             generated.addAll(copyMdDir(
                     dbDir.resolve("sql/common"), target));
             generated.addAll(copyMdDir(
-                    dbDir.resolve("sql/" + dbName), target));
+                    dbDir.resolve("sql/" + dbName),
+                    target));
         } else if (NOSQL_DB_TYPES.contains(dbName)) {
             generated.addAll(copyMdDir(
                     dbDir.resolve("nosql/common"), target));
@@ -224,23 +172,20 @@ public final class RulesConditionals {
         return generated;
     }
 
-    private static List<String> copyMdDir(
+    static List<String> copyMdDir(
             Path sourceDir, Path target) {
-        if (!java.nio.file.Files.exists(sourceDir)
-                || !java.nio.file.Files
-                .isDirectory(sourceDir)) {
+        if (!Files.exists(sourceDir)
+                || !Files.isDirectory(sourceDir)) {
             return List.of();
         }
         List<String> generated = new ArrayList<>();
-        try (var stream =
-                     java.nio.file.Files.list(sourceDir)) {
+        try (var stream = Files.list(sourceDir)) {
             List<Path> entries = stream
                     .filter(f -> f.toString().endsWith(".md"))
                     .sorted()
                     .toList();
             for (Path entry : entries) {
-                if (!java.nio.file.Files
-                        .isRegularFile(entry)) {
+                if (!Files.isRegularFile(entry)) {
                     continue;
                 }
                 Path dest = target.resolve(
@@ -249,8 +194,8 @@ public final class RulesConditionals {
                         CopyHelpers.copyStaticFile(
                                 entry, dest));
             }
-        } catch (java.io.IOException e) {
-            throw new java.io.UncheckedIOException(
+        } catch (IOException e) {
+            throw new UncheckedIOException(
                     "Failed to list directory: "
                             + sourceDir, e);
         }
@@ -267,9 +212,8 @@ public final class RulesConditionals {
                 "application-security.md",
                 "cryptography.md")) {
             Path src = secDir.resolve(name);
-            if (java.nio.file.Files.exists(src)
-                    && java.nio.file.Files
-                    .isRegularFile(src)) {
+            if (Files.exists(src)
+                    && Files.isRegularFile(src)) {
                 Path dest = secKp.resolve(name);
                 generated.add(
                         CopyHelpers.copyStaticFile(
@@ -290,9 +234,8 @@ public final class RulesConditionals {
                 config.security().frameworks()) {
             Path src = secDir.resolve(
                     "compliance/" + framework + ".md");
-            if (java.nio.file.Files.exists(src)
-                    && java.nio.file.Files
-                    .isRegularFile(src)) {
+            if (Files.exists(src)
+                    && Files.isRegularFile(src)) {
                 Path dest = compKp.resolve(
                         framework + ".md");
                 generated.add(
@@ -301,75 +244,5 @@ public final class RulesConditionals {
             }
         }
         return generated;
-    }
-
-    private static List<String> copyK8sFiles(
-            ProjectConfig config,
-            Path infraDir, Path kpDir) {
-        if (!"kubernetes".equals(
-                config.infrastructure().orchestrator())) {
-            return List.of();
-        }
-        Path src = infraDir.resolve(
-                "kubernetes/deployment-patterns.md");
-        if (java.nio.file.Files.exists(src)
-                && java.nio.file.Files
-                .isRegularFile(src)) {
-            Path dest = kpDir.resolve(
-                    "k8s-deployment.md");
-            return List.of(
-                    CopyHelpers.copyStaticFile(src, dest));
-        }
-        return List.of();
-    }
-
-    private static List<String> copyContainerFiles(
-            ProjectConfig config,
-            Path infraDir, Path kpDir) {
-        if (NONE_VALUE.equals(
-                config.infrastructure().container())) {
-            return List.of();
-        }
-        List<String> generated = new ArrayList<>();
-        String[][] filePairs = {
-                {"dockerfile-patterns.md",
-                        "dockerfile.md"},
-                {"registry-patterns.md",
-                        "registry.md"}
-        };
-        for (String[] pair : filePairs) {
-            Path src = infraDir.resolve(
-                    "containers/" + pair[0]);
-            if (java.nio.file.Files.exists(src)
-                    && java.nio.file.Files
-                    .isRegularFile(src)) {
-                Path dest = kpDir.resolve(pair[1]);
-                generated.add(
-                        CopyHelpers.copyStaticFile(
-                                src, dest));
-            }
-        }
-        return generated;
-    }
-
-    private static List<String> copyIacFiles(
-            ProjectConfig config,
-            Path infraDir, Path kpDir) {
-        String iac = config.infrastructure().iac();
-        if (NONE_VALUE.equals(iac)
-                || iac == null || iac.isEmpty()) {
-            return List.of();
-        }
-        Path src = infraDir.resolve(
-                "iac/" + iac + "-patterns.md");
-        if (java.nio.file.Files.exists(src)
-                && java.nio.file.Files
-                .isRegularFile(src)) {
-            Path dest = kpDir.resolve(
-                    "iac-" + iac + ".md");
-            return List.of(
-                    CopyHelpers.copyStaticFile(src, dest));
-        }
-        return List.of();
     }
 }

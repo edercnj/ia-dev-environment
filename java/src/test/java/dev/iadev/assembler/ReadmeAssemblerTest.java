@@ -28,7 +28,7 @@ class ReadmeAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void instanceOf_whenCreated_implementsAssemblerInterface() {
             ReadmeAssembler assembler =
                     new ReadmeAssembler();
 
@@ -43,7 +43,7 @@ class ReadmeAssemblerTest {
 
         @Test
         @DisplayName("generates README.md from template")
-        void generatesFromTemplate(@TempDir Path tempDir)
+        void assemble_whenCalled_generatesFromTemplate(@TempDir Path tempDir)
                 throws IOException {
             Path resourcesDir = setupResources(tempDir);
             Path outputDir = setupOutput(tempDir);
@@ -67,7 +67,7 @@ class ReadmeAssemblerTest {
 
         @Test
         @DisplayName("replaces PROJECT_NAME placeholder")
-        void replacesProjectName(@TempDir Path tempDir)
+        void assemble_whenCalled_replacesProjectName(@TempDir Path tempDir)
                 throws IOException {
             Path resourcesDir = setupResources(tempDir);
             Path outputDir = setupOutput(tempDir);
@@ -92,7 +92,7 @@ class ReadmeAssemblerTest {
 
         @Test
         @DisplayName("replaces RULES_COUNT placeholder")
-        void replacesRulesCount(@TempDir Path tempDir)
+        void assemble_whenCalled_replacesRulesCount(@TempDir Path tempDir)
                 throws IOException {
             Path resourcesDir = setupResources(tempDir);
             Path outputDir = setupOutput(tempDir);
@@ -124,7 +124,7 @@ class ReadmeAssemblerTest {
 
         @Test
         @DisplayName("replaces all 12 placeholders")
-        void replacesAll12Placeholders(
+        void assemble_whenCalled_replacesAll12Placeholders(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourcesDir = setupResources(tempDir);
@@ -167,7 +167,7 @@ class ReadmeAssemblerTest {
         @Test
         @DisplayName("falls back to minimal when template"
                 + " missing")
-        void fallsBackToMinimal(@TempDir Path tempDir)
+        void assemble_whenCalled_fallsBackToMinimal(@TempDir Path tempDir)
                 throws IOException {
             // Resources dir without readme-template.md
             Path resourcesDir =
@@ -205,7 +205,7 @@ class ReadmeAssemblerTest {
 
         @Test
         @DisplayName("contains project name in header")
-        void containsProjectNameInHeader() {
+        void assemble_whenCalled_containsProjectNameInHeader() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .projectName("test-project")
@@ -221,7 +221,7 @@ class ReadmeAssemblerTest {
 
         @Test
         @DisplayName("contains structure block")
-        void containsStructureBlock() {
+        void assemble_whenCalled_containsStructureBlock() {
             ProjectConfig config =
                     TestConfigBuilder.minimal();
 
@@ -239,7 +239,7 @@ class ReadmeAssemblerTest {
         @Test
         @DisplayName("contains tips block with"
                 + " architecture")
-        void containsTipsWithArchitecture() {
+        void assemble_withArchitecture_containsTips() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .archStyle("microservice")
@@ -258,7 +258,7 @@ class ReadmeAssemblerTest {
 
         @Test
         @DisplayName("uses 'none' when no interfaces")
-        void usesNoneForNoInterfaces() {
+        void assemble_forNoInterfaces_usesNone() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .clearInterfaces()
@@ -278,7 +278,7 @@ class ReadmeAssemblerTest {
 
         @Test
         @DisplayName("contains directory tree elements")
-        void containsDirectoryTree() {
+        void assemble_whenCalled_containsDirectoryTree() {
             String block =
                     ReadmeAssembler.buildStructureBlock();
 
@@ -303,7 +303,7 @@ class ReadmeAssemblerTest {
 
         @Test
         @DisplayName("contains all tip lines")
-        void containsAllTips() {
+        void assemble_whenCalled_containsAllTips() {
             String block = ReadmeAssembler
                     .buildTipsBlock(
                             "microservice", "rest grpc");
@@ -327,7 +327,7 @@ class ReadmeAssemblerTest {
 
         @Test
         @DisplayName("replaces PROJECT_NAME token")
-        void replacesProjectNameToken(
+        void generateReadme_whenCalled_replacesProjectNameToken(
                 @TempDir Path tempDir) throws IOException {
             Path template = createSimpleTemplate(tempDir);
             Path outputDir = setupOutput(tempDir);

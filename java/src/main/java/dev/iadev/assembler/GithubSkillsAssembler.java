@@ -4,15 +4,12 @@ import dev.iadev.config.ContextBuilder;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -65,87 +62,14 @@ public final class GithubSkillsAssembler
     static final Set<String> NESTED_GROUPS =
             Set.of("lib");
 
-    /**
-     * Skill groups mapping group name to template names.
-     *
-     * <p>Ordered by insertion to match TypeScript output.
-     * Each group contains a list of skill template names
-     * (without the .md extension).</p>
-     */
-    static final Map<String, List<String>> SKILL_GROUPS;
+    /** @see SkillGroupRegistry#SKILL_GROUPS */
+    static final Map<String, List<String>> SKILL_GROUPS =
+            SkillGroupRegistry.SKILL_GROUPS;
 
-    static {
-        SKILL_GROUPS = new LinkedHashMap<>();
-        SKILL_GROUPS.put("story", List.of(
-                "x-story-epic", "x-story-create",
-                "x-story-map", "x-story-epic-full",
-                "story-planning"));
-        SKILL_GROUPS.put("dev", List.of(
-                "x-dev-implement", "x-dev-lifecycle",
-                "x-dev-epic-implement",
-                "x-dev-architecture-plan",
-                "x-dev-arch-update",
-                "layer-templates",
-                "x-dev-adr-automation",
-                "x-mcp-recommend"));
-        SKILL_GROUPS.put("review", List.of(
-                "x-review", "x-review-api", "x-review-pr",
-                "x-review-grpc", "x-review-events",
-                "x-review-gateway",
-                "x-codebase-audit",
-                "x-dependency-audit"));
-        SKILL_GROUPS.put("testing", List.of(
-                "x-test-plan", "x-test-run", "run-e2e",
-                "run-smoke-api", "run-contract-tests",
-                "run-perf-test"));
-        SKILL_GROUPS.put("infrastructure", List.of(
-                "setup-environment", "k8s-deployment",
-                "k8s-kustomize", "dockerfile",
-                "iac-terraform"));
-        SKILL_GROUPS.put("knowledge-packs", List.of(
-                "architecture", "coding-standards",
-                "patterns", "protocols", "observability",
-                "resilience", "security", "compliance",
-                "api-design"));
-        SKILL_GROUPS.put("git-troubleshooting", List.of(
-                "x-git-push", "x-ops-troubleshoot",
-                "x-fix-pr-comments", "x-changelog"));
-        SKILL_GROUPS.put("lib", List.of(
-                "x-lib-task-decomposer",
-                "x-lib-audit-rules",
-                "x-lib-group-verifier"));
-    }
-
-    /**
-     * Infrastructure skill conditions mapping skill name
-     * to a predicate on {@link ProjectConfig}.
-     */
+    /** @see SkillGroupRegistry#INFRA_SKILL_CONDITIONS */
     static final Map<String, Predicate<ProjectConfig>>
-            INFRA_SKILL_CONDITIONS;
-
-    static {
-        INFRA_SKILL_CONDITIONS = new LinkedHashMap<>();
-        INFRA_SKILL_CONDITIONS.put(
-                "setup-environment",
-                c -> !"none".equals(
-                        c.infrastructure().orchestrator()));
-        INFRA_SKILL_CONDITIONS.put(
-                "k8s-deployment",
-                c -> "kubernetes".equals(
-                        c.infrastructure().orchestrator()));
-        INFRA_SKILL_CONDITIONS.put(
-                "k8s-kustomize",
-                c -> "kustomize".equals(
-                        c.infrastructure().templating()));
-        INFRA_SKILL_CONDITIONS.put(
-                "dockerfile",
-                c -> !"none".equals(
-                        c.infrastructure().container()));
-        INFRA_SKILL_CONDITIONS.put(
-                "iac-terraform",
-                c -> "terraform".equals(
-                        c.infrastructure().iac()));
-    }
+            INFRA_SKILL_CONDITIONS =
+            SkillGroupRegistry.INFRA_SKILL_CONDITIONS;
 
     private final Path resourcesDir;
 
@@ -193,9 +117,12 @@ public final class GithubSkillsAssembler
                     TEMPLATES_DIR + "/" + group);
             String subDir = NESTED_GROUPS.contains(group)
                     ? group : null;
+            SkillRenderContext ctx =
+                    new SkillRenderContext(
+                            srcDir, outputDir,
+                            subDir, context);
             results.addAll(generateGroup(
-                    engine, srcDir, outputDir,
-                    filtered, subDir, context));
+                    engine, ctx, filtered));
         }
         return results;
     }
@@ -231,22 +158,15 @@ public final class GithubSkillsAssembler
 
     private List<String> generateGroup(
             TemplateEngine engine,
-            Path srcDir,
-            Path outputDir,
-            List<String> skillNames,
-            String subDir,
-            Map<String, Object> context) {
-        if (!Files.exists(srcDir)) {
+            SkillRenderContext ctx,
+            List<String> skillNames) {
+        if (!Files.exists(ctx.srcDir())) {
             return List.of();
         }
         List<String> results = new ArrayList<>();
         for (String name : skillNames) {
-            String dest = renderSkill(
-                    engine, srcDir, outputDir,
-                    name, subDir, context);
-            if (dest != null) {
-                results.add(dest);
-            }
+            renderSkill(engine, ctx, name)
+                    .ifPresent(results::add);
         }
         return results;
     }
@@ -258,44 +178,39 @@ public final class GithubSkillsAssembler
      * replacement, creates the output directory, writes
      * SKILL.md, and copies any references.</p>
      *
-     * @param engine    the template engine
-     * @param srcDir    the source template directory
-     * @param outputDir the output directory
-     * @param name      the skill name
-     * @param subDir    optional subdirectory for nesting
-     * @return the destination path, or null if missing
+     * @param engine the template engine
+     * @param ctx    the skill render context
+     * @param name   the skill name
+     * @return Optional containing the destination path,
+     *         or empty if template is missing
      */
-    String renderSkill(
+    Optional<String> renderSkill(
             TemplateEngine engine,
-            Path srcDir,
-            Path outputDir,
-            String name,
-            String subDir,
-            Map<String, Object> context) {
-        Path src = srcDir.resolve(name + ".md");
+            SkillRenderContext ctx,
+            String name) {
+        Path src = ctx.srcDir().resolve(name + ".md");
         if (!Files.exists(src)) {
-            return null;
+            return Optional.empty();
         }
-        String content = readFile(src);
+        String content = CopyHelpers.readFile(src);
         String rendered = engine.replacePlaceholders(
-                content, context);
+                content, ctx.context());
 
         Path skillDir;
-        if (subDir != null) {
-            skillDir = outputDir.resolve(
-                    SKILLS_OUTPUT + "/" + subDir
+        if (ctx.subDir() != null) {
+            skillDir = ctx.outputDir().resolve(
+                    SKILLS_OUTPUT + "/" + ctx.subDir()
                             + "/" + name);
         } else {
-            skillDir = outputDir.resolve(
+            skillDir = ctx.outputDir().resolve(
                     SKILLS_OUTPUT + "/" + name);
         }
         CopyHelpers.ensureDirectory(skillDir);
 
         Path dest = skillDir.resolve(SKILL_MD);
-        writeFile(dest, rendered);
-        copyReferences(
-                srcDir, skillDir, name, engine, context);
-        return dest.toString();
+        CopyHelpers.writeFile(dest, rendered);
+        copyReferences(ctx, engine, skillDir, name);
+        return Optional.of(dest.toString());
     }
 
     /**
@@ -303,18 +218,17 @@ public final class GithubSkillsAssembler
      * exists, applying placeholder replacement to all
      * markdown files.
      *
-     * @param srcDir   the source template directory
+     * @param ctx      the skill render context
+     * @param engine   the template engine
      * @param skillDir the destination skill directory
      * @param name     the skill name
-     * @param engine   the template engine
      */
     void copyReferences(
-            Path srcDir,
-            Path skillDir,
-            String name,
+            SkillRenderContext ctx,
             TemplateEngine engine,
-            Map<String, Object> context) {
-        Path refsDir = srcDir.resolve(
+            Path skillDir,
+            String name) {
+        Path refsDir = ctx.srcDir().resolve(
                 "references/" + name);
         if (!Files.exists(refsDir)) {
             return;
@@ -322,28 +236,7 @@ public final class GithubSkillsAssembler
         Path destRefs = skillDir.resolve("references");
         CopyHelpers.copyDirectory(refsDir, destRefs);
         CopyHelpers.replacePlaceholdersInDir(
-                destRefs, engine, context);
-    }
-
-    private static String readFile(Path path) {
-        try {
-            return Files.readString(
-                    path, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to read template: " + path, e);
-        }
-    }
-
-    private static void writeFile(
-            Path path, String content) {
-        try {
-            Files.writeString(
-                    path, content, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to write file: " + path, e);
-        }
+                destRefs, engine, ctx.context());
     }
 
     private static Path resolveClasspathResources() {

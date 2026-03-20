@@ -6,11 +6,16 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
+
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
@@ -35,19 +40,20 @@ class ResourceResolverTest {
 
         @Test
         @DisplayName("known probe returns existing path")
-        void knownProbe_returnsExistingPath() {
+        void knownProbe_whenCalled_returnsExistingPath() {
             Path root = ResourceResolver
                     .resolveResourcesRoot(
                             "skills-templates");
 
-            assertThat(root).isNotNull();
             assertThat(root).isAbsolute();
             assertThat(Files.isDirectory(root)).isTrue();
+            assertThat(root.getFileName().toString())
+                    .isNotEmpty();
         }
 
         @Test
         @DisplayName("unknown probe falls back to default")
-        void unknownProbe_fallsBackToDefault() {
+        void unknownProbe_whenCalled_fallsBackToDefault() {
             Path root = ResourceResolver
                     .resolveResourcesRoot(
                             "nonexistent-resource-xyz");
@@ -63,24 +69,24 @@ class ResourceResolverTest {
 
         @Test
         @DisplayName("depth 1 navigates to parent")
-        void depth1_navigatesToParent() {
+        void depth1_whenCalled_navigatesToParent() {
             Path root = ResourceResolver
                     .resolveResourcesRoot(
                             "config-templates", 1);
 
-            assertThat(root).isNotNull();
             assertThat(root).isAbsolute();
             assertThat(Files.isDirectory(root)).isTrue();
+            assertThat(root.getFileName().toString())
+                    .isNotEmpty();
         }
 
         @Test
         @DisplayName("depth 0 returns probe directory")
-        void depth0_returnsProbeDirectory() {
+        void depth0_whenCalled_returnsProbeDirectory() {
             Path root = ResourceResolver
                     .resolveResourcesRoot(
                             "config-templates", 0);
 
-            assertThat(root).isNotNull();
             assertThat(root.getFileName().toString())
                     .isEqualTo("config-templates");
         }
@@ -88,7 +94,7 @@ class ResourceResolverTest {
         @Test
         @DisplayName("unknown probe with depth"
                 + " falls back to default")
-        void unknownProbeWithDepth_fallsBack() {
+        void unknownProbeWithDepth_withDepthFallsBackToDefault_fallsBack() {
             Path root = ResourceResolver
                     .resolveResourcesRoot(
                             "no-such-dir-abc", 2);
@@ -99,13 +105,13 @@ class ResourceResolverTest {
 
         @Test
         @DisplayName("depth 2 navigates to grandparent")
-        void depth2_navigatesToGrandparent() {
+        void depth2_whenCalled_navigatesToGrandparent() {
             Path root = ResourceResolver
                     .resolveResourcesRoot(
                             "config-templates", 2);
 
-            assertThat(root).isNotNull();
             assertThat(root).isAbsolute();
+            assertThat(Files.isDirectory(root)).isTrue();
         }
     }
 
@@ -115,7 +121,7 @@ class ResourceResolverTest {
 
         @Test
         @DisplayName("multiple calls return same path")
-        void multipleCalls_returnSamePath() {
+        void multipleCalls_whenCalled_returnSamePath() {
             Path first = ResourceResolver
                     .resolveResourcesRoot(
                             "skills-templates");
@@ -129,7 +135,7 @@ class ResourceResolverTest {
         @Test
         @DisplayName("different probes both return"
                 + " existing directories")
-        void differentProbes_bothReturnDirs() {
+        void differentProbes_whenCalled_bothReturnDirs() {
             Path fromSkills = ResourceResolver
                     .resolveResourcesRoot(
                             "skills-templates");
@@ -150,7 +156,7 @@ class ResourceResolverTest {
 
         @Test
         @DisplayName("skips META-INF directory")
-        void metaInf_skipped() {
+        void metaInf_whenCalled_skipped() {
             Path metaInf = Path.of("META-INF");
 
             assertThat(ResourceResolver
@@ -159,7 +165,7 @@ class ResourceResolverTest {
 
         @Test
         @DisplayName("does not skip regular directory")
-        void regularDir_notSkipped() {
+        void regularDir_whenCalled_notSkipped() {
             Path regular = Path.of("templates");
 
             assertThat(ResourceResolver
@@ -168,7 +174,7 @@ class ResourceResolverTest {
 
         @Test
         @DisplayName("does not skip root path")
-        void rootPath_notSkipped() {
+        void rootPath_whenCalled_notSkipped() {
             Path root = Path.of("/");
 
             assertThat(ResourceResolver
@@ -192,7 +198,7 @@ class ResourceResolverTest {
 
         @Test
         @DisplayName("extracts non-class files from JAR")
-        void extractsNonClassFiles(
+        void resolve_whenCalled_extractsNonClassFiles(
                 @TempDir Path tempDir)
                 throws IOException {
             Path jar = createTestJar(tempDir);
@@ -201,7 +207,6 @@ class ResourceResolverTest {
             Path result = ResourceResolver
                     .extractJarResources(jarUrl);
 
-            assertThat(result).isNotNull();
             assertThat(Files.isDirectory(result))
                     .isTrue();
             assertThat(result.resolve(
@@ -210,7 +215,7 @@ class ResourceResolverTest {
 
         @Test
         @DisplayName("skips .class files")
-        void skipsClassFiles(
+        void resolve_whenCalled_skipsClassFiles(
                 @TempDir Path tempDir)
                 throws IOException {
             Path jar = createTestJar(tempDir);
@@ -227,7 +232,7 @@ class ResourceResolverTest {
 
         @Test
         @DisplayName("skips META-INF contents")
-        void skipsMetaInf(
+        void resolve_whenCalled_skipsMetaInf(
                 @TempDir Path tempDir)
                 throws IOException {
             Path jar = createTestJar(tempDir);
@@ -244,7 +249,7 @@ class ResourceResolverTest {
 
         @Test
         @DisplayName("resolveFromJar caches result")
-        void resolveFromJar_cachesResult(
+        void resolveFromJar_whenCalled_cachesResult(
                 @TempDir Path tempDir)
                 throws IOException {
             Path jar = createTestJar(tempDir);
@@ -301,12 +306,55 @@ class ResourceResolverTest {
     }
 
     @Nested
+    @DisplayName("createSecureTempDir")
+    class CreateSecureTempDir {
+
+        @Test
+        @DisabledOnOs(OS.WINDOWS)
+        @DisplayName("creates temp dir with 700 permissions"
+                + " on POSIX")
+        void posixPermissions_with700PermissionsOnPosix_700() throws IOException {
+            Path tempDir = ResourceResolver
+                    .createSecureTempDir("test-secure-");
+            try {
+                Set<PosixFilePermission> perms =
+                        Files.getPosixFilePermissions(
+                                tempDir);
+                assertThat(perms)
+                        .containsExactlyInAnyOrder(
+                                PosixFilePermission
+                                        .OWNER_READ,
+                                PosixFilePermission
+                                        .OWNER_WRITE,
+                                PosixFilePermission
+                                        .OWNER_EXECUTE);
+            } finally {
+                Files.deleteIfExists(tempDir);
+            }
+        }
+
+        @Test
+        @DisplayName("returns existing directory")
+        void resolve_whenCalled_returnsExistingDirectory()
+                throws IOException {
+            Path tempDir = ResourceResolver
+                    .createSecureTempDir("test-res-");
+            try {
+                assertThat(tempDir).exists();
+                assertThat(tempDir).isDirectory();
+            } finally {
+                Files.deleteIfExists(tempDir);
+            }
+        }
+    }
+
+    @Nested
     @DisplayName("deleteQuietly")
     class DeleteQuietly {
 
         @Test
         @DisplayName("deletes directory with files")
-        void dirWithFiles_deleted(
+        void dirWithFiles_whenCalled_deleted(
                 @TempDir Path tempDir) throws IOException {
             Path subDir = tempDir.resolve("sub");
             Files.createDirectories(subDir);
@@ -326,7 +374,7 @@ class ResourceResolverTest {
 
         @Test
         @DisplayName("deletes nested directory tree")
-        void nestedTree_deleted(
+        void nestedTree_whenCalled_deleted(
                 @TempDir Path tempDir) throws IOException {
             Path root = tempDir.resolve("root");
             Path nested = root.resolve("a/b/c");
@@ -343,7 +391,7 @@ class ResourceResolverTest {
 
         @Test
         @DisplayName("handles nonexistent directory")
-        void nonExistentDir_noError() {
+        void nonExistentDir_whenCalled_noError() {
             Path noSuch = Path.of(
                     "/tmp/no-such-dir-xyz-test");
 
@@ -354,7 +402,7 @@ class ResourceResolverTest {
 
         @Test
         @DisplayName("deletes empty directory")
-        void emptyDir_deleted(
+        void emptyDir_whenCalled_deleted(
                 @TempDir Path tempDir) throws IOException {
             Path empty = tempDir.resolve("empty");
             Files.createDirectories(empty);

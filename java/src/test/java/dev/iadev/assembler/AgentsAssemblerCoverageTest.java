@@ -1,5 +1,6 @@
 package dev.iadev.assembler;
 
+import dev.iadev.config.ContextBuilder;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 import org.junit.jupiter.api.DisplayName;
@@ -29,7 +30,7 @@ class AgentsAssemblerCoverageTest {
 
         @Test
         @DisplayName("core dir missing returns empty")
-        void coreDirMissing(@TempDir Path tempDir) {
+        void selectCoreAgents_whenCalled_coreDirMissing(@TempDir Path tempDir) {
             AgentsAssembler assembler =
                     new AgentsAssembler(tempDir);
 
@@ -41,7 +42,7 @@ class AgentsAssemblerCoverageTest {
 
         @Test
         @DisplayName("core dir is file returns empty")
-        void coreDirIsFile(@TempDir Path tempDir)
+        void selectCoreAgents_coreDir_isFile(@TempDir Path tempDir)
                 throws IOException {
             Files.createDirectories(
                     tempDir.resolve("agents-templates"));
@@ -62,7 +63,7 @@ class AgentsAssemblerCoverageTest {
         @Test
         @DisplayName("core dir with non-md files"
                 + " filters them out")
-        void nonMdFilesFiltered(@TempDir Path tempDir)
+        void selectCoreAgents_nonMdFilesFiltered_succeeds(@TempDir Path tempDir)
                 throws IOException {
             Path core = tempDir.resolve(
                     "agents-templates/core");
@@ -92,7 +93,7 @@ class AgentsAssemblerCoverageTest {
         @Test
         @DisplayName("conditional agent source missing"
                 + " returns null (filtered out)")
-        void conditionalMissing(@TempDir Path tempDir)
+        void assembleConditional_whenCalled_conditionalMissing(@TempDir Path tempDir)
                 throws IOException {
             Path core = tempDir.resolve(
                     "agents-templates/core");
@@ -111,7 +112,7 @@ class AgentsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isEmpty();
         }
     }
 
@@ -122,7 +123,7 @@ class AgentsAssemblerCoverageTest {
         @Test
         @DisplayName("developer agent source missing"
                 + " returns null (filtered out)")
-        void developerMissing(@TempDir Path tempDir)
+        void copyDeveloperAgent_whenCalled_developerMissing(@TempDir Path tempDir)
                 throws IOException {
             Path core = tempDir.resolve(
                     "agents-templates/core");
@@ -139,7 +140,7 @@ class AgentsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isEmpty();
         }
     }
 
@@ -150,7 +151,7 @@ class AgentsAssemblerCoverageTest {
         @Test
         @DisplayName("checklist injection when agent"
                 + " file missing is skipped")
-        void agentFileMissing(@TempDir Path tempDir)
+        void injectChecklists_whenCalled_agentFileMissing(@TempDir Path tempDir)
                 throws IOException {
             Path core = tempDir.resolve(
                     "agents-templates/core");
@@ -169,13 +170,13 @@ class AgentsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isEmpty();
         }
 
         @Test
         @DisplayName("checklist source file missing"
                 + " is skipped")
-        void checklistSourceMissing(@TempDir Path tempDir)
+        void injectChecklists_whenCalled_checklistSourceMissing(@TempDir Path tempDir)
                 throws IOException {
             Path core = tempDir.resolve(
                     "agents-templates/core");
@@ -198,17 +199,17 @@ class AgentsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isNotEmpty();
         }
     }
 
     @Nested
-    @DisplayName("buildContext — all entries")
+    @DisplayName("context via ContextBuilder — all entries")
     class BuildContextFull {
 
         @Test
-        @DisplayName("context has all 14 entries")
-        void allEntries() {
+        @DisplayName("context has all 25 entries")
+        void buildContext_withAllFields_returnsExpectedEntries() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .projectName("agent-test")
@@ -226,16 +227,16 @@ class AgentsAssemblerCoverageTest {
                     .build();
 
             Map<String, Object> context =
-                    AgentsAssembler.buildContext(config);
+                    ContextBuilder.buildContext(config);
 
-            assertThat(context).hasSize(14);
+            assertThat(context).hasSize(25);
             assertThat(context)
                     .containsEntry("project_name",
                             "agent-test")
                     .containsEntry("language_name", "go")
                     .containsEntry("framework_name", "gin")
-                    .containsEntry("domain_driven", "true")
-                    .containsEntry("event_driven", "false")
+                    .containsEntry("domain_driven", "True")
+                    .containsEntry("event_driven", "False")
                     .containsEntry("database_name",
                             "mongodb")
                     .containsEntry("cache_name", "redis");
@@ -248,7 +249,7 @@ class AgentsAssemblerCoverageTest {
 
         @Test
         @DisplayName("default constructor resolves")
-        void defaultConstructorResolves() {
+        void constructor_withDefaults_resolvesCorrectly() {
             AgentsAssembler assembler =
                     new AgentsAssembler();
 

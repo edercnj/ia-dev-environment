@@ -1,5 +1,6 @@
 package dev.iadev.cli;
 
+import dev.iadev.exception.GenerationCancelledException;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.UserInterruptException;
@@ -254,7 +255,7 @@ class JLineTerminalProviderTest {
                     .thenReturn("y");
             var provider = createProvider();
 
-            assertThat(provider.confirm("proceed?", false))
+            assertThat(provider.confirm("proceed?", ConfirmDefault.DEFAULT_NO))
                     .isTrue();
         }
 
@@ -265,7 +266,7 @@ class JLineTerminalProviderTest {
                     .thenReturn("yes");
             var provider = createProvider();
 
-            assertThat(provider.confirm("proceed?", false))
+            assertThat(provider.confirm("proceed?", ConfirmDefault.DEFAULT_NO))
                     .isTrue();
         }
 
@@ -276,7 +277,7 @@ class JLineTerminalProviderTest {
                     .thenReturn("n");
             var provider = createProvider();
 
-            assertThat(provider.confirm("proceed?", true))
+            assertThat(provider.confirm("proceed?", ConfirmDefault.DEFAULT_YES))
                     .isFalse();
         }
 
@@ -287,7 +288,7 @@ class JLineTerminalProviderTest {
                     .thenReturn("");
             var provider = createProvider();
 
-            assertThat(provider.confirm("proceed?", true))
+            assertThat(provider.confirm("proceed?", ConfirmDefault.DEFAULT_YES))
                     .isTrue();
         }
 
@@ -298,7 +299,7 @@ class JLineTerminalProviderTest {
                     .thenReturn("");
             var provider = createProvider();
 
-            assertThat(provider.confirm("proceed?", false))
+            assertThat(provider.confirm("proceed?", ConfirmDefault.DEFAULT_NO))
                     .isFalse();
         }
     }
@@ -309,7 +310,7 @@ class JLineTerminalProviderTest {
 
         @Test
         @DisplayName("display_writesMessage")
-        void display_writesMessage() {
+        void display_whenCalled_writesMessage() {
             var sw = new StringWriter();
             var pw = new PrintWriter(sw, true);
             var provider = createProviderWithWriter(pw);

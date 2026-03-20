@@ -80,24 +80,35 @@ public class ValidateCommand implements Callable<Integer> {
         PrintWriter out = spec.commandLine().getOut();
 
         if (!fileExists(configPath)) {
-            out.println("Error: Configuration file not found: "
-                    + configPath);
+            out.println(
+                    "Error: Configuration file not found: %s"
+                            .formatted(configPath));
             return EXIT_FAILURE;
         }
 
+        return loadAndValidate(out);
+    }
+
+    private int loadAndValidate(PrintWriter out) {
         ProjectConfig config;
         try {
             config = ConfigLoader.loadConfig(configPath);
         } catch (ConfigParseException e) {
-            out.println("Error: Invalid YAML: " + e.getMessage());
+            out.println("Error: Invalid YAML: %s"
+                    .formatted(e.getMessage()));
             return EXIT_FAILURE;
         } catch (ConfigValidationException e) {
             return handleValidationException(e, out);
         } catch (Exception e) {
-            out.println("Error: " + e.getMessage());
+            out.println("Error: An unexpected error "
+                    + "occurred during validation");
+            if (verbose) {
+                out.println("Details: %s"
+                        .formatted(e.getMessage()));
+                e.printStackTrace(out);
+            }
             return EXIT_FAILURE;
         }
-
         return runValidations(config, out);
     }
 
@@ -107,24 +118,41 @@ public class ValidateCommand implements Callable<Integer> {
         if (!missing.isEmpty()) {
             List<String> errors = new ArrayList<>();
             for (String section : missing) {
-                errors.add("Missing required section: " + section);
+                errors.add(
+                        "Missing required section: %s"
+                                .formatted(section));
             }
             if (verbose) {
                 out.println(
-                        "[FAIL] Mandatory sections present: "
-                                + String.join(", ", missing));
+                        "[FAIL] Mandatory sections present: %s"
+                                .formatted(
+                                        String.join(", ",
+                                                missing)));
             }
             printValidationFailed(errors, out);
             return EXIT_FAILURE;
         }
-        out.println("Error: " + e.getMessage());
+        out.println("Error: %s".formatted(e.getMessage()));
         return EXIT_FAILURE;
     }
 
     private int runValidations(
             ProjectConfig config, PrintWriter out) {
-        List<String> allErrors = new ArrayList<>();
+        List<String> allErrors =
+                collectAllErrors(config, out);
 
+        if (allErrors.isEmpty()) {
+            out.println("Configuration is valid");
+            return EXIT_SUCCESS;
+        }
+
+        printValidationFailed(allErrors, out);
+        return EXIT_FAILURE;
+    }
+
+    private List<String> collectAllErrors(
+            ProjectConfig config, PrintWriter out) {
+        List<String> allErrors = new ArrayList<>();
         allErrors.addAll(runCategory(
                 "Mandatory sections present",
                 c -> List.of(), config, out));
@@ -144,14 +172,7 @@ public class ValidateCommand implements Callable<Integer> {
                 "Interface types",
                 StackValidator::validateInterfaceTypes,
                 config, out));
-
-        if (allErrors.isEmpty()) {
-            out.println("Configuration is valid");
-            return EXIT_SUCCESS;
-        }
-
-        printValidationFailed(allErrors, out);
-        return EXIT_FAILURE;
+        return allErrors;
     }
 
     private List<String> runCategory(
@@ -162,10 +183,10 @@ public class ValidateCommand implements Callable<Integer> {
         List<String> errors = validator.apply(config);
         if (verbose) {
             if (errors.isEmpty()) {
-                out.println("[PASS] " + name);
+                out.println("[PASS] %s".formatted(name));
             } else {
-                out.println("[FAIL] " + name + ": "
-                        + String.join("; ", errors));
+                out.println("[FAIL] %s: %s".formatted(
+                        name, String.join("; ", errors)));
             }
         }
         return errors;
@@ -175,7 +196,7 @@ public class ValidateCommand implements Callable<Integer> {
             List<String> errors, PrintWriter out) {
         out.println("Validation failed:");
         for (String error : errors) {
-            out.println("- " + error);
+            out.println("- %s".formatted(error));
         }
     }
 

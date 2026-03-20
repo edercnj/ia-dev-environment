@@ -25,7 +25,7 @@ class SkillRegistryTest {
 
         @Test
         @DisplayName("contains all expected packs")
-        void coreKnowledgePacks_allExpected() {
+        void coreKnowledgePacks_whenCalled_allExpected() {
             assertThat(SkillRegistry.CORE_KNOWLEDGE_PACKS)
                     .containsExactly(
                             "coding-standards",
@@ -44,7 +44,7 @@ class SkillRegistryTest {
 
         @Test
         @DisplayName("list is immutable")
-        void coreKnowledgePacks_immutable() {
+        void coreKnowledgePacks_whenCalled_immutable() {
             assertThat(SkillRegistry.CORE_KNOWLEDGE_PACKS)
                     .isUnmodifiable();
         }

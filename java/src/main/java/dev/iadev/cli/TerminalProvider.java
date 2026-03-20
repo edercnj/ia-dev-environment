@@ -1,5 +1,7 @@
 package dev.iadev.cli;
 
+import dev.iadev.exception.GenerationCancelledException;
+
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -62,12 +64,14 @@ public interface TerminalProvider {
     /**
      * Presents a yes/no confirmation prompt.
      *
-     * @param prompt the prompt text to display
-     * @param defaultValue the default answer
+     * @param prompt         the prompt text to display
+     * @param confirmDefault the default answer
      * @return true if confirmed, false otherwise
-     * @throws GenerationCancelledException if the user cancels (Ctrl+C)
+     * @throws GenerationCancelledException if the user
+     *         cancels (Ctrl+C)
      */
-    boolean confirm(String prompt, boolean defaultValue);
+    boolean confirm(String prompt,
+                    ConfirmDefault confirmDefault);
 
     /**
      * Displays a message to the user (no input expected).

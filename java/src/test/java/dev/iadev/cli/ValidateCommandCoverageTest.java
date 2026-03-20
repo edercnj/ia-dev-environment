@@ -118,7 +118,7 @@ class ValidateCommandCoverageTest {
         @DisplayName(
                 "interfaces as scalar triggers"
                         + " field-type validation error")
-        void interfacesAsScalar_returnsError()
+        void interfacesAsScalar_whenCalled_returnsError()
                 throws IOException {
             String config = """
                     project:

@@ -1,5 +1,6 @@
 package dev.iadev.assembler;
 
+import dev.iadev.config.ContextBuilder;
 import dev.iadev.domain.stack.PatternMapping;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
@@ -12,7 +13,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
  * Assembles {@code .claude/skills/patterns/} from source
@@ -98,7 +98,7 @@ public final class PatternsAssembler implements Assembler {
         }
 
         Map<String, Object> context =
-                buildContext(config);
+                ContextBuilder.buildContext(config);
         List<String> rendered =
                 renderContents(patternFiles, engine, context);
 
@@ -131,7 +131,7 @@ public final class PatternsAssembler implements Assembler {
                     || !Files.isDirectory(catDir)) {
                 continue;
             }
-            List<Path> mdFiles = listMdFilesSorted(catDir);
+            List<Path> mdFiles = CopyHelpers.listMdFilesSorted(catDir);
             for (Path file : mdFiles) {
                 files.add(new PatternFile(
                         category, file));
@@ -195,7 +195,7 @@ public final class PatternsAssembler implements Assembler {
             CopyHelpers.ensureDirectory(targetDir);
             Path destFile = targetDir.resolve(
                     pf.path().getFileName().toString());
-            writeFile(destFile, content);
+            CopyHelpers.writeFile(destFile, content);
             results.add(destFile.toString());
         }
         return results;
@@ -219,52 +219,8 @@ public final class PatternsAssembler implements Assembler {
         CopyHelpers.ensureDirectory(destPath.getParent());
         String merged =
                 String.join(SECTION_SEPARATOR, rendered);
-        writeFile(destPath, merged);
+        CopyHelpers.writeFile(destPath, merged);
         return destPath.toString();
-    }
-
-    /**
-     * Builds the placeholder context map from config.
-     *
-     * @param config the project configuration
-     * @return context map for placeholder replacement
-     */
-    private Map<String, Object> buildContext(
-            ProjectConfig config) {
-        return Map.ofEntries(
-                Map.entry("language_name",
-                        config.language().name()),
-                Map.entry("language_version",
-                        config.language().version()),
-                Map.entry("framework_name",
-                        config.framework().name()),
-                Map.entry("architecture_style",
-                        config.architecture().style()));
-    }
-
-    private static List<Path> listMdFilesSorted(Path dir) {
-        try (Stream<Path> stream = Files.list(dir)) {
-            return stream
-                    .filter(f -> f.toString()
-                            .endsWith(".md"))
-                    .filter(Files::isRegularFile)
-                    .sorted()
-                    .toList();
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to list directory: " + dir, e);
-        }
-    }
-
-    private static void writeFile(
-            Path dest, String content) {
-        try {
-            Files.writeString(
-                    dest, content, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to write file: " + dest, e);
-        }
     }
 
     private static Path resolveClasspathResources() {

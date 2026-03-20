@@ -4,8 +4,6 @@ import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -78,10 +76,10 @@ public final class DocsAdrAssembler implements Assembler {
 
     private static final List<String> MANDATORY_SECTIONS =
             List.of(
-                    "## Status",
-                    "## Context",
-                    "## Decision",
-                    "## Consequences");
+                    "Status",
+                    "Context",
+                    "Decision",
+                    "Consequences");
 
     private final Path resourcesDir;
 
@@ -114,29 +112,46 @@ public final class DocsAdrAssembler implements Assembler {
             ProjectConfig config,
             TemplateEngine engine,
             Path outputDir) {
+        String templateContent =
+                loadValidatedTemplate();
+        if (templateContent == null) {
+            return List.of();
+        }
+        return writeAdrFiles(
+                config, outputDir, templateContent);
+    }
+
+    private String loadValidatedTemplate() {
         Path templatePath = resourcesDir
                 .resolve(TEMPLATES_SUBDIR)
                 .resolve(TEMPLATE_FILENAME);
         if (!Files.exists(templatePath)) {
-            return List.of();
+            return null;
         }
-        String templateContent = readFile(templatePath);
-        if (!hasAllMandatorySections(templateContent)) {
-            return List.of();
-        }
+        String content =
+                CopyHelpers.readFile(templatePath);
+        return hasAllMandatorySections(content)
+                ? content : null;
+    }
+
+    private List<String> writeAdrFiles(
+            ProjectConfig config, Path outputDir,
+            String templateContent) {
         Path adrDir =
                 outputDir.resolve(ADR_OUTPUT_SUBDIR);
         CopyHelpers.ensureDirectory(adrDir);
 
         String readmeContent =
-                buildReadmeContent(config.project().name());
+                buildReadmeContent(
+                        config.project().name());
         Path readmeDest =
                 adrDir.resolve(README_FILENAME);
-        writeFile(readmeDest, readmeContent);
+        CopyHelpers.writeFile(readmeDest, readmeContent);
 
         Path templateDest =
                 adrDir.resolve(TEMPLATE_FILENAME);
-        writeFile(templateDest, templateContent);
+        CopyHelpers.writeFile(
+                templateDest, templateContent);
 
         return List.of(
                 readmeDest.toString(),
@@ -155,10 +170,10 @@ public final class DocsAdrAssembler implements Assembler {
      */
     static String buildReadmeContent(
             String projectName) {
-        return ADR_TITLE_HEADING + "\n"
+        return (ADR_TITLE_HEADING + "\n"
                 + "\n"
-                + "> Architecture Decision Records for **"
-                + projectName + "**.\n"
+                + "> Architecture Decision Records for"
+                + " **%s**.\n"
                 + "\n"
                 + "| ID | Title | Status | Date |\n"
                 + "|----|-------|--------|------|\n"
@@ -167,7 +182,8 @@ public final class DocsAdrAssembler implements Assembler {
                 + "\n"
                 + "Copy `_TEMPLATE-ADR.md` and follow the"
                 + " naming convention:\n"
-                + "`ADR-NNNN-title-in-kebab-case.md`\n";
+                + "`ADR-NNNN-title-in-kebab-case.md`\n")
+                        .formatted(projectName);
     }
 
     /**
@@ -179,8 +195,8 @@ public final class DocsAdrAssembler implements Assembler {
      */
     static boolean hasAllMandatorySections(
             String templateContent) {
-        return MANDATORY_SECTIONS.stream()
-                .allMatch(templateContent::contains);
+        return CopyHelpers.hasAllMandatorySections(
+                templateContent, MANDATORY_SECTIONS);
     }
 
     /**
@@ -227,36 +243,14 @@ public final class DocsAdrAssembler implements Assembler {
      */
     public static String formatAdrFilename(
             int num, String title) {
-        String padded = String.format(
-                "%0" + ADR_NUMBER_PAD_WIDTH + "d", num);
+        String padded = "%04d".formatted(num);
         String sanitized = title.toLowerCase()
                 .replaceAll("[^a-z0-9-]+", "-")
                 .replaceAll("-{2,}", "-")
                 .replaceAll("^-|-$", "");
         String slug = sanitized.isEmpty()
                 ? "untitled" : sanitized;
-        return "ADR-" + padded + "-" + slug + ".md";
-    }
-
-    private static String readFile(Path path) {
-        try {
-            return Files.readString(
-                    path, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to read file: " + path, e);
-        }
-    }
-
-    private static void writeFile(
-            Path dest, String content) {
-        try {
-            Files.writeString(
-                    dest, content, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to write file: " + dest, e);
-        }
+        return "ADR-%s-%s.md".formatted(padded, slug);
     }
 
     private static Path resolveClasspathResources() {

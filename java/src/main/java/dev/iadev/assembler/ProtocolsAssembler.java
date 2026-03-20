@@ -13,32 +13,14 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
  * Assembles {@code .claude/skills/protocols/references/}
  * from protocol documentation files.
  *
- * <p>This is the fifth assembler in the pipeline (position
- * 5 of 23 per RULE-005). It generates concatenated
- * protocol convention files named
- * {@code {protocol}-conventions.md} in the references
- * directory.</p>
- *
- * <p>Protocol files are concatenated raw — no template
- * placeholder replacement. The {@code engine} parameter
- * is accepted for API uniformity but is not used.</p>
- *
- * <p>If no interface types are defined, no files are
- * generated and an empty list is returned.</p>
- *
- * <p>Example usage:
- * <pre>{@code
- * Assembler protocols = new ProtocolsAssembler();
- * List<String> files = protocols.assemble(
- *     config, engine, outputDir);
- * }</pre>
- * </p>
+ * <p>Generates concatenated protocol convention files
+ * named {@code {protocol}-conventions.md}. Protocol files
+ * are concatenated raw without template replacement.</p>
  *
  * @see Assembler
  * @see ProtocolMapping
@@ -110,12 +92,6 @@ public final class ProtocolsAssembler implements Assembler {
     /**
      * Collects source .md files for each protocol.
      *
-     * <p>For the messaging protocol, applies broker-specific
-     * filtering via
-     * {@link #selectMessagingFiles(Path, ProjectConfig)}.
-     * For other protocols, all .md files in the protocol
-     * directory are included.</p>
-     *
      * @param protocolNames the derived protocol names
      * @param config        the project configuration
      * @return map of protocol name to source file paths
@@ -141,7 +117,7 @@ public final class ProtocolsAssembler implements Assembler {
                 files = selectMessagingFiles(
                         protocolDir, config);
             } else {
-                files = listMdFilesSorted(protocolDir);
+                files = CopyHelpers.listMdFilesSorted(protocolDir);
             }
 
             if (!files.isEmpty()) {
@@ -175,7 +151,7 @@ public final class ProtocolsAssembler implements Assembler {
                 return List.of(specific);
             }
         }
-        return listMdFilesSorted(messagingDir);
+        return CopyHelpers.listMdFilesSorted(messagingDir);
     }
 
     /**
@@ -246,20 +222,6 @@ public final class ProtocolsAssembler implements Assembler {
                             + destPath, e);
         }
         return destPath.toString();
-    }
-
-    private static List<Path> listMdFilesSorted(Path dir) {
-        try (Stream<Path> stream = Files.list(dir)) {
-            return stream
-                    .filter(f -> f.toString()
-                            .endsWith(".md"))
-                    .filter(Files::isRegularFile)
-                    .sorted()
-                    .toList();
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to list directory: " + dir, e);
-        }
     }
 
     private static Path resolveClasspathResources() {

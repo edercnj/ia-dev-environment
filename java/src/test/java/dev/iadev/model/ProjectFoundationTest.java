@@ -10,7 +10,7 @@ class ProjectFoundationTest {
 
     @Test
     @DisplayName("DEFAULT has correct values matching TypeScript")
-    void default_matchesTypeScript() {
+    void default_whenCalled_matchesTypeScript() {
         var foundation = ProjectFoundation.DEFAULT;
 
         assertThat(foundation.name())
@@ -21,7 +21,7 @@ class ProjectFoundationTest {
 
     @Test
     @DisplayName("custom values work correctly")
-    void customValues_storedCorrectly() {
+    void customValues_whenCalled_storedCorrectly() {
         var foundation = new ProjectFoundation(
                 "my-project", "1.0.0", "module");
 

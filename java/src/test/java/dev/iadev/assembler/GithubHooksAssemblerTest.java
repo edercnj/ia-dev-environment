@@ -29,7 +29,7 @@ class GithubHooksAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void instanceOf_whenCreated_implementsAssemblerInterface() {
             GithubHooksAssembler assembler =
                     new GithubHooksAssembler();
 
@@ -44,7 +44,7 @@ class GithubHooksAssemblerTest {
 
         @Test
         @DisplayName("contains exactly 3 templates")
-        void containsThreeTemplates() {
+        void assemble_whenCalled_containsThreeTemplates() {
             assertThat(
                     GithubHooksAssembler
                             .GITHUB_HOOK_TEMPLATES)
@@ -53,7 +53,7 @@ class GithubHooksAssemblerTest {
 
         @Test
         @DisplayName("contains expected template names")
-        void containsExpectedNames() {
+        void assemble_whenCalled_containsExpectedNames() {
             assertThat(
                     GithubHooksAssembler
                             .GITHUB_HOOK_TEMPLATES)
@@ -71,7 +71,7 @@ class GithubHooksAssemblerTest {
         @Test
         @DisplayName("copies 3 hook JSON files to"
                 + " hooks/ directory")
-        void copiesThreeHookFiles(
+        void assemble_whenCalled_copiesThreeHookFiles(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourcesDir = createHooksResources(
@@ -93,7 +93,7 @@ class GithubHooksAssemblerTest {
 
         @Test
         @DisplayName("creates hooks/ subdirectory")
-        void createsHooksSubdirectory(
+        void assemble_whenCalled_createsHooksSubdirectory(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourcesDir = createHooksResources(
@@ -117,7 +117,7 @@ class GithubHooksAssemblerTest {
         @Test
         @DisplayName("output files are verbatim copies"
                 + " of templates")
-        void outputIsVerbatimCopy(
+        void assemble_output_isVerbatimCopy(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourcesDir = createHooksResources(
@@ -153,7 +153,7 @@ class GithubHooksAssemblerTest {
         @Test
         @DisplayName("does not use template engine"
                 + " for rendering")
-        void doesNotUseTemplateEngine(
+        void assemble_whenCalled_doesNotUseTemplateEngine(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourcesDir = createHooksResources(
@@ -189,7 +189,7 @@ class GithubHooksAssemblerTest {
 
         @Test
         @DisplayName("result paths end with .json")
-        void resultPathsEndWithJson(
+        void assemble_whenCalled_resultPathsEndWithJson(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourcesDir = createHooksResources(
@@ -218,7 +218,7 @@ class GithubHooksAssemblerTest {
         @Test
         @DisplayName("returns empty list when templates"
                 + " directory absent")
-        void returnsEmptyWhenTemplatesDirAbsent(
+        void assemble_whenCalled_returnsEmptyWhenTemplatesDirAbsent(
                 @TempDir Path tempDir) {
             Path resourcesDir =
                     tempDir.resolve("nonexistent");
@@ -238,7 +238,7 @@ class GithubHooksAssemblerTest {
 
         @Test
         @DisplayName("skips individual missing template")
-        void skipsIndividualMissingTemplate(
+        void assemble_whenCalled_skipsIndividualMissingTemplate(
                 @TempDir Path tempDir)
                 throws IOException {
             Path hooksDir = tempDir.resolve(
@@ -280,7 +280,7 @@ class GithubHooksAssemblerTest {
         @Test
         @DisplayName("generates hooks from classpath"
                 + " templates")
-        void generatesFromClasspath(
+        void assemble_whenCalled_generatesFromClasspath(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 

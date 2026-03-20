@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class IaDevEnvApplicationTest {
 
     @Test
-    void help_displaysUsageWithAppName() {
+    void help_whenCalled_displaysUsageWithAppName() {
         var app = new IaDevEnvApplication();
         var cmd = new CommandLine(app);
         var sw = new java.io.StringWriter();
@@ -26,7 +26,7 @@ class IaDevEnvApplicationTest {
     }
 
     @Test
-    void help_listsGenerateSubcommand() {
+    void help_whenCalled_listsGenerateSubcommand() {
         var app = new IaDevEnvApplication();
         var cmd = new CommandLine(app);
         var sw = new java.io.StringWriter();
@@ -38,7 +38,7 @@ class IaDevEnvApplicationTest {
     }
 
     @Test
-    void help_listsValidateSubcommand() {
+    void help_whenCalled_listsValidateSubcommand() {
         var app = new IaDevEnvApplication();
         var cmd = new CommandLine(app);
         var sw = new java.io.StringWriter();
@@ -50,7 +50,7 @@ class IaDevEnvApplicationTest {
     }
 
     @Test
-    void version_displays2dot0dot0() {
+    void version_whenCalled_displays2dot0dot0() {
         var app = new IaDevEnvApplication();
         var cmd = new CommandLine(app);
         var sw = new java.io.StringWriter();
@@ -63,7 +63,7 @@ class IaDevEnvApplicationTest {
     }
 
     @Test
-    void noArgs_returnsZeroExitCode() {
+    void noArgs_whenCalled_returnsZeroExitCode() {
         var app = new IaDevEnvApplication();
         var cmd = new CommandLine(app);
         var sw = new java.io.StringWriter();
@@ -75,7 +75,7 @@ class IaDevEnvApplicationTest {
     }
 
     @Test
-    void noArgs_displaysUsageHelp() {
+    void noArgs_whenCalled_displaysUsageHelp() {
         var app = new IaDevEnvApplication();
         var cmd = new CommandLine(app);
         var sw = new java.io.StringWriter();
@@ -87,7 +87,7 @@ class IaDevEnvApplicationTest {
     }
 
     @Test
-    void unknownCommand_returnsNonZeroExitCode() {
+    void unknownCommand_whenCalled_returnsNonZeroExitCode() {
         var app = new IaDevEnvApplication();
         var cmd = new CommandLine(app);
         var sw = new java.io.StringWriter();
@@ -101,7 +101,7 @@ class IaDevEnvApplicationTest {
     }
 
     @Test
-    void unknownCommand_showsUnmatchedArgument() {
+    void unknownCommand_whenCalled_showsUnmatchedArgument() {
         var app = new IaDevEnvApplication();
         var cmd = new CommandLine(app);
         var errSw = new java.io.StringWriter();
@@ -113,7 +113,7 @@ class IaDevEnvApplicationTest {
     }
 
     @Test
-    void subcommandsRegistered_generateAndValidate() {
+    void subcommandsRegistered_whenCalled_generateAndValidate() {
         var app = new IaDevEnvApplication();
         var cmd = new CommandLine(app);
 

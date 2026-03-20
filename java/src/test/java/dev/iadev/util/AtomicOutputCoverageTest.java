@@ -5,12 +5,17 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -29,7 +34,7 @@ class AtomicOutputCoverageTest {
         @Test
         @DisplayName("overwrites existing directory"
                 + " with nested files")
-        void overwritesNestedExisting(
+        void write_whenCalled_overwritesNestedExisting(
                 @TempDir Path tempDir) throws IOException {
             Path dest = tempDir.resolve("output");
             Files.createDirectories(
@@ -59,7 +64,7 @@ class AtomicOutputCoverageTest {
         @Test
         @DisplayName("dest parent dir does not exist"
                 + " is created")
-        void destParentCreated(@TempDir Path tempDir)
+        void write_whenCalled_destParentCreated(@TempDir Path tempDir)
                 throws IOException {
             Path dest = tempDir.resolve(
                     "a/b/c/output");
@@ -79,7 +84,7 @@ class AtomicOutputCoverageTest {
         @Test
         @DisplayName("IOException wraps original"
                 + " exception with temp dir path")
-        void ioExceptionWraps(@TempDir Path tempDir) {
+        void write_whenCalled_ioExceptionWraps(@TempDir Path tempDir) {
             Path dest = tempDir.resolve("output");
             Map<String, String> files =
                     new LinkedHashMap<>();
@@ -98,7 +103,7 @@ class AtomicOutputCoverageTest {
 
         @Test
         @DisplayName("creates deeply nested structure")
-        void deeplyNested(@TempDir Path tempDir)
+        void write_whenCalled_deeplyNested(@TempDir Path tempDir)
                 throws IOException {
             Path dest = tempDir.resolve("output");
             Map<String, String> files = Map.of(
@@ -121,7 +126,7 @@ class AtomicOutputCoverageTest {
         @Test
         @DisplayName("preserves special characters"
                 + " in content")
-        void preservesSpecialChars(@TempDir Path tempDir)
+        void write_whenCalled_preservesSpecialChars(@TempDir Path tempDir)
                 throws IOException {
             Path dest = tempDir.resolve("output");
             String content =
@@ -141,7 +146,7 @@ class AtomicOutputCoverageTest {
 
         @Test
         @DisplayName("handles large number of files")
-        void handlesLargeFileCount(@TempDir Path tempDir)
+        void write_whenCalled_handlesLargeFileCount(@TempDir Path tempDir)
                 throws IOException {
             Path dest = tempDir.resolve("output");
             Map<String, String> files =
@@ -156,6 +161,45 @@ class AtomicOutputCoverageTest {
             for (int i = 0; i < 50; i++) {
                 assertThat(dest.resolve(
                         "file-" + i + ".txt")).exists();
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("createSecureTempDirectory")
+    class SecureTempDirectory {
+
+        @Test
+        @DisabledOnOs(OS.WINDOWS)
+        @DisplayName("creates temp dir with 700 permissions"
+                + " on POSIX")
+        void posixPermissions_with700PermissionsOnPosix_700() throws IOException {
+            Path tempDir =
+                    AtomicOutput.createSecureTempDirectory();
+            try {
+                Set<PosixFilePermission> perms =
+                        Files.getPosixFilePermissions(
+                                tempDir);
+                assertThat(perms).containsExactlyInAnyOrder(
+                        PosixFilePermission.OWNER_READ,
+                        PosixFilePermission.OWNER_WRITE,
+                        PosixFilePermission.OWNER_EXECUTE);
+            } finally {
+                Files.deleteIfExists(tempDir);
+            }
+        }
+
+        @Test
+        @DisplayName("returns existing directory")
+        void create_whenCalled_returnsExistingDirectory()
+                throws IOException {
+            Path tempDir =
+                    AtomicOutput.createSecureTempDirectory();
+            try {
+                assertThat(tempDir).exists();
+                assertThat(tempDir).isDirectory();
+            } finally {
+                Files.deleteIfExists(tempDir);
             }
         }
     }

@@ -12,7 +12,7 @@ class ConfigParseExceptionTest {
 
     @Test
     @DisplayName("carries message, filePath, and cause")
-    void constructor_carriesAllFields() {
+    void constructor_whenCalled_carriesAllFields() {
         var cause = new IOException("malformed YAML");
         var ex = new ConfigParseException(
                 "Failed to parse config", "config.yaml", cause);
@@ -24,7 +24,7 @@ class ConfigParseExceptionTest {
 
     @Test
     @DisplayName("extends RuntimeException")
-    void extendsRuntimeException() {
+    void load_whenCalled_extendsRuntimeException() {
         var ex = new ConfigParseException(
                 "error", "file.yaml", new RuntimeException());
 
@@ -33,7 +33,7 @@ class ConfigParseExceptionTest {
 
     @Test
     @DisplayName("preserves cause chain for stack trace")
-    void preservesCauseChain() {
+    void load_whenCalled_preservesCauseChain() {
         var rootCause = new IllegalStateException("scanner error");
         var ex = new ConfigParseException(
                 "Parse failed", "/path/to/config.yaml", rootCause);
@@ -44,7 +44,7 @@ class ConfigParseExceptionTest {
 
     @Test
     @DisplayName("toString includes filePath")
-    void toString_includesFilePath() {
+    void toString_whenCalled_includesFilePath() {
         var ex = new ConfigParseException(
                 "Parse failed", "config.yaml", new RuntimeException());
 

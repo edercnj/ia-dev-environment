@@ -30,7 +30,7 @@ class PatternsAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void instanceOf_whenCreated_implementsAssemblerInterface() {
             PatternsAssembler assembler =
                     new PatternsAssembler();
 
@@ -47,7 +47,7 @@ class PatternsAssemblerTest {
         @Test
         @DisplayName("microservice generates architectural"
                 + " pattern references")
-        void microserviceIncludesArchitectural(
+        void assemble_microservice_includesArchitectural(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -73,7 +73,7 @@ class PatternsAssemblerTest {
         @Test
         @DisplayName("microservice generates microservice"
                 + " pattern references")
-        void microserviceIncludesMicroservice(
+        void assemble_microservice_includesMicroservice(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -99,7 +99,7 @@ class PatternsAssemblerTest {
         @Test
         @DisplayName("microservice generates resilience"
                 + " pattern references")
-        void microserviceIncludesResilience(
+        void assemble_microservice_includesResilience(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -125,7 +125,7 @@ class PatternsAssemblerTest {
         @Test
         @DisplayName("microservice generates integration"
                 + " pattern references")
-        void microserviceIncludesIntegration(
+        void assemble_microservice_includesIntegration(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -148,7 +148,7 @@ class PatternsAssemblerTest {
         @Test
         @DisplayName("microservice generates data"
                 + " pattern references")
-        void microserviceIncludesData(
+        void assemble_microservice_includesData(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -171,7 +171,7 @@ class PatternsAssemblerTest {
         @Test
         @DisplayName("microservice generates consolidated"
                 + " SKILL.md")
-        void microserviceGeneratesConsolidated(
+        void assemble_microservice_generatesConsolidated(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -195,7 +195,7 @@ class PatternsAssemblerTest {
         @Test
         @DisplayName("returned list includes all generated"
                 + " files")
-        void returnedListIncludesAll(
+        void assemble_returnedList_includesAll(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -223,7 +223,7 @@ class PatternsAssemblerTest {
         @Test
         @DisplayName("library includes only architectural"
                 + " and data patterns")
-        void libraryIncludesOnlyArchAndData(
+        void assemble_library_includesOnlyArchAndData(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -264,7 +264,7 @@ class PatternsAssemblerTest {
         @Test
         @DisplayName("library SKILL.md does not contain"
                 + " microservice-only pattern content")
-        void librarySkillMdExcludesMicroservice(
+        void assemble_librarySkillMd_excludesMicroservice(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -306,7 +306,7 @@ class PatternsAssemblerTest {
 
         @Test
         @DisplayName("unknown style returns empty list")
-        void unknownStyleReturnsEmpty(
+        void assemble_unknownStyle_returnsEmpty(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -339,7 +339,7 @@ class PatternsAssemblerTest {
         @Test
         @DisplayName("consolidated SKILL.md matches"
                 + " golden file for go-gin profile")
-        void skillMdMatchesGolden(
+        void assemble_skillMd_matchesGolden(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -370,7 +370,7 @@ class PatternsAssemblerTest {
         @Test
         @DisplayName("all pattern reference files match"
                 + " golden files for go-gin profile")
-        void allRefsMatchGolden(
+        void assemble_allRefsMatchGolden_succeeds(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -456,7 +456,7 @@ class PatternsAssemblerTest {
         @Test
         @DisplayName("custom resourcesDir with no"
                 + " patterns dir returns empty")
-        void emptyResourcesReturnsEmpty(
+        void assemble_emptyResources_returnsEmpty(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
@@ -478,7 +478,7 @@ class PatternsAssemblerTest {
         @Test
         @DisplayName("patterns dir exists but category"
                 + " dir missing returns empty")
-        void missingCategoryDirReturnsEmpty(
+        void assemble_missingCategoryDir_returnsEmpty(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
@@ -511,7 +511,7 @@ class PatternsAssemblerTest {
     }
 
     private static ProjectConfig buildGoGinConfig() {
-        return TestConfigBuilder.builder()
+        var builder = TestConfigBuilder.builder()
                 .projectName("my-go-service")
                 .purpose(
                         "Describe your service purpose here")
@@ -521,7 +521,13 @@ class PatternsAssemblerTest {
                 .language("go", "1.22")
                 .framework("gin", "")
                 .buildTool("go-mod")
-                .nativeBuild(false)
+                .nativeBuild(false);
+        return configureGoInfra(builder).build();
+    }
+
+    private static TestConfigBuilder configureGoInfra(
+            TestConfigBuilder builder) {
+        return builder
                 .container("docker")
                 .orchestrator("kubernetes")
                 .iac("terraform")
@@ -535,7 +541,6 @@ class PatternsAssemblerTest {
                 .addInterface("event-consumer",
                         "", "kafka")
                 .addInterface("event-producer",
-                        "", "kafka")
-                .build();
+                        "", "kafka");
     }
 }

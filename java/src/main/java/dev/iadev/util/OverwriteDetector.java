@@ -62,7 +62,7 @@ public final class OverwriteDetector {
         for (String dir : ARTIFACT_DIRS) {
             Path candidate = destDir.resolve(dir);
             if (Files.isDirectory(candidate)) {
-                conflicts.add(dir + "/");
+                conflicts.add("%s/".formatted(dir));
             }
         }
         return Collections.unmodifiableList(conflicts);

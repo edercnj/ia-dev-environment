@@ -4,9 +4,6 @@ import dev.iadev.config.ContextBuilder;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -99,38 +96,41 @@ public final class GithubPromptsAssembler
         CopyHelpers.ensureDirectory(promptsDir);
         Map<String, Object> context =
                 ContextBuilder.buildContext(config);
+
         List<String> results = new ArrayList<>();
         for (String templateName
                 : GITHUB_PROMPT_TEMPLATES) {
-            Path src = srcDir.resolve(templateName);
-            if (!Files.exists(src)) {
-                continue;
-            }
-            String outputName = templateName.endsWith(
-                    J2_SUFFIX)
-                    ? templateName.substring(0,
-                            templateName.length()
-                                    - J2_SUFFIX.length())
-                    : templateName;
-            String content = engine.render(
-                    TEMPLATES_DIR + "/" + templateName,
-                    context);
-            Path dest = promptsDir.resolve(outputName);
-            writeFile(dest, content);
-            results.add(dest.toString());
+            renderPromptTemplate(
+                    srcDir, promptsDir, templateName,
+                    engine, context, results);
         }
         return results;
     }
 
-    private static void writeFile(
-            Path path, String content) {
-        try {
-            Files.writeString(
-                    path, content, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to write file: " + path, e);
+    private void renderPromptTemplate(
+            Path srcDir, Path promptsDir,
+            String templateName,
+            TemplateEngine engine,
+            Map<String, Object> context,
+            List<String> results) {
+        Path src = srcDir.resolve(templateName);
+        if (!Files.exists(src)) {
+            return;
         }
+        String outputName = stripJ2Suffix(templateName);
+        String content = engine.render(
+                TEMPLATES_DIR + "/" + templateName,
+                context);
+        Path dest = promptsDir.resolve(outputName);
+        CopyHelpers.writeFile(dest, content);
+        results.add(dest.toString());
+    }
+
+    private static String stripJ2Suffix(String name) {
+        return name.endsWith(J2_SUFFIX)
+                ? name.substring(0,
+                name.length() - J2_SUFFIX.length())
+                : name;
     }
 
     private static Path resolveClasspathResources() {

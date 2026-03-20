@@ -39,13 +39,13 @@ class AssemblerTargetTest {
 
     @Test
     @DisplayName("has exactly 6 target values")
-    void values_containsSixEntries() {
+    void values_whenCalled_containsSixEntries() {
         assertThat(AssemblerTarget.values()).hasSize(6);
     }
 
     @Test
     @DisplayName("ROOT resolves to output dir itself")
-    void root_resolvesToOutputDir() {
+    void root_whenCalled_resolvesToOutputDir() {
         Path base = Path.of("/tmp/project");
 
         assertThat(AssemblerTarget.ROOT.resolve(base))

@@ -14,7 +14,7 @@ class CustomExceptionsTest {
     class CircularDependencyExceptionTests {
 
         @Test
-        void constructor_messageContainsCycleChain() {
+        void constructor_message_containsCycleChain() {
             var ex = new CircularDependencyException(
                     List.of("A", "B", "C"));
 
@@ -23,7 +23,7 @@ class CustomExceptionsTest {
         }
 
         @Test
-        void getCycle_returnsImmutableList() {
+        void getCycle_whenCalled_returnsImmutableList() {
             var ex = new CircularDependencyException(
                     List.of("X", "Y"));
 
@@ -36,7 +36,7 @@ class CustomExceptionsTest {
         }
 
         @Test
-        void toString_containsCycle() {
+        void toString_whenCalled_containsCycle() {
             var ex = new CircularDependencyException(
                     List.of("A", "B"));
 
@@ -57,7 +57,7 @@ class CustomExceptionsTest {
     class InvalidDagExceptionTests {
 
         @Test
-        void constructor_messagePreserved() {
+        void constructor_whenCalled_messagePreserved() {
             var ex = new InvalidDagException(
                     "No root nodes found");
 
@@ -66,7 +66,7 @@ class CustomExceptionsTest {
         }
 
         @Test
-        void toString_containsMessage() {
+        void toString_whenCalled_containsMessage() {
             var ex = new InvalidDagException("test error");
 
             assertThat(ex.toString())
@@ -78,7 +78,7 @@ class CustomExceptionsTest {
     class MapParseExceptionTests {
 
         @Test
-        void constructor_messagePreserved() {
+        void constructor_whenCalled_messagePreserved() {
             var ex = new MapParseException(
                     "Missing table header");
 
@@ -87,7 +87,7 @@ class CustomExceptionsTest {
         }
 
         @Test
-        void toString_containsMessage() {
+        void toString_whenCalled_containsMessage() {
             var ex = new MapParseException("bad format");
 
             assertThat(ex.toString())

@@ -33,7 +33,7 @@ class ConfigProfilesTest {
 
         @Test
         @DisplayName("returns all 9 stack keys")
-        void getAvailableStacks_returns9Keys() {
+        void getAvailableStacks_whenCalled_returns9Keys() {
             List<String> stacks =
                     ConfigProfiles.getAvailableStacks();
 
@@ -254,18 +254,19 @@ class ConfigProfilesTest {
             ProjectConfig config =
                     ConfigProfiles.getStack(key);
 
-            assertThat(config.project()).isNotNull();
             assertThat(config.project().name()).isNotBlank();
-            assertThat(config.architecture()).isNotNull();
-            assertThat(config.architecture().style()).isNotBlank();
-            assertThat(config.interfaces()).isNotNull();
-            assertThat(config.language()).isNotNull();
+            assertThat(config.architecture().style())
+                    .isNotBlank();
+            assertThat(config.interfaces()).isNotEmpty();
             assertThat(config.language().name()).isNotBlank();
-            assertThat(config.language().version()).isNotBlank();
-            assertThat(config.framework()).isNotNull();
-            assertThat(config.framework().name()).isNotBlank();
-            assertThat(config.data()).isNotNull();
-            assertThat(config.testing()).isNotNull();
+            assertThat(config.language().version())
+                    .isNotBlank();
+            assertThat(config.framework().name())
+                    .isNotBlank();
+            assertThat(config.data().database().name())
+                    .isNotBlank();
+            assertThat(config.testing().coverageLine())
+                    .isGreaterThan(0);
         }
     }
 }

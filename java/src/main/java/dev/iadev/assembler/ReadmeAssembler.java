@@ -3,9 +3,6 @@ package dev.iadev.assembler;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -81,7 +78,7 @@ public final class ReadmeAssembler implements Assembler {
                 templatePath)
                 : generateMinimalReadme(config);
         Path dest = outputDir.resolve("README.md");
-        writeFile(dest, content);
+        CopyHelpers.writeFile(dest, content);
         return List.of(dest.toString());
     }
 
@@ -97,7 +94,7 @@ public final class ReadmeAssembler implements Assembler {
             ProjectConfig config,
             Path outputDir,
             Path templatePath) {
-        String content = readFile(templatePath);
+        String content = CopyHelpers.readFile(templatePath);
         content = content.replace("{{PROJECT_NAME}}",
                 config.project().name());
         content = content.replace("{{RULES_COUNT}}",
@@ -229,28 +226,6 @@ public final class ReadmeAssembler implements Assembler {
                 + "- **Hooks run automatically**"
                 + " \u2014 compile check after"
                 + " editing source files\n";
-    }
-
-    private static String readFile(Path path) {
-        try {
-            return Files.readString(
-                    path, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to read: " + path, e);
-        }
-    }
-
-    private static void writeFile(
-            Path path, String content) {
-        try {
-            Files.createDirectories(path.getParent());
-            Files.writeString(
-                    path, content, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to write: " + path, e);
-        }
     }
 
     private static Path resolveClasspathResources() {

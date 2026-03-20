@@ -124,7 +124,7 @@ class PythonBoolFilterTest {
 
         @Test
         @DisplayName("implements Filter interface")
-        void class_implementsFilter() {
+        void class_whenCalled_implementsFilter() {
             assertThat(filter).isInstanceOf(Filter.class);
         }
     }

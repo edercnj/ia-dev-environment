@@ -1,0 +1,57 @@
+{
+  "epicId": "0008",
+  "branch": "feat/epic-0008-full-implementation",
+  "startedAt": "2026-03-20T00:00:00Z",
+  "finishedAt": "2026-03-20T23:59:00Z",
+  "mode": {
+    "parallel": false,
+    "skipReview": false
+  },
+  "stories": {
+    "story-0008-0001": { "status": "SUCCESS", "phase": 0, "commitSha": "7e0ccd1", "retries": 0, "summary": "Extracted writeFile/readFile to CopyHelpers, removing 20 duplicate implementations across 14 assemblers. Net reduction of 117 lines.", "duration": null, "findingsCount": 0 },
+    "story-0008-0002": { "status": "SUCCESS", "phase": 0, "commitSha": "3b28a88", "retries": 0, "summary": "Extracted listMdFilesSorted, deleteQuietly, hasAllMandatorySections into CopyHelpers. 15 new tests.", "duration": null, "findingsCount": 0 },
+    "story-0008-0003": { "status": "SUCCESS", "phase": 0, "commitSha": "c33574c", "retries": 0, "summary": "Created JsonHelpers with RFC 8259 escapeJson() and indent(). 53 unit tests. All 2020 tests pass.", "duration": null, "findingsCount": 0 },
+    "story-0008-0004": { "status": "SUCCESS", "phase": 0, "commitSha": "b6651c0", "retries": 0, "summary": "Unified 3 local buildContext() variants into canonical ContextBuilder.buildContext() with Python-style boolean conversion. Net reduction of 101 lines.", "duration": null, "findingsCount": 0 },
+    "story-0008-0005": { "status": "SUCCESS", "phase": 0, "commitSha": "240d9e4", "retries": 0, "summary": "Extracted shared AssemblerResult record, eliminating 3 duplicate inner records. 14 new tests. All 2034 tests pass.", "duration": null, "findingsCount": 0 },
+    "story-0008-0006": { "status": "SUCCESS", "phase": 1, "commitSha": "e699424", "retries": 0, "summary": "Replaced all 17 return null with Optional<T> across 9 source files. Zero nullable returns remaining.", "duration": null, "findingsCount": 0 },
+    "story-0008-0007": { "status": "SUCCESS", "phase": 1, "commitSha": "94c8a07", "retries": 0, "summary": "Replaced all 3 System.err.println with structured warning propagation via AssemblerResult.", "duration": null, "findingsCount": 0 },
+    "story-0008-0008": { "status": "SUCCESS", "phase": 0, "commitSha": "a2fb040", "retries": 0, "summary": "Replaced ~70 string concatenations with .formatted() across 21 files. All 2070 tests pass.", "duration": null, "findingsCount": 0 },
+    "story-0008-0009": { "status": "SUCCESS", "phase": 0, "commitSha": "b7c40d1", "retries": 0, "summary": "Replaced 5 magic numbers/strings with named constants (DagColor enum, capacity constants, MILLIS_PER_MINUTE).", "duration": null, "findingsCount": 0 },
+    "story-0008-0010": { "status": "SUCCESS", "phase": 0, "commitSha": "90c4721", "retries": 0, "summary": "Replaced 4 boolean flags with enums (HookPresence, DisplayMode, ConfirmDefault). 2078 tests pass.", "duration": null, "findingsCount": 4 },
+    "story-0008-0011": { "status": "SUCCESS", "phase": 0, "commitSha": "0eb3815", "retries": 0, "summary": "Created 4 parameter object records (ProjectSummary, SkillRenderContext, ConditionalCopyContext, PipelineContext), refactored 7 methods to ≤4 params.", "duration": null, "findingsCount": 0 },
+    "story-0008-0012": { "status": "SUCCESS", "phase": 0, "commitSha": "72f3425", "retries": 0, "summary": "Added 6 convenience accessors to ProjectConfig to eliminate train wrecks. 13 new tests.", "duration": null, "findingsCount": 0 },
+    "story-0008-0013": { "status": "SUCCESS", "phase": 1, "commitSha": "4e2992e", "retries": 0, "summary": "Split CicdAssembler (457→209 lines) into 5 SRP sub-assemblers + coordinator. 26 new tests.", "duration": null, "findingsCount": 0 },
+    "story-0008-0014": { "status": "SUCCESS", "phase": 1, "commitSha": "46cb8d4", "retries": 0, "summary": "Split GithubInstructionsAssembler (419→176) and RulesAssembler (396→147) into 7 SRP classes. 36 new tests.", "duration": null, "findingsCount": 0 },
+    "story-0008-0015": { "status": "SUCCESS", "phase": 1, "commitSha": "5c67719", "retries": 0, "summary": "Split SettingsAssembler (439→213) and ReadmeTables (429→124) into 8 SRP classes. 2249 tests pass.", "duration": null, "findingsCount": 0 },
+    "story-0008-0016": { "status": "SUCCESS", "phase": 1, "commitSha": "cec3fdd", "retries": 0, "summary": "Split 16 classes above 250 lines into 33 focused classes (17 new helpers). No class exceeds 250 lines.", "duration": null, "findingsCount": 0 },
+    "story-0008-0017": { "status": "SUCCESS", "phase": 2, "commitSha": "32e7939", "retries": 0, "summary": "Decomposed 6 methods exceeding 25 lines across 5 files. All methods now ≤25 lines.", "duration": null, "findingsCount": 6 },
+    "story-0008-0018": { "status": "SUCCESS", "phase": 3, "commitSha": "297143b", "retries": 0, "summary": "Decomposed 44+ methods above 25 lines across 39 files. Codebase fully compliant with method size limits.", "duration": null, "findingsCount": 0 },
+    "story-0008-0019": { "status": "SUCCESS", "phase": 0, "commitSha": "02f5d02", "retries": 0, "summary": "Extracted Jackson from CheckpointEngine via Port/Adapter pattern. Created CheckpointPersistence interface + JacksonCheckpointPersistence adapter.", "duration": null, "findingsCount": 0 },
+    "story-0008-0020": { "status": "SUCCESS", "phase": 0, "commitSha": "d68f17d", "retries": 0, "summary": "Extracted I/O from VersionResolver via Port/Adapter. Created VersionDirectoryProvider interface + FileSystemVersionProvider adapter.", "duration": null, "findingsCount": 0 },
+    "story-0008-0021": { "status": "SUCCESS", "phase": 0, "commitSha": "3b16c81", "retries": 0, "summary": "Added SafeConstructor to all 3 YAML parsing locations. Zero unsafe new Yaml() remaining.", "duration": null, "findingsCount": 3 },
+    "story-0008-0022": { "status": "SUCCESS", "phase": 0, "commitSha": "6bb15a6", "retries": 0, "summary": "Added two-constructor pattern to GithubMcpAssembler. 23/23 assemblers now consistent. 5 new tests.", "duration": null, "findingsCount": 0 },
+    "story-0008-0023": { "status": "SUCCESS", "phase": 2, "commitSha": "4402ca0", "retries": 0, "summary": "Renamed 1385 test methods across 137 files to [method]_[scenario]_[expected] convention.", "duration": null, "findingsCount": 1385 },
+    "story-0008-0024": { "status": "SUCCESS", "phase": 2, "commitSha": "32b7d8e", "retries": 0, "summary": "Replaced 40+ weak assertions across 22 test files with stronger context-specific checks.", "duration": null, "findingsCount": 40 },
+    "story-0008-0025": { "status": "SUCCESS", "phase": 2, "commitSha": "7e69fbd", "retries": 0, "summary": "Split 10 largest test files into 33 focused test classes + 4 fixtures. All test files ≤250 lines.", "duration": null, "findingsCount": 0 },
+    "story-0008-0026": { "status": "SUCCESS", "phase": 0, "commitSha": "0ef8089", "retries": 0, "summary": "Moved 2 test-only classes to src/test, removed unused method overload, removed dead code.", "duration": null, "findingsCount": 4 },
+    "story-0008-0027": { "status": "SUCCESS", "phase": 0, "commitSha": "b2810e5", "retries": 0, "summary": "Consolidated exception package. Moved ResourceNotFoundException and GenerationCancelledException to exception/ package.", "duration": null, "findingsCount": 0 },
+    "story-0008-0028": { "status": "SUCCESS", "phase": 0, "commitSha": "cd97720", "retries": 0, "summary": "Applied 5 security hardening fixes: path traversal, symlink NOFOLLOW, error sanitization, filename sanitization, temp dir POSIX 700.", "duration": null, "findingsCount": 5 },
+    "story-0008-0029": { "status": "SUCCESS", "phase": 0, "commitSha": "e9004f2", "retries": 0, "summary": "Fixed qualified names, extracted SkillGroupRegistry, compacted StackMapping. 17 new tests.", "duration": null, "findingsCount": 4 },
+    "story-0008-0030": { "status": "SUCCESS", "phase": 1, "commitSha": "7074075", "retries": 0, "summary": "Created ADR-0001 documenting 4 intentional architectural deviations. Documentation-only change.", "duration": null, "findingsCount": 0 }
+  },
+  "metrics": {
+    "storiesCompleted": 30,
+    "storiesFailed": 0,
+    "storiesBlocked": 0,
+    "storiesTotal": 30
+  },
+  "integrityGates": {
+    "phase0": { "status": "PASS", "testCount": 2126, "coverage": 95.84, "branchCoverage": 91.80, "failedTests": [], "regressionSource": null },
+    "phase1": { "status": "PASS", "testCount": 2268, "coverage": 95.72, "branchCoverage": 92.00, "failedTests": [], "regressionSource": null },
+    "phase2": { "status": "PASS", "testCount": 2268, "coverage": 95.68, "branchCoverage": 91.96, "failedTests": [], "regressionSource": null },
+    "phase3": { "status": "PASS", "testCount": 2247, "coverage": 95.53, "branchCoverage": 92.03, "failedTests": [], "regressionSource": null }
+  },
+  "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/119",
+  "reportPath": "docs/stories/epic-0008/epic-execution-report.md",
+  "finalStatus": "COMPLETE"
+}

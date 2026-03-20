@@ -1,5 +1,6 @@
 package dev.iadev.cli;
 
+import dev.iadev.exception.GenerationCancelledException;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -78,31 +79,48 @@ public class JLineTerminalProvider implements TerminalProvider {
 
     @Override
     public String selectFromList(
-            String prompt, List<String> options, int defaultIndex) {
+            String prompt, List<String> options,
+            int defaultIndex) {
+        displayOptions(prompt, options, defaultIndex);
+        return readSelection(options, defaultIndex);
+    }
+
+    private void displayOptions(
+            String prompt, List<String> options,
+            int defaultIndex) {
         writer.println(prompt);
         for (int i = 0; i < options.size(); i++) {
-            String marker = (i == defaultIndex) ? "> " : "  ";
-            writer.printf("%s%d) %s%n", marker, i + 1, options.get(i));
+            String marker =
+                    (i == defaultIndex) ? "> " : "  ";
+            writer.printf("%s%d) %s%n",
+                    marker, i + 1, options.get(i));
         }
         writer.flush();
+    }
 
+    private String readSelection(
+            List<String> options, int defaultIndex) {
         while (true) {
             String input = readLine(
-                    "Select [1-" + options.size() + "] (default: "
+                    "Select [1-" + options.size()
+                            + "] (default: "
                             + (defaultIndex + 1) + "):");
             if (input.isBlank()) {
                 return options.get(defaultIndex);
             }
             try {
-                int choice = Integer.parseInt(input.trim());
-                if (choice >= 1 && choice <= options.size()) {
+                int choice = Integer.parseInt(
+                        input.trim());
+                if (choice >= 1
+                        && choice <= options.size()) {
                     return options.get(choice - 1);
                 }
             } catch (NumberFormatException ignored) {
                 // re-prompt
             }
             writer.println(
-                    "Invalid selection. Enter a number between 1 and "
+                    "Invalid selection. Enter a number"
+                            + " between 1 and "
                             + options.size() + ".");
             writer.flush();
         }
@@ -140,14 +158,17 @@ public class JLineTerminalProvider implements TerminalProvider {
     }
 
     @Override
-    public boolean confirm(String prompt, boolean defaultValue) {
-        String defHint = defaultValue ? "[Y/n]" : "[y/N]";
+    public boolean confirm(String prompt,
+                           ConfirmDefault confirmDefault) {
+        String defHint = confirmDefault.isYes()
+                ? "[Y/n]" : "[y/N]";
         String input = readLine(prompt + " " + defHint);
         if (input.isBlank()) {
-            return defaultValue;
+            return confirmDefault.isYes();
         }
         String trimmed = input.trim().toLowerCase();
-        return "y".equals(trimmed) || "yes".equals(trimmed);
+        return "y".equals(trimmed)
+                || "yes".equals(trimmed);
     }
 
     @Override

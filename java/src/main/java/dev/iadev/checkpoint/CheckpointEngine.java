@@ -1,103 +1,59 @@
 package dev.iadev.checkpoint;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import dev.iadev.exception.CheckpointIOException;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
  * CRUD operations for execution state persistence.
  *
- * <p>Serializes {@link ExecutionState} to JSON via Jackson and writes
- * atomically using a temp file + rename strategy. Validates state
- * on load using {@link CheckpointValidation}.</p>
+ * <p>Delegates serialization to a {@link CheckpointPersistence}
+ * port injected via constructor, keeping this class free of
+ * framework dependencies. Pure business logic methods
+ * ({@code updateStory}, {@code updateMetrics}) remain static.</p>
  */
 public final class CheckpointEngine {
 
-    private static final String STATE_FILE = "execution-state.json";
-    private static final ObjectMapper MAPPER = createMapper();
+    /**
+     * Conversion factor from milliseconds to minutes.
+     */
+    private static final double MILLIS_PER_MINUTE = 60_000.0;
 
-    private CheckpointEngine() {
-        // utility class
-    }
+    private final CheckpointPersistence persistence;
 
-    private static ObjectMapper createMapper() {
-        var mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.enable(SerializationFeature.INDENT_OUTPUT);
-        mapper.disable(
-                SerializationFeature.WRITE_DATES_AS_TIMESTAMPS
-        );
-        return mapper;
+    /**
+     * Creates a checkpoint engine with the given persistence port.
+     *
+     * @param persistence the serialization/deserialization strategy
+     */
+    public CheckpointEngine(CheckpointPersistence persistence) {
+        this.persistence = persistence;
     }
 
     /**
-     * Serializes execution state to JSON and writes to the given path.
-     *
-     * <p>Uses atomic write: writes to a temp file first, then renames.</p>
+     * Serializes execution state and writes to the given path.
      *
      * @param state the execution state to persist
      * @param path  the file path for the JSON file
-     * @throws CheckpointIOException if writing fails
+     * @throws dev.iadev.exception.CheckpointIOException
+     *         if writing fails
      */
-    public static void save(ExecutionState state, Path path) {
-        try {
-            var json = MAPPER.writeValueAsString(state);
-            var tmpFile = path.resolveSibling(
-                    "." + path.getFileName() + ".tmp"
-            );
-            Files.writeString(tmpFile, json, StandardCharsets.UTF_8);
-            Files.move(
-                    tmpFile, path,
-                    StandardCopyOption.REPLACE_EXISTING,
-                    StandardCopyOption.ATOMIC_MOVE
-            );
-        } catch (IOException e) {
-            throw new CheckpointIOException(
-                    "Failed to save checkpoint", path.toString(), e
-            );
-        }
+    public void save(ExecutionState state, Path path) {
+        persistence.save(state, path);
     }
 
     /**
      * Reads and deserializes execution state from JSON.
      *
-     * <p>Validates the loaded state via {@link CheckpointValidation}.</p>
-     *
      * @param path the file path to read from
      * @return the deserialized and validated execution state
-     * @throws CheckpointIOException if reading or parsing fails
+     * @throws dev.iadev.exception.CheckpointIOException
+     *         if reading or parsing fails
      * @throws dev.iadev.exception.CheckpointValidationException
      *         if state validation fails
      */
-    public static ExecutionState load(Path path) {
-        try {
-            var json = Files.readString(path, StandardCharsets.UTF_8);
-            var state = MAPPER.readValue(
-                    json, ExecutionState.class
-            );
-            var errors = CheckpointValidation.validate(state);
-            if (!errors.isEmpty()) {
-                throw new dev.iadev.exception
-                        .CheckpointValidationException(
-                        "Invalid checkpoint: " + String.join("; ", errors),
-                        "ExecutionState"
-                );
-            }
-            return state;
-        } catch (IOException e) {
-            throw new CheckpointIOException(
-                    "Failed to load checkpoint", path.toString(), e
-            );
-        }
+    public ExecutionState load(Path path) {
+        return persistence.load(path);
     }
 
     /**
@@ -120,8 +76,8 @@ public final class CheckpointEngine {
     /**
      * Recalculates metrics from the current story states.
      *
-     * <p>Computes completed, failed, blocked counts, average duration,
-     * ETA, per-story durations, and per-phase durations.</p>
+     * <p>Computes completed, failed, blocked counts, average
+     * duration, ETA, per-story and per-phase durations.</p>
      *
      * @param state the current execution state
      * @return a new ExecutionState with recalculated metrics
@@ -129,15 +85,29 @@ public final class CheckpointEngine {
     public static ExecutionState updateMetrics(
             ExecutionState state) {
         var stories = state.stories();
+        var counts = countByStatus(stories);
+        var durations = collectDurations(stories);
+
+        double avgDuration = counts.completed > 0
+                ? (double) counts.totalDuration
+                / counts.completed
+                : 0.0;
+
+        var metrics = buildMetrics(
+                stories.size(), counts, durations,
+                avgDuration);
+
+        return state.withMetrics(metrics);
+    }
+
+    private static StatusCounts countByStatus(
+            Map<String, StoryEntry> stories) {
         int completed = 0;
         int failed = 0;
         int blocked = 0;
         long totalDuration = 0;
-        var storyDurations = new LinkedHashMap<String, Long>();
-        var phaseDurations = new LinkedHashMap<Integer, Long>();
 
-        for (var e : stories.entrySet()) {
-            var entry = e.getValue();
+        for (var entry : stories.values()) {
             switch (entry.status()) {
                 case SUCCESS -> {
                     completed++;
@@ -145,52 +115,63 @@ public final class CheckpointEngine {
                 }
                 case FAILED -> failed++;
                 case BLOCKED -> blocked++;
-                default -> { /* PENDING, IN_PROGRESS, PARTIAL */ }
+                default -> { /* PENDING, IN_PROGRESS */ }
             }
-
-            if (entry.duration() > 0) {
-                storyDurations.put(e.getKey(), entry.duration());
-            }
-            phaseDurations.merge(
-                    entry.phase(), entry.duration(), Long::sum
-            );
         }
-
-        double avgDuration = completed > 0
-                ? (double) totalDuration / completed
-                : 0.0;
-
-        int remaining = stories.size() - completed;
-        double estimatedRemainingMinutes = completed > 0
-                ? (remaining * avgDuration) / 60_000.0
-                : 0.0;
-
-        long elapsedMs = storyDurations.values().stream()
-                .mapToLong(Long::longValue).sum();
-
-        var metrics = new ExecutionMetrics(
-                completed,
-                stories.size(),
-                failed,
-                blocked,
-                estimatedRemainingMinutes,
-                elapsedMs,
-                avgDuration,
-                Map.copyOf(storyDurations),
-                Map.copyOf(phaseDurations)
-        );
-
-        return state.withMetrics(metrics);
+        return new StatusCounts(
+                completed, failed, blocked, totalDuration);
     }
 
-    /**
-     * Returns the ObjectMapper used for serialization.
-     *
-     * <p>Exposed for testing purposes only.</p>
-     *
-     * @return the configured ObjectMapper
-     */
-    static ObjectMapper mapper() {
-        return MAPPER;
+    private static DurationMaps collectDurations(
+            Map<String, StoryEntry> stories) {
+        var storyDurations =
+                new LinkedHashMap<String, Long>();
+        var phaseDurations =
+                new LinkedHashMap<Integer, Long>();
+
+        for (var e : stories.entrySet()) {
+            var entry = e.getValue();
+            if (entry.duration() > 0) {
+                storyDurations.put(
+                        e.getKey(), entry.duration());
+            }
+            phaseDurations.merge(
+                    entry.phase(), entry.duration(),
+                    Long::sum);
+        }
+        return new DurationMaps(
+                storyDurations, phaseDurations);
+    }
+
+    private static ExecutionMetrics buildMetrics(
+            int totalStories,
+            StatusCounts counts,
+            DurationMaps durations,
+            double avgDuration) {
+        int remaining = totalStories - counts.completed;
+        double eta = counts.completed > 0
+                ? (remaining * avgDuration)
+                / MILLIS_PER_MINUTE
+                : 0.0;
+
+        long elapsedMs = durations.storyDurations.values()
+                .stream().mapToLong(Long::longValue).sum();
+
+        return new ExecutionMetrics(
+                counts.completed, totalStories,
+                counts.failed, counts.blocked, eta,
+                elapsedMs, avgDuration,
+                Map.copyOf(durations.storyDurations),
+                Map.copyOf(durations.phaseDurations));
+    }
+
+    private record StatusCounts(
+            int completed, int failed,
+            int blocked, long totalDuration) {
+    }
+
+    private record DurationMaps(
+            LinkedHashMap<String, Long> storyDurations,
+            LinkedHashMap<Integer, Long> phaseDurations) {
     }
 }

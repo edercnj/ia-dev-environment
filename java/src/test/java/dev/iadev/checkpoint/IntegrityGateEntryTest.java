@@ -25,17 +25,18 @@ class IntegrityGateEntryTest {
     }
 
     @Test
-    void pass_createsPassingEntry() {
+    void pass_whenCalled_createsPassingEntry() {
         var gate = IntegrityGateEntry.pass("tests");
 
         assertThat(gate.gateName()).isEqualTo("tests");
         assertThat(gate.passed()).isTrue();
         assertThat(gate.message()).isNull();
-        assertThat(gate.timestamp()).isNotNull();
+        assertThat(gate.timestamp())
+                .isBeforeOrEqualTo(Instant.now());
     }
 
     @Test
-    void fail_createsFailingEntry() {
+    void fail_whenCalled_createsFailingEntry() {
         var gate = IntegrityGateEntry.fail(
                 "coverage", "Below 95%"
         );
@@ -43,11 +44,12 @@ class IntegrityGateEntryTest {
         assertThat(gate.gateName()).isEqualTo("coverage");
         assertThat(gate.passed()).isFalse();
         assertThat(gate.message()).isEqualTo("Below 95%");
-        assertThat(gate.timestamp()).isNotNull();
+        assertThat(gate.timestamp())
+                .isBeforeOrEqualTo(Instant.now());
     }
 
     @Test
-    void fail_timestampIsRecent() {
+    void fail_whenCalled_timestampIsRecent() {
         var before = Instant.now();
         var gate = IntegrityGateEntry.fail("test", "err");
         var after = Instant.now();

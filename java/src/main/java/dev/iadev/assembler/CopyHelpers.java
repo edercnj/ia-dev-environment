@@ -11,26 +11,19 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Utilities for copying template files with placeholder
  * replacement during artifact generation.
  *
- * <p>All operations use synchronous I/O by design. This module
- * is consumed exclusively by assemblers that run sequentially
- * in the pipeline.</p>
- *
- * <p>Example usage:
- * <pre>{@code
- * CopyHelpers.copyTemplateFile(
- *     src, dest, engine, context);
- * CopyHelpers.copyStaticFile(src, dest);
- * CopyHelpers.ensureDirectory(outputDir);
- * }</pre>
- * </p>
+ * <p>File tree walking, deletion, and section validation
+ * are in {@link CopyTreeWalker}.</p>
  *
  * @see Assembler
+ * @see CopyTreeWalker
  */
 public final class CopyHelpers {
 
@@ -41,10 +34,6 @@ public final class CopyHelpers {
     /**
      * Copies a single template file with placeholder
      * replacement.
-     *
-     * <p>Creates parent directories if needed. Reads the source
-     * file, replaces {@code {{KEY}}} placeholders using the
-     * engine and context, then writes the result to dest.</p>
      *
      * @param src     the source template file
      * @param dest    the destination file path
@@ -68,7 +57,8 @@ public final class CopyHelpers {
             return dest.toString();
         } catch (IOException e) {
             throw new UncheckedIOException(
-                    "Failed to copy template: " + src, e);
+                    "Failed to copy template: %s"
+                            .formatted(src), e);
         }
     }
 
@@ -79,23 +69,23 @@ public final class CopyHelpers {
      * @param dest    the destination file path
      * @param engine  the template engine for replacement
      * @param context the context map for placeholder values
-     * @return the destination path, or null if source missing
+     * @return Optional containing the destination path,
+     *         or empty if source is missing
      */
-    public static String copyTemplateFileIfExists(
+    public static Optional<String> copyTemplateFileIfExists(
             Path src,
             Path dest,
             TemplateEngine engine,
             Map<String, Object> context) {
         if (!Files.exists(src)) {
-            return null;
+            return Optional.empty();
         }
-        return copyTemplateFile(src, dest, engine, context);
+        return Optional.of(
+                copyTemplateFile(src, dest, engine, context));
     }
 
     /**
      * Copies a file without any template rendering.
-     *
-     * <p>Creates parent directories if needed.</p>
      *
      * @param src  the source file
      * @param dest the destination file
@@ -110,7 +100,8 @@ public final class CopyHelpers {
             return dest.toString();
         } catch (IOException e) {
             throw new UncheckedIOException(
-                    "Failed to copy file: " + src, e);
+                    "Failed to copy file: %s"
+                            .formatted(src), e);
         }
     }
 
@@ -125,44 +116,83 @@ public final class CopyHelpers {
             Path srcDir, Path destDir) {
         try {
             Files.walkFileTree(srcDir,
-                    new SimpleFileVisitor<>() {
-
-                @Override
-                public FileVisitResult preVisitDirectory(
-                        Path dir,
-                        BasicFileAttributes attrs)
-                        throws IOException {
-                    Path target = destDir.resolve(
-                            srcDir.relativize(dir));
-                    Files.createDirectories(target);
-                    return FileVisitResult.CONTINUE;
-                }
-
-                @Override
-                public FileVisitResult visitFile(
-                        Path file,
-                        BasicFileAttributes attrs)
-                        throws IOException {
-                    Files.copy(file,
-                            destDir.resolve(
-                                    srcDir.relativize(file)),
-                            StandardCopyOption
-                                    .REPLACE_EXISTING);
-                    return FileVisitResult.CONTINUE;
-                }
-            });
+                    newCopyVisitor(srcDir, destDir));
             return destDir.toString();
         } catch (IOException e) {
             throw new UncheckedIOException(
-                    "Failed to copy directory: " + srcDir, e);
+                    "Failed to copy directory: %s"
+                            .formatted(srcDir), e);
+        }
+    }
+
+    private static SimpleFileVisitor<Path> newCopyVisitor(
+            Path srcDir, Path destDir) {
+        return new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult preVisitDirectory(
+                    Path dir,
+                    BasicFileAttributes attrs)
+                    throws IOException {
+                Path target = destDir.resolve(
+                        srcDir.relativize(dir));
+                Files.createDirectories(target);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(
+                    Path file,
+                    BasicFileAttributes attrs)
+                    throws IOException {
+                Files.copy(file,
+                        destDir.resolve(
+                                srcDir.relativize(file)),
+                        StandardCopyOption
+                                .REPLACE_EXISTING);
+                return FileVisitResult.CONTINUE;
+            }
+        };
+    }
+
+    /**
+     * Writes content to a file, creating parent directories
+     * if needed.
+     *
+     * @param path    target file path
+     * @param content file content (UTF-8)
+     */
+    public static void writeFile(
+            Path path, String content) {
+        try {
+            Files.createDirectories(path.getParent());
+            Files.writeString(
+                    path, content, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException(
+                    "Failed to write file: %s"
+                            .formatted(path), e);
+        }
+    }
+
+    /**
+     * Reads entire file content as a UTF-8 string.
+     *
+     * @param path source file path
+     * @return file content
+     */
+    public static String readFile(Path path) {
+        try {
+            return Files.readString(
+                    path, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException(
+                    "Failed to read file: %s"
+                            .formatted(path), e);
         }
     }
 
     /**
      * Creates a directory and all parent directories.
-     *
-     * <p>Idempotent — does nothing if the directory already
-     * exists.</p>
      *
      * @param dir the directory to create
      */
@@ -171,50 +201,34 @@ public final class CopyHelpers {
             Files.createDirectories(dir);
         } catch (IOException e) {
             throw new UncheckedIOException(
-                    "Failed to create directory: " + dir, e);
+                    "Failed to create directory: %s"
+                            .formatted(dir), e);
         }
     }
 
-    /**
-     * Replaces placeholders in all {@code .md} files within
-     * a directory tree recursively.
-     *
-     * <p>Only processes files ending with {@code .md}.
-     * Non-markdown files are left unchanged.</p>
-     *
-     * @param directory the root directory to process
-     * @param engine    the template engine for replacement
-     * @param context   the context map for placeholder values
-     */
+    /** Delegates to {@link CopyTreeWalker}. */
     public static void replacePlaceholdersInDir(
             Path directory,
             TemplateEngine engine,
             Map<String, Object> context) {
-        try {
-            Files.walkFileTree(directory,
-                    new SimpleFileVisitor<>() {
+        CopyTreeWalker.replacePlaceholdersInDir(
+                directory, engine, context);
+    }
 
-                @Override
-                public FileVisitResult visitFile(
-                        Path file,
-                        BasicFileAttributes attrs)
-                        throws IOException {
-                    if (file.toString().endsWith(".md")) {
-                        String content = Files.readString(
-                                file, StandardCharsets.UTF_8);
-                        String replaced =
-                                engine.replacePlaceholders(
-                                        content, context);
-                        Files.writeString(file, replaced,
-                                StandardCharsets.UTF_8);
-                    }
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to replace placeholders in: "
-                            + directory, e);
-        }
+    /** Delegates to {@link CopyTreeWalker}. */
+    public static List<Path> listMdFilesSorted(Path dir) {
+        return CopyTreeWalker.listMdFilesSorted(dir);
+    }
+
+    /** Delegates to {@link CopyTreeWalker}. */
+    public static boolean deleteQuietly(Path path) {
+        return CopyTreeWalker.deleteQuietly(path);
+    }
+
+    /** Delegates to {@link CopyTreeWalker}. */
+    public static boolean hasAllMandatorySections(
+            String content, List<String> sections) {
+        return CopyTreeWalker.hasAllMandatorySections(
+                content, sections);
     }
 }

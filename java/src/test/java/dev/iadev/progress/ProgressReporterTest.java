@@ -48,7 +48,7 @@ class ProgressReporterTest {
         }
 
         @Test
-        void generateReport_reportHasCorrectFormat() {
+        void generateReport_whenCalled_reportHasCorrectFormat() {
             var stories = buildMixedStories();
             var state = stateWith(stories, 2);
 

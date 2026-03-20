@@ -19,7 +19,7 @@ class RulesIdentityTest {
 
         @Test
         @DisplayName("contains project name in header")
-        void containsProjectName() {
+        void create_whenCalled_containsProjectName() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .projectName("my-api")
@@ -35,7 +35,7 @@ class RulesIdentityTest {
 
         @Test
         @DisplayName("contains language and version")
-        void containsLanguageAndVersion() {
+        void create_whenCalled_containsLanguageAndVersion() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .language("java", "21")
@@ -51,7 +51,7 @@ class RulesIdentityTest {
 
         @Test
         @DisplayName("contains framework with version")
-        void containsFrameworkWithVersion() {
+        void create_withVersion_containsFramework() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .framework("quarkus", "3.17")
@@ -67,7 +67,7 @@ class RulesIdentityTest {
 
         @Test
         @DisplayName("contains architecture style")
-        void containsArchitectureStyle() {
+        void create_whenCalled_containsArchitectureStyle() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .archStyle("microservice")
@@ -87,7 +87,7 @@ class RulesIdentityTest {
 
         @Test
         @DisplayName("contains DDD and event-driven flags")
-        void containsDddAndEventDriven() {
+        void create_whenCalled_containsDddAndEventDriven() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .domainDriven(true)
@@ -107,7 +107,7 @@ class RulesIdentityTest {
 
         @Test
         @DisplayName("contains interfaces list")
-        void containsInterfacesList() {
+        void create_whenCalled_containsInterfacesList() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .clearInterfaces()
@@ -124,7 +124,7 @@ class RulesIdentityTest {
 
         @Test
         @DisplayName("contains build tool in tech stack")
-        void containsBuildTool() {
+        void create_whenCalled_containsBuildTool() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .buildTool("maven")
@@ -139,7 +139,7 @@ class RulesIdentityTest {
 
         @Test
         @DisplayName("contains native build flag")
-        void containsNativeBuild() {
+        void create_whenCalled_containsNativeBuild() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .nativeBuild(true)
@@ -154,7 +154,7 @@ class RulesIdentityTest {
 
         @Test
         @DisplayName("contains testing flags")
-        void containsTestingFlags() {
+        void create_whenCalled_containsTestingFlags() {
             ProjectConfig config = TestConfigBuilder
                     .minimal();
 
@@ -168,7 +168,7 @@ class RulesIdentityTest {
 
         @Test
         @DisplayName("contains source of truth hierarchy")
-        void containsSourceOfTruth() {
+        void create_whenCalled_containsSourceOfTruth() {
             ProjectConfig config = TestConfigBuilder
                     .minimal();
 
@@ -184,7 +184,7 @@ class RulesIdentityTest {
 
         @Test
         @DisplayName("contains constraints section")
-        void containsConstraints() {
+        void create_whenCalled_containsConstraints() {
             ProjectConfig config = TestConfigBuilder
                     .minimal();
 
@@ -200,7 +200,7 @@ class RulesIdentityTest {
 
         @Test
         @DisplayName("starts with global behavior header")
-        void startsWithGlobalBehavior() {
+        void create_withGlobalBehavior_starts() {
             ProjectConfig config = TestConfigBuilder
                     .minimal();
 
@@ -213,7 +213,7 @@ class RulesIdentityTest {
 
         @Test
         @DisplayName("ends with trailing newline")
-        void endsWithNewline() {
+        void create_withNewline_ends() {
             ProjectConfig config = TestConfigBuilder
                     .minimal();
 
@@ -225,7 +225,7 @@ class RulesIdentityTest {
 
         @Test
         @DisplayName("message broker is always none")
-        void messageBrokerAlwaysNone() {
+        void create_whenCalled_messageBrokerAlwaysNone() {
             ProjectConfig config = TestConfigBuilder
                     .minimal();
 
@@ -238,7 +238,7 @@ class RulesIdentityTest {
 
         @Test
         @DisplayName("resilience is always mandatory")
-        void resilienceAlwaysMandatory() {
+        void create_whenCalled_resilienceAlwaysMandatory() {
             ProjectConfig config = TestConfigBuilder
                     .minimal();
 
@@ -257,7 +257,7 @@ class RulesIdentityTest {
 
         @Test
         @DisplayName("joins multiple interfaces")
-        void joinsMultiple() {
+        void create_whenCalled_joinsMultiple() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .clearInterfaces()
@@ -276,7 +276,7 @@ class RulesIdentityTest {
 
         @Test
         @DisplayName("returns none for empty interfaces")
-        void emptyReturnsNone() {
+        void create_empty_returnsNone() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .clearInterfaces()
@@ -295,7 +295,7 @@ class RulesIdentityTest {
 
         @Test
         @DisplayName("formats version with leading space")
-        void formatsVersion() {
+        void create_whenCalled_formatsVersion() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .framework("quarkus", "3.17")
@@ -309,7 +309,7 @@ class RulesIdentityTest {
 
         @Test
         @DisplayName("returns empty for empty version")
-        void emptyVersion() {
+        void create_whenCalled_emptyVersion() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .framework("quarkus", "")
@@ -328,7 +328,7 @@ class RulesIdentityTest {
 
         @Test
         @DisplayName("contains project name")
-        void containsProjectName() {
+        void create_whenCalled_containsProjectName() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .projectName("my-service")

@@ -12,7 +12,7 @@ class CheckpointIOExceptionTest {
 
     @Test
     @DisplayName("carries message, filePath, and cause")
-    void constructor_carriesAllFields() {
+    void constructor_whenCalled_carriesAllFields() {
         var cause = new IOException("file not found");
         var ex = new CheckpointIOException(
                 "Failed to read checkpoint",
@@ -27,7 +27,7 @@ class CheckpointIOExceptionTest {
 
     @Test
     @DisplayName("extends RuntimeException")
-    void extendsRuntimeException() {
+    void create_whenCalled_extendsRuntimeException() {
         var ex = new CheckpointIOException(
                 "error", "/path", new RuntimeException());
 
@@ -36,7 +36,7 @@ class CheckpointIOExceptionTest {
 
     @Test
     @DisplayName("preserves original IOException as cause")
-    void preservesCauseChain() {
+    void create_whenCalled_preservesCauseChain() {
         var ioException = new IOException("permission denied");
         var ex = new CheckpointIOException(
                 "Write failed",
@@ -49,7 +49,7 @@ class CheckpointIOExceptionTest {
 
     @Test
     @DisplayName("toString includes filePath")
-    void toString_includesFilePath() {
+    void toString_whenCalled_includesFilePath() {
         var ex = new CheckpointIOException(
                 "Read failed",
                 "/tmp/checkpoint/execution-state.json",

@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,7 +30,7 @@ class SettingsAssemblerCoverageTest {
         @Test
         @DisplayName("postgresql database adds db"
                 + " permissions")
-        void postgresqlAddsDbPerms(
+        void assemble_postgresql_addsDbPerms(
                 @TempDir Path tempDir) throws IOException {
             Path templatesDir = setupTemplatesDir(tempDir);
             Files.writeString(
@@ -57,7 +58,7 @@ class SettingsAssemblerCoverageTest {
 
         @Test
         @DisplayName("redis cache adds cache permissions")
-        void redisCacheAddsPerms(
+        void assemble_redisCache_addsPerms(
                 @TempDir Path tempDir) throws IOException {
             Path templatesDir = setupTemplatesDir(tempDir);
             Files.writeString(
@@ -90,7 +91,7 @@ class SettingsAssemblerCoverageTest {
 
         @Test
         @DisplayName("handles escaped quotes in strings")
-        void handlesEscapedQuotes() {
+        void parseJsonStringArray_whenCalled_handlesEscapedQuotes() {
             List<String> result = SettingsAssembler
                     .parseJsonStringArray(
                             "[\"a\\\"b\"]");
@@ -100,7 +101,7 @@ class SettingsAssemblerCoverageTest {
 
         @Test
         @DisplayName("handles whitespace-only inner")
-        void handlesWhitespaceOnly() {
+        void parseJsonStringArray_whenCalled_handlesWhitespaceOnly() {
             List<String> result = SettingsAssembler
                     .parseJsonStringArray("[   ]");
 
@@ -109,7 +110,7 @@ class SettingsAssemblerCoverageTest {
 
         @Test
         @DisplayName("handles single element")
-        void handlesSingleElement() {
+        void parseJsonStringArray_whenCalled_handlesSingleElement() {
             List<String> result = SettingsAssembler
                     .parseJsonStringArray(
                             "[\"single\"]");
@@ -120,7 +121,7 @@ class SettingsAssemblerCoverageTest {
 
         @Test
         @DisplayName("handles multiline JSON")
-        void handlesMultiline() {
+        void parseJsonStringArray_whenCalled_handlesMultiline() {
             String json = "[\n"
                     + "  \"first\",\n"
                     + "  \"second\"\n"
@@ -134,7 +135,7 @@ class SettingsAssemblerCoverageTest {
 
         @Test
         @DisplayName("empty string returns empty")
-        void emptyStringReturnsEmpty() {
+        void parseJsonStringArray_emptyString_returnsEmpty() {
             List<String> result = SettingsAssembler
                     .parseJsonStringArray("");
 
@@ -143,7 +144,7 @@ class SettingsAssemblerCoverageTest {
 
         @Test
         @DisplayName("non-bracket text returns empty")
-        void nonBracketReturnsEmpty() {
+        void parseJsonStringArray_nonBracket_returnsEmpty() {
             List<String> result = SettingsAssembler
                     .parseJsonStringArray("just text");
 
@@ -157,7 +158,7 @@ class SettingsAssemblerCoverageTest {
 
         @Test
         @DisplayName("non-existent file returns empty")
-        void nonExistentReturnsEmpty(
+        void readJsonArray_nonExistent_returnsEmpty(
                 @TempDir Path tempDir) {
             Path missing = tempDir.resolve("missing.json");
 
@@ -169,7 +170,7 @@ class SettingsAssemblerCoverageTest {
 
         @Test
         @DisplayName("valid file returns parsed array")
-        void validFileReturnsParsed(
+        void readJsonArray_validFile_returnsParsed(
                 @TempDir Path tempDir) throws IOException {
             Path file = tempDir.resolve("test.json");
             Files.writeString(file, "[\"a\", \"b\"]",
@@ -190,9 +191,9 @@ class SettingsAssemblerCoverageTest {
         @Test
         @DisplayName("empty permissions produces"
                 + " empty allow array")
-        void emptyPermissions() {
+        void buildSettingsJson_emptyPermissions_succeeds() {
             String json = SettingsAssembler
-                    .buildSettingsJson(List.of(), false);
+                    .buildSettingsJson(List.of(), HookPresence.WITHOUT_HOOKS);
 
             assertThat(json)
                     .contains("\"allow\": [\n")
@@ -202,13 +203,13 @@ class SettingsAssemblerCoverageTest {
         @Test
         @DisplayName("multiple permissions separated"
                 + " by commas")
-        void multiplePermissions() {
+        void buildSettingsJson_multiplePermissions_succeeds() {
             List<String> perms = List.of(
                     "Bash(git *)",
                     "Bash(mvn *)",
                     "Bash(npm *)");
             String json = SettingsAssembler
-                    .buildSettingsJson(perms, false);
+                    .buildSettingsJson(perms, HookPresence.WITHOUT_HOOKS);
 
             assertThat(json)
                     .contains("\"Bash(git *)\"")
@@ -229,7 +230,7 @@ class SettingsAssemblerCoverageTest {
         @Test
         @DisplayName("podman adds docker permissions"
                 + " via collectPermissions")
-        void podmanAddsDockerPerms(
+        void collectInfra_podman_addsDockerPerms(
                 @TempDir Path tempDir) throws IOException {
             Path templatesDir = setupTemplatesDir(tempDir);
 
@@ -256,30 +257,31 @@ class SettingsAssemblerCoverageTest {
         Path templatesDir = tempDir.resolve(
                 "settings-templates");
         Files.createDirectories(templatesDir);
-        Files.writeString(
-                templatesDir.resolve("base.json"),
-                "[\"Bash(git *)\"]",
-                StandardCharsets.UTF_8);
-        Files.writeString(
-                templatesDir.resolve("java-maven.json"),
-                "[\"Bash(mvn *)\"]",
-                StandardCharsets.UTF_8);
-        Files.writeString(
-                templatesDir.resolve("docker.json"),
-                "[\"Bash(docker build *)\"]",
-                StandardCharsets.UTF_8);
-        Files.writeString(
-                templatesDir.resolve("kubernetes.json"),
-                "[\"Bash(kubectl get *)\"]",
-                StandardCharsets.UTF_8);
-        Files.writeString(
-                templatesDir.resolve("docker-compose.json"),
-                "[\"Bash(docker compose *)\"]",
-                StandardCharsets.UTF_8);
-        Files.writeString(
-                templatesDir.resolve("testing-newman.json"),
-                "[\"Bash(newman *)\"]",
-                StandardCharsets.UTF_8);
+        writeTemplateFiles(templatesDir);
         return templatesDir;
+    }
+
+    private static void writeTemplateFiles(
+            Path templatesDir) throws IOException {
+        Map.of(
+                "base.json", "[\"Bash(git *)\"]",
+                "java-maven.json", "[\"Bash(mvn *)\"]",
+                "docker.json",
+                        "[\"Bash(docker build *)\"]",
+                "kubernetes.json",
+                        "[\"Bash(kubectl get *)\"]",
+                "docker-compose.json",
+                        "[\"Bash(docker compose *)\"]",
+                "testing-newman.json",
+                        "[\"Bash(newman *)\"]"
+        ).forEach((name, content) -> {
+            try {
+                Files.writeString(
+                        templatesDir.resolve(name),
+                        content, StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                throw new java.io.UncheckedIOException(e);
+            }
+        });
     }
 }

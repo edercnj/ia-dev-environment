@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class StoryEntryTest {
 
     @Test
-    void pending_createsEntryWithDefaults() {
+    void pending_whenCalled_createsEntryWithDefaults() {
         var entry = StoryEntry.pending(0);
 
         assertThat(entry.status()).isEqualTo(StoryStatus.PENDING);
@@ -26,7 +26,7 @@ class StoryEntryTest {
     }
 
     @Test
-    void pending_preservesPhase() {
+    void pending_whenCalled_preservesPhase() {
         var entry = StoryEntry.pending(3);
         assertThat(entry.phase()).isEqualTo(3);
     }
@@ -49,7 +49,7 @@ class StoryEntryTest {
     }
 
     @Test
-    void withStatus_returnsNewEntryWithUpdatedStatus() {
+    void withStatus_whenCalled_returnsNewEntryWithUpdatedStatus() {
         var original = StoryEntry.pending(0);
         var updated = original.withStatus(StoryStatus.IN_PROGRESS);
 
@@ -60,7 +60,7 @@ class StoryEntryTest {
     }
 
     @Test
-    void withCommitSha_returnsNewEntryWithUpdatedSha() {
+    void withCommitSha_whenCalled_returnsNewEntryWithUpdatedSha() {
         var original = StoryEntry.pending(0);
         var updated = original.withCommitSha("def456");
 
@@ -69,7 +69,7 @@ class StoryEntryTest {
     }
 
     @Test
-    void withRetries_returnsNewEntryWithUpdatedRetries() {
+    void withRetries_whenCalled_returnsNewEntryWithUpdatedRetries() {
         var original = StoryEntry.pending(0);
         var updated = original.withRetries(2);
 
@@ -78,7 +78,7 @@ class StoryEntryTest {
     }
 
     @Test
-    void withDuration_returnsNewEntryWithUpdatedDuration() {
+    void withDuration_whenCalled_returnsNewEntryWithUpdatedDuration() {
         var original = StoryEntry.pending(0);
         var updated = original.withDuration(5000L);
 
@@ -87,7 +87,7 @@ class StoryEntryTest {
     }
 
     @Test
-    void withBlockedBy_returnsNewEntryWithUpdatedBlockedBy() {
+    void withBlockedBy_whenCalled_returnsNewEntryWithUpdatedBlockedBy() {
         var original = StoryEntry.pending(0);
         var updated = original.withBlockedBy(
                 List.of("story-001", "story-002")
@@ -99,7 +99,7 @@ class StoryEntryTest {
     }
 
     @Test
-    void withSummary_returnsNewEntryWithUpdatedSummary() {
+    void withSummary_whenCalled_returnsNewEntryWithUpdatedSummary() {
         var original = StoryEntry.pending(0);
         var updated = original.withSummary("Completed");
 
@@ -108,7 +108,7 @@ class StoryEntryTest {
     }
 
     @Test
-    void withFindingsCount_returnsNewEntryWithUpdatedFindings() {
+    void withFindingsCount_whenCalled_returnsNewEntryWithUpdatedFindings() {
         var original = StoryEntry.pending(0);
         var updated = original.withFindingsCount(5);
 
@@ -117,7 +117,7 @@ class StoryEntryTest {
     }
 
     @Test
-    void withStatus_chainsCorrectly() {
+    void withStatus_whenCalled_chainsCorrectly() {
         var entry = StoryEntry.pending(1)
                 .withStatus(StoryStatus.IN_PROGRESS)
                 .withStatus(StoryStatus.SUCCESS)

@@ -29,7 +29,7 @@ class ProtocolsAssemblerCoverageTest {
         @Test
         @DisplayName("event with specific broker selects"
                 + " broker file only")
-        void specificBrokerSelectsBrokerFile(
+        void assemble_whenCalled_specificBrokerSelectsBrokerFile(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path msgDir = resourceDir.resolve(
@@ -79,7 +79,7 @@ class ProtocolsAssemblerCoverageTest {
         @Test
         @DisplayName("event with no broker file"
                 + " falls back to all files")
-        void noBrokerFileFallsBack(
+        void assemble_noBrokerFileFallsBack_succeeds(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path msgDir = resourceDir.resolve(
@@ -117,7 +117,7 @@ class ProtocolsAssemblerCoverageTest {
         @Test
         @DisplayName("event without broker uses all"
                 + " messaging files")
-        void noBrokerUsesAllFiles(
+        void assemble_noBroker_usesAllFiles(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path msgDir = resourceDir.resolve(
@@ -161,7 +161,7 @@ class ProtocolsAssemblerCoverageTest {
         @Test
         @DisplayName("protocol dir missing skips"
                 + " that protocol")
-        void missingProtocolDirSkipped(
+        void protocol_missingProtocolDirSkipped_succeeds(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path restDir = resourceDir.resolve(
@@ -200,7 +200,7 @@ class ProtocolsAssemblerCoverageTest {
         @Test
         @DisplayName("multiple files concatenated with"
                 + " separator")
-        void multipleFilesConcatenated(
+        void concatenation_multipleFilesConcatenated_succeeds(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path restDir = resourceDir.resolve(
@@ -246,7 +246,7 @@ class ProtocolsAssemblerCoverageTest {
         @Test
         @DisplayName("protocol dir with no md files"
                 + " returns empty")
-        void noMdFilesReturnsEmpty(
+        void protocol_noMdFiles_returnsEmpty(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path restDir = resourceDir.resolve(

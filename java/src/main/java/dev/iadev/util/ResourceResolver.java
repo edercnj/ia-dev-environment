@@ -1,45 +1,23 @@
 package dev.iadev.util;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Map;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermissions;
 
 /**
  * Resolves classpath resources to filesystem {@link Path}
- * objects, handling both exploded classpath (IDE/development)
- * and fat JAR (production) scenarios.
+ * objects, handling both exploded classpath and fat JAR
+ * scenarios.
  *
- * <p>When running from an exploded classpath, resources are
- * accessed directly via filesystem paths. When running from
- * a JAR, resources are extracted to a temporary directory
- * that is cached for the lifetime of the JVM and cleaned up
- * on shutdown.</p>
+ * <p>JAR extraction is delegated to
+ * {@link JarResourceExtractor}.</p>
  *
- * <p>All assemblers should use
- * {@link #resolveResourcesRoot(String)} or
- * {@link #resolveResourcesRoot(String, int)} to obtain a
- * filesystem path to the resources root directory.</p>
- *
- * <p>Example usage:
- * <pre>{@code
- * Path root = ResourceResolver.resolveResourcesRoot(
- *     "skills-templates");
- * // root points to src/main/resources/ (or extracted temp)
- * Path skills = root.resolve("skills-templates/core");
- * }</pre>
- *
+ * @see JarResourceExtractor
  * @see ResourceDiscovery
  */
 public final class ResourceResolver {
@@ -55,13 +33,7 @@ public final class ResourceResolver {
      * Resolves the resources root directory by probing a
      * known resource name on the classpath.
      *
-     * <p>Equivalent to
-     * {@code resolveResourcesRoot(probe, 1)} — expects the
-     * probe to be a top-level directory whose parent is the
-     * resources root.</p>
-     *
      * @param probe a resource directory name known to exist
-     *              on the classpath (e.g. "skills-templates")
      * @return filesystem path to the resources root
      */
     public static Path resolveResourcesRoot(String probe) {
@@ -73,14 +45,8 @@ public final class ResourceResolver {
      * known resource on the classpath and navigating up
      * {@code depth} parent levels.
      *
-     * <p>For a top-level directory probe (e.g.
-     * "skills-templates"), use depth=1. For a nested file
-     * probe (e.g. "templates/readme.md"), use depth=2.</p>
-     *
-     * @param probe a resource path known to exist on the
-     *              classpath
+     * @param probe a resource path known to exist
      * @param depth number of parent levels to navigate up
-     *              from the probe to reach the resources root
      * @return filesystem path to the resources root
      */
     public static Path resolveResourcesRoot(
@@ -132,76 +98,49 @@ public final class ResourceResolver {
                     && Files.exists(cachedExtractedDir)) {
                 return cachedExtractedDir;
             }
-            cachedExtractedDir = extractJarResources(url);
+            cachedExtractedDir =
+                    JarResourceExtractor
+                            .extractJarResources(url);
             registerShutdownHook(cachedExtractedDir);
             return cachedExtractedDir;
         }
     }
 
+    /**
+     * Delegates to
+     * {@link JarResourceExtractor#extractJarResources}.
+     *
+     * @param url the JAR URL
+     * @return the path to extracted resources
+     */
     static Path extractJarResources(URL url) {
-        try {
-            Path tempDir = Files.createTempDirectory(
-                    "ia-dev-env-res-");
-            String jarUrl = url.toString();
-            int bang = jarUrl.indexOf('!');
-            String jarUri = jarUrl.substring(0, bang + 2);
-            URI fsUri = URI.create(jarUri);
+        return JarResourceExtractor
+                .extractJarResources(url);
+    }
 
-            try (FileSystem jarFs = FileSystems.newFileSystem(
-                    fsUri, Map.of())) {
-                Path jarRoot = jarFs.getPath("/");
-                Files.walkFileTree(jarRoot,
-                        new SimpleFileVisitor<>() {
-
-                    @Override
-                    public FileVisitResult preVisitDirectory(
-                            Path dir,
-                            BasicFileAttributes attrs)
-                            throws IOException {
-                        if (shouldSkip(dir)) {
-                            return FileVisitResult
-                                    .SKIP_SUBTREE;
-                        }
-                        Path target = tempDir.resolve(
-                                jarRoot.relativize(dir)
-                                        .toString());
-                        Files.createDirectories(target);
-                        return FileVisitResult.CONTINUE;
-                    }
-
-                    @Override
-                    public FileVisitResult visitFile(
-                            Path file,
-                            BasicFileAttributes attrs)
-                            throws IOException {
-                        String rel = jarRoot.relativize(file)
-                                .toString();
-                        if (rel.endsWith(".class")
-                                || rel.startsWith(
-                                        "META-INF/")) {
-                            return FileVisitResult.CONTINUE;
-                        }
-                        Path target =
-                                tempDir.resolve(rel);
-                        Files.createDirectories(
-                                target.getParent());
-                        try (InputStream is =
-                                     Files.newInputStream(
-                                             file)) {
-                            Files.copy(is, target,
-                                    StandardCopyOption
-                                            .REPLACE_EXISTING
-                            );
-                        }
-                        return FileVisitResult.CONTINUE;
-                    }
-                });
-            }
-            return tempDir;
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to extract JAR resources", e);
+    /**
+     * Creates a temp directory with secure permissions.
+     *
+     * @param prefix the directory name prefix
+     * @return the created temp directory path
+     * @throws IOException if creation fails
+     */
+    static Path createSecureTempDir(String prefix)
+            throws IOException {
+        if (!isPosixSystem()) {
+            return Files.createTempDirectory(prefix);
         }
+        FileAttribute<?> perms =
+                PosixFilePermissions.asFileAttribute(
+                        PosixFilePermissions.fromString(
+                                "rwx------"));
+        return Files.createTempDirectory(prefix, perms);
+    }
+
+    private static boolean isPosixSystem() {
+        String os = System.getProperty("os.name", "")
+                .toLowerCase();
+        return !os.contains("win");
     }
 
     static boolean shouldSkip(Path dir) {
@@ -213,36 +152,18 @@ public final class ResourceResolver {
     private static void registerShutdownHook(
             Path extractedDir) {
         Runtime.getRuntime().addShutdownHook(
-                new Thread(() -> deleteQuietly(extractedDir),
+                new Thread(
+                        () -> deleteQuietly(extractedDir),
                         "ia-dev-env-cleanup"));
     }
 
+    /**
+     * Delegates to
+     * {@link dev.iadev.assembler.CopyHelpers#deleteQuietly}.
+     *
+     * @param dir directory to delete recursively
+     */
     static void deleteQuietly(Path dir) {
-        try {
-            if (Files.exists(dir)) {
-                Files.walkFileTree(dir,
-                        new SimpleFileVisitor<>() {
-                    @Override
-                    public FileVisitResult visitFile(
-                            Path file,
-                            BasicFileAttributes attrs)
-                            throws IOException {
-                        Files.delete(file);
-                        return FileVisitResult.CONTINUE;
-                    }
-
-                    @Override
-                    public FileVisitResult
-                    postVisitDirectory(
-                            Path d, IOException exc)
-                            throws IOException {
-                        Files.delete(d);
-                        return FileVisitResult.CONTINUE;
-                    }
-                });
-            }
-        } catch (IOException ignored) {
-            // Best-effort cleanup
-        }
+        dev.iadev.assembler.CopyHelpers.deleteQuietly(dir);
     }
 }

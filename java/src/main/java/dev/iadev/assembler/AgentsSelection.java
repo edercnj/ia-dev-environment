@@ -11,32 +11,11 @@ import java.util.Set;
  * Pure agent selection functions based on project config
  * feature gates.
  *
- * <p>These functions evaluate config conditions and return
- * agent filenames. No file I/O — consumed by
- * {@link AgentsAssembler} for assembly decisions.</p>
- *
- * <p>Selection categories:
- * <ul>
- *   <li>Data agents — database-engineer when database
- *       is configured</li>
- *   <li>Infrastructure agents — observability-engineer,
- *       devops-engineer based on infra config</li>
- *   <li>Interface agents — api-engineer when REST, gRPC,
- *       or GraphQL interfaces present</li>
- *   <li>Event agents — event-engineer when event-driven
- *       or event interfaces present</li>
- * </ul>
- *
- * <p>Example usage:
- * <pre>{@code
- * List<String> conditionals =
- *     AgentsSelection.selectConditionalAgents(config);
- * String devAgent =
- *     AgentsSelection.selectDeveloperAgent(config);
- * }</pre>
- * </p>
+ * <p>Checklist rule building is delegated to
+ * {@link ChecklistRulesBuilder}.</p>
  *
  * @see AgentsAssembler
+ * @see ChecklistRulesBuilder
  * @see ConditionEvaluator
  */
 public final class AgentsSelection {
@@ -69,7 +48,7 @@ public final class AgentsSelection {
      * language.
      *
      * @param config the project configuration
-     * @return developer agent filename (e.g. "java-developer.md")
+     * @return developer agent filename
      */
     public static String selectDeveloperAgent(
             ProjectConfig config) {
@@ -78,27 +57,19 @@ public final class AgentsSelection {
     }
 
     /**
-     * Builds the complete list of checklist injection rules.
+     * Delegates to {@link ChecklistRulesBuilder}.
      *
      * @param config the project configuration
      * @return list of checklist rules with active flags
      */
     public static List<ChecklistRule> buildChecklistRules(
             ProjectConfig config) {
-        List<ChecklistRule> rules = new ArrayList<>();
-        rules.addAll(securityChecklistRules(
-                config.security().frameworks()));
-        rules.addAll(apiChecklistRules(config));
-        rules.addAll(devopsChecklistRules(
-                config.infrastructure()));
-        return rules;
+        return ChecklistRulesBuilder
+                .buildChecklistRules(config);
     }
 
     /**
      * Derives the marker string from a checklist filename.
-     *
-     * <p>Example: "pci-dss-security.md" becomes
-     * "&lt;!-- PCI_DSS_SECURITY --&gt;"</p>
      *
      * @param checklistFile the checklist filename
      * @return the HTML comment marker string
@@ -164,73 +135,6 @@ public final class AgentsSelection {
             return List.of("event-engineer.md");
         }
         return List.of();
-    }
-
-    private static List<ChecklistRule> securityChecklistRules(
-            List<String> frameworks) {
-        boolean hasPrivacy = frameworks.contains("lgpd")
-                || frameworks.contains("gdpr");
-        return List.of(
-                new ChecklistRule(
-                        "security-engineer.md",
-                        "pci-dss-security.md",
-                        frameworks.contains("pci-dss")),
-                new ChecklistRule(
-                        "security-engineer.md",
-                        "privacy-security.md",
-                        hasPrivacy),
-                new ChecklistRule(
-                        "security-engineer.md",
-                        "hipaa-security.md",
-                        frameworks.contains("hipaa")),
-                new ChecklistRule(
-                        "security-engineer.md",
-                        "sox-security.md",
-                        frameworks.contains("sox")));
-    }
-
-    private static List<ChecklistRule> apiChecklistRules(
-            ProjectConfig config) {
-        return List.of(
-                new ChecklistRule(
-                        "api-engineer.md",
-                        "grpc-api.md",
-                        hasInterface(config, "grpc")),
-                new ChecklistRule(
-                        "api-engineer.md",
-                        "graphql-api.md",
-                        hasInterface(config, "graphql")),
-                new ChecklistRule(
-                        "api-engineer.md",
-                        "websocket-api.md",
-                        hasInterface(config, "websocket")));
-    }
-
-    private static List<ChecklistRule> devopsChecklistRules(
-            InfraConfig infra) {
-        return List.of(
-                new ChecklistRule(
-                        "devops-engineer.md",
-                        "helm-devops.md",
-                        "helm".equals(infra.templating())),
-                new ChecklistRule(
-                        "devops-engineer.md",
-                        "iac-devops.md",
-                        !"none".equals(infra.iac())),
-                new ChecklistRule(
-                        "devops-engineer.md",
-                        "mesh-devops.md",
-                        !"none".equals(infra.serviceMesh())),
-                new ChecklistRule(
-                        "devops-engineer.md",
-                        "registry-devops.md",
-                        !"none".equals(infra.registry())));
-    }
-
-    private static boolean hasInterface(
-            ProjectConfig config, String type) {
-        return config.interfaces().stream()
-                .anyMatch(i -> type.equals(i.type()));
     }
 
     private static boolean hasAnyInterface(

@@ -214,44 +214,26 @@ public final class StackMapping {
             "memcached", "cache-memcached"
     );
 
-    /**
-     * Returns the hook template directory key for a language/build-tool pair.
-     *
-     * @param language the language name
-     * @param buildTool the build tool name
-     * @return the hook template key, or empty string if not found
-     */
-    public static String getHookTemplateKey(String language, String buildTool) {
-        return HOOK_TEMPLATE_MAP.getOrDefault(language + "-" + buildTool, "");
+    /** Returns hook template key for language/build-tool, or empty. */
+    public static String getHookTemplateKey(
+            String language, String buildTool) {
+        return HOOK_TEMPLATE_MAP.getOrDefault(
+                language + "-" + buildTool, "");
     }
 
-    /**
-     * Returns the settings language JSON key for a language/build-tool pair.
-     *
-     * @param language the language name
-     * @param buildTool the build tool name
-     * @return the settings language key, or empty string if not found
-     */
-    public static String getSettingsLangKey(String language, String buildTool) {
-        return SETTINGS_LANG_MAP.getOrDefault(language + "-" + buildTool, "");
+    /** Returns settings language key for language/build-tool, or empty. */
+    public static String getSettingsLangKey(
+            String language, String buildTool) {
+        return SETTINGS_LANG_MAP.getOrDefault(
+                language + "-" + buildTool, "");
     }
 
-    /**
-     * Returns the database settings JSON key for a database name.
-     *
-     * @param dbName the database name
-     * @return the database settings key, or empty string if not found
-     */
+    /** Returns database settings key for a database name, or empty. */
     public static String getDatabaseSettingsKey(String dbName) {
         return DATABASE_SETTINGS_MAP.getOrDefault(dbName, "");
     }
 
-    /**
-     * Returns the cache settings JSON key for a cache name.
-     *
-     * @param cacheName the cache name
-     * @return the cache settings key, or empty string if not found
-     */
+    /** Returns cache settings key for a cache name, or empty. */
     public static String getCacheSettingsKey(String cacheName) {
         return CACHE_SETTINGS_MAP.getOrDefault(cacheName, "");
     }

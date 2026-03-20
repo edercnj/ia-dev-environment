@@ -46,7 +46,7 @@ class CoreKpRoutingTest {
 
         @Test
         @DisplayName("list is immutable")
-        void coreMapping_immutable() {
+        void coreMapping_whenCalled_immutable() {
             assertThat(CoreKpRouting.CORE_TO_KP_MAPPING)
                     .isUnmodifiable();
         }
@@ -64,7 +64,7 @@ class CoreKpRoutingTest {
 
         @Test
         @DisplayName("conditional route excludes library style")
-        void conditionalKp_excludesLibrary() {
+        void conditionalKp_whenCalled_excludesLibrary() {
             var route = CoreKpRouting.CONDITIONAL_CORE_KP.get(0);
             assertThat(route.sourceFile())
                     .isEqualTo("12-cloud-native-principles.md");

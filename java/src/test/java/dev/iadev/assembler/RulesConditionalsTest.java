@@ -28,7 +28,7 @@ class RulesConditionalsTest {
 
         @Test
         @DisplayName("no database returns empty list")
-        void noDatabaseReturnsEmpty(
+        void create_noDatabase_returnsEmpty(
                 @TempDir Path tempDir) {
             ProjectConfig config = TestConfigBuilder
                     .minimal();
@@ -37,17 +37,18 @@ class RulesConditionalsTest {
 
             List<String> result =
                     RulesConditionals.copyDatabaseRefs(
-                            config, resourceDir,
-                            skillsDir,
-                            new TemplateEngine(),
-                            Map.of());
+                            new ConditionalCopyContext(
+                                    config, resourceDir,
+                                    skillsDir,
+                                    new TemplateEngine(),
+                                    Map.of()));
 
             assertThat(result).isEmpty();
         }
 
         @Test
         @DisplayName("postgresql copies SQL files")
-        void postgresqlCopiesSqlFiles(
+        void create_postgresql_copiesSqlFiles(
                 @TempDir Path tempDir)
                 throws IOException {
             ProjectConfig config = TestConfigBuilder
@@ -72,10 +73,11 @@ class RulesConditionalsTest {
 
             List<String> result =
                     RulesConditionals.copyDatabaseRefs(
-                            config, resourceDir,
-                            skillsDir,
-                            new TemplateEngine(),
-                            Map.of());
+                            new ConditionalCopyContext(
+                                    config, resourceDir,
+                                    skillsDir,
+                                    new TemplateEngine(),
+                                    Map.of()));
 
             assertThat(result).hasSize(2);
             assertThat(result.get(0))
@@ -86,7 +88,7 @@ class RulesConditionalsTest {
 
         @Test
         @DisplayName("mongodb copies NoSQL files")
-        void mongodbCopiesNosqlFiles(
+        void create_mongodb_copiesNosqlFiles(
                 @TempDir Path tempDir)
                 throws IOException {
             ProjectConfig config = TestConfigBuilder
@@ -106,10 +108,11 @@ class RulesConditionalsTest {
 
             List<String> result =
                     RulesConditionals.copyDatabaseRefs(
-                            config, resourceDir,
-                            skillsDir,
-                            new TemplateEngine(),
-                            Map.of());
+                            new ConditionalCopyContext(
+                                    config, resourceDir,
+                                    skillsDir,
+                                    new TemplateEngine(),
+                                    Map.of()));
 
             assertThat(result).isNotEmpty();
             assertThat(result.get(0))
@@ -118,7 +121,7 @@ class RulesConditionalsTest {
 
         @Test
         @DisplayName("copies version matrix when present")
-        void copiesVersionMatrix(
+        void create_whenCalled_copiesVersionMatrix(
                 @TempDir Path tempDir)
                 throws IOException {
             ProjectConfig config = TestConfigBuilder
@@ -136,10 +139,11 @@ class RulesConditionalsTest {
 
             List<String> result =
                     RulesConditionals.copyDatabaseRefs(
-                            config, resourceDir,
-                            skillsDir,
-                            new TemplateEngine(),
-                            Map.of());
+                            new ConditionalCopyContext(
+                                    config, resourceDir,
+                                    skillsDir,
+                                    new TemplateEngine(),
+                                    Map.of()));
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0))
@@ -153,7 +157,7 @@ class RulesConditionalsTest {
 
         @Test
         @DisplayName("no cache returns empty list")
-        void noCacheReturnsEmpty(@TempDir Path tempDir) {
+        void create_noCache_returnsEmpty(@TempDir Path tempDir) {
             ProjectConfig config = TestConfigBuilder
                     .minimal();
             Path resourceDir = tempDir.resolve("res");
@@ -168,7 +172,7 @@ class RulesConditionalsTest {
 
         @Test
         @DisplayName("redis copies cache files")
-        void redisCopiesCacheFiles(
+        void create_redis_copiesCacheFiles(
                 @TempDir Path tempDir)
                 throws IOException {
             ProjectConfig config = TestConfigBuilder
@@ -207,7 +211,7 @@ class RulesConditionalsTest {
 
         @Test
         @DisplayName("no frameworks returns empty")
-        void noFrameworksReturnsEmpty(
+        void create_noFrameworks_returnsEmpty(
                 @TempDir Path tempDir) {
             ProjectConfig config = TestConfigBuilder
                     .minimal();
@@ -228,7 +232,7 @@ class RulesConditionalsTest {
 
         @Test
         @DisplayName("no cloud provider returns empty")
-        void noProviderReturnsEmpty(
+        void create_noProvider_returnsEmpty(
                 @TempDir Path tempDir) {
             ProjectConfig config = TestConfigBuilder
                     .minimal();
@@ -251,7 +255,7 @@ class RulesConditionalsTest {
 
         @Test
         @DisplayName("default config returns empty")
-        void defaultConfigReturnsEmpty(
+        void create_defaultConfig_returnsEmpty(
                 @TempDir Path tempDir) {
             ProjectConfig config = TestConfigBuilder
                     .minimal();

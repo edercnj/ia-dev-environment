@@ -35,7 +35,7 @@ class DocsAdrAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void implements_whenCalled_isAssemblerInstance() {
             DocsAdrAssembler assembler =
                     new DocsAdrAssembler();
 
@@ -51,7 +51,7 @@ class DocsAdrAssemblerTest {
         @Test
         @DisplayName("generates README.md and"
                 + " _TEMPLATE-ADR.md")
-        void generatesTwoFiles(
+        void assemble_whenCalled_generatesTwoFiles(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourcesDir = setupResources(
@@ -72,7 +72,7 @@ class DocsAdrAssemblerTest {
 
         @Test
         @DisplayName("README.md contains ADR title heading")
-        void readmeContainsTitle(
+        void assemble_readme_containsTitle(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourcesDir = setupResources(
@@ -96,7 +96,7 @@ class DocsAdrAssemblerTest {
 
         @Test
         @DisplayName("README.md contains project name")
-        void readmeContainsProjectName(
+        void assemble_readme_containsProjectName(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourcesDir = setupResources(
@@ -121,7 +121,7 @@ class DocsAdrAssemblerTest {
 
         @Test
         @DisplayName("README.md contains empty ADR table")
-        void readmeContainsEmptyTable(
+        void assemble_readme_containsEmptyTable(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourcesDir = setupResources(
@@ -146,7 +146,7 @@ class DocsAdrAssemblerTest {
 
         @Test
         @DisplayName("_TEMPLATE-ADR.md is copied verbatim")
-        void templateCopiedVerbatim(
+        void assemble_whenCalled_templateCopiedVerbatim(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourcesDir = setupResources(
@@ -170,7 +170,7 @@ class DocsAdrAssemblerTest {
 
         @Test
         @DisplayName("creates docs/adr/ subdirectory")
-        void createsAdrSubdir(
+        void assemble_whenCalled_createsAdrSubdir(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourcesDir = setupResources(
@@ -199,7 +199,7 @@ class DocsAdrAssemblerTest {
         @Test
         @DisplayName("returns empty list when template"
                 + " file absent")
-        void returnsEmptyWhenTemplateAbsent(
+        void assemble_whenCalled_returnsEmptyWhenTemplateAbsent(
                 @TempDir Path tempDir) {
             Path resourcesDir =
                     tempDir.resolve("nonexistent");
@@ -220,7 +220,7 @@ class DocsAdrAssemblerTest {
         @Test
         @DisplayName("returns empty list when template"
                 + " lacks mandatory sections")
-        void returnsEmptyWhenSectionsMissing(
+        void assemble_whenCalled_returnsEmptyWhenSectionsMissing(
                 @TempDir Path tempDir)
                 throws IOException {
             String incomplete = "# ADR\n\n## Status\n\n"
@@ -245,7 +245,7 @@ class DocsAdrAssemblerTest {
         @Test
         @DisplayName("does not create output directory"
                 + " when template absent")
-        void doesNotCreateOutputDir(
+        void assemble_whenCalled_doesNotCreateOutputDir(
                 @TempDir Path tempDir) {
             Path resourcesDir =
                     tempDir.resolve("nonexistent");
@@ -270,7 +270,7 @@ class DocsAdrAssemblerTest {
         @Test
         @DisplayName("returns true when all sections"
                 + " present")
-        void returnsTrueWhenAllPresent() {
+        void assemble_whenAllPresent_returnsTrue() {
             assertThat(
                     DocsAdrAssembler
                             .hasAllMandatorySections(
@@ -280,7 +280,7 @@ class DocsAdrAssemblerTest {
 
         @Test
         @DisplayName("returns false when Status missing")
-        void returnsFalseWhenStatusMissing() {
+        void assemble_whenStatusMissing_returnsFalse() {
             String noStatus = "## Context\n"
                     + "## Decision\n"
                     + "## Consequences\n";
@@ -293,7 +293,7 @@ class DocsAdrAssemblerTest {
 
         @Test
         @DisplayName("returns false when empty content")
-        void returnsFalseWhenEmpty() {
+        void assemble_whenEmpty_returnsFalse() {
             assertThat(
                     DocsAdrAssembler
                             .hasAllMandatorySections(""))
@@ -302,7 +302,7 @@ class DocsAdrAssemblerTest {
 
         @Test
         @DisplayName("returns false when Decision missing")
-        void returnsFalseWhenDecisionMissing() {
+        void assemble_whenDecisionMissing_returnsFalse() {
             String noDecision = "## Status\n"
                     + "## Context\n"
                     + "## Consequences\n";
@@ -320,7 +320,7 @@ class DocsAdrAssemblerTest {
 
         @Test
         @DisplayName("returns 1 for non-existent directory")
-        void returns1ForMissingDir(
+        void assemble_forMissingDir_returns1(
                 @TempDir Path tempDir) {
             Path missing = tempDir.resolve("no-such-dir");
 
@@ -332,7 +332,7 @@ class DocsAdrAssemblerTest {
 
         @Test
         @DisplayName("returns 1 for empty directory")
-        void returns1ForEmptyDir(
+        void assemble_forEmptyDir_returns1(
                 @TempDir Path tempDir)
                 throws IOException {
             Path adrDir = tempDir.resolve("adr");
@@ -346,7 +346,7 @@ class DocsAdrAssemblerTest {
 
         @Test
         @DisplayName("returns max+1 when ADR files exist")
-        void returnsMaxPlusOne(
+        void assemble_whenCalled_returnsMaxPlusOne(
                 @TempDir Path tempDir)
                 throws IOException {
             Path adrDir = tempDir.resolve("adr");
@@ -368,7 +368,7 @@ class DocsAdrAssemblerTest {
 
         @Test
         @DisplayName("ignores non-matching files")
-        void ignoresNonMatchingFiles(
+        void assemble_whenCalled_ignoresNonMatchingFiles(
                 @TempDir Path tempDir)
                 throws IOException {
             Path adrDir = tempDir.resolve("adr");
@@ -394,7 +394,7 @@ class DocsAdrAssemblerTest {
 
         @Test
         @DisplayName("formats with zero-padded number")
-        void zeroPaddedNumber() {
+        void assemble_whenCalled_zeroPaddedNumber() {
             String name = DocsAdrAssembler
                     .formatAdrFilename(1, "My Decision");
 
@@ -405,7 +405,7 @@ class DocsAdrAssemblerTest {
 
         @Test
         @DisplayName("handles large numbers")
-        void largeNumber() {
+        void assemble_whenCalled_largeNumber() {
             String name = DocsAdrAssembler
                     .formatAdrFilename(
                             42, "Another Choice");
@@ -417,7 +417,7 @@ class DocsAdrAssemblerTest {
 
         @Test
         @DisplayName("sanitizes special characters")
-        void sanitizesSpecialChars() {
+        void assemble_whenCalled_sanitizesSpecialChars() {
             String name = DocsAdrAssembler
                     .formatAdrFilename(
                             5, "Use PostgreSQL & Redis!");
@@ -428,7 +428,7 @@ class DocsAdrAssemblerTest {
 
         @Test
         @DisplayName("handles empty title as untitled")
-        void emptyTitleBecomesUntitled() {
+        void assemble_whenCalled_emptyTitleBecomesUntitled() {
             String name = DocsAdrAssembler
                     .formatAdrFilename(1, "");
 
@@ -438,7 +438,7 @@ class DocsAdrAssemblerTest {
 
         @Test
         @DisplayName("collapses consecutive hyphens")
-        void collapsesConsecutiveHyphens() {
+        void assemble_whenCalled_collapsesConsecutiveHyphens() {
             String name = DocsAdrAssembler
                     .formatAdrFilename(
                             2, "one---two");
@@ -454,7 +454,7 @@ class DocsAdrAssemblerTest {
 
         @Test
         @DisplayName("starts with ADR title heading")
-        void startsWithTitle() {
+        void assemble_withTitle_starts() {
             String content =
                     DocsAdrAssembler
                             .buildReadmeContent("proj");
@@ -466,7 +466,7 @@ class DocsAdrAssemblerTest {
         @Test
         @DisplayName("contains project name in"
                 + " blockquote")
-        void containsProjectName() {
+        void assemble_whenCalled_containsProjectName() {
             String content =
                     DocsAdrAssembler
                             .buildReadmeContent(
@@ -478,7 +478,7 @@ class DocsAdrAssemblerTest {
 
         @Test
         @DisplayName("contains empty ADR table")
-        void containsEmptyTable() {
+        void assemble_whenCalled_containsEmptyTable() {
             String content =
                     DocsAdrAssembler
                             .buildReadmeContent("proj");
@@ -493,7 +493,7 @@ class DocsAdrAssemblerTest {
 
         @Test
         @DisplayName("contains creation instructions")
-        void containsCreationInstructions() {
+        void assemble_whenCalled_containsCreationInstructions() {
             String content =
                     DocsAdrAssembler
                             .buildReadmeContent("proj");

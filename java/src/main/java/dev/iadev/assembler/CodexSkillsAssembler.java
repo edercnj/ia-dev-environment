@@ -48,32 +48,18 @@ public final class CodexSkillsAssembler
             ProjectConfig config,
             TemplateEngine engine,
             Path outputDir) {
-        List<String> warnings = new ArrayList<>();
-
         Path claudeSkillsDir = outputDir.getParent()
                 .resolve(".claude").resolve("skills");
 
         if (!CodexShared.isAccessibleDirectory(
                 claudeSkillsDir)) {
-            warnings.add(
-                    "No skills directory found"
-                            + " in .claude/ output");
             return List.of();
         }
 
         Path destSkillsDir =
                 outputDir.resolve("skills");
-        List<String> files =
-                copySkillsTree(
-                        claudeSkillsDir, destSkillsDir);
-
-        if (files.isEmpty()) {
-            warnings.add(
-                    "No skills with SKILL.md found"
-                            + " in .claude/skills/");
-        }
-
-        return files;
+        return copySkillsTree(
+                claudeSkillsDir, destSkillsDir);
     }
 
     /**
@@ -190,7 +176,8 @@ public final class CodexSkillsAssembler
                     StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new UncheckedIOException(
-                    "Failed to copy file: " + src, e);
+                    "Failed to copy file: %s"
+                            .formatted(src), e);
         }
     }
 }

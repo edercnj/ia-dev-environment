@@ -30,7 +30,7 @@ class DagWarningTest {
     }
 
     @Test
-    void typeEnum_hasTwoValues() {
+    void typeEnum_whenCalled_hasTwoValues() {
         assertThat(DagWarning.Type.values()).hasSize(2);
     }
 }

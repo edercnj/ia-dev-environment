@@ -3,7 +3,9 @@ package dev.iadev.config;
 import dev.iadev.exception.ConfigParseException;
 import dev.iadev.exception.ConfigValidationException;
 import dev.iadev.model.ProjectConfig;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -113,7 +115,8 @@ public final class ConfigLoader {
                     Path.of(filePath), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new ConfigParseException(
-                    "Failed to read config file: " + filePath,
+                    "Failed to read config file: %s"
+                            .formatted(filePath),
                     filePath, e);
         }
     }
@@ -121,10 +124,12 @@ public final class ConfigLoader {
     private static Object parseYaml(
             String content, String filePath) {
         try {
-            return new Yaml().load(content);
+            return new Yaml(new SafeConstructor(
+                    new LoaderOptions())).load(content);
         } catch (Exception e) {
             throw new ConfigParseException(
-                    "Failed to parse YAML: " + e.getMessage(),
+                    "Failed to parse YAML: %s"
+                            .formatted(e.getMessage()),
                     filePath, e);
         }
     }
@@ -180,7 +185,8 @@ public final class ConfigLoader {
         }
         if (!missing.isEmpty()) {
             throw new ConfigValidationException(
-                    "Missing required config sections: " + missing,
+                    "Missing required config sections: %s"
+                            .formatted(missing),
                     missing);
         }
     }

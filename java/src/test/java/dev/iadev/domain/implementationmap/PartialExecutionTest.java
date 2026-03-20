@@ -83,7 +83,7 @@ class PartialExecutionTest {
     class FullExecution {
 
         @Test
-        void filterFull_returnsAllStoryIds() {
+        void filterFull_whenCalled_returnsAllStoryIds() {
             var dag = buildSimpleDag();
 
             var result = PartialExecution.filterFull(dag);
@@ -98,7 +98,7 @@ class PartialExecutionTest {
     class ModeEnum {
 
         @Test
-        void mode_hasThreeValues() {
+        void mode_whenCalled_hasThreeValues() {
             assertThat(PartialExecution.Mode.values())
                     .hasSize(3)
                     .containsExactly(

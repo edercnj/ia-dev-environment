@@ -169,14 +169,14 @@ class LanguageFrameworkMappingTest {
 
         @Test
         @DisplayName("languages_containsSixEntries")
-        void languages_containsSixEntries() {
+        void languages_whenCalled_containsSixEntries() {
             assertThat(LanguageFrameworkMapping.LANGUAGES)
                     .hasSize(6);
         }
 
         @Test
         @DisplayName("architectureStyles_containsThreeEntries")
-        void architectureStyles_containsThreeEntries() {
+        void architectureStyles_whenCalled_containsThreeEntries() {
             assertThat(LanguageFrameworkMapping.ARCHITECTURE_STYLES)
                     .hasSize(3)
                     .containsExactly(
@@ -185,7 +185,7 @@ class LanguageFrameworkMappingTest {
 
         @Test
         @DisplayName("interfaceTypes_containsFiveEntries")
-        void interfaceTypes_containsFiveEntries() {
+        void interfaceTypes_whenCalled_containsFiveEntries() {
             assertThat(LanguageFrameworkMapping.INTERFACE_TYPES)
                     .hasSize(5)
                     .containsExactly(
@@ -195,7 +195,7 @@ class LanguageFrameworkMappingTest {
 
         @Test
         @DisplayName("allLanguagesHaveFrameworks")
-        void allLanguagesHaveFrameworks() {
+        void map_whenCalled_allLanguagesHaveFrameworks() {
             for (String lang : LanguageFrameworkMapping.LANGUAGES) {
                 assertThat(LanguageFrameworkMapping
                         .frameworksFor(lang))
@@ -206,7 +206,7 @@ class LanguageFrameworkMappingTest {
 
         @Test
         @DisplayName("allLanguagesHaveBuildTools")
-        void allLanguagesHaveBuildTools() {
+        void map_whenCalled_allLanguagesHaveBuildTools() {
             for (String lang : LanguageFrameworkMapping.LANGUAGES) {
                 assertThat(LanguageFrameworkMapping
                         .buildToolsFor(lang))
@@ -217,7 +217,7 @@ class LanguageFrameworkMappingTest {
 
         @Test
         @DisplayName("allLanguagesHaveDefaultVersions")
-        void allLanguagesHaveDefaultVersions() {
+        void map_whenCalled_allLanguagesHaveDefaultVersions() {
             for (String lang : LanguageFrameworkMapping.LANGUAGES) {
                 assertThat(LanguageFrameworkMapping
                         .defaultVersionFor(lang))
@@ -228,7 +228,7 @@ class LanguageFrameworkMappingTest {
 
         @Test
         @DisplayName("allFrameworksHaveVersions")
-        void allFrameworksHaveVersions() {
+        void map_whenCalled_allFrameworksHaveVersions() {
             List<String> allFrameworks =
                     LanguageFrameworkMapping.FRAMEWORKS.values()
                             .stream()

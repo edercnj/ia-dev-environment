@@ -26,7 +26,7 @@ class ReadmeTablesTest {
 
         @Test
         @DisplayName("returns fallback when dir missing")
-        void fallbackWhenMissing(@TempDir Path tempDir) {
+        void create_whenMissing_fallback(@TempDir Path tempDir) {
             assertThat(
                     ReadmeTables.buildRulesTable(tempDir))
                     .isEqualTo("No rules configured.");
@@ -34,7 +34,7 @@ class ReadmeTablesTest {
 
         @Test
         @DisplayName("returns fallback when dir empty")
-        void fallbackWhenEmpty(@TempDir Path tempDir)
+        void create_whenEmpty_fallback(@TempDir Path tempDir)
                 throws IOException {
             Files.createDirectories(
                     tempDir.resolve("rules"));
@@ -46,7 +46,7 @@ class ReadmeTablesTest {
 
         @Test
         @DisplayName("builds table with header and rows")
-        void buildsTableWithRows(@TempDir Path tempDir)
+        void create_withRows_buildsTable(@TempDir Path tempDir)
                 throws IOException {
             Path rulesDir =
                     Files.createDirectories(
@@ -74,7 +74,7 @@ class ReadmeTablesTest {
 
         @Test
         @DisplayName("table has correct number of rows")
-        void correctRowCount(@TempDir Path tempDir)
+        void create_whenCalled_correctRowCount(@TempDir Path tempDir)
                 throws IOException {
             Path rulesDir =
                     Files.createDirectories(
@@ -103,7 +103,7 @@ class ReadmeTablesTest {
 
         @Test
         @DisplayName("returns fallback when dir missing")
-        void fallbackWhenMissing(@TempDir Path tempDir) {
+        void create_whenMissing_fallback(@TempDir Path tempDir) {
             assertThat(
                     ReadmeTables.buildSkillsTable(tempDir))
                     .isEqualTo("No skills configured.");
@@ -111,7 +111,7 @@ class ReadmeTablesTest {
 
         @Test
         @DisplayName("excludes knowledge packs")
-        void excludesKnowledgePacks(@TempDir Path tempDir)
+        void create_whenCalled_excludesKnowledgePacks(@TempDir Path tempDir)
                 throws IOException {
             Path skillsDir =
                     Files.createDirectories(
@@ -132,7 +132,7 @@ class ReadmeTablesTest {
 
         @Test
         @DisplayName("includes skill path and description")
-        void includesPathAndDescription(
+        void create_whenCalled_includesPathAndDescription(
                 @TempDir Path tempDir) throws IOException {
             Path skillsDir =
                     Files.createDirectories(
@@ -156,7 +156,7 @@ class ReadmeTablesTest {
         @Test
         @DisplayName("returns fallback when all skills"
                 + " are knowledge packs")
-        void fallbackWhenAllKps(@TempDir Path tempDir)
+        void create_whenAllKps_fallback(@TempDir Path tempDir)
                 throws IOException {
             Path skillsDir =
                     Files.createDirectories(
@@ -177,7 +177,7 @@ class ReadmeTablesTest {
 
         @Test
         @DisplayName("returns fallback when dir missing")
-        void fallbackWhenMissing(@TempDir Path tempDir) {
+        void create_whenMissing_fallback(@TempDir Path tempDir) {
             assertThat(
                     ReadmeTables.buildAgentsTable(tempDir))
                     .isEqualTo("No agents configured.");
@@ -186,7 +186,7 @@ class ReadmeTablesTest {
         @Test
         @DisplayName("builds table with agent name and"
                 + " file")
-        void buildsTableWithNameAndFile(
+        void create_withNameAndFile_buildsTable(
                 @TempDir Path tempDir) throws IOException {
             Path agentsDir =
                     Files.createDirectories(
@@ -217,7 +217,7 @@ class ReadmeTablesTest {
 
         @Test
         @DisplayName("returns fallback when dir missing")
-        void fallbackWhenMissing(@TempDir Path tempDir) {
+        void create_whenMissing_fallback(@TempDir Path tempDir) {
             assertThat(ReadmeTables
                     .buildKnowledgePacksTable(tempDir))
                     .isEqualTo("No knowledge packs"
@@ -226,7 +226,7 @@ class ReadmeTablesTest {
 
         @Test
         @DisplayName("includes only knowledge packs")
-        void includesOnlyKps(@TempDir Path tempDir)
+        void create_whenCalled_includesOnlyKps(@TempDir Path tempDir)
                 throws IOException {
             Path skillsDir =
                     Files.createDirectories(
@@ -256,7 +256,7 @@ class ReadmeTablesTest {
 
         @Test
         @DisplayName("returns hooks section for kotlin")
-        void returnsSectionForKotlin() {
+        void create_forKotlin_returnsSection() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .language("kotlin", "2.0")
@@ -276,7 +276,7 @@ class ReadmeTablesTest {
 
         @Test
         @DisplayName("returns fallback for python")
-        void returnsFallbackForPython() {
+        void create_forPython_returnsFallback() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .language("python", "3.12")
@@ -296,7 +296,7 @@ class ReadmeTablesTest {
 
         @Test
         @DisplayName("contains settings.json description")
-        void containsSettingsJsonDesc() {
+        void create_whenCalled_containsSettingsJsonDesc() {
             String section =
                     ReadmeTables.buildSettingsSection();
 
@@ -314,7 +314,7 @@ class ReadmeTablesTest {
 
         @Test
         @DisplayName("contains 9 mapping rows")
-        void containsNineMappingRows(
+        void create_whenCalled_containsNineMappingRows(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir =
                     Files.createDirectories(
@@ -341,7 +341,7 @@ class ReadmeTablesTest {
 
         @Test
         @DisplayName("contains mapping arrow unicode")
-        void containsMappingArrow(@TempDir Path tempDir)
+        void create_whenCalled_containsMappingArrow(@TempDir Path tempDir)
                 throws IOException {
             Path claudeDir =
                     Files.createDirectories(
@@ -356,7 +356,7 @@ class ReadmeTablesTest {
         @Test
         @DisplayName("includes github total when dir"
                 + " exists")
-        void includesGithubTotal(@TempDir Path tempDir)
+        void create_whenCalled_includesGithubTotal(@TempDir Path tempDir)
                 throws IOException {
             Path claudeDir =
                     Files.createDirectories(
@@ -383,7 +383,7 @@ class ReadmeTablesTest {
 
         @Test
         @DisplayName("contains 15 component rows")
-        void containsFifteenComponents(
+        void create_whenCalled_containsFifteenComponents(
                 @TempDir Path tempDir)
                 throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
@@ -411,7 +411,7 @@ class ReadmeTablesTest {
 
         @Test
         @DisplayName("contains ia-dev-env version")
-        void containsVersion(@TempDir Path tempDir)
+        void create_whenCalled_containsVersion(@TempDir Path tempDir)
                 throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
             ProjectConfig config =
@@ -428,7 +428,7 @@ class ReadmeTablesTest {
 
         @Test
         @DisplayName("includes all component labels")
-        void includesAllLabels(@TempDir Path tempDir)
+        void create_whenCalled_includesAllLabels(@TempDir Path tempDir)
                 throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
             ProjectConfig config =

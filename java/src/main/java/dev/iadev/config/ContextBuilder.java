@@ -53,6 +53,12 @@ import java.util.stream.Collectors;
  */
 public final class ContextBuilder {
 
+    /**
+     * Initial capacity for the context map, optimized to avoid
+     * rehash with approximately 20 context entries.
+     */
+    private static final int INITIAL_CONTEXT_CAPACITY = 32;
+
     private static final String PYTHON_TRUE = "True";
     private static final String PYTHON_FALSE = "False";
 
@@ -64,43 +70,71 @@ public final class ContextBuilder {
      * Builds a context map with exactly 25 template fields from
      * the given {@link ProjectConfig}.
      *
-     * <p>Field values match the TypeScript implementation.
-     * Boolean fields use Python-style string conversion
-     * (RULE-002).</p>
+     * <p>Delegates to domain-specific builders for each
+     * section of the context map.</p>
      *
      * @param config the project configuration
      * @return an ordered map with 25 template context entries
      */
     public static Map<String, Object> buildContext(
             ProjectConfig config) {
-        Map<String, Object> ctx = new LinkedHashMap<>(32);
+        Map<String, Object> ctx =
+                new LinkedHashMap<>(INITIAL_CONTEXT_CAPACITY);
 
-        // Project identity (fields 1-2)
+        buildIdentity(config, ctx);
+        buildLanguage(config, ctx);
+        buildFramework(config, ctx);
+        buildArchitecture(config, ctx);
+        buildInfrastructure(config, ctx);
+        buildData(config, ctx);
+        buildTesting(config, ctx);
+        buildInterfaces(config, ctx);
+
+        return ctx;
+    }
+
+    private static void buildIdentity(
+            ProjectConfig config,
+            Map<String, Object> ctx) {
         ctx.put("project_name", config.project().name());
-        ctx.put("project_purpose", config.project().purpose());
+        ctx.put("project_purpose",
+                config.project().purpose());
+    }
 
-        // Language (fields 3-4)
+    private static void buildLanguage(
+            ProjectConfig config,
+            Map<String, Object> ctx) {
         ctx.put("language_name", config.language().name());
-        ctx.put("language_version", config.language().version());
+        ctx.put("language_version",
+                config.language().version());
+    }
 
-        // Framework (fields 5-7)
-        ctx.put("framework_name", config.framework().name());
-        ctx.put("framework_version", config.framework().version());
+    private static void buildFramework(
+            ProjectConfig config,
+            Map<String, Object> ctx) {
+        ctx.put("framework_name",
+                config.framework().name());
+        ctx.put("framework_version",
+                config.framework().version());
         ctx.put("build_tool", config.framework().buildTool());
+    }
 
-        // Architecture (field 8)
+    private static void buildArchitecture(
+            ProjectConfig config,
+            Map<String, Object> ctx) {
         ctx.put("architecture_style",
                 config.architecture().style());
-
-        // Architecture booleans — Python-bool (fields 9-10)
         ctx.put("domain_driven",
                 toPythonBool(
                         config.architecture().domainDriven()));
         ctx.put("event_driven",
                 toPythonBool(
                         config.architecture().eventDriven()));
+    }
 
-        // Infrastructure (fields 11-17)
+    private static void buildInfrastructure(
+            ProjectConfig config,
+            Map<String, Object> ctx) {
         ctx.put("container",
                 config.infrastructure().container());
         ctx.put("orchestrator",
@@ -115,36 +149,41 @@ public final class ContextBuilder {
                 config.infrastructure().apiGateway());
         ctx.put("service_mesh",
                 config.infrastructure().serviceMesh());
+    }
 
-        // Data (fields 18-19)
-        ctx.put("database_name",
-                config.data().database().name());
-        ctx.put("cache_name",
-                config.data().cache().name());
+    private static void buildData(
+            ProjectConfig config,
+            Map<String, Object> ctx) {
+        ctx.put("database_name", config.databaseName());
+        ctx.put("cache_name", config.cacheName());
+    }
 
-        // Testing booleans — Python-bool (fields 20-22)
+    private static void buildTesting(
+            ProjectConfig config,
+            Map<String, Object> ctx) {
         ctx.put("smoke_tests",
                 toPythonBool(config.testing().smokeTests()));
         ctx.put("contract_tests",
-                toPythonBool(config.testing().contractTests()));
+                toPythonBool(
+                        config.testing().contractTests()));
         ctx.put("performance_tests",
                 toPythonBool(
                         config.testing().performanceTests()));
-
-        // Testing numeric (fields 23-24)
         ctx.put("coverage_line",
                 config.testing().coverageLine());
         ctx.put("coverage_branch",
                 config.testing().coverageBranch());
+    }
 
-        // Interfaces list (field 25)
+    private static void buildInterfaces(
+            ProjectConfig config,
+            Map<String, Object> ctx) {
         String interfacesList = config.interfaces().stream()
                 .map(i -> i.type())
                 .collect(Collectors.joining(", "));
         ctx.put("interfaces_list",
-                interfacesList.isEmpty() ? "none" : interfacesList);
-
-        return ctx;
+                interfacesList.isEmpty()
+                        ? "none" : interfacesList);
     }
 
     /**

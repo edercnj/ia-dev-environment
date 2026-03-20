@@ -22,7 +22,7 @@ class SkillsSelectionTest {
 
         @Test
         @DisplayName("config with REST includes x-review-api")
-        void restIncludesApiReview() {
+        void select_rest_includesApiReview() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("rest")
@@ -38,7 +38,7 @@ class SkillsSelectionTest {
         @Test
         @DisplayName("config with gRPC includes"
                 + " x-review-grpc")
-        void grpcIncludesGrpcReview() {
+        void select_grpc_includesGrpcReview() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("grpc")
@@ -54,7 +54,7 @@ class SkillsSelectionTest {
         @Test
         @DisplayName("config with GraphQL includes"
                 + " x-review-graphql")
-        void graphqlIncludesGraphqlReview() {
+        void select_graphql_includesGraphqlReview() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("graphql")
@@ -70,7 +70,7 @@ class SkillsSelectionTest {
         @Test
         @DisplayName("config with event-consumer includes"
                 + " x-review-events")
-        void eventConsumerIncludesEventsReview() {
+        void select_eventConsumer_includesEventsReview() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("event-consumer")
@@ -86,7 +86,7 @@ class SkillsSelectionTest {
         @Test
         @DisplayName("config with event-producer includes"
                 + " x-review-events")
-        void eventProducerIncludesEventsReview() {
+        void select_eventProducer_includesEventsReview() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("event-producer")
@@ -102,7 +102,7 @@ class SkillsSelectionTest {
         @Test
         @DisplayName("config without interfaces returns"
                 + " empty list")
-        void noInterfacesReturnsEmpty() {
+        void select_noInterfaces_returnsEmpty() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("cli")
@@ -123,7 +123,7 @@ class SkillsSelectionTest {
         @Test
         @DisplayName("observability tool not none includes"
                 + " instrument-otel")
-        void observabilityIncludesOtel() {
+        void select_observability_includesOtel() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .observabilityTool("prometheus")
                     .build();
@@ -138,7 +138,7 @@ class SkillsSelectionTest {
         @Test
         @DisplayName("orchestrator not none includes"
                 + " setup-environment")
-        void orchestratorIncludesSetup() {
+        void select_orchestrator_includesSetup() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .orchestrator("kubernetes")
                     .build();
@@ -153,7 +153,7 @@ class SkillsSelectionTest {
         @Test
         @DisplayName("api gateway not none includes"
                 + " x-review-gateway")
-        void apiGatewayIncludesGatewayReview() {
+        void select_apiGateway_includesGatewayReview() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .apiGateway("kong")
                     .build();
@@ -167,7 +167,7 @@ class SkillsSelectionTest {
 
         @Test
         @DisplayName("all infra none returns empty list")
-        void allNoneReturnsEmpty() {
+        void select_allNone_returnsEmpty() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .build();
 
@@ -184,7 +184,7 @@ class SkillsSelectionTest {
 
         @Test
         @DisplayName("always includes run-e2e")
-        void alwaysIncludesRunE2e() {
+        void select_always_includesRunE2e() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .build();
 
@@ -198,7 +198,7 @@ class SkillsSelectionTest {
         @Test
         @DisplayName("smoke tests with REST includes"
                 + " run-smoke-api")
-        void smokeRestIncludesSmokeApi() {
+        void select_smokeRest_includesSmokeApi() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .smokeTests(true)
                     .clearInterfaces()
@@ -215,7 +215,7 @@ class SkillsSelectionTest {
         @Test
         @DisplayName("smoke tests with tcp-custom includes"
                 + " run-smoke-socket")
-        void smokeTcpIncludesSmokeSocket() {
+        void select_smokeTcp_includesSmokeSocket() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .smokeTests(true)
                     .clearInterfaces()
@@ -233,7 +233,7 @@ class SkillsSelectionTest {
         @Test
         @DisplayName("performance tests includes"
                 + " run-perf-test")
-        void performanceIncludesPerfTest() {
+        void select_performance_includesPerfTest() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .performanceTests(true)
                     .build();
@@ -248,7 +248,7 @@ class SkillsSelectionTest {
         @Test
         @DisplayName("contract tests includes"
                 + " run-contract-tests")
-        void contractIncludesContractTests() {
+        void select_contract_includesContractTests() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .contractTests(true)
                     .build();
@@ -269,7 +269,7 @@ class SkillsSelectionTest {
         @Test
         @DisplayName("config with security frameworks"
                 + " includes x-review-security")
-        void securityFrameworksIncludesReview() {
+        void select_securityFrameworks_includesReview() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .securityFrameworks("spring-security")
                     .build();
@@ -285,7 +285,7 @@ class SkillsSelectionTest {
         @Test
         @DisplayName("config without security frameworks"
                 + " returns empty")
-        void noSecurityReturnsEmpty() {
+        void select_noSecurity_returnsEmpty() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .build();
 
@@ -303,7 +303,7 @@ class SkillsSelectionTest {
 
         @Test
         @DisplayName("aggregates all conditional skills")
-        void aggregatesAll() {
+        void select_whenCalled_aggregatesAll() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("rest")
@@ -333,7 +333,7 @@ class SkillsSelectionTest {
         @Test
         @DisplayName("always returns core knowledge packs"
                 + " plus layer-templates")
-        void alwaysReturnsCoreAndLayerTemplates() {
+        void select_always_returnsCoreAndLayerTemplates() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .build();
 
@@ -359,7 +359,7 @@ class SkillsSelectionTest {
         @Test
         @DisplayName("config with database includes"
                 + " database-patterns")
-        void databaseIncludesDbPatterns() {
+        void select_database_includesDbPatterns() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .database("postgresql", "16")
                     .build();
@@ -375,7 +375,7 @@ class SkillsSelectionTest {
         @Test
         @DisplayName("config with cache includes"
                 + " database-patterns")
-        void cacheIncludesDbPatterns() {
+        void select_cache_includesDbPatterns() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .cache("redis", "7")
                     .build();
@@ -391,7 +391,7 @@ class SkillsSelectionTest {
         @Test
         @DisplayName("config without database or cache"
                 + " excludes database-patterns")
-        void noDbNoCacheExcludesDbPatterns() {
+        void select_noDbNoCache_excludesDbPatterns() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .build();
 
@@ -406,7 +406,7 @@ class SkillsSelectionTest {
         @Test
         @DisplayName("returns at least 12 packs for"
                 + " minimal config")
-        void minimalConfigReturnsAtLeast12Packs() {
+        void select_minimalConfig_returnsAtLeast12Packs() {
             ProjectConfig config =
                     TestConfigBuilder.minimal();
 

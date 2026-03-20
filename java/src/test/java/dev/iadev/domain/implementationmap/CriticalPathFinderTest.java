@@ -79,7 +79,7 @@ class CriticalPathFinderTest {
     class MarkCriticalPath {
 
         @Test
-        void markCriticalPath_marksCorrectNodes() {
+        void markCriticalPath_whenCalled_marksCorrectNodes() {
             var dag = buildFiveStoryDag();
             var phases = PhaseComputer.compute(dag);
             var criticalPath =
@@ -95,7 +95,7 @@ class CriticalPathFinderTest {
         }
 
         @Test
-        void markCriticalPath_nonCriticalNodesUnmarked() {
+        void markCriticalPath_whenCalled_nonCriticalNodesUnmarked() {
             var dag = buildFiveStoryDag();
             var phases = PhaseComputer.compute(dag);
             var criticalPath =

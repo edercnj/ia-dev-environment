@@ -29,7 +29,7 @@ class GithubPromptsAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void instanceOf_whenCreated_implementsAssemblerInterface() {
             GithubPromptsAssembler assembler =
                     new GithubPromptsAssembler();
 
@@ -44,7 +44,7 @@ class GithubPromptsAssemblerTest {
 
         @Test
         @DisplayName("contains exactly 4 templates")
-        void containsFourTemplates() {
+        void assemble_whenCalled_containsFourTemplates() {
             assertThat(
                     GithubPromptsAssembler
                             .GITHUB_PROMPT_TEMPLATES)
@@ -53,7 +53,7 @@ class GithubPromptsAssemblerTest {
 
         @Test
         @DisplayName("contains expected template names")
-        void containsExpectedNames() {
+        void assemble_whenCalled_containsExpectedNames() {
             assertThat(
                     GithubPromptsAssembler
                             .GITHUB_PROMPT_TEMPLATES)
@@ -66,7 +66,7 @@ class GithubPromptsAssemblerTest {
 
         @Test
         @DisplayName("all templates end with .j2 suffix")
-        void allEndWithJ2Suffix() {
+        void assemble_withJ2Suffix_allEnd() {
             assertThat(
                     GithubPromptsAssembler
                             .GITHUB_PROMPT_TEMPLATES)
@@ -81,7 +81,7 @@ class GithubPromptsAssemblerTest {
         @Test
         @DisplayName("renders 4 prompt files to"
                 + " prompts/ directory")
-        void rendersFourPromptFiles(
+        void assemble_whenCalled_rendersFourPromptFiles(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -99,7 +99,7 @@ class GithubPromptsAssemblerTest {
 
         @Test
         @DisplayName("creates prompts/ subdirectory")
-        void createsPromptsSubdirectory(
+        void assemble_whenCalled_createsPromptsSubdirectory(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -119,7 +119,7 @@ class GithubPromptsAssemblerTest {
         @Test
         @DisplayName("removes .j2 suffix from output"
                 + " filenames")
-        void removesJ2Suffix(
+        void assemble_whenCalled_removesJ2Suffix(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -141,7 +141,7 @@ class GithubPromptsAssemblerTest {
 
         @Test
         @DisplayName("output contains expected filenames")
-        void outputContainsExpectedFilenames(
+        void assemble_output_containsExpectedFilenames(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -169,7 +169,7 @@ class GithubPromptsAssemblerTest {
         @Test
         @DisplayName("resolves project variables in"
                 + " output")
-        void resolvesProjectVariables(
+        void assemble_whenCalled_resolvesProjectVariables(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -198,7 +198,7 @@ class GithubPromptsAssemblerTest {
         @Test
         @DisplayName("resolves language variables in"
                 + " output")
-        void resolvesLanguageVariables(
+        void assemble_whenCalled_resolvesLanguageVariables(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -222,7 +222,7 @@ class GithubPromptsAssemblerTest {
         @Test
         @DisplayName("uses renderTemplate not"
                 + " replacePlaceholders")
-        void usesRenderTemplateNotReplace(
+        void assemble_whenCalled_usesRenderTemplateNotReplace(
                 @TempDir Path tempDir)
                 throws IOException {
             // Create a template with Pebble control flow
@@ -267,7 +267,7 @@ class GithubPromptsAssemblerTest {
         @Test
         @DisplayName("returns empty list when templates"
                 + " directory absent")
-        void returnsEmptyWhenTemplatesDirAbsent(
+        void assemble_whenCalled_returnsEmptyWhenTemplatesDirAbsent(
                 @TempDir Path tempDir) {
             Path resourcesDir =
                     tempDir.resolve("nonexistent");
@@ -288,7 +288,7 @@ class GithubPromptsAssemblerTest {
 
         @Test
         @DisplayName("skips individual missing template")
-        void skipsIndividualMissingTemplate(
+        void assemble_whenCalled_skipsIndividualMissingTemplate(
                 @TempDir Path tempDir)
                 throws IOException {
             Path promptsDir = tempDir.resolve(
@@ -329,7 +329,7 @@ class GithubPromptsAssemblerTest {
         @Test
         @DisplayName("generates prompts from classpath"
                 + " templates")
-        void generatesFromClasspath(
+        void assemble_whenCalled_generatesFromClasspath(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -351,7 +351,7 @@ class GithubPromptsAssemblerTest {
         @Test
         @DisplayName("no unresolved variables in"
                 + " rendered output")
-        void noUnresolvedVariables(
+        void assemble_noUnresolvedVariables_succeeds(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 

@@ -28,7 +28,7 @@ class RunbookAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void instanceOf_whenCreated_implementsAssemblerInterface() {
             RunbookAssembler assembler =
                     new RunbookAssembler();
 
@@ -44,7 +44,7 @@ class RunbookAssemblerTest {
         @Test
         @DisplayName("generates deploy-runbook.md in"
                 + " docs/runbook/ subdirectory")
-        void generatesDeployRunbookFile(
+        void assemble_whenCalled_generatesDeployRunbookFile(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -65,7 +65,7 @@ class RunbookAssemblerTest {
 
         @Test
         @DisplayName("creates docs/runbook/ subdirectory")
-        void createsRunbookSubdir(
+        void assemble_whenCalled_createsRunbookSubdir(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -85,7 +85,7 @@ class RunbookAssemblerTest {
 
         @Test
         @DisplayName("resolves project_name variable")
-        void resolvesProjectName(
+        void assemble_whenCalled_resolvesProjectName(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -108,7 +108,7 @@ class RunbookAssemblerTest {
 
         @Test
         @DisplayName("contains deploy and rollback sections")
-        void containsDeployAndRollbackSections(
+        void assemble_whenCalled_containsDeployAndRollbackSections(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -129,7 +129,7 @@ class RunbookAssemblerTest {
 
         @Test
         @DisplayName("returns file path in result list")
-        void returnsFilePath(
+        void assemble_whenCalled_returnsFilePath(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
 
@@ -155,7 +155,7 @@ class RunbookAssemblerTest {
         @Test
         @DisplayName("returns empty list when template"
                 + " file absent")
-        void returnsEmptyWhenTemplateAbsent(
+        void assemble_whenCalled_returnsEmptyWhenTemplateAbsent(
                 @TempDir Path tempDir) {
             Path resourcesDir =
                     tempDir.resolve("nonexistent");
@@ -176,7 +176,7 @@ class RunbookAssemblerTest {
         @Test
         @DisplayName("does not create output directory"
                 + " when template absent")
-        void doesNotCreateOutputDir(
+        void assemble_whenCalled_doesNotCreateOutputDir(
                 @TempDir Path tempDir) {
             Path resourcesDir =
                     tempDir.resolve("nonexistent");
@@ -200,7 +200,7 @@ class RunbookAssemblerTest {
 
         @Test
         @DisplayName("resolves Pebble conditionals")
-        void resolvesPebbleConditionals(
+        void assemble_whenCalled_resolvesPebbleConditionals(
                 @TempDir Path tempDir)
                 throws IOException {
             Path templatesDir =

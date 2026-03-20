@@ -29,7 +29,7 @@ class ProtocolsAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void instanceOf_whenCreated_implementsAssemblerInterface() {
             ProtocolsAssembler assembler =
                     new ProtocolsAssembler();
 
@@ -46,7 +46,7 @@ class ProtocolsAssemblerTest {
         @Test
         @DisplayName("interfaces=[rest] generates"
                 + " rest-conventions.md")
-        void restGeneratesConventions(
+        void assemble_rest_generatesConventions(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -74,7 +74,7 @@ class ProtocolsAssemblerTest {
         @Test
         @DisplayName("rest-conventions.md contains"
                 + " OpenAPI content")
-        void restConventionsContainOpenapi(
+        void assemble_whenCalled_restConventionsContainOpenapi(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -109,7 +109,7 @@ class ProtocolsAssemblerTest {
         @Test
         @DisplayName("interfaces=[grpc] generates"
                 + " grpc-conventions.md")
-        void grpcGeneratesConventions(
+        void assemble_grpc_generatesConventions(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -137,7 +137,7 @@ class ProtocolsAssemblerTest {
         @Test
         @DisplayName("grpc-conventions.md contains"
                 + " Proto3 content")
-        void grpcConventionsContainProto3(
+        void assemble_whenCalled_grpcConventionsContainProto3(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -171,7 +171,7 @@ class ProtocolsAssemblerTest {
 
         @Test
         @DisplayName("empty interfaces returns empty list")
-        void emptyInterfacesReturnsEmpty(
+        void assemble_emptyInterfaces_returnsEmpty(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -194,7 +194,7 @@ class ProtocolsAssemblerTest {
         @Test
         @DisplayName("cli-only config creates no"
                 + " protocols directory")
-        void cliOnlyCreatesNoDir(
+        void assemble_cliOnly_createsNoDir(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -225,7 +225,7 @@ class ProtocolsAssemblerTest {
         @DisplayName("event-consumer with kafka generates"
                 + " messaging-conventions.md with kafka"
                 + " content")
-        void kafkaBrokerSelectsKafka(
+        void assemble_whenCalled_kafkaBrokerSelectsKafka(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -262,7 +262,7 @@ class ProtocolsAssemblerTest {
         @Test
         @DisplayName("all protocol convention files match"
                 + " golden files for go-gin profile")
-        void allProtocolsMatchGolden(
+        void assemble_allProtocolsMatchGolden_succeeds(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -306,7 +306,7 @@ class ProtocolsAssemblerTest {
         @Test
         @DisplayName("go-gin generates exactly 4"
                 + " convention files")
-        void goGinGeneratesExactlyFour(
+        void assemble_goGin_generatesExactlyFour(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -345,7 +345,7 @@ class ProtocolsAssemblerTest {
         @Test
         @DisplayName("custom resourcesDir with no"
                 + " protocols dir returns empty")
-        void emptyResourcesReturnsEmpty(
+        void assemble_emptyResources_returnsEmpty(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
@@ -370,7 +370,7 @@ class ProtocolsAssemblerTest {
         @Test
         @DisplayName("multiple event interfaces produce"
                 + " deduplicated protocols")
-        void deduplicatedEventProtocols(
+        void assemble_whenCalled_deduplicatedEventProtocols(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -398,7 +398,7 @@ class ProtocolsAssemblerTest {
     }
 
     private static ProjectConfig buildGoGinConfig() {
-        return TestConfigBuilder.builder()
+        var builder = TestConfigBuilder.builder()
                 .projectName("my-go-service")
                 .purpose(
                         "Describe your service purpose here")
@@ -408,7 +408,13 @@ class ProtocolsAssemblerTest {
                 .language("go", "1.22")
                 .framework("gin", "")
                 .buildTool("go-mod")
-                .nativeBuild(false)
+                .nativeBuild(false);
+        return configureGoInfra(builder).build();
+    }
+
+    private static TestConfigBuilder configureGoInfra(
+            TestConfigBuilder builder) {
+        return builder
                 .container("docker")
                 .orchestrator("kubernetes")
                 .iac("terraform")
@@ -422,7 +428,6 @@ class ProtocolsAssemblerTest {
                 .addInterface("event-consumer",
                         "", "kafka")
                 .addInterface("event-producer",
-                        "", "kafka")
-                .build();
+                        "", "kafka");
     }
 }

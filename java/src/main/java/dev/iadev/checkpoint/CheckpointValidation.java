@@ -22,17 +22,26 @@ public final class CheckpointValidation {
      * @param state the execution state to validate
      * @return list of error messages; empty if valid
      */
-    public static List<String> validate(ExecutionState state) {
-        var errors = new ArrayList<String>();
-
+    public static List<String> validate(
+            ExecutionState state) {
         if (state == null) {
-            errors.add("ExecutionState is null");
-            return errors;
+            return List.of("ExecutionState is null");
         }
-        if (state.epicId() == null || state.epicId().isBlank()) {
+        var errors = new ArrayList<String>();
+        validateRequiredFields(state, errors);
+        validateCollections(state, errors);
+        return List.copyOf(errors);
+    }
+
+    private static void validateRequiredFields(
+            ExecutionState state,
+            List<String> errors) {
+        if (state.epicId() == null
+                || state.epicId().isBlank()) {
             errors.add("epicId is required");
         }
-        if (state.branch() == null || state.branch().isBlank()) {
+        if (state.branch() == null
+                || state.branch().isBlank()) {
             errors.add("branch is required");
         }
         if (state.startedAt() == null) {
@@ -41,6 +50,11 @@ public final class CheckpointValidation {
         if (state.mode() == null) {
             errors.add("mode is required");
         }
+    }
+
+    private static void validateCollections(
+            ExecutionState state,
+            List<String> errors) {
         if (state.stories() == null) {
             errors.add("stories is required");
         } else {
@@ -52,8 +66,6 @@ public final class CheckpointValidation {
         if (state.metrics() == null) {
             errors.add("metrics is required");
         }
-
-        return List.copyOf(errors);
     }
 
     private static void validateStories(

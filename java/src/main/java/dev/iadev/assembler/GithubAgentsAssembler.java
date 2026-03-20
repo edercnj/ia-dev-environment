@@ -4,49 +4,21 @@ import dev.iadev.config.ContextBuilder;
 import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Stream;
+import java.util.Optional;
 
 /**
  * Assembles {@code .github/agents/} with agent files in
  * the {@code .agent.md} format for GitHub Copilot.
  *
- * <p>This is the eleventh assembler in the pipeline
- * (position 11 of 23 per RULE-005). It generates three
- * categories of agents:
- * <ol>
- *   <li>Core agents -- always included, read from
- *       {@code github-agents-templates/core/}</li>
- *   <li>Conditional agents -- included based on feature
- *       gates (devops, api, event)</li>
- *   <li>Developer agent -- language-specific, read from
- *       {@code github-agents-templates/developers/}</li>
- * </ol>
- *
- * <p>Each agent template has YAML frontmatter with
- * {@code tools} and {@code disallowed-tools} fields.
- * Output files use {@code .agent.md} extension (GitHub
- * convention) instead of {@code .md} (Claude
- * convention).</p>
- *
- * <p>Example usage:
- * <pre>{@code
- * GithubAgentsAssembler agents =
- *     new GithubAgentsAssembler();
- * AssembleResult result = agents.assembleWithWarnings(
- *     config, engine, outputDir);
- * }</pre>
- * </p>
+ * <p>Agent rendering and selection are delegated to
+ * {@link GithubAgentRenderer}.</p>
  *
  * @see Assembler
+ * @see GithubAgentRenderer
  */
 public final class GithubAgentsAssembler
         implements Assembler {
@@ -59,9 +31,6 @@ public final class GithubAgentsAssembler
     private static final String DEVELOPERS_DIR =
             "developers";
     private static final String AGENTS_OUTPUT = "agents";
-    private static final String AGENT_MD_EXTENSION =
-            ".agent.md";
-    private static final String MD_EXTENSION = ".md";
 
     private final Path resourcesDir;
 
@@ -83,25 +52,24 @@ public final class GithubAgentsAssembler
         this.resourcesDir = resourcesDir;
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * <p>Generates all GitHub agent files and returns
-     * the list of file paths. Warnings for missing
-     * templates are logged to stderr.</p>
-     */
+    /** {@inheritDoc} */
     @Override
     public List<String> assemble(
             ProjectConfig config,
             TemplateEngine engine,
             Path outputDir) {
-        AssembleResult result =
-                assembleWithWarnings(
-                        config, engine, outputDir);
-        for (String warning : result.warnings()) {
-            System.err.println("WARNING: " + warning);
-        }
-        return result.files();
+        return assembleWithResult(
+                config, engine, outputDir).files();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public AssemblerResult assembleWithResult(
+            ProjectConfig config,
+            TemplateEngine engine,
+            Path outputDir) {
+        return assembleWithWarnings(
+                config, engine, outputDir);
     }
 
     /**
@@ -113,7 +81,7 @@ public final class GithubAgentsAssembler
      * @param outputDir the target output directory
      * @return result with generated files and warnings
      */
-    public AssembleResult assembleWithWarnings(
+    public AssemblerResult assembleWithWarnings(
             ProjectConfig config,
             TemplateEngine engine,
             Path outputDir) {
@@ -126,82 +94,79 @@ public final class GithubAgentsAssembler
         List<String> files = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
 
-        files.addAll(assembleCore(
-                agentsDir, engine, context));
-        files.addAll(assembleConditional(
+        assembleCoreAgents(
+                agentsDir, engine, context, files);
+        assembleConditionalAgents(
                 config, agentsDir, engine,
-                warnings, context));
+                context, files, warnings);
+        assembleDeveloperAgent(
+                config, agentsDir, engine,
+                context, files, warnings);
 
-        String dev = assembleDeveloper(
-                config, agentsDir, engine, context);
-        if (dev != null) {
-            files.add(dev);
+        return AssemblerResult.of(files, warnings);
+    }
+
+    private void assembleCoreAgents(
+            Path agentsDir, TemplateEngine engine,
+            Map<String, Object> context,
+            List<String> files) {
+        Path coreDir = resourcesDir.resolve(
+                TEMPLATES_DIR + "/" + CORE_DIR);
+        files.addAll(GithubAgentRenderer.assembleCore(
+                coreDir, agentsDir, engine, context));
+    }
+
+    private void assembleConditionalAgents(
+            ProjectConfig config, Path agentsDir,
+            TemplateEngine engine,
+            Map<String, Object> context,
+            List<String> files, List<String> warnings) {
+        Path condDir = resourcesDir.resolve(
+                TEMPLATES_DIR + "/" + CONDITIONAL_DIR);
+        files.addAll(
+                GithubAgentRenderer.assembleConditional(
+                        condDir, config, agentsDir,
+                        engine, warnings, context));
+    }
+
+    private void assembleDeveloperAgent(
+            ProjectConfig config, Path agentsDir,
+            TemplateEngine engine,
+            Map<String, Object> context,
+            List<String> files, List<String> warnings) {
+        Path devDir = resourcesDir.resolve(
+                TEMPLATES_DIR + "/" + DEVELOPERS_DIR);
+        Optional<String> dev =
+                GithubAgentRenderer.assembleDeveloper(
+                        devDir, config, agentsDir,
+                        engine, context);
+        if (dev.isPresent()) {
+            files.add(dev.orElseThrow());
         } else {
             String expected = config.language().name()
                     + "-developer.md";
             warnings.add(
-                    "Developer agent template missing: "
-                            + expected);
+                    "Developer agent template missing: %s"
+                            .formatted(expected));
         }
-
-        return new AssembleResult(files, warnings);
     }
 
     /**
-     * Selects conditional agent filenames based on
-     * project configuration feature gates.
-     *
-     * <p>Evaluates three conditions:
-     * <ul>
-     *   <li>devops-engineer -- infrastructure present</li>
-     *   <li>api-engineer -- REST, gRPC, or GraphQL</li>
-     *   <li>event-engineer -- event-driven or event
-     *       interfaces</li>
-     * </ul>
+     * Delegates to
+     * {@link GithubAgentRenderer#selectGithubConditionalAgents}.
      *
      * @param config the project configuration
      * @return list of conditional agent template filenames
      */
     static List<String> selectGithubConditionalAgents(
             ProjectConfig config) {
-        List<String> agents = new ArrayList<>();
-        var infra = config.infrastructure();
-
-        boolean hasDevops =
-                !"none".equals(infra.container())
-                        || !"none".equals(
-                                infra.orchestrator())
-                        || !"none".equals(infra.iac())
-                        || !"none".equals(
-                                infra.serviceMesh());
-        if (hasDevops) {
-            agents.add("devops-engineer.md");
-        }
-
-        if (hasAnyInterface(config,
-                "rest", "grpc", "graphql")) {
-            agents.add("api-engineer.md");
-        }
-
-        boolean hasEvents =
-                config.architecture().eventDriven()
-                        || hasAnyInterface(config,
-                                "event-consumer",
-                                "event-producer");
-        if (hasEvents) {
-            agents.add("event-engineer.md");
-        }
-
-        return agents;
+        return GithubAgentRenderer
+                .selectGithubConditionalAgents(config);
     }
 
     /**
-     * Assembles core agents from the core/ directory,
-     * sorted alphabetically.
-     *
-     * @param agentsDir the agents output directory
-     * @param engine    the template engine
-     * @return list of generated file paths
+     * Delegates to
+     * {@link GithubAgentRenderer#assembleCore}.
      */
     List<String> assembleCore(
             Path agentsDir,
@@ -209,184 +174,41 @@ public final class GithubAgentsAssembler
             Map<String, Object> context) {
         Path coreDir = resourcesDir.resolve(
                 TEMPLATES_DIR + "/" + CORE_DIR);
-        if (!Files.exists(coreDir)) {
-            return List.of();
-        }
-        List<Path> entries;
-        try (Stream<Path> stream = Files.list(coreDir)) {
-            entries = stream
-                    .filter(Files::isRegularFile)
-                    .sorted()
-                    .toList();
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to list core agents: "
-                            + coreDir, e);
-        }
-        List<String> results = new ArrayList<>();
-        for (Path entry : entries) {
-            results.add(renderAgent(
-                    entry, agentsDir, engine, context));
-        }
-        return results;
-    }
-
-    private List<String> assembleConditional(
-            ProjectConfig config,
-            Path agentsDir,
-            TemplateEngine engine,
-            List<String> warnings,
-            Map<String, Object> context) {
-        Path condDir = resourcesDir.resolve(
-                TEMPLATES_DIR + "/" + CONDITIONAL_DIR);
-        if (!Files.exists(condDir)) {
-            return List.of();
-        }
-        List<String> results = new ArrayList<>();
-        for (String name
-                : selectGithubConditionalAgents(config)) {
-            Path src = condDir.resolve(name);
-            if (!Files.exists(src)) {
-                warnings.add(
-                        "Conditional agent template"
-                                + " missing: " + name);
-                continue;
-            }
-            results.add(renderAgent(
-                    src, agentsDir, engine, context));
-        }
-        return results;
+        return GithubAgentRenderer.assembleCore(
+                coreDir, agentsDir, engine, context);
     }
 
     /**
-     * Assembles the developer agent for the project
-     * language.
-     *
-     * @param config    the project configuration
-     * @param agentsDir the agents output directory
-     * @param engine    the template engine
-     * @return the generated file path, or null if the
-     *         template is missing
+     * Delegates to
+     * {@link GithubAgentRenderer#assembleDeveloper}.
      */
-    String assembleDeveloper(
+    Optional<String> assembleDeveloper(
             ProjectConfig config,
             Path agentsDir,
             TemplateEngine engine,
             Map<String, Object> context) {
         Path devDir = resourcesDir.resolve(
                 TEMPLATES_DIR + "/" + DEVELOPERS_DIR);
-        if (!Files.exists(devDir)) {
-            return null;
-        }
-        String safeName = config.language().name();
-        Path template = devDir.resolve(
-                safeName + "-developer.md");
-        if (!Files.exists(template)) {
-            return null;
-        }
-        return renderAgent(
-                template, agentsDir, engine, context);
+        return GithubAgentRenderer.assembleDeveloper(
+                devDir, config, agentsDir,
+                engine, context);
     }
 
     /**
-     * Renders a single agent template to the output
-     * directory with {@code .agent.md} extension.
-     *
-     * @param srcPath   the source template file path
-     * @param agentsDir the agents output directory
-     * @param engine    the template engine
-     * @return the destination file path
-     */
-    String renderAgent(
-            Path srcPath,
-            Path agentsDir,
-            TemplateEngine engine) {
-        return renderAgent(
-                srcPath, agentsDir, engine, Map.of());
-    }
-
-    /**
-     * Renders a single agent template with context-aware
-     * placeholder replacement.
-     *
-     * @param srcPath   the source template file path
-     * @param agentsDir the agents output directory
-     * @param engine    the template engine
-     * @param context   the context map for replacement
-     * @return the destination file path
+     * Delegates to
+     * {@link GithubAgentRenderer#renderAgent}.
      */
     String renderAgent(
             Path srcPath,
             Path agentsDir,
             TemplateEngine engine,
             Map<String, Object> context) {
-        String content = readFile(srcPath);
-        String rendered = engine.replacePlaceholders(
-                content, context);
-        String fileName =
-                srcPath.getFileName().toString();
-        String stem = fileName.endsWith(MD_EXTENSION)
-                ? fileName.substring(0,
-                        fileName.length()
-                                - MD_EXTENSION.length())
-                : fileName;
-        String outputName = stem + AGENT_MD_EXTENSION;
-        Path dest = agentsDir.resolve(outputName);
-        writeFile(dest, rendered);
-        return dest.toString();
-    }
-
-    private static boolean hasAnyInterface(
-            ProjectConfig config, String... types) {
-        Set<String> typeSet = Set.of(types);
-        return config.interfaces().stream()
-                .anyMatch(i -> typeSet.contains(i.type()));
-    }
-
-    private static String readFile(Path path) {
-        try {
-            return Files.readString(
-                    path, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to read template: " + path, e);
-        }
-    }
-
-    private static void writeFile(
-            Path path, String content) {
-        try {
-            Files.writeString(
-                    path, content, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to write file: " + path, e);
-        }
+        return GithubAgentRenderer.renderAgent(
+                srcPath, agentsDir, engine, context);
     }
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
                 .resolveResourcesRoot(TEMPLATES_DIR);
-    }
-
-    /**
-     * Result of GitHub agents assembler execution,
-     * containing generated file paths and warnings for
-     * missing templates.
-     *
-     * @param files    list of generated file paths
-     * @param warnings list of warning messages
-     */
-    public record AssembleResult(
-            List<String> files,
-            List<String> warnings) {
-
-        /**
-         * Creates an AssembleResult with immutable lists.
-         */
-        public AssembleResult {
-            files = List.copyOf(files);
-            warnings = List.copyOf(warnings);
-        }
     }
 }

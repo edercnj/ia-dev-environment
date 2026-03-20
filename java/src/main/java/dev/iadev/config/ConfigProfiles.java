@@ -1,7 +1,9 @@
 package dev.iadev.config;
 
 import dev.iadev.model.ProjectConfig;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.io.InputStream;
 import java.util.List;
@@ -106,34 +108,44 @@ public final class ConfigProfiles {
     }
 
     @SuppressWarnings("unchecked")
-    private static ProjectConfig loadFromClasspath(String stackKey) {
+    private static ProjectConfig loadFromClasspath(
+            String stackKey) {
         String resourcePath = TEMPLATE_PATH_PREFIX
                 + stackKey + TEMPLATE_PATH_SUFFIX;
-
-        try (InputStream is = ConfigProfiles.class
-                .getClassLoader()
-                .getResourceAsStream(resourcePath)) {
-
-            if (is == null) {
-                throw new IllegalStateException(
-                        "Config template not found on classpath: "
-                                + resourcePath);
-            }
-
-            Object parsed = new Yaml().load(is);
-            if (!(parsed instanceof Map<?, ?> map)) {
-                throw new IllegalStateException(
-                        "Config template is not a valid YAML map: "
-                                + resourcePath);
-            }
-
-            return ProjectConfig.fromMap(
-                    (Map<String, Object>) map);
-
+        try (InputStream is = openResource(resourcePath)) {
+            Map<String, Object> map =
+                    parseYamlMap(is, resourcePath);
+            return ProjectConfig.fromMap(map);
         } catch (java.io.IOException e) {
             throw new IllegalStateException(
                     "Failed to read config template: "
                             + resourcePath, e);
         }
+    }
+
+    private static InputStream openResource(
+            String resourcePath) {
+        InputStream is = ConfigProfiles.class
+                .getClassLoader()
+                .getResourceAsStream(resourcePath);
+        if (is == null) {
+            throw new IllegalStateException(
+                    "Config template not found on "
+                            + "classpath: " + resourcePath);
+        }
+        return is;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> parseYamlMap(
+            InputStream is, String resourcePath) {
+        Object parsed = new Yaml(new SafeConstructor(
+                new LoaderOptions())).load(is);
+        if (!(parsed instanceof Map<?, ?> map)) {
+            throw new IllegalStateException(
+                    "Config template is not a valid "
+                            + "YAML map: " + resourcePath);
+        }
+        return (Map<String, Object>) map;
     }
 }

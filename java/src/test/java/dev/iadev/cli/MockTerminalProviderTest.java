@@ -1,5 +1,6 @@
 package dev.iadev.cli;
 
+import dev.iadev.exception.GenerationCancelledException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -89,7 +90,7 @@ class MockTerminalProviderTest {
 
         @Test
         @DisplayName("selectFromList_returnsQueuedSelection")
-        void selectFromList_returnsQueuedSelection() {
+        void selectFromList_whenCalled_returnsQueuedSelection() {
             var mock = new MockTerminalProvider()
                     .addSelect("option2");
 
@@ -118,7 +119,7 @@ class MockTerminalProviderTest {
 
         @Test
         @DisplayName("selectMultiple_returnsQueuedSelection")
-        void selectMultiple_returnsQueuedSelection() {
+        void selectMultiple_whenCalled_returnsQueuedSelection() {
             var mock = new MockTerminalProvider()
                     .addMultiSelect(List.of("a", "c"));
 
@@ -141,7 +142,7 @@ class MockTerminalProviderTest {
             var mock = new MockTerminalProvider()
                     .addConfirm(true);
 
-            assertThat(mock.confirm("proceed?", true)).isTrue();
+            assertThat(mock.confirm("proceed?", ConfirmDefault.DEFAULT_YES)).isTrue();
         }
 
         @Test
@@ -150,7 +151,7 @@ class MockTerminalProviderTest {
             var mock = new MockTerminalProvider()
                     .addConfirm(false);
 
-            assertThat(mock.confirm("proceed?", true)).isFalse();
+            assertThat(mock.confirm("proceed?", ConfirmDefault.DEFAULT_YES)).isFalse();
         }
     }
 
@@ -160,7 +161,7 @@ class MockTerminalProviderTest {
 
         @Test
         @DisplayName("display_recordsMessages")
-        void display_recordsMessages() {
+        void display_whenCalled_recordsMessages() {
             var mock = new MockTerminalProvider();
 
             mock.display("hello");

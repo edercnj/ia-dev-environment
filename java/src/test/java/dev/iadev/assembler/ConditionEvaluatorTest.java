@@ -21,7 +21,7 @@ class ConditionEvaluatorTest {
 
         @Test
         @DisplayName("returns true for existing interface")
-        void existingInterface_returnsTrue() {
+        void existingInterface_whenCalled_returnsTrue() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("rest")
@@ -35,7 +35,7 @@ class ConditionEvaluatorTest {
 
         @Test
         @DisplayName("returns false for missing interface")
-        void missingInterface_returnsFalse() {
+        void missingInterface_forMissingInterface_returnsFalse() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("rest")
@@ -48,7 +48,7 @@ class ConditionEvaluatorTest {
 
         @Test
         @DisplayName("returns false for empty interfaces")
-        void emptyInterfaces_returnsFalse() {
+        void emptyInterfaces_forEmptyInterfaces_returnsFalse() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .build();
@@ -65,7 +65,7 @@ class ConditionEvaluatorTest {
 
         @Test
         @DisplayName("returns true when at least one matches")
-        void oneMatches_returnsTrue() {
+        void oneMatches_whenCalled_returnsTrue() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("rest")
@@ -78,7 +78,7 @@ class ConditionEvaluatorTest {
 
         @Test
         @DisplayName("returns false when none matches")
-        void noneMatches_returnsFalse() {
+        void noneMatches_whenNoneMatches_returnsFalse() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("cli")
@@ -96,7 +96,7 @@ class ConditionEvaluatorTest {
 
         @Test
         @DisplayName("returns list of type strings")
-        void multipleInterfaces_returnsList() {
+        void multipleInterfaces_whenCalled_returnsList() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("rest")
@@ -113,7 +113,7 @@ class ConditionEvaluatorTest {
 
         @Test
         @DisplayName("returns empty list for no interfaces")
-        void noInterfaces_returnsEmpty() {
+        void noInterfaces_forNoInterfaces_returnsEmpty() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .build();
@@ -130,7 +130,7 @@ class ConditionEvaluatorTest {
 
         @Test
         @DisplayName("returns true when database is configured")
-        void databaseConfigured_returnsTrue() {
+        void databaseConfigured_whenCalled_returnsTrue() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .database("postgresql", "16")
                     .build();
@@ -141,7 +141,7 @@ class ConditionEvaluatorTest {
 
         @Test
         @DisplayName("returns false when database is none")
-        void databaseNone_returnsFalse() {
+        void databaseNone_whenDatabase_returnsFalse() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .database("none", "")
                     .build();
@@ -152,7 +152,7 @@ class ConditionEvaluatorTest {
 
         @Test
         @DisplayName("returns false when database is empty")
-        void databaseEmpty_returnsFalse() {
+        void databaseEmpty_whenDatabase_returnsFalse() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .database("", "")
                     .build();
@@ -168,7 +168,7 @@ class ConditionEvaluatorTest {
 
         @Test
         @DisplayName("returns true when cache is configured")
-        void cacheConfigured_returnsTrue() {
+        void cacheConfigured_whenCalled_returnsTrue() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .cache("redis", "7")
                     .build();
@@ -179,7 +179,7 @@ class ConditionEvaluatorTest {
 
         @Test
         @DisplayName("returns false when cache is none")
-        void cacheNone_returnsFalse() {
+        void cacheNone_whenCache_returnsFalse() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .cache("none", "")
                     .build();
@@ -195,7 +195,7 @@ class ConditionEvaluatorTest {
 
         @Test
         @DisplayName("domain_driven returns true when enabled")
-        void domainDriven_returnsTrue() {
+        void domainDriven_whenCalled_returnsTrue() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .domainDriven(true)
                     .build();
@@ -207,7 +207,7 @@ class ConditionEvaluatorTest {
 
         @Test
         @DisplayName("domain_driven returns false when disabled")
-        void domainDriven_returnsFalse() {
+        void domainDriven_whenDisabled_returnsFalse() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .domainDriven(false)
                     .build();
@@ -219,7 +219,7 @@ class ConditionEvaluatorTest {
 
         @Test
         @DisplayName("event_driven returns true when enabled")
-        void eventDriven_returnsTrue() {
+        void eventDriven_whenEnabled_returnsTrue() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .eventDriven(true)
                     .build();
@@ -231,7 +231,7 @@ class ConditionEvaluatorTest {
 
         @Test
         @DisplayName("native_build returns true when enabled")
-        void nativeBuild_returnsTrue() {
+        void nativeBuild_whenEnabled_returnsTrue() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .nativeBuild(true)
                     .build();
@@ -243,7 +243,7 @@ class ConditionEvaluatorTest {
 
         @Test
         @DisplayName("database returns true when configured")
-        void database_returnsTrue() {
+        void database_whenConfigured_returnsTrue() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .database("postgresql", "16")
                     .build();
@@ -255,7 +255,7 @@ class ConditionEvaluatorTest {
 
         @Test
         @DisplayName("cache returns true when configured")
-        void cache_returnsTrue() {
+        void cache_whenConfigured_returnsTrue() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .cache("redis", "7")
                     .build();
@@ -267,7 +267,7 @@ class ConditionEvaluatorTest {
 
         @Test
         @DisplayName("unknown feature returns false")
-        void unknownFeature_returnsFalse() {
+        void unknownFeature_whenCalled_returnsFalse() {
             ProjectConfig config = TestConfigBuilder.minimal();
 
             assertThat(ConditionEvaluator
@@ -282,7 +282,7 @@ class ConditionEvaluatorTest {
 
         @Test
         @DisplayName("evaluates interface condition")
-        void interfaceCondition() {
+        void evaluate_whenCalled_interfaceCondition() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("grpc")
@@ -298,7 +298,7 @@ class ConditionEvaluatorTest {
 
         @Test
         @DisplayName("evaluates feature condition")
-        void featureCondition() {
+        void evaluate_whenCalled_featureCondition() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .domainDriven(true)
                     .build();
@@ -310,7 +310,7 @@ class ConditionEvaluatorTest {
 
         @Test
         @DisplayName("evaluates plain feature name")
-        void plainFeatureName() {
+        void evaluate_whenCalled_plainFeatureName() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .database("postgresql", "16")
                     .build();

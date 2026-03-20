@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ExecutionModeTest {
 
     @Test
-    void values_containsThreeModes() {
+    void values_whenCalled_containsThreeModes() {
         assertThat(ExecutionMode.values()).hasSize(3);
     }
 

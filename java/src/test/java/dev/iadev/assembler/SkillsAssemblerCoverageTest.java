@@ -28,7 +28,7 @@ class SkillsAssemblerCoverageTest {
 
         @Test
         @DisplayName("core dir missing returns empty")
-        void coreDirMissing(@TempDir Path tempDir) {
+        void assemble_whenCalled_coreDirMissing(@TempDir Path tempDir) {
             SkillsAssembler assembler =
                     new SkillsAssembler(tempDir);
 
@@ -40,7 +40,7 @@ class SkillsAssemblerCoverageTest {
 
         @Test
         @DisplayName("core dir is a file returns empty")
-        void coreDirIsFile(@TempDir Path tempDir)
+        void assemble_coreDir_isFile(@TempDir Path tempDir)
                 throws IOException {
             Files.createDirectories(
                     tempDir.resolve("skills-templates"));
@@ -61,7 +61,7 @@ class SkillsAssemblerCoverageTest {
         @Test
         @DisplayName("core dir with lib subdirectory"
                 + " prefixes with lib/")
-        void libSubdirPrefixed(@TempDir Path tempDir)
+        void assemble_whenCalled_libSubdirPrefixed(@TempDir Path tempDir)
                 throws IOException {
             Path core = tempDir.resolve(
                     "skills-templates/core");
@@ -89,7 +89,7 @@ class SkillsAssemblerCoverageTest {
         @Test
         @DisplayName("conditional skill dir missing"
                 + " returns null (filtered out)")
-        void conditionalDirMissing(@TempDir Path tempDir)
+        void assembleConditional_whenCalled_conditionalDirMissing(@TempDir Path tempDir)
                 throws IOException {
             Path core = tempDir.resolve(
                     "skills-templates/core");
@@ -108,7 +108,7 @@ class SkillsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isEmpty();
         }
     }
 
@@ -119,7 +119,7 @@ class SkillsAssemblerCoverageTest {
         @Test
         @DisplayName("knowledge pack dir missing"
                 + " returns null (filtered out)")
-        void kpDirMissing(@TempDir Path tempDir)
+        void assembleKnowledge_whenCalled_kpDirMissing(@TempDir Path tempDir)
                 throws IOException {
             Path core = tempDir.resolve(
                     "skills-templates/core");
@@ -136,13 +136,13 @@ class SkillsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isEmpty();
         }
 
         @Test
         @DisplayName("knowledge pack with SKILL.md"
                 + " renders template")
-        void kpWithSkillMd(@TempDir Path tempDir)
+        void assembleKnowledge_whenCalled_kpWithSkillMd(@TempDir Path tempDir)
                 throws IOException {
             Path kpDir = tempDir.resolve(
                     "skills-templates/knowledge-packs"
@@ -175,13 +175,15 @@ class SkillsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isNotEmpty();
+            assertThat(files).anyMatch(
+                    f -> f.contains("architecture"));
         }
 
         @Test
         @DisplayName("knowledge pack without SKILL.md"
                 + " copies non-skill items")
-        void kpWithoutSkillMd(@TempDir Path tempDir)
+        void assembleKnowledge_whenCalled_kpWithoutSkillMd(@TempDir Path tempDir)
                 throws IOException {
             Path kpDir = tempDir.resolve(
                     "skills-templates/knowledge-packs"
@@ -207,7 +209,7 @@ class SkillsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isNotEmpty();
         }
     }
 
@@ -218,7 +220,7 @@ class SkillsAssemblerCoverageTest {
         @Test
         @DisplayName("unknown framework returns no"
                 + " stack patterns")
-        void unknownFrameworkNoPatterns(
+        void copyStackPatterns_whenCalled_unknownFrameworkNoPatterns(
                 @TempDir Path tempDir) throws IOException {
             Path core = tempDir.resolve(
                     "skills-templates/core");
@@ -237,13 +239,13 @@ class SkillsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isEmpty();
         }
 
         @Test
         @DisplayName("stack pattern dir missing returns"
                 + " null")
-        void stackPatternDirMissing(
+        void copyStackPatterns_whenCalled_stackPatternDirMissing(
                 @TempDir Path tempDir) throws IOException {
             Path core = tempDir.resolve(
                     "skills-templates/core");
@@ -262,7 +264,7 @@ class SkillsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isEmpty();
         }
     }
 
@@ -273,7 +275,7 @@ class SkillsAssemblerCoverageTest {
         @Test
         @DisplayName("infra pattern not included is"
                 + " skipped")
-        void infraNotIncludedSkipped(
+        void copyInfraPatterns_whenCalled_infraNotIncludedSkipped(
                 @TempDir Path tempDir) throws IOException {
             Path core = tempDir.resolve(
                     "skills-templates/core");
@@ -293,13 +295,13 @@ class SkillsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isEmpty();
         }
 
         @Test
         @DisplayName("infra pattern dir missing is"
                 + " skipped")
-        void infraDirMissingSkipped(
+        void copyInfraPatterns_whenCalled_infraDirMissingSkipped(
                 @TempDir Path tempDir) throws IOException {
             Path core = tempDir.resolve(
                     "skills-templates/core");
@@ -319,7 +321,7 @@ class SkillsAssemblerCoverageTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).isNotNull();
+            assertThat(files).isEmpty();
         }
     }
 
@@ -330,7 +332,7 @@ class SkillsAssemblerCoverageTest {
         @Test
         @DisplayName("default constructor resolves"
                 + " classpath resources")
-        void defaultConstructorResolves() {
+        void constructor_withDefaults_resolvesCorrectly() {
             SkillsAssembler assembler =
                     new SkillsAssembler();
 

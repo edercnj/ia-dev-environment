@@ -28,7 +28,7 @@ class CodexSkillsAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void instanceOf_whenCreated_implementsAssemblerInterface() {
             assertThat(new CodexSkillsAssembler())
                     .isInstanceOf(Assembler.class);
         }
@@ -40,7 +40,7 @@ class CodexSkillsAssemblerTest {
 
         @Test
         @DisplayName("copies SKILL.md files")
-        void copiesSkillMd(
+        void assemble_whenCalled_copiesSkillMd(
                 @TempDir Path tempDir) throws IOException {
             Path srcDir = tempDir.resolve("src-skills");
             Path skill = srcDir.resolve("my-skill");
@@ -62,7 +62,7 @@ class CodexSkillsAssemblerTest {
 
         @Test
         @DisplayName("copies references directory")
-        void copiesReferences(
+        void assemble_whenCalled_copiesReferences(
                 @TempDir Path tempDir) throws IOException {
             Path srcDir = tempDir.resolve("src-skills");
             Path skill = srcDir.resolve("patterns");
@@ -91,7 +91,7 @@ class CodexSkillsAssemblerTest {
 
         @Test
         @DisplayName("recurses into subdirectories")
-        void recursesIntoSubdirs(
+        void assemble_whenCalled_recursesIntoSubdirs(
                 @TempDir Path tempDir) throws IOException {
             Path srcDir = tempDir.resolve("src-skills");
             Path nested =
@@ -114,7 +114,7 @@ class CodexSkillsAssemblerTest {
 
         @Test
         @DisplayName("returns empty for empty source dir")
-        void returnsEmptyForEmpty(
+        void assemble_forEmpty_returnsEmpty(
                 @TempDir Path tempDir) throws IOException {
             Path srcDir = tempDir.resolve("src-skills");
             Files.createDirectories(srcDir);
@@ -129,7 +129,7 @@ class CodexSkillsAssemblerTest {
 
         @Test
         @DisplayName("sorts directories alphabetically")
-        void sortedOutput(
+        void assemble_whenCalled_sortedOutput(
                 @TempDir Path tempDir) throws IOException {
             Path srcDir = tempDir.resolve("src-skills");
             Path skillZ = srcDir.resolve("z-skill");
@@ -162,7 +162,7 @@ class CodexSkillsAssemblerTest {
 
         @Test
         @DisplayName("collects all files recursively")
-        void collectsRecursively(
+        void assemble_whenCalled_collectsRecursively(
                 @TempDir Path tempDir) throws IOException {
             Path dir = tempDir.resolve("refs");
             Path subDir = dir.resolve("sub");
@@ -182,7 +182,7 @@ class CodexSkillsAssemblerTest {
 
         @Test
         @DisplayName("returns empty for empty directory")
-        void returnsEmptyForEmpty(
+        void assemble_forEmpty_returnsEmpty(
                 @TempDir Path tempDir) throws IOException {
             Path dir = tempDir.resolve("empty");
             Files.createDirectories(dir);
@@ -201,7 +201,7 @@ class CodexSkillsAssemblerTest {
         @Test
         @DisplayName("copies skills from .claude/ to"
                 + " .agents/")
-        void copiesSkillsFromClaude(
+        void assemble_whenCalled_copiesSkillsFromClaude(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = setupDirs(tempDir);
 
@@ -221,7 +221,7 @@ class CodexSkillsAssemblerTest {
         @Test
         @DisplayName("returns empty when .claude/skills/"
                 + " is missing")
-        void returnsEmptyWhenMissing(
+        void assemble_whenCalled_returnsEmptyWhenMissing(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir =
                     tempDir.resolve("out")
@@ -242,7 +242,7 @@ class CodexSkillsAssemblerTest {
 
         @Test
         @DisplayName("preserves references directory")
-        void preservesReferences(
+        void assemble_whenCalled_preservesReferences(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = setupDirs(tempDir);
 

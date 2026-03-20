@@ -30,7 +30,7 @@ class CodexConfigAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void instanceOf_whenCreated_implementsAssemblerInterface() {
             assertThat(new CodexConfigAssembler())
                     .isInstanceOf(Assembler.class);
         }
@@ -43,13 +43,13 @@ class CodexConfigAssemblerTest {
         @Test
         @DisplayName("contains model, approval_policy,"
                 + " sandbox_mode")
-        void containsCodexFields() {
+        void assemble_whenCalled_containsCodexFields() {
             ProjectConfig config =
                     TestConfigBuilder.minimal();
             Map<String, Object> ctx =
                     CodexConfigAssembler
                             .buildConfigContext(
-                                    config, false);
+                                    config, HookPresence.WITHOUT_HOOKS);
 
             assertThat(ctx.get("model"))
                     .isEqualTo("o4-mini");
@@ -61,13 +61,13 @@ class CodexConfigAssemblerTest {
 
         @Test
         @DisplayName("has_mcp is false when no servers")
-        void hasMcpFalseWhenEmpty() {
+        void assemble_whenEmpty_hasMcpFalse() {
             ProjectConfig config =
                     TestConfigBuilder.minimal();
             Map<String, Object> ctx =
                     CodexConfigAssembler
                             .buildConfigContext(
-                                    config, false);
+                                    config, HookPresence.WITHOUT_HOOKS);
 
             assertThat(ctx.get("has_mcp"))
                     .isEqualTo(false);
@@ -75,7 +75,7 @@ class CodexConfigAssemblerTest {
 
         @Test
         @DisplayName("has_mcp is true when servers exist")
-        void hasMcpTrueWhenServers() {
+        void assemble_whenServers_hasMcpTrue() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .addMcpServer(
@@ -87,7 +87,7 @@ class CodexConfigAssemblerTest {
             Map<String, Object> ctx =
                     CodexConfigAssembler
                             .buildConfigContext(
-                                    config, false);
+                                    config, HookPresence.WITHOUT_HOOKS);
 
             assertThat(ctx.get("has_mcp"))
                     .isEqualTo(true);
@@ -96,13 +96,13 @@ class CodexConfigAssemblerTest {
         @Test
         @DisplayName("approval_policy on-request"
                 + " with hooks")
-        void approvalPolicyWithHooks() {
+        void assemble_withHooks_approvalPolicy() {
             ProjectConfig config =
                     TestConfigBuilder.minimal();
             Map<String, Object> ctx =
                     CodexConfigAssembler
                             .buildConfigContext(
-                                    config, true);
+                                    config, HookPresence.WITH_HOOKS);
 
             assertThat(ctx.get("approval_policy"))
                     .isEqualTo("on-request");
@@ -115,7 +115,7 @@ class CodexConfigAssemblerTest {
 
         @Test
         @DisplayName("generates config.toml in outputDir")
-        void generatesConfigToml(
+        void assemble_whenCalled_generatesConfigToml(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = setupDirs(tempDir);
 
@@ -135,7 +135,7 @@ class CodexConfigAssemblerTest {
 
         @Test
         @DisplayName("config.toml contains model value")
-        void containsModelValue(
+        void assemble_whenCalled_containsModelValue(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = setupDirs(tempDir);
 
@@ -156,7 +156,7 @@ class CodexConfigAssemblerTest {
 
         @Test
         @DisplayName("config.toml contains project name")
-        void containsProjectName(
+        void assemble_whenCalled_containsProjectName(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = setupDirs(tempDir);
 
@@ -179,7 +179,7 @@ class CodexConfigAssemblerTest {
 
         @Test
         @DisplayName("config.toml contains sandbox mode")
-        void containsSandboxMode(
+        void assemble_whenCalled_containsSandboxMode(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = setupDirs(tempDir);
 
@@ -201,7 +201,7 @@ class CodexConfigAssemblerTest {
         @Test
         @DisplayName("config.toml has untrusted policy"
                 + " without hooks")
-        void untrustedWithoutHooks(
+        void assemble_whenCalled_untrustedWithoutHooks(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = setupDirs(tempDir);
 
@@ -225,7 +225,7 @@ class CodexConfigAssemblerTest {
         @Test
         @DisplayName("config.toml has on-request policy"
                 + " with hooks")
-        void onRequestWithHooks(
+        void assemble_whenCalled_onRequestWithHooks(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = setupDirs(tempDir);
 
@@ -257,7 +257,7 @@ class CodexConfigAssemblerTest {
 
         @Test
         @DisplayName("golden file parity for kotlin-ktor")
-        void goldenFileParity(
+        void assemble_whenCalled_goldenFileParity(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = setupDirs(tempDir);
 
@@ -292,7 +292,7 @@ class CodexConfigAssemblerTest {
                             + ".codex/config.toml");
             assertThat(expected)
                     .as("Golden file must exist")
-                    .isNotNull();
+                    .isNotEmpty();
             assertThat(actual)
                     .as("Must match golden file"
                             + " byte-for-byte")
@@ -320,6 +320,174 @@ class CodexConfigAssemblerTest {
             } catch (IOException e) {
                 return null;
             }
+        }
+    }
+
+    @Nested
+    @DisplayName("collectTomlKeyWarnings")
+    class CollectTomlKeyWarnings {
+
+        @Test
+        @DisplayName("no warnings for valid server IDs")
+        void assemble_forValid_noWarnings() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .addMcpServer(
+                                    new McpServerConfig(
+                                            "valid-id",
+                                            "cmd",
+                                            List.of(),
+                                            Map.of()))
+                            .build();
+
+            List<String> warnings =
+                    CodexConfigAssembler
+                            .collectTomlKeyWarnings(
+                                    config);
+
+            assertThat(warnings).isEmpty();
+        }
+
+        @Test
+        @DisplayName("warning for invalid TOML bare key")
+        void assemble_forInvalidKey_warning() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .addMcpServer(
+                                    new McpServerConfig(
+                                            "bad server",
+                                            "cmd",
+                                            List.of(),
+                                            Map.of()))
+                            .build();
+
+            List<String> warnings =
+                    CodexConfigAssembler
+                            .collectTomlKeyWarnings(
+                                    config);
+
+            assertThat(warnings).hasSize(1);
+            assertThat(warnings.get(0))
+                    .contains("bad server")
+                    .contains("invalid TOML");
+        }
+
+        @Test
+        @DisplayName("no warnings when no MCP servers")
+        void assemble_whenNoServers_noWarnings() {
+            ProjectConfig config =
+                    TestConfigBuilder.minimal();
+
+            List<String> warnings =
+                    CodexConfigAssembler
+                            .collectTomlKeyWarnings(
+                                    config);
+
+            assertThat(warnings).isEmpty();
+        }
+
+        @Test
+        @DisplayName("multiple warnings for multiple"
+                + " invalid IDs")
+        void assemble_whenCalled_multipleWarnings() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .addMcpServer(
+                                    new McpServerConfig(
+                                            "ok-id",
+                                            "cmd",
+                                            List.of(),
+                                            Map.of()))
+                            .addMcpServer(
+                                    new McpServerConfig(
+                                            "bad id",
+                                            "cmd",
+                                            List.of(),
+                                            Map.of()))
+                            .addMcpServer(
+                                    new McpServerConfig(
+                                            "also@bad",
+                                            "cmd",
+                                            List.of(),
+                                            Map.of()))
+                            .build();
+
+            List<String> warnings =
+                    CodexConfigAssembler
+                            .collectTomlKeyWarnings(
+                                    config);
+
+            assertThat(warnings).hasSize(2);
+        }
+    }
+
+    @Nested
+    @DisplayName("assembleWithResult — warning"
+            + " propagation")
+    class AssembleWithResult {
+
+        @Test
+        @DisplayName("no warnings for valid config")
+        void assembleWithResult_noWarnings_succeeds(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = setupDirs(tempDir);
+
+            CodexConfigAssembler assembler =
+                    new CodexConfigAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.minimal();
+
+            AssemblerResult result =
+                    assembler.assembleWithResult(
+                            config,
+                            new TemplateEngine(),
+                            outputDir);
+
+            assertThat(result.files()).hasSize(1);
+            assertThat(result.warnings()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("warnings for invalid TOML keys"
+                + " propagated via result")
+        void assembleWithResult_whenCalled_warningsForInvalidKeys(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = setupDirs(tempDir);
+
+            CodexConfigAssembler assembler =
+                    new CodexConfigAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .addMcpServer(
+                                    new McpServerConfig(
+                                            "bad id",
+                                            "cmd",
+                                            List.of(),
+                                            Map.of()))
+                            .build();
+
+            AssemblerResult result =
+                    assembler.assembleWithResult(
+                            config,
+                            new TemplateEngine(),
+                            outputDir);
+
+            assertThat(result.files()).hasSize(1);
+            assertThat(result.warnings()).hasSize(1);
+            assertThat(result.warnings().get(0))
+                    .contains("bad id")
+                    .contains("invalid TOML");
+        }
+
+        private Path setupDirs(Path tempDir)
+                throws IOException {
+            Path outputDir =
+                    tempDir.resolve("out")
+                            .resolve(".codex");
+            Files.createDirectories(outputDir);
+            return outputDir;
         }
     }
 }

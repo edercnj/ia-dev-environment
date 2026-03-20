@@ -30,7 +30,7 @@ class GithubSkillsAssemblerTest {
 
         @Test
         @DisplayName("is instance of Assembler")
-        void isAssemblerInstance() {
+        void instanceOf_whenCreated_implementsAssemblerInterface() {
             GithubSkillsAssembler assembler =
                     new GithubSkillsAssembler();
 
@@ -45,7 +45,7 @@ class GithubSkillsAssemblerTest {
 
         @Test
         @DisplayName("contains exactly 8 groups")
-        void containsEightGroups() {
+        void assemble_whenCalled_containsEightGroups() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS)
                     .hasSize(8);
@@ -53,7 +53,7 @@ class GithubSkillsAssemblerTest {
 
         @Test
         @DisplayName("story group has 5 skills")
-        void storyGroupHasFiveSkills() {
+        void assemble_storyGroup_hasFiveSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("story"))
@@ -62,7 +62,7 @@ class GithubSkillsAssemblerTest {
 
         @Test
         @DisplayName("dev group has 8 skills")
-        void devGroupHasEightSkills() {
+        void assemble_devGroup_hasEightSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("dev"))
@@ -71,7 +71,7 @@ class GithubSkillsAssemblerTest {
 
         @Test
         @DisplayName("review group has 8 skills")
-        void reviewGroupHasEightSkills() {
+        void assemble_reviewGroup_hasEightSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("review"))
@@ -80,7 +80,7 @@ class GithubSkillsAssemblerTest {
 
         @Test
         @DisplayName("testing group has 6 skills")
-        void testingGroupHasSixSkills() {
+        void assemble_testingGroup_hasSixSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("testing"))
@@ -89,7 +89,7 @@ class GithubSkillsAssemblerTest {
 
         @Test
         @DisplayName("infrastructure group has 5 skills")
-        void infraGroupHasFiveSkills() {
+        void assemble_infraGroup_hasFiveSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("infrastructure"))
@@ -98,7 +98,7 @@ class GithubSkillsAssemblerTest {
 
         @Test
         @DisplayName("knowledge-packs group has 9 skills")
-        void knowledgePacksGroupHasNineSkills() {
+        void assemble_knowledgePacksGroup_hasNineSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("knowledge-packs"))
@@ -108,7 +108,7 @@ class GithubSkillsAssemblerTest {
         @Test
         @DisplayName("git-troubleshooting group"
                 + " has 4 skills")
-        void gitTroubleshootingGroupHasFourSkills() {
+        void assemble_gitTroubleshootingGroup_hasFourSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("git-troubleshooting"))
@@ -117,7 +117,7 @@ class GithubSkillsAssemblerTest {
 
         @Test
         @DisplayName("lib group has 3 skills")
-        void libGroupHasThreeSkills() {
+        void assemble_libGroup_hasThreeSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("lib"))
@@ -131,7 +131,7 @@ class GithubSkillsAssemblerTest {
 
         @Test
         @DisplayName("contains only lib")
-        void containsOnlyLib() {
+        void assemble_whenCalled_containsOnlyLib() {
             assertThat(
                     GithubSkillsAssembler.NESTED_GROUPS)
                     .containsExactly("lib");
@@ -145,7 +145,7 @@ class GithubSkillsAssemblerTest {
         @Test
         @DisplayName("returns all skills for"
                 + " non-infrastructure group")
-        void returnsAllForNonInfra() {
+        void filterSkills_whenCalled_returnsAllForNonInfra() {
             GithubSkillsAssembler assembler =
                     new GithubSkillsAssembler();
             ProjectConfig config =
@@ -172,7 +172,7 @@ class GithubSkillsAssemblerTest {
         @Test
         @DisplayName("dockerfile included when"
                 + " container is docker")
-        void dockerfileIncludedWhenDocker() {
+        void filterSkills_whenCalled_dockerfileIncludedWhenDocker() {
             GithubSkillsAssembler assembler =
                     new GithubSkillsAssembler();
             ProjectConfig config =
@@ -201,7 +201,7 @@ class GithubSkillsAssemblerTest {
         @Test
         @DisplayName("k8s skills included when"
                 + " orchestrator is kubernetes")
-        void k8sSkillsIncludedWhenKubernetes() {
+        void filterSkills_whenCalled_k8sSkillsIncludedWhenKubernetes() {
             GithubSkillsAssembler assembler =
                     new GithubSkillsAssembler();
             ProjectConfig config =
@@ -230,7 +230,7 @@ class GithubSkillsAssemblerTest {
 
         @Test
         @DisplayName("no infra skills when all none")
-        void noInfraSkillsWhenAllNone() {
+        void filterSkills_noInfraSkillsWhenAllNone_succeeds() {
             GithubSkillsAssembler assembler =
                     new GithubSkillsAssembler();
             ProjectConfig config =
@@ -258,7 +258,7 @@ class GithubSkillsAssemblerTest {
         @Test
         @DisplayName("iac-terraform included when"
                 + " iac is terraform")
-        void iacTerraformIncluded() {
+        void filterSkills_whenCalled_iacTerraformIncluded() {
             GithubSkillsAssembler assembler =
                     new GithubSkillsAssembler();
             ProjectConfig config =
@@ -292,7 +292,7 @@ class GithubSkillsAssemblerTest {
         @Test
         @DisplayName("creates SKILL.md with placeholder"
                 + " replacement")
-        void createsSkillMd(
+        void renderSkill_whenCalled_createsSkillMd(
                 @TempDir Path tempDir)
                 throws IOException {
             Path srcDir = tempDir.resolve("src");
@@ -309,19 +309,22 @@ class GithubSkillsAssemblerTest {
                     new GithubSkillsAssembler(tempDir);
             TemplateEngine engine = new TemplateEngine();
 
-            String result = assembler.renderSkill(
-                    engine, srcDir, outputDir,
-                    "test-skill", null, Map.of());
+            SkillRenderContext ctx =
+                    new SkillRenderContext(
+                            srcDir, outputDir,
+                            null, Map.of());
+            var result = assembler.renderSkill(
+                    engine, ctx, "test-skill");
 
-            assertThat(result).isNotNull();
+            assertThat(result).isPresent();
             Path skillMd = outputDir.resolve(
                     "skills/test-skill/SKILL.md");
             assertThat(skillMd).exists();
         }
 
         @Test
-        @DisplayName("returns null for missing template")
-        void returnsNullForMissing(
+        @DisplayName("returns empty for missing template")
+        void renderSkill_whenCalled_returnsEmptyForMissing(
                 @TempDir Path tempDir) {
             Path srcDir = tempDir.resolve("src");
             Path outputDir = tempDir.resolve("output");
@@ -330,16 +333,19 @@ class GithubSkillsAssemblerTest {
                     new GithubSkillsAssembler(tempDir);
             TemplateEngine engine = new TemplateEngine();
 
-            String result = assembler.renderSkill(
-                    engine, srcDir, outputDir,
-                    "nonexistent", null, Map.of());
+            SkillRenderContext ctx =
+                    new SkillRenderContext(
+                            srcDir, outputDir,
+                            null, Map.of());
+            var result = assembler.renderSkill(
+                    engine, ctx, "nonexistent");
 
-            assertThat(result).isNull();
+            assertThat(result).isEmpty();
         }
 
         @Test
         @DisplayName("creates nested skill for lib group")
-        void createsNestedSkill(
+        void renderSkill_whenCalled_createsNestedSkill(
                 @TempDir Path tempDir)
                 throws IOException {
             Path srcDir = tempDir.resolve("src");
@@ -356,11 +362,14 @@ class GithubSkillsAssemblerTest {
                     new GithubSkillsAssembler(tempDir);
             TemplateEngine engine = new TemplateEngine();
 
-            String result = assembler.renderSkill(
-                    engine, srcDir, outputDir,
-                    "x-lib-test", "lib", Map.of());
+            SkillRenderContext ctx =
+                    new SkillRenderContext(
+                            srcDir, outputDir,
+                            "lib", Map.of());
+            var result = assembler.renderSkill(
+                    engine, ctx, "x-lib-test");
 
-            assertThat(result).isNotNull();
+            assertThat(result).isPresent();
             Path skillMd = outputDir.resolve(
                     "skills/lib/x-lib-test/SKILL.md");
             assertThat(skillMd).exists();
@@ -374,7 +383,7 @@ class GithubSkillsAssemblerTest {
         @Test
         @DisplayName("copies references directory"
                 + " when present")
-        void copiesReferencesWhenPresent(
+        void copyReferences_whenCalled_copiesReferencesWhenPresent(
                 @TempDir Path tempDir)
                 throws IOException {
             Path srcDir = tempDir.resolve("src");
@@ -394,9 +403,13 @@ class GithubSkillsAssemblerTest {
                     new GithubSkillsAssembler(tempDir);
             TemplateEngine engine = new TemplateEngine();
 
+            SkillRenderContext ctx =
+                    new SkillRenderContext(
+                            srcDir, skillDir,
+                            null, Map.of());
             assembler.copyReferences(
-                    srcDir, skillDir,
-                    "test-skill", engine, Map.of());
+                    ctx, engine, skillDir,
+                    "test-skill");
 
             Path destRef = skillDir.resolve(
                     "references/ref.md");
@@ -406,7 +419,7 @@ class GithubSkillsAssemblerTest {
         @Test
         @DisplayName("does nothing when references"
                 + " dir absent")
-        void doesNothingWhenAbsent(
+        void copyReferences_whenCalled_doesNothingWhenAbsent(
                 @TempDir Path tempDir)
                 throws IOException {
             Path srcDir = tempDir.resolve("src");
@@ -420,9 +433,13 @@ class GithubSkillsAssemblerTest {
                     new GithubSkillsAssembler(tempDir);
             TemplateEngine engine = new TemplateEngine();
 
+            SkillRenderContext ctx =
+                    new SkillRenderContext(
+                            srcDir, skillDir,
+                            null, Map.of());
             assembler.copyReferences(
-                    srcDir, skillDir,
-                    "test-skill", engine, Map.of());
+                    ctx, engine, skillDir,
+                    "test-skill");
 
             Path refs = skillDir.resolve("references");
             assertThat(refs).doesNotExist();
@@ -436,7 +453,7 @@ class GithubSkillsAssemblerTest {
         @Test
         @DisplayName("generates skills from classpath"
                 + " templates")
-        void generatesSkillsFromClasspath(
+        void assemble_whenCalled_generatesSkillsFromClasspath(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -463,7 +480,7 @@ class GithubSkillsAssemblerTest {
         @Test
         @DisplayName("generates lib skills in nested"
                 + " subdirectory")
-        void generatesLibSkillsNested(
+        void assemble_whenCalled_generatesLibSkillsNested(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -487,7 +504,7 @@ class GithubSkillsAssemblerTest {
         @Test
         @DisplayName("applies infrastructure feature"
                 + " gates")
-        void appliesInfraFeatureGates(
+        void assemble_whenCalled_appliesInfraFeatureGates(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -519,7 +536,7 @@ class GithubSkillsAssemblerTest {
         @Test
         @DisplayName("copies references for skills"
                 + " that have them")
-        void copiesReferences(
+        void assemble_whenCalled_copiesReferences(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = tempDir.resolve("output");
