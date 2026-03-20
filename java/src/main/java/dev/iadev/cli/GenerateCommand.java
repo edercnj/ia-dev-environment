@@ -173,8 +173,8 @@ public class GenerateCommand implements Callable<Integer> {
                     e.getMessage()));
             return EXIT_EXECUTION;
         } catch (Exception e) {
-            out.println("Error: %s".formatted(
-                    e.getMessage()));
+            out.println("Error: An unexpected error "
+                    + "occurred during generation");
             return EXIT_EXECUTION;
         }
     }

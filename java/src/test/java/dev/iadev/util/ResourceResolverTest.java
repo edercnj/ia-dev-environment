@@ -6,11 +6,16 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
+
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
@@ -297,6 +302,49 @@ class ResourceResolverTest {
                 throws IOException {
             return new URL("jar:"
                     + jar.toUri() + "!/" + entry);
+        }
+    }
+
+    @Nested
+    @DisplayName("createSecureTempDir")
+    class CreateSecureTempDir {
+
+        @Test
+        @DisabledOnOs(OS.WINDOWS)
+        @DisplayName("creates temp dir with 700 permissions"
+                + " on POSIX")
+        void posixPermissions_700() throws IOException {
+            Path tempDir = ResourceResolver
+                    .createSecureTempDir("test-secure-");
+            try {
+                Set<PosixFilePermission> perms =
+                        Files.getPosixFilePermissions(
+                                tempDir);
+                assertThat(perms)
+                        .containsExactlyInAnyOrder(
+                                PosixFilePermission
+                                        .OWNER_READ,
+                                PosixFilePermission
+                                        .OWNER_WRITE,
+                                PosixFilePermission
+                                        .OWNER_EXECUTE);
+            } finally {
+                Files.deleteIfExists(tempDir);
+            }
+        }
+
+        @Test
+        @DisplayName("returns existing directory")
+        void returnsExistingDirectory()
+                throws IOException {
+            Path tempDir = ResourceResolver
+                    .createSecureTempDir("test-res-");
+            try {
+                assertThat(tempDir).exists();
+                assertThat(tempDir).isDirectory();
+            } finally {
+                Files.deleteIfExists(tempDir);
+            }
         }
     }
 

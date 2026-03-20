@@ -482,7 +482,7 @@ class GenerateCommandTest {
                     "-o", home);
 
             assertThat(sw.toString())
-                    .contains("dangerous")
+                    .containsIgnoringCase("dangerous")
                     .containsIgnoringCase("home");
         }
 

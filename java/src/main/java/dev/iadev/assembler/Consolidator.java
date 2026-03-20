@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -48,6 +49,15 @@ public final class Consolidator {
     public static final List<String> OPS_PATTERNS =
             List.of("-testing", "-observability",
                     "-native-build", "-infrastructure");
+
+    /** Windows reserved device names. */
+    private static final Set<String> RESERVED_NAMES = Set.of(
+            "CON", "NUL", "AUX", "PRN",
+            "COM1", "COM2", "COM3", "COM4",
+            "COM5", "COM6", "COM7", "COM8", "COM9",
+            "LPT1", "LPT2", "LPT3", "LPT4",
+            "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
+    );
 
     private Consolidator() {
         // Utility class — no instantiation
@@ -165,22 +175,42 @@ public final class Consolidator {
     }
 
     /**
-     * Strips path separators and parent-directory sequences
-     * from a filename segment.
+     * Sanitizes a filename segment by stripping path
+     * separators, parent-directory sequences, and null bytes.
      *
-     * <p>Prevents path traversal when user-supplied values
-     * (e.g., framework name) are interpolated into output
-     * filenames.</p>
+     * <p>Applies replacement in a loop until the result
+     * stabilizes. Rejects null input and null bytes.
+     * Prefixes Windows reserved device names with
+     * underscore.</p>
      *
      * @param segment the raw filename segment
      * @return the sanitized segment
+     * @throws IllegalArgumentException if segment is null or
+     *         contains null bytes
      */
     public static String sanitizeFilenameSegment(
             String segment) {
-        return segment
-                .replace("/", "")
-                .replace("\\", "")
-                .replace("..", "");
+        if (segment == null || segment.contains("\0")) {
+            throw new IllegalArgumentException(
+                    "Filename segment must not be null "
+                            + "or contain null bytes");
+        }
+        String result = segment;
+        String previous;
+        do {
+            previous = result;
+            result = result
+                    .replace("/", "")
+                    .replace("\\", "")
+                    .replace("..", "");
+        } while (!result.equals(previous));
+
+        String baseName = result.replaceAll(
+                "\\.[^.]*$", "").toUpperCase();
+        if (RESERVED_NAMES.contains(baseName)) {
+            result = "_" + result;
+        }
+        return result;
     }
 
     private static void consolidateGroup(

@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Tests for Consolidator — file merging and framework rule
@@ -217,6 +218,115 @@ class ConsolidatorTest {
             assertThat(Consolidator
                     .sanitizeFilenameSegment("quarkus"))
                     .isEqualTo("quarkus");
+        }
+
+        @Test
+        @DisplayName("rejects null segment")
+        void nullSegment_rejected() {
+            assertThatThrownBy(() -> Consolidator
+                    .sanitizeFilenameSegment(null))
+                    .isInstanceOf(
+                            IllegalArgumentException.class)
+                    .hasMessageContaining("null");
+        }
+
+        @Test
+        @DisplayName("rejects segment with null byte")
+        void nullByte_rejected() {
+            assertThatThrownBy(() -> Consolidator
+                    .sanitizeFilenameSegment(
+                            "file\0name"))
+                    .isInstanceOf(
+                            IllegalArgumentException.class)
+                    .hasMessageContaining("null bytes");
+        }
+
+        @Test
+        @DisplayName("prefixes CON with underscore")
+        void reservedName_CON_prefixed() {
+            assertThat(Consolidator
+                    .sanitizeFilenameSegment("CON"))
+                    .isEqualTo("_CON");
+        }
+
+        @Test
+        @DisplayName("prefixes NUL with underscore")
+        void reservedName_NUL_prefixed() {
+            assertThat(Consolidator
+                    .sanitizeFilenameSegment("NUL"))
+                    .isEqualTo("_NUL");
+        }
+
+        @Test
+        @DisplayName("prefixes AUX with underscore")
+        void reservedName_AUX_prefixed() {
+            assertThat(Consolidator
+                    .sanitizeFilenameSegment("AUX"))
+                    .isEqualTo("_AUX");
+        }
+
+        @Test
+        @DisplayName("prefixes PRN with underscore")
+        void reservedName_PRN_prefixed() {
+            assertThat(Consolidator
+                    .sanitizeFilenameSegment("PRN"))
+                    .isEqualTo("_PRN");
+        }
+
+        @Test
+        @DisplayName("prefixes COM1 with underscore")
+        void reservedName_COM1_prefixed() {
+            assertThat(Consolidator
+                    .sanitizeFilenameSegment("COM1"))
+                    .isEqualTo("_COM1");
+        }
+
+        @Test
+        @DisplayName("prefixes LPT1 with underscore")
+        void reservedName_LPT1_prefixed() {
+            assertThat(Consolidator
+                    .sanitizeFilenameSegment("LPT1"))
+                    .isEqualTo("_LPT1");
+        }
+
+        @Test
+        @DisplayName(
+                "prefixes reserved name with extension")
+        void reservedNameWithExtension_prefixed() {
+            assertThat(Consolidator
+                    .sanitizeFilenameSegment("CON.txt"))
+                    .isEqualTo("_CON.txt");
+        }
+
+        @Test
+        @DisplayName(
+                "case-insensitive reserved name check")
+        void reservedName_caseInsensitive() {
+            assertThat(Consolidator
+                    .sanitizeFilenameSegment("con"))
+                    .isEqualTo("_con");
+        }
+
+        @Test
+        @DisplayName(
+                "applies loop until stable for nested"
+                        + " traversal")
+        void nestedTraversal_loopStabilizes() {
+            // "./.." => after first pass: "." => after
+            // second: "." (stable)
+            assertThat(Consolidator
+                    .sanitizeFilenameSegment("./.."))
+                    .isEqualTo(".");
+        }
+
+        @Test
+        @DisplayName("idempotent - second call same result")
+        void idempotent_secondCallSameResult() {
+            String first = Consolidator
+                    .sanitizeFilenameSegment("a/b\\c/../d");
+            String second = Consolidator
+                    .sanitizeFilenameSegment(first);
+            assertThat(first).isEqualTo(second);
         }
     }
 }

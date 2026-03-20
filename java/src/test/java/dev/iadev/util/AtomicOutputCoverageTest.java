@@ -5,12 +5,17 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -156,6 +161,45 @@ class AtomicOutputCoverageTest {
             for (int i = 0; i < 50; i++) {
                 assertThat(dest.resolve(
                         "file-" + i + ".txt")).exists();
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("createSecureTempDirectory")
+    class SecureTempDirectory {
+
+        @Test
+        @DisabledOnOs(OS.WINDOWS)
+        @DisplayName("creates temp dir with 700 permissions"
+                + " on POSIX")
+        void posixPermissions_700() throws IOException {
+            Path tempDir =
+                    AtomicOutput.createSecureTempDirectory();
+            try {
+                Set<PosixFilePermission> perms =
+                        Files.getPosixFilePermissions(
+                                tempDir);
+                assertThat(perms).containsExactlyInAnyOrder(
+                        PosixFilePermission.OWNER_READ,
+                        PosixFilePermission.OWNER_WRITE,
+                        PosixFilePermission.OWNER_EXECUTE);
+            } finally {
+                Files.deleteIfExists(tempDir);
+            }
+        }
+
+        @Test
+        @DisplayName("returns existing directory")
+        void returnsExistingDirectory()
+                throws IOException {
+            Path tempDir =
+                    AtomicOutput.createSecureTempDirectory();
+            try {
+                assertThat(tempDir).exists();
+                assertThat(tempDir).isDirectory();
+            } finally {
+                Files.deleteIfExists(tempDir);
             }
         }
     }

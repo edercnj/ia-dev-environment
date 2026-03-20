@@ -30,8 +30,12 @@ public final class PathUtils {
     private static final String ROOT_PATH = "/";
 
     private static final Set<String> DANGEROUS_SYSTEM_PATHS = Set.of(
-            "/usr", "/etc", "/var", "/bin", "/sbin"
+            "/usr", "/etc", "/bin", "/sbin"
     );
+
+    /** Paths rejected by exact match only (not startsWith). */
+    private static final Set<String> EXACT_MATCH_PATHS =
+            Set.of("/var");
 
     private PathUtils() {
         // Utility class — no instantiation
@@ -52,49 +56,75 @@ public final class PathUtils {
     }
 
     /**
-     * Validates that a path is not a dangerous system directory.
+     * Validates that a path is not a dangerous system directory
+     * or a child of one.
      *
      * <p>Rejects the user's home directory, filesystem root, and
-     * standard system directories: {@code /usr}, {@code /etc},
-     * {@code /var}, {@code /bin}, {@code /sbin}.
+     * standard system directories ({@code /usr}, {@code /etc},
+     * {@code /var}, {@code /bin}, {@code /sbin}) as well as any
+     * path that starts with (is a child of) these directories.
      *
      * @param path the path to validate (should be absolute)
-     * @throws CliException with errorCode 1 if the path is dangerous
+     * @throws CliException with errorCode 1 if the path is
+     *         dangerous
      */
     public static void rejectDangerousPath(Path path) {
         Path normalized = path.toAbsolutePath().normalize();
-        String pathStr = normalized.toString();
 
+        rejectHome(normalized);
+        rejectRoot(normalized);
+        rejectSystemPaths(normalized);
+        rejectExactMatchPaths(normalized);
+    }
+
+    private static void rejectHome(Path normalized) {
         Path homePath = Path.of(
-                System.getProperty("user.home")).toAbsolutePath()
-                .normalize();
+                System.getProperty("user.home"))
+                .toAbsolutePath().normalize();
         if (normalized.equals(homePath)) {
             throw new CliException(
-                    ("Rejected dangerous destination path: %s "
-                            + "(home directory — risk of overwriting "
-                            + "personal configuration files)")
-                            .formatted(pathStr),
-                    1);
+                    "Rejected dangerous destination path: "
+                            + "%s (home directory — risk of "
+                            + "overwriting personal "
+                            + "configuration files)"
+                            .formatted(normalized), 1);
         }
+    }
 
+    private static void rejectRoot(Path normalized) {
         Path rootPath = Path.of(ROOT_PATH)
                 .toAbsolutePath().normalize();
         if (normalized.equals(rootPath)) {
             throw new CliException(
-                    ("Rejected dangerous destination path: %s "
-                            + "(protected system directory)")
-                            .formatted(pathStr),
-                    1);
+                    "Path rejected: target is within "
+                            + "a protected directory", 1);
         }
+    }
 
+    private static void rejectSystemPaths(Path normalized) {
         for (String dangerous : DANGEROUS_SYSTEM_PATHS) {
+            Path dangerousPath = Path.of(dangerous)
+                    .toAbsolutePath().normalize();
+            if (normalized.equals(dangerousPath)
+                    || normalized.startsWith(
+                    dangerousPath)) {
+                throw new CliException(
+                        "Path rejected: target is within "
+                                + "a protected directory",
+                        1);
+            }
+        }
+    }
+
+    private static void rejectExactMatchPaths(
+            Path normalized) {
+        for (String dangerous : EXACT_MATCH_PATHS) {
             Path dangerousPath = Path.of(dangerous)
                     .toAbsolutePath().normalize();
             if (normalized.equals(dangerousPath)) {
                 throw new CliException(
-                        ("Rejected dangerous destination path: %s "
-                                + "(protected system directory)")
-                                .formatted(pathStr),
+                        "Path rejected: target is within "
+                                + "a protected directory",
                         1);
             }
         }

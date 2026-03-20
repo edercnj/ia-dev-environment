@@ -14,6 +14,8 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Map;
 
 /**
@@ -140,7 +142,7 @@ public final class ResourceResolver {
 
     static Path extractJarResources(URL url) {
         try {
-            Path tempDir = Files.createTempDirectory(
+            Path tempDir = createSecureTempDir(
                     "ia-dev-env-res-");
             String jarUrl = url.toString();
             int bang = jarUrl.indexOf('!');
@@ -202,6 +204,24 @@ public final class ResourceResolver {
             throw new UncheckedIOException(
                     "Failed to extract JAR resources", e);
         }
+    }
+
+    static Path createSecureTempDir(String prefix)
+            throws IOException {
+        if (!isPosixSystem()) {
+            return Files.createTempDirectory(prefix);
+        }
+        FileAttribute<?> perms =
+                PosixFilePermissions.asFileAttribute(
+                        PosixFilePermissions.fromString(
+                                "rwx------"));
+        return Files.createTempDirectory(prefix, perms);
+    }
+
+    private static boolean isPosixSystem() {
+        String os = System.getProperty("os.name", "")
+                .toLowerCase();
+        return !os.contains("win");
     }
 
     static boolean shouldSkip(Path dir) {

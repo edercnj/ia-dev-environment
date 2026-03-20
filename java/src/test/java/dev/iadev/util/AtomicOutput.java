@@ -6,10 +6,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Map;
 import java.util.Objects;
 
@@ -75,7 +78,7 @@ public final class AtomicOutput {
         Objects.requireNonNull(destDir, "destDir must not be null");
         Objects.requireNonNull(files, "files must not be null");
 
-        Path tempDir = Files.createTempDirectory(TEMP_DIR_PREFIX);
+        Path tempDir = createSecureTempDirectory();
 
         try {
             writeFilesToTempDir(tempDir, files);
@@ -101,9 +104,29 @@ public final class AtomicOutput {
         }
     }
 
+    static Path createSecureTempDirectory()
+            throws IOException {
+        if (isPosixSystem()) {
+            FileAttribute<?> perms =
+                    PosixFilePermissions.asFileAttribute(
+                            PosixFilePermissions.fromString(
+                                    "rwx------"));
+            return Files.createTempDirectory(
+                    TEMP_DIR_PREFIX, perms);
+        }
+        return Files.createTempDirectory(TEMP_DIR_PREFIX);
+    }
+
+    private static boolean isPosixSystem() {
+        String os = System.getProperty("os.name", "")
+                .toLowerCase();
+        return !os.contains("win");
+    }
+
     private static void moveToDestination(
             Path tempDir, Path destDir) throws IOException {
-        if (Files.exists(destDir)) {
+        if (Files.exists(destDir,
+                LinkOption.NOFOLLOW_LINKS)) {
             deleteRecursively(destDir);
         }
 
@@ -138,14 +161,17 @@ public final class AtomicOutput {
                     throws IOException {
                 Files.copy(file,
                         target.resolve(source.relativize(file)),
-                        StandardCopyOption.REPLACE_EXISTING);
+                        StandardCopyOption.REPLACE_EXISTING,
+                        LinkOption.NOFOLLOW_LINKS);
                 return FileVisitResult.CONTINUE;
             }
         });
     }
 
-    private static void deleteRecursively(Path dir) throws IOException {
-        if (!Files.exists(dir)) {
+    private static void deleteRecursively(Path dir)
+            throws IOException {
+        if (!Files.exists(dir,
+                LinkOption.NOFOLLOW_LINKS)) {
             return;
         }
         Files.walkFileTree(dir, new SimpleFileVisitor<>() {
