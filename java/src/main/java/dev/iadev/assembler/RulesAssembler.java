@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * Assembles {@code .claude/rules/} and {@code .claude/skills/}
@@ -142,7 +141,7 @@ public final class RulesAssembler implements Assembler {
             return List.of();
         }
         List<String> generated = new ArrayList<>();
-        List<Path> files = listMdFilesSorted(coreRules);
+        List<Path> files = CopyHelpers.listMdFilesSorted(coreRules);
         for (Path file : files) {
             String dest = CopyHelpers.copyTemplateFile(
                     file,
@@ -214,7 +213,7 @@ public final class RulesAssembler implements Assembler {
             return List.of();
         }
         List<String> generated = new ArrayList<>();
-        List<Path> files = listMdFilesSorted(common);
+        List<Path> files = CopyHelpers.listMdFilesSorted(common);
         for (Path file : files) {
             String name =
                     file.getFileName().toString();
@@ -241,7 +240,7 @@ public final class RulesAssembler implements Assembler {
         }
         List<String> generated = new ArrayList<>();
         List<Path> files =
-                listMdFilesSorted(versionDir.get());
+                CopyHelpers.listMdFilesSorted(versionDir.get());
         for (Path file : files) {
             generated.add(
                     CopyHelpers.copyStaticFile(
@@ -285,7 +284,7 @@ public final class RulesAssembler implements Assembler {
             return List.of();
         }
         List<String> generated = new ArrayList<>();
-        List<Path> files = listMdFilesSorted(common);
+        List<Path> files = CopyHelpers.listMdFilesSorted(common);
         for (Path file : files) {
             generated.add(
                     CopyHelpers.copyStaticFile(
@@ -310,7 +309,7 @@ public final class RulesAssembler implements Assembler {
         }
         List<String> generated = new ArrayList<>();
         List<Path> files =
-                listMdFilesSorted(versionDir.get());
+                CopyHelpers.listMdFilesSorted(versionDir.get());
         for (Path file : files) {
             generated.add(
                     CopyHelpers.copyStaticFile(
@@ -386,20 +385,6 @@ public final class RulesAssembler implements Assembler {
                 RulesConditionals.assembleInfraKnowledge(
                         config, resourcesDir, skillsDir));
         return generated;
-    }
-
-    private static List<Path> listMdFilesSorted(Path dir) {
-        try (Stream<Path> stream = Files.list(dir)) {
-            return stream
-                    .filter(f -> f.toString()
-                            .endsWith(".md"))
-                    .filter(Files::isRegularFile)
-                    .sorted()
-                    .toList();
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to list directory: " + dir, e);
-        }
     }
 
     private static Path resolveClasspathResources() {

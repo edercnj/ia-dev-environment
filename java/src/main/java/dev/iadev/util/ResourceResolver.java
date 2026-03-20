@@ -213,36 +213,21 @@ public final class ResourceResolver {
     private static void registerShutdownHook(
             Path extractedDir) {
         Runtime.getRuntime().addShutdownHook(
-                new Thread(() -> deleteQuietly(extractedDir),
+                new Thread(
+                        () -> deleteQuietly(extractedDir),
                         "ia-dev-env-cleanup"));
     }
 
+    /**
+     * Delegates to
+     * {@link dev.iadev.assembler.CopyHelpers#deleteQuietly}.
+     *
+     * <p>Kept as package-private to avoid breaking existing
+     * test references.</p>
+     *
+     * @param dir directory to delete recursively
+     */
     static void deleteQuietly(Path dir) {
-        try {
-            if (Files.exists(dir)) {
-                Files.walkFileTree(dir,
-                        new SimpleFileVisitor<>() {
-                    @Override
-                    public FileVisitResult visitFile(
-                            Path file,
-                            BasicFileAttributes attrs)
-                            throws IOException {
-                        Files.delete(file);
-                        return FileVisitResult.CONTINUE;
-                    }
-
-                    @Override
-                    public FileVisitResult
-                    postVisitDirectory(
-                            Path d, IOException exc)
-                            throws IOException {
-                        Files.delete(d);
-                        return FileVisitResult.CONTINUE;
-                    }
-                });
-            }
-        } catch (IOException ignored) {
-            // Best-effort cleanup
-        }
+        dev.iadev.assembler.CopyHelpers.deleteQuietly(dir);
     }
 }

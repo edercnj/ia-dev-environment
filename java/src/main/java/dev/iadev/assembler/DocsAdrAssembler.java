@@ -76,10 +76,10 @@ public final class DocsAdrAssembler implements Assembler {
 
     private static final List<String> MANDATORY_SECTIONS =
             List.of(
-                    "## Status",
-                    "## Context",
-                    "## Decision",
-                    "## Consequences");
+                    "Status",
+                    "Context",
+                    "Decision",
+                    "Consequences");
 
     private final Path resourcesDir;
 
@@ -178,8 +178,8 @@ public final class DocsAdrAssembler implements Assembler {
      */
     static boolean hasAllMandatorySections(
             String templateContent) {
-        return MANDATORY_SECTIONS.stream()
-                .allMatch(templateContent::contains);
+        return CopyHelpers.hasAllMandatorySections(
+                templateContent, MANDATORY_SECTIONS);
     }
 
     /**

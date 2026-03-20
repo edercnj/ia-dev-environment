@@ -37,14 +37,14 @@ public final class EpicReportAssembler
 
     /** The 8 mandatory sections that must be present. */
     static final List<String> MANDATORY_SECTIONS = List.of(
-            "## Sumario Executivo",
-            "## Timeline de Execucao",
-            "## Status Final por Story",
-            "## Findings Consolidados",
-            "## Coverage Delta",
-            "## Commits e SHAs",
-            "## Issues Nao Resolvidos",
-            "## PR Link"
+            "Sumario Executivo",
+            "Timeline de Execucao",
+            "Status Final por Story",
+            "Findings Consolidados",
+            "Coverage Delta",
+            "Commits e SHAs",
+            "Issues Nao Resolvidos",
+            "PR Link"
     );
 
     private final Path resourcesDir;
@@ -120,12 +120,8 @@ public final class EpicReportAssembler
      * @return true if all mandatory sections are present
      */
     static boolean hasAllMandatorySections(String content) {
-        for (String section : MANDATORY_SECTIONS) {
-            if (!content.contains(section)) {
-                return false;
-            }
-        }
-        return true;
+        return CopyHelpers.hasAllMandatorySections(
+                content, MANDATORY_SECTIONS);
     }
 
     private static Path resolveClasspathResources() {

@@ -13,7 +13,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
  * Assembles {@code .claude/skills/patterns/} from source
@@ -132,7 +131,7 @@ public final class PatternsAssembler implements Assembler {
                     || !Files.isDirectory(catDir)) {
                 continue;
             }
-            List<Path> mdFiles = listMdFilesSorted(catDir);
+            List<Path> mdFiles = CopyHelpers.listMdFilesSorted(catDir);
             for (Path file : mdFiles) {
                 files.add(new PatternFile(
                         category, file));
@@ -222,20 +221,6 @@ public final class PatternsAssembler implements Assembler {
                 String.join(SECTION_SEPARATOR, rendered);
         CopyHelpers.writeFile(destPath, merged);
         return destPath.toString();
-    }
-
-    private static List<Path> listMdFilesSorted(Path dir) {
-        try (Stream<Path> stream = Files.list(dir)) {
-            return stream
-                    .filter(f -> f.toString()
-                            .endsWith(".md"))
-                    .filter(Files::isRegularFile)
-                    .sorted()
-                    .toList();
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to list directory: " + dir, e);
-        }
     }
 
     private static Path resolveClasspathResources() {

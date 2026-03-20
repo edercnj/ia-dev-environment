@@ -281,7 +281,7 @@ public final class AssemblerPipeline {
             return AssemblerResult.of(
                     result.files(), warnings);
         } finally {
-            deleteQuietly(tempDir);
+            CopyHelpers.deleteQuietly(tempDir);
         }
     }
 
@@ -299,39 +299,6 @@ public final class AssemblerPipeline {
             return new TemplateEngine(options.resourcesDir());
         }
         return new TemplateEngine();
-    }
-
-    private static void deleteQuietly(Path dir) {
-        try {
-            if (Files.exists(dir)) {
-                Files.walkFileTree(dir,
-                        new java.nio.file.SimpleFileVisitor<>() {
-                    @Override
-                    public java.nio.file.FileVisitResult
-                    visitFile(
-                            Path file,
-                            java.nio.file.attribute
-                                    .BasicFileAttributes attrs)
-                            throws IOException {
-                        Files.delete(file);
-                        return java.nio.file
-                                .FileVisitResult.CONTINUE;
-                    }
-
-                    @Override
-                    public java.nio.file.FileVisitResult
-                    postVisitDirectory(
-                            Path d, IOException exc)
-                            throws IOException {
-                        Files.delete(d);
-                        return java.nio.file
-                                .FileVisitResult.CONTINUE;
-                    }
-                });
-            }
-        } catch (IOException ignored) {
-            // Best-effort cleanup for temp dirs
-        }
     }
 
 }

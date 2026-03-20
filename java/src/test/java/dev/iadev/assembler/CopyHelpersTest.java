@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -323,6 +324,251 @@ class CopyHelpersTest {
             String result = CopyHelpers.readFile(src);
 
             assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("listMdFilesSorted")
+    class ListMdFilesSorted {
+
+        @Test
+        @DisplayName("returns empty list for directory"
+                + " without .md files")
+        void listMdFilesSorted_noMdFiles_returnsEmptyList(
+                @TempDir Path tempDir) throws IOException {
+            Files.writeString(
+                    tempDir.resolve("file.txt"), "text");
+            Files.writeString(
+                    tempDir.resolve("file.yaml"), "yaml");
+
+            List<Path> result =
+                    CopyHelpers.listMdFilesSorted(tempDir);
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("returns files sorted by filename")
+        void listMdFilesSorted_multipleFiles_sortedByName(
+                @TempDir Path tempDir) throws IOException {
+            Files.writeString(
+                    tempDir.resolve("c-rules.md"), "c");
+            Files.writeString(
+                    tempDir.resolve("a-rules.md"), "a");
+            Files.writeString(
+                    tempDir.resolve("b-rules.md"), "b");
+
+            List<Path> result =
+                    CopyHelpers.listMdFilesSorted(tempDir);
+
+            assertThat(result).hasSize(3);
+            assertThat(result.get(0).getFileName()
+                    .toString())
+                    .isEqualTo("a-rules.md");
+            assertThat(result.get(1).getFileName()
+                    .toString())
+                    .isEqualTo("b-rules.md");
+            assertThat(result.get(2).getFileName()
+                    .toString())
+                    .isEqualTo("c-rules.md");
+        }
+
+        @Test
+        @DisplayName("filters out non-.md files")
+        void listMdFilesSorted_mixedFiles_onlyMd(
+                @TempDir Path tempDir) throws IOException {
+            Files.writeString(
+                    tempDir.resolve("keep.md"), "md");
+            Files.writeString(
+                    tempDir.resolve("skip.txt"), "txt");
+            Files.writeString(
+                    tempDir.resolve("skip.yaml"), "yaml");
+
+            List<Path> result =
+                    CopyHelpers.listMdFilesSorted(tempDir);
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getFileName()
+                    .toString())
+                    .isEqualTo("keep.md");
+        }
+
+        @Test
+        @DisplayName("excludes subdirectories ending"
+                + " in .md")
+        void listMdFilesSorted_dirEndingMd_excluded(
+                @TempDir Path tempDir) throws IOException {
+            Files.createDirectories(
+                    tempDir.resolve("subdir.md"));
+            Files.writeString(
+                    tempDir.resolve("real.md"), "data");
+
+            List<Path> result =
+                    CopyHelpers.listMdFilesSorted(tempDir);
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getFileName()
+                    .toString())
+                    .isEqualTo("real.md");
+        }
+
+        @Test
+        @DisplayName("throws UncheckedIOException for"
+                + " nonexistent directory")
+        void listMdFilesSorted_noDir_throwsUncheckedIO(
+                @TempDir Path tempDir) {
+            Path noSuch = tempDir.resolve("nonexistent");
+
+            assertThatThrownBy(
+                    () -> CopyHelpers
+                            .listMdFilesSorted(noSuch))
+                    .isInstanceOf(UncheckedIOException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("deleteQuietly")
+    class DeleteQuietly {
+
+        @Test
+        @DisplayName("returns false for nonexistent path")
+        void deleteQuietly_nonexistent_returnsFalse(
+                @TempDir Path tempDir) {
+            Path noSuch = tempDir.resolve("nonexistent");
+
+            boolean result =
+                    CopyHelpers.deleteQuietly(noSuch);
+
+            assertThat(result).isFalse();
+        }
+
+        @Test
+        @DisplayName("deletes existing file and"
+                + " returns true")
+        void deleteQuietly_existingFile_deletesAndTrue(
+                @TempDir Path tempDir) throws IOException {
+            Path file = tempDir.resolve("to-delete.txt");
+            Files.writeString(file, "content");
+
+            boolean result =
+                    CopyHelpers.deleteQuietly(file);
+
+            assertThat(result).isTrue();
+            assertThat(file).doesNotExist();
+        }
+
+        @Test
+        @DisplayName("does not throw for any path")
+        void deleteQuietly_anyPath_noException(
+                @TempDir Path tempDir) {
+            Path noSuch = tempDir.resolve("no-such-file");
+
+            // Should never throw
+            boolean result =
+                    CopyHelpers.deleteQuietly(noSuch);
+
+            assertThat(result).isFalse();
+        }
+
+        @Test
+        @DisplayName("deletes directory with files"
+                + " recursively")
+        void deleteQuietly_dirWithFiles_deletesAll(
+                @TempDir Path tempDir) throws IOException {
+            Path subDir = tempDir.resolve("sub");
+            Files.createDirectories(subDir);
+            Files.writeString(
+                    subDir.resolve("a.txt"), "content");
+            Files.writeString(
+                    subDir.resolve("b.txt"), "content");
+
+            boolean result =
+                    CopyHelpers.deleteQuietly(subDir);
+
+            assertThat(result).isTrue();
+            assertThat(subDir).doesNotExist();
+        }
+
+        @Test
+        @DisplayName("deletes nested directory tree")
+        void deleteQuietly_nestedTree_deletesAll(
+                @TempDir Path tempDir) throws IOException {
+            Path root = tempDir.resolve("root");
+            Path nested = root.resolve("a/b/c");
+            Files.createDirectories(nested);
+            Files.writeString(
+                    nested.resolve("file.txt"), "data");
+
+            boolean result =
+                    CopyHelpers.deleteQuietly(root);
+
+            assertThat(result).isTrue();
+            assertThat(root).doesNotExist();
+        }
+    }
+
+    @Nested
+    @DisplayName("hasAllMandatorySections")
+    class HasAllMandatorySections {
+
+        @Test
+        @DisplayName("returns true when all sections"
+                + " present")
+        void hasAllMandatorySections_allPresent_true() {
+            String content = "# Doc\n\n"
+                    + "## Status\nAccepted\n\n"
+                    + "## Context\nSome context\n\n"
+                    + "## Decision\nWe decided\n";
+            List<String> sections =
+                    List.of("Status", "Context",
+                            "Decision");
+
+            boolean result =
+                    CopyHelpers.hasAllMandatorySections(
+                            content, sections);
+
+            assertThat(result).isTrue();
+        }
+
+        @Test
+        @DisplayName("returns false when section missing")
+        void hasAllMandatorySections_missing_false() {
+            String content = "# Doc\n\n"
+                    + "## Status\nAccepted\n\n"
+                    + "## Context\nSome context\n";
+            List<String> sections =
+                    List.of("Status", "Context",
+                            "Decision");
+
+            boolean result =
+                    CopyHelpers.hasAllMandatorySections(
+                            content, sections);
+
+            assertThat(result).isFalse();
+        }
+
+        @Test
+        @DisplayName("returns false for empty content")
+        void hasAllMandatorySections_emptyContent_false() {
+            List<String> sections =
+                    List.of("Status", "Context");
+
+            boolean result =
+                    CopyHelpers.hasAllMandatorySections(
+                            "", sections);
+
+            assertThat(result).isFalse();
+        }
+
+        @Test
+        @DisplayName("returns true for empty sections"
+                + " list")
+        void hasAllMandatorySections_emptySections_true() {
+            boolean result =
+                    CopyHelpers.hasAllMandatorySections(
+                            "any content", List.of());
+
+            assertThat(result).isTrue();
         }
     }
 }

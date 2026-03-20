@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
  * Assembles {@code .claude/skills/protocols/references/}
@@ -141,7 +140,7 @@ public final class ProtocolsAssembler implements Assembler {
                 files = selectMessagingFiles(
                         protocolDir, config);
             } else {
-                files = listMdFilesSorted(protocolDir);
+                files = CopyHelpers.listMdFilesSorted(protocolDir);
             }
 
             if (!files.isEmpty()) {
@@ -175,7 +174,7 @@ public final class ProtocolsAssembler implements Assembler {
                 return List.of(specific);
             }
         }
-        return listMdFilesSorted(messagingDir);
+        return CopyHelpers.listMdFilesSorted(messagingDir);
     }
 
     /**
@@ -246,20 +245,6 @@ public final class ProtocolsAssembler implements Assembler {
                             + destPath, e);
         }
         return destPath.toString();
-    }
-
-    private static List<Path> listMdFilesSorted(Path dir) {
-        try (Stream<Path> stream = Files.list(dir)) {
-            return stream
-                    .filter(f -> f.toString()
-                            .endsWith(".md"))
-                    .filter(Files::isRegularFile)
-                    .sorted()
-                    .toList();
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to list directory: " + dir, e);
-        }
     }
 
     private static Path resolveClasspathResources() {

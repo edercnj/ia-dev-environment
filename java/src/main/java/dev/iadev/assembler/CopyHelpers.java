@@ -11,7 +11,9 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * Utilities for copying template files with placeholder
@@ -253,5 +255,93 @@ public final class CopyHelpers {
                     "Failed to replace placeholders in: "
                             + directory, e);
         }
+    }
+
+    /**
+     * Lists all {@code .md} files in the given directory,
+     * sorted by filename.
+     *
+     * <p>Only regular files are included; subdirectories
+     * whose names end in {@code .md} are excluded.</p>
+     *
+     * @param dir directory to scan
+     * @return sorted list of .md file paths; empty list
+     *         if directory contains no .md files
+     * @throws UncheckedIOException if I/O fails
+     */
+    public static List<Path> listMdFilesSorted(Path dir) {
+        try (Stream<Path> stream = Files.list(dir)) {
+            return stream
+                    .filter(f -> f.toString()
+                            .endsWith(".md"))
+                    .filter(Files::isRegularFile)
+                    .sorted()
+                    .toList();
+        } catch (IOException e) {
+            throw new UncheckedIOException(
+                    "Failed to list directory: " + dir, e);
+        }
+    }
+
+    /**
+     * Deletes a file or directory without throwing
+     * exceptions. For directories, deletes recursively.
+     *
+     * @param path path to delete
+     * @return true if deleted successfully, false otherwise
+     */
+    public static boolean deleteQuietly(Path path) {
+        try {
+            if (!Files.exists(path)) {
+                return false;
+            }
+            if (Files.isDirectory(path)) {
+                deleteTreeQuietly(path);
+            } else {
+                Files.deleteIfExists(path);
+            }
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    private static void deleteTreeQuietly(Path dir)
+            throws IOException {
+        Files.walkFileTree(dir,
+                new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult visitFile(
+                    Path file,
+                    BasicFileAttributes attrs)
+                    throws IOException {
+                Files.delete(file);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(
+                    Path d, IOException exc)
+                    throws IOException {
+                Files.delete(d);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+    }
+
+    /**
+     * Checks whether a Markdown content string contains
+     * all required H2 sections.
+     *
+     * @param content  Markdown content
+     * @param sections list of expected section names
+     *                 (without {@code "## "} prefix)
+     * @return true if all sections are present
+     */
+    public static boolean hasAllMandatorySections(
+            String content, List<String> sections) {
+        return sections.stream()
+                .allMatch(section ->
+                        content.contains("## " + section));
     }
 }
