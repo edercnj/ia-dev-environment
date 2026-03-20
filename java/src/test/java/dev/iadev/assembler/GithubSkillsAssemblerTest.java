@@ -309,9 +309,12 @@ class GithubSkillsAssemblerTest {
                     new GithubSkillsAssembler(tempDir);
             TemplateEngine engine = new TemplateEngine();
 
+            SkillRenderContext ctx =
+                    new SkillRenderContext(
+                            srcDir, outputDir,
+                            null, Map.of());
             String result = assembler.renderSkill(
-                    engine, srcDir, outputDir,
-                    "test-skill", null, Map.of());
+                    engine, ctx, "test-skill");
 
             assertThat(result).isNotNull();
             Path skillMd = outputDir.resolve(
@@ -330,9 +333,12 @@ class GithubSkillsAssemblerTest {
                     new GithubSkillsAssembler(tempDir);
             TemplateEngine engine = new TemplateEngine();
 
+            SkillRenderContext ctx =
+                    new SkillRenderContext(
+                            srcDir, outputDir,
+                            null, Map.of());
             String result = assembler.renderSkill(
-                    engine, srcDir, outputDir,
-                    "nonexistent", null, Map.of());
+                    engine, ctx, "nonexistent");
 
             assertThat(result).isNull();
         }
@@ -356,9 +362,12 @@ class GithubSkillsAssemblerTest {
                     new GithubSkillsAssembler(tempDir);
             TemplateEngine engine = new TemplateEngine();
 
+            SkillRenderContext ctx =
+                    new SkillRenderContext(
+                            srcDir, outputDir,
+                            "lib", Map.of());
             String result = assembler.renderSkill(
-                    engine, srcDir, outputDir,
-                    "x-lib-test", "lib", Map.of());
+                    engine, ctx, "x-lib-test");
 
             assertThat(result).isNotNull();
             Path skillMd = outputDir.resolve(
@@ -394,9 +403,13 @@ class GithubSkillsAssemblerTest {
                     new GithubSkillsAssembler(tempDir);
             TemplateEngine engine = new TemplateEngine();
 
+            SkillRenderContext ctx =
+                    new SkillRenderContext(
+                            srcDir, skillDir,
+                            null, Map.of());
             assembler.copyReferences(
-                    srcDir, skillDir,
-                    "test-skill", engine, Map.of());
+                    ctx, engine, skillDir,
+                    "test-skill");
 
             Path destRef = skillDir.resolve(
                     "references/ref.md");
@@ -420,9 +433,13 @@ class GithubSkillsAssemblerTest {
                     new GithubSkillsAssembler(tempDir);
             TemplateEngine engine = new TemplateEngine();
 
+            SkillRenderContext ctx =
+                    new SkillRenderContext(
+                            srcDir, skillDir,
+                            null, Map.of());
             assembler.copyReferences(
-                    srcDir, skillDir,
-                    "test-skill", engine, Map.of());
+                    ctx, engine, skillDir,
+                    "test-skill");
 
             Path refs = skillDir.resolve("references");
             assertThat(refs).doesNotExist();

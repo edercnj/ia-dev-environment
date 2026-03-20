@@ -53,10 +53,11 @@ class RulesConditionalsCoverageTest {
 
             List<String> result =
                     RulesConditionals.copyDatabaseRefs(
-                            config, resourceDir,
-                            skillsDir,
-                            new TemplateEngine(),
-                            Map.of());
+                            new ConditionalCopyContext(
+                                    config, resourceDir,
+                                    skillsDir,
+                                    new TemplateEngine(),
+                                    Map.of()));
 
             assertThat(result).hasSize(2);
             assertThat(result.get(0))
@@ -85,10 +86,11 @@ class RulesConditionalsCoverageTest {
 
             List<String> result =
                     RulesConditionals.copyDatabaseRefs(
-                            config, resourceDir,
-                            skillsDir,
-                            new TemplateEngine(),
-                            Map.of());
+                            new ConditionalCopyContext(
+                                    config, resourceDir,
+                                    skillsDir,
+                                    new TemplateEngine(),
+                                    Map.of()));
 
             assertThat(result).isNotEmpty();
         }
@@ -126,10 +128,11 @@ class RulesConditionalsCoverageTest {
 
             List<String> result =
                     RulesConditionals.copyDatabaseRefs(
-                            config, resourceDir,
-                            skillsDir,
-                            new TemplateEngine(),
-                            Map.of());
+                            new ConditionalCopyContext(
+                                    config, resourceDir,
+                                    skillsDir,
+                                    new TemplateEngine(),
+                                    Map.of()));
 
             assertThat(result).hasSize(2);
         }
@@ -150,10 +153,11 @@ class RulesConditionalsCoverageTest {
 
             List<String> result =
                     RulesConditionals.copyDatabaseRefs(
-                            config, resourceDir,
-                            skillsDir,
-                            new TemplateEngine(),
-                            Map.of());
+                            new ConditionalCopyContext(
+                                    config, resourceDir,
+                                    skillsDir,
+                                    new TemplateEngine(),
+                                    Map.of()));
 
             assertThat(result).isEmpty();
         }
@@ -179,10 +183,11 @@ class RulesConditionalsCoverageTest {
 
             List<String> result =
                     RulesConditionals.copyDatabaseRefs(
-                            config, resourceDir,
-                            skillsDir,
-                            new TemplateEngine(),
-                            Map.of());
+                            new ConditionalCopyContext(
+                                    config, resourceDir,
+                                    skillsDir,
+                                    new TemplateEngine(),
+                                    Map.of()));
 
             assertThat(result).noneMatch(
                     f -> f.contains("version-matrix"));
@@ -670,10 +675,11 @@ class RulesConditionalsCoverageTest {
 
             List<String> result =
                     RulesConditionals.copyDatabaseRefs(
-                            config, resourceDir,
-                            skillsDir,
-                            new TemplateEngine(),
-                            context);
+                            new ConditionalCopyContext(
+                                    config, resourceDir,
+                                    skillsDir,
+                                    new TemplateEngine(),
+                                    context));
 
             assertThat(result).isNotEmpty();
             Path target = skillsDir.resolve(

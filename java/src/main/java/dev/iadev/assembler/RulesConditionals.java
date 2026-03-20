@@ -1,12 +1,10 @@
 package dev.iadev.assembler;
 
 import dev.iadev.model.ProjectConfig;
-import dev.iadev.template.TemplateEngine;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -46,25 +44,20 @@ public final class RulesConditionals {
      * Copies database reference files when database is
      * configured.
      *
-     * @param config      the project configuration
-     * @param resourceDir the resources root directory
-     * @param skillsDir   the skills output directory
-     * @param engine      the template engine
-     * @param context     the placeholder context map
+     * @param ctx the conditional copy context containing
+     *            config, directories, engine, and context
      * @return list of generated file paths
      */
     public static List<String> copyDatabaseRefs(
-            ProjectConfig config,
-            Path resourceDir,
-            Path skillsDir,
-            TemplateEngine engine,
-            Map<String, Object> context) {
-        String dbName = config.data().database().name();
+            ConditionalCopyContext ctx) {
+        String dbName =
+                ctx.config().data().database().name();
         if (NONE_VALUE.equals(dbName)) {
             return List.of();
         }
-        Path dbDir = resourceDir.resolve("databases");
-        Path target = skillsDir.resolve(
+        Path dbDir =
+                ctx.resourceDir().resolve("databases");
+        Path target = ctx.skillsDir().resolve(
                 "database-patterns/references");
         CopyHelpers.ensureDirectory(target);
         List<String> generated = new ArrayList<>();
@@ -73,7 +66,7 @@ public final class RulesConditionals {
         generated.addAll(
                 copyDbTypeFiles(dbName, dbDir, target));
         CopyHelpers.replacePlaceholdersInDir(
-                target, engine, context);
+                target, ctx.engine(), ctx.context());
         return generated;
     }
 

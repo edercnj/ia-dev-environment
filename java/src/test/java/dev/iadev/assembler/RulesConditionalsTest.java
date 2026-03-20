@@ -37,10 +37,11 @@ class RulesConditionalsTest {
 
             List<String> result =
                     RulesConditionals.copyDatabaseRefs(
-                            config, resourceDir,
-                            skillsDir,
-                            new TemplateEngine(),
-                            Map.of());
+                            new ConditionalCopyContext(
+                                    config, resourceDir,
+                                    skillsDir,
+                                    new TemplateEngine(),
+                                    Map.of()));
 
             assertThat(result).isEmpty();
         }
@@ -72,10 +73,11 @@ class RulesConditionalsTest {
 
             List<String> result =
                     RulesConditionals.copyDatabaseRefs(
-                            config, resourceDir,
-                            skillsDir,
-                            new TemplateEngine(),
-                            Map.of());
+                            new ConditionalCopyContext(
+                                    config, resourceDir,
+                                    skillsDir,
+                                    new TemplateEngine(),
+                                    Map.of()));
 
             assertThat(result).hasSize(2);
             assertThat(result.get(0))
@@ -106,10 +108,11 @@ class RulesConditionalsTest {
 
             List<String> result =
                     RulesConditionals.copyDatabaseRefs(
-                            config, resourceDir,
-                            skillsDir,
-                            new TemplateEngine(),
-                            Map.of());
+                            new ConditionalCopyContext(
+                                    config, resourceDir,
+                                    skillsDir,
+                                    new TemplateEngine(),
+                                    Map.of()));
 
             assertThat(result).isNotEmpty();
             assertThat(result.get(0))
@@ -136,10 +139,11 @@ class RulesConditionalsTest {
 
             List<String> result =
                     RulesConditionals.copyDatabaseRefs(
-                            config, resourceDir,
-                            skillsDir,
-                            new TemplateEngine(),
-                            Map.of());
+                            new ConditionalCopyContext(
+                                    config, resourceDir,
+                                    skillsDir,
+                                    new TemplateEngine(),
+                                    Map.of()));
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0))

@@ -5,7 +5,6 @@ import dev.iadev.assembler.AssemblerPipeline;
 import dev.iadev.assembler.PipelineOptions;
 import dev.iadev.config.ConfigLoader;
 import dev.iadev.config.ConfigProfiles;
-import dev.iadev.config.ContextBuilder;
 import dev.iadev.domain.stack.StackValidator;
 import dev.iadev.exception.CliException;
 import dev.iadev.exception.ConfigParseException;
@@ -299,9 +298,10 @@ public class GenerateCommand implements Callable<Integer> {
                 AssemblerPipeline.buildAssemblers();
 
         if (verbose) {
-            return runVerbosePipeline(
+            PipelineContext ctx = new PipelineContext(
                     config, destPath, options,
                     assemblers, out);
+            return runVerbosePipeline(ctx);
         }
 
         AssemblerPipeline pipeline =
@@ -311,29 +311,28 @@ public class GenerateCommand implements Callable<Integer> {
     }
 
     private PipelineResult runVerbosePipeline(
-            ProjectConfig config,
-            Path destPath,
-            PipelineOptions options,
-            List<AssemblerDescriptor> assemblers,
-            PrintWriter out) {
-        for (AssemblerDescriptor desc : assemblers) {
-            out.println("Running %s...".formatted(
+            PipelineContext ctx) {
+        for (AssemblerDescriptor desc
+                : ctx.assemblers()) {
+            ctx.out().println("Running %s...".formatted(
                     desc.name()));
         }
 
         AssemblerPipeline pipeline =
-                new AssemblerPipeline(assemblers);
+                new AssemblerPipeline(ctx.assemblers());
         PipelineResult result =
                 pipeline.runPipeline(
-                        config, destPath, options);
+                        ctx.config(), ctx.destPath(),
+                        ctx.options());
 
-        int assemblerCount = assemblers.size();
+        int assemblerCount = ctx.assemblers().size();
         long avgDurationPerAssembler =
                 assemblerCount > 0
-                        ? result.durationMs() / assemblerCount
-                        : 0;
-        for (AssemblerDescriptor desc : assemblers) {
-            out.println(
+                        ? result.durationMs()
+                        / assemblerCount : 0;
+        for (AssemblerDescriptor desc
+                : ctx.assemblers()) {
+            ctx.out().println(
                     CliDisplay.formatAssemblerVerbose(
                             desc.name(),
                             0,

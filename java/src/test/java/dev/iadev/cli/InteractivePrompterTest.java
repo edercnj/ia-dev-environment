@@ -513,9 +513,13 @@ class InteractivePrompterTest {
                     new MockTerminalProvider());
 
             ProjectConfig config = prompter.buildConfig(
-                    "test-app", "A test application for unit tests",
-                    "microservice", "java", "spring-boot",
-                    "maven", List.of("rest"), "postgresql", "redis");
+                    new ProjectSummary(
+                            "test-app",
+                            "A test application for unit tests",
+                            "microservice", "java",
+                            "spring-boot", "maven",
+                            List.of("rest"),
+                            "postgresql", "redis"));
 
             assertThat(config.architecture().domainDriven())
                     .isFalse();
@@ -542,10 +546,13 @@ class InteractivePrompterTest {
                     new MockTerminalProvider());
 
             ProjectConfig config = prompter.buildConfig(
-                    "my-app", "Application for interface testing",
-                    "microservice", "java", "quarkus",
-                    "maven", List.of("rest", "grpc", "cli"),
-                    "", "");
+                    new ProjectSummary(
+                            "my-app",
+                            "Application for interface testing",
+                            "microservice", "java",
+                            "quarkus", "maven",
+                            List.of("rest", "grpc", "cli"),
+                            "", ""));
 
             assertThat(config.interfaces()).hasSize(3);
             assertThat(config.interfaces())
@@ -566,9 +573,12 @@ class InteractivePrompterTest {
                     new MockTerminalProvider());
 
             ProjectConfig config = prompter.buildConfig(
-                    "my-app", "Application for testing defaults",
-                    "library", "typescript", "nestjs",
-                    "npm", List.of("rest"), "", "");
+                    new ProjectSummary(
+                            "my-app",
+                            "Application for testing defaults",
+                            "library", "typescript",
+                            "nestjs", "npm",
+                            List.of("rest"), "", ""));
 
             assertThat(config.data().database().name())
                     .isEqualTo("none");
@@ -585,9 +595,12 @@ class InteractivePrompterTest {
                     new MockTerminalProvider());
 
             ProjectConfig config = prompter.buildConfig(
-                    "my-app", "Application for version resolution",
-                    "microservice", "python", "fastapi",
-                    "pip", List.of("rest"), "", "");
+                    new ProjectSummary(
+                            "my-app",
+                            "Application for version resolution",
+                            "microservice", "python",
+                            "fastapi", "pip",
+                            List.of("rest"), "", ""));
 
             assertThat(config.language().version())
                     .isEqualTo("3.12");

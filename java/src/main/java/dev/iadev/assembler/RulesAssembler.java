@@ -370,8 +370,10 @@ public final class RulesAssembler implements Assembler {
         List<String> generated = new ArrayList<>();
         generated.addAll(
                 RulesConditionals.copyDatabaseRefs(
-                        config, resourcesDir,
-                        skillsDir, engine, context));
+                        new ConditionalCopyContext(
+                                config, resourcesDir,
+                                skillsDir, engine,
+                                context)));
         generated.addAll(
                 RulesConditionals.copyCacheRefs(
                         config, resourcesDir, skillsDir));

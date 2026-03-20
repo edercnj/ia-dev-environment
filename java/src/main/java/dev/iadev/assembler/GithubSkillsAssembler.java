@@ -190,9 +190,12 @@ public final class GithubSkillsAssembler
                     TEMPLATES_DIR + "/" + group);
             String subDir = NESTED_GROUPS.contains(group)
                     ? group : null;
+            SkillRenderContext ctx =
+                    new SkillRenderContext(
+                            srcDir, outputDir,
+                            subDir, context);
             results.addAll(generateGroup(
-                    engine, srcDir, outputDir,
-                    filtered, subDir, context));
+                    engine, ctx, filtered));
         }
         return results;
     }
@@ -228,19 +231,15 @@ public final class GithubSkillsAssembler
 
     private List<String> generateGroup(
             TemplateEngine engine,
-            Path srcDir,
-            Path outputDir,
-            List<String> skillNames,
-            String subDir,
-            Map<String, Object> context) {
-        if (!Files.exists(srcDir)) {
+            SkillRenderContext ctx,
+            List<String> skillNames) {
+        if (!Files.exists(ctx.srcDir())) {
             return List.of();
         }
         List<String> results = new ArrayList<>();
         for (String name : skillNames) {
             String dest = renderSkill(
-                    engine, srcDir, outputDir,
-                    name, subDir, context);
+                    engine, ctx, name);
             if (dest != null) {
                 results.add(dest);
             }
@@ -255,43 +254,37 @@ public final class GithubSkillsAssembler
      * replacement, creates the output directory, writes
      * SKILL.md, and copies any references.</p>
      *
-     * @param engine    the template engine
-     * @param srcDir    the source template directory
-     * @param outputDir the output directory
-     * @param name      the skill name
-     * @param subDir    optional subdirectory for nesting
+     * @param engine the template engine
+     * @param ctx    the skill render context
+     * @param name   the skill name
      * @return the destination path, or null if missing
      */
     String renderSkill(
             TemplateEngine engine,
-            Path srcDir,
-            Path outputDir,
-            String name,
-            String subDir,
-            Map<String, Object> context) {
-        Path src = srcDir.resolve(name + ".md");
+            SkillRenderContext ctx,
+            String name) {
+        Path src = ctx.srcDir().resolve(name + ".md");
         if (!Files.exists(src)) {
             return null;
         }
         String content = CopyHelpers.readFile(src);
         String rendered = engine.replacePlaceholders(
-                content, context);
+                content, ctx.context());
 
         Path skillDir;
-        if (subDir != null) {
-            skillDir = outputDir.resolve(
-                    SKILLS_OUTPUT + "/" + subDir
+        if (ctx.subDir() != null) {
+            skillDir = ctx.outputDir().resolve(
+                    SKILLS_OUTPUT + "/" + ctx.subDir()
                             + "/" + name);
         } else {
-            skillDir = outputDir.resolve(
+            skillDir = ctx.outputDir().resolve(
                     SKILLS_OUTPUT + "/" + name);
         }
         CopyHelpers.ensureDirectory(skillDir);
 
         Path dest = skillDir.resolve(SKILL_MD);
         CopyHelpers.writeFile(dest, rendered);
-        copyReferences(
-                srcDir, skillDir, name, engine, context);
+        copyReferences(ctx, engine, skillDir, name);
         return dest.toString();
     }
 
@@ -300,18 +293,17 @@ public final class GithubSkillsAssembler
      * exists, applying placeholder replacement to all
      * markdown files.
      *
-     * @param srcDir   the source template directory
+     * @param ctx      the skill render context
+     * @param engine   the template engine
      * @param skillDir the destination skill directory
      * @param name     the skill name
-     * @param engine   the template engine
      */
     void copyReferences(
-            Path srcDir,
-            Path skillDir,
-            String name,
+            SkillRenderContext ctx,
             TemplateEngine engine,
-            Map<String, Object> context) {
-        Path refsDir = srcDir.resolve(
+            Path skillDir,
+            String name) {
+        Path refsDir = ctx.srcDir().resolve(
                 "references/" + name);
         if (!Files.exists(refsDir)) {
             return;
@@ -319,7 +311,7 @@ public final class GithubSkillsAssembler
         Path destRefs = skillDir.resolve("references");
         CopyHelpers.copyDirectory(refsDir, destRefs);
         CopyHelpers.replacePlaceholdersInDir(
-                destRefs, engine, context);
+                destRefs, engine, ctx.context());
     }
 
     private static Path resolveClasspathResources() {
