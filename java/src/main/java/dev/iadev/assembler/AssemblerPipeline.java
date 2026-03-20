@@ -76,10 +76,16 @@ public final class AssemblerPipeline {
             try {
                 Path targetDir =
                         desc.target().resolve(outputDir);
-                List<String> result =
-                        desc.assembler().assemble(
-                                config, engine, targetDir);
-                files.addAll(result);
+                AssemblerResult result =
+                        desc.assembler()
+                                .assembleWithResult(
+                                        config, engine,
+                                        targetDir);
+                files.addAll(result.files());
+                for (String w : result.warnings()) {
+                    warnings.add("[WARN] %s: %s"
+                            .formatted(desc.name(), w));
+                }
             } catch (PipelineException pe) {
                 throw pe;
             } catch (Exception e) {

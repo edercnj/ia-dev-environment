@@ -322,4 +322,172 @@ class CodexConfigAssemblerTest {
             }
         }
     }
+
+    @Nested
+    @DisplayName("collectTomlKeyWarnings")
+    class CollectTomlKeyWarnings {
+
+        @Test
+        @DisplayName("no warnings for valid server IDs")
+        void noWarningsForValid() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .addMcpServer(
+                                    new McpServerConfig(
+                                            "valid-id",
+                                            "cmd",
+                                            List.of(),
+                                            Map.of()))
+                            .build();
+
+            List<String> warnings =
+                    CodexConfigAssembler
+                            .collectTomlKeyWarnings(
+                                    config);
+
+            assertThat(warnings).isEmpty();
+        }
+
+        @Test
+        @DisplayName("warning for invalid TOML bare key")
+        void warningForInvalidKey() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .addMcpServer(
+                                    new McpServerConfig(
+                                            "bad server",
+                                            "cmd",
+                                            List.of(),
+                                            Map.of()))
+                            .build();
+
+            List<String> warnings =
+                    CodexConfigAssembler
+                            .collectTomlKeyWarnings(
+                                    config);
+
+            assertThat(warnings).hasSize(1);
+            assertThat(warnings.get(0))
+                    .contains("bad server")
+                    .contains("invalid TOML");
+        }
+
+        @Test
+        @DisplayName("no warnings when no MCP servers")
+        void noWarningsWhenNoServers() {
+            ProjectConfig config =
+                    TestConfigBuilder.minimal();
+
+            List<String> warnings =
+                    CodexConfigAssembler
+                            .collectTomlKeyWarnings(
+                                    config);
+
+            assertThat(warnings).isEmpty();
+        }
+
+        @Test
+        @DisplayName("multiple warnings for multiple"
+                + " invalid IDs")
+        void multipleWarnings() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .addMcpServer(
+                                    new McpServerConfig(
+                                            "ok-id",
+                                            "cmd",
+                                            List.of(),
+                                            Map.of()))
+                            .addMcpServer(
+                                    new McpServerConfig(
+                                            "bad id",
+                                            "cmd",
+                                            List.of(),
+                                            Map.of()))
+                            .addMcpServer(
+                                    new McpServerConfig(
+                                            "also@bad",
+                                            "cmd",
+                                            List.of(),
+                                            Map.of()))
+                            .build();
+
+            List<String> warnings =
+                    CodexConfigAssembler
+                            .collectTomlKeyWarnings(
+                                    config);
+
+            assertThat(warnings).hasSize(2);
+        }
+    }
+
+    @Nested
+    @DisplayName("assembleWithResult — warning"
+            + " propagation")
+    class AssembleWithResult {
+
+        @Test
+        @DisplayName("no warnings for valid config")
+        void noWarnings(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = setupDirs(tempDir);
+
+            CodexConfigAssembler assembler =
+                    new CodexConfigAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.minimal();
+
+            AssemblerResult result =
+                    assembler.assembleWithResult(
+                            config,
+                            new TemplateEngine(),
+                            outputDir);
+
+            assertThat(result.files()).hasSize(1);
+            assertThat(result.warnings()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("warnings for invalid TOML keys"
+                + " propagated via result")
+        void warningsForInvalidKeys(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = setupDirs(tempDir);
+
+            CodexConfigAssembler assembler =
+                    new CodexConfigAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .addMcpServer(
+                                    new McpServerConfig(
+                                            "bad id",
+                                            "cmd",
+                                            List.of(),
+                                            Map.of()))
+                            .build();
+
+            AssemblerResult result =
+                    assembler.assembleWithResult(
+                            config,
+                            new TemplateEngine(),
+                            outputDir);
+
+            assertThat(result.files()).hasSize(1);
+            assertThat(result.warnings()).hasSize(1);
+            assertThat(result.warnings().get(0))
+                    .contains("bad id")
+                    .contains("invalid TOML");
+        }
+
+        private Path setupDirs(Path tempDir)
+                throws IOException {
+            Path outputDir =
+                    tempDir.resolve("out")
+                            .resolve(".codex");
+            Files.createDirectories(outputDir);
+            return outputDir;
+        }
+    }
 }

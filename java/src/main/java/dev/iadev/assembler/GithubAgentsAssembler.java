@@ -58,13 +58,18 @@ public final class GithubAgentsAssembler
             ProjectConfig config,
             TemplateEngine engine,
             Path outputDir) {
-        AssemblerResult result =
-                assembleWithWarnings(
-                        config, engine, outputDir);
-        for (String warning : result.warnings()) {
-            System.err.println("WARNING: " + warning);
-        }
-        return result.files();
+        return assembleWithResult(
+                config, engine, outputDir).files();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public AssemblerResult assembleWithResult(
+            ProjectConfig config,
+            TemplateEngine engine,
+            Path outputDir) {
+        return assembleWithWarnings(
+                config, engine, outputDir);
     }
 
     /**

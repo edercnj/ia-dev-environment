@@ -49,24 +49,17 @@ public final class GithubMcpAssembler
             ProjectConfig config,
             TemplateEngine engine,
             Path outputDir) {
-        if (config.mcp().servers().isEmpty()) {
-            return List.of();
-        }
+        return assembleWithResult(
+                config, engine, outputDir).files();
+    }
 
-        List<String> warnings = warnLiteralEnvValues(
-                config.mcp().servers());
-        for (String warning : warnings) {
-            System.err.println("WARNING: " + warning);
-        }
-
-        CopyHelpers.ensureDirectory(outputDir);
-        String content =
-                McpJsonBuilder.buildCopilotMcpJson(config);
-        Path dest =
-                outputDir.resolve("copilot-mcp.json");
-        CopyHelpers.writeFile(dest, content);
-
-        return List.of(dest.toString());
+    /** {@inheritDoc} */
+    @Override
+    public AssemblerResult assembleWithResult(
+            ProjectConfig config,
+            TemplateEngine engine,
+            Path outputDir) {
+        return assembleWithWarnings(config, outputDir);
     }
 
     /**

@@ -6,6 +6,7 @@ import dev.iadev.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,22 +46,23 @@ public final class CodexConfigAssembler
             ProjectConfig config,
             TemplateEngine engine,
             Path outputDir) {
+        return assembleWithResult(
+                config, engine, outputDir).files();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public AssemblerResult assembleWithResult(
+            ProjectConfig config,
+            TemplateEngine engine,
+            Path outputDir) {
         Path hooksDir = outputDir.getParent()
                 .resolve(".claude").resolve("hooks");
         HookPresence hookPresence = HookPresence.of(
                 CodexShared.detectHooks(hooksDir));
 
-        for (McpServerConfig server
-                : config.mcp().servers()) {
-            if (!CodexShared.isValidTomlBareKey(
-                    server.id())) {
-                System.err.println(
-                        ("WARNING: MCP server id \"%s\""
-                                + " contains invalid"
-                                + " TOML characters")
-                                .formatted(server.id()));
-            }
-        }
+        List<String> warnings =
+                collectTomlKeyWarnings(config);
 
         Map<String, Object> context =
                 buildConfigContext(config, hookPresence);
@@ -72,7 +74,31 @@ public final class CodexConfigAssembler
         Path dest = outputDir.resolve("config.toml");
         CopyHelpers.writeFile(dest, rendered);
 
-        return List.of(dest.toString());
+        return AssemblerResult.of(
+                List.of(dest.toString()), warnings);
+    }
+
+    /**
+     * Validates MCP server IDs for TOML bare key
+     * compliance.
+     *
+     * @param config the project configuration
+     * @return list of warning messages for invalid IDs
+     */
+    static List<String> collectTomlKeyWarnings(
+            ProjectConfig config) {
+        List<String> warnings = new ArrayList<>();
+        for (McpServerConfig server
+                : config.mcp().servers()) {
+            if (!CodexShared.isValidTomlBareKey(
+                    server.id())) {
+                warnings.add(
+                        ("MCP server id \"%s\" contains"
+                                + " invalid TOML characters")
+                                .formatted(server.id()));
+            }
+        }
+        return warnings;
     }
 
     /**
