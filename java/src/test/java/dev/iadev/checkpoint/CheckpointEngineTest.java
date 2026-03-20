@@ -1,6 +1,7 @@
 package dev.iadev.checkpoint;
 
 import dev.iadev.exception.CheckpointIOException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -22,6 +23,15 @@ class CheckpointEngineTest {
 
     @TempDir
     Path tempDir;
+
+    private CheckpointEngine engine;
+
+    @BeforeEach
+    void setUp() {
+        engine = new CheckpointEngine(
+                new JacksonCheckpointPersistence()
+        );
+    }
 
     private ExecutionState createSampleState() {
         var stories = new LinkedHashMap<String, StoryEntry>();
@@ -61,8 +71,8 @@ class CheckpointEngineTest {
         var original = createSampleState();
         var path = tempDir.resolve("execution-state.json");
 
-        CheckpointEngine.save(original, path);
-        var loaded = CheckpointEngine.load(path);
+        engine.save(original, path);
+        var loaded = engine.load(path);
 
         assertThat(loaded.epicId()).isEqualTo(original.epicId());
         assertThat(loaded.branch()).isEqualTo(original.branch());
@@ -80,8 +90,8 @@ class CheckpointEngineTest {
         var original = createSampleState();
         var path = tempDir.resolve("execution-state.json");
 
-        CheckpointEngine.save(original, path);
-        var loaded = CheckpointEngine.load(path);
+        engine.save(original, path);
+        var loaded = engine.load(path);
 
         var story = loaded.stories().get("story-0006-0001");
         assertThat(story.status()).isEqualTo(StoryStatus.SUCCESS);
@@ -99,8 +109,8 @@ class CheckpointEngineTest {
         var original = createSampleState();
         var path = tempDir.resolve("execution-state.json");
 
-        CheckpointEngine.save(original, path);
-        var loaded = CheckpointEngine.load(path);
+        engine.save(original, path);
+        var loaded = engine.load(path);
 
         var gate = loaded.integrityGates().get("compilation");
         assertThat(gate.gateName()).isEqualTo("compilation");
@@ -125,8 +135,8 @@ class CheckpointEngineTest {
         );
         var path = tempDir.resolve("instant-test.json");
 
-        CheckpointEngine.save(state, path);
-        var loaded = CheckpointEngine.load(path);
+        engine.save(state, path);
+        var loaded = engine.load(path);
 
         assertThat(loaded.startedAt()).isEqualTo(instant);
     }
@@ -136,7 +146,7 @@ class CheckpointEngineTest {
         var state = createSampleState();
         var path = tempDir.resolve("formatted.json");
 
-        CheckpointEngine.save(state, path);
+        engine.save(state, path);
         var json = Files.readString(path);
 
         assertThat(json).contains("\n");
@@ -150,7 +160,7 @@ class CheckpointEngineTest {
         var path = tempDir.resolve("atomic.json");
         var tmpPath = tempDir.resolve(".atomic.json.tmp");
 
-        CheckpointEngine.save(state, path);
+        engine.save(state, path);
 
         assertThat(path).exists();
         assertThat(tmpPath).doesNotExist();
@@ -160,7 +170,7 @@ class CheckpointEngineTest {
     void load_nonExistentFile_throwsCheckpointIOException() {
         var path = tempDir.resolve("missing.json");
 
-        assertThatThrownBy(() -> CheckpointEngine.load(path))
+        assertThatThrownBy(() -> engine.load(path))
                 .isInstanceOf(CheckpointIOException.class)
                 .hasMessageContaining("Failed to load checkpoint");
     }
@@ -171,7 +181,7 @@ class CheckpointEngineTest {
         var path = tempDir.resolve("bad.json");
         Files.writeString(path, "not valid json {{{");
 
-        assertThatThrownBy(() -> CheckpointEngine.load(path))
+        assertThatThrownBy(() -> engine.load(path))
                 .isInstanceOf(CheckpointIOException.class);
     }
 
@@ -415,8 +425,8 @@ class CheckpointEngineTest {
         var state = createSampleState();
         var path = tempDir.resolve("roundtrip.json");
 
-        CheckpointEngine.save(state, path);
-        var loaded1 = CheckpointEngine.load(path);
+        engine.save(state, path);
+        var loaded1 = engine.load(path);
 
         var updated = CheckpointEngine.updateStory(
                 loaded1, "story-0006-0002",
@@ -427,8 +437,8 @@ class CheckpointEngineTest {
         );
         updated = CheckpointEngine.updateMetrics(updated);
 
-        CheckpointEngine.save(updated, path);
-        var loaded2 = CheckpointEngine.load(path);
+        engine.save(updated, path);
+        var loaded2 = engine.load(path);
 
         assertThat(loaded2.stories()
                 .get("story-0006-0002").status())

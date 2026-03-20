@@ -205,7 +205,10 @@ class CheckpointValidationTest {
         var path = tempDir.resolve("invalid.json");
         Files.writeString(path, json);
 
-        assertThatThrownBy(() -> CheckpointEngine.load(path))
+        var engine = new CheckpointEngine(
+                new JacksonCheckpointPersistence()
+        );
+        assertThatThrownBy(() -> engine.load(path))
                 .isInstanceOf(CheckpointValidationException.class)
                 .hasMessageContaining("epicId is required");
     }
