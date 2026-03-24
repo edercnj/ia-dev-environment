@@ -34,7 +34,7 @@ Phase 1: Planning
   Sequential: 1B-impl implementation plan (depends on 1A output)
   Wave 2 (parallel, SINGLE message): 1C task decomp + 1D event schema + 1E compliance
 Phase 2: Implementation        (subagent — reads coding + layer KPs)
-Phase 3: Documentation         (orchestrator — inline)
+Phase 3: Documentation         (parallel subagent dispatch + inline changelog)
 Phase 4: Review                (invoke /x-review skill — launches its own subagents)
 Phase 5-6: Fixes + PR          (orchestrator — inline)
 Phase 7: Tech Lead Review      (invoke /x-review-pr skill)
@@ -274,89 +274,145 @@ If no test plan with TPP markers was produced by Phase 1B-test (Wave 1), use leg
 
 Emit warning: `WARNING: No TDD test plan available. Using G1-G7 group-based implementation. Consider running /x-test-plan for future implementations.`
 
-## Phase 3 — Documentation (Orchestrator — Inline)
+## Phase 3 — Documentation (Parallel Subagent Dispatch + Inline Changelog)
 
-Read the `interfaces` field from the project identity to determine which documentation
-generators to invoke. For each configured interface, launch the corresponding generator.
-Always generate a changelog entry regardless of interfaces.
+Phase 3 converts documentation generation from sequential inline execution to parallel subagent dispatch. Each documentation generator runs as an independent subagent, all launched in a SINGLE message (RULE-003). The changelog entry remains inline in the orchestrator, running concurrently with subagents.
 
-**Interface Dispatch:**
+### Phase 3 Execution Structure
 
-| Interface | Generator | Output |
-|-----------|-----------|--------|
+```
+Parallel subagent dispatch (SINGLE message):
+  ├── Subagent: OpenAPI generator (if rest)
+  ├── Subagent: gRPC docs (if grpc)
+  ├── Subagent: CLI docs (if cli)
+  ├── Subagent: GraphQL docs (if graphql)
+  ├── Subagent: Event docs (if event interfaces)
+  ├── Subagent: Architecture doc update (if arch plan exists)
+  └── Subagent: Performance baseline (if applicable)
+
+Inline concurrent (orchestrator):
+  └── Changelog entry (git log + append)
+
+Gate: all subagents + changelog complete → Phase 4
+```
+
+### Step 1 — Determine Active Generators
+
+Read the `interfaces` field from the project identity to determine which documentation subagents to dispatch.
+
+**Interface → Subagent Mapping:**
+
+| Interface | Generator Type | Output |
+|-----------|---------------|--------|
 | `rest` | OpenAPI/Swagger generator | `docs/api/openapi.yaml` |
 | `grpc` | gRPC/Proto documentation generator | `docs/api/grpc-reference.md` |
 | `cli` | CLI documentation generator | `docs/api/cli-reference.md` |
 | `graphql` | GraphQL schema documentation generator | `docs/api/graphql-reference.md` |
 | `websocket`, `kafka`, `event-consumer`, `event-producer` | Event-driven documentation generator | `docs/api/event-reference.md` |
 
-If no documentable interfaces configured: skip interface generators with log
-`"No documentable interfaces configured"`. Always generate changelog entry.
+**Conditional generators (non-interface):**
 
-Documentation output saved to `docs/` with subdirectories per type:
-- API docs → `docs/api/`
-- Architecture docs → `docs/architecture/`
+| Condition | Generator Type | Output |
+|-----------|---------------|--------|
+| Architecture plan exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` | Architecture doc update | `docs/architecture/service-architecture.md` |
+| Feature affects request path, startup, or memory footprint | Performance baseline | `docs/performance/baselines.md` |
 
-**Changelog Entry:**
-- Read commits since branch point (`git log main..HEAD --oneline`)
-- Generate Conventional Commits summary by type (feat, fix, refactor, test, docs, chore)
-- Append to CHANGELOG.md
+If no documentable interfaces configured AND no conditional generators apply: skip subagent dispatch with log `"No documentable interfaces configured; no conditional generators applicable"`. Generate only the changelog entry inline.
 
-**Performance Baseline (Recommended):**
-If the implemented feature affects the request path, startup, or memory footprint:
-1. Read `.claude/templates/_TEMPLATE-PERFORMANCE-BASELINE.md` for measurement guide
-2. Record "before" metrics (prior to the feature branch)
-3. Record "after" metrics (with the feature branch)
-4. Append a row to `docs/performance/baselines.md`
-5. If Delta > 10%, add a WARNING note
-6. If Delta > 25%, add an INVESTIGATION note with optimization plan
+### Step 2 — Wave Management (Max 5 Subagents Per Wave)
 
-This step is recommended but not mandatory. Skip does not block the phase.
+**CRITICAL: All subagents in a wave MUST be launched in a SINGLE message (RULE-003).**
 
-**Architecture Document Update (Recommended):**
-If an architecture plan exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`:
-1. Invoke `x-dev-arch-update` to incrementally update `docs/architecture/service-architecture.md`
-2. New components, integrations, flows, and ADR references are added to the appropriate sections
-3. Change History (Section 10) is updated with the story reference
-4. If `docs/architecture/service-architecture.md` does not exist, create it from the template
+Collect all active generators from Step 1 into a dispatch list. Apply the 5-subagent limit:
 
-If no architecture plan found: skip with log
-`"No architecture plan found; skipping architecture doc update"`.
+- **If ≤ 5 generators:** Dispatch all in Wave 1 (SINGLE message).
+- **If > 5 generators:** Dispatch the first 5 in Wave 1 (SINGLE message). After Wave 1 completes, dispatch remaining generators in Wave 2 (SINGLE message).
 
-This step is recommended but not mandatory. Skip does not block the phase.
+Priority order for wave assignment (first 5 get Wave 1):
+1. Interface doc generators (in order: OpenAPI, gRPC, CLI, GraphQL, Event)
+2. Architecture doc update
+3. Performance baseline
 
-### CLI Documentation Generator (interface: cli)
+The changelog entry is always generated inline during Wave 1, regardless of wave count.
 
-> Invoked when project identity `interfaces` contains `"cli"`.
-> Output: `docs/api/cli-reference.md`
+### Step 3 — Dispatch Subagents (SINGLE Message Per Wave)
 
-**Scan** the project's CLI command definitions using framework-specific patterns:
-- **Commander.js**: `.command()`, `.option()`, `.argument()` chains
-- **Click**: `@click.command()`, `@click.option()`, `@click.argument()` decorators
-- **Cobra**: `cobra.Command{}` structs
-- **Clap**: `#[derive(Parser)]` and `#[arg()]` attributes
+**CRITICAL: Each wave dispatches ALL its subagents in a SINGLE message (RULE-003).**
 
-**Generate** `docs/api/cli-reference.md` with:
+Each documentation subagent receives a prompt with:
 
-1. `# CLI Reference` — title with project name
-2. `## Quick Start` — at least 2 basic usage examples in code blocks
-3. `## Global Flags` — table of flags applicable to all commands
-   (columns: Flag, Type, Default, Description)
-4. `## Command: {name}` — one section per top-level command:
-   - Usage line: `$ {tool-name} {command} [flags] [args]`
-   - Flags table: | Flag | Type | Default | Required | Description |
-   - Arguments table: | Argument | Type | Required | Description |
-   - At least 1 example in code block
-5. `### Subcommand: {parent} {child}` — nested sections with same structure
-6. `## Exit Codes` — table: | Code | Meaning |
+| Field | Type | Description |
+|-------|------|-------------|
+| `generatorType` | `string` | Type: `openapi`, `grpc`, `cli`, `graphql`, `event`, `architecture`, `performance` |
+| `outputPath` | `string` | Target output file path |
+| `sourcePaths` | `string[]` | Source files/directories to read |
+| `storyId` | `string` | ID of the story being documented |
 
-If `interfaces` does NOT contain `"cli"`: skip silently (no output, no warning).
+Each subagent returns a result conforming to RULE-008:
 
-### Event-Driven Documentation Doc Generator
+| Field | Type | Required |
+|-------|------|----------|
+| `status` | `SUCCESS \| FAILED` | Yes |
+| `commitSha` | `string` | Yes (if SUCCESS) |
+| `findingsCount` | `number` | Yes |
+| `summary` | `string` | Yes |
 
-**Trigger:** Invoke when `interfaces` contains `websocket`, `event-consumer`, or `event-producer`.
+#### Subagent: OpenAPI/Swagger Generator (interface: rest)
 
-Launch a `general-purpose` subagent:
+Launch `general-purpose` subagent:
+
+> You are a **Documentation Engineer** generating OpenAPI documentation for {{PROJECT_NAME}}.
+>
+> **Read context:** Scan the project's REST controllers, DTOs, and endpoint annotations.
+> **Generate:** `docs/api/openapi.yaml` — OpenAPI 3.1 specification with paths, schemas, security definitions, and examples.
+> Save output to `docs/api/openapi.yaml`.
+
+#### Subagent: gRPC/Proto Documentation Generator (interface: grpc)
+
+Launch `general-purpose` subagent:
+
+> You are a **Documentation Engineer** generating gRPC documentation for {{PROJECT_NAME}}.
+>
+> **Read context:** Scan `.proto` files for service definitions, message types, and RPC methods.
+> **Generate:** `docs/api/grpc-reference.md` — service catalog with method signatures, message schemas, and streaming patterns.
+> Save output to `docs/api/grpc-reference.md`.
+
+#### Subagent: CLI Documentation Generator (interface: cli)
+
+Launch `general-purpose` subagent:
+
+> You are a **Documentation Engineer** generating CLI reference documentation for {{PROJECT_NAME}}.
+>
+> **Read context:** Scan the project's CLI command definitions using framework-specific patterns:
+> - **Commander.js**: `.command()`, `.option()`, `.argument()` chains
+> - **Click**: `@click.command()`, `@click.option()`, `@click.argument()` decorators
+> - **Cobra**: `cobra.Command{}` structs
+> - **Clap**: `#[derive(Parser)]` and `#[arg()]` attributes
+> - **Picocli**: `@Command`, `@Option`, `@Parameters` annotations
+>
+> **Generate** `docs/api/cli-reference.md` with:
+> 1. `# CLI Reference` — title with project name
+> 2. `## Quick Start` — at least 2 basic usage examples in code blocks
+> 3. `## Global Flags` — table of flags applicable to all commands (columns: Flag, Type, Default, Description)
+> 4. `## Command: {name}` — one section per top-level command: usage line, flags table, arguments table, at least 1 example
+> 5. `### Subcommand: {parent} {child}` — nested sections with same structure
+> 6. `## Exit Codes` — table: | Code | Meaning |
+>
+> Save output to `docs/api/cli-reference.md`.
+
+#### Subagent: GraphQL Schema Documentation Generator (interface: graphql)
+
+Launch `general-purpose` subagent:
+
+> You are a **Documentation Engineer** generating GraphQL documentation for {{PROJECT_NAME}}.
+>
+> **Read context:** Scan GraphQL schema files for types, queries, mutations, subscriptions, and directives.
+> **Generate:** `docs/api/graphql-reference.md` — schema reference with type definitions, query/mutation examples, and subscription patterns.
+> Save output to `docs/api/graphql-reference.md`.
+
+#### Subagent: Event-Driven Documentation Generator (interfaces: websocket, kafka, event-consumer, event-producer)
+
+Launch `general-purpose` subagent:
 
 > You are a **Documentation Engineer** generating an event catalog for {{PROJECT_NAME}}.
 >
@@ -366,16 +422,10 @@ Launch a `general-purpose` subagent:
 > - Read the project source code to identify event definitions: producers, consumers, schemas, topics, channels
 >
 > **Step 2 — Generate `docs/api/event-catalog.md`** with the following structure:
->
 > 1. **Topics Overview** table: Topic/Channel, Events, Partitioning/Routing
-> 2. **Per-event sections** (one `## Event: {name}` per event):
->    - Topic/Channel name
->    - Producer service
->    - Consumer services
->    - Payload Schema table: Field, Type, Required, Description
->    - Headers table (if applicable): correlation-id, content-type, custom headers
+> 2. **Per-event sections** (one `## Event: {name}` per event): Topic/Channel name, Producer service, Consumer services, Payload Schema table, Headers table
 > 3. **Event Flows**: Mermaid `sequenceDiagram` showing Producer → Broker → Consumer for each flow
-> 4. **CloudEvents envelope** details (if applicable): specversion, type, source, subject, datacontenttype
+> 4. **CloudEvents envelope** details (if applicable)
 > 5. **Schema versioning** and backward compatibility notes
 >
 > **Step 3 — Protocol-specific handling:**
@@ -384,6 +434,81 @@ Launch a `general-purpose` subagent:
 > - If both are present, produce a unified catalog covering multiple protocol types
 >
 > Save output to `docs/api/event-catalog.md`.
+
+#### Subagent: Architecture Document Update (conditional)
+
+**Condition:** Architecture plan exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`.
+
+Launch `general-purpose` subagent:
+
+> You are a **Documentation Engineer** updating the architecture document for {{PROJECT_NAME}}.
+>
+> **Read context:**
+> - Read architecture plan at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
+> - Read existing architecture doc at `docs/architecture/service-architecture.md` (if exists)
+>
+> **Update:** Invoke `x-dev-arch-update` to incrementally update `docs/architecture/service-architecture.md`:
+> 1. New components, integrations, flows, and ADR references are added to the appropriate sections
+> 2. Change History (Section 10) is updated with the story reference
+> 3. If `docs/architecture/service-architecture.md` does not exist, create it from the template
+>
+> Save output to `docs/architecture/service-architecture.md`.
+
+If no architecture plan found: do NOT dispatch this subagent. Log `"No architecture plan found; skipping architecture doc update subagent"`.
+
+#### Subagent: Performance Baseline (conditional)
+
+**Condition:** The implemented feature affects the request path, startup, or memory footprint.
+
+Launch `general-purpose` subagent:
+
+> You are a **Performance Engineer** recording performance baselines for {{PROJECT_NAME}}.
+>
+> **Read context:**
+> - Read `.claude/templates/_TEMPLATE-PERFORMANCE-BASELINE.md` for measurement guide
+>
+> **Record:**
+> 1. Record "before" metrics (prior to the feature branch)
+> 2. Record "after" metrics (with the feature branch)
+> 3. Append a row to `docs/performance/baselines.md`
+> 4. If Delta > 10%, add a WARNING note
+> 5. If Delta > 25%, add an INVESTIGATION note with optimization plan
+>
+> Save output to `docs/performance/baselines.md`.
+
+If the feature does not affect request path: do NOT dispatch this subagent. Log `"Feature does not affect request path; skipping performance baseline subagent"`.
+
+### Step 4 — Inline Changelog (Concurrent with Subagents)
+
+While subagents execute, the orchestrator generates the changelog entry inline:
+
+1. Read commits since branch point: `git log main..HEAD --oneline`
+2. Generate Conventional Commits summary by type (feat, fix, refactor, test, docs, chore)
+3. Append to CHANGELOG.md
+
+The changelog runs concurrently with Wave 1 subagents. It does NOT wait for subagents to complete, and subagents do NOT wait for it.
+
+### Step 5 — Phase 3 Gate
+
+**Gate: ALL subagents + inline changelog MUST complete before proceeding to Phase 4.**
+
+Wait for all dispatched subagents to return results. Verify:
+
+- **All subagents returned:** Count returned results vs. dispatched count.
+- **Changelog completed:** Verify CHANGELOG.md was updated.
+
+**Failure handling (best-effort):**
+- Documentation generation is **best-effort**. A failed subagent does NOT block Phase 3 completion.
+- If a subagent returns `status: FAILED`: emit `WARNING: {generatorType} documentation generator failed: {summary}`. Continue.
+- If ALL subagents fail: emit `WARNING: All documentation generators failed. Proceeding to Phase 4 with changelog only.`
+- Phase 3 is marked FAILED only if the changelog entry itself fails (which should not happen under normal conditions).
+
+**Multi-wave gate:** If overflow caused Wave 2 dispatch, the gate waits for BOTH waves to complete before proceeding.
+
+Documentation output saved to `docs/` with subdirectories per type:
+- API docs → `docs/api/`
+- Architecture docs → `docs/architecture/`
+- Performance docs → `docs/performance/`
 
 ## Phase 4 — Parallel Review
 
@@ -460,12 +585,15 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
 | Architect | Phase 1 | Senior |
 | Task Decomposer | Phase 1C | Mid |
 | Developer | Phase 2 | Adaptive (per Layer Task Catalog) |
+| Documentation Engineer | Phase 3 | Mid |
+| Performance Engineer | Phase 3 | Mid |
 | Specialist Reviews | Phase 4 | Adaptive (max task tier in domain) |
 | Tech Lead | Phase 7 | Adaptive (story max tier) |
 
 ## Integration Notes
 
-- Invokes: `x-dev-architecture-plan` (Wave 1, conditional), `x-test-plan` (Wave 1), `x-lib-task-decomposer` (Wave 2), `x-lib-group-verifier` (fallback only), `x-git-push`, `x-review`, `x-review-pr`
+- Invokes: `x-dev-architecture-plan` (Wave 1, conditional), `x-test-plan` (Wave 1), `x-lib-task-decomposer` (Wave 2), `x-lib-group-verifier` (fallback only), `x-dev-arch-update` (Phase 3 subagent, conditional), `x-git-push`, `x-review`, `x-review-pr`
 - Three-stage Phase 1: Wave 1 launches 1A+1B-test in parallel (SINGLE message); Sequential 1B-impl reads arch plan output; Wave 2 launches 1C+1D+1E in parallel (SINGLE message)
+- Phase 3 parallel dispatch: documentation generators launch as independent subagents in a SINGLE message (max 5 per wave, overflow to Wave 2); changelog runs inline concurrently; gate waits for all subagents + changelog before Phase 4; failures are best-effort (WARNING, not blocking)
 - TDD commit format follows `x-git-push` conventions (`[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]` suffixes)
 - All `{{PLACEHOLDER}}` tokens (e.g. `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
