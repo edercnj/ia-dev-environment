@@ -30,7 +30,7 @@ After Phase 8: `>>> Phase 8/8 completed. Lifecycle complete.`
 ```
 Phase 0: Preparation          (orchestrator — inline)
 Phase 1: Planning              (subagent — reads architecture KPs)
-Phase 1B-1E: Parallel Planning (up to 4 subagents — SINGLE message)
+Phase 1B-1E: Two-Wave Planning (Wave 1: 1B+1D+1E parallel — SINGLE message; Wave 2: 1C sequential)
 Phase 2: Implementation        (subagent — reads coding + layer KPs)
 Phase 3: Documentation         (orchestrator — inline)
 Phase 4: Review                (invoke /x-review skill — launches its own subagents)
@@ -117,11 +117,13 @@ If skill `x-dev-architecture-plan` is not available in the project (skill file `
 
 This preserves the pre-integration behavior for projects that do not include the architecture-plan skill.
 
-## Phases 1B-1E — Parallel Planning (Subagents via Task — SINGLE message)
+## Phases 1B-1E — Two-Wave Planning
 
-**CRITICAL: ALL planning subagents MUST be launched in a SINGLE message.**
+### Wave 1 — Parallel (SINGLE message)
 
-### 1B: Test Planning (MANDATORY DRIVER for Phase 2)
+**CRITICAL: Wave 1 subagents MUST be launched in a SINGLE message.**
+
+#### 1B: Test Planning (MANDATORY DRIVER for Phase 2)
 Invoke skill `x-test-plan` → produces `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
 
 The test plan is the **implementation roadmap** for Phase 2. It produces:
@@ -132,14 +134,7 @@ The test plan is the **implementation roadmap** for Phase 2. It produces:
 
 **Gate:** If Phase 1B fails or produces no output, Phase 2 MUST use G1-G7 fallback mode.
 
-### 1C: Task Decomposition
-Invoke skill `x-lib-task-decomposer` → produces `docs/stories/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`
-
-The task decomposer auto-detects decomposition mode:
-- If test plan with TPP markers exists → test-driven tasks (RED/GREEN/REFACTOR per task, with `Parallel` flags)
-- If no test plan → fallback to G1-G7 layer-based decomposition
-
-### 1D: Event Schema Design (if event_driven)
+#### 1D: Event Schema Design (if event_driven)
 Launch `general-purpose` subagent:
 
 > You are an **Event Engineer** designing event schemas.
@@ -148,7 +143,7 @@ Launch `general-purpose` subagent:
 > Produce event schema design: event names (past tense), CloudEvents envelope, topic naming, partition key, producer/consumer contracts.
 > Save to `docs/stories/epic-XXXX/plans/events-story-XXXX-YYYY.md`.
 
-### 1E: Compliance Assessment (if compliance active)
+#### 1E: Compliance Assessment (if compliance active)
 Launch `general-purpose` subagent:
 
 > You are a **Security Engineer** assessing compliance impact.
@@ -157,6 +152,25 @@ Launch `general-purpose` subagent:
 > Read the implementation plan at `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`.
 > Produce compliance impact assessment: data classification, encryption requirements, audit logging needs, regulatory considerations.
 > Save to `docs/stories/epic-XXXX/plans/compliance-story-XXXX-YYYY.md`.
+
+### Wave 1 Gate
+
+After Wave 1 completes, verify the test plan output before launching Wave 2:
+
+- **Check:** Does `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md` exist?
+- **If yes:** Pass the test plan path to Wave 2 (Phase 1C) as explicit input.
+- **If no:** Emit `WARNING: Test plan not produced by Phase 1B. Phase 1C will use fallback G1-G7 mode.` Wave 2 proceeds without test plan (backward compatible with current behavior).
+
+### Wave 2 — Sequential (after Wave 1 completes)
+
+#### 1C: Task Decomposition
+Invoke skill `x-lib-task-decomposer` with test plan path from Wave 1 Gate (or null if not available) → produces `docs/stories/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`
+
+**Conditional:** If skill file `skills/x-lib-task-decomposer/SKILL.md` does not exist in the project, skip Phase 1C with log `"x-lib-task-decomposer not available, skipping task decomposition"`.
+
+The task decomposer auto-detects decomposition mode:
+- If test plan path provided and file contains TPP markers → test-driven tasks (RED/GREEN/REFACTOR per task, with `Parallel` flags)
+- If no test plan path (null) → fallback to G1-G7 layer-based decomposition
 
 ## Phase 2 — TDD Implementation (Subagent via Task)
 
@@ -420,6 +434,7 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
 
 ## Integration Notes
 
-- Invokes: `x-dev-architecture-plan` (Phase 1, conditional), `x-test-plan`, `x-lib-task-decomposer`, `x-lib-group-verifier` (fallback only), `x-git-push`, `x-review`, `x-review-pr`
+- Invokes: `x-dev-architecture-plan` (Phase 1, conditional), `x-test-plan` (Wave 1), `x-lib-task-decomposer` (Wave 2, after test plan), `x-lib-group-verifier` (fallback only), `x-git-push`, `x-review`, `x-review-pr`
+- Two-Wave dispatch in Phases 1B-1E: Wave 1 launches 1B+1D+1E in parallel (SINGLE message); Wave 1 Gate checks test plan output; Wave 2 launches 1C sequentially with test plan path
 - TDD commit format follows `x-git-push` conventions (`[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]` suffixes)
 - All `{{PLACEHOLDER}}` tokens (e.g. `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
