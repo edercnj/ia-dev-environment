@@ -124,6 +124,48 @@ After reclassification, reevaluate each BLOCKED story:
 
 Single-pass evaluation (no cascade). After reevaluation, feed updated state into `getExecutableStories()` — only PENDING stories enter the execution loop.
 
+## Phase 0.5 — Pre-flight Conflict Analysis
+
+Before entering the execution loop, analyze file-level overlaps between stories in
+the same phase. Stories with high code overlap are demoted to sequential execution,
+preventing costly merge conflicts during parallel dispatch.
+
+**Skip condition:** When `--sequential` is set, Phase 0.5 is skipped entirely. Log:
+`"Pre-flight analysis skipped (sequential mode)"`.
+
+### 0.5.1 Read Implementation Plans
+
+For each story in the current phase, read `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`
+and extract affected files. Stories without plans are classified as `unpredictable`.
+
+### 0.5.2 Build File Overlap Matrix
+
+For each pair of stories (A, B), compute the intersection of their affected file sets.
+The matrix is symmetric: `overlap(A, B) == overlap(B, A)`.
+
+### 0.5.3 Classify Overlaps
+
+| Classification | Criteria | Action |
+|----------------|----------|--------|
+| `unpredictable` | One or both stories have no plan | Demote to sequential |
+| `config-only` | ALL overlapping files are config (`*.yaml`, `*.json`, `*.properties`, `*.toml`, `*.env`, `pom.xml`, `build.gradle`, `package.json`) | Allow parallel + smart merge |
+| `code-overlap-low` | 1–2 code files (`.ts`, `.java`, `.py`, `.go`, `.rs`, `.kt`) overlap | Allow parallel with WARNING |
+| `code-overlap-high` | 3+ code files overlap | Demote to sequential |
+| `no-overlap` | Zero overlapping files | Allow parallel |
+
+### 0.5.4 Generate Adjusted Execution Plan
+
+- **Parallel Batch:** Stories with no overlaps, config-only, or code-overlap-low
+- **Sequential Queue:** Stories with code-overlap-high or unpredictable (ordered by critical path priority)
+- Output saved to `docs/stories/epic-XXXX/plans/preflight-analysis-phase-N.md` for audit
+
+### 0.5.5 Integration with Core Loop (Section 1.3)
+
+The Core Loop reads the preflight analysis and partitions stories:
+- Parallel Batch dispatched via worktree dispatch (Section 1.4a)
+- Sequential Queue dispatched one at a time (Section 1.4) after parallel batch completes
+- If no preflight analysis exists, all stories default to parallel dispatch
+
 ## Phase 1 — Execution Loop
 
 ### 1.1 Initialize Execution State
@@ -140,9 +182,13 @@ Single-pass evaluation (no cascade). After reevaluation, feed updated state into
 
 ### 1.3 Core Loop Algorithm
 
-- For each phase, call `getExecutableStories(parsedMap, executionState)` sorted by critical path priority
-- For each executable story: mark `IN_PROGRESS`, dispatch subagent, validate result, update checkpoint
+- For each phase, read preflight analysis (Phase 0.5 output) if it exists
+- Partition executable stories into parallel batch and sequential queue based on preflight analysis
+- Call `getExecutableStories(parsedMap, executionState)` sorted by critical path priority
+- Dispatch parallel batch via worktree dispatch (1.4a), then sequential queue one at a time (1.4)
+- For each dispatched story: mark `IN_PROGRESS`, dispatch subagent, validate result, update checkpoint
 - BLOCKED stories are never dispatched (filtered by `getExecutableStories`)
+- If no preflight analysis exists, all stories default to parallel dispatch
 
 ### 1.4 Subagent Dispatch (Sequential Mode — When `--sequential` Is Set)
 
@@ -300,4 +346,7 @@ Final verification validates the epic as a whole before declaring completion.
 - Invokes: `x-review-pr` (tech lead review on full epic diff, Phase 2.1)
 - Uses: `gh pr create` (PR creation with summary body, Phase 2.3)
 - Reads: `_TEMPLATE-EPIC-EXECUTION-REPORT.md` (report template), `execution-state.json` (checkpoint data)
+- Reads: `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (implementation plans for pre-flight analysis, Phase 0.5)
+- Writes: `docs/stories/epic-XXXX/plans/preflight-analysis-phase-N.md` (pre-flight analysis output, Phase 0.5)
+- Phase 0.5 is skipped when `--sequential` is set
 - All `{{PLACEHOLDER}}` tokens are runtime markers — NOT resolved during generation

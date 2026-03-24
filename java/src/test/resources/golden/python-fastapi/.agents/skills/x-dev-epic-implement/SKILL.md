@@ -179,6 +179,126 @@ Checkout the branch recorded in the checkpoint: `git checkout {state.branch}`. I
 
 After reclassification and branch recovery, feed the updated state into `getExecutableStories()` to determine which stories are ready for execution. Only stories with status PENDING proceed to the execution loop.
 
+## Phase 0.5 — Pre-flight Conflict Analysis
+
+Before entering the execution loop, the orchestrator performs a pre-flight analysis to
+detect file-level overlaps between stories in the same phase. Stories with high code
+overlap are demoted to sequential execution, preventing costly merge conflicts during
+parallel dispatch (Section 1.4b).
+
+**Skip condition:** When `--sequential` is set, Phase 0.5 is skipped entirely. Log:
+`"Pre-flight analysis skipped (sequential mode)"` and proceed directly to Phase 1.
+In sequential mode there is no parallel dispatch, so conflict analysis adds no value.
+
+### 0.5.1 Read Implementation Plans
+
+For each story in the current phase, attempt to read its implementation plan:
+
+1. Compute plan path: `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`
+2. Read the plan file and extract the list of affected files:
+   - Look for sections titled "Affected files", "Existing classes to modify", or
+     "New classes/interfaces to create"
+   - Collect all file paths referenced in those sections
+3. If the plan file does not exist for a story:
+   - Mark the story as `unpredictable`
+   - Log: `"WARNING: No implementation plan for {storyId} — classified as unpredictable"`
+   - An `unpredictable` story is treated as a potential conflict with any other story
+
+**Per-story data structure:**
+```json
+{
+  "storyId": "story-XXXX-YYYY",
+  "planPath": "docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md",
+  "affectedFiles": ["src/main/java/.../File.java", "pom.xml"],
+  "hasPlan": true
+}
+```
+
+### 0.5.2 Build File Overlap Matrix
+
+For each pair of stories (A, B) in the same phase, compute the intersection of their
+affected file sets:
+
+1. Intersect `affectedFiles(A)` with `affectedFiles(B)`
+2. Record the overlap count: `overlapCount = |intersection|`
+3. The matrix is symmetric: `overlap(A, B) == overlap(B, A)` — compute each pair once
+
+### 0.5.3 Classify Overlaps
+
+For each pair with `overlapCount > 0` (or involving an `unpredictable` story), apply
+the classification rules in priority order:
+
+| Classification | Criteria | Action |
+|----------------|----------|--------|
+| `unpredictable` | One or both stories have no implementation plan (`hasPlan: false`) | Demote to sequential execution (conservative) |
+| `config-only` | ALL overlapping files are configuration files (`*.yaml`, `*.json`, `*.properties`, `*.toml`, `*.env`, `pom.xml`, `build.gradle`, `package.json`) | Allow parallel dispatch + smart merge (config files are generally merge-friendly) |
+| `code-overlap-low` | 1–2 overlapping files are code files (`.ts`, `.java`, `.py`, `.go`, `.rs`, `.kt`) | Allow parallel dispatch with WARNING logged: `"WARNING: Low code overlap ({N} file(s)) between {storyA} and {storyB}"` |
+| `code-overlap-high` | 3+ overlapping files are code files | Demote to sequential execution |
+| `no-overlap` | Zero overlapping files and both stories have plans | Allow parallel dispatch (no action needed) |
+
+**Per-pair data structure:**
+```json
+{
+  "storyA": "story-XXXX-YYYY",
+  "storyB": "story-XXXX-ZZZZ",
+  "overlappingFiles": ["UserService.java", "UserRepository.java"],
+  "overlapCount": 2,
+  "classification": "code-overlap-low",
+  "action": "parallel-with-warning"
+}
+```
+
+### 0.5.4 Generate Adjusted Execution Plan
+
+Based on the classification results, partition stories into two groups:
+
+- **Parallel Batch:** Stories with no overlaps, `config-only` overlaps, or
+  `code-overlap-low` overlaps. These are dispatched concurrently via worktrees.
+- **Sequential Queue:** Stories involved in `code-overlap-high` or `unpredictable`
+  pairs. These are dispatched one at a time after the parallel batch completes.
+  The sequential order respects critical path priority (RULE-007).
+
+**Output file:** Save the analysis to `docs/stories/epic-XXXX/plans/preflight-analysis-phase-N.md`
+for audit purposes. The file follows this structure:
+
+```markdown
+# Pre-flight Conflict Analysis — Phase {N}
+
+## File Overlap Matrix
+
+| Story A | Story B | Overlapping Files | Classification |
+|---------|---------|-------------------|----------------|
+| story-XXXX-0001 | story-XXXX-0002 | pom.xml | config-only |
+| story-XXXX-0001 | story-XXXX-0003 | UserService.java, UserRepository.java, UserController.java | code-overlap-high |
+| story-XXXX-0002 | story-XXXX-0003 | — | no-overlap |
+
+## Adjusted Execution Plan
+
+### Parallel Batch
+- story-XXXX-0002 (no overlaps)
+
+### Sequential Queue (after parallel batch)
+1. story-XXXX-0001 (code-overlap-high with story-XXXX-0003)
+2. story-XXXX-0003 (code-overlap-high with story-XXXX-0001)
+
+## Warnings
+- story-XXXX-0004: no implementation plan found (classified as unpredictable)
+```
+
+### 0.5.5 Integration with Core Loop (Section 1.3)
+
+The adjusted execution plan produced by Phase 0.5 is consumed by the Core Loop:
+
+1. Before calling `getExecutableStories()`, the orchestrator reads the preflight
+   analysis for the current phase from `preflight-analysis-phase-N.md`
+2. Stories in the **Parallel Batch** are dispatched via worktree parallel dispatch
+   (Section 1.4a) as normal
+3. Stories in the **Sequential Queue** are removed from the parallel batch and
+   enqueued for sequential dispatch (Section 1.4) after the parallel batch completes
+4. The sequential queue ordering respects critical path priority (RULE-007)
+5. If no preflight analysis exists for a phase (e.g., Phase 0.5 was skipped or
+   this is a `--resume` run), all executable stories default to parallel dispatch
+
 ## Phase 1 — Execution Loop
 
 ### 1.1 Initialize Execution State
@@ -219,25 +339,36 @@ Execute stories phase-by-phase in dependency order:
 
 ```
 For each phase in (0..totalPhases-1):
+  0. Read preflight analysis for this phase (Phase 0.5 output):
+     → Load preflight-analysis-phase-{N}.md if it exists
+     → Extract parallelBatch and sequentialQueue story lists
+     → If no preflight analysis exists, treat all stories as parallel-eligible
   1. Call getExecutableStories(parsedMap, executionState)
      → Returns stories sorted by critical path priority (RULE-007)
      → Only PENDING stories with all dependencies SUCCESS are returned
   2. If no executable stories and some remain PENDING:
      → Phase is blocked; log warning and advance to next phase
-  3. For each executable story:
+  3. Partition executable stories using preflight analysis:
+     a. parallelStories = stories in parallelBatch (or all, if no preflight)
+     b. sequentialStories = stories in sequentialQueue (or empty, if no preflight)
+  4. Dispatch parallelStories via worktree dispatch (Section 1.4a)
+  5. After parallel batch completes, dispatch sequentialStories one at a time
+     via sequential dispatch (Section 1.4), in critical path priority order
+  6. For each dispatched story (parallel or sequential):
      a. updateStoryStatus(epicDir, storyId, { status: "IN_PROGRESS" })
-     b. Dispatch subagent (see 1.4)
+     b. Dispatch subagent (see 1.4 or 1.4a)
      c. Validate result (see 1.5)
      d. Update checkpoint (see 1.6)
-  4. [Placeholder: integrity gate between phases — story-0005-0006]
-  5. [Placeholder: progress reporting — story-0005-0013]
-  6. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
+  7. [Placeholder: integrity gate between phases — story-0005-0006]
+  8. [Placeholder: progress reporting — story-0005-0013]
+  9. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
 ```
 
 The loop ensures that:
 - Stories are dispatched in dependency-safe order
 - BLOCKED stories are never dispatched (filtered by `getExecutableStories`)
 - Each phase completes before the next begins (parallel dispatch is default; sequential when `--sequential` is set)
+- Pre-flight conflict analysis partitions stories into parallel and sequential groups to minimize merge conflicts
 - [Placeholder: partial execution filter — story-0005-0009]
 
 ### 1.4 Subagent Dispatch (Sequential Mode — When `--sequential` Is Set)
@@ -653,4 +784,7 @@ Return to main branch: `git checkout main && git pull origin main`
 - Invokes: `x-review-pr` (tech lead review on full epic diff, Phase 2.1)
 - Uses: `gh pr create` (PR creation with summary body, Phase 2.3)
 - Reads: `_TEMPLATE-EPIC-EXECUTION-REPORT.md` (report template), `execution-state.json` (checkpoint data)
+- Reads: `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (implementation plans for pre-flight conflict analysis, Phase 0.5)
+- Writes: `docs/stories/epic-XXXX/plans/preflight-analysis-phase-N.md` (pre-flight analysis output for audit, Phase 0.5)
+- Phase 0.5 is skipped when `--sequential` is set (no parallel dispatch means no conflict risk)
 - All `{{PLACEHOLDER}}` tokens are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
