@@ -29,7 +29,7 @@ description: >
 | `--skip-review` | boolean | `false` | Skip review phases in subagents |
 | `--dry-run` | boolean | `false` | Generate plan without executing |
 | `--resume` | boolean | `false` | Continue from last checkpoint (execution-state.json) |
-| `--parallel` | boolean | `false` | Enable parallel worktrees |
+| `--sequential` | boolean | `false` | Disable parallel worktrees, execute stories one at a time |
 
 Missing epic ID aborts with: `ERROR: Epic ID is required.`
 
@@ -144,23 +144,27 @@ Single-pass evaluation (no cascade). After reevaluation, feed updated state into
 - For each executable story: mark `IN_PROGRESS`, dispatch subagent, validate result, update checkpoint
 - BLOCKED stories are never dispatched (filtered by `getExecutableStories`)
 
-### 1.4 Subagent Dispatch (Sequential Mode)
+### 1.4 Subagent Dispatch (Sequential Mode — When `--sequential` Is Set)
 
+- When `--sequential` flag is set, use sequential dispatch
 - Use `Agent` tool to launch a clean context subagent (RULE-001 context isolation)
 - Subagent executes x-dev-lifecycle logic and returns `SubagentResult`
 - Result fields: `status` (`SUCCESS`/`FAILED`/`PARTIAL`), `commitSha`, `findingsCount`, `summary`
 
-### 1.4a Parallel Worktree Dispatch (Conditional: `--parallel`)
+### 1.4a Parallel Worktree Dispatch (Default Behavior)
 
-When `--parallel` is active, dispatch all executable stories in the current phase
-concurrently in a SINGLE message via `Agent` with `isolation: "worktree"`.
+Default behavior. When `--sequential` is NOT set, dispatch all executable stories
+in the current phase concurrently in a SINGLE message via `Agent` with `isolation: "worktree"`.
 
 - Call `getExecutableStories(parsedMap, executionState)` for the current phase
 - Mark all as `IN_PROGRESS`, then launch in SINGLE message with `isolation: "worktree"`
 - Each worktree operates on branch `feat/epic-{epicId}-{storyId}`
 - Context isolation (RULE-001): each worktree subagent gets clean context
-- When `--parallel` is NOT active (default), sequential dispatch (1.4) is used unchanged
+- Only when `--sequential` flag is set, the sequential dispatch in Section 1.4 is used instead
 - Wait for ALL subagents to complete before merge
+
+> **Legacy flag:** If `--parallel` is passed, it is silently ignored (no error). The
+> parallel behavior is already the default.
 
 ### 1.4b Merge Strategy (After Parallel Dispatch)
 

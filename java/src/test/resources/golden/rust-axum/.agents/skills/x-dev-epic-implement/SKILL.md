@@ -2,7 +2,7 @@
 name: x-dev-epic-implement
 description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
-argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--parallel]"
+argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential]"
 ---
 
 ## Global Output Policy
@@ -43,7 +43,7 @@ ERROR: Epic ID is required. Usage: /x-dev-epic-implement [EPIC-ID] [flags]
 | `--skip-review` | boolean | `false` | Skip review phases in x-dev-lifecycle subagents |
 | `--dry-run` | boolean | `false` | Generate execution plan without executing |
 | `--resume` | boolean | `false` | Continue from last checkpoint (execution-state.json) |
-| `--parallel` | boolean | `false` | Enable parallel worktrees (default: sequential) |
+| `--sequential` | boolean | `false` | Disable parallel worktrees, execute stories one at a time |
 
 ## Prerequisites Check
 
@@ -134,7 +134,7 @@ Execute a single story in isolation.
 3. **Read IMPLEMENTATION-MAP.md**: Extract the story dependency graph and execution order
 4. **Read EPIC-XXXX.md**: Load epic context (title, description, acceptance criteria)
 5. **Discover story files**: Glob `story-XXXX-*.md` to collect all story files in the epic directory
-6. **Determine execution order**: Use the dependency graph from IMPLEMENTATION-MAP.md to order stories; stories without dependencies can run in parallel if `--parallel` is set
+6. **Determine execution order**: Use the dependency graph from IMPLEMENTATION-MAP.md to order stories; stories without dependencies run in parallel via worktrees by default; use `--sequential` to disable
 7. **Create branch**: `git checkout -b feat/epic-{epicId}-implementation`
 8. **Dry-run exit**: If `--dry-run` is set, output the execution plan (story order, dependencies, estimated phases) and stop
 9. **Resume handling**: If `--resume` is set, run the Resume Workflow (see below) before delegation
@@ -194,7 +194,7 @@ After reclassification and branch recovery, feed the updated state into `getExec
    - `epicId`: The parsed epic ID
    - `branch`: `feat/epic-{epicId}-full-implementation`
    - `stories`: Array of `{ id, phase }` from step 3
-   - `mode`: `{ parallel: false, skipReview: <from flags> }`
+   - `mode`: `{ parallel: true, skipReview: <from flags> }` (default; set to `false` when `--sequential` is passed)
 5. The returned `ExecutionState` tracks all story statuses, metrics, and integrity gates
 
 ### 1.2 Branch Management
@@ -237,12 +237,12 @@ For each phase in (0..totalPhases-1):
 The loop ensures that:
 - Stories are dispatched in dependency-safe order
 - BLOCKED stories are never dispatched (filtered by `getExecutableStories`)
-- Each phase completes before the next begins (sequential mode)
+- Each phase completes before the next begins (parallel dispatch is default; sequential when `--sequential` is set)
 - [Placeholder: partial execution filter — story-0005-0009]
 
-### 1.4 Subagent Dispatch (Sequential Mode)
+### 1.4 Subagent Dispatch (Sequential Mode — When `--sequential` Is Set)
 
-For each executable story, launch a clean-context subagent using the `Agent` tool:
+When `--sequential` flag is set, use sequential dispatch. For each executable story, launch a clean-context subagent using the `Agent` tool:
 
 **Subagent Configuration:**
 - Tool: `Agent` with `subagent_type: "general-purpose"`
@@ -275,14 +275,17 @@ Return a JSON result with this exact structure (SubagentResult):
 }
 ```
 
-### 1.4a Parallel Worktree Dispatch (Conditional: `--parallel`)
+### 1.4a Parallel Worktree Dispatch (Default Behavior)
 
-When `mode.parallel === true`, replace the sequential dispatch (1.4) with parallel
-worktree dispatch. All executable stories in the current phase are launched
-concurrently in a SINGLE message.
+Default behavior. When `--sequential` is NOT set, all executable stories in the
+current phase are launched concurrently via worktree dispatch in a SINGLE message.
 
-**Activation:** Only when `--parallel` flag is set. When `--parallel` is NOT active
-(default), the sequential dispatch in Section 1.4 is used unchanged.
+**Activation:** Default behavior. Only when `--sequential` flag is set, the sequential
+dispatch in Section 1.4 is used instead.
+
+> **Legacy flag:** If `--parallel` is passed, it is silently ignored (no error). The
+> parallel behavior is already the default. This graceful handling ensures backward
+> compatibility for at least 1 version cycle.
 
 **Dispatch Algorithm:**
 
