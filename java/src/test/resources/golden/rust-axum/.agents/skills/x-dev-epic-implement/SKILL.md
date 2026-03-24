@@ -685,13 +685,27 @@ updateIntegrityGate(epicDir, phaseNumber, {
 The integrity gate is **mandatory** — there is no bypass. Every phase transition requires a PASS gate
 result. The gate runs after phase 0, 1, 2, and 3 — one gate per phase.
 
-## Phase 2 — Consolidation
+## Phase 2 — Consolidation (Two-Wave)
 
-After all stories complete (or reach terminal state), the orchestrator runs three
-sequential consolidation actions. Each action is dispatched to a clean-context
-subagent (RULE-001) to keep the orchestrator's context lightweight.
+After all stories complete (or reach terminal state), the orchestrator runs a
+two-wave consolidation. Wave 1 launches independent subagents in parallel;
+Wave 2 waits for both results before creating the PR. Each action is dispatched
+to a clean-context subagent (RULE-001) to keep the orchestrator's context lightweight.
 
-### 2.1 Tech Lead Review Subagent
+**Skip condition:** If NO stories have status SUCCESS, skip consolidation entirely.
+Log: `"No successful stories — skipping consolidation"` and proceed to Phase 3.
+
+### Wave 1 — Parallel Review + Report (SINGLE message)
+
+**CRITICAL:** Both subagents 2.1 and 2.2 MUST be launched in a SINGLE message (RULE-003).
+They are independent: 2.1 reads the git diff (branch vs main), while 2.2 reads the
+checkpoint on disk (`execution-state.json` + template). No data dependency exists between them.
+
+When `--skip-review` is set, Wave 1 launches ONLY subagent 2.2 (Report Generation).
+No Tech Lead Review subagent is launched. The `{{FINDINGS_SUMMARY}}` field in the
+report is populated with `"Review skipped by user"`.
+
+#### 2.1 Tech Lead Review Subagent
 
 Dispatch a subagent that executes `x-review-pr` logic on the full epic diff:
 
@@ -716,11 +730,11 @@ from all stories). Return a JSON ReviewResult:
 ```
 
 **Result Handling:**
-- On SUCCESS: record `ReviewResult` in checkpoint for report generation
-- On subagent failure: log warning, continue (review is informational, not blocking)
+- On SUCCESS: record `ReviewResult` in checkpoint atomically (RULE-002)
+- On subagent failure: log `"WARNING: Tech Lead Review failed — continuing without review"`, continue (review is informational, not blocking)
 - The review covers the COMPLETE epic diff (branch vs main), not individual stories
 
-### 2.2 Report Generation Subagent
+#### 2.2 Report Generation Subagent
 
 Dispatch a subagent that generates `epic-execution-report.md`:
 
@@ -745,19 +759,66 @@ You are generating the epic execution report for EPIC-{epicId}.
 5. Write epic-execution-report.md to docs/stories/epic-{epicId}/
 ```
 
-**Validation:** After generation, scan the output file for any remaining `{{...}}`
-patterns. If found, log a warning with the unresolved placeholder names.
+**Parallel-mode note:** Because 2.2 runs concurrently with 2.1 in Wave 1, the
+`ReviewResult` may not yet be available when 2.2 populates `{{FINDINGS_SUMMARY}}`.
+Therefore, 2.2 MUST populate `{{FINDINGS_SUMMARY}}` with the placeholder value
+`"Pending review"`. Wave 2 (Section 2.3) replaces this placeholder with the actual
+review findings after both subagents complete.
 
-### 2.3 PR Creation
+**Validation:** After generation, scan the output file for any remaining `{{...}}`
+patterns (excluding the expected `"Pending review"` in `{{FINDINGS_SUMMARY}}`).
+If found, log a warning with the unresolved placeholder names.
+
+**Result Handling:**
+- On SUCCESS: report written to `docs/stories/epic-{epicId}/epic-execution-report.md`. Update checkpoint atomically (RULE-002)
+- On FAILURE: log `"ERROR: Report generation failed"`, continue to Wave 2 (PR created without report)
+
+### Wave 1 Result Handling
+
+After both subagents in Wave 1 complete (or the single subagent when `--skip-review`
+is set), collect and evaluate results before proceeding to Wave 2:
+
+| 2.1 Result | 2.2 Result | Action |
+|------------|------------|--------|
+| SUCCESS | SUCCESS | Replace `"Pending review"` in report with actual findings; create PR with full report |
+| FAILURE | SUCCESS | Log warning; replace `"Pending review"` with `"Review unavailable"`; create PR without review score in title |
+| SUCCESS | FAILURE | Log ERROR; create PR with minimalist body extracted from checkpoint; include review score |
+| FAILURE | FAILURE | Log ERROR for both; create PR with minimalist body from checkpoint data directly |
+| SKIPPED (`--skip-review`) | SUCCESS | `{{FINDINGS_SUMMARY}}` already contains `"Review skipped by user"`; create PR without review section |
+| SKIPPED (`--skip-review`) | FAILURE | Log ERROR; create PR with minimalist body; no review section |
+
+**Checkpoint timing (RULE-002):** Each subagent's result is recorded in the checkpoint
+atomically as soon as it completes. The checkpoint is the single source of truth for
+Wave 2 to determine what data is available.
+
+### Wave 2 — PR Creation (after Wave 1 completes)
+
+Wave 2 executes ONLY after all Wave 1 subagents have completed. It collects the
+results from the checkpoint and creates the PR.
+
+#### 2.3 PR Creation
+
+Before creating the PR, replace the `"Pending review"` placeholder in the report
+with the actual review data from Wave 1:
+
+1. **Replace placeholder in report:** If 2.1 succeeded, read `ReviewResult` from
+   checkpoint and replace `"Pending review"` in `epic-execution-report.md` with the
+   actual `{{FINDINGS_SUMMARY}}` content (consolidated findings from the review).
+   If 2.1 failed, replace with `"Review unavailable"`.
+   If `--skip-review` was set, the value is already `"Review skipped by user"` (no replacement needed).
+2. **Handle missing report:** If 2.2 failed (no report file on disk), create a
+   minimalist PR body directly from checkpoint data (story counts, coverage metrics,
+   review score if available). Skip report-related steps.
 
 Push the epic branch and create a PR via `gh` CLI:
 
-1. **Push:** `git push -u origin feat/epic-{epicId}-full-implementation`
-2. **Title format:**
+3. **Push:** `git push -u origin feat/epic-{epicId}-full-implementation`
+4. **Title format:**
    - Full completion: `feat(epic): implement EPIC-{epicId} — {title}`
    - Partial completion: `[PARTIAL] feat(epic): implement EPIC-{epicId} — {title}`
    - Include `[PARTIAL]` when completion percentage < 100%
-3. **Body structure:**
+   - When 2.1 failed or was skipped, omit review score from title
+5. **Body structure:**
    ```
    ## Summary
    - Stories completed: {completed}/{total}
@@ -775,7 +836,7 @@ Push the epic branch and create a PR via `gh` CLI:
    ## Report
    - See `docs/stories/epic-{epicId}/epic-execution-report.md`
    ```
-4. **Create:** `gh pr create --title "{title}" --body "{body}" --base main`
+6. **Create:** `gh pr create --title "{title}" --body "{body}" --base main`
 
 **Error handling:** If `git push` fails (e.g., remote not accessible), log the error,
 generate the report without a PR link, and persist the failure in checkpoint.
@@ -819,9 +880,10 @@ Verify the Definition of Done (DoD) for the epic:
 - [ ] All stories completed (or documented as FAILED/BLOCKED in report)
 - [ ] Coverage thresholds met (>=95% line, >=90% branch)
 - [ ] Zero compiler/linter warnings
-- [ ] Tech lead review executed (Phase 2.1)
-- [ ] Epic execution report generated with no unresolved placeholders (Phase 2.2)
-- [ ] PR created or failure documented (Phase 2.3)
+- [ ] Tech lead review executed (Phase 2.1 — Wave 1) or skipped via `--skip-review`
+- [ ] Epic execution report generated with no unresolved placeholders (Phase 2.2 — Wave 1)
+- [ ] `"Pending review"` placeholder replaced with actual findings (Phase 2.3 — Wave 2)
+- [ ] PR created or failure documented (Phase 2.3 — Wave 2)
 - [ ] All findings with severity >= Medium addressed or documented
 
 ### 3.3 Final Status Determination
@@ -854,8 +916,9 @@ Return to main branch: `git checkout main && git pull origin main`
 ## Integration Notes
 
 - Invokes: `x-dev-lifecycle` (per-story execution), `x-story-map` (if map missing, via error guidance)
-- Invokes: `x-review-pr` (tech lead review on full epic diff, Phase 2.1)
-- Uses: `gh pr create` (PR creation with summary body, Phase 2.3)
+- Invokes: `x-review-pr` (tech lead review on full epic diff, Phase 2.1 — Wave 1 parallel)
+- Uses: `gh pr create` (PR creation with summary body, Phase 2.3 — Wave 2 sequential)
+- Phase 2 uses Two-Wave consolidation: Wave 1 dispatches 2.1 + 2.2 in parallel (SINGLE message, RULE-003); Wave 2 (2.3) runs after both complete
 - Reads: `_TEMPLATE-EPIC-EXECUTION-REPORT.md` (report template), `execution-state.json` (checkpoint data)
 - Reads: `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (implementation plans for pre-flight conflict analysis, Phase 0.5)
 - Writes: `docs/stories/epic-XXXX/plans/preflight-analysis-phase-N.md` (pre-flight analysis output for audit, Phase 0.5)

@@ -288,28 +288,52 @@ After all stories in a phase complete, dispatch an integrity gate subagent:
 
 Gate result stored via `updateIntegrityGate(epicDir, phase, result)`. Mandatory per RULE-004.
 
-## Phase 2 — Consolidation
+## Phase 2 — Consolidation (Two-Wave)
 
-After all stories complete (or reach terminal state), the orchestrator dispatches
-three sequential consolidation actions via clean-context subagents (RULE-001).
+After all stories complete (or reach terminal state), the orchestrator runs a
+two-wave consolidation via clean-context subagents (RULE-001). Wave 1 launches
+independent subagents in parallel; Wave 2 waits for both results before creating the PR.
 
-### 2.1 Tech Lead Review Subagent
+**Skip condition:** If NO stories have status SUCCESS, skip consolidation entirely.
+
+### Wave 1 — Parallel Review + Report (SINGLE message)
+
+**CRITICAL:** 2.1 and 2.2 MUST be launched in a SINGLE message (RULE-003).
+When `--skip-review` is set, Wave 1 launches only 2.2.
+
+#### 2.1 Tech Lead Review Subagent
 
 - Dispatch subagent that executes `x-review-pr` logic on full epic diff (branch vs main)
 - Input: branch name, base branch (main)
 - Returns `ReviewResult`: `{ score, decision (GO/NO-GO), findings }`
+- On SUCCESS: record ReviewResult in checkpoint atomically (RULE-002)
 - On subagent failure: log warning, continue (review is informational)
 
-### 2.2 Report Generation Subagent
+#### 2.2 Report Generation Subagent
 
 - Dispatch subagent to generate `epic-execution-report.md`
 - Reads `_TEMPLATE-EPIC-EXECUTION-REPORT.md` and `execution-state.json`
 - Resolves all `{{PLACEHOLDER}}` tokens with real data from checkpoint
-- Validates no unresolved `{{...}}` placeholders remain in output
+- `{{FINDINGS_SUMMARY}}` populated with `"Pending review"` placeholder (replaced by Wave 2)
+- Validates no unresolved `{{...}}` placeholders remain (excluding expected `"Pending review"`)
 - Writes to `docs/stories/epic-{epicId}/epic-execution-report.md`
+- On FAILURE: log ERROR, PR created without report in Wave 2
 
-### 2.3 PR Creation
+### Wave 1 Result Handling
 
+| 2.1 Result | 2.2 Result | Action |
+|------------|------------|--------|
+| SUCCESS | SUCCESS | Replace placeholder with actual findings; create PR with full report |
+| FAILURE | SUCCESS | Replace placeholder with `"Review unavailable"`; PR without review score |
+| SUCCESS | FAILURE | PR with minimalist body from checkpoint; include review score |
+| FAILURE | FAILURE | PR with minimalist body from checkpoint directly |
+
+### Wave 2 — PR Creation (after Wave 1 completes)
+
+#### 2.3 PR Creation
+
+- Replace `"Pending review"` in report with actual ReviewResult from 2.1 (or `"Review unavailable"` if 2.1 failed)
+- If 2.2 failed: create minimalist PR body from checkpoint data
 - Push: `git push -u origin feat/epic-{epicId}-full-implementation`
 - Title: `feat(epic): implement EPIC-{epicId} — {title}`
 - If completion < 100%: title includes `[PARTIAL]`
@@ -343,7 +367,7 @@ Final verification validates the epic as a whole before declaring completion.
 - All stories completed or documented as FAILED/BLOCKED in report
 - Coverage thresholds met
 - Zero compiler/linter warnings
-- Tech lead review executed; report generated; PR created
+- Tech lead review executed (Wave 1) or skipped; report generated (Wave 1); placeholder replaced and PR created (Wave 2)
 
 ### 3.3 Final Status Determination
 
@@ -360,8 +384,9 @@ Final verification validates the epic as a whole before declaring completion.
 ## Integration Notes
 
 - Invokes: `x-dev-lifecycle` (per-story), `x-story-map` (error guidance)
-- Invokes: `x-review-pr` (tech lead review on full epic diff, Phase 2.1)
-- Uses: `gh pr create` (PR creation with summary body, Phase 2.3)
+- Invokes: `x-review-pr` (tech lead review on full epic diff, Phase 2.1 — Wave 1 parallel)
+- Uses: `gh pr create` (PR creation with summary body, Phase 2.3 — Wave 2 sequential)
+- Phase 2 uses Two-Wave consolidation: Wave 1 dispatches 2.1 + 2.2 in parallel (SINGLE message, RULE-003); Wave 2 (2.3) runs after both complete
 - Reads: `_TEMPLATE-EPIC-EXECUTION-REPORT.md` (report template), `execution-state.json` (checkpoint data)
 - Reads: `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (implementation plans for pre-flight analysis, Phase 0.5)
 - Writes: `docs/stories/epic-XXXX/plans/preflight-analysis-phase-N.md` (pre-flight analysis output, Phase 0.5)
