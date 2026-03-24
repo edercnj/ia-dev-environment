@@ -29,8 +29,10 @@ After Phase 8: `>>> Phase 8/8 completed. Lifecycle complete.`
 
 ```
 Phase 0: Preparation          (orchestrator — inline)
-Phase 1: Planning              (subagent — reads architecture KPs)
-Phase 1B-1E: Two-Wave Planning (Wave 1: 1B+1D+1E parallel — SINGLE message; Wave 2: 1C sequential)
+Phase 1: Planning
+  Wave 1 (parallel, SINGLE message): 1A arch plan + 1B-test test plan
+  Sequential: 1B-impl implementation plan (depends on 1A output)
+  Wave 2 (parallel, SINGLE message): 1C task decomp + 1D event schema + 1E compliance
 Phase 2: Implementation        (subagent — reads coding + layer KPs)
 Phase 3: Documentation         (orchestrator — inline)
 Phase 4: Review                (invoke /x-review skill — launches its own subagents)
@@ -47,7 +49,7 @@ Phase 8: Verification          (orchestrator — inline)
 2. Verify dependencies (predecessor stories complete)
 3. Check if test plan exists at `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
    - If present: Phase 2 will use TDD mode
-   - If absent: Phase 1B will produce it; if 1B also fails, Phase 2 falls back to G1-G7
+   - If absent: Phase 1B-test (Wave 1) will produce it; if 1B-test fails, Phase 2 falls back to G1-G7
 4. Check if architecture plan exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
    - If present: Phase 1 will skip architecture planning (use existing plan)
    - If absent: Phase 1 will evaluate decision tree and invoke x-dev-architecture-plan
@@ -55,11 +57,36 @@ Phase 8: Verification          (orchestrator — inline)
 6. Ensure directories exist: `mkdir -p docs/stories/epic-XXXX/plans docs/stories/epic-XXXX/reviews`
 7. Create branch: `git checkout -b feat/{STORY_ID}-description`
 
-## Phase 1 — Architecture Planning (Skill Invocation + Subagent Fallback)
+## Phase 1 — Planning (Wave 1 → Sequential → Wave 2)
 
-**If the architecture plan file already exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` (as checked in Phase 0), skip Step 1A and proceed directly to Step 1B, ensuring Step 1B reads the existing plan.**
+Phase 1 uses three execution stages to maximize parallelism while respecting data dependencies:
 
-### Step 1A: Architecture Plan via x-dev-architecture-plan
+```
+Wave 1 (SINGLE message, parallel):
+  ├── 1A: x-dev-architecture-plan → architecture-story-XXXX-YYYY.md
+  └── 1B-test: x-test-plan → tests-story-XXXX-YYYY.md
+
+Gate: Wait for Wave 1 completion
+
+Sequential:
+  └── 1B-impl: implementation plan subagent → plan-story-XXXX-YYYY.md
+      (reads arch plan from 1A if generated)
+
+Wave 2 (SINGLE message, parallel):
+  ├── 1C: task decomposition (reads test plan + impl plan)
+  ├── 1D: event schema design (reads impl plan, conditional)
+  └── 1E: compliance assessment (reads impl plan, conditional)
+```
+
+### Wave 1 — Parallel (SINGLE message)
+
+**CRITICAL: Wave 1 subagents MUST be launched in a SINGLE message (RULE-003).**
+
+Wave 1 launches architecture planning and test planning in parallel. These two tasks have no data dependency on each other: the test plan reads static knowledge packs (`skills/architecture/references/`, `skills/testing/references/`), NOT the output of the architecture plan.
+
+#### 1A: Architecture Plan via x-dev-architecture-plan
+
+**If the architecture plan file already exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` (as checked in Phase 0), skip 1A in Wave 1. Wave 1 dispatches ONLY the test plan.**
 
 Evaluate change scope using the decision tree:
 
@@ -74,13 +101,48 @@ Evaluate change scope using the decision tree:
 Invoke skill `/x-dev-architecture-plan {STORY_PATH}`.
 
 - Output: `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
-- If the skill invocation fails: emit `WARNING: Architecture plan generation failed. Continuing without architecture plan.` and proceed to Step 1B.
+- If the skill invocation fails: emit `WARNING: Architecture plan generation failed. Continuing without architecture plan.` The test plan from 1B-test is preserved regardless.
 
 **If Skip:**
 
-Log `"Architecture plan not needed for this change scope"` and proceed to Step 1B.
+Log `"Architecture plan not needed for this change scope"`. Wave 1 dispatches only the test plan.
 
-### Step 1B: Implementation Plan (Subagent via Task)
+##### Fallback: Inline Architecture Planning
+
+If skill `x-dev-architecture-plan` is not available in the project (skill file `skills/x-dev-architecture-plan/SKILL.md` does not exist), combine architecture planning into the Step 1B-impl subagent by expanding its prompt to also read:
+- `skills/protocols/references/` — protocol conventions
+- `skills/security/references/` — OWASP, headers, secrets
+- `skills/observability/references/` — tracing, metrics, logging
+- `skills/resilience/references/` — circuit breaker, retry, fallback
+
+This preserves the pre-integration behavior for projects that do not include the architecture-plan skill.
+
+#### 1B-test: Test Planning (MANDATORY DRIVER for Phase 2)
+
+Invoke skill `x-test-plan` → produces `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
+
+The test plan is the **implementation roadmap** for Phase 2. It produces:
+- Acceptance tests (AT-N) as outer loop (Double-Loop TDD)
+- Unit tests (UT-N) in TPP order as inner loop (Levels 1-6: degenerate → edge cases)
+- Integration tests (IT-N) positioned after related UTs
+- `Depends On: TASK-N` and `Parallel` markers per scenario
+
+**Gate:** If 1B-test fails or produces no output, Phase 2 MUST use G1-G7 fallback mode.
+
+### Wave 1 Gate
+
+After Wave 1 completes, verify outputs before proceeding:
+
+- **Check architecture plan:** If 1A was dispatched, verify `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` exists. If missing (1A failed), emit `WARNING: Architecture plan generation failed.` and continue.
+- **Check test plan:** Does `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md` exist?
+  - **If yes:** Pass the test plan path to Wave 2 (Phase 1C) as explicit input.
+  - **If no:** Emit `WARNING: Test plan not produced by Phase 1B-test. Phase 2 will use G1-G7 fallback mode.` Continue to Sequential step and Wave 2 without test plan (backward compatible).
+
+**Failure isolation:** A failure in one Wave 1 subagent does NOT block the other. If `x-test-plan` fails, the architecture plan output is preserved. If `x-dev-architecture-plan` fails, the test plan output is preserved.
+
+### Sequential — Step 1B-impl: Implementation Plan (Subagent via Task)
+
+**Executes AFTER Wave 1 completes.** This step depends on the architecture plan output from 1A (if generated).
 
 Launch a **single** `general-purpose` subagent:
 
@@ -107,32 +169,20 @@ Launch a **single** `general-purpose` subagent:
 >
 > Save to `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (where XXXX is the epic ID and YYYY is the story sequence, extracted from the story ID).
 
-### Fallback: Inline Architecture Planning
+### Wave 2 — Parallel (SINGLE message, after 1B-impl completes)
 
-If skill `x-dev-architecture-plan` is not available in the project (skill file `skills/x-dev-architecture-plan/SKILL.md` does not exist), combine architecture planning into the Step 1B subagent by expanding its prompt to also read:
-- `skills/protocols/references/` — protocol conventions
-- `skills/security/references/` — OWASP, headers, secrets
-- `skills/observability/references/` — tracing, metrics, logging
-- `skills/resilience/references/` — circuit breaker, retry, fallback
+**CRITICAL: Wave 2 subagents MUST be launched in a SINGLE message (RULE-003).**
 
-This preserves the pre-integration behavior for projects that do not include the architecture-plan skill.
+Wave 2 launches after the implementation plan is ready. All Wave 2 subagents read the implementation plan; task decomposition also reads the test plan from Wave 1.
 
-## Phases 1B-1E — Two-Wave Planning
+#### 1C: Task Decomposition
+Invoke skill `x-lib-task-decomposer` with test plan path from Wave 1 Gate (or null if not available) → produces `docs/stories/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`
 
-### Wave 1 — Parallel (SINGLE message)
+**Conditional:** If skill file `skills/x-lib-task-decomposer/SKILL.md` does not exist in the project, skip Phase 1C with log `"x-lib-task-decomposer not available, skipping task decomposition"`.
 
-**CRITICAL: Wave 1 subagents MUST be launched in a SINGLE message.**
-
-#### 1B: Test Planning (MANDATORY DRIVER for Phase 2)
-Invoke skill `x-test-plan` → produces `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
-
-The test plan is the **implementation roadmap** for Phase 2. It produces:
-- Acceptance tests (AT-N) as outer loop (Double-Loop TDD)
-- Unit tests (UT-N) in TPP order as inner loop (Levels 1-6: degenerate → edge cases)
-- Integration tests (IT-N) positioned after related UTs
-- `Depends On: TASK-N` and `Parallel` markers per scenario
-
-**Gate:** If Phase 1B fails or produces no output, Phase 2 MUST use G1-G7 fallback mode.
+The task decomposer auto-detects decomposition mode:
+- If test plan path provided and file contains TPP markers → test-driven tasks (RED/GREEN/REFACTOR per task, with `Parallel` flags)
+- If no test plan path (null) → fallback to G1-G7 layer-based decomposition
 
 #### 1D: Event Schema Design (if event_driven)
 Launch `general-purpose` subagent:
@@ -152,25 +202,6 @@ Launch `general-purpose` subagent:
 > Read the implementation plan at `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`.
 > Produce compliance impact assessment: data classification, encryption requirements, audit logging needs, regulatory considerations.
 > Save to `docs/stories/epic-XXXX/plans/compliance-story-XXXX-YYYY.md`.
-
-### Wave 1 Gate
-
-After Wave 1 completes, verify the test plan output before launching Wave 2:
-
-- **Check:** Does `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md` exist?
-- **If yes:** Pass the test plan path to Wave 2 (Phase 1C) as explicit input.
-- **If no:** Emit `WARNING: Test plan not produced by Phase 1B. Phase 1C will use fallback G1-G7 mode.` Wave 2 proceeds without test plan (backward compatible with current behavior).
-
-### Wave 2 — Sequential (after Wave 1 completes)
-
-#### 1C: Task Decomposition
-Invoke skill `x-lib-task-decomposer` with test plan path from Wave 1 Gate (or null if not available) → produces `docs/stories/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`
-
-**Conditional:** If skill file `skills/x-lib-task-decomposer/SKILL.md` does not exist in the project, skip Phase 1C with log `"x-lib-task-decomposer not available, skipping task decomposition"`.
-
-The task decomposer auto-detects decomposition mode:
-- If test plan path provided and file contains TPP markers → test-driven tasks (RED/GREEN/REFACTOR per task, with `Parallel` flags)
-- If no test plan path (null) → fallback to G1-G7 layer-based decomposition
 
 ## Phase 2 — TDD Implementation (Subagent via Task)
 
@@ -231,7 +262,7 @@ Independent test scenarios (no shared state/data dependencies) CAN run in parall
 
 ### G1-G7 Fallback (No Test Plan)
 
-If no test plan with TPP markers was produced by Phase 1B, use legacy group-based implementation:
+If no test plan with TPP markers was produced by Phase 1B-test (Wave 1), use legacy group-based implementation:
 
 > **Step 2 (Fallback) — Implement groups G1-G7** following the task breakdown:
 > - For each group: implement all tasks, then compile: `{{COMPILE_COMMAND}}`
@@ -434,7 +465,7 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
 
 ## Integration Notes
 
-- Invokes: `x-dev-architecture-plan` (Phase 1, conditional), `x-test-plan` (Wave 1), `x-lib-task-decomposer` (Wave 2, after test plan), `x-lib-group-verifier` (fallback only), `x-git-push`, `x-review`, `x-review-pr`
-- Two-Wave dispatch in Phases 1B-1E: Wave 1 launches 1B+1D+1E in parallel (SINGLE message); Wave 1 Gate checks test plan output; Wave 2 launches 1C sequentially with test plan path
+- Invokes: `x-dev-architecture-plan` (Wave 1, conditional), `x-test-plan` (Wave 1), `x-lib-task-decomposer` (Wave 2), `x-lib-group-verifier` (fallback only), `x-git-push`, `x-review`, `x-review-pr`
+- Three-stage Phase 1: Wave 1 launches 1A+1B-test in parallel (SINGLE message); Sequential 1B-impl reads arch plan output; Wave 2 launches 1C+1D+1E in parallel (SINGLE message)
 - TDD commit format follows `x-git-push` conventions (`[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]` suffixes)
 - All `{{PLACEHOLDER}}` tokens (e.g. `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
