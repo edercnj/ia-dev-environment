@@ -203,9 +203,31 @@ Launch `general-purpose` subagent:
 > Produce compliance impact assessment: data classification, encryption requirements, audit logging needs, regulatory considerations.
 > Save to `docs/stories/epic-XXXX/plans/compliance-story-XXXX-YYYY.md`.
 
-## Phase 2 — TDD Implementation (Subagent via Task)
+## Phase 2 — TDD Implementation (Split by Layer)
 
-Launch a **single** `general-purpose` subagent for implementation:
+Phase 2 uses **complexity detection** to choose between monolithic (single subagent) and split (multi-subagent, layer-parallel) execution. The split mode reduces context window pressure for stories touching 3+ layers by running independent layer implementations in parallel.
+
+### Complexity Detection
+
+Before dispatching implementation subagents, analyze the task breakdown to determine execution mode:
+
+1. Read task breakdown at `docs/stories/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`
+2. Count tasks per layer by scanning task descriptions and package paths:
+   - `domain_tasks`: tasks targeting `domain/model`, `domain/engine`, `domain/port`
+   - `outbound_tasks`: tasks targeting `adapter/outbound`
+   - `application_tasks`: tasks targeting `application` (use cases)
+   - `inbound_tasks`: tasks targeting `adapter/inbound`
+3. Apply decision rule:
+   - **SPLIT MODE:** `domain_tasks >= 1 AND outbound_tasks >= 1 AND (application_tasks >= 1 OR inbound_tasks >= 1)`
+   - **MONOLITHIC MODE:** All other cases (1-2 layers, overhead of split does not compensate)
+
+If task breakdown file does not exist: default to **MONOLITHIC MODE**.
+
+Log the decision: `"Phase 2 complexity detection: {SPLIT|MONOLITHIC} mode (domain={N}, outbound={N}, application={N}, inbound={N})"`
+
+### MONOLITHIC MODE (1-2 Layers)
+
+When monolithic mode is selected, launch a **single** `general-purpose` subagent for implementation (backward compatible with previous behavior):
 
 > You are a **Developer** implementing story {STORY_ID} for {{PROJECT_NAME}}.
 >
@@ -251,18 +273,96 @@ Launch a **single** `general-purpose` subagent for implementation:
 >
 > Report: TDD cycles completed, acceptance tests status, coverage numbers.
 
+### SPLIT MODE (3+ Layers)
+
+When split mode is selected, Phase 2 is divided into three sub-phases: 2A (parallel inner layers), 2B (sequential outer layers), and 2C (final validation).
+
+#### Phase 2A — Inner Layers (Parallel, SINGLE Message)
+
+**CRITICAL: Both layer subagents MUST be launched in a SINGLE message (RULE-003).**
+
+Domain and outbound adapter are architecturally independent layers (domain has no outward dependencies; outbound adapter implements ports defined in domain). Their TDD cycles can execute in parallel without conflict.
+
+Launch two subagents simultaneously in a SINGLE message:
+
+**2A-Domain: Domain TDD Cycles**
+
+Invoke: `x-dev-implement --layer domain --story {STORY_ID}`
+
+Scope: `domain/model`, `domain/engine`, `domain/port` — entities, value objects, engines, business rules, port interfaces.
+
+**2A-Outbound: Outbound Adapter TDD Cycles**
+
+Invoke: `x-dev-implement --layer outbound --story {STORY_ID}`
+
+Scope: `adapter/outbound` — outbound port implementations, repository adapters, external clients.
+
+Each subagent receives only the context relevant to its layer (RULE-001):
+- Story ID and epic ID
+- Layer scope (domain or outbound)
+- Test plan filtered to scenarios affecting the target layer
+- Task breakdown filtered to tasks for the target layer
+- Knowledge packs: `skills/coding-standards/`, `skills/layer-templates/`
+
+#### Phase 2A Gate (Integrity Check)
+
+After both 2A subagents complete, run an intermediate integrity check:
+
+1. **Compile:** `{{COMPILE_COMMAND}}` — MUST pass
+2. **Test:** Run domain + outbound tests — MUST pass
+
+If the Phase 2A Gate **FAILS**:
+- Emit: `"Phase 2A Gate FAILED — blocking Phase 2B"`
+- Do NOT proceed to Phase 2B
+- Report the failure with compilation/test error details
+
+If the Phase 2A Gate **PASSES**:
+- Emit: `"Phase 2A Gate PASSED — proceeding to Phase 2B"`
+- Continue to Phase 2B
+
+#### Phase 2B — Outer Layers (Sequential, After 2A)
+
+Application layer depends on domain (entities, ports defined in 2A). Inbound adapter depends on application (use cases) and domain (DTOs mapped from entities). Therefore, Phase 2B executes **sequentially** — NOT in parallel.
+
+**2B-Application: Application Layer**
+
+Invoke: `x-dev-implement --layer application --story {STORY_ID}`
+
+Scope: `application` — use cases, orchestration services.
+Depends on: domain entities + outbound port implementations from Phase 2A.
+
+Wait for application subagent to complete before launching inbound.
+
+**2B-Inbound: Inbound Adapter**
+
+Invoke: `x-dev-implement --layer inbound --story {STORY_ID}`
+
+Scope: `adapter/inbound` — REST/gRPC/CLI handlers, DTOs, mappers.
+Depends on: application use cases + domain DTOs.
+
+#### Phase 2C — Final Validation (Integrity Gate — RULE-004)
+
+After all layer subagents complete (2A + 2B), run the final integrity gate:
+
+1. **Compile:** `{{COMPILE_COMMAND}}` — MUST pass
+2. **Test:** `{{TEST_COMMAND}}` — ALL tests MUST pass
+3. **Coverage:** `{{COVERAGE_COMMAND}}` — line ≥ 95%, branch ≥ 90%
+
+Phase 2C is the mandatory integrity gate (RULE-004) that validates the combined output of all layer subagents.
+
 ### Parallelism in Phase 2
 
 Independent test scenarios (no shared state/data dependencies) CAN run in parallel:
 
 - Use `Parallel: yes/no` markers from the test plan and task breakdown
 - Subagents working on independent layers MUST be launched in a SINGLE message
-- Example: UT for outbound adapter can run in parallel with UT for inbound DTO if they share no state
+- In SPLIT MODE: Phase 2A leverages architectural independence of domain and outbound layers
+- In MONOLITHIC MODE: parallelism is limited to independent test scenarios within a single subagent
 - Dependent scenarios (marked `Depends On: TASK-N`) run sequentially
 
 ### G1-G7 Fallback (No Test Plan)
 
-If no test plan with TPP markers was produced by Phase 1B-test (Wave 1), use legacy group-based implementation:
+If no test plan with TPP markers was produced by Phase 1B-test (Wave 1), use legacy group-based implementation. **G1-G7 fallback always uses MONOLITHIC MODE** regardless of complexity detection result (the split heuristic requires a test plan to filter scenarios per layer).
 
 > **Step 2 (Fallback) — Implement groups G1-G7** following the task breakdown:
 > - For each group: implement all tasks, then compile: `{{COMPILE_COMMAND}}`
@@ -592,8 +692,9 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
 
 ## Integration Notes
 
-- Invokes: `x-dev-architecture-plan` (Wave 1, conditional), `x-test-plan` (Wave 1), `x-lib-task-decomposer` (Wave 2), `x-lib-group-verifier` (fallback only), `x-dev-arch-update` (Phase 3 subagent, conditional), `x-git-push`, `x-review`, `x-review-pr`
+- Invokes: `x-dev-architecture-plan` (Wave 1, conditional), `x-test-plan` (Wave 1), `x-lib-task-decomposer` (Wave 2), `x-dev-implement` (Phase 2, with optional `--layer` parameter), `x-lib-group-verifier` (fallback only), `x-dev-arch-update` (Phase 3 subagent, conditional), `x-git-push`, `x-review`, `x-review-pr`
 - Three-stage Phase 1: Wave 1 launches 1A+1B-test in parallel (SINGLE message); Sequential 1B-impl reads arch plan output; Wave 2 launches 1C+1D+1E in parallel (SINGLE message)
+- Phase 2 split-by-layer: complexity detection analyzes task breakdown per layer; SPLIT MODE (3+ layers) launches Phase 2A domain+outbound in parallel (SINGLE message), Phase 2A Gate, Phase 2B application then inbound sequentially, Phase 2C final integrity gate; MONOLITHIC MODE (1-2 layers) preserves single-subagent behavior; G1-G7 fallback always uses monolithic mode
 - Phase 3 parallel dispatch: documentation generators launch as independent subagents in a SINGLE message (max 5 per wave, overflow to Wave 2); changelog runs inline concurrently; gate waits for all subagents + changelog before Phase 4; failures are best-effort (WARNING, not blocking)
 - TDD commit format follows `x-git-push` conventions (`[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]` suffixes)
 - All `{{PLACEHOLDER}}` tokens (e.g. `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
