@@ -13,6 +13,28 @@ argument-hint: "[--story STORY_ID] [--layer domain|outbound|application|inbound]
 
 # Skill: Implement Story (Orchestrator)
 
+## Input Parsing
+
+### Positional Argument (Optional)
+
+| Argument | Format | Required | Description |
+|----------|--------|----------|-------------|
+| `{STORY_PATH_OR_DESCRIPTION}` | free text | Optional | Story file path or brief description of what to implement |
+
+When a positional argument is provided (e.g., `/x-dev-implement docs/stories/epic-0010/story-0010-0001.md`), the skill uses it as the story file path or implementation description.
+
+### Optional Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--story STORY_ID` | string | (none) | Story ID to implement (e.g., `story-0010-0001`). Resolves to `docs/stories/epic-{epicId}/story-{storyId}.md` |
+| `--layer` | enum | (none) | Restrict implementation to a single architecture layer: `domain`, `outbound`, `application`, or `inbound` |
+
+**Flag resolution rules:**
+- `--story story-0010-0001` resolves to the story file by extracting the epic ID from the story ID prefix
+- If both a positional argument and `--story` are provided, `--story` takes precedence
+- `--layer` is independent and can be combined with either positional argument or `--story`
+
 ## When to Use This vs `/x-dev-lifecycle`
 
 | Scenario | Use |

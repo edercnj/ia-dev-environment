@@ -184,10 +184,12 @@ After reclassification and branch recovery, feed the updated state into `getExec
 
 ## Phase 0.5 — Pre-flight Conflict Analysis
 
-Before entering the execution loop, the orchestrator performs a pre-flight analysis to
-detect file-level overlaps between stories in the same phase. Stories with high code
-overlap are demoted to sequential execution, preventing costly merge conflicts during
-parallel dispatch (Section 1.4b).
+At the start of **each phase N**, before dispatching any stories for that phase, the
+orchestrator performs a pre-flight analysis to detect file-level overlaps between stories
+in the same phase. Stories with high code overlap are demoted to sequential execution
+within phase N, preventing costly merge conflicts during parallel dispatch (Section 1.4b).
+The results are written to `preflight-analysis-phase-{N}.md`, which the core loop
+consumes when deciding per-story parallel vs sequential scheduling.
 
 **Skip condition:** When `--sequential` is set, Phase 0.5 is skipped entirely. Log:
 `"Pre-flight analysis skipped (sequential mode)"` and proceed directly to Phase 1.
@@ -195,7 +197,7 @@ In sequential mode there is no parallel dispatch, so conflict analysis adds no v
 
 ### 0.5.1 Read Implementation Plans
 
-For each story in the current phase, attempt to read its implementation plan:
+For each story in the current phase N, attempt to read its implementation plan:
 
 1. Compute plan path: `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`
 2. Read the plan file and extract the list of affected files:
@@ -488,7 +490,7 @@ merged, drastically reducing conflict rates in epics with 4+ parallel stories.
    d. If rebase succeeds:
       - Update checkpoint: `updateStoryStatus(epicDir, storyId, { status: "REBASE_SUCCESS" })`
       - Switch back: `git checkout feat/epic-{epicId}-full-implementation`
-      - Merge: `git merge feat/epic-{epicId}-{storyId}`
+      - Merge (fast-forward only): `git merge --ff-only feat/epic-{epicId}-{storyId}`
       - Update checkpoint: `updateStoryStatus(epicDir, storyId, { status: "SUCCESS", commitSha })` (RULE-002)
       - Append storyId to `alreadyMergedStories`, append commitSha to `alreadyMergedCommits`
    e. If rebase conflicts detected:
@@ -501,7 +503,7 @@ merged, drastically reducing conflict rates in epics with 4+ parallel stories.
       - If resolution succeeds:
         - `git rebase --continue`
         - Switch back: `git checkout feat/epic-{epicId}-full-implementation`
-        - Merge: `git merge feat/epic-{epicId}-{storyId}`
+        - Merge (fast-forward only): `git merge --ff-only feat/epic-{epicId}-{storyId}`
         - Update checkpoint as SUCCESS, append to tracking arrays
       - If resolution fails:
         - `git rebase --abort` (restore branch to pre-rebase state)
@@ -750,7 +752,7 @@ You are generating the epic execution report for EPIC-{epicId}.
    - {{COMPLETION_PERCENTAGE}}: completed/total × 100
    - {{PHASE_TIMELINE_TABLE}}: phase start/end times from checkpoint
    - {{STORY_STATUS_TABLE}}: per-story status with commit SHAs
-   - {{FINDINGS_SUMMARY}}: consolidated findings from tech lead review
+   - {{FINDINGS_SUMMARY}}: set to "Pending review" (replaced by Wave 2 with actual data)
    - {{COVERAGE_BEFORE}}, {{COVERAGE_AFTER}}, {{COVERAGE_DELTA}}
    - {{COMMIT_LOG}}: git log main..HEAD --oneline
    - {{UNRESOLVED_ISSUES}}: findings with severity >= Medium

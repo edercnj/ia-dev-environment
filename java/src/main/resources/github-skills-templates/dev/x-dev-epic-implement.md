@@ -129,16 +129,18 @@ Single-pass evaluation (no cascade). After reevaluation, feed updated state into
 
 ## Phase 0.5 — Pre-flight Conflict Analysis
 
-Before entering the execution loop, analyze file-level overlaps between stories in
-the same phase. Stories with high code overlap are demoted to sequential execution,
-preventing costly merge conflicts during parallel dispatch.
+At the start of **each phase N**, before dispatching any stories for that phase, analyze
+file-level overlaps between stories in the same phase. Stories with high code overlap are
+demoted to sequential execution within phase N, preventing costly merge conflicts during
+parallel dispatch. The results are written to `preflight-analysis-phase-{N}.md`, which the
+core loop consumes when deciding per-story parallel vs sequential scheduling.
 
 **Skip condition:** When `--sequential` is set, Phase 0.5 is skipped entirely. Log:
 `"Pre-flight analysis skipped (sequential mode)"`.
 
 ### 0.5.1 Read Implementation Plans
 
-For each story in the current phase, read `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`
+For each story in the current phase N, read `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`
 and extract affected files. Stories without plans are classified as `unpredictable`.
 
 ### 0.5.2 Build File Overlap Matrix
@@ -227,7 +229,7 @@ from stale base commits.
 3. **Subsequent stories (rebase before merge):**
    a. `updateStoryStatus(epicDir, storyId, { status: "REBASING" })`
    b. `git checkout feat/epic-{epicId}-{storyId}` then `git rebase feat/epic-{epicId}-full-implementation`
-   c. On rebase success: `updateStoryStatus(..., { status: "REBASE_SUCCESS" })`, switch back, `git merge`
+   c. On rebase success: `updateStoryStatus(..., { status: "REBASE_SUCCESS" })`, switch back, `git merge --ff-only`
    d. On rebase conflict: dispatch conflict resolution subagent (1.4c) with `alreadyMergedStories`, `alreadyMergedCommits`, `rebaseSourceBranch`
    e. On resolution failure: `git rebase --abort`, `updateStoryStatus(..., { status: "REBASE_FAILED" })` then FAILED, propagate blocks
 4. On merge success: `updateStoryStatus(epicDir, storyId, { status: "SUCCESS", commitSha })` (RULE-002); track in `alreadyMergedStories`/`alreadyMergedCommits`
