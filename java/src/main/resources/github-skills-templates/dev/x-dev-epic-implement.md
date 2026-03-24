@@ -108,6 +108,9 @@ When `--resume` is set, load `execution-state.json` and apply two-pass reclassif
 | PARTIAL | PENDING | Treat as interrupted |
 | BLOCKED | BLOCKED | Deferred to reevaluation |
 | PENDING | PENDING | No change |
+| REBASING | PENDING | Interrupted during rebase — retry from scratch |
+| REBASE_SUCCESS | PENDING | Rebase completed but merge not done — retry merge |
+| REBASE_FAILED | PENDING | Rebase failed — retry candidate (counts as retry) |
 
 ### Branch Recovery
 
@@ -212,22 +215,36 @@ in the current phase concurrently in a SINGLE message via `Agent` with `isolatio
 > **Legacy flag:** If `--parallel` is passed, it is silently ignored (no error). The
 > parallel behavior is already the default.
 
-### 1.4b Merge Strategy (After Parallel Dispatch)
+### 1.4b Merge Strategy — Rebase-Before-Merge (After Parallel Dispatch)
 
-Sequential merge of worktree branches into epic branch, ordered by critical path priority (RULE-007):
+Sequential merge of worktree branches into epic branch using rebase-before-merge
+strategy, ordered by critical path priority (RULE-007). Each branch (except the first)
+is rebased onto the updated epic branch before merging, eliminating spurious conflicts
+from stale base commits.
 
-1. Sort SUCCESS stories by critical path priority
-2. For each: `git merge feat/epic-{epicId}-{storyId}` into epic branch
-3. On success: `updateStoryStatus(epicDir, storyId, { status: "SUCCESS", commitSha })` (RULE-002)
-4. On conflict: dispatch conflict resolution subagent (1.4c)
-5. FAILED or PARTIAL stories from dispatch: do NOT merge; first persist result with `updateStoryStatus(epicDir, storyId, { status: "FAILED" | "PARTIAL", summary, lastAttemptSha })`, then delegate to failure handling (story-0005-0007)
-6. Checkpoint updated after EACH merge or FAILED/PARTIAL status update, not in batch
+1. Sort SUCCESS stories by critical path priority; init `alreadyMergedStories = []`, `alreadyMergedCommits = []`
+2. **First story (no rebase):** `git merge --ff-only feat/epic-{epicId}-{storyId}` (fall back to `git merge` if ff fails)
+3. **Subsequent stories (rebase before merge):**
+   a. `updateStoryStatus(epicDir, storyId, { status: "REBASING" })`
+   b. `git checkout feat/epic-{epicId}-{storyId}` then `git rebase feat/epic-{epicId}-full-implementation`
+   c. On rebase success: `updateStoryStatus(..., { status: "REBASE_SUCCESS" })`, switch back, `git merge`
+   d. On rebase conflict: dispatch conflict resolution subagent (1.4c) with `alreadyMergedStories`, `alreadyMergedCommits`, `rebaseSourceBranch`
+   e. On resolution failure: `git rebase --abort`, `updateStoryStatus(..., { status: "REBASE_FAILED" })` then FAILED, propagate blocks
+4. On merge success: `updateStoryStatus(epicDir, storyId, { status: "SUCCESS", commitSha })` (RULE-002); track in `alreadyMergedStories`/`alreadyMergedCommits`
+5. FAILED or PARTIAL stories from dispatch: do NOT merge/rebase; first persist result with `updateStoryStatus(epicDir, storyId, { status: "FAILED" | "PARTIAL", summary, lastAttemptSha })`, then delegate to failure handling (story-0005-0007)
+6. Checkpoint updated after EACH state transition (REBASING → REBASE_SUCCESS → SUCCESS, or REBASING → REBASE_FAILED → FAILED), not in batch
+
+**Checkpoint States:** `REBASING` (rebase in progress), `REBASE_SUCCESS` (rebase done, merge pending), `REBASE_FAILED` (rebase failed, resolution attempted or story FAILED)
 
 ### 1.4c Conflict Resolution Subagent
 
-- Dispatch `Agent` subagent with conflict file list, epic branch, and worktree branch
-- Subagent analyzes diff from both sides and resolves preserving intent of both stories
-- Returns `{ status: "SUCCESS" | "FAILED", summary }` — on FAILED, mark story FAILED
+- Dispatch `Agent` subagent with conflict file list, epic/worktree branch, conflict type (`"rebase"` or `"merge"`), and already-merged context (`alreadyMergedStories`, `alreadyMergedCommits`, `rebaseSourceBranch`)
+- Subagent considers already-merged stories as intentional, integrates current story on top
+- For rebase conflicts: `git add` resolved files (do NOT commit; `rebase --continue` handles it)
+- For merge conflicts: `git add` resolved files and commit the merge resolution
+- Returns `{ status: "SUCCESS" | "FAILED", summary }` — on FAILED:
+  - For rebase conflicts: `git rebase --abort`, mark story FAILED via REBASE_FAILED
+  - For merge conflicts: mark story FAILED directly
 - On irresolvable conflict: trigger block propagation for dependents (story-0005-0007)
 
 ### 1.4d Worktree Cleanup
