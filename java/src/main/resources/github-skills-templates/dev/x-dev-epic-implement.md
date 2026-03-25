@@ -29,7 +29,7 @@ description: >
 | `--skip-review` | boolean | `false` | Skip review phases in subagents |
 | `--dry-run` | boolean | `false` | Generate plan without executing |
 | `--resume` | boolean | `false` | Continue from last checkpoint (execution-state.json) |
-| `--parallel` | boolean | `false` | Enable parallel worktrees |
+| `--sequential` | boolean | `false` | Disable parallel worktrees, execute stories one at a time |
 
 Missing epic ID aborts with: `ERROR: Epic ID is required.`
 
@@ -108,6 +108,9 @@ When `--resume` is set, load `execution-state.json` and apply two-pass reclassif
 | PARTIAL | PENDING | Treat as interrupted |
 | BLOCKED | BLOCKED | Deferred to reevaluation |
 | PENDING | PENDING | No change |
+| REBASING | PENDING | Interrupted during rebase — retry from scratch |
+| REBASE_SUCCESS | PENDING | Rebase completed but merge not done — retry merge |
+| REBASE_FAILED | PENDING | Rebase failed — retry candidate (counts as retry) |
 
 ### Branch Recovery
 
@@ -123,6 +126,50 @@ After reclassification, reevaluate each BLOCKED story:
 - Any dep non-SUCCESS or missing → keep BLOCKED
 
 Single-pass evaluation (no cascade). After reevaluation, feed updated state into `getExecutableStories()` — only PENDING stories enter the execution loop.
+
+## Phase 0.5 — Pre-flight Conflict Analysis
+
+At the start of **each phase N**, before dispatching any stories for that phase, analyze
+file-level overlaps between stories in the same phase. Stories with high code overlap are
+demoted to sequential execution within phase N, preventing costly merge conflicts during
+parallel dispatch. The results are written to `preflight-analysis-phase-{N}.md`, which the
+core loop consumes when deciding per-story parallel vs sequential scheduling.
+
+**Skip condition:** When `--sequential` is set, Phase 0.5 is skipped entirely. Log:
+`"Pre-flight analysis skipped (sequential mode)"`.
+
+### 0.5.1 Read Implementation Plans
+
+For each story in the current phase N, read `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`
+and extract affected files. Stories without plans are classified as `unpredictable`.
+
+### 0.5.2 Build File Overlap Matrix
+
+For each pair of stories (A, B), compute the intersection of their affected file sets.
+The matrix is symmetric: `overlap(A, B) == overlap(B, A)`.
+
+### 0.5.3 Classify Overlaps
+
+| Classification | Criteria | Action |
+|----------------|----------|--------|
+| `unpredictable` | One or both stories have no plan | Demote to sequential |
+| `config-only` | ALL overlapping files are config (`*.yaml`, `*.json`, `*.properties`, `*.toml`, `*.env`, `pom.xml`, `build.gradle`, `package.json`) | Allow parallel + smart merge |
+| `code-overlap-low` | 1–2 code files (`.ts`, `.java`, `.py`, `.go`, `.rs`, `.kt`) overlap | Allow parallel with WARNING |
+| `code-overlap-high` | 3+ code files overlap | Demote to sequential |
+| `no-overlap` | Zero overlapping files | Allow parallel |
+
+### 0.5.4 Generate Adjusted Execution Plan
+
+- **Parallel Batch:** Stories with no overlaps, config-only, or code-overlap-low
+- **Sequential Queue:** Stories with code-overlap-high or unpredictable (ordered by critical path priority)
+- Output saved to `docs/stories/epic-XXXX/plans/preflight-analysis-phase-N.md` for audit
+
+### 0.5.5 Integration with Core Loop (Section 1.3)
+
+The Core Loop reads the preflight analysis and partitions stories:
+- Parallel Batch dispatched via worktree dispatch (Section 1.4a)
+- Sequential Queue dispatched one at a time (Section 1.4) after parallel batch completes
+- If no preflight analysis exists, all stories default to parallel dispatch
 
 ## Phase 1 — Execution Loop
 
@@ -140,44 +187,66 @@ Single-pass evaluation (no cascade). After reevaluation, feed updated state into
 
 ### 1.3 Core Loop Algorithm
 
-- For each phase, call `getExecutableStories(parsedMap, executionState)` sorted by critical path priority
-- For each executable story: mark `IN_PROGRESS`, dispatch subagent, validate result, update checkpoint
+- For each phase, read preflight analysis (Phase 0.5 output) if it exists
+- Partition executable stories into parallel batch and sequential queue based on preflight analysis
+- Call `getExecutableStories(parsedMap, executionState)` sorted by critical path priority
+- Dispatch parallel batch via worktree dispatch (1.4a), then sequential queue one at a time (1.4)
+- For each dispatched story: mark `IN_PROGRESS`, dispatch subagent, validate result, update checkpoint
 - BLOCKED stories are never dispatched (filtered by `getExecutableStories`)
+- If no preflight analysis exists, all stories default to parallel dispatch
 
-### 1.4 Subagent Dispatch (Sequential Mode)
+### 1.4 Subagent Dispatch (Sequential Mode — When `--sequential` Is Set)
 
+- When `--sequential` flag is set, use sequential dispatch
 - Use `Agent` tool to launch a clean context subagent (RULE-001 context isolation)
 - Subagent executes x-dev-lifecycle logic and returns `SubagentResult`
 - Result fields: `status` (`SUCCESS`/`FAILED`/`PARTIAL`), `commitSha`, `findingsCount`, `summary`
 
-### 1.4a Parallel Worktree Dispatch (Conditional: `--parallel`)
+### 1.4a Parallel Worktree Dispatch (Default Behavior)
 
-When `--parallel` is active, dispatch all executable stories in the current phase
-concurrently in a SINGLE message via `Agent` with `isolation: "worktree"`.
+Default behavior. When `--sequential` is NOT set, dispatch all executable stories
+in the current phase concurrently in a SINGLE message via `Agent` with `isolation: "worktree"`.
 
 - Call `getExecutableStories(parsedMap, executionState)` for the current phase
 - Mark all as `IN_PROGRESS`, then launch in SINGLE message with `isolation: "worktree"`
 - Each worktree operates on branch `feat/epic-{epicId}-{storyId}`
 - Context isolation (RULE-001): each worktree subagent gets clean context
-- When `--parallel` is NOT active (default), sequential dispatch (1.4) is used unchanged
+- Only when `--sequential` flag is set, the sequential dispatch in Section 1.4 is used instead
 - Wait for ALL subagents to complete before merge
 
-### 1.4b Merge Strategy (After Parallel Dispatch)
+> **Legacy flag:** If `--parallel` is passed, it is silently ignored (no error). The
+> parallel behavior is already the default.
 
-Sequential merge of worktree branches into epic branch, ordered by critical path priority (RULE-007):
+### 1.4b Merge Strategy — Rebase-Before-Merge (After Parallel Dispatch)
 
-1. Sort SUCCESS stories by critical path priority
-2. For each: `git merge feat/epic-{epicId}-{storyId}` into epic branch
-3. On success: `updateStoryStatus(epicDir, storyId, { status: "SUCCESS", commitSha })` (RULE-002)
-4. On conflict: dispatch conflict resolution subagent (1.4c)
-5. FAILED or PARTIAL stories from dispatch: do NOT merge; first persist result with `updateStoryStatus(epicDir, storyId, { status: "FAILED" | "PARTIAL", summary, lastAttemptSha })`, then delegate to failure handling (story-0005-0007)
-6. Checkpoint updated after EACH merge or FAILED/PARTIAL status update, not in batch
+Sequential merge of worktree branches into epic branch using rebase-before-merge
+strategy, ordered by critical path priority (RULE-007). Each branch (except the first)
+is rebased onto the updated epic branch before merging, eliminating spurious conflicts
+from stale base commits.
+
+1. Sort SUCCESS stories by critical path priority; init `alreadyMergedStories = []`, `alreadyMergedCommits = []`
+2. **First story (no rebase):** `git merge --ff-only feat/epic-{epicId}-{storyId}` (fall back to `git merge` if ff fails)
+3. **Subsequent stories (rebase before merge):**
+   a. `updateStoryStatus(epicDir, storyId, { status: "REBASING" })`
+   b. `git checkout feat/epic-{epicId}-{storyId}` then `git rebase feat/epic-{epicId}-full-implementation`
+   c. On rebase success: `updateStoryStatus(..., { status: "REBASE_SUCCESS" })`, switch back, `git merge --ff-only`
+   d. On rebase conflict: dispatch conflict resolution subagent (1.4c) with `alreadyMergedStories`, `alreadyMergedCommits`, `rebaseSourceBranch`
+   e. On resolution failure: `git rebase --abort`, `updateStoryStatus(..., { status: "REBASE_FAILED" })` then FAILED, propagate blocks
+4. On merge success: `updateStoryStatus(epicDir, storyId, { status: "SUCCESS", commitSha })` (RULE-002); track in `alreadyMergedStories`/`alreadyMergedCommits`
+5. FAILED or PARTIAL stories from dispatch: do NOT merge/rebase; first persist result with `updateStoryStatus(epicDir, storyId, { status: "FAILED" | "PARTIAL", summary, lastAttemptSha })`, then delegate to failure handling (story-0005-0007)
+6. Checkpoint updated after EACH state transition (REBASING → REBASE_SUCCESS → SUCCESS, or REBASING → REBASE_FAILED → FAILED), not in batch
+
+**Checkpoint States:** `REBASING` (rebase in progress), `REBASE_SUCCESS` (rebase done, merge pending), `REBASE_FAILED` (rebase failed, resolution attempted or story FAILED)
 
 ### 1.4c Conflict Resolution Subagent
 
-- Dispatch `Agent` subagent with conflict file list, epic branch, and worktree branch
-- Subagent analyzes diff from both sides and resolves preserving intent of both stories
-- Returns `{ status: "SUCCESS" | "FAILED", summary }` — on FAILED, mark story FAILED
+- Dispatch `Agent` subagent with conflict file list, epic/worktree branch, conflict type (`"rebase"` or `"merge"`), and already-merged context (`alreadyMergedStories`, `alreadyMergedCommits`, `rebaseSourceBranch`)
+- Subagent considers already-merged stories as intentional, integrates current story on top
+- For rebase conflicts: `git add` resolved files (do NOT commit; `rebase --continue` handles it)
+- For merge conflicts: `git add` resolved files and commit the merge resolution
+- Returns `{ status: "SUCCESS" | "FAILED", summary }` — on FAILED:
+  - For rebase conflicts: `git rebase --abort`, mark story FAILED via REBASE_FAILED
+  - For merge conflicts: mark story FAILED directly
 - On irresolvable conflict: trigger block propagation for dependents (story-0005-0007)
 
 ### 1.4d Worktree Cleanup
@@ -221,28 +290,52 @@ After all stories in a phase complete, dispatch an integrity gate subagent:
 
 Gate result stored via `updateIntegrityGate(epicDir, phase, result)`. Mandatory per RULE-004.
 
-## Phase 2 — Consolidation
+## Phase 2 — Consolidation (Two-Wave)
 
-After all stories complete (or reach terminal state), the orchestrator dispatches
-three sequential consolidation actions via clean-context subagents (RULE-001).
+After all stories complete (or reach terminal state), the orchestrator runs a
+two-wave consolidation via clean-context subagents (RULE-001). Wave 1 launches
+independent subagents in parallel; Wave 2 waits for both results before creating the PR.
 
-### 2.1 Tech Lead Review Subagent
+**Skip condition:** If NO stories have status SUCCESS, skip consolidation entirely.
+
+### Wave 1 — Parallel Review + Report (SINGLE message)
+
+**CRITICAL:** 2.1 and 2.2 MUST be launched in a SINGLE message (RULE-003).
+When `--skip-review` is set, Wave 1 launches only 2.2.
+
+#### 2.1 Tech Lead Review Subagent
 
 - Dispatch subagent that executes `x-review-pr` logic on full epic diff (branch vs main)
 - Input: branch name, base branch (main)
 - Returns `ReviewResult`: `{ score, decision (GO/NO-GO), findings }`
+- On SUCCESS: record ReviewResult in checkpoint atomically (RULE-002)
 - On subagent failure: log warning, continue (review is informational)
 
-### 2.2 Report Generation Subagent
+#### 2.2 Report Generation Subagent
 
 - Dispatch subagent to generate `epic-execution-report.md`
 - Reads `_TEMPLATE-EPIC-EXECUTION-REPORT.md` and `execution-state.json`
 - Resolves all `{{PLACEHOLDER}}` tokens with real data from checkpoint
-- Validates no unresolved `{{...}}` placeholders remain in output
+- `{{FINDINGS_SUMMARY}}` populated with `"Pending review"` placeholder (replaced by Wave 2)
+- Validates no unresolved `{{...}}` placeholders remain (excluding expected `"Pending review"`)
 - Writes to `docs/stories/epic-{epicId}/epic-execution-report.md`
+- On FAILURE: log ERROR, PR created without report in Wave 2
 
-### 2.3 PR Creation
+### Wave 1 Result Handling
 
+| 2.1 Result | 2.2 Result | Action |
+|------------|------------|--------|
+| SUCCESS | SUCCESS | Replace placeholder with actual findings; create PR with full report |
+| FAILURE | SUCCESS | Replace placeholder with `"Review unavailable"`; PR without review score |
+| SUCCESS | FAILURE | PR with minimalist body from checkpoint; include review score |
+| FAILURE | FAILURE | PR with minimalist body from checkpoint directly |
+
+### Wave 2 — PR Creation (after Wave 1 completes)
+
+#### 2.3 PR Creation
+
+- Replace `"Pending review"` in report with actual ReviewResult from 2.1 (or `"Review unavailable"` if 2.1 failed)
+- If 2.2 failed: create minimalist PR body from checkpoint data
 - Push: `git push -u origin feat/epic-{epicId}-full-implementation`
 - Title: `feat(epic): implement EPIC-{epicId} — {title}`
 - If completion < 100%: title includes `[PARTIAL]`
@@ -276,7 +369,7 @@ Final verification validates the epic as a whole before declaring completion.
 - All stories completed or documented as FAILED/BLOCKED in report
 - Coverage thresholds met
 - Zero compiler/linter warnings
-- Tech lead review executed; report generated; PR created
+- Tech lead review executed (Wave 1) or skipped; report generated (Wave 1); placeholder replaced and PR created (Wave 2)
 
 ### 3.3 Final Status Determination
 
@@ -293,7 +386,11 @@ Final verification validates the epic as a whole before declaring completion.
 ## Integration Notes
 
 - Invokes: `x-dev-lifecycle` (per-story), `x-story-map` (error guidance)
-- Invokes: `x-review-pr` (tech lead review on full epic diff, Phase 2.1)
-- Uses: `gh pr create` (PR creation with summary body, Phase 2.3)
+- Invokes: `x-review-pr` (tech lead review on full epic diff, Phase 2.1 — Wave 1 parallel)
+- Uses: `gh pr create` (PR creation with summary body, Phase 2.3 — Wave 2 sequential)
+- Phase 2 uses Two-Wave consolidation: Wave 1 dispatches 2.1 + 2.2 in parallel (SINGLE message, RULE-003); Wave 2 (2.3) runs after both complete
 - Reads: `_TEMPLATE-EPIC-EXECUTION-REPORT.md` (report template), `execution-state.json` (checkpoint data)
+- Reads: `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (implementation plans for pre-flight analysis, Phase 0.5)
+- Writes: `docs/stories/epic-XXXX/plans/preflight-analysis-phase-N.md` (pre-flight analysis output, Phase 0.5)
+- Phase 0.5 is skipped when `--sequential` is set
 - All `{{PLACEHOLDER}}` tokens are runtime markers — NOT resolved during generation

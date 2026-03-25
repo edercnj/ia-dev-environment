@@ -29,10 +29,12 @@ After Phase 8: `>>> Phase 8/8 completed. Lifecycle complete.`
 
 ```
 Phase 0: Preparation          (orchestrator — inline)
-Phase 1: Planning              (subagent — reads architecture KPs)
-Phase 1B-1E: Parallel Planning (up to 4 subagents — SINGLE message)
+Phase 1: Planning
+  Wave 1 (parallel, SINGLE message): 1A arch plan + 1B-test test plan
+  Sequential: 1B-impl implementation plan (depends on 1A output)
+  Wave 2 (parallel, SINGLE message): 1C task decomp + 1D event schema + 1E compliance
 Phase 2: Implementation        (subagent — reads coding + layer KPs)
-Phase 3: Documentation         (orchestrator — inline)
+Phase 3: Documentation         (parallel subagent dispatch + inline changelog)
 Phase 4: Review                (invoke /x-review skill — launches its own subagents)
 Phase 5-6: Fixes + PR          (orchestrator — inline)
 Phase 7: Tech Lead Review      (invoke /x-review-pr skill)
@@ -47,7 +49,7 @@ Phase 8: Verification          (orchestrator — inline)
 2. Verify dependencies (predecessor stories complete)
 3. Check if test plan exists at `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
    - If present: Phase 2 will use TDD mode
-   - If absent: Phase 1B will produce it; if 1B also fails, Phase 2 falls back to G1-G7
+   - If absent: Phase 1B-test (Wave 1) will produce it; if 1B-test fails, Phase 2 falls back to G1-G7
 4. Check if architecture plan exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
    - If present: Phase 1 will skip architecture planning (use existing plan)
    - If absent: Phase 1 will evaluate decision tree and invoke x-dev-architecture-plan
@@ -55,11 +57,36 @@ Phase 8: Verification          (orchestrator — inline)
 6. Ensure directories exist: `mkdir -p docs/stories/epic-XXXX/plans docs/stories/epic-XXXX/reviews`
 7. Create branch: `git checkout -b feat/{STORY_ID}-description`
 
-## Phase 1 — Architecture Planning (Skill Invocation + Subagent Fallback)
+## Phase 1 — Planning (Wave 1 → Sequential → Wave 2)
 
-**If the architecture plan file already exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` (as checked in Phase 0), skip Step 1A and proceed directly to Step 1B, ensuring Step 1B reads the existing plan.**
+Phase 1 uses three execution stages to maximize parallelism while respecting data dependencies:
 
-### Step 1A: Architecture Plan via x-dev-architecture-plan
+```
+Wave 1 (SINGLE message, parallel):
+  ├── 1A: x-dev-architecture-plan → architecture-story-XXXX-YYYY.md
+  └── 1B-test: x-test-plan → tests-story-XXXX-YYYY.md
+
+Gate: Wait for Wave 1 completion
+
+Sequential:
+  └── 1B-impl: implementation plan subagent → plan-story-XXXX-YYYY.md
+      (reads arch plan from 1A if generated)
+
+Wave 2 (SINGLE message, parallel):
+  ├── 1C: task decomposition (reads test plan + impl plan)
+  ├── 1D: event schema design (reads impl plan, conditional)
+  └── 1E: compliance assessment (reads impl plan, conditional)
+```
+
+### Wave 1 — Parallel (SINGLE message)
+
+**CRITICAL: Wave 1 subagents MUST be launched in a SINGLE message (RULE-003).**
+
+Wave 1 launches architecture planning and test planning in parallel. These two tasks have no data dependency on each other: the test plan reads static knowledge packs (`skills/architecture/references/`, `skills/testing/references/`), NOT the output of the architecture plan.
+
+#### 1A: Architecture Plan via x-dev-architecture-plan
+
+**If the architecture plan file already exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` (as checked in Phase 0), skip 1A in Wave 1. Wave 1 dispatches ONLY the test plan.**
 
 Evaluate change scope using the decision tree:
 
@@ -74,13 +101,48 @@ Evaluate change scope using the decision tree:
 Invoke skill `/x-dev-architecture-plan {STORY_PATH}`.
 
 - Output: `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
-- If the skill invocation fails: emit `WARNING: Architecture plan generation failed. Continuing without architecture plan.` and proceed to Step 1B.
+- If the skill invocation fails: emit `WARNING: Architecture plan generation failed. Continuing without architecture plan.` The test plan from 1B-test is preserved regardless.
 
 **If Skip:**
 
-Log `"Architecture plan not needed for this change scope"` and proceed to Step 1B.
+Log `"Architecture plan not needed for this change scope"`. Wave 1 dispatches only the test plan.
 
-### Step 1B: Implementation Plan (Subagent via Task)
+##### Fallback: Inline Architecture Planning
+
+If skill `x-dev-architecture-plan` is not available in the project (skill file `skills/x-dev-architecture-plan/SKILL.md` does not exist), combine architecture planning into the Step 1B-impl subagent by expanding its prompt to also read:
+- `skills/protocols/references/` — protocol conventions
+- `skills/security/references/` — OWASP, headers, secrets
+- `skills/observability/references/` — tracing, metrics, logging
+- `skills/resilience/references/` — circuit breaker, retry, fallback
+
+This preserves the pre-integration behavior for projects that do not include the architecture-plan skill.
+
+#### 1B-test: Test Planning (MANDATORY DRIVER for Phase 2)
+
+Invoke skill `x-test-plan` → produces `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
+
+The test plan is the **implementation roadmap** for Phase 2. It produces:
+- Acceptance tests (AT-N) as outer loop (Double-Loop TDD)
+- Unit tests (UT-N) in TPP order as inner loop (Levels 1-6: degenerate → edge cases)
+- Integration tests (IT-N) positioned after related UTs
+- `Depends On: TASK-N` and `Parallel` markers per scenario
+
+**Gate:** If 1B-test fails or produces no output, Phase 2 MUST use G1-G7 fallback mode.
+
+### Wave 1 Gate
+
+After Wave 1 completes, verify outputs before proceeding:
+
+- **Check architecture plan:** If 1A was dispatched, verify `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` exists. If missing (1A failed), emit `WARNING: Architecture plan generation failed.` and continue.
+- **Check test plan:** Does `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md` exist?
+  - **If yes:** Pass the test plan path to Wave 2 (Phase 1C) as explicit input.
+  - **If no:** Emit `WARNING: Test plan not produced by Phase 1B-test. Phase 2 will use G1-G7 fallback mode.` Continue to Sequential step and Wave 2 without test plan (backward compatible).
+
+**Failure isolation:** A failure in one Wave 1 subagent does NOT block the other. If `x-test-plan` fails, the architecture plan output is preserved. If `x-dev-architecture-plan` fails, the test plan output is preserved.
+
+### Sequential — Step 1B-impl: Implementation Plan (Subagent via Task)
+
+**Executes AFTER Wave 1 completes.** This step depends on the architecture plan output from 1A (if generated).
 
 Launch a **single** `general-purpose` subagent:
 
@@ -107,39 +169,22 @@ Launch a **single** `general-purpose` subagent:
 >
 > Save to `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (where XXXX is the epic ID and YYYY is the story sequence, extracted from the story ID).
 
-### Fallback: Inline Architecture Planning
+### Wave 2 — Parallel (SINGLE message, after 1B-impl completes)
 
-If skill `x-dev-architecture-plan` is not available in the project (skill file `skills/x-dev-architecture-plan/SKILL.md` does not exist), combine architecture planning into the Step 1B subagent by expanding its prompt to also read:
-- `skills/protocols/references/` — protocol conventions
-- `skills/security/references/` — OWASP, headers, secrets
-- `skills/observability/references/` — tracing, metrics, logging
-- `skills/resilience/references/` — circuit breaker, retry, fallback
+**CRITICAL: Wave 2 subagents MUST be launched in a SINGLE message (RULE-003).**
 
-This preserves the pre-integration behavior for projects that do not include the architecture-plan skill.
+Wave 2 launches after the implementation plan is ready. All Wave 2 subagents read the implementation plan; task decomposition also reads the test plan from Wave 1.
 
-## Phases 1B-1E — Parallel Planning (Subagents via Task — SINGLE message)
+#### 1C: Task Decomposition
+Invoke skill `x-lib-task-decomposer` with test plan path from Wave 1 Gate (or null if not available) → produces `docs/stories/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`
 
-**CRITICAL: ALL planning subagents MUST be launched in a SINGLE message.**
-
-### 1B: Test Planning (MANDATORY DRIVER for Phase 2)
-Invoke skill `x-test-plan` → produces `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
-
-The test plan is the **implementation roadmap** for Phase 2. It produces:
-- Acceptance tests (AT-N) as outer loop (Double-Loop TDD)
-- Unit tests (UT-N) in TPP order as inner loop (Levels 1-6: degenerate → edge cases)
-- Integration tests (IT-N) positioned after related UTs
-- `Depends On: TASK-N` and `Parallel` markers per scenario
-
-**Gate:** If Phase 1B fails or produces no output, Phase 2 MUST use G1-G7 fallback mode.
-
-### 1C: Task Decomposition
-Invoke skill `x-lib-task-decomposer` → produces `docs/stories/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`
+**Conditional:** If skill file `skills/x-lib-task-decomposer/SKILL.md` does not exist in the project, skip Phase 1C with log `"x-lib-task-decomposer not available, skipping task decomposition"`.
 
 The task decomposer auto-detects decomposition mode:
-- If test plan with TPP markers exists → test-driven tasks (RED/GREEN/REFACTOR per task, with `Parallel` flags)
-- If no test plan → fallback to G1-G7 layer-based decomposition
+- If test plan path provided and file contains TPP markers → test-driven tasks (RED/GREEN/REFACTOR per task, with `Parallel` flags)
+- If no test plan path (null) → fallback to G1-G7 layer-based decomposition
 
-### 1D: Event Schema Design (if event_driven)
+#### 1D: Event Schema Design (if event_driven)
 Launch `general-purpose` subagent:
 
 > You are an **Event Engineer** designing event schemas.
@@ -148,7 +193,7 @@ Launch `general-purpose` subagent:
 > Produce event schema design: event names (past tense), CloudEvents envelope, topic naming, partition key, producer/consumer contracts.
 > Save to `docs/stories/epic-XXXX/plans/events-story-XXXX-YYYY.md`.
 
-### 1E: Compliance Assessment (if compliance active)
+#### 1E: Compliance Assessment (if compliance active)
 Launch `general-purpose` subagent:
 
 > You are a **Security Engineer** assessing compliance impact.
@@ -158,9 +203,31 @@ Launch `general-purpose` subagent:
 > Produce compliance impact assessment: data classification, encryption requirements, audit logging needs, regulatory considerations.
 > Save to `docs/stories/epic-XXXX/plans/compliance-story-XXXX-YYYY.md`.
 
-## Phase 2 — TDD Implementation (Subagent via Task)
+## Phase 2 — TDD Implementation (Split by Layer)
 
-Launch a **single** `general-purpose` subagent for implementation:
+Phase 2 uses **complexity detection** to choose between monolithic (single subagent) and split (multi-subagent, layer-parallel) execution. The split mode reduces context window pressure for stories touching 3+ layers by running independent layer implementations in parallel.
+
+### Complexity Detection
+
+Before dispatching implementation subagents, analyze the task breakdown to determine execution mode:
+
+1. Read task breakdown at `docs/stories/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`
+2. Count tasks per layer by scanning task descriptions and package paths:
+   - `domain_tasks`: tasks targeting `domain/model`, `domain/engine`, `domain/port`
+   - `outbound_tasks`: tasks targeting `adapter/outbound`
+   - `application_tasks`: tasks targeting `application` (use cases)
+   - `inbound_tasks`: tasks targeting `adapter/inbound`
+3. Apply decision rule:
+   - **SPLIT MODE:** `domain_tasks >= 1 AND outbound_tasks >= 1 AND (application_tasks >= 1 OR inbound_tasks >= 1)`
+   - **MONOLITHIC MODE:** All other cases (1-2 layers, overhead of split does not compensate)
+
+If task breakdown file does not exist: default to **MONOLITHIC MODE**.
+
+Log the decision: `"Phase 2 complexity detection: {SPLIT|MONOLITHIC} mode (domain={N}, outbound={N}, application={N}, inbound={N})"`
+
+### MONOLITHIC MODE (1-2 Layers)
+
+When monolithic mode is selected, launch a **single** `general-purpose` subagent for implementation (backward compatible with previous behavior):
 
 > You are a **Developer** implementing story {STORY_ID} for {{PROJECT_NAME}}.
 >
@@ -206,18 +273,96 @@ Launch a **single** `general-purpose` subagent for implementation:
 >
 > Report: TDD cycles completed, acceptance tests status, coverage numbers.
 
+### SPLIT MODE (3+ Layers)
+
+When split mode is selected, Phase 2 is divided into three sub-phases: 2A (parallel inner layers), 2B (sequential outer layers), and 2C (final validation).
+
+#### Phase 2A — Inner Layers (Parallel, SINGLE Message)
+
+**CRITICAL: Both layer subagents MUST be launched in a SINGLE message (RULE-003).**
+
+Domain and outbound adapter are architecturally independent layers (domain has no outward dependencies; outbound adapter implements ports defined in domain). Their TDD cycles can execute in parallel without conflict.
+
+Launch two subagents simultaneously in a SINGLE message:
+
+**2A-Domain: Domain TDD Cycles**
+
+Invoke: `x-dev-implement --layer domain --story {STORY_ID}`
+
+Scope: `domain/model`, `domain/engine`, `domain/port` — entities, value objects, engines, business rules, port interfaces.
+
+**2A-Outbound: Outbound Adapter TDD Cycles**
+
+Invoke: `x-dev-implement --layer outbound --story {STORY_ID}`
+
+Scope: `adapter/outbound` — outbound port implementations, repository adapters, external clients.
+
+Each subagent receives only the context relevant to its layer (RULE-001):
+- Story ID and epic ID
+- Layer scope (domain or outbound)
+- Test plan filtered to scenarios affecting the target layer
+- Task breakdown filtered to tasks for the target layer
+- Knowledge packs: `skills/coding-standards/`, `skills/layer-templates/`
+
+#### Phase 2A Gate (Integrity Check)
+
+After both 2A subagents complete, run an intermediate integrity check:
+
+1. **Compile:** `{{COMPILE_COMMAND}}` — MUST pass
+2. **Test:** Run domain + outbound tests — MUST pass
+
+If the Phase 2A Gate **FAILS**:
+- Emit: `"Phase 2A Gate FAILED — blocking Phase 2B"`
+- Do NOT proceed to Phase 2B
+- Report the failure with compilation/test error details
+
+If the Phase 2A Gate **PASSES**:
+- Emit: `"Phase 2A Gate PASSED — proceeding to Phase 2B"`
+- Continue to Phase 2B
+
+#### Phase 2B — Outer Layers (Sequential, After 2A)
+
+Application layer depends on domain (entities, ports defined in 2A). Inbound adapter depends on application (use cases) and domain (DTOs mapped from entities). Therefore, Phase 2B executes **sequentially** — NOT in parallel.
+
+**2B-Application: Application Layer**
+
+Invoke: `x-dev-implement --layer application --story {STORY_ID}`
+
+Scope: `application` — use cases, orchestration services.
+Depends on: domain entities + outbound port implementations from Phase 2A.
+
+Wait for application subagent to complete before launching inbound.
+
+**2B-Inbound: Inbound Adapter**
+
+Invoke: `x-dev-implement --layer inbound --story {STORY_ID}`
+
+Scope: `adapter/inbound` — REST/gRPC/CLI handlers, DTOs, mappers.
+Depends on: application use cases + domain DTOs.
+
+#### Phase 2C — Final Validation (Integrity Gate — RULE-004)
+
+After all layer subagents complete (2A + 2B), run the final integrity gate:
+
+1. **Compile:** `{{COMPILE_COMMAND}}` — MUST pass
+2. **Test:** `{{TEST_COMMAND}}` — ALL tests MUST pass
+3. **Coverage:** `{{COVERAGE_COMMAND}}` — line ≥ 95%, branch ≥ 90%
+
+Phase 2C is the mandatory integrity gate (RULE-004) that validates the combined output of all layer subagents.
+
 ### Parallelism in Phase 2
 
 Independent test scenarios (no shared state/data dependencies) CAN run in parallel:
 
 - Use `Parallel: yes/no` markers from the test plan and task breakdown
 - Subagents working on independent layers MUST be launched in a SINGLE message
-- Example: UT for outbound adapter can run in parallel with UT for inbound DTO if they share no state
+- In SPLIT MODE: Phase 2A leverages architectural independence of domain and outbound layers
+- In MONOLITHIC MODE: parallelism is limited to independent test scenarios within a single subagent
 - Dependent scenarios (marked `Depends On: TASK-N`) run sequentially
 
 ### G1-G7 Fallback (No Test Plan)
 
-If no test plan with TPP markers was produced by Phase 1B, use legacy group-based implementation:
+If no test plan with TPP markers was produced by Phase 1B-test (Wave 1), use legacy group-based implementation. **G1-G7 fallback always uses MONOLITHIC MODE** regardless of complexity detection result (the split heuristic requires a test plan to filter scenarios per layer).
 
 > **Step 2 (Fallback) — Implement groups G1-G7** following the task breakdown:
 > - For each group: implement all tasks, then compile: `{{COMPILE_COMMAND}}`
@@ -229,89 +374,145 @@ If no test plan with TPP markers was produced by Phase 1B, use legacy group-base
 
 Emit warning: `WARNING: No TDD test plan available. Using G1-G7 group-based implementation. Consider running /x-test-plan for future implementations.`
 
-## Phase 3 — Documentation (Orchestrator — Inline)
+## Phase 3 — Documentation (Parallel Subagent Dispatch + Inline Changelog)
 
-Read the `interfaces` field from the project identity to determine which documentation
-generators to invoke. For each configured interface, launch the corresponding generator.
-Always generate a changelog entry regardless of interfaces.
+Phase 3 converts documentation generation from sequential inline execution to parallel subagent dispatch. Each documentation generator runs as an independent subagent, all launched in a SINGLE message (RULE-003). The changelog entry remains inline in the orchestrator, running concurrently with subagents.
 
-**Interface Dispatch:**
+### Phase 3 Execution Structure
 
-| Interface | Generator | Output |
-|-----------|-----------|--------|
+```
+Parallel subagent dispatch (SINGLE message):
+  ├── Subagent: OpenAPI generator (if rest)
+  ├── Subagent: gRPC docs (if grpc)
+  ├── Subagent: CLI docs (if cli)
+  ├── Subagent: GraphQL docs (if graphql)
+  ├── Subagent: Event docs (if event interfaces)
+  ├── Subagent: Architecture doc update (if arch plan exists)
+  └── Subagent: Performance baseline (if applicable)
+
+Inline concurrent (orchestrator):
+  └── Changelog entry (git log + append)
+
+Gate: all subagents + changelog complete → Phase 4
+```
+
+### Step 1 — Determine Active Generators
+
+Read the `interfaces` field from the project identity to determine which documentation subagents to dispatch.
+
+**Interface → Subagent Mapping:**
+
+| Interface | Generator Type | Output |
+|-----------|---------------|--------|
 | `rest` | OpenAPI/Swagger generator | `docs/api/openapi.yaml` |
 | `grpc` | gRPC/Proto documentation generator | `docs/api/grpc-reference.md` |
 | `cli` | CLI documentation generator | `docs/api/cli-reference.md` |
 | `graphql` | GraphQL schema documentation generator | `docs/api/graphql-reference.md` |
 | `websocket`, `kafka`, `event-consumer`, `event-producer` | Event-driven documentation generator | `docs/api/event-reference.md` |
 
-If no documentable interfaces configured: skip interface generators with log
-`"No documentable interfaces configured"`. Always generate changelog entry.
+**Conditional generators (non-interface):**
 
-Documentation output saved to `docs/` with subdirectories per type:
-- API docs → `docs/api/`
-- Architecture docs → `docs/architecture/`
+| Condition | Generator Type | Output |
+|-----------|---------------|--------|
+| Architecture plan exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` | Architecture doc update | `docs/architecture/service-architecture.md` |
+| Feature affects request path, startup, or memory footprint | Performance baseline | `docs/performance/baselines.md` |
 
-**Changelog Entry:**
-- Read commits since branch point (`git log main..HEAD --oneline`)
-- Generate Conventional Commits summary by type (feat, fix, refactor, test, docs, chore)
-- Append to CHANGELOG.md
+If no documentable interfaces configured AND no conditional generators apply: skip subagent dispatch with log `"No documentable interfaces configured; no conditional generators applicable"`. Generate only the changelog entry inline.
 
-**Performance Baseline (Recommended):**
-If the implemented feature affects the request path, startup, or memory footprint:
-1. Read `.claude/templates/_TEMPLATE-PERFORMANCE-BASELINE.md` for measurement guide
-2. Record "before" metrics (prior to the feature branch)
-3. Record "after" metrics (with the feature branch)
-4. Append a row to `docs/performance/baselines.md`
-5. If Delta > 10%, add a WARNING note
-6. If Delta > 25%, add an INVESTIGATION note with optimization plan
+### Step 2 — Wave Management (Max 5 Subagents Per Wave)
 
-This step is recommended but not mandatory. Skip does not block the phase.
+**CRITICAL: All subagents in a wave MUST be launched in a SINGLE message (RULE-003).**
 
-**Architecture Document Update (Recommended):**
-If an architecture plan exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`:
-1. Invoke `x-dev-arch-update` to incrementally update `docs/architecture/service-architecture.md`
-2. New components, integrations, flows, and ADR references are added to the appropriate sections
-3. Change History (Section 10) is updated with the story reference
-4. If `docs/architecture/service-architecture.md` does not exist, create it from the template
+Collect all active generators from Step 1 into a dispatch list. Apply the 5-subagent limit:
 
-If no architecture plan found: skip with log
-`"No architecture plan found; skipping architecture doc update"`.
+- **If ≤ 5 generators:** Dispatch all in Wave 1 (SINGLE message).
+- **If > 5 generators:** Dispatch the first 5 in Wave 1 (SINGLE message). After Wave 1 completes, dispatch remaining generators in Wave 2 (SINGLE message).
 
-This step is recommended but not mandatory. Skip does not block the phase.
+Priority order for wave assignment (first 5 get Wave 1):
+1. Interface doc generators (in order: OpenAPI, gRPC, CLI, GraphQL, Event)
+2. Architecture doc update
+3. Performance baseline
 
-### CLI Documentation Generator (interface: cli)
+The changelog entry is always generated inline during Wave 1, regardless of wave count.
 
-> Invoked when project identity `interfaces` contains `"cli"`.
-> Output: `docs/api/cli-reference.md`
+### Step 3 — Dispatch Subagents (SINGLE Message Per Wave)
 
-**Scan** the project's CLI command definitions using framework-specific patterns:
-- **Commander.js**: `.command()`, `.option()`, `.argument()` chains
-- **Click**: `@click.command()`, `@click.option()`, `@click.argument()` decorators
-- **Cobra**: `cobra.Command{}` structs
-- **Clap**: `#[derive(Parser)]` and `#[arg()]` attributes
+**CRITICAL: Each wave dispatches ALL its subagents in a SINGLE message (RULE-003).**
 
-**Generate** `docs/api/cli-reference.md` with:
+Each documentation subagent receives a prompt with:
 
-1. `# CLI Reference` — title with project name
-2. `## Quick Start` — at least 2 basic usage examples in code blocks
-3. `## Global Flags` — table of flags applicable to all commands
-   (columns: Flag, Type, Default, Description)
-4. `## Command: {name}` — one section per top-level command:
-   - Usage line: `$ {tool-name} {command} [flags] [args]`
-   - Flags table: | Flag | Type | Default | Required | Description |
-   - Arguments table: | Argument | Type | Required | Description |
-   - At least 1 example in code block
-5. `### Subcommand: {parent} {child}` — nested sections with same structure
-6. `## Exit Codes` — table: | Code | Meaning |
+| Field | Type | Description |
+|-------|------|-------------|
+| `generatorType` | `string` | Type: `openapi`, `grpc`, `cli`, `graphql`, `event`, `architecture`, `performance` |
+| `outputPath` | `string` | Target output file path |
+| `sourcePaths` | `string[]` | Source files/directories to read |
+| `storyId` | `string` | ID of the story being documented |
 
-If `interfaces` does NOT contain `"cli"`: skip silently (no output, no warning).
+Each subagent returns a result conforming to RULE-008:
 
-### Event-Driven Documentation Doc Generator
+| Field | Type | Required |
+|-------|------|----------|
+| `status` | `SUCCESS \| FAILED` | Yes |
+| `commitSha` | `string` | Yes (if SUCCESS) |
+| `findingsCount` | `number` | Yes |
+| `summary` | `string` | Yes |
 
-**Trigger:** Invoke when `interfaces` contains `websocket`, `event-consumer`, or `event-producer`.
+#### Subagent: OpenAPI/Swagger Generator (interface: rest)
 
-Launch a `general-purpose` subagent:
+Launch `general-purpose` subagent:
+
+> You are a **Documentation Engineer** generating OpenAPI documentation for {{PROJECT_NAME}}.
+>
+> **Read context:** Scan the project's REST controllers, DTOs, and endpoint annotations.
+> **Generate:** `docs/api/openapi.yaml` — OpenAPI 3.1 specification with paths, schemas, security definitions, and examples.
+> Save output to `docs/api/openapi.yaml`.
+
+#### Subagent: gRPC/Proto Documentation Generator (interface: grpc)
+
+Launch `general-purpose` subagent:
+
+> You are a **Documentation Engineer** generating gRPC documentation for {{PROJECT_NAME}}.
+>
+> **Read context:** Scan `.proto` files for service definitions, message types, and RPC methods.
+> **Generate:** `docs/api/grpc-reference.md` — service catalog with method signatures, message schemas, and streaming patterns.
+> Save output to `docs/api/grpc-reference.md`.
+
+#### Subagent: CLI Documentation Generator (interface: cli)
+
+Launch `general-purpose` subagent:
+
+> You are a **Documentation Engineer** generating CLI reference documentation for {{PROJECT_NAME}}.
+>
+> **Read context:** Scan the project's CLI command definitions using framework-specific patterns:
+> - **Commander.js**: `.command()`, `.option()`, `.argument()` chains
+> - **Click**: `@click.command()`, `@click.option()`, `@click.argument()` decorators
+> - **Cobra**: `cobra.Command{}` structs
+> - **Clap**: `#[derive(Parser)]` and `#[arg()]` attributes
+> - **Picocli**: `@Command`, `@Option`, `@Parameters` annotations
+>
+> **Generate** `docs/api/cli-reference.md` with:
+> 1. `# CLI Reference` — title with project name
+> 2. `## Quick Start` — at least 2 basic usage examples in code blocks
+> 3. `## Global Flags` — table of flags applicable to all commands (columns: Flag, Type, Default, Description)
+> 4. `## Command: {name}` — one section per top-level command: usage line, flags table, arguments table, at least 1 example
+> 5. `### Subcommand: {parent} {child}` — nested sections with same structure
+> 6. `## Exit Codes` — table: | Code | Meaning |
+>
+> Save output to `docs/api/cli-reference.md`.
+
+#### Subagent: GraphQL Schema Documentation Generator (interface: graphql)
+
+Launch `general-purpose` subagent:
+
+> You are a **Documentation Engineer** generating GraphQL documentation for {{PROJECT_NAME}}.
+>
+> **Read context:** Scan GraphQL schema files for types, queries, mutations, subscriptions, and directives.
+> **Generate:** `docs/api/graphql-reference.md` — schema reference with type definitions, query/mutation examples, and subscription patterns.
+> Save output to `docs/api/graphql-reference.md`.
+
+#### Subagent: Event-Driven Documentation Generator (interfaces: websocket, kafka, event-consumer, event-producer)
+
+Launch `general-purpose` subagent:
 
 > You are a **Documentation Engineer** generating an event catalog for {{PROJECT_NAME}}.
 >
@@ -321,16 +522,10 @@ Launch a `general-purpose` subagent:
 > - Read the project source code to identify event definitions: producers, consumers, schemas, topics, channels
 >
 > **Step 2 — Generate `docs/api/event-catalog.md`** with the following structure:
->
 > 1. **Topics Overview** table: Topic/Channel, Events, Partitioning/Routing
-> 2. **Per-event sections** (one `## Event: {name}` per event):
->    - Topic/Channel name
->    - Producer service
->    - Consumer services
->    - Payload Schema table: Field, Type, Required, Description
->    - Headers table (if applicable): correlation-id, content-type, custom headers
+> 2. **Per-event sections** (one `## Event: {name}` per event): Topic/Channel name, Producer service, Consumer services, Payload Schema table, Headers table
 > 3. **Event Flows**: Mermaid `sequenceDiagram` showing Producer → Broker → Consumer for each flow
-> 4. **CloudEvents envelope** details (if applicable): specversion, type, source, subject, datacontenttype
+> 4. **CloudEvents envelope** details (if applicable)
 > 5. **Schema versioning** and backward compatibility notes
 >
 > **Step 3 — Protocol-specific handling:**
@@ -339,6 +534,81 @@ Launch a `general-purpose` subagent:
 > - If both are present, produce a unified catalog covering multiple protocol types
 >
 > Save output to `docs/api/event-catalog.md`.
+
+#### Subagent: Architecture Document Update (conditional)
+
+**Condition:** Architecture plan exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`.
+
+Launch `general-purpose` subagent:
+
+> You are a **Documentation Engineer** updating the architecture document for {{PROJECT_NAME}}.
+>
+> **Read context:**
+> - Read architecture plan at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
+> - Read existing architecture doc at `docs/architecture/service-architecture.md` (if exists)
+>
+> **Update:** Invoke `x-dev-arch-update` to incrementally update `docs/architecture/service-architecture.md`:
+> 1. New components, integrations, flows, and ADR references are added to the appropriate sections
+> 2. Change History (Section 10) is updated with the story reference
+> 3. If `docs/architecture/service-architecture.md` does not exist, create it from the template
+>
+> Save output to `docs/architecture/service-architecture.md`.
+
+If no architecture plan found: do NOT dispatch this subagent. Log `"No architecture plan found; skipping architecture doc update subagent"`.
+
+#### Subagent: Performance Baseline (conditional)
+
+**Condition:** The implemented feature affects the request path, startup, or memory footprint.
+
+Launch `general-purpose` subagent:
+
+> You are a **Performance Engineer** recording performance baselines for {{PROJECT_NAME}}.
+>
+> **Read context:**
+> - Read `.claude/templates/_TEMPLATE-PERFORMANCE-BASELINE.md` for measurement guide
+>
+> **Record:**
+> 1. Record "before" metrics (prior to the feature branch)
+> 2. Record "after" metrics (with the feature branch)
+> 3. Append a row to `docs/performance/baselines.md`
+> 4. If Delta > 10%, add a WARNING note
+> 5. If Delta > 25%, add an INVESTIGATION note with optimization plan
+>
+> Save output to `docs/performance/baselines.md`.
+
+If the feature does not affect request path: do NOT dispatch this subagent. Log `"Feature does not affect request path; skipping performance baseline subagent"`.
+
+### Step 4 — Inline Changelog (Concurrent with Subagents)
+
+While subagents execute, the orchestrator generates the changelog entry inline:
+
+1. Read commits since branch point: `git log main..HEAD --oneline`
+2. Generate Conventional Commits summary by type (feat, fix, refactor, test, docs, chore)
+3. Append to CHANGELOG.md
+
+The changelog runs concurrently with Wave 1 subagents. It does NOT wait for subagents to complete, and subagents do NOT wait for it.
+
+### Step 5 — Phase 3 Gate
+
+**Gate: ALL subagents + inline changelog MUST complete before proceeding to Phase 4.**
+
+Wait for all dispatched subagents to return results. Verify:
+
+- **All subagents returned:** Count returned results vs. dispatched count.
+- **Changelog completed:** Verify CHANGELOG.md was updated.
+
+**Failure handling (best-effort):**
+- Documentation generation is **best-effort**. A failed subagent does NOT block Phase 3 completion.
+- If a subagent returns `status: FAILED`: emit `WARNING: {generatorType} documentation generator failed: {summary}`. Continue.
+- If ALL subagents fail: emit `WARNING: All documentation generators failed. Proceeding to Phase 4 with changelog only.`
+- Phase 3 is marked FAILED only if the changelog entry itself fails (which should not happen under normal conditions).
+
+**Multi-wave gate:** If overflow caused Wave 2 dispatch, the gate waits for BOTH waves to complete before proceeding.
+
+Documentation output saved to `docs/` with subdirectories per type:
+- API docs → `docs/api/`
+- Architecture docs → `docs/architecture/`
+- Performance docs → `docs/performance/`
 
 ## Phase 4 — Parallel Review
 
@@ -415,11 +685,16 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
 | Architect | Phase 1 | Senior |
 | Task Decomposer | Phase 1C | Mid |
 | Developer | Phase 2 | Adaptive (per Layer Task Catalog) |
+| Documentation Engineer | Phase 3 | Mid |
+| Performance Engineer | Phase 3 | Mid |
 | Specialist Reviews | Phase 4 | Adaptive (max task tier in domain) |
 | Tech Lead | Phase 7 | Adaptive (story max tier) |
 
 ## Integration Notes
 
-- Invokes: `x-dev-architecture-plan` (Phase 1, conditional), `x-test-plan`, `x-lib-task-decomposer`, `x-lib-group-verifier` (fallback only), `x-git-push`, `x-review`, `x-review-pr`
+- Invokes: `x-dev-architecture-plan` (Wave 1, conditional), `x-test-plan` (Wave 1), `x-lib-task-decomposer` (Wave 2), `x-dev-implement` (Phase 2, with optional `--layer` parameter), `x-lib-group-verifier` (fallback only), `x-dev-arch-update` (Phase 3 subagent, conditional), `x-git-push`, `x-review`, `x-review-pr`
+- Three-stage Phase 1: Wave 1 launches 1A+1B-test in parallel (SINGLE message); Sequential 1B-impl reads arch plan output; Wave 2 launches 1C+1D+1E in parallel (SINGLE message)
+- Phase 2 split-by-layer: complexity detection analyzes task breakdown per layer; SPLIT MODE (3+ layers) launches Phase 2A domain+outbound in parallel (SINGLE message), Phase 2A Gate, Phase 2B application then inbound sequentially, Phase 2C final integrity gate; MONOLITHIC MODE (1-2 layers) preserves single-subagent behavior; G1-G7 fallback always uses monolithic mode
+- Phase 3 parallel dispatch: documentation generators launch as independent subagents in a SINGLE message (max 5 per wave, overflow to Wave 2); changelog runs inline concurrently; gate waits for all subagents + changelog before Phase 4; failures are best-effort (WARNING, not blocking)
 - TDD commit format follows `x-git-push` conventions (`[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]` suffixes)
 - All `{{PLACEHOLDER}}` tokens (e.g. `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation

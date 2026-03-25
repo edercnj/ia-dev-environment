@@ -2,7 +2,7 @@
 name: x-dev-implement
 description: "Implements a feature/story using TDD (Red-Green-Refactor) workflow. Delegates preparation to a subagent that reads architecture, coding, and test plan KPs, then implements test-first with Double-Loop TDD, layer-by-layer with compile checks after each cycle."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
-argument-hint: "[STORY-ID or feature-description]"
+argument-hint: "[--story STORY_ID] [--layer domain|outbound|application|inbound]"
 ---
 
 ## Global Output Policy
@@ -13,6 +13,28 @@ argument-hint: "[STORY-ID or feature-description]"
 
 # Skill: Implement Story (Orchestrator)
 
+## Input Parsing
+
+### Positional Argument (Optional)
+
+| Argument | Format | Required | Description |
+|----------|--------|----------|-------------|
+| `{STORY_PATH_OR_DESCRIPTION}` | free text | Optional | Story file path or brief description of what to implement |
+
+When a positional argument is provided (e.g., `/x-dev-implement docs/stories/epic-0010/story-0010-0001.md`), the skill uses it as the story file path or implementation description.
+
+### Optional Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--story STORY_ID` | string | (none) | Story ID to implement (e.g., `story-0010-0001`). Resolves to `docs/stories/epic-{epicId}/story-{storyId}.md` |
+| `--layer` | enum | (none) | Restrict implementation to a single architecture layer: `domain`, `outbound`, `application`, or `inbound` |
+
+**Flag resolution rules:**
+- `--story story-0010-0001` resolves to the story file by extracting the epic ID from the story ID prefix
+- If both a positional argument and `--story` are provided, `--story` takes precedence
+- `--layer` is independent and can be combined with either positional argument or `--story`
+
 ## When to Use This vs `/x-dev-lifecycle`
 
 | Scenario | Use |
@@ -21,6 +43,33 @@ argument-hint: "[STORY-ID or feature-description]"
 | Full story with multi-persona review | `/x-dev-lifecycle` |
 | Coding without the review phases | This skill |
 | Complete lifecycle: code → review → fix → PR | `/x-dev-lifecycle` |
+
+## Layer Scope (--layer Parameter)
+
+When `--layer` is provided, the skill restricts implementation to a single architecture layer. This enables the `x-dev-lifecycle` orchestrator to dispatch independent layer implementations as parallel subagents, reducing context window pressure for large stories.
+
+### Supported Layer Values
+
+| Layer | Scope | Package Paths |
+|-------|-------|---------------|
+| `domain` | Entities, value objects, engines, business rules, port interfaces | `domain/model`, `domain/engine`, `domain/port` |
+| `outbound` | Outbound port implementations, repository adapters, external clients | `adapter/outbound` |
+| `application` | Use cases, orchestration services | `application` |
+| `inbound` | REST/gRPC/CLI handlers, DTOs, mappers | `adapter/inbound` |
+
+### Layer Filtering Behavior
+
+When `--layer` is provided:
+
+1. **Filter test plan:** Only execute test scenarios (UT-N, AT-N, IT-N) that affect the target layer. Determine layer affiliation by scanning the test scenario's target class/package path.
+2. **Filter task breakdown:** Only execute tasks whose target package matches the layer scope.
+3. **TDD loop:** Same Red-Green-Refactor cycle, but restricted to the layer scope.
+4. **Commit tags:** Include layer tag in commits: `feat(domain): ...`, `feat(outbound): ...`, `feat(application): ...`, `feat(inbound): ...`
+
+When `--layer` is **omitted:**
+
+- Full story implementation across all layers — **backward compatible** with previous behavior.
+- Implementation follows the standard layer order: domain → ports → adapters → application → inbound.
 
 ## Execution Flow (Orchestrator Pattern)
 
@@ -68,6 +117,16 @@ Launch a **single** `general-purpose` subagent:
 > git checkout main && git pull origin main
 > git checkout -b feat/STORY-ID-short-description
 > ```
+
+> **Layer-scoped mode (--layer provided):**
+> When `--layer` is provided, apply layer filtering in Step 2:
+> - Filter test plan scenarios to only those targeting the specified layer's package paths
+> - Filter task breakdown to only tasks for the specified layer
+> - Implementation follows the same TDD loop, but restricted to the layer scope
+> - Use layer-specific commit tags: `feat({layer}): ...`, `test({layer}): ...`
+> - If no test scenarios match the specified layer, emit WARNING and skip TDD loop (layer has no testable work)
+>
+> When `--layer` is omitted: full story implementation across all layers (backward compatible).
 
 > **Fallback Mode (no test plan):**
 > If no test plan file exists, log:
@@ -223,3 +282,4 @@ git commit -m "test(scope): update acceptance test for [AT-N scenario] (GREEN)"
 - Invokes patterns from `x-test-run` and `x-git-push` skills
 - Works with any {{FRAMEWORK}} project following layered/hexagonal architecture
 - The developer agent (typescript-developer) already includes TDD workflow rules (story-0003-0006)
+- **Layer-scoped execution:** When invoked with `--layer`, restricts implementation to a single architecture layer. Used by `x-dev-lifecycle` Phase 2 split mode to dispatch parallel layer subagents. Without `--layer`, full story implementation is preserved (backward compatible).
