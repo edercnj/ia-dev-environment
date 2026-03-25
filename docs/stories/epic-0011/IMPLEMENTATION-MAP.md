@@ -6,16 +6,16 @@
 
 ## 1. Matriz de Dependências
 
-| Story | Título | Chave Jira | Blocked By | Blocks | Status |
+| Story | Título | Blocked By | Blocks | Status | Chave Jira |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| story-0011-0001 | Adicionar campo Chave Jira ao template de história | — | — | story-0011-0003, story-0011-0004, story-0011-0008 | Pendente |
-| story-0011-0002 | Adicionar coluna Chave Jira ao template de implementation map | — | — | story-0011-0006, story-0011-0008 | Pendente |
-| story-0011-0003 | Implementar integração Jira no skill x-story-epic | — | story-0011-0001 | story-0011-0004, story-0011-0005, story-0011-0007 | Pendente |
-| story-0011-0004 | Implementar integração Jira no skill x-story-create | — | story-0011-0001, story-0011-0003 | story-0011-0005, story-0011-0006, story-0011-0007 | Pendente |
-| story-0011-0005 | Implementar orquestração Jira no skill x-story-epic-full | — | story-0011-0003, story-0011-0004 | story-0011-0007 | Pendente |
-| story-0011-0006 | Implementar exibição de Jira keys no skill x-story-map | — | story-0011-0002, story-0011-0004 | story-0011-0007 | Pendente |
-| story-0011-0007 | Atualizar GitHub Copilot skill counterparts | — | story-0011-0003, story-0011-0004, story-0011-0005 | story-0011-0008 | Pendente |
-| story-0011-0008 | Atualizar golden files e testes de integração | — | story-0011-0001, story-0011-0002, story-0011-0007 | — | Pendente |
+| story-0011-0001 | Adicionar campo Chave Jira ao template de história | — | story-0011-0003, story-0011-0004, story-0011-0008 | Pendente | — |
+| story-0011-0002 | Adicionar coluna Chave Jira ao template de implementation map | — | story-0011-0006, story-0011-0008 | Pendente | — |
+| story-0011-0003 | Implementar integração Jira no skill x-story-epic | story-0011-0001 | story-0011-0004, story-0011-0005, story-0011-0007 | Pendente | — |
+| story-0011-0004 | Implementar integração Jira no skill x-story-create | story-0011-0001, story-0011-0003 | story-0011-0005, story-0011-0006, story-0011-0007 | Pendente | — |
+| story-0011-0005 | Implementar orquestração Jira no skill x-story-epic-full | story-0011-0003, story-0011-0004 | story-0011-0007 | Pendente | — |
+| story-0011-0006 | Implementar exibição de Jira keys no skill x-story-map | story-0011-0002, story-0011-0004 | story-0011-0007 | Pendente | — |
+| story-0011-0007 | Atualizar GitHub Copilot skill counterparts | story-0011-0003, story-0011-0004, story-0011-0005 | story-0011-0008 | Pendente | — |
+| story-0011-0008 | Atualizar golden files e testes de integração | story-0011-0001, story-0011-0002, story-0011-0007 | — | Pendente | — |
 
 > **Nota:** story-0011-0006 tem dependência implícita de story-0011-0004 porque precisa que as stories geradas tenham o campo `Chave Jira` preenchido para exibir na matrix.
 

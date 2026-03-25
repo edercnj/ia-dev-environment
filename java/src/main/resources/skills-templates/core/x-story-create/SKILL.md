@@ -249,7 +249,7 @@ For each story (no additional user prompting needed):
    - `issueType`: "Story"
    - `summary`: the story title
    - `description`: the user story text from Section 3 (the "Como **Persona**..." paragraph)
-   - `epicKey`: `jiraContext.epicIssueKey` (links to parent epic in Jira)
+   - `epicKey` (optional): `jiraContext.epicIssueKey` — include this field only if `jiraContext.epicIssueKey` is present; omit `epicKey` entirely when it is absent (e.g., epic creation failed in Phase B) to avoid MCP errors and maintain non-blocking behavior
    - `labels`: `["generated-by-ia-dev-env"]`
 2. Capture the returned Jira issue key
 3. Replace `<CHAVE-JIRA>` in the story markdown with the actual key
@@ -281,13 +281,11 @@ If no `jiraContext` was provided (skill invoked directly, not via orchestrator):
    a. Ask for the Jira project key
    b. Ask if there is a parent epic in Jira:
       ```
-      question: "Existe um épico pai no Jira para vincular as histórias? Informe a chave (ex: PROJ-123) ou selecione 'Não'"
+      question: "Existe um épico pai no Jira para vincular as histórias? Se sim, informe a chave (ex: PROJ-123). Caso não exista, deixe em branco ou responda 'Não'."
       header: "Epic Link"
-      options:
-        - label: "Não vincular"
-          description: "Criar as histórias sem vínculo com um épico no Jira"
       ```
-      If the user provides a key via "Other", use it as the epicKey.
+      If the user informs a non-empty value different from "Não", use it as the `epicKey`.
+      If the answer is empty or "Não", create the stories without an epic link.
    c. Create each story in Jira with optional epic link
 
 4. If "Não": replace all `<CHAVE-JIRA>` with `—` and continue

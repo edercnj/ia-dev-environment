@@ -43,10 +43,11 @@ Read the following files before starting:
 Read every story's Section 1 (Dependencies) and the Epic's story index. Also read each
 story's `**Chave Jira:**` field (if present). Build a complete matrix:
 
-| Story | Title | Chave Jira | Blocked By | Blocks | Status |
+| Story | Title | Blocked By | Blocks | Status | Chave Jira |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 
-If a story does not have a Jira key, set the column value to `—`.
+The `Chave Jira` column is placed last to maintain backward compatibility with existing
+parsers. If a story does not have a Jira key, set the column value to `—`.
 
 **Validation checks:**
 - Every story in the Epic's index must appear in the matrix

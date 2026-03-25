@@ -142,7 +142,10 @@ After generating the Epic markdown file:
 2. Capture the returned Jira issue key (e.g., "PROJ-123")
 3. Update `jiraContext.epicIssueKey` with the returned key
 4. Replace `<CHAVE-JIRA>` in the generated Epic markdown with the actual Jira key
-5. If creation fails: warn the user, set `<CHAVE-JIRA>` to `EPIC-XXXX (Jira: falha na criação)`, continue
+5. If creation fails: warn the user, set `<CHAVE-JIRA>` to `EPIC-XXXX (Jira: falha na criação)`,
+   leave `jiraContext.epicIssueKey` absent (do NOT set it to an empty string or invalid value),
+   and continue. In Phase C, stories will be created without an `epicKey` link when
+   `jiraContext.epicIssueKey` is absent, maintaining non-blocking behavior
 
 If `jiraContext.enabled == false`: replace `<CHAVE-JIRA>` with `—` in the Epic markdown.
 
