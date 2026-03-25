@@ -1,0 +1,36 @@
+{
+  "epicId": "0011",
+  "branch": "feat/epic-0011-full-implementation",
+  "mode": {
+    "parallel": true,
+    "skipReview": false
+  },
+  "startedAt": "2026-03-25T00:00:00Z",
+  "finishedAt": null,
+  "stories": {
+    "story-0011-0001": { "id": "story-0011-0001", "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "0a1de57", "findingsCount": 0, "summary": "Regenerated 32 golden files with Chave Jira field in story/epic/map skills" },
+    "story-0011-0002": { "id": "story-0011-0002", "phase": 0, "status": "SUCCESS", "retries": 1, "commitSha": "aabc88d", "findingsCount": 0, "summary": "Added Chave Jira column to implementation map template, updated MarkdownParser with dynamic column detection, 14 new tests" },
+    "story-0011-0003": { "id": "story-0011-0003", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "35c0e6d", "findingsCount": 0, "summary": "Expanded x-story-epic GitHub counterpart with detailed Jira integration sub-steps 5.5.1-5.5.6" },
+    "story-0011-0004": { "id": "story-0011-0004", "phase": 2, "status": "SUCCESS", "retries": 0, "commitSha": "35c0e6d", "findingsCount": 0, "summary": "Jira integration in x-story-create already present in templates; golden files regenerated and synced" },
+    "story-0011-0005": { "id": "story-0011-0005", "phase": 2, "status": "SUCCESS", "retries": 0, "commitSha": "d4eff90", "findingsCount": 0, "summary": "Added Phase D.5 Jira dependency linking and Phase E report to x-story-epic-full GitHub counterpart" },
+    "story-0011-0006": { "id": "story-0011-0006", "phase": 2, "status": "SUCCESS", "retries": 0, "commitSha": "d4eff90", "findingsCount": 0, "summary": "Jira key display in x-story-map already present; golden files synced" },
+    "story-0011-0007": { "id": "story-0011-0007", "phase": 3, "status": "SUCCESS", "retries": 0, "commitSha": "dfd35d9", "findingsCount": 0, "summary": "Updated 4 GitHub Copilot skill counterparts with comprehensive Jira integration parity" },
+    "story-0011-0008": { "id": "story-0011-0008", "phase": 4, "status": "SUCCESS", "retries": 0, "commitSha": "dfd35d9", "findingsCount": 0, "summary": "Golden files and integration tests verified; all 32 golden files across 8 profiles already up to date" }
+  },
+  "metrics": {
+    "storiesTotal": 8,
+    "storiesCompleted": 8,
+    "storiesFailed": 0,
+    "storiesBlocked": 0
+  },
+  "integrityGates": {
+    "phase0": { "status": "PASS", "testCount": 2272, "coverage": 96, "branchCoverage": 91 },
+    "phase1": { "status": "PASS", "testCount": 2272, "coverage": 95.57, "branchCoverage": 91.78 },
+    "phase2": { "status": "PASS", "testCount": 2272, "coverage": 95.57, "branchCoverage": 91.78 },
+    "phase3": { "status": "PASS", "testCount": 2272, "coverage": 95.57, "branchCoverage": 91.78 },
+    "phase4": { "status": "PASS", "testCount": 2272, "coverage": 95.57, "branchCoverage": 91.78 }
+  },
+  "finalStatus": null,
+  "prUrl": null,
+  "reportPath": null
+}
