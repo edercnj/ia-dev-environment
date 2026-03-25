@@ -27,8 +27,8 @@ class SummaryTableBuilderTest {
     class BuildGenerationSummary {
 
         @Test
-        @DisplayName("contains 15 component rows")
-        void build_whenCalled_containsFifteenComponents(
+        @DisplayName("contains 16 component rows")
+        void build_whenCalled_containsSixteenComponents(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
 
@@ -47,7 +47,7 @@ class SummaryTableBuilderTest {
                     dataRows++;
                 }
             }
-            assertThat(dataRows).isEqualTo(15);
+            assertThat(dataRows).isEqualTo(16);
         }
 
         @Test
@@ -89,6 +89,7 @@ class SummaryTableBuilderTest {
                     .contains("Hooks (.github)")
                     .contains("MCP (.github)")
                     .contains("AGENTS.md (root)")
+                    .contains("AGENTS.override.md (root)")
                     .contains("Codex (.codex)")
                     .contains("Skills (.agents)");
         }
@@ -114,6 +115,9 @@ class SummaryTableBuilderTest {
             Files.writeString(
                     tempDir.resolve("AGENTS.md"),
                     "c", StandardCharsets.UTF_8);
+            Files.writeString(
+                    tempDir.resolve("AGENTS.override.md"),
+                    "c", StandardCharsets.UTF_8);
 
             String summary =
                     builder.buildGenerationSummary(
@@ -122,7 +126,8 @@ class SummaryTableBuilderTest {
             assertThat(summary)
                     .contains("Codex (.codex)")
                     .contains("Skills (.agents)")
-                    .contains("AGENTS.md (root)");
+                    .contains("AGENTS.md (root)")
+                    .contains("AGENTS.override.md (root)");
         }
 
         private Path setupMinimalOutput(Path tempDir)

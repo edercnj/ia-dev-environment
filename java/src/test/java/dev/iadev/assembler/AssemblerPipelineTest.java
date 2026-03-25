@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Tests for AssemblerPipeline — orchestrates 23 assemblers
+ * Tests for AssemblerPipeline — orchestrates 25 assemblers
  * per RULE-005.
  */
 @DisplayName("AssemblerPipeline")
@@ -43,6 +43,8 @@ class AssemblerPipelineTest {
             "CodexAgentsMdAssembler",
             "CodexConfigAssembler",
             "CodexSkillsAssembler",
+            "CodexRequirementsAssembler",
+            "CodexOverrideAssembler",
             "DocsAdrAssembler",
             "CicdAssembler",
             "EpicReportAssembler",
@@ -53,12 +55,12 @@ class AssemblerPipelineTest {
     class BuildAssemblers {
 
         @Test
-        @DisplayName("returns exactly 23 assembler descriptors")
-        void assemble_whenCalled_returnsExactly23() {
+        @DisplayName("returns exactly 25 assembler descriptors")
+        void assemble_whenCalled_returnsExactly25() {
             List<AssemblerDescriptor> descriptors =
                     AssemblerPipeline.buildAssemblers();
 
-            assertThat(descriptors).hasSize(23);
+            assertThat(descriptors).hasSize(25);
         }
 
         @Test
@@ -93,6 +95,10 @@ class AssemblerPipelineTest {
                     .isEqualTo(AssemblerTarget.CODEX);
             assertThat(descriptors.get(18).target())
                     .isEqualTo(AssemblerTarget.CODEX_AGENTS);
+            assertThat(descriptors.get(19).target())
+                    .isEqualTo(AssemblerTarget.CODEX);
+            assertThat(descriptors.get(20).target())
+                    .isEqualTo(AssemblerTarget.ROOT);
         }
 
         @Test

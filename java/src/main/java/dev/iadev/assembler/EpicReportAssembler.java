@@ -17,7 +17,7 @@ import java.util.List;
  * subagent, NOT for build-time rendering. Content is copied
  * verbatim.</p>
  *
- * <p>This is the twenty-second assembler in the pipeline
+ * <p>This is the twenty-fourth assembler in the pipeline
  * (position 22 of 23 per RULE-005). Its target is
  * {@link AssemblerTarget#ROOT}.</p>
  *

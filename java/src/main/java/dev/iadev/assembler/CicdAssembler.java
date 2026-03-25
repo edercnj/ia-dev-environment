@@ -15,7 +15,7 @@ import java.util.Map;
  * Coordinator that assembles CI/CD pipeline artifacts by
  * delegating to five specialized sub-assemblers.
  *
- * <p>This is the twenty-first assembler in the pipeline
+ * <p>This is the twenty-third assembler in the pipeline
  * (position 21 of 23 per RULE-005). It delegates to:
  * <ol>
  *   <li>{@link CiWorkflowAssembler} — always generated</li>

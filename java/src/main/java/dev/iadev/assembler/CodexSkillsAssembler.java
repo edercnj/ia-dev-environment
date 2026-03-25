@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Generates {@code .agents/skills/} from already-generated
+ * Generates Codex skills trees from already-generated
  * {@code .claude/skills/}.
  *
  * <p>Operates in 2 phases:
@@ -21,12 +21,13 @@ import java.util.List;
  *   <li>Scan {@code .claude/skills/} (already generated
  *       by {@link SkillsAssembler})</li>
  *   <li>Copy each skill to {@code .agents/skills/{name}/}
- *       with {@code SKILL.md} and optional
+ *       and {@code .codex/skills/{name}/} with
+ *       {@code SKILL.md} and optional
  *       {@code references/} subdirectory</li>
  * </ol>
  *
  * <p>This is the nineteenth assembler in the pipeline
- * (position 19 of 23 per RULE-005). Its target is
+ * (position 19 of 25 per RULE-005). Its target is
  * {@link AssemblerTarget#CODEX_AGENTS}.</p>
  *
  * @see Assembler
@@ -40,8 +41,8 @@ public final class CodexSkillsAssembler
     /**
      * {@inheritDoc}
      *
-     * <p>Copies skills from {@code .claude/skills/} to
-     * {@code .agents/skills/}.</p>
+ * <p>Copies skills from {@code .claude/skills/} to both
+ * {@code .agents/skills/} and {@code .codex/skills/}.</p>
      */
     @Override
     public List<String> assemble(
@@ -56,10 +57,16 @@ public final class CodexSkillsAssembler
             return List.of();
         }
 
-        Path destSkillsDir =
-                outputDir.resolve("skills");
-        return copySkillsTree(
-                claudeSkillsDir, destSkillsDir);
+        Path agentsSkillsDir = outputDir.resolve("skills");
+        Path codexSkillsDir = outputDir.getParent()
+                .resolve(".codex").resolve("skills");
+
+        List<String> files = new ArrayList<>();
+        files.addAll(copySkillsTree(
+                claudeSkillsDir, agentsSkillsDir));
+        files.addAll(copySkillsTree(
+                claudeSkillsDir, codexSkillsDir));
+        return files;
     }
 
     /**

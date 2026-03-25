@@ -164,8 +164,12 @@ public final class SummaryTableBuilder {
         Path rootDir = outputDir.getParent();
         int agentsMdCount = Files.exists(
                 rootDir.resolve("AGENTS.md")) ? 1 : 0;
+        int agentsOverrideCount = Files.exists(
+                rootDir.resolve("AGENTS.override.md")) ? 1 : 0;
         return new Object[][]{
                 {"AGENTS.md (root)", agentsMdCount},
+                {"AGENTS.override.md (root)",
+                        agentsOverrideCount},
                 {"Codex (.codex)", codexCount},
                 {"Skills (.agents)", agentsCount},
         };

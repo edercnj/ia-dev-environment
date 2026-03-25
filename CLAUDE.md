@@ -39,18 +39,19 @@ CLAUDE.md                   <-- Executive summary (project root, loaded automati
 +-- hooks/                      <-- Event hooks (*.json)
 ```
 
-### .claude/ <-> .github/ Mapping
+### .claude/ <-> .github/ <-> .codex/ Mapping
 
-| .claude/ | .github/ | Notes |
-|----------|----------|-------|
-| Rules (`rules/*.md`) | Instructions (`instructions/*.instructions.md`) | Rules are system-prompt loaded; instructions are contextual |
-| Skills (`skills/*/SKILL.md`) | Skills (`skills/*/SKILL.md`) | Same structure, same YAML frontmatter |
-| Agents (`agents/*.md`) | Agents (`agents/*.agent.md`) | GitHub agents use `.agent.md` extension with YAML frontmatter |
-| Hooks (`hooks/`) | Hooks (`hooks/*.json`) | Both define event-driven automations |
-| Settings (`settings*.json`) | N/A | Claude Code specific |
-| N/A | Prompts (`prompts/*.prompt.md`) | GitHub Copilot prompt templates |
-| N/A | MCP (`copilot-mcp.json`) | GitHub Copilot MCP server configuration |
-| N/A | Global instructions (`copilot-instructions.md`) | Loaded in every Copilot session |
+| .claude/ | .github/ | .codex/ | Notes |
+|----------|----------|---------|-------|
+| Rules (`rules/*.md`) | Instructions (`instructions/*.instructions.md`) | Sections in `AGENTS.md` | Rules -> consolidated sections |
+| Skills (`skills/*/SKILL.md`) | Skills (`skills/*/SKILL.md`) | Skills (`.agents/skills/` + `.codex/skills/`) | Dual output with identical content |
+| Agents (`agents/*.md`) | Agents (`agents/*.agent.md`) | Sections (`[agents.*]`) in `config.toml` | Agents represented as TOML sections |
+| Hooks (`hooks/`) | Hooks (`hooks/*.json`) | Reference in `AGENTS.md` | Hooks influence approval_policy |
+| Settings (`settings*.json`) | N/A | `.codex/config.toml` + `.codex/requirements.toml` | Runtime and enforced policies |
+| N/A | N/A | `AGENTS.md` + `AGENTS.override.md` (root) | Base instructions + local override |
+| N/A | Prompts (`prompts/*.prompt.md`) | N/A | GitHub Copilot prompt templates |
+| N/A | MCP (`copilot-mcp.json`) | N/A | GitHub Copilot MCP server configuration |
+| N/A | Global instructions (`copilot-instructions.md`) | N/A | Loaded in every Copilot session |
 
 **Total .github/ artifacts: 52**
 

@@ -76,13 +76,15 @@ public final class MappingTableBuilder {
                                 + " sections"},
                 {"Skills (`skills/*/SKILL.md`)",
                         "Skills (`skills/*/SKILL.md`)",
-                        "Skills (`.agents/skills/`)",
-                        "Same structure across"
-                                + " platforms"},
+                        "Skills (`.agents/skills/` + "
+                                + "`.codex/skills/`)",
+                        "Dual output with identical content"},
                 {"Agents (`agents/*.md`)",
                         "Agents (`agents/*.agent.md`)",
-                        "Agent personas in `AGENTS.md`",
-                        "Agents as section"},
+                        "Sections (`[agents.*]`) in"
+                                + " `config.toml`",
+                        "Agents represented as TOML"
+                                + " sections"},
                 {"Hooks (`hooks/`)",
                         "Hooks (`hooks/*.json`)",
                         "Reference in `AGENTS.md`",
@@ -90,17 +92,18 @@ public final class MappingTableBuilder {
                                 + " approval_policy"},
                 {"Settings (`settings*.json`)",
                         "N/A",
-                        "`.codex/config.toml`",
-                        "Permissions \u2192 approval"
-                                + " policy"},
+                        "`.codex/config.toml` +"
+                                + " `.codex/requirements.toml`",
+                        "Runtime and enforced policies"},
         };
     }
 
     private static String[][] additionalArtifactRows() {
         return new String[][]{
                 {"N/A", "N/A",
-                        "`AGENTS.md` (project root)",
-                        "Codex project instructions"},
+                        "`AGENTS.md` +"
+                                + " `AGENTS.override.md` (root)",
+                        "Base instructions + local override"},
                 {"N/A",
                         "Prompts (`prompts/"
                                 + "*.prompt.md`)",

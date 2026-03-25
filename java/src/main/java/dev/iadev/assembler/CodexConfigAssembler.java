@@ -23,7 +23,7 @@ import java.util.Map;
  * </ol>
  *
  * <p>This is the eighteenth assembler in the pipeline
- * (position 18 of 23 per RULE-005). Its target is
+ * (position 18 of 25 per RULE-005). Its target is
  * {@link AssemblerTarget#CODEX}.</p>
  *
  * @see Assembler
@@ -58,14 +58,19 @@ public final class CodexConfigAssembler
             Path outputDir) {
         Path hooksDir = outputDir.getParent()
                 .resolve(".claude").resolve("hooks");
+        Path agentsDir = outputDir.getParent()
+                .resolve(".claude").resolve("agents");
         HookPresence hookPresence = HookPresence.of(
                 CodexShared.detectHooks(hooksDir));
+        List<AgentInfo> agents = CodexScanner.scanAgents(
+                agentsDir);
 
         List<String> warnings =
                 collectTomlKeyWarnings(config);
 
         Map<String, Object> context =
-                buildConfigContext(config, hookPresence);
+                buildConfigContext(
+                        config, hookPresence, agents);
 
         String rendered = engine.render(
                 TEMPLATE_PATH, context);
@@ -107,13 +112,17 @@ public final class CodexConfigAssembler
      *
      * @param config       the project configuration
      * @param hookPresence whether hooks were detected
+     * @param agentsList   scanned Claude agents
      * @return the template context map
      */
     static Map<String, Object> buildConfigContext(
             ProjectConfig config,
-            HookPresence hookPresence) {
+            HookPresence hookPresence,
+            List<AgentInfo> agentsList) {
         List<Map<String, Object>> mcpServers =
                 CodexShared.mapMcpServers(config);
+        List<Map<String, Object>> agents =
+                mapAgents(agentsList);
         Map<String, Object> ctx = new LinkedHashMap<>(
                 ContextBuilder.buildContext(config));
         ctx.put("model", CodexShared.DEFAULT_MODEL);
@@ -124,7 +133,22 @@ public final class CodexConfigAssembler
                 CodexShared.SANDBOX_WORKSPACE_WRITE);
         ctx.put("mcp_servers", mcpServers);
         ctx.put("has_mcp", !mcpServers.isEmpty());
+        ctx.put("agents_list", agents);
         return ctx;
+    }
+
+    private static List<Map<String, Object>> mapAgents(
+            List<AgentInfo> scanned) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (AgentInfo agent : scanned) {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("name", CodexShared.sanitizeTomlBareKey(
+                    agent.name()));
+            row.put("description", CodexShared.escapeTomlValue(
+                    agent.description()));
+            result.add(row);
+        }
+        return result;
     }
 
 }

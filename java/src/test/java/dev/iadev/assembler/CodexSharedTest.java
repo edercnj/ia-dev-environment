@@ -175,6 +175,27 @@ class CodexSharedTest {
     }
 
     @Nested
+    @DisplayName("sanitizeTomlBareKey")
+    class SanitizeTomlBareKey {
+
+        @Test
+        @DisplayName("replaces invalid chars with hyphen")
+        void create_whenCalled_replacesInvalidChars() {
+            assertThat(CodexShared.sanitizeTomlBareKey(
+                    "typescript developer"))
+                    .isEqualTo("typescript-developer");
+        }
+
+        @Test
+        @DisplayName("returns fallback when blank")
+        void create_whenBlank_returnsFallback() {
+            assertThat(CodexShared.sanitizeTomlBareKey(
+                    "   "))
+                    .isEqualTo("agent");
+        }
+    }
+
+    @Nested
     @DisplayName("escapeTomlValue")
     class EscapeTomlValue {
 

@@ -510,6 +510,35 @@ class CodexAgentsMdAssemblerTest {
                     .contains("x-review");
         }
 
+        @Test
+        @DisplayName("AGENTS.md includes expanded security baseline")
+        void assemble_whenCalled_includesExpandedSecurityBaseline(
+                @TempDir Path tempDir) throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            setupClaudeDir(outputDir);
+
+            CodexAgentsMdAssembler assembler =
+                    new CodexAgentsMdAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .securityFrameworks("owasp")
+                            .build();
+
+            assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            String content = Files.readString(
+                    outputDir.resolve("AGENTS.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("## Security Baseline")
+                    .contains("### OWASP Top 10")
+                    .contains("### Secrets Management")
+                    .contains("### Input Validation")
+                    .contains("### Security Headers")
+                    .contains("### Cryptography");
+        }
+
         private void setupClaudeDir(Path outputDir)
                 throws IOException {
             Path claudeDir = outputDir.getParent()

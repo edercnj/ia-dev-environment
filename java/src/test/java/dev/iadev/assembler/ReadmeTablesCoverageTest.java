@@ -219,6 +219,9 @@ class ReadmeTablesCoverageTest {
                     tempDir.resolve("AGENTS.md"),
                     "c", StandardCharsets.UTF_8);
             Files.writeString(
+                    tempDir.resolve("AGENTS.override.md"),
+                    "c", StandardCharsets.UTF_8);
+            Files.writeString(
                     tempDir.resolve(
                             ".github/copilot-instructions.md"),
                     "c", StandardCharsets.UTF_8);
@@ -238,6 +241,7 @@ class ReadmeTablesCoverageTest {
                     .contains("Codex (.codex)")
                     .contains("Skills (.agents)")
                     .contains("AGENTS.md (root)")
+                    .contains("AGENTS.override.md (root)")
                     .contains("MCP (.github)");
         }
 

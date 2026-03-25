@@ -15,8 +15,8 @@ import java.util.stream.Stream;
  * Assembles {@code docs/adr/} with an ADR index README.md and
  * the ADR template file.
  *
- * <p>This is the twentieth assembler in the pipeline
- * (position 20 of 23 per RULE-005). It generates two files:
+ * <p>This is the twenty-second assembler in the pipeline
+ * (position 22 of 25 per RULE-005). It generates two files:
  * <ol>
  *   <li>{@code docs/adr/README.md} — programmatically built
  *       index with project name, empty ADR table, and

@@ -39,6 +39,9 @@ class MappingTableBuilderTest {
             assertThat(table)
                     .contains("| .claude/ | .github/"
                             + " | .codex/ | Notes |");
+            assertThat(table)
+                    .contains("`.codex/requirements.toml`")
+                    .contains("`AGENTS.override.md`");
             int dataRows = 0;
             for (String line : table.split("\n")) {
                 if (line.startsWith("| ")

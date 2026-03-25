@@ -381,8 +381,8 @@ class ReadmeUtilsTest {
         }
 
         @Test
-        @DisplayName("counts only files, not dirs")
-        void create_whenCalled_countsOnlyFiles(@TempDir Path tempDir)
+        @DisplayName("counts files recursively")
+        void create_whenCalled_countsRecursive(@TempDir Path tempDir)
                 throws IOException {
             Path codexDir =
                     Files.createDirectories(
@@ -392,10 +392,13 @@ class ReadmeUtilsTest {
                     "c", StandardCharsets.UTF_8);
             Files.createDirectories(
                     codexDir.resolve("subdir"));
+            Files.writeString(
+                    codexDir.resolve("subdir/extra.toml"),
+                    "x", StandardCharsets.UTF_8);
 
             assertThat(
                     ReadmeUtils.countCodexFiles(codexDir))
-                    .isEqualTo(1);
+                    .isEqualTo(2);
         }
     }
 

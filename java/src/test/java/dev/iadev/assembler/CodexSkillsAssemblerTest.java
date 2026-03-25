@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for CodexSkillsAssembler — copies .claude/skills/
- * to .agents/skills/ for OpenAI Codex CLI.
+ * to .agents/skills/ and .codex/skills/ for OpenAI Codex CLI.
  */
 @DisplayName("CodexSkillsAssembler")
 class CodexSkillsAssemblerTest {
@@ -195,12 +195,12 @@ class CodexSkillsAssemblerTest {
     }
 
     @Nested
-    @DisplayName("assemble — copies skills tree")
+    @DisplayName("assemble — copies skills trees")
     class Assemble {
 
         @Test
         @DisplayName("copies skills from .claude/ to"
-                + " .agents/")
+                + " .agents/ and .codex/")
         void assemble_whenCalled_copiesSkillsFromClaude(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = setupDirs(tempDir);
@@ -214,8 +214,12 @@ class CodexSkillsAssemblerTest {
                     config, new TemplateEngine(), outputDir);
 
             assertThat(files).isNotEmpty();
+            assertThat(files).hasSize(2);
             assertThat(outputDir.resolve(
                     "skills/my-skill/SKILL.md")).exists();
+            assertThat(outputDir.getParent().resolve(".codex")
+                    .resolve("skills/my-skill/SKILL.md"))
+                    .exists();
         }
 
         @Test
@@ -268,6 +272,9 @@ class CodexSkillsAssemblerTest {
 
             assertThat(outputDir.resolve(
                     "skills/my-skill/references/ref.md"))
+                    .exists();
+            assertThat(outputDir.getParent().resolve(".codex")
+                    .resolve("skills/my-skill/references/ref.md"))
                     .exists();
         }
 

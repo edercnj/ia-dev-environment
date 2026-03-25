@@ -326,6 +326,9 @@ class ReadmeTablesTest {
             assertThat(table)
                     .contains("| .claude/ | .github/"
                             + " | .codex/ | Notes |");
+            assertThat(table)
+                    .contains("`.codex/requirements.toml`")
+                    .contains("`AGENTS.override.md`");
             // Header + separator + 9 rows
             String[] lines = table.split("\n");
             int dataRows = 0;
@@ -382,8 +385,8 @@ class ReadmeTablesTest {
     class BuildGenerationSummary {
 
         @Test
-        @DisplayName("contains 15 component rows")
-        void create_whenCalled_containsFifteenComponents(
+        @DisplayName("contains 16 component rows")
+        void create_whenCalled_containsSixteenComponents(
                 @TempDir Path tempDir)
                 throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
@@ -406,7 +409,7 @@ class ReadmeTablesTest {
                     dataRows++;
                 }
             }
-            assertThat(dataRows).isEqualTo(15);
+            assertThat(dataRows).isEqualTo(16);
         }
 
         @Test
@@ -452,6 +455,7 @@ class ReadmeTablesTest {
                     .contains("Hooks (.github)")
                     .contains("MCP (.github)")
                     .contains("AGENTS.md (root)")
+                    .contains("AGENTS.override.md (root)")
                     .contains("Codex (.codex)")
                     .contains("Skills (.agents)");
         }

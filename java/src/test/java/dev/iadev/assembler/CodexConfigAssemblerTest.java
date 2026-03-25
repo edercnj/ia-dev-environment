@@ -49,7 +49,9 @@ class CodexConfigAssemblerTest {
             Map<String, Object> ctx =
                     CodexConfigAssembler
                             .buildConfigContext(
-                                    config, HookPresence.WITHOUT_HOOKS);
+                                    config,
+                                    HookPresence.WITHOUT_HOOKS,
+                                    List.of());
 
             assertThat(ctx.get("model"))
                     .isEqualTo("o4-mini");
@@ -67,7 +69,9 @@ class CodexConfigAssemblerTest {
             Map<String, Object> ctx =
                     CodexConfigAssembler
                             .buildConfigContext(
-                                    config, HookPresence.WITHOUT_HOOKS);
+                                    config,
+                                    HookPresence.WITHOUT_HOOKS,
+                                    List.of());
 
             assertThat(ctx.get("has_mcp"))
                     .isEqualTo(false);
@@ -87,7 +91,9 @@ class CodexConfigAssemblerTest {
             Map<String, Object> ctx =
                     CodexConfigAssembler
                             .buildConfigContext(
-                                    config, HookPresence.WITHOUT_HOOKS);
+                                    config,
+                                    HookPresence.WITHOUT_HOOKS,
+                                    List.of());
 
             assertThat(ctx.get("has_mcp"))
                     .isEqualTo(true);
@@ -102,10 +108,39 @@ class CodexConfigAssemblerTest {
             Map<String, Object> ctx =
                     CodexConfigAssembler
                             .buildConfigContext(
-                                    config, HookPresence.WITH_HOOKS);
+                                    config,
+                                    HookPresence.WITH_HOOKS,
+                                    List.of());
 
             assertThat(ctx.get("approval_policy"))
                     .isEqualTo("on-request");
+        }
+
+        @Test
+        @DisplayName("maps agents_list with sanitized name"
+                + " and escaped description")
+        void assemble_whenCalled_mapsAgentsList() {
+            ProjectConfig config =
+                    TestConfigBuilder.minimal();
+            Map<String, Object> ctx =
+                    CodexConfigAssembler
+                            .buildConfigContext(
+                                    config,
+                                    HookPresence.WITHOUT_HOOKS,
+                                    List.of(new AgentInfo(
+                                            "typescript developer",
+                                            "Architect \"Lead\"")));
+
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> agents =
+                    (List<Map<String, Object>>) ctx.get(
+                            "agents_list");
+
+            assertThat(agents).hasSize(1);
+            assertThat(agents.get(0).get("name"))
+                    .isEqualTo("typescript-developer");
+            assertThat(agents.get(0).get("description"))
+                    .isEqualTo("Architect \\\"Lead\\\"");
         }
     }
 
@@ -256,6 +291,35 @@ class CodexConfigAssemblerTest {
         }
 
         @Test
+        @DisplayName("config.toml renders [agents.*]"
+                + " sections when agents exist")
+        void assemble_whenCalled_rendersAgentsSections(
+                @TempDir Path tempDir) throws IOException {
+            Path outputDir = setupDirs(tempDir);
+            Path agentsDir = outputDir.getParent()
+                    .resolve(".claude").resolve("agents");
+            Files.createDirectories(agentsDir);
+            Files.writeString(
+                    agentsDir.resolve("architect.md"),
+                    "# Architect \"Lead\"",
+                    StandardCharsets.UTF_8);
+
+            CodexConfigAssembler assembler =
+                    new CodexConfigAssembler();
+            assembler.assemble(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(), outputDir);
+
+            String content = Files.readString(
+                    outputDir.resolve("config.toml"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("[agents.architect]")
+                    .contains(
+                            "description = \"Architect \\\"Lead\\\"\"");
+        }
+
+        @Test
         @DisplayName("golden file parity for kotlin-ktor")
         void assemble_whenCalled_goldenFileParity(
                 @TempDir Path tempDir) throws IOException {
@@ -269,6 +333,10 @@ class CodexConfigAssemblerTest {
                     hooksDir.resolve("hook.sh"),
                     "#!/bin/bash",
                     StandardCharsets.UTF_8);
+            Path agentsDir = outputDir.getParent()
+                    .resolve(".claude").resolve("agents");
+            Files.createDirectories(agentsDir);
+            createGoldenAgents(agentsDir);
 
             CodexConfigAssembler assembler =
                     new CodexConfigAssembler();
@@ -319,6 +387,28 @@ class CodexConfigAssemblerTest {
                         StandardCharsets.UTF_8);
             } catch (IOException e) {
                 return null;
+            }
+        }
+
+        private void createGoldenAgents(Path agentsDir)
+                throws IOException {
+            String[] names = {
+                    "api-engineer",
+                    "architect",
+                    "devops-engineer",
+                    "event-engineer",
+                    "kotlin-developer",
+                    "performance-engineer",
+                    "product-owner",
+                    "qa-engineer",
+                    "security-engineer",
+                    "tech-lead"
+            };
+            for (String name : names) {
+                Files.writeString(
+                        agentsDir.resolve(name + ".md"),
+                        "# Global Behavior & Language Policy",
+                        StandardCharsets.UTF_8);
             }
         }
     }

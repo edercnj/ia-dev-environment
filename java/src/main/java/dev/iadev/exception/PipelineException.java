@@ -4,7 +4,7 @@ package dev.iadev.exception;
  * Thrown when an assembler fails during artifact generation in the pipeline.
  *
  * <p>Carries the name of the assembler that failed, enabling targeted
- * debugging across the 23 assemblers in the pipeline.</p>
+ * debugging across the 25 assemblers in the pipeline.</p>
  *
  * <p>Example usage:
  * <pre>{@code

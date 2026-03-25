@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Factory that instantiates the 23 assemblers in the
+ * Factory that instantiates the 25 assemblers in the
  * fixed order defined by RULE-005.
  *
  * <p>Extracted from {@link AssemblerPipeline} to keep
@@ -20,7 +20,7 @@ public final class AssemblerFactory {
     }
 
     /**
-     * Builds the ordered list of 23 assemblers per RULE-005.
+     * Builds the ordered list of 25 assemblers per RULE-005.
      *
      * <p>Delegates to group builders by category:
      * core, github, docs, codex, cicd, and readme.</p>
@@ -125,6 +125,12 @@ public final class AssemblerFactory {
                 desc("CodexSkillsAssembler",
                         AssemblerTarget.CODEX_AGENTS,
                         new CodexSkillsAssembler()),
+                desc("CodexRequirementsAssembler",
+                        AssemblerTarget.CODEX,
+                        new CodexRequirementsAssembler()),
+                desc("CodexOverrideAssembler",
+                        AssemblerTarget.ROOT,
+                        new CodexOverrideAssembler()),
                 desc("DocsAdrAssembler",
                         AssemblerTarget.ROOT,
                         new DocsAdrAssembler()));

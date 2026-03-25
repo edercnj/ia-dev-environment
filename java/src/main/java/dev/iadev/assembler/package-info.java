@@ -4,7 +4,7 @@
  * <p>Each assembler implements the uniform {@link Assembler} interface
  * (RULE-004) to generate a specific category of output files (rules,
  * skills, agents, etc.). The {@link AssemblerPipeline} orchestrates
- * execution of 23 assemblers in the fixed order defined by RULE-005.</p>
+ * execution of 25 assemblers in the fixed order defined by RULE-005.</p>
  *
  * <p>Key components:
  * <ul>

@@ -99,6 +99,22 @@ public final class CodexShared {
     }
 
     /**
+     * Sanitizes an arbitrary identifier into a safe TOML bare key.
+     *
+     * @param id the raw identifier
+     * @return sanitized key using {@code [A-Za-z0-9_-]+}
+     */
+    public static String sanitizeTomlBareKey(String id) {
+        if (id == null || id.isBlank()) {
+            return "agent";
+        }
+        String sanitized = id.replaceAll("[^A-Za-z0-9_-]+", "-")
+                .replaceAll("-{2,}", "-")
+                .replaceAll("^-|-$", "");
+        return sanitized.isBlank() ? "agent" : sanitized;
+    }
+
+    /**
      * Escapes a string value for safe TOML rendering inside
      * double quotes.
      *

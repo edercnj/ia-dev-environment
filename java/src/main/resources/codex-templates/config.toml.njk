@@ -19,3 +19,10 @@ command = [{% for part in server.command %}"{{ part }}"{% if not loop.last %}, {
 {%- endif %}
 {%- endfor %}
 {%- endif %}
+{%- if agents_list is not empty %}
+{% for agent in agents_list %}
+
+[agents.{{ agent.name }}]
+description = "{{ agent.description }}"
+{% endfor %}
+{%- endif %}

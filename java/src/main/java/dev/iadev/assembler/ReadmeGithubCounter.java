@@ -86,14 +86,7 @@ public final class ReadmeGithubCounter {
         if (!Files.exists(codexDir)) {
             return 0;
         }
-        try (Stream<Path> entries = Files.list(codexDir)) {
-            return (int) entries
-                    .filter(Files::isRegularFile)
-                    .count();
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to list codex dir", e);
-        }
+        return ReadmeUtils.countFilesRecursive(codexDir);
     }
 
     /**

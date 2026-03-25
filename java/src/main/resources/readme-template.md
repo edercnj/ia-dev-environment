@@ -45,6 +45,8 @@ CLAUDE.md                   <-- Executive summary (project root, loaded automati
 .codex/
 |-- AGENTS.md                   <-- Agent instructions (generated from .claude/ context)
 +-- config.toml                 <-- Codex configuration (model, approval, sandbox)
++-- requirements.toml           <-- Enforced minimum policy constraints
++-- skills/                     <-- Codex-native skills mirror
 ```
 
 ### .claude/ <-> .github/ <-> .codex/ Mapping
