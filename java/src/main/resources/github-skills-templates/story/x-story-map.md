@@ -47,7 +47,7 @@ story's `**Chave Jira:**` field (if present). Build a complete matrix:
 | :--- | :--- | :--- | :--- | :--- | :--- |
 
 The `Chave Jira` column is placed between `Title` and `Blocked By`. If a story does not
-have a Jira key, set the column value to `—`.
+have a Jira key (field is `—` or `<CHAVE-JIRA>`), set the column value to `—`.
 
 **Validation checks:**
 - Every story in the Epic's index must appear in the matrix

@@ -235,24 +235,86 @@ Use checkboxes `- [ ]` for tracking.
 
 ### Step 2.X: Optional Jira Integration (per story)
 
-After generating each story's markdown but before saving, optionally create the story in Jira.
+After generating each story's markdown content but before saving, optionally create the
+story in Jira.
 
-**Mode A (Cascaded from orchestrator):** If `jiraContext.cascadeToStories == true`, create each
-story in Jira automatically (no user prompt): call Jira MCP with issueType "Story", link to
-parent epic via `epicKey`. Replace `<CHAVE-JIRA>` with the returned key. On failure, warn and continue.
+#### Mode A: Cascaded from Orchestrator
 
-**Mode B (Standalone):** If invoked directly, check MCP availability and ask the user:
-"Deseja criar as histórias no Jira?" If yes, ask for project key and optional parent epic key.
+If a `jiraContext` was provided by the orchestrator (`x-story-epic-full`) with
+`jiraContext.enabled == true` and `jiraContext.cascadeToStories == true`:
 
-**Dependency Linking (second pass):** After all stories have Jira keys, create "is blocked by"
-links in Jira. Best-effort — failures logged but do not block.
+For each story (no additional user prompting needed):
+1. Call the Jira MCP tool to create a Story issue:
+   - `projectKey`: `jiraContext.projectKey`
+   - `issueType`: "Story"
+   - `summary`: the story title
+   - `description`: the user story text from Section 3 (the "Como **Persona**..." paragraph)
+   - `epicKey` (optional): `jiraContext.epicIssueKey` — include this field only if `jiraContext.epicIssueKey` is present; omit `epicKey` entirely when it is absent (e.g., epic creation failed in Phase B) to avoid MCP errors and maintain non-blocking behavior
+   - `labels`: `["generated-by-ia-dev-env"]`
+2. Capture the returned Jira issue key
+3. Replace `<CHAVE-JIRA>` in the story markdown with the actual key
+4. Store the mapping `{ storyId -> jiraKey }` for later dependency linking
+
+If creation fails for a story: log a warning, set `<CHAVE-JIRA>` to `—`, continue
+with remaining stories.
+
+#### Mode B: Standalone Invocation
+
+If no `jiraContext` was provided (skill invoked directly, not via orchestrator):
+
+1. Check if the Jira MCP tool is available. If not available, skip Jira integration
+   entirely — replace all `<CHAVE-JIRA>` with `—`.
+
+2. Present the user with a text prompt in chat:
+   ```
+   Deseja criar as histórias no Jira?
+
+   1. Sim, criar no Jira — Criar cada história como issue no Jira via MCP
+   2. Não, apenas markdown — Gerar apenas os arquivos markdown sem integração com Jira
+
+   Responda com o número da opção (1 ou 2):
+   ```
+
+   Wait for the user's response in the next chat turn.
+
+3. If "1" (Sim):
+   a. Ask for the Jira project key via text prompt:
+      ```
+      Qual a chave do projeto Jira? (ex: PROJ, MYAPP, TEAM)
+      ```
+   b. Ask if there is a parent epic in Jira via text prompt:
+      ```
+      Existe um épico pai no Jira para vincular as histórias?
+      Se sim, informe a chave (ex: PROJ-123). Caso não exista, responda "Não".
+      ```
+      If the user informs a non-empty value different from "Não", use it as the `epicKey`.
+      If the answer is empty or "Não", create the stories without an epic link.
+   c. Create each story in Jira with optional epic link
+
+4. If "2" (Não): replace all `<CHAVE-JIRA>` with `—` and continue
+
+#### Jira Dependency Linking (second pass)
+
+After ALL stories are created and have Jira keys, perform a second pass to create
+dependency links in Jira:
+
+For each story's "Blocked By" list:
+- If the blocking story has a Jira key, call the Jira MCP tool to create an
+  "is blocked by" link between the two Jira issues
+- If linking fails: log a warning, continue
+
+This step is best-effort. Report: "N dependency links criados no Jira"
 
 ### Step 3: Save and Report
 
 Save each story as `story-XXXX-YYYY.md` in the same directory as the Epic (inside `docs/stories/epic-XXXX/`).
 The XXXX is the epic number (extracted from the Epic file) and YYYY is the story sequence (from the Epic's index).
 Report: total stories generated, dependency graph summary, any inconsistencies found.
-If Jira integration was active, also report stories created, dependency links, and failures.
+
+If Jira integration was active, also report:
+- Stories created in Jira: N of M
+- Dependency links created: K
+- Failures: list any failed items
 
 ## Language Rules
 
