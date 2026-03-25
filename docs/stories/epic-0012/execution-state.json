@@ -2,7 +2,7 @@
   "epicId": "0012",
   "branch": "feat/epic-0012-full-implementation",
   "startedAt": "2026-03-25T00:00:00Z",
-  "finishedAt": null,
+  "finishedAt": "2026-03-25T23:45:00Z",
   "mode": {
     "parallel": true,
     "skipReview": false
@@ -33,7 +33,7 @@
     "phase3": { "status": "PASS", "testCount": 2336, "coverage": null, "branchCoverage": null },
     "phase4": { "status": "PASS", "testCount": 2336, "coverage": null, "branchCoverage": null }
   },
-  "prUrl": null,
-  "reportPath": null,
-  "finalStatus": null
+  "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/124",
+  "reportPath": "docs/stories/epic-0012/epic-execution-report.md",
+  "finalStatus": "COMPLETE"
 }

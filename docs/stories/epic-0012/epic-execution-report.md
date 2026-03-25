@@ -72,4 +72,4 @@ e5ef56f feat(smoke): add smoke test infrastructure classes
 Pending review
 
 ## PR Link
-Pending
+https://github.com/edercnj/ia-dev-environment/pull/124
