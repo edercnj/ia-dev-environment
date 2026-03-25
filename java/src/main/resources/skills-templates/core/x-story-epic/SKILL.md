@@ -134,8 +134,8 @@ Epic in Jira.
 
 #### 5.5.1: Check MCP Availability
 
-Verify that the Jira MCP tool (`mcp__atlassian__jira_create_issue` or equivalent) is
-available. If not available, skip this entire step silently and proceed to Step 6.
+Verify that the Jira MCP tool (`mcp__atlassian__createJiraIssue`) is available.
+If not available, skip this entire step silently and proceed to Step 6.
 
 #### 5.5.2: Check Context
 
@@ -160,22 +160,28 @@ options:
 multiSelect: false
 ```
 
-If "Sim": ask for the Jira project key:
-```
-question: "Qual a chave do projeto Jira? (ex: PROJ, MYAPP, TEAM)"
-header: "Projeto"
-```
+If "Sim":
+1. Ask for the Jira project key:
+   ```
+   question: "Qual a chave do projeto Jira? (ex: PROJ, MYAPP, TEAM)"
+   header: "Projeto"
+   ```
+2. Discover the `cloudId` by calling `mcp__atlassian__getAccessibleAtlassianResources`.
+   Use the first available site's `id` as the `cloudId`. If the call fails or returns
+   no sites, warn the user and skip to Step 6 (replace `<CHAVE-JIRA>` with `—`).
 
 If "Não": replace `<CHAVE-JIRA>` with `—` and proceed to Step 6.
 
 #### 5.5.4: Create Epic in Jira
 
-Call the Jira MCP tool to create an Epic issue:
+Call `mcp__atlassian__createJiraIssue` to create an Epic issue:
+- `cloudId`: the discovered `cloudId` (or `jiraContext.cloudId`)
 - `projectKey`: the user-provided project key (or `jiraContext.projectKey`)
-- `issueType`: "Epic"
+- `issueTypeName`: "Epic"
 - `summary`: the Epic title from the generated header
-- `description`: the "Visão Geral" section text (plain text, no markdown)
-- `labels`: `["generated-by-ia-dev-env"]`
+- `description`: the "Visão Geral" section text
+- `contentFormat`: "markdown"
+- `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }] }`
 
 Capture the returned Jira issue key (e.g., "PROJ-123").
 

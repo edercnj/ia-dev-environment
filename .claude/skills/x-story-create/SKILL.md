@@ -244,13 +244,15 @@ If a `jiraContext` was provided by the orchestrator (`x-story-epic-full`) with
 `jiraContext.enabled == true` and `jiraContext.cascadeToStories == true`:
 
 For each story (no additional user prompting needed):
-1. Call the Jira MCP tool to create a Story issue:
+1. Call `mcp__atlassian__createJiraIssue` to create a Story issue:
+   - `cloudId`: `jiraContext.cloudId`
    - `projectKey`: `jiraContext.projectKey`
-   - `issueType`: "Story"
+   - `issueTypeName`: "Story"
    - `summary`: the story title
    - `description`: the user story text from Section 3 (the "Como **Persona**..." paragraph)
-   - `epicKey` (optional): `jiraContext.epicIssueKey` — include this field only if `jiraContext.epicIssueKey` is present; omit `epicKey` entirely when it is absent (e.g., epic creation failed in Phase B) to avoid MCP errors and maintain non-blocking behavior
-   - `labels`: `["generated-by-ia-dev-env"]`
+   - `contentFormat`: "markdown"
+   - `parent` (optional): `jiraContext.epicIssueKey` — include only if `jiraContext.epicIssueKey` is present; omit entirely when absent (e.g., epic creation failed in Phase B) to avoid MCP errors and maintain non-blocking behavior
+   - `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }] }`
 2. Capture the returned Jira issue key
 3. Replace `<CHAVE-JIRA>` in the story markdown with the actual key
 4. Store the mapping `{ storyId → jiraKey }` for later dependency linking
@@ -262,8 +264,8 @@ with remaining stories.
 
 If no `jiraContext` was provided (skill invoked directly, not via orchestrator):
 
-1. Check if the Jira MCP tool is available. If not available, skip Jira integration
-   entirely — replace all `<CHAVE-JIRA>` with `—`.
+1. Check if `mcp__atlassian__createJiraIssue` is available. If not available, skip Jira
+   integration entirely — replace all `<CHAVE-JIRA>` with `—`.
 
 2. Use `AskUserQuestion`:
    ```
@@ -279,14 +281,25 @@ If no `jiraContext` was provided (skill invoked directly, not via orchestrator):
 
 3. If "Sim":
    a. Ask for the Jira project key
-   b. Ask if there is a parent epic in Jira:
+   b. Discover the `cloudId` by calling `mcp__atlassian__getAccessibleAtlassianResources`.
+      Use the first available site's `id` as the `cloudId`. If the call fails or returns
+      no sites, warn the user and skip Jira integration (replace all `<CHAVE-JIRA>` with `—`).
+   c. Ask if there is a parent epic in Jira:
       ```
       question: "Existe um épico pai no Jira para vincular as histórias? Se sim, informe a chave (ex: PROJ-123). Caso não exista, deixe em branco ou responda 'Não'."
       header: "Epic Link"
       ```
-      If the user informs a non-empty value different from "Não", use it as the `epicKey`.
-      If the answer is empty or "Não", create the stories without an epic link.
-   c. Create each story in Jira with optional epic link
+      If the user informs a non-empty value different from "Não", use it as the `parent`.
+      If the answer is empty or "Não", create the stories without a parent link.
+   d. For each story, call `mcp__atlassian__createJiraIssue`:
+      - `cloudId`: the discovered `cloudId`
+      - `projectKey`: the user-provided project key
+      - `issueTypeName`: "Story"
+      - `summary`: the story title
+      - `description`: the user story text from Section 3
+      - `contentFormat`: "markdown"
+      - `parent` (optional): the epic key from step c, if provided
+      - `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }] }`
 
 4. If "Não": replace all `<CHAVE-JIRA>` with `—` and continue
 
@@ -296,8 +309,11 @@ After ALL stories are created and have Jira keys, perform a second pass to creat
 dependency links in Jira:
 
 For each story's "Blocked By" list:
-- If the blocking story has a Jira key, call the Jira MCP tool to create an
-  "is blocked by" link between the two Jira issues
+- If the blocking story has a Jira key, call `mcp__atlassian__createIssueLink`:
+  - `cloudId`: the discovered `cloudId` (or `jiraContext.cloudId`)
+  - `type`: "Blocks"
+  - `inwardIssue`: the blocker's Jira key (the issue that blocks)
+  - `outwardIssue`: the current story's Jira key (the issue that is blocked)
 - If linking fails: log a warning, continue
 
 This step is best-effort. Report: "N dependency links criados no Jira"

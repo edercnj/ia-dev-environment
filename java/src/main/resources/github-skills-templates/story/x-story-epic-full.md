@@ -77,9 +77,9 @@ Before generating any artifacts, determine if Jira integration is desired.
 
 #### A.5.1: Check MCP Availability
 
-Verify that the Jira MCP tool (`mcp__atlassian__jira_create_issue` or equivalent Atlassian
-MCP tool for creating issues) is available. If the tool is NOT available, set
-`jiraContext = { enabled: false }` and skip to Phase B silently — do not warn the user.
+Verify that the Jira MCP tool (`mcp__atlassian__createJiraIssue`) is available.
+If the tool is NOT available, set `jiraContext = { enabled: false }` and skip to
+Phase B silently — do not warn the user.
 
 #### A.5.2: Ask the User
 
@@ -106,11 +106,15 @@ Based on user selection:
      ```
      Qual a chave do projeto Jira? (ex: PROJ, MYAPP, TEAM)
      ```
-  2. Set `jiraContext = { enabled: true, cascadeToStories: true, projectKey: "<key>" }`
+  2. Discover the `cloudId` by calling `mcp__atlassian__getAccessibleAtlassianResources`.
+     Use the first available site's `id` as the `cloudId`. If the call fails or returns
+     no sites, warn the user and set `jiraContext = { enabled: false }`.
+  3. Set `jiraContext = { enabled: true, cascadeToStories: true, projectKey: "<key>", cloudId: "<cloudId>" }`
 
 - **Option 2 — "Apenas o épico no Jira"**:
   1. Ask for the Jira project key (same prompt as above)
-  2. Set `jiraContext = { enabled: true, cascadeToStories: false, projectKey: "<key>" }`
+  2. Discover the `cloudId` (same as above)
+  3. Set `jiraContext = { enabled: true, cascadeToStories: false, projectKey: "<key>", cloudId: "<cloudId>" }`
 
 - **Option 3 — "Não, apenas markdown"**:
   1. Set `jiraContext = { enabled: false }`
@@ -131,18 +135,20 @@ Follow the instructions in `.github/skills/x-story-epic/SKILL.md`:
 **Jira Integration (if `jiraContext.enabled == true`):**
 
 After generating the Epic markdown file:
-1. Call the Jira MCP tool to create an Epic issue:
+1. Call `mcp__atlassian__createJiraIssue` to create an Epic issue:
+   - `cloudId`: `jiraContext.cloudId`
    - `projectKey`: `jiraContext.projectKey`
-   - `issueType`: "Epic"
+   - `issueTypeName`: "Epic"
    - `summary`: The Epic title (from the generated header)
    - `description`: The "Visão Geral" section text
-   - `labels`: `["generated-by-ia-dev-env"]`
+   - `contentFormat`: "markdown"
+   - `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }] }`
 2. Capture the returned Jira issue key (e.g., "PROJ-123")
 3. Update `jiraContext.epicIssueKey` with the returned key
 4. Replace `<CHAVE-JIRA>` in the generated Epic markdown with the actual Jira key
 5. If creation fails: warn the user, set `<CHAVE-JIRA>` to `EPIC-XXXX (Jira: falha na criação)`,
    leave `jiraContext.epicIssueKey` absent (do NOT set it to an empty string or invalid value),
-   and continue. In Phase C, stories will be created without an `epicKey` link when
+   and continue. In Phase C, stories will be created without a `parent` link when
    `jiraContext.epicIssueKey` is absent, maintaining non-blocking behavior
 
 If `jiraContext.enabled == false`: replace `<CHAVE-JIRA>` with `—` in the Epic markdown.
@@ -165,13 +171,15 @@ Generate files as `docs/stories/epic-XXXX/story-XXXX-YYYY.md` following `_TEMPLA
 **Jira Integration (if `jiraContext.cascadeToStories == true`):**
 
 Pass `jiraContext` to the story generation logic. For each generated story:
-1. Call the Jira MCP tool to create a Story issue:
+1. Call `mcp__atlassian__createJiraIssue` to create a Story issue:
+   - `cloudId`: `jiraContext.cloudId`
    - `projectKey`: `jiraContext.projectKey`
-   - `issueType`: "Story"
+   - `issueTypeName`: "Story"
    - `summary`: The story title
    - `description`: The user story text from Section 3 (the "Como **Persona**..." paragraph)
-   - `epicKey`: `jiraContext.epicIssueKey` (links the story to the parent epic)
-   - `labels`: `["generated-by-ia-dev-env"]`
+   - `contentFormat`: "markdown"
+   - `parent`: `jiraContext.epicIssueKey` (links the story to the parent epic) — include only if `jiraContext.epicIssueKey` is present; omit entirely when absent
+   - `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }] }`
 2. Replace `<CHAVE-JIRA>` in the story markdown with the returned Jira key
 3. If creation fails for a story: warn, set `<CHAVE-JIRA>` to `—`, continue with remaining stories
 
@@ -202,8 +210,11 @@ If `jiraContext.enabled == true` and `jiraContext.cascadeToStories == true`, and
 have Jira keys:
 
 1. For each story, read its "Blocked By" list
-2. For each blocker that has a Jira key, call the Jira MCP tool to create an
-   "is blocked by" link between the two Jira issues
+2. For each blocker that has a Jira key, call `mcp__atlassian__createIssueLink`:
+   - `cloudId`: `jiraContext.cloudId`
+   - `type`: "Blocks"
+   - `inwardIssue`: the blocker's Jira key (the issue that blocks)
+   - `outwardIssue`: the current story's Jira key (the issue that is blocked)
 3. Report: "N dependency links criados no Jira"
 
 If linking fails for some stories, log warnings but do not fail the pipeline.
