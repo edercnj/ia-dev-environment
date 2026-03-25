@@ -71,6 +71,24 @@ The guide also covers:
    - Compute phases from the dependency DAG
    - Identify the critical path
 
+### Phase A.5: Jira Integration Decision
+
+Before generating any artifacts, determine if Jira integration is desired.
+
+1. **Check MCP Availability**: Verify that a Jira MCP tool for creating issues is available.
+   If not available, set `jiraContext = { enabled: false }` and skip to Phase B silently.
+
+2. **Ask the User**: Prompt the user with three options:
+   - "Sim, criar tudo no Jira" — Create the epic and ALL stories in Jira automatically
+   - "Apenas o épico no Jira" — Create only the epic in Jira
+   - "Não, apenas markdown" — No Jira integration
+
+3. **Build jiraContext**: Based on the user's selection:
+   - If Jira enabled: ask for the Jira project key (e.g., PROJ, MYAPP)
+   - Set `jiraContext = { enabled, cascadeToStories, projectKey }`
+
+The `jiraContext` is passed to all subsequent phases.
+
 ### Phase B: Generate the Epic
 
 Follow the instructions in `.github/skills/x-story-epic/SKILL.md`:
@@ -81,6 +99,10 @@ Follow the instructions in `.github/skills/x-story-epic/SKILL.md`:
 - Build story index with titles and dependencies (using `story-XXXX-YYYY` IDs)
 - Define DoR/DoD from spec quality requirements — the DoD must include TDD Compliance (test-first commits, explicit refactoring after green, incremental tests via TPP) and Double-Loop TDD (acceptance tests from Gherkin as outer loop, unit tests as inner loop)
 - Generate `docs/stories/epic-XXXX/epic-XXXX.md` following `_TEMPLATE-EPIC.md`
+
+**Jira Integration (if `jiraContext.enabled == true`):**
+After generating the Epic file, create an Epic issue in Jira via MCP, capture the Jira key,
+and replace `<CHAVE-JIRA>` in the markdown. If Jira fails, warn and continue.
 
 ### Phase C: Generate the Stories
 
@@ -96,6 +118,10 @@ For each story in the Epic's index:
 - Sub-tasks tagged `[Dev]`, `[Test]`, `[Doc]`
 
 Generate files as `docs/stories/epic-XXXX/story-XXXX-YYYY.md` following `_TEMPLATE-STORY.md`.
+
+**Jira Integration (if `jiraContext.cascadeToStories == true`):**
+For each story, create a Story issue in Jira linked to the parent epic, capture the key,
+and replace `<CHAVE-JIRA>` in the markdown. If creation fails for a story, warn and continue.
 
 ### Phase D: Generate the Implementation Map
 
@@ -121,6 +147,9 @@ Report summary:
 - Critical path length (phases and stories)
 - Maximum parallelism (largest phase)
 - Main bottleneck (story blocking the most others)
+
+If Jira integration was active, also report:
+- Jira integration status (project key, epic key, stories created, dependency links, failures)
 
 ## Language Rules
 

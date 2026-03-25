@@ -127,6 +127,19 @@ Write the Epic following the `_TEMPLATE-EPIC.md` structure exactly:
 4. Story IDs in the index use composite format: `story-XXXX-YYYY` (where XXXX = epic number, YYYY = story sequence)
 5. Story links in the index point to `./story-XXXX-YYYY.md` (relative to the epic folder)
 
+### Step 5.5: Optional Jira Integration
+
+After generating the Epic file content but before the final save, optionally create the Epic in Jira.
+
+1. **Check MCP Availability**: If no Jira MCP tool is available, skip silently.
+2. **Check Context**: If invoked by the orchestrator with `jiraContext`, use it (skip user prompt).
+   If invoked standalone, ask the user: "Deseja criar este épico no Jira?"
+3. **If Jira enabled**: Call the Jira MCP tool to create an Epic issue (projectKey, issueType "Epic",
+   summary from title, description from Visão Geral). Capture the returned Jira key.
+4. **Update Markdown**: Replace `<CHAVE-JIRA>` with the actual Jira key.
+5. **Error Handling**: If Jira fails, warn the user, set `<CHAVE-JIRA>` to `EPIC-XXXX (Jira: falha)`,
+   and continue — NEVER block Epic generation due to Jira failures.
+
 ### Step 6: Save and Report
 
 Save the file to `docs/stories/epic-XXXX/epic-XXXX.md`.

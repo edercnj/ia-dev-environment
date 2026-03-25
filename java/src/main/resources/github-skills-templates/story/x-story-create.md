@@ -233,11 +233,26 @@ Break the story into granular tasks, each estimable at 2-4 hours:
 
 Use checkboxes `- [ ]` for tracking.
 
+### Step 2.X: Optional Jira Integration (per story)
+
+After generating each story's markdown but before saving, optionally create the story in Jira.
+
+**Mode A (Cascaded from orchestrator):** If `jiraContext.cascadeToStories == true`, create each
+story in Jira automatically (no user prompt): call Jira MCP with issueType "Story", link to
+parent epic via `epicKey`. Replace `<CHAVE-JIRA>` with the returned key. On failure, warn and continue.
+
+**Mode B (Standalone):** If invoked directly, check MCP availability and ask the user:
+"Deseja criar as histórias no Jira?" If yes, ask for project key and optional parent epic key.
+
+**Dependency Linking (second pass):** After all stories have Jira keys, create "is blocked by"
+links in Jira. Best-effort — failures logged but do not block.
+
 ### Step 3: Save and Report
 
 Save each story as `story-XXXX-YYYY.md` in the same directory as the Epic (inside `docs/stories/epic-XXXX/`).
 The XXXX is the epic number (extracted from the Epic file) and YYYY is the story sequence (from the Epic's index).
 Report: total stories generated, dependency graph summary, any inconsistencies found.
+If Jira integration was active, also report stories created, dependency links, and failures.
 
 ## Language Rules
 

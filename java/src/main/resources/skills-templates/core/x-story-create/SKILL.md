@@ -233,11 +233,87 @@ Break the story into granular tasks, each estimable at 2-4 hours:
 
 Use checkboxes `- [ ]` for tracking.
 
+### Step 2.X: Optional Jira Integration (per story)
+
+After generating each story's markdown content but before saving, optionally create the
+story in Jira.
+
+#### Mode A: Cascaded from Orchestrator
+
+If a `jiraContext` was provided by the orchestrator (`x-story-epic-full`) with
+`jiraContext.enabled == true` and `jiraContext.cascadeToStories == true`:
+
+For each story (no additional user prompting needed):
+1. Call the Jira MCP tool to create a Story issue:
+   - `projectKey`: `jiraContext.projectKey`
+   - `issueType`: "Story"
+   - `summary`: the story title
+   - `description`: the user story text from Section 3 (the "Como **Persona**..." paragraph)
+   - `epicKey`: `jiraContext.epicIssueKey` (links to parent epic in Jira)
+   - `labels`: `["generated-by-ia-dev-env"]`
+2. Capture the returned Jira issue key
+3. Replace `<CHAVE-JIRA>` in the story markdown with the actual key
+4. Store the mapping `{ storyId → jiraKey }` for later dependency linking
+
+If creation fails for a story: log a warning, set `<CHAVE-JIRA>` to `—`, continue
+with remaining stories.
+
+#### Mode B: Standalone Invocation
+
+If no `jiraContext` was provided (skill invoked directly, not via orchestrator):
+
+1. Check if the Jira MCP tool is available. If not available, skip Jira integration
+   entirely — replace all `<CHAVE-JIRA>` with `—`.
+
+2. Use `AskUserQuestion`:
+   ```
+   question: "Deseja criar as histórias no Jira?"
+   header: "Jira"
+   options:
+     - label: "Sim, criar no Jira"
+       description: "Criar cada história como issue no Jira via MCP"
+     - label: "Não, apenas markdown"
+       description: "Gerar apenas os arquivos markdown sem integração com Jira"
+   multiSelect: false
+   ```
+
+3. If "Sim":
+   a. Ask for the Jira project key
+   b. Ask if there is a parent epic in Jira:
+      ```
+      question: "Existe um épico pai no Jira para vincular as histórias? Informe a chave (ex: PROJ-123) ou selecione 'Não'"
+      header: "Epic Link"
+      options:
+        - label: "Não vincular"
+          description: "Criar as histórias sem vínculo com um épico no Jira"
+      ```
+      If the user provides a key via "Other", use it as the epicKey.
+   c. Create each story in Jira with optional epic link
+
+4. If "Não": replace all `<CHAVE-JIRA>` with `—` and continue
+
+#### Jira Dependency Linking (second pass)
+
+After ALL stories are created and have Jira keys, perform a second pass to create
+dependency links in Jira:
+
+For each story's "Blocked By" list:
+- If the blocking story has a Jira key, call the Jira MCP tool to create an
+  "is blocked by" link between the two Jira issues
+- If linking fails: log a warning, continue
+
+This step is best-effort. Report: "N dependency links criados no Jira"
+
 ### Step 3: Save and Report
 
 Save each story as `story-XXXX-YYYY.md` in the same directory as the Epic (inside `docs/stories/epic-XXXX/`).
 The XXXX is the epic number (extracted from the Epic file) and YYYY is the story sequence (from the Epic's index).
 Report: total stories generated, dependency graph summary, any inconsistencies found.
+
+If Jira integration was active, also report:
+- Stories created in Jira: N of M
+- Dependency links created: K
+- Failures: list any failed items
 
 ## Language Rules
 
