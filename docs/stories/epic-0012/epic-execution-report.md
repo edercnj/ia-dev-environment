@@ -69,7 +69,29 @@ e5ef56f feat(smoke): add smoke test infrastructure classes
 ```
 
 ## Tech Lead Review
-Pending review
+- **Score:** 33/40
+- **Decision:** GO
+
+### Findings (4 MEDIUM, 5 LOW)
+
+| # | Severity | Finding |
+|---|----------|---------|
+| 1 | MEDIUM | DRY: `countFiles(Path)` duplicated in 4 files |
+| 2 | MEDIUM | DRY: `createDirectoryQuietly`/`Silently` duplicated in 3 files with inconsistent naming |
+| 3 | MEDIUM | Dead code: `assertSameJsonTopLevelKeys()` in CrossProfileConsistencySmokeTest never called |
+| 4 | MEDIUM | FrontmatterParser.parseYaml() returns null instead of Optional |
+| 5 | LOW | DRY: path normalization `.replace('\\', '/')` appears 8 times |
+| 6 | LOW | CrossProfileConsistencySmokeTest (836 lines) — mitigated by @Nested classes |
+| 7 | LOW | ExpectedArtifactsGenerator temp dir lacks explicit POSIX permissions |
+| 8 | LOW | CrossProfileConsistencySmokeTest duplicates pipeline execution (doesn't extend SmokeTestBase) |
+| 9 | LOW | PipelineSmokeTest runs pipeline per test method (performance, not correctness) |
+
+### Positive Observations
+- Excellent assertion quality with `.as()` context messages
+- Proper immutability (`List.copyOf`/`Map.copyOf`)
+- Security-conscious YAML parsing (SafeConstructor)
+- Manifest-driven testing approach
+- Clean surefire/failsafe build integration
 
 ## PR Link
 https://github.com/edercnj/ia-dev-environment/pull/124
