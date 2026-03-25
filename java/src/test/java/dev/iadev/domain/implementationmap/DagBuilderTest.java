@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,13 +28,29 @@ class DagBuilderTest {
         void build_singleRoot_createsOneNode() {
             var rows = List.of(
                     new DependencyMatrixRow(
-                            "s-001", "Root", List.of()));
+                            "s-001", "Root",
+                            Optional.empty(), List.of()));
 
             var dag = DagBuilder.build(rows);
 
             assertThat(dag).hasSize(1);
             assertThat(dag.get("s-001").blockedBy()).isEmpty();
             assertThat(dag.get("s-001").blocks()).isEmpty();
+        }
+
+        @Test
+        void build_singleRootWithJiraKey_propagatesKey() {
+            var rows = List.of(
+                    new DependencyMatrixRow(
+                            "s-001", "Root",
+                            Optional.of("PROJ-42"),
+                            List.of()));
+
+            var dag = DagBuilder.build(rows);
+
+            assertThat(dag.get("s-001").jiraKey())
+                    .isPresent()
+                    .hasValue("PROJ-42");
         }
     }
 
@@ -44,9 +61,11 @@ class DagBuilderTest {
         void build_aDependsOnB_reverseEdgeCreated() {
             var rows = List.of(
                     new DependencyMatrixRow(
-                            "s-001", "Root", List.of()),
+                            "s-001", "Root",
+                            Optional.empty(), List.of()),
                     new DependencyMatrixRow(
                             "s-002", "Child",
+                            Optional.empty(),
                             List.of("s-001")));
 
             var dag = DagBuilder.build(rows);
@@ -68,17 +87,22 @@ class DagBuilderTest {
         void build_fiveNodes_allEdgesResolved() {
             var rows = List.of(
                     new DependencyMatrixRow(
-                            "s-001", "Root A", List.of()),
+                            "s-001", "Root A",
+                            Optional.empty(), List.of()),
                     new DependencyMatrixRow(
-                            "s-002", "Root B", List.of()),
+                            "s-002", "Root B",
+                            Optional.empty(), List.of()),
                     new DependencyMatrixRow(
                             "s-003", "Mid",
+                            Optional.empty(),
                             List.of("s-001", "s-002")),
                     new DependencyMatrixRow(
                             "s-004", "Mid2",
+                            Optional.empty(),
                             List.of("s-001")),
                     new DependencyMatrixRow(
                             "s-005", "Leaf",
+                            Optional.empty(),
                             List.of("s-003", "s-004")));
 
             var dag = DagBuilder.build(rows);

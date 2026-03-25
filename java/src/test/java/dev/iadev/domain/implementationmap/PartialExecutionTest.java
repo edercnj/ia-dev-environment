@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -111,9 +112,11 @@ class PartialExecutionTest {
     private LinkedHashMap<String, DagNode> buildSimpleDag() {
         var dag = new LinkedHashMap<String, DagNode>();
         dag.put("s-001", new DagNode("s-001", "Root",
+                Optional.empty(),
                 new ArrayList<>(),
                 new ArrayList<>(List.of("s-002"))));
         dag.put("s-002", new DagNode("s-002", "Child",
+                Optional.empty(),
                 new ArrayList<>(List.of("s-001")),
                 new ArrayList<>()));
         return dag;

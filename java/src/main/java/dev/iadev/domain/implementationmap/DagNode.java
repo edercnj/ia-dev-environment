@@ -1,6 +1,7 @@
 package dev.iadev.domain.implementationmap;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A node in the dependency DAG representing a single story.
@@ -16,6 +17,7 @@ public final class DagNode {
 
     private final String storyId;
     private final String title;
+    private final Optional<String> jiraKey;
     private final List<String> blockedBy;
     private final List<String> blocks;
     private int phase;
@@ -27,16 +29,20 @@ public final class DagNode {
      *
      * @param storyId   story identifier
      * @param title     story title
+     * @param jiraKey   optional Jira issue key
      * @param blockedBy mutable list of dependency IDs
      * @param blocks    mutable list of dependent IDs
      */
     public DagNode(
             String storyId,
             String title,
+            Optional<String> jiraKey,
             List<String> blockedBy,
             List<String> blocks) {
         this.storyId = storyId;
         this.title = title;
+        this.jiraKey = (jiraKey != null)
+                ? jiraKey : Optional.empty();
         this.blockedBy = blockedBy;
         this.blocks = blocks;
         this.phase = UNCOMPUTED_PHASE;
@@ -51,6 +57,11 @@ public final class DagNode {
     /** Returns the story title. */
     public String title() {
         return title;
+    }
+
+    /** Returns the optional Jira issue key. */
+    public Optional<String> jiraKey() {
+        return jiraKey;
     }
 
     /**

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -20,6 +21,7 @@ class ParsedMapTest {
         void create_whenCalled_allFieldsAccessible() {
             var stories = new LinkedHashMap<String, DagNode>();
             stories.put("s-001", new DagNode("s-001", "Root",
+                    Optional.empty(),
                     new ArrayList<>(), new ArrayList<>()));
 
             var phases = Map.of(0, List.of("s-001"));
@@ -45,6 +47,7 @@ class ParsedMapTest {
         void create_defensiveCopy_storiesImmutable() {
             var stories = new LinkedHashMap<String, DagNode>();
             stories.put("s-001", new DagNode("s-001", "Root",
+                    Optional.empty(),
                     new ArrayList<>(), new ArrayList<>()));
 
             var parsed = new ParsedMap(

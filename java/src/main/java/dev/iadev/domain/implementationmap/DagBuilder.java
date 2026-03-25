@@ -35,6 +35,7 @@ public final class DagBuilder {
             dag.put(row.storyId(), new DagNode(
                     row.storyId(),
                     row.title(),
+                    row.jiraKey(),
                     new ArrayList<>(row.blockedBy()),
                     new ArrayList<>()
             ));

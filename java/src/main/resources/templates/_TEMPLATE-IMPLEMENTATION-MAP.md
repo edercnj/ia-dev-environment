@@ -6,9 +6,9 @@
 
 ## 1. Matriz de Dependências
 
-| Story | Título | Blocked By | Blocks | Status | Chave Jira |
+| Story | Título | Chave Jira | Blocked By | Blocks | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| <story-XXXX-YYYY> | <Título> | — | <story-XXXX-YYYY> | <Status> | <CHAVE-JIRA> |
+| <story-XXXX-YYYY> | <Título> | <CHAVE-JIRA> | — | <story-XXXX-YYYY> | <Status> |
 
 > **Nota:** <Observações sobre dependências implícitas ou funcionais que não estão declaradas explicitamente nas histórias mas existem na prática.>
 
