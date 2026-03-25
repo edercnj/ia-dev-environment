@@ -145,6 +145,7 @@
                         <exclude>**/*IntegrationTest.java</exclude>
                         <exclude>**/*GoldenTest.java</exclude>
                         <exclude>**/*GoldenFileTest.java</exclude>
+                        <exclude>**/*SmokeTest.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
@@ -158,6 +159,7 @@
                         <include>**/*IntegrationTest.java</include>
                         <include>**/*GoldenTest.java</include>
                         <include>**/*GoldenFileTest.java</include>
+                        <include>**/*SmokeTest.java</include>
                     </includes>
                     <classesDirectory>${project.build.outputDirectory}</classesDirectory>
                 </configuration>
