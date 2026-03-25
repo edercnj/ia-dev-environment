@@ -6,7 +6,7 @@
     "skipReview": false
   },
   "startedAt": "2026-03-25T00:00:00Z",
-  "finishedAt": null,
+  "finishedAt": "2026-03-25T23:59:00Z",
   "stories": {
     "story-0011-0001": { "id": "story-0011-0001", "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "0a1de57", "findingsCount": 0, "summary": "Regenerated 32 golden files with Chave Jira field in story/epic/map skills" },
     "story-0011-0002": { "id": "story-0011-0002", "phase": 0, "status": "SUCCESS", "retries": 1, "commitSha": "aabc88d", "findingsCount": 0, "summary": "Added Chave Jira column to implementation map template, updated MarkdownParser with dynamic column detection, 14 new tests" },
@@ -30,7 +30,7 @@
     "phase3": { "status": "PASS", "testCount": 2272, "coverage": 95.57, "branchCoverage": 91.78 },
     "phase4": { "status": "PASS", "testCount": 2272, "coverage": 95.57, "branchCoverage": 91.78 }
   },
-  "finalStatus": null,
-  "prUrl": null,
-  "reportPath": null
+  "finalStatus": "COMPLETE",
+  "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/123",
+  "reportPath": "docs/stories/epic-0011/epic-execution-report.md"
 }
