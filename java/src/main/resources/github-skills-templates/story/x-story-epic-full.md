@@ -136,6 +136,22 @@ Follow the instructions in `.github/skills/x-story-map/SKILL.md`:
 
 Generate `docs/stories/epic-XXXX/implementation-map-XXXX.md` following `_TEMPLATE-IMPLEMENTATION-MAP.md`.
 
+If Jira keys are available (from Phase C), include them in the dependency matrix's
+`Chave Jira` column.
+
+### Phase D.5: Jira Dependency Linking (if applicable)
+
+If `jiraContext.enabled == true` and `jiraContext.cascadeToStories == true`, and stories
+have Jira keys:
+
+1. For each story, read its "Blocked By" list
+2. For each blocker that has a Jira key, call the Jira MCP tool to create an
+   "is blocked by" link between the two Jira issues
+3. Report: "N dependency links criados no Jira"
+
+If linking fails for some stories, log warnings but do not fail the pipeline.
+This step is best-effort — Jira links are a convenience, not a hard requirement.
+
 ### Phase E: Save and Report
 
 All files are saved inside `docs/stories/epic-XXXX/` (the epic's dedicated folder).
@@ -149,7 +165,11 @@ Report summary:
 - Main bottleneck (story blocking the most others)
 
 If Jira integration was active, also report:
-- Jira integration status (project key, epic key, stories created, dependency links, failures)
+- Jira integration: Enabled (project: `<PROJECT_KEY>`)
+- Epic created in Jira: `<JIRA-KEY>` (or "falha" if failed)
+- Stories created in Jira: N of M (successful/total)
+- Dependency links created: K
+- Failures: list any failed items
 
 ## Language Rules
 
