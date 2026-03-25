@@ -1,6 +1,7 @@
 # História: <Título da História>
 
 **ID:** <story-XXXX-YYYY>
+**Chave Jira:** <CHAVE-JIRA>
 
 ## 1. Dependências
 
