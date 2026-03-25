@@ -127,6 +127,70 @@ Write the Epic following the `_TEMPLATE-EPIC.md` structure exactly:
 4. Story IDs in the index use composite format: `story-XXXX-YYYY` (where XXXX = epic number, YYYY = story sequence)
 5. Story links in the index point to `./story-XXXX-YYYY.md` (relative to the epic folder)
 
+### Step 5.5: Optional Jira Integration
+
+After generating the Epic file content but before the final save, optionally create the
+Epic in Jira.
+
+#### 5.5.1: Check MCP Availability
+
+Verify that the Jira MCP tool (`mcp__atlassian__jira_create_issue` or equivalent) is
+available. If not available, skip this entire step silently and proceed to Step 6.
+
+#### 5.5.2: Check Context
+
+If this skill was invoked by the orchestrator (`x-story-epic-full`) and a `jiraContext`
+was already provided, use that context directly (skip the user prompt — it was already
+asked in Phase A.5). If `jiraContext.enabled == true`, proceed to 5.5.4. If `false`, skip.
+
+If invoked standalone (no `jiraContext`), proceed to 5.5.3.
+
+#### 5.5.3: Ask the User (standalone invocation only)
+
+Use the `AskUserQuestion` tool:
+
+```
+question: "Deseja criar este épico no Jira?"
+header: "Jira"
+options:
+  - label: "Sim, criar no Jira"
+    description: "Criar o épico como issue no Jira via MCP e preencher a Chave Jira no markdown"
+  - label: "Não, apenas markdown"
+    description: "Gerar apenas o arquivo markdown sem integração com Jira"
+multiSelect: false
+```
+
+If "Sim": ask for the Jira project key:
+```
+question: "Qual a chave do projeto Jira? (ex: PROJ, MYAPP, TEAM)"
+header: "Projeto"
+```
+
+If "Não": replace `<CHAVE-JIRA>` with `—` and proceed to Step 6.
+
+#### 5.5.4: Create Epic in Jira
+
+Call the Jira MCP tool to create an Epic issue:
+- `projectKey`: the user-provided project key (or `jiraContext.projectKey`)
+- `issueType`: "Epic"
+- `summary`: the Epic title from the generated header
+- `description`: the "Visão Geral" section text (plain text, no markdown)
+- `labels`: `["generated-by-ia-dev-env"]`
+
+Capture the returned Jira issue key (e.g., "PROJ-123").
+
+#### 5.5.5: Update Markdown
+
+Replace `<CHAVE-JIRA>` in the generated Epic markdown with the actual Jira key.
+Report: "Épico criado no Jira: PROJ-123"
+
+#### 5.5.6: Error Handling
+
+If the Jira MCP tool call fails:
+1. Warn the user with the error message
+2. Replace `<CHAVE-JIRA>` with `EPIC-XXXX (Jira: falha na criação)`
+3. Continue to Step 6 — NEVER block Epic file generation due to Jira failures
+
 ### Step 6: Save and Report
 
 Save the file to `docs/stories/epic-XXXX/epic-XXXX.md`.

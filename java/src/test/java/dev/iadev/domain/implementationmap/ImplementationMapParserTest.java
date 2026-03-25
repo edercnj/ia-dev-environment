@@ -118,6 +118,36 @@ class ImplementationMapParserTest {
     }
 
     @Nested
+    class JiraKeyIntegration {
+
+        @Test
+        void parse_sixColumnWithJiraKeys_keysPreserved() {
+            var result = ImplementationMapParser.parse(
+                    fiveStoryWithJiraMarkdown());
+
+            assertThat(result.stories().get("story-001")
+                    .jiraKey()).hasValue("PROJ-101");
+            assertThat(result.stories().get("story-002")
+                    .jiraKey()).isEmpty();
+            assertThat(result.stories().get("story-003")
+                    .jiraKey()).hasValue("PROJ-103");
+            assertThat(result.stories().get("story-004")
+                    .jiraKey()).isEmpty();
+            assertThat(result.stories().get("story-005")
+                    .jiraKey()).hasValue("PROJ-105");
+        }
+
+        @Test
+        void parse_sixColumnWithJiraKeys_phasesCorrect() {
+            var result = ImplementationMapParser.parse(
+                    fiveStoryWithJiraMarkdown());
+
+            assertThat(result.totalPhases()).isEqualTo(3);
+            assertThat(result.stories()).hasSize(5);
+        }
+    }
+
+    @Nested
     class EmptyInput {
 
         @Test
@@ -233,6 +263,18 @@ class ImplementationMapParserTest {
                 | story-003 | Middle AB | story-001, story-002 |
                 | story-004 | Middle A | story-001 |
                 | story-005 | Final | story-003, story-004 |
+                """;
+    }
+
+    private String fiveStoryWithJiraMarkdown() {
+        return """
+                | Story | Titulo | Chave Jira | Blocked By | Blocks | Status |
+                | :--- | :--- | :--- | :--- | :--- | :--- |
+                | story-001 | Root A | PROJ-101 | - | story-003, story-004 | Pending |
+                | story-002 | Root B | \u2014 | - | story-003 | Pending |
+                | story-003 | Middle AB | PROJ-103 | story-001, story-002 | story-005 | Pending |
+                | story-004 | Middle A | \u2014 | story-001 | story-005 | Pending |
+                | story-005 | Final | PROJ-105 | story-003, story-004 | - | Pending |
                 """;
     }
 }

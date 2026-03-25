@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -72,8 +73,10 @@ class ExecutableStoriesTest {
         void filter_criticalPathFirst_sortedCorrectly() {
             var dag = new LinkedHashMap<String, DagNode>();
             var nodeA = new DagNode("s-001", "A",
+                    Optional.empty(),
                     new ArrayList<>(), new ArrayList<>());
             var nodeB = new DagNode("s-002", "B",
+                    Optional.empty(),
                     new ArrayList<>(), new ArrayList<>());
             nodeB.setOnCriticalPath(true);
             dag.put("s-001", nodeA);
@@ -91,12 +94,15 @@ class ExecutableStoriesTest {
     private LinkedHashMap<String, DagNode> buildThreeNodeDag() {
         var dag = new LinkedHashMap<String, DagNode>();
         dag.put("s-001", new DagNode("s-001", "Root",
+                Optional.empty(),
                 new ArrayList<>(),
                 new ArrayList<>(List.of("s-002"))));
         dag.put("s-002", new DagNode("s-002", "Mid",
+                Optional.empty(),
                 new ArrayList<>(List.of("s-001")),
                 new ArrayList<>(List.of("s-003"))));
         dag.put("s-003", new DagNode("s-003", "Leaf",
+                Optional.empty(),
                 new ArrayList<>(List.of("s-002")),
                 new ArrayList<>()));
         return dag;

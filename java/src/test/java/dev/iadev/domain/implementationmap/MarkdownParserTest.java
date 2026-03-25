@@ -51,6 +51,7 @@ class MarkdownParserTest {
             assertThat(result.getFirst().title())
                     .isEqualTo("Root Story");
             assertThat(result.getFirst().blockedBy()).isEmpty();
+            assertThat(result.getFirst().jiraKey()).isEmpty();
         }
 
         @Test
@@ -166,6 +167,128 @@ class MarkdownParserTest {
                     | story-004 | Middle A | story-001 |
                     | story-005 | Final | story-003, story-004 |
                     """;
+        }
+    }
+
+    @Nested
+    class JiraKeyColumn {
+
+        @Test
+        void parse_sixColumnWithJiraKey_jiraKeyExtracted() {
+            var markdown = """
+                    | Story | Titulo | Chave Jira | Blocked By | Blocks | Status |
+                    | :--- | :--- | :--- | :--- | :--- | :--- |
+                    | story-001 | Root | PROJ-101 | - | story-002 | Pending |
+                    """;
+
+            var result = MarkdownParser.parse(markdown);
+
+            assertThat(result).hasSize(1);
+            assertThat(result.getFirst().jiraKey())
+                    .isPresent()
+                    .hasValue("PROJ-101");
+            assertThat(result.getFirst().blockedBy()).isEmpty();
+        }
+
+        @Test
+        void parse_sixColumnEmDashJira_jiraKeyEmpty() {
+            var markdown = """
+                    | Story | Titulo | Chave Jira | Blocked By | Blocks | Status |
+                    | :--- | :--- | :--- | :--- | :--- | :--- |
+                    | story-001 | Root | \u2014 | - | story-002 | Pending |
+                    """;
+
+            var result = MarkdownParser.parse(markdown);
+
+            assertThat(result.getFirst().jiraKey()).isEmpty();
+        }
+
+        @Test
+        void parse_sixColumnPlaceholder_jiraKeyEmpty() {
+            var markdown = """
+                    | Story | Titulo | Chave Jira | Blocked By | Blocks | Status |
+                    | :--- | :--- | :--- | :--- | :--- | :--- |
+                    | story-001 | Root | <CHAVE-JIRA> | - | story-002 | Pending |
+                    """;
+
+            var result = MarkdownParser.parse(markdown);
+
+            assertThat(result.getFirst().jiraKey()).isEmpty();
+        }
+
+        @Test
+        void parse_mixedJiraKeys_somePresent() {
+            var markdown = """
+                    | Story | Titulo | Chave Jira | Blocked By | Blocks | Status |
+                    | :--- | :--- | :--- | :--- | :--- | :--- |
+                    | story-001 | Root A | PROJ-101 | - | story-003 | Pending |
+                    | story-002 | Root B | \u2014 | - | story-003 | Pending |
+                    | story-003 | Mid | PROJ-103 | story-001, story-002 | - | Pending |
+                    """;
+
+            var result = MarkdownParser.parse(markdown);
+
+            assertThat(result).hasSize(3);
+            assertThat(result.get(0).jiraKey())
+                    .hasValue("PROJ-101");
+            assertThat(result.get(1).jiraKey()).isEmpty();
+            assertThat(result.get(2).jiraKey())
+                    .hasValue("PROJ-103");
+        }
+
+        @Test
+        void parse_jiraColumnLastPosition_backwardCompat() {
+            var markdown = """
+                    | Story | Titulo | Blocked By | Blocks | Status | Chave Jira |
+                    | :--- | :--- | :--- | :--- | :--- | :--- |
+                    | story-001 | Root | - | story-002 | Pending | PROJ-99 |
+                    """;
+
+            var result = MarkdownParser.parse(markdown);
+
+            assertThat(result).hasSize(1);
+            assertThat(result.getFirst().blockedBy()).isEmpty();
+            assertThat(result.getFirst().jiraKey())
+                    .hasValue("PROJ-99");
+        }
+    }
+
+    @Nested
+    class BackwardCompatibility {
+
+        @Test
+        void parse_legacyFiveColumn_noJiraKey() {
+            var markdown = """
+                    | Story | Titulo | Blocked By | Blocks | Status |
+                    | :--- | :--- | :--- | :--- | :--- |
+                    | story-001 | Root | - | story-002 | Pending |
+                    | story-002 | Child | story-001 | - | Pending |
+                    """;
+
+            var result = MarkdownParser.parse(markdown);
+
+            assertThat(result).hasSize(2);
+            assertThat(result.get(0).jiraKey()).isEmpty();
+            assertThat(result.get(0).blockedBy()).isEmpty();
+            assertThat(result.get(1).jiraKey()).isEmpty();
+            assertThat(result.get(1).blockedBy())
+                    .containsExactly("story-001");
+        }
+
+        @Test
+        void parse_legacyThreeColumn_noJiraKey() {
+            var markdown = """
+                    | ID | Title | Blocked By |
+                    | :--- | :--- | :--- |
+                    | story-001 | Root | - |
+                    | story-002 | Child | story-001 |
+                    """;
+
+            var result = MarkdownParser.parse(markdown);
+
+            assertThat(result).hasSize(2);
+            assertThat(result.get(0).jiraKey()).isEmpty();
+            assertThat(result.get(1).jiraKey()).isEmpty();
         }
     }
 

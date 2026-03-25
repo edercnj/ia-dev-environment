@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -50,12 +51,15 @@ class DagValidatorTest {
             // A blocks B, B blocks C, C blocks A
             var dag = new LinkedHashMap<String, DagNode>();
             dag.put("A", new DagNode("A", "Node A",
+                    Optional.empty(),
                     new ArrayList<>(List.of("C")),
                     new ArrayList<>(List.of("B"))));
             dag.put("B", new DagNode("B", "Node B",
+                    Optional.empty(),
                     new ArrayList<>(List.of("A")),
                     new ArrayList<>(List.of("C"))));
             dag.put("C", new DagNode("C", "Node C",
+                    Optional.empty(),
                     new ArrayList<>(List.of("B")),
                     new ArrayList<>(List.of("A"))));
 
@@ -70,12 +74,15 @@ class DagValidatorTest {
         void detectCycles_cyclicABC_cycleContainsAllIds() {
             var dag = new LinkedHashMap<String, DagNode>();
             dag.put("A", new DagNode("A", "Node A",
+                    Optional.empty(),
                     new ArrayList<>(List.of("C")),
                     new ArrayList<>(List.of("B"))));
             dag.put("B", new DagNode("B", "Node B",
+                    Optional.empty(),
                     new ArrayList<>(List.of("A")),
                     new ArrayList<>(List.of("C"))));
             dag.put("C", new DagNode("C", "Node C",
+                    Optional.empty(),
                     new ArrayList<>(List.of("B")),
                     new ArrayList<>(List.of("A"))));
 
@@ -104,9 +111,11 @@ class DagValidatorTest {
         void validateRoots_noRoots_throwsInvalidDag() {
             var dag = new LinkedHashMap<String, DagNode>();
             dag.put("A", new DagNode("A", "Node A",
+                    Optional.empty(),
                     new ArrayList<>(List.of("B")),
                     new ArrayList<>()));
             dag.put("B", new DagNode("B", "Node B",
+                    Optional.empty(),
                     new ArrayList<>(List.of("A")),
                     new ArrayList<>()));
 
@@ -140,6 +149,7 @@ class DagValidatorTest {
         void validateReferences_missingRef_returnsError() {
             var dag = new LinkedHashMap<String, DagNode>();
             dag.put("s-002", new DagNode("s-002", "Child",
+                    Optional.empty(),
                     new ArrayList<>(List.of("s-001")),
                     new ArrayList<>()));
 
@@ -164,6 +174,7 @@ class DagValidatorTest {
         void validate_missingRef_throwsInvalidDag() {
             var dag = new LinkedHashMap<String, DagNode>();
             dag.put("s-002", new DagNode("s-002", "Child",
+                    Optional.empty(),
                     new ArrayList<>(List.of("s-001")),
                     new ArrayList<>()));
 
@@ -183,9 +194,11 @@ class DagValidatorTest {
             // s-001 in blockedBy
             var dag = new LinkedHashMap<String, DagNode>();
             dag.put("s-001", new DagNode("s-001", "Root",
+                    Optional.empty(),
                     new ArrayList<>(),
                     new ArrayList<>(List.of("s-002"))));
             dag.put("s-002", new DagNode("s-002", "Child",
+                    Optional.empty(),
                     new ArrayList<>(),
                     new ArrayList<>()));
 
@@ -215,9 +228,11 @@ class DagValidatorTest {
     private LinkedHashMap<String, DagNode> buildValidDag() {
         var dag = new LinkedHashMap<String, DagNode>();
         dag.put("s-001", new DagNode("s-001", "Root",
+                Optional.empty(),
                 new ArrayList<>(),
                 new ArrayList<>(List.of("s-002"))));
         dag.put("s-002", new DagNode("s-002", "Child",
+                Optional.empty(),
                 new ArrayList<>(List.of("s-001")),
                 new ArrayList<>()));
         return dag;

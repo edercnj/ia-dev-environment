@@ -40,11 +40,14 @@ Read the following files before starting:
 
 ### Step 1: Build the Dependency Matrix
 
-Read every story's Section 1 (Dependências) and the Epic's story index. Build a complete
-matrix:
+Read every story's Section 1 (Dependências) and the Epic's story index. Also read each
+story's `**Chave Jira:**` field (if present). Build a complete matrix:
 
-| Story | Título | Blocked By | Blocks | Status |
-| :--- | :--- | :--- | :--- | :--- |
+| Story | Título | Chave Jira | Blocked By | Blocks | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+
+The `Chave Jira` column is placed between `Título` and `Blocked By`. If a story does not
+have a Jira key (field is `—` or `<CHAVE-JIRA>`), set the column value to `—`.
 
 **Validation checks:**
 - Every story in the Epic's index must appear in the matrix
@@ -97,6 +100,9 @@ Explain the impact: any delay in a critical path story directly delays the final
 Create a full `graph TD` with all stories and their dependency edges.
 
 **Naming convention**: `SXXXX_YYYY["story-XXXX-YYYY<br/>Short Title"]`
+
+If Jira keys are available, include them in node labels:
+`SXXXX_YYYY["story-XXXX-YYYY (PROJ-123)<br/>Short Title"]`
 
 **Phase coloring** (use these exact classDef values for consistency):
 ```

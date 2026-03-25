@@ -75,19 +75,47 @@ The guide also covers:
 
 Before generating any artifacts, determine if Jira integration is desired.
 
-1. **Check MCP Availability**: Verify that a Jira MCP tool for creating issues is available.
-   If not available, set `jiraContext = { enabled: false }` and skip to Phase B silently.
+#### A.5.1: Check MCP Availability
 
-2. **Ask the User**: Prompt the user with three options:
-   - "Sim, criar tudo no Jira" — Create the epic and ALL stories in Jira automatically
-   - "Apenas o épico no Jira" — Create only the epic in Jira
-   - "Não, apenas markdown" — No Jira integration
+Verify that the Jira MCP tool (`mcp__atlassian__jira_create_issue` or equivalent Atlassian
+MCP tool for creating issues) is available. If the tool is NOT available, set
+`jiraContext = { enabled: false }` and skip to Phase B silently — do not warn the user.
 
-3. **Build jiraContext**: Based on the user's selection:
-   - If Jira enabled: ask for the Jira project key (e.g., PROJ, MYAPP)
-   - Set `jiraContext = { enabled, cascadeToStories, projectKey }`
+#### A.5.2: Ask the User
 
-The `jiraContext` is passed to all subsequent phases.
+Present the user with three options via a text prompt in chat:
+
+```
+Deseja criar o épico e as histórias no Jira?
+
+1. Sim, criar tudo no Jira — Criar o épico e TODAS as histórias como issues no Jira automaticamente via MCP
+2. Apenas o épico no Jira — Criar somente o épico no Jira. As histórias serão apenas markdown
+3. Não, apenas markdown — Gerar apenas os arquivos markdown sem integração com Jira
+
+Responda com o número da opção (1, 2 ou 3):
+```
+
+Wait for the user's response in the next chat turn.
+
+#### A.5.3: Build jiraContext
+
+Based on user selection:
+
+- **Option 1 — "Sim, criar tudo no Jira"**:
+  1. Ask for the Jira project key via text prompt:
+     ```
+     Qual a chave do projeto Jira? (ex: PROJ, MYAPP, TEAM)
+     ```
+  2. Set `jiraContext = { enabled: true, cascadeToStories: true, projectKey: "<key>" }`
+
+- **Option 2 — "Apenas o épico no Jira"**:
+  1. Ask for the Jira project key (same prompt as above)
+  2. Set `jiraContext = { enabled: true, cascadeToStories: false, projectKey: "<key>" }`
+
+- **Option 3 — "Não, apenas markdown"**:
+  1. Set `jiraContext = { enabled: false }`
+
+The `jiraContext` is passed to all subsequent phases and used to control Jira issue creation.
 
 ### Phase B: Generate the Epic
 
@@ -101,8 +129,23 @@ Follow the instructions in `.github/skills/x-story-epic/SKILL.md`:
 - Generate `docs/stories/epic-XXXX/epic-XXXX.md` following `_TEMPLATE-EPIC.md`
 
 **Jira Integration (if `jiraContext.enabled == true`):**
-After generating the Epic file, create an Epic issue in Jira via MCP, capture the Jira key,
-and replace `<CHAVE-JIRA>` in the markdown. If Jira fails, warn and continue.
+
+After generating the Epic markdown file:
+1. Call the Jira MCP tool to create an Epic issue:
+   - `projectKey`: `jiraContext.projectKey`
+   - `issueType`: "Epic"
+   - `summary`: The Epic title (from the generated header)
+   - `description`: The "Visão Geral" section text
+   - `labels`: `["generated-by-ia-dev-env"]`
+2. Capture the returned Jira issue key (e.g., "PROJ-123")
+3. Update `jiraContext.epicIssueKey` with the returned key
+4. Replace `<CHAVE-JIRA>` in the generated Epic markdown with the actual Jira key
+5. If creation fails: warn the user, set `<CHAVE-JIRA>` to `EPIC-XXXX (Jira: falha na criação)`,
+   leave `jiraContext.epicIssueKey` absent (do NOT set it to an empty string or invalid value),
+   and continue. In Phase C, stories will be created without an `epicKey` link when
+   `jiraContext.epicIssueKey` is absent, maintaining non-blocking behavior
+
+If `jiraContext.enabled == false`: replace `<CHAVE-JIRA>` with `—` in the Epic markdown.
 
 ### Phase C: Generate the Stories
 
@@ -120,8 +163,22 @@ For each story in the Epic's index:
 Generate files as `docs/stories/epic-XXXX/story-XXXX-YYYY.md` following `_TEMPLATE-STORY.md`.
 
 **Jira Integration (if `jiraContext.cascadeToStories == true`):**
-For each story, create a Story issue in Jira linked to the parent epic, capture the key,
-and replace `<CHAVE-JIRA>` in the markdown. If creation fails for a story, warn and continue.
+
+Pass `jiraContext` to the story generation logic. For each generated story:
+1. Call the Jira MCP tool to create a Story issue:
+   - `projectKey`: `jiraContext.projectKey`
+   - `issueType`: "Story"
+   - `summary`: The story title
+   - `description`: The user story text from Section 3 (the "Como **Persona**..." paragraph)
+   - `epicKey`: `jiraContext.epicIssueKey` (links the story to the parent epic)
+   - `labels`: `["generated-by-ia-dev-env"]`
+2. Replace `<CHAVE-JIRA>` in the story markdown with the returned Jira key
+3. If creation fails for a story: warn, set `<CHAVE-JIRA>` to `—`, continue with remaining stories
+
+If `jiraContext.cascadeToStories == false` or `jiraContext.enabled == false`:
+replace `<CHAVE-JIRA>` with `—` in all story markdowns.
+
+No additional user prompting is needed — the cascade decision was already made in Phase A.5.
 
 ### Phase D: Generate the Implementation Map
 
@@ -136,6 +193,22 @@ Follow the instructions in `.github/skills/x-story-map/SKILL.md`:
 
 Generate `docs/stories/epic-XXXX/implementation-map-XXXX.md` following `_TEMPLATE-IMPLEMENTATION-MAP.md`.
 
+If Jira keys are available (from Phase C), include them in the dependency matrix's
+`Chave Jira` column.
+
+### Phase D.5: Jira Dependency Linking (if applicable)
+
+If `jiraContext.enabled == true` and `jiraContext.cascadeToStories == true`, and stories
+have Jira keys:
+
+1. For each story, read its "Blocked By" list
+2. For each blocker that has a Jira key, call the Jira MCP tool to create an
+   "is blocked by" link between the two Jira issues
+3. Report: "N dependency links criados no Jira"
+
+If linking fails for some stories, log warnings but do not fail the pipeline.
+This step is best-effort — Jira links are a convenience, not a hard requirement.
+
 ### Phase E: Save and Report
 
 All files are saved inside `docs/stories/epic-XXXX/` (the epic's dedicated folder).
@@ -149,7 +222,11 @@ Report summary:
 - Main bottleneck (story blocking the most others)
 
 If Jira integration was active, also report:
-- Jira integration status (project key, epic key, stories created, dependency links, failures)
+- Jira integration: Enabled (project: `<PROJECT_KEY>`)
+- Epic created in Jira: `<JIRA-KEY>` (or "falha" if failed)
+- Stories created in Jira: N of M (successful/total)
+- Dependency links created: K
+- Failures: list any failed items
 
 ## Language Rules
 
