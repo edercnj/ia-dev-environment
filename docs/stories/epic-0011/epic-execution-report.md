@@ -2,7 +2,7 @@
 
 ### Summary
 
-- **Epic:** EPIC-0011 -- Integracao Jira para Geracao de Epicos e Historias
+- **Epic:** EPIC-0011 -- Integração Jira para Geração de Épicos e Histórias
 - **Branch:** `feat/epic-0011-full-implementation`
 - **Started:** 2026-03-25
 - **Status:** COMPLETE (8/8 stories)

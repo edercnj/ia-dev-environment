@@ -13,12 +13,14 @@ import java.util.regex.Pattern;
  * <p>Supports multiple table formats by detecting column
  * positions from the header row:
  * <ul>
- *   <li><b>6-column (current):</b>
+ *   <li><b>6-column (current with Jira before Blocked By):</b>
  *   {@code | ID | Title | Chave Jira | Blocked By | ... |}</li>
- *   <li><b>5-column (legacy with Jira at end):</b>
+ *   <li><b>6-column (legacy with Jira at end):</b>
  *   {@code | ID | Title | Blocked By | ... | Chave Jira |}</li>
- *   <li><b>3+ column (legacy no Jira):</b>
+ *   <li><b>5+ column (legacy without Jira):</b>
  *   {@code | ID | Title | Blocked By | ...}</li>
+ *   <li><b>3-column minimal (no Jira):</b>
+ *   {@code | ID | Title | Blocked By |}</li>
  * </ul>
  *
  * <p>Column detection uses the header row to find "Jira" and
