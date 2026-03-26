@@ -655,7 +655,7 @@ Launch a `general-purpose` subagent:
 > - Otherwise → proceed to Step 5
 > **Step 5 — Smoke Gate:** Execute the full smoke test suite as a regression validation.
 > - If `--skip-smoke-gate` flag is set → log `"Integrity gate smoke tests skipped (--skip-smoke-gate)"` and record `smokeGate.status = "SKIP"` → proceed to PASS
-> - Run: `{{SMOKE_TEST_COMMAND}}` (e.g., `cd java && mvn verify -P integration-tests`)
+> - Run: `{{SMOKE_COMMAND}}` (e.g., `cd java && mvn verify -P integration-tests`)
 > - This runs ALL smoke tests, not just those for stories in the current phase
 > - If all smoke tests pass → record `smokeGate.status = "PASS"` → overall gate is PASS
 > - If any smoke test fails → correlate failures with stories in the current phase (based on files touched) → record `smokeGate.status = "FAIL"` → overall gate is FAIL
@@ -983,6 +983,6 @@ Return to main branch: `git checkout main && git pull origin main`
 - Writes: `docs/stories/epic-XXXX/plans/preflight-analysis-phase-N.md` (pre-flight analysis output for audit, Phase 0.5)
 - Phase 0.5 is skipped when `--sequential` is set (no parallel dispatch means no conflict risk)
 - All `{{PLACEHOLDER}}` tokens are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
-- Integrity gate includes smoke tests (Step 5) as regression validation after each phase — runs `{{SMOKE_TEST_COMMAND}}` (e.g., `cd java && mvn verify -P integration-tests`)
+- Integrity gate includes smoke tests (Step 5) as regression validation after each phase — runs `{{SMOKE_COMMAND}}` (e.g., `cd java && mvn verify -P integration-tests`)
 - Smoke gate is bypassed with `--skip-smoke-gate` flag; result recorded as `smokeGate.status = "SKIP"` in checkpoint
 - Per-story smoke tests run via `x-dev-lifecycle` Phase 2.5; integrity gate smoke tests are an additional cross-story regression check

@@ -43,25 +43,25 @@ Examples:
 
 Construct the Maven command based on the parsed arguments.
 
-**Base command:**
+**Base command (all smoke tests):**
 ```bash
-cd java && mvn verify -P integration-tests -Dgroups=smoke
+cd java && mvn verify -P integration-tests
 ```
 
-**With profile filter:**
+**With category filter** (runs a specific smoke test class via Failsafe `it.test`):
 ```bash
-cd java && mvn verify -P integration-tests -Dgroups=smoke -Dsmoke.profile=<profile>
+cd java && mvn verify -P integration-tests -Dit.test=<TestClass>
 ```
 
-**With category filter:**
-```bash
-cd java && mvn verify -P integration-tests -Dgroups=smoke -Dsmoke.category=<category>
-```
+Category-to-class mapping:
+- `pipeline` → `-Dit.test=PipelineSmokeTest`
+- `content` → `-Dit.test=ContentIntegritySmokeTest`
+- `structure` → `-Dit.test=FrontmatterSmokeTest`
+- `cli` → `-Dit.test=CliModesSmokeTest`
+- `cross-profile` → `-Dit.test=CrossProfileConsistencySmokeTest`
+- `assembler` → `-Dit.test=AssemblerRegressionSmokeTest`
 
-**With both filters:**
-```bash
-cd java && mvn verify -P integration-tests -Dgroups=smoke -Dsmoke.profile=<profile> -Dsmoke.category=<category>
-```
+**Note:** Profile filtering is not currently supported at the Maven level. When `profile` is specified (not `all`), run all smoke tests and filter the report output to show only results for the requested profile. The parametrized tests cover all 8 profiles per class — individual profile selection requires running the full class.
 
 ### Step 3 — Execute Tests
 

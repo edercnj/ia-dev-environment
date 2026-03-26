@@ -1,7 +1,5 @@
 package dev.iadev.smoke;
 
-import dev.iadev.config.ConfigProfiles;
-
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -13,11 +11,11 @@ import java.util.stream.Stream;
  * classes should reference these providers instead of
  * duplicating the profile list.</p>
  *
- * <p>The profiles are sourced from
- * {@link ConfigProfiles#getAvailableStacks()} to ensure
- * consistency with the production code.</p>
- *
- * @see ConfigProfiles
+ * <p>The profiles are an explicitly curated list of the
+ * 8 bundled profiles used by golden file and smoke tests.
+ * The list excludes {@code java-picocli-cli} (the project's
+ * own profile) and is maintained in sync with the golden
+ * test resources directory.</p>
  */
 public final class SmokeProfiles {
 

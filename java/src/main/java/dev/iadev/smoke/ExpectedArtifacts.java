@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -91,7 +92,8 @@ public final class ExpectedArtifacts {
                                 + resourcePath);
             }
             String content = new String(
-                    is.readAllBytes());
+                    is.readAllBytes(),
+                    StandardCharsets.UTF_8);
             return parseJson(content);
         } catch (IOException e) {
             throw new IllegalStateException(

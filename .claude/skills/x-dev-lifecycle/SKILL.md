@@ -20,7 +20,7 @@ argument-hint: "[STORY-ID or feature-name]"
 
 ## CRITICAL EXECUTION RULE
 
-**10 phases (0, 1, 1B-1E, 2, 2.5, 3, 4, 5-6, 7, 8). ALL mandatory. NEVER stop before Phase 8.**
+**Phases: 0, 1, 1B-1E, 2, 2.5, 3, 4, 5-6, 7, 8. ALL mandatory. NEVER stop before Phase 8.**
 
 After each phase: `>>> Phase N completed. Proceeding to Phase N+1...`
 After Phase 8: `>>> Phase 8 completed. Lifecycle complete.`
