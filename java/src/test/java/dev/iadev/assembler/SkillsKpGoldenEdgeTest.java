@@ -64,6 +64,8 @@ class SkillsKpGoldenEdgeTest {
             assertThat(s.resolve(
                     "ci-cd-patterns/SKILL.md")).exists();
             assertThat(s.resolve(
+                    "sre-practices/SKILL.md")).exists();
+            assertThat(s.resolve(
                     "layer-templates/SKILL.md")).exists();
         }
 
@@ -240,6 +242,103 @@ class SkillsKpGoldenEdgeTest {
             assertThat(outputDir.resolve(
                     "skills/database-patterns"))
                     .doesNotExist();
+        }
+
+        @Test
+        @DisplayName("sre-practices has user-invocable false")
+        void assemble_srePractices_frontmatterCorrect(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            assembler.assemble(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(), outputDir);
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "skills/sre-practices/SKILL.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("user-invocable: false");
+            assertThat(content)
+                    .contains("name: sre-practices");
+        }
+
+        @Test
+        @DisplayName("sre-practices has all 6 sections")
+        void assemble_srePractices_allSixSections(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            assembler.assemble(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(), outputDir);
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "skills/sre-practices/SKILL.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("## Error Budgets");
+            assertThat(content)
+                    .contains("## Toil Reduction");
+            assertThat(content)
+                    .contains("## On-Call Practices");
+            assertThat(content)
+                    .contains("## Capacity Planning");
+            assertThat(content)
+                    .contains("## Incident Management Process");
+            assertThat(content)
+                    .contains("## Change Management");
+        }
+
+        @Test
+        @DisplayName("sre-practices reference files exist")
+        void assemble_srePractices_referenceFilesExist(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            assembler.assemble(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(), outputDir);
+            Path refs = outputDir.resolve(
+                    "skills/sre-practices/references");
+            assertThat(refs.resolve(
+                    "error-budget-calculator.md")).exists();
+            assertThat(refs.resolve(
+                    "on-call-handbook.md")).exists();
+            assertThat(refs.resolve(
+                    "capacity-planning-template.md")).exists();
+        }
+
+        @Test
+        @DisplayName("sre-practices does not overlap"
+                + " with observability")
+        void assemble_srePractices_noOverlapWithObservability(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            assembler.assemble(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(), outputDir);
+            String sreContent = Files.readString(
+                    outputDir.resolve(
+                            "skills/sre-practices/SKILL.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(sreContent)
+                    .doesNotContain("distributed tracing");
+            assertThat(sreContent)
+                    .doesNotContain("structured logging");
         }
     }
 

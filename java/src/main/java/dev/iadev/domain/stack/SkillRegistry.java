@@ -37,7 +37,8 @@ public final class SkillRegistry {
             "infrastructure",
             "protocols",
             "story-planning",
-            "ci-cd-patterns"
+            "ci-cd-patterns",
+            "sre-practices"
     );
 
     /**
