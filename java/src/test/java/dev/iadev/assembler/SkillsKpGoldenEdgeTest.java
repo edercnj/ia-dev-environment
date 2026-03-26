@@ -62,6 +62,8 @@ class SkillsKpGoldenEdgeTest {
             assertThat(s.resolve(
                     "story-planning/SKILL.md")).exists();
             assertThat(s.resolve(
+                    "release-management/SKILL.md")).exists();
+            assertThat(s.resolve(
                     "layer-templates/SKILL.md")).exists();
         }
 
@@ -145,6 +147,115 @@ class SkillsKpGoldenEdgeTest {
             assertThat(outputDir.resolve(
                     "skills/database-patterns/SKILL.md"))
                     .exists();
+        }
+
+        @Test
+        @DisplayName("release-management has valid"
+                + " frontmatter")
+        void assemble_releaseManagement_hasValidFrontmatter(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            assembler.assemble(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(), outputDir);
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "skills/release-management/"
+                                    + "SKILL.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("name: release-management")
+                    .contains("user-invocable: false");
+        }
+
+        @Test
+        @DisplayName("release-management has all 8 sections")
+        void assemble_releaseManagement_allEightSections(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            assembler.assemble(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(), outputDir);
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "skills/release-management/"
+                                    + "SKILL.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("## Semantic Versioning");
+            assertThat(content)
+                    .contains("## Version Lifecycle");
+            assertThat(content)
+                    .contains(
+                            "## Release Branching Strategies");
+            assertThat(content)
+                    .contains(
+                            "## Artifact Registry Management");
+            assertThat(content)
+                    .contains(
+                            "## Release Signing & Attestation");
+            assertThat(content)
+                    .contains("## Hotfix Process");
+            assertThat(content)
+                    .contains("## Rollback Procedures");
+            assertThat(content)
+                    .contains("## Release Communication");
+        }
+
+        @Test
+        @DisplayName("release-management reference files"
+                + " exist")
+        void assemble_releaseManagement_referenceFilesExist(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            assembler.assemble(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(), outputDir);
+            Path refs = outputDir.resolve(
+                    "skills/release-management/references");
+            assertThat(refs.resolve(
+                    "release-branching-guide.md")).exists();
+            assertThat(refs.resolve(
+                    "artifact-publishing-matrix.md"))
+                    .exists();
+            assertThat(refs.resolve(
+                    "rollback-decision-tree.md")).exists();
+        }
+
+        @Test
+        @DisplayName("release-management does not overlap"
+                + " with ci-cd-patterns")
+        void assemble_releaseManagement_noOverlapWithCiCd(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            assembler.assemble(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(), outputDir);
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "skills/release-management/"
+                                    + "SKILL.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .doesNotContain("Matrix Builds");
+            assertThat(content)
+                    .doesNotContain("Test Stage");
         }
 
         @Test
