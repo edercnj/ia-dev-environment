@@ -97,12 +97,12 @@ class GithubSkillsAssemblerTest {
         }
 
         @Test
-        @DisplayName("knowledge-packs group has 9 skills")
-        void assemble_knowledgePacksGroup_hasNineSkills() {
+        @DisplayName("knowledge-packs group has 10 skills")
+        void assemble_knowledgePacksGroup_hasTenSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("knowledge-packs"))
-                    .hasSize(9);
+                    .hasSize(10);
         }
 
         @Test

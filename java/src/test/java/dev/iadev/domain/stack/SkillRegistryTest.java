@@ -18,9 +18,9 @@ class SkillRegistryTest {
     class CoreKnowledgePacksTests {
 
         @Test
-        @DisplayName("contains exactly 11 entries")
-        void coreKnowledgePacks_size_eleven() {
-            assertThat(SkillRegistry.CORE_KNOWLEDGE_PACKS).hasSize(11);
+        @DisplayName("contains exactly 12 entries")
+        void coreKnowledgePacks_size_twelve() {
+            assertThat(SkillRegistry.CORE_KNOWLEDGE_PACKS).hasSize(12);
         }
 
         @Test
@@ -38,7 +38,8 @@ class SkillRegistryTest {
                             "resilience",
                             "infrastructure",
                             "protocols",
-                            "story-planning"
+                            "story-planning",
+                            "sre-practices"
                     );
         }
 
