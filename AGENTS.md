@@ -1,29 +1,22 @@
 
-# ia-dev-environment
+# my-java-cli
 
-Java 21-based CLI tool that generates AI development environment configurations (Claude Code, GitHub Copilot, OpenAI Codex) from project profiles.
+Describe your CLI tool purpose here
 
 ## Architecture
 
-- **Style:** CLI generator (picocli commands → assemblers → template engine → file output)
+- **Style:** library
 - **Language:** java 21
 - **Framework:** picocli 4.7
 
-### Package Structure
+### Dependency Direction
+
+Dependencies point inward toward the domain. Domain NEVER imports adapter or framework code.
 
 ```
-dev.iadev/
-├── cli/           # Picocli command definitions (entry points)
-├── assembler/     # Pipeline assemblers (orchestrate generation)
-├── config/        # Configuration loading and profile resolution
-├── domain/        # Core domain logic and rules
-├── model/         # Data models and DTOs
-├── template/      # Template engine and rendering
-├── checkpoint/    # Generation checkpoint/resume support
-├── progress/      # Progress reporting
-├── smoke/         # Smoke test infrastructure
-├── exception/     # Custom exceptions
-└── util/          # Shared utilities
+adapter.inbound → application → domain ← adapter.outbound
+                                  ↑
+                           (ports/interfaces)
 ```
 
 ## Tech Stack
@@ -39,10 +32,10 @@ dev.iadev/
 
 | Command | Script |
 |---------|--------|
-| Build | `cd java && mvn package -DskipTests` |
-| Test | `cd java && mvn verify` |
-| Compile | `cd java && mvn compile -q` |
-| Coverage | `cd java && mvn verify jacoco:report` |
+| Build | `./mvnw package -DskipTests` |
+| Test | `./mvnw verify` |
+| Compile | `./mvnw compile -q` |
+| Coverage | `./mvnw verify jacoco:report` |
 
 ## Coding Standards
 
@@ -91,7 +84,7 @@ dev.iadev/
 - **Red-Green-Refactor** is mandatory for all production code
 - Refactoring criteria: extract method when > 25 lines, eliminate duplication, improve naming
 - Refactoring NEVER adds behavior
-- Full TDD reference: `.claude/skills/testing/SKILL.md`
+- Full TDD reference: `skills/testing/SKILL.md`
 
 ### Language-Specific
 
@@ -182,21 +175,6 @@ Document business rules with unique identifiers (e.g., BR-001) for traceability.
 
 | Skill | Description |
 |-------|-------------|
-| api-design | API design principles: {{LANGUAGE}}-specific patterns for REST/gRPC/GraphQL. URL structure, status codes, RFC 7807 errors, pagination, content negotiation, validation, request/response shaping, versioning strategies, and protocol conventions. |
-| architecture | Full architecture reference: {{ARCHITECTURE}} principles, package structure, dependency rules, thread-safety, mapper patterns, persistence rules, and architecture variants. Read before designing or implementing features. |
-| coding-standards | Complete coding conventions: Clean Code rules (CC-01 to CC-10), SOLID principles, {{LANGUAGE}} {{LANGUAGE_VERSION}} idioms, naming patterns, constructor injection, mapper conventions, version-specific features, and approved libraries. Read before writing any code. |
-| compliance | Compliance frameworks (conditionally included): GDPR, HIPAA, LGPD, PCI-DSS, SOX. Data classification, rights enforcement, processing records, international transfers, security measures, audit logging, and framework-specific requirements. |
-| dockerfile | Dockerfile patterns per language covering multi-stage builds, security hardening, .dockerignore templates, layer optimization, health checks, and OCI labels. Internal reference for agents managing infrastructure. |
-| infrastructure | Infrastructure patterns: Docker multi-stage builds, Kubernetes manifests (cloud-agnostic), security context, 12-Factor App principles, graceful shutdown, resource management, and cloud-native design. |
-| layer-templates | Reference code templates for each hexagonal architecture layer. Provides consistent patterns for domain model, ports, DTOs, mappers, entities, repositories, use cases, REST resources, exception mappers, migrations, and configuration. Uses {{LANGUAGE}}, {{FRAMEWORK}} placeholders. |
-| observability | Observability principles: distributed tracing (span trees, mandatory attributes), metrics naming conventions, structured logging with mandatory fields, health checks (liveness/readiness/startup), correlation IDs, and OpenTelemetry integration. |
-| patterns | Architecture and design patterns reference: CQRS, event sourcing, hexagonal architecture, modular monolith, repository pattern, cache-aside, event store, and unit of work. Used by agents to choose consistent structures and idioms across the codebase. |
-| protocols | Protocol conventions: REST (OpenAPI 3.1), gRPC (Proto3), GraphQL, WebSocket, and event-driven messaging. URL structure, versioning, error handling per protocol, schema design, and integration patterns. |
-| resilience | Resilience patterns: circuit breaker, rate limiting, bulkhead isolation, timeout control, retry with exponential backoff + jitter, fallback/graceful degradation, backpressure, and resilience metrics. |
-| run-e2e | Skill: End-to-End Tests — Runs integration tests that validate the complete flow from request through all application layers to response, using a real database. |
-| security | Complete security reference: OWASP Top 10, security headers, secrets management, input validation, cryptography (TLS, hashing, key management), and pentest readiness checklist. Read during security reviews or when implementing security-sensitive features. |
-| story-planning | Story decomposition and planning: layer-by-layer decomposition (foundation, core domain, extensions, compositions, cross-cutting), story self-containment (data contracts, acceptance criteria), dependency DAG, sizing rules, and phase computation. |
-| testing | Complete testing reference: testing philosophy, 8 test categories, coverage thresholds, fixture patterns, data uniqueness, async handling, database strategy, and {{LANGUAGE}}-specific test frameworks. Read before writing tests. |
 | x-changelog | Generates CHANGELOG.md from Conventional Commits history. Parses git log, groups by commit type, maps to Keep a Changelog sections (Added, Changed, Fixed, etc.), and performs incremental updates preserving existing entries. |
 | x-codebase-audit | Full codebase review against all project standards. Launches parallel subagents per audit dimension (Clean Code, SOLID, Architecture, Tests, Security, Cross-file), consolidates findings into a severity-categorized report with score. Use for periodic quality validation. |
 | x-dependency-audit | Checks project dependencies for vulnerabilities, outdated versions, and license issues. Detects build tool automatically, runs language-specific audit commands, and generates a severity-categorized report. |
@@ -207,30 +185,11 @@ Document business rules with unique identifiers (e.g., BR-001) for traceability.
 | x-dev-implement | Implements a feature/story using TDD (Red-Green-Refactor) workflow. Delegates preparation to a subagent that reads architecture, coding, and test plan KPs, then implements test-first with Double-Loop TDD, layer-by-layer with compile checks after each cycle. |
 | x-dev-lifecycle | Orchestrates the complete feature implementation cycle: branch creation, planning, task decomposition, implementation, parallel review, fixes, PR creation, and final verification. Delegates heavy phases to subagents for context efficiency. |
 | x-fix-pr-comments | Reads PR review comments and fixes actionable ones automatically. Detects PR from argument or branch, classifies comments (actionable/suggestion/question/praise), implements fixes, and commits with proper conventional commit messages. |
-| x-git-push | Git operations: branch creation, atomic commits (Conventional Commits), push, and PR creation. Use for any git workflow task including branching, committing, pushing, creating PRs, or managing version control. |
+| x-jira-create-epic | Creates a Jira Epic from an existing local epic markdown file. Reads the epic file, maps fields to Jira, creates the issue, and syncs the Jira key back to the local file. Use when the user has an existing epic file and wants to create it in Jira, or when the user says "create this epic in Jira", "sync epic to Jira", or "push epic to Jira". |
+| x-jira-create-stories | Creates Jira Stories from existing local story markdown files. Reads all story files in an epic directory, maps fields to Jira, creates issues with parent epic link, creates dependency links between stories, and syncs Jira keys back to local files. Use when the user has existing story files and wants to create them in Jira, or when the user says "create stories in Jira", "sync stories to Jira", or "push stories to Jira". |
 | x-mcp-recommend | Analyzes project tech stack and recommends relevant MCP (Model Context Protocol) servers. Auto-detects language, framework, database, cache, and message broker from project config, then matches against a built-in catalog of MCP servers with installation instructions. |
-| x-ops-troubleshoot | Diagnoses errors, stacktraces, build failures, and unexpected behavior. Systematic approach: reproduce, locate, understand, fix, verify. Use whenever something fails: compilation errors, test failures, runtime exceptions, coverage gaps, or performance issues. |
-| x-review | Parallel code review with specialist engineers (Security, QA, Performance, Database, Observability, DevOps, API, Event). Launches parallel subagents, each reading their own knowledge pack, then consolidates into a scored report. Use for pre-PR quality validation. |
-| x-review-pr | Tech Lead holistic review with 45-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, TDD process, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge. |
 | x-story-create | Generate detailed User Story files from an Epic and system specification. This skill reads an Epic file (with its story index and rules table) and the original system spec, then produces one file per story with full data contracts, Gherkin acceptance criteria, Mermaid sequence diagrams, dependency declarations, and tagged sub-tasks. Use this skill whenever the user asks to create stories, generate user stories from an epic, detail stories with acceptance criteria, write Gherkin scenarios for a spec, create story files with data contracts, or any variation of "generate stories from this epic/spec". Also trigger when the user mentions writing acceptance criteria, detailing technical stories, creating story files with contracts and diagrams, or breaking an epic into implementable stories — even if they don't use the word "story" explicitly. |
 | x-story-epic | Generate an Epic document from a system specification file. This skill reads a technical spec (following the _TEMPLATE.md format) and produces an Epic file with cross-cutting business rules, global quality definitions (DoR/DoD), and a complete story index with dependency declarations. Use this skill whenever the user asks to create an epic, generate an epic from a spec, extract business rules from a system document, decompose a specification into an epic, build a story index, or any variation of "read this spec and create an epic". Also trigger when the user mentions extracting cross-cutting rules, defining quality gates for a project, or building a story backlog from a technical document — even if they don't use the word "epic" explicitly. |
 | x-story-epic-full | Complete decomposition of a system specification into an Epic, individual Story files, and an Implementation Map with dependency graph and phased execution plan. This is the orchestrator skill that guides the full workflow: spec analysis, rule extraction, story identification, and implementation planning. Use this skill whenever the user asks to decompose a spec into stories and epic, break down a system document into implementable work items, generate a complete project backlog from a specification, create epic stories and implementation plan from a technical document, or any variation of "read this spec and create everything". Also trigger when the user wants the full decomposition pipeline — epic + stories + map — in a single pass, or mentions planning the complete implementation of a system from its specification. Prefer this skill over the individual x-story-epic, x-story-create, or x-story-map skills when the user wants all three deliverables. |
-| x-story-map | Generate an Implementation Map from an Epic and its Stories. This skill computes implementation phases from the dependency graph, identifies the critical path, produces ASCII phase diagrams, Mermaid dependency graphs, and strategic observations about bottlenecks and parallelism. Use this skill whenever the user asks to create an implementation map, generate a dependency graph, compute implementation phases, identify the critical path, plan implementation order, build a phase diagram from stories, or any variation of "create a plan from these stories". Also trigger when the user mentions sequencing stories, finding bottlenecks in a backlog, computing parallel work streams, or building a roadmap from an epic — even if they don't use the phrase "implementation map" explicitly. |
-| x-test-plan | Generates a Double-Loop TDD test plan with TPP-ordered scenarios before implementation. Delegates KP reading to a context-gathering subagent, then produces structured Acceptance Tests (outer loop) and Unit Tests in Transformation Priority Premise order (inner loop). |
-| x-test-run | Runs tests with coverage reporting and threshold validation. Use whenever writing, running, or analyzing tests. Triggers on: test, coverage, TDD, unit test, integration test, test failure, coverage gap, or Definition of Done validation. |
-
-
-## Agent Personas
-
-| Agent | Role |
-|-------|------|
-| architect | Global Behavior & Language Policy |
-| devops-engineer | Global Behavior & Language Policy |
-| java-developer | Global Behavior & Language Policy |
-| performance-engineer | Global Behavior & Language Policy |
-| product-owner | Global Behavior & Language Policy |
-| qa-engineer | Global Behavior & Language Policy |
-| security-engineer | Global Behavior & Language Policy |
-| tech-lead | Global Behavior & Language Policy |
 
 

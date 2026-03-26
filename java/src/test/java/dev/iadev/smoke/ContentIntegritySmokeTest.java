@@ -362,6 +362,7 @@ class ContentIntegritySmokeTest extends SmokeTestBase {
                 "ORCHESTRATOR", "PORT", "EXT",
                 "BUILD_COMMAND", "TEST_COMMAND",
                 "COMPILE_COMMAND", "COVERAGE_COMMAND",
+                "SMOKE_COMMAND",
                 "EPIC_ID", "BRANCH", "PLACEHOLDER",
                 "COMMIT_LOG", "PR_LINK",
                 "STARTED_AT", "FINISHED_AT",

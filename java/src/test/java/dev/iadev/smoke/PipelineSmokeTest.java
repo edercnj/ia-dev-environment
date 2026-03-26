@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -238,8 +239,8 @@ class PipelineSmokeTest extends SmokeTestBase {
             int actualCatCount = countCategoryFiles(
                     outputDir, category);
             if (actualCatCount != expectedCatCount) {
-                sb.append("  %s: %+d (expected=%d,"
-                        + " actual=%d)\n"
+                sb.append(("  %s: %+d (expected=%d,"
+                        + " actual=%d)\n")
                         .formatted(
                                 category,
                                 actualCatCount

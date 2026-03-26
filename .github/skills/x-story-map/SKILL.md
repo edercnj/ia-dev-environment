@@ -30,7 +30,7 @@ observations that inform sprint planning.
 Read the following files before starting:
 
 **Template (output structure):**
-- `.claude/templates/_TEMPLATE-IMPLEMENTATION-MAP.md` — The exact structure to follow
+- `resources/templates/_TEMPLATE-IMPLEMENTATION-MAP.md` — The exact structure to follow
 
 **Required inputs:**
 - The Epic file (with story index and dependency declarations)
@@ -40,24 +40,24 @@ Read the following files before starting:
 
 ### Step 1: Build the Dependency Matrix
 
-Read every story's Section 1 (Dependências) and the Epic's story index. Also read each
+Read every story's Section 1 (Dependencies) and the Epic's story index. Also read each
 story's `**Chave Jira:**` field (if present). Build a complete matrix:
 
-| Story | Título | Chave Jira | Blocked By | Blocks | Status |
+| Story | Title | Chave Jira | Blocked By | Blocks | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 
-The `Chave Jira` column is placed between `Título` and `Blocked By`. If a story does not
+The `Chave Jira` column is placed between `Title` and `Blocked By`. If a story does not
 have a Jira key (field is `—` or `<CHAVE-JIRA>`), set the column value to `—`.
 
 **Validation checks:**
 - Every story in the Epic's index must appear in the matrix
 - Dependencies must be symmetric: if A blocks B, then B must list A as blocker
-- No circular dependencies (A→B→C→A is invalid)
+- No circular dependencies (A->B->C->A is invalid)
 - Root stories (no blockers) must exist — if every story has a blocker, something is wrong
 
 If inconsistencies are found, fix them and note the corrections.
 
-Add a `> **Nota:**` block for any implicit dependencies not declared in the stories but
+Add a `> **Note:**` block for any implicit dependencies not declared in the stories but
 functionally required (e.g., "story-0001-0009 provides configuration data that story-0001-0002 needs even
 though story-0001-0002 doesn't explicitly declare it").
 
@@ -72,11 +72,11 @@ Group stories into phases using the dependency DAG:
 Within each phase, all stories can run in parallel.
 
 Create the ASCII phase diagram using box-drawing characters. Follow the exact style from
-the template — `╔═╗`, `║`, `╚═╝` for phase boxes, `┌─┐`, `│`, `└─┘` for story boxes,
-`├──→`, `▼` for arrows.
+the template — `|=|`, `|`, `|=|` for phase boxes, `|-|`, `|`, `|-|` for story boxes,
+`|-->`, `v` for arrows.
 
 Each story box shows: ID + short scope description (max ~20 chars).
-Each phase box shows: phase number + name + "(paralelo)" if multiple stories.
+Each phase box shows: phase number + name + "(parallel)" if multiple stories.
 
 ### Step 3: Identify the Critical Path
 
@@ -85,11 +85,11 @@ Count phases, not individual stories.
 
 Render as a simple ASCII diagram:
 ```
-story-0001-0001 ─┐
-            ├──→ story-0001-0002 → story-0001-0003 ──┐
-story-0001-0009 ─┘                              ├──→ story-0001-0011
-                 story-0001-0002 → story-0001-0010 ──┘
-   Fase 0           Fase 1       Fase 2            Fase 3
+story-0001-0001 -|
+            |---> story-0001-0002 -> story-0001-0003 --|
+story-0001-0009 -|                               |---> story-0001-0011
+                  story-0001-0002 -> story-0001-0010 --|
+   Phase 0           Phase 1       Phase 2            Phase 3
 ```
 
 State: **N phases in the critical path, M stories in the longest chain**.
@@ -115,26 +115,26 @@ classDef faseTD fill:#2d3436,stroke:#fdcb6e,color:#fff
 classDef faseCR fill:#6c5ce7,stroke:#a29bfe,color:#fff
 ```
 
-Assign classDef by phase. Group edges by phase transition (comment with `%% Fase N → N+1`).
+Assign classDef by phase. Group edges by phase transition (comment with `%% Phase N -> N+1`).
 
 ### Step 5: Create the Phase Summary Table
 
-| Fase | Histórias | Camada | Paralelismo | Pré-requisito |
+| Phase | Stories | Layer | Parallelism | Prerequisite |
 | :--- | :--- | :--- | :--- | :--- |
-| 0 | story-0001-0001, story-0001-0009 | Infra + API | 2 paralelas | — |
+| 0 | story-0001-0001, story-0001-0009 | Infra + API | 2 parallel | — |
 
-Include total count: **N histórias em M fases**.
+Include total count: **N stories in M phases**.
 
-Add notes about transversal phases (QE, Tech Debt) that can execute independently of
+Add notes about cross-cutting phases (QE, Tech Debt) that can execute independently of
 business phases.
 
 ### Step 6: Detail Each Phase
 
 For each phase, create a subsection with:
 
-**Table**: Story | Escopo Principal | Artefatos Chave
+**Table**: Story | Main Scope | Key Artifacts
 
-**Entregas da Fase N** (bullet list of concrete deliverables — what exists after this
+**Phase N Deliverables** (bullet list of concrete deliverables — what exists after this
 phase that didn't exist before).
 
 Be specific about artifacts: class names, table names, endpoints, configurations, test
@@ -144,20 +144,20 @@ infrastructure.
 
 These are the highest-value part of the map. Analyze:
 
-**Gargalo Principal**: Which story blocks the most others? Why investing extra time in
+**Main Bottleneck**: Which story blocks the most others? Why investing extra time in
 it pays off. This is usually the Layer 1 core story.
 
-**Histórias Folha (sem dependentes)**: Stories that don't block anything. They can absorb
+**Leaf Stories (no dependents)**: Stories that don't block anything. They can absorb
 delays without impacting the critical path. Good candidates for junior developers or
 parallel streams.
 
-**Otimização de Tempo**: Where is parallelism maximized? Which stories can start immediately?
+**Time Optimization**: Where is parallelism maximized? Which stories can start immediately?
 How should teams be allocated across phases?
 
-**Dependências Cruzadas**: Stories in later phases that depend on stories from different
+**Cross Dependencies**: Stories in later phases that depend on stories from different
 branches of the dependency tree. Identify convergence points.
 
-**Marco de Validação Arquitetural**: Which story should serve as the architectural
+**Architectural Validation Milestone**: Which story should serve as the architectural
 checkpoint before expanding scope? What does it validate (patterns, pipeline, integration)?
 
 ### Step 8: Save and Report
@@ -171,7 +171,7 @@ Report: total stories, phases, critical path length, maximum parallelism, main b
 - All generated content must be in **Brazilian Portuguese (pt-BR)**
 - Mermaid node IDs and classDef names stay in English
 - Phase names in Portuguese (e.g., "Fase 0 — Fundação")
-- Technical terms: "critical path" → "caminho crítico", "bottleneck" → "gargalo"
+- Technical terms: "critical path" -> "caminho critico", "bottleneck" -> "gargalo"
 - Story IDs: `story-XXXX-YYYY` (composite format)
 - Epic IDs: `epic-XXXX` (kebab-case)
 
@@ -188,3 +188,9 @@ Report: total stories, phases, critical path length, maximum parallelism, main b
   diagram, that's a bug
 - **Missing leaf analysis**: Leaf stories (no dependents) are strategically important because
   they can absorb schedule variance. Always identify them
+
+## Detailed References
+
+For in-depth guidance, see:
+- `.github/skills/x-story-map/SKILL.md`
+- `.github/skills/x-story-epic-full/SKILL.md`

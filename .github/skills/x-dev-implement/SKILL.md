@@ -1,15 +1,12 @@
 ---
 name: x-dev-implement
-description: "Implements a feature/story using TDD (Red-Green-Refactor) workflow. Delegates preparation to a subagent that reads architecture, coding, and test plan KPs, then implements test-first with Double-Loop TDD, layer-by-layer with compile checks after each cycle."
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob
-argument-hint: "[STORY-ID or feature-description]"
+description: >
+  Implements a feature/story using TDD (Red-Green-Refactor) workflow. Delegates
+  preparation to a subagent that reads architecture, coding, and test plan knowledge
+  packs, then implements test-first with Double-Loop TDD and compile checks after
+  each cycle. Use for quick implementations, single class changes, or coding without
+  the full review phases.
 ---
-
-## Global Output Policy
-
-- **Language**: English ONLY.
-- **Tone**: Technical, Direct, and Concise.
-- **Efficiency**: Remove all conversational fillers and greetings to save tokens.
 
 # Skill: Implement Story (Orchestrator)
 
@@ -48,10 +45,9 @@ Launch a **single** `general-purpose` subagent:
 > - If NO test plan found: emit WARNING and suggest running `/x-test-plan` first, then continue with fallback mode (implement without strict TPP ordering)
 >
 > **Step 3 — Read project conventions:**
-> - `skills/architecture/references/architecture-principles.md` — layer structure, dependency direction
-> - `skills/coding-standards/references/coding-conventions.md` — {{LANGUAGE}} coding conventions
-> - `skills/coding-standards/references/version-features.md` — {{LANGUAGE}} {{LANGUAGE_VERSION}} idioms
-> - `skills/layer-templates/SKILL.md` — code templates per architecture layer (defines implementation order)
+> - `.github/skills/architecture/SKILL.md` — layer structure, dependency direction
+> - `.github/skills/coding-standards/SKILL.md` — {{LANGUAGE}} coding conventions and {{LANGUAGE_VERSION}} idioms
+> - `.github/skills/layer-templates/SKILL.md` — code templates per architecture layer (defines implementation order)
 >
 > **Step 4 — Review existing code** in the target packages to identify patterns to follow.
 >
@@ -184,8 +180,6 @@ All TDD cycles are complete. Run final validation:
 | Tests written BEFORE implementation | Verify test-first pattern in each cycle |
 | Refactoring evaluated per cycle | Each cycle has explicit refactor step (even if noop) |
 | Thread-safe (if applicable) | No mutable static state |
-| Automated test validates primary AC | At least 1 test validates the story's primary acceptance criterion |
-| Smoke test passes | `{{SMOKE_COMMAND}}` (if testing.smoke_tests == true) |
 
 ## Step 4: Commit (Orchestrator — Inline)
 
@@ -225,3 +219,11 @@ git commit -m "test(scope): update acceptance test for [AT-N scenario] (GREEN)"
 - Invokes patterns from `x-test-run` and `x-git-push` skills
 - Works with any {{FRAMEWORK}} project following layered/hexagonal architecture
 - The developer agent (typescript-developer) already includes TDD workflow rules (story-0003-0006)
+
+## Detailed References
+
+For in-depth guidance on implementation patterns, consult:
+- `.github/skills/x-dev-implement/SKILL.md`
+- `.github/skills/layer-templates/SKILL.md`
+- `.github/skills/coding-standards/SKILL.md`
+- `.github/skills/x-test-plan/SKILL.md` — for generating test plans with TPP ordering

@@ -1,15 +1,11 @@
 ---
 name: x-dev-lifecycle
-description: "Orchestrates the complete feature implementation cycle: branch creation, planning, task decomposition, implementation, parallel review, fixes, PR creation, and final verification. Delegates heavy phases to subagents for context efficiency."
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
-argument-hint: "[STORY-ID or feature-name]"
+description: >
+  Orchestrates the complete feature implementation cycle: branch creation,
+  planning, task decomposition, implementation, parallel review, fixes,
+  PR creation, and final verification. Delegates heavy phases to subagents
+  for context efficiency. Use for full story implementation with review.
 ---
-
-## Global Output Policy
-
-- **Language**: English ONLY.
-- **Tone**: Technical, Direct, and Concise.
-- **Efficiency**: Remove all conversational fillers and greetings to save tokens.
 
 # Skill: Feature Lifecycle (Orchestrator)
 
@@ -22,7 +18,7 @@ argument-hint: "[STORY-ID or feature-name]"
 
 **9 phases (0-8). ALL mandatory. NEVER stop before Phase 8.**
 
-After each phase 0–7: `>>> Phase N/8 completed. Proceeding to Phase N+1...`
+After each of Phases 0–7: `>>> Phase N/8 completed. Proceeding to Phase N+1...`
 After Phase 8: `>>> Phase 8/8 completed. Lifecycle complete.`
 
 ## Complete Flow
@@ -88,8 +84,8 @@ Launch a **single** `general-purpose` subagent:
 >
 > **Step 1 — Read context:**
 > - Read story file: `{STORY_PATH}`
-> - Read `skills/architecture/references/architecture-principles.md` — layer structure, dependency direction
-> - Read `skills/layer-templates/SKILL.md` — code templates per architecture layer
+> - Read `.github/skills/architecture/SKILL.md` — layer structure, dependency direction
+> - Read `.github/skills/layer-templates/SKILL.md` — code templates per architecture layer
 > - Read any relevant ADRs in `docs/adr/`
 > - If architecture plan exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`, read it for architectural decisions and constraints
 >
@@ -109,11 +105,11 @@ Launch a **single** `general-purpose` subagent:
 
 ### Fallback: Inline Architecture Planning
 
-If skill `x-dev-architecture-plan` is not available in the project (skill file `skills/x-dev-architecture-plan/SKILL.md` does not exist), combine architecture planning into the Step 1B subagent by expanding its prompt to also read:
-- `skills/protocols/references/` — protocol conventions
-- `skills/security/references/` — OWASP, headers, secrets
-- `skills/observability/references/` — tracing, metrics, logging
-- `skills/resilience/references/` — circuit breaker, retry, fallback
+If skill `x-dev-architecture-plan` is not available in the project (skill file `.github/skills/x-dev-architecture-plan/SKILL.md` does not exist), combine architecture planning into the Step 1B subagent by expanding its prompt to also read:
+- `.github/skills/protocols/SKILL.md` — protocol conventions
+- `.github/skills/security/SKILL.md` — OWASP, headers, secrets
+- `.github/skills/observability/SKILL.md` — tracing, metrics, logging
+- `.github/skills/resilience/SKILL.md` — circuit breaker, retry, fallback
 
 This preserves the pre-integration behavior for projects that do not include the architecture-plan skill.
 
@@ -143,7 +139,7 @@ The task decomposer auto-detects decomposition mode:
 Launch `general-purpose` subagent:
 
 > You are an **Event Engineer** designing event schemas.
-> Read `skills/protocols/references/event-driven-conventions.md` for standards.
+> Read `.github/skills/protocols/SKILL.md` for standards.
 > Read the implementation plan at `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`.
 > Produce event schema design: event names (past tense), CloudEvents envelope, topic naming, partition key, producer/consumer contracts.
 > Save to `docs/stories/epic-XXXX/plans/events-story-XXXX-YYYY.md`.
@@ -152,8 +148,8 @@ Launch `general-purpose` subagent:
 Launch `general-purpose` subagent:
 
 > You are a **Security Engineer** assessing compliance impact.
-> Read `skills/security/SKILL.md` → then read its references.
-> Read `skills/compliance/SKILL.md` → then read its references.
+> Read `.github/skills/security/SKILL.md`.
+> Read `.github/skills/compliance/SKILL.md`.
 > Read the implementation plan at `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`.
 > Produce compliance impact assessment: data classification, encryption requirements, audit logging needs, regulatory considerations.
 > Save to `docs/stories/epic-XXXX/plans/compliance-story-XXXX-YYYY.md`.
@@ -169,10 +165,9 @@ Launch a **single** `general-purpose` subagent for implementation:
 > - Read implementation plan: `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`
 > - If architecture plan was generated in Phase 1, read `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` for architectural decisions and constraints; if it does not exist, proceed without it
 > - Read task breakdown: `docs/stories/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`
-> - Read `skills/coding-standards/references/coding-conventions.md` — {{LANGUAGE}} conventions
-> - Read `skills/coding-standards/references/version-features.md` — {{LANGUAGE}} {{LANGUAGE_VERSION}} features
-> - Read `skills/layer-templates/SKILL.md` — code templates per layer
-> - Read `skills/architecture/references/architecture-principles.md` — layer boundaries
+> - Read `.github/skills/coding-standards/SKILL.md` — {{LANGUAGE}} conventions and {{LANGUAGE_VERSION}} features
+> - Read `.github/skills/layer-templates/SKILL.md` — code templates per layer
+> - Read `.github/skills/architecture/SKILL.md` — layer boundaries
 >
 > If no test plan found: emit WARNING and use **G1-G7 Fallback** (see below).
 >
@@ -259,7 +254,7 @@ Documentation output saved to `docs/` with subdirectories per type:
 
 **Performance Baseline (Recommended):**
 If the implemented feature affects the request path, startup, or memory footprint:
-1. Read `.claude/templates/_TEMPLATE-PERFORMANCE-BASELINE.md` for measurement guide
+1. Read `resources/templates/_TEMPLATE-PERFORMANCE-BASELINE.md` for measurement guide
 2. Record "before" metrics (prior to the feature branch)
 3. Record "after" metrics (with the feature branch)
 4. Append a row to `docs/performance/baselines.md`
@@ -375,35 +370,14 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
 ## Phase 8 — Final Verification + Cleanup (Orchestrator — Inline)
 
 1. Update README if needed
-2. Update IMPLEMENTATION-MAP:
-   a. Read `docs/stories/epic-XXXX/IMPLEMENTATION-MAP.md`
-   b. Find the current story's row in the dependency matrix (Section 1 table)
-   c. Update the Status column: replace current value with `Concluída`
-   d. Write the updated file
-3. Update Story File Status:
-   a. Read `docs/stories/epic-XXXX/story-XXXX-YYYY.md`
-   b. Update the `**Status:**` line from `Pendente` to `Concluída`
-   c. In Section 8 (Sub-tarefas), mark completed sub-tasks: change `- [ ]` to `- [x]`
-      for tasks that were implemented (based on commits and test results from this run)
-   d. Write the updated file
-4. Jira Status Sync (conditional):
-   a. Read the story file's `**Chave Jira:**` field
-   b. If the value is not `—` and not `<CHAVE-JIRA>` (i.e., has a real Jira key):
-      - Call `mcp__atlassian__getTransitionsForJiraIssue` with the story's Jira key
-      - Find the transition to "Done" (match by name containing "Done", "Concluído", or "Resolved")
-      - Call `mcp__atlassian__transitionJiraIssue` to transition the issue
-      - If transition fails: log warning, continue (non-blocking)
-5. Run DoD checklist (24+ checks across phases, quality, git, artifacts)
-6. TDD DoD items:
+2. Update IMPLEMENTATION-MAP
+3. Run DoD checklist (24+ checks across phases, quality, git, artifacts)
+4. TDD DoD items:
    - [ ] Commits show test-first pattern (test precedes or accompanies implementation in git log)
    - [ ] Acceptance tests exist and pass (AT-N GREEN)
    - [ ] Tests follow TPP ordering (simple to complex)
    - [ ] No test-after commits (all tests written before or with implementation)
-   - [ ] Story markdown file updated with Status: Concluída
-   - [ ] IMPLEMENTATION-MAP Status column updated for this story
-   - [ ] At least 1 automated test validates the story's primary acceptance criterion
-   - [ ] Smoke test passes (if testing.smoke_tests == true)
-7. Conditional DoD items:
+5. Conditional DoD items:
    - Contract tests pass (if testing.contract_tests == true)
    - Event schemas registered (if event_driven)
    - Compliance requirements met (if security.compliance active)
@@ -412,7 +386,7 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
    - GraphQL schema backward compatible (if interfaces contain graphql)
    - [ ] Threat model updated (if security findings with severity >= Medium) — extract findings from Phase 3 review reports, map to STRIDE categories, and update `docs/security/threat-model.md` using `resources/templates/_TEMPLATE-THREAT-MODEL.md` as format reference. See `/x-review` Phase 3d for the incremental update algorithm.
    - Post-deploy verification passed or skipped (if testing.smoke_tests == true)
-8. Post-Deploy Verification (conditional: `testing.smoke_tests == true`):
+6. Post-Deploy Verification (conditional: `testing.smoke_tests == true`):
    - If `testing.smoke_tests` is `false` in project identity → SKIP with log: "Post-deploy verification skipped (testing.smoke_tests=false)"
    - If `testing.smoke_tests` is `true`, execute the following checks (invoke `/run-e2e` or configured smoke test script):
      - **Health Check**: GET /health (or configured endpoint) → 200 OK
@@ -424,8 +398,8 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
      - **FAIL**: Any check red → "Investigate rollback"
      - **SKIP**: testing.smoke_tests=false → "Verification skipped"
    - Non-blocking: emit result for human decision, do NOT auto-rollback
-9. Report PASS/FAIL/SKIP result
-10. `git checkout main && git pull origin main`
+7. Report PASS/FAIL/SKIP result
+8. `git checkout main && git pull origin main`
 
 **Phase 8 is the ONLY legitimate stopping point.**
 
@@ -444,3 +418,11 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
 - Invokes: `x-dev-architecture-plan` (Phase 1, conditional), `x-test-plan`, `x-lib-task-decomposer`, `x-lib-group-verifier` (fallback only), `x-git-push`, `x-review`, `x-review-pr`
 - TDD commit format follows `x-git-push` conventions (`[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]` suffixes)
 - All `{{PLACEHOLDER}}` tokens (e.g. `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
+
+## Detailed References
+
+For in-depth guidance on the lifecycle phases, consult:
+- `.github/skills/x-dev-lifecycle/SKILL.md`
+- `.github/skills/x-dev-implement/SKILL.md`
+- `.github/skills/x-review/SKILL.md`
+- `.github/skills/x-review-pr/SKILL.md`

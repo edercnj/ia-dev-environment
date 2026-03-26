@@ -41,6 +41,7 @@ PREFIX=""
 JAR_PATH=""
 SKIP_BUILD=false
 UNINSTALL=false
+DEV_MODE=false
 
 # --- Functions ---
 
@@ -56,11 +57,13 @@ ${BOLD}OPTIONS:${NC}
     --prefix=DIR     Install to custom directory
     --jar=PATH       Use a pre-built JAR instead of building
     --skip-build     Skip Maven build (requires JAR in target/)
+    --dev            Dev mode: regenerate golden files, manifests, run all tests, build, install
     --uninstall      Remove ia-dev-env installation
     --help           Show this help message
 
 ${BOLD}EXAMPLES:${NC}
     bash install.sh                    # Install to ~/.local/
+    bash install.sh --dev              # Regen + test + build + install
     bash install.sh --system           # Install to /usr/local/
     bash install.sh --prefix=/opt      # Install to /opt/
     bash install.sh --jar=my.jar       # Use pre-built JAR
@@ -105,6 +108,9 @@ parse_args() {
                 ;;
             --skip-build)
                 SKIP_BUILD=true
+                ;;
+            --dev)
+                DEV_MODE=true
                 ;;
             --uninstall)
                 UNINSTALL=true
@@ -225,6 +231,43 @@ resolve_script_dir() {
         [[ "$source" != /* ]] && source="$dir/$source"
     done
     cd -P "$(dirname "$source")" && pwd
+}
+
+dev_regenerate() {
+    local script_dir
+    script_dir=$(resolve_script_dir)
+
+    if [ ! -f "$script_dir/pom.xml" ]; then
+        die "pom.xml not found in $script_dir. --dev requires the source tree."
+    fi
+
+    log_info "Compiling project..."
+    if ! (cd "$script_dir" && mvn compile test-compile -q); then
+        die "Compilation failed."
+    fi
+
+    log_info "Regenerating expected-artifacts.json..."
+    if ! (cd "$script_dir" && mvn exec:java \
+        -Dexec.mainClass="dev.iadev.smoke.ExpectedArtifactsGenerator" \
+        -Dexec.args="src/test/resources/smoke/expected-artifacts.json" \
+        -q); then
+        die "Manifest regeneration failed."
+    fi
+
+    log_info "Regenerating golden files..."
+    if ! (cd "$script_dir" && mvn exec:java \
+        -Dexec.mainClass="dev.iadev.golden.GoldenFileRegenerator" \
+        -Dexec.classpathScope="test" \
+        -q); then
+        die "Golden file regeneration failed."
+    fi
+
+    log_info "Running all tests..."
+    if ! (cd "$script_dir" && mvn verify -P all-tests -q); then
+        die "Tests failed."
+    fi
+
+    log_success "Dev pipeline complete: regen + tests passed"
 }
 
 build_jar() {
@@ -465,6 +508,11 @@ main() {
     resolve_dirs
     check_java
     check_maven
+
+    if [ "$DEV_MODE" = true ]; then
+        dev_regenerate
+    fi
+
     build_jar
     install_files
     ensure_path

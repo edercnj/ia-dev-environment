@@ -11,7 +11,7 @@ argument-hint: "[EPIC_FILE_PATH]"
 
 ## Global Output Policy
 
-- **Language**: English ONLY for technical output. User-facing prompts (AskUserQuestion) may use pt-BR.
+- **Language**: English ONLY for technical output. User-facing content (including prompts, summaries, and reports) may use pt-BR.
 - **Tone**: Technical, Direct, and Concise.
 - **Efficiency**: Remove all conversational fillers and greetings to save tokens.
 
@@ -81,7 +81,7 @@ Read the field mapping reference before creating issues:
    question: "Selecione o projeto Jira para criar o épico:"
    header: "Projeto Jira"
    options:
-     - label: "{PROJECT_KEY} — {PROJECT_NAME}"
+     - label: "{PROJECT_KEY} — my-java-cli"
        description: "Project key: {PROJECT_KEY}"
      (one option per project)
    ```

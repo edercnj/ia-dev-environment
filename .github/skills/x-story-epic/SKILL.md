@@ -2,13 +2,13 @@
 name: x-story-epic
 description: >
   Generate an Epic document from a system specification file. This skill reads a technical spec
-  (following the _TEMPLATE.md format) and produces an Epic file with cross-cutting business rules,
-  global quality definitions (DoR/DoD), and a complete story index with dependency declarations.
-  Use this skill whenever the user asks to create an epic, generate an epic from a spec, extract
-  business rules from a system document, decompose a specification into an epic, build a story index,
-  or any variation of "read this spec and create an epic". Also trigger when the user mentions
-  extracting cross-cutting rules, defining quality gates for a project, or building a story backlog
-  from a technical document — even if they don't use the word "epic" explicitly.
+  and produces an Epic file with cross-cutting business rules, global quality definitions
+  (DoR/DoD), and a complete story index with dependency declarations. Use this skill whenever
+  the user asks to create an epic, generate an epic from a spec, extract business rules from
+  a system document, decompose a specification into an epic, build a story index, or any
+  variation of "read this spec and create an epic". Also trigger when the user mentions
+  extracting cross-cutting rules, defining quality gates for a project, or building a story
+  backlog from a technical document — even if they don't use the word "epic" explicitly.
 ---
 
 # Create Epic from System Specification
@@ -29,10 +29,10 @@ right makes story generation and implementation planning straightforward.
 Read the following files before starting:
 
 **Template (output structure):**
-- `.claude/templates/_TEMPLATE-EPIC.md` — The exact structure to follow
+- `resources/templates/_TEMPLATE-EPIC.md` — The exact structure to follow
 
 **Decomposition philosophy (how to identify stories and rules):**
-- `.claude/skills/x-story-epic-full/references/decomposition-guide.md`
+- `.github/skills/x-story-epic-full/SKILL.md`
 
 If any template file is missing, stop and tell the user. The templates define the output structure
 and must be read fresh from disk every time (never hardcode the structure).
@@ -74,7 +74,7 @@ When the spec describes a system that follows TDD practices, extract these as cr
 
 ### Step 3: Identify Stories
 
-Read the decomposition guide (`x-story-epic-full/references/decomposition-guide.md`) for
+Read the decomposition guide (`.github/skills/x-story-epic-full/SKILL.md`) for
 the layer-by-layer approach. In summary:
 
 1. **Foundation (Layer 0):** Infrastructure stories — servers, schemas, base APIs, protocol adapters
@@ -114,11 +114,11 @@ Extract from the spec, or derive from the tech stack:
 Write the Epic following the `_TEMPLATE-EPIC.md` structure exactly:
 
 1. **Header**: Title, author, date, version, status
-2. **Section 1 — Visão Geral**: Scope derived from the spec's Overview section
-3. **Section 2 — Anexos e Referências**: Links to the input spec and related documents
-4. **Section 3 — Definições de Qualidade Globais**: DoR and DoD from Step 4
-5. **Section 4 — Regras de Negócio Transversais**: Rules table from Step 2
-6. **Section 5 — Índice de Histórias**: Story index from Step 3, with links, dependencies, and **Entrega de Valor** column (measurable business value per story)
+2. **Section 1 — Overview**: Scope derived from the spec's Overview section
+3. **Section 2 — Attachments and References**: Links to the input spec and related documents
+4. **Section 3 — Global Quality Definitions**: DoR and DoD from Step 4
+5. **Section 4 — Cross-Cutting Business Rules**: Rules table from Step 2
+6. **Section 5 — Story Index**: Story index from Step 3, with links and dependencies
 
 **Directory and file naming** (mandatory — see SD-09 in decomposition guide):
 1. Determine the epic number: scan `docs/stories/` for existing `epic-XXXX` folders and use the next available number (default `0001` if none exist). Ask the user if unsure.
@@ -163,8 +163,7 @@ multiSelect: false
 If "Sim":
 1. Ask for the Jira project key:
    ```
-   question: "Qual a chave do projeto Jira? (ex: PROJ, MYAPP, TEAM)"
-   header: "Projeto"
+   Qual a chave do projeto Jira? (ex: PROJ, MYAPP, TEAM)
    ```
 2. Discover the `cloudId` by calling `mcp__atlassian__getAccessibleAtlassianResources`.
    Use the first available site's `id` as the `cloudId`. If the call fails or returns
@@ -181,9 +180,7 @@ Call `mcp__atlassian__createJiraIssue` to create an Epic issue:
 - `summary`: the Epic title from the generated header
 - `description`: the "Visão Geral" section text
 - `contentFormat`: "markdown"
-- `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }, { "name": "epic-XXXX" }] }`
-
-Where `epic-XXXX` is the local epic ID (e.g., `epic-0012`) for bidirectional ID sync.
+- `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }] }`
 
 Capture the returned Jira issue key (e.g., "PROJ-123").
 
@@ -216,7 +213,13 @@ Report: number of rules extracted, number of stories identified, dependency stru
 ## Common Mistakes
 
 - **Missing rules**: If a validation appears in 3+ journeys, it's cross-cutting — extract it
-- **Rules too vague**: "Validar entidade" is useless. "Entidade deve estar ativa (status=ACTIVE) no cache L1/L2 → DB. Se inativa, retornar 400 ENTITY_INACTIVE" is useful
+- **Rules too vague**: "Validate entity" is useless. "Entity must be active (status=ACTIVE) in L1/L2 cache → DB. If inactive, return 400 ENTITY_INACTIVE" is useful
 - **Dependency gaps**: If Story B uses a table created by Story A, declare the dependency
 - **Circular dependencies**: If A blocks B and B blocks A, they're probably one story
 - **Story count too low**: A spec with 8 journeys typically generates 12-20 stories (infrastructure + journeys + cross-cutting). If you have fewer than 8 stories, you're probably bundling too much
+
+## Detailed References
+
+For in-depth guidance, see:
+- `.github/skills/x-story-epic/SKILL.md`
+- `.github/skills/x-story-epic-full/SKILL.md`

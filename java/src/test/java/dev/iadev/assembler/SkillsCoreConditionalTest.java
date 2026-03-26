@@ -78,6 +78,12 @@ class SkillsCoreConditionalTest {
             assertThat(skillsDir.resolve(
                     "x-test-run/SKILL.md"))
                     .exists();
+            assertThat(skillsDir.resolve(
+                    "x-jira-create-epic/SKILL.md"))
+                    .exists();
+            assertThat(skillsDir.resolve(
+                    "x-jira-create-stories/SKILL.md"))
+                    .exists();
         }
 
         @Test

@@ -31,18 +31,18 @@ coordinates the work of three focused skills, each handling one deliverable.
 Read these files before starting:
 
 **Templates (output structure) — read all three:**
-- `.claude/templates/_TEMPLATE-EPIC.md`
-- `.claude/templates/_TEMPLATE-STORY.md`
-- `.claude/templates/_TEMPLATE-IMPLEMENTATION-MAP.md`
+- `resources/templates/_TEMPLATE-EPIC.md`
+- `resources/templates/_TEMPLATE-STORY.md`
+- `resources/templates/_TEMPLATE-IMPLEMENTATION-MAP.md`
 
 **Decomposition philosophy:**
-- `references/decomposition-guide.md` (bundled with this skill)
+- `.github/skills/x-story-epic-full/SKILL.md`
 
 If any template is missing, stop and tell the user.
 
 ## Decomposition Philosophy
 
-Before generating anything, read `references/decomposition-guide.md`. It explains the
+Before generating anything, read the decomposition guide. It explains the
 layer-by-layer approach that drives the entire decomposition:
 
 - **Layer 0 (Foundation)**: Infrastructure — servers, schemas, APIs, protocol adapters
@@ -63,10 +63,10 @@ The guide also covers:
 
 1. Ask the user which spec file to process (or use the one they provided)
 2. Read the entire spec file
-3. Read `references/decomposition-guide.md`
+3. Read the decomposition guide
 4. Analyze the spec:
    - Identify cross-cutting rules (rules that span multiple journeys)
-   - Identify stories by layer (foundation → core → extensions → compositions → cross-cutting)
+   - Identify stories by layer (foundation -> core -> extensions -> compositions -> cross-cutting)
    - Map dependencies between stories
    - Compute phases from the dependency DAG
    - Identify the critical path
@@ -83,49 +83,47 @@ Phase B silently — do not warn the user.
 
 #### A.5.2: Ask the User
 
-Use the `AskUserQuestion` tool:
+Present the user with three options via a text prompt in chat:
 
 ```
-question: "Deseja criar o épico e as histórias no Jira?"
-header: "Jira"
-options:
-  - label: "Sim, criar tudo no Jira"
-    description: "Criar o épico e TODAS as histórias como issues no Jira automaticamente via MCP"
-  - label: "Apenas o épico no Jira"
-    description: "Criar somente o épico no Jira. As histórias serão apenas markdown"
-  - label: "Não, apenas markdown"
-    description: "Gerar apenas os arquivos markdown sem integração com Jira"
-multiSelect: false
+Deseja criar o épico e as histórias no Jira?
+
+1. Sim, criar tudo no Jira — Criar o épico e TODAS as histórias como issues no Jira automaticamente via MCP
+2. Apenas o épico no Jira — Criar somente o épico no Jira. As histórias serão apenas markdown
+3. Não, apenas markdown — Gerar apenas os arquivos markdown sem integração com Jira
+
+Responda com o número da opção (1, 2 ou 3):
 ```
+
+Wait for the user's response in the next chat turn.
 
 #### A.5.3: Build jiraContext
 
 Based on user selection:
 
-- **"Sim, criar tudo no Jira"**:
-  1. Ask for the Jira project key using AskUserQuestion:
+- **Option 1 — "Sim, criar tudo no Jira"**:
+  1. Ask for the Jira project key via text prompt:
      ```
-     question: "Qual a chave do projeto Jira? (ex: PROJ, MYAPP, TEAM)"
-     header: "Projeto"
+     Qual a chave do projeto Jira? (ex: PROJ, MYAPP, TEAM)
      ```
   2. Discover the `cloudId` by calling `mcp__atlassian__getAccessibleAtlassianResources`.
      Use the first available site's `id` as the `cloudId`. If the call fails or returns
      no sites, warn the user and set `jiraContext = { enabled: false }`.
   3. Set `jiraContext = { enabled: true, cascadeToStories: true, projectKey: "<key>", cloudId: "<cloudId>" }`
 
-- **"Apenas o épico no Jira"**:
-  1. Ask for the Jira project key (same as above)
+- **Option 2 — "Apenas o épico no Jira"**:
+  1. Ask for the Jira project key (same prompt as above)
   2. Discover the `cloudId` (same as above)
   3. Set `jiraContext = { enabled: true, cascadeToStories: false, projectKey: "<key>", cloudId: "<cloudId>" }`
 
-- **"Não, apenas markdown"**:
+- **Option 3 — "Não, apenas markdown"**:
   1. Set `jiraContext = { enabled: false }`
 
 The `jiraContext` is passed to all subsequent phases and used to control Jira issue creation.
 
 ### Phase B: Generate the Epic
 
-Follow the instructions in `.claude/skills/x-story-epic/SKILL.md`:
+Follow the instructions in `.github/skills/x-story-epic/SKILL.md`:
 
 - Determine the epic number (scan `docs/stories/` for existing `epic-XXXX` folders, use next available; default `0001`)
 - Create directory `docs/stories/epic-XXXX/`
@@ -144,7 +142,7 @@ After generating the Epic markdown file:
    - `summary`: The Epic title (from the generated header)
    - `description`: The "Visão Geral" section text
    - `contentFormat`: "markdown"
-   - `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }, { "name": "epic-XXXX" }] }` (where `epic-XXXX` is the local ID for bidirectional sync)
+   - `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }] }`
 2. Capture the returned Jira issue key (e.g., "PROJ-123")
 3. Update `jiraContext.epicIssueKey` with the returned key
 4. Replace `<CHAVE-JIRA>` in the generated Epic markdown with the actual Jira key
@@ -157,18 +155,16 @@ If `jiraContext.enabled == false`: replace `<CHAVE-JIRA>` with `—` in the Epic
 
 ### Phase C: Generate the Stories
 
-Follow the instructions in `.claude/skills/x-story-create/SKILL.md`:
+Follow the instructions in `.github/skills/x-story-create/SKILL.md`:
 
 For each story in the Epic's index:
 - Dependencies (Blocked By / Blocks) — must be symmetric
 - Applicable rules (reference Epic rules by ID)
 - User story description + technical context
-- **Entrega de Valor (Section 3.5)** — measurable business value from the business perspective
-  (NOT technical tasks — see x-story-create Section 3.5 rules for FORBIDDEN/REQUIRED patterns)
 - Data contracts (precise: field names, types, formats, derivation rules)
 - Mermaid sequence diagrams (real component names from the spec)
 - Gherkin acceptance criteria with mandatory categories (degenerate case, happy path, error paths, boundary values) ordered by Transformation Priority Premise (simplest degenerate → complex edge cases)
-- Sub-tasks tagged `[Dev]`, `[Test]`, `[Doc]` — MUST include at least one `[Test] Smoke/E2E` sub-task
+- Sub-tasks tagged `[Dev]`, `[Test]`, `[Doc]`
 
 Generate files as `docs/stories/epic-XXXX/story-XXXX-YYYY.md` following `_TEMPLATE-STORY.md`.
 
@@ -183,18 +179,18 @@ Pass `jiraContext` to the story generation logic. For each generated story:
    - `description`: The user story text from Section 3 (the "Como **Persona**..." paragraph)
    - `contentFormat`: "markdown"
    - `parent`: `jiraContext.epicIssueKey` (links the story to the parent epic) — include only if `jiraContext.epicIssueKey` is present; omit entirely when absent
-   - `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }, { "name": "story-XXXX-YYYY" }] }` (where `story-XXXX-YYYY` is the local story ID for bidirectional sync)
+   - `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }] }`
 2. Replace `<CHAVE-JIRA>` in the story markdown with the returned Jira key
 3. If creation fails for a story: warn, set `<CHAVE-JIRA>` to `—`, continue with remaining stories
 
 If `jiraContext.cascadeToStories == false` or `jiraContext.enabled == false`:
 replace `<CHAVE-JIRA>` with `—` in all story markdowns.
 
-No additional `AskUserQuestion` is needed — the cascade decision was already made in Phase A.5.
+No additional user prompting is needed — the cascade decision was already made in Phase A.5.
 
 ### Phase D: Generate the Implementation Map
 
-Follow the instructions in `.claude/skills/x-story-map/SKILL.md`:
+Follow the instructions in `.github/skills/x-story-map/SKILL.md`:
 
 - Dependency matrix (all stories, validated for consistency)
 - Phase diagram (ASCII box-drawing)
@@ -210,8 +206,8 @@ If Jira keys are available (from Phase C), include them in the dependency matrix
 
 ### Phase D.5: Jira Dependency Linking (if applicable)
 
-If `jiraContext.enabled == true` and `jiraContext.cascadeToStories == true`, and all
-stories have Jira keys:
+If `jiraContext.enabled == true` and `jiraContext.cascadeToStories == true`, and stories
+have Jira keys:
 
 1. For each story, read its "Blocked By" list
 2. For each blocker that has a Jira key, call `mcp__atlassian__createIssueLink`:
@@ -243,21 +239,6 @@ If Jira integration was active, also report:
 - Dependency links created: K
 - Failures: list any failed items
 
-### Quality Validation (before completing Phase E)
-
-Before reporting, validate that all generated artifacts meet these quality gates:
-
-- [ ] Every story has a "Entrega de Valor" section (Section 3.5) with measurable business value
-- [ ] Every story has at least one smoke/automated test sub-task `[Test] Smoke/E2E` in Section 8
-- [ ] Every story DoD Local includes automated test requirement
-- [ ] Stories are decomposed around business value, not technical layers (SD-10 compliance)
-- [ ] Story template includes `**Status:** Pendente` field in the header
-- [ ] "Entrega de Valor" column is populated in the Epic Index (Section 5)
-- [ ] Epic labels in Jira include local ID (e.g., `epic-XXXX`) for bidirectional sync
-- [ ] Story labels in Jira include local ID (e.g., `story-XXXX-YYYY`) for bidirectional sync
-
-If any story fails validation, fix it before saving. Do not skip validation.
-
 ## Language Rules
 
 - All generated content must be in **Brazilian Portuguese (pt-BR)**
@@ -272,7 +253,7 @@ Before delivering, verify:
 
 - [ ] Every rule in the Epic is referenced by at least one story
 - [ ] Every story references at least one rule (except infrastructure stories)
-- [ ] Dependencies are symmetric (A blocks B ↔ B blocked by A)
+- [ ] Dependencies are symmetric (A blocks B <-> B blocked by A)
 - [ ] No circular dependencies
 - [ ] Phase computation is correct (stories only enter phase when ALL deps are in earlier phases)
 - [ ] Critical path is the actual longest chain (not just the deepest phase)
@@ -282,3 +263,9 @@ Before delivering, verify:
 - [ ] Boundary values use triplet pattern (at-min, at-max, past-max)
 - [ ] Implementation map observations are specific, not generic
 - [ ] All files follow their respective templates exactly
+
+## Detailed References
+
+For in-depth guidance, see:
+- `.github/skills/x-story-epic-full/SKILL.md`
+- `.github/skills/x-story-epic-full/SKILL.md`

@@ -30,13 +30,13 @@ of work — precise, testable, and complete.
 Read the following files before starting:
 
 **Template (output structure):**
-- `.claude/templates/_TEMPLATE-STORY.md` — The exact structure to follow
+- `resources/templates/_TEMPLATE-STORY.md` — The exact structure to follow
 
 **Decomposition philosophy (sizing and boundary heuristics):**
-- `.claude/skills/x-story-epic-full/references/decomposition-guide.md`
+- `.github/skills/x-story-epic-full/SKILL.md`
 
 **Gherkin completeness requirements:**
-- `.claude/skills/story-planning/references/story-decomposition.md` — Rule 13, section SD-02 (mandatory scenario categories and TPP ordering)
+- `.github/skills/story-planning/SKILL.md` — Rule 13, section SD-02 (mandatory scenario categories and TPP ordering)
 
 **Required inputs from the user:**
 - The system specification file (original spec)
@@ -59,7 +59,7 @@ mappings, state machines, error codes, metrics.
 For each story in the Epic's index, create a file following `_TEMPLATE-STORY.md`. Process
 stories in dependency order (foundations first, then core, then extensions).
 
-#### Section 1 — Dependências
+#### Section 1 — Dependencies
 
 | Blocked By | Blocks |
 | :--- | :--- |
@@ -68,12 +68,12 @@ stories in dependency order (foundations first, then core, then extensions).
 Must be consistent with the Epic's index. Cross-check: if story-0001-0003 lists story-0001-0002 as
 blocker, then story-0001-0002 must list story-0001-0003 in its Blocks column.
 
-#### Section 2 — Regras Transversais Aplicáveis
+#### Section 2 — Applicable Cross-Cutting Rules
 
 Reference only the rules from the Epic that impact this specific story. Don't list rules
 that are irrelevant to this story's scope.
 
-#### Section 3 — Descrição
+#### Section 3 — Description
 
 Start with user story format: "Como **<Persona>**, eu quero <capability>, garantindo que <outcome>."
 
@@ -85,36 +85,17 @@ Add numbered subsections (3.1, 3.2, ...) for each distinct technical requirement
 protocol details, framing formats, concurrency requirements, timeout values — everything a
 developer needs.
 
-#### Section 3.5 — Entrega de Valor
+#### Section 4 — Local Quality Definitions
 
-Every story MUST articulate measurable business value. This is the most important section
-for stakeholder communication. It answers: "What does the business gain when this story is done?"
+**Local DoR**: Specific preconditions for this story. Use checkboxes `- [ ]`.
+Examples: "TCP port defined", "Table X schema created", "Decision on Y made".
 
-**Structure:**
-- **Valor Principal:** A single sentence — the measurable business outcome
-- **Métrica de Sucesso:** How to verify value was delivered (quantitative when possible)
-- **Impacto no Negócio:** Direct impact on users/stakeholders
+**Local DoD**: Specific acceptance criteria for this story. Use checkboxes.
+Examples: "TCP server accepting connections", "Handler X functional", "Load test validated".
 
-**RULES (Non-Negotiable):**
-- Value MUST be from the business/user perspective, NOT technical
-- FORBIDDEN: "Migrar classes A, B, C para Java" (technical task, no business value)
-- CORRECT: "Endpoint de pagamento com crédito disponível em Java, permitindo desligamento do serviço legado .NET"
-- FORBIDDEN: "Implementar repositório de dados" (infrastructure detail)
-- CORRECT: "Persistência de transações garantida com integridade referencial, habilitando auditoria"
-- Layer 0 (Foundation) stories express enablement value: "Infraestrutura de banco pronta, desbloqueando N histórias de domínio"
-- Layer 4 (Cross-cutting) stories express risk reduction: "Cobertura de testes ≥ 95%, reduzindo risco de regressão em deploys futuros"
+**Global DoD**: Copy from the Epic verbatim. This is for quick reference during code review.
 
-#### Section 4 — Definições de Qualidade Locais
-
-**DoR Local**: Specific preconditions for this story. Use checkboxes `- [ ]`.
-Examples: "Porta TCP definida", "Schema da tabela X criado", "Decisão sobre Y tomada".
-
-**DoD Local**: Specific acceptance criteria for this story. Use checkboxes.
-Examples: "Servidor TCP aceitando conexões", "Handler X funcional", "Teste de carga validado".
-
-**DoD Global**: Copy from the Epic verbatim. This is for quick reference during code review.
-
-#### Section 5 — Contratos de Dados (Data Contract)
+#### Section 5 — Data Contracts
 
 This is the most critical section. Data contracts must be copy-paste precise.
 
@@ -136,7 +117,7 @@ For REST-based stories, use:
 - M/O flags must reflect the actual contract, not guesses
 - Derivation rules must explain exactly how values are computed
 
-#### Section 6 — Diagramas
+#### Section 6 — Diagrams
 
 Create Mermaid sequence diagrams showing the complete flow for this story's main operation.
 Use the actual component names from the spec (not generic "Service A", "Service B").
@@ -214,7 +195,7 @@ Participant naming rules:
 - [ ] Async operations (if any) are distinguished from sync calls
 - [ ] Response construction path is complete (from domain result back to client)
 
-#### Section 7 — Critérios de Aceite (Gherkin)
+#### Section 7 — Acceptance Criteria (Gherkin)
 
 Write Gherkin scenarios in Portuguese (DADO/QUANDO/ENTÃO/E/MAS).
 
@@ -242,7 +223,7 @@ If the story has no naturally bounded inputs, boundary scenarios may be omitted 
 - Avoid overlapping scenarios — each tests a distinct behavior
 - Include field-level assertions ("o campo DE 39 deve ser '00'")
 
-#### Section 8 — Sub-tarefas
+#### Section 8 — Sub-tasks
 
 Break the story into granular tasks, each estimable at 2-4 hours:
 
@@ -251,12 +232,6 @@ Break the story into granular tasks, each estimable at 2-4 hours:
 - `[Doc]` — Documentation tasks (diagrams, wiki, API docs)
 
 Use checkboxes `- [ ]` for tracking.
-
-**Mandatory test sub-task:** Every story MUST include at least one of these:
-- `[Test] Smoke/E2E: <teste automatizado validando critério de aceite principal de ponta a ponta>`
-- `[Test] Integração: <teste de integração validando fluxo completo>`
-
-A story without ANY automated end-to-end validation sub-task is INCOMPLETE and must not be saved.
 
 ### Step 2.X: Optional Jira Integration (per story)
 
@@ -277,10 +252,10 @@ For each story (no additional user prompting needed):
    - `description`: the user story text from Section 3 (the "Como **Persona**..." paragraph)
    - `contentFormat`: "markdown"
    - `parent` (optional): `jiraContext.epicIssueKey` — include only if `jiraContext.epicIssueKey` is present; omit entirely when absent (e.g., epic creation failed in Phase B) to avoid MCP errors and maintain non-blocking behavior
-   - `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }, { "name": "story-XXXX-YYYY" }] }` (where `story-XXXX-YYYY` is the local story ID for bidirectional sync)
+   - `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }] }`
 2. Capture the returned Jira issue key
 3. Replace `<CHAVE-JIRA>` in the story markdown with the actual key
-4. Store the mapping `{ storyId → jiraKey }` for later dependency linking
+4. Store the mapping `{ storyId -> jiraKey }` for later dependency linking
 
 If creation fails for a story: log a warning, set `<CHAVE-JIRA>` to `—`, continue
 with remaining stories.
@@ -292,27 +267,30 @@ If no `jiraContext` was provided (skill invoked directly, not via orchestrator):
 1. Check if `mcp__atlassian__createJiraIssue` is available. If not available, skip Jira
    integration entirely — replace all `<CHAVE-JIRA>` with `—`.
 
-2. Use `AskUserQuestion`:
+2. Present the user with a text prompt in chat:
    ```
-   question: "Deseja criar as histórias no Jira?"
-   header: "Jira"
-   options:
-     - label: "Sim, criar no Jira"
-       description: "Criar cada história como issue no Jira via MCP"
-     - label: "Não, apenas markdown"
-       description: "Gerar apenas os arquivos markdown sem integração com Jira"
-   multiSelect: false
+   Deseja criar as histórias no Jira?
+
+   1. Sim, criar no Jira — Criar cada história como issue no Jira via MCP
+   2. Não, apenas markdown — Gerar apenas os arquivos markdown sem integração com Jira
+
+   Responda com o número da opção (1 ou 2):
    ```
 
-3. If "Sim":
-   a. Ask for the Jira project key
+   Wait for the user's response in the next chat turn.
+
+3. If "1" (Sim):
+   a. Ask for the Jira project key via text prompt:
+      ```
+      Qual a chave do projeto Jira? (ex: PROJ, MYAPP, TEAM)
+      ```
    b. Discover the `cloudId` by calling `mcp__atlassian__getAccessibleAtlassianResources`.
       Use the first available site's `id` as the `cloudId`. If the call fails or returns
       no sites, warn the user and skip Jira integration (replace all `<CHAVE-JIRA>` with `—`).
-   c. Ask if there is a parent epic in Jira:
+   c. Ask if there is a parent epic in Jira via text prompt:
       ```
-      question: "Existe um épico pai no Jira para vincular as histórias? Se sim, informe a chave (ex: PROJ-123). Caso não exista, deixe em branco ou responda 'Não'."
-      header: "Epic Link"
+      Existe um épico pai no Jira para vincular as histórias?
+      Se sim, informe a chave (ex: PROJ-123). Caso não exista, responda "Não".
       ```
       If the user informs a non-empty value different from "Não", use it as the `parent`.
       If the answer is empty or "Não", create the stories without a parent link.
@@ -324,9 +302,9 @@ If no `jiraContext` was provided (skill invoked directly, not via orchestrator):
       - `description`: the user story text from Section 3
       - `contentFormat`: "markdown"
       - `parent` (optional): the epic key from step c, if provided
-      - `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }, { "name": "story-XXXX-YYYY" }] }` (where `story-XXXX-YYYY` is the local story ID for bidirectional sync)
+      - `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }] }`
 
-4. If "Não": replace all `<CHAVE-JIRA>` with `—` and continue
+4. If "2" (Não): replace all `<CHAVE-JIRA>` with `—` and continue
 
 #### Jira Dependency Linking (second pass)
 
@@ -357,7 +335,7 @@ If Jira integration was active, also report:
 ## Language Rules
 
 - All generated content must be in **Brazilian Portuguese (pt-BR)**
-- Technical terms in English: cache, timeout, handler, endpoint, state machine, request, response
+- Technical terms in English stay in English: cache, timeout, handler, endpoint, state machine, request, response
 - Code identifiers and field names stay in English
 - Gherkin keywords in Portuguese: `Cenario`, `DADO`, `QUANDO`, `ENTÃO`, `E`, `MAS`
 - Story IDs: `story-XXXX-YYYY` (composite format: epic number + story sequence)
@@ -382,7 +360,7 @@ If Jira integration was active, also report:
 
 ## Common Mistakes
 
-- **Vague data contracts**: "Enviar dados do cartão" is useless. The contract must list every field with type, format, and mandatory flag
+- **Vague data contracts**: "Send card data" is useless. The contract must list every field with type, format, and mandatory flag
 - **Abstract Gherkin**: "DADO que o sistema está funcionando" tests nothing. Use concrete preconditions
 - **Missing error scenarios**: Every story should have at least 2 error Gherkin scenarios
 - **Inconsistent dependencies**: If story-0001-0003 says "Blocked By: story-0001-0002" but story-0001-0002 doesn't list story-0001-0003 in Blocks, there's a bug
@@ -391,3 +369,9 @@ If Jira integration was active, also report:
 - **Boundary values without triplet**: A single "big number" test is insufficient. Use the triplet pattern: at-min, at-max, past-max
 - **Happy-path-first ordering**: Degenerate cases must appear before happy paths (TPP ordering). Reorder if needed
 - **Under-counting scenarios**: The minimum is 4 scenarios per story. If you only have happy + 1 error, add degenerate and boundary scenarios
+
+## Detailed References
+
+For in-depth guidance, see:
+- `.github/skills/x-story-create/SKILL.md`
+- `.github/skills/x-story-epic-full/SKILL.md`
