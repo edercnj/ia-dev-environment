@@ -13,12 +13,14 @@ import java.util.Map;
 
 /**
  * Coordinator that assembles CI/CD pipeline artifacts by
- * delegating to five specialized sub-assemblers.
+ * delegating to six specialized sub-assemblers.
  *
  * <p>This is the twenty-third assembler in the pipeline
  * (position 21 of 23 per RULE-005). It delegates to:
  * <ol>
  *   <li>{@link CiWorkflowAssembler} — always generated</li>
+ *   <li>{@link CdWorkflowAssembler} — release always,
+ *       deploy/rollback conditional on container</li>
  *   <li>{@link DockerfileAssembler} — conditional on
  *       {@code container == "docker"}</li>
  *   <li>{@link DockerComposeAssembler} — conditional on
@@ -69,6 +71,7 @@ public final class CicdAssembler implements Assembler {
 
     private final Path resourcesDir;
     private final CiWorkflowAssembler ciWorkflow;
+    private final CdWorkflowAssembler cdWorkflow;
     private final DockerfileAssembler dockerfile;
     private final DockerComposeAssembler dockerCompose;
     private final K8sManifestAssembler k8sManifest;
@@ -90,6 +93,7 @@ public final class CicdAssembler implements Assembler {
     public CicdAssembler(Path resourcesDir) {
         this.resourcesDir = resourcesDir;
         this.ciWorkflow = new CiWorkflowAssembler();
+        this.cdWorkflow = new CdWorkflowAssembler();
         this.dockerfile = new DockerfileAssembler();
         this.dockerCompose = new DockerComposeAssembler();
         this.k8sManifest = new K8sManifestAssembler();
@@ -99,7 +103,7 @@ public final class CicdAssembler implements Assembler {
     /**
      * {@inheritDoc}
      *
-     * <p>Builds a stack context, then delegates to five
+     * <p>Builds a stack context, then delegates to six
      * specialized sub-assemblers. Returns the merged list
      * of generated file paths.</p>
      */
@@ -120,6 +124,7 @@ public final class CicdAssembler implements Assembler {
 
         CicdResult result = CicdResult.merge(List.of(
                 ciWorkflow.assemble(cicdCtx),
+                cdWorkflow.assemble(cicdCtx),
                 dockerfile.assemble(cicdCtx),
                 dockerCompose.assemble(cicdCtx),
                 k8sManifest.assemble(cicdCtx),
@@ -217,6 +222,8 @@ public final class CicdAssembler implements Assembler {
         ctx.put("docker_base_image", resolvedImage);
         ctx.put("container",
                 config.infrastructure().container());
+        ctx.put("native_build",
+                config.framework().nativeBuild());
     }
 
     private static Map<String, Object> mergeContexts(
