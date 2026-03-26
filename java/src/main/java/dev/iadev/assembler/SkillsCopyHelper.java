@@ -178,7 +178,37 @@ final class SkillsCopyHelper {
                 continue;
             }
             Path target = dest.resolve(name);
+            if (Files.isDirectory(entry)) {
+                if (Files.exists(target)) {
+                    mergeDirectory(entry, target);
+                } else {
+                    CopyHelpers.copyDirectory(
+                            entry, target);
+                }
+            } else if (!Files.exists(target)) {
+                CopyHelpers.copyStaticFile(entry, target);
+            }
+        }
+    }
+
+    /**
+     * Merges source directory contents into an existing
+     * target directory without overwriting existing files.
+     *
+     * @param src  the source directory
+     * @param dest the existing target directory
+     */
+    private static void mergeDirectory(
+            Path src, Path dest) {
+        List<Path> entries = listEntriesSorted(src);
+        for (Path entry : entries) {
+            Path target = dest.resolve(
+                    entry.getFileName().toString());
             if (Files.exists(target)) {
+                if (Files.isDirectory(entry)
+                        && Files.isDirectory(target)) {
+                    mergeDirectory(entry, target);
+                }
                 continue;
             }
             if (Files.isDirectory(entry)) {
