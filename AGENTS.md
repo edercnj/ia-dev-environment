@@ -1,22 +1,29 @@
 
-# my-java-cli
+# ia-dev-environment
 
-Describe your CLI tool purpose here
+Java 21-based CLI tool that generates AI development environment configurations (Claude Code, GitHub Copilot, OpenAI Codex) from project profiles.
 
 ## Architecture
 
-- **Style:** library
+- **Style:** CLI generator (picocli commands → assemblers → template engine → file output)
 - **Language:** java 21
 - **Framework:** picocli 4.7
 
-### Dependency Direction
-
-Dependencies point inward toward the domain. Domain NEVER imports adapter or framework code.
+### Package Structure
 
 ```
-adapter.inbound → application → domain ← adapter.outbound
-                                  ↑
-                           (ports/interfaces)
+dev.iadev/
+├── cli/           # Picocli command definitions (entry points)
+├── assembler/     # Pipeline assemblers (orchestrate generation)
+├── config/        # Configuration loading and profile resolution
+├── domain/        # Core domain logic and rules
+├── model/         # Data models and DTOs
+├── template/      # Template engine and rendering
+├── checkpoint/    # Generation checkpoint/resume support
+├── progress/      # Progress reporting
+├── smoke/         # Smoke test infrastructure
+├── exception/     # Custom exceptions
+└── util/          # Shared utilities
 ```
 
 ## Tech Stack
@@ -32,10 +39,10 @@ adapter.inbound → application → domain ← adapter.outbound
 
 | Command | Script |
 |---------|--------|
-| Build | `./mvnw package -DskipTests` |
-| Test | `./mvnw verify` |
-| Compile | `./mvnw compile -q` |
-| Coverage | `./mvnw verify jacoco:report` |
+| Build | `cd java && mvn package -DskipTests` |
+| Test | `cd java && mvn verify` |
+| Compile | `cd java && mvn compile -q` |
+| Coverage | `cd java && mvn verify jacoco:report` |
 
 ## Coding Standards
 
@@ -84,7 +91,7 @@ adapter.inbound → application → domain ← adapter.outbound
 - **Red-Green-Refactor** is mandatory for all production code
 - Refactoring criteria: extract method when > 25 lines, eliminate duplication, improve naming
 - Refactoring NEVER adds behavior
-- Full TDD reference: `skills/testing/SKILL.md`
+- Full TDD reference: `.claude/skills/testing/SKILL.md`
 
 ### Language-Specific
 
@@ -183,7 +190,7 @@ Document business rules with unique identifiers (e.g., BR-001) for traceability.
 | infrastructure | Infrastructure patterns: Docker multi-stage builds, Kubernetes manifests (cloud-agnostic), security context, 12-Factor App principles, graceful shutdown, resource management, and cloud-native design. |
 | layer-templates | Reference code templates for each hexagonal architecture layer. Provides consistent patterns for domain model, ports, DTOs, mappers, entities, repositories, use cases, REST resources, exception mappers, migrations, and configuration. Uses {{LANGUAGE}}, {{FRAMEWORK}} placeholders. |
 | observability | Observability principles: distributed tracing (span trees, mandatory attributes), metrics naming conventions, structured logging with mandatory fields, health checks (liveness/readiness/startup), correlation IDs, and OpenTelemetry integration. |
-| patterns |  |
+| patterns | Architecture and design patterns reference: CQRS, event sourcing, hexagonal architecture, modular monolith, repository pattern, cache-aside, event store, and unit of work. Used by agents to choose consistent structures and idioms across the codebase. |
 | protocols | Protocol conventions: REST (OpenAPI 3.1), gRPC (Proto3), GraphQL, WebSocket, and event-driven messaging. URL structure, versioning, error handling per protocol, schema design, and integration patterns. |
 | resilience | Resilience patterns: circuit breaker, rate limiting, bulkhead isolation, timeout control, retry with exponential backoff + jitter, fallback/graceful degradation, backpressure, and resilience metrics. |
 | run-e2e | Skill: End-to-End Tests — Runs integration tests that validate the complete flow from request through all application layers to response, using a real database. |
