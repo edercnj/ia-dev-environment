@@ -24,7 +24,6 @@ Provides production-grade Dockerfile patterns for my-java-cli using java 21. Cov
 ## Knowledge Pack References
 
 Before building, read the relevant conventions:
-- `.github/skills/dockerfile/SKILL.md` -- Multi-stage builds, security hardening, .dockerignore, layer optimization, health checks, OCI labels
 - `.github/skills/infrastructure/SKILL.md` -- Infrastructure principles, container security, 12-Factor App
 - `.github/skills/security/SKILL.md` -- Security hardening and vulnerability scanning
 
@@ -119,6 +118,5 @@ Before building, read the relevant conventions:
 ## Detailed References
 
 For in-depth guidance on Dockerfile patterns, consult:
-- `.github/skills/dockerfile/SKILL.md`
 - `.github/skills/infrastructure/SKILL.md`
 - `.github/skills/security/SKILL.md`

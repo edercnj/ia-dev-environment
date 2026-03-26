@@ -28,7 +28,7 @@ class EpicReportAssemblerTest {
                     + "> Branch: `{{BRANCH}}`\n"
                     + "> Started: {{STARTED_AT}}"
                     + " | Finished: {{FINISHED_AT}}\n\n"
-                    + "## Sumario Executivo\n\n"
+                    + "## Sumário Executivo\n\n"
                     + "| Metric | Value |\n"
                     + "|--------|-------|\n"
                     + "| Stories Completed"
@@ -41,7 +41,7 @@ class EpicReportAssemblerTest {
                     + " | {{STORIES_TOTAL}} |\n"
                     + "| Completion"
                     + " | {{COMPLETION_PERCENTAGE}} |\n\n"
-                    + "## Timeline de Execucao\n\n"
+                    + "## Timeline de Execução\n\n"
                     + "{{PHASE_TIMELINE_TABLE}}\n\n"
                     + "## Status Final por Story\n\n"
                     + "{{STORY_STATUS_TABLE}}\n\n"
@@ -58,7 +58,7 @@ class EpicReportAssemblerTest {
                     + " | {{COVERAGE_DELTA}} |\n\n"
                     + "## Commits e SHAs\n\n"
                     + "{{COMMIT_LOG}}\n\n"
-                    + "## Issues Nao Resolvidos\n\n"
+                    + "## Issues Não Resolvidos\n\n"
                     + "{{UNRESOLVED_ISSUES}}\n\n"
                     + "## PR Link\n\n"
                     + "{{PR_LINK}}\n";
@@ -208,7 +208,7 @@ class EpicReportAssemblerTest {
                     templateDir.resolve(
                             "_TEMPLATE-EPIC-EXECUTION"
                                     + "-REPORT.md"),
-                    "# Incomplete\n\n## Sumario Executivo",
+                    "# Incomplete\n\n## Sumário Executivo",
                     StandardCharsets.UTF_8);
 
             Path outputDir = tempDir.resolve("output");

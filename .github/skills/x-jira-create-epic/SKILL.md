@@ -11,7 +11,7 @@ argument-hint: "[EPIC_FILE_PATH]"
 
 ## Global Output Policy
 
-- **Language**: English ONLY.
+- **Language**: English ONLY for technical output. User-facing prompts (AskUserQuestion) may use pt-BR.
 - **Tone**: Technical, Direct, and Concise.
 - **Efficiency**: Remove all conversational fillers and greetings to save tokens.
 

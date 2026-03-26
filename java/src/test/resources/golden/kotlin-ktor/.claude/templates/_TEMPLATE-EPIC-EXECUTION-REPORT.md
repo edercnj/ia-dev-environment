@@ -3,7 +3,7 @@
 > Branch: `{{BRANCH}}`
 > Started: {{STARTED_AT}} | Finished: {{FINISHED_AT}}
 
-## Sumario Executivo
+## Sumário Executivo
 
 | Metric | Value |
 |--------|-------|
@@ -13,7 +13,7 @@
 | Stories Total | {{STORIES_TOTAL}} |
 | Completion | {{COMPLETION_PERCENTAGE}} |
 
-## Timeline de Execucao
+## Timeline de Execução
 
 {{PHASE_TIMELINE_TABLE}}
 
@@ -35,7 +35,7 @@
 
 {{COMMIT_LOG}}
 
-## Issues Nao Resolvidos
+## Issues Não Resolvidos
 
 {{UNRESOLVED_ISSUES}}
 
