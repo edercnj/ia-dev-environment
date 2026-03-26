@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Factory that instantiates the 25 assemblers in the
+ * Factory that instantiates the 26 assemblers in the
  * fixed order defined by RULE-005.
  *
  * <p>Extracted from {@link AssemblerPipeline} to keep
@@ -20,7 +20,7 @@ public final class AssemblerFactory {
     }
 
     /**
-     * Builds the ordered list of 25 assemblers per RULE-005.
+     * Builds the ordered list of 26 assemblers per RULE-005.
      *
      * <p>Delegates to group builders by category:
      * core, github, docs, codex, cicd, and readme.</p>
@@ -110,7 +110,10 @@ public final class AssemblerFactory {
                         new GrpcDocsAssembler()),
                 desc("RunbookAssembler",
                         AssemblerTarget.ROOT,
-                        new RunbookAssembler()));
+                        new RunbookAssembler()),
+                desc("IncidentTemplatesAssembler",
+                        AssemblerTarget.ROOT,
+                        new IncidentTemplatesAssembler()));
     }
 
     private static List<AssemblerDescriptor>
