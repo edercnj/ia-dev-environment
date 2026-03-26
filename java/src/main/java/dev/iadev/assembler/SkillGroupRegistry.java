@@ -53,7 +53,8 @@ public final class SkillGroupRegistry {
                 "x-dev-arch-update",
                 "layer-templates",
                 "x-dev-adr-automation",
-                "x-mcp-recommend"));
+                "x-mcp-recommend",
+                "x-setup-dev-environment"));
         SKILL_GROUPS.put("review", List.of(
                 "x-review", "x-review-api", "x-review-pr",
                 "x-review-grpc", "x-review-events",
