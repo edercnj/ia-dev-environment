@@ -189,3 +189,188 @@ Write report to `docs/audits/dependency-audit-YYYY-MM-DD.md`:
 | Audit command fails | Report error, continue with other dimensions |
 | No dependencies found | Report "No dependencies found" |
 | Offline mode | Skip vulnerability check, proceed with outdated and license |
+
+## SBOM Generation
+
+Generate a CycloneDX JSON Software Bill of Materials listing all direct and transitive dependencies.
+
+### Trigger
+
+- `/x-dependency-audit --scope sbom` -- generate SBOM only
+
+### SBOM Workflow
+
+```
+1. DETECT     -> Identify build tool (reuse Step 1)
+2. GENERATE   -> Run CycloneDX generation command
+3. VALIDATE   -> Verify SBOM contains required fields
+4. OUTPUT     -> Write CycloneDX JSON to docs/audits/sbom-YYYY-MM-DD.json
+```
+
+### Generation Commands
+
+| Build Tool | Command |
+|-----------|---------|
+| npm | `npx @cyclonedx/cdxgen -o sbom.json` |
+| maven | `mvn org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom -DoutputFormat=json` |
+| gradle | `gradle cyclonedxBom` (cyclonedx-gradle-plugin) |
+| cargo | `cargo cyclonedx --format json` |
+| pip | `cyclonedx-py environment -o sbom.json --output-format json` |
+| poetry | `cyclonedx-py environment -o sbom.json --output-format json` |
+| go mod | `cyclonedx-gomod mod -json -output sbom.json` |
+
+### Required SBOM Fields
+
+Each component in the generated SBOM must include:
+
+```
+- name: Package name
+- version: Exact version
+- purl: Package URL (pkg:maven/group/artifact@version)
+- licenses[]: SPDX license identifier(s)
+- hashes[]: SHA-256 digest for integrity verification
+- scope: required | optional | excluded
+```
+
+### Output
+
+Write CycloneDX JSON to `docs/audits/sbom-YYYY-MM-DD.json` and generate a human-readable summary:
+
+```markdown
+# SBOM Summary — {{PROJECT_NAME}}
+
+**Date:** YYYY-MM-DD
+**Format:** CycloneDX 1.6
+**Total Components:** {count}
+
+| Type | Count |
+|------|-------|
+| Direct dependencies | N |
+| Transitive dependencies | N |
+| Dev dependencies | N |
+
+## License Distribution
+
+| License | Count | Copyleft |
+|---------|-------|----------|
+| MIT | N | No |
+| Apache-2.0 | N | No |
+| GPL-3.0 | N | Yes |
+```
+
+## License Attribution Report
+
+Generate a comprehensive license attribution report for all dependencies, highlighting copyleft licenses that may impose obligations.
+
+### Trigger
+
+- `/x-dependency-audit --scope license-report` -- generate license attribution report
+
+### License Report Workflow
+
+```
+1. DETECT     -> Identify build tool (reuse Step 1)
+2. COLLECT    -> Gather license data for all dependencies
+3. CLASSIFY   -> Categorize by license type and copyleft risk
+4. REPORT     -> Generate attribution report
+```
+
+### Output
+
+Write report to `docs/audits/license-attribution-YYYY-MM-DD.md`:
+
+```markdown
+# License Attribution Report — {{PROJECT_NAME}}
+
+**Date:** YYYY-MM-DD
+**Total Dependencies:** {count}
+
+## Summary
+
+| Category | Count | Percentage |
+|----------|-------|------------|
+| Permissive (MIT, Apache-2.0, BSD) | N | N% |
+| Weak copyleft (LGPL, MPL, EPL) | N | N% |
+| Strong copyleft (GPL, AGPL) | N | N% |
+| Unknown / Custom | N | N% |
+
+## Copyleft Dependencies (Requires Review)
+
+| Package | Version | License | Risk | Action |
+|---------|---------|---------|------|--------|
+| {name} | {version} | GPL-3.0 | HIGH | Legal review required |
+| {name} | {version} | LGPL-2.1 | MEDIUM | Check linking compatibility |
+
+## Full Attribution
+
+| Package | Version | License | URL |
+|---------|---------|---------|-----|
+| {name} | {version} | MIT | {repo_url} |
+```
+
+## Dependency Tree Visualization
+
+Generate a visual dependency tree showing transitive relationships and risk scores.
+
+### Trigger
+
+- `/x-dependency-audit --scope tree` -- generate dependency tree
+
+### Tree Workflow
+
+```
+1. DETECT     -> Identify build tool (reuse Step 1)
+2. RESOLVE    -> Build full dependency graph
+3. SCORE      -> Assign risk score to each node
+4. RENDER     -> Generate tree visualization
+```
+
+### Tree Commands
+
+| Build Tool | Command |
+|-----------|---------|
+| npm | `npm ls --all --json` |
+| maven | `mvn dependency:tree -DoutputType=text` |
+| gradle | `gradle dependencies` |
+| cargo | `cargo tree` |
+| pip | `pipdeptree --json` |
+| go mod | `go mod graph` |
+
+### Risk Scoring
+
+| Factor | Weight | Description |
+|--------|--------|-------------|
+| Known CVE | 40% | Active vulnerabilities in the dependency |
+| Depth | 20% | Distance from direct dependency (deeper = harder to update) |
+| Maintainer activity | 15% | Last update, number of maintainers |
+| License risk | 15% | Copyleft or unknown license |
+| Popularity | 10% | Download count, dependents (low = higher risk) |
+
+### Output
+
+Write tree to `docs/audits/dependency-tree-YYYY-MM-DD.md`:
+
+```markdown
+# Dependency Tree — {{PROJECT_NAME}}
+
+**Date:** YYYY-MM-DD
+**Total Nodes:** {count}
+**Max Depth:** {depth}
+
+## Risk Summary
+
+| Risk Level | Count |
+|------------|-------|
+| HIGH (score >= 7) | N |
+| MEDIUM (score 4-6) | N |
+| LOW (score < 4) | N |
+
+## Tree
+
+{package}@{version} [risk: LOW]
+├── {dep-a}@{version} [risk: LOW]
+│   ├── {transitive-1}@{version} [risk: MEDIUM]
+│   └── {transitive-2}@{version} [risk: LOW]
+└── {dep-b}@{version} [risk: HIGH]
+    └── {transitive-3}@{version} [risk: HIGH]
+```
