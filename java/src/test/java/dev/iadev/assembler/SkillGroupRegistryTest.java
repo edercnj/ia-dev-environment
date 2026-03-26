@@ -77,10 +77,10 @@ class SkillGroupRegistryTest {
         }
 
         @Test
-        @DisplayName("knowledge-packs group has 12 skills")
+        @DisplayName("knowledge-packs group has 13 skills")
         void register_whenCalled_knowledgePacksGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("knowledge-packs")).hasSize(12);
+                    .get("knowledge-packs")).hasSize(13);
         }
 
         @Test

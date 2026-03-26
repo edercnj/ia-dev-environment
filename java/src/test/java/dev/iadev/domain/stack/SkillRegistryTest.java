@@ -18,10 +18,10 @@ class SkillRegistryTest {
     class CoreKnowledgePacksTests {
 
         @Test
-        @DisplayName("contains exactly 15 entries")
-        void coreKnowledgePacks_size_fifteen() {
+        @DisplayName("contains exactly 16 entries")
+        void coreKnowledgePacks_size_sixteen() {
             assertThat(SkillRegistry.CORE_KNOWLEDGE_PACKS)
-                    .hasSize(15);
+                    .hasSize(16);
         }
 
         @Test
@@ -43,7 +43,8 @@ class SkillRegistryTest {
                             "ci-cd-patterns",
                             "sre-practices",
                             "release-management",
-                            "data-management"
+                            "data-management",
+                            "performance-engineering"
                     );
         }
 

@@ -68,6 +68,9 @@ class SkillsKpGoldenEdgeTest {
             assertThat(s.resolve(
                     "release-management/SKILL.md")).exists();
             assertThat(s.resolve(
+                    "performance-engineering/SKILL.md"))
+                    .exists();
+            assertThat(s.resolve(
                     "layer-templates/SKILL.md")).exists();
         }
 
@@ -335,6 +338,120 @@ class SkillsKpGoldenEdgeTest {
                     .doesNotContain("Matrix Builds");
             assertThat(content)
                     .doesNotContain("Test Stage");
+        }
+
+        @Test
+        @DisplayName("performance-engineering has valid"
+                + " frontmatter")
+        void assemble_perfEng_hasValidFrontmatter(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            assembler.assemble(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(), outputDir);
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "skills/performance-engineering/"
+                                    + "SKILL.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains(
+                            "name: performance-engineering")
+                    .contains("user-invocable: false");
+        }
+
+        @Test
+        @DisplayName("performance-engineering has all"
+                + " 7 sections")
+        void assemble_perfEng_allSevenSections(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            assembler.assemble(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(), outputDir);
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "skills/performance-engineering/"
+                                    + "SKILL.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains(
+                            "## Profiling Tools & Patterns");
+            assertThat(content)
+                    .contains(
+                            "## Benchmarking Frameworks");
+            assertThat(content)
+                    .contains(
+                            "## Performance Anti-Patterns");
+            assertThat(content)
+                    .contains(
+                            "## Optimization Strategies");
+            assertThat(content)
+                    .contains(
+                            "## Load Testing Patterns");
+            assertThat(content)
+                    .contains(
+                            "## Performance Regression Detection");
+            assertThat(content)
+                    .contains(
+                            "## Memory Management");
+        }
+
+        @Test
+        @DisplayName("performance-engineering reference"
+                + " files exist")
+        void assemble_perfEng_referenceFilesExist(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            assembler.assemble(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(), outputDir);
+            Path refs = outputDir.resolve(
+                    "skills/performance-engineering/"
+                            + "references");
+            assertThat(refs.resolve(
+                    "profiling-tools-matrix.md")).exists();
+            assertThat(refs.resolve(
+                    "load-testing-patterns.md")).exists();
+            assertThat(refs.resolve(
+                    "performance-metrics-guide.md"))
+                    .exists();
+        }
+
+        @Test
+        @DisplayName("performance-engineering does not"
+                + " overlap with resilience")
+        void assemble_perfEng_noOverlapWithResilience(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            assembler.assemble(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(), outputDir);
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "skills/performance-engineering/"
+                                    + "SKILL.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .doesNotContain("Circuit Breaker");
+            assertThat(content)
+                    .doesNotContain("Retry Pattern");
         }
 
         @Test
