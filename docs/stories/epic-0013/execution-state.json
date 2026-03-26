@@ -8,18 +8,18 @@
     "skipReview": false
   },
   "stories": {
-    "story-0013-0001": { "id": "story-0013-0001", "phase": 1, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
+    "story-0013-0001": { "id": "story-0013-0001", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "5018969", "findingsCount": 0, "summary": "Added PrIssueTemplateAssembler generating 4 GitHub PR/Issue templates. 27th assembler in pipeline. 2412 tests pass.", "duration": null },
     "story-0013-0002": { "id": "story-0013-0002", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "68b3e714225766cd547c268168150066a16da935", "findingsCount": 0, "summary": "Added ci-cd-patterns knowledge pack with SKILL.md template, 3 reference files, registered in SkillRegistry. 2339 tests pass.", "duration": null },
-    "story-0013-0003": { "id": "story-0013-0003", "phase": 1, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
-    "story-0013-0006": { "id": "story-0013-0006", "phase": 1, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
-    "story-0013-0008": { "id": "story-0013-0008", "phase": 1, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
-    "story-0013-0012": { "id": "story-0013-0012", "phase": 1, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
-    "story-0013-0015": { "id": "story-0013-0015", "phase": 1, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
-    "story-0013-0018": { "id": "story-0013-0018", "phase": 1, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
-    "story-0013-0020": { "id": "story-0013-0020", "phase": 1, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
-    "story-0013-0021": { "id": "story-0013-0021", "phase": 1, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
-    "story-0013-0022": { "id": "story-0013-0022", "phase": 1, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
-    "story-0013-0024": { "id": "story-0013-0024", "phase": 1, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
+    "story-0013-0003": { "id": "story-0013-0003", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "4fa84fe", "findingsCount": 0, "summary": "Added 3 new rules (07-operations, 08-release, 09-data-management). Rule 09 conditional on database config. 2424 tests pass.", "duration": null },
+    "story-0013-0006": { "id": "story-0013-0006", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "4406f84", "findingsCount": 0, "summary": "Added incident response and postmortem templates with IncidentTemplatesAssembler. 2377 tests pass.", "duration": null },
+    "story-0013-0008": { "id": "story-0013-0008", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "0c89e75bfb5308eefdebe8c58bb7572b27f84820", "findingsCount": 0, "summary": "Added sre-practices KP with 6 sections, 3 reference files. Registered in SkillRegistry and SkillGroupRegistry.", "duration": null },
+    "story-0013-0012": { "id": "story-0013-0012", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "81fc35923d54d4f7a60fe2f31870f6cf79c83c7d", "findingsCount": 0, "summary": "Added release-management KP with 8 sections, 3 reference files. Registered in SkillRegistry and SkillGroupRegistry.", "duration": null },
+    "story-0013-0015": { "id": "story-0013-0015", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "fbba6ba", "findingsCount": 0, "summary": "Added data-management KP with 7 sections, 3 reference files. Registered in SkillRegistry (15) and SkillGroupRegistry (12).", "duration": null },
+    "story-0013-0018": { "id": "story-0013-0018", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "0529727", "findingsCount": 0, "summary": "Added performance-engineering KP with 7 sections, 3 reference files. Registered in SkillRegistry (16) and SkillGroupRegistry (13). 2381 tests pass.", "duration": null },
+    "story-0013-0020": { "id": "story-0013-0020", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "5cf1657", "findingsCount": 0, "summary": "Added feature-flags KP with 7 sections, 2 reference files. Registered in SkillRegistry (17) and SkillGroupRegistry (14). 2424 tests pass.", "duration": null },
+    "story-0013-0021": { "id": "story-0013-0021", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "c65cf7e", "findingsCount": 0, "summary": "Extended security KP with SBOM/supply chain sections. Extended x-dependency-audit with SBOM generation. Fixed SkillsCopyHelper merge bug. 2453 tests pass.", "duration": null },
+    "story-0013-0022": { "id": "story-0013-0022", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "4cedca3", "findingsCount": 0, "summary": "Added x-threat-model invocable skill with STRIDE methodology, 7-step workflow. Registered in review group (9 skills). 2480 tests pass.", "duration": null },
+    "story-0013-0024": { "id": "story-0013-0024", "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "78b6bdc", "findingsCount": 0, "summary": "Extended API Design KP with deprecation/versioning. Added conditional FinOps KP. 2503 tests pass.", "duration": null },
     "story-0013-0025": { "id": "story-0013-0025", "phase": 1, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
     "story-0013-0004": { "id": "story-0013-0004", "phase": 2, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
     "story-0013-0007": { "id": "story-0013-0007", "phase": 2, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
@@ -42,7 +42,7 @@
     "4": { "status": "PENDING", "stories": ["story-0013-0026"] }
   },
   "metrics": {
-    "storiesCompleted": 1,
+    "storiesCompleted": 12,
     "storiesFailed": 0,
     "storiesBlocked": 0,
     "storiesTotal": 26

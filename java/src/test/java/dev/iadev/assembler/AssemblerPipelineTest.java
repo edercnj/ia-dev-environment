@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Tests for AssemblerPipeline — orchestrates 27 assemblers
+ * Tests for AssemblerPipeline — orchestrates 28 assemblers
  * per RULE-005.
  */
 @DisplayName("AssemblerPipeline")
@@ -42,6 +42,7 @@ class AssemblerPipelineTest {
             "GrpcDocsAssembler",
             "RunbookAssembler",
             "IncidentTemplatesAssembler",
+            "DocsContributingAssembler",
             "CodexAgentsMdAssembler",
             "CodexConfigAssembler",
             "CodexSkillsAssembler",
@@ -57,12 +58,12 @@ class AssemblerPipelineTest {
     class BuildAssemblers {
 
         @Test
-        @DisplayName("returns exactly 27 assembler descriptors")
-        void assemble_whenCalled_returnsExactly27() {
+        @DisplayName("returns exactly 28 assembler descriptors")
+        void assemble_whenCalled_returnsExactly28() {
             List<AssemblerDescriptor> descriptors =
                     AssemblerPipeline.buildAssemblers();
 
-            assertThat(descriptors).hasSize(27);
+            assertThat(descriptors).hasSize(28);
         }
 
         @Test
@@ -97,13 +98,15 @@ class AssemblerPipelineTest {
                     .isEqualTo(AssemblerTarget.ROOT);
             assertThat(descriptors.get(17).target())
                     .isEqualTo(AssemblerTarget.ROOT);
-            assertThat(descriptors.get(19).target())
-                    .isEqualTo(AssemblerTarget.CODEX);
+            assertThat(descriptors.get(18).target())
+                    .isEqualTo(AssemblerTarget.ROOT);
             assertThat(descriptors.get(20).target())
-                    .isEqualTo(AssemblerTarget.CODEX_AGENTS);
-            assertThat(descriptors.get(21).target())
                     .isEqualTo(AssemblerTarget.CODEX);
+            assertThat(descriptors.get(21).target())
+                    .isEqualTo(AssemblerTarget.CODEX_AGENTS);
             assertThat(descriptors.get(22).target())
+                    .isEqualTo(AssemblerTarget.CODEX);
+            assertThat(descriptors.get(23).target())
                     .isEqualTo(AssemblerTarget.ROOT);
         }
 

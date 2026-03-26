@@ -129,6 +129,7 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-review-gateway** | `/x-review-gateway` | Review API gateway configuration for best practices |
 | **x-review-grpc** | `/x-review-grpc` | Skill: gRPC Service Review — Validates gRPC service definitions, proto3 conventions, implementation patterns, and operational readiness. |
 | **x-review-pr** | `/x-review-pr` | Tech Lead holistic review with 45-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, TDD process, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge. |
+| **x-setup-dev-environment** | `/x-setup-dev-environment` | Validate and configure local development environment: detect stack, check prerequisites, verify versions, validate IDE config, test database connectivity, run initial build, and report status with fix suggestions |
 | **x-story-create** | `/x-story-create` | > |
 | **x-story-epic** | `/x-story-epic` | > |
 | **x-story-epic-full** | `/x-story-epic-full` | > |

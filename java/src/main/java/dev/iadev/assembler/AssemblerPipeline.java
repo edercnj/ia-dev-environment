@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Orchestrates the execution of 27 assemblers in the fixed
+ * Orchestrates the execution of 28 assemblers in the fixed
  * order defined by RULE-005.
  *
  * <p>Assembler construction is delegated to
