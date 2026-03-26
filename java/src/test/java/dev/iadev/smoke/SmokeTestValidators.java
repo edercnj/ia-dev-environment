@@ -6,6 +6,7 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -60,10 +61,9 @@ public final class SmokeTestValidators {
                             throws IOException {
                         if (attrs.size() == 0) {
                             emptyFiles.add(
-                                    outputDir.relativize(file)
-                                            .toString()
-                                            .replace('\\',
-                                                    '/'));
+                                    relativizePosix(
+                                            outputDir,
+                                            file));
                         }
                         return FileVisitResult.CONTINUE;
                     }
@@ -213,14 +213,69 @@ public final class SmokeTestValidators {
         }
     }
 
+    /**
+     * Counts all regular files recursively under
+     * {@code dir}.
+     *
+     * @param dir the directory to scan
+     * @return the total file count
+     * @throws IOException if traversal fails
+     */
+    public static long countFiles(Path dir)
+            throws IOException {
+        long[] count = {0};
+        Files.walkFileTree(dir, new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult visitFile(
+                    Path file,
+                    BasicFileAttributes attrs) {
+                count[0]++;
+                return FileVisitResult.CONTINUE;
+            }
+        });
+        return count[0];
+    }
+
+    /**
+     * Returns the POSIX-style relative path string from
+     * {@code base} to {@code file}, replacing backslashes
+     * with forward slashes for cross-platform consistency.
+     *
+     * @param base the base directory
+     * @param file the file to relativize
+     * @return the relative path with forward slashes
+     */
+    public static String relativizePosix(
+            Path base, Path file) {
+        return base.relativize(file).toString()
+                .replace('\\', '/');
+    }
+
+    /**
+     * Creates a directory and all parent directories,
+     * wrapping any {@link IOException} in an
+     * {@link UncheckedIOException}.
+     *
+     * @param dir the directory to create
+     */
+    public static void createDirectoryQuietly(Path dir) {
+        try {
+            Files.createDirectories(dir);
+        } catch (IOException e) {
+            throw new UncheckedIOException(
+                    "Failed to create directory: "
+                            + dir, e);
+        }
+    }
+
     private static void scanFileForPlaceholders(
             Path file, Path outputDir,
             List<Pattern> compiled,
             List<String> violations) throws IOException {
         String content = Files.readString(
                 file, StandardCharsets.UTF_8);
-        String relativePath = outputDir.relativize(file)
-                .toString().replace('\\', '/');
+        String relativePath =
+                relativizePosix(outputDir, file);
 
         List<String> lines = content.lines().toList();
         for (int i = 0; i < lines.size(); i++) {
@@ -239,18 +294,4 @@ public final class SmokeTestValidators {
         }
     }
 
-    private static long countFiles(Path dir)
-            throws IOException {
-        long[] count = {0};
-        Files.walkFileTree(dir, new SimpleFileVisitor<>() {
-            @Override
-            public FileVisitResult visitFile(
-                    Path file,
-                    BasicFileAttributes attrs) {
-                count[0]++;
-                return FileVisitResult.CONTINUE;
-            }
-        });
-        return count[0];
-    }
 }

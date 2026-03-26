@@ -274,9 +274,8 @@ class ContentIntegritySmokeTest extends SmokeTestBase {
                             || trimmed.startsWith("<!--");
 
             if (!valid) {
-                String rel = outputDir.relativize(file)
-                        .toString()
-                        .replace('\\', '/');
+                String rel = SmokeTestValidators
+                        .relativizePosix(outputDir, file);
                 violations.add(
                         ("  %s -- does not start "
                                 + "with '#', '---', "
@@ -295,16 +294,16 @@ class ContentIntegritySmokeTest extends SmokeTestBase {
 
     private static boolean isRulesFile(
             Path file, Path outputDir) {
-        String rel = outputDir.relativize(file)
-                .toString().replace('\\', '/');
+        String rel = SmokeTestValidators
+                .relativizePosix(outputDir, file);
         return rel.contains("/" + RULES_DIR + "/")
                 || rel.startsWith(RULES_DIR + "/");
     }
 
     private static boolean isSkillDocFile(
             Path file, Path outputDir) {
-        String rel = outputDir.relativize(file)
-                .toString().replace('\\', '/');
+        String rel = SmokeTestValidators
+                .relativizePosix(outputDir, file);
         return rel.contains("/skills/")
                 && rel.endsWith(".md");
     }
@@ -451,8 +450,8 @@ class ContentIntegritySmokeTest extends SmokeTestBase {
                 throws IOException {
             String content = Files.readString(
                     file, StandardCharsets.UTF_8);
-            String rel = outputDir.relativize(file)
-                    .toString().replace('\\', '/');
+            String rel = SmokeTestValidators
+                    .relativizePosix(outputDir, file);
 
             List<String> lines =
                     content.lines().toList();
@@ -479,8 +478,8 @@ class ContentIntegritySmokeTest extends SmokeTestBase {
                 throws IOException {
             String content = Files.readString(
                     file, StandardCharsets.UTF_8);
-            String rel = outputDir.relativize(file)
-                    .toString().replace('\\', '/');
+            String rel = SmokeTestValidators
+                    .relativizePosix(outputDir, file);
 
             List<String> lines =
                     content.lines().toList();

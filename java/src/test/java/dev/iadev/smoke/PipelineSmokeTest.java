@@ -15,7 +15,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -77,7 +76,8 @@ class PipelineSmokeTest extends SmokeTestBase {
         ProfileArtifacts expected =
                 manifest.getProfile(profile);
 
-        long actualCount = countFiles(outputDir);
+        long actualCount =
+                SmokeTestValidators.countFiles(outputDir);
         int expectedCount = expected.totalFiles();
 
         if (actualCount != expectedCount) {
@@ -260,29 +260,14 @@ class PipelineSmokeTest extends SmokeTestBase {
                             Path file,
                             BasicFileAttributes attrs) {
                         paths.add(
-                                outputDir.relativize(file)
-                                        .toString()
-                                        .replace('\\',
-                                                '/'));
+                                SmokeTestValidators
+                                        .relativizePosix(
+                                                outputDir,
+                                                file));
                         return FileVisitResult.CONTINUE;
                     }
                 });
         return paths;
-    }
-
-    private static long countFiles(Path dir)
-            throws IOException {
-        long[] count = {0};
-        Files.walkFileTree(dir, new SimpleFileVisitor<>() {
-            @Override
-            public FileVisitResult visitFile(
-                    Path file,
-                    BasicFileAttributes attrs) {
-                count[0]++;
-                return FileVisitResult.CONTINUE;
-            }
-        });
-        return count[0];
     }
 
     @SuppressWarnings("java:S1479")
@@ -351,7 +336,8 @@ class PipelineSmokeTest extends SmokeTestBase {
         if (!Files.isDirectory(targetDir)) {
             return 0;
         }
-        return (int) countFiles(targetDir);
+        return (int) SmokeTestValidators
+                .countFiles(targetDir);
     }
 
     private static int countTopLevelFiles(Path dir)

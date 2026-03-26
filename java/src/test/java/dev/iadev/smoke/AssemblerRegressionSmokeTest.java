@@ -15,11 +15,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -249,7 +246,8 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
                 Path areaPath = outputDir.resolve(area);
 
                 if (!Files.isDirectory(areaPath)
-                        || countFiles(areaPath) == 0) {
+                        || SmokeTestValidators
+                        .countFiles(areaPath) == 0) {
                     emptyAreas.add("%s (from %s)"
                             .formatted(area, assembler));
                 }
@@ -292,7 +290,8 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
                     : MANDATORY_OUTPUT_AREAS.keySet()) {
                 Path areaPath = outputDir.resolve(area);
                 long count = Files.isDirectory(areaPath)
-                        ? countFiles(areaPath) : 0;
+                        ? SmokeTestValidators
+                        .countFiles(areaPath) : 0;
                 areaCounts.put(area, count);
             }
 
@@ -408,7 +407,7 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
                                 + profile);
                 Path targetDir =
                         desc.target().resolve(asmDir);
-                createDirectorySilently(targetDir);
+                SmokeTestValidators.createDirectoryQuietly(targetDir);
 
                 AssemblerResult result =
                         desc.assembler()
@@ -492,11 +491,11 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
                                     || extensionlessFiles
                                     .contains(name);
                             if (!valid) {
-                                String rel = outputDir
-                                        .relativize(file)
-                                        .toString()
-                                        .replace('\\', '/');
-                                violations.add(rel);
+                                violations.add(
+                                        SmokeTestValidators
+                                                .relativizePosix(
+                                                        outputDir,
+                                                        file));
                             }
                             return FileVisitResult.CONTINUE;
                         }
@@ -569,7 +568,7 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
                         assemblerName + "-single");
                 Path targetDir =
                         desc.target().resolve(asmDir);
-                createDirectorySilently(targetDir);
+                SmokeTestValidators.createDirectoryQuietly(targetDir);
 
                 AssemblerResult result =
                         desc.assembler()
@@ -584,32 +583,8 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
 
     private Path createAssemblerTempDir(String name) {
         Path dir = tempDir.resolve("asm-" + name);
-        createDirectorySilently(dir);
+        SmokeTestValidators.createDirectoryQuietly(dir);
         return dir;
     }
 
-    private static void createDirectorySilently(Path dir) {
-        try {
-            Files.createDirectories(dir);
-        } catch (java.io.IOException e) {
-            throw new java.io.UncheckedIOException(
-                    "Failed to create directory: " + dir,
-                    e);
-        }
-    }
-
-    private static long countFiles(Path dir)
-            throws IOException {
-        long[] count = {0};
-        Files.walkFileTree(dir, new SimpleFileVisitor<>() {
-            @Override
-            public FileVisitResult visitFile(
-                    Path file,
-                    BasicFileAttributes attrs) {
-                count[0]++;
-                return FileVisitResult.CONTINUE;
-            }
-        });
-        return count[0];
-    }
 }

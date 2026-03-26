@@ -9,16 +9,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -126,7 +121,8 @@ class CrossProfileConsistencySmokeTest {
         for (String profile : profiles) {
             Path outputDir =
                     sharedTempDir.resolve(profile);
-            createDirectoryQuietly(outputDir);
+            SmokeTestValidators
+                    .createDirectoryQuietly(outputDir);
             profileOutputs.put(profile,
                     runPipelineForProfile(
                             profile, outputDir));
@@ -341,8 +337,8 @@ class CrossProfileConsistencySmokeTest {
 
             for (var entry
                     : profileOutputs.entrySet()) {
-                long count =
-                        countFiles(entry.getValue());
+                long count = SmokeTestValidators
+                        .countFiles(entry.getValue());
                 countsByProfile.put(
                         entry.getKey(), count);
             }
@@ -609,57 +605,6 @@ class CrossProfileConsistencySmokeTest {
         }
     }
 
-    private static void assertSameJsonTopLevelKeys(
-            String relativeFile) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        Map<String, Set<String>> keysByProfile =
-                new TreeMap<>();
-
-        for (var entry : profileOutputs.entrySet()) {
-            Path file = entry.getValue()
-                    .resolve(relativeFile);
-            if (!Files.isRegularFile(file)) {
-                keysByProfile.put(
-                        entry.getKey(), Set.of());
-                continue;
-            }
-            String content = Files.readString(
-                    file, StandardCharsets.UTF_8);
-            JsonNode root = mapper.readTree(content);
-            Set<String> keys = new TreeSet<>();
-            Iterator<String> fieldNames =
-                    root.fieldNames();
-            while (fieldNames.hasNext()) {
-                keys.add(fieldNames.next());
-            }
-            keysByProfile.put(entry.getKey(), keys);
-        }
-
-        Set<Set<String>> uniqueSets =
-                new TreeSet<>(
-                        (a, b) -> a.equals(b)
-                                ? 0
-                                : a.toString()
-                                .compareTo(
-                                        b.toString()));
-        uniqueSets.addAll(keysByProfile.values());
-
-        if (uniqueSets.size() > 1) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Top-level keys in '%s' differ "
-                    .formatted(relativeFile));
-            sb.append("across profiles:\n");
-            for (var entry
-                    : keysByProfile.entrySet()) {
-                sb.append("  %s: %s\n"
-                        .formatted(
-                                entry.getKey(),
-                                entry.getValue()));
-            }
-            fail(sb.toString());
-        }
-    }
-
     private static void assertCommonJsonKeysExist(
             String relativeFile,
             Set<String> requiredKeys)
@@ -776,32 +721,6 @@ class CrossProfileConsistencySmokeTest {
                 .isTrue();
 
         return outputDir;
-    }
-
-    private static void createDirectoryQuietly(Path dir) {
-        try {
-            Files.createDirectories(dir);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to create directory: "
-                            + dir, e);
-        }
-    }
-
-    private static long countFiles(Path dir)
-            throws IOException {
-        long[] count = {0};
-        Files.walkFileTree(dir,
-                new SimpleFileVisitor<>() {
-                    @Override
-                    public FileVisitResult visitFile(
-                            Path file,
-                            BasicFileAttributes attrs) {
-                        count[0]++;
-                        return FileVisitResult.CONTINUE;
-                    }
-                });
-        return count[0];
     }
 
     private static double calculateStdDev(

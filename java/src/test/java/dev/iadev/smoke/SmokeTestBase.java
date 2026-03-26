@@ -7,7 +7,6 @@ import dev.iadev.model.PipelineResult;
 import dev.iadev.model.ProjectConfig;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,7 +46,7 @@ public abstract class SmokeTestBase {
      */
     protected PipelineResult runPipeline(String profile) {
         Path outputDir = getOutputDir(profile);
-        createDirectoryQuietly(outputDir);
+        SmokeTestValidators.createDirectoryQuietly(outputDir);
 
         ProjectConfig config =
                 ConfigProfiles.getStack(profile);
@@ -78,13 +77,4 @@ public abstract class SmokeTestBase {
         return tempDir.resolve(profile);
     }
 
-    private static void createDirectoryQuietly(Path dir) {
-        try {
-            Files.createDirectories(dir);
-        } catch (java.io.IOException e) {
-            throw new java.io.UncheckedIOException(
-                    "Failed to create output directory: "
-                            + dir, e);
-        }
-    }
 }

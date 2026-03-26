@@ -65,28 +65,30 @@ public final class FrontmatterParser {
                 ? content.substring(bodyStart)
                 : "";
 
-        Map<String, Object> fields = parseYaml(yamlBlock);
-        if (fields == null) {
+        Optional<Map<String, Object>> fields =
+                parseYaml(yamlBlock);
+        if (fields.isEmpty()) {
             return new Result(
                     false, Collections.emptyMap(), content);
         }
 
-        return new Result(true, fields, body);
+        return new Result(true, fields.get(), body);
     }
 
     @SuppressWarnings("unchecked")
-    private static Map<String, Object> parseYaml(
+    private static Optional<Map<String, Object>> parseYaml(
             String yamlBlock) {
         try {
             Yaml yaml = new Yaml(new SafeConstructor(
                     new LoaderOptions()));
             Object parsed = yaml.load(yamlBlock);
             if (parsed instanceof Map<?, ?> map) {
-                return (Map<String, Object>) map;
+                return Optional.of(
+                        (Map<String, Object>) map);
             }
-            return null;
+            return Optional.empty();
         } catch (Exception e) {
-            return null;
+            return Optional.empty();
         }
     }
 

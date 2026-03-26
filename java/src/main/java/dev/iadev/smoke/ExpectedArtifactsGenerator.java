@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -110,7 +111,10 @@ public final class ExpectedArtifactsGenerator {
     private static Map<String, Object> generateForProfile(
             String profile) throws IOException {
         Path tempDir = Files.createTempDirectory(
-                "manifest-gen-");
+                "manifest-gen-",
+                PosixFilePermissions.asFileAttribute(
+                        PosixFilePermissions.fromString(
+                                "rwx------")));
         try {
             runPipeline(profile, tempDir);
             return collectMetrics(tempDir);
