@@ -222,7 +222,7 @@ class CicdAssembleConditionalTest {
     class FullGeneration {
 
         @Test
-        @DisplayName("generates all 7 artifacts")
+        @DisplayName("generates all 11 artifacts")
         void assemble_generatesAll(@TempDir Path tempDir) {
             Path out = tempDir.resolve("output");
             List<String> files = new CicdAssembler()
@@ -239,7 +239,7 @@ class CicdAssembleConditionalTest {
                                     .smokeTests(true)
                                     .build(),
                             new TemplateEngine(), out);
-            assertThat(files).hasSize(7);
+            assertThat(files).hasSize(11);
         }
 
         @Test
@@ -255,9 +255,11 @@ class CicdAssembleConditionalTest {
                                     .smokeTests(false)
                                     .build(),
                             new TemplateEngine(), out);
-            assertThat(files).hasSize(1);
-            assertThat(files.get(0))
-                    .contains("ci.yml");
+            assertThat(files).hasSize(2);
+            assertThat(files).anyMatch(
+                    f -> f.contains("ci.yml"));
+            assertThat(files).anyMatch(
+                    f -> f.contains("release.yml"));
         }
     }
 }

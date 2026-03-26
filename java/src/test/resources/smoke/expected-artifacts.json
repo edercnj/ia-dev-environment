@@ -1,7 +1,7 @@
 {
   "profiles": {
     "go-gin": {
-      "totalFiles": 501,
+      "totalFiles": 505,
       "directories": [
         ".agents",
         ".agents/skills",
@@ -364,7 +364,7 @@
       }
     },
     "java-quarkus": {
-      "totalFiles": 527,
+      "totalFiles": 531,
       "directories": [
         ".agents",
         ".agents/skills",
@@ -732,7 +732,7 @@
       }
     },
     "java-spring": {
-      "totalFiles": 526,
+      "totalFiles": 530,
       "directories": [
         ".agents",
         ".agents/skills",
@@ -1100,7 +1100,7 @@
       }
     },
     "kotlin-ktor": {
-      "totalFiles": 504,
+      "totalFiles": 508,
       "directories": [
         ".agents",
         ".agents/skills",
@@ -1464,7 +1464,7 @@
       }
     },
     "python-click-cli": {
-      "totalFiles": 396,
+      "totalFiles": 400,
       "directories": [
         ".agents",
         ".agents/skills",
@@ -1778,7 +1778,7 @@
       }
     },
     "python-fastapi": {
-      "totalFiles": 503,
+      "totalFiles": 507,
       "directories": [
         ".agents",
         ".agents/skills",
@@ -2140,7 +2140,7 @@
       }
     },
     "rust-axum": {
-      "totalFiles": 499,
+      "totalFiles": 503,
       "directories": [
         ".agents",
         ".agents/skills",
@@ -2505,7 +2505,7 @@
       }
     },
     "typescript-nestjs": {
-      "totalFiles": 510,
+      "totalFiles": 514,
       "directories": [
         ".agents",
         ".agents/skills",
