@@ -1,0 +1,39 @@
+{
+  "epicId": "0012",
+  "branch": "feat/epic-0012-full-implementation",
+  "startedAt": "2026-03-25T00:00:00Z",
+  "finishedAt": "2026-03-25T23:45:00Z",
+  "mode": {
+    "parallel": true,
+    "skipReview": false
+  },
+  "stories": {
+    "story-0012-0001": { "id": "story-0012-0001", "phase": 0, "status": "SUCCESS", "commitSha": "f6a1a5e", "retries": 0, "summary": "Smoke test infra: SmokeTestValidators, SmokeTestBase, SmokeProfiles + 29 tests", "duration": null, "findingsCount": 0 },
+    "story-0012-0002": { "id": "story-0012-0002", "phase": 0, "status": "SUCCESS", "commitSha": "9f2d540", "retries": 0, "summary": "Artifact manifest: ProfileArtifacts, ExpectedArtifacts, generator + 22 tests", "duration": null, "findingsCount": 0 },
+    "story-0012-0003": { "id": "story-0012-0003", "phase": 1, "status": "SUCCESS", "commitSha": "68f4789", "retries": 0, "summary": "Pipeline smoke test: 6 methods x 8 profiles, validates file count, structure, empty files", "duration": null, "findingsCount": 0 },
+    "story-0012-0004": { "id": "story-0012-0004", "phase": 1, "status": "SUCCESS", "commitSha": "db3a1c9", "retries": 0, "summary": "Content integrity: empty files, placeholders, JSON/YAML validation across 8 profiles", "duration": null, "findingsCount": 0 },
+    "story-0012-0005": { "id": "story-0012-0005", "phase": 1, "status": "SUCCESS", "commitSha": "72e6801", "retries": 0, "summary": "Frontmatter validation: 72 smoke + 13 parser unit tests, YAML frontmatter + rules", "duration": null, "findingsCount": 0 },
+    "story-0012-0006": { "id": "story-0012-0006", "phase": 2, "status": "SUCCESS", "commitSha": "a7329ce", "retries": 0, "summary": "CLI modes: 21 tests for dry-run, force, verbose, help", "duration": null, "findingsCount": 0 },
+    "story-0012-0007": { "id": "story-0012-0007", "phase": 2, "status": "SUCCESS", "commitSha": "509554d", "retries": 0, "summary": "Cross-profile: 17 tests for structural consistency, outlier detection", "duration": null, "findingsCount": 0 },
+    "story-0012-0008": { "id": "story-0012-0008", "phase": 2, "status": "SUCCESS", "commitSha": "673f037", "retries": 0, "summary": "Assembler regression: 77 tests for 25 assemblers, conditional activation", "duration": null, "findingsCount": 0 },
+    "story-0012-0009": { "id": "story-0012-0009", "phase": 3, "status": "SUCCESS", "commitSha": "8c102fc", "retries": 0, "summary": "Added Phase 2.5 (Smoke Gate) to x-dev-lifecycle skill", "duration": null, "findingsCount": 0 },
+    "story-0012-0010": { "id": "story-0012-0010", "phase": 4, "status": "SUCCESS", "commitSha": "24ab5f6", "retries": 0, "summary": "Integrated smoke tests into x-dev-epic-implement integrity gate", "duration": null, "findingsCount": 0 },
+    "story-0012-0011": { "id": "story-0012-0011", "phase": 3, "status": "SUCCESS", "commitSha": "0b1dd3f", "retries": 0, "summary": "Created /run-smoke skill for on-demand smoke test execution", "duration": null, "findingsCount": 0 }
+  },
+  "metrics": {
+    "storiesCompleted": 11,
+    "storiesFailed": 0,
+    "storiesBlocked": 0,
+    "storiesTotal": 11
+  },
+  "integrityGates": {
+    "phase0": { "status": "PASS", "testCount": 2323, "coverage": null, "branchCoverage": null },
+    "phase1": { "status": "PASS", "testCount": 2336, "coverage": null, "branchCoverage": null },
+    "phase2": { "status": "PASS", "testCount": 2336, "coverage": null, "branchCoverage": null },
+    "phase3": { "status": "PASS", "testCount": 2336, "coverage": null, "branchCoverage": null },
+    "phase4": { "status": "PASS", "testCount": 2336, "coverage": null, "branchCoverage": null }
+  },
+  "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/124",
+  "reportPath": "docs/stories/epic-0012/epic-execution-report.md",
+  "finalStatus": "COMPLETE"
+}

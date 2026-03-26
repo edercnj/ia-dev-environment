@@ -2,7 +2,7 @@
 name: x-dev-epic-implement
 description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
-argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential]"
+argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate]"
 ---
 
 ## Global Output Policy
@@ -44,6 +44,7 @@ ERROR: Epic ID is required. Usage: /x-dev-epic-implement [EPIC-ID] [flags]
 | `--dry-run` | boolean | `false` | Generate execution plan without executing |
 | `--resume` | boolean | `false` | Continue from last checkpoint (execution-state.json) |
 | `--sequential` | boolean | `false` | Disable parallel worktrees, execute stories one at a time |
+| `--skip-smoke-gate` | boolean | `false` | Skip smoke tests in the integrity gate between phases |
 
 ## Prerequisites Check
 
@@ -651,9 +652,15 @@ Launch a `general-purpose` subagent:
 > - If compilation fails → `{ status: "FAIL", testCount: 0, coverage: 0 }`
 > - If any tests fail → correlate failed tests with commits from stories in the current phase
 > - If line coverage < 95% or branch coverage < 90% → FAIL with coverage details
-> - Otherwise → PASS
+> - Otherwise → proceed to Step 5
+> **Step 5 — Smoke Gate:** Execute the full smoke test suite as a regression validation.
+> - If `--skip-smoke-gate` flag is set → log `"Integrity gate smoke tests skipped (--skip-smoke-gate)"` and record `smokeGate.status = "SKIP"` → proceed to PASS
+> - Run: `{{SMOKE_COMMAND}}` (e.g., `cd java && mvn verify -P integration-tests`)
+> - This runs ALL smoke tests, not just those for stories in the current phase
+> - If all smoke tests pass → record `smokeGate.status = "PASS"` → overall gate is PASS
+> - If any smoke test fails → correlate failures with stories in the current phase (based on files touched) → record `smokeGate.status = "FAIL"` → overall gate is FAIL
 >
-> Return: `{ status: "PASS"|"FAIL", testCount, coverage, branchCoverage?, failedTests?, regressionSource? }`
+> Return: `{ status: "PASS"|"FAIL", testCount, coverage, branchCoverage?, failedTests?, regressionSource?, smokeGate?: { status, testsRun, testsFailed, failedTests?, suspectedStories? } }`
 
 #### Regression Diagnosis
 
@@ -665,6 +672,16 @@ If tests fail, the subagent:
 5. Story is marked FAILED with summary: `"Regression detected by integrity gate"`
 6. Block propagation is executed for dependents of the failed story
 
+#### Smoke Gate Regression Diagnosis
+
+If smoke tests fail (Step 5), the subagent:
+1. Identifies which smoke tests failed (`smokeGate.failedTests` array)
+2. Correlates failures with stories in the current phase by analyzing files touched by each story's commits
+3. Populates `smokeGate.suspectedStories` with the story IDs most likely responsible
+4. Logs: `"INTEGRITY GATE SMOKE FAILURE: Phase {N}. {count} test(s) failed. Suspected stories: [{list}]"`
+5. The phase is marked as FAILED in the checkpoint
+6. The operator decides: `--resume` to retry after manual fix, or `--skip-smoke-gate` to bypass
+
 #### Gate Result Registration
 
 ```
@@ -674,18 +691,58 @@ updateIntegrityGate(epicDir, phaseNumber, {
   coverage: number,        // line coverage %
   branchCoverage?: number, // branch coverage %
   failedTests?: string[],
-  regressionSource?: string // story ID
+  regressionSource?: string, // story ID
+  smokeGate?: {
+    status: "PASS" | "FAIL" | "SKIP",
+    testsRun: number,
+    testsFailed: number,
+    failedTests?: string[],
+    suspectedStories?: string[],
+    timestamp: string        // ISO-8601
+  }
 });
 ```
 
-- **PASS**: Advance to next phase
+- **PASS**: Advance to next phase (requires both test gate and smoke gate to pass)
 - **FAIL + regression identified**: revert + mark FAILED + block propagation
 - **FAIL + regression unidentified**: pause execution, report to user
+- **FAIL (smoke gate)**: phase marked FAILED; operator uses `--resume` after fix or `--skip-smoke-gate` to bypass
+
+#### Checkpoint Smoke Gate Format
+
+The `smokeGate` field is added to each phase entry in `execution-state.json`:
+
+```json
+{
+  "phases": {
+    "0": {
+      "status": "SUCCESS",
+      "smokeGate": {
+        "status": "PASS",
+        "testsRun": 45,
+        "testsFailed": 0,
+        "failedTests": [],
+        "suspectedStories": [],
+        "timestamp": "2026-03-25T14:30:00Z"
+      }
+    }
+  }
+}
+```
 
 #### Gate Enforcement (RULE-004)
 
 The integrity gate is **mandatory** — there is no bypass. Every phase transition requires a PASS gate
 result. The gate runs after phase 0, 1, 2, and 3 — one gate per phase.
+
+The smoke gate within the integrity gate is also mandatory by default. It can only be bypassed with
+the `--skip-smoke-gate` flag, which records `smokeGate.status = "SKIP"` in the checkpoint. When
+`--skip-smoke-gate` is set, the integrity gate evaluates only Steps 1-4 (compile, test, coverage).
+When not set, the smoke gate (Step 5) must also pass for the overall integrity gate to pass.
+
+> **Note:** Each story already executes its own smoke gate via `x-dev-lifecycle` (Phase 2.5).
+> The integrity gate smoke tests serve as an ADDITIONAL regression validation — they ensure
+> that the combination of all stories in a phase did not break the overall smoke test suite.
 
 ## Phase 2 — Consolidation (Two-Wave)
 
@@ -926,3 +983,6 @@ Return to main branch: `git checkout main && git pull origin main`
 - Writes: `docs/stories/epic-XXXX/plans/preflight-analysis-phase-N.md` (pre-flight analysis output for audit, Phase 0.5)
 - Phase 0.5 is skipped when `--sequential` is set (no parallel dispatch means no conflict risk)
 - All `{{PLACEHOLDER}}` tokens are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
+- Integrity gate includes smoke tests (Step 5) as regression validation after each phase — runs `{{SMOKE_COMMAND}}` (e.g., `cd java && mvn verify -P integration-tests`)
+- Smoke gate is bypassed with `--skip-smoke-gate` flag; result recorded as `smokeGate.status = "SKIP"` in checkpoint
+- Per-story smoke tests run via `x-dev-lifecycle` Phase 2.5; integrity gate smoke tests are an additional cross-story regression check
