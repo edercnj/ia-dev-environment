@@ -20,10 +20,10 @@ argument-hint: "[STORY-ID or feature-name]"
 
 ## CRITICAL EXECUTION RULE
 
-**Phases: 0, 1, 1B-1E, 2, 2.5, 3, 4, 5-6, 7, 8. ALL mandatory. NEVER stop before Phase 8.**
+**9 phases (0-8). ALL mandatory. NEVER stop before Phase 8.**
 
-After each phase: `>>> Phase N completed. Proceeding to Phase N+1...`
-After Phase 8: `>>> Phase 8 completed. Lifecycle complete.`
+After each phase 0–7: `>>> Phase N/8 completed. Proceeding to Phase N+1...`
+After Phase 8: `>>> Phase 8/8 completed. Lifecycle complete.`
 
 ## Complete Flow
 
@@ -32,7 +32,6 @@ Phase 0: Preparation          (orchestrator — inline)
 Phase 1: Planning              (subagent — reads architecture KPs)
 Phase 1B-1E: Parallel Planning (up to 4 subagents — SINGLE message)
 Phase 2: Implementation        (subagent — reads coding + layer KPs)
-Phase 2.5: Smoke Gate          (orchestrator — inline, conditional)
 Phase 3: Documentation         (orchestrator — inline)
 Phase 4: Review                (invoke /x-review skill — launches its own subagents)
 Phase 5-6: Fixes + PR          (orchestrator — inline)
@@ -230,64 +229,6 @@ If no test plan with TPP markers was produced by Phase 1B, use legacy group-base
 
 Emit warning: `WARNING: No TDD test plan available. Using G1-G7 group-based implementation. Consider running /x-test-plan for future implementations.`
 
-## Phase 2.5 — Smoke Gate (Orchestrator — Inline, Conditional)
-
-**Trigger:** Activated when `testing.smoke_tests == true` in the project identity.
-
-If `testing.smoke_tests == false` (or absent), skip this phase with log:
-`">>> Phase 2.5 skipped. Smoke Gate not enabled (testing.smoke_tests=false). Proceeding to Phase 3..."`
-
-### Smoke Gate Execution
-
-1. Run smoke tests using the project-configured command:
-   ```
-   {{SMOKE_COMMAND}}
-   ```
-   Default (Java/Maven projects): `cd java && mvn verify -P integration-tests -pl . -q`
-
-2. **If ALL smoke tests PASS:**
-   - Log: `">>> Phase 2.5 completed. Smoke Gate PASSED. Proceeding to Phase 3..."`
-   - Continue to Phase 3.
-
-3. **If ANY smoke test FAILS (attempt 1 of 2):**
-   - Log: `">>> Phase 2.5 FAILED. Smoke Gate BLOCKED. {N} test(s) failed."`
-   - List each failed test with failure details (test name, assertion message, stack trace excerpt).
-   - Apply inline fixes (same approach as Phase 5 — Fixes):
-     - Analyze failure causes from test output.
-     - Fix production code or test infrastructure as needed.
-     - Follow TDD discipline: update tests first if the fix changes expected behavior.
-     - Compile check: `{{COMPILE_COMMAND}}`
-   - Re-run smoke tests.
-
-4. **If smoke tests FAIL again (attempt 2 of 2):**
-   - Log: `">>> Phase 2.5 FAILED (retry 1). {N} test(s) still failing. Attempting final fix..."`
-   - Apply inline fixes (second attempt).
-   - Re-run smoke tests (final attempt).
-
-5. **If smoke tests PASS after retry:**
-   - Log: `">>> Phase 2.5 completed. Smoke Gate PASSED after {attempts} retry cycle(s). Proceeding to Phase 3..."`
-   - Continue to Phase 3.
-
-6. **If smoke tests STILL FAIL after 2 retry cycles (Hard Failure):**
-   - Log: `"SMOKE GATE HARD FAILURE after 2 retry cycles. Manual intervention required."`
-   - List all persistently failing tests with details.
-   - Continue to Phase 3 with WARNING (does not permanently block — the review phase will still evaluate).
-   - The review phase (Phase 4) receives the smoke gate failure as additional context.
-
-### Smoke Gate Configuration
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `testing.smoke_tests` | `false` | Enables/disables the smoke gate |
-| `{{SMOKE_COMMAND}}` | `cd java && mvn verify -P integration-tests -pl . -q` | Command to execute smoke tests |
-| Max retries | 2 | Maximum fix-and-retry cycles before hard failure |
-
-### Integration with RULE-004
-
-Per RULE-004 (Smoke Gate Bloqueante), smoke test failure BLOCKS progression to the review phase.
-The retry mechanism (max 2 attempts) provides automated recovery. Only after exhausting retries
-does the gate degrade to a WARNING, allowing progression with the failure flagged for review.
-
 ## Phase 3 — Documentation (Orchestrator — Inline)
 
 Read the `interfaces` field from the project identity to determine which documentation
@@ -434,14 +375,35 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
 ## Phase 8 — Final Verification + Cleanup (Orchestrator — Inline)
 
 1. Update README if needed
-2. Update IMPLEMENTATION-MAP
-3. Run DoD checklist (24+ checks across phases, quality, git, artifacts)
-4. TDD DoD items:
+2. Update IMPLEMENTATION-MAP:
+   a. Read `docs/stories/epic-XXXX/IMPLEMENTATION-MAP.md`
+   b. Find the current story's row in the dependency matrix (Section 1 table)
+   c. Update the Status column: replace current value with `Concluída`
+   d. Write the updated file
+3. Update Story File Status:
+   a. Read `docs/stories/epic-XXXX/story-XXXX-YYYY.md`
+   b. Update the `**Status:**` line from `Pendente` to `Concluída`
+   c. In Section 8 (Sub-tarefas), mark completed sub-tasks: change `- [ ]` to `- [x]`
+      for tasks that were implemented (based on commits and test results from this run)
+   d. Write the updated file
+4. Jira Status Sync (conditional):
+   a. Read the story file's `**Chave Jira:**` field
+   b. If the value is not `—` and not `<CHAVE-JIRA>` (i.e., has a real Jira key):
+      - Call `mcp__atlassian__getTransitionsForJiraIssue` with the story's Jira key
+      - Find the transition to "Done" (match by name containing "Done", "Concluído", or "Resolved")
+      - Call `mcp__atlassian__transitionJiraIssue` to transition the issue
+      - If transition fails: log warning, continue (non-blocking)
+5. Run DoD checklist (24+ checks across phases, quality, git, artifacts)
+6. TDD DoD items:
    - [ ] Commits show test-first pattern (test precedes or accompanies implementation in git log)
    - [ ] Acceptance tests exist and pass (AT-N GREEN)
    - [ ] Tests follow TPP ordering (simple to complex)
    - [ ] No test-after commits (all tests written before or with implementation)
-5. Conditional DoD items:
+   - [ ] Story markdown file updated with Status: Concluída
+   - [ ] IMPLEMENTATION-MAP Status column updated for this story
+   - [ ] At least 1 automated test validates the story's primary acceptance criterion
+   - [ ] Smoke test passes (if testing.smoke_tests == true)
+7. Conditional DoD items:
    - Contract tests pass (if testing.contract_tests == true)
    - Event schemas registered (if event_driven)
    - Compliance requirements met (if security.compliance active)
@@ -450,7 +412,7 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
    - GraphQL schema backward compatible (if interfaces contain graphql)
    - [ ] Threat model updated (if security findings with severity >= Medium) — extract findings from Phase 3 review reports, map to STRIDE categories, and update `docs/security/threat-model.md` using `resources/templates/_TEMPLATE-THREAT-MODEL.md` as format reference. See `/x-review` Phase 3d for the incremental update algorithm.
    - Post-deploy verification passed or skipped (if testing.smoke_tests == true)
-6. Post-Deploy Verification (conditional: `testing.smoke_tests == true`):
+8. Post-Deploy Verification (conditional: `testing.smoke_tests == true`):
    - If `testing.smoke_tests` is `false` in project identity → SKIP with log: "Post-deploy verification skipped (testing.smoke_tests=false)"
    - If `testing.smoke_tests` is `true`, execute the following checks (invoke `/run-e2e` or configured smoke test script):
      - **Health Check**: GET /health (or configured endpoint) → 200 OK
@@ -462,8 +424,8 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
      - **FAIL**: Any check red → "Investigate rollback"
      - **SKIP**: testing.smoke_tests=false → "Verification skipped"
    - Non-blocking: emit result for human decision, do NOT auto-rollback
-7. Report PASS/FAIL/SKIP result
-8. `git checkout main && git pull origin main`
+9. Report PASS/FAIL/SKIP result
+10. `git checkout main && git pull origin main`
 
 **Phase 8 is the ONLY legitimate stopping point.**
 
@@ -481,5 +443,4 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
 
 - Invokes: `x-dev-architecture-plan` (Phase 1, conditional), `x-test-plan`, `x-lib-task-decomposer`, `x-lib-group-verifier` (fallback only), `x-git-push`, `x-review`, `x-review-pr`
 - TDD commit format follows `x-git-push` conventions (`[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]` suffixes)
-- Phase 2.5 (Smoke Gate) is conditional on `testing.smoke_tests == true` in project identity. When enabled, it runs `{{SMOKE_COMMAND}}` after implementation and before documentation/review. Failure triggers up to 2 fix-and-retry cycles before degrading to a WARNING.
-- All `{{PLACEHOLDER}}` tokens (e.g. `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`, `{{SMOKE_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
+- All `{{PLACEHOLDER}}` tokens (e.g. `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation

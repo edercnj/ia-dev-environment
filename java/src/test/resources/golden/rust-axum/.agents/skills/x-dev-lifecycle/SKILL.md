@@ -375,14 +375,35 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
 ## Phase 8 — Final Verification + Cleanup (Orchestrator — Inline)
 
 1. Update README if needed
-2. Update IMPLEMENTATION-MAP
-3. Run DoD checklist (24+ checks across phases, quality, git, artifacts)
-4. TDD DoD items:
+2. Update IMPLEMENTATION-MAP:
+   a. Read `docs/stories/epic-XXXX/IMPLEMENTATION-MAP.md`
+   b. Find the current story's row in the dependency matrix (Section 1 table)
+   c. Update the Status column: replace current value with `Concluída`
+   d. Write the updated file
+3. Update Story File Status:
+   a. Read `docs/stories/epic-XXXX/story-XXXX-YYYY.md`
+   b. Update the `**Status:**` line from `Pendente` to `Concluída`
+   c. In Section 8 (Sub-tarefas), mark completed sub-tasks: change `- [ ]` to `- [x]`
+      for tasks that were implemented (based on commits and test results from this run)
+   d. Write the updated file
+4. Jira Status Sync (conditional):
+   a. Read the story file's `**Chave Jira:**` field
+   b. If the value is not `—` and not `<CHAVE-JIRA>` (i.e., has a real Jira key):
+      - Call `mcp__atlassian__getTransitionsForJiraIssue` with the story's Jira key
+      - Find the transition to "Done" (match by name containing "Done", "Concluído", or "Resolved")
+      - Call `mcp__atlassian__transitionJiraIssue` to transition the issue
+      - If transition fails: log warning, continue (non-blocking)
+5. Run DoD checklist (24+ checks across phases, quality, git, artifacts)
+6. TDD DoD items:
    - [ ] Commits show test-first pattern (test precedes or accompanies implementation in git log)
    - [ ] Acceptance tests exist and pass (AT-N GREEN)
    - [ ] Tests follow TPP ordering (simple to complex)
    - [ ] No test-after commits (all tests written before or with implementation)
-5. Conditional DoD items:
+   - [ ] Story markdown file updated with Status: Concluída
+   - [ ] IMPLEMENTATION-MAP Status column updated for this story
+   - [ ] At least 1 automated test validates the story's primary acceptance criterion
+   - [ ] Smoke test passes (if testing.smoke_tests == true)
+7. Conditional DoD items:
    - Contract tests pass (if testing.contract_tests == true)
    - Event schemas registered (if event_driven)
    - Compliance requirements met (if security.compliance active)
@@ -391,7 +412,7 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
    - GraphQL schema backward compatible (if interfaces contain graphql)
    - [ ] Threat model updated (if security findings with severity >= Medium) — extract findings from Phase 3 review reports, map to STRIDE categories, and update `docs/security/threat-model.md` using `resources/templates/_TEMPLATE-THREAT-MODEL.md` as format reference. See `/x-review` Phase 3d for the incremental update algorithm.
    - Post-deploy verification passed or skipped (if testing.smoke_tests == true)
-6. Post-Deploy Verification (conditional: `testing.smoke_tests == true`):
+8. Post-Deploy Verification (conditional: `testing.smoke_tests == true`):
    - If `testing.smoke_tests` is `false` in project identity → SKIP with log: "Post-deploy verification skipped (testing.smoke_tests=false)"
    - If `testing.smoke_tests` is `true`, execute the following checks (invoke `/run-e2e` or configured smoke test script):
      - **Health Check**: GET /health (or configured endpoint) → 200 OK
@@ -403,8 +424,8 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
      - **FAIL**: Any check red → "Investigate rollback"
      - **SKIP**: testing.smoke_tests=false → "Verification skipped"
    - Non-blocking: emit result for human decision, do NOT auto-rollback
-7. Report PASS/FAIL/SKIP result
-8. `git checkout main && git pull origin main`
+9. Report PASS/FAIL/SKIP result
+10. `git checkout main && git pull origin main`
 
 **Phase 8 is the ONLY legitimate stopping point.**
 

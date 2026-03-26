@@ -184,6 +184,8 @@ All TDD cycles are complete. Run final validation:
 | Tests written BEFORE implementation | Verify test-first pattern in each cycle |
 | Refactoring evaluated per cycle | Each cycle has explicit refactor step (even if noop) |
 | Thread-safe (if applicable) | No mutable static state |
+| Automated test validates primary AC | At least 1 test validates the story's primary acceptance criterion |
+| Smoke test passes | `{{SMOKE_COMMAND}}` (if testing.smoke_tests == true) |
 
 ## Step 4: Commit (Orchestrator — Inline)
 

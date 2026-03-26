@@ -37,13 +37,13 @@ public final class EpicReportAssembler
 
     /** The 8 mandatory sections that must be present. */
     static final List<String> MANDATORY_SECTIONS = List.of(
-            "Sumario Executivo",
-            "Timeline de Execucao",
+            "Sumário Executivo",
+            "Timeline de Execução",
             "Status Final por Story",
             "Findings Consolidados",
             "Coverage Delta",
             "Commits e SHAs",
-            "Issues Nao Resolvidos",
+            "Issues Não Resolvidos",
             "PR Link"
     );
 

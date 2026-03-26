@@ -85,6 +85,25 @@ Add numbered subsections (3.1, 3.2, ...) for each distinct technical requirement
 protocol details, framing formats, concurrency requirements, timeout values — everything a
 developer needs.
 
+#### Section 3.5 — Entrega de Valor
+
+Every story MUST articulate measurable business value. This is the most important section
+for stakeholder communication. It answers: "What does the business gain when this story is done?"
+
+**Structure:**
+- **Valor Principal:** A single sentence — the measurable business outcome
+- **Métrica de Sucesso:** How to verify value was delivered (quantitative when possible)
+- **Impacto no Negócio:** Direct impact on users/stakeholders
+
+**RULES (Non-Negotiable):**
+- Value MUST be from the business/user perspective, NOT technical
+- FORBIDDEN: "Migrar classes A, B, C para Java" (technical task, no business value)
+- CORRECT: "Endpoint de pagamento com crédito disponível em Java, permitindo desligamento do serviço legado .NET"
+- FORBIDDEN: "Implementar repositório de dados" (infrastructure detail)
+- CORRECT: "Persistência de transações garantida com integridade referencial, habilitando auditoria"
+- Layer 0 (Foundation) stories express enablement value: "Infraestrutura de banco pronta, desbloqueando N histórias de domínio"
+- Layer 4 (Cross-cutting) stories express risk reduction: "Cobertura de testes ≥ 95%, reduzindo risco de regressão em deploys futuros"
+
 #### Section 4 — Definições de Qualidade Locais
 
 **DoR Local**: Specific preconditions for this story. Use checkboxes `- [ ]`.
@@ -233,6 +252,12 @@ Break the story into granular tasks, each estimable at 2-4 hours:
 
 Use checkboxes `- [ ]` for tracking.
 
+**Mandatory test sub-task:** Every story MUST include at least one of these:
+- `[Test] Smoke/E2E: <teste automatizado validando critério de aceite principal de ponta a ponta>`
+- `[Test] Integração: <teste de integração validando fluxo completo>`
+
+A story without ANY automated end-to-end validation sub-task is INCOMPLETE and must not be saved.
+
 ### Step 2.X: Optional Jira Integration (per story)
 
 After generating each story's markdown content but before saving, optionally create the
@@ -252,7 +277,7 @@ For each story (no additional user prompting needed):
    - `description`: the user story text from Section 3 (the "Como **Persona**..." paragraph)
    - `contentFormat`: "markdown"
    - `parent` (optional): `jiraContext.epicIssueKey` — include only if `jiraContext.epicIssueKey` is present; omit entirely when absent (e.g., epic creation failed in Phase B) to avoid MCP errors and maintain non-blocking behavior
-   - `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }] }`
+   - `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }, { "name": "story-XXXX-YYYY" }] }` (where `story-XXXX-YYYY` is the local story ID for bidirectional sync)
 2. Capture the returned Jira issue key
 3. Replace `<CHAVE-JIRA>` in the story markdown with the actual key
 4. Store the mapping `{ storyId → jiraKey }` for later dependency linking
@@ -299,7 +324,7 @@ If no `jiraContext` was provided (skill invoked directly, not via orchestrator):
       - `description`: the user story text from Section 3
       - `contentFormat`: "markdown"
       - `parent` (optional): the epic key from step c, if provided
-      - `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }] }`
+      - `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }, { "name": "story-XXXX-YYYY" }] }` (where `story-XXXX-YYYY` is the local story ID for bidirectional sync)
 
 4. If "Não": replace all `<CHAVE-JIRA>` with `—` and continue
 

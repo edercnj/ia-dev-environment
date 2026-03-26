@@ -144,7 +144,7 @@ After generating the Epic markdown file:
    - `summary`: The Epic title (from the generated header)
    - `description`: The "Visão Geral" section text
    - `contentFormat`: "markdown"
-   - `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }] }`
+   - `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }, { "name": "epic-XXXX" }] }` (where `epic-XXXX` is the local ID for bidirectional sync)
 2. Capture the returned Jira issue key (e.g., "PROJ-123")
 3. Update `jiraContext.epicIssueKey` with the returned key
 4. Replace `<CHAVE-JIRA>` in the generated Epic markdown with the actual Jira key
@@ -163,10 +163,12 @@ For each story in the Epic's index:
 - Dependencies (Blocked By / Blocks) — must be symmetric
 - Applicable rules (reference Epic rules by ID)
 - User story description + technical context
+- **Entrega de Valor (Section 3.5)** — measurable business value from the business perspective
+  (NOT technical tasks — see x-story-create Section 3.5 rules for FORBIDDEN/REQUIRED patterns)
 - Data contracts (precise: field names, types, formats, derivation rules)
 - Mermaid sequence diagrams (real component names from the spec)
 - Gherkin acceptance criteria with mandatory categories (degenerate case, happy path, error paths, boundary values) ordered by Transformation Priority Premise (simplest degenerate → complex edge cases)
-- Sub-tasks tagged `[Dev]`, `[Test]`, `[Doc]`
+- Sub-tasks tagged `[Dev]`, `[Test]`, `[Doc]` — MUST include at least one `[Test] Smoke/E2E` sub-task
 
 Generate files as `docs/stories/epic-XXXX/story-XXXX-YYYY.md` following `_TEMPLATE-STORY.md`.
 
@@ -181,7 +183,7 @@ Pass `jiraContext` to the story generation logic. For each generated story:
    - `description`: The user story text from Section 3 (the "Como **Persona**..." paragraph)
    - `contentFormat`: "markdown"
    - `parent`: `jiraContext.epicIssueKey` (links the story to the parent epic) — include only if `jiraContext.epicIssueKey` is present; omit entirely when absent
-   - `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }] }`
+   - `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }, { "name": "story-XXXX-YYYY" }] }` (where `story-XXXX-YYYY` is the local story ID for bidirectional sync)
 2. Replace `<CHAVE-JIRA>` in the story markdown with the returned Jira key
 3. If creation fails for a story: warn, set `<CHAVE-JIRA>` to `—`, continue with remaining stories
 
@@ -240,6 +242,21 @@ If Jira integration was active, also report:
 - Stories created in Jira: N of M (successful/total)
 - Dependency links created: K
 - Failures: list any failed items
+
+### Quality Validation (before completing Phase E)
+
+Before reporting, validate that all generated artifacts meet these quality gates:
+
+- [ ] Every story has a "Entrega de Valor" section (Section 3.5) with measurable business value
+- [ ] Every story has at least one smoke/automated test sub-task `[Test] Smoke/E2E` in Section 8
+- [ ] Every story DoD Local includes automated test requirement
+- [ ] Stories are decomposed around business value, not technical layers (SD-10 compliance)
+- [ ] Story template includes `**Status:** Pendente` field in the header
+- [ ] "Entrega de Valor" column is populated in the Epic Index (Section 5)
+- [ ] Epic labels in Jira include local ID (e.g., `epic-XXXX`) for bidirectional sync
+- [ ] Story labels in Jira include local ID (e.g., `story-XXXX-YYYY`) for bidirectional sync
+
+If any story fails validation, fix it before saving. Do not skip validation.
 
 ## Language Rules
 
