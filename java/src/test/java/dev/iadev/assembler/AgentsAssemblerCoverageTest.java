@@ -208,7 +208,7 @@ class AgentsAssemblerCoverageTest {
     class BuildContextFull {
 
         @Test
-        @DisplayName("context has all 25 entries")
+        @DisplayName("context has all 26 entries")
         void buildContext_withAllFields_returnsExpectedEntries() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
@@ -229,7 +229,7 @@ class AgentsAssemblerCoverageTest {
             Map<String, Object> context =
                     ContextBuilder.buildContext(config);
 
-            assertThat(context).hasSize(25);
+            assertThat(context).hasSize(26);
             assertThat(context)
                     .containsEntry("project_name",
                             "agent-test")
@@ -239,7 +239,9 @@ class AgentsAssemblerCoverageTest {
                     .containsEntry("event_driven", "False")
                     .containsEntry("database_name",
                             "mongodb")
-                    .containsEntry("cache_name", "redis");
+                    .containsEntry("cache_name", "redis")
+                    .containsEntry("message_broker",
+                            "none");
         }
     }
 
