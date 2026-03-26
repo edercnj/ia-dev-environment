@@ -14,17 +14,19 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Writes core rules (01-05) and routes core knowledge pack
- * files during assembly.
+ * Writes core rules (01-08, plus conditional 09) and
+ * routes core knowledge pack files during assembly.
  *
  * <p>Handles:
  * <ul>
  *   <li>Copying core-rules/*.md with placeholder
- *       replacement</li>
+ *       replacement (rules 01-08)</li>
  *   <li>Routing core docs to knowledge packs</li>
  *   <li>Generating 01-project-identity.md</li>
  *   <li>Generating/copying 02-domain.md</li>
- *   <li>Copying conditional rules</li>
+ *   <li>Conditionally generating 09-data-management.md
+ *       when database is configured</li>
+ *   <li>Copying conditional resources</li>
  * </ul>
  *
  * <p>Extracted from {@link RulesAssembler} per
@@ -207,4 +209,38 @@ public final class CoreRulesWriter {
                         config, resourcesDir, skillsDir));
         return generated;
     }
+
+    /**
+     * Copies the conditional 09-data-management.md rule
+     * when database is configured (not "none").
+     *
+     * @param config   the project configuration
+     * @param rulesDir the rules output directory
+     * @param engine   the template engine
+     * @param context  the placeholder context
+     * @return list of generated file paths (0 or 1)
+     */
+    List<String> copyConditionalDataRule(
+            ProjectConfig config,
+            Path rulesDir,
+            TemplateEngine engine,
+            Map<String, Object> context) {
+        if (NONE_VALUE.equals(config.databaseName())) {
+            return List.of();
+        }
+        Path template = resourcesDir.resolve(
+                "core-rules/conditional/"
+                        + "09-data-management.md");
+        if (!Files.exists(template)
+                || !Files.isRegularFile(template)) {
+            return List.of();
+        }
+        Path dest = rulesDir.resolve(
+                "09-data-management.md");
+        String path = CopyHelpers.copyTemplateFile(
+                template, dest, engine, context);
+        return List.of(path);
+    }
+
+    private static final String NONE_VALUE = "none";
 }
