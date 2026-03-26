@@ -73,7 +73,7 @@ public final class SkillGroupRegistry {
                 "patterns", "protocols", "observability",
                 "resilience", "security", "compliance",
                 "api-design", "sre-practices",
-                "release-management"));
+                "release-management", "data-management"));
         SKILL_GROUPS.put("git-troubleshooting", List.of(
                 "x-git-push", "x-ops-troubleshoot",
                 "x-fix-pr-comments", "x-changelog"));
