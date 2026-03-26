@@ -149,6 +149,35 @@ Each rule gets a unique ID (RULE-001, RULE-002, ...) and is referenced in storie
 
 Rules that apply to only one journey stay in that journey's story, not in the Epic's rules table.
 
+## Business Value Decomposition (Mandatory)
+
+Stories MUST be decomposed around business value delivery, not technical artifact grouping.
+Each story answers: "What does the business gain when this is done?"
+
+**FORBIDDEN decomposition patterns:**
+- "Migrate classes A, B, C" (grouping by technical artifact)
+- "Implement repository layer" (grouping by architecture layer alone)
+- "Refactor module X" (grouping by code location)
+- "Create DTOs and mappers" (grouping by code type)
+
+**REQUIRED decomposition patterns:**
+- "Enable payment processing via new endpoint" (capability delivery)
+- "Support real-time balance queries" (user-facing value)
+- "Migrate payment endpoint to Java (decommission legacy)" (business outcome)
+- "Persisted transactions with referential integrity, enabling audit" (measurable quality)
+
+**Foundation stories (Layer 0) exception:**
+- These deliver technical enablement value
+- Each MUST state which domain stories it unblocks
+- Example: "Database schema for payments — unblocks story-0012-0003, story-0012-0004"
+
+**Cross-cutting stories (Layer 4) exception:**
+- These deliver risk reduction or operational value
+- Express value as risk mitigation: "Test coverage ≥ 95%, reducing regression risk in future deploys"
+
+**Validation:** Each story in the Epic Index MUST have a non-empty "Entrega de Valor" column.
+Stories without measurable value must be merged into value-delivering stories or reframed.
+
 ## Sizing and Granularity
 
 A well-sized story takes **1-3 sprints** for one developer. Use these signals:

@@ -118,7 +118,7 @@ Write the Epic following the `_TEMPLATE-EPIC.md` structure exactly:
 3. **Section 2 — Anexos e Referências**: Links to the input spec and related documents
 4. **Section 3 — Definições de Qualidade Globais**: DoR and DoD from Step 4
 5. **Section 4 — Regras de Negócio Transversais**: Rules table from Step 2
-6. **Section 5 — Índice de Histórias**: Story index from Step 3, with links and dependencies
+6. **Section 5 — Índice de Histórias**: Story index from Step 3, with links, dependencies, and **Entrega de Valor** column (measurable business value per story)
 
 **Directory and file naming** (mandatory — see SD-09 in decomposition guide):
 1. Determine the epic number: scan `docs/stories/` for existing `epic-XXXX` folders and use the next available number (default `0001` if none exist). Ask the user if unsure.
@@ -181,7 +181,9 @@ Call `mcp__atlassian__createJiraIssue` to create an Epic issue:
 - `summary`: the Epic title from the generated header
 - `description`: the "Visão Geral" section text
 - `contentFormat`: "markdown"
-- `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }] }`
+- `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }, { "name": "epic-XXXX" }] }`
+
+Where `epic-XXXX` is the local epic ID (e.g., `epic-0012`) for bidirectional ID sync.
 
 Capture the returned Jira issue key (e.g., "PROJ-123").
 

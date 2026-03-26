@@ -242,3 +242,36 @@ docs/stories/
 - Gherkin scenarios without degenerate cases (null, empty, zero) → **FORBIDDEN**
 - Boundary-dependent behavior without triplet scenarios (at-min, at-max, past-max) → **FORBIDDEN**
 - Gherkin scenarios ordered happy-path-first (degenerate cases must come first) → **REORDER**
+- Story decomposed by technical artifact (classes, layers, modules) instead of business value → **REFRAME**
+- Story without "Entrega de Valor" section (Section 3.5) → **FORBIDDEN**
+- Story without at least one smoke/E2E test sub-task in Section 8 → **FORBIDDEN**
+
+## SD-10: Business Value as Decomposition Driver
+
+Each story MUST deliver measurable business value. Technical decomposition (by layer, by class,
+by module) is forbidden as the primary decomposition axis.
+
+- **Test:** Can a product owner understand and validate the value delivered? If not, reframe.
+- **Minimum:** Each story has a "Entrega de Valor" section with Valor Principal + Métrica de Sucesso + Impacto no Negócio.
+- **Exception:** Layer 0 foundation stories express enablement value (what domain stories they unblock).
+- **Exception:** Layer 4 cross-cutting stories express risk reduction (e.g., "Test coverage ≥ 95%, reducing regression risk").
+
+**FORBIDDEN decomposition patterns:**
+- "Migrate classes A, B, C" (grouping by technical artifact)
+- "Implement repository layer" (grouping by architecture layer alone)
+- "Refactor module X" (grouping by code location)
+- "Create DTOs and mappers" (grouping by code type)
+
+**REQUIRED decomposition patterns:**
+- "Enable payment processing via new endpoint" (capability delivery)
+- "Support real-time balance queries" (user-facing value)
+- "Migrate payment endpoint to Java (decommission legacy)" (business outcome)
+
+## SD-11: Mandatory Automated Test per Story
+
+Every story MUST include at least one automated end-to-end validation sub-task in Section 8:
+- `[Test] Smoke/E2E: <test validating the primary acceptance criterion end-to-end>`
+- `[Test] Integração: <integration test validating the complete flow>`
+
+A story without ANY automated end-to-end validation sub-task is INCOMPLETE.
+This is a Definition of Done requirement — stories that lack automated tests cannot be marked as Concluída.

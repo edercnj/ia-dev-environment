@@ -625,6 +625,65 @@ After each story completes (success or failure), persist the result:
 3. The checkpoint is persisted atomically to `execution-state.json` via the checkpoint engine
 4. Between story completions, the checkpoint always reflects the current execution state
 
+### 1.6b Markdown Status Sync
+
+After updating the execution-state.json checkpoint (Section 1.6), propagate the status
+change to markdown files. This is executed by the orchestrator (not the subagent) to ensure
+consistency across local files and external systems.
+
+**On status SUCCESS:**
+
+1. Read `docs/stories/epic-{epicId}/story-{storyId}.md`
+2. Update `**Status:**` field from `Pendente` (or `Em Andamento`) to `Concluída`
+3. Write the updated story file
+
+4. Read `docs/stories/epic-{epicId}/IMPLEMENTATION-MAP.md`
+5. Find the row matching `story-{storyId}` in the Section 1 dependency matrix
+6. Update the Status column to `Concluída`
+7. Write the updated Implementation Map
+
+8. Jira transition (if story has a Jira key):
+   a. Read the `**Chave Jira:**` field from the story file
+   b. If it contains a real key (not `—` or `<CHAVE-JIRA>`):
+      - Call `mcp__atlassian__getTransitionsForJiraIssue` to get available transitions
+      - Find the transition to "Done" (match name containing "Done", "Concluído", "Resolved")
+      - Call `mcp__atlassian__transitionJiraIssue`
+      - If transition fails: log warning, continue (non-blocking)
+
+**On status FAILED or PARTIAL:**
+
+1. Update story file `**Status:**` to `Falha` or `Parcial` respectively
+2. Update IMPLEMENTATION-MAP Status column to `Falha` or `Parcial`
+3. Do NOT transition Jira issue
+
+**On status IN_PROGRESS:**
+
+1. Update story file `**Status:**` to `Em Andamento`
+2. Update IMPLEMENTATION-MAP Status column to `Em Andamento`
+
+**Status Mapping:**
+
+| Checkpoint Status | Markdown Status | Jira Transition |
+|---|---|---|
+| SUCCESS | Concluída | Done |
+| FAILED | Falha | — |
+| PARTIAL | Parcial | — |
+| IN_PROGRESS | Em Andamento | — |
+| BLOCKED | Bloqueada | — |
+| PENDING | Pendente | — |
+
+**Epic-level completion check:**
+
+After updating story status to SUCCESS, check if ALL stories in the epic have status SUCCESS
+in the checkpoint. If yes:
+1. Read `docs/stories/epic-{epicId}/EPIC-{epicId}.md`
+2. Update the `**Status:**` field from `Em Andamento` to `Concluído`
+3. If the epic has a Jira key (not `—` or `<CHAVE-JIRA>`):
+   - Call `mcp__atlassian__getTransitionsForJiraIssue` with the epic's Jira key
+   - Find the transition to "Done"
+   - Call `mcp__atlassian__transitionJiraIssue`
+   - If transition fails: log warning, continue (non-blocking)
+
 ### 1.7 Extension Points
 
 The following sections are placeholders for downstream stories:
