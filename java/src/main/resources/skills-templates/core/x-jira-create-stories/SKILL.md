@@ -12,7 +12,7 @@ argument-hint: "[EPIC_DIR_PATH or EPIC_ID]"
 
 ## Global Output Policy
 
-- **Language**: English ONLY.
+- **Language**: English ONLY for technical output. User-facing content (including prompts, summaries, and reports) may use pt-BR.
 - **Tone**: Technical, Direct, and Concise.
 - **Efficiency**: Remove all conversational fillers and greetings to save tokens.
 
