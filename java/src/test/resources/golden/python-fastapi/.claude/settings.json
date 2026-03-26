@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(gh pr *)",
+      "Bash(gh issue *)",
+      "Bash(gh repo *)",
+      "Bash(curl *)",
+      "Bash(chmod *)",
+      "Bash(ls *)",
+      "Bash(wc *)",
+      "Bash(test *)",
+      "Bash(command -v *)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(python3 *)",
+      "Bash(pip *)",
+      "Bash(pip3 *)",
+      "Bash(docker build *)",
+      "Bash(docker compose *)",
+      "Bash(docker run *)",
+      "Bash(docker ps *)",
+      "Bash(docker logs *)",
+      "Bash(docker exec *)",
+      "Bash(docker stop *)",
+      "Bash(docker info *)",
+      "Bash(kubectl apply *)",
+      "Bash(kubectl get *)",
+      "Bash(kubectl describe *)",
+      "Bash(kubectl logs *)",
+      "Bash(kubectl port-forward *)",
+      "Bash(kubectl delete *)",
+      "Bash(kubectl kustomize *)",
+      "Bash(minikube *)",
+      "Bash(newman *)",
+      "Bash(npx *)"
+    ]
+  }
+}

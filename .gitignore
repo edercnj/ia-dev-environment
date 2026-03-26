@@ -4,9 +4,6 @@
 # FUSE hidden files
 .fuse_hidden*
 
-.claude/
-.github/
-.codex/
 .env
 .env.local
 .env.development.local
