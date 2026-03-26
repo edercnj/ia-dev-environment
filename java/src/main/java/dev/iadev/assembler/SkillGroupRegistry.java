@@ -76,7 +76,7 @@ public final class SkillGroupRegistry {
                 "api-design", "sre-practices",
                 "release-management", "data-management",
                 "performance-engineering",
-                "feature-flags"));
+                "feature-flags", "finops"));
         SKILL_GROUPS.put("git-troubleshooting", List.of(
                 "x-git-push", "x-ops-troubleshoot",
                 "x-fix-pr-comments", "x-changelog"));
@@ -120,4 +120,46 @@ public final class SkillGroupRegistry {
                 c -> "terraform".equals(
                         c.infrastructure().iac()));
     }
+
+    /**
+     * Knowledge-pack skill conditions mapping skill name
+     * to a predicate on {@link ProjectConfig}.
+     *
+     * <p>Only knowledge-packs group skills listed here are
+     * filtered; unlisted packs are always included.</p>
+     */
+    public static final
+            Map<String, Predicate<ProjectConfig>>
+                    KP_SKILL_CONDITIONS;
+
+    private static final String KP_GROUP =
+            "knowledge-packs";
+
+    static {
+        KP_SKILL_CONDITIONS = new LinkedHashMap<>();
+        KP_SKILL_CONDITIONS.put(
+                "finops",
+                c -> !"none".equals(
+                        c.infrastructure()
+                                .cloudProvider()));
+    }
+
+    /**
+     * Returns the set of groups that have conditions.
+     *
+     * @return set of group names with conditions
+     */
+    public static Map<String, Predicate<ProjectConfig>>
+            conditionsForGroup(String group) {
+        if (INFRA_GROUP.equals(group)) {
+            return INFRA_SKILL_CONDITIONS;
+        }
+        if (KP_GROUP.equals(group)) {
+            return KP_SKILL_CONDITIONS;
+        }
+        return Map.of();
+    }
+
+    private static final String INFRA_GROUP =
+            "infrastructure";
 }

@@ -142,14 +142,17 @@ public final class GithubSkillsAssembler
             ProjectConfig config,
             String group,
             List<String> skillNames) {
-        if (!INFRA_GROUP.equals(group)) {
+        Map<String, Predicate<ProjectConfig>> conditions =
+                SkillGroupRegistry.conditionsForGroup(group);
+        if (conditions.isEmpty()) {
             return new ArrayList<>(skillNames);
         }
         List<String> filtered = new ArrayList<>();
         for (String name : skillNames) {
             Predicate<ProjectConfig> condition =
-                    INFRA_SKILL_CONDITIONS.get(name);
-            if (condition == null || condition.test(config)) {
+                    conditions.get(name);
+            if (condition == null
+                    || condition.test(config)) {
                 filtered.add(name);
             }
         }
