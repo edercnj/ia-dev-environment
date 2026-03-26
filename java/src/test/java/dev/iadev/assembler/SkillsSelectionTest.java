@@ -353,6 +353,7 @@ class SkillsSelectionTest {
                     .contains("infrastructure")
                     .contains("protocols")
                     .contains("story-planning")
+                    .contains("ci-cd-patterns")
                     .contains("layer-templates");
         }
 
@@ -414,7 +415,7 @@ class SkillsSelectionTest {
                     SkillsSelection.selectKnowledgePacks(
                             config);
 
-            assertThat(packs).hasSizeGreaterThanOrEqualTo(12);
+            assertThat(packs).hasSizeGreaterThanOrEqualTo(13);
         }
     }
 }

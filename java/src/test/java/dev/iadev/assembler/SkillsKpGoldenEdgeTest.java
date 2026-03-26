@@ -62,7 +62,84 @@ class SkillsKpGoldenEdgeTest {
             assertThat(s.resolve(
                     "story-planning/SKILL.md")).exists();
             assertThat(s.resolve(
+                    "ci-cd-patterns/SKILL.md")).exists();
+            assertThat(s.resolve(
                     "layer-templates/SKILL.md")).exists();
+        }
+
+        @Test
+        @DisplayName("ci-cd-patterns has reference files")
+        void assemble_ciCdPatterns_hasReferenceFiles(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            assembler.assemble(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(), outputDir);
+            Path kp = outputDir.resolve(
+                    "skills/ci-cd-patterns");
+            assertThat(kp.resolve("references/"
+                    + "github-actions-patterns.md"))
+                    .exists();
+            assertThat(kp.resolve("references/"
+                    + "pipeline-security.md"))
+                    .exists();
+            assertThat(kp.resolve("references/"
+                    + "caching-strategies.md"))
+                    .exists();
+        }
+
+        @Test
+        @DisplayName("ci-cd-patterns SKILL.md has valid"
+                + " frontmatter")
+        void assemble_ciCdPatterns_hasValidFrontmatter(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            assembler.assemble(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(), outputDir);
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "skills/ci-cd-patterns/"
+                                    + "SKILL.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("name: ci-cd-patterns")
+                    .contains("user-invocable: false");
+        }
+
+        @Test
+        @DisplayName("ci-cd-patterns contains pipeline"
+                + " patterns section")
+        void assemble_ciCdPatterns_hasPipelinePatterns(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            assembler.assemble(
+                    TestConfigBuilder.builder()
+                            .language("java", "21")
+                            .buildTool("maven")
+                            .container("docker")
+                            .build(),
+                    new TemplateEngine(), outputDir);
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "skills/ci-cd-patterns/"
+                                    + "SKILL.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("Pipeline Stages")
+                    .contains("Cross-Cutting Patterns");
         }
 
         @Test
