@@ -72,7 +72,7 @@ graph TD
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 1: Foundation (12 stories em paralelo)                                │
+│ PHASE 1: Foundation (13 stories em paralelo)                                │
 │                                                                             │
 │  [0001] PR/Issue Templates    [0002] CI/CD KP        [0003] Rules 07-09    │
 │  [0006] Incident/Postmortem   [0008] SRE KP          [0012] Release KP     │
@@ -90,7 +90,7 @@ graph TD
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ PHASE 2: Dependent Artifacts (11 stories)                                   │
+│ PHASE 2: Dependent Artifacts (9 stories)                                    │
 │                                                                             │
 │  [0004] CD Workflows  ←  0002                                              │
 │  [0007] Op. Runbook   ←  0006                                              │
