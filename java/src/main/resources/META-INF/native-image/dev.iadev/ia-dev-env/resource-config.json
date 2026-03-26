@@ -15,6 +15,7 @@
       { "pattern": "github-agents-templates/.*" },
       { "pattern": "github-hooks-templates/.*" },
       { "pattern": "github-instructions-templates/.*" },
+      { "pattern": "github-pr-issue-templates/.*" },
       { "pattern": "github-prompts-templates/.*" },
       { "pattern": "github-skills-templates/.*" },
       { "pattern": "hooks-templates/.*" },
