@@ -49,3 +49,4 @@ java/target/site/
 test-output/
 test-output-ts/
 output/
+.claude/worktrees/
