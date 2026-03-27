@@ -137,6 +137,50 @@ Senior Database Engineer with deep expertise in {{DB_TYPE}} schema design, query
 ### Verdict: APPROVE / REQUEST CHANGES
 ```
 
+## 18-Point Severity Checklist
+
+Used by the `x-review` skill as a parallel reviewer alongside security, QA, and performance engineers. Reads `database-patterns` KP and `data-management` KP for context. Generates findings report with severity classification.
+
+### CRITICAL (1-6) — Blocking issues, must fix before merge
+
+1. Schema design normalized to appropriate level (3NF minimum, denormalize with justification)
+2. Indexes cover all frequent query patterns (verified with EXPLAIN)
+3. No N+1 query patterns (batch fetch or JOIN used)
+4. Connection pool sized appropriately (formula-based, not arbitrary)
+5. Migration is backward-compatible (expand/contract pattern for breaking changes)
+6. Migration has rollback script (tested and verified)
+
+### MEDIUM (7-13) — Important issues, fix recommended before merge
+
+7. No raw SQL in application code (use parameterized queries or ORM)
+8. Sensitive data encrypted at rest (column-level or tablespace encryption)
+9. Audit logging for data modifications (trigger-based or application-level)
+10. Backup strategy defined and tested (restore drill completed)
+11. Data retention policy implemented (automated cleanup or archival)
+12. Foreign keys and constraints appropriate (not over-constrained, not under-constrained)
+13. Batch operations use pagination (LIMIT/OFFSET or cursor-based)
+
+### LOW (14-18) — Improvement suggestions, may be deferred
+
+14. Transaction scope minimized (short transactions, no long-running locks)
+15. Read replicas used for heavy reads (when available)
+16. Cache invalidation strategy defined (TTL, event-based, or write-through)
+17. Data validation at database level (CHECK constraints, NOT NULL, domain types)
+18. Monitoring for slow queries configured (pg_stat_statements, profiler)
+
+### Severity Distribution
+
+- **CRITICAL (1-6):** 6 items — Blocking issues that must be fixed before merge
+- **MEDIUM (7-13):** 7 items — Important issues, fix recommended before merge
+- **LOW (14-18):** 5 items — Improvement suggestions, may be deferred to next iteration
+
+### Integration Notes
+
+- Used by `x-review` skill as parallel reviewer alongside security, QA, performance engineers
+- Reads `database-patterns` KP and `data-management` KP for context
+- Generates findings report with severity classification
+- CRITICAL or MEDIUM findings result in REQUEST CHANGES verdict
+
 ## Rules
 - ALWAYS use project-standard data types (BIGINT for money, TIMESTAMP WITH TIME ZONE for dates)
 - ALWAYS include created_at and updated_at on every table/collection
