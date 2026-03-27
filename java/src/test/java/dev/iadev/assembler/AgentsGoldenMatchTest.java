@@ -98,6 +98,7 @@ class AgentsGoldenMatchTest {
                     "product-owner.md",
                     "qa-engineer.md",
                     "security-engineer.md",
+                    "sre-engineer.md",
                     "tech-lead.md",
                     "go-developer.md",
                     "api-engineer.md",

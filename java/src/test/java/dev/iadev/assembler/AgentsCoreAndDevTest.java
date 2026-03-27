@@ -42,7 +42,7 @@ class AgentsCoreAndDevTest {
     class CoreAgents {
 
         @Test
-        @DisplayName("generates 6 core agents")
+        @DisplayName("generates 7 core agents")
         void assemble_whenCalled_generatesCoreAgents(
                 @TempDir Path tempDir)
                 throws IOException {
@@ -81,6 +81,9 @@ class AgentsCoreAndDevTest {
                     "security-engineer.md"))
                     .exists();
             assertThat(agentsDir.resolve(
+                    "sre-engineer.md"))
+                    .exists();
+            assertThat(agentsDir.resolve(
                     "tech-lead.md"))
                     .exists();
         }
@@ -112,6 +115,7 @@ class AgentsCoreAndDevTest {
                     "product-owner.md",
                     "qa-engineer.md",
                     "security-engineer.md",
+                    "sre-engineer.md",
                     "tech-lead.md");
         }
 

@@ -200,9 +200,10 @@ they are used by skills (via Task tool) to delegate work to agents with specific
 | **product-owner** | `product-owner.md` |
 | **qa-engineer** | `qa-engineer.md` |
 | **security-engineer** | `security-engineer.md` |
+| **sre-engineer** | `sre-engineer.md` |
 | **tech-lead** | `tech-lead.md` |
 
-**Total: 10 agents**
+**Total: 11 agents**
 
 ---
 
