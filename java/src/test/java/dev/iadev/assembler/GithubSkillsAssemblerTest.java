@@ -61,21 +61,21 @@ class GithubSkillsAssemblerTest {
         }
 
         @Test
-        @DisplayName("dev group has 8 skills")
-        void assemble_devGroup_hasEightSkills() {
+        @DisplayName("dev group has 11 skills")
+        void assemble_devGroup_hasElevenSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("dev"))
-                    .hasSize(8);
+                    .hasSize(11);
         }
 
         @Test
-        @DisplayName("review group has 8 skills")
-        void assemble_reviewGroup_hasEightSkills() {
+        @DisplayName("review group has 9 skills")
+        void assemble_reviewGroup_hasNineSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("review"))
-                    .hasSize(8);
+                    .hasSize(9);
         }
 
         @Test
@@ -97,22 +97,22 @@ class GithubSkillsAssemblerTest {
         }
 
         @Test
-        @DisplayName("knowledge-packs group has 10 skills")
-        void assemble_knowledgePacksGroup_hasTenSkills() {
+        @DisplayName("knowledge-packs group has 16 skills")
+        void assemble_knowledgePacksGroup_hasSixteenSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("knowledge-packs"))
-                    .hasSize(10);
+                    .hasSize(16);
         }
 
         @Test
         @DisplayName("git-troubleshooting group"
-                + " has 4 skills")
-        void assemble_gitTroubleshootingGroup_hasFourSkills() {
+                + " has 6 skills")
+        void assemble_gitTroubleshootingGroup_hasSixSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("git-troubleshooting"))
-                    .hasSize(4);
+                    .hasSize(6);
         }
 
         @Test
@@ -282,6 +282,89 @@ class GithubSkillsAssemblerTest {
 
             assertThat(filtered)
                     .containsExactly("iac-terraform");
+        }
+    }
+
+    @Nested
+    @DisplayName("filterSkills — knowledge-packs"
+            + " feature gates")
+    class FilterSkillsKnowledgePacks {
+
+        @Test
+        @DisplayName("disaster-recovery included when"
+                + " container is docker")
+        void filterSkills_kp_drIncludedWhenDocker() {
+            GithubSkillsAssembler assembler =
+                    new GithubSkillsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("docker")
+                            .build();
+            List<String> skills = List.of(
+                    "architecture", "coding-standards",
+                    "disaster-recovery");
+
+            List<String> filtered =
+                    assembler.filterSkills(
+                            config,
+                            "knowledge-packs",
+                            skills);
+
+            assertThat(filtered)
+                    .contains("disaster-recovery")
+                    .contains("architecture")
+                    .contains("coding-standards");
+        }
+
+        @Test
+        @DisplayName("disaster-recovery excluded when"
+                + " container is none")
+        void filterSkills_kp_drExcludedWhenNone() {
+            GithubSkillsAssembler assembler =
+                    new GithubSkillsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("none")
+                            .build();
+            List<String> skills = List.of(
+                    "architecture", "coding-standards",
+                    "disaster-recovery");
+
+            List<String> filtered =
+                    assembler.filterSkills(
+                            config,
+                            "knowledge-packs",
+                            skills);
+
+            assertThat(filtered)
+                    .doesNotContain("disaster-recovery")
+                    .contains("architecture")
+                    .contains("coding-standards");
+        }
+
+        @Test
+        @DisplayName("unconditioned kp skills always"
+                + " included")
+        void filterSkills_kp_unconditionedAlwaysIncluded() {
+            GithubSkillsAssembler assembler =
+                    new GithubSkillsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("none")
+                            .build();
+            List<String> skills = List.of(
+                    "architecture", "resilience",
+                    "security");
+
+            List<String> filtered =
+                    assembler.filterSkills(
+                            config,
+                            "knowledge-packs",
+                            skills);
+
+            assertThat(filtered)
+                    .containsExactly("architecture",
+                            "resilience", "security");
         }
     }
 

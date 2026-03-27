@@ -16,9 +16,10 @@ import java.util.Map;
  *
  * <p>This is the first assembler in the pipeline (position 1 of
  * 23 per RULE-005). It delegates to specialized writers:
- * {@link CoreRulesWriter} for 6 core rules and conditionals,
- * {@link LanguageKpWriter} for language knowledge packs, and
- * {@link FrameworkKpWriter} for framework knowledge packs.</p>
+ * {@link CoreRulesWriter} for 8 core rules (plus conditional
+ * rule 09), {@link LanguageKpWriter} for language knowledge
+ * packs, and {@link FrameworkKpWriter} for framework knowledge
+ * packs.</p>
  *
  * <p>Assembly layers:
  * <ol>
@@ -153,6 +154,10 @@ public final class RulesAssembler implements Assembler {
                         config, rulesDir));
         generated.add(
                 coreWriter.copyDomainTemplate(
+                        config, rulesDir, engine,
+                        context));
+        generated.addAll(
+                coreWriter.copyConditionalDataRule(
                         config, rulesDir, engine,
                         context));
         generated.addAll(

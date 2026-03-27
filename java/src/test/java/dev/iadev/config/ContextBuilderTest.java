@@ -83,25 +83,25 @@ class ContextBuilderTest {
     }
 
     @Nested
-    @DisplayName("buildContext() produces exactly 25 fields")
+    @DisplayName("buildContext() produces exactly 27 fields")
     class FieldCount {
 
         @Test
-        @DisplayName("returns map with exactly 25 entries")
-        void buildContext_fullConfig_returns25Fields() {
+        @DisplayName("returns map with exactly 27 entries")
+        void buildContext_fullConfig_returns27Fields() {
             Map<String, Object> context =
                     ContextBuilder.buildContext(buildFullConfig());
 
-            assertThat(context).hasSize(25);
+            assertThat(context).hasSize(27);
         }
 
         @Test
-        @DisplayName("returns map with 25 entries for minimal")
-        void buildContext_minimalConfig_returns25Fields() {
+        @DisplayName("returns map with 27 entries for minimal")
+        void buildContext_minimalConfig_returns27Fields() {
             Map<String, Object> context =
                     ContextBuilder.buildContext(buildMinimalConfig());
 
-            assertThat(context).hasSize(25);
+            assertThat(context).hasSize(27);
         }
     }
 
@@ -187,8 +187,12 @@ class ContextBuilderTest {
 
             assertThat(ctx.get("database_name"))
                     .isEqualTo("postgresql");
+            assertThat(ctx.get("migration_name"))
+                    .isEqualTo("flyway");
             assertThat(ctx.get("cache_name"))
                     .isEqualTo("redis");
+            assertThat(ctx.get("message_broker"))
+                    .isEqualTo("none");
         }
 
         @Test
@@ -397,11 +401,11 @@ class ContextBuilderTest {
     }
 
     @Nested
-    @DisplayName("exact 25 field names")
+    @DisplayName("exact 27 field names")
     class ExactFieldNames {
 
         @Test
-        @DisplayName("context contains all 25 expected keys")
+        @DisplayName("context contains all 27 expected keys")
         void buildContext_allExpectedKeys_present() {
             Map<String, Object> ctx =
                     ContextBuilder.buildContext(buildFullConfig());
@@ -425,7 +429,9 @@ class ContextBuilderTest {
                     "api_gateway",
                     "service_mesh",
                     "database_name",
+                    "migration_name",
                     "cache_name",
+                    "message_broker",
                     "smoke_tests",
                     "contract_tests",
                     "performance_tests",

@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Tests for AssemblerPipeline — orchestrates 25 assemblers
+ * Tests for AssemblerPipeline — orchestrates 32 assemblers
  * per RULE-005.
  */
 @DisplayName("AssemblerPipeline")
@@ -37,9 +37,16 @@ class AssemblerPipelineTest {
             "GithubAgentsAssembler",
             "GithubHooksAssembler",
             "GithubPromptsAssembler",
+            "PrIssueTemplateAssembler",
             "DocsAssembler",
             "GrpcDocsAssembler",
             "RunbookAssembler",
+            "IncidentTemplatesAssembler",
+            "ReleaseChecklistAssembler",
+            "OperationalRunbookAssembler",
+            "SloSliTemplateAssembler",
+            "DocsContributingAssembler",
+            "DataMigrationPlanAssembler",
             "CodexAgentsMdAssembler",
             "CodexConfigAssembler",
             "CodexSkillsAssembler",
@@ -55,12 +62,12 @@ class AssemblerPipelineTest {
     class BuildAssemblers {
 
         @Test
-        @DisplayName("returns exactly 25 assembler descriptors")
-        void assemble_whenCalled_returnsExactly25() {
+        @DisplayName("returns exactly 32 assembler descriptors")
+        void assemble_whenCalled_returnsExactly32() {
             List<AssemblerDescriptor> descriptors =
                     AssemblerPipeline.buildAssemblers();
 
-            assertThat(descriptors).hasSize(25);
+            assertThat(descriptors).hasSize(32);
         }
 
         @Test
@@ -88,16 +95,30 @@ class AssemblerPipelineTest {
             assertThat(descriptors.get(7).target())
                     .isEqualTo(AssemblerTarget.GITHUB);
             assertThat(descriptors.get(13).target())
+                    .isEqualTo(AssemblerTarget.GITHUB);
+            assertThat(descriptors.get(14).target())
                     .isEqualTo(AssemblerTarget.DOCS);
-            assertThat(descriptors.get(15).target())
+            assertThat(descriptors.get(16).target())
                     .isEqualTo(AssemblerTarget.ROOT);
             assertThat(descriptors.get(17).target())
-                    .isEqualTo(AssemblerTarget.CODEX);
+                    .isEqualTo(AssemblerTarget.ROOT);
             assertThat(descriptors.get(18).target())
-                    .isEqualTo(AssemblerTarget.CODEX_AGENTS);
+                    .isEqualTo(AssemblerTarget.ROOT);
             assertThat(descriptors.get(19).target())
-                    .isEqualTo(AssemblerTarget.CODEX);
+                    .isEqualTo(AssemblerTarget.ROOT);
             assertThat(descriptors.get(20).target())
+                    .isEqualTo(AssemblerTarget.ROOT);
+            assertThat(descriptors.get(21).target())
+                    .isEqualTo(AssemblerTarget.ROOT);
+            assertThat(descriptors.get(22).target())
+                    .isEqualTo(AssemblerTarget.ROOT);
+            assertThat(descriptors.get(24).target())
+                    .isEqualTo(AssemblerTarget.CODEX);
+            assertThat(descriptors.get(25).target())
+                    .isEqualTo(AssemblerTarget.CODEX_AGENTS);
+            assertThat(descriptors.get(26).target())
+                    .isEqualTo(AssemblerTarget.CODEX);
+            assertThat(descriptors.get(27).target())
                     .isEqualTo(AssemblerTarget.ROOT);
         }
 

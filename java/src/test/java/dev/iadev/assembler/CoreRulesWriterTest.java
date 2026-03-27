@@ -17,9 +17,10 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for CoreRulesWriter — writes core rules (01-05),
+ * Tests for CoreRulesWriter — writes core rules (01-08),
  * routes core KPs, generates identity and domain files,
- * and copies conditional resources.
+ * copies conditional resources, and conditionally generates
+ * the 09-data-management rule when database is configured.
  */
 @DisplayName("CoreRulesWriter")
 class CoreRulesWriterTest {
@@ -279,6 +280,119 @@ class CoreRulesWriterTest {
             List<String> files = writer.copyConditionals(
                     config, skillsDir,
                     new TemplateEngine(), Map.of());
+
+            assertThat(files).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("copyConditionalDataRule")
+    class CopyConditionalDataRule {
+
+        @Test
+        @DisplayName("generates 09-data-management.md when"
+                + " database is configured")
+        void copy_withDatabase_generatesRule(
+                @TempDir Path tempDir) throws IOException {
+            Path resourceDir = tempDir.resolve("res");
+            Path condRules = resourceDir.resolve(
+                    "core-rules/conditional");
+            Files.createDirectories(condRules);
+            Files.writeString(
+                    condRules.resolve(
+                            "09-data-management.md"),
+                    "# Rule 09 — Data Management\n"
+                            + "DB: {DATABASE_NAME}\n"
+                            + "Migration: {DATABASE_NAME}\n",
+                    StandardCharsets.UTF_8);
+
+            Path rulesDir = tempDir.resolve("rules");
+            Files.createDirectories(rulesDir);
+
+            CoreRulesWriter writer =
+                    new CoreRulesWriter(resourceDir);
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .database("postgresql", "17")
+                            .build();
+            Map<String, Object> context =
+                    Map.of("database_name", "postgresql");
+
+            List<String> files =
+                    writer.copyConditionalDataRule(
+                            config, rulesDir,
+                            new TemplateEngine(), context);
+
+            assertThat(files).hasSize(1);
+            assertThat(files.get(0))
+                    .contains("09-data-management.md");
+            String content = Files.readString(
+                    rulesDir.resolve(
+                            "09-data-management.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("Data Management")
+                    .contains("postgresql");
+        }
+
+        @Test
+        @DisplayName("skips 09-data-management.md when"
+                + " database is none")
+        void copy_noDatabase_skipsRule(
+                @TempDir Path tempDir) throws IOException {
+            Path resourceDir = tempDir.resolve("res");
+            Path condRules = resourceDir.resolve(
+                    "core-rules/conditional");
+            Files.createDirectories(condRules);
+            Files.writeString(
+                    condRules.resolve(
+                            "09-data-management.md"),
+                    "# Rule 09\n",
+                    StandardCharsets.UTF_8);
+
+            Path rulesDir = tempDir.resolve("rules");
+            Files.createDirectories(rulesDir);
+
+            CoreRulesWriter writer =
+                    new CoreRulesWriter(resourceDir);
+            ProjectConfig config =
+                    TestConfigBuilder.minimal();
+
+            List<String> files =
+                    writer.copyConditionalDataRule(
+                            config, rulesDir,
+                            new TemplateEngine(), Map.of());
+
+            assertThat(files).isEmpty();
+            assertThat(rulesDir.resolve(
+                    "09-data-management.md"))
+                    .doesNotExist();
+        }
+
+        @Test
+        @DisplayName("skips when conditional template"
+                + " directory is missing")
+        void copy_missingTemplate_skips(
+                @TempDir Path tempDir) throws IOException {
+            Path resourceDir = tempDir.resolve("res");
+            Files.createDirectories(resourceDir);
+
+            Path rulesDir = tempDir.resolve("rules");
+            Files.createDirectories(rulesDir);
+
+            CoreRulesWriter writer =
+                    new CoreRulesWriter(resourceDir);
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .database("postgresql", "17")
+                            .build();
+
+            List<String> files =
+                    writer.copyConditionalDataRule(
+                            config, rulesDir,
+                            new TemplateEngine(),
+                            Map.of("database_name",
+                                    "postgresql"));
 
             assertThat(files).isEmpty();
         }

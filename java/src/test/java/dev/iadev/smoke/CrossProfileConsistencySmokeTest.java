@@ -100,6 +100,7 @@ class CrossProfileConsistencySmokeTest {
             "claude-settings",
             "github-hooks",
             "github-instructions",
+            "github-issue-templates",
             "github-prompts",
             "root-files",
             "tests");

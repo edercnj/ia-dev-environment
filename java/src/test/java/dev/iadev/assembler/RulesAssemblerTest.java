@@ -29,9 +29,9 @@ class RulesAssemblerTest {
     class CoreRules {
 
         @Test
-        @DisplayName("generates 6 core rule files for"
-                + " minimal config")
-        void assemble_whenCalled_generatesSixCoreRules(
+        @DisplayName("generates 8 core rule files for"
+                + " minimal config (no database)")
+        void assemble_whenCalled_generatesEightCoreRules(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = createMinimalResources(
@@ -63,6 +63,48 @@ class RulesAssemblerTest {
                     "05-quality-gates.md")).exists();
             assertThat(rulesDir.resolve(
                     "06-security-baseline.md"))
+                    .exists();
+            assertThat(rulesDir.resolve(
+                    "07-operations-baseline.md"))
+                    .exists();
+            assertThat(rulesDir.resolve(
+                    "08-release-process.md"))
+                    .exists();
+            assertThat(rulesDir.resolve(
+                    "09-data-management.md"))
+                    .doesNotExist();
+        }
+
+        @Test
+        @DisplayName("generates 9 rule files when database"
+                + " is configured")
+        void assemble_withDb_generatesNineRules(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path resourceDir = createMinimalResources(
+                    tempDir);
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            RulesAssembler assembler =
+                    new RulesAssembler(resourceDir);
+            ProjectConfig config = TestConfigBuilder
+                    .builder()
+                    .database("postgresql", "17")
+                    .build();
+
+            assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            Path rulesDir = outputDir.resolve("rules");
+            assertThat(rulesDir.resolve(
+                    "07-operations-baseline.md"))
+                    .exists();
+            assertThat(rulesDir.resolve(
+                    "08-release-process.md"))
+                    .exists();
+            assertThat(rulesDir.resolve(
+                    "09-data-management.md"))
                     .exists();
         }
 
@@ -215,7 +257,7 @@ class RulesAssemblerTest {
 
         @Test
         @DisplayName("config without database generates"
-                + " exactly core rules")
+                + " exactly core rules without data rule")
         void assemble_noDatabase_generatesOnlyCoreRules(
                 @TempDir Path tempDir)
                 throws IOException {
@@ -242,7 +284,167 @@ class RulesAssemblerTest {
 
                 assertThat(ruleFiles).doesNotContain(
                         "06-database-conventions.md");
+                assertThat(ruleFiles).doesNotContain(
+                        "09-data-management.md");
             }
+        }
+    }
+
+    @Nested
+    @DisplayName("assemble — rule 07 operations baseline")
+    class Rule07Operations {
+
+        @Test
+        @DisplayName("rule 07 contains health check sections")
+        void assemble_rule07_containsHealthChecks(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path resourceDir = createMinimalResources(
+                    tempDir);
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            RulesAssembler assembler =
+                    new RulesAssembler(resourceDir);
+            ProjectConfig config = TestConfigBuilder
+                    .minimal();
+
+            assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "rules/07-operations-baseline.md"),
+                    StandardCharsets.UTF_8);
+
+            assertThat(content)
+                    .contains("Health Checks")
+                    .contains("liveness")
+                    .contains("readiness")
+                    .contains("startup");
+        }
+
+        @Test
+        @DisplayName("rule 07 contains structured logging")
+        void assemble_rule07_containsStructuredLogging(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path resourceDir = createMinimalResources(
+                    tempDir);
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            RulesAssembler assembler =
+                    new RulesAssembler(resourceDir);
+            ProjectConfig config = TestConfigBuilder
+                    .minimal();
+
+            assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "rules/07-operations-baseline.md"),
+                    StandardCharsets.UTF_8);
+
+            assertThat(content)
+                    .contains("Structured Logging")
+                    .contains("Graceful Shutdown")
+                    .contains("Correlation ID");
+        }
+    }
+
+    @Nested
+    @DisplayName("assemble — rule 08 release process")
+    class Rule08Release {
+
+        @Test
+        @DisplayName("rule 08 contains semantic versioning")
+        void assemble_rule08_containsSemVer(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path resourceDir = createMinimalResources(
+                    tempDir);
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            RulesAssembler assembler =
+                    new RulesAssembler(resourceDir);
+            ProjectConfig config = TestConfigBuilder
+                    .minimal();
+
+            assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "rules/08-release-process.md"),
+                    StandardCharsets.UTF_8);
+
+            assertThat(content)
+                    .contains("Semantic Versioning")
+                    .contains("Conventional Commits")
+                    .contains("CHANGELOG");
+        }
+    }
+
+    @Nested
+    @DisplayName("assemble — rule 09 data management")
+    class Rule09DataManagement {
+
+        @Test
+        @DisplayName("rule 09 generated with database"
+                + " reference when db is configured")
+        void assemble_rule09_containsDbReference(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path resourceDir = createMinimalResources(
+                    tempDir);
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            RulesAssembler assembler =
+                    new RulesAssembler(resourceDir);
+            ProjectConfig config = TestConfigBuilder
+                    .builder()
+                    .database("postgresql", "17")
+                    .migration("flyway", "10.0")
+                    .build();
+
+            assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "rules/09-data-management.md"),
+                    StandardCharsets.UTF_8);
+
+            assertThat(content)
+                    .contains("Data Management")
+                    .contains("postgresql");
+        }
+
+        @Test
+        @DisplayName("rule 09 not generated when db is none")
+        void assemble_rule09_notGeneratedWithoutDb(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path resourceDir = createMinimalResources(
+                    tempDir);
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            RulesAssembler assembler =
+                    new RulesAssembler(resourceDir);
+            ProjectConfig config = TestConfigBuilder
+                    .minimal();
+
+            assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            assertThat(outputDir.resolve(
+                    "rules/09-data-management.md"))
+                    .doesNotExist();
         }
     }
 
@@ -429,6 +631,45 @@ class RulesAssemblerTest {
                     .contains("Secure Defaults");
         }
 
+        @Test
+        @DisplayName("07-operations-baseline matches golden"
+                + " file")
+        void golden_operationsBaseline_matchesGoldenFile()
+                throws IOException {
+            String expected = loadGoldenFile(
+                    "07-operations-baseline.md");
+
+            assertThat(expected)
+                    .contains("Operations Baseline")
+                    .contains("Health Checks");
+        }
+
+        @Test
+        @DisplayName("08-release-process matches golden"
+                + " file")
+        void golden_releaseProcess_matchesGoldenFile()
+                throws IOException {
+            String expected = loadGoldenFile(
+                    "08-release-process.md");
+
+            assertThat(expected)
+                    .contains("Release Process")
+                    .contains("Semantic Versioning");
+        }
+
+        @Test
+        @DisplayName("09-data-management matches golden"
+                + " file (java-quarkus has database)")
+        void golden_dataManagement_matchesGoldenFile()
+                throws IOException {
+            String expected = loadGoldenFile(
+                    "09-data-management.md");
+
+            assertThat(expected)
+                    .contains("Data Management")
+                    .contains("Migration");
+        }
+
         private String loadGoldenFile(String filename)
                 throws IOException {
             var url = getClass().getClassLoader()
@@ -501,6 +742,33 @@ class RulesAssemblerTest {
                 coreRules.resolve(
                         "06-security-baseline.md"),
                 "# Security Baseline\n",
+                StandardCharsets.UTF_8);
+        Files.writeString(
+                coreRules.resolve(
+                        "07-operations-baseline.md"),
+                "# Rule 07 — Operations Baseline\n"
+                        + "## Health Checks\n"
+                        + "liveness, readiness, startup\n"
+                        + "## Structured Logging\n"
+                        + "## Graceful Shutdown\n"
+                        + "## Correlation ID\n",
+                StandardCharsets.UTF_8);
+        Files.writeString(
+                coreRules.resolve(
+                        "08-release-process.md"),
+                "# Rule 08 — Release Process\n"
+                        + "## Semantic Versioning\n"
+                        + "## Conventional Commits\n"
+                        + "## CHANGELOG\n",
+                StandardCharsets.UTF_8);
+        Path condRules = coreRules.resolve("conditional");
+        Files.createDirectories(condRules);
+        Files.writeString(
+                condRules.resolve(
+                        "09-data-management.md"),
+                "# Rule 09 — Data Management\n"
+                        + "DB: {DATABASE_NAME}\n"
+                        + "## Migration\n",
                 StandardCharsets.UTF_8);
     }
 

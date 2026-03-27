@@ -21,7 +21,7 @@ public final class SkillRegistry {
     }
 
     /**
-     * Core knowledge packs included in every generation (12 entries).
+     * Core knowledge packs included in every generation (17 entries).
      *
      * <p>These packs are always included regardless of stack or profile.</p>
      */
@@ -37,7 +37,12 @@ public final class SkillRegistry {
             "infrastructure",
             "protocols",
             "story-planning",
-            "sre-practices"
+            "ci-cd-patterns",
+            "sre-practices",
+            "release-management",
+            "data-management",
+            "performance-engineering",
+            "feature-flags"
     );
 
     /**

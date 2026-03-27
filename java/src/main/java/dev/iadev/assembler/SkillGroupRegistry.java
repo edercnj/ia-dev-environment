@@ -53,13 +53,17 @@ public final class SkillGroupRegistry {
                 "x-dev-arch-update",
                 "layer-templates",
                 "x-dev-adr-automation",
-                "x-mcp-recommend"));
+                "x-mcp-recommend",
+                "x-perf-profile",
+                "x-setup-dev-environment",
+                "x-ci-cd-generate"));
         SKILL_GROUPS.put("review", List.of(
                 "x-review", "x-review-api", "x-review-pr",
                 "x-review-grpc", "x-review-events",
                 "x-review-gateway",
                 "x-codebase-audit",
-                "x-dependency-audit"));
+                "x-dependency-audit",
+                "x-threat-model"));
         SKILL_GROUPS.put("testing", List.of(
                 "x-test-plan", "x-test-run", "run-e2e",
                 "run-smoke-api", "run-contract-tests",
@@ -72,10 +76,16 @@ public final class SkillGroupRegistry {
                 "architecture", "coding-standards",
                 "patterns", "protocols", "observability",
                 "resilience", "security", "compliance",
-                "api-design", "sre-practices"));
+                "api-design", "sre-practices",
+                "release-management", "data-management",
+                "performance-engineering",
+                "feature-flags", "disaster-recovery",
+                "finops"));
         SKILL_GROUPS.put("git-troubleshooting", List.of(
                 "x-git-push", "x-ops-troubleshoot",
-                "x-fix-pr-comments", "x-changelog"));
+                "x-ops-incident",
+                "x-fix-pr-comments", "x-changelog",
+                "x-release"));
         SKILL_GROUPS.put("lib", List.of(
                 "x-lib-task-decomposer",
                 "x-lib-audit-rules",
@@ -116,4 +126,57 @@ public final class SkillGroupRegistry {
                 c -> "terraform".equals(
                         c.infrastructure().iac()));
     }
+
+    /**
+     * Knowledge-pack skill conditions mapping skill name
+     * to a predicate on {@link ProjectConfig}.
+     *
+     * <p>Only knowledge-packs group skills listed here are
+     * filtered; unlisted packs are always included.</p>
+     */
+    public static final
+            Map<String, Predicate<ProjectConfig>>
+                    KP_SKILL_CONDITIONS;
+
+    private static final String KP_GROUP =
+            "knowledge-packs";
+
+    static {
+        KP_SKILL_CONDITIONS = new LinkedHashMap<>();
+        KP_SKILL_CONDITIONS.put(
+                "disaster-recovery",
+                c -> {
+                    String ct = c.infrastructure()
+                            .container();
+                    return ct != null && !ct.isBlank()
+                            && !"none".equals(ct);
+                });
+        KP_SKILL_CONDITIONS.put(
+                "finops",
+                c -> {
+                    String p = c.infrastructure()
+                            .cloudProvider();
+                    return p != null && !p.isBlank()
+                            && !"none".equals(p);
+                });
+    }
+
+    /**
+     * Returns the set of groups that have conditions.
+     *
+     * @return set of group names with conditions
+     */
+    public static Map<String, Predicate<ProjectConfig>>
+            conditionsForGroup(String group) {
+        if (INFRA_GROUP.equals(group)) {
+            return INFRA_SKILL_CONDITIONS;
+        }
+        if (KP_GROUP.equals(group)) {
+            return KP_SKILL_CONDITIONS;
+        }
+        return Map.of();
+    }
+
+    private static final String INFRA_GROUP =
+            "infrastructure";
 }

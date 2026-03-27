@@ -49,17 +49,17 @@ class SkillGroupRegistryTest {
         }
 
         @Test
-        @DisplayName("dev group has 8 skills")
+        @DisplayName("dev group has 11 skills")
         void register_whenCalled_devGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("dev")).hasSize(8);
+                    .get("dev")).hasSize(11);
         }
 
         @Test
-        @DisplayName("review group has 8 skills")
+        @DisplayName("review group has 9 skills")
         void register_whenCalled_reviewGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("review")).hasSize(8);
+                    .get("review")).hasSize(9);
         }
 
         @Test
@@ -77,17 +77,17 @@ class SkillGroupRegistryTest {
         }
 
         @Test
-        @DisplayName("knowledge-packs group has 10 skills")
+        @DisplayName("knowledge-packs group has 16 skills")
         void register_whenCalled_knowledgePacksGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("knowledge-packs")).hasSize(10);
+                    .get("knowledge-packs")).hasSize(16);
         }
 
         @Test
-        @DisplayName("git-troubleshooting has 4 skills")
+        @DisplayName("git-troubleshooting has 6 skills")
         void register_whenCalled_gitTroubleshootingGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("git-troubleshooting")).hasSize(4);
+                    .get("git-troubleshooting")).hasSize(6);
         }
 
         @Test
@@ -204,6 +204,86 @@ class SkillGroupRegistryTest {
                     .INFRA_SKILL_CONDITIONS)
                     .isSameAs(SkillGroupRegistry
                             .INFRA_SKILL_CONDITIONS);
+        }
+    }
+
+    @Nested
+    @DisplayName("KP_SKILL_CONDITIONS")
+    class KpSkillConditions {
+
+        @Test
+        @DisplayName("contains exactly 2 conditions")
+        void kpConditions_whenCalled_containsTwoConditions() {
+            assertThat(SkillGroupRegistry
+                    .KP_SKILL_CONDITIONS)
+                    .hasSize(2);
+        }
+
+        @Test
+        @DisplayName("disaster-recovery requires"
+                + " non-none container")
+        void kpConditions_dr_requiresContainer() {
+            Predicate<ProjectConfig> cond =
+                    SkillGroupRegistry
+                            .KP_SKILL_CONDITIONS
+                            .get("disaster-recovery");
+            ProjectConfig docker =
+                    TestConfigBuilder.builder()
+                            .container("docker").build();
+            ProjectConfig none =
+                    TestConfigBuilder.builder()
+                            .container("none").build();
+            assertThat(cond.test(docker)).isTrue();
+            assertThat(cond.test(none)).isFalse();
+        }
+
+        @Test
+        @DisplayName("finops requires non-none"
+                + " cloud provider")
+        void kpConditions_finops_requiresCloudProvider() {
+            Predicate<ProjectConfig> cond =
+                    SkillGroupRegistry
+                            .KP_SKILL_CONDITIONS
+                            .get("finops");
+            ProjectConfig aws = TestConfigBuilder.builder()
+                    .cloudProvider("aws").build();
+            ProjectConfig none = TestConfigBuilder.builder()
+                    .cloudProvider("none").build();
+            assertThat(cond.test(aws)).isTrue();
+            assertThat(cond.test(none)).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("conditionsForGroup")
+    class ConditionsForGroup {
+
+        @Test
+        @DisplayName("infrastructure returns infra"
+                + " conditions")
+        void conditions_infra_returnsInfraConditions() {
+            assertThat(SkillGroupRegistry
+                    .conditionsForGroup("infrastructure"))
+                    .isSameAs(SkillGroupRegistry
+                            .INFRA_SKILL_CONDITIONS);
+        }
+
+        @Test
+        @DisplayName("knowledge-packs returns kp"
+                + " conditions")
+        void conditions_kp_returnsKpConditions() {
+            assertThat(SkillGroupRegistry
+                    .conditionsForGroup("knowledge-packs"))
+                    .isSameAs(SkillGroupRegistry
+                            .KP_SKILL_CONDITIONS);
+        }
+
+        @Test
+        @DisplayName("unknown group returns empty map")
+        void conditions_unknown_returnsEmpty() {
+            assertThat(SkillGroupRegistry
+                    .conditionsForGroup("story"))
+                    .isEmpty();
         }
     }
 }

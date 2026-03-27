@@ -178,12 +178,34 @@ final class SkillsCopyHelper {
                 continue;
             }
             Path target = dest.resolve(name);
-            if (Files.exists(target)) {
-                continue;
-            }
             if (Files.isDirectory(entry)) {
-                CopyHelpers.copyDirectory(entry, target);
-            } else {
+                if (Files.exists(target)
+                        && Files.isDirectory(target)) {
+                    mergeDirectory(entry, target);
+                } else if (!Files.exists(target)) {
+                    CopyHelpers.copyDirectory(
+                            entry, target);
+                }
+            } else if (!Files.exists(target)) {
+                CopyHelpers.copyStaticFile(entry, target);
+            }
+        }
+    }
+
+    /** Merges src into existing dest, skipping existing files. */
+    private static void mergeDirectory(
+            Path src, Path dest) {
+        for (Path entry : listEntriesSorted(src)) {
+            Path target = dest.resolve(
+                    entry.getFileName().toString());
+            if (Files.isDirectory(entry)) {
+                if (Files.exists(target)) {
+                    mergeDirectory(entry, target);
+                } else {
+                    CopyHelpers.copyDirectory(
+                            entry, target);
+                }
+            } else if (!Files.exists(target)) {
                 CopyHelpers.copyStaticFile(entry, target);
             }
         }

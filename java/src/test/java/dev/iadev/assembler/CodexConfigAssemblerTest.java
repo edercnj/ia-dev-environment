@@ -402,6 +402,7 @@ class CodexConfigAssemblerTest {
                     "product-owner",
                     "qa-engineer",
                     "security-engineer",
+                    "sre-engineer",
                     "tech-lead"
             };
             for (String name : names) {

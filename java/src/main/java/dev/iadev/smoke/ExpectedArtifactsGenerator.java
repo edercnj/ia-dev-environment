@@ -225,6 +225,9 @@ public final class ExpectedArtifactsGenerator {
         countCategory(categories, dir,
                 "github-hooks", ".github/hooks");
         countCategory(categories, dir,
+                "github-issue-templates",
+                ".github/ISSUE_TEMPLATE");
+        countCategory(categories, dir,
                 "github-top", ".github", true);
         countCategory(categories, dir,
                 "docs", "docs");
