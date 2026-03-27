@@ -49,10 +49,10 @@ class SkillGroupRegistryTest {
         }
 
         @Test
-        @DisplayName("dev group has 10 skills")
+        @DisplayName("dev group has 11 skills")
         void register_whenCalled_devGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("dev")).hasSize(10);
+                    .get("dev")).hasSize(11);
         }
 
         @Test
@@ -84,10 +84,10 @@ class SkillGroupRegistryTest {
         }
 
         @Test
-        @DisplayName("git-troubleshooting has 4 skills")
+        @DisplayName("git-troubleshooting has 6 skills")
         void register_whenCalled_gitTroubleshootingGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("git-troubleshooting")).hasSize(4);
+                    .get("git-troubleshooting")).hasSize(6);
         }
 
         @Test

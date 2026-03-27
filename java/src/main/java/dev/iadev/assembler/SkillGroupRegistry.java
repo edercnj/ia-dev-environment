@@ -55,7 +55,8 @@ public final class SkillGroupRegistry {
                 "x-dev-adr-automation",
                 "x-mcp-recommend",
                 "x-perf-profile",
-                "x-setup-dev-environment"));
+                "x-setup-dev-environment",
+                "x-ci-cd-generate"));
         SKILL_GROUPS.put("review", List.of(
                 "x-review", "x-review-api", "x-review-pr",
                 "x-review-grpc", "x-review-events",
@@ -82,7 +83,9 @@ public final class SkillGroupRegistry {
                 "finops"));
         SKILL_GROUPS.put("git-troubleshooting", List.of(
                 "x-git-push", "x-ops-troubleshoot",
-                "x-fix-pr-comments", "x-changelog"));
+                "x-ops-incident",
+                "x-fix-pr-comments", "x-changelog",
+                "x-release"));
         SKILL_GROUPS.put("lib", List.of(
                 "x-lib-task-decomposer",
                 "x-lib-audit-rules",
