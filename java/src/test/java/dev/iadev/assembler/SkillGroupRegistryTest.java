@@ -77,10 +77,10 @@ class SkillGroupRegistryTest {
         }
 
         @Test
-        @DisplayName("knowledge-packs group has 9 skills")
+        @DisplayName("knowledge-packs group has 10 skills")
         void register_whenCalled_knowledgePacksGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("knowledge-packs")).hasSize(9);
+                    .get("knowledge-packs")).hasSize(10);
         }
 
         @Test
@@ -204,6 +204,55 @@ class SkillGroupRegistryTest {
                     .INFRA_SKILL_CONDITIONS)
                     .isSameAs(SkillGroupRegistry
                             .INFRA_SKILL_CONDITIONS);
+        }
+    }
+
+    @Nested
+    @DisplayName("KP_SKILL_CONDITIONS")
+    class KpSkillConditions {
+
+        @Test
+        @DisplayName("contains exactly 1 condition")
+        void register_whenCalled_containsOneCondition() {
+            assertThat(SkillGroupRegistry
+                    .KP_SKILL_CONDITIONS)
+                    .hasSize(1);
+        }
+
+        @Test
+        @DisplayName("contains disaster-recovery key")
+        void register_whenCalled_containsDrKey() {
+            assertThat(SkillGroupRegistry
+                    .KP_SKILL_CONDITIONS.keySet())
+                    .containsExactly("disaster-recovery");
+        }
+
+        @Test
+        @DisplayName("disaster-recovery requires"
+                + " non-none container")
+        void register_whenCalled_drCondition() {
+            Predicate<ProjectConfig> cond =
+                    SkillGroupRegistry
+                            .KP_SKILL_CONDITIONS
+                            .get("disaster-recovery");
+            ProjectConfig docker =
+                    TestConfigBuilder.builder()
+                            .container("docker").build();
+            ProjectConfig none =
+                    TestConfigBuilder.builder()
+                            .container("none").build();
+            assertThat(cond.test(docker)).isTrue();
+            assertThat(cond.test(none)).isFalse();
+        }
+
+        @Test
+        @DisplayName("data matches GithubSkillsAssembler"
+                + " delegate")
+        void register_data_matchesKpDelegate() {
+            assertThat(GithubSkillsAssembler
+                    .KP_SKILL_CONDITIONS)
+                    .isSameAs(SkillGroupRegistry
+                            .KP_SKILL_CONDITIONS);
         }
     }
 }

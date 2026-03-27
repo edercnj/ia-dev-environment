@@ -162,6 +162,8 @@ public final class SkillsSelection {
                 SkillRegistry.CORE_KNOWLEDGE_PACKS);
         packs.add("layer-templates");
         packs.addAll(selectDataPacks(config));
+        packs.addAll(
+                selectDisasterRecoveryPack(config));
         return packs;
     }
 
@@ -171,6 +173,15 @@ public final class SkillsSelection {
                 || !"none".equals(
                         config.data().cache().name())) {
             return List.of("database-patterns");
+        }
+        return List.of();
+    }
+
+    private static List<String> selectDisasterRecoveryPack(
+            ProjectConfig config) {
+        if (!"none".equals(
+                config.infrastructure().container())) {
+            return List.of("disaster-recovery");
         }
         return List.of();
     }

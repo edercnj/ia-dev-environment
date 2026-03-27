@@ -17,31 +17,8 @@ import java.util.function.Predicate;
  * Assembles {@code .github/skills/} from templates for
  * GitHub Copilot, mirroring the Claude skills structure.
  *
- * <p>This is the tenth assembler in the pipeline (position
- * 10 of 23 per RULE-005). It generates skills organized
- * in 8 groups: story, dev, review, testing,
- * infrastructure, knowledge-packs, git-troubleshooting,
- * and lib.</p>
- *
- * <p>The infrastructure group applies conditional filtering
- * based on project configuration feature gates. The lib
- * group generates skills in a nested subdirectory
- * ({@code skills/lib/{name}/SKILL.md}).</p>
- *
- * <p>Each skill template is read from
- * {@code github-skills-templates/{group}/{name}.md},
- * rendered with placeholder replacement, and written to
- * {@code skills/{name}/SKILL.md}. Skills with a
- * {@code references/} subdirectory also copy that
- * structure with placeholder replacement.</p>
- *
- * <p>Example usage:
- * <pre>{@code
- * Assembler skills = new GithubSkillsAssembler();
- * List<String> files = skills.assemble(
- *     config, engine, outputDir);
- * }</pre>
- * </p>
+ * <p>Generates skills in 8 groups with conditional
+ * filtering for infrastructure and knowledge-packs.</p>
  *
  * @see Assembler
  */
@@ -54,6 +31,8 @@ public final class GithubSkillsAssembler
     private static final String SKILLS_OUTPUT = "skills";
     private static final String INFRA_GROUP =
             "infrastructure";
+    private static final String KP_GROUP =
+            "knowledge-packs";
 
     /**
      * Groups whose skills are nested under a subdirectory
@@ -70,6 +49,11 @@ public final class GithubSkillsAssembler
     static final Map<String, Predicate<ProjectConfig>>
             INFRA_SKILL_CONDITIONS =
             SkillGroupRegistry.INFRA_SKILL_CONDITIONS;
+
+    /** @see SkillGroupRegistry#KP_SKILL_CONDITIONS */
+    static final Map<String, Predicate<ProjectConfig>>
+            KP_SKILL_CONDITIONS =
+            SkillGroupRegistry.KP_SKILL_CONDITIONS;
 
     private final Path resourcesDir;
 
@@ -142,18 +126,32 @@ public final class GithubSkillsAssembler
             ProjectConfig config,
             String group,
             List<String> skillNames) {
-        if (!INFRA_GROUP.equals(group)) {
+        Map<String, Predicate<ProjectConfig>> conditions =
+                resolveConditions(group);
+        if (conditions == null) {
             return new ArrayList<>(skillNames);
         }
         List<String> filtered = new ArrayList<>();
         for (String name : skillNames) {
             Predicate<ProjectConfig> condition =
-                    INFRA_SKILL_CONDITIONS.get(name);
-            if (condition == null || condition.test(config)) {
+                    conditions.get(name);
+            if (condition == null
+                    || condition.test(config)) {
                 filtered.add(name);
             }
         }
         return filtered;
+    }
+
+    private Map<String, Predicate<ProjectConfig>>
+            resolveConditions(String group) {
+        if (INFRA_GROUP.equals(group)) {
+            return INFRA_SKILL_CONDITIONS;
+        }
+        if (KP_GROUP.equals(group)) {
+            return KP_SKILL_CONDITIONS;
+        }
+        return null;
     }
 
     private List<String> generateGroup(

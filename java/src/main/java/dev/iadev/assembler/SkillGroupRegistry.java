@@ -72,7 +72,7 @@ public final class SkillGroupRegistry {
                 "architecture", "coding-standards",
                 "patterns", "protocols", "observability",
                 "resilience", "security", "compliance",
-                "api-design"));
+                "api-design", "disaster-recovery"));
         SKILL_GROUPS.put("git-troubleshooting", List.of(
                 "x-git-push", "x-ops-troubleshoot",
                 "x-fix-pr-comments", "x-changelog"));
@@ -115,5 +115,26 @@ public final class SkillGroupRegistry {
                 "iac-terraform",
                 c -> "terraform".equals(
                         c.infrastructure().iac()));
+    }
+
+    /**
+     * Knowledge-pack skill conditions mapping skill name
+     * to a predicate on {@link ProjectConfig}.
+     *
+     * <p>Skills in the knowledge-packs group that have a
+     * condition here are only generated when the predicate
+     * returns true. Skills without a condition are always
+     * generated.</p>
+     */
+    public static final
+            Map<String, Predicate<ProjectConfig>>
+                    KP_SKILL_CONDITIONS;
+
+    static {
+        KP_SKILL_CONDITIONS = new LinkedHashMap<>();
+        KP_SKILL_CONDITIONS.put(
+                "disaster-recovery",
+                c -> !"none".equals(
+                        c.infrastructure().container()));
     }
 }
