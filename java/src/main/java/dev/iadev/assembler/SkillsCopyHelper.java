@@ -179,9 +179,10 @@ final class SkillsCopyHelper {
             }
             Path target = dest.resolve(name);
             if (Files.isDirectory(entry)) {
-                if (Files.exists(target)) {
+                if (Files.exists(target)
+                        && Files.isDirectory(target)) {
                     mergeDirectory(entry, target);
-                } else {
+                } else if (!Files.exists(target)) {
                     CopyHelpers.copyDirectory(
                             entry, target);
                 }

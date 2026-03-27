@@ -145,13 +145,20 @@ public final class SkillGroupRegistry {
         KP_SKILL_CONDITIONS = new LinkedHashMap<>();
         KP_SKILL_CONDITIONS.put(
                 "disaster-recovery",
-                c -> !"none".equals(
-                        c.infrastructure().container()));
+                c -> {
+                    String ct = c.infrastructure()
+                            .container();
+                    return ct != null && !ct.isBlank()
+                            && !"none".equals(ct);
+                });
         KP_SKILL_CONDITIONS.put(
                 "finops",
-                c -> !"none".equals(
-                        c.infrastructure()
-                                .cloudProvider()));
+                c -> {
+                    String p = c.infrastructure()
+                            .cloudProvider();
+                    return p != null && !p.isBlank()
+                            && !"none".equals(p);
+                });
     }
 
     /**

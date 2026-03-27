@@ -88,6 +88,11 @@ public final class ReleaseChecklistAssembler
                 buildContext(config);
         String rendered = engine.render(
                 TEMPLATE_PATH, context);
+        boolean hasSections = MANDATORY_SECTIONS.stream()
+                .allMatch(rendered::contains);
+        if (!hasSections) {
+            return List.of();
+        }
         Path destDir =
                 outputDir.resolve(OUTPUT_SUBDIR);
         CopyHelpers.ensureDirectory(destDir);

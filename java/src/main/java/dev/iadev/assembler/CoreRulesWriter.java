@@ -225,7 +225,9 @@ public final class CoreRulesWriter {
             Path rulesDir,
             TemplateEngine engine,
             Map<String, Object> context) {
-        if (NONE_VALUE.equals(config.databaseName())) {
+        String dbName = config.databaseName();
+        if (dbName == null || dbName.isBlank()
+                || NONE_VALUE.equals(dbName)) {
             return List.of();
         }
         Path template = resourcesDir.resolve(
