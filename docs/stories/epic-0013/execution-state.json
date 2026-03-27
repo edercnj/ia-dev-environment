@@ -33,7 +33,7 @@
     "story-0013-0005": { "id": "story-0013-0005", "phase": 3, "status": "SUCCESS", "retries": 0, "commitSha": "2bea4ff9", "findingsCount": 0, "summary": "Created x-ci-cd-generate skill with 5-step workflow, 6 capabilities, stack detection. Registered in dev group.", "duration": null },
     "story-0013-0010": { "id": "story-0013-0010", "phase": 3, "status": "SUCCESS", "retries": 0, "commitSha": "ea8b6d41", "findingsCount": 0, "summary": "Created x-ops-incident skill with 6-step workflow, SEV1-SEV4 classification, communication templates.", "duration": null },
     "story-0013-0014": { "id": "story-0013-0014", "phase": 3, "status": "SUCCESS", "retries": 0, "commitSha": "cda144d7", "findingsCount": 0, "summary": "Created x-release skill with 8-step workflow, version auto-detection, dry-run mode. 2834 tests pass.", "duration": null },
-    "story-0013-0026": { "id": "story-0013-0026", "phase": 4, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null }
+    "story-0013-0026": { "id": "story-0013-0026", "phase": 4, "status": "SUCCESS", "retries": 0, "commitSha": "40e5ca2f", "findingsCount": 2, "summary": "Integration validation: fixed missing x-release templates and stale assembler count. All 32 assemblers registered. 2834 tests pass.", "duration": null }
   },
   "phases": {
     "1": { "status": "PENDING", "stories": ["story-0013-0001","story-0013-0002","story-0013-0003","story-0013-0006","story-0013-0008","story-0013-0012","story-0013-0015","story-0013-0018","story-0013-0020","story-0013-0021","story-0013-0022","story-0013-0024","story-0013-0025"] },
@@ -42,7 +42,7 @@
     "4": { "status": "PENDING", "stories": ["story-0013-0026"] }
   },
   "metrics": {
-    "storiesCompleted": 25,
+    "storiesCompleted": 26,
     "storiesFailed": 0,
     "storiesBlocked": 0,
     "storiesTotal": 26
