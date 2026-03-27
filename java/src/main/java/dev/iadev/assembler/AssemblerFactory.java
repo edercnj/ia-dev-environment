@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Factory that instantiates the 30 assemblers in the
+ * Factory that instantiates the 32 assemblers in the
  * fixed order defined by RULE-005.
  *
  * <p>Extracted from {@link AssemblerPipeline} to keep
@@ -20,7 +20,7 @@ public final class AssemblerFactory {
     }
 
     /**
-     * Builds the ordered list of 30 assemblers per RULE-005.
+     * Builds the ordered list of 32 assemblers per RULE-005.
      *
      * <p>Delegates to group builders by category:
      * core, github, docs, codex, cicd, and readme.</p>
@@ -123,9 +123,15 @@ public final class AssemblerFactory {
                 desc("OperationalRunbookAssembler",
                         AssemblerTarget.ROOT,
                         new OperationalRunbookAssembler()),
+                desc("SloSliTemplateAssembler",
+                        AssemblerTarget.ROOT,
+                        new SloSliTemplateAssembler()),
                 desc("DocsContributingAssembler",
                         AssemblerTarget.ROOT,
-                        new DocsContributingAssembler()));
+                        new DocsContributingAssembler()),
+                desc("DataMigrationPlanAssembler",
+                        AssemblerTarget.ROOT,
+                        new DataMigrationPlanAssembler()));
     }
 
     private static List<AssemblerDescriptor>
