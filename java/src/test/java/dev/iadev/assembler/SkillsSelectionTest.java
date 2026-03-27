@@ -407,9 +407,9 @@ class SkillsSelectionTest {
         }
 
         @Test
-        @DisplayName("returns at least 12 packs for"
+        @DisplayName("returns at least 15 packs for"
                 + " minimal config")
-        void select_minimalConfig_returnsAtLeast12Packs() {
+        void select_minimalConfig_returnsAtLeast15Packs() {
             ProjectConfig config =
                     TestConfigBuilder.minimal();
 
@@ -418,6 +418,40 @@ class SkillsSelectionTest {
                             config);
 
             assertThat(packs).hasSizeGreaterThanOrEqualTo(15);
+        }
+
+        @Test
+        @DisplayName("config with container includes"
+                + " disaster-recovery")
+        void select_container_includesDrPack() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("docker")
+                            .build();
+
+            List<String> packs =
+                    SkillsSelection.selectKnowledgePacks(
+                            config);
+
+            assertThat(packs)
+                    .contains("disaster-recovery");
+        }
+
+        @Test
+        @DisplayName("config without container excludes"
+                + " disaster-recovery")
+        void select_noContainer_excludesDrPack() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("none")
+                            .build();
+
+            List<String> packs =
+                    SkillsSelection.selectKnowledgePacks(
+                            config);
+
+            assertThat(packs)
+                    .doesNotContain("disaster-recovery");
         }
     }
 }

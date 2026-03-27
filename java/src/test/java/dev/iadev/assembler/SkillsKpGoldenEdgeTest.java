@@ -568,6 +568,230 @@ class SkillsKpGoldenEdgeTest {
             assertThat(sreContent)
                     .doesNotContain("structured logging");
         }
+
+        @Test
+        @DisplayName("disaster-recovery generated"
+                + " when container set")
+        void assemble_container_generatesDr(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("docker")
+                            .build();
+            assembler.assemble(
+                    config, new TemplateEngine(),
+                    outputDir);
+            assertThat(outputDir.resolve(
+                    "skills/disaster-recovery/SKILL.md"))
+                    .exists();
+        }
+
+        @Test
+        @DisplayName("disaster-recovery has reference"
+                + " files when container set")
+        void assemble_container_drHasReferences(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("docker")
+                            .build();
+            assembler.assemble(
+                    config, new TemplateEngine(),
+                    outputDir);
+            Path drDir = outputDir.resolve(
+                    "skills/disaster-recovery");
+            assertThat(drDir.resolve(
+                    "references/"
+                    + "dr-strategy-decision-tree.md"))
+                    .exists();
+            assertThat(drDir.resolve(
+                    "references/"
+                    + "rpo-rto-calculator.md"))
+                    .exists();
+        }
+
+        @Test
+        @DisplayName("disaster-recovery excluded"
+                + " when container is none")
+        void assemble_noContainer_excludesDr(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("none")
+                            .build();
+            assembler.assemble(
+                    config, new TemplateEngine(),
+                    outputDir);
+            assertThat(outputDir.resolve(
+                    "skills/disaster-recovery"))
+                    .doesNotExist();
+        }
+
+        @Test
+        @DisplayName("resilience KP contains chaos"
+                + " engineering section")
+        void assemble_resilience_containsChaos(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            assembler.assemble(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(), outputDir);
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "skills/resilience/SKILL.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("## Chaos Engineering");
+            assertThat(content)
+                    .contains("### Principles");
+            assertThat(content)
+                    .contains("### Experiment Types");
+            assertThat(content)
+                    .contains("### Tools");
+            assertThat(content)
+                    .contains("### Game Day Planning");
+            assertThat(content)
+                    .contains("### Experiment Runbook"
+                            + " Template");
+        }
+
+        @Test
+        @DisplayName("resilience KP preserves original"
+                + " content after chaos extension")
+        void assemble_resilience_preservesOriginal(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            assembler.assemble(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(), outputDir);
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "skills/resilience/SKILL.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("circuit-breaker.md");
+            assertThat(content)
+                    .contains("rate-limiting.md");
+            assertThat(content)
+                    .contains("bulkhead.md");
+            assertThat(content)
+                    .contains("timeout-patterns.md");
+            assertThat(content)
+                    .contains("retry-with-backoff.md");
+            assertThat(content)
+                    .contains("fallback-degradation.md");
+            assertThat(content)
+                    .contains("backpressure.md");
+            assertThat(content)
+                    .contains("resilience-metrics.md");
+        }
+
+        @Test
+        @DisplayName("resilience KP has chaos"
+                + " engineering experiments reference")
+        void assemble_resilience_hasChaosRef(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            assembler.assemble(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(), outputDir);
+            assertThat(outputDir.resolve(
+                    "skills/resilience/references/"
+                    + "chaos-engineering-experiments.md"))
+                    .exists();
+        }
+
+        @Test
+        @DisplayName("disaster-recovery SKILL.md"
+                + " contains required sections")
+        void assemble_dr_containsRequiredSections(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("docker")
+                            .build();
+            assembler.assemble(
+                    config, new TemplateEngine(),
+                    outputDir);
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "skills/disaster-recovery/"
+                            + "SKILL.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("## DR Strategies");
+            assertThat(content)
+                    .contains("## RPO/RTO Definitions");
+            assertThat(content)
+                    .contains("## Failover Automation");
+            assertThat(content)
+                    .contains("## DR Testing Cadence");
+            assertThat(content)
+                    .contains("## Multi-Region Patterns");
+            assertThat(content)
+                    .contains("## Recovery Procedures"
+                            + " per Component");
+        }
+
+        @Test
+        @DisplayName("disaster-recovery SKILL.md has"
+                + " valid frontmatter")
+        void assemble_dr_hasValidFrontmatter(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("docker")
+                            .build();
+            assembler.assemble(
+                    config, new TemplateEngine(),
+                    outputDir);
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "skills/disaster-recovery/"
+                            + "SKILL.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("name: disaster-recovery");
+            assertThat(content)
+                    .contains("user-invocable: false");
+        }
     }
 
     @Nested

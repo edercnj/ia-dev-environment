@@ -78,7 +78,8 @@ public final class SkillGroupRegistry {
                 "api-design", "sre-practices",
                 "release-management", "data-management",
                 "performance-engineering",
-                "feature-flags", "finops"));
+                "feature-flags", "disaster-recovery",
+                "finops"));
         SKILL_GROUPS.put("git-troubleshooting", List.of(
                 "x-git-push", "x-ops-troubleshoot",
                 "x-fix-pr-comments", "x-changelog"));
@@ -139,6 +140,10 @@ public final class SkillGroupRegistry {
 
     static {
         KP_SKILL_CONDITIONS = new LinkedHashMap<>();
+        KP_SKILL_CONDITIONS.put(
+                "disaster-recovery",
+                c -> !"none".equals(
+                        c.infrastructure().container()));
         KP_SKILL_CONDITIONS.put(
                 "finops",
                 c -> !"none".equals(

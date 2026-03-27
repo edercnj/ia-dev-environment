@@ -33,8 +33,23 @@ Resilience patterns for my-quarkus-service using java 21 with quarkus.
 - **Rate Limiting**: Token bucket or sliding window, return HTTP 429 with `Retry-After`
 - **Backpressure**: Bounded queues with rejection policy, flow control in consumers
 
+### Chaos Engineering
+
+Proactive resilience validation through controlled fault injection.
+
+- **Principles**: Steady-state hypothesis, vary real-world events, run in production, automate experiments, minimize blast radius
+- **Experiment Types**:
+  - Network failure: packet loss, latency injection, DNS failure, partition simulation
+  - Latency injection: response delay, slow connections, timeout simulation
+  - Resource exhaustion: CPU stress, memory pressure, disk full, thread pool exhaustion
+  - Dependency failure: downstream unavailability, degraded responses, malformed responses
+- **Tools**: Chaos Monkey (Netflix), Litmus (K8s), Gremlin (SaaS), Toxiproxy (network), Chaos Mesh (K8s)
+- **Game Day**: Define objectives, scope blast radius, establish communication plan, prepare rollback
+- **Blast Radius Control**: Start small, expand gradually, automated kill switch, monitoring thresholds
+
 ## References
 
 - [Release It! — Michael Nygard](https://pragprog.com/titles/mnee2/release-it-second-edition/) -- Stability patterns: circuit breaker, bulkhead, timeout
 - [Microsoft Cloud Design Patterns](https://learn.microsoft.com/en-us/azure/architecture/patterns/) -- Retry, circuit breaker, throttling, and bulkhead patterns
 - [Google SRE Book — Handling Overload](https://sre.google/sre-book/handling-overload/) -- Load shedding, backpressure, and graceful degradation
+- [Principles of Chaos Engineering](https://principlesofchaos.org/) -- Foundational principles for chaos engineering practice

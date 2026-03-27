@@ -77,10 +77,10 @@ class SkillGroupRegistryTest {
         }
 
         @Test
-        @DisplayName("knowledge-packs group has 15 skills")
+        @DisplayName("knowledge-packs group has 16 skills")
         void register_whenCalled_knowledgePacksGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("knowledge-packs")).hasSize(15);
+                    .get("knowledge-packs")).hasSize(16);
         }
 
         @Test
@@ -212,11 +212,29 @@ class SkillGroupRegistryTest {
     class KpSkillConditions {
 
         @Test
-        @DisplayName("contains exactly 1 condition")
-        void kpConditions_whenCalled_containsOneCondition() {
+        @DisplayName("contains exactly 2 conditions")
+        void kpConditions_whenCalled_containsTwoConditions() {
             assertThat(SkillGroupRegistry
                     .KP_SKILL_CONDITIONS)
-                    .hasSize(1);
+                    .hasSize(2);
+        }
+
+        @Test
+        @DisplayName("disaster-recovery requires"
+                + " non-none container")
+        void kpConditions_dr_requiresContainer() {
+            Predicate<ProjectConfig> cond =
+                    SkillGroupRegistry
+                            .KP_SKILL_CONDITIONS
+                            .get("disaster-recovery");
+            ProjectConfig docker =
+                    TestConfigBuilder.builder()
+                            .container("docker").build();
+            ProjectConfig none =
+                    TestConfigBuilder.builder()
+                            .container("none").build();
+            assertThat(cond.test(docker)).isTrue();
+            assertThat(cond.test(none)).isFalse();
         }
 
         @Test
