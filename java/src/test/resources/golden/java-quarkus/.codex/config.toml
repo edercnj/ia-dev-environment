@@ -53,6 +53,10 @@ description = "Global Behavior & Language Policy"
 description = "Global Behavior & Language Policy"
 
 
+[agents.sre-engineer]
+description = "Global Behavior & Language Policy"
+
+
 [agents.tech-lead]
 description = "Global Behavior & Language Policy"
 

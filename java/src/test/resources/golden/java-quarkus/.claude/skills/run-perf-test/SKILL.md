@@ -119,3 +119,166 @@ Performance tests require realistic data generators:
 - [ ] Test data is varied and realistic
 - [ ] Results report generated with metrics vs SLA comparison
 - [ ] Rate limiting adjusted for test (not interfering with load)
+- [ ] Baseline saved for regression detection (if first run)
+- [ ] Regression comparison executed against stored baseline
+- [ ] Threshold validation passed for p99 and throughput
+
+## Regression Detection
+
+Compare current test results against a stored baseline to detect performance regressions automatically. When `--compare-baseline` is specified, the skill loads `docs/performance/baseline.json` and compares each metric.
+
+### Detection Rules
+
+| Metric | Regression Condition | Severity |
+|--------|---------------------|----------|
+| p99 latency | Current > baseline * 1.2 (20% degradation) | FAIL |
+| p95 latency | Current > baseline * 1.15 (15% degradation) | WARN |
+| throughput (RPS) | Current < baseline * 0.85 (15% drop) | FAIL |
+| error rate | Current > baseline + 0.5% (absolute) | FAIL |
+
+### Detection Flow
+
+```
+1. Execute performance tests (normal scenario)
+2. Collect metrics (p50, p95, p99, throughput, error_rate)
+3. Load baseline from docs/performance/baseline.json
+4. Compare each metric per endpoint/operation
+5. Classify: PASS (within threshold) or FAIL (regression detected)
+6. Generate comparison report with delta percentages
+```
+
+## Baseline Management
+
+Manage performance baselines for regression detection.
+
+### Save Baseline
+
+```
+/run-perf-test baseline --save-baseline
+/run-perf-test normal --save-baseline
+```
+
+When `--save-baseline` is specified:
+
+1. Execute the selected scenario
+2. Collect all metrics
+3. Write results to `docs/performance/baseline.json`
+4. Overwrite existing baseline (with backup to `baseline.prev.json`)
+
+### Compare Against Baseline
+
+```
+/run-perf-test normal --compare-baseline
+/run-perf-test peak --compare-baseline
+```
+
+When `--compare-baseline` is specified:
+
+1. Execute the selected scenario
+2. Load `docs/performance/baseline.json`
+3. Compare metrics per endpoint/operation
+4. Report PASS/FAIL with delta percentages
+
+### baseline.json Structure
+
+```json
+{
+  "version": "1.0",
+  "timestamp": "ISO-8601",
+  "scenario": "normal",
+  "metrics": {
+    "endpoint_or_operation": {
+      "p50_ms": 10,
+      "p95_ms": 45,
+      "p99_ms": 95,
+      "throughput_rps": 1200,
+      "error_rate_pct": 0.1
+    }
+  }
+}
+```
+
+## Threshold Validation
+
+Threshold validation enforces hard limits on performance metrics. When any threshold is exceeded, the test run reports FAIL.
+
+### Default Thresholds
+
+| Metric | Absolute Threshold | Relative Threshold (vs baseline) |
+|--------|-------------------|--------------------------------|
+| p99 latency | Scenario SLA (see table above) | +20% vs baseline |
+| p95 latency | Scenario SLA (see table above) | +15% vs baseline |
+| throughput | Scenario minimum TPS | -15% vs baseline |
+| error rate | Scenario max error rate | +0.5% absolute vs baseline |
+
+### Validation Logic
+
+```
+FOR each endpoint/operation in results:
+  IF baseline exists AND --compare-baseline:
+    IF p99_current > p99_baseline * 1.20:
+      FAIL "p99 regression: {delta}% increase"
+    IF throughput_current < throughput_baseline * 0.85:
+      FAIL "throughput regression: {delta}% decrease"
+    IF error_rate_current > error_rate_baseline + 0.5:
+      FAIL "error rate regression: {delta}% increase"
+  ALWAYS:
+    IF p99_current > scenario_sla_p99:
+      FAIL "p99 exceeds SLA: {value}ms > {sla}ms"
+```
+
+## Comparison Report
+
+When regression detection runs, generate a structured comparison report:
+
+### Report Format
+
+```markdown
+# Performance Comparison Report
+
+**Date:** YYYY-MM-DD
+**Scenario:** normal
+**Baseline:** YYYY-MM-DD (from baseline.json)
+
+## Summary
+
+| Status | Count |
+|--------|-------|
+| PASS   | N     |
+| FAIL   | N     |
+| WARN   | N     |
+
+## Results by Endpoint
+
+| Endpoint | Metric | Baseline | Current | Delta | Status |
+|----------|--------|----------|---------|-------|--------|
+| /api/orders | p50_ms | 10 | 12 | +20.0% | WARN |
+| /api/orders | p95_ms | 45 | 43 | -4.4% | PASS |
+| /api/orders | p99_ms | 95 | 142 | +49.5% | FAIL |
+| /api/orders | throughput_rps | 1200 | 1150 | -4.2% | PASS |
+| /api/orders | error_rate_pct | 0.1 | 0.1 | +0.0% | PASS |
+
+## Regressions Detected
+
+### /api/orders -- p99 Latency
+
+- **Baseline:** 95ms
+- **Current:** 142ms
+- **Delta:** +49.5%
+- **Threshold:** +20%
+- **Action Required:** Investigate latency increase
+
+## Recommendations
+
+- Profile the regressed endpoints using `/x-perf-profile cpu`
+- Check recent code changes affecting the hot path
+- Verify infrastructure resources (CPU, memory, network)
+```
+
+### Integration with x-perf-profile
+
+When regressions are detected, the comparison report recommends using `/x-perf-profile` to investigate:
+
+- `/x-perf-profile cpu` -- for latency regressions
+- `/x-perf-profile memory` -- for throughput regressions with memory pressure
+- `/x-perf-profile io` -- for I/O-related performance degradation

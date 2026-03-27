@@ -54,6 +54,7 @@ public final class SkillGroupRegistry {
                 "layer-templates",
                 "x-dev-adr-automation",
                 "x-mcp-recommend",
+                "x-perf-profile",
                 "x-setup-dev-environment"));
         SKILL_GROUPS.put("review", List.of(
                 "x-review", "x-review-api", "x-review-pr",

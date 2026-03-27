@@ -72,8 +72,59 @@ Before running performance tests, read:
 - [ ] Memory growth monitored during sustained test
 - [ ] Test data is varied and realistic
 
+## Regression Detection
+
+Compare current test results against a stored baseline to detect performance regressions. Use `--compare-baseline` to load `docs/performance/baseline.json` and compare each metric.
+
+| Metric | Regression Condition | Severity |
+|--------|---------------------|----------|
+| p99 latency | Current > baseline * 1.2 (20% degradation) | FAIL |
+| p95 latency | Current > baseline * 1.15 (15% degradation) | WARN |
+| throughput (RPS) | Current < baseline * 0.85 (15% drop) | FAIL |
+| error rate | Current > baseline + 0.5% (absolute) | FAIL |
+
+## Baseline Management
+
+Save and compare performance baselines:
+
+- `--save-baseline` — Execute scenario and save results to `docs/performance/baseline.json`
+- `--compare-baseline` — Execute scenario and compare against stored baseline
+
+### baseline.json Structure
+
+```json
+{
+  "version": "1.0",
+  "timestamp": "ISO-8601",
+  "metrics": {
+    "endpoint_or_operation": {
+      "p50_ms": 10,
+      "p95_ms": 45,
+      "p99_ms": 95,
+      "throughput_rps": 1200,
+      "error_rate_pct": 0.1
+    }
+  }
+}
+```
+
+## Threshold Validation
+
+Enforces hard limits on performance metrics. When any threshold is exceeded, the test reports FAIL.
+
+- p99 exceeding scenario SLA or +20% vs baseline triggers FAIL
+- throughput dropping below baseline by 15% triggers FAIL
+- Error rate exceeding baseline by 0.5% absolute triggers FAIL
+
+## Comparison Report
+
+When `--compare-baseline` runs, generates a structured report with delta percentages per endpoint/operation showing PASS/FAIL/WARN status for each metric.
+
+When regressions are detected, recommends using `/x-perf-profile` to investigate the affected endpoints.
+
 ## Detailed References
 
 For in-depth guidance on performance testing, consult:
 - `.github/skills/run-perf-test/SKILL.md`
 - `.github/skills/testing/SKILL.md`
+- `.github/skills/performance-engineering/SKILL.md`
