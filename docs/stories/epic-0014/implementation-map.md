@@ -4,11 +4,11 @@
 
 | Story | Título | Blocked By | Blocks | Status | Test Plan |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| story-0014-0001 | Criar Templates Ausentes | — | story-0014-0003, story-0014-0004 | Pendente | Pending |
-| story-0014-0002 | Remover Fallback G1-G7 | — | story-0014-0006 | Pendente | Pending |
+| story-0014-0001 | Criar Templates Ausentes | — | story-0014-0003, story-0014-0004 | Concluída | Pending |
+| story-0014-0002 | Remover Fallback G1-G7 | — | story-0014-0006 | Concluída | Pending |
 | story-0014-0003 | IDs @GK-N no Gherkin | story-0014-0001 | story-0014-0004 | Pendente | Pending |
 | story-0014-0004 | Sub-tarefas TDD-Cycle | story-0014-0001, story-0014-0003 | story-0014-0006 | Pendente | Pending |
-| story-0014-0005 | Commit Ordering | — | story-0014-0006 | Pendente | Pending |
+| story-0014-0005 | Commit Ordering | — | story-0014-0006 | Concluída | Pending |
 | story-0014-0006 | TDD Compliance Integrity Gate | story-0014-0002, story-0014-0004, story-0014-0005 | story-0014-0007 | Pendente | Pending |
 | story-0014-0007 | Checklists QA/TL + Quality Gates | story-0014-0006 | story-0014-0008 | Pendente | Pending |
 | story-0014-0008 | TDD Metrics no Execution Report | story-0014-0006 | — | Pendente | Pending |

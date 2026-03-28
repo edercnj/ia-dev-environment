@@ -187,8 +187,8 @@ Launch a **single** `general-purpose` subagent for implementation:
 >    - **RED:** Write the failing unit test for UT-N
 >    - **GREEN:** Implement the MINIMUM production code to pass (respecting layer order: domain → ports → adapters → application → inbound)
 >    - **REFACTOR:** Improve design (extract method if > 25 lines, eliminate duplication) — NEVER add behavior
+>    - **COMMIT:** Atomic commit immediately after each Red-Green-Refactor cycle using the commit format decision table below
 >    - **Compile check:** `{{COMPILE_COMMAND}}` — error blocks next cycle
->    - **Atomic commit:** test + implementation in one commit using TDD format (`[TDD]` suffix)
 >
 > 2.2. **Verify Acceptance Test:**
 >    - After all UT-N for AT-1 complete → run AT-1, it should now be GREEN
@@ -199,10 +199,27 @@ Launch a **single** `general-purpose` subagent for implementation:
 >    - Run `{{TEST_COMMAND}}` and `{{COVERAGE_COMMAND}}`
 >    - Coverage targets: line ≥ 95%, branch ≥ 90%
 >
-> **Step 3 — Commit each TDD cycle** atomically following git conventions:
-> - Use `feat(scope): implement [behavior] [TDD]` for combined cycles
-> - Or `test(scope): [TDD:RED]` + `feat(scope): [TDD:GREEN]` + `refactor(scope): [TDD:REFACTOR]` for fine-grained history
-> - Git history should tell TPP progression (simple to complex)
+> **Commit Format Decision Table:**
+>
+> | Scenario | Format | Rationale |
+> |----------|--------|-----------|
+> | Simple TDD cycle (<50 lines changed) | Combined: `feat(scope): implement [behavior] [TDD]` | Lower overhead, acceptable traceability |
+> | Complex TDD cycle (>=50 lines changed) | Fine-grained: `test(scope): [TDD:RED]` + `feat(scope): [TDD:GREEN]` + `refactor(scope): [TDD:REFACTOR]` | Verifiable test-first pattern in git log |
+> | Non-trivial refactoring | Separate: `refactor(scope): [TDD:REFACTOR]` | Proves no behavior was added during refactoring |
+> | Epic execution with TDD gate | Fine-grained (mandatory) | Required for automated integrity gate verification |
+>
+> **Line threshold:** 50 lines refers to the total lines changed (test + production code) in one complete TDD cycle.
+>
+> **Fine-grained ordering:** When using fine-grained format, commits MUST appear in this order per cycle:
+> 1. `test(scope): ... [TDD:RED]` — the failing test commit
+> 2. `feat(scope): ... [TDD:GREEN]` — the minimum implementation commit
+> 3. `refactor(scope): ... [TDD:REFACTOR]` — the design improvement commit (omit if refactoring is a noop)
+>
+> This ordering makes the test-first pattern visible in `git log --oneline`.
+>
+> **Default (backward compatibility):** When no explicit criterion applies (e.g., stories created before this decision table), use the combined `[TDD]` format.
+>
+> Git history should tell TPP progression (simple to complex).
 >
 > Report: TDD cycles completed, acceptance tests status, coverage numbers.
 
