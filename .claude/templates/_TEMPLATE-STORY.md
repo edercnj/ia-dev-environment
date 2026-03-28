@@ -141,6 +141,8 @@ sequenceDiagram
 > **REGRAS OBRIGATORIAS:**
 > - Cada cenario DEVE ter um ID unico `@GK-N` (onde N e sequencial: 1, 2, 3, ...)
 > - IDs `@GK-N` sao **imutaveis** apos criacao — NUNCA renumerar ou reutilizar um ID
+> - Novos cenarios recebem o proximo numero disponivel (sequenciamento append-only)
+> - Cenarios removidos: o numero `@GK-N` e **aposentado**, nunca reutilizado (ex: se `@GK-2` e removido, o proximo cenario recebe `@GK-4`, nao `@GK-2`)
 > - Minimo de **4 cenarios** por historia (degenerate + happy + error + boundary/edge)
 > - Ordenacao **TPP obrigatoria**: degenerate -> happy -> error -> boundary -> edge case
 > - Cenarios devem usar valores concretos, nao abstracoes

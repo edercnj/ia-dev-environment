@@ -218,6 +218,18 @@ Participant naming rules:
 
 Write Gherkin scenarios in Portuguese (DADO/QUANDO/ENTÃO/E/MAS).
 
+**@GK-N ID rules (Non-Negotiable):**
+- Each Gherkin scenario MUST have a stable tag `@GK-N` (where N is a sequential integer starting at 1)
+- Format: `@GK-N` tag on its own line before `Cenario:`, e.g.:
+  ```gherkin
+  @GK-1
+  Cenario: Entrada nula retorna erro de validacao
+  ```
+- FORBIDDEN: renumbering `@GK-N` after initial creation — IDs are **immutable**
+- New scenarios receive the next available number (append-only sequencing)
+- Removed scenarios: the `@GK-N` number is **retired**, never reused
+- Example: if `@GK-2` is removed, the next new scenario gets `@GK-4` (not `@GK-2`)
+
 **Mandatory scenario categories (TPP order):**
 1. **Degenerate cases** (first): null input, empty collection, zero value, missing required field — at least 1 scenario
 2. **Happy path**: Main success flow with concrete values — at least 1 scenario
