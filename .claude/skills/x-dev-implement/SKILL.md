@@ -1,6 +1,6 @@
 ---
 name: x-dev-implement
-description: "Implements a feature/story using TDD (Red-Green-Refactor) workflow. Delegates preparation to a subagent that reads architecture, coding, and test plan KPs, then implements test-first with Double-Loop TDD, layer-by-layer with compile checks after each cycle."
+description: "Implements a feature/story using TDD (Red-Green-Refactor-Commit) workflow. Delegates preparation to a subagent that reads architecture, coding, and test plan KPs, then implements test-first with Double-Loop TDD, layer-by-layer with atomic commits and compile checks after each cycle."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[STORY-ID or feature-description]"
 ---
@@ -26,9 +26,8 @@ argument-hint: "[STORY-ID or feature-description]"
 
 ```
 1. PREPARE + UNDERSTAND  -> Subagent reads KPs + test plan, produces TDD implementation plan
-2. TDD LOOP              -> For each scenario (TPP order): RED -> GREEN -> REFACTOR -> compile check
+2. TDD LOOP              -> For each scenario (TPP order): RED -> GREEN -> REFACTOR -> COMMIT -> compile check
 3. VALIDATE              -> Coverage thresholds, all acceptance tests GREEN (inline)
-4. COMMIT                -> Atomic TDD commits: one per Red-Green-Refactor cycle (inline)
 ```
 
 ## Step 1: Prepare + Understand (Subagent via Task)
@@ -45,7 +44,7 @@ Launch a **single** `general-purpose` subagent:
 > - Extract: acceptance tests (AT-N), unit tests in TPP order (UT-N), integration tests (IT-N)
 > - Identify the outer loop (acceptance tests that start RED)
 > - Identify the inner loop order (unit tests in TPP sequence: degenerate first, complex last)
-> - If NO test plan found: emit WARNING and suggest running `/x-test-plan` first, then continue with fallback mode (implement without strict TPP ordering)
+> - If NO test plan found: ABORT with message: `"ABORT: No test plan found. TDD is mandatory -- run /x-test-plan first. Implementation cannot proceed without a test plan (Rule 03)."`
 >
 > **Step 3 — Read project conventions:**
 > - `skills/architecture/references/architecture-principles.md` — layer structure, dependency direction
@@ -69,12 +68,7 @@ Launch a **single** `general-purpose` subagent:
 > git checkout -b feat/STORY-ID-short-description
 > ```
 
-> **Fallback Mode (no test plan):**
-> If no test plan file exists, log:
-> `WARNING: No test plan found. Run /x-test-plan first for optimal TDD workflow. Proceeding with implementation-first approach.`
-> In fallback mode, Step 2 reverts to the layer-by-layer implementation without strict TPP ordering. Tests are written alongside code (test-with) rather than test-first.
-
-## Step 2: TDD Loop — Red-Green-Refactor (Orchestrator — Inline)
+## Step 2: TDD Loop — Red-Green-Refactor-Commit (Orchestrator — Inline)
 
 Using the TDD implementation plan returned by the subagent, execute Red-Green-Refactor cycles.
 
@@ -130,8 +124,73 @@ For each UT-N in the test plan (strict TPP order: degenerate first, edge cases l
 # Expected: ALL PASS (still GREEN)
 ```
 
+#### COMMIT — Atomic Commit per TDD Cycle
+
+After each Red-Green-Refactor cycle, commit immediately. Use the commit format decision table below to choose combined or fine-grained format.
+
+**Commit Format Decision Table:**
+
+| Scenario | Format | Rationale |
+|----------|--------|-----------|
+| Simple TDD cycle (<50 lines changed) | Combined: `feat(scope): implement [behavior] [TDD]` | Lower overhead, acceptable traceability |
+| Complex TDD cycle (>=50 lines changed) | Fine-grained: `test(scope): [TDD:RED]` + `feat(scope): [TDD:GREEN]` + `refactor(scope): [TDD:REFACTOR]` | Verifiable test-first pattern in git log |
+| Non-trivial refactoring | Separate: `refactor(scope): [TDD:REFACTOR]` | Proves no behavior was added during refactoring |
+| Epic execution with TDD gate | Fine-grained (mandatory) | Required for automated integrity gate verification |
+
+**Line threshold:** 50 lines refers to the total lines changed (test + production code) in one complete TDD cycle.
+
+**Fine-grained ordering:** When using fine-grained format, commits MUST appear in this order per cycle:
+1. `test(scope): ... [TDD:RED]` — the failing test commit
+2. `feat(scope): ... [TDD:GREEN]` — the minimum implementation commit
+3. `refactor(scope): ... [TDD:REFACTOR]` — the design improvement commit (omit if refactoring is a noop)
+
+This ordering makes the test-first pattern visible in `git log --oneline`.
+
+**Default (backward compatibility):** When no explicit criterion applies (e.g., stories created before this decision table), use the combined `[TDD]` format.
+
+**Combined format example:**
+```bash
+git add [test-file-for-UT-N] [implementation-files-for-UT-N]
+git commit -m "feat(scope): add [behavior] (UT-N) [TDD]" \
+  -m "- RED: [test description]" \
+  -m "- GREEN: [minimum implementation]" \
+  -m "- REFACTOR: [what was improved, or 'noop']"
+```
+
+**Fine-grained format example:**
+```bash
+# RED
+git add [test-file-for-UT-N]
+git commit -m "test(scope): add [test description] (UT-N) [TDD:RED]"
+
+# GREEN
+git add [implementation-files-for-UT-N]
+git commit -m "feat(scope): implement [behavior] (UT-N) [TDD:GREEN]"
+
+# REFACTOR (only if non-trivial changes were made)
+git add [refactored-files]
+git commit -m "refactor(scope): [what was improved] (UT-N) [TDD:REFACTOR]"
+```
+
+For acceptance tests, commit when introduced (RED) and again when they turn GREEN (if updated):
+
+```bash
+# RED: introduce failing acceptance test
+git add [acceptance-test-file]
+git commit -m "test(scope): add acceptance test for [AT-N scenario] [TDD:RED]"
+
+# Later, when the AT turns GREEN and you've updated it if needed:
+git add [acceptance-test-file]
+git commit -m "test(scope): update acceptance test for [AT-N scenario] [TDD:GREEN]"
+```
+
+**Commit ordering must reflect TDD progression:**
+1. Acceptance test commit (RED) — first
+2. Unit test + implementation commits (UT-1, UT-2, ...) — in TPP order
+3. Final commit when AT turns GREEN (if AT content changed)
+
 #### Compile Check
-After each complete cycle (Red-Green-Refactor):
+After each complete cycle (Red-Green-Refactor-Commit):
 
 ```bash
 {{COMPILE_COMMAND}}
@@ -153,14 +212,6 @@ After all UT-N cycles for a given acceptance test (AT-N) are complete:
 - Never return null — use Optional/empty types
 - Constructor/initializer injection
 - Immutable DTOs, value objects, events
-
-### 2.4 Fallback Mode (No Test Plan)
-
-When operating in fallback mode (no test plan available):
-- Implement layer-by-layer following the old approach
-- Write tests alongside code (test-with) rather than test-first
-- Still run compile check after each layer: `{{COMPILE_COMMAND}}`
-- Log a reminder: `WARNING: Consider running /x-test-plan for future implementations`
 
 ## Step 3: Validate (Orchestrator — Inline)
 
@@ -186,37 +237,6 @@ All TDD cycles are complete. Run final validation:
 | Thread-safe (if applicable) | No mutable static state |
 | Automated test validates primary AC | At least 1 test validates the story's primary acceptance criterion |
 | Smoke test passes | `{{SMOKE_COMMAND}}` (if testing.smoke_tests == true) |
-
-## Step 4: Commit (Orchestrator — Inline)
-
-Make atomic commits per TDD cycle. Each commit contains the test AND its implementation from one Red-Green-Refactor cycle:
-
-```bash
-# Per TDD cycle (UT-N):
-git add [test-file-for-UT-N]
-git add [implementation-files-for-UT-N]
-git commit -m "feat(scope): add [behavior] (UT-N)" \
-  -m "- RED: [test description]" \
-  -m "- GREEN: [minimum implementation]" \
-  -m "- REFACTOR: [what was improved, or 'noop']"
-```
-
-For acceptance tests, commit when introduced (RED) and again when they turn GREEN (if updated):
-
-```bash
-# RED: introduce failing acceptance test
-git add [acceptance-test-file]
-git commit -m "test(scope): add acceptance test for [AT-N scenario] (RED)"
-
-# Later, when the AT turns GREEN and you've updated it if needed:
-git add [acceptance-test-file]
-git commit -m "test(scope): update acceptance test for [AT-N scenario] (GREEN)"
-```
-
-**Commit ordering must reflect TDD progression:**
-1. Acceptance test commit (RED) — first
-2. Unit test + implementation commits (UT-1, UT-2, ...) — in TPP order
-3. Final commit when AT turns GREEN (if AT content changed)
 
 ## Integration Notes
 

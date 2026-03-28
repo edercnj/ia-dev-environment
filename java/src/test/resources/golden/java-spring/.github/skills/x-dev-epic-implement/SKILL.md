@@ -317,6 +317,8 @@ When `--skip-review` is set, Wave 1 launches only 2.2.
 - Reads `_TEMPLATE-EPIC-EXECUTION-REPORT.md` and `execution-state.json`
 - Resolves all `{{PLACEHOLDER}}` tokens with real data from checkpoint
 - `{{FINDINGS_SUMMARY}}` populated with `"Pending review"` placeholder (replaced by Wave 2)
+- `{{TDD_COMPLIANCE_TABLE}}`: For each story, read `tddCompliance` from phase entry in checkpoint. Populate per-story row with TDD Commits, Total Commits, TDD % (rounded integer), TPP Progression (OK/WARNING/N/A), Status (PASS >= 80%, WARNING >= 50%, FAIL < 50%). If no data available (legacy epic), fill all columns with N/A
+- `{{TDD_SUMMARY}}`: Aggregated metrics — total TDD/total commits, aggregate TDD %, stories by status count, Epic Status (PASS if zero FAIL, else FAIL). If no data: `N/A — no TDD compliance data available (legacy epic without integrity gate)`
 - Validates no unresolved `{{...}}` placeholders remain (excluding expected `"Pending review"`)
 - Writes to `docs/stories/epic-{epicId}/epic-execution-report.md`
 - On FAILURE: log ERROR, PR created without report in Wave 2

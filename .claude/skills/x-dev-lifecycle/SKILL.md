@@ -47,7 +47,7 @@ Phase 8: Verification          (orchestrator — inline)
 2. Verify dependencies (predecessor stories complete)
 3. Check if test plan exists at `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
    - If present: Phase 2 will use TDD mode
-   - If absent: Phase 1B will produce it; if 1B also fails, Phase 2 falls back to G1-G7
+   - If absent: Phase 1B will produce it; if 1B also fails, ABORT: `"ABORT: Test plan not found for {{STORY_ID}}. Run /x-test-plan before /x-dev-lifecycle. TDD is mandatory (Rule 03, Rule 05)."`
 4. Check if architecture plan exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
    - If present: Phase 1 will skip architecture planning (use existing plan)
    - If absent: Phase 1 will evaluate decision tree and invoke x-dev-architecture-plan
@@ -130,14 +130,14 @@ The test plan is the **implementation roadmap** for Phase 2. It produces:
 - Integration tests (IT-N) positioned after related UTs
 - `Depends On: TASK-N` and `Parallel` markers per scenario
 
-**Gate:** If Phase 1B fails or produces no output, Phase 2 MUST use G1-G7 fallback mode.
+**Gate:** If Phase 1B fails or produces no output, ABORT: `"ABORT: Test plan generation failed for {{STORY_ID}}. Cannot proceed without test plan. Run /x-test-plan manually."`
 
 ### 1C: Task Decomposition
 Invoke skill `x-lib-task-decomposer` → produces `docs/stories/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`
 
 The task decomposer auto-detects decomposition mode:
 - If test plan with TPP markers exists → test-driven tasks (RED/GREEN/REFACTOR per task, with `Parallel` flags)
-- If no test plan → fallback to G1-G7 layer-based decomposition
+- If no test plan → ABORT (test plan is mandatory, run /x-test-plan first)
 
 ### 1D: Event Schema Design (if event_driven)
 Launch `general-purpose` subagent:
@@ -174,7 +174,7 @@ Launch a **single** `general-purpose` subagent for implementation:
 > - Read `skills/layer-templates/SKILL.md` — code templates per layer
 > - Read `skills/architecture/references/architecture-principles.md` — layer boundaries
 >
-> If no test plan found: emit WARNING and use **G1-G7 Fallback** (see below).
+> If no test plan found: ABORT with message: `"ABORT: No test plan found. TDD is mandatory -- run /x-test-plan first. Implementation cannot proceed without a test plan (Rule 03)."`
 >
 > **Step 2 — TDD Loop (Red-Green-Refactor per scenario):**
 >
@@ -187,8 +187,8 @@ Launch a **single** `general-purpose` subagent for implementation:
 >    - **RED:** Write the failing unit test for UT-N
 >    - **GREEN:** Implement the MINIMUM production code to pass (respecting layer order: domain → ports → adapters → application → inbound)
 >    - **REFACTOR:** Improve design (extract method if > 25 lines, eliminate duplication) — NEVER add behavior
+>    - **COMMIT:** Atomic commit immediately after each Red-Green-Refactor cycle using the commit format decision table below
 >    - **Compile check:** `{{COMPILE_COMMAND}}` — error blocks next cycle
->    - **Atomic commit:** test + implementation in one commit using TDD format (`[TDD]` suffix)
 >
 > 2.2. **Verify Acceptance Test:**
 >    - After all UT-N for AT-1 complete → run AT-1, it should now be GREEN
@@ -199,10 +199,27 @@ Launch a **single** `general-purpose` subagent for implementation:
 >    - Run `{{TEST_COMMAND}}` and `{{COVERAGE_COMMAND}}`
 >    - Coverage targets: line ≥ 95%, branch ≥ 90%
 >
-> **Step 3 — Commit each TDD cycle** atomically following git conventions:
-> - Use `feat(scope): implement [behavior] [TDD]` for combined cycles
-> - Or `test(scope): [TDD:RED]` + `feat(scope): [TDD:GREEN]` + `refactor(scope): [TDD:REFACTOR]` for fine-grained history
-> - Git history should tell TPP progression (simple to complex)
+> **Commit Format Decision Table:**
+>
+> | Scenario | Format | Rationale |
+> |----------|--------|-----------|
+> | Simple TDD cycle (<50 lines changed) | Combined: `feat(scope): implement [behavior] [TDD]` | Lower overhead, acceptable traceability |
+> | Complex TDD cycle (>=50 lines changed) | Fine-grained: `test(scope): [TDD:RED]` + `feat(scope): [TDD:GREEN]` + `refactor(scope): [TDD:REFACTOR]` | Verifiable test-first pattern in git log |
+> | Non-trivial refactoring | Separate: `refactor(scope): [TDD:REFACTOR]` | Proves no behavior was added during refactoring |
+> | Epic execution with TDD gate | Fine-grained (mandatory) | Required for automated integrity gate verification |
+>
+> **Line threshold:** 50 lines refers to the total lines changed (test + production code) in one complete TDD cycle.
+>
+> **Fine-grained ordering:** When using fine-grained format, commits MUST appear in this order per cycle:
+> 1. `test(scope): ... [TDD:RED]` — the failing test commit
+> 2. `feat(scope): ... [TDD:GREEN]` — the minimum implementation commit
+> 3. `refactor(scope): ... [TDD:REFACTOR]` — the design improvement commit (omit if refactoring is a noop)
+>
+> This ordering makes the test-first pattern visible in `git log --oneline`.
+>
+> **Default (backward compatibility):** When no explicit criterion applies (e.g., stories created before this decision table), use the combined `[TDD]` format.
+>
+> Git history should tell TPP progression (simple to complex).
 >
 > Report: TDD cycles completed, acceptance tests status, coverage numbers.
 
@@ -214,20 +231,6 @@ Independent test scenarios (no shared state/data dependencies) CAN run in parall
 - Subagents working on independent layers MUST be launched in a SINGLE message
 - Example: UT for outbound adapter can run in parallel with UT for inbound DTO if they share no state
 - Dependent scenarios (marked `Depends On: TASK-N`) run sequentially
-
-### G1-G7 Fallback (No Test Plan)
-
-If no test plan with TPP markers was produced by Phase 1B, use legacy group-based implementation:
-
-> **Step 2 (Fallback) — Implement groups G1-G7** following the task breakdown:
-> - For each group: implement all tasks, then compile: `{{COMPILE_COMMAND}}`
-> - If compilation fails: fix errors before proceeding
-> - After G7: run `{{TEST_COMMAND}}` and `{{COVERAGE_COMMAND}}`
-> - Coverage targets: line ≥ 95%, branch ≥ 90%
->
-> **Step 3 (Fallback) — Commit each group** atomically following git conventions.
-
-Emit warning: `WARNING: No TDD test plan available. Using G1-G7 group-based implementation. Consider running /x-test-plan for future implementations.`
 
 ## Phase 3 — Documentation (Orchestrator — Inline)
 
@@ -441,6 +444,6 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
 
 ## Integration Notes
 
-- Invokes: `x-dev-architecture-plan` (Phase 1, conditional), `x-test-plan`, `x-lib-task-decomposer`, `x-lib-group-verifier` (fallback only), `x-git-push`, `x-review`, `x-review-pr`
+- Invokes: `x-dev-architecture-plan` (Phase 1, conditional), `x-test-plan`, `x-lib-task-decomposer`, `x-git-push`, `x-review`, `x-review-pr`
 - TDD commit format follows `x-git-push` conventions (`[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]` suffixes)
 - All `{{PLACEHOLDER}}` tokens (e.g. `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation

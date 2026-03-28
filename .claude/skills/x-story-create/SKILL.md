@@ -112,6 +112,15 @@ Examples: "Porta TCP definida", "Schema da tabela X criado", "Decisão sobre Y t
 **DoD Local**: Specific acceptance criteria for this story. Use checkboxes.
 Examples: "Servidor TCP aceitando conexões", "Handler X funcional", "Teste de carga validado".
 
+**Mandatory DoD Local items (TDD verification):** Every story's DoD Local MUST include these 5 items:
+- `- [ ] Test plan exists at docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
+- `- [ ] All @GK-N mapped to AT-N`
+- `- [ ] TPP ordering verified`
+- `- [ ] All AT-N GREEN`
+- `- [ ] Commits show test-first pattern`
+
+These items ensure TDD compliance and traceability between Gherkin scenarios and acceptance tests.
+
 **DoD Global**: Copy from the Epic verbatim. This is for quick reference during code review.
 
 #### Section 5 — Contratos de Dados (Data Contract)
@@ -218,6 +227,18 @@ Participant naming rules:
 
 Write Gherkin scenarios in Portuguese (DADO/QUANDO/ENTÃO/E/MAS).
 
+**@GK-N ID rules (Non-Negotiable):**
+- Each Gherkin scenario MUST have a stable tag `@GK-N` (where N is a sequential integer starting at 1)
+- Format: `@GK-N` tag on its own line before `Cenario:`, e.g.:
+  ```gherkin
+  @GK-1
+  Cenario: Entrada nula retorna erro de validacao
+  ```
+- FORBIDDEN: renumbering `@GK-N` after initial creation — IDs are **immutable**
+- New scenarios receive the next available number (append-only sequencing)
+- Removed scenarios: the `@GK-N` number is **retired**, never reused
+- Example: if `@GK-2` is removed, the next new scenario gets `@GK-4` (not `@GK-2`)
+
 **Mandatory scenario categories (TPP order):**
 1. **Degenerate cases** (first): null input, empty collection, zero value, missing required field — at least 1 scenario
 2. **Happy path**: Main success flow with concrete values — at least 1 scenario
@@ -244,19 +265,81 @@ If the story has no naturally bounded inputs, boundary scenarios may be omitted 
 
 #### Section 8 — Sub-tarefas
 
-Break the story into granular tasks, each estimable at 2-4 hours:
+Break the story into granular sub-tasks reflecting TDD cycles (Red-Green-Refactor).
 
-- `[Dev]` — Implementation tasks (handler, service, repository, migration)
-- `[Test]` — Test tasks (unit, integration, E2E, performance)
+**Tags:**
+- `[TDD]` — TDD cycle sub-tasks (acceptance tests, unit tests, implementation, refactoring)
 - `[Doc]` — Documentation tasks (diagrams, wiki, API docs)
+
+> **DEPRECATED:** Tags `[Dev]` and `[Test]` are deprecated. New stories MUST use `[TDD]` exclusively for code and test sub-tasks. Existing stories with `[Dev]`/`[Test]` remain valid during the transition period (backward compatible).
 
 Use checkboxes `- [ ]` for tracking.
 
-**Mandatory test sub-task:** Every story MUST include at least one of these:
-- `[Test] Smoke/E2E: <teste automatizado validando critério de aceite principal de ponta a ponta>`
-- `[Test] Integração: <teste de integração validando fluxo completo>`
+**Sub-task format:**
 
-A story without ANY automated end-to-end validation sub-task is INCOMPLETE and must not be saved.
+- **AT-N (Acceptance Test):** `[TDD] AT-N (@GK-N): description (RED/GREEN/REFACTOR)`
+  - Each AT-N MUST reference a valid `@GK-N` from Section 7
+  - Includes three phases: RED (write failing test), GREEN (implement minimum code), REFACTOR (improve design)
+- **UT-N (Unit Test):** `[TDD] UT-N (TPP-L: transformation): description (RED/GREEN)`
+  - Each UT-N MUST include a TPP level (1-6) indicating the transformation complexity
+  - Includes two phases: RED (write failing test), GREEN (implement minimum code)
+
+**TPP Levels (Transformation Priority Premise):**
+
+| Level | Transformation | Description |
+|:---|:---|:---|
+| 1 | {} -> nil | From nothing to null/empty |
+| 2 | nil -> constant | From null to constant |
+| 3 | constant -> constant+ | From constant to more complex constant |
+| 4 | constant -> scalar | From constant to variable |
+| 5 | scalar -> collection | From scalar to collection |
+| 6 | collection -> recursion | From collection to recursion |
+
+**Pre-test-plan state (placeholder):**
+
+Before the test plan is generated, Section 8 MUST contain this placeholder:
+
+```markdown
+### Ciclos TDD
+
+> Sub-tarefas TDD serao populadas apos geracao do test plan via `/x-test-plan`.
+> Cada AT-N e UT-N do test plan gerara entradas [TDD] com ciclos RED/GREEN/REFACTOR.
+
+### Tarefas nao-TDD
+
+- [ ] [Doc] (tarefas de documentacao identificadas durante planejamento)
+```
+
+**Post-test-plan state (populated):**
+
+After the test plan is generated, Section 8 is populated with TDD cycle sub-tasks:
+
+```markdown
+### Ciclos TDD
+
+- [ ] [TDD] AT-1 (@GK-1): Escrever acceptance test — descricao do cenario (RED)
+- [ ] [TDD] AT-1 (@GK-1): Implementar codigo minimo para passar (GREEN)
+- [ ] [TDD] AT-1 (@GK-1): Refatorar sem alterar comportamento (REFACTOR)
+- [ ] [TDD] UT-1 (TPP-1: {} -> nil): Unit test para caso nulo (RED)
+- [ ] [TDD] UT-1 (TPP-1): Implementar retorno nulo (GREEN)
+- [ ] [TDD] UT-2 (TPP-2: nil -> constant): Unit test para retorno constante (RED)
+- [ ] [TDD] UT-2 (TPP-2): Implementar retorno constante (GREEN)
+- [ ] [TDD] AT-2 (@GK-2): Escrever acceptance test — fluxo principal (RED)
+- [ ] [TDD] AT-2 (@GK-2): Implementar fluxo principal (GREEN)
+- [ ] [TDD] AT-2 (@GK-2): Refatorar (REFACTOR)
+
+### Tarefas nao-TDD
+
+- [ ] [Doc] Documentar API/componente
+- [ ] [Doc] Atualizar diagramas de arquitetura
+```
+
+**Mandatory validation sub-task:** Every story MUST include at least one AT-N sub-task linked to the main acceptance criterion (@GK-N from happy path). A story without ANY acceptance test sub-task is INCOMPLETE and must not be saved.
+
+**Backward compatibility (RULE-006):** Skills that process sub-tasks MUST recognize both formats during the transition period:
+- New format: `[TDD] AT-N (@GK-N): ...` and `[TDD] UT-N (TPP-L: ...): ...`
+- Legacy format: `[Dev] ...` and `[Test] ...`
+- Processing a story with legacy format MUST NOT cause errors or abort execution
 
 ### Step 2.X: Optional Jira Integration (per story)
 

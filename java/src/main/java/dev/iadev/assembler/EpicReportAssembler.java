@@ -35,13 +35,14 @@ public final class EpicReportAssembler
     private static final String GITHUB_OUTPUT_SUBDIR =
             ".github/templates";
 
-    /** The 8 mandatory sections that must be present. */
+    /** The 9 mandatory sections that must be present. */
     static final List<String> MANDATORY_SECTIONS = List.of(
             "Sumário Executivo",
             "Timeline de Execução",
             "Status Final por Story",
             "Findings Consolidados",
             "Coverage Delta",
+            "TDD Compliance",
             "Commits e SHAs",
             "Issues Não Resolvidos",
             "PR Link"
@@ -73,7 +74,7 @@ public final class EpicReportAssembler
      * <p>Copies the epic report template verbatim to
      * {@code .claude/templates/} and
      * {@code .github/templates/}. Returns empty list if
-     * the template is missing or does not contain all 8
+     * the template is missing or does not contain all 9
      * mandatory sections.</p>
      */
     @Override
@@ -121,7 +122,7 @@ public final class EpicReportAssembler
     }
 
     /**
-     * Checks that the content contains all 8 mandatory
+     * Checks that the content contains all 9 mandatory
      * sections.
      *
      * @param content the template content

@@ -31,6 +31,18 @@
 |--------|--------|-------|-------|
 | Line Coverage | {{COVERAGE_BEFORE}} | {{COVERAGE_AFTER}} | {{COVERAGE_DELTA}} |
 
+## TDD Compliance
+
+### Per-Story TDD Metrics
+
+| Story | TDD Commits | Total Commits | TDD % | TPP Progression | Status |
+|-------|-------------|---------------|-------|-----------------|--------|
+{{TDD_COMPLIANCE_TABLE}}
+
+### Summary
+
+{{TDD_SUMMARY}}
+
 ## Commits e SHAs
 
 {{COMMIT_LOG}}
