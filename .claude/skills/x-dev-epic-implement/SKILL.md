@@ -964,9 +964,38 @@ You are generating the epic execution report for EPIC-{epicId}.
    - {{STORY_STATUS_TABLE}}: per-story status with commit SHAs
    - {{FINDINGS_SUMMARY}}: set to "Pending review" (replaced by Wave 2 with actual data)
    - {{COVERAGE_BEFORE}}, {{COVERAGE_AFTER}}, {{COVERAGE_DELTA}}
+   - {{TDD_COMPLIANCE_TABLE}}: TDD compliance per-story table (see step 3a)
+   - {{TDD_SUMMARY}}: TDD compliance aggregated summary (see step 3b)
    - {{COMMIT_LOG}}: git log main..HEAD --oneline
    - {{UNRESOLVED_ISSUES}}: findings with severity >= Medium
    - {{PR_LINK}}: populated after PR creation (or "Pending")
+
+3a. Populate {{TDD_COMPLIANCE_TABLE}} from integrity gate data:
+   For each completed story, read `tddCompliance` from the phase entry in execution-state.json.
+   - If `tddCompliance` data is available for the story:
+     - TDD Commits: `tddCompliance.tddCommitCount`
+     - Total Commits: `tddCompliance.totalCommits`
+     - TDD %: `round(tddCommitCount / totalCommits * 100)` (integer)
+     - TPP Progression: evaluate commit order — OK (strictly degenerate→complex),
+       WARNING (partial order), N/A (insufficient data)
+     - Status: PASS (TDD % >= 80%), WARNING (TDD % >= 50% and < 80%), FAIL (TDD % < 50%)
+   - If `tddCompliance` data is NOT available (legacy epic without integrity gate data):
+     - Fill all columns with N/A for that story
+   Format each row as: `| {storyId} | {tddCommits} | {totalCommits} | {tddPct}% | {tppProgression} | {status} |`
+
+3b. Populate {{TDD_SUMMARY}} with aggregated metrics:
+   - If TDD compliance data is available for at least one story:
+     - Total TDD Commits: sum of all stories' tddCommitCount
+     - Total Commits: sum of all stories' totalCommits
+     - Aggregate TDD %: round(totalTddCommits / totalCommits * 100)
+     - Count stories by status: N PASS / N WARNING / N FAIL
+     - Epic Status: PASS if zero stories have FAIL status, FAIL otherwise
+     Format as:
+     `| Total | {totalTdd} | {totalCommits} | {aggPct}% | — | {epicStatus} |`
+     `Stories: {passCount} PASS / {warnCount} WARNING / {failCount} FAIL`
+   - If NO TDD compliance data is available for any story:
+     Format as: `N/A — no TDD compliance data available (legacy epic without integrity gate)`
+
 4. Validate: no unresolved {{...}} placeholders remain in output
 5. Write epic-execution-report.md to docs/stories/epic-{epicId}/
 ```
