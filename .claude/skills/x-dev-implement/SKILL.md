@@ -45,7 +45,7 @@ Launch a **single** `general-purpose` subagent:
 > - Extract: acceptance tests (AT-N), unit tests in TPP order (UT-N), integration tests (IT-N)
 > - Identify the outer loop (acceptance tests that start RED)
 > - Identify the inner loop order (unit tests in TPP sequence: degenerate first, complex last)
-> - If NO test plan found: emit WARNING and suggest running `/x-test-plan` first, then continue with fallback mode (implement without strict TPP ordering)
+> - If NO test plan found: ABORT with message: `"ABORT: No test plan found. TDD is mandatory -- run /x-test-plan first. Implementation cannot proceed without a test plan (Rule 03)."`
 >
 > **Step 3 — Read project conventions:**
 > - `skills/architecture/references/architecture-principles.md` — layer structure, dependency direction
@@ -68,11 +68,6 @@ Launch a **single** `general-purpose` subagent:
 > git checkout main && git pull origin main
 > git checkout -b feat/STORY-ID-short-description
 > ```
-
-> **Fallback Mode (no test plan):**
-> If no test plan file exists, log:
-> `WARNING: No test plan found. Run /x-test-plan first for optimal TDD workflow. Proceeding with implementation-first approach.`
-> In fallback mode, Step 2 reverts to the layer-by-layer implementation without strict TPP ordering. Tests are written alongside code (test-with) rather than test-first.
 
 ## Step 2: TDD Loop — Red-Green-Refactor (Orchestrator — Inline)
 
@@ -153,14 +148,6 @@ After all UT-N cycles for a given acceptance test (AT-N) are complete:
 - Never return null — use Optional/empty types
 - Constructor/initializer injection
 - Immutable DTOs, value objects, events
-
-### 2.4 Fallback Mode (No Test Plan)
-
-When operating in fallback mode (no test plan available):
-- Implement layer-by-layer following the old approach
-- Write tests alongside code (test-with) rather than test-first
-- Still run compile check after each layer: `{{COMPILE_COMMAND}}`
-- Log a reminder: `WARNING: Consider running /x-test-plan for future implementations`
 
 ## Step 3: Validate (Orchestrator — Inline)
 

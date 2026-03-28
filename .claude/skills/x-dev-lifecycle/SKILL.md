@@ -47,7 +47,7 @@ Phase 8: Verification          (orchestrator — inline)
 2. Verify dependencies (predecessor stories complete)
 3. Check if test plan exists at `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
    - If present: Phase 2 will use TDD mode
-   - If absent: Phase 1B will produce it; if 1B also fails, Phase 2 falls back to G1-G7
+   - If absent: Phase 1B will produce it; if 1B also fails, ABORT: `"ABORT: Test plan not found for {{STORY_ID}}. Run /x-test-plan before /x-dev-lifecycle. TDD is mandatory (Rule 03, Rule 05)."`
 4. Check if architecture plan exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
    - If present: Phase 1 will skip architecture planning (use existing plan)
    - If absent: Phase 1 will evaluate decision tree and invoke x-dev-architecture-plan
@@ -130,14 +130,14 @@ The test plan is the **implementation roadmap** for Phase 2. It produces:
 - Integration tests (IT-N) positioned after related UTs
 - `Depends On: TASK-N` and `Parallel` markers per scenario
 
-**Gate:** If Phase 1B fails or produces no output, Phase 2 MUST use G1-G7 fallback mode.
+**Gate:** If Phase 1B fails or produces no output, ABORT: `"ABORT: Test plan generation failed for {{STORY_ID}}. Cannot proceed without test plan. Run /x-test-plan manually."`
 
 ### 1C: Task Decomposition
 Invoke skill `x-lib-task-decomposer` → produces `docs/stories/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`
 
 The task decomposer auto-detects decomposition mode:
 - If test plan with TPP markers exists → test-driven tasks (RED/GREEN/REFACTOR per task, with `Parallel` flags)
-- If no test plan → fallback to G1-G7 layer-based decomposition
+- If no test plan → ABORT (test plan is mandatory, run /x-test-plan first)
 
 ### 1D: Event Schema Design (if event_driven)
 Launch `general-purpose` subagent:
@@ -174,7 +174,7 @@ Launch a **single** `general-purpose` subagent for implementation:
 > - Read `skills/layer-templates/SKILL.md` — code templates per layer
 > - Read `skills/architecture/references/architecture-principles.md` — layer boundaries
 >
-> If no test plan found: emit WARNING and use **G1-G7 Fallback** (see below).
+> If no test plan found: ABORT with message: `"ABORT: No test plan found. TDD is mandatory -- run /x-test-plan first. Implementation cannot proceed without a test plan (Rule 03)."`
 >
 > **Step 2 — TDD Loop (Red-Green-Refactor per scenario):**
 >
@@ -214,20 +214,6 @@ Independent test scenarios (no shared state/data dependencies) CAN run in parall
 - Subagents working on independent layers MUST be launched in a SINGLE message
 - Example: UT for outbound adapter can run in parallel with UT for inbound DTO if they share no state
 - Dependent scenarios (marked `Depends On: TASK-N`) run sequentially
-
-### G1-G7 Fallback (No Test Plan)
-
-If no test plan with TPP markers was produced by Phase 1B, use legacy group-based implementation:
-
-> **Step 2 (Fallback) — Implement groups G1-G7** following the task breakdown:
-> - For each group: implement all tasks, then compile: `{{COMPILE_COMMAND}}`
-> - If compilation fails: fix errors before proceeding
-> - After G7: run `{{TEST_COMMAND}}` and `{{COVERAGE_COMMAND}}`
-> - Coverage targets: line ≥ 95%, branch ≥ 90%
->
-> **Step 3 (Fallback) — Commit each group** atomically following git conventions.
-
-Emit warning: `WARNING: No TDD test plan available. Using G1-G7 group-based implementation. Consider running /x-test-plan for future implementations.`
 
 ## Phase 3 — Documentation (Orchestrator — Inline)
 
@@ -441,6 +427,6 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
 
 ## Integration Notes
 
-- Invokes: `x-dev-architecture-plan` (Phase 1, conditional), `x-test-plan`, `x-lib-task-decomposer`, `x-lib-group-verifier` (fallback only), `x-git-push`, `x-review`, `x-review-pr`
+- Invokes: `x-dev-architecture-plan` (Phase 1, conditional), `x-test-plan`, `x-lib-task-decomposer`, `x-git-push`, `x-review`, `x-review-pr`
 - TDD commit format follows `x-git-push` conventions (`[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]` suffixes)
 - All `{{PLACEHOLDER}}` tokens (e.g. `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
