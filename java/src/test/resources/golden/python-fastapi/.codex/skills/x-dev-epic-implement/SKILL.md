@@ -711,7 +711,21 @@ Launch a `general-purpose` subagent:
 > - If compilation fails → `{ status: "FAIL", testCount: 0, coverage: 0 }`
 > - If any tests fail → correlate failed tests with commits from stories in the current phase
 > - If line coverage < 95% or branch coverage < 90% → FAIL with coverage details
-> - Otherwise → proceed to Step 5
+> - Otherwise → proceed to Step 4.5
+> **Step 4.5 — TDD Compliance Check:** Analyze git log for each completed story in the current phase to verify test-first commit patterns.
+> For each story, run: `git log --oneline <story-range>`
+> 1. **Suffix Verification:** Count commits with suffix `[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, or `[TDD:REFACTOR]`. If `tddCommitCount == 0` → status `FAIL` with message: `"No TDD commits found. Verify that commits follow the format defined in x-dev-implement Step 2."`
+> 2. **Order Verification:** If fine-grained commits (`[TDD:RED]`, `[TDD:GREEN]`) exist, verify that each `[TDD:RED]` precedes its corresponding `[TDD:GREEN]`. If `[TDD:GREEN]` appears before `[TDD:RED]` → `redBeforeGreen = false`, add warning: `"Commit order violation: [TDD:GREEN] before [TDD:RED]"`
+> 3. **Test-Production Ratio:** Count commits that modify test files vs production files. Compute `testProductionRatio = testCommits / totalCommits`. If `testProductionRatio < 0.4` → add warning: `"Test-production ratio below 0.4 threshold"`
+> 4. **TPP Progression:** Verify that earlier test commits (UT) are simpler than later ones (heuristic based on test line count). This is advisory only — no status change.
+>
+> **Status determination:**
+> - `FAIL`: `tddCommitCount == 0` (no TDD commits found — blocking)
+> - `WARNING`: TDD commits exist but verification is partial (combined `[TDD]` format only, order violation, or low test-production ratio)
+> - `PASS`: Fine-grained commits with `[TDD:RED]` before `[TDD:GREEN]` and `testProductionRatio >= 0.4`
+>
+> Return `tddCompliance` result (see Gate Result Registration below).
+> After Step 4.5 → proceed to Step 5
 > **Step 5 — Smoke Gate:** Execute the full smoke test suite as a regression validation.
 > - If `--skip-smoke-gate` flag is set → log `"Integrity gate smoke tests skipped (--skip-smoke-gate)"` and record `smokeGate.status = "SKIP"` → proceed to PASS
 > - Run: `{{SMOKE_COMMAND}}` (e.g., `cd java && mvn verify -P integration-tests`)
@@ -719,7 +733,7 @@ Launch a `general-purpose` subagent:
 > - If all smoke tests pass → record `smokeGate.status = "PASS"` → overall gate is PASS
 > - If any smoke test fails → correlate failures with stories in the current phase (based on files touched) → record `smokeGate.status = "FAIL"` → overall gate is FAIL
 >
-> Return: `{ status: "PASS"|"FAIL", testCount, coverage, branchCoverage?, failedTests?, regressionSource?, smokeGate?: { status, testsRun, testsFailed, failedTests?, suspectedStories? } }`
+> Return: `{ status: "PASS"|"FAIL", testCount, coverage, branchCoverage?, failedTests?, regressionSource?, tddCompliance: { status, tddCommitCount, totalCommits, redBeforeGreen, testProductionRatio, warnings }, smokeGate?: { status, testsRun, testsFailed, failedTests?, suspectedStories? } }`
 
 #### Regression Diagnosis
 
@@ -751,6 +765,14 @@ updateIntegrityGate(epicDir, phaseNumber, {
   branchCoverage?: number, // branch coverage %
   failedTests?: string[],
   regressionSource?: string, // story ID
+  tddCompliance: {
+    status: "PASS" | "WARNING" | "FAIL",
+    tddCommitCount: number,   // commits with [TDD], [TDD:RED], [TDD:GREEN], [TDD:REFACTOR]
+    totalCommits: number,     // total commits in the story
+    redBeforeGreen: boolean,  // true if fine-grained RED precedes GREEN (true if no fine-grained)
+    testProductionRatio: number, // ratio of test-modifying commits to total (0.0 to 1.0)
+    warnings: string[]        // list of warnings (empty if PASS)
+  },
   smokeGate?: {
     status: "PASS" | "FAIL" | "SKIP",
     testsRun: number,
@@ -762,20 +784,29 @@ updateIntegrityGate(epicDir, phaseNumber, {
 });
 ```
 
-- **PASS**: Advance to next phase (requires both test gate and smoke gate to pass)
+- **PASS**: Advance to next phase (requires test gate and smoke gate to pass; tddCompliance WARNING is non-blocking)
 - **FAIL + regression identified**: revert + mark FAILED + block propagation
 - **FAIL + regression unidentified**: pause execution, report to user
+- **FAIL (tddCompliance)**: `tddCommitCount == 0` — phase marked FAIL with message; operator must add TDD commits and `--resume`
 - **FAIL (smoke gate)**: phase marked FAILED; operator uses `--resume` after fix or `--skip-smoke-gate` to bypass
 
-#### Checkpoint Smoke Gate Format
+#### Checkpoint Phase Entry Format
 
-The `smokeGate` field is added to each phase entry in `execution-state.json`:
+The `tddCompliance` and `smokeGate` fields are added to each phase entry in `execution-state.json`:
 
 ```json
 {
   "phases": {
     "0": {
       "status": "SUCCESS",
+      "tddCompliance": {
+        "status": "PASS",
+        "tddCommitCount": 5,
+        "totalCommits": 12,
+        "redBeforeGreen": true,
+        "testProductionRatio": 0.58,
+        "warnings": []
+      },
       "smokeGate": {
         "status": "PASS",
         "testsRun": 45,
@@ -794,14 +825,77 @@ The `smokeGate` field is added to each phase entry in `execution-state.json`:
 The integrity gate is **mandatory** — there is no bypass. Every phase transition requires a PASS gate
 result. The gate runs after phase 0, 1, 2, and 3 — one gate per phase.
 
+The TDD compliance check (Step 4.5) is mandatory and cannot be bypassed. A `WARNING` status is
+non-blocking (gate still passes), but a `FAIL` status (zero TDD commits) blocks the phase transition.
+
 The smoke gate within the integrity gate is also mandatory by default. It can only be bypassed with
 the `--skip-smoke-gate` flag, which records `smokeGate.status = "SKIP"` in the checkpoint. When
-`--skip-smoke-gate` is set, the integrity gate evaluates only Steps 1-4 (compile, test, coverage).
+`--skip-smoke-gate` is set, the integrity gate evaluates only Steps 1-4 and Step 4.5 (compile, test, coverage, TDD compliance).
 When not set, the smoke gate (Step 5) must also pass for the overall integrity gate to pass.
 
 > **Note:** Each story already executes its own smoke gate via `x-dev-lifecycle` (Phase 2.5).
 > The integrity gate smoke tests serve as an ADDITIONAL regression validation — they ensure
 > that the combination of all stories in a phase did not break the overall smoke test suite.
+
+#### TDD Compliance Check (Step 4.5) — Detailed Specification
+
+Step 4.5 implements **Level 2** of RULE-007 (Multi-Level Verification). It runs after Step 4 (Evaluate) and before Step 5 (Smoke Gate) to verify that commits from completed stories follow the test-first pattern defined in `x-dev-implement`.
+
+**Input:** Git log for each story completed in the current phase.
+
+**4 Verification Checks:**
+
+1. **Suffix Verification:** Scan commit messages for suffixes `[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, or `[TDD:REFACTOR]`. Count matching commits as `tddCommitCount`. If `tddCommitCount == 0`, the check immediately returns `FAIL`.
+
+2. **Order Verification:** If fine-grained commits (`[TDD:RED]`, `[TDD:GREEN]`) exist, verify that each `[TDD:RED]` precedes its corresponding `[TDD:GREEN]` in chronological order. Set `redBeforeGreen = true` if all pairs are correctly ordered; `false` if any `[TDD:GREEN]` appears before its `[TDD:RED]`.
+
+3. **Test-Production Ratio:** For all commits in the story range, classify each as modifying test files or production files (based on file paths containing `/test/`, `/tests/`, `*_test.*`, `*.test.*`, `*.spec.*`). Compute `testProductionRatio = testCommits / totalCommits`. Values below `0.4` indicate insufficient test-first discipline.
+
+4. **TPP Progression:** Compare line counts of earlier test commits (UT-1, UT-2) with later ones. Earlier tests should be simpler (fewer lines) than later tests, following Transformation Priority Premise ordering. This check is advisory — it produces warnings but does not change the overall status.
+
+**Status Criteria:**
+
+| Condition | Status | Message |
+|-----------|--------|---------|
+| `tddCommitCount == 0` | **FAIL** | `"No TDD commits found. Verify that commits follow the format defined in x-dev-implement Step 2."` |
+| Only combined `[TDD]` commits (no `[TDD:RED]`/`[TDD:GREEN]`) | **WARNING** | `"No [TDD:RED] commits found -- using combined [TDD] format"` |
+| Fine-grained with `[TDD:GREEN]` before `[TDD:RED]` | **WARNING** | `"Commit order violation: [TDD:GREEN] before [TDD:RED]"` |
+| `testProductionRatio < 0.4` | **WARNING** | `"Test-production ratio below 0.4 threshold"` |
+| Fine-grained with RED before GREEN and `testProductionRatio >= 0.4` | **PASS** | (no warnings) |
+
+**Severity:** TDD compliance is **WARNING-level**, not blocking **FAIL**, except when `tddCommitCount == 0` (which is blocking FAIL). Rationale: combined `[TDD]` commits make automated verification imperfect; the definitive assessment occurs at Level 3 (Tech Lead review in `x-review-pr`).
+
+**TDD Compliance Result Structure:**
+
+```json
+{
+  "tddCompliance": {
+    "status": "PASS | WARNING | FAIL",
+    "tddCommitCount": 5,
+    "totalCommits": 12,
+    "redBeforeGreen": true,
+    "testProductionRatio": 0.58,
+    "warnings": []
+  }
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `tddCompliance.status` | Enum(`PASS`, `WARNING`, `FAIL`) | Yes | Overall TDD compliance status |
+| `tddCompliance.tddCommitCount` | Integer | Yes | Commits with `[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, or `[TDD:REFACTOR]` suffix |
+| `tddCompliance.totalCommits` | Integer | Yes | Total commits in the story |
+| `tddCompliance.redBeforeGreen` | Boolean | Yes | `true` if fine-grained RED precedes GREEN (`true` if no fine-grained commits) |
+| `tddCompliance.testProductionRatio` | Float | Yes | Ratio of test-modifying commits to total (0.0 to 1.0) |
+| `tddCompliance.warnings` | Array[String] | Yes | List of warnings (empty if PASS) |
+
+**Multi-Level Verification (RULE-007) Cross-Reference:**
+
+| Level | Location | Behavior |
+|-------|----------|----------|
+| 1 | `x-dev-lifecycle` Phase 0 | ABORT if test plan is missing (story-0014-0002) |
+| **2** | **Integrity Gate Step 4.5** | **WARNING/FAIL on TDD compliance (this step)** |
+| 3 | `x-review-pr` Tech Lead review | NO-GO if TDD items fail (story-0014-0007) |
 
 ## Phase 2 — Consolidation (Two-Wave)
 
@@ -876,31 +970,48 @@ You are generating the epic execution report for EPIC-{epicId}.
    - {{UNRESOLVED_ISSUES}}: findings with severity >= Medium
    - {{PR_LINK}}: populated after PR creation (or "Pending")
 
-3a. Populate {{TDD_COMPLIANCE_TABLE}} from integrity gate data:
-   For each completed story, read `tddCompliance` from the phase entry in execution-state.json.
-   - If `tddCompliance` data is available for the story:
-     - TDD Commits: `tddCompliance.tddCommitCount`
-     - Total Commits: `tddCompliance.totalCommits`
-     - TDD %: `round(tddCommitCount / totalCommits * 100)` (integer)
-     - TPP Progression: evaluate commit order — OK (strictly degenerate→complex),
-       WARNING (partial order), N/A (insufficient data)
-     - Status: PASS (TDD % >= 80%), WARNING (TDD % >= 50% and < 80%), FAIL (TDD % < 50%)
-   - If `tddCompliance` data is NOT available (legacy epic without integrity gate data):
+3a. Populate {{TDD_COMPLIANCE_TABLE}} with per-story metrics:
+   For each completed story, derive TDD compliance data at the story level (do NOT reuse a single
+   phase-level object for multiple stories):
+   - Prefer story-scoped integrity gate data, if available (e.g., a `tddComplianceByStory[storyId]`
+     entry in execution-state.json that is explicitly keyed to that story).
+   - If no story-scoped data is available, compute metrics directly from git history:
+     - Identify commits associated with the story (commits on the story branch or whose messages
+       include the story ID).
+     - Classify each commit as "TDD" or "non-TDD" using the same rules as the integrity gate.
+     - TDD Commits: count of commits classified as TDD (`tddCommitCount`).
+     - Total Commits: total number of commits associated with that story (`totalCommits`).
+   - From the story-level counts:
+     - TDD %:
+       - If `totalCommits > 0`: `round(tddCommitCount / totalCommits * 100)` (integer)
+       - If `totalCommits == 0`: `N/A` (do NOT perform the division)
+     - TPP Progression:
+       - If `totalCommits > 0`: evaluate commit order — OK (strictly degenerate→complex),
+         WARNING (partial order), N/A (insufficient data)
+       - If `totalCommits == 0`: `N/A (no commits)`
+     - Status:
+       - If TDD % is numeric: PASS (TDD % >= 80%), WARNING (TDD % >= 50% and < 80%), FAIL (TDD % < 50%)
+       - If TDD % is `N/A` due to `totalCommits == 0`: WARNING (missing commit data)
+   - If no reliable TDD data can be computed for a story (legacy epic or insufficient commit metadata):
      - Fill all columns with N/A for that story
-   Format each row as: `| {storyId} | {tddCommits} | {totalCommits} | {tddPct}% | {tppProgression} | {status} |`
+   Format each row as: `| {storyId} | {tddCommits} | {totalCommits} | {tddPct} | {tppProgression} | {status} |`
 
 3b. Populate {{TDD_SUMMARY}} with aggregated metrics:
-   - If TDD compliance data is available for at least one story:
+   - If TDD compliance data is available for at least one story (at least one non-N/A row):
      - Total TDD Commits: sum of all stories' tddCommitCount
      - Total Commits: sum of all stories' totalCommits
-     - Aggregate TDD %: round(totalTddCommits / totalCommits * 100)
-     - Count stories by status: N PASS / N WARNING / N FAIL
-     - Epic Status: PASS if zero stories have FAIL status, FAIL otherwise
+     - Aggregate TDD %:
+       - If `totalCommits > 0`: `round(totalTddCommits / totalCommits * 100)`
+       - If `totalCommits == 0`: `N/A` (do NOT perform the division)
+     - Count stories by status: N PASS / N WARNING / N FAIL (excluding N/A rows)
+     - Epic Status:
+       - PASS if zero stories have FAIL status and Aggregate TDD % is numeric
+       - FAIL if any story has FAIL status or Aggregate TDD % is N/A due to zero total commits
      Format as:
-     `| Total | {totalTdd} | {totalCommits} | {aggPct}% | — | {epicStatus} |`
+     `| Total | {totalTdd} | {totalCommits} | {aggPct} | — | {epicStatus} |`
      `Stories: {passCount} PASS / {warnCount} WARNING / {failCount} FAIL`
    - If NO TDD compliance data is available for any story:
-     Format as: `N/A — no TDD compliance data available (legacy epic without integrity gate)`
+     Format as: `N/A — no TDD compliance data available (legacy epic without integrity gate or insufficient data)`
 
 4. Validate: no unresolved {{...}} placeholders remain in output
 5. Write epic-execution-report.md to docs/stories/epic-{epicId}/
@@ -1027,6 +1138,7 @@ Verify the Definition of Done (DoD) for the epic:
 - [ ] All stories completed (or documented as FAILED/BLOCKED in report)
 - [ ] Coverage thresholds met (>=95% line, >=90% branch)
 - [ ] Zero compiler/linter warnings
+- [ ] TDD compliance checks passed for all phases (Step 4.5 — no FAIL status)
 - [ ] Tech lead review executed (Phase 2.1 — Wave 1) or skipped via `--skip-review`
 - [ ] Epic execution report generated with no unresolved placeholders (Phase 2.2 — Wave 1)
 - [ ] `"Pending review"` placeholder replaced with actual findings (Phase 2.3 — Wave 2)
@@ -1072,5 +1184,6 @@ Return to main branch: `git checkout main && git pull origin main`
 - Phase 0.5 is skipped when `--sequential` is set (no parallel dispatch means no conflict risk)
 - All `{{PLACEHOLDER}}` tokens are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
 - Integrity gate includes smoke tests (Step 5) as regression validation after each phase — runs `{{SMOKE_COMMAND}}` (e.g., `cd java && mvn verify -P integration-tests`)
+- Integrity gate includes TDD compliance check (Step 4.5) — verifies test-first commit patterns, `[TDD]` suffixes, RED-before-GREEN ordering, and test-production ratio for each completed story (RULE-007 Level 2)
 - Smoke gate is bypassed with `--skip-smoke-gate` flag; result recorded as `smokeGate.status = "SKIP"` in checkpoint
 - Per-story smoke tests run via `x-dev-lifecycle` Phase 2.5; integrity gate smoke tests are an additional cross-story regression check

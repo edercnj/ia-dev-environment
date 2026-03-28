@@ -11,7 +11,7 @@
 | story-0014-0005 | Commit Ordering | — | story-0014-0006 | Concluída | Pending |
 | story-0014-0006 | TDD Compliance Integrity Gate | story-0014-0002, story-0014-0004, story-0014-0005 | story-0014-0007 | Concluída | Pending |
 | story-0014-0007 | Checklists QA/TL + Quality Gates | story-0014-0006 | story-0014-0008 | Concluída | Pending |
-| story-0014-0008 | TDD Metrics no Execution Report | story-0014-0006 | — | Pendente | Pending |
+| story-0014-0008 | TDD Metrics no Execution Report | story-0014-0006 | — | Concluída | Pending |
 
 ## 2. Diagrama de Fases (ASCII)
 
