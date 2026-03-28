@@ -39,16 +39,16 @@ jobs:
 
 
       - name: Lint
-        run: ./mvnw checkstyle:check
+        run: mvn -B checkstyle:check
 
       - name: Build
-        run: ./mvnw package -DskipTests
+        run: mvn -B package -DskipTests
 
       - name: Test
-        run: ./mvnw verify
+        run: mvn -B verify
 
       - name: Coverage
-        run: ./mvnw verify jacoco:report
+        run: mvn -B verify jacoco:report
 
 
   image-scan:
