@@ -193,26 +193,58 @@ Cenario: {{BOUNDARY_OR_EDGE_CASE_TITLE}}
 ## 8. Sub-tarefas
 
 > **REGRAS OBRIGATORIAS:**
-> - Usar tag `[TDD]` com referencia a AT-N/UT-N — tags `[Dev]` e `[Test]` isoladas sao PROIBIDAS
-> - Formato AT-N: `[TDD] AT-N (@GK-N): descricao do acceptance test (RED/GREEN)`
-> - Formato UT-N: `[TDD] UT-N: descricao do unit test (RED/GREEN)`
+> - Usar tag `[TDD]` com referencia a AT-N/UT-N — tags `[Dev]` e `[Test]` isoladas sao PROIBIDAS (DEPRECATED)
+> - Formato AT-N: `[TDD] AT-N (@GK-N): descricao do acceptance test (RED/GREEN/REFACTOR)`
+> - Formato UT-N: `[TDD] UT-N (TPP-L: transformacao): descricao do unit test (RED/GREEN)`
 > - Cada AT-N DEVE referenciar um @GK-N valido da secao 7
-> - Incluir placeholder para pre-test-plan como primeira sub-tarefa
+> - Cada UT-N DEVE incluir nivel TPP (1-6) indicando complexidade da transformacao
+> - Secao usa formato placeholder (pre-test-plan) ou populado (pos-test-plan)
+>
+> **TPP Levels:**
+> | Level | Transformacao |
+> |:---|:---|
+> | 1 | {} -> nil |
+> | 2 | nil -> constant |
+> | 3 | constant -> constant+ |
+> | 4 | constant -> scalar |
+> | 5 | scalar -> collection |
+> | 6 | collection -> recursion |
+>
+> **Backward compatibility:** Stories existentes com formato `[Dev]`/`[Test]` continuam validas. Skills devem reconhecer ambos os formatos durante periodo de transicao. Novas stories DEVEM usar formato `[TDD]`; formato antigo e DEPRECATED.
 
-- [ ] [TDD] Pre-requisito: Gerar test plan via `/x-test-plan` antes de iniciar implementacao
-- [ ] [TDD] AT-1 (@GK-1): {{AT1_DESCRIPTION}} (RED)
-- [ ] [TDD] UT-1: {{UT1_DESCRIPTION}} (RED)
-- [ ] [TDD] UT-1: {{UT1_IMPLEMENTATION}} (GREEN)
-- [ ] [TDD] Refactor: {{REFACTOR_1_DESCRIPTION}}
-- [ ] [TDD] AT-2 (@GK-2): {{AT2_DESCRIPTION}} (RED)
-- [ ] [TDD] UT-2: {{UT2_DESCRIPTION}} (RED)
-- [ ] [TDD] UT-2: {{UT2_IMPLEMENTATION}} (GREEN)
-- [ ] [TDD] AT-3 (@GK-3): {{AT3_DESCRIPTION}} (RED)
-- [ ] [TDD] UT-3: {{UT3_DESCRIPTION}} (GREEN)
-- [ ] [TDD] AT-4 (@GK-4): {{AT4_DESCRIPTION}} (RED)
-- [ ] [TDD] UT-4: {{UT4_DESCRIPTION}} (GREEN)
+### Ciclos TDD
+
+> Sub-tarefas TDD serao populadas apos geracao do test plan via `/x-test-plan`.
+> Cada AT-N e UT-N do test plan gerara entradas [TDD] com ciclos RED/GREEN/REFACTOR.
+
+<!-- EXEMPLO POS-TEST-PLAN (substituir placeholder acima pelo conteudo abaixo apos gerar test plan):
+
+- [ ] [TDD] AT-1 (@GK-1): {{AT1_DESCRIPTION}} — escrever acceptance test (RED)
+- [ ] [TDD] AT-1 (@GK-1): Implementar codigo minimo para passar (GREEN)
+- [ ] [TDD] AT-1 (@GK-1): Refatorar sem alterar comportamento (REFACTOR)
+- [ ] [TDD] UT-1 (TPP-1: {} -> nil): {{UT1_DESCRIPTION}} — unit test para caso nulo (RED)
+- [ ] [TDD] UT-1 (TPP-1): Implementar retorno nulo (GREEN)
+- [ ] [TDD] UT-2 (TPP-2: nil -> constant): {{UT2_DESCRIPTION}} — unit test para retorno constante (RED)
+- [ ] [TDD] UT-2 (TPP-2): Implementar retorno constante (GREEN)
+- [ ] [TDD] AT-2 (@GK-2): {{AT2_DESCRIPTION}} — escrever acceptance test (RED)
+- [ ] [TDD] AT-2 (@GK-2): Implementar fluxo principal (GREEN)
+- [ ] [TDD] AT-2 (@GK-2): Refatorar (REFACTOR)
+- [ ] [TDD] UT-3 (TPP-3: constant -> constant+): {{UT3_DESCRIPTION}} (RED)
+- [ ] [TDD] UT-3 (TPP-3): Implementar variacao de constante (GREEN)
+- [ ] [TDD] AT-3 (@GK-3): {{AT3_DESCRIPTION}} — escrever acceptance test (RED)
+- [ ] [TDD] AT-3 (@GK-3): Implementar tratamento de erro (GREEN)
+- [ ] [TDD] AT-4 (@GK-4): {{AT4_DESCRIPTION}} — escrever acceptance test (RED)
+- [ ] [TDD] AT-4 (@GK-4): Implementar caso de borda (GREEN)
+- [ ] [TDD] UT-4 (TPP-4: constant -> scalar): {{UT4_DESCRIPTION}} (RED)
+- [ ] [TDD] UT-4 (TPP-4): Implementar variavel (GREEN)
 - [ ] [TDD] Refactor: {{REFACTOR_FINAL_DESCRIPTION}}
+
+-->
+
+### Tarefas nao-TDD
+
+- [ ] [Doc] {{DOC_TASK_DESCRIPTION}}
 
 > **Instrucao:** Cada ciclo Red-Green-Refactor produz um ou mais commits atomicos.
 > Adicionar sub-tarefas conforme necessidade do escopo, mantendo o formato [TDD] AT-N/UT-N.
-> NAO usar tags [Dev] ou [Test] isoladas.
+> NAO usar tags [Dev] ou [Test] isoladas — formato DEPRECATED.
