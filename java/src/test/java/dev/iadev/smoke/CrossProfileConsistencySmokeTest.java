@@ -88,6 +88,7 @@ class CrossProfileConsistencySmokeTest {
      */
     static final Set<String> VARYING_CATEGORIES = Set.of(
             "claude-hooks",
+            "contracts",
             "k8s",
             "github-top");
 

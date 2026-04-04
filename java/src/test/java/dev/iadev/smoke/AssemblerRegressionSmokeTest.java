@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Smoke test validating that all 25 assemblers execute
+ * Smoke test validating that all 32 assemblers execute
  * and contribute output for every registered profile.
  *
  * <p>Detects assembler regressions:</p>
@@ -52,7 +52,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("AssemblerRegressionSmokeTest")
 class AssemblerRegressionSmokeTest extends SmokeTestBase {
 
-    static final int EXPECTED_ASSEMBLER_COUNT = 25;
+    static final int EXPECTED_ASSEMBLER_COUNT = 32;
 
     static final List<String> EXPECTED_ORDER = List.of(
             "RulesAssembler",
@@ -68,9 +68,16 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
             "GithubAgentsAssembler",
             "GithubHooksAssembler",
             "GithubPromptsAssembler",
+            "PrIssueTemplateAssembler",
             "DocsAssembler",
             "GrpcDocsAssembler",
             "RunbookAssembler",
+            "IncidentTemplatesAssembler",
+            "ReleaseChecklistAssembler",
+            "OperationalRunbookAssembler",
+            "SloSliTemplateAssembler",
+            "DocsContributingAssembler",
+            "DataMigrationPlanAssembler",
             "CodexAgentsMdAssembler",
             "CodexConfigAssembler",
             "CodexSkillsAssembler",
@@ -124,8 +131,14 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
                             "CodexConfigAssembler"),
                     Map.entry(".agents/skills",
                             "CodexSkillsAssembler"),
-                    Map.entry("docs",
-                            "DocsAssembler"));
+                    Map.entry("steering",
+                            "DocsAssembler"),
+                    Map.entry("adr",
+                            "DocsAdrAssembler"),
+                    Map.entry("results/runbooks",
+                            "RunbookAssembler"),
+                    Map.entry("specs/_templates",
+                            "DocsContributingAssembler"));
 
     static Stream<String> profiles() {
         return SmokeProfiles.profiles();
@@ -136,7 +149,7 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
     class AssemblerRegistration {
 
         @Test
-        @DisplayName("factory returns exactly 25 "
+        @DisplayName("factory returns exactly 32 "
                 + "assemblers")
         void buildAssemblers_returnsExactCount() {
             List<AssemblerDescriptor> descriptors =
@@ -441,7 +454,7 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
             runPipeline(profile);
             Path outputDir = getOutputDir(profile);
             Path grpcDocs = outputDir.resolve(
-                    "docs/api/grpc-reference.md");
+                    "contracts/api/grpc-reference.md");
 
             if (GRPC_PROFILES.contains(profile)) {
                 assertThat(grpcDocs)
@@ -540,7 +553,7 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
                     "GithubSkillsAssembler"))
                     .isEqualTo(AssemblerTarget.GITHUB);
             assertThat(nameToTarget.get("DocsAssembler"))
-                    .isEqualTo(AssemblerTarget.DOCS);
+                    .isEqualTo(AssemblerTarget.ROOT);
             assertThat(nameToTarget.get(
                     "CodexConfigAssembler"))
                     .isEqualTo(AssemblerTarget.CODEX);

@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for ReleaseChecklistAssembler -- generates
- * docs/templates/_TEMPLATE-RELEASE-CHECKLIST.md from a
+ * specs/_templates/_TEMPLATE-RELEASE-CHECKLIST.md from a
  * Pebble template with conditional sections for container,
  * native build, and contract tests.
  */
@@ -45,7 +45,7 @@ class ReleaseChecklistAssemblerTest {
 
         @Test
         @DisplayName("generates release checklist in"
-                + " docs/templates/ subdirectory")
+                + " specs/_templates/ subdirectory")
         void assemble_whenCalled_generatesChecklistFile(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
@@ -61,13 +61,13 @@ class ReleaseChecklistAssemblerTest {
 
             assertThat(files).hasSize(1);
             Path expected = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             assertThat(expected).exists();
         }
 
         @Test
-        @DisplayName("creates docs/templates/ subdirectory")
+        @DisplayName("creates specs/_templates/ subdirectory")
         void assemble_whenCalled_createsTemplatesSubdir(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
@@ -81,7 +81,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             assertThat(
-                    outputDir.resolve("docs/templates"))
+                    outputDir.resolve("specs/_templates"))
                     .exists()
                     .isDirectory();
         }
@@ -123,7 +123,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content)
@@ -147,7 +147,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content).contains("gradle");
@@ -174,7 +174,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content)
@@ -196,7 +196,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content)
@@ -218,7 +218,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content)
@@ -240,7 +240,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content)
@@ -262,7 +262,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content).contains("Publish");
@@ -283,7 +283,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content)
@@ -305,7 +305,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             for (String section
@@ -343,7 +343,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content)
@@ -374,7 +374,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content)
@@ -402,7 +402,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content)
@@ -430,7 +430,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content)
@@ -466,7 +466,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content).contains(
@@ -492,7 +492,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content).contains(
@@ -517,7 +517,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content).contains(
@@ -543,7 +543,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content)
@@ -574,7 +574,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content).contains(
@@ -600,7 +600,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content)
@@ -628,7 +628,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content).contains("95%");
@@ -649,7 +649,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content).contains("90%");
@@ -675,7 +675,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content).doesNotContain("{%");
@@ -758,7 +758,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content)
@@ -792,7 +792,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content).contains(
@@ -828,7 +828,7 @@ class ReleaseChecklistAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-RELEASE-CHECKLIST.md");
             String content = readFile(file);
             assertThat(content).contains(

@@ -134,7 +134,7 @@ For each audit dimension, extract:
 
 ### Step 5 -- Generate Report
 
-Write report to `docs/audits/dependency-audit-YYYY-MM-DD.md`:
+Write report to `results/audits/dependency-audit-YYYY-MM-DD.md`:
 
 ```markdown
 # Dependency Audit Report — {{PROJECT_NAME}}
@@ -204,7 +204,7 @@ Generate a CycloneDX JSON Software Bill of Materials listing all direct and tran
 1. DETECT     -> Identify build tool (reuse Step 1)
 2. GENERATE   -> Run CycloneDX generation command
 3. VALIDATE   -> Verify SBOM contains required fields
-4. OUTPUT     -> Write CycloneDX JSON to docs/audits/sbom-YYYY-MM-DD.json
+4. OUTPUT     -> Write CycloneDX JSON to results/audits/sbom-YYYY-MM-DD.json
 ```
 
 ### Generation Commands
@@ -234,7 +234,7 @@ Each component in the generated SBOM must include:
 
 ### Output
 
-Write CycloneDX JSON to `docs/audits/sbom-YYYY-MM-DD.json` and generate a human-readable summary:
+Write CycloneDX JSON to `results/audits/sbom-YYYY-MM-DD.json` and generate a human-readable summary:
 
 ```markdown
 # SBOM Summary — {{PROJECT_NAME}}
@@ -277,7 +277,7 @@ Generate a comprehensive license attribution report for all dependencies, highli
 
 ### Output
 
-Write report to `docs/audits/license-attribution-YYYY-MM-DD.md`:
+Write report to `results/audits/license-attribution-YYYY-MM-DD.md`:
 
 ```markdown
 # License Attribution Report — {{PROJECT_NAME}}
@@ -348,7 +348,7 @@ Generate a visual dependency tree showing transitive relationships and risk scor
 
 ### Output
 
-Write tree to `docs/audits/dependency-tree-YYYY-MM-DD.md`:
+Write tree to `results/audits/dependency-tree-YYYY-MM-DD.md`:
 
 ```markdown
 # Dependency Tree — {{PROJECT_NAME}}

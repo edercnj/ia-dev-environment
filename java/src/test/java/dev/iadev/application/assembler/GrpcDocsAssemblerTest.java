@@ -44,7 +44,7 @@ class GrpcDocsAssemblerTest {
 
         @Test
         @DisplayName("generates grpc-reference.md in"
-                + " api/ subdirectory")
+                + " contracts/api/ subdirectory")
         void assemble_whenCalled_generatesGrpcReferenceFile(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
@@ -62,12 +62,12 @@ class GrpcDocsAssemblerTest {
 
             assertThat(files).hasSize(1);
             Path expected = outputDir.resolve(
-                    "api/grpc-reference.md");
+                    "contracts/api/grpc-reference.md");
             assertThat(expected).exists();
         }
 
         @Test
-        @DisplayName("creates api/ subdirectory")
+        @DisplayName("creates contracts/api/ subdirectory")
         void assemble_whenCalled_createsApiSubdir(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
@@ -82,7 +82,7 @@ class GrpcDocsAssemblerTest {
 
             assembler.assemble(config, engine, outputDir);
 
-            assertThat(outputDir.resolve("api"))
+            assertThat(outputDir.resolve("contracts/api"))
                     .exists()
                     .isDirectory();
         }
@@ -105,7 +105,7 @@ class GrpcDocsAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "api/grpc-reference.md");
+                    "contracts/api/grpc-reference.md");
             String content = readFile(file);
             assertThat(content)
                     .contains("api-pagamentos");
@@ -131,7 +131,7 @@ class GrpcDocsAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "api/grpc-reference.md");
+                    "contracts/api/grpc-reference.md");
             String content = readFile(file);
             assertThat(content).contains("quarkus");
         }
@@ -156,7 +156,7 @@ class GrpcDocsAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "api/grpc-reference.md");
+                    "contracts/api/grpc-reference.md");
             String content = readFile(file);
             assertThat(content)
                     .doesNotContain("{{ ");
@@ -231,7 +231,7 @@ class GrpcDocsAssemblerTest {
         }
 
         @Test
-        @DisplayName("does not create api/ directory"
+        @DisplayName("does not create contracts/api/ directory"
                 + " when grpc absent")
         void assemble_whenCalled_doesNotCreateOutputDir(
                 @TempDir Path tempDir) {
@@ -335,7 +335,7 @@ class GrpcDocsAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path dest = outputDir.resolve(
-                    "api/grpc-reference.md");
+                    "contracts/api/grpc-reference.md");
             assertThat(dest).exists();
             String content = readFile(dest);
             assertThat(content).contains("lang=java");

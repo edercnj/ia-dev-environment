@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for IncidentTemplatesAssembler -- copies incident
- * response and postmortem templates to docs/templates/.
+ * response and postmortem templates to results/runbooks/.
  */
 @DisplayName("IncidentTemplatesAssembler")
 class IncidentTemplatesAssemblerTest {
@@ -43,7 +43,7 @@ class IncidentTemplatesAssemblerTest {
 
         @Test
         @DisplayName("generates incident-response and"
-                + " postmortem in docs/templates/")
+                + " postmortem in results/runbooks/")
         void assemble_whenCalled_generatesBothFiles(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
@@ -59,17 +59,17 @@ class IncidentTemplatesAssemblerTest {
 
             assertThat(files).hasSize(2);
             Path irPath = outputDir.resolve(
-                    "docs/templates/"
+                    "results/runbooks/"
                             + "_TEMPLATE-INCIDENT-RESPONSE.md");
             Path pmPath = outputDir.resolve(
-                    "docs/templates/"
+                    "results/runbooks/"
                             + "_TEMPLATE-POSTMORTEM.md");
             assertThat(irPath).exists();
             assertThat(pmPath).exists();
         }
 
         @Test
-        @DisplayName("creates docs/templates/ subdirectory")
+        @DisplayName("creates results/runbooks/ subdirectory")
         void assemble_whenCalled_createsDocsTemplatesSubdir(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
@@ -83,7 +83,7 @@ class IncidentTemplatesAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             assertThat(
-                    outputDir.resolve("docs/templates"))
+                    outputDir.resolve("results/runbooks"))
                     .exists()
                     .isDirectory();
         }
@@ -131,7 +131,7 @@ class IncidentTemplatesAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path irPath = outputDir.resolve(
-                    "docs/templates/"
+                    "results/runbooks/"
                             + "_TEMPLATE-INCIDENT-RESPONSE.md");
             String content = readFile(irPath);
             assertThat(content)
@@ -157,7 +157,7 @@ class IncidentTemplatesAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path irPath = outputDir.resolve(
-                    "docs/templates/"
+                    "results/runbooks/"
                             + "_TEMPLATE-INCIDENT-RESPONSE.md");
             String content = readFile(irPath);
             assertThat(content)
@@ -179,7 +179,7 @@ class IncidentTemplatesAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path irPath = outputDir.resolve(
-                    "docs/templates/"
+                    "results/runbooks/"
                             + "_TEMPLATE-INCIDENT-RESPONSE.md");
             String content = readFile(irPath);
             assertThat(content)
@@ -201,7 +201,7 @@ class IncidentTemplatesAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path irPath = outputDir.resolve(
-                    "docs/templates/"
+                    "results/runbooks/"
                             + "_TEMPLATE-INCIDENT-RESPONSE.md");
             String content = readFile(irPath);
             assertThat(content)
@@ -224,7 +224,7 @@ class IncidentTemplatesAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path irPath = outputDir.resolve(
-                    "docs/templates/"
+                    "results/runbooks/"
                             + "_TEMPLATE-INCIDENT-RESPONSE.md");
             String content = readFile(irPath);
             assertThat(content)
@@ -250,7 +250,7 @@ class IncidentTemplatesAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path irPath = outputDir.resolve(
-                    "docs/templates/"
+                    "results/runbooks/"
                             + "_TEMPLATE-INCIDENT-RESPONSE.md");
             String content = readFile(irPath);
             assertThat(content)
@@ -272,7 +272,7 @@ class IncidentTemplatesAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path irPath = outputDir.resolve(
-                    "docs/templates/"
+                    "results/runbooks/"
                             + "_TEMPLATE-INCIDENT-RESPONSE.md");
             String content = readFile(irPath);
             assertThat(content)
@@ -294,7 +294,7 @@ class IncidentTemplatesAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path irPath = outputDir.resolve(
-                    "docs/templates/"
+                    "results/runbooks/"
                             + "_TEMPLATE-INCIDENT-RESPONSE.md");
             String content = readFile(irPath);
             assertThat(content)
@@ -323,7 +323,7 @@ class IncidentTemplatesAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path irPath = outputDir.resolve(
-                    "docs/templates/"
+                    "results/runbooks/"
                             + "_TEMPLATE-INCIDENT-RESPONSE.md");
             String content = readFile(irPath);
             assertThat(content).containsIgnoringCase(
@@ -346,7 +346,7 @@ class IncidentTemplatesAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path irPath = outputDir.resolve(
-                    "docs/templates/"
+                    "results/runbooks/"
                             + "_TEMPLATE-INCIDENT-RESPONSE.md");
             String content = readFile(irPath);
             assertThat(content).contains("30 min");
@@ -372,7 +372,7 @@ class IncidentTemplatesAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path pmPath = outputDir.resolve(
-                    "docs/templates/"
+                    "results/runbooks/"
                             + "_TEMPLATE-POSTMORTEM.md");
             String content = readFile(pmPath);
             assertThat(content)
@@ -394,7 +394,7 @@ class IncidentTemplatesAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path pmPath = outputDir.resolve(
-                    "docs/templates/"
+                    "results/runbooks/"
                             + "_TEMPLATE-POSTMORTEM.md");
             String content = readFile(pmPath);
             assertThat(content)
@@ -417,7 +417,7 @@ class IncidentTemplatesAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path pmPath = outputDir.resolve(
-                    "docs/templates/"
+                    "results/runbooks/"
                             + "_TEMPLATE-POSTMORTEM.md");
             String content = readFile(pmPath);
             assertThat(content)
@@ -443,7 +443,7 @@ class IncidentTemplatesAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path pmPath = outputDir.resolve(
-                    "docs/templates/"
+                    "results/runbooks/"
                             + "_TEMPLATE-POSTMORTEM.md");
             String content = readFile(pmPath);
             assertThat(content)
@@ -465,7 +465,7 @@ class IncidentTemplatesAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path pmPath = outputDir.resolve(
-                    "docs/templates/"
+                    "results/runbooks/"
                             + "_TEMPLATE-POSTMORTEM.md");
             String content = readFile(pmPath);
             assertThat(content)
@@ -488,7 +488,7 @@ class IncidentTemplatesAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path pmPath = outputDir.resolve(
-                    "docs/templates/"
+                    "results/runbooks/"
                             + "_TEMPLATE-POSTMORTEM.md");
             String content = readFile(pmPath);
             assertThat(content)
@@ -514,7 +514,7 @@ class IncidentTemplatesAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path pmPath = outputDir.resolve(
-                    "docs/templates/"
+                    "results/runbooks/"
                             + "_TEMPLATE-POSTMORTEM.md");
             String content = readFile(pmPath);
             assertThat(content)
@@ -536,7 +536,7 @@ class IncidentTemplatesAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path pmPath = outputDir.resolve(
-                    "docs/templates/"
+                    "results/runbooks/"
                             + "_TEMPLATE-POSTMORTEM.md");
             String content = readFile(pmPath);
             assertThat(content)
@@ -558,7 +558,7 @@ class IncidentTemplatesAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path pmPath = outputDir.resolve(
-                    "docs/templates/"
+                    "results/runbooks/"
                             + "_TEMPLATE-POSTMORTEM.md");
             String content = readFile(pmPath);
             assertThat(content)
@@ -587,7 +587,7 @@ class IncidentTemplatesAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path pmPath = outputDir.resolve(
-                    "docs/templates/"
+                    "results/runbooks/"
                             + "_TEMPLATE-POSTMORTEM.md");
             String content = readFile(pmPath);
             assertThat(content).contains("P0");

@@ -230,7 +230,17 @@ public final class ExpectedArtifactsGenerator {
         countCategory(categories, dir,
                 "github-top", ".github", true);
         countCategory(categories, dir,
-                "docs", "docs");
+                "steering", "steering");
+        countCategory(categories, dir,
+                "adr", "adr");
+        countCategory(categories, dir,
+                "contracts", "contracts");
+        countCategory(categories, dir,
+                "results", "results");
+        countCategory(categories, dir,
+                "specs", "specs");
+        countCategory(categories, dir,
+                "plans", "plans");
         countCategory(categories, dir, "k8s", "k8s");
         countCategory(categories, dir,
                 "tests", "tests");

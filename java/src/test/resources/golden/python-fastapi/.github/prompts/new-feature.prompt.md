@@ -11,7 +11,7 @@ Follow these steps to implement a new feature in **my-fastapi-service**.
 
 ## Prerequisites
 
-- A story file (e.g., `docs/stories/STORY-XXX.md`) with acceptance criteria
+- A story file (e.g., `plans/STORY-XXX.md`) with acceptance criteria
 - All dependency stories completed
 
 ## Workflow
@@ -21,7 +21,7 @@ Follow these steps to implement a new feature in **my-fastapi-service**.
 Use the **x-dev-lifecycle** skill to orchestrate the full cycle:
 
 ```
-/x-dev-lifecycle @docs/stories/STORY-XXX.md
+/x-dev-lifecycle @plans/STORY-XXX.md
 ```
 
 This skill handles: branch creation, architecture planning, task decomposition,
@@ -32,7 +32,7 @@ implementation, review, and PR creation.
 If you prefer manual control, use **x-dev-implement** for the coding phase:
 
 ```
-/x-dev-implement @docs/stories/STORY-XXX.md
+/x-dev-implement @plans/STORY-XXX.md
 ```
 
 This implements layer-by-layer following microservice architecture with

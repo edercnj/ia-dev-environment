@@ -52,10 +52,10 @@ Before execution, validate all prerequisites in order. Abort on first failure.
 
 ### 1. Epic Directory
 
-Check that `docs/stories/epic-XXXX/` exists (where XXXX is the parsed epic ID).
+Check that `plans/epic-XXXX/` exists (where XXXX is the parsed epic ID).
 
 ```
-ERROR: Directory docs/stories/epic-{epicId}/ not found. Run /x-story-epic-full first.
+ERROR: Directory plans/epic-{epicId}/ not found. Run /x-story-epic-full first.
 ```
 
 ### 2. Epic File
@@ -63,7 +63,7 @@ ERROR: Directory docs/stories/epic-{epicId}/ not found. Run /x-story-epic-full f
 Check that `EPIC-XXXX.md` exists in the epic directory.
 
 ```
-ERROR: EPIC-{epicId}.md not found in docs/stories/epic-{epicId}/. Run /x-story-epic first.
+ERROR: EPIC-{epicId}.md not found in plans/epic-{epicId}/. Run /x-story-epic first.
 ```
 
 ### 3. Implementation Map
@@ -200,7 +200,7 @@ In sequential mode there is no parallel dispatch, so conflict analysis adds no v
 
 For each story in the current phase N, attempt to read its implementation plan:
 
-1. Compute plan path: `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`
+1. Compute plan path: `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md`
 2. Read the plan file and extract the list of affected files:
    - Look for sections titled "Affected files", "Existing classes to modify", or
      "New classes/interfaces to create"
@@ -214,7 +214,7 @@ For each story in the current phase N, attempt to read its implementation plan:
 ```json
 {
   "storyId": "story-XXXX-YYYY",
-  "planPath": "docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md",
+  "planPath": "plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md",
   "affectedFiles": ["src/main/java/.../File.java", "pom.xml"],
   "hasPlan": true
 }
@@ -264,7 +264,7 @@ Based on the classification results, partition stories into two groups:
   pairs. These are dispatched one at a time after the parallel batch completes.
   The sequential order respects critical path priority (RULE-007).
 
-**Output file:** Save the analysis to `docs/stories/epic-XXXX/plans/preflight-analysis-phase-N.md`
+**Output file:** Save the analysis to `plans/epic-XXXX/plans/preflight-analysis-phase-N.md`
 for audit purposes. The file follows this structure:
 
 ```markdown
@@ -391,7 +391,7 @@ When `--sequential` flag is set, use sequential dispatch. For each executable st
 ```
 You are implementing story {storyId} for epic {epicId}.
 
-Story file: docs/stories/epic-{epicId}/story-{storyId}.md
+Story file: plans/epic-{epicId}/story-{storyId}.md
 Branch: {branchName}
 Phase: {currentPhase}
 Skip review: {skipReview}
@@ -633,11 +633,11 @@ consistency across local files and external systems.
 
 **On status SUCCESS:**
 
-1. Read `docs/stories/epic-{epicId}/story-{storyId}.md`
+1. Read `plans/epic-{epicId}/story-{storyId}.md`
 2. Update `**Status:**` field from `Pendente` (or `Em Andamento`) to `Concluída`
 3. Write the updated story file
 
-4. Read `docs/stories/epic-{epicId}/IMPLEMENTATION-MAP.md`
+4. Read `plans/epic-{epicId}/IMPLEMENTATION-MAP.md`
 5. Find the row matching `story-{storyId}` in the Section 1 dependency matrix
 6. Update the Status column to `Concluída`
 7. Write the updated Implementation Map
@@ -676,7 +676,7 @@ consistency across local files and external systems.
 
 After updating story status to SUCCESS, check if ALL stories in the epic have status SUCCESS
 in the checkpoint. If yes:
-1. Read `docs/stories/epic-{epicId}/EPIC-{epicId}.md`
+1. Read `plans/epic-{epicId}/EPIC-{epicId}.md`
 2. Update the `**Status:**` field from `Em Andamento` to `Concluído`
 3. If the epic has a Jira key (not `—` or `<CHAVE-JIRA>`):
    - Call `mcp__atlassian__getTransitionsForJiraIssue` with the epic's Jira key
@@ -920,7 +920,7 @@ You are generating the epic execution report for EPIC-{epicId}.
      Format as: `N/A — no TDD compliance data available (legacy epic without integrity gate or insufficient data)`
 
 4. Validate: no unresolved {{...}} placeholders remain in output
-5. Write epic-execution-report.md to docs/stories/epic-{epicId}/
+5. Write epic-execution-report.md to plans/epic-{epicId}/
 ```
 
 **Parallel-mode note:** Because 2.2 runs concurrently with 2.1 in Wave 1, the
@@ -934,7 +934,7 @@ patterns (excluding the expected `"Pending review"` in `{{FINDINGS_SUMMARY}}`).
 If found, log a warning with the unresolved placeholder names.
 
 **Result Handling:**
-- On SUCCESS: report written to `docs/stories/epic-{epicId}/epic-execution-report.md`. Update checkpoint atomically (RULE-002)
+- On SUCCESS: report written to `plans/epic-{epicId}/epic-execution-report.md`. Update checkpoint atomically (RULE-002)
 - On FAILURE: log `"ERROR: Report generation failed"`, continue to Wave 2 (PR created without report)
 
 ### Wave 1 Result Handling
@@ -998,7 +998,7 @@ Push the epic branch and create a PR via `gh` CLI:
    - Branch coverage: {branchCoverage}%
 
    ## Report
-   - See `docs/stories/epic-{epicId}/epic-execution-report.md`
+   - See `plans/epic-{epicId}/epic-execution-report.md`
    ```
 6. **Create:** `gh pr create --title "{title}" --body "{body}" --base main`
 
@@ -1071,7 +1071,7 @@ Stories: {completed}/{total} completed, {failed} failed, {blocked} blocked
 Coverage: line {lineCoverage}%, branch {branchCoverage}%
 Tech Lead: {score} ({decision})
 PR: {prUrl}
-Report: docs/stories/epic-{epicId}/epic-execution-report.md
+Report: plans/epic-{epicId}/epic-execution-report.md
 Elapsed: {totalElapsedTime}
 ```
 
@@ -1084,8 +1084,8 @@ Return to main branch: `git checkout main && git pull origin main`
 - Uses: `gh pr create` (PR creation with summary body, Phase 2.3 — Wave 2 sequential)
 - Phase 2 uses Two-Wave consolidation: Wave 1 dispatches 2.1 + 2.2 in parallel (SINGLE message, RULE-003); Wave 2 (2.3) runs after both complete
 - Reads: `_TEMPLATE-EPIC-EXECUTION-REPORT.md` (report template), `execution-state.json` (checkpoint data)
-- Reads: `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (implementation plans for pre-flight conflict analysis, Phase 0.5)
-- Writes: `docs/stories/epic-XXXX/plans/preflight-analysis-phase-N.md` (pre-flight analysis output for audit, Phase 0.5)
+- Reads: `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (implementation plans for pre-flight conflict analysis, Phase 0.5)
+- Writes: `plans/epic-XXXX/plans/preflight-analysis-phase-N.md` (pre-flight analysis output for audit, Phase 0.5)
 - Phase 0.5 is skipped when `--sequential` is set (no parallel dispatch means no conflict risk)
 - All `{{PLACEHOLDER}}` tokens are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
 - Integrity gate includes smoke tests (Step 5) as regression validation after each phase — runs `{{SMOKE_COMMAND}}` (e.g., `cd java && mvn verify -P integration-tests`)

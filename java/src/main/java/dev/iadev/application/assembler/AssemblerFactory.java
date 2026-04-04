@@ -106,10 +106,10 @@ public final class AssemblerFactory {
             buildDocsAssemblers() {
         return List.of(
                 desc("DocsAssembler",
-                        AssemblerTarget.DOCS,
+                        AssemblerTarget.ROOT,
                         new DocsAssembler()),
                 desc("GrpcDocsAssembler",
-                        AssemblerTarget.DOCS,
+                        AssemblerTarget.ROOT,
                         new GrpcDocsAssembler()),
                 desc("RunbookAssembler",
                         AssemblerTarget.ROOT,

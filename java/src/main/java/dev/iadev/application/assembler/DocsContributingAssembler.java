@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Assembles {@code docs/templates/_TEMPLATE-CONTRIBUTING.md}
+ * Assembles {@code specs/_templates/_TEMPLATE-CONTRIBUTING.md}
  * from the {@code _TEMPLATE-CONTRIBUTING.md} Pebble template.
  *
  * <p>This assembler renders the contributing guide template
@@ -43,7 +43,7 @@ public final class DocsContributingAssembler
     private static final String TEMPLATE_PATH =
             "templates/_TEMPLATE-CONTRIBUTING.md";
     private static final String OUTPUT_SUBDIR =
-            "docs/templates";
+            "specs/_templates";
     private static final String OUTPUT_FILENAME =
             "_TEMPLATE-CONTRIBUTING.md";
 
@@ -72,7 +72,7 @@ public final class DocsContributingAssembler
      *
      * <p>Renders the contributing guide template with Pebble
      * and writes it to
-     * {@code docs/templates/_TEMPLATE-CONTRIBUTING.md}.</p>
+     * {@code specs/_templates/_TEMPLATE-CONTRIBUTING.md}.</p>
      */
     @Override
     public List<String> assemble(

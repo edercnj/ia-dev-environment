@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for DataMigrationPlanAssembler -- conditional
- * generation of docs/templates/_TEMPLATE-DATA-MIGRATION-PLAN.md.
+ * generation of specs/_templates/_TEMPLATE-DATA-MIGRATION-PLAN.md.
  *
  * <p>TPP order: degenerate (no DB) -> simple (PostgreSQL/Flyway)
  * -> conditional (MongoDB/Mongock) -> all sections -> cross-profile
@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class DataMigrationPlanAssemblerTest {
 
     private static final String OUTPUT_PATH =
-            "docs/templates/_TEMPLATE-DATA-MIGRATION-PLAN.md";
+            "specs/_templates/_TEMPLATE-DATA-MIGRATION-PLAN.md";
 
     @Nested
     @DisplayName("implements Assembler interface")

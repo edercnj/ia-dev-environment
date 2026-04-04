@@ -16,7 +16,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for DocsAdrAssembler — generates docs/adr/README.md
+ * Tests for DocsAdrAssembler — generates adr/README.md
  * and _TEMPLATE-ADR.md.
  */
 @DisplayName("DocsAdrAssembler")
@@ -88,7 +88,7 @@ class DocsAdrAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path readme = outputDir.resolve(
-                    "docs/adr/README.md");
+                    "adr/README.md");
             String content = readFile(readme);
             assertThat(content).contains(
                     "# Architecture Decision Records");
@@ -114,7 +114,7 @@ class DocsAdrAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path readme = outputDir.resolve(
-                    "docs/adr/README.md");
+                    "adr/README.md");
             String content = readFile(readme);
             assertThat(content).contains("my-api");
         }
@@ -137,7 +137,7 @@ class DocsAdrAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path readme = outputDir.resolve(
-                    "docs/adr/README.md");
+                    "adr/README.md");
             String content = readFile(readme);
             assertThat(content)
                     .contains("| ID | Title |"
@@ -162,14 +162,14 @@ class DocsAdrAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path templateDest = outputDir.resolve(
-                    "docs/adr/_TEMPLATE-ADR.md");
+                    "adr/_TEMPLATE-ADR.md");
             String content = readFile(templateDest);
             assertThat(content)
                     .isEqualTo(VALID_TEMPLATE);
         }
 
         @Test
-        @DisplayName("creates docs/adr/ subdirectory")
+        @DisplayName("creates adr/ subdirectory")
         void assemble_whenCalled_createsAdrSubdir(
                 @TempDir Path tempDir)
                 throws IOException {
@@ -186,7 +186,7 @@ class DocsAdrAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             assertThat(
-                    outputDir.resolve("docs/adr"))
+                    outputDir.resolve("adr"))
                     .exists()
                     .isDirectory();
         }

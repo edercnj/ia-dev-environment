@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Assembles {@code docs/runbook/deploy-runbook.md} from the
+ * Assembles {@code results/runbooks/deploy-runbook.md} from the
  * {@code _TEMPLATE-DEPLOY-RUNBOOK.md} Pebble template.
  *
  * <p>This is the sixteenth assembler in the pipeline
@@ -40,7 +40,7 @@ public final class RunbookAssembler implements Assembler {
     private static final String TEMPLATE_PATH =
             "templates/_TEMPLATE-DEPLOY-RUNBOOK.md";
     private static final String OUTPUT_SUBDIR =
-            "docs/runbook";
+            "results/runbooks";
     private static final String OUTPUT_FILENAME =
             "deploy-runbook.md";
 
@@ -68,7 +68,7 @@ public final class RunbookAssembler implements Assembler {
      *
      * <p>Renders the deploy runbook template with Pebble
      * and writes it to
-     * {@code docs/runbook/deploy-runbook.md}.</p>
+     * {@code results/runbooks/deploy-runbook.md}.</p>
      */
     @Override
     public List<String> assemble(

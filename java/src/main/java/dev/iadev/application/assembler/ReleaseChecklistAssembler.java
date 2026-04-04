@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Assembles {@code docs/templates/_TEMPLATE-RELEASE-CHECKLIST.md}
+ * Assembles {@code specs/_templates/_TEMPLATE-RELEASE-CHECKLIST.md}
  * from the {@code _TEMPLATE-RELEASE-CHECKLIST.md} Pebble template.
  *
  * <p>Renders a release checklist with conditional sections
@@ -31,7 +31,7 @@ public final class ReleaseChecklistAssembler
     private static final String TEMPLATE_PATH =
             "templates/_TEMPLATE-RELEASE-CHECKLIST.md";
     private static final String OUTPUT_SUBDIR =
-            "docs/templates";
+            "specs/_templates";
     private static final String OUTPUT_FILENAME =
             "_TEMPLATE-RELEASE-CHECKLIST.md";
 
@@ -71,7 +71,7 @@ public final class ReleaseChecklistAssembler
      *
      * <p>Renders the release checklist template with Pebble
      * conditionals and writes it to
-     * {@code docs/templates/_TEMPLATE-RELEASE-CHECKLIST.md}.
+     * {@code specs/_templates/_TEMPLATE-RELEASE-CHECKLIST.md}.
      * </p>
      */
     @Override

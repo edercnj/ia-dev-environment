@@ -125,12 +125,12 @@ The `jiraContext` is passed to all subsequent phases and used to control Jira is
 
 Follow the instructions in `.github/skills/x-story-epic/SKILL.md`:
 
-- Determine the epic number (scan `docs/stories/` for existing `epic-XXXX` folders, use next available; default `0001`)
-- Create directory `docs/stories/epic-XXXX/`
+- Determine the epic number (scan `plans/` for existing `epic-XXXX` folders, use next available; default `0001`)
+- Create directory `plans/epic-XXXX/`
 - Extract rules → RULE-001..N table
 - Build story index with titles and dependencies (using `story-XXXX-YYYY` IDs)
 - Define DoR/DoD from spec quality requirements — the DoD must include TDD Compliance (test-first commits, explicit refactoring after green, incremental tests via TPP) and Double-Loop TDD (acceptance tests from Gherkin as outer loop, unit tests as inner loop)
-- Generate `docs/stories/epic-XXXX/epic-XXXX.md` following `_TEMPLATE-EPIC.md`
+- Generate `plans/epic-XXXX/epic-XXXX.md` following `_TEMPLATE-EPIC.md`
 
 **Jira Integration (if `jiraContext.enabled == true`):**
 
@@ -166,7 +166,7 @@ For each story in the Epic's index:
 - Gherkin acceptance criteria with mandatory categories (degenerate case, happy path, error paths, boundary values) ordered by Transformation Priority Premise (simplest degenerate → complex edge cases)
 - Sub-tasks tagged `[Dev]`, `[Test]`, `[Doc]`
 
-Generate files as `docs/stories/epic-XXXX/story-XXXX-YYYY.md` following `_TEMPLATE-STORY.md`.
+Generate files as `plans/epic-XXXX/story-XXXX-YYYY.md` following `_TEMPLATE-STORY.md`.
 
 **Jira Integration (if `jiraContext.cascadeToStories == true`):**
 
@@ -199,7 +199,7 @@ Follow the instructions in `.github/skills/x-story-map/SKILL.md`:
 - Phase summary and detail tables
 - Strategic observations (bottleneck, leaves, parallelism, convergences, validation milestone)
 
-Generate `docs/stories/epic-XXXX/implementation-map-XXXX.md` following `_TEMPLATE-IMPLEMENTATION-MAP.md`.
+Generate `plans/epic-XXXX/implementation-map-XXXX.md` following `_TEMPLATE-IMPLEMENTATION-MAP.md`.
 
 If Jira keys are available (from Phase C), include them in the dependency matrix's
 `Chave Jira` column.
@@ -222,7 +222,7 @@ This step is best-effort — Jira links are a convenience, not a hard requiremen
 
 ### Phase E: Save and Report
 
-All files are saved inside `docs/stories/epic-XXXX/` (the epic's dedicated folder).
+All files are saved inside `plans/epic-XXXX/` (the epic's dedicated folder).
 
 Report summary:
 - Total rules extracted

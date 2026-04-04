@@ -168,7 +168,7 @@ Flag any class where estimated coverage < 95% line / 90% branch.
 
 ## Output
 
-Save to: `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md` (extract epic ID XXXX and story sequence YYYY from the story ID). Ensure directory exists: `mkdir -p docs/stories/epic-XXXX/plans`.
+Save to: `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md` (extract epic ID XXXX and story sequence YYYY from the story ID). Ensure directory exists: `mkdir -p plans/epic-XXXX/plans`.
 
 ```markdown
 # Test Plan -- STORY-ID: [Title]

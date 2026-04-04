@@ -49,9 +49,9 @@ Read knowledge packs to calibrate the review:
 - `.github/skills/testing/SKILL.md` -- TDD workflow, Double-Loop TDD, TPP ordering
 
 Check for existing artifacts (extract epic ID XXXX and story sequence YYYY from story ID):
-- Specialist review reports (`docs/stories/epic-XXXX/reviews/review-*-story-XXXX-YYYY.md`)
-- Implementation plan (`docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`)
-- Test plan (`docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`)
+- Specialist review reports (`plans/epic-XXXX/reviews/review-*-story-XXXX-YYYY.md`)
+- Implementation plan (`plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md`)
+- Test plan (`plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md`)
 
 ### Step 3 -- Execute Tech Lead Review
 
@@ -98,7 +98,7 @@ The Tech Lead review covers:
  Medium:    N issues
  Low:       N issues
 ------------------------------------------------------------
- Report: docs/stories/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md
+ Report: plans/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md
 ============================================================
 ```
 
@@ -113,7 +113,7 @@ If fixing: apply corrections, commit, re-run review (max 2 cycles).
 
 ## Output Artifacts
 
-- `docs/stories/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md`
+- `plans/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md`
 
 ## Integration Notes
 

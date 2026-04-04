@@ -162,7 +162,7 @@ checkpoint before expanding scope? What does it validate (patterns, pipeline, in
 
 ### Step 8: Save and Report
 
-Save as `implementation-map-XXXX.md` in the same directory as the Epic and Stories (inside `docs/stories/epic-XXXX/`).
+Save as `implementation-map-XXXX.md` in the same directory as the Epic and Stories (inside `plans/epic-XXXX/`).
 The XXXX is the epic number extracted from the Epic file.
 Report: total stories, phases, critical path length, maximum parallelism, main bottleneck.
 

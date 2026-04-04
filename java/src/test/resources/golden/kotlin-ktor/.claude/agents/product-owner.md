@@ -31,16 +31,16 @@ Senior Technical Product Owner with deep experience decomposing system specifica
 
 Every decomposition MUST produce these artifacts in order:
 
-### Deliverable 1: Epic (docs/stories/epic-XXXX/epic-XXXX.md)
+### Deliverable 1: Epic (plans/epic-XXXX/epic-XXXX.md)
 
-Follow `.claude/templates/_TEMPLATE-EPIC.md` structure. Save inside a dedicated folder `docs/stories/epic-XXXX/`. Contains:
+Follow `.claude/templates/_TEMPLATE-EPIC.md` structure. Save inside a dedicated folder `plans/epic-XXXX/`. Contains:
 - Scope overview derived from the spec
 - Cross-cutting rules table (RULE-001..N) with implementation-level detail
 - Global DoR and DoD derived from the spec's quality requirements
 - Complete story index with bidirectional dependency declarations (using `story-XXXX-YYYY` IDs)
 - References to the input spec and related documents
 
-### Deliverable 2: Stories (docs/stories/epic-XXXX/story-XXXX-YYYY.md per story)
+### Deliverable 2: Stories (plans/epic-XXXX/story-XXXX-YYYY.md per story)
 
 Follow `.claude/templates/_TEMPLATE-STORY.md` structure. Save in the same epic folder. Each story contains:
 - Dependency table (Blocked By / Blocks) consistent with the Epic
@@ -52,7 +52,7 @@ Follow `.claude/templates/_TEMPLATE-STORY.md` structure. Save in the same epic f
 - Gherkin acceptance criteria in Portuguese (DADO/QUANDO/ENTÃO) with concrete values
 - Sub-tasks tagged [Dev]/[Test]/[Doc], estimable at 2-4 hours each
 
-### Deliverable 3: Implementation Map (docs/stories/epic-XXXX/implementation-map-XXXX.md)
+### Deliverable 3: Implementation Map (plans/epic-XXXX/implementation-map-XXXX.md)
 
 Follow `.claude/templates/_TEMPLATE-IMPLEMENTATION-MAP.md` structure. Save in the same epic folder. Contains:
 - Full dependency matrix with validation

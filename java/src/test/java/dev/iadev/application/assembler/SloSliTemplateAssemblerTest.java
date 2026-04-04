@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for SloSliTemplateAssembler -- copies SLO/SLI
- * definition template to docs/templates/.
+ * definition template to specs/_templates/.
  */
 @DisplayName("SloSliTemplateAssembler")
 class SloSliTemplateAssemblerTest {
@@ -43,7 +43,7 @@ class SloSliTemplateAssemblerTest {
 
         @Test
         @DisplayName("generates SLO/SLI definition in"
-                + " docs/templates/")
+                + " specs/_templates/")
         void assemble_whenCalled_generatesFile(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
@@ -59,14 +59,14 @@ class SloSliTemplateAssemblerTest {
 
             assertThat(files).hasSize(1);
             Path sloPath = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-SLO-SLI-DEFINITION"
                             + ".md");
             assertThat(sloPath).exists();
         }
 
         @Test
-        @DisplayName("creates docs/templates/ subdirectory")
+        @DisplayName("creates specs/_templates/ subdirectory")
         void assemble_whenCalled_createsSubdir(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
@@ -80,7 +80,7 @@ class SloSliTemplateAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             assertThat(
-                    outputDir.resolve("docs/templates"))
+                    outputDir.resolve("specs/_templates"))
                     .exists()
                     .isDirectory();
         }
@@ -395,7 +395,7 @@ class SloSliTemplateAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path sloPath = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-SLO-SLI-DEFINITION"
                             + ".md");
             String content = readFile(sloPath);
@@ -416,7 +416,7 @@ class SloSliTemplateAssemblerTest {
         assembler.assemble(config, engine, outputDir);
 
         Path sloPath = outputDir.resolve(
-                "docs/templates/"
+                "specs/_templates/"
                         + "_TEMPLATE-SLO-SLI-DEFINITION.md");
         return readFile(sloPath);
     }

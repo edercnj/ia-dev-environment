@@ -36,10 +36,10 @@ Read the field mapping reference before creating issues:
 
 1. Accept the epic directory path or epic ID as argument. If not provided, ask:
    ```
-   question: "Informe o caminho do diretório do épico ou o ID (ex: docs/stories/epic-0012 ou 0012)"
+   question: "Informe o caminho do diretório do épico ou o ID (ex: plans/epic-0012 ou 0012)"
    header: "Epic Directory"
    ```
-2. If only an ID was given (e.g., `0012`), construct the path: `docs/stories/epic-{ID}/`
+2. If only an ID was given (e.g., `0012`), construct the path: `plans/epic-{ID}/`
 3. Verify the directory exists. If not:
    ```
    ERROR: Directory {path} not found. Ensure the epic was created first.

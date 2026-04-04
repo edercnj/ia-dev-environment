@@ -10,7 +10,7 @@ import java.util.List;
 
 /**
  * Copies incident response and postmortem templates to
- * {@code docs/templates/} in the output directory.
+ * {@code results/runbooks/} in the output directory.
  *
  * <p>Both templates are <strong>unconditional</strong>:
  * they are always generated regardless of the project
@@ -38,7 +38,7 @@ public final class IncidentTemplatesAssembler
     private static final String PM_FILENAME =
             "_TEMPLATE-POSTMORTEM.md";
     private static final String OUTPUT_SUBDIR =
-            "docs/templates";
+            "results/runbooks";
 
     /** The 7 mandatory incident response sections. */
     static final List<String> INCIDENT_RESPONSE_SECTIONS =
@@ -88,7 +88,7 @@ public final class IncidentTemplatesAssembler
      * {@inheritDoc}
      *
      * <p>Copies both incident response and postmortem
-     * templates to {@code docs/templates/}. Returns
+     * templates to {@code results/runbooks/}. Returns
      * empty list if either template is missing.</p>
      */
     @Override
