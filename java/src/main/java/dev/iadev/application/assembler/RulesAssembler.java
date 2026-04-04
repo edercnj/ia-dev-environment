@@ -161,6 +161,10 @@ public final class RulesAssembler implements Assembler {
                         config, rulesDir, engine,
                         context));
         generated.addAll(
+                coreWriter.copyConditionalAntiPatternsRule(
+                        config, rulesDir, engine,
+                        context));
+        generated.addAll(
                 coreWriter.copyConditionals(
                         config, skillsDir, engine,
                         context));
