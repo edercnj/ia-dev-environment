@@ -1,7 +1,7 @@
 package dev.iadev.config;
 
 import dev.iadev.domain.stack.ProtocolMapping;
-import dev.iadev.model.ProjectConfig;
+import dev.iadev.domain.model.ProjectConfig;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

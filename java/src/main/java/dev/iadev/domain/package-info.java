@@ -5,6 +5,6 @@
  * This package must NOT import any external framework classes
  * (Picocli, Pebble, Jackson, SnakeYAML, JLine).
  *
- * @see dev.iadev.model
+ * @see dev.iadev.domain.model
  */
 package dev.iadev.domain;

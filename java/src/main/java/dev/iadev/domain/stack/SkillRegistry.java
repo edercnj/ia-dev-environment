@@ -1,6 +1,6 @@
 package dev.iadev.domain.stack;
 
-import dev.iadev.model.InfraConfig;
+import dev.iadev.domain.model.InfraConfig;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,8 +1,8 @@
 package dev.iadev.domain.stack;
 
-import dev.iadev.model.FrameworkConfig;
-import dev.iadev.model.LanguageConfig;
-import dev.iadev.model.ProjectConfig;
+import dev.iadev.domain.model.FrameworkConfig;
+import dev.iadev.domain.model.LanguageConfig;
+import dev.iadev.domain.model.ProjectConfig;
 
 import java.util.ArrayList;
 import java.util.List;

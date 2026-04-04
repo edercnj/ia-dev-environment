@@ -1,19 +1,19 @@
 package dev.iadev.cli;
 
 import dev.iadev.exception.GenerationCancelledException;
-import dev.iadev.model.ArchitectureConfig;
-import dev.iadev.model.DataConfig;
-import dev.iadev.model.FrameworkConfig;
-import dev.iadev.model.InfraConfig;
-import dev.iadev.model.InterfaceConfig;
-import dev.iadev.model.LanguageConfig;
-import dev.iadev.model.McpConfig;
-import dev.iadev.model.ObservabilityConfig;
-import dev.iadev.model.ProjectConfig;
-import dev.iadev.model.ProjectIdentity;
-import dev.iadev.model.SecurityConfig;
-import dev.iadev.model.TechComponent;
-import dev.iadev.model.TestingConfig;
+import dev.iadev.domain.model.ArchitectureConfig;
+import dev.iadev.domain.model.DataConfig;
+import dev.iadev.domain.model.FrameworkConfig;
+import dev.iadev.domain.model.InfraConfig;
+import dev.iadev.domain.model.InterfaceConfig;
+import dev.iadev.domain.model.LanguageConfig;
+import dev.iadev.domain.model.McpConfig;
+import dev.iadev.domain.model.ObservabilityConfig;
+import dev.iadev.domain.model.ProjectConfig;
+import dev.iadev.domain.model.ProjectIdentity;
+import dev.iadev.domain.model.SecurityConfig;
+import dev.iadev.domain.model.TechComponent;
+import dev.iadev.domain.model.TestingConfig;
 
 import java.util.List;
 import java.util.regex.Pattern;

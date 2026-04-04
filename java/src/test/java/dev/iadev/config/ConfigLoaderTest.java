@@ -2,7 +2,7 @@ package dev.iadev.config;
 
 import dev.iadev.exception.ConfigParseException;
 import dev.iadev.exception.ConfigValidationException;
-import dev.iadev.model.ProjectConfig;
+import dev.iadev.domain.model.ProjectConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

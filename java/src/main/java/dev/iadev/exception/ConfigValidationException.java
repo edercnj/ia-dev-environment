@@ -1,29 +1,24 @@
 package dev.iadev.exception;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
- * Thrown when configuration validation fails during YAML deserialization.
+ * Infrastructure-layer configuration validation exception.
  *
- * <p>Carries context about which field failed validation, the expected type,
- * the model class where the validation occurred, or a list of missing
- * configuration sections.</p>
+ * <p>This class extends the domain-layer
+ * {@link dev.iadev.domain.model.ConfigValidationException} to
+ * maintain backward compatibility with existing infrastructure
+ * and adapter code that catches or throws this exception.</p>
  *
- * <p>Example usage:
- * <pre>{@code
- * // Missing field in a model
- * throw new ConfigValidationException("name", "ProjectIdentity");
+ * <p>New domain code should use
+ * {@link dev.iadev.domain.model.ConfigValidationException}
+ * directly. This subclass exists solely as a migration bridge
+ * (RULE-001: domain isolation).</p>
  *
- * // Missing YAML sections
- * throw new ConfigValidationException(
- *     "Missing required sections",
- *     List.of("language", "framework"));
- * }</pre>
+ * @see dev.iadev.domain.model.ConfigValidationException
  */
-public class ConfigValidationException extends RuntimeException {
-
-    private final List<String> missingSections;
+public class ConfigValidationException
+        extends dev.iadev.domain.model.ConfigValidationException {
 
     /**
      * Creates an exception for a missing required field.
@@ -31,10 +26,9 @@ public class ConfigValidationException extends RuntimeException {
      * @param field the missing field name
      * @param model the model class name
      */
-    public ConfigValidationException(String field, String model) {
-        super("Missing required field '%s' in %s"
-                .formatted(field, model));
-        this.missingSections = List.of();
+    public ConfigValidationException(
+            String field, String model) {
+        super(field, model);
     }
 
     /**
@@ -48,9 +42,7 @@ public class ConfigValidationException extends RuntimeException {
             String field,
             String expectedType,
             String model) {
-        super("Invalid type for field '%s' in %s: expected %s"
-                .formatted(field, model, expectedType));
-        this.missingSections = List.of();
+        super(field, expectedType, model);
     }
 
     /**
@@ -62,45 +54,16 @@ public class ConfigValidationException extends RuntimeException {
     public ConfigValidationException(
             String message, Throwable cause) {
         super(message, cause);
-        this.missingSections = List.of();
     }
 
     /**
      * Creates an exception for missing configuration sections.
-     *
-     * <p>The provided list is defensively copied and stored as an
-     * unmodifiable list.</p>
      *
      * @param message         description of the validation failure
      * @param missingSections list of missing section names
      */
     public ConfigValidationException(
             String message, List<String> missingSections) {
-        super(message);
-        this.missingSections = Collections.unmodifiableList(
-                List.copyOf(missingSections));
-    }
-
-    /**
-     * Returns the list of missing configuration sections.
-     *
-     * <p>Returns an empty list if this exception was not created
-     * with the missing sections constructor.</p>
-     *
-     * @return unmodifiable list of missing section names
-     */
-    public List<String> getMissingSections() {
-        return missingSections;
-    }
-
-    @Override
-    public String toString() {
-        if (missingSections.isEmpty()) {
-            return "ConfigValidationException{message='%s'}"
-                    .formatted(getMessage());
-        }
-        return ("ConfigValidationException{message='%s'"
-                + ", missingSections=%s}")
-                        .formatted(getMessage(), missingSections);
+        super(message, missingSections);
     }
 }

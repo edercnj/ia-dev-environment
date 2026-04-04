@@ -3,160 +3,173 @@
 ## 1. Overview
 
 **Service:** my-java-cli
-**Architecture:** library
-**Language:** java
-**Framework:** picocli
-**Interfaces:** cli
+**Architecture:** Hexagonal (Ports & Adapters)
+**Language:** Java 21
+**Framework:** picocli 4.7
+**Interfaces:** CLI
+**Build Tool:** Maven
 
-> Describe the service purpose, its role in the ecosystem, and the technology stack.
-> This section should answer: What does this service do? Why does it exist?
+> `ia-dev-env` is a CLI tool that generates development environment configurations
+> (Claude Code, GitHub Copilot, Codex) from a YAML specification. It reads a
+> project setup config, resolves the technology stack, and assembles output files
+> using Pebble templates.
 
-## 2. C4 Diagrams
+## 2. Package Structure (Hexagonal)
 
-### Context Diagram
-
-```mermaid
-graph TD
-    U[User / External System] -->|Request| S[my-java-cli]
-    S -->|Response| U
-    S -->|Data| DB[(Database)]
-    S -->|Events| MQ[Message Broker]
+```
+src/main/java/dev/iadev/
+├── domain/                          # Core — zero external dependencies
+│   ├── model/                       # Value objects, records, domain exceptions
+│   │   ├── ProjectConfig.java       # Root aggregate (YAML -> typed config)
+│   │   ├── GenerationContext.java   # Immutable context for template rendering
+│   │   ├── ConfigValidationException.java  # Domain validation exception
+│   │   └── ... (19 records total)
+│   ├── port/
+│   │   ├── input/                   # Use case interfaces (3)
+│   │   │   ├── GenerateEnvironmentUseCase.java
+│   │   │   ├── ValidateConfigUseCase.java
+│   │   │   └── ListStackProfilesUseCase.java
+│   │   └── output/                  # Driven port interfaces (5)
+│   │       ├── StackProfileRepository.java
+│   │       ├── TemplateRenderer.java
+│   │       ├── FileSystemWriter.java
+│   │       ├── CheckpointStore.java
+│   │       └── ProgressReporter.java
+│   ├── service/                     # Domain services implementing input ports
+│   │   ├── GenerateEnvironmentService.java
+│   │   ├── ValidateConfigService.java
+│   │   └── ListStackProfilesService.java
+│   ├── stack/                       # Stack resolution logic
+│   └── implementationmap/           # DAG computation for epic execution
+├── application/
+│   ├── assembler/                   # Template assemblers (87 classes)
+│   ├── dag/                         # Assembler dependency graph
+│   └── factory/                     # Assembler factory
+├── infrastructure/
+│   ├── adapter/
+│   │   ├── input/
+│   │   │   └── cli/                 # CLI commands (picocli)
+│   │   │       ├── GenerateCommandAdapter.java
+│   │   │       ├── ValidateCommandAdapter.java
+│   │   │       └── ListProfilesCommandAdapter.java
+│   │   └── output/
+│   │       ├── config/              # YAML config adapter (SnakeYAML)
+│   │       ├── template/            # Template engine adapter (Pebble)
+│   │       ├── filesystem/          # File system adapter (java.nio)
+│   │       ├── checkpoint/          # Checkpoint persistence adapter (Jackson)
+│   │       └── progress/            # Progress reporting adapter (console)
+│   └── config/
+│       └── ApplicationFactory.java  # Composition root (wires all)
+├── exception/                       # Infrastructure exceptions (legacy bridge)
+├── util/                            # Shared utilities
+└── smoke/                           # Smoke test artifact generation
 ```
 
-### Container Diagram
+## 3. Dependency Direction
 
-```mermaid
-graph TD
-    subgraph my-java-cli
-        API[API Layer]
-        APP[Application Layer]
-        DOM[Domain Layer]
-        ADAPT[Adapter Layer]
-    end
-    API --> APP
-    APP --> DOM
-    ADAPT --> DOM
-    ADAPT -->|Persistence| DB[(Database)]
-    ADAPT -->|Cache| CACHE[(Cache)]
+```
+infrastructure/adapter/input/cli → domain/port/input → domain/service → domain/port/output
+                                                                              ↑
+                                                        infrastructure/adapter/output (implements)
+
+infrastructure/config/ApplicationFactory → wires all layers
 ```
 
-## 3. Integrations
+**Golden Rule:** Dependencies point inward. Domain NEVER imports adapter, infrastructure, or framework code.
 
-| System | Protocol | Purpose | SLO |
-| :--- | :--- | :--- | :--- |
-| _Example: Auth Service_ | _REST/gRPC_ | _Token validation_ | _p99 < 50ms_ |
+## 4. Layer Rules
 
-> List all external systems this service integrates with.
+| Layer | Can Depend On | Cannot Depend On |
+| :--- | :--- | :--- |
+| `domain.model` | Standard library only | Everything else |
+| `domain.port.input` | `domain.model`, standard library | adapter, application, infrastructure |
+| `domain.port.output` | `domain.model`, standard library | adapter, application, infrastructure |
+| `domain.service` | `domain.model`, `domain.port.*` | adapter, application, infrastructure |
+| `application.assembler` | `domain.port.output`, `domain.model` | `domain.service`, adapter, CLI |
+| `infrastructure.adapter.input` | `domain.port.input`, `domain.model` | `domain.service`, output adapters |
+| `infrastructure.adapter.output` | `domain.port.output`, `domain.model` | input adapters, `domain.service` |
+| `infrastructure.config` | All layers (composition root) | — |
 
-## 4. Data Model
+## 5. ArchUnit Enforcement
 
-> Document the main entities and their relationships.
-> Include an ER diagram if applicable.
+All architecture rules are enforced automatically via ArchUnit (8 rules, zero violations):
 
-```mermaid
-erDiagram
-    ENTITY_A ||--o{ ENTITY_B : contains
-    ENTITY_A {
-        string id PK
-        string name
-    }
-    ENTITY_B {
-        string id PK
-        string entity_a_id FK
-    }
-```
+| Rule | Description | Status |
+| :--- | :--- | :--- |
+| RULE-001a | Domain must not depend on infrastructure packages | Active |
+| RULE-001b | Domain must not depend on application layer | Active |
+| RULE-002 | Output ports must be interfaces | Active |
+| RULE-003a | Input ports must be interfaces | Active |
+| RULE-003b | Input ports must only depend on domain model | Active |
+| RULE-003c | CLI must only access input ports | Active |
+| RULE-004 | Domain model must have zero framework dependencies | Active |
+| RULE-005 | Domain must not reference config (composition root) | Active |
 
-## 5. Critical Flows
+## 6. Critical Flows
 
-> Document the top-3 most important operations as sequence diagrams.
-
-### Flow 1: Main Operation
+### Flow 1: Generate Environment
 
 ```mermaid
 sequenceDiagram
-    participant C as Client
-    participant A as API
-    participant S as Service
-    participant D as Database
-    C->>A: Request
-    A->>S: Process
-    S->>D: Persist
-    D-->>S: Confirmation
-    S-->>A: Result
-    A-->>C: Response
+    participant CLI as CLI Adapter
+    participant UC as GenerateEnvironmentUseCase
+    participant SVC as GenerateEnvironmentService
+    participant CFG as StackProfileRepository
+    participant TPL as TemplateRenderer
+    participant FS as FileSystemWriter
+    participant PRG as ProgressReporter
+
+    CLI->>UC: generate(configPath, outputDir)
+    UC->>SVC: execute(request)
+    SVC->>CFG: loadProfile(stackName)
+    CFG-->>SVC: StackProfile
+    SVC->>TPL: render(template, context)
+    TPL-->>SVC: rendered content
+    SVC->>FS: write(path, content)
+    SVC->>PRG: reportProgress(step, total)
+    SVC-->>UC: GenerationResult
+    UC-->>CLI: display result
 ```
 
-### Flow 2: Secondary Operation
+### Flow 2: Validate Configuration
 
-> Add sequence diagram for the second critical flow.
+```mermaid
+sequenceDiagram
+    participant CLI as CLI Adapter
+    participant UC as ValidateConfigUseCase
+    participant SVC as ValidateConfigService
 
-### Flow 3: Background Process
-
-> Add sequence diagram for the third critical flow.
-
-## 6. NFRs
-
-| Metric | Target | Measurement |
-| :--- | :--- | :--- |
-| Latency (p95) | < 200ms | APM / Prometheus histogram |
-| Throughput | > 1000 req/s | Load test / Grafana |
-| Availability | 99.9% | Uptime monitoring |
-| Error rate | < 0.1% | Error tracking / Alertmanager |
+    CLI->>UC: validate(configPath)
+    UC->>SVC: execute(request)
+    SVC->>SVC: parse and validate YAML
+    SVC-->>UC: ValidationResult
+    UC-->>CLI: display validation result
+```
 
 ## 7. Architectural Decisions
 
-> Link to relevant ADRs in `docs/adr/`.
-
 | ADR | Title | Status |
 | :--- | :--- | :--- |
-| _ADR-001_ | _Example: Choice of framework_ | _Accepted_ |
+| ADR-001 | Hexagonal Architecture Migration | Accepted |
 
-## 8. Observability
+## 8. Legacy Packages (Tech Debt)
 
-### Key Metrics
+The following legacy packages remain as active code that has not yet been
+migrated into the hexagonal structure. They are functional and tested but
+represent remaining migration work:
 
-- Request rate (req/s)
-- Error rate (errors/s)
-- Latency percentiles (p50, p95, p99)
-- Resource utilization (CPU, memory)
-
-### Alerts
-
-| Alert | Condition | Severity |
+| Package | Status | Notes |
 | :--- | :--- | :--- |
-| _High latency_ | _p95 > 500ms for 5min_ | _Warning_ |
-| _Error spike_ | _Error rate > 1% for 2min_ | _Critical_ |
+| `cli/` | Active (legacy) | Contains original CLI commands; new adapters delegate to these |
+| `config/` | Active (legacy) | ConfigLoader, ContextBuilder still used by assemblers |
+| `checkpoint/` | Active (legacy) | Checkpoint engine and persistence |
+| `progress/` | Active (legacy) | Progress reporting and formatting |
+| `template/` | Active (legacy) | Pebble template engine wrapper |
+| `exception/` | Bridge | Subclasses domain exceptions for backward compatibility |
+| `util/` | Active (legacy) | Shared utilities (PathUtils, ResourceDiscovery, etc.) |
 
-### Dashboards
-
-- Service overview dashboard
-- SLO tracking dashboard
-- Infrastructure metrics dashboard
-
-## 9. Resilience
-
-### Circuit Breakers
-
-> Document circuit breaker configurations for external dependencies.
-
-| Dependency | Failure Threshold | Timeout | Half-Open After |
-| :--- | :--- | :--- | :--- |
-| _Example: Auth Service_ | _5 failures_ | _3s_ | _30s_ |
-
-### Retries
-
-> Document retry policies for transient failures.
-
-### Fallbacks
-
-> Document fallback strategies when dependencies are unavailable.
-
-### Graceful Degradation
-
-> Document how the service degrades when non-critical dependencies fail.
-
-## 10. Change History
+## 9. Change History
 
 | Date | Author | Description |
 | :--- | :--- | :--- |
-| _YYYY-MM-DD_ | _Author_ | _Initial architecture document_ |
+| 2026-04-04 | EPIC-0015 | Hexagonal architecture migration (15 stories) |

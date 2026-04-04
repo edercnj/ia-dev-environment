@@ -8,6 +8,6 @@
  * <p>This package must NOT import any external framework classes
  * (Picocli, Pebble, Jackson, SnakeYAML, JLine).
  *
- * @see dev.iadev.model.ProjectConfig
+ * @see dev.iadev.domain.model.ProjectConfig
  */
 package dev.iadev.domain.stack;

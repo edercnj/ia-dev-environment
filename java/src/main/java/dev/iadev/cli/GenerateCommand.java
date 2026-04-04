@@ -1,15 +1,15 @@
 package dev.iadev.cli;
 
-import dev.iadev.assembler.AssemblerDescriptor;
-import dev.iadev.assembler.AssemblerPipeline;
-import dev.iadev.assembler.PipelineOptions;
+import dev.iadev.application.assembler.AssemblerDescriptor;
+import dev.iadev.application.assembler.AssemblerPipeline;
+import dev.iadev.application.assembler.PipelineOptions;
 import dev.iadev.domain.stack.StackValidator;
 import dev.iadev.exception.CliException;
 import dev.iadev.exception.ConfigParseException;
 import dev.iadev.exception.ConfigValidationException;
 import dev.iadev.exception.PipelineException;
-import dev.iadev.model.PipelineResult;
-import dev.iadev.model.ProjectConfig;
+import dev.iadev.domain.model.PipelineResult;
+import dev.iadev.domain.model.ProjectConfig;
 import dev.iadev.util.OverwriteDetector;
 import dev.iadev.util.PathUtils;
 import picocli.CommandLine.ArgGroup;

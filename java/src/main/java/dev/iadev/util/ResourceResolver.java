@@ -159,11 +159,11 @@ public final class ResourceResolver {
 
     /**
      * Delegates to
-     * {@link dev.iadev.assembler.CopyHelpers#deleteQuietly}.
+     * {@link dev.iadev.application.assembler.CopyHelpers#deleteQuietly}.
      *
      * @param dir directory to delete recursively
      */
     static void deleteQuietly(Path dir) {
-        dev.iadev.assembler.CopyHelpers.deleteQuietly(dir);
+        dev.iadev.application.assembler.CopyHelpers.deleteQuietly(dir);
     }
 }

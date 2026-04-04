@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-04-04
+
+### Added
+
+- Hexagonal Architecture (Ports & Adapters) with enforced layer boundaries
+- Domain model layer (`domain/model/`) with 19 immutable records
+- Input port interfaces (`domain/port/input/`): GenerateEnvironmentUseCase,
+  ValidateConfigUseCase, ListStackProfilesUseCase
+- Output port interfaces (`domain/port/output/`): StackProfileRepository,
+  TemplateRenderer, FileSystemWriter, CheckpointStore, ProgressReporter
+- Domain services (`domain/service/`) implementing input ports
+- Infrastructure adapters for CLI input and 5 output concerns
+- Composition root (`ApplicationFactory`) wiring all dependencies
+- ArchUnit enforcement: 8 rules active with zero violations
+- Domain-level `ConfigValidationException` for domain isolation
+- ADR-001: Hexagonal Architecture Migration decision record
+
+### Changed
+
+- Package structure: flat -> hexagonal (domain, application, infrastructure)
+- Domain model no longer depends on infrastructure exception package (RULE-001)
+- Service architecture documentation updated with hexagonal structure
+
 ## [2.0.0] - 2026-03-19
 
 ### Added

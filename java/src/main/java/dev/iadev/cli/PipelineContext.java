@@ -1,8 +1,8 @@
 package dev.iadev.cli;
 
-import dev.iadev.assembler.AssemblerDescriptor;
-import dev.iadev.assembler.PipelineOptions;
-import dev.iadev.model.ProjectConfig;
+import dev.iadev.application.assembler.AssemblerDescriptor;
+import dev.iadev.application.assembler.PipelineOptions;
+import dev.iadev.domain.model.ProjectConfig;
 
 import java.io.PrintWriter;
 import java.nio.file.Path;

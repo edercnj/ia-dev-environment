@@ -2,7 +2,7 @@ package dev.iadev.config;
 
 import dev.iadev.exception.ConfigParseException;
 import dev.iadev.exception.ConfigValidationException;
-import dev.iadev.model.ProjectConfig;
+import dev.iadev.domain.model.ProjectConfig;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
