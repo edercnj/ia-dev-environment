@@ -170,6 +170,8 @@ class ContextBuilderTest {
                     .isEqualTo("");
             assertThat(ctx.get("event_store"))
                     .isEqualTo("eventstoredb");
+            assertThat(ctx.get("outbox_pattern"))
+                    .isEqualTo("False");
             assertThat(ctx.get("events_per_snapshot"))
                     .isEqualTo(100);
         }

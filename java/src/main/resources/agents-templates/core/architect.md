@@ -107,6 +107,13 @@ Every plan MUST contain these sections in order:
 - Cost implications (new services, scaling considerations)
 - Region/availability requirements
 
+### Section 15: Transactional Outbox (when architecture.outbox_pattern == true)
+- Events requiring outbox guarantee (list topic + payload schema)
+- Relay strategy selection: Polling Publisher vs CDC (see `skills/patterns-outbox/SKILL.md`)
+- Outbox table placement (shared vs per-aggregate)
+- Dead letter handling and monitoring plan
+- Consumer idempotency strategy for at-least-once delivery
+
 ## Rules
 - NEVER skip a section — write "N/A" with justification if not applicable
 - ALWAYS reference specific package paths and class names

@@ -468,6 +468,58 @@ class SkillsSelectionTest {
         }
 
         @Test
+        @DisplayName("config with outboxPattern true"
+                + " includes patterns-outbox")
+        void select_outboxTrue_includesOutboxPack() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .outboxPattern(true)
+                            .build();
+
+            List<String> packs =
+                    SkillsSelection.selectKnowledgePacks(
+                            config);
+
+            assertThat(packs)
+                    .contains("patterns-outbox");
+        }
+
+        @Test
+        @DisplayName("config without outboxPattern excludes"
+                + " patterns-outbox")
+        void select_outboxFalse_excludesOutboxPack() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .outboxPattern(false)
+                            .build();
+
+            List<String> packs =
+                    SkillsSelection.selectKnowledgePacks(
+                            config);
+
+            assertThat(packs)
+                    .doesNotContain("patterns-outbox");
+        }
+
+        @Test
+        @DisplayName("config with eventDriven and"
+                + " outboxPattern includes patterns-outbox")
+        void select_eventDrivenAndOutbox_includesOutbox() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .eventDriven(true)
+                            .outboxPattern(true)
+                            .build();
+
+            List<String> packs =
+                    SkillsSelection.selectKnowledgePacks(
+                            config);
+
+            assertThat(packs)
+                    .contains("patterns-outbox");
+        }
+
+        @Test
         @DisplayName("config with container includes"
                 + " disaster-recovery")
         void select_container_includesDrPack() {

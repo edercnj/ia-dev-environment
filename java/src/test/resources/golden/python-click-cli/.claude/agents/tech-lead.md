@@ -75,6 +75,7 @@ Principal Engineer with deep experience shipping production systems. Evaluates c
 38. Observability: spans, metrics, and logs for new flows
 39. Resilience patterns applied where needed
 40. No breaking changes to existing contracts (API, messages, schema)
+40a. Outbox pattern: events use outbox table, not direct broker publish (when architecture.outbox_pattern == true, see `skills/patterns-outbox/SKILL.md`)
 
 ### TDD Process (41-45)
 41. Git history shows Red-Green-Refactor progression (test commit precedes implementation commit)

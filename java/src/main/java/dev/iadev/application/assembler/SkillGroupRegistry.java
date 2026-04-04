@@ -82,7 +82,7 @@ public final class SkillGroupRegistry {
                 "release-management", "data-management",
                 "performance-engineering",
                 "feature-flags", "disaster-recovery",
-                "finops"));
+                "finops", "patterns-outbox"));
         SKILL_GROUPS.put("git-troubleshooting", List.of(
                 "x-git-push", "x-ops-troubleshoot",
                 "x-ops-incident",
@@ -161,6 +161,9 @@ public final class SkillGroupRegistry {
                     return p != null && !p.isBlank()
                             && !"none".equals(p);
                 });
+        KP_SKILL_CONDITIONS.put(
+                "patterns-outbox",
+                c -> c.architecture().outboxPattern());
     }
 
     private static final Set<String> CONTRACT_TYPES =

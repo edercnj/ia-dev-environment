@@ -172,6 +172,7 @@ public final class SkillsSelection {
                 SkillRegistry.CORE_KNOWLEDGE_PACKS);
         packs.add("layer-templates");
         packs.addAll(selectDataPacks(config));
+        packs.addAll(selectOutboxPack(config));
         packs.addAll(selectDisasterRecoveryPack(config));
         packs.addAll(selectCloudPacks(config));
         packs.addAll(selectArchitecturePacks(config));
@@ -197,6 +198,14 @@ public final class SkillsSelection {
                 || !"none".equals(
                         config.data().cache().name())) {
             return List.of("database-patterns");
+        }
+        return List.of();
+    }
+
+    private static List<String> selectOutboxPack(
+            ProjectConfig config) {
+        if (config.architecture().outboxPattern()) {
+            return List.of("patterns-outbox");
         }
         return List.of();
     }

@@ -106,7 +106,7 @@ public final class ContextBuilder {
      * section of the context map.</p>
      *
      * @param config the project configuration
-     * @return an ordered map with 42 template context entries
+     * @return an ordered map with 43 template context entries
      */
     public static Map<String, Object> buildContext(
             ProjectConfig config) {

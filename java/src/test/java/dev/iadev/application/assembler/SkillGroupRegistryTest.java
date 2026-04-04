@@ -77,10 +77,10 @@ class SkillGroupRegistryTest {
         }
 
         @Test
-        @DisplayName("knowledge-packs group has 16 skills")
+        @DisplayName("knowledge-packs group has 17 skills")
         void register_whenCalled_knowledgePacksGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("knowledge-packs")).hasSize(16);
+                    .get("knowledge-packs")).hasSize(17);
         }
 
         @Test
@@ -212,11 +212,11 @@ class SkillGroupRegistryTest {
     class KpSkillConditions {
 
         @Test
-        @DisplayName("contains exactly 2 conditions")
-        void kpConditions_whenCalled_containsTwoConditions() {
+        @DisplayName("contains exactly 3 conditions")
+        void kpConditions_whenCalled_containsThreeConditions() {
             assertThat(SkillGroupRegistry
                     .KP_SKILL_CONDITIONS)
-                    .hasSize(2);
+                    .hasSize(3);
         }
 
         @Test
@@ -251,6 +251,24 @@ class SkillGroupRegistryTest {
                     .cloudProvider("none").build();
             assertThat(cond.test(aws)).isTrue();
             assertThat(cond.test(none)).isFalse();
+        }
+
+        @Test
+        @DisplayName("patterns-outbox requires"
+                + " outboxPattern true")
+        void kpConditions_outbox_requiresOutboxPattern() {
+            Predicate<ProjectConfig> cond =
+                    SkillGroupRegistry
+                            .KP_SKILL_CONDITIONS
+                            .get("patterns-outbox");
+            ProjectConfig enabled =
+                    TestConfigBuilder.builder()
+                            .outboxPattern(true).build();
+            ProjectConfig disabled =
+                    TestConfigBuilder.builder()
+                            .outboxPattern(false).build();
+            assertThat(cond.test(enabled)).isTrue();
+            assertThat(cond.test(disabled)).isFalse();
         }
     }
 
