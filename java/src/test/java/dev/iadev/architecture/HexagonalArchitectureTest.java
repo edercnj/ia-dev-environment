@@ -101,8 +101,6 @@ class HexagonalArchitectureTest {
     // --- RULE-002: Output ports ---
 
     @Test
-    @Disabled("Activate after story-0015-0004 — "
-        + "AS-IS: output ports not yet extracted")
     @DisplayName("RULE-002: Output ports must be interfaces")
     void outputPortsShouldBeInterfaces() {
         ArchRule rule = classes()
