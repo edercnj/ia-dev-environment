@@ -148,8 +148,6 @@ class HexagonalArchitectureTest {
     }
 
     @Test
-    @Disabled("Activate after story-0015-0005 — "
-        + "AS-IS: CLI accesses domain classes directly")
     @DisplayName("RULE-003: CLI must only access input ports")
     void cliShouldOnlyAccessInputPorts() {
         ArchRule rule = noClasses()
