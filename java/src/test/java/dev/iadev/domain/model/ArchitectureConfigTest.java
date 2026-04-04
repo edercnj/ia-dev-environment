@@ -65,5 +65,59 @@ class ArchitectureConfigTest {
 
             assertThat(result.domainDriven()).isFalse();
         }
+
+        @Test
+        @DisplayName("defaults validateWithArchUnit to false")
+        void fromMap_noArchUnit_defaultsFalse() {
+            var map = Map.<String, Object>of(
+                    "style", "hexagonal");
+
+            var result = ArchitectureConfig.fromMap(map);
+
+            assertThat(result.validateWithArchUnit())
+                    .isFalse();
+        }
+
+        @Test
+        @DisplayName("defaults basePackage to empty string")
+        void fromMap_noBasePackage_defaultsEmpty() {
+            var map = Map.<String, Object>of(
+                    "style", "hexagonal");
+
+            var result = ArchitectureConfig.fromMap(map);
+
+            assertThat(result.basePackage()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("parses validateWithArchUnit and"
+                + " basePackage")
+        void fromMap_allNewFields_allSet() {
+            var map = Map.<String, Object>of(
+                    "style", "hexagonal",
+                    "validate_with_archunit", true,
+                    "base_package", "com.example.myapp");
+
+            var result = ArchitectureConfig.fromMap(map);
+
+            assertThat(result.validateWithArchUnit())
+                    .isTrue();
+            assertThat(result.basePackage())
+                    .isEqualTo("com.example.myapp");
+        }
+
+        @Test
+        @DisplayName("non-boolean validate_with_archunit"
+                + " defaults to false")
+        void fromMap_nonBoolArchUnit_defaultsFalse() {
+            var map = Map.<String, Object>of(
+                    "style", "hexagonal",
+                    "validate_with_archunit", "yes");
+
+            var result = ArchitectureConfig.fromMap(map);
+
+            assertThat(result.validateWithArchUnit())
+                    .isFalse();
+        }
     }
 }

@@ -12,12 +12,12 @@ import java.util.stream.Collectors;
 /**
  * Builds a template context map from a {@link ProjectConfig}.
  *
- * <p>Produces exactly 34 fields matching the TypeScript
+ * <p>Produces exactly 36 fields matching the TypeScript
  * {@code buildDefaultContext()} function (RULE-010). Boolean values
  * are converted to Python-style strings ("True"/"False") per
  * RULE-002 for Jinja2/Pebble template rendering parity.
  *
- * <p>The 32 context fields are:
+ * <p>The 36 context fields are:
  * <ol>
  *   <li>project_name</li>
  *   <li>project_purpose</li>
@@ -29,6 +29,8 @@ import java.util.stream.Collectors;
  *   <li>architecture_style</li>
  *   <li>domain_driven</li>
  *   <li>event_driven</li>
+ *   <li>validate_with_archunit</li>
+ *   <li>base_package</li>
  *   <li>container</li>
  *   <li>orchestrator</li>
  *   <li>templating</li>
@@ -79,7 +81,7 @@ public final class ContextBuilder {
     }
 
     /**
-     * Builds a context map with exactly 32 template fields from
+     * Builds a context map with exactly 36 template fields from
      * the given {@link ProjectConfig}.
      *
      * <p>Delegates to domain-specific builders for each
@@ -143,6 +145,12 @@ public final class ContextBuilder {
         ctx.put("event_driven",
                 toPythonBool(
                         config.architecture().eventDriven()));
+        ctx.put("validate_with_archunit",
+                toPythonBool(
+                        config.architecture()
+                                .validateWithArchUnit()));
+        ctx.put("base_package",
+                config.architecture().basePackage());
     }
 
     private static void buildInfrastructure(

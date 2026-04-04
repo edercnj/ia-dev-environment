@@ -168,6 +168,81 @@ class ValidateConfigServiceTest {
     }
 
     @Nested
+    @DisplayName("validate — architecture cross-field")
+    class ArchitectureCrossField {
+
+        @Test
+        @DisplayName("validate_archUnitWithoutBasePackage"
+                + "_returnsErrorResult")
+        void validate_archUnitNoBase_returnsError() {
+            ProjectConfig config =
+                    buildConfigWithArchUnit(true, "");
+
+            ValidationResult result =
+                    service.validate(config);
+
+            assertThat(result.valid()).isFalse();
+            assertThat(result.errors())
+                    .isNotEmpty()
+                    .anyMatch(e -> e.toLowerCase()
+                            .contains("basepackage"));
+        }
+
+        @Test
+        @DisplayName("validate_archUnitWithBasePackage"
+                + "_returnsValidResult")
+        void validate_archUnitWithBase_returnsValid() {
+            ProjectConfig config =
+                    buildConfigWithArchUnit(
+                            true, "com.example.myapp");
+
+            ValidationResult result =
+                    service.validate(config);
+
+            assertThat(result.valid()).isTrue();
+            assertThat(result.errors()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("validate_archUnitFalseNoBase"
+                + "_returnsValidResult")
+        void validate_archUnitFalseNoBase_returnsValid() {
+            ProjectConfig config =
+                    buildConfigWithArchUnit(false, "");
+
+            ValidationResult result =
+                    service.validate(config);
+
+            assertThat(result.valid()).isTrue();
+            assertThat(result.errors()).isEmpty();
+        }
+
+        private ProjectConfig buildConfigWithArchUnit(
+                boolean archUnit, String basePackage) {
+            return new ProjectConfig(
+                    new ProjectIdentity("test-project",
+                            "Test purpose"),
+                    new ArchitectureConfig("hexagonal",
+                            false, false,
+                            archUnit, basePackage),
+                    List.of(new InterfaceConfig(
+                            "rest", "", "")),
+                    new LanguageConfig("java", "21"),
+                    new FrameworkConfig("quarkus", "3.17",
+                            "maven", false),
+                    DataConfig.fromMap(Map.of()),
+                    new InfraConfig("docker", "none",
+                            "kustomize", "none", "none",
+                            "none", "none", "none",
+                            ObservabilityConfig.fromMap(
+                                    Map.of())),
+                    SecurityConfig.fromMap(Map.of()),
+                    TestingConfig.fromMap(Map.of()),
+                    McpConfig.fromMap(Map.of()));
+        }
+    }
+
+    @Nested
     @DisplayName("Interface implementation")
     class InterfaceImplementation {
 
@@ -189,7 +264,7 @@ class ValidateConfigServiceTest {
                 new ProjectIdentity("test-project",
                         "Test purpose"),
                 new ArchitectureConfig("microservice",
-                        false, false),
+                        false, false, false, ""),
                 List.of(new InterfaceConfig(
                         "rest", "", "")),
                 new LanguageConfig("java", "21"),
@@ -210,7 +285,7 @@ class ValidateConfigServiceTest {
         return new ProjectConfig(
                 null,
                 new ArchitectureConfig("microservice",
-                        false, false),
+                        false, false, false, ""),
                 List.of(new InterfaceConfig(
                         "rest", "", "")),
                 new LanguageConfig("java", "21"),
@@ -232,7 +307,7 @@ class ValidateConfigServiceTest {
                 new ProjectIdentity("test-project",
                         "Test purpose"),
                 new ArchitectureConfig("microservice",
-                        false, false),
+                        false, false, false, ""),
                 List.of(new InterfaceConfig(
                         "rest", "", "")),
                 null,
@@ -254,7 +329,7 @@ class ValidateConfigServiceTest {
                 new ProjectIdentity("test-project",
                         "Test purpose"),
                 new ArchitectureConfig("microservice",
-                        false, false),
+                        false, false, false, ""),
                 List.of(new InterfaceConfig(
                         "rest", "", "")),
                 new LanguageConfig("java", "21"),
@@ -275,7 +350,7 @@ class ValidateConfigServiceTest {
                 new ProjectIdentity("test-project",
                         "Test purpose"),
                 new ArchitectureConfig("microservice",
-                        false, false),
+                        false, false, false, ""),
                 List.of(),
                 new LanguageConfig("java", "21"),
                 new FrameworkConfig("quarkus", "3.17",

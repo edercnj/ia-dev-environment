@@ -32,6 +32,8 @@ final class TestConfigBuilder {
     private String archStyle = "microservice";
     private boolean domainDriven = false;
     private boolean eventDriven = false;
+    private boolean validateWithArchUnit = false;
+    private String basePackage = "";
     private String langName = "java";
     private String langVersion = "21";
     private String fwName = "quarkus";
@@ -94,6 +96,16 @@ final class TestConfigBuilder {
 
     TestConfigBuilder eventDriven(boolean enabled) {
         this.eventDriven = enabled;
+        return this;
+    }
+
+    TestConfigBuilder validateWithArchUnit(boolean enabled) {
+        this.validateWithArchUnit = enabled;
+        return this;
+    }
+
+    TestConfigBuilder basePackage(String pkg) {
+        this.basePackage = pkg;
         return this;
     }
 
@@ -242,7 +254,8 @@ final class TestConfigBuilder {
                         projectName, purpose),
                 new ArchitectureConfig(
                         archStyle, domainDriven,
-                        eventDriven),
+                        eventDriven, validateWithArchUnit,
+                        basePackage),
                 interfaces,
                 new LanguageConfig(langName, langVersion),
                 new FrameworkConfig(

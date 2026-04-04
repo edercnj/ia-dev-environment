@@ -30,7 +30,8 @@ class ContextBuilderTest {
                 new ProjectIdentity(
                         "my-app", "A microservice"),
                 new ArchitectureConfig(
-                        "microservice", true, false),
+                        "microservice", true, false,
+                        false, ""),
                 List.of(
                         new InterfaceConfig(
                                 "rest", "openapi", ""),
@@ -70,7 +71,8 @@ class ContextBuilderTest {
         return new ProjectConfig(
                 new ProjectIdentity("minimal", "Minimal test"),
                 new ArchitectureConfig(
-                        "library", false, false),
+                        "library", false, false,
+                        false, ""),
                 List.of(new InterfaceConfig("cli", "", "")),
                 new LanguageConfig("python", "3.10"),
                 new FrameworkConfig(
@@ -83,7 +85,7 @@ class ContextBuilderTest {
     }
 
     @Nested
-    @DisplayName("buildContext() produces exactly 34 fields")
+    @DisplayName("buildContext() produces exactly 36 fields")
     class FieldCount {
 
         @Test
@@ -92,7 +94,7 @@ class ContextBuilderTest {
             Map<String, Object> context =
                     ContextBuilder.buildContext(buildFullConfig());
 
-            assertThat(context).hasSize(34);
+            assertThat(context).hasSize(36);
         }
 
         @Test
@@ -101,7 +103,7 @@ class ContextBuilderTest {
             Map<String, Object> context =
                     ContextBuilder.buildContext(buildMinimalConfig());
 
-            assertThat(context).hasSize(34);
+            assertThat(context).hasSize(36);
         }
     }
 
@@ -155,6 +157,10 @@ class ContextBuilderTest {
 
             assertThat(ctx.get("architecture_style"))
                     .isEqualTo("microservice");
+            assertThat(ctx.get("validate_with_archunit"))
+                    .isEqualTo("False");
+            assertThat(ctx.get("base_package"))
+                    .isEqualTo("");
         }
 
         @Test
@@ -381,7 +387,7 @@ class ContextBuilderTest {
         void buildContext_emptyInterfaces_producesNone() {
             var config = new ProjectConfig(
                     new ProjectIdentity("test", "test"),
-                    new ArchitectureConfig("library", false, false),
+                    new ArchitectureConfig("library", false, false, false, ""),
                     List.of(),
                     new LanguageConfig("java", "21"),
                     new FrameworkConfig(

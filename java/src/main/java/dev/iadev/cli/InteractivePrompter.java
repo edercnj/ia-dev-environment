@@ -204,7 +204,8 @@ public class InteractivePrompter {
         var project = new ProjectIdentity(
                 ps.name(), ps.purpose());
         var architecture = new ArchitectureConfig(
-                ps.archStyle(), false, false);
+                ps.archStyle(), false, false,
+                false, "");
         var interfaceList = ps.interfaces().stream()
                 .map(type -> new InterfaceConfig(type, "", ""))
                 .toList();

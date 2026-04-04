@@ -335,7 +335,7 @@ class GenerateEnvironmentServiceTest {
                 new ProjectIdentity(profileName,
                         "Test purpose"),
                 new ArchitectureConfig("microservice",
-                        false, false),
+                        false, false, false, ""),
                 List.of(new InterfaceConfig(
                         "rest", "", "")),
                 new LanguageConfig("java", "21"),
@@ -359,7 +359,7 @@ class GenerateEnvironmentServiceTest {
                 new ProjectIdentity("test-project",
                         "Test purpose"),
                 new ArchitectureConfig("microservice",
-                        false, false),
+                        false, false, false, ""),
                 List.of(new InterfaceConfig(
                         "rest", "", "")),
                 new LanguageConfig("java", "21"),

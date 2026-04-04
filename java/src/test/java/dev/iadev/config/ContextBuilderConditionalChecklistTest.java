@@ -202,7 +202,8 @@ class ContextBuilderConditionalChecklistTest {
         return new ProjectConfig(
                 new ProjectIdentity("test", "test"),
                 new ArchitectureConfig(
-                        "microservice", true, false),
+                        "microservice", true, false,
+                        false, ""),
                 interfaces,
                 new LanguageConfig("java", "21"),
                 new FrameworkConfig(

@@ -124,7 +124,7 @@ final class TestProjectConfigBuilder {
     ProjectConfig build() {
         return new ProjectConfig(
                 new ProjectIdentity("test-project", "Test purpose"),
-                new ArchitectureConfig(archStyle, domainDriven, eventDriven),
+                new ArchitectureConfig(archStyle, domainDriven, eventDriven, false, ""),
                 interfaces,
                 new LanguageConfig(langName, langVersion),
                 new FrameworkConfig(fwName, fwVersion, buildTool, nativeBuild),

@@ -229,7 +229,7 @@ class AgentsAssemblerCoverageTest {
             Map<String, Object> context =
                     ContextBuilder.buildContext(config);
 
-            assertThat(context).hasSize(34);
+            assertThat(context).hasSize(36);
             assertThat(context)
                     .containsEntry("project_name",
                             "agent-test")

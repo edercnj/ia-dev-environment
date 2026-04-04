@@ -453,5 +453,59 @@ class SkillsSelectionTest {
             assertThat(packs)
                     .doesNotContain("disaster-recovery");
         }
+
+        @Test
+        @DisplayName("config with hexagonal style includes"
+                + " architecture-hexagonal KP")
+        void select_hexagonal_includesHexKp() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .archStyle("hexagonal")
+                            .basePackage("com.example")
+                            .build();
+
+            List<String> packs =
+                    SkillsSelection.selectKnowledgePacks(
+                            config);
+
+            assertThat(packs)
+                    .contains("architecture-hexagonal");
+        }
+
+        @Test
+        @DisplayName("config with layered style excludes"
+                + " architecture-hexagonal KP")
+        void select_layered_excludesHexKp() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .archStyle("layered")
+                            .build();
+
+            List<String> packs =
+                    SkillsSelection.selectKnowledgePacks(
+                            config);
+
+            assertThat(packs)
+                    .doesNotContain(
+                            "architecture-hexagonal");
+        }
+
+        @Test
+        @DisplayName("config without style excludes"
+                + " architecture-hexagonal KP")
+        void select_noStyleDeclared_excludesHexKp() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .archStyle("microservice")
+                            .build();
+
+            List<String> packs =
+                    SkillsSelection.selectKnowledgePacks(
+                            config);
+
+            assertThat(packs)
+                    .doesNotContain(
+                            "architecture-hexagonal");
+        }
     }
 }

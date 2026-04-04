@@ -166,6 +166,7 @@ public final class SkillsSelection {
         packs.addAll(selectDataPacks(config));
         packs.addAll(selectDisasterRecoveryPack(config));
         packs.addAll(selectCloudPacks(config));
+        packs.addAll(selectArchitecturePacks(config));
         return packs;
     }
 
@@ -184,6 +185,15 @@ public final class SkillsSelection {
         if (!"none".equals(
                 config.infrastructure().container())) {
             return List.of("disaster-recovery");
+        }
+        return List.of();
+    }
+
+    private static List<String> selectArchitecturePacks(
+            ProjectConfig config) {
+        if ("hexagonal".equals(
+                config.architecture().style())) {
+            return List.of("architecture-hexagonal");
         }
         return List.of();
     }
