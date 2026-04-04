@@ -32,8 +32,10 @@ class ContextBuilderTest {
                 new ArchitectureConfig(
                         "microservice", true, false,
                         false, "",
-                        "eventstoredb", "", false, "",
-                        100, true),
+                        new ArchitectureConfig.CqrsConfig(
+                                "eventstoredb", 100,
+                                "", false, ""),
+                        true),
                 List.of(
                         new InterfaceConfig(
                                 "rest", "openapi", ""),
@@ -75,8 +77,10 @@ class ContextBuilderTest {
                 new ArchitectureConfig(
                         "library", false, false,
                         false, "",
-                        "eventstoredb", "", false, "",
-                        100, false),
+                        new ArchitectureConfig.CqrsConfig(
+                                "eventstoredb", 100,
+                                "", false, ""),
+                        false),
                 List.of(new InterfaceConfig("cli", "", "")),
                 new LanguageConfig("python", "3.10"),
                 new FrameworkConfig(
@@ -424,8 +428,10 @@ class ContextBuilderTest {
                     new ProjectIdentity("test", "test"),
                     new ArchitectureConfig("library", false,
                             false, false, "",
-                            "eventstoredb", "", false, "",
-                            100, false),
+                            new ArchitectureConfig.CqrsConfig(
+                                    "eventstoredb", 100,
+                                    "", false, ""),
+                            false),
                     List.of(),
                     new LanguageConfig("java", "21"),
                     new FrameworkConfig(

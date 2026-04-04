@@ -1,19 +1,7 @@
 package dev.iadev.cli;
 
 import dev.iadev.exception.GenerationCancelledException;
-import dev.iadev.domain.model.ArchitectureConfig;
-import dev.iadev.domain.model.DataConfig;
-import dev.iadev.domain.model.FrameworkConfig;
-import dev.iadev.domain.model.InfraConfig;
-import dev.iadev.domain.model.InterfaceConfig;
-import dev.iadev.domain.model.LanguageConfig;
-import dev.iadev.domain.model.McpConfig;
-import dev.iadev.domain.model.ObservabilityConfig;
 import dev.iadev.domain.model.ProjectConfig;
-import dev.iadev.domain.model.ProjectIdentity;
-import dev.iadev.domain.model.SecurityConfig;
-import dev.iadev.domain.model.TechComponent;
-import dev.iadev.domain.model.TestingConfig;
 
 import java.util.List;
 import java.util.Set;
@@ -28,6 +16,10 @@ import java.util.regex.Pattern;
  * build tool, interfaces, database, cache, architecture
  * pattern (java/kotlin only), ArchUnit validation
  * (hexagonal/clean only), and compliance frameworks.</p>
+ *
+ * <p>Summary formatting is delegated to
+ * {@link ProjectSummaryFormatter}. Config construction
+ * is delegated to {@link ProjectConfigFactory}.</p>
  *
  * <p>Uses {@link TerminalProvider} abstraction for
  * testability. Production code injects
@@ -98,7 +90,8 @@ public class InteractivePrompter {
                 framework, buildTool, interfaces,
                 database, cache, archPattern,
                 validateArchUnit, compliance);
-        displaySummary(summary);
+        ProjectSummaryFormatter.displaySummary(
+                terminal, summary);
 
         boolean confirmed = terminal.confirm(
                 "Proceed with generation?",
@@ -108,7 +101,7 @@ public class InteractivePrompter {
                     CANCELLED);
         }
 
-        return buildConfig(summary);
+        return ProjectConfigFactory.buildConfig(summary);
     }
 
     String promptArchPatternStyle(String language) {
@@ -232,136 +225,13 @@ public class InteractivePrompter {
         return KEBAB_CASE.matcher(input.trim()).matches();
     }
 
-    private void displaySummary(ProjectSummary ps) {
-        String langDisplay =
-                formatLanguageDisplay(ps.language());
-        String text =
-                formatSummaryText(ps, langDisplay);
-        terminal.display(text);
-    }
-
-    private String formatLanguageDisplay(String language) {
-        String langVersion =
-                LanguageFrameworkMapping
-                        .defaultVersionFor(language);
-        return langVersion.isEmpty()
-                ? language
-                : language + " " + langVersion;
-    }
-
-    private String formatSummaryText(
-            ProjectSummary ps, String langDisplay) {
-        String db = ps.database().isBlank()
-                ? "none" : ps.database();
-        String ch = ps.cache().isBlank()
-                ? "none" : ps.cache();
-        String complianceDisplay =
-                ps.compliance().isEmpty()
-                        ? "none"
-                        : String.join(", ",
-                        ps.compliance());
-        var sb = new StringBuilder();
-        sb.append("""
-
-                Project Configuration Summary:
-                  Name:          %s
-                  Purpose:       %s
-                  Architecture:  %s
-                  Language:       %s
-                  Framework:      %s
-                  Build Tool:     %s
-                  Interfaces:     %s
-                  Database:       %s
-                  Cache:          %s
-                """.formatted(
-                ps.name(), ps.purpose(), ps.archStyle(),
-                langDisplay, ps.framework(),
-                ps.buildTool(),
-                String.join(", ", ps.interfaces()),
-                db, ch));
-        appendArchPatternSummary(sb, ps);
-        sb.append("  Compliance:    %s%n"
-                .formatted(complianceDisplay));
-        return sb.toString();
-    }
-
-    private void appendArchPatternSummary(
-            StringBuilder sb, ProjectSummary ps) {
-        if (!ps.archPatternStyle().isEmpty()) {
-            sb.append("  Arch Pattern:  %s%n"
-                    .formatted(ps.archPatternStyle()));
-            if (ps.validateArchUnit()) {
-                sb.append("  ArchUnit:      yes%n");
-            }
-        }
-    }
-
+    /**
+     * Delegates to {@link ProjectConfigFactory}.
+     *
+     * @param ps the project summary
+     * @return a new ProjectConfig
+     */
     ProjectConfig buildConfig(ProjectSummary ps) {
-        var project = new ProjectIdentity(
-                ps.name(), ps.purpose());
-        String effectiveStyle =
-                resolveEffectiveStyle(ps);
-        boolean archUnit =
-                ps.validateArchUnit()
-                        && ARCHUNIT_STYLES.contains(
-                        ps.archPatternStyle());
-        var architecture = new ArchitectureConfig(
-                effectiveStyle, false, false,
-                archUnit, "",
-                "eventstoredb", "", false, "",
-                ArchitectureConfig
-                        .DEFAULT_EVENTS_PER_SNAPSHOT,
-                false);
-        var interfaceList = ps.interfaces().stream()
-                .map(type ->
-                        new InterfaceConfig(type, "", ""))
-                .toList();
-        String langVersion =
-                LanguageFrameworkMapping
-                        .defaultVersionFor(ps.language());
-        var lang = new LanguageConfig(
-                ps.language(), langVersion);
-        String fwVersion =
-                LanguageFrameworkMapping
-                        .frameworkVersionFor(
-                                ps.framework());
-        var fw = new FrameworkConfig(
-                ps.framework(), fwVersion,
-                ps.buildTool(), false);
-        var data = new DataConfig(
-                buildTechComponent(ps.database()),
-                new TechComponent("none", ""),
-                buildTechComponent(ps.cache()));
-        var infra = new InfraConfig(
-                "docker", "none", "kustomize", "none",
-                "none", "none", "none", "none",
-                new ObservabilityConfig(
-                        "none", "none", "none"));
-        var security = new SecurityConfig(
-                ps.compliance());
-        var testing = new TestingConfig(
-                true, false, true, 95, 90);
-        var mcp = new McpConfig(List.of());
-
-        return new ProjectConfig(
-                project, architecture, interfaceList,
-                lang, fw, data, infra, security,
-                testing, mcp);
-    }
-
-    private String resolveEffectiveStyle(
-            ProjectSummary ps) {
-        if (!ps.archPatternStyle().isEmpty()) {
-            return ps.archPatternStyle();
-        }
-        return ps.archStyle();
-    }
-
-    private TechComponent buildTechComponent(
-            String value) {
-        if (value == null || value.isBlank()) {
-            return new TechComponent("none", "");
-        }
-        return new TechComponent(value, "");
+        return ProjectConfigFactory.buildConfig(ps);
     }
 }

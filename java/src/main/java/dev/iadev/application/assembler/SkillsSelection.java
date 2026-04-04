@@ -1,6 +1,5 @@
 package dev.iadev.application.assembler;
 
-import dev.iadev.domain.stack.SkillRegistry;
 import dev.iadev.domain.model.ProjectConfig;
 
 import java.util.ArrayList;
@@ -12,24 +11,14 @@ import java.util.Set;
  * feature gates.
  *
  * <p>These functions evaluate config conditions and return
- * skill/pack names. No file I/O — consumed by
+ * skill names. No file I/O — consumed by
  * {@link SkillsAssembler} for assembly decisions.</p>
  *
- * <p>Selection categories:
- * <ul>
- *   <li>Interface skills — based on REST, gRPC, GraphQL,
- *       event types</li>
- *   <li>Infrastructure skills — based on observability,
- *       orchestrator, API gateway</li>
- *   <li>Testing skills — based on smoke, performance,
- *       contract testing config</li>
- *   <li>Security skills — based on security frameworks</li>
- *   <li>Knowledge packs — core packs plus data-conditional
- *       packs</li>
- * </ul>
+ * <p>Knowledge-pack selection is delegated to
+ * {@link KnowledgePackSelection}.</p>
  *
  * @see SkillsAssembler
- * @see SkillRegistry
+ * @see KnowledgePackSelection
  */
 public final class SkillsSelection {
 
@@ -152,94 +141,15 @@ public final class SkillsSelection {
     }
 
     /**
-     * Determines which knowledge packs to include.
-     *
-     * <p>Always includes core knowledge packs plus
-     * layer-templates. Conditionally includes
-     * database-patterns if database or cache is not
-     * "none", disaster-recovery if container is not
-     * "none", finops if cloud provider is not "none",
-     * architecture-cqrs if architecture style is "cqrs",
-     * architecture-hexagonal if style is "hexagonal",
-     * and ddd-strategic if DDD is enabled.</p>
+     * Delegates to {@link KnowledgePackSelection}.
      *
      * @param config the project configuration
      * @return list of knowledge pack names to include
      */
     public static List<String> selectKnowledgePacks(
             ProjectConfig config) {
-        List<String> packs = new ArrayList<>(
-                SkillRegistry.CORE_KNOWLEDGE_PACKS);
-        packs.add("layer-templates");
-        packs.addAll(selectDataPacks(config));
-        packs.addAll(selectOutboxPack(config));
-        packs.addAll(selectDisasterRecoveryPack(config));
-        packs.addAll(selectCloudPacks(config));
-        packs.addAll(selectArchitecturePacks(config));
-        packs.addAll(selectDddStrategicPack(config));
-        return packs;
-    }
-
-    private static List<String> selectArchitecturePacks(
-            ProjectConfig config) {
-        String style = config.architecture().style();
-        if ("cqrs".equals(style)) {
-            return List.of("architecture-cqrs");
-        }
-        if ("hexagonal".equals(style)) {
-            return List.of("architecture-hexagonal");
-        }
-        return List.of();
-    }
-
-    private static List<String> selectDataPacks(
-            ProjectConfig config) {
-        if (!"none".equals(config.data().database().name())
-                || !"none".equals(
-                        config.data().cache().name())) {
-            return List.of("database-patterns");
-        }
-        return List.of();
-    }
-
-    private static List<String> selectOutboxPack(
-            ProjectConfig config) {
-        if (config.architecture().outboxPattern()) {
-            return List.of("patterns-outbox");
-        }
-        return List.of();
-    }
-
-    private static List<String> selectDisasterRecoveryPack(
-            ProjectConfig config) {
-        if (!"none".equals(
-                config.infrastructure().container())) {
-            return List.of("disaster-recovery");
-        }
-        return List.of();
-    }
-
-    private static List<String> selectCloudPacks(
-            ProjectConfig config) {
-        String provider =
-                config.infrastructure().cloudProvider();
-        if (provider != null
-                && !provider.isEmpty()
-                && !"none".equals(provider)) {
-            return List.of("finops");
-        }
-        return List.of();
-    }
-
-    private static List<String> selectDddStrategicPack(
-            ProjectConfig config) {
-        String style = config.architecture().style();
-        if ("hexagonal".equals(style)
-                || "ddd".equals(style)
-                || config.architecture().dddEnabled()) {
-            return List.of("ddd-strategic");
-        }
-        return List.of();
+        return KnowledgePackSelection
+                .selectKnowledgePacks(config);
     }
 
     private static boolean hasInterface(

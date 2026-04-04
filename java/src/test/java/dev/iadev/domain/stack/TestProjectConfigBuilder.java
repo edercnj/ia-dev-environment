@@ -160,9 +160,13 @@ final class TestProjectConfigBuilder {
                 new ArchitectureConfig(
                         archStyle, domainDriven,
                         eventDriven, false, "",
-                        eventStore, schemaRegistry,
-                        outboxPattern, deadLetterStrategy,
-                        eventsPerSnapshot, false),
+                        new ArchitectureConfig.CqrsConfig(
+                                eventStore,
+                                eventsPerSnapshot,
+                                schemaRegistry,
+                                outboxPattern,
+                                deadLetterStrategy),
+                        false),
                 interfaces,
                 new LanguageConfig(langName, langVersion),
                 new FrameworkConfig(fwName, fwVersion, buildTool, nativeBuild),

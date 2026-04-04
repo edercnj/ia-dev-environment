@@ -7,14 +7,9 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Validates language-framework compatibility, version
- * constraints, native build support, interface types, and
- * architecture styles.
- *
- * <p>Version-specific checks are delegated to
- * {@link StackVersionValidator}.</p>
- *
- * @see StackVersionValidator
+ * Validates stack compatibility. Delegates version checks
+ * to {@link StackVersionValidator} and CQRS validation
+ * to {@link StackCqrsValidator}.
  */
 public final class StackValidator {
 
@@ -37,12 +32,7 @@ public final class StackValidator {
         // utility class
     }
 
-    /**
-     * Runs all validations and returns aggregated errors.
-     *
-     * @param config the project configuration to validate
-     * @return list of error messages (empty means valid)
-     */
+    /** Runs all validations and returns aggregated errors. */
     public static List<String> validateStack(
             ProjectConfig config) {
         List<String> errors = new ArrayList<>();
@@ -57,12 +47,7 @@ public final class StackValidator {
         return errors;
     }
 
-    /**
-     * Validates framework-language compatibility.
-     *
-     * @param config the project configuration
-     * @return list of error messages
-     */
+    /** Validates framework-language compatibility. */
     public static List<String> validateLanguageFramework(
             ProjectConfig config) {
         String frameworkName = config.framework().name();
@@ -86,25 +71,14 @@ public final class StackValidator {
         return List.of();
     }
 
-    /**
-     * Delegates to {@link StackVersionValidator}.
-     *
-     * @param config the project configuration
-     * @return list of error messages
-     */
+    /** Delegates to {@link StackVersionValidator}. */
     public static List<String> validateVersionRequirements(
             ProjectConfig config) {
         return StackVersionValidator
                 .validateVersionRequirements(config);
     }
 
-    /**
-     * Validates that native build is only for supported
-     * frameworks.
-     *
-     * @param config the project configuration
-     * @return list of error messages
-     */
+    /** Validates native build framework support. */
     static List<String> validateNativeBuild(
             ProjectConfig config) {
         if (!config.framework().nativeBuild()) {
@@ -121,12 +95,7 @@ public final class StackValidator {
         return List.of();
     }
 
-    /**
-     * Validates that all interface types are known.
-     *
-     * @param config the project configuration
-     * @return list of error messages
-     */
+    /** Validates that all interface types are known. */
     public static List<String> validateInterfaceTypes(
             ProjectConfig config) {
         List<String> errors = new ArrayList<>();
@@ -145,12 +114,7 @@ public final class StackValidator {
         return errors;
     }
 
-    /**
-     * Validates that the architecture style is known.
-     *
-     * @param config the project configuration
-     * @return list of error messages
-     */
+    /** Validates that the architecture style is known. */
     public static List<String> validateArchitectureStyle(
             ProjectConfig config) {
         String style = config.architecture().style();
@@ -167,89 +131,28 @@ public final class StackValidator {
         return List.of();
     }
 
-    /**
-     * Validates eventStore enum value if set.
-     *
-     * @param config the project configuration
-     * @return list of error messages
-     */
+    /** Delegates to {@link StackCqrsValidator}. */
     public static List<String> validateEventStore(
             ProjectConfig config) {
-        String value = config.architecture().eventStore();
-        if (value.isEmpty()) {
-            return List.of();
-        }
-        if (!StackMapping.VALID_EVENT_STORES
-                .contains(value)) {
-            return List.of(
-                    ("Invalid eventStore: '%s'. Valid: %s")
-                            .formatted(value,
-                                    String.join(", ",
-                                            StackMapping
-                                                    .VALID_EVENT_STORES)));
-        }
-        return List.of();
+        return StackCqrsValidator
+                .validateEventStore(config);
     }
 
-    /**
-     * Validates schemaRegistry enum value if set.
-     *
-     * @param config the project configuration
-     * @return list of error messages
-     */
+    /** Delegates to {@link StackCqrsValidator}. */
     public static List<String> validateSchemaRegistry(
             ProjectConfig config) {
-        String value =
-                config.architecture().schemaRegistry();
-        if (value.isEmpty()) {
-            return List.of();
-        }
-        if (!StackMapping.VALID_SCHEMA_REGISTRIES
-                .contains(value)) {
-            return List.of(
-                    ("Invalid schemaRegistry: '%s'."
-                            + " Valid: %s")
-                            .formatted(value,
-                                    String.join(", ",
-                                            StackMapping
-                                                    .VALID_SCHEMA_REGISTRIES)));
-        }
-        return List.of();
+        return StackCqrsValidator
+                .validateSchemaRegistry(config);
     }
 
-    /**
-     * Validates deadLetterStrategy enum value if set.
-     *
-     * @param config the project configuration
-     * @return list of error messages
-     */
+    /** Delegates to {@link StackCqrsValidator}. */
     public static List<String> validateDeadLetterStrategy(
             ProjectConfig config) {
-        String value =
-                config.architecture().deadLetterStrategy();
-        if (value.isEmpty()) {
-            return List.of();
-        }
-        if (!StackMapping.VALID_DEAD_LETTER_STRATEGIES
-                .contains(value)) {
-            return List.of(
-                    ("Invalid deadLetterStrategy: '%s'."
-                            + " Valid: %s")
-                            .formatted(value,
-                                    String.join(", ",
-                                            StackMapping
-                                                    .VALID_DEAD_LETTER_STRATEGIES)));
-        }
-        return List.of();
+        return StackCqrsValidator
+                .validateDeadLetterStrategy(config);
     }
 
-    /**
-     * Extracts the major version number from a version
-     * string.
-     *
-     * @param version the version string
-     * @return the major version, or empty
-     */
+    /** Extracts the major version from a version string. */
     public static Optional<Integer> extractMajor(
             String version) {
         if (version == null || version.isEmpty()) {
@@ -264,13 +167,7 @@ public final class StackValidator {
         }
     }
 
-    /**
-     * Extracts the minor version number from a version
-     * string.
-     *
-     * @param version the version string
-     * @return the minor version, or empty
-     */
+    /** Extracts the minor version from a version string. */
     public static Optional<Integer> extractMinor(
             String version) {
         if (version == null || version.isEmpty()) {
@@ -288,24 +185,14 @@ public final class StackValidator {
         }
     }
 
-    /**
-     * Delegates to {@link StackVersionValidator}.
-     *
-     * @param config the project configuration
-     * @return list of error messages
-     */
+    /** Delegates to {@link StackVersionValidator}. */
     static List<String> checkJavaFrameworkVersion(
             ProjectConfig config) {
         return StackVersionValidator
                 .checkJavaFrameworkVersion(config);
     }
 
-    /**
-     * Delegates to {@link StackVersionValidator}.
-     *
-     * @param config the project configuration
-     * @return list of error messages
-     */
+    /** Delegates to {@link StackVersionValidator}. */
     static List<String> checkDjangoPythonVersion(
             ProjectConfig config) {
         return StackVersionValidator

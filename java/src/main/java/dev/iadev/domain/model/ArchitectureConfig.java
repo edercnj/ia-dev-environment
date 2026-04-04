@@ -14,47 +14,16 @@ import java.util.Map;
  * test class for hexagonal boundary validation. When enabled,
  * {@code basePackage} must be set.</p>
  *
- * <p>When {@code style} is "cqrs", additional fields are
- * relevant:
- * <ul>
- *   <li>{@code eventStore} — the event store type
- *       (eventstoredb, axon, custom). Default:
- *       eventstoredb</li>
- *   <li>{@code eventsPerSnapshot} — number of events
- *       before creating a snapshot. Default: 100</li>
- * </ul>
- *
- * <p>Extended fields for architectural profiles:
- * <ul>
- *   <li>{@code schemaRegistry} — schema registry (confluent, apicurio, glue)</li>
- *   <li>{@code outboxPattern} — enables transactional outbox pattern</li>
- *   <li>{@code deadLetterStrategy} — DLQ strategy (kafka-dlq, sqs-dlq, database)</li>
- * </ul>
- *
- * <p>Example fromMap usage:
- * <pre>{@code
- * var map = Map.of("style", "hexagonal",
- *     "validate_with_archunit", true,
- *     "base_package", "com.example.myapp");
- * ArchitectureConfig cfg = ArchitectureConfig.fromMap(map);
- * }</pre>
- * </p>
+ * <p>CQRS-related fields are grouped into {@link CqrsConfig}.</p>
  *
  * @param style the architecture style (required)
  * @param domainDriven whether DDD patterns are enabled
  * @param eventDriven whether event-driven patterns are enabled
  * @param validateWithArchUnit whether to generate ArchUnit tests
  * @param basePackage the base Java package for ArchUnit rules
- * @param eventStore the event store type (default:
- *        eventstoredb)
- * @param schemaRegistry schema registry type (default: "")
- * @param outboxPattern whether outbox pattern is enabled
- *        (default: false)
- * @param deadLetterStrategy dead letter queue strategy
- *        (default: "")
- * @param eventsPerSnapshot events before snapshot
- *        (default: 100)
- * @param dddEnabled whether DDD strategic KP is explicitly enabled (default: false)
+ * @param cqrs CQRS-related configuration
+ * @param dddEnabled whether DDD strategic KP is explicitly
+ *        enabled (default: false)
  */
 public record ArchitectureConfig(
         String style,
@@ -62,19 +31,94 @@ public record ArchitectureConfig(
         boolean eventDriven,
         boolean validateWithArchUnit,
         String basePackage,
-        String eventStore,
-        String schemaRegistry,
-        boolean outboxPattern,
-        String deadLetterStrategy,
-        int eventsPerSnapshot,
+        CqrsConfig cqrs,
         boolean dddEnabled) {
 
-    private static final String DEFAULT_EVENT_STORE =
-            "eventstoredb";
+    /**
+     * CQRS-related configuration fields.
+     *
+     * @param eventStore the event store type
+     *        (eventstoredb, axon, custom)
+     * @param eventsPerSnapshot events before snapshot
+     *        (default: 100)
+     * @param schemaRegistry schema registry type
+     *        (default: "")
+     * @param outboxPattern whether outbox pattern is
+     *        enabled (default: false)
+     * @param deadLetterStrategy dead letter queue strategy
+     *        (default: "")
+     */
+    public record CqrsConfig(
+            String eventStore,
+            int eventsPerSnapshot,
+            String schemaRegistry,
+            boolean outboxPattern,
+            String deadLetterStrategy) {
+
+        private static final String DEFAULT_EVENT_STORE =
+                "eventstoredb";
+
+        /** Default number of events before snapshot. */
+        public static final int
+                DEFAULT_EVENTS_PER_SNAPSHOT = 100;
+
+        /**
+         * Creates a CqrsConfig from a YAML-parsed map.
+         *
+         * @param map the map from YAML deserialization
+         * @return a new CqrsConfig instance
+         */
+        public static CqrsConfig fromMap(
+                Map<String, Object> map) {
+            Map<String, Object> snapshotPolicy =
+                    MapHelper.optionalMap(
+                            map, "snapshot_policy");
+            return new CqrsConfig(
+                    MapHelper.optionalString(
+                            map, "event_store",
+                            DEFAULT_EVENT_STORE),
+                    MapHelper.optionalInt(
+                            snapshotPolicy,
+                            "events_per_snapshot",
+                            DEFAULT_EVENTS_PER_SNAPSHOT),
+                    MapHelper.optionalString(
+                            map, "schema_registry", ""),
+                    MapHelper.optionalBoolean(
+                            map, "outbox_pattern", false),
+                    MapHelper.optionalString(
+                            map, "dead_letter_strategy",
+                            ""));
+        }
+    }
 
     /** Default number of events before creating a snapshot. */
     public static final int DEFAULT_EVENTS_PER_SNAPSHOT =
-            100;
+            CqrsConfig.DEFAULT_EVENTS_PER_SNAPSHOT;
+
+    /** Convenience accessor for event store. */
+    public String eventStore() {
+        return cqrs.eventStore();
+    }
+
+    /** Convenience accessor for events per snapshot. */
+    public int eventsPerSnapshot() {
+        return cqrs.eventsPerSnapshot();
+    }
+
+    /** Convenience accessor for schema registry. */
+    public String schemaRegistry() {
+        return cqrs.schemaRegistry();
+    }
+
+    /** Convenience accessor for outbox pattern. */
+    public boolean outboxPattern() {
+        return cqrs.outboxPattern();
+    }
+
+    /** Convenience accessor for dead letter strategy. */
+    public String deadLetterStrategy() {
+        return cqrs.deadLetterStrategy();
+    }
 
     /**
      * Creates an ArchitectureConfig from a YAML-parsed map.
@@ -85,9 +129,6 @@ public record ArchitectureConfig(
      */
     public static ArchitectureConfig fromMap(
             Map<String, Object> map) {
-        Map<String, Object> snapshotPolicy =
-                MapHelper.optionalMap(
-                        map, "snapshot_policy");
         return new ArchitectureConfig(
                 MapHelper.requireString(
                         map, "style", "ArchitectureConfig"),
@@ -96,22 +137,11 @@ public record ArchitectureConfig(
                 MapHelper.optionalBoolean(
                         map, "event_driven", false),
                 MapHelper.optionalBoolean(
-                        map, "validate_with_archunit", false),
+                        map, "validate_with_archunit",
+                        false),
                 MapHelper.optionalString(
                         map, "base_package", ""),
-                MapHelper.optionalString(
-                        map, "event_store",
-                        DEFAULT_EVENT_STORE),
-                MapHelper.optionalString(
-                        map, "schema_registry", ""),
-                MapHelper.optionalBoolean(
-                        map, "outbox_pattern", false),
-                MapHelper.optionalString(
-                        map, "dead_letter_strategy", ""),
-                MapHelper.optionalInt(
-                        snapshotPolicy,
-                        "events_per_snapshot",
-                        DEFAULT_EVENTS_PER_SNAPSHOT),
+                CqrsConfig.fromMap(map),
                 MapHelper.optionalBoolean(
                         map, "ddd_enabled", false));
     }

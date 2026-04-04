@@ -225,8 +225,10 @@ class ValidateConfigServiceTest {
                     new ArchitectureConfig("hexagonal",
                             false, false,
                             archUnit, basePackage,
-                            "eventstoredb", "", false, "",
-                            100, false),
+                            new ArchitectureConfig.CqrsConfig(
+                                    "eventstoredb", 100,
+                                    "", false, ""),
+                            false),
                     List.of(new InterfaceConfig(
                             "rest", "", "")),
                     new LanguageConfig("java", "21"),
@@ -267,8 +269,10 @@ class ValidateConfigServiceTest {
                         "Test purpose"),
                 new ArchitectureConfig("microservice",
                         false, false, false, "",
-                        "eventstoredb", "", false, "",
-                        100, false),
+                        new ArchitectureConfig.CqrsConfig(
+                                "eventstoredb", 100,
+                                "", false, ""),
+                        false),
                 List.of(new InterfaceConfig(
                         "rest", "", "")),
                 new LanguageConfig("java", "21"),
@@ -290,8 +294,10 @@ class ValidateConfigServiceTest {
                 null,
                 new ArchitectureConfig("microservice",
                         false, false, false, "",
-                        "eventstoredb", "", false, "",
-                        100, false),
+                        new ArchitectureConfig.CqrsConfig(
+                                "eventstoredb", 100,
+                                "", false, ""),
+                        false),
                 List.of(new InterfaceConfig(
                         "rest", "", "")),
                 new LanguageConfig("java", "21"),
@@ -314,8 +320,10 @@ class ValidateConfigServiceTest {
                         "Test purpose"),
                 new ArchitectureConfig("microservice",
                         false, false, false, "",
-                        "eventstoredb", "", false, "",
-                        100, false),
+                        new ArchitectureConfig.CqrsConfig(
+                                "eventstoredb", 100,
+                                "", false, ""),
+                        false),
                 List.of(new InterfaceConfig(
                         "rest", "", "")),
                 null,
@@ -338,8 +346,10 @@ class ValidateConfigServiceTest {
                         "Test purpose"),
                 new ArchitectureConfig("microservice",
                         false, false, false, "",
-                        "eventstoredb", "", false, "",
-                        100, false),
+                        new ArchitectureConfig.CqrsConfig(
+                                "eventstoredb", 100,
+                                "", false, ""),
+                        false),
                 List.of(new InterfaceConfig(
                         "rest", "", "")),
                 new LanguageConfig("java", "21"),
@@ -361,8 +371,10 @@ class ValidateConfigServiceTest {
                         "Test purpose"),
                 new ArchitectureConfig("microservice",
                         false, false, false, "",
-                        "eventstoredb", "", false, "",
-                        100, false),
+                        new ArchitectureConfig.CqrsConfig(
+                                "eventstoredb", 100,
+                                "", false, ""),
+                        false),
                 List.of(),
                 new LanguageConfig("java", "21"),
                 new FrameworkConfig("quarkus", "3.17",
