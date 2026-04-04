@@ -1,7 +1,7 @@
 package dev.iadev.assembler;
 
-import dev.iadev.model.InterfaceConfig;
-import dev.iadev.model.ProjectConfig;
+import dev.iadev.domain.model.InterfaceConfig;
+import dev.iadev.domain.model.ProjectConfig;
 
 import java.nio.file.Path;
 import java.util.ArrayList;

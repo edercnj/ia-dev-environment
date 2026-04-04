@@ -2,7 +2,7 @@ package dev.iadev.assembler;
 
 import dev.iadev.domain.stack.StackPackMapping;
 import dev.iadev.domain.stack.VersionResolver;
-import dev.iadev.model.ProjectConfig;
+import dev.iadev.domain.model.ProjectConfig;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

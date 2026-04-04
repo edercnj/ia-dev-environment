@@ -2,7 +2,7 @@ package dev.iadev.assembler;
 
 import dev.iadev.config.ContextBuilder;
 import dev.iadev.domain.stack.VersionResolver;
-import dev.iadev.model.ProjectConfig;
+import dev.iadev.domain.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
 import java.nio.file.Path;

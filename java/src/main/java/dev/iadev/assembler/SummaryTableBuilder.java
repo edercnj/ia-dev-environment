@@ -1,6 +1,6 @@
 package dev.iadev.assembler;
 
-import dev.iadev.model.ProjectFoundation;
+import dev.iadev.domain.model.ProjectFoundation;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

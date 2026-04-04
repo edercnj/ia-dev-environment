@@ -2,7 +2,7 @@ package dev.iadev.assembler;
 
 import dev.iadev.domain.stack.SkillRegistry;
 import dev.iadev.domain.stack.StackPackMapping;
-import dev.iadev.model.ProjectConfig;
+import dev.iadev.domain.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
 import java.io.IOException;

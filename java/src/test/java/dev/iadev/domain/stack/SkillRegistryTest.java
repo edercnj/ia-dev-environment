@@ -1,7 +1,7 @@
 package dev.iadev.domain.stack;
 
-import dev.iadev.model.InfraConfig;
-import dev.iadev.model.ObservabilityConfig;
+import dev.iadev.domain.model.InfraConfig;
+import dev.iadev.domain.model.ObservabilityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

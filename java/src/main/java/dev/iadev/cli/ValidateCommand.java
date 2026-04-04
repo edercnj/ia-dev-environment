@@ -4,7 +4,7 @@ import dev.iadev.config.ConfigLoader;
 import dev.iadev.domain.stack.StackValidator;
 import dev.iadev.exception.ConfigParseException;
 import dev.iadev.exception.ConfigValidationException;
-import dev.iadev.model.ProjectConfig;
+import dev.iadev.domain.model.ProjectConfig;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Model.CommandSpec;

@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import dev.iadev.assembler.AssemblerPipeline;
 import dev.iadev.assembler.PipelineOptions;
 import dev.iadev.config.ConfigProfiles;
-import dev.iadev.model.PipelineResult;
-import dev.iadev.model.ProjectConfig;
+import dev.iadev.domain.model.PipelineResult;
+import dev.iadev.domain.model.ProjectConfig;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;

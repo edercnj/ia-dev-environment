@@ -85,7 +85,7 @@ class HexagonalPackageStructureTest {
     class ExistingPackagesPreserved {
 
         private static final List<String> EXISTING_PACKAGES = List.of(
-            "cli", "config", "model", "domain",
+            "cli", "config", "domain",
             "domain/implementationmap", "domain/stack",
             "assembler", "template", "checkpoint", "progress",
             "exception", "util", "smoke"

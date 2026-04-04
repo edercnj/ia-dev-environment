@@ -1,6 +1,6 @@
 package dev.iadev.cli;
 
-import dev.iadev.model.PipelineResult;
+import dev.iadev.domain.model.PipelineResult;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

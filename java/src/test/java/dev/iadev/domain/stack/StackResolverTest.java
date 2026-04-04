@@ -1,6 +1,6 @@
 package dev.iadev.domain.stack;
 
-import dev.iadev.model.InterfaceConfig;
+import dev.iadev.domain.model.InterfaceConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

@@ -1,6 +1,6 @@
 package dev.iadev.cli;
 
-import dev.iadev.model.PipelineResult;
+import dev.iadev.domain.model.PipelineResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

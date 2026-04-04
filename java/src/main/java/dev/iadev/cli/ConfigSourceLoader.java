@@ -3,7 +3,7 @@ package dev.iadev.cli;
 import dev.iadev.config.ConfigLoader;
 import dev.iadev.config.ConfigProfiles;
 import dev.iadev.exception.CliException;
-import dev.iadev.model.ProjectConfig;
+import dev.iadev.domain.model.ProjectConfig;
 
 import java.io.PrintWriter;
 import java.util.Optional;

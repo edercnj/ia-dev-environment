@@ -34,8 +34,8 @@ class HexagonalArchitectureTest {
     // --- RULE-001: Domain isolation ---
 
     @Test
-    @Disabled("Activate after story-0015-0003 — "
-        + "AS-IS: domain.stack imports model package")
+    @Disabled("AS-IS: domain.model.MapHelper imports "
+        + "dev.iadev.exception — resolve in story-0015-0006+")
     @DisplayName("RULE-001: Domain must not depend on "
         + "infrastructure packages")
     void domainShouldNotDependOnInfrastructure() {
@@ -61,8 +61,6 @@ class HexagonalArchitectureTest {
     }
 
     @Test
-    @Disabled("Activate after story-0015-0003 — "
-        + "AS-IS: no application package exists yet")
     @DisplayName("RULE-001: Domain must not depend on "
         + "the application layer")
     void domainShouldNotDependOnApplication() {
@@ -79,8 +77,6 @@ class HexagonalArchitectureTest {
     // --- RULE-004: Domain model purity ---
 
     @Test
-    @Disabled("Activate after story-0015-0003 — "
-        + "AS-IS: model package is outside domain boundary")
     @DisplayName("RULE-004: Domain model must have zero "
         + "framework dependencies")
     void domainModelShouldNotHaveFrameworkAnnotations() {

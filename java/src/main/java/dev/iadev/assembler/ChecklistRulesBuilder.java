@@ -1,7 +1,7 @@
 package dev.iadev.assembler;
 
-import dev.iadev.model.InfraConfig;
-import dev.iadev.model.ProjectConfig;
+import dev.iadev.domain.model.InfraConfig;
+import dev.iadev.domain.model.ProjectConfig;
 
 import java.util.ArrayList;
 import java.util.List;

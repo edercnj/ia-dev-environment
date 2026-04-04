@@ -1,6 +1,6 @@
 package dev.iadev.smoke;
 
-import dev.iadev.model.PipelineResult;
+import dev.iadev.domain.model.PipelineResult;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 

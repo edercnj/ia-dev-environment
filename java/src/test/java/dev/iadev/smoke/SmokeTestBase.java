@@ -3,8 +3,8 @@ package dev.iadev.smoke;
 import dev.iadev.assembler.AssemblerPipeline;
 import dev.iadev.assembler.PipelineOptions;
 import dev.iadev.config.ConfigProfiles;
-import dev.iadev.model.PipelineResult;
-import dev.iadev.model.ProjectConfig;
+import dev.iadev.domain.model.PipelineResult;
+import dev.iadev.domain.model.ProjectConfig;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Path;

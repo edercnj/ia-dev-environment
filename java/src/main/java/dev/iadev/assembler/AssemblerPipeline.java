@@ -1,8 +1,8 @@
 package dev.iadev.assembler;
 
 import dev.iadev.exception.PipelineException;
-import dev.iadev.model.PipelineResult;
-import dev.iadev.model.ProjectConfig;
+import dev.iadev.domain.model.PipelineResult;
+import dev.iadev.domain.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
 import java.io.IOException;

@@ -3,7 +3,7 @@ package dev.iadev.golden;
 import dev.iadev.assembler.AssemblerPipeline;
 import dev.iadev.assembler.PipelineOptions;
 import dev.iadev.config.ConfigProfiles;
-import dev.iadev.model.ProjectConfig;
+import dev.iadev.domain.model.ProjectConfig;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;

@@ -1,7 +1,7 @@
 package dev.iadev.assembler;
 
-import dev.iadev.model.McpServerConfig;
-import dev.iadev.model.ProjectConfig;
+import dev.iadev.domain.model.McpServerConfig;
+import dev.iadev.domain.model.ProjectConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
