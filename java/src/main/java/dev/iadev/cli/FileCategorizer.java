@@ -88,6 +88,9 @@ final class FileCategorizer {
         if (path.startsWith("adr/")) {
             return "ADR";
         }
+        if (path.startsWith("plans/")) {
+            return "Plans";
+        }
         if ("CLAUDE.md".equals(path)
                 || "README.md".equals(path)
                 || "AGENTS.md".equals(path)) {

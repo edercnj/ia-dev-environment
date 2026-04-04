@@ -239,6 +239,8 @@ public final class ExpectedArtifactsGenerator {
                 "results", "results");
         countCategory(categories, dir,
                 "specs", "specs");
+        countCategory(categories, dir,
+                "plans", "plans");
         countCategory(categories, dir, "k8s", "k8s");
         countCategory(categories, dir,
                 "tests", "tests");

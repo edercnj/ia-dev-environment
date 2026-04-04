@@ -35,7 +35,7 @@ public final class OverwriteDetector {
 
     private static final List<String> ARTIFACT_DIRS = List.of(
             ".claude", ".github", ".codex", ".agents",
-            "steering", "specs", "results", "contracts", "adr"
+            "steering", "specs", "plans", "results", "contracts", "adr"
     );
 
     private OverwriteDetector() {

@@ -154,14 +154,15 @@ class OverwriteDetectorTest {
         }
 
         @Test
-        @DisplayName("detects all nine artifact directories")
-        void allNine_whenCalled_detected(@TempDir Path tempDir) throws IOException {
+        @DisplayName("detects all ten artifact directories")
+        void allTen_whenCalled_detected(@TempDir Path tempDir) throws IOException {
             Files.createDirectories(tempDir.resolve(".claude"));
             Files.createDirectories(tempDir.resolve(".github"));
             Files.createDirectories(tempDir.resolve(".codex"));
             Files.createDirectories(tempDir.resolve(".agents"));
             Files.createDirectories(tempDir.resolve("steering"));
             Files.createDirectories(tempDir.resolve("specs"));
+            Files.createDirectories(tempDir.resolve("plans"));
             Files.createDirectories(tempDir.resolve("results"));
             Files.createDirectories(tempDir.resolve("contracts"));
             Files.createDirectories(tempDir.resolve("adr"));
@@ -169,11 +170,11 @@ class OverwriteDetectorTest {
             List<String> conflicts =
                     OverwriteDetector.checkExistingArtifacts(tempDir);
 
-            assertThat(conflicts).hasSize(9);
+            assertThat(conflicts).hasSize(10);
             assertThat(conflicts).containsExactlyInAnyOrder(
                     ".claude/", ".github/", ".codex/",
                     ".agents/", "steering/", "specs/",
-                    "results/", "contracts/", "adr/");
+                    "plans/", "results/", "contracts/", "adr/");
         }
 
         @Test

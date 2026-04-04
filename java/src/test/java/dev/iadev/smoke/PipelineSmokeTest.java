@@ -333,6 +333,9 @@ class PipelineSmokeTest extends SmokeTestBase {
             case "specs" ->
                     countFilesInSubDir(outputDir,
                             "specs");
+            case "plans" ->
+                    countFilesInSubDir(outputDir,
+                            "plans");
             case "k8s" ->
                     countFilesInSubDir(outputDir,
                             "k8s");

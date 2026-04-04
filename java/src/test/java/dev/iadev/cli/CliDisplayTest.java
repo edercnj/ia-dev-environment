@@ -175,6 +175,51 @@ class CliDisplayTest {
         }
 
         @Test
+        void plansPath_whenCalled_classifiedCorrectly() {
+            Map<String, List<String>> result =
+                    CliDisplay.classifyFiles(
+                            List.of("plans/epic-0001/EPIC-0001.md"));
+
+            assertThat(result).containsKey("Plans");
+        }
+
+        @Test
+        void steeringPath_whenCalled_classifiedCorrectly() {
+            Map<String, List<String>> result =
+                    CliDisplay.classifyFiles(
+                            List.of("steering/product.md"));
+
+            assertThat(result).containsKey("Steering");
+        }
+
+        @Test
+        void specsPath_whenCalled_classifiedCorrectly() {
+            Map<String, List<String>> result =
+                    CliDisplay.classifyFiles(
+                            List.of("specs/SPEC-001.md"));
+
+            assertThat(result).containsKey("Specs");
+        }
+
+        @Test
+        void resultsPath_whenCalled_classifiedCorrectly() {
+            Map<String, List<String>> result =
+                    CliDisplay.classifyFiles(
+                            List.of("results/audits/audit.md"));
+
+            assertThat(result).containsKey("Results");
+        }
+
+        @Test
+        void contractsPath_whenCalled_classifiedCorrectly() {
+            Map<String, List<String>> result =
+                    CliDisplay.classifyFiles(
+                            List.of("contracts/api/grpc.md"));
+
+            assertThat(result).containsKey("Contracts");
+        }
+
+        @Test
         void claudeMd_whenCalled_classifiedAsRootFiles() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(
