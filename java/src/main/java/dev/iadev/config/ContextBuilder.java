@@ -12,12 +12,12 @@ import java.util.stream.Collectors;
 /**
  * Builds a template context map from a {@link ProjectConfig}.
  *
- * <p>Produces exactly 38 fields matching the TypeScript
+ * <p>Produces exactly 39 fields matching the TypeScript
  * {@code buildDefaultContext()} function (RULE-010). Boolean values
  * are converted to Python-style strings ("True"/"False") per
  * RULE-002 for Jinja2/Pebble template rendering parity.
  *
- * <p>The 38 context fields are:
+ * <p>The 39 context fields are:
  * <ol>
  *   <li>project_name</li>
  *   <li>project_purpose</li>
@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
  *   <li>base_package</li>
  *   <li>event_store</li>
  *   <li>events_per_snapshot</li>
+ *   <li>ddd_enabled</li>
  *   <li>container</li>
  *   <li>orchestrator</li>
  *   <li>templating</li>
@@ -83,14 +84,14 @@ public final class ContextBuilder {
     }
 
     /**
-     * Builds a context map with exactly 38 template fields from
+     * Builds a context map with exactly 39 template fields from
      * the given {@link ProjectConfig}.
      *
      * <p>Delegates to domain-specific builders for each
      * section of the context map.</p>
      *
      * @param config the project configuration
-     * @return an ordered map with 38 template context entries
+     * @return an ordered map with 39 template context entries
      */
     public static Map<String, Object> buildContext(
             ProjectConfig config) {
@@ -157,6 +158,9 @@ public final class ContextBuilder {
                 config.architecture().eventStore());
         ctx.put("events_per_snapshot",
                 config.architecture().eventsPerSnapshot());
+        ctx.put("ddd_enabled",
+                toPythonBool(
+                        config.architecture().dddEnabled()));
     }
 
     private static void buildInfrastructure(

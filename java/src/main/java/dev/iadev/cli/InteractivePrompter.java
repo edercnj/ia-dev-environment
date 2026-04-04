@@ -206,7 +206,7 @@ public class InteractivePrompter {
         var architecture = new ArchitectureConfig(
                 ps.archStyle(), false, false,
                 false, "",
-                "eventstoredb", 100);
+                "eventstoredb", 100, false);
         var interfaceList = ps.interfaces().stream()
                 .map(type -> new InterfaceConfig(type, "", ""))
                 .toList();

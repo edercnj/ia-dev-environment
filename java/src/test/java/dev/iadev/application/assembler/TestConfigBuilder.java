@@ -36,6 +36,7 @@ final class TestConfigBuilder {
     private String basePackage = "";
     private String eventStore = "eventstoredb";
     private int eventsPerSnapshot = 100;
+    private boolean dddEnabled = false;
     private String langName = "java";
     private String langVersion = "21";
     private String fwName = "quarkus";
@@ -120,6 +121,12 @@ final class TestConfigBuilder {
         this.eventsPerSnapshot = count;
         return this;
     }
+
+    TestConfigBuilder dddEnabled(boolean enabled) {
+        this.dddEnabled = enabled;
+        return this;
+    }
+
 
     TestConfigBuilder language(String name, String version) {
         this.langName = name;
@@ -268,7 +275,8 @@ final class TestConfigBuilder {
                         archStyle, domainDriven,
                         eventDriven, validateWithArchUnit,
                         basePackage,
-                        eventStore, eventsPerSnapshot),
+                        eventStore, eventsPerSnapshot,
+                        dddEnabled),
                 interfaces,
                 new LanguageConfig(langName, langVersion),
                 new FrameworkConfig(

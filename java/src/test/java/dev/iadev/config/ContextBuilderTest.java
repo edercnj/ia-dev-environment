@@ -32,7 +32,7 @@ class ContextBuilderTest {
                 new ArchitectureConfig(
                         "microservice", true, false,
                         false, "",
-                        "eventstoredb", 100),
+                        "eventstoredb", 100, true),
                 List.of(
                         new InterfaceConfig(
                                 "rest", "openapi", ""),
@@ -74,7 +74,7 @@ class ContextBuilderTest {
                 new ArchitectureConfig(
                         "library", false, false,
                         false, "",
-                        "eventstoredb", 100),
+                        "eventstoredb", 100, false),
                 List.of(new InterfaceConfig("cli", "", "")),
                 new LanguageConfig("python", "3.10"),
                 new FrameworkConfig(
@@ -87,27 +87,27 @@ class ContextBuilderTest {
     }
 
     @Nested
-    @DisplayName("buildContext() produces exactly 38 fields")
+    @DisplayName("buildContext() produces exactly 39 fields")
     class FieldCount {
 
         @Test
-        @DisplayName("returns map with exactly 38 entries")
-        void buildContext_fullConfig_returns38Fields() {
+        @DisplayName("returns map with exactly 39 entries")
+        void buildContext_fullConfig_returns39Fields() {
             Map<String, Object> context =
                     ContextBuilder.buildContext(
                             buildFullConfig());
 
-            assertThat(context).hasSize(38);
+            assertThat(context).hasSize(39);
         }
 
         @Test
-        @DisplayName("returns map with 38 entries for minimal")
-        void buildContext_minimalConfig_returns38Fields() {
+        @DisplayName("returns map with 39 entries for minimal")
+        void buildContext_minimalConfig_returns39Fields() {
             Map<String, Object> context =
                     ContextBuilder.buildContext(
                             buildMinimalConfig());
 
-            assertThat(context).hasSize(38);
+            assertThat(context).hasSize(39);
         }
     }
 
@@ -318,6 +318,28 @@ class ContextBuilderTest {
             assertThat(ctx.get("performance_tests"))
                     .isEqualTo("True");
         }
+
+        @Test
+        @DisplayName("ddd_enabled is 'True' when true")
+        void buildContext_dddEnabledTrue_pythonTrue() {
+            Map<String, Object> ctx =
+                    ContextBuilder.buildContext(
+                            buildFullConfig());
+
+            assertThat(ctx.get("ddd_enabled"))
+                    .isEqualTo("True");
+        }
+
+        @Test
+        @DisplayName("ddd_enabled is 'False' when false")
+        void buildContext_dddEnabledFalse_pythonFalse() {
+            Map<String, Object> ctx =
+                    ContextBuilder.buildContext(
+                            buildMinimalConfig());
+
+            assertThat(ctx.get("ddd_enabled"))
+                    .isEqualTo("False");
+        }
     }
 
     @Nested
@@ -397,7 +419,7 @@ class ContextBuilderTest {
             var config = new ProjectConfig(
                     new ProjectIdentity("test", "test"),
                     new ArchitectureConfig("library", false, false,
-                            false, "", "eventstoredb", 100),
+                            false, "", "eventstoredb", 100, false),
                     List.of(),
                     new LanguageConfig("java", "21"),
                     new FrameworkConfig(
@@ -417,11 +439,11 @@ class ContextBuilderTest {
     }
 
     @Nested
-    @DisplayName("exact 38 field names")
+    @DisplayName("exact 39 field names")
     class ExactFieldNames {
 
         @Test
-        @DisplayName("context contains all 38 expected keys")
+        @DisplayName("context contains all 39 expected keys")
         void buildContext_allExpectedKeys_present() {
             Map<String, Object> ctx =
                     ContextBuilder.buildContext(
@@ -442,6 +464,7 @@ class ContextBuilderTest {
                     "base_package",
                     "event_store",
                     "events_per_snapshot",
+                    "ddd_enabled",
                     "container",
                     "orchestrator",
                     "templating",

@@ -481,7 +481,7 @@ class RulesAssemblerCoverageTest {
             Map<String, Object> context =
                     ContextBuilder.buildContext(config);
 
-            assertThat(context).hasSize(38);
+            assertThat(context).hasSize(39);
             assertThat(context)
                     .containsEntry("project_name", "ctx-full")
                     .containsEntry("project_purpose",

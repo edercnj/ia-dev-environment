@@ -154,8 +154,8 @@ public final class SkillsSelection {
      * "none", disaster-recovery if container is not
      * "none", finops if cloud provider is not "none",
      * architecture-cqrs if architecture style is "cqrs",
-     * and architecture-hexagonal if style is
-     * "hexagonal".</p>
+     * architecture-hexagonal if style is "hexagonal",
+     * and ddd-strategic if DDD is enabled.</p>
      *
      * @param config the project configuration
      * @return list of knowledge pack names to include
@@ -169,6 +169,7 @@ public final class SkillsSelection {
         packs.addAll(selectDisasterRecoveryPack(config));
         packs.addAll(selectCloudPacks(config));
         packs.addAll(selectArchitecturePacks(config));
+        packs.addAll(selectDddStrategicPack(config));
         return packs;
     }
 
@@ -211,6 +212,17 @@ public final class SkillsSelection {
                 && !provider.isEmpty()
                 && !"none".equals(provider)) {
             return List.of("finops");
+        }
+        return List.of();
+    }
+
+    private static List<String> selectDddStrategicPack(
+            ProjectConfig config) {
+        String style = config.architecture().style();
+        if ("hexagonal".equals(style)
+                || "ddd".equals(style)
+                || config.architecture().dddEnabled()) {
+            return List.of("ddd-strategic");
         }
         return List.of();
     }

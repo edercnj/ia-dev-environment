@@ -23,7 +23,8 @@ class ArchitectureConfigTest {
             var map = Map.<String, Object>of(
                     "style", "microservice",
                     "domain_driven", true,
-                    "event_driven", true);
+                    "event_driven", true,
+                    "ddd_enabled", true);
 
             var result = ArchitectureConfig.fromMap(map);
 
@@ -31,6 +32,7 @@ class ArchitectureConfigTest {
                     .isEqualTo("microservice");
             assertThat(result.domainDriven()).isTrue();
             assertThat(result.eventDriven()).isTrue();
+            assertThat(result.dddEnabled()).isTrue();
         }
 
         @Test
@@ -126,6 +128,41 @@ class ArchitectureConfigTest {
 
             assertThat(result.validateWithArchUnit())
                     .isFalse();
+        }
+
+        @Test
+        @DisplayName("ddd_enabled true is parsed correctly")
+        void fromMap_dddEnabledTrue_parsedCorrectly() {
+            var map = Map.<String, Object>of(
+                    "style", "microservice",
+                    "ddd_enabled", true);
+
+            var result = ArchitectureConfig.fromMap(map);
+
+            assertThat(result.dddEnabled()).isTrue();
+        }
+
+        @Test
+        @DisplayName("ddd_enabled defaults to false when absent")
+        void fromMap_dddEnabledAbsent_defaultsFalse() {
+            var map = Map.<String, Object>of(
+                    "style", "library");
+
+            var result = ArchitectureConfig.fromMap(map);
+
+            assertThat(result.dddEnabled()).isFalse();
+        }
+
+        @Test
+        @DisplayName("non-boolean ddd_enabled defaults to false")
+        void fromMap_nonBooleanDddEnabled_defaultsFalse() {
+            var map = Map.<String, Object>of(
+                    "style", "monolith",
+                    "ddd_enabled", "yes");
+
+            var result = ArchitectureConfig.fromMap(map);
+
+            assertThat(result.dddEnabled()).isFalse();
         }
     }
 

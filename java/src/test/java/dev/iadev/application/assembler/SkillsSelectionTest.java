@@ -554,5 +554,74 @@ class SkillsSelectionTest {
                     .doesNotContain(
                             "architecture-hexagonal");
         }
+
+        @Test
+        @DisplayName("config with ddd.enabled true includes"
+                + " ddd-strategic")
+        void select_dddEnabled_includesDddStrategic() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .dddEnabled(true)
+                            .build();
+
+            List<String> packs =
+                    SkillsSelection.selectKnowledgePacks(
+                            config);
+
+            assertThat(packs)
+                    .contains("ddd-strategic");
+        }
+
+        @Test
+        @DisplayName("config with architecture.style ddd"
+                + " includes ddd-strategic")
+        void select_styleDdd_includesDddStrategic() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .archStyle("ddd")
+                            .build();
+
+            List<String> packs =
+                    SkillsSelection.selectKnowledgePacks(
+                            config);
+
+            assertThat(packs)
+                    .contains("ddd-strategic");
+        }
+
+        @Test
+        @DisplayName("config with architecture.style hexagonal"
+                + " includes ddd-strategic")
+        void select_styleHexagonal_includesDddStrategic() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .archStyle("hexagonal")
+                            .build();
+
+            List<String> packs =
+                    SkillsSelection.selectKnowledgePacks(
+                            config);
+
+            assertThat(packs)
+                    .contains("ddd-strategic");
+        }
+
+        @Test
+        @DisplayName("config without ddd activation excludes"
+                + " ddd-strategic")
+        void select_noDddActivation_excludesDddStrategic() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .archStyle("layered")
+                            .dddEnabled(false)
+                            .build();
+
+            List<String> packs =
+                    SkillsSelection.selectKnowledgePacks(
+                            config);
+
+            assertThat(packs)
+                    .doesNotContain("ddd-strategic");
+        }
     }
 }

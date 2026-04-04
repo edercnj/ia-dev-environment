@@ -42,6 +42,7 @@ import java.util.Map;
  *        eventstoredb)
  * @param eventsPerSnapshot events before snapshot
  *        (default: 100)
+ * @param dddEnabled whether DDD strategic KP is explicitly enabled (default: false)
  */
 public record ArchitectureConfig(
         String style,
@@ -50,7 +51,8 @@ public record ArchitectureConfig(
         boolean validateWithArchUnit,
         String basePackage,
         String eventStore,
-        int eventsPerSnapshot) {
+        int eventsPerSnapshot,
+        boolean dddEnabled) {
 
     private static final String DEFAULT_EVENT_STORE =
             "eventstoredb";
@@ -86,6 +88,8 @@ public record ArchitectureConfig(
                 MapHelper.optionalInt(
                         snapshotPolicy,
                         "events_per_snapshot",
-                        DEFAULT_EVENTS_PER_SNAPSHOT));
+                        DEFAULT_EVENTS_PER_SNAPSHOT),
+                MapHelper.optionalBoolean(
+                        map, "ddd_enabled", false));
     }
 }

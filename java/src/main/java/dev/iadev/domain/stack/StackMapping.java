@@ -143,10 +143,12 @@ public final class StackMapping {
             "rest", "grpc", "graphql", "websocket", "tcp-custom",
             "cli", "event-consumer", "event-producer", "scheduled");
 
-    /** Valid architecture styles (5 entries). */
-    public static final List<String> VALID_ARCHITECTURE_STYLES = List.of(
-            "microservice", "modular-monolith", "monolith",
-            "library", "serverless");
+    /** Valid architecture styles (6 entries). */
+    public static final List<String> VALID_ARCHITECTURE_STYLES =
+            List.of(
+                    "microservice", "modular-monolith",
+                    "monolith", "library", "serverless",
+                    "ddd");
 
     /** Interface type to protocol spec name. */
     public static final Map<String, String> INTERFACE_SPEC_PROTOCOL_MAP =
