@@ -87,7 +87,8 @@ class HexagonalPackageStructureTest {
         private static final List<String> EXISTING_PACKAGES = List.of(
             "cli", "config", "domain",
             "domain/implementationmap", "domain/stack",
-            "assembler", "template", "checkpoint", "progress",
+            "application/assembler", "template",
+            "checkpoint", "progress",
             "exception", "util", "smoke"
         );
 

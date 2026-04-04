@@ -1,7 +1,7 @@
 package dev.iadev.golden;
 
-import dev.iadev.assembler.AssemblerPipeline;
-import dev.iadev.assembler.PipelineOptions;
+import dev.iadev.application.assembler.AssemblerPipeline;
+import dev.iadev.application.assembler.PipelineOptions;
 import dev.iadev.config.ConfigProfiles;
 import dev.iadev.domain.model.PipelineResult;
 import dev.iadev.domain.model.ProjectConfig;

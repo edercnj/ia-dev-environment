@@ -706,12 +706,12 @@ class CrossProfileConsistencySmokeTest {
         var config = dev.iadev.config.ConfigProfiles
                 .getStack(profile);
         var pipeline =
-                new dev.iadev.assembler.AssemblerPipeline(
-                        dev.iadev.assembler
+                new dev.iadev.application.assembler.AssemblerPipeline(
+                        dev.iadev.application.assembler
                                 .AssemblerPipeline
                                 .buildAssemblers());
         var options =
-                new dev.iadev.assembler.PipelineOptions(
+                new dev.iadev.application.assembler.PipelineOptions(
                         false, true, false, null);
 
         var result = pipeline.runPipeline(

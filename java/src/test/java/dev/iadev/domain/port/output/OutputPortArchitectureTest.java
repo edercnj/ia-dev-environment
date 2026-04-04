@@ -82,7 +82,7 @@ class OutputPortArchitectureTest {
                             "dev.iadev.application..",
                             "dev.iadev.cli..",
                             "dev.iadev.config..",
-                            "dev.iadev.assembler..",
+                            "dev.iadev.application.assembler..",
                             "dev.iadev.template..",
                             "dev.iadev.checkpoint..",
                             "dev.iadev.progress..",

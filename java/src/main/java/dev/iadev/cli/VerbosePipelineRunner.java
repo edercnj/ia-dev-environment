@@ -1,8 +1,8 @@
 package dev.iadev.cli;
 
-import dev.iadev.assembler.AssemblerDescriptor;
-import dev.iadev.assembler.AssemblerPipeline;
-import dev.iadev.assembler.PipelineOptions;
+import dev.iadev.application.assembler.AssemblerDescriptor;
+import dev.iadev.application.assembler.AssemblerPipeline;
+import dev.iadev.application.assembler.PipelineOptions;
 import dev.iadev.domain.model.PipelineResult;
 import dev.iadev.domain.model.ProjectConfig;
 

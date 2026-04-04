@@ -43,7 +43,7 @@ class HexagonalArchitectureTest {
             .that().resideInAPackage("..domain..")
             .should().dependOnClassesThat()
             .resideInAnyPackage(
-                "dev.iadev.assembler..",
+                "dev.iadev.application.assembler..",
                 "dev.iadev.cli..",
                 "dev.iadev.config..",
                 "dev.iadev.template..",
