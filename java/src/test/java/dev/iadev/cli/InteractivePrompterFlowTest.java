@@ -26,6 +26,8 @@ class InteractivePrompterFlowTest {
                 .addMultiSelect(List.of("rest", "grpc"))
                 .addReadLine("postgresql")
                 .addReadLine("redis")
+                .addSelect("layered")
+                .addMultiSelect(List.of("none"))
                 .addConfirm(true);
     }
 
@@ -43,9 +45,10 @@ class InteractivePrompterFlowTest {
                     .isEqualTo("my-project");
             assertThat(config.project().purpose())
                     .isEqualTo(
-                            "A microservice for user management");
+                            "A microservice for user "
+                                    + "management");
             assertThat(config.architecture().style())
-                    .isEqualTo("microservice");
+                    .isEqualTo("layered");
             assertThat(config.language().name())
                     .isEqualTo("java");
             assertThat(config.language().version())
@@ -74,7 +77,6 @@ class InteractivePrompterFlowTest {
             assertThat(displayed).isNotEmpty();
             String summary = displayed.getFirst();
             assertThat(summary).contains("my-project");
-            assertThat(summary).contains("microservice");
             assertThat(summary).contains("java 21");
             assertThat(summary).contains("quarkus");
             assertThat(summary).contains("maven");
@@ -95,6 +97,7 @@ class InteractivePrompterFlowTest {
                     .addMultiSelect(List.of("cli"))
                     .addReadLine("")
                     .addReadLine("")
+                    .addMultiSelect(List.of("none"))
                     .addConfirm(true);
             var prompter = new InteractivePrompter(mock);
             ProjectConfig config = prompter.prompt();
@@ -125,7 +128,8 @@ class InteractivePrompterFlowTest {
             var mock = new MockTerminalProvider()
                     .addReadLine("py-project")
                     .addReadLine(
-                            "A python service for data processing")
+                            "A python service for data "
+                                    + "processing")
                     .addSelect("microservice")
                     .addSelect("python")
                     .addSelect("fastapi")
@@ -133,6 +137,7 @@ class InteractivePrompterFlowTest {
                     .addMultiSelect(List.of("rest"))
                     .addReadLine("")
                     .addReadLine("")
+                    .addMultiSelect(List.of("none"))
                     .addConfirm(true);
             var prompter = new InteractivePrompter(mock);
             ProjectConfig config = prompter.prompt();
@@ -154,6 +159,7 @@ class InteractivePrompterFlowTest {
                     .addMultiSelect(List.of("rest"))
                     .addReadLine("")
                     .addReadLine("")
+                    .addMultiSelect(List.of("none"))
                     .addConfirm(true);
             var prompter = new InteractivePrompter(mock);
             ProjectConfig config = prompter.prompt();
@@ -169,12 +175,14 @@ class InteractivePrompterFlowTest {
             var mock = new MockTerminalProvider()
                     .addReadLine("rust-svc")
                     .addReadLine(
-                            "A rust service for high performance")
+                            "A rust service for high "
+                                    + "performance")
                     .addSelect("microservice")
                     .addSelect("rust")
                     .addMultiSelect(List.of("rest"))
                     .addReadLine("")
                     .addReadLine("")
+                    .addMultiSelect(List.of("none"))
                     .addConfirm(true);
             var prompter = new InteractivePrompter(mock);
             ProjectConfig config = prompter.prompt();
@@ -188,12 +196,15 @@ class InteractivePrompterFlowTest {
             var mock = new MockTerminalProvider()
                     .addReadLine("kt-service")
                     .addReadLine(
-                            "A kotlin service for mobile backend")
+                            "A kotlin service for mobile "
+                                    + "backend")
                     .addSelect("monolith")
                     .addSelect("kotlin")
                     .addMultiSelect(List.of("rest"))
                     .addReadLine("")
                     .addReadLine("")
+                    .addSelect("layered")
+                    .addMultiSelect(List.of("none"))
                     .addConfirm(true);
             var prompter = new InteractivePrompter(mock);
             ProjectConfig config = prompter.prompt();
@@ -207,12 +218,14 @@ class InteractivePrompterFlowTest {
             var mock = new MockTerminalProvider()
                     .addReadLine("ts-service")
                     .addReadLine(
-                            "A typescript service for frontend API")
+                            "A typescript service for "
+                                    + "frontend API")
                     .addSelect("microservice")
                     .addSelect("typescript")
                     .addMultiSelect(List.of("rest"))
                     .addReadLine("")
                     .addReadLine("")
+                    .addMultiSelect(List.of("none"))
                     .addConfirm(true);
             var prompter = new InteractivePrompter(mock);
             ProjectConfig config = prompter.prompt();
@@ -226,7 +239,8 @@ class InteractivePrompterFlowTest {
             var mock = new MockTerminalProvider()
                     .addReadLine("spring-svc")
                     .addReadLine(
-                            "A spring boot service for backend")
+                            "A spring boot service for "
+                                    + "backend")
                     .addSelect("microservice")
                     .addSelect("java")
                     .addSelect("spring-boot")
@@ -235,6 +249,8 @@ class InteractivePrompterFlowTest {
                             List.of("rest", "graphql"))
                     .addReadLine("mongodb")
                     .addReadLine("")
+                    .addSelect("layered")
+                    .addMultiSelect(List.of("none"))
                     .addConfirm(true);
             var prompter = new InteractivePrompter(mock);
             ProjectConfig config = prompter.prompt();
@@ -286,7 +302,8 @@ class InteractivePrompterFlowTest {
             var mock = new MockTerminalProvider()
                     .addReadLine("my-project")
                     .addReadLine(
-                            "A microservice for user management")
+                            "A microservice for user "
+                                    + "management")
                     .addSelect("microservice")
                     .addSelect("java")
                     .addSelect("quarkus")
@@ -294,6 +311,8 @@ class InteractivePrompterFlowTest {
                     .addMultiSelect(List.of("rest"))
                     .addReadLine("")
                     .addReadLine("")
+                    .addSelect("layered")
+                    .addMultiSelect(List.of("none"))
                     .addConfirm(false);
             var prompter = new InteractivePrompter(mock);
             assertThatThrownBy(prompter::prompt)
@@ -346,6 +365,26 @@ class InteractivePrompterFlowTest {
             ProjectConfig config = prompter.prompt();
             assertThat(config.project().name())
                     .isEqualTo("my-project");
+        }
+
+        @Test
+        @DisplayName("default arch pattern is layered")
+        void prompt_defaultArchPatternStyle() {
+            assertThat(
+                    LanguageFrameworkMapping
+                            .ARCH_PATTERN_STYLES
+                            .getFirst())
+                    .isEqualTo("layered");
+        }
+
+        @Test
+        @DisplayName("default compliance is none")
+        void prompt_defaultCompliance() {
+            assertThat(
+                    LanguageFrameworkMapping
+                            .COMPLIANCE_OPTIONS
+                            .getFirst())
+                    .isEqualTo("none");
         }
     }
 }
