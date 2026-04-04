@@ -19,6 +19,9 @@ class ConfigProfilesTest {
             "java-picocli-cli",
             "java-quarkus",
             "java-spring",
+            "java-spring-hexagonal",
+            "java-spring-cqrs-es",
+            "java-spring-event-driven",
             "python-fastapi",
             "python-click-cli",
             "go-gin",
@@ -32,12 +35,12 @@ class ConfigProfilesTest {
     class AvailableStacks {
 
         @Test
-        @DisplayName("returns all 9 stack keys")
-        void getAvailableStacks_whenCalled_returns9Keys() {
+        @DisplayName("returns all 12 stack keys")
+        void getAvailableStacks_whenCalled_returns12Keys() {
             List<String> stacks =
                     ConfigProfiles.getAvailableStacks();
 
-            assertThat(stacks).hasSize(9);
+            assertThat(stacks).hasSize(12);
             assertThat(stacks).containsAll(ALL_STACKS);
         }
     }
@@ -49,10 +52,12 @@ class ConfigProfilesTest {
         @ParameterizedTest
         @ValueSource(strings = {
                 "java-picocli-cli", "java-quarkus",
-                "java-spring", "python-fastapi",
-                "python-click-cli", "go-gin",
-                "kotlin-ktor", "typescript-nestjs",
-                "rust-axum"})
+                "java-spring", "java-spring-hexagonal",
+                "java-spring-cqrs-es",
+                "java-spring-event-driven",
+                "python-fastapi", "python-click-cli",
+                "go-gin", "kotlin-ktor",
+                "typescript-nestjs", "rust-axum"})
         @DisplayName("returns true for valid stack keys")
         void isValidStack_validKey_returnsTrue(String key) {
             assertThat(ConfigProfiles.isValidStack(key)).isTrue();
@@ -217,6 +222,79 @@ class ConfigProfilesTest {
     }
 
     @Nested
+    @DisplayName("getStack() — java-spring-hexagonal")
+    class JavaSpringHexagonalStack {
+
+        @Test
+        @DisplayName("returns hexagonal profile config")
+        void getStack_hexagonal_returnsConfig() {
+            ProjectConfig config =
+                    ConfigProfiles.getStack(
+                            "java-spring-hexagonal");
+
+            assertThat(config.language().name())
+                    .isEqualTo("java");
+            assertThat(config.framework().name())
+                    .isEqualTo("spring-boot");
+            assertThat(config.architecture().style())
+                    .isEqualTo("hexagonal");
+            assertThat(config.architecture().domainDriven())
+                    .isTrue();
+        }
+    }
+
+    @Nested
+    @DisplayName("getStack() — java-spring-cqrs-es")
+    class JavaSpringCqrsEsStack {
+
+        @Test
+        @DisplayName("returns CQRS/ES profile config")
+        void getStack_cqrsEs_returnsConfig() {
+            ProjectConfig config =
+                    ConfigProfiles.getStack(
+                            "java-spring-cqrs-es");
+
+            assertThat(config.language().name())
+                    .isEqualTo("java");
+            assertThat(config.framework().name())
+                    .isEqualTo("spring-boot");
+            assertThat(config.architecture().style())
+                    .isEqualTo("cqrs");
+            assertThat(config.architecture().eventStore())
+                    .isEqualTo("eventstoredb");
+            assertThat(config.architecture()
+                    .eventsPerSnapshot())
+                    .isEqualTo(100);
+        }
+    }
+
+    @Nested
+    @DisplayName("getStack() — java-spring-event-driven")
+    class JavaSpringEventDrivenStack {
+
+        @Test
+        @DisplayName("returns event-driven profile config")
+        void getStack_eventDriven_returnsConfig() {
+            ProjectConfig config =
+                    ConfigProfiles.getStack(
+                            "java-spring-event-driven");
+
+            assertThat(config.language().name())
+                    .isEqualTo("java");
+            assertThat(config.framework().name())
+                    .isEqualTo("spring-boot");
+            assertThat(config.architecture().style())
+                    .isEqualTo("event-driven");
+            assertThat(config.architecture()
+                    .schemaRegistry())
+                    .isEqualTo("confluent");
+            assertThat(config.architecture()
+                    .deadLetterStrategy())
+                    .isEqualTo("kafka-dlq");
+        }
+    }
+
+    @Nested
     @DisplayName("getStack() — invalid key")
     class InvalidKey {
 
@@ -245,10 +323,12 @@ class ConfigProfilesTest {
         @ParameterizedTest
         @ValueSource(strings = {
                 "java-picocli-cli", "java-quarkus",
-                "java-spring", "python-fastapi",
-                "python-click-cli", "go-gin",
-                "kotlin-ktor", "typescript-nestjs",
-                "rust-axum"})
+                "java-spring", "java-spring-hexagonal",
+                "java-spring-cqrs-es",
+                "java-spring-event-driven",
+                "python-fastapi", "python-click-cli",
+                "go-gin", "kotlin-ktor",
+                "typescript-nestjs", "rust-axum"})
         @DisplayName("each stack has non-null required fields")
         void getStack_eachStack_hasRequiredFields(String key) {
             ProjectConfig config =

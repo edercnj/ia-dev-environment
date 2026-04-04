@@ -32,7 +32,8 @@ class ContextBuilderTest {
                 new ArchitectureConfig(
                         "microservice", true, false,
                         false, "",
-                        "eventstoredb", 100, true),
+                        "eventstoredb", "", false, "",
+                        100, true),
                 List.of(
                         new InterfaceConfig(
                                 "rest", "openapi", ""),
@@ -74,7 +75,8 @@ class ContextBuilderTest {
                 new ArchitectureConfig(
                         "library", false, false,
                         false, "",
-                        "eventstoredb", 100, false),
+                        "eventstoredb", "", false, "",
+                        100, false),
                 List.of(new InterfaceConfig("cli", "", "")),
                 new LanguageConfig("python", "3.10"),
                 new FrameworkConfig(
@@ -87,27 +89,27 @@ class ContextBuilderTest {
     }
 
     @Nested
-    @DisplayName("buildContext() produces exactly 39 fields")
+    @DisplayName("buildContext() produces exactly 42 fields")
     class FieldCount {
 
         @Test
-        @DisplayName("returns map with exactly 39 entries")
-        void buildContext_fullConfig_returns39Fields() {
+        @DisplayName("returns map with exactly 42 entries")
+        void buildContext_fullConfig_returns42Fields() {
             Map<String, Object> context =
                     ContextBuilder.buildContext(
                             buildFullConfig());
 
-            assertThat(context).hasSize(39);
+            assertThat(context).hasSize(42);
         }
 
         @Test
-        @DisplayName("returns map with 39 entries for minimal")
-        void buildContext_minimalConfig_returns39Fields() {
+        @DisplayName("returns map with 42 entries for minimal")
+        void buildContext_minimalConfig_returns42Fields() {
             Map<String, Object> context =
                     ContextBuilder.buildContext(
                             buildMinimalConfig());
 
-            assertThat(context).hasSize(39);
+            assertThat(context).hasSize(42);
         }
     }
 
@@ -418,8 +420,10 @@ class ContextBuilderTest {
         void buildContext_emptyInterfaces_producesNone() {
             var config = new ProjectConfig(
                     new ProjectIdentity("test", "test"),
-                    new ArchitectureConfig("library", false, false,
-                            false, "", "eventstoredb", 100, false),
+                    new ArchitectureConfig("library", false,
+                            false, false, "",
+                            "eventstoredb", "", false, "",
+                            100, false),
                     List.of(),
                     new LanguageConfig("java", "21"),
                     new FrameworkConfig(
@@ -439,11 +443,11 @@ class ContextBuilderTest {
     }
 
     @Nested
-    @DisplayName("exact 39 field names")
+    @DisplayName("exact 42 field names")
     class ExactFieldNames {
 
         @Test
-        @DisplayName("context contains all 39 expected keys")
+        @DisplayName("context contains all 42 expected keys")
         void buildContext_allExpectedKeys_present() {
             Map<String, Object> ctx =
                     ContextBuilder.buildContext(
@@ -463,6 +467,9 @@ class ContextBuilderTest {
                     "validate_with_archunit",
                     "base_package",
                     "event_store",
+                    "schema_registry",
+                    "outbox_pattern",
+                    "dead_letter_strategy",
                     "events_per_snapshot",
                     "ddd_enabled",
                     "container",

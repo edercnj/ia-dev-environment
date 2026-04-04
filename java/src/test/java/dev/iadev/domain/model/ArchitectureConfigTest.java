@@ -240,4 +240,91 @@ class ArchitectureConfigTest {
                     .isEqualTo(50);
         }
     }
+
+    @Nested
+    @DisplayName("schemaRegistry field")
+    class SchemaRegistryField {
+
+        @Test
+        @DisplayName("defaults schemaRegistry to empty string")
+        void fromMap_noSchemaRegistry_defaultsEmpty() {
+            var map = Map.<String, Object>of(
+                    "style", "event-driven");
+
+            var result = ArchitectureConfig.fromMap(map);
+
+            assertThat(result.schemaRegistry()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("parses schemaRegistry from map")
+        void fromMap_withSchemaRegistry_parsesValue() {
+            Map<String, Object> map = new HashMap<>();
+            map.put("style", "event-driven");
+            map.put("schema_registry", "confluent");
+
+            var result = ArchitectureConfig.fromMap(map);
+
+            assertThat(result.schemaRegistry())
+                    .isEqualTo("confluent");
+        }
+    }
+
+    @Nested
+    @DisplayName("outboxPattern field")
+    class OutboxPatternField {
+
+        @Test
+        @DisplayName("defaults outboxPattern to false")
+        void fromMap_noOutboxPattern_defaultsFalse() {
+            var map = Map.<String, Object>of(
+                    "style", "event-driven");
+
+            var result = ArchitectureConfig.fromMap(map);
+
+            assertThat(result.outboxPattern()).isFalse();
+        }
+
+        @Test
+        @DisplayName("parses outboxPattern true from map")
+        void fromMap_withOutboxPattern_parsesTrue() {
+            Map<String, Object> map = new HashMap<>();
+            map.put("style", "event-driven");
+            map.put("outbox_pattern", true);
+
+            var result = ArchitectureConfig.fromMap(map);
+
+            assertThat(result.outboxPattern()).isTrue();
+        }
+    }
+
+    @Nested
+    @DisplayName("deadLetterStrategy field")
+    class DeadLetterStrategyField {
+
+        @Test
+        @DisplayName("defaults deadLetterStrategy to empty")
+        void fromMap_noDeadLetterStrategy_defaultsEmpty() {
+            var map = Map.<String, Object>of(
+                    "style", "event-driven");
+
+            var result = ArchitectureConfig.fromMap(map);
+
+            assertThat(result.deadLetterStrategy()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("parses deadLetterStrategy from map")
+        void fromMap_withDeadLetterStrategy_parsesValue() {
+            Map<String, Object> map = new HashMap<>();
+            map.put("style", "event-driven");
+            map.put("dead_letter_strategy", "kafka-dlq");
+
+            var result = ArchitectureConfig.fromMap(map);
+
+            assertThat(result.deadLetterStrategy())
+                    .isEqualTo("kafka-dlq");
+        }
+    }
+
 }

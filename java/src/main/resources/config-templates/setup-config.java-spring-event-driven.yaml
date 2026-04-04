@@ -1,0 +1,154 @@
+# Claude Code Boilerplate — Java 21 + Spring Boot 3.x (Event-Driven)
+# Run: ia-dev-env generate --stack java-spring-event-driven
+#
+# Inherits java-spring base with event-driven architecture specialization.
+# Adds Kafka, Schema Registry, Outbox Pattern, and dead letter strategy.
+
+# ═══════════════════════════════════════════════════
+# SECTION 1: PROJECT IDENTITY
+# ═══════════════════════════════════════════════════
+project:
+  name: "my-spring-event-driven"
+  purpose: "Describe your event-driven service here"
+
+# ═══════════════════════════════════════════════════
+# SECTION 2: ARCHITECTURE
+# ═══════════════════════════════════════════════════
+architecture:
+  style: event-driven
+  domain_driven: true
+  event_driven: true
+  schema_registry: confluent
+  outbox_pattern: false
+  dead_letter_strategy: kafka-dlq
+
+# ═══════════════════════════════════════════════════
+# SECTION 3: INTERFACES
+# ═══════════════════════════════════════════════════
+interfaces:
+  - type: rest
+    spec: openapi
+  - type: event-consumer
+    broker: kafka
+  - type: event-producer
+    broker: kafka
+
+# ═══════════════════════════════════════════════════
+# SECTION 4: LANGUAGE
+# ═══════════════════════════════════════════════════
+language:
+  name: java
+  version: "21"
+
+# ═══════════════════════════════════════════════════
+# SECTION 5: FRAMEWORK
+# ═══════════════════════════════════════════════════
+framework:
+  name: spring-boot
+  version: "3.x"
+  build_tool: gradle
+  native_build: false
+
+# ═══════════════════════════════════════════════════
+# SECTION 6: DATA
+# ═══════════════════════════════════════════════════
+data:
+  database:
+    type: postgresql
+    version: "17"
+    migration: flyway
+
+  cache:
+    type: none
+    version: ""
+
+  message_broker:
+    type: kafka
+    version: "3.7"
+
+# ═══════════════════════════════════════════════════
+# SECTION 7: SECURITY
+# ═══════════════════════════════════════════════════
+security:
+  compliance: []
+  encryption:
+    at_rest: false
+    key_management: none
+  pentest_readiness: false
+
+# ═══════════════════════════════════════════════════
+# SECTION 8: CLOUD PROVIDER
+# ═══════════════════════════════════════════════════
+cloud:
+  provider: none
+
+# ═══════════════════════════════════════════════════
+# SECTION 9: INFRASTRUCTURE
+# ═══════════════════════════════════════════════════
+infrastructure:
+  container: docker
+  orchestrator: none
+  templating: none
+  iac: none
+  registry: none
+  api_gateway: none
+  service_mesh: none
+
+# ═══════════════════════════════════════════════════
+# SECTION 10: OBSERVABILITY
+# ═══════════════════════════════════════════════════
+observability:
+  standard: opentelemetry
+  backend: grafana-stack
+
+# ═══════════════════════════════════════════════════
+# SECTION 11: TESTING
+# ═══════════════════════════════════════════════════
+testing:
+  smoke_tests: true
+  performance_tests: false
+  contract_tests: false
+  chaos_tests: false
+
+# ═══════════════════════════════════════════════════
+# SECTION 12: DOMAIN TEMPLATE
+# ═══════════════════════════════════════════════════
+domain:
+  template: none
+
+# ═══════════════════════════════════════════════════
+# SECTION 13: CONVENTIONS
+# ═══════════════════════════════════════════════════
+conventions:
+  code_language: en
+  commit_language: en
+  documentation_language: en
+  git_scopes:
+    - { scope: "domain", area: "Core domain logic" }
+    - { scope: "event", area: "Event producers and consumers" }
+    - { scope: "outbox", area: "Outbox pattern and relay" }
+    - { scope: "infra", area: "Infrastructure and adapters" }
+    - { scope: "api", area: "REST API layer" }
+    - { scope: "config", area: "Configuration and wiring" }
+
+# ═══════════════════════════════════════════════════
+# SECTION 14: SKILLS / AGENTS / HOOKS / SETTINGS
+# ═══════════════════════════════════════════════════
+skills:
+  override: auto
+agents:
+  override: auto
+  adaptive_model:
+    junior: "haiku"
+    mid: "sonnet"
+    senior: "opus"
+hooks:
+  post_compile: true
+settings:
+  auto_generate: true
+
+# ═══════════════════════════════════════════════════
+# SECTION 18: MCP SERVERS
+# ═══════════════════════════════════════════════════
+mcp:
+  servers: []

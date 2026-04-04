@@ -143,12 +143,25 @@ public final class StackMapping {
             "rest", "grpc", "graphql", "websocket", "tcp-custom",
             "cli", "event-consumer", "event-producer", "scheduled");
 
-    /** Valid architecture styles (6 entries). */
+    /** Valid architecture styles (10 entries). */
     public static final List<String> VALID_ARCHITECTURE_STYLES =
             List.of(
                     "microservice", "modular-monolith",
                     "monolith", "library", "serverless",
-                    "ddd");
+                    "ddd", "hexagonal", "cqrs",
+                    "event-driven", "clean");
+
+    /** Valid event store types. */
+    public static final List<String> VALID_EVENT_STORES =
+            List.of("eventstoredb", "axon", "custom");
+
+    /** Valid schema registry types. */
+    public static final List<String> VALID_SCHEMA_REGISTRIES =
+            List.of("confluent", "apicurio", "glue");
+
+    /** Valid dead letter strategy types. */
+    public static final List<String> VALID_DEAD_LETTER_STRATEGIES =
+            List.of("kafka-dlq", "sqs-dlq", "database");
 
     /** Interface type to protocol spec name. */
     public static final Map<String, String> INTERFACE_SPEC_PROTOCOL_MAP =

@@ -24,6 +24,13 @@ import java.util.Map;
  *       before creating a snapshot. Default: 100</li>
  * </ul>
  *
+ * <p>Extended fields for architectural profiles:
+ * <ul>
+ *   <li>{@code schemaRegistry} — schema registry (confluent, apicurio, glue)</li>
+ *   <li>{@code outboxPattern} — enables transactional outbox pattern</li>
+ *   <li>{@code deadLetterStrategy} — DLQ strategy (kafka-dlq, sqs-dlq, database)</li>
+ * </ul>
+ *
  * <p>Example fromMap usage:
  * <pre>{@code
  * var map = Map.of("style", "hexagonal",
@@ -40,6 +47,11 @@ import java.util.Map;
  * @param basePackage the base Java package for ArchUnit rules
  * @param eventStore the event store type (default:
  *        eventstoredb)
+ * @param schemaRegistry schema registry type (default: "")
+ * @param outboxPattern whether outbox pattern is enabled
+ *        (default: false)
+ * @param deadLetterStrategy dead letter queue strategy
+ *        (default: "")
  * @param eventsPerSnapshot events before snapshot
  *        (default: 100)
  * @param dddEnabled whether DDD strategic KP is explicitly enabled (default: false)
@@ -51,12 +63,17 @@ public record ArchitectureConfig(
         boolean validateWithArchUnit,
         String basePackage,
         String eventStore,
+        String schemaRegistry,
+        boolean outboxPattern,
+        String deadLetterStrategy,
         int eventsPerSnapshot,
         boolean dddEnabled) {
 
     private static final String DEFAULT_EVENT_STORE =
             "eventstoredb";
-    private static final int DEFAULT_EVENTS_PER_SNAPSHOT =
+
+    /** Default number of events before creating a snapshot. */
+    public static final int DEFAULT_EVENTS_PER_SNAPSHOT =
             100;
 
     /**
@@ -85,6 +102,12 @@ public record ArchitectureConfig(
                 MapHelper.optionalString(
                         map, "event_store",
                         DEFAULT_EVENT_STORE),
+                MapHelper.optionalString(
+                        map, "schema_registry", ""),
+                MapHelper.optionalBoolean(
+                        map, "outbox_pattern", false),
+                MapHelper.optionalString(
+                        map, "dead_letter_strategy", ""),
                 MapHelper.optionalInt(
                         snapshotPolicy,
                         "events_per_snapshot",

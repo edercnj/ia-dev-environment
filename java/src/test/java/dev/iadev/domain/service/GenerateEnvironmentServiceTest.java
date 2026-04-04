@@ -336,7 +336,8 @@ class GenerateEnvironmentServiceTest {
                         "Test purpose"),
                 new ArchitectureConfig("microservice",
                         false, false, false, "",
-                        "eventstoredb", 100, false),
+                        "eventstoredb", "", false, "",
+                        100, false),
                 List.of(new InterfaceConfig(
                         "rest", "", "")),
                 new LanguageConfig("java", "21"),
@@ -361,7 +362,8 @@ class GenerateEnvironmentServiceTest {
                         "Test purpose"),
                 new ArchitectureConfig("microservice",
                         false, false, false, "",
-                        "eventstoredb", 100, false),
+                        "eventstoredb", "", false, "",
+                        100, false),
                 List.of(new InterfaceConfig(
                         "rest", "", "")),
                 new LanguageConfig("java", "21"),

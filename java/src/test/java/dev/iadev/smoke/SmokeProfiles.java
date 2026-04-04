@@ -12,7 +12,7 @@ import java.util.stream.Stream;
  * duplicating the profile list.</p>
  *
  * <p>The profiles are an explicitly curated list of the
- * 8 bundled profiles used by golden file and smoke tests.
+ * 11 bundled profiles used by golden file and smoke tests.
  * The list excludes {@code java-picocli-cli} (the project's
  * own profile) and is maintained in sync with the golden
  * test resources directory.</p>
@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 public final class SmokeProfiles {
 
     /**
-     * The 8 profiles used by golden file tests and smoke
+     * The 11 profiles used by golden file tests and smoke
      * tests. This excludes java-picocli-cli which is the
      * project's own profile.
      */
@@ -29,6 +29,9 @@ public final class SmokeProfiles {
                     "go-gin",
                     "java-quarkus",
                     "java-spring",
+                    "java-spring-cqrs-es",
+                    "java-spring-event-driven",
+                    "java-spring-hexagonal",
                     "kotlin-ktor",
                     "python-click-cli",
                     "python-fastapi",
@@ -40,7 +43,7 @@ public final class SmokeProfiles {
     }
 
     /**
-     * Provides the 8 bundled profile names as a stream,
+     * Provides the 11 bundled profile names as a stream,
      * suitable for {@code @MethodSource} parameterization.
      *
      * @return stream of profile name strings
@@ -52,7 +55,7 @@ public final class SmokeProfiles {
     /**
      * Returns the list of all smoke-testable profiles.
      *
-     * @return unmodifiable list of 8 profile name strings
+     * @return unmodifiable list of 11 profile name strings
      */
     public static List<String> profileList() {
         return SMOKE_PROFILES;

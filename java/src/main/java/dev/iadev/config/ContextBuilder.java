@@ -12,12 +12,12 @@ import java.util.stream.Collectors;
 /**
  * Builds a template context map from a {@link ProjectConfig}.
  *
- * <p>Produces exactly 39 fields matching the TypeScript
+ * <p>Produces exactly 42 fields matching the TypeScript
  * {@code buildDefaultContext()} function (RULE-010). Boolean values
  * are converted to Python-style strings ("True"/"False") per
  * RULE-002 for Jinja2/Pebble template rendering parity.
  *
- * <p>The 39 context fields are:
+ * <p>The 42 context fields are:
  * <ol>
  *   <li>project_name</li>
  *   <li>project_purpose</li>
@@ -32,6 +32,9 @@ import java.util.stream.Collectors;
  *   <li>validate_with_archunit</li>
  *   <li>base_package</li>
  *   <li>event_store</li>
+ *   <li>schema_registry</li>
+ *   <li>outbox_pattern</li>
+ *   <li>dead_letter_strategy</li>
  *   <li>events_per_snapshot</li>
  *   <li>ddd_enabled</li>
  *   <li>container</li>
@@ -74,7 +77,7 @@ public final class ContextBuilder {
      * Initial capacity for the context map, optimized to avoid
      * rehash with approximately 20 context entries.
      */
-    private static final int INITIAL_CONTEXT_CAPACITY = 32;
+    private static final int INITIAL_CONTEXT_CAPACITY = 64;
 
     private static final String PYTHON_TRUE = "True";
     private static final String PYTHON_FALSE = "False";
@@ -84,14 +87,14 @@ public final class ContextBuilder {
     }
 
     /**
-     * Builds a context map with exactly 39 template fields from
+     * Builds a context map with exactly 42 template fields from
      * the given {@link ProjectConfig}.
      *
      * <p>Delegates to domain-specific builders for each
      * section of the context map.</p>
      *
      * @param config the project configuration
-     * @return an ordered map with 39 template context entries
+     * @return an ordered map with 42 template context entries
      */
     public static Map<String, Object> buildContext(
             ProjectConfig config) {
@@ -156,6 +159,14 @@ public final class ContextBuilder {
                 config.architecture().basePackage());
         ctx.put("event_store",
                 config.architecture().eventStore());
+        ctx.put("schema_registry",
+                config.architecture().schemaRegistry());
+        ctx.put("outbox_pattern",
+                toPythonBool(
+                        config.architecture().outboxPattern()));
+        ctx.put("dead_letter_strategy",
+                config.architecture()
+                        .deadLetterStrategy());
         ctx.put("events_per_snapshot",
                 config.architecture().eventsPerSnapshot());
         ctx.put("ddd_enabled",

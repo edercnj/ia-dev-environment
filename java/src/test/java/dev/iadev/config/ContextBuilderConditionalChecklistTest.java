@@ -204,7 +204,8 @@ class ContextBuilderConditionalChecklistTest {
                 new ArchitectureConfig(
                         "microservice", true, false,
                         false, "",
-                        "eventstoredb", 100),
+                        "eventstoredb", "", false, "",
+                        100, false),
                 interfaces,
                 new LanguageConfig("java", "21"),
                 new FrameworkConfig(

@@ -23,7 +23,7 @@ import java.util.TreeSet;
 
 /**
  * Generates the expected artifacts manifest by running
- * the pipeline for all 8 bundled profiles and collecting
+ * the pipeline for all 11 bundled profiles and collecting
  * file counts, directories, and categories from the
  * output.
  *
@@ -42,6 +42,9 @@ public final class ExpectedArtifactsGenerator {
 
     private static final List<String> PROFILES = List.of(
             "go-gin", "java-quarkus", "java-spring",
+            "java-spring-hexagonal",
+            "java-spring-cqrs-es",
+            "java-spring-event-driven",
             "kotlin-ktor", "python-click-cli",
             "python-fastapi", "rust-axum",
             "typescript-nestjs");
@@ -57,7 +60,7 @@ public final class ExpectedArtifactsGenerator {
     /**
      * Generates the manifest JSON at the given path.
      *
-     * <p>Runs the pipeline for each of the 8 profiles,
+     * <p>Runs the pipeline for each of the 11 profiles,
      * collects output metrics, and writes them as JSON.</p>
      *
      * @param outputPath target file path for the JSON

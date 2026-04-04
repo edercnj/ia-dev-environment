@@ -1,0 +1,153 @@
+# Claude Code Boilerplate — Java 21 + Spring Boot 3.x (CQRS/Event Sourcing)
+# Run: ia-dev-env generate --stack java-spring-cqrs-es
+#
+# Inherits java-spring base with CQRS and Event Sourcing specialization.
+# Adds EventStoreDB, Kafka, snapshot policy, and CQRS knowledge pack.
+
+# ═══════════════════════════════════════════════════
+# SECTION 1: PROJECT IDENTITY
+# ═══════════════════════════════════════════════════
+project:
+  name: "my-spring-cqrs"
+  purpose: "Describe your CQRS/ES service here"
+
+# ═══════════════════════════════════════════════════
+# SECTION 2: ARCHITECTURE
+# ═══════════════════════════════════════════════════
+architecture:
+  style: cqrs
+  domain_driven: true
+  event_driven: true
+  event_store: eventstoredb
+  events_per_snapshot: 100
+
+# ═══════════════════════════════════════════════════
+# SECTION 3: INTERFACES
+# ═══════════════════════════════════════════════════
+interfaces:
+  - type: rest
+    spec: openapi
+  - type: event-consumer
+    broker: kafka
+  - type: event-producer
+    broker: kafka
+
+# ═══════════════════════════════════════════════════
+# SECTION 4: LANGUAGE
+# ═══════════════════════════════════════════════════
+language:
+  name: java
+  version: "21"
+
+# ═══════════════════════════════════════════════════
+# SECTION 5: FRAMEWORK
+# ═══════════════════════════════════════════════════
+framework:
+  name: spring-boot
+  version: "3.x"
+  build_tool: gradle
+  native_build: false
+
+# ═══════════════════════════════════════════════════
+# SECTION 6: DATA
+# ═══════════════════════════════════════════════════
+data:
+  database:
+    type: postgresql
+    version: "17"
+    migration: flyway
+
+  cache:
+    type: redis
+    version: "7.4"
+
+  message_broker:
+    type: kafka
+    version: "3.7"
+
+# ═══════════════════════════════════════════════════
+# SECTION 7: SECURITY
+# ═══════════════════════════════════════════════════
+security:
+  compliance: []
+  encryption:
+    at_rest: false
+    key_management: none
+  pentest_readiness: false
+
+# ═══════════════════════════════════════════════════
+# SECTION 8: CLOUD PROVIDER
+# ═══════════════════════════════════════════════════
+cloud:
+  provider: none
+
+# ═══════════════════════════════════════════════════
+# SECTION 9: INFRASTRUCTURE
+# ═══════════════════════════════════════════════════
+infrastructure:
+  container: docker
+  orchestrator: none
+  templating: none
+  iac: none
+  registry: none
+  api_gateway: none
+  service_mesh: none
+
+# ═══════════════════════════════════════════════════
+# SECTION 10: OBSERVABILITY
+# ═══════════════════════════════════════════════════
+observability:
+  standard: opentelemetry
+  backend: grafana-stack
+
+# ═══════════════════════════════════════════════════
+# SECTION 11: TESTING
+# ═══════════════════════════════════════════════════
+testing:
+  smoke_tests: true
+  performance_tests: true
+  contract_tests: false
+  chaos_tests: false
+
+# ═══════════════════════════════════════════════════
+# SECTION 12: DOMAIN TEMPLATE
+# ═══════════════════════════════════════════════════
+domain:
+  template: none
+
+# ═══════════════════════════════════════════════════
+# SECTION 13: CONVENTIONS
+# ═══════════════════════════════════════════════════
+conventions:
+  code_language: en
+  commit_language: en
+  documentation_language: en
+  git_scopes:
+    - { scope: "command", area: "Command handlers and bus" }
+    - { scope: "query", area: "Query handlers and projections" }
+    - { scope: "event", area: "Events and event store" }
+    - { scope: "domain", area: "Aggregates and domain logic" }
+    - { scope: "infra", area: "Infrastructure and adapters" }
+    - { scope: "config", area: "Configuration and wiring" }
+
+# ═══════════════════════════════════════════════════
+# SECTION 14: SKILLS / AGENTS / HOOKS / SETTINGS
+# ═══════════════════════════════════════════════════
+skills:
+  override: auto
+agents:
+  override: auto
+  adaptive_model:
+    junior: "haiku"
+    mid: "sonnet"
+    senior: "opus"
+hooks:
+  post_compile: true
+settings:
+  auto_generate: true
+
+# ═══════════════════════════════════════════════════
+# SECTION 18: MCP SERVERS
+# ═══════════════════════════════════════════════════
+mcp:
+  servers: []

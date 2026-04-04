@@ -37,6 +37,12 @@ final class TestProjectConfigBuilder {
     private String container = "docker";
     private String iac = "none";
     private String registry = "none";
+    private String eventStore = "";
+    private String schemaRegistry = "";
+    private boolean outboxPattern = false;
+    private String deadLetterStrategy = "";
+    private int eventsPerSnapshot =
+            ArchitectureConfig.DEFAULT_EVENTS_PER_SNAPSHOT;
 
     TestProjectConfigBuilder() {
         interfaces.add(new InterfaceConfig("rest", "", ""));
@@ -121,11 +127,42 @@ final class TestProjectConfigBuilder {
         return this;
     }
 
+    TestProjectConfigBuilder eventStore(String value) {
+        this.eventStore = value;
+        return this;
+    }
+
+    TestProjectConfigBuilder schemaRegistry(String value) {
+        this.schemaRegistry = value;
+        return this;
+    }
+
+    TestProjectConfigBuilder outboxPattern(boolean value) {
+        this.outboxPattern = value;
+        return this;
+    }
+
+    TestProjectConfigBuilder deadLetterStrategy(
+            String value) {
+        this.deadLetterStrategy = value;
+        return this;
+    }
+
+    TestProjectConfigBuilder eventsPerSnapshot(int value) {
+        this.eventsPerSnapshot = value;
+        return this;
+    }
+
     ProjectConfig build() {
         return new ProjectConfig(
-                new ProjectIdentity("test-project", "Test purpose"),
-                new ArchitectureConfig(archStyle, domainDriven, eventDriven,
-                        false, "", "eventstoredb", 100, false),
+                new ProjectIdentity(
+                        "test-project", "Test purpose"),
+                new ArchitectureConfig(
+                        archStyle, domainDriven,
+                        eventDriven, false, "",
+                        eventStore, schemaRegistry,
+                        outboxPattern, deadLetterStrategy,
+                        eventsPerSnapshot, false),
                 interfaces,
                 new LanguageConfig(langName, langVersion),
                 new FrameworkConfig(fwName, fwVersion, buildTool, nativeBuild),

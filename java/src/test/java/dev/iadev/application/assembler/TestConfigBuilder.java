@@ -35,6 +35,9 @@ final class TestConfigBuilder {
     private boolean validateWithArchUnit = false;
     private String basePackage = "";
     private String eventStore = "eventstoredb";
+    private String schemaRegistry = "";
+    private boolean outboxPattern = false;
+    private String deadLetterStrategy = "";
     private int eventsPerSnapshot = 100;
     private boolean dddEnabled = false;
     private String langName = "java";
@@ -114,6 +117,21 @@ final class TestConfigBuilder {
 
     TestConfigBuilder eventStore(String store) {
         this.eventStore = store;
+        return this;
+    }
+
+    TestConfigBuilder schemaRegistry(String registry) {
+        this.schemaRegistry = registry;
+        return this;
+    }
+
+    TestConfigBuilder outboxPattern(boolean enabled) {
+        this.outboxPattern = enabled;
+        return this;
+    }
+
+    TestConfigBuilder deadLetterStrategy(String strategy) {
+        this.deadLetterStrategy = strategy;
         return this;
     }
 
@@ -275,7 +293,9 @@ final class TestConfigBuilder {
                         archStyle, domainDriven,
                         eventDriven, validateWithArchUnit,
                         basePackage,
-                        eventStore, eventsPerSnapshot,
+                        eventStore, schemaRegistry,
+                        outboxPattern, deadLetterStrategy,
+                        eventsPerSnapshot,
                         dddEnabled),
                 interfaces,
                 new LanguageConfig(langName, langVersion),

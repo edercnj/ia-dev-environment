@@ -51,6 +51,9 @@ public final class StackValidator {
         errors.addAll(validateNativeBuild(config));
         errors.addAll(validateInterfaceTypes(config));
         errors.addAll(validateArchitectureStyle(config));
+        errors.addAll(validateEventStore(config));
+        errors.addAll(validateSchemaRegistry(config));
+        errors.addAll(validateDeadLetterStrategy(config));
         return errors;
     }
 
@@ -160,6 +163,82 @@ public final class StackValidator {
                                     String.join(", ",
                                             StackMapping
                                                     .VALID_ARCHITECTURE_STYLES)));
+        }
+        return List.of();
+    }
+
+    /**
+     * Validates eventStore enum value if set.
+     *
+     * @param config the project configuration
+     * @return list of error messages
+     */
+    public static List<String> validateEventStore(
+            ProjectConfig config) {
+        String value = config.architecture().eventStore();
+        if (value.isEmpty()) {
+            return List.of();
+        }
+        if (!StackMapping.VALID_EVENT_STORES
+                .contains(value)) {
+            return List.of(
+                    ("Invalid eventStore: '%s'. Valid: %s")
+                            .formatted(value,
+                                    String.join(", ",
+                                            StackMapping
+                                                    .VALID_EVENT_STORES)));
+        }
+        return List.of();
+    }
+
+    /**
+     * Validates schemaRegistry enum value if set.
+     *
+     * @param config the project configuration
+     * @return list of error messages
+     */
+    public static List<String> validateSchemaRegistry(
+            ProjectConfig config) {
+        String value =
+                config.architecture().schemaRegistry();
+        if (value.isEmpty()) {
+            return List.of();
+        }
+        if (!StackMapping.VALID_SCHEMA_REGISTRIES
+                .contains(value)) {
+            return List.of(
+                    ("Invalid schemaRegistry: '%s'."
+                            + " Valid: %s")
+                            .formatted(value,
+                                    String.join(", ",
+                                            StackMapping
+                                                    .VALID_SCHEMA_REGISTRIES)));
+        }
+        return List.of();
+    }
+
+    /**
+     * Validates deadLetterStrategy enum value if set.
+     *
+     * @param config the project configuration
+     * @return list of error messages
+     */
+    public static List<String> validateDeadLetterStrategy(
+            ProjectConfig config) {
+        String value =
+                config.architecture().deadLetterStrategy();
+        if (value.isEmpty()) {
+            return List.of();
+        }
+        if (!StackMapping.VALID_DEAD_LETTER_STRATEGIES
+                .contains(value)) {
+            return List.of(
+                    ("Invalid deadLetterStrategy: '%s'."
+                            + " Valid: %s")
+                            .formatted(value,
+                                    String.join(", ",
+                                            StackMapping
+                                                    .VALID_DEAD_LETTER_STRATEGIES)));
         }
         return List.of();
     }

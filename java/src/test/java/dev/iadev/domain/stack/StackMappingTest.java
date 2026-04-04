@@ -285,14 +285,16 @@ class StackMappingTest {
         }
 
         @Test
-        @DisplayName("VALID_ARCHITECTURE_STYLES has 6 entries")
-        void validArchitectureStyles_whenCalled_six() {
+        @DisplayName("VALID_ARCHITECTURE_STYLES has 10 entries")
+        void validArchitectureStyles_whenCalled_ten() {
             assertThat(StackMapping.VALID_ARCHITECTURE_STYLES)
-                    .hasSize(6);
+                    .hasSize(10);
             assertThat(StackMapping.VALID_ARCHITECTURE_STYLES)
                     .contains("microservice",
                             "modular-monolith", "monolith",
-                            "library", "serverless", "ddd");
+                            "library", "serverless", "ddd",
+                            "hexagonal", "cqrs",
+                            "event-driven", "clean");
         }
 
         @Test

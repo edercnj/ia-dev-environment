@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.fail;
 
 /**
  * Golden file tests validating byte-for-byte parity between
- * Java pipeline output and TypeScript golden files for all 8
+ * Java pipeline output and TypeScript golden files for all 11
  * bundled profiles.
  *
  * <p>For each profile, the test:
@@ -58,7 +58,7 @@ class GoldenFileTest {
     Path tempDir;
 
     /**
-     * Provides the 8 profile names for parameterized tests.
+     * Provides the 11 profile names for parameterized tests.
      *
      * @return stream of profile name strings
      */
@@ -67,6 +67,9 @@ class GoldenFileTest {
                 "go-gin",
                 "java-quarkus",
                 "java-spring",
+                "java-spring-hexagonal",
+                "java-spring-cqrs-es",
+                "java-spring-event-driven",
                 "kotlin-ktor",
                 "python-click-cli",
                 "python-fastapi",

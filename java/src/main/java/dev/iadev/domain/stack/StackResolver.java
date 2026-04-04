@@ -99,8 +99,11 @@ public final class StackResolver {
         List<String> interfaceTypes = extractInterfaceTypes(config);
 
         return switch (style) {
-            case "microservice" -> microserviceType(interfaceTypes);
-            case "modular-monolith", "monolith", "serverless" -> "api";
+            case "microservice", "hexagonal", "cqrs",
+                    "event-driven", "clean" ->
+                    microserviceType(interfaceTypes);
+            case "modular-monolith", "monolith",
+                    "serverless" -> "api";
             case "library" -> libraryType(interfaceTypes);
             default -> "api";
         };

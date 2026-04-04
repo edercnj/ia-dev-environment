@@ -341,7 +341,9 @@ class StackValidatorVersionTest {
         @ParameterizedTest
         @ValueSource(strings = {
                 "microservice", "modular-monolith",
-                "monolith", "library", "serverless"
+                "monolith", "library", "serverless",
+                "hexagonal", "cqrs", "event-driven",
+                "clean"
         })
         void architectureStyle_valid_noError(String s) {
             var config = new TestProjectConfigBuilder()
@@ -354,11 +356,134 @@ class StackValidatorVersionTest {
         @Test
         void architectureStyle_invalid_error() {
             var config = new TestProjectConfigBuilder()
-                    .architectureStyle("hexagonal")
+                    .architectureStyle("microkernel")
                     .build();
             assertThat(StackValidator
                     .validateArchitectureStyle(config))
                     .isNotEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("validateEventStore()")
+    class EventStoreValidationTests {
+
+        @Test
+        @DisplayName("empty eventStore is valid")
+        void validateEventStore_empty_noError() {
+            var config = new TestProjectConfigBuilder()
+                    .build();
+            assertThat(StackValidator
+                    .validateEventStore(config))
+                    .isEmpty();
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "eventstoredb", "axon", "custom"})
+        @DisplayName("valid eventStore values pass")
+        void validateEventStore_valid_noError(String es) {
+            var config = new TestProjectConfigBuilder()
+                    .eventStore(es).build();
+            assertThat(StackValidator
+                    .validateEventStore(config))
+                    .isEmpty();
+        }
+
+        @Test
+        @DisplayName("invalid eventStore returns error")
+        void validateEventStore_mongodb_error() {
+            var config = new TestProjectConfigBuilder()
+                    .eventStore("mongodb").build();
+            var errors = StackValidator
+                    .validateEventStore(config);
+            assertThat(errors).hasSize(1);
+            assertThat(errors.get(0))
+                    .contains("mongodb")
+                    .contains("eventstoredb");
+        }
+    }
+
+    @Nested
+    @DisplayName("validateSchemaRegistry()")
+    class SchemaRegistryValidationTests {
+
+        @Test
+        @DisplayName("empty schemaRegistry is valid")
+        void validateSchemaRegistry_empty_noError() {
+            var config = new TestProjectConfigBuilder()
+                    .build();
+            assertThat(StackValidator
+                    .validateSchemaRegistry(config))
+                    .isEmpty();
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "confluent", "apicurio", "glue"})
+        @DisplayName("valid schemaRegistry values pass")
+        void validateSchemaRegistry_valid_noError(
+                String sr) {
+            var config = new TestProjectConfigBuilder()
+                    .schemaRegistry(sr).build();
+            assertThat(StackValidator
+                    .validateSchemaRegistry(config))
+                    .isEmpty();
+        }
+
+        @Test
+        @DisplayName("invalid schemaRegistry returns error")
+        void validateSchemaRegistry_invalid_error() {
+            var config = new TestProjectConfigBuilder()
+                    .schemaRegistry("avro-only").build();
+            var errors = StackValidator
+                    .validateSchemaRegistry(config);
+            assertThat(errors).hasSize(1);
+            assertThat(errors.get(0))
+                    .contains("avro-only")
+                    .contains("confluent");
+        }
+    }
+
+    @Nested
+    @DisplayName("validateDeadLetterStrategy()")
+    class DeadLetterStrategyValidationTests {
+
+        @Test
+        @DisplayName("empty deadLetterStrategy is valid")
+        void validateDeadLetterStrategy_empty_noError() {
+            var config = new TestProjectConfigBuilder()
+                    .build();
+            assertThat(StackValidator
+                    .validateDeadLetterStrategy(config))
+                    .isEmpty();
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "kafka-dlq", "sqs-dlq", "database"})
+        @DisplayName("valid deadLetterStrategy values pass")
+        void validateDeadLetterStrategy_valid_noError(
+                String dls) {
+            var config = new TestProjectConfigBuilder()
+                    .deadLetterStrategy(dls).build();
+            assertThat(StackValidator
+                    .validateDeadLetterStrategy(config))
+                    .isEmpty();
+        }
+
+        @Test
+        @DisplayName("invalid deadLetterStrategy errors")
+        void validateDeadLetterStrategy_invalid_error() {
+            var config = new TestProjectConfigBuilder()
+                    .deadLetterStrategy("rabbitmq")
+                    .build();
+            var errors = StackValidator
+                    .validateDeadLetterStrategy(config);
+            assertThat(errors).hasSize(1);
+            assertThat(errors.get(0))
+                    .contains("rabbitmq")
+                    .contains("kafka-dlq");
         }
     }
 
