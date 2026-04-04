@@ -44,7 +44,7 @@ public record McpServerConfig(
      *
      * @param map the map from YAML deserialization
      * @return a new McpServerConfig instance
-     * @throws dev.iadev.exception.ConfigValidationException if id or url is missing
+     * @throws ConfigValidationException if id or url is missing
      */
     public static McpServerConfig fromMap(Map<String, Object> map) {
         return new McpServerConfig(

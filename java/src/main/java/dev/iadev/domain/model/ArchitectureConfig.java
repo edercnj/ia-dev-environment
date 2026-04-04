@@ -30,7 +30,7 @@ public record ArchitectureConfig(
      *
      * @param map the map from YAML deserialization
      * @return a new ArchitectureConfig instance
-     * @throws dev.iadev.exception.ConfigValidationException if style is missing
+     * @throws ConfigValidationException if style is missing
      */
     public static ArchitectureConfig fromMap(Map<String, Object> map) {
         return new ArchitectureConfig(

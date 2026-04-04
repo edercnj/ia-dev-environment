@@ -9,7 +9,7 @@ import java.util.Map;
  * <p>This is the primary configuration object parsed from YAML. It delegates
  * to sub-config {@code fromMap()} methods for each section. Required sections
  * (project, architecture, interfaces, language, framework) throw
- * {@link dev.iadev.exception.ConfigValidationException} if missing. Optional sections
+ * {@link ConfigValidationException} if missing. Optional sections
  * (data, security, observability, infrastructure, testing, mcp) use defaults.</p>
  *
  * <p>Example fromMap usage:
@@ -121,7 +121,7 @@ public record ProjectConfig(
      *
      * @param map the root map from YAML deserialization
      * @return a new ProjectConfig instance
-     * @throws dev.iadev.exception.ConfigValidationException if required sections are missing
+     * @throws ConfigValidationException if required sections are missing
      */
     @SuppressWarnings("unchecked")
     public static ProjectConfig fromMap(
@@ -142,8 +142,7 @@ public record ProjectConfig(
                             (Map<String, Object>) item))
                     .toList();
         }
-        throw new dev.iadev.exception
-                .ConfigValidationException(
+        throw new ConfigValidationException(
                 "interfaces", "List", "ProjectConfig");
     }
 

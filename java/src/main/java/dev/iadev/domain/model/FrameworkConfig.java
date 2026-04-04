@@ -32,7 +32,7 @@ public record FrameworkConfig(
      *
      * @param map the map from YAML deserialization
      * @return a new FrameworkConfig instance
-     * @throws dev.iadev.exception.ConfigValidationException if name or version is missing
+     * @throws ConfigValidationException if name or version is missing
      */
     public static FrameworkConfig fromMap(Map<String, Object> map) {
         return new FrameworkConfig(

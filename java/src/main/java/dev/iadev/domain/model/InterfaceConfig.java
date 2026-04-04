@@ -26,7 +26,7 @@ public record InterfaceConfig(String type, String spec, String broker) {
      *
      * @param map the map from YAML deserialization
      * @return a new InterfaceConfig instance
-     * @throws dev.iadev.exception.ConfigValidationException if type is missing
+     * @throws ConfigValidationException if type is missing
      */
     public static InterfaceConfig fromMap(Map<String, Object> map) {
         return new InterfaceConfig(

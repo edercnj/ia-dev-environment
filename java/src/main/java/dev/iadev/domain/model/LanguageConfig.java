@@ -24,7 +24,7 @@ public record LanguageConfig(String name, String version) {
      *
      * @param map the map from YAML deserialization
      * @return a new LanguageConfig instance
-     * @throws dev.iadev.exception.ConfigValidationException if name or version is missing
+     * @throws ConfigValidationException if name or version is missing
      */
     public static LanguageConfig fromMap(Map<String, Object> map) {
         return new LanguageConfig(

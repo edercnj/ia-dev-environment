@@ -1,7 +1,5 @@
 package dev.iadev.domain.model;
 
-import dev.iadev.exception.ConfigValidationException;
-
 import java.util.List;
 import java.util.Map;
 

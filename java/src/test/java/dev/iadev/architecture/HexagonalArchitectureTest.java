@@ -5,7 +5,6 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -15,9 +14,9 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 /**
  * Hexagonal architecture rules enforced via ArchUnit.
  *
- * <p>Each rule starts as {@code @Disabled} and is activated
- * progressively as migration stories complete. The baseline
- * violations are documented in
+ * <p>All 8 rules are active and enforced as of EPIC-0015
+ * story-0015-0015 (final migration cleanup). Zero violations
+ * remain. The baseline audit is documented in
  * {@code docs/architecture/archunit-baseline-report.md}.
  */
 class HexagonalArchitectureTest {
@@ -34,8 +33,6 @@ class HexagonalArchitectureTest {
     // --- RULE-001: Domain isolation ---
 
     @Test
-    @Disabled("AS-IS: domain.model.MapHelper imports "
-        + "dev.iadev.exception — resolve in story-0015-0006+")
     @DisplayName("RULE-001: Domain must not depend on "
         + "infrastructure packages")
     void domainShouldNotDependOnInfrastructure() {
