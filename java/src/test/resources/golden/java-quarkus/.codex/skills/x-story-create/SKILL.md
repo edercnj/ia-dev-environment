@@ -117,6 +117,16 @@ Examples: "Servidor TCP aceitando conexões", "Handler X funcional", "Teste de c
 #### Section 5 — Contratos de Dados (Data Contract)
 
 This is the most critical section. Data contracts must be copy-paste precise.
+Rich data contracts eliminate ambiguity by providing explicit types, validations,
+examples, and error codes for every endpoint.
+
+##### 5.1 Request Table
+
+For REST-based stories, use the expanded Request format:
+
+| Campo | Tipo | M/O | Validacoes | Exemplo |
+| :--- | :--- | :--- | :--- | :--- |
+| `field_name` | `UUID` / `BigDecimal` / `String(255)` / `Integer` / `List<String>` | M ou O | min/max, regex, enum values | valor concreto |
 
 For protocol-based stories (binary protocols, gRPC, etc.), use the format:
 
@@ -124,17 +134,50 @@ For protocol-based stories (binary protocols, gRPC, etc.), use the format:
 | :--- | :--- | :--- | :--- | :--- |
 | `field_name` | type format | M/O/- | M/O/- | Generate/Echo/Derive — description |
 
-For REST-based stories, use:
+##### 5.2 Response Table
 
-| Campo | Tipo | Obrigatório | Descrição |
+| Campo | Tipo | Sempre presente | Descricao |
 | :--- | :--- | :--- | :--- |
-| `field_name` | type | Sim/Não/Condicional | description |
+| `field_name` | `UUID` / `String` / `BigDecimal` | Sim ou Nao | descricao do campo |
 
-**Precision rules:**
+##### 5.3 Error Codes Mapeados
+
+Every endpoint MUST declare its error codes following RFC 7807 (Problem Details for HTTP APIs):
+
+| HTTP Status | Error Code | Condicao | Mensagem (RFC 7807) |
+| :--- | :--- | :--- | :--- |
+| `400` | `INVALID_FIELD` | Campo obrigatorio ausente ou formato invalido | `{"type":"...","title":"Bad Request","status":400,"detail":"..."}` |
+| `404` | `NOT_FOUND` | Recurso nao encontrado | `{"type":"...","title":"Not Found","status":404,"detail":"..."}` |
+| `409` | `CONFLICT` | Violacao de regra de negocio | `{"type":"...","title":"Conflict","status":409,"detail":"..."}` |
+| `422` | `UNPROCESSABLE` | Validacao de dominio falhou | `{"type":"...","title":"Unprocessable Entity","status":422,"detail":"..."}` |
+
+Error codes follow RFC 7807 format with fields: `type`, `title`, `status`, `detail`, and `instance`.
+
+##### 5.4 Event Schema (event-driven stories)
+
+For stories with `eventDriven: true`, include the Event Schema section:
+
+| Campo | Tipo | Obrigatorio | Descricao |
+| :--- | :--- | :--- | :--- |
+| `eventType` | `String` | Sim | Tipo do evento (e.g., `OrderCreated`, `PaymentProcessed`) |
+| `eventVersion` | `String` | Sim | Versao do schema do evento (e.g., `1.0.0`) |
+| `timestamp` | `Instant` | Sim | Momento da emissao do evento (ISO-8601 UTC) |
+| `correlationId` | `UUID` | Sim | ID de correlacao para rastreamento |
+| `payload` | `Object` | Sim | Payload do evento (schema especifico do dominio) |
+
+**Event versioning notes:**
+- **Backward compatibility:** New fields MUST be optional; existing fields MUST NOT change type
+- **Schema evolution strategy:** Use additive-only changes; breaking changes require new event type
+- **Deprecation policy:** Deprecated event versions MUST be supported for at least 2 release cycles
+
+##### Data Contract Precision Rules
+
 - Field names must match the spec exactly (same casing, same naming)
-- Types must include format details (n 6, LLVAR z..37, VARCHAR(64))
+- Types must be explicit with format: `UUID`, `BigDecimal`, `String(255)`, `Integer`, `List<String>`, etc.
 - M/O flags must reflect the actual contract, not guesses
 - Derivation rules must explain exactly how values are computed
+- Fields without a declared type MUST emit a warning: "field type is required for rich contracts"
+- Stories without endpoints MUST include a note: "Nenhum endpoint declarado nesta story"
 
 #### Section 6 — Diagramas
 

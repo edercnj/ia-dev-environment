@@ -82,13 +82,47 @@ Como **{{PERSONA}}**, eu quero {{CAPABILITY}}, para que {{OUTCOME}}.
 
 ## 5. Contratos de Dados
 
+### 5.1 Request
+
+| Campo | Tipo | M/O | Validacoes | Exemplo |
+| :--- | :--- | :--- | :--- | :--- |
+| `{{FIELD_NAME}}` | `{{FIELD_TYPE}}` | {{MANDATORY}} | {{VALIDATIONS}} | {{EXAMPLE}} |
+
+> **Instrucao:** Tipos devem ser explicitos: `UUID`, `BigDecimal`, `String(255)`, `Integer`, `List<String>`, etc.
+> Para protocolos binarios usar formato: Campo | Formato | Request | Response | Origem/Regra.
+> Nomes de campo devem corresponder exatamente a especificacao (mesmo casing, mesmo nome).
+> Campos sem tipo declarado devem emitir warning: "field type is required for rich contracts".
+
+### 5.2 Response
+
+| Campo | Tipo | Sempre presente | Descricao |
+| :--- | :--- | :--- | :--- |
+| `{{FIELD_NAME}}` | `{{FIELD_TYPE}}` | {{ALWAYS_PRESENT}} | {{FIELD_DESCRIPTION}} |
+
+### 5.3 Error Codes Mapeados
+
+| HTTP Status | Error Code | Condicao | Mensagem (RFC 7807) |
+| :--- | :--- | :--- | :--- |
+| `{{HTTP_STATUS}}` | `{{ERROR_CODE}}` | {{CONDITION}} | {{RFC7807_MESSAGE}} |
+
+> **Instrucao:** Error codes seguem formato RFC 7807 (Problem Details) com campos `type`, `title`, `status`, `detail` e `instance`.
+> Cada endpoint deve ter pelo menos os error codes: 400 (validacao), 404 (nao encontrado), 422 (regra de dominio).
+
+### 5.4 Event Schema (para event-driven)
+
+> Incluir apenas quando `eventDriven: true`. Omitir secao inteira quando nao aplicavel.
+
 | Campo | Tipo | Obrigatorio | Descricao |
 | :--- | :--- | :--- | :--- |
-| `{{FIELD_NAME}}` | {{FIELD_TYPE}} | {{MANDATORY}} | {{FIELD_DESCRIPTION}} |
+| `eventType` | `String` | Sim | Tipo do evento |
+| `eventVersion` | `String` | Sim | Versao do schema do evento |
+| `timestamp` | `Instant` | Sim | Momento da emissao do evento (ISO-8601 UTC) |
+| `correlationId` | `UUID` | Sim | ID de correlacao para rastreamento |
+| `payload` | `Object` | Sim | Payload do evento (schema especifico do dominio) |
 
-> **Instrucao:** Para protocolos binarios usar formato: Campo | Formato | Request | Response | Origem/Regra.
-> Nomes de campo devem corresponder exatamente a especificacao (mesmo casing, mesmo nome).
-> Tipos devem incluir detalhes de formato (n 6, LLVAR z..37, VARCHAR(64)).
+> **Versionamento:** backward compatibility obrigatoria; breaking changes requerem novo event type; versoes deprecadas suportadas por pelo menos 2 ciclos de release.
+
+> **Instrucao:** Stories sem endpoints declarados devem incluir nota: "Nenhum endpoint declarado nesta story" e omitir tabelas Request/Response/Error Codes.
 
 ## 6. Diagramas
 

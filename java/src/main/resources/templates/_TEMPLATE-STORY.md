@@ -73,11 +73,41 @@ Como **<Persona>**, eu quero <ação/capacidade>, garantindo que <benefício/res
 
 <Definição dos payloads, schemas, mapas de bits ou contratos relevantes para esta história.>
 
-**<Nome do contrato/protocolo>:**
+### 5.1 Request
 
-| Campo | Formato | Request | Response | Origem / Regra |
+| Campo | Tipo | M/O | Validações | Exemplo |
 | :--- | :--- | :--- | :--- | :--- |
-| `<campo>` | <tipo formato> | <M/O/-> | <M/O/-> | <Generate/Echo/Derive — descrição> |
+| `<campo>` | `<UUID/BigDecimal/String(255)/Integer/List<String>>` | `<M ou O>` | `<min/max, regex, enum values>` | `<valor concreto>` |
+
+> Para protocolos binários usar formato: Campo | Formato | Request | Response | Origem/Regra.
+
+### 5.2 Response
+
+| Campo | Tipo | Sempre presente | Descrição |
+| :--- | :--- | :--- | :--- |
+| `<campo>` | `<UUID/String/BigDecimal>` | `<Sim ou Não>` | `<descrição do campo>` |
+
+### 5.3 Error Codes Mapeados
+
+| HTTP Status | Error Code | Condição | Mensagem (RFC 7807) |
+| :--- | :--- | :--- | :--- |
+| `<status>` | `<code>` | `<condição que dispara>` | `<mensagem padrão RFC 7807>` |
+
+> Error codes seguem formato RFC 7807 (Problem Details for HTTP APIs) com campos `type`, `title`, `status`, `detail` e `instance`.
+
+### 5.4 Event Schema (para event-driven)
+
+> Incluir apenas quando `eventDriven: true`.
+
+| Campo | Tipo | Obrigatório | Descrição |
+| :--- | :--- | :--- | :--- |
+| `eventType` | `String` | Sim | Tipo do evento |
+| `eventVersion` | `String` | Sim | Versão do schema do evento |
+| `timestamp` | `Instant` | Sim | Momento da emissão do evento (ISO-8601 UTC) |
+| `correlationId` | `UUID` | Sim | ID de correlação para rastreamento |
+| `payload` | `Object` | Sim | Payload do evento |
+
+> **Versionamento:** backward compatibility obrigatória; breaking changes requerem novo event type; versões deprecadas suportadas por pelo menos 2 ciclos de release.
 
 ## 6. Diagramas
 
