@@ -106,7 +106,8 @@ class HexagonalArchitectureTest {
     @DisplayName("RULE-002: Output ports must be interfaces")
     void outputPortsShouldBeInterfaces() {
         ArchRule rule = classes()
-            .that().resideInAPackage("..domain..port.outbound..")
+            .that().resideInAPackage("..domain.port.output..")
+            .and().doNotHaveSimpleName("package-info")
             .should().beInterfaces()
             .because("RULE-002: Output ports must be interfaces "
                 + "so adapters can implement them");
@@ -117,15 +118,33 @@ class HexagonalArchitectureTest {
     // --- RULE-003: Input ports ---
 
     @Test
-    @Disabled("Activate after story-0015-0005 — "
-        + "AS-IS: input ports not yet extracted")
     @DisplayName("RULE-003: Input ports must be interfaces")
     void inputPortsShouldBeInterfaces() {
         ArchRule rule = classes()
-            .that().resideInAPackage("..domain..port.inbound..")
+            .that().resideInAPackage("..domain.port.input..")
+            .and().doNotHaveSimpleName("package-info")
             .should().beInterfaces()
-            .because("RULE-003: Input ports must be interfaces "
-                + "to decouple CLI from domain");
+            .because("RULE-003: Input ports are Use Case contracts "
+                + "— they must be interfaces");
+
+        rule.check(importedClasses);
+    }
+
+    @Test
+    @DisplayName("RULE-003: Input ports should only depend on "
+        + "domain model or standard library")
+    void inputPortsShouldOnlyDependOnDomainModel() {
+        ArchRule rule = classes()
+            .that().resideInAPackage("..domain.port.input..")
+            .should().onlyDependOnClassesThat()
+            .resideInAnyPackage(
+                "..domain.model..",
+                "..domain.port.input..",
+                "java..",
+                "javax.."
+            )
+            .because("Input Ports must only reference "
+                + "domain model types or standard library");
 
         rule.check(importedClasses);
     }
