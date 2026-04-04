@@ -20,6 +20,9 @@ final class K8sManifestAssembler {
             "cicd-templates";
     private static final String K8S_CONDITION =
             "kubernetes";
+    private static final String CQRS_STYLE = "cqrs";
+    private static final String EVENTSTORE_MANIFEST =
+            "eventstore-statefulset.yaml";
     private static final List<String> K8S_MANIFESTS =
             List.of(
                     "deployment.yaml",
@@ -28,6 +31,8 @@ final class K8sManifestAssembler {
 
     /**
      * Generates K8s manifests if orchestrator is kubernetes.
+     * Conditionally adds EventStoreDB StatefulSet when
+     * architecture style is cqrs.
      *
      * @param cicdCtx the CI/CD context
      * @return the generation result
@@ -44,6 +49,15 @@ final class K8sManifestAssembler {
         }
         List<String> files = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
+        renderManifests(cicdCtx, files, warnings);
+        renderEventStoreIfCqrs(cicdCtx, files, warnings);
+        return new CicdResult(files, warnings);
+    }
+
+    private void renderManifests(
+            CicdContext cicdCtx,
+            List<String> files,
+            List<String> warnings) {
         for (String manifest : K8S_MANIFESTS) {
             Path dest = cicdCtx.outputDir()
                     .resolve("k8s").resolve(manifest);
@@ -58,7 +72,29 @@ final class K8sManifestAssembler {
                 warnings.add(err.orElseThrow());
             }
         }
-        return new CicdResult(files, warnings);
+    }
+
+    private void renderEventStoreIfCqrs(
+            CicdContext cicdCtx,
+            List<String> files,
+            List<String> warnings) {
+        if (!CQRS_STYLE.equals(
+                cicdCtx.config().architecture().style())) {
+            return;
+        }
+        Path dest = cicdCtx.outputDir()
+                .resolve("k8s")
+                .resolve(EVENTSTORE_MANIFEST);
+        String tpl = "k8s/"
+                + EVENTSTORE_MANIFEST
+                        .replace(".yaml", ".yaml.njk");
+        Optional<String> err = renderAndWrite(
+                cicdCtx, tpl, dest);
+        if (err.isEmpty()) {
+            files.add(dest.toString());
+        } else {
+            warnings.add(err.orElseThrow());
+        }
     }
 
     private Optional<String> renderAndWrite(

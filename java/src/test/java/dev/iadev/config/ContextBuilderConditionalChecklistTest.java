@@ -203,7 +203,8 @@ class ContextBuilderConditionalChecklistTest {
                 new ProjectIdentity("test", "test"),
                 new ArchitectureConfig(
                         "microservice", true, false,
-                        false, ""),
+                        false, "",
+                        "eventstoredb", 100),
                 interfaces,
                 new LanguageConfig("java", "21"),
                 new FrameworkConfig(

@@ -31,7 +31,8 @@ class ContextBuilderTest {
                         "my-app", "A microservice"),
                 new ArchitectureConfig(
                         "microservice", true, false,
-                        false, ""),
+                        false, "",
+                        "eventstoredb", 100),
                 List.of(
                         new InterfaceConfig(
                                 "rest", "openapi", ""),
@@ -72,7 +73,8 @@ class ContextBuilderTest {
                 new ProjectIdentity("minimal", "Minimal test"),
                 new ArchitectureConfig(
                         "library", false, false,
-                        false, ""),
+                        false, "",
+                        "eventstoredb", 100),
                 List.of(new InterfaceConfig("cli", "", "")),
                 new LanguageConfig("python", "3.10"),
                 new FrameworkConfig(
@@ -85,25 +87,27 @@ class ContextBuilderTest {
     }
 
     @Nested
-    @DisplayName("buildContext() produces exactly 36 fields")
+    @DisplayName("buildContext() produces exactly 38 fields")
     class FieldCount {
 
         @Test
-        @DisplayName("returns map with exactly 34 entries")
-        void buildContext_fullConfig_returns27Fields() {
+        @DisplayName("returns map with exactly 38 entries")
+        void buildContext_fullConfig_returns38Fields() {
             Map<String, Object> context =
-                    ContextBuilder.buildContext(buildFullConfig());
+                    ContextBuilder.buildContext(
+                            buildFullConfig());
 
-            assertThat(context).hasSize(36);
+            assertThat(context).hasSize(38);
         }
 
         @Test
-        @DisplayName("returns map with 34 entries for minimal")
-        void buildContext_minimalConfig_returns27Fields() {
+        @DisplayName("returns map with 38 entries for minimal")
+        void buildContext_minimalConfig_returns38Fields() {
             Map<String, Object> context =
-                    ContextBuilder.buildContext(buildMinimalConfig());
+                    ContextBuilder.buildContext(
+                            buildMinimalConfig());
 
-            assertThat(context).hasSize(36);
+            assertThat(context).hasSize(38);
         }
     }
 
@@ -153,7 +157,8 @@ class ContextBuilderTest {
         @DisplayName("architecture fields are correct")
         void buildContext_architectureFields_correct() {
             Map<String, Object> ctx =
-                    ContextBuilder.buildContext(buildFullConfig());
+                    ContextBuilder.buildContext(
+                            buildFullConfig());
 
             assertThat(ctx.get("architecture_style"))
                     .isEqualTo("microservice");
@@ -161,6 +166,10 @@ class ContextBuilderTest {
                     .isEqualTo("False");
             assertThat(ctx.get("base_package"))
                     .isEqualTo("");
+            assertThat(ctx.get("event_store"))
+                    .isEqualTo("eventstoredb");
+            assertThat(ctx.get("events_per_snapshot"))
+                    .isEqualTo(100);
         }
 
         @Test
@@ -387,7 +396,8 @@ class ContextBuilderTest {
         void buildContext_emptyInterfaces_producesNone() {
             var config = new ProjectConfig(
                     new ProjectIdentity("test", "test"),
-                    new ArchitectureConfig("library", false, false, false, ""),
+                    new ArchitectureConfig("library", false, false,
+                            false, "", "eventstoredb", 100),
                     List.of(),
                     new LanguageConfig("java", "21"),
                     new FrameworkConfig(
@@ -407,14 +417,15 @@ class ContextBuilderTest {
     }
 
     @Nested
-    @DisplayName("exact 34 field names")
+    @DisplayName("exact 38 field names")
     class ExactFieldNames {
 
         @Test
-        @DisplayName("context contains all 34 expected keys")
+        @DisplayName("context contains all 38 expected keys")
         void buildContext_allExpectedKeys_present() {
             Map<String, Object> ctx =
-                    ContextBuilder.buildContext(buildFullConfig());
+                    ContextBuilder.buildContext(
+                            buildFullConfig());
 
             assertThat(ctx).containsKeys(
                     "project_name",
@@ -427,6 +438,10 @@ class ContextBuilderTest {
                     "architecture_style",
                     "domain_driven",
                     "event_driven",
+                    "validate_with_archunit",
+                    "base_package",
+                    "event_store",
+                    "events_per_snapshot",
                     "container",
                     "orchestrator",
                     "templating",

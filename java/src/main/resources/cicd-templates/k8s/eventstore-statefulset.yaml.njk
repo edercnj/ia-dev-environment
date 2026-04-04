@@ -1,0 +1,83 @@
+{% if architecture_style == "cqrs" %}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: eventstore
+  labels:
+    app: eventstore
+spec:
+  serviceName: eventstore
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eventstore
+  template:
+    metadata:
+      labels:
+        app: eventstore
+    spec:
+      containers:
+        - name: eventstore
+          image: eventstore/eventstore:latest
+          ports:
+            - containerPort: 2113
+              name: http
+            - containerPort: 1113
+              name: tcp
+          env:
+            - name: EVENTSTORE_INSECURE
+              value: "true"
+            - name: EVENTSTORE_CLUSTER_SIZE
+              value: "1"
+            - name: EVENTSTORE_RUN_PROJECTIONS
+              value: "All"
+            - name: EVENTSTORE_START_STANDARD_PROJECTIONS
+              value: "true"
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 2113
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health/live
+              port: 2113
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          volumeMounts:
+            - name: eventstore-data
+              mountPath: /var/lib/eventstore
+  volumeClaimTemplates:
+    - metadata:
+        name: eventstore-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eventstore
+  labels:
+    app: eventstore
+spec:
+  ports:
+    - port: 2113
+      name: http
+    - port: 1113
+      name: tcp
+  selector:
+    app: eventstore
+  clusterIP: None
+{% endif %}

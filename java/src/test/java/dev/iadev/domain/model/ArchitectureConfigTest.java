@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,19 +27,23 @@ class ArchitectureConfigTest {
 
             var result = ArchitectureConfig.fromMap(map);
 
-            assertThat(result.style()).isEqualTo("microservice");
+            assertThat(result.style())
+                    .isEqualTo("microservice");
             assertThat(result.domainDriven()).isTrue();
             assertThat(result.eventDriven()).isTrue();
         }
 
         @Test
-        @DisplayName("defaults domainDriven and eventDriven to false")
+        @DisplayName("defaults domainDriven and eventDriven"
+                + " to false")
         void fromMap_onlyStyle_booleansDefaultFalse() {
-            var map = Map.<String, Object>of("style", "library");
+            var map = Map.<String, Object>of(
+                    "style", "library");
 
             var result = ArchitectureConfig.fromMap(map);
 
-            assertThat(result.style()).isEqualTo("library");
+            assertThat(result.style())
+                    .isEqualTo("library");
             assertThat(result.domainDriven()).isFalse();
             assertThat(result.eventDriven()).isFalse();
         }
@@ -49,13 +54,16 @@ class ArchitectureConfigTest {
             var map = Map.<String, Object>of(
                     "domain_driven", true);
 
-            assertThatThrownBy(() -> ArchitectureConfig.fromMap(map))
-                    .isInstanceOf(ConfigValidationException.class)
+            assertThatThrownBy(
+                    () -> ArchitectureConfig.fromMap(map))
+                    .isInstanceOf(
+                            ConfigValidationException.class)
                     .hasMessageContaining("style");
         }
 
         @Test
-        @DisplayName("non-boolean domain_driven defaults to false")
+        @DisplayName("non-boolean domain_driven defaults"
+                + " to false")
         void fromMap_nonBooleanDomainDriven_defaultsFalse() {
             var map = Map.<String, Object>of(
                     "style", "monolith",
@@ -118,6 +126,81 @@ class ArchitectureConfigTest {
 
             assertThat(result.validateWithArchUnit())
                     .isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("eventStore field")
+    class EventStoreField {
+
+        @Test
+        @DisplayName("defaults eventStore to eventstoredb")
+        void fromMap_noEventStore_defaultsEventstoredb() {
+            var map = Map.<String, Object>of(
+                    "style", "cqrs");
+
+            var result = ArchitectureConfig.fromMap(map);
+
+            assertThat(result.eventStore())
+                    .isEqualTo("eventstoredb");
+        }
+
+        @Test
+        @DisplayName("accepts explicit eventStore value")
+        void fromMap_explicitEventStore_setsValue() {
+            var map = Map.<String, Object>of(
+                    "style", "cqrs",
+                    "event_store", "axon");
+
+            var result = ArchitectureConfig.fromMap(map);
+
+            assertThat(result.eventStore())
+                    .isEqualTo("axon");
+        }
+
+        @Test
+        @DisplayName("accepts custom eventStore value")
+        void fromMap_customEventStore_setsValue() {
+            var map = Map.<String, Object>of(
+                    "style", "cqrs",
+                    "event_store", "custom");
+
+            var result = ArchitectureConfig.fromMap(map);
+
+            assertThat(result.eventStore())
+                    .isEqualTo("custom");
+        }
+    }
+
+    @Nested
+    @DisplayName("snapshotPolicy.eventsPerSnapshot field")
+    class SnapshotPolicyField {
+
+        @Test
+        @DisplayName("defaults eventsPerSnapshot to 100")
+        void fromMap_noSnapshot_defaults100() {
+            var map = Map.<String, Object>of(
+                    "style", "cqrs");
+
+            var result = ArchitectureConfig.fromMap(map);
+
+            assertThat(result.eventsPerSnapshot())
+                    .isEqualTo(100);
+        }
+
+        @Test
+        @DisplayName("accepts explicit eventsPerSnapshot")
+        void fromMap_explicitSnapshot_setsValue() {
+            Map<String, Object> snapshotPolicy =
+                    Map.of("events_per_snapshot", 50);
+            Map<String, Object> map = new HashMap<>();
+            map.put("style", "cqrs");
+            map.put("snapshot_policy", snapshotPolicy);
+
+            var result = ArchitectureConfig.fromMap(map);
+
+            assertThat(result.eventsPerSnapshot())
+                    .isEqualTo(50);
         }
     }
 }

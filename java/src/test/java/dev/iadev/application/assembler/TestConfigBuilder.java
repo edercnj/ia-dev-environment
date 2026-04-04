@@ -34,6 +34,8 @@ final class TestConfigBuilder {
     private boolean eventDriven = false;
     private boolean validateWithArchUnit = false;
     private String basePackage = "";
+    private String eventStore = "eventstoredb";
+    private int eventsPerSnapshot = 100;
     private String langName = "java";
     private String langVersion = "21";
     private String fwName = "quarkus";
@@ -106,6 +108,16 @@ final class TestConfigBuilder {
 
     TestConfigBuilder basePackage(String pkg) {
         this.basePackage = pkg;
+        return this;
+    }
+
+    TestConfigBuilder eventStore(String store) {
+        this.eventStore = store;
+        return this;
+    }
+
+    TestConfigBuilder eventsPerSnapshot(int count) {
+        this.eventsPerSnapshot = count;
         return this;
     }
 
@@ -255,7 +267,8 @@ final class TestConfigBuilder {
                 new ArchitectureConfig(
                         archStyle, domainDriven,
                         eventDriven, validateWithArchUnit,
-                        basePackage),
+                        basePackage,
+                        eventStore, eventsPerSnapshot),
                 interfaces,
                 new LanguageConfig(langName, langVersion),
                 new FrameworkConfig(

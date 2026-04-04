@@ -360,6 +360,53 @@ class SkillsSelectionTest {
         }
 
         @Test
+        @DisplayName("config with style cqrs includes"
+                + " architecture-cqrs")
+        void select_styleCqrs_includesCqrsPack() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .archStyle("cqrs")
+                    .build();
+
+            List<String> packs =
+                    SkillsSelection.selectKnowledgePacks(
+                            config);
+
+            assertThat(packs)
+                    .contains("architecture-cqrs");
+        }
+
+        @Test
+        @DisplayName("config with style microservice"
+                + " excludes architecture-cqrs")
+        void select_styleMicroservice_excludesCqrsPack() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .archStyle("microservice")
+                    .build();
+
+            List<String> packs =
+                    SkillsSelection.selectKnowledgePacks(
+                            config);
+
+            assertThat(packs)
+                    .doesNotContain("architecture-cqrs");
+        }
+
+        @Test
+        @DisplayName("config without style does not include"
+                + " architecture-cqrs")
+        void select_defaultStyle_excludesCqrsPack() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .build();
+
+            List<String> packs =
+                    SkillsSelection.selectKnowledgePacks(
+                            config);
+
+            assertThat(packs)
+                    .doesNotContain("architecture-cqrs");
+        }
+
+        @Test
         @DisplayName("config with database includes"
                 + " database-patterns")
         void select_database_includesDbPatterns() {

@@ -152,8 +152,10 @@ public final class SkillsSelection {
      * layer-templates. Conditionally includes
      * database-patterns if database or cache is not
      * "none", disaster-recovery if container is not
-     * "none", and finops if cloud provider is not
-     * "none".</p>
+     * "none", finops if cloud provider is not "none",
+     * architecture-cqrs if architecture style is "cqrs",
+     * and architecture-hexagonal if style is
+     * "hexagonal".</p>
      *
      * @param config the project configuration
      * @return list of knowledge pack names to include
@@ -168,6 +170,18 @@ public final class SkillsSelection {
         packs.addAll(selectCloudPacks(config));
         packs.addAll(selectArchitecturePacks(config));
         return packs;
+    }
+
+    private static List<String> selectArchitecturePacks(
+            ProjectConfig config) {
+        String style = config.architecture().style();
+        if ("cqrs".equals(style)) {
+            return List.of("architecture-cqrs");
+        }
+        if ("hexagonal".equals(style)) {
+            return List.of("architecture-hexagonal");
+        }
+        return List.of();
     }
 
     private static List<String> selectDataPacks(
@@ -185,15 +199,6 @@ public final class SkillsSelection {
         if (!"none".equals(
                 config.infrastructure().container())) {
             return List.of("disaster-recovery");
-        }
-        return List.of();
-    }
-
-    private static List<String> selectArchitecturePacks(
-            ProjectConfig config) {
-        if ("hexagonal".equals(
-                config.architecture().style())) {
-            return List.of("architecture-hexagonal");
         }
         return List.of();
     }

@@ -124,7 +124,8 @@ final class TestProjectConfigBuilder {
     ProjectConfig build() {
         return new ProjectConfig(
                 new ProjectIdentity("test-project", "Test purpose"),
-                new ArchitectureConfig(archStyle, domainDriven, eventDriven, false, ""),
+                new ArchitectureConfig(archStyle, domainDriven, eventDriven,
+                        false, "", "eventstoredb", 100),
                 interfaces,
                 new LanguageConfig(langName, langVersion),
                 new FrameworkConfig(fwName, fwVersion, buildTool, nativeBuild),
