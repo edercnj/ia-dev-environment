@@ -163,8 +163,6 @@ class HexagonalArchitectureTest {
     // --- RULE-005: Composition root ---
 
     @Test
-    @Disabled("Activate after story-0015-0014 — "
-        + "AS-IS: composition root not yet defined")
     @DisplayName("RULE-005: Domain must not reference config")
     void compositionRootShouldBeUnique() {
         ArchRule rule = noClasses()
