@@ -83,25 +83,25 @@ class ContextBuilderTest {
     }
 
     @Nested
-    @DisplayName("buildContext() produces exactly 27 fields")
+    @DisplayName("buildContext() produces exactly 34 fields")
     class FieldCount {
 
         @Test
-        @DisplayName("returns map with exactly 27 entries")
+        @DisplayName("returns map with exactly 34 entries")
         void buildContext_fullConfig_returns27Fields() {
             Map<String, Object> context =
                     ContextBuilder.buildContext(buildFullConfig());
 
-            assertThat(context).hasSize(27);
+            assertThat(context).hasSize(34);
         }
 
         @Test
-        @DisplayName("returns map with 27 entries for minimal")
+        @DisplayName("returns map with 34 entries for minimal")
         void buildContext_minimalConfig_returns27Fields() {
             Map<String, Object> context =
                     ContextBuilder.buildContext(buildMinimalConfig());
 
-            assertThat(context).hasSize(27);
+            assertThat(context).hasSize(34);
         }
     }
 
@@ -401,11 +401,11 @@ class ContextBuilderTest {
     }
 
     @Nested
-    @DisplayName("exact 27 field names")
+    @DisplayName("exact 34 field names")
     class ExactFieldNames {
 
         @Test
-        @DisplayName("context contains all 27 expected keys")
+        @DisplayName("context contains all 34 expected keys")
         void buildContext_allExpectedKeys_present() {
             Map<String, Object> ctx =
                     ContextBuilder.buildContext(buildFullConfig());
@@ -437,7 +437,14 @@ class ContextBuilderTest {
                     "performance_tests",
                     "coverage_line",
                     "coverage_branch",
-                    "interfaces_list");
+                    "interfaces_list",
+                    "has_event_interface",
+                    "has_pci_dss",
+                    "has_lgpd",
+                    "review_max_score",
+                    "review_go_threshold",
+                    "review_conditional_rubric",
+                    "review_conditional_criteria");
         }
     }
 

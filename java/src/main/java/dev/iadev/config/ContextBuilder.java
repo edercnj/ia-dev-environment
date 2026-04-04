@@ -1,5 +1,7 @@
 package dev.iadev.config;
 
+import dev.iadev.domain.model.ReviewChecklistScore;
+import dev.iadev.domain.model.ReviewChecklistSections;
 import dev.iadev.domain.stack.ProtocolMapping;
 import dev.iadev.domain.model.ProjectConfig;
 
@@ -10,12 +12,12 @@ import java.util.stream.Collectors;
 /**
  * Builds a template context map from a {@link ProjectConfig}.
  *
- * <p>Produces exactly 27 fields matching the TypeScript
+ * <p>Produces exactly 34 fields matching the TypeScript
  * {@code buildDefaultContext()} function (RULE-010). Boolean values
  * are converted to Python-style strings ("True"/"False") per
  * RULE-002 for Jinja2/Pebble template rendering parity.
  *
- * <p>The 27 context fields are:
+ * <p>The 32 context fields are:
  * <ol>
  *   <li>project_name</li>
  *   <li>project_purpose</li>
@@ -44,6 +46,13 @@ import java.util.stream.Collectors;
  *   <li>coverage_line</li>
  *   <li>coverage_branch</li>
  *   <li>interfaces_list</li>
+ *   <li>has_event_interface</li>
+ *   <li>has_pci_dss</li>
+ *   <li>has_lgpd</li>
+ *   <li>review_max_score</li>
+ *   <li>review_go_threshold</li>
+ *   <li>review_conditional_rubric</li>
+ *   <li>review_conditional_criteria</li>
  * </ol>
  *
  * <p>Example usage:
@@ -70,14 +79,14 @@ public final class ContextBuilder {
     }
 
     /**
-     * Builds a context map with exactly 27 template fields from
+     * Builds a context map with exactly 32 template fields from
      * the given {@link ProjectConfig}.
      *
      * <p>Delegates to domain-specific builders for each
      * section of the context map.</p>
      *
      * @param config the project configuration
-     * @return an ordered map with 27 template context entries
+     * @return an ordered map with 32 template context entries
      */
     public static Map<String, Object> buildContext(
             ProjectConfig config) {
@@ -92,6 +101,7 @@ public final class ContextBuilder {
         buildData(config, ctx);
         buildTesting(config, ctx);
         buildInterfaces(config, ctx);
+        buildReviewChecklist(config, ctx);
 
         return ctx;
     }
@@ -192,6 +202,40 @@ public final class ContextBuilder {
         ctx.put("interfaces_list",
                 interfacesList.isEmpty()
                         ? "none" : interfacesList);
+    }
+
+    private static void buildReviewChecklist(
+            ProjectConfig config,
+            Map<String, Object> ctx) {
+        boolean hasEvent = hasEventInterface(config);
+        boolean hasPciDss = config.security().frameworks()
+                .contains("pci-dss");
+        boolean hasLgpd = config.security().frameworks()
+                .contains("lgpd");
+        ctx.put("has_event_interface",
+                toPythonBool(hasEvent));
+        ctx.put("has_pci_dss",
+                toPythonBool(hasPciDss));
+        ctx.put("has_lgpd",
+                toPythonBool(hasLgpd));
+        ReviewChecklistScore score =
+                ReviewChecklistScore.compute(
+                        hasEvent, hasPciDss, hasLgpd);
+        ctx.put("review_max_score", score.maxScore());
+        ctx.put("review_go_threshold",
+                score.goThreshold());
+        ctx.put("review_conditional_rubric",
+                ReviewChecklistSections.buildRubricRows(
+                        hasEvent, hasPciDss, hasLgpd));
+        ctx.put("review_conditional_criteria",
+                ReviewChecklistSections.buildDetailedCriteria(
+                        hasEvent, hasPciDss, hasLgpd));
+    }
+
+    private static boolean hasEventInterface(
+            ProjectConfig config) {
+        return config.interfaces().stream()
+                .anyMatch(i -> i.type().contains("event"));
     }
 
     /**

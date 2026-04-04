@@ -1,7 +1,7 @@
 ---
 name: x-review-pr
 description: >
-  Tech Lead holistic review with 45-point checklist covering Clean Code, SOLID,
+  Tech Lead holistic review with {review_max_score}-point checklist covering Clean Code, SOLID,
   architecture, framework conventions, tests, TDD process, security, and cross-file
   consistency. Produces GO/NO-GO decision. Use for final review before merge.
 ---
@@ -10,7 +10,7 @@ description: >
 
 ## Description
 
-Senior-level holistic review with a 45-point rubric. This is the standalone version of Phase 6 from the x-dev-lifecycle. The Tech Lead reviews the consolidated PR diff for cross-file consistency and overall quality.
+Senior-level holistic review with a {review_max_score}-point rubric. This is the standalone version of Phase 6 from the x-dev-lifecycle. The Tech Lead reviews the consolidated PR diff for cross-file consistency and overall quality.
 
 ## Triggers
 
@@ -59,11 +59,11 @@ The Tech Lead review covers:
 
 1. List ALL modified files: `git diff [BASE_BRANCH] --name-only`
 2. View FULL diff: `git diff [BASE_BRANCH]`
-3. For EACH source file, read FULL content and apply 45-point checklist
+3. For EACH source file, read FULL content and apply {review_max_score}-point checklist
 4. Focus on CROSS-FILE issues (inconsistencies, cross imports, repeated patterns)
 5. If specialist reports exist, verify CRITICAL issues were fixed
 
-## 45-Point Rubric
+## {review_max_score}-Point Rubric
 
 | Section                  | Points | What it checks                                                      |
 | ------------------------ | ------ | ------------------------------------------------------------------- |
@@ -78,13 +78,13 @@ The Tech Lead review covers:
 | I. Tests                 | 3      | Coverage thresholds, scenarios covered, test quality                |
 | J. Security & Production | 1      | Sensitive data protected, thread-safe                               |
 | K. TDD Process           | 5      | Test-first commits, Double-Loop TDD, TPP progression, atomic cycles |
-
+{review_conditional_rubric}
 ## Decision Criteria
 
-| Condition                   | Decision        |
-| --------------------------- | --------------- |
-| 45/45 + zero issues         | GO              |
-| < 45/45 OR any issue        | NO-GO           |
+| Condition                              | Decision        |
+| -------------------------------------- | --------------- |
+| >= {review_go_threshold}/{review_max_score} + zero issues | GO              |
+| < {review_go_threshold}/{review_max_score} OR any issue   | NO-GO           |
 
 ### Step 4 -- Process Result
 
@@ -93,7 +93,7 @@ The Tech Lead review covers:
  TECH LEAD REVIEW -- [STORY_ID]
 ============================================================
  Decision:  GO | NO-GO
- Score:     XX/45
+ Score:     XX/{review_max_score} (GO >= {review_go_threshold})
  Critical:  N issues
  Medium:    N issues
  Low:       N issues
@@ -120,6 +120,7 @@ If fixing: apply corrections, commit, re-run review (max 2 cycles).
 - This skill produces the SAME artifact as Phase 6 of `x-dev-lifecycle`
 - Recommended workflow: `/x-review` first (breadth), then `/x-review-pr` (depth)
 
+{review_conditional_criteria}
 ## Detailed References
 
 For in-depth guidance on the Tech Lead review process, consult:
