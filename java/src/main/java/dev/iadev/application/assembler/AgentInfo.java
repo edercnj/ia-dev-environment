@@ -1,4 +1,4 @@
-package dev.iadev.assembler;
+package dev.iadev.application.assembler;
 
 /**
  * Metadata extracted from a generated agent {@code .md} file.

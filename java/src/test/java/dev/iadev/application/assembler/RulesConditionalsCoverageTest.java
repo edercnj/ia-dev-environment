@@ -1,4 +1,4 @@
-package dev.iadev.assembler;
+package dev.iadev.application.assembler;
 
 /**
  * Coverage tests for RulesConditionals have been split:

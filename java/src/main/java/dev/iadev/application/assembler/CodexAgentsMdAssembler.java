@@ -1,4 +1,4 @@
-package dev.iadev.assembler;
+package dev.iadev.application.assembler;
 
 import dev.iadev.config.ContextBuilder;
 import dev.iadev.domain.stack.StackResolver;

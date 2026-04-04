@@ -1,4 +1,4 @@
-package dev.iadev.assembler;
+package dev.iadev.application.assembler;
 
 import dev.iadev.domain.stack.CoreKpRouting;
 import dev.iadev.domain.model.ProjectConfig;

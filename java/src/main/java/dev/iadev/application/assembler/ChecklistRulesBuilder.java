@@ -1,4 +1,4 @@
-package dev.iadev.assembler;
+package dev.iadev.application.assembler;
 
 import dev.iadev.domain.model.InfraConfig;
 import dev.iadev.domain.model.ProjectConfig;

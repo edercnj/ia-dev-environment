@@ -1,4 +1,4 @@
-package dev.iadev.assembler;
+package dev.iadev.application.assembler;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;

@@ -1,4 +1,4 @@
-package dev.iadev.assembler;
+package dev.iadev.application.assembler;
 
 import dev.iadev.domain.model.ProjectConfig;
 import org.junit.jupiter.api.DisplayName;

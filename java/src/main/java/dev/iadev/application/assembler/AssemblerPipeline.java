@@ -1,4 +1,4 @@
-package dev.iadev.assembler;
+package dev.iadev.application.assembler;
 
 import dev.iadev.exception.PipelineException;
 import dev.iadev.domain.model.PipelineResult;

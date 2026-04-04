@@ -1,4 +1,4 @@
-package dev.iadev.assembler;
+package dev.iadev.application.assembler;
 
 /**
  * Tests for SkillsAssembler have been split into:

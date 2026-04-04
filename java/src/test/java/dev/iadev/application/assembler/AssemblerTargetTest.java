@@ -1,4 +1,4 @@
-package dev.iadev.assembler;
+package dev.iadev.application.assembler;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

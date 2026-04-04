@@ -1,4 +1,4 @@
-package dev.iadev.assembler;
+package dev.iadev.application.assembler;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
