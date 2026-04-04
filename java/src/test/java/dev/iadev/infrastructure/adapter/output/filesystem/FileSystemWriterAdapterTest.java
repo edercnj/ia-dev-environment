@@ -177,6 +177,17 @@ class FileSystemWriterAdapterTest {
         }
 
         @Test
+        @DisplayName("rejects relative leading path traversal")
+        void rejectsRelativeLeadingTraversal() {
+            assertThatThrownBy(() ->
+                    adapter.writeFile(
+                            Path.of("../out.txt"), "content"))
+                    .isInstanceOf(
+                            IllegalArgumentException.class)
+                    .hasMessageContaining("path traversal");
+        }
+
+        @Test
         @DisplayName("writeFile_pathWithDotDot"
                 + "_doesNotCreateFile")
         void writeFile_pathWithDotDot_doesNotCreateFile() {

@@ -148,6 +148,14 @@ public final class ApplicationFactory
      * Picocli to instantiate commands that do not require
      * constructor injection.
      *
+     * <p><strong>Note:</strong> This delegates to the default
+     * factory, which only supports no-arg constructors. The
+     * new hexagonal CLI commands (CliGenerateCommand,
+     * CliValidateCommand, CliListStackProfilesCommand) require
+     * manual instantiation via the factory's use case
+     * accessors. This is a known limitation pending full CLI
+     * migration.</p>
+     *
      * @param cls the class to instantiate
      * @param <K> the type parameter
      * @return a new instance of the given class

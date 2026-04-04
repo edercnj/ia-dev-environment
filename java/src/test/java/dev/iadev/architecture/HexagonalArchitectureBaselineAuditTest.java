@@ -21,6 +21,6 @@ class HexagonalArchitectureBaselineAuditTest {
         Map<String, EvaluationResult> results =
             HexagonalArchitectureBaselineAudit.runAudit();
 
-        assertThat(results).hasSize(7);
+        assertThat(results).hasSize(8);
     }
 }

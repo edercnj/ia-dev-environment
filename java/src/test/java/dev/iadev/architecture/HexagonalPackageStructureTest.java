@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * <p>Tests validate:
  * <ul>
- *   <li>All 16 hexagonal directories exist</li>
+ *   <li>All 14 hexagonal directories exist</li>
  *   <li>Each directory contains a package-info.java</li>
  *   <li>Each package-info.java has Javadoc documentation</li>
  *   <li>Existing packages are not modified</li>
@@ -180,7 +180,7 @@ class HexagonalPackageStructureTest {
         @Test
         @DisplayName("infrastructure/adapter/output/ has "
             + "exactly 5 subdirectories")
-        void outputAdapterHasFiveSubdirs() {
+        void outputAdapterHasFiveSubdirs() throws IOException {
             Path outputAdapterPath = SRC_ROOT
                 .resolve("infrastructure/adapter/output");
 
@@ -195,6 +195,17 @@ class HexagonalPackageStructureTest {
                     .exists()
                     .isDirectory();
             }
+
+            long actualCount;
+            try (var stream = Files.list(outputAdapterPath)) {
+                actualCount = stream
+                    .filter(Files::isDirectory)
+                    .count();
+            }
+            assertThat(actualCount)
+                .as("Exact number of output adapter "
+                    + "subdirectories")
+                .isEqualTo(OUTPUT_ADAPTER_SUBDIRS.size());
         }
 
         @Test

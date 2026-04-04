@@ -171,29 +171,23 @@ public final class FileSystemWriterAdapter
     /**
      * Rejects paths containing traversal components.
      *
-     * <p>Normalizes the path and compares it with the
-     * original. If the original path string contains
-     * {@code ..} segments and the normalized result
-     * differs, the path is considered a traversal
-     * attempt.</p>
+     * <p>Iterates over each segment of the path and rejects
+     * any segment that equals {@code ".."}. This catches
+     * both embedded traversal (e.g. {@code a/../../../etc})
+     * and leading traversal (e.g. {@code ../out.txt}) that
+     * normalize-based checks miss.</p>
      *
      * @param path the path to validate
      * @throws IllegalArgumentException if path traversal
      *         is detected
      */
     static void rejectPathTraversal(Path path) {
-        String pathStr = path.toString();
-        Path normalized = path.normalize();
-
-        boolean hasDotDot =
-                pathStr.contains("..")
-                        && !normalized.equals(path);
-
-        if (hasDotDot) {
-            throw new IllegalArgumentException(
-                    "Rejected path traversal: %s "
-                            + "(normalized to %s)"
-                            .formatted(path, normalized));
+        for (Path segment : path) {
+            if ("..".equals(segment.toString())) {
+                throw new IllegalArgumentException(
+                        "Rejected path traversal: %s"
+                                .formatted(path));
+            }
         }
     }
 

@@ -47,7 +47,10 @@ final class HexagonalArchitectureBaselineAudit {
         results.put("RULE-003a: inputPortsShouldBeInterfaces",
             buildInputPortsRule().evaluate(classes));
 
-        results.put("RULE-003b: cliShouldOnlyAccessInputPorts",
+        results.put("RULE-003b: inputPortsShouldOnlyDependOnDomainModel",
+            buildInputPortDependencyRule().evaluate(classes));
+
+        results.put("RULE-003c: cliShouldOnlyAccessInputPorts",
             buildCliAccessRule().evaluate(classes));
 
         results.put("RULE-005: compositionRootShouldBeUnique",
@@ -98,15 +101,28 @@ final class HexagonalArchitectureBaselineAudit {
 
     static ArchRule buildOutputPortsRule() {
         return classes()
-            .that().resideInAPackage("..domain..port.outbound..")
+            .that().resideInAPackage("..domain.port.output..")
             .should().beInterfaces()
             .allowEmptyShould(true);
     }
 
     static ArchRule buildInputPortsRule() {
         return classes()
-            .that().resideInAPackage("..domain..port.inbound..")
+            .that().resideInAPackage("..domain.port.input..")
             .should().beInterfaces()
+            .allowEmptyShould(true);
+    }
+
+    static ArchRule buildInputPortDependencyRule() {
+        return classes()
+            .that().resideInAPackage("..domain.port.input..")
+            .should().onlyDependOnClassesThat()
+            .resideInAnyPackage(
+                "..domain.model..",
+                "..domain.port.input..",
+                "java..",
+                "javax.."
+            )
             .allowEmptyShould(true);
     }
 
