@@ -21,7 +21,7 @@ Generates automated threat models for {{PROJECT_NAME}} using STRIDE analysis. Id
 ## Triggers
 
 - `/x-threat-model` -- analyze codebase and generate STRIDE threat model
-- `/x-threat-model docs/architecture/plan.md` -- generate from architecture plan
+- `/x-threat-model steering/plan.md` -- generate from architecture plan
 - `/x-threat-model --format stride` -- STRIDE analysis (default)
 - `/x-threat-model --format pasta` -- PASTA analysis (risk-centric)
 - `/x-threat-model --format linddun` -- LINDDUN analysis (privacy-focused)
@@ -45,13 +45,13 @@ If a path argument is provided, read the architecture plan directly:
 
 ```bash
 # Read explicit path
-cat docs/architecture/plan.md
+cat steering/plan.md
 ```
 
 If no path is provided, discover automatically:
 
-1. Search `docs/architecture/` for architecture plans
-2. Search for ADRs in `docs/adr/`
+1. Search `steering/` for architecture plans
+2. Search for ADRs in `adr/`
 3. If no plan exists, **fallback to codebase analysis**: scan package structure, configuration files, and dependency declarations to identify components
 
 **Fallback — Codebase Analysis:**

@@ -34,7 +34,7 @@ Read the field mapping reference before creating issues:
 
 1. Accept the epic file path as argument. If not provided, ask:
    ```
-   question: "Qual o caminho do arquivo do épico? (ex: docs/stories/epic-0012/epic-0012.md)"
+   question: "Qual o caminho do arquivo do épico? (ex: plans/epic-0012/epic-0012.md)"
    header: "Epic File"
    ```
 2. Read the epic file completely

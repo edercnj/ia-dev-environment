@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Assembles {@code docs/architecture/service-architecture.md}
+ * Assembles {@code steering/service-architecture.md}
  * from the {@code _TEMPLATE-SERVICE-ARCHITECTURE.md} Pebble
  * template.
  *
@@ -41,7 +41,7 @@ public final class DocsAssembler implements Assembler {
     private static final String TEMPLATE_PATH =
             "templates/_TEMPLATE-SERVICE-ARCHITECTURE.md";
     private static final String OUTPUT_SUBDIR =
-            "architecture";
+            "steering";
     private static final String OUTPUT_FILENAME =
             "service-architecture.md";
 

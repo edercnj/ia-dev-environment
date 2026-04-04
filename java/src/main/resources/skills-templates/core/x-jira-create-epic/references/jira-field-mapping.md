@@ -87,7 +87,7 @@ The Jira key is stored in the markdown file header:
 
 To find a Jira issue's local file, search markdown files:
 ```
-grep -r "**Chave Jira:** PROJ-123" docs/stories/
+grep -r "**Chave Jira:** PROJ-123" plans/
 ```
 
 ## Status Mapping

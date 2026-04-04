@@ -85,14 +85,58 @@ class OverwriteDetectorTest {
         }
 
         @Test
-        @DisplayName("detects docs/ directory")
-        void detect_whenCalled_detectsDocs(@TempDir Path tempDir) throws IOException {
-            Files.createDirectories(tempDir.resolve("docs"));
+        @DisplayName("detects steering/ directory")
+        void detect_whenCalled_detectsSteering(@TempDir Path tempDir) throws IOException {
+            Files.createDirectories(tempDir.resolve("steering"));
 
             List<String> conflicts =
                     OverwriteDetector.checkExistingArtifacts(tempDir);
 
-            assertThat(conflicts).containsExactly("docs/");
+            assertThat(conflicts).containsExactly("steering/");
+        }
+
+        @Test
+        @DisplayName("detects specs/ directory")
+        void detect_whenCalled_detectsSpecs(@TempDir Path tempDir) throws IOException {
+            Files.createDirectories(tempDir.resolve("specs"));
+
+            List<String> conflicts =
+                    OverwriteDetector.checkExistingArtifacts(tempDir);
+
+            assertThat(conflicts).containsExactly("specs/");
+        }
+
+        @Test
+        @DisplayName("detects results/ directory")
+        void detect_whenCalled_detectsResults(@TempDir Path tempDir) throws IOException {
+            Files.createDirectories(tempDir.resolve("results"));
+
+            List<String> conflicts =
+                    OverwriteDetector.checkExistingArtifacts(tempDir);
+
+            assertThat(conflicts).containsExactly("results/");
+        }
+
+        @Test
+        @DisplayName("detects contracts/ directory")
+        void detect_whenCalled_detectsContracts(@TempDir Path tempDir) throws IOException {
+            Files.createDirectories(tempDir.resolve("contracts"));
+
+            List<String> conflicts =
+                    OverwriteDetector.checkExistingArtifacts(tempDir);
+
+            assertThat(conflicts).containsExactly("contracts/");
+        }
+
+        @Test
+        @DisplayName("detects adr/ directory")
+        void detect_whenCalled_detectsAdr(@TempDir Path tempDir) throws IOException {
+            Files.createDirectories(tempDir.resolve("adr"));
+
+            List<String> conflicts =
+                    OverwriteDetector.checkExistingArtifacts(tempDir);
+
+            assertThat(conflicts).containsExactly("adr/");
         }
 
         @Test
@@ -110,21 +154,26 @@ class OverwriteDetectorTest {
         }
 
         @Test
-        @DisplayName("detects all five artifact directories")
-        void allFive_whenCalled_detected(@TempDir Path tempDir) throws IOException {
+        @DisplayName("detects all nine artifact directories")
+        void allNine_whenCalled_detected(@TempDir Path tempDir) throws IOException {
             Files.createDirectories(tempDir.resolve(".claude"));
             Files.createDirectories(tempDir.resolve(".github"));
             Files.createDirectories(tempDir.resolve(".codex"));
             Files.createDirectories(tempDir.resolve(".agents"));
-            Files.createDirectories(tempDir.resolve("docs"));
+            Files.createDirectories(tempDir.resolve("steering"));
+            Files.createDirectories(tempDir.resolve("specs"));
+            Files.createDirectories(tempDir.resolve("results"));
+            Files.createDirectories(tempDir.resolve("contracts"));
+            Files.createDirectories(tempDir.resolve("adr"));
 
             List<String> conflicts =
                     OverwriteDetector.checkExistingArtifacts(tempDir);
 
-            assertThat(conflicts).hasSize(5);
+            assertThat(conflicts).hasSize(9);
             assertThat(conflicts).containsExactlyInAnyOrder(
                     ".claude/", ".github/", ".codex/",
-                    ".agents/", "docs/");
+                    ".agents/", "steering/", "specs/",
+                    "results/", "contracts/", "adr/");
         }
 
         @Test
@@ -192,11 +241,11 @@ class OverwriteDetectorTest {
         @DisplayName("each conflict appears on its own line")
         void conflicts_whenCalled_eachOnOwnLine() {
             String message = OverwriteDetector.formatConflictMessage(
-                    List.of(".claude/", ".github/", "docs/"));
+                    List.of(".claude/", ".github/", "steering/"));
 
             assertThat(message).contains("  - .claude/ (exists)");
             assertThat(message).contains("  - .github/ (exists)");
-            assertThat(message).contains("  - docs/ (exists)");
+            assertThat(message).contains("  - steering/ (exists)");
         }
 
         @Test

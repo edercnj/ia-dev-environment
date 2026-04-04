@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for RunbookAssembler — generates
- * docs/runbook/deploy-runbook.md from a Pebble template.
+ * results/runbooks/deploy-runbook.md from a Pebble template.
  */
 @DisplayName("RunbookAssembler")
 class RunbookAssemblerTest {
@@ -43,7 +43,7 @@ class RunbookAssemblerTest {
 
         @Test
         @DisplayName("generates deploy-runbook.md in"
-                + " docs/runbook/ subdirectory")
+                + " results/runbooks/ subdirectory")
         void assemble_whenCalled_generatesDeployRunbookFile(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
@@ -59,12 +59,12 @@ class RunbookAssemblerTest {
 
             assertThat(files).hasSize(1);
             Path expected = outputDir.resolve(
-                    "docs/runbook/deploy-runbook.md");
+                    "results/runbooks/deploy-runbook.md");
             assertThat(expected).exists();
         }
 
         @Test
-        @DisplayName("creates docs/runbook/ subdirectory")
+        @DisplayName("creates results/runbooks/ subdirectory")
         void assemble_whenCalled_createsRunbookSubdir(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
@@ -78,7 +78,7 @@ class RunbookAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             assertThat(
-                    outputDir.resolve("docs/runbook"))
+                    outputDir.resolve("results/runbooks"))
                     .exists()
                     .isDirectory();
         }
@@ -100,7 +100,7 @@ class RunbookAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/runbook/deploy-runbook.md");
+                    "results/runbooks/deploy-runbook.md");
             String content = readFile(file);
             assertThat(content)
                     .contains("api-pagamentos");
@@ -121,7 +121,7 @@ class RunbookAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/runbook/deploy-runbook.md");
+                    "results/runbooks/deploy-runbook.md");
             String content = readFile(file);
             assertThat(content)
                     .contains("Deploy");
@@ -229,7 +229,7 @@ class RunbookAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path dest = outputDir.resolve(
-                    "docs/runbook/deploy-runbook.md");
+                    "results/runbooks/deploy-runbook.md");
             assertThat(dest).exists();
             String content = readFile(dest);
             assertThat(content).contains("HAS_DB");

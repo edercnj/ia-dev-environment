@@ -73,8 +73,20 @@ final class FileCategorizer {
         if (path.startsWith(".agents/")) {
             return "Agents MD";
         }
-        if (path.startsWith("docs/")) {
-            return "Documentation";
+        if (path.startsWith("steering/")) {
+            return "Steering";
+        }
+        if (path.startsWith("specs/")) {
+            return "Specs";
+        }
+        if (path.startsWith("results/")) {
+            return "Results";
+        }
+        if (path.startsWith("contracts/")) {
+            return "Contracts";
+        }
+        if (path.startsWith("adr/")) {
+            return "ADR";
         }
         if ("CLAUDE.md".equals(path)
                 || "README.md".equals(path)

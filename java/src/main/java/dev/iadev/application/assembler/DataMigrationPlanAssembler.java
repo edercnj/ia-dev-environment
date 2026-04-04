@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Assembles {@code docs/templates/_TEMPLATE-DATA-MIGRATION-PLAN.md}
+ * Assembles {@code specs/_templates/_TEMPLATE-DATA-MIGRATION-PLAN.md}
  * from the Pebble template of the same name.
  *
  * <p>This assembler is <strong>conditional</strong>: the template
@@ -35,7 +35,7 @@ public final class DataMigrationPlanAssembler
     private static final String TEMPLATE_PATH =
             "templates/_TEMPLATE-DATA-MIGRATION-PLAN.md";
     private static final String OUTPUT_SUBDIR =
-            "docs/templates";
+            "specs/_templates";
     private static final String OUTPUT_FILENAME =
             "_TEMPLATE-DATA-MIGRATION-PLAN.md";
     private static final String NO_DATABASE = "none";
@@ -79,7 +79,7 @@ public final class DataMigrationPlanAssembler
      *
      * <p>Renders the data migration plan template with Pebble
      * and writes it to
-     * {@code docs/templates/_TEMPLATE-DATA-MIGRATION-PLAN.md}.
+     * {@code specs/_templates/_TEMPLATE-DATA-MIGRATION-PLAN.md}.
      * Returns empty list if database type is "none" or the
      * source template is missing.</p>
      */

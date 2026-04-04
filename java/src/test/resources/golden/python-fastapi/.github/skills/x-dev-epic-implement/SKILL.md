@@ -35,7 +35,7 @@ Missing epic ID aborts with: `ERROR: Epic ID is required.`
 
 ## Prerequisites Check
 
-1. `docs/stories/epic-XXXX/` directory exists — if not found, suggest `/x-story-epic-full`
+1. `plans/epic-XXXX/` directory exists — if not found, suggest `/x-story-epic-full`
 2. `EPIC-XXXX.md` exists — if not found, suggest `/x-story-epic`
 3. `IMPLEMENTATION-MAP.md` exists — if not found, suggest `/x-story-map`
 4. At least one `story-XXXX-YYYY.md` file exists
@@ -140,7 +140,7 @@ core loop consumes when deciding per-story parallel vs sequential scheduling.
 
 ### 0.5.1 Read Implementation Plans
 
-For each story in the current phase N, read `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`
+For each story in the current phase N, read `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md`
 and extract affected files. Stories without plans are classified as `unpredictable`.
 
 ### 0.5.2 Build File Overlap Matrix
@@ -162,7 +162,7 @@ The matrix is symmetric: `overlap(A, B) == overlap(B, A)`.
 
 - **Parallel Batch:** Stories with no overlaps, config-only, or code-overlap-low
 - **Sequential Queue:** Stories with code-overlap-high or unpredictable (ordered by critical path priority)
-- Output saved to `docs/stories/epic-XXXX/plans/preflight-analysis-phase-N.md` for audit
+- Output saved to `plans/epic-XXXX/plans/preflight-analysis-phase-N.md` for audit
 
 ### 0.5.5 Integration with Core Loop (Section 1.3)
 
@@ -320,7 +320,7 @@ When `--skip-review` is set, Wave 1 launches only 2.2.
 - `{{TDD_COMPLIANCE_TABLE}}`: For each story, read `tddCompliance` from phase entry in checkpoint. Populate per-story row with TDD Commits, Total Commits, TDD % (rounded integer), TPP Progression (OK/WARNING/N/A), Status (PASS >= 80%, WARNING >= 50%, FAIL < 50%). If no data available (legacy epic), fill all columns with N/A
 - `{{TDD_SUMMARY}}`: Aggregated metrics — total TDD/total commits, aggregate TDD %, stories by status count, Epic Status (PASS if zero FAIL, else FAIL). If no data: `N/A — no TDD compliance data available (legacy epic without integrity gate)`
 - Validates no unresolved `{{...}}` placeholders remain (excluding expected `"Pending review"`)
-- Writes to `docs/stories/epic-{epicId}/epic-execution-report.md`
+- Writes to `plans/epic-{epicId}/epic-execution-report.md`
 - On FAILURE: log ERROR, PR created without report in Wave 2
 
 ### Wave 1 Result Handling
@@ -392,7 +392,7 @@ Final verification validates the epic as a whole before declaring completion.
 - Uses: `gh pr create` (PR creation with summary body, Phase 2.3 — Wave 2 sequential)
 - Phase 2 uses Two-Wave consolidation: Wave 1 dispatches 2.1 + 2.2 in parallel (SINGLE message, RULE-003); Wave 2 (2.3) runs after both complete
 - Reads: `_TEMPLATE-EPIC-EXECUTION-REPORT.md` (report template), `execution-state.json` (checkpoint data)
-- Reads: `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (implementation plans for pre-flight analysis, Phase 0.5)
-- Writes: `docs/stories/epic-XXXX/plans/preflight-analysis-phase-N.md` (pre-flight analysis output, Phase 0.5)
+- Reads: `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (implementation plans for pre-flight analysis, Phase 0.5)
+- Writes: `plans/epic-XXXX/plans/preflight-analysis-phase-N.md` (pre-flight analysis output, Phase 0.5)
 - Phase 0.5 is skipped when `--sequential` is set
 - All `{{PLACEHOLDER}}` tokens are runtime markers — NOT resolved during generation

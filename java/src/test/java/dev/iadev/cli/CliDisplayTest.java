@@ -166,12 +166,12 @@ class CliDisplayTest {
         }
 
         @Test
-        void docsPath_whenCalled_classifiedCorrectly() {
+        void adrPath_whenCalled_classifiedCorrectly() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(
-                            List.of("docs/adr/001.md"));
+                            List.of("adr/001.md"));
 
-            assertThat(result).containsKey("Documentation");
+            assertThat(result).containsKey("ADR");
         }
 
         @Test

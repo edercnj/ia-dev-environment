@@ -318,9 +318,21 @@ class PipelineSmokeTest extends SmokeTestBase {
             case "github-top" ->
                     countTopLevelFiles(outputDir
                             .resolve(".github"));
-            case "docs" ->
+            case "steering" ->
                     countFilesInSubDir(outputDir,
-                            "docs");
+                            "steering");
+            case "adr" ->
+                    countFilesInSubDir(outputDir,
+                            "adr");
+            case "contracts" ->
+                    countFilesInSubDir(outputDir,
+                            "contracts");
+            case "results" ->
+                    countFilesInSubDir(outputDir,
+                            "results");
+            case "specs" ->
+                    countFilesInSubDir(outputDir,
+                            "specs");
             case "k8s" ->
                     countFilesInSubDir(outputDir,
                             "k8s");

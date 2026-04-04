@@ -97,7 +97,7 @@ class AssemblerPipelineTest {
             assertThat(descriptors.get(13).target())
                     .isEqualTo(AssemblerTarget.GITHUB);
             assertThat(descriptors.get(14).target())
-                    .isEqualTo(AssemblerTarget.DOCS);
+                    .isEqualTo(AssemblerTarget.ROOT);
             assertThat(descriptors.get(16).target())
                     .isEqualTo(AssemblerTarget.ROOT);
             assertThat(descriptors.get(17).target())

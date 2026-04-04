@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for OperationalRunbookAssembler -- generates
- * docs/templates/_TEMPLATE-OPERATIONAL-RUNBOOK.md from
+ * results/runbooks/_TEMPLATE-OPERATIONAL-RUNBOOK.md from
  * a Pebble template with conditional sections based on
  * database, cache, and message broker configuration.
  */
@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class OperationalRunbookAssemblerTest {
 
     private static final String OUTPUT_FILE =
-            "docs/templates/"
+            "results/runbooks/"
                     + "_TEMPLATE-OPERATIONAL-RUNBOOK.md";
 
     @Nested
@@ -48,7 +48,7 @@ class OperationalRunbookAssemblerTest {
     class DegenerateNoOptionalSections {
 
         @Test
-        @DisplayName("generates file in docs/templates/")
+        @DisplayName("generates file in results/runbooks/")
         void assemble_noDeps_generatesFile(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");

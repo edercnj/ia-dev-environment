@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for DocsContributingAssembler — generates
- * docs/templates/_TEMPLATE-CONTRIBUTING.md from a Pebble
+ * specs/_templates/_TEMPLATE-CONTRIBUTING.md from a Pebble
  * template.
  */
 @DisplayName("DocsContributingAssembler")
@@ -44,7 +44,7 @@ class DocsContributingAssemblerTest {
 
         @Test
         @DisplayName("generates _TEMPLATE-CONTRIBUTING.md"
-                + " in docs/templates/ subdirectory")
+                + " in specs/_templates/ subdirectory")
         void assemble_whenCalled_generatesContributingFile(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
@@ -60,13 +60,13 @@ class DocsContributingAssemblerTest {
 
             assertThat(files).hasSize(1);
             Path expected = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-CONTRIBUTING.md");
             assertThat(expected).exists();
         }
 
         @Test
-        @DisplayName("creates docs/templates/ subdirectory")
+        @DisplayName("creates specs/_templates/ subdirectory")
         void assemble_whenCalled_createsDocsTemplatesSubdir(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
@@ -80,7 +80,7 @@ class DocsContributingAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             assertThat(
-                    outputDir.resolve("docs/templates"))
+                    outputDir.resolve("specs/_templates"))
                     .exists()
                     .isDirectory();
         }
@@ -102,7 +102,7 @@ class DocsContributingAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-CONTRIBUTING.md");
             String content = readFile(file);
             assertThat(content)
@@ -131,7 +131,7 @@ class DocsContributingAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-CONTRIBUTING.md");
             String content = readFile(file);
             assertThat(content).contains("Java JDK");
@@ -156,7 +156,7 @@ class DocsContributingAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-CONTRIBUTING.md");
             String content = readFile(file);
             assertThat(content)
@@ -180,7 +180,7 @@ class DocsContributingAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-CONTRIBUTING.md");
             String content = readFile(file);
             assertThat(content)
@@ -237,7 +237,7 @@ class DocsContributingAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-CONTRIBUTING.md");
             String content = readFile(file);
             assertThat(content).contains(">= 95%");
@@ -268,7 +268,7 @@ class DocsContributingAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-CONTRIBUTING.md");
             String content = readFile(file);
             assertThat(content).contains("Node.js");
@@ -295,7 +295,7 @@ class DocsContributingAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-CONTRIBUTING.md");
             String content = readFile(file);
             assertThat(content).contains("Go");
@@ -390,7 +390,7 @@ class DocsContributingAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path dest = outputDir.resolve(
-                    "docs/templates/"
+                    "specs/_templates/"
                             + "_TEMPLATE-CONTRIBUTING.md");
             assertThat(dest).exists();
             String content = readFile(dest);

@@ -44,7 +44,7 @@ public final class GrpcDocsAssembler implements Assembler {
 
     private static final String TEMPLATE_PATH =
             "templates/_TEMPLATE-GRPC-REFERENCE.md";
-    private static final String OUTPUT_SUBDIR = "api";
+    private static final String OUTPUT_SUBDIR = "contracts/api";
     private static final String OUTPUT_FILENAME =
             "grpc-reference.md";
 

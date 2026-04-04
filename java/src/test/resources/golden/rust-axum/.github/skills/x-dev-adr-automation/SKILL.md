@@ -15,7 +15,7 @@ Automates the generation of Architecture Decision Records (ADRs) from mini-ADRs 
 - After the architecture plan phase, when mini-ADRs exist inline in the plan document
 - When `x-dev-architecture-plan` has produced an architecture plan containing `### ADR:` markers
 - When architectural decisions need to be formally documented as standalone ADR files
-- When the `docs/adr/` directory needs to be populated or updated with new decisions
+- When the `adr/` directory needs to be populated or updated with new decisions
 - Do NOT use if ADRs have already been manually created for the same decisions
 
 ## Input Format
@@ -39,7 +39,7 @@ The four fields of a mini-ADR are:
 | **rationale** | Yes | Justification explaining why this decision was chosen |
 
 The architecture plan path and story ID are provided as arguments:
-- `architecture-plan-path`: Path to the architecture plan file (e.g., `docs/plans/architecture-plan-STORY-0004-0006.md`)
+- `architecture-plan-path`: Path to the architecture plan file (e.g., `plans/architecture-plan-STORY-0004-0006.md`)
 - `story-id`: The story identifier for cross-referencing (e.g., `story-0004-0006`)
 
 ## Output Format
@@ -114,21 +114,21 @@ Follow these steps in order:
 
 ### Step 2: Scan Existing ADRs for Sequential Numbering
 
-1. List all existing ADR files in `docs/adr/`
+1. List all existing ADR files in `adr/`
 2. Extract the numeric prefix from each filename (e.g., `0003` from `ADR-0003-use-postgresql.md`)
 3. Find the maximum number
 4. The next ADR number starts at `max + 1`
-5. If `docs/adr/` is empty or does not exist, start from `ADR-0001`
+5. If `adr/` is empty or does not exist, start from `ADR-0001`
 
 ### Step 3: Check for Duplicates
 
 For each mini-ADR, before creating a new ADR file:
 
 1. Normalize the mini-ADR title (lowercase, strip punctuation, trim whitespace)
-2. Compare against existing ADR titles in `docs/adr/`
+2. Compare against existing ADR titles in `adr/`
 3. If a match is found (title similarity), emit a warning and skip:
    ```
-   WARNING: Duplicate ADR detected for "[title]", skipping — existing ADR found at docs/adr/ADR-NNNN-*.md
+   WARNING: Duplicate ADR detected for "[title]", skipping — existing ADR found at adr/ADR-NNNN-*.md
    ```
 4. Do NOT overwrite existing ADRs
 
@@ -147,13 +147,13 @@ For each non-duplicate mini-ADR:
 
 ### Step 5: Write ADR Files
 
-1. Ensure `docs/adr/` directory exists (create if needed)
-2. Write each ADR to `docs/adr/ADR-NNNN-title-in-kebab-case.md`
+1. Ensure `adr/` directory exists (create if needed)
+2. Write each ADR to `adr/ADR-NNNN-title-in-kebab-case.md`
 3. Verify the file was written successfully
 
 ### Step 6: Update the Index
 
-1. Open `docs/adr/README.md` (create if it does not exist)
+1. Open `adr/README.md` (create if it does not exist)
 2. If the file does not exist, create it with a table header:
    ```markdown
    # Architecture Decision Records
@@ -172,7 +172,7 @@ For each non-duplicate mini-ADR:
 2. Update the architecture plan file to add links to the generated ADRs:
    - After each `### ADR:` marker that was processed, add a reference:
      ```markdown
-     > Generated: [ADR-NNNN](../../docs/adr/ADR-NNNN-title-in-kebab-case.md)
+     > Generated: [ADR-NNNN](../../adr/ADR-NNNN-title-in-kebab-case.md)
      ```
 3. If a service architecture document exists (Section 7), update it with new ADR links
 
@@ -180,7 +180,7 @@ For each non-duplicate mini-ADR:
 
 The sequential numbering algorithm ensures globally unique ADR identifiers:
 
-1. **Scan**: Find all files matching `docs/adr/ADR-*.md`
+1. **Scan**: Find all files matching `adr/ADR-*.md`
 2. **Extract**: Parse the 4-digit number from each filename (e.g., `ADR-0003-*.md` yields `3`)
 3. **Maximum**: Find the maximum number among all existing ADRs
 4. **Increment**: The next ADR number is `max + 1`
@@ -188,7 +188,7 @@ The sequential numbering algorithm ensures globally unique ADR identifiers:
 6. **Empty directory**: If no ADR files exist, start numbering from `ADR-0001`
 
 ```
-docs/adr/
+adr/
   ADR-0001-use-postgresql.md
   ADR-0002-adopt-hexagonal-arch.md
   ADR-0003-event-driven-comms.md
@@ -242,7 +242,7 @@ After processing, the architecture plan is updated with links to generated ADRs:
 - **Context:** ...
 - **Decision:** ...
 - **Rationale:** ...
-> Generated: [ADR-0004](../../docs/adr/ADR-0004-use-postgresql-for-persistence.md)
+> Generated: [ADR-0004](../../adr/ADR-0004-use-postgresql-for-persistence.md)
 ```
 
 ### Service Architecture Document (Section 7)
@@ -251,9 +251,9 @@ If a service architecture document exists with a Section 7 (ADR references), upd
 
 ## Index Update
 
-The ADR index at `docs/adr/README.md` serves as the master list of all ADRs:
+The ADR index at `adr/README.md` serves as the master list of all ADRs:
 
-1. **Read** `docs/adr/README.md` (or create if missing)
+1. **Read** `adr/README.md` (or create if missing)
 2. **Locate** the markdown table (identified by `| ADR |` header row)
 3. **Append** one row per generated ADR:
    ```
@@ -275,7 +275,7 @@ The ADR index at `docs/adr/README.md` serves as the master list of all ADRs:
 
 ### Example: Full ADR Output (generated)
 
-File: `docs/adr/ADR-0004-use-postgresql-for-persistence.md`
+File: `adr/ADR-0004-use-postgresql-for-persistence.md`
 
 ```markdown
 ---
@@ -319,7 +319,7 @@ Use PostgreSQL 15+ as the primary relational database for all transactional pers
 - Connection pooling (e.g., PgBouncer) recommended for high-concurrency scenarios
 ```
 
-### Example: Index Entry (appended to docs/adr/README.md)
+### Example: Index Entry (appended to adr/README.md)
 
 ```markdown
 | [ADR-0004](ADR-0004-use-postgresql-for-persistence.md) | Use PostgreSQL for Persistence | Accepted | 2024-01-15 |
@@ -332,7 +332,7 @@ Use PostgreSQL 15+ as the primary relational database for all transactional pers
 - **Context:** The system requires a relational database...
 - **Decision:** Use PostgreSQL 15+...
 - **Rationale:** PostgreSQL provides strong ACID compliance...
-> Generated: [ADR-0004](../../docs/adr/ADR-0004-use-postgresql-for-persistence.md)
+> Generated: [ADR-0004](../../adr/ADR-0004-use-postgresql-for-persistence.md)
 ```
 
 ## Detailed References

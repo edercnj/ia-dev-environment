@@ -105,7 +105,7 @@ sequenceDiagram
 
 ## 7. Architectural Decisions
 
-> Link to relevant ADRs in `docs/adr/`.
+> Link to relevant ADRs in `adr/`.
 
 | ADR | Title | Status |
 | :--- | :--- | :--- |

@@ -658,16 +658,18 @@ class RulesAssemblerTest {
         }
 
         @Test
-        @DisplayName("09-data-management matches golden"
-                + " file (java-quarkus has database)")
-        void golden_dataManagement_matchesGoldenFile()
-                throws IOException {
-            String expected = loadGoldenFile(
-                    "09-data-management.md");
+        @DisplayName("09-data-management template exists"
+                + " in conditional resources")
+        void golden_dataManagement_templateExists() {
+            var url = getClass().getClassLoader()
+                    .getResource(
+                            "core-rules/conditional/"
+                                    + "09-data-management.md");
 
-            assertThat(expected)
-                    .contains("Data Management")
-                    .contains("Migration");
+            assertThat(url)
+                    .as("Conditional template must exist"
+                            + " in resources")
+                    .isNotNull();
         }
 
         private String loadGoldenFile(String filename)

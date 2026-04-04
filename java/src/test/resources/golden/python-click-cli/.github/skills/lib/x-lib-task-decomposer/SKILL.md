@@ -20,9 +20,9 @@ Decomposes an implementation plan into granular tasks. When a test plan exists (
 
 ## Inputs Required
 
-1. `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md` -- Architect's design
+1. `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` -- Architect's design
 2. Story requirements file
-3. `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md` -- Test plan (from x-test-plan) [OPTIONAL]
+3. `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md` -- Test plan (from x-test-plan) [OPTIONAL]
 
 ## Procedure
 
@@ -35,12 +35,12 @@ Before decomposing, read the project's architecture and layer definitions:
 ### STEP 1 -- Read Story Context
 
 Read these files:
-- `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (Architect's plan)
+- `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (Architect's plan)
 - Story requirements file
 
 ### STEP 1.5 -- Detect Decomposition Mode
 
-Check if test plan exists at `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`:
+Check if test plan exists at `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md`:
 
 1. **File exists AND has structured TPP scenario markers** (scenario IDs like `UT-01:`, `AT-01:`, `IT-01:` at start of line under a dedicated scenarios section):
    - Use **TEST-DRIVEN MODE** (proceed to STEP 2A)
@@ -57,7 +57,7 @@ Check if test plan exists at `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY
 ### STEP 2A -- Test-Driven Decomposition (Primary Mode)
 
 > Used when a test plan with TPP markers is available at
-> `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`.
+> `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md`.
 
 For each test scenario in the test plan (ordered by TPP level):
 
@@ -157,12 +157,12 @@ For complex domain logic tasks, read the Architect's plan carefully:
 
 ### STEP 5 -- Generate Output
 
-Save to: `docs/stories/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` (extract epic ID XXXX and story sequence YYYY from the story ID). Ensure directory exists: `mkdir -p docs/stories/epic-XXXX/plans`.
+Save to: `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` (extract epic ID XXXX and story sequence YYYY from the story ID). Ensure directory exists: `mkdir -p plans/epic-XXXX/plans`.
 
 ## Fallback: Layer Task Catalog (G1-G7)
 
 > **When to use:** Only when no test plan with TPP markers exists at
-> `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`.
+> `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md`.
 > Prefer test-driven decomposition when test plan is available.
 
 | Task Type | Architecture Layer | Tier | Budget | Group |
@@ -192,7 +192,7 @@ Save to: `docs/stories/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` (extract epic I
 ## Fallback: Layer Dependency Graph (G1-G7)
 
 > **When to use:** Only when no test plan with TPP markers exists at
-> `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`.
+> `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md`.
 > Prefer test-driven decomposition when test plan is available.
 
 ```

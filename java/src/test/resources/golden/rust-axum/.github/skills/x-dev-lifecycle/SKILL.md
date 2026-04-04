@@ -41,19 +41,19 @@ Phase 8: Verification          (orchestrator — inline)
 
 1. Read story file and extract acceptance criteria, sub-tasks, dependencies
 2. Verify dependencies (predecessor stories complete)
-3. Check if test plan exists at `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
+3. Check if test plan exists at `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
    - If present: Phase 2 will use TDD mode
    - If absent: Phase 1B will produce it; if 1B also fails, Phase 2 falls back to G1-G7
-4. Check if architecture plan exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
+4. Check if architecture plan exists at `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
    - If present: Phase 1 will skip architecture planning (use existing plan)
    - If absent: Phase 1 will evaluate decision tree and invoke x-dev-architecture-plan
 5. Extract epic ID from story ID (e.g., `story-0001-0003` → epic ID `0001`)
-6. Ensure directories exist: `mkdir -p docs/stories/epic-XXXX/plans docs/stories/epic-XXXX/reviews`
+6. Ensure directories exist: `mkdir -p plans/epic-XXXX/plans plans/epic-XXXX/reviews`
 7. Create branch: `git checkout -b feat/{STORY_ID}-description`
 
 ## Phase 1 — Architecture Planning (Skill Invocation + Subagent Fallback)
 
-**If the architecture plan file already exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` (as checked in Phase 0), skip Step 1A and proceed directly to Step 1B, ensuring Step 1B reads the existing plan.**
+**If the architecture plan file already exists at `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` (as checked in Phase 0), skip Step 1A and proceed directly to Step 1B, ensuring Step 1B reads the existing plan.**
 
 ### Step 1A: Architecture Plan via x-dev-architecture-plan
 
@@ -69,7 +69,7 @@ Evaluate change scope using the decision tree:
 
 Invoke skill `/x-dev-architecture-plan {STORY_PATH}`.
 
-- Output: `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
+- Output: `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
 - If the skill invocation fails: emit `WARNING: Architecture plan generation failed. Continuing without architecture plan.` and proceed to Step 1B.
 
 **If Skip:**
@@ -86,8 +86,8 @@ Launch a **single** `general-purpose` subagent:
 > - Read story file: `{STORY_PATH}`
 > - Read `.github/skills/architecture/SKILL.md` — layer structure, dependency direction
 > - Read `.github/skills/layer-templates/SKILL.md` — code templates per architecture layer
-> - Read any relevant ADRs in `docs/adr/`
-> - If architecture plan exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`, read it for architectural decisions and constraints
+> - Read any relevant ADRs in `adr/`
+> - If architecture plan exists at `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`, read it for architectural decisions and constraints
 >
 > **Step 2 — Produce implementation plan** with these sections:
 > 1. Affected layers and components
@@ -101,7 +101,7 @@ Launch a **single** `general-purpose` subagent:
 > 9. Configuration changes
 > 10. Risk assessment
 >
-> Save to `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (where XXXX is the epic ID and YYYY is the story sequence, extracted from the story ID).
+> Save to `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (where XXXX is the epic ID and YYYY is the story sequence, extracted from the story ID).
 
 ### Fallback: Inline Architecture Planning
 
@@ -118,7 +118,7 @@ This preserves the pre-integration behavior for projects that do not include the
 **CRITICAL: ALL planning subagents MUST be launched in a SINGLE message.**
 
 ### 1B: Test Planning (MANDATORY DRIVER for Phase 2)
-Invoke skill `x-test-plan` → produces `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
+Invoke skill `x-test-plan` → produces `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
 
 The test plan is the **implementation roadmap** for Phase 2. It produces:
 - Acceptance tests (AT-N) as outer loop (Double-Loop TDD)
@@ -129,7 +129,7 @@ The test plan is the **implementation roadmap** for Phase 2. It produces:
 **Gate:** If Phase 1B fails or produces no output, Phase 2 MUST use G1-G7 fallback mode.
 
 ### 1C: Task Decomposition
-Invoke skill `x-lib-task-decomposer` → produces `docs/stories/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`
+Invoke skill `x-lib-task-decomposer` → produces `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`
 
 The task decomposer auto-detects decomposition mode:
 - If test plan with TPP markers exists → test-driven tasks (RED/GREEN/REFACTOR per task, with `Parallel` flags)
@@ -140,9 +140,9 @@ Launch `general-purpose` subagent:
 
 > You are an **Event Engineer** designing event schemas.
 > Read `.github/skills/protocols/SKILL.md` for standards.
-> Read the implementation plan at `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`.
+> Read the implementation plan at `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md`.
 > Produce event schema design: event names (past tense), CloudEvents envelope, topic naming, partition key, producer/consumer contracts.
-> Save to `docs/stories/epic-XXXX/plans/events-story-XXXX-YYYY.md`.
+> Save to `plans/epic-XXXX/plans/events-story-XXXX-YYYY.md`.
 
 ### 1E: Compliance Assessment (if compliance active)
 Launch `general-purpose` subagent:
@@ -150,9 +150,9 @@ Launch `general-purpose` subagent:
 > You are a **Security Engineer** assessing compliance impact.
 > Read `.github/skills/security/SKILL.md`.
 > Read `.github/skills/compliance/SKILL.md`.
-> Read the implementation plan at `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`.
+> Read the implementation plan at `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md`.
 > Produce compliance impact assessment: data classification, encryption requirements, audit logging needs, regulatory considerations.
-> Save to `docs/stories/epic-XXXX/plans/compliance-story-XXXX-YYYY.md`.
+> Save to `plans/epic-XXXX/plans/compliance-story-XXXX-YYYY.md`.
 
 ## Phase 2 — TDD Implementation (Subagent via Task)
 
@@ -161,10 +161,10 @@ Launch a **single** `general-purpose` subagent for implementation:
 > You are a **Developer** implementing story {STORY_ID} for {{PROJECT_NAME}}.
 >
 > **Step 1 — Read context:**
-> - Read test plan: `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md` — **MANDATORY** (implementation roadmap)
-> - Read implementation plan: `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`
-> - If architecture plan was generated in Phase 1, read `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` for architectural decisions and constraints; if it does not exist, proceed without it
-> - Read task breakdown: `docs/stories/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`
+> - Read test plan: `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md` — **MANDATORY** (implementation roadmap)
+> - Read implementation plan: `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md`
+> - If architecture plan was generated in Phase 1, read `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` for architectural decisions and constraints; if it does not exist, proceed without it
+> - Read task breakdown: `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`
 > - Read `.github/skills/coding-standards/SKILL.md` — {{LANGUAGE}} conventions and {{LANGUAGE_VERSION}} features
 > - Read `.github/skills/layer-templates/SKILL.md` — code templates per layer
 > - Read `.github/skills/architecture/SKILL.md` — layer boundaries
@@ -245,7 +245,7 @@ If no documentable interfaces configured: skip interface generators with log
 
 Documentation output saved to `docs/` with subdirectories per type:
 - API docs → `docs/api/`
-- Architecture docs → `docs/architecture/`
+- Architecture docs → `steering/`
 
 **Changelog Entry:**
 - Read commits since branch point (`git log main..HEAD --oneline`)
@@ -264,11 +264,11 @@ If the implemented feature affects the request path, startup, or memory footprin
 This step is recommended but not mandatory. Skip does not block the phase.
 
 **Architecture Document Update (Recommended):**
-If an architecture plan exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`:
-1. Invoke `x-dev-arch-update` to incrementally update `docs/architecture/service-architecture.md`
+If an architecture plan exists at `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`:
+1. Invoke `x-dev-arch-update` to incrementally update `steering/service-architecture.md`
 2. New components, integrations, flows, and ADR references are added to the appropriate sections
 3. Change History (Section 10) is updated with the story reference
-4. If `docs/architecture/service-architecture.md` does not exist, create it from the template
+4. If `steering/service-architecture.md` does not exist, create it from the template
 
 If no architecture plan found: skip with log
 `"No architecture plan found; skipping architecture doc update"`.
@@ -341,7 +341,7 @@ Invoke skill `/x-review` for the current story. The review skill launches its ow
 
 If `x-review` includes TDD checklist items, it validates: test-first pattern, TPP ordering, atomic TDD commits. If TDD checklist is not yet available, the review proceeds with existing criteria (backward compatible).
 
-If an architecture plan was generated in Phase 1 (`docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`), provide it as additional context to reviewers. Reviewers validate that the implementation conforms to the architectural decisions documented in the plan.
+If an architecture plan was generated in Phase 1 (`plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`), provide it as additional context to reviewers. Reviewers validate that the implementation conforms to the architectural decisions documented in the plan.
 
 Collect the consolidated review report with scores and severity counts.
 

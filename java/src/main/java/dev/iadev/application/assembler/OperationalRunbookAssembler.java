@@ -11,7 +11,7 @@ import java.util.Map;
 
 /**
  * Assembles
- * {@code docs/templates/_TEMPLATE-OPERATIONAL-RUNBOOK.md}
+ * {@code results/runbooks/_TEMPLATE-OPERATIONAL-RUNBOOK.md}
  * from the {@code _TEMPLATE-OPERATIONAL-RUNBOOK.md} Pebble
  * template.
  *
@@ -42,7 +42,7 @@ public final class OperationalRunbookAssembler
     private static final String TEMPLATE_PATH =
             "templates/_TEMPLATE-OPERATIONAL-RUNBOOK.md";
     private static final String OUTPUT_SUBDIR =
-            "docs/templates";
+            "results/runbooks";
     private static final String OUTPUT_FILENAME =
             "_TEMPLATE-OPERATIONAL-RUNBOOK.md";
 
@@ -72,7 +72,7 @@ public final class OperationalRunbookAssembler
      *
      * <p>Renders the operational runbook template with
      * Pebble and writes it to
-     * {@code docs/templates/_TEMPLATE-OPERATIONAL-RUNBOOK.md}.
+     * {@code results/runbooks/_TEMPLATE-OPERATIONAL-RUNBOOK.md}.
      * </p>
      */
     @Override

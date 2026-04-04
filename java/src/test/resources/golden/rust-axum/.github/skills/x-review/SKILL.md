@@ -153,7 +153,7 @@ OVERALL: APPROVED only when every engineer has STATUS: Approved.
 
 ### 3c. Save Artifacts
 
-Save each engineer's report to `docs/stories/epic-XXXX/reviews/review-{engineer}-story-XXXX-YYYY.md` (extract epic ID XXXX and story sequence YYYY from the story ID). Ensure directory exists: `mkdir -p docs/stories/epic-XXXX/reviews`.
+Save each engineer's report to `plans/epic-XXXX/reviews/review-{engineer}-story-XXXX-YYYY.md` (extract epic ID XXXX and story sequence YYYY from the story ID). Ensure directory exists: `mkdir -p plans/epic-XXXX/reviews`.
 
 ### 3d. Threat Model Update
 
@@ -184,7 +184,7 @@ After saving review artifacts, extract security findings from the Security Engin
 
 This phase runs ONLY when CRITICAL, HIGH, or MEDIUM findings exist.
 
-If CRITICAL or MEDIUM findings exist, ask the user whether to generate a correction story. If yes, transform each finding into a Gherkin scenario and save to `docs/stories/epic-XXXX/reviews/correction-story-XXXX-YYYY.md`.
+If CRITICAL or MEDIUM findings exist, ask the user whether to generate a correction story. If yes, transform each finding into a Gherkin scenario and save to `plans/epic-XXXX/reviews/correction-story-XXXX-YYYY.md`.
 
 ## Integration Notes
 

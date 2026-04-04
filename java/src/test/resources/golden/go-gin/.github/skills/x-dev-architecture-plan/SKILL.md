@@ -85,7 +85,7 @@ The architecture plan document MUST contain these sections:
 ### Output Path
 
 ```
-docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md
+plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md
 ```
 
 ## Mini-ADR Format
@@ -154,7 +154,7 @@ Launch a **single** `general-purpose` subagent:
 > 11. Resilience Strategy
 > 12. Impact Analysis
 >
-> **Step 6 — Save** to `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
+> **Step 6 — Save** to `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
 
 ## Integration with x-dev-lifecycle
 

@@ -11,7 +11,7 @@ import java.util.Map;
 
 /**
  * Assembles
- * {@code docs/templates/_TEMPLATE-SLO-SLI-DEFINITION.md}
+ * {@code specs/_templates/_TEMPLATE-SLO-SLI-DEFINITION.md}
  * from the {@code _TEMPLATE-SLO-SLI-DEFINITION.md} Pebble
  * template.
  *
@@ -36,7 +36,7 @@ public final class SloSliTemplateAssembler
     private static final String TEMPLATE_PATH =
             "templates/_TEMPLATE-SLO-SLI-DEFINITION.md";
     private static final String OUTPUT_SUBDIR =
-            "docs/templates";
+            "specs/_templates";
     private static final String OUTPUT_FILENAME =
             "_TEMPLATE-SLO-SLI-DEFINITION.md";
 
@@ -77,7 +77,7 @@ public final class SloSliTemplateAssembler
      *
      * <p>Renders the SLO/SLI definition template with
      * Pebble and writes it to
-     * {@code docs/templates/_TEMPLATE-SLO-SLI-DEFINITION.md}.
+     * {@code specs/_templates/_TEMPLATE-SLO-SLI-DEFINITION.md}.
      * </p>
      */
     @Override

@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for DocsAssembler — generates
- * docs/architecture/service-architecture.md from a Pebble
+ * docs/steering/service-architecture.md from a Pebble
  * template.
  */
 @DisplayName("DocsAssembler")
@@ -45,7 +45,7 @@ class DocsAssemblerTest {
 
         @Test
         @DisplayName("generates service-architecture.md in"
-                + " architecture/ subdirectory")
+                + " steering/ subdirectory")
         void assemble_whenCalled_generatesServiceArchFile(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
@@ -61,12 +61,12 @@ class DocsAssemblerTest {
 
             assertThat(files).hasSize(1);
             Path expected = outputDir.resolve(
-                    "architecture/service-architecture.md");
+                    "steering/service-architecture.md");
             assertThat(expected).exists();
         }
 
         @Test
-        @DisplayName("creates architecture/ subdirectory")
+        @DisplayName("creates steering/ subdirectory")
         void assemble_whenCalled_createsArchitectureSubdir(
                 @TempDir Path tempDir) {
             Path outputDir = tempDir.resolve("output");
@@ -80,7 +80,7 @@ class DocsAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             assertThat(
-                    outputDir.resolve("architecture"))
+                    outputDir.resolve("steering"))
                     .exists()
                     .isDirectory();
         }
@@ -102,7 +102,7 @@ class DocsAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "architecture/service-architecture.md");
+                    "steering/service-architecture.md");
             String content = readFile(file);
             assertThat(content)
                     .contains("api-pagamentos");
@@ -129,7 +129,7 @@ class DocsAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "architecture/service-architecture.md");
+                    "steering/service-architecture.md");
             String content = readFile(file);
             assertThat(content).contains("java");
             assertThat(content).contains("quarkus");
@@ -152,7 +152,7 @@ class DocsAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "architecture/service-architecture.md");
+                    "steering/service-architecture.md");
             String content = readFile(file);
             assertThat(content).contains("hexagonal");
         }
@@ -178,7 +178,7 @@ class DocsAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path file = outputDir.resolve(
-                    "architecture/service-architecture.md");
+                    "steering/service-architecture.md");
             String content = readFile(file);
             assertThat(content)
                     .doesNotContain("{{ ");
@@ -287,7 +287,7 @@ class DocsAssemblerTest {
             assembler.assemble(config, engine, outputDir);
 
             Path dest = outputDir.resolve(
-                    "architecture/"
+                    "steering/"
                             + "service-architecture.md");
             assertThat(dest).exists();
             String content = readFile(dest);

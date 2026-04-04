@@ -52,10 +52,10 @@ Before execution, validate all prerequisites in order. Abort on first failure.
 
 ### 1. Epic Directory
 
-Check that `docs/stories/epic-XXXX/` exists (where XXXX is the parsed epic ID).
+Check that `plans/epic-XXXX/` exists (where XXXX is the parsed epic ID).
 
 ```
-ERROR: Directory docs/stories/epic-{epicId}/ not found. Run /x-story-epic-full first.
+ERROR: Directory plans/epic-{epicId}/ not found. Run /x-story-epic-full first.
 ```
 
 ### 2. Epic File
@@ -63,7 +63,7 @@ ERROR: Directory docs/stories/epic-{epicId}/ not found. Run /x-story-epic-full f
 Check that `EPIC-XXXX.md` exists in the epic directory.
 
 ```
-ERROR: EPIC-{epicId}.md not found in docs/stories/epic-{epicId}/. Run /x-story-epic first.
+ERROR: EPIC-{epicId}.md not found in plans/epic-{epicId}/. Run /x-story-epic first.
 ```
 
 ### 3. Implementation Map
@@ -200,7 +200,7 @@ In sequential mode there is no parallel dispatch, so conflict analysis adds no v
 
 For each story in the current phase N, attempt to read its implementation plan:
 
-1. Compute plan path: `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md`
+1. Compute plan path: `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md`
 2. Read the plan file and extract the list of affected files:
    - Look for sections titled "Affected files", "Existing classes to modify", or
      "New classes/interfaces to create"
@@ -214,7 +214,7 @@ For each story in the current phase N, attempt to read its implementation plan:
 ```json
 {
   "storyId": "story-XXXX-YYYY",
-  "planPath": "docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md",
+  "planPath": "plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md",
   "affectedFiles": ["src/main/java/.../File.java", "pom.xml"],
   "hasPlan": true
 }
@@ -264,7 +264,7 @@ Based on the classification results, partition stories into two groups:
   pairs. These are dispatched one at a time after the parallel batch completes.
   The sequential order respects critical path priority (RULE-007).
 
-**Output file:** Save the analysis to `docs/stories/epic-XXXX/plans/preflight-analysis-phase-N.md`
+**Output file:** Save the analysis to `plans/epic-XXXX/plans/preflight-analysis-phase-N.md`
 for audit purposes. The file follows this structure:
 
 ```markdown
@@ -391,7 +391,7 @@ When `--sequential` flag is set, use sequential dispatch. For each executable st
 ```
 You are implementing story {storyId} for epic {epicId}.
 
-Story file: docs/stories/epic-{epicId}/story-{storyId}.md
+Story file: plans/epic-{epicId}/story-{storyId}.md
 Branch: {branchName}
 Phase: {currentPhase}
 Skip review: {skipReview}
@@ -633,11 +633,11 @@ consistency across local files and external systems.
 
 **On status SUCCESS:**
 
-1. Read `docs/stories/epic-{epicId}/story-{storyId}.md`
+1. Read `plans/epic-{epicId}/story-{storyId}.md`
 2. Update `**Status:**` field from `Pendente` (or `Em Andamento`) to `Concluída`
 3. Write the updated story file
 
-4. Read `docs/stories/epic-{epicId}/IMPLEMENTATION-MAP.md`
+4. Read `plans/epic-{epicId}/IMPLEMENTATION-MAP.md`
 5. Find the row matching `story-{storyId}` in the Section 1 dependency matrix
 6. Update the Status column to `Concluída`
 7. Write the updated Implementation Map
@@ -676,7 +676,7 @@ consistency across local files and external systems.
 
 After updating story status to SUCCESS, check if ALL stories in the epic have status SUCCESS
 in the checkpoint. If yes:
-1. Read `docs/stories/epic-{epicId}/EPIC-{epicId}.md`
+1. Read `plans/epic-{epicId}/EPIC-{epicId}.md`
 2. Update the `**Status:**` field from `Em Andamento` to `Concluído`
 3. If the epic has a Jira key (not `—` or `<CHAVE-JIRA>`):
    - Call `mcp__atlassian__getTransitionsForJiraIssue` with the epic's Jira key
@@ -711,21 +711,7 @@ Launch a `general-purpose` subagent:
 > - If compilation fails → `{ status: "FAIL", testCount: 0, coverage: 0 }`
 > - If any tests fail → correlate failed tests with commits from stories in the current phase
 > - If line coverage < 95% or branch coverage < 90% → FAIL with coverage details
-> - Otherwise → proceed to Step 4.5
-> **Step 4.5 — TDD Compliance Check:** Analyze git log for each completed story in the current phase to verify test-first commit patterns.
-> For each story, run: `git log --oneline <story-range>`
-> 1. **Suffix Verification:** Count commits with suffix `[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, or `[TDD:REFACTOR]`. If `tddCommitCount == 0` → status `FAIL` with message: `"No TDD commits found. Verify that commits follow the format defined in x-dev-implement Step 2."`
-> 2. **Order Verification:** If fine-grained commits (`[TDD:RED]`, `[TDD:GREEN]`) exist, verify that each `[TDD:RED]` precedes its corresponding `[TDD:GREEN]`. If `[TDD:GREEN]` appears before `[TDD:RED]` → `redBeforeGreen = false`, add warning: `"Commit order violation: [TDD:GREEN] before [TDD:RED]"`
-> 3. **Test-Production Ratio:** Count commits that modify test files vs production files. Compute `testProductionRatio = testCommits / totalCommits`. If `testProductionRatio < 0.4` → add warning: `"Test-production ratio below 0.4 threshold"`
-> 4. **TPP Progression:** Verify that earlier test commits (UT) are simpler than later ones (heuristic based on test line count). This is advisory only — no status change.
->
-> **Status determination:**
-> - `FAIL`: `tddCommitCount == 0` (no TDD commits found — blocking)
-> - `WARNING`: TDD commits exist but verification is partial (combined `[TDD]` format only, order violation, or low test-production ratio)
-> - `PASS`: Fine-grained commits with `[TDD:RED]` before `[TDD:GREEN]` and `testProductionRatio >= 0.4`
->
-> Return `tddCompliance` result (see Gate Result Registration below).
-> After Step 4.5 → proceed to Step 5
+> - Otherwise → proceed to Step 5
 > **Step 5 — Smoke Gate:** Execute the full smoke test suite as a regression validation.
 > - If `--skip-smoke-gate` flag is set → log `"Integrity gate smoke tests skipped (--skip-smoke-gate)"` and record `smokeGate.status = "SKIP"` → proceed to PASS
 > - Run: `{{SMOKE_COMMAND}}` (e.g., `cd java && mvn verify -P integration-tests`)
@@ -733,7 +719,7 @@ Launch a `general-purpose` subagent:
 > - If all smoke tests pass → record `smokeGate.status = "PASS"` → overall gate is PASS
 > - If any smoke test fails → correlate failures with stories in the current phase (based on files touched) → record `smokeGate.status = "FAIL"` → overall gate is FAIL
 >
-> Return: `{ status: "PASS"|"FAIL", testCount, coverage, branchCoverage?, failedTests?, regressionSource?, tddCompliance: { status, tddCommitCount, totalCommits, redBeforeGreen, testProductionRatio, warnings }, smokeGate?: { status, testsRun, testsFailed, failedTests?, suspectedStories? } }`
+> Return: `{ status: "PASS"|"FAIL", testCount, coverage, branchCoverage?, failedTests?, regressionSource?, smokeGate?: { status, testsRun, testsFailed, failedTests?, suspectedStories? } }`
 
 #### Regression Diagnosis
 
@@ -765,14 +751,6 @@ updateIntegrityGate(epicDir, phaseNumber, {
   branchCoverage?: number, // branch coverage %
   failedTests?: string[],
   regressionSource?: string, // story ID
-  tddCompliance: {
-    status: "PASS" | "WARNING" | "FAIL",
-    tddCommitCount: number,   // commits with [TDD], [TDD:RED], [TDD:GREEN], [TDD:REFACTOR]
-    totalCommits: number,     // total commits in the story
-    redBeforeGreen: boolean,  // true if fine-grained RED precedes GREEN (true if no fine-grained)
-    testProductionRatio: number, // ratio of test-modifying commits to total (0.0 to 1.0)
-    warnings: string[]        // list of warnings (empty if PASS)
-  },
   smokeGate?: {
     status: "PASS" | "FAIL" | "SKIP",
     testsRun: number,
@@ -784,29 +762,20 @@ updateIntegrityGate(epicDir, phaseNumber, {
 });
 ```
 
-- **PASS**: Advance to next phase (requires test gate and smoke gate to pass; tddCompliance WARNING is non-blocking)
+- **PASS**: Advance to next phase (requires both test gate and smoke gate to pass)
 - **FAIL + regression identified**: revert + mark FAILED + block propagation
 - **FAIL + regression unidentified**: pause execution, report to user
-- **FAIL (tddCompliance)**: `tddCommitCount == 0` — phase marked FAIL with message; operator must add TDD commits and `--resume`
 - **FAIL (smoke gate)**: phase marked FAILED; operator uses `--resume` after fix or `--skip-smoke-gate` to bypass
 
-#### Checkpoint Phase Entry Format
+#### Checkpoint Smoke Gate Format
 
-The `tddCompliance` and `smokeGate` fields are added to each phase entry in `execution-state.json`:
+The `smokeGate` field is added to each phase entry in `execution-state.json`:
 
 ```json
 {
   "phases": {
     "0": {
       "status": "SUCCESS",
-      "tddCompliance": {
-        "status": "PASS",
-        "tddCommitCount": 5,
-        "totalCommits": 12,
-        "redBeforeGreen": true,
-        "testProductionRatio": 0.58,
-        "warnings": []
-      },
       "smokeGate": {
         "status": "PASS",
         "testsRun": 45,
@@ -825,77 +794,14 @@ The `tddCompliance` and `smokeGate` fields are added to each phase entry in `exe
 The integrity gate is **mandatory** — there is no bypass. Every phase transition requires a PASS gate
 result. The gate runs after phase 0, 1, 2, and 3 — one gate per phase.
 
-The TDD compliance check (Step 4.5) is mandatory and cannot be bypassed. A `WARNING` status is
-non-blocking (gate still passes), but a `FAIL` status (zero TDD commits) blocks the phase transition.
-
 The smoke gate within the integrity gate is also mandatory by default. It can only be bypassed with
 the `--skip-smoke-gate` flag, which records `smokeGate.status = "SKIP"` in the checkpoint. When
-`--skip-smoke-gate` is set, the integrity gate evaluates only Steps 1-4 and Step 4.5 (compile, test, coverage, TDD compliance).
+`--skip-smoke-gate` is set, the integrity gate evaluates only Steps 1-4 (compile, test, coverage).
 When not set, the smoke gate (Step 5) must also pass for the overall integrity gate to pass.
 
 > **Note:** Each story already executes its own smoke gate via `x-dev-lifecycle` (Phase 2.5).
 > The integrity gate smoke tests serve as an ADDITIONAL regression validation — they ensure
 > that the combination of all stories in a phase did not break the overall smoke test suite.
-
-#### TDD Compliance Check (Step 4.5) — Detailed Specification
-
-Step 4.5 implements **Level 2** of RULE-007 (Multi-Level Verification). It runs after Step 4 (Evaluate) and before Step 5 (Smoke Gate) to verify that commits from completed stories follow the test-first pattern defined in `x-dev-implement`.
-
-**Input:** Git log for each story completed in the current phase.
-
-**4 Verification Checks:**
-
-1. **Suffix Verification:** Scan commit messages for suffixes `[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, or `[TDD:REFACTOR]`. Count matching commits as `tddCommitCount`. If `tddCommitCount == 0`, the check immediately returns `FAIL`.
-
-2. **Order Verification:** If fine-grained commits (`[TDD:RED]`, `[TDD:GREEN]`) exist, verify that each `[TDD:RED]` precedes its corresponding `[TDD:GREEN]` in chronological order. Set `redBeforeGreen = true` if all pairs are correctly ordered; `false` if any `[TDD:GREEN]` appears before its `[TDD:RED]`.
-
-3. **Test-Production Ratio:** For all commits in the story range, classify each as modifying test files or production files (based on file paths containing `/test/`, `/tests/`, `*_test.*`, `*.test.*`, `*.spec.*`). Compute `testProductionRatio = testCommits / totalCommits`. Values below `0.4` indicate insufficient test-first discipline.
-
-4. **TPP Progression:** Compare line counts of earlier test commits (UT-1, UT-2) with later ones. Earlier tests should be simpler (fewer lines) than later tests, following Transformation Priority Premise ordering. This check is advisory — it produces warnings but does not change the overall status.
-
-**Status Criteria:**
-
-| Condition | Status | Message |
-|-----------|--------|---------|
-| `tddCommitCount == 0` | **FAIL** | `"No TDD commits found. Verify that commits follow the format defined in x-dev-implement Step 2."` |
-| Only combined `[TDD]` commits (no `[TDD:RED]`/`[TDD:GREEN]`) | **WARNING** | `"No [TDD:RED] commits found -- using combined [TDD] format"` |
-| Fine-grained with `[TDD:GREEN]` before `[TDD:RED]` | **WARNING** | `"Commit order violation: [TDD:GREEN] before [TDD:RED]"` |
-| `testProductionRatio < 0.4` | **WARNING** | `"Test-production ratio below 0.4 threshold"` |
-| Fine-grained with RED before GREEN and `testProductionRatio >= 0.4` | **PASS** | (no warnings) |
-
-**Severity:** TDD compliance is **WARNING-level**, not blocking **FAIL**, except when `tddCommitCount == 0` (which is blocking FAIL). Rationale: combined `[TDD]` commits make automated verification imperfect; the definitive assessment occurs at Level 3 (Tech Lead review in `x-review-pr`).
-
-**TDD Compliance Result Structure:**
-
-```json
-{
-  "tddCompliance": {
-    "status": "PASS | WARNING | FAIL",
-    "tddCommitCount": 5,
-    "totalCommits": 12,
-    "redBeforeGreen": true,
-    "testProductionRatio": 0.58,
-    "warnings": []
-  }
-}
-```
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `tddCompliance.status` | Enum(`PASS`, `WARNING`, `FAIL`) | Yes | Overall TDD compliance status |
-| `tddCompliance.tddCommitCount` | Integer | Yes | Commits with `[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, or `[TDD:REFACTOR]` suffix |
-| `tddCompliance.totalCommits` | Integer | Yes | Total commits in the story |
-| `tddCompliance.redBeforeGreen` | Boolean | Yes | `true` if fine-grained RED precedes GREEN (`true` if no fine-grained commits) |
-| `tddCompliance.testProductionRatio` | Float | Yes | Ratio of test-modifying commits to total (0.0 to 1.0) |
-| `tddCompliance.warnings` | Array[String] | Yes | List of warnings (empty if PASS) |
-
-**Multi-Level Verification (RULE-007) Cross-Reference:**
-
-| Level | Location | Behavior |
-|-------|----------|----------|
-| 1 | `x-dev-lifecycle` Phase 0 | ABORT if test plan is missing (story-0014-0002) |
-| **2** | **Integrity Gate Step 4.5** | **WARNING/FAIL on TDD compliance (this step)** |
-| 3 | `x-review-pr` Tech Lead review | NO-GO if TDD items fail (story-0014-0007) |
 
 ## Phase 2 — Consolidation (Two-Wave)
 
@@ -1014,7 +920,7 @@ You are generating the epic execution report for EPIC-{epicId}.
      Format as: `N/A — no TDD compliance data available (legacy epic without integrity gate or insufficient data)`
 
 4. Validate: no unresolved {{...}} placeholders remain in output
-5. Write epic-execution-report.md to docs/stories/epic-{epicId}/
+5. Write epic-execution-report.md to plans/epic-{epicId}/
 ```
 
 **Parallel-mode note:** Because 2.2 runs concurrently with 2.1 in Wave 1, the
@@ -1028,7 +934,7 @@ patterns (excluding the expected `"Pending review"` in `{{FINDINGS_SUMMARY}}`).
 If found, log a warning with the unresolved placeholder names.
 
 **Result Handling:**
-- On SUCCESS: report written to `docs/stories/epic-{epicId}/epic-execution-report.md`. Update checkpoint atomically (RULE-002)
+- On SUCCESS: report written to `plans/epic-{epicId}/epic-execution-report.md`. Update checkpoint atomically (RULE-002)
 - On FAILURE: log `"ERROR: Report generation failed"`, continue to Wave 2 (PR created without report)
 
 ### Wave 1 Result Handling
@@ -1092,7 +998,7 @@ Push the epic branch and create a PR via `gh` CLI:
    - Branch coverage: {branchCoverage}%
 
    ## Report
-   - See `docs/stories/epic-{epicId}/epic-execution-report.md`
+   - See `plans/epic-{epicId}/epic-execution-report.md`
    ```
 6. **Create:** `gh pr create --title "{title}" --body "{body}" --base main`
 
@@ -1138,7 +1044,6 @@ Verify the Definition of Done (DoD) for the epic:
 - [ ] All stories completed (or documented as FAILED/BLOCKED in report)
 - [ ] Coverage thresholds met (>=95% line, >=90% branch)
 - [ ] Zero compiler/linter warnings
-- [ ] TDD compliance checks passed for all phases (Step 4.5 — no FAIL status)
 - [ ] Tech lead review executed (Phase 2.1 — Wave 1) or skipped via `--skip-review`
 - [ ] Epic execution report generated with no unresolved placeholders (Phase 2.2 — Wave 1)
 - [ ] `"Pending review"` placeholder replaced with actual findings (Phase 2.3 — Wave 2)
@@ -1166,7 +1071,7 @@ Stories: {completed}/{total} completed, {failed} failed, {blocked} blocked
 Coverage: line {lineCoverage}%, branch {branchCoverage}%
 Tech Lead: {score} ({decision})
 PR: {prUrl}
-Report: docs/stories/epic-{epicId}/epic-execution-report.md
+Report: plans/epic-{epicId}/epic-execution-report.md
 Elapsed: {totalElapsedTime}
 ```
 
@@ -1179,11 +1084,10 @@ Return to main branch: `git checkout main && git pull origin main`
 - Uses: `gh pr create` (PR creation with summary body, Phase 2.3 — Wave 2 sequential)
 - Phase 2 uses Two-Wave consolidation: Wave 1 dispatches 2.1 + 2.2 in parallel (SINGLE message, RULE-003); Wave 2 (2.3) runs after both complete
 - Reads: `_TEMPLATE-EPIC-EXECUTION-REPORT.md` (report template), `execution-state.json` (checkpoint data)
-- Reads: `docs/stories/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (implementation plans for pre-flight conflict analysis, Phase 0.5)
-- Writes: `docs/stories/epic-XXXX/plans/preflight-analysis-phase-N.md` (pre-flight analysis output for audit, Phase 0.5)
+- Reads: `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (implementation plans for pre-flight conflict analysis, Phase 0.5)
+- Writes: `plans/epic-XXXX/plans/preflight-analysis-phase-N.md` (pre-flight analysis output for audit, Phase 0.5)
 - Phase 0.5 is skipped when `--sequential` is set (no parallel dispatch means no conflict risk)
 - All `{{PLACEHOLDER}}` tokens are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
 - Integrity gate includes smoke tests (Step 5) as regression validation after each phase — runs `{{SMOKE_COMMAND}}` (e.g., `cd java && mvn verify -P integration-tests`)
-- Integrity gate includes TDD compliance check (Step 4.5) — verifies test-first commit patterns, `[TDD]` suffixes, RED-before-GREEN ordering, and test-production ratio for each completed story (RULE-007 Level 2)
 - Smoke gate is bypassed with `--skip-smoke-gate` flag; result recorded as `smokeGate.status = "SKIP"` in checkpoint
 - Per-story smoke tests run via `x-dev-lifecycle` Phase 2.5; integrity gate smoke tests are an additional cross-story regression check

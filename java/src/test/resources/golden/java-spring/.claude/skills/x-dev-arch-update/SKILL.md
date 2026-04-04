@@ -55,13 +55,13 @@ For each of the 10 numbered sections in `service-architecture.md` (match heading
 
 ## Input Documents
 
-1. **Architecture Plan:** `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
-2. **Service Architecture Doc:** `docs/architecture/service-architecture.md`
+1. **Architecture Plan:** `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
+2. **Service Architecture Doc:** `steering/service-architecture.md`
 3. **Service Architecture Template:** `resources/templates/_TEMPLATE-SERVICE-ARCHITECTURE.md`
 
 ## Document Creation from Scratch
 
-If `docs/architecture/service-architecture.md` does NOT exist:
+If `steering/service-architecture.md` does NOT exist:
 
 1. Read the template from `resources/templates/_TEMPLATE-SERVICE-ARCHITECTURE.md`
 2. Replace `{{ placeholders }}` with project identity values
@@ -77,7 +77,7 @@ Launch a **single** `general-purpose` subagent:
 >
 > **Step 1 — Read inputs:**
 > - Read the architecture plan at the path provided as argument
-> - Read the current service architecture doc at `docs/architecture/service-architecture.md`
+> - Read the current service architecture doc at `steering/service-architecture.md`
 > - If `service-architecture.md` does NOT exist, read the template from
 >   `resources/templates/_TEMPLATE-SERVICE-ARCHITECTURE.md` and create the initial document
 >   by replacing `{{ placeholders }}` with project identity values
@@ -101,7 +101,7 @@ Launch a **single** `general-purpose` subagent:
 > - Include: today's date, story ID, list of sections modified, brief summary
 >
 > **Step 5 — Save:**
-> - Write the updated document to `docs/architecture/service-architecture.md`
+> - Write the updated document to `steering/service-architecture.md`
 > - Report: sections updated, changes applied, new entries added
 >
 > **Conventions:**
@@ -113,15 +113,15 @@ Launch a **single** `general-purpose` subagent:
 
 When invoked from `x-dev-lifecycle` Phase 3 (Documentation):
 
-1. Check if architecture plan exists at `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
-2. If exists: invoke this skill to update `docs/architecture/service-architecture.md`
+1. Check if architecture plan exists at `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
+2. If exists: invoke this skill to update `steering/service-architecture.md`
 3. If not exists: skip with log `"No architecture plan found; skipping architecture doc update"`
 4. This step is recommended but not mandatory. Skip does not block the phase.
 
 When invoked standalone:
 
 ```
-/x-dev-arch-update docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md
+/x-dev-arch-update plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md
 ```
 
 ## Detailed References

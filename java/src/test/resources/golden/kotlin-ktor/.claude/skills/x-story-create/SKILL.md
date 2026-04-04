@@ -345,7 +345,7 @@ This step is best-effort. Report: "N dependency links criados no Jira"
 
 ### Step 3: Save and Report
 
-Save each story as `story-XXXX-YYYY.md` in the same directory as the Epic (inside `docs/stories/epic-XXXX/`).
+Save each story as `story-XXXX-YYYY.md` in the same directory as the Epic (inside `plans/epic-XXXX/`).
 The XXXX is the epic number (extracted from the Epic file) and YYYY is the story sequence (from the Epic's index).
 Report: total stories generated, dependency graph summary, any inconsistencies found.
 

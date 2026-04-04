@@ -121,9 +121,9 @@ Write the Epic following the `_TEMPLATE-EPIC.md` structure exactly:
 6. **Section 5 — Story Index**: Story index from Step 3, with links and dependencies
 
 **Directory and file naming** (mandatory — see SD-09 in decomposition guide):
-1. Determine the epic number: scan `docs/stories/` for existing `epic-XXXX` folders and use the next available number (default `0001` if none exist). Ask the user if unsure.
-2. Create the directory `docs/stories/epic-XXXX/`
-3. Save the Epic file as `docs/stories/epic-XXXX/epic-XXXX.md`
+1. Determine the epic number: scan `plans/` for existing `epic-XXXX` folders and use the next available number (default `0001` if none exist). Ask the user if unsure.
+2. Create the directory `plans/epic-XXXX/`
+3. Save the Epic file as `plans/epic-XXXX/epic-XXXX.md`
 4. Story IDs in the index use composite format: `story-XXXX-YYYY` (where XXXX = epic number, YYYY = story sequence)
 5. Story links in the index point to `./story-XXXX-YYYY.md` (relative to the epic folder)
 
@@ -198,7 +198,7 @@ If the Jira MCP tool call fails:
 
 ### Step 6: Save and Report
 
-Save the file to `docs/stories/epic-XXXX/epic-XXXX.md`.
+Save the file to `plans/epic-XXXX/epic-XXXX.md`.
 Report: number of rules extracted, number of stories identified, dependency structure summary.
 
 ## Language Rules

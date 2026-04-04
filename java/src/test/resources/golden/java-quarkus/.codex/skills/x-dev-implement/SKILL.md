@@ -41,7 +41,7 @@ Launch a **single** `general-purpose` subagent:
 > Extract: acceptance criteria, sub-tasks, test scenarios, dependencies.
 >
 > **Step 2 — Read test plan (MANDATORY):**
-> - Look for test plan at `docs/plans/{STORY_ID}-tests.md` or `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
+> - Look for test plan at `plans/{STORY_ID}-tests.md` or `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
 > - Extract: acceptance tests (AT-N), unit tests in TPP order (UT-N), integration tests (IT-N)
 > - Identify the outer loop (acceptance tests that start RED)
 > - Identify the inner loop order (unit tests in TPP sequence: degenerate first, complex last)

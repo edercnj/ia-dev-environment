@@ -94,7 +94,7 @@ The architecture plan document MUST contain these sections. Mandatory sections a
 ### Output Path
 
 ```
-docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md
+plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md
 ```
 
 Where `XXXX` is the epic ID and `YYYY` is the story sequence number extracted from the story ID.
@@ -178,7 +178,7 @@ Launch a **single** `general-purpose` subagent with the following prompt:
 >
 > **Step 6 — Save the document:**
 > ```
-> docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md
+> plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md
 > ```
 >
 > **Conventions:**
@@ -194,13 +194,13 @@ When invoked from `x-dev-lifecycle` Phase 1:
 
 1. The lifecycle orchestrator passes the story path as argument
 2. This skill evaluates the decision tree and generates the appropriate plan level
-3. The output path follows the standard convention: `docs/stories/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
+3. The output path follows the standard convention: `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
 4. Phase 2 (Implementation) reads this document alongside the implementation plan
 
 When invoked standalone:
 
 ```
-/x-dev-architecture-plan docs/stories/epic-XXXX/story-XXXX-YYYY.md
+/x-dev-architecture-plan plans/epic-XXXX/story-XXXX-YYYY.md
 ```
 
 Or with a feature name:
