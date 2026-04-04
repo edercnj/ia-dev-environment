@@ -56,10 +56,10 @@ class SkillGroupRegistryTest {
         }
 
         @Test
-        @DisplayName("review group has 9 skills")
+        @DisplayName("review group has 10 skills")
         void register_whenCalled_reviewGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("review")).hasSize(9);
+                    .get("review")).hasSize(10);
         }
 
         @Test

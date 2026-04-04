@@ -7,17 +7,18 @@ import dev.iadev.domain.model.ProjectConfig;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * Builds a template context map from a {@link ProjectConfig}.
  *
- * <p>Produces exactly 42 fields matching the TypeScript
+ * <p>Produces exactly 43 fields matching the TypeScript
  * {@code buildDefaultContext()} function (RULE-010). Boolean values
  * are converted to Python-style strings ("True"/"False") per
  * RULE-002 for Jinja2/Pebble template rendering parity.
  *
- * <p>The 42 context fields are:
+ * <p>The 43 context fields are:
  * <ol>
  *   <li>project_name</li>
  *   <li>project_purpose</li>
@@ -54,6 +55,7 @@ import java.util.stream.Collectors;
  *   <li>coverage_line</li>
  *   <li>coverage_branch</li>
  *   <li>interfaces_list</li>
+ *   <li>has_contract_interfaces</li>
  *   <li>has_event_interface</li>
  *   <li>has_pci_dss</li>
  *   <li>has_lgpd</li>
@@ -82,12 +84,22 @@ public final class ContextBuilder {
     private static final String PYTHON_TRUE = "True";
     private static final String PYTHON_FALSE = "False";
 
+    /**
+     * Interface types that require formal contract
+     * generation (OpenAPI, AsyncAPI, Protobuf).
+     */
+    private static final Set<String>
+            CONTRACT_INTERFACE_TYPES = Set.of(
+                    "rest", "grpc",
+                    "event-consumer", "event-producer",
+                    "websocket");
+
     private ContextBuilder() {
         // utility class
     }
 
     /**
-     * Builds a context map with exactly 42 template fields from
+     * Builds a context map with exactly 43 template fields from
      * the given {@link ProjectConfig}.
      *
      * <p>Delegates to domain-specific builders for each
@@ -231,6 +243,15 @@ public final class ContextBuilder {
         ctx.put("interfaces_list",
                 interfacesList.isEmpty()
                         ? "none" : interfacesList);
+        ctx.put("has_contract_interfaces",
+                toPythonBool(hasContractInterfaces(config)));
+    }
+
+    private static boolean hasContractInterfaces(
+            ProjectConfig config) {
+        return config.interfaces().stream()
+                .anyMatch(i -> CONTRACT_INTERFACE_TYPES
+                        .contains(i.type()));
     }
 
     private static void buildReviewChecklist(

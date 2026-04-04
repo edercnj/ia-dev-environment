@@ -89,27 +89,27 @@ class ContextBuilderTest {
     }
 
     @Nested
-    @DisplayName("buildContext() produces exactly 42 fields")
+    @DisplayName("buildContext() produces exactly 43 fields")
     class FieldCount {
 
         @Test
-        @DisplayName("returns map with exactly 42 entries")
-        void buildContext_fullConfig_returns42Fields() {
+        @DisplayName("returns map with exactly 43 entries")
+        void buildContext_fullConfig_returns43Fields() {
             Map<String, Object> context =
                     ContextBuilder.buildContext(
                             buildFullConfig());
 
-            assertThat(context).hasSize(42);
+            assertThat(context).hasSize(43);
         }
 
         @Test
-        @DisplayName("returns map with 42 entries for minimal")
-        void buildContext_minimalConfig_returns42Fields() {
+        @DisplayName("returns map with 43 entries for minimal")
+        void buildContext_minimalConfig_returns43Fields() {
             Map<String, Object> context =
                     ContextBuilder.buildContext(
                             buildMinimalConfig());
 
-            assertThat(context).hasSize(42);
+            assertThat(context).hasSize(43);
         }
     }
 
@@ -443,11 +443,11 @@ class ContextBuilderTest {
     }
 
     @Nested
-    @DisplayName("exact 42 field names")
+    @DisplayName("exact 43 field names")
     class ExactFieldNames {
 
         @Test
-        @DisplayName("context contains all 42 expected keys")
+        @DisplayName("context contains all 43 expected keys")
         void buildContext_allExpectedKeys_present() {
             Map<String, Object> ctx =
                     ContextBuilder.buildContext(
@@ -489,6 +489,7 @@ class ContextBuilderTest {
                     "coverage_line",
                     "coverage_branch",
                     "interfaces_list",
+                    "has_contract_interfaces",
                     "has_event_interface",
                     "has_pci_dss",
                     "has_lgpd",

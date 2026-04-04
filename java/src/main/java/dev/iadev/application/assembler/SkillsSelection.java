@@ -59,6 +59,12 @@ public final class SkillsSelection {
                 "event-consumer", "event-producer")) {
             skills.add("x-review-events");
         }
+        if (hasAnyInterface(config,
+                "rest", "grpc",
+                "event-consumer", "event-producer",
+                "websocket")) {
+            skills.add("x-contract-lint");
+        }
         return skills;
     }
 

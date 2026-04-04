@@ -5,6 +5,7 @@ import dev.iadev.domain.model.ProjectConfig;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 
 /**
@@ -63,7 +64,8 @@ public final class SkillGroupRegistry {
                 "x-review-gateway",
                 "x-codebase-audit",
                 "x-dependency-audit",
-                "x-threat-model"));
+                "x-threat-model",
+                "x-contract-lint"));
         SKILL_GROUPS.put("testing", List.of(
                 "x-test-plan", "x-test-run", "run-e2e",
                 "run-smoke-api", "run-contract-tests",
@@ -161,6 +163,34 @@ public final class SkillGroupRegistry {
                 });
     }
 
+    private static final Set<String> CONTRACT_TYPES =
+            Set.of("rest", "grpc",
+                    "event-consumer", "event-producer",
+                    "websocket");
+
+    /**
+     * Review skill conditions mapping skill name to a
+     * predicate on {@link ProjectConfig}.
+     *
+     * <p>Only review group skills listed here are filtered;
+     * unlisted skills are always included.</p>
+     */
+    public static final
+            Map<String, Predicate<ProjectConfig>>
+                    REVIEW_SKILL_CONDITIONS;
+
+    private static final String REVIEW_GROUP = "review";
+
+    static {
+        REVIEW_SKILL_CONDITIONS = new LinkedHashMap<>();
+        REVIEW_SKILL_CONDITIONS.put(
+                "x-contract-lint",
+                c -> c.interfaces().stream()
+                        .anyMatch(i ->
+                                CONTRACT_TYPES.contains(
+                                        i.type())));
+    }
+
     /**
      * Returns the set of groups that have conditions.
      *
@@ -173,6 +203,9 @@ public final class SkillGroupRegistry {
         }
         if (KP_GROUP.equals(group)) {
             return KP_SKILL_CONDITIONS;
+        }
+        if (REVIEW_GROUP.equals(group)) {
+            return REVIEW_SKILL_CONDITIONS;
         }
         return Map.of();
     }
