@@ -2,7 +2,7 @@
 name: x-dev-epic-implement
 description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
-argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate]"
+argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review [--reason \"justification\"]] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate]"
 ---
 
 ## Global Output Policy
@@ -40,7 +40,8 @@ ERROR: Epic ID is required. Usage: /x-dev-epic-implement [EPIC-ID] [flags]
 |------|------|---------|-------------|
 | `--phase N` | number | (all phases) | Execute only phase N (0-3) |
 | `--story story-XXXX-YYYY` | string | (all stories) | Execute only a specific story by ID |
-| `--skip-review` | boolean | `false` | Skip review phases in x-dev-lifecycle subagents |
+| `--skip-review` | boolean | `false` | Skip review phases (Phase 4 and Phase 7) in x-dev-lifecycle subagents. SHOULD be accompanied by `--reason` for auditability |
+| `--reason` | string | `""` | Justification for `--skip-review`. If `--skip-review` is passed without `--reason`, emit `WARNING: --skip-review used without --reason. Provide --reason for auditability.` The justification is recorded in `execution-state.json` as `skipReviewReason` and appears in the epic execution report |
 | `--dry-run` | boolean | `false` | Generate execution plan without executing |
 | `--resume` | boolean | `false` | Continue from last checkpoint (execution-state.json) |
 | `--sequential` | boolean | `false` | Disable parallel worktrees, execute stories one at a time |
@@ -320,7 +321,7 @@ The adjusted execution plan produced by Phase 0.5 is consumed by the Core Loop:
    - `epicId`: The parsed epic ID
    - `branch`: `feat/epic-{epicId}-full-implementation`
    - `stories`: Array of `{ id, phase }` from step 3
-   - `mode`: `{ parallel: true, skipReview: <from flags> }` (default; set to `false` when `--sequential` is passed)
+   - `mode`: `{ parallel: true, skipReview: <from flags>, skipReviewReason: <from --reason flag or ""> }` (default; set to `false` when `--sequential` is passed)
 5. The returned `ExecutionState` tracks all story statuses, metrics, and integrity gates
 
 ### 1.2 Branch Management
@@ -395,13 +396,28 @@ Story file: plans/epic-{epicId}/story-{storyId}.md
 Branch: {branchName}
 Phase: {currentPhase}
 Skip review: {skipReview}
+Skip review reason: {skipReviewReason}
 
-Execute the x-dev-lifecycle workflow:
-1. Read the story file for requirements
-2. Create implementation plan
-3. Implement following TDD (Red-Green-Refactor)
-4. Run tests and verify coverage
-5. Commit changes with Conventional Commits
+You have access to the Skill tool. Invoke /x-dev-lifecycle skill with argument {storyId}.
+
+The /x-dev-lifecycle skill executes the full 9-phase workflow:
+  Phase 0 — Branch & Setup
+  Phase 1 — Planning & Task Decomposition
+  Phase 2 — Implementation (TDD Red-Green-Refactor)
+  Phase 3 — Test Execution & Coverage Validation
+  Phase 4 — Specialist Review (via /x-review)
+  Phase 5 — Fix Review Findings
+  Phase 6 — PR Creation
+  Phase 7 — Tech Lead Review (via /x-review-pr)
+  Phase 8 — Final Verification & DoD Validation
+
+Phase 8 is the ONLY legitimate stop point. The subagent MUST NOT stop
+before Phase 8 unless a phase returns a terminal failure. Any early stop
+without a terminal failure is a violation of the workflow contract.
+
+If --skip-review is set, pass the flag to /x-dev-lifecycle so it skips
+Phase 4 and Phase 7. If --skip-review is used without --reason, log:
+"WARNING: --skip-review used without --reason. Provide --reason for auditability."
 
 Return a JSON result with this exact structure (SubagentResult):
 {
@@ -435,7 +451,8 @@ For each story in executableStories:
   Agent(
     subagent_type: "general-purpose",
     isolation: "worktree",
-    prompt: "<same prompt template as Section 1.4, with story-specific metadata>"
+    prompt: "<same prompt template as Section 1.4 (invoking /x-dev-lifecycle),
+             with story-specific metadata>"
   )
 ```
 
@@ -821,7 +838,10 @@ checkpoint on disk (`execution-state.json` + template). No data dependency exist
 
 When `--skip-review` is set, Wave 1 launches ONLY subagent 2.2 (Report Generation).
 No Tech Lead Review subagent is launched. The `{{FINDINGS_SUMMARY}}` field in the
-report is populated with `"Review skipped by user"`.
+report is populated with `"Review skipped by user"`. If `--reason` was provided,
+the report also includes: `"Skip reason: {skipReviewReason}"`. If `--skip-review`
+was used without `--reason`, log: `"WARNING: --skip-review used without --reason.
+Provide --reason for auditability."`
 
 #### 2.1 Tech Lead Review Subagent
 
@@ -1044,7 +1064,7 @@ Verify the Definition of Done (DoD) for the epic:
 - [ ] All stories completed (or documented as FAILED/BLOCKED in report)
 - [ ] Coverage thresholds met (>=95% line, >=90% branch)
 - [ ] Zero compiler/linter warnings
-- [ ] Tech lead review executed (Phase 2.1 — Wave 1) or skipped via `--skip-review`
+- [ ] Tech lead review executed (Phase 2.1 — Wave 1) or skipped via `--skip-review` (with `--reason` recorded in checkpoint)
 - [ ] Epic execution report generated with no unresolved placeholders (Phase 2.2 — Wave 1)
 - [ ] `"Pending review"` placeholder replaced with actual findings (Phase 2.3 — Wave 2)
 - [ ] PR created or failure documented (Phase 2.3 — Wave 2)
