@@ -1,78 +1,59 @@
 ---
 name: x-spec-drift-check
 description: >
-  Detects drift between story specifications and implemented code: verifies
-  data contract fields, endpoints, Gherkin scenario coverage, and naming
-  conventions. Produces itemized report with PASS/WARN/FAIL per check.
+  Detects spec-code drift by comparing story data contracts, endpoints, and Gherkin
+  scenarios against implemented code. Supports standalone mode (full report) and inline
+  mode (compact output for TDD loop integration in x-dev-lifecycle Phase 2).
   Reference: `.github/skills/x-spec-drift-check/SKILL.md`
 ---
 
-# Skill: Spec Drift Check (Standalone)
+# Skill: Spec Drift Check
 
 ## Purpose
 
-Compares story specifications against implemented code to detect divergences (drift) before opening a PR. Acts as a "spec linter" that validates data contracts, endpoints, Gherkin scenario coverage, and naming conventions against the actual codebase.
+Compares story specifications (data contracts, endpoints, Gherkin scenarios) against implemented code to detect drift. Operates in two modes:
+
+- **Standalone mode** (default): Full report with all check categories
+- **Inline mode**: Compact output for TDD loop integration
 
 ## Triggers
 
-- `/x-spec-drift-check STORY-0007-0003` -- check drift for a specific story
-- `/x-spec-drift-check STORY-0007-0003 --source-root ./src` -- specify source root
-- `/x-spec-drift-check STORY-0007-0003 --constitution CONSTITUTION.md` -- include naming convention checks
+- `/x-spec-drift-check STORY-ID` -- standalone mode (full report)
+- `/x-spec-drift-check STORY-ID --mode inline` -- inline mode (compact output)
 
 ## Workflow
 
 ```
-1. PARSE   -> Read story markdown, extract data contracts, endpoints, Gherkin scenarios
-2. SCAN    -> Search codebase for corresponding implementations
-3. COMPARE -> Match spec declarations against code findings
-4. REPORT  -> Generate itemized drift report with severity levels
+1. PARSE    -> Read story file, extract data contracts + endpoints + Gherkin
+2. SCAN     -> Search source code for matching fields, endpoints, tests
+3. CHECK    -> Compare spec vs code, classify drift (PASS/WARN/FAIL)
+4. REPORT   -> Generate itemized report (standalone) or compact summary (inline)
 ```
 
-## Drift Detection Rules
+## Standalone Mode
 
-| Type | Severity | Detection Logic |
-|------|----------|----------------|
-| Field Missing | FAIL | Mandatory (M) field from data contract not found in any DTO/Record |
-| Field Missing (Optional) | WARN | Optional (O) field from data contract not found in code |
-| Field Type Mismatch | WARN | Field found but type differs from declared |
-| Endpoint Missing | FAIL | Declared endpoint not found in any controller |
-| Scenario Uncovered | WARN | @GK-N without corresponding acceptance test |
-| Naming Violation | WARN | CONSTITUTION.md naming convention violated in code |
+Full itemized report covering:
 
-## Output Format
+| Check Type | Severity | Description |
+|-----------|----------|-------------|
+| Field Missing (M) | FAIL | Mandatory field not found in code |
+| Field Missing (O) | WARN | Optional field absent |
+| Field Type Mismatch | WARN | Field found but type differs |
+| Endpoint Missing | FAIL | Declared endpoint not found |
+| Scenario Uncovered | WARN | `@GK-N` without acceptance test |
+| Naming Violation | WARN | CONSTITUTION.md convention violated |
 
-```
-=== Spec Drift Check -- STORY-XXXX-YYYY ===
+## Inline Mode (TDD Loop Integration)
 
-Data Contracts:
-  PASS  FieldName (Type, M) -> found in ClassName
-  FAIL  FieldName (Type, M) -> NOT FOUND
+Compact output for x-dev-lifecycle Phase 2. Checks only data contracts and endpoints (skips Gherkin coverage and Constitution compliance).
 
-Endpoints:
-  PASS  POST /v1/path -> ControllerClass.methodName()
-  FAIL  GET /v1/path -> NOT FOUND in any controller
-
-Gherkin Coverage:
-  PASS  @GK-1 "scenario title" -> AT found (TestClass)
-  WARN  @GK-3 "scenario title" -> no AT found
-
-Constitution Compliance:
-  PASS  No violations detected
-
-Summary: N FAIL, M WARN -- DRIFT DETECTED / NO DRIFT
-```
-
-## Exit Code Semantics
-
-- **Exit code 0**: No FAIL results (only PASS and WARN)
-- **Exit code non-zero**: At least one FAIL result
+- **WARN**: Non-blocking, displayed but loop continues
+- **FAIL**: Critical drift, pauses loop for confirmation
 
 ## Error Handling
 
 | Scenario | Action |
 |----------|--------|
 | Story file not found | Abort with error message |
-| Source root not found | Abort with error message |
-| No data contract section | Report "No data contract defined" |
-| No endpoints declared | Report "No endpoints declared" |
-| CONSTITUTION.md not found | Skip constitution checks |
+| No data contract | Standalone: empty section / Inline: skip |
+| Malformed data contract | WARN with parse error details |

@@ -130,7 +130,7 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-review-api** | `/x-review-api` | Skill: REST API Design Review — Validates REST API endpoints for RFC 7807 error responses, pagination, URL versioning, OpenAPI documentation, status codes, and DTO patterns. |
 | **x-review-pr** | `/x-review-pr` | Tech Lead holistic review with 45-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, TDD process, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge. |
 | **x-setup-dev-environment** | `/x-setup-dev-environment` | Validate and configure local development environment: detect stack, check prerequisites, verify versions, validate IDE config, test database connectivity, run initial build, and report status with fix suggestions |
-| **x-spec-drift-check** | `/x-spec-drift-check` | Detects drift between story specifications and implemented code: verifies data contract fields, endpoints, Gherkin scenario coverage, and naming conventions. Produces itemized report with PASS/WARN/FAIL per check. |
+| **x-spec-drift-check** | `/x-spec-drift-check` | Detects spec-code drift by comparing story data contracts, endpoints, and Gherkin scenarios against implemented code. Supports standalone mode (full report) and inline mode (compact output for TDD loop integration in x-dev-lifecycle Phase 2). |
 | **x-story-create** | `/x-story-create` | > |
 | **x-story-epic** | `/x-story-epic` | > |
 | **x-story-epic-full** | `/x-story-epic-full` | > |
