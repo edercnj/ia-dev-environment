@@ -184,8 +184,8 @@ class ValidateConfigServiceTest {
             assertThat(result.valid()).isFalse();
             assertThat(result.errors())
                     .isNotEmpty()
-                    .anyMatch(e -> e.toLowerCase()
-                            .contains("basepackage"));
+                    .anyMatch(e -> e.contains(
+                            "architecture.base_package"));
         }
 
         @Test

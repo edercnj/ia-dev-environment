@@ -1,6 +1,6 @@
 ---
 name: x-review-pr
-description: "Tech Lead holistic review with 45-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, TDD process, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge."
+description: "Tech Lead holistic review with 53-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, TDD process, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[PR-number or STORY-ID]"
 ---
@@ -15,7 +15,7 @@ argument-hint: "[PR-number or STORY-ID]"
 
 ## Description
 
-Senior-level holistic review with a 45-point rubric. This is the standalone version of Phase 6 from the x-dev-lifecycle. The Tech Lead reviews the consolidated PR diff for cross-file consistency and overall quality.
+Senior-level holistic review with a 53-point rubric. This is the standalone version of Phase 6 from the x-dev-lifecycle. The Tech Lead reviews the consolidated PR diff for cross-file consistency and overall quality.
 
 ## Triggers
 
@@ -65,12 +65,12 @@ The Tech Lead review covers:
 
 1. List ALL modified files: `git diff [BASE_BRANCH] --name-only`
 2. View FULL diff: `git diff [BASE_BRANCH]`
-3. For EACH source file, read FULL content and apply 45-point checklist
+3. For EACH source file, read FULL content and apply 53-point checklist
 4. Focus on CROSS-FILE issues (inconsistencies, cross imports, repeated patterns)
 5. Compile and verify: `{{COMPILE_COMMAND}}` + `{{BUILD_COMMAND}}`
 6. If specialist reports exist, verify CRITICAL issues were fixed
 
-## 45-Point Rubric
+## 53-Point Rubric
 
 | Section                  | Points | What it checks                                                      |
 | ------------------------ | ------ | ------------------------------------------------------------------- |
@@ -85,13 +85,14 @@ The Tech Lead review covers:
 | I. Tests                 | 3      | Coverage thresholds, scenarios covered, test quality                |
 | J. Security & Production | 1      | Sensitive data protected, thread-safe                               |
 | K. TDD Process           | 5      | Test-first commits, Double-Loop TDD, TPP progression, atomic cycles |
+| L. Event-Driven Review | 8      | Idempotency, ordering, DLQ, schema evolution, retry, isolation     |
 
 ## Decision Criteria
 
-| Condition                   | Decision        |
-| --------------------------- | --------------- |
-| 45/45 + zero issues         | GO              |
-| < 45/45 OR any issue        | NO-GO           |
+| Condition                              | Decision        |
+| -------------------------------------- | --------------- |
+| >= 45/53 + zero issues | GO              |
+| < 45/53 OR any issue   | NO-GO           |
 
 ### Step 4 -- Process Result
 
@@ -100,7 +101,7 @@ The Tech Lead review covers:
  TECH LEAD REVIEW -- [STORY_ID]
 ============================================================
  Decision:  GO | NO-GO
- Score:     XX/45
+ Score:     XX/53 (GO >= 45)
  Critical:  N issues
  Medium:    N issues
  Low:       N issues
@@ -121,6 +122,18 @@ If fixing: apply corrections, commit, re-run review (max 2 cycles).
 ## Output Artifacts
 
 - `plans/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md`
+
+
+### Section L -- Event-Driven Review (8 criteria)
+
+1. Consumer idempotency (deduplication by event ID)
+2. Ordering guaranteed within partition key
+3. Dead letter strategy configured and tested
+4. Schema evolution with backward compatibility
+5. Retry policy with exponential backoff
+6. Consumer group isolation (no shared groups)
+7. Transactional outbox when applicable
+8. Lag and throughput observability per consumer
 
 ## Integration Notes
 

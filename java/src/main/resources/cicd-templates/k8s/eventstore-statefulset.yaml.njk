@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: eventstore
-          image: eventstore/eventstore:latest
+          image: {{ eventstore_image | default("eventstore/eventstore:24.10.0") }}
           ports:
             - containerPort: 2113
               name: http

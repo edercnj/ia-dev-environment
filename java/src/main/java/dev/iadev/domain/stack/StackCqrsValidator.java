@@ -34,7 +34,8 @@ public final class StackCqrsValidator {
         if (!StackMapping.VALID_EVENT_STORES
                 .contains(value)) {
             return List.of(
-                    ("Invalid eventStore: '%s'. Valid: %s")
+                    ("Invalid architecture.event_store:"
+                            + " '%s'. Valid: %s")
                             .formatted(value,
                                     String.join(", ",
                                             StackMapping
@@ -59,8 +60,8 @@ public final class StackCqrsValidator {
         if (!StackMapping.VALID_SCHEMA_REGISTRIES
                 .contains(value)) {
             return List.of(
-                    ("Invalid schemaRegistry: '%s'."
-                            + " Valid: %s")
+                    ("Invalid architecture.schema_registry:"
+                            + " '%s'. Valid: %s")
                             .formatted(value,
                                     String.join(", ",
                                             StackMapping
@@ -85,8 +86,8 @@ public final class StackCqrsValidator {
         if (!StackMapping.VALID_DEAD_LETTER_STRATEGIES
                 .contains(value)) {
             return List.of(
-                    ("Invalid deadLetterStrategy: '%s'."
-                            + " Valid: %s")
+                    ("Invalid architecture.dead_letter_strategy:"
+                            + " '%s'. Valid: %s")
                             .formatted(value,
                                     String.join(", ",
                                             StackMapping

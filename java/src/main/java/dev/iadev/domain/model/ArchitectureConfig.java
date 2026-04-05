@@ -6,8 +6,8 @@ import java.util.Map;
  * Represents the architecture configuration section.
  *
  * <p>The {@code style} field is required and indicates the architecture type
- * (microservice, monolith, library, hexagonal, layered, cqrs, event-driven,
- * clean). Boolean flags for DDD and event-driven patterns default to
+ * (microservice, monolith, library, hexagonal, cqrs, event-driven,
+ * clean, ddd). Boolean flags for DDD and event-driven patterns default to
  * {@code false}.</p>
  *
  * <p>The {@code validateWithArchUnit} flag controls generation of an ArchUnit

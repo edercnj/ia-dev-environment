@@ -3,7 +3,6 @@ name: x-review-security
 description: "Review code changes for compliance with selected security frameworks"
 argument-hint: "[PR number or file paths]"
 ---
-name: x-review-security
 
 # Security Compliance Review
 

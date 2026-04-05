@@ -43,10 +43,11 @@ public record SecurityConfig(List<String> frameworks) {
      */
     public static SecurityConfig fromMap(
             Map<String, Object> map) {
-        List<String> values =
-                MapHelper.optionalStringList(
-                        map, "compliance");
-        if (values.isEmpty()) {
+        List<String> values;
+        if (map.containsKey("compliance")) {
+            values = MapHelper.optionalStringList(
+                    map, "compliance");
+        } else {
             values = MapHelper.optionalStringList(
                     map, "frameworks");
         }

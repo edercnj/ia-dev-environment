@@ -100,8 +100,10 @@ public final class ValidateConfigService
         if (arch.validateWithArchUnit()
                 && (arch.basePackage() == null
                     || arch.basePackage().isBlank())) {
-            errors.add("architecture.basePackage is required"
-                    + " when validateWithArchUnit is true");
+            errors.add(
+                    "architecture.base_package is required"
+                    + " when architecture"
+                    + ".validate_with_archunit is true");
         }
     }
 }

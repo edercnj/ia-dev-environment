@@ -100,7 +100,7 @@ public final class StackResolver {
 
         return switch (style) {
             case "microservice", "hexagonal", "cqrs",
-                    "event-driven", "clean" ->
+                    "event-driven", "clean", "ddd" ->
                     microserviceType(interfaceTypes);
             case "modular-monolith", "monolith",
                     "serverless" -> "api";
