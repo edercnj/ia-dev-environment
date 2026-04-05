@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.fail;
 
 /**
  * Cross-profile consistency smoke test that validates
- * artifacts across all 8 bundled profiles.
+ * artifacts across all 12 bundled profiles.
  *
  * <p>Runs the pipeline for every profile once, then
  * compares outputs to detect:</p>
@@ -45,7 +45,7 @@ import static org.assertj.core.api.Assertions.fail;
  * domain rules, Dockerfiles) are excluded from identity
  * comparisons.</p>
  *
- * <p>RULE-001: Covers all 8 profiles.
+ * <p>RULE-001: Covers all 12 profiles.
  * RULE-002: Independent of golden files.
  * RULE-006: Output in {@code @TempDir}.</p>
  *

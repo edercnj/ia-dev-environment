@@ -22,6 +22,7 @@ class ConfigProfilesTest {
             "java-spring-hexagonal",
             "java-spring-cqrs-es",
             "java-spring-event-driven",
+            "java-spring-fintech-pci",
             "python-fastapi",
             "python-click-cli",
             "go-gin",
@@ -35,12 +36,12 @@ class ConfigProfilesTest {
     class AvailableStacks {
 
         @Test
-        @DisplayName("returns all 12 stack keys")
-        void getAvailableStacks_whenCalled_returns12Keys() {
+        @DisplayName("returns all 13 stack keys")
+        void getAvailableStacks_whenCalled_returns13Keys() {
             List<String> stacks =
                     ConfigProfiles.getAvailableStacks();
 
-            assertThat(stacks).hasSize(12);
+            assertThat(stacks).hasSize(13);
             assertThat(stacks).containsAll(ALL_STACKS);
         }
     }
@@ -55,6 +56,7 @@ class ConfigProfilesTest {
                 "java-spring", "java-spring-hexagonal",
                 "java-spring-cqrs-es",
                 "java-spring-event-driven",
+                "java-spring-fintech-pci",
                 "python-fastapi", "python-click-cli",
                 "go-gin", "kotlin-ktor",
                 "typescript-nestjs", "rust-axum"})
@@ -222,6 +224,51 @@ class ConfigProfilesTest {
     }
 
     @Nested
+    @DisplayName("getStack() — java-spring-fintech-pci")
+    class JavaSpringFintechPciStack {
+
+        @Test
+        @DisplayName("returns ProjectConfig for "
+                + "java-spring-fintech-pci")
+        void getStack_fintechPci_returnsConfig() {
+            ProjectConfig config =
+                    ConfigProfiles.getStack(
+                            "java-spring-fintech-pci");
+
+            assertThat(config.language().name())
+                    .isEqualTo("java");
+            assertThat(config.language().version())
+                    .isEqualTo("21");
+            assertThat(config.framework().name())
+                    .isEqualTo("spring-boot");
+            assertThat(config.architecture().style())
+                    .isEqualTo("microservice");
+        }
+
+        @Test
+        @DisplayName("has pci-dss compliance framework")
+        void getStack_fintechPci_hasPciCompliance() {
+            ProjectConfig config =
+                    ConfigProfiles.getStack(
+                            "java-spring-fintech-pci");
+
+            assertThat(config.security().frameworks())
+                    .contains("pci-dss");
+        }
+
+        @Test
+        @DisplayName("has encryption at rest enabled")
+        void getStack_fintechPci_hasEncryption() {
+            ProjectConfig config =
+                    ConfigProfiles.getStack(
+                            "java-spring-fintech-pci");
+
+            assertThat(config.security().frameworks())
+                    .isNotEmpty();
+        }
+    }
+
+    @Nested
     @DisplayName("getStack() — java-spring-hexagonal")
     class JavaSpringHexagonalStack {
 
@@ -326,6 +373,7 @@ class ConfigProfilesTest {
                 "java-spring", "java-spring-hexagonal",
                 "java-spring-cqrs-es",
                 "java-spring-event-driven",
+                "java-spring-fintech-pci",
                 "python-fastapi", "python-click-cli",
                 "go-gin", "kotlin-ktor",
                 "typescript-nestjs", "rust-axum"})

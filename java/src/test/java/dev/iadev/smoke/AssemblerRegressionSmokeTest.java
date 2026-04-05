@@ -42,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   <li>Output pattern violations (extensions, naming)</li>
  * </ul>
  *
- * <p>RULE-001: Parametrized for all 8 profiles.</p>
+ * <p>RULE-001: Parametrized for all 12 profiles.</p>
  * <p>RULE-002: Independent of golden files.</p>
  * <p>RULE-006: Output in {@code @TempDir}.</p>
  *
@@ -95,6 +95,7 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
      */
     static final Set<String> GRPC_PROFILES = Set.of(
             "java-spring",
+            "java-spring-fintech-pci",
             "java-quarkus",
             "go-gin",
             "rust-axum");

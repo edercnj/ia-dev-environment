@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-spring-fintech-pci-config
+  labels:
+    app: my-spring-fintech-pci
+data:
+  APP_ENV: "production"
+  LOG_LEVEL: "info"

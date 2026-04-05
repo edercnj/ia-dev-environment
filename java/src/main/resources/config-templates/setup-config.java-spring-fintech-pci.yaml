@@ -1,0 +1,168 @@
+# Claude Code Boilerplate — Java 21 + Spring Boot 3.x (Fintech PCI-DSS)
+# Run: ia-dev-env generate --stack java-spring-fintech-pci
+#
+# Inherits java-spring base with PCI-DSS compliance specialization.
+# Adds PCI-DSS compliance framework, encryption at rest, vault key
+# management, and pentest readiness for fintech projects.
+
+# ═══════════════════════════════════════════════════
+# SECTION 1: PROJECT IDENTITY
+# ═══════════════════════════════════════════════════
+project:
+  name: "my-spring-fintech-pci"
+  purpose: "Describe your PCI-DSS compliant fintech service here"
+
+# ═══════════════════════════════════════════════════
+# SECTION 2: ARCHITECTURE
+# ═══════════════════════════════════════════════════
+architecture:
+  style: microservice
+  domain_driven: true
+  event_driven: true
+
+# ═══════════════════════════════════════════════════
+# SECTION 3: INTERFACES
+# ═══════════════════════════════════════════════════
+interfaces:
+  - type: rest
+    spec: openapi
+  - type: grpc
+    spec: proto3
+  - type: event-consumer
+    broker: kafka
+  - type: event-producer
+    broker: kafka
+
+# ═══════════════════════════════════════════════════
+# SECTION 4: LANGUAGE
+# ═══════════════════════════════════════════════════
+language:
+  name: java
+  version: "21"
+
+# ═══════════════════════════════════════════════════
+# SECTION 5: FRAMEWORK
+# ═══════════════════════════════════════════════════
+framework:
+  name: spring-boot
+  version: "3.x"
+  build_tool: gradle
+  native_build: true
+
+# ═══════════════════════════════════════════════════
+# SECTION 6: DATA
+# ═══════════════════════════════════════════════════
+data:
+  database:
+    type: postgresql
+    version: "17"
+    migration: flyway
+
+  cache:
+    type: redis
+    version: "7.4"
+
+  message_broker:
+    type: kafka
+    version: "3.7"
+
+# ═══════════════════════════════════════════════════
+# SECTION 7: SECURITY
+# ═══════════════════════════════════════════════════
+security:
+  compliance:
+    - pci-dss
+    - lgpd
+  encryption:
+    at_rest: true
+    key_management: vault
+  pentest_readiness: true
+
+# ═══════════════════════════════════════════════════
+# SECTION 8: CLOUD PROVIDER
+# ═══════════════════════════════════════════════════
+cloud:
+  provider: none
+
+# ═══════════════════════════════════════════════════
+# SECTION 9: INFRASTRUCTURE
+# ═══════════════════════════════════════════════════
+infrastructure:
+  container: docker
+  orchestrator: kubernetes
+  templating: kustomize
+  iac: terraform
+  registry: none
+  api_gateway: kong
+  service_mesh: none
+
+# ═══════════════════════════════════════════════════
+# SECTION 10: OBSERVABILITY
+# ═══════════════════════════════════════════════════
+observability:
+  standard: opentelemetry
+  backend: grafana-stack
+
+# ═══════════════════════════════════════════════════
+# SECTION 11: TESTING
+# ═══════════════════════════════════════════════════
+testing:
+  smoke_tests: true
+  performance_tests: true
+  contract_tests: true
+  chaos_tests: true
+
+# ═══════════════════════════════════════════════════
+# SECTION 12: DOMAIN TEMPLATE
+# ═══════════════════════════════════════════════════
+domain:
+  template: none
+
+# ═══════════════════════════════════════════════════
+# SECTION 13: CONVENTIONS
+# ═══════════════════════════════════════════════════
+conventions:
+  code_language: en
+  commit_language: en
+  documentation_language: pt-br
+  git_scopes:
+    - { scope: "domain", area: "Core domain logic" }
+    - { scope: "infra", area: "Infrastructure and adapters" }
+    - { scope: "api", area: "REST/gRPC API layer" }
+    - { scope: "events", area: "Event producers and consumers" }
+    - { scope: "config", area: "Configuration and properties" }
+    - { scope: "security", area: "Security and compliance" }
+
+# ═══════════════════════════════════════════════════
+# SECTION 14: SKILLS
+# ═══════════════════════════════════════════════════
+skills:
+  override: auto
+
+# ═══════════════════════════════════════════════════
+# SECTION 15: AGENTS
+# ═══════════════════════════════════════════════════
+agents:
+  override: auto
+  adaptive_model:
+    junior: "haiku"
+    mid: "sonnet"
+    senior: "opus"
+
+# ═══════════════════════════════════════════════════
+# SECTION 16: HOOKS
+# ═══════════════════════════════════════════════════
+hooks:
+  post_compile: true
+
+# ═══════════════════════════════════════════════════
+# SECTION 17: SETTINGS
+# ═══════════════════════════════════════════════════
+settings:
+  auto_generate: true
+
+# ═══════════════════════════════════════════════════
+# SECTION 18: MCP SERVERS
+# ═══════════════════════════════════════════════════
+mcp:
+  servers: []
