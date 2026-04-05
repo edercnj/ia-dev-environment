@@ -70,6 +70,7 @@ public final class SkillGroupRegistry {
                 "x-threat-model",
                 "x-hardening-eval",
                 "x-runtime-protection",
+                "x-security-dashboard",
                 "x-contract-lint"));
         SKILL_GROUPS.put("testing", List.of(
                 "x-test-plan", "x-test-run", "run-e2e",

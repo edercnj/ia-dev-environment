@@ -402,12 +402,12 @@ class SecurityConfigTest {
 
     @Test
     @DisplayName("single-arg constructor defaults scanning"
-            + " to disabled")
-    void constructor_singleArg_scanningDisabled() {
+            + " to all false")
+    void constructor_singleArg_scanningDefaults() {
         var config = new SecurityConfig(List.of());
 
         assertThat(config.scanning())
-                .isEqualTo(SecurityConfig.ScanningConfig.DISABLED);
+                .isEqualTo(SecurityConfig.ScanningConfig.defaults());
         assertThat(config.scanning().containerScan())
                 .isFalse();
     }
@@ -452,10 +452,9 @@ class SecurityConfigTest {
         }
 
         @Test
-        @DisplayName("DISABLED constant has containerScan"
-                + " false")
-        void disabled_containerScan_isFalse() {
-            assertThat(SecurityConfig.ScanningConfig.DISABLED
+        @DisplayName("defaults has containerScan false")
+        void defaults_containerScan_isFalse() {
+            assertThat(SecurityConfig.ScanningConfig.defaults()
                     .containerScan()).isFalse();
         }
     }

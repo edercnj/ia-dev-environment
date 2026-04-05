@@ -398,6 +398,7 @@ class CodexConfigAssemblerTest {
                     "api-engineer",
                     "appsec-engineer",
                     "architect",
+                    "compliance-auditor",
                     "devops-engineer",
                     "devsecops-engineer",
                     "event-engineer",

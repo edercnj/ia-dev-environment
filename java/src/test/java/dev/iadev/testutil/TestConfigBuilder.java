@@ -312,6 +312,32 @@ public final class TestConfigBuilder {
         return this;
     }
 
+    public TestConfigBuilder scanningSast(boolean enabled) {
+        this.scanSast = enabled;
+        return this;
+    }
+
+    public TestConfigBuilder scanningDast(boolean enabled) {
+        this.scanDast = enabled;
+        return this;
+    }
+
+    public TestConfigBuilder scanningSecretScan(
+            boolean enabled) {
+        this.scanSecretScan = enabled;
+        return this;
+    }
+
+    public TestConfigBuilder containerScan(boolean enabled) {
+        this.scanContainerScan = enabled;
+        return this;
+    }
+
+    public TestConfigBuilder infraScan(boolean enabled) {
+        this.scanInfraScan = enabled;
+        return this;
+    }
+
     public TestConfigBuilder qualityGateProvider(
             String provider) {
         this.qgProvider = provider;

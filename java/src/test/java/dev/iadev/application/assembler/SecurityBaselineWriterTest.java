@@ -72,7 +72,9 @@ class SecurityBaselineWriterTest {
 
             SecurityConfig config = new SecurityConfig(
                     List.of(),
-                    new ScanningConfig(true, false, false));
+                    new ScanningConfig(
+                            true, false, false,
+                            false, false));
 
             List<String> result =
                     SecurityBaselineWriter
@@ -110,7 +112,8 @@ class SecurityBaselineWriterTest {
             SecurityConfig config = new SecurityConfig(
                     List.of(),
                     new ScanningConfig(
-                            false, true, false));
+                            false, false, true,
+                            false, false));
 
             List<String> result =
                     SecurityBaselineWriter
@@ -144,7 +147,8 @@ class SecurityBaselineWriterTest {
             SecurityConfig config = new SecurityConfig(
                     List.of(),
                     new ScanningConfig(
-                            false, false, true));
+                            false, true, false,
+                            false, false));
 
             List<String> result =
                     SecurityBaselineWriter
@@ -177,7 +181,9 @@ class SecurityBaselineWriterTest {
 
             SecurityConfig config = new SecurityConfig(
                     List.of(),
-                    new ScanningConfig(true, true, true));
+                    new ScanningConfig(
+                            true, true, true,
+                            false, false));
 
             List<String> result =
                     SecurityBaselineWriter
@@ -210,7 +216,9 @@ class SecurityBaselineWriterTest {
 
             SecurityConfig config = new SecurityConfig(
                     List.of(),
-                    new ScanningConfig(true, true, true));
+                    new ScanningConfig(
+                            true, true, true,
+                            false, false));
 
             List<String> result =
                     SecurityBaselineWriter
@@ -229,7 +237,9 @@ class SecurityBaselineWriterTest {
         @DisplayName("sast section has table header")
         void build_sast_hasTableHeader() {
             ScanningConfig scanning =
-                    new ScanningConfig(true, false, false);
+                    new ScanningConfig(
+                            true, false, false,
+                            false, false);
 
             String section =
                     SecurityBaselineWriter
@@ -248,7 +258,9 @@ class SecurityBaselineWriterTest {
                 + " ready commands")
         void build_sast_hasCopyPasteCommands() {
             ScanningConfig scanning =
-                    new ScanningConfig(true, false, false);
+                    new ScanningConfig(
+                            true, false, false,
+                            false, false);
 
             String section =
                     SecurityBaselineWriter
@@ -265,7 +277,8 @@ class SecurityBaselineWriterTest {
         void build_secretScan_hasValidCommand() {
             ScanningConfig scanning =
                     new ScanningConfig(
-                            false, true, false);
+                            false, false, true,
+                            false, false);
 
             String section =
                     SecurityBaselineWriter
@@ -281,7 +294,8 @@ class SecurityBaselineWriterTest {
         void build_dast_hasValidCommand() {
             ScanningConfig scanning =
                     new ScanningConfig(
-                            false, false, true);
+                            false, true, false,
+                            false, false);
 
             String section =
                     SecurityBaselineWriter
@@ -296,7 +310,9 @@ class SecurityBaselineWriterTest {
         @DisplayName("section starts with generated note")
         void build_any_startsWithGeneratedNote() {
             ScanningConfig scanning =
-                    new ScanningConfig(true, false, false);
+                    new ScanningConfig(
+                            true, false, false,
+                            false, false);
 
             String section =
                     SecurityBaselineWriter
@@ -313,7 +329,9 @@ class SecurityBaselineWriterTest {
         @DisplayName("sast produces exactly 7 data rows")
         void build_sastOnly_producesSevenRows() {
             ScanningConfig scanning =
-                    new ScanningConfig(true, false, false);
+                    new ScanningConfig(
+                            true, false, false,
+                            false, false);
 
             String section =
                     SecurityBaselineWriter
@@ -335,7 +353,8 @@ class SecurityBaselineWriterTest {
         void build_secretOnly_producesOneRow() {
             ScanningConfig scanning =
                     new ScanningConfig(
-                            false, true, false);
+                            false, false, true,
+                            false, false);
 
             String section =
                     SecurityBaselineWriter
@@ -356,7 +375,8 @@ class SecurityBaselineWriterTest {
         void build_dastOnly_producesTwoRows() {
             ScanningConfig scanning =
                     new ScanningConfig(
-                            false, false, true);
+                            false, true, false,
+                            false, false);
 
             String section =
                     SecurityBaselineWriter

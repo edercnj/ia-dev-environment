@@ -21,6 +21,10 @@ description = "Global Behavior & Language Policy"
 description = "Global Behavior & Language Policy"
 
 
+[agents.compliance-auditor]
+description = "Global Behavior & Language Policy"
+
+
 [agents.devops-engineer]
 description = "Global Behavior & Language Policy"
 

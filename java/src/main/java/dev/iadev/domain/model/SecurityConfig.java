@@ -139,13 +139,30 @@ public record SecurityConfig(
     }
 
     /**
-     * Convenience constructor for backward compatibility.
+     * Convenience constructor with only frameworks.
      *
      * @param frameworks the list of compliance framework
      *     names
      */
     public SecurityConfig(List<String> frameworks) {
-        this(frameworks, ScanningConfig.DISABLED);
+        this(frameworks, ScanningConfig.defaults(),
+                QualityGateConfig.defaults(),
+                false, DEFAULT_PENTEST_ENV);
+    }
+
+    /**
+     * Convenience constructor with frameworks and scanning.
+     *
+     * @param frameworks the list of compliance framework
+     *     names
+     * @param scanning the scanning configuration
+     */
+    public SecurityConfig(
+            List<String> frameworks,
+            ScanningConfig scanning) {
+        this(frameworks, scanning,
+                QualityGateConfig.defaults(),
+                false, DEFAULT_PENTEST_ENV);
     }
 
     /**
@@ -176,6 +193,19 @@ public record SecurityConfig(
         return new SecurityConfig(
                 values, scanning, qualityGate,
                 pentest, pentestDefaultEnv);
+    }
+
+    /**
+     * Returns true when at least one scanning flag is on.
+     *
+     * @return true if any scanning skill is enabled
+     */
+    public boolean hasAnyScanning() {
+        return scanning.sast()
+                || scanning.dast()
+                || scanning.secretScan()
+                || scanning.containerScan()
+                || scanning.infraScan();
     }
 
     private static List<String> parseFrameworks(
