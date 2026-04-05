@@ -150,19 +150,51 @@ When `--resume` is set, the orchestrator loads `execution-state.json` and applie
 
 ### Step 1 — Reclassify Story Statuses
 
-Apply the following status transitions to every story in the checkpoint:
+Apply the following status transitions to every story in the checkpoint.
+For stories with PR fields, verify actual PR status via GitHub CLI.
 
 | Current Status | New Status | Condition |
 |----------------|------------|-----------|
 | IN_PROGRESS | PENDING | Always (interrupted work) |
 | SUCCESS | SUCCESS | Preserved — never re-execute |
-| FAILED (retries < MAX_RETRIES) | PENDING | Retry candidate |
+| PR_CREATED | PR_CREATED or SUCCESS | Verify via `gh pr view {prNumber} --json state,mergedAt`: if MERGED → SUCCESS; if OPEN → keep PR_CREATED; if not found → FAILED |
+| PR_PENDING_REVIEW | PR_PENDING_REVIEW or SUCCESS | Verify via `gh pr view`: if MERGED → SUCCESS; if OPEN → keep PR_PENDING_REVIEW; if not found → FAILED |
+| PR_MERGED | SUCCESS | PR merged — story is complete |
+| FAILED (retries < MAX_RETRIES) | PENDING | Retry candidate (close open PR if exists) |
 | FAILED (retries >= MAX_RETRIES) | FAILED | Retry budget exhausted |
 | PARTIAL | PENDING | Treat as interrupted |
 | BLOCKED | BLOCKED | Deferred to reevaluation step |
 | PENDING | PENDING | No change |
 
-`MAX_RETRIES` defaults to 2. All other story fields (phase, commitSha, retries, summary, duration, findingsCount) are preserved.
+`MAX_RETRIES` defaults to 2. All other story fields (phase, commitSha, retries, summary, duration, findingsCount, prUrl, prNumber, prMergeStatus) are preserved.
+
+#### PR Status Verification
+
+For each story with a `prNumber`, verify the actual PR state:
+
+```
+state = gh pr view {prNumber} --json state,mergedAt
+if state == "MERGED":
+  update prMergeStatus = "MERGED"
+  reclassify to SUCCESS
+else if state == "OPEN":
+  keep current status (PR_CREATED or PR_PENDING_REVIEW)
+else if PR not found (error):
+  reclassify to FAILED with reason "PR not found"
+```
+
+#### Failure Handling — PR Closure (Section 1.5b)
+
+When a story transitions to FAILED and has an open PR:
+
+```
+if story.prNumber exists and story.prMergeStatus != "MERGED":
+  run: gh pr close {prNumber} --comment "Story failed: {summary}"
+  update: story.prMergeStatus = "CLOSED"
+```
+
+When a story is retried after failure, the lifecycle creates a new PR
+(the old PR was closed). The new `prUrl` and `prNumber` replace the old values.
 
 ### Step 2 — Reevaluate BLOCKED Stories
 
@@ -170,14 +202,14 @@ After reclassification, evaluate each BLOCKED story:
 
 - If `blockedBy` is **undefined** → keep BLOCKED (conservative: unknown dependencies)
 - If `blockedBy` is **empty array** → reclassify to PENDING (no dependencies = vacuously satisfied)
-- If **all** dependencies in `blockedBy` have status SUCCESS → reclassify to PENDING
+- If **all** dependencies in `blockedBy` have status SUCCESS and `prMergeStatus == "MERGED"` → reclassify to PENDING
 - If **any** dependency is non-SUCCESS or missing from the stories map → keep BLOCKED
 
 This is a **single-pass** evaluation (no cascade). Stories unblocked in this pass will not trigger further unblocking of stories that depend on them.
 
 ### Step 3 — Resume Execution (formerly Step 4)
 
-After reclassification and branch recovery, feed the updated state into `getExecutableStories()` to determine which stories are ready for execution. Only stories with status PENDING proceed to the execution loop.
+After reclassification and PR verification, feed the updated state into `getExecutableStories()` to determine which stories are ready for execution. Only stories with status PENDING proceed to the execution loop. The orchestrator remains on `main` during resume — no epic branch recovery is needed.
 
 ## Phase 0.5 — Pre-flight Conflict Analysis
 
