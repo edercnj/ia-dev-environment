@@ -9,13 +9,13 @@
   },
   "stories": {
     "story-0016-0001": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "32cad592", "findingsCount": 0, "summary": "Added optional compliance field to ProjectConfig with validation (none, pci-dss), backward compatible, 12 new tests", "duration": null },
-    "story-0016-0004": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "3f4ce184", "findingsCount": 0, "summary": "Created x-spec-drift-check skill template, registered in SkillGroupRegistry review group, 26 new tests, golden files updated for all profiles", "duration": null },
-    "story-0016-0006": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "5f338f61", "findingsCount": 0, "summary": "Quality Gate scoring engine in domain.qualitygate: QualityGateEngine, VaguenessDetector, ScenarioScorer, StoryMarkdownParser, ReportFormatter. 98 new tests, domain-pure", "duration": null },
-    "story-0016-0008": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "c4b473f0", "findingsCount": 0, "summary": "Traceability domain: StoryRequirementParser, TestMethodScanner, TestCorrelator, 4 value objects. 59 new tests, domain-pure", "duration": null },
-    "story-0016-0002": { "phase": 1, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
-    "story-0016-0005": { "phase": 1, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
-    "story-0016-0007": { "phase": 1, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
-    "story-0016-0009": { "phase": 1, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
+    "story-0016-0004": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "3f4ce184", "findingsCount": 0, "summary": "Created x-spec-drift-check skill template, registered in SkillGroupRegistry review group, 26 new tests, golden files updated", "duration": null },
+    "story-0016-0006": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "5f338f61", "findingsCount": 0, "summary": "Quality Gate scoring engine in domain.qualitygate: QualityGateEngine, VaguenessDetector, ScenarioScorer, 98 new tests", "duration": null },
+    "story-0016-0008": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "c4b473f0", "findingsCount": 0, "summary": "Traceability domain: StoryRequirementParser, TestMethodScanner, TestCorrelator, 59 new tests", "duration": null },
+    "story-0016-0002": { "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "4301285e", "findingsCount": 0, "summary": "ConstitutionAssembler + CONSTITUTION.md Pebble template, conditional on compliance field, 19 new tests", "duration": null },
+    "story-0016-0005": { "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "d179a55f", "findingsCount": 0, "summary": "x-spec-drift-check inline mode for TDD loop integration, compact output, non-blocking WARN, critical drift pause", "duration": null },
+    "story-0016-0007": { "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "a57b1ea4", "findingsCount": 0, "summary": "Quality gate integrated into x-story-create skill template with --quality-threshold flag and 6-dimension scoring", "duration": null },
+    "story-0016-0009": { "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "36794c65", "findingsCount": 0, "summary": "Traceability matrix domain models + x-test-run skill integration with --traceability flag", "duration": null },
     "story-0016-0003": { "phase": 2, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
     "story-0016-0010": { "phase": 2, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
     "story-0016-0013": { "phase": 2, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
@@ -27,16 +27,15 @@
   "phases": {
     "0": {
       "status": "SUCCESS",
-      "integrityGate": {
-        "status": "PASS",
-        "testCount": 3460,
-        "coverage": null,
-        "branchCoverage": null
-      }
+      "integrityGate": { "status": "PASS", "testCount": 3460, "coverage": null, "branchCoverage": null }
+    },
+    "1": {
+      "status": "SUCCESS",
+      "integrityGate": { "status": "PASS", "testCount": 3514, "coverage": null, "branchCoverage": null }
     }
   },
   "metrics": {
-    "storiesCompleted": 4,
+    "storiesCompleted": 8,
     "storiesFailed": 0,
     "storiesBlocked": 0,
     "storiesTotal": 15
