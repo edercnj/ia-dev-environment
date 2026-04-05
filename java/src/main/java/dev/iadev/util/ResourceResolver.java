@@ -44,7 +44,7 @@ public final class ResourceResolver {
      * directory does not exist.</p>
      *
      * @param relativePath path relative to resources root
-     *                     (e.g. {@code "databases/cache/redis"})
+     *                     (e.g. {@code "knowledge/databases/cache/redis"})
      * @return absolute filesystem path to the directory
      * @throws IllegalArgumentException if the directory
      *         cannot be found
@@ -70,6 +70,13 @@ public final class ResourceResolver {
                     "Path traversal (..) is not allowed: "
                             + relativePath);
         }
+        if (relativePath.startsWith("/")
+                || relativePath.matches(
+                        "^[A-Za-z]:[\\\\/].*")) {
+            throw new IllegalArgumentException(
+                    "Absolute paths are not allowed: "
+                            + relativePath);
+        }
     }
 
     private static Path doResolveDir(
@@ -80,8 +87,14 @@ public final class ResourceResolver {
                 : relativePath;
 
         Path root = doResolveRoot(firstSegment, 1);
-        Path resolved = root.resolve(relativePath);
+        Path resolved =
+                root.resolve(relativePath).normalize();
 
+        if (!resolved.startsWith(root)) {
+            throw new IllegalArgumentException(
+                    "Resolved path escapes resource root: "
+                            + relativePath);
+        }
         if (!Files.isDirectory(resolved)) {
             throw new IllegalArgumentException(
                     "Resource directory not found: "

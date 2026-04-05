@@ -288,6 +288,23 @@ class ResourceResolverTest {
                             IllegalArgumentException.class)
                     .hasMessageContaining("..");
         }
+
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "/etc/passwd",
+                "/tmp/secret",
+                "C:\\Windows\\System32"
+        })
+        @DisplayName("absolute path throws exception")
+        void absolutePath_whenCalled_throwsException(
+                String absolute) {
+            assertThatThrownBy(() ->
+                    ResourceResolver.resolveResourceDir(
+                            absolute))
+                    .isInstanceOf(
+                            IllegalArgumentException.class)
+                    .hasMessageContaining("Absolute");
+        }
     }
 
     @Nested
