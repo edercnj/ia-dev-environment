@@ -46,6 +46,7 @@ ERROR: Epic ID is required. Usage: /x-dev-epic-implement [EPIC-ID] [flags]
 | `--resume` | boolean | `false` | Continue from last checkpoint (execution-state.json) |
 | `--sequential` | boolean | `false` | Disable parallel worktrees, execute stories one at a time |
 | `--skip-smoke-gate` | boolean | `false` | Skip smoke tests in the integrity gate between phases |
+| `--max-retries` | number | `2` | Maximum retry attempts for failed stories |
 
 ## Prerequisites Check
 
@@ -430,16 +431,18 @@ Skip review reason: {skipReviewReason}
 
 You have access to the Skill tool. Invoke /x-dev-lifecycle skill with argument {storyId}.
 
-The /x-dev-lifecycle skill executes the full 9-phase workflow:
-  Phase 0 — Branch & Setup
-  Phase 1 — Planning & Task Decomposition
+The /x-dev-lifecycle skill executes the full workflow:
+  Phase 0 — Preparation
+  Phase 1 — Planning (Architecture + Test Plan)
   Phase 2 — Implementation (TDD Red-Green-Refactor)
-  Phase 3 — Test Execution & Coverage Validation
+  Phase 3A — Documentation (Structural)
   Phase 4 — Specialist Review (via /x-review)
-  Phase 5 — Fix Review Findings
-  Phase 6 — PR Creation
+  Phase 5 — Fixes
+  Phase 6 — Commit & PR
   Phase 7 — Tech Lead Review (via /x-review-pr)
-  Phase 8 — Final Verification & DoD Validation
+  Phase 3B — Documentation (Changelog)
+  Phase 8 — Final Verification & DoD Enforcement Gate
+  Phase 8.5 — PO Acceptance Gate
 
 Phase 8 is the ONLY legitimate stop point. The subagent MUST NOT stop
 before Phase 8 unless a phase returns a terminal failure. Any early stop
@@ -962,8 +965,8 @@ Launch a `general-purpose` subagent:
 > - Otherwise → proceed to Step 4.6
 > **Step 4.6 — Conventional Commits Validation:** Validate that all commits in the current phase follow Conventional Commits format.
 > For each commit in the git log of the current phase:
-> 1. Validate regex: `^(feat|fix|refactor|test|docs|build|chore|infra)(\([a-z0-9-]+\))?: .{1,72}$`
-> 2. Type must be one of the 8 allowed types: `feat`, `fix`, `refactor`, `test`, `docs`, `build`, `chore`, `infra`
+> 1. Validate regex: `^(feat|fix|refactor|test|docs|build|chore|infra|perf)(\([a-z0-9-]+\))?: .{1,72}$`
+> 2. Type must be one of the 9 allowed types: `feat`, `fix`, `refactor`, `test`, `docs`, `build`, `chore`, `infra`, `perf`
 > 3. Scope presence: WARNING if absent (not blocking — scope is recommended but optional)
 > 4. Subject must be <= 72 characters and must not end with a trailing period
 > 5. Count violations: `ccViolationCount` (commits that fail the regex or have invalid type/subject)
@@ -1066,7 +1069,7 @@ result. The gate runs after phase 0, 1, 2, and 3 — one gate per phase.
 
 The Conventional Commits validation (Step 4.6) is mandatory and cannot be bypassed. A FAIL result
 (3+ violations) blocks phase advancement. A WARNING result (1–2 violations) is logged but does not
-block. The validation uses the regex `^(feat|fix|refactor|test|docs|build|chore|infra)(\([a-z0-9-]+\))?: .{1,72}$`.
+block. The validation uses the regex `^(feat|fix|refactor|test|docs|build|chore|infra|perf)(\([a-z0-9-]+\))?: .{1,72}$`.
 
 The smoke gate within the integrity gate is also mandatory by default. It can only be bypassed with
 the `--skip-smoke-gate` flag, which records `smokeGate.status = "SKIP"` in the checkpoint. When
@@ -1609,7 +1612,7 @@ Return to main branch: `git checkout main && git pull origin main`
 - Writes: `plans/epic-XXXX/plans/preflight-analysis-phase-N.md` (pre-flight analysis output for audit, Phase 0.5)
 - Phase 0.5 is skipped when `--sequential` is set (no parallel dispatch means no conflict risk)
 - All `{{PLACEHOLDER}}` tokens are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
-- Integrity gate includes Conventional Commits validation (Step 4.6) — validates commit format with regex `^(feat|fix|refactor|test|docs|build|chore|infra)(\([a-z0-9-]+\))?: .{1,72}$`; FAIL on 3+ violations, WARNING on 1–2
+- Integrity gate includes Conventional Commits validation (Step 4.6) — validates commit format with regex `^(feat|fix|refactor|test|docs|build|chore|infra|perf)(\([a-z0-9-]+\))?: .{1,72}$`; FAIL on 3+ violations, WARNING on 1–2
 - Integrity gate includes smoke tests (Step 5) as regression validation after each phase — runs `{{SMOKE_COMMAND}}` (e.g., `cd java && mvn verify -P integration-tests`)
 - Smoke gate is bypassed with `--skip-smoke-gate` flag; result recorded as `smokeGate.status = "SKIP"` in checkpoint
 - Per-story smoke tests run via `x-dev-lifecycle` Phase 2.5; integrity gate smoke tests are an additional cross-story regression check
