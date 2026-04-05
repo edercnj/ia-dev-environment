@@ -338,7 +338,7 @@ The adjusted execution plan produced by Phase 0.5 is consumed by the Core Loop:
    ```
    git checkout feat/epic-{epicId}-full-implementation
    ```
-   [Placeholder: resume from checkpoint — story-0005-0008]
+   See Resume Workflow section above.
 
 ### 1.3 Core Loop Algorithm
 
@@ -350,7 +350,12 @@ For each phase in (0..totalPhases-1):
      → Load preflight-analysis-phase-{N}.md if it exists
      → Extract parallelBatch and sequentialQueue story lists
      → If no preflight analysis exists, treat all stories as parallel-eligible
-  1. Call getExecutableStories(parsedMap, executionState)
+  1. Apply partial execution filter before dependency checking:
+     a. If `--phase N` is active: filter parsedMap.stories to only stories in phase N
+     b. If `--story ID` is active: filter parsedMap.stories to only the specified story;
+        validate all its dependencies have status SUCCESS before proceeding
+     c. If neither flag is active: no filtering (all stories are candidates)
+     Then call getExecutableStories(filteredMap, executionState)
      → Returns stories sorted by critical path priority (RULE-007)
      → Only PENDING stories with all dependencies SUCCESS are returned
   2. If no executable stories and some remain PENDING:
@@ -366,7 +371,10 @@ For each phase in (0..totalPhases-1):
      b. Dispatch subagent (see 1.4 or 1.4a)
      c. Validate result (see 1.5)
      d. Update checkpoint (see 1.6)
-  7. [Placeholder: integrity gate between phases — story-0005-0006]
+  7. Run Integrity Gate (see Integrity Gate section below):
+     a. Dispatch integrity gate subagent with compile, test, coverage, and commit validation
+     b. On PASS → continue to next phase
+     c. On FAIL → halt execution, report failures, require --resume after fix
   8. Run Cross-Story Consistency Gate (Section 1.8):
      a. Dispatch consistency gate subagent with all completed stories from this phase
      b. Subagent checks 4 dimensions: interface, naming, duplicate, dependency
@@ -374,7 +382,22 @@ For each phase in (0..totalPhases-1):
      d. On WARN → log warnings, continue to next phase
      e. On FAIL → pause execution, report to user, require --resume after manual fix
      f. Record consistencyGate result in checkpoint via updateConsistencyGate()
-  9. [Placeholder: progress reporting — story-0005-0013]
+  9. Emit progress report after each story completes and checkpoint is updated:
+     ```
+     >>> Epic {epicId} Progress: Phase {phase} — {completed}/{total} stories
+         ({percentage}% complete). Last: {storyId} = {status}. Elapsed: {elapsed}
+     ```
+     Where:
+     - `{completed}` = number of stories with status SUCCESS in current phase
+     - `{total}` = total stories in current phase
+     - `{percentage}` = Math.round((completed / total) * 100)
+     - `{status}` = result status of the last dispatched story (SUCCESS, FAILED, BLOCKED)
+     - `{elapsed}` = wall-clock time since phase start (e.g., "2m 34s")
+     Also emit a cumulative epic-level progress line:
+     ```
+     >>> Epic {epicId} Overall: {totalCompleted}/{totalStories} stories
+         ({overallPercentage}% complete). Elapsed: {totalElapsed}
+     ```
   10. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
 ```
 
@@ -911,16 +934,6 @@ in the checkpoint. If yes:
    - Find the transition to "Done"
    - Call `mcp__atlassian__transitionJiraIssue`
    - If transition fails: log warning, continue (non-blocking)
-
-### 1.7 Extension Points
-
-The following sections are placeholders for downstream stories:
-
-- [Placeholder: integrity gate between phases — story-0005-0006]
-- ~~retry + block propagation~~ → Implemented in Section 1.5b (Failure Handling, Rollback, and Retry)
-- [Placeholder: resume from checkpoint — story-0005-0008]
-- ~~cross-story consistency gate~~ → Implemented in Section 1.8 (Cross-Story Consistency Gate)
-- [Placeholder: progress reporting — story-0005-0013]
 
 ### Integrity Gate (Between Phases)
 
