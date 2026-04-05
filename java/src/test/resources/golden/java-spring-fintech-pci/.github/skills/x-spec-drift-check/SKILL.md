@@ -4,7 +4,6 @@ description: >
   Detects spec-code drift by comparing story data contracts, endpoints, and Gherkin
   scenarios against implemented code. Supports standalone mode (full report) and inline
   mode (compact output for TDD loop integration in x-dev-lifecycle Phase 2).
-  Reference: `.github/skills/x-spec-drift-check/SKILL.md`
 ---
 
 # Skill: Spec Drift Check
