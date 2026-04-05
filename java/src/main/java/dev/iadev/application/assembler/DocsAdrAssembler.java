@@ -62,7 +62,7 @@ public final class DocsAdrAssembler implements Assembler {
     private static final String TEMPLATE_FILENAME =
             "_TEMPLATE-ADR.md";
     private static final String TEMPLATES_SUBDIR =
-            "templates";
+            "shared/templates";
     private static final String ADR_OUTPUT_SUBDIR =
             "adr";
     private static final String README_FILENAME =
@@ -258,6 +258,6 @@ public final class DocsAdrAssembler implements Assembler {
                 .resolveResourcesRoot(
                         TEMPLATES_SUBDIR + "/"
                                 + TEMPLATE_FILENAME,
-                        2);
+                        3);
     }
 }

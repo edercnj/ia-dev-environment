@@ -30,15 +30,15 @@ class ComplianceSkillContentTest {
     @BeforeAll
     static void loadTemplates() throws IOException {
         Path skillPath = Path.of(
-                "src/main/resources/skills-templates"
-                        + "/conditional"
+                "src/main/resources/targets/claude"
+                        + "/skills/conditional"
                         + "/x-review-compliance/SKILL.md");
         skillContent = Files.readString(
                 skillPath, StandardCharsets.UTF_8);
 
         Path rulePath = Path.of(
-                "src/main/resources/core-rules"
-                        + "/conditional"
+                "src/main/resources/targets/claude"
+                        + "/rules/conditional"
                         + "/11-security-pci.md");
         ruleContent = Files.readString(
                 rulePath, StandardCharsets.UTF_8);

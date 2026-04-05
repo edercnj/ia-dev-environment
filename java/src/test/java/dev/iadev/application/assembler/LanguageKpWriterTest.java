@@ -58,7 +58,7 @@ class LanguageKpWriterTest {
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path langParent =
-                    resourceDir.resolve("languages");
+                    resourceDir.resolve("knowledge/languages");
             Files.createDirectories(langParent);
             Files.writeString(
                     langParent.resolve("java"),
@@ -87,7 +87,7 @@ class LanguageKpWriterTest {
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path common = resourceDir.resolve(
-                    "languages/java/common");
+                    "knowledge/languages/java/common");
             Files.createDirectories(common);
             Files.writeString(
                     common.resolve("coding-style.md"),
@@ -129,7 +129,7 @@ class LanguageKpWriterTest {
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path langDir = resourceDir.resolve(
-                    "languages/java");
+                    "knowledge/languages/java");
             Files.createDirectories(langDir);
             Path skillsDir = tempDir.resolve("skills");
             Files.createDirectories(skillsDir);

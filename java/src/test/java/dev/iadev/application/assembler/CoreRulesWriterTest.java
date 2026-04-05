@@ -38,7 +38,7 @@ class CoreRulesWriterTest {
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path coreRules =
-                    resourceDir.resolve("core-rules");
+                    resourceDir.resolve("targets/claude/rules");
             Files.createDirectories(coreRules);
             Files.writeString(
                     coreRules.resolve("03-test.md"),
@@ -64,7 +64,7 @@ class CoreRulesWriterTest {
         }
 
         @Test
-        @DisplayName("missing core-rules dir returns empty")
+        @DisplayName("missing rules dir returns empty")
         void write_missingDir_returnsEmpty(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
@@ -114,7 +114,7 @@ class CoreRulesWriterTest {
         void write_missingRouteSource_skips(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
-            Path coreDir = resourceDir.resolve("core");
+            Path coreDir = resourceDir.resolve("knowledge/core");
             Files.createDirectories(coreDir);
             Path skillsDir = tempDir.resolve("skills");
             Files.createDirectories(skillsDir);
@@ -140,7 +140,7 @@ class CoreRulesWriterTest {
         void write_routeSourceIsDirectory_skips(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
-            Path coreDir = resourceDir.resolve("core");
+            Path coreDir = resourceDir.resolve("knowledge/core");
             Files.createDirectories(coreDir);
             // Create a directory where a file is expected
             Files.createDirectories(
@@ -207,7 +207,7 @@ class CoreRulesWriterTest {
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path templates =
-                    resourceDir.resolve("templates");
+                    resourceDir.resolve("shared/templates");
             Files.createDirectories(templates);
             Files.writeString(
                     templates.resolve("domain-template.md"),
@@ -298,7 +298,7 @@ class CoreRulesWriterTest {
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path condRules = resourceDir.resolve(
-                    "core-rules/conditional");
+                    "targets/claude/rules/conditional");
             Files.createDirectories(condRules);
             Files.writeString(
                     condRules.resolve(
@@ -344,7 +344,7 @@ class CoreRulesWriterTest {
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path condRules = resourceDir.resolve(
-                    "core-rules/conditional");
+                    "targets/claude/rules/conditional");
             Files.createDirectories(condRules);
             Files.writeString(
                     condRules.resolve(

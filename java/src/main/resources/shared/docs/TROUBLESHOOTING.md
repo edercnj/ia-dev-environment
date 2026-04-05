@@ -112,7 +112,7 @@ Cannot create file: Operation not permitted
 1. **Check permissions on target directory:**
    ```bash
    ls -ld .claude/
-   ls -ld core-rules/
+   ls -ld targets/claude/rules/
    ls -ld docs/
    ```
 
@@ -122,14 +122,14 @@ Cannot create file: Operation not permitted
    whoami
 
    # If not owner, fix permissions
-   chmod -R u+rwx .claude/ core-rules/ docs/
+   chmod -R u+rwx .claude/ targets/claude/rules/ docs/
    ```
 
 3. **Fix directory permissions:**
    ```bash
    # Make directory writable by owner
    chmod u+w .claude/
-   chmod u+w core-rules/
+   chmod u+w targets/claude/rules/
 
    # Make all subdirectories accessible
    chmod -R u+rwx .claude/
@@ -352,7 +352,7 @@ Syntax error: bad substitution
 ```
 Error: Output directory is empty
 Error: No files generated
-Error: core-rules/ is empty
+Error: targets/claude/rules/ is empty
 Error: docs/ is empty
 ```
 
@@ -367,7 +367,7 @@ Error: docs/ is empty
 
 1. **Check directory contents:**
    ```bash
-   ls -la core-rules/
+   ls -la targets/claude/rules/
    ls -la docs/
    find . -name "*.md" -o -name "*.yaml" | wc -l
    ```
@@ -392,23 +392,23 @@ Error: docs/ is empty
 
 4. **Verify permissions on output directories:**
    ```bash
-   chmod -R u+w core-rules/ docs/
+   chmod -R u+w targets/claude/rules/ docs/
    ```
 
 5. **Check if generation step completed:**
    ```bash
    # Look for generation markers or timestamps
-   stat core-rules/
+   stat targets/claude/rules/
    # Should have recent modification time
    ```
 
 6. **Try cleaning and regenerating:**
    ```bash
    # Backup existing files if important
-   cp -r core-rules core-rules.backup
+   cp -r targets/claude/rules targets/claude/rules.backup
 
    # Remove generated files
-   rm -rf core-rules/* docs/*.md
+   rm -rf targets/claude/rules/* docs/*.md
 
    # Re-run setup
    bash setup.sh
@@ -455,7 +455,7 @@ If you're using an old setup.sh:
    cp .claude/config.yaml config.backup.yaml
 
    # Remove all generated content
-   rm -rf core-rules/*
+   rm -rf targets/claude/rules/*
    rm -rf docs/*.md
 
    # Verify clean state
@@ -554,6 +554,6 @@ If troubleshooting doesn't resolve the issue:
 4. **Verify generated files are correct:**
    ```bash
    # After successful setup, validate generated files
-   find core-rules -name "*.md" | wc -l  # Should have multiple files
-   grep -l "# Rule" core-rules/*.md | wc -l  # Check content is real
+   find targets/claude/rules -name "*.md" | wc -l  # Should have multiple files
+   grep -l "# Rule" targets/claude/rules/*.md | wc -l  # Check content is real
    ```

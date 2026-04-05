@@ -3,7 +3,7 @@
 > Branch: `{{BRANCH}}`
 > Started: {{STARTED_AT}} | Finished: {{FINISHED_AT}}
 
-## Executive Summary
+## Sumário Executivo
 
 | Metric | Value |
 |--------|-------|
@@ -13,15 +13,15 @@
 | Stories Total | {{STORIES_TOTAL}} |
 | Completion | {{COMPLETION_PERCENTAGE}} |
 
-## Execution Timeline
+## Timeline de Execução
 
 {{PHASE_TIMELINE_TABLE}}
 
-## Final Story Status
+## Status Final por Story
 
 {{STORY_STATUS_TABLE}}
 
-## Consolidated Findings
+## Findings Consolidados
 
 {{FINDINGS_SUMMARY}}
 
@@ -43,35 +43,11 @@
 
 {{TDD_SUMMARY}}
 
-## Review Scores Per Story
-
-| Story | Specialist Score | Tech Lead Score | Overall |
-|---|---|---|---|
-{{REVIEW_SCORES_TABLE}}
-
-## Coverage Trend
-
-| Story | Line Coverage | Branch Coverage | Delta |
-|---|---|---|---|
-{{COVERAGE_TREND_TABLE}}
-
-## Conventional Commits Compliance
-
-| Story | Total Commits | CC Violations | Status |
-|---|---|---|---|
-{{CC_COMPLIANCE_TABLE}}
-
-## PO Acceptance
-
-| Story | @GK-N Coverage | AT-N Status | Decision |
-|---|---|---|---|
-{{PO_ACCEPTANCE_TABLE}}
-
-## Commits and SHAs
+## Commits e SHAs
 
 {{COMMIT_LOG}}
 
-## Unresolved Issues
+## Issues Não Resolvidos
 
 {{UNRESOLVED_ISSUES}}
 

@@ -39,7 +39,7 @@ public final class ConstitutionAssembler
         implements Assembler {
 
     private static final String TEMPLATE_PATH =
-            "templates/constitution/CONSTITUTION.md";
+            "shared/templates/constitution/CONSTITUTION.md";
     static final String OUTPUT_FILENAME =
             "CONSTITUTION.md";
     static final String SKIP_MESSAGE =
@@ -189,6 +189,6 @@ public final class ConstitutionAssembler
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(TEMPLATE_PATH, 3);
+                .resolveResourcesRoot(TEMPLATE_PATH, 4);
     }
 }

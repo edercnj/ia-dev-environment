@@ -221,6 +221,6 @@ class K8sManifestAssemblerTest {
 
     private static Path resolveResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot("cicd-templates");
+                .resolveResourcesRoot("shared/cicd-templates", 2);
     }
 }

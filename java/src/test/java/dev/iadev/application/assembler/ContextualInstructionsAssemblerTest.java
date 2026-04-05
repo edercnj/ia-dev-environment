@@ -84,7 +84,7 @@ class ContextualInstructionsAssemblerTest {
             Path resourceDir =
                     tempDir.resolve("partial-res");
             Path templatesDir = resourceDir.resolve(
-                    "github-instructions-templates");
+                    "targets/github-copilot/instructions");
             Files.createDirectories(templatesDir);
             Files.writeString(
                     templatesDir.resolve("domain.md"),
@@ -224,6 +224,7 @@ class ContextualInstructionsAssemblerTest {
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
                 .resolveResourcesRoot(
-                        "github-instructions-templates");
+                        "targets/github-copilot/instructions",
+                        3);
     }
 }

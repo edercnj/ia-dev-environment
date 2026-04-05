@@ -40,7 +40,7 @@ public final class OperationalRunbookAssembler
         implements Assembler {
 
     private static final String TEMPLATE_PATH =
-            "templates/_TEMPLATE-OPERATIONAL-RUNBOOK.md";
+            "shared/templates/_TEMPLATE-OPERATIONAL-RUNBOOK.md";
     private static final String OUTPUT_SUBDIR =
             "results/runbooks";
     private static final String OUTPUT_FILENAME =
@@ -100,6 +100,6 @@ public final class OperationalRunbookAssembler
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(TEMPLATE_PATH, 2);
+                .resolveResourcesRoot(TEMPLATE_PATH, 3);
     }
 }

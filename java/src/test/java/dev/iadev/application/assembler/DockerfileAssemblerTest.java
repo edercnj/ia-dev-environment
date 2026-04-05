@@ -111,7 +111,7 @@ class DockerfileAssemblerTest {
                     new DockerfileAssembler();
             Path resDir = tempDir.resolve("res");
             Files.createDirectories(
-                    resDir.resolve("cicd-templates"));
+                    resDir.resolve("shared/cicd-templates"));
             Path outputDir = tempDir.resolve("output");
 
             ProjectConfig config = TestConfigBuilder
@@ -146,6 +146,6 @@ class DockerfileAssemblerTest {
 
     private static Path resolveResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot("cicd-templates");
+                .resolveResourcesRoot("shared/cicd-templates", 2);
     }
 }

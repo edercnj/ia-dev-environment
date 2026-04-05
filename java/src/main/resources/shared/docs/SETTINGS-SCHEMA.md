@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `settings-templates/` directory contains JSON configuration files that define which command patterns are permitted for different tools, languages, and platforms within the Claude Code environment. These settings are used to control and restrict what commands can be executed through the Bash tool during code generation and development workflows.
+The `targets/claude/settings/` directory contains JSON configuration files that define which command patterns are permitted for different tools, languages, and platforms within the Claude Code environment. These settings are used to control and restrict what commands can be executed through the Bash tool during code generation and development workflows.
 
 ## Purpose
 
@@ -291,7 +291,7 @@ Settings templates use only allow-lists, never deny-lists. This prevents acciden
 
 To add a new settings template for a tool or platform:
 
-1. **Create the file** in `settings-templates/` with appropriate naming
+1. **Create the file** in `targets/claude/settings/` with appropriate naming
 2. **Define allowed patterns** as a JSON array of strings
 3. **Document in this schema** the purpose and use cases
 4. **Test with projects** that use the new tool

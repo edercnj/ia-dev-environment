@@ -36,7 +36,7 @@ public final class GithubHooksAssembler
         implements Assembler {
 
     private static final String TEMPLATES_DIR =
-            "github-hooks-templates";
+            "targets/github-copilot/hooks";
     private static final String HOOKS_OUTPUT = "hooks";
 
     /** The 3 GitHub Copilot hook template filenames. */
@@ -99,6 +99,6 @@ public final class GithubHooksAssembler
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(TEMPLATES_DIR);
+                .resolveResourcesRoot(TEMPLATES_DIR, 3);
     }
 }

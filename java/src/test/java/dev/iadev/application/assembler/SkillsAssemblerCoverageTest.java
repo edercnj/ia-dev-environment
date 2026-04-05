@@ -45,10 +45,10 @@ class SkillsAssemblerCoverageTest {
         void assemble_coreDir_isFile(@TempDir Path tempDir)
                 throws IOException {
             Files.createDirectories(
-                    tempDir.resolve("skills-templates"));
+                    tempDir.resolve("targets/claude/skills"));
             Files.writeString(
                     tempDir.resolve(
-                            "skills-templates/core"),
+                            "targets/claude/skills/core"),
                     "not a dir");
 
             SkillsAssembler assembler =
@@ -66,7 +66,7 @@ class SkillsAssemblerCoverageTest {
         void assemble_whenCalled_libSubdirPrefixed(@TempDir Path tempDir)
                 throws IOException {
             Path core = tempDir.resolve(
-                    "skills-templates/core");
+                    "targets/claude/skills/core");
             Files.createDirectories(
                     core.resolve("lib/x-lib-tool"));
             Files.createDirectories(
@@ -94,7 +94,7 @@ class SkillsAssemblerCoverageTest {
         void assembleConditional_whenCalled_conditionalDirMissing(@TempDir Path tempDir)
                 throws IOException {
             Path core = tempDir.resolve(
-                    "skills-templates/core");
+                    "targets/claude/skills/core");
             Files.createDirectories(core);
 
             Path outputDir = tempDir.resolve("output");
@@ -124,7 +124,7 @@ class SkillsAssemblerCoverageTest {
         void assembleKnowledge_whenCalled_kpDirMissing(@TempDir Path tempDir)
                 throws IOException {
             Path core = tempDir.resolve(
-                    "skills-templates/core");
+                    "targets/claude/skills/core");
             Files.createDirectories(core);
 
             Path outputDir = tempDir.resolve("output");
@@ -147,7 +147,7 @@ class SkillsAssemblerCoverageTest {
         void assembleKnowledge_whenCalled_kpWithSkillMd(@TempDir Path tempDir)
                 throws IOException {
             Path kpDir = tempDir.resolve(
-                    "skills-templates/knowledge-packs"
+                    "targets/claude/skills/knowledge-packs"
                             + "/architecture");
             Files.createDirectories(kpDir);
             Files.writeString(
@@ -163,7 +163,7 @@ class SkillsAssemblerCoverageTest {
                     StandardCharsets.UTF_8);
 
             Path core = tempDir.resolve(
-                    "skills-templates/core");
+                    "targets/claude/skills/core");
             Files.createDirectories(core);
 
             Path outputDir = tempDir.resolve("output");
@@ -188,7 +188,7 @@ class SkillsAssemblerCoverageTest {
         void assembleKnowledge_whenCalled_kpWithoutSkillMd(@TempDir Path tempDir)
                 throws IOException {
             Path kpDir = tempDir.resolve(
-                    "skills-templates/knowledge-packs"
+                    "targets/claude/skills/knowledge-packs"
                             + "/testing");
             Files.createDirectories(kpDir);
             Files.writeString(
@@ -197,7 +197,7 @@ class SkillsAssemblerCoverageTest {
                     StandardCharsets.UTF_8);
 
             Path core = tempDir.resolve(
-                    "skills-templates/core");
+                    "targets/claude/skills/core");
             Files.createDirectories(core);
 
             Path outputDir = tempDir.resolve("output");
@@ -225,7 +225,7 @@ class SkillsAssemblerCoverageTest {
         void copyStackPatterns_whenCalled_unknownFrameworkNoPatterns(
                 @TempDir Path tempDir) throws IOException {
             Path core = tempDir.resolve(
-                    "skills-templates/core");
+                    "targets/claude/skills/core");
             Files.createDirectories(core);
 
             Path outputDir = tempDir.resolve("output");
@@ -250,7 +250,7 @@ class SkillsAssemblerCoverageTest {
         void copyStackPatterns_whenCalled_stackPatternDirMissing(
                 @TempDir Path tempDir) throws IOException {
             Path core = tempDir.resolve(
-                    "skills-templates/core");
+                    "targets/claude/skills/core");
             Files.createDirectories(core);
 
             Path outputDir = tempDir.resolve("output");
@@ -280,7 +280,7 @@ class SkillsAssemblerCoverageTest {
         void copyInfraPatterns_whenCalled_infraNotIncludedSkipped(
                 @TempDir Path tempDir) throws IOException {
             Path core = tempDir.resolve(
-                    "skills-templates/core");
+                    "targets/claude/skills/core");
             Files.createDirectories(core);
 
             Path outputDir = tempDir.resolve("output");
@@ -306,7 +306,7 @@ class SkillsAssemblerCoverageTest {
         void copyInfraPatterns_whenCalled_infraDirMissingSkipped(
                 @TempDir Path tempDir) throws IOException {
             Path core = tempDir.resolve(
-                    "skills-templates/core");
+                    "targets/claude/skills/core");
             Files.createDirectories(core);
 
             Path outputDir = tempDir.resolve("output");

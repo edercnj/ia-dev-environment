@@ -19,7 +19,7 @@ import java.util.Map;
 public final class CodexOverrideAssembler implements Assembler {
 
     private static final String TEMPLATE_PATH =
-            "codex-templates/agents-override.md.njk";
+            "targets/codex/templates/agents-override.md.njk";
 
     @Override
     public List<String> assemble(

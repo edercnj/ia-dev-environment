@@ -37,7 +37,7 @@ public final class PrIssueTemplateAssembler
         implements Assembler {
 
     private static final String TEMPLATES_DIR =
-            "github-pr-issue-templates";
+            "targets/github-copilot/pr-issue-templates";
     private static final String ISSUE_TEMPLATE_DIR =
             "ISSUE_TEMPLATE";
     private static final String J2_SUFFIX = ".j2";
@@ -184,6 +184,6 @@ public final class PrIssueTemplateAssembler
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(TEMPLATES_DIR);
+                .resolveResourcesRoot(TEMPLATES_DIR, 3);
     }
 }

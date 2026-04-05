@@ -137,7 +137,7 @@ class PciRuleWriterTest {
                 throws IOException {
             Path resDir = tempDir.resolve("resources");
             Path conditionalDir = resDir.resolve(
-                    "core-rules/conditional");
+                    "targets/claude/rules/conditional");
             Files.createDirectories(conditionalDir);
             Files.writeString(
                     conditionalDir.resolve(

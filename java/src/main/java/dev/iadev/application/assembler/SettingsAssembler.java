@@ -35,7 +35,7 @@ import java.util.List;
 public final class SettingsAssembler implements Assembler {
 
     private static final String SETTINGS_TEMPLATES_DIR =
-            "settings-templates";
+            "targets/claude/settings";
     private static final String SETTINGS_FILENAME =
             "settings.json";
     private static final String SETTINGS_LOCAL_FILENAME =
@@ -208,6 +208,6 @@ public final class SettingsAssembler implements Assembler {
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
                 .resolveResourcesRoot(
-                        SETTINGS_TEMPLATES_DIR);
+                        SETTINGS_TEMPLATES_DIR, 3);
     }
 }

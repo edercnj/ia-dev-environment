@@ -312,7 +312,7 @@ class GrpcDocsAssemblerTest {
                 @TempDir Path tempDir)
                 throws IOException {
             Path templatesDir =
-                    tempDir.resolve("templates");
+                    tempDir.resolve("shared/templates");
             Files.createDirectories(templatesDir);
             String template = "{% if language_name"
                     + " %}lang={{ language_name }}"

@@ -32,7 +32,7 @@ public final class IncidentTemplatesAssembler
         implements Assembler {
 
     private static final String TEMPLATES_SUBDIR =
-            "templates";
+            "shared/templates";
     private static final String IR_FILENAME =
             "_TEMPLATE-INCIDENT-RESPONSE.md";
     private static final String PM_FILENAME =
@@ -157,6 +157,6 @@ public final class IncidentTemplatesAssembler
                 .resolveResourcesRoot(
                         TEMPLATES_SUBDIR + "/"
                                 + IR_FILENAME,
-                        2);
+                        3);
     }
 }

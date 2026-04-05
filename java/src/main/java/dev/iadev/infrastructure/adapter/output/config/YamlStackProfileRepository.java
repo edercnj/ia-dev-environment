@@ -28,7 +28,7 @@ import java.util.stream.Stream;
  * configuration templates on the classpath.
  *
  * <p>Implements {@link StackProfileRepository} by scanning
- * {@code config-templates/setup-config.*.yaml} resources,
+ * {@code shared/config-templates/setup-config.*.yaml} resources,
  * parsing each with SnakeYAML (using {@link SafeConstructor}
  * for security), and mapping them to {@link StackProfile}
  * domain objects.</p>
@@ -44,7 +44,7 @@ public final class YamlStackProfileRepository
         implements StackProfileRepository {
 
     private static final String TEMPLATE_DIR =
-            "config-templates";
+            "shared/config-templates";
     private static final String FILE_PREFIX =
             "setup-config.";
     private static final String FILE_SUFFIX = ".yaml";

@@ -24,7 +24,7 @@ public final class GithubAgentsAssembler
         implements Assembler {
 
     private static final String TEMPLATES_DIR =
-            "github-agents-templates";
+            "targets/github-copilot/agents";
     private static final String CORE_DIR = "core";
     private static final String CONDITIONAL_DIR =
             "conditional";
@@ -209,6 +209,6 @@ public final class GithubAgentsAssembler
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(TEMPLATES_DIR);
+                .resolveResourcesRoot(TEMPLATES_DIR, 3);
     }
 }

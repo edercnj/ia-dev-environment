@@ -8,6 +8,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Resolves classpath resources to filesystem {@link Path}
@@ -23,10 +25,82 @@ import java.nio.file.attribute.PosixFilePermissions;
 public final class ResourceResolver {
 
     private static final Object LOCK = new Object();
+    private static final ConcurrentMap<String, Path>
+            DIR_CACHE = new ConcurrentHashMap<>();
     static volatile Path cachedExtractedDir;
 
     private ResourceResolver() {
         // Utility class
+    }
+
+    /**
+     * Resolves a resource directory by its relative path
+     * within the resources root, without depth arithmetic.
+     *
+     * <p>Locates the first segment of {@code relativePath}
+     * on the classpath and derives the resources root,
+     * then appends the full relative path. Throws
+     * {@link IllegalArgumentException} if the resolved
+     * directory does not exist.</p>
+     *
+     * @param relativePath path relative to resources root
+     *                     (e.g. {@code "knowledge/databases/cache/redis"})
+     * @return absolute filesystem path to the directory
+     * @throws IllegalArgumentException if the directory
+     *         cannot be found
+     */
+    public static Path resolveResourceDir(
+            String relativePath) {
+        validateRelativePath(relativePath);
+
+        return DIR_CACHE.computeIfAbsent(
+                relativePath,
+                ResourceResolver::doResolveDir);
+    }
+
+    private static void validateRelativePath(
+            String relativePath) {
+        if (relativePath == null
+                || relativePath.isBlank()) {
+            throw new IllegalArgumentException(
+                    "relativePath must not be blank");
+        }
+        if (relativePath.contains("..")) {
+            throw new IllegalArgumentException(
+                    "Path traversal (..) is not allowed: "
+                            + relativePath);
+        }
+        if (relativePath.startsWith("/")
+                || relativePath.matches(
+                        "^[A-Za-z]:[\\\\/].*")) {
+            throw new IllegalArgumentException(
+                    "Absolute paths are not allowed: "
+                            + relativePath);
+        }
+    }
+
+    private static Path doResolveDir(
+            String relativePath) {
+        String firstSegment = relativePath.contains("/")
+                ? relativePath.substring(
+                        0, relativePath.indexOf('/'))
+                : relativePath;
+
+        Path root = doResolveRoot(firstSegment, 1);
+        Path resolved =
+                root.resolve(relativePath).normalize();
+
+        if (!resolved.startsWith(root)) {
+            throw new IllegalArgumentException(
+                    "Resolved path escapes resource root: "
+                            + relativePath);
+        }
+        if (!Files.isDirectory(resolved)) {
+            throw new IllegalArgumentException(
+                    "Resource directory not found: "
+                            + relativePath);
+        }
+        return resolved;
     }
 
     /**
@@ -35,9 +109,13 @@ public final class ResourceResolver {
      *
      * @param probe a resource directory name known to exist
      * @return filesystem path to the resources root
+     * @deprecated Use {@link #resolveResourceDir(String)}
+     *     for depth-free resolution. This method will be
+     *     removed in a future release.
      */
+    @Deprecated(forRemoval = true)
     public static Path resolveResourcesRoot(String probe) {
-        return resolveResourcesRoot(probe, 1);
+        return doResolveRoot(probe, 1);
     }
 
     /**
@@ -48,8 +126,17 @@ public final class ResourceResolver {
      * @param probe a resource path known to exist
      * @param depth number of parent levels to navigate up
      * @return filesystem path to the resources root
+     * @deprecated Use {@link #resolveResourceDir(String)}
+     *     for depth-free resolution. This method will be
+     *     removed in a future release.
      */
+    @Deprecated(forRemoval = true)
     public static Path resolveResourcesRoot(
+            String probe, int depth) {
+        return doResolveRoot(probe, depth);
+    }
+
+    private static Path doResolveRoot(
             String probe, int depth) {
         URL url = findOnClasspath(probe);
         if (url == null) {

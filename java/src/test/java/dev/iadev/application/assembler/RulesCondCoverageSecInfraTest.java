@@ -35,7 +35,7 @@ class RulesCondCoverageSecInfraTest {
                     .securityFrameworks("owasp", "pci-dss")
                     .build();
             Path resourceDir = tempDir.resolve("res");
-            Path secDir = resourceDir.resolve("security");
+            Path secDir = resourceDir.resolve("knowledge/security");
             Files.createDirectories(secDir);
             Files.writeString(
                     secDir.resolve(
@@ -80,7 +80,7 @@ class RulesCondCoverageSecInfraTest {
                     .build();
             Path resourceDir = tempDir.resolve("res");
             Path compDir = resourceDir.resolve(
-                    "security/compliance");
+                    "knowledge/security/compliance");
             Files.createDirectories(compDir);
             Files.writeString(
                     compDir.resolve("owasp.md"),
@@ -104,7 +104,7 @@ class RulesCondCoverageSecInfraTest {
                     .securityFrameworks("unknown-fw")
                     .build();
             Path resourceDir = tempDir.resolve("res");
-            Path secDir = resourceDir.resolve("security");
+            Path secDir = resourceDir.resolve("knowledge/security");
             Files.createDirectories(secDir);
             Files.writeString(
                     secDir.resolve(
@@ -137,7 +137,7 @@ class RulesCondCoverageSecInfraTest {
                     .build();
             Path resourceDir = tempDir.resolve("res");
             Path cloudDir = resourceDir.resolve(
-                    "cloud-providers");
+                    "knowledge/cloud-providers");
             Files.createDirectories(cloudDir);
             Files.writeString(
                     cloudDir.resolve("aws.md"),
@@ -164,7 +164,7 @@ class RulesCondCoverageSecInfraTest {
                     .build();
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(resourceDir.resolve(
-                    "cloud-providers"));
+                    "knowledge/cloud-providers"));
             List<String> result =
                     RulesConditionals
                             .assembleCloudKnowledge(
@@ -207,7 +207,7 @@ class RulesCondCoverageSecInfraTest {
                     .build();
             Path resourceDir = tempDir.resolve("res");
             Path k8sDir = resourceDir.resolve(
-                    "infrastructure/kubernetes");
+                    "knowledge/infrastructure/kubernetes");
             Files.createDirectories(k8sDir);
             Files.writeString(
                     k8sDir.resolve(
@@ -234,7 +234,7 @@ class RulesCondCoverageSecInfraTest {
                     .build();
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(resourceDir.resolve(
-                    "infrastructure/kubernetes"));
+                    "knowledge/infrastructure/kubernetes"));
             List<String> result =
                     RulesConditionals
                             .assembleInfraKnowledge(
@@ -255,7 +255,7 @@ class RulesCondCoverageSecInfraTest {
                     .build();
             Path resourceDir = tempDir.resolve("res");
             Path containers = resourceDir.resolve(
-                    "infrastructure/containers");
+                    "knowledge/infrastructure/containers");
             Files.createDirectories(containers);
             Files.writeString(
                     containers.resolve(
@@ -326,7 +326,7 @@ class RulesCondCoverageSecInfraTest {
                     .build();
             Path resourceDir = tempDir.resolve("res");
             Path iacDir = resourceDir.resolve(
-                    "infrastructure/iac");
+                    "knowledge/infrastructure/iac");
             Files.createDirectories(iacDir);
             Files.writeString(
                     iacDir.resolve(
@@ -391,7 +391,7 @@ class RulesCondCoverageSecInfraTest {
                     .build();
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(resourceDir.resolve(
-                    "infrastructure/iac"));
+                    "knowledge/infrastructure/iac"));
             List<String> result =
                     RulesConditionals
                             .assembleInfraKnowledge(
@@ -418,10 +418,10 @@ class RulesCondCoverageSecInfraTest {
                     .build();
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(
-                    resourceDir.resolve("databases"));
+                    resourceDir.resolve("knowledge/databases"));
             Files.writeString(
                     resourceDir.resolve(
-                            "databases/version-matrix.md"),
+                            "knowledge/databases/version-matrix.md"),
                     "DB: {DATABASE_NAME}");
             Path skillsDir = tempDir.resolve("skills");
             Map<String, Object> context = Map.of(

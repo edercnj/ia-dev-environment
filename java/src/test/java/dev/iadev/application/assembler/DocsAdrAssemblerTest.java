@@ -515,7 +515,7 @@ class DocsAdrAssemblerTest {
         Path resourcesDir =
                 tempDir.resolve("resources");
         Path templatesDir =
-                resourcesDir.resolve("templates");
+                resourcesDir.resolve("shared/templates");
         Files.createDirectories(templatesDir);
         Files.writeString(
                 templatesDir.resolve(

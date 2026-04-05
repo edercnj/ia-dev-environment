@@ -171,6 +171,7 @@ public final class GithubInstructionsAssembler
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
                 .resolveResourcesRoot(
-                        "github-instructions-templates");
+                        "targets/github-copilot/instructions",
+                        3);
     }
 }

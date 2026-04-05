@@ -216,7 +216,7 @@ class EpicReportAssemblerTest {
                 @TempDir Path tempDir) throws IOException {
             Path resourcesDir = tempDir.resolve("res");
             Path templateDir =
-                    resourcesDir.resolve("templates");
+                    resourcesDir.resolve("shared/templates");
             Files.createDirectories(templateDir);
             Files.writeString(
                     templateDir.resolve(
@@ -309,7 +309,7 @@ class EpicReportAssemblerTest {
                 throws IOException {
             Path resourcesDir = tempDir.resolve("res");
             Path templateDir =
-                    resourcesDir.resolve("templates");
+                    resourcesDir.resolve("shared/templates");
             Files.createDirectories(templateDir);
             Files.writeString(
                     templateDir.resolve(

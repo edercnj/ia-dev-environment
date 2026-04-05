@@ -17,10 +17,10 @@ final class RulesAssemblerCoverageHelper {
             throws IOException {
         Path resourceDir = tempDir.resolve("res");
         Path coreRules =
-                resourceDir.resolve("core-rules");
+                resourceDir.resolve("targets/claude/rules");
         Files.createDirectories(coreRules);
         Path templates =
-                resourceDir.resolve("templates");
+                resourceDir.resolve("shared/templates");
         Files.createDirectories(templates);
         Files.writeString(
                 templates.resolve("domain-template.md"),

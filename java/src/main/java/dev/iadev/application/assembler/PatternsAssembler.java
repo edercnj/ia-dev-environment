@@ -46,6 +46,8 @@ import java.util.Map;
 public final class PatternsAssembler implements Assembler {
 
     private static final String SKILLS_DIR = "skills";
+    private static final String PATTERNS_RES_DIR =
+            "knowledge/patterns";
     private static final String PATTERNS_DIR = "patterns";
     private static final String REFERENCES_DIR =
             "references";
@@ -122,7 +124,7 @@ public final class PatternsAssembler implements Assembler {
     private List<PatternFile> collectPatternFiles(
             List<String> categories) {
         Path patternsRoot =
-                resourcesDir.resolve(PATTERNS_DIR);
+                resourcesDir.resolve(PATTERNS_RES_DIR);
         List<PatternFile> files = new ArrayList<>();
 
         for (String category : categories) {
@@ -225,7 +227,7 @@ public final class PatternsAssembler implements Assembler {
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(PATTERNS_DIR);
+                .resolveResourcesRoot(PATTERNS_RES_DIR, 2);
     }
 
     /**

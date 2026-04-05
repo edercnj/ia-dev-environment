@@ -26,7 +26,7 @@ public final class GithubSkillsAssembler
         implements Assembler {
 
     private static final String TEMPLATES_DIR =
-            "github-skills-templates";
+            "targets/github-copilot/skills";
     private static final String SKILL_MD = "SKILL.md";
     private static final String SKILLS_OUTPUT = "skills";
     private static final String INFRA_GROUP =
@@ -228,6 +228,6 @@ public final class GithubSkillsAssembler
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(TEMPLATES_DIR);
+                .resolveResourcesRoot(TEMPLATES_DIR, 3);
     }
 }

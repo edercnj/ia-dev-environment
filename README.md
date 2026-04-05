@@ -781,10 +781,10 @@ ia-dev-environment/
 │   │   ├── exception/            # 7 context-rich exceptions
 │   │   └── util/                 # I/O, path safety, resource discovery
 │   ├── src/main/resources/       # ~470 template files on classpath
-│   │   ├── config-templates/     # 8 bundled stack profiles (YAML)
-│   │   ├── skills-templates/     # Claude Code skill templates
-│   │   ├── github-skills-templates/  # GitHub Copilot skill templates
-│   │   └── templates/            # Pebble/Nunjucks templates
+│   │   ├── targets/              # Target-specific resources (claude, github-copilot, codex)
+│   │   ├── knowledge/            # Shared knowledge base (core, databases, frameworks, ...)
+│   │   ├── shared/               # Cross-cutting templates (config, cicd, docs, ...)
+│   │   └── readme-template.md    # README generation template
 │   └── src/test/
 │       ├── java/                 # 1961 tests (unit + integration + golden)
 │       └── resources/golden/     # Golden files for 8 profiles

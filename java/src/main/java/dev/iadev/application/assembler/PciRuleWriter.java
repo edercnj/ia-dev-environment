@@ -14,7 +14,7 @@ import java.util.Map;
  * {@code pci-dss}.
  *
  * <p>The writer copies the template from
- * {@code core-rules/conditional/11-security-pci.md}
+ * {@code targets/claude/rules/conditional/11-security-pci.md}
  * with placeholder replacement when the condition is
  * met.</p>
  *
@@ -27,7 +27,8 @@ import java.util.Map;
 public final class PciRuleWriter {
 
     private static final String TEMPLATE_PATH =
-            "core-rules/conditional/11-security-pci.md";
+            "targets/claude/rules/conditional/"
+                    + "11-security-pci.md";
     private static final String OUTPUT_FILENAME =
             "11-security-pci.md";
     private static final String PCI_DSS = "pci-dss";

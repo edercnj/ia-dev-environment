@@ -13,7 +13,7 @@ package dev.iadev.exception;
  * <p>Example usage:
  * <pre>{@code
  * throw new ResourceNotFoundException(
- *     "templates/missing.txt",
+ *     "shared/templates/missing.txt",
  *     "classpath, filesystem(/opt/resources)");
  * }</pre>
  */

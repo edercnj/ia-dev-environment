@@ -33,7 +33,7 @@ public final class CodexConfigAssembler
         implements Assembler {
 
     private static final String TEMPLATE_PATH =
-            "codex-templates/config.toml.njk";
+            "targets/codex/templates/config.toml.njk";
 
     /**
      * {@inheritDoc}

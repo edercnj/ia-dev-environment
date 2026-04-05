@@ -29,7 +29,7 @@ public final class EpicReportAssembler
     private static final String TEMPLATE_FILENAME =
             "_TEMPLATE-EPIC-EXECUTION-REPORT.md";
     private static final String TEMPLATES_SUBDIR =
-            "templates";
+            "shared/templates";
     private static final String CLAUDE_OUTPUT_SUBDIR =
             ".claude/templates";
     private static final String GITHUB_OUTPUT_SUBDIR =
@@ -138,6 +138,6 @@ public final class EpicReportAssembler
                 .resolveResourcesRoot(
                         TEMPLATES_SUBDIR + "/"
                                 + TEMPLATE_FILENAME,
-                        2);
+                        3);
     }
 }

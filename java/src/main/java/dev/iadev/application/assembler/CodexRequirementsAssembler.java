@@ -19,7 +19,7 @@ import java.util.Map;
 public final class CodexRequirementsAssembler implements Assembler {
 
     private static final String TEMPLATE_PATH =
-            "codex-templates/requirements.toml.njk";
+            "targets/codex/templates/requirements.toml.njk";
 
     @Override
     public List<String> assemble(

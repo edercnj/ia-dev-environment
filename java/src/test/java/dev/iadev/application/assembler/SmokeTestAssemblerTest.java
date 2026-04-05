@@ -114,7 +114,7 @@ class SmokeTestAssemblerTest {
                     new SmokeTestAssembler();
             Path resDir = tempDir.resolve("res");
             Files.createDirectories(
-                    resDir.resolve("cicd-templates"));
+                    resDir.resolve("shared/cicd-templates"));
             Path outputDir = tempDir.resolve("output");
 
             ProjectConfig config = TestConfigBuilder
@@ -145,6 +145,6 @@ class SmokeTestAssemblerTest {
 
     private static Path resolveResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot("cicd-templates");
+                .resolveResourcesRoot("shared/cicd-templates", 2);
     }
 }

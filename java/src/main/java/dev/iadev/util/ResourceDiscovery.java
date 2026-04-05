@@ -36,11 +36,11 @@ import java.util.Optional;
  * // Classpath-only discovery
  * var discovery = new ResourceDiscovery();
  * String content = discovery.readResource(
- *     "config-templates/setup-config.java-spring.yaml");
+ *     "shared/config-templates/setup-config.java-spring.yaml");
  *
  * // With filesystem override (--resources-dir)
  * var discovery = new ResourceDiscovery(Path.of("/opt/resources"));
- * URL url = discovery.findResource("templates/readme.md.njk");
+ * URL url = discovery.findResource("shared/templates/readme.md.njk");
  * }</pre>
  *
  * @see ResourceNotFoundException

@@ -33,7 +33,7 @@ public final class ProtocolsAssembler implements Assembler {
     private static final String REFERENCES_DIR =
             "references";
     private static final String PROTOCOLS_RES_DIR =
-            "protocols";
+            "knowledge/protocols";
     private static final String CONVENTIONS_SUFFIX =
             "-conventions.md";
     private static final String PROTOCOL_SEPARATOR =
@@ -226,6 +226,6 @@ public final class ProtocolsAssembler implements Assembler {
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(PROTOCOLS_RES_DIR);
+                .resolveResourcesRoot(PROTOCOLS_RES_DIR, 2);
     }
 }

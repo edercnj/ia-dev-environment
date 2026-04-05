@@ -136,7 +136,7 @@ class AgentsGoldenMatchTest {
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path coreDir = resourceDir.resolve(
-                    "agents-templates/core");
+                    "targets/claude/agents/core");
             Files.createDirectories(coreDir);
 
             AgentsAssembler assembler =
@@ -155,9 +155,9 @@ class AgentsGoldenMatchTest {
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(resourceDir.resolve(
-                    "agents-templates/core"));
+                    "targets/claude/agents/core"));
             Files.createDirectories(resourceDir.resolve(
-                    "agents-templates/developers"));
+                    "targets/claude/agents/developers"));
             Path outputDir = tempDir.resolve("output");
             Files.createDirectories(outputDir);
 
@@ -189,11 +189,11 @@ class AgentsGoldenMatchTest {
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(resourceDir.resolve(
-                    "agents-templates/core"));
+                    "targets/claude/agents/core"));
             Files.createDirectories(resourceDir.resolve(
-                    "agents-templates/conditional"));
+                    "targets/claude/agents/conditional"));
             Files.createDirectories(resourceDir.resolve(
-                    "agents-templates/developers"));
+                    "targets/claude/agents/developers"));
             Path outputDir = tempDir.resolve("output");
             Files.createDirectories(outputDir);
 

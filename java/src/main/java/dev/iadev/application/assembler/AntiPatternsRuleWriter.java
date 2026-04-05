@@ -13,7 +13,7 @@ import java.util.Map;
  * based on language and framework configuration.
  *
  * <p>The writer looks for a template file at
- * {@code core-rules/conditional/anti-patterns/
+ * {@code targets/claude/rules/conditional/anti-patterns/
  * 10-anti-patterns.{lang}-{fw}.md}. When a matching
  * template exists, it copies it with placeholder
  * replacement. When no template matches, no file is
@@ -28,7 +28,7 @@ import java.util.Map;
 public final class AntiPatternsRuleWriter {
 
     private static final String ANTI_PATTERNS_DIR =
-            "core-rules/conditional/anti-patterns";
+            "targets/claude/rules/conditional/anti-patterns";
     private static final String OUTPUT_FILENAME =
             "10-anti-patterns.md";
     private static final String TEMPLATE_PREFIX =

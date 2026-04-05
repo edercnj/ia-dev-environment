@@ -35,7 +35,7 @@ class ProtocolsAssemblerCoverageTest {
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path msgDir = resourceDir.resolve(
-                    "protocols/messaging");
+                    "knowledge/protocols/messaging");
             Files.createDirectories(msgDir);
             Files.writeString(
                     msgDir.resolve("kafka.md"),
@@ -44,7 +44,7 @@ class ProtocolsAssemblerCoverageTest {
                     msgDir.resolve("rabbitmq.md"),
                     "RabbitMQ content");
             Path eventDir = resourceDir.resolve(
-                    "protocols/event-driven");
+                    "knowledge/protocols/event-driven");
             Files.createDirectories(eventDir);
             Files.writeString(
                     eventDir.resolve("patterns.md"),
@@ -85,13 +85,13 @@ class ProtocolsAssemblerCoverageTest {
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path msgDir = resourceDir.resolve(
-                    "protocols/messaging");
+                    "knowledge/protocols/messaging");
             Files.createDirectories(msgDir);
             Files.writeString(
                     msgDir.resolve("generic.md"),
                     "Generic messaging");
             Path eventDir = resourceDir.resolve(
-                    "protocols/event-driven");
+                    "knowledge/protocols/event-driven");
             Files.createDirectories(eventDir);
             Files.writeString(
                     eventDir.resolve("patterns.md"),
@@ -123,7 +123,7 @@ class ProtocolsAssemblerCoverageTest {
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path msgDir = resourceDir.resolve(
-                    "protocols/messaging");
+                    "knowledge/protocols/messaging");
             Files.createDirectories(msgDir);
             Files.writeString(
                     msgDir.resolve("concepts.md"),
@@ -132,7 +132,7 @@ class ProtocolsAssemblerCoverageTest {
                     msgDir.resolve("patterns.md"),
                     "Patterns");
             Path eventDir = resourceDir.resolve(
-                    "protocols/event-driven");
+                    "knowledge/protocols/event-driven");
             Files.createDirectories(eventDir);
             Files.writeString(
                     eventDir.resolve("event.md"),
@@ -167,7 +167,7 @@ class ProtocolsAssemblerCoverageTest {
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path restDir = resourceDir.resolve(
-                    "protocols/rest");
+                    "knowledge/protocols/rest");
             Files.createDirectories(restDir);
             Files.writeString(
                     restDir.resolve("rest.md"),
@@ -206,7 +206,7 @@ class ProtocolsAssemblerCoverageTest {
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path restDir = resourceDir.resolve(
-                    "protocols/rest");
+                    "knowledge/protocols/rest");
             Files.createDirectories(restDir);
             Files.writeString(
                     restDir.resolve("01-basics.md"),
@@ -252,7 +252,7 @@ class ProtocolsAssemblerCoverageTest {
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path restDir = resourceDir.resolve(
-                    "protocols/rest");
+                    "knowledge/protocols/rest");
             Files.createDirectories(restDir);
             Files.writeString(
                     restDir.resolve("readme.txt"),

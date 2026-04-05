@@ -43,7 +43,7 @@ import java.util.Map;
 public final class GrpcDocsAssembler implements Assembler {
 
     private static final String TEMPLATE_PATH =
-            "templates/_TEMPLATE-GRPC-REFERENCE.md";
+            "shared/templates/_TEMPLATE-GRPC-REFERENCE.md";
     private static final String OUTPUT_SUBDIR = "contracts/api";
     private static final String OUTPUT_FILENAME =
             "grpc-reference.md";
@@ -104,6 +104,6 @@ public final class GrpcDocsAssembler implements Assembler {
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(TEMPLATE_PATH, 2);
+                .resolveResourcesRoot(TEMPLATE_PATH, 3);
     }
 }

@@ -206,7 +206,7 @@ class RunbookAssemblerTest {
                 @TempDir Path tempDir)
                 throws IOException {
             Path templatesDir =
-                    tempDir.resolve("templates");
+                    tempDir.resolve("shared/templates");
             Files.createDirectories(templatesDir);
             String template =
                     "{% if database_name != \"none\" %}"

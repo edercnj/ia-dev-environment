@@ -53,7 +53,7 @@ public final class LanguageKpWriter {
             ProjectConfig config, Path skillsDir) {
         String lang = config.language().name();
         Path langDir =
-                resourcesDir.resolve("languages/" + lang);
+                resourcesDir.resolve("knowledge/languages/" + lang);
         if (!Files.exists(langDir)
                 || !Files.isDirectory(langDir)) {
             return List.of();

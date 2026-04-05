@@ -139,7 +139,7 @@ class GithubHooksAssemblerTest {
                     : GithubHooksAssembler
                             .GITHUB_HOOK_TEMPLATES) {
                 Path src = resourcesDir.resolve(
-                        "github-hooks-templates/" + name);
+                        "targets/github-copilot/hooks/" + name);
                 Path dest = outputDir.resolve(
                         "hooks/" + name);
                 String srcContent = Files.readString(
@@ -162,7 +162,7 @@ class GithubHooksAssemblerTest {
                     tempDir);
             // Write a template with Pebble syntax
             Path src = resourcesDir.resolve(
-                    "github-hooks-templates/"
+                    "targets/github-copilot/hooks/"
                             + "post-compile-check.json");
             String contentWithPebble =
                     "{\"name\": \"{{ project_name }}\"}";
@@ -244,7 +244,7 @@ class GithubHooksAssemblerTest {
                 @TempDir Path tempDir)
                 throws IOException {
             Path hooksDir = tempDir.resolve(
-                    "github-hooks-templates");
+                    "targets/github-copilot/hooks");
             Files.createDirectories(hooksDir);
             // Only create 2 of 3 templates
             Files.writeString(
@@ -308,7 +308,7 @@ class GithubHooksAssemblerTest {
     private static Path createHooksResources(Path tempDir)
             throws IOException {
         Path hooksDir = tempDir.resolve(
-                "github-hooks-templates");
+                "targets/github-copilot/hooks");
         Files.createDirectories(hooksDir);
         for (String name
                 : GithubHooksAssembler

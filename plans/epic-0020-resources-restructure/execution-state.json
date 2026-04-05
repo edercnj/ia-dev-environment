@@ -1,0 +1,63 @@
+{
+  "epicId": "0020",
+  "branch": "feat/epic-0020-full-implementation",
+  "startedAt": "2026-04-05T12:00:00Z",
+  "finishedAt": "2026-04-05T15:00:00Z",
+  "mode": {
+    "parallel": true,
+    "skipReview": false
+  },
+  "stories": {
+    "story-0020-001": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "29657520", "findingsCount": 0, "summary": "Added resolveResourceDir method with full TDD coverage. 5 new tests, all 3645 tests pass.", "duration": null },
+    "story-0020-002": { "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "9fafb46f", "findingsCount": 0, "summary": "Migrated 5 Claude resource dirs to targets/claude/. Updated 10 assemblers, 21 test files. All 3645 tests pass.", "duration": null },
+    "story-0020-003": { "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "bf78238c", "findingsCount": 1, "summary": "Migrated 6 GitHub Copilot dirs to targets/github-copilot/. Updated 8 assemblers, 6 test files. All 3645 tests pass.", "duration": null },
+    "story-0020-004": { "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "8480feb2", "findingsCount": 0, "summary": "Migrated codex-templates/ to targets/codex/templates/. Updated 4 assemblers, resource-config.json. All 3645 tests pass.", "duration": null },
+    "story-0020-005": { "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "61124132", "findingsCount": 0, "summary": "Migrated 9 knowledge dirs to knowledge/. Updated 8 assemblers/writers, 15 test files. All 3645 tests pass.", "duration": null },
+    "story-0020-006": { "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "aa97f3f6", "findingsCount": 0, "summary": "Migrated 4 shared dirs to shared/. Updated 26 source files, 26 test files. All 3645 tests pass.", "duration": null },
+    "story-0020-007": { "phase": 2, "status": "SUCCESS", "retries": 0, "commitSha": "1bc2869f", "findingsCount": 1, "summary": "Regenerated golden files for all 12 profiles. 1 divergence fixed (stale line in java-spring-fintech-pci). All 3645 tests pass. RULE-001 confirmed.", "duration": null },
+    "story-0020-008": { "phase": 3, "status": "SUCCESS", "retries": 0, "commitSha": "f68b1a67", "findingsCount": 4, "summary": "Deprecated legacy resolveResourcesRoot methods, updated docs. Zero old path refs remain. All tests pass.", "duration": null }
+  },
+  "phases": {
+    "0": {
+      "status": "PASS",
+      "testCount": 3645,
+      "coverage": 95.90,
+      "branchCoverage": 90.59,
+      "failedTests": [],
+      "regressionSource": null
+    },
+    "1": {
+      "status": "PASS",
+      "testCount": 3645,
+      "coverage": 95.66,
+      "branchCoverage": 90.59,
+      "failedTests": [],
+      "regressionSource": null
+    },
+    "2": {
+      "status": "PASS",
+      "testCount": 3645,
+      "coverage": 95.66,
+      "branchCoverage": 90.59,
+      "failedTests": [],
+      "regressionSource": null
+    },
+    "3": {
+      "status": "PASS",
+      "testCount": 3645,
+      "coverage": 95.66,
+      "branchCoverage": 90.59,
+      "failedTests": [],
+      "regressionSource": null
+    }
+  },
+  "metrics": {
+    "storiesCompleted": 8,
+    "storiesFailed": 0,
+    "storiesBlocked": 0,
+    "storiesTotal": 8
+  },
+  "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/137",
+  "reportPath": "plans/epic-0020-resources-restructure/epic-execution-report.md",
+  "finalStatus": "COMPLETE"
+}

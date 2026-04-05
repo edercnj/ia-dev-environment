@@ -5,6 +5,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
@@ -36,6 +39,7 @@ class ResourceResolverTest {
 
     @Nested
     @DisplayName("resolveResourcesRoot — single arg")
+    @SuppressWarnings("removal")
     class SingleArg {
 
         @Test
@@ -43,7 +47,7 @@ class ResourceResolverTest {
         void knownProbe_whenCalled_returnsExistingPath() {
             Path root = ResourceResolver
                     .resolveResourcesRoot(
-                            "skills-templates");
+                            "shared/config-templates");
 
             assertThat(root).isAbsolute();
             assertThat(Files.isDirectory(root)).isTrue();
@@ -65,6 +69,7 @@ class ResourceResolverTest {
 
     @Nested
     @DisplayName("resolveResourcesRoot — two args")
+    @SuppressWarnings("removal")
     class TwoArgs {
 
         @Test
@@ -72,7 +77,7 @@ class ResourceResolverTest {
         void depth1_whenCalled_navigatesToParent() {
             Path root = ResourceResolver
                     .resolveResourcesRoot(
-                            "config-templates", 1);
+                            "shared/config-templates", 1);
 
             assertThat(root).isAbsolute();
             assertThat(Files.isDirectory(root)).isTrue();
@@ -85,7 +90,7 @@ class ResourceResolverTest {
         void depth0_whenCalled_returnsProbeDirectory() {
             Path root = ResourceResolver
                     .resolveResourcesRoot(
-                            "config-templates", 0);
+                            "shared/config-templates", 0);
 
             assertThat(root.getFileName().toString())
                     .isEqualTo("config-templates");
@@ -108,7 +113,7 @@ class ResourceResolverTest {
         void depth2_whenCalled_navigatesToGrandparent() {
             Path root = ResourceResolver
                     .resolveResourcesRoot(
-                            "config-templates", 2);
+                            "shared/config-templates", 2);
 
             assertThat(root).isAbsolute();
             assertThat(Files.isDirectory(root)).isTrue();
@@ -117,6 +122,7 @@ class ResourceResolverTest {
 
     @Nested
     @DisplayName("resolveResourcesRoot — consistency")
+    @SuppressWarnings("removal")
     class Consistency {
 
         @Test
@@ -124,10 +130,10 @@ class ResourceResolverTest {
         void multipleCalls_whenCalled_returnSamePath() {
             Path first = ResourceResolver
                     .resolveResourcesRoot(
-                            "skills-templates");
+                            "shared/config-templates");
             Path second = ResourceResolver
                     .resolveResourcesRoot(
-                            "skills-templates");
+                            "shared/config-templates");
 
             assertThat(first).isEqualTo(second);
         }
@@ -138,15 +144,202 @@ class ResourceResolverTest {
         void differentProbes_whenCalled_bothReturnDirs() {
             Path fromSkills = ResourceResolver
                     .resolveResourcesRoot(
-                            "skills-templates");
+                            "shared/config-templates");
             Path fromConfig = ResourceResolver
                     .resolveResourcesRoot(
-                            "config-templates");
+                            "shared/config-templates");
 
             assertThat(Files.isDirectory(fromSkills))
                     .isTrue();
             assertThat(Files.isDirectory(fromConfig))
                     .isTrue();
+        }
+    }
+
+    @Nested
+    @DisplayName("resolveResourceDir")
+    class ResolveResourceDir {
+
+        // --- TPP: constant (simplest happy path) ---
+
+        @Test
+        @DisplayName("1-level path returns existing dir")
+        void oneLevelPath_whenCalled_returnsExistingDir() {
+            Path result = ResourceResolver
+                    .resolveResourceDir("knowledge/core");
+
+            assertThat(result).isAbsolute();
+            assertThat(Files.isDirectory(result)).isTrue();
+            assertThat(result.getFileName().toString())
+                    .isEqualTo("core");
+        }
+
+        // --- TPP: scalar → collection (parametrized) ---
+
+        @ParameterizedTest(name = "{0} resolves to dir {1}")
+        @CsvSource({
+                "knowledge/databases/cache, cache",
+                "knowledge/databases/cache/redis, redis",
+                "targets/claude/rules, rules",
+                "shared/config-templates, config-templates"
+        })
+        @DisplayName("multi-level paths resolve correctly")
+        void multiLevelPath_whenCalled_returnsExistingDir(
+                String path, String expectedDirName) {
+            Path result = ResourceResolver
+                    .resolveResourceDir(path);
+
+            assertThat(result).isAbsolute();
+            assertThat(Files.isDirectory(result)).isTrue();
+            assertThat(result.getFileName().toString())
+                    .isEqualTo(expectedDirName);
+        }
+
+        // --- TPP: consistency check ---
+
+        @Test
+        @DisplayName("consistent with legacy method")
+        @SuppressWarnings("removal")
+        void consistent_whenCalled_matchesLegacy() {
+            Path legacyRoot = ResourceResolver
+                    .resolveResourcesRoot("core", 1);
+            Path newResult = ResourceResolver
+                    .resolveResourceDir("core");
+
+            assertThat(newResult.getParent())
+                    .isEqualTo(legacyRoot);
+        }
+
+        // --- TPP: cached calls return same instance ---
+
+        @Test
+        @DisplayName("repeated calls return cached result")
+        void repeatedCalls_whenCalled_returnCachedPath() {
+            Path first = ResourceResolver
+                    .resolveResourceDir("knowledge/core");
+            Path second = ResourceResolver
+                    .resolveResourceDir("knowledge/core");
+
+            assertThat(first).isEqualTo(second);
+        }
+
+        // --- TPP: boundary / error cases ---
+
+        @Test
+        @DisplayName("nonexistent path throws exception")
+        void nonexistentPath_whenCalled_throwsException() {
+            assertThatThrownBy(() ->
+                    ResourceResolver.resolveResourceDir(
+                            "nonexistent/path/dir"))
+                    .isInstanceOf(
+                            IllegalArgumentException.class)
+                    .hasMessageContaining(
+                            "nonexistent/path/dir");
+        }
+
+        @Test
+        @DisplayName("single-segment nonexistent throws")
+        void singleSegmentNonexistent_whenCalled_throws() {
+            assertThatThrownBy(() ->
+                    ResourceResolver.resolveResourceDir(
+                            "no-such-segment"))
+                    .isInstanceOf(
+                            IllegalArgumentException.class)
+                    .hasMessageContaining(
+                            "no-such-segment");
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"", " ", "  "})
+        @DisplayName("blank path throws exception")
+        void blankPath_whenCalled_throwsException(
+                String input) {
+            assertThatThrownBy(() ->
+                    ResourceResolver.resolveResourceDir(
+                            input))
+                    .isInstanceOf(
+                            IllegalArgumentException.class);
+        }
+
+        @Test
+        @DisplayName("null path throws exception")
+        void nullPath_whenCalled_throwsException() {
+            assertThatThrownBy(() ->
+                    ResourceResolver.resolveResourceDir(
+                            null))
+                    .isInstanceOf(
+                            IllegalArgumentException.class);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "knowledge/../../../etc/passwd",
+                "../secret",
+                "knowledge/core/../../..",
+                "targets/claude/../../../etc"
+        })
+        @DisplayName("path traversal throws exception")
+        void pathTraversal_whenCalled_throwsException(
+                String malicious) {
+            assertThatThrownBy(() ->
+                    ResourceResolver.resolveResourceDir(
+                            malicious))
+                    .isInstanceOf(
+                            IllegalArgumentException.class)
+                    .hasMessageContaining("..");
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "/etc/passwd",
+                "/tmp/secret",
+                "C:\\Windows\\System32"
+        })
+        @DisplayName("absolute path throws exception")
+        void absolutePath_whenCalled_throwsException(
+                String absolute) {
+            assertThatThrownBy(() ->
+                    ResourceResolver.resolveResourceDir(
+                            absolute))
+                    .isInstanceOf(
+                            IllegalArgumentException.class)
+                    .hasMessageContaining("Absolute");
+        }
+    }
+
+    @Nested
+    @DisplayName("resolveResourceDir — acceptance")
+    class ResolveResourceDirAcceptance {
+
+        @ParameterizedTest(name = "resolves {0}")
+        @ValueSource(strings = {
+                "targets/claude/rules",
+                "targets/claude/agents",
+                "targets/claude/skills",
+                "targets/github-copilot/agents",
+                "targets/github-copilot/skills",
+                "targets/codex/templates",
+                "knowledge/core",
+                "knowledge/languages",
+                "knowledge/frameworks",
+                "knowledge/databases",
+                "knowledge/patterns",
+                "knowledge/protocols",
+                "knowledge/security",
+                "knowledge/infrastructure",
+                "shared/config-templates",
+                "shared/templates",
+                "shared/cicd-templates",
+                "shared/docs"
+        })
+        @DisplayName("all resource directories resolvable")
+        void allResourceDirs_whenCalled_resolve(
+                String dir) {
+            Path result = ResourceResolver
+                    .resolveResourceDir(dir);
+
+            assertThat(result).isAbsolute();
+            assertThat(Files.isDirectory(result)).isTrue();
         }
     }
 

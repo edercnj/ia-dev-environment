@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
  * {@code instructions/*.instructions.md} for GitHub Copilot.
  *
  * <p>Loads templates from
- * {@code github-instructions-templates/} and renders them
+ * {@code targets/github-copilot/instructions/} and renders them
  * with single-brace placeholder replacement matching the
  * TypeScript implementation.</p>
  *
@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 public final class ContextualInstructionsAssembler {
 
     private static final String TEMPLATES_DIR =
-            "github-instructions-templates";
+            "targets/github-copilot/instructions";
 
     /** Contextual instruction template names. */
     static final List<String> CONTEXTUAL_INSTRUCTIONS =

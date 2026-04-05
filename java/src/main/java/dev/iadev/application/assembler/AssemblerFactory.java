@@ -72,8 +72,8 @@ public final class AssemblerFactory {
     private static Path resolveConstitutionResources() {
         return dev.iadev.util.ResourceResolver
                 .resolveResourcesRoot(
-                        "templates/constitution/"
-                                + "CONSTITUTION.md", 3);
+                        "shared/templates/constitution/"
+                                + "CONSTITUTION.md", 4);
     }
 
     private static List<AssemblerDescriptor>
