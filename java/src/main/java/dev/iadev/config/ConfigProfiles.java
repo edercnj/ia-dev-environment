@@ -28,7 +28,6 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li>java-spring-hexagonal</li>
  *   <li>java-spring-cqrs-es</li>
  *   <li>java-spring-event-driven</li>
- *   <li>java-spring-fintech-pci</li>
  *   <li>python-fastapi</li>
  *   <li>python-click-cli</li>
  *   <li>go-gin</li>
@@ -56,7 +55,6 @@ public final class ConfigProfiles {
             "java-spring-hexagonal",
             "java-spring-cqrs-es",
             "java-spring-event-driven",
-            "java-spring-fintech-pci",
             "python-fastapi",
             "python-click-cli",
             "go-gin",
