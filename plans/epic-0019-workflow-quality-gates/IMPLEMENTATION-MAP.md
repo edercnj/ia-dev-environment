@@ -15,7 +15,8 @@
 | STORY-0019-009 | Cross-Story Consistency Gate | INTEGRATION | M | 002 | -- | Pendente |
 | STORY-0019-010 | Architecture plan quality validation | INTEGRATION | S | -- | -- | Pendente |
 | STORY-0019-011 | Story decomposition INVEST validation | INTEGRATION | S | -- | -- | Pendente |
-| STORY-0019-012 | Cleanup placeholders e progress reporting | COMPOSITION | S | 004 | -- | Pendente |
+| STORY-0019-012 | Cleanup placeholders e progress reporting | COMPOSITION | S | 004 | 013 | Pendente |
+| STORY-0019-013 | Reconciliacao de status e prevencao de status stale | COMPOSITION | M | 012 | -- | Pendente |
 
 ## 2. Execution Phases
 
@@ -42,16 +43,19 @@ Phase 2 (INTEGRATION — mixed):
 Phase 3 (COMPOSITION — final):
      STORY-0019-008 [S] ─── Execution report            (depends: 001, 002, 005, 007)
      STORY-0019-012 [S] ─── Cleanup placeholders        (depends: 004)
+
+Phase 4 (COMPOSITION — reconciliation):
+     STORY-0019-013 [M] ─── Status reconciliation       (depends: 012)
 ```
 
 ## 3. Critical Path
 
 ```
-STORY-0019-001 → STORY-0019-002 → STORY-0019-004 → STORY-0019-012
-     M                 S                 M                 S
+STORY-0019-001 → STORY-0019-002 → STORY-0019-004 → STORY-0019-012 → STORY-0019-013
+     M                 S                 M                 S                 M
 ```
 
-Duracao estimada do critical path: M + S + M + S
+Duracao estimada do critical path: M + S + M + S + M
 
 Critical path alternativo (para report):
 ```
@@ -80,6 +84,7 @@ graph TD
     S010["STORY-010<br/>Arch plan validation<br/>[S]"]:::integration
     S011["STORY-011<br/>INVEST validation<br/>[S]"]:::integration
     S012["STORY-012<br/>Cleanup + progress<br/>[S]"]:::composition
+    S013["STORY-013<br/>Status reconciliation<br/>[M]"]:::composition
 
     S001 --> S002
     S002 --> S004
@@ -88,6 +93,7 @@ graph TD
     S003 --> S006
     S003 --> S007
     S004 --> S012
+    S012 --> S013
     S005 --> S008
     S007 --> S008
     S001 --> S008
@@ -99,15 +105,16 @@ graph TD
 |---|---|---|
 | XS | 1 | 006 |
 | S | 8 | 002, 003, 005, 007, 008, 010, 011, 012 |
-| M | 3 | 001, 004, 009 |
+| M | 4 | 001, 004, 009, 013 |
 
 **Parallel execution analysis:**
 - Phase 0: 5 stories em paralelo (001 + 003 + 005 + 010 + 011)
 - Phase 1: 3 stories (002 sequencial apos 001; 006, 007 sequenciais apos 003)
 - Phase 2: 2 stories em paralelo (004 + 009)
 - Phase 3: 2 stories (008 + 012, possivelmente paralelas se 008 nao depende de 004)
+- Phase 4: 1 story (013, sequencial apos 012)
 
-Total: 12 stories, ~4 fases de execucao
+Total: 13 stories, ~5 fases de execucao
 
 ## 6. Risk Matrix
 
@@ -118,6 +125,7 @@ Total: 12 stories, ~4 fases de execucao
 | Rollback em worktree mode falha | Baixa | Alto | Preservar worktree para diagnostico manual | 004 |
 | CC validation regex falso positivo | Media | Baixo | Threshold de 3+ violacoes antes de FAIL | 005 |
 | Cross-story consistency com falsos positivos | Media | Medio | Status WARN para maioria, FAIL apenas para conflitos de interface | 009 |
+| Volume de arquivos para atualizar status retroativamente | Baixa | Baixo | Script/batch update com verificacao antes/depois | 013 |
 
 ## 7. Observacoes Estrategicas
 
