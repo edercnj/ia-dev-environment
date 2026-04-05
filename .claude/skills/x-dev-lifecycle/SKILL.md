@@ -20,25 +20,28 @@ argument-hint: "[STORY-ID or feature-name]"
 
 ## CRITICAL EXECUTION RULE
 
-**9 phases (0-8). ALL mandatory. NEVER stop before Phase 8.**
+**9 phases (0-8, with 3 split into 3A and 3B). ALL mandatory. NEVER stop before Phase 8.**
 
 After each phase 0–7: `>>> Phase N/8 completed. Proceeding to Phase N+1...`
+After Phase 3A: `>>> Phase 3A/8 completed. Proceeding to Phase 4...`
+After Phase 3B: `>>> Phase 3B/8 completed. Proceeding to Phase 8...`
 After Phase 8 (DoD PASS): `>>> Phase 8/8 completed. Lifecycle complete. DoD: PASS`
 After Phase 8 (DoD FAIL): `>>> Phase 8/8 FAILED. DoD items not satisfied: [list of failed items]`
 
 ## Complete Flow
 
 ```
-Phase 0: Preparation          (orchestrator — inline)
-{% if has_contract_interfaces == 'True' %}Phase 0.5: API-First Contract  (orchestrator — conditional, pauses for approval)
-{% endif %}Phase 1: Planning              (subagent — reads architecture KPs)
-Phase 1B-1E: Parallel Planning (up to 4 subagents — SINGLE message)
-Phase 2: Implementation        (subagent — reads coding + layer KPs)
-Phase 3: Documentation         (orchestrator — inline)
-Phase 4: Review                (invoke /x-review skill — launches its own subagents)
-Phase 5-6: Fixes + PR          (orchestrator — inline)
-Phase 7: Tech Lead Review      (invoke /x-review-pr skill)
-Phase 8: Verification          (orchestrator — inline)
+Phase 0:  Preparation                    (orchestrator — inline)
+{% if has_contract_interfaces == 'True' %}Phase 0.5: API-First Contract            (orchestrator — conditional, pauses for approval)
+{% endif %}Phase 1:  Planning                       (subagent — reads architecture KPs)
+Phase 1B-1E: Parallel Planning           (up to 4 subagents — SINGLE message)
+Phase 2:  Implementation                 (subagent — reads coding + layer KPs)
+Phase 3A: Documentation (structural)     (orchestrator — inline)
+Phase 4:  Review                         (invoke /x-review skill — launches its own subagents)
+Phase 5-6: Fixes + PR                    (orchestrator — inline)
+Phase 7:  Tech Lead Review               (invoke /x-review-pr skill)
+Phase 3B: Documentation (changelog)      (orchestrator — inline)
+Phase 8:  Verification                   (orchestrator — inline)
 ```
 
 ---
@@ -100,7 +103,7 @@ If the user passes `--full-lifecycle`, force full execution regardless of tier:
 - Display: "Scope override: running full lifecycle as requested"
 
 **SIMPLE Execution Flow:**
-Phases 1A (Prepare) > 2 (TDD) > 4 (Docs) > 5 (PR) > 6 (Verify) — skips 1B, 1C, 1D, 1E, 3 (Review)
+Phases 1A (Prepare) > 2 (TDD) > 3A (Structural Docs) > 5 (PR) > 3B (Changelog) > 6 (Verify) — skips 1B, 1C, 1D, 1E, 4 (Review)
 
 **COMPLEX Execution Flow:**
 All phases 1A through 4 execute normally. After Phase 4, **pause** with:
@@ -351,11 +354,12 @@ If no test plan with TPP markers was produced by Phase 1B, use legacy group-base
 
 Emit warning: `WARNING: No TDD test plan available. Using G1-G7 group-based implementation. Consider running /x-test-plan for future implementations.`
 
-## Phase 3 — Documentation (Orchestrator — Inline)
+## Phase 3A — Documentation: Structural (Orchestrator — Inline)
 
 Read the `interfaces` field from the project identity to determine which documentation
 generators to invoke. For each configured interface, launch the corresponding generator.
-Always generate a changelog entry regardless of interfaces.
+
+> **Note:** CHANGELOG.md is NOT generated here — see Phase 3B (after Phase 7).
 
 **Interface Dispatch:**
 
@@ -368,16 +372,11 @@ Always generate a changelog entry regardless of interfaces.
 | `websocket`, `kafka`, `event-consumer`, `event-producer` | Event-driven documentation generator | `contracts/api/event-reference.md` |
 
 If no documentable interfaces configured: skip interface generators with log
-`"No documentable interfaces configured"`. Always generate changelog entry.
+`"No documentable interfaces configured"`.
 
 Documentation output saved to `contracts/` with subdirectories per type:
 - API docs → `contracts/api/`
 - Architecture docs → `steering/`
-
-**Changelog Entry:**
-- Read commits since branch point (`git log main..HEAD --oneline`)
-- Generate Conventional Commits summary by type (feat, fix, refactor, test, docs, chore)
-- Append to CHANGELOG.md
 
 **Performance Baseline (Recommended):**
 If the implemented feature affects the request path, startup, or memory footprint:
@@ -493,6 +492,24 @@ Collect the consolidated review report with scores and severity counts.
 Invoke skill `x-review-pr` for holistic 40-point review. Requires 40/40 for GO. If NO-GO, fix all failed items and re-review (max 2 cycles).
 
 If `x-review-pr` includes TDD criteria, it validates TDD compliance in the checklist. If TDD criteria are not yet available, the review proceeds with existing checklist (backward compatible).
+
+## Phase 3B — Documentation: Changelog (Orchestrator — Inline)
+
+Generate the changelog entry AFTER all reviews and fixes are complete, so that fix commits
+from Phase 5 (specialist review fixes) and Phase 7 re-review cycles are captured.
+
+**Changelog Entry:**
+- Read ALL commits since branch point: `git log main..HEAD --oneline`
+- Group commits by Conventional Commits type: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `perf`
+- Include fix commits from review cycles (e.g., `fix(scope): address review findings`)
+- Generate changelog entry following [Keep a Changelog](https://keepachangelog.com/) format
+- Sections: Added (feat), Changed (refactor), Fixed (fix), Security, Deprecated, Removed
+- Append to CHANGELOG.md (or invoke `/x-changelog` if available)
+
+**Why Phase 3B is positioned here:**
+Phases 4-7 (reviews + fixes) often produce additional commits (fix, refactor, test).
+Generating the changelog before reviews would miss these commits, resulting in an
+incomplete CHANGELOG.md. By generating after Phase 7, every commit on the branch is captured.
 
 ## Phase 8 — Final Verification + Cleanup (Orchestrator — Inline)
 
