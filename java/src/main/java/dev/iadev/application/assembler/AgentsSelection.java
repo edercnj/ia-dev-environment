@@ -148,10 +148,14 @@ public final class AgentsSelection {
 
     private static List<String> selectSecurityAgents(
             ProjectConfig config) {
+        List<String> agents = new ArrayList<>();
         if (!config.security().frameworks().isEmpty()) {
-            return List.of("appsec-engineer.md");
+            agents.add("appsec-engineer.md");
         }
-        return List.of();
+        if (config.security().pentest()) {
+            agents.add("pentest-engineer.md");
+        }
+        return agents;
     }
 
     private static boolean hasAnyInterface(

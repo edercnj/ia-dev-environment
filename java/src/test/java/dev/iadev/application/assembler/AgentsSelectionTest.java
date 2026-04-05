@@ -420,6 +420,53 @@ class AgentsSelectionTest {
         }
 
         @Test
+        @DisplayName("config with pentest=true includes"
+                + " pentest-engineer.md")
+        void select_pentestTrue_includesPentestEngineer() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .pentest(true)
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .contains("pentest-engineer.md");
+        }
+
+        @Test
+        @DisplayName("config with pentest=false excludes"
+                + " pentest-engineer.md")
+        void select_pentestFalse_excludesPentestEngineer() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .pentest(false)
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .doesNotContain("pentest-engineer.md");
+        }
+
+        @Test
+        @DisplayName("default config excludes"
+                + " pentest-engineer.md")
+        void select_defaultConfig_excludesPentestEngineer() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .doesNotContain("pentest-engineer.md");
+        }
+
+        @Test
         @DisplayName("aggregates all conditional agents"
                 + " for full-featured config")
         void select_whenCalled_aggregatesAllConditionals() {
@@ -430,6 +477,7 @@ class AgentsSelectionTest {
                     .orchestrator("kubernetes")
                     .eventDriven(true)
                     .securityFrameworks("owasp")
+                    .pentest(true)
                     .clearInterfaces()
                     .addInterface("rest")
                     .addInterface("event-consumer")
@@ -446,7 +494,8 @@ class AgentsSelectionTest {
                     .contains("devsecops-engineer.md")
                     .contains("api-engineer.md")
                     .contains("event-engineer.md")
-                    .contains("appsec-engineer.md");
+                    .contains("appsec-engineer.md")
+                    .contains("pentest-engineer.md");
         }
     }
 

@@ -216,6 +216,10 @@ final class GithubAgentRenderer {
             agents.add("appsec-engineer.md");
         }
 
+        if (config.security().pentest()) {
+            agents.add("pentest-engineer.md");
+        }
+
         return agents;
     }
 

@@ -345,5 +345,41 @@ class GithubAgentsConditionalTest {
                     .doesNotContain(
                             "appsec-engineer.md");
         }
+
+        @Test
+        @DisplayName("pentest-engineer when pentest true")
+        void assemble_whenPentestTrue_pentestEngineer() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .pentest(true)
+                            .build();
+
+            List<String> agents =
+                    GithubAgentsAssembler
+                            .selectGithubConditionalAgents(
+                                    config);
+
+            assertThat(agents)
+                    .contains("pentest-engineer.md");
+        }
+
+        @Test
+        @DisplayName("no pentest-engineer when"
+                + " pentest false")
+        void assemble_whenPentestFalse_noPentestEngineer() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .pentest(false)
+                            .build();
+
+            List<String> agents =
+                    GithubAgentsAssembler
+                            .selectGithubConditionalAgents(
+                                    config);
+
+            assertThat(agents)
+                    .doesNotContain(
+                            "pentest-engineer.md");
+        }
     }
 }

@@ -364,4 +364,39 @@ class SecurityConfigTest {
                     .isEqualTo("default");
         }
     }
+
+    @Nested
+    @DisplayName("pentest flag")
+    class PentestFlag {
+
+        @Test
+        @DisplayName("pentest defaults to false from empty map")
+        void fromMap_emptyMap_pentestFalse() {
+            var result = SecurityConfig.fromMap(Map.of());
+
+            assertThat(result.pentest()).isFalse();
+        }
+
+        @Test
+        @DisplayName("pentest true when pentest is true")
+        void fromMap_pentestTrue_pentestTrue() {
+            var map = Map.<String, Object>of(
+                    "pentest", true);
+
+            var result = SecurityConfig.fromMap(map);
+
+            assertThat(result.pentest()).isTrue();
+        }
+
+        @Test
+        @DisplayName("pentest false when pentest is false")
+        void fromMap_pentestFalse_pentestFalse() {
+            var map = Map.<String, Object>of(
+                    "pentest", false);
+
+            var result = SecurityConfig.fromMap(map);
+
+            assertThat(result.pentest()).isFalse();
+        }
+    }
 }
