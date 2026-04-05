@@ -221,8 +221,8 @@ class NativeImageConfigTest {
                     "frameworks/.*",
                     "languages/.*",
                     "targets/claude/skills/.*",
-                    "github-agents-templates/.*",
-                    "github-skills-templates/.*"
+                    "targets/github-copilot/agents/.*",
+                    "targets/github-copilot/skills/.*"
             );
             assertThat(patterns)
                     .containsAll(requiredPatterns);

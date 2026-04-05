@@ -43,7 +43,7 @@ public final class GithubPromptsAssembler
         implements Assembler {
 
     private static final String TEMPLATES_DIR =
-            "github-prompts-templates";
+            "targets/github-copilot/prompts";
     private static final String PROMPTS_OUTPUT = "prompts";
     private static final String J2_SUFFIX = ".j2";
 
@@ -135,6 +135,6 @@ public final class GithubPromptsAssembler
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(TEMPLATES_DIR);
+                .resolveResourcesRoot(TEMPLATES_DIR, 3);
     }
 }

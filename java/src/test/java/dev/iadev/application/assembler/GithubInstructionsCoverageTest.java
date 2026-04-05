@@ -186,7 +186,7 @@ class GithubInstructionsCoverageTest {
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path templatesDir = resourceDir.resolve(
-                    "github-instructions-templates");
+                    "targets/github-copilot/instructions");
             Files.createDirectories(templatesDir);
             Files.writeString(
                     templatesDir.resolve("domain.md"),

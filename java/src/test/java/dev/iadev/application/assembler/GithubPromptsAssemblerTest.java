@@ -229,7 +229,7 @@ class GithubPromptsAssemblerTest {
                 throws IOException {
             // Create a template with Pebble control flow
             Path promptsDir = tempDir.resolve(
-                    "github-prompts-templates");
+                    "targets/github-copilot/prompts");
             Files.createDirectories(promptsDir);
             String template = "{% if framework_version"
                     + " %}v{{ framework_version }}"
@@ -294,7 +294,7 @@ class GithubPromptsAssemblerTest {
                 @TempDir Path tempDir)
                 throws IOException {
             Path promptsDir = tempDir.resolve(
-                    "github-prompts-templates");
+                    "targets/github-copilot/prompts");
             Files.createDirectories(promptsDir);
             // Only create 2 of 4 templates
             Files.writeString(

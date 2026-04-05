@@ -102,13 +102,13 @@ class AssemblerMiscCoverageTest {
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path coreDir = resourceDir.resolve(
-                    "github-agents-templates/core");
+                    "targets/github-copilot/agents/core");
             Files.createDirectories(coreDir);
             Path condDir = resourceDir.resolve(
-                    "github-agents-templates/conditional");
+                    "targets/github-copilot/agents/conditional");
             Files.createDirectories(condDir);
             Path devDir = resourceDir.resolve(
-                    "github-agents-templates/developers");
+                    "targets/github-copilot/agents/developers");
             Files.createDirectories(devDir);
 
             Path outputDir = tempDir.resolve("output");
@@ -346,10 +346,10 @@ class AssemblerMiscCoverageTest {
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path coreDir = resourceDir.resolve(
-                    "github-agents-templates/core");
+                    "targets/github-copilot/agents/core");
             Files.createDirectories(coreDir);
             Path condDir = resourceDir.resolve(
-                    "github-agents-templates/conditional");
+                    "targets/github-copilot/agents/conditional");
             Files.createDirectories(condDir);
 
             Path outputDir = tempDir.resolve("output");
