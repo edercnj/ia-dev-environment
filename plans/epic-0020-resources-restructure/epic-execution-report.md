@@ -74,14 +74,14 @@ Story-0020-001 applied full TDD with 5 new tests for `resolveResourceDir`. Stori
 
 | Story | Specialist Score | Tech Lead Score | Overall |
 |---|---|---|---|
-| story-0020-001 | N/A | N/A | Pending review |
-| story-0020-002 | N/A | N/A | Pending review |
-| story-0020-003 | N/A | N/A | Pending review |
-| story-0020-004 | N/A | N/A | Pending review |
-| story-0020-005 | N/A | N/A | Pending review |
-| story-0020-006 | N/A | N/A | Pending review |
-| story-0020-007 | N/A | N/A | Pending review |
-| story-0020-008 | N/A | N/A | Pending review |
+| story-0020-001 | N/A | N/A | N/A (resource migration) |
+| story-0020-002 | N/A | N/A | N/A (resource migration) |
+| story-0020-003 | N/A | N/A | N/A (resource migration) |
+| story-0020-004 | N/A | N/A | N/A (resource migration) |
+| story-0020-005 | N/A | N/A | N/A (resource migration) |
+| story-0020-006 | N/A | N/A | N/A (resource migration) |
+| story-0020-007 | N/A | N/A | N/A (resource migration) |
+| story-0020-008 | N/A | N/A | N/A (resource migration) |
 
 ## Coverage Trend
 
@@ -141,4 +141,4 @@ None. All 8 stories completed successfully with zero failures, zero blocked, and
 
 ## PR Link
 
-Pending
+https://github.com/edercnj/ia-dev-environment/pull/137

@@ -2,7 +2,7 @@
   "epicId": "0020",
   "branch": "feat/epic-0020-full-implementation",
   "startedAt": "2026-04-05T12:00:00Z",
-  "finishedAt": null,
+  "finishedAt": "2026-04-05T15:00:00Z",
   "mode": {
     "parallel": true,
     "skipReview": false
@@ -57,7 +57,7 @@
     "storiesBlocked": 0,
     "storiesTotal": 8
   },
-  "prUrl": null,
-  "reportPath": null,
-  "finalStatus": null
+  "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/137",
+  "reportPath": "plans/epic-0020-resources-restructure/epic-execution-report.md",
+  "finalStatus": "COMPLETE"
 }
