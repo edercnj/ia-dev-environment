@@ -399,4 +399,110 @@ class SecurityConfigTest {
             assertThat(result.pentest()).isFalse();
         }
     }
+
+    @Test
+    @DisplayName("single-arg constructor defaults scanning"
+            + " to disabled")
+    void constructor_singleArg_scanningDisabled() {
+        var config = new SecurityConfig(List.of());
+
+        assertThat(config.scanning())
+                .isEqualTo(SecurityConfig.ScanningConfig.DISABLED);
+        assertThat(config.scanning().containerScan())
+                .isFalse();
+    }
+
+    @Nested
+    @DisplayName("ScanningConfig")
+    class ScanningConfigTests {
+
+        @Test
+        @DisplayName("fromMap with containerScan true")
+        void fromMap_containerScanTrue_parsed() {
+            var map = Map.<String, Object>of(
+                    "containerScan", true);
+
+            var result =
+                    SecurityConfig.ScanningConfig.fromMap(map);
+
+            assertThat(result.containerScan()).isTrue();
+        }
+
+        @Test
+        @DisplayName("fromMap with containerScan false")
+        void fromMap_containerScanFalse_parsed() {
+            var map = Map.<String, Object>of(
+                    "containerScan", false);
+
+            var result =
+                    SecurityConfig.ScanningConfig.fromMap(map);
+
+            assertThat(result.containerScan()).isFalse();
+        }
+
+        @Test
+        @DisplayName("fromMap with empty map defaults to"
+                + " false")
+        void fromMap_emptyMap_defaultsFalse() {
+            var result =
+                    SecurityConfig.ScanningConfig.fromMap(
+                            Map.of());
+
+            assertThat(result.containerScan()).isFalse();
+        }
+
+        @Test
+        @DisplayName("DISABLED constant has containerScan"
+                + " false")
+        void disabled_containerScan_isFalse() {
+            assertThat(SecurityConfig.ScanningConfig.DISABLED
+                    .containerScan()).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("fromMap with scanning section")
+    class FromMapWithScanning {
+
+        @Test
+        @DisplayName("parses scanning.containerScan from"
+                + " nested map")
+        void fromMap_scanningSection_containerScanParsed() {
+            var map = Map.<String, Object>of(
+                    "scanning",
+                    Map.of("containerScan", true));
+
+            var result = SecurityConfig.fromMap(map);
+
+            assertThat(result.scanning().containerScan())
+                    .isTrue();
+        }
+
+        @Test
+        @DisplayName("missing scanning section defaults to"
+                + " disabled")
+        void fromMap_noScanningSection_defaultsDisabled() {
+            var result = SecurityConfig.fromMap(Map.of());
+
+            assertThat(result.scanning().containerScan())
+                    .isFalse();
+        }
+
+        @Test
+        @DisplayName("compliance and scanning coexist")
+        void fromMap_complianceAndScanning_bothParsed() {
+            var map = Map.<String, Object>of(
+                    "compliance",
+                    List.of("pci-dss"),
+                    "scanning",
+                    Map.of("containerScan", true));
+
+            var result = SecurityConfig.fromMap(map);
+
+            assertThat(result.frameworks())
+                    .containsExactly("pci-dss");
+            assertThat(result.scanning().containerScan())
+                    .isTrue();
+        }
+    }
 }

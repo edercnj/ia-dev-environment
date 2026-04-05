@@ -7,8 +7,11 @@ import java.util.Map;
  * Represents the security configuration section.
  *
  * <p>Contains a list of compliance framework names (e.g.,
- * pci-dss, lgpd, sox, hipaa). Defaults to an empty list.
- * The YAML key {@code compliance} is read; the legacy
+ * pci-dss, lgpd, sox, hipaa) and a scanning sub-config
+ * for security scanning feature flags. Defaults to an
+ * empty list and disabled scanning.</p>
+ *
+ * <p>The YAML key {@code compliance} is read; the legacy
  * {@code frameworks} key is supported as fallback.</p>
  *
  * <p>Sub-records {@link ScanningConfig} and
@@ -133,6 +136,16 @@ public record SecurityConfig(
      */
     public SecurityConfig {
         frameworks = List.copyOf(frameworks);
+    }
+
+    /**
+     * Convenience constructor for backward compatibility.
+     *
+     * @param frameworks the list of compliance framework
+     *     names
+     */
+    public SecurityConfig(List<String> frameworks) {
+        this(frameworks, ScanningConfig.DISABLED);
     }
 
     /**
