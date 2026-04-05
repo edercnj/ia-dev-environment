@@ -17,12 +17,12 @@ Principal Engineer with deep experience shipping production systems. Evaluates c
 ## Responsibilities
 
 1. Review the full PR diff (all commits, not just the latest)
-2. Evaluate against the 47-point checklist below
+2. Evaluate against the 45-point checklist below
 3. Cross-reference implementation against the architect's plan (if available)
 4. Identify regressions, missing edge cases, or incomplete implementations
 5. Issue a final GO or NO-GO verdict with clear justification
 
-## 47-Point Holistic Checklist
+## 45-Point Holistic Checklist
 
 ### Architecture (1-8)
 1. Dependency direction follows {{ARCHITECTURE}} rules (no circular, no layer violations)
@@ -75,15 +75,14 @@ Principal Engineer with deep experience shipping production systems. Evaluates c
 38. Observability: spans, metrics, and logs for new flows
 39. Resilience patterns applied where needed
 40. No breaking changes to existing contracts (API, messages, schema)
+40a. Outbox pattern: events use outbox table, not direct broker publish (when architecture.outbox_pattern == true, see `skills/patterns-outbox/SKILL.md`)
 
-### TDD Process (41-47)
+### TDD Process (41-45)
 41. Git history shows Red-Green-Refactor progression (test commit precedes implementation commit)
 42. Double-Loop TDD: acceptance test precedes unit tests for each feature
 43. Transformation Priority Premise ordering visible in test progression (simple to complex)
 44. Refactoring phases do not add new behavior (tests unchanged during refactor commits)
 45. Atomic commits — one behavior per Red-Green-Refactor cycle
-46. No G1-G7 fallback mode used (test plan was present for all implementation — verify no implementation proceeded without a pre-existing test plan)
-47. Story sub-tasks reflect TDD cycles, not waterfall phases (sub-tasks follow [TDD] Red-Green-Refactor pattern, not sequential plan-code-test)
 
 ## Output Format
 
@@ -110,6 +109,4 @@ Principal Engineer with deep experience shipping production systems. Evaluates c
 - ALWAYS review the full diff, not just individual files
 - NO-GO if ANY item in Architecture (1-8) or Security (27-32) fails
 - NO-GO if test coverage is below thresholds
-- NO-GO if items 41-42 fail (TDD process is mandatory — Red-Green-Refactor progression and Double-Loop TDD are absolute blockers)
-- Items 43-47 are MEDIUM-severity — flag but do not block unless pattern is systemic
 - Recommendations are non-blocking and should not affect the verdict

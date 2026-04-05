@@ -82,7 +82,7 @@ Launch one subagent per dimension:
 
 ## Step 4: Generate Report
 
-Write to `docs/audits/codebase-audit-YYYY-MM-DD.md`:
+Write to `results/audits/codebase-audit-YYYY-MM-DD.md`:
 
 ```markdown
 # Codebase Audit Report — {{PROJECT_NAME}}

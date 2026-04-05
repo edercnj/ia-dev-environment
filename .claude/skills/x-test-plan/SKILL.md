@@ -74,7 +74,7 @@ For each Gherkin scenario in the story, generate an acceptance test entry:
 | Field | Description |
 |-------|-------------|
 | ID | `AT-N` (sequential) |
-| Gherkin ID | `@GK-N` — the stable ID tag from the story's Gherkin scenario |
+| Gherkin | Reference to the original scenario |
 | Status | RED until all unit tests for this acceptance criteria complete |
 | Components | List of classes/modules under test |
 | Test Type | Integration, API, or E2E (depending on story scope) |
@@ -155,7 +155,7 @@ Flag any class where estimated coverage < 95% line / 90% branch.
 
 ### Quality Checks
 
-1. **[ENFORCED — ABORT on failure]** Every `@GK-N` scenario maps to ≥1 acceptance test (AT). If any `@GK-N` from the story has no corresponding AT-N, **ABORT** with message listing orphan `@GK-N` IDs. _(Backward compatibility: if story lacks `@GK-N` tags entirely, emit WARNING: "Story lacks @GK-N IDs. Traceability is degraded. Consider adding @GK-N tags." and fall back to textual description matching — do NOT abort.)_
+1. Every Gherkin scenario maps to ≥1 acceptance test (AT)
 2. Every acceptance criterion maps to ≥1 unit test chain (UT)
 3. UT-1 is ALWAYS a degenerate case (TPP Level 1)
 4. UTs follow non-decreasing TPP level order
@@ -165,11 +165,10 @@ Flag any class where estimated coverage < 95% line / 90% branch.
 8. Estimated coverage meets thresholds (≥ 95% line, ≥ 90% branch)
 9. Test naming follows convention: `[method]_[scenario]_[expected]`
 10. No unnecessary UTs for CRUD-only stories (max Level 3 unless justified)
-11. **[ENFORCED — ABORT on failure]** Bidirectional traceability `@GK-N ↔ AT-N`: (a) For every `@GK-N` in the story, ≥1 AT-N must reference it. (b) For every AT-N in the test plan, the referenced `@GK-N` must exist in the story. If any violation is detected, **ABORT** with message listing: orphan `@GK-N` IDs (no AT-N) and invalid AT-N references (AT-N references non-existent `@GK-N`). _(Backward compatibility: skip this check entirely when story lacks `@GK-N` tags — the WARNING from Check #1 already covers this case.)_
 
 ## Output
 
-Save to: `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md` (extract epic ID XXXX and story sequence YYYY from the story ID). Ensure directory exists: `mkdir -p docs/stories/epic-XXXX/plans`.
+Save to: `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md` (extract epic ID XXXX and story sequence YYYY from the story ID). Ensure directory exists: `mkdir -p plans/epic-XXXX/plans`.
 
 ```markdown
 # Test Plan -- STORY-ID: [Title]
@@ -184,7 +183,7 @@ Save to: `docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md` (extract epic I
 ## Acceptance Tests (Outer Loop)
 
 ### AT-1: [Gherkin scenario name]
-- **Gherkin ID**: @GK-N (stable ID from story's Gherkin scenario)
+- **Gherkin**: [reference to story scenario]
 - **Status**: RED until all unit tests complete
 - **Components**: [list of components under test]
 - **Acceptance Criteria**: [what must be true for this AT to pass]

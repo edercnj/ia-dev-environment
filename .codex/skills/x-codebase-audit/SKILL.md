@@ -139,7 +139,7 @@ Collect findings from all subagents and:
 
 ## Step 4: Generate Report (Inline)
 
-Write report to `docs/audits/codebase-audit-YYYY-MM-DD.md`:
+Write report to `results/audits/codebase-audit-YYYY-MM-DD.md`:
 
 ```markdown
 # Codebase Audit Report — {{PROJECT_NAME}}

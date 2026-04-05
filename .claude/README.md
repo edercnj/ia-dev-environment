@@ -63,7 +63,7 @@ CLAUDE.md                   <-- Executive summary (project root, loaded automati
 | N/A | MCP (`copilot-mcp.json`) | N/A | GitHub Copilot MCP server configuration |
 | N/A | Global instructions (`copilot-instructions.md`) | N/A | Loaded in every Copilot session |
 
-**Total .github/ artifacts: 70**
+**Total .github/ artifacts: 103**
 
 ### settings.json vs settings.local.json
 
@@ -85,8 +85,10 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 04 | `04-architecture-summary.md` | architecture summary |
 | 05 | `05-quality-gates.md` | quality gates |
 | 06 | `06-security-baseline.md` | security baseline |
+| 07 | `07-operations-baseline.md` | operations baseline |
+| 08 | `08-release-process.md` | release process |
 
-**Total: 6 rules**
+**Total: 8 rules**
 
 ### Numbering
 
@@ -103,6 +105,7 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **patterns** | `/patterns` |  |
 | **run-e2e** | `/run-e2e` | Skill: End-to-End Tests — Runs integration tests that validate the complete flow from request through all application layers to response, using a real database. |
 | **x-changelog** | `/x-changelog` | Generates CHANGELOG.md from Conventional Commits history. Parses git log, groups by commit type, maps to Keep a Changelog sections (Added, Changed, Fixed, etc.), and performs incremental updates preserving existing entries. |
+| **x-ci-cd-generate** | `/x-ci-cd-generate` | Generate or update CI/CD pipelines based on project stack: detect language, analyze existing workflows, generate CI/CD/release/security pipelines, validate with actionlint, support monorepo triggers. |
 | **x-codebase-audit** | `/x-codebase-audit` | Full codebase review against all project standards. Launches parallel subagents per audit dimension (Clean Code, SOLID, Architecture, Tests, Security, Cross-file), consolidates findings into a severity-categorized report with score. Use for periodic quality validation. |
 | **x-dependency-audit** | `/x-dependency-audit` | Checks project dependencies for vulnerabilities, outdated versions, and license issues. Detects build tool automatically, runs language-specific audit commands, and generates a severity-categorized report. |
 | **x-dev-adr-automation** | `/x-dev-adr-automation` | Automates ADR generation from architecture plan mini-ADRs: extracts inline decisions, expands to full ADR format, assigns sequential numbering, updates the ADR index, and adds cross-references. |
@@ -116,17 +119,23 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-jira-create-epic** | `/x-jira-create-epic` | > |
 | **x-jira-create-stories** | `/x-jira-create-stories` | > |
 | **x-mcp-recommend** | `/x-mcp-recommend` | Analyzes project tech stack and recommends relevant MCP (Model Context Protocol) servers. Auto-detects language, framework, database, cache, and message broker from project config, then matches against a built-in catalog of MCP servers with installation instructions. |
+| **x-ops-incident** | `/x-ops-incident` | Guides incident response with severity-based checklists, communication templates, and postmortem triggers. Interactive guide for SEV1-SEV4 incidents covering classification, response coordination, and action item tracking. |
 | **x-ops-troubleshoot** | `/x-ops-troubleshoot` | Diagnoses errors, stacktraces, build failures, and unexpected behavior. Systematic approach: reproduce, locate, understand, fix, verify. Use whenever something fails: compilation errors, test failures, runtime exceptions, coverage gaps, or performance issues. |
+| **x-perf-profile** | `/x-perf-profile` | Automated profiling: detect language, select profiler, execute session, generate flamegraph, identify hotspots, suggest optimizations |
+| **x-release** | `/x-release` | Orchestrates complete release flow: version bump (auto-detect or explicit), pre-condition validation, version file updates, changelog generation, release commit, git tag, and optional publish. Supports dry-run mode for safe previewing. |
 | **x-review** | `/x-review` | Parallel code review with specialist engineers (Security, QA, Performance, Database, Observability, DevOps, API, Event). Launches parallel subagents, each reading their own knowledge pack, then consolidates into a scored report. Use for pre-PR quality validation. |
 | **x-review-pr** | `/x-review-pr` | Tech Lead holistic review with 45-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, TDD process, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge. |
+| **x-setup-dev-environment** | `/x-setup-dev-environment` | Validate and configure local development environment: detect stack, check prerequisites, verify versions, validate IDE config, test database connectivity, run initial build, and report status with fix suggestions |
+| **x-spec-drift-check** | `/x-spec-drift-check` | Detects spec-code drift by comparing story data contracts, endpoints, and Gherkin scenarios against implemented code. Supports standalone mode (full report) and inline mode (compact output for TDD loop integration in x-dev-lifecycle Phase 2). |
 | **x-story-create** | `/x-story-create` | > |
 | **x-story-epic** | `/x-story-epic` | > |
 | **x-story-epic-full** | `/x-story-epic-full` | > |
 | **x-story-map** | `/x-story-map` | > |
 | **x-test-plan** | `/x-test-plan` | Generates a Double-Loop TDD test plan with TPP-ordered scenarios before implementation. Delegates KP reading to a context-gathering subagent, then produces structured Acceptance Tests (outer loop) and Unit Tests in Transformation Priority Premise order (inner loop). |
 | **x-test-run** | `/x-test-run` | Runs tests with coverage reporting and threshold validation. Use whenever writing, running, or analyzing tests. Triggers on: test, coverage, TDD, unit test, integration test, test failure, coverage gap, or Definition of Done validation. |
+| **x-threat-model** | `/x-threat-model` | Generate threat models using STRIDE analysis: identify components, map data flows, analyze threats per category, classify severity, suggest mitigations, and produce threat model document. |
 
-**Total: 38 skills**
+**Total: 52 skills**
 
 ### Usage Examples
 
@@ -149,15 +158,22 @@ to inject domain knowledge. Configured with `user-invocable: false`.
 |------|-------|
 | `api-design` | Referenced internally by agents |
 | `architecture` | Referenced internally by agents |
+| `ci-cd-patterns` | Referenced internally by agents |
 | `coding-standards` | Referenced internally by agents |
 | `compliance` | Referenced internally by agents |
+| `data-management` | Referenced internally by agents |
+| `disaster-recovery` | Referenced internally by agents |
 | `dockerfile` | Referenced internally by agents |
+| `feature-flags` | Referenced internally by agents |
 | `infrastructure` | Referenced internally by agents |
 | `layer-templates` | Referenced internally by agents |
 | `observability` | Referenced internally by agents |
+| `performance-engineering` | Referenced internally by agents |
 | `protocols` | Referenced internally by agents |
+| `release-management` | Referenced internally by agents |
 | `resilience` | Referenced internally by agents |
 | `security` | Referenced internally by agents |
+| `sre-practices` | Referenced internally by agents |
 | `story-planning` | Referenced internally by agents |
 | `testing` | Referenced internally by agents |
 
@@ -177,9 +193,10 @@ they are used by skills (via Task tool) to delegate work to agents with specific
 | **product-owner** | `product-owner.md` |
 | **qa-engineer** | `qa-engineer.md` |
 | **security-engineer** | `security-engineer.md` |
+| **sre-engineer** | `sre-engineer.md` |
 | **tech-lead** | `tech-lead.md` |
 
-**Total: 8 agents**
+**Total: 9 agents**
 
 ---
 
@@ -245,21 +262,21 @@ See the files directly for current configuration.
 
 | Component | Count |
 |-----------|-------|
-| Rules (.claude) | 6 |
-| Skills (.claude) | 25 |
-| Knowledge Packs (.claude) | 13 |
-| Agents (.claude) | 8 |
+| Rules (.claude) | 8 |
+| Skills (.claude) | 32 |
+| Knowledge Packs (.claude) | 20 |
+| Agents (.claude) | 9 |
 | Hooks (.claude) | 1 |
 | Settings (.claude) | 2 |
 | Instructions (.github) | 5 |
-| Skills (.github) | 43 |
-| Agents (.github) | 8 |
+| Skills (.github) | 56 |
+| Agents (.github) | 9 |
 | Prompts (.github) | 4 |
 | Hooks (.github) | 3 |
 | MCP (.github) | 0 |
 | AGENTS.md (root) | 1 |
 | AGENTS.override.md (root) | 1 |
-| Codex (.codex) | 69 |
-| Skills (.agents) | 67 |
+| Codex (.codex) | 107 |
+| Skills (.agents) | 105 |
 
 Generated by `ia-dev-env v0.1.0`.

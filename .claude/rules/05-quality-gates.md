@@ -49,8 +49,6 @@
 - [ ] Acceptance tests exist and validate end-to-end behavior
 - [ ] No cross-file consistency violations (uniform patterns within module)
 - [ ] No weak assertions (every test verifies specific behavior)
-- [ ] Test plan was generated before implementation (mandatory prerequisite)
-- [ ] No G1-G7 fallback used
 
 ## Forbidden
 
@@ -63,20 +61,8 @@
 - Test files > 250 lines without nested class / inner module organization
 - Duplicate type definitions (records, classes) across test files — extract to shared fixtures
 
-## TDD Compliance (Non-Negotiable)
+## TDD Compliance
 
-BLOCKING violations:
-- Implementation without test plan (no G1-G7 fallback allowed)
-- Test-after pattern (production code committed before corresponding test)
-- Missing acceptance tests for Gherkin scenarios
-- Refactoring commits that add new behavior
-
-Enforced at three levels:
-1. **x-dev-lifecycle Phase 0**: Aborts if no test plan exists
-2. **Integrity Gate**: Reports TDD compliance warnings via `tddCompliance` data
-3. **Tech Lead Review**: NO-GO if TDD process items (41-42) fail
-
-Additional TDD requirements:
 - **Double-Loop TDD**: Outer loop (acceptance test, failing) drives inner loop (unit tests, Red-Green-Refactor)
 - **Transformation Priority Premise (TPP)**: Order tests from simple to complex — `{} → nil → constant → constant+ → scalar → collection → …`
 - **Atomic TDD commits**: Each Red-Green-Refactor cycle produces one or more atomic commits with Conventional Commits format

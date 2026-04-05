@@ -112,20 +112,21 @@ Examples: "Porta TCP definida", "Schema da tabela X criado", "Decisão sobre Y t
 **DoD Local**: Specific acceptance criteria for this story. Use checkboxes.
 Examples: "Servidor TCP aceitando conexões", "Handler X funcional", "Teste de carga validado".
 
-**Mandatory DoD Local items (TDD verification):** Every story's DoD Local MUST include these 5 items:
-- `- [ ] Test plan exists at docs/stories/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
-- `- [ ] All @GK-N mapped to AT-N`
-- `- [ ] TPP ordering verified`
-- `- [ ] All AT-N GREEN`
-- `- [ ] Commits show test-first pattern`
-
-These items ensure TDD compliance and traceability between Gherkin scenarios and acceptance tests.
-
 **DoD Global**: Copy from the Epic verbatim. This is for quick reference during code review.
 
 #### Section 5 — Contratos de Dados (Data Contract)
 
 This is the most critical section. Data contracts must be copy-paste precise.
+Rich data contracts eliminate ambiguity by providing explicit types, validations,
+examples, and error codes for every endpoint.
+
+##### 5.1 Request Table
+
+For REST-based stories, use the expanded Request format:
+
+| Campo | Tipo | M/O | Validacoes | Exemplo |
+| :--- | :--- | :--- | :--- | :--- |
+| `field_name` | `UUID` / `BigDecimal` / `String(255)` / `Integer` / `List<String>` | M ou O | min/max, regex, enum values | valor concreto |
 
 For protocol-based stories (binary protocols, gRPC, etc.), use the format:
 
@@ -133,17 +134,50 @@ For protocol-based stories (binary protocols, gRPC, etc.), use the format:
 | :--- | :--- | :--- | :--- | :--- |
 | `field_name` | type format | M/O/- | M/O/- | Generate/Echo/Derive — description |
 
-For REST-based stories, use:
+##### 5.2 Response Table
 
-| Campo | Tipo | Obrigatório | Descrição |
+| Campo | Tipo | Sempre presente | Descricao |
 | :--- | :--- | :--- | :--- |
-| `field_name` | type | Sim/Não/Condicional | description |
+| `field_name` | `UUID` / `String` / `BigDecimal` | Sim ou Nao | descricao do campo |
 
-**Precision rules:**
+##### 5.3 Error Codes Mapeados
+
+Every endpoint MUST declare its error codes following RFC 7807 (Problem Details for HTTP APIs):
+
+| HTTP Status | Error Code | Condicao | Mensagem (RFC 7807) |
+| :--- | :--- | :--- | :--- |
+| `400` | `INVALID_FIELD` | Campo obrigatorio ausente ou formato invalido | `{"type":"...","title":"Bad Request","status":400,"detail":"..."}` |
+| `404` | `NOT_FOUND` | Recurso nao encontrado | `{"type":"...","title":"Not Found","status":404,"detail":"..."}` |
+| `409` | `CONFLICT` | Violacao de regra de negocio | `{"type":"...","title":"Conflict","status":409,"detail":"..."}` |
+| `422` | `UNPROCESSABLE` | Validacao de dominio falhou | `{"type":"...","title":"Unprocessable Entity","status":422,"detail":"..."}` |
+
+Error codes follow RFC 7807 format with fields: `type`, `title`, `status`, `detail`, and `instance`.
+
+##### 5.4 Event Schema (event-driven stories)
+
+For stories with `eventDriven: true`, include the Event Schema section:
+
+| Campo | Tipo | Obrigatorio | Descricao |
+| :--- | :--- | :--- | :--- |
+| `eventType` | `String` | Sim | Tipo do evento (e.g., `OrderCreated`, `PaymentProcessed`) |
+| `eventVersion` | `String` | Sim | Versao do schema do evento (e.g., `1.0.0`) |
+| `timestamp` | `Instant` | Sim | Momento da emissao do evento (ISO-8601 UTC) |
+| `correlationId` | `UUID` | Sim | ID de correlacao para rastreamento |
+| `payload` | `Object` | Sim | Payload do evento (schema especifico do dominio) |
+
+**Event versioning notes:**
+- **Backward compatibility:** New fields MUST be optional; existing fields MUST NOT change type
+- **Schema evolution strategy:** Use additive-only changes; breaking changes require new event type
+- **Deprecation policy:** Deprecated event versions MUST be supported for at least 2 release cycles
+
+##### Data Contract Precision Rules
+
 - Field names must match the spec exactly (same casing, same naming)
-- Types must include format details (n 6, LLVAR z..37, VARCHAR(64))
+- Types must be explicit with format: `UUID`, `BigDecimal`, `String(255)`, `Integer`, `List<String>`, etc.
 - M/O flags must reflect the actual contract, not guesses
 - Derivation rules must explain exactly how values are computed
+- Fields without a declared type MUST emit a warning: "field type is required for rich contracts"
+- Stories without endpoints MUST include a note: "Nenhum endpoint declarado nesta story"
 
 #### Section 6 — Diagramas
 
@@ -227,18 +261,6 @@ Participant naming rules:
 
 Write Gherkin scenarios in Portuguese (DADO/QUANDO/ENTÃO/E/MAS).
 
-**@GK-N ID rules (Non-Negotiable):**
-- Each Gherkin scenario MUST have a stable tag `@GK-N` (where N is a sequential integer starting at 1)
-- Format: `@GK-N` tag on its own line before `Cenario:`, e.g.:
-  ```gherkin
-  @GK-1
-  Cenario: Entrada nula retorna erro de validacao
-  ```
-- FORBIDDEN: renumbering `@GK-N` after initial creation — IDs are **immutable**
-- New scenarios receive the next available number (append-only sequencing)
-- Removed scenarios: the `@GK-N` number is **retired**, never reused
-- Example: if `@GK-2` is removed, the next new scenario gets `@GK-4` (not `@GK-2`)
-
 **Mandatory scenario categories (TPP order):**
 1. **Degenerate cases** (first): null input, empty collection, zero value, missing required field — at least 1 scenario
 2. **Happy path**: Main success flow with concrete values — at least 1 scenario
@@ -265,81 +287,19 @@ If the story has no naturally bounded inputs, boundary scenarios may be omitted 
 
 #### Section 8 — Sub-tarefas
 
-Break the story into granular sub-tasks reflecting TDD cycles (Red-Green-Refactor).
+Break the story into granular tasks, each estimable at 2-4 hours:
 
-**Tags:**
-- `[TDD]` — TDD cycle sub-tasks (acceptance tests, unit tests, implementation, refactoring)
+- `[Dev]` — Implementation tasks (handler, service, repository, migration)
+- `[Test]` — Test tasks (unit, integration, E2E, performance)
 - `[Doc]` — Documentation tasks (diagrams, wiki, API docs)
-
-> **DEPRECATED:** Tags `[Dev]` and `[Test]` are deprecated. New stories MUST use `[TDD]` exclusively for code and test sub-tasks. Existing stories with `[Dev]`/`[Test]` remain valid during the transition period (backward compatible).
 
 Use checkboxes `- [ ]` for tracking.
 
-**Sub-task format:**
+**Mandatory test sub-task:** Every story MUST include at least one of these:
+- `[Test] Smoke/E2E: <teste automatizado validando critério de aceite principal de ponta a ponta>`
+- `[Test] Integração: <teste de integração validando fluxo completo>`
 
-- **AT-N (Acceptance Test):** `[TDD] AT-N (@GK-N): description (RED/GREEN/REFACTOR)`
-  - Each AT-N MUST reference a valid `@GK-N` from Section 7
-  - Includes three phases: RED (write failing test), GREEN (implement minimum code), REFACTOR (improve design)
-- **UT-N (Unit Test):** `[TDD] UT-N (TPP-L: transformation): description (RED/GREEN)`
-  - Each UT-N MUST include a TPP level (1-6) indicating the transformation complexity
-  - Includes two phases: RED (write failing test), GREEN (implement minimum code)
-
-**TPP Levels (Transformation Priority Premise):**
-
-| Level | Transformation | Description |
-|:---|:---|:---|
-| 1 | {} -> nil | From nothing to null/empty |
-| 2 | nil -> constant | From null to constant |
-| 3 | constant -> constant+ | From constant to more complex constant |
-| 4 | constant -> scalar | From constant to variable |
-| 5 | scalar -> collection | From scalar to collection |
-| 6 | collection -> recursion | From collection to recursion |
-
-**Pre-test-plan state (placeholder):**
-
-Before the test plan is generated, Section 8 MUST contain this placeholder:
-
-```markdown
-### Ciclos TDD
-
-> Sub-tarefas TDD serao populadas apos geracao do test plan via `/x-test-plan`.
-> Cada AT-N e UT-N do test plan gerara entradas [TDD] com ciclos RED/GREEN/REFACTOR.
-
-### Tarefas nao-TDD
-
-- [ ] [Doc] (tarefas de documentacao identificadas durante planejamento)
-```
-
-**Post-test-plan state (populated):**
-
-After the test plan is generated, Section 8 is populated with TDD cycle sub-tasks:
-
-```markdown
-### Ciclos TDD
-
-- [ ] [TDD] AT-1 (@GK-1): Escrever acceptance test — descricao do cenario (RED)
-- [ ] [TDD] AT-1 (@GK-1): Implementar codigo minimo para passar (GREEN)
-- [ ] [TDD] AT-1 (@GK-1): Refatorar sem alterar comportamento (REFACTOR)
-- [ ] [TDD] UT-1 (TPP-1: {} -> nil): Unit test para caso nulo (RED)
-- [ ] [TDD] UT-1 (TPP-1): Implementar retorno nulo (GREEN)
-- [ ] [TDD] UT-2 (TPP-2: nil -> constant): Unit test para retorno constante (RED)
-- [ ] [TDD] UT-2 (TPP-2): Implementar retorno constante (GREEN)
-- [ ] [TDD] AT-2 (@GK-2): Escrever acceptance test — fluxo principal (RED)
-- [ ] [TDD] AT-2 (@GK-2): Implementar fluxo principal (GREEN)
-- [ ] [TDD] AT-2 (@GK-2): Refatorar (REFACTOR)
-
-### Tarefas nao-TDD
-
-- [ ] [Doc] Documentar API/componente
-- [ ] [Doc] Atualizar diagramas de arquitetura
-```
-
-**Mandatory validation sub-task:** Every story MUST include at least one AT-N sub-task linked to the main acceptance criterion (@GK-N from happy path). A story without ANY acceptance test sub-task is INCOMPLETE and must not be saved.
-
-**Backward compatibility (RULE-006):** Skills that process sub-tasks MUST recognize both formats during the transition period:
-- New format: `[TDD] AT-N (@GK-N): ...` and `[TDD] UT-N (TPP-L: ...): ...`
-- Legacy format: `[Dev] ...` and `[Test] ...`
-- Processing a story with legacy format MUST NOT cause errors or abort execution
+A story without ANY automated end-to-end validation sub-task is INCOMPLETE and must not be saved.
 
 ### Step 2.X: Optional Jira Integration (per story)
 
@@ -426,9 +386,91 @@ For each story's "Blocked By" list:
 
 This step is best-effort. Report: "N dependency links criados no Jira"
 
+### Step 2.Y: Quality Gate Validation (pre-write check)
+
+Before writing any story file to disk, run a quality gate evaluation on the generated
+markdown content. This step ensures that low-quality stories do not reach the backlog
+without refinement.
+
+#### Quality Gate Flag
+
+| Flag | Type | Default | Range | Description |
+|:---|:---|:---|:---|:---|
+| `--quality-threshold` | int | 70 | 0-100 | Minimum score required for a story to be saved |
+
+- Value `0` disables the quality gate entirely (all stories pass)
+- Value `100` requires a perfect score
+
+#### Scoring Dimensions
+
+Evaluate each story against these dimensions (each scored 0-100, then weighted):
+
+| Dimension | Weight | What to Check |
+|:---|:---|:---|
+| Gherkin completeness | 25% | Minimum 4 scenarios, TPP ordering, degenerate cases present, concrete values (not abstractions) |
+| Data contract precision | 25% | All fields typed, M/O flags present, validation rules declared, error codes mapped (RFC 7807) |
+| Dependency consistency | 15% | Blocked By/Blocks cross-references match the Epic index bidirectionally |
+| Diagram coverage | 15% | Sequence diagram present for data-flow stories, deployment diagram for infra stories |
+| Value articulation | 10% | Section 3.5 present with business-perspective value (not technical tasks) |
+| Sub-task completeness | 10% | At least one `[Test]` sub-task, tasks estimable at 2-4h each |
+
+#### Evaluation Flow
+
+For each generated story (after content generation, before file write):
+
+1. Compute the weighted score across all dimensions
+2. Compare against the `--quality-threshold` (default: 70)
+3. If `score >= threshold`: proceed to file write
+4. If `score < threshold`: enter refinement loop
+
+#### Automatic Refinement Loop
+
+When a story fails the quality gate:
+
+1. Display the full quality report with score breakdown and specific action items per dimension
+2. Display: `"Score N/100 below threshold T. Refining scenarios before proceeding."`
+3. Attempt automatic refinement based on the action items:
+   - Add missing degenerate Gherkin scenarios if absent
+   - Add field types to data contract entries missing types
+   - Add boundary value triplets for bounded inputs
+   - Add missing error code mappings
+   - Fix dependency cross-references
+4. Re-evaluate the refined story
+5. If `score >= threshold`: save the file and report `"Story refined: oldScore -> newScore (attempt N)"`
+6. If still below threshold after attempt 1: repeat refinement (attempt 2)
+7. If still below after 2 attempts: display `"Score still N/100 after 2 refinements. Manual intervention needed."` and do NOT save the file
+
+Maximum automatic refinement attempts: **2**
+
+#### Quality Report Format
+
+When displaying a quality gate report (on rejection or after refinement), use this format:
+
+```
+Quality Gate Report — story-XXXX-YYYY
+Score: N/100 (threshold: T)
+
+  Gherkin completeness:     NN/100 (weight 25%)
+    - [ACTION] Add degenerate scenario for null input
+    - [ACTION] Reorder scenarios: degenerate before happy path
+  Data contract precision:  NN/100 (weight 25%)
+    - [ACTION] Field 'amount' missing type declaration
+    - [OK] Error codes mapped for all endpoints
+  Dependency consistency:   NN/100 (weight 15%)
+    - [OK] All cross-references valid
+  Diagram coverage:         NN/100 (weight 15%)
+    - [ACTION] Missing sequence diagram for REST flow
+  Value articulation:       NN/100 (weight 10%)
+    - [OK] Business value clearly stated
+  Sub-task completeness:    NN/100 (weight 10%)
+    - [ACTION] No [Test] sub-task found
+
+Action items: K issue(s) to resolve
+```
+
 ### Step 3: Save and Report
 
-Save each story as `story-XXXX-YYYY.md` in the same directory as the Epic (inside `docs/stories/epic-XXXX/`).
+Save each story as `story-XXXX-YYYY.md` in the same directory as the Epic (inside `plans/epic-XXXX/`).
 The XXXX is the epic number (extracted from the Epic file) and YYYY is the story sequence (from the Epic's index).
 Report: total stories generated, dependency graph summary, any inconsistencies found.
 

@@ -23,7 +23,7 @@ Senior QA Engineer specialized in test design, coverage analysis, and quality as
 5. Ensure test fixtures follow project standards
 6. Check that tests are deterministic and independent
 
-## 31-Point QA Checklist
+## 28-Point QA Checklist
 
 ### Coverage (1-4)
 1. Line coverage >= 95% for changed/new code
@@ -59,14 +59,11 @@ Senior QA Engineer specialized in test design, coverage analysis, and quality as
 23. Test directory structure mirrors source directory structure
 24. No test pollution — each test cleans up or uses transaction rollback
 
-### TDD Compliance (25-31)
+### TDD Compliance (25-28)
 25. Commits show test-first pattern (test file modified before production code)
 26. Explicit refactoring commits exist after green phase (no behavior changes in refactoring)
 27. Tests are incremental — progression from simple to complex (Transformation Priority Premise)
 28. Acceptance tests exist for end-to-end scenarios before unit tests (Double-Loop TDD)
-29. Test plan exists and was generated before implementation (verify via `tddCompliance` data from integrity gate when available; otherwise confirm test plan file exists in commit history before implementation commits)
-30. All @GK-N scenarios have corresponding AT-N entries (bidirectional traceability — every Gherkin scenario maps to at least one acceptance test, and every acceptance test references a valid @GK-N)
-31. Git history shows TPP progression (degenerate case commits appear before complex case commits — verify commit timestamps and test complexity ordering)
 
 ## Output Format
 

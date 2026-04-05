@@ -86,7 +86,7 @@ Project uses **{{BUILD_TOOL}}**. Detect lock files:
 
 ### Step 4 -- Generate Report
 
-Write to `docs/audits/dependency-audit-YYYY-MM-DD.md`:
+Write to `results/audits/dependency-audit-YYYY-MM-DD.md`:
 
 ```markdown
 # Dependency Audit — {{PROJECT_NAME}}
@@ -125,3 +125,47 @@ Write to `docs/audits/dependency-audit-YYYY-MM-DD.md`:
 | Tool not installed | Suggest install, continue with others |
 | No lock file | Warn, attempt without |
 | Command fails | Report error, continue |
+
+## SBOM Generation
+
+Generate a CycloneDX JSON Software Bill of Materials listing all direct and transitive dependencies.
+
+- `/x-dependency-audit --scope sbom` -- generate SBOM only
+
+| Build Tool | Command |
+|-----------|---------|
+| npm | `npx @cyclonedx/cdxgen -o sbom.json` |
+| maven | `mvn org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom -DoutputFormat=json` |
+| gradle | `gradle cyclonedxBom` |
+| cargo | `cargo cyclonedx --format json` |
+| pip | `cyclonedx-py environment -o sbom.json --output-format json` |
+| go mod | `cyclonedx-gomod mod -json -output sbom.json` |
+
+Output: `results/audits/sbom-YYYY-MM-DD.json` (CycloneDX 1.6 JSON)
+
+## License Attribution Report
+
+Generate license attribution report highlighting copyleft dependencies.
+
+- `/x-dependency-audit --scope license-report` -- generate license report
+
+Classifies dependencies as: Permissive, Weak copyleft (LGPL, MPL), Strong copyleft (GPL, AGPL), Unknown.
+Output: `results/audits/license-attribution-YYYY-MM-DD.md`
+
+## Dependency Tree Visualization
+
+Generate dependency tree with risk scoring per node.
+
+- `/x-dependency-audit --scope tree` -- generate dependency tree
+
+| Build Tool | Command |
+|-----------|---------|
+| npm | `npm ls --all --json` |
+| maven | `mvn dependency:tree -DoutputType=text` |
+| gradle | `gradle dependencies` |
+| cargo | `cargo tree` |
+| pip | `pipdeptree --json` |
+| go mod | `go mod graph` |
+
+Risk factors: Known CVE (40%), Depth (20%), Maintainer activity (15%), License risk (15%), Popularity (10%).
+Output: `results/audits/dependency-tree-YYYY-MM-DD.md`
