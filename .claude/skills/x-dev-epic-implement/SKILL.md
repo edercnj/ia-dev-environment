@@ -2,7 +2,7 @@
 name: x-dev-epic-implement
 description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
-argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr]"
+argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr] [--auto-merge]"
 ---
 
 ## Global Output Policy
@@ -46,6 +46,7 @@ ERROR: Epic ID is required. Usage: /x-dev-epic-implement [EPIC-ID] [flags]
 | `--sequential` | boolean | `false` | Disable parallel worktrees, execute stories one at a time |
 | `--skip-smoke-gate` | boolean | `false` | Skip smoke tests in the integrity gate between phases |
 | `--single-pr` | boolean | `false` | Preserve legacy flow: epic branch + rebase-before-merge + single mega-PR (RULE-009) |
+| `--auto-merge` | boolean | `false` | Auto-merge story PRs via `gh pr merge` after reviews approve (RULE-004). When not set, orchestrator polls for manual merge. |
 
 ## Prerequisites Check
 
@@ -316,6 +317,23 @@ The adjusted execution plan produced by Phase 0.5 is consumed by the Core Loop:
    - `mode`: `{ parallel: true, skipReview: <from flags>, singlePr: <from flags> }` (default; `parallel` set to `false` when `--sequential` is passed)
 5. The returned `ExecutionState` tracks all story statuses, metrics, and integrity gates
 
+**Per-story `StoryEntry` schema in `execution-state.json`:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | String | Yes | Story ID (e.g., `story-0042-0001`) |
+| `phase` | Integer | Yes | Phase number |
+| `status` | String | Yes | `PENDING`, `IN_PROGRESS`, `SUCCESS`, `FAILED`, `PARTIAL`, `BLOCKED` |
+| `commitSha` | String | When SUCCESS | Last commit SHA |
+| `findingsCount` | Integer | Yes | Number of review findings |
+| `summary` | String | Yes | Brief description |
+| `retries` | Integer | Yes | Number of retry attempts |
+| `duration` | Number | When completed | Execution duration in seconds |
+| `blockedBy` | String[] | When BLOCKED | IDs of blocking stories |
+| `prUrl` | String | When PR created | URL of the story PR |
+| `prNumber` | Integer | When PR created | GitHub PR number |
+| `prMergeStatus` | String | When PR created | `PENDING`, `OPEN`, `MERGED`, `CLOSED` |
+
 ### 1.2 Branch Management
 
 The orchestrator does NOT create a branch. Each story creates its own branch via
@@ -346,7 +364,10 @@ For each phase in (0..totalPhases-1):
      → If no preflight analysis exists, treat all stories as parallel-eligible
   1. Call getExecutableStories(parsedMap, executionState)
      → Returns stories sorted by critical path priority (RULE-007)
-     → Only PENDING stories with all dependencies SUCCESS are returned
+     → Only PENDING stories with all dependencies SUCCESS AND prMergeStatus == "MERGED" are returned
+     → Stories without dependencies (phase 0) skip the PR merge check
+  1a. If stories have dependencies with status SUCCESS but prMergeStatus != "MERGED":
+     → Enter PR merge wait loop (see "PR Merge Wait Mechanism" below)
   2. If no executable stories and some remain PENDING:
      → Phase is blocked; log warning and advance to next phase
   3. Partition executable stories using preflight analysis:
@@ -370,7 +391,41 @@ The loop ensures that:
 - BLOCKED stories are never dispatched (filtered by `getExecutableStories`)
 - Each phase completes before the next begins (parallel dispatch is default; sequential when `--sequential` is set)
 - Pre-flight conflict analysis partitions stories into parallel and sequential groups to minimize merge conflicts
+- Dependencies are verified at BOTH lifecycle level (SUCCESS) AND PR level (MERGED)
 - [Placeholder: partial execution filter — story-0005-0009]
+
+#### `getExecutableStories()` Algorithm (RULE-003)
+
+```
+function getExecutableStories(parsedMap, executionState):
+  for each story in parsedMap.stories:
+    if story.status != PENDING: continue
+    for each dep in story.dependencies:
+      depState = executionState.stories[dep]
+      if depState.status != SUCCESS: skip story
+      if depState.prMergeStatus != "MERGED": skip story  // PR merge check
+    add story to executableList
+  return sortByCriticalPath(executableList)
+```
+
+#### PR Merge Wait Mechanism
+
+When stories have dependencies with `status == SUCCESS` but `prMergeStatus != "MERGED"`,
+the orchestrator enters a wait loop:
+
+1. **Auto-merge mode (`--auto-merge`):** For each dependency with an unmerged PR and
+   approved reviews, execute `gh pr merge {prNumber} --merge`. Merge order follows
+   `sortByCriticalPath()` (RULE-007). If merge fails (conflict, failing checks), log
+   warning and fall through to polling.
+
+2. **Polling mode (default, or auto-merge fallback):**
+   - Poll interval: 60 seconds (configurable)
+   - Timeout: 24 hours (configurable)
+   - Each poll: `gh pr view {prNumber} --json state` for each unmerged dependency PR
+   - Log: `"Waiting for PR #{prNumber} (story-{id}) to be merged... ({N}s elapsed)"`
+   - On merge detected: update `prMergeStatus = "MERGED"` in checkpoint, re-run
+     `getExecutableStories()`
+   - On timeout: mark dependent stories as `BLOCKED` with reason `"PR merge timeout"`
 
 ### 1.4 Subagent Dispatch (Sequential Mode — When `--sequential` Is Set)
 
@@ -513,6 +568,9 @@ After each story completes (success or failure), persist the result:
    - `commitSha`: The commit SHA (if status is `SUCCESS`)
    - `findingsCount`: Number of review findings from the subagent
    - `summary`: Brief description of what the subagent accomplished
+   - `prUrl`: URL of the PR created by the lifecycle (if status is `SUCCESS`)
+   - `prNumber`: PR number (if status is `SUCCESS`)
+   - `prMergeStatus`: Initial value `"OPEN"` (updated to `"MERGED"` when PR is merged)
 2. Update metrics: increment `storiesCompleted` counter
 3. The checkpoint is persisted atomically to `execution-state.json` via the checkpoint engine
 4. Between story completions, the checkpoint always reflects the current execution state
