@@ -361,6 +361,12 @@ public final class TestConfigBuilder {
         return this;
     }
 
+    /** Alias for {@link #pentest(boolean)}. */
+    public TestConfigBuilder pentestReadiness(
+            boolean enabled) {
+        return pentest(enabled);
+    }
+
     public TestConfigBuilder pentestDefaultEnv(String env) {
         this.pentestDefaultEnv = env;
         return this;

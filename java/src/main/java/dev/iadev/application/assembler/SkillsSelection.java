@@ -182,7 +182,7 @@ public final class SkillsSelection {
      * Selects pentest skills based on security config.
      *
      * <p>Includes {@code x-pentest} when
-     * {@code pentestReadiness} is enabled in the security
+     * {@code pentest} is enabled in the security
      * configuration.</p>
      *
      * @param config the project configuration
@@ -190,7 +190,7 @@ public final class SkillsSelection {
      */
     public static List<String> selectPentestSkills(
             ProjectConfig config) {
-        if (config.security().pentestReadiness()) {
+        if (config.security().pentest()) {
             return List.of("x-pentest");
         }
         return List.of();
