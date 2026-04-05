@@ -424,7 +424,18 @@ Return a JSON result with this exact structure (SubagentResult):
   "status": "SUCCESS" | "FAILED" | "PARTIAL",
   "commitSha": "<git commit SHA if SUCCESS>",
   "findingsCount": <number of review findings>,
-  "summary": "<brief description of what was done>"
+  "summary": "<brief description of what was done>",
+  "reviewsExecuted": {
+    "specialist": true | false,
+    "techLead": true | false
+  },
+  "reviewScores": {
+    "specialist": "<score>/<total>",
+    "techLead": "<score>/<total>"
+  },
+  "coverageLine": <line coverage percentage>,
+  "coverageBranch": <branch coverage percentage>,
+  "tddCycles": <number of Red-Green-Refactor cycles>
 }
 ```
 
@@ -452,7 +463,9 @@ For each story in executableStories:
     subagent_type: "general-purpose",
     isolation: "worktree",
     prompt: "<same prompt template as Section 1.4 (invoking /x-dev-lifecycle),
-             with story-specific metadata>"
+             with story-specific metadata and the full SubagentResult contract
+             including reviewsExecuted, reviewScores, coverageLine, coverageBranch,
+             and tddCycles fields>"
   )
 ```
 
@@ -617,15 +630,83 @@ After the merge phase completes, clean up worktree resources:
 
 After receiving the subagent response, validate the `SubagentResult` contract:
 
+**Full SubagentResult Contract:**
+```json
+{
+  "status": "SUCCESS | FAILED | PARTIAL",
+  "commitSha": "<sha>",
+  "findingsCount": 0,
+  "summary": "<description>",
+  "reviewsExecuted": {
+    "specialist": true,
+    "techLead": true
+  },
+  "reviewScores": {
+    "specialist": "56/56",
+    "techLead": "45/45"
+  },
+  "coverageLine": 97.5,
+  "coverageBranch": 93.2,
+  "tddCycles": 12
+}
+```
+
+#### 1.5.1 Structural Validation (Existing Fields)
+
 1. **`status` field**: MUST be present, MUST be one of: `SUCCESS`, `FAILED`, `PARTIAL`
 2. **`findingsCount` field**: MUST be present and be a number
 3. **`summary` field**: MUST be present and be a string
 4. **`commitSha` field**: If `status === "SUCCESS"`, MUST be present and be a string
 
-**On validation failure:**
+**On structural validation failure:**
 - Mark the story as FAILED
 - Set summary to: `"Invalid subagent result: missing {field} field"`
 - Continue to checkpoint update (1.6)
+
+#### 1.5.2 Extended Fields Validation (Backward Compatibility)
+
+Validate the presence of extended fields. If any extended field is missing from the
+result, treat the story as FAILED (do not crash). This ensures backward compatibility
+with older subagent implementations that return only the original 4 fields.
+
+5. **`reviewsExecuted` field**: MUST be present and be an object with `specialist` (boolean) and `techLead` (boolean)
+6. **`reviewScores` field**: MUST be present and be an object with `specialist` (string) and `techLead` (string)
+7. **`coverageLine` field**: MUST be present and be a number
+8. **`coverageBranch` field**: MUST be present and be a number
+9. **`tddCycles` field**: MUST be present and be a number (integer >= 0)
+
+**On extended field validation failure:**
+- Reclassify status to FAILED
+- Set summary to: `"Invalid subagent result: missing {field} field"`
+- Continue to checkpoint update (1.6) — do NOT crash or throw
+
+#### 1.5.3 Enforced Quality Validation
+
+After structural and extended field validation passes, apply enforced quality rules.
+These rules can reclassify a `SUCCESS` status to `FAILED` if quality thresholds are not met.
+
+**Review Execution Validation (when `--skip-review` is NOT active):**
+- If `status == SUCCESS` and `reviewsExecuted.specialist` is NOT `true`:
+  reclassify to FAILED with summary: `"Specialist review was not executed"`
+- If `status == SUCCESS` and `reviewsExecuted.techLead` is NOT `true`:
+  reclassify to FAILED with summary: `"Tech Lead review was not executed"`
+
+**Review Execution Validation (when `--skip-review` IS active):**
+- Skip review execution checks — reviews are not required
+- The checkpoint records `skipReviewReason` from the `--reason` flag
+
+**Coverage Threshold Validation:**
+- If `coverageLine < 95`: reclassify to FAILED with summary:
+  `"Line coverage {coverageLine}% below 95% threshold"`
+- If `coverageBranch < 90`: reclassify to FAILED with summary:
+  `"Branch coverage {coverageBranch}% below 90% threshold"`
+
+**TDD Compliance Validation:**
+- If `tddCycles == 0`: reclassify to FAILED with summary:
+  `"No TDD cycles executed (tddCycles == 0)"`
+
+**Validation Order:** Structural (1.5.1) → Extended fields (1.5.2) → Quality enforcement (1.5.3).
+The first failing check short-circuits: subsequent checks are not evaluated.
 
 [Placeholder: retry with error context — story-0005-0007]
 
