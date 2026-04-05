@@ -23,7 +23,8 @@ argument-hint: "[STORY-ID or feature-name]"
 **9 phases (0-8). ALL mandatory. NEVER stop before Phase 8.**
 
 After each phase 0–7: `>>> Phase N/8 completed. Proceeding to Phase N+1...`
-After Phase 8: `>>> Phase 8/8 completed. Lifecycle complete.`
+After Phase 8 (DoD PASS): `>>> Phase 8/8 completed. Lifecycle complete. DoD: PASS`
+After Phase 8 (DoD FAIL): `>>> Phase 8/8 FAILED. DoD items not satisfied: [list of failed items]`
 
 ## Complete Flow
 
@@ -540,8 +541,55 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
      - **FAIL**: Any check red → "Investigate rollback"
      - **SKIP**: testing.smoke_tests=false → "Verification skipped"
    - Non-blocking: emit result for human decision, do NOT auto-rollback
-9. Report PASS/FAIL/SKIP result
-10. `git checkout main && git pull origin main`
+9. **DoD Enforcement Gate** — Classify and enforce all DoD items as a blocking gate:
+
+### 9.1 DoD Item Classification
+
+Each DoD item from steps 5-8 is classified into one of three enforcement categories:
+
+| Category | Enforcement | Items |
+|----------|-------------|-------|
+| **Mandatory** | FAIL blocks story completion | TDD items 6.1-6.7 (test-first pattern, AT-N GREEN, TPP ordering, no test-after commits, story markdown updated, IMPLEMENTATION-MAP updated, at least 1 automated acceptance test), coverage thresholds (line >= 95%, branch >= 90%) |
+| **Conditional** | FAIL blocks when condition is active; SKIP when condition is inactive | Contract tests pass (testing.contract_tests == true), event schemas registered (event_driven == true), compliance requirements met (security.compliance active), gateway configuration updated (api_gateway != none), gRPC proto backward compatible (interfaces contain grpc), GraphQL schema backward compatible (interfaces contain graphql), threat model updated (security findings severity >= Medium), post-deploy verification (testing.smoke_tests == true), smoke test passes (testing.smoke_tests == true) |
+| **Advisory** | SKIP acceptable, does not block | README update, performance baseline recording, architecture document update, changelog entry |
+
+### 9.2 Gate Evaluation Logic
+
+After evaluating all DoD items from steps 5-8, apply the following gate logic:
+
+1. **Mandatory check:** If ANY mandatory item has status FAIL → set `dodResult = FAIL`
+2. **Conditional check:** For each conditional item:
+   - If the item's condition is **active** (e.g., `testing.contract_tests == true`) AND item status is FAIL → set `dodResult = FAIL`
+   - If the item's condition is **inactive** → status SKIP is acceptable, does not affect gate
+3. **Advisory check:** Advisory items with status SKIP are recorded in the report but do NOT affect `dodResult`
+4. **Auto-fix attempt (on FAIL):** If `dodResult == FAIL`, attempt automatic remediation for fixable items:
+   - Missing README update → generate README section from implementation summary
+   - Missing changelog entry → generate entry from `git log main..HEAD --oneline`
+   - Missing IMPLEMENTATION-MAP update → update status column programmatically
+   - Missing story file status update → update `**Status:**` field programmatically
+5. **Re-evaluate DoD:** After auto-fix, re-evaluate ALL DoD items (mandatory + conditional)
+6. **Final verdict:**
+   - If `dodResult == PASS` (all mandatory PASS, all active conditional PASS) → story status = **SUCCESS**
+   - If `dodResult == FAIL` after auto-fix retry → story status = **PARTIAL** with list of failed items
+
+### 9.3 Gate Result Reporting
+
+Report the gate result with item-level detail:
+
+```
+DoD Gate Result: [PASS | FAIL]
+  Mandatory:   [N/N PASS]
+  Conditional: [N/N PASS, M SKIPPED]
+  Advisory:    [N PASS, M SKIPPED]
+  Failed items: [list of failed item descriptions, if any]
+  Auto-fix attempted: [yes/no]
+  Auto-fix result: [success/partial/not-attempted]
+```
+
+10. **Conditional Completion Message** — Emit the phase completion message based on gate result:
+   - DoD PASS: `"Phase 8/8 completed. Lifecycle complete. DoD: PASS"`
+   - DoD FAIL (after retry): `"Phase 8/8 FAILED. DoD items not satisfied: [list of failed items]"`
+11. `git checkout main && git pull origin main`
 
 **Phase 8 is the ONLY legitimate stopping point.**
 
