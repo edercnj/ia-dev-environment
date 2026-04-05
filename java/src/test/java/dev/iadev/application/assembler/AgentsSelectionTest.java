@@ -420,6 +420,56 @@ class AgentsSelectionTest {
         }
 
         @Test
+        @DisplayName("config with security frameworks"
+                + " includes compliance-auditor.md")
+        void select_secFrameworks_includesComplianceAuditor() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .securityFrameworks("gdpr")
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .contains("compliance-auditor.md");
+        }
+
+        @Test
+        @DisplayName("config with multiple security"
+                + " frameworks includes"
+                + " compliance-auditor.md")
+        void select_multiFrameworks_includesAuditor() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .securityFrameworks(
+                            "gdpr", "lgpd", "hipaa")
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .contains("compliance-auditor.md");
+        }
+
+        @Test
+        @DisplayName("config without security frameworks"
+                + " excludes compliance-auditor.md")
+        void select_noFrameworks_excludesAuditor() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .doesNotContain(
+                            "compliance-auditor.md");
+        }
+
+        @Test
         @DisplayName("config with pentest=true includes"
                 + " pentest-engineer.md")
         void select_pentestTrue_includesPentestEngineer() {
@@ -495,6 +545,7 @@ class AgentsSelectionTest {
                     .contains("api-engineer.md")
                     .contains("event-engineer.md")
                     .contains("appsec-engineer.md")
+                    .contains("compliance-auditor.md")
                     .contains("pentest-engineer.md");
         }
     }

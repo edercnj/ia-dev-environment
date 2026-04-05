@@ -214,11 +214,13 @@ final class GithubAgentRenderer {
 
         if (!config.security().frameworks().isEmpty()) {
             agents.add("appsec-engineer.md");
+            agents.add("compliance-auditor.md");
         }
 
         if (config.security().pentest()) {
             agents.add("pentest-engineer.md");
         }
+
 
         return agents;
     }

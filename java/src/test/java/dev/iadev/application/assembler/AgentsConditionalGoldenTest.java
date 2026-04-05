@@ -256,6 +256,141 @@ class AgentsConditionalGoldenTest {
         }
 
         @Test
+        @DisplayName("security frameworks generates"
+                + " compliance-auditor.md")
+        void assemble_secFrameworks_generatesAuditor(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            AgentsAssembler assembler =
+                    new AgentsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .securityFrameworks("gdpr")
+                            .build();
+            assembler.assemble(
+                    config, new TemplateEngine(),
+                    outputDir);
+            assertThat(outputDir.resolve(
+                    "agents/compliance-auditor.md"))
+                    .exists();
+        }
+
+        @Test
+        @DisplayName("no security frameworks excludes"
+                + " compliance-auditor.md")
+        void assemble_noFrameworks_excludesAuditor(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            AgentsAssembler assembler =
+                    new AgentsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("none")
+                            .orchestrator("none")
+                            .iac("none")
+                            .clearInterfaces()
+                            .addInterface("cli")
+                            .eventDriven(false)
+                            .build();
+            assembler.assemble(
+                    config, new TemplateEngine(),
+                    outputDir);
+            assertThat(outputDir.resolve(
+                    "agents/compliance-auditor.md"))
+                    .doesNotExist();
+        }
+
+        @Test
+        @DisplayName("compliance-auditor.md contains"
+                + " 15-point checklist")
+        void assemble_auditor_contains15PointChecklist(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            AgentsAssembler assembler =
+                    new AgentsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .securityFrameworks("gdpr")
+                            .build();
+            assembler.assemble(
+                    config, new TemplateEngine(),
+                    outputDir);
+            Path auditorFile = outputDir.resolve(
+                    "agents/compliance-auditor.md");
+            String content = Files.readString(
+                    auditorFile, StandardCharsets.UTF_8);
+            long checklistItems = content.lines()
+                    .filter(line -> line.matches(
+                            "^\\d+\\. \\*\\*.*\\*\\*.*"))
+                    .count();
+            assertThat(checklistItems).isEqualTo(15);
+        }
+
+        @Test
+        @DisplayName("compliance-auditor.md declares"
+                + " RULE-006 scope exclusions")
+        void assemble_auditor_declaresRule006Scope(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            AgentsAssembler assembler =
+                    new AgentsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .securityFrameworks("gdpr")
+                            .build();
+            assembler.assemble(
+                    config, new TemplateEngine(),
+                    outputDir);
+            Path auditorFile = outputDir.resolve(
+                    "agents/compliance-auditor.md");
+            String content = Files.readString(
+                    auditorFile, StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("RULE-006")
+                    .contains("security-engineer")
+                    .contains("appsec-engineer")
+                    .contains("devsecops-engineer")
+                    .contains("pentest-engineer");
+        }
+
+        @Test
+        @DisplayName("compliance-auditor.md documents"
+                + " all 5 regulatory frameworks")
+        void assemble_auditor_documents5Frameworks(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            AgentsAssembler assembler =
+                    new AgentsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .securityFrameworks("gdpr")
+                            .build();
+            assembler.assemble(
+                    config, new TemplateEngine(),
+                    outputDir);
+            Path auditorFile = outputDir.resolve(
+                    "agents/compliance-auditor.md");
+            String content = Files.readString(
+                    auditorFile, StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("GDPR")
+                    .contains("LGPD")
+                    .contains("HIPAA")
+                    .contains("PCI-DSS")
+                    .contains("SOX");
+        }
+
+        @Test
         @DisplayName("full config generates many agents")
         void assemble_fullFeatured_generatesMany(
                 @TempDir Path tempDir)
