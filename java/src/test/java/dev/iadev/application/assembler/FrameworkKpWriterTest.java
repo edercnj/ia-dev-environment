@@ -83,7 +83,7 @@ class FrameworkKpWriterTest {
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path frameworks =
-                    resourceDir.resolve("frameworks");
+                    resourceDir.resolve("knowledge/frameworks");
             Files.createDirectories(frameworks);
             Files.writeString(
                     frameworks.resolve("quarkus"),
@@ -112,7 +112,7 @@ class FrameworkKpWriterTest {
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path common = resourceDir.resolve(
-                    "frameworks/quarkus/common");
+                    "knowledge/frameworks/quarkus/common");
             Files.createDirectories(common);
             Files.writeString(
                     common.resolve("patterns.md"),
@@ -144,7 +144,7 @@ class FrameworkKpWriterTest {
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path fwDir = resourceDir.resolve(
-                    "frameworks/quarkus");
+                    "knowledge/frameworks/quarkus");
             Files.createDirectories(fwDir);
             Path skillsDir = tempDir.resolve("skills");
             Files.createDirectories(skillsDir);

@@ -485,7 +485,7 @@ class PatternsAssemblerTest {
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path patternsDir =
-                    resourceDir.resolve("patterns");
+                    resourceDir.resolve("knowledge/patterns");
             Files.createDirectories(patternsDir);
             Path outputDir = tempDir.resolve("output");
             Files.createDirectories(outputDir);

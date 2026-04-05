@@ -39,13 +39,13 @@ class RulesCondCoverageSqlNosqlTest {
                     .build();
             Path resourceDir = tempDir.resolve("res");
             Path sqlCommon = resourceDir.resolve(
-                    "databases/sql/common");
+                    "knowledge/databases/sql/common");
             Files.createDirectories(sqlCommon);
             Files.writeString(
                     sqlCommon.resolve("sql-common.md"),
                     "SQL common");
             Path sqlMysql = resourceDir.resolve(
-                    "databases/sql/mysql");
+                    "knowledge/databases/sql/mysql");
             Files.createDirectories(sqlMysql);
             Files.writeString(
                     sqlMysql.resolve("mysql-types.md"),
@@ -76,7 +76,7 @@ class RulesCondCoverageSqlNosqlTest {
                     .build();
             Path resourceDir = tempDir.resolve("res");
             Path sqlCommon = resourceDir.resolve(
-                    "databases/sql/common");
+                    "knowledge/databases/sql/common");
             Files.createDirectories(sqlCommon);
             Files.writeString(
                     sqlCommon.resolve("sql-base.md"),
@@ -107,13 +107,13 @@ class RulesCondCoverageSqlNosqlTest {
                     .build();
             Path resourceDir = tempDir.resolve("res");
             Path nosqlCommon = resourceDir.resolve(
-                    "databases/nosql/common");
+                    "knowledge/databases/nosql/common");
             Files.createDirectories(nosqlCommon);
             Files.writeString(
                     nosqlCommon.resolve("nosql-base.md"),
                     "NoSQL base");
             Path cassandra = resourceDir.resolve(
-                    "databases/nosql/cassandra");
+                    "knowledge/databases/nosql/cassandra");
             Files.createDirectories(cassandra);
             Files.writeString(
                     cassandra.resolve(
@@ -141,7 +141,7 @@ class RulesCondCoverageSqlNosqlTest {
                     .build();
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(
-                    resourceDir.resolve("databases"));
+                    resourceDir.resolve("knowledge/databases"));
             Path skillsDir = tempDir.resolve("skills");
             List<String> result =
                     RulesConditionals.copyDatabaseRefs(
@@ -169,7 +169,7 @@ class RulesCondCoverageSqlNosqlTest {
                     .build();
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(
-                    resourceDir.resolve("databases"));
+                    resourceDir.resolve("knowledge/databases"));
             Path skillsDir = tempDir.resolve("skills");
             List<String> result =
                     RulesConditionals.copyDatabaseRefs(
@@ -198,7 +198,7 @@ class RulesCondCoverageSqlNosqlTest {
                     .build();
             Path resourceDir = tempDir.resolve("res");
             Path cacheRedis = resourceDir.resolve(
-                    "databases/cache/redis");
+                    "knowledge/databases/cache/redis");
             Files.createDirectories(cacheRedis);
             Files.writeString(
                     cacheRedis.resolve("redis.md"),
@@ -222,7 +222,7 @@ class RulesCondCoverageSqlNosqlTest {
                     .build();
             Path resourceDir = tempDir.resolve("res");
             Path common = resourceDir.resolve(
-                    "databases/cache/common");
+                    "knowledge/databases/cache/common");
             Files.createDirectories(common);
             Files.writeString(
                     common.resolve("cache-basics.md"),

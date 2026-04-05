@@ -85,7 +85,7 @@ class RulesAssemblerCoverageFrameworkTest {
                     RulesAssemblerCoverageHelper
                             .setupMinimalRes(tempDir);
             Path frameworks =
-                    resourceDir.resolve("frameworks");
+                    resourceDir.resolve("knowledge/frameworks");
             Files.createDirectories(frameworks);
             Files.writeString(
                     frameworks.resolve("quarkus"),
@@ -116,7 +116,7 @@ class RulesAssemblerCoverageFrameworkTest {
                     RulesAssemblerCoverageHelper
                             .setupMinimalRes(tempDir);
             Path fwDir = resourceDir.resolve(
-                    "frameworks/quarkus");
+                    "knowledge/frameworks/quarkus");
             Path common = fwDir.resolve("common");
             Files.createDirectories(common);
             Files.writeString(
@@ -149,7 +149,7 @@ class RulesAssemblerCoverageFrameworkTest {
                     RulesAssemblerCoverageHelper
                             .setupMinimalRes(tempDir);
             Path fwDir = resourceDir.resolve(
-                    "frameworks/quarkus");
+                    "knowledge/frameworks/quarkus");
             Files.createDirectories(fwDir);
 
             Path outputDir = tempDir.resolve("output");

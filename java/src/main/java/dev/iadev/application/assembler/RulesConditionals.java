@@ -52,7 +52,7 @@ public final class RulesConditionals {
             return List.of();
         }
         Path dbDir =
-                ctx.resourceDir().resolve("databases");
+                ctx.resourceDir().resolve("knowledge/databases");
         Path target = ctx.skillsDir().resolve(
                 "database-patterns/references");
         CopyHelpers.ensureDirectory(target);
@@ -82,7 +82,7 @@ public final class RulesConditionals {
         if (NONE_VALUE.equals(cacheName)) {
             return List.of();
         }
-        Path dbDir = resourceDir.resolve("databases");
+        Path dbDir = resourceDir.resolve("knowledge/databases");
         Path target = skillsDir.resolve(
                 "database-patterns/references");
         CopyHelpers.ensureDirectory(target);
@@ -111,7 +111,7 @@ public final class RulesConditionals {
         if (config.security().frameworks().isEmpty()) {
             return List.of();
         }
-        Path secDir = resourceDir.resolve("security");
+        Path secDir = resourceDir.resolve("knowledge/security");
         List<String> generated = new ArrayList<>();
         generated.addAll(
                 copySecurityBase(secDir, skillsDir));

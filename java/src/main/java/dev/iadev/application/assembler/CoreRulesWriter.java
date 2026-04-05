@@ -99,7 +99,7 @@ public final class CoreRulesWriter {
      */
     List<String> routeCoreToKps(
             ProjectConfig config, Path skillsDir) {
-        Path coreDir = resourcesDir.resolve("core");
+        Path coreDir = resourcesDir.resolve("knowledge/core");
         if (!Files.exists(coreDir)
                 || !Files.isDirectory(coreDir)) {
             return List.of();

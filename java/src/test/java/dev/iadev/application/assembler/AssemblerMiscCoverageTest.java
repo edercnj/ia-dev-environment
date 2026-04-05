@@ -239,7 +239,7 @@ class AssemblerMiscCoverageTest {
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path patternsDir = resourceDir.resolve(
-                    "patterns");
+                    "knowledge/patterns");
             Files.createDirectories(patternsDir);
             Path outputDir = tempDir.resolve("output");
             Files.createDirectories(outputDir);

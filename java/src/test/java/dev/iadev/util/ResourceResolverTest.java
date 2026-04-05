@@ -169,7 +169,7 @@ class ResourceResolverTest {
         @DisplayName("1-level path returns existing dir")
         void oneLevelPath_whenCalled_returnsExistingDir() {
             Path result = ResourceResolver
-                    .resolveResourceDir("core");
+                    .resolveResourceDir("knowledge/core");
 
             assertThat(result).isAbsolute();
             assertThat(Files.isDirectory(result)).isTrue();
@@ -182,7 +182,7 @@ class ResourceResolverTest {
         void twoLevelPath_whenCalled_returnsExistingDir() {
             Path result = ResourceResolver
                     .resolveResourceDir(
-                            "databases/cache");
+                            "knowledge/databases/cache");
 
             assertThat(result).isAbsolute();
             assertThat(Files.isDirectory(result)).isTrue();
@@ -195,7 +195,7 @@ class ResourceResolverTest {
         void threeLevelPath_whenCalled_returnsExistingDir() {
             Path result = ResourceResolver
                     .resolveResourceDir(
-                            "databases/cache/redis");
+                            "knowledge/databases/cache/redis");
 
             assertThat(result).isAbsolute();
             assertThat(Files.isDirectory(result)).isTrue();

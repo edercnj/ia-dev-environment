@@ -147,8 +147,10 @@ class RulesAssemblerCoverageBaseTest {
             Path coreRules =
                     resourceDir.resolve("targets/claude/rules");
             Files.createDirectories(coreRules);
+            Files.createDirectories(
+                    resourceDir.resolve("knowledge"));
             Files.writeString(
-                    resourceDir.resolve("core"),
+                    resourceDir.resolve("knowledge/core"),
                     "not a dir");
             Path templates =
                     resourceDir.resolve("templates");
@@ -181,7 +183,7 @@ class RulesAssemblerCoverageBaseTest {
                     RulesAssemblerCoverageHelper
                             .setupMinimalRes(tempDir);
             Path coreDir =
-                    resourceDir.resolve("core");
+                    resourceDir.resolve("knowledge/core");
             Files.createDirectories(coreDir);
 
             Path outputDir = tempDir.resolve("output");

@@ -82,10 +82,10 @@ class ResourceDiscoveryTest {
         void coreResource_forCoreResource_returnsValidUrl() {
             var discovery = new ResourceDiscovery();
 
-            URL url = discovery.findResource("core/01-clean-code.md");
+            URL url = discovery.findResource("knowledge/core/01-clean-code.md");
 
             assertThat(url.toString())
-                    .contains("core/01-clean-code.md");
+                    .contains("knowledge/core/01-clean-code.md");
             assertThat(url.getProtocol()).isIn("file", "jar");
         }
     }

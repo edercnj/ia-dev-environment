@@ -59,13 +59,13 @@ class RulesConditionalsTest {
                     .build();
             Path resourceDir = tempDir.resolve("res");
             Path sqlCommon = resourceDir.resolve(
-                    "databases/sql/common");
+                    "knowledge/databases/sql/common");
             Files.createDirectories(sqlCommon);
             Files.writeString(
                     sqlCommon.resolve("sql-principles.md"),
                     "SQL content");
             Path sqlPg = resourceDir.resolve(
-                    "databases/sql/postgresql");
+                    "knowledge/databases/sql/postgresql");
             Files.createDirectories(sqlPg);
             Files.writeString(
                     sqlPg.resolve("types.md"),
@@ -99,7 +99,7 @@ class RulesConditionalsTest {
                     .build();
             Path resourceDir = tempDir.resolve("res");
             Path nosqlCommon = resourceDir.resolve(
-                    "databases/nosql/common");
+                    "knowledge/databases/nosql/common");
             Files.createDirectories(nosqlCommon);
             Files.writeString(
                     nosqlCommon.resolve(
@@ -131,7 +131,7 @@ class RulesConditionalsTest {
                     .database("postgresql", "16")
                     .build();
             Path resourceDir = tempDir.resolve("res");
-            Path dbDir = resourceDir.resolve("databases");
+            Path dbDir = resourceDir.resolve("knowledge/databases");
             Files.createDirectories(dbDir);
             Files.writeString(
                     dbDir.resolve("version-matrix.md"),
@@ -183,14 +183,14 @@ class RulesConditionalsTest {
                     .build();
             Path resourceDir = tempDir.resolve("res");
             Path cacheCommon = resourceDir.resolve(
-                    "databases/cache/common");
+                    "knowledge/databases/cache/common");
             Files.createDirectories(cacheCommon);
             Files.writeString(
                     cacheCommon.resolve(
                             "cache-principles.md"),
                     "Cache content");
             Path cacheRedis = resourceDir.resolve(
-                    "databases/cache/redis");
+                    "knowledge/databases/cache/redis");
             Files.createDirectories(cacheRedis);
             Files.writeString(
                     cacheRedis.resolve(

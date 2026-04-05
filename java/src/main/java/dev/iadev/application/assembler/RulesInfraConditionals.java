@@ -45,7 +45,7 @@ public final class RulesInfraConditionals {
             return List.of();
         }
         Path cloudDir =
-                resourceDir.resolve("cloud-providers");
+                resourceDir.resolve("knowledge/cloud-providers");
         Path kpDir =
                 skillsDir.resolve("knowledge-packs");
         CopyHelpers.ensureDirectory(kpDir);
@@ -73,7 +73,7 @@ public final class RulesInfraConditionals {
             ProjectConfig config,
             Path resourceDir,
             Path skillsDir) {
-        Path infraDir = resourceDir.resolve("infrastructure");
+        Path infraDir = resourceDir.resolve("knowledge/infrastructure");
         Path kpDir = skillsDir.resolve("knowledge-packs");
         CopyHelpers.ensureDirectory(kpDir);
         List<String> generated = new ArrayList<>();

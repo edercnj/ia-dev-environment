@@ -216,10 +216,10 @@ class NativeImageConfigTest {
                     "templates/.*",
                     "config-templates/.*",
                     "targets/claude/agents/.*",
-                    "core/.*",
+                    "knowledge/core/.*",
                     "targets/claude/rules/.*",
-                    "frameworks/.*",
-                    "languages/.*",
+                    "knowledge/frameworks/.*",
+                    "knowledge/languages/.*",
                     "targets/claude/skills/.*",
                     "targets/github-copilot/agents/.*",
                     "targets/github-copilot/skills/.*"

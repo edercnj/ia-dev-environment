@@ -59,7 +59,7 @@ public final class FrameworkKpWriter {
             return List.of();
         }
         Path fwDir =
-                resourcesDir.resolve("frameworks/" + fw);
+                resourcesDir.resolve("knowledge/frameworks/" + fw);
         if (!Files.exists(fwDir)
                 || !Files.isDirectory(fwDir)) {
             return List.of();

@@ -114,7 +114,7 @@ class CoreRulesWriterTest {
         void write_missingRouteSource_skips(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
-            Path coreDir = resourceDir.resolve("core");
+            Path coreDir = resourceDir.resolve("knowledge/core");
             Files.createDirectories(coreDir);
             Path skillsDir = tempDir.resolve("skills");
             Files.createDirectories(skillsDir);
@@ -140,7 +140,7 @@ class CoreRulesWriterTest {
         void write_routeSourceIsDirectory_skips(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
-            Path coreDir = resourceDir.resolve("core");
+            Path coreDir = resourceDir.resolve("knowledge/core");
             Files.createDirectories(coreDir);
             // Create a directory where a file is expected
             Files.createDirectories(

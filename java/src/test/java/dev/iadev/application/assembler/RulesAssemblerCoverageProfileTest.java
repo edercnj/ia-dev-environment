@@ -63,7 +63,7 @@ class RulesAssemblerCoverageProfileTest {
                     RulesAssemblerCoverageHelper
                             .setupMinimalRes(tempDir);
             Path langParent =
-                    resourceDir.resolve("languages");
+                    resourceDir.resolve("knowledge/languages");
             Files.createDirectories(langParent);
             Files.writeString(
                     langParent.resolve("java"),
@@ -93,7 +93,7 @@ class RulesAssemblerCoverageProfileTest {
                     RulesAssemblerCoverageHelper
                             .setupMinimalRes(tempDir);
             Path langDir =
-                    resourceDir.resolve("languages/java");
+                    resourceDir.resolve("knowledge/languages/java");
             Files.createDirectories(langDir);
 
             Path outputDir = tempDir.resolve("output");
@@ -121,7 +121,7 @@ class RulesAssemblerCoverageProfileTest {
                     RulesAssemblerCoverageHelper
                             .setupMinimalRes(tempDir);
             Path common = resourceDir.resolve(
-                    "languages/java/common");
+                    "knowledge/languages/java/common");
             Files.createDirectories(common);
             Files.writeString(
                     common.resolve("testing-patterns.md"),
@@ -162,7 +162,7 @@ class RulesAssemblerCoverageProfileTest {
                     RulesAssemblerCoverageHelper
                             .setupMinimalRes(tempDir);
             Path langDir =
-                    resourceDir.resolve("languages/java");
+                    resourceDir.resolve("knowledge/languages/java");
             Files.createDirectories(langDir);
 
             Path outputDir = tempDir.resolve("output");

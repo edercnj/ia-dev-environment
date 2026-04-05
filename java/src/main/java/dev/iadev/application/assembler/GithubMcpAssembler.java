@@ -133,6 +133,6 @@ public final class GithubMcpAssembler
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot("core");
+                .resolveResourcesRoot("knowledge/core", 2);
     }
 }
