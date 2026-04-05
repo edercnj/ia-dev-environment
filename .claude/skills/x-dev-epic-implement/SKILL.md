@@ -753,226 +753,72 @@ When not set, the smoke gate (Step 5) must also pass for the overall integrity g
 > The integrity gate smoke tests serve as an ADDITIONAL regression validation — they ensure
 > that the combination of all stories in a phase did not break the overall smoke test suite.
 
-## Phase 2 — Consolidation (Two-Wave)
+## Phase 2 — Epic Progress Report Generation
 
-After all stories complete (or reach terminal state), the orchestrator runs a
-two-wave consolidation. Wave 1 launches independent subagents in parallel;
-Wave 2 waits for both results before creating the PR. Each action is dispatched
-to a clean-context subagent (RULE-001) to keep the orchestrator's context lightweight.
+After all stories in a phase complete (or reach terminal state), the orchestrator
+generates a progress report. With per-story PRs, each story already has its own
+tech lead review (via `x-dev-lifecycle` Phase 7) and its own PR (via Phase 6).
+Phase 2 consolidates this information into a single report.
 
-**Skip condition:** If NO stories have status SUCCESS, skip consolidation entirely.
-Log: `"No successful stories — skipping consolidation"` and proceed to Phase 3.
+> **Note:** The legacy two-wave consolidation (tech lead review of full diff +
+> mega-PR creation) is only used when `--single-pr` is set. See the `--single-pr`
+> guard in Phase 0 Step 7.
 
-### Wave 1 — Parallel Review + Report (SINGLE message)
+**Skip condition:** If NO stories have status SUCCESS, skip report generation entirely.
+Log: `"No successful stories — skipping report generation"` and proceed to Phase 3.
 
-**CRITICAL:** Both subagents 2.1 and 2.2 MUST be launched in a SINGLE message (RULE-003).
-They are independent: 2.1 reads the git diff (branch vs main), while 2.2 reads the
-checkpoint on disk (`execution-state.json` + template). No data dependency exists between them.
+### 2.1 Generate Progress Report
 
-When `--skip-review` is set, Wave 1 launches ONLY subagent 2.2 (Report Generation).
-No Tech Lead Review subagent is launched. The `{{FINDINGS_SUMMARY}}` field in the
-report is populated with `"Review skipped by user"`.
+After all stories reach terminal state (SUCCESS, FAILED, or BLOCKED):
 
-#### 2.1 Tech Lead Review Subagent
+1. Read checkpoint to collect all story results
+2. Build PR links table from `prUrl`, `prNumber`, `prMergeStatus` per story
+3. Generate `epic-execution-report.md` using the template
+4. Replace `{{PR_LINKS_TABLE}}` with the per-story PR table:
 
-Dispatch a subagent that executes `x-review-pr` logic on the full epic diff:
-
-**Subagent Configuration:**
-- Tool: `Agent` with `subagent_type: "general-purpose"`
-- Context isolation (RULE-001): pass only branch name and base branch
-
-**Prompt Template:**
-```
-You are a Tech Lead reviewing the full diff for epic {epicId}.
-
-Branch: feat/epic-{epicId}-full-implementation
-Base: main
-
-Execute the x-review-pr review logic on the complete diff (all commits
-from all stories). Return a JSON ReviewResult:
-{
-  "score": "XX/40",
-  "decision": "GO" | "NO-GO",
-  "findings": [{ "item": "...", "severity": "...", "suggestion": "..." }]
-}
+```markdown
+| Story | PR | Status | Tech Lead Score | Merged At |
+|-------|-----|--------|-----------------|-----------|
+| story-{epicId}-0001 | [#41](https://github.com/org/repo/pull/41) | MERGED | 42/45 | 2026-04-01T10:30:00Z |
+| story-{epicId}-0002 | [#42](https://github.com/org/repo/pull/42) | OPEN | 38/45 | — |
+| story-{epicId}-0003 | — | FAILED | — | — |
 ```
 
-**Result Handling:**
-- On SUCCESS: record `ReviewResult` in checkpoint atomically (RULE-002)
-- On subagent failure: log `"WARNING: Tech Lead Review failed — continuing without review"`, continue (review is informational, not blocking)
-- The review covers the COMPLETE epic diff (branch vs main), not individual stories
-
-#### 2.2 Report Generation Subagent
-
-Dispatch a subagent that generates `epic-execution-report.md`:
-
-**Subagent Prompt:**
-```
-You are generating the epic execution report for EPIC-{epicId}.
-
-1. Read template: _TEMPLATE-EPIC-EXECUTION-REPORT.md
-2. Read checkpoint: execution-state.json from the epic directory
-3. Resolve ALL {{PLACEHOLDER}} tokens with real data:
-   - {{EPIC_ID}}, {{BRANCH}}, {{STARTED_AT}}, {{FINISHED_AT}}
-   - {{STORIES_COMPLETED}}, {{STORIES_FAILED}}, {{STORIES_BLOCKED}}, {{STORIES_TOTAL}}
-   - {{COMPLETION_PERCENTAGE}}: completed/total × 100
-   - {{PHASE_TIMELINE_TABLE}}: phase start/end times from checkpoint
-   - {{STORY_STATUS_TABLE}}: per-story status with commit SHAs
-   - {{FINDINGS_SUMMARY}}: set to "Pending review" (replaced by Wave 2 with actual data)
-   - {{COVERAGE_BEFORE}}, {{COVERAGE_AFTER}}, {{COVERAGE_DELTA}}
-   - {{TDD_COMPLIANCE_TABLE}}: TDD compliance per-story table (see step 3a)
-   - {{TDD_SUMMARY}}: TDD compliance aggregated summary (see step 3b)
-   - {{COMMIT_LOG}}: git log main..HEAD --oneline
-   - {{UNRESOLVED_ISSUES}}: findings with severity >= Medium
-   - {{PR_LINK}}: populated after PR creation (or "Pending")
-
-3a. Populate {{TDD_COMPLIANCE_TABLE}} with per-story metrics:
-   For each completed story, derive TDD compliance data at the story level (do NOT reuse a single
-   phase-level object for multiple stories):
-   - Prefer story-scoped integrity gate data, if available (e.g., a `tddComplianceByStory[storyId]`
-     entry in execution-state.json that is explicitly keyed to that story).
-   - If no story-scoped data is available, compute metrics directly from git history:
-     - Identify commits associated with the story (commits on the story branch or whose messages
-       include the story ID).
-     - Classify each commit as "TDD" or "non-TDD" using the same rules as the integrity gate.
-     - TDD Commits: count of commits classified as TDD (`tddCommitCount`).
-     - Total Commits: total number of commits associated with that story (`totalCommits`).
-   - From the story-level counts:
-     - TDD %:
-       - If `totalCommits > 0`: `round(tddCommitCount / totalCommits * 100)` (integer)
-       - If `totalCommits == 0`: `N/A` (do NOT perform the division)
-     - TPP Progression:
-       - If `totalCommits > 0`: evaluate commit order — OK (strictly degenerate→complex),
-         WARNING (partial order), N/A (insufficient data)
-       - If `totalCommits == 0`: `N/A (no commits)`
-     - Status:
-       - If TDD % is numeric: PASS (TDD % >= 80%), WARNING (TDD % >= 50% and < 80%), FAIL (TDD % < 50%)
-       - If TDD % is `N/A` due to `totalCommits == 0`: WARNING (missing commit data)
-   - If no reliable TDD data can be computed for a story (legacy epic or insufficient commit metadata):
-     - Fill all columns with N/A for that story
-   Format each row as: `| {storyId} | {tddCommits} | {totalCommits} | {tddPct} | {tppProgression} | {status} |`
-
-3b. Populate {{TDD_SUMMARY}} with aggregated metrics:
-   - If TDD compliance data is available for at least one story (at least one non-N/A row):
-     - Total TDD Commits: sum of all stories' tddCommitCount
-     - Total Commits: sum of all stories' totalCommits
-     - Aggregate TDD %:
-       - If `totalCommits > 0`: `round(totalTddCommits / totalCommits * 100)`
-       - If `totalCommits == 0`: `N/A` (do NOT perform the division)
-     - Count stories by status: N PASS / N WARNING / N FAIL (excluding N/A rows)
-     - Epic Status:
-       - PASS if zero stories have FAIL status and Aggregate TDD % is numeric
-       - FAIL if any story has FAIL status or Aggregate TDD % is N/A due to zero total commits
-     Format as:
-     `| Total | {totalTdd} | {totalCommits} | {aggPct} | — | {epicStatus} |`
-     `Stories: {passCount} PASS / {warnCount} WARNING / {failCount} FAIL`
-   - If NO TDD compliance data is available for any story:
-     Format as: `N/A — no TDD compliance data available (legacy epic without integrity gate or insufficient data)`
-
-4. Validate: no unresolved {{...}} placeholders remain in output
-5. Write epic-execution-report.md to plans/epic-{epicId}/
-```
-
-**Parallel-mode note:** Because 2.2 runs concurrently with 2.1 in Wave 1, the
-`ReviewResult` may not yet be available when 2.2 populates `{{FINDINGS_SUMMARY}}`.
-Therefore, 2.2 MUST populate `{{FINDINGS_SUMMARY}}` with the placeholder value
-`"Pending review"`. Wave 2 (Section 2.3) replaces this placeholder with the actual
-review findings after both subagents complete.
-
-**Validation:** After generation, scan the output file for any remaining `{{...}}`
-patterns (excluding the expected `"Pending review"` in `{{FINDINGS_SUMMARY}}`).
-If found, log a warning with the unresolved placeholder names.
+5. Replace other `{{PLACEHOLDER}}` tokens with real data:
+   - `{{EPIC_ID}}`, `{{STARTED_AT}}`, `{{FINISHED_AT}}`
+   - `{{STORIES_COMPLETED}}`, `{{STORIES_FAILED}}`, `{{STORIES_BLOCKED}}`, `{{STORIES_TOTAL}}`
+   - `{{COMPLETION_PERCENTAGE}}`: completed/total x 100
+   - `{{PHASE_TIMELINE_TABLE}}`: phase start/end times from checkpoint
+   - `{{STORY_STATUS_TABLE}}`: per-story status with commit SHAs
+   - `{{COVERAGE_BEFORE}}`, `{{COVERAGE_AFTER}}`, `{{COVERAGE_DELTA}}`
+   - `{{TDD_COMPLIANCE_TABLE}}`: TDD compliance per-story table
+   - `{{TDD_SUMMARY}}`: TDD compliance aggregated summary
+   - `{{UNRESOLVED_ISSUES}}`: findings with severity >= Medium (from per-story reviews)
+6. Include summary metrics: completed/failed/blocked counts, overall completion %
+7. Validate: no unresolved `{{...}}` placeholders remain in output
+8. Write `epic-execution-report.md` to `plans/epic-{epicId}/`
 
 **Result Handling:**
 - On SUCCESS: report written to `plans/epic-{epicId}/epic-execution-report.md`. Update checkpoint atomically (RULE-002)
-- On FAILURE: log `"ERROR: Report generation failed"`, continue to Wave 2 (PR created without report)
+- On FAILURE: log `"ERROR: Report generation failed"`, continue to Phase 3
 
-### Wave 1 Result Handling
+### 2.2 Incremental Report Updates (RULE-010)
 
-After both subagents in Wave 1 complete (or the single subagent when `--skip-review`
-is set), collect and evaluate results before proceeding to Wave 2:
+The report is updated incrementally as each story completes, not only at the end:
 
-| 2.1 Result | 2.2 Result | Action |
-|------------|------------|--------|
-| SUCCESS | SUCCESS | Replace `"Pending review"` in report with actual findings; create PR with full report |
-| FAILURE | SUCCESS | Log warning; replace `"Pending review"` with `"Review unavailable"`; create PR without review score in title |
-| SUCCESS | FAILURE | Log ERROR; create PR with minimalist body extracted from checkpoint; include review score |
-| FAILURE | FAILURE | Log ERROR for both; create PR with minimalist body from checkpoint data directly |
-| SKIPPED (`--skip-review`) | SUCCESS | `{{FINDINGS_SUMMARY}}` already contains `"Review skipped by user"`; create PR without review section |
-| SKIPPED (`--skip-review`) | FAILURE | Log ERROR; create PR with minimalist body; no review section |
+1. After each story reaches a terminal state (SUCCESS, FAILED, BLOCKED):
+   - Append or update the corresponding row in `{{PR_LINKS_TABLE}}`
+   - Update summary metrics (completed/failed/blocked counts)
+2. At the end of all phases: generate the final version with all metrics resolved
+3. The incremental report allows real-time progress monitoring during epic execution
 
-**Checkpoint timing (RULE-002):** Each subagent's result is recorded in the checkpoint
-atomically as soon as it completes. The checkpoint is the single source of truth for
-Wave 2 to determine what data is available.
+### 2.3 Checkpoint Finalization
 
-### Wave 2 — PR Creation (after Wave 1 completes)
+After report generation completes, persist final state:
 
-Wave 2 executes ONLY after all Wave 1 subagents have completed. It collects the
-results from the checkpoint and creates the PR.
-
-#### 2.3 PR Creation
-
-Before creating the PR, replace the `"Pending review"` placeholder in the report
-with the actual review data from Wave 1:
-
-1. **Replace placeholder in report:** If 2.1 succeeded, read `ReviewResult` from
-   checkpoint and replace `"Pending review"` in `epic-execution-report.md` with the
-   actual `{{FINDINGS_SUMMARY}}` content (consolidated findings from the review).
-   If 2.1 failed, replace with `"Review unavailable"`.
-   If `--skip-review` was set, the value is already `"Review skipped by user"` (no replacement needed).
-2. **Handle missing report:** If 2.2 failed (no report file on disk), create a
-   minimalist PR body directly from checkpoint data (story counts, coverage metrics,
-   review score if available). Skip report-related steps.
-
-Push the epic branch and create a PR via `gh` CLI:
-
-3. **Push:** `git push -u origin feat/epic-{epicId}-full-implementation`
-4. **Title format:**
-   - Full completion: `feat(epic): implement EPIC-{epicId} — {title}`
-   - Partial completion: `[PARTIAL] feat(epic): implement EPIC-{epicId} — {title}`
-   - Include `[PARTIAL]` when completion percentage < 100%
-   - When 2.1 failed or was skipped, omit review score from title
-5. **Body structure:**
-   ```
-   ## Summary
-   - Stories completed: {completed}/{total}
-   - Stories failed: {failed}
-   - Stories blocked: {blocked}
-   - Completion: {percentage}%
-
-   ## Tech Lead Review
-   - Score: {score} ({decision}: GO or NO-GO)
-
-   ## Metrics
-   - Line coverage: {lineCoverage}%
-   - Branch coverage: {branchCoverage}%
-
-   ## Report
-   - See `plans/epic-{epicId}/epic-execution-report.md`
-   ```
-6. **Create:** `gh pr create --title "{title}" --body "{body}" --base main`
-
-**Error handling:** If `git push` fails (e.g., remote not accessible), log the error,
-generate the report without a PR link, and persist the failure in checkpoint.
-
-### 2.4 Partial Completion Handling
-
-Consolidation executes regardless of whether all stories succeeded:
-
-- If stories are FAILED: the report lists them with failure reasons and summaries
-- If stories are BLOCKED: the report lists them with unsatisfied dependency chains
-- The PR body explicitly indicates partial implementation with counts
-- The PR title includes `[PARTIAL]` when any story is not SUCCESS
-- The tech lead review still runs on whatever code was produced
-
-### 2.5 Checkpoint Finalization
-
-After consolidation actions complete, persist final state:
-
-1. Register PR URL in checkpoint: `updateCheckpoint(epicDir, { prUrl })`
-2. Register report path: `updateCheckpoint(epicDir, { reportPath })`
-3. Set `finishedAt` timestamp
-4. Persist final `execution-state.json` with all metrics
+1. Register report path: `updateCheckpoint(epicDir, { reportPath })`
+2. Set `finishedAt` timestamp
+3. Persist final `execution-state.json` with all metrics
 
 ## Phase 3 — Verification
 
