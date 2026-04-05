@@ -174,6 +174,11 @@ public final class RulesAssembler implements Assembler {
                                 config, rulesDir, engine,
                                 context));
         generated.addAll(
+                SecurityBaselineWriter
+                        .appendVerificationSection(
+                                config.security(),
+                                rulesDir));
+        generated.addAll(
                 coreWriter.copyConditionals(
                         config, skillsDir, engine,
                         context));
