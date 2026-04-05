@@ -8,6 +8,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Resolves classpath resources to filesystem {@link Path}
@@ -23,6 +25,8 @@ import java.nio.file.attribute.PosixFilePermissions;
 public final class ResourceResolver {
 
     private static final Object LOCK = new Object();
+    private static final ConcurrentMap<String, Path>
+            DIR_CACHE = new ConcurrentHashMap<>();
     static volatile Path cachedExtractedDir;
 
     private ResourceResolver() {
@@ -46,6 +50,29 @@ public final class ResourceResolver {
      *         cannot be found
      */
     public static Path resolveResourceDir(
+            String relativePath) {
+        validateRelativePath(relativePath);
+
+        return DIR_CACHE.computeIfAbsent(
+                relativePath,
+                ResourceResolver::doResolveDir);
+    }
+
+    private static void validateRelativePath(
+            String relativePath) {
+        if (relativePath == null
+                || relativePath.isBlank()) {
+            throw new IllegalArgumentException(
+                    "relativePath must not be blank");
+        }
+        if (relativePath.contains("..")) {
+            throw new IllegalArgumentException(
+                    "Path traversal (..) is not allowed: "
+                            + relativePath);
+        }
+    }
+
+    private static Path doResolveDir(
             String relativePath) {
         String firstSegment = relativePath.contains("/")
                 ? relativePath.substring(
