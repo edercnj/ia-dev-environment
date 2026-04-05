@@ -215,12 +215,12 @@ class NativeImageConfigTest {
             List<String> requiredPatterns = List.of(
                     "templates/.*",
                     "config-templates/.*",
-                    "agents-templates/.*",
+                    "targets/claude/agents/.*",
                     "core/.*",
-                    "core-rules/.*",
+                    "targets/claude/rules/.*",
                     "frameworks/.*",
                     "languages/.*",
-                    "skills-templates/.*",
+                    "targets/claude/skills/.*",
                     "github-agents-templates/.*",
                     "github-skills-templates/.*"
             );

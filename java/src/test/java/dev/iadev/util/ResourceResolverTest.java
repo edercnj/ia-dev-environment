@@ -43,7 +43,7 @@ class ResourceResolverTest {
         void knownProbe_whenCalled_returnsExistingPath() {
             Path root = ResourceResolver
                     .resolveResourcesRoot(
-                            "skills-templates");
+                            "config-templates");
 
             assertThat(root).isAbsolute();
             assertThat(Files.isDirectory(root)).isTrue();
@@ -124,10 +124,10 @@ class ResourceResolverTest {
         void multipleCalls_whenCalled_returnSamePath() {
             Path first = ResourceResolver
                     .resolveResourcesRoot(
-                            "skills-templates");
+                            "config-templates");
             Path second = ResourceResolver
                     .resolveResourcesRoot(
-                            "skills-templates");
+                            "config-templates");
 
             assertThat(first).isEqualTo(second);
         }
@@ -138,7 +138,7 @@ class ResourceResolverTest {
         void differentProbes_whenCalled_bothReturnDirs() {
             Path fromSkills = ResourceResolver
                     .resolveResourcesRoot(
-                            "skills-templates");
+                            "config-templates");
             Path fromConfig = ResourceResolver
                     .resolveResourcesRoot(
                             "config-templates");

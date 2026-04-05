@@ -19,7 +19,7 @@ import java.util.Set;
  *
  * <p>This is the sixth assembler in the pipeline (position 6
  * of 23 per RULE-005). It copies pre-written hook scripts
- * from the {@code hooks-templates/{key}/} resources directory
+ * from the {@code targets/claude/hooks/{key}/} resources directory
  * to the output {@code hooks/} directory.</p>
  *
  * <p>Hook scripts are copied verbatim from templates — no
@@ -48,7 +48,7 @@ public final class HooksAssembler implements Assembler {
     private static final String HOOK_FILENAME =
             "post-compile-check.sh";
     private static final String HOOKS_TEMPLATES_DIR =
-            "hooks-templates";
+            "targets/claude/hooks";
 
     private final Path resourcesDir;
 
@@ -142,6 +142,7 @@ public final class HooksAssembler implements Assembler {
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(HOOKS_TEMPLATES_DIR);
+                .resolveResourcesRoot(
+                        HOOKS_TEMPLATES_DIR, 3);
     }
 }

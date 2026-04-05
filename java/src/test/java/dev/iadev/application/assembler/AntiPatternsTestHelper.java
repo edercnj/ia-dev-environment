@@ -17,7 +17,7 @@ final class AntiPatternsTestHelper {
             throws IOException {
         Path resourceDir = tempDir.resolve("res");
         Path antiDir = resourceDir.resolve(
-                "core-rules/conditional/anti-patterns");
+                "targets/claude/rules/conditional/anti-patterns");
         Files.createDirectories(antiDir);
         return resourceDir;
     }
@@ -29,7 +29,7 @@ final class AntiPatternsTestHelper {
             throws IOException {
         Path resourceDir = createResources(tempDir);
         Path antiDir = resourceDir.resolve(
-                "core-rules/conditional/anti-patterns");
+                "targets/claude/rules/conditional/anti-patterns");
 
         String templateName =
                 "10-anti-patterns.%s-%s.md".formatted(
@@ -49,7 +49,7 @@ final class AntiPatternsTestHelper {
         var url = AntiPatternsTestHelper.class
                 .getClassLoader()
                 .getResource(
-                        "core-rules/conditional/"
+                        "targets/claude/rules/conditional/"
                                 + "anti-patterns/"
                                 + "10-anti-patterns."
                                 + language + "-"

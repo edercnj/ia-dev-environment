@@ -29,7 +29,7 @@ class RulesAssemblerCoverageBaseTest {
     class CopyCoreRulesEdgeCases {
 
         @Test
-        @DisplayName("core-rules dir missing returns"
+        @DisplayName("rules dir missing returns"
                 + " only identity and domain")
         void assemble_noCoreRulesDir_succeeds(
                 @TempDir Path tempDir)
@@ -63,15 +63,17 @@ class RulesAssemblerCoverageBaseTest {
         }
 
         @Test
-        @DisplayName("core-rules is a file not directory"
+        @DisplayName("rules is a file not directory"
                 + " returns only identity and domain")
         void assemble_coreRules_isFile(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
-            Files.createDirectories(resourceDir);
+            Files.createDirectories(
+                    resourceDir.resolve("targets/claude"));
             Files.writeString(
-                    resourceDir.resolve("core-rules"),
+                    resourceDir.resolve(
+                            "targets/claude/rules"),
                     "not a directory");
             Path templates =
                     resourceDir.resolve("templates");
@@ -110,7 +112,7 @@ class RulesAssemblerCoverageBaseTest {
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path coreRules =
-                    resourceDir.resolve("core-rules");
+                    resourceDir.resolve("targets/claude/rules");
             Files.createDirectories(coreRules);
             Path templates =
                     resourceDir.resolve("templates");
@@ -143,7 +145,7 @@ class RulesAssemblerCoverageBaseTest {
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path coreRules =
-                    resourceDir.resolve("core-rules");
+                    resourceDir.resolve("targets/claude/rules");
             Files.createDirectories(coreRules);
             Files.writeString(
                     resourceDir.resolve("core"),

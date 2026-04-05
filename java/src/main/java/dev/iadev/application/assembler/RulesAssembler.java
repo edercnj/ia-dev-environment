@@ -23,7 +23,7 @@ import java.util.Map;
  *
  * <p>Assembly layers:
  * <ol>
- *   <li>Core rules — copy core-rules/*.md with placeholder
+ *   <li>Core rules — copy targets/claude/rules/*.md with
  *       replacement</li>
  *   <li>Core KP routing — route core docs to knowledge
  *       packs</li>
@@ -176,6 +176,7 @@ public final class RulesAssembler implements Assembler {
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot("core-rules");
+                .resolveResourcesRoot(
+                        "targets/claude/rules", 3);
     }
 }

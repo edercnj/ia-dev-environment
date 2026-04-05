@@ -19,7 +19,7 @@ import java.util.Map;
  *
  * <p>Handles:
  * <ul>
- *   <li>Copying core-rules/*.md with placeholder
+ *   <li>Copying targets/claude/rules/*.md with placeholder
  *       replacement (rules 01-08)</li>
  *   <li>Routing core docs to knowledge packs</li>
  *   <li>Generating 01-project-identity.md</li>
@@ -69,7 +69,8 @@ public final class CoreRulesWriter {
             TemplateEngine engine,
             Map<String, Object> context) {
         Path coreRules =
-                resourcesDir.resolve("core-rules");
+                resourcesDir.resolve(
+                        "targets/claude/rules");
         if (!Files.exists(coreRules)
                 || !Files.isDirectory(coreRules)) {
             return List.of();
@@ -237,7 +238,7 @@ public final class CoreRulesWriter {
             return List.of();
         }
         Path template = resourcesDir.resolve(
-                "core-rules/conditional/"
+                "targets/claude/rules/conditional/"
                         + "09-data-management.md");
         if (!Files.exists(template)
                 || !Files.isRegularFile(template)) {

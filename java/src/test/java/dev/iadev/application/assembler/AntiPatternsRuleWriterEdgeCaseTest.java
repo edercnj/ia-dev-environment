@@ -189,7 +189,7 @@ class AntiPatternsRuleWriterEdgeCaseTest {
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path condDir = resourceDir.resolve(
-                    "core-rules/conditional");
+                    "targets/claude/rules/conditional");
             Files.createDirectories(condDir);
             Files.writeString(
                     condDir.resolve("anti-patterns"),
@@ -222,7 +222,8 @@ class AntiPatternsRuleWriterEdgeCaseTest {
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path antiDir = resourceDir.resolve(
-                    "core-rules/conditional/anti-patterns");
+                    "targets/claude/rules/conditional/"
+                    + "anti-patterns");
             Files.createDirectories(antiDir);
             Files.createDirectories(
                     antiDir.resolve(

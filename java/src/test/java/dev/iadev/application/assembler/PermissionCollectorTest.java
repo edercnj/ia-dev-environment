@@ -417,7 +417,7 @@ class PermissionCollectorTest {
     private static Path setupTemplatesDir(Path tempDir)
             throws IOException {
         Path templatesDir = tempDir.resolve(
-                "settings-templates");
+                "targets/claude/settings");
         Files.createDirectories(templatesDir);
         writeTemplateFiles(templatesDir);
         return templatesDir;

@@ -329,7 +329,7 @@ class HooksAssemblerTest {
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path hooksDir = resourceDir.resolve(
-                    "hooks-templates/exotic");
+                    "targets/claude/hooks/exotic");
             Files.createDirectories(hooksDir);
             Path outputDir = tempDir.resolve("output");
             Files.createDirectories(outputDir);

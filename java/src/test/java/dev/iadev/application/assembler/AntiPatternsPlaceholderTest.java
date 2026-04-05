@@ -36,7 +36,7 @@ class AntiPatternsPlaceholderTest {
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path antiDir = resourceDir.resolve(
-                    "core-rules/conditional/anti-patterns");
+                    "targets/claude/rules/conditional/anti-patterns");
             Files.createDirectories(antiDir);
             Files.writeString(
                     antiDir.resolve(

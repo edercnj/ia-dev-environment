@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 public final class AgentsAssembler implements Assembler {
 
     private static final String AGENTS_TEMPLATES_DIR =
-            "agents-templates";
+            "targets/claude/agents";
     private static final String CORE_DIR = "core";
     private static final String CONDITIONAL_DIR =
             "conditional";
@@ -187,6 +187,7 @@ public final class AgentsAssembler implements Assembler {
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(AGENTS_TEMPLATES_DIR);
+                .resolveResourcesRoot(
+                        AGENTS_TEMPLATES_DIR, 3);
     }
 }

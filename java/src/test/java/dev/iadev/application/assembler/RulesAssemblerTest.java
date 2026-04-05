@@ -181,7 +181,7 @@ class RulesAssemblerTest {
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path coreRules = resourceDir.resolve(
-                    "core-rules");
+                    "targets/claude/rules");
             Files.createDirectories(coreRules);
 
             Path outputDir = tempDir.resolve("output");
@@ -214,7 +214,7 @@ class RulesAssemblerTest {
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path coreRules = resourceDir.resolve(
-                    "core-rules");
+                    "targets/claude/rules");
             Files.createDirectories(coreRules);
             Files.writeString(
                     coreRules.resolve("03-test.md"),
@@ -665,7 +665,8 @@ class RulesAssemblerTest {
         void golden_dataManagement_templateExists() {
             var url = getClass().getClassLoader()
                     .getResource(
-                            "core-rules/conditional/"
+                            "targets/claude/rules/"
+                                    + "conditional/"
                                     + "09-data-management.md");
 
             assertThat(url)
@@ -726,7 +727,7 @@ class RulesAssemblerTest {
     private static void createCoreRules(
             Path resourceDir) throws IOException {
         Path coreRules =
-                resourceDir.resolve("core-rules");
+                resourceDir.resolve("targets/claude/rules");
         Files.createDirectories(coreRules);
         Files.writeString(
                 coreRules.resolve(

@@ -32,7 +32,7 @@ class SkillsEdgeCasesTest {
                 throws IOException {
             Path res = t.resolve("res");
             Files.createDirectories(
-                    res.resolve("skills-templates/core"));
+                    res.resolve("targets/claude/skills/core"));
             Path out = t.resolve("output");
             Files.createDirectories(out);
 
@@ -56,7 +56,7 @@ class SkillsEdgeCasesTest {
                 throws IOException {
             Path res = t.resolve("res");
             Files.createDirectories(
-                    res.resolve("skills-templates/core"));
+                    res.resolve("targets/claude/skills/core"));
             Path out = t.resolve("output");
             Files.createDirectories(out);
 
@@ -76,9 +76,9 @@ class SkillsEdgeCasesTest {
                 throws IOException {
             Path res = t.resolve("res");
             Files.createDirectories(
-                    res.resolve("skills-templates/core"));
+                    res.resolve("targets/claude/skills/core"));
             Files.createDirectories(res.resolve(
-                    "skills-templates/knowledge-packs"));
+                    "targets/claude/skills/knowledge-packs"));
             Path out = t.resolve("output");
             Files.createDirectories(out);
 
@@ -116,7 +116,7 @@ class SkillsEdgeCasesTest {
                 throws IOException {
             Path res = t.resolve("res");
             Path kp = res.resolve(
-                    "skills-templates/knowledge-packs/"
+                    "targets/claude/skills/knowledge-packs/"
                             + "test-pack");
             Files.createDirectories(kp);
             Files.createDirectories(
@@ -125,7 +125,7 @@ class SkillsEdgeCasesTest {
                     "# Test Pack\n",
                     StandardCharsets.UTF_8);
             Files.createDirectories(
-                    res.resolve("skills-templates/core"));
+                    res.resolve("targets/claude/skills/core"));
 
             Path dest = t.resolve(
                     "output/skills/test-pack");
@@ -145,9 +145,9 @@ class SkillsEdgeCasesTest {
                 throws IOException {
             Path res = t.resolve("res");
             Files.createDirectories(
-                    res.resolve("skills-templates/core"));
+                    res.resolve("targets/claude/skills/core"));
             Files.createDirectories(res.resolve(
-                    "skills-templates/knowledge-packs/"
+                    "targets/claude/skills/knowledge-packs/"
                             + "infra-patterns"));
             Path out = t.resolve("output");
             Files.createDirectories(out);

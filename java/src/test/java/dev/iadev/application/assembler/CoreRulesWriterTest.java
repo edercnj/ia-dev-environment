@@ -38,7 +38,7 @@ class CoreRulesWriterTest {
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path coreRules =
-                    resourceDir.resolve("core-rules");
+                    resourceDir.resolve("targets/claude/rules");
             Files.createDirectories(coreRules);
             Files.writeString(
                     coreRules.resolve("03-test.md"),
@@ -64,7 +64,7 @@ class CoreRulesWriterTest {
         }
 
         @Test
-        @DisplayName("missing core-rules dir returns empty")
+        @DisplayName("missing rules dir returns empty")
         void write_missingDir_returnsEmpty(
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
@@ -298,7 +298,7 @@ class CoreRulesWriterTest {
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path condRules = resourceDir.resolve(
-                    "core-rules/conditional");
+                    "targets/claude/rules/conditional");
             Files.createDirectories(condRules);
             Files.writeString(
                     condRules.resolve(
@@ -344,7 +344,7 @@ class CoreRulesWriterTest {
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path condRules = resourceDir.resolve(
-                    "core-rules/conditional");
+                    "targets/claude/rules/conditional");
             Files.createDirectories(condRules);
             Files.writeString(
                     condRules.resolve(

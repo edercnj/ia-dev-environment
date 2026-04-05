@@ -27,7 +27,7 @@ import java.util.stream.Stream;
 final class SkillsCopyHelper {
 
     private static final String SKILLS_TEMPLATES_DIR =
-            "skills-templates";
+            "targets/claude/skills";
     private static final String KNOWLEDGE_PACKS_DIR =
             "knowledge-packs";
     private static final String INFRA_PATTERNS_DIR =

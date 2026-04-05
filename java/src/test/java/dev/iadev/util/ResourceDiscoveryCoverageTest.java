@@ -99,7 +99,7 @@ class ResourceDiscoveryCoverageTest {
 
             List<String> result =
                     discovery.listResources(
-                            "settings-templates");
+                            "config-templates");
 
             assertThat(result).isEmpty();
         }

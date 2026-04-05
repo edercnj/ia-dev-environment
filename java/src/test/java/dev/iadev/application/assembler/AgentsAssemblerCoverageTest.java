@@ -47,10 +47,10 @@ class AgentsAssemblerCoverageTest {
         void selectCoreAgents_coreDir_isFile(@TempDir Path tempDir)
                 throws IOException {
             Files.createDirectories(
-                    tempDir.resolve("agents-templates"));
+                    tempDir.resolve("targets/claude/agents"));
             Files.writeString(
                     tempDir.resolve(
-                            "agents-templates/core"),
+                            "targets/claude/agents/core"),
                     "not a dir");
 
             AgentsAssembler assembler =
@@ -68,7 +68,7 @@ class AgentsAssemblerCoverageTest {
         void selectCoreAgents_nonMdFilesFiltered_succeeds(@TempDir Path tempDir)
                 throws IOException {
             Path core = tempDir.resolve(
-                    "agents-templates/core");
+                    "targets/claude/agents/core");
             Files.createDirectories(core);
             Files.writeString(
                     core.resolve("architect.md"),
@@ -98,7 +98,7 @@ class AgentsAssemblerCoverageTest {
         void assembleConditional_whenCalled_conditionalMissing(@TempDir Path tempDir)
                 throws IOException {
             Path core = tempDir.resolve(
-                    "agents-templates/core");
+                    "targets/claude/agents/core");
             Files.createDirectories(core);
 
             Path outputDir = tempDir.resolve("output");
@@ -128,7 +128,7 @@ class AgentsAssemblerCoverageTest {
         void copyDeveloperAgent_whenCalled_developerMissing(@TempDir Path tempDir)
                 throws IOException {
             Path core = tempDir.resolve(
-                    "agents-templates/core");
+                    "targets/claude/agents/core");
             Files.createDirectories(core);
 
             Path outputDir = tempDir.resolve("output");
@@ -156,7 +156,7 @@ class AgentsAssemblerCoverageTest {
         void injectChecklists_whenCalled_agentFileMissing(@TempDir Path tempDir)
                 throws IOException {
             Path core = tempDir.resolve(
-                    "agents-templates/core");
+                    "targets/claude/agents/core");
             Files.createDirectories(core);
 
             Path outputDir = tempDir.resolve("output");
@@ -181,7 +181,7 @@ class AgentsAssemblerCoverageTest {
         void injectChecklists_whenCalled_checklistSourceMissing(@TempDir Path tempDir)
                 throws IOException {
             Path core = tempDir.resolve(
-                    "agents-templates/core");
+                    "targets/claude/agents/core");
             Files.createDirectories(core);
             Files.writeString(
                     core.resolve("tech-lead.md"),

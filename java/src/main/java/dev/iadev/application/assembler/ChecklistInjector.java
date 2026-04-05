@@ -22,7 +22,7 @@ import java.nio.file.Path;
 final class ChecklistInjector {
 
     private static final String AGENTS_TEMPLATES_DIR =
-            "agents-templates";
+            "targets/claude/agents";
     private static final String CHECKLISTS_DIR =
             "checklists";
     private static final String AGENTS_OUTPUT = "agents";

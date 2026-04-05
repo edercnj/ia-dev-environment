@@ -138,13 +138,14 @@ class FatJarContentTest {
     @Test
     void coreRules_whenCalled_exist() {
         assertResourceExists(
-                "core-rules/01-project-identity.md");
+                "targets/claude/rules/"
+                + "01-project-identity.md");
     }
 
     @Test
     void settingsTemplates_whenCalled_exist() {
         assertResourceExists(
-                "settings-templates/base.json");
+                "targets/claude/settings/base.json");
     }
 
     @Test

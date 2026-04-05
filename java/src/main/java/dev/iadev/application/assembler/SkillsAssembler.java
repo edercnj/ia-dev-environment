@@ -33,7 +33,7 @@ import java.util.Optional;
 public final class SkillsAssembler implements Assembler {
 
     private static final String SKILLS_TEMPLATES_DIR =
-            "skills-templates";
+            "targets/claude/skills";
     private static final String CORE_DIR = "core";
     private static final String CONDITIONAL_DIR =
             "conditional";
@@ -206,6 +206,7 @@ public final class SkillsAssembler implements Assembler {
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(SKILLS_TEMPLATES_DIR);
+                .resolveResourcesRoot(
+                        SKILLS_TEMPLATES_DIR, 3);
     }
 }
