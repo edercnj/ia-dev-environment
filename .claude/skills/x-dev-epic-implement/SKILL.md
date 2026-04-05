@@ -1015,36 +1015,37 @@ After report generation completes, persist final state:
 ## Phase 3 — Verification
 
 Final verification validates the epic as a whole before declaring completion.
+All validations run on `main` after all story PRs are merged.
 
 ### 3.1 Epic-Level Test Suite
 
-Run the full test suite on the epic branch to validate cross-story integration:
+Run the full test suite on `main` to validate cross-story integration:
 
-1. Execute: `{{TEST_COMMAND}}` (all unit, integration, and API tests)
-2. Coverage thresholds (non-negotiable): >=95% line, >=90% branch
-3. If any test fails: log failures, mark epic as requiring attention
-4. Record coverage results in checkpoint for the report
+1. Ensure on latest main: `git checkout main && git pull origin main`
+2. Execute: `{{TEST_COMMAND}}` (all unit, integration, and API tests)
+3. Coverage thresholds (non-negotiable): >=95% line, >=90% branch
+4. If any test fails: log failures, mark epic as requiring attention
+5. Record coverage results in checkpoint for the report
 
 ### 3.2 DoD Checklist Validation
 
 Verify the Definition of Done (DoD) for the epic:
 
-- [ ] All stories completed (or documented as FAILED/BLOCKED in report)
-- [ ] Coverage thresholds met (>=95% line, >=90% branch)
-- [ ] Zero compiler/linter warnings
-- [ ] Tech lead review executed (Phase 2.1 — Wave 1) or skipped via `--skip-review`
-- [ ] Epic execution report generated with no unresolved placeholders (Phase 2.2 — Wave 1)
-- [ ] `"Pending review"` placeholder replaced with actual findings (Phase 2.3 — Wave 2)
-- [ ] PR created or failure documented (Phase 2.3 — Wave 2)
+- [ ] All story PRs merged to main or documented as FAILED/BLOCKED
+- [ ] Integrity gates passed for all phases
+- [ ] Coverage thresholds met (>=95% line, >=90% branch per-story)
+- [ ] Zero compiler/linter warnings (per-story, validated by lifecycle)
+- [ ] Per-story tech lead reviews executed (via `x-dev-lifecycle` Phase 7) or skipped via `--skip-review`
+- [ ] Epic execution report generated with PR links table (Phase 2.1)
 - [ ] All findings with severity >= Medium addressed or documented
 
 ### 3.3 Final Status Determination
 
-Compute the final epic status based on story outcomes:
+Compute the final epic status based on story outcomes and PR merge status:
 
-- **COMPLETE**: All stories reached SUCCESS status and all DoD items pass
-- **PARTIAL**: Some stories FAILED or BLOCKED, but critical path stories succeeded
-- **FAILED**: One or more critical path stories failed
+- **COMPLETE**: All stories reached SUCCESS status, all PRs merged to `main`, and all DoD items pass
+- **PARTIAL**: Some stories FAILED or BLOCKED, but critical path stories succeeded and merged
+- **FAILED**: One or more critical path stories failed or their PRs were not merged
 
 Persist final status to checkpoint: `updateCheckpoint(epicDir, { finalStatus })`
 
@@ -1055,27 +1056,66 @@ Display the final summary to the user:
 ```
 Epic: EPIC-{epicId} — {title}
 Status: COMPLETE | PARTIAL | FAILED
+Model: per-story PR (each story has its own PR targeting main)
 Stories: {completed}/{total} completed, {failed} failed, {blocked} blocked
+PRs: {merged}/{total} merged, {open} open, {closed} closed
 Coverage: line {lineCoverage}%, branch {branchCoverage}%
-Tech Lead: {score} ({decision})
-PR: {prUrl}
+
+Story PRs:
+| Story | PR | Status | Merged At |
+|-------|-----|--------|-----------|
+| story-{epicId}-0001 | #41 | MERGED | 2026-04-01T10:30:00Z |
+| story-{epicId}-0002 | #42 | MERGED | 2026-04-01T11:15:00Z |
+...
+
 Report: plans/epic-{epicId}/epic-execution-report.md
 Elapsed: {totalElapsedTime}
 ```
 
-Return to main branch: `git checkout main && git pull origin main`
+### Dry-Run Output (Phase 0, Step 8)
+
+When `--dry-run` is set, display the execution plan without executing:
+
+```
+Epic Execution Plan (DRY RUN)
+=============================
+Epic: EPIC-{epicId}
+Model: per-story PR (each story creates its own PR targeting main)
+Stories: N total across M phases
+
+Phase 0:
+  - story-XXXX-0001: Branch feat/story-XXXX-0001-*, PR -> main
+  - story-XXXX-0002: Branch feat/story-XXXX-0002-*, PR -> main
+  Advisory warnings: [overlap warnings if any]
+
+Phase 1:
+  - story-XXXX-0003: Branch feat/story-XXXX-0003-*, PR -> main
+    Dependencies: story-XXXX-0001 (must be merged), story-XXXX-0002 (must be merged)
+
+Flags: --auto-merge={value}, --single-pr=false, --skip-review={value}, --strict-overlap={value}
+```
+
+> **`--single-pr` dry-run:** When `--single-pr` is set, the dry-run output shows
+> `Model: single-pr (legacy)` with the epic branch name instead of per-story branches.
 
 ## Integration Notes
 
-- Invokes: `x-dev-lifecycle` (per-story execution), `x-story-map` (if map missing, via error guidance)
-- Invokes: `x-review-pr` (tech lead review on full epic diff, Phase 2.1 — Wave 1 parallel)
-- Uses: `gh pr create` (PR creation with summary body, Phase 2.3 — Wave 2 sequential)
-- Phase 2 uses Two-Wave consolidation: Wave 1 dispatches 2.1 + 2.2 in parallel (SINGLE message, RULE-003); Wave 2 (2.3) runs after both complete
+- Invokes: `x-dev-lifecycle` (per-story execution with PR creation in Phase 6, reviews in Phases 4/7)
+- Invokes: `x-story-map` (if map missing, via error guidance)
+- Uses: `gh pr view` (PR merge status verification for dependency enforcement)
+- Uses: `gh pr merge` (auto-merge when `--auto-merge` is set)
+- Uses: `gh pr close` (failure handling — close PR on story failure)
+- Phase 2 generates an incremental progress report with `{{PR_LINKS_TABLE}}` per-story PR table
 - Reads: `_TEMPLATE-EPIC-EXECUTION-REPORT.md` (report template), `execution-state.json` (checkpoint data)
 - Reads: `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (implementation plans for pre-flight conflict analysis, Phase 0.5)
 - Writes: `plans/epic-XXXX/plans/preflight-analysis-phase-N.md` (pre-flight analysis output for audit, Phase 0.5)
 - Phase 0.5 is skipped when `--sequential` is set (no parallel dispatch means no conflict risk)
+- Phase 0.5 defaults to advisory mode (warnings only); use `--strict-overlap` for blocking partitioning
 - All `{{PLACEHOLDER}}` tokens are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
-- Integrity gate includes smoke tests (Step 5) as regression validation after each phase — runs `{{SMOKE_COMMAND}}` (e.g., `cd java && mvn verify -P integration-tests`)
+- Integrity gate runs on `main` after all phase PRs are merged (RULE-006); uses `mainShaBeforePhase` for diff
+- Integrity gate includes smoke tests (Step 5) as regression validation — runs `{{SMOKE_COMMAND}}`
 - Smoke gate is bypassed with `--skip-smoke-gate` flag; result recorded as `smokeGate.status = "SKIP"` in checkpoint
 - Per-story smoke tests run via `x-dev-lifecycle` Phase 2.5; integrity gate smoke tests are an additional cross-story regression check
+- Auto-rebase (Section 1.4e, RULE-011) triggers after each PR merge to keep remaining PRs up-to-date
+- Conflict resolution (Section 1.4c, RULE-012) dispatches subagent for automatic rebase conflict resolution
+- `--single-pr` preserves legacy flow: epic branch + single mega-PR (all per-story PR logic is skipped)
