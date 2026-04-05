@@ -30,8 +30,8 @@ class RulesAssemblerCoverageContextTest {
     class BuildContextFull {
 
         @Test
-        @DisplayName("context contains all 43 expected keys")
-        void context_allFortyThreeKeys_succeeds() {
+        @DisplayName("context contains all 44 expected keys")
+        void context_allFortyFourKeys_succeeds() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .projectName("ctx-full")
@@ -51,7 +51,7 @@ class RulesAssemblerCoverageContextTest {
             Map<String, Object> context =
                     ContextBuilder.buildContext(config);
 
-            assertThat(context).hasSize(43);
+            assertThat(context).hasSize(44);
             assertThat(context)
                     .containsEntry(
                             "project_name", "ctx-full")

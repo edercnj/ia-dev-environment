@@ -400,4 +400,72 @@ class ProjectConfigTest {
                             .cache().name());
         }
     }
+
+    @Nested
+    @DisplayName("compliance field")
+    class ComplianceField {
+
+        @Test
+        @DisplayName("defaults to 'none' when absent from config")
+        void fromMap_noCompliance_defaultsToNone() {
+            var config = ProjectConfig.fromMap(
+                    buildMinimalConfig());
+
+            assertThat(config.compliance())
+                    .isEqualTo("none");
+        }
+
+        @Test
+        @DisplayName("returns 'none' when explicitly set")
+        void fromMap_complianceNone_returnsNone() {
+            var map = new HashMap<>(buildMinimalConfig());
+            map.put("compliance", "none");
+
+            var config = ProjectConfig.fromMap(map);
+
+            assertThat(config.compliance())
+                    .isEqualTo("none");
+        }
+
+        @Test
+        @DisplayName("returns 'pci-dss' when set")
+        void fromMap_compliancePciDss_returnsPciDss() {
+            var map = new HashMap<>(buildMinimalConfig());
+            map.put("compliance", "pci-dss");
+
+            var config = ProjectConfig.fromMap(map);
+
+            assertThat(config.compliance())
+                    .isEqualTo("pci-dss");
+        }
+
+        @Test
+        @DisplayName("throws for unsupported compliance value")
+        void fromMap_complianceInvalid_throwsException() {
+            var map = new HashMap<>(buildMinimalConfig());
+            map.put("compliance", "sox");
+
+            assertThatThrownBy(
+                    () -> ProjectConfig.fromMap(map))
+                    .isInstanceOf(
+                            ConfigValidationException.class)
+                    .hasMessageContaining(
+                            "Unsupported compliance value:"
+                                    + " 'sox'")
+                    .hasMessageContaining(
+                            "Supported: none, pci-dss");
+        }
+
+        @Test
+        @DisplayName("full config includes compliance in record")
+        void fromMap_fullConfigWithCompliance_present() {
+            var map = new HashMap<>(buildFullConfig());
+            map.put("compliance", "pci-dss");
+
+            var config = ProjectConfig.fromMap(map);
+
+            assertThat(config.compliance())
+                    .isEqualTo("pci-dss");
+        }
+    }
 }

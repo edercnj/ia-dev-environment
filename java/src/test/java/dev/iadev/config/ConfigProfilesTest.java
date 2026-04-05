@@ -348,5 +348,24 @@ class ConfigProfilesTest {
             assertThat(config.testing().coverageLine())
                     .isGreaterThan(0);
         }
+
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "java-picocli-cli", "java-quarkus",
+                "java-spring", "java-spring-hexagonal",
+                "java-spring-cqrs-es",
+                "java-spring-event-driven",
+                "python-fastapi", "python-click-cli",
+                "go-gin", "kotlin-ktor",
+                "typescript-nestjs", "rust-axum"})
+        @DisplayName("each stack defaults compliance to 'none'")
+        void getStack_eachStack_complianceDefaultsNone(
+                String key) {
+            ProjectConfig config =
+                    ConfigProfiles.getStack(key);
+
+            assertThat(config.compliance())
+                    .isEqualTo("none");
+        }
     }
 }

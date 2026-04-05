@@ -353,7 +353,8 @@ class GenerateEnvironmentServiceTest {
                                 Map.of())),
                 SecurityConfig.fromMap(Map.of()),
                 TestingConfig.fromMap(Map.of()),
-                McpConfig.fromMap(Map.of()));
+                McpConfig.fromMap(Map.of()),
+                "none");
         return new GenerationContext(
                 config, Path.of("/tmp/output"), false);
     }
@@ -381,7 +382,8 @@ class GenerateEnvironmentServiceTest {
                                 Map.of())),
                 SecurityConfig.fromMap(Map.of()),
                 TestingConfig.fromMap(Map.of()),
-                McpConfig.fromMap(Map.of()));
+                McpConfig.fromMap(Map.of()),
+                "none");
     }
 
     private StackProfile buildProfile() {

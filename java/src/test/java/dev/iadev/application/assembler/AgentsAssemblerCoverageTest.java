@@ -210,7 +210,7 @@ class AgentsAssemblerCoverageTest {
     class BuildContextFull {
 
         @Test
-        @DisplayName("context has all 43 entries")
+        @DisplayName("context has all 44 entries")
         void buildContext_withAllFields_returnsExpectedEntries() {
             ProjectConfig config = TestConfigBuilder
                     .builder()
@@ -231,7 +231,7 @@ class AgentsAssemblerCoverageTest {
             Map<String, Object> context =
                     ContextBuilder.buildContext(config);
 
-            assertThat(context).hasSize(43);
+            assertThat(context).hasSize(44);
             assertThat(context)
                     .containsEntry("project_name",
                             "agent-test")

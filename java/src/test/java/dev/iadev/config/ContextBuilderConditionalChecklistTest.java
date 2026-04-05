@@ -217,6 +217,7 @@ class ContextBuilderConditionalChecklistTest {
                 InfraConfig.fromMap(Map.of()),
                 new SecurityConfig(frameworks),
                 TestingConfig.fromMap(Map.of()),
-                McpConfig.fromMap(Map.of()));
+                McpConfig.fromMap(Map.of()),
+                "none");
     }
 }

@@ -242,7 +242,8 @@ class ValidateConfigServiceTest {
                                     Map.of())),
                     SecurityConfig.fromMap(Map.of()),
                     TestingConfig.fromMap(Map.of()),
-                    McpConfig.fromMap(Map.of()));
+                    McpConfig.fromMap(Map.of()),
+                "none");
         }
     }
 
@@ -286,7 +287,8 @@ class ValidateConfigServiceTest {
                                 Map.of())),
                 SecurityConfig.fromMap(Map.of()),
                 TestingConfig.fromMap(Map.of()),
-                McpConfig.fromMap(Map.of()));
+                McpConfig.fromMap(Map.of()),
+                "none");
     }
 
     private ProjectConfig buildConfigWithNullIdentity() {
@@ -311,7 +313,8 @@ class ValidateConfigServiceTest {
                                 Map.of())),
                 SecurityConfig.fromMap(Map.of()),
                 TestingConfig.fromMap(Map.of()),
-                McpConfig.fromMap(Map.of()));
+                McpConfig.fromMap(Map.of()),
+                "none");
     }
 
     private ProjectConfig buildConfigWithNullLanguage() {
@@ -337,7 +340,8 @@ class ValidateConfigServiceTest {
                                 Map.of())),
                 SecurityConfig.fromMap(Map.of()),
                 TestingConfig.fromMap(Map.of()),
-                McpConfig.fromMap(Map.of()));
+                McpConfig.fromMap(Map.of()),
+                "none");
     }
 
     private ProjectConfig buildConfigWithNullFramework() {
@@ -362,7 +366,8 @@ class ValidateConfigServiceTest {
                                 Map.of())),
                 SecurityConfig.fromMap(Map.of()),
                 TestingConfig.fromMap(Map.of()),
-                McpConfig.fromMap(Map.of()));
+                McpConfig.fromMap(Map.of()),
+                "none");
     }
 
     private ProjectConfig buildConfigWithEmptyInterfaces() {
@@ -387,6 +392,7 @@ class ValidateConfigServiceTest {
                                 Map.of())),
                 SecurityConfig.fromMap(Map.of()),
                 TestingConfig.fromMap(Map.of()),
-                McpConfig.fromMap(Map.of()));
+                McpConfig.fromMap(Map.of()),
+                "none");
     }
 }

@@ -497,4 +497,73 @@ class ConfigLoaderTest {
                             "interfaces", "language", "framework");
         }
     }
+
+    @Nested
+    @DisplayName("compliance field parsing")
+    class ComplianceField {
+
+        @Test
+        @DisplayName("defaults to 'none' when absent")
+        void loadConfig_noCompliance_defaultsToNone()
+                throws IOException {
+            Path file = writeYaml(MINIMAL_CONFIG);
+
+            ProjectConfig config = ConfigLoader.loadConfig(
+                    file.toString());
+
+            assertThat(config.compliance())
+                    .isEqualTo("none");
+        }
+
+        @Test
+        @DisplayName("parses 'pci-dss' correctly")
+        void loadConfig_compliancePciDss_parsed()
+                throws IOException {
+            String yaml = MINIMAL_CONFIG
+                    + "compliance: pci-dss\n";
+            Path file = writeYaml(yaml);
+
+            ProjectConfig config = ConfigLoader.loadConfig(
+                    file.toString());
+
+            assertThat(config.compliance())
+                    .isEqualTo("pci-dss");
+        }
+
+        @Test
+        @DisplayName("parses 'none' correctly")
+        void loadConfig_complianceNone_parsed()
+                throws IOException {
+            String yaml = MINIMAL_CONFIG
+                    + "compliance: none\n";
+            Path file = writeYaml(yaml);
+
+            ProjectConfig config = ConfigLoader.loadConfig(
+                    file.toString());
+
+            assertThat(config.compliance())
+                    .isEqualTo("none");
+        }
+
+        @Test
+        @DisplayName("rejects unsupported value with clear error")
+        void loadConfig_complianceInvalid_throws()
+                throws IOException {
+            String yaml = MINIMAL_CONFIG
+                    + "compliance: sox\n";
+            Path file = writeYaml(yaml);
+
+            assertThatThrownBy(() ->
+                    ConfigLoader.loadConfig(file.toString()))
+                    .isInstanceOf(
+                            dev.iadev.domain.model
+                                    .ConfigValidationException
+                                    .class)
+                    .hasMessageContaining(
+                            "Unsupported compliance value:"
+                                    + " 'sox'")
+                    .hasMessageContaining(
+                            "Supported: none, pci-dss");
+        }
+    }
 }
