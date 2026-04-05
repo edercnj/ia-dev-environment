@@ -215,8 +215,9 @@ After reclassification and PR verification, feed the updated state into `getExec
 
 At the start of **each phase N**, before dispatching any stories for that phase, the
 orchestrator performs a pre-flight analysis to detect file-level overlaps between stories
-in the same phase. Stories with high code overlap are demoted to sequential execution
-within phase N, preventing costly merge conflicts during parallel dispatch.
+in the same phase. By default (advisory mode), overlaps are logged as warnings but all
+stories still execute in parallel. With `--strict-overlap`, stories with high code overlap
+are demoted to sequential execution within phase N (RULE-005).
 The results are written to `preflight-analysis-phase-{N}.md`, which the core loop
 consumes when deciding per-story parallel vs sequential scheduling.
 
@@ -468,13 +469,14 @@ The loop ensures that:
 
 ```
 function getExecutableStories(parsedMap, executionState):
-  for each story in parsedMap.stories:
-    if story.status != PENDING: continue
-    for each dep in story.dependencies:
+  for each storyNode in parsedMap.stories:
+    storyState = executionState.stories[storyNode.id]
+    if storyState.status != PENDING: continue
+    for each dep in storyNode.dependencies:
       depState = executionState.stories[dep]
       if depState.status != SUCCESS: skip story
-      if depState.prMergeStatus != "MERGED": skip story  // PR merge check
-    add story to executableList
+      if depState.prMergeStatus != "MERGED": skip story  // PR merge check (RULE-003)
+    add storyNode to executableList
   return sortByCriticalPath(executableList)
 ```
 
@@ -915,7 +917,7 @@ The `smokeGate` field is added to each phase entry in `execution-state.json`:
 }
 ```
 
-#### Gate Enforcement (RULE-004)
+#### Gate Enforcement (RULE-006)
 
 The integrity gate is **mandatory** — there is no bypass. Every phase transition requires a PASS gate
 result. The gate runs after phase 0, 1, 2, and 3 — one gate per phase.

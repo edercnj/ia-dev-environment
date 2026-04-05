@@ -54,9 +54,14 @@ a9a13218 feat(epic-orchestrator): eliminate epic branch and adopt per-story bran
 
 ## PR Links Table
 
+> **Note:** This epic modifies only SKILL.md (markdown specification), not production code.
+> All 9 stories touch the same file, so they were implemented on a single branch with
+> one consolidated PR instead of per-story PRs. The per-story PR model described in this
+> SKILL.md applies to future epics with production code changes.
+
 | Story | PR | Status | Merged At |
 |-------|-----|--------|-----------|
-| Pending — PR not yet created | | | |
+| All stories | [#138](https://github.com/edercnj/ia-dev-environment/pull/138) | OPEN | — |
 
 ## Tech Lead Review
 
