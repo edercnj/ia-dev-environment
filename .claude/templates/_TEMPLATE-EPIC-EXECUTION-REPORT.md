@@ -3,7 +3,7 @@
 > Branch: `{{BRANCH}}`
 > Started: {{STARTED_AT}} | Finished: {{FINISHED_AT}}
 
-## Sumário Executivo
+## Executive Summary
 
 | Metric | Value |
 |--------|-------|
@@ -13,15 +13,15 @@
 | Stories Total | {{STORIES_TOTAL}} |
 | Completion | {{COMPLETION_PERCENTAGE}} |
 
-## Timeline de Execução
+## Execution Timeline
 
 {{PHASE_TIMELINE_TABLE}}
 
-## Status Final por Story
+## Final Story Status
 
 {{STORY_STATUS_TABLE}}
 
-## Findings Consolidados
+## Consolidated Findings
 
 {{FINDINGS_SUMMARY}}
 
@@ -67,11 +67,11 @@
 |---|---|---|---|
 {{PO_ACCEPTANCE_TABLE}}
 
-## Commits e SHAs
+## Commits and SHAs
 
 {{COMMIT_LOG}}
 
-## Issues Não Resolvidos
+## Unresolved Issues
 
 {{UNRESOLVED_ISSUES}}
 
