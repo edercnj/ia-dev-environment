@@ -887,11 +887,13 @@ consistency across local files and external systems.
 1. Read `plans/epic-{epicId}/story-{storyId}.md`
 2. Update `**Status:**` field from `Pendente` (or `Em Andamento`) to `Concluída`
 3. Write the updated story file
+4. Emit log: `"STATUS SYNC: Updated story-{storyId}.md status to Concluída"`
 
-4. Read `plans/epic-{epicId}/IMPLEMENTATION-MAP.md`
-5. Find the row matching `story-{storyId}` in the Section 1 dependency matrix
-6. Update the Status column to `Concluída`
-7. Write the updated Implementation Map
+5. Read `plans/epic-{epicId}/IMPLEMENTATION-MAP.md`
+6. Find the row matching `story-{storyId}` in the Section 1 dependency matrix
+7. Update the Status column to `Concluída`
+8. Write the updated Implementation Map
+9. Emit log: `"STATUS SYNC: Updated IMPLEMENTATION-MAP.md for story-{storyId}"`
 
 8. Jira transition (if story has a Jira key):
    a. Read the `**Chave Jira:**` field from the story file
@@ -906,11 +908,15 @@ consistency across local files and external systems.
 1. Update story file `**Status:**` to `Falha` or `Parcial` respectively
 2. Update IMPLEMENTATION-MAP Status column to `Falha` or `Parcial`
 3. Do NOT transition Jira issue
+4. Emit log: `"STATUS SYNC: Updated story-{storyId}.md status to {Falha|Parcial}"`
+5. Emit log: `"STATUS SYNC: Updated IMPLEMENTATION-MAP.md for story-{storyId}"`
 
 **On status IN_PROGRESS:**
 
 1. Update story file `**Status:**` to `Em Andamento`
 2. Update IMPLEMENTATION-MAP Status column to `Em Andamento`
+3. Emit log: `"STATUS SYNC: Updated story-{storyId}.md status to Em Andamento"`
+4. Emit log: `"STATUS SYNC: Updated IMPLEMENTATION-MAP.md for story-{storyId}"`
 
 **Status Mapping:**
 
@@ -929,7 +935,8 @@ After updating story status to SUCCESS, check if ALL stories in the epic have st
 in the checkpoint. If yes:
 1. Read `plans/epic-{epicId}/EPIC-{epicId}.md`
 2. Update the `**Status:**` field from `Em Andamento` to `Concluído`
-3. If the epic has a Jira key (not `—` or `<CHAVE-JIRA>`):
+3. Emit log: `"STATUS SYNC: Updated EPIC-{epicId}.md status to Concluído (all stories complete)"`
+4. If the epic has a Jira key (not `—` or `<CHAVE-JIRA>`):
    - Call `mcp__atlassian__getTransitionsForJiraIssue` with the epic's Jira key
    - Find the transition to "Done"
    - Call `mcp__atlassian__transitionJiraIssue`

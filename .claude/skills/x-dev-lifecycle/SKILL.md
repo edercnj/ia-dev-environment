@@ -522,12 +522,16 @@ incomplete CHANGELOG.md. By generating after Phase 7, every commit on the branch
    b. Find the current story's row in the dependency matrix (Section 1 table)
    c. Update the Status column: replace current value with `Concluída`
    d. Write the updated file
+   e. **Post-update verification:** Re-read `IMPLEMENTATION-MAP.md` and confirm the Status column for this story now shows `Concluída`
+   f. If verification fails: emit `"WARNING: Status update verification failed for {storyId} in IMPLEMENTATION-MAP.md"`
 3. Update Story File Status:
    a. Read `plans/epic-XXXX/story-XXXX-YYYY.md`
    b. Update the `**Status:**` line from `Pendente` to `Concluída`
    c. In Section 8 (Sub-tarefas), mark completed sub-tasks: change `- [ ]` to `- [x]`
       for tasks that were implemented (based on commits and test results from this run)
    d. Write the updated file
+   e. **Post-update verification:** Re-read `story-XXXX-YYYY.md` and confirm the `**Status:**` field now shows `Concluída`
+   f. If verification fails: emit `"WARNING: Status update verification failed for {storyId} in story file"`
 4. Jira Status Sync (conditional):
    a. Read the story file's `**Chave Jira:**` field
    b. If the value is not `—` and not `<CHAVE-JIRA>` (i.e., has a real Jira key):
@@ -541,8 +545,9 @@ incomplete CHANGELOG.md. By generating after Phase 7, every commit on the branch
    - [ ] Acceptance tests exist and pass (AT-N GREEN)
    - [ ] Tests follow TPP ordering (simple to complex)
    - [ ] No test-after commits (all tests written before or with implementation)
-   - [ ] Story markdown file updated with Status: Concluída
+   - [ ] Story markdown file Status field updated to Concluída
    - [ ] IMPLEMENTATION-MAP Status column updated for this story
+   - [ ] Epic Status field updated if all stories complete
    - [ ] At least 1 automated test validates the story's primary acceptance criterion
    - [ ] Smoke test passes (if testing.smoke_tests == true)
 7. Conditional DoD items:
@@ -574,7 +579,7 @@ Each DoD item from steps 5-8 is classified into one of three enforcement categor
 
 | Category | Enforcement | Items |
 |----------|-------------|-------|
-| **Mandatory** | FAIL blocks story completion | TDD items 6.1-6.7 (test-first pattern, AT-N GREEN, TPP ordering, no test-after commits, story markdown updated, IMPLEMENTATION-MAP updated, at least 1 automated acceptance test), coverage thresholds (line >= 95%, branch >= 90%) |
+| **Mandatory** | FAIL blocks story completion | TDD items 6.1-6.8 (test-first pattern, AT-N GREEN, TPP ordering, no test-after commits, story markdown Status updated, IMPLEMENTATION-MAP Status updated, epic Status updated if all stories complete, at least 1 automated acceptance test), coverage thresholds (line >= 95%, branch >= 90%) |
 | **Conditional** | FAIL blocks when condition is active; SKIP when condition is inactive | Contract tests pass (testing.contract_tests == true), event schemas registered (event_driven == true), compliance requirements met (security.compliance active), gateway configuration updated (api_gateway != none), gRPC proto backward compatible (interfaces contain grpc), GraphQL schema backward compatible (interfaces contain graphql), threat model updated (security findings severity >= Medium), post-deploy verification (testing.smoke_tests == true), smoke test passes (testing.smoke_tests == true) |
 | **Advisory** | SKIP acceptable, does not block | README update, performance baseline recording, architecture document update, changelog entry |
 
