@@ -107,7 +107,7 @@ ERROR: --phase and --story are mutually exclusive
 Execute only stories belonging to phase N.
 
 1. Read checkpoint (or verify existing code if no checkpoint)
-2. Validate that phases 0..N-1 are complete (all stories have status SUCCESS)
+2. Validate that phases 0..N-1 are complete (all stories have status SUCCESS AND prMergeStatus == "MERGED")
 3. If validation fails, abort:
    - Phase out of range: `Phase {N} does not exist. Max phase is {M}.`
    - Prior phases incomplete: `Phases 0..{N-1} must be complete before phase {N}`
@@ -123,7 +123,7 @@ Phase 0 requires no prerequisite validation (no prior phases to check).
 Execute a single story in isolation.
 
 1. Read checkpoint (required for single story mode)
-2. Validate that ALL dependencies of the story have status SUCCESS
+2. Validate that ALL dependencies of the story have status SUCCESS AND prMergeStatus == "MERGED"
 3. If validation fails, abort:
    - Story not in map: `Story {storyId} not found in implementation map`
    - Dependencies not met: `Dependencies not satisfied: [{list}]`
@@ -183,7 +183,7 @@ else if PR not found (error):
   reclassify to FAILED with reason "PR not found"
 ```
 
-#### Failure Handling — PR Closure (Section 1.5b)
+#### Failure Handling — PR Closure
 
 When a story transitions to FAILED and has an open PR:
 
@@ -207,7 +207,7 @@ After reclassification, evaluate each BLOCKED story:
 
 This is a **single-pass** evaluation (no cascade). Stories unblocked in this pass will not trigger further unblocking of stories that depend on them.
 
-### Step 3 — Resume Execution (formerly Step 4)
+### Step 3 — Resume Execution
 
 After reclassification and PR verification, feed the updated state into `getExecutableStories()` to determine which stories are ready for execution. Only stories with status PENDING proceed to the execution loop. The orchestrator remains on `main` during resume — no epic branch recovery is needed.
 
@@ -391,7 +391,7 @@ The execution plan produced by Phase 0.5 is consumed by the Core Loop:
 |-------|------|----------|-------------|
 | `id` | String | Yes | Story ID (e.g., `story-0042-0001`) |
 | `phase` | Integer | Yes | Phase number |
-| `status` | String | Yes | `PENDING`, `IN_PROGRESS`, `SUCCESS`, `FAILED`, `PARTIAL`, `BLOCKED` |
+| `status` | String | Yes | `PENDING`, `IN_PROGRESS`, `SUCCESS`, `FAILED`, `PARTIAL`, `BLOCKED`, `PR_CREATED`, `PR_PENDING_REVIEW`, `PR_MERGED` |
 | `commitSha` | String | When SUCCESS | Last commit SHA |
 | `findingsCount` | Integer | Yes | Number of review findings |
 | `summary` | String | Yes | Brief description |
@@ -400,7 +400,9 @@ The execution plan produced by Phase 0.5 is consumed by the Core Loop:
 | `blockedBy` | String[] | When BLOCKED | IDs of blocking stories |
 | `prUrl` | String | When PR created | URL of the story PR |
 | `prNumber` | Integer | When PR created | GitHub PR number |
-| `prMergeStatus` | String | When PR created | `PENDING`, `OPEN`, `MERGED`, `CLOSED` |
+| `prMergeStatus` | String | When PR created | `OPEN`, `MERGED`, `CLOSED` |
+
+> See Section 1.4e for additional per-story rebase tracking fields (`rebaseStatus`, `lastRebaseSha`, `rebaseAttempts`).
 
 ### 1.2 Branch Management
 
@@ -632,7 +634,7 @@ Steps:
 
 ### 1.4d Worktree Cleanup
 
-After the merge phase completes, clean up worktree resources:
+After parallel dispatch completes and all SubagentResults are validated, clean up worktree resources:
 
 - **SUCCESS + merged:** Worktree is cleaned up automatically after successful merge
 - **FAILED stories:** Worktree is preserved for diagnostic investigation. The branch
