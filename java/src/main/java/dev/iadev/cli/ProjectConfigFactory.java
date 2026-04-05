@@ -86,7 +86,10 @@ final class ProjectConfigFactory {
                 new ObservabilityConfig(
                         "none", "none", "none"));
         var security = new SecurityConfig(
-                ps.compliance());
+                ps.compliance(),
+                SecurityConfig.ScanningConfig.defaults(),
+                SecurityConfig.QualityGateConfig.defaults(),
+                false, "local");
         var testing = new TestingConfig(
                 true, false, true, 95, 90);
         var mcp = new McpConfig(List.of());

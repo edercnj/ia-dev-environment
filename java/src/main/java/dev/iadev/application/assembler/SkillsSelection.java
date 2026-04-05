@@ -124,6 +124,43 @@ public final class SkillsSelection {
     }
 
     /**
+     * Selects skills based on security scanning flags,
+     * pentest, and quality gate provider.
+     *
+     * @param config the project configuration
+     * @return list of conditional scanning skill names
+     */
+    public static List<String> selectSecurityScanningSkills(
+            ProjectConfig config) {
+        List<String> skills = new ArrayList<>();
+        var scanning = config.security().scanning();
+        if (scanning.sast()) {
+            skills.add("x-sast-scan");
+        }
+        if (scanning.dast()) {
+            skills.add("x-dast-scan");
+        }
+        if (scanning.secretScan()) {
+            skills.add("x-secret-scan");
+        }
+        if (scanning.containerScan()) {
+            skills.add("x-container-scan");
+        }
+        if (scanning.infraScan()) {
+            skills.add("x-infra-scan");
+        }
+        if (config.security().pentest()) {
+            skills.add("x-pentest");
+        }
+        var qgProvider =
+                config.security().qualityGate().provider();
+        if (!"none".equals(qgProvider)) {
+            skills.add("x-sonar-gate");
+        }
+        return skills;
+    }
+
+    /**
      * Selects skills based on compliance frameworks.
      *
      * <p>Includes {@code x-review-compliance} when
@@ -155,6 +192,7 @@ public final class SkillsSelection {
         skills.addAll(selectInfraSkills(config));
         skills.addAll(selectTestingSkills(config));
         skills.addAll(selectSecuritySkills(config));
+        skills.addAll(selectSecurityScanningSkills(config));
         skills.addAll(selectComplianceSkills(config));
         return skills;
     }

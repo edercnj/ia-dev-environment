@@ -68,6 +68,16 @@ public final class TestConfigBuilder {
     private String templating = "kustomize";
     private List<String> securityFrameworksList =
             Collections.emptyList();
+    private boolean scanSast = false;
+    private boolean scanDast = false;
+    private boolean scanSecretScan = false;
+    private boolean scanContainerScan = false;
+    private boolean scanInfraScan = false;
+    private String qgProvider = "none";
+    private String qgServerUrl = "";
+    private String qgQualityGate = "default";
+    private boolean pentest = false;
+    private String pentestDefaultEnv = "local";
     private final List<InterfaceConfig> interfaces =
             new ArrayList<>();
     private final List<McpServerConfig> mcpServers =
@@ -290,6 +300,46 @@ public final class TestConfigBuilder {
         return this;
     }
 
+    public TestConfigBuilder scanningFlags(
+            boolean sast, boolean dast,
+            boolean secretScan, boolean containerScan,
+            boolean infraScan) {
+        this.scanSast = sast;
+        this.scanDast = dast;
+        this.scanSecretScan = secretScan;
+        this.scanContainerScan = containerScan;
+        this.scanInfraScan = infraScan;
+        return this;
+    }
+
+    public TestConfigBuilder qualityGateProvider(
+            String provider) {
+        this.qgProvider = provider;
+        return this;
+    }
+
+    public TestConfigBuilder qualityGateServerUrl(
+            String url) {
+        this.qgServerUrl = url;
+        return this;
+    }
+
+    public TestConfigBuilder qualityGateName(
+            String name) {
+        this.qgQualityGate = name;
+        return this;
+    }
+
+    public TestConfigBuilder pentest(boolean enabled) {
+        this.pentest = enabled;
+        return this;
+    }
+
+    public TestConfigBuilder pentestDefaultEnv(String env) {
+        this.pentestDefaultEnv = env;
+        return this;
+    }
+
     public TestConfigBuilder compliance(String value) {
         this.compliance = value;
         return this;
@@ -341,7 +391,17 @@ public final class TestConfigBuilder {
                         new ObservabilityConfig(
                                 observabilityTool,
                                 "none", "none")),
-                new SecurityConfig(securityFrameworksList),
+                new SecurityConfig(
+                        securityFrameworksList,
+                        new SecurityConfig.ScanningConfig(
+                                scanSast, scanDast,
+                                scanSecretScan,
+                                scanContainerScan,
+                                scanInfraScan),
+                        new SecurityConfig.QualityGateConfig(
+                                qgProvider, qgServerUrl,
+                                qgQualityGate),
+                        pentest, pentestDefaultEnv),
                 new TestingConfig(
                         smokeTests, contractTests,
                         performanceTests, 95, 90),

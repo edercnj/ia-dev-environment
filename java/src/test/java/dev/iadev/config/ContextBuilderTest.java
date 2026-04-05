@@ -48,7 +48,12 @@ class ContextBuilderTest {
                 buildFullDataConfig(),
                 buildFullInfraConfig(),
                 new SecurityConfig(
-                        List.of("spring-security")),
+                        List.of("spring-security"),
+                        SecurityConfig.ScanningConfig
+                                .defaults(),
+                        SecurityConfig.QualityGateConfig
+                                .defaults(),
+                        false, "local"),
                 new TestingConfig(
                         true, true, true, 95, 90),
                 new McpConfig(List.of()),
