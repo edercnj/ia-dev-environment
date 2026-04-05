@@ -728,7 +728,22 @@ Launch a `general-purpose` subagent:
 > - If compilation fails → `{ status: "FAIL", testCount: 0, coverage: 0 }`
 > - If any tests fail → correlate failed tests with commits from stories in the current phase
 > - If line coverage < 95% or branch coverage < 90% → FAIL with coverage details
-> - Otherwise → proceed to Step 5
+> - Otherwise → proceed to Step 4.6
+> **Step 4.6 — Conventional Commits Validation:** Validate that all commits in the current phase follow Conventional Commits format.
+> For each commit in the git log of the current phase:
+> 1. Validate regex: `^(feat|fix|refactor|test|docs|build|chore|infra)(\([a-z0-9-]+\))?: .{1,72}$`
+> 2. Type must be one of the 8 allowed types: `feat`, `fix`, `refactor`, `test`, `docs`, `build`, `chore`, `infra`
+> 3. Scope presence: WARNING if absent (not blocking — scope is recommended but optional)
+> 4. Subject must be <= 72 characters and must not end with a trailing period
+> 5. Count violations: `ccViolationCount` (commits that fail the regex or have invalid type/subject)
+>
+> Status thresholds:
+> - PASS: `ccViolationCount == 0`
+> - WARNING: 1–2 violations (non-blocking, log offending commits)
+> - FAIL: 3+ violations (blocking — phase cannot advance)
+>
+> If FAIL → `{ status: "FAIL", conventionalCommits: { status: "FAIL", ccViolationCount, violations } }`
+> Otherwise → proceed to Step 5
 > **Step 5 — Smoke Gate:** Execute the full smoke test suite as a regression validation.
 > - If `--skip-smoke-gate` flag is set → log `"Integrity gate smoke tests skipped (--skip-smoke-gate)"` and record `smokeGate.status = "SKIP"` → proceed to PASS
 > - Run: `{{SMOKE_COMMAND}}` (e.g., `cd java && mvn verify -P integration-tests`)
@@ -736,7 +751,7 @@ Launch a `general-purpose` subagent:
 > - If all smoke tests pass → record `smokeGate.status = "PASS"` → overall gate is PASS
 > - If any smoke test fails → correlate failures with stories in the current phase (based on files touched) → record `smokeGate.status = "FAIL"` → overall gate is FAIL
 >
-> Return: `{ status: "PASS"|"FAIL", testCount, coverage, branchCoverage?, failedTests?, regressionSource?, smokeGate?: { status, testsRun, testsFailed, failedTests?, suspectedStories? } }`
+> Return: `{ status: "PASS"|"FAIL", testCount, coverage, branchCoverage?, failedTests?, regressionSource?, conventionalCommits?: { status, ccViolationCount, violations }, smokeGate?: { status, testsRun, testsFailed, failedTests?, suspectedStories? } }`
 
 #### Regression Diagnosis
 
@@ -768,6 +783,11 @@ updateIntegrityGate(epicDir, phaseNumber, {
   branchCoverage?: number, // branch coverage %
   failedTests?: string[],
   regressionSource?: string, // story ID
+  conventionalCommits?: {
+    status: "PASS" | "WARNING" | "FAIL",
+    ccViolationCount: number,  // commits failing format validation
+    violations: string[]       // list of offending commit messages
+  },
   smokeGate?: {
     status: "PASS" | "FAIL" | "SKIP",
     testsRun: number,
@@ -779,9 +799,11 @@ updateIntegrityGate(epicDir, phaseNumber, {
 });
 ```
 
-- **PASS**: Advance to next phase (requires both test gate and smoke gate to pass)
+- **PASS**: Advance to next phase (requires test gate, conventional commits validation, and smoke gate to pass)
 - **FAIL + regression identified**: revert + mark FAILED + block propagation
 - **FAIL + regression unidentified**: pause execution, report to user
+- **FAIL (conventional commits)**: 3+ CC violations — phase cannot advance; fix commit messages and `--resume`
+- **WARNING (conventional commits)**: 1–2 CC violations — logged but non-blocking; phase advances
 - **FAIL (smoke gate)**: phase marked FAILED; operator uses `--resume` after fix or `--skip-smoke-gate` to bypass
 
 #### Checkpoint Smoke Gate Format
@@ -811,9 +833,13 @@ The `smokeGate` field is added to each phase entry in `execution-state.json`:
 The integrity gate is **mandatory** — there is no bypass. Every phase transition requires a PASS gate
 result. The gate runs after phase 0, 1, 2, and 3 — one gate per phase.
 
+The Conventional Commits validation (Step 4.6) is mandatory and cannot be bypassed. A FAIL result
+(3+ violations) blocks phase advancement. A WARNING result (1–2 violations) is logged but does not
+block. The validation uses the regex `^(feat|fix|refactor|test|docs|build|chore|infra)(\([a-z0-9-]+\))?: .{1,72}$`.
+
 The smoke gate within the integrity gate is also mandatory by default. It can only be bypassed with
 the `--skip-smoke-gate` flag, which records `smokeGate.status = "SKIP"` in the checkpoint. When
-`--skip-smoke-gate` is set, the integrity gate evaluates only Steps 1-4 (compile, test, coverage).
+`--skip-smoke-gate` is set, the integrity gate evaluates only Steps 1-4 and 4.6 (compile, test, coverage, CC validation).
 When not set, the smoke gate (Step 5) must also pass for the overall integrity gate to pass.
 
 > **Note:** Each story already executes its own smoke gate via `x-dev-lifecycle` (Phase 2.5).
@@ -1108,6 +1134,7 @@ Return to main branch: `git checkout main && git pull origin main`
 - Writes: `plans/epic-XXXX/plans/preflight-analysis-phase-N.md` (pre-flight analysis output for audit, Phase 0.5)
 - Phase 0.5 is skipped when `--sequential` is set (no parallel dispatch means no conflict risk)
 - All `{{PLACEHOLDER}}` tokens are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
+- Integrity gate includes Conventional Commits validation (Step 4.6) — validates commit format with regex `^(feat|fix|refactor|test|docs|build|chore|infra)(\([a-z0-9-]+\))?: .{1,72}$`; FAIL on 3+ violations, WARNING on 1–2
 - Integrity gate includes smoke tests (Step 5) as regression validation after each phase — runs `{{SMOKE_COMMAND}}` (e.g., `cd java && mvn verify -P integration-tests`)
 - Smoke gate is bypassed with `--skip-smoke-gate` flag; result recorded as `smokeGate.status = "SKIP"` in checkpoint
 - Per-story smoke tests run via `x-dev-lifecycle` Phase 2.5; integrity gate smoke tests are an additional cross-story regression check
