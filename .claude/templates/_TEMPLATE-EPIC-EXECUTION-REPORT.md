@@ -43,6 +43,30 @@
 
 {{TDD_SUMMARY}}
 
+## Review Scores Per Story
+
+| Story | Specialist Score | Tech Lead Score | Overall |
+|---|---|---|---|
+{{REVIEW_SCORES_TABLE}}
+
+## Coverage Trend
+
+| Story | Line Coverage | Branch Coverage | Delta |
+|---|---|---|---|
+{{COVERAGE_TREND_TABLE}}
+
+## Conventional Commits Compliance
+
+| Story | Total Commits | CC Violations | Status |
+|---|---|---|---|
+{{CC_COMPLIANCE_TABLE}}
+
+## PO Acceptance
+
+| Story | @GK-N Coverage | AT-N Status | Decision |
+|---|---|---|---|
+{{PO_ACCEPTANCE_TABLE}}
+
 ## Commits e SHAs
 
 {{COMMIT_LOG}}

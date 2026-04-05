@@ -1325,6 +1325,10 @@ You are generating the epic execution report for EPIC-{epicId}.
    - {{COVERAGE_BEFORE}}, {{COVERAGE_AFTER}}, {{COVERAGE_DELTA}}
    - {{TDD_COMPLIANCE_TABLE}}: TDD compliance per-story table (see step 3a)
    - {{TDD_SUMMARY}}: TDD compliance aggregated summary (see step 3b)
+   - {{REVIEW_SCORES_TABLE}}: review scores per story (see step 3c)
+   - {{COVERAGE_TREND_TABLE}}: coverage trend per story (see step 3d)
+   - {{CC_COMPLIANCE_TABLE}}: Conventional Commits compliance per story (see step 3e)
+   - {{PO_ACCEPTANCE_TABLE}}: PO acceptance per story (see step 3f)
    - {{COMMIT_LOG}}: git log main..HEAD --oneline
    - {{UNRESOLVED_ISSUES}}: findings with severity >= Medium
    - {{PR_LINK}}: populated after PR creation (or "Pending")
@@ -1371,6 +1375,50 @@ You are generating the epic execution report for EPIC-{epicId}.
      `Stories: {passCount} PASS / {warnCount} WARNING / {failCount} FAIL`
    - If NO TDD compliance data is available for any story:
      Format as: `N/A — no TDD compliance data available (legacy epic without integrity gate or insufficient data)`
+
+3c. Populate {{REVIEW_SCORES_TABLE}} with per-story review scores:
+   For each completed story, extract review scores from SubagentResult:
+   - Specialist Score: from `SubagentResult.reviewScores.specialist` (numeric score, e.g., 8.5/10)
+   - Tech Lead Score: from `SubagentResult.reviewScores.techLead` (numeric score, e.g., 9.0/10)
+   - Overall: average of Specialist and Tech Lead scores, rounded to 1 decimal place
+   - If `--skip-review` was used for a story:
+     - Specialist Score: `SKIPPED ({reason})` where reason comes from `skipReviewReason`
+     - Tech Lead Score: `SKIPPED ({reason})`
+     - Overall: `SKIPPED`
+   - If review data is unavailable (not skipped, but missing): show `N/A` for all columns
+   Format each row as: `| {storyId} | {specialistScore} | {techLeadScore} | {overall} |`
+
+3d. Populate {{COVERAGE_TREND_TABLE}} with per-story coverage metrics:
+   For each completed story (in execution order), extract coverage from SubagentResult:
+   - Line Coverage: from `SubagentResult.coverageLine` (e.g., 95.0%)
+   - Branch Coverage: from `SubagentResult.coverageBranch` (e.g., 90.0%)
+   - Delta: difference in Line Coverage from the previous story in execution order
+     - First story: Delta = `—` (no previous baseline)
+     - Subsequent stories: Delta = current line coverage minus previous story line coverage,
+       formatted with sign (e.g., `+2.5%`, `-1.0%`, `0.0%`)
+   - If coverage data is unavailable for a story: show `N/A` for all columns
+   Format each row as: `| {storyId} | {lineCoverage} | {branchCoverage} | {delta} |`
+
+3e. Populate {{CC_COMPLIANCE_TABLE}} with Conventional Commits compliance per story:
+   For each completed story, extract CC compliance from integrity gate data:
+   - Total Commits: total number of commits for the story
+   - CC Violations: count of commits that do NOT follow Conventional Commits format
+     (from `conventionalCommits` integrity gate data per phase)
+   - Status:
+     - PASS: zero violations
+     - FAIL: one or more violations
+   - If CC compliance data is unavailable for a story: show `N/A` for all columns
+   Format each row as: `| {storyId} | {totalCommits} | {ccViolations} | {status} |`
+
+3f. Populate {{PO_ACCEPTANCE_TABLE}} with PO acceptance results per story:
+   For each completed story, extract PO acceptance data from Phase 8.5 results:
+   - @GK-N Coverage: ratio of Gherkin acceptance criteria with mapped tests
+     (e.g., `4/4` meaning all 4 @GK-N criteria have at least one AT-N)
+   - AT-N Status: summary of acceptance test results
+     (e.g., `5/5 GREEN` meaning all 5 acceptance tests passed)
+   - Decision: PO acceptance decision — ACCEPTED, REJECTED, or CONDITIONAL
+   - If PO acceptance was not performed for a story: show `N/A` for all columns
+   Format each row as: `| {storyId} | {gkCoverage} | {atStatus} | {decision} |`
 
 4. Validate: no unresolved {{...}} placeholders remain in output
 5. Write epic-execution-report.md to plans/epic-{epicId}/
