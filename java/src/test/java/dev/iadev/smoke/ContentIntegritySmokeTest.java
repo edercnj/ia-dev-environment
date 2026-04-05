@@ -397,6 +397,8 @@ class ContentIntegritySmokeTest extends SmokeTestBase {
                         Pattern.compile(
                                 "secrets\\.[A-Z_]+"),
                         Pattern.compile(
+                                "vars\\.[A-Z_a-z]+"),
+                        Pattern.compile(
                                 "env\\.[A-Z_a-z]+"),
                         Pattern.compile(
                                 "runner\\.[a-z_]+"),
