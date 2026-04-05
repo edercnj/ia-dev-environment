@@ -397,13 +397,27 @@ Execute the x-dev-lifecycle workflow:
 3. Implement following TDD (Red-Green-Refactor)
 4. Run tests and verify coverage
 5. Commit changes with Conventional Commits
+6. Create PR and run reviews (Phases 4-8 of x-dev-lifecycle)
+
+The PR created by /x-dev-lifecycle Phase 6 MUST:
+- Target `main` branch
+- Include "Part of EPIC-{epicId}" in the PR body for traceability (RULE-008)
+
+Include prUrl and prNumber in your SubagentResult JSON.
 
 Return a JSON result with this exact structure (SubagentResult):
 {
   "status": "SUCCESS" | "FAILED" | "PARTIAL",
   "commitSha": "<git commit SHA if SUCCESS>",
   "findingsCount": <number of review findings>,
-  "summary": "<brief description of what was done>"
+  "summary": "<brief description of what was done>",
+  "reviewsExecuted": { "specialist": true|false, "techLead": true|false },
+  "reviewScores": { "specialist": "N/M", "techLead": "N/M" },
+  "coverageLine": <line coverage percentage>,
+  "coverageBranch": <branch coverage percentage>,
+  "tddCycles": <number of Red-Green-Refactor cycles>,
+  "prUrl": "<URL of the created PR if SUCCESS>",
+  "prNumber": <PR number if SUCCESS>
 }
 ```
 
@@ -433,6 +447,10 @@ For each story in executableStories:
     prompt: "<same prompt template as Section 1.4, with story-specific metadata>"
   )
 ```
+
+Each worktree subagent uses the same prompt template as Section 1.4, including
+the PR creation instructions: PR targets `main`, PR body includes
+"Part of EPIC-{epicId}" (RULE-008), and `SubagentResult` includes `prUrl` and `prNumber`.
 
 **Branch Naming:** Each worktree operates on branch `feat/{storyId}-short-description` (standard story branch pattern, matching `x-dev-lifecycle` Phase 0).
 
@@ -472,11 +490,17 @@ After receiving the subagent response, validate the `SubagentResult` contract:
 2. **`findingsCount` field**: MUST be present and be a number
 3. **`summary` field**: MUST be present and be a string
 4. **`commitSha` field**: If `status === "SUCCESS"`, MUST be present and be a string
+5. **`prUrl` field**: If `status === "SUCCESS"`, MUST be present and be a valid GitHub PR URL string
+6. **`prNumber` field**: If `status === "SUCCESS"`, MUST be present and be a positive integer
 
 **On validation failure:**
 - Mark the story as FAILED
 - Set summary to: `"Invalid subagent result: missing {field} field"`
 - Continue to checkpoint update (1.6)
+
+> **Note:** `prUrl` and `prNumber` are only required when `status === "SUCCESS"`.
+> When status is `FAILED` or `PARTIAL`, these fields may be null (the lifecycle
+> may have failed before reaching Phase 6 PR creation).
 
 [Placeholder: retry with error context — story-0005-0007]
 
