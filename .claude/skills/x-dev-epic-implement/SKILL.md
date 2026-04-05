@@ -367,8 +367,15 @@ For each phase in (0..totalPhases-1):
      c. Validate result (see 1.5)
      d. Update checkpoint (see 1.6)
   7. [Placeholder: integrity gate between phases — story-0005-0006]
-  8. [Placeholder: progress reporting — story-0005-0013]
-  9. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
+  8. Run Cross-Story Consistency Gate (Section 1.8):
+     a. Dispatch consistency gate subagent with all completed stories from this phase
+     b. Subagent checks 4 dimensions: interface, naming, duplicate, dependency
+     c. On PASS → continue to next phase
+     d. On WARN → log warnings, continue to next phase
+     e. On FAIL → pause execution, report to user, require --resume after manual fix
+     f. Record consistencyGate result in checkpoint via updateConsistencyGate()
+  9. [Placeholder: progress reporting — story-0005-0013]
+  10. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
 ```
 
 The loop ensures that:
@@ -376,7 +383,7 @@ The loop ensures that:
 - BLOCKED stories are never dispatched (filtered by `getExecutableStories`)
 - Each phase completes before the next begins (parallel dispatch is default; sequential when `--sequential` is set)
 - Pre-flight conflict analysis partitions stories into parallel and sequential groups to minimize merge conflicts
-- [Placeholder: partial execution filter — story-0005-0009]
+- Cross-Story Consistency Gate (Section 1.8) runs after the Integrity Gate to detect inconsistencies between stories implemented in isolation
 
 ### 1.4 Subagent Dispatch (Sequential Mode — When `--sequential` Is Set)
 
@@ -912,7 +919,7 @@ The following sections are placeholders for downstream stories:
 - [Placeholder: integrity gate between phases — story-0005-0006]
 - ~~retry + block propagation~~ → Implemented in Section 1.5b (Failure Handling, Rollback, and Retry)
 - [Placeholder: resume from checkpoint — story-0005-0008]
-- [Placeholder: partial execution filter — story-0005-0009]
+- ~~cross-story consistency gate~~ → Implemented in Section 1.8 (Cross-Story Consistency Gate)
 - [Placeholder: progress reporting — story-0005-0013]
 
 ### Integrity Gate (Between Phases)
@@ -1049,6 +1056,202 @@ When not set, the smoke gate (Step 5) must also pass for the overall integrity g
 > **Note:** Each story already executes its own smoke gate via `x-dev-lifecycle` (Phase 2.5).
 > The integrity gate smoke tests serve as an ADDITIONAL regression validation — they ensure
 > that the combination of all stories in a phase did not break the overall smoke test suite.
+
+### 1.8 Cross-Story Consistency Gate (Between Phases — After Integrity Gate)
+
+After the Integrity Gate passes for a phase, dispatch a Cross-Story Consistency Gate
+subagent before advancing to the next phase. This gate detects inconsistencies between
+stories that were implemented in isolation (RULE-001 clean context), catching conflicts
+that only emerge when multiple stories are combined.
+
+**Execution order within each phase:**
+1. All stories in the phase complete
+2. Integrity Gate runs (compile, test, coverage, CC validation, smoke)
+3. Cross-Story Consistency Gate runs (this section)
+4. If both gates pass, advance to the next phase
+
+**Skip condition:** If only one story completed in the current phase, the Consistency
+Gate is skipped (no cross-story comparison possible). Log:
+`"Consistency gate skipped — single story in phase {N}"`
+
+#### 1.8.1 Verification Dimensions
+
+The Consistency Gate subagent evaluates 4 dimensions across all completed stories
+in the current phase:
+
+| # | Dimension | Severity | Description |
+|---|-----------|----------|-------------|
+| 1 | **Interface Consistency** | FAIL | Interfaces/ports declared by each story — detect signature conflicts (e.g., same port method with incompatible parameter types, return types, or exception declarations) |
+| 2 | **Naming Convention Consistency** | WARN | Classes, methods, packages — detect mixed conventions (CamelCase vs snake_case, inconsistent prefixes/suffixes for same-role artifacts) |
+| 3 | **Duplicate Detection** | WARN | Classes/methods with similar functionality between stories — potential DRY violations (e.g., `DateUtils.formatISO()` and `TimeHelper.toISOString()` with same logic) |
+| 4 | **Shared Dependency Verification** | FAIL | Components used by multiple stories — version conflicts, incompatible configuration, or contradictory dependency declarations |
+
+#### 1.8.2 Gate Behavior
+
+| Status | Condition | Action |
+|--------|-----------|--------|
+| **PASS** | Zero findings across all dimensions | Continue to next phase |
+| **WARN** | Only WARN-severity findings (naming inconsistencies, potential duplicates) | Log all warnings, continue to next phase |
+| **FAIL** | One or more FAIL-severity findings (interface conflicts, dependency incompatibilities) | Pause execution, report to user, require `--resume` after manual fix |
+
+**On FAIL:**
+- Log: `"Cross-story consistency FAIL. Use --resume after manual fix."`
+- List all FAIL-severity findings with actionable details
+- The orchestrator halts phase progression until the user resolves the issues and
+  invokes `--resume`
+
+**On WARN:**
+- Log: `"Cross-story consistency WARN: {count} warning(s) detected. Continuing execution."`
+- Each warning is logged with its dimension and detail
+
+#### 1.8.3 Gate Subagent Prompt
+
+Launch a `general-purpose` subagent:
+
+```
+You are a **Cross-Story Consistency Validator** for {{PROJECT_NAME}}.
+
+Phase: {currentPhase}
+Completed stories in this phase: {completedStoryIds}
+Story branches: {storyBranches}
+Epic branch: feat/epic-{epicId}-full-implementation
+
+Analyze the code produced by all completed stories in this phase for cross-story
+consistency. Check the following 4 dimensions:
+
+**Dimension 1 — Interface Consistency (FAIL severity):**
+1. Identify all interfaces, ports, and abstract classes modified or created by each story
+2. For shared interfaces (touched by 2+ stories), compare:
+   - Method signatures (parameter types, return types, exception declarations)
+   - Interface contracts (pre/post conditions if documented)
+3. Flag conflicts where the same method has incompatible signatures across stories
+
+**Dimension 2 — Naming Convention Consistency (WARN severity):**
+1. Scan all new classes, methods, and packages created by each story
+2. Detect mixed naming conventions within the same layer:
+   - CamelCase vs snake_case for same-role artifacts
+   - Inconsistent prefixes/suffixes (e.g., UserService vs user_handler)
+   - Package naming inconsistencies
+3. Flag inconsistencies as warnings
+
+**Dimension 3 — Duplicate Detection (WARN severity):**
+1. Identify utility classes, helper methods, and shared logic created by each story
+2. Compare method signatures and implementations for functional similarity
+3. Flag potential duplicates (e.g., two date formatting methods with same logic,
+   two validation helpers with overlapping responsibility)
+
+**Dimension 4 — Shared Dependency Verification (FAIL severity):**
+1. Check build files (pom.xml, build.gradle, package.json, Cargo.toml, go.mod)
+   for dependency declarations added by each story
+2. Detect version conflicts (same dependency with different versions)
+3. Detect incompatible configurations (same config key with contradictory values)
+
+Return a JSON result with this exact structure:
+{
+  "status": "PASS" | "WARN" | "FAIL",
+  "findings": [
+    {
+      "type": "interface" | "naming" | "duplicate" | "dependency",
+      "severity": "FAIL" | "WARN",
+      "storyA": "<story ID>",
+      "storyB": "<story ID>",
+      "detail": "<human-readable description of the inconsistency>",
+      "files": ["<affected file paths>"]
+    }
+  ],
+  "summary": "<brief overall summary>"
+}
+
+Rules:
+- If ANY finding has severity FAIL → overall status MUST be FAIL
+- If findings exist but all are WARN → overall status MUST be WARN
+- If no findings → overall status MUST be PASS with empty findings array
+- Each finding MUST reference the two stories involved (storyA, storyB)
+- Each finding MUST list the affected file paths
+```
+
+#### 1.8.4 Gate Result Registration
+
+After the subagent returns, register the consistency gate result in the checkpoint:
+
+```
+updateConsistencyGate(epicDir, phaseNumber, {
+  status: "PASS" | "WARN" | "FAIL",
+  findings: [
+    {
+      type: "interface" | "naming" | "duplicate" | "dependency",
+      severity: "FAIL" | "WARN",
+      storyA: string,
+      storyB: string,
+      detail: string,
+      files: string[]
+    }
+  ],
+  summary: string,
+  timestamp: string  // ISO-8601 UTC
+});
+```
+
+#### 1.8.5 Checkpoint Consistency Gate Format
+
+The `consistencyGate` field is added to each phase entry in `execution-state.json`:
+
+```json
+{
+  "phases": {
+    "0": {
+      "status": "SUCCESS",
+      "integrityGate": { "..." },
+      "consistencyGate": {
+        "status": "PASS",
+        "findings": [],
+        "summary": "No cross-story inconsistencies detected",
+        "timestamp": "2026-03-25T14:35:00Z"
+      }
+    },
+    "1": {
+      "status": "SUCCESS",
+      "integrityGate": { "..." },
+      "consistencyGate": {
+        "status": "WARN",
+        "findings": [
+          {
+            "type": "naming",
+            "severity": "WARN",
+            "storyA": "story-0042-003",
+            "storyB": "story-0042-004",
+            "detail": "Naming inconsistency: mixed conventions — UserService (CamelCase) vs user_handler (snake_case)",
+            "files": ["src/main/java/com/example/application/UserService.java", "src/main/java/com/example/application/user_handler.java"]
+          },
+          {
+            "type": "duplicate",
+            "severity": "WARN",
+            "storyA": "story-0042-003",
+            "storyB": "story-0042-005",
+            "detail": "Potential duplicate: DateUtils.formatISO and TimeHelper.toISOString have similar functionality",
+            "files": ["src/main/java/com/example/util/DateUtils.java", "src/main/java/com/example/util/TimeHelper.java"]
+          }
+        ],
+        "summary": "2 warnings detected (naming, duplicate) — non-blocking",
+        "timestamp": "2026-03-25T15:10:00Z"
+      }
+    }
+  }
+}
+```
+
+#### 1.8.6 Gate Enforcement
+
+The Cross-Story Consistency Gate is **mandatory** for phases with 2+ completed stories.
+It runs after the Integrity Gate and before phase advancement.
+
+- **PASS**: Phase advances immediately
+- **WARN**: Warnings are logged and recorded in checkpoint; phase advances
+- **FAIL**: Phase is blocked; user must fix the inconsistencies and `--resume`
+
+The gate complements the Integrity Gate: while the Integrity Gate validates that the
+combined code compiles, passes tests, and meets coverage thresholds, the Consistency
+Gate validates that the code is architecturally coherent across story boundaries.
 
 ## Phase 2 — Consolidation (Two-Wave)
 
@@ -1342,3 +1545,6 @@ Return to main branch: `git checkout main && git pull origin main`
 - Integrity gate includes smoke tests (Step 5) as regression validation after each phase — runs `{{SMOKE_COMMAND}}` (e.g., `cd java && mvn verify -P integration-tests`)
 - Smoke gate is bypassed with `--skip-smoke-gate` flag; result recorded as `smokeGate.status = "SKIP"` in checkpoint
 - Per-story smoke tests run via `x-dev-lifecycle` Phase 2.5; integrity gate smoke tests are an additional cross-story regression check
+- Cross-Story Consistency Gate (Section 1.8) runs after the Integrity Gate between phases — checks interface consistency, naming conventions, duplicate detection, and shared dependency verification across stories implemented in isolation
+- Consistency Gate is skipped for phases with a single completed story (no cross-story comparison possible)
+- Consistency Gate FAIL pauses execution; user must fix inconsistencies and `--resume`; WARN is logged but non-blocking
