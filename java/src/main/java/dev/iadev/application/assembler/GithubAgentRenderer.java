@@ -204,6 +204,10 @@ final class GithubAgentRenderer {
             agents.add("event-engineer.md");
         }
 
+        if (!config.security().frameworks().isEmpty()) {
+            agents.add("appsec-engineer.md");
+        }
+
         return agents;
     }
 

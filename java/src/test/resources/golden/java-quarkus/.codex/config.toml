@@ -21,6 +21,10 @@ FIRECRAWL_API_KEY = "$FIRECRAWL_API_KEY"
 description = "Global Behavior & Language Policy"
 
 
+[agents.appsec-engineer]
+description = "Global Behavior & Language Policy"
+
+
 [agents.architect]
 description = "Global Behavior & Language Policy"
 

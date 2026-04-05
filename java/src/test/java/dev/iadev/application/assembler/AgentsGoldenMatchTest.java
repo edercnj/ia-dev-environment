@@ -104,6 +104,7 @@ class AgentsGoldenMatchTest {
                     "tech-lead.md",
                     "go-developer.md",
                     "api-engineer.md",
+                    "appsec-engineer.md",
                     "devops-engineer.md",
                     "event-engineer.md"
             };

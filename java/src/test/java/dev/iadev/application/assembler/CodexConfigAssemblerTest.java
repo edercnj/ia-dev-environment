@@ -396,6 +396,7 @@ class CodexConfigAssemblerTest {
                 throws IOException {
             String[] names = {
                     "api-engineer",
+                    "appsec-engineer",
                     "architect",
                     "devops-engineer",
                     "event-engineer",

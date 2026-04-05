@@ -121,6 +121,141 @@ class AgentsConditionalGoldenTest {
         }
 
         @Test
+        @DisplayName("security frameworks generates"
+                + " appsec-engineer.md")
+        void assemble_securityFrameworks_generatesAppsec(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            AgentsAssembler assembler =
+                    new AgentsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .securityFrameworks("owasp")
+                            .build();
+            assembler.assemble(
+                    config, new TemplateEngine(),
+                    outputDir);
+            assertThat(outputDir.resolve(
+                    "agents/appsec-engineer.md"))
+                    .exists();
+        }
+
+        @Test
+        @DisplayName("no security frameworks excludes"
+                + " appsec-engineer.md")
+        void assemble_noFrameworks_excludesAppsec(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            AgentsAssembler assembler =
+                    new AgentsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("none")
+                            .orchestrator("none")
+                            .iac("none")
+                            .clearInterfaces()
+                            .addInterface("cli")
+                            .eventDriven(false)
+                            .build();
+            assembler.assemble(
+                    config, new TemplateEngine(),
+                    outputDir);
+            assertThat(outputDir.resolve(
+                    "agents/appsec-engineer.md"))
+                    .doesNotExist();
+        }
+
+        @Test
+        @DisplayName("appsec-engineer has 12-point"
+                + " checklist")
+        void assemble_appsec_has12PointChecklist(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            AgentsAssembler assembler =
+                    new AgentsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .securityFrameworks("owasp")
+                            .build();
+            assembler.assemble(
+                    config, new TemplateEngine(),
+                    outputDir);
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "agents/appsec-engineer.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("12-Point SDLC Security"
+                            + " Checklist");
+            // Verify all 12 items are present
+            for (int i = 1; i <= 12; i++) {
+                assertThat(content)
+                        .contains(i + ".");
+            }
+        }
+
+        @Test
+        @DisplayName("appsec-engineer declares scope"
+                + " exclusions per RULE-006")
+        void assemble_appsec_declaresExclusions(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            AgentsAssembler assembler =
+                    new AgentsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .securityFrameworks("owasp")
+                            .build();
+            assembler.assemble(
+                    config, new TemplateEngine(),
+                    outputDir);
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "agents/appsec-engineer.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("security-engineer")
+                    .contains("pentest-engineer")
+                    .contains("devsecops-engineer")
+                    .contains("compliance-auditor");
+        }
+
+        @Test
+        @DisplayName("appsec-engineer defines MTTR"
+                + " and vulnerability density metrics")
+        void assemble_appsec_definesMetrics(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            AgentsAssembler assembler =
+                    new AgentsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .securityFrameworks("pci-dss")
+                            .build();
+            assembler.assemble(
+                    config, new TemplateEngine(),
+                    outputDir);
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "agents/appsec-engineer.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("MTTR")
+                    .contains("vulnerability density")
+                    .contains("vulns/KLOC");
+        }
+
+        @Test
         @DisplayName("full config generates many agents")
         void assemble_fullFeatured_generatesMany(
                 @TempDir Path tempDir)
@@ -198,6 +333,9 @@ class AgentsConditionalGoldenTest {
                     .exists();
             assertThat(agentsDir.resolve(
                     "api-engineer.md"))
+                    .exists();
+            assertThat(agentsDir.resolve(
+                    "appsec-engineer.md"))
                     .exists();
             assertThat(agentsDir.resolve(
                     "event-engineer.md"))

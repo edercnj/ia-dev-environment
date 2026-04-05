@@ -298,6 +298,54 @@ class AgentsSelectionTest {
         }
 
         @Test
+        @DisplayName("config with security frameworks"
+                + " includes appsec-engineer.md")
+        void select_securityFrameworks_includesAppsec() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .securityFrameworks("owasp")
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .contains("appsec-engineer.md");
+        }
+
+        @Test
+        @DisplayName("config with multiple security"
+                + " frameworks includes appsec-engineer.md")
+        void select_multipleFrameworks_includesAppsec() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .securityFrameworks(
+                            "pci-dss", "lgpd")
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .contains("appsec-engineer.md");
+        }
+
+        @Test
+        @DisplayName("config without security frameworks"
+                + " excludes appsec-engineer.md")
+        void select_noFrameworks_excludesAppsec() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .doesNotContain("appsec-engineer.md");
+        }
+
+        @Test
         @DisplayName("aggregates all conditional agents"
                 + " for full-featured config")
         void select_whenCalled_aggregatesAllConditionals() {
@@ -307,6 +355,7 @@ class AgentsSelectionTest {
                     .container("docker")
                     .orchestrator("kubernetes")
                     .eventDriven(true)
+                    .securityFrameworks("owasp")
                     .clearInterfaces()
                     .addInterface("rest")
                     .addInterface("event-consumer")
@@ -321,7 +370,8 @@ class AgentsSelectionTest {
                     .contains("observability-engineer.md")
                     .contains("devops-engineer.md")
                     .contains("api-engineer.md")
-                    .contains("event-engineer.md");
+                    .contains("event-engineer.md")
+                    .contains("appsec-engineer.md");
         }
     }
 

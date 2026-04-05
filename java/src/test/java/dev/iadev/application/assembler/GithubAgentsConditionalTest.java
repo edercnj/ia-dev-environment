@@ -218,5 +218,51 @@ class GithubAgentsConditionalTest {
             assertThat(agents)
                     .doesNotContain("api-engineer.md");
         }
+
+        @Test
+        @DisplayName("appsec-engineer when security"
+                + " frameworks non-empty")
+        void assemble_whenSecurityFrameworks_appsec() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("none")
+                            .orchestrator("none")
+                            .iac("none")
+                            .securityFrameworks("owasp")
+                            .clearInterfaces()
+                            .addInterface("cli")
+                            .build();
+
+            List<String> agents =
+                    GithubAgentsAssembler
+                            .selectGithubConditionalAgents(
+                                    config);
+
+            assertThat(agents)
+                    .contains("appsec-engineer.md");
+        }
+
+        @Test
+        @DisplayName("no appsec-engineer without"
+                + " security frameworks")
+        void assemble_whenNoFrameworks_noAppsec() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("none")
+                            .orchestrator("none")
+                            .iac("none")
+                            .clearInterfaces()
+                            .addInterface("cli")
+                            .build();
+
+            List<String> agents =
+                    GithubAgentsAssembler
+                            .selectGithubConditionalAgents(
+                                    config);
+
+            assertThat(agents)
+                    .doesNotContain(
+                            "appsec-engineer.md");
+        }
     }
 }

@@ -40,6 +40,7 @@ public final class AgentsSelection {
         agents.addAll(selectInfraAgents(config));
         agents.addAll(selectInterfaceAgents(config));
         agents.addAll(selectEventAgents(config));
+        agents.addAll(selectSecurityAgents(config));
         return agents;
     }
 
@@ -133,6 +134,14 @@ public final class AgentsSelection {
                                 "event-producer");
         if (hasEvents) {
             return List.of("event-engineer.md");
+        }
+        return List.of();
+    }
+
+    private static List<String> selectSecurityAgents(
+            ProjectConfig config) {
+        if (!config.security().frameworks().isEmpty()) {
+            return List.of("appsec-engineer.md");
         }
         return List.of();
     }
