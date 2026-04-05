@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li>java-picocli-cli</li>
  *   <li>java-quarkus</li>
  *   <li>java-spring</li>
+ *   <li>java-spring-fintech-pci</li>
  *   <li>java-spring-hexagonal</li>
  *   <li>java-spring-cqrs-es</li>
  *   <li>java-spring-event-driven</li>
@@ -51,6 +52,7 @@ public final class ConfigProfiles {
             "java-picocli-cli",
             "java-quarkus",
             "java-spring",
+            "java-spring-fintech-pci",
             "java-spring-hexagonal",
             "java-spring-cqrs-es",
             "java-spring-event-driven",
