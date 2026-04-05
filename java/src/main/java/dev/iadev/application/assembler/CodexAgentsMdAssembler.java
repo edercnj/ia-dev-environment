@@ -35,7 +35,7 @@ public final class CodexAgentsMdAssembler
         implements Assembler {
 
     private static final String TEMPLATE_PATH =
-            "codex-templates/agents-md.md.njk";
+            "targets/codex/templates/agents-md.md.njk";
 
     /** {@inheritDoc} */
     @Override

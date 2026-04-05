@@ -1,0 +1,20 @@
+{# Codex AGENTS.md -- consolidated project instructions #}
+{% include "targets/codex/templates/sections/header.md.njk" %}
+{% include "targets/codex/templates/sections/architecture.md.njk" %}
+{% include "targets/codex/templates/sections/tech-stack.md.njk" %}
+{% include "targets/codex/templates/sections/commands.md.njk" %}
+{% include "targets/codex/templates/sections/coding-standards.md.njk" %}
+{% include "targets/codex/templates/sections/quality-gates.md.njk" %}
+{%- if domain_driven == "True" %}
+{% include "targets/codex/templates/sections/domain.md.njk" %}
+{%- endif %}
+{%- if security_frameworks is not empty %}
+{% include "targets/codex/templates/sections/security.md.njk" %}
+{%- endif %}
+{% include "targets/codex/templates/sections/conventions.md.njk" %}
+{%- if skills_list is not empty %}
+{% include "targets/codex/templates/sections/skills.md.njk" %}
+{%- endif %}
+{%- if agents_list is not empty %}
+{% include "targets/codex/templates/sections/agents.md.njk" %}
+{%- endif %}

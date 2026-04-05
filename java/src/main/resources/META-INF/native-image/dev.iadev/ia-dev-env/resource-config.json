@@ -6,7 +6,7 @@
       { "pattern": "targets/claude/agents/.*" },
       { "pattern": "cicd-templates/.*" },
       { "pattern": "cloud-providers/.*" },
-      { "pattern": "codex-templates/.*" },
+      { "pattern": "targets/codex/templates/.*" },
       { "pattern": "core/.*" },
       { "pattern": "targets/claude/rules/.*" },
       { "pattern": "databases/.*" },
