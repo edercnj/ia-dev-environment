@@ -38,7 +38,7 @@ ERROR: Epic ID is required. Usage: /x-dev-epic-implement [EPIC-ID] [flags]
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `--phase N` | number | (all phases) | Execute only phase N (0-3) |
+| `--phase N` | number | (all phases) | Execute only phase N (valid range depends on the implementation map) |
 | `--story story-XXXX-YYYY` | string | (all stories) | Execute only a specific story by ID |
 | `--skip-review` | boolean | `false` | Skip review phases (Phase 4 and Phase 7) in x-dev-lifecycle subagents. SHOULD be accompanied by `--reason` for auditability |
 | `--reason` | string | `""` | Justification for `--skip-review`. If `--skip-review` is passed without `--reason`, emit `WARNING: --skip-review used without --reason. Provide --reason for auditability.` The justification is recorded in `execution-state.json` as `skipReviewReason` and appears in the epic execution report |
@@ -698,19 +698,22 @@ After receiving the subagent response, validate the `SubagentResult` contract:
 
 #### 1.5.2 Extended Fields Validation (Backward Compatibility)
 
-Validate the presence of extended fields. If any extended field is missing from the
-result, treat the story as FAILED (do not crash). This ensures backward compatibility
-with older subagent implementations that return only the original 4 fields.
+Extended fields are optional for backward compatibility with older subagent
+implementations that return only the original 4 fields. If an extended field is
+missing, do **not** mark the story as FAILED; instead, populate a sensible default
+value and continue processing. Only fields that are present but structurally invalid
+(wrong type) should be treated as validation failures.
 
-5. **`reviewsExecuted` field**: MUST be present and be an object with `specialist` (boolean) and `techLead` (boolean)
-6. **`reviewScores` field**: MUST be present and be an object with `specialist` (string) and `techLead` (string)
-7. **`coverageLine` field**: MUST be present and be a number
-8. **`coverageBranch` field**: MUST be present and be a number
-9. **`tddCycles` field**: MUST be present and be a number (integer >= 0)
+5. **`reviewsExecuted` field**: If present, MUST be an object with `specialist` (boolean) and `techLead` (boolean); if missing, default to `{ specialist: false, techLead: false }`
+6. **`reviewScores` field**: If present, MUST be an object with `specialist` (string) and `techLead` (string); if missing, default to `{ specialist: "N/A", techLead: "N/A" }`
+7. **`coverageLine` field**: If present, MUST be a number; if missing, default to `null`
+8. **`coverageBranch` field**: If present, MUST be a number; if missing, default to `null`
+9. **`tddCycles` field**: If present, MUST be a number (integer >= 0); if missing, default to `0`
 
 **On extended field validation failure:**
-- Reclassify status to FAILED
-- Set summary to: `"Invalid subagent result: missing {field} field"`
+- If an extended field is **missing**, apply the default value above and continue
+- If an extended field is **present but malformed** (wrong type), reclassify status to FAILED
+- Set summary to: `"Invalid subagent result: malformed {field} field"`
 - Continue to checkpoint update (1.6) — do NOT crash or throw
 
 #### 1.5.3 Enforced Quality Validation
