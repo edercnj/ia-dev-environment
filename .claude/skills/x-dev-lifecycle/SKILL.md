@@ -25,8 +25,10 @@ argument-hint: "[STORY-ID or feature-name]"
 After each phase 0–7: `>>> Phase N/8 completed. Proceeding to Phase N+1...`
 After Phase 3A: `>>> Phase 3A/8 completed. Proceeding to Phase 4...`
 After Phase 3B: `>>> Phase 3B/8 completed. Proceeding to Phase 8...`
-After Phase 8 (DoD PASS): `>>> Phase 8/8 completed. Lifecycle complete. DoD: PASS`
+After Phase 8 (DoD PASS): `>>> Phase 8/8 completed. DoD: PASS. Proceeding to Phase 8.5...`
 After Phase 8 (DoD FAIL): `>>> Phase 8/8 FAILED. DoD items not satisfied: [list of failed items]`
+After Phase 8.5 (PO PASS): `>>> Phase 8.5 completed. PO Acceptance: PASS. Lifecycle complete.`
+After Phase 8.5 (PO FAIL): `>>> Phase 8.5 FAILED. PO Acceptance items not satisfied: [list of failed items]`
 
 ## Complete Flow
 
@@ -42,6 +44,7 @@ Phase 5-6: Fixes + PR                    (orchestrator — inline)
 Phase 7:  Tech Lead Review               (invoke /x-review-pr skill)
 Phase 3B: Documentation (changelog)      (orchestrator — inline)
 Phase 8:  Verification                   (orchestrator — inline)
+Phase 8.5: PO Acceptance Gate            (orchestrator — inline)
 ```
 
 ---
@@ -609,11 +612,117 @@ DoD Gate Result: [PASS | FAIL]
 ```
 
 10. **Conditional Completion Message** — Emit the phase completion message based on gate result:
-   - DoD PASS: `"Phase 8/8 completed. Lifecycle complete. DoD: PASS"`
-   - DoD FAIL (after retry): `"Phase 8/8 FAILED. DoD items not satisfied: [list of failed items]"`
+   - DoD PASS: `"Phase 8/8 completed. DoD: PASS. Proceeding to Phase 8.5..."`
+   - DoD FAIL (after retry): `"Phase 8/8 FAILED. DoD items not satisfied: [list of failed items]"` — lifecycle stops here on FAIL
+
+## Phase 8.5 — PO Acceptance Gate (Orchestrator — Inline)
+
+> **Prerequisite:** Phase 8 DoD Gate must be PASS. If Phase 8 resulted in FAIL, Phase 8.5 does NOT execute.
+
+This phase validates that the implementation delivers verifiable business value by cross-referencing acceptance criteria coverage and the story's business value declaration.
+
+### Step 8.5.1 — Read Acceptance Criteria
+
+Read the story file and extract all `@GK-N` scenarios from Section 7 (Criterios de Aceite / Gherkin):
+
+1. Parse every `@GK-N` tag and its associated scenario name
+2. Build a list of all `@GK-N` identifiers (e.g., `@GK-1`, `@GK-2`, `@GK-3`, `@GK-4`)
+
+### Step 8.5.2 — Read Business Value Declaration
+
+Read Section 3.5 (Entrega de Valor) from the story file and extract:
+
+- **Valor Principal** — the primary value delivered
+- **Metrica de Sucesso** — the success metric
+- **Impacto no Negocio** — the business impact
+
+If Section 3.5 is absent, record `section35Status = MISSING`.
+If Section 3.5 exists, check for placeholder patterns (`{{...}}`):
+- If any `{{...}}` pattern found → `section35Status = PLACEHOLDER_DETECTED`
+- If no placeholders → `section35Status = VALID`
+
+### Step 8.5.3 — Validate @GK-N to AT-N Coverage
+
+For each `@GK-N` extracted in Step 8.5.1:
+
+1. Search Section 8 (Sub-tarefas) and the test plan for corresponding `AT-N` entries
+2. Check whether each `AT-N` has status GREEN (test passed)
+3. Build a coverage table:
+
+| @GK-N | Scenario | AT-N | Status |
+|-------|----------|------|--------|
+| @GK-1 | [scenario name] | AT-1 | GREEN/RED/MISSING |
+
+4. Calculate coverage: `covered / total` (only GREEN counts as covered)
+
+### Step 8.5.4 — Apply Gate Rules
+
+| Condition | Result |
+|-----------|--------|
+| 100% @GK-N coverage (all GREEN) AND `section35Status == VALID` | **PASS** |
+| <100% @GK-N coverage OR `section35Status == PLACEHOLDER_DETECTED` | **FAIL** |
+| `section35Status == MISSING` AND story layer == FOUNDATION | **WARNING** (non-blocking) |
+| `section35Status == MISSING` AND story layer != FOUNDATION | **FAIL** |
+
+**Layer detection:** Check the story's position in the IMPLEMENTATION-MAP.md phase table. Stories in Phase 1 (foundation layer) are classified as FOUNDATION. All other phases are non-FOUNDATION.
+
+### Step 8.5.5 — Generate PO Acceptance Report
+
+Write the report to `docs/stories/epic-XXXX/reviews/po-acceptance-story-XXXX-YYYY.md`:
+
+```markdown
+# PO Acceptance Report — STORY-XXXX-YYYY
+
+## Acceptance Criteria Coverage
+
+| @GK-N | Scenario | AT-N | Status |
+|---|---|---|---|
+| @GK-1 | [scenario name] | AT-1 | GREEN |
+| @GK-2 | [scenario name] | AT-2 | GREEN |
+
+Coverage: N/N (100%)
+
+## Business Value Validation
+
+- **Valor Principal:** [extracted from story Section 3.5]
+- **Metrica de Sucesso:** [extracted from story Section 3.5]
+- **Impacto no Negocio:** [extracted from story Section 3.5]
+- **Placeholder detected:** No
+
+## Decision: PASS
+```
+
+If coverage is less than 100%, append after the coverage line:
+`Missing: @GK-3, @GK-5` (list all @GK-N without GREEN AT-N)
+
+If Section 3.5 contains placeholders, the Business Value Validation section shows:
+`- **Placeholder detected:** Yes — found in [field names]`
+
+If Section 3.5 is missing (FOUNDATION layer), the Business Value Validation section shows:
+`- **Section 3.5:** Missing (FOUNDATION layer — non-blocking)`
+
+Ensure output directory exists: `mkdir -p docs/stories/epic-XXXX/reviews/`
+
+### Step 8.5.6 — Emit Gate Result
+
+Report the PO Acceptance Gate result:
+
+```
+PO Acceptance Gate Result: [PASS | FAIL | WARNING]
+  @GK-N Coverage: [N/N (percentage%)]
+  Section 3.5:    [VALID | PLACEHOLDER_DETECTED | MISSING (FOUNDATION)]
+  Missing @GK-N:  [list or "none"]
+  Report:         docs/stories/epic-XXXX/reviews/po-acceptance-story-XXXX-YYYY.md
+```
+
+**Completion messages:**
+- PO PASS: `"Phase 8.5 completed. PO Acceptance: PASS. Lifecycle complete."`
+- PO WARNING (FOUNDATION): `"Phase 8.5 completed. PO Acceptance: WARNING (FOUNDATION layer). Lifecycle complete."`
+- PO FAIL: `"Phase 8.5 FAILED. PO Acceptance items not satisfied: [list of failed items]"`
+
 11. `git checkout main && git pull origin main`
 
-**Phase 8 is the ONLY legitimate stopping point.**
+**Phase 8.5 is the ONLY legitimate stopping point (Phase 8 stops only on DoD FAIL).**
 
 ## Roles and Models (Adaptive)
 
@@ -628,5 +737,6 @@ DoD Gate Result: [PASS | FAIL]
 ## Integration Notes
 
 - Invokes: `x-dev-architecture-plan` (Phase 1, conditional), `x-test-plan`, `x-lib-task-decomposer`, `x-lib-group-verifier` (fallback only), `x-git-push`, `x-review`, `x-review-pr`
+- Phase 8.5 (PO Acceptance Gate) produces: `docs/stories/epic-XXXX/reviews/po-acceptance-story-XXXX-YYYY.md`
 - TDD commit format follows `x-git-push` conventions (`[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]` suffixes)
 - All `{{PLACEHOLDER}}` tokens (e.g. `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
