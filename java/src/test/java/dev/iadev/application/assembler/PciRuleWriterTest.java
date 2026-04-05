@@ -41,7 +41,7 @@ class PciRuleWriterTest {
             PciRuleWriter writer = new PciRuleWriter(resDir);
             ProjectConfig config =
                     TestConfigBuilder.builder()
-                            .securityFrameworks("pci-dss")
+                            .compliance("pci-dss")
                             .build();
 
             List<String> result =
@@ -107,9 +107,9 @@ class PciRuleWriterTest {
         }
 
         @Test
-        @DisplayName("template file missing returns"
-                + " empty")
-        void copy_templateMissing_returnsEmpty(
+        @DisplayName("template file missing throws"
+                + " IllegalStateException")
+        void copy_templateMissing_throwsException(
                 @TempDir Path tempDir) throws IOException {
             Path resDir = tempDir.resolve("resources");
             Files.createDirectories(resDir);
@@ -119,16 +119,18 @@ class PciRuleWriterTest {
             PciRuleWriter writer = new PciRuleWriter(resDir);
             ProjectConfig config =
                     TestConfigBuilder.builder()
-                            .securityFrameworks("pci-dss")
+                            .compliance("pci-dss")
                             .build();
 
-            List<String> result =
-                    writer.copyConditionalPciRule(
-                            config, rulesDir,
-                            new TemplateEngine(),
-                            Map.of());
-
-            assertThat(result).isEmpty();
+            org.assertj.core.api.Assertions
+                    .assertThatThrownBy(() ->
+                            writer.copyConditionalPciRule(
+                                    config, rulesDir,
+                                    new TemplateEngine(),
+                                    Map.of()))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining(
+                            "PCI-DSS is enabled");
         }
 
         private Path setupResources(Path tempDir)

@@ -53,6 +53,10 @@ public record TraceabilityEntry(
             String acceptanceTestId,
             String testClassName,
             String testMethodName) {
+        requireNonBlank(gherkinId, "gherkinId");
+        requireNonBlank(acceptanceTestId, "acceptanceTestId");
+        requireNonBlank(testClassName, "testClassName");
+        requireNonBlank(testMethodName, "testMethodName");
         return new TraceabilityEntry(
                 gherkinId,
                 Optional.of(acceptanceTestId),
@@ -67,9 +71,13 @@ public record TraceabilityEntry(
     public static TraceabilityEntry unmappedRequirement(
             String gherkinId,
             String acceptanceTestId) {
+        requireNonBlank(gherkinId, "gherkinId");
+        var atId = (acceptanceTestId == null
+                || acceptanceTestId.isBlank())
+                ? Optional.<String>empty()
+                : Optional.of(acceptanceTestId);
         return new TraceabilityEntry(
-                gherkinId,
-                Optional.of(acceptanceTestId),
+                gherkinId, atId,
                 Optional.empty(),
                 Optional.empty(),
                 TraceabilityStatus.UNMAPPED_REQUIREMENT);
@@ -81,11 +89,21 @@ public record TraceabilityEntry(
     public static TraceabilityEntry unmappedTest(
             String testClassName,
             String testMethodName) {
+        requireNonBlank(testClassName, "testClassName");
+        requireNonBlank(testMethodName, "testMethodName");
         return new TraceabilityEntry(
                 UNLINKED_ID,
                 Optional.empty(),
                 Optional.of(testClassName),
                 Optional.of(testMethodName),
                 TraceabilityStatus.UNMAPPED_TEST);
+    }
+
+    private static void requireNonBlank(
+            String value, String name) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(
+                    name + " must not be null or blank");
+        }
     }
 }

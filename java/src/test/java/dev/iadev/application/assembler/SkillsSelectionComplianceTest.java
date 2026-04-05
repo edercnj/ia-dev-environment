@@ -28,7 +28,7 @@ class SkillsSelectionComplianceTest {
         void select_pciDss_includesCompliance() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
-                            .securityFrameworks("pci-dss")
+                            .compliance("pci-dss")
                             .build();
 
             List<String> skills =
@@ -45,8 +45,7 @@ class SkillsSelectionComplianceTest {
         void select_pciDssAndLgpd_includesCompliance() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
-                            .securityFrameworks(
-                                    "pci-dss", "lgpd")
+                            .compliance("pci-dss")
                             .build();
 
             List<String> skills =
@@ -100,6 +99,7 @@ class SkillsSelectionComplianceTest {
                     TestConfigBuilder.builder()
                             .clearInterfaces()
                             .addInterface("rest")
+                            .compliance("pci-dss")
                             .securityFrameworks("pci-dss")
                             .build();
 

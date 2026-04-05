@@ -10,7 +10,8 @@ import java.util.Map;
 
 /**
  * Conditionally generates {@code 11-security-pci.md}
- * when the project compliance includes {@code pci-dss}.
+ * when the project {@code compliance} field includes
+ * {@code pci-dss}.
  *
  * <p>The writer copies the template from
  * {@code core-rules/conditional/11-security-pci.md}
@@ -58,8 +59,7 @@ public final class PciRuleWriter {
             Path rulesDir,
             TemplateEngine engine,
             Map<String, Object> context) {
-        if (!config.security().frameworks()
-                .contains(PCI_DSS)) {
+        if (!config.compliance().contains(PCI_DSS)) {
             return List.of();
         }
 
@@ -67,7 +67,10 @@ public final class PciRuleWriter {
                 resourcesDir.resolve(TEMPLATE_PATH);
         if (!Files.exists(template)
                 || !Files.isRegularFile(template)) {
-            return List.of();
+            throw new IllegalStateException(
+                    "PCI-DSS is enabled, but required "
+                            + "template is missing: "
+                            + template);
         }
 
         Path dest = rulesDir.resolve(OUTPUT_FILENAME);

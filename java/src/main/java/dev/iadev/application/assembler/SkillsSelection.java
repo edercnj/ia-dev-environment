@@ -135,8 +135,7 @@ public final class SkillsSelection {
      */
     public static List<String> selectComplianceSkills(
             ProjectConfig config) {
-        if (config.security().frameworks()
-                .contains("pci-dss")) {
+        if (config.compliance().contains("pci-dss")) {
             return List.of("x-review-compliance");
         }
         return List.of();
