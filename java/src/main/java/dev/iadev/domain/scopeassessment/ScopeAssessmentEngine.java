@@ -2,175 +2,249 @@ package dev.iadev.domain.scopeassessment;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * Engine that classifies story complexity into tiers.
+ * Engine that classifies stories into scope assessment
+ * tiers (SIMPLE, STANDARD, COMPLEX) based on analysis
+ * of story content.
  *
- * <p>Uses {@link StoryAnalyzer} to extract metrics and
- * applies classification rules to determine the
- * {@link StoryComplexityTier}.</p>
- *
- * <p>Classification rules (elevation priority):
+ * <p>Classification criteria:
  * <ol>
- *   <li>Compliance always elevates to COMPLEX</li>
- *   <li>Schema changes always elevate to COMPLEX</li>
- *   <li>4+ components elevate to COMPLEX</li>
- *   <li>2-3 components or 1-2 endpoints = STANDARD</li>
- *   <li>Otherwise SIMPLE</li>
+ *   <li>Components affected (file/class mentions)</li>
+ *   <li>New endpoints declared</li>
+ *   <li>Schema changes (migration mentions)</li>
+ *   <li>Compliance requirements</li>
+ *   <li>Dependent story count</li>
  * </ol>
+ *
+ * @see ScopeAssessmentTier
+ * @see ScopeAssessmentResult
  */
 public final class ScopeAssessmentEngine {
 
     private static final int COMPLEX_COMPONENT_THRESHOLD = 4;
-    private static final int STANDARD_MIN_COMPONENTS = 2;
-    private static final int STANDARD_MAX_COMPONENTS = 3;
-    private static final int STANDARD_MIN_ENDPOINTS = 1;
-    private static final int STANDARD_MAX_ENDPOINTS = 2;
+    private static final int STANDARD_COMPONENT_MIN = 2;
+    private static final int STANDARD_ENDPOINT_MIN = 1;
+    private static final int STANDARD_ENDPOINT_MAX = 2;
 
-    private static final List<String> SIMPLE_PHASES_TO_SKIP =
+    private static final Pattern COMPONENT_PATTERN =
+            Pattern.compile(
+                    "\\b\\w+\\.(java|kt|py|ts|go|rs)\\b");
+
+    private static final Pattern ENDPOINT_PATTERN =
+            Pattern.compile(
+                    "\\b(GET|POST|PUT|DELETE|PATCH)"
+                            + "\\s+/[\\w/{}-]+");
+
+    private static final Pattern COMPLIANCE_PATTERN =
+            Pattern.compile(
+                    "compliance:\\s*(\\S+)",
+                    Pattern.CASE_INSENSITIVE);
+
+    private static final List<String> SCHEMA_KEYWORDS =
+            List.of(
+                    "migration script",
+                    "ALTER TABLE",
+                    "CREATE TABLE",
+                    "DROP TABLE",
+                    "ADD COLUMN");
+
+    private static final List<String> SIMPLE_SKIP =
             List.of("1B", "1C", "1D", "1E");
 
-    private static final String STAKEHOLDER_REVIEW =
-            "stakeholder-review";
+    private static final List<String> COMPLEX_EXTRA =
+            List.of("stakeholder-review");
+
+    private static final List<String> ALL_PHASES =
+            List.of("1A", "1B", "1C", "1D", "1E",
+                    "2", "3", "4", "5", "6");
+
+    private static final List<String> SIMPLE_PHASES =
+            List.of("1A", "2", "4", "5", "6");
 
     private ScopeAssessmentEngine() {
+        // utility class
     }
 
     /**
-     * Assesses story complexity from raw metrics.
+     * Assesses a story and returns the scope classification.
      *
-     * @param metrics the extracted scope metrics
-     * @return the classification result
+     * @param storyContent   the markdown content of the story
+     * @param dependentCount number of stories depending on
+     *                       this one
+     * @return the scope assessment result
      */
-    public static ScopeClassification classify(
-            ScopeMetrics metrics) {
-        if (isComplex(metrics)) {
-            return buildComplex(metrics);
-        }
-        if (isStandard(metrics)) {
-            return buildStandard(metrics);
-        }
-        return buildSimple(metrics);
-    }
-
-    /**
-     * Full assessment from story content and optional
-     * implementation map.
-     *
-     * @param storyContent             story markdown content
-     * @param implementationMapContent implementation map content
-     *                                 (empty string if unavailable)
-     * @param storyId                  the story identifier
-     * @return the classification result
-     */
-    public static ScopeClassification assess(
+    public static ScopeAssessmentResult assess(
             String storyContent,
-            String implementationMapContent,
-            String storyId) {
-        var metrics = new ScopeMetrics(
-                StoryAnalyzer.countComponents(storyContent),
-                StoryAnalyzer.countEndpoints(storyContent),
-                StoryAnalyzer.hasSchemaChanges(storyContent),
-                StoryAnalyzer.hasCompliance(storyContent),
-                StoryAnalyzer.countDependents(
-                        storyId, implementationMapContent));
-        return classify(metrics);
+            int dependentCount) {
+        int components = countComponents(storyContent);
+        int endpoints = countEndpoints(storyContent);
+        boolean schemaChanges =
+                hasSchemaChanges(storyContent);
+        boolean compliance =
+                hasCompliance(storyContent);
+
+        ScopeAssessmentTier tier = classify(
+                components, endpoints,
+                schemaChanges, compliance);
+
+        String rationale = buildRationale(
+                tier, components, endpoints,
+                schemaChanges, compliance);
+
+        return buildResult(tier, components, endpoints,
+                schemaChanges, compliance,
+                dependentCount, rationale);
     }
 
-    private static boolean isComplex(ScopeMetrics metrics) {
-        return metrics.hasCompliance()
-                || metrics.hasSchemaChanges()
-                || metrics.componentCount()
-                >= COMPLEX_COMPONENT_THRESHOLD;
-    }
-
-    private static boolean isStandard(ScopeMetrics metrics) {
-        return isStandardByComponents(metrics)
-                || isStandardByEndpoints(metrics);
-    }
-
-    private static boolean isStandardByComponents(
-            ScopeMetrics metrics) {
-        return metrics.componentCount() >= STANDARD_MIN_COMPONENTS
-                && metrics.componentCount()
-                <= STANDARD_MAX_COMPONENTS;
-    }
-
-    private static boolean isStandardByEndpoints(
-            ScopeMetrics metrics) {
-        return metrics.newEndpointCount()
-                >= STANDARD_MIN_ENDPOINTS;
-    }
-
-    private static ScopeClassification buildComplex(
-            ScopeMetrics metrics) {
-        return new ScopeClassification(
-                StoryComplexityTier.COMPLEX,
-                metrics,
-                buildComplexRationale(metrics),
-                List.of(),
-                List.of(STAKEHOLDER_REVIEW));
-    }
-
-    private static ScopeClassification buildStandard(
-            ScopeMetrics metrics) {
-        return new ScopeClassification(
-                StoryComplexityTier.STANDARD,
-                metrics,
-                buildStandardRationale(metrics),
-                List.of(),
-                List.of());
-    }
-
-    private static ScopeClassification buildSimple(
-            ScopeMetrics metrics) {
-        return new ScopeClassification(
-                StoryComplexityTier.SIMPLE,
-                metrics,
-                buildSimpleRationale(metrics),
-                SIMPLE_PHASES_TO_SKIP,
-                List.of());
-    }
-
-    private static String buildComplexRationale(
-            ScopeMetrics metrics) {
-        var reasons = new ArrayList<String>();
-        if (metrics.hasCompliance()) {
-            reasons.add("compliance requirement detected");
+    /**
+     * Builds a lifecycle phase configuration from an
+     * assessment result, optionally overridden by
+     * --full-lifecycle flag.
+     *
+     * @param result       the assessment result
+     * @param fullOverride true if --full-lifecycle was used
+     * @return the lifecycle phase configuration
+     */
+    public static LifecyclePhaseConfig buildPhaseConfig(
+            ScopeAssessmentResult result,
+            boolean fullOverride) {
+        if (fullOverride) {
+            return new LifecyclePhaseConfig(
+                    ALL_PHASES, List.of(), List.of(),
+                    result.tier(), true);
         }
-        if (metrics.hasSchemaChanges()) {
-            reasons.add("schema changes detected");
-        }
-        if (metrics.componentCount()
-                >= COMPLEX_COMPONENT_THRESHOLD) {
-            reasons.add("%d components affected"
-                    .formatted(metrics.componentCount()));
-        }
-        return String.join(", ", reasons);
+        return switch (result.tier()) {
+            case SIMPLE -> new LifecyclePhaseConfig(
+                    SIMPLE_PHASES, SIMPLE_SKIP,
+                    List.of(), result.tier(), false);
+            case STANDARD -> new LifecyclePhaseConfig(
+                    ALL_PHASES, List.of(), List.of(),
+                    result.tier(), false);
+            case COMPLEX -> new LifecyclePhaseConfig(
+                    ALL_PHASES, List.of(), COMPLEX_EXTRA,
+                    result.tier(), false);
+        };
     }
 
-    private static String buildStandardRationale(
-            ScopeMetrics metrics) {
-        var reasons = new ArrayList<String>();
-        if (metrics.componentCount() >= STANDARD_MIN_COMPONENTS) {
-            reasons.add("%d components affected"
-                    .formatted(metrics.componentCount()));
+    static int countComponents(String content) {
+        Matcher matcher =
+                COMPONENT_PATTERN.matcher(content);
+        List<String> found = new ArrayList<>();
+        while (matcher.find()) {
+            String match = matcher.group();
+            if (!found.contains(match)) {
+                found.add(match);
+            }
         }
-        if (metrics.newEndpointCount()
-                >= STANDARD_MIN_ENDPOINTS) {
-            reasons.add("%d new endpoints"
-                    .formatted(metrics.newEndpointCount()));
-        }
-        return String.join(", ", reasons);
+        return found.size();
     }
 
-    private static String buildSimpleRationale(
-            ScopeMetrics metrics) {
-        if (metrics.componentCount() == 0) {
-            return "no components detected, no new endpoints, "
-                    + "no schema migration";
+    static int countEndpoints(String content) {
+        Matcher matcher =
+                ENDPOINT_PATTERN.matcher(content);
+        int count = 0;
+        while (matcher.find()) {
+            count++;
         }
-        return "single component change, no new endpoints, "
-                + "no schema migration";
+        return count;
+    }
+
+    static boolean hasSchemaChanges(String content) {
+        String upper = content.toUpperCase();
+        return SCHEMA_KEYWORDS.stream()
+                .anyMatch(kw ->
+                        upper.contains(kw.toUpperCase()));
+    }
+
+    static boolean hasCompliance(String content) {
+        Matcher matcher =
+                COMPLIANCE_PATTERN.matcher(content);
+        while (matcher.find()) {
+            String value = matcher.group(1);
+            if (!"none".equalsIgnoreCase(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static ScopeAssessmentTier classify(
+            int components,
+            int endpoints,
+            boolean schemaChanges,
+            boolean compliance) {
+        if (compliance) {
+            return ScopeAssessmentTier.COMPLEX;
+        }
+        if (schemaChanges) {
+            return ScopeAssessmentTier.COMPLEX;
+        }
+        if (components >= COMPLEX_COMPONENT_THRESHOLD) {
+            return ScopeAssessmentTier.COMPLEX;
+        }
+        if (components >= STANDARD_COMPONENT_MIN
+                || (endpoints >= STANDARD_ENDPOINT_MIN
+                && endpoints <= STANDARD_ENDPOINT_MAX)) {
+            return ScopeAssessmentTier.STANDARD;
+        }
+        return ScopeAssessmentTier.SIMPLE;
+    }
+
+    private static String buildRationale(
+            ScopeAssessmentTier tier,
+            int components,
+            int endpoints,
+            boolean schemaChanges,
+            boolean compliance) {
+        var parts = new ArrayList<String>();
+        if (compliance) {
+            parts.add("compliance requirement detected");
+        }
+        if (schemaChanges) {
+            parts.add("schema changes detected");
+        }
+        if (components >= COMPLEX_COMPONENT_THRESHOLD) {
+            parts.add("%d components affected"
+                    .formatted(components));
+        } else if (components <= 1 && tier == ScopeAssessmentTier.SIMPLE) {
+            parts.add(components == 0
+                    ? "no components detected"
+                    : "single component change");
+        }
+        if (endpoints == 0
+                && tier == ScopeAssessmentTier.SIMPLE) {
+            parts.add("no new endpoints");
+        } else if (endpoints > 0) {
+            parts.add("%d new endpoint(s)"
+                    .formatted(endpoints));
+        }
+        if (components > 0
+                && components < COMPLEX_COMPONENT_THRESHOLD
+                && tier == ScopeAssessmentTier.STANDARD
+                && !schemaChanges && !compliance) {
+            parts.add("%d components affected"
+                    .formatted(components));
+        }
+        return parts.isEmpty()
+                ? "no components detected"
+                : String.join(", ", parts);
+    }
+
+    private static ScopeAssessmentResult buildResult(
+            ScopeAssessmentTier tier,
+            int components, int endpoints,
+            boolean schemaChanges, boolean compliance,
+            int dependentCount, String rationale) {
+        List<String> skip = tier == ScopeAssessmentTier.SIMPLE
+                ? SIMPLE_SKIP : List.of();
+        List<String> extra = tier == ScopeAssessmentTier.COMPLEX
+                ? COMPLEX_EXTRA : List.of();
+        return new ScopeAssessmentResult(
+                tier, components, endpoints,
+                schemaChanges, compliance,
+                dependentCount, rationale, skip, extra);
     }
 }

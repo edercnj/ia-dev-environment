@@ -1,11 +1,11 @@
 /**
- * Scope Assessment classification engine.
+ * Scope assessment engine that classifies stories into
+ * tiers (SIMPLE, STANDARD, COMPLEX) to determine which
+ * lifecycle phases to execute.
  *
- * <p>Classifies stories into complexity tiers (SIMPLE, STANDARD,
- * COMPLEX) based on component count, new endpoints, schema
- * changes, compliance requirements, and dependent count.</p>
+ * <p>Part of the domain layer — zero external dependencies.
  *
- * <p>This package has zero framework dependencies. It depends
- * only on the Java standard library.</p>
+ * @see dev.iadev.domain.scopeassessment.ScopeAssessmentEngine
+ * @see dev.iadev.domain.scopeassessment.ScopeAssessmentTier
  */
 package dev.iadev.domain.scopeassessment;

@@ -51,6 +51,59 @@ Phase 8: Verification          (orchestrator — inline)
 5. Extract epic ID from story ID (e.g., `story-0001-0003` → epic ID `0001`)
 6. Ensure directories exist: `mkdir -p plans/epic-XXXX/plans plans/epic-XXXX/reviews`
 7. Create branch: `git checkout -b feat/{STORY_ID}-description`
+8. **Scope Assessment** — classify the story to determine lifecycle phase optimization:
+
+### Scope Assessment
+
+Analyze the story content to classify its scope tier. The classification determines which phases execute:
+
+**Classification Criteria:**
+
+| Criterion | How to detect |
+|-----------|--------------|
+| Components affected | Count distinct `.java`/`.kt`/`.py`/`.ts`/`.go`/`.rs` file mentions in tech description |
+| New endpoints | Count `POST/GET/PUT/DELETE/PATCH /path` patterns in data contracts |
+| Schema changes | Presence of "migration script", "ALTER TABLE", "CREATE TABLE", "DROP TABLE", "ADD COLUMN" |
+| Compliance | `compliance:` field with value other than "none" |
+| Dependents | Count stories that depend on this one (from IMPLEMENTATION-MAP) |
+
+**Tier Classification:**
+
+| Tier | Criteria | Phase Behavior |
+|------|----------|---------------|
+| SIMPLE | ≤1 component, 0 endpoints, 0 schema changes, no compliance | Skip phases 1B, 1C, 1D, 1E |
+| STANDARD | 2-3 components OR 1-2 new endpoints | All phases execute normally |
+| COMPLEX | ≥4 components OR schema changes OR compliance requirement | All phases + stakeholder review after Phase 4 |
+
+**Elevation Rules:**
+- Compliance **always** elevates to COMPLEX regardless of other criteria
+- Schema changes **always** elevate to at least COMPLEX
+- A single COMPLEX criterion is sufficient for COMPLEX classification
+
+**Display the assessment before proceeding:**
+
+```
+Scope Assessment: [TIER]
+> [Phases that will execute]
+> Rationale: [justification]
+> [Override instruction if SIMPLE]
+```
+
+**`--full-lifecycle` Flag:**
+If the user passes `--full-lifecycle`, force full execution regardless of tier:
+- All phases execute (equivalent to STANDARD)
+- Display: "Scope override: running full lifecycle as requested"
+
+**SIMPLE Execution Flow:**
+Phases 1A (Prepare) > 2 (TDD) > 4 (Docs) > 5 (PR) > 6 (Verify) — skips 1B, 1C, 1D, 1E, 3 (Review)
+
+**COMPLEX Execution Flow:**
+All phases 1A through 4 execute normally. After Phase 4, **pause** with:
+"Scope COMPLEX — stakeholder review required. Review the implementation and confirm to proceed with PR creation."
+Wait for developer confirmation before executing Phases 5-6.
+
+**Default Behavior:**
+If scope assessment cannot be performed (e.g., story content unavailable), default to STANDARD (all phases execute). No error is raised.
 {% if has_contract_interfaces == 'True' %}
 
 ## Phase 0.5 — API-First Contract Generation (Orchestrator — Conditional)
