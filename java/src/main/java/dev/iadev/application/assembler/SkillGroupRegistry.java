@@ -65,6 +65,7 @@ public final class SkillGroupRegistry {
                 "x-codebase-audit",
                 "x-dependency-audit",
                 "x-supply-chain-audit",
+                "x-owasp-scan",
                 "x-spec-drift-check",
                 "x-threat-model",
                 "x-hardening-eval",
