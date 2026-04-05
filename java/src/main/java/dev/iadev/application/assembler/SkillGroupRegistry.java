@@ -65,6 +65,7 @@ public final class SkillGroupRegistry {
                 "x-codebase-audit",
                 "x-dependency-audit",
                 "x-threat-model",
+                "x-spec-drift-check",
                 "x-contract-lint"));
         SKILL_GROUPS.put("testing", List.of(
                 "x-test-plan", "x-test-run", "run-e2e",

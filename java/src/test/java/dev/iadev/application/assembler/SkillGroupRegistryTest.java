@@ -58,10 +58,19 @@ class SkillGroupRegistryTest {
         }
 
         @Test
-        @DisplayName("review group has 10 skills")
+        @DisplayName("review group has 11 skills")
         void register_whenCalled_reviewGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("review")).hasSize(10);
+                    .get("review")).hasSize(11);
+        }
+
+        @Test
+        @DisplayName("review group contains"
+                + " x-spec-drift-check")
+        void register_reviewGroup_containsSpecDriftCheck() {
+            assertThat(SkillGroupRegistry.SKILL_GROUPS
+                    .get("review"))
+                    .contains("x-spec-drift-check");
         }
 
         @Test
