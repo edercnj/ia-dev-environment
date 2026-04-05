@@ -29,7 +29,8 @@ After Phase 8: `>>> Phase 8/8 completed. Lifecycle complete.`
 
 ```
 Phase 0: Preparation          (orchestrator — inline)
-Phase 1: Planning              (subagent — reads architecture KPs)
+{% if has_contract_interfaces == 'True' %}Phase 0.5: API-First Contract  (orchestrator — conditional, pauses for approval)
+{% endif %}Phase 1: Planning              (subagent — reads architecture KPs)
 Phase 1B-1E: Parallel Planning (up to 4 subagents — SINGLE message)
 Phase 2: Implementation        (subagent — reads coding + layer KPs)
 Phase 3: Documentation         (orchestrator — inline)
@@ -54,6 +55,68 @@ Phase 8: Verification          (orchestrator — inline)
 5. Extract epic ID from story ID (e.g., `story-0001-0003` → epic ID `0001`)
 6. Ensure directories exist: `mkdir -p plans/epic-XXXX/plans plans/epic-XXXX/reviews`
 7. Create branch: `git checkout -b feat/{STORY_ID}-description`
+{% if has_contract_interfaces == 'True' %}
+
+## Phase 0.5 — API-First Contract Generation (Orchestrator — Conditional)
+
+> **RULE-005:** Formal contract before implementation. This phase generates and validates
+> API contracts (OpenAPI 3.1, AsyncAPI 2.6, Protobuf 3) before any implementation code.
+
+**Activation:** This phase is ONLY executed when the story declares interfaces of type
+`rest`, `grpc`, `event-consumer`, `event-producer`, or `websocket`. Stories without
+these interface types skip directly to Phase 1.
+
+### Step 0.5.1 — Interface Detection
+
+Read the story file and identify declared interface types:
+
+| Interface Type | Contract Format | Output Path |
+|---------------|----------------|-------------|
+| `rest` | OpenAPI 3.1 | `docs/contracts/{STORY_ID}-openapi.yaml` |
+| `grpc` | Protobuf 3 | `docs/contracts/{STORY_ID}.proto` |
+| `event-consumer` | AsyncAPI 2.6 | `docs/contracts/{STORY_ID}-asyncapi.yaml` |
+| `event-producer` | AsyncAPI 2.6 | `docs/contracts/{STORY_ID}-asyncapi.yaml` |
+| `websocket` | AsyncAPI 2.6 | `docs/contracts/{STORY_ID}-asyncapi.yaml` |
+
+### Step 0.5.2 — Contract Generation
+
+Generate a draft contract in the appropriate format using data contracts from the story:
+
+- **REST (OpenAPI 3.1):** Extract endpoints, DTOs, status codes from story data contracts.
+  Generate `openapi: "3.1.0"` spec with `info`, `paths`, `components/schemas`, RFC 7807 errors.
+- **gRPC (Protobuf 3):** Extract service definitions, request/response messages.
+  Generate `.proto` file with `syntax = "proto3"`, service, and message definitions.
+- **Event (AsyncAPI 2.6):** Extract event names, channels, payload schemas.
+  Generate `asyncapi: "2.6.0"` spec with `channels`, `components/messages`, `components/schemas`.
+
+Ensure directory exists: `mkdir -p docs/contracts/`
+
+### Step 0.5.3 — Contract Validation
+
+Invoke `/x-contract-lint {CONTRACT_PATH}` to validate the generated contract against
+its specification. If validation errors are found:
+1. Fix the errors in the generated contract
+2. Re-run validation until the contract passes
+
+### Step 0.5.4 — Approval Gate
+
+Emit the following message and **pause the lifecycle**:
+
+```
+CONTRACT PENDING APPROVAL
+
+Contract generated: {CONTRACT_PATH}
+Format: {CONTRACT_FORMAT}
+Status: PENDING_APPROVAL
+
+Please review the contract and respond with:
+  - APPROVE: Proceed to Phase 1 (Architecture Planning)
+  - REJECT: Return to Step 0.5.2 for regeneration with feedback
+```
+
+- **On APPROVE:** Set `contractStatus = APPROVED` and proceed to Phase 1.
+- **On REJECT:** Return to Step 0.5.2, incorporating user feedback into regeneration.
+{% endif %}
 
 ## Phase 1 — Architecture Planning (Skill Invocation + Subagent Fallback)
 

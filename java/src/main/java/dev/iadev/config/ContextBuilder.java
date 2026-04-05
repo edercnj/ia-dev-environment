@@ -5,93 +5,61 @@ import dev.iadev.domain.model.ProjectConfig;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Builds a template context map from a {@link ProjectConfig}.
+ * Builds a template context map from a
+ * {@link ProjectConfig}.
  *
- * <p>Produces exactly 27 fields matching the TypeScript
- * {@code buildDefaultContext()} function (RULE-010). Boolean values
- * are converted to Python-style strings ("True"/"False") per
- * RULE-002 for Jinja2/Pebble template rendering parity.
- *
- * <p>The 27 context fields are:
- * <ol>
- *   <li>project_name</li>
- *   <li>project_purpose</li>
- *   <li>language_name</li>
- *   <li>language_version</li>
- *   <li>framework_name</li>
- *   <li>framework_version</li>
- *   <li>build_tool</li>
- *   <li>architecture_style</li>
- *   <li>domain_driven</li>
- *   <li>event_driven</li>
- *   <li>container</li>
- *   <li>orchestrator</li>
- *   <li>templating</li>
- *   <li>iac</li>
- *   <li>registry</li>
- *   <li>api_gateway</li>
- *   <li>service_mesh</li>
- *   <li>database_name</li>
- *   <li>migration_name</li>
- *   <li>cache_name</li>
- *   <li>message_broker</li>
- *   <li>smoke_tests</li>
- *   <li>contract_tests</li>
- *   <li>performance_tests</li>
- *   <li>coverage_line</li>
- *   <li>coverage_branch</li>
- *   <li>interfaces_list</li>
- * </ol>
- *
- * <p>Example usage:
- * <pre>{@code
- * Map<String, Object> context =
- *     ContextBuilder.buildContext(projectConfig);
- * }</pre>
+ * <p>Produces exactly 43 fields matching the TypeScript
+ * {@code buildDefaultContext()} function (RULE-010).
+ * Architecture and review checklist sections are
+ * delegated to {@link ContextArchitectureBuilder}.</p>
  *
  * @see ProjectConfig
+ * @see ContextArchitectureBuilder
  */
 public final class ContextBuilder {
 
-    /**
-     * Initial capacity for the context map, optimized to avoid
-     * rehash with approximately 20 context entries.
-     */
-    private static final int INITIAL_CONTEXT_CAPACITY = 32;
+    private static final int INITIAL_CONTEXT_CAPACITY = 64;
 
     private static final String PYTHON_TRUE = "True";
     private static final String PYTHON_FALSE = "False";
+
+    private static final Set<String>
+            CONTRACT_INTERFACE_TYPES = Set.of(
+                    "rest", "grpc",
+                    "event-consumer", "event-producer",
+                    "websocket");
 
     private ContextBuilder() {
         // utility class
     }
 
     /**
-     * Builds a context map with exactly 27 template fields from
-     * the given {@link ProjectConfig}.
-     *
-     * <p>Delegates to domain-specific builders for each
-     * section of the context map.</p>
+     * Builds a context map with exactly 43 template fields.
      *
      * @param config the project configuration
-     * @return an ordered map with 27 template context entries
+     * @return an ordered map with 43 template context entries
      */
     public static Map<String, Object> buildContext(
             ProjectConfig config) {
         Map<String, Object> ctx =
-                new LinkedHashMap<>(INITIAL_CONTEXT_CAPACITY);
+                new LinkedHashMap<>(
+                        INITIAL_CONTEXT_CAPACITY);
 
         buildIdentity(config, ctx);
         buildLanguage(config, ctx);
         buildFramework(config, ctx);
-        buildArchitecture(config, ctx);
+        ContextArchitectureBuilder
+                .buildArchitecture(config, ctx);
         buildInfrastructure(config, ctx);
         buildData(config, ctx);
         buildTesting(config, ctx);
         buildInterfaces(config, ctx);
+        ContextArchitectureBuilder
+                .buildReviewChecklist(config, ctx);
 
         return ctx;
     }
@@ -99,7 +67,8 @@ public final class ContextBuilder {
     private static void buildIdentity(
             ProjectConfig config,
             Map<String, Object> ctx) {
-        ctx.put("project_name", config.project().name());
+        ctx.put("project_name",
+                config.project().name());
         ctx.put("project_purpose",
                 config.project().purpose());
     }
@@ -107,7 +76,8 @@ public final class ContextBuilder {
     private static void buildLanguage(
             ProjectConfig config,
             Map<String, Object> ctx) {
-        ctx.put("language_name", config.language().name());
+        ctx.put("language_name",
+                config.language().name());
         ctx.put("language_version",
                 config.language().version());
     }
@@ -119,20 +89,8 @@ public final class ContextBuilder {
                 config.framework().name());
         ctx.put("framework_version",
                 config.framework().version());
-        ctx.put("build_tool", config.framework().buildTool());
-    }
-
-    private static void buildArchitecture(
-            ProjectConfig config,
-            Map<String, Object> ctx) {
-        ctx.put("architecture_style",
-                config.architecture().style());
-        ctx.put("domain_driven",
-                toPythonBool(
-                        config.architecture().domainDriven()));
-        ctx.put("event_driven",
-                toPythonBool(
-                        config.architecture().eventDriven()));
+        ctx.put("build_tool",
+                config.framework().buildTool());
     }
 
     private static void buildInfrastructure(
@@ -157,8 +115,10 @@ public final class ContextBuilder {
     private static void buildData(
             ProjectConfig config,
             Map<String, Object> ctx) {
-        ctx.put("database_name", config.databaseName());
-        ctx.put("migration_name", config.migrationName());
+        ctx.put("database_name",
+                config.databaseName());
+        ctx.put("migration_name",
+                config.migrationName());
         ctx.put("cache_name", config.cacheName());
         String broker =
                 ProtocolMapping.extractBroker(config);
@@ -170,13 +130,15 @@ public final class ContextBuilder {
             ProjectConfig config,
             Map<String, Object> ctx) {
         ctx.put("smoke_tests",
-                toPythonBool(config.testing().smokeTests()));
+                toPythonBool(
+                        config.testing().smokeTests()));
         ctx.put("contract_tests",
                 toPythonBool(
                         config.testing().contractTests()));
         ctx.put("performance_tests",
                 toPythonBool(
-                        config.testing().performanceTests()));
+                        config.testing()
+                                .performanceTests()));
         ctx.put("coverage_line",
                 config.testing().coverageLine());
         ctx.put("coverage_branch",
@@ -186,20 +148,28 @@ public final class ContextBuilder {
     private static void buildInterfaces(
             ProjectConfig config,
             Map<String, Object> ctx) {
-        String interfacesList = config.interfaces().stream()
-                .map(i -> i.type())
-                .collect(Collectors.joining(", "));
+        String interfacesList =
+                config.interfaces().stream()
+                        .map(i -> i.type())
+                        .collect(Collectors.joining(", "));
         ctx.put("interfaces_list",
                 interfacesList.isEmpty()
                         ? "none" : interfacesList);
+        ctx.put("has_contract_interfaces",
+                toPythonBool(
+                        hasContractInterfaces(config)));
+    }
+
+    private static boolean hasContractInterfaces(
+            ProjectConfig config) {
+        return config.interfaces().stream()
+                .anyMatch(i ->
+                        CONTRACT_INTERFACE_TYPES
+                                .contains(i.type()));
     }
 
     /**
-     * Converts a boolean to a Python-style string representation.
-     *
-     * <p>Returns "True" for {@code true} and "False" for
-     * {@code false}, matching Python's {@code str(bool)} output
-     * for Jinja2/Pebble template rendering parity (RULE-002).</p>
+     * Converts a boolean to Python-style string.
      *
      * @param value the boolean value
      * @return "True" or "False"

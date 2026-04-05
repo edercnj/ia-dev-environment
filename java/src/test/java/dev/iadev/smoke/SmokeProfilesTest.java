@@ -14,12 +14,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SmokeProfilesTest {
 
     @Test
-    @DisplayName("profiles() returns 8 bundled profiles")
-    void profiles_returns8Profiles() {
+    @DisplayName("profiles() returns 11 bundled profiles")
+    void profiles_returns11Profiles() {
         List<String> profiles =
                 SmokeProfiles.profiles().toList();
 
-        assertThat(profiles).hasSize(8);
+        assertThat(profiles).hasSize(11);
     }
 
     @Test
@@ -32,6 +32,9 @@ class SmokeProfilesTest {
                 "go-gin",
                 "java-quarkus",
                 "java-spring",
+                "java-spring-cqrs-es",
+                "java-spring-event-driven",
+                "java-spring-hexagonal",
                 "kotlin-ktor",
                 "python-click-cli",
                 "python-fastapi",
@@ -45,7 +48,7 @@ class SmokeProfilesTest {
         List<String> list = SmokeProfiles.profileList();
 
         assertThat(list)
-                .hasSize(8)
+                .hasSize(11)
                 .isUnmodifiable();
     }
 

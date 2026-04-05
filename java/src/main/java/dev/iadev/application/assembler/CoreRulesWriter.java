@@ -38,6 +38,7 @@ import java.util.Map;
 public final class CoreRulesWriter {
 
     private final Path resourcesDir;
+    private final AntiPatternsRuleWriter antiPatternsWriter;
 
     /**
      * Creates a CoreRulesWriter with an explicit resources
@@ -47,6 +48,8 @@ public final class CoreRulesWriter {
      */
     CoreRulesWriter(Path resourcesDir) {
         this.resourcesDir = resourcesDir;
+        this.antiPatternsWriter =
+                new AntiPatternsRuleWriter(resourcesDir);
     }
 
     /**
@@ -242,6 +245,27 @@ public final class CoreRulesWriter {
         String path = CopyHelpers.copyTemplateFile(
                 template, dest, engine, context);
         return List.of(path);
+    }
+
+    /**
+     * Conditionally generates the 10-anti-patterns.md rule
+     * when a matching template exists for the project's
+     * language+framework combination.
+     *
+     * @param config   the project configuration
+     * @param rulesDir the rules output directory
+     * @param engine   the template engine
+     * @param context  the placeholder context
+     * @return list of generated file paths (0 or 1)
+     */
+    List<String> copyConditionalAntiPatternsRule(
+            ProjectConfig config,
+            Path rulesDir,
+            TemplateEngine engine,
+            Map<String, Object> context) {
+        return antiPatternsWriter
+                .copyConditionalAntiPatternsRule(
+                        config, rulesDir, engine, context);
     }
 
     private static final String NONE_VALUE = "none";

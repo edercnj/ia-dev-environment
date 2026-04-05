@@ -7,7 +7,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions
+        .assertThatThrownBy;
 /**
  * Tests for InteractivePrompter — validation,
  * summary, config construction, and equivalence.
@@ -29,7 +30,8 @@ class InteractivePrompterValidationTest {
                 String name) {
             var prompter = new InteractivePrompter(
                     new MockTerminalProvider());
-            assertThat(prompter.isValidProjectName(name))
+            assertThat(
+                    prompter.isValidProjectName(name))
                     .isTrue();
         }
 
@@ -44,7 +46,8 @@ class InteractivePrompterValidationTest {
                 String name) {
             var prompter = new InteractivePrompter(
                     new MockTerminalProvider());
-            assertThat(prompter.isValidProjectName(name))
+            assertThat(
+                    prompter.isValidProjectName(name))
                     .isFalse();
         }
 
@@ -53,7 +56,8 @@ class InteractivePrompterValidationTest {
         void isValidProjectName_null_returnsFalse() {
             var prompter = new InteractivePrompter(
                     new MockTerminalProvider());
-            assertThat(prompter.isValidProjectName(null))
+            assertThat(
+                    prompter.isValidProjectName(null))
                     .isFalse();
         }
 
@@ -64,7 +68,8 @@ class InteractivePrompterValidationTest {
                     .addReadLine("MyProject")
                     .addReadLine("my-project")
                     .addReadLine(
-                            "A microservice for user management")
+                            "A microservice for user "
+                                    + "management")
                     .addSelect("microservice")
                     .addSelect("java")
                     .addSelect("quarkus")
@@ -72,6 +77,8 @@ class InteractivePrompterValidationTest {
                     .addMultiSelect(List.of("rest"))
                     .addReadLine("")
                     .addReadLine("")
+                    .addSelect("layered")
+                    .addMultiSelect(List.of("none"))
                     .addConfirm(true);
             var prompter = new InteractivePrompter(mock);
             ProjectConfig config = prompter.prompt();
@@ -94,7 +101,8 @@ class InteractivePrompterValidationTest {
             var mock = new MockTerminalProvider()
                     .addReadLine("my-project")
                     .addReadLine(
-                            "A microservice for user management")
+                            "A microservice for user "
+                                    + "management")
                     .addSelect("microservice")
                     .addSelect("java")
                     .addSelect("quarkus")
@@ -103,6 +111,8 @@ class InteractivePrompterValidationTest {
                             List.of("rest", "grpc"))
                     .addReadLine("postgresql")
                     .addReadLine("redis")
+                    .addSelect("layered")
+                    .addMultiSelect(List.of("none"))
                     .addConfirm(true);
             var prompter = new InteractivePrompter(mock);
             prompter.prompt();
@@ -112,7 +122,8 @@ class InteractivePrompterValidationTest {
             String summary = displayed.getFirst();
             assertThat(summary)
                     .contains(
-                            "Project Configuration Summary:")
+                            "Project Configuration "
+                                    + "Summary:")
                     .contains("Name:")
                     .contains("Purpose:")
                     .contains("Architecture:")
@@ -121,7 +132,8 @@ class InteractivePrompterValidationTest {
                     .contains("Build Tool:")
                     .contains("Interfaces:")
                     .contains("Database:")
-                    .contains("Cache:");
+                    .contains("Cache:")
+                    .contains("Compliance:");
         }
 
         @Test
@@ -130,17 +142,20 @@ class InteractivePrompterValidationTest {
             var mock = new MockTerminalProvider()
                     .addReadLine("my-app")
                     .addReadLine(
-                            "A simple application for testing")
+                            "A simple application "
+                                    + "for testing")
                     .addSelect("library")
                     .addSelect("go")
                     .addMultiSelect(List.of("rest"))
                     .addReadLine("")
                     .addReadLine("")
+                    .addMultiSelect(List.of("none"))
                     .addConfirm(true);
             var prompter = new InteractivePrompter(mock);
             prompter.prompt();
             String summary =
-                    mock.getDisplayedMessages().getFirst();
+                    mock.getDisplayedMessages()
+                            .getFirst();
             assertThat(summary)
                     .contains("Database:       none");
             assertThat(summary)
@@ -157,21 +172,28 @@ class InteractivePrompterValidationTest {
         void buildConfig_setsDefaults() {
             var prompter = new InteractivePrompter(
                     new MockTerminalProvider());
-            ProjectConfig config = prompter.buildConfig(
-                    new ProjectSummary(
-                            "test-app",
-                            "A test application for unit tests",
-                            "microservice", "java",
-                            "spring-boot", "maven",
-                            List.of("rest"),
-                            "postgresql", "redis"));
-            assertThat(config.architecture().domainDriven())
+            ProjectConfig config =
+                    prompter.buildConfig(
+                            new ProjectSummary(
+                                    "test-app",
+                                    "A test application "
+                                            + "for unit tests",
+                                    "microservice", "java",
+                                    "spring-boot", "maven",
+                                    List.of("rest"),
+                                    "postgresql",
+                                    "redis"));
+            assertThat(
+                    config.architecture().domainDriven())
                     .isFalse();
-            assertThat(config.infrastructure().container())
+            assertThat(
+                    config.infrastructure().container())
                     .isEqualTo("docker");
-            assertThat(config.testing().coverageLine())
+            assertThat(
+                    config.testing().coverageLine())
                     .isEqualTo(95);
-            assertThat(config.testing().coverageBranch())
+            assertThat(
+                    config.testing().coverageBranch())
                     .isEqualTo(90);
         }
 
@@ -180,14 +202,17 @@ class InteractivePrompterValidationTest {
         void buildConfig_interfacesCreated() {
             var prompter = new InteractivePrompter(
                     new MockTerminalProvider());
-            ProjectConfig config = prompter.buildConfig(
-                    new ProjectSummary(
-                            "my-app",
-                            "Application for interface testing",
-                            "microservice", "java",
-                            "quarkus", "maven",
-                            List.of("rest", "grpc", "cli"),
-                            "", ""));
+            ProjectConfig config =
+                    prompter.buildConfig(
+                            new ProjectSummary(
+                                    "my-app",
+                                    "Application for "
+                                            + "interface testing",
+                                    "microservice", "java",
+                                    "quarkus", "maven",
+                                    List.of("rest",
+                                            "grpc", "cli"),
+                                    "", ""));
             assertThat(config.interfaces()).hasSize(3);
             assertThat(config.interfaces())
                     .extracting("type")
@@ -200,16 +225,22 @@ class InteractivePrompterValidationTest {
         void buildConfig_emptyDbCache_setsNone() {
             var prompter = new InteractivePrompter(
                     new MockTerminalProvider());
-            ProjectConfig config = prompter.buildConfig(
-                    new ProjectSummary(
-                            "my-app",
-                            "Application for testing defaults",
-                            "library", "typescript",
-                            "nestjs", "npm",
-                            List.of("rest"), "", ""));
-            assertThat(config.data().database().name())
+            ProjectConfig config =
+                    prompter.buildConfig(
+                            new ProjectSummary(
+                                    "my-app",
+                                    "Application for "
+                                            + "testing defaults",
+                                    "library",
+                                    "typescript",
+                                    "nestjs", "npm",
+                                    List.of("rest"),
+                                    "", ""));
+            assertThat(
+                    config.data().database().name())
                     .isEqualTo("none");
-            assertThat(config.data().cache().name())
+            assertThat(
+                    config.data().cache().name())
                     .isEqualTo("none");
         }
 
@@ -218,13 +249,17 @@ class InteractivePrompterValidationTest {
         void buildConfig_languageVersionResolved() {
             var prompter = new InteractivePrompter(
                     new MockTerminalProvider());
-            ProjectConfig config = prompter.buildConfig(
-                    new ProjectSummary(
-                            "my-app",
-                            "Application for version resolution",
-                            "microservice", "python",
-                            "fastapi", "pip",
-                            List.of("rest"), "", ""));
+            ProjectConfig config =
+                    prompter.buildConfig(
+                            new ProjectSummary(
+                                    "my-app",
+                                    "Application for "
+                                            + "version resolution",
+                                    "microservice",
+                                    "python",
+                                    "fastapi", "pip",
+                                    List.of("rest"),
+                                    "", ""));
             assertThat(config.language().version())
                     .isEqualTo("3.12");
             assertThat(config.framework().version())
@@ -243,7 +278,8 @@ class InteractivePrompterValidationTest {
                     .addReadLine("my-project")
                     .addReadLine("Too short")
                     .addReadLine(
-                            "A valid purpose that is long enough")
+                            "A valid purpose that is "
+                                    + "long enough")
                     .addSelect("microservice")
                     .addSelect("java")
                     .addSelect("quarkus")
@@ -251,12 +287,15 @@ class InteractivePrompterValidationTest {
                     .addMultiSelect(List.of("rest"))
                     .addReadLine("")
                     .addReadLine("")
+                    .addSelect("layered")
+                    .addMultiSelect(List.of("none"))
                     .addConfirm(true);
             var prompter = new InteractivePrompter(mock);
             ProjectConfig config = prompter.prompt();
             assertThat(config.project().purpose())
                     .isEqualTo(
-                            "A valid purpose that is long enough");
+                            "A valid purpose that is "
+                                    + "long enough");
             assertThat(mock.getDisplayedMessages())
                     .contains(
                             InteractivePrompter
@@ -274,7 +313,8 @@ class InteractivePrompterValidationTest {
             var mock = new MockTerminalProvider()
                     .addReadLine("my-project")
                     .addReadLine(
-                            "A microservice for user management")
+                            "A microservice for user "
+                                    + "management")
                     .addSelect("microservice")
                     .addSelect("java")
                     .addSelect("quarkus")
@@ -283,6 +323,8 @@ class InteractivePrompterValidationTest {
                             List.of("rest", "grpc"))
                     .addReadLine("postgresql")
                     .addReadLine("redis")
+                    .addSelect("layered")
+                    .addMultiSelect(List.of("none"))
                     .addConfirm(true);
             var prompter = new InteractivePrompter(mock);
             ProjectConfig config = prompter.prompt();
@@ -290,7 +332,8 @@ class InteractivePrompterValidationTest {
                     .isEqualTo("my-project");
             assertThat(config.architecture().style())
                     .isNotBlank();
-            assertThat(config.interfaces()).isNotEmpty();
+            assertThat(config.interfaces())
+                    .isNotEmpty();
             assertThat(config.language().name())
                     .isNotBlank();
         }
@@ -301,7 +344,8 @@ class InteractivePrompterValidationTest {
             var mock = new MockTerminalProvider()
                     .addReadLine("my-project")
                     .addReadLine(
-                            "A microservice for user management")
+                            "A microservice for user "
+                                    + "management")
                     .addSelect("microservice")
                     .addSelect("java")
                     .addSelect("quarkus")
@@ -310,6 +354,8 @@ class InteractivePrompterValidationTest {
                             List.of("rest", "grpc"))
                     .addReadLine("postgresql")
                     .addReadLine("redis")
+                    .addSelect("layered")
+                    .addMultiSelect(List.of("none"))
                     .addConfirm(true);
             var prompter = new InteractivePrompter(mock);
             ProjectConfig config = prompter.prompt();

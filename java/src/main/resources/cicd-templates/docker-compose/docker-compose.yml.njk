@@ -44,10 +44,34 @@ services:
     ports:
       - "6379:6379"
 {% endif %}
-{% if database_name != "none" or cache_name != "none" %}
+{% if architecture_style == "cqrs" %}
+
+  eventstore:
+    image: {{ eventstore_image | default("eventstore/eventstore:24.10.0") }}
+    ports:
+      - "2113:2113"
+      - "1113:1113"
+    environment:
+      - EVENTSTORE_INSECURE=true
+      - EVENTSTORE_CLUSTER_SIZE=1
+      - EVENTSTORE_RUN_PROJECTIONS=All
+      - EVENTSTORE_START_STANDARD_PROJECTIONS=true
+    volumes:
+      - eventstore-data:/var/lib/eventstore
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:2113/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+{% endif %}
+{% if database_name != "none" or cache_name != "none" or architecture_style == "cqrs" %}
 
 volumes:
 {% endif %}
 {% if database_name != "none" %}
   db-data:
+{% endif %}
+{% if architecture_style == "cqrs" %}
+  eventstore-data:
 {% endif %}

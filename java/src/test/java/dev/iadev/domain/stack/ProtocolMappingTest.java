@@ -1,5 +1,7 @@
 package dev.iadev.domain.stack;
 
+import dev.iadev.testutil.TestConfigBuilder;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -62,7 +64,7 @@ class ProtocolMappingTest {
         @Test
         @DisplayName("rest interface produces [rest]")
         void deriveProtocols_rest_restOnly() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("rest", "", "")
                     .build();
@@ -75,7 +77,7 @@ class ProtocolMappingTest {
         @Test
         @DisplayName("grpc interface produces [grpc]")
         void deriveProtocols_grpc_grpcOnly() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("grpc", "", "")
                     .build();
@@ -88,7 +90,7 @@ class ProtocolMappingTest {
         @Test
         @DisplayName("event-consumer produces [event-driven, messaging]")
         void deriveProtocols_eventConsumer_eventDrivenMessaging() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("event-consumer", "", "kafka")
                     .build();
@@ -102,7 +104,7 @@ class ProtocolMappingTest {
         @Test
         @DisplayName("multiple interfaces deduplicated and sorted")
         void deriveProtocols_multiple_deduplicatedSorted() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("rest", "", "")
                     .addInterface("grpc", "", "")
@@ -121,7 +123,7 @@ class ProtocolMappingTest {
         @Test
         @DisplayName("cli produces empty list")
         void deriveProtocols_cli_empty() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("cli", "", "")
                     .build();
@@ -134,7 +136,7 @@ class ProtocolMappingTest {
         @Test
         @DisplayName("unknown event- prefix falls back to event-driven")
         void deriveProtocols_unknownEventPrefix_eventDriven() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("event-custom", "", "")
                     .build();
@@ -147,7 +149,7 @@ class ProtocolMappingTest {
         @Test
         @DisplayName("completely unknown type produces no protocol")
         void deriveProtocols_unknown_empty() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("scheduled", "", "")
                     .build();
@@ -165,7 +167,7 @@ class ProtocolMappingTest {
         @Test
         @DisplayName("returns broker from first interface with broker")
         void extractBroker_kafkaBroker_kafka() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("event-consumer", "", "kafka")
                     .build();
@@ -177,7 +179,7 @@ class ProtocolMappingTest {
         @Test
         @DisplayName("returns empty when no interface has broker")
         void extractBroker_noBroker_empty() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("rest", "", "")
                     .build();
@@ -188,7 +190,7 @@ class ProtocolMappingTest {
         @Test
         @DisplayName("returns first broker when multiple exist")
         void extractBroker_multipleBrokers_returnsFirst() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("event-consumer", "", "kafka")
                     .addInterface("event-producer", "", "rabbitmq")

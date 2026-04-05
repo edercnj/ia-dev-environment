@@ -88,10 +88,10 @@ The Tech Lead review covers:
 
 ## Decision Criteria
 
-| Condition                   | Decision        |
-| --------------------------- | --------------- |
-| 45/45 + zero issues         | GO              |
-| < 45/45 OR any issue        | NO-GO           |
+| Condition                              | Decision        |
+| -------------------------------------- | --------------- |
+| >= 38/45 + zero issues | GO              |
+| < 38/45 OR any issue   | NO-GO           |
 
 ### Step 4 -- Process Result
 
@@ -100,7 +100,7 @@ The Tech Lead review covers:
  TECH LEAD REVIEW -- [STORY_ID]
 ============================================================
  Decision:  GO | NO-GO
- Score:     XX/45
+ Score:     XX/45 (GO >= 38)
  Critical:  N issues
  Medium:    N issues
  Low:       N issues
@@ -121,6 +121,7 @@ If fixing: apply corrections, commit, re-run review (max 2 cycles).
 ## Output Artifacts
 
 - `plans/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md`
+
 
 ## Integration Notes
 

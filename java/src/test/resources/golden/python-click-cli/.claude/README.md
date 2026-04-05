@@ -87,8 +87,9 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 06 | `06-security-baseline.md` | security baseline |
 | 07 | `07-operations-baseline.md` | operations baseline |
 | 08 | `08-release-process.md` | release process |
+| 10 | `10-anti-patterns.md` | anti patterns |
 
-**Total: 8 rules**
+**Total: 9 rules**
 
 ### Numbering
 
@@ -257,7 +258,7 @@ See the files directly for current configuration.
 
 | Component | Count |
 |-----------|-------|
-| Rules (.claude) | 8 |
+| Rules (.claude) | 9 |
 | Skills (.claude) | 31 |
 | Knowledge Packs (.claude) | 21 |
 | Agents (.claude) | 9 |

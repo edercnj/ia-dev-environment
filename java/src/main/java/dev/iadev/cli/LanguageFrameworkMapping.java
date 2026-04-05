@@ -23,6 +23,20 @@ public final class LanguageFrameworkMapping {
     public static final List<String> ARCHITECTURE_STYLES = List.of(
             "microservice", "monolith", "library");
 
+    /** Architecture pattern styles for java/kotlin. */
+    public static final List<String> ARCH_PATTERN_STYLES =
+            List.of("layered", "hexagonal", "cqrs",
+                    "event-driven", "clean");
+
+    /** Compliance framework options for multi-select. */
+    public static final List<String> COMPLIANCE_OPTIONS =
+            List.of("none", "pci-dss", "lgpd",
+                    "sox", "hipaa");
+
+    /** Languages supporting architecture pattern selection. */
+    public static final List<String> ARCH_PATTERN_LANGUAGES =
+            List.of("java", "kotlin");
+
     /** Ordered list of interface types for multi-select. */
     public static final List<String> INTERFACE_TYPES = List.of(
             "rest", "grpc", "graphql", "cli", "events");

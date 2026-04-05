@@ -1,5 +1,7 @@
 package dev.iadev.domain.stack;
 
+import dev.iadev.testutil.TestConfigBuilder;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -82,7 +84,7 @@ class CoreKpRoutingTest {
         @Test
         @DisplayName("microservice includes cloud-native route (13 total)")
         void getActiveRoutes_microservice_includesCloudNative() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .architectureStyle("microservice")
                     .build();
 
@@ -98,7 +100,7 @@ class CoreKpRoutingTest {
         @Test
         @DisplayName("library excludes cloud-native route (12 total)")
         void getActiveRoutes_library_excludesCloudNative() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .architectureStyle("library")
                     .build();
 
@@ -114,7 +116,7 @@ class CoreKpRoutingTest {
         @Test
         @DisplayName("monolith includes cloud-native route")
         void getActiveRoutes_monolith_includesCloudNative() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .architectureStyle("monolith")
                     .build();
 
@@ -131,7 +133,7 @@ class CoreKpRoutingTest {
         @Test
         @DisplayName("architecture_style returns config style")
         void resolveCondition_architectureStyle_returnsStyle() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .architectureStyle("microservice")
                     .build();
 
@@ -144,7 +146,7 @@ class CoreKpRoutingTest {
         @Test
         @DisplayName("unknown field returns empty string")
         void resolveCondition_unknownField_empty() {
-            var config = new TestProjectConfigBuilder().build();
+            var config = TestConfigBuilder.builder().build();
 
             var value = CoreKpRouting.resolveConditionValue(
                     config, "unknown_field");

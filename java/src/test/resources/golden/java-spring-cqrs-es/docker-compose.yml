@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  my-spring-cqrs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - APP_ENV=development
+
+
+
+
+
+
+
+
+
+  eventstore:
+    image: eventstore/eventstore:24.10.0
+    ports:
+      - "2113:2113"
+      - "1113:1113"
+    environment:
+      - EVENTSTORE_INSECURE=true
+      - EVENTSTORE_CLUSTER_SIZE=1
+      - EVENTSTORE_RUN_PROJECTIONS=All
+      - EVENTSTORE_START_STANDARD_PROJECTIONS=true
+    volumes:
+      - eventstore-data:/var/lib/eventstore
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:2113/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+
+
+volumes:
+
+
+
+  eventstore-data:
+

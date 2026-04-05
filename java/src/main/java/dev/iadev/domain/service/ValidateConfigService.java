@@ -83,11 +83,27 @@ public final class ValidateConfigService
         if (config.architecture() == null) {
             errors.add(
                     "Missing required section: architecture");
+        } else {
+            validateArchitectureCrossFields(
+                    config.architecture(), errors);
         }
         if (config.interfaces() == null
                 || config.interfaces().isEmpty()) {
             errors.add("At least one interface definition "
                     + "is required");
+        }
+    }
+
+    private void validateArchitectureCrossFields(
+            dev.iadev.domain.model.ArchitectureConfig arch,
+            List<String> errors) {
+        if (arch.validateWithArchUnit()
+                && (arch.basePackage() == null
+                    || arch.basePackage().isBlank())) {
+            errors.add(
+                    "architecture.base_package is required"
+                    + " when architecture"
+                    + ".validate_with_archunit is true");
         }
     }
 }

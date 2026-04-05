@@ -19,7 +19,20 @@ class SecurityConfigTest {
     class FromMap {
 
         @Test
-        @DisplayName("creates config with frameworks list")
+        @DisplayName("reads compliance key")
+        void fromMap_withCompliance_listPopulated() {
+            var map = Map.<String, Object>of(
+                    "compliance",
+                    List.of("pci-dss", "lgpd"));
+
+            var result = SecurityConfig.fromMap(map);
+
+            assertThat(result.frameworks())
+                    .containsExactly("pci-dss", "lgpd");
+        }
+
+        @Test
+        @DisplayName("falls back to frameworks key")
         void fromMap_withFrameworks_listPopulated() {
             var map = Map.<String, Object>of(
                     "frameworks",
@@ -28,11 +41,26 @@ class SecurityConfigTest {
             var result = SecurityConfig.fromMap(map);
 
             assertThat(result.frameworks())
-                    .containsExactly("spring-security", "oauth2");
+                    .containsExactly(
+                            "spring-security", "oauth2");
         }
 
         @Test
-        @DisplayName("empty map defaults to empty frameworks list")
+        @DisplayName("compliance takes precedence")
+        void fromMap_bothKeys_complianceWins() {
+            var map = Map.<String, Object>of(
+                    "compliance", List.of("pci-dss"),
+                    "frameworks",
+                    List.of("spring-security"));
+
+            var result = SecurityConfig.fromMap(map);
+
+            assertThat(result.frameworks())
+                    .containsExactly("pci-dss");
+        }
+
+        @Test
+        @DisplayName("empty map defaults to empty list")
         void fromMap_emptyMap_emptyList() {
             var result = SecurityConfig.fromMap(Map.of());
 

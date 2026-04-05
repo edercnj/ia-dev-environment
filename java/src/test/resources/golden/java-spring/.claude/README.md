@@ -63,7 +63,7 @@ CLAUDE.md                   <-- Executive summary (project root, loaded automati
 | N/A | MCP (`copilot-mcp.json`) | N/A | GitHub Copilot MCP server configuration |
 | N/A | Global instructions (`copilot-instructions.md`) | N/A | Loaded in every Copilot session |
 
-**Total .github/ artifacts: 108**
+**Total .github/ artifacts: 109**
 
 ### settings.json vs settings.local.json
 
@@ -87,8 +87,9 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 06 | `06-security-baseline.md` | security baseline |
 | 07 | `07-operations-baseline.md` | operations baseline |
 | 08 | `08-release-process.md` | release process |
+| 10 | `10-anti-patterns.md` | anti patterns |
 
-**Total: 8 rules**
+**Total: 9 rules**
 
 ### Numbering
 
@@ -111,6 +112,7 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-changelog** | `/x-changelog` | Generates CHANGELOG.md from Conventional Commits history. Parses git log, groups by commit type, maps to Keep a Changelog sections (Added, Changed, Fixed, etc.), and performs incremental updates preserving existing entries. |
 | **x-ci-cd-generate** | `/x-ci-cd-generate` | Generate or update CI/CD pipelines based on project stack: detect language, analyze existing workflows, generate CI/CD/release/security pipelines, validate with actionlint, support monorepo triggers. |
 | **x-codebase-audit** | `/x-codebase-audit` | Full codebase review against all project standards. Launches parallel subagents per audit dimension (Clean Code, SOLID, Architecture, Tests, Security, Cross-file), consolidates findings into a severity-categorized report with score. Use for periodic quality validation. |
+| **x-contract-lint** | `/x-contract-lint` | Validates API contracts (OpenAPI 3.1, AsyncAPI 2.6, Protobuf 3) against their specifications. Reports structural errors, missing fields, and spec violations before contract approval. |
 | **x-dependency-audit** | `/x-dependency-audit` | Checks project dependencies for vulnerabilities, outdated versions, and license issues. Detects build tool automatically, runs language-specific audit commands, and generates a severity-categorized report. |
 | **x-dev-adr-automation** | `/x-dev-adr-automation` | Automates ADR generation from architecture plan mini-ADRs: extracts inline decisions, expands to full ADR format, assigns sequential numbering, updates the ADR index, and adds cross-references. |
 | **x-dev-arch-update** | `/x-dev-arch-update` | Incrementally updates the service architecture document with changes from architecture plans. Adds new components, integrations, flows, and ADR references without rewriting existing content. Use after implementation to keep architecture documentation current. |
@@ -132,7 +134,8 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-review-events** | `/x-review-events` | Skill: Event-Driven Review — Validates event schemas, producer/consumer patterns, error handling, dead letter topics, and operational readiness. |
 | **x-review-gateway** | `/x-review-gateway` | Review API gateway configuration for best practices |
 | **x-review-grpc** | `/x-review-grpc` | Skill: gRPC Service Review — Validates gRPC service definitions, proto3 conventions, implementation patterns, and operational readiness. |
-| **x-review-pr** | `/x-review-pr` | Tech Lead holistic review with 45-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, TDD process, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge. |
+| **x-review-pr** | `/x-review-pr` | Tech Lead holistic review with 57-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, TDD process, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge. |
+| **x-review-security** | `/x-review-security` | Review code changes for compliance with selected security frameworks |
 | **x-setup-dev-environment** | `/x-setup-dev-environment` | Validate and configure local development environment: detect stack, check prerequisites, verify versions, validate IDE config, test database connectivity, run initial build, and report status with fix suggestions |
 | **x-story-create** | `/x-story-create` | > |
 | **x-story-epic** | `/x-story-epic` | > |
@@ -142,7 +145,7 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-test-run** | `/x-test-run` | Runs tests with coverage reporting and threshold validation. Use whenever writing, running, or analyzing tests. Triggers on: test, coverage, TDD, unit test, integration test, test failure, coverage gap, or Definition of Done validation. |
 | **x-threat-model** | `/x-threat-model` | Generate threat models using STRIDE analysis: identify components, map data flows, analyze threats per category, classify severity, suggest mitigations, and produce threat model document. |
 
-**Total: 63 skills**
+**Total: 65 skills**
 
 ### Usage Examples
 
@@ -275,21 +278,21 @@ See the files directly for current configuration.
 
 | Component | Count |
 |-----------|-------|
-| Rules (.claude) | 8 |
-| Skills (.claude) | 39 |
+| Rules (.claude) | 9 |
+| Skills (.claude) | 41 |
 | Knowledge Packs (.claude) | 24 |
 | Agents (.claude) | 11 |
 | Hooks (.claude) | 1 |
 | Settings (.claude) | 2 |
 | Instructions (.github) | 5 |
-| Skills (.github) | 59 |
+| Skills (.github) | 60 |
 | Agents (.github) | 11 |
 | Prompts (.github) | 4 |
 | Hooks (.github) | 3 |
 | MCP (.github) | 0 |
 | AGENTS.md (root) | 1 |
 | AGENTS.override.md (root) | 1 |
-| Codex (.codex) | 148 |
-| Skills (.agents) | 146 |
+| Codex (.codex) | 153 |
+| Skills (.agents) | 151 |
 
 Generated by `ia-dev-env v0.1.0`.

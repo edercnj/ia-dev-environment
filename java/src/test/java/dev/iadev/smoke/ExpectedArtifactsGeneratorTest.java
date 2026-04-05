@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @DisplayName("ExpectedArtifactsGenerator")
 class ExpectedArtifactsGeneratorTest {
 
-    private static final int PROFILE_COUNT = 8;
+    private static final int PROFILE_COUNT = 11;
 
     @Nested
     @DisplayName("generate")
@@ -135,7 +135,11 @@ class ExpectedArtifactsGeneratorTest {
             assertThat(artifacts.getProfileNames())
                     .containsExactlyInAnyOrder(
                             "go-gin", "java-quarkus",
-                            "java-spring", "kotlin-ktor",
+                            "java-spring",
+                            "java-spring-hexagonal",
+                            "java-spring-cqrs-es",
+                            "java-spring-event-driven",
+                            "kotlin-ktor",
                             "python-click-cli",
                             "python-fastapi", "rust-axum",
                             "typescript-nestjs");

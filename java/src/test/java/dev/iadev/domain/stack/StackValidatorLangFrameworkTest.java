@@ -1,5 +1,7 @@
 package dev.iadev.domain.stack;
 
+import dev.iadev.testutil.TestConfigBuilder;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -20,7 +22,7 @@ class StackValidatorLangFrameworkTest {
         @Test
         @DisplayName("valid java-quarkus has no errors")
         void validateStack_validJavaQuarkus_noErrors() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .language("java", "21")
                     .framework("quarkus", "3.17")
                     .buildTool("maven")
@@ -36,7 +38,7 @@ class StackValidatorLangFrameworkTest {
         @Test
         @DisplayName("multiple failures accumulate")
         void validateStack_multiple_allReported() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .language("python", "3.8")
                     .framework("spring-boot", "3.4")
                     .buildTool("pip")
@@ -60,7 +62,7 @@ class StackValidatorLangFrameworkTest {
         @Test
         @DisplayName("spring-boot with python fails")
         void validateLF_springBootPython_error() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .language("python", "3.12")
                     .framework("spring-boot", "3.4")
                     .build();
@@ -77,7 +79,7 @@ class StackValidatorLangFrameworkTest {
         @Test
         @DisplayName("quarkus with java passes")
         void validateLF_quarkusJava_noError() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .language("java", "21")
                     .framework("quarkus", "3.17")
                     .build();
@@ -91,7 +93,7 @@ class StackValidatorLangFrameworkTest {
         @Test
         @DisplayName("quarkus with kotlin passes")
         void validateLF_quarkusKotlin_noError() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .language("kotlin", "2.1")
                     .framework("quarkus", "3.17")
                     .buildTool("gradle")
@@ -106,7 +108,7 @@ class StackValidatorLangFrameworkTest {
         @Test
         @DisplayName("nestjs with java fails")
         void validateLF_nestjsJava_error() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .language("java", "21")
                     .framework("nestjs", "10")
                     .build();
@@ -120,7 +122,7 @@ class StackValidatorLangFrameworkTest {
         @Test
         @DisplayName("unknown framework passes")
         void validateLF_unknownFramework_noError() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .framework("unknown-fw", "1.0")
                     .build();
 
@@ -133,7 +135,7 @@ class StackValidatorLangFrameworkTest {
         @Test
         @DisplayName("fastapi with python passes")
         void validateLF_fastapiPython_noError() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .language("python", "3.12")
                     .framework("fastapi", "0.115")
                     .buildTool("pip")
@@ -148,7 +150,7 @@ class StackValidatorLangFrameworkTest {
         @Test
         @DisplayName("gin with java fails")
         void validateLF_ginJava_error() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .language("java", "21")
                     .framework("gin", "1.10")
                     .build();

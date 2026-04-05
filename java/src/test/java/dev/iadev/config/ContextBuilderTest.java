@@ -30,7 +30,12 @@ class ContextBuilderTest {
                 new ProjectIdentity(
                         "my-app", "A microservice"),
                 new ArchitectureConfig(
-                        "microservice", true, false),
+                        "microservice", true, false,
+                        false, "",
+                        new ArchitectureConfig.CqrsConfig(
+                                "eventstoredb", 100,
+                                "", false, ""),
+                        true),
                 List.of(
                         new InterfaceConfig(
                                 "rest", "openapi", ""),
@@ -70,7 +75,12 @@ class ContextBuilderTest {
         return new ProjectConfig(
                 new ProjectIdentity("minimal", "Minimal test"),
                 new ArchitectureConfig(
-                        "library", false, false),
+                        "library", false, false,
+                        false, "",
+                        new ArchitectureConfig.CqrsConfig(
+                                "eventstoredb", 100,
+                                "", false, ""),
+                        false),
                 List.of(new InterfaceConfig("cli", "", "")),
                 new LanguageConfig("python", "3.10"),
                 new FrameworkConfig(
@@ -83,25 +93,27 @@ class ContextBuilderTest {
     }
 
     @Nested
-    @DisplayName("buildContext() produces exactly 27 fields")
+    @DisplayName("buildContext() produces exactly 43 fields")
     class FieldCount {
 
         @Test
-        @DisplayName("returns map with exactly 27 entries")
-        void buildContext_fullConfig_returns27Fields() {
+        @DisplayName("returns map with exactly 43 entries")
+        void buildContext_fullConfig_returns43Fields() {
             Map<String, Object> context =
-                    ContextBuilder.buildContext(buildFullConfig());
+                    ContextBuilder.buildContext(
+                            buildFullConfig());
 
-            assertThat(context).hasSize(27);
+            assertThat(context).hasSize(43);
         }
 
         @Test
-        @DisplayName("returns map with 27 entries for minimal")
-        void buildContext_minimalConfig_returns27Fields() {
+        @DisplayName("returns map with 43 entries for minimal")
+        void buildContext_minimalConfig_returns43Fields() {
             Map<String, Object> context =
-                    ContextBuilder.buildContext(buildMinimalConfig());
+                    ContextBuilder.buildContext(
+                            buildMinimalConfig());
 
-            assertThat(context).hasSize(27);
+            assertThat(context).hasSize(43);
         }
     }
 
@@ -151,10 +163,21 @@ class ContextBuilderTest {
         @DisplayName("architecture fields are correct")
         void buildContext_architectureFields_correct() {
             Map<String, Object> ctx =
-                    ContextBuilder.buildContext(buildFullConfig());
+                    ContextBuilder.buildContext(
+                            buildFullConfig());
 
             assertThat(ctx.get("architecture_style"))
                     .isEqualTo("microservice");
+            assertThat(ctx.get("validate_with_archunit"))
+                    .isEqualTo("False");
+            assertThat(ctx.get("base_package"))
+                    .isEqualTo("");
+            assertThat(ctx.get("event_store"))
+                    .isEqualTo("eventstoredb");
+            assertThat(ctx.get("outbox_pattern"))
+                    .isEqualTo("False");
+            assertThat(ctx.get("events_per_snapshot"))
+                    .isEqualTo(100);
         }
 
         @Test
@@ -303,6 +326,28 @@ class ContextBuilderTest {
             assertThat(ctx.get("performance_tests"))
                     .isEqualTo("True");
         }
+
+        @Test
+        @DisplayName("ddd_enabled is 'True' when true")
+        void buildContext_dddEnabledTrue_pythonTrue() {
+            Map<String, Object> ctx =
+                    ContextBuilder.buildContext(
+                            buildFullConfig());
+
+            assertThat(ctx.get("ddd_enabled"))
+                    .isEqualTo("True");
+        }
+
+        @Test
+        @DisplayName("ddd_enabled is 'False' when false")
+        void buildContext_dddEnabledFalse_pythonFalse() {
+            Map<String, Object> ctx =
+                    ContextBuilder.buildContext(
+                            buildMinimalConfig());
+
+            assertThat(ctx.get("ddd_enabled"))
+                    .isEqualTo("False");
+        }
     }
 
     @Nested
@@ -381,7 +426,12 @@ class ContextBuilderTest {
         void buildContext_emptyInterfaces_producesNone() {
             var config = new ProjectConfig(
                     new ProjectIdentity("test", "test"),
-                    new ArchitectureConfig("library", false, false),
+                    new ArchitectureConfig("library", false,
+                            false, false, "",
+                            new ArchitectureConfig.CqrsConfig(
+                                    "eventstoredb", 100,
+                                    "", false, ""),
+                            false),
                     List.of(),
                     new LanguageConfig("java", "21"),
                     new FrameworkConfig(
@@ -401,14 +451,15 @@ class ContextBuilderTest {
     }
 
     @Nested
-    @DisplayName("exact 27 field names")
+    @DisplayName("exact 43 field names")
     class ExactFieldNames {
 
         @Test
-        @DisplayName("context contains all 27 expected keys")
+        @DisplayName("context contains all 43 expected keys")
         void buildContext_allExpectedKeys_present() {
             Map<String, Object> ctx =
-                    ContextBuilder.buildContext(buildFullConfig());
+                    ContextBuilder.buildContext(
+                            buildFullConfig());
 
             assertThat(ctx).containsKeys(
                     "project_name",
@@ -421,6 +472,14 @@ class ContextBuilderTest {
                     "architecture_style",
                     "domain_driven",
                     "event_driven",
+                    "validate_with_archunit",
+                    "base_package",
+                    "event_store",
+                    "schema_registry",
+                    "outbox_pattern",
+                    "dead_letter_strategy",
+                    "events_per_snapshot",
+                    "ddd_enabled",
                     "container",
                     "orchestrator",
                     "templating",
@@ -437,7 +496,15 @@ class ContextBuilderTest {
                     "performance_tests",
                     "coverage_line",
                     "coverage_branch",
-                    "interfaces_list");
+                    "interfaces_list",
+                    "has_contract_interfaces",
+                    "has_event_interface",
+                    "has_pci_dss",
+                    "has_lgpd",
+                    "review_max_score",
+                    "review_go_threshold",
+                    "review_conditional_rubric",
+                    "review_conditional_criteria");
         }
     }
 
