@@ -22,7 +22,6 @@
       { "pattern": "knowledge/infrastructure/.*" },
       { "pattern": "knowledge/languages/.*" },
       { "pattern": "knowledge/patterns/.*" },
-      { "pattern": "prompts/.*" },
       { "pattern": "knowledge/protocols/.*" },
       { "pattern": "knowledge/security/.*" },
       { "pattern": "targets/claude/settings/.*" },
