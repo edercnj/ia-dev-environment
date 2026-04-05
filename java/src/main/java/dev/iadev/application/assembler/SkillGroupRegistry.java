@@ -64,6 +64,7 @@ public final class SkillGroupRegistry {
                 "x-review-gateway",
                 "x-codebase-audit",
                 "x-dependency-audit",
+                "x-supply-chain-audit",
                 "x-spec-drift-check",
                 "x-threat-model",
                 "x-hardening-eval",
