@@ -188,6 +188,57 @@ Launch a **single** `general-purpose` subagent with the following prompt:
 > - Tables use GitHub-flavored Markdown
 > - NFR targets must be measurable (e.g., "p99 latency < 200ms", not "fast")
 
+## Self-Check / Quality Validation
+
+After generating the architecture plan, the architect MUST run the following 4 validation checks against the plan content. These checks enforce hexagonal architecture compliance and prevent structurally invalid plans from being accepted.
+
+### Check 1: Dependency Direction
+
+For each relation (arrow) in the Component Diagram, validate that the dependency direction follows the hexagonal architecture rule:
+
+- `adapter.inbound` → `application` → `domain` ← `adapter.outbound` (valid)
+- `domain` → `adapter.*` (INVALID — domain NEVER imports adapter code)
+- `domain` → `application` (INVALID — domain does not depend on application)
+- `adapter.inbound` → `adapter.outbound` (INVALID — inbound adapters must not depend on outbound adapters)
+
+Any arrow that violates the dependency direction rule causes this check to FAIL.
+
+### Check 2: Layer Completeness
+
+Every new component introduced in the architecture plan MUST have a declared layer assignment (one of: `domain`, `application`, `adapter.inbound`, `adapter.outbound`, `config`).
+
+A component without a declared layer causes this check to FAIL with the message: `"Component {name} has no declared layer"`.
+
+### Check 3: Port/Interface Compliance
+
+Every outbound adapter component MUST implement a corresponding port interface defined in the domain layer.
+
+An outbound adapter without a corresponding port causes this check to FAIL with the message: `"Outbound adapter {name} has no corresponding port interface"`.
+
+### Check 4: Circular Dependency Detection
+
+Analyze the Component Diagram for cycles that cross layer boundaries. Intra-layer cycles (within the same layer) are acceptable, but cycles that cross layer boundaries (e.g., `domain` → `application` → `domain`) are forbidden.
+
+A cross-layer cycle causes this check to FAIL with details of the cycle path.
+
+### Validation Result Format
+
+After running all 4 checks, emit the validation result in this exact format:
+
+```
+Architecture Plan Validation:
+- Dependency Direction: PASS/FAIL (details)
+- Layer Completeness: PASS/FAIL (details)
+- Port/Interface: PASS/FAIL (details)
+- Circular Dependencies: PASS/FAIL (details)
+Overall: PASS/FAIL
+```
+
+### Validation Gate
+
+- If **ALL** checks PASS: the architecture plan is accepted and may proceed to the next phase.
+- If **ANY** check FAILs: the architecture plan is **rejected**. The plan MUST be corrected and re-validated before proceeding. Do NOT accept a plan with validation failures.
+
 ## Integration with x-dev-lifecycle
 
 When invoked from `x-dev-lifecycle` Phase 1:

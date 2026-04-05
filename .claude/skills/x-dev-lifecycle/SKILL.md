@@ -193,6 +193,11 @@ Invoke skill `/x-dev-architecture-plan {STORY_PATH}`.
 - Output: `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
 - If the skill invocation fails: emit `WARNING: Architecture plan generation failed. Continuing without architecture plan.` and proceed to Step 1B.
 
+**Architecture Plan Validation Gate:**
+After `/x-dev-architecture-plan` completes, check its validation result (the "Architecture Plan Validation" block at the end of the plan). If `Overall: FAIL`, the lifecycle MUST abort with:
+`"ABORT: Architecture plan failed quality validation. Fix the plan before re-running the lifecycle."`
+Do NOT proceed to Step 1B or any subsequent phase with a failed architecture plan.
+
 **If Skip:**
 
 Log `"Architecture plan not needed for this change scope"` and proceed to Step 1B.
