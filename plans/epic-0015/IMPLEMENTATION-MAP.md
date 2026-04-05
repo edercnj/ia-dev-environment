@@ -8,23 +8,23 @@
 
 ## 1. Dependency Matrix
 
-| ID | Titulo | Blocked By | Blocks | Wave | Test Plan Status |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| story-0015-0001 | Configuracao de ArchUnit e Baseline | — | story-0015-0002 | 0 | Pending |
-| story-0015-0002 | Scaffolding de Pacotes Hexagonal | story-0015-0001 | story-0015-0003 | 1 | Pending |
-| story-0015-0003 | Extracao do Domain Model | story-0015-0002 | story-0015-0004, story-0015-0005 | 2 | Pending |
-| story-0015-0004 | Definicao dos Output Ports | story-0015-0003 | story-0015-0006 | 3 | Pending |
-| story-0015-0005 | Definicao dos Input Ports | story-0015-0003 | story-0015-0006 | 3 | Pending |
-| story-0015-0006 | Implementacao dos Domain Services | story-0015-0004, story-0015-0005 | story-0015-0007, story-0015-0008, story-0015-0009, story-0015-0010, story-0015-0011, story-0015-0012, story-0015-0013 | 4 | Pending |
-| story-0015-0007 | Adapter: YamlStackProfileRepository | story-0015-0006 | story-0015-0014 | 5 | Pending |
-| story-0015-0008 | Adapter: PebbleTemplateRenderer | story-0015-0006 | story-0015-0013, story-0015-0014 | 5 | Pending |
-| story-0015-0009 | Adapter: FileSystemWriterAdapter | story-0015-0006 | story-0015-0013, story-0015-0014 | 5 | Pending |
-| story-0015-0010 | Adapter: FileCheckpointStore | story-0015-0006 | story-0015-0014 | 5 | Pending |
-| story-0015-0011 | Adapter: ConsoleProgressReporter | story-0015-0006 | story-0015-0014 | 5 | Pending |
-| story-0015-0012 | Adapter: CLI Input Adapter | story-0015-0006 | story-0015-0014 | 5 | Pending |
-| story-0015-0013 | Migracao dos 23 Assemblers | story-0015-0008, story-0015-0009 | story-0015-0014 | 6 | Pending |
-| story-0015-0014 | Composition Root: ApplicationFactory | story-0015-0007, story-0015-0008, story-0015-0009, story-0015-0010, story-0015-0011, story-0015-0012, story-0015-0013 | story-0015-0015 | 7 | Pending |
-| story-0015-0015 | Ativacao ArchUnit e Limpeza Final | story-0015-0014 | — | 8 | Pending |
+| ID | Titulo | Blocked By | Blocks | Wave | Test Plan Status | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| story-0015-0001 | Configuracao de ArchUnit e Baseline | — | story-0015-0002 | 0 | Pending | Concluída |
+| story-0015-0002 | Scaffolding de Pacotes Hexagonal | story-0015-0001 | story-0015-0003 | 1 | Pending | Concluída |
+| story-0015-0003 | Extracao do Domain Model | story-0015-0002 | story-0015-0004, story-0015-0005 | 2 | Pending | Concluída |
+| story-0015-0004 | Definicao dos Output Ports | story-0015-0003 | story-0015-0006 | 3 | Pending | Concluída |
+| story-0015-0005 | Definicao dos Input Ports | story-0015-0003 | story-0015-0006 | 3 | Pending | Concluída |
+| story-0015-0006 | Implementacao dos Domain Services | story-0015-0004, story-0015-0005 | story-0015-0007, story-0015-0008, story-0015-0009, story-0015-0010, story-0015-0011, story-0015-0012, story-0015-0013 | 4 | Pending | Concluída |
+| story-0015-0007 | Adapter: YamlStackProfileRepository | story-0015-0006 | story-0015-0014 | 5 | Pending | Concluída |
+| story-0015-0008 | Adapter: PebbleTemplateRenderer | story-0015-0006 | story-0015-0013, story-0015-0014 | 5 | Pending | Concluída |
+| story-0015-0009 | Adapter: FileSystemWriterAdapter | story-0015-0006 | story-0015-0013, story-0015-0014 | 5 | Pending | Concluída |
+| story-0015-0010 | Adapter: FileCheckpointStore | story-0015-0006 | story-0015-0014 | 5 | Pending | Concluída |
+| story-0015-0011 | Adapter: ConsoleProgressReporter | story-0015-0006 | story-0015-0014 | 5 | Pending | Concluída |
+| story-0015-0012 | Adapter: CLI Input Adapter | story-0015-0006 | story-0015-0014 | 5 | Pending | Concluída |
+| story-0015-0013 | Migracao dos 23 Assemblers | story-0015-0008, story-0015-0009 | story-0015-0014 | 6 | Pending | Concluída |
+| story-0015-0014 | Composition Root: ApplicationFactory | story-0015-0007, story-0015-0008, story-0015-0009, story-0015-0010, story-0015-0011, story-0015-0012, story-0015-0013 | story-0015-0015 | 7 | Pending | Concluída |
+| story-0015-0015 | Ativacao ArchUnit e Limpeza Final | story-0015-0014 | — | 8 | Pending | Concluída |
 
 > **Nota:** story-0015-0004 e story-0015-0005 sao paralelas na Wave 3 — ambas dependem apenas de story-0015-0003 e sao bloqueadores de story-0015-0006. story-0015-0013 depende especificamente de story-0015-0008 e story-0015-0009 (adapters de template e filesystem usados pelos assemblers), nao de todos os adapters.
 
