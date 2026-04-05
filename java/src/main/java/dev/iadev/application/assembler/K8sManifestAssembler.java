@@ -17,7 +17,7 @@ import java.util.Optional;
 final class K8sManifestAssembler {
 
     private static final String CICD_TEMPLATES =
-            "cicd-templates";
+            "shared/cicd-templates";
     private static final String K8S_CONDITION =
             "kubernetes";
     private static final String CQRS_STYLE = "cqrs";

@@ -162,7 +162,7 @@ public final class CoreRulesWriter {
             Map<String, Object> context) {
         Path dest = rulesDir.resolve("02-domain.md");
         Path template = resourcesDir.resolve(
-                "templates/domain-template.md");
+                "shared/templates/domain-template.md");
         if (Files.exists(template)
                 && Files.isRegularFile(template)) {
             return CopyHelpers.copyTemplateFile(

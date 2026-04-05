@@ -20,7 +20,7 @@ final class RulesAssemblerCoverageHelper {
                 resourceDir.resolve("targets/claude/rules");
         Files.createDirectories(coreRules);
         Path templates =
-                resourceDir.resolve("templates");
+                resourceDir.resolve("shared/templates");
         Files.createDirectories(templates);
         Files.writeString(
                 templates.resolve("domain-template.md"),

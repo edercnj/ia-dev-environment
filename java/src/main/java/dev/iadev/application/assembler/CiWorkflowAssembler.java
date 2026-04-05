@@ -18,7 +18,7 @@ import java.util.Optional;
 final class CiWorkflowAssembler {
 
     private static final String CICD_TEMPLATES =
-            "cicd-templates";
+            "shared/cicd-templates";
     private static final String CI_TEMPLATE =
             "ci-workflow/ci.yml.njk";
 

@@ -18,7 +18,7 @@ import java.util.Optional;
 final class DockerfileAssembler {
 
     private static final String CICD_TEMPLATES =
-            "cicd-templates";
+            "shared/cicd-templates";
     private static final String DOCKER_CONDITION =
             "docker";
 

@@ -264,7 +264,7 @@ class DocsAssemblerTest {
                 @TempDir Path tempDir)
                 throws IOException {
             Path templatesDir =
-                    tempDir.resolve("templates");
+                    tempDir.resolve("shared/templates");
             Files.createDirectories(templatesDir);
             String template = "{% if framework_name"
                     + " %}fw={{ framework_name }}"

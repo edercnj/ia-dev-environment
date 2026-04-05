@@ -31,7 +31,7 @@ class ResourceDiscoveryTest {
             var discovery = new ResourceDiscovery();
 
             assertThat(discovery.resourceExists(
-                    "config-templates/setup-config.java-spring.yaml"))
+                    "shared/config-templates/setup-config.java-spring.yaml"))
                     .isTrue();
         }
 
@@ -70,10 +70,10 @@ class ResourceDiscoveryTest {
             var discovery = new ResourceDiscovery();
 
             URL url = discovery.findResource(
-                    "config-templates/setup-config.java-spring.yaml");
+                    "shared/config-templates/setup-config.java-spring.yaml");
 
             assertThat(url.toString()).contains(
-                    "config-templates/setup-config.java-spring.yaml");
+                    "shared/config-templates/setup-config.java-spring.yaml");
             assertThat(url.getProtocol()).isIn("file", "jar");
         }
 
@@ -99,15 +99,15 @@ class ResourceDiscoveryTest {
         void findResource_whenCalled_filesystemPrioritized(@TempDir Path tempDir)
                 throws IOException {
             Files.createDirectories(
-                    tempDir.resolve("config-templates"));
+                    tempDir.resolve("shared/config-templates"));
             Files.writeString(
                     tempDir.resolve(
-                            "config-templates/setup-config.java-spring.yaml"),
+                            "shared/config-templates/setup-config.java-spring.yaml"),
                     "filesystem-version");
             var discovery = new ResourceDiscovery(tempDir);
 
             URL url = discovery.findResource(
-                    "config-templates/setup-config.java-spring.yaml");
+                    "shared/config-templates/setup-config.java-spring.yaml");
 
             assertThat(url.getProtocol()).isEqualTo("file");
             assertThat(url.getPath()).contains(tempDir.toString());
@@ -120,10 +120,10 @@ class ResourceDiscoveryTest {
             var discovery = new ResourceDiscovery(tempDir);
 
             URL url = discovery.findResource(
-                    "config-templates/setup-config.java-spring.yaml");
+                    "shared/config-templates/setup-config.java-spring.yaml");
 
             assertThat(url.toString()).contains(
-                    "config-templates/setup-config.java-spring.yaml");
+                    "shared/config-templates/setup-config.java-spring.yaml");
         }
     }
 
@@ -169,7 +169,7 @@ class ResourceDiscoveryTest {
             var discovery = new ResourceDiscovery();
 
             String content = discovery.readResource(
-                    "config-templates/setup-config.java-spring.yaml");
+                    "shared/config-templates/setup-config.java-spring.yaml");
 
             assertThat(content).isNotEmpty();
             assertThat(content).contains("java-spring");
@@ -283,19 +283,19 @@ class ResourceDiscoveryTest {
     }
 
     @Nested
-    @DisplayName("all 8 config-templates accessible")
+    @DisplayName("all 8 shared/config-templates accessible")
     class ConfigTemplatesAccessible {
 
         @ParameterizedTest
         @ValueSource(strings = {
-                "config-templates/setup-config.go-gin.yaml",
-                "config-templates/setup-config.java-quarkus.yaml",
-                "config-templates/setup-config.java-spring.yaml",
-                "config-templates/setup-config.kotlin-ktor.yaml",
-                "config-templates/setup-config.python-click-cli.yaml",
-                "config-templates/setup-config.python-fastapi.yaml",
-                "config-templates/setup-config.rust-axum.yaml",
-                "config-templates/setup-config.typescript-nestjs.yaml"
+                "shared/config-templates/setup-config.go-gin.yaml",
+                "shared/config-templates/setup-config.java-quarkus.yaml",
+                "shared/config-templates/setup-config.java-spring.yaml",
+                "shared/config-templates/setup-config.kotlin-ktor.yaml",
+                "shared/config-templates/setup-config.python-click-cli.yaml",
+                "shared/config-templates/setup-config.python-fastapi.yaml",
+                "shared/config-templates/setup-config.rust-axum.yaml",
+                "shared/config-templates/setup-config.typescript-nestjs.yaml"
         })
         @DisplayName("config template exists and is readable")
         void configTemplate_existsAndReadable(String path) {

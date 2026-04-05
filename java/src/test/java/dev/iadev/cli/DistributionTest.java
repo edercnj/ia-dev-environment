@@ -268,7 +268,7 @@ class DistributionTest {
     }
 
     private String configPath(String profile) {
-        return "src/main/resources/config-templates/"
+        return "src/main/resources/shared/config-templates/"
                 + "setup-config." + profile + ".yaml";
     }
 }

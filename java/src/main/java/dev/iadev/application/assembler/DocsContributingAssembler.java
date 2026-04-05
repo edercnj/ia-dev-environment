@@ -41,7 +41,7 @@ public final class DocsContributingAssembler
         implements Assembler {
 
     private static final String TEMPLATE_PATH =
-            "templates/_TEMPLATE-CONTRIBUTING.md";
+            "shared/templates/_TEMPLATE-CONTRIBUTING.md";
     private static final String OUTPUT_SUBDIR =
             "specs/_templates";
     private static final String OUTPUT_FILENAME =
@@ -99,6 +99,6 @@ public final class DocsContributingAssembler
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(TEMPLATE_PATH, 2);
+                .resolveResourcesRoot(TEMPLATE_PATH, 3);
     }
 }

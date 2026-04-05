@@ -43,7 +43,7 @@ class ResourceResolverTest {
         void knownProbe_whenCalled_returnsExistingPath() {
             Path root = ResourceResolver
                     .resolveResourcesRoot(
-                            "config-templates");
+                            "shared/config-templates");
 
             assertThat(root).isAbsolute();
             assertThat(Files.isDirectory(root)).isTrue();
@@ -72,7 +72,7 @@ class ResourceResolverTest {
         void depth1_whenCalled_navigatesToParent() {
             Path root = ResourceResolver
                     .resolveResourcesRoot(
-                            "config-templates", 1);
+                            "shared/config-templates", 1);
 
             assertThat(root).isAbsolute();
             assertThat(Files.isDirectory(root)).isTrue();
@@ -85,7 +85,7 @@ class ResourceResolverTest {
         void depth0_whenCalled_returnsProbeDirectory() {
             Path root = ResourceResolver
                     .resolveResourcesRoot(
-                            "config-templates", 0);
+                            "shared/config-templates", 0);
 
             assertThat(root.getFileName().toString())
                     .isEqualTo("config-templates");
@@ -108,7 +108,7 @@ class ResourceResolverTest {
         void depth2_whenCalled_navigatesToGrandparent() {
             Path root = ResourceResolver
                     .resolveResourcesRoot(
-                            "config-templates", 2);
+                            "shared/config-templates", 2);
 
             assertThat(root).isAbsolute();
             assertThat(Files.isDirectory(root)).isTrue();
@@ -124,10 +124,10 @@ class ResourceResolverTest {
         void multipleCalls_whenCalled_returnSamePath() {
             Path first = ResourceResolver
                     .resolveResourcesRoot(
-                            "config-templates");
+                            "shared/config-templates");
             Path second = ResourceResolver
                     .resolveResourcesRoot(
-                            "config-templates");
+                            "shared/config-templates");
 
             assertThat(first).isEqualTo(second);
         }
@@ -138,10 +138,10 @@ class ResourceResolverTest {
         void differentProbes_whenCalled_bothReturnDirs() {
             Path fromSkills = ResourceResolver
                     .resolveResourcesRoot(
-                            "config-templates");
+                            "shared/config-templates");
             Path fromConfig = ResourceResolver
                     .resolveResourcesRoot(
-                            "config-templates");
+                            "shared/config-templates");
 
             assertThat(Files.isDirectory(fromSkills))
                     .isTrue();

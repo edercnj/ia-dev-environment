@@ -1,16 +1,16 @@
 {
   "resources": {
     "includes": [
-      { "pattern": "templates/.*" },
-      { "pattern": "config-templates/.*" },
+      { "pattern": "shared/templates/.*" },
+      { "pattern": "shared/config-templates/.*" },
       { "pattern": "targets/claude/agents/.*" },
-      { "pattern": "cicd-templates/.*" },
+      { "pattern": "shared/cicd-templates/.*" },
       { "pattern": "knowledge/cloud-providers/.*" },
       { "pattern": "targets/codex/templates/.*" },
       { "pattern": "knowledge/core/.*" },
       { "pattern": "targets/claude/rules/.*" },
       { "pattern": "knowledge/databases/.*" },
-      { "pattern": "docs/.*" },
+      { "pattern": "shared/docs/.*" },
       { "pattern": "knowledge/frameworks/.*" },
       { "pattern": "targets/github-copilot/agents/.*" },
       { "pattern": "targets/github-copilot/hooks/.*" },

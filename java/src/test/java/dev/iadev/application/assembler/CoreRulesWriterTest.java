@@ -207,7 +207,7 @@ class CoreRulesWriterTest {
                 @TempDir Path tempDir) throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Path templates =
-                    resourceDir.resolve("templates");
+                    resourceDir.resolve("shared/templates");
             Files.createDirectories(templates);
             Files.writeString(
                     templates.resolve("domain-template.md"),

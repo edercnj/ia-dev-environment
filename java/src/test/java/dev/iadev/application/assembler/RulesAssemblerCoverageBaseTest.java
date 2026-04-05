@@ -37,7 +37,7 @@ class RulesAssemblerCoverageBaseTest {
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(resourceDir);
             Path templates =
-                    resourceDir.resolve("templates");
+                    resourceDir.resolve("shared/templates");
             Files.createDirectories(templates);
             Files.writeString(
                     templates.resolve(
@@ -76,7 +76,7 @@ class RulesAssemblerCoverageBaseTest {
                             "targets/claude/rules"),
                     "not a directory");
             Path templates =
-                    resourceDir.resolve("templates");
+                    resourceDir.resolve("shared/templates");
             Files.createDirectories(templates);
             Files.writeString(
                     templates.resolve(
@@ -115,7 +115,7 @@ class RulesAssemblerCoverageBaseTest {
                     resourceDir.resolve("targets/claude/rules");
             Files.createDirectories(coreRules);
             Path templates =
-                    resourceDir.resolve("templates");
+                    resourceDir.resolve("shared/templates");
             Files.createDirectories(templates);
             Files.writeString(
                     templates.resolve(
@@ -153,7 +153,7 @@ class RulesAssemblerCoverageBaseTest {
                     resourceDir.resolve("knowledge/core"),
                     "not a dir");
             Path templates =
-                    resourceDir.resolve("templates");
+                    resourceDir.resolve("shared/templates");
             Files.createDirectories(templates);
             Files.writeString(
                     templates.resolve(

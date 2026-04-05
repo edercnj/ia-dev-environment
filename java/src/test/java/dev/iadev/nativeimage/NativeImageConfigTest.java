@@ -195,7 +195,7 @@ class NativeImageConfigTest {
         void containsTemplatePattern_whenParsed_templatesIncluded()
                 throws IOException {
             Set<String> patterns = extractPatterns();
-            assertThat(patterns).contains("templates/.*");
+            assertThat(patterns).contains("shared/templates/.*");
         }
 
         @Test
@@ -204,7 +204,7 @@ class NativeImageConfigTest {
                 throws IOException {
             Set<String> patterns = extractPatterns();
             assertThat(patterns).contains(
-                    "config-templates/.*");
+                    "shared/config-templates/.*");
         }
 
         @Test
@@ -213,8 +213,8 @@ class NativeImageConfigTest {
                 throws IOException {
             Set<String> patterns = extractPatterns();
             List<String> requiredPatterns = List.of(
-                    "templates/.*",
-                    "config-templates/.*",
+                    "shared/templates/.*",
+                    "shared/config-templates/.*",
                     "targets/claude/agents/.*",
                     "knowledge/core/.*",
                     "targets/claude/rules/.*",

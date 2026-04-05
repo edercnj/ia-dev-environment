@@ -12,11 +12,11 @@ class ResourceNotFoundExceptionTest {
     @DisplayName("carries resource path and strategies in message")
     void constructor_whenCalled_carriesPathAndStrategies() {
         var ex = new ResourceNotFoundException(
-                "templates/missing.txt",
+                "shared/templates/missing.txt",
                 "classpath, filesystem(/tmp/res)");
 
         assertThat(ex.getMessage())
-                .contains("Resource not found: templates/missing.txt")
+                .contains("Resource not found: shared/templates/missing.txt")
                 .contains("classpath, filesystem(/tmp/res)");
     }
 

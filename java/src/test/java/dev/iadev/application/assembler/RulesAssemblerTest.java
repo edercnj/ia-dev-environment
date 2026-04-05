@@ -222,7 +222,7 @@ class RulesAssemblerTest {
                     StandardCharsets.UTF_8);
 
             Path templates = resourceDir.resolve(
-                    "templates");
+                    "shared/templates");
             Files.createDirectories(templates);
             Files.writeString(
                     templates.resolve("domain-template.md"),
@@ -780,7 +780,7 @@ class RulesAssemblerTest {
     private static void createTemplatesDir(
             Path resourceDir) throws IOException {
         Path templates =
-                resourceDir.resolve("templates");
+                resourceDir.resolve("shared/templates");
         Files.createDirectories(templates);
         Files.writeString(
                 templates.resolve("domain-template.md"),

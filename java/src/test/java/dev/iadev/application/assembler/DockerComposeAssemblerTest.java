@@ -216,6 +216,6 @@ class DockerComposeAssemblerTest {
 
     private static Path resolveResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot("cicd-templates");
+                .resolveResourcesRoot("shared/cicd-templates", 2);
     }
 }

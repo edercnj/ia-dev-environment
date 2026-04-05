@@ -40,7 +40,7 @@ import java.util.Map;
 public final class CicdAssembler implements Assembler {
 
     private static final String CICD_TEMPLATES =
-            "cicd-templates";
+            "shared/cicd-templates";
 
     /**
      * Lint command mapping per language-buildTool key.
@@ -237,6 +237,6 @@ public final class CicdAssembler implements Assembler {
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(CICD_TEMPLATES);
+                .resolveResourcesRoot(CICD_TEMPLATES, 2);
     }
 }

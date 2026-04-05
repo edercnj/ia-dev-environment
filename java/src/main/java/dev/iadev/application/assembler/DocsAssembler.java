@@ -39,7 +39,7 @@ import java.util.Map;
 public final class DocsAssembler implements Assembler {
 
     private static final String TEMPLATE_PATH =
-            "templates/_TEMPLATE-SERVICE-ARCHITECTURE.md";
+            "shared/templates/_TEMPLATE-SERVICE-ARCHITECTURE.md";
     private static final String OUTPUT_SUBDIR =
             "steering";
     private static final String OUTPUT_FILENAME =
@@ -96,6 +96,6 @@ public final class DocsAssembler implements Assembler {
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(TEMPLATE_PATH, 2);
+                .resolveResourcesRoot(TEMPLATE_PATH, 3);
     }
 }

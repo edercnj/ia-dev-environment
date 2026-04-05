@@ -204,7 +204,7 @@ class CicdAssemblerCoverageTest {
                 throws IOException {
             Path resourceDir = tempDir.resolve("res");
             Files.createDirectories(
-                    resourceDir.resolve("cicd-templates"));
+                    resourceDir.resolve("shared/cicd-templates"));
             Path outputDir = tempDir.resolve("output");
             Files.createDirectories(outputDir);
 

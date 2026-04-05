@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * Unit and integration tests for {@link YamlStackProfileRepository}.
  *
  * <p>Tests use real YAML files from the classpath
- * ({@code config-templates/setup-config.*.yaml}) to verify
+ * ({@code shared/config-templates/setup-config.*.yaml}) to verify
  * correct loading and mapping to {@link StackProfile}.</p>
  */
 class YamlStackProfileRepositoryTest {

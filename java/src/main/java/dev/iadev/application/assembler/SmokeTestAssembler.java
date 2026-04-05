@@ -16,7 +16,7 @@ import java.util.List;
 final class SmokeTestAssembler {
 
     private static final String CICD_TEMPLATES =
-            "cicd-templates";
+            "shared/cicd-templates";
     private static final String SMOKE_SOURCE =
             "smoke-tests/smoke-config.md";
 

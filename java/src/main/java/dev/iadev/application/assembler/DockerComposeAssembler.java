@@ -15,7 +15,7 @@ import java.util.Optional;
 final class DockerComposeAssembler {
 
     private static final String CICD_TEMPLATES =
-            "cicd-templates";
+            "shared/cicd-templates";
     private static final String COMPOSE_TEMPLATE =
             "docker-compose/docker-compose.yml.njk";
     private static final String DOCKER_CONDITION =

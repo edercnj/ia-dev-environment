@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * resources and configuration.
  *
  * <p>These tests validate the JAR content from within
- * the classpath, ensuring templates, config-templates,
+ * the classpath, ensuring shared/templates, shared/config-templates,
  * and MANIFEST.MF are bundled correctly.
  *
  * <p>Tests follow TPP: manifest, templates, configs.
@@ -40,35 +40,35 @@ class FatJarContentTest {
     @Test
     void configTemplates_whenCalled_javaQuarkusExists() {
         assertResourceExists(
-                "config-templates/"
+                "shared/config-templates/"
                         + "setup-config.java-quarkus.yaml");
     }
 
     @Test
     void configTemplates_whenCalled_javaSpringExists() {
         assertResourceExists(
-                "config-templates/"
+                "shared/config-templates/"
                         + "setup-config.java-spring.yaml");
     }
 
     @Test
     void configTemplates_whenCalled_goGinExists() {
         assertResourceExists(
-                "config-templates/"
+                "shared/config-templates/"
                         + "setup-config.go-gin.yaml");
     }
 
     @Test
     void configTemplates_whenCalled_kotlinKtorExists() {
         assertResourceExists(
-                "config-templates/"
+                "shared/config-templates/"
                         + "setup-config.kotlin-ktor.yaml");
     }
 
     @Test
     void configTemplates_whenCalled_pythonFastapiExists() {
         assertResourceExists(
-                "config-templates/"
+                "shared/config-templates/"
                         + "setup-config.python-fastapi"
                         + ".yaml");
     }
@@ -76,7 +76,7 @@ class FatJarContentTest {
     @Test
     void configTemplates_whenCalled_pythonClickCliExists() {
         assertResourceExists(
-                "config-templates/"
+                "shared/config-templates/"
                         + "setup-config.python-click-cli"
                         + ".yaml");
     }
@@ -84,14 +84,14 @@ class FatJarContentTest {
     @Test
     void configTemplates_whenCalled_rustAxumExists() {
         assertResourceExists(
-                "config-templates/"
+                "shared/config-templates/"
                         + "setup-config.rust-axum.yaml");
     }
 
     @Test
     void configTemplates_whenCalled_typescriptNestjsExists() {
         assertResourceExists(
-                "config-templates/"
+                "shared/config-templates/"
                         + "setup-config"
                         + ".typescript-nestjs.yaml");
     }
@@ -99,7 +99,7 @@ class FatJarContentTest {
     @Test
     void configTemplates_whenCalled_typescriptCommanderExists() {
         assertResourceExists(
-                "config-templates/"
+                "shared/config-templates/"
                         + "setup-config"
                         + ".typescript-commander-cli"
                         + ".yaml");
@@ -108,31 +108,31 @@ class FatJarContentTest {
     @Test
     void templates_whenCalled_projectIdentityExists() {
         assertResourceExists(
-                "templates/project-identity-template.md");
+                "shared/templates/project-identity-template.md");
     }
 
     @Test
     void templates_whenCalled_domainTemplateExists() {
         assertResourceExists(
-                "templates/domain-template.md");
+                "shared/templates/domain-template.md");
     }
 
     @Test
     void templates_whenCalled_epicTemplateExists() {
         assertResourceExists(
-                "templates/_TEMPLATE-EPIC.md");
+                "shared/templates/_TEMPLATE-EPIC.md");
     }
 
     @Test
     void templates_whenCalled_storyTemplateExists() {
         assertResourceExists(
-                "templates/_TEMPLATE-STORY.md");
+                "shared/templates/_TEMPLATE-STORY.md");
     }
 
     @Test
     void templates_whenCalled_systemSpecsExists() {
         assertResourceExists(
-                "templates/SYSTEM_SPECS.md");
+                "shared/templates/SYSTEM_SPECS.md");
     }
 
     @Test

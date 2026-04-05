@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * technology stacks.
  *
  * <p>Each profile is loaded from a YAML config template on the
- * classpath (e.g., {@code config-templates/setup-config.java-spring.yaml})
+ * classpath (e.g., {@code shared/config-templates/setup-config.java-spring.yaml})
  * and converted to a {@link ProjectConfig} via {@code fromMap()}.
  * Profiles are loaded lazily and cached for subsequent access.
  *
@@ -64,7 +64,7 @@ public final class ConfigProfiles {
     );
 
     private static final String TEMPLATE_PATH_PREFIX =
-            "config-templates/setup-config.";
+            "shared/config-templates/setup-config.";
 
     private static final String TEMPLATE_PATH_SUFFIX = ".yaml";
 
