@@ -45,6 +45,7 @@ public final class KnowledgePackSelection {
         packs.addAll(selectCloudPacks(config));
         packs.addAll(selectArchitecturePacks(config));
         packs.addAll(selectDddStrategicPack(config));
+        packs.addAll(selectPciDssRequirementsPack(config));
         return packs;
     }
 
@@ -106,6 +107,15 @@ public final class KnowledgePackSelection {
                 || "ddd".equals(style)
                 || config.architecture().dddEnabled()) {
             return List.of("ddd-strategic");
+        }
+        return List.of();
+    }
+
+    private static List<String> selectPciDssRequirementsPack(
+            ProjectConfig config) {
+        if (config.security().frameworks()
+                .contains("pci-dss")) {
+            return List.of("pci-dss-requirements");
         }
         return List.of();
     }

@@ -83,7 +83,8 @@ public final class SkillGroupRegistry {
                 "release-management", "data-management",
                 "performance-engineering",
                 "feature-flags", "disaster-recovery",
-                "finops", "patterns-outbox"));
+                "finops", "patterns-outbox",
+                "pci-dss-requirements"));
         SKILL_GROUPS.put("git-troubleshooting", List.of(
                 "x-git-push", "x-ops-troubleshoot",
                 "x-ops-incident",
@@ -165,6 +166,10 @@ public final class SkillGroupRegistry {
         KP_SKILL_CONDITIONS.put(
                 "patterns-outbox",
                 c -> c.architecture().outboxPattern());
+        KP_SKILL_CONDITIONS.put(
+                "pci-dss-requirements",
+                c -> c.security().frameworks()
+                        .contains("pci-dss"));
     }
 
     private static final Set<String> CONTRACT_TYPES =
