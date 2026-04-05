@@ -4,15 +4,15 @@
 
 ## 1. DEPENDENCY MATRIX
 
-| Story ID | Blocked By | Blocks |
-|---|---|---|
-| STORY-0018-001 | -- | 002, 003, 004, 005 |
-| STORY-0018-002 | 001 | 007 |
-| STORY-0018-003 | 001 | 006 |
-| STORY-0018-004 | 001 | 006 |
-| STORY-0018-005 | 001 | 006 |
-| STORY-0018-006 | 003, 004, 005 | 007 |
-| STORY-0018-007 | 002, 006 | -- |
+| Story ID | Blocked By | Blocks | Status |
+|---|---|---|---|
+| STORY-0018-001 | -- | 002, 003, 004, 005 | Concluída |
+| STORY-0018-002 | 001 | 007 | Concluída |
+| STORY-0018-003 | 001 | 006 | Concluída |
+| STORY-0018-004 | 001 | 006 | Concluída |
+| STORY-0018-005 | 001 | 006 | Concluída |
+| STORY-0018-006 | 003, 004, 005 | 007 | Concluída |
+| STORY-0018-007 | 002, 006 | -- | Concluída |
 
 ---
 
