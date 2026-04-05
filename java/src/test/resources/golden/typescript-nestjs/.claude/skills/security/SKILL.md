@@ -25,6 +25,7 @@ Provides comprehensive security guidelines covering application security, crypto
 | `references/supply-chain-hardening.md` | SLSA framework levels, Sigstore/cosign setup, provenance attestation |
 | `references/sarif-template.md` | SARIF 2.1.0 template with required fields, custom properties, and examples per severity |
 | `references/security-scoring.md` | Security scoring model: formula, grades A-F, severity weights, output conventions |
+| `references/security-skill-template.md` | Canonical structure for security scanning skills, CI integration snippets, error handling conventions |
 
 ## Supply Chain Security
 
