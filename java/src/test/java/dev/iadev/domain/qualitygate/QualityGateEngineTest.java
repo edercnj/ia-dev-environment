@@ -337,32 +337,32 @@ class QualityGateEngineTest {
 
         @Test
         void normalize_zeroMaxRaw_returnsZero() {
-            assertThat(QualityGateEngine.normalize(0, 0))
+            assertThat(QualityGateScorer.normalize(0, 0))
                     .isZero();
         }
 
         @Test
         void normalize_fullScore_returns100() {
-            assertThat(QualityGateEngine.normalize(105, 105))
+            assertThat(QualityGateScorer.normalize(105, 105))
                     .isEqualTo(100);
         }
 
         @Test
         void normalize_halfScore_returns50() {
-            assertThat(QualityGateEngine.normalize(50, 100))
+            assertThat(QualityGateScorer.normalize(50, 100))
                     .isEqualTo(50);
         }
 
         @Test
         void computeMaxRaw_fourScenarios_returns115() {
             // 4*15 + 55 = 115
-            assertThat(QualityGateEngine.computeMaxRaw(4))
+            assertThat(QualityGateScorer.computeMaxRaw(4))
                     .isEqualTo(115);
         }
 
         @Test
         void computeMaxRaw_zeroScenarios_returns55() {
-            assertThat(QualityGateEngine.computeMaxRaw(0))
+            assertThat(QualityGateScorer.computeMaxRaw(0))
                     .isEqualTo(55);
         }
     }

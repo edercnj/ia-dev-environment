@@ -10,17 +10,8 @@ import java.util.List;
  * and produces a normalized score (0-100). Stories below the
  * threshold are rejected with actionable feedback.</p>
  *
- * <h3>Scoring Criteria</h3>
- * <ul>
- *   <li>Per-scenario Given/When/Then: 5 pts each (15/scenario)
- *   <li>Data contract mandatory fields: 10 pts
- *   <li>Explicit types in all fields: 10 pts
- *   <li>4+ scenarios (TPP coverage): 10 pts
- *   <li>No vague language globally: 15 pts
- *   <li>Valid dependencies: 10 pts
- * </ul>
- *
- * <p>Score is normalized to 100 maximum.</p>
+ * @see QualityGateScorer
+ * @see QualityGateResult
  */
 public final class QualityGateEngine {
 
@@ -34,7 +25,6 @@ public final class QualityGateEngine {
             DATA_CONTRACT_POINTS + TYPE_EXPLICITNESS_POINTS
                     + SCENARIO_COUNT_POINTS + VAGUENESS_POINTS
                     + DEPENDENCY_POINTS;
-    private static final int MAX_SCORE = 100;
 
     private QualityGateEngine() {
     }
@@ -42,9 +32,9 @@ public final class QualityGateEngine {
     /**
      * Evaluates a story markdown for quality.
      *
-     * @param storyContent    full markdown content
+     * @param storyContent     full markdown content
      * @param epicIndexEntries IDs of stories in the epic index
-     * @param threshold       minimum score for approval
+     * @param threshold        minimum score for approval
      * @return quality gate result with scores and action items
      */
     public static QualityGateResult evaluate(
@@ -60,8 +50,7 @@ public final class QualityGateEngine {
 
         var parsed = parseContent(
                 storyContent, epicIndexEntries);
-        var scores = computeScores(
-                parsed, scenarios);
+        var scores = computeScores(parsed, scenarios);
 
         return buildResult(scores, parsed, threshold);
     }
@@ -80,35 +69,30 @@ public final class QualityGateEngine {
     private static ComputedScores computeScores(
             ParsedContent parsed,
             List<GherkinScenario> scenarios) {
-        var scenarioScores = scoreScenarios(scenarios);
-        int rawScore = computeRawScore(
-                scenarioScores,
-                scoreDataContract(parsed.fields()),
-                scoreTypeExplicitness(parsed.fields()),
-                scoreScenarioCount(scenarios),
-                scoreVagueness(scenarios),
-                scoreDependencies(
-                        parsed.dependencies(),
-                        parsed.epicIndex()));
-        int maxRaw = computeMaxRaw(scenarios.size());
+        var ss = QualityGateScorer.scoreScenarios(scenarios);
+        int dc = QualityGateScorer
+                .scoreDataContract(parsed.fields());
+        int tp = QualityGateScorer
+                .scoreTypeExplicitness(parsed.fields());
+        int ct = QualityGateScorer
+                .scoreScenarioCount(scenarios);
+        int vg = QualityGateScorer
+                .scoreVagueness(scenarios);
+        int dp = QualityGateScorer.scoreDependencies(
+                parsed.dependencies(), parsed.epicIndex());
+        int raw = QualityGateScorer.computeRawScore(
+                ss, dc, tp, ct, vg, dp);
+        int maxRaw = QualityGateScorer
+                .computeMaxRaw(scenarios.size());
         return new ComputedScores(
-                scenarioScores,
-                scoreDataContract(parsed.fields()),
-                scoreTypeExplicitness(parsed.fields()),
-                scoreScenarioCount(scenarios),
-                scoreVagueness(scenarios),
-                scoreDependencies(
-                        parsed.dependencies(),
-                        parsed.epicIndex()),
-                normalize(rawScore, maxRaw));
+                ss, dc, tp, ct, vg, dp,
+                QualityGateScorer.normalize(raw, maxRaw));
     }
 
     private static QualityGateResult buildResult(
             ComputedScores scores,
             ParsedContent parsed,
             int threshold) {
-        var actionItems = buildActionItems(
-                scores, parsed);
         return new QualityGateResult(
                 scores.normalized(), threshold,
                 scores.normalized() >= threshold,
@@ -118,7 +102,7 @@ public final class QualityGateEngine {
                 scores.countScore(),
                 scores.vaguenessScore(),
                 scores.depScore(),
-                actionItems);
+                buildActionItems(scores, parsed));
     }
 
     private static QualityGateResult buildEmptyResult(
@@ -130,142 +114,23 @@ public final class QualityGateEngine {
                         + " — minimum 4 required"));
     }
 
-    private static List<ScenarioScore> scoreScenarios(
-            List<GherkinScenario> scenarios) {
-        var scores = new ArrayList<ScenarioScore>();
-        for (var scenario : scenarios) {
-            scores.add(ScenarioScorer.score(scenario));
-        }
-        return List.copyOf(scores);
-    }
-
-    private static int scoreDataContract(
-            List<DataContractField> fields) {
-        if (fields.isEmpty()) {
-            return 0;
-        }
-        boolean hasMandatory = fields.stream()
-                .anyMatch(DataContractField::mandatory);
-        return hasMandatory ? DATA_CONTRACT_POINTS : 0;
-    }
-
-    private static int scoreTypeExplicitness(
-            List<DataContractField> fields) {
-        if (fields.isEmpty()) {
-            return 0;
-        }
-        boolean allExplicit = fields.stream()
-                .noneMatch(f -> StoryMarkdownParser
-                        .isGenericType(f.type()));
-        return allExplicit ? TYPE_EXPLICITNESS_POINTS : 0;
-    }
-
-    private static int scoreScenarioCount(
-            List<GherkinScenario> scenarios) {
-        return scenarios.size() >= MIN_SCENARIOS
-                ? SCENARIO_COUNT_POINTS : 0;
-    }
-
-    private static int scoreVagueness(
-            List<GherkinScenario> scenarios) {
-        for (var scenario : scenarios) {
-            var terms = VaguenessDetector
-                    .checkScenario(scenario);
-            if (!terms.isEmpty()) {
-                return 0;
-            }
-        }
-        return VAGUENESS_POINTS;
-    }
-
-    private static int scoreDependencies(
-            List<String> dependencies,
-            List<String> epicIndex) {
-        if (dependencies.isEmpty()) {
-            return DEPENDENCY_POINTS;
-        }
-        for (var dep : dependencies) {
-            if (!epicIndex.contains(dep)) {
-                return 0;
-            }
-        }
-        return DEPENDENCY_POINTS;
-    }
-
-    private static int computeRawScore(
-            List<ScenarioScore> scenarioScores,
-            int dataContractScore,
-            int typeScore,
-            int countScore,
-            int vaguenessScore,
-            int depScore) {
-        int scenarioRaw = scenarioScores.stream()
-                .mapToInt(ScenarioScore::total).sum();
-        return scenarioRaw + dataContractScore
-                + typeScore + countScore
-                + vaguenessScore + depScore;
-    }
-
-    static int computeMaxRaw(int scenarioCount) {
-        int scenarioMax = scenarioCount
-                * ScenarioScore.MAX_STEP_SCORE * 3;
-        return scenarioMax + FIXED_CRITERIA_MAX;
-    }
-
-    static int normalize(int rawScore, int maxRaw) {
-        if (maxRaw <= 0) {
-            return 0;
-        }
-        int normalized = Math.round(
-                (float) rawScore / maxRaw * MAX_SCORE);
-        return Math.min(normalized, MAX_SCORE);
-    }
-
     private static List<String> buildActionItems(
             ComputedScores scores,
             ParsedContent parsed) {
         var items = new ArrayList<String>();
-        addScenarioActionItems(
-                items, scores.scenarioScores());
-        addDataContractActionItems(
-                items, parsed.fields());
-        addTypeActionItems(items, parsed.fields());
-        addCountActionItem(items, scores);
-        addVaguenessActionItem(items, scores);
-        addDependencyActionItems(
+        for (var s : scores.scenarioScores()) {
+            items.addAll(s.issues());
+        }
+        addContractItems(items, parsed.fields());
+        addCountItem(items, scores);
+        addVaguenessItem(items, scores);
+        addDependencyItems(
                 items, parsed.dependencies(),
                 parsed.epicIndex());
         return List.copyOf(items);
     }
 
-    private static void addCountActionItem(
-            List<String> items, ComputedScores scores) {
-        if (scores.countScore() == 0
-                && !scores.scenarioScores().isEmpty()) {
-            items.add("Only %d scenario(s) found"
-                    .formatted(scores.scenarioScores().size())
-                    + " — minimum 4 required for "
-                    + "TPP coverage");
-        }
-    }
-
-    private static void addVaguenessActionItem(
-            List<String> items, ComputedScores scores) {
-        if (scores.vaguenessScore() == 0) {
-            items.add("Vague language detected"
-                    + " in scenarios");
-        }
-    }
-
-    private static void addScenarioActionItems(
-            List<String> items,
-            List<ScenarioScore> scores) {
-        for (var s : scores) {
-            items.addAll(s.issues());
-        }
-    }
-
-    private static void addDataContractActionItems(
+    private static void addContractItems(
             List<String> items,
             List<DataContractField> fields) {
         if (fields.isEmpty()) {
@@ -277,23 +142,37 @@ public final class QualityGateEngine {
             items.add("Data contract: add at least "
                     + "1 mandatory (M) field");
         }
-    }
-
-    private static void addTypeActionItems(
-            List<String> items,
-            List<DataContractField> fields) {
-        var genericFields = fields.stream()
+        var generic = fields.stream()
                 .filter(f -> StoryMarkdownParser
                         .isGenericType(f.type()))
                 .toList();
-        if (!genericFields.isEmpty()) {
+        if (!generic.isEmpty()) {
             items.add("Data contract: %d field(s) "
-                    .formatted(genericFields.size())
+                    .formatted(generic.size())
                     + "without explicit type");
         }
     }
 
-    private static void addDependencyActionItems(
+    private static void addCountItem(
+            List<String> items, ComputedScores scores) {
+        if (scores.countScore() == 0
+                && !scores.scenarioScores().isEmpty()) {
+            items.add("Only %d scenario(s) found"
+                    .formatted(scores.scenarioScores().size())
+                    + " — minimum 4 required for "
+                    + "TPP coverage");
+        }
+    }
+
+    private static void addVaguenessItem(
+            List<String> items, ComputedScores scores) {
+        if (scores.vaguenessScore() == 0) {
+            items.add("Vague language detected"
+                    + " in scenarios");
+        }
+    }
+
+    private static void addDependencyItems(
             List<String> items,
             List<String> dependencies,
             List<String> epicIndex) {
@@ -304,5 +183,4 @@ public final class QualityGateEngine {
             }
         }
     }
-
 }
