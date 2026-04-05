@@ -22,6 +22,36 @@
 - **Disabled features:** Compression (CRIME attack), renegotiation (unless secure), 0-RTT replay-vulnerable data
 - **Disabled cipher suites:** NULL, EXPORT, DES, RC4, 3DES, MD5-based MACs
 
+### TLS 1.3 Configuration per {{FRAMEWORK}}
+
+Configure TLS 1.3 as the minimum protocol version in your {{FRAMEWORK}} application.
+All {{LANGUAGE}} services MUST enforce TLS 1.3 for external traffic and TLS 1.2+ for internal service-to-service communication.
+
+```
+// {{FRAMEWORK}} TLS configuration pattern ({{LANGUAGE}})
+// 1. Set minimum TLS version to 1.3
+// 2. Configure approved cipher suites only
+// 3. Disable client-initiated renegotiation
+// 4. Enable OCSP stapling for certificate validation
+
+server:
+    ssl:
+        enabled: true
+        protocol: TLS
+        enabled-protocols: TLSv1.3
+        ciphers:
+            - TLS_AES_256_GCM_SHA384
+            - TLS_AES_128_GCM_SHA256
+            - TLS_CHACHA20_POLY1305_SHA256
+        key-store: classpath:keystore.p12
+        key-store-type: PKCS12
+```
+
+**Environment-specific configuration:**
+- **Development:** Self-signed certificates are acceptable; generate via `keytool` or `openssl`
+- **Staging:** Use internal CA-signed certificates; validate certificate chain
+- **Production:** Use publicly trusted CA-signed certificates (ACME/Let's Encrypt preferred); enforce OCSP stapling; monitor expiration alerts at 30, 14, and 7 days
+
 ### Approved TLS 1.3 Cipher Suites
 
 ```
@@ -57,7 +87,7 @@ TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
 - Implement certificate rotation without downtime (dual certificate support)
 
 ```
-// mTLS configuration pattern
+// mTLS configuration pattern for {{FRAMEWORK}} ({{LANGUAGE}})
 tlsConfig:
     minVersion: TLS_1_3
     clientAuth: RequireAndVerifyClientCert
@@ -65,6 +95,39 @@ tlsConfig:
     certificates:
         certFile: /etc/ssl/service.crt
         keyFile: /etc/ssl/service.key
+```
+
+## Cipher Suite Selection
+
+### Selection Table
+
+| Category | Recommended | Acceptable | Deprecated |
+|----------|-------------|------------|------------|
+| Key Exchange | ECDHE, X25519 | DHE (2048+) | RSA key exchange, DH < 2048 |
+| Symmetric Encryption | AES-256-GCM, ChaCha20-Poly1305 | AES-128-GCM | 3DES, RC4, DES |
+| Hash / MAC | SHA-256, SHA-384, SHA-512 | SHA-3 | MD5, SHA-1 |
+| Signature | ECDSA P-256+, Ed25519, RSA-PSS 2048+ | RSA PKCS#1 v1.5 2048+ | RSA < 2048, DSA |
+
+**Rules:**
+- **Recommended:** Use for all new {{LANGUAGE}} implementations
+- **Acceptable:** Permitted for backward compatibility; plan migration to Recommended
+- **Deprecated:** FORBIDDEN in any new or existing {{FRAMEWORK}} configuration; remove immediately
+
+### {{FRAMEWORK}} Cipher Suite Configuration
+
+```
+// Configure cipher suites in {{FRAMEWORK}} ({{LANGUAGE}})
+// Only include Recommended and Acceptable suites
+// NEVER include Deprecated algorithms
+
+allowedCipherSuites:
+    # Recommended (TLS 1.3)
+    - TLS_AES_256_GCM_SHA384
+    - TLS_CHACHA20_POLY1305_SHA256
+    - TLS_AES_128_GCM_SHA256
+    # Acceptable (TLS 1.2 fallback)
+    - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+    - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 ```
 
 ## Encryption at Rest
@@ -87,7 +150,7 @@ tlsConfig:
 ### Envelope Encryption Pattern
 
 ```
-// Encrypt data using envelope encryption
+// Envelope encryption in {{LANGUAGE}} ({{FRAMEWORK}})
 function encryptData(plaintext):
     // 1. Generate a unique Data Encryption Key (DEK)
     dek = kms.generateDataKey(masterKeyId)
@@ -117,7 +180,7 @@ function decryptData(encryptedPayload):
 ### Application-Level Field Encryption
 
 ```
-// Encrypt sensitive fields before persistence
+// Field-level encryption in {{LANGUAGE}} ({{FRAMEWORK}})
 @Entity
 class Customer:
     id: UUID
@@ -135,6 +198,16 @@ class Customer:
 
 ## Hashing
 
+### Hashing Algorithm Selection
+
+| Use Case | Algorithm | Parameters | NEVER Use |
+|----------|-----------|-----------|-----------|
+| Password hashing | **Argon2id** (preferred), bcrypt (fallback) | Argon2id: Memory 64MB, Iterations 3, Parallelism 4; bcrypt: cost >= 12 | MD5, SHA-1, SHA-256 without salt, plain text |
+| Data integrity | **SHA-256**, SHA-3 (SHA3-256) | Default parameters | MD5, CRC32 |
+| HMAC | **HMAC-SHA-256**, HMAC-SHA-512 | Key length >= 256 bits | HMAC-MD5 |
+| Token generation | **CSPRNG** + Base64 | Minimum 128-bit entropy (32 hex chars) | Math.random(), UUID v4, predictable seeds |
+| High-performance integrity | BLAKE3 | Default parameters | MD5, Adler32 |
+
 ### Password Hashing
 
 | Algorithm | Parameters | Use Case |
@@ -144,6 +217,24 @@ class Customer:
 | **scrypt** (acceptable) | N: 2^17, r: 8, p: 1 | Password storage (alternative) |
 
 **FORBIDDEN for passwords:** MD5, SHA-1, SHA-256 (unsalted), plain text
+
+```
+// Password hashing in {{LANGUAGE}} ({{FRAMEWORK}})
+// GOOD -- Use Argon2id with secure parameters
+hashedPassword = argon2id.hash(password, {
+    memory: 65536,    // 64 MB
+    iterations: 3,
+    parallelism: 4,
+    hashLength: 32
+})
+
+// GOOD -- Verify password
+isValid = argon2id.verify(hashedPassword, candidatePassword)
+
+// BAD -- NEVER use fast hashing for passwords
+hashedPassword = sha256(password)           // FORBIDDEN
+hashedPassword = md5(password + salt)       // FORBIDDEN
+```
 
 ### Integrity Hashing
 
@@ -160,12 +251,13 @@ class Customer:
 - Use constant-time comparison to prevent timing attacks
 
 ```
-// GOOD — Constant-time HMAC verification
+// HMAC verification in {{LANGUAGE}} ({{FRAMEWORK}})
+// GOOD -- Constant-time HMAC verification
 function verifyWebhook(payload, signature, secret):
     expected = hmacSha256(payload, secret)
     return constantTimeEquals(expected, signature)  // Timing-safe comparison
 
-// BAD — Timing-vulnerable comparison
+// BAD -- Timing-vulnerable comparison
 function verifyWebhook(payload, signature, secret):
     expected = hmacSha256(payload, secret)
     return expected == signature  // Vulnerable to timing attack
@@ -178,16 +270,27 @@ function verifyWebhook(payload, signature, secret):
 - Never use `Math.random()`, `rand()`, or similar non-cryptographic PRNGs for security tokens
 
 ```
-// GOOD — CSPRNG token generation
+// Token generation in {{LANGUAGE}} ({{FRAMEWORK}})
+// GOOD -- CSPRNG token generation
 token = cryptoSecureRandom(32)  // 256-bit token
 sessionId = base64UrlEncode(cryptoSecureRandom(32))
 
-// BAD — Predictable token
+// BAD -- Predictable token
 token = md5(timestamp + username)
 sessionId = base64(Math.random().toString())
 ```
 
 ## Key Management
+
+### Key Management Patterns
+
+| Pattern | Description | Use When |
+|---------|-------------|----------|
+| KMS / Envelope Encryption | Master key in KMS encrypts data keys; data keys encrypt data | Default for all encryption at rest |
+| Key Rotation | Automated periodic key replacement with grace period | All key types (see rotation table below) |
+| Key Derivation (HKDF) | Derive multiple keys from a single master secret | Session keys, per-record keys |
+| Key Derivation (PBKDF2) | Derive encryption key from password | Encrypting user-owned data with user password |
+| Secrets Manager | Centralized storage for credentials and keys | All secrets (DB passwords, API keys, tokens) |
 
 ### Centralized Key Management
 
@@ -200,16 +303,36 @@ sessionId = base64(Math.random().toString())
 
 | Key Type | Rotation Frequency | Versioning |
 |----------|-------------------|------------|
-| Data encryption keys | 90 days | Mandatory — keep old versions to decrypt existing data |
-| Signing keys | 365 days | Mandatory — old key verifies existing signatures |
+| Data encryption keys | 90 days | Mandatory -- keep old versions to decrypt existing data |
+| Signing keys | 365 days | Mandatory -- old key verifies existing signatures |
 | TLS certificates | 90 days | Auto-renewed via ACME |
 | API signing keys | 180 days | Versioned (key ID in header) |
 | Master keys (KMS) | Annual review | Managed by KMS provider |
 
+### Key Derivation
+
+```
+// Key derivation in {{LANGUAGE}} ({{FRAMEWORK}})
+// HKDF -- Derive per-record encryption key from master secret
+function deriveKey(masterSecret, context, keyLength):
+    salt = cryptoSecureRandom(32)
+    prk = hkdfExtract(salt, masterSecret)
+    derivedKey = hkdfExpand(prk, context, keyLength)
+    return { derivedKey, salt }
+
+// PBKDF2 -- Derive encryption key from user password
+function deriveKeyFromPassword(password, salt):
+    return pbkdf2(password, salt, {
+        iterations: 600000,     // NIST SP 800-132 minimum
+        hashFunction: "SHA-256",
+        keyLength: 256
+    })
+```
+
 ### Key Versioning
 
 ```
-// Key versioning for seamless rotation
+// Key versioning in {{LANGUAGE}} ({{FRAMEWORK}})
 function decrypt(ciphertext, metadata):
     keyVersion = metadata.keyVersion
     key = keyStore.getKey(metadata.keyId, keyVersion)
@@ -224,6 +347,21 @@ function encrypt(plaintext, keyId):
         keyId: keyId,
         keyVersion: latestKey.version
     }
+```
+
+### Secrets Manager Integration
+
+```
+// Secrets manager integration in {{LANGUAGE}} ({{FRAMEWORK}})
+// Fetch secrets at startup, cache with TTL, auto-refresh
+function getSecret(secretName):
+    cached = secretCache.get(secretName)
+    if cached != null AND NOT cached.isExpired():
+        return cached.value
+
+    secret = secretsManager.getSecretValue(secretName)
+    secretCache.put(secretName, secret, ttl=300)  // 5-min TTL
+    return secret.value
 ```
 
 ### Separation of Duties
@@ -242,7 +380,7 @@ function encrypt(plaintext, keyId):
 ### Emergency Revocation
 
 ```
-// Emergency key revocation procedure
+// Emergency key revocation in {{LANGUAGE}} ({{FRAMEWORK}})
 function emergencyRevoke(keyId, reason):
     // 1. Disable key immediately
     keyStore.disableKey(keyId)
@@ -266,7 +404,7 @@ function emergencyRevoke(keyId, reason):
 - Reject requests with timestamps older than 5 minutes
 
 ```
-// API request signing pattern
+// API request signing in {{LANGUAGE}} ({{FRAMEWORK}})
 function signRequest(method, path, body, timestamp, secretKey):
     payload = method + "\n" + path + "\n" + timestamp + "\n" + sha256(body)
     signature = hmacSha256(payload, secretKey)
@@ -289,7 +427,7 @@ X-Key-Id: key-version-identifier
 **FORBIDDEN JWT algorithms:** `none`, HS256 with public key confusion, RSA with key < 2048 bits
 
 ```
-// JWT best practices
+// JWT signing in {{LANGUAGE}} ({{FRAMEWORK}})
 jwt.create({
     issuer: "auth-service",
     audience: "api-service",
@@ -316,19 +454,59 @@ jwt.create({
 - Document signature verification for consumers
 - Rotate webhook secrets on a regular schedule
 
-## Tokenization
+## Field-Level Encryption and Tokenization
 
-### Principles
+### Field-Level Encryption
 
+Use field-level encryption for sensitive data columns that require application-layer protection beyond TDE.
+
+**Deterministic vs Randomized Encryption:**
+
+| Mode | Properties | Use When |
+|------|-----------|----------|
+| Deterministic | Same plaintext produces same ciphertext; allows equality queries | Indexed lookup fields (email, tax ID) |
+| Randomized | Same plaintext produces different ciphertext each time; stronger security | Non-searchable fields (notes, addresses) |
+
+**Trade-offs:**
+- Deterministic encryption enables `WHERE email = ?` queries but leaks frequency distribution
+- Randomized encryption provides semantic security but prevents server-side search
+- Choose based on query requirements and threat model for your {{FRAMEWORK}} application
+
+### Format-Preserving Encryption (FPE)
+
+FPE encrypts data while preserving its original format (length, character set, check digits).
+
+| Data Type | Format Preserved | Algorithm |
+|-----------|-----------------|-----------|
+| Credit card PAN | 16 digits, Luhn-valid | FF1 (NIST SP 800-38G) |
+| Phone number | Country-specific format | FF3-1 |
+| SSN / Tax ID | NNN-NN-NNNN format | FF1 |
+
+```
+// Format-preserving encryption in {{LANGUAGE}} ({{FRAMEWORK}})
+function encryptFpe(plaintext, format, tweak):
+    key = keyStore.getLatestKey("fpe-key")
+    return ff1.encrypt(key, tweak, plaintext, format.radix)
+
+// Example: PAN encryption preserving format
+pan = "4111111111111111"
+encryptedPan = encryptFpe(pan, NUMERIC_16, merchantId)
+// Result: "9283746501928374" (still 16 digits)
+```
+
+### Vault-Based Tokenization
+
+Tokenization replaces sensitive data with non-reversible tokens stored in an isolated vault.
+Use for PCI-DSS compliance and data minimization.
+
+**Principles:**
 - **Non-reversible tokens:** Tokenization must not be reversible without access to the token vault
 - **Isolated vault:** Token-to-value mapping stored in a separate, hardened database
 - **Detokenization audit:** Every detokenization operation must be logged with requester identity and purpose
 - **Format-preserving:** Tokens maintain the format of the original data (e.g., 16-digit token for a 16-digit PAN)
 
-### Tokenization Pattern
-
 ```
-// Tokenize sensitive data
+// Vault-based tokenization in {{LANGUAGE}} ({{FRAMEWORK}})
 function tokenize(sensitiveValue, format):
     // 1. Generate format-preserving token
     token = tokenVault.generateToken(format)
@@ -357,7 +535,7 @@ function detokenize(token, purpose, requester):
     return originalValue
 ```
 
-### Use Cases
+### Tokenization Use Cases
 
 | Data Type | Tokenization Format | Example |
 |-----------|-------------------|---------|
