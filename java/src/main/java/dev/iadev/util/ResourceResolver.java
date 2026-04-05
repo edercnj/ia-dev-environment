@@ -30,6 +30,40 @@ public final class ResourceResolver {
     }
 
     /**
+     * Resolves a resource directory by its relative path
+     * within the resources root, without depth arithmetic.
+     *
+     * <p>Locates the first segment of {@code relativePath}
+     * on the classpath and derives the resources root,
+     * then appends the full relative path. Throws
+     * {@link IllegalArgumentException} if the resolved
+     * directory does not exist.</p>
+     *
+     * @param relativePath path relative to resources root
+     *                     (e.g. {@code "databases/cache/redis"})
+     * @return absolute filesystem path to the directory
+     * @throws IllegalArgumentException if the directory
+     *         cannot be found
+     */
+    public static Path resolveResourceDir(
+            String relativePath) {
+        String firstSegment = relativePath.contains("/")
+                ? relativePath.substring(
+                        0, relativePath.indexOf('/'))
+                : relativePath;
+
+        Path root = resolveResourcesRoot(firstSegment, 1);
+        Path resolved = root.resolve(relativePath);
+
+        if (!Files.isDirectory(resolved)) {
+            throw new IllegalArgumentException(
+                    "Resource directory not found: "
+                            + relativePath);
+        }
+        return resolved;
+    }
+
+    /**
      * Resolves the resources root directory by probing a
      * known resource name on the classpath.
      *

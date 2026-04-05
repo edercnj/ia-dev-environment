@@ -151,6 +151,72 @@ class ResourceResolverTest {
     }
 
     @Nested
+    @DisplayName("resolveResourceDir")
+    class ResolveResourceDir {
+
+        @Test
+        @DisplayName("nonexistent path throws exception")
+        void nonexistentPath_whenCalled_throwsException() {
+            assertThatThrownBy(() ->
+                    ResourceResolver.resolveResourceDir(
+                            "nonexistent/path/dir"))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining(
+                            "nonexistent/path/dir");
+        }
+
+        @Test
+        @DisplayName("1-level path returns existing dir")
+        void oneLevelPath_whenCalled_returnsExistingDir() {
+            Path result = ResourceResolver
+                    .resolveResourceDir("core");
+
+            assertThat(result).isAbsolute();
+            assertThat(Files.isDirectory(result)).isTrue();
+            assertThat(result.getFileName().toString())
+                    .isEqualTo("core");
+        }
+
+        @Test
+        @DisplayName("2-level path returns existing dir")
+        void twoLevelPath_whenCalled_returnsExistingDir() {
+            Path result = ResourceResolver
+                    .resolveResourceDir(
+                            "databases/cache");
+
+            assertThat(result).isAbsolute();
+            assertThat(Files.isDirectory(result)).isTrue();
+            assertThat(result.getFileName().toString())
+                    .isEqualTo("cache");
+        }
+
+        @Test
+        @DisplayName("3-level path returns existing dir")
+        void threeLevelPath_whenCalled_returnsExistingDir() {
+            Path result = ResourceResolver
+                    .resolveResourceDir(
+                            "databases/cache/redis");
+
+            assertThat(result).isAbsolute();
+            assertThat(Files.isDirectory(result)).isTrue();
+            assertThat(result.getFileName().toString())
+                    .isEqualTo("redis");
+        }
+
+        @Test
+        @DisplayName("consistent with legacy method")
+        void consistent_whenCalled_matchesLegacy() {
+            Path legacyRoot = ResourceResolver
+                    .resolveResourcesRoot("core", 1);
+            Path newResult = ResourceResolver
+                    .resolveResourceDir("core");
+
+            assertThat(newResult.getParent())
+                    .isEqualTo(legacyRoot);
+        }
+    }
+
+    @Nested
     @DisplayName("shouldSkip")
     class ShouldSkip {
 
