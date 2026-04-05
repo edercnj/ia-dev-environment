@@ -53,4 +53,4 @@ PCI-DSS v4.0 requirements mapped to concrete Java code practices for {project_na
 - All user input validated and sanitized
 - Security scanning (SAST/DAST) integrated in CI/CD
 
-> For full requirement details with code examples, see the Claude knowledge pack `skills/pci-dss-requirements/SKILL.md`.
+> For full requirement details with code examples, see `.github/skills/pci-dss-requirements/SKILL.md`.

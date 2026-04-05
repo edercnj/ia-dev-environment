@@ -125,7 +125,7 @@ Performance tests require realistic data generators:
 
 ## Regression Detection
 
-Compare current test results against a stored baseline to detect performance regressions automatically. When `--compare-baseline` is specified, the skill loads `docs/performance/baseline.json` and compares each metric.
+Compare current test results against a stored baseline to detect performance regressions automatically. When `--compare-baseline` is specified, the skill loads `results/performance/baseline.json` and compares each metric.
 
 ### Detection Rules
 
@@ -141,7 +141,7 @@ Compare current test results against a stored baseline to detect performance reg
 ```
 1. Execute performance tests (normal scenario)
 2. Collect metrics (p50, p95, p99, throughput, error_rate)
-3. Load baseline from docs/performance/baseline.json
+3. Load baseline from results/performance/baseline.json
 4. Compare each metric per endpoint/operation
 5. Classify: PASS (within threshold) or FAIL (regression detected)
 6. Generate comparison report with delta percentages
@@ -162,7 +162,7 @@ When `--save-baseline` is specified:
 
 1. Execute the selected scenario
 2. Collect all metrics
-3. Write results to `docs/performance/baseline.json`
+3. Write results to `results/performance/baseline.json`
 4. Overwrite existing baseline (with backup to `baseline.prev.json`)
 
 ### Compare Against Baseline
@@ -175,7 +175,7 @@ When `--save-baseline` is specified:
 When `--compare-baseline` is specified:
 
 1. Execute the selected scenario
-2. Load `docs/performance/baseline.json`
+2. Load `results/performance/baseline.json`
 3. Compare metrics per endpoint/operation
 4. Report PASS/FAIL with delta percentages
 

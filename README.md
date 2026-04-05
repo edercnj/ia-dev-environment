@@ -32,7 +32,7 @@ A CLI tool that generates complete `.claude/`, `.github/`, `.codex/`, and `.agen
 - **Claude Code** (`.claude/`) -- rules, skills, agents, hooks, settings
 - **GitHub Copilot** (`.github/`) -- instructions, skills, agents, prompts, hooks
 - **OpenAI Codex** (`.codex/`, `.agents/`) -- config, agent instructions, shared skills
-- **Documentation** (`steering/`, `specs/`, `results/`, `contracts/`, `adr/`) -- architecture, specs, runbooks, contracts, ADRs
+- **Documentation** (`steering/`, `specs/`, `plans/`, `results/`, `contracts/`, `adr/`) -- architecture, specs, stories, runbooks, contracts, ADRs
 - **CI/CD** -- Dockerfile, docker-compose, GitHub Actions workflows, Kubernetes manifests
 
 All generated artifacts enforce consistent engineering standards: coding conventions, architecture boundaries, TDD workflow, coverage thresholds, and security practices.

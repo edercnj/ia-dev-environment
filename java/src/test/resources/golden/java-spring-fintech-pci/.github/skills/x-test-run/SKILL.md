@@ -91,6 +91,33 @@ Global Coverage: XX% line / XX% branch
 - Domain fixtures separate from protocol/format fixtures
 - Generate unique identifiers to avoid conflicts between test runs
 
+## Traceability Matrix (--traceability flag)
+
+When invoked with `--traceability [STORY-ID|EPIC-ID]`, generates a bidirectional requirement-to-test mapping report.
+
+### Usage
+
+```bash
+# Single story traceability
+/x-test-run --traceability STORY-0007-0003
+
+# Epic-wide traceability (consolidates all stories)
+/x-test-run --traceability EPIC-0007
+```
+
+### Output
+
+Generates `results/traceability/traceability-{ID}-{YYYY-MM-DD}.md` containing:
+
+1. **Requirement -> Test -> Execution** table mapping each @GK-N scenario to its test class, method, status (PASS/FAIL/SKIP), and line coverage
+2. **Unmapped Requirements** — scenarios with no corresponding test
+3. **Unmapped Tests** — test methods not linked to any story scenario
+4. **Coverage Summary** — stories covered, scenarios covered, pass/skip/fail counts
+
+### Epic Consolidation
+
+For EPIC-ID, the matrix consolidates all stories in the epic with one section per story and a global summary at the end with aggregated totals.
+
 ## Detailed References
 
 For in-depth guidance on test execution, consult:

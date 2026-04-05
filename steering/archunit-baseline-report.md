@@ -7,16 +7,18 @@
 
 ## Summary
 
-| Rule | ID | Violations | Status |
-|------|------|-----------|--------|
-| domainShouldNotDependOnInfrastructure | RULE-001a | 98 | @Disabled |
-| domainShouldNotDependOnApplication | RULE-001b | 0 | @Disabled |
-| domainModelShouldNotHaveFrameworkAnnotations | RULE-004 | 0 | @Disabled |
-| outputPortsShouldBeInterfaces | RULE-002 | 0 | @Disabled |
-| inputPortsShouldBeInterfaces | RULE-003a | 0 | @Disabled |
-| cliShouldOnlyAccessInputPorts | RULE-003b | 0 | @Disabled |
-| compositionRootShouldBeUnique | RULE-005 | 0 | @Disabled |
-| **Total** | | **98** | |
+
+| Rule                                         | ID        | Violations | Status    |
+| -------------------------------------------- | --------- | ---------- | --------- |
+| domainShouldNotDependOnInfrastructure        | RULE-001a | 98         | @Disabled |
+| domainShouldNotDependOnApplication           | RULE-001b | 0          | @Disabled |
+| domainModelShouldNotHaveFrameworkAnnotations | RULE-004  | 0          | @Disabled |
+| outputPortsShouldBeInterfaces                | RULE-002  | 0          | @Disabled |
+| inputPortsShouldBeInterfaces                 | RULE-003a | 0          | @Disabled |
+| cliShouldOnlyAccessInputPorts                | RULE-003b | 0          | @Disabled |
+| compositionRootShouldBeUnique                | RULE-005  | 0          | @Disabled |
+| **Total**                                    |           | **98**     |           |
+
 
 ## RULE-001a: domainShouldNotDependOnInfrastructure (98 violations)
 
@@ -26,26 +28,30 @@
 
 ### Violating Classes (7 domain classes)
 
-| Domain Class | Depends On | Violation Count |
-|-------------|-----------|----------------|
-| `CoreKpRouting` | `ProjectConfig`, `ArchitectureConfig` | 4 |
-| `PatternMapping` | `ProjectConfig`, `ArchitectureConfig` | 5 |
-| `ProtocolMapping` | `ProjectConfig`, `InterfaceConfig` | 9 |
-| `SkillRegistry` | `InfraConfig` | 7 |
-| `StackResolver` | `ProjectConfig`, `FrameworkConfig`, `LanguageConfig`, `InterfaceConfig` | 25 |
-| `StackValidator` | `ProjectConfig`, `FrameworkConfig`, `LanguageConfig`, `ArchitectureConfig`, `InterfaceConfig` | 25 |
-| `StackVersionValidator` | `ProjectConfig`, `FrameworkConfig`, `LanguageConfig` | 23 |
+
+| Domain Class            | Depends On                                                                                    | Violation Count |
+| ----------------------- | --------------------------------------------------------------------------------------------- | --------------- |
+| `CoreKpRouting`         | `ProjectConfig`, `ArchitectureConfig`                                                         | 4               |
+| `PatternMapping`        | `ProjectConfig`, `ArchitectureConfig`                                                         | 5               |
+| `ProtocolMapping`       | `ProjectConfig`, `InterfaceConfig`                                                            | 9               |
+| `SkillRegistry`         | `InfraConfig`                                                                                 | 7               |
+| `StackResolver`         | `ProjectConfig`, `FrameworkConfig`, `LanguageConfig`, `InterfaceConfig`                       | 25              |
+| `StackValidator`        | `ProjectConfig`, `FrameworkConfig`, `LanguageConfig`, `ArchitectureConfig`, `InterfaceConfig` | 25              |
+| `StackVersionValidator` | `ProjectConfig`, `FrameworkConfig`, `LanguageConfig`                                          | 23              |
+
 
 ### Imported Model Types
 
-| Model Type | Domain Classes Using It |
-|-----------|----------------------|
-| `dev.iadev.model.ProjectConfig` | `CoreKpRouting`, `PatternMapping`, `ProtocolMapping`, `StackResolver`, `StackValidator`, `StackVersionValidator` |
-| `dev.iadev.model.FrameworkConfig` | `StackResolver`, `StackValidator`, `StackVersionValidator` |
-| `dev.iadev.model.LanguageConfig` | `StackResolver`, `StackValidator`, `StackVersionValidator` |
-| `dev.iadev.model.InfraConfig` | `SkillRegistry` |
-| `dev.iadev.model.ArchitectureConfig` | `CoreKpRouting`, `PatternMapping`, `StackValidator` |
-| `dev.iadev.model.InterfaceConfig` | `ProtocolMapping`, `StackResolver`, `StackValidator` |
+
+| Model Type                           | Domain Classes Using It                                                                                          |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `dev.iadev.model.ProjectConfig`      | `CoreKpRouting`, `PatternMapping`, `ProtocolMapping`, `StackResolver`, `StackValidator`, `StackVersionValidator` |
+| `dev.iadev.model.FrameworkConfig`    | `StackResolver`, `StackValidator`, `StackVersionValidator`                                                       |
+| `dev.iadev.model.LanguageConfig`     | `StackResolver`, `StackValidator`, `StackVersionValidator`                                                       |
+| `dev.iadev.model.InfraConfig`        | `SkillRegistry`                                                                                                  |
+| `dev.iadev.model.ArchitectureConfig` | `CoreKpRouting`, `PatternMapping`, `StackValidator`                                                              |
+| `dev.iadev.model.InterfaceConfig`    | `ProtocolMapping`, `StackResolver`, `StackValidator`                                                             |
+
 
 ### Remediation Plan
 
@@ -86,9 +92,12 @@ Domain does not currently depend on `dev.iadev.config`. Rule passes in current s
 
 This report serves as the baseline (T0). As migration stories complete, rules are activated (remove `@Disabled`), and this section will be updated:
 
-| Story | Rule(s) Activated | Expected Violation Delta |
-|-------|-------------------|------------------------|
+
+| Story           | Rule(s) Activated              | Expected Violation Delta            |
+| --------------- | ------------------------------ | ----------------------------------- |
 | story-0015-0003 | RULE-001a, RULE-001b, RULE-004 | -98 (model classes moved to domain) |
-| story-0015-0004 | RULE-002 | 0 (new ports created as interfaces) |
-| story-0015-0005 | RULE-003a, RULE-003b | 0 (new ports created as interfaces) |
-| story-0015-0014 | RULE-005 | 0 (composition root properly wired) |
+| story-0015-0004 | RULE-002                       | 0 (new ports created as interfaces) |
+| story-0015-0005 | RULE-003a, RULE-003b           | 0 (new ports created as interfaces) |
+| story-0015-0014 | RULE-005                       | 0 (composition root properly wired) |
+
+

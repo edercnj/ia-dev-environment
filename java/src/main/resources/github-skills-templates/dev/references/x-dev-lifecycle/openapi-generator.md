@@ -6,7 +6,7 @@
 ## Purpose
 
 This generator instructs the documentation phase subagent to scan inbound REST adapters and produce
-an OpenAPI 3.1 specification in YAML format. The output file is `docs/api/openapi.yaml`.
+an OpenAPI 3.1 specification in YAML format. The output file is `contracts/api/openapi.yaml`.
 
 ---
 
@@ -320,14 +320,14 @@ responses:
 
 ## 6. Output
 
-- **File path:** `docs/api/openapi.yaml`
+- **File path:** `contracts/api/openapi.yaml`
 - **Format:** YAML (not JSON)
 - **Encoding:** UTF-8
 - **Validation:** The generated spec MUST be valid OpenAPI 3.1.0
 
 ### 6.1 Incremental Updates
 
-If `docs/api/openapi.yaml` already exists:
+If `contracts/api/openapi.yaml` already exists:
 - **Preserve** existing endpoints and schemas
 - **Add** newly discovered endpoints and DTOs
 - **Update** modified endpoints (changed parameters, responses, or schemas)
@@ -369,4 +369,4 @@ Before finalizing the OpenAPI spec, verify:
 - [ ] All error responses use RFC 7807 `ProblemDetail` schema
 - [ ] All HTTP methods are documented (GET, POST, PUT, DELETE, PATCH as applicable)
 - [ ] Tags group endpoints by controller/resource
-- [ ] Output is valid YAML at `docs/api/openapi.yaml`
+- [ ] Output is valid YAML at `contracts/api/openapi.yaml`

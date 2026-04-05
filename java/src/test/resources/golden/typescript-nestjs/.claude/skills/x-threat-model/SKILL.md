@@ -2,7 +2,7 @@
 name: x-threat-model
 description: "Generate threat models using STRIDE analysis: identify components, map data flows, analyze threats per category, classify severity, suggest mitigations, and produce threat model document."
 user-invocable: true
-argument-hint: "[architecture-plan-path] [--format stride|pasta|linddun] [--output docs/security/]"
+argument-hint: "[architecture-plan-path] [--format stride|pasta|linddun] [--output results/security/]"
 allowed-tools: Read, Write, Glob, Grep, Agent
 ---
 
@@ -25,7 +25,7 @@ Generates automated threat models for {{PROJECT_NAME}} using STRIDE analysis. Id
 - `/x-threat-model --format stride` -- STRIDE analysis (default)
 - `/x-threat-model --format pasta` -- PASTA analysis (risk-centric)
 - `/x-threat-model --format linddun` -- LINDDUN analysis (privacy-focused)
-- `/x-threat-model --output docs/security/` -- specify output directory
+- `/x-threat-model --output results/security/` -- specify output directory
 
 ## Workflow
 
@@ -201,7 +201,7 @@ For each identified threat, suggest concrete mitigations referencing the securit
 
 ### Step 7 -- GENERATE Threat Model Document
 
-Generate the threat model document at the specified output path (default: `docs/security/threat-model.md`).
+Generate the threat model document at the specified output path (default: `results/security/threat-model.md`).
 
 **Document Structure:**
 

@@ -10,7 +10,7 @@
   EXAMPLE USAGE:
   - Place in `src/tests/` to give test-specific instructions
   - Place in `src/legacy/` to relax coding standards for legacy code
-  - Place in `docs/` to switch Codex to documentation-writing mode
+  - Place in `steering/` to switch Codex to documentation-writing mode
 
   To activate: remove these comments and add your override instructions below.
   To deactivate: delete this file or rename it.

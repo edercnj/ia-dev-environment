@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Assembles {@code docs/api/grpc-reference.md} from the
+ * Assembles {@code contracts/api/grpc-reference.md} from the
  * {@code _TEMPLATE-GRPC-REFERENCE.md} Pebble template.
  *
  * <p>This is the fifteenth assembler in the pipeline

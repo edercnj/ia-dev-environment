@@ -13,7 +13,7 @@ All API specifications MUST use OpenAPI 3.1.x (aligned with JSON Schema 2020-12)
 
 ### Single-File Approach (Small APIs)
 
-Use a single `openapi.yaml` when the API has fewer than 10 endpoints and fewer than 15 schemas. Place at `docs/openapi.yaml` or `src/main/resources/openapi.yaml` depending on framework convention.
+Use a single `openapi.yaml` when the API has fewer than 10 endpoints and fewer than 15 schemas. Place at `contracts/api/openapi.yaml` or `src/main/resources/openapi.yaml` depending on framework convention.
 
 ### Multi-File Approach (Recommended for Larger APIs)
 

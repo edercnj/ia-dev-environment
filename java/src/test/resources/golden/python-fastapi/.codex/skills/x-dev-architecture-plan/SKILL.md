@@ -157,7 +157,7 @@ Launch a **single** `general-purpose` subagent with the following prompt:
 > For Simplified Plan: read only Architecture KP + KPs relevant to affected sections.
 >
 > **Step 4 — Review existing architecture:**
-> - Check for existing architecture documents in `docs/`
+> - Check for existing architecture documents in `steering/`
 > - Review current codebase structure to understand the baseline
 > - Identify what is new vs. what is changing
 >
