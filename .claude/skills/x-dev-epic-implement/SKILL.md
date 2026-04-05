@@ -540,7 +540,7 @@ merged, drastically reducing conflict rates in epics with 4+ parallel stories.
         - `git rebase --abort` (restore branch to pre-rebase state)
         - Update checkpoint: `updateStoryStatus(epicDir, storyId, { status: "REBASE_FAILED", summary })`
         - Then: `updateStoryStatus(epicDir, storyId, { status: "FAILED", summary })`
-        - Trigger block propagation for dependent stories (per story-0005-0007)
+        - Trigger block propagation for dependent stories (see Section 1.5b)
 
 5. For stories with `status: "FAILED"` or `PARTIAL` from subagent dispatch:
    - Do NOT attempt merge or rebase
@@ -548,7 +548,7 @@ merged, drastically reducing conflict rates in epics with 4+ parallel stories.
      `updateStoryStatus(epicDir, storyId, { status: "FAILED", summary, lastAttemptSha })`
      (RULE-002). This MUST move the story out of `IN_PROGRESS` so it is not left stuck
      in the checkpoint from the 1.4a dispatch phase.
-   - Then delegate to failure handling (retry + block propagation per story-0005-0007)
+   - Then delegate to failure handling (see Section 1.5b: Failure Handling, Rollback, and Retry)
 
 **Checkpoint States for Rebase-Before-Merge:**
 
@@ -613,7 +613,7 @@ return status FAILED with a clear explanation.
 **On Resolution FAILED:**
 - For rebase conflicts: execute `git rebase --abort` to restore the branch to its pre-rebase state
 - Mark the story as FAILED (via REBASE_FAILED intermediate state for rebase conflicts)
-- Trigger block propagation for dependent stories (per story-0005-0007)
+- Trigger block propagation for dependent stories (see Section 1.5b)
 - Preserve the worktree for manual diagnosis (see Section 1.4d)
 
 ### 1.4d Worktree Cleanup
@@ -708,7 +708,130 @@ These rules can reclassify a `SUCCESS` status to `FAILED` if quality thresholds 
 **Validation Order:** Structural (1.5.1) → Extended fields (1.5.2) → Quality enforcement (1.5.3).
 The first failing check short-circuits: subsequent checks are not evaluated.
 
-[Placeholder: retry with error context — story-0005-0007]
+### 1.5b Failure Handling, Rollback, and Retry
+
+When a story is classified as `FAILED` (by subagent result, validation failure, rebase failure,
+or coverage/TDD gate), execute the following steps in order.
+
+#### Step 1 — Capture Failure Context
+
+Before any rollback or retry, capture the failure context into a structured record:
+
+```json
+{
+  "storyId": "<story ID>",
+  "failureSummary": "<human-readable description of what failed>",
+  "lastCommitSha": "<last commit SHA on the story branch, or null if no commits>",
+  "failedPhase": "<phase where failure occurred: dispatch | validation | rebase | merge | coverage | tdd>",
+  "retryCount": 0,
+  "timestamp": "<ISO-8601 UTC>"
+}
+```
+
+Persist this record to the checkpoint via:
+`updateStoryStatus(epicDir, storyId, { status: "FAILED", summary: failureSummary, failedPhase, lastCommitSha })`
+
+#### Step 2 — Rollback Decision Table
+
+Evaluate the current execution mode and commit state to determine the rollback action:
+
+| Condition | Action |
+|-----------|--------|
+| No commits on story branch (`lastCommitSha` is null) | No rollback needed; mark status `FAILED` |
+| Commits exist, sequential mode (`--sequential`) | `git revert --no-edit <sha1>..<shaN>` on the epic branch to undo all story commits |
+| Commits exist, parallel/worktree mode (default) | Do NOT merge the story branch into epic branch; discard the worktree via `git worktree remove <path> --force` but preserve the branch for diagnosis |
+| Story partially merged to epic branch (merge commit exists) | `git revert --no-edit <merge-sha>` on the epic branch to undo the partial merge |
+
+**Rollback execution:**
+
+1. Identify the rollback scenario from the table above
+2. Execute the corresponding git command (if applicable)
+3. Verify the epic branch is clean: `git diff HEAD --stat` should show no uncommitted changes
+4. Update checkpoint: `updateStoryStatus(epicDir, storyId, { status: "ROLLED_BACK", rollbackAction: "<action taken>" })`
+5. Log: `"Story {storyId} rollback complete: {action taken}"`
+
+**Rollback Checkpoint States:**
+
+| State | Description |
+|-------|-------------|
+| `ROLLING_BACK` | Rollback in progress for this story |
+| `ROLLED_BACK` | Rollback completed successfully |
+| `ROLLBACK_FAILED` | Rollback command failed (requires manual intervention) |
+
+If a rollback command fails (non-zero exit code):
+- Set status to `ROLLBACK_FAILED`
+- Log: `"CRITICAL: Rollback failed for story {storyId}. Manual intervention required."`
+- Do NOT attempt retry; proceed directly to block propagation (Step 4)
+
+#### Step 3 — Retry (retries < MAX_RETRIES)
+
+**MAX_RETRIES = 2** (configurable via `--max-retries` flag, default: 2).
+
+After successful rollback (or when no rollback was needed), evaluate whether to retry:
+
+1. Check retry counter: `if (failureContext.retryCount < MAX_RETRIES)`
+2. Increment retry counter: `failureContext.retryCount += 1`
+3. Update checkpoint: `updateStoryStatus(epicDir, storyId, { status: "RETRYING", retryCount: failureContext.retryCount })`
+4. Construct retry subagent prompt with error context appended:
+
+```
+[Original story prompt from Section 1.4]
+
+--- RETRY CONTEXT (Attempt {retryCount} of {MAX_RETRIES}) ---
+Previous attempt failed.
+- Failed Phase: {failedPhase}
+- Failure Summary: {failureSummary}
+- Last Commit SHA: {lastCommitSha || "none"}
+
+IMPORTANT: Address the failure described above. Do NOT repeat the same approach
+that caused the previous failure. If the failure was in tests, review and fix
+the test or implementation. If the failure was in compilation, check for syntax
+or type errors. If the failure was in coverage, add missing test cases.
+--- END RETRY CONTEXT ---
+```
+
+5. Re-dispatch the story via Section 1.4 (sequential) or Section 1.4a (parallel/worktree)
+6. The retry follows the same validation pipeline (Section 1.5 → 1.5b → 1.6)
+
+**Retry Checkpoint States:**
+
+| State | Description |
+|-------|-------------|
+| `RETRYING` | Story is being retried after a previous failure |
+
+If the retry succeeds, the story proceeds through the normal SUCCESS flow.
+If the retry fails, Step 1 captures the new failure context and the cycle repeats
+until `retryCount >= MAX_RETRIES`.
+
+#### Step 4 — Block Propagation (retries exhausted)
+
+When `retryCount >= MAX_RETRIES` (all retries exhausted), propagate the failure to dependent stories:
+
+1. Read the implementation map (`IMPLEMENTATION-MAP.md`) to identify stories that depend on the failed story
+2. For each dependent story (`dependentStoryId`):
+   - Set status to `BLOCKED`: `updateStoryStatus(epicDir, dependentStoryId, { status: "BLOCKED", blockedBy: [storyId] })`
+   - If the dependent story has its own dependents, propagate transitively (cascade the block)
+3. Log: `"Story {storyId} FAILED after {MAX_RETRIES} retries. Blocking dependents: [{comma-separated list of blocked story IDs}]"`
+4. Update the failed story checkpoint: `updateStoryStatus(epicDir, storyId, { status: "FAILED", retryCount: MAX_RETRIES, blockedDependents: [list] })`
+
+**Transitive Block Propagation:**
+
+Block propagation is transitive. If story A blocks story B, and story B blocks story C,
+then when story A fails, both B and C are marked as `BLOCKED`:
+- Story B: `blockedBy: ["A"]`
+- Story C: `blockedBy: ["A"]` (root cause, not "B")
+
+This ensures the `--resume` flag can correctly identify which stories to unblock when the
+root cause is fixed and the failed story is retried manually.
+
+**Block Propagation Checkpoint States:**
+
+| State | Description |
+|-------|-------------|
+| `BLOCKED` | Story cannot execute because a dependency failed |
+
+Blocked stories are skipped during execution. The orchestrator logs:
+`"Skipping story {dependentStoryId}: BLOCKED by {storyId}"`
 
 ### 1.6 Checkpoint Update (RULE-002)
 
@@ -787,7 +910,7 @@ in the checkpoint. If yes:
 The following sections are placeholders for downstream stories:
 
 - [Placeholder: integrity gate between phases — story-0005-0006]
-- [Placeholder: retry + block propagation — story-0005-0007]
+- ~~retry + block propagation~~ → Implemented in Section 1.5b (Failure Handling, Rollback, and Retry)
 - [Placeholder: resume from checkpoint — story-0005-0008]
 - [Placeholder: partial execution filter — story-0005-0009]
 - [Placeholder: progress reporting — story-0005-0013]
@@ -842,7 +965,7 @@ If tests fail, the subagent:
 3. Identifies the most likely story as regression source (`regressionSource`)
 4. If identified: orchestrator executes `git revert <commitSha>` for that story
 5. Story is marked FAILED with summary: `"Regression detected by integrity gate"`
-6. Block propagation is executed for dependents of the failed story
+6. Block propagation is executed for dependents of the failed story (see Section 1.5b, Step 4)
 
 #### Smoke Gate Regression Diagnosis
 
@@ -881,7 +1004,7 @@ updateIntegrityGate(epicDir, phaseNumber, {
 ```
 
 - **PASS**: Advance to next phase (requires test gate, conventional commits validation, and smoke gate to pass)
-- **FAIL + regression identified**: revert + mark FAILED + block propagation
+- **FAIL + regression identified**: revert + mark FAILED + block propagation (see Section 1.5b)
 - **FAIL + regression unidentified**: pause execution, report to user
 - **FAIL (conventional commits)**: 3+ CC violations — phase cannot advance; fix commit messages and `--resume`
 - **WARNING (conventional commits)**: 1–2 CC violations — logged but non-blocking; phase advances
