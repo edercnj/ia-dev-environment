@@ -343,6 +343,9 @@ class AgentsConditionalGoldenTest {
             assertThat(agentsDir.resolve(
                     "devops-engineer.md"))
                     .exists();
+            assertThat(agentsDir.resolve(
+                    "devsecops-engineer.md"))
+                    .exists();
         }
 
         @Test

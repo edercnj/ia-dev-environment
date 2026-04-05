@@ -33,6 +33,10 @@ description = "Global Behavior & Language Policy"
 description = "Global Behavior & Language Policy"
 
 
+[agents.devsecops-engineer]
+description = "Global Behavior & Language Policy"
+
+
 [agents.event-engineer]
 description = "Global Behavior & Language Policy"
 

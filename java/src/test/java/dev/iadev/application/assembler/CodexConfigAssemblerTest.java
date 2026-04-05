@@ -399,6 +399,7 @@ class CodexConfigAssemblerTest {
                     "appsec-engineer",
                     "architect",
                     "devops-engineer",
+                    "devsecops-engineer",
                     "event-engineer",
                     "kotlin-developer",
                     "performance-engineer",

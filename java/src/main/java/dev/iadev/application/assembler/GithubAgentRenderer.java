@@ -190,6 +190,14 @@ final class GithubAgentRenderer {
             agents.add("devops-engineer.md");
         }
 
+        boolean hasDevsecops =
+                !"none".equals(infra.container())
+                        || !"none".equals(
+                                infra.orchestrator());
+        if (hasDevsecops) {
+            agents.add("devsecops-engineer.md");
+        }
+
         if (hasAnyInterface(config,
                 "rest", "grpc", "graphql")) {
             agents.add("api-engineer.md");

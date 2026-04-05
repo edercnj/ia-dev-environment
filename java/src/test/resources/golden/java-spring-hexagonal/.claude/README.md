@@ -63,7 +63,7 @@ CLAUDE.md                   <-- Executive summary (project root, loaded automati
 | N/A | MCP (`copilot-mcp.json`) | N/A | GitHub Copilot MCP server configuration |
 | N/A | Global instructions (`copilot-instructions.md`) | N/A | Loaded in every Copilot session |
 
-**Total .github/ artifacts: 105**
+**Total .github/ artifacts: 106**
 
 ### settings.json vs settings.local.json
 
@@ -196,6 +196,7 @@ they are used by skills (via Task tool) to delegate work to agents with specific
 | **api-engineer** | `api-engineer.md` |
 | **architect** | `architect.md` |
 | **devops-engineer** | `devops-engineer.md` |
+| **devsecops-engineer** | `devsecops-engineer.md` |
 | **java-developer** | `java-developer.md` |
 | **performance-engineer** | `performance-engineer.md` |
 | **product-owner** | `product-owner.md` |
@@ -204,7 +205,7 @@ they are used by skills (via Task tool) to delegate work to agents with specific
 | **sre-engineer** | `sre-engineer.md` |
 | **tech-lead** | `tech-lead.md` |
 
-**Total: 10 agents**
+**Total: 11 agents**
 
 ---
 
@@ -273,12 +274,12 @@ See the files directly for current configuration.
 | Rules (.claude) | 9 |
 | Skills (.claude) | 35 |
 | Knowledge Packs (.claude) | 23 |
-| Agents (.claude) | 10 |
+| Agents (.claude) | 11 |
 | Hooks (.claude) | 1 |
 | Settings (.claude) | 2 |
 | Instructions (.github) | 5 |
 | Skills (.github) | 57 |
-| Agents (.github) | 10 |
+| Agents (.github) | 11 |
 | Prompts (.github) | 4 |
 | Hooks (.github) | 3 |
 | MCP (.github) | 0 |

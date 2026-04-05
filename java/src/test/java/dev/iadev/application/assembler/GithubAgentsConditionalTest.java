@@ -115,6 +115,87 @@ class GithubAgentsConditionalTest {
         }
 
         @Test
+        @DisplayName("devsecops when docker")
+        void assemble_whenDocker_devsecops() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("docker")
+                            .orchestrator("none")
+                            .iac("none")
+                            .build();
+
+            List<String> agents =
+                    GithubAgentsAssembler
+                            .selectGithubConditionalAgents(
+                                    config);
+
+            assertThat(agents)
+                    .contains(
+                            "devsecops-engineer.md");
+        }
+
+        @Test
+        @DisplayName("devsecops when kubernetes")
+        void assemble_whenKubernetes_devsecops() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("none")
+                            .orchestrator("kubernetes")
+                            .iac("none")
+                            .build();
+
+            List<String> agents =
+                    GithubAgentsAssembler
+                            .selectGithubConditionalAgents(
+                                    config);
+
+            assertThat(agents)
+                    .contains(
+                            "devsecops-engineer.md");
+        }
+
+        @Test
+        @DisplayName("no devsecops when only iac")
+        void assemble_whenOnlyIac_noDevsecops() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("none")
+                            .orchestrator("none")
+                            .iac("terraform")
+                            .build();
+
+            List<String> agents =
+                    GithubAgentsAssembler
+                            .selectGithubConditionalAgents(
+                                    config);
+
+            assertThat(agents)
+                    .doesNotContain(
+                            "devsecops-engineer.md");
+        }
+
+        @Test
+        @DisplayName("no devsecops when all none")
+        void assemble_whenAllNone_noDevsecops() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("none")
+                            .orchestrator("none")
+                            .iac("none")
+                            .clearInterfaces()
+                            .build();
+
+            List<String> agents =
+                    GithubAgentsAssembler
+                            .selectGithubConditionalAgents(
+                                    config);
+
+            assertThat(agents)
+                    .doesNotContain(
+                            "devsecops-engineer.md");
+        }
+
+        @Test
         @DisplayName("no devops when all none")
         void assemble_whenAllNone_noDevops() {
             ProjectConfig config =

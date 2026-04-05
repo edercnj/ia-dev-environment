@@ -158,6 +158,80 @@ class AgentsSelectionTest {
         }
 
         @Test
+        @DisplayName("config with container includes"
+                + " devsecops-engineer.md")
+        void select_container_includesDevsecops() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .container("docker")
+                    .orchestrator("none")
+                    .iac("none")
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .contains("devsecops-engineer.md");
+        }
+
+        @Test
+        @DisplayName("config with orchestrator includes"
+                + " devsecops-engineer.md")
+        void select_orchestrator_includesDevsecops() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .container("none")
+                    .orchestrator("kubernetes")
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .contains("devsecops-engineer.md");
+        }
+
+        @Test
+        @DisplayName("config with container and orchestrator"
+                + " both none excludes"
+                + " devsecops-engineer.md")
+        void select_noContainerNoOrch_excludesDevsecops() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .container("none")
+                    .orchestrator("none")
+                    .iac("none")
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .doesNotContain(
+                            "devsecops-engineer.md");
+        }
+
+        @Test
+        @DisplayName("config with only iac excludes"
+                + " devsecops-engineer.md")
+        void select_onlyIac_excludesDevsecops() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .container("none")
+                    .orchestrator("none")
+                    .iac("terraform")
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .doesNotContain(
+                            "devsecops-engineer.md");
+        }
+
+        @Test
         @DisplayName("config with REST includes"
                 + " api-engineer.md")
         void select_rest_includesApiEngineer() {
@@ -369,6 +443,7 @@ class AgentsSelectionTest {
                     .contains("database-engineer.md")
                     .contains("observability-engineer.md")
                     .contains("devops-engineer.md")
+                    .contains("devsecops-engineer.md")
                     .contains("api-engineer.md")
                     .contains("event-engineer.md")
                     .contains("appsec-engineer.md");

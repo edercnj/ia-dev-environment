@@ -205,6 +205,7 @@ they are used by skills (via Task tool) to delegate work to agents with specific
 | **appsec-engineer** | `appsec-engineer.md` |
 | **architect** | `architect.md` |
 | **devops-engineer** | `devops-engineer.md` |
+| **devsecops-engineer** | `devsecops-engineer.md` |
 | **event-engineer** | `event-engineer.md` |
 | **performance-engineer** | `performance-engineer.md` |
 | **product-owner** | `product-owner.md` |
