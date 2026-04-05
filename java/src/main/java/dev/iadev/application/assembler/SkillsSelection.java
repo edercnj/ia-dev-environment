@@ -124,6 +124,25 @@ public final class SkillsSelection {
     }
 
     /**
+     * Selects skills based on compliance frameworks.
+     *
+     * <p>Includes {@code x-review-compliance} when
+     * {@code pci-dss} is present in the security
+     * compliance frameworks list.</p>
+     *
+     * @param config the project configuration
+     * @return list of conditional compliance skill names
+     */
+    public static List<String> selectComplianceSkills(
+            ProjectConfig config) {
+        if (config.security().frameworks()
+                .contains("pci-dss")) {
+            return List.of("x-review-compliance");
+        }
+        return List.of();
+    }
+
+    /**
      * Evaluates all feature gates and returns the aggregated
      * list of conditional skill names.
      *
@@ -137,6 +156,7 @@ public final class SkillsSelection {
         skills.addAll(selectInfraSkills(config));
         skills.addAll(selectTestingSkills(config));
         skills.addAll(selectSecuritySkills(config));
+        skills.addAll(selectComplianceSkills(config));
         return skills;
     }
 

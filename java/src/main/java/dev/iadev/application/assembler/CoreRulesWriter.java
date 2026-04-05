@@ -39,6 +39,7 @@ public final class CoreRulesWriter {
 
     private final Path resourcesDir;
     private final AntiPatternsRuleWriter antiPatternsWriter;
+    private final PciRuleWriter pciRuleWriter;
 
     /**
      * Creates a CoreRulesWriter with an explicit resources
@@ -50,6 +51,8 @@ public final class CoreRulesWriter {
         this.resourcesDir = resourcesDir;
         this.antiPatternsWriter =
                 new AntiPatternsRuleWriter(resourcesDir);
+        this.pciRuleWriter =
+                new PciRuleWriter(resourcesDir);
     }
 
     /**
@@ -265,6 +268,26 @@ public final class CoreRulesWriter {
             Map<String, Object> context) {
         return antiPatternsWriter
                 .copyConditionalAntiPatternsRule(
+                        config, rulesDir, engine, context);
+    }
+
+    /**
+     * Conditionally generates the 11-security-pci.md rule
+     * when compliance includes pci-dss.
+     *
+     * @param config   the project configuration
+     * @param rulesDir the rules output directory
+     * @param engine   the template engine
+     * @param context  the placeholder context
+     * @return list of generated file paths (0 or 1)
+     */
+    List<String> copyConditionalPciRule(
+            ProjectConfig config,
+            Path rulesDir,
+            TemplateEngine engine,
+            Map<String, Object> context) {
+        return pciRuleWriter
+                .copyConditionalPciRule(
                         config, rulesDir, engine, context);
     }
 
