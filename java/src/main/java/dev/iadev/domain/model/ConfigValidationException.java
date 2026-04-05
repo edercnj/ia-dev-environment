@@ -52,6 +52,16 @@ public class ConfigValidationException extends RuntimeException {
     }
 
     /**
+     * Creates an exception with a custom validation message.
+     *
+     * @param message the detail message
+     */
+    public ConfigValidationException(String message) {
+        super(message);
+        this.missingSections = List.of();
+    }
+
+    /**
      * Creates an exception with a custom message and cause.
      *
      * @param message the detail message

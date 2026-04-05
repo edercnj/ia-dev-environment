@@ -1,0 +1,162 @@
+---
+name: x-review-pr
+description: "Tech Lead holistic review with 64-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, TDD process, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge."
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob
+argument-hint: "[PR-number or STORY-ID]"
+---
+
+## Global Output Policy
+
+- **Language**: English ONLY.
+- **Tone**: Technical, Direct, and Concise.
+- **Efficiency**: Remove all conversational fillers and greetings to save tokens.
+
+# Skill: Review PR (Tech Lead Review)
+
+## Description
+
+Senior-level holistic review with a 64-point rubric. This is the standalone version of Phase 6 from the x-dev-lifecycle. The Tech Lead reviews the consolidated PR diff for cross-file consistency and overall quality.
+
+## Triggers
+
+- `/x-review-pr` -- review current branch against main
+- `/x-review-pr NNN` -- review PR #NNN
+- `/x-review-pr STORY-ID` -- review by story ID
+
+## Prerequisites
+
+- Code must be committed
+- Branch should have changes relative to main
+- Ideally, specialist reviews (`/x-review`) have already been run
+
+## Workflow
+
+### Step 1 -- Detect Context
+
+Determine what to review and set `[BASE_BRANCH]`:
+
+- **PR number:** `gh pr view NNN --json title,body,baseRefName,headRefName,files`
+- **STORY reference:** Find and checkout the branch
+- **No argument:** Use current branch, `BASE_BRANCH=main`
+
+Validate diff exists:
+```bash
+git diff [BASE_BRANCH] --stat
+git diff [BASE_BRANCH] --name-only
+```
+
+### Step 2 -- Gather Context
+
+Read knowledge packs to calibrate the review:
+- `skills/coding-standards/references/coding-conventions.md` — {{LANGUAGE}} naming, injection, mapper conventions
+- `skills/architecture/references/architecture-principles.md` — layer boundaries, dependency direction
+- `rules/05-quality-gates.md` — coverage thresholds, merge checklist
+- `skills/testing/references/testing-philosophy.md` — TDD workflow, Double-Loop TDD, TPP ordering
+
+Check for existing artifacts (extract epic ID XXXX and story sequence YYYY from story ID):
+- Specialist review reports (`plans/epic-XXXX/reviews/review-*-story-XXXX-YYYY.md`)
+- Implementation plan (`plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md`)
+- Test plan (`plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md`)
+- Common mistakes document
+
+### Step 3 -- Execute Tech Lead Review
+
+The Tech Lead review covers:
+
+1. List ALL modified files: `git diff [BASE_BRANCH] --name-only`
+2. View FULL diff: `git diff [BASE_BRANCH]`
+3. For EACH source file, read FULL content and apply 64-point checklist
+4. Focus on CROSS-FILE issues (inconsistencies, cross imports, repeated patterns)
+5. Compile and verify: `{{COMPILE_COMMAND}}` + `{{BUILD_COMMAND}}`
+6. If specialist reports exist, verify CRITICAL issues were fixed
+
+## 64-Point Rubric
+
+| Section                  | Points | What it checks                                                      |
+| ------------------------ | ------ | ------------------------------------------------------------------- |
+| A. Code Hygiene          | 8      | Unused imports/vars, dead code, warnings, method signatures, magic  |
+| B. Naming                | 4      | Intention-revealing, no disinformation, meaningful distinctions      |
+| C. Functions             | 5      | Single responsibility, size <= 25 lines, max 4 params, no flags     |
+| D. Vertical Formatting   | 4      | Blank lines between concepts, Newspaper Rule, class size <= 250     |
+| E. Design                | 3      | Law of Demeter, CQS, DRY                                           |
+| F. Error Handling        | 3      | Rich exceptions, no null returns, no generic catch                  |
+| G. Architecture          | 5      | SRP, DIP, architecture layer boundaries (per project rules), follows plan |
+| H. Framework & Infra     | 4      | DI, externalized config, native-compatible, observability           |
+| I. Tests                 | 3      | Coverage thresholds, scenarios covered, test quality                |
+| J. Security & Production | 1      | Sensitive data protected, thread-safe                               |
+| K. TDD Process           | 5      | Test-first commits, Double-Loop TDD, TPP progression, atomic cycles |
+| L. Event-Driven Review | 8      | Idempotency, ordering, DLQ, schema evolution, retry, isolation     |
+| M. PCI-DSS             | 7      | Card data protection, encryption, tokenization, audit trail        |
+| N. LGPD                | 4      | Consent tracking, data deletion, processing log, anonymization    |
+
+## Decision Criteria
+
+| Condition                              | Decision        |
+| -------------------------------------- | --------------- |
+| >= 54/64 + zero issues | GO              |
+| < 54/64 OR any issue   | NO-GO           |
+
+### Step 4 -- Process Result
+
+```
+============================================================
+ TECH LEAD REVIEW -- [STORY_ID]
+============================================================
+ Decision:  GO | NO-GO
+ Score:     XX/64 (GO >= 54)
+ Critical:  N issues
+ Medium:    N issues
+ Low:       N issues
+------------------------------------------------------------
+ Report: plans/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md
+============================================================
+```
+
+### Step 5 -- Handle NO-GO
+
+If NO-GO, offer options:
+1. Fix critical issues now
+2. View the full report
+3. Skip -- handle manually
+
+If fixing: apply corrections, commit, re-run review (max 2 cycles).
+
+## Output Artifacts
+
+- `plans/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md`
+
+
+### Section L -- Event-Driven Review (8 criteria)
+
+1. Consumer idempotency (deduplication by event ID)
+2. Ordering guaranteed within partition key
+3. Dead letter strategy configured and tested
+4. Schema evolution with backward compatibility
+5. Retry policy with exponential backoff
+6. Consumer group isolation (no shared groups)
+7. Transactional outbox when applicable
+8. Lag and throughput observability per consumer
+
+### Section M -- PCI-DSS (7 criteria)
+
+1. Card data never logged (PAN, CVV, expiry)
+2. Encryption in transit (TLS 1.2+) and at rest (AES-256)
+3. Tokenization for PAN storage
+4. Audit trail for sensitive data access
+5. Environment segregation (dev/staging/prod)
+6. Key and credential rotation documented
+7. Penetration tests referenced in pipeline
+
+### Section N -- LGPD (4 criteria)
+
+1. Consent traceable per processing operation
+2. Personal data deletion endpoint implemented
+3. Processing operations log with legal basis
+4. Anonymization/pseudonymization applied where personal data not strictly necessary
+
+## Integration Notes
+
+- This skill produces the SAME artifact as Phase 6 of `x-dev-lifecycle`
+- Recommended workflow: `/x-review` first (breadth), then `/x-review-pr` (depth)
+- `/x-review` = specialist engineers (7 agents, parallel) -- breadth
+- `/x-review-pr` = Tech Lead (1 agent, holistic) -- depth

@@ -72,6 +72,7 @@ public final class TestConfigBuilder {
             new ArrayList<>();
     private final List<McpServerConfig> mcpServers =
             new ArrayList<>();
+    private String compliance = "none";
 
     private TestConfigBuilder() {
         interfaces.add(
@@ -289,6 +290,11 @@ public final class TestConfigBuilder {
         return this;
     }
 
+    public TestConfigBuilder compliance(String value) {
+        this.compliance = value;
+        return this;
+    }
+
     public TestConfigBuilder addMcpServer(
             McpServerConfig server) {
         this.mcpServers.add(server);
@@ -339,6 +345,7 @@ public final class TestConfigBuilder {
                 new TestingConfig(
                         smokeTests, contractTests,
                         performanceTests, 95, 90),
-                new McpConfig(mcpServers));
+                new McpConfig(mcpServers),
+                compliance);
     }
 }

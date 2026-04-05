@@ -58,10 +58,19 @@ class SkillGroupRegistryTest {
         }
 
         @Test
-        @DisplayName("review group has 10 skills")
+        @DisplayName("review group has 11 skills")
         void register_whenCalled_reviewGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("review")).hasSize(10);
+                    .get("review")).hasSize(11);
+        }
+
+        @Test
+        @DisplayName("review group contains"
+                + " x-spec-drift-check")
+        void register_reviewGroup_containsSpecDriftCheck() {
+            assertThat(SkillGroupRegistry.SKILL_GROUPS
+                    .get("review"))
+                    .contains("x-spec-drift-check");
         }
 
         @Test
@@ -79,10 +88,10 @@ class SkillGroupRegistryTest {
         }
 
         @Test
-        @DisplayName("knowledge-packs group has 17 skills")
+        @DisplayName("knowledge-packs group has 18 skills")
         void register_whenCalled_knowledgePacksGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("knowledge-packs")).hasSize(17);
+                    .get("knowledge-packs")).hasSize(18);
         }
 
         @Test
@@ -214,11 +223,11 @@ class SkillGroupRegistryTest {
     class KpSkillConditions {
 
         @Test
-        @DisplayName("contains exactly 3 conditions")
-        void kpConditions_whenCalled_containsThreeConditions() {
+        @DisplayName("contains exactly 4 conditions")
+        void kpConditions_whenCalled_containsFourConditions() {
             assertThat(SkillGroupRegistry
                     .KP_SKILL_CONDITIONS)
-                    .hasSize(3);
+                    .hasSize(4);
         }
 
         @Test

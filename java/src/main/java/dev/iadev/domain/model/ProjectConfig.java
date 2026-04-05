@@ -2,6 +2,7 @@ package dev.iadev.domain.model;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Root aggregate containing the complete project configuration.
@@ -29,6 +30,7 @@ import java.util.Map;
  * @param security the security config (optional, defaults to empty)
  * @param testing the testing config (optional, defaults: 95/90)
  * @param mcp the MCP config (optional, defaults to empty)
+ * @param compliance the compliance type (optional, default "none")
  */
 public record ProjectConfig(
         ProjectIdentity project,
@@ -40,7 +42,13 @@ public record ProjectConfig(
         InfraConfig infrastructure,
         SecurityConfig security,
         TestingConfig testing,
-        McpConfig mcp) {
+        McpConfig mcp,
+        String compliance) {
+
+    private static final String DEFAULT_COMPLIANCE = "none";
+
+    private static final Set<String> SUPPORTED_COMPLIANCE =
+            Set.of("none", "pci-dss");
 
     /**
      * Compact constructor enforcing immutability of the interfaces list.
@@ -149,6 +157,7 @@ public record ProjectConfig(
     private static ProjectConfig buildFromMap(
             Map<String, Object> map,
             List<InterfaceConfig> interfaceList) {
+        String compliance = parseCompliance(map);
         return new ProjectConfig(
                 ProjectIdentity.fromMap(MapHelper
                         .requireMap(map, "project",
@@ -173,6 +182,20 @@ public record ProjectConfig(
                 TestingConfig.fromMap(MapHelper
                         .optionalMap(map, "testing")),
                 McpConfig.fromMap(MapHelper
-                        .optionalMap(map, "mcp")));
+                        .optionalMap(map, "mcp")),
+                compliance);
+    }
+
+    private static String parseCompliance(
+            Map<String, Object> map) {
+        String value = MapHelper.optionalString(
+                map, "compliance", DEFAULT_COMPLIANCE);
+        if (!SUPPORTED_COMPLIANCE.contains(value)) {
+            throw new ConfigValidationException(
+                    ("Unsupported compliance value: '%s'."
+                            + " Supported: none, pci-dss")
+                            .formatted(value));
+        }
+        return value;
     }
 }

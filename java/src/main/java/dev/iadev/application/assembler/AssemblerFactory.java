@@ -1,10 +1,11 @@
 package dev.iadev.application.assembler;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Factory that instantiates the 32 assemblers in the
+ * Factory that instantiates the 33 assemblers in the
  * fixed order defined by RULE-005.
  *
  * <p>Extracted from {@link AssemblerPipeline} to keep
@@ -20,16 +21,32 @@ public final class AssemblerFactory {
     }
 
     /**
-     * Builds the ordered list of 32 assemblers per RULE-005.
-     *
-     * <p>Delegates to group builders by category:
-     * core, github, docs, codex, cicd, and readme.</p>
+     * Builds assemblers with default options (backward
+     * compatible).
      *
      * @return immutable ordered list of assembler descriptors
      */
     public static List<AssemblerDescriptor>
             buildAssemblers() {
+        return buildAssemblers(PipelineOptions.defaults());
+    }
+
+    /**
+     * Builds the ordered list of 33 assemblers per RULE-005.
+     *
+     * <p>Delegates to group builders by category:
+     * constitution, core, github, docs, codex, cicd,
+     * and readme. The options parameter controls
+     * constitution preservation behavior.</p>
+     *
+     * @param options pipeline options controlling assembler
+     *                behavior
+     * @return immutable ordered list of assembler descriptors
+     */
+    public static List<AssemblerDescriptor>
+            buildAssemblers(PipelineOptions options) {
         List<AssemblerDescriptor> all = new ArrayList<>();
+        all.addAll(buildConstitutionAssemblers(options));
         all.addAll(buildClaudeRulesAssemblers());
         all.addAll(buildClaudeConfigAssemblers());
         all.addAll(buildGithubInputAssemblers());
@@ -38,6 +55,25 @@ public final class AssemblerFactory {
         all.addAll(buildCodexAssemblers());
         all.addAll(buildCicdAssemblers());
         return List.copyOf(all);
+    }
+
+    private static List<AssemblerDescriptor>
+            buildConstitutionAssemblers(
+                    PipelineOptions options) {
+        return List.of(
+                desc("ConstitutionAssembler",
+                        AssemblerTarget.ROOT,
+                        new ConstitutionAssembler(
+                                resolveConstitutionResources(),
+                                options
+                                        .overwriteConstitution())));
+    }
+
+    private static Path resolveConstitutionResources() {
+        return dev.iadev.util.ResourceResolver
+                .resolveResourcesRoot(
+                        "templates/constitution/"
+                                + "CONSTITUTION.md", 3);
     }
 
     private static List<AssemblerDescriptor>

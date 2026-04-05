@@ -51,7 +51,8 @@ class ContextBuilderTest {
                         List.of("spring-security")),
                 new TestingConfig(
                         true, true, true, 95, 90),
-                new McpConfig(List.of()));
+                new McpConfig(List.of()),
+                "none");
     }
 
     private DataConfig buildFullDataConfig() {
@@ -89,31 +90,32 @@ class ContextBuilderTest {
                 InfraConfig.fromMap(Map.of()),
                 SecurityConfig.fromMap(Map.of()),
                 TestingConfig.fromMap(Map.of()),
-                McpConfig.fromMap(Map.of()));
+                McpConfig.fromMap(Map.of()),
+                "none");
     }
 
     @Nested
-    @DisplayName("buildContext() produces exactly 43 fields")
+    @DisplayName("buildContext() produces exactly 44 fields")
     class FieldCount {
 
         @Test
-        @DisplayName("returns map with exactly 43 entries")
-        void buildContext_fullConfig_returns43Fields() {
+        @DisplayName("returns map with exactly 44 entries")
+        void buildContext_fullConfig_returns44Fields() {
             Map<String, Object> context =
                     ContextBuilder.buildContext(
                             buildFullConfig());
 
-            assertThat(context).hasSize(43);
+            assertThat(context).hasSize(44);
         }
 
         @Test
-        @DisplayName("returns map with 43 entries for minimal")
-        void buildContext_minimalConfig_returns43Fields() {
+        @DisplayName("returns map with 44 entries for minimal")
+        void buildContext_minimalConfig_returns44Fields() {
             Map<String, Object> context =
                     ContextBuilder.buildContext(
                             buildMinimalConfig());
 
-            assertThat(context).hasSize(43);
+            assertThat(context).hasSize(44);
         }
     }
 
@@ -440,7 +442,8 @@ class ContextBuilderTest {
                     InfraConfig.fromMap(Map.of()),
                     SecurityConfig.fromMap(Map.of()),
                     TestingConfig.fromMap(Map.of()),
-                    McpConfig.fromMap(Map.of()));
+                    McpConfig.fromMap(Map.of()),
+                    "none");
 
             Map<String, Object> ctx =
                     ContextBuilder.buildContext(config);
@@ -451,11 +454,11 @@ class ContextBuilderTest {
     }
 
     @Nested
-    @DisplayName("exact 43 field names")
+    @DisplayName("exact 44 field names")
     class ExactFieldNames {
 
         @Test
-        @DisplayName("context contains all 43 expected keys")
+        @DisplayName("context contains all 44 expected keys")
         void buildContext_allExpectedKeys_present() {
             Map<String, Object> ctx =
                     ContextBuilder.buildContext(
@@ -464,6 +467,7 @@ class ContextBuilderTest {
             assertThat(ctx).containsKeys(
                     "project_name",
                     "project_purpose",
+                    "compliance",
                     "language_name",
                     "language_version",
                     "framework_name",
@@ -524,6 +528,34 @@ class ContextBuilderTest {
         void toPythonBool_false_returnsFalse() {
             assertThat(ContextBuilder.toPythonBool(false))
                     .isEqualTo("False");
+        }
+    }
+
+    @Nested
+    @DisplayName("compliance field in context")
+    class ComplianceInContext {
+
+        @Test
+        @DisplayName("compliance is 'none' for minimal config")
+        void buildContext_minimalConfig_complianceNone() {
+            Map<String, Object> ctx =
+                    ContextBuilder.buildContext(
+                            buildMinimalConfig());
+
+            assertThat(ctx.get("compliance"))
+                    .isEqualTo("none");
+        }
+
+        @Test
+        @DisplayName("compliance is propagated from config")
+        void buildContext_fullConfig_compliancePresent() {
+            Map<String, Object> ctx =
+                    ContextBuilder.buildContext(
+                            buildFullConfig());
+
+            assertThat(ctx).containsKey("compliance");
+            assertThat(ctx.get("compliance"))
+                    .isEqualTo("none");
         }
     }
 }

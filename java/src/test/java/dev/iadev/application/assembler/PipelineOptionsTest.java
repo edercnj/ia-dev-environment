@@ -26,6 +26,8 @@ class PipelineOptionsTest {
             assertThat(opts.dryRun()).isFalse();
             assertThat(opts.force()).isFalse();
             assertThat(opts.verbose()).isFalse();
+            assertThat(opts.overwriteConstitution())
+                    .isFalse();
             assertThat(opts.resourcesDir()).isNull();
         }
     }
@@ -45,6 +47,8 @@ class PipelineOptionsTest {
             assertThat(opts.dryRun()).isTrue();
             assertThat(opts.force()).isTrue();
             assertThat(opts.verbose()).isTrue();
+            assertThat(opts.overwriteConstitution())
+                    .isFalse();
             assertThat(opts.resourcesDir())
                     .isEqualTo(resources);
         }
@@ -57,6 +61,28 @@ class PipelineOptionsTest {
 
             assertThat(opts.dryRun()).isTrue();
             assertThat(opts.force()).isFalse();
+        }
+
+        @Test
+        @DisplayName("overwriteConstitution set via"
+                + " 5-arg constructor")
+        void fiveArgs_overwriteConstitution_setsCorrectly() {
+            var opts = new PipelineOptions(
+                    false, false, false, true, null);
+
+            assertThat(opts.overwriteConstitution())
+                    .isTrue();
+        }
+
+        @Test
+        @DisplayName("4-arg constructor defaults"
+                + " overwriteConstitution to false")
+        void fourArgs_overwriteConstitution_defaultsFalse() {
+            var opts = new PipelineOptions(
+                    false, false, false, null);
+
+            assertThat(opts.overwriteConstitution())
+                    .isFalse();
         }
     }
 

@@ -94,7 +94,7 @@ final class ProjectConfigFactory {
         return new ProjectConfig(
                 project, architecture, interfaceList,
                 lang, fw, data, infra, security,
-                testing, mcp);
+                testing, mcp, "none");
     }
 
     private static String resolveEffectiveStyle(

@@ -1,6 +1,7 @@
 package dev.iadev.cli;
 
 import dev.iadev.application.assembler.AssemblerDescriptor;
+import dev.iadev.application.assembler.AssemblerFactory;
 import dev.iadev.application.assembler.AssemblerPipeline;
 import dev.iadev.application.assembler.PipelineOptions;
 import dev.iadev.domain.stack.StackValidator;
@@ -84,6 +85,11 @@ public class GenerateCommand implements Callable<Integer> {
     @Option(names = {"-f", "--force"},
             description = "Overwrite existing files.")
     boolean force;
+
+    @Option(names = {"--overwrite-constitution"},
+            description = "Regenerate CONSTITUTION.md "
+                    + "even if it already exists.")
+    boolean overwriteConstitution;
 
     @Spec
     CommandSpec spec;
@@ -186,9 +192,10 @@ public class GenerateCommand implements Callable<Integer> {
             Path destPath,
             PrintWriter out) {
         PipelineOptions options = new PipelineOptions(
-                dryRun, force, verbose, null);
+                dryRun, force, verbose,
+                overwriteConstitution, null);
         List<AssemblerDescriptor> assemblers =
-                AssemblerPipeline.buildAssemblers();
+                AssemblerFactory.buildAssemblers(options);
         if (verbose) {
             return VerbosePipelineRunner.runVerbose(
                     config, destPath, options,

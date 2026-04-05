@@ -27,7 +27,7 @@ public final class GoldenFileRegenerator {
     }
 
     /**
-     * Regenerates golden files for all 11 profiles.
+     * Regenerates golden files for all 12 profiles.
      *
      * @param args not used
      * @throws IOException if file operations fail
@@ -42,6 +42,7 @@ public final class GoldenFileRegenerator {
                 "java-spring-hexagonal",
                 "java-spring-cqrs-es",
                 "java-spring-event-driven",
+                "java-spring-fintech-pci",
                 "kotlin-ktor", "python-click-cli",
                 "python-fastapi", "rust-axum",
                 "typescript-nestjs"

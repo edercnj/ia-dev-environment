@@ -19,13 +19,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Tests for AssemblerPipeline — orchestrates 32 assemblers
+ * Tests for AssemblerPipeline — orchestrates 33 assemblers
  * per RULE-005.
  */
 @DisplayName("AssemblerPipeline")
 class AssemblerPipelineTest {
 
     private static final List<String> EXPECTED_ORDER = List.of(
+            "ConstitutionAssembler",
             "RulesAssembler",
             "SkillsAssembler",
             "AgentsAssembler",
@@ -64,12 +65,12 @@ class AssemblerPipelineTest {
     class BuildAssemblers {
 
         @Test
-        @DisplayName("returns exactly 32 assembler descriptors")
-        void assemble_whenCalled_returnsExactly32() {
+        @DisplayName("returns exactly 33 assembler descriptors")
+        void assemble_whenCalled_returnsExactly33() {
             List<AssemblerDescriptor> descriptors =
                     AssemblerPipeline.buildAssemblers();
 
-            assertThat(descriptors).hasSize(32);
+            assertThat(descriptors).hasSize(33);
         }
 
         @Test
@@ -93,14 +94,14 @@ class AssemblerPipelineTest {
 
             // Verify key targets from the pipeline spec
             assertThat(descriptors.get(0).target())
+                    .isEqualTo(AssemblerTarget.ROOT);
+            assertThat(descriptors.get(1).target())
                     .isEqualTo(AssemblerTarget.CLAUDE);
-            assertThat(descriptors.get(7).target())
-                    .isEqualTo(AssemblerTarget.GITHUB);
-            assertThat(descriptors.get(13).target())
+            assertThat(descriptors.get(8).target())
                     .isEqualTo(AssemblerTarget.GITHUB);
             assertThat(descriptors.get(14).target())
-                    .isEqualTo(AssemblerTarget.ROOT);
-            assertThat(descriptors.get(16).target())
+                    .isEqualTo(AssemblerTarget.GITHUB);
+            assertThat(descriptors.get(15).target())
                     .isEqualTo(AssemblerTarget.ROOT);
             assertThat(descriptors.get(17).target())
                     .isEqualTo(AssemblerTarget.ROOT);
@@ -114,13 +115,15 @@ class AssemblerPipelineTest {
                     .isEqualTo(AssemblerTarget.ROOT);
             assertThat(descriptors.get(22).target())
                     .isEqualTo(AssemblerTarget.ROOT);
-            assertThat(descriptors.get(24).target())
-                    .isEqualTo(AssemblerTarget.CODEX);
+            assertThat(descriptors.get(23).target())
+                    .isEqualTo(AssemblerTarget.ROOT);
             assertThat(descriptors.get(25).target())
-                    .isEqualTo(AssemblerTarget.CODEX_AGENTS);
-            assertThat(descriptors.get(26).target())
                     .isEqualTo(AssemblerTarget.CODEX);
+            assertThat(descriptors.get(26).target())
+                    .isEqualTo(AssemblerTarget.CODEX_AGENTS);
             assertThat(descriptors.get(27).target())
+                    .isEqualTo(AssemblerTarget.CODEX);
+            assertThat(descriptors.get(28).target())
                     .isEqualTo(AssemblerTarget.ROOT);
         }
 

@@ -386,6 +386,88 @@ For each story's "Blocked By" list:
 
 This step is best-effort. Report: "N dependency links criados no Jira"
 
+### Step 2.Y: Quality Gate Validation (pre-write check)
+
+Before writing any story file to disk, run a quality gate evaluation on the generated
+markdown content. This step ensures that low-quality stories do not reach the backlog
+without refinement.
+
+#### Quality Gate Flag
+
+| Flag | Type | Default | Range | Description |
+|:---|:---|:---|:---|:---|
+| `--quality-threshold` | int | 70 | 0-100 | Minimum score required for a story to be saved |
+
+- Value `0` disables the quality gate entirely (all stories pass)
+- Value `100` requires a perfect score
+
+#### Scoring Dimensions
+
+Evaluate each story against these dimensions (each scored 0-100, then weighted):
+
+| Dimension | Weight | What to Check |
+|:---|:---|:---|
+| Gherkin completeness | 25% | Minimum 4 scenarios, TPP ordering, degenerate cases present, concrete values (not abstractions) |
+| Data contract precision | 25% | All fields typed, M/O flags present, validation rules declared, error codes mapped (RFC 7807) |
+| Dependency consistency | 15% | Blocked By/Blocks cross-references match the Epic index bidirectionally |
+| Diagram coverage | 15% | Sequence diagram present for data-flow stories, deployment diagram for infra stories |
+| Value articulation | 10% | Section 3.5 present with business-perspective value (not technical tasks) |
+| Sub-task completeness | 10% | At least one `[Test]` sub-task, tasks estimable at 2-4h each |
+
+#### Evaluation Flow
+
+For each generated story (after content generation, before file write):
+
+1. Compute the weighted score across all dimensions
+2. Compare against the `--quality-threshold` (default: 70)
+3. If `score >= threshold`: proceed to file write
+4. If `score < threshold`: enter refinement loop
+
+#### Automatic Refinement Loop
+
+When a story fails the quality gate:
+
+1. Display the full quality report with score breakdown and specific action items per dimension
+2. Display: `"Score N/100 below threshold T. Refining scenarios before proceeding."`
+3. Attempt automatic refinement based on the action items:
+   - Add missing degenerate Gherkin scenarios if absent
+   - Add field types to data contract entries missing types
+   - Add boundary value triplets for bounded inputs
+   - Add missing error code mappings
+   - Fix dependency cross-references
+4. Re-evaluate the refined story
+5. If `score >= threshold`: save the file and report `"Story refined: oldScore -> newScore (attempt N)"`
+6. If still below threshold after attempt 1: repeat refinement (attempt 2)
+7. If still below after 2 attempts: display `"Score still N/100 after 2 refinements. Manual intervention needed."` and do NOT save the file
+
+Maximum automatic refinement attempts: **2**
+
+#### Quality Report Format
+
+When displaying a quality gate report (on rejection or after refinement), use this format:
+
+```
+Quality Gate Report — story-XXXX-YYYY
+Score: N/100 (threshold: T)
+
+  Gherkin completeness:     NN/100 (weight 25%)
+    - [ACTION] Add degenerate scenario for null input
+    - [ACTION] Reorder scenarios: degenerate before happy path
+  Data contract precision:  NN/100 (weight 25%)
+    - [ACTION] Field 'amount' missing type declaration
+    - [OK] Error codes mapped for all endpoints
+  Dependency consistency:   NN/100 (weight 15%)
+    - [OK] All cross-references valid
+  Diagram coverage:         NN/100 (weight 15%)
+    - [ACTION] Missing sequence diagram for REST flow
+  Value articulation:       NN/100 (weight 10%)
+    - [OK] Business value clearly stated
+  Sub-task completeness:    NN/100 (weight 10%)
+    - [ACTION] No [Test] sub-task found
+
+Action items: K issue(s) to resolve
+```
+
 ### Step 3: Save and Report
 
 Save each story as `story-XXXX-YYYY.md` in the same directory as the Epic (inside `plans/epic-XXXX/`).

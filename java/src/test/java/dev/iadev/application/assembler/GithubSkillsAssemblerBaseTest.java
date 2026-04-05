@@ -71,12 +71,12 @@ class GithubSkillsAssemblerBaseTest {
         }
 
         @Test
-        @DisplayName("review group has 10 skills")
-        void assemble_reviewGroup_hasTenSkills() {
+        @DisplayName("review group has 11 skills")
+        void assemble_reviewGroup_hasElevenSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("review"))
-                    .hasSize(10);
+                    .hasSize(11);
         }
 
         @Test
@@ -98,12 +98,12 @@ class GithubSkillsAssemblerBaseTest {
         }
 
         @Test
-        @DisplayName("knowledge-packs group has 17 skills")
-        void assemble_knowledgePacksGroup_hasSeventeenSkills() {
+        @DisplayName("knowledge-packs group has 18 skills")
+        void assemble_knowledgePacksGroup_hasEighteenSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("knowledge-packs"))
-                    .hasSize(17);
+                    .hasSize(18);
         }
 
         @Test

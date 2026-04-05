@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
  * Builds a template context map from a
  * {@link ProjectConfig}.
  *
- * <p>Produces exactly 43 fields matching the TypeScript
+ * <p>Produces exactly 44 fields matching the TypeScript
  * {@code buildDefaultContext()} function (RULE-010).
  * Architecture and review checklist sections are
  * delegated to {@link ContextArchitectureBuilder}.</p>
@@ -38,10 +38,10 @@ public final class ContextBuilder {
     }
 
     /**
-     * Builds a context map with exactly 43 template fields.
+     * Builds a context map with exactly 44 template fields.
      *
      * @param config the project configuration
-     * @return an ordered map with 43 template context entries
+     * @return an ordered map with 44 template context entries
      */
     public static Map<String, Object> buildContext(
             ProjectConfig config) {
@@ -71,6 +71,8 @@ public final class ContextBuilder {
                 config.project().name());
         ctx.put("project_purpose",
                 config.project().purpose());
+        ctx.put("compliance",
+                config.compliance());
     }
 
     private static void buildLanguage(
