@@ -680,9 +680,35 @@ The following sections are placeholders for downstream stories:
 - [Placeholder: partial execution filter — story-0005-0009]
 - [Placeholder: progress reporting — story-0005-0013]
 
-### Integrity Gate (Between Phases)
+### Integrity Gate (Between Phases) (RULE-006)
 
-After ALL stories in a phase complete, dispatch an integrity gate subagent before advancing to the next phase.
+After ALL stories in a phase complete AND all their PRs are merged to `main`,
+dispatch an integrity gate subagent before advancing to the next phase.
+
+The gate runs on `main` to validate the integrated code from all merged PRs.
+
+#### Pre-Phase SHA Capture
+
+At the **start** of each phase, before dispatching any stories:
+
+1. Capture: `mainShaBeforePhase[N] = git rev-parse main`
+2. Persist to checkpoint: `updateCheckpoint(epicDir, { mainShaBeforePhase: { [N]: sha } })`
+3. On `--resume`: recover `mainShaBeforePhase[N]` from checkpoint (do NOT recalculate,
+   since stories from the phase may already be merged)
+
+#### Gate Preconditions
+
+Before running the gate, verify all PRs from the phase are merged:
+
+```
+for each story in currentPhase:
+  assert story.prMergeStatus == "MERGED"
+```
+
+Then checkout `main` with latest merges:
+```
+git checkout main && git pull origin main
+```
 
 #### Gate Subagent Prompt
 
@@ -788,6 +814,24 @@ When not set, the smoke gate (Step 5) must also pass for the overall integrity g
 > **Note:** Each story already executes its own smoke gate via `x-dev-lifecycle` (Phase 2.5).
 > The integrity gate smoke tests serve as an ADDITIONAL regression validation — they ensure
 > that the combination of all stories in a phase did not break the overall smoke test suite.
+
+#### Cross-Story Consistency Gate (RULE-006)
+
+After the integrity gate passes (compile + test + coverage + smoke), run a
+cross-story consistency check on the `main` diff for the phase:
+
+1. Compute diff: `git diff {mainShaBeforePhase[N]}..main`
+2. Dispatch a consistency subagent with the diff for analysis
+3. The subagent verifies:
+   - Error handling patterns are uniform across classes of the same role
+   - Constructor patterns and return types are consistent within modules
+   - No cross-story inconsistencies introduced by parallel development
+4. Result: `{ status: "PASS"|"FAIL", findings: [...] }`
+5. If FAIL: log findings, mark phase as requiring attention (advisory, not blocking)
+
+> **`mainShaBeforePhase` field in `execution-state.json`:**
+> Type: `Map<Integer, String>` — SHA-1 hex (40 chars) per phase number.
+> Example: `{ "0": "abc123...", "1": "def456..." }`
 
 ## Phase 2 — Epic Progress Report Generation
 
