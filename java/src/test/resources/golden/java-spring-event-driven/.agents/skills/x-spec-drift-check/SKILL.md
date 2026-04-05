@@ -1,6 +1,7 @@
 ---
 name: x-spec-drift-check
 description: "Detects spec-code drift by comparing story data contracts, endpoints, and Gherkin scenarios against implemented code. Supports standalone mode (full report) and inline mode (compact output for TDD loop integration in x-dev-lifecycle Phase 2)."
+user-invocable: true
 allowed-tools: Read, Bash, Grep, Glob
 argument-hint: "[STORY-ID] [--mode standalone|inline]"
 ---

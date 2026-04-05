@@ -1,0 +1,47 @@
+{
+  "epicId": "0016",
+  "branch": "feat/epic-0016-full-implementation",
+  "startedAt": "2026-04-04T12:00:00Z",
+  "finishedAt": null,
+  "mode": {
+    "parallel": true,
+    "skipReview": false
+  },
+  "stories": {
+    "story-0016-0001": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "32cad592", "findingsCount": 0, "summary": "Added optional compliance field to ProjectConfig with validation (none, pci-dss), backward compatible, 12 new tests", "duration": null },
+    "story-0016-0004": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "3f4ce184", "findingsCount": 0, "summary": "Created x-spec-drift-check skill template, registered in SkillGroupRegistry review group, 26 new tests, golden files updated for all profiles", "duration": null },
+    "story-0016-0006": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "5f338f61", "findingsCount": 0, "summary": "Quality Gate scoring engine in domain.qualitygate: QualityGateEngine, VaguenessDetector, ScenarioScorer, StoryMarkdownParser, ReportFormatter. 98 new tests, domain-pure", "duration": null },
+    "story-0016-0008": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "c4b473f0", "findingsCount": 0, "summary": "Traceability domain: StoryRequirementParser, TestMethodScanner, TestCorrelator, 4 value objects. 59 new tests, domain-pure", "duration": null },
+    "story-0016-0002": { "phase": 1, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
+    "story-0016-0005": { "phase": 1, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
+    "story-0016-0007": { "phase": 1, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
+    "story-0016-0009": { "phase": 1, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
+    "story-0016-0003": { "phase": 2, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
+    "story-0016-0010": { "phase": 2, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
+    "story-0016-0013": { "phase": 2, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
+    "story-0016-0011": { "phase": 3, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
+    "story-0016-0012": { "phase": 3, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
+    "story-0016-0014": { "phase": 3, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
+    "story-0016-0015": { "phase": 4, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null }
+  },
+  "phases": {
+    "0": {
+      "status": "SUCCESS",
+      "integrityGate": {
+        "status": "PASS",
+        "testCount": 3460,
+        "coverage": null,
+        "branchCoverage": null
+      }
+    }
+  },
+  "metrics": {
+    "storiesCompleted": 4,
+    "storiesFailed": 0,
+    "storiesBlocked": 0,
+    "storiesTotal": 15
+  },
+  "prUrl": null,
+  "reportPath": null,
+  "finalStatus": null
+}
