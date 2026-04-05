@@ -106,7 +106,7 @@ If the user passes `--full-lifecycle`, force full execution regardless of tier:
 - Display: "Scope override: running full lifecycle as requested"
 
 **SIMPLE Execution Flow:**
-Phases 1A (Prepare) > 2 (TDD) > 3A (Structural Docs) > 5 (PR) > 3B (Changelog) > 6 (Verify) — skips 1B, 1C, 1D, 1E, 4 (Review)
+Phases 1A (Prepare) > 2 (TDD) > 3A (Structural Docs) > 6 (PR) > 3B (Changelog) > 8 (Verify) > 8.5 (PO Acceptance) — skips 1B, 1C, 1D, 1E, 4 (Review), 5 (Fixes), 7 (Tech Lead Review)
 
 **COMPLEX Execution Flow:**
 All phases 1A through 4 execute normally. After Phase 4, **pause** with:
@@ -492,7 +492,7 @@ Collect the consolidated review report with scores and severity counts.
 
 ## Phase 7 — Tech Lead Review
 
-Invoke skill `x-review-pr` for holistic 40-point review. Requires 40/40 for GO. If NO-GO, fix all failed items and re-review (max 2 cycles).
+Invoke skill `x-review-pr` for holistic 45-point review. Requires 38/45 for GO. If NO-GO, fix all failed items and re-review (max 2 cycles).
 
 If `x-review-pr` includes TDD criteria, it validates TDD compliance in the checklist. If TDD criteria are not yet available, the review proceeds with existing checklist (backward compatible).
 
@@ -549,15 +549,15 @@ incomplete CHANGELOG.md. By generating after Phase 7, every commit on the branch
    - [ ] IMPLEMENTATION-MAP Status column updated for this story
    - [ ] Epic Status field updated if all stories complete
    - [ ] At least 1 automated test validates the story's primary acceptance criterion
-   - [ ] Smoke test passes (if testing.smoke_tests == true)
 7. Conditional DoD items:
+   - Smoke test passes (if testing.smoke_tests == true)
    - Contract tests pass (if testing.contract_tests == true)
    - Event schemas registered (if event_driven)
    - Compliance requirements met (if security.compliance active)
    - Gateway configuration updated (if api_gateway != none)
    - gRPC proto backward compatible (if interfaces contain grpc)
    - GraphQL schema backward compatible (if interfaces contain graphql)
-   - [ ] Threat model updated (if security findings with severity >= Medium) — extract findings from Phase 3 review reports, map to STRIDE categories, and update `results/security/threat-model.md` using `resources/templates/_TEMPLATE-THREAT-MODEL.md` as format reference. See `/x-review` Phase 3d for the incremental update algorithm.
+   - [ ] Threat model updated (if security findings with severity >= Medium) — extract findings from Phase 4 review reports, map to STRIDE categories, and update `results/security/threat-model.md` using `resources/templates/_TEMPLATE-THREAT-MODEL.md` as format reference. See `/x-review` Phase 3d for the incremental update algorithm.
    - Post-deploy verification passed or skipped (if testing.smoke_tests == true)
 8. Post-Deploy Verification (conditional: `testing.smoke_tests == true`):
    - If `testing.smoke_tests` is `false` in project identity → SKIP with log: "Post-deploy verification skipped (testing.smoke_tests=false)"
@@ -579,7 +579,7 @@ Each DoD item from steps 5-8 is classified into one of three enforcement categor
 
 | Category | Enforcement | Items |
 |----------|-------------|-------|
-| **Mandatory** | FAIL blocks story completion | TDD items 6.1-6.8 (test-first pattern, AT-N GREEN, TPP ordering, no test-after commits, story markdown Status updated, IMPLEMENTATION-MAP Status updated, epic Status updated if all stories complete, at least 1 automated acceptance test), coverage thresholds (line >= 95%, branch >= 90%) |
+| **Mandatory** | FAIL blocks story completion | TDD items 6.1-6.7 (test-first pattern, AT-N GREEN, TPP ordering, no test-after commits, story markdown Status updated, IMPLEMENTATION-MAP Status updated, at least 1 automated acceptance test), coverage thresholds (line >= 95%, branch >= 90%) |
 | **Conditional** | FAIL blocks when condition is active; SKIP when condition is inactive | Contract tests pass (testing.contract_tests == true), event schemas registered (event_driven == true), compliance requirements met (security.compliance active), gateway configuration updated (api_gateway != none), gRPC proto backward compatible (interfaces contain grpc), GraphQL schema backward compatible (interfaces contain graphql), threat model updated (security findings severity >= Medium), post-deploy verification (testing.smoke_tests == true), smoke test passes (testing.smoke_tests == true) |
 | **Advisory** | SKIP acceptable, does not block | README update, performance baseline recording, architecture document update, changelog entry |
 
@@ -673,7 +673,7 @@ For each `@GK-N` extracted in Step 8.5.1:
 
 ### Step 8.5.5 — Generate PO Acceptance Report
 
-Write the report to `docs/stories/epic-XXXX/reviews/po-acceptance-story-XXXX-YYYY.md`:
+Write the report to `plans/epic-XXXX/reviews/po-acceptance-story-XXXX-YYYY.md`:
 
 ```markdown
 # PO Acceptance Report — STORY-XXXX-YYYY
@@ -706,7 +706,7 @@ If Section 3.5 contains placeholders, the Business Value Validation section show
 If Section 3.5 is missing (FOUNDATION layer), the Business Value Validation section shows:
 `- **Section 3.5:** Missing (FOUNDATION layer — non-blocking)`
 
-Ensure output directory exists: `mkdir -p docs/stories/epic-XXXX/reviews/`
+Ensure output directory exists: `mkdir -p plans/epic-XXXX/reviews/`
 
 ### Step 8.5.6 — Emit Gate Result
 
@@ -717,7 +717,7 @@ PO Acceptance Gate Result: [PASS | FAIL | WARNING]
   @GK-N Coverage: [N/N (percentage%)]
   Section 3.5:    [VALID | PLACEHOLDER_DETECTED | MISSING (FOUNDATION)]
   Missing @GK-N:  [list or "none"]
-  Report:         docs/stories/epic-XXXX/reviews/po-acceptance-story-XXXX-YYYY.md
+  Report:         plans/epic-XXXX/reviews/po-acceptance-story-XXXX-YYYY.md
 ```
 
 **Completion messages:**
@@ -742,6 +742,6 @@ PO Acceptance Gate Result: [PASS | FAIL | WARNING]
 ## Integration Notes
 
 - Invokes: `x-dev-architecture-plan` (Phase 1, conditional), `x-test-plan`, `x-lib-task-decomposer`, `x-lib-group-verifier` (fallback only), `x-git-push`, `x-review`, `x-review-pr`
-- Phase 8.5 (PO Acceptance Gate) produces: `docs/stories/epic-XXXX/reviews/po-acceptance-story-XXXX-YYYY.md`
+- Phase 8.5 (PO Acceptance Gate) produces: `plans/epic-XXXX/reviews/po-acceptance-story-XXXX-YYYY.md`
 - TDD commit format follows `x-git-push` conventions (`[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]` suffixes)
 - All `{{PLACEHOLDER}}` tokens (e.g. `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
