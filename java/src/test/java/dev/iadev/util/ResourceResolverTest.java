@@ -36,6 +36,7 @@ class ResourceResolverTest {
 
     @Nested
     @DisplayName("resolveResourcesRoot — single arg")
+    @SuppressWarnings("removal")
     class SingleArg {
 
         @Test
@@ -65,6 +66,7 @@ class ResourceResolverTest {
 
     @Nested
     @DisplayName("resolveResourcesRoot — two args")
+    @SuppressWarnings("removal")
     class TwoArgs {
 
         @Test
@@ -117,6 +119,7 @@ class ResourceResolverTest {
 
     @Nested
     @DisplayName("resolveResourcesRoot — consistency")
+    @SuppressWarnings("removal")
     class Consistency {
 
         @Test
@@ -205,6 +208,7 @@ class ResourceResolverTest {
 
         @Test
         @DisplayName("consistent with legacy method")
+        @SuppressWarnings("removal")
         void consistent_whenCalled_matchesLegacy() {
             Path legacyRoot = ResourceResolver
                     .resolveResourcesRoot("core", 1);

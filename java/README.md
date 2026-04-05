@@ -1449,9 +1449,10 @@ java/
 │   │   │   ├── template/      # Pebble template engine
 │   │   │   └── util/          # Path security, file utils
 │   │   └── resources/
-│   │       ├── config-templates/  # 10 bundled profiles
-│   │       ├── templates/         # Document templates
-│   │       └── ...                # Pebble templates
+│   │       ├── targets/           # Target-specific (claude, github-copilot, codex)
+│   │       ├── knowledge/         # Shared knowledge base
+│   │       ├── shared/            # Cross-cutting templates (config, cicd, docs)
+│   │       └── readme-template.md # README generation template
 │   └── test/
 │       ├── java/dev/iadev/        # Test classes
 │       └── resources/golden/      # Golden file fixtures

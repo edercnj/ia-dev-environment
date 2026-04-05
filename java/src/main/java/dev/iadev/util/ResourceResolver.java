@@ -52,7 +52,7 @@ public final class ResourceResolver {
                         0, relativePath.indexOf('/'))
                 : relativePath;
 
-        Path root = resolveResourcesRoot(firstSegment, 1);
+        Path root = doResolveRoot(firstSegment, 1);
         Path resolved = root.resolve(relativePath);
 
         if (!Files.isDirectory(resolved)) {
@@ -69,9 +69,13 @@ public final class ResourceResolver {
      *
      * @param probe a resource directory name known to exist
      * @return filesystem path to the resources root
+     * @deprecated Use {@link #resolveResourceDir(String)}
+     *     for depth-free resolution. This method will be
+     *     removed in a future release.
      */
+    @Deprecated(forRemoval = true)
     public static Path resolveResourcesRoot(String probe) {
-        return resolveResourcesRoot(probe, 1);
+        return doResolveRoot(probe, 1);
     }
 
     /**
@@ -82,8 +86,17 @@ public final class ResourceResolver {
      * @param probe a resource path known to exist
      * @param depth number of parent levels to navigate up
      * @return filesystem path to the resources root
+     * @deprecated Use {@link #resolveResourceDir(String)}
+     *     for depth-free resolution. This method will be
+     *     removed in a future release.
      */
+    @Deprecated(forRemoval = true)
     public static Path resolveResourcesRoot(
+            String probe, int depth) {
+        return doResolveRoot(probe, depth);
+    }
+
+    private static Path doResolveRoot(
             String probe, int depth) {
         URL url = findOnClasspath(probe);
         if (url == null) {
