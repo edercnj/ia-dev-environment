@@ -1,5 +1,7 @@
 package dev.iadev.domain.stack;
 
+import dev.iadev.testutil.TestConfigBuilder;
+
 import dev.iadev.domain.model.InterfaceConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -23,7 +25,7 @@ class StackResolverTest {
         @Test
         @DisplayName("java-quarkus returns all fields correctly")
         void resolve_javaQuarkus_allFieldsCorrect() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .language("java", "21")
                     .framework("quarkus", "3.17")
                     .buildTool("maven")
@@ -51,7 +53,7 @@ class StackResolverTest {
         @Test
         @DisplayName("java-spring-boot with gradle returns correct values")
         void resolve_javaSpringBootGradle_allFieldsCorrect() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .language("java", "21")
                     .framework("spring-boot", "3.4")
                     .buildTool("gradle")
@@ -76,7 +78,7 @@ class StackResolverTest {
         @Test
         @DisplayName("typescript-nestjs returns port 3000")
         void resolve_typescriptNestjs_port3000() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .language("typescript", "5")
                     .framework("nestjs", "10")
                     .buildTool("npm")
@@ -94,7 +96,7 @@ class StackResolverTest {
         @Test
         @DisplayName("python-fastapi returns port 8000")
         void resolve_pythonFastapi_port8000() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .language("python", "3.12")
                     .framework("fastapi", "0.115")
                     .buildTool("pip")
@@ -113,7 +115,7 @@ class StackResolverTest {
         @Test
         @DisplayName("go-gin returns port 8080")
         void resolve_goGin_port8080() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .language("go", "1.23")
                     .framework("gin", "1.10")
                     .buildTool("go")
@@ -131,7 +133,7 @@ class StackResolverTest {
         @Test
         @DisplayName("kotlin-ktor returns port 8080")
         void resolve_kotlinKtor_port8080() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .language("kotlin", "2.1")
                     .framework("ktor", "3.0")
                     .buildTool("gradle")
@@ -149,7 +151,7 @@ class StackResolverTest {
         @Test
         @DisplayName("rust-axum returns port 3000")
         void resolve_rustAxum_port3000() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .language("rust", "1.83")
                     .framework("axum", "0.7")
                     .buildTool("cargo")
@@ -167,7 +169,7 @@ class StackResolverTest {
         @Test
         @DisplayName("csharp-aspnet returns port 5000")
         void resolve_csharpAspnet_port5000() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .language("csharp", "8")
                     .framework("aspnet", "8")
                     .buildTool("dotnet")
@@ -190,7 +192,7 @@ class StackResolverTest {
         @Test
         @DisplayName("java language produces eclipse-temurin image")
         void resolveDockerImage_java_eclipseTemurin() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .language("java", "21")
                     .build();
 
@@ -203,7 +205,7 @@ class StackResolverTest {
         @Test
         @DisplayName("unknown language falls back to alpine:latest")
         void resolveDockerImage_unknown_alpine() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .language("haskell", "9")
                     .framework("unknown", "1.0")
                     .buildTool("cabal")
@@ -223,7 +225,7 @@ class StackResolverTest {
         @Test
         @DisplayName("unknown framework defaults to /health")
         void resolveHealthPath_unknown_defaultHealth() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .framework("unknown", "1.0")
                     .build();
 
@@ -240,7 +242,7 @@ class StackResolverTest {
         @Test
         @DisplayName("unknown framework defaults to 8080")
         void resolvePort_unknown_default8080() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .framework("unknown", "1.0")
                     .build();
 
@@ -257,7 +259,7 @@ class StackResolverTest {
         @Test
         @DisplayName("quarkus with nativeBuild=true returns true")
         void nativeBuild_quarkusEnabled_true() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .framework("quarkus", "3.17")
                     .nativeBuild(true)
                     .build();
@@ -270,7 +272,7 @@ class StackResolverTest {
         @Test
         @DisplayName("quarkus with nativeBuild=false returns false")
         void nativeBuild_quarkusDisabled_false() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .framework("quarkus", "3.17")
                     .nativeBuild(false)
                     .build();
@@ -283,7 +285,7 @@ class StackResolverTest {
         @Test
         @DisplayName("nestjs with nativeBuild=true returns false")
         void nativeBuild_nestjsEnabled_false() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .language("typescript", "5")
                     .framework("nestjs", "10")
                     .buildTool("npm")
@@ -303,7 +305,7 @@ class StackResolverTest {
         @Test
         @DisplayName("microservice with rest is api")
         void projectType_microserviceRest_api() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .architectureStyle("microservice")
                     .clearInterfaces()
                     .addInterface("rest", "", "")
@@ -317,7 +319,7 @@ class StackResolverTest {
         @Test
         @DisplayName("microservice with only event-consumer is worker")
         void projectType_microserviceEventOnly_worker() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .architectureStyle("microservice")
                     .clearInterfaces()
                     .addInterface("event-consumer", "", "kafka")
@@ -331,7 +333,7 @@ class StackResolverTest {
         @Test
         @DisplayName("microservice with both rest and event is api")
         void projectType_microserviceBoth_api() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .architectureStyle("microservice")
                     .clearInterfaces()
                     .addInterface("rest", "", "")
@@ -346,7 +348,7 @@ class StackResolverTest {
         @Test
         @DisplayName("library with cli is cli")
         void projectType_libraryCli_cli() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .architectureStyle("library")
                     .clearInterfaces()
                     .addInterface("cli", "", "")
@@ -360,7 +362,7 @@ class StackResolverTest {
         @Test
         @DisplayName("library without cli is library")
         void projectType_libraryNoCli_library() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .architectureStyle("library")
                     .clearInterfaces()
                     .addInterface("rest", "", "")
@@ -377,7 +379,7 @@ class StackResolverTest {
                         + "#apiArchitectureStyles")
         @DisplayName("architecture style {0} derives to api")
         void projectType_variousStyles_api(String style) {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .architectureStyle(style)
                     .build();
 
@@ -402,7 +404,7 @@ class StackResolverTest {
         @Test
         @DisplayName("unknown architecture style defaults to api")
         void projectType_unknownStyle_api() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .architectureStyle("unknown-style")
                     .build();
 
@@ -414,7 +416,7 @@ class StackResolverTest {
         @Test
         @DisplayName("event-consumer without rest in microservice is worker")
         void projectType_eventOnlyMicroservice_worker() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .architectureStyle("microservice")
                     .clearInterfaces()
                     .addInterface("event-consumer", "", "kafka")
@@ -434,7 +436,7 @@ class StackResolverTest {
         @Test
         @DisplayName("rest interface produces openapi protocol")
         void protocols_rest_openapi() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("rest", "", "")
                     .build();
@@ -447,7 +449,7 @@ class StackResolverTest {
         @Test
         @DisplayName("grpc interface produces proto3 protocol")
         void protocols_grpc_proto3() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("grpc", "", "")
                     .build();
@@ -460,7 +462,7 @@ class StackResolverTest {
         @Test
         @DisplayName("multiple interfaces produce multiple protocols")
         void protocols_multiple_correctList() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("rest", "", "")
                     .addInterface("grpc", "", "")
@@ -475,7 +477,7 @@ class StackResolverTest {
         @Test
         @DisplayName("unknown interface type produces no protocol")
         void protocols_unknownInterface_empty() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .clearInterfaces()
                     .addInterface("scheduled", "", "")
                     .build();
@@ -493,7 +495,7 @@ class StackResolverTest {
         @Test
         @DisplayName("unknown language/buildTool returns empty commands")
         void resolve_unknownStack_emptyCommands() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .language("haskell", "9")
                     .framework("unknown", "1.0")
                     .buildTool("cabal")

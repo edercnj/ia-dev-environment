@@ -1,5 +1,7 @@
 package dev.iadev.domain.stack;
 
+import dev.iadev.testutil.TestConfigBuilder;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -60,7 +62,7 @@ class PatternMappingTest {
         @Test
         @DisplayName("microservice returns sorted universal + microservice")
         void selectPatterns_microservice_sorted() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .architectureStyle("microservice")
                     .build();
 
@@ -74,7 +76,7 @@ class PatternMappingTest {
         @Test
         @DisplayName("monolith returns universal + integration")
         void selectPatterns_monolith_integration() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .architectureStyle("monolith")
                     .build();
 
@@ -87,7 +89,7 @@ class PatternMappingTest {
         @Test
         @DisplayName("library returns universal only")
         void selectPatterns_library_universalOnly() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .architectureStyle("library")
                     .build();
 
@@ -100,7 +102,7 @@ class PatternMappingTest {
         @Test
         @DisplayName("unknown style returns empty list")
         void selectPatterns_unknown_empty() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .architectureStyle("unknown-style")
                     .build();
 
@@ -112,7 +114,7 @@ class PatternMappingTest {
         @Test
         @DisplayName("event-driven adds event patterns")
         void selectPatterns_eventDriven_includesEvents() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .architectureStyle("microservice")
                     .eventDriven(true)
                     .build();
@@ -127,7 +129,7 @@ class PatternMappingTest {
         @Test
         @DisplayName("non-event-driven excludes event patterns")
         void selectPatterns_notEventDriven_excludesEvents() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .architectureStyle("microservice")
                     .eventDriven(false)
                     .build();
@@ -141,7 +143,7 @@ class PatternMappingTest {
         @Test
         @DisplayName("result is sorted")
         void selectPatterns_whenCalled_sorted() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .architectureStyle("microservice")
                     .eventDriven(true)
                     .build();
@@ -154,7 +156,7 @@ class PatternMappingTest {
         @Test
         @DisplayName("result is deduplicated")
         void selectPatterns_whenCalled_deduplicated() {
-            var config = new TestProjectConfigBuilder()
+            var config = TestConfigBuilder.builder()
                     .architectureStyle("microservice")
                     .build();
 

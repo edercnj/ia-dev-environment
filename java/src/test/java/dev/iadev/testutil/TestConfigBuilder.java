@@ -1,4 +1,4 @@
-package dev.iadev.application.assembler;
+package dev.iadev.testutil;
 
 import dev.iadev.domain.model.ArchitectureConfig;
 import dev.iadev.domain.model.DataConfig;
@@ -7,6 +7,7 @@ import dev.iadev.domain.model.InfraConfig;
 import dev.iadev.domain.model.InterfaceConfig;
 import dev.iadev.domain.model.LanguageConfig;
 import dev.iadev.domain.model.McpConfig;
+import dev.iadev.domain.model.McpServerConfig;
 import dev.iadev.domain.model.ObservabilityConfig;
 import dev.iadev.domain.model.ProjectConfig;
 import dev.iadev.domain.model.ProjectIdentity;
@@ -14,21 +15,21 @@ import dev.iadev.domain.model.SecurityConfig;
 import dev.iadev.domain.model.TechComponent;
 import dev.iadev.domain.model.TestingConfig;
 
-import dev.iadev.domain.model.McpServerConfig;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
- * Test helper to build ProjectConfig instances with sensible
- * defaults for assembler tests.
+ * Shared test helper to build ProjectConfig instances
+ * with sensible defaults.
+ *
+ * <p>Consolidates the former package-private builders from
+ * application.assembler and domain.stack packages.</p>
  */
-final class TestConfigBuilder {
+public final class TestConfigBuilder {
 
     private String projectName = "test-project";
-    private String projectPurpose = "Test purpose";
+    private String purpose = "Test purpose";
     private String archStyle = "microservice";
     private boolean domainDriven = false;
     private boolean eventDriven = false;
@@ -38,7 +39,8 @@ final class TestConfigBuilder {
     private String schemaRegistry = "";
     private boolean outboxPattern = false;
     private String deadLetterStrategy = "";
-    private int eventsPerSnapshot = 100;
+    private int eventsPerSnapshot =
+            ArchitectureConfig.DEFAULT_EVENTS_PER_SNAPSHOT;
     private boolean dddEnabled = false;
     private String langName = "java";
     private String langVersion = "21";
@@ -59,7 +61,6 @@ final class TestConfigBuilder {
     private boolean smokeTests = true;
     private boolean contractTests = false;
     private boolean performanceTests = true;
-    private String purpose = "Test purpose";
     private String apiGateway = "none";
     private String registry = "none";
     private String observabilityTool = "none";
@@ -77,215 +78,229 @@ final class TestConfigBuilder {
                 new InterfaceConfig("rest", "", ""));
     }
 
-    static ProjectConfig minimal() {
+    public static ProjectConfig minimal() {
         return new TestConfigBuilder().build();
     }
 
-    static TestConfigBuilder builder() {
+    public static TestConfigBuilder builder() {
         return new TestConfigBuilder();
     }
 
-    TestConfigBuilder projectName(String name) {
+    public TestConfigBuilder projectName(String name) {
         this.projectName = name;
         return this;
     }
 
-    TestConfigBuilder archStyle(String style) {
+    public TestConfigBuilder purpose(String value) {
+        this.purpose = value;
+        return this;
+    }
+
+    public TestConfigBuilder archStyle(String style) {
         this.archStyle = style;
         return this;
     }
 
-    TestConfigBuilder domainDriven(boolean enabled) {
+    /** Alias for {@link #archStyle(String)}. */
+    public TestConfigBuilder architectureStyle(String style) {
+        return archStyle(style);
+    }
+
+    public TestConfigBuilder domainDriven(boolean enabled) {
         this.domainDriven = enabled;
         return this;
     }
 
-    TestConfigBuilder eventDriven(boolean enabled) {
+    public TestConfigBuilder eventDriven(boolean enabled) {
         this.eventDriven = enabled;
         return this;
     }
 
-    TestConfigBuilder validateWithArchUnit(boolean enabled) {
+    public TestConfigBuilder validateWithArchUnit(
+            boolean enabled) {
         this.validateWithArchUnit = enabled;
         return this;
     }
 
-    TestConfigBuilder basePackage(String pkg) {
+    public TestConfigBuilder basePackage(String pkg) {
         this.basePackage = pkg;
         return this;
     }
 
-    TestConfigBuilder eventStore(String store) {
+    public TestConfigBuilder eventStore(String store) {
         this.eventStore = store;
         return this;
     }
 
-    TestConfigBuilder schemaRegistry(String registry) {
-        this.schemaRegistry = registry;
+    public TestConfigBuilder schemaRegistry(
+            String value) {
+        this.schemaRegistry = value;
         return this;
     }
 
-    TestConfigBuilder outboxPattern(boolean enabled) {
+    public TestConfigBuilder outboxPattern(boolean enabled) {
         this.outboxPattern = enabled;
         return this;
     }
 
-    TestConfigBuilder deadLetterStrategy(String strategy) {
+    public TestConfigBuilder deadLetterStrategy(
+            String strategy) {
         this.deadLetterStrategy = strategy;
         return this;
     }
 
-    TestConfigBuilder eventsPerSnapshot(int count) {
+    public TestConfigBuilder eventsPerSnapshot(int count) {
         this.eventsPerSnapshot = count;
         return this;
     }
 
-    TestConfigBuilder dddEnabled(boolean enabled) {
+    public TestConfigBuilder dddEnabled(boolean enabled) {
         this.dddEnabled = enabled;
         return this;
     }
 
-
-    TestConfigBuilder language(String name, String version) {
+    public TestConfigBuilder language(
+            String name, String version) {
         this.langName = name;
         this.langVersion = version;
         return this;
     }
 
-    TestConfigBuilder framework(String name, String version) {
+    public TestConfigBuilder framework(
+            String name, String version) {
         this.fwName = name;
         this.fwVersion = version;
         return this;
     }
 
-    TestConfigBuilder buildTool(String tool) {
+    public TestConfigBuilder buildTool(String tool) {
         this.buildTool = tool;
         return this;
     }
 
-    TestConfigBuilder nativeBuild(boolean enabled) {
+    public TestConfigBuilder nativeBuild(boolean enabled) {
         this.nativeBuild = enabled;
         return this;
     }
 
-    TestConfigBuilder database(String name, String version) {
+    public TestConfigBuilder database(
+            String name, String version) {
         this.dbName = name;
         this.dbVersion = version;
         return this;
     }
 
-    TestConfigBuilder cache(String name, String version) {
+    public TestConfigBuilder cache(
+            String name, String version) {
         this.cacheName = name;
         this.cacheVersion = version;
         return this;
     }
 
-    TestConfigBuilder clearInterfaces() {
+    public TestConfigBuilder clearInterfaces() {
         this.interfaces.clear();
         return this;
     }
 
-    TestConfigBuilder addInterface(String type) {
+    public TestConfigBuilder addInterface(String type) {
         this.interfaces.add(
                 new InterfaceConfig(type, "", ""));
         return this;
     }
 
-    TestConfigBuilder addInterface(
+    public TestConfigBuilder addInterface(
             String type, String spec, String broker) {
         this.interfaces.add(
                 new InterfaceConfig(type, spec, broker));
         return this;
     }
 
-    TestConfigBuilder purpose(String purpose) {
-        this.purpose = purpose;
-        return this;
-    }
-
-    TestConfigBuilder migration(
+    public TestConfigBuilder migration(
             String name, String version) {
         this.migrationName = name;
         this.migrationVersion = version;
         return this;
     }
 
-    TestConfigBuilder container(String container) {
-        this.container = container;
+    public TestConfigBuilder container(String value) {
+        this.container = value;
         return this;
     }
 
-    TestConfigBuilder orchestrator(String orchestrator) {
-        this.orchestrator = orchestrator;
+    public TestConfigBuilder orchestrator(String value) {
+        this.orchestrator = value;
         return this;
     }
 
-    TestConfigBuilder cloudProvider(String provider) {
+    public TestConfigBuilder cloudProvider(String provider) {
         this.cloudProvider = provider;
         return this;
     }
 
-    TestConfigBuilder iac(String iac) {
-        this.iac = iac;
+    public TestConfigBuilder iac(String value) {
+        this.iac = value;
         return this;
     }
 
-    TestConfigBuilder smokeTests(boolean enabled) {
+    public TestConfigBuilder smokeTests(boolean enabled) {
         this.smokeTests = enabled;
         return this;
     }
 
-    TestConfigBuilder contractTests(boolean enabled) {
+    public TestConfigBuilder contractTests(boolean enabled) {
         this.contractTests = enabled;
         return this;
     }
 
-    TestConfigBuilder performanceTests(boolean enabled) {
+    public TestConfigBuilder performanceTests(
+            boolean enabled) {
         this.performanceTests = enabled;
         return this;
     }
 
-    TestConfigBuilder apiGateway(String gateway) {
+    public TestConfigBuilder apiGateway(String gateway) {
         this.apiGateway = gateway;
         return this;
     }
 
-    TestConfigBuilder registry(String registry) {
-        this.registry = registry;
+    public TestConfigBuilder registry(String value) {
+        this.registry = value;
         return this;
     }
 
-    TestConfigBuilder observabilityTool(String tool) {
+    public TestConfigBuilder observabilityTool(String tool) {
         this.observabilityTool = tool;
         return this;
     }
 
-    TestConfigBuilder serviceMesh(String mesh) {
+    public TestConfigBuilder serviceMesh(String mesh) {
         this.serviceMesh = mesh;
         return this;
     }
 
-    TestConfigBuilder templating(String templating) {
-        this.templating = templating;
+    public TestConfigBuilder templating(String value) {
+        this.templating = value;
         return this;
     }
 
-    TestConfigBuilder securityFrameworks(String... frameworks) {
+    public TestConfigBuilder securityFrameworks(
+            String... frameworks) {
         this.securityFrameworksList = List.of(frameworks);
         return this;
     }
 
-    TestConfigBuilder addMcpServer(McpServerConfig server) {
+    public TestConfigBuilder addMcpServer(
+            McpServerConfig server) {
         this.mcpServers.add(server);
         return this;
     }
 
-    TestConfigBuilder clearMcpServers() {
+    public TestConfigBuilder clearMcpServers() {
         this.mcpServers.clear();
         return this;
     }
 
-    ProjectConfig build() {
+    public ProjectConfig build() {
         return new ProjectConfig(
                 new ProjectIdentity(
                         projectName, purpose),
