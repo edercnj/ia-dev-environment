@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Smoke test validating that all 32 assemblers execute
+ * Smoke test validating that all 33 assemblers execute
  * and contribute output for every registered profile.
  *
  * <p>Detects assembler regressions:</p>
@@ -52,9 +52,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("AssemblerRegressionSmokeTest")
 class AssemblerRegressionSmokeTest extends SmokeTestBase {
 
-    static final int EXPECTED_ASSEMBLER_COUNT = 32;
+    static final int EXPECTED_ASSEMBLER_COUNT = 33;
 
     static final List<String> EXPECTED_ORDER = List.of(
+            "ConstitutionAssembler",
             "RulesAssembler",
             "SkillsAssembler",
             "AgentsAssembler",
