@@ -2,7 +2,7 @@
   "epicId": "0019",
   "branch": "feat/epic-0019-full-implementation",
   "startedAt": "2026-04-05T00:00:00Z",
-  "finishedAt": null,
+  "finishedAt": "2026-04-05T01:30:00Z",
   "mode": {
     "parallel": false,
     "skipReview": false
@@ -35,7 +35,7 @@
     "storiesBlocked": 0,
     "storiesTotal": 13
   },
-  "prUrl": null,
-  "reportPath": null,
-  "finalStatus": null
+  "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/136",
+  "reportPath": "plans/epic-0019-workflow-quality-gates/epic-execution-report.md",
+  "finalStatus": "COMPLETE"
 }
