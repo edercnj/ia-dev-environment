@@ -3,44 +3,29 @@
   "branch": "feat/epic-0016-full-implementation",
   "startedAt": "2026-04-04T12:00:00Z",
   "finishedAt": null,
-  "mode": {
-    "parallel": true,
-    "skipReview": false
-  },
+  "mode": { "parallel": true, "skipReview": false },
   "stories": {
-    "story-0016-0001": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "32cad592", "findingsCount": 0, "summary": "Added optional compliance field to ProjectConfig with validation (none, pci-dss), backward compatible, 12 new tests", "duration": null },
-    "story-0016-0004": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "3f4ce184", "findingsCount": 0, "summary": "Created x-spec-drift-check skill template, registered in SkillGroupRegistry review group, 26 new tests, golden files updated", "duration": null },
-    "story-0016-0006": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "5f338f61", "findingsCount": 0, "summary": "Quality Gate scoring engine in domain.qualitygate: QualityGateEngine, VaguenessDetector, ScenarioScorer, 98 new tests", "duration": null },
-    "story-0016-0008": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "c4b473f0", "findingsCount": 0, "summary": "Traceability domain: StoryRequirementParser, TestMethodScanner, TestCorrelator, 59 new tests", "duration": null },
-    "story-0016-0002": { "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "4301285e", "findingsCount": 0, "summary": "ConstitutionAssembler + CONSTITUTION.md Pebble template, conditional on compliance field, 19 new tests", "duration": null },
-    "story-0016-0005": { "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "d179a55f", "findingsCount": 0, "summary": "x-spec-drift-check inline mode for TDD loop integration, compact output, non-blocking WARN, critical drift pause", "duration": null },
-    "story-0016-0007": { "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "a57b1ea4", "findingsCount": 0, "summary": "Quality gate integrated into x-story-create skill template with --quality-threshold flag and 6-dimension scoring", "duration": null },
-    "story-0016-0009": { "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "36794c65", "findingsCount": 0, "summary": "Traceability matrix domain models + x-test-run skill integration with --traceability flag", "duration": null },
-    "story-0016-0003": { "phase": 2, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
-    "story-0016-0010": { "phase": 2, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
-    "story-0016-0013": { "phase": 2, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
+    "story-0016-0001": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "32cad592", "findingsCount": 0, "summary": "Compliance field in ProjectConfig", "duration": null },
+    "story-0016-0004": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "3f4ce184", "findingsCount": 0, "summary": "x-spec-drift-check skill template", "duration": null },
+    "story-0016-0006": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "5f338f61", "findingsCount": 0, "summary": "Quality Gate scoring engine", "duration": null },
+    "story-0016-0008": { "phase": 0, "status": "SUCCESS", "retries": 0, "commitSha": "c4b473f0", "findingsCount": 0, "summary": "Traceability domain package", "duration": null },
+    "story-0016-0002": { "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "4301285e", "findingsCount": 0, "summary": "ConstitutionAssembler + template", "duration": null },
+    "story-0016-0005": { "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "d179a55f", "findingsCount": 0, "summary": "x-spec-drift-check inline mode", "duration": null },
+    "story-0016-0007": { "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "a57b1ea4", "findingsCount": 0, "summary": "Quality gate in x-story-create", "duration": null },
+    "story-0016-0009": { "phase": 1, "status": "SUCCESS", "retries": 0, "commitSha": "36794c65", "findingsCount": 0, "summary": "Traceability matrix in x-test-run", "duration": null },
+    "story-0016-0003": { "phase": 2, "status": "SUCCESS", "retries": 0, "commitSha": "15d2fb91", "findingsCount": 0, "summary": "CONSTITUTION.md preservation with --overwrite flag", "duration": null },
+    "story-0016-0010": { "phase": 2, "status": "SUCCESS", "retries": 0, "commitSha": "f3e8c2e0", "findingsCount": 0, "summary": "java-spring-fintech-pci profile (13th stack)", "duration": null },
+    "story-0016-0013": { "phase": 2, "status": "SUCCESS", "retries": 0, "commitSha": "eebfca38", "findingsCount": 0, "summary": "Scope Assessment engine: SIMPLE/STANDARD/COMPLEX", "duration": null },
     "story-0016-0011": { "phase": 3, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
     "story-0016-0012": { "phase": 3, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
     "story-0016-0014": { "phase": 3, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null },
     "story-0016-0015": { "phase": 4, "status": "PENDING", "retries": 0, "commitSha": null, "findingsCount": 0, "summary": null, "duration": null }
   },
   "phases": {
-    "0": {
-      "status": "SUCCESS",
-      "integrityGate": { "status": "PASS", "testCount": 3460, "coverage": null, "branchCoverage": null }
-    },
-    "1": {
-      "status": "SUCCESS",
-      "integrityGate": { "status": "PASS", "testCount": 3514, "coverage": null, "branchCoverage": null }
-    }
+    "0": { "status": "SUCCESS", "integrityGate": { "status": "PASS", "testCount": 3460 } },
+    "1": { "status": "SUCCESS", "integrityGate": { "status": "PASS", "testCount": 3514 } },
+    "2": { "status": "SUCCESS", "integrityGate": { "status": "PASS", "testCount": 3613 } }
   },
-  "metrics": {
-    "storiesCompleted": 8,
-    "storiesFailed": 0,
-    "storiesBlocked": 0,
-    "storiesTotal": 15
-  },
-  "prUrl": null,
-  "reportPath": null,
-  "finalStatus": null
+  "metrics": { "storiesCompleted": 11, "storiesFailed": 0, "storiesBlocked": 0, "storiesTotal": 15 },
+  "prUrl": null, "reportPath": null, "finalStatus": null
 }
