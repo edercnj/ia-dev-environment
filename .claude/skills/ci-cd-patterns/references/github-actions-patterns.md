@@ -120,7 +120,12 @@ on:
       - 'pom.xml'
       - '.github/workflows/ci.yml'
     paths-ignore:
-      - 'docs/**'
+      - 'steering/**'
+      - 'specs/**'
+      - 'plans/**'
+      - 'results/**'
+      - 'contracts/**'
+      - 'adr/**'
       - '*.md'
 ```
 
