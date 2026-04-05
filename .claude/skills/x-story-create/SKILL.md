@@ -301,6 +301,68 @@ Use checkboxes `- [ ]` for tracking.
 
 A story without ANY automated end-to-end validation sub-task is INCOMPLETE and must not be saved.
 
+### Step 2.5: Story Quality Gate (INVEST Validation)
+
+After generating each story's content (Step 2) and before saving, validate the story against
+INVEST criteria and acceptance criteria completeness. This gate prevents poorly decomposed
+stories from reaching the backlog.
+
+#### INVEST Criteria Checks
+
+| Criterion | Check | Threshold |
+|:---|:---|:---|
+| **Independent** | Count entries in "Blocked By" column | <= 2 blockers. If > 2: WARN with message `"Story has N blockers (max recommended: 2) — consider splitting"` |
+| **Negotiable** | Scan Section 3 (Descrição) for alternatives, trade-offs, or design options | At least one mention of alternatives or trade-offs. If absent: WARN with `"Description lacks alternatives or trade-offs — story may be over-specified"` |
+| **Valuable** | Check Section 3.5 (Entrega de Valor) exists, is non-empty, and contains no placeholders (`{...}`, `<...>`, `TBD`, `TODO`, `N/A`) | Section 3.5 must be present and substantive. If missing or placeholder-only: FAIL with `"Section 3.5 (Entrega de Valor) is required"`. Exception: FOUNDATION-layer stories may have infrastructure-enablement value and still pass |
+| **Estimable** | Count sub-tasks in Section 8 | Between 4 and 10 sub-tasks. If < 4: WARN `"Too few sub-tasks (N) — story may be under-decomposed"`. If > 10: WARN `"Too many sub-tasks (N) — consider splitting the story"` |
+| **Small** | Count Gherkin scenarios (@GK-N tags) and sub-tasks | Gherkin scenarios <= 8 AND sub-tasks <= 10. If Gherkin > 8: FAIL `"Too many Gherkin scenarios (N, max 8) — story is too large, split it"`. If sub-tasks > 10: WARN (covered above) |
+| **Testable** | Count @GK-N scenarios and verify they use concrete values | Minimum 4 Gherkin scenarios with concrete values (not abstractions like "um valor qualquer"). If < 4: FAIL `"Minimum 4 Gherkin scenarios required, found N"`. If any scenario uses only abstract values: WARN `"Scenario @GK-N uses abstract values — use concrete test data"` |
+
+#### Acceptance Criteria Completeness Checks
+
+| Check | Requirement | Result if Missing |
+|:---|:---|:---|
+| Minimum scenario count | At least 4 @GK-N scenarios | FAIL: `"Minimum 4 Gherkin scenarios required, found N"` |
+| Degenerate case | At least 1 scenario testing null/empty/zero/missing input | WARN: `"No degenerate case scenario found"` |
+| Happy path | At least 1 scenario testing the main success flow | FAIL: `"No happy path scenario found"` |
+| Error path | At least 1 scenario testing an error condition with expected error code/message | WARN: `"No error path scenario found"` |
+| Boundary value triplet | At least 1 triplet (at-min, at-max, past-max) for bounded inputs | WARN: `"No boundary value triplet found — add at-min, at-max, past-max scenarios for bounded inputs"` |
+
+#### Validation Result
+
+Combine all check results into an overall verdict:
+
+| Verdict | Condition | Action |
+|:---|:---|:---|
+| **PASS** | All checks pass (no FAIL, no WARN) | Save the story file |
+| **WARN** | No FAIL results, but one or more WARN results | Save the story file with warnings logged in the Step 3 report |
+| **FAIL** | One or more FAIL results | Do NOT save the story file. Report all FAIL and WARN issues. The story must be revised before it can be saved |
+
+#### Validation Report Format
+
+For each story, display the validation result:
+
+```
+INVEST Validation — story-XXXX-YYYY
+Result: PASS | WARN | FAIL
+
+  Independent:  PASS | WARN (N blockers, max 2)
+  Negotiable:   PASS | WARN (no alternatives found)
+  Valuable:     PASS | FAIL (Section 3.5 missing/placeholder)
+  Estimable:    PASS | WARN (N sub-tasks, expected 4-10)
+  Small:        PASS | FAIL (N scenarios, max 8)
+  Testable:     PASS | FAIL (N scenarios, min 4)
+
+  Acceptance Criteria:
+    Scenario count:       PASS | FAIL (N, min 4)
+    Degenerate case:      PASS | WARN
+    Happy path:           PASS | FAIL
+    Error path:           PASS | WARN
+    Boundary triplet:     PASS | WARN
+
+Issues: K issue(s) found
+```
+
 ### Step 2.X: Optional Jira Integration (per story)
 
 After generating each story's markdown content but before saving, optionally create the
