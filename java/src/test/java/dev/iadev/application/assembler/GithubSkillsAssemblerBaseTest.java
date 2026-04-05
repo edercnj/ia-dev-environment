@@ -71,12 +71,12 @@ class GithubSkillsAssemblerBaseTest {
         }
 
         @Test
-        @DisplayName("review group has 11 skills")
-        void assemble_reviewGroup_hasElevenSkills() {
+        @DisplayName("review group has 12 skills")
+        void assemble_reviewGroup_hasTwelveSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("review"))
-                    .hasSize(11);
+                    .hasSize(12);
         }
 
         @Test
