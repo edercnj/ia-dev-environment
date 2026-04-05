@@ -2,7 +2,7 @@
 name: x-dev-epic-implement
 description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
-argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review [--reason \"justification\"]] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate]"
+argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate]"
 ---
 
 ## Global Output Policy
@@ -38,15 +38,13 @@ ERROR: Epic ID is required. Usage: /x-dev-epic-implement [EPIC-ID] [flags]
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `--phase N` | number | (all phases) | Execute only phase N (valid range depends on the implementation map) |
+| `--phase N` | number | (all phases) | Execute only phase N (0-3) |
 | `--story story-XXXX-YYYY` | string | (all stories) | Execute only a specific story by ID |
-| `--skip-review` | boolean | `false` | Skip review phases (Phase 4 and Phase 7) in x-dev-lifecycle subagents. SHOULD be accompanied by `--reason` for auditability |
-| `--reason` | string | `""` | Justification for `--skip-review`. If `--skip-review` is passed without `--reason`, emit `WARNING: --skip-review used without --reason. Provide --reason for auditability.` The justification is recorded in `execution-state.json` as `skipReviewReason` and appears in the epic execution report |
+| `--skip-review` | boolean | `false` | Skip review phases in x-dev-lifecycle subagents |
 | `--dry-run` | boolean | `false` | Generate execution plan without executing |
 | `--resume` | boolean | `false` | Continue from last checkpoint (execution-state.json) |
 | `--sequential` | boolean | `false` | Disable parallel worktrees, execute stories one at a time |
 | `--skip-smoke-gate` | boolean | `false` | Skip smoke tests in the integrity gate between phases |
-| `--max-retries` | number | `2` | Maximum retry attempts for failed stories |
 
 ## Prerequisites Check
 
@@ -322,7 +320,7 @@ The adjusted execution plan produced by Phase 0.5 is consumed by the Core Loop:
    - `epicId`: The parsed epic ID
    - `branch`: `feat/epic-{epicId}-full-implementation`
    - `stories`: Array of `{ id, phase }` from step 3
-   - `mode`: `{ parallel: true, skipReview: <from flags>, skipReviewReason: <from --reason flag or ""> }` (default; set to `false` when `--sequential` is passed)
+   - `mode`: `{ parallel: true, skipReview: <from flags> }` (default; set to `false` when `--sequential` is passed)
 5. The returned `ExecutionState` tracks all story statuses, metrics, and integrity gates
 
 ### 1.2 Branch Management
@@ -339,7 +337,7 @@ The adjusted execution plan produced by Phase 0.5 is consumed by the Core Loop:
    ```
    git checkout feat/epic-{epicId}-full-implementation
    ```
-   See Resume Workflow section above.
+   [Placeholder: resume from checkpoint — story-0005-0008]
 
 ### 1.3 Core Loop Algorithm
 
@@ -351,12 +349,7 @@ For each phase in (0..totalPhases-1):
      → Load preflight-analysis-phase-{N}.md if it exists
      → Extract parallelBatch and sequentialQueue story lists
      → If no preflight analysis exists, treat all stories as parallel-eligible
-  1. Apply partial execution filter before dependency checking:
-     a. If `--phase N` is active: filter parsedMap.stories to only stories in phase N
-     b. If `--story ID` is active: filter parsedMap.stories to only the specified story;
-        validate all its dependencies have status SUCCESS before proceeding
-     c. If neither flag is active: no filtering (all stories are candidates)
-     Then call getExecutableStories(filteredMap, executionState)
+  1. Call getExecutableStories(parsedMap, executionState)
      → Returns stories sorted by critical path priority (RULE-007)
      → Only PENDING stories with all dependencies SUCCESS are returned
   2. If no executable stories and some remain PENDING:
@@ -372,34 +365,9 @@ For each phase in (0..totalPhases-1):
      b. Dispatch subagent (see 1.4 or 1.4a)
      c. Validate result (see 1.5)
      d. Update checkpoint (see 1.6)
-  7. Run Integrity Gate (see Integrity Gate section below):
-     a. Dispatch integrity gate subagent with compile, test, coverage, and commit validation
-     b. On PASS → continue to next phase
-     c. On FAIL → halt execution, report failures, require --resume after fix
-  8. Run Cross-Story Consistency Gate (Section 1.8):
-     a. Dispatch consistency gate subagent with all completed stories from this phase
-     b. Subagent checks 4 dimensions: interface, naming, duplicate, dependency
-     c. On PASS → continue to next phase
-     d. On WARN → log warnings, continue to next phase
-     e. On FAIL → pause execution, report to user, require --resume after manual fix
-     f. Record consistencyGate result in checkpoint via updateConsistencyGate()
-  9. Emit progress report after each story completes and checkpoint is updated:
-     ```
-     >>> Epic {epicId} Progress: Phase {phase} — {completed}/{total} stories
-         ({percentage}% complete). Last: {storyId} = {status}. Elapsed: {elapsed}
-     ```
-     Where:
-     - `{completed}` = number of stories with status SUCCESS in current phase
-     - `{total}` = total stories in current phase
-     - `{percentage}` = Math.round((completed / total) * 100)
-     - `{status}` = result status of the last dispatched story (SUCCESS, FAILED, BLOCKED)
-     - `{elapsed}` = wall-clock time since phase start (e.g., "2m 34s")
-     Also emit a cumulative epic-level progress line:
-     ```
-     >>> Epic {epicId} Overall: {totalCompleted}/{totalStories} stories
-         ({overallPercentage}% complete). Elapsed: {totalElapsed}
-     ```
-  10. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
+  7. [Placeholder: integrity gate between phases — story-0005-0006]
+  8. [Placeholder: progress reporting — story-0005-0013]
+  9. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
 ```
 
 The loop ensures that:
@@ -407,7 +375,7 @@ The loop ensures that:
 - BLOCKED stories are never dispatched (filtered by `getExecutableStories`)
 - Each phase completes before the next begins (parallel dispatch is default; sequential when `--sequential` is set)
 - Pre-flight conflict analysis partitions stories into parallel and sequential groups to minimize merge conflicts
-- Cross-Story Consistency Gate (Section 1.8) runs after the Integrity Gate to detect inconsistencies between stories implemented in isolation
+- [Placeholder: partial execution filter — story-0005-0009]
 
 ### 1.4 Subagent Dispatch (Sequential Mode — When `--sequential` Is Set)
 
@@ -427,48 +395,20 @@ Story file: plans/epic-{epicId}/story-{storyId}.md
 Branch: {branchName}
 Phase: {currentPhase}
 Skip review: {skipReview}
-Skip review reason: {skipReviewReason}
 
-You have access to the Skill tool. Invoke /x-dev-lifecycle skill with argument {storyId}.
-
-The /x-dev-lifecycle skill executes the full workflow:
-  Phase 0 — Preparation
-  Phase 1 — Planning (Architecture + Test Plan)
-  Phase 2 — Implementation (TDD Red-Green-Refactor)
-  Phase 3A — Documentation (Structural)
-  Phase 4 — Specialist Review (via /x-review)
-  Phase 5 — Fixes
-  Phase 6 — Commit & PR
-  Phase 7 — Tech Lead Review (via /x-review-pr)
-  Phase 3B — Documentation (Changelog)
-  Phase 8 — Final Verification & DoD Enforcement Gate
-  Phase 8.5 — PO Acceptance Gate
-
-Phase 8 is the ONLY legitimate stop point. The subagent MUST NOT stop
-before Phase 8 unless a phase returns a terminal failure. Any early stop
-without a terminal failure is a violation of the workflow contract.
-
-If --skip-review is set, pass the flag to /x-dev-lifecycle so it skips
-Phase 4 and Phase 7. If --skip-review is used without --reason, log:
-"WARNING: --skip-review used without --reason. Provide --reason for auditability."
+Execute the x-dev-lifecycle workflow:
+1. Read the story file for requirements
+2. Create implementation plan
+3. Implement following TDD (Red-Green-Refactor)
+4. Run tests and verify coverage
+5. Commit changes with Conventional Commits
 
 Return a JSON result with this exact structure (SubagentResult):
 {
   "status": "SUCCESS" | "FAILED" | "PARTIAL",
   "commitSha": "<git commit SHA if SUCCESS>",
   "findingsCount": <number of review findings>,
-  "summary": "<brief description of what was done>",
-  "reviewsExecuted": {
-    "specialist": true | false,
-    "techLead": true | false
-  },
-  "reviewScores": {
-    "specialist": "<score>/<total>",
-    "techLead": "<score>/<total>"
-  },
-  "coverageLine": <line coverage percentage>,
-  "coverageBranch": <branch coverage percentage>,
-  "tddCycles": <number of Red-Green-Refactor cycles>
+  "summary": "<brief description of what was done>"
 }
 ```
 
@@ -495,10 +435,7 @@ For each story in executableStories:
   Agent(
     subagent_type: "general-purpose",
     isolation: "worktree",
-    prompt: "<same prompt template as Section 1.4 (invoking /x-dev-lifecycle),
-             with story-specific metadata and the full SubagentResult contract
-             including reviewsExecuted, reviewScores, coverageLine, coverageBranch,
-             and tddCycles fields>"
+    prompt: "<same prompt template as Section 1.4, with story-specific metadata>"
   )
 ```
 
@@ -573,7 +510,7 @@ merged, drastically reducing conflict rates in epics with 4+ parallel stories.
         - `git rebase --abort` (restore branch to pre-rebase state)
         - Update checkpoint: `updateStoryStatus(epicDir, storyId, { status: "REBASE_FAILED", summary })`
         - Then: `updateStoryStatus(epicDir, storyId, { status: "FAILED", summary })`
-        - Trigger block propagation for dependent stories (see Section 1.5b)
+        - Trigger block propagation for dependent stories (per story-0005-0007)
 
 5. For stories with `status: "FAILED"` or `PARTIAL` from subagent dispatch:
    - Do NOT attempt merge or rebase
@@ -581,7 +518,7 @@ merged, drastically reducing conflict rates in epics with 4+ parallel stories.
      `updateStoryStatus(epicDir, storyId, { status: "FAILED", summary, lastAttemptSha })`
      (RULE-002). This MUST move the story out of `IN_PROGRESS` so it is not left stuck
      in the checkpoint from the 1.4a dispatch phase.
-   - Then delegate to failure handling (see Section 1.5b: Failure Handling, Rollback, and Retry)
+   - Then delegate to failure handling (retry + block propagation per story-0005-0007)
 
 **Checkpoint States for Rebase-Before-Merge:**
 
@@ -646,7 +583,7 @@ return status FAILED with a clear explanation.
 **On Resolution FAILED:**
 - For rebase conflicts: execute `git rebase --abort` to restore the branch to its pre-rebase state
 - Mark the story as FAILED (via REBASE_FAILED intermediate state for rebase conflicts)
-- Trigger block propagation for dependent stories (see Section 1.5b)
+- Trigger block propagation for dependent stories (per story-0005-0007)
 - Preserve the worktree for manual diagnosis (see Section 1.4d)
 
 ### 1.4d Worktree Cleanup
@@ -663,211 +600,17 @@ After the merge phase completes, clean up worktree resources:
 
 After receiving the subagent response, validate the `SubagentResult` contract:
 
-**Full SubagentResult Contract:**
-```json
-{
-  "status": "SUCCESS | FAILED | PARTIAL",
-  "commitSha": "<sha>",
-  "findingsCount": 0,
-  "summary": "<description>",
-  "reviewsExecuted": {
-    "specialist": true,
-    "techLead": true
-  },
-  "reviewScores": {
-    "specialist": "56/56",
-    "techLead": "45/45"
-  },
-  "coverageLine": 97.5,
-  "coverageBranch": 93.2,
-  "tddCycles": 12
-}
-```
-
-#### 1.5.1 Structural Validation (Existing Fields)
-
 1. **`status` field**: MUST be present, MUST be one of: `SUCCESS`, `FAILED`, `PARTIAL`
 2. **`findingsCount` field**: MUST be present and be a number
 3. **`summary` field**: MUST be present and be a string
 4. **`commitSha` field**: If `status === "SUCCESS"`, MUST be present and be a string
 
-**On structural validation failure:**
+**On validation failure:**
 - Mark the story as FAILED
 - Set summary to: `"Invalid subagent result: missing {field} field"`
 - Continue to checkpoint update (1.6)
 
-#### 1.5.2 Extended Fields Validation (Backward Compatibility)
-
-Extended fields are optional for backward compatibility with older subagent
-implementations that return only the original 4 fields. If an extended field is
-missing, do **not** mark the story as FAILED; instead, populate a sensible default
-value and continue processing. Only fields that are present but structurally invalid
-(wrong type) should be treated as validation failures.
-
-5. **`reviewsExecuted` field**: If present, MUST be an object with `specialist` (boolean) and `techLead` (boolean); if missing, default to `{ specialist: false, techLead: false }`
-6. **`reviewScores` field**: If present, MUST be an object with `specialist` (string) and `techLead` (string); if missing, default to `{ specialist: "N/A", techLead: "N/A" }`
-7. **`coverageLine` field**: If present, MUST be a number; if missing, default to `null`
-8. **`coverageBranch` field**: If present, MUST be a number; if missing, default to `null`
-9. **`tddCycles` field**: If present, MUST be a number (integer >= 0); if missing, default to `0`
-
-**On extended field validation failure:**
-- If an extended field is **missing**, apply the default value above and continue
-- If an extended field is **present but malformed** (wrong type), reclassify status to FAILED
-- Set summary to: `"Invalid subagent result: malformed {field} field"`
-- Continue to checkpoint update (1.6) — do NOT crash or throw
-
-#### 1.5.3 Enforced Quality Validation
-
-After structural and extended field validation passes, apply enforced quality rules.
-These rules can reclassify a `SUCCESS` status to `FAILED` if quality thresholds are not met.
-
-**Review Execution Validation (when `--skip-review` is NOT active):**
-- If `status == SUCCESS` and `reviewsExecuted.specialist` is NOT `true`:
-  reclassify to FAILED with summary: `"Specialist review was not executed"`
-- If `status == SUCCESS` and `reviewsExecuted.techLead` is NOT `true`:
-  reclassify to FAILED with summary: `"Tech Lead review was not executed"`
-
-**Review Execution Validation (when `--skip-review` IS active):**
-- Skip review execution checks — reviews are not required
-- The checkpoint records `skipReviewReason` from the `--reason` flag
-
-**Coverage Threshold Validation:**
-- If `coverageLine < 95`: reclassify to FAILED with summary:
-  `"Line coverage {coverageLine}% below 95% threshold"`
-- If `coverageBranch < 90`: reclassify to FAILED with summary:
-  `"Branch coverage {coverageBranch}% below 90% threshold"`
-
-**TDD Compliance Validation:**
-- If `tddCycles == 0`: reclassify to FAILED with summary:
-  `"No TDD cycles executed (tddCycles == 0)"`
-
-**Validation Order:** Structural (1.5.1) → Extended fields (1.5.2) → Quality enforcement (1.5.3).
-The first failing check short-circuits: subsequent checks are not evaluated.
-
-### 1.5b Failure Handling, Rollback, and Retry
-
-When a story is classified as `FAILED` (by subagent result, validation failure, rebase failure,
-or coverage/TDD gate), execute the following steps in order.
-
-#### Step 1 — Capture Failure Context
-
-Before any rollback or retry, capture the failure context into a structured record:
-
-```json
-{
-  "storyId": "<story ID>",
-  "failureSummary": "<human-readable description of what failed>",
-  "lastCommitSha": "<last commit SHA on the story branch, or null if no commits>",
-  "failedPhase": "<phase where failure occurred: dispatch | validation | rebase | merge | coverage | tdd>",
-  "retryCount": 0,
-  "timestamp": "<ISO-8601 UTC>"
-}
-```
-
-Persist this record to the checkpoint via:
-`updateStoryStatus(epicDir, storyId, { status: "FAILED", summary: failureSummary, failedPhase, lastCommitSha })`
-
-#### Step 2 — Rollback Decision Table
-
-Evaluate the current execution mode and commit state to determine the rollback action:
-
-| Condition | Action |
-|-----------|--------|
-| No commits on story branch (`lastCommitSha` is null) | No rollback needed; mark status `FAILED` |
-| Commits exist, sequential mode (`--sequential`) | `git revert --no-edit <sha1>..<shaN>` on the epic branch to undo all story commits |
-| Commits exist, parallel/worktree mode (default) | Do NOT merge the story branch into epic branch; discard the worktree via `git worktree remove <path> --force` but preserve the branch for diagnosis |
-| Story partially merged to epic branch (merge commit exists) | `git revert --no-edit <merge-sha>` on the epic branch to undo the partial merge |
-
-**Rollback execution:**
-
-1. Identify the rollback scenario from the table above
-2. Execute the corresponding git command (if applicable)
-3. Verify the epic branch is clean: `git diff HEAD --stat` should show no uncommitted changes
-4. Update checkpoint: `updateStoryStatus(epicDir, storyId, { status: "ROLLED_BACK", rollbackAction: "<action taken>" })`
-5. Log: `"Story {storyId} rollback complete: {action taken}"`
-
-**Rollback Checkpoint States:**
-
-| State | Description |
-|-------|-------------|
-| `ROLLING_BACK` | Rollback in progress for this story |
-| `ROLLED_BACK` | Rollback completed successfully |
-| `ROLLBACK_FAILED` | Rollback command failed (requires manual intervention) |
-
-If a rollback command fails (non-zero exit code):
-- Set status to `ROLLBACK_FAILED`
-- Log: `"CRITICAL: Rollback failed for story {storyId}. Manual intervention required."`
-- Do NOT attempt retry; proceed directly to block propagation (Step 4)
-
-#### Step 3 — Retry (retries < MAX_RETRIES)
-
-**MAX_RETRIES = 2** (configurable via `--max-retries` flag, default: 2).
-
-After successful rollback (or when no rollback was needed), evaluate whether to retry:
-
-1. Check retry counter: `if (failureContext.retryCount < MAX_RETRIES)`
-2. Increment retry counter: `failureContext.retryCount += 1`
-3. Update checkpoint: `updateStoryStatus(epicDir, storyId, { status: "RETRYING", retryCount: failureContext.retryCount })`
-4. Construct retry subagent prompt with error context appended:
-
-```
-[Original story prompt from Section 1.4]
-
---- RETRY CONTEXT (Attempt {retryCount} of {MAX_RETRIES}) ---
-Previous attempt failed.
-- Failed Phase: {failedPhase}
-- Failure Summary: {failureSummary}
-- Last Commit SHA: {lastCommitSha || "none"}
-
-IMPORTANT: Address the failure described above. Do NOT repeat the same approach
-that caused the previous failure. If the failure was in tests, review and fix
-the test or implementation. If the failure was in compilation, check for syntax
-or type errors. If the failure was in coverage, add missing test cases.
---- END RETRY CONTEXT ---
-```
-
-5. Re-dispatch the story via Section 1.4 (sequential) or Section 1.4a (parallel/worktree)
-6. The retry follows the same validation pipeline (Section 1.5 → 1.5b → 1.6)
-
-**Retry Checkpoint States:**
-
-| State | Description |
-|-------|-------------|
-| `RETRYING` | Story is being retried after a previous failure |
-
-If the retry succeeds, the story proceeds through the normal SUCCESS flow.
-If the retry fails, Step 1 captures the new failure context and the cycle repeats
-until `retryCount >= MAX_RETRIES`.
-
-#### Step 4 — Block Propagation (retries exhausted)
-
-When `retryCount >= MAX_RETRIES` (all retries exhausted), propagate the failure to dependent stories:
-
-1. Read the implementation map (`IMPLEMENTATION-MAP.md`) to identify stories that depend on the failed story
-2. For each dependent story (`dependentStoryId`):
-   - Set status to `BLOCKED`: `updateStoryStatus(epicDir, dependentStoryId, { status: "BLOCKED", blockedBy: [storyId] })`
-   - If the dependent story has its own dependents, propagate transitively (cascade the block)
-3. Log: `"Story {storyId} FAILED after {MAX_RETRIES} retries. Blocking dependents: [{comma-separated list of blocked story IDs}]"`
-4. Update the failed story checkpoint: `updateStoryStatus(epicDir, storyId, { status: "FAILED", retryCount: MAX_RETRIES, blockedDependents: [list] })`
-
-**Transitive Block Propagation:**
-
-Block propagation is transitive. If story A blocks story B, and story B blocks story C,
-then when story A fails, both B and C are marked as `BLOCKED`:
-- Story B: `blockedBy: ["A"]`
-- Story C: `blockedBy: ["A"]` (root cause, not "B")
-
-This ensures the `--resume` flag can correctly identify which stories to unblock when the
-root cause is fixed and the failed story is retried manually.
-
-**Block Propagation Checkpoint States:**
-
-| State | Description |
-|-------|-------------|
-| `BLOCKED` | Story cannot execute because a dependency failed |
-
-Blocked stories are skipped during execution. The orchestrator logs:
-`"Skipping story {dependentStoryId}: BLOCKED by {storyId}"`
+[Placeholder: retry with error context — story-0005-0007]
 
 ### 1.6 Checkpoint Update (RULE-002)
 
@@ -893,13 +636,11 @@ consistency across local files and external systems.
 1. Read `plans/epic-{epicId}/story-{storyId}.md`
 2. Update `**Status:**` field from `Pendente` (or `Em Andamento`) to `Concluída`
 3. Write the updated story file
-4. Emit log: `"STATUS SYNC: Updated story-{storyId}.md status to Concluída"`
 
-5. Read `plans/epic-{epicId}/IMPLEMENTATION-MAP.md`
-6. Find the row matching `story-{storyId}` in the Section 1 dependency matrix
-7. Update the Status column to `Concluída`
-8. Write the updated Implementation Map
-9. Emit log: `"STATUS SYNC: Updated IMPLEMENTATION-MAP.md for story-{storyId}"`
+4. Read `plans/epic-{epicId}/IMPLEMENTATION-MAP.md`
+5. Find the row matching `story-{storyId}` in the Section 1 dependency matrix
+6. Update the Status column to `Concluída`
+7. Write the updated Implementation Map
 
 8. Jira transition (if story has a Jira key):
    a. Read the `**Chave Jira:**` field from the story file
@@ -914,15 +655,11 @@ consistency across local files and external systems.
 1. Update story file `**Status:**` to `Falha` or `Parcial` respectively
 2. Update IMPLEMENTATION-MAP Status column to `Falha` or `Parcial`
 3. Do NOT transition Jira issue
-4. Emit log: `"STATUS SYNC: Updated story-{storyId}.md status to {Falha|Parcial}"`
-5. Emit log: `"STATUS SYNC: Updated IMPLEMENTATION-MAP.md for story-{storyId}"`
 
 **On status IN_PROGRESS:**
 
 1. Update story file `**Status:**` to `Em Andamento`
 2. Update IMPLEMENTATION-MAP Status column to `Em Andamento`
-3. Emit log: `"STATUS SYNC: Updated story-{storyId}.md status to Em Andamento"`
-4. Emit log: `"STATUS SYNC: Updated IMPLEMENTATION-MAP.md for story-{storyId}"`
 
 **Status Mapping:**
 
@@ -941,12 +678,21 @@ After updating story status to SUCCESS, check if ALL stories in the epic have st
 in the checkpoint. If yes:
 1. Read `plans/epic-{epicId}/EPIC-{epicId}.md`
 2. Update the `**Status:**` field from `Em Andamento` to `Concluído`
-3. Emit log: `"STATUS SYNC: Updated EPIC-{epicId}.md status to Concluído (all stories complete)"`
-4. If the epic has a Jira key (not `—` or `<CHAVE-JIRA>`):
+3. If the epic has a Jira key (not `—` or `<CHAVE-JIRA>`):
    - Call `mcp__atlassian__getTransitionsForJiraIssue` with the epic's Jira key
    - Find the transition to "Done"
    - Call `mcp__atlassian__transitionJiraIssue`
    - If transition fails: log warning, continue (non-blocking)
+
+### 1.7 Extension Points
+
+The following sections are placeholders for downstream stories:
+
+- [Placeholder: integrity gate between phases — story-0005-0006]
+- [Placeholder: retry + block propagation — story-0005-0007]
+- [Placeholder: resume from checkpoint — story-0005-0008]
+- [Placeholder: partial execution filter — story-0005-0009]
+- [Placeholder: progress reporting — story-0005-0013]
 
 ### Integrity Gate (Between Phases)
 
@@ -965,22 +711,7 @@ Launch a `general-purpose` subagent:
 > - If compilation fails → `{ status: "FAIL", testCount: 0, coverage: 0 }`
 > - If any tests fail → correlate failed tests with commits from stories in the current phase
 > - If line coverage < 95% or branch coverage < 90% → FAIL with coverage details
-> - Otherwise → proceed to Step 4.6
-> **Step 4.6 — Conventional Commits Validation:** Validate that all commits in the current phase follow Conventional Commits format.
-> For each commit in the git log of the current phase:
-> 1. Validate regex: `^(feat|fix|refactor|test|docs|build|chore|infra|perf)(\([a-z0-9-]+\))?: .{1,72}$`
-> 2. Type must be one of the 9 allowed types: `feat`, `fix`, `refactor`, `test`, `docs`, `build`, `chore`, `infra`, `perf`
-> 3. Scope presence: WARNING if absent (not blocking — scope is recommended but optional)
-> 4. Subject must be <= 72 characters and must not end with a trailing period
-> 5. Count violations: `ccViolationCount` (commits that fail the regex or have invalid type/subject)
->
-> Status thresholds:
-> - PASS: `ccViolationCount == 0`
-> - WARNING: 1–2 violations (non-blocking, log offending commits)
-> - FAIL: 3+ violations (blocking — phase cannot advance)
->
-> If FAIL → `{ status: "FAIL", conventionalCommits: { status: "FAIL", ccViolationCount, violations } }`
-> Otherwise → proceed to Step 5
+> - Otherwise → proceed to Step 5
 > **Step 5 — Smoke Gate:** Execute the full smoke test suite as a regression validation.
 > - If `--skip-smoke-gate` flag is set → log `"Integrity gate smoke tests skipped (--skip-smoke-gate)"` and record `smokeGate.status = "SKIP"` → proceed to PASS
 > - Run: `{{SMOKE_COMMAND}}` (e.g., `cd java && mvn verify -P integration-tests`)
@@ -988,7 +719,7 @@ Launch a `general-purpose` subagent:
 > - If all smoke tests pass → record `smokeGate.status = "PASS"` → overall gate is PASS
 > - If any smoke test fails → correlate failures with stories in the current phase (based on files touched) → record `smokeGate.status = "FAIL"` → overall gate is FAIL
 >
-> Return: `{ status: "PASS"|"FAIL", testCount, coverage, branchCoverage?, failedTests?, regressionSource?, conventionalCommits?: { status, ccViolationCount, violations }, smokeGate?: { status, testsRun, testsFailed, failedTests?, suspectedStories? } }`
+> Return: `{ status: "PASS"|"FAIL", testCount, coverage, branchCoverage?, failedTests?, regressionSource?, smokeGate?: { status, testsRun, testsFailed, failedTests?, suspectedStories? } }`
 
 #### Regression Diagnosis
 
@@ -998,7 +729,7 @@ If tests fail, the subagent:
 3. Identifies the most likely story as regression source (`regressionSource`)
 4. If identified: orchestrator executes `git revert <commitSha>` for that story
 5. Story is marked FAILED with summary: `"Regression detected by integrity gate"`
-6. Block propagation is executed for dependents of the failed story (see Section 1.5b, Step 4)
+6. Block propagation is executed for dependents of the failed story
 
 #### Smoke Gate Regression Diagnosis
 
@@ -1020,11 +751,6 @@ updateIntegrityGate(epicDir, phaseNumber, {
   branchCoverage?: number, // branch coverage %
   failedTests?: string[],
   regressionSource?: string, // story ID
-  conventionalCommits?: {
-    status: "PASS" | "WARNING" | "FAIL",
-    ccViolationCount: number,  // commits failing format validation
-    violations: string[]       // list of offending commit messages
-  },
   smokeGate?: {
     status: "PASS" | "FAIL" | "SKIP",
     testsRun: number,
@@ -1036,11 +762,9 @@ updateIntegrityGate(epicDir, phaseNumber, {
 });
 ```
 
-- **PASS**: Advance to next phase (requires test gate, conventional commits validation, and smoke gate to pass)
-- **FAIL + regression identified**: revert + mark FAILED + block propagation (see Section 1.5b)
+- **PASS**: Advance to next phase (requires both test gate and smoke gate to pass)
+- **FAIL + regression identified**: revert + mark FAILED + block propagation
 - **FAIL + regression unidentified**: pause execution, report to user
-- **FAIL (conventional commits)**: 3+ CC violations — phase cannot advance; fix commit messages and `--resume`
-- **WARNING (conventional commits)**: 1–2 CC violations — logged but non-blocking; phase advances
 - **FAIL (smoke gate)**: phase marked FAILED; operator uses `--resume` after fix or `--skip-smoke-gate` to bypass
 
 #### Checkpoint Smoke Gate Format
@@ -1070,214 +794,14 @@ The `smokeGate` field is added to each phase entry in `execution-state.json`:
 The integrity gate is **mandatory** — there is no bypass. Every phase transition requires a PASS gate
 result. The gate runs after phase 0, 1, 2, and 3 — one gate per phase.
 
-The Conventional Commits validation (Step 4.6) is mandatory and cannot be bypassed. A FAIL result
-(3+ violations) blocks phase advancement. A WARNING result (1–2 violations) is logged but does not
-block. The validation uses the regex `^(feat|fix|refactor|test|docs|build|chore|infra|perf)(\([a-z0-9-]+\))?: .{1,72}$`.
-
 The smoke gate within the integrity gate is also mandatory by default. It can only be bypassed with
 the `--skip-smoke-gate` flag, which records `smokeGate.status = "SKIP"` in the checkpoint. When
-`--skip-smoke-gate` is set, the integrity gate evaluates only Steps 1-4 and 4.6 (compile, test, coverage, CC validation).
+`--skip-smoke-gate` is set, the integrity gate evaluates only Steps 1-4 (compile, test, coverage).
 When not set, the smoke gate (Step 5) must also pass for the overall integrity gate to pass.
 
 > **Note:** Each story already executes its own smoke gate via `x-dev-lifecycle` (Phase 2.5).
 > The integrity gate smoke tests serve as an ADDITIONAL regression validation — they ensure
 > that the combination of all stories in a phase did not break the overall smoke test suite.
-
-### 1.8 Cross-Story Consistency Gate (Between Phases — After Integrity Gate)
-
-After the Integrity Gate passes for a phase, dispatch a Cross-Story Consistency Gate
-subagent before advancing to the next phase. This gate detects inconsistencies between
-stories that were implemented in isolation (RULE-001 clean context), catching conflicts
-that only emerge when multiple stories are combined.
-
-**Execution order within each phase:**
-1. All stories in the phase complete
-2. Integrity Gate runs (compile, test, coverage, CC validation, smoke)
-3. Cross-Story Consistency Gate runs (this section)
-4. If both gates pass, advance to the next phase
-
-**Skip condition:** If only one story completed in the current phase, the Consistency
-Gate is skipped (no cross-story comparison possible). Log:
-`"Consistency gate skipped — single story in phase {N}"`
-
-#### 1.8.1 Verification Dimensions
-
-The Consistency Gate subagent evaluates 4 dimensions across all completed stories
-in the current phase:
-
-| # | Dimension | Severity | Description |
-|---|-----------|----------|-------------|
-| 1 | **Interface Consistency** | FAIL | Interfaces/ports declared by each story — detect signature conflicts (e.g., same port method with incompatible parameter types, return types, or exception declarations) |
-| 2 | **Naming Convention Consistency** | WARN | Classes, methods, packages — detect mixed conventions (CamelCase vs snake_case, inconsistent prefixes/suffixes for same-role artifacts) |
-| 3 | **Duplicate Detection** | WARN | Classes/methods with similar functionality between stories — potential DRY violations (e.g., `DateUtils.formatISO()` and `TimeHelper.toISOString()` with same logic) |
-| 4 | **Shared Dependency Verification** | FAIL | Components used by multiple stories — version conflicts, incompatible configuration, or contradictory dependency declarations |
-
-#### 1.8.2 Gate Behavior
-
-| Status | Condition | Action |
-|--------|-----------|--------|
-| **PASS** | Zero findings across all dimensions | Continue to next phase |
-| **WARN** | Only WARN-severity findings (naming inconsistencies, potential duplicates) | Log all warnings, continue to next phase |
-| **FAIL** | One or more FAIL-severity findings (interface conflicts, dependency incompatibilities) | Pause execution, report to user, require `--resume` after manual fix |
-
-**On FAIL:**
-- Log: `"Cross-story consistency FAIL. Use --resume after manual fix."`
-- List all FAIL-severity findings with actionable details
-- The orchestrator halts phase progression until the user resolves the issues and
-  invokes `--resume`
-
-**On WARN:**
-- Log: `"Cross-story consistency WARN: {count} warning(s) detected. Continuing execution."`
-- Each warning is logged with its dimension and detail
-
-#### 1.8.3 Gate Subagent Prompt
-
-Launch a `general-purpose` subagent:
-
-```
-You are a **Cross-Story Consistency Validator** for {{PROJECT_NAME}}.
-
-Phase: {currentPhase}
-Completed stories in this phase: {completedStoryIds}
-Story branches: {storyBranches}
-Epic branch: feat/epic-{epicId}-full-implementation
-
-Analyze the code produced by all completed stories in this phase for cross-story
-consistency. Check the following 4 dimensions:
-
-**Dimension 1 — Interface Consistency (FAIL severity):**
-1. Identify all interfaces, ports, and abstract classes modified or created by each story
-2. For shared interfaces (touched by 2+ stories), compare:
-   - Method signatures (parameter types, return types, exception declarations)
-   - Interface contracts (pre/post conditions if documented)
-3. Flag conflicts where the same method has incompatible signatures across stories
-
-**Dimension 2 — Naming Convention Consistency (WARN severity):**
-1. Scan all new classes, methods, and packages created by each story
-2. Detect mixed naming conventions within the same layer:
-   - CamelCase vs snake_case for same-role artifacts
-   - Inconsistent prefixes/suffixes (e.g., UserService vs user_handler)
-   - Package naming inconsistencies
-3. Flag inconsistencies as warnings
-
-**Dimension 3 — Duplicate Detection (WARN severity):**
-1. Identify utility classes, helper methods, and shared logic created by each story
-2. Compare method signatures and implementations for functional similarity
-3. Flag potential duplicates (e.g., two date formatting methods with same logic,
-   two validation helpers with overlapping responsibility)
-
-**Dimension 4 — Shared Dependency Verification (FAIL severity):**
-1. Check build files (pom.xml, build.gradle, package.json, Cargo.toml, go.mod)
-   for dependency declarations added by each story
-2. Detect version conflicts (same dependency with different versions)
-3. Detect incompatible configurations (same config key with contradictory values)
-
-Return a JSON result with this exact structure:
-{
-  "status": "PASS" | "WARN" | "FAIL",
-  "findings": [
-    {
-      "type": "interface" | "naming" | "duplicate" | "dependency",
-      "severity": "FAIL" | "WARN",
-      "storyA": "<story ID>",
-      "storyB": "<story ID>",
-      "detail": "<human-readable description of the inconsistency>",
-      "files": ["<affected file paths>"]
-    }
-  ],
-  "summary": "<brief overall summary>"
-}
-
-Rules:
-- If ANY finding has severity FAIL → overall status MUST be FAIL
-- If findings exist but all are WARN → overall status MUST be WARN
-- If no findings → overall status MUST be PASS with empty findings array
-- Each finding MUST reference the two stories involved (storyA, storyB)
-- Each finding MUST list the affected file paths
-```
-
-#### 1.8.4 Gate Result Registration
-
-After the subagent returns, register the consistency gate result in the checkpoint:
-
-```
-updateConsistencyGate(epicDir, phaseNumber, {
-  status: "PASS" | "WARN" | "FAIL",
-  findings: [
-    {
-      type: "interface" | "naming" | "duplicate" | "dependency",
-      severity: "FAIL" | "WARN",
-      storyA: string,
-      storyB: string,
-      detail: string,
-      files: string[]
-    }
-  ],
-  summary: string,
-  timestamp: string  // ISO-8601 UTC
-});
-```
-
-#### 1.8.5 Checkpoint Consistency Gate Format
-
-The `consistencyGate` field is added to each phase entry in `execution-state.json`:
-
-```json
-{
-  "phases": {
-    "0": {
-      "status": "SUCCESS",
-      "integrityGate": { "..." },
-      "consistencyGate": {
-        "status": "PASS",
-        "findings": [],
-        "summary": "No cross-story inconsistencies detected",
-        "timestamp": "2026-03-25T14:35:00Z"
-      }
-    },
-    "1": {
-      "status": "SUCCESS",
-      "integrityGate": { "..." },
-      "consistencyGate": {
-        "status": "WARN",
-        "findings": [
-          {
-            "type": "naming",
-            "severity": "WARN",
-            "storyA": "story-0042-003",
-            "storyB": "story-0042-004",
-            "detail": "Naming inconsistency: mixed conventions — UserService (CamelCase) vs user_handler (snake_case)",
-            "files": ["src/main/java/com/example/application/UserService.java", "src/main/java/com/example/application/user_handler.java"]
-          },
-          {
-            "type": "duplicate",
-            "severity": "WARN",
-            "storyA": "story-0042-003",
-            "storyB": "story-0042-005",
-            "detail": "Potential duplicate: DateUtils.formatISO and TimeHelper.toISOString have similar functionality",
-            "files": ["src/main/java/com/example/util/DateUtils.java", "src/main/java/com/example/util/TimeHelper.java"]
-          }
-        ],
-        "summary": "2 warnings detected (naming, duplicate) — non-blocking",
-        "timestamp": "2026-03-25T15:10:00Z"
-      }
-    }
-  }
-}
-```
-
-#### 1.8.6 Gate Enforcement
-
-The Cross-Story Consistency Gate is **mandatory** for phases with 2+ completed stories.
-It runs after the Integrity Gate and before phase advancement.
-
-- **PASS**: Phase advances immediately
-- **WARN**: Warnings are logged and recorded in checkpoint; phase advances
-- **FAIL**: Phase is blocked; user must fix the inconsistencies and `--resume`
-
-The gate complements the Integrity Gate: while the Integrity Gate validates that the
-combined code compiles, passes tests, and meets coverage thresholds, the Consistency
-Gate validates that the code is architecturally coherent across story boundaries.
 
 ## Phase 2 — Consolidation (Two-Wave)
 
@@ -1297,10 +821,7 @@ checkpoint on disk (`execution-state.json` + template). No data dependency exist
 
 When `--skip-review` is set, Wave 1 launches ONLY subagent 2.2 (Report Generation).
 No Tech Lead Review subagent is launched. The `{{FINDINGS_SUMMARY}}` field in the
-report is populated with `"Review skipped by user"`. If `--reason` was provided,
-the report also includes: `"Skip reason: {skipReviewReason}"`. If `--skip-review`
-was used without `--reason`, log: `"WARNING: --skip-review used without --reason.
-Provide --reason for auditability."`
+report is populated with `"Review skipped by user"`.
 
 #### 2.1 Tech Lead Review Subagent
 
@@ -1351,10 +872,6 @@ You are generating the epic execution report for EPIC-{epicId}.
    - {{COVERAGE_BEFORE}}, {{COVERAGE_AFTER}}, {{COVERAGE_DELTA}}
    - {{TDD_COMPLIANCE_TABLE}}: TDD compliance per-story table (see step 3a)
    - {{TDD_SUMMARY}}: TDD compliance aggregated summary (see step 3b)
-   - {{REVIEW_SCORES_TABLE}}: review scores per story (see step 3c)
-   - {{COVERAGE_TREND_TABLE}}: coverage trend per story (see step 3d)
-   - {{CC_COMPLIANCE_TABLE}}: Conventional Commits compliance per story (see step 3e)
-   - {{PO_ACCEPTANCE_TABLE}}: PO acceptance per story (see step 3f)
    - {{COMMIT_LOG}}: git log main..HEAD --oneline
    - {{UNRESOLVED_ISSUES}}: findings with severity >= Medium
    - {{PR_LINK}}: populated after PR creation (or "Pending")
@@ -1401,50 +918,6 @@ You are generating the epic execution report for EPIC-{epicId}.
      `Stories: {passCount} PASS / {warnCount} WARNING / {failCount} FAIL`
    - If NO TDD compliance data is available for any story:
      Format as: `N/A — no TDD compliance data available (legacy epic without integrity gate or insufficient data)`
-
-3c. Populate {{REVIEW_SCORES_TABLE}} with per-story review scores:
-   For each completed story, extract review scores from SubagentResult:
-   - Specialist Score: from `SubagentResult.reviewScores.specialist` (numeric score, e.g., 8.5/10)
-   - Tech Lead Score: from `SubagentResult.reviewScores.techLead` (numeric score, e.g., 9.0/10)
-   - Overall: average of Specialist and Tech Lead scores, rounded to 1 decimal place
-   - If `--skip-review` was used for a story:
-     - Specialist Score: `SKIPPED ({reason})` where reason comes from `skipReviewReason`
-     - Tech Lead Score: `SKIPPED ({reason})`
-     - Overall: `SKIPPED`
-   - If review data is unavailable (not skipped, but missing): show `N/A` for all columns
-   Format each row as: `| {storyId} | {specialistScore} | {techLeadScore} | {overall} |`
-
-3d. Populate {{COVERAGE_TREND_TABLE}} with per-story coverage metrics:
-   For each completed story (in execution order), extract coverage from SubagentResult:
-   - Line Coverage: from `SubagentResult.coverageLine` (e.g., 95.0%)
-   - Branch Coverage: from `SubagentResult.coverageBranch` (e.g., 90.0%)
-   - Delta: difference in Line Coverage from the previous story in execution order
-     - First story: Delta = `—` (no previous baseline)
-     - Subsequent stories: Delta = current line coverage minus previous story line coverage,
-       formatted with sign (e.g., `+2.5%`, `-1.0%`, `0.0%`)
-   - If coverage data is unavailable for a story: show `N/A` for all columns
-   Format each row as: `| {storyId} | {lineCoverage} | {branchCoverage} | {delta} |`
-
-3e. Populate {{CC_COMPLIANCE_TABLE}} with Conventional Commits compliance per story:
-   For each completed story, extract CC compliance from integrity gate data:
-   - Total Commits: total number of commits for the story
-   - CC Violations: count of commits that do NOT follow Conventional Commits format
-     (from `conventionalCommits` integrity gate data per phase)
-   - Status:
-     - PASS: zero violations
-     - FAIL: one or more violations
-   - If CC compliance data is unavailable for a story: show `N/A` for all columns
-   Format each row as: `| {storyId} | {totalCommits} | {ccViolations} | {status} |`
-
-3f. Populate {{PO_ACCEPTANCE_TABLE}} with PO acceptance results per story:
-   For each completed story, extract PO acceptance data from Phase 8.5 results:
-   - @GK-N Coverage: ratio of Gherkin acceptance criteria with mapped tests
-     (e.g., `4/4` meaning all 4 @GK-N criteria have at least one AT-N)
-   - AT-N Status: summary of acceptance test results
-     (e.g., `5/5 GREEN` meaning all 5 acceptance tests passed)
-   - Decision: PO acceptance decision — ACCEPTED, REJECTED, or CONDITIONAL
-   - If PO acceptance was not performed for a story: show `N/A` for all columns
-   Format each row as: `| {storyId} | {gkCoverage} | {atStatus} | {decision} |`
 
 4. Validate: no unresolved {{...}} placeholders remain in output
 5. Write epic-execution-report.md to plans/epic-{epicId}/
@@ -1571,7 +1044,7 @@ Verify the Definition of Done (DoD) for the epic:
 - [ ] All stories completed (or documented as FAILED/BLOCKED in report)
 - [ ] Coverage thresholds met (>=95% line, >=90% branch)
 - [ ] Zero compiler/linter warnings
-- [ ] Tech lead review executed (Phase 2.1 — Wave 1) or skipped via `--skip-review` (with `--reason` recorded in checkpoint)
+- [ ] Tech lead review executed (Phase 2.1 — Wave 1) or skipped via `--skip-review`
 - [ ] Epic execution report generated with no unresolved placeholders (Phase 2.2 — Wave 1)
 - [ ] `"Pending review"` placeholder replaced with actual findings (Phase 2.3 — Wave 2)
 - [ ] PR created or failure documented (Phase 2.3 — Wave 2)
@@ -1615,10 +1088,6 @@ Return to main branch: `git checkout main && git pull origin main`
 - Writes: `plans/epic-XXXX/plans/preflight-analysis-phase-N.md` (pre-flight analysis output for audit, Phase 0.5)
 - Phase 0.5 is skipped when `--sequential` is set (no parallel dispatch means no conflict risk)
 - All `{{PLACEHOLDER}}` tokens are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
-- Integrity gate includes Conventional Commits validation (Step 4.6) — validates commit format with regex `^(feat|fix|refactor|test|docs|build|chore|infra|perf)(\([a-z0-9-]+\))?: .{1,72}$`; FAIL on 3+ violations, WARNING on 1–2
 - Integrity gate includes smoke tests (Step 5) as regression validation after each phase — runs `{{SMOKE_COMMAND}}` (e.g., `cd java && mvn verify -P integration-tests`)
 - Smoke gate is bypassed with `--skip-smoke-gate` flag; result recorded as `smokeGate.status = "SKIP"` in checkpoint
 - Per-story smoke tests run via `x-dev-lifecycle` Phase 2.5; integrity gate smoke tests are an additional cross-story regression check
-- Cross-Story Consistency Gate (Section 1.8) runs after the Integrity Gate between phases — checks interface consistency, naming conventions, duplicate detection, and shared dependency verification across stories implemented in isolation
-- Consistency Gate is skipped for phases with a single completed story (no cross-story comparison possible)
-- Consistency Gate FAIL pauses execution; user must fix inconsistencies and `--resume`; WARN is logged but non-blocking

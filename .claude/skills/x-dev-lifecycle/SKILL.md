@@ -20,31 +20,24 @@ argument-hint: "[STORY-ID or feature-name]"
 
 ## CRITICAL EXECUTION RULE
 
-**10 phases (0-8.5, with Phase 3 split into 3A and 3B). ALL mandatory. NEVER stop before Phase 8.5.**
+**9 phases (0-8). ALL mandatory. NEVER stop before Phase 8.**
 
 After each phase 0–7: `>>> Phase N/8 completed. Proceeding to Phase N+1...`
-After Phase 3A: `>>> Phase 3A/8 completed. Proceeding to Phase 4...`
-After Phase 3B: `>>> Phase 3B/8 completed. Proceeding to Phase 8...`
-After Phase 8 (DoD PASS): `>>> Phase 8/8 completed. DoD: PASS. Proceeding to Phase 8.5...`
-After Phase 8 (DoD FAIL): `>>> Phase 8/8 FAILED. DoD items not satisfied: [list of failed items]`
-After Phase 8.5 (PO PASS): `>>> Phase 8.5 completed. PO Acceptance: PASS. Lifecycle complete.`
-After Phase 8.5 (PO FAIL): `>>> Phase 8.5 FAILED. PO Acceptance items not satisfied: [list of failed items]`
+After Phase 8: `>>> Phase 8/8 completed. Lifecycle complete.`
 
 ## Complete Flow
 
 ```
-Phase 0:  Preparation                    (orchestrator — inline)
-{% if has_contract_interfaces == 'True' %}Phase 0.5: API-First Contract            (orchestrator — conditional, pauses for approval)
-{% endif %}Phase 1:  Planning                       (subagent — reads architecture KPs)
-Phase 1B-1E: Parallel Planning           (up to 4 subagents — SINGLE message)
-Phase 2:  Implementation                 (subagent — reads coding + layer KPs)
-Phase 3A: Documentation (structural)     (orchestrator — inline)
-Phase 4:  Review                         (invoke /x-review skill — launches its own subagents)
-Phase 5-6: Fixes + PR                    (orchestrator — inline)
-Phase 7:  Tech Lead Review               (invoke /x-review-pr skill)
-Phase 3B: Documentation (changelog)      (orchestrator — inline)
-Phase 8:  Verification                   (orchestrator — inline)
-Phase 8.5: PO Acceptance Gate            (orchestrator — inline)
+Phase 0: Preparation          (orchestrator — inline)
+{% if has_contract_interfaces == 'True' %}Phase 0.5: API-First Contract  (orchestrator — conditional, pauses for approval)
+{% endif %}Phase 1: Planning              (subagent — reads architecture KPs)
+Phase 1B-1E: Parallel Planning (up to 4 subagents — SINGLE message)
+Phase 2: Implementation        (subagent — reads coding + layer KPs)
+Phase 3: Documentation         (orchestrator — inline)
+Phase 4: Review                (invoke /x-review skill — launches its own subagents)
+Phase 5-6: Fixes + PR          (orchestrator — inline)
+Phase 7: Tech Lead Review      (invoke /x-review-pr skill)
+Phase 8: Verification          (orchestrator — inline)
 ```
 
 ---
@@ -106,7 +99,7 @@ If the user passes `--full-lifecycle`, force full execution regardless of tier:
 - Display: "Scope override: running full lifecycle as requested"
 
 **SIMPLE Execution Flow:**
-Phases 1A (Prepare) > 2 (TDD) > 3A (Structural Docs) > 6 (PR) > 3B (Changelog) > 8 (Verify) > 8.5 (PO Acceptance) — skips 1B, 1C, 1D, 1E, 4 (Review), 5 (Fixes), 7 (Tech Lead Review)
+Phases 1A (Prepare) > 2 (TDD) > 4 (Docs) > 5 (PR) > 6 (Verify) — skips 1B, 1C, 1D, 1E, 3 (Review)
 
 **COMPLEX Execution Flow:**
 All phases 1A through 4 execute normally. After Phase 4, **pause** with:
@@ -198,11 +191,6 @@ Invoke skill `/x-dev-architecture-plan {STORY_PATH}`.
 
 - Output: `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
 - If the skill invocation fails: emit `WARNING: Architecture plan generation failed. Continuing without architecture plan.` and proceed to Step 1B.
-
-**Architecture Plan Validation Gate:**
-After `/x-dev-architecture-plan` completes, check its validation result (the "Architecture Plan Validation" block at the end of the plan). If `Overall: FAIL`, the lifecycle MUST abort with:
-`"ABORT: Architecture plan failed quality validation. Fix the plan before re-running the lifecycle."`
-Do NOT proceed to Step 1B or any subsequent phase with a failed architecture plan.
 
 **If Skip:**
 
@@ -357,12 +345,11 @@ If no test plan with TPP markers was produced by Phase 1B, use legacy group-base
 
 Emit warning: `WARNING: No TDD test plan available. Using G1-G7 group-based implementation. Consider running /x-test-plan for future implementations.`
 
-## Phase 3A — Documentation: Structural (Orchestrator — Inline)
+## Phase 3 — Documentation (Orchestrator — Inline)
 
 Read the `interfaces` field from the project identity to determine which documentation
 generators to invoke. For each configured interface, launch the corresponding generator.
-
-> **Note:** CHANGELOG.md is NOT generated here — see Phase 3B (after Phase 7).
+Always generate a changelog entry regardless of interfaces.
 
 **Interface Dispatch:**
 
@@ -375,11 +362,16 @@ generators to invoke. For each configured interface, launch the corresponding ge
 | `websocket`, `kafka`, `event-consumer`, `event-producer` | Event-driven documentation generator | `contracts/api/event-reference.md` |
 
 If no documentable interfaces configured: skip interface generators with log
-`"No documentable interfaces configured"`.
+`"No documentable interfaces configured"`. Always generate changelog entry.
 
 Documentation output saved to `contracts/` with subdirectories per type:
 - API docs → `contracts/api/`
 - Architecture docs → `steering/`
+
+**Changelog Entry:**
+- Read commits since branch point (`git log main..HEAD --oneline`)
+- Generate Conventional Commits summary by type (feat, fix, refactor, test, docs, chore)
+- Append to CHANGELOG.md
 
 **Performance Baseline (Recommended):**
 If the implemented feature affects the request path, startup, or memory footprint:
@@ -492,27 +484,9 @@ Collect the consolidated review report with scores and severity counts.
 
 ## Phase 7 — Tech Lead Review
 
-Invoke skill `x-review-pr` for holistic 45-point review. Requires 38/45 for GO. If NO-GO, fix all failed items and re-review (max 2 cycles).
+Invoke skill `x-review-pr` for holistic 40-point review. Requires 40/40 for GO. If NO-GO, fix all failed items and re-review (max 2 cycles).
 
 If `x-review-pr` includes TDD criteria, it validates TDD compliance in the checklist. If TDD criteria are not yet available, the review proceeds with existing checklist (backward compatible).
-
-## Phase 3B — Documentation: Changelog (Orchestrator — Inline)
-
-Generate the changelog entry AFTER all reviews and fixes are complete, so that fix commits
-from Phase 5 (specialist review fixes) and Phase 7 re-review cycles are captured.
-
-**Changelog Entry:**
-- Read ALL commits since branch point: `git log main..HEAD --oneline`
-- Group commits by Conventional Commits type: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `perf`
-- Include fix commits from review cycles (e.g., `fix(scope): address review findings`)
-- Generate changelog entry following [Keep a Changelog](https://keepachangelog.com/) format
-- Sections: Added (feat), Changed (refactor), Fixed (fix), Security, Deprecated, Removed
-- Append to CHANGELOG.md (or invoke `/x-changelog` if available)
-
-**Why Phase 3B is positioned here:**
-Phases 4-7 (reviews + fixes) often produce additional commits (fix, refactor, test).
-Generating the changelog before reviews would miss these commits, resulting in an
-incomplete CHANGELOG.md. By generating after Phase 7, every commit on the branch is captured.
 
 ## Phase 8 — Final Verification + Cleanup (Orchestrator — Inline)
 
@@ -522,16 +496,12 @@ incomplete CHANGELOG.md. By generating after Phase 7, every commit on the branch
    b. Find the current story's row in the dependency matrix (Section 1 table)
    c. Update the Status column: replace current value with `Concluída`
    d. Write the updated file
-   e. **Post-update verification:** Re-read `IMPLEMENTATION-MAP.md` and confirm the Status column for this story now shows `Concluída`
-   f. If verification fails: emit `"WARNING: Status update verification failed for {storyId} in IMPLEMENTATION-MAP.md"`
 3. Update Story File Status:
    a. Read `plans/epic-XXXX/story-XXXX-YYYY.md`
    b. Update the `**Status:**` line from `Pendente` to `Concluída`
    c. In Section 8 (Sub-tarefas), mark completed sub-tasks: change `- [ ]` to `- [x]`
       for tasks that were implemented (based on commits and test results from this run)
    d. Write the updated file
-   e. **Post-update verification:** Re-read `story-XXXX-YYYY.md` and confirm the `**Status:**` field now shows `Concluída`
-   f. If verification fails: emit `"WARNING: Status update verification failed for {storyId} in story file"`
 4. Jira Status Sync (conditional):
    a. Read the story file's `**Chave Jira:**` field
    b. If the value is not `—` and not `<CHAVE-JIRA>` (i.e., has a real Jira key):
@@ -545,19 +515,18 @@ incomplete CHANGELOG.md. By generating after Phase 7, every commit on the branch
    - [ ] Acceptance tests exist and pass (AT-N GREEN)
    - [ ] Tests follow TPP ordering (simple to complex)
    - [ ] No test-after commits (all tests written before or with implementation)
-   - [ ] Story markdown file Status field updated to Concluída
+   - [ ] Story markdown file updated with Status: Concluída
    - [ ] IMPLEMENTATION-MAP Status column updated for this story
-   - [ ] Epic Status field updated if all stories complete
    - [ ] At least 1 automated test validates the story's primary acceptance criterion
+   - [ ] Smoke test passes (if testing.smoke_tests == true)
 7. Conditional DoD items:
-   - Smoke test passes (if testing.smoke_tests == true)
    - Contract tests pass (if testing.contract_tests == true)
    - Event schemas registered (if event_driven)
    - Compliance requirements met (if security.compliance active)
    - Gateway configuration updated (if api_gateway != none)
    - gRPC proto backward compatible (if interfaces contain grpc)
    - GraphQL schema backward compatible (if interfaces contain graphql)
-   - [ ] Threat model updated (if security findings with severity >= Medium) — extract findings from Phase 4 review reports, map to STRIDE categories, and update `results/security/threat-model.md` using `resources/templates/_TEMPLATE-THREAT-MODEL.md` as format reference. See `/x-review` Phase 3d for the incremental update algorithm.
+   - [ ] Threat model updated (if security findings with severity >= Medium) — extract findings from Phase 3 review reports, map to STRIDE categories, and update `results/security/threat-model.md` using `resources/templates/_TEMPLATE-THREAT-MODEL.md` as format reference. See `/x-review` Phase 3d for the incremental update algorithm.
    - Post-deploy verification passed or skipped (if testing.smoke_tests == true)
 8. Post-Deploy Verification (conditional: `testing.smoke_tests == true`):
    - If `testing.smoke_tests` is `false` in project identity → SKIP with log: "Post-deploy verification skipped (testing.smoke_tests=false)"
@@ -571,163 +540,10 @@ incomplete CHANGELOG.md. By generating after Phase 7, every commit on the branch
      - **FAIL**: Any check red → "Investigate rollback"
      - **SKIP**: testing.smoke_tests=false → "Verification skipped"
    - Non-blocking: emit result for human decision, do NOT auto-rollback
-9. **DoD Enforcement Gate** — Classify and enforce all DoD items as a blocking gate:
+9. Report PASS/FAIL/SKIP result
+10. `git checkout main && git pull origin main`
 
-### 9.1 DoD Item Classification
-
-Each DoD item from steps 5-8 is classified into one of three enforcement categories:
-
-| Category | Enforcement | Items |
-|----------|-------------|-------|
-| **Mandatory** | FAIL blocks story completion | TDD items 6.1-6.7 (test-first pattern, AT-N GREEN, TPP ordering, no test-after commits, story markdown Status updated, IMPLEMENTATION-MAP Status updated, at least 1 automated acceptance test), coverage thresholds (line >= 95%, branch >= 90%) |
-| **Conditional** | FAIL blocks when condition is active; SKIP when condition is inactive | Contract tests pass (testing.contract_tests == true), event schemas registered (event_driven == true), compliance requirements met (security.compliance active), gateway configuration updated (api_gateway != none), gRPC proto backward compatible (interfaces contain grpc), GraphQL schema backward compatible (interfaces contain graphql), threat model updated (security findings severity >= Medium), post-deploy verification (testing.smoke_tests == true), smoke test passes (testing.smoke_tests == true) |
-| **Advisory** | SKIP acceptable, does not block | README update, performance baseline recording, architecture document update, changelog entry |
-
-### 9.2 Gate Evaluation Logic
-
-After evaluating all DoD items from steps 5-8, apply the following gate logic:
-
-1. **Mandatory check:** If ANY mandatory item has status FAIL → set `dodResult = FAIL`
-2. **Conditional check:** For each conditional item:
-   - If the item's condition is **active** (e.g., `testing.contract_tests == true`) AND item status is FAIL → set `dodResult = FAIL`
-   - If the item's condition is **inactive** → status SKIP is acceptable, does not affect gate
-3. **Advisory check:** Advisory items with status SKIP are recorded in the report but do NOT affect `dodResult`
-4. **Auto-fix attempt (on FAIL):** If `dodResult == FAIL`, attempt automatic remediation for fixable items:
-   - Missing README update → generate README section from implementation summary
-   - Missing changelog entry → generate entry from `git log main..HEAD --oneline`
-   - Missing IMPLEMENTATION-MAP update → update status column programmatically
-   - Missing story file status update → update `**Status:**` field programmatically
-5. **Re-evaluate DoD:** After auto-fix, re-evaluate ALL DoD items (mandatory + conditional)
-6. **Final verdict:**
-   - If `dodResult == PASS` (all mandatory PASS, all active conditional PASS) → story status = **SUCCESS**
-   - If `dodResult == FAIL` after auto-fix retry → story status = **PARTIAL** with list of failed items
-
-### 9.3 Gate Result Reporting
-
-Report the gate result with item-level detail:
-
-```
-DoD Gate Result: [PASS | FAIL]
-  Mandatory:   [N/N PASS]
-  Conditional: [N/N PASS, M SKIPPED]
-  Advisory:    [N PASS, M SKIPPED]
-  Failed items: [list of failed item descriptions, if any]
-  Auto-fix attempted: [yes/no]
-  Auto-fix result: [success/partial/not-attempted]
-```
-
-10. **Conditional Completion Message** — Emit the phase completion message based on gate result:
-   - DoD PASS: `"Phase 8/8 completed. DoD: PASS. Proceeding to Phase 8.5..."`
-   - DoD FAIL (after retry): `"Phase 8/8 FAILED. DoD items not satisfied: [list of failed items]"` — lifecycle stops here on FAIL
-
-## Phase 8.5 — PO Acceptance Gate (Orchestrator — Inline)
-
-> **Prerequisite:** Phase 8 DoD Gate must be PASS. If Phase 8 resulted in FAIL, Phase 8.5 does NOT execute.
-
-This phase validates that the implementation delivers verifiable business value by cross-referencing acceptance criteria coverage and the story's business value declaration.
-
-### Step 8.5.1 — Read Acceptance Criteria
-
-Read the story file and extract all `@GK-N` scenarios from Section 7 (Criterios de Aceite / Gherkin):
-
-1. Parse every `@GK-N` tag and its associated scenario name
-2. Build a list of all `@GK-N` identifiers (e.g., `@GK-1`, `@GK-2`, `@GK-3`, `@GK-4`)
-
-### Step 8.5.2 — Read Business Value Declaration
-
-Read Section 3.5 (Entrega de Valor) from the story file and extract:
-
-- **Valor Principal** — the primary value delivered
-- **Metrica de Sucesso** — the success metric
-- **Impacto no Negocio** — the business impact
-
-If Section 3.5 is absent, record `section35Status = MISSING`.
-If Section 3.5 exists, check for placeholder patterns (`{{...}}`):
-- If any `{{...}}` pattern found → `section35Status = PLACEHOLDER_DETECTED`
-- If no placeholders → `section35Status = VALID`
-
-### Step 8.5.3 — Validate @GK-N to AT-N Coverage
-
-For each `@GK-N` extracted in Step 8.5.1:
-
-1. Search Section 8 (Sub-tarefas) and the test plan for corresponding `AT-N` entries
-2. Check whether each `AT-N` has status GREEN (test passed)
-3. Build a coverage table:
-
-| @GK-N | Scenario | AT-N | Status |
-|-------|----------|------|--------|
-| @GK-1 | [scenario name] | AT-1 | GREEN/RED/MISSING |
-
-4. Calculate coverage: `covered / total` (only GREEN counts as covered)
-
-### Step 8.5.4 — Apply Gate Rules
-
-| Condition | Result |
-|-----------|--------|
-| 100% @GK-N coverage (all GREEN) AND `section35Status == VALID` | **PASS** |
-| <100% @GK-N coverage OR `section35Status == PLACEHOLDER_DETECTED` | **FAIL** |
-| `section35Status == MISSING` AND story layer == FOUNDATION | **WARNING** (non-blocking) |
-| `section35Status == MISSING` AND story layer != FOUNDATION | **FAIL** |
-
-**Layer detection:** Check the story's position in the IMPLEMENTATION-MAP.md phase table. Stories in Phase 1 (foundation layer) are classified as FOUNDATION. All other phases are non-FOUNDATION.
-
-### Step 8.5.5 — Generate PO Acceptance Report
-
-Write the report to `plans/epic-XXXX/reviews/po-acceptance-story-XXXX-YYYY.md`:
-
-```markdown
-# PO Acceptance Report — STORY-XXXX-YYYY
-
-## Acceptance Criteria Coverage
-
-| @GK-N | Scenario | AT-N | Status |
-|---|---|---|---|
-| @GK-1 | [scenario name] | AT-1 | GREEN |
-| @GK-2 | [scenario name] | AT-2 | GREEN |
-
-Coverage: N/N (100%)
-
-## Business Value Validation
-
-- **Valor Principal:** [extracted from story Section 3.5]
-- **Metrica de Sucesso:** [extracted from story Section 3.5]
-- **Impacto no Negocio:** [extracted from story Section 3.5]
-- **Placeholder detected:** No
-
-## Decision: PASS
-```
-
-If coverage is less than 100%, append after the coverage line:
-`Missing: @GK-3, @GK-5` (list all @GK-N without GREEN AT-N)
-
-If Section 3.5 contains placeholders, the Business Value Validation section shows:
-`- **Placeholder detected:** Yes — found in [field names]`
-
-If Section 3.5 is missing (FOUNDATION layer), the Business Value Validation section shows:
-`- **Section 3.5:** Missing (FOUNDATION layer — non-blocking)`
-
-Ensure output directory exists: `mkdir -p plans/epic-XXXX/reviews/`
-
-### Step 8.5.6 — Emit Gate Result
-
-Report the PO Acceptance Gate result:
-
-```
-PO Acceptance Gate Result: [PASS | FAIL | WARNING]
-  @GK-N Coverage: [N/N (percentage%)]
-  Section 3.5:    [VALID | PLACEHOLDER_DETECTED | MISSING (FOUNDATION)]
-  Missing @GK-N:  [list or "none"]
-  Report:         plans/epic-XXXX/reviews/po-acceptance-story-XXXX-YYYY.md
-```
-
-**Completion messages:**
-- PO PASS: `"Phase 8.5 completed. PO Acceptance: PASS. Lifecycle complete."`
-- PO WARNING (FOUNDATION): `"Phase 8.5 completed. PO Acceptance: WARNING (FOUNDATION layer). Lifecycle complete."`
-- PO FAIL: `"Phase 8.5 FAILED. PO Acceptance items not satisfied: [list of failed items]"`
-
-11. `git checkout main && git pull origin main`
-
-**Phase 8.5 is the ONLY legitimate stopping point (Phase 8 stops only on DoD FAIL).**
+**Phase 8 is the ONLY legitimate stopping point.**
 
 ## Roles and Models (Adaptive)
 
@@ -742,6 +558,5 @@ PO Acceptance Gate Result: [PASS | FAIL | WARNING]
 ## Integration Notes
 
 - Invokes: `x-dev-architecture-plan` (Phase 1, conditional), `x-test-plan`, `x-lib-task-decomposer`, `x-lib-group-verifier` (fallback only), `x-git-push`, `x-review`, `x-review-pr`
-- Phase 8.5 (PO Acceptance Gate) produces: `plans/epic-XXXX/reviews/po-acceptance-story-XXXX-YYYY.md`
 - TDD commit format follows `x-git-push` conventions (`[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]` suffixes)
 - All `{{PLACEHOLDER}}` tokens (e.g. `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
