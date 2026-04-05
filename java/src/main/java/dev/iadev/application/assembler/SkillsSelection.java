@@ -179,6 +179,24 @@ public final class SkillsSelection {
     }
 
     /**
+     * Selects pentest skills based on security config.
+     *
+     * <p>Includes {@code x-pentest} when
+     * {@code pentestReadiness} is enabled in the security
+     * configuration.</p>
+     *
+     * @param config the project configuration
+     * @return list of conditional pentest skill names
+     */
+    public static List<String> selectPentestSkills(
+            ProjectConfig config) {
+        if (config.security().pentestReadiness()) {
+            return List.of("x-pentest");
+        }
+        return List.of();
+    }
+
+    /**
      * Evaluates all feature gates and returns the aggregated
      * list of conditional skill names.
      *
@@ -194,6 +212,7 @@ public final class SkillsSelection {
         skills.addAll(selectSecuritySkills(config));
         skills.addAll(selectSecurityScanningSkills(config));
         skills.addAll(selectComplianceSkills(config));
+        skills.addAll(selectPentestSkills(config));
         return skills;
     }
 

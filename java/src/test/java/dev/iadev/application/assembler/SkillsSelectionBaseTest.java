@@ -180,4 +180,88 @@ class SkillsSelectionBaseTest {
         }
     }
 
+    @Nested
+    @DisplayName("selectPentestSkills")
+    class SelectPentestSkills {
+
+        @Test
+        @DisplayName("pentestReadiness true includes"
+                + " x-pentest")
+        void select_pentestTrue_includesPentest() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .pentestReadiness(true)
+                            .build();
+
+            List<String> skills =
+                    SkillsSelection.selectPentestSkills(
+                            config);
+
+            assertThat(skills)
+                    .containsExactly("x-pentest");
+        }
+
+        @Test
+        @DisplayName("pentestReadiness false excludes"
+                + " x-pentest")
+        void select_pentestFalse_returnsEmpty() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .pentestReadiness(false)
+                            .build();
+
+            List<String> skills =
+                    SkillsSelection.selectPentestSkills(
+                            config);
+
+            assertThat(skills).isEmpty();
+        }
+
+        @Test
+        @DisplayName("default config excludes x-pentest")
+        void select_defaultConfig_returnsEmpty() {
+            ProjectConfig config =
+                    TestConfigBuilder.minimal();
+
+            List<String> skills =
+                    SkillsSelection.selectPentestSkills(
+                            config);
+
+            assertThat(skills).isEmpty();
+        }
+
+        @Test
+        @DisplayName("pentestReadiness true appears in"
+                + " selectConditionalSkills")
+        void select_pentestTrue_inConditional() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .pentestReadiness(true)
+                            .build();
+
+            List<String> skills =
+                    SkillsSelection
+                            .selectConditionalSkills(config);
+
+            assertThat(skills).contains("x-pentest");
+        }
+
+        @Test
+        @DisplayName("pentestReadiness false not in"
+                + " selectConditionalSkills")
+        void select_pentestFalse_notInConditional() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .pentestReadiness(false)
+                            .build();
+
+            List<String> skills =
+                    SkillsSelection
+                            .selectConditionalSkills(config);
+
+            assertThat(skills)
+                    .doesNotContain("x-pentest");
+        }
+    }
+
 }
