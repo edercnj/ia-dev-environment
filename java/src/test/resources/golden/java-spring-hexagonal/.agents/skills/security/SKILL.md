@@ -23,6 +23,8 @@ Provides comprehensive security guidelines covering application security, crypto
 | `references/pentest-readiness.md` | Pre-pentest hardening checklist, common vulnerabilities, remediation (if enabled) |
 | `references/sbom-generation-guide.md` | SBOM generation with CycloneDX and SPDX formats, tools by language, CI integration |
 | `references/supply-chain-hardening.md` | SLSA framework levels, Sigstore/cosign setup, provenance attestation |
+| `references/sarif-template.md` | SARIF 2.1.0 template with required fields, custom properties, and examples per severity |
+| `references/security-scoring.md` | Security scoring model: formula, grades A-F, severity weights, output conventions |
 
 ## Supply Chain Security
 
