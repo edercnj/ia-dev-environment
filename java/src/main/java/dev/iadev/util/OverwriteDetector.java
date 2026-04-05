@@ -12,7 +12,9 @@ import java.util.List;
  * <p>Implements RULE-012 (Overwrite Detection) by checking whether
  * the destination directory already contains directories that the
  * pipeline would generate: {@code .claude/}, {@code .github/},
- * {@code .codex/}, {@code .agents/}, and {@code docs/}.
+ * {@code .codex/}, {@code .agents/}, and SDD directories
+ * ({@code steering/}, {@code specs/}, {@code plans/},
+ * {@code results/}, {@code contracts/}, {@code adr/}).
  *
  * <p>When conflicts are detected and {@code --force} is not provided,
  * the CLI should abort with a formatted message suggesting

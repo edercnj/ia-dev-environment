@@ -142,7 +142,7 @@ When invoked with `--traceability [STORY-ID|EPIC-ID]`, generates a bidirectional
 
 ### Output
 
-Generates `docs/traceability/traceability-{ID}-{YYYY-MM-DD}.md` containing:
+Generates `results/traceability/traceability-{ID}-{YYYY-MM-DD}.md` containing:
 
 1. **Requirement -> Test -> Execution** table mapping each @GK-N scenario to its test class, method, status (PASS/FAIL/SKIP), and line coverage
 2. **Unmapped Requirements** — scenarios with no corresponding test

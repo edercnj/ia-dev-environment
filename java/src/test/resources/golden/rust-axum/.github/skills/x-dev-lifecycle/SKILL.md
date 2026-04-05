@@ -121,11 +121,11 @@ Read the story file and identify declared interface types:
 
 | Interface Type | Contract Format | Output Path |
 |---------------|----------------|-------------|
-| `rest` | OpenAPI 3.1 | `docs/contracts/{STORY_ID}-openapi.yaml` |
-| `grpc` | Protobuf 3 | `docs/contracts/{STORY_ID}.proto` |
-| `event-consumer` | AsyncAPI 2.6 | `docs/contracts/{STORY_ID}-asyncapi.yaml` |
-| `event-producer` | AsyncAPI 2.6 | `docs/contracts/{STORY_ID}-asyncapi.yaml` |
-| `websocket` | AsyncAPI 2.6 | `docs/contracts/{STORY_ID}-asyncapi.yaml` |
+| `rest` | OpenAPI 3.1 | `contracts/{STORY_ID}-openapi.yaml` |
+| `grpc` | Protobuf 3 | `contracts/{STORY_ID}.proto` |
+| `event-consumer` | AsyncAPI 2.6 | `contracts/{STORY_ID}-asyncapi.yaml` |
+| `event-producer` | AsyncAPI 2.6 | `contracts/{STORY_ID}-asyncapi.yaml` |
+| `websocket` | AsyncAPI 2.6 | `contracts/{STORY_ID}-asyncapi.yaml` |
 
 ### Step 0.5.2 — Contract Generation
 
@@ -138,7 +138,7 @@ Generate a draft contract in the appropriate format using data contracts from th
 - **Event (AsyncAPI 2.6):** Extract event names, channels, payload schemas.
   Generate `asyncapi: "2.6.0"` spec with `channels`, `components/messages`, `components/schemas`.
 
-Ensure directory exists: `mkdir -p docs/contracts/`
+Ensure directory exists: `mkdir -p contracts/`
 
 ### Step 0.5.3 — Contract Validation
 
@@ -350,17 +350,17 @@ Always generate a changelog entry regardless of interfaces.
 
 | Interface | Generator | Output |
 |-----------|-----------|--------|
-| `rest` | OpenAPI/Swagger generator | `docs/api/openapi.yaml` |
-| `grpc` | gRPC/Proto documentation generator | `docs/api/grpc-reference.md` |
-| `cli` | CLI documentation generator | `docs/api/cli-reference.md` |
-| `graphql` | GraphQL schema documentation generator | `docs/api/graphql-reference.md` |
-| `websocket`, `kafka`, `event-consumer`, `event-producer` | Event-driven documentation generator | `docs/api/event-reference.md` |
+| `rest` | OpenAPI/Swagger generator | `contracts/api/openapi.yaml` |
+| `grpc` | gRPC/Proto documentation generator | `contracts/api/grpc-reference.md` |
+| `cli` | CLI documentation generator | `contracts/api/cli-reference.md` |
+| `graphql` | GraphQL schema documentation generator | `contracts/api/graphql-reference.md` |
+| `websocket`, `kafka`, `event-consumer`, `event-producer` | Event-driven documentation generator | `contracts/api/event-reference.md` |
 
 If no documentable interfaces configured: skip interface generators with log
 `"No documentable interfaces configured"`. Always generate changelog entry.
 
-Documentation output saved to `docs/` with subdirectories per type:
-- API docs → `docs/api/`
+Documentation output saved to `contracts/` with subdirectories per type:
+- API docs → `contracts/api/`
 - Architecture docs → `steering/`
 
 **Changelog Entry:**
@@ -373,7 +373,7 @@ If the implemented feature affects the request path, startup, or memory footprin
 1. Read `resources/templates/_TEMPLATE-PERFORMANCE-BASELINE.md` for measurement guide
 2. Record "before" metrics (prior to the feature branch)
 3. Record "after" metrics (with the feature branch)
-4. Append a row to `docs/performance/baselines.md`
+4. Append a row to `results/performance/baselines.md`
 5. If Delta > 10%, add a WARNING note
 6. If Delta > 25%, add an INVESTIGATION note with optimization plan
 
@@ -394,7 +394,7 @@ This step is recommended but not mandatory. Skip does not block the phase.
 ### CLI Documentation Generator (interface: cli)
 
 > Invoked when project identity `interfaces` contains `"cli"`.
-> Output: `docs/api/cli-reference.md`
+> Output: `contracts/api/cli-reference.md`
 
 **Scan** the project's CLI command definitions using framework-specific patterns:
 - **Commander.js**: `.command()`, `.option()`, `.argument()` chains
@@ -402,7 +402,7 @@ This step is recommended but not mandatory. Skip does not block the phase.
 - **Cobra**: `cobra.Command{}` structs
 - **Clap**: `#[derive(Parser)]` and `#[arg()]` attributes
 
-**Generate** `docs/api/cli-reference.md` with:
+**Generate** `contracts/api/cli-reference.md` with:
 
 1. `# CLI Reference` — title with project name
 2. `## Quick Start` — at least 2 basic usage examples in code blocks
@@ -431,7 +431,7 @@ Launch a `general-purpose` subagent:
 > - Read `skills/protocols/references/websocket-conventions.md` — WebSocket channel and message conventions
 > - Read the project source code to identify event definitions: producers, consumers, schemas, topics, channels
 >
-> **Step 2 — Generate `docs/api/event-catalog.md`** with the following structure:
+> **Step 2 — Generate `contracts/api/event-catalog.md`** with the following structure:
 >
 > 1. **Topics Overview** table: Topic/Channel, Events, Partitioning/Routing
 > 2. **Per-event sections** (one `## Event: {name}` per event):
@@ -449,7 +449,7 @@ Launch a `general-purpose` subagent:
 > - For `websocket`: document channels, message types, connection lifecycle
 > - If both are present, produce a unified catalog covering multiple protocol types
 >
-> Save output to `docs/api/event-catalog.md`.
+> Save output to `contracts/api/event-catalog.md`.
 
 ## Phase 4 — Parallel Review
 
@@ -500,7 +500,7 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
    - Gateway configuration updated (if api_gateway != none)
    - gRPC proto backward compatible (if interfaces contain grpc)
    - GraphQL schema backward compatible (if interfaces contain graphql)
-   - [ ] Threat model updated (if security findings with severity >= Medium) — extract findings from Phase 3 review reports, map to STRIDE categories, and update `docs/security/threat-model.md` using `resources/templates/_TEMPLATE-THREAT-MODEL.md` as format reference. See `/x-review` Phase 3d for the incremental update algorithm.
+   - [ ] Threat model updated (if security findings with severity >= Medium) — extract findings from Phase 3 review reports, map to STRIDE categories, and update `results/security/threat-model.md` using `resources/templates/_TEMPLATE-THREAT-MODEL.md` as format reference. See `/x-review` Phase 3d for the incremental update algorithm.
    - Post-deploy verification passed or skipped (if testing.smoke_tests == true)
 6. Post-Deploy Verification (conditional: `testing.smoke_tests == true`):
    - If `testing.smoke_tests` is `false` in project identity → SKIP with log: "Post-deploy verification skipped (testing.smoke_tests=false)"

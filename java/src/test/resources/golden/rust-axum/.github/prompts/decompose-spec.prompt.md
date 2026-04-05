@@ -12,7 +12,7 @@ for **my-rust-service**.
 
 ## Prerequisites
 
-- A specification file (e.g., `docs/specs/my-feature-spec.md`)
+- A specification file (e.g., `specs/my-feature-spec.md`)
 - The spec should follow the system specification template format
 
 ## Workflow
@@ -22,7 +22,7 @@ for **my-rust-service**.
 Use the **x-story-epic-full** skill for complete decomposition:
 
 ```
-/x-story-epic-full @docs/specs/my-feature-spec.md
+/x-story-epic-full @specs/my-feature-spec.md
 ```
 
 This produces three deliverables:

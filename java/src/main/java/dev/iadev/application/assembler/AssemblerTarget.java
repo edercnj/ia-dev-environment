@@ -18,7 +18,7 @@ import java.nio.file.Path;
  * <tr><td>GITHUB</td><td>{@code outputDir/.github}</td></tr>
  * <tr><td>CODEX</td><td>{@code outputDir/.codex}</td></tr>
  * <tr><td>CODEX_AGENTS</td><td>{@code outputDir/.agents}</td></tr>
- * <tr><td>DOCS</td><td>{@code outputDir/docs}</td></tr>
+ * <tr><td>DOCS</td><td>{@code outputDir/docs} (legacy, unused)</td></tr>
  * </table>
  *
  * @see AssemblerDescriptor
@@ -40,7 +40,7 @@ public enum AssemblerTarget {
     /** {@code .agents/} subdirectory. */
     CODEX_AGENTS(".agents"),
 
-    /** {@code docs/} subdirectory. */
+    /** Legacy {@code docs/} target (unused — assemblers use ROOT with SDD subdirs). */
     DOCS("docs");
 
     private final String subdir;

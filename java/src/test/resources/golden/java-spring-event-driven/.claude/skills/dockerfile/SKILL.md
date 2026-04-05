@@ -399,7 +399,12 @@ Jenkinsfile
 # Documentation
 *.md
 LICENSE
-docs/
+steering/
+specs/
+plans/
+results/
+contracts/
+adr/
 
 # Docker files (avoid recursive build)
 Dockerfile*

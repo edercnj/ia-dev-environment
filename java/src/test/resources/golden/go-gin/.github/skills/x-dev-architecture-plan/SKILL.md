@@ -138,7 +138,7 @@ Launch a **single** `general-purpose` subagent:
 >
 > For Simplified Plan: read only Architecture KP + KPs relevant to affected sections.
 >
-> **Step 4 — Review existing architecture** in `docs/` and current codebase structure.
+> **Step 4 — Review existing architecture** in `steering/` and current codebase structure.
 >
 > **Step 5 — Generate the architecture plan** with ALL mandatory sections:
 > 1. Executive Summary

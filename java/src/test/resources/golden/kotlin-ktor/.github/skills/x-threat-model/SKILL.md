@@ -91,7 +91,7 @@ Reference security KP for concrete mitigations per STRIDE category.
 
 ### Step 7 -- GENERATE Document
 
-Output Threat Matrix and detailed findings to `docs/security/threat-model.md`:
+Output Threat Matrix and detailed findings to `results/security/threat-model.md`:
 
 ```markdown
 ## Threat Matrix

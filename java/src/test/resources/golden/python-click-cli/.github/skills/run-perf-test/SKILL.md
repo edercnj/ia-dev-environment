@@ -74,7 +74,7 @@ Before running performance tests, read:
 
 ## Regression Detection
 
-Compare current test results against a stored baseline to detect performance regressions. Use `--compare-baseline` to load `docs/performance/baseline.json` and compare each metric.
+Compare current test results against a stored baseline to detect performance regressions. Use `--compare-baseline` to load `results/performance/baseline.json` and compare each metric.
 
 | Metric | Regression Condition | Severity |
 |--------|---------------------|----------|
@@ -87,7 +87,7 @@ Compare current test results against a stored baseline to detect performance reg
 
 Save and compare performance baselines:
 
-- `--save-baseline` — Execute scenario and save results to `docs/performance/baseline.json`
+- `--save-baseline` — Execute scenario and save results to `results/performance/baseline.json`
 - `--compare-baseline` — Execute scenario and compare against stored baseline
 
 ### baseline.json Structure
