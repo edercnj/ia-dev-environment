@@ -200,20 +200,50 @@ public final class ScopeAssessmentEngine {
             boolean schemaChanges,
             boolean compliance) {
         var parts = new ArrayList<String>();
+        addComplianceRationale(parts, compliance);
+        addSchemaRationale(parts, schemaChanges);
+        addComponentRationale(parts, tier, components);
+        addEndpointRationale(parts, tier, endpoints);
+        return parts.isEmpty()
+                ? "no components detected"
+                : String.join(", ", parts);
+    }
+
+    private static void addComplianceRationale(
+            List<String> parts, boolean compliance) {
         if (compliance) {
             parts.add("compliance requirement detected");
         }
+    }
+
+    private static void addSchemaRationale(
+            List<String> parts, boolean schemaChanges) {
         if (schemaChanges) {
             parts.add("schema changes detected");
         }
-        if (components >= COMPLEX_COMPONENT_THRESHOLD) {
+    }
+
+    private static void addComponentRationale(
+            List<String> parts,
+            ScopeAssessmentTier tier,
+            int components) {
+        if (components >= COMPLEX_COMPONENT_THRESHOLD
+                || (components > 0
+                && tier == ScopeAssessmentTier.STANDARD)) {
             parts.add("%d components affected"
                     .formatted(components));
-        } else if (components <= 1 && tier == ScopeAssessmentTier.SIMPLE) {
+        } else if (components <= 1
+                && tier == ScopeAssessmentTier.SIMPLE) {
             parts.add(components == 0
                     ? "no components detected"
                     : "single component change");
         }
+    }
+
+    private static void addEndpointRationale(
+            List<String> parts,
+            ScopeAssessmentTier tier,
+            int endpoints) {
         if (endpoints == 0
                 && tier == ScopeAssessmentTier.SIMPLE) {
             parts.add("no new endpoints");
@@ -221,16 +251,6 @@ public final class ScopeAssessmentEngine {
             parts.add("%d new endpoint(s)"
                     .formatted(endpoints));
         }
-        if (components > 0
-                && components < COMPLEX_COMPONENT_THRESHOLD
-                && tier == ScopeAssessmentTier.STANDARD
-                && !schemaChanges && !compliance) {
-            parts.add("%d components affected"
-                    .formatted(components));
-        }
-        return parts.isEmpty()
-                ? "no components detected"
-                : String.join(", ", parts);
     }
 
     private static ScopeAssessmentResult buildResult(

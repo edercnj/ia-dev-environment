@@ -58,40 +58,66 @@ public final class QualityGateEngine {
             return buildEmptyResult(threshold);
         }
 
-        var fields = StoryMarkdownParser
-                .extractDataContract(storyContent);
-        var dependencies = StoryMarkdownParser
-                .extractDependencies(storyContent);
+        var parsed = parseContent(
+                storyContent, epicIndexEntries);
+        var scores = computeScores(
+                parsed, scenarios);
 
+        return buildResult(scores, parsed, threshold);
+    }
+
+    private static ParsedContent parseContent(
+            String storyContent,
+            List<String> epicIndexEntries) {
+        return new ParsedContent(
+                StoryMarkdownParser
+                        .extractDataContract(storyContent),
+                StoryMarkdownParser
+                        .extractDependencies(storyContent),
+                epicIndexEntries);
+    }
+
+    private static ComputedScores computeScores(
+            ParsedContent parsed,
+            List<GherkinScenario> scenarios) {
         var scenarioScores = scoreScenarios(scenarios);
-        int dataContractScore =
-                scoreDataContract(fields);
-        int typeScore = scoreTypeExplicitness(fields);
-        int countScore = scoreScenarioCount(scenarios);
-        int vaguenessScore =
-                scoreVagueness(scenarios);
-        int depScore = scoreDependencies(
-                dependencies, epicIndexEntries);
-
         int rawScore = computeRawScore(
-                scenarioScores, dataContractScore,
-                typeScore, countScore,
-                vaguenessScore, depScore);
+                scenarioScores,
+                scoreDataContract(parsed.fields()),
+                scoreTypeExplicitness(parsed.fields()),
+                scoreScenarioCount(scenarios),
+                scoreVagueness(scenarios),
+                scoreDependencies(
+                        parsed.dependencies(),
+                        parsed.epicIndex()));
         int maxRaw = computeMaxRaw(scenarios.size());
-        int normalized = normalize(rawScore, maxRaw);
+        return new ComputedScores(
+                scenarioScores,
+                scoreDataContract(parsed.fields()),
+                scoreTypeExplicitness(parsed.fields()),
+                scoreScenarioCount(scenarios),
+                scoreVagueness(scenarios),
+                scoreDependencies(
+                        parsed.dependencies(),
+                        parsed.epicIndex()),
+                normalize(rawScore, maxRaw));
+    }
 
+    private static QualityGateResult buildResult(
+            ComputedScores scores,
+            ParsedContent parsed,
+            int threshold) {
         var actionItems = buildActionItems(
-                scenarioScores, scenarios,
-                fields, dependencies,
-                epicIndexEntries, countScore,
-                vaguenessScore);
-
+                scores, parsed);
         return new QualityGateResult(
-                normalized, threshold,
-                normalized >= threshold,
-                scenarioScores, dataContractScore,
-                typeScore, countScore,
-                vaguenessScore, depScore,
+                scores.normalized(), threshold,
+                scores.normalized() >= threshold,
+                scores.scenarioScores(),
+                scores.dataContractScore(),
+                scores.typeScore(),
+                scores.countScore(),
+                scores.vaguenessScore(),
+                scores.depScore(),
                 actionItems);
     }
 
@@ -196,27 +222,39 @@ public final class QualityGateEngine {
     }
 
     private static List<String> buildActionItems(
-            List<ScenarioScore> scenarioScores,
-            List<GherkinScenario> scenarios,
-            List<DataContractField> fields,
-            List<String> dependencies,
-            List<String> epicIndex,
-            int countScore,
-            int vaguenessScore) {
+            ComputedScores scores,
+            ParsedContent parsed) {
         var items = new ArrayList<String>();
-        addScenarioActionItems(items, scenarioScores);
-        addDataContractActionItems(items, fields);
-        addTypeActionItems(items, fields);
-        addCountActionItems(items, scenarios, countScore);
-        addVaguenessActionItems(
-                items, scenarios, vaguenessScore);
+        addScenarioActionItems(
+                items, scores.scenarioScores());
+        addDataContractActionItems(
+                items, parsed.fields());
+        addTypeActionItems(items, parsed.fields());
+        addCountActionItem(items, scores);
+        addVaguenessActionItem(items, scores);
         addDependencyActionItems(
-                items, dependencies, epicIndex);
-        if (scenarios.isEmpty()) {
-            items.add("No Gherkin scenarios found"
-                    + " — minimum 4 required");
-        }
+                items, parsed.dependencies(),
+                parsed.epicIndex());
         return List.copyOf(items);
+    }
+
+    private static void addCountActionItem(
+            List<String> items, ComputedScores scores) {
+        if (scores.countScore() == 0
+                && !scores.scenarioScores().isEmpty()) {
+            items.add("Only %d scenario(s) found"
+                    .formatted(scores.scenarioScores().size())
+                    + " — minimum 4 required for "
+                    + "TPP coverage");
+        }
+    }
+
+    private static void addVaguenessActionItem(
+            List<String> items, ComputedScores scores) {
+        if (scores.vaguenessScore() == 0) {
+            items.add("Vague language detected"
+                    + " in scenarios");
+        }
     }
 
     private static void addScenarioActionItems(
@@ -255,36 +293,6 @@ public final class QualityGateEngine {
         }
     }
 
-    private static void addCountActionItems(
-            List<String> items,
-            List<GherkinScenario> scenarios,
-            int countScore) {
-        if (countScore == 0 && !scenarios.isEmpty()) {
-            items.add("Only %d scenario(s) found"
-                    .formatted(scenarios.size())
-                    + " — minimum 4 required for "
-                    + "TPP coverage");
-        }
-    }
-
-    private static void addVaguenessActionItems(
-            List<String> items,
-            List<GherkinScenario> scenarios,
-            int vaguenessScore) {
-        if (vaguenessScore == 0) {
-            int count = 0;
-            for (var scenario : scenarios) {
-                count += VaguenessDetector
-                        .checkScenario(scenario).size();
-            }
-            if (count > 0) {
-                items.add("%d vague term(s) detected"
-                        .formatted(count)
-                        + " across scenarios");
-            }
-        }
-    }
-
     private static void addDependencyActionItems(
             List<String> items,
             List<String> dependencies,
@@ -296,4 +304,5 @@ public final class QualityGateEngine {
             }
         }
     }
+
 }

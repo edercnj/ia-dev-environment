@@ -12,6 +12,8 @@ public final class ReportFormatter {
             "Score: %d/100 (threshold: %d) — %s";
     private static final String PASSED_LABEL = "PASSED";
     private static final String REJECTED_LABEL = "REJECTED";
+    private static final String CHECKMARK = "\u2705";
+    private static final String CROSS = "\u274C";
 
     private ReportFormatter() {
     }
@@ -89,7 +91,7 @@ public final class ReportFormatter {
 
     private static String stepLabel(
             String name, int score) {
-        var icon = score > 0 ? "\u2705" : "\u274C";
+        var icon = score > 0 ? CHECKMARK : CROSS;
         return "%s %s (%d)".formatted(name, icon, score);
     }
 

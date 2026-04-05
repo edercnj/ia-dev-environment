@@ -199,49 +199,65 @@ public final class StoryMarkdownParser {
     }
 
     private static ParsedScenarioResult parseScenario(
-            String[] lines, int startIndex, String scenarioId) {
-        var givenLines = new ArrayList<String>();
-        var whenLines = new ArrayList<String>();
-        var thenLines = new ArrayList<String>();
-        StepType currentStep = null;
-
+            String[] lines, int startIndex,
+            String scenarioId) {
+        var collector = new StepCollector();
         int i = startIndex + 1;
+
         while (i < lines.length) {
             var line = lines[i].trim();
-
-            if (line.startsWith("@GK-")
-                    || isNextSection(lines[i])) {
+            if (isScenarioBoundary(line, lines[i])) {
                 break;
             }
-
-            if (line.isBlank()
-                    || line.startsWith("Cenario:")
-                    || line.startsWith("Scenario:")) {
-                i++;
-                continue;
-            }
-
-            if (STEP_GIVEN.matcher(line).find()) {
-                currentStep = StepType.GIVEN;
-                givenLines.add(line);
-            } else if (STEP_WHEN.matcher(line).find()) {
-                currentStep = StepType.WHEN;
-                whenLines.add(line);
-            } else if (STEP_THEN.matcher(line).find()) {
-                currentStep = StepType.THEN;
-                thenLines.add(line);
-            } else if (STEP_AND.matcher(line).find()
-                    && currentStep != null) {
-                addToCurrentStep(
-                        currentStep, line,
-                        givenLines, whenLines, thenLines);
+            if (!isSkippableLine(line)) {
+                collector.addLine(line);
             }
             i++;
         }
 
-        var scenario = new GherkinScenario(
-                scenarioId, givenLines, whenLines, thenLines);
-        return new ParsedScenarioResult(scenario, i);
+        return new ParsedScenarioResult(
+                collector.build(scenarioId), i);
+    }
+
+    private static boolean isScenarioBoundary(
+            String trimmed, String raw) {
+        return trimmed.startsWith("@GK-")
+                || isNextSection(raw);
+    }
+
+    private static boolean isSkippableLine(String line) {
+        return line.isBlank()
+                || line.startsWith("Cenario:")
+                || line.startsWith("Scenario:");
+    }
+
+    private static final class StepCollector {
+        private final List<String> given = new ArrayList<>();
+        private final List<String> when = new ArrayList<>();
+        private final List<String> then = new ArrayList<>();
+        private StepType current;
+
+        void addLine(String line) {
+            if (STEP_GIVEN.matcher(line).find()) {
+                current = StepType.GIVEN;
+                given.add(line);
+            } else if (STEP_WHEN.matcher(line).find()) {
+                current = StepType.WHEN;
+                when.add(line);
+            } else if (STEP_THEN.matcher(line).find()) {
+                current = StepType.THEN;
+                then.add(line);
+            } else if (STEP_AND.matcher(line).find()
+                    && current != null) {
+                addToCurrentStep(
+                        current, line, given, when, then);
+            }
+        }
+
+        GherkinScenario build(String id) {
+            return new GherkinScenario(
+                    id, given, when, then);
+        }
     }
 
     private static void addToCurrentStep(

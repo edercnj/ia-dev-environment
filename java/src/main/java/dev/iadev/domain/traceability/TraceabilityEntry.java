@@ -20,6 +20,8 @@ public record TraceabilityEntry(
         Optional<String> testMethodName,
         TraceabilityStatus status) {
 
+    static final String UNLINKED_ID = "UNLINKED";
+
     /**
      * Compact constructor enforcing non-null invariants.
      */
@@ -80,7 +82,7 @@ public record TraceabilityEntry(
             String testClassName,
             String testMethodName) {
         return new TraceabilityEntry(
-                "UNLINKED",
+                UNLINKED_ID,
                 Optional.empty(),
                 Optional.of(testClassName),
                 Optional.of(testMethodName),
