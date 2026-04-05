@@ -19,6 +19,7 @@ class ConfigProfilesTest {
             "java-picocli-cli",
             "java-quarkus",
             "java-spring",
+            "java-spring-fintech-pci",
             "java-spring-hexagonal",
             "java-spring-cqrs-es",
             "java-spring-event-driven",
@@ -53,7 +54,8 @@ class ConfigProfilesTest {
         @ParameterizedTest
         @ValueSource(strings = {
                 "java-picocli-cli", "java-quarkus",
-                "java-spring", "java-spring-hexagonal",
+                "java-spring", "java-spring-fintech-pci",
+                "java-spring-hexagonal",
                 "java-spring-cqrs-es",
                 "java-spring-event-driven",
                 "java-spring-fintech-pci",
@@ -370,7 +372,8 @@ class ConfigProfilesTest {
         @ParameterizedTest
         @ValueSource(strings = {
                 "java-picocli-cli", "java-quarkus",
-                "java-spring", "java-spring-hexagonal",
+                "java-spring", "java-spring-fintech-pci",
+                "java-spring-hexagonal",
                 "java-spring-cqrs-es",
                 "java-spring-event-driven",
                 "java-spring-fintech-pci",

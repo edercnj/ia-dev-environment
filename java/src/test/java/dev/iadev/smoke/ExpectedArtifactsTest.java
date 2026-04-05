@@ -215,6 +215,7 @@ class ExpectedArtifactsTest {
                     .hasSize(12)
                     .contains("java-quarkus", "go-gin",
                             "python-click-cli",
+                            "java-spring-fintech-pci",
                             "java-spring-hexagonal",
                             "java-spring-cqrs-es",
                             "java-spring-event-driven",
