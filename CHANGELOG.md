@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Restructured project directories to adopt SDD (Spec-Driven Development) layout
+  - `docs/` replaced by `steering/`, `specs/`, `plans/`, `results/`, `contracts/`, `adr/`
+  - Java assembler output paths updated to match new structure
+  - Skill templates updated with new directory references
+
 ### Added
 - **Output Directory Cleanup + Overwrite Protection (story-0005-0015):** Removed redundant `docs/epic/` output from `EpicReportAssembler` — epic template now only emits to `.claude/templates/` and `.github/templates/`. Added `--force` flag to `generate` command with overwrite protection: when the output directory already contains generated artifacts (`.claude/`, `.github/`, `docs/`), the CLI exits with an error listing conflicting directories unless `--force` is provided. `--dry-run` bypasses the overwrite check. New `src/overwrite-detector.ts` module with `checkExistingArtifacts()` and `formatConflictMessage()`. Golden files updated for all 8 profiles (removed `docs/epic/`). 20 new tests (8 unit + 7 CLI + 5 integration).
 - **E2E Tests + Generator Integration (story-0005-0014):** Capstone story for epic-0005. Orchestrator E2E test suite with 14 tests covering 6 scenarios: dry-run (no execution), happy path (5/5 SUCCESS), failure path (retry exhaustion + transitive block propagation), resume path (continue from checkpoint), partial execution (--phase filter), and parallel mode. Test infrastructure: configurable mock subagent dispatch, synthetic 5-story/3-phase implementation map, scenario runner composing all orchestrator modules (parser, checkpoint, retry, blocks, progress). Generator integration verified: `x-dev-epic-implement` skill already auto-discovered by SkillsAssembler and registered in GithubSkillsAssembler. Golden file tests already pass for all 8 profiles. CLAUDE.md updated with skill entry.
