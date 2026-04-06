@@ -21,25 +21,45 @@ Produces a Double-Loop TDD test plan that drives implementation order. With line
 - Existing codebase with established test patterns
 - Knowledge of kotlin test frameworks and conventions
 
+## Pre-Check: Idempotency (RULE-002)
+
+Before generating a test plan, verify whether a valid plan already exists:
+
+1. **Resolve paths:** Extract epic ID (XXXX) and story sequence (YYYY) from the story ID. Compute:
+   - Story path: the story file provided as input
+   - Plan path: `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
+
+2. **Check existence:** If the plan file does NOT exist, proceed to generation.
+
+3. **Compare modification times:** If the plan file exists:
+   - If `mtime(story file) <= mtime(plan file)` → the plan is **fresh**. Log: `"Reusing existing test plan from {date}"`. Return the existing plan without regeneration.
+   - If `mtime(story file) > mtime(plan file)` → the plan is **stale**. Log: `"Regenerating stale test plan for {story-id}"`. Proceed to generation.
+
+4. **First generation:** If the plan file does not exist at all, log: `"Generating test plan for {story-id}"`. Proceed to generation.
+
 ## Knowledge Pack References
 
 Before planning tests, read:
 - `.github/skills/testing/SKILL.md` — 8 test categories, fixture patterns, data uniqueness, kotlin-specific test frameworks, naming conventions
 - `.github/skills/architecture/SKILL.md` — layer boundaries for unit vs integration decisions
+- Read template at `.github/templates/_TEMPLATE-TEST-PLAN.md` for required output format (RULE-007). If template does not exist, log `"Template not found, using inline format"` and continue (RULE-012).
 
 ## Execution Flow (Orchestrator Pattern)
 
 ```
-1. GATHER CONTEXT  -> Subagent reads testing + architecture KPs, story, existing code
+0. PRE-CHECK       -> Verify existing plan freshness (mtime comparison)
+1. GATHER CONTEXT  -> Subagent (model: opus) reads testing + architecture KPs, story, template, existing code
 2. PLAN TESTS      -> Orchestrator generates Double-Loop + TPP-ordered scenarios (inline)
 3. ESTIMATE        -> Orchestrator estimates coverage and validates completeness (inline)
 ```
 
-### Step 1: Gather Context (Subagent)
+### Step 1: Gather Context (Subagent — model: opus)
 
-Launch a context-gathering subagent to read:
+Launch a context-gathering subagent with `model: opus` to read:
+- Template at `.github/templates/_TEMPLATE-TEST-PLAN.md` for required output format (RULE-007). If not found, log `"Template not found, using inline format"` and continue (RULE-012).
 - Testing knowledge packs (philosophy + conventions)
 - Architecture knowledge pack (layer boundaries)
+- Testing knowledge pack for kotlin-specific patterns
 - Story file (acceptance criteria, sub-tasks, business rules)
 - Existing test classes and patterns
 
@@ -102,6 +122,14 @@ Save to: `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md` (extract epic ID XXXX 
 - Do NOT plan tests for trivial getters/setters
 - Do NOT ignore existing test patterns in the codebase
 - Do NOT create redundant tests covering the same branch
+
+## Template Fallback (RULE-012)
+
+When `.github/templates/_TEMPLATE-TEST-PLAN.md` is **not available** (projects predating EPIC-0024):
+
+1. Log warning: `"Template not found, using inline format"`
+2. Generate the test plan using the inline output format defined in the Output section above
+3. Execution continues normally — no interruption, no error
 
 ## Detailed References
 
