@@ -22,10 +22,49 @@ argument-hint: "[STORY-ID or feature-description]"
 | Coding without the review phases | This skill |
 | Complete lifecycle: code → review → fix → PR | `/x-dev-lifecycle` |
 
+## Pre-Check: Plan Reuse (RULE-002 — Idempotency via Staleness Check)
+
+Before starting implementation, check for existing plans produced by `x-dev-lifecycle` or other planning skills. Reusing existing plans ensures consistency between the full lifecycle workflow and the simplified implement workflow.
+
+1. **Resolve paths:** Extract epic ID (XXXX) and story sequence (YYYY) from the story ID. Compute:
+   - Story path: the story file provided as input
+   - Implementation plan path: `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md`
+   - Architecture plan path: `plans/epic-XXXX/plans/arch-story-XXXX-YYYY.md`
+   - Test plan path: `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
+
+2. **Check each artifact:** For each plan type, check existence and staleness:
+
+   | # | Artifact Type | File Pattern | Context Injection Instruction |
+   |---|---------------|--------------|-------------------------------|
+   | 1 | Implementation Plan | `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` | "Use implementation plan at {path} for class diagram, method signatures, affected layers, and TDD strategy" |
+   | 2 | Architecture Plan | `plans/epic-XXXX/plans/arch-story-XXXX-YYYY.md` | "Use architecture plan at {path} for component structure, dependency matrix, and mini-ADRs" |
+   | 3 | Test Plan | `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md` | "Use test plan at {path} for acceptance tests and unit test scenarios" |
+
+3. **Staleness check:** For each plan that exists:
+   - If `mtime(story file) <= mtime(plan file)` → plan is **fresh**. Log: `"Using existing {type} at {path}"`
+   - If `mtime(story file) > mtime(plan file)` → plan is **stale**. Log WARNING: `"Plan {type} may be stale (story modified after plan generation), using as context anyway"`
+   - Stale plans are still used as context — do NOT regenerate (regeneration is the responsibility of `x-dev-lifecycle`)
+
+4. **Context combination:** Log the combination of available plans:
+
+   | Impl Plan | Arch Plan | Test Plan | Log Message |
+   |-----------|-----------|-----------|-------------|
+   | Absent | Absent | Absent | `"No plans found, proceeding with direct implementation"` |
+   | Present | Absent | Absent | `"Using implementation plan, no arch/test plans"` |
+   | Absent | Present | Absent | `"Using architecture plan, no impl/test plans"` |
+   | Absent | Absent | Present | `"Using test plan, no impl/arch plans"` |
+   | Present | Present | Absent | `"Using implementation and architecture plans"` |
+   | Present | Absent | Present | `"Using implementation and test plans"` |
+   | Absent | Present | Present | `"Using architecture and test plans"` |
+   | Present | Present | Present | `"Using all 3 plans as implementation context"` |
+
+   No combination blocks execution — graceful degradation in all scenarios.
+
 ## Execution Flow (Orchestrator Pattern)
 
 ```
-1. PREPARE + UNDERSTAND  -> Subagent reads KPs + test plan, produces TDD implementation plan
+0. PRE-CHECK             -> Verify existing plans (implementation, architecture, test)
+1. PREPARE + UNDERSTAND  -> Subagent reads KPs + available plans, produces TDD implementation plan
 2. TDD LOOP              -> For each scenario (TPP order): RED -> GREEN -> REFACTOR -> compile check
 3. VALIDATE              -> Coverage thresholds, all acceptance tests GREEN (inline)
 4. COMMIT                -> Atomic TDD commits: one per Red-Green-Refactor cycle (inline)
@@ -40,8 +79,16 @@ Launch a **single** `general-purpose` subagent:
 > **Step 1 — Read the story/requirements:** `{STORY_PATH_OR_DESCRIPTION}`
 > Extract: acceptance criteria, sub-tasks, test scenarios, dependencies.
 >
-> **Step 2 — Read test plan (MANDATORY):**
-> - Look for test plan at `plans/{STORY_ID}-tests.md` or `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
+> **Step 1.5 — Read existing plans (from Pre-Check):**
+> For each plan discovered during the pre-check, read it and incorporate its guidance:
+> - **Implementation plan** (if found): Use implementation plan at `{IMPL_PLAN_PATH}` for class diagram, method signatures, affected layers, and TDD strategy. This takes priority over generating a new plan from scratch.
+> - **Architecture plan** (if found): Use architecture plan at `{ARCH_PLAN_PATH}` for component structure, dependency matrix, and mini-ADRs. Respect architectural decisions documented in the plan.
+> - **Test plan** (if found): Use test plan at `{TEST_PLAN_PATH}` for acceptance tests and unit test scenarios. Extract AT-N, UT-N, and IT-N entries for TDD loop ordering.
+> Priority order when plans overlap: implementation plan > architecture plan > test plan.
+>
+> **Step 2 — Read test plan (MANDATORY when no existing test plan from pre-check):**
+> - If test plan was found in pre-check: use it (already read in Step 1.5)
+> - Otherwise: look for test plan at `plans/{STORY_ID}-tests.md` or `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
 > - Extract: acceptance tests (AT-N), unit tests in TPP order (UT-N), integration tests (IT-N)
 > - Identify the outer loop (acceptance tests that start RED)
 > - Identify the inner loop order (unit tests in TPP sequence: degenerate first, complex last)
@@ -53,9 +100,14 @@ Launch a **single** `general-purpose` subagent:
 > - `skills/coding-standards/references/version-features.md` — {{LANGUAGE}} {{LANGUAGE_VERSION}} idioms
 > - `skills/layer-templates/SKILL.md` — code templates per architecture layer (defines implementation order)
 >
+> **Step 3.5 — Read template for implementation plan format (RULE-007):**
+> - Read template at `.claude/templates/_TEMPLATE-IMPLEMENTATION-PLAN.md` for required output format
+> - If the template file does NOT exist, log: `"Template not found, using inline format"` and continue without it (RULE-012: graceful fallback for projects without templates)
+>
 > **Step 4 — Review existing code** in the target packages to identify patterns to follow.
 >
 > **Step 5 — Produce implementation plan:**
+> If an implementation plan was found in pre-check, use it as the base and supplement with any missing details. Otherwise, generate a new plan:
 > 1. Layer-by-layer implementation order (from layer-templates)
 > 2. For each layer: classes to create/modify, package location, key patterns
 > 3. TDD cycle mapping: which UT-N scenarios apply to which layer
@@ -70,7 +122,7 @@ Launch a **single** `general-purpose` subagent:
 > ```
 
 > **Fallback Mode (no test plan):**
-> If no test plan file exists, log:
+> If no test plan file exists (neither from pre-check nor from direct lookup), log:
 > `WARNING: No test plan found. Run /x-test-plan first for optimal TDD workflow. Proceeding with implementation-first approach.`
 > In fallback mode, Step 2 reverts to the layer-by-layer implementation without strict TPP ordering. Tests are written alongside code (test-with) rather than test-first.
 
@@ -156,11 +208,12 @@ After all UT-N cycles for a given acceptance test (AT-N) are complete:
 
 ### 2.4 Fallback Mode (No Test Plan)
 
-When operating in fallback mode (no test plan available):
+When operating in fallback mode (no test plan available from pre-check or direct lookup):
 - Implement layer-by-layer following the old approach
 - Write tests alongside code (test-with) rather than test-first
 - Still run compile check after each layer: `{{COMPILE_COMMAND}}`
 - Log a reminder: `WARNING: Consider running /x-test-plan for future implementations`
+- If implementation plan or architecture plan were found in pre-check, still use them for guidance on layer order and class structure
 
 ## Step 3: Validate (Orchestrator — Inline)
 
@@ -218,10 +271,25 @@ git commit -m "test(scope): update acceptance test for [AT-N scenario] (GREEN)"
 2. Unit test + implementation commits (UT-1, UT-2, ...) — in TPP order
 3. Final commit when AT turns GREEN (if AT content changed)
 
+## Template Fallback (RULE-012)
+
+When `.claude/templates/_TEMPLATE-IMPLEMENTATION-PLAN.md` is **not available** (projects predating EPIC-0024):
+
+1. Log warning: `"Template not found, using inline format"`
+2. Generate the implementation plan using the inline output format defined in Step 5
+3. Execution continues normally — no interruption, no error
+4. The inline format produces the same conceptual sections but without the template's strict structure
+
+This ensures backward compatibility with projects that have not yet adopted template-based generation.
+
 ## Integration Notes
 
 - **Prerequisite:** Run `/x-test-plan` first to generate the test plan with Double-Loop + TPP ordering
+- **Plan reuse:** Pre-check (RULE-002) discovers existing plans from `x-dev-lifecycle` runs, ensuring consistency between full lifecycle and simplified implement workflows
+- **Template reference:** RULE-007 instructs subagent to read implementation plan template when available
+- **Graceful fallback:** RULE-012 ensures backward compatibility when templates are not available
 - For the full lifecycle with reviews, use `x-dev-lifecycle` instead
 - Invokes patterns from `x-test-run` and `x-git-push` skills
 - Works with any {{FRAMEWORK}} project following layered/hexagonal architecture
 - The developer agent (typescript-developer) already includes TDD workflow rules (story-0003-0006)
+- All `{{PLACEHOLDER}}` tokens (e.g. `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
