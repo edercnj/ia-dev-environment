@@ -45,10 +45,10 @@ class StackMappingSearchTest {
         }
 
         @Test
-        @DisplayName("total entries is 7 (5 existing + 2 search)")
-        void databaseSettingsMap_totalSize_seven() {
+        @DisplayName("total entries is 17 (all databases)")
+        void databaseSettingsMap_totalSize_seventeen() {
             assertThat(StackMapping.DATABASE_SETTINGS_MAP)
-                    .hasSize(7);
+                    .hasSize(17);
         }
     }
 }

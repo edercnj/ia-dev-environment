@@ -25,7 +25,8 @@ public final class RulesConditionals {
     private static final Set<String> SQL_DB_TYPES =
             Set.of("postgresql", "oracle", "mysql");
     private static final Set<String> NOSQL_DB_TYPES =
-            Set.of("mongodb", "cassandra");
+            Set.of("mongodb", "cassandra",
+                    "eventstoredb");
 
     private static final Set<String> GRAPH_DB_TYPES =
             Set.of("neo4j", "neptune");

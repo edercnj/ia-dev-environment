@@ -114,10 +114,10 @@ class NewsqlSettingsAndMappingTest {
         }
 
         @Test
-        @DisplayName("DATABASE_SETTINGS_MAP has 8 entries")
-        void databaseSettingsMap_hasEightEntries() {
+        @DisplayName("DATABASE_SETTINGS_MAP has 17 entries")
+        void databaseSettingsMap_hasSeventeenEntries() {
             assertThat(StackMapping.DATABASE_SETTINGS_MAP)
-                    .hasSize(8);
+                    .hasSize(17);
         }
     }
 

@@ -142,7 +142,7 @@ class TimeseriesKnowledgeTest {
 
         @ParameterizedTest
         @ValueSource(strings = {
-                "types-and-conventions.md",
+                "modeling-patterns.md",
                 "migration-patterns.md",
                 "query-optimization.md"
         })
@@ -179,7 +179,7 @@ class TimeseriesKnowledgeTest {
 
         @ParameterizedTest
         @ValueSource(strings = {
-                "types-and-conventions.md",
+                "modeling-patterns.md",
                 "migration-patterns.md",
                 "query-optimization.md"
         })
@@ -206,7 +206,7 @@ class TimeseriesKnowledgeTest {
             Path file = resolveResourceDir().resolve(
                     "knowledge/databases/timeseries/"
                             + "timescaledb/"
-                            + "types-and-conventions.md");
+                            + "modeling-patterns.md");
             assertThat(file).content(StandardCharsets.UTF_8)
                     .containsIgnoringCase("postgresql");
         }
@@ -218,7 +218,7 @@ class TimeseriesKnowledgeTest {
             Path file = resolveResourceDir().resolve(
                     "knowledge/databases/timeseries/"
                             + "timescaledb/"
-                            + "types-and-conventions.md");
+                            + "modeling-patterns.md");
             assertThat(file).content(StandardCharsets.UTF_8)
                     .containsIgnoringCase("hypertable");
         }
@@ -230,7 +230,7 @@ class TimeseriesKnowledgeTest {
             Path file = resolveResourceDir().resolve(
                     "knowledge/databases/timeseries/"
                             + "timescaledb/"
-                            + "types-and-conventions.md");
+                            + "modeling-patterns.md");
             assertThat(file).content(StandardCharsets.UTF_8)
                     .containsIgnoringCase(
                             "continuous aggregate");
@@ -244,10 +244,10 @@ class TimeseriesKnowledgeTest {
         @ParameterizedTest
         @ValueSource(strings = {
                 "common/timeseries-principles.md",
-                "influxdb/types-and-conventions.md",
+                "influxdb/modeling-patterns.md",
                 "influxdb/migration-patterns.md",
                 "influxdb/query-optimization.md",
-                "timescaledb/types-and-conventions.md",
+                "timescaledb/modeling-patterns.md",
                 "timescaledb/migration-patterns.md",
                 "timescaledb/query-optimization.md"
         })
@@ -339,11 +339,11 @@ class TimeseriesKnowledgeTest {
         }
 
         @Test
-        @DisplayName("DATABASE_SETTINGS_MAP has 7 entries"
-                + " (5 existing + 2 new)")
-        void databaseSettingsMap_size_seven() {
+        @DisplayName("DATABASE_SETTINGS_MAP has 17 entries"
+                + " (all databases)")
+        void databaseSettingsMap_size_seventeen() {
             assertThat(StackMapping.DATABASE_SETTINGS_MAP)
-                    .hasSize(7);
+                    .hasSize(17);
         }
     }
 

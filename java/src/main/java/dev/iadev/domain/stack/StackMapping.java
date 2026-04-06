@@ -204,7 +204,7 @@ public final class StackMapping {
             "csharp-dotnet", "csharp-dotnet"
     );
 
-    /** Database name to settings key (16 entries). */
+    /** Database name to settings key (17 entries). */
     public static final Map<String, String>
             DATABASE_SETTINGS_MAP = Map.ofEntries(
             Map.entry("postgresql", "database-psql"),
@@ -222,7 +222,9 @@ public final class StackMapping {
             Map.entry("influxdb", "database-influxdb"),
             Map.entry("timescaledb", "database-timescaledb"),
             Map.entry("elasticsearch", "database-elasticsearch"),
-            Map.entry("opensearch", "database-opensearch"));
+            Map.entry("opensearch", "database-opensearch"),
+            Map.entry("eventstoredb",
+                    "database-eventstoredb"));
 
     /** Cache name to settings key. */
     public static final Map<String, String> CACHE_SETTINGS_MAP = Map.of(
