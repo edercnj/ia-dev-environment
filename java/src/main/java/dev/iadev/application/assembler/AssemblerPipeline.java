@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Orchestrates the execution of 33 assemblers in the fixed
+ * Orchestrates the execution of 34 assemblers in the fixed
  * order defined by RULE-005.
  *
  * <p>Assembler construction is delegated to
