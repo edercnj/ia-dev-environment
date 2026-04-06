@@ -71,3 +71,66 @@
 | Neo4j | `quarkus-neo4j` | `spring-boot-starter-data-neo4j` | `org.neo4j.driver:neo4j-java-driver` |
 | Neptune (Gremlin) | N/A (manual config) | N/A (manual config) | `org.apache.tinkerpop:gremlin-driver` |
 | Neptune (SPARQL) | N/A (manual config) | N/A (manual config) | `org.apache.jena:jena-arq` |
+| ClickHouse | `quarkus-jdbc-clickhouse` (community) | N/A (manual config) | `com.clickhouse:clickhouse-jdbc` |
+| Druid | N/A (manual config) | N/A (manual config) | `org.apache.calcite.avatica:avatica-core` (JDBC) |
+| YugaByteDB (YSQL) | `quarkus-jdbc-postgresql` (compatible) | `spring-boot-starter-data-jpa` (compatible) | `org.postgresql:postgresql` (PG wire) |
+| YugaByteDB (YCQL) | `quarkus-cassandra-client` (compatible) | `spring-boot-starter-data-cassandra` (compatible) | `com.yugabyte:cassandra-driver-core` |
+| CockroachDB | `quarkus-jdbc-postgresql` (compatible) | `spring-boot-starter-data-jpa` (compatible) | `org.postgresql:postgresql` (PG wire) |
+| TiDB | `quarkus-jdbc-mysql` (compatible) | `spring-boot-starter-data-jpa` (compatible) | `com.mysql:mysql-connector-j` (MySQL wire) |
+| InfluxDB | N/A (manual config) | N/A (manual config) | `com.influxdb:influxdb-client-java` |
+| TimescaleDB | `quarkus-jdbc-postgresql` (compatible) | `spring-boot-starter-data-jpa` (compatible) | `org.postgresql:postgresql` (PG extension) |
+| Elasticsearch | `quarkus-elasticsearch-rest-client` | `spring-boot-starter-data-elasticsearch` | `co.elastic.clients:elasticsearch-java` |
+| OpenSearch | `quarkus-opensearch-rest-client` (community) | `spring-boot-starter-data-elasticsearch` (compat mode) | `org.opensearch.client:opensearch-java` |
+| EventStoreDB | N/A (manual config) | N/A (manual config) | `com.eventstore:db-client-java` |
+
+## Columnar/OLAP Databases
+
+| Feature | ClickHouse 23.x | ClickHouse 24.x | Druid 28.x | Druid 29.x |
+|---|---|---|---|---|
+| Storage engine | MergeTree family | MergeTree + SharedMergeTree (cloud) | Segment-based (immutable) | Segment-based (improved) |
+| Compression | LZ4, ZSTD, Delta, T64 | LZ4, ZSTD, Delta, T64 | LZ4, ZSTD | LZ4, ZSTD |
+| Materialized views | Insert-triggered | Insert-triggered + refreshable | Pre-aggregation at ingestion | Pre-aggregation at ingestion |
+| SQL support | ClickHouse SQL (extended) | ClickHouse SQL (extended) | Druid SQL (Calcite-based) | Druid SQL (improved) |
+| Lightweight deletes | Experimental | GA | Not supported (immutable) | Not supported (immutable) |
+| Vector search | No | Experimental | No | No |
+| Distributed queries | Distributed table engine | Distributed + SharedMergeTree | Native distributed (MSQ) | MSQ improved |
+| Real-time ingestion | Kafka table engine | Kafka + improved async inserts | Kafka supervisor | Kafka supervisor improved |
+
+## NewSQL/Distributed Databases
+
+| Feature | YugaByteDB 2.18 | YugaByteDB 2.20 | CockroachDB 23.1 | CockroachDB 23.2 | TiDB 7.1 | TiDB 7.5 |
+|---|---|---|---|---|---|---|
+| Wire protocol | PG + Cassandra | PG + Cassandra | PostgreSQL | PostgreSQL | MySQL | MySQL |
+| Consensus | Raft | Raft | Raft | Raft | Raft (TiKV) + TSO | Raft + TSO |
+| Isolation level | Snapshot + Serializable | Snapshot + Serializable | Serializable (default) | Serializable | Snapshot (default) | Snapshot |
+| Geo-distribution | Tablespaces, xCluster | Tablespaces, xCluster improved | LOCALITY, multi-region | LOCALITY improved | Placement rules | Placement rules improved |
+| HTAP | No (YSQL is OLTP) | No | No | No | TiFlash (columnar) | TiFlash improved |
+| Online DDL | Yes (PG-compatible) | Yes (improved) | Yes (native) | Yes (improved) | Yes (native) | Yes (improved) |
+| Change data capture | CDC (beta) | CDC improved | Changefeeds (GA) | Changefeeds improved | TiCDC (GA) | TiCDC improved |
+| Connection pooling | External (PgBouncer) | Built-in Connection Manager | Built-in | Built-in improved | External (ProxySQL) | External (ProxySQL) |
+
+## Time-Series Databases
+
+| Feature | InfluxDB 2.7 | InfluxDB 3.0 | TimescaleDB 2.13 | TimescaleDB 2.14+ |
+|---|---|---|---|---|
+| Storage engine | TSM (custom) | Apache Arrow + Parquet | PostgreSQL + chunks | PostgreSQL + chunks |
+| Query language | Flux + InfluxQL | Flux + InfluxQL + SQL | SQL (PostgreSQL) | SQL (PostgreSQL) |
+| Compression | Gorilla + LZ4 | Apache Arrow compression | PostgreSQL + columnar compression | Improved columnar compression |
+| Continuous aggregates | Flux tasks (manual) | Flux tasks | Native (incremental refresh) | Cascading aggregates |
+| Retention policies | Bucket-level TTL | Bucket-level TTL | Chunk-level drop policies | Chunk-level drop policies |
+| Downsampling | Flux tasks | Flux tasks | Continuous aggregates | Continuous aggregates |
+| Clustering | InfluxDB Cloud only | InfluxDB Cloud | PostgreSQL replication | PostgreSQL replication |
+| SQL compatibility | InfluxQL (SQL-like) | Full SQL (DataFusion) | Full PostgreSQL SQL | Full PostgreSQL SQL |
+
+## Search Engines
+
+| Feature | Elasticsearch 7.17 | Elasticsearch 8.x | OpenSearch 2.11 | OpenSearch 2.13+ |
+|---|---|---|---|---|
+| Query language | Query DSL + SQL | Query DSL + SQL + ES\|QL | Query DSL + SQL + PPL | Query DSL + SQL + PPL |
+| Vector search | Dense vector (limited) | Native k-NN (HNSW) | k-NN plugin (nmslib, faiss, Lucene) | k-NN improved + neural search |
+| Security | X-Pack (free tier) | X-Pack (built-in) | Security plugin (built-in) | Security plugin (built-in) |
+| Index lifecycle | ILM | ILM | ISM | ISM improved |
+| ML / AI | ML plugin | ML + ELSER (semantic) | ML Commons | ML Commons + conversational search |
+| Observability | APM, Logs | APM, Logs, profiling | Observability plugin | Observability improved |
+| Data streams | GA | GA (improved) | GA | GA (improved) |
+| Searchable snapshots | GA | GA (improved) | Snapshot management | Snapshot management |
