@@ -173,7 +173,7 @@ grep "Concluída" plans/epic-0021/IMPLEMENTATION-MAP.md | wc -l
 | Arquivo | Acao |
 |---------|------|
 | `.claude/skills/x-dev-epic-implement/SKILL.md` | Modificado por todas as 9 stories |
-| `.claude/skills/x-dev-epic-implement/README.md` | Criado por story-0021-0008 |
+| `.claude/skills/x-dev-epic-implement/README.md` | Removido (documentacao incorporada no SKILL.md) |
 | `plans/epic-0021/execution-state.json` | Criado pelo orquestrador |
 | `plans/epic-0021/IMPLEMENTATION-MAP.md` | Statuses atualizados |
 | `plans/epic-0021/story-0021-*.md` | Statuses atualizados |
