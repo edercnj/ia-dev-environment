@@ -28,14 +28,24 @@ public final class PatternMapping {
 
     /** Architecture style to pattern categories. */
     public static final Map<String, List<String>>
-            ARCHITECTURE_PATTERNS = Map.of(
-                    "microservice",
-                    List.of("microservice", "resilience",
-                            "integration"),
-                    "hexagonal", List.of("integration"),
-                    "ddd", List.of("integration"),
-                    "monolith", List.of("integration"),
-                    "library", List.of());
+            ARCHITECTURE_PATTERNS = Map.ofEntries(
+                    Map.entry("microservice",
+                            List.of("microservice",
+                                    "resilience",
+                                    "integration")),
+                    Map.entry("hexagonal",
+                            List.of("integration")),
+                    Map.entry("ddd",
+                            List.of("integration")),
+                    Map.entry("cqrs",
+                            List.of("integration")),
+                    Map.entry("event-driven",
+                            List.of("integration",
+                                    "resilience")),
+                    Map.entry("monolith",
+                            List.of("integration")),
+                    Map.entry("library",
+                            List.of()));
 
     /** Event-driven architecture patterns. */
     public static final List<String> EVENT_DRIVEN_PATTERNS = List.of(

@@ -202,12 +202,13 @@ class ResourceResolverTest {
         @SuppressWarnings("removal")
         void consistent_whenCalled_matchesLegacy() {
             Path legacyRoot = ResourceResolver
-                    .resolveResourcesRoot("core", 1);
+                    .resolveResourcesRoot("knowledge", 1);
             Path newResult = ResourceResolver
-                    .resolveResourceDir("core");
+                    .resolveResourceDir("knowledge/core");
 
-            assertThat(newResult.getParent())
-                    .isEqualTo(legacyRoot);
+            assertThat(newResult)
+                    .isEqualTo(legacyRoot.resolve(
+                            "knowledge/core"));
         }
 
         // --- TPP: cached calls return same instance ---

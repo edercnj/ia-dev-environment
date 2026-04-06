@@ -45,8 +45,8 @@ class SecurityIntegrationVerificationTest {
 
         @Test
         @DisplayName("all scanning flags enabled returns"
-                + " 7 scanning skills")
-        void select_allFlags_returns7ScanningSkills() {
+                + " 6 scanning skills")
+        void select_allFlags_returns6ScanningSkills() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .scanningFlags(
@@ -56,20 +56,26 @@ class SecurityIntegrationVerificationTest {
                             .qualityGateProvider("sonarqube")
                             .build();
 
-            List<String> skills =
+            List<String> scanSkills =
                     SkillsSelection
                             .selectSecurityScanningSkills(
                                     config);
 
-            assertThat(skills)
+            assertThat(scanSkills)
                     .containsExactlyInAnyOrder(
                             "x-sast-scan",
                             "x-dast-scan",
                             "x-secret-scan",
                             "x-container-scan",
                             "x-infra-scan",
-                            "x-pentest",
                             "x-sonar-gate");
+
+            List<String> pentestSkills =
+                    SkillsSelection
+                            .selectPentestSkills(config);
+
+            assertThat(pentestSkills)
+                    .containsExactly("x-pentest");
         }
 
         @Test

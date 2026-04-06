@@ -361,6 +361,7 @@ class ContentIntegritySmokeTest extends SmokeTestBase {
                 "DB_TYPE", "BUILD_FILE", "BUILD_TOOL",
                 "DATABASE_TYPE", "MIGRATION_TOOL",
                 "LANGUAGE_NAME", "FRAMEWORK_NAME",
+                "language_name", "architecture_style",
                 "TDD_COMPLIANCE_TABLE", "TDD_SUMMARY",
                 "language_version",
                 "ORCHESTRATOR", "PORT", "EXT",
@@ -382,7 +383,8 @@ class ContentIntegritySmokeTest extends SmokeTestBase {
                 "entity", "EntityName", "name", "item",
                 "author", "dep", "schema", "table_name",
                 "resource_path", "placeholders",
-                "...");
+                "events_per_snapshot",
+                ".", "...");
 
         private static final Pattern PEBBLE =
                 Pattern.compile(

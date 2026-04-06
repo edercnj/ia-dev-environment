@@ -10,7 +10,9 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Orchestrates the execution of 33 assemblers in the fixed
@@ -144,26 +146,89 @@ public final class AssemblerPipeline {
                 durationMs);
     }
 
+    /**
+     * Executes assemblers individually and returns a map of
+     * assembler name to its result.
+     *
+     * @param config    the project configuration
+     * @param outputDir the base output directory
+     * @param options   the pipeline execution options
+     * @return ordered map of assembler name to result
+     * @throws PipelineException if any assembler fails
+     */
+    public Map<String, AssemblerResult>
+            runPipelinePerAssembler(
+                    ProjectConfig config,
+                    Path outputDir,
+                    PipelineOptions options) {
+        TemplateEngine engine = createEngine(options);
+        Path baseDir = options.dryRun()
+                ? createTempDir() : outputDir;
+        Map<String, AssemblerResult> results =
+                new LinkedHashMap<>();
+
+        try {
+            for (AssemblerDescriptor desc : descriptors) {
+                Path targetDir =
+                        desc.target().resolve(baseDir);
+                AssemblerResult result =
+                        desc.assembler()
+                                .assembleWithResult(
+                                        config, engine,
+                                        targetDir);
+                results.put(desc.name(),
+                        relativizeResult(
+                                result, baseDir));
+            }
+        } finally {
+            if (options.dryRun()) {
+                CopyHelpers.deleteQuietly(baseDir);
+            }
+        }
+
+        return results;
+    }
+
+    private static AssemblerResult relativizeResult(
+            AssemblerResult result, Path baseDir) {
+        List<String> relative = relativizePaths(
+                result.files(), baseDir);
+        return AssemblerResult.of(
+                relative, result.warnings());
+    }
+
+    static List<String> relativizePaths(
+            List<String> paths, Path baseDir) {
+        return paths.stream()
+                .map(p -> {
+                    Path filePath = Path.of(p);
+                    if (filePath.isAbsolute()
+                            && filePath.startsWith(
+                                    baseDir)) {
+                        return baseDir.relativize(
+                                filePath).toString();
+                    }
+                    return p;
+                })
+                .toList();
+    }
+
     private AssemblerResult runDry(
             ProjectConfig config,
             TemplateEngine engine) {
-        Path tempDir;
-        try {
-            tempDir = Files.createTempDirectory(
-                    "ia-dev-env-dry-");
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to create temp directory", e);
-        }
+        Path tempDir = createTempDir();
 
         try {
             AssemblerResult result = executeAssemblers(
                     descriptors, config, tempDir, engine);
+            List<String> relativePaths =
+                    relativizePaths(
+                            result.files(), tempDir);
             List<String> warnings =
                     new ArrayList<>(result.warnings());
             warnings.add(DRY_RUN_WARNING);
             return AssemblerResult.of(
-                    result.files(), warnings);
+                    relativePaths, warnings);
         } finally {
             CopyHelpers.deleteQuietly(tempDir);
         }
@@ -173,8 +238,23 @@ public final class AssemblerPipeline {
             ProjectConfig config,
             Path outputDir,
             TemplateEngine engine) {
-        return executeAssemblers(
+        AssemblerResult result = executeAssemblers(
                 descriptors, config, outputDir, engine);
+        List<String> relativePaths =
+                relativizePaths(
+                        result.files(), outputDir);
+        return AssemblerResult.of(
+                relativePaths, result.warnings());
+    }
+
+    private static Path createTempDir() {
+        try {
+            return Files.createTempDirectory(
+                    "ia-dev-env-dry-");
+        } catch (IOException e) {
+            throw new UncheckedIOException(
+                    "Failed to create temp directory", e);
+        }
     }
 
     private TemplateEngine createEngine(
