@@ -1,1 +1,1 @@
-["Bash(curl *elasticsearch*)", "Bash(curl *_search*)", "Bash(curl *_cat*)"]
+["Bash(curl *localhost*/_search*)", "Bash(curl *localhost*/_cat*)", "Bash(curl *localhost*/_cluster*)"]

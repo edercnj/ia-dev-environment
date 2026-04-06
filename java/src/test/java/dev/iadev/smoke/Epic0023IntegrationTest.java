@@ -301,7 +301,44 @@ class Epic0023IntegrationTest {
             assertThat(result.filesGenerated())
                     .as("Pipeline for %s must generate "
                             + "files", profile)
-                    .isNotEmpty();
+                    .hasSizeGreaterThan(10);
+            assertThat(result.filesGenerated())
+                    .as("Pipeline for %s generates "
+                            + "settings.json", profile)
+                    .anyMatch(f -> f.contains(
+                            "settings.json"));
+            assertThat(result.filesGenerated())
+                    .as("Pipeline for %s generates "
+                            + "rules", profile)
+                    .anyMatch(f -> f.contains(
+                            "rules/"));
+        }
+
+        @Test
+        @DisplayName("java-spring-neo4j generates "
+                + "database knowledge")
+        void javaSpringNeo4j_generatesDbKnowledge(
+                @TempDir Path tempDir) throws IOException {
+            Path outputDir = tempDir.resolve("neo4j-kp");
+            Files.createDirectories(outputDir);
+            ProjectConfig config = ConfigProfiles.getStack(
+                    "java-spring-neo4j");
+            AssemblerPipeline pipeline =
+                    new AssemblerPipeline(
+                            AssemblerPipeline
+                                    .buildAssemblers());
+            PipelineOptions options = new PipelineOptions(
+                    false, true, false, null);
+
+            PipelineResult result = pipeline.runPipeline(
+                    config, outputDir, options);
+
+            assertThat(result.filesGenerated())
+                    .as("neo4j profile generates "
+                            + "database-patterns "
+                            + "knowledge files")
+                    .anyMatch(f -> f.contains(
+                            "database-patterns"));
         }
 
         @Test

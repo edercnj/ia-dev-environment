@@ -204,34 +204,17 @@ public final class StackMapping {
             "csharp-dotnet", "csharp-dotnet"
     );
 
-    /** Database name to settings key (17 entries). */
+    /** @deprecated Use {@link DatabaseSettingsMapping#DATABASE_SETTINGS_MAP} */
+    @Deprecated(forRemoval = true)
     public static final Map<String, String>
-            DATABASE_SETTINGS_MAP = Map.ofEntries(
-            Map.entry("postgresql", "database-psql"),
-            Map.entry("mysql", "database-mysql"),
-            Map.entry("oracle", "database-oracle"),
-            Map.entry("mongodb", "database-mongodb"),
-            Map.entry("cassandra", "database-cassandra"),
-            Map.entry("neo4j", "database-neo4j"),
-            Map.entry("neptune", "database-neptune"),
-            Map.entry("clickhouse", "database-clickhouse"),
-            Map.entry("druid", "database-druid"),
-            Map.entry("yugabytedb", "database-yugabytedb"),
-            Map.entry("cockroachdb", "database-cockroachdb"),
-            Map.entry("tidb", "database-tidb"),
-            Map.entry("influxdb", "database-influxdb"),
-            Map.entry("timescaledb", "database-timescaledb"),
-            Map.entry("elasticsearch", "database-elasticsearch"),
-            Map.entry("opensearch", "database-opensearch"),
-            Map.entry("eventstoredb",
-                    "database-eventstoredb"));
+            DATABASE_SETTINGS_MAP =
+            DatabaseSettingsMapping.DATABASE_SETTINGS_MAP;
 
-    /** Cache name to settings key. */
-    public static final Map<String, String> CACHE_SETTINGS_MAP = Map.of(
-            "redis", "cache-redis",
-            "dragonfly", "cache-dragonfly",
-            "memcached", "cache-memcached"
-    );
+    /** @deprecated Use {@link DatabaseSettingsMapping#CACHE_SETTINGS_MAP} */
+    @Deprecated(forRemoval = true)
+    public static final Map<String, String>
+            CACHE_SETTINGS_MAP =
+            DatabaseSettingsMapping.CACHE_SETTINGS_MAP;
 
     /** Returns hook template key, or empty string. */
     public static String getHookTemplateKey(
@@ -247,17 +230,15 @@ public final class StackMapping {
                 language + "-" + buildTool, "");
     }
 
-    /** Returns database settings key, or empty string. */
-    public static String getDatabaseSettingsKey(
-            String dbName) {
-        return DATABASE_SETTINGS_MAP
-                .getOrDefault(dbName, "");
+    /** @deprecated Use {@link DatabaseSettingsMapping#getDatabaseSettingsKey} */
+    @Deprecated(forRemoval = true)
+    public static String getDatabaseSettingsKey(String dbName) {
+        return DatabaseSettingsMapping.getDatabaseSettingsKey(dbName);
     }
 
-    /** Returns cache settings key, or empty string. */
-    public static String getCacheSettingsKey(
-            String cacheName) {
-        return CACHE_SETTINGS_MAP
-                .getOrDefault(cacheName, "");
+    /** @deprecated Use {@link DatabaseSettingsMapping#getCacheSettingsKey} */
+    @Deprecated(forRemoval = true)
+    public static String getCacheSettingsKey(String cacheName) {
+        return DatabaseSettingsMapping.getCacheSettingsKey(cacheName);
     }
 }

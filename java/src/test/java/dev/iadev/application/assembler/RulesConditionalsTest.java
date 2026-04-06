@@ -122,6 +122,35 @@ class RulesConditionalsTest {
         }
 
         @Test
+        @DisplayName("unknown database returns empty list")
+        void create_unknownDatabase_returnsEmpty(
+                @TempDir Path tempDir)
+                throws IOException {
+            ProjectConfig config = TestConfigBuilder
+                    .builder()
+                    .database("unknowndb", "1")
+                    .build();
+            Path resourceDir = tempDir.resolve("res");
+            Files.createDirectories(
+                    resourceDir.resolve(
+                            "knowledge/databases"));
+            Path skillsDir = tempDir.resolve("skills");
+
+            List<String> result =
+                    RulesConditionals.copyDatabaseRefs(
+                            new ConditionalCopyContext(
+                                    config, resourceDir,
+                                    skillsDir,
+                                    new TemplateEngine(),
+                                    Map.of()));
+
+            assertThat(result)
+                    .as("unknown database should "
+                            + "produce empty result")
+                    .isEmpty();
+        }
+
+        @Test
         @DisplayName("copies version matrix when present")
         void create_whenCalled_copiesVersionMatrix(
                 @TempDir Path tempDir)
@@ -170,6 +199,27 @@ class RulesConditionalsTest {
                             config, resourceDir, skillsDir);
 
             assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("unknown cache returns empty list")
+        void create_unknownCache_returnsEmpty(
+                @TempDir Path tempDir) {
+            ProjectConfig config = TestConfigBuilder
+                    .builder()
+                    .cache("hazelcast", "5")
+                    .build();
+            Path resourceDir = tempDir.resolve("res");
+            Path skillsDir = tempDir.resolve("skills");
+
+            List<String> result =
+                    RulesConditionals.copyCacheRefs(
+                            config, resourceDir, skillsDir);
+
+            assertThat(result)
+                    .as("unknown cache should produce "
+                            + "empty result")
+                    .isEmpty();
         }
 
         @Test
@@ -225,6 +275,31 @@ class RulesConditionalsTest {
                             config, resourceDir, skillsDir);
 
             assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("path traversal framework skipped")
+        void create_pathTraversal_skipped(
+                @TempDir Path tempDir)
+                throws IOException {
+            ProjectConfig config = TestConfigBuilder
+                    .builder()
+                    .securityFrameworks("../../../etc")
+                    .build();
+            Path resourceDir = tempDir.resolve("res");
+            Path secDir = resourceDir.resolve(
+                    "knowledge/security");
+            Files.createDirectories(secDir);
+            Path skillsDir = tempDir.resolve("skills");
+
+            List<String> result =
+                    RulesConditionals.assembleSecurityRules(
+                            config, resourceDir, skillsDir);
+
+            assertThat(result)
+                    .as("path traversal framework "
+                            + "must be skipped")
+                    .isEmpty();
         }
     }
 

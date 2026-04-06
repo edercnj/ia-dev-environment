@@ -1,6 +1,7 @@
 package dev.iadev.application.assembler;
 
 import dev.iadev.domain.model.ProjectConfig;
+import dev.iadev.domain.stack.DatabaseSettingsMapping;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -11,14 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Copies conditional resource files (database, cache,
- * security) to skill knowledge packs. Infrastructure
- * conditionals are in {@link RulesInfraConditionals}.
- *
- * @see RulesAssembler
- * @see ConditionEvaluator
- */
+/** Copies conditional resource files (database, cache, security) to skill KPs. */
 public final class RulesConditionals {
 
     private static final String NONE_VALUE = "none";
@@ -27,7 +21,6 @@ public final class RulesConditionals {
     private static final Set<String> NOSQL_DB_TYPES =
             Set.of("mongodb", "cassandra",
                     "eventstoredb");
-
     private static final Set<String> GRAPH_DB_TYPES =
             Set.of("neo4j", "neptune");
     private static final Set<String> COLUMNAR_DB_TYPES =
@@ -38,7 +31,6 @@ public final class RulesConditionals {
             Set.of("influxdb", "timescaledb");
     private static final Set<String> SEARCH_DB_TYPES =
             Set.of("elasticsearch", "opensearch");
-
     /** Maps category set to directory name for routing. */
     private static final Map<Set<String>, String>
             DB_CATEGORY_MAP = Map.of(
@@ -55,15 +47,12 @@ public final class RulesConditionals {
     }
 
     /** Copies database reference files when configured. */
-    public static List<String> copyDatabaseRefs(
-            ConditionalCopyContext ctx) {
-        String dbName =
-                ctx.config().data().database().name();
+    public static List<String> copyDatabaseRefs(ConditionalCopyContext ctx) {
+        String dbName = ctx.config().data().database().name();
         if (NONE_VALUE.equals(dbName)) {
             return List.of();
         }
-        Path dbDir =
-                ctx.resourceDir().resolve("knowledge/databases");
+        Path dbDir = ctx.resourceDir().resolve("knowledge/databases");
         Path target = ctx.skillsDir().resolve(
                 "database-patterns/references");
         CopyHelpers.ensureDirectory(target);
@@ -84,6 +73,10 @@ public final class RulesConditionals {
             Path skillsDir) {
         String cacheName = config.data().cache().name();
         if (NONE_VALUE.equals(cacheName)) {
+            return List.of();
+        }
+        if (!DatabaseSettingsMapping.CACHE_SETTINGS_MAP
+                .containsKey(cacheName)) {
             return List.of();
         }
         Path dbDir = resourceDir.resolve("knowledge/databases");
@@ -118,22 +111,16 @@ public final class RulesConditionals {
 
     /** Delegates to {@link RulesInfraConditionals}. */
     public static List<String> assembleCloudKnowledge(
-            ProjectConfig config,
-            Path resourceDir,
-            Path skillsDir) {
-        return RulesInfraConditionals
-                .assembleCloudKnowledge(
-                        config, resourceDir, skillsDir);
+            ProjectConfig config, Path resourceDir, Path skillsDir) {
+        return RulesInfraConditionals.assembleCloudKnowledge(
+                config, resourceDir, skillsDir);
     }
 
     /** Delegates to {@link RulesInfraConditionals}. */
     public static List<String> assembleInfraKnowledge(
-            ProjectConfig config,
-            Path resourceDir,
-            Path skillsDir) {
-        return RulesInfraConditionals
-                .assembleInfraKnowledge(
-                        config, resourceDir, skillsDir);
+            ProjectConfig config, Path resourceDir, Path skillsDir) {
+        return RulesInfraConditionals.assembleInfraKnowledge(
+                config, resourceDir, skillsDir);
     }
 
     private static List<String> copyDbVersionMatrix(
@@ -234,6 +221,9 @@ public final class RulesConditionals {
         List<String> generated = new ArrayList<>();
         for (String framework :
                 config.security().frameworks()) {
+            if (framework.contains("..") || framework.contains("/")) {
+                continue;
+            }
             Path src = secDir.resolve(
                     "compliance/" + framework + ".md");
             if (Files.exists(src)
