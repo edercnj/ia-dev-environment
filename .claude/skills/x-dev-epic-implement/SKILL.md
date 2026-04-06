@@ -658,9 +658,23 @@ The following sections are placeholders for downstream stories:
 - [Placeholder: partial execution filter — story-0005-0009]
 - [Placeholder: progress reporting — story-0005-0013]
 
-### Integrity Gate (Between Phases)
+### Integrity Gate (Between Phases — RULE-006)
 
-After ALL stories in a phase complete, dispatch an integrity gate subagent before advancing to the next phase.
+After ALL PRs from a phase are merged into `main`, the orchestrator runs the integrity
+gate on `main` to validate cross-story integration. This ensures the combined effect
+of all phase stories is correct on the real production branch.
+
+**Pre-phase SHA capture:** At the start of each phase, capture `mainShaBeforePhase`:
+```
+mainShaBeforePhase[N] = git rev-parse main
+```
+Persist in checkpoint for use after merge and for resume recovery.
+
+**Gate execution:** After all PRs are merged:
+```
+git checkout main && git pull origin main
+```
+Then dispatch the integrity gate subagent on the updated `main`.
 
 #### Gate Subagent Prompt
 
