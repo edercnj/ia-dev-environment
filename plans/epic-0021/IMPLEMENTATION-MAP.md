@@ -8,15 +8,15 @@
 
 | Story | Título | Chave Jira | Blocked By | Blocks | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| story-0021-0001 | Eliminar branch épica e adotar branching por story | — | — | story-0021-0003, story-0021-0005, story-0021-0006, story-0021-0009 | Pendente |
-| story-0021-0002 | Delegar criação de PR e review ao x-dev-lifecycle | — | — | story-0021-0003, story-0021-0004 | Pendente |
-| story-0021-0003 | Enforcement de dependências via PR merge status | — | story-0021-0001, story-0021-0002 | story-0021-0006, story-0021-0007, story-0021-0009 | Pendente |
-| story-0021-0004 | Substituir Phase 2 consolidada por tracking incremental | — | story-0021-0002 | story-0021-0008 | Pendente |
-| story-0021-0005 | Pre-flight analysis com strict mode | — | story-0021-0001 | story-0021-0008 | Pendente |
-| story-0021-0006 | Integrity e consistency gates na main | — | story-0021-0001, story-0021-0003 | story-0021-0008 | Pendente |
-| story-0021-0007 | Resume workflow para modelo per-story PR | — | story-0021-0003 | story-0021-0008 | Pendente |
-| story-0021-0009 | Auto-rebase e resolução automática de conflitos em PRs paralelos | — | story-0021-0001, story-0021-0003 | story-0021-0008 | Pendente |
-| story-0021-0008 | Verificação final e documentação de integração | — | story-0021-0004, story-0021-0005, story-0021-0006, story-0021-0007, story-0021-0009 | — | Pendente |
+| story-0021-0001 | Eliminar branch épica e adotar branching por story | — | — | story-0021-0003, story-0021-0005, story-0021-0006, story-0021-0009 | Concluída |
+| story-0021-0002 | Delegar criação de PR e review ao x-dev-lifecycle | — | — | story-0021-0003, story-0021-0004 | Concluída |
+| story-0021-0003 | Enforcement de dependências via PR merge status | — | story-0021-0001, story-0021-0002 | story-0021-0006, story-0021-0007, story-0021-0009 | Concluída |
+| story-0021-0004 | Substituir Phase 2 consolidada por tracking incremental | — | story-0021-0002 | story-0021-0008 | Concluída |
+| story-0021-0005 | Pre-flight analysis com strict mode | — | story-0021-0001 | story-0021-0008 | Concluída |
+| story-0021-0006 | Integrity e consistency gates na main | — | story-0021-0001, story-0021-0003 | story-0021-0008 | Concluída |
+| story-0021-0007 | Resume workflow para modelo per-story PR | — | story-0021-0003 | story-0021-0008 | Concluída |
+| story-0021-0009 | Auto-rebase e resolução automática de conflitos em PRs paralelos | — | story-0021-0001, story-0021-0003 | story-0021-0008 | Concluída |
+| story-0021-0008 | Verificação final e documentação de integração | — | story-0021-0004, story-0021-0005, story-0021-0006, story-0021-0007, story-0021-0009 | — | Concluída |
 
 > **Nota:** story-0021-0004 depende apenas de story-0021-0002 (não de story-0021-0001), pois a substituição da Phase 2 requer apenas o SubagentResult com campos de PR, não a eliminação da branch épica. A Phase 2 atualizada coexiste com o modelo per-story sem conflito. story-0021-0009 depende de story-0021-0001 (branching model) e story-0021-0003 (merge mechanism) pois reimplementa o subagent de resolução e auto-rebase sobre a infraestrutura definida por essas stories.
 
