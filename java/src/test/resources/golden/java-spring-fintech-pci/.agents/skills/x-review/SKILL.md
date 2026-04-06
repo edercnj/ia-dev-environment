@@ -111,7 +111,9 @@ Launch one `general-purpose` subagent per applicable engineer.
 
 ### Engineer Checklists (include in subagent prompt)
 
-**Security (10 items, /20):** Input validation, output encoding, authentication checks, authorization checks, sensitive data masking, error handling (no stack traces), cryptography usage, dependency vulnerabilities, CORS/CSP headers, audit logging.
+**Security (15 items, /30):** Input validation, output encoding, authentication checks, authorization checks, sensitive data masking, error handling (no stack traces), cryptography usage, dependency vulnerabilities, CORS/CSP headers, audit logging, secret detection compliance (ref: `x-secret-scan`), container security posture (ref: `x-container-scan`), supply chain risk (ref: `x-supply-chain-audit`), hardening compliance (ref: `x-hardening-eval`), OWASP Top 10 coverage (ref: `x-owasp-scan`).
+
+> **Items 11-15 — Adaptive Scan Integration:** When scan results exist in `results/security/` (e.g., `x-secret-scan-*.md`, `x-container-scan-*.md`, `x-supply-chain-audit-*.md`, `x-hardening-eval-*.md`, `x-owasp-scan-*.md`), the reviewer MUST reference real findings from those files. When no scan results are present, mark items as "NOT_SCANNED" with score 0. When scanning is enabled in config but not executed, apply partial penalty (1 point instead of 0) with note "Scanning enabled but not executed". Report both legacy score (/20, items 1-10 only) and enhanced score (/30, all 15 items) for backward compatibility.
 
 **QA (18 items, /36):** Test exists for each AC, line coverage ≥95%, branch coverage ≥90%, test naming convention, AAA pattern, parametrized tests for data-driven, exception paths tested, no test interdependency, fixtures centralized, unique test data, edge cases, integration tests for DB/API, commits show test-first pattern, explicit refactoring after green, tests follow TPP progression, no test written after implementation, acceptance tests validate E2E behavior, TDD coverage thresholds maintained.
 
@@ -137,7 +139,7 @@ Parse each subagent's output. Build consolidated table:
 +---------------+-------+--------------------+
 |    Review     | Score |      Status        |
 +---------------+-------+--------------------+
-| Security      | XX/20 | Approved           |
+| Security      | XX/30 | Approved           |
 | QA            | XX/36 | Rejected           |
 | ...           | ...   | ...                |
 +---------------+-------+--------------------+

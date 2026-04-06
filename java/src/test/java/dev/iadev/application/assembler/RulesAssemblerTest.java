@@ -499,6 +499,138 @@ class RulesAssemblerTest {
     }
 
     @Nested
+    @DisplayName("assemble — rule 06 security baseline"
+            + " with scanning")
+    class Rule06SecurityBaseline {
+
+        @Test
+        @DisplayName("no scanning flags — baseline"
+                + " unchanged")
+        void assemble_noScanning_baselineUnchanged(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path resourceDir = createMinimalResources(
+                    tempDir);
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            RulesAssembler assembler =
+                    new RulesAssembler(resourceDir);
+            ProjectConfig config = TestConfigBuilder
+                    .minimal();
+
+            assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "rules/06-security-baseline.md"),
+                    StandardCharsets.UTF_8);
+
+            assertThat(content)
+                    .doesNotContain(
+                            "Automated Verification");
+        }
+
+        @Test
+        @DisplayName("sast enabled — appends verification"
+                + " section")
+        void assemble_withSast_appendsVerification(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path resourceDir = createMinimalResources(
+                    tempDir);
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            RulesAssembler assembler =
+                    new RulesAssembler(resourceDir);
+            ProjectConfig config = TestConfigBuilder
+                    .builder()
+                    .scanningSast(true)
+                    .build();
+
+            assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "rules/06-security-baseline.md"),
+                    StandardCharsets.UTF_8);
+
+            assertThat(content)
+                    .contains("## Automated Verification")
+                    .contains("x-sast-scan")
+                    .contains("Input deserialization");
+        }
+
+        @Test
+        @DisplayName("all scanning flags — contains all"
+                + " mappings")
+        void assemble_allFlags_containsAllMappings(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path resourceDir = createMinimalResources(
+                    tempDir);
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            RulesAssembler assembler =
+                    new RulesAssembler(resourceDir);
+            ProjectConfig config = TestConfigBuilder
+                    .builder()
+                    .scanningSast(true)
+                    .scanningSecretScan(true)
+                    .scanningDast(true)
+                    .build();
+
+            assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "rules/06-security-baseline.md"),
+                    StandardCharsets.UTF_8);
+
+            assertThat(content)
+                    .contains("## Automated Verification")
+                    .contains("x-sast-scan")
+                    .contains("x-secret-scan")
+                    .contains("x-hardening-eval");
+        }
+
+        @Test
+        @DisplayName("baseline original content preserved"
+                + " when scanning added")
+        void assemble_withScanning_originalPreserved(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path resourceDir = createMinimalResources(
+                    tempDir);
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            RulesAssembler assembler =
+                    new RulesAssembler(resourceDir);
+            ProjectConfig config = TestConfigBuilder
+                    .builder()
+                    .scanningSast(true)
+                    .build();
+
+            assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "rules/06-security-baseline.md"),
+                    StandardCharsets.UTF_8);
+
+            assertThat(content)
+                    .startsWith("# Security Baseline");
+        }
+    }
+
+    @Nested
     @DisplayName("assemble — implements Assembler interface")
     class ImplementsAssembler {
 

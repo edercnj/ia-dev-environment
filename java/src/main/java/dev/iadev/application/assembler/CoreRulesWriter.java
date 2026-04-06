@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Writes core rules (01-08, plus conditional 09) and
- * routes core knowledge pack files during assembly.
+ * Writes core rules (01-08, plus conditional 09-12)
+ * and routes core knowledge pack files during assembly.
  *
  * @see RulesAssembler
  */
@@ -24,6 +24,8 @@ public final class CoreRulesWriter {
     private final Path resourcesDir;
     private final AntiPatternsRuleWriter antiPatternsWriter;
     private final PciRuleWriter pciRuleWriter;
+    private final SecurityAntiPatternsRuleWriter
+            securityAntiPatternsWriter;
 
     CoreRulesWriter(Path resourcesDir) {
         this.resourcesDir = resourcesDir;
@@ -31,6 +33,9 @@ public final class CoreRulesWriter {
                 new AntiPatternsRuleWriter(resourcesDir);
         this.pciRuleWriter =
                 new PciRuleWriter(resourcesDir);
+        this.securityAntiPatternsWriter =
+                new SecurityAntiPatternsRuleWriter(
+                        resourcesDir);
     }
 
     List<String> copyCoreRules(
@@ -193,6 +198,16 @@ public final class CoreRulesWriter {
             Map<String, Object> context) {
         return pciRuleWriter
                 .copyConditionalPciRule(
+                        config, rulesDir, engine, context);
+    }
+
+    List<String> copyConditionalSecurityAntiPatternsRule(
+            ProjectConfig config,
+            Path rulesDir,
+            TemplateEngine engine,
+            Map<String, Object> context) {
+        return securityAntiPatternsWriter
+                .copyConditionalSecurityAntiPatternsRule(
                         config, rulesDir, engine, context);
     }
 

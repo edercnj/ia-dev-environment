@@ -57,15 +57,21 @@ public final class SkillGroupRegistry {
                 "x-mcp-recommend",
                 "x-perf-profile",
                 "x-setup-dev-environment",
-                "x-ci-cd-generate"));
+                "x-ci-cd-generate",
+                "x-security-pipeline"));
         SKILL_GROUPS.put("review", List.of(
                 "x-review", "x-review-api", "x-review-pr",
                 "x-review-grpc", "x-review-events",
                 "x-review-gateway",
                 "x-codebase-audit",
                 "x-dependency-audit",
+                "x-supply-chain-audit",
+                "x-owasp-scan",
                 "x-spec-drift-check",
                 "x-threat-model",
+                "x-hardening-eval",
+                "x-runtime-protection",
+                "x-security-dashboard",
                 "x-contract-lint"));
         SKILL_GROUPS.put("testing", List.of(
                 "x-test-plan", "x-test-run", "run-e2e",

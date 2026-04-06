@@ -13,11 +13,23 @@ mode = "workspace-write"
 description = "Global Behavior & Language Policy"
 
 
+[agents.appsec-engineer]
+description = "Global Behavior & Language Policy"
+
+
 [agents.architect]
 description = "Global Behavior & Language Policy"
 
 
+[agents.compliance-auditor]
+description = "Global Behavior & Language Policy"
+
+
 [agents.devops-engineer]
+description = "Global Behavior & Language Policy"
+
+
+[agents.devsecops-engineer]
 description = "Global Behavior & Language Policy"
 
 

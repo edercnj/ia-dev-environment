@@ -115,6 +115,87 @@ class GithubAgentsConditionalTest {
         }
 
         @Test
+        @DisplayName("devsecops when docker")
+        void assemble_whenDocker_devsecops() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("docker")
+                            .orchestrator("none")
+                            .iac("none")
+                            .build();
+
+            List<String> agents =
+                    GithubAgentsAssembler
+                            .selectGithubConditionalAgents(
+                                    config);
+
+            assertThat(agents)
+                    .contains(
+                            "devsecops-engineer.md");
+        }
+
+        @Test
+        @DisplayName("devsecops when kubernetes")
+        void assemble_whenKubernetes_devsecops() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("none")
+                            .orchestrator("kubernetes")
+                            .iac("none")
+                            .build();
+
+            List<String> agents =
+                    GithubAgentsAssembler
+                            .selectGithubConditionalAgents(
+                                    config);
+
+            assertThat(agents)
+                    .contains(
+                            "devsecops-engineer.md");
+        }
+
+        @Test
+        @DisplayName("no devsecops when only iac")
+        void assemble_whenOnlyIac_noDevsecops() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("none")
+                            .orchestrator("none")
+                            .iac("terraform")
+                            .build();
+
+            List<String> agents =
+                    GithubAgentsAssembler
+                            .selectGithubConditionalAgents(
+                                    config);
+
+            assertThat(agents)
+                    .doesNotContain(
+                            "devsecops-engineer.md");
+        }
+
+        @Test
+        @DisplayName("no devsecops when all none")
+        void assemble_whenAllNone_noDevsecops() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("none")
+                            .orchestrator("none")
+                            .iac("none")
+                            .clearInterfaces()
+                            .build();
+
+            List<String> agents =
+                    GithubAgentsAssembler
+                            .selectGithubConditionalAgents(
+                                    config);
+
+            assertThat(agents)
+                    .doesNotContain(
+                            "devsecops-engineer.md");
+        }
+
+        @Test
         @DisplayName("no devops when all none")
         void assemble_whenAllNone_noDevops() {
             ProjectConfig config =
@@ -217,6 +298,88 @@ class GithubAgentsConditionalTest {
 
             assertThat(agents)
                     .doesNotContain("api-engineer.md");
+        }
+
+        @Test
+        @DisplayName("appsec-engineer when security"
+                + " frameworks non-empty")
+        void assemble_whenSecurityFrameworks_appsec() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("none")
+                            .orchestrator("none")
+                            .iac("none")
+                            .securityFrameworks("owasp")
+                            .clearInterfaces()
+                            .addInterface("cli")
+                            .build();
+
+            List<String> agents =
+                    GithubAgentsAssembler
+                            .selectGithubConditionalAgents(
+                                    config);
+
+            assertThat(agents)
+                    .contains("appsec-engineer.md");
+        }
+
+        @Test
+        @DisplayName("no appsec-engineer without"
+                + " security frameworks")
+        void assemble_whenNoFrameworks_noAppsec() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("none")
+                            .orchestrator("none")
+                            .iac("none")
+                            .clearInterfaces()
+                            .addInterface("cli")
+                            .build();
+
+            List<String> agents =
+                    GithubAgentsAssembler
+                            .selectGithubConditionalAgents(
+                                    config);
+
+            assertThat(agents)
+                    .doesNotContain(
+                            "appsec-engineer.md");
+        }
+
+        @Test
+        @DisplayName("pentest-engineer when pentest true")
+        void assemble_whenPentestTrue_pentestEngineer() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .pentest(true)
+                            .build();
+
+            List<String> agents =
+                    GithubAgentsAssembler
+                            .selectGithubConditionalAgents(
+                                    config);
+
+            assertThat(agents)
+                    .contains("pentest-engineer.md");
+        }
+
+        @Test
+        @DisplayName("no pentest-engineer when"
+                + " pentest false")
+        void assemble_whenPentestFalse_noPentestEngineer() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .pentest(false)
+                            .build();
+
+            List<String> agents =
+                    GithubAgentsAssembler
+                            .selectGithubConditionalAgents(
+                                    config);
+
+            assertThat(agents)
+                    .doesNotContain(
+                            "pentest-engineer.md");
         }
     }
 }

@@ -124,6 +124,40 @@ public final class SkillsSelection {
     }
 
     /**
+     * Selects skills based on security scanning flags,
+     * pentest, and quality gate provider.
+     *
+     * @param config the project configuration
+     * @return list of conditional scanning skill names
+     */
+    public static List<String> selectSecurityScanningSkills(
+            ProjectConfig config) {
+        List<String> skills = new ArrayList<>();
+        var scanning = config.security().scanning();
+        if (scanning.sast()) {
+            skills.add("x-sast-scan");
+        }
+        if (scanning.dast()) {
+            skills.add("x-dast-scan");
+        }
+        if (scanning.secretScan()) {
+            skills.add("x-secret-scan");
+        }
+        if (scanning.containerScan()) {
+            skills.add("x-container-scan");
+        }
+        if (scanning.infraScan()) {
+            skills.add("x-infra-scan");
+        }
+        var qgProvider =
+                config.security().qualityGate().provider();
+        if (!"none".equals(qgProvider)) {
+            skills.add("x-sonar-gate");
+        }
+        return skills;
+    }
+
+    /**
      * Selects skills based on compliance frameworks.
      *
      * <p>Includes {@code x-review-compliance} when
@@ -142,6 +176,24 @@ public final class SkillsSelection {
     }
 
     /**
+     * Selects pentest skills based on security config.
+     *
+     * <p>Includes {@code x-pentest} when
+     * {@code pentest} is enabled in the security
+     * configuration.</p>
+     *
+     * @param config the project configuration
+     * @return list of conditional pentest skill names
+     */
+    public static List<String> selectPentestSkills(
+            ProjectConfig config) {
+        if (config.security().pentest()) {
+            return List.of("x-pentest");
+        }
+        return List.of();
+    }
+
+    /**
      * Evaluates all feature gates and returns the aggregated
      * list of conditional skill names.
      *
@@ -155,7 +207,9 @@ public final class SkillsSelection {
         skills.addAll(selectInfraSkills(config));
         skills.addAll(selectTestingSkills(config));
         skills.addAll(selectSecuritySkills(config));
+        skills.addAll(selectSecurityScanningSkills(config));
         skills.addAll(selectComplianceSkills(config));
+        skills.addAll(selectPentestSkills(config));
         return skills;
     }
 

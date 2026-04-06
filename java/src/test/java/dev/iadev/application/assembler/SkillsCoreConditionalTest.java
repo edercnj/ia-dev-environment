@@ -239,5 +239,49 @@ class SkillsCoreConditionalTest {
                     "skills/x-review-grpc"))
                     .doesNotExist();
         }
+
+        @Test
+        @DisplayName("pentestReadiness true generates"
+                + " x-pentest")
+        void assemble_pentestTrue_generatesPentestSkill(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .pentestReadiness(true)
+                            .build();
+            assembler.assemble(
+                    config, new TemplateEngine(),
+                    outputDir);
+            assertThat(outputDir.resolve(
+                    "skills/x-pentest/SKILL.md"))
+                    .exists();
+        }
+
+        @Test
+        @DisplayName("pentestReadiness false excludes"
+                + " x-pentest")
+        void assemble_pentestFalse_excludesPentestSkill(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .pentestReadiness(false)
+                            .build();
+            assembler.assemble(
+                    config, new TemplateEngine(),
+                    outputDir);
+            assertThat(outputDir.resolve(
+                    "skills/x-pentest"))
+                    .doesNotExist();
+        }
     }
 }

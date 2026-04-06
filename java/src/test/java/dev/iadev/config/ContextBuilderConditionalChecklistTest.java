@@ -215,7 +215,13 @@ class ContextBuilderConditionalChecklistTest {
                         "maven", false),
                 DataConfig.fromMap(Map.of()),
                 InfraConfig.fromMap(Map.of()),
-                new SecurityConfig(frameworks),
+                new SecurityConfig(
+                        frameworks,
+                        SecurityConfig.ScanningConfig
+                                .defaults(),
+                        SecurityConfig.QualityGateConfig
+                                .defaults(),
+                        false, "local"),
                 TestingConfig.fromMap(Map.of()),
                 McpConfig.fromMap(Map.of()),
                 "none");

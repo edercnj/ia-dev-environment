@@ -46,6 +46,7 @@ public final class KnowledgePackSelection {
         packs.addAll(selectArchitecturePacks(config));
         packs.addAll(selectDddStrategicPack(config));
         packs.addAll(selectPciDssRequirementsPack(config));
+        packs.addAll(selectOwaspAsvsReferencePack(config));
         return packs;
     }
 
@@ -116,6 +117,15 @@ public final class KnowledgePackSelection {
         if (config.security().frameworks()
                 .contains("pci-dss")) {
             return List.of("pci-dss-requirements");
+        }
+        return List.of();
+    }
+
+    private static List<String> selectOwaspAsvsReferencePack(
+            ProjectConfig config) {
+        if (config.security().frameworks()
+                .contains("owasp-asvs")) {
+            return List.of("owasp-asvs");
         }
         return List.of();
     }

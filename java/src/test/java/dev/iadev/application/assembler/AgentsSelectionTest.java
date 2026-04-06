@@ -158,6 +158,80 @@ class AgentsSelectionTest {
         }
 
         @Test
+        @DisplayName("config with container includes"
+                + " devsecops-engineer.md")
+        void select_container_includesDevsecops() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .container("docker")
+                    .orchestrator("none")
+                    .iac("none")
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .contains("devsecops-engineer.md");
+        }
+
+        @Test
+        @DisplayName("config with orchestrator includes"
+                + " devsecops-engineer.md")
+        void select_orchestrator_includesDevsecops() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .container("none")
+                    .orchestrator("kubernetes")
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .contains("devsecops-engineer.md");
+        }
+
+        @Test
+        @DisplayName("config with container and orchestrator"
+                + " both none excludes"
+                + " devsecops-engineer.md")
+        void select_noContainerNoOrch_excludesDevsecops() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .container("none")
+                    .orchestrator("none")
+                    .iac("none")
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .doesNotContain(
+                            "devsecops-engineer.md");
+        }
+
+        @Test
+        @DisplayName("config with only iac excludes"
+                + " devsecops-engineer.md")
+        void select_onlyIac_excludesDevsecops() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .container("none")
+                    .orchestrator("none")
+                    .iac("terraform")
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .doesNotContain(
+                            "devsecops-engineer.md");
+        }
+
+        @Test
         @DisplayName("config with REST includes"
                 + " api-engineer.md")
         void select_rest_includesApiEngineer() {
@@ -298,6 +372,151 @@ class AgentsSelectionTest {
         }
 
         @Test
+        @DisplayName("config with security frameworks"
+                + " includes appsec-engineer.md")
+        void select_securityFrameworks_includesAppsec() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .securityFrameworks("owasp")
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .contains("appsec-engineer.md");
+        }
+
+        @Test
+        @DisplayName("config with multiple security"
+                + " frameworks includes appsec-engineer.md")
+        void select_multipleFrameworks_includesAppsec() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .securityFrameworks(
+                            "pci-dss", "lgpd")
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .contains("appsec-engineer.md");
+        }
+
+        @Test
+        @DisplayName("config without security frameworks"
+                + " excludes appsec-engineer.md")
+        void select_noFrameworks_excludesAppsec() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .doesNotContain("appsec-engineer.md");
+        }
+
+        @Test
+        @DisplayName("config with security frameworks"
+                + " includes compliance-auditor.md")
+        void select_secFrameworks_includesComplianceAuditor() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .securityFrameworks("gdpr")
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .contains("compliance-auditor.md");
+        }
+
+        @Test
+        @DisplayName("config with multiple security"
+                + " frameworks includes"
+                + " compliance-auditor.md")
+        void select_multiFrameworks_includesAuditor() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .securityFrameworks(
+                            "gdpr", "lgpd", "hipaa")
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .contains("compliance-auditor.md");
+        }
+
+        @Test
+        @DisplayName("config without security frameworks"
+                + " excludes compliance-auditor.md")
+        void select_noFrameworks_excludesAuditor() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .doesNotContain(
+                            "compliance-auditor.md");
+        }
+
+        @Test
+        @DisplayName("config with pentest=true includes"
+                + " pentest-engineer.md")
+        void select_pentestTrue_includesPentestEngineer() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .pentest(true)
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .contains("pentest-engineer.md");
+        }
+
+        @Test
+        @DisplayName("config with pentest=false excludes"
+                + " pentest-engineer.md")
+        void select_pentestFalse_excludesPentestEngineer() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .pentest(false)
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .doesNotContain("pentest-engineer.md");
+        }
+
+        @Test
+        @DisplayName("default config excludes"
+                + " pentest-engineer.md")
+        void select_defaultConfig_excludesPentestEngineer() {
+            ProjectConfig config = TestConfigBuilder.builder()
+                    .build();
+
+            List<String> agents =
+                    AgentsSelection
+                            .selectConditionalAgents(config);
+
+            assertThat(agents)
+                    .doesNotContain("pentest-engineer.md");
+        }
+
+        @Test
         @DisplayName("aggregates all conditional agents"
                 + " for full-featured config")
         void select_whenCalled_aggregatesAllConditionals() {
@@ -307,6 +526,8 @@ class AgentsSelectionTest {
                     .container("docker")
                     .orchestrator("kubernetes")
                     .eventDriven(true)
+                    .securityFrameworks("owasp")
+                    .pentest(true)
                     .clearInterfaces()
                     .addInterface("rest")
                     .addInterface("event-consumer")
@@ -320,8 +541,12 @@ class AgentsSelectionTest {
                     .contains("database-engineer.md")
                     .contains("observability-engineer.md")
                     .contains("devops-engineer.md")
+                    .contains("devsecops-engineer.md")
                     .contains("api-engineer.md")
-                    .contains("event-engineer.md");
+                    .contains("event-engineer.md")
+                    .contains("appsec-engineer.md")
+                    .contains("compliance-auditor.md")
+                    .contains("pentest-engineer.md");
         }
     }
 

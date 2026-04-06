@@ -190,6 +190,14 @@ final class GithubAgentRenderer {
             agents.add("devops-engineer.md");
         }
 
+        boolean hasDevsecops =
+                !"none".equals(infra.container())
+                        || !"none".equals(
+                                infra.orchestrator());
+        if (hasDevsecops) {
+            agents.add("devsecops-engineer.md");
+        }
+
         if (hasAnyInterface(config,
                 "rest", "grpc", "graphql")) {
             agents.add("api-engineer.md");
@@ -203,6 +211,16 @@ final class GithubAgentRenderer {
         if (hasEvents) {
             agents.add("event-engineer.md");
         }
+
+        if (!config.security().frameworks().isEmpty()) {
+            agents.add("appsec-engineer.md");
+            agents.add("compliance-auditor.md");
+        }
+
+        if (config.security().pentest()) {
+            agents.add("pentest-engineer.md");
+        }
+
 
         return agents;
     }

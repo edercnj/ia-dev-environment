@@ -40,6 +40,7 @@ public final class AgentsSelection {
         agents.addAll(selectInfraAgents(config));
         agents.addAll(selectInterfaceAgents(config));
         agents.addAll(selectEventAgents(config));
+        agents.addAll(selectSecurityAgents(config));
         return agents;
     }
 
@@ -112,6 +113,14 @@ public final class AgentsSelection {
         if (hasDevops) {
             agents.add("devops-engineer.md");
         }
+
+        boolean hasDevsecops =
+                !"none".equals(infra.container())
+                        || !"none".equals(
+                                infra.orchestrator());
+        if (hasDevsecops) {
+            agents.add("devsecops-engineer.md");
+        }
         return agents;
     }
 
@@ -136,6 +145,20 @@ public final class AgentsSelection {
         }
         return List.of();
     }
+
+    private static List<String> selectSecurityAgents(
+            ProjectConfig config) {
+        List<String> agents = new ArrayList<>();
+        if (!config.security().frameworks().isEmpty()) {
+            agents.add("appsec-engineer.md");
+            agents.add("compliance-auditor.md");
+        }
+        if (config.security().pentest()) {
+            agents.add("pentest-engineer.md");
+        }
+        return agents;
+    }
+
 
     private static boolean hasAnyInterface(
             ProjectConfig config, String... types) {
