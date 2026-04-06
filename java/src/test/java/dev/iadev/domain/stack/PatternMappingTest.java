@@ -23,10 +23,10 @@ class PatternMappingTest {
         }
 
         @Test
-        @DisplayName("ARCHITECTURE_PATTERNS has 5 entries")
-        void architecturePatterns_whenCalled_fiveEntries() {
+        @DisplayName("ARCHITECTURE_PATTERNS has 7 entries")
+        void architecturePatterns_whenCalled_sevenEntries() {
             assertThat(PatternMapping.ARCHITECTURE_PATTERNS)
-                    .hasSize(5);
+                    .hasSize(7);
         }
 
         @Test

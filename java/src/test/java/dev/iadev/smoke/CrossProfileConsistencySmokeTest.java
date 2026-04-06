@@ -90,7 +90,8 @@ class CrossProfileConsistencySmokeTest {
             "claude-hooks",
             "contracts",
             "k8s",
-            "github-top");
+            "github-top",
+            "root-files");
 
     /**
      * Artifact categories that must have the same count
@@ -103,7 +104,6 @@ class CrossProfileConsistencySmokeTest {
             "github-instructions",
             "github-issue-templates",
             "github-prompts",
-            "root-files",
             "tests");
 
     @TempDir

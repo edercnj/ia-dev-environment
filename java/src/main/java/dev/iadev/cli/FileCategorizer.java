@@ -91,11 +91,35 @@ final class FileCategorizer {
         if (path.startsWith("plans/")) {
             return "Plans";
         }
-        if ("CLAUDE.md".equals(path)
-                || "README.md".equals(path)
-                || "AGENTS.md".equals(path)) {
+        if (path.startsWith("k8s/")) {
+            return "Kubernetes";
+        }
+        if (path.startsWith("tests/")) {
+            return "Tests";
+        }
+        if (path.startsWith(".claude/templates/")) {
+            return "Templates";
+        }
+        if (isRootFile(path)) {
             return "Root Files";
         }
+        if (isInfraFile(path)) {
+            return "Infrastructure";
+        }
         return "Other";
+    }
+
+    private static boolean isRootFile(String path) {
+        return "CLAUDE.md".equals(path)
+                || "README.md".equals(path)
+                || "AGENTS.md".equals(path)
+                || "AGENTS.override.md".equals(path)
+                || "CONSTITUTION.md".equals(path);
+    }
+
+    private static boolean isInfraFile(String path) {
+        return "Dockerfile".equals(path)
+                || "docker-compose.yml".equals(path)
+                || ".dockerignore".equals(path);
     }
 }
