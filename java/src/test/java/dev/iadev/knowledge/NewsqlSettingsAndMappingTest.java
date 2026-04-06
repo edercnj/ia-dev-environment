@@ -31,8 +31,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 class NewsqlSettingsAndMappingTest {
 
     private static final Path SETTINGS_DIR =
-            Path.of("src/main/resources/"
-                    + "targets/claude/settings");
+            resolveSettingsDir();
+
+    private static Path resolveSettingsDir() {
+        Path current = Path.of("").toAbsolutePath();
+        if (current.endsWith("java")) {
+            return current.resolve(
+                    "src/main/resources/targets"
+                            + "/claude/settings");
+        }
+        return current.resolve(
+                "java/src/main/resources/targets"
+                        + "/claude/settings");
+    }
 
     @Nested
     @DisplayName("@GK-6: Settings files")

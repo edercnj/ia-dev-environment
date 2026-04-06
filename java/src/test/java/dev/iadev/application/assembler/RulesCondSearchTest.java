@@ -139,6 +139,13 @@ class RulesCondSearchTest {
                     .database("elasticsearch", "8")
                     .build();
             Path resourceDir = tempDir.resolve("res");
+            Path searchCommon = resourceDir.resolve(
+                    "knowledge/databases/search/common");
+            Files.createDirectories(searchCommon);
+            Files.writeString(
+                    searchCommon.resolve(
+                            "search-principles.md"),
+                    "Search principles content");
             Path esDir = resourceDir.resolve(
                     "knowledge/databases/search/"
                             + "elasticsearch");

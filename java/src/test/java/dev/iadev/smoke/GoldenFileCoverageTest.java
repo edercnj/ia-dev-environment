@@ -36,13 +36,13 @@ class GoldenFileCoverageTest {
             "java-picocli-cli";
 
     /**
-     * Profiles registered in STACK_KEYS that do not yet
-     * have golden files. These are excluded from the
-     * smoke-coverage check until golden files are
-     * generated (story-0023-0013).
+     * Profiles registered in STACK_KEYS that are not
+     * yet smoke-testable. These are excluded from the
+     * registration-coverage check until golden files
+     * and smoke profiles are added (story-0023-0013).
      */
     private static final Set<String>
-            PENDING_GOLDEN_PROFILES = Set.of(
+            PENDING_SMOKE_PROFILES = Set.of(
             "java-spring-neo4j",
             "java-spring-clickhouse",
             "python-fastapi-timescale",
@@ -124,7 +124,7 @@ class GoldenFileCoverageTest {
                     .filter(s ->
                             !smokeProfiles.contains(s))
                     .filter(s ->
-                            !PENDING_GOLDEN_PROFILES
+                            !PENDING_SMOKE_PROFILES
                                     .contains(s))
                     .sorted()
                     .toList();

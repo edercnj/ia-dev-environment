@@ -8,6 +8,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,31 +17,42 @@ import java.util.Set;
 public final class RulesConditionals {
 
     private static final String NONE_VALUE = "none";
-    private static final Set<String> SQL_DB_TYPES =
-            Set.of("postgresql", "oracle", "mysql");
-    private static final Set<String> NOSQL_DB_TYPES =
-            Set.of("mongodb", "cassandra",
-                    "eventstoredb");
-    private static final Set<String> GRAPH_DB_TYPES =
-            Set.of("neo4j", "neptune");
-    private static final Set<String> COLUMNAR_DB_TYPES =
-            Set.of("clickhouse", "druid");
-    private static final Set<String> NEWSQL_DB_TYPES =
-            Set.of("yugabytedb", "cockroachdb", "tidb");
-    private static final Set<String> TIMESERIES_DB_TYPES =
-            Set.of("influxdb", "timescaledb");
-    private static final Set<String> SEARCH_DB_TYPES =
-            Set.of("elasticsearch", "opensearch");
-    /** Maps category set to directory name for routing. */
-    private static final Map<Set<String>, String>
-            DB_CATEGORY_MAP = Map.of(
-            SQL_DB_TYPES, "sql",
-            NOSQL_DB_TYPES, "nosql",
-            GRAPH_DB_TYPES, "graph",
-            COLUMNAR_DB_TYPES, "columnar",
-            NEWSQL_DB_TYPES, "newsql",
-            TIMESERIES_DB_TYPES, "timeseries",
-            SEARCH_DB_TYPES, "search");
+    /** Maps each database name to its category directory. */
+    private static final Map<String, String>
+            DB_CATEGORY_MAP = buildDbCategoryMap();
+
+    private static Map<String, String>
+            buildDbCategoryMap() {
+        Map<String, String> map = new HashMap<>();
+        for (String db : Set.of(
+                "postgresql", "oracle", "mysql")) {
+            map.put(db, "sql");
+        }
+        for (String db : Set.of(
+                "mongodb", "cassandra", "eventstoredb")) {
+            map.put(db, "nosql");
+        }
+        for (String db : Set.of("neo4j", "neptune")) {
+            map.put(db, "graph");
+        }
+        for (String db : Set.of(
+                "clickhouse", "druid")) {
+            map.put(db, "columnar");
+        }
+        for (String db : Set.of(
+                "yugabytedb", "cockroachdb", "tidb")) {
+            map.put(db, "newsql");
+        }
+        for (String db : Set.of(
+                "influxdb", "timescaledb")) {
+            map.put(db, "timeseries");
+        }
+        for (String db : Set.of(
+                "elasticsearch", "opensearch")) {
+            map.put(db, "search");
+        }
+        return Map.copyOf(map);
+    }
 
     private RulesConditionals() {
         // Utility class — no instantiation
@@ -138,14 +150,12 @@ public final class RulesConditionals {
 
     private static List<String> copyDbTypeFiles(
             String dbName, Path dbDir, Path target) {
-        for (var entry : DB_CATEGORY_MAP.entrySet()) {
-            if (entry.getKey().contains(dbName)) {
-                return copyCategoryFiles(
-                        entry.getValue(), dbName,
-                        dbDir, target);
-            }
+        String category = DB_CATEGORY_MAP.get(dbName);
+        if (category == null) {
+            return List.of();
         }
-        return List.of();
+        return copyCategoryFiles(
+                category, dbName, dbDir, target);
     }
 
     private static List<String> copyCategoryFiles(
