@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Tests for AssemblerPipeline — orchestrates 33 assemblers
+ * Tests for AssemblerPipeline — orchestrates 34 assemblers
  * per RULE-005.
  */
 @DisplayName("AssemblerPipeline")
@@ -58,6 +58,7 @@ class AssemblerPipelineTest {
             "DocsAdrAssembler",
             "CicdAssembler",
             "EpicReportAssembler",
+            "PlanTemplatesAssembler",
             "ReadmeAssembler");
 
     @Nested
@@ -65,12 +66,12 @@ class AssemblerPipelineTest {
     class BuildAssemblers {
 
         @Test
-        @DisplayName("returns exactly 33 assembler descriptors")
-        void assemble_whenCalled_returnsExactly33() {
+        @DisplayName("returns exactly 34 assembler descriptors")
+        void assemble_whenCalled_returnsExactly34() {
             List<AssemblerDescriptor> descriptors =
                     AssemblerPipeline.buildAssemblers();
 
-            assertThat(descriptors).hasSize(33);
+            assertThat(descriptors).hasSize(34);
         }
 
         @Test
