@@ -2,7 +2,7 @@
 name: x-dev-epic-implement
 description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
-argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr] [--auto-merge]"
+argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr] [--auto-merge] [--strict-overlap]"
 ---
 
 ## Global Output Policy
@@ -47,6 +47,7 @@ ERROR: Epic ID is required. Usage: /x-dev-epic-implement [EPIC-ID] [flags]
 | `--skip-smoke-gate` | boolean | `false` | Skip smoke tests in the integrity gate between phases |
 | `--single-pr` | boolean | `false` | Preserve legacy flow: epic branch + rebase-before-merge + single mega-PR (RULE-009) |
 | `--auto-merge` | boolean | `false` | Merge PRs automatically after reviews approve via `gh pr merge` (RULE-004) |
+| `--strict-overlap` | boolean | `false` | Demote stories with `code-overlap-high` or `unpredictable` to sequential queue (RULE-005). Default is advisory-only. `--sequential` takes precedence. |
 
 ## Prerequisites Check
 
@@ -248,18 +249,18 @@ the classification rules in priority order:
 }
 ```
 
-### 0.5.4 Generate Adjusted Execution Plan
+### 0.5.4 Generate Execution Plan (RULE-005 — Dual Mode)
 
-Based on the classification results, partition stories into two groups:
+The pre-flight analysis operates in two modes controlled by the `--strict-overlap` flag.
+`--sequential` takes precedence over `--strict-overlap` (if both set, all stories are sequential).
 
-- **Parallel Batch:** Stories with no overlaps, `config-only` overlaps, or
-  `code-overlap-low` overlaps. These are dispatched concurrently via worktrees.
-- **Sequential Queue:** Stories involved in `code-overlap-high` or `unpredictable`
-  pairs. These are dispatched one at a time after the parallel batch completes.
-  The sequential order respects critical path priority (RULE-007).
+**Mode: Advisory (default — `--strict-overlap` NOT set)**
 
-**Output file:** Save the analysis to `plans/epic-XXXX/plans/preflight-analysis-phase-N.md`
-for audit purposes. The file follows this structure:
+All stories execute in parallel regardless of overlap level. Warnings are emitted for
+visibility but do NOT block parallel dispatch. Conflicts are resolved by auto-rebase
+(Section 1.4e) after PR merge.
+
+**Output file** (`plans/epic-XXXX/plans/preflight-analysis-phase-N.md`):
 
 ```markdown
 # Pre-flight Conflict Analysis — Phase {N}
@@ -268,9 +269,29 @@ for audit purposes. The file follows this structure:
 
 | Story A | Story B | Overlapping Files | Classification |
 |---------|---------|-------------------|----------------|
-| story-XXXX-0001 | story-XXXX-0002 | pom.xml | config-only |
 | story-XXXX-0001 | story-XXXX-0003 | UserService.java, UserRepository.java, UserController.java | code-overlap-high |
-| story-XXXX-0002 | story-XXXX-0003 | — | no-overlap |
+
+## Advisory Warnings
+- WARNING: code-overlap-high between story-XXXX-0001 and story-XXXX-0003 (3 files). Auto-rebase will execute after first PR merge in this phase.
+- WARNING: story-XXXX-0004 has no implementation plan (classified as unpredictable). Monitor PR for conflicts.
+
+## Execution Plan
+All stories execute in parallel (advisory warnings above do not block execution).
+```
+
+**Mode: Strict (`--strict-overlap` set)**
+
+Stories with `code-overlap-high` or `unpredictable` are demoted to sequential queue
+(original behavior). Stories with `no-overlap`, `config-only`, and `code-overlap-low`
+stay in parallel batch.
+
+**Output file** (strict mode):
+
+```markdown
+# Pre-flight Conflict Analysis — Phase {N}
+
+## File Overlap Matrix
+(same as advisory mode)
 
 ## Adjusted Execution Plan
 
@@ -280,24 +301,26 @@ for audit purposes. The file follows this structure:
 ### Sequential Queue (after parallel batch)
 1. story-XXXX-0001 (code-overlap-high with story-XXXX-0003)
 2. story-XXXX-0003 (code-overlap-high with story-XXXX-0001)
-
-## Warnings
-- story-XXXX-0004: no implementation plan found (classified as unpredictable)
 ```
 
 ### 0.5.5 Integration with Core Loop (Section 1.3)
 
-The adjusted execution plan produced by Phase 0.5 is consumed by the Core Loop:
+**Advisory mode (default):** The core loop treats all stories as parallel-eligible.
+If preflight analysis exists, warnings are logged but do not affect dispatch.
+With per-story PRs, conflicts are resolved automatically via auto-rebase (Section 1.4e).
+
+**Strict mode (`--strict-overlap`):** The core loop consumes the partitioning:
 
 1. Before calling `getExecutableStories()`, the orchestrator reads the preflight
    analysis for the current phase from `preflight-analysis-phase-N.md`
 2. Stories in the **Parallel Batch** are dispatched via worktree parallel dispatch
    (Section 1.4a) as normal
-3. Stories in the **Sequential Queue** are removed from the parallel batch and
-   enqueued for sequential dispatch (Section 1.4) after the parallel batch completes
-4. The sequential queue ordering respects critical path priority (RULE-007)
-5. If no preflight analysis exists for a phase (e.g., Phase 0.5 was skipped or
-   this is a `--resume` run), all executable stories default to parallel dispatch
+3. Stories in the **Sequential Queue** are dispatched one at a time (Section 1.4)
+   after the parallel batch completes, in critical path priority order (RULE-007)
+
+**Precedence:** `--sequential` > `--strict-overlap` > default (advisory).
+If no preflight analysis exists (e.g., `--resume` run), all executable stories
+default to parallel dispatch.
 
 ## Phase 1 — Execution Loop
 
