@@ -8,21 +8,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
- * Evaluates project configuration conditions and copies
- * conditional resource files to skill knowledge packs.
- *
- * <p>Each conditional function checks a project feature
- * (database, cache, security) and copies the corresponding
- * resource files when the feature is enabled.</p>
- *
- * <p>Infrastructure and cloud conditionals are in
- * {@link RulesInfraConditionals}.</p>
+ * Copies conditional resource files (database, cache,
+ * security) to skill knowledge packs. Infrastructure
+ * conditionals are in {@link RulesInfraConditionals}.
  *
  * @see RulesAssembler
- * @see RulesInfraConditionals
  * @see ConditionEvaluator
  */
 public final class RulesConditionals {
@@ -33,17 +27,33 @@ public final class RulesConditionals {
     private static final Set<String> NOSQL_DB_TYPES =
             Set.of("mongodb", "cassandra");
 
+    private static final Set<String> GRAPH_DB_TYPES =
+            Set.of("neo4j", "neptune");
+    private static final Set<String> COLUMNAR_DB_TYPES =
+            Set.of("clickhouse", "druid");
+    private static final Set<String> NEWSQL_DB_TYPES =
+            Set.of("yugabytedb", "cockroachdb", "tidb");
+    private static final Set<String> TIMESERIES_DB_TYPES =
+            Set.of("influxdb", "timescaledb");
+    private static final Set<String> SEARCH_DB_TYPES =
+            Set.of("elasticsearch", "opensearch");
+
+    /** Maps category set to directory name for routing. */
+    private static final Map<Set<String>, String>
+            DB_CATEGORY_MAP = Map.of(
+            SQL_DB_TYPES, "sql",
+            NOSQL_DB_TYPES, "nosql",
+            GRAPH_DB_TYPES, "graph",
+            COLUMNAR_DB_TYPES, "columnar",
+            NEWSQL_DB_TYPES, "newsql",
+            TIMESERIES_DB_TYPES, "timeseries",
+            SEARCH_DB_TYPES, "search");
+
     private RulesConditionals() {
         // Utility class — no instantiation
     }
 
-    /**
-     * Copies database reference files when database is
-     * configured.
-     *
-     * @param ctx the conditional copy context
-     * @return list of generated file paths
-     */
+    /** Copies database reference files when configured. */
     public static List<String> copyDatabaseRefs(
             ConditionalCopyContext ctx) {
         String dbName =
@@ -66,14 +76,7 @@ public final class RulesConditionals {
         return generated;
     }
 
-    /**
-     * Copies cache reference files when cache is configured.
-     *
-     * @param config      the project configuration
-     * @param resourceDir the resources root directory
-     * @param skillsDir   the skills output directory
-     * @return list of generated file paths
-     */
+    /** Copies cache reference files when configured. */
     public static List<String> copyCacheRefs(
             ProjectConfig config,
             Path resourceDir,
@@ -95,15 +98,7 @@ public final class RulesConditionals {
         return generated;
     }
 
-    /**
-     * Copies security files when security frameworks are
-     * configured.
-     *
-     * @param config      the project configuration
-     * @param resourceDir the resources root directory
-     * @param skillsDir   the skills output directory
-     * @return list of generated file paths
-     */
+    /** Copies security files when frameworks configured. */
     public static List<String> assembleSecurityRules(
             ProjectConfig config,
             Path resourceDir,
@@ -155,20 +150,26 @@ public final class RulesConditionals {
 
     private static List<String> copyDbTypeFiles(
             String dbName, Path dbDir, Path target) {
-        List<String> generated = new ArrayList<>();
-        if (SQL_DB_TYPES.contains(dbName)) {
-            generated.addAll(copyMdDir(
-                    dbDir.resolve("sql/common"), target));
-            generated.addAll(copyMdDir(
-                    dbDir.resolve("sql/" + dbName),
-                    target));
-        } else if (NOSQL_DB_TYPES.contains(dbName)) {
-            generated.addAll(copyMdDir(
-                    dbDir.resolve("nosql/common"), target));
-            generated.addAll(copyMdDir(
-                    dbDir.resolve("nosql/" + dbName),
-                    target));
+        for (var entry : DB_CATEGORY_MAP.entrySet()) {
+            if (entry.getKey().contains(dbName)) {
+                return copyCategoryFiles(
+                        entry.getValue(), dbName,
+                        dbDir, target);
+            }
         }
+        return List.of();
+    }
+
+    private static List<String> copyCategoryFiles(
+            String category, String dbName,
+            Path dbDir, Path target) {
+        List<String> generated = new ArrayList<>();
+        generated.addAll(copyMdDir(
+                dbDir.resolve(category + "/common"),
+                target));
+        generated.addAll(copyMdDir(
+                dbDir.resolve(category + "/" + dbName),
+                target));
         return generated;
     }
 

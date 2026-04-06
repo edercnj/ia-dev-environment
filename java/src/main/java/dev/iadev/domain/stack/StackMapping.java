@@ -5,13 +5,7 @@ import java.util.Map;
 
 /**
  * Static mapping constants for stack resolution.
- *
- * <p>Contains all language/build-tool command mappings, framework ports,
- * health paths, language-framework compatibility rules, Docker images,
- * and other configuration lookup tables.</p>
- *
- * <p>All maps are unmodifiable. This is a pure domain utility class
- * with no external framework dependencies (RULE-007).</p>
+ * Pure domain utility — no external dependencies.
  */
 public final class StackMapping {
 
@@ -19,11 +13,7 @@ public final class StackMapping {
         // utility class
     }
 
-    /**
-     * Language + build tool to command mapping (8 entries).
-     *
-     * <p>Key format: "{language}-{buildTool}" (e.g. "java-maven").</p>
-     */
+    /** Language + build tool to command mapping (8 entries). */
     public static final Map<String, LanguageCommandSet> LANGUAGE_COMMANDS =
             Map.ofEntries(
                     Map.entry("java-maven", new LanguageCommandSet(
@@ -214,14 +204,25 @@ public final class StackMapping {
             "csharp-dotnet", "csharp-dotnet"
     );
 
-    /** Database name to settings key. */
-    public static final Map<String, String> DATABASE_SETTINGS_MAP = Map.of(
-            "postgresql", "database-psql",
-            "mysql", "database-mysql",
-            "oracle", "database-oracle",
-            "mongodb", "database-mongodb",
-            "cassandra", "database-cassandra"
-    );
+    /** Database name to settings key (16 entries). */
+    public static final Map<String, String>
+            DATABASE_SETTINGS_MAP = Map.ofEntries(
+            Map.entry("postgresql", "database-psql"),
+            Map.entry("mysql", "database-mysql"),
+            Map.entry("oracle", "database-oracle"),
+            Map.entry("mongodb", "database-mongodb"),
+            Map.entry("cassandra", "database-cassandra"),
+            Map.entry("neo4j", "database-neo4j"),
+            Map.entry("neptune", "database-neptune"),
+            Map.entry("clickhouse", "database-clickhouse"),
+            Map.entry("druid", "database-druid"),
+            Map.entry("yugabytedb", "database-yugabytedb"),
+            Map.entry("cockroachdb", "database-cockroachdb"),
+            Map.entry("tidb", "database-tidb"),
+            Map.entry("influxdb", "database-influxdb"),
+            Map.entry("timescaledb", "database-timescaledb"),
+            Map.entry("elasticsearch", "database-elasticsearch"),
+            Map.entry("opensearch", "database-opensearch"));
 
     /** Cache name to settings key. */
     public static final Map<String, String> CACHE_SETTINGS_MAP = Map.of(
@@ -230,27 +231,31 @@ public final class StackMapping {
             "memcached", "cache-memcached"
     );
 
-    /** Returns hook template key for language/build-tool, or empty. */
+    /** Returns hook template key, or empty string. */
     public static String getHookTemplateKey(
             String language, String buildTool) {
         return HOOK_TEMPLATE_MAP.getOrDefault(
                 language + "-" + buildTool, "");
     }
 
-    /** Returns settings language key for language/build-tool, or empty. */
+    /** Returns settings language key, or empty string. */
     public static String getSettingsLangKey(
             String language, String buildTool) {
         return SETTINGS_LANG_MAP.getOrDefault(
                 language + "-" + buildTool, "");
     }
 
-    /** Returns database settings key for a database name, or empty. */
-    public static String getDatabaseSettingsKey(String dbName) {
-        return DATABASE_SETTINGS_MAP.getOrDefault(dbName, "");
+    /** Returns database settings key, or empty string. */
+    public static String getDatabaseSettingsKey(
+            String dbName) {
+        return DATABASE_SETTINGS_MAP
+                .getOrDefault(dbName, "");
     }
 
-    /** Returns cache settings key for a cache name, or empty. */
-    public static String getCacheSettingsKey(String cacheName) {
-        return CACHE_SETTINGS_MAP.getOrDefault(cacheName, "");
+    /** Returns cache settings key, or empty string. */
+    public static String getCacheSettingsKey(
+            String cacheName) {
+        return CACHE_SETTINGS_MAP
+                .getOrDefault(cacheName, "");
     }
 }
