@@ -386,6 +386,7 @@ Story file: plans/epic-{epicId}/story-{storyId}.md
 Branch: {branchName}
 Phase: {currentPhase}
 Skip review: {skipReview}
+Epic ID: {epicId}
 
 Execute the x-dev-lifecycle workflow:
 1. Read the story file for requirements
@@ -393,13 +394,25 @@ Execute the x-dev-lifecycle workflow:
 3. Implement following TDD (Red-Green-Refactor)
 4. Run tests and verify coverage
 5. Commit changes with Conventional Commits
+6. Create PR and run reviews (Phases 4-8 of x-dev-lifecycle)
+
+The PR created by x-dev-lifecycle Phase 6 MUST:
+- Target `main` branch
+- Include "Part of EPIC-{epicId}" in the PR body for traceability (RULE-008)
 
 Return a JSON result with this exact structure (SubagentResult):
 {
   "status": "SUCCESS" | "FAILED" | "PARTIAL",
   "commitSha": "<git commit SHA if SUCCESS>",
   "findingsCount": <number of review findings>,
-  "summary": "<brief description of what was done>"
+  "summary": "<brief description of what was done>",
+  "prUrl": "<URL of the PR created by x-dev-lifecycle>",
+  "prNumber": <integer PR number>,
+  "reviewsExecuted": { "specialist": true|false, "techLead": true|false },
+  "reviewScores": { "specialist": "N/M", "techLead": "N/M" },
+  "coverageLine": <line coverage %>,
+  "coverageBranch": <branch coverage %>,
+  "tddCycles": <number of Red-Green-Refactor cycles>
 }
 ```
 
@@ -426,7 +439,8 @@ For each story in executableStories:
   Agent(
     subagent_type: "general-purpose",
     isolation: "worktree",
-    prompt: "<same prompt template as Section 1.4, with story-specific metadata>"
+    prompt: "<same prompt template as Section 1.4 (including PR creation step 6
+             and epic traceability), with story-specific metadata>"
   )
 ```
 
@@ -462,6 +476,8 @@ After receiving the subagent response, validate the `SubagentResult` contract:
 2. **`findingsCount` field**: MUST be present and be a number
 3. **`summary` field**: MUST be present and be a string
 4. **`commitSha` field**: If `status === "SUCCESS"`, MUST be present and be a string
+5. **`prUrl` field**: If `status === "SUCCESS"`, MUST be present and be a valid URL string
+6. **`prNumber` field**: If `status === "SUCCESS"`, MUST be present and be a positive integer
 
 **On validation failure:**
 - Mark the story as FAILED
