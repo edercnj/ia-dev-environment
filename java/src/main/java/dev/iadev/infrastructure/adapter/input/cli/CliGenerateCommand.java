@@ -97,6 +97,10 @@ public class CliGenerateCommand implements Callable<Integer> {
         PrintWriter out = spec.commandLine().getOut();
         try {
             return executeGeneration(out);
+        } catch (IllegalArgumentException e) {
+            out.println("Error: %s".formatted(
+                    e.getMessage()));
+            return EXIT_VALIDATION;
         } catch (Exception e) {
             out.println("Error: An unexpected error "
                     + "occurred during generation");

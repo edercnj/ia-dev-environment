@@ -215,9 +215,9 @@ class StackMappingTest {
     class FrameworkLanguageRulesTests {
 
         @Test
-        @DisplayName("contains 15 entries")
-        void frameworkLanguageRules_size_fifteen() {
-            assertThat(StackMapping.FRAMEWORK_LANGUAGE_RULES).hasSize(15);
+        @DisplayName("contains 16 entries")
+        void frameworkLanguageRules_size_sixteen() {
+            assertThat(StackMapping.FRAMEWORK_LANGUAGE_RULES).hasSize(16);
         }
 
         @Test

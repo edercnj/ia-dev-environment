@@ -18,7 +18,7 @@ import java.util.Map;
 
 /**
  * Generates the expected artifacts manifest by running
- * the pipeline for all 12 bundled profiles and collecting
+ * the pipeline for all 13 bundled profiles and collecting
  * file counts, directories, and categories from the
  * output.
  *
@@ -42,6 +42,7 @@ public final class ExpectedArtifactsGenerator {
             "java-spring-fintech-pci",
             "kotlin-ktor", "python-click-cli",
             "python-fastapi", "rust-axum",
+            "typescript-commander-cli",
             "typescript-nestjs");
 
     private static final ObjectMapper MAPPER =
@@ -55,7 +56,7 @@ public final class ExpectedArtifactsGenerator {
     /**
      * Generates the manifest JSON at the given path.
      *
-     * <p>Runs the pipeline for each of the 12 profiles,
+     * <p>Runs the pipeline for each of the 13 profiles,
      * collects output metrics, and writes them as JSON.</p>
      *
      * @param outputPath target file path for the JSON

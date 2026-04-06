@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Provides pre-defined configuration profiles for the 13 bundled
+ * Provides pre-defined configuration profiles for the 14 bundled
  * technology stacks.
  *
  * <p>Each profile is loaded from a YAML config template on the
@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li>go-gin</li>
  *   <li>kotlin-ktor</li>
  *   <li>typescript-nestjs</li>
+ *   <li>typescript-commander-cli</li>
  *   <li>rust-axum</li>
  * </ul>
  *
@@ -60,6 +61,7 @@ public final class ConfigProfiles {
             "go-gin",
             "kotlin-ktor",
             "typescript-nestjs",
+            "typescript-commander-cli",
             "rust-axum"
     );
 
@@ -99,7 +101,7 @@ public final class ConfigProfiles {
     /**
      * Returns the list of all available stack keys.
      *
-     * @return unmodifiable list of 13 stack key strings
+     * @return unmodifiable list of 14 stack key strings
      */
     public static List<String> getAvailableStacks() {
         return STACK_KEYS;

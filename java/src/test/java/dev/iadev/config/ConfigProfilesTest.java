@@ -29,6 +29,7 @@ class ConfigProfilesTest {
             "go-gin",
             "kotlin-ktor",
             "typescript-nestjs",
+            "typescript-commander-cli",
             "rust-axum"
     );
 
@@ -37,12 +38,12 @@ class ConfigProfilesTest {
     class AvailableStacks {
 
         @Test
-        @DisplayName("returns all 13 stack keys")
-        void getAvailableStacks_whenCalled_returns13Keys() {
+        @DisplayName("returns all 14 stack keys")
+        void getAvailableStacks_whenCalled_returns14Keys() {
             List<String> stacks =
                     ConfigProfiles.getAvailableStacks();
 
-            assertThat(stacks).hasSize(13);
+            assertThat(stacks).hasSize(14);
             assertThat(stacks).containsAll(ALL_STACKS);
         }
     }
@@ -61,7 +62,8 @@ class ConfigProfilesTest {
                 "java-spring-fintech-pci",
                 "python-fastapi", "python-click-cli",
                 "go-gin", "kotlin-ktor",
-                "typescript-nestjs", "rust-axum"})
+                "typescript-nestjs",
+                "typescript-commander-cli", "rust-axum"})
         @DisplayName("returns true for valid stack keys")
         void isValidStack_validKey_returnsTrue(String key) {
             assertThat(ConfigProfiles.isValidStack(key)).isTrue();
@@ -379,7 +381,8 @@ class ConfigProfilesTest {
                 "java-spring-fintech-pci",
                 "python-fastapi", "python-click-cli",
                 "go-gin", "kotlin-ktor",
-                "typescript-nestjs", "rust-axum"})
+                "typescript-nestjs",
+                "typescript-commander-cli", "rust-axum"})
         @DisplayName("each stack has non-null required fields")
         void getStack_eachStack_hasRequiredFields(String key) {
             ProjectConfig config =
@@ -408,7 +411,8 @@ class ConfigProfilesTest {
                 "java-spring-event-driven",
                 "python-fastapi", "python-click-cli",
                 "go-gin", "kotlin-ktor",
-                "typescript-nestjs", "rust-axum"})
+                "typescript-nestjs",
+                "typescript-commander-cli", "rust-axum"})
         @DisplayName("each stack defaults compliance to 'none'")
         void getStack_eachStack_complianceDefaultsNone(
                 String key) {

@@ -99,6 +99,10 @@ public class ValidateCommand implements Callable<Integer> {
             return EXIT_FAILURE;
         } catch (ConfigValidationException e) {
             return handleValidationException(e, out);
+        } catch (IllegalArgumentException e) {
+            out.println("Error: %s".formatted(
+                    e.getMessage()));
+            return EXIT_FAILURE;
         } catch (Exception e) {
             out.println("Error: An unexpected error "
                     + "occurred during validation");

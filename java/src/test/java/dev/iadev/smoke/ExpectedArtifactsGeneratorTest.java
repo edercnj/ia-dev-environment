@@ -16,12 +16,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * Unit tests for {@link ExpectedArtifactsGenerator}.
  *
  * <p>Validates manifest generation from pipeline output
- * for all 12 bundled profiles.</p>
+ * for all 13 bundled profiles.</p>
  */
 @DisplayName("ExpectedArtifactsGenerator")
 class ExpectedArtifactsGeneratorTest {
 
-    private static final int PROFILE_COUNT = 12;
+    private static final int PROFILE_COUNT = 13;
 
     @Nested
     @DisplayName("generate")
@@ -143,6 +143,7 @@ class ExpectedArtifactsGeneratorTest {
                             "kotlin-ktor",
                             "python-click-cli",
                             "python-fastapi", "rust-axum",
+                            "typescript-commander-cli",
                             "typescript-nestjs");
         }
 

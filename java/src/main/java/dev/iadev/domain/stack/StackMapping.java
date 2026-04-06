@@ -114,7 +114,7 @@ public final class StackMapping {
     /** Default health path when framework is not found. */
     public static final String DEFAULT_HEALTH_PATH = "/health";
 
-    /** Framework to valid languages (15 entries). */
+    /** Framework to valid languages (16 entries). */
     public static final Map<String, List<String>> FRAMEWORK_LANGUAGE_RULES =
             Map.ofEntries(
                     Map.entry("quarkus", List.of("java", "kotlin")),
@@ -122,6 +122,7 @@ public final class StackMapping {
                     Map.entry("nestjs", List.of("typescript")),
                     Map.entry("express", List.of("typescript")),
                     Map.entry("fastify", List.of("typescript")),
+                    Map.entry("commander", List.of("typescript")),
                     Map.entry("fastapi", List.of("python")),
                     Map.entry("django", List.of("python")),
                     Map.entry("flask", List.of("python")),

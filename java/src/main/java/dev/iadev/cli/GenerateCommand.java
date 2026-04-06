@@ -112,6 +112,10 @@ public class GenerateCommand implements Callable<Integer> {
             out.println("Error: %s".formatted(
                     e.getMessage()));
             return EXIT_EXECUTION;
+        } catch (IllegalArgumentException e) {
+            out.println("Error: %s".formatted(
+                    e.getMessage()));
+            return EXIT_VALIDATION;
         } catch (Exception e) {
             out.println("Error: An unexpected error "
                     + "occurred during generation");
