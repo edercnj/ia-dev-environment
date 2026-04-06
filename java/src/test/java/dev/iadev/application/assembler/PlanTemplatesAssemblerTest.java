@@ -59,6 +59,53 @@ class PlanTemplatesAssemblerTest {
     }
 
     @Nested
+    @DisplayName("constants validation")
+    class ConstantsValidation {
+
+        @Test
+        @DisplayName("TEMPLATE_COUNT equals 12")
+        void templateCount_equals12() {
+            assertThat(
+                    PlanTemplatesAssembler.TEMPLATE_COUNT)
+                    .isEqualTo(12);
+        }
+
+        @Test
+        @DisplayName("TEMPLATE_SECTIONS has exactly 12"
+                + " entries")
+        void templateSections_has12Entries() {
+            assertThat(
+                    PlanTemplatesAssembler
+                            .TEMPLATE_SECTIONS)
+                    .hasSize(12);
+        }
+
+        @Test
+        @DisplayName("TEMPLATE_SECTIONS keys match"
+                + " ALL_TEMPLATE_NAMES")
+        void templateSections_keysMatchNames() {
+            assertThat(
+                    PlanTemplatesAssembler
+                            .TEMPLATE_SECTIONS.keySet())
+                    .containsExactlyInAnyOrderElementsOf(
+                            ALL_TEMPLATE_NAMES);
+        }
+
+        @Test
+        @DisplayName("each template has at least one"
+                + " mandatory section")
+        void templateSections_eachHasSections() {
+            for (var entry : PlanTemplatesAssembler
+                    .TEMPLATE_SECTIONS.entrySet()) {
+                assertThat(entry.getValue())
+                        .as("Sections for %s",
+                                entry.getKey())
+                        .isNotEmpty();
+            }
+        }
+    }
+
+    @Nested
     @DisplayName("assemble -- degenerate cases")
     class DegenerateCases {
 
@@ -232,6 +279,86 @@ class PlanTemplatesAssemblerTest {
                         .as("Both copies of %s must"
                                 + " match", name)
                         .isEqualTo(github);
+            }
+        }
+
+        @Test
+        @DisplayName("output is byte-for-byte identical"
+                + " to source template")
+        void assemble_content_byteForByteMatchesSource(
+                @TempDir Path tempDir) throws IOException {
+            Path resourcesDir =
+                    setupAllTemplates(tempDir);
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            PlanTemplatesAssembler assembler =
+                    new PlanTemplatesAssembler(
+                            resourcesDir);
+            assembler.assembleWithResult(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(),
+                    outputDir);
+
+            for (String name : ALL_TEMPLATE_NAMES) {
+                byte[] source = Files.readAllBytes(
+                        resourcesDir
+                                .resolve("shared/templates")
+                                .resolve(name));
+                byte[] claudeOut = Files.readAllBytes(
+                        outputDir.resolve(
+                                ".claude/templates/"
+                                        + name));
+                byte[] githubOut = Files.readAllBytes(
+                        outputDir.resolve(
+                                ".github/templates/"
+                                        + name));
+
+                assertThat(claudeOut)
+                        .as(".claude copy of %s must"
+                                + " be byte-for-byte"
+                                + " identical to source",
+                                name)
+                        .isEqualTo(source);
+                assertThat(githubOut)
+                        .as(".github copy of %s must"
+                                + " be byte-for-byte"
+                                + " identical to source",
+                                name)
+                        .isEqualTo(source);
+            }
+        }
+
+        @Test
+        @DisplayName("output preserves UTF-8 encoding")
+        void assemble_content_preservesUtf8(
+                @TempDir Path tempDir) throws IOException {
+            Path resourcesDir =
+                    setupAllTemplates(tempDir);
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            PlanTemplatesAssembler assembler =
+                    new PlanTemplatesAssembler(
+                            resourcesDir);
+            assembler.assembleWithResult(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(),
+                    outputDir);
+
+            for (String name : ALL_TEMPLATE_NAMES) {
+                byte[] bytes = Files.readAllBytes(
+                        outputDir.resolve(
+                                ".claude/templates/"
+                                        + name));
+                String content = new String(
+                        bytes, StandardCharsets.UTF_8);
+                byte[] roundTrip = content.getBytes(
+                        StandardCharsets.UTF_8);
+                assertThat(bytes)
+                        .as("UTF-8 round-trip for %s",
+                                name)
+                        .isEqualTo(roundTrip);
             }
         }
     }
@@ -427,6 +554,53 @@ class PlanTemplatesAssemblerTest {
             assertThat(result).isNotNull();
             assertThat(result.files()).hasSize(24);
             assertThat(result.warnings()).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("assemble -- file list interface")
+    class AssembleFileList {
+
+        @Test
+        @DisplayName("assemble returns 24 file paths")
+        void assemble_allValid_returns24Paths(
+                @TempDir Path tempDir) throws IOException {
+            Path resourcesDir =
+                    setupAllTemplates(tempDir);
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            PlanTemplatesAssembler assembler =
+                    new PlanTemplatesAssembler(
+                            resourcesDir);
+            List<String> files = assembler.assemble(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(),
+                    outputDir);
+
+            assertThat(files).hasSize(24);
+        }
+
+        @Test
+        @DisplayName("assemble returns empty list when"
+                + " no templates exist")
+        void assemble_noTemplates_returnsEmpty(
+                @TempDir Path tempDir) throws IOException {
+            Path resourcesDir =
+                    tempDir.resolve("empty-res");
+            Files.createDirectories(resourcesDir);
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            PlanTemplatesAssembler assembler =
+                    new PlanTemplatesAssembler(
+                            resourcesDir);
+            List<String> files = assembler.assemble(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(),
+                    outputDir);
+
+            assertThat(files).isEmpty();
         }
     }
 
