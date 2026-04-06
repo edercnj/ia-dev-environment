@@ -46,8 +46,8 @@ ERROR: Epic ID is required. Usage: /x-dev-epic-implement [EPIC-ID] [flags]
 | `--sequential` | boolean | `false` | Disable parallel worktrees, execute stories one at a time |
 | `--skip-smoke-gate` | boolean | `false` | Skip smoke tests in the integrity gate between phases |
 | `--single-pr` | boolean | `false` | Preserve legacy flow: epic branch + rebase-before-merge + single mega-PR (RULE-009) |
-| `--auto-merge` | boolean | `false` | Auto-merge story PRs via `gh pr merge` after reviews approve (RULE-004). When not set, orchestrator polls for manual merge. |
-| `--strict-overlap` | boolean | `false` | When set, stories with `code-overlap-high` or `unpredictable` are demoted to sequential queue (original behavior). Without flag, pre-flight is advisory-only (RULE-005). |
+| `--auto-merge` | boolean | `false` | Merge PRs automatically after reviews approve via `gh pr merge` (RULE-004) |
+| `--strict-overlap` | boolean | `false` | Demote stories with `code-overlap-high` or `unpredictable` to sequential queue (RULE-005). Default is advisory-only. `--sequential` takes precedence. |
 
 ## Prerequisites Check
 
@@ -107,7 +107,7 @@ ERROR: --phase and --story are mutually exclusive
 Execute only stories belonging to phase N.
 
 1. Read checkpoint (or verify existing code if no checkpoint)
-2. Validate that phases 0..N-1 are complete (all stories have status SUCCESS AND prMergeStatus == "MERGED")
+2. Validate that phases 0..N-1 are complete (all stories have status SUCCESS AND prMergeStatus "MERGED" per RULE-003)
 3. If validation fails, abort:
    - Phase out of range: `Phase {N} does not exist. Max phase is {M}.`
    - Prior phases incomplete: `Phases 0..{N-1} must be complete before phase {N}`
@@ -123,7 +123,7 @@ Phase 0 requires no prerequisite validation (no prior phases to check).
 Execute a single story in isolation.
 
 1. Read checkpoint (required for single story mode)
-2. Validate that ALL dependencies of the story have status SUCCESS AND prMergeStatus == "MERGED"
+2. Validate that ALL dependencies of the story have status SUCCESS AND prMergeStatus "MERGED" (RULE-003)
 3. If validation fails, abort:
    - Story not in map: `Story {storyId} not found in implementation map`
    - Dependencies not met: `Dependencies not satisfied: [{list}]`
@@ -139,10 +139,27 @@ Execute a single story in isolation.
 4. **Read EPIC-XXXX.md**: Load epic context (title, description, acceptance criteria)
 5. **Discover story files**: Glob `story-XXXX-*.md` to collect all story files in the epic directory
 6. **Determine execution order**: Use the dependency graph from IMPLEMENTATION-MAP.md to order stories; stories without dependencies run in parallel via worktrees by default; use `--sequential` to disable
-7. **Single-PR guard**: If `--single-pr` is set, enter legacy flow: create branch `feat/epic-{epicId}-full-implementation`, use rebase-before-merge strategy, create single mega-PR at the end. Skip all per-story PR logic. The legacy flow is preserved unchanged from the pre-epic-0021 behavior.
-8. **Dry-run exit**: If `--dry-run` is set, output the execution plan (story order, dependencies, estimated phases) and stop
+7. **Single-PR guard**: If `--single-pr` is set, enter legacy flow: create branch `feat/epic-{epicId}-full-implementation`, use rebase-before-merge strategy, create single mega-PR at the end. Skip all per-story PR logic. The legacy flow is preserved unchanged from the pre-epic-0021 behavior. If `--single-pr` is NOT set (default), the orchestrator stays on `main` — branching is delegated to `x-dev-lifecycle` (each story creates `feat/{storyId}-description`).
+8. **Dry-run exit**: If `--dry-run` is set, output the execution plan and stop. Format:
+   ```
+   Epic: EPIC-{epicId} — {title}
+   Model: per-story PR (default) | single-pr (legacy)
+   Phases: {totalPhases}
+   Stories: {totalStories}
+   Flags: --auto-merge={value}, --single-pr={value}, --skip-review={value}, --strict-overlap={value}
+
+   Phase 0:
+     story-{id}: {title} [deps: none] → branch: feat/{storyId}-*, PR targeting main
+     story-{id}: {title} [deps: none] → branch: feat/{storyId}-*, PR targeting main
+   Phase 1:
+     story-{id}: {title} [deps: story-0001, story-0002] → branch: feat/{storyId}-*, PR targeting main
+   ...
+
+   Critical Path: story-0001 → story-0003 → story-0006 → story-0008
+   Advisory Warnings: {count} overlap warnings (see preflight-analysis-phase-N.md)
+   ```
 9. **Resume handling**: If `--resume` is set, run the Resume Workflow (see below) before delegation
-10. **Delegate**: For each story in execution order, invoke `/x-dev-lifecycle` with appropriate flags. Branching is delegated to `x-dev-lifecycle` — each story creates its own branch `feat/{storyId}-description` targeting `main`.
+10. **Delegate**: For each story in execution order, invoke `/x-dev-lifecycle` with appropriate flags
 
 ## Resume Workflow
 
@@ -151,16 +168,16 @@ When `--resume` is set, the orchestrator loads `execution-state.json` and applie
 ### Step 1 — Reclassify Story Statuses
 
 Apply the following status transitions to every story in the checkpoint.
-For stories with PR fields, verify actual PR status via GitHub CLI.
+For stories with PR fields, verify actual PR state via GitHub CLI.
 
 | Current Status | New Status | Condition |
 |----------------|------------|-----------|
 | IN_PROGRESS | PENDING | Always (interrupted work) |
 | SUCCESS | SUCCESS | Preserved — never re-execute |
-| PR_CREATED | PR_CREATED or SUCCESS | Verify via `gh pr view {prNumber} --json state,mergedAt`: if MERGED → SUCCESS; if OPEN → keep PR_CREATED; if not found → FAILED |
-| PR_PENDING_REVIEW | PR_PENDING_REVIEW or SUCCESS | Verify via `gh pr view`: if MERGED → SUCCESS; if OPEN → keep PR_PENDING_REVIEW; if not found → FAILED |
-| PR_MERGED | SUCCESS | PR merged — story is complete |
-| FAILED (retries < MAX_RETRIES) | PENDING | Retry candidate (close open PR if exists) |
+| PR_CREATED | PR_CREATED or SUCCESS | Verify via `gh pr view {prNumber} --json state`: if MERGED → set `prMergeStatus = "MERGED"` + status SUCCESS; if OPEN → keep PR_CREATED; if not found → FAILED |
+| PR_PENDING_REVIEW | PR_PENDING_REVIEW or SUCCESS | Same verification as PR_CREATED (set `prMergeStatus = "MERGED"` when merged) |
+| PR_MERGED | SUCCESS | PR merged — set `prMergeStatus = "MERGED"` + status SUCCESS |
+| FAILED (retries < MAX_RETRIES) | PENDING | Retry candidate. Close existing PR: `gh pr close {prNumber} --comment "Story retry"` |
 | FAILED (retries >= MAX_RETRIES) | FAILED | Retry budget exhausted |
 | PARTIAL | PENDING | Treat as interrupted |
 | BLOCKED | BLOCKED | Deferred to reevaluation step |
@@ -168,33 +185,17 @@ For stories with PR fields, verify actual PR status via GitHub CLI.
 
 `MAX_RETRIES` defaults to 2. All other story fields (phase, commitSha, retries, summary, duration, findingsCount, prUrl, prNumber, prMergeStatus) are preserved.
 
-#### PR Status Verification
-
-For each story with a `prNumber`, verify the actual PR state:
-
-```
-state = gh pr view {prNumber} --json state,mergedAt
-if state == "MERGED":
-  update prMergeStatus = "MERGED"
-  reclassify to SUCCESS
-else if state == "OPEN":
-  keep current status (PR_CREATED or PR_PENDING_REVIEW)
-else if PR not found (error):
-  reclassify to FAILED with reason "PR not found"
-```
-
-#### Failure Handling — PR Closure
+### Step 1b — Failure Handling: PR Closure
 
 When a story transitions to FAILED and has an open PR:
-
 ```
 if story.prNumber exists and story.prMergeStatus != "MERGED":
-  run: gh pr close {prNumber} --comment "Story failed: {summary}"
-  update: story.prMergeStatus = "CLOSED"
+  gh pr close {prNumber} --comment "Story failed: {summary}"
+  update story.prMergeStatus = "CLOSED"
 ```
 
-When a story is retried after failure, the lifecycle creates a new PR
-(the old PR was closed). The new `prUrl` and `prNumber` replace the old values.
+When a story is retried (FAILED → PENDING), the lifecycle creates a new PR on the next dispatch.
+The old closed PR is preserved for audit.
 
 ### Step 2 — Reevaluate BLOCKED Stories
 
@@ -202,24 +203,27 @@ After reclassification, evaluate each BLOCKED story:
 
 - If `blockedBy` is **undefined** → keep BLOCKED (conservative: unknown dependencies)
 - If `blockedBy` is **empty array** → reclassify to PENDING (no dependencies = vacuously satisfied)
-- If **all** dependencies in `blockedBy` have status SUCCESS and `prMergeStatus == "MERGED"` → reclassify to PENDING
-- If **any** dependency is non-SUCCESS or missing from the stories map → keep BLOCKED
+- If **all** dependencies in `blockedBy` have status SUCCESS and prMergeStatus "MERGED" → reclassify to PENDING
+- If **any** dependency is non-SUCCESS or not merged → keep BLOCKED
 
-This is a **single-pass** evaluation (no cascade). Stories unblocked in this pass will not trigger further unblocking of stories that depend on them.
+This is a **single-pass** evaluation (no cascade).
 
 ### Step 3 — Resume Execution
 
-After reclassification and PR verification, feed the updated state into `getExecutableStories()` to determine which stories are ready for execution. Only stories with status PENDING proceed to the execution loop. The orchestrator remains on `main` during resume — no epic branch recovery is needed.
+The orchestrator stays on `main` (no branch recovery needed — each story has its own branch
+managed by x-dev-lifecycle). Feed the updated state into `getExecutableStories()` to determine
+which stories are ready for execution. Only stories with status PENDING proceed to the execution loop.
+Recover `mainShaBeforePhase` from checkpoint for integrity gate context (RULE-006).
 
 ## Phase 0.5 — Pre-flight Conflict Analysis
 
 At the start of **each phase N**, before dispatching any stories for that phase, the
 orchestrator performs a pre-flight analysis to detect file-level overlaps between stories
-in the same phase. By default (advisory mode), overlaps are logged as warnings but all
-stories still execute in parallel. With `--strict-overlap`, stories with high code overlap
-are demoted to sequential execution within phase N (RULE-005).
-The results are written to `preflight-analysis-phase-{N}.md`, which the core loop
-consumes when deciding per-story parallel vs sequential scheduling.
+in the same phase. By default (advisory mode), warnings are emitted but all stories
+execute in parallel — conflicts are resolved via auto-rebase (Section 1.4e) after PR merge.
+With `--strict-overlap`, stories with high code overlap are demoted to sequential execution
+within phase N (original blocking behavior as opt-in).
+The results are written to `preflight-analysis-phase-{N}.md` for audit.
 
 **Skip condition:** When `--sequential` is set, Phase 0.5 is skipped entirely. Log:
 `"Pre-flight analysis skipped (sequential mode)"` and proceed directly to Phase 1.
@@ -265,10 +269,10 @@ the classification rules in priority order:
 
 | Classification | Criteria | Action |
 |----------------|----------|--------|
-| `unpredictable` | One or both stories have no implementation plan (`hasPlan: false`) | Demote to sequential execution (conservative) |
+| `unpredictable` | One or both stories have no implementation plan (`hasPlan: false`) | Advisory: WARNING emitted. Strict (`--strict-overlap`): demote to sequential. |
 | `config-only` | ALL overlapping files are configuration files (`*.yaml`, `*.json`, `*.properties`, `*.toml`, `*.env`, `pom.xml`, `build.gradle`, `package.json`) | Allow parallel dispatch + smart merge (config files are generally merge-friendly) |
 | `code-overlap-low` | 1–2 overlapping files are code files (`.ts`, `.java`, `.py`, `.go`, `.rs`, `.kt`) | Allow parallel dispatch with WARNING logged: `"WARNING: Low code overlap ({N} file(s)) between {storyA} and {storyB}"` |
-| `code-overlap-high` | 3+ overlapping files are code files | Demote to sequential execution |
+| `code-overlap-high` | 3+ overlapping files are code files | Advisory: WARNING emitted. Strict (`--strict-overlap`): demote to sequential. |
 | `no-overlap` | Zero overlapping files and both stories have plans | Allow parallel dispatch (no action needed) |
 
 **Per-pair data structure:**
@@ -283,17 +287,18 @@ the classification rules in priority order:
 }
 ```
 
-### 0.5.4 Generate Execution Plan (Dual-Mode: Advisory / Strict)
+### 0.5.4 Generate Execution Plan (RULE-005 — Dual Mode)
 
-The execution plan output depends on the `--strict-overlap` flag (RULE-005):
+The pre-flight analysis operates in two modes controlled by the `--strict-overlap` flag.
+`--sequential` takes precedence over `--strict-overlap` (if both set, all stories are sequential).
 
-#### Default Mode (Advisory — no `--strict-overlap`)
+**Mode: Advisory (default — `--strict-overlap` NOT set)**
 
-All stories are dispatched in parallel regardless of overlap classification.
-Overlaps produce warnings but do NOT block parallel execution. With per-story PRs,
-conflicts are resolved automatically via auto-rebase (Section 1.4e) after PR merge.
+All stories execute in parallel regardless of overlap level. Warnings are emitted for
+visibility but do NOT block parallel dispatch. Conflicts are resolved by auto-rebase
+(Section 1.4e) after PR merge.
 
-**Output file:** Save the analysis to `plans/epic-XXXX/plans/preflight-analysis-phase-N.md`:
+**Output file** (`plans/epic-XXXX/plans/preflight-analysis-phase-N.md`):
 
 ```markdown
 # Pre-flight Conflict Analysis — Phase {N}
@@ -302,72 +307,58 @@ conflicts are resolved automatically via auto-rebase (Section 1.4e) after PR mer
 
 | Story A | Story B | Overlapping Files | Classification |
 |---------|---------|-------------------|----------------|
-| story-XXXX-0001 | story-XXXX-0002 | pom.xml | config-only |
 | story-XXXX-0001 | story-XXXX-0003 | UserService.java, UserRepository.java, UserController.java | code-overlap-high |
-| story-XXXX-0002 | story-XXXX-0003 | — | no-overlap |
 
 ## Advisory Warnings
-- WARNING: code-overlap-high between story-XXXX-0001 and story-XXXX-0003 (3 files: UserService.java, UserRepository.java, UserController.java). Auto-rebase will execute after the first PR of the phase merges.
+- WARNING: code-overlap-high between story-XXXX-0001 and story-XXXX-0003 (3 files). Auto-rebase will execute after first PR merge in this phase.
 - WARNING: story-XXXX-0004 has no implementation plan (classified as unpredictable). Monitor PR for conflicts.
 
 ## Execution Plan
 All stories execute in parallel (advisory warnings above do not block execution).
 ```
 
-#### Strict Mode (`--strict-overlap`)
+**Mode: Strict (`--strict-overlap` set)**
 
-When `--strict-overlap` is set, partition stories into two groups (original behavior):
+Stories with `code-overlap-high` or `unpredictable` are demoted to sequential queue
+(original behavior). Stories with `no-overlap`, `config-only`, and `code-overlap-low`
+stay in parallel batch.
 
-- **Parallel Batch:** Stories with `no-overlap`, `config-only`, or `code-overlap-low`.
-- **Sequential Queue:** Stories with `code-overlap-high` or `unpredictable`.
-  Sequential order respects critical path priority (RULE-007).
-
-**Output file (strict mode):**
+**Output file** (strict mode):
 
 ```markdown
 # Pre-flight Conflict Analysis — Phase {N}
 
 ## File Overlap Matrix
-(same table as advisory mode)
+(same as advisory mode)
 
 ## Adjusted Execution Plan
+
 ### Parallel Batch
-- story-XXXX-0002 (no-overlap)
-### Sequential Queue
+- story-XXXX-0002 (no overlaps)
+
+### Sequential Queue (after parallel batch)
 1. story-XXXX-0001 (code-overlap-high with story-XXXX-0003)
 2. story-XXXX-0003 (code-overlap-high with story-XXXX-0001)
-3. story-XXXX-0004 (unpredictable — no implementation plan)
 ```
-
-> **Precedence:** `--sequential` > `--strict-overlap` > default advisory.
-> If `--sequential` is set, all stories execute sequentially regardless of
-> `--strict-overlap`. If only `--strict-overlap` is set, the partitioning
-> applies. If neither is set, all stories execute in parallel with warnings.
 
 ### 0.5.5 Integration with Core Loop (Section 1.3)
 
-The execution plan produced by Phase 0.5 is consumed by the Core Loop:
+**Advisory mode (default):** The core loop treats all stories as parallel-eligible.
+If preflight analysis exists, warnings are logged but do not affect dispatch.
+With per-story PRs, conflicts are resolved automatically via auto-rebase (Section 1.4e).
 
-**Default mode (advisory):**
-1. The core loop treats all executable stories as parallel-eligible
-2. If preflight analysis exists, warnings are logged but do NOT affect dispatch
-3. All stories are dispatched via worktree parallel dispatch (Section 1.4a)
+**Strict mode (`--strict-overlap`):** The core loop consumes the partitioning:
 
-**Strict mode (`--strict-overlap`):**
 1. Before calling `getExecutableStories()`, the orchestrator reads the preflight
    analysis for the current phase from `preflight-analysis-phase-N.md`
 2. Stories in the **Parallel Batch** are dispatched via worktree parallel dispatch
    (Section 1.4a) as normal
-3. Stories in the **Sequential Queue** are removed from the parallel batch and
-   enqueued for sequential dispatch (Section 1.4) after the parallel batch completes
-4. The sequential queue ordering respects critical path priority (RULE-007)
+3. Stories in the **Sequential Queue** are dispatched one at a time (Section 1.4)
+   after the parallel batch completes, in critical path priority order (RULE-007)
 
-**Common rules:**
-5. If no preflight analysis exists for a phase (e.g., Phase 0.5 was skipped or
-   this is a `--resume` run), all executable stories default to parallel dispatch
-6. With per-story PRs, conflicts from parallel overlap are resolved automatically
-   via auto-rebase (Section 1.4e). The `--strict-overlap` mode is recommended for
-   epics with many stories editing the same files.
+**Precedence:** `--sequential` > `--strict-overlap` > default (advisory).
+If no preflight analysis exists (e.g., `--resume` run), all executable stories
+default to parallel dispatch.
 
 ## Phase 1 — Execution Loop
 
@@ -383,45 +374,47 @@ The execution plan produced by Phase 0.5 is consumed by the Core Loop:
 4. Call `createCheckpoint(epicDir, input)` where input is:
    - `epicId`: The parsed epic ID
    - `stories`: Array of `{ id, phase }` from step 3
-   - `mode`: `{ parallel: true, skipReview: <from flags>, singlePr: <from flags> }` (default; `parallel` set to `false` when `--sequential` is passed)
+   - `mode`: `{ parallel: true, skipReview: <from flags> }` (default; set to `false` when `--sequential` is passed)
 5. The returned `ExecutionState` tracks all story statuses, metrics, and integrity gates
 
-**Per-story `StoryEntry` schema in `execution-state.json`:**
+**StoryEntry Schema (canonical — single source of truth):**
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `id` | String | Yes | Story ID (e.g., `story-0042-0001`) |
-| `phase` | Integer | Yes | Phase number |
-| `status` | String | Yes | `PENDING`, `IN_PROGRESS`, `SUCCESS`, `FAILED`, `PARTIAL`, `BLOCKED`, `PR_CREATED`, `PR_PENDING_REVIEW`, `PR_MERGED` |
-| `commitSha` | String | When SUCCESS | Last commit SHA |
-| `findingsCount` | Integer | Yes | Number of review findings |
-| `summary` | String | Yes | Brief description |
-| `retries` | Integer | Yes | Number of retry attempts |
-| `duration` | Number | When completed | Execution duration in seconds |
-| `blockedBy` | String[] | When BLOCKED | IDs of blocking stories |
-| `prUrl` | String | When PR created | URL of the story PR |
-| `prNumber` | Integer | When PR created | GitHub PR number |
-| `prMergeStatus` | String | When PR created | `OPEN`, `MERGED`, `CLOSED` |
-
-> See Section 1.4e for additional per-story rebase tracking fields (`rebaseStatus`, `lastRebaseSha`, `rebaseAttempts`).
+| `status` | String (Enum) | Yes | Primary status: `PENDING`, `IN_PROGRESS`, `SUCCESS`, `FAILED`, `BLOCKED`, `PARTIAL`, `PR_CREATED`, `PR_PENDING_REVIEW`, `PR_MERGED` |
+| `phase` | Integer | Yes | Phase number (0-based) |
+| `retries` | Integer | Yes | Number of retry attempts (max: MAX_RETRIES) |
+| `commitSha` | String | When SUCCESS | Git commit SHA of last successful commit |
+| `summary` | String | When terminal | Brief description of outcome |
+| `findingsCount` | Integer | When terminal | Number of review findings |
+| `duration` | Integer | No | Execution duration in milliseconds |
+| `blockedBy` | String[] | No | Story IDs blocking this story |
+| `prUrl` | String | When SUCCESS | URL of the PR created by x-dev-lifecycle |
+| `prNumber` | Integer | When SUCCESS | GitHub PR number |
+| `prMergeStatus` | String (Enum) | When PR exists | `PENDING`, `OPEN`, `MERGED`, `CLOSED` |
+| `reviewsExecuted` | Object | When SUCCESS | `{ specialist: boolean, techLead: boolean }` |
+| `reviewScores` | Object | When SUCCESS | `{ specialist: "N/M", techLead: "N/M" }` |
+| `coverageLine` | Number | When SUCCESS | Line coverage percentage |
+| `coverageBranch` | Number | When SUCCESS | Branch coverage percentage |
+| `tddCycles` | Integer | When SUCCESS | Number of Red-Green-Refactor cycles |
+| `rebaseStatus` | String (Enum) | No (sub-field) | `PENDING`, `REBASING`, `REBASE_SUCCESS`, `REBASE_FAILED` |
+| `lastRebaseSha` | String | No (sub-field) | SHA of main used in last successful rebase |
+| `rebaseAttempts` | Integer | No (sub-field) | Conflict resolution attempts (max: MAX_REBASE_RETRIES) |
 
 ### 1.2 Branch Management
 
 The orchestrator does NOT create a branch. Each story creates its own branch via
-`x-dev-lifecycle` Phase 0, targeting `main`. The orchestrator remains on `main`
-and monitors story PRs.
+`x-dev-lifecycle` Phase 0. The orchestrator stays on `main` and monitors PRs.
 
 1. Ensure a clean starting point:
    ```
    git checkout main && git pull origin main
    ```
-2. The orchestrator stays on `main` for the entire execution. No epic branch is created.
 
 > **`--single-pr` guard (RULE-009):** When `--single-pr` is set, the legacy flow is
-> activated instead: create branch `feat/epic-{epicId}-full-implementation`, use
-> rebase-before-merge strategy, and create a single mega-PR at the end. All per-story
-> PR logic is skipped. The legacy flow is preserved unchanged from the pre-epic-0021
-> behavior.
+> used instead: create branch `feat/epic-{epicId}-full-implementation`, merge story
+> worktrees into it, and create a single mega-PR at the end. The per-story PR logic
+> described in this document is skipped entirely.
 
 ### 1.3 Core Loop Algorithm
 
@@ -435,10 +428,7 @@ For each phase in (0..totalPhases-1):
      → If no preflight analysis exists, treat all stories as parallel-eligible
   1. Call getExecutableStories(parsedMap, executionState)
      → Returns stories sorted by critical path priority (RULE-007)
-     → Only PENDING stories with all dependencies SUCCESS AND prMergeStatus == "MERGED" are returned
-     → Stories without dependencies (phase 0) skip the PR merge check
-  1a. If stories have dependencies with status SUCCESS but prMergeStatus != "MERGED":
-     → Enter PR merge wait loop (see "PR Merge Wait Mechanism" below)
+     → Only PENDING stories with all dependencies SUCCESS AND prMergeStatus == "MERGED" are returned (RULE-003)
   2. If no executable stories and some remain PENDING:
      → Phase is blocked; log warning and advance to next phase
   3. Partition executable stories using preflight analysis:
@@ -452,8 +442,8 @@ For each phase in (0..totalPhases-1):
      b. Dispatch subagent (see 1.4 or 1.4a)
      c. Validate result (see 1.5)
      d. Update checkpoint (see 1.6)
-  7. [Placeholder: integrity gate between phases — story-0005-0006]
-  8. [Placeholder: progress reporting — story-0005-0013]
+  7. Wait for PR merges (Section 1.6c) and run auto-rebase (Section 1.4e)
+  8. Run integrity gate on main (Section Integrity Gate — RULE-006)
   9. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
 ```
 
@@ -461,43 +451,7 @@ The loop ensures that:
 - Stories are dispatched in dependency-safe order
 - BLOCKED stories are never dispatched (filtered by `getExecutableStories`)
 - Each phase completes before the next begins (parallel dispatch is default; sequential when `--sequential` is set)
-- Pre-flight conflict analysis partitions stories into parallel and sequential groups to minimize merge conflicts
-- Dependencies are verified at BOTH lifecycle level (SUCCESS) AND PR level (MERGED)
-- [Placeholder: partial execution filter — story-0005-0009]
-
-#### `getExecutableStories()` Algorithm (RULE-003)
-
-```
-function getExecutableStories(parsedMap, executionState):
-  for each storyNode in parsedMap.stories:
-    storyState = executionState.stories[storyNode.id]
-    if storyState.status != PENDING: continue
-    for each dep in storyNode.dependencies:
-      depState = executionState.stories[dep]
-      if depState.status != SUCCESS: skip story
-      if depState.prMergeStatus != "MERGED": skip story  // PR merge check (RULE-003)
-    add storyNode to executableList
-  return sortByCriticalPath(executableList)
-```
-
-#### PR Merge Wait Mechanism
-
-When stories have dependencies with `status == SUCCESS` but `prMergeStatus != "MERGED"`,
-the orchestrator enters a wait loop:
-
-1. **Auto-merge mode (`--auto-merge`):** For each dependency with an unmerged PR and
-   approved reviews, execute `gh pr merge {prNumber} --merge`. Merge order follows
-   `sortByCriticalPath()` (RULE-007). If merge fails (conflict, failing checks), log
-   warning and fall through to polling.
-
-2. **Polling mode (default, or auto-merge fallback):**
-   - Poll interval: 60 seconds (configurable)
-   - Timeout: 24 hours (configurable)
-   - Each poll: `gh pr view {prNumber} --json state` for each unmerged dependency PR
-   - Log: `"Waiting for PR #{prNumber} (story-{id}) to be merged... ({N}s elapsed)"`
-   - On merge detected: update `prMergeStatus = "MERGED"` in checkpoint, re-run
-     `getExecutableStories()`
-   - On timeout: mark dependent stories as `BLOCKED` with reason `"PR merge timeout"`
+- Pre-flight conflict analysis partitions stories into parallel and sequential groups to minimize merge conflicts (advisory default, strict opt-in via `--strict-overlap`)
 
 ### 1.4 Subagent Dispatch (Sequential Mode — When `--sequential` Is Set)
 
@@ -517,6 +471,7 @@ Story file: plans/epic-{epicId}/story-{storyId}.md
 Branch: {branchName}
 Phase: {currentPhase}
 Skip review: {skipReview}
+Epic ID: {epicId}
 
 Execute the x-dev-lifecycle workflow:
 1. Read the story file for requirements
@@ -526,11 +481,9 @@ Execute the x-dev-lifecycle workflow:
 5. Commit changes with Conventional Commits
 6. Create PR and run reviews (Phases 4-8 of x-dev-lifecycle)
 
-The PR created by /x-dev-lifecycle Phase 6 MUST:
+The PR created by x-dev-lifecycle Phase 6 MUST:
 - Target `main` branch
 - Include "Part of EPIC-{epicId}" in the PR body for traceability (RULE-008)
-
-Include prUrl and prNumber in your SubagentResult JSON.
 
 Return a JSON result with this exact structure (SubagentResult):
 {
@@ -538,13 +491,13 @@ Return a JSON result with this exact structure (SubagentResult):
   "commitSha": "<git commit SHA if SUCCESS>",
   "findingsCount": <number of review findings>,
   "summary": "<brief description of what was done>",
+  "prUrl": "<URL of the PR created by x-dev-lifecycle>",
+  "prNumber": <integer PR number>,
   "reviewsExecuted": { "specialist": true|false, "techLead": true|false },
   "reviewScores": { "specialist": "N/M", "techLead": "N/M" },
-  "coverageLine": <line coverage percentage>,
-  "coverageBranch": <branch coverage percentage>,
-  "tddCycles": <number of Red-Green-Refactor cycles>,
-  "prUrl": "<URL of the created PR if SUCCESS>",
-  "prNumber": <PR number if SUCCESS>
+  "coverageLine": <line coverage %>,
+  "coverageBranch": <branch coverage %>,
+  "tddCycles": <number of Red-Green-Refactor cycles>
 }
 ```
 
@@ -571,15 +524,12 @@ For each story in executableStories:
   Agent(
     subagent_type: "general-purpose",
     isolation: "worktree",
-    prompt: "<same prompt template as Section 1.4, with story-specific metadata>"
+    prompt: "<same prompt template as Section 1.4 (including PR creation step 6
+             and epic traceability), with story-specific metadata>"
   )
 ```
 
-Each worktree subagent uses the same prompt template as Section 1.4, including
-the PR creation instructions: PR targets `main`, PR body includes
-"Part of EPIC-{epicId}" (RULE-008), and `SubagentResult` includes `prUrl` and `prNumber`.
-
-**Branch Naming:** Each worktree operates on branch `feat/{storyId}-short-description` (standard story branch pattern, matching `x-dev-lifecycle` Phase 0).
+**Branch Naming:** Each worktree operates on branch `feat/{storyId}-short-description` (standard story branch pattern, aligned with `x-dev-lifecycle`).
 
 **Context Isolation (RULE-001):** Each worktree subagent receives clean context,
 identical to sequential mode. The orchestrator passes ONLY metadata (story ID,
@@ -588,7 +538,6 @@ works on an isolated copy of the repository.
 
 4. Wait for ALL subagents to complete
 5. Validate each `SubagentResult` using Section 1.5 rules
-6. Each story's PR targets `main` directly — no merge into an epic branch is needed
 
 ### 1.4c Conflict Resolution Subagent (RULE-012)
 
@@ -636,7 +585,7 @@ Steps:
 
 ### 1.4d Worktree Cleanup
 
-After parallel dispatch completes and all SubagentResults are validated, clean up worktree resources:
+After the merge phase completes, clean up worktree resources:
 
 - **SUCCESS + merged:** Worktree is cleaned up automatically after successful merge
 - **FAILED stories:** Worktree is preserved for diagnostic investigation. The branch
@@ -646,48 +595,84 @@ After parallel dispatch completes and all SubagentResults are validated, clean u
 
 ### 1.4e Auto-Rebase After PR Merge (RULE-011)
 
-After each PR merge within a phase, the orchestrator automatically rebases
-remaining open PRs in the same phase onto the updated `main`.
+After each PR merge within a phase, the orchestrator automatically rebases remaining
+open PRs from the same phase onto the updated `main`. This prevents stale branches
+and reduces merge conflicts. Skipped when `--sequential` is set.
 
-**Trigger:** A story's `prMergeStatus` transitions to `"MERGED"`.
-
-**Skip conditions:**
-- `--sequential` is set (stories execute one at a time, no parallel PRs) —
-  log: `"Auto-rebase skipped (--sequential mode)"`
-- No remaining open PRs in the phase
-- All PRs in the phase are already merged
+**Trigger:** After `prMergeStatus` transitions to `"MERGED"` for any story in the current phase.
 
 **Algorithm:**
 
-1. Detect remaining open PRs in the phase: stories where `prMergeStatus != "MERGED"`
-2. Order by critical path priority: `sortByCriticalPath()` (RULE-007)
-3. For each remaining story:
-   a. `git fetch origin main && git checkout {story-branch}`
-   b. `git rebase origin/main`
-   c. If rebase succeeds (no conflicts):
-      - `git push --force-with-lease origin {story-branch}`
-      - Update checkpoint: `rebaseStatus = "REBASE_SUCCESS"`, `lastRebaseSha = {SHA}`
-   d. If rebase has conflicts:
-      - Dispatch Conflict Resolution Subagent (Section 1.4c)
-      - On resolution success: `git rebase --continue && git push --force-with-lease`
-      - On resolution failure: increment `rebaseAttempts`, handle per Section 1.4c rules
-   e. Return to `main`: `git checkout main`
+```
+function autoRebaseAfterMerge(phase, mergedStoryId, executionState):
+  if --sequential: log "Auto-rebase skipped (--sequential mode)"; return
 
-**Push strategy:** Always `--force-with-lease` (NEVER `--force`) to protect against
-concurrent pushes. If push fails (branch updated by another process), re-fetch and
-retry the rebase.
+  // Find remaining open PRs in this phase
+  remainingPRs = stories in phase where prMergeStatus NOT in ["MERGED", "CLOSED"]
+  if remainingPRs is empty: return
 
-**Checkpoint fields per story (rebase tracking):**
+  // Sort by critical path priority (RULE-007)
+  sortByCriticalPath(remainingPRs, parsedMap)
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `rebaseStatus` | String (Enum) | Optional | `PENDING`, `REBASING`, `REBASE_SUCCESS`, `REBASE_FAILED` |
-| `lastRebaseSha` | String | Optional | SHA-1 hex (40 chars) of main used for last rebase |
-| `rebaseAttempts` | Integer | Optional | Number of rebase attempts (0 to MAX_REBASE_RETRIES) |
+  currentMainSha = git rev-parse origin/main
 
-> **Note:** `rebaseStatus` is a sub-field within each story entry, NOT a primary
-> story status. The primary story status remains: PENDING, IN_PROGRESS, SUCCESS,
-> FAILED, BLOCKED, PARTIAL, PR_CREATED, PR_PENDING_REVIEW, PR_MERGED.
+  for each story in remainingPRs:
+    // Skip if already rebased to current main (avoids O(N²) redundant rebases)
+    if story.lastRebaseSha == currentMainSha: continue
+
+    updateStoryStatus(epicDir, storyId, { rebaseStatus: "REBASING" })
+
+    git fetch origin main
+    git checkout {story.branch}
+    result = git rebase origin/main
+
+    if result.success:
+      git push --force-with-lease origin {story.branch}
+      updateStoryStatus(epicDir, storyId, {
+        rebaseStatus: "REBASE_SUCCESS",
+        lastRebaseSha: git rev-parse origin/main
+      })
+    else:
+      // Conflict detected — dispatch resolution subagent (Section 1.4c)
+      resolution = dispatchConflictResolution({
+        storyBranch: story.branch,
+        conflictFiles: result.conflictFiles,
+        mergedStories: getPhaseStoriesMerged(phase),
+        mergedPRs: getPhaseStoriesPRs(phase),
+        mainShaBeforePhase: checkpoint.mainShaBeforePhase[phase]
+      })
+
+      if resolution.status == "SUCCESS":
+        git rebase --continue
+        git push --force-with-lease origin {story.branch}
+        updateStoryStatus(epicDir, storyId, {
+          rebaseStatus: "REBASE_SUCCESS",
+          lastRebaseSha: git rev-parse origin/main
+        })
+      else:
+        git rebase --abort
+        story.rebaseAttempts += 1
+        if story.rebaseAttempts >= MAX_REBASE_RETRIES (3):
+          updateStoryStatus(epicDir, storyId, { status: "FAILED",
+            summary: "Rebase conflict resolution failed after {MAX_REBASE_RETRIES} attempts" })
+          gh pr close {story.prNumber} --comment "Rebase conflict resolution failed"
+          // Trigger block propagation for dependent stories
+        else:
+          updateStoryStatus(epicDir, storyId, { rebaseStatus: "REBASE_FAILED" })
+          // Will retry on next merge event in this phase
+```
+
+**Checkpoint fields per story (sub-fields, NOT primary status):**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `rebaseStatus` | String (Enum) | `PENDING`, `REBASING`, `REBASE_SUCCESS`, `REBASE_FAILED` |
+| `lastRebaseSha` | String | SHA of `main` used in last successful rebase |
+| `rebaseAttempts` | Integer | Number of conflict resolution attempts (max: MAX_REBASE_RETRIES) |
+
+> **Note:** `rebaseStatus` is a sub-field within each story entry, NOT a primary story status.
+> The primary story status remains: PENDING, IN_PROGRESS, SUCCESS, FAILED, BLOCKED, PARTIAL,
+> PR_CREATED, PR_PENDING_REVIEW, PR_MERGED.
 
 ### 1.5 Result Validation (RULE-008)
 
@@ -697,7 +682,7 @@ After receiving the subagent response, validate the `SubagentResult` contract:
 2. **`findingsCount` field**: MUST be present and be a number
 3. **`summary` field**: MUST be present and be a string
 4. **`commitSha` field**: If `status === "SUCCESS"`, MUST be present and be a string
-5. **`prUrl` field**: If `status === "SUCCESS"`, MUST be present and be a valid GitHub PR URL string
+5. **`prUrl` field**: If `status === "SUCCESS"`, MUST be present and be a valid URL string
 6. **`prNumber` field**: If `status === "SUCCESS"`, MUST be present and be a positive integer
 
 **On validation failure:**
@@ -705,11 +690,9 @@ After receiving the subagent response, validate the `SubagentResult` contract:
 - Set summary to: `"Invalid subagent result: missing {field} field"`
 - Continue to checkpoint update (1.6)
 
-> **Note:** `prUrl` and `prNumber` are only required when `status === "SUCCESS"`.
-> When status is `FAILED` or `PARTIAL`, these fields may be null (the lifecycle
-> may have failed before reaching Phase 6 PR creation).
-
-[Placeholder: retry with error context — story-0005-0007]
+**Retry on failure:** If `retries < MAX_RETRIES`, the story is re-dispatched on the next
+execution loop iteration (Resume Step 1 reclassifies FAILED → PENDING). The existing PR
+is closed (Step 1b) and the lifecycle creates a new PR on retry.
 
 ### 1.6 Checkpoint Update (RULE-002)
 
@@ -720,9 +703,9 @@ After each story completes (success or failure), persist the result:
    - `commitSha`: The commit SHA (if status is `SUCCESS`)
    - `findingsCount`: Number of review findings from the subagent
    - `summary`: Brief description of what the subagent accomplished
-   - `prUrl`: URL of the PR created by the lifecycle (if status is `SUCCESS`)
+   - `prUrl`: URL of the PR created by x-dev-lifecycle (if status is `SUCCESS`)
    - `prNumber`: PR number (if status is `SUCCESS`)
-   - `prMergeStatus`: Initial value `"OPEN"` (updated to `"MERGED"` when PR is merged)
+   - `prMergeStatus`: Initial value `"OPEN"` when PR is created
 2. Update metrics: increment `storiesCompleted` counter
 3. The checkpoint is persisted atomically to `execution-state.json` via the checkpoint engine
 4. Between story completions, the checkpoint always reflects the current execution state
@@ -773,6 +756,9 @@ consistency across local files and external systems.
 | IN_PROGRESS | Em Andamento | — |
 | BLOCKED | Bloqueada | — |
 | PENDING | Pendente | — |
+| PR_CREATED | PR Criado | — |
+| PR_PENDING_REVIEW | Em Review | — |
+| PR_MERGED | PR Merged | Done |
 
 **Epic-level completion check:**
 
@@ -786,45 +772,90 @@ in the checkpoint. If yes:
    - Call `mcp__atlassian__transitionJiraIssue`
    - If transition fails: log warning, continue (non-blocking)
 
-### 1.7 Extension Points
+### 1.6c PR Merge Wait (RULE-003)
 
-The following sections are placeholders for downstream stories:
+After all stories in a phase complete with SUCCESS, the orchestrator checks if their
+PRs have been merged before advancing to the next phase. This ensures dependent stories
+in subsequent phases have the code available on `main`.
 
-- [Placeholder: integrity gate between phases — story-0005-0006]
-- [Placeholder: retry + block propagation — story-0005-0007]
-- [Placeholder: resume from checkpoint — story-0005-0008]
-- [Placeholder: partial execution filter — story-0005-0009]
-- [Placeholder: progress reporting — story-0005-0013]
-
-### Integrity Gate (Between Phases) (RULE-006)
-
-After ALL stories in a phase complete AND all their PRs are merged to `main`,
-dispatch an integrity gate subagent before advancing to the next phase.
-
-The gate runs on `main` to validate the integrated code from all merged PRs.
-
-#### Pre-Phase SHA Capture
-
-At the **start** of each phase, before dispatching any stories:
-
-1. Capture: `mainShaBeforePhase[N] = git rev-parse main`
-2. Persist to checkpoint: `updateCheckpoint(epicDir, { mainShaBeforePhase: { [N]: sha } })`
-3. On `--resume`: recover `mainShaBeforePhase[N]` from checkpoint (do NOT recalculate,
-   since stories from the phase may already be merged)
-
-#### Gate Preconditions
-
-Before running the gate, verify all PRs from the phase are merged:
+**Algorithm:**
 
 ```
-for each story in currentPhase:
-  assert story.prMergeStatus == "MERGED"
+function waitForPRMerge(executionState, phase, autoMerge):
+  for each story in phase with status SUCCESS:
+    if story.prMergeStatus == "MERGED": continue
+
+    if autoMerge:
+      // Attempt auto-merge (RULE-004)
+      result = gh pr merge {story.prNumber} --merge
+      if result.success:
+        updateStoryStatus(epicDir, storyId, { prMergeStatus: "MERGED" })
+        continue
+      else:
+        log WARNING: "Auto-merge failed for PR #{prNumber}, waiting for manual merge"
+
+    // Polling loop
+    elapsed = 0
+    while elapsed < MERGE_TIMEOUT (default: 24h):
+      state = gh pr view {story.prNumber} --json state
+      if state == "MERGED":
+        updateStoryStatus(epicDir, storyId, { prMergeStatus: "MERGED" })
+        break
+      if state == "CLOSED":
+        updateStoryStatus(epicDir, storyId, { prMergeStatus: "CLOSED", status: "FAILED" })
+        break
+      log "Waiting for PR #{prNumber} ({storyId}) to be merged... ({elapsed}s elapsed)"
+      wait POLL_INTERVAL (default: 60s)
+      elapsed += POLL_INTERVAL
+
+    if elapsed >= MERGE_TIMEOUT:
+      // Mark timed-out story as BLOCKED (not SUCCESS — PR is not merged)
+      updateStoryStatus(epicDir, storyId, { status: "BLOCKED", summary: "PR merge timeout after {MERGE_TIMEOUT}s" })
+      // Block dependent stories
+      for each dependent of story:
+        updateStoryStatus(epicDir, dependent, { status: "BLOCKED", summary: "Blocked by PR merge timeout on {storyId}" })
 ```
 
-Then checkout `main` with latest merges:
+**Constants (configurable via environment variables):**
+
+| Constant | Env Var | Default | Description |
+|----------|---------|---------|-------------|
+| `POLL_INTERVAL` | `EPIC_POLL_INTERVAL` | 60s | Seconds between PR status checks |
+| `MERGE_TIMEOUT` | `EPIC_MERGE_TIMEOUT` | 86400s (24h) | Maximum wait time for PR merge |
+| `MAX_RETRIES` | `EPIC_MAX_RETRIES` | 2 | Story retry attempts before permanent FAILED |
+| `MAX_REBASE_RETRIES` | `EPIC_MAX_REBASE_RETRIES` | 3 | Conflict resolution attempts per story |
+
+**`getExecutableStories()` updated pseudocode (RULE-003):**
+
+```
+function getExecutableStories(parsedMap, executionState):
+  for each story in parsedMap.stories:
+    if story.status != PENDING: continue
+    for each dep in story.dependencies:
+      depState = executionState.stories[dep]
+      if depState.status != SUCCESS: skip story
+      if depState.prMergeStatus != "MERGED": skip story  // RULE-003
+    add story to executableList
+  return sortByCriticalPath(executableList)
+```
+
+### Integrity Gate (Between Phases — RULE-006)
+
+After ALL PRs from a phase are merged into `main`, the orchestrator runs the integrity
+gate on `main` to validate cross-story integration. This ensures the combined effect
+of all phase stories is correct on the real production branch.
+
+**Pre-phase SHA capture:** At the start of each phase, capture `mainShaBeforePhase`:
+```
+mainShaBeforePhase[N] = git rev-parse main
+```
+Persist in checkpoint for use after merge and for resume recovery.
+
+**Gate execution:** After all PRs are merged:
 ```
 git checkout main && git pull origin main
 ```
+Then dispatch the integrity gate subagent on the updated `main`.
 
 #### Gate Subagent Prompt
 
@@ -931,68 +962,55 @@ When not set, the smoke gate (Step 5) must also pass for the overall integrity g
 > The integrity gate smoke tests serve as an ADDITIONAL regression validation — they ensure
 > that the combination of all stories in a phase did not break the overall smoke test suite.
 
-#### Cross-Story Consistency Gate (RULE-006)
+## Phase 2 — Epic Progress Report Generation (RULE-010)
 
-After the integrity gate passes (compile + test + coverage + smoke), run a
-cross-story consistency check on the `main` diff for the phase:
-
-1. Compute diff: `git diff {mainShaBeforePhase[N]}..main`
-2. Dispatch a consistency subagent with the diff for analysis
-3. The subagent verifies:
-   - Error handling patterns are uniform across classes of the same role
-   - Constructor patterns and return types are consistent within modules
-   - No cross-story inconsistencies introduced by parallel development
-4. Result: `{ status: "PASS"|"FAIL", findings: [...] }`
-5. If FAIL: log findings, mark phase as requiring attention (advisory, not blocking)
-
-> **`mainShaBeforePhase` field in `execution-state.json`:**
-> Type: `Map<Integer, String>` — SHA-1 hex (40 chars) per phase number.
-> Example: `{ "0": "abc123...", "1": "def456..." }`
-
-## Phase 2 — Epic Progress Report Generation
-
-After all stories in a phase complete (or reach terminal state), the orchestrator
-generates a progress report. With per-story PRs, each story already has its own
-tech lead review (via `x-dev-lifecycle` Phase 7) and its own PR (via Phase 6).
-Phase 2 consolidates this information into a single report.
-
-> **Note:** The legacy two-wave consolidation (tech lead review of full diff +
-> mega-PR creation) is only used when `--single-pr` is set. See the `--single-pr`
-> guard in Phase 0 Step 7.
+After all stories reach terminal state (SUCCESS, FAILED, or BLOCKED), the orchestrator
+generates an epic execution report with per-story PR tracking. In the per-story PR model,
+tech lead review happens per-story via `x-dev-lifecycle` Phase 7, and PRs are created
+per-story via Phase 6 — Phase 2 only consolidates the results into a report.
 
 **Skip condition:** If NO stories have status SUCCESS, skip report generation entirely.
 Log: `"No successful stories — skipping report generation"` and proceed to Phase 3.
 
 ### 2.1 Generate Progress Report
 
-After all stories reach terminal state (SUCCESS, FAILED, or BLOCKED):
+Dispatch a `general-purpose` subagent to generate `epic-execution-report.md`:
 
-1. Read checkpoint to collect all story results
-2. Build PR links table from `prUrl`, `prNumber`, `prMergeStatus` per story
-3. Generate `epic-execution-report.md` using the template
-4. Replace `{{PR_LINKS_TABLE}}` with the per-story PR table:
-
-```markdown
-| Story | PR | Status | Tech Lead Score | Merged At |
-|-------|-----|--------|-----------------|-----------|
-| story-{epicId}-0001 | [#41](https://github.com/org/repo/pull/41) | MERGED | 42/45 | 2026-04-01T10:30:00Z |
-| story-{epicId}-0002 | [#42](https://github.com/org/repo/pull/42) | OPEN | 38/45 | — |
-| story-{epicId}-0003 | — | FAILED | — | — |
+**Subagent Prompt:**
 ```
+You are generating the epic execution report for EPIC-{epicId}.
 
-5. Replace other `{{PLACEHOLDER}}` tokens with real data:
-   - `{{EPIC_ID}}`, `{{STARTED_AT}}`, `{{FINISHED_AT}}`
-   - `{{STORIES_COMPLETED}}`, `{{STORIES_FAILED}}`, `{{STORIES_BLOCKED}}`, `{{STORIES_TOTAL}}`
-   - `{{COMPLETION_PERCENTAGE}}`: completed/total x 100
-   - `{{PHASE_TIMELINE_TABLE}}`: phase start/end times from checkpoint
-   - `{{STORY_STATUS_TABLE}}`: per-story status with commit SHAs
-   - `{{COVERAGE_BEFORE}}`, `{{COVERAGE_AFTER}}`, `{{COVERAGE_DELTA}}`
-   - `{{TDD_COMPLIANCE_TABLE}}`: TDD compliance per-story table
-   - `{{TDD_SUMMARY}}`: TDD compliance aggregated summary
-   - `{{UNRESOLVED_ISSUES}}`: findings with severity >= Medium (from per-story reviews)
-6. Include summary metrics: completed/failed/blocked counts, overall completion %
-7. Validate: no unresolved `{{...}}` placeholders remain in output
-8. Write `epic-execution-report.md` to `plans/epic-{epicId}/`
+1. Read template: _TEMPLATE-EPIC-EXECUTION-REPORT.md
+2. Read checkpoint: execution-state.json from the epic directory
+3. Resolve ALL {{PLACEHOLDER}} tokens with real data:
+   - {{EPIC_ID}}, {{STARTED_AT}}, {{FINISHED_AT}}
+   - {{STORIES_COMPLETED}}, {{STORIES_FAILED}}, {{STORIES_BLOCKED}}, {{STORIES_TOTAL}}
+   - {{COMPLETION_PERCENTAGE}}: completed/total × 100
+   - {{PHASE_TIMELINE_TABLE}}: phase start/end times from checkpoint
+   - {{STORY_STATUS_TABLE}}: per-story status with commit SHAs
+   - {{COVERAGE_BEFORE}}, {{COVERAGE_AFTER}}, {{COVERAGE_DELTA}}
+   - {{TDD_COMPLIANCE_TABLE}}: TDD compliance per-story table
+   - {{TDD_SUMMARY}}: TDD compliance aggregated summary
+   - {{COMMIT_LOG}}: git log from story branches
+   - {{UNRESOLVED_ISSUES}}: findings with severity >= Medium from per-story reviews
+   - {{PR_LINKS_TABLE}}: per-story PR table (see step 4)
+
+4. Build {{PR_LINKS_TABLE}} — one row per story:
+
+   | Story | PR | Status | Tech Lead Score | Merged At |
+   |-------|-----|--------|-----------------|-----------|
+   | {storyId} | [{prUrl}]({prUrl}) | {prMergeStatus} | {reviewScore} | {mergedAt} |
+
+   For each story in the checkpoint:
+   - If story has prUrl: link to the PR
+   - If story has no PR (FAILED before Phase 6): show "—"
+   - Status comes from prMergeStatus (MERGED, OPEN, CLOSED) or story status (FAILED, BLOCKED)
+   - Tech Lead Score from per-story reviewScores.techLead, or "—"
+   - Merged At: timestamp from PR merge event, or "—"
+
+5. Validate: no unresolved {{...}} placeholders remain in output
+6. Write epic-execution-report.md to plans/epic-{epicId}/
+```
 
 **Result Handling:**
 - On SUCCESS: report written to `plans/epic-{epicId}/epic-execution-report.md`. Update checkpoint atomically (RULE-002)
@@ -1000,13 +1018,12 @@ After all stories reach terminal state (SUCCESS, FAILED, or BLOCKED):
 
 ### 2.2 Incremental Report Updates (RULE-010)
 
-The report is updated incrementally as each story completes, not only at the end:
+The report is updated incrementally as each story completes (not only at the end):
 
-1. After each story reaches a terminal state (SUCCESS, FAILED, BLOCKED):
-   - Append or update the corresponding row in `{{PR_LINKS_TABLE}}`
-   - Update summary metrics (completed/failed/blocked counts)
-2. At the end of all phases: generate the final version with all metrics resolved
-3. The incremental report allows real-time progress monitoring during epic execution
+1. After each story reaches terminal state (SUCCESS, FAILED, BLOCKED), append or update
+   the corresponding row in the PR links table
+2. Summary metrics (completed/failed/blocked counts) are recalculated on each update
+3. The incremental report provides real-time visibility into epic progress
 
 ### 2.3 Checkpoint Finalization
 
@@ -1018,14 +1035,13 @@ After report generation completes, persist final state:
 
 ## Phase 3 — Verification
 
-Final verification validates the epic as a whole before declaring completion.
-All validations run on `main` after all story PRs are merged.
+Final verification validates the epic as a whole on `main` after all PRs are merged.
 
 ### 3.1 Epic-Level Test Suite
 
 Run the full test suite on `main` to validate cross-story integration:
 
-1. Ensure on latest main: `git checkout main && git pull origin main`
+1. Ensure on `main`: `git checkout main && git pull origin main`
 2. Execute: `{{TEST_COMMAND}}` (all unit, integration, and API tests)
 3. Coverage thresholds (non-negotiable): >=95% line, >=90% branch
 4. If any test fails: log failures, mark epic as requiring attention
@@ -1035,21 +1051,21 @@ Run the full test suite on `main` to validate cross-story integration:
 
 Verify the Definition of Done (DoD) for the epic:
 
-- [ ] All story PRs merged to main or documented as FAILED/BLOCKED
-- [ ] Integrity gates passed for all phases
-- [ ] Coverage thresholds met (>=95% line, >=90% branch per-story)
-- [ ] Zero compiler/linter warnings (per-story, validated by lifecycle)
-- [ ] Per-story tech lead reviews executed (via `x-dev-lifecycle` Phase 7) or skipped via `--skip-review`
-- [ ] Epic execution report generated with PR links table (Phase 2.1)
+- [ ] All stories completed (or documented as FAILED/BLOCKED in report)
+- [ ] All story PRs merged to `main` or documented as FAILED/BLOCKED
+- [ ] Coverage thresholds met (>=95% line, >=90% branch)
+- [ ] Zero compiler/linter warnings
+- [ ] Per-story tech lead reviews executed (via x-dev-lifecycle Phase 7) or skipped via `--skip-review`
+- [ ] Epic execution report generated with per-story PR links table (Phase 2.1)
 - [ ] All findings with severity >= Medium addressed or documented
 
 ### 3.3 Final Status Determination
 
 Compute the final epic status based on story outcomes and PR merge status:
 
-- **COMPLETE**: All stories reached SUCCESS status, all PRs merged to `main`, and all DoD items pass
+- **COMPLETE**: All stories reached SUCCESS with prMergeStatus "MERGED" and all DoD items pass
 - **PARTIAL**: Some stories FAILED or BLOCKED, but critical path stories succeeded and merged
-- **FAILED**: One or more critical path stories failed or their PRs were not merged
+- **FAILED**: One or more critical path stories failed
 
 Persist final status to checkpoint: `updateCheckpoint(epicDir, { finalStatus })`
 
@@ -1060,66 +1076,33 @@ Display the final summary to the user:
 ```
 Epic: EPIC-{epicId} — {title}
 Status: COMPLETE | PARTIAL | FAILED
-Model: per-story PR (each story has its own PR targeting main)
 Stories: {completed}/{total} completed, {failed} failed, {blocked} blocked
-PRs: {merged}/{total} merged, {open} open, {closed} closed
+PRs: {merged}/{total} merged
 Coverage: line {lineCoverage}%, branch {branchCoverage}%
-
-Story PRs:
-| Story | PR | Status | Merged At |
-|-------|-----|--------|-----------|
-| story-{epicId}-0001 | #41 | MERGED | 2026-04-01T10:30:00Z |
-| story-{epicId}-0002 | #42 | MERGED | 2026-04-01T11:15:00Z |
-...
-
 Report: plans/epic-{epicId}/epic-execution-report.md
 Elapsed: {totalElapsedTime}
+
+Per-story PRs:
+  story-{id}: PR #{prNumber} — {prMergeStatus}
+  ...
 ```
-
-### Dry-Run Output (Phase 0, Step 8)
-
-When `--dry-run` is set, display the execution plan without executing:
-
-```
-Epic Execution Plan (DRY RUN)
-=============================
-Epic: EPIC-{epicId}
-Model: per-story PR (each story creates its own PR targeting main)
-Stories: N total across M phases
-
-Phase 0:
-  - story-XXXX-0001: Branch feat/story-XXXX-0001-*, PR -> main
-  - story-XXXX-0002: Branch feat/story-XXXX-0002-*, PR -> main
-  Advisory warnings: [overlap warnings if any]
-
-Phase 1:
-  - story-XXXX-0003: Branch feat/story-XXXX-0003-*, PR -> main
-    Dependencies: story-XXXX-0001 (must be merged), story-XXXX-0002 (must be merged)
-
-Flags: --auto-merge={value}, --single-pr=false, --skip-review={value}, --strict-overlap={value}
-```
-
-> **`--single-pr` dry-run:** When `--single-pr` is set, the dry-run output shows
-> `Model: single-pr (legacy)` with the epic branch name instead of per-story branches.
 
 ## Integration Notes
 
-- Invokes: `x-dev-lifecycle` (per-story execution with PR creation in Phase 6, reviews in Phases 4/7)
-- Invokes: `x-story-map` (if map missing, via error guidance)
-- Uses: `gh pr view` (PR merge status verification for dependency enforcement)
-- Uses: `gh pr merge` (auto-merge when `--auto-merge` is set)
-- Uses: `gh pr close` (failure handling — close PR on story failure)
-- Phase 2 generates an incremental progress report with `{{PR_LINKS_TABLE}}` per-story PR table
-- Reads: `_TEMPLATE-EPIC-EXECUTION-REPORT.md` (report template), `execution-state.json` (checkpoint data)
-- Reads: `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (implementation plans for pre-flight conflict analysis, Phase 0.5)
-- Writes: `plans/epic-XXXX/plans/preflight-analysis-phase-N.md` (pre-flight analysis output for audit, Phase 0.5)
-- Phase 0.5 is skipped when `--sequential` is set (no parallel dispatch means no conflict risk)
-- Phase 0.5 defaults to advisory mode (warnings only); use `--strict-overlap` for blocking partitioning
-- All `{{PLACEHOLDER}}` tokens are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
-- Integrity gate runs on `main` after all phase PRs are merged (RULE-006); uses `mainShaBeforePhase` for diff
-- Integrity gate includes smoke tests (Step 5) as regression validation — runs `{{SMOKE_COMMAND}}`
-- Smoke gate is bypassed with `--skip-smoke-gate` flag; result recorded as `smokeGate.status = "SKIP"` in checkpoint
-- Per-story smoke tests run via `x-dev-lifecycle` Phase 2.5; integrity gate smoke tests are an additional cross-story regression check
-- Auto-rebase (Section 1.4e, RULE-011) triggers after each PR merge to keep remaining PRs up-to-date
-- Conflict resolution (Section 1.4c, RULE-012) dispatches subagent for automatic rebase conflict resolution
+- Invokes: `x-dev-lifecycle` (per-story execution with full 9-phase cycle including PR creation and reviews)
+- Each story creates its own PR targeting `main` via x-dev-lifecycle Phase 6, with "Part of EPIC-{epicId}" for traceability (RULE-008)
+- Per-story tech lead review via x-dev-lifecycle Phase 7 (no consolidated epic-level review)
+- Phase 2 generates epic progress report with `{{PR_LINKS_TABLE}}` per-story PR table (RULE-010)
+- Auto-rebase (Section 1.4e) runs after each PR merge in a phase (RULE-011), skipped with `--sequential`
+- Conflict resolution (Section 1.4c) adapted for per-story PR model (RULE-012)
+- Dependency enforcement (Section 1.6c) verifies `prMergeStatus == "MERGED"` before dispatching dependents (RULE-003)
 - `--single-pr` preserves legacy flow: epic branch + single mega-PR (all per-story PR logic is skipped)
+- Pre-flight analysis (Phase 0.5) is advisory by default; `--strict-overlap` enables blocking mode (RULE-005)
+- Reads: `_TEMPLATE-EPIC-EXECUTION-REPORT.md` (report template), `execution-state.json` (checkpoint data)
+- Reads: `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (implementation plans for pre-flight conflict analysis)
+- Writes: `plans/epic-XXXX/plans/preflight-analysis-phase-N.md` (pre-flight analysis output for audit)
+- Phase 0.5 is skipped when `--sequential` is set (no parallel dispatch means no conflict risk)
+- All `{{PLACEHOLDER}}` tokens are runtime markers filled by the AI agent from project configuration
+- Integrity gates run on `main` after PRs merge (RULE-006), with `mainShaBeforePhase` for diff analysis
+- Smoke gate within integrity gate bypassed with `--skip-smoke-gate` flag
+- Resume workflow (Steps 1-3) handles PR states: PR_CREATED, PR_PENDING_REVIEW, PR_MERGED
