@@ -498,9 +498,49 @@ works on an isolated copy of the repository.
 4. Wait for ALL subagents to complete
 5. Validate each `SubagentResult` using Section 1.5 rules
 
-### 1.4c Conflict Resolution Subagent
+### 1.4c Conflict Resolution Subagent (RULE-012)
 
-[Placeholder: Conflict Resolution Subagent adapted for per-story PR — reimplemented by story-0021-0009]
+When auto-rebase (Section 1.4e) detects conflicts during `git rebase origin/main`,
+a conflict resolution subagent is dispatched to resolve them automatically.
+
+**Subagent Configuration:**
+- Tool: `Agent` with `subagent_type: "general-purpose"`
+- Context isolation (RULE-001): pass only branch names, conflict file list, and
+  metadata — never source code inline
+
+**Prompt Template:**
+```
+You are a Conflict Resolution Specialist resolving rebase conflicts.
+
+Conflict type: rebase
+Story branch: {storyBranch}
+Conflict files: {conflictFiles}
+Merged stories this phase: {mergedStories}
+Merged PRs: {mergedPRs}
+Main SHA before phase: {mainShaBeforePhase}
+
+Steps:
+1. For each conflict file, analyze the diff from both branches
+2. The changes from merged stories are intentional — preserve them
+3. Resolve each conflicting hunk respecting the intent of both branches
+4. Run: git add <resolved files> (do NOT commit — rebase handles the commit)
+5. Return JSON: { "status": "SUCCESS" | "FAILED", "summary": "..." }
+```
+
+**Post-resolution flow:**
+- If SUCCESS: `git rebase --continue && git push --force-with-lease origin {storyBranch}`
+- If FAILED and `rebaseAttempts < MAX_REBASE_RETRIES` (3):
+  `git rebase --abort`, log WARNING, retry on next merge event
+- If FAILED and `rebaseAttempts >= MAX_REBASE_RETRIES`:
+  `git rebase --abort`, mark story FAILED, close PR:
+  `gh pr close {prNumber} --comment "Rebase conflict resolution failed after {MAX_REBASE_RETRIES} attempts"`
+  Trigger block propagation for dependent stories.
+
+**Constants:**
+
+| Constant | Type | Default | Description |
+|----------|------|---------|-------------|
+| `MAX_REBASE_RETRIES` | Integer | 3 | Maximum conflict resolution attempts per story |
 
 ### 1.4d Worktree Cleanup
 
@@ -511,6 +551,82 @@ After the merge phase completes, clean up worktree resources:
   and worktree path are logged for manual inspection
 - **No-change worktrees:** The `Agent` tool with `isolation: "worktree"` automatically
   cleans up worktrees where no changes were made
+
+### 1.4e Auto-Rebase After PR Merge (RULE-011)
+
+After each PR merge within a phase, the orchestrator automatically rebases remaining
+open PRs from the same phase onto the updated `main`. This prevents stale branches
+and reduces merge conflicts. Skipped when `--sequential` is set.
+
+**Trigger:** After `prMergeStatus` transitions to `"MERGED"` for any story in the current phase.
+
+**Algorithm:**
+
+```
+function autoRebaseAfterMerge(phase, mergedStoryId, executionState):
+  if --sequential: log "Auto-rebase skipped (--sequential mode)"; return
+
+  // Find remaining open PRs in this phase
+  remainingPRs = stories in phase where prMergeStatus NOT in ["MERGED", "CLOSED"]
+  if remainingPRs is empty: return
+
+  // Sort by critical path priority (RULE-007)
+  sortByCriticalPath(remainingPRs, parsedMap)
+
+  for each story in remainingPRs:
+    updateStoryField(epicDir, storyId, { rebaseStatus: "REBASING" })
+
+    git fetch origin main
+    git checkout {story.branch}
+    result = git rebase origin/main
+
+    if result.success:
+      git push --force-with-lease origin {story.branch}
+      updateStoryField(epicDir, storyId, {
+        rebaseStatus: "REBASE_SUCCESS",
+        lastRebaseSha: git rev-parse origin/main
+      })
+    else:
+      // Conflict detected — dispatch resolution subagent (Section 1.4c)
+      resolution = dispatchConflictResolution({
+        storyBranch: story.branch,
+        conflictFiles: result.conflictFiles,
+        mergedStories: getPhaseStoriesMerged(phase),
+        mergedPRs: getPhaseStoriesPRs(phase),
+        mainShaBeforePhase: checkpoint.mainShaBeforePhase[phase]
+      })
+
+      if resolution.status == "SUCCESS":
+        git rebase --continue
+        git push --force-with-lease origin {story.branch}
+        updateStoryField(epicDir, storyId, {
+          rebaseStatus: "REBASE_SUCCESS",
+          lastRebaseSha: git rev-parse origin/main
+        })
+      else:
+        git rebase --abort
+        story.rebaseAttempts += 1
+        if story.rebaseAttempts >= MAX_REBASE_RETRIES (3):
+          updateStoryStatus(epicDir, storyId, { status: "FAILED",
+            summary: "Rebase conflict resolution failed after {MAX_REBASE_RETRIES} attempts" })
+          gh pr close {story.prNumber} --comment "Rebase conflict resolution failed"
+          // Trigger block propagation for dependent stories
+        else:
+          updateStoryField(epicDir, storyId, { rebaseStatus: "REBASE_FAILED" })
+          // Will retry on next merge event in this phase
+```
+
+**Checkpoint fields per story (sub-fields, NOT primary status):**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `rebaseStatus` | String (Enum) | `PENDING`, `REBASING`, `REBASE_SUCCESS`, `REBASE_FAILED` |
+| `lastRebaseSha` | String | SHA of `main` used in last successful rebase |
+| `rebaseAttempts` | Integer | Number of conflict resolution attempts (max: MAX_REBASE_RETRIES) |
+
+> **Note:** `rebaseStatus` is a sub-field within each story entry, NOT a primary story status.
+> The primary story status remains: PENDING, IN_PROGRESS, SUCCESS, FAILED, BLOCKED, PARTIAL,
+> PR_CREATED, PR_PENDING_REVIEW, PR_MERGED.
 
 ### 1.5 Result Validation (RULE-008)
 
