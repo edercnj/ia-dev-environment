@@ -13,10 +13,10 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for GenerateCommand.buildPlatformSet — converts
+ * Tests for PlatformPrecedenceResolver.buildPlatformSet — converts
  * the CLI List&lt;Platform&gt; to Set&lt;Platform&gt;.
  */
-@DisplayName("GenerateCommand.buildPlatformSet")
+@DisplayName("PlatformPrecedenceResolver.buildPlatformSet")
 class BuildPlatformSetTest {
 
     @Nested
@@ -28,7 +28,7 @@ class BuildPlatformSetTest {
                 + "filter)")
         void buildPlatformSet_null_returnsEmpty() {
             Set<Platform> result =
-                    GenerateCommand.buildPlatformSet(null);
+                    PlatformPrecedenceResolver.buildPlatformSet(null);
 
             assertThat(result).isEmpty();
         }
@@ -42,7 +42,7 @@ class BuildPlatformSetTest {
         @DisplayName("empty list returns empty set")
         void buildPlatformSet_empty_returnsEmpty() {
             Set<Platform> result =
-                    GenerateCommand.buildPlatformSet(
+                    PlatformPrecedenceResolver.buildPlatformSet(
                             List.of());
 
             assertThat(result).isEmpty();
@@ -61,7 +61,7 @@ class BuildPlatformSetTest {
             list.add(null);
 
             Set<Platform> result =
-                    GenerateCommand.buildPlatformSet(list);
+                    PlatformPrecedenceResolver.buildPlatformSet(list);
 
             assertThat(result).isEmpty();
         }
@@ -75,7 +75,7 @@ class BuildPlatformSetTest {
             list.add(null);
 
             Set<Platform> result =
-                    GenerateCommand.buildPlatformSet(list);
+                    PlatformPrecedenceResolver.buildPlatformSet(list);
 
             assertThat(result).isEmpty();
         }
@@ -90,7 +90,7 @@ class BuildPlatformSetTest {
                 + "set")
         void buildPlatformSet_single_returnsSingleton() {
             Set<Platform> result =
-                    GenerateCommand.buildPlatformSet(
+                    PlatformPrecedenceResolver.buildPlatformSet(
                             List.of(Platform.CLAUDE_CODE));
 
             assertThat(result)
@@ -101,7 +101,7 @@ class BuildPlatformSetTest {
         @DisplayName("multiple platforms returns EnumSet")
         void buildPlatformSet_multiple_returnsEnumSet() {
             Set<Platform> result =
-                    GenerateCommand.buildPlatformSet(
+                    PlatformPrecedenceResolver.buildPlatformSet(
                             List.of(Platform.CLAUDE_CODE,
                                     Platform.COPILOT));
 
@@ -114,7 +114,7 @@ class BuildPlatformSetTest {
         @DisplayName("duplicate platforms are deduplicated")
         void buildPlatformSet_duplicates_deduplicates() {
             Set<Platform> result =
-                    GenerateCommand.buildPlatformSet(
+                    PlatformPrecedenceResolver.buildPlatformSet(
                             Arrays.asList(
                                     Platform.CODEX,
                                     Platform.CODEX));
