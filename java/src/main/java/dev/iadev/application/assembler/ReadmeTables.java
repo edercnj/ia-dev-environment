@@ -1,8 +1,10 @@
 package dev.iadev.application.assembler;
 
+import dev.iadev.domain.model.Platform;
 import dev.iadev.domain.model.ProjectConfig;
 
 import java.nio.file.Path;
+import java.util.Set;
 
 /**
  * Coordinates markdown table builders for README.md.
@@ -111,6 +113,18 @@ public final class ReadmeTables {
     }
 
     /**
+     * Builds a platform-filtered mapping table.
+     *
+     * @param outputDir the .claude/ output directory
+     * @param platforms the active platforms (empty = all)
+     * @return formatted mapping table, or empty string
+     */
+    public static String buildMappingTable(
+            Path outputDir, Set<Platform> platforms) {
+        return MAPPING.build(outputDir, platforms);
+    }
+
+    /**
      * Builds the generation summary table.
      *
      * @param outputDir the .claude/ output directory
@@ -120,5 +134,21 @@ public final class ReadmeTables {
     public static String buildGenerationSummary(
             Path outputDir, ProjectConfig config) {
         return SUMMARY.buildGenerationSummary(outputDir);
+    }
+
+    /**
+     * Builds a platform-filtered generation summary.
+     *
+     * @param outputDir the .claude/ output directory
+     * @param config    the project configuration
+     * @param platforms the active platforms (empty = all)
+     * @return formatted generation summary
+     */
+    public static String buildGenerationSummary(
+            Path outputDir,
+            ProjectConfig config,
+            Set<Platform> platforms) {
+        return SUMMARY.buildGenerationSummary(
+                outputDir, platforms);
     }
 }

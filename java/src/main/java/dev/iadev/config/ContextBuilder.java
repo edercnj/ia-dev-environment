@@ -1,5 +1,7 @@
 package dev.iadev.config;
 
+import dev.iadev.application.assembler.PlatformContextBuilder;
+import dev.iadev.domain.model.Platform;
 import dev.iadev.domain.stack.ProtocolMapping;
 import dev.iadev.domain.model.ProjectConfig;
 
@@ -178,5 +180,22 @@ public final class ContextBuilder {
      */
     static String toPythonBool(boolean value) {
         return value ? PYTHON_TRUE : PYTHON_FALSE;
+    }
+
+    /**
+     * Builds platform-aware context variables.
+     *
+     * <p>Produces flags (hasClaude, hasCopilot, hasCodex,
+     * isMultiPlatform) and a platforms list with CLI
+     * names. Delegates to
+     * {@link PlatformContextBuilder}.</p>
+     *
+     * @param platforms the active platforms (empty = all)
+     * @return map with platform flags and list
+     */
+    public static Map<String, Object> buildPlatformContext(
+            Set<Platform> platforms) {
+        return PlatformContextBuilder.buildPlatformFlags(
+                platforms);
     }
 }
