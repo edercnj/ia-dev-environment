@@ -523,7 +523,7 @@ After collecting all specialist review results, generate a consolidated dashboar
 1. Read template at `.claude/templates/_TEMPLATE-CONSOLIDATED-REVIEW-DASHBOARD.md` for required output format (RULE-007). If the template file does not exist, log `"WARNING: Template _TEMPLATE-CONSOLIDATED-REVIEW-DASHBOARD.md not found, using inline format"` and use inline format as fallback (RULE-012).
 2. Aggregate scores from all 8 specialists into a single dashboard with per-specialist rows.
 3. Include overall score, pass/fail status, and severity breakdown.
-4. Save to `plans/epic-XXXX/plans/review-dashboard-story-XXXX-YYYY.md`.
+4. Save to `plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md`.
 5. The dashboard is cumulative — subsequent rounds (Phase 7 Tech Lead review) append to it.
 
 ## Phase 5 — Fixes + Feedback (Orchestrator — Inline)
@@ -532,7 +532,7 @@ After collecting all specialist review results, generate a consolidated dashboar
    - Read template at `.claude/templates/_TEMPLATE-REVIEW-REMEDIATION.md` for required output format (RULE-007). If the template file does not exist, log `"WARNING: Template _TEMPLATE-REVIEW-REMEDIATION.md not found, using inline format"` and use inline format as fallback (RULE-012).
    - Map open findings from the Phase 4 review dashboard to remediation items.
    - For each finding: record original finding, assigned fix action, status (Open/Fixed/Deferred/Accepted), and resolution notes.
-   - Save to `plans/epic-XXXX/plans/remediation-story-XXXX-YYYY.md`.
+   - Save to `plans/epic-XXXX/reviews/remediation-story-XXXX-YYYY.md`.
 2. Fix ALL failed items from Phase 4 review (every specialist engineer must reach STATUS: Approved — all items at 2/2)
 3. For each fix, follow TDD discipline: write/update the test FIRST, then apply the fix
 4. Use atomic TDD commits for fixes (same commit format as Phase 2)
@@ -558,7 +558,7 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
 
 **Dashboard Update (RULE-006):**
 After the Tech Lead review completes, update the consolidated review dashboard:
-1. Read the existing dashboard at `plans/epic-XXXX/plans/review-dashboard-story-XXXX-YYYY.md`.
+1. Read the existing dashboard at `plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md`.
 2. Append a new "Tech Lead Review" round with the Tech Lead's score, GO/NO-GO decision, and findings.
 3. Preserve the history of previous rounds (specialist reviews from Phase 4).
 4. Write the updated dashboard back to the same file.

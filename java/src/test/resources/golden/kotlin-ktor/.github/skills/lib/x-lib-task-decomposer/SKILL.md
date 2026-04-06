@@ -57,7 +57,7 @@ Read these files:
 Read template at `.github/templates/_TEMPLATE-TASK-BREAKDOWN.md` for required output format.
 
 - **Template found**: Use the template's sections as the mandatory output structure. The template defines: Header (Story ID, Date, Author), Summary, Dependency Graph, Tasks Table, and Escalation Notes.
-- **Template NOT found (RULE-012 fallback)**: Log `"Template not found at .github/templates/_TEMPLATE-TASK-BREAKDOWN.md, using inline format"` and use the inline format defined in STEP 5 of this skill. Execution continues normally without interruption.
+- **Template NOT found (RULE-012 fallback)**: Log `"Template not found, using inline format"` and use the inline format defined in STEP 5 of this skill. Execution continues normally without interruption.
 
 > **Note**: The template contains `{{PLACEHOLDER}}` markers. These are NOT rendered by the engine -- they are filled by the LLM at runtime based on the decomposition results.
 
