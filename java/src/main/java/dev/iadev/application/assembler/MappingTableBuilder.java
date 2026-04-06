@@ -1,9 +1,12 @@
 package dev.iadev.application.assembler;
 
+import dev.iadev.domain.model.Platform;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Builds the {@code .claude/ <-> .github/ <-> .codex/}
@@ -23,12 +26,32 @@ public final class MappingTableBuilder {
     }
 
     /**
-     * Builds the mapping table.
+     * Builds the mapping table (all platforms).
      *
      * @param outputDir the .claude/ output directory
      * @return formatted mapping table with totals
      */
     String build(Path outputDir) {
+        return build(outputDir, Set.of());
+    }
+
+    /**
+     * Builds a platform-filtered mapping table.
+     *
+     * <p>Returns an empty string when only one platform
+     * is active (cross-platform mapping is irrelevant).
+     * When platforms is empty or contains all
+     * user-selectable platforms, the full table is
+     * shown.</p>
+     *
+     * @param outputDir the .claude/ output directory
+     * @param platforms the active platforms (empty = all)
+     * @return formatted mapping table, or empty string
+     */
+    String build(Path outputDir, Set<Platform> platforms) {
+        if (isSinglePlatform(platforms)) {
+            return "";
+        }
         String[][] rows = buildMappingRows();
         List<String> lines = new ArrayList<>();
         lines.add("| .claude/ | .github/ | .codex/"
@@ -44,7 +67,8 @@ public final class MappingTableBuilder {
                 SummaryTableBuilder.resolveGithubDir(
                         outputDir);
         int ghTotal = Files.exists(githubDir)
-                ? ReadmeUtils.countGithubFiles(githubDir) : 0;
+                ? ReadmeUtils.countGithubFiles(githubDir)
+                : 0;
         if (ghTotal > 0) {
             lines.add("");
             lines.add(
@@ -52,6 +76,21 @@ public final class MappingTableBuilder {
                             .formatted(ghTotal));
         }
         return String.join("\n", lines);
+    }
+
+    private static boolean isSinglePlatform(
+            Set<Platform> platforms) {
+        if (platforms.isEmpty()) {
+            return false;
+        }
+        if (platforms.containsAll(
+                Platform.allUserSelectable())) {
+            return false;
+        }
+        Set<Platform> userOnly = new java.util.HashSet<>(
+                platforms);
+        userOnly.remove(Platform.SHARED);
+        return userOnly.size() <= 1;
     }
 
     private static String[][] buildMappingRows() {

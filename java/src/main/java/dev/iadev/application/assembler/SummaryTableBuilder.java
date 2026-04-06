@@ -1,5 +1,6 @@
 package dev.iadev.application.assembler;
 
+import dev.iadev.domain.model.Platform;
 import dev.iadev.domain.model.ProjectFoundation;
 
 import java.io.IOException;
@@ -7,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Builds the generation summary table and settings section
@@ -28,15 +30,34 @@ public final class SummaryTableBuilder {
 
     /**
      * Builds the generation summary table with component
-     * counts.
+     * counts (all platforms).
      *
      * @param outputDir the .claude/ output directory
      * @return formatted generation summary
      */
     String buildGenerationSummary(Path outputDir) {
+        return buildGenerationSummary(outputDir, Set.of());
+    }
+
+    /**
+     * Builds a platform-filtered generation summary table.
+     *
+     * <p>When platforms is empty or contains all
+     * user-selectable platforms, all rows are shown.
+     * Otherwise, only rows matching the requested
+     * platform(s) are included.</p>
+     *
+     * @param outputDir the .claude/ output directory
+     * @param platforms the active platforms (empty = all)
+     * @return formatted generation summary
+     */
+    String buildGenerationSummary(
+            Path outputDir, Set<Platform> platforms) {
         Path githubDir = resolveGithubDir(outputDir);
-        Object[][] rows =
+        Object[][] allRows =
                 buildSummaryRows(outputDir, githubDir);
+        Object[][] rows = SummaryRowFilter.filter(
+                allRows, platforms);
         List<String> lines = new ArrayList<>();
         lines.add("| Component | Count |");
         lines.add("|-----------|-------|");
@@ -216,4 +237,5 @@ public final class SummaryTableBuilder {
         }
         return result;
     }
+
 }
