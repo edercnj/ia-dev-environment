@@ -87,7 +87,7 @@ test -f .claude/templates/_TEMPLATE-SPECIALIST-REVIEW.md && echo "TEMPLATE_AVAIL
 ```
 
 - If `TEMPLATE_AVAILABLE`: include template reference instruction in each subagent prompt (see below)
-- If `TEMPLATE_MISSING`: log warning `Template not found at .claude/templates/_TEMPLATE-SPECIALIST-REVIEW.md, using inline format` and use the inline format as fallback
+- If `TEMPLATE_MISSING`: log warning `Template not found, using inline format` and use the inline format as fallback
 
 ### Subagent: Specialist Engineer Review
 

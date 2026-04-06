@@ -327,11 +327,8 @@ class XReviewSkillTemplateTest {
             String content = readSkill(CLAUDE_SKILL_PATH);
 
             assertThat(content)
-                    .contains("Template not found at"
-                            + " .claude/templates/"
-                            + "_TEMPLATE-SPECIALIST-"
-                            + "REVIEW.md, using inline"
-                            + " format");
+                    .contains("Template not found,"
+                            + " using inline format");
         }
 
         @Test
