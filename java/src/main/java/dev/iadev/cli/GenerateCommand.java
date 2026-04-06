@@ -4,6 +4,7 @@ import dev.iadev.application.assembler.AssemblerDescriptor;
 import dev.iadev.application.assembler.AssemblerFactory;
 import dev.iadev.application.assembler.AssemblerPipeline;
 import dev.iadev.application.assembler.PipelineOptions;
+import dev.iadev.domain.model.Platform;
 import dev.iadev.domain.stack.StackValidator;
 import dev.iadev.exception.CliException;
 import dev.iadev.exception.ConfigParseException;
@@ -21,8 +22,10 @@ import picocli.CommandLine.Spec;
 
 import java.io.PrintWriter;
 import java.nio.file.Path;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -90,6 +93,17 @@ public class GenerateCommand implements Callable<Integer> {
             description = "Regenerate CONSTITUTION.md "
                     + "even if it already exists.")
     boolean overwriteConstitution;
+
+    @Option(names = {"-p", "--platform"},
+            description = "Target AI platform(s) for "
+                    + "artifact generation. Values: "
+                    + "claude-code, copilot, codex, all. "
+                    + "Multiple values separated by comma. "
+                    + "Default: all (generate for all "
+                    + "platforms).",
+            split = ",",
+            converter = PlatformConverter.class)
+    List<Platform> platforms;
 
     @Spec
     CommandSpec spec;
@@ -195,9 +209,12 @@ public class GenerateCommand implements Callable<Integer> {
             ProjectConfig config,
             Path destPath,
             PrintWriter out) {
+        Set<Platform> platformSet =
+                buildPlatformSet(platforms);
         PipelineOptions options = new PipelineOptions(
                 dryRun, force, verbose,
-                overwriteConstitution, null);
+                overwriteConstitution, null,
+                platformSet);
         List<AssemblerDescriptor> assemblers =
                 AssemblerFactory.buildAssemblers(options);
         if (verbose) {
@@ -209,5 +226,36 @@ public class GenerateCommand implements Callable<Integer> {
                 new AssemblerPipeline(assemblers);
         return pipeline.runPipeline(
                 config, destPath, options);
+    }
+
+    /**
+     * Converts the CLI platform list to a Set for
+     * PipelineOptions.
+     *
+     * <p>Null list or list containing null (from "all"
+     * converter result) produces empty set (no filter).
+     * Otherwise produces an EnumSet of the specified
+     * platforms.</p>
+     *
+     * @param platformList the parsed platform list,
+     *                     may be null
+     * @return immutable set of platforms, empty = no filter
+     */
+    static Set<Platform> buildPlatformSet(
+            List<Platform> platformList) {
+        if (platformList == null || platformList.isEmpty()) {
+            return Set.of();
+        }
+        boolean containsAllMarker = false;
+        for (Platform p : platformList) {
+            if (p == null) {
+                containsAllMarker = true;
+                break;
+            }
+        }
+        if (containsAllMarker) {
+            return Set.of();
+        }
+        return EnumSet.copyOf(platformList);
     }
 }
