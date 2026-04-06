@@ -28,6 +28,19 @@
 | Transactions | Multi-doc | Multi-doc improved | Faster commits | Lightweight (CAS) | Accord protocol | Lightweight (CAS) |
 | Compression | Snappy, Zstd | Snappy, Zstd | Zstd default | LZ4, Snappy, Zstd | LZ4, Snappy, Zstd | LZ4, Snappy, Zstd |
 
+## Graph Databases
+
+| Feature | Neo4j 4.4 | Neo4j 5.x | Neo4j 5.13+ | Neptune 1.2.x | Neptune 1.3.x |
+|---|---|---|---|---|---|
+| Query language | Cypher | Cypher improved | Cypher + CDC | Gremlin, SPARQL, OpenCypher | Gremlin, SPARQL, OpenCypher |
+| Vector search | No | No | Vector indexes | No | Vector similarity |
+| Graph algorithms | GDS library | GDS improved | GDS + ML | No native (use SageMaker) | Neptune Analytics |
+| Transactions | ACID (single DB) | ACID (composite) | ACID + CDC | Read committed | Read committed |
+| Clustering | Leader-follower | Composite databases | Improved routing | Multi-AZ, read replicas | Multi-AZ, read replicas |
+| Serverless | No | No | No | Neptune Serverless | Neptune Serverless improved |
+| Full-text search | Lucene-based index | Improved full-text | Full-text + vector | No native | No native |
+| Bulk loading | neo4j-admin import | neo4j-admin import | Improved import | S3 bulk loader | S3 bulk loader improved |
+
 ## Cache Systems
 
 | Feature | Redis 7.0 | Redis 7.2 | Redis 7.4 | Dragonfly 1.x | Memcached 1.6 |
@@ -55,3 +68,6 @@
 | Redis | `quarkus-redis-client` | `spring-boot-starter-data-redis` | `io.lettuce:lettuce-core` / `redis.clients:jedis` |
 | Dragonfly | `quarkus-redis-client` (compatible) | `spring-boot-starter-data-redis` (compatible) | `io.lettuce:lettuce-core` (RESP compat) |
 | Memcached | Community / `spymemcached` | `spring-boot-starter-cache` + `xmemcached` | `net.spy:spymemcached` / `com.googlecode.xmemcached:xmemcached` |
+| Neo4j | `quarkus-neo4j` | `spring-boot-starter-data-neo4j` | `org.neo4j.driver:neo4j-java-driver` |
+| Neptune (Gremlin) | N/A (manual config) | N/A (manual config) | `org.apache.tinkerpop:gremlin-driver` |
+| Neptune (SPARQL) | N/A (manual config) | N/A (manual config) | `org.apache.jena:jena-arq` |
