@@ -48,6 +48,25 @@ public final class AssemblerFactory {
      */
     public static List<AssemblerDescriptor>
             buildAssemblers(PipelineOptions options) {
+        List<AssemblerDescriptor> all =
+                buildAllAssemblers(options);
+        return PlatformFilter.filter(
+                all, options.platforms());
+    }
+
+    /**
+     * Builds ALL 34 assemblers without platform filtering.
+     *
+     * <p>Use this when you need the complete list for
+     * verbose/dry-run comparison against filtered list.</p>
+     *
+     * @param options pipeline options controlling assembler
+     *                behavior (platforms field is ignored)
+     * @return immutable ordered list of all 34 assembler
+     *         descriptors
+     */
+    public static List<AssemblerDescriptor>
+            buildAllAssemblers(PipelineOptions options) {
         List<AssemblerDescriptor> all = new ArrayList<>();
         all.addAll(buildConstitutionAssemblers(options));
         all.addAll(buildClaudeRulesAssemblers());
@@ -57,8 +76,7 @@ public final class AssemblerFactory {
         all.addAll(buildDocsAssemblers());
         all.addAll(buildCodexAssemblers());
         all.addAll(buildCicdAssemblers());
-        return PlatformFilter.filter(
-                List.copyOf(all), options.platforms());
+        return List.copyOf(all);
     }
 
     private static List<AssemblerDescriptor>

@@ -218,9 +218,12 @@ public class GenerateCommand implements Callable<Integer> {
         List<AssemblerDescriptor> assemblers =
                 AssemblerFactory.buildAssemblers(options);
         if (verbose) {
+            List<AssemblerDescriptor> all =
+                    AssemblerFactory.buildAllAssemblers(
+                            options);
             return VerbosePipelineRunner.runVerbose(
                     config, destPath, options,
-                    assemblers, out);
+                    assemblers, all, out);
         }
         AssemblerPipeline pipeline =
                 new AssemblerPipeline(assemblers);

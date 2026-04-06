@@ -284,7 +284,8 @@ class GenerateCommandExecTest {
                     "--dry-run", "-v",
                     "-o", tempDir.toString());
             assertThat(sw.toString())
-                    .contains("Running RulesAssembler...");
+                    .contains("Platform filter:")
+                    .contains("INCLUDED: RulesAssembler");
         }
 
         @Test

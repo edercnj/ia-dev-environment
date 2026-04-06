@@ -244,7 +244,8 @@ class DistributionTest {
                     "-o", outputDir.toString(),
                     "-f", "-v");
             assertThat(sw.toString())
-                    .contains("Running ");
+                    .contains("Platform filter:")
+                    .contains("INCLUDED:");
         }
     }
 

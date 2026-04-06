@@ -5,6 +5,7 @@ import dev.iadev.application.assembler.AssemblerPipeline;
 import dev.iadev.application.assembler.AssemblerResult;
 import dev.iadev.application.assembler.PipelineOptions;
 import dev.iadev.domain.model.PipelineResult;
+import dev.iadev.domain.model.Platform;
 import dev.iadev.domain.model.ProjectConfig;
 
 import java.io.PrintWriter;
@@ -12,19 +13,18 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Runs the assembler pipeline in verbose mode, printing
  * progress for each assembler before and after execution.
  *
- * <p>Uses {@link AssemblerPipeline#runPipelinePerAssembler}
- * to track per-assembler file counts and durations.</p>
- *
- * <p>Extracted from {@link GenerateCommand} to keep both
- * classes under 250 lines per RULE-004.</p>
+ * <p>Shows platform filter header with INCLUDED/SKIPPED
+ * assemblers per RULE-008.</p>
  *
  * @see GenerateCommand
  * @see AssemblerPipeline
+ * @see PlatformVerboseFormatter
  */
 final class VerbosePipelineRunner {
 
@@ -33,12 +33,14 @@ final class VerbosePipelineRunner {
     }
 
     /**
-     * Runs the pipeline in verbose mode.
+     * Runs the pipeline in verbose mode with platform
+     * filter awareness.
      *
      * @param config     the project configuration
      * @param destPath   the output directory
      * @param options    pipeline options
-     * @param assemblers the ordered assembler descriptors
+     * @param assemblers the filtered assembler descriptors
+     * @param all        the complete assembler descriptors
      * @param out        the print writer for output
      * @return the pipeline result
      */
@@ -47,11 +49,11 @@ final class VerbosePipelineRunner {
             Path destPath,
             PipelineOptions options,
             List<AssemblerDescriptor> assemblers,
+            List<AssemblerDescriptor> all,
             PrintWriter out) {
-        for (AssemblerDescriptor desc : assemblers) {
-            out.println("Running %s...".formatted(
-                    desc.name()));
-        }
+        printFilterHeader(options.platforms(),
+                assemblers, all, out);
+        printIncludedAndSkipped(assemblers, all, out);
 
         long start = System.nanoTime();
 
@@ -84,8 +86,12 @@ final class VerbosePipelineRunner {
         }
 
         if (options.dryRun()) {
-            allWarnings.add(
-                    AssemblerPipeline.DRY_RUN_WARNING);
+            String dryRunWarning =
+                    PlatformVerboseFormatter
+                            .formatDryRunWarning(
+                                    options.platforms(),
+                                    assemblers.size());
+            allWarnings.add(dryRunWarning);
         }
 
         return new PipelineResult(
@@ -94,5 +100,35 @@ final class VerbosePipelineRunner {
                 allFiles,
                 allWarnings,
                 durationMs);
+    }
+
+    private static void printFilterHeader(
+            Set<Platform> platforms,
+            List<AssemblerDescriptor> filtered,
+            List<AssemblerDescriptor> all,
+            PrintWriter out) {
+        out.println(
+                PlatformVerboseFormatter
+                        .formatFilterHeader(
+                                platforms, filtered, all));
+    }
+
+    private static void printIncludedAndSkipped(
+            List<AssemblerDescriptor> filtered,
+            List<AssemblerDescriptor> all,
+            PrintWriter out) {
+        for (AssemblerDescriptor desc : filtered) {
+            out.println(
+                    PlatformVerboseFormatter
+                            .formatIncluded(desc));
+        }
+        List<AssemblerDescriptor> skipped =
+                PlatformVerboseFormatter
+                        .computeSkipped(filtered, all);
+        for (AssemblerDescriptor desc : skipped) {
+            out.println(
+                    PlatformVerboseFormatter
+                            .formatSkipped(desc));
+        }
     }
 }
