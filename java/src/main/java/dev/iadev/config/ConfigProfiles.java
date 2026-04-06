@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Provides pre-defined configuration profiles for the 14 bundled
+ * Provides pre-defined configuration profiles for the 18 bundled
  * technology stacks.
  *
  * <p>Each profile is loaded from a YAML config template on the
@@ -24,11 +24,15 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li>java-picocli-cli</li>
  *   <li>java-quarkus</li>
  *   <li>java-spring</li>
+ *   <li>java-spring-clickhouse</li>
+ *   <li>java-spring-cqrs-es</li>
+ *   <li>java-spring-elasticsearch</li>
+ *   <li>java-spring-event-driven</li>
  *   <li>java-spring-fintech-pci</li>
  *   <li>java-spring-hexagonal</li>
- *   <li>java-spring-cqrs-es</li>
- *   <li>java-spring-event-driven</li>
+ *   <li>java-spring-neo4j</li>
  *   <li>python-fastapi</li>
+ *   <li>python-fastapi-timescale</li>
  *   <li>python-click-cli</li>
  *   <li>go-gin</li>
  *   <li>kotlin-ktor</li>
@@ -52,11 +56,15 @@ public final class ConfigProfiles {
             "java-picocli-cli",
             "java-quarkus",
             "java-spring",
+            "java-spring-clickhouse",
+            "java-spring-cqrs-es",
+            "java-spring-elasticsearch",
+            "java-spring-event-driven",
             "java-spring-fintech-pci",
             "java-spring-hexagonal",
-            "java-spring-cqrs-es",
-            "java-spring-event-driven",
+            "java-spring-neo4j",
             "python-fastapi",
+            "python-fastapi-timescale",
             "python-click-cli",
             "go-gin",
             "kotlin-ktor",
@@ -101,7 +109,7 @@ public final class ConfigProfiles {
     /**
      * Returns the list of all available stack keys.
      *
-     * @return unmodifiable list of 14 stack key strings
+     * @return unmodifiable list of 18 stack key strings
      */
     public static List<String> getAvailableStacks() {
         return STACK_KEYS;

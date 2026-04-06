@@ -1,0 +1,146 @@
+# Claude Code Boilerplate — Java 21 + Spring Boot 3.x (Elasticsearch Search Engine)
+# Run: ia-dev-env generate --stack java-spring-elasticsearch
+#
+# Inherits java-spring base with Elasticsearch search engine specialization.
+# Adds Spring Data Elasticsearch, index management, and full-text search patterns.
+
+# ═══════════════════════════════════════════════════
+# SECTION 1: PROJECT IDENTITY
+# ═══════════════════════════════════════════════════
+project:
+  name: "my-spring-elasticsearch"
+  purpose: "Describe your search service here"
+
+# ═══════════════════════════════════════════════════
+# SECTION 2: ARCHITECTURE
+# ═══════════════════════════════════════════════════
+architecture:
+  style: microservice
+  domain_driven: true
+  event_driven: false
+
+# ═══════════════════════════════════════════════════
+# SECTION 3: INTERFACES
+# ═══════════════════════════════════════════════════
+interfaces:
+  - type: rest
+    spec: openapi
+
+# ═══════════════════════════════════════════════════
+# SECTION 4: LANGUAGE
+# ═══════════════════════════════════════════════════
+language:
+  name: java
+  version: "21"
+
+# ═══════════════════════════════════════════════════
+# SECTION 5: FRAMEWORK
+# ═══════════════════════════════════════════════════
+framework:
+  name: spring-boot
+  version: "3.x"
+  build_tool: gradle
+  native_build: false
+
+# ═══════════════════════════════════════════════════
+# SECTION 6: DATA
+# ═══════════════════════════════════════════════════
+data:
+  database:
+    type: elasticsearch
+    version: "8"
+    migration: none
+
+  cache:
+    type: none
+    version: ""
+
+  message_broker:
+    type: none
+    version: ""
+
+# ═══════════════════════════════════════════════════
+# SECTION 7: SECURITY
+# ═══════════════════════════════════════════════════
+security:
+  compliance: []
+  encryption:
+    at_rest: false
+    key_management: none
+  pentest_readiness: false
+
+# ═══════════════════════════════════════════════════
+# SECTION 8: CLOUD PROVIDER
+# ═══════════════════════════════════════════════════
+cloud:
+  provider: none
+
+# ═══════════════════════════════════════════════════
+# SECTION 9: INFRASTRUCTURE
+# ═══════════════════════════════════════════════════
+infrastructure:
+  container: docker
+  orchestrator: none
+  templating: none
+  iac: none
+  registry: none
+  api_gateway: none
+  service_mesh: none
+
+# ═══════════════════════════════════════════════════
+# SECTION 10: OBSERVABILITY
+# ═══════════════════════════════════════════════════
+observability:
+  standard: opentelemetry
+  backend: grafana-stack
+
+# ═══════════════════════════════════════════════════
+# SECTION 11: TESTING
+# ═══════════════════════════════════════════════════
+testing:
+  smoke_tests: true
+  performance_tests: false
+  contract_tests: false
+  chaos_tests: false
+
+# ═══════════════════════════════════════════════════
+# SECTION 12: DOMAIN TEMPLATE
+# ═══════════════════════════════════════════════════
+domain:
+  template: none
+
+# ═══════════════════════════════════════════════════
+# SECTION 13: CONVENTIONS
+# ═══════════════════════════════════════════════════
+conventions:
+  code_language: en
+  commit_language: en
+  documentation_language: en
+  git_scopes:
+    - { scope: "domain", area: "Core domain logic" }
+    - { scope: "search", area: "Search indices and queries" }
+    - { scope: "infra", area: "Infrastructure and adapters" }
+    - { scope: "api", area: "REST API layer" }
+    - { scope: "config", area: "Configuration and wiring" }
+
+# ═══════════════════════════════════════════════════
+# SECTION 14: SKILLS / AGENTS / HOOKS / SETTINGS
+# ═══════════════════════════════════════════════════
+skills:
+  override: auto
+agents:
+  override: auto
+  adaptive_model:
+    junior: "haiku"
+    mid: "sonnet"
+    senior: "opus"
+hooks:
+  post_compile: true
+settings:
+  auto_generate: true
+
+# ═══════════════════════════════════════════════════
+# SECTION 18: MCP SERVERS
+# ═══════════════════════════════════════════════════
+mcp:
+  servers: []

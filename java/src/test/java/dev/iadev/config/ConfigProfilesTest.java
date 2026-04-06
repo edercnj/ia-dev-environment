@@ -19,12 +19,15 @@ class ConfigProfilesTest {
             "java-picocli-cli",
             "java-quarkus",
             "java-spring",
-            "java-spring-fintech-pci",
-            "java-spring-hexagonal",
+            "java-spring-clickhouse",
             "java-spring-cqrs-es",
+            "java-spring-elasticsearch",
             "java-spring-event-driven",
             "java-spring-fintech-pci",
+            "java-spring-hexagonal",
+            "java-spring-neo4j",
             "python-fastapi",
+            "python-fastapi-timescale",
             "python-click-cli",
             "go-gin",
             "kotlin-ktor",
@@ -38,12 +41,12 @@ class ConfigProfilesTest {
     class AvailableStacks {
 
         @Test
-        @DisplayName("returns all 14 stack keys")
-        void getAvailableStacks_whenCalled_returns14Keys() {
+        @DisplayName("returns all 18 stack keys")
+        void getAvailableStacks_whenCalled_returns18Keys() {
             List<String> stacks =
                     ConfigProfiles.getAvailableStacks();
 
-            assertThat(stacks).hasSize(14);
+            assertThat(stacks).hasSize(18);
             assertThat(stacks).containsAll(ALL_STACKS);
         }
     }
@@ -55,12 +58,16 @@ class ConfigProfilesTest {
         @ParameterizedTest
         @ValueSource(strings = {
                 "java-picocli-cli", "java-quarkus",
-                "java-spring", "java-spring-fintech-pci",
-                "java-spring-hexagonal",
+                "java-spring", "java-spring-clickhouse",
                 "java-spring-cqrs-es",
+                "java-spring-elasticsearch",
                 "java-spring-event-driven",
                 "java-spring-fintech-pci",
-                "python-fastapi", "python-click-cli",
+                "java-spring-hexagonal",
+                "java-spring-neo4j",
+                "python-fastapi",
+                "python-fastapi-timescale",
+                "python-click-cli",
                 "go-gin", "kotlin-ktor",
                 "typescript-nestjs",
                 "typescript-commander-cli", "rust-axum"})
@@ -346,6 +353,98 @@ class ConfigProfilesTest {
     }
 
     @Nested
+    @DisplayName("getStack() — java-spring-neo4j")
+    class JavaSpringNeo4jStack {
+
+        @Test
+        @DisplayName("returns ProjectConfig for "
+                + "java-spring-neo4j")
+        void getStack_neo4j_returnsConfig() {
+            ProjectConfig config =
+                    ConfigProfiles.getStack(
+                            "java-spring-neo4j");
+
+            assertThat(config.language().name())
+                    .isEqualTo("java");
+            assertThat(config.language().version())
+                    .isEqualTo("21");
+            assertThat(config.framework().name())
+                    .isEqualTo("spring-boot");
+            assertThat(config.architecture().style())
+                    .isEqualTo("microservice");
+        }
+    }
+
+    @Nested
+    @DisplayName("getStack() — java-spring-clickhouse")
+    class JavaSpringClickhouseStack {
+
+        @Test
+        @DisplayName("returns ProjectConfig for "
+                + "java-spring-clickhouse")
+        void getStack_clickhouse_returnsConfig() {
+            ProjectConfig config =
+                    ConfigProfiles.getStack(
+                            "java-spring-clickhouse");
+
+            assertThat(config.language().name())
+                    .isEqualTo("java");
+            assertThat(config.language().version())
+                    .isEqualTo("21");
+            assertThat(config.framework().name())
+                    .isEqualTo("spring-boot");
+            assertThat(config.architecture().style())
+                    .isEqualTo("microservice");
+        }
+    }
+
+    @Nested
+    @DisplayName("getStack() — python-fastapi-timescale")
+    class PythonFastapiTimescaleStack {
+
+        @Test
+        @DisplayName("returns ProjectConfig for "
+                + "python-fastapi-timescale")
+        void getStack_timescale_returnsConfig() {
+            ProjectConfig config =
+                    ConfigProfiles.getStack(
+                            "python-fastapi-timescale");
+
+            assertThat(config.language().name())
+                    .isEqualTo("python");
+            assertThat(config.language().version())
+                    .isEqualTo("3.12");
+            assertThat(config.framework().name())
+                    .isEqualTo("fastapi");
+            assertThat(config.architecture().style())
+                    .isEqualTo("microservice");
+        }
+    }
+
+    @Nested
+    @DisplayName("getStack() — java-spring-elasticsearch")
+    class JavaSpringElasticsearchStack {
+
+        @Test
+        @DisplayName("returns ProjectConfig for "
+                + "java-spring-elasticsearch")
+        void getStack_elasticsearch_returnsConfig() {
+            ProjectConfig config =
+                    ConfigProfiles.getStack(
+                            "java-spring-elasticsearch");
+
+            assertThat(config.language().name())
+                    .isEqualTo("java");
+            assertThat(config.language().version())
+                    .isEqualTo("21");
+            assertThat(config.framework().name())
+                    .isEqualTo("spring-boot");
+            assertThat(config.architecture().style())
+                    .isEqualTo("microservice");
+        }
+    }
+
+    @Nested
     @DisplayName("getStack() — invalid key")
     class InvalidKey {
 
@@ -374,12 +473,16 @@ class ConfigProfilesTest {
         @ParameterizedTest
         @ValueSource(strings = {
                 "java-picocli-cli", "java-quarkus",
-                "java-spring", "java-spring-fintech-pci",
-                "java-spring-hexagonal",
+                "java-spring", "java-spring-clickhouse",
                 "java-spring-cqrs-es",
+                "java-spring-elasticsearch",
                 "java-spring-event-driven",
                 "java-spring-fintech-pci",
-                "python-fastapi", "python-click-cli",
+                "java-spring-hexagonal",
+                "java-spring-neo4j",
+                "python-fastapi",
+                "python-fastapi-timescale",
+                "python-click-cli",
                 "go-gin", "kotlin-ktor",
                 "typescript-nestjs",
                 "typescript-commander-cli", "rust-axum"})
@@ -406,10 +509,15 @@ class ConfigProfilesTest {
         @ParameterizedTest
         @ValueSource(strings = {
                 "java-picocli-cli", "java-quarkus",
-                "java-spring", "java-spring-hexagonal",
+                "java-spring", "java-spring-clickhouse",
                 "java-spring-cqrs-es",
+                "java-spring-elasticsearch",
                 "java-spring-event-driven",
-                "python-fastapi", "python-click-cli",
+                "java-spring-hexagonal",
+                "java-spring-neo4j",
+                "python-fastapi",
+                "python-fastapi-timescale",
+                "python-click-cli",
                 "go-gin", "kotlin-ktor",
                 "typescript-nestjs",
                 "typescript-commander-cli", "rust-axum"})
