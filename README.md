@@ -167,6 +167,7 @@ Each profile generates the complete set of skills, agents, and rules tailored to
 ├── skills/                       # Skills invocable via /command
 │   └── {knowledge-packs}/        # Internal context for agents
 ├── agents/                       # AI personas (architect, tech-lead, etc.)
+├── templates/                    # 12 plan & review templates (EPIC-0024)
 └── hooks/                        # Automation scripts (post-compile, etc.)
 
 .github/                          # GitHub Copilot configuration
@@ -175,6 +176,7 @@ Each profile generates the complete set of skills, agents, and rules tailored to
 ├── skills/                       # Reusable Copilot skills
 ├── agents/                       # Agent definitions (*.agent.md)
 ├── prompts/                      # Prompt templates
+├── templates/                    # 12 plan & review templates (EPIC-0024)
 └── hooks/                        # Event hooks
 
 .codex/                           # OpenAI Codex configuration
@@ -774,7 +776,7 @@ ia-dev-environment/
 │   │   ├── config/               # YAML loading, profiles, context builder
 │   │   ├── model/                # 17 immutable data records
 │   │   ├── domain/               # Stack resolution, DAG, implementation map
-│   │   ├── assembler/            # 23 assemblers (rules, skills, agents, ...)
+│   │   ├── assembler/            # 34 assemblers (rules, skills, agents, templates, ...)
 │   │   ├── template/             # Pebble engine with Python-bool filter
 │   │   ├── checkpoint/           # Execution state management
 │   │   ├── progress/             # Metrics and reporting

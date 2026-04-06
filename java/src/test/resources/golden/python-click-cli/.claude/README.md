@@ -273,11 +273,13 @@ See the files directly for current configuration.
 | Agents (.claude) | 10 |
 | Hooks (.claude) | 0 |
 | Settings (.claude) | 2 |
+| Plan Templates (.claude) | 13 |
 | Instructions (.github) | 5 |
 | Skills (.github) | 62 |
 | Agents (.github) | 10 |
 | Prompts (.github) | 4 |
 | Hooks (.github) | 3 |
+| Plan Templates (.github) | 13 |
 | MCP (.github) | 0 |
 | AGENTS.md (root) | 1 |
 | AGENTS.override.md (root) | 1 |

@@ -387,8 +387,8 @@ class ReadmeTablesTest {
     class BuildGenerationSummary {
 
         @Test
-        @DisplayName("contains 16 component rows")
-        void create_whenCalled_containsSixteenComponents(
+        @DisplayName("contains 18 component rows")
+        void create_whenCalled_containsEighteenComponents(
                 @TempDir Path tempDir)
                 throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
@@ -411,7 +411,7 @@ class ReadmeTablesTest {
                     dataRows++;
                 }
             }
-            assertThat(dataRows).isEqualTo(16);
+            assertThat(dataRows).isEqualTo(18);
         }
 
         @Test
