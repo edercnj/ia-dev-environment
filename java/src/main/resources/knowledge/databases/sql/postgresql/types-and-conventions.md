@@ -1,8 +1,3 @@
-# Global Behavior & Language Policy
-- **Output Language**: English ONLY. (Mandatory for all responses and internal reasoning).
-- **Token Optimization**: Eliminate all greetings, apologies, and conversational fluff. Start responses directly with technical information.
-- **Priority**: Maintain 100% fidelity to the technical constraints defined in the original rules below.
-
 # PostgreSQL — Types and Conventions
 
 > PostgreSQL-specific type mappings, naming conventions, and extensions.

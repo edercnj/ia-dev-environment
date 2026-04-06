@@ -27,7 +27,8 @@ public final class KnowledgePackSelection {
      *
      * <p>Always includes core knowledge packs plus
      * layer-templates. Conditionally includes
-     * database-patterns, disaster-recovery, finops,
+     * database-patterns, data-modeling,
+     * disaster-recovery, finops,
      * architecture-cqrs, architecture-hexagonal,
      * ddd-strategic, and patterns-outbox.</p>
      *
@@ -67,7 +68,8 @@ public final class KnowledgePackSelection {
         if (!"none".equals(config.data().database().name())
                 || !"none".equals(
                         config.data().cache().name())) {
-            return List.of("database-patterns");
+            return List.of(
+                    "database-patterns", "data-modeling");
         }
         return List.of();
     }

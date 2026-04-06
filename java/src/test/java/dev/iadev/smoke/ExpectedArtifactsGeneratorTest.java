@@ -16,12 +16,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * Unit tests for {@link ExpectedArtifactsGenerator}.
  *
  * <p>Validates manifest generation from pipeline output
- * for all 13 bundled profiles.</p>
+ * for all 17 bundled profiles.</p>
  */
 @DisplayName("ExpectedArtifactsGenerator")
 class ExpectedArtifactsGeneratorTest {
 
-    private static final int PROFILE_COUNT = 13;
+    private static final int PROFILE_COUNT = 17;
 
     @Nested
     @DisplayName("generate")
@@ -136,13 +136,18 @@ class ExpectedArtifactsGeneratorTest {
                     .containsExactlyInAnyOrder(
                             "go-gin", "java-quarkus",
                             "java-spring",
-                            "java-spring-hexagonal",
+                            "java-spring-clickhouse",
                             "java-spring-cqrs-es",
+                            "java-spring-elasticsearch",
                             "java-spring-event-driven",
                             "java-spring-fintech-pci",
+                            "java-spring-hexagonal",
+                            "java-spring-neo4j",
                             "kotlin-ktor",
                             "python-click-cli",
-                            "python-fastapi", "rust-axum",
+                            "python-fastapi",
+                            "python-fastapi-timescale",
+                            "rust-axum",
                             "typescript-commander-cli",
                             "typescript-nestjs");
         }

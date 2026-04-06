@@ -29,11 +29,41 @@ This skill contains reference files specific to your project's database and cach
 - `references/migration-patterns.md` — Migration patterns for {{DB_TYPE}} with {{DB_MIGRATION}}
 - `references/query-optimization.md` — Query optimization for {{DB_TYPE}}
 
-**NoSQL databases (mongodb, cassandra):**
+**NoSQL databases (mongodb, cassandra, eventstoredb):**
 - `references/nosql-principles.md` — Universal NoSQL principles (CAP, query-driven modeling)
 - `references/modeling-patterns.md` — Data modeling for {{DB_TYPE}}
 - `references/migration-patterns.md` — Schema evolution for {{DB_TYPE}}
 - `references/query-optimization.md` — Query optimization for {{DB_TYPE}}
+
+**Graph databases (neo4j, neptune):**
+- `references/graph-principles.md` — Property graph vs RDF, traversal paradigms, CAP positioning
+- `references/modeling-patterns.md` — Node/edge design, constraint definitions for {{DB_TYPE}}
+- `references/migration-patterns.md` — Schema evolution, constraint management for {{DB_TYPE}}
+- `references/query-optimization.md` — Traversal optimization, memory tuning for {{DB_TYPE}}
+
+**Columnar/OLAP databases (clickhouse, druid):**
+- `references/columnar-principles.md` — Columnar storage, compression, MPP, vectorized execution
+- `references/modeling-patterns.md` — Table engine selection, schema design for {{DB_TYPE}}
+- `references/migration-patterns.md` — DDL operations, partition management for {{DB_TYPE}}
+- `references/query-optimization.md` — Query execution, partition pruning for {{DB_TYPE}}
+
+**NewSQL/Distributed databases (yugabytedb, cockroachdb, tidb):**
+- `references/newsql-principles.md` — Raft consensus, distributed transactions, HLC clocks
+- `references/types-and-conventions.md` — Data types, PK strategies for {{DB_TYPE}}
+- `references/migration-patterns.md` — Online DDL, migration tooling for {{DB_TYPE}}
+- `references/query-optimization.md` — Distributed query planning, follower reads for {{DB_TYPE}}
+
+**Time-series databases (influxdb, timescaledb):**
+- `references/timeseries-principles.md` — Time-series storage, retention, downsampling, continuous aggregates
+- `references/modeling-patterns.md` — Schema design, measurement/hypertable design for {{DB_TYPE}}
+- `references/migration-patterns.md` — Schema evolution, retention policies for {{DB_TYPE}}
+- `references/query-optimization.md` — Time-range queries, aggregation optimization for {{DB_TYPE}}
+
+**Search engines (elasticsearch, opensearch):**
+- `references/search-principles.md` — Inverted index, BM25, analysis pipeline, mapping design
+- `references/modeling-patterns.md` — Index design, mapping types, nested vs parent-child for {{DB_TYPE}}
+- `references/migration-patterns.md` — Reindex API, alias strategy, lifecycle management for {{DB_TYPE}}
+- `references/query-optimization.md` — Query vs filter context, aggregations, profiling for {{DB_TYPE}}
 
 ### Cache References
 

@@ -1,58 +1,70 @@
 package dev.iadev.application.assembler;
 
 import dev.iadev.domain.model.ProjectConfig;
+import dev.iadev.domain.stack.DatabaseSettingsMapping;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-/**
- * Evaluates project configuration conditions and copies
- * conditional resource files to skill knowledge packs.
- *
- * <p>Each conditional function checks a project feature
- * (database, cache, security) and copies the corresponding
- * resource files when the feature is enabled.</p>
- *
- * <p>Infrastructure and cloud conditionals are in
- * {@link RulesInfraConditionals}.</p>
- *
- * @see RulesAssembler
- * @see RulesInfraConditionals
- * @see ConditionEvaluator
- */
+/** Copies conditional resource files (database, cache, security) to skill KPs. */
 public final class RulesConditionals {
 
     private static final String NONE_VALUE = "none";
-    private static final Set<String> SQL_DB_TYPES =
-            Set.of("postgresql", "oracle", "mysql");
-    private static final Set<String> NOSQL_DB_TYPES =
-            Set.of("mongodb", "cassandra");
+    /** Maps each database name to its category directory. */
+    private static final Map<String, String>
+            DB_CATEGORY_MAP = buildDbCategoryMap();
+
+    private static Map<String, String>
+            buildDbCategoryMap() {
+        Map<String, String> map = new HashMap<>();
+        for (String db : Set.of(
+                "postgresql", "oracle", "mysql")) {
+            map.put(db, "sql");
+        }
+        for (String db : Set.of(
+                "mongodb", "cassandra", "eventstoredb")) {
+            map.put(db, "nosql");
+        }
+        for (String db : Set.of("neo4j", "neptune")) {
+            map.put(db, "graph");
+        }
+        for (String db : Set.of(
+                "clickhouse", "druid")) {
+            map.put(db, "columnar");
+        }
+        for (String db : Set.of(
+                "yugabytedb", "cockroachdb", "tidb")) {
+            map.put(db, "newsql");
+        }
+        for (String db : Set.of(
+                "influxdb", "timescaledb")) {
+            map.put(db, "timeseries");
+        }
+        for (String db : Set.of(
+                "elasticsearch", "opensearch")) {
+            map.put(db, "search");
+        }
+        return Map.copyOf(map);
+    }
 
     private RulesConditionals() {
         // Utility class — no instantiation
     }
 
-    /**
-     * Copies database reference files when database is
-     * configured.
-     *
-     * @param ctx the conditional copy context
-     * @return list of generated file paths
-     */
-    public static List<String> copyDatabaseRefs(
-            ConditionalCopyContext ctx) {
-        String dbName =
-                ctx.config().data().database().name();
+    /** Copies database reference files when configured. */
+    public static List<String> copyDatabaseRefs(ConditionalCopyContext ctx) {
+        String dbName = ctx.config().data().database().name();
         if (NONE_VALUE.equals(dbName)) {
             return List.of();
         }
-        Path dbDir =
-                ctx.resourceDir().resolve("knowledge/databases");
+        Path dbDir = ctx.resourceDir().resolve("knowledge/databases");
         Path target = ctx.skillsDir().resolve(
                 "database-patterns/references");
         CopyHelpers.ensureDirectory(target);
@@ -66,20 +78,17 @@ public final class RulesConditionals {
         return generated;
     }
 
-    /**
-     * Copies cache reference files when cache is configured.
-     *
-     * @param config      the project configuration
-     * @param resourceDir the resources root directory
-     * @param skillsDir   the skills output directory
-     * @return list of generated file paths
-     */
+    /** Copies cache reference files when configured. */
     public static List<String> copyCacheRefs(
             ProjectConfig config,
             Path resourceDir,
             Path skillsDir) {
         String cacheName = config.data().cache().name();
         if (NONE_VALUE.equals(cacheName)) {
+            return List.of();
+        }
+        if (!DatabaseSettingsMapping.CACHE_SETTINGS_MAP
+                .containsKey(cacheName)) {
             return List.of();
         }
         Path dbDir = resourceDir.resolve("knowledge/databases");
@@ -95,15 +104,7 @@ public final class RulesConditionals {
         return generated;
     }
 
-    /**
-     * Copies security files when security frameworks are
-     * configured.
-     *
-     * @param config      the project configuration
-     * @param resourceDir the resources root directory
-     * @param skillsDir   the skills output directory
-     * @return list of generated file paths
-     */
+    /** Copies security files when frameworks configured. */
     public static List<String> assembleSecurityRules(
             ProjectConfig config,
             Path resourceDir,
@@ -122,22 +123,16 @@ public final class RulesConditionals {
 
     /** Delegates to {@link RulesInfraConditionals}. */
     public static List<String> assembleCloudKnowledge(
-            ProjectConfig config,
-            Path resourceDir,
-            Path skillsDir) {
-        return RulesInfraConditionals
-                .assembleCloudKnowledge(
-                        config, resourceDir, skillsDir);
+            ProjectConfig config, Path resourceDir, Path skillsDir) {
+        return RulesInfraConditionals.assembleCloudKnowledge(
+                config, resourceDir, skillsDir);
     }
 
     /** Delegates to {@link RulesInfraConditionals}. */
     public static List<String> assembleInfraKnowledge(
-            ProjectConfig config,
-            Path resourceDir,
-            Path skillsDir) {
-        return RulesInfraConditionals
-                .assembleInfraKnowledge(
-                        config, resourceDir, skillsDir);
+            ProjectConfig config, Path resourceDir, Path skillsDir) {
+        return RulesInfraConditionals.assembleInfraKnowledge(
+                config, resourceDir, skillsDir);
     }
 
     private static List<String> copyDbVersionMatrix(
@@ -155,20 +150,24 @@ public final class RulesConditionals {
 
     private static List<String> copyDbTypeFiles(
             String dbName, Path dbDir, Path target) {
-        List<String> generated = new ArrayList<>();
-        if (SQL_DB_TYPES.contains(dbName)) {
-            generated.addAll(copyMdDir(
-                    dbDir.resolve("sql/common"), target));
-            generated.addAll(copyMdDir(
-                    dbDir.resolve("sql/" + dbName),
-                    target));
-        } else if (NOSQL_DB_TYPES.contains(dbName)) {
-            generated.addAll(copyMdDir(
-                    dbDir.resolve("nosql/common"), target));
-            generated.addAll(copyMdDir(
-                    dbDir.resolve("nosql/" + dbName),
-                    target));
+        String category = DB_CATEGORY_MAP.get(dbName);
+        if (category == null) {
+            return List.of();
         }
+        return copyCategoryFiles(
+                category, dbName, dbDir, target);
+    }
+
+    private static List<String> copyCategoryFiles(
+            String category, String dbName,
+            Path dbDir, Path target) {
+        List<String> generated = new ArrayList<>();
+        generated.addAll(copyMdDir(
+                dbDir.resolve(category + "/common"),
+                target));
+        generated.addAll(copyMdDir(
+                dbDir.resolve(category + "/" + dbName),
+                target));
         return generated;
     }
 
@@ -232,6 +231,9 @@ public final class RulesConditionals {
         List<String> generated = new ArrayList<>();
         for (String framework :
                 config.security().frameworks()) {
+            if (framework.contains("..") || framework.contains("/")) {
+                continue;
+            }
             Path src = secDir.resolve(
                     "compliance/" + framework + ".md");
             if (Files.exists(src)

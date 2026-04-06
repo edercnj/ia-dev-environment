@@ -331,6 +331,70 @@ class StackMappingTest {
     }
 
     @Nested
+    @DisplayName("DATABASE_SETTINGS_MAP")
+    class DatabaseSettingsMapTests {
+
+        @Test
+        @DisplayName("contains exactly 17 entries")
+        void databaseSettingsMap_size_exactlySeventeen() {
+            assertThat(StackMapping.DATABASE_SETTINGS_MAP)
+                    .hasSize(17);
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+                "postgresql, database-psql",
+                "mysql, database-mysql",
+                "oracle, database-oracle",
+                "mongodb, database-mongodb",
+                "cassandra, database-cassandra",
+                "neo4j, database-neo4j",
+                "neptune, database-neptune",
+                "clickhouse, database-clickhouse",
+                "druid, database-druid",
+                "yugabytedb, database-yugabytedb",
+                "cockroachdb, database-cockroachdb",
+                "tidb, database-tidb",
+                "influxdb, database-influxdb",
+                "timescaledb, database-timescaledb",
+                "elasticsearch, database-elasticsearch",
+                "opensearch, database-opensearch",
+                "eventstoredb, database-eventstoredb"
+        })
+        @DisplayName("database {0} maps to {1}")
+        void databaseSettingsMap_containsEntry(
+                String db, String expected) {
+            assertThat(StackMapping.DATABASE_SETTINGS_MAP)
+                    .containsEntry(db, expected);
+        }
+
+        @Test
+        @DisplayName("existing SQL databases unchanged")
+        void databaseSettingsMap_sqlBackwardCompat() {
+            assertThat(StackMapping.DATABASE_SETTINGS_MAP
+                    .get("postgresql"))
+                    .isEqualTo("database-psql");
+            assertThat(StackMapping.DATABASE_SETTINGS_MAP
+                    .get("mysql"))
+                    .isEqualTo("database-mysql");
+            assertThat(StackMapping.DATABASE_SETTINGS_MAP
+                    .get("oracle"))
+                    .isEqualTo("database-oracle");
+        }
+
+        @Test
+        @DisplayName("existing NoSQL databases unchanged")
+        void databaseSettingsMap_nosqlBackwardCompat() {
+            assertThat(StackMapping.DATABASE_SETTINGS_MAP
+                    .get("mongodb"))
+                    .isEqualTo("database-mongodb");
+            assertThat(StackMapping.DATABASE_SETTINGS_MAP
+                    .get("cassandra"))
+                    .isEqualTo("database-cassandra");
+        }
+    }
+
+    @Nested
     @DisplayName("Utility Methods")
     class UtilityMethodsTests {
 
@@ -374,6 +438,28 @@ class StackMappingTest {
         void getDatabaseSettingsKey_postgresql_correct() {
             assertThat(StackMapping.getDatabaseSettingsKey("postgresql"))
                     .isEqualTo("database-psql");
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+                "neo4j, database-neo4j",
+                "neptune, database-neptune",
+                "clickhouse, database-clickhouse",
+                "druid, database-druid",
+                "yugabytedb, database-yugabytedb",
+                "cockroachdb, database-cockroachdb",
+                "tidb, database-tidb",
+                "influxdb, database-influxdb",
+                "timescaledb, database-timescaledb",
+                "elasticsearch, database-elasticsearch",
+                "opensearch, database-opensearch",
+                "eventstoredb, database-eventstoredb"
+        })
+        @DisplayName("getDatabaseSettingsKey for {0}")
+        void getDatabaseSettingsKey_newDbs_correct(
+                String db, String expected) {
+            assertThat(StackMapping.getDatabaseSettingsKey(db))
+                    .isEqualTo(expected);
         }
 
         @Test

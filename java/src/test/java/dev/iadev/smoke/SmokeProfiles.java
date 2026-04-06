@@ -12,7 +12,7 @@ import java.util.stream.Stream;
  * duplicating the profile list.</p>
  *
  * <p>The profiles are an explicitly curated list of the
- * 13 bundled profiles used by golden file and smoke tests.
+ * 17 bundled profiles used by golden file and smoke tests.
  * The list excludes {@code java-picocli-cli} (the project's
  * own profile) and is maintained in sync with the golden
  * test resources directory.</p>
@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 public final class SmokeProfiles {
 
     /**
-     * The 13 profiles used by golden file tests and smoke
+     * The 17 profiles used by golden file tests and smoke
      * tests. This excludes java-picocli-cli which is the
      * project's own profile.
      */
@@ -29,13 +29,17 @@ public final class SmokeProfiles {
                     "go-gin",
                     "java-quarkus",
                     "java-spring",
+                    "java-spring-clickhouse",
                     "java-spring-cqrs-es",
+                    "java-spring-elasticsearch",
                     "java-spring-event-driven",
                     "java-spring-fintech-pci",
                     "java-spring-hexagonal",
+                    "java-spring-neo4j",
                     "kotlin-ktor",
                     "python-click-cli",
                     "python-fastapi",
+                    "python-fastapi-timescale",
                     "rust-axum",
                     "typescript-commander-cli",
                     "typescript-nestjs");
@@ -45,7 +49,7 @@ public final class SmokeProfiles {
     }
 
     /**
-     * Provides the 13 bundled profile names as a stream,
+     * Provides the 17 bundled profile names as a stream,
      * suitable for {@code @MethodSource} parameterization.
      *
      * @return stream of profile name strings
@@ -57,7 +61,7 @@ public final class SmokeProfiles {
     /**
      * Returns the list of all smoke-testable profiles.
      *
-     * @return unmodifiable list of 13 profile name strings
+     * @return unmodifiable list of 17 profile name strings
      */
     public static List<String> profileList() {
         return SMOKE_PROFILES;

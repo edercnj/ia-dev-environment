@@ -212,13 +212,17 @@ class ExpectedArtifactsTest {
                             "smoke/expected-artifacts.json");
 
             assertThat(artifacts.getProfileNames())
-                    .hasSize(13)
+                    .hasSize(17)
                     .contains("java-quarkus", "go-gin",
                             "python-click-cli",
                             "java-spring-fintech-pci",
                             "java-spring-hexagonal",
                             "java-spring-cqrs-es",
                             "java-spring-event-driven",
+                            "java-spring-neo4j",
+                            "java-spring-clickhouse",
+                            "java-spring-elasticsearch",
+                            "python-fastapi-timescale",
                             "typescript-commander-cli");
         }
     }
