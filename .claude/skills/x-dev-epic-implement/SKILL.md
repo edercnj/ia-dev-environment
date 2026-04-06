@@ -150,18 +150,35 @@ When `--resume` is set, the orchestrator loads `execution-state.json` and applie
 
 ### Step 1 — Reclassify Story Statuses
 
-Apply the following status transitions to every story in the checkpoint:
+Apply the following status transitions to every story in the checkpoint.
+For stories with PR fields, verify actual PR state via GitHub CLI.
 
 | Current Status | New Status | Condition |
 |----------------|------------|-----------|
 | IN_PROGRESS | PENDING | Always (interrupted work) |
 | SUCCESS | SUCCESS | Preserved — never re-execute |
-| FAILED (retries < MAX_RETRIES) | PENDING | Retry candidate |
+| PR_CREATED | PR_CREATED or SUCCESS | Verify via `gh pr view {prNumber} --json state`: if MERGED → SUCCESS; if OPEN → keep PR_CREATED; if not found → FAILED |
+| PR_PENDING_REVIEW | PR_PENDING_REVIEW or SUCCESS | Same verification as PR_CREATED |
+| PR_MERGED | SUCCESS | PR merged — story is complete |
+| FAILED (retries < MAX_RETRIES) | PENDING | Retry candidate. Close existing PR: `gh pr close {prNumber} --comment "Story retry"` |
 | FAILED (retries >= MAX_RETRIES) | FAILED | Retry budget exhausted |
 | PARTIAL | PENDING | Treat as interrupted |
 | BLOCKED | BLOCKED | Deferred to reevaluation step |
 | PENDING | PENDING | No change |
-`MAX_RETRIES` defaults to 2. All other story fields (phase, commitSha, retries, summary, duration, findingsCount) are preserved.
+
+`MAX_RETRIES` defaults to 2. All other story fields (phase, commitSha, retries, summary, duration, findingsCount, prUrl, prNumber, prMergeStatus) are preserved.
+
+### Step 1b — Failure Handling: PR Closure
+
+When a story transitions to FAILED and has an open PR:
+```
+if story.prNumber exists and story.prMergeStatus != "MERGED":
+  gh pr close {prNumber} --comment "Story failed: {summary}"
+  update story.prMergeStatus = "CLOSED"
+```
+
+When a story is retried (FAILED → PENDING), the lifecycle creates a new PR on the next dispatch.
+The old closed PR is preserved for audit.
 
 ### Step 2 — Reevaluate BLOCKED Stories
 
@@ -169,14 +186,17 @@ After reclassification, evaluate each BLOCKED story:
 
 - If `blockedBy` is **undefined** → keep BLOCKED (conservative: unknown dependencies)
 - If `blockedBy` is **empty array** → reclassify to PENDING (no dependencies = vacuously satisfied)
-- If **all** dependencies in `blockedBy` have status SUCCESS → reclassify to PENDING
-- If **any** dependency is non-SUCCESS or missing from the stories map → keep BLOCKED
+- If **all** dependencies in `blockedBy` have status SUCCESS and prMergeStatus "MERGED" → reclassify to PENDING
+- If **any** dependency is non-SUCCESS or not merged → keep BLOCKED
 
-This is a **single-pass** evaluation (no cascade). Stories unblocked in this pass will not trigger further unblocking of stories that depend on them.
+This is a **single-pass** evaluation (no cascade).
 
-### Step 3 — Resume Execution (Branch Recovery Removed)
+### Step 3 — Resume Execution
 
-After reclassification and branch recovery, feed the updated state into `getExecutableStories()` to determine which stories are ready for execution. Only stories with status PENDING proceed to the execution loop.
+The orchestrator stays on `main` (no branch recovery needed — each story has its own branch
+managed by x-dev-lifecycle). Feed the updated state into `getExecutableStories()` to determine
+which stories are ready for execution. Only stories with status PENDING proceed to the execution loop.
+Recover `mainShaBeforePhase` from checkpoint for integrity gate context (RULE-006).
 
 ## Phase 0.5 — Pre-flight Conflict Analysis
 
