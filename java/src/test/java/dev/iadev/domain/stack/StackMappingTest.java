@@ -335,10 +335,10 @@ class StackMappingTest {
     class DatabaseSettingsMapTests {
 
         @Test
-        @DisplayName("contains at least 16 entries")
-        void databaseSettingsMap_size_atLeastSixteen() {
+        @DisplayName("contains exactly 17 entries")
+        void databaseSettingsMap_size_exactlySeventeen() {
             assertThat(StackMapping.DATABASE_SETTINGS_MAP)
-                    .hasSizeGreaterThanOrEqualTo(16);
+                    .hasSize(17);
         }
 
         @ParameterizedTest
@@ -358,7 +358,8 @@ class StackMappingTest {
                 "influxdb, database-influxdb",
                 "timescaledb, database-timescaledb",
                 "elasticsearch, database-elasticsearch",
-                "opensearch, database-opensearch"
+                "opensearch, database-opensearch",
+                "eventstoredb, database-eventstoredb"
         })
         @DisplayName("database {0} maps to {1}")
         void databaseSettingsMap_containsEntry(
@@ -451,7 +452,8 @@ class StackMappingTest {
                 "influxdb, database-influxdb",
                 "timescaledb, database-timescaledb",
                 "elasticsearch, database-elasticsearch",
-                "opensearch, database-opensearch"
+                "opensearch, database-opensearch",
+                "eventstoredb, database-eventstoredb"
         })
         @DisplayName("getDatabaseSettingsKey for {0}")
         void getDatabaseSettingsKey_newDbs_correct(
