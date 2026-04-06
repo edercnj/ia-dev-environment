@@ -23,24 +23,48 @@ Produces a Double-Loop TDD test plan that drives implementation order. With 95% 
 
 If no story provided, ask which story to plan.
 
+## Pre-Check: Idempotency (RULE-002)
+
+Before generating a test plan, verify whether a valid plan already exists:
+
+1. **Resolve paths:** Extract epic ID (XXXX) and story sequence (YYYY) from the story ID. Compute:
+   - Story path: the story file provided as input
+   - Plan path: `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
+
+2. **Check existence:** If the plan file does NOT exist, proceed to generation (Step 1).
+
+3. **Compare modification times:** If the plan file exists:
+   - If `mtime(story file) <= mtime(plan file)` → the plan is **fresh**. Log: `"Reusing existing test plan from {date}"` (where `{date}` is the plan file's last modified date). Return the existing plan. **Do NOT invoke any subagent.**
+   - If `mtime(story file) > mtime(plan file)` → the plan is **stale**. Log: `"Regenerating stale test plan for {story-id}"`. Proceed to generation (Step 1).
+
+4. **First generation:** If the plan file does not exist at all, log: `"Generating test plan for {story-id}"`. Proceed to generation (Step 1).
+
 ## Execution Flow (Orchestrator Pattern)
 
 ```
-1. GATHER CONTEXT  -> Subagent reads testing + architecture KPs, story, existing code
+0. PRE-CHECK       -> Verify existing plan freshness (mtime comparison)
+1. GATHER CONTEXT  -> Subagent (model: opus) reads testing + architecture KPs, story, template, existing code
 2. PLAN TESTS      -> Orchestrator generates Double-Loop + TPP-ordered scenarios (inline)
 3. ESTIMATE        -> Orchestrator estimates coverage and validates completeness (inline)
 ```
 
-## Step 1: Gather Context (Subagent via Task)
+## Step 1: Gather Context (Subagent via Task — model: opus)
 
-Launch a **single** `general-purpose` subagent:
+Launch a **single** `general-purpose` subagent with `model: opus`:
 
 > You are a **Test Planning Assistant** gathering context for test plan generation.
+>
+> **Read the template for required output format (RULE-007):**
+> - Read template at `.claude/templates/_TEMPLATE-TEST-PLAN.md` for required output format.
+> - If the template file does NOT exist, log: `"Template not found, using inline format"` and continue without it (RULE-012: graceful fallback for projects without templates).
 >
 > **Read these knowledge packs:**
 > - `skills/testing/references/testing-philosophy.md` — 8 test categories, fixture patterns, data uniqueness, async handling, real vs in-memory DB decisions
 > - `skills/testing/references/testing-conventions.md` — {{LANGUAGE}}-specific test frameworks, naming conventions, directory structure, assertion libraries
 > - `skills/architecture/references/architecture-principles.md` — exception hierarchy, layer boundaries (unit vs integration), dependency direction
+>
+> **Read testing knowledge pack for {{LANGUAGE}}-specific patterns:**
+> - Read `skills/testing/SKILL.md` for {{LANGUAGE}}-specific test frameworks, conventions, and patterns
 >
 > **Read the story:** `{STORY_PATH}`
 > Extract: acceptance criteria, sub-tasks, business rules, dependencies.
@@ -61,6 +85,7 @@ Launch a **single** `general-purpose` subagent:
 > 9. **Existing patterns** found in current test codebase
 > 10. **Contract tests applicable** (if testing.contract_tests == true)
 > 11. **Chaos tests applicable** (if testing.chaos_tests == true)
+> 12. **Template sections** — if template was found, list the 8 mandatory sections to populate
 
 ## Step 2: Generate Test Scenarios (Orchestrator — Inline)
 
@@ -236,9 +261,23 @@ Save to: `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md` (extract epic ID XXXX 
 - Do NOT ignore existing test patterns
 - Do NOT create redundant tests covering the same branch
 
+## Template Fallback (RULE-012)
+
+When `.claude/templates/_TEMPLATE-TEST-PLAN.md` is **not available** (projects predating EPIC-0024):
+
+1. Log warning: `"Template not found, using inline format"`
+2. Generate the test plan using the inline output format defined in the **Output** section above
+3. Execution continues normally — no interruption, no error
+4. The inline format produces the same 8 conceptual sections but without the template's strict structure
+
+This ensures backward compatibility with projects that have not yet adopted template-based generation.
+
 ## Integration Notes
 
 - Invoked by `x-dev-lifecycle` during Phase 1B
+- Pre-check (RULE-002) prevents redundant regeneration when story has not changed
+- Template reference (RULE-007) ensures consistent 8-section output format when available
+- Subagent uses `model: opus` (RULE-009) for deep test planning quality
 - Output uses Double-Loop TDD format with TPP-ordered scenarios
 - Output consumed by Phase 2 (developers) and Phase 3 (QA engineer validates coverage)
 - Can be used standalone before any implementation task
