@@ -1,0 +1,178 @@
+package dev.iadev.application.assembler;
+
+import dev.iadev.domain.model.Platform;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * Tests for platform-filtered generation summary in
+ * SummaryTableBuilder.
+ */
+@DisplayName("SummaryTableBuilder — platform filtering")
+class SummaryTableBuilderPlatformTest {
+
+    private final SummaryTableBuilder builder =
+            new SummaryTableBuilder();
+
+    @Nested
+    @DisplayName("buildGenerationSummary with platforms")
+    class FilteredSummary {
+
+        @Test
+        @DisplayName("claude-only omits github/codex rows")
+        void build_claudeOnly_omitsGithubAndCodex(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path claudeDir = setupMinimalOutput(tempDir);
+
+            String summary =
+                    builder.buildGenerationSummary(
+                            claudeDir,
+                            Set.of(Platform.CLAUDE_CODE));
+
+            assertThat(summary)
+                    .contains("Rules (.claude)")
+                    .contains("Skills (.claude)")
+                    .contains("Knowledge Packs (.claude)")
+                    .contains("Agents (.claude)")
+                    .contains("Hooks (.claude)")
+                    .contains("Settings (.claude)")
+                    .contains("Plan Templates (.claude)")
+                    .doesNotContain("(.github)")
+                    .doesNotContain("(.codex)")
+                    .doesNotContain("(.agents)")
+                    .doesNotContain("AGENTS.md (root)");
+        }
+
+        @Test
+        @DisplayName("copilot-only omits claude/codex rows")
+        void build_copilotOnly_omitsClaudeAndCodex(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path claudeDir = setupMinimalOutput(tempDir);
+
+            String summary =
+                    builder.buildGenerationSummary(
+                            claudeDir,
+                            Set.of(Platform.COPILOT));
+
+            assertThat(summary)
+                    .contains("(.github)")
+                    .doesNotContain("(.claude)")
+                    .doesNotContain("(.codex)")
+                    .doesNotContain("(.agents)")
+                    .doesNotContain("AGENTS.md (root)");
+        }
+
+        @Test
+        @DisplayName("codex-only omits claude/github rows")
+        void build_codexOnly_omitsClaudeAndGithub(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path claudeDir = setupMinimalOutput(tempDir);
+
+            String summary =
+                    builder.buildGenerationSummary(
+                            claudeDir,
+                            Set.of(Platform.CODEX));
+
+            assertThat(summary)
+                    .contains("AGENTS.md (root)")
+                    .contains("(.codex)")
+                    .contains("(.agents)")
+                    .doesNotContain("(.claude)")
+                    .doesNotContain("(.github)");
+        }
+
+        @Test
+        @DisplayName("empty platforms shows all rows")
+        void build_emptyPlatforms_showsAllRows(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path claudeDir = setupMinimalOutput(tempDir);
+
+            String summary =
+                    builder.buildGenerationSummary(
+                            claudeDir, Set.of());
+
+            assertThat(summary)
+                    .contains("(.claude)")
+                    .contains("(.github)")
+                    .contains("(.codex)")
+                    .contains("AGENTS.md (root)");
+        }
+
+        @Test
+        @DisplayName("all user-selectable shows all rows")
+        void build_allSelectable_showsAllRows(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path claudeDir = setupMinimalOutput(tempDir);
+
+            String summary =
+                    builder.buildGenerationSummary(
+                            claudeDir,
+                            Platform.allUserSelectable());
+
+            assertThat(summary)
+                    .contains("(.claude)")
+                    .contains("(.github)")
+                    .contains("(.codex)");
+        }
+
+        @Test
+        @DisplayName("claude+copilot shows both, omits codex")
+        void build_claudeAndCopilot_showsBothOmitsCodex(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path claudeDir = setupMinimalOutput(tempDir);
+
+            String summary =
+                    builder.buildGenerationSummary(
+                            claudeDir,
+                            Set.of(Platform.CLAUDE_CODE,
+                                    Platform.COPILOT));
+
+            assertThat(summary)
+                    .contains("(.claude)")
+                    .contains("(.github)")
+                    .doesNotContain("(.codex)")
+                    .doesNotContain("AGENTS.md (root)");
+        }
+
+        @Test
+        @DisplayName("always contains version footer")
+        void build_anyPlatform_containsVersion(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path claudeDir = setupMinimalOutput(tempDir);
+
+            String summary =
+                    builder.buildGenerationSummary(
+                            claudeDir,
+                            Set.of(Platform.CLAUDE_CODE));
+
+            assertThat(summary)
+                    .contains("Generated by `ia-dev-env");
+        }
+    }
+
+    private Path setupMinimalOutput(Path tempDir)
+            throws IOException {
+        Path claudeDir = Files.createDirectories(
+                tempDir.resolve(".claude"));
+        Files.createDirectories(
+                tempDir.resolve(".github"));
+        return claudeDir;
+    }
+}
