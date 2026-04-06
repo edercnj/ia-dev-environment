@@ -2,6 +2,7 @@ package dev.iadev.application.assembler;
 
 import dev.iadev.domain.model.ProjectFoundation;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -116,6 +117,9 @@ public final class SummaryTableBuilder {
                         ReadmeUtils.countHooks(outputDir)},
                 {"Settings (.claude)",
                         ReadmeUtils.countSettings(outputDir)},
+                {"Plan Templates (.claude)",
+                        countPlanTemplates(outputDir,
+                                "templates")},
         };
     }
 
@@ -138,6 +142,9 @@ public final class SummaryTableBuilder {
                         ghComponent(githubDir, "prompts")},
                 {"Hooks (.github)",
                         ghComponent(githubDir, "hooks")},
+                {"Plan Templates (.github)",
+                        countPlanTemplates(githubDir,
+                                "templates")},
                 {"MCP (.github)", ghMcp},
         };
     }
@@ -173,6 +180,26 @@ public final class SummaryTableBuilder {
                 {"Codex (.codex)", codexCount},
                 {"Skills (.agents)", agentsCount},
         };
+    }
+
+    private static int countPlanTemplates(
+            Path baseDir, String subdir) {
+        Path templatesDir = baseDir.resolve(subdir);
+        if (!Files.isDirectory(templatesDir)) {
+            return 0;
+        }
+        try (var stream = Files.list(templatesDir)) {
+            return (int) stream
+                    .filter(p -> p.getFileName()
+                            .toString()
+                            .startsWith("_TEMPLATE-"))
+                    .filter(p -> p.getFileName()
+                            .toString()
+                            .endsWith(".md"))
+                    .count();
+        } catch (IOException e) {
+            return 0;
+        }
     }
 
     private static Object[][] concatRows(

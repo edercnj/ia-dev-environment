@@ -27,8 +27,8 @@ class SummaryTableBuilderTest {
     class BuildGenerationSummary {
 
         @Test
-        @DisplayName("contains 16 component rows")
-        void build_whenCalled_containsSixteenComponents(
+        @DisplayName("contains 18 component rows")
+        void build_whenCalled_containsEighteenComponents(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
 
@@ -47,7 +47,7 @@ class SummaryTableBuilderTest {
                     dataRows++;
                 }
             }
-            assertThat(dataRows).isEqualTo(16);
+            assertThat(dataRows).isEqualTo(18);
         }
 
         @Test
@@ -82,16 +82,56 @@ class SummaryTableBuilderTest {
                     .contains("Agents (.claude)")
                     .contains("Hooks (.claude)")
                     .contains("Settings (.claude)")
+                    .contains("Plan Templates (.claude)")
                     .contains("Instructions (.github)")
                     .contains("Skills (.github)")
                     .contains("Agents (.github)")
                     .contains("Prompts (.github)")
                     .contains("Hooks (.github)")
+                    .contains("Plan Templates (.github)")
                     .contains("MCP (.github)")
                     .contains("AGENTS.md (root)")
                     .contains("AGENTS.override.md (root)")
                     .contains("Codex (.codex)")
                     .contains("Skills (.agents)");
+        }
+
+        @Test
+        @DisplayName("counts plan templates when present")
+        void build_withTemplates_countsPlanTemplates(
+                @TempDir Path tempDir) throws IOException {
+            Path claudeDir = setupMinimalOutput(tempDir);
+            Path claudeTemplates =
+                    Files.createDirectories(
+                            claudeDir.resolve("templates"));
+            Path githubTemplates =
+                    Files.createDirectories(
+                            tempDir.resolve(".github")
+                                    .resolve("templates"));
+            for (int i = 1; i <= 12; i++) {
+                Files.writeString(
+                        claudeTemplates.resolve(
+                                "_TEMPLATE-PLAN-" + i
+                                        + ".md"),
+                        "content",
+                        StandardCharsets.UTF_8);
+                Files.writeString(
+                        githubTemplates.resolve(
+                                "_TEMPLATE-PLAN-" + i
+                                        + ".md"),
+                        "content",
+                        StandardCharsets.UTF_8);
+            }
+
+            String summary =
+                    builder.buildGenerationSummary(
+                            claudeDir);
+
+            assertThat(summary)
+                    .contains("Plan Templates (.claude)"
+                            + " | 12 |")
+                    .contains("Plan Templates (.github)"
+                            + " | 12 |");
         }
 
         @Test

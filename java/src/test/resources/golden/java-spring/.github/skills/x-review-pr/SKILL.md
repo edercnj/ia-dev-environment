@@ -24,6 +24,39 @@ Senior-level holistic review with a 57-point rubric. This is the standalone vers
 - Branch should have changes relative to main
 - Ideally, specialist reviews (`/x-review`) have already been run
 
+## Execution Flow
+
+```
+0. PRE-CHECK   -> Idempotency: skip if report exists and code unchanged (inline)
+1. DETECT      -> Identify branch, diff, story context (inline)
+2. GATHER      -> Read KPs, check existing artifacts (inline)
+3. TEMPLATE    -> Detect Tech Lead review template (inline)
+4. REVIEW      -> Execute 57-point Tech Lead review (inline)
+5. DASHBOARD   -> Update consolidated dashboard with Tech Lead Score (inline)
+6. REMEDIATION -> Update remediation tracking with FIXED/new findings (inline)
+7. RESULT      -> Process and display result (inline)
+8. NO-GO       -> Handle NO-GO decision (inline)
+```
+
+## Phase 0: Idempotency Pre-Check (RULE-002)
+
+Before executing the Tech Lead review, check if a report already exists and is still valid.
+
+1. Extract story ID from argument or branch name (e.g., `story-XXXX-YYYY`)
+2. Derive epic directory: `plans/epic-XXXX/reviews/`
+3. Check if Tech Lead report exists:
+   ```bash
+   ls plans/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md 2>/dev/null
+   ```
+4. If report exists AND the branch has no new commits since last report:
+   ```bash
+   stat -c %Y plans/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md 2>/dev/null
+   git log -1 --format=%ct HEAD
+   ```
+   - If `mtime(report) >= commit_date`: log `Reusing existing tech lead review from {date}` and skip to Step 5 (dashboard update)
+   - If code changed after report: proceed with full review
+5. If no report exists, proceed normally
+
 ## Workflow
 
 ### Step 1 -- Detect Context
@@ -53,7 +86,20 @@ Check for existing artifacts (extract epic ID XXXX and story sequence YYYY from 
 - Implementation plan (`plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md`)
 - Test plan (`plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md`)
 
-### Step 3 -- Execute Tech Lead Review
+### Step 3 -- Template Detection
+
+Before executing the review, check if the Tech Lead review template exists:
+
+```bash
+test -f .claude/templates/_TEMPLATE-TECH-LEAD-REVIEW.md && echo "TL_TEMPLATE_AVAILABLE" || echo "TL_TEMPLATE_MISSING"
+```
+
+- If `TL_TEMPLATE_AVAILABLE`: Read template at `.claude/templates/_TEMPLATE-TECH-LEAD-REVIEW.md` for required output format. Follow ALL sections defined in the template. The report MUST include a standardized header with Story ID, Date, Author (Tech Lead), and Template Version (RULE-011). Score MUST be in format `XX/57` with status `GO`/`NO-GO` (RULE-005).
+- If `TL_TEMPLATE_MISSING`: log warning `Template not found, using inline format` and use the inline format as fallback (RULE-012). Dashboard and remediation updates are skipped when template is absent.
+
+> **Fallback (RULE-012):** When template is not available (pre-EPIC-0024 projects), the current inline format is used as fallback. Skip dashboard and remediation updates since they depend on template-based artifacts.
+
+### Step 4 -- Execute Tech Lead Review
 
 The Tech Lead review covers:
 
@@ -88,7 +134,49 @@ The Tech Lead review covers:
 | >= 48/57 + zero issues | GO              |
 | < 48/57 OR any issue   | NO-GO           |
 
-### Step 4 -- Process Result
+### Step 5 -- Update Consolidated Dashboard
+
+After saving the Tech Lead report, update the consolidated dashboard (RULE-006).
+
+The dashboard is **cumulative** (RULE-006): created by `/x-review` (specialist scores), updated by `/x-review-pr` (Tech Lead Score).
+
+1. **Check if dashboard exists:**
+   ```bash
+   test -f plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md && echo "DASHBOARD_EXISTS" || echo "DASHBOARD_MISSING"
+   ```
+
+2. **If dashboard exists (created by x-review):**
+   - Read `plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md`
+   - Update the **Tech Lead Score** section: replace placeholder `--/55 | Status: Pending` with actual score `XX/57 | Status: GO/NO-GO`
+   - Update the **Overall Score** to include Tech Lead score in the total
+   - Update the **Overall Status** considering both specialist scores and Tech Lead decision: status is updated to reflect all 8 specialists + Tech Lead combined assessment
+   - Append a new **Round** to the **Review History** section with date, Tech Lead score, and status
+   - Preserve all existing specialist scores and previous rounds
+
+3. **If dashboard does not exist (x-review was not executed):**
+   - Log: `Dashboard not found, creating fresh dashboard`
+   - Check dashboard template availability and create with only Tech Lead Score populated
+
+### Step 6 -- Update Remediation Tracking
+
+After updating the dashboard, update the remediation tracking file.
+
+1. **Check if remediation exists:**
+   ```bash
+   test -f plans/epic-XXXX/reviews/remediation-story-XXXX-YYYY.md && echo "REMEDIATION_EXISTS" || echo "REMEDIATION_MISSING"
+   ```
+
+2. **If remediation exists (created by x-review):**
+   - Read `plans/epic-XXXX/reviews/remediation-story-XXXX-YYYY.md`
+   - For findings confirmed fixed by the Tech Lead: update status from `Open` -> `Fixed`
+   - Add new Tech Lead findings not in existing tracker, with status `Open`
+   - Update **Remediation Summary** counts
+
+3. **If remediation does not exist (x-review was not executed):**
+   - Log: `Remediation not found, creating fresh remediation with Tech Lead findings`
+   - Create remediation with only Tech Lead findings (all as `Open`)
+
+### Step 7 -- Process Result
 
 ```
 ============================================================
@@ -100,11 +188,13 @@ The Tech Lead review covers:
  Medium:    N issues
  Low:       N issues
 ------------------------------------------------------------
- Report: plans/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md
+ Report:      plans/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md
+ Dashboard:   plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md (updated)
+ Remediation: plans/epic-XXXX/reviews/remediation-story-XXXX-YYYY.md (updated)
 ============================================================
 ```
 
-### Step 5 -- Handle NO-GO
+### Step 8 -- Handle NO-GO
 
 If NO-GO, offer options:
 1. Fix critical issues now
@@ -115,12 +205,9 @@ If fixing: apply corrections, commit, re-run review (max 2 cycles).
 
 ## Output Artifacts
 
-- `plans/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md`
-
-## Integration Notes
-
-- This skill produces the SAME artifact as Phase 6 of `x-dev-lifecycle`
-- Recommended workflow: `/x-review` first (breadth), then `/x-review-pr` (depth)
+- `plans/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md` -- Tech Lead review report
+- `plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md` -- Updated consolidated dashboard
+- `plans/epic-XXXX/reviews/remediation-story-XXXX-YYYY.md` -- Updated remediation tracking
 
 
 ### Section L -- Event-Driven Review (8 criteria)
@@ -140,6 +227,15 @@ If fixing: apply corrections, commit, re-run review (max 2 cycles).
 2. Personal data deletion endpoint implemented
 3. Processing operations log with legal basis
 4. Anonymization/pseudonymization applied where personal data not strictly necessary
+
+## Integration Notes
+
+- This skill produces the SAME artifact as Phase 6 of `x-dev-lifecycle`
+- Recommended workflow: `/x-review` first (breadth), then `/x-review-pr` (depth)
+- Dashboard (Step 5) is **cumulative** -- created by `/x-review`, updated by `/x-review-pr` (RULE-006)
+- Remediation tracking (Step 6) enables FIXED status tracking after Tech Lead review
+- Templates in `.claude/templates/` are copied verbatim by `PlanTemplatesAssembler` -- not rendered by the engine
+- Fallback (RULE-012): When templates are absent (pre-EPIC-0024 projects), inline format is used and dashboard/remediation updates are skipped
 
 ## Detailed References
 

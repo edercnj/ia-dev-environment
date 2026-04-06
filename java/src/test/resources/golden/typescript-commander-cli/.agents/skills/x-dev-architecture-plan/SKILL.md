@@ -68,7 +68,7 @@ Before generating an architecture plan, check whether one already exists and is 
       - story_mtime = mtime of the story file
       - plan_mtime  = mtime of the architecture plan file
    b. IF story_mtime <= plan_mtime:
-      - Log: "Reusing existing architecture plan from {plan_mtime_date}"
+      - Log: "Reusing existing architecture plan from {date}"
       - STOP — do NOT regenerate
    c. IF story_mtime > plan_mtime:
       - Log: "Regenerating stale architecture plan for {story}"

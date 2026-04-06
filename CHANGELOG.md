@@ -7,7 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Artifact Persistence & Standardization (EPIC-0024):** 12 new plan and review templates providing standardized output formats for all planning and review artifacts. Templates: Implementation Plan, Test Plan, Architecture Plan, Task Breakdown, Security Assessment, Compliance Assessment, Specialist Review, Tech Lead Review, Consolidated Review Dashboard, Review Remediation, Epic Execution Plan, and Phase Completion Report.
+- **PlanTemplatesAssembler (EPIC-0024):** New assembler that copies 12 templates verbatim to both `.claude/templates/` and `.github/templates/` with mandatory section validation (RULE-004 dual-target, RULE-010 validation).
+- **Pre-checks in 8 skills (EPIC-0024):** Idempotency pre-checks added to x-dev-lifecycle, x-test-plan, x-dev-architecture-plan, x-lib-task-decomposer, x-review, x-review-pr, x-dev-epic-implement, and x-dev-implement. Skills verify artifact staleness before regenerating (RULE-002).
+- **Consolidated Review Dashboard (EPIC-0024):** Cumulative dashboard created by x-review and updated by x-review-pr with parseable scores (XX/YY format) and review history (RULE-005, RULE-006).
+- **Remediation Tracking (EPIC-0024):** Review remediation template with findings tracker, deferred justifications, and re-review results for systematic issue resolution.
+- **Epic Execution Plan (EPIC-0024):** Execution plan template saved before epic execution begins, enabling human audit of strategy, phase timeline, and resource requirements.
+- **Phase Completion Reports (EPIC-0024):** Per-phase reports documenting stories completed, integrity gate results, coverage delta, and next phase readiness.
+
 ### Changed
+- **x-dev-lifecycle (EPIC-0024):** Now produces 6 artifact types with pre-checks (previously 2). Generates implementation plan, test plan, architecture plan, task breakdown, security assessment, and compliance assessment with staleness verification.
+- **x-dev-implement (EPIC-0024):** Consumes existing plans as context when available, ensuring consistency between x-dev-lifecycle planning and x-dev-implement execution.
+- **x-review (EPIC-0024):** Generates consolidated review dashboard with parseable specialist scores. Dashboard is cumulative across review rounds.
+- **x-review-pr (EPIC-0024):** Updates consolidated review dashboard with Tech Lead review round, providing complete quality visibility in a single file.
 - Restructured project directories to adopt SDD (Spec-Driven Development) layout
   - `docs/` replaced by `steering/`, `specs/`, `plans/`, `results/`, `contracts/`, `adr/`
   - Java assembler output paths updated to match new structure

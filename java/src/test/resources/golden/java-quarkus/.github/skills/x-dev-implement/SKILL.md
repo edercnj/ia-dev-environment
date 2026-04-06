@@ -26,7 +26,7 @@ Before starting implementation, check for existing plans produced by `x-dev-life
 1. **Resolve paths:** Extract epic ID (XXXX) and story sequence (YYYY) from the story ID. Compute:
    - Story path: the story file provided as input
    - Implementation plan path: `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md`
-   - Architecture plan path: `plans/epic-XXXX/plans/arch-story-XXXX-YYYY.md`
+   - Architecture plan path: `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
    - Test plan path: `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
 
 2. **Check each artifact:** For each plan type, check existence and staleness:
@@ -34,11 +34,11 @@ Before starting implementation, check for existing plans produced by `x-dev-life
    | # | Artifact Type | File Pattern | Context Injection Instruction |
    |---|---------------|--------------|-------------------------------|
    | 1 | Implementation Plan | `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` | "Use implementation plan at {path} for class diagram, method signatures, affected layers, and TDD strategy" |
-   | 2 | Architecture Plan | `plans/epic-XXXX/plans/arch-story-XXXX-YYYY.md` | "Use architecture plan at {path} for component structure, dependency matrix, and mini-ADRs" |
+   | 2 | Architecture Plan | `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` | "Use architecture plan at {path} for component structure, dependency matrix, and mini-ADRs" |
    | 3 | Test Plan | `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md` | "Use test plan at {path} for acceptance tests and unit test scenarios" |
 
 3. **Staleness check:** For each plan that exists:
-   - If `mtime(story file) <= mtime(plan file)` → plan is **fresh**. Log: `"Using existing {type} at {path}"`
+   - If `mtime(story file) <= mtime(plan file)` → plan is **fresh**. Log: `"Reusing existing {type} from {date}"`
    - If `mtime(story file) > mtime(plan file)` → plan is **stale**. Log WARNING: `"Plan {type} may be stale (story modified after plan generation), using as context anyway"`
    - Stale plans are still used as context — do NOT regenerate (regeneration is the responsibility of `x-dev-lifecycle`)
 
