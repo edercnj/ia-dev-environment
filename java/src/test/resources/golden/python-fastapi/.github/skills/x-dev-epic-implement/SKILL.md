@@ -89,9 +89,26 @@ Execute a single story in isolation.
 4. Read EPIC-XXXX.md for context
 5. Glob story files, determine execution order
 6. Create branch: `git checkout -b feat/epic-{epicId}-implementation`
-7. If `--dry-run`: output plan and stop
-8. If `--resume`: run the Resume Workflow (see below) before delegation
-9. Delegate per-story execution to x-dev-lifecycle
+7. Create `plans/epic-{epicId}/reports/` directory if it does not exist
+8. Generate execution plan (see Execution Plan Persistence below)
+9. If `--dry-run`: execution plan was saved in step 8. Log: `"Dry-run: execution plan saved to {path}. No stories executed."` and stop
+10. If `--resume`: run the Resume Workflow (see below) before delegation
+11. Delegate per-story execution to x-dev-lifecycle
+
+### Execution Plan Persistence
+
+Before any story executes, persist a human-readable execution plan.
+
+**Pre-check (RULE-002):** Check if `plans/epic-{epicId}/reports/epic-execution-plan-{epicId}.md` exists:
+- Not found → generate new plan. Log: `"Generating execution plan for EPIC-{epicId}"`
+- Found and `mtime(IMPLEMENTATION-MAP.md) <= mtime(plan)` → reuse. Log: `"Reusing existing execution plan from {date}"`
+- Found and `mtime(IMPLEMENTATION-MAP.md) > mtime(plan)` → regenerate. Log: `"Regenerating execution plan (implementation map modified)"`
+
+**Template (RULE-007):** Read template at `.claude/templates/_TEMPLATE-EPIC-EXECUTION-PLAN.md` for required output format.
+
+**Fallback (RULE-012):** If template not found, log `"WARNING: Template _TEMPLATE-EPIC-EXECUTION-PLAN.md not found, using inline format"` and generate with inline format containing story list ordered by phase.
+
+**Header (RULE-011):** Include Epic ID, Date, Author, Template Version.
 
 ## Resume Workflow
 
@@ -290,6 +307,22 @@ After all stories in a phase complete, dispatch an integrity gate subagent:
 
 Gate result stored via `updateIntegrityGate(epicDir, phase, result)`. Mandatory per RULE-004.
 
+### Phase Completion Reports
+
+After the integrity gate finishes for a phase, generate a phase completion report.
+
+**Template (RULE-007):** Read template at `.claude/templates/_TEMPLATE-PHASE-COMPLETION-REPORT.md` for required output format.
+
+**Fallback (RULE-012):** If template not found, log `"WARNING: Template _TEMPLATE-PHASE-COMPLETION-REPORT.md not found, using inline format"` and generate with inline format.
+
+**Content:** Story statuses, durations, integrity gate results, findings summary, TDD compliance, coverage delta, blockers, next phase readiness.
+
+**Output:** `plans/epic-{epicId}/reports/phase-{N}-completion-{epicId}.md`
+
+**Header (RULE-011):** Include Epic ID, Phase Number, Date, Author, Template Version.
+
+**Timing:** Generated AFTER the integrity gate completes (PASS or FAIL) to include gate results.
+
 ## Phase 2 — Consolidation (Two-Wave)
 
 After all stories complete (or reach terminal state), the orchestrator runs a
@@ -392,7 +425,14 @@ Final verification validates the epic as a whole before declaring completion.
 - Uses: `gh pr create` (PR creation with summary body, Phase 2.3 — Wave 2 sequential)
 - Phase 2 uses Two-Wave consolidation: Wave 1 dispatches 2.1 + 2.2 in parallel (SINGLE message, RULE-003); Wave 2 (2.3) runs after both complete
 - Reads: `_TEMPLATE-EPIC-EXECUTION-REPORT.md` (report template), `execution-state.json` (checkpoint data)
+- Reads: `_TEMPLATE-EPIC-EXECUTION-PLAN.md` (execution plan template, Phase 0 Step 8)
+- Reads: `_TEMPLATE-PHASE-COMPLETION-REPORT.md` (phase completion report template)
 - Reads: `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (implementation plans for pre-flight analysis, Phase 0.5)
+- Writes: `plans/epic-XXXX/reports/epic-execution-plan-{epicId}.md` (execution plan, Phase 0 Step 8)
+- Writes: `plans/epic-XXXX/reports/phase-{N}-completion-{epicId}.md` (phase completion report)
 - Writes: `plans/epic-XXXX/plans/preflight-analysis-phase-N.md` (pre-flight analysis output, Phase 0.5)
+- Creates: `plans/epic-XXXX/reports/` directory (Phase 0 Step 7)
 - Phase 0.5 is skipped when `--sequential` is set
+- Execution plan uses idempotency pre-check (RULE-002): compares mtime of IMPLEMENTATION-MAP.md vs execution plan
+- Templates referenced via RULE-007; graceful fallback to inline format (RULE-012)
 - All `{{PLACEHOLDER}}` tokens are runtime markers — NOT resolved during generation

@@ -140,9 +140,53 @@ Execute a single story in isolation.
 5. **Discover story files**: Glob `story-XXXX-*.md` to collect all story files in the epic directory
 6. **Determine execution order**: Use the dependency graph from IMPLEMENTATION-MAP.md to order stories; stories without dependencies run in parallel via worktrees by default; use `--sequential` to disable
 7. **Single-PR guard**: If `--single-pr` is set, enter legacy flow: create branch `feat/epic-{epicId}-full-implementation`, use rebase-before-merge strategy, create single mega-PR at the end. Skip all per-story PR logic. The legacy flow is preserved unchanged from the pre-epic-0021 behavior.
-8. **Dry-run exit**: If `--dry-run` is set, output the execution plan (story order, dependencies, estimated phases) and stop
-9. **Resume handling**: If `--resume` is set, run the Resume Workflow (see below) before delegation
-10. **Delegate**: For each story in execution order, invoke `/x-dev-lifecycle` with appropriate flags. Branching is delegated to `x-dev-lifecycle` — each story creates its own branch `feat/{storyId}-description` targeting `main`.
+8. **Create reports directory**: Create `plans/epic-{epicId}/reports/` if it does not exist. Log: `"Created reports/ directory for EPIC-{epicId}"`. If directory already exists, skip silently.
+9. **Generate execution plan**: Run the Execution Plan Persistence workflow (see below). This saves a human-readable execution plan to `plans/epic-{epicId}/reports/epic-execution-plan-{epicId}.md` BEFORE any story executes.
+10. **Dry-run exit**: If `--dry-run` is set, the execution plan was already saved in step 9. Log: `"Dry-run: execution plan saved to plans/epic-{epicId}/reports/epic-execution-plan-{epicId}.md. No stories executed."` and stop. No stories are dispatched.
+11. **Resume handling**: If `--resume` is set, run the Resume Workflow (see below) before delegation
+12. **Delegate**: For each story in execution order, invoke `/x-dev-lifecycle` with appropriate flags. Branching is delegated to `x-dev-lifecycle` — each story creates its own branch `feat/{storyId}-description` targeting `main`.
+
+### Execution Plan Persistence
+
+Before any story executes, the orchestrator persists a human-readable execution plan.
+This plan complements the technical `execution-state.json` with an auditable artifact
+that Product Owners and reviewers can inspect before authorizing execution.
+
+#### Pre-check (RULE-002 — Idempotency)
+
+1. Compute plan path: `plans/epic-{epicId}/reports/epic-execution-plan-{epicId}.md`
+2. Check if the plan file exists:
+   - If NOT found: generate a new plan. Log: `"Generating execution plan for EPIC-{epicId}"`
+   - If found, compare modification times:
+     - `mtime(IMPLEMENTATION-MAP.md) <= mtime(execution-plan)` → reuse existing plan. Log: `"Reusing existing execution plan from {date}"`
+     - `mtime(IMPLEMENTATION-MAP.md) > mtime(execution-plan)` → regenerate. Log: `"Regenerating execution plan (implementation map modified)"`
+
+#### Plan Generation
+
+1. Read template at `.claude/templates/_TEMPLATE-EPIC-EXECUTION-PLAN.md` for required output format (RULE-007)
+2. If template is found: generate the plan following the template structure, filling all `{{PLACEHOLDER}}` tokens with real data from the epic context, implementation map, and story files
+3. If template is NOT found (RULE-012 — graceful fallback): log `"WARNING: Template _TEMPLATE-EPIC-EXECUTION-PLAN.md not found, using inline format"` and generate the plan with the following inline format:
+
+```markdown
+# Epic Execution Plan -- EPIC-{epicId}
+
+> **Epic ID:** EPIC-{epicId}
+> **Date:** {currentDate}
+> **Total Stories:** {totalStories}
+> **Total Phases:** {totalPhases}
+> **Mode:** {execute|dry-run}
+
+## Story Execution Order
+
+| Order | Story ID | Phase | Dependencies | Status |
+|-------|----------|-------|--------------|--------|
+| 1 | story-{epicId}-0001 | 0 | — | Pending |
+| 2 | story-{epicId}-0002 | 0 | — | Pending |
+| ... | ... | ... | ... | ... |
+```
+
+4. Write the plan to `plans/epic-{epicId}/reports/epic-execution-plan-{epicId}.md`
+5. The plan header MUST include: Epic ID, Date, Author (role), Template Version (RULE-011)
 
 ## Resume Workflow
 
@@ -453,7 +497,7 @@ For each phase in (0..totalPhases-1):
      c. Validate result (see 1.5)
      d. Update checkpoint (see 1.6)
   7. [Placeholder: integrity gate between phases — story-0005-0006]
-  8. [Placeholder: progress reporting — story-0005-0013]
+  8. Generate phase completion report (see Phase Completion Reports below)
   9. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
 ```
 
@@ -949,6 +993,62 @@ cross-story consistency check on the `main` diff for the phase:
 > Type: `Map<Integer, String>` — SHA-1 hex (40 chars) per phase number.
 > Example: `{ "0": "abc123...", "1": "def456..." }`
 
+### Phase Completion Reports
+
+After all stories in a phase complete (or reach terminal state) and the integrity
+gate finishes, the orchestrator generates a **phase completion report** — a
+human-readable record of the phase outcome saved alongside the execution plan.
+
+#### Report Generation
+
+1. Read template at `.claude/templates/_TEMPLATE-PHASE-COMPLETION-REPORT.md` for required output format (RULE-007)
+2. If template is found: generate the report following the template structure, filling all `{{PLACEHOLDER}}` tokens with real data from the checkpoint (story statuses, durations, findings, coverage, TDD metrics)
+3. If template is NOT found (RULE-012 — graceful fallback): log `"WARNING: Template _TEMPLATE-PHASE-COMPLETION-REPORT.md not found, using inline format"` and generate the report with the following inline format:
+
+```markdown
+# Phase Completion Report -- EPIC-{epicId} Phase {N}
+
+> **Epic ID:** EPIC-{epicId}
+> **Phase:** {N}
+> **Date:** {currentDate}
+
+## Stories Completed
+
+| Story ID | Status | Duration |
+|----------|--------|----------|
+| story-{epicId}-YYYY | SUCCESS | 3m 45s |
+| ... | ... | ... |
+
+## Summary
+- Stories attempted: {count}
+- Stories succeeded: {count}
+- Stories failed: {count}
+- Stories blocked: {count}
+- Phase duration: {duration}
+```
+
+4. Write the report to `plans/epic-{epicId}/reports/phase-{N}-completion-{epicId}.md`
+5. The report header MUST include: Epic ID, Phase Number, Date, Author (role), Template Version (RULE-011)
+
+#### Report Content
+
+The phase completion report contains:
+
+- **Stories executed**: status (SUCCESS/FAILED/BLOCKED/SKIPPED), duration, commit SHA per story
+- **Integrity gate results**: compilation, test, coverage, smoke gate results
+- **Findings summary**: severity counts and examples from per-story reviews
+- **TDD compliance**: TDD cycles, test-first commits, TPP progression per story
+- **Coverage delta**: line and branch coverage before/after the phase
+- **Blockers encountered**: descriptions, resolutions, impact assessments
+- **Next phase readiness**: checklist and recommendation for proceeding
+
+#### Timing
+
+The phase completion report is generated AFTER the integrity gate completes
+(whether PASS or FAIL). This ensures the gate results are included in the report.
+If the gate fails, the report documents the failure and serves as a diagnostic
+artifact for the operator deciding whether to resume or abort.
+
 ## Phase 2 — Epic Progress Report Generation
 
 After all stories in a phase complete (or reach terminal state), the orchestrator
@@ -1076,9 +1176,11 @@ Report: plans/epic-{epicId}/epic-execution-report.md
 Elapsed: {totalElapsedTime}
 ```
 
-### Dry-Run Output (Phase 0, Step 8)
+### Dry-Run Output (Phase 0, Step 10)
 
-When `--dry-run` is set, display the execution plan without executing:
+When `--dry-run` is set, the execution plan is saved as a persistent artifact
+(see Execution Plan Persistence in Phase 0 Step 9) and the console output
+displays a summary:
 
 ```
 Epic Execution Plan (DRY RUN)
@@ -1086,6 +1188,8 @@ Epic Execution Plan (DRY RUN)
 Epic: EPIC-{epicId}
 Model: per-story PR (each story creates its own PR targeting main)
 Stories: N total across M phases
+
+Execution plan saved to: plans/epic-{epicId}/reports/epic-execution-plan-{epicId}.md
 
 Phase 0:
   - story-XXXX-0001: Branch feat/story-XXXX-0001-*, PR -> main
@@ -1099,6 +1203,10 @@ Phase 1:
 Flags: --auto-merge={value}, --single-pr=false, --skip-review={value}, --strict-overlap={value}
 ```
 
+> **Dry-run persistence:** In dry-run mode, the execution plan is the primary output.
+> It allows human review of the plan before committing to a real execution. No stories
+> are dispatched and no PRs are created.
+
 > **`--single-pr` dry-run:** When `--single-pr` is set, the dry-run output shows
 > `Model: single-pr (legacy)` with the epic branch name instead of per-story branches.
 
@@ -1111,11 +1219,19 @@ Flags: --auto-merge={value}, --single-pr=false, --skip-review={value}, --strict-
 - Uses: `gh pr close` (failure handling — close PR on story failure)
 - Phase 2 generates an incremental progress report with `{{PR_LINKS_TABLE}}` per-story PR table
 - Reads: `_TEMPLATE-EPIC-EXECUTION-REPORT.md` (report template), `execution-state.json` (checkpoint data)
+- Reads: `_TEMPLATE-EPIC-EXECUTION-PLAN.md` (execution plan template, Phase 0 Step 9)
+- Reads: `_TEMPLATE-PHASE-COMPLETION-REPORT.md` (phase completion report template, Phase 1 Step 8)
 - Reads: `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (implementation plans for pre-flight conflict analysis, Phase 0.5)
+- Writes: `plans/epic-XXXX/reports/epic-execution-plan-{epicId}.md` (execution plan, Phase 0 Step 9)
+- Writes: `plans/epic-XXXX/reports/phase-{N}-completion-{epicId}.md` (phase completion report, Phase 1 Step 8)
 - Writes: `plans/epic-XXXX/plans/preflight-analysis-phase-N.md` (pre-flight analysis output for audit, Phase 0.5)
+- Creates: `plans/epic-XXXX/reports/` directory (Phase 0 Step 8)
 - Phase 0.5 is skipped when `--sequential` is set (no parallel dispatch means no conflict risk)
 - Phase 0.5 defaults to advisory mode (warnings only); use `--strict-overlap` for blocking partitioning
 - All `{{PLACEHOLDER}}` tokens are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
+- Execution plan uses idempotency pre-check (RULE-002): compares mtime of IMPLEMENTATION-MAP.md vs execution plan to avoid regeneration
+- Templates are referenced via RULE-007: "Read template at `.claude/templates/_TEMPLATE-{TYPE}.md` for required output format"
+- Graceful fallback (RULE-012): when templates are not available, inline format is used with logged warning
 - Integrity gate runs on `main` after all phase PRs are merged (RULE-006); uses `mainShaBeforePhase` for diff
 - Integrity gate includes smoke tests (Step 5) as regression validation — runs `{{SMOKE_COMMAND}}`
 - Smoke gate is bypassed with `--skip-smoke-gate` flag; result recorded as `smokeGate.status = "SKIP"` in checkpoint
