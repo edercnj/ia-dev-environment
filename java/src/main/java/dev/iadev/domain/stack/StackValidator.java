@@ -1,10 +1,12 @@
 package dev.iadev.domain.stack;
 
+import dev.iadev.domain.model.Platform;
 import dev.iadev.domain.model.ProjectConfig;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Validates stack compatibility. Delegates version checks
@@ -44,6 +46,7 @@ public final class StackValidator {
         errors.addAll(validateEventStore(config));
         errors.addAll(validateSchemaRegistry(config));
         errors.addAll(validateDeadLetterStrategy(config));
+        errors.addAll(validatePlatforms(config));
         return errors;
     }
 
@@ -150,6 +153,29 @@ public final class StackValidator {
             ProjectConfig config) {
         return StackCqrsValidator
                 .validateDeadLetterStrategy(config);
+    }
+
+    /**
+     * Validates that configured platforms are
+     * user-selectable (not SHARED).
+     */
+    public static List<String> validatePlatforms(
+            ProjectConfig config) {
+        Set<Platform> userSelectable =
+                Platform.allUserSelectable();
+        List<String> errors = new ArrayList<>();
+        for (Platform p : config.platforms()) {
+            if (!userSelectable.contains(p)) {
+                errors.add(
+                        ("Invalid platform value:"
+                                + " '%s' in YAML config."
+                                + " Valid values:"
+                                + " claude-code, copilot,"
+                                + " codex, all")
+                                .formatted(p.cliName()));
+            }
+        }
+        return errors;
     }
 
     /** Extracts the major version from a version string. */

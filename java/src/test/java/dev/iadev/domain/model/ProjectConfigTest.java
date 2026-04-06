@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -466,6 +467,157 @@ class ProjectConfigTest {
 
             assertThat(config.compliance())
                     .isEqualTo("pci-dss");
+        }
+    }
+
+    @Nested
+    @DisplayName("platform field")
+    class PlatformField {
+
+        @Test
+        @DisplayName("absent platform defaults to empty set")
+        void fromMap_noPlatform_defaultsToEmptySet() {
+            var config = ProjectConfig.fromMap(
+                    buildMinimalConfig());
+
+            assertThat(config.platforms()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("platform string 'claude-code' parsed")
+        void fromMap_platformString_parsedToSingletonSet() {
+            var map = new HashMap<>(buildMinimalConfig());
+            map.put("platform", "claude-code");
+
+            var config = ProjectConfig.fromMap(map);
+
+            assertThat(config.platforms())
+                    .containsExactly(Platform.CLAUDE_CODE);
+        }
+
+        @Test
+        @DisplayName("platform string 'copilot' parsed")
+        void fromMap_platformCopilot_parsedCorrectly() {
+            var map = new HashMap<>(buildMinimalConfig());
+            map.put("platform", "copilot");
+
+            var config = ProjectConfig.fromMap(map);
+
+            assertThat(config.platforms())
+                    .containsExactly(Platform.COPILOT);
+        }
+
+        @Test
+        @DisplayName("platform string 'all' returns empty set")
+        void fromMap_platformAll_returnsEmptySet() {
+            var map = new HashMap<>(buildMinimalConfig());
+            map.put("platform", "all");
+
+            var config = ProjectConfig.fromMap(map);
+
+            assertThat(config.platforms()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("platform list parsed to set")
+        void fromMap_platformList_parsedToSet() {
+            var map = new HashMap<>(buildMinimalConfig());
+            map.put("platform",
+                    List.of("claude-code", "copilot"));
+
+            var config = ProjectConfig.fromMap(map);
+
+            assertThat(config.platforms())
+                    .containsExactlyInAnyOrder(
+                            Platform.CLAUDE_CODE,
+                            Platform.COPILOT);
+        }
+
+        @Test
+        @DisplayName("platform list with 'all' returns empty")
+        void fromMap_platformListWithAll_returnsEmpty() {
+            var map = new HashMap<>(buildMinimalConfig());
+            map.put("platform", List.of("all"));
+
+            var config = ProjectConfig.fromMap(map);
+
+            assertThat(config.platforms()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("platform set is immutable")
+        void fromMap_platforms_immutable() {
+            var map = new HashMap<>(buildMinimalConfig());
+            map.put("platform", "claude-code");
+
+            var config = ProjectConfig.fromMap(map);
+
+            assertThatThrownBy(() ->
+                    config.platforms().add(Platform.COPILOT))
+                    .isInstanceOf(
+                            UnsupportedOperationException.class);
+        }
+
+        @Test
+        @DisplayName("platform string 'codex' parsed")
+        void fromMap_platformCodex_parsedCorrectly() {
+            var map = new HashMap<>(buildMinimalConfig());
+            map.put("platform", "codex");
+
+            var config = ProjectConfig.fromMap(map);
+
+            assertThat(config.platforms())
+                    .containsExactly(Platform.CODEX);
+        }
+
+        @Test
+        @DisplayName("platform list with all three values")
+        void fromMap_platformListThree_parsedToSet() {
+            var map = new HashMap<>(buildMinimalConfig());
+            map.put("platform",
+                    List.of("claude-code", "copilot",
+                            "codex"));
+
+            var config = ProjectConfig.fromMap(map);
+
+            assertThat(config.platforms())
+                    .containsExactlyInAnyOrder(
+                            Platform.CLAUDE_CODE,
+                            Platform.COPILOT,
+                            Platform.CODEX);
+        }
+
+        @Test
+        @DisplayName("invalid platform string throws")
+        void fromMap_invalidPlatform_throwsException() {
+            var map = new HashMap<>(buildMinimalConfig());
+            map.put("platform", "invalid-value");
+
+            assertThatThrownBy(
+                    () -> ProjectConfig.fromMap(map))
+                    .isInstanceOf(
+                            ConfigValidationException.class)
+                    .hasMessageContaining(
+                            "Invalid platform value:"
+                                    + " 'invalid-value'")
+                    .hasMessageContaining(
+                            "Valid values");
+        }
+
+        @Test
+        @DisplayName("invalid platform in list throws")
+        void fromMap_invalidPlatformInList_throws() {
+            var map = new HashMap<>(buildMinimalConfig());
+            map.put("platform",
+                    List.of("claude-code", "bad"));
+
+            assertThatThrownBy(
+                    () -> ProjectConfig.fromMap(map))
+                    .isInstanceOf(
+                            ConfigValidationException.class)
+                    .hasMessageContaining(
+                            "Invalid platform value:"
+                                    + " 'bad'");
         }
     }
 }

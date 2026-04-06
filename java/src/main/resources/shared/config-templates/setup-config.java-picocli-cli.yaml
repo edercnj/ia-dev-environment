@@ -13,6 +13,13 @@ project:
   name: "my-java-cli"
   purpose: "Describe your CLI tool purpose here"
 
+# ═════════════════════════════════════════════════
+# PLATFORM (AI target platforms)
+# Options: claude-code, copilot, codex, all
+# 'all' generates artifacts for every supported platform.
+# ═════════════════════════════════════════════════
+platform: all
+
 # ═══════════════════════════════════════════════════
 # SECTION 2: ARCHITECTURE
 # ═══════════════════════════════════════════════════

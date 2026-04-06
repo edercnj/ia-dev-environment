@@ -8,7 +8,6 @@ import dev.iadev.domain.model.Platform;
 import dev.iadev.domain.stack.StackValidator;
 import dev.iadev.exception.CliException;
 import dev.iadev.exception.ConfigParseException;
-import dev.iadev.exception.ConfigValidationException;
 import dev.iadev.exception.PipelineException;
 import dev.iadev.domain.model.PipelineResult;
 import dev.iadev.domain.model.ProjectConfig;
@@ -22,7 +21,6 @@ import picocli.CommandLine.Spec;
 
 import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -118,7 +116,8 @@ public class GenerateCommand implements Callable<Integer> {
                     e.getMessage()));
             return e.getErrorCode();
         } catch (ConfigParseException
-                 | ConfigValidationException e) {
+                 | dev.iadev.domain.model
+                         .ConfigValidationException e) {
             out.println("Error: %s".formatted(
                     e.getMessage()));
             return EXIT_VALIDATION;
@@ -210,7 +209,8 @@ public class GenerateCommand implements Callable<Integer> {
             Path destPath,
             PrintWriter out) {
         Set<Platform> platformSet =
-                buildPlatformSet(platforms);
+                PlatformPrecedenceResolver.resolve(
+                        platforms, config);
         PipelineOptions options = new PipelineOptions(
                 dryRun, force, verbose,
                 overwriteConstitution, null,
@@ -229,36 +229,5 @@ public class GenerateCommand implements Callable<Integer> {
                 new AssemblerPipeline(assemblers);
         return pipeline.runPipeline(
                 config, destPath, options);
-    }
-
-    /**
-     * Converts the CLI platform list to a Set for
-     * PipelineOptions.
-     *
-     * <p>Null list or list containing null (from "all"
-     * converter result) produces empty set (no filter).
-     * Otherwise produces an EnumSet of the specified
-     * platforms.</p>
-     *
-     * @param platformList the parsed platform list,
-     *                     may be null
-     * @return immutable set of platforms, empty = no filter
-     */
-    static Set<Platform> buildPlatformSet(
-            List<Platform> platformList) {
-        if (platformList == null || platformList.isEmpty()) {
-            return Set.of();
-        }
-        boolean containsAllMarker = false;
-        for (Platform p : platformList) {
-            if (p == null) {
-                containsAllMarker = true;
-                break;
-            }
-        }
-        if (containsAllMarker) {
-            return Set.of();
-        }
-        return EnumSet.copyOf(platformList);
     }
 }

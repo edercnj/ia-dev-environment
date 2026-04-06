@@ -15,9 +15,12 @@ import dev.iadev.domain.model.SecurityConfig;
 import dev.iadev.domain.model.TechComponent;
 import dev.iadev.domain.model.TestingConfig;
 
+import dev.iadev.domain.model.Platform;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Shared test helper to build ProjectConfig instances
@@ -83,6 +86,7 @@ public final class TestConfigBuilder {
     private final List<McpServerConfig> mcpServers =
             new ArrayList<>();
     private String compliance = "none";
+    private Set<Platform> platforms = Set.of();
 
     private TestConfigBuilder() {
         interfaces.add(
@@ -378,6 +382,11 @@ public final class TestConfigBuilder {
         return this;
     }
 
+    public TestConfigBuilder platforms(Set<Platform> value) {
+        this.platforms = value;
+        return this;
+    }
+
     public TestConfigBuilder addMcpServer(
             McpServerConfig server) {
         this.mcpServers.add(server);
@@ -439,6 +448,7 @@ public final class TestConfigBuilder {
                         smokeTests, contractTests,
                         performanceTests, 95, 90),
                 new McpConfig(mcpServers),
-                compliance);
+                compliance,
+                platforms);
     }
 }

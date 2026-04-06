@@ -11,6 +11,13 @@ project:
   name: "my-fastapi-service"
   purpose: "Describe your service purpose here"
 
+# ═════════════════════════════════════════════════
+# PLATFORM (AI target platforms)
+# Options: claude-code, copilot, codex, all
+# 'all' generates artifacts for every supported platform.
+# ═════════════════════════════════════════════════
+platform: all
+
 # ═══════════════════════════════════════════════════
 # SECTION 2: ARCHITECTURE
 # ═══════════════════════════════════════════════════

@@ -224,6 +224,7 @@ class ContextBuilderConditionalChecklistTest {
                         false, "local"),
                 TestingConfig.fromMap(Map.of()),
                 McpConfig.fromMap(Map.of()),
-                "none");
+                "none",
+                java.util.Set.of());
     }
 }
