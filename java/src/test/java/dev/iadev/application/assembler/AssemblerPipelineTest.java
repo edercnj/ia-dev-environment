@@ -2,6 +2,7 @@ package dev.iadev.application.assembler;
 
 import dev.iadev.testutil.TestConfigBuilder;
 
+import dev.iadev.domain.model.Platform;
 import dev.iadev.exception.PipelineException;
 import dev.iadev.domain.model.PipelineResult;
 import dev.iadev.domain.model.ProjectConfig;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -403,6 +405,7 @@ class AssemblerPipelineTest {
                     new AssemblerDescriptor(
                             "BrokenAssembler",
                             AssemblerTarget.ROOT,
+                            Set.of(Platform.SHARED),
                             failing));
 
             AssemblerPipeline pipeline =
@@ -487,7 +490,8 @@ class AssemblerPipelineTest {
     private static AssemblerDescriptor descriptor(
             String name, Assembler assembler) {
         return new AssemblerDescriptor(
-                name, AssemblerTarget.ROOT, assembler);
+                name, AssemblerTarget.ROOT,
+                Set.of(Platform.SHARED), assembler);
     }
 
     private static Assembler trackingAssembler(
@@ -502,9 +506,11 @@ class AssemblerPipelineTest {
         return List.of(
                 new AssemblerDescriptor(
                         "StubA", AssemblerTarget.CLAUDE,
+                        Set.of(Platform.CLAUDE_CODE),
                         (c, e, p) -> List.of("a.md")),
                 new AssemblerDescriptor(
                         "StubB", AssemblerTarget.GITHUB,
+                        Set.of(Platform.COPILOT),
                         (c, e, p) -> List.of("b.md")));
     }
 
