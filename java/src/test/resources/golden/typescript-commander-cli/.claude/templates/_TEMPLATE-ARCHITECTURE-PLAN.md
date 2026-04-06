@@ -32,7 +32,7 @@ sequenceDiagram
 
 ## Deployment Diagram
 
-<!-- CONDITIONAL: orchestrator != none -->
+<!-- CONDITIONAL: {{ORCHESTRATOR}} != none -->
 
 ```mermaid
 graph TD
@@ -71,7 +71,7 @@ graph TD
 
 ## Data Model
 
-<!-- CONDITIONAL: database != none -->
+<!-- CONDITIONAL: {{DATABASE}} != none -->
 
 ```mermaid
 erDiagram

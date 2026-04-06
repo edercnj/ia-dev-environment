@@ -64,7 +64,7 @@ classDiagram
 
 ## DB Schema Changes
 
-<!-- CONDITIONAL: database != none -->
+<!-- CONDITIONAL: {{DATABASE}} != none -->
 
 ### Migration
 
@@ -91,7 +91,7 @@ classDiagram
 
 ## Event Changes
 
-<!-- CONDITIONAL: event-driven == true -->
+<!-- CONDITIONAL: {{EVENT_DRIVEN}} == true -->
 
 | Event Name | Topic | Payload Schema | Producer | Consumer |
 |------------|-------|---------------|----------|----------|

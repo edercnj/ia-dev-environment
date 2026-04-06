@@ -53,7 +53,7 @@
 
 | Input Source | Validation Strategy | Sanitization | Encoding |
 | :--- | :--- | :--- | :--- |
-| HTTP request body | _Schema validation (JSON Schema / Bean Validation)_ | _Strip HTML tags_ | _UTF-8_ |
+| HTTP request body | _Strict schema validation (JSON Schema / Bean Validation)_ | _Context-specific output encoding_ | _UTF-8_ |
 | HTTP query params | _Whitelist + type coercion_ | _URL decode + validate_ | _UTF-8_ |
 | HTTP headers | _Whitelist known headers_ | _Reject unexpected_ | _ASCII_ |
 | Path parameters | _Regex pattern match_ | _Reject traversal sequences_ | _UTF-8_ |

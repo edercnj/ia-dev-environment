@@ -6,6 +6,7 @@ import dev.iadev.template.TemplateEngine;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -315,6 +316,6 @@ public final class PlanTemplatesAssembler
                         "Blockers Encountered",
                         "Next Phase Readiness"));
 
-        return Map.copyOf(map);
+        return Collections.unmodifiableMap(map);
     }
 }
