@@ -6,15 +6,19 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import picocli.CommandLine;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for GenerateCommand — --platform / -p flag
- * integration with CLI parsing and pipeline execution.
+ * integration with CLI parsing, pipeline execution,
+ * and YAML platform precedence.
  */
 @DisplayName("GenerateCommand — platform flag")
 class GenerateCommandPlatformTest {
@@ -253,6 +257,172 @@ class GenerateCommandPlatformTest {
                     sw.toString() + errSw.toString();
             assertThat(combined)
                     .contains("Invalid platform:");
+        }
+    }
+
+    @Nested
+    @DisplayName("YAML platform precedence")
+    class YamlPrecedence {
+
+        @Test
+        @DisplayName("YAML platform parsed, no CLI = YAML")
+        void yamlPlatform_noCli_usesYaml()
+                throws IOException {
+            String yamlConfig = """
+                    project:
+                      name: "test-app"
+                      purpose: "test"
+                    architecture:
+                      style: microservice
+                    interfaces:
+                      - type: rest
+                    language:
+                      name: java
+                      version: "21"
+                    framework:
+                      name: spring-boot
+                      version: "3.4"
+                      build_tool: maven
+                    platform: claude-code
+                    """;
+            Path configFile =
+                    tempDir.resolve("config.yaml");
+            Files.writeString(configFile, yamlConfig,
+                    StandardCharsets.UTF_8);
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            int exitCode = cmd.execute(
+                    "generate", "-c",
+                    configFile.toString(),
+                    "--dry-run",
+                    "-o", tempDir.resolve("out")
+                            .toString());
+
+            assertThat(exitCode).isZero();
+            assertThat(sw.toString())
+                    .contains("Pipeline: Success");
+        }
+
+        @Test
+        @DisplayName("CLI overrides YAML platform")
+        void cliOverridesYaml_returnsZero()
+                throws IOException {
+            String yamlConfig = """
+                    project:
+                      name: "test-app"
+                      purpose: "test"
+                    architecture:
+                      style: microservice
+                    interfaces:
+                      - type: rest
+                    language:
+                      name: java
+                      version: "21"
+                    framework:
+                      name: spring-boot
+                      version: "3.4"
+                      build_tool: maven
+                    platform: claude-code
+                    """;
+            Path configFile =
+                    tempDir.resolve("config2.yaml");
+            Files.writeString(configFile, yamlConfig,
+                    StandardCharsets.UTF_8);
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            int exitCode = cmd.execute(
+                    "generate", "-c",
+                    configFile.toString(),
+                    "--platform", "copilot",
+                    "--dry-run",
+                    "-o", tempDir.resolve("out2")
+                            .toString());
+
+            assertThat(exitCode).isZero();
+        }
+
+        @Test
+        @DisplayName("YAML invalid platform fails")
+        void yamlInvalidPlatform_returnsError()
+                throws IOException {
+            String yamlConfig = """
+                    project:
+                      name: "test-app"
+                      purpose: "test"
+                    architecture:
+                      style: microservice
+                    interfaces:
+                      - type: rest
+                    language:
+                      name: java
+                      version: "21"
+                    framework:
+                      name: spring-boot
+                      version: "3.4"
+                      build_tool: maven
+                    platform: invalid-value
+                    """;
+            Path configFile =
+                    tempDir.resolve("config3.yaml");
+            Files.writeString(configFile, yamlConfig,
+                    StandardCharsets.UTF_8);
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            int exitCode = cmd.execute(
+                    "generate", "-c",
+                    configFile.toString(),
+                    "--dry-run",
+                    "-o", tempDir.resolve("out3")
+                            .toString());
+
+            assertThat(exitCode).isNotZero();
+            assertThat(sw.toString())
+                    .contains("Invalid platform value");
+        }
+
+        @Test
+        @DisplayName("YAML with platform: all succeeds")
+        void yamlPlatformAll_returnsZero()
+                throws IOException {
+            String yamlConfig = """
+                    project:
+                      name: "test-app"
+                      purpose: "test"
+                    architecture:
+                      style: microservice
+                    interfaces:
+                      - type: rest
+                    language:
+                      name: java
+                      version: "21"
+                    framework:
+                      name: spring-boot
+                      version: "3.4"
+                      build_tool: maven
+                    platform: all
+                    """;
+            Path configFile =
+                    tempDir.resolve("config4.yaml");
+            Files.writeString(configFile, yamlConfig,
+                    StandardCharsets.UTF_8);
+            var cmd = buildCommandLine();
+            var sw = new StringWriter();
+            cmd.setOut(new PrintWriter(sw));
+
+            int exitCode = cmd.execute(
+                    "generate", "-c",
+                    configFile.toString(),
+                    "--dry-run",
+                    "-o", tempDir.resolve("out4")
+                            .toString());
+
+            assertThat(exitCode).isZero();
         }
     }
 

@@ -243,7 +243,8 @@ class ValidateConfigServiceTest {
                     SecurityConfig.fromMap(Map.of()),
                     TestingConfig.fromMap(Map.of()),
                     McpConfig.fromMap(Map.of()),
-                "none");
+                "none",
+                java.util.Set.of());
         }
     }
 
@@ -288,7 +289,8 @@ class ValidateConfigServiceTest {
                 SecurityConfig.fromMap(Map.of()),
                 TestingConfig.fromMap(Map.of()),
                 McpConfig.fromMap(Map.of()),
-                "none");
+                "none",
+                java.util.Set.of());
     }
 
     private ProjectConfig buildConfigWithNullIdentity() {
@@ -314,7 +316,8 @@ class ValidateConfigServiceTest {
                 SecurityConfig.fromMap(Map.of()),
                 TestingConfig.fromMap(Map.of()),
                 McpConfig.fromMap(Map.of()),
-                "none");
+                "none",
+                java.util.Set.of());
     }
 
     private ProjectConfig buildConfigWithNullLanguage() {
@@ -341,7 +344,8 @@ class ValidateConfigServiceTest {
                 SecurityConfig.fromMap(Map.of()),
                 TestingConfig.fromMap(Map.of()),
                 McpConfig.fromMap(Map.of()),
-                "none");
+                "none",
+                java.util.Set.of());
     }
 
     private ProjectConfig buildConfigWithNullFramework() {
@@ -367,7 +371,8 @@ class ValidateConfigServiceTest {
                 SecurityConfig.fromMap(Map.of()),
                 TestingConfig.fromMap(Map.of()),
                 McpConfig.fromMap(Map.of()),
-                "none");
+                "none",
+                java.util.Set.of());
     }
 
     private ProjectConfig buildConfigWithEmptyInterfaces() {
@@ -393,6 +398,7 @@ class ValidateConfigServiceTest {
                 SecurityConfig.fromMap(Map.of()),
                 TestingConfig.fromMap(Map.of()),
                 McpConfig.fromMap(Map.of()),
-                "none");
+                "none",
+                java.util.Set.of());
     }
 }

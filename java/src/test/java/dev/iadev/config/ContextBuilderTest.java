@@ -57,7 +57,8 @@ class ContextBuilderTest {
                 new TestingConfig(
                         true, true, true, 95, 90),
                 new McpConfig(List.of()),
-                "none");
+                "none",
+                java.util.Set.of());
     }
 
     private DataConfig buildFullDataConfig() {
@@ -96,7 +97,8 @@ class ContextBuilderTest {
                 SecurityConfig.fromMap(Map.of()),
                 TestingConfig.fromMap(Map.of()),
                 McpConfig.fromMap(Map.of()),
-                "none");
+                "none",
+                java.util.Set.of());
     }
 
     @Nested
@@ -448,7 +450,8 @@ class ContextBuilderTest {
                     SecurityConfig.fromMap(Map.of()),
                     TestingConfig.fromMap(Map.of()),
                     McpConfig.fromMap(Map.of()),
-                    "none");
+                    "none",
+                    java.util.Set.of());
 
             Map<String, Object> ctx =
                     ContextBuilder.buildContext(config);

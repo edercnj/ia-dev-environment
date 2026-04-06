@@ -31,6 +31,8 @@ import java.util.Set;
  * @param testing the testing config (optional, defaults: 95/90)
  * @param mcp the MCP config (optional, defaults to empty)
  * @param compliance the compliance type (optional, default "none")
+ * @param platforms the target platforms from YAML (optional,
+ *     empty = all, immutable)
  */
 public record ProjectConfig(
         ProjectIdentity project,
@@ -43,7 +45,8 @@ public record ProjectConfig(
         SecurityConfig security,
         TestingConfig testing,
         McpConfig mcp,
-        String compliance) {
+        String compliance,
+        Set<Platform> platforms) {
 
     private static final String DEFAULT_COMPLIANCE = "none";
 
@@ -51,10 +54,14 @@ public record ProjectConfig(
             Set.of("none", "pci-dss");
 
     /**
-     * Compact constructor enforcing immutability of the interfaces list.
+     * Compact constructor enforcing immutability of the
+     * interfaces list and platforms set.
      */
     public ProjectConfig {
         interfaces = List.copyOf(interfaces);
+        platforms = platforms == null
+                ? Set.of()
+                : Set.copyOf(platforms);
     }
 
     // --- Convenience accessors (Law of Demeter) ---
@@ -158,6 +165,7 @@ public record ProjectConfig(
             Map<String, Object> map,
             List<InterfaceConfig> interfaceList) {
         String compliance = parseCompliance(map);
+        Set<Platform> platforms = parsePlatforms(map);
         return new ProjectConfig(
                 ProjectIdentity.fromMap(MapHelper
                         .requireMap(map, "project",
@@ -183,7 +191,8 @@ public record ProjectConfig(
                         .optionalMap(map, "testing")),
                 McpConfig.fromMap(MapHelper
                         .optionalMap(map, "mcp")),
-                compliance);
+                compliance,
+                platforms);
     }
 
     private static String parseCompliance(
@@ -197,5 +206,14 @@ public record ProjectConfig(
                             .formatted(value));
         }
         return value;
+    }
+
+    /**
+     * Delegates to {@link PlatformParser} for parsing
+     * the optional {@code platform} YAML field.
+     */
+    static Set<Platform> parsePlatforms(
+            Map<String, Object> map) {
+        return PlatformParser.parse(map);
     }
 }
