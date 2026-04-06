@@ -1,10 +1,12 @@
 package dev.iadev.application.assembler;
 
+import dev.iadev.domain.model.Platform;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,6 +31,7 @@ class PipelineOptionsTest {
             assertThat(opts.overwriteConstitution())
                     .isFalse();
             assertThat(opts.resourcesDir()).isNull();
+            assertThat(opts.platforms()).isEmpty();
         }
     }
 
@@ -51,6 +54,7 @@ class PipelineOptionsTest {
                     .isFalse();
             assertThat(opts.resourcesDir())
                     .isEqualTo(resources);
+            assertThat(opts.platforms()).isEmpty();
         }
 
         @Test
@@ -61,6 +65,7 @@ class PipelineOptionsTest {
 
             assertThat(opts.dryRun()).isTrue();
             assertThat(opts.force()).isFalse();
+            assertThat(opts.platforms()).isEmpty();
         }
 
         @Test
@@ -72,6 +77,7 @@ class PipelineOptionsTest {
 
             assertThat(opts.overwriteConstitution())
                     .isTrue();
+            assertThat(opts.platforms()).isEmpty();
         }
 
         @Test
@@ -83,6 +89,67 @@ class PipelineOptionsTest {
 
             assertThat(opts.overwriteConstitution())
                     .isFalse();
+            assertThat(opts.platforms()).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("platforms field")
+    class PlatformsField {
+
+        @Test
+        @DisplayName("6-arg constructor with platforms")
+        void sixArgs_platforms_setsCorrectly() {
+            var opts = new PipelineOptions(
+                    false, false, false, false, null,
+                    Set.of(Platform.CLAUDE_CODE));
+
+            assertThat(opts.platforms())
+                    .containsExactly(Platform.CLAUDE_CODE);
+        }
+
+        @Test
+        @DisplayName("platforms is immutable copy")
+        void platforms_whenSet_isImmutableCopy() {
+            var opts = new PipelineOptions(
+                    false, false, false, false, null,
+                    Set.of(Platform.COPILOT,
+                            Platform.CODEX));
+
+            assertThat(opts.platforms()).hasSize(2);
+            assertThat(opts.platforms())
+                    .contains(Platform.COPILOT,
+                            Platform.CODEX);
+        }
+
+        @Test
+        @DisplayName("null platforms defaults to empty")
+        void platforms_whenNull_defaultsToEmpty() {
+            var opts = new PipelineOptions(
+                    false, false, false, false,
+                    null, null);
+
+            assertThat(opts.platforms()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("5-arg constructor defaults "
+                + "platforms to empty")
+        void fiveArgs_platforms_defaultsToEmpty() {
+            var opts = new PipelineOptions(
+                    false, false, false, true, null);
+
+            assertThat(opts.platforms()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("4-arg constructor defaults "
+                + "platforms to empty")
+        void fourArgs_platforms_defaultsToEmpty() {
+            var opts = new PipelineOptions(
+                    true, false, false, null);
+
+            assertThat(opts.platforms()).isEmpty();
         }
     }
 
@@ -106,6 +173,21 @@ class PipelineOptionsTest {
             var a = PipelineOptions.defaults();
             var b = new PipelineOptions(
                     true, false, false, null);
+
+            assertThat(a).isNotEqualTo(b);
+        }
+
+        @Test
+        @DisplayName("options with different platforms "
+                + "are not equal")
+        void create_differentPlatforms_notEqual() {
+            var a = new PipelineOptions(
+                    false, false, false, false,
+                    null, Set.of());
+            var b = new PipelineOptions(
+                    false, false, false, false,
+                    null,
+                    Set.of(Platform.CLAUDE_CODE));
 
             assertThat(a).isNotEqualTo(b);
         }

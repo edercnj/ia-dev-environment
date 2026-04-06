@@ -57,7 +57,8 @@ public final class AssemblerFactory {
         all.addAll(buildDocsAssemblers());
         all.addAll(buildCodexAssemblers());
         all.addAll(buildCicdAssemblers());
-        return List.copyOf(all);
+        return PlatformFilter.filter(
+                List.copyOf(all), options.platforms());
     }
 
     private static List<AssemblerDescriptor>
