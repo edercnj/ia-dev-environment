@@ -194,7 +194,8 @@ class XReviewSkillTemplateTest {
             String content = readSkill(CLAUDE_SKILL_PATH);
 
             assertThat(content)
-                    .contains("--/55 | Status: Pending")
+                    .contains("--/{review_max_score}"
+                            + " | Status: Pending")
                     .contains("x-review-pr");
         }
 

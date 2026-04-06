@@ -221,7 +221,7 @@ After saving all individual reports, generate a consolidated dashboard.
      - **Critical Issues Summary:** All findings with severity Critical or High from all reports
      - **Severity Distribution:** Aggregate counts across all specialists
      - **Review History:** Record as Round N with date, scores, and status
-   - Tech Lead Score section: leave as placeholder `--/55 | Status: Pending` (updated by `x-review-pr`)
+   - Tech Lead Score section: leave as placeholder `--/45 | Status: Pending` (updated by `x-review-pr`)
    - Dashboard is **cumulative** (RULE-006): if dashboard already exists, append a new round to Review History instead of overwriting
 
 3. **If template missing:**

@@ -156,7 +156,7 @@ The dashboard is **cumulative** (RULE-006): created by `/x-review` (specialist s
 
 2. **If dashboard exists (created by x-review):**
    - Read `plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md`
-   - Update the **Tech Lead Score** section: replace placeholder `--/55 | Status: Pending` with actual score `XX/64 | Status: GO/NO-GO`
+   - Update the **Tech Lead Score** section: replace placeholder `--/64 | Status: Pending` with actual score `XX/64 | Status: GO/NO-GO`
    - Update the **Overall Score** to include Tech Lead score in the total
    - Update the **Overall Status** considering both specialist scores and Tech Lead decision: status is updated to reflect all 8 specialists + Tech Lead combined assessment
    - Append a new **Round** to the **Review History** section with date, Tech Lead score, and status

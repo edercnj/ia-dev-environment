@@ -44,7 +44,7 @@
 | Data breach notification | Art. 33-34 | {{APPLICABLE}} | {{IMPLEMENTATION}} | {{STATUS}} |
 | DPIA requirement | Art. 35 | {{APPLICABLE}} | {{IMPLEMENTATION}} | {{STATUS}} |
 
-### LGPD (Lei Geral de Protecao de Dados)
+### LGPD (Lei Geral de Protecao de Dados Pessoais)
 
 | Requirement | Article | Applicable | Implementation | Status |
 | :--- | :--- | :--- | :--- | :--- |
@@ -151,8 +151,8 @@
 
 | ID | Finding | Severity | Framework | Remediation | Owner | Deadline | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| REM-001 | {{FINDING}} | {{SEVERITY}} | {{FRAMEWORK}} | {{REMEDIATION}} | {{OWNER}} | {{DEADLINE}} | {{STATUS}} |
-| REM-002 | {{FINDING}} | {{SEVERITY}} | {{FRAMEWORK}} | {{REMEDIATION}} | {{OWNER}} | {{DEADLINE}} | {{STATUS}} |
+| REM-001 | {{FINDING}} | {{SEVERITY}} | {{COMPLIANCE_FRAMEWORK}} | {{REMEDIATION}} | {{OWNER}} | {{DEADLINE}} | {{STATUS}} |
+| REM-002 | {{FINDING}} | {{SEVERITY}} | {{COMPLIANCE_FRAMEWORK}} | {{REMEDIATION}} | {{OWNER}} | {{DEADLINE}} | {{STATUS}} |
 
 > **Severity:** `Critical` / `High` / `Medium` / `Low`
 > **Status:** `Open` / `In Progress` / `Resolved` / `Accepted` / `Deferred`
