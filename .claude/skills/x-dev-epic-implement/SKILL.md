@@ -2,7 +2,7 @@
 name: x-dev-epic-implement
 description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
-argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr]"
+argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr] [--auto-merge]"
 ---
 
 ## Global Output Policy
@@ -46,6 +46,7 @@ ERROR: Epic ID is required. Usage: /x-dev-epic-implement [EPIC-ID] [flags]
 | `--sequential` | boolean | `false` | Disable parallel worktrees, execute stories one at a time |
 | `--skip-smoke-gate` | boolean | `false` | Skip smoke tests in the integrity gate between phases |
 | `--single-pr` | boolean | `false` | Preserve legacy flow: epic branch + rebase-before-merge + single mega-PR (RULE-009) |
+| `--auto-merge` | boolean | `false` | Merge PRs automatically after reviews approve via `gh pr merge` (RULE-004) |
 
 ## Prerequisites Check
 
@@ -342,7 +343,7 @@ For each phase in (0..totalPhases-1):
      → If no preflight analysis exists, treat all stories as parallel-eligible
   1. Call getExecutableStories(parsedMap, executionState)
      → Returns stories sorted by critical path priority (RULE-007)
-     → Only PENDING stories with all dependencies SUCCESS are returned
+     → Only PENDING stories with all dependencies SUCCESS AND prMergeStatus == "MERGED" are returned (RULE-003)
   2. If no executable stories and some remain PENDING:
      → Phase is blocked; log warning and advance to next phase
   3. Partition executable stories using preflight analysis:
@@ -495,6 +496,9 @@ After each story completes (success or failure), persist the result:
    - `commitSha`: The commit SHA (if status is `SUCCESS`)
    - `findingsCount`: Number of review findings from the subagent
    - `summary`: Brief description of what the subagent accomplished
+   - `prUrl`: URL of the PR created by x-dev-lifecycle (if status is `SUCCESS`)
+   - `prNumber`: PR number (if status is `SUCCESS`)
+   - `prMergeStatus`: Initial value `"OPEN"` when PR is created
 2. Update metrics: increment `storiesCompleted` counter
 3. The checkpoint is persisted atomically to `execution-state.json` via the checkpoint engine
 4. Between story completions, the checkpoint always reflects the current execution state
@@ -557,6 +561,69 @@ in the checkpoint. If yes:
    - Find the transition to "Done"
    - Call `mcp__atlassian__transitionJiraIssue`
    - If transition fails: log warning, continue (non-blocking)
+
+### 1.6c PR Merge Wait (RULE-003)
+
+After all stories in a phase complete with SUCCESS, the orchestrator checks if their
+PRs have been merged before advancing to the next phase. This ensures dependent stories
+in subsequent phases have the code available on `main`.
+
+**Algorithm:**
+
+```
+function waitForPRMerge(executionState, phase, autoMerge):
+  for each story in phase with status SUCCESS:
+    if story.prMergeStatus == "MERGED": continue
+
+    if autoMerge:
+      // Attempt auto-merge (RULE-004)
+      result = gh pr merge {story.prNumber} --merge
+      if result.success:
+        updateStoryStatus(epicDir, storyId, { prMergeStatus: "MERGED" })
+        continue
+      else:
+        log WARNING: "Auto-merge failed for PR #{prNumber}, waiting for manual merge"
+
+    // Polling loop
+    elapsed = 0
+    while elapsed < MERGE_TIMEOUT (default: 24h):
+      state = gh pr view {story.prNumber} --json state
+      if state == "MERGED":
+        updateStoryStatus(epicDir, storyId, { prMergeStatus: "MERGED" })
+        break
+      if state == "CLOSED":
+        updateStoryStatus(epicDir, storyId, { prMergeStatus: "CLOSED", status: "FAILED" })
+        break
+      log "Waiting for PR #{prNumber} ({storyId}) to be merged... ({elapsed}s elapsed)"
+      wait POLL_INTERVAL (default: 60s)
+      elapsed += POLL_INTERVAL
+
+    if elapsed >= MERGE_TIMEOUT:
+      // Block dependent stories
+      for each dependent of story:
+        updateStoryStatus(epicDir, dependent, { status: "BLOCKED", summary: "PR merge timeout" })
+```
+
+**Constants:**
+
+| Constant | Default | Description |
+|----------|---------|-------------|
+| `POLL_INTERVAL` | 60s | Seconds between PR status checks |
+| `MERGE_TIMEOUT` | 86400s (24h) | Maximum wait time for PR merge |
+
+**`getExecutableStories()` updated pseudocode (RULE-003):**
+
+```
+function getExecutableStories(parsedMap, executionState):
+  for each story in parsedMap.stories:
+    if story.status != PENDING: continue
+    for each dep in story.dependencies:
+      depState = executionState.stories[dep]
+      if depState.status != SUCCESS: skip story
+      if depState.prMergeStatus != "MERGED": skip story  // RULE-003
+    add story to executableList
+  return sortByCriticalPath(executableList)
+```
 
 ### 1.7 Extension Points
 
