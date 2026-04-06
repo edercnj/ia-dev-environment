@@ -49,6 +49,99 @@ Apply when:
 | New feature, no contract or infra change | **Simplified** |
 | Bug fix / refactor / docs-only | **Skip** |
 
+## Idempotency Pre-Check (RULE-002)
+
+Before generating an architecture plan, check whether one already exists and is still fresh.
+
+### Pre-Check Algorithm
+
+```
+1. Resolve the expected output path:
+   plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md
+
+2. IF the file does NOT exist:
+   - Log: "Generating architecture plan for {story}"
+   - Proceed to generation
+
+3. IF the file EXISTS:
+   a. Compare modification times:
+      - story_mtime = mtime of the story file
+      - plan_mtime  = mtime of the architecture plan file
+   b. IF story_mtime <= plan_mtime:
+      - Log: "Reusing existing architecture plan from {plan_mtime_date}"
+      - STOP — do NOT regenerate
+   c. IF story_mtime > plan_mtime:
+      - Log: "Regenerating stale architecture plan for {story}"
+      - Proceed to generation
+```
+
+### Staleness Decision Table
+
+| Condition | Action | Log Message |
+|-----------|--------|-------------|
+| Plan does not exist | Generate new | `Generating architecture plan for {story}` |
+| Plan exists, story not modified | Reuse existing | `Reusing existing architecture plan from {date}` |
+| Plan exists, story modified after plan | Regenerate | `Regenerating stale architecture plan for {story}` |
+
+## Template Reference (RULE-007)
+
+When generating an architecture plan, the subagent MUST read the template for the required output format.
+
+### Template Loading
+
+```
+1. Check if `.claude/templates/_TEMPLATE-ARCHITECTURE-PLAN.md` exists
+2. IF template exists:
+   - Read the template
+   - Use its 13 sections as the required output structure
+   - Log: "Using architecture plan template v1.0.0"
+3. IF template does NOT exist (RULE-012 fallback):
+   - Log WARNING: "Template not found, using inline format"
+   - Fall back to the inline Output Structure defined below
+   - Execution continues normally — no interruption
+```
+
+### Mandatory Sections (13)
+
+| # | Section | Mandatory | Conditional |
+|---|---------|-----------|-------------|
+| 1 | Header | Yes | -- |
+| 2 | Executive Summary | Yes | -- |
+| 3 | Component Diagram | Yes | -- |
+| 4 | Sequence Diagrams | Yes | -- |
+| 5 | Deployment Diagram | Yes | orchestrator != none |
+| 6 | External Connections | Yes | -- |
+| 7 | Architecture Decisions | Yes | -- |
+| 8 | Technology Stack | Yes | -- |
+| 9 | Non-Functional Requirements | Yes | -- |
+| 10 | Data Model | Yes | database != none |
+| 11 | Observability Strategy | Yes | -- |
+| 12 | Resilience Strategy | Yes | -- |
+| 13 | Impact Analysis | Yes | -- |
+
+### Conditional Section Rules
+
+- **Deployment Diagram**: Include when `orchestrator != none`. When not applicable, write `N/A - capability not enabled`.
+- **Data Model**: Include when `database != none`. When not applicable, write `N/A - capability not enabled`.
+- **Event Schema**: Include when `eventDriven: true`. When not applicable, write `N/A - capability not enabled`.
+
+### Post-Generation Validation
+
+After generating the architecture plan, validate section completeness:
+
+```
+1. Parse the generated document for H2 headings (## Section Name)
+2. Count sections found vs. sections expected
+3. For each conditional section:
+   - IF capability is enabled AND section is missing → WARNING
+   - IF capability is disabled AND section is absent → OK (conditional skip)
+4. For each mandatory section:
+   - IF section is missing → WARNING with instruction to complete
+5. Log checklist:
+   - All present: "Architecture plan: 13/13 sections present"
+   - Some missing: "Architecture plan: X/Y applicable sections present, Z conditional skipped"
+```
+
 ## Knowledge Packs
 
 Read these knowledge packs **in order** before generating the architecture plan:
@@ -132,19 +225,24 @@ Each architectural decision is documented inline using this simplified format:
 
 ## Subagent Prompt
 
-Launch a **single** `general-purpose` subagent with the following prompt:
+Launch a **single** `general-purpose` subagent with `model: opus` for deep architectural reasoning (RULE-009):
 
 > You are a **Senior Architect** generating a comprehensive architecture plan for {{PROJECT_NAME}}.
 >
-> **Step 1 — Read the story/feature requirements:**
+> **Step 1 — Read the template (RULE-007):**
+> - Read template at `.claude/templates/_TEMPLATE-ARCHITECTURE-PLAN.md` for required output format
+> - If the template file does not exist, use the inline Output Structure defined in this skill as fallback (RULE-012)
+> - Log which format source is being used
+>
+> **Step 2 — Read the story/feature requirements:**
 > - Read the story file or feature description provided as argument
 > - Extract: scope, acceptance criteria, integrations, NFRs, constraints
 >
-> **Step 2 — Evaluate the decision tree:**
+> **Step 3 — Evaluate the decision tree:**
 > - Determine if this requires a Full Plan, Simplified Plan, or Skip
 > - If Skip: report "Architecture plan not needed for this change" and stop
 >
-> **Step 3 — Read knowledge packs (in order):**
+> **Step 4 — Read knowledge packs (in order):**
 > - `skills/architecture/references/architecture-principles.md` — layer structure, dependency direction
 > - `skills/architecture/references/architecture-patterns.md` — design patterns
 > - `skills/protocols/references/` — protocol conventions for the project's interfaces
@@ -156,12 +254,12 @@ Launch a **single** `general-purpose` subagent with the following prompt:
 >
 > For Simplified Plan: read only Architecture KP + KPs relevant to affected sections.
 >
-> **Step 4 — Review existing architecture:**
+> **Step 5 — Review existing architecture:**
 > - Check for existing architecture documents in `steering/`
 > - Review current codebase structure to understand the baseline
 > - Identify what is new vs. what is changing
 >
-> **Step 5 — Generate the architecture plan** with ALL mandatory sections:
+> **Step 6 — Generate the architecture plan** with ALL mandatory sections:
 >
 > 1. **Executive Summary** — one paragraph overview
 > 2. **Component Diagram** — Mermaid `graph TD` showing layers and dependencies
@@ -176,14 +274,21 @@ Launch a **single** `general-purpose` subagent with the following prompt:
 > 11. **Resilience Strategy** — circuit breakers, retry policies, fallback chains, graceful degradation
 > 12. **Impact Analysis** — affected services, migration steps, rollback strategy, risk assessment
 >
-> **Step 6 — Save the document:**
+> **Step 7 — Save the document:**
 > ```
 > plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md
 > ```
 >
+> **Step 8 — Validate sections post-generation:**
+> - Parse the generated document for all 13 expected sections
+> - For conditional sections (Deployment Diagram, Data Model, Event Schema):
+>   check project capabilities and mark as "N/A - capability not enabled" if not applicable
+> - Log section checklist: "Architecture plan: X/Y sections present"
+> - If any mandatory section is missing, log a WARNING with instruction to complete
+>
 > **Conventions:**
-> - All diagrams MUST use Mermaid syntax (RULE-007)
-> - All text MUST be in English (RULE-012)
+> - All diagrams MUST use Mermaid syntax
+> - All text MUST be in English
 > - Mini-ADRs follow the inline format (Context/Decision/Rationale/Consequences/Story Reference)
 > - Tables use GitHub-flavored Markdown
 > - NFR targets must be measurable (e.g., "p99 latency < 200ms", not "fast")
@@ -193,9 +298,10 @@ Launch a **single** `general-purpose` subagent with the following prompt:
 When invoked from `x-dev-lifecycle` Phase 1:
 
 1. The lifecycle orchestrator passes the story path as argument
-2. This skill evaluates the decision tree and generates the appropriate plan level
-3. The output path follows the standard convention: `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
-4. Phase 2 (Implementation) reads this document alongside the implementation plan
+2. **Pre-check executes first** (RULE-002): if a fresh architecture plan exists, it is reused without invoking the subagent
+3. If generation is needed, the decision tree determines the plan level (Full/Simplified/Skip)
+4. The output path follows the standard convention: `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
+5. Phase 2 (Implementation) reads this document alongside the implementation plan
 
 When invoked standalone:
 
@@ -208,6 +314,8 @@ Or with a feature name:
 ```
 /x-dev-architecture-plan "Payment Gateway Integration"
 ```
+
+**Standalone idempotency:** When invoked directly (outside x-dev-lifecycle), the pre-check runs autonomously. The skill does not depend on the orchestrator for idempotency — it verifies existence and staleness independently.
 
 ## Detailed References
 
