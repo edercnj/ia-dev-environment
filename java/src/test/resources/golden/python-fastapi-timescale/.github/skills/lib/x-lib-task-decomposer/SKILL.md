@@ -26,17 +26,40 @@ Decomposes an implementation plan into granular tasks. When a test plan exists (
 
 ## Procedure
 
-### STEP 0 -- Read Architecture Context
+### STEP 0 -- Idempotency Pre-Check (RULE-002)
+
+Before any decomposition work, verify whether a valid task breakdown already exists:
+
+1. **Derive artifact path**: `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` (extract epic ID XXXX and story sequence YYYY from the story ID)
+2. **Check existence**: Verify if the file exists
+3. **Staleness check** (if file exists):
+   - Compare modification times: `mtime(story file)` vs `mtime(tasks file)`
+   - **Fresh** (`mtime(story) <= mtime(tasks)`): Log `"Reusing existing task breakdown from {date}"` and **RETURN the existing file without regeneration**. No subagent invocation needed.
+   - **Stale** (`mtime(story) > mtime(tasks)`): Log `"Regenerating stale task breakdown for {story-id}"` and proceed to STEP 0.5
+4. **File absent**: Log `"Generating task breakdown for {story-id}"` and proceed to STEP 0.5
+
+> **Rationale**: Task breakdowns are expensive to generate (2-5 min, significant token cost). When a session is resumed after interruption, the existing breakdown should be reused if the story has not changed. This saves tokens and ensures continuity.
+
+### STEP 0.5 -- Read Architecture Context
 
 Before decomposing, read the project's architecture and layer definitions:
 - `.github/skills/architecture/SKILL.md` -- layer structure, dependency direction, package organization
 - `.github/skills/layer-templates/SKILL.md` -- complete layer catalog with package locations, code templates, and checklist per layer
 
-### STEP 1 -- Read Story Context
+### STEP 1 -- Read Story Context and Template (RULE-007, RULE-012)
 
 Read these files:
 - `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (Architect's plan)
 - Story requirements file
+
+**Template Reference (RULE-007):**
+
+Read template at `.github/templates/_TEMPLATE-TASK-BREAKDOWN.md` for required output format.
+
+- **Template found**: Use the template's sections as the mandatory output structure. The template defines: Header (Story ID, Date, Author), Summary, Dependency Graph, Tasks Table, and Escalation Notes.
+- **Template NOT found (RULE-012 fallback)**: Log `"Template not found at .github/templates/_TEMPLATE-TASK-BREAKDOWN.md, using inline format"` and use the inline format defined in STEP 5 of this skill. Execution continues normally without interruption.
+
+> **Note**: The template contains `{{PLACEHOLDER}}` markers. These are NOT rendered by the engine -- they are filled by the LLM at runtime based on the decomposition results.
 
 ### STEP 1.5 -- Detect Decomposition Mode
 
@@ -159,6 +182,10 @@ For complex domain logic tasks, read the Architect's plan carefully:
 
 Save to: `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` (extract epic ID XXXX and story sequence YYYY from the story ID). Ensure directory exists: `mkdir -p plans/epic-XXXX/plans`.
 
+**Output format selection:**
+- If the template was loaded in STEP 1, structure the output following the template's sections (Header, Summary, Dependency Graph, Tasks Table, Escalation Notes)
+- If the template was not found (fallback), use the inline TDD Task Output Format (STEP 2A) or Layer Task Catalog format (STEP 2B) as defined in this skill
+
 ## Fallback: Layer Task Catalog (G1-G7)
 
 > **When to use:** Only when no test plan with TPP markers exists at
@@ -213,4 +240,7 @@ G7: TESTS -- PARALLEL (max 4 concurrent), depends on ALL previous
 - Works with any layered architecture (hexagonal, clean, onion) — layer names derived from project rules
 - When test plan present: generates TDD tasks with RED/GREEN/REFACTOR structure
 - When test plan absent: generates layer-based tasks using G1-G7 catalog (backward compatible)
+- **Idempotency (RULE-002)**: Checks `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` existence and staleness before regenerating. Second invocation with unchanged story reuses existing breakdown
+- **Template reference (RULE-007)**: Reads `.github/templates/_TEMPLATE-TASK-BREAKDOWN.md` for standardized output format
+- **Graceful fallback (RULE-012)**: Functions without template (pre-EPIC-0024 projects). Logs warning and uses inline format when template absent
 - Reference: `.github/skills/lib/x-lib-task-decomposer/SKILL.md`
