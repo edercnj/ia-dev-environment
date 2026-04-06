@@ -43,6 +43,7 @@ description: >
 | Engineer | Condition |
 |----------|-----------|
 | Database | database/cache != none |
+| Data Modeling | database != none AND architecture in [hexagonal, ddd, cqrs] |
 | Observability | observability != none |
 | DevOps | container/orchestrator/iac != none |
 | API | interfaces contain protocol types |
@@ -100,6 +101,7 @@ Launch one `general-purpose` subagent per applicable engineer.
 | QA | `.github/skills/testing/SKILL.md` -- focus on TDD Workflow, Double-Loop TDD, and TPP sections |
 | Performance | `.github/skills/resilience/SKILL.md` |
 | Database | `.github/skills/database-patterns/SKILL.md` |
+| Data Modeling | `.github/skills/data-modeling/SKILL.md` |
 | Observability | `.github/skills/observability/SKILL.md` |
 | DevOps | `.github/skills/infrastructure/SKILL.md` |
 | API | `.github/skills/api-design/SKILL.md` + `.github/skills/protocols/SKILL.md` |
@@ -116,6 +118,10 @@ Launch one `general-purpose` subagent per applicable engineer.
 **Performance (13 items, /26):** No N+1 queries, connection pool sized, async where applicable, pagination on collections, caching strategy, no unbounded lists, timeout on external calls, circuit breaker on external, thread safety, resource cleanup, lazy loading, batch operations, index usage.
 
 **Database (20 items, /40):** Migration reversible, indexes for query patterns, no SELECT *, audit columns, entity lifecycle callbacks, optimistic locking, connection pool config, query performance, naming conventions compliance (tables/columns/indexes follow DB conventions), soft delete pattern (deleted_at or equivalent when applicable), temporal audit trail (created_at/updated_at on all entities), encryption-at-rest for sensitive columns (PII, credentials), FK indexing (every foreign key has corresponding index), partitioning evaluation for large tables (>1M estimated rows), connection pool monitoring metrics (pool size, wait time, timeout config), dead tuple/compaction monitoring (VACUUM for SQL, compaction for NoSQL), [Conditional: NoSQL] schema validation enforcement (JSON Schema, schema registry), [Conditional: Graph] graph traversal depth limits (unbounded query prevention), [Conditional: Time-Series] cardinality management (tag/label limits, series explosion prevention), [Conditional: Distributed/NewSQL] shard key selection review (hot spots, data distribution uniformity).
+
+**Data Modeling (10 items, /20):** Aggregate boundaries match transactional boundaries, entity lifecycle managed (factory creation, state transitions), value objects are immutable (no setters, final fields), DDD repository pattern per aggregate root (no generic DAO), no anemic domain model (behavior lives in domain entities not services), embeddable types for multi-field value objects, event-entity consistency (domain events reflect entity state changes), bounded context isolation (no cross-context entity sharing), anti-corruption layer at bounded context boundaries, domain events aligned with DB transactions (event published after commit).
+
+> **Activation condition:** Data Modeling specialist is activated ONLY when `database != "none"` AND `architecture` is one of `[hexagonal, ddd, cqrs]`. When conditions are not met, this specialist is skipped entirely. The specialist references the `.github/skills/data-modeling/SKILL.md` knowledge pack for detailed standards.
 
 **Observability (9 items, /18):** Root span per request, child spans for sub-ops, mandatory span attributes, metrics (counter+histogram+gauge), structured JSON logging, trace-log correlation, health checks (liveness+readiness+startup), no sensitive data in traces/logs, sampling configured.
 
