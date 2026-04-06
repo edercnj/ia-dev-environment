@@ -78,6 +78,19 @@ Strategies for creating, managing, and protecting test data across environments.
 - **Spanning multiple services/databases?** Use Saga Pattern
 - **Need cross-service mutex?** Use Distributed Locks
 
+## Database ADR Templates
+
+Structured Architecture Decision Record templates for common database decisions. Use these when documenting technology choices.
+
+| Template | Decision Topic | Reference |
+|----------|---------------|-----------|
+| SQL vs NoSQL | Relational vs non-relational selection | `references/database-adr-templates.md` |
+| Embedded vs Referenced | Document DB data model strategy | `references/database-adr-templates.md` |
+| Partitioning/Sharding | Partition strategy selection | `references/database-adr-templates.md` |
+| Caching Layer | Cache topology and strategy | `references/database-adr-templates.md` |
+| Read Replica Topology | Replication strategy selection | `references/database-adr-templates.md` |
+| Distributed Transactions | 2PC vs Saga vs Outbox | `references/database-adr-templates.md` |
+
 ## Anti-Patterns
 
 - Implementing soft delete without filtering in all queries
@@ -95,3 +108,4 @@ Strategies for creating, managing, and protecting test data across environments.
 | `references/schema-design-patterns.md` | Soft delete, temporal tables, audit trails, multi-tenant schemas, SCD Types 1/2/3 |
 | `references/concurrency-patterns.md` | Optimistic locking, pessimistic locking, Saga pattern, distributed locks |
 | `references/test-data-patterns.md` | Factories, fixtures, data builders, anonymization, database seeding |
+| `references/database-adr-templates.md` | ADR templates: SQL vs NoSQL, embedded vs referenced, partitioning, caching, read replicas, distributed transactions |
