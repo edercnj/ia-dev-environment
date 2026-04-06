@@ -193,10 +193,11 @@ class AgentsConditionalGoldenTest {
             assertThat(content)
                     .contains("12-Point SDLC Security"
                             + " Checklist");
-            // Verify all 12 items are present
+            // Verify all 12 numbered checklist items
             for (int i = 1; i <= 12; i++) {
                 assertThat(content)
-                        .contains(i + ".");
+                        .containsPattern(
+                                "(?m)^" + i + "\\.");
             }
         }
 

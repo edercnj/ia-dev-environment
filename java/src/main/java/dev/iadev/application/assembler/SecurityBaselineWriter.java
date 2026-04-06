@@ -20,8 +20,11 @@ import java.util.List;
  *       (7 requirements)</li>
  *   <li>{@code secretScan} — x-secret-scan mappings
  *       (1 requirement)</li>
- *   <li>{@code dast} — x-hardening-eval mappings
- *       (2 requirements)</li>
+ *   <li>{@code dast} — x-dast-scan and
+ *       x-hardening-eval mappings
+ *       (2 requirements: HTTP headers and TLS are
+ *       verified via hardening evaluation triggered
+ *       alongside DAST scanning)</li>
  * </ul>
  *
  * <p>When no scanning flag is active, the original file
@@ -61,6 +64,10 @@ public final class SecurityBaselineWriter {
         }
 
         String existing = CopyHelpers.readFile(ruleFile);
+        if (existing.contains(
+                "## Automated Verification")) {
+            return List.of();
+        }
         String section = buildVerificationSection(
                 securityConfig.scanning());
         CopyHelpers.writeFile(

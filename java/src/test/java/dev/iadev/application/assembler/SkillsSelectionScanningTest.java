@@ -136,8 +136,10 @@ class SkillsSelectionScanningTest {
         }
 
         @Test
-        @DisplayName("pentest enabled returns x-pentest")
-        void select_pentestEnabled_returnsPentest() {
+        @DisplayName("pentest enabled does not add"
+                + " x-pentest to scanning skills"
+                + " (delegated to selectPentestSkills)")
+        void select_pentestEnabled_excludesPentest() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .pentest(true)
@@ -149,7 +151,7 @@ class SkillsSelectionScanningTest {
                                     config);
 
             assertThat(skills)
-                    .containsExactly("x-pentest");
+                    .doesNotContain("x-pentest");
         }
 
         @Test
@@ -227,7 +229,6 @@ class SkillsSelectionScanningTest {
                     "x-secret-scan",
                     "x-container-scan",
                     "x-infra-scan",
-                    "x-pentest",
                     "x-sonar-gate");
         }
 
@@ -249,8 +250,7 @@ class SkillsSelectionScanningTest {
 
             assertThat(skills).containsExactlyInAnyOrder(
                     "x-sast-scan",
-                    "x-secret-scan",
-                    "x-pentest");
+                    "x-secret-scan");
         }
     }
 

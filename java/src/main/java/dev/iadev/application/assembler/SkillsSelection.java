@@ -149,9 +149,6 @@ public final class SkillsSelection {
         if (scanning.infraScan()) {
             skills.add("x-infra-scan");
         }
-        if (config.security().pentest()) {
-            skills.add("x-pentest");
-        }
         var qgProvider =
                 config.security().qualityGate().provider();
         if (!"none".equals(qgProvider)) {
