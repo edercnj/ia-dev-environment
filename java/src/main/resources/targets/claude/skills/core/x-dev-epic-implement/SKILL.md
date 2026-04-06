@@ -592,47 +592,7 @@ works on an isolated copy of the repository.
 
 ### 1.4c Conflict Resolution Subagent (RULE-012)
 
-When auto-rebase (Section 1.4e) detects conflicts during `git rebase origin/main`,
-a conflict resolution subagent is dispatched to resolve them automatically.
-
-**Subagent Configuration:**
-- Tool: `Agent` with `subagent_type: "general-purpose"`
-- Context isolation (RULE-001): pass only branch names, conflict file list, and
-  metadata — never source code inline
-
-**Prompt Template:**
-```
-You are a Conflict Resolution Specialist resolving rebase conflicts.
-
-Conflict type: rebase
-Story branch: {storyBranch}
-Conflict files: {conflictFiles}
-Merged stories this phase: {mergedStories}
-Merged PRs: {mergedPRs}
-Main SHA before phase: {mainShaBeforePhase}
-
-Steps:
-1. For each conflict file, analyze the diff from both branches
-2. The changes from merged stories are intentional — preserve them
-3. Resolve each conflicting hunk respecting the intent of both branches
-4. Run: git add <resolved files> (do NOT commit — rebase handles the commit)
-5. Return JSON: { "status": "SUCCESS" | "FAILED", "summary": "..." }
-```
-
-**Post-resolution flow:**
-- If SUCCESS: `git rebase --continue && git push --force-with-lease origin {storyBranch}`
-- If FAILED and `rebaseAttempts < MAX_REBASE_RETRIES` (3):
-  `git rebase --abort`, log WARNING, retry on next merge event
-- If FAILED and `rebaseAttempts >= MAX_REBASE_RETRIES`:
-  `git rebase --abort`, mark story FAILED, close PR:
-  `gh pr close {prNumber} --comment "Rebase conflict resolution failed after {MAX_REBASE_RETRIES} attempts"`
-  Trigger block propagation for dependent stories.
-
-**Constants:**
-
-| Constant | Type | Default | Description |
-|----------|------|---------|-------------|
-| `MAX_REBASE_RETRIES` | Integer | 3 | Maximum conflict resolution attempts per story |
+[Placeholder: Conflict Resolution Subagent adapted for per-story PR — reimplemented by story-0021-0009]
 
 ### 1.4d Worktree Cleanup
 
