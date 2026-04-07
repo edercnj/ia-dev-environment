@@ -1,7 +1,7 @@
 ---
 name: x-dev-epic-implement
 description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents."
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, AskUserQuestion
 argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr] [--auto-merge] [--no-merge] [--strict-overlap] [--skip-pr-comments]"
 ---
 
@@ -1280,7 +1280,9 @@ Story PRs:
 | story-{epicId}-0002 | #42 | MERGED | 2026-04-01T11:15:00Z |
 ...
 
-PR Comment Remediation: #{fixPrNumber} ({fixesApplied} fixes applied) | SKIPPED | DRY_RUN
+PR Comment Remediation: COMPLETE | PR #{fixPrNumber} | {fixesApplied} fixes applied
+PR Comment Remediation: SKIPPED
+PR Comment Remediation: DRY_RUN
 Report: plans/epic-{epicId}/epic-execution-report.md
 Elapsed: {totalElapsedTime}
 ```
@@ -1308,7 +1310,7 @@ Scan all story PRs in the epic for unresolved review comments:
    - Record `prCommentRemediation.status = "SKIPPED"`, `fixesApplied = 0`
    - Skip to Completion Output
 
-### 4.2 Dry-Run First (RULE-007)
+### 4.2 Dry-Run First
 
 When comments are found, invoke `/x-fix-epic-pr-comments` in dry-run mode first:
 
