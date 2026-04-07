@@ -1,7 +1,7 @@
 ---
 name: x-dev-epic-implement
 description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents."
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, AskUserQuestion
 argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr] [--auto-merge] [--strict-overlap]"
 ---
 
