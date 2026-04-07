@@ -155,6 +155,9 @@ ia-dev-env generate --stack java-quarkus --output my-project/
 # Generate from a custom YAML config
 ia-dev-env generate --config my-config.yaml --output my-project/
 
+# Generate only Claude Code artifacts
+ia-dev-env generate --stack java-spring --platform claude-code --output my-project/
+
 # Preview without writing files
 ia-dev-env generate --stack go-gin --output my-project/ --dry-run
 
@@ -164,6 +167,50 @@ ia-dev-env validate --config my-config.yaml
 # Interactive mode (guided prompts)
 ia-dev-env generate --interactive
 ```
+
+---
+
+## Platform Selection
+
+The `--platform` flag controls which AI platform artifacts are generated.
+By default, all platforms are generated (backward-compatible).
+
+| Value | Description | Directories Generated |
+|-------|-------------|-----------------------|
+| `claude-code` | Anthropic Claude Code | `.claude/` + docs |
+| `copilot` | GitHub Copilot | `.github/` + docs |
+| `codex` | OpenAI Codex | `.codex/`, `.agents/` + docs |
+| `all` | All platforms (default) | `.claude/`, `.github/`, `.codex/`, `.agents/` + docs |
+
+### CLI Examples
+
+```bash
+# Generate only Claude Code artifacts
+ia-dev-env generate --platform claude-code --config my-config.yaml
+
+# Generate for multiple platforms
+ia-dev-env generate -p claude-code,copilot --config my-config.yaml
+
+# Generate for all platforms (default behavior)
+ia-dev-env generate --config my-config.yaml
+```
+
+### YAML Configuration
+
+You can also set the platform in your YAML config file instead of using the CLI flag:
+
+```yaml
+platform: claude-code
+```
+
+When both `--platform` CLI flag and `platform:` YAML key are provided, the CLI flag takes precedence.
+
+### Backward Compatibility
+
+When no `--platform` flag is provided and no `platform:` key exists in the YAML config,
+the generator produces artifacts for **all platforms** (`all`). This is fully
+backward-compatible with existing configurations -- no changes are required to existing
+YAML files or CLI invocations.
 
 ---
 
@@ -186,6 +233,7 @@ ia-dev-env generate [OPTIONS]
 | `--dry-run` | | Simulate without writing files |
 | `--force` | `-f` | Overwrite existing files without prompting |
 | `--verbose` | `-v` | Show detailed pipeline execution info |
+| `--platform <value>` | `-p` | Target AI platform(s): claude-code, copilot, codex, all (default: all) |
 
 > One of `--config`, `--stack`, or `--interactive` is required. They are mutually exclusive.
 

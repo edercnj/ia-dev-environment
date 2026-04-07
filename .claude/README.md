@@ -65,6 +65,8 @@ CLAUDE.md                   <-- Executive summary (project root, loaded automati
 
 **Total .github/ artifacts: 110**
 
+> Generated only when the corresponding platform is selected via `--platform`.
+
 ### settings.json vs settings.local.json
 
 - **`settings.json`**: Team settings (permissions, hooks). Committed to git.
