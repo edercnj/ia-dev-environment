@@ -65,6 +65,44 @@ CLAUDE.md                   <-- Executive summary (project root, loaded automati
 
 **Total .github/ artifacts: 18**
 
+> Generated only when the corresponding platform is selected via `--platform`.
+
+## Platform Selection
+
+The `--platform` flag controls which AI platform artifacts are generated. By default, all platforms are generated.
+
+| Value | Description | Directories Generated |
+|-------|-------------|-----------------------|
+| `claude-code` | Anthropic Claude Code | `.claude/` + docs |
+| `copilot` | GitHub Copilot | `.github/` + docs |
+| `codex` | OpenAI Codex | `.codex/`, `.agents/` + docs |
+| `all` | All platforms (default) | `.claude/`, `.github/`, `.codex/`, `.agents/` + docs |
+
+### CLI Examples
+
+```bash
+# Generate only Claude Code artifacts
+ia-dev-env generate --platform claude-code --config my-config.yaml
+
+# Generate for multiple platforms
+ia-dev-env generate -p claude-code,copilot --config my-config.yaml
+
+# Generate for all platforms (default behavior)
+ia-dev-env generate --config my-config.yaml
+```
+
+### YAML Configuration
+
+You can also specify the platform in your YAML config file:
+
+```yaml
+platform: claude-code
+```
+
+### Backward Compatibility
+
+When no `--platform` flag is provided and no `platform:` key exists in the YAML config, the generator produces artifacts for **all platforms** (`all`). This is fully backward-compatible with existing configurations -- no changes are required to existing YAML files or CLI invocations.
+
 ### settings.json vs settings.local.json
 
 - **`settings.json`**: Team settings (permissions, hooks). Committed to git.
@@ -87,10 +125,11 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 06 | `06-security-baseline.md` | security baseline |
 | 07 | `07-operations-baseline.md` | operations baseline |
 | 08 | `08-release-process.md` | release process |
+| 09 | `09-branching-model.md` | branching model |
 | 10 | `10-anti-patterns.md` | anti patterns |
 | 12 | `12-security-anti-patterns.md` | security anti patterns |
 
-**Total: 10 rules**
+**Total: 11 rules**
 
 ### Numbering
 
@@ -120,6 +159,7 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-dev-epic-implement** | `/x-dev-epic-implement` | Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents. |
 | **x-dev-implement** | `/x-dev-implement` | Implements a feature/story using TDD (Red-Green-Refactor) workflow. Delegates preparation to a subagent that reads architecture, coding, and test plan KPs, then implements test-first with Double-Loop TDD, layer-by-layer with compile checks after each cycle. |
 | **x-dev-lifecycle** | `/x-dev-lifecycle` | Orchestrates the complete feature implementation cycle: branch creation, planning, task decomposition, implementation, parallel review, fixes, PR creation, and final verification. Delegates heavy phases to subagents for context efficiency. |
+| **x-fix-epic-pr-comments** | `/x-fix-epic-pr-comments` | Discovers all PRs from an epic via execution-state.json, fetches and classifies review comments in batch, generates a consolidated findings report, applies fixes, and creates a single correction PR. Supports dry-run, explicit PR list fallback, and idempotent re-execution. |
 | **x-fix-pr-comments** | `/x-fix-pr-comments` | Reads PR review comments and fixes actionable ones automatically. Detects PR from argument or branch, classifies comments (actionable/suggestion/question/praise), implements fixes, and commits with proper conventional commit messages. |
 | **x-git-push** | `/x-git-push` | Git operations: branch creation, atomic commits (Conventional Commits), push, and PR creation. Use for any git workflow task including branching, committing, pushing, creating PRs, or managing version control. |
 | **x-hardening-eval** | `/x-hardening-eval` | Evaluates application hardening posture against CIS and OWASP benchmarks: HTTP security headers, TLS configuration, CORS policy, cookie security, error handling, input limits, and information disclosure. Produces SARIF output with weighted scoring. |
@@ -130,7 +170,7 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-ops-troubleshoot** | `/x-ops-troubleshoot` | Diagnoses errors, stacktraces, build failures, and unexpected behavior. Systematic approach: reproduce, locate, understand, fix, verify. Use whenever something fails: compilation errors, test failures, runtime exceptions, coverage gaps, or performance issues. |
 | **x-owasp-scan** | `/x-owasp-scan` | Automated OWASP Top 10 (2021) verification mapped to ASVS levels (L1/L2/L3). Checks all 10 categories (A01-A10) with per-category pass/fail, ASVS coverage percentage, score grading, SARIF 2.1.0 output, and CI integration. Delegates A06 to x-dependency-audit. |
 | **x-perf-profile** | `/x-perf-profile` | Automated profiling: detect language, select profiler, execute session, generate flamegraph, identify hotspots, suggest optimizations |
-| **x-release** | `/x-release` | Orchestrates complete release flow: version bump (auto-detect or explicit), pre-condition validation, version file updates, changelog generation, release commit, git tag, and optional publish. Supports dry-run mode for safe previewing. |
+| **x-release** | `/x-release` | Orchestrates complete release flow using Git Flow release branches: version bump (auto-detect or explicit), release branch creation from develop, version file updates, changelog generation, release commit, dual merge (main + develop), git tag on main, and cleanup. Supports hotfix releases from main and dry-run mode. |
 | **x-review** | `/x-review` | Parallel code review with specialist engineers (Security, QA, Performance, Database, Observability, DevOps, API, Event). Launches parallel subagents, each reading their own knowledge pack, then consolidates into a scored report. Use for pre-PR quality validation. |
 | **x-review-api** | `/x-review-api` | Skill: REST API Design Review — Validates REST API endpoints for RFC 7807 error responses, pagination, URL versioning, OpenAPI documentation, status codes, and DTO patterns. |
 | **x-review-events** | `/x-review-events` | Skill: Event-Driven Review — Validates event schemas, producer/consumer patterns, error handling, dead letter topics, and operational readiness. |
@@ -152,7 +192,7 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-test-run** | `/x-test-run` | Runs tests with coverage reporting and threshold validation. Use whenever writing, running, or analyzing tests. Triggers on: test, coverage, TDD, unit test, integration test, test failure, coverage gap, or Definition of Done validation. |
 | **x-threat-model** | `/x-threat-model` | Generate threat models using STRIDE analysis: identify components, map data flows, analyze threats per category, classify severity, suggest mitigations, and produce threat model document. |
 
-**Total: 71 skills**
+**Total: 72 skills**
 
 ### Usage Examples
 
@@ -283,8 +323,8 @@ See the files directly for current configuration.
 
 | Component | Count |
 |-----------|-------|
-| Rules (.claude) | 10 |
-| Skills (.claude) | 47 |
+| Rules (.claude) | 11 |
+| Skills (.claude) | 48 |
 | Knowledge Packs (.claude) | 24 |
 | Agents (.claude) | 14 |
 | Hooks (.claude) | 0 |
