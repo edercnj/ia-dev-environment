@@ -1,8 +1,9 @@
 name: Deploy Staging — my-spring-hexagonal
 
+# Git Flow: Staging deploys from develop (integration branch)
 on:
   push:
-    branches: [main]
+    branches: [develop]
   workflow_dispatch:
 
 env:

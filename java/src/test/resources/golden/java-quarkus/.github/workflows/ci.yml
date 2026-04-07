@@ -1,10 +1,11 @@
 name: CI — my-quarkus-service
 
+# Git Flow: CI runs on integration (develop), release, and hotfix branches
 on:
   push:
-    branches: [main, develop]
+    branches: [develop, 'release/**', 'hotfix/**']
   pull_request:
-    branches: [main]
+    branches: [develop, main]
 
 env:
   CI: true
