@@ -141,7 +141,8 @@ flowchart TD
         end
     end
 
-    PH1 --> PH2
+    PH1 --> PH1G["Phase 1G — Commit planning artifacts [skip ci]"]
+    PH1G --> PH2
 
     subgraph PH2["Phase 2 — TDD Implementation"]
         PH2A["Write Acceptance Test (AT-N)"] --> PH2B
@@ -171,7 +172,8 @@ flowchart TD
 
     PH4 --> PH5["Phase 5 — Fix review findings"]
 
-    PH5 --> PH6
+    PH5 --> PH5C["Commit review + remediation artifacts [skip ci]"]
+    PH5C --> PH6
 
     subgraph PH6["Phase 6 — Version Bump + PR Creation"]
         PH6V{"Standalone mode?"}
@@ -192,7 +194,8 @@ flowchart TD
         PH7C --> PH7A
     end
 
-    PH7 --> PH8
+    PH7 --> PH7D["Commit updated dashboard [skip ci]"]
+    PH7D --> PH8
 
     subgraph PH8["Phase 8 — Final Verification"]
         PH8A[Update IMPLEMENTATION-MAP status] --> PH8B
@@ -420,13 +423,16 @@ Orchestrator (main)          Story Subagent (worktree)          GitHub
                               │                                 
                               ├─ Phase 0: create branch         
                               ├─ Phase 1: plan                  
+                              ├─ Phase 1G: commit plans [skip ci]
                               ├─ Phase 2: implement (TDD)       
                               ├─ Phase 3: document              
                               ├─ Phase 4: /x-review ───────────► specialist reviews
                               ├─ Phase 5: fix findings          
+                              ├─ Phase 5+: commit reviews [skip ci]
                               ├─ Phase 6: gh pr create ────────► PR #N (→ main)
                               │           "Part of EPIC-{id}"   
                               ├─ Phase 7: /x-review-pr ────────► tech lead 40/40
+                              ├─ Phase 7+: commit dashboard [skip ci]
                               ├─ Phase 8: finalize              
                               │                                 
   ◄─── SubagentResult ──────  return {prUrl, prNumber, ...}     
