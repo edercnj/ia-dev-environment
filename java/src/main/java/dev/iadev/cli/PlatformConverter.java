@@ -24,10 +24,18 @@ public final class PlatformConverter
     private static final String ALL_KEYWORD = "all";
 
     private static final String ACCEPTED_VALUES =
-            "claude-code, copilot, codex, all";
+            Platform.allUserSelectable().stream()
+                    .map(Platform::cliName)
+                    .sorted()
+                    .collect(java.util.stream.Collectors
+                            .joining(", "))
+                    + ", all";
 
     /**
      * Converts a CLI string to a {@link Platform} value.
+     *
+     * <p>Trims whitespace before matching to tolerate
+     * spaces around commas in comma-separated lists.</p>
      *
      * @param value the CLI input string
      * @return the matching {@link Platform}, or
@@ -37,12 +45,14 @@ public final class PlatformConverter
      */
     @Override
     public Platform convert(String value) {
-        if (ALL_KEYWORD.equals(value)) {
+        String normalized = value.trim();
+        if (ALL_KEYWORD.equals(normalized)) {
             return null;
         }
-        return Platform.fromCliName(value)
+        return Platform.fromCliName(normalized)
                 .filter(Platform.allUserSelectable()::contains)
-                .orElseThrow(() -> buildException(value));
+                .orElseThrow(
+                        () -> buildException(normalized));
     }
 
     private TypeConversionException buildException(

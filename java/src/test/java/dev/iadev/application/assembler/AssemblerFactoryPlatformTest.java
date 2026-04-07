@@ -278,13 +278,16 @@ class AssemblerFactoryPlatformTest {
             Map<Platform, List<String>> byPlatform =
                     AssemblerFactory.buildAssemblers()
                             .stream()
+                            .flatMap(d -> d.platforms()
+                                    .stream()
+                                    .map(platform ->
+                                            Map.entry(
+                                                    platform,
+                                                    d.name())))
                             .collect(Collectors.groupingBy(
-                                    d -> d.platforms()
-                                            .iterator()
-                                            .next(),
+                                    Map.Entry::getKey,
                                     Collectors.mapping(
-                                            AssemblerDescriptor
-                                                    ::name,
+                                            Map.Entry::getValue,
                                             Collectors
                                                     .toList()
                                     )));

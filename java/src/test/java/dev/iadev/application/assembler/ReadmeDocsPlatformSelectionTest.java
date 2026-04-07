@@ -1,8 +1,6 @@
 package dev.iadev.application.assembler;
 
 import dev.iadev.domain.model.Platform;
-import dev.iadev.domain.model.ProjectConfig;
-import dev.iadev.testutil.TestConfigBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,9 +15,10 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests that the README template and java/README.md
- * contain the "Platform Selection" documentation section
- * as required by story-0025-0008.
+ * Tests that the README template contains the
+ * "Platform Selection" documentation section and that
+ * the generated mapping table includes the related
+ * conditionality note required by story-0025-0008.
  */
 @DisplayName("README Platform Selection documentation")
 class ReadmeDocsPlatformSelectionTest {
@@ -97,9 +96,14 @@ class ReadmeDocsPlatformSelectionTest {
             var url = getClass().getClassLoader()
                     .getResource("readme-template.md");
             assertThat(url).isNotNull();
-            return Files.readString(
-                    Path.of(url.getPath()),
-                    StandardCharsets.UTF_8);
+            try {
+                return Files.readString(
+                        Path.of(url.toURI()),
+                        StandardCharsets.UTF_8);
+            } catch (java.net.URISyntaxException e) {
+                throw new IOException(
+                        "Invalid URI: " + url, e);
+            }
         }
     }
 

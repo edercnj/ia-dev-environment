@@ -36,7 +36,6 @@ final class PlatformParser {
      * @param map the root YAML map
      * @return immutable set (empty = all platforms)
      */
-    @SuppressWarnings("unchecked")
     static Set<Platform> parse(Map<String, Object> map) {
         Object raw = map.get("platform");
         if (raw == null) {
@@ -46,26 +45,75 @@ final class PlatformParser {
             return parseSingle(s);
         }
         if (raw instanceof List<?> list) {
-            return parseList((List<String>) list);
+            return parseList(validateListElements(list));
         }
-        return Set.of();
+        throw new ConfigValidationException(
+                ("Invalid platform value type: '%s'"
+                        + " in YAML config."
+                        + " Expected a string, a list,"
+                        + " or the field to be absent.")
+                        .formatted(
+                                raw.getClass()
+                                        .getSimpleName()));
     }
 
     private static Set<Platform> parseSingle(String value) {
         if ("all".equals(value)) {
             return Set.of();
         }
-        Optional<Platform> platform =
-                Platform.fromCliName(value);
-        if (platform.isEmpty()) {
+        Platform platform = Platform.fromCliName(value)
+                .orElseThrow(() ->
+                        new ConfigValidationException(
+                                ("Invalid platform value:"
+                                        + " '%s' in YAML"
+                                        + " config. Valid"
+                                        + " values: %s")
+                                        .formatted(value,
+                                                VALID_VALUES)));
+        rejectNonSelectable(platform, value);
+        return Set.of(platform);
+    }
+
+    private static void rejectNonSelectable(
+            Platform platform, String rawValue) {
+        if (!Platform.allUserSelectable()
+                .contains(platform)) {
             throw new ConfigValidationException(
-                    ("Invalid platform value: '%s'"
-                            + " in YAML config."
-                            + " Valid values: %s")
-                            .formatted(value,
+                    ("Platform '%s' is not"
+                            + " user-selectable in YAML"
+                            + " config. Valid values: %s")
+                            .formatted(rawValue,
                                     VALID_VALUES));
         }
-        return Set.of(platform.orElseThrow());
+    }
+
+    private static List<String> validateListElements(
+            List<?> list) {
+        List<String> result = new ArrayList<>();
+        for (Object element : list) {
+            if (element == null) {
+                throw new ConfigValidationException(
+                        "Null element in platform list"
+                                + " in YAML config."
+                                + " Expected strings."
+                                + " Valid values: "
+                                + VALID_VALUES);
+            }
+            if (!(element instanceof String s)) {
+                throw new ConfigValidationException(
+                        ("Invalid platform list element:"
+                                + " '%s' (type: %s)."
+                                + " Expected strings."
+                                + " Valid values: %s")
+                                .formatted(
+                                        element,
+                                        element.getClass()
+                                                .getSimpleName(),
+                                        VALID_VALUES));
+            }
+            result.add(s);
+        }
+        return result;
     }
 
     private static Set<Platform> parseList(
@@ -75,17 +123,19 @@ final class PlatformParser {
             if ("all".equals(v)) {
                 return Set.of();
             }
-            Optional<Platform> platform =
-                    Platform.fromCliName(v);
-            if (platform.isEmpty()) {
-                throw new ConfigValidationException(
-                        ("Invalid platform value: '%s'"
-                                + " in YAML config."
-                                + " Valid values: %s")
-                                .formatted(v,
-                                        VALID_VALUES));
-            }
-            resolved.add(platform.orElseThrow());
+            Platform platform = Platform.fromCliName(v)
+                    .orElseThrow(() ->
+                            new ConfigValidationException(
+                                    ("Invalid platform"
+                                            + " value: '%s'"
+                                            + " in YAML"
+                                            + " config."
+                                            + " Valid"
+                                            + " values: %s")
+                                            .formatted(v,
+                                                    VALID_VALUES)));
+            rejectNonSelectable(platform, v);
+            resolved.add(platform);
         }
         if (resolved.isEmpty()) {
             return Set.of();

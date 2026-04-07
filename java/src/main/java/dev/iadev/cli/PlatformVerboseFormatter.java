@@ -1,10 +1,10 @@
 package dev.iadev.cli;
 
 import dev.iadev.application.assembler.AssemblerDescriptor;
+import dev.iadev.application.assembler.AssemblerPipeline;
 import dev.iadev.domain.model.Platform;
 
 import java.util.Comparator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -13,9 +13,9 @@ import java.util.stream.Collectors;
  * Formats platform filter information for verbose and
  * dry-run output modes.
  *
- * <p>Supports RULE-007 (dry-run respects filter) and
- * RULE-008 (verbose shows included AND skipped with
- * reason).</p>
+ * <p>Ensures dry-run output respects the selected platform
+ * filter and verbose output shows both included and skipped
+ * assemblers with the reason for each decision.</p>
  *
  * @see VerbosePipelineRunner
  * @see CliDisplay
@@ -96,7 +96,7 @@ final class PlatformVerboseFormatter {
             Set<Platform> platforms,
             int assemblerCount) {
         String label = buildPlatformLabel(platforms);
-        return "Dry run -- no files written."
+        return AssemblerPipeline.DRY_RUN_WARNING + "."
                 + " Platform: %s (%d assemblers)"
                         .formatted(label, assemblerCount);
     }

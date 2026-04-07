@@ -5,7 +5,6 @@ import dev.iadev.application.assembler.AssemblerTarget;
 import dev.iadev.application.assembler.PipelineOptions;
 import dev.iadev.domain.model.PipelineResult;
 import dev.iadev.domain.model.Platform;
-import dev.iadev.domain.model.ProjectConfig;
 import dev.iadev.testutil.TestConfigBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
