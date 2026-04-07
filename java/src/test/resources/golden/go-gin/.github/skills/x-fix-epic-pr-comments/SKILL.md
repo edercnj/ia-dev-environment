@@ -92,7 +92,7 @@ After all fixes, run full test suite. If tests fail, bisect to identify offendin
 
 Create single correction PR referencing all source PRs:
 ```bash
-gh pr create --base main \
+gh pr create --base develop \
   --title "fix(epic-{epicId}): address PR review comments" \
   --body "{pr_body}"
 ```

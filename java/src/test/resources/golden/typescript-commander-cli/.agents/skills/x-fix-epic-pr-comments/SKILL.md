@@ -772,11 +772,23 @@ If `--include-suggestions` is active, also include findings with `classification
 
 ### 8.2 Branch Creation and Setup (RULE-010)
 
-Create the correction branch from `main`:
+#### baseBranch Resolution
+
+Before creating the correction branch, resolve the target base branch:
+
+1. If `execution-state.json` exists and contains a `baseBranch` field, use that value
+2. Otherwise, default to `develop`
 
 ```bash
-git checkout main
-git pull origin main
+# Read baseBranch from execution-state.json (if available)
+BASE_BRANCH=$(cat plans/epic-{epicId}*/execution-state.json 2>/dev/null | jq -r '.baseBranch // "develop"')
+```
+
+Create the correction branch from `develop` (or resolved baseBranch):
+
+```bash
+git checkout develop
+git pull origin develop
 git checkout -b fix/epic-{epicId}-pr-comments
 ```
 
@@ -784,9 +796,9 @@ git checkout -b fix/epic-{epicId}-pr-comments
 
 | Condition | Action |
 |-----------|--------|
-| Branch does not exist | Create new branch from `main` |
+| Branch does not exist | Create new branch from `develop` |
 | Branch exists, user chose `u` (update) | `git checkout fix/epic-{epicId}-pr-comments` and continue with incremental fixes |
-| Branch exists, user chose `n` (new) | `git branch -D fix/epic-{epicId}-pr-comments` then create fresh from `main` |
+| Branch exists, user chose `n` (new) | `git branch -D fix/epic-{epicId}-pr-comments` then create fresh from `develop` |
 
 After branch setup, log:
 
@@ -1086,7 +1098,7 @@ Part of EPIC-{epicId}
 ### 11.3 Create PR
 
 ```bash
-gh pr create --base main \
+gh pr create --base develop \
   --title "fix(epic-{epicId}): address PR review comments" \
   --body "{pr_body}"
 ```
@@ -1105,7 +1117,7 @@ PR Created
 URL: {prUrl}
 Number: #{prNumber}
 Title: fix(epic-{epicId}): address PR review comments
-Base: main
+Base: develop
 Branch: fix/epic-{epicId}-pr-comments
 Commits: {commitCount}
 Findings fixed: {fixedCount}
