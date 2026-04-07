@@ -621,10 +621,11 @@ You are implementing story {storyId} for epic {epicId}.
 **FIRST ACTION — Invoke the /x-dev-lifecycle skill:**
 Use the Skill tool to invoke `/x-dev-lifecycle` with argument `{storyId}`.
 This loads the full 9-phase lifecycle workflow (SKILL.md) and executes it end-to-end:
-planning (Phases 1A-1F), TDD implementation (Phase 2), reviews (Phases 4-7), and PR creation (Phase 6).
+planning (Phases 1A-1G), TDD implementation (Phase 2), reviews (Phases 4-7), and PR creation (Phase 6).
 
 **Context for the lifecycle execution:**
-- Story file: plans/epic-{epicId}/story-{storyId}.md
+- Story file: plans/epic-{epicId}/{storyId}.md
+- Note: `{storyId}` already includes the `story-` prefix (e.g., `story-0026-0001`)
 - Phase: {currentPhase}
 - Skip review: {skipReview}
 
