@@ -779,7 +779,18 @@ Before starting fixes, verify there are actionable findings to process:
 ```
 if actionableFindings.size == 0:
   log "No actionable findings to fix. Skipping Steps 8-11."
-  return { fixesApplied: 0, fixesFailed: 0, fixesSkipped: 0, prUrl: null, prNumber: null }
+  return {
+    fixesApplied: 0,
+    fixesFailed: 0,
+    fixesSkipped: 0,
+    fixBranch: null,
+    testsPass: null,
+    commitCount: 0,
+    commits: [],
+    findings: [],
+    prUrl: null,
+    prNumber: null
+  }
 ```
 
 If `--include-suggestions` is active, also include findings with `classification == "suggestion"` in the fix scope.
@@ -856,7 +867,7 @@ Two correction strategies based on finding properties:
 After each individual fix, verify compilation:
 
 ```bash
-mvn compile -q 2>&1
+mvn -f java/pom.xml compile -q 2>&1
 ```
 
 | Result | Action |
@@ -905,7 +916,7 @@ After ALL fixes are applied (Step 8 complete), run the full test suite to detect
 ### 9.1 Full Test Suite
 
 ```bash
-mvn test 2>&1
+mvn -f java/pom.xml test 2>&1
 ```
 
 | Result | Action |
@@ -921,13 +932,13 @@ When tests fail after the full batch of fixes, identify the offending fix(es) us
 
 1. Collect the list of all successfully applied fixes (ordered by application sequence).
 2. Revert ALL fixes: `git checkout -- .`
-3. Re-apply fixes one at a time, running `mvn test -q` after each.
+3. Re-apply fixes one at a time, running `mvn -f java/pom.xml test -q` after each.
 4. The first fix that causes test failure is the offending fix.
 5. Revert the offending fix: `git checkout -- {affected_files}`
 6. Mark it as `fixStatus: "failed"`, `fixReason: "test_regression"`.
 7. Continue re-applying remaining fixes (skip the offending one).
 8. If another fix fails tests, repeat steps 5-7.
-9. After all fixes are re-applied (minus offending ones), run `mvn test` one final time to confirm green.
+9. After all fixes are re-applied (minus offending ones), run `mvn -f java/pom.xml test` one final time to confirm green.
 
 **Performance note:** The bisect process may require up to N+1 test runs (where N = number of applied fixes). For large fix batches, this is acceptable because correctness is non-negotiable.
 
@@ -986,6 +997,8 @@ Total commits: 2
 
 ## Step 8-GF -- Golden File Handling
 
+This is an execution-time sub-step of **Step 8**. Perform it during Step 8 fix application, immediately after identifying and applying the relevant source-template fix, and **before any Step 9 verification or commit creation**. It is documented here only as a reference section; do not execute it after Step 9.
+
 When a fix targets a source template that generates golden files, special handling is required to propagate the fix across all profiles.
 
 ### 8-GF.1 Golden File Detection
@@ -1008,7 +1021,7 @@ When the fix targets a source template:
 2. Identify if a golden file regeneration mechanism exists:
    ```bash
    # Check for regeneration script or test
-   ls **/GoldenFileRegenerator* **/golden*regenerat* 2>/dev/null
+   find . \( -name 'GoldenFileRegenerator*' -o -name 'golden*regenerat*' \) 2>/dev/null
    ```
 3. If regeneration is available: execute it to propagate the fix to all profiles.
 4. If regeneration is NOT available: manually apply the same fix to all affected golden files across profiles.
@@ -1022,7 +1035,7 @@ When the fix targets a golden file directly:
 3. Regenerate or manually propagate to all profile variants.
 4. Verify that golden file tests pass after regeneration:
    ```bash
-   mvn test -pl :golden-tests -q 2>/dev/null || mvn test -q
+   mvn -f java/pom.xml verify -q 2>/dev/null || mvn -f java/pom.xml test -q
    ```
 
 ### 8-GF.4 Profile Propagation
@@ -1346,9 +1359,9 @@ Part of EPIC-{epicId}
 
 ## Findings Fixed
 
-| # | Finding | File | Line | Theme | Source PR |
-|---|---------|------|------|-------|-----------|
-| 1 | {finding.id} | {file} | {line} | {theme} | #{sourcePR} |
+| # | Finding | File | Line | Theme | Source PRs |
+|---|---------|------|------|-------|------------|
+| 1 | {finding.id} | {file} | {line} | {theme} | #{sourcePR1}, #{sourcePR2}, ... |
 | 2 | ... | ... | ... | ... | ... |
 
 ## Findings Skipped
