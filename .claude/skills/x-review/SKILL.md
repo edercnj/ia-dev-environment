@@ -22,11 +22,32 @@ argument-hint: "[STORY-ID or --scope reviewer1,reviewer2]"
 ## Execution Flow (Orchestrator Pattern)
 
 ```
+0. PRE-CHECK   -> Idempotency: skip if reports exist and code unchanged (inline)
 1. DETECT      -> Identify branch, diff, applicable engineers (inline)
 2. REVIEW      -> Launch N parallel subagents, one per engineer (SINGLE message)
-3. CONSOLIDATE -> Collect reports, score, summarize (inline)
+3. CONSOLIDATE -> Collect reports, score, dashboard, remediation (inline)
 4. STORY       -> If CRITICAL/MEDIUM findings: ask user, generate correction story (inline)
 ```
+
+## Phase 0: Idempotency Pre-Check (Orchestrator — Inline)
+
+Before executing a review, check if reports already exist and are still valid.
+
+1. Extract story ID from argument or branch name (e.g., `story-XXXX-YYYY`)
+2. Derive epic directory: `plans/epic-XXXX/reviews/`
+3. Check if report files exist:
+   ```bash
+   ls plans/epic-XXXX/reviews/review-*-story-XXXX-YYYY.md 2>/dev/null
+   ```
+4. If reports exist AND the branch has no new commits since last report:
+   ```bash
+   # Compare latest report mtime with latest commit date
+   stat -c %Y plans/epic-XXXX/reviews/review-security-story-XXXX-YYYY.md 2>/dev/null
+   git log -1 --format=%ct HEAD
+   ```
+   - If `mtime(report) >= commit_date`: log `Reusing existing review reports from {date}` and skip to Phase 3c (dashboard regeneration)
+   - If code changed after reports: proceed with full review
+5. If no reports exist, proceed normally
 
 ## Phase 1: Detect Context (Orchestrator — Inline)
 
@@ -61,6 +82,17 @@ If `--scope` provided, filter to listed engineers only.
 
 Launch one `general-purpose` subagent per applicable engineer.
 
+### Template Detection (before dispatching subagents)
+
+Before launching subagents, check if the specialist review template exists:
+
+```bash
+test -f .claude/templates/_TEMPLATE-SPECIALIST-REVIEW.md && echo "TEMPLATE_AVAILABLE" || echo "TEMPLATE_MISSING"
+```
+
+- If `TEMPLATE_AVAILABLE`: include template reference instruction in each subagent prompt (see below)
+- If `TEMPLATE_MISSING`: log warning `Template not found, using inline format` and use the inline format as fallback
+
 ### Subagent: Specialist Engineer Review
 
 **Prompt template (substitute `{ENGINEER}`, `{KP_PATHS}`, `{DIFF}`, `{STORY_ID}`, `{CHECKLIST}`):**
@@ -69,6 +101,10 @@ Launch one `general-purpose` subagent per applicable engineer.
 >
 > **Step 1 — Read Knowledge Pack:**
 > Read these files to understand the standards: {KP_PATHS}
+>
+> **Step 1b — Read Output Template:**
+> Read template at `.claude/templates/_TEMPLATE-SPECIALIST-REVIEW.md` for required output format.
+> Follow ALL sections defined in the template. Score MUST be in format `XX/YY | Status: Approved/Rejected/Partial`.
 >
 > **Step 2 — Review the Diff:**
 > Run `git diff main` and review all changes against the standards you just read.
@@ -79,12 +115,12 @@ Launch one `general-purpose` subagent per applicable engineer.
 >
 > {CHECKLIST}
 >
-> **Output format (strict):**
+> **Output format (strict — use template from Step 1b if available, otherwise use inline format below):**
 > ```
 > ENGINEER: {ENGINEER}
 > STORY: {STORY_ID}
 > SCORE: XX/YY
-> STATUS: Approved | Rejected
+> STATUS: Approved | Rejected | Partial
 > ---
 > PASSED:
 > - [ID] Description (2/2)
@@ -95,7 +131,10 @@ Launch one `general-purpose` subagent per applicable engineer.
 > ```
 >
 > **STATUS = Approved** only if ALL items score 2/2.
-> **STATUS = Rejected** if ANY item scores 0 or 1.
+> **STATUS = Rejected** if ANY item scores 0.
+> **STATUS = Partial** if ANY item scores 1 but none scores 0.
+
+> **Fallback (RULE-012):** When template is not available (pre-EPIC-0024 projects), the inline format above is used as fallback. The subagent prompt omits Step 1b entirely.
 
 ### Engineer → Knowledge Pack Mapping
 
@@ -163,11 +202,64 @@ Approval requires ALL engineers with STATUS: Approved (every item at 2/2).
 OVERALL: APPROVED only when every engineer has STATUS: Approved.
 ```
 
-### 3c. Save Artifacts
+### 3c. Save Individual Reports
 
 Save each engineer's report to `plans/epic-XXXX/reviews/review-{engineer}-story-XXXX-YYYY.md` (extract epic ID XXXX and story sequence YYYY from the story ID). Ensure directory exists: `mkdir -p plans/epic-XXXX/reviews`.
 
-### 3d. Threat Model Update
+### 3d. Generate Consolidated Dashboard
+
+After saving all individual reports, generate a consolidated dashboard.
+
+1. **Check dashboard template:**
+   ```bash
+   test -f .claude/templates/_TEMPLATE-CONSOLIDATED-REVIEW-DASHBOARD.md && echo "DASHBOARD_TEMPLATE_AVAILABLE" || echo "DASHBOARD_TEMPLATE_MISSING"
+   ```
+
+2. **If template available:**
+   - Read template at `.claude/templates/_TEMPLATE-CONSOLIDATED-REVIEW-DASHBOARD.md`
+   - Create `plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md`
+   - Populate with:
+     - **Engineer Scores Table:** One row per specialist with Score, Max, and Status
+     - **Overall Score:** Sum of all specialist scores / sum of all max scores, with percentage
+     - **Overall Status:** `Approved` only if ALL specialists are Approved; `Rejected` if ANY has score 0 items; `Partial` otherwise
+     - **Critical Issues Summary:** All findings with severity Critical or High from all reports
+     - **Severity Distribution:** Aggregate counts across all specialists
+     - **Review History:** Record as Round N with date, scores, and status
+   - Tech Lead Score section: leave as placeholder `--/45 | Status: Pending` (updated by `x-review-pr`)
+   - Dashboard is **cumulative** (RULE-006): if dashboard already exists, append a new round to Review History instead of overwriting
+
+3. **If template missing:**
+   - Log warning: `Dashboard template not found, skipping dashboard generation`
+   - Continue to next phase without generating dashboard
+
+### 3e. Generate Remediation Tracking
+
+After generating the dashboard, create a remediation tracking file.
+
+1. **Check remediation template:**
+   ```bash
+   test -f .claude/templates/_TEMPLATE-REVIEW-REMEDIATION.md && echo "REMEDIATION_TEMPLATE_AVAILABLE" || echo "REMEDIATION_TEMPLATE_MISSING"
+   ```
+
+2. **If template available:**
+   - Read template at `.claude/templates/_TEMPLATE-REVIEW-REMEDIATION.md`
+   - Create `plans/epic-XXXX/reviews/remediation-story-XXXX-YYYY.md`
+   - **Extract findings:** Parse all individual reports for items with status FAILED or PARTIAL
+   - **Populate Findings Tracker:** One row per finding with:
+     - `Finding ID`: Sequential `FIND-NNN`
+     - `Engineer`: Specialist who reported the finding
+     - `Severity`: Critical / High / Medium / Low
+     - `Description`: Finding description from the report
+     - `Status`: All initialized as `Open`
+     - `Fix Commit SHA`: Empty (populated after fixes)
+   - **Populate Remediation Summary:** Count of findings by status (all Open initially)
+   - **Header:** Include total count: `{N} findings pending remediation`
+
+3. **If template missing:**
+   - Log warning: `Remediation template not found, skipping remediation tracking generation`
+   - Continue to next phase
+
+### 3f. Threat Model Update
 
 After saving review artifacts, extract security findings from the Security Engineer's report and update the project threat model incrementally.
 
@@ -254,3 +346,7 @@ If the user selects **"Sim"**, generate a correction story following these steps
 - If run standalone, Phase 3 of lifecycle can be skipped if reports exist and code unchanged
 - Recommended flow: `/x-review` → fix criticals → `/x-review-pr` for final holistic review
 - Phase 4 integrates with `/x-story-create` format — correction stories follow the same template and can be picked up by `/x-dev-implement`
+- Dashboard (Phase 3d) is **cumulative** — created by `/x-review`, updated by `/x-review-pr` (RULE-006)
+- Remediation tracking (Phase 3e) enables structured follow-up of findings across review rounds
+- Templates in `.claude/templates/` are copied verbatim by `PlanTemplatesAssembler` — not rendered by the engine
+- Fallback (RULE-012): When templates are absent (pre-EPIC-0024 projects), inline format is used and dashboard/remediation are skipped
