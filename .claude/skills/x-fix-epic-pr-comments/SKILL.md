@@ -1079,20 +1079,22 @@ For each finding that requires a reply (per 10.2 table):
 #### 10.3.1 Post Reply to Inline Comment
 
 ```bash
-gh api repos/{owner}/{repo}/pulls/{prNumber}/comments/{commentId}/replies \
+gh api repos/{owner}/{repo}/pulls/comments/{commentId}/replies \
   -f body="{resolvedTemplate}"
 ```
 
-Where `{prNumber}` comes from `finding.sourcePRs[0]` (the PR where the comment was originally posted) and `{commentId}` comes from `finding.id` (the original comment ID from Step 5).
+Where `{commentId}` comes from `finding.id` (the original review comment ID from Step 5). Note: the GitHub REST API reply endpoint does not include `{prNumber}` in the path -- the comment ID is globally unique.
 
 #### 10.3.2 Post Reply to Review-Level Comment
 
-For review-level comments (those without a `line` field):
+For review-level comments (those without a `line` field, i.e., review summary bodies from Step 5.2), the GitHub REST API does not support threading replies on review summaries. Instead, post a regular PR issue comment referencing the review:
 
 ```bash
-gh api repos/{owner}/{repo}/pulls/{prNumber}/reviews/{reviewId}/comments \
-  -f body="{resolvedTemplate}"
+gh api repos/{owner}/{repo}/issues/{prNumber}/comments \
+  -f body="Re: review by @{reviewAuthor} — {resolvedTemplate}"
 ```
+
+Where `{prNumber}` comes from `finding.sourcePRs[0]` and `{reviewAuthor}` comes from the review's `user.login` field. This posts a top-level comment on the PR that references the original review.
 
 #### 10.3.3 Error Handling per Reply
 
@@ -1137,7 +1139,7 @@ Before posting each reply, check if a reply already exists to prevent duplicates
 
 1. Fetch existing replies for the comment:
    ```bash
-   gh api repos/{owner}/{repo}/pulls/{prNumber}/comments/{commentId}/replies \
+   gh api repos/{owner}/{repo}/pulls/comments/{commentId}/replies \
      --jq '.[].body'
    ```
 
@@ -1156,11 +1158,13 @@ Before posting each reply, check if a reply already exists to prevent duplicates
 
 ### 10.6 Status Tracking (Report Update)
 
-After the reply phase completes, update the `pr-comments-report.md` with Status and Reply columns.
+After the reply phase completes, update the `pr-comments-report.md` with Status and Reply columns for actionable findings processed in this phase.
+
+If there are zero actionable findings requiring reply, do not modify `pr-comments-report.md`; in that edge case, this step is not applicable and the existing report remains unchanged.
 
 #### 10.6.1 Updated Report Table Format
 
-The Actionable Findings table gains two new columns:
+When at least one actionable finding is processed in the reply phase, the Actionable Findings table gains two new columns:
 
 | # | PRs | File | Line | Summary | Has Suggestion | Theme | Status | Reply |
 |---|-----|------|------|---------|----------------|-------|--------|-------|
@@ -1294,7 +1298,7 @@ Report updated: {reportPath}
 | `--skip-replies` active | Skip entire reply phase. Report retains original format without Status/Reply columns. |
 | `--dry-run` active | Step 10 never executes (execution stops after Step 7). |
 | Finding has multiple `sourcePRs` (dedup) | Reply posted only to `sourcePRs[0]` (the canonical occurrence). Other PRs do not receive replies. |
-| PR was deleted between fix and reply phase | API returns 404. Reply marked as failed. Loop continues. |
+| PR was deleted between fix and reply phase | API returns 404. Reply marked as skipped (consistent with 10.3.3 error handling). Loop continues. |
 | Comment thread is locked | API returns 422. Reply marked as failed. Loop continues. |
 | 50+ replies needed | Rate limiter pauses at 30 replies/minute. Total time increases but all replies are posted. |
 
