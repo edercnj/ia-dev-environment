@@ -364,7 +364,7 @@ Documentation output saved to `contracts/` with subdirectories per type:
 - Architecture docs → `steering/`
 
 **Changelog Entry:**
-- Read commits since branch point (`git log main..HEAD --oneline`)
+- Read commits since branch point (`git log develop..HEAD --oneline`)
 - Generate Conventional Commits summary by type (feat, fix, refactor, test, docs, chore)
 - Append to CHANGELOG.md
 
@@ -472,10 +472,12 @@ Collect the consolidated review report with scores and severity counts.
 ## Phase 6 — Commit & PR (Orchestrator — Inline)
 
 1. Push: `git push -u origin feat/{STORY_ID}-description`
-2. Create PR via `gh pr create` with review summary in body, including TDD compliance:
+2. Create PR via `gh pr create --base develop` with review summary in body, including TDD compliance:
    - Number of TDD cycles completed
    - Test-first pattern verified
    - TPP progression in commit history
+
+> **Note:** Version bumps are NOT performed during feature branch flow. Version bumps belong to the release branch workflow (see `/x-release`).
 
 ## Phase 7 — Tech Lead Review
 
@@ -515,7 +517,7 @@ If `x-review-pr` includes TDD criteria, it validates TDD compliance in the check
      - **SKIP**: testing.smoke_tests=false → "Verification skipped"
    - Non-blocking: emit result for human decision, do NOT auto-rollback
 7. Report PASS/FAIL/SKIP result
-8. `git checkout main && git pull origin main`
+8. `git checkout develop && git pull origin develop`
 
 **Phase 8 is the ONLY legitimate stopping point.**
 
