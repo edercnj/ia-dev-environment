@@ -18,6 +18,14 @@ project:
 # ═════════════════════════════════════════════════
 platform: all
 
+# ═════════════════════════════════════════════════
+# BRANCHING MODEL (Git workflow strategy)
+# Options: gitflow, trunk
+# gitflow: uses develop as base branch, release branches
+# trunk: uses main as base branch, direct tags
+# ═════════════════════════════════════════════════
+branching-model: gitflow
+
 # ═══════════════════════════════════════════════════
 # SECTION 2: ARCHITECTURE
 # ═══════════════════════════════════════════════════

@@ -58,7 +58,8 @@ class ContextBuilderTest {
                         true, true, true, 95, 90),
                 new McpConfig(List.of()),
                 "none",
-                java.util.Set.of());
+                java.util.Set.of(),
+                null);
     }
 
     private DataConfig buildFullDataConfig() {
@@ -98,31 +99,32 @@ class ContextBuilderTest {
                 TestingConfig.fromMap(Map.of()),
                 McpConfig.fromMap(Map.of()),
                 "none",
-                java.util.Set.of());
+                java.util.Set.of(),
+                null);
     }
 
     @Nested
-    @DisplayName("buildContext() produces exactly 44 fields")
+    @DisplayName("buildContext() produces exactly 46 fields")
     class FieldCount {
 
         @Test
-        @DisplayName("returns map with exactly 44 entries")
-        void buildContext_fullConfig_returns44Fields() {
+        @DisplayName("returns map with exactly 46 entries")
+        void buildContext_fullConfig_returns46Fields() {
             Map<String, Object> context =
                     ContextBuilder.buildContext(
                             buildFullConfig());
 
-            assertThat(context).hasSize(44);
+            assertThat(context).hasSize(46);
         }
 
         @Test
-        @DisplayName("returns map with 44 entries for minimal")
-        void buildContext_minimalConfig_returns44Fields() {
+        @DisplayName("returns map with 46 entries for minimal")
+        void buildContext_minimalConfig_returns46Fields() {
             Map<String, Object> context =
                     ContextBuilder.buildContext(
                             buildMinimalConfig());
 
-            assertThat(context).hasSize(44);
+            assertThat(context).hasSize(46);
         }
     }
 
@@ -166,6 +168,19 @@ class ContextBuilderTest {
                     .isEqualTo("3.4");
             assertThat(ctx.get("build_tool"))
                     .isEqualTo("maven");
+        }
+
+        @Test
+        @DisplayName("branching model fields default")
+        void buildContext_branchingModel_defaultGitflow() {
+            Map<String, Object> ctx =
+                    ContextBuilder.buildContext(
+                            buildFullConfig());
+
+            assertThat(ctx.get("branching_model"))
+                    .isEqualTo("gitflow");
+            assertThat(ctx.get("base_branch"))
+                    .isEqualTo("develop");
         }
 
         @Test
@@ -451,7 +466,8 @@ class ContextBuilderTest {
                     TestingConfig.fromMap(Map.of()),
                     McpConfig.fromMap(Map.of()),
                     "none",
-                    java.util.Set.of());
+                    java.util.Set.of(),
+                    null);
 
             Map<String, Object> ctx =
                     ContextBuilder.buildContext(config);
@@ -462,11 +478,11 @@ class ContextBuilderTest {
     }
 
     @Nested
-    @DisplayName("exact 44 field names")
+    @DisplayName("exact 46 field names")
     class ExactFieldNames {
 
         @Test
-        @DisplayName("context contains all 44 expected keys")
+        @DisplayName("context contains all 46 expected keys")
         void buildContext_allExpectedKeys_present() {
             Map<String, Object> ctx =
                     ContextBuilder.buildContext(
@@ -516,7 +532,9 @@ class ContextBuilderTest {
                     "review_max_score",
                     "review_go_threshold",
                     "review_conditional_rubric",
-                    "review_conditional_criteria");
+                    "review_conditional_criteria",
+                    "branching_model",
+                    "base_branch");
         }
     }
 

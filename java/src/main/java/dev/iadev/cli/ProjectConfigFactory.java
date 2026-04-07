@@ -95,7 +95,7 @@ final class ProjectConfigFactory {
                 project, architecture, interfaceList,
                 lang, fw, data, infra, security,
                 testing, mcp, "none",
-                java.util.Set.of());
+                java.util.Set.of(), null);
     }
 
     private static String resolveEffectiveStyle(

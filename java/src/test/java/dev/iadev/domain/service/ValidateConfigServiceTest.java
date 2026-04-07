@@ -244,7 +244,8 @@ class ValidateConfigServiceTest {
                     TestingConfig.fromMap(Map.of()),
                     McpConfig.fromMap(Map.of()),
                 "none",
-                java.util.Set.of());
+                java.util.Set.of(),
+                null);
         }
     }
 
@@ -290,7 +291,8 @@ class ValidateConfigServiceTest {
                 TestingConfig.fromMap(Map.of()),
                 McpConfig.fromMap(Map.of()),
                 "none",
-                java.util.Set.of());
+                java.util.Set.of(),
+                null);
     }
 
     private ProjectConfig buildConfigWithNullIdentity() {
@@ -317,7 +319,8 @@ class ValidateConfigServiceTest {
                 TestingConfig.fromMap(Map.of()),
                 McpConfig.fromMap(Map.of()),
                 "none",
-                java.util.Set.of());
+                java.util.Set.of(),
+                null);
     }
 
     private ProjectConfig buildConfigWithNullLanguage() {
@@ -345,7 +348,8 @@ class ValidateConfigServiceTest {
                 TestingConfig.fromMap(Map.of()),
                 McpConfig.fromMap(Map.of()),
                 "none",
-                java.util.Set.of());
+                java.util.Set.of(),
+                null);
     }
 
     private ProjectConfig buildConfigWithNullFramework() {
@@ -372,7 +376,8 @@ class ValidateConfigServiceTest {
                 TestingConfig.fromMap(Map.of()),
                 McpConfig.fromMap(Map.of()),
                 "none",
-                java.util.Set.of());
+                java.util.Set.of(),
+                null);
     }
 
     private ProjectConfig buildConfigWithEmptyInterfaces() {
@@ -399,6 +404,7 @@ class ValidateConfigServiceTest {
                 TestingConfig.fromMap(Map.of()),
                 McpConfig.fromMap(Map.of()),
                 "none",
-                java.util.Set.of());
+                java.util.Set.of(),
+                null);
     }
 }

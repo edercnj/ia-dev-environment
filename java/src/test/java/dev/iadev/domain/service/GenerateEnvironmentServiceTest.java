@@ -355,7 +355,8 @@ class GenerateEnvironmentServiceTest {
                 TestingConfig.fromMap(Map.of()),
                 McpConfig.fromMap(Map.of()),
                 "none",
-                java.util.Set.of());
+                java.util.Set.of(),
+                null);
         return new GenerationContext(
                 config, Path.of("/tmp/output"), false);
     }
@@ -385,7 +386,8 @@ class GenerateEnvironmentServiceTest {
                 TestingConfig.fromMap(Map.of()),
                 McpConfig.fromMap(Map.of()),
                 "none",
-                java.util.Set.of());
+                java.util.Set.of(),
+                null);
     }
 
     private StackProfile buildProfile() {
