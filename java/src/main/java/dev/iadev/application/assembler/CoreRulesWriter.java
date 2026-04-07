@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Writes core rules (01-08, plus conditional 09-12)
+ * Writes core rules (01-09, plus conditional 09-12)
  * and routes core knowledge pack files during assembly.
  *
  * @see RulesAssembler

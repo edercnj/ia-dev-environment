@@ -31,9 +31,9 @@ class RulesAssemblerTest {
     class CoreRules {
 
         @Test
-        @DisplayName("generates 8 core rule files for"
+        @DisplayName("generates 9 core rule files for"
                 + " minimal config (no database)")
-        void assemble_whenCalled_generatesEightCoreRules(
+        void assemble_whenCalled_generatesNineCoreRules(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = createMinimalResources(
@@ -73,14 +73,17 @@ class RulesAssemblerTest {
                     "08-release-process.md"))
                     .exists();
             assertThat(rulesDir.resolve(
+                    "09-branching-model.md"))
+                    .exists();
+            assertThat(rulesDir.resolve(
                     "09-data-management.md"))
                     .doesNotExist();
         }
 
         @Test
-        @DisplayName("generates 9 rule files when database"
+        @DisplayName("generates 10 rule files when database"
                 + " is configured")
-        void assemble_withDb_generatesNineRules(
+        void assemble_withDb_generatesTenRules(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourceDir = createMinimalResources(
@@ -104,6 +107,9 @@ class RulesAssemblerTest {
                     .exists();
             assertThat(rulesDir.resolve(
                     "08-release-process.md"))
+                    .exists();
+            assertThat(rulesDir.resolve(
+                    "09-branching-model.md"))
                     .exists();
             assertThat(rulesDir.resolve(
                     "09-data-management.md"))
@@ -387,6 +393,100 @@ class RulesAssemblerTest {
                     .contains("Semantic Versioning")
                     .contains("Conventional Commits")
                     .contains("CHANGELOG");
+        }
+    }
+
+    @Nested
+    @DisplayName("assemble — rule 09 branching model")
+    class Rule09BranchingModel {
+
+        @Test
+        @DisplayName("rule 09 contains branch types table")
+        void assemble_rule09_containsBranchTypes(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path resourceDir = createMinimalResources(
+                    tempDir);
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            RulesAssembler assembler =
+                    new RulesAssembler(resourceDir);
+            ProjectConfig config = TestConfigBuilder
+                    .minimal();
+
+            assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "rules/09-branching-model.md"),
+                    StandardCharsets.UTF_8);
+
+            assertThat(content)
+                    .contains("Branching Model")
+                    .contains("main")
+                    .contains("develop")
+                    .contains("feature/*")
+                    .contains("release/*")
+                    .contains("hotfix/*");
+        }
+
+        @Test
+        @DisplayName("rule 09 contains merge direction"
+                + " and forbidden actions")
+        void assemble_rule09_containsMergeRules(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path resourceDir = createMinimalResources(
+                    tempDir);
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            RulesAssembler assembler =
+                    new RulesAssembler(resourceDir);
+            ProjectConfig config = TestConfigBuilder
+                    .minimal();
+
+            assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "rules/09-branching-model.md"),
+                    StandardCharsets.UTF_8);
+
+            assertThat(content)
+                    .contains("Merge Direction")
+                    .contains("Forbidden")
+                    .contains("Rule 08");
+        }
+
+        @Test
+        @DisplayName("rule 09 contains naming conventions")
+        void assemble_rule09_containsNamingConventions(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path resourceDir = createMinimalResources(
+                    tempDir);
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            RulesAssembler assembler =
+                    new RulesAssembler(resourceDir);
+            ProjectConfig config = TestConfigBuilder
+                    .minimal();
+
+            assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "rules/09-branching-model.md"),
+                    StandardCharsets.UTF_8);
+
+            assertThat(content)
+                    .contains("Naming Convention");
         }
     }
 
@@ -792,6 +892,19 @@ class RulesAssemblerTest {
         }
 
         @Test
+        @DisplayName("09-branching-model matches golden"
+                + " file")
+        void golden_branchingModel_matchesGoldenFile()
+                throws IOException {
+            String expected = loadGoldenFile(
+                    "09-branching-model.md");
+
+            assertThat(expected)
+                    .contains("Branching Model")
+                    .contains("Git Flow");
+        }
+
+        @Test
         @DisplayName("09-data-management template exists"
                 + " in conditional resources")
         void golden_dataManagement_templateExists() {
@@ -897,6 +1010,19 @@ class RulesAssemblerTest {
                         + "## Semantic Versioning\n"
                         + "## Conventional Commits\n"
                         + "## CHANGELOG\n",
+                StandardCharsets.UTF_8);
+        Files.writeString(
+                coreRules.resolve(
+                        "09-branching-model.md"),
+                "# Rule 09 — Branching Model\n"
+                        + "## Branch Types\n"
+                        + "main, develop, feature/*,"
+                        + " release/*, hotfix/*\n"
+                        + "## Naming Convention\n"
+                        + "## Merge Direction\n"
+                        + "## Git Flow\n"
+                        + "## Forbidden\n"
+                        + "Rule 08\n",
                 StandardCharsets.UTF_8);
         Path condRules = coreRules.resolve("conditional");
         Files.createDirectories(condRules);
