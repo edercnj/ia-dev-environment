@@ -1,0 +1,189 @@
+{
+  "epicId": "0025",
+  "startedAt": "2026-04-06T00:00:00Z",
+  "finishedAt": "2026-04-07T00:35:00Z",
+  "mode": {
+    "parallel": true,
+    "skipReview": false,
+    "singlePr": false
+  },
+  "stories": {
+    "story-0025-0001": {
+      "id": "story-0025-0001",
+      "phase": 0,
+      "status": "SUCCESS",
+      "commitSha": "91e8783ab5d3c1d5a8815685cc5540409136a0c3",
+      "findingsCount": 0,
+      "summary": "Implemented Platform enum (CLAUDE_CODE, COPILOT, CODEX, SHARED) with cliName(), fromCliName(), allUserSelectable(). Extended AssemblerDescriptor with Set<Platform> platforms. Mapped all 34 assemblers in AssemblerFactory. 5229 tests pass, 96.23% line / 90.88% branch coverage.",
+      "retries": 0,
+      "duration": 610,
+      "blockedBy": [],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/160",
+      "prNumber": 160,
+      "prMergeStatus": "MERGED"
+    },
+    "story-0025-0002": {
+      "id": "story-0025-0002",
+      "phase": 1,
+      "status": "SUCCESS",
+      "commitSha": "ba48c6cd9256713e5755b70c226c8ffdf4018760",
+      "findingsCount": 0,
+      "summary": "Implemented PlatformFilter with filtering logic preserving order (RULE-002), always including SHARED (RULE-003), backward-compatible PipelineOptions with Set<Platform> platforms. 5254 tests pass, 96.2% line / 90.9% branch.",
+      "retries": 0,
+      "duration": 452,
+      "blockedBy": ["story-0025-0001"],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/161",
+      "prNumber": 161,
+      "prMergeStatus": "MERGED"
+    },
+    "story-0025-0003": {
+      "id": "story-0025-0003",
+      "phase": 2,
+      "status": "SUCCESS",
+      "commitSha": "70e57cd1cf89abdeb7ceb4dae1e71f1773fdd418",
+      "findingsCount": 0,
+      "summary": "Added PlatformConverter and --platform/-p CLI flag to GenerateCommand with comma-split, all-keyword handling, clear error messages. 31 new tests, 5285 total pass.",
+      "retries": 0,
+      "duration": 470,
+      "blockedBy": ["story-0025-0002"],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/162",
+      "prNumber": 162,
+      "prMergeStatus": "MERGED"
+    },
+    "story-0025-0004": {
+      "id": "story-0025-0004",
+      "phase": 2,
+      "status": "SUCCESS",
+      "commitSha": "00c6e19b7664f3f6e97dce372be60306d17e69e2",
+      "findingsCount": 0,
+      "summary": "Added platform YAML config support with CLI precedence. PlatformParser, PlatformPrecedenceResolver, StackValidator validation, 26 profile templates updated. 27 new tests, 5292 total pass.",
+      "retries": 0,
+      "duration": 1155,
+      "blockedBy": ["story-0025-0002"],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/164",
+      "prNumber": 164,
+      "prMergeStatus": "MERGED"
+    },
+    "story-0025-0005": {
+      "id": "story-0025-0005",
+      "phase": 2,
+      "status": "SUCCESS",
+      "commitSha": "ec643ba2",
+      "findingsCount": 0,
+      "summary": "Implemented platform-filtered dynamic artifact counts. PlatformContextBuilder, SummaryRowFilter, platform-aware overloads in builders and assemblers. 32 new tests. 95.9% line / 91.0% branch.",
+      "retries": 0,
+      "duration": 1343,
+      "blockedBy": ["story-0025-0002"],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/165",
+      "prNumber": 165,
+      "prMergeStatus": "MERGED"
+    },
+    "story-0025-0006": {
+      "id": "story-0025-0006",
+      "phase": 2,
+      "status": "SUCCESS",
+      "commitSha": "c07cd71fe38a56b794dc3d47ae5707d8ea4ac9cf",
+      "findingsCount": 0,
+      "summary": "Implemented platform-aware verbose and dry-run output. PlatformVerboseFormatter with filter header, INCLUDED/SKIPPED per-assembler, dry-run warnings. 23 new tests, 5277 total pass.",
+      "retries": 0,
+      "duration": 767,
+      "blockedBy": ["story-0025-0002"],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/163",
+      "prNumber": 163,
+      "prMergeStatus": "MERGED"
+    },
+    "story-0025-0007": {
+      "id": "story-0025-0007",
+      "phase": 3,
+      "status": "SUCCESS",
+      "commitSha": "62c4c48d392d4b8a8df26828b0033f6b66d6d87f",
+      "findingsCount": 0,
+      "summary": "Added 96 new tests: PlatformPipelineIntegrationTest (31), PlatformDirectorySmokeTest (42), ProfilePlatformIntegritySmokeTest (21), PlatformGoldenFileTest (2). Golden files for java-spring and go-gin with --platform claude-code.",
+      "retries": 0,
+      "duration": 3387,
+      "blockedBy": ["story-0025-0003", "story-0025-0004", "story-0025-0005", "story-0025-0006"],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/167",
+      "prNumber": 167,
+      "prMergeStatus": "MERGED"
+    },
+    "story-0025-0008": {
+      "id": "story-0025-0008",
+      "phase": 3,
+      "status": "SUCCESS",
+      "commitSha": "775232f50b6fa0f24ea4f5186a8983dfcafd4296",
+      "findingsCount": 0,
+      "summary": "Added Platform Selection docs to README.md, CLAUDE.md, CHANGELOG.md. 8 new tests. 17 golden files regenerated. 5383 tests pass, 95.93% line / 91.01% branch.",
+      "retries": 0,
+      "duration": 1807,
+      "blockedBy": ["story-0025-0005"],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/166",
+      "prNumber": 166,
+      "prMergeStatus": "MERGED"
+    }
+  },
+  "metrics": {
+    "storiesCompleted": 8,
+    "storiesFailed": 0,
+    "storiesBlocked": 0,
+    "storiesTotal": 8
+  },
+  "integrityGates": {
+    "0": {
+      "status": "PASS",
+      "testCount": 5229,
+      "coverage": 96.23,
+      "branchCoverage": 90.88,
+      "failedTests": [],
+      "regressionSource": null,
+      "smokeGate": {
+        "status": "PASS",
+        "testsRun": 5229,
+        "testsFailed": 0,
+        "failedTests": [],
+        "suspectedStories": [],
+        "timestamp": "2026-04-06T22:50:00Z"
+      }
+    },
+    "1": {
+      "status": "PASS",
+      "testCount": 5254,
+      "coverage": 96.2,
+      "branchCoverage": 90.9,
+      "failedTests": [],
+      "regressionSource": null,
+      "smokeGate": {
+        "status": "PASS",
+        "testsRun": 5254,
+        "testsFailed": 0,
+        "failedTests": [],
+        "suspectedStories": [],
+        "timestamp": "2026-04-06T23:00:00Z"
+      }
+    },
+    "2": {
+      "status": "PASS",
+      "testCount": 5375,
+      "coverage": 96.0,
+      "branchCoverage": 90.0,
+      "failedTests": [],
+      "regressionSource": null,
+      "smokeGate": {
+        "status": "PASS",
+        "testsRun": 5375,
+        "testsFailed": 0,
+        "failedTests": [],
+        "suspectedStories": [],
+        "timestamp": "2026-04-06T23:35:00Z"
+      }
+    }
+  },
+  "mainShaBeforePhase": {
+    "0": "f6f01f45050e34911276fb8682861aa1f1f4e2d1",
+    "1": "bc9b434a5510421b7b00b24b97f47234085e79ed",
+    "2": "49da656fb2fce3557c19a91aa2cadcbad7a59db9",
+    "3": "5c29c2fffbed03e0fa6200ef549637d4bae7dccc"
+  },
+  "reportPath": "plans/epic-0025/epic-execution-report.md",
+  "finalStatus": "COMPLETE",
+  "finishedAt": "2026-04-07T00:35:00Z"
+}
