@@ -198,7 +198,7 @@ The Core Loop reads the preflight analysis and partitions stories:
 
 ### 1.2 Branch Management
 
-- `git checkout main && git pull origin main`
+- `git checkout develop && git pull origin develop`
 - Create branch: `git checkout -b feat/epic-{epicId}-full-implementation`
 - Resume mode: checkout existing branch if it already exists
 
@@ -338,8 +338,8 @@ When `--skip-review` is set, Wave 1 launches only 2.2.
 
 #### 2.1 Tech Lead Review Subagent
 
-- Dispatch subagent that executes `x-review-pr` logic on full epic diff (branch vs main)
-- Input: branch name, base branch (main)
+- Dispatch subagent that executes `x-review-pr` logic on full epic diff (branch vs develop)
+- Input: branch name, base branch (develop)
 - Returns `ReviewResult`: `{ score, decision (GO/NO-GO), findings }`
 - On SUCCESS: record ReviewResult in checkpoint atomically (RULE-002)
 - On subagent failure: log warning, continue (review is informational)
@@ -375,7 +375,7 @@ When `--skip-review` is set, Wave 1 launches only 2.2.
 - Title: `feat(epic): implement EPIC-{epicId} — {title}`
 - If completion < 100%: title includes `[PARTIAL]`
 - Body: summary with stories completed/failed/blocked, tech lead score, coverage, report link
-- Create: `gh pr create --title "..." --body "..." --base main`
+- Create: `gh pr create --title "..." --body "..." --base develop`
 - On push failure: log error, generate report without PR, persist failure in checkpoint
 
 ### 2.4 Partial Completion Handling
@@ -416,7 +416,7 @@ Final verification validates the epic as a whole before declaring completion.
 ### 3.4 Completion Output
 
 - Display: epic status, stories completed/failed/blocked, coverage, tech lead score, PR link, report path, elapsed time
-- Return to main: `git checkout main && git pull origin main`
+- Return to develop: `git checkout develop && git pull origin develop`
 
 ## Integration Notes
 
