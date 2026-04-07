@@ -49,7 +49,7 @@ Automates the complete cycle of addressing PR review comments across an entire e
 11. PR         -> Create single correction PR (story-0026-0004)
 ```
 
-> **story-0026-0001 implements steps 1-4.** **story-0026-0002 implements steps 5-6 (including 6B).** Steps 7-11 are delivered by subsequent stories.
+> **story-0026-0001 implements steps 1-4.** **story-0026-0002 implements steps 5-6 (including 6B).** **story-0026-0003 implements step 7.** Steps 8-11 are delivered by subsequent stories.
 
 ---
 
@@ -546,6 +546,213 @@ Step 5 (Fetch) -> raw comments[] -> Step 6 (Classify) -> classified comments[]
 
 ---
 
+## Step 7 -- Consolidated Findings Report (RULE-004)
+
+After classification (Step 6) and deduplication (Step 6B), generate a markdown report consolidating all findings. This report is persisted BEFORE any corrections begin (RULE-004) and serves as an audit artifact. In `--dry-run` mode (RULE-007), the report is the final output -- no subsequent steps execute.
+
+### 7.1 Theme Detection
+
+Before generating the report, assign a `theme` to each finding using deterministic heuristics. Rules are evaluated in order; the **first match wins**.
+
+| Theme | Heuristic (case-insensitive) | Match Target |
+|-------|------------------------------|--------------|
+| `naming` | body contains `"rename"`, `"naming"`, `"name"`, `"diacritics"` | `body` |
+| `placeholder` | body contains `"placeholder"`, `{{`, `"ambiguous"` | `body` |
+| `consistency` | body contains `"inconsistent"`, `"standardize"`, `"align"` | `body` |
+| `testing` | file path contains `Test.java`, `test/`, `spec` | `file` |
+| `golden-files` | file path contains `golden/` | `file` |
+| `security` | body contains `"security"`, `"OWASP"`, `"injection"`, `"XSS"` | `body` |
+| `other` | no heuristic matched | fallback |
+
+**Implementation notes:**
+- All keyword matches are **case-insensitive**.
+- `body` refers to the finding's `body` field (the original comment text).
+- `file` refers to the finding's `file` field (relative path from repo root).
+- The `{{` literal match for `placeholder` theme checks for double-brace template variables (e.g., `{{PROJECT_NAME}}`).
+- When a finding matches both a `body`-based and a `file`-based heuristic, the `body`-based match wins (body heuristics have higher priority since they appear first in the evaluation order).
+- After theme detection, update each finding's `theme` field in the consolidated data structure (was `null` during fetch).
+
+### 7.2 Report Format (Markdown Template)
+
+The report follows this exact structure:
+
+````markdown
+# PR Review Comments -- Consolidated Report
+
+**Epic:** EPIC-{epicId}
+**Date:** {YYYY-MM-DD}
+**PRs Analyzed:** {totalPRs}
+**Total Comments:** {totalComments}
+**Unique Findings:** {uniqueFindings} (after deduplication)
+
+## Summary
+
+| Category | Count | % |
+|----------|-------|---|
+| Actionable | {N} | {X}% |
+| Suggestion | {N} | {X}% |
+| Question | {N} | {X}% |
+| Praise | {N} | {X}% |
+| Resolved | {N} | {X}% |
+| Duplicates Removed | {N} | -- |
+
+## Actionable Findings
+
+| # | PRs | File | Line | Summary | Has Suggestion | Theme |
+|---|-----|------|------|---------|----------------|-------|
+| 1 | #{pr1},#{pr2} | {file} | {line} | {truncated body, max 80 chars} | Yes/No | {theme} |
+
+> If no actionable findings: display `(none)` row.
+
+## Suggestion Findings
+
+| # | PRs | File | Line | Summary | Theme |
+|---|-----|------|------|---------|-------|
+| 1 | #{pr1} | {file} | {line} | {truncated body, max 80 chars} | {theme} |
+
+> If no suggestion findings: display `(none)` row.
+
+## Questions Requiring Human Response
+
+| # | PR | File | Line | Reviewer | Question |
+|---|-----|------|------|----------|----------|
+| 1 | #{pr1} | {file} | {line} | {reviewer} | {truncated body, max 120 chars} |
+
+> If no questions: display `(none)` row.
+
+## Recurring Themes
+
+| Theme | Count | Affected PRs | Description |
+|-------|-------|--------------|-------------|
+| {theme} | {N} | #{pr1}, #{pr2} | {auto-generated description} |
+
+> Only themes with count >= 1 appear. `other` theme is listed last if present.
+
+## Dry-Run Summary
+
+> This section is ONLY included when `--dry-run` is active.
+
+Fixes NOT applied. Review the actionable findings above and re-run without --dry-run to apply corrections.
+
+- Actionable findings ready for fix: {actionableCount}
+- Suggestion findings (requires --include-suggestions): {suggestionCount}
+- Questions requiring human response: {questionCount}
+````
+
+### 7.3 Report Field Mapping
+
+| Report Field | Source (from Consolidated JSON) | Transformation |
+|--------------|-------------------------------|----------------|
+| `Epic` | `epicId` | Prefix with `EPIC-` |
+| `Date` | Current date | `YYYY-MM-DD` format |
+| `PRs Analyzed` | `totalPRs` | Integer |
+| `Total Comments` | `totalComments` | Integer |
+| `Unique Findings` | `uniqueFindings` | Integer |
+| `Category Count` | `summary.{category}` | Integer per category |
+| `Category %` | `summary.{category} / uniqueFindings * 100` | Round to 1 decimal place. If `uniqueFindings == 0`, display `0.0%` |
+| `Duplicates Removed` | `summary.duplicatesRemoved` | Integer, percentage column shows `--` |
+| `PRs` (in finding tables) | `finding.affectedPRs` | Comma-separated with `#` prefix |
+| `File` | `finding.file` | As-is (relative path) |
+| `Line` | `finding.line` | Integer or `--` if null |
+| `Summary` | `finding.body` | Truncated to 80 chars (120 for questions), append `...` if truncated |
+| `Has Suggestion` | `finding.hasSuggestion` | `Yes` or `No` |
+| `Theme` | `finding.theme` | As detected in Step 7.1 |
+| `Reviewer` | `finding.reviewer` | GitHub username |
+
+### 7.4 Theme Description Auto-Generation
+
+Each theme in the "Recurring Themes" table includes an auto-generated description:
+
+| Theme | Description |
+|-------|-------------|
+| `naming` | Inconsistent placeholder or entity naming conventions |
+| `placeholder` | Ambiguous or incorrect placeholder/template variables |
+| `consistency` | Inconsistent patterns requiring standardization |
+| `testing` | Test-related improvements or corrections |
+| `golden-files` | Golden file inconsistencies (typically auto-fixable) |
+| `security` | Security-related findings (OWASP, injection, XSS) |
+| `other` | Uncategorized findings requiring manual review |
+
+### 7.5 Persistence (RULE-004)
+
+1. Create directory `plans/epic-{epicId}/reports/` if it does not exist:
+   ```bash
+   mkdir -p plans/epic-{epicId}/reports/
+   ```
+   - If the epic directory uses a suffix variant (e.g., `plans/epic-{epicId}-description/`), use the resolved directory from Step 2.
+
+2. Write the report to: `plans/epic-{epicId}/reports/pr-comments-report.md`
+
+3. **Timing constraint:** The report file MUST be written to disk BEFORE any fix operations (Step 8) begin. This ensures the report serves as a pre-correction audit artifact.
+
+4. **Idempotency:** If `pr-comments-report.md` already exists (from a previous execution), overwrite it with the updated report. No backup of the previous version is created.
+
+5. Log after persistence:
+   ```
+   Report saved to plans/epic-{epicId}/reports/pr-comments-report.md
+   ```
+
+### 7.6 Dry-Run Integration (RULE-007)
+
+When `--dry-run` is active:
+
+1. Execute Steps 1-7 normally (parse, validate, discover, idempotency, fetch, classify, report).
+2. Generate the full report including the "Dry-Run Summary" section.
+3. **STOP execution after Step 7.** Do NOT proceed to Step 8 (Fix), Step 9 (Verify), Step 10 (Reply), or Step 11 (PR).
+4. Output the report path and summary to the user:
+   ```
+   DRY-RUN COMPLETE
+   ================
+   Report: plans/epic-{epicId}/reports/pr-comments-report.md
+   Actionable: {N} findings ready for fix
+   Suggestions: {N} findings (use --include-suggestions to fix)
+   Questions: {N} findings requiring human response
+   
+   Re-run without --dry-run to apply corrections.
+   ```
+
+When `--dry-run` is NOT active:
+1. Generate the report WITHOUT the "Dry-Run Summary" section.
+2. Persist the report (Step 7.5).
+3. Proceed to Step 8 (Fix).
+
+### 7.7 Report Output Data Contract
+
+The report step produces the following output used by subsequent steps:
+
+| Field | Type | Always Present | Description |
+|-------|------|----------------|-------------|
+| `reportPath` | `String` | Yes | Absolute path to the generated report file |
+| `actionableCount` | `Integer` | Yes | Total actionable findings in the report |
+| `suggestionCount` | `Integer` | Yes | Total suggestion findings in the report |
+| `questionCount` | `Integer` | Yes | Total question findings requiring human response |
+| `themes` | `List<Theme>` | Yes | Detected themes with counts |
+| `themes[].name` | `String` | Yes | Theme identifier (e.g., `naming`, `placeholder`) |
+| `themes[].count` | `Integer` | Yes | Number of findings with this theme |
+| `themes[].affectedPRs` | `List<Integer>` | Yes | Union of all affected PRs for findings in this theme |
+| `dryRun` | `boolean` | Yes | Whether `--dry-run` was active |
+
+### 7.8 Edge Cases
+
+| Scenario | Behavior |
+|----------|----------|
+| Zero findings (no comments on any PR) | Report generated with all counts = 0, empty finding tables show `(none)`, themes table is empty |
+| All findings are `praise` or `resolved` | Actionable and Suggestion tables show `(none)`, Recurring Themes may be empty |
+| Single PR analyzed | PRs column shows single `#{prNumber}`, no comma separation needed |
+| Finding body contains markdown special chars | Escape `|` as `\|` in table cells to prevent markdown rendering issues |
+| Finding body contains newlines | Replace newlines with spaces before truncation |
+| `--dry-run` + `--include-suggestions` | Report includes Dry-Run Summary; suggestion count reflects all suggestions (informational only, no fixes applied) |
+
+### 7.9 Error Handling (Report-Specific)
+
+| Error Code | Condition | Message | Recovery |
+|------------|-----------|---------|----------|
+| `REPORT_DIR_CREATE_FAILED` | Cannot create `reports/` directory | `Failed to create reports directory: {path}` | Check filesystem permissions |
+| `REPORT_WRITE_FAILED` | Cannot write report file | `Failed to write report to: {path}` | Check disk space and permissions |
+| `NO_FINDINGS_TO_REPORT` | Zero findings after dedup (not an error) | (no error -- generate empty report) | Normal flow continues |
+
+---
+
 ## Error Handling
 
 | Error Code | Condition | Message | Recovery |
@@ -602,9 +809,10 @@ Only entries with `prNumber != null` are included in PR discovery. Stories with 
 |------|-------|------------------------------|
 | RULE-001 | Checkpoint as PR source | Reads `execution-state.json` to discover PRs |
 | RULE-002 | Classification consistency | Reuses `/x-fix-pr-comments` heuristics with priority-ordered matching (Step 6) |
+| RULE-004 | Report persisted before corrections | Generates and saves `pr-comments-report.md` BEFORE any fixes are applied (Step 7) |
 | RULE-005 | Deduplication cross-PR | SHA-256 fingerprint on normalized body + basename deduplicates across PRs (Step 6B) |
 | RULE-006 | Fallback without checkpoint | Accepts `--prs` flag for explicit PR list |
-| RULE-007 | Mandatory dry-run support | `--dry-run` generates report without applying fixes |
+| RULE-007 | Mandatory dry-run support | `--dry-run` generates report without applying fixes; report is final output in dry-run mode (Step 7.6) |
 | RULE-010 | Idempotency | Detects existing `fix/epic-{epicId}-pr-comments` branch |
 
 ### Future Steps (Subsequent Stories)
@@ -612,6 +820,6 @@ Only entries with `prNumber != null` are included in PR discovery. Stories with 
 | Story | Step | Delivers | Status |
 |-------|------|----------|--------|
 | story-0026-0002 | Steps 5-6, 6B | Batch comment fetching, classification, and deduplication | **Delivered** |
-| story-0026-0003 | Step 7 | Consolidated findings report | Pending |
+| story-0026-0003 | Step 7 | Consolidated findings report | **Delivered** |
 | story-0026-0004 | Steps 8-9, 11 | Fix orchestration, verification, and PR creation | Pending |
 | story-0026-0005 | Step 10 | Reply engine and status tracking | Pending |
