@@ -49,7 +49,7 @@ Automates the complete cycle of addressing PR review comments across an entire e
 11. PR         -> Create single correction PR (story-0026-0004)
 ```
 
-> **story-0026-0001 implements steps 1-4.** **story-0026-0002 implements steps 5-6 (including 6B).** **story-0026-0003 implements step 7.** Steps 8-11 are delivered by subsequent stories.
+> **story-0026-0001 implements steps 1-4.** **story-0026-0002 implements steps 5-6 (including 6B).** **story-0026-0003 implements step 7.** **story-0026-0004 implements steps 8-9 and 11.** Step 10 is delivered by story-0026-0005.
 
 ---
 
@@ -540,8 +540,8 @@ After Steps 5, 6, and 6B, the skill produces a single consolidated JSON structur
 Step 5 (Fetch) -> raw comments[] -> Step 6 (Classify) -> classified comments[]
   -> Step 6B (Dedup) -> unique findings[] -> Consolidated JSON
   -> Step 7 (Report) reads this JSON
-  -> Step 8 (Fix) reads this JSON
-  -> Step 10 (Reply) reads this JSON
+  -> Step 8 (Fix) reads this JSON -> Step 9 (Verify) -> Step 11 (PR)
+  -> Step 10 (Reply) reads this JSON + Fix Result
 ```
 
 ---
@@ -753,6 +753,448 @@ The report step produces the following output used by subsequent steps:
 
 ---
 
+## Step 8 -- Fix Orchestration Engine (RULE-003, RULE-010)
+
+After the consolidated report is persisted (Step 7), apply corrections for all actionable findings. In `--dry-run` mode, this step is skipped entirely (execution stops after Step 7).
+
+### 8.1 Pre-Condition Check
+
+Before starting fixes, verify there are actionable findings to process:
+
+```
+if actionableFindings.size == 0:
+  log "No actionable findings to fix. Skipping Steps 8-11."
+  return { fixesApplied: 0, fixesFailed: 0, fixesSkipped: 0, prUrl: null, prNumber: null }
+```
+
+If `--include-suggestions` is active, also include findings with `classification == "suggestion"` in the fix scope.
+
+### 8.2 Branch Creation and Setup (RULE-010)
+
+Create the correction branch from `main`:
+
+```bash
+git checkout main
+git pull origin main
+git checkout -b fix/epic-{epicId}-pr-comments
+```
+
+**Idempotency handling** (from Step 4 decision):
+
+| Condition | Action |
+|-----------|--------|
+| Branch does not exist | Create new branch from `main` |
+| Branch exists, user chose `u` (update) | `git checkout fix/epic-{epicId}-pr-comments` and continue with incremental fixes |
+| Branch exists, user chose `n` (new) | `git branch -D fix/epic-{epicId}-pr-comments` then create fresh from `main` |
+
+After branch setup, log:
+
+```
+Branch fix/epic-{epicId}-pr-comments ready. Starting fix application.
+```
+
+### 8.3 Fix Application Loop
+
+Process each finding in the fix scope, **ordered by file path** (ascending) to minimize context switches when working on the same file.
+
+**Ordering rule:** Sort findings by `file` field lexicographically. When multiple findings target the same file, sort by `line` ascending (null lines go last).
+
+For each finding:
+
+#### 8.3.1 Locate File
+
+```bash
+test -f "{finding.file}"
+```
+
+If the file does not exist (deleted, renamed, or moved since the review comment was posted):
+
+```
+WARNING: File not found: {finding.file}. Skipping finding {finding.id}.
+```
+
+Mark finding as `fixStatus: "skipped"`, `fixReason: "file_not_found"`. Continue to next finding.
+
+#### 8.3.2 Apply Correction
+
+Two correction strategies based on finding properties:
+
+**Strategy A -- Direct suggestion application** (when `hasSuggestion == true`):
+
+1. Read the target file.
+2. Locate the code region around `finding.line`.
+3. Replace the existing code with the content from `finding.suggestionCode`.
+4. This is a deterministic, mechanical replacement.
+
+**Strategy B -- Context-inferred correction** (when `hasSuggestion == false`):
+
+1. Read the target file.
+2. Read the finding's `body` to understand the requested change.
+3. Analyze the surrounding code context at `finding.line`.
+4. Infer the appropriate correction based on the comment's intent.
+5. Apply the inferred change.
+
+**Important:** Strategy B requires LLM reasoning. If the comment is ambiguous and the correction cannot be confidently inferred, mark the finding as `fixStatus: "skipped"`, `fixReason: "ambiguous_comment"` and continue.
+
+#### 8.3.3 Compile Verification (Per-Fix)
+
+After each individual fix, verify compilation:
+
+```bash
+mvn compile -q 2>&1
+```
+
+| Result | Action |
+|--------|--------|
+| Exit code 0 | Fix accepted. Continue to next finding. |
+| Exit code != 0 | Revert the fix, mark as failed, continue. |
+
+**Revert on compilation failure:**
+
+```bash
+git checkout -- {affected_files}
+```
+
+Mark finding as `fixStatus: "failed"`, `fixReason: "compilation_failure"`, `compileError: "{first 200 chars of error output}"`.
+
+Log:
+
+```
+FIX FAILED (compilation): {finding.id} on {finding.file}:{finding.line}
+  Error: {truncated compile error}
+  Reverted.
+```
+
+Continue to the next finding.
+
+#### 8.3.4 Fix Loop Output
+
+After processing all findings, produce a fix application summary:
+
+```
+Fix Application Summary
+=======================
+Total findings in scope: {totalInScope}
+  Applied successfully: {applied}
+  Failed (compilation): {failedCompile}
+  Skipped (file not found): {skippedNotFound}
+  Skipped (ambiguous): {skippedAmbiguous}
+```
+
+---
+
+## Step 9 -- Post-Correction Verification (RULE-009)
+
+After ALL fixes are applied (Step 8 complete), run the full test suite to detect regressions that may not be caught by compilation alone.
+
+### 9.1 Full Test Suite
+
+```bash
+mvn test 2>&1
+```
+
+| Result | Action |
+|--------|--------|
+| Exit code 0 | All tests pass. Proceed to commit (Step 9.3). |
+| Exit code != 0 | Test failure detected. Run bisect (Step 9.2). |
+
+### 9.2 Simplified Bisect
+
+When tests fail after the full batch of fixes, identify the offending fix(es) using a simplified bisect approach:
+
+**Algorithm:**
+
+1. Collect the list of all successfully applied fixes (ordered by application sequence).
+2. Revert ALL fixes: `git checkout -- .`
+3. Re-apply fixes one at a time, running `mvn test -q` after each.
+4. The first fix that causes test failure is the offending fix.
+5. Revert the offending fix: `git checkout -- {affected_files}`
+6. Mark it as `fixStatus: "failed"`, `fixReason: "test_regression"`.
+7. Continue re-applying remaining fixes (skip the offending one).
+8. If another fix fails tests, repeat steps 5-7.
+9. After all fixes are re-applied (minus offending ones), run `mvn test` one final time to confirm green.
+
+**Performance note:** The bisect process may require up to N+1 test runs (where N = number of applied fixes). For large fix batches, this is acceptable because correctness is non-negotiable.
+
+**Bisect output:**
+
+```
+Bisect Summary
+==============
+Total fixes bisected: {totalFixes}
+Offending fixes found: {offendingCount}
+  - {finding.id}: {finding.file}:{finding.line} -- test regression in {test_class}
+Fixes retained: {retainedCount}
+Final test status: PASS
+```
+
+### 9.3 Atomic Commits by Theme
+
+After verification passes, commit fixes grouped by theme (from Step 7.1 theme detection). Each theme produces one commit:
+
+**Commit strategy:**
+
+1. Group all successfully applied fixes by `finding.theme`.
+2. For each theme group:
+   a. Stage only the files affected by fixes in this theme group: `git add {file1} {file2} ...`
+   b. Commit with Conventional Commits format:
+      ```
+      fix(epic-{epicId}): {theme description}
+      ```
+
+**Theme-to-commit-message mapping:**
+
+| Theme | Commit Message |
+|-------|---------------|
+| `naming` | `fix(epic-{epicId}): correct naming conventions` |
+| `placeholder` | `fix(epic-{epicId}): resolve placeholder and template variables` |
+| `consistency` | `fix(epic-{epicId}): standardize inconsistent patterns` |
+| `testing` | `fix(epic-{epicId}): address test-related review comments` |
+| `golden-files` | `fix(epic-{epicId}): update golden files` |
+| `security` | `fix(epic-{epicId}): address security review comments` |
+| `other` | `fix(epic-{epicId}): address miscellaneous review comments` |
+
+3. If all fixes belong to the same theme, produce a single commit.
+4. If fixes span multiple themes, produce multiple commits (one per theme, in theme name alphabetical order).
+
+**Commit output:**
+
+```
+Commits Created
+===============
+  1. fix(epic-{epicId}): correct naming conventions (3 files, 5 findings)
+  2. fix(epic-{epicId}): resolve placeholder and template variables (2 files, 3 findings)
+Total commits: 2
+```
+
+---
+
+## Step 8-GF -- Golden File Handling
+
+When a fix targets a source template that generates golden files, special handling is required to propagate the fix across all profiles.
+
+### 8-GF.1 Golden File Detection
+
+A finding targets a golden file when:
+
+- `finding.file` contains `golden/` in the path, OR
+- `finding.theme == "golden-files"`
+
+A finding targets a source template when:
+
+- `finding.file` contains `resources/` or `templates/` in the path, AND
+- The file is referenced by the golden file generation process
+
+### 8-GF.2 Source Template Fix
+
+When the fix targets a source template:
+
+1. Apply the fix to the source template file (as per Step 8.3.2).
+2. Identify if a golden file regeneration mechanism exists:
+   ```bash
+   # Check for regeneration script or test
+   ls **/GoldenFileRegenerator* **/golden*regenerat* 2>/dev/null
+   ```
+3. If regeneration is available: execute it to propagate the fix to all profiles.
+4. If regeneration is NOT available: manually apply the same fix to all affected golden files across profiles.
+
+### 8-GF.3 Direct Golden File Fix
+
+When the fix targets a golden file directly:
+
+1. Identify the corresponding source template (reverse-map from golden path to template path).
+2. Apply the fix to the source template FIRST.
+3. Regenerate or manually propagate to all profile variants.
+4. Verify that golden file tests pass after regeneration:
+   ```bash
+   mvn test -pl :golden-tests -q 2>/dev/null || mvn test -q
+   ```
+
+### 8-GF.4 Profile Propagation
+
+Golden files exist across multiple profiles. When a fix affects one profile's golden file:
+
+1. Identify all profiles that share the same source template.
+2. Apply the fix to the source template (single source of truth).
+3. Regenerate golden files for ALL affected profiles.
+4. Stage all modified golden files for commit.
+
+**Log:**
+
+```
+Golden file propagation: {sourceTemplate} -> {profileCount} profiles updated
+```
+
+---
+
+## Step 11 -- PR Creation (RULE-003)
+
+After all fixes are committed (Step 9.3), create a single correction PR.
+
+### 11.1 Push to Remote
+
+```bash
+git push -u origin fix/epic-{epicId}-pr-comments
+```
+
+If the push fails (e.g., branch already exists on remote from a previous run):
+
+```bash
+git push --force-with-lease origin fix/epic-{epicId}-pr-comments
+```
+
+### 11.2 Build PR Body
+
+The PR body MUST reference all source PRs for traceability (RULE-003):
+
+````markdown
+## Summary
+
+Fixes {fixedCount} actionable findings from {prCount} PRs.
+
+Fixes comments from #{pr1}, #{pr2}, #{pr3}, ...
+
+Part of EPIC-{epicId}
+
+## Findings Fixed
+
+| # | Finding | File | Line | Theme | Source PR |
+|---|---------|------|------|-------|-----------|
+| 1 | {finding.id} | {file} | {line} | {theme} | #{sourcePR} |
+| 2 | ... | ... | ... | ... | ... |
+
+## Findings Skipped
+
+| # | Finding | File | Reason |
+|---|---------|------|--------|
+| 1 | {finding.id} | {file} | {fixReason} |
+
+## Findings Failed
+
+| # | Finding | File | Reason | Error |
+|---|---------|------|--------|-------|
+| 1 | {finding.id} | {file} | {fixReason} | {truncated error} |
+
+## Verification
+
+- Compilation: PASS
+- Tests: PASS
+- Commits: {commitCount}
+````
+
+### 11.3 Create PR
+
+```bash
+gh pr create --base main \
+  --title "fix(epic-{epicId}): address PR review comments" \
+  --body "{pr_body}"
+```
+
+Capture the PR URL and number from the output:
+
+```bash
+gh pr view --json number,url --jq '{number: .number, url: .url}'
+```
+
+### 11.4 PR Output
+
+```
+PR Created
+==========
+URL: {prUrl}
+Number: #{prNumber}
+Title: fix(epic-{epicId}): address PR review comments
+Base: main
+Branch: fix/epic-{epicId}-pr-comments
+Commits: {commitCount}
+Findings fixed: {fixedCount}
+Findings skipped: {skippedCount}
+Findings failed: {failedCount}
+```
+
+---
+
+## Fix Result Data Contract
+
+The fix engine (Steps 8-9, 11) produces the following output:
+
+### Schema
+
+```json
+{
+  "fixBranch": "fix/epic-{epicId}-pr-comments",
+  "prUrl": "https://github.com/{owner}/{repo}/pull/{prNumber}",
+  "prNumber": 159,
+  "fixesApplied": 8,
+  "fixesFailed": 1,
+  "fixesSkipped": 2,
+  "testsPass": true,
+  "commitCount": 3,
+  "commits": [
+    {
+      "sha": "abc123",
+      "message": "fix(epic-{epicId}): correct naming conventions",
+      "theme": "naming",
+      "findingsCount": 5,
+      "filesChanged": 3
+    }
+  ],
+  "findings": [
+    {
+      "id": "F-001",
+      "fixStatus": "applied",
+      "fixReason": null,
+      "compileError": null
+    },
+    {
+      "id": "F-002",
+      "fixStatus": "failed",
+      "fixReason": "compilation_failure",
+      "compileError": "error: ';' expected at line 42"
+    },
+    {
+      "id": "F-003",
+      "fixStatus": "skipped",
+      "fixReason": "file_not_found",
+      "compileError": null
+    }
+  ]
+}
+```
+
+### Field Reference
+
+| Field | Type | Always Present | Description |
+|-------|------|----------------|-------------|
+| `fixBranch` | `String` | Yes | Name of the correction branch |
+| `prUrl` | `String` | No | URL of the created PR (null if no fixes applied) |
+| `prNumber` | `Integer` | No | PR number (null if no fixes applied) |
+| `fixesApplied` | `Integer` | Yes | Count of successfully applied fixes |
+| `fixesFailed` | `Integer` | Yes | Count of fixes that failed compilation or test verification |
+| `fixesSkipped` | `Integer` | Yes | Count of skipped fixes (file not found, ambiguous) |
+| `testsPass` | `Boolean` | Yes | Whether the final test suite passed after all fixes |
+| `commitCount` | `Integer` | Yes | Number of commits created (one per theme) |
+| `commits[]` | `Array` | Yes | Details of each commit |
+| `commits[].sha` | `String` | Yes | Git commit SHA |
+| `commits[].message` | `String` | Yes | Full commit message |
+| `commits[].theme` | `String` | Yes | Theme that this commit addresses |
+| `commits[].findingsCount` | `Integer` | Yes | Number of findings addressed in this commit |
+| `commits[].filesChanged` | `Integer` | Yes | Number of files modified in this commit |
+| `findings[].id` | `String` | Yes | Finding ID (matches consolidated JSON) |
+| `findings[].fixStatus` | `Enum` | Yes | One of: `applied`, `failed`, `skipped` |
+| `findings[].fixReason` | `String` | No | Reason for failure/skip (null if applied) |
+| `findings[].compileError` | `String` | No | Truncated compile error (null unless `fixReason == "compilation_failure"`) |
+
+### Fix Status Values
+
+| Status | Description | Possible Reasons |
+|--------|-------------|------------------|
+| `applied` | Fix successfully applied and verified | -- |
+| `failed` | Fix applied but caused regression | `compilation_failure`, `test_regression` |
+| `skipped` | Fix not attempted | `file_not_found`, `ambiguous_comment` |
+
+---
+
 ## Error Handling
 
 | Error Code | Condition | Message | Recovery |
@@ -765,6 +1207,13 @@ The report step produces the following output used by subsequent steps:
 | `RATE_LIMIT_EXCEEDED` | GitHub API rate limit hit after 3 retries | `Rate limit exceeded after 3 retries for PR #{prNumber}.` | Wait for rate limit reset or reduce PR count |
 | `FETCH_TIMEOUT` | PR comment fetch exceeded 30s | `Timeout fetching comments for PR #{prNumber}.` | PR is skipped; retry manually if needed |
 | `API_ERROR` | GitHub API returned non-200/non-429 status | `API error ({status}) fetching PR #{prNumber}: {message}` | Check GitHub token permissions |
+| `NO_ACTIONABLE_FINDINGS` | Zero actionable findings after classification (not an error) | `No actionable findings to fix. Skipping Steps 8-11.` | Normal flow -- no fixes needed |
+| `BRANCH_CREATE_FAILED` | Cannot create correction branch | `Failed to create branch fix/epic-{epicId}-pr-comments: {error}` | Check git state and permissions |
+| `COMPILE_FAILED_AFTER_FIX` | Compilation failed after applying a fix | `Compilation failed after fix {finding.id}. Reverted.` | Finding marked as failed; loop continues |
+| `TEST_REGRESSION` | Tests failed after full batch; bisect identified offending fix | `Test regression caused by fix {finding.id}. Reverted.` | Offending fix reverted; remaining fixes retained |
+| `BISECT_FAILED` | Bisect could not isolate offending fix | `Bisect failed: unable to isolate regression.` | All fixes reverted; manual intervention required |
+| `PUSH_FAILED` | Cannot push correction branch to remote | `Failed to push fix/epic-{epicId}-pr-comments: {error}` | Check remote permissions and network |
+| `PR_CREATE_FAILED` | GitHub CLI failed to create PR | `Failed to create PR: {error}` | Check GitHub token and repository permissions |
 
 ---
 
@@ -809,11 +1258,13 @@ Only entries with `prNumber != null` are included in PR discovery. Stories with 
 |------|-------|------------------------------|
 | RULE-001 | Checkpoint as PR source | Reads `execution-state.json` to discover PRs |
 | RULE-002 | Classification consistency | Reuses `/x-fix-pr-comments` heuristics with priority-ordered matching (Step 6) |
+| RULE-003 | Single correction PR | Creates one PR consolidating all fixes with body referencing all source PRs (Step 11) |
 | RULE-004 | Report persisted before corrections | Generates and saves `pr-comments-report.md` BEFORE any fixes are applied (Step 7) |
 | RULE-005 | Deduplication cross-PR | SHA-256 fingerprint on normalized body + basename deduplicates across PRs (Step 6B) |
 | RULE-006 | Fallback without checkpoint | Accepts `--prs` flag for explicit PR list |
 | RULE-007 | Mandatory dry-run support | `--dry-run` generates report without applying fixes; report is final output in dry-run mode (Step 7.6) |
-| RULE-010 | Idempotency | Detects existing `fix/epic-{epicId}-pr-comments` branch |
+| RULE-009 | Post-correction verification | Runs compile + test after all fixes; reverts individual fixes causing regression via bisect (Step 9) |
+| RULE-010 | Idempotency | Detects existing `fix/epic-{epicId}-pr-comments` branch; handles update vs. fresh creation (Steps 4, 8.2) |
 
 ### Future Steps (Subsequent Stories)
 
@@ -821,5 +1272,5 @@ Only entries with `prNumber != null` are included in PR discovery. Stories with 
 |-------|------|----------|--------|
 | story-0026-0002 | Steps 5-6, 6B | Batch comment fetching, classification, and deduplication | **Delivered** |
 | story-0026-0003 | Step 7 | Consolidated findings report | **Delivered** |
-| story-0026-0004 | Steps 8-9, 11 | Fix orchestration, verification, and PR creation | Pending |
+| story-0026-0004 | Steps 8-9, 11 | Fix orchestration, verification, and PR creation | **Delivered** |
 | story-0026-0005 | Step 10 | Reply engine and status tracking | Pending |
