@@ -2,7 +2,7 @@
 name: x-dev-epic-implement
 description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, AskUserQuestion
-argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr] [--auto-merge] [--no-merge] [--strict-overlap]"
+argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr] [--auto-merge] [--no-merge] [--strict-overlap] [--skip-pr-comments]"
 ---
 
 ## Global Output Policy
@@ -38,7 +38,7 @@ ERROR: Epic ID is required. Usage: /x-dev-epic-implement [EPIC-ID] [flags]
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `--phase N` | number | (all phases) | Execute only phase N (0-3) |
+| `--phase N` | number | (all phases) | Execute only phase N (0-4) |
 | `--story story-XXXX-YYYY` | string | (all stories) | Execute only a specific story by ID |
 | `--skip-review` | boolean | `false` | Skip review phases in x-dev-lifecycle subagents |
 | `--dry-run` | boolean | `false` | Generate execution plan without executing |
@@ -49,6 +49,7 @@ ERROR: Epic ID is required. Usage: /x-dev-epic-implement [EPIC-ID] [flags]
 | `--auto-merge` | boolean | `false` | Auto-merge story PRs via `gh pr merge` after reviews approve (RULE-004). Mutually exclusive with `--no-merge`. |
 | `--no-merge` | boolean | `false` | Create PRs but skip merge and merge-wait. Dependencies are satisfied by `status == SUCCESS` alone (PR merge not required). Mutually exclusive with `--auto-merge`. Use for repos with branch protection rules requiring multiple approvers. |
 | `--strict-overlap` | boolean | `false` | When set, stories with `code-overlap-high` or `unpredictable` are demoted to sequential queue (original behavior). Without flag, pre-flight is advisory-only (RULE-005). |
+| `--skip-pr-comments` | boolean | `false` | Skip PR comment remediation phase (Phase 4). When set, Phase 4 is skipped entirely with log message. |
 
 ## Prerequisites Check
 
@@ -1279,9 +1280,116 @@ Story PRs:
 | story-{epicId}-0002 | #42 | MERGED | 2026-04-01T11:15:00Z |
 ...
 
+PR Comment Remediation: #{fixPrNumber} ({fixesApplied} fixes applied) | SKIPPED | DRY_RUN
 Report: plans/epic-{epicId}/epic-execution-report.md
 Elapsed: {totalElapsedTime}
 ```
+
+## Phase 4 — PR Comment Remediation (Optional)
+
+After Phase 3 (Verification) completes, the orchestrator offers automatic remediation
+of PR review comments across all story PRs in the epic. This phase invokes
+`/x-fix-epic-pr-comments` to discover, classify, and fix actionable review comments
+in a single correction PR.
+
+**Skip conditions:**
+- `--skip-pr-comments` is set: skip entirely. Log: `"PR comment remediation skipped (--skip-pr-comments)"`. Record `prCommentRemediation.status = "SKIPPED"` in checkpoint.
+- `--single-pr` is set: skip (single-PR flow has no per-story PRs to scan). Log: `"PR comment remediation skipped (--single-pr mode)"`. Record `prCommentRemediation.status = "SKIPPED"`.
+
+### 4.1 Check for PR Comments
+
+Scan all story PRs in the epic for unresolved review comments:
+
+1. Read `execution-state.json` to collect all story PR numbers
+2. For each story with `prNumber`, check for review comments via `gh api repos/{owner}/{repo}/pulls/{prNumber}/comments`
+3. Count total actionable comments across all PRs
+4. If zero actionable comments found:
+   - Log: `"No PR comments to remediate"`
+   - Record `prCommentRemediation.status = "SKIPPED"`, `fixesApplied = 0`
+   - Skip to Completion Output
+
+### 4.2 Dry-Run First (RULE-007)
+
+When comments are found, invoke `/x-fix-epic-pr-comments` in dry-run mode first:
+
+```
+/x-fix-epic-pr-comments {epicId} --dry-run
+```
+
+This generates a consolidated findings report at `plans/epic-{epicId}/reports/pr-comments-report.md`
+without applying any fixes. Record `prCommentRemediation.status = "DRY_RUN"`.
+
+### 4.3 User Confirmation
+
+Present the dry-run report to the user and ask for confirmation using `AskUserQuestion`:
+
+```
+question: "PR comment report generated. {commentCount} actionable findings across {prCount} PRs. Apply fixes?"
+header: "PR Comment Remediation"
+options:
+  - label: "Apply fixes"
+    description: "Invoke x-fix-epic-pr-comments to apply fixes and create a correction PR"
+  - label: "Skip"
+    description: "Keep the report for review but do not apply fixes"
+multiSelect: false
+```
+
+- **"Apply fixes"**: proceed to Step 4.4
+- **"Skip"**: Record `prCommentRemediation.status = "DRY_RUN"` (report saved, no fixes applied). Log: `"PR comment remediation: dry-run report saved, fixes not applied"`
+
+**Auto-merge bypass:** When `--auto-merge` is set, skip the user confirmation and
+proceed directly to Step 4.4. Log: `"--auto-merge: applying PR comment fixes without confirmation"`
+
+### 4.4 Apply Fixes
+
+Invoke `/x-fix-epic-pr-comments` without `--dry-run` to apply fixes:
+
+```
+/x-fix-epic-pr-comments {epicId}
+```
+
+The skill will:
+1. Classify all review comments (actionable/suggestion/question/praise)
+2. Implement fixes for actionable comments
+3. Create a single correction PR with all fixes
+
+After completion, update the checkpoint:
+
+```json
+{
+  "prCommentRemediation": {
+    "status": "COMPLETE",
+    "fixPrUrl": "https://github.com/{owner}/{repo}/pull/{N}",
+    "fixPrNumber": N,
+    "fixesApplied": M,
+    "reportPath": "plans/epic-{epicId}/reports/pr-comments-report.md"
+  }
+}
+```
+
+### 4.5 Checkpoint Schema — `prCommentRemediation`
+
+The `prCommentRemediation` field is added to `execution-state.json` at the top level:
+
+```json
+{
+  "prCommentRemediation": {
+    "status": "COMPLETE | SKIPPED | DRY_RUN",
+    "fixPrUrl": "https://github.com/{owner}/{repo}/pull/159",
+    "fixPrNumber": 159,
+    "fixesApplied": 8,
+    "reportPath": "plans/epic-{epicId}/reports/pr-comments-report.md"
+  }
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `status` | String (Enum) | Yes | `COMPLETE`, `SKIPPED`, or `DRY_RUN` |
+| `fixPrUrl` | String | When COMPLETE | URL of the correction PR |
+| `fixPrNumber` | Integer | When COMPLETE | GitHub PR number of the correction PR |
+| `fixesApplied` | Integer | Yes | Number of fixes applied (0 when SKIPPED or DRY_RUN) |
+| `reportPath` | String | When COMPLETE or DRY_RUN | Path to the generated findings report |
 
 ### Dry-Run Output (Phase 0, Step 10)
 
@@ -1321,6 +1429,7 @@ Merge mode: {auto|no-merge|interactive}
 ## Integration Notes
 
 - Invokes: `x-dev-lifecycle` (per-story execution with PR creation in Phase 6, reviews in Phases 4/7)
+- Invokes: `x-fix-epic-pr-comments` (Phase 4 — PR comment remediation; dry-run first, then apply with confirmation or `--auto-merge` bypass)
 - Invokes: `x-story-map` (if map missing, via error guidance)
 - Uses: `gh pr view` (PR merge status verification for dependency enforcement)
 - Uses: `gh pr merge` (auto-merge when `--auto-merge` is set)
@@ -1354,3 +1463,7 @@ Merge mode: {auto|no-merge|interactive}
 - Resume workflow respects `mergeMode` from checkpoint for consistent behavior; warns if mode changed on resume
 - Invokes: `x-lib-version-bump` (post-integrity-gate version bump on `main` — RULE-013)
 - Version bump creates `chore(version):` commit directly on `main` after integrity gate PASS; skipped when gate is DEFERRED or FAIL
+- Phase 4 (PR Comment Remediation) invokes `x-fix-epic-pr-comments` after Phase 3 verification; optional, skipped with `--skip-pr-comments` or `--single-pr`
+- Phase 4 uses dry-run first (RULE-007), then prompts user via `AskUserQuestion`; with `--auto-merge`, skips confirmation and applies fixes directly
+- Phase 4 writes `prCommentRemediation` to `execution-state.json` with status `COMPLETE`, `SKIPPED`, or `DRY_RUN`
+- Writes: `plans/epic-{epicId}/reports/pr-comments-report.md` (Phase 4 findings report, generated by `x-fix-epic-pr-comments`)
