@@ -125,10 +125,11 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 06 | `06-security-baseline.md` | security baseline |
 | 07 | `07-operations-baseline.md` | operations baseline |
 | 08 | `08-release-process.md` | release process |
+| 09 | `09-branching-model.md` | branching model |
 | 10 | `10-anti-patterns.md` | anti patterns |
 | 12 | `12-security-anti-patterns.md` | security anti patterns |
 
-**Total: 10 rules**
+**Total: 11 rules**
 
 ### Numbering
 
@@ -319,7 +320,7 @@ See the files directly for current configuration.
 
 | Component | Count |
 |-----------|-------|
-| Rules (.claude) | 10 |
+| Rules (.claude) | 11 |
 | Skills (.claude) | 44 |
 | Knowledge Packs (.claude) | 22 |
 | Agents (.claude) | 12 |

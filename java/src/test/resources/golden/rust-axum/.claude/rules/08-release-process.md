@@ -1,6 +1,7 @@
 # Rule 08 — Release Process
 
 > **Full reference:** Read `skills/protocols/SKILL.md` for detailed release management procedures.
+> **Related:** See Rule 09 for the branching model (Git Flow), branch types, and merge direction rules.
 
 ## Semantic Versioning (Non-Negotiable)
 
@@ -48,10 +49,17 @@
 - [ ] Security scan clean
 - [ ] Rollback plan documented
 
+## Release Branches (Git Flow)
+
+- Release branches (`release/*`) MUST be created from `develop` (see Rule 09)
+- Only bug fixes, documentation, and version bumps are allowed on release branches
+- After merge to `main`, the release branch MUST be merged back into `develop`
+- Hotfix branches (`hotfix/*`) follow the same merge pattern (see Rule 09)
+
 ## Rollback Plan
 
 - Every release MUST have a documented rollback procedure
-- Database migrations MUST support rollback (see Rule 09 if applicable)
+- Database migrations MUST support rollback
 - Feature flags SHOULD be used for high-risk deployments
 
 ## Forbidden
