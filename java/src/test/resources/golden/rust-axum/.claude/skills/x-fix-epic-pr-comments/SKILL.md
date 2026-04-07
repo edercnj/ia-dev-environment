@@ -386,7 +386,7 @@ When a comment contains a GitHub suggestion block, extract the suggested code:
 ```
 ```suggestion
 suggested code here
-`` `
+```
 ```
 
 Parse the suggestion block and store in the finding:
