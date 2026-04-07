@@ -579,11 +579,11 @@ The report follows this exact structure:
 ````markdown
 # PR Review Comments -- Consolidated Report
 
-**Epic:** EPIC-{epicId}
-**Date:** {YYYY-MM-DD}
-**PRs Analyzed:** {totalPRs}
-**Total Comments:** {totalComments}
-**Unique Findings:** {uniqueFindings} (after deduplication)
+- **Epic:** EPIC-{epicId}
+- **Date:** {YYYY-MM-DD}
+- **PRs Analyzed:** {totalPRs}
+- **Total Comments:** {totalComments}
+- **Unique Findings:** {uniqueFindings} (after deduplication)
 
 ## Summary
 
@@ -675,21 +675,22 @@ Each theme in the "Recurring Themes" table includes an auto-generated descriptio
 
 ### 7.5 Persistence (RULE-004)
 
-1. Create directory `plans/epic-{epicId}/reports/` if it does not exist:
+1. Resolve the epic directory path (`{epicDir}`) from Step 2. This accounts for suffix variants (e.g., `plans/epic-{epicId}-description/`).
+
+2. Create directory `{epicDir}/reports/` if it does not exist:
    ```bash
-   mkdir -p plans/epic-{epicId}/reports/
+   mkdir -p {epicDir}/reports/
    ```
-   - If the epic directory uses a suffix variant (e.g., `plans/epic-{epicId}-description/`), use the resolved directory from Step 2.
 
-2. Write the report to: `plans/epic-{epicId}/reports/pr-comments-report.md`
+3. Write the report to: `{epicDir}/reports/pr-comments-report.md`
 
-3. **Timing constraint:** The report file MUST be written to disk BEFORE any fix operations (Step 8) begin. This ensures the report serves as a pre-correction audit artifact.
+4. **Timing constraint:** The report file MUST be written to disk BEFORE any fix operations (Step 8) begin. This ensures the report serves as a pre-correction audit artifact.
 
-4. **Idempotency:** If `pr-comments-report.md` already exists (from a previous execution), overwrite it with the updated report. No backup of the previous version is created.
+5. **Idempotency:** If `pr-comments-report.md` already exists (from a previous execution), overwrite it with the updated report. No backup of the previous version is created.
 
-5. Log after persistence:
+6. Log after persistence:
    ```
-   Report saved to plans/epic-{epicId}/reports/pr-comments-report.md
+   Report saved to {epicDir}/reports/pr-comments-report.md
    ```
 
 ### 7.6 Dry-Run Integration (RULE-007)
@@ -1079,11 +1080,11 @@ For each finding that requires a reply (per 10.2 table):
 #### 10.3.1 Post Reply to Inline Comment
 
 ```bash
-gh api repos/{owner}/{repo}/pulls/{prNumber}/comments/{commentId}/replies \
+gh api repos/{owner}/{repo}/pulls/comments/{commentId}/replies \
   -f body="{resolvedTemplate}"
 ```
 
-Where `{prNumber}` comes from `finding.sourcePRs[0]` (the PR where the comment was originally posted) and `{commentId}` comes from `finding.id` (the original comment ID from Step 5).
+Where `{commentId}` comes from `finding.id` (the original review comment ID from Step 5). Note: the GitHub REST API reply endpoint does not include `{prNumber}` in the path -- the comment ID is globally unique.
 
 #### 10.3.2 Post Reply to Review-Level Comment
 
@@ -1137,7 +1138,7 @@ Before posting each reply, check if a reply already exists to prevent duplicates
 
 1. Fetch existing replies for the comment:
    ```bash
-   gh api repos/{owner}/{repo}/pulls/{prNumber}/comments/{commentId}/replies \
+   gh api repos/{owner}/{repo}/pulls/comments/{commentId}/replies \
      --jq '.[].body'
    ```
 
