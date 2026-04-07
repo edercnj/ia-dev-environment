@@ -1,7 +1,7 @@
 ---
 name: x-fix-epic-pr-comments
 description: "Discovers all PRs from an epic via execution-state.json, fetches and classifies review comments in batch, generates a consolidated findings report, applies fixes, and creates a single correction PR. Supports dry-run, explicit PR list fallback, and idempotent re-execution."
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, AskUserQuestion
 argument-hint: "[EPIC-ID] [--dry-run] [--prs N,M,...] [--skip-replies] [--include-suggestions]"
 user-invocable: true
 ---
@@ -231,7 +231,12 @@ Before proceeding to comment fetching, check if a correction branch already exis
 ### Branch Detection
 
 ```bash
-git branch -a | grep "fix/epic-{epicId}-pr-comments"
+branch="fix/epic-{epicId}-pr-comments"
+if git show-ref --verify --quiet "refs/heads/$branch" || git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+  echo "Branch exists"
+else
+  echo "Branch does not exist"
+fi
 ```
 
 ### Decision Matrix
