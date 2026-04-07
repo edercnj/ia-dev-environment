@@ -303,13 +303,22 @@ GitHub API allows 5,000 requests per hour for authenticated users. With 2 calls 
    gh api rate_limit --jq '.resources.core.reset'
    ```
 
-3. If HTTP 429 (Too Many Requests) is returned:
-   - Read `Retry-After` header value (seconds)
-   - Log: `Rate limit hit. Waiting {seconds}s before retry.`
-   - Pause execution for the indicated duration
-   - Retry the failed request
+3. If a rate-limit response is returned, retry using header-based backoff when available:
+   - **HTTP 403 with `X-RateLimit-Remaining: 0`** = primary GitHub rate limit exhausted
+     - Read `X-RateLimit-Reset` (UTC epoch seconds)
+     - Compute wait time as `max(reset_time - current_time, 0)`
+     - Log: `Primary rate limit hit. Waiting until reset ({seconds}s) before retry.`
+     - Pause execution for the computed duration
+     - Retry the failed request
+   - **HTTP 429 (Too Many Requests)** = secondary rate limiting / throttling
+     - Read `Retry-After` header value (seconds) if present
+     - If `Retry-After` is present, wait that duration before retrying
+     - Otherwise, use a short exponential backoff and retry
+     - Log: `Secondary rate limit hit. Waiting {seconds}s before retry.`
+   - Prefer response headers (`X-RateLimit-Reset`, `Retry-After`) over fixed delays whenever available
+   - Treat these rate-limit responses as retryable API errors, not generic failures
 
-4. Maximum 3 retry attempts per API call. After 3 failures, skip the PR with warning.
+4. Maximum 3 retry attempts per API call for rate-limit/API-error retries. After 3 failures, skip the PR with warning.
 
 ### 5.4 Timeout Handling
 
@@ -320,7 +329,7 @@ Each PR has a 30-second timeout for the complete fetch cycle (both inline and re
   WARNING: Timeout fetching comments for PR #{prNumber} (30s exceeded). Skipping.
   ```
 - Continue processing remaining PRs
-- Record the skipped PR in the output with `status: "TIMEOUT"`
+- Record the skipped PR in the output with `reason: "TIMEOUT"`
 
 ### 5.5 Fetch Output
 
@@ -383,11 +392,11 @@ Each rule is evaluated in priority order. The **first match wins** -- once a com
 
 When a comment contains a GitHub suggestion block, extract the suggested code:
 
-```
+````
 ```suggestion
 suggested code here
-`` `
 ```
+````
 
 Parse the suggestion block and store in the finding:
 - `hasSuggestion: true`
@@ -493,10 +502,10 @@ After Steps 5, 6, and 6B, the skill produces a single consolidated JSON structur
     }
   ],
   "summary": {
-    "actionable": 34,
-    "suggestion": 33,
-    "question": 0,
-    "praise": 0,
+    "actionable": 18,
+    "suggestion": 12,
+    "question": 3,
+    "praise": 1,
     "resolved": 0,
     "duplicatesRemoved": 25
   }
