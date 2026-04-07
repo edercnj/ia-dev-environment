@@ -33,6 +33,8 @@ import java.util.Set;
  * @param compliance the compliance type (optional, default "none")
  * @param platforms the target platforms from YAML (optional,
  *     empty = all, immutable)
+ * @param branchingModel the branching strategy (optional,
+ *     default GITFLOW)
  */
 public record ProjectConfig(
         ProjectIdentity project,
@@ -46,7 +48,8 @@ public record ProjectConfig(
         TestingConfig testing,
         McpConfig mcp,
         String compliance,
-        Set<Platform> platforms) {
+        Set<Platform> platforms,
+        BranchingModel branchingModel) {
 
     private static final String DEFAULT_COMPLIANCE = "none";
 
@@ -62,6 +65,9 @@ public record ProjectConfig(
         platforms = platforms == null
                 ? Set.of()
                 : Set.copyOf(platforms);
+        branchingModel = branchingModel == null
+                ? BranchingModel.GITFLOW
+                : branchingModel;
     }
 
     // --- Convenience accessors (Law of Demeter) ---
@@ -126,6 +132,16 @@ public record ProjectConfig(
         return data().cache().name();
     }
 
+    /**
+     * Returns the base branch name for the configured
+     * branching model.
+     *
+     * @return "develop" for GITFLOW, "main" for TRUNK
+     */
+    public String baseBranch() {
+        return branchingModel().baseBranch();
+    }
+
     // --- End convenience accessors ---
 
     /**
@@ -166,6 +182,8 @@ public record ProjectConfig(
             List<InterfaceConfig> interfaceList) {
         String compliance = parseCompliance(map);
         Set<Platform> platforms = parsePlatforms(map);
+        BranchingModel branchingModel =
+                parseBranchingModel(map);
         return new ProjectConfig(
                 ProjectIdentity.fromMap(MapHelper
                         .requireMap(map, "project",
@@ -192,7 +210,8 @@ public record ProjectConfig(
                 McpConfig.fromMap(MapHelper
                         .optionalMap(map, "mcp")),
                 compliance,
-                platforms);
+                platforms,
+                branchingModel);
     }
 
     private static String parseCompliance(
@@ -206,6 +225,29 @@ public record ProjectConfig(
                             .formatted(value));
         }
         return value;
+    }
+
+    /**
+     * Parses the optional {@code branching-model} field.
+     *
+     * <p>Defaults to {@link BranchingModel#GITFLOW} when
+     * the field is absent. Case-insensitive matching.</p>
+     */
+    private static BranchingModel parseBranchingModel(
+            Map<String, Object> map) {
+        String value = MapHelper.optionalString(
+                map, "branching-model", null);
+        if (value == null) {
+            return BranchingModel.GITFLOW;
+        }
+        return BranchingModel.fromConfigValue(value)
+                .orElseThrow(() ->
+                        new ConfigValidationException(
+                                ("Invalid branching-model:"
+                                        + " '%s'. Accepted"
+                                        + " values: gitflow,"
+                                        + " trunk")
+                                        .formatted(value)));
     }
 
     /**

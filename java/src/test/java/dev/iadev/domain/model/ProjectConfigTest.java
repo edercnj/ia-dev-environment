@@ -620,4 +620,97 @@ class ProjectConfigTest {
                                     + " 'bad'");
         }
     }
+
+    @Nested
+    @DisplayName("branching-model field")
+    class BranchingModelField {
+
+        @Test
+        @DisplayName("defaults to GITFLOW when absent")
+        void fromMap_noBranchingModel_defaultsToGitflow() {
+            var config = ProjectConfig.fromMap(
+                    buildMinimalConfig());
+
+            assertThat(config.branchingModel())
+                    .isEqualTo(BranchingModel.GITFLOW);
+            assertThat(config.baseBranch())
+                    .isEqualTo("develop");
+        }
+
+        @Test
+        @DisplayName("parses 'gitflow' correctly")
+        void fromMap_gitflow_parsedCorrectly() {
+            var map = new HashMap<>(buildMinimalConfig());
+            map.put("branching-model", "gitflow");
+
+            var config = ProjectConfig.fromMap(map);
+
+            assertThat(config.branchingModel())
+                    .isEqualTo(BranchingModel.GITFLOW);
+            assertThat(config.baseBranch())
+                    .isEqualTo("develop");
+        }
+
+        @Test
+        @DisplayName("parses 'trunk' correctly")
+        void fromMap_trunk_parsedCorrectly() {
+            var map = new HashMap<>(buildMinimalConfig());
+            map.put("branching-model", "trunk");
+
+            var config = ProjectConfig.fromMap(map);
+
+            assertThat(config.branchingModel())
+                    .isEqualTo(BranchingModel.TRUNK);
+            assertThat(config.baseBranch())
+                    .isEqualTo("main");
+        }
+
+        @Test
+        @DisplayName("case-insensitive: 'TRUNK' resolves")
+        void fromMap_upperCase_parsedCorrectly() {
+            var map = new HashMap<>(buildMinimalConfig());
+            map.put("branching-model", "TRUNK");
+
+            var config = ProjectConfig.fromMap(map);
+
+            assertThat(config.branchingModel())
+                    .isEqualTo(BranchingModel.TRUNK);
+        }
+
+        @Test
+        @DisplayName("invalid value throws")
+        void fromMap_invalid_throwsException() {
+            var map = new HashMap<>(buildMinimalConfig());
+            map.put("branching-model", "invalid");
+
+            assertThatThrownBy(
+                    () -> ProjectConfig.fromMap(map))
+                    .isInstanceOf(
+                            ConfigValidationException.class)
+                    .hasMessageContaining(
+                            "Invalid branching-model:"
+                                    + " 'invalid'")
+                    .hasMessageContaining(
+                            "Accepted values:"
+                                    + " gitflow, trunk");
+        }
+
+        @Test
+        @DisplayName("default is identical to explicit gitflow")
+        void fromMap_defaultBehavior_identicalToExplicit() {
+            var defaultConfig = ProjectConfig.fromMap(
+                    buildMinimalConfig());
+
+            var map = new HashMap<>(buildMinimalConfig());
+            map.put("branching-model", "gitflow");
+            var explicitConfig = ProjectConfig.fromMap(map);
+
+            assertThat(defaultConfig.branchingModel())
+                    .isEqualTo(
+                            explicitConfig.branchingModel());
+            assertThat(defaultConfig.baseBranch())
+                    .isEqualTo(
+                            explicitConfig.baseBranch());
+        }
+    }
 }

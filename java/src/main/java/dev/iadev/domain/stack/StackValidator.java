@@ -1,5 +1,6 @@
 package dev.iadev.domain.stack;
 
+import dev.iadev.domain.model.BranchingModel;
 import dev.iadev.domain.model.Platform;
 import dev.iadev.domain.model.ProjectConfig;
 
@@ -47,6 +48,7 @@ public final class StackValidator {
         errors.addAll(validateSchemaRegistry(config));
         errors.addAll(validateDeadLetterStrategy(config));
         errors.addAll(validatePlatforms(config));
+        errors.addAll(validateBranchingModel(config));
         return errors;
     }
 
@@ -176,6 +178,25 @@ public final class StackValidator {
             }
         }
         return errors;
+    }
+
+    /**
+     * Validates the branching model is not null.
+     *
+     * <p>Since {@link ProjectConfig} defaults to GITFLOW in
+     * the compact constructor, this validation catches only
+     * programmatic misuse where the field is somehow null
+     * after construction.</p>
+     */
+    public static List<String> validateBranchingModel(
+            ProjectConfig config) {
+        if (config.branchingModel() == null) {
+            return List.of(
+                    "Invalid branching-model: 'null'."
+                            + " Accepted values:"
+                            + " gitflow, trunk");
+        }
+        return List.of();
     }
 
     /** Extracts the major version from a version string. */

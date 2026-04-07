@@ -422,7 +422,8 @@ class PlatformPipelineIntegrationTest {
                             yamlConfig.testing(),
                             yamlConfig.mcp(),
                             yamlConfig.compliance(),
-                            Set.of(Platform.CLAUDE_CODE));
+                            Set.of(Platform.CLAUDE_CODE),
+                            yamlConfig.branchingModel());
 
             Set<Platform> cliPlatforms =
                     Set.of(Platform.COPILOT);

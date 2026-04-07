@@ -1,6 +1,7 @@
 package dev.iadev.testutil;
 
 import dev.iadev.domain.model.ArchitectureConfig;
+import dev.iadev.domain.model.BranchingModel;
 import dev.iadev.domain.model.DataConfig;
 import dev.iadev.domain.model.FrameworkConfig;
 import dev.iadev.domain.model.InfraConfig;
@@ -87,6 +88,8 @@ public final class TestConfigBuilder {
             new ArrayList<>();
     private String compliance = "none";
     private Set<Platform> platforms = Set.of();
+    private BranchingModel branchingModel =
+            BranchingModel.GITFLOW;
 
     private TestConfigBuilder() {
         interfaces.add(
@@ -387,6 +390,12 @@ public final class TestConfigBuilder {
         return this;
     }
 
+    public TestConfigBuilder branchingModel(
+            BranchingModel model) {
+        this.branchingModel = model;
+        return this;
+    }
+
     public TestConfigBuilder addMcpServer(
             McpServerConfig server) {
         this.mcpServers.add(server);
@@ -449,6 +458,7 @@ public final class TestConfigBuilder {
                         performanceTests, 95, 90),
                 new McpConfig(mcpServers),
                 compliance,
-                platforms);
+                platforms,
+                branchingModel);
     }
 }
