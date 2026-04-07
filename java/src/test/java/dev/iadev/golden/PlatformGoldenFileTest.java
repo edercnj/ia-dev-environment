@@ -59,9 +59,9 @@ class PlatformGoldenFileTest {
     }
 
     /**
-     * Validates byte-for-byte parity between the
+     * Validates text-level parity between the
      * platform-filtered pipeline output and the golden
-     * files for each profile.
+     * files for each profile (UTF-8 decoded comparison).
      *
      * @param profile the bundled stack profile name
      * @throws IOException if file reading fails
@@ -94,7 +94,11 @@ class PlatformGoldenFileTest {
 
         Path goldenDir = resolveGoldenDir(profile);
         if (goldenDir == null) {
-            return;
+            fail("Missing golden fixtures for profile"
+                    + " '%s': expected test resource"
+                    + " directory %s%s/%s/"
+                    .formatted(profile, GOLDEN_ROOT,
+                            profile, PLATFORM_SUBDIR));
         }
 
         Set<String> goldenFiles =
@@ -118,7 +122,12 @@ class PlatformGoldenFileTest {
         if (url == null) {
             return null;
         }
-        return Path.of(url.getPath());
+        try {
+            return Path.of(url.toURI());
+        } catch (java.net.URISyntaxException e) {
+            throw new IllegalStateException(
+                    "Invalid golden dir URI: " + url, e);
+        }
     }
 
     private void validateCompleteness(

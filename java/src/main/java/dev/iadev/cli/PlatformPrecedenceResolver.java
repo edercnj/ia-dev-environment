@@ -76,6 +76,13 @@ final class PlatformPrecedenceResolver {
         if (containsAllMarker) {
             return Set.of();
         }
+        for (Platform p : platformList) {
+            if (!Platform.allUserSelectable().contains(p)) {
+                throw new IllegalArgumentException(
+                        "Platform '%s' is not user-selectable"
+                                .formatted(p.cliName()));
+            }
+        }
         return Set.copyOf(EnumSet.copyOf(platformList));
     }
 }

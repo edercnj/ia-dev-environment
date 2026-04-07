@@ -63,7 +63,7 @@ class PlatformConverterTest {
         @ValueSource(strings = {
                 "invalid", "CLAUDE_CODE",
                 "Claude-Code", "shared",
-                "unknown", ""
+                "unknown"
         })
         @DisplayName("throws TypeConversionException "
                 + "with clear message")
@@ -80,6 +80,18 @@ class PlatformConverterTest {
                     .hasMessageContaining("copilot")
                     .hasMessageContaining("codex")
                     .hasMessageContaining("all");
+        }
+
+        @Test
+        @DisplayName("empty string produces error with "
+                + "quoted representation")
+        void convert_emptyString_throwsWithQuotedEmpty() {
+            assertThatThrownBy(
+                    () -> converter.convert(""))
+                    .isInstanceOf(
+                            TypeConversionException.class)
+                    .hasMessageContaining(
+                            "Invalid platform: ''");
         }
 
         @Test
@@ -108,8 +120,11 @@ class PlatformConverterTest {
                     .isInstanceOf(
                             TypeConversionException.class)
                     .hasMessageContaining(
-                            "Valid values: claude-code, "
-                                    + "copilot, codex, all");
+                            "Valid values:")
+                    .hasMessageContaining("claude-code")
+                    .hasMessageContaining("copilot")
+                    .hasMessageContaining("codex")
+                    .hasMessageContaining("all");
         }
     }
 }

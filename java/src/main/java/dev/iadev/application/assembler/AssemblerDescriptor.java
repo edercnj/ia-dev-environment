@@ -35,6 +35,10 @@ public record AssemblerDescriptor(
      * immutable.
      */
     public AssemblerDescriptor {
+        if (platforms == null || platforms.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "platforms must not be null or empty");
+        }
         platforms = Set.copyOf(platforms);
     }
 }

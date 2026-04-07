@@ -36,7 +36,6 @@ final class PlatformParser {
      * @param map the root YAML map
      * @return immutable set (empty = all platforms)
      */
-    @SuppressWarnings("unchecked")
     static Set<Platform> parse(Map<String, Object> map) {
         Object raw = map.get("platform");
         if (raw == null) {
@@ -46,9 +45,16 @@ final class PlatformParser {
             return parseSingle(s);
         }
         if (raw instanceof List<?> list) {
-            return parseList((List<String>) list);
+            return parseList(validateListElements(list));
         }
-        return Set.of();
+        throw new ConfigValidationException(
+                ("Invalid platform value type: '%s'"
+                        + " in YAML config."
+                        + " Expected a string, a list,"
+                        + " or the field to be absent.")
+                        .formatted(
+                                raw.getClass()
+                                        .getSimpleName()));
     }
 
     private static Set<Platform> parseSingle(String value) {
@@ -66,6 +72,27 @@ final class PlatformParser {
                                     VALID_VALUES));
         }
         return Set.of(platform.orElseThrow());
+    }
+
+    private static List<String> validateListElements(
+            List<?> list) {
+        List<String> result = new ArrayList<>();
+        for (Object element : list) {
+            if (!(element instanceof String s)) {
+                throw new ConfigValidationException(
+                        ("Invalid platform list element:"
+                                + " '%s' (type: %s)."
+                                + " Expected strings."
+                                + " Valid values: %s")
+                                .formatted(
+                                        element,
+                                        element.getClass()
+                                                .getSimpleName(),
+                                        VALID_VALUES));
+            }
+            result.add(s);
+        }
+        return result;
     }
 
     private static Set<Platform> parseList(

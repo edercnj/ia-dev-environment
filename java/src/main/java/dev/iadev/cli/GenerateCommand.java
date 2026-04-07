@@ -99,7 +99,7 @@ public class GenerateCommand implements Callable<Integer> {
                     + "Multiple values separated by comma. "
                     + "Default: all (generate for all "
                     + "platforms).",
-            split = ",",
+            split = "\\s*,\\s*",
             converter = PlatformConverter.class)
     List<Platform> platforms;
 

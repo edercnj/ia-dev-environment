@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Tests for the PipelineOptions record.
@@ -109,17 +110,28 @@ class PipelineOptionsTest {
         }
 
         @Test
-        @DisplayName("platforms is immutable copy")
+        @DisplayName("platforms is immutable defensive copy")
         void platforms_whenSet_isImmutableCopy() {
-            var opts = new PipelineOptions(
-                    false, false, false, false, null,
+            var mutable = new java.util.HashSet<>(
                     Set.of(Platform.COPILOT,
                             Platform.CODEX));
+            var opts = new PipelineOptions(
+                    false, false, false, false,
+                    null, mutable);
+
+            mutable.add(Platform.CLAUDE_CODE);
 
             assertThat(opts.platforms()).hasSize(2);
             assertThat(opts.platforms())
                     .contains(Platform.COPILOT,
                             Platform.CODEX);
+            assertThat(opts.platforms())
+                    .doesNotContain(Platform.CLAUDE_CODE);
+            assertThatThrownBy(() ->
+                    opts.platforms().add(Platform.SHARED))
+                    .isInstanceOf(
+                            UnsupportedOperationException
+                                    .class);
         }
 
         @Test
