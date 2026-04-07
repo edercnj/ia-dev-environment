@@ -30,10 +30,12 @@ Release management practices for my-quarkus-service using java 21 with quarkus.
 
 ### Release Branching Strategies
 
-- Trunk-based: simplicity, CI/CD aligned, requires feature flags (any team size)
-- GitFlow: parallel release tracks, complex, merge conflicts (large teams)
-- Release branches: isolation, cherry-pick overhead (medium teams)
-- Decision by: team size x release frequency x compliance requirements
+> **Cross-reference:** See Rule 09 (`rules/09-branching-model.md`) for mandatory branching conventions.
+
+- GitFlow (Recommended): parallel release tracks, clear separation, formal process (default for all projects)
+- Trunk-based (Alternative): simplicity, CI/CD aligned, requires feature flags (small teams, continuous deployment)
+- Release branches (Alternative): isolation, cherry-pick overhead (medium teams, simplified workflow)
+- Default: GitFlow for all new projects; alternatives require explicit justification
 
 ### Artifact Registry Management
 

@@ -76,24 +76,29 @@ Build metadata is appended with a `+` sign: `1.0.0+build.123`, `1.0.0-beta+exp.s
 
 ## Release Branching Strategies
 
+> **Cross-reference:** See Rule 09 (`rules/09-branching-model.md`) for mandatory branching conventions and branch naming rules.
+
 ### Strategy Comparison
 
-| Strategy | Pros | Cons | Team Size |
-|----------|------|------|-----------|
-| Trunk-based | Simplicity, CI/CD alignment, fast feedback | Requires feature flags, discipline | Any |
-| GitFlow | Parallel release tracks, clear separation | Complexity, merge conflicts, slow | Large (10+) |
-| Release branches | Isolation, focused stabilization | Cherry-pick overhead, divergence risk | Medium (5-10) |
+| Strategy | Pros | Cons | Team Size | Recommendation |
+|----------|------|------|-----------|----------------|
+| GitFlow (Recommended) | Parallel release tracks, clear separation, formal process | Complexity, merge conflicts | Any | **Default for all projects** |
+| Trunk-based | Simplicity, CI/CD alignment, fast feedback | Requires feature flags, discipline | Small (1-4) | Alternative for CI/CD-focused teams |
+| Release branches | Isolation, focused stabilization | Cherry-pick overhead, divergence risk | Medium (5-10) | Simplified alternative |
 
 ### Decision Matrix
 
-Choose based on three factors: team size, release frequency, and compliance requirements.
+GitFlow is the default recommendation. Choose an alternative only when specific criteria are met.
 
-| Release Frequency | Team Size | Compliance | Recommended Strategy |
-|------------------|-----------|------------|---------------------|
-| Continuous (daily+) | Any | Low | Trunk-based |
-| Regular (weekly/biweekly) | Small/Medium | Low-Medium | Trunk-based with release tags |
-| Scheduled (monthly+) | Medium/Large | Medium | Release branches |
-| Scheduled (quarterly+) | Large | High | GitFlow |
+| Scenario | Recommended Strategy |
+|----------|---------------------|
+| Default for all new projects | GitFlow (default) |
+| Large team, scheduled releases | GitFlow (default) |
+| Compliance/audit requirements | GitFlow (mandatory) |
+| Open-source projects | GitFlow |
+| Small team, continuous deployment | Trunk-based (alternative) |
+| Rapid prototyping | Trunk-based (alternative) |
+| Medium team, periodic stabilization | Release branches (alternative) |
 
 See `references/release-branching-guide.md` for detailed decision flowchart.
 

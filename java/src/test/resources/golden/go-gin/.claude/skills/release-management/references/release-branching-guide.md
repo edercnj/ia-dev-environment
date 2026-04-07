@@ -1,8 +1,14 @@
 # Release Branching Guide
 
+> **Cross-reference:** See Rule 09 (`rules/09-branching-model.md`) for mandatory branching conventions and branch naming rules.
+
+## Default Recommendation
+
+**GitFlow is the recommended branching strategy for all projects.** It provides clear separation between development and production, supports parallel release tracks, and enables formal release processes. Choose an alternative only when specific criteria justify it.
+
 ## Decision Flowchart
 
-Use this guide to select the optimal branching strategy for your project.
+Use this guide to validate whether an alternative to GitFlow is appropriate.
 
 ## Step 1: Assess Release Frequency
 
@@ -30,55 +36,20 @@ Use this guide to select the optimal branching strategy for your project.
 
 ## Decision Matrix
 
-| Release Frequency | Team Size | Compliance | Strategy | Rationale |
-|------------------|-----------|------------|----------|-----------|
-| Continuous | Small | Low | Trunk-based | Maximum velocity, minimal overhead |
-| Continuous | Small | Medium | Trunk-based + release tags | Traceability via tags |
-| Continuous | Medium | Low | Trunk-based | Feature flags for isolation |
-| Continuous | Medium | Medium | Trunk-based + release tags | Tags for audit trail |
-| Continuous | Large | Low-Medium | Trunk-based + feature flags | Flags prevent integration conflicts |
-| Regular | Small | Low | Trunk-based | Simple, effective |
-| Regular | Medium | Low | Trunk-based + release tags | Release traceability |
-| Regular | Medium | Medium | Release branches | Stabilization period |
-| Regular | Large | Medium | Release branches | Parallel stabilization |
-| Scheduled | Any | Low-Medium | Release branches | Planned stabilization |
-| Scheduled | Medium | High | GitFlow | Formal release process |
-| Scheduled | Large | High | GitFlow | Maximum control and traceability |
+| Scenario | Strategy | Rationale |
+|----------|----------|-----------|
+| Default for all new projects | GitFlow (Recommended) | Formal process, clear separation, scalable |
+| Large team, scheduled releases | GitFlow (Recommended) | Maximum control and traceability |
+| Compliance/audit requirements | GitFlow (Mandatory) | Formal release process required |
+| Open-source projects | GitFlow (Recommended) | Community contribution workflow |
+| Small team, continuous deployment | Trunk-based (Alternative) | Maximum velocity when discipline exists |
+| Small team, low compliance | Trunk-based (Alternative) | Minimal overhead, fast feedback |
+| Medium team, periodic stabilization | Release branches (Alternative) | Focused stabilization periods |
+| Rapid prototyping | Trunk-based (Alternative) | Speed over process |
 
 ## Strategy Details
 
-### Trunk-Based Development
-
-```
-main ──●──●──●──●──●──●──●──●── (continuous deployment)
-        \       \
-         tag    tag
-        v1.0.0  v1.1.0
-```
-
-**Rules:**
-- All developers commit to `main` (or short-lived feature branches < 1 day)
-- Feature flags gate incomplete work
-- Every commit is a release candidate
-- Tags mark specific releases for traceability
-
-### Release Branches
-
-```
-main ──●──●──●──●──●──●──●──●──
-        \           \
-         release/1.0 release/1.1
-         ●──●──●     ●──●
-         (stabilize)  (stabilize)
-```
-
-**Rules:**
-- Branch from `main` at feature freeze
-- Only bug fixes allowed on release branch
-- Cherry-pick fixes back to `main`
-- Delete release branch after EOL
-
-### GitFlow
+### GitFlow (Recommended)
 
 ```
 main ────●────────────●────────── (production releases)
@@ -95,18 +66,51 @@ develop ──●──●──●──●──●──●──●──
 - Release branches from `develop` for stabilization
 - Hotfix branches from `main` for urgent fixes
 
+> See Rule 09 for branch naming conventions: `feature/*`, `release/*`, `hotfix/*`, `bugfix/*`.
+
+### Trunk-Based Development (Alternative)
+
+```
+main ──●──●──●──●──●──●──●──●── (continuous deployment)
+        \       \
+         tag    tag
+        v1.0.0  v1.1.0
+```
+
+**Rules:**
+- All developers commit to `main` (or short-lived feature branches < 1 day)
+- Feature flags gate incomplete work
+- Every commit is a release candidate
+- Tags mark specific releases for traceability
+
+### Release Branches (Alternative)
+
+```
+main ──●──●──●──●──●──●──●──●──
+        \           \
+         release/1.0 release/1.1
+         ●──●──●     ●──●
+         (stabilize)  (stabilize)
+```
+
+**Rules:**
+- Branch from `main` at feature freeze
+- Only bug fixes allowed on release branch
+- Cherry-pick fixes back to `main`
+- Delete release branch after EOL
+
 ## Migration Between Strategies
 
-### Trunk-Based -> Release Branches
+### Trunk-Based -> GitFlow
 
-1. Continue committing to `main`
-2. When ready to stabilize, create `release/x.y` from `main`
-3. Only bug fixes on release branch; cherry-pick to `main`
-4. Maintain both workflows during transition
+1. Create `develop` branch from `main`
+2. Redirect feature branches to branch from `develop`
+3. Introduce release branches for stabilization
+4. Keep `main` as production-only; merge via release branches
 
-### Release Branches -> Trunk-Based
+### GitFlow -> Trunk-Based
 
-1. Shorten release branch lifetime progressively
+1. Reduce release branch lifetime progressively
 2. Introduce feature flags for incomplete work
 3. Increase CI/CD automation and test coverage
-4. Eventually eliminate release branches; tag releases from `main`
+4. Eventually merge `develop` into `main` workflow; tag releases directly
