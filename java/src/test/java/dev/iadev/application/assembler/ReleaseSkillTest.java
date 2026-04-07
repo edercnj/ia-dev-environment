@@ -16,13 +16,13 @@ import java.nio.file.Path;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for story-0013-0014: x-release skill for
- * orchestrated release automation.
+ * Tests for x-release skill with Git Flow release branch
+ * workflow.
  *
  * <p>Validates that the x-release skill template is
- * generated correctly with proper frontmatter, workflow
- * steps, version detection logic, version file update
- * patterns, and integration references.</p>
+ * generated correctly with release branch workflow,
+ * hotfix support, SNAPSHOT handling, dual merge pattern,
+ * and dry-run mode.</p>
  */
 @DisplayName("x-release Skill")
 class ReleaseSkillTest {
@@ -72,7 +72,7 @@ class ReleaseSkillTest {
 
         @Test
         @DisplayName("frontmatter contains argument-hint"
-                + " with version options")
+                + " with version options and hotfix")
         void assemble_release_hasArgumentHint(
                 @TempDir Path tempDir)
                 throws IOException {
@@ -83,7 +83,8 @@ class ReleaseSkillTest {
                     .contains("major")
                     .contains("minor")
                     .contains("patch")
-                    .contains("--dry-run");
+                    .contains("--dry-run")
+                    .contains("--hotfix");
         }
 
         @Test
@@ -117,7 +118,7 @@ class ReleaseSkillTest {
 
         @Test
         @DisplayName("frontmatter contains description"
-                + " with release keywords")
+                + " with release branch keywords")
         void assemble_release_hasDescription(
                 @TempDir Path tempDir)
                 throws IOException {
@@ -125,17 +126,20 @@ class ReleaseSkillTest {
                     generateClaudeContent(tempDir);
             assertThat(content)
                     .contains("description:")
-                    .contains("release");
+                    .contains("release")
+                    .contains("release branch");
         }
     }
 
     @Nested
-    @DisplayName("Claude SKILL.md -- Workflow")
-    class WorkflowSteps {
+    @DisplayName("Claude SKILL.md -- Release Branch"
+            + " Workflow")
+    class ReleaseBranchWorkflow {
 
         @Test
-        @DisplayName("contains 8-step workflow")
-        void assemble_release_hasEightWorkflowSteps(
+        @DisplayName("contains 11-step release branch"
+                + " workflow")
+        void assemble_release_hasElevenWorkflowSteps(
                 @TempDir Path tempDir)
                 throws IOException {
             String content =
@@ -143,12 +147,106 @@ class ReleaseSkillTest {
             assertThat(content)
                     .contains("DETERMINE")
                     .contains("VALIDATE")
+                    .contains("BRANCH")
                     .contains("UPDATE")
                     .contains("CHANGELOG")
                     .contains("COMMIT")
+                    .contains("MERGE-MAIN")
                     .contains("TAG")
-                    .contains("DRY-RUN")
-                    .contains("PUBLISH");
+                    .contains("MERGE-BACK")
+                    .contains("PUBLISH")
+                    .contains("CLEANUP")
+                    .contains("DRY-RUN");
+        }
+
+        @Test
+        @DisplayName("VALIDATE requires develop or"
+                + " release/* branch")
+        void assemble_release_validateRequiresDevelop(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("develop")
+                    .contains("release/");
+            assertThat(content)
+                    .contains("not on develop/release");
+        }
+
+        @Test
+        @DisplayName("BRANCH creates release/X.Y.Z from"
+                + " develop")
+        void assemble_release_branchFromDevelop(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content).contains(
+                    "git checkout -b \"release/${VERSION}\"");
+        }
+
+        @Test
+        @DisplayName("MERGE-MAIN merges release into main"
+                + " with --no-ff")
+        void assemble_release_mergeToMainNoFf(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("git checkout main")
+                    .contains("git merge \"release/"
+                            + "${VERSION}\" --no-ff");
+        }
+
+        @Test
+        @DisplayName("TAG is created on main after merge")
+        void assemble_release_tagOnMainAfterMerge(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("git tag -a");
+        }
+
+        @Test
+        @DisplayName("MERGE-BACK merges release into"
+                + " develop with --no-ff")
+        void assemble_release_mergeBackToDevelop(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("git checkout develop")
+                    .contains("git merge \"release/"
+                            + "${VERSION}\" --no-ff");
+        }
+
+        @Test
+        @DisplayName("PUBLISH pushes main, develop,"
+                + " and tag")
+        void assemble_release_publishThreeBranches(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("git push origin main")
+                    .contains("git push origin develop");
+        }
+
+        @Test
+        @DisplayName("CLEANUP deletes release branch")
+        void assemble_release_cleanupDeletesBranch(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content).contains(
+                    "git branch -d \"release/${VERSION}\"");
         }
 
         @Test
@@ -173,6 +271,94 @@ class ReleaseSkillTest {
                     generateClaudeContent(tempDir);
             assertThat(content)
                     .contains("x-git-push");
+        }
+    }
+
+    @Nested
+    @DisplayName("Claude SKILL.md -- Hotfix Release")
+    class HotfixRelease {
+
+        @Test
+        @DisplayName("hotfix section documents branching"
+                + " from main")
+        void assemble_release_hotfixFromMain(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("Hotfix Release")
+                    .contains("hotfix")
+                    .contains("main");
+        }
+
+        @Test
+        @DisplayName("hotfix enforces PATCH version"
+                + " bump only")
+        void assemble_release_hotfixPatchOnly(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("PATCH only");
+        }
+
+        @Test
+        @DisplayName("hotfix merges to main and develop")
+        void assemble_release_hotfixDualMerge(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("hotfix")
+                    .contains("main")
+                    .contains("develop");
+        }
+
+        @Test
+        @DisplayName("hotfix merges into active release"
+                + " branch if exists")
+        void assemble_release_hotfixMergeReleaseBranch(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("release branch instead"
+                            + " of develop");
+        }
+    }
+
+    @Nested
+    @DisplayName("Claude SKILL.md -- SNAPSHOT Handling")
+    class SnapshotHandling {
+
+        @Test
+        @DisplayName("documents SNAPSHOT stripping on"
+                + " release branch")
+        void assemble_release_snapshotStrip(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("SNAPSHOT")
+                    .contains("strip");
+        }
+
+        @Test
+        @DisplayName("documents SNAPSHOT advance on"
+                + " develop after release")
+        void assemble_release_snapshotAdvance(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("SNAPSHOT")
+                    .contains("advance");
         }
     }
 
@@ -308,27 +494,31 @@ class ReleaseSkillTest {
     class DryRunMode {
 
         @Test
-        @DisplayName("contains dry-run mode"
-                + " documentation")
-        void assemble_release_hasDryRunMode(
+        @DisplayName("dry-run shows complete release"
+                + " branch plan")
+        void assemble_release_dryRunShowsBranchPlan(
                 @TempDir Path tempDir)
                 throws IOException {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
                     .contains("dry-run")
-                    .contains("--dry-run");
+                    .contains("--dry-run")
+                    .contains("Create branch")
+                    .contains("Merge to main")
+                    .contains("Merge to develop")
+                    .contains("Cleanup");
         }
 
         @Test
-        @DisplayName("dry-run describes expected output")
-        void assemble_release_dryRunDescribesOutput(
+        @DisplayName("dry-run shows SNAPSHOT advance")
+        void assemble_release_dryRunShowsSnapshot(
                 @TempDir Path tempDir)
                 throws IOException {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("plan");
+                    .contains("SNAPSHOT");
         }
     }
 
@@ -359,14 +549,14 @@ class ReleaseSkillTest {
         }
 
         @Test
-        @DisplayName("validates current branch")
-        void assemble_release_validatesBranch(
+        @DisplayName("validates current branch is develop")
+        void assemble_release_validatesDevelopBranch(
                 @TempDir Path tempDir)
                 throws IOException {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("main");
+                    .contains("develop");
         }
     }
 
@@ -432,6 +622,18 @@ class ReleaseSkillTest {
                     generateClaudeContent(tempDir);
             assertThat(content)
                     .contains("git tag -a");
+        }
+
+        @Test
+        @DisplayName("references Rule 09 branching model")
+        void assemble_release_refsRule09(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("Rule 09")
+                    .contains("Branching Model");
         }
     }
 
