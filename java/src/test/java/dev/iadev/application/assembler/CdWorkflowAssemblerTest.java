@@ -312,6 +312,130 @@ class CdWorkflowAssemblerTest {
     }
 
     @Nested
+    @DisplayName("Git Flow triggers")
+    class GitFlowTriggers {
+
+        @Test
+        @DisplayName("staging triggers on develop only")
+        void assemble_staging_triggersOnDevelop(
+                @TempDir Path tempDir) throws Exception {
+            CdWorkflowAssembler assembler =
+                    new CdWorkflowAssembler();
+            CicdContext cicdCtx = buildContext(
+                    tempDir, "docker", "java", "maven");
+
+            assembler.assemble(cicdCtx);
+
+            String content = Files.readString(
+                    tempDir.resolve(
+                            ".github/workflows/"
+                                    + "deploy-staging.yml"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("branches: [develop]");
+            assertThat(content)
+                    .doesNotContain("branches: [main]");
+        }
+
+        @Test
+        @DisplayName("staging contains Git Flow comment")
+        void assemble_staging_hasGitFlowComment(
+                @TempDir Path tempDir) throws Exception {
+            CdWorkflowAssembler assembler =
+                    new CdWorkflowAssembler();
+            CicdContext cicdCtx = buildContext(
+                    tempDir, "docker", "java", "maven");
+
+            assembler.assemble(cicdCtx);
+
+            String content = Files.readString(
+                    tempDir.resolve(
+                            ".github/workflows/"
+                                    + "deploy-staging.yml"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("Git Flow");
+        }
+
+        @Test
+        @DisplayName("production triggers on main"
+                + " and version tags")
+        void assemble_production_triggersOnMainAndTags(
+                @TempDir Path tempDir) throws Exception {
+            CdWorkflowAssembler assembler =
+                    new CdWorkflowAssembler();
+            CicdContext cicdCtx = buildContext(
+                    tempDir, "docker", "java", "maven");
+
+            assembler.assemble(cicdCtx);
+
+            String content = Files.readString(
+                    tempDir.resolve(
+                            ".github/workflows/"
+                                    + "deploy-production.yml"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("branches: [main]")
+                    .contains("tags:")
+                    .contains("'v*'");
+        }
+
+        @Test
+        @DisplayName("production contains Git Flow"
+                + " comment")
+        void assemble_production_hasGitFlowComment(
+                @TempDir Path tempDir) throws Exception {
+            CdWorkflowAssembler assembler =
+                    new CdWorkflowAssembler();
+            CicdContext cicdCtx = buildContext(
+                    tempDir, "docker", "java", "maven");
+
+            assembler.assemble(cicdCtx);
+
+            String content = Files.readString(
+                    tempDir.resolve(
+                            ".github/workflows/"
+                                    + "deploy-production.yml"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("Git Flow");
+        }
+
+        @Test
+        @DisplayName("production does not trigger"
+                + " on develop")
+        void assemble_production_excludesDevelop(
+                @TempDir Path tempDir) throws Exception {
+            CdWorkflowAssembler assembler =
+                    new CdWorkflowAssembler();
+            CicdContext cicdCtx = buildContext(
+                    tempDir, "docker", "java", "maven");
+
+            assembler.assemble(cicdCtx);
+
+            String content = Files.readString(
+                    tempDir.resolve(
+                            ".github/workflows/"
+                                    + "deploy-production.yml"),
+                    StandardCharsets.UTF_8);
+            String pushSection = extractPushSection(
+                    content);
+            assertThat(pushSection)
+                    .doesNotContain("develop");
+        }
+
+        private String extractPushSection(String content) {
+            int pushIdx = content.indexOf("push:");
+            int wdIdx = content.indexOf(
+                    "workflow_dispatch:", pushIdx);
+            if (pushIdx < 0 || wdIdx < 0) {
+                return content;
+            }
+            return content.substring(pushIdx, wdIdx);
+        }
+    }
+
+    @Nested
     @DisplayName("file counts")
     class FileCounts {
 

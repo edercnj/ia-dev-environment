@@ -104,12 +104,13 @@ Reference the CI/CD patterns knowledge pack (`skills/ci-cd-patterns/`) for pipel
 Generate continuous integration workflow:
 
 ```yaml
+# Git Flow: CI runs on integration (develop), release, and hotfix branches
 name: CI
 on:
   push:
-    branches: [main, develop]
+    branches: [develop, 'release/**', 'hotfix/**']
   pull_request:
-    branches: [main]
+    branches: [develop, main]
 
 jobs:
   build:
@@ -147,14 +148,15 @@ jobs:
 Generate continuous deployment workflows:
 
 **deploy-staging.yml:**
-- Triggered on push to `main` branch
+- Triggered on push to `develop` branch (Git Flow integration branch)
 - Builds container image
 - Pushes to container registry
 - Deploys to staging environment
 - Runs smoke tests
 
 **deploy-production.yml:**
-- Triggered manually (`workflow_dispatch`) or on release
+- Triggered on push to `main` (via release/hotfix merge) or version tags (`v*`)
+- Also supports manual trigger (`workflow_dispatch`)
 - Requires approval gate
 - Promotes staging artifact to production
 - Runs production smoke tests
@@ -179,7 +181,7 @@ Generate release workflow:
 
 Generate scheduled security scanning:
 
-- Runs on schedule (weekly) and on-demand
+- Runs on schedule (weekly), on push to `develop` and `main`, and on-demand
 - SAST with CodeQL or Semgrep
 - Dependency audit (language-specific)
 - Container image scanning (if Dockerfile present)
