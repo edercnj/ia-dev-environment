@@ -109,6 +109,22 @@
 
 ---
 
+## Version Bump
+
+| Attribute | Value |
+|-----------|-------|
+| Previous Version | {{VERSION_PREVIOUS}} |
+| New Version | {{VERSION_NEW}} |
+| Bump Type | {{VERSION_BUMP_TYPE}} |
+| Commit SHA | {{VERSION_COMMIT_SHA}} |
+| Contributing Stories | {{VERSION_CONTRIBUTING_STORIES}} |
+
+> **Bump type values:** `MAJOR`, `MINOR`, `PATCH`, `NONE`, `DEFERRED`.
+> When bump type is `NONE`: no version-impacting changes in this phase.
+> When bump type is `DEFERRED`: `--no-merge` active, version bump skipped.
+
+---
+
 ## Next Phase Readiness
 
 ### Readiness Checklist

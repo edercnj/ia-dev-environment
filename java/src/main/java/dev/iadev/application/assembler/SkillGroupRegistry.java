@@ -94,7 +94,9 @@ public final class SkillGroupRegistry {
         SKILL_GROUPS.put("git-troubleshooting", List.of(
                 "x-git-push", "x-ops-troubleshoot",
                 "x-ops-incident",
-                "x-fix-pr-comments", "x-changelog",
+                "x-fix-pr-comments",
+                "x-fix-epic-pr-comments",
+                "x-changelog",
                 "x-release"));
         SKILL_GROUPS.put("lib", List.of(
                 "x-lib-task-decomposer",
