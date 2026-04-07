@@ -324,6 +324,24 @@ Launch `general-purpose` subagent:
 > Produce compliance impact assessment: data classification, encryption requirements, audit logging needs, regulatory considerations.
 > Save to `plans/epic-XXXX/plans/compliance-story-XXXX-YYYY.md`.
 
+### 1G: Commit Planning Artifacts
+
+After all planning phases (1A-1F) complete, commit the generated artifacts to the story branch.
+This ensures planning documents are version-controlled and visible in the PR diff.
+
+1. Stage all planning artifacts for the current story:
+   ```
+   git add plans/epic-XXXX/plans/*-story-XXXX-YYYY.*
+   ```
+2. Check if there are staged changes (`git diff --cached --quiet`). If no changes are staged
+   (all artifacts were reused and unchanged), skip the commit with log:
+   `"No new planning artifacts to commit"`.
+3. Commit with Conventional Commits format:
+   ```
+   git commit -m "docs(story-XXXX-YYYY): add planning artifacts [skip ci]"
+   ```
+   The `[skip ci]` tag prevents CI from triggering on documentation-only commits.
+
 ## Phase 2 — TDD Implementation (Subagent via Task)
 
 Launch a **single** `general-purpose` subagent for implementation:
@@ -539,6 +557,13 @@ After collecting all specialist review results, generate a consolidated dashboar
 5. Run `{{COMPILE_COMMAND}}` + `{{TEST_COMMAND}}`
 6. Update common-mistakes document with newly found errors
 7. Update remediation tracking: mark fixed items as "Fixed" with commit reference.
+8. **Commit review artifacts:** Stage and commit the review dashboard and remediation tracking:
+   ```
+   git add plans/epic-XXXX/reviews/*-story-XXXX-YYYY.md
+   git diff --cached --quiet || git commit -m "docs(story-XXXX-YYYY): add review and remediation artifacts [skip ci]"
+   ```
+   This captures the specialist review dashboard (Phase 4) and remediation tracking (Phase 5)
+   in version control. The conditional commit (`||`) skips if no changes are staged.
 
 ## Phase 6 — Commit & PR (Orchestrator — Inline)
 
@@ -582,6 +607,12 @@ After the Tech Lead review completes, update the consolidated review dashboard:
 2. Append a new "Tech Lead Review" round with the Tech Lead's score, GO/NO-GO decision, and findings.
 3. Preserve the history of previous rounds (specialist reviews from Phase 4).
 4. Write the updated dashboard back to the same file.
+5. **Commit updated dashboard:** Stage and commit the updated review dashboard:
+   ```
+   git add plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md
+   git diff --cached --quiet || git commit -m "docs(story-XXXX-YYYY): update review dashboard with tech lead scores [skip ci]"
+   ```
+   This captures the Tech Lead's GO/NO-GO decision and scores in version control.
 
 ## Phase 8 — Final Verification + Cleanup (Orchestrator — Inline)
 

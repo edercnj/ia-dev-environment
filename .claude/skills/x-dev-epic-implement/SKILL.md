@@ -618,29 +618,23 @@ When `--sequential` flag is set, use sequential dispatch. For each executable st
 ```
 You are implementing story {storyId} for epic {epicId}.
 
-Story file: plans/epic-{epicId}/story-{storyId}.md
-Branch: {branchName}
-Phase: {currentPhase}
-Skip review: {skipReview}
+**FIRST ACTION — Invoke the /x-dev-lifecycle skill:**
+Use the Skill tool to invoke `/x-dev-lifecycle` with argument `{storyId}`.
+This loads the full 9-phase lifecycle workflow (SKILL.md) and executes it end-to-end:
+planning (Phases 1A-1F), TDD implementation (Phase 2), reviews (Phases 4-7), and PR creation (Phase 6).
 
-Execute the x-dev-lifecycle workflow:
-1. Read the story file for requirements
-2. Create implementation plan
-3. Implement following TDD (Red-Green-Refactor)
-4. Run tests and verify coverage
-5. Commit changes with Conventional Commits
-6. Create PR and run reviews (Phases 4-8 of x-dev-lifecycle)
+**Context for the lifecycle execution:**
+- Story file: plans/epic-{epicId}/story-{storyId}.md
+- Phase: {currentPhase}
+- Skip review: {skipReview}
 
-The PR created by /x-dev-lifecycle Phase 6 MUST:
-- Target `main` branch
-- Include "Part of EPIC-{epicId}" in the PR body for traceability (RULE-008)
+**Epic-mode overrides (pass these constraints to the lifecycle):**
+- The PR created in Phase 6 MUST target `main` branch
+- The PR body MUST include "Part of EPIC-{epicId}" for traceability (RULE-008)
+- Version bump: DEFERRED. Do NOT modify pom.xml version in Phase 6.
+  The epic orchestrator handles version bumps at the integrity gate.
 
-Version bump: DEFERRED. Do NOT modify pom.xml version in Phase 6.
-The epic orchestrator handles version bumps at the integrity gate.
-
-Include prUrl and prNumber in your SubagentResult JSON.
-
-Return a JSON result with this exact structure (SubagentResult):
+**After /x-dev-lifecycle completes, return a JSON result with this exact structure (SubagentResult):**
 {
   "status": "SUCCESS" | "FAILED" | "PARTIAL",
   "commitSha": "<git commit SHA if SUCCESS>",
@@ -683,8 +677,9 @@ For each story in executableStories:
   )
 ```
 
-Each worktree subagent uses the same prompt template as Section 1.4, including
-the PR creation instructions: PR targets `main`, PR body includes
+Each worktree subagent uses the same prompt template as Section 1.4, which
+instructs the subagent to invoke `/x-dev-lifecycle` via the Skill tool. The
+lifecycle handles all 9 phases including PR creation: PR targets `main`, PR body includes
 "Part of EPIC-{epicId}" (RULE-008), and `SubagentResult` includes `prUrl` and `prNumber`.
 
 **Branch Naming:** Each worktree operates on branch `feat/{storyId}-short-description` (standard story branch pattern, matching `x-dev-lifecycle` Phase 0).
