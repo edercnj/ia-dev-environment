@@ -579,11 +579,11 @@ The report follows this exact structure:
 ````markdown
 # PR Review Comments -- Consolidated Report
 
-**Epic:** EPIC-{epicId}
-**Date:** {YYYY-MM-DD}
-**PRs Analyzed:** {totalPRs}
-**Total Comments:** {totalComments}
-**Unique Findings:** {uniqueFindings} (after deduplication)
+- **Epic:** EPIC-{epicId}
+- **Date:** {YYYY-MM-DD}
+- **PRs Analyzed:** {totalPRs}
+- **Total Comments:** {totalComments}
+- **Unique Findings:** {uniqueFindings} (after deduplication)
 
 ## Summary
 
@@ -675,21 +675,22 @@ Each theme in the "Recurring Themes" table includes an auto-generated descriptio
 
 ### 7.5 Persistence (RULE-004)
 
-1. Create directory `plans/epic-{epicId}/reports/` if it does not exist:
+1. Resolve the epic directory path (`{epicDir}`) from Step 2. This accounts for suffix variants (e.g., `plans/epic-{epicId}-description/`).
+
+2. Create directory `{epicDir}/reports/` if it does not exist:
    ```bash
-   mkdir -p plans/epic-{epicId}/reports/
+   mkdir -p {epicDir}/reports/
    ```
-   - If the epic directory uses a suffix variant (e.g., `plans/epic-{epicId}-description/`), use the resolved directory from Step 2.
 
-2. Write the report to: `plans/epic-{epicId}/reports/pr-comments-report.md`
+3. Write the report to: `{epicDir}/reports/pr-comments-report.md`
 
-3. **Timing constraint:** The report file MUST be written to disk BEFORE any fix operations (Step 8) begin. This ensures the report serves as a pre-correction audit artifact.
+4. **Timing constraint:** The report file MUST be written to disk BEFORE any fix operations (Step 8) begin. This ensures the report serves as a pre-correction audit artifact.
 
-4. **Idempotency:** If `pr-comments-report.md` already exists (from a previous execution), overwrite it with the updated report. No backup of the previous version is created.
+5. **Idempotency:** If `pr-comments-report.md` already exists (from a previous execution), overwrite it with the updated report. No backup of the previous version is created.
 
-5. Log after persistence:
+6. Log after persistence:
    ```
-   Report saved to plans/epic-{epicId}/reports/pr-comments-report.md
+   Report saved to {epicDir}/reports/pr-comments-report.md
    ```
 
 ### 7.6 Dry-Run Integration (RULE-007)
@@ -771,11 +772,23 @@ If `--include-suggestions` is active, also include findings with `classification
 
 ### 8.2 Branch Creation and Setup (RULE-010)
 
-Create the correction branch from `main`:
+#### baseBranch Resolution
+
+Before creating the correction branch, resolve the target base branch:
+
+1. If `execution-state.json` exists and contains a `baseBranch` field, use that value
+2. Otherwise, default to `develop`
 
 ```bash
-git checkout main
-git pull origin main
+# Read baseBranch from execution-state.json (if available)
+BASE_BRANCH=$(cat plans/epic-{epicId}*/execution-state.json 2>/dev/null | jq -r '.baseBranch // "develop"')
+```
+
+Create the correction branch from `develop` (or resolved baseBranch):
+
+```bash
+git checkout develop
+git pull origin develop
 git checkout -b fix/epic-{epicId}-pr-comments
 ```
 
@@ -783,9 +796,9 @@ git checkout -b fix/epic-{epicId}-pr-comments
 
 | Condition | Action |
 |-----------|--------|
-| Branch does not exist | Create new branch from `main` |
+| Branch does not exist | Create new branch from `develop` |
 | Branch exists, user chose `u` (update) | `git checkout fix/epic-{epicId}-pr-comments` and continue with incremental fixes |
-| Branch exists, user chose `n` (new) | `git branch -D fix/epic-{epicId}-pr-comments` then create fresh from `main` |
+| Branch exists, user chose `n` (new) | `git branch -D fix/epic-{epicId}-pr-comments` then create fresh from `develop` |
 
 After branch setup, log:
 
@@ -1085,7 +1098,7 @@ Part of EPIC-{epicId}
 ### 11.3 Create PR
 
 ```bash
-gh pr create --base main \
+gh pr create --base develop \
   --title "fix(epic-{epicId}): address PR review comments" \
   --body "{pr_body}"
 ```
@@ -1104,7 +1117,7 @@ PR Created
 URL: {prUrl}
 Number: #{prNumber}
 Title: fix(epic-{epicId}): address PR review comments
-Base: main
+Base: develop
 Branch: fix/epic-{epicId}-pr-comments
 Commits: {commitCount}
 Findings fixed: {fixedCount}
