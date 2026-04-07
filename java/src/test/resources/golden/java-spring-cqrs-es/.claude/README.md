@@ -65,6 +65,44 @@ CLAUDE.md                   <-- Executive summary (project root, loaded automati
 
 **Total .github/ artifacts: 125**
 
+> Generated only when the corresponding platform is selected via `--platform`.
+
+## Platform Selection
+
+The `--platform` flag controls which AI platform artifacts are generated. By default, all platforms are generated.
+
+| Value | Description | Directories Generated |
+|-------|-------------|-----------------------|
+| `claude-code` | Anthropic Claude Code | `.claude/` + docs |
+| `copilot` | GitHub Copilot | `.github/` + docs |
+| `codex` | OpenAI Codex | `.codex/`, `.agents/` + docs |
+| `all` | All platforms (default) | `.claude/`, `.github/`, `.codex/`, `.agents/` + docs |
+
+### CLI Examples
+
+```bash
+# Generate only Claude Code artifacts
+ia-dev-env generate --platform claude-code --config my-config.yaml
+
+# Generate for multiple platforms
+ia-dev-env generate -p claude-code,copilot --config my-config.yaml
+
+# Generate for all platforms (default behavior)
+ia-dev-env generate --config my-config.yaml
+```
+
+### YAML Configuration
+
+You can also specify the platform in your YAML config file:
+
+```yaml
+platform: claude-code
+```
+
+### Backward Compatibility
+
+When no `--platform` flag is provided and no `platform:` key exists in the YAML config, the generator produces artifacts for **all platforms** (`all`). This is fully backward-compatible with existing configurations -- no changes are required to existing YAML files or CLI invocations.
+
 ### settings.json vs settings.local.json
 
 - **`settings.json`**: Team settings (permissions, hooks). Committed to git.

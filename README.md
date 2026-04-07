@@ -98,6 +98,12 @@ ia-dev-env generate --interactive --output ./my-project
 ia-dev-env validate --config my-config.yaml --verbose
 ```
 
+### Generate for a specific platform
+
+```bash
+ia-dev-env generate --config my-config.yaml --platform claude-code --output ./my-project
+```
+
 ### Dry run (preview without writing)
 
 ```bash
@@ -123,6 +129,7 @@ Generate Options:
   -s, --stack <name>     Use a bundled stack profile (see profiles below)
   -o, --output <dir>     Output directory (default: current directory)
   -v, --verbose          Verbose logging
+  -p, --platform <value> Target AI platform(s): claude-code, copilot, codex, all
   -f, --force            Overwrite existing files without prompting
   --dry-run              Preview what would be generated
 

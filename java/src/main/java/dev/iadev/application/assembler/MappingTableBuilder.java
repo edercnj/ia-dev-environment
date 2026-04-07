@@ -75,6 +75,10 @@ public final class MappingTableBuilder {
                     "**Total .github/ artifacts: %d**"
                             .formatted(ghTotal));
         }
+        lines.add("");
+        lines.add("> Generated only when the "
+                + "corresponding platform is selected "
+                + "via `--platform`.");
         return String.join("\n", lines);
     }
 
