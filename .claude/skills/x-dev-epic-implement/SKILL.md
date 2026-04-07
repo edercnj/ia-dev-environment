@@ -1,8 +1,8 @@
 ---
 name: x-dev-epic-implement
 description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents."
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
-argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr] [--auto-merge] [--strict-overlap]"
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, AskUserQuestion
+argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr] [--auto-merge] [--no-merge] [--strict-overlap]"
 ---
 
 ## Global Output Policy
@@ -46,7 +46,8 @@ ERROR: Epic ID is required. Usage: /x-dev-epic-implement [EPIC-ID] [flags]
 | `--sequential` | boolean | `false` | Disable parallel worktrees, execute stories one at a time |
 | `--skip-smoke-gate` | boolean | `false` | Skip smoke tests in the integrity gate between phases |
 | `--single-pr` | boolean | `false` | Preserve legacy flow: epic branch + rebase-before-merge + single mega-PR (RULE-009) |
-| `--auto-merge` | boolean | `false` | Auto-merge story PRs via `gh pr merge` after reviews approve (RULE-004). When not set, orchestrator polls for manual merge. |
+| `--auto-merge` | boolean | `false` | Auto-merge story PRs via `gh pr merge` after reviews approve (RULE-004). Mutually exclusive with `--no-merge`. |
+| `--no-merge` | boolean | `false` | Create PRs but skip merge and merge-wait. Dependencies are satisfied by `status == SUCCESS` alone (PR merge not required). Mutually exclusive with `--auto-merge`. Use for repos with branch protection rules requiring multiple approvers. |
 | `--strict-overlap` | boolean | `false` | When set, stories with `code-overlap-high` or `unpredictable` are demoted to sequential queue (original behavior). Without flag, pre-flight is advisory-only (RULE-005). |
 
 ## Prerequisites Check
@@ -107,7 +108,9 @@ ERROR: --phase and --story are mutually exclusive
 Execute only stories belonging to phase N.
 
 1. Read checkpoint (or verify existing code if no checkpoint)
-2. Validate that phases 0..N-1 are complete (all stories have status SUCCESS AND prMergeStatus == "MERGED")
+2. Validate that phases 0..N-1 are complete:
+   - If `mergeMode == "no-merge"`: all stories must have `status == SUCCESS` (prMergeStatus not checked)
+   - Otherwise: all stories must have `status == SUCCESS AND prMergeStatus == "MERGED"`
 3. If validation fails, abort:
    - Phase out of range: `Phase {N} does not exist. Max phase is {M}.`
    - Prior phases incomplete: `Phases 0..{N-1} must be complete before phase {N}`
@@ -123,7 +126,9 @@ Phase 0 requires no prerequisite validation (no prior phases to check).
 Execute a single story in isolation.
 
 1. Read checkpoint (required for single story mode)
-2. Validate that ALL dependencies of the story have status SUCCESS AND prMergeStatus == "MERGED"
+2. Validate that ALL dependencies of the story are satisfied:
+   - If `mergeMode == "no-merge"`: dependencies must have `status == SUCCESS` (prMergeStatus not checked)
+   - Otherwise: dependencies must have `status == SUCCESS AND prMergeStatus == "MERGED"`
 3. If validation fails, abort:
    - Story not in map: `Story {storyId} not found in implementation map`
    - Dependencies not met: `Dependencies not satisfied: [{list}]`
@@ -134,6 +139,16 @@ Execute a single story in isolation.
 ## Phase 0 — Preparation (Orchestrator — Inline)
 
 1. **Parse arguments**: Extract epic ID from positional argument and all optional flags
+1b. **Flag validation**: If both `--auto-merge` and `--no-merge` are set, abort:
+    ```
+    ERROR: --auto-merge and --no-merge are mutually exclusive. Use one or the other.
+    ```
+    Determine `mergeMode` from flags:
+    - `--auto-merge` → `mergeMode = "auto"`
+    - `--no-merge` → `mergeMode = "no-merge"`
+    - Neither → `mergeMode = "interactive"` (default)
+    If `--single-pr` is set with `--auto-merge` or `--no-merge`, log warning:
+    `"WARNING: --single-pr overrides merge mode flags. Per-story PR logic is skipped."`
 2. **Run prerequisites checks**: Execute all 5 prerequisite validations (abort on first failure)
 3. **Read IMPLEMENTATION-MAP.md**: Extract the story dependency graph and execution order
 4. **Read EPIC-XXXX.md**: Load epic context (title, description, acceptance criteria)
@@ -246,7 +261,8 @@ After reclassification, evaluate each BLOCKED story:
 
 - If `blockedBy` is **undefined** → keep BLOCKED (conservative: unknown dependencies)
 - If `blockedBy` is **empty array** → reclassify to PENDING (no dependencies = vacuously satisfied)
-- If **all** dependencies in `blockedBy` have status SUCCESS and `prMergeStatus == "MERGED"` → reclassify to PENDING
+- If `mergeMode == "no-merge"`: if **all** dependencies in `blockedBy` have `status == SUCCESS` → reclassify to PENDING (prMergeStatus not checked)
+- Otherwise: if **all** dependencies in `blockedBy` have status SUCCESS and `prMergeStatus == "MERGED"` → reclassify to PENDING
 - If **any** dependency is non-SUCCESS or missing from the stories map → keep BLOCKED
 
 This is a **single-pass** evaluation (no cascade). Stories unblocked in this pass will not trigger further unblocking of stories that depend on them.
@@ -427,7 +443,7 @@ The execution plan produced by Phase 0.5 is consumed by the Core Loop:
 4. Call `createCheckpoint(epicDir, input)` where input is:
    - `epicId`: The parsed epic ID
    - `stories`: Array of `{ id, phase }` from step 3
-   - `mode`: `{ parallel: true, skipReview: <from flags>, singlePr: <from flags> }` (default; `parallel` set to `false` when `--sequential` is passed)
+   - `mode`: `{ parallel: true, skipReview: <from flags>, singlePr: <from flags>, mergeMode: "auto"|"no-merge"|"interactive" }` (default; `parallel` set to `false` when `--sequential` is passed; `mergeMode` derived from `--auto-merge`/`--no-merge` flags or defaults to `"interactive"`)
 5. The returned `ExecutionState` tracks all story statuses, metrics, and integrity gates
 
 **Per-story `StoryEntry` schema in `execution-state.json`:**
@@ -477,12 +493,13 @@ For each phase in (0..totalPhases-1):
      → Load preflight-analysis-phase-{N}.md if it exists
      → Extract parallelBatch and sequentialQueue story lists
      → If no preflight analysis exists, treat all stories as parallel-eligible
-  1. Call getExecutableStories(parsedMap, executionState)
+  1. Call getExecutableStories(parsedMap, executionState, mergeMode)
      → Returns stories sorted by critical path priority (RULE-007)
-     → Only PENDING stories with all dependencies SUCCESS AND prMergeStatus == "MERGED" are returned
+     → Only PENDING stories with all dependencies SUCCESS are returned
+     → When mergeMode != "no-merge": also requires prMergeStatus == "MERGED" for dependencies
      → Stories without dependencies (phase 0) skip the PR merge check
   1a. If stories have dependencies with status SUCCESS but prMergeStatus != "MERGED":
-     → Enter PR merge wait loop (see "PR Merge Wait Mechanism" below)
+     → Enter PR Merge Decision Mechanism (see below) based on mergeMode
   2. If no executable stories and some remain PENDING:
      → Phase is blocked; log warning and advance to next phase
   3. Partition executable stories using preflight analysis:
@@ -506,42 +523,85 @@ The loop ensures that:
 - BLOCKED stories are never dispatched (filtered by `getExecutableStories`)
 - Each phase completes before the next begins (parallel dispatch is default; sequential when `--sequential` is set)
 - Pre-flight conflict analysis partitions stories into parallel and sequential groups to minimize merge conflicts
-- Dependencies are verified at BOTH lifecycle level (SUCCESS) AND PR level (MERGED)
+- Dependencies are verified at lifecycle level (SUCCESS) and optionally at PR level (MERGED) depending on `mergeMode`
 - [Placeholder: partial execution filter — story-0005-0009]
 
 #### `getExecutableStories()` Algorithm (RULE-003)
 
 ```
-function getExecutableStories(parsedMap, executionState):
+function getExecutableStories(parsedMap, executionState, mergeMode):
   for each storyNode in parsedMap.stories:
     storyState = executionState.stories[storyNode.id]
     if storyState.status != PENDING: continue
     for each dep in storyNode.dependencies:
       depState = executionState.stories[dep]
       if depState.status != SUCCESS: skip story
-      if depState.prMergeStatus != "MERGED": skip story  // PR merge check (RULE-003)
+      if mergeMode != "no-merge":
+        if depState.prMergeStatus != "MERGED": skip story  // PR merge check (RULE-003)
+      // When mergeMode == "no-merge": skip PR merge check entirely
+      // Dependencies satisfied by status == SUCCESS alone
     add storyNode to executableList
   return sortByCriticalPath(executableList)
 ```
 
-#### PR Merge Wait Mechanism
+#### PR Merge Decision Mechanism (RULE-004)
 
 When stories have dependencies with `status == SUCCESS` but `prMergeStatus != "MERGED"`,
-the orchestrator enters a wait loop:
+the orchestrator behavior depends on the `mergeMode`:
 
-1. **Auto-merge mode (`--auto-merge`):** For each dependency with an unmerged PR and
-   approved reviews, execute `gh pr merge {prNumber} --merge`. Merge order follows
-   `sortByCriticalPath()` (RULE-007). If merge fails (conflict, failing checks), log
-   warning and fall through to polling.
+**1. Auto-merge mode (`mergeMode == "auto"`, via `--auto-merge`):**
 
-2. **Polling mode (default, or auto-merge fallback):**
-   - Poll interval: 60 seconds (configurable)
-   - Timeout: 24 hours (configurable)
-   - Each poll: `gh pr view {prNumber} --json state` for each unmerged dependency PR
-   - Log: `"Waiting for PR #{prNumber} (story-{id}) to be merged... ({N}s elapsed)"`
-   - On merge detected: update `prMergeStatus = "MERGED"` in checkpoint, re-run
-     `getExecutableStories()`
-   - On timeout: mark dependent stories as `BLOCKED` with reason `"PR merge timeout"`
+For each dependency with an unmerged PR and approved reviews, execute
+`gh pr merge {prNumber} --merge`. Merge order follows `sortByCriticalPath()` (RULE-007).
+If merge fails (conflict, failing checks), log warning and fall through to polling
+(60s interval, 24h timeout). On timeout: mark dependent stories as `BLOCKED` with
+reason `"PR merge timeout"`.
+
+**2. No-merge mode (`mergeMode == "no-merge"`, via `--no-merge`):**
+
+Skip PR merge wait entirely. Dependencies are satisfied by `status == SUCCESS` alone.
+Log: `"--no-merge: skipping merge wait for PR #{prNumber} (story-{id}). Dependency satisfied by SUCCESS status."`
+Proceed immediately to dispatch dependent stories.
+
+When `--no-merge` is active and a dependent story has dependencies with `prMergeStatus == "OPEN"`,
+the dependent story's branch must incorporate the dependency's code. Before dispatching the
+dependent story, the orchestrator instructs the subagent to merge dependency branches:
+
+```
+Before starting implementation, merge dependency branches into your story branch:
+  git fetch origin
+  for each dependency branch where prMergeStatus == "OPEN":
+    git merge origin/feat/{dep-branch} --no-edit
+This ensures your story has access to dependency code that has not yet been merged to main.
+```
+
+**3. Interactive mode (`mergeMode == "interactive"`, default — neither flag):**
+
+After all stories in the current phase complete with `status == SUCCESS`, prompt the user
+using `AskUserQuestion`:
+
+```
+question: "Phase {N} complete. {count} PR(s) created. How would you like to proceed with merging?"
+header: "PR Merge"
+options:
+  - label: "Merge all and continue"
+    description: "Auto-merge all open PRs in this phase via gh pr merge, then proceed to next phase"
+  - label: "I will merge manually — pause"
+    description: "Pause execution. I will merge PRs manually. Resume with --resume after merging."
+  - label: "Skip merge — continue without merging"
+    description: "Proceed to next phase without merging. Dependencies satisfied by SUCCESS status only."
+multiSelect: false
+```
+
+- **"Merge all and continue"**: Execute `gh pr merge {prNumber} --merge` for each open PR
+  in the phase (critical path order). On success, update `prMergeStatus = "MERGED"`.
+  On failure, log error and fall back to "I will merge manually" behavior.
+- **"I will merge manually — pause"**: Save checkpoint and pause execution. The user
+  runs `--resume` after manually merging PRs. On resume, PR status is verified via
+  `gh pr view`.
+- **"Skip merge — continue without merging"**: Behave as `mergeMode == "no-merge"` for
+  this phase only. Log warning. Proceed without PR merge check for dependent stories.
+  Dependent stories will merge dependency branches as described in mode 2.
 
 ### 1.4 Subagent Dispatch (Sequential Mode — When `--sequential` Is Set)
 
@@ -573,6 +633,9 @@ Execute the x-dev-lifecycle workflow:
 The PR created by /x-dev-lifecycle Phase 6 MUST:
 - Target `main` branch
 - Include "Part of EPIC-{epicId}" in the PR body for traceability (RULE-008)
+
+Version bump: DEFERRED. Do NOT modify pom.xml version in Phase 6.
+The epic orchestrator handles version bumps at the integrity gate.
 
 Include prUrl and prNumber in your SubagentResult JSON.
 
@@ -693,7 +756,9 @@ After parallel dispatch completes and all SubagentResults are validated, clean u
 After each PR merge within a phase, the orchestrator automatically rebases
 remaining open PRs in the same phase onto the updated `main`.
 
-**Trigger:** A story's `prMergeStatus` transitions to `"MERGED"`.
+**Trigger:**
+- When `mergeMode != "no-merge"`: a story's `prMergeStatus` transitions to `"MERGED"`
+- When `mergeMode == "no-merge"`: a story's `status` transitions to `SUCCESS` (since PRs are not merged, rebase triggers on completion to keep branches current against `origin/main`)
 
 **Skip conditions:**
 - `--sequential` is set (stories execute one at a time, no parallel PRs) —
@@ -858,6 +923,10 @@ At the **start** of each phase, before dispatching any stories:
 
 #### Gate Preconditions
 
+The gate behavior depends on `mergeMode`:
+
+**When `mergeMode != "no-merge"` (auto or interactive with PRs merged):**
+
 Before running the gate, verify all PRs from the phase are merged:
 
 ```
@@ -869,6 +938,16 @@ Then checkout `main` with latest merges:
 ```
 git checkout main && git pull origin main
 ```
+
+**When `mergeMode == "no-merge"`:**
+
+PRs are not merged to `main`. The integrity gate is **DEFERRED**:
+1. Per-story validation already runs within `x-dev-lifecycle` (compile, test, coverage per story)
+2. Cross-story integration on `main` cannot be validated (code not merged yet)
+3. Log: `"--no-merge: integrity gate deferred for phase {N}. Cross-story integration will be validated after PRs are merged."`
+4. Record: `integrityGate.status = "DEFERRED"` in checkpoint
+5. Auto-rebase (Section 1.4e) still executes to keep branches current against `origin/main`
+6. Skip directly to phase completion report generation (no gate subagent dispatched)
 
 #### Gate Subagent Prompt
 
@@ -917,7 +996,7 @@ If smoke tests fail (Step 5), the subagent:
 
 ```
 updateIntegrityGate(epicDir, phaseNumber, {
-  status: "PASS" | "FAIL",
+  status: "PASS" | "FAIL" | "DEFERRED",
   testCount: number,
   coverage: number,        // line coverage %
   branchCoverage?: number, // branch coverage %
@@ -934,10 +1013,38 @@ updateIntegrityGate(epicDir, phaseNumber, {
 });
 ```
 
-- **PASS**: Advance to next phase (requires both test gate and smoke gate to pass)
+- **PASS**: Advance to version bump (see below), then to next phase (requires both test gate and smoke gate to pass)
 - **FAIL + regression identified**: revert + mark FAILED + block propagation
 - **FAIL + regression unidentified**: pause execution, report to user
 - **FAIL (smoke gate)**: phase marked FAILED; operator uses `--resume` after fix or `--skip-smoke-gate` to bypass
+- **DEFERRED** (when `mergeMode == "no-merge"`): skip gate, advance directly to phase completion report
+
+#### Version Bump (Post-Gate) (RULE-013)
+
+After the integrity gate **PASSES** for phase N, the orchestrator performs an automatic
+semantic version bump on `main`. This is skipped when `integrityGate.status == "DEFERRED"`.
+
+1. Determine commit range: `mainShaBeforePhase[N]..main`
+2. Invoke `x-lib-version-bump` logic with the commit range:
+   a. Analyze commits in range for highest-priority bump type (MAJOR > MINOR > PATCH > NONE)
+   b. If bump type is **NONE**: skip. Log: `"No version-impacting changes in phase {N}. Version unchanged."`
+   c. If bump type is MAJOR/MINOR/PATCH:
+      - Read current version from pom.xml (strip -SNAPSHOT suffix for base calculation)
+      - Calculate next version, append `-SNAPSHOT`
+      - Update pom.xml on `main`
+      - Commit: `chore(version): bump to X.Y.Z-SNAPSHOT [phase-{N}]`
+      - Push: `git push origin main`
+3. Record version bump in checkpoint:
+   ```json
+   "versionBump": {
+     "phase": N,
+     "previousVersion": "X.Y.Z-SNAPSHOT",
+     "newVersion": "X.Y.Z-SNAPSHOT",
+     "bumpType": "MAJOR|MINOR|PATCH|NONE",
+     "commitSha": "abc123..."
+   }
+   ```
+4. Include version bump details in the phase completion report (see Report Content below)
 
 #### Checkpoint Smoke Gate Format
 
@@ -1135,8 +1242,8 @@ Run the full test suite on `main` to validate cross-story integration:
 
 Verify the Definition of Done (DoD) for the epic:
 
-- [ ] All story PRs merged to main or documented as FAILED/BLOCKED
-- [ ] Integrity gates passed for all phases
+- [ ] All story PRs merged to main or documented as FAILED/BLOCKED (when `mergeMode == "no-merge"`: all story PRs created and targeting main)
+- [ ] Integrity gates passed for all phases (when `mergeMode == "no-merge"`: gates are DEFERRED — per-story validation still applies)
 - [ ] Coverage thresholds met (>=95% line, >=90% branch per-story)
 - [ ] Zero compiler/linter warnings (per-story, validated by lifecycle)
 - [ ] Per-story tech lead reviews executed (via `x-dev-lifecycle` Phase 7) or skipped via `--skip-review`
@@ -1147,9 +1254,9 @@ Verify the Definition of Done (DoD) for the epic:
 
 Compute the final epic status based on story outcomes and PR merge status:
 
-- **COMPLETE**: All stories reached SUCCESS status, all PRs merged to `main`, and all DoD items pass
-- **PARTIAL**: Some stories FAILED or BLOCKED, but critical path stories succeeded and merged
-- **FAILED**: One or more critical path stories failed or their PRs were not merged
+- **COMPLETE**: All stories reached SUCCESS status and all DoD items pass. When `mergeMode != "no-merge"`: all PRs merged to `main`. When `mergeMode == "no-merge"`: all PRs created and targeting `main`.
+- **PARTIAL**: Some stories FAILED or BLOCKED, but critical path stories succeeded. When `mergeMode != "no-merge"`: critical path PRs merged.
+- **FAILED**: One or more critical path stories failed
 
 Persist final status to checkpoint: `updateCheckpoint(epicDir, { finalStatus })`
 
@@ -1162,7 +1269,7 @@ Epic: EPIC-{epicId} — {title}
 Status: COMPLETE | PARTIAL | FAILED
 Model: per-story PR (each story has its own PR targeting main)
 Stories: {completed}/{total} completed, {failed} failed, {blocked} blocked
-PRs: {merged}/{total} merged, {open} open, {closed} closed
+PRs: {merged}/{total} merged, {open} open, {closed} closed (when --no-merge: "{open}/{total} open (--no-merge: merge deferred)")
 Coverage: line {lineCoverage}%, branch {branchCoverage}%
 
 Story PRs:
@@ -1200,7 +1307,8 @@ Phase 1:
   - story-XXXX-0003: Branch feat/story-XXXX-0003-*, PR -> main
     Dependencies: story-XXXX-0001 (must be merged), story-XXXX-0002 (must be merged)
 
-Flags: --auto-merge={value}, --single-pr=false, --skip-review={value}, --strict-overlap={value}
+Flags: --auto-merge={value}, --no-merge={value}, --single-pr=false, --skip-review={value}, --strict-overlap={value}
+Merge mode: {auto|no-merge|interactive}
 ```
 
 > **Dry-run persistence:** In dry-run mode, the execution plan is the primary output.
@@ -1239,3 +1347,10 @@ Flags: --auto-merge={value}, --single-pr=false, --skip-review={value}, --strict-
 - Auto-rebase (Section 1.4e, RULE-011) triggers after each PR merge to keep remaining PRs up-to-date
 - Conflict resolution (Section 1.4c, RULE-012) dispatches subagent for automatic rebase conflict resolution
 - `--single-pr` preserves legacy flow: epic branch + single mega-PR (all per-story PR logic is skipped)
+- `--no-merge` and `--auto-merge` are mutually exclusive; default is interactive mode with user prompt via `AskUserQuestion`
+- With `--no-merge`: dependency check relaxed to `status == SUCCESS` only (prMergeStatus not enforced); dependent stories merge dependency branches for code availability
+- With `--no-merge`: integrity gate is DEFERRED (per-story validation still runs via x-dev-lifecycle); version bump is skipped
+- Interactive mode (default) uses `AskUserQuestion` to prompt user at phase boundaries with 3 options: merge all, pause for manual merge, or skip merge
+- Resume workflow respects `mergeMode` from checkpoint for consistent behavior; warns if mode changed on resume
+- Invokes: `x-lib-version-bump` (post-integrity-gate version bump on `main` — RULE-013)
+- Version bump creates `chore(version):` commit directly on `main` after integrity gate PASS; skipped when gate is DEFERRED or FAIL

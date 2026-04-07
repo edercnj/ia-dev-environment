@@ -72,23 +72,31 @@ Use the provided version directly after validating it follows Semantic Versionin
 
 **Option C: Auto-detect from Conventional Commits**
 
-When no argument is provided, analyze commits since the last tag:
+When no argument is provided, delegate commit analysis to `x-lib-version-bump`:
 
-```bash
-# Get commits since last tag
-git log $(git describe --tags --abbrev=0 2>/dev/null)..HEAD \
-    --format="%s%n%b" --no-merges
-```
+1. Determine commit range: last tag to HEAD (or all commits if no tag exists)
+   ```bash
+   LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null)
+   RANGE="${LAST_TAG:-$(git rev-list --max-parents=0 HEAD)}..HEAD"
+   ```
+2. Invoke `x-lib-version-bump` logic with the range and `--dry-run` to get bump type and next version
+3. The bump decision table (from `x-lib-version-bump`):
 
 | Commit Pattern | Version Bump |
 |---------------|-------------|
 | `BREAKING CHANGE:` in body or `!` after type | **major** |
 | `feat:` or `feat(scope):` | **minor** |
-| `fix:`, `refactor:`, `perf:`, `docs:`, etc. | **patch** |
+| `fix:`, `refactor:`, `perf:` | **patch** |
+| Only `test:`, `docs:`, `chore:`, `build:`, `ci:` | **patch** (minimum for release) |
 
 Decision order: if any commit triggers major, use major. Else if any triggers minor, use minor. Otherwise patch.
 
 This follows Semantic Versioning (https://semver.org/spec/v2.0.0.html) rules.
+
+**SNAPSHOT handling (Maven projects):** When the current pom.xml version is `X.Y.Z-SNAPSHOT`,
+strip the `-SNAPSHOT` suffix before applying the increment. The release version is `X.Y.Z`
+(no SNAPSHOT). After release, a post-release commit prepares the next development version
+(see Step 5.5).
 
 ### Step 2 -- VALIDATE Pre-conditions
 
@@ -120,7 +128,12 @@ If `--skip-tests` flag is present:
 
 ### Step 3 -- UPDATE Version Files
 
-Update version in the appropriate project files based on language/build tool:
+Delegate version file update to `x-lib-version-bump` logic.
+
+The release version does NOT include `-SNAPSHOT` suffix. Pass `--snapshot false` to
+`x-lib-version-bump` to ensure the release version is clean (e.g., `2.1.0`, not `2.1.0-SNAPSHOT`).
+
+**Supported project types** (detected automatically by `x-lib-version-bump`):
 
 | Language | File | Pattern |
 |----------|------|---------|
@@ -131,38 +144,10 @@ Update version in the appropriate project files based on language/build tool:
 | Rust | `Cargo.toml` | `version = "X.Y.Z"` |
 | Go | _(no version file)_ | Git tags only |
 
-**Detection strategy:**
-
-```bash
-# Detect project type and update version
-if [ -f "pom.xml" ]; then
-  # Maven: update <version> in pom.xml
-  # Only update the project version, not dependency versions
-  sed -i '' '/<parent>/,/<\/parent>/!{
-    0,/<version>.*<\/version>/s/<version>.*<\/version>/<version>'"$VERSION"'<\/version>/
-  }' pom.xml
-
-elif [ -f "build.gradle" ]; then
-  # Gradle: update version property
-  sed -i '' "s/version = '.*'/version = '$VERSION'/" build.gradle
-
-elif [ -f "package.json" ]; then
-  # npm/yarn: use npm version (no git tag)
-  npm version "$VERSION" --no-git-tag-version
-
-elif [ -f "pyproject.toml" ]; then
-  # Python: update version in pyproject.toml
-  sed -i '' "s/version = \".*\"/version = \"$VERSION\"/" pyproject.toml
-
-elif [ -f "Cargo.toml" ]; then
-  # Rust: update version in Cargo.toml
-  sed -i '' "s/^version = \".*\"/version = \"$VERSION\"/" Cargo.toml
-
-elif [ -f "go.mod" ]; then
-  # Go: no version file to update, tags only
-  echo "Go project: version managed via git tags only"
-fi
-```
+Invoke `x-lib-version-bump` with `--no-commit --snapshot false` to update the file without
+committing (the release commit is handled in Step 5). The `x-lib-version-bump` utility
+handles project type detection and version file update logic (only updating the project
+version, not dependency versions).
 
 ### Step 4 -- CHANGELOG Generation
 
@@ -191,6 +176,24 @@ git commit -m "release: v${VERSION}"
 ```
 
 The commit message format is `release: v{version}` — this follows `x-git-push` Conventional Commits patterns.
+
+### Step 5.5 -- Prepare Next Development Version (Maven/SNAPSHOT projects)
+
+For projects that use `-SNAPSHOT` convention (Maven), prepare the next development version
+after the release commit:
+
+1. Determine next development version: increment MINOR from release version, append `-SNAPSHOT`
+   - Example: released `2.1.0` → next development version is `2.2.0-SNAPSHOT`
+   - If released a PATCH (e.g., `2.1.1`) → next development version is `2.1.2-SNAPSHOT`
+2. Update pom.xml with the next development version (using `x-lib-version-bump` logic with `--no-commit`)
+3. Commit: `chore(version): prepare for next development iteration [X.Y.Z-SNAPSHOT]`
+
+This follows standard Maven release practice (similar to `maven-release-plugin`).
+The release tag points to the clean version (`v2.1.0`), and the next commit on `main`
+immediately restores the SNAPSHOT convention for ongoing development.
+
+> **Non-SNAPSHOT projects** (npm, Python, Rust, Go): This step is skipped. The version
+> in the build file remains at the released version until the next release.
 
 ### Step 6 -- TAG Creation
 
@@ -266,10 +269,12 @@ Before executing the release, validate against the release-checklist template (`
 
 ## Integration Notes
 
+- **x-lib-version-bump**: Delegates commit analysis (Step 1 Option C) and version file update (Step 3) to the shared version bump utility
 - **x-changelog**: Delegates changelog generation via Agent tool
 - **x-git-push**: Uses same Conventional Commits format for release commit
 - **release-management KP**: References SemVer rules, branching strategies, and registry patterns from `skills/release-management/SKILL.md`
 - **Release Checklist**: Validates against `_TEMPLATE-RELEASE-CHECKLIST.md` for completeness
+- **SNAPSHOT lifecycle**: Step 3 strips SNAPSHOT for release; Step 5.5 re-adds SNAPSHOT for next development version (Maven projects only)
 
 ## Error Handling
 

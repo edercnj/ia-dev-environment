@@ -542,11 +542,31 @@ After collecting all specialist review results, generate a consolidated dashboar
 
 ## Phase 6 — Commit & PR (Orchestrator — Inline)
 
-1. Push: `git push -u origin feat/{STORY_ID}-description`
-2. Create PR via `gh pr create` with review summary in body, including TDD compliance:
+1. **Version Bump (conditional — standalone mode only):**
+   a. If orchestrated by `x-dev-epic-implement` (subagent prompt contains "Version bump: DEFERRED"): **SKIP** version bump. The epic orchestrator handles version bumps at the integrity gate.
+   b. If standalone (invoked directly by user):
+      - Analyze commits on the story branch: `git log main..HEAD --format="%s%n%b" --no-merges`
+      - Determine bump type using Conventional Commits analysis (see `x-lib-version-bump`):
+        - `feat!:` or `BREAKING CHANGE:` → MAJOR
+        - `feat:` → MINOR
+        - `fix:`, `refactor:`, `perf:` → PATCH
+        - Only `test:`, `docs:`, `chore:`, `build:` → NONE (skip bump)
+      - If bump type is NONE: skip (no version-impacting changes)
+      - If bump type is MAJOR/MINOR/PATCH:
+        - Read current version from main: `git show main:pom.xml` (or equivalent build file)
+        - Strip `-SNAPSHOT` suffix for base calculation
+        - Calculate next version, re-add `-SNAPSHOT`
+        - Update pom.xml on the story branch
+        - Commit: `chore(version): bump to X.Y.Z-SNAPSHOT`
+2. Push: `git push -u origin feat/{STORY_ID}-description`
+3. Create PR via `gh pr create` with review summary in body, including TDD compliance:
    - Number of TDD cycles completed
    - Test-first pattern verified
    - TPP progression in commit history
+
+> **Note:** PR merge is NOT handled by x-dev-lifecycle. When invoked by x-dev-epic-implement,
+> merge behavior is controlled by `--auto-merge`, `--no-merge`, or interactive prompt (default).
+> When invoked standalone, the user decides when to merge.
 
 ## Phase 7 — Tech Lead Review
 

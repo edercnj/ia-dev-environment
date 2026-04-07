@@ -271,6 +271,23 @@ git commit -m "test(scope): update acceptance test for [AT-N scenario] (GREEN)"
 2. Unit test + implementation commits (UT-1, UT-2, ...) — in TPP order
 3. Final commit when AT turns GREEN (if AT content changed)
 
+### Version Bump (Optional — Standalone Mode Only)
+
+After all TDD commits are complete, optionally bump the project version:
+
+1. If orchestrated by `x-dev-epic-implement` (subagent prompt contains "Version bump: DEFERRED"): **SKIP**. The epic orchestrator handles version bumps at the integrity gate.
+2. If standalone (invoked directly by user):
+   a. Analyze commits on the branch: `git log main..HEAD --format="%s%n%b" --no-merges`
+   b. Determine bump type (MAJOR/MINOR/PATCH/NONE) using Conventional Commits rules (see `x-lib-version-bump`)
+   c. If NONE: skip (no version-impacting changes)
+   d. If bump detected:
+      - Read current version from main: `git show main:pom.xml`
+      - Calculate next version (with `-SNAPSHOT` for Maven)
+      - Update pom.xml on the branch
+      - Commit: `chore(version): bump to X.Y.Z-SNAPSHOT`
+      - Log: `"Version bumped to X.Y.Z-SNAPSHOT (based on {bumpType} commits)"`
+3. Note: x-dev-implement does NOT push. The version bump is local-only. The developer pushes manually or uses `/x-git-push`.
+
 ## Template Fallback (RULE-012)
 
 When `.claude/templates/_TEMPLATE-IMPLEMENTATION-PLAN.md` is **not available** (projects predating EPIC-0024):
