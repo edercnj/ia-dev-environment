@@ -20,8 +20,11 @@ Standardizes the Git workflow for {{PROJECT_NAME}}. Every feature starts with a 
 ## Branch Strategy
 
 ```
-main (stable, always green)
+main (production, tagged releases only)
+  +-- hotfix/short-description
+develop (integration, always green)
   +-- feat/story-XXXX-YYYY-short-description
+  +-- release/vX.Y.Z
 ```
 
 ### Branch Naming
@@ -37,8 +40,8 @@ main (stable, always green)
 ### Creating a Branch
 
 ```bash
-git checkout main
-git pull origin main
+git checkout develop
+git pull origin develop
 git checkout -b feat/story-XXXX-YYYY-description
 ```
 
@@ -83,8 +86,8 @@ Use the module, package, or component name as scope. Define project-specific sco
 ### Starting a Story
 
 ```bash
-git checkout main
-git pull origin main
+git checkout develop
+git pull origin develop
 git checkout -b feat/story-XXXX-YYYY-description
 git status
 ```
@@ -106,11 +109,62 @@ git commit -m "feat(scope): add feature description"
 {{BUILD_COMMAND}}
 
 # 2. Review changes
-git log --oneline main..HEAD
-git diff main...HEAD --stat
+git log --oneline develop..HEAD
+git diff develop...HEAD --stat
 
 # 3. Push
 git push -u origin feat/story-XXXX-YYYY-description
+```
+
+## Hotfix Workflow
+
+Hotfixes branch from `main` and merge back to both `main` and `develop`.
+
+### Starting a Hotfix
+
+```bash
+git checkout main
+git pull origin main
+git checkout -b hotfix/short-description
+```
+
+### Committing and Pushing
+
+```bash
+git add src/main/path/to/Fix.{{LANGUAGE}}
+git add src/test/path/to/FixTest.{{LANGUAGE}}
+git commit -m "fix(scope): description of critical fix"
+git push -u origin hotfix/short-description
+```
+
+### Creating Hotfix PR
+
+```bash
+gh pr create \
+  --base main \
+  --title "fix(scope): description of critical fix" \
+  --body "$(cat <<'EOF'
+## Summary
+<Description of the critical fix>
+
+## Test plan
+- [ ] Build passes (`{{BUILD_COMMAND}}`)
+- [ ] Fix verified in production-like environment
+EOF
+)"
+```
+
+### Back-merge to Develop
+
+After the hotfix is merged to `main`, propagate the fix to `develop`:
+
+```bash
+git checkout main
+git pull origin main
+gh pr create \
+  --base develop \
+  --title "chore: back-merge hotfix to develop" \
+  --body "Propagates hotfix from main to develop."
 ```
 
 ## Pull Request
@@ -119,6 +173,7 @@ git push -u origin feat/story-XXXX-YYYY-description
 
 ```bash
 gh pr create \
+  --base develop \
   --title "feat(scope): implement story-XXXX-YYYY -- title" \
   --body "$(cat <<'EOF'
 ## Summary
@@ -192,6 +247,7 @@ The git log should read as a **progression from the simplest case to the most co
 
 ## Integration Notes
 
-- Used by `x-dev-lifecycle` during Phase 0 (branch) and Phase 5 (push + PR)
+- Used by `x-dev-lifecycle` during Phase 0 (branch from `develop`) and Phase 5 (push + PR to `develop`)
+- Hotfix workflow branches from `main` and creates PRs targeting `main`, then back-merges to `develop`
 - Can be used standalone for any git workflow task
 - Commit message scopes should match the project's package/module structure
