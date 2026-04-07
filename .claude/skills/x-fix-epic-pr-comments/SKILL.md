@@ -49,7 +49,7 @@ Automates the complete cycle of addressing PR review comments across an entire e
 11. PR         -> Create single correction PR (story-0026-0004)
 ```
 
-> **story-0026-0001 implements steps 1-4.** **story-0026-0002 implements steps 5-6 (including 6B).** **story-0026-0003 implements step 7.** **story-0026-0004 implements steps 8-9 and 11.** Step 10 is delivered by story-0026-0005.
+> **story-0026-0001 implements steps 1-4.** **story-0026-0002 implements steps 5-6 (including 6B).** **story-0026-0003 implements step 7.** **story-0026-0004 implements steps 8-9 and 11.** **story-0026-0005 implements step 10 (reply engine and status tracking).**
 
 ---
 
@@ -1027,6 +1027,279 @@ Golden file propagation: {sourceTemplate} -> {profileCount} profiles updated
 
 ---
 
+## Step 10 -- Reply Engine (RULE-008, RULE-010)
+
+After fixes are applied and verified (Steps 8-9), post replies to the original PR comments to close the feedback loop. Replies use pt-BR templates (RULE-008) and are idempotent (RULE-010).
+
+### 10.1 Pre-Condition: `--skip-replies` Flag
+
+If `--skip-replies` is active, skip the entire reply phase:
+
+```
+Reply phase skipped (--skip-replies)
+```
+
+Return immediately with:
+
+```json
+{
+  "repliesSent": 0,
+  "repliesSkipped": 0,
+  "repliesFailed": 0
+}
+```
+
+### 10.2 Reply Templates (pt-BR -- RULE-008)
+
+Each finding receives a reply based on its classification and fix status. Templates use pt-BR as mandated by RULE-008.
+
+| Classification | Fix Status | Template | Reply? |
+|----------------|-----------|----------|--------|
+| Actionable | `applied` | `Corrigido no PR #{fixPR}. {descricao}. Commit: {shortSha}` | Yes |
+| Actionable | `failed` | `Tentei corrigir, mas causou falha de compilacao/testes. Necessita intervencao manual.` | Yes |
+| Actionable | `skipped` | `Arquivo nao encontrado no working tree atual. Possivelmente renomeado/deletado.` | Yes |
+| Suggestion | `applied` | `Sugestao aceita no PR #{fixPR}. {descricao}. Commit: {shortSha}` | Yes |
+| Suggestion | not applied | -- | **No** |
+| Question | any | -- | **No** (requires human response) |
+| Praise | any | -- | **No** |
+| Resolved | any | -- | **No** |
+
+**Template variable resolution:**
+
+| Variable | Source | Example |
+|----------|--------|---------|
+| `{fixPR}` | `fixResult.prNumber` | `173` |
+| `{descricao}` | First 80 chars of `finding.body`, truncated with `...` if needed | `Rename variable to follow conventions...` |
+| `{shortSha}` | First 7 chars of `fixResult.commits[].sha` (matching the finding's theme commit) | `abc123d` |
+
+### 10.3 Reply Mechanism
+
+For each finding that requires a reply (per 10.2 table):
+
+#### 10.3.1 Post Reply to Inline Comment
+
+```bash
+gh api repos/{owner}/{repo}/pulls/{prNumber}/comments/{commentId}/replies \
+  -f body="{resolvedTemplate}"
+```
+
+Where `{prNumber}` comes from `finding.sourcePRs[0]` (the PR where the comment was originally posted) and `{commentId}` comes from `finding.id` (the original comment ID from Step 5).
+
+#### 10.3.2 Post Reply to Review-Level Comment
+
+For review-level comments (those without a `line` field):
+
+```bash
+gh api repos/{owner}/{repo}/pulls/{prNumber}/reviews/{reviewId}/comments \
+  -f body="{resolvedTemplate}"
+```
+
+#### 10.3.3 Error Handling per Reply
+
+| HTTP Status | Action |
+|-------------|--------|
+| 201 Created | Reply posted successfully. Increment `repliesSent`. |
+| 404 Not Found | Comment or PR no longer exists. Log warning, increment `repliesSkipped`. |
+| 422 Unprocessable | Invalid request (e.g., thread locked). Log warning, increment `repliesFailed`. |
+| 429 Too Many Requests | Rate limit hit. Apply rate limiting (Step 10.4). |
+| Other 4xx/5xx | Log error, increment `repliesFailed`. Continue to next finding. |
+
+### 10.4 Rate Limiting (30 replies/minute)
+
+GitHub enforces secondary rate limits on mutation endpoints. The reply engine enforces a ceiling of **30 replies per minute**.
+
+**Algorithm:**
+
+1. Maintain a counter `repliesInCurrentWindow` and a timestamp `windowStart`.
+2. Before each reply:
+   - If `repliesInCurrentWindow >= 30` AND `(now - windowStart) < 60 seconds`:
+     - Calculate wait time: `waitSeconds = 60 - (now - windowStart)`
+     - Log: `Rate limit ceiling reached (30/min). Pausing {waitSeconds}s.`
+     - Sleep for `waitSeconds`
+     - Reset counter: `repliesInCurrentWindow = 0`, `windowStart = now`
+   - If `(now - windowStart) >= 60 seconds`:
+     - Reset counter: `repliesInCurrentWindow = 0`, `windowStart = now`
+3. After posting reply: increment `repliesInCurrentWindow`.
+
+**On HTTP 429 from GitHub API:**
+
+1. Read `Retry-After` header value (seconds). Default to 60s if header is absent.
+2. Log: `GitHub rate limit hit (429). Waiting {retryAfter}s.`
+3. Sleep for the indicated duration.
+4. Retry the failed reply (max 3 retries per reply).
+5. After 3 failures, mark reply as failed and continue.
+
+### 10.5 Idempotency Check (RULE-010)
+
+Before posting each reply, check if a reply already exists to prevent duplicates on re-execution.
+
+**Check algorithm:**
+
+1. Fetch existing replies for the comment:
+   ```bash
+   gh api repos/{owner}/{repo}/pulls/{prNumber}/comments/{commentId}/replies \
+     --jq '.[].body'
+   ```
+
+2. Scan reply bodies for the idempotency pattern:
+   - For actionable (fixed) and suggestion (accepted): pattern `"Corrigido no PR #"` or `"Sugestao aceita no PR #"`
+   - For actionable (failed): pattern `"Tentei corrigir, mas causou falha"`
+   - For actionable (skipped): pattern `"Arquivo nao encontrado no working tree"`
+
+3. If any existing reply matches the pattern:
+   ```
+   Reply already posted for comment {commentId}, skipping
+   ```
+   Increment `repliesSkipped`. Do NOT post a duplicate reply.
+
+4. If no match found: proceed with posting the reply.
+
+### 10.6 Status Tracking (Report Update)
+
+After the reply phase completes, update the `pr-comments-report.md` with Status and Reply columns.
+
+#### 10.6.1 Updated Report Table Format
+
+The Actionable Findings table gains two new columns:
+
+| # | PRs | File | Line | Summary | Has Suggestion | Theme | Status | Reply |
+|---|-----|------|------|---------|----------------|-------|--------|-------|
+| 1 | #{pr1},#{pr2} | {file} | {line} | {summary} | Yes/No | {theme} | Fixed | Replied |
+| 2 | #{pr1} | {file} | {line} | {summary} | No | {theme} | Failed | Replied |
+| 3 | #{pr1} | {file} | {line} | {summary} | Yes | {theme} | Skipped | -- |
+
+**Status values:**
+
+| Status | Meaning |
+|--------|---------|
+| `Fixed` | Fix applied successfully (`fixStatus == "applied"`) |
+| `Failed` | Fix attempted but caused regression (`fixStatus == "failed"`) |
+| `Skipped` | Fix not attempted (`fixStatus == "skipped"`) |
+| `--` | Not in fix scope (question, praise, resolved) |
+
+**Reply values:**
+
+| Reply | Meaning |
+|-------|---------|
+| `Replied` | Reply posted successfully to PR comment |
+| `Failed` | Reply attempted but API returned error |
+| `Skipped` | Reply already existed (idempotency) |
+| `--` | No reply applicable (question, praise, resolved, `--skip-replies`) |
+
+#### 10.6.2 Suggestion Findings Table Update
+
+When `--include-suggestions` is active, the Suggestion Findings table also gains Status and Reply columns:
+
+| # | PRs | File | Line | Summary | Theme | Status | Reply |
+|---|-----|------|------|---------|-------|--------|-------|
+| 1 | #{pr1} | {file} | {line} | {summary} | {theme} | Accepted | Replied |
+
+#### 10.6.3 Report Persistence
+
+1. Re-read the existing `pr-comments-report.md` from Step 7.
+2. Replace the Actionable Findings table with the updated version including Status and Reply columns.
+3. Replace the Suggestion Findings table if `--include-suggestions` was active.
+4. Write the updated report back to disk.
+5. Log: `Report updated with Status and Reply columns: {reportPath}`
+
+### 10.7 Reply Result Data Contract
+
+The reply engine produces the following output:
+
+```json
+{
+  "repliesSent": 8,
+  "repliesSkipped": 2,
+  "repliesFailed": 1,
+  "replyDetails": [
+    {
+      "findingId": "F-001",
+      "commentId": 123456789,
+      "prNumber": 143,
+      "status": "sent",
+      "template": "Corrigido no PR #173. Rename variable to follow conventions. Commit: abc123d"
+    },
+    {
+      "findingId": "F-002",
+      "commentId": 123456790,
+      "prNumber": 143,
+      "status": "skipped",
+      "reason": "reply_already_exists"
+    },
+    {
+      "findingId": "F-003",
+      "commentId": 123456791,
+      "prNumber": 146,
+      "status": "failed",
+      "reason": "api_error_422"
+    }
+  ]
+}
+```
+
+### Field Reference
+
+| Field | Type | Always Present | Description |
+|-------|------|----------------|-------------|
+| `repliesSent` | `Integer` | Yes | Count of replies successfully posted |
+| `repliesSkipped` | `Integer` | Yes | Count of replies skipped (idempotency, question, praise, resolved) |
+| `repliesFailed` | `Integer` | Yes | Count of replies that failed (API errors) |
+| `replyDetails[]` | `Array` | Yes | Detail per finding processed |
+| `replyDetails[].findingId` | `String` | Yes | Finding ID from consolidated JSON |
+| `replyDetails[].commentId` | `Integer` | Yes | Original GitHub comment ID |
+| `replyDetails[].prNumber` | `Integer` | Yes | PR where the reply was posted |
+| `replyDetails[].status` | `Enum` | Yes | One of: `sent`, `skipped`, `failed` |
+| `replyDetails[].template` | `String` | No | Resolved template text (only when `status == "sent"`) |
+| `replyDetails[].reason` | `String` | No | Reason for skip/failure (only when `status != "sent"`) |
+
+### Reply Status Values
+
+| Status | Description | Possible Reasons |
+|--------|-------------|------------------|
+| `sent` | Reply posted successfully | -- |
+| `skipped` | Reply not posted | `reply_already_exists`, `no_reply_applicable` (question, praise, resolved) |
+| `failed` | Reply attempted but failed | `api_error_{status}`, `max_retries_exceeded` |
+
+### 10.8 Reply Phase Output
+
+After processing all findings, produce a reply phase summary:
+
+```
+Reply Phase Summary
+===================
+Total findings processed: {totalProcessed}
+  Replies sent: {repliesSent}
+  Replies skipped (idempotent): {skippedIdempotent}
+  Replies skipped (no reply applicable): {skippedNoReply}
+  Replies failed: {repliesFailed}
+Rate limit pauses: {pauseCount}
+Report updated: {reportPath}
+```
+
+### 10.9 Error Handling (Reply-Specific)
+
+| Error Code | Condition | Message | Recovery |
+|------------|-----------|---------|----------|
+| `REPLY_API_ERROR` | GitHub API returned non-201 status | `Failed to post reply for comment {commentId}: HTTP {status}` | Reply marked as failed; loop continues |
+| `REPLY_RATE_LIMITED` | HTTP 429 received | `GitHub rate limit hit. Waiting {retryAfter}s.` | Auto-retry after wait (max 3 retries) |
+| `REPLY_MAX_RETRIES` | 3 retry attempts exhausted for a single reply | `Max retries (3) exceeded for comment {commentId}. Skipping.` | Reply marked as failed; loop continues |
+| `REPLY_IDEMPOTENT_SKIP` | Existing reply detected matching pattern | `Reply already posted for comment {commentId}, skipping` | Normal flow -- idempotent skip |
+| `REPORT_UPDATE_FAILED` | Cannot write updated report | `Failed to update report with Status/Reply columns: {path}` | Log error; reply results still returned |
+
+### 10.10 Edge Cases
+
+| Scenario | Behavior |
+|----------|----------|
+| Zero findings requiring reply | Reply phase completes instantly with all counters at 0. Report not modified. |
+| `--skip-replies` active | Skip entire reply phase. Report retains original format without Status/Reply columns. |
+| `--dry-run` active | Step 10 never executes (execution stops after Step 7). |
+| Finding has multiple `sourcePRs` (dedup) | Reply posted only to `sourcePRs[0]` (the canonical occurrence). Other PRs do not receive replies. |
+| PR was deleted between fix and reply phase | API returns 404. Reply marked as failed. Loop continues. |
+| Comment thread is locked | API returns 422. Reply marked as failed. Loop continues. |
+| 50+ replies needed | Rate limiter pauses at 30 replies/minute. Total time increases but all replies are posted. |
+
+---
+
 ## Step 11 -- PR Creation (RULE-003)
 
 After all fixes are committed (Step 9.3), create a single correction PR.
@@ -1263,8 +1536,9 @@ Only entries with `prNumber != null` are included in PR discovery. Stories with 
 | RULE-005 | Deduplication cross-PR | SHA-256 fingerprint on normalized body + basename deduplicates across PRs (Step 6B) |
 | RULE-006 | Fallback without checkpoint | Accepts `--prs` flag for explicit PR list |
 | RULE-007 | Mandatory dry-run support | `--dry-run` generates report without applying fixes; report is final output in dry-run mode (Step 7.6) |
+| RULE-008 | Replies in pt-BR | Reply engine posts pt-BR replies with classification-specific templates (Step 10) |
 | RULE-009 | Post-correction verification | Runs compile + test after all fixes; reverts individual fixes causing regression via bisect (Step 9) |
-| RULE-010 | Idempotency | Detects existing `fix/epic-{epicId}-pr-comments` branch; handles update vs. fresh creation (Steps 4, 8.2) |
+| RULE-010 | Idempotency | Detects existing `fix/epic-{epicId}-pr-comments` branch; handles update vs. fresh creation (Steps 4, 8.2); checks for existing replies before posting (Step 10.5) |
 
 ### Future Steps (Subsequent Stories)
 
@@ -1273,4 +1547,4 @@ Only entries with `prNumber != null` are included in PR discovery. Stories with 
 | story-0026-0002 | Steps 5-6, 6B | Batch comment fetching, classification, and deduplication | **Delivered** |
 | story-0026-0003 | Step 7 | Consolidated findings report | **Delivered** |
 | story-0026-0004 | Steps 8-9, 11 | Fix orchestration, verification, and PR creation | **Delivered** |
-| story-0026-0005 | Step 10 | Reply engine and status tracking | Pending |
+| story-0026-0005 | Step 10 | Reply engine and status tracking | **Delivered** |
