@@ -4,6 +4,7 @@ description: "Complete decomposition of a system specification into an Epic, ind
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion
 argument-hint: "[SPEC-FILE-PATH]"
+context-budget: medium
 ---
 
 ## Output Policy

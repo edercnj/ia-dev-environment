@@ -4,6 +4,7 @@ description: "Implements a feature/story using TDD (Red-Green-Refactor) workflow
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[STORY-ID or feature-description]"
+context-budget: medium
 ---
 
 ## Global Output Policy

@@ -4,6 +4,7 @@ description: "Automates ADR generation from architecture plan mini-ADRs: extract
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[architecture-plan-path] [story-id]"
+context-budget: medium
 ---
 
 ## Global Output Policy

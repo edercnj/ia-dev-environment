@@ -4,6 +4,7 @@ description: "Orchestrates the complete feature implementation cycle: branch cre
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
 argument-hint: "[STORY-ID or feature-name]"
+context-budget: heavy
 ---
 
 ## Global Output Policy
@@ -44,6 +45,20 @@ Phase 5-6: Remediation + PR     (orchestrator — remediation tracking, fixes, P
 Phase 7: Tech Lead Review       (invoke /x-review-pr skill + dashboard update)
 Phase 8: Verification           (orchestrator — inline)
 ```
+
+## Context Budget Decision Logic
+
+Before invoking any skill inline via the `Skill` tool, evaluate the accumulated context budget:
+
+1. Check the `context-budget` field in the target skill's frontmatter (light/medium/heavy)
+2. Track the accumulated budget of all skills loaded inline in the current conversation
+3. Apply the delegation rule:
+   - If the accumulated budget is `heavy` and the next skill is `medium` or `heavy`: delegate via `Agent` tool (subagent) instead of `Skill` tool (inline)
+   - If the accumulated budget is `medium` and the next skill is `heavy`: delegate via `Agent` tool
+   - Otherwise: invoke inline via `Skill` tool
+4. When delegating due to budget: log `"Context budget exceeded ({accumulated}). Delegating {skill-name} to subagent."`
+
+> **Note:** The `context-budget` field is informational only — it does not affect how Claude Code loads the skill. The delegation decision is made by this orchestrator.
 
 ---
 

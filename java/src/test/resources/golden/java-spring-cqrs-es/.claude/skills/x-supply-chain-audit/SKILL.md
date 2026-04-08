@@ -4,6 +4,7 @@ description: "Enhanced supply chain security audit beyond x-dependency-audit. An
 user-invocable: true
 allowed-tools: Read, Write, Bash, Grep, Glob
 argument-hint: "[--depth shallow|deep] [--include-dev-deps] [--risk-threshold 0-100] [--focus all|maintainer|typosquatting|phantom|age|epss|slsa]"
+context-budget: medium
 ---
 
 ## Global Output Policy

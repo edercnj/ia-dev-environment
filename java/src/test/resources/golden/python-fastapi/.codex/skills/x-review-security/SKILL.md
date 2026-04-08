@@ -4,6 +4,7 @@ description: "Reviews code changes for compliance with selected security framewo
 user-invocable: true
 allowed-tools: Read, Grep, Glob, Bash
 argument-hint: "[PR number or file paths]"
+context-budget: light
 ---
 
 ## Global Output Policy

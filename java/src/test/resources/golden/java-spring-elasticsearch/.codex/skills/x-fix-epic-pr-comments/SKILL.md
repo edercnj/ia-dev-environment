@@ -3,6 +3,7 @@ name: x-fix-epic-pr-comments
 description: "Discovers all PRs from an epic via execution-state.json, fetches and classifies review comments in batch, generates a consolidated findings report, applies fixes, and creates a single correction PR. Supports dry-run, explicit PR list fallback, and idempotent re-execution."
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
 argument-hint: "[EPIC-ID] [--dry-run] [--prs N,M,...] [--skip-replies] [--include-suggestions]"
+context-budget: heavy
 user-invocable: true
 ---
 

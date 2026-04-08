@@ -4,6 +4,7 @@ description: "Parallel code review with specialist engineers (Security, QA, Perf
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[STORY-ID or --scope reviewer1,reviewer2]"
+context-budget: medium
 ---
 
 ## Global Output Policy
