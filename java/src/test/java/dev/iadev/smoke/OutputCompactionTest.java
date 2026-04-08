@@ -201,8 +201,8 @@ class OutputCompactionTest {
                 + " GREEN REFACTOR status markers")
         void tdd_compactFormatStatusMarkers() {
             assertThat(tddContent)
-                    .contains("RED {redStatus}")
-                    .contains("GREEN {greenStatus}")
+                    .contains("RED {testResult}")
+                    .contains("GREEN {testResult}")
                     .contains("REFACTOR {refactorStatus}");
         }
 

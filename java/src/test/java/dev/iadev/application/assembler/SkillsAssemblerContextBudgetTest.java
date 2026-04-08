@@ -32,7 +32,7 @@ class SkillsAssemblerContextBudgetTest {
         @DisplayName("light skill gets context-budget: light")
         void assemble_lightSkill_injectsBudgetLight(
                 @TempDir Path tempDir) throws IOException {
-            Path core = createSkillTemplate(
+            createSkillTemplate(
                     tempDir, "x-simple", 100);
 
             Path outputDir = tempDir.resolve("output");
@@ -60,7 +60,7 @@ class SkillsAssemblerContextBudgetTest {
                 + " context-budget: medium")
         void assemble_mediumSkill_injectsBudgetMedium(
                 @TempDir Path tempDir) throws IOException {
-            Path core = createSkillTemplate(
+            createSkillTemplate(
                     tempDir, "x-medium", 300);
 
             Path outputDir = tempDir.resolve("output");
@@ -88,7 +88,7 @@ class SkillsAssemblerContextBudgetTest {
                 + " context-budget: heavy")
         void assemble_heavySkill_injectsBudgetHeavy(
                 @TempDir Path tempDir) throws IOException {
-            Path core = createSkillTemplate(
+            createSkillTemplate(
                     tempDir, "x-heavy", 600);
 
             Path outputDir = tempDir.resolve("output");
