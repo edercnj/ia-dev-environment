@@ -54,14 +54,6 @@ class GoldenFileTest {
     private static final String GOLDEN_ROOT =
             "/golden/";
 
-    /**
-     * Directories excluded from golden file comparison.
-     * Platform-specific output is validated separately
-     * by {@link PlatformGoldenFileTest}.
-     */
-    private static final Set<String> EXCLUDED_DIRS =
-            Set.of("platform-claude-code");
-
     @TempDir
     Path tempDir;
 
@@ -124,8 +116,7 @@ class GoldenFileTest {
 
         Path goldenDir = resolveGoldenDir(profile);
         Set<String> goldenFiles =
-                collectRelativePaths(
-                        goldenDir, EXCLUDED_DIRS);
+                collectRelativePaths(goldenDir);
         Set<String> generatedFiles =
                 collectRelativePaths(outputDir);
 
@@ -233,37 +224,25 @@ class GoldenFileTest {
      * Collects all relative file paths under a directory,
      * sorted for deterministic comparison.
      *
+     * <p>Skips {@code platform-*} subdirectories since
+     * those are tested separately by
+     * {@link PlatformGoldenFileTest}.</p>
+     *
      * @param dir the root directory to scan
      * @return sorted set of relative paths as strings
      * @throws IOException if directory traversal fails
      */
     static Set<String> collectRelativePaths(Path dir)
             throws IOException {
-        return collectRelativePaths(dir, Set.of());
-    }
-
-    /**
-     * Collects relative file paths under a directory,
-     * excluding specified subdirectory names.
-     *
-     * @param dir      the root directory to scan
-     * @param excludes directory names to skip
-     * @return sorted set of relative paths as strings
-     * @throws IOException if directory traversal fails
-     */
-    static Set<String> collectRelativePaths(
-            Path dir, Set<String> excludes)
-            throws IOException {
         Set<String> paths = new TreeSet<>();
         Files.walkFileTree(dir, new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult preVisitDirectory(
-                    Path d,
+                    Path subDir,
                     BasicFileAttributes attrs) {
-                String name =
-                        d.getFileName().toString();
-                if (!d.equals(dir)
-                        && excludes.contains(name)) {
+                String name = subDir.getFileName()
+                        .toString();
+                if (name.startsWith("platform-")) {
                     return FileVisitResult.SKIP_SUBTREE;
                 }
                 return FileVisitResult.CONTINUE;
