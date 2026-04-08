@@ -243,7 +243,7 @@ class GoldenFileTest {
     }
 
     /**
-     * Collects relative file paths under a directory,
+     * Collects all relative file paths under a directory,
      * excluding specified subdirectory names.
      *
      * @param dir      the root directory to scan
