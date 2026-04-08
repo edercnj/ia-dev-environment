@@ -208,9 +208,9 @@ public final class SkillsAssembler implements Assembler {
     }
 
     private static int countLines(Path file) {
-        try {
-            return (int) Files.lines(
-                    file, StandardCharsets.UTF_8).count();
+        try (var lines = Files.lines(
+                file, StandardCharsets.UTF_8)) {
+            return (int) lines.count();
         } catch (IOException e) {
             throw new UncheckedIOException(
                     "Failed to count lines: %s"
