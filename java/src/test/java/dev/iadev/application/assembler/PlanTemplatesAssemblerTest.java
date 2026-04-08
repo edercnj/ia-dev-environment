@@ -18,12 +18,12 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for PlanTemplatesAssembler -- copies 12 planning
+ * Tests for PlanTemplatesAssembler -- copies 15 planning
  * and review templates to .claude/templates/ and
  * .github/templates/.
  *
  * <p>TPP order: degenerate (empty source) -> constant
- * (single template) -> collection (all 12) -> conditional
+ * (single template) -> collection (all 15) -> conditional
  * (section validation) -> error (missing template).</p>
  */
 @DisplayName("PlanTemplatesAssembler")
@@ -42,7 +42,10 @@ class PlanTemplatesAssemblerTest {
                     "_TEMPLATE-CONSOLIDATED-REVIEW-DASHBOARD.md",
                     "_TEMPLATE-REVIEW-REMEDIATION.md",
                     "_TEMPLATE-EPIC-EXECUTION-PLAN.md",
-                    "_TEMPLATE-PHASE-COMPLETION-REPORT.md");
+                    "_TEMPLATE-PHASE-COMPLETION-REPORT.md",
+                    "_TEMPLATE-TASK-PLAN.md",
+                    "_TEMPLATE-STORY-PLANNING-REPORT.md",
+                    "_TEMPLATE-DOR-CHECKLIST.md");
 
     @Nested
     @DisplayName("implements Assembler interface")
@@ -63,21 +66,21 @@ class PlanTemplatesAssemblerTest {
     class ConstantsValidation {
 
         @Test
-        @DisplayName("TEMPLATE_COUNT equals 12")
-        void templateCount_equals12() {
+        @DisplayName("TEMPLATE_COUNT equals 15")
+        void templateCount_equals15() {
             assertThat(
                     PlanTemplatesAssembler.TEMPLATE_COUNT)
-                    .isEqualTo(12);
+                    .isEqualTo(15);
         }
 
         @Test
-        @DisplayName("TEMPLATE_SECTIONS has exactly 12"
+        @DisplayName("TEMPLATE_SECTIONS has exactly 15"
                 + " entries")
-        void templateSections_has12Entries() {
+        void templateSections_has15Entries() {
             assertThat(
                     PlanTemplatesAssembler
                             .TEMPLATE_SECTIONS)
-                    .hasSize(12);
+                    .hasSize(15);
         }
 
         @Test
@@ -142,9 +145,9 @@ class PlanTemplatesAssemblerTest {
     class HappyPath {
 
         @Test
-        @DisplayName("copies 12 templates to both targets"
-                + " producing 24 files")
-        void assemble_allValid_copies24Files(
+        @DisplayName("copies 15 templates to both targets"
+                + " producing 30 files")
+        void assemble_allValid_copies30Files(
                 @TempDir Path tempDir) throws IOException {
             Path resourcesDir =
                     setupAllTemplates(tempDir);
@@ -163,12 +166,12 @@ class PlanTemplatesAssemblerTest {
                             new TemplateEngine(),
                             outputDir);
 
-            assertThat(result.files()).hasSize(24);
+            assertThat(result.files()).hasSize(30);
             assertThat(result.warnings()).isEmpty();
         }
 
         @Test
-        @DisplayName("all 12 templates exist in"
+        @DisplayName("all 15 templates exist in"
                 + " .claude/templates/")
         void assemble_allValid_existsInClaude(
                 @TempDir Path tempDir) throws IOException {
@@ -193,7 +196,7 @@ class PlanTemplatesAssemblerTest {
         }
 
         @Test
-        @DisplayName("all 12 templates exist in"
+        @DisplayName("all 15 templates exist in"
                 + " .github/templates/")
         void assemble_allValid_existsInGithub(
                 @TempDir Path tempDir) throws IOException {
@@ -397,7 +400,7 @@ class PlanTemplatesAssemblerTest {
                             new TemplateEngine(),
                             outputDir);
 
-            assertThat(result.files()).hasSize(22);
+            assertThat(result.files()).hasSize(28);
             assertThat(result.warnings())
                     .anyMatch(w -> w.contains(
                             "_TEMPLATE-TEST-PLAN.md"))
@@ -442,7 +445,7 @@ class PlanTemplatesAssemblerTest {
                             new TemplateEngine(),
                             outputDir);
 
-            assertThat(result.files()).hasSize(22);
+            assertThat(result.files()).hasSize(28);
 
             assertThat(outputDir.resolve(
                     ".claude/templates/"
@@ -482,7 +485,7 @@ class PlanTemplatesAssemblerTest {
                             new TemplateEngine(),
                             outputDir);
 
-            assertThat(result.files()).hasSize(22);
+            assertThat(result.files()).hasSize(28);
             assertThat(result.warnings())
                     .anyMatch(w -> w.contains(
                             "Template not found"))
@@ -552,7 +555,7 @@ class PlanTemplatesAssemblerTest {
                             outputDir);
 
             assertThat(result).isNotNull();
-            assertThat(result.files()).hasSize(24);
+            assertThat(result.files()).hasSize(30);
             assertThat(result.warnings()).isEmpty();
         }
     }
@@ -562,8 +565,8 @@ class PlanTemplatesAssemblerTest {
     class AssembleFileList {
 
         @Test
-        @DisplayName("assemble returns 24 file paths")
-        void assemble_allValid_returns24Paths(
+        @DisplayName("assemble returns 30 file paths")
+        void assemble_allValid_returns30Paths(
                 @TempDir Path tempDir) throws IOException {
             Path resourcesDir =
                     setupAllTemplates(tempDir);
@@ -578,7 +581,7 @@ class PlanTemplatesAssemblerTest {
                     new TemplateEngine(),
                     outputDir);
 
-            assertThat(files).hasSize(24);
+            assertThat(files).hasSize(30);
         }
 
         @Test
@@ -607,7 +610,7 @@ class PlanTemplatesAssemblerTest {
     // -- Helpers ------------------------------------------------
 
     /**
-     * Creates all 12 templates with valid mandatory
+     * Creates all 15 templates with valid mandatory
      * sections in {tempDir}/res/shared/templates/.
      */
     private static Path setupAllTemplates(Path tempDir)
@@ -796,6 +799,53 @@ class PlanTemplatesAssemblerTest {
                                 "Coverage Delta",
                                 "Blockers Encountered",
                                 "Next Phase Readiness"),
+                        false));
+
+        writeTemplate(templateDir,
+                "_TEMPLATE-TASK-PLAN.md",
+                buildContent(
+                        "Task Plan",
+                        List.of("Header",
+                                "Objective",
+                                "Implementation Guide",
+                                "Definition of Done",
+                                "Dependencies",
+                                "Estimated Effort",
+                                "Risks"),
+                        false));
+
+        writeTemplate(templateDir,
+                "_TEMPLATE-STORY-PLANNING-REPORT.md",
+                buildContent(
+                        "Story Planning Report",
+                        List.of("Header",
+                                "Planning Summary",
+                                "Architecture Assessment",
+                                "Test Strategy Summary",
+                                "Security Assessment"
+                                        + " Summary",
+                                "Implementation Approach",
+                                "Task Breakdown Summary",
+                                "Consolidated Risk"
+                                        + " Matrix",
+                                "DoR Status"),
+                        false));
+
+        writeTemplate(templateDir,
+                "_TEMPLATE-DOR-CHECKLIST.md",
+                buildContent(
+                        "DoR Checklist",
+                        List.of("Header",
+                                "Architecture Readiness",
+                                "Test Readiness",
+                                "Security Readiness",
+                                "Implementation"
+                                        + " Readiness",
+                                "Task Decomposition"
+                                        + " Readiness",
+                                "Blockers and Open"
+                                        + " Questions",
+                                "Final Verdict"),
                         false));
 
         return resourcesDir;
