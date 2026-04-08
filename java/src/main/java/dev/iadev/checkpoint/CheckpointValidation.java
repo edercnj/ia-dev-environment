@@ -80,6 +80,49 @@ public final class CheckpointValidation {
                                 .formatted(storyId)
                 );
             }
+            validateTasks(storyId, storyEntry.tasks(), errors);
+        }
+    }
+
+    private static void validateTasks(
+            String storyId,
+            java.util.Map<String, TaskEntry> tasks,
+            List<String> errors) {
+        if (tasks == null) {
+            return;
+        }
+        for (var entry : tasks.entrySet()) {
+            var taskId = entry.getKey();
+            var taskEntry = entry.getValue();
+            validateSingleTask(
+                    storyId, taskId, taskEntry, errors);
+        }
+    }
+
+    private static void validateSingleTask(
+            String storyId,
+            String taskId,
+            TaskEntry taskEntry,
+            List<String> errors) {
+        if (taskEntry.status() == null) {
+            errors.add(
+                    "story '%s', task '%s': status is required"
+                            .formatted(storyId, taskId)
+            );
+        }
+        if (taskEntry.taskId() == null
+                || taskEntry.taskId().isBlank()) {
+            errors.add(
+                    "story '%s', task '%s': taskId is required"
+                            .formatted(storyId, taskId)
+            );
+        } else if (!TaskEntry.isValidTaskId(
+                taskEntry.taskId())) {
+            errors.add(
+                    "story '%s', task '%s': invalid taskId format, "
+                            + "expected TASK-XXXX-YYYY-NNN"
+                            .formatted(storyId, taskId)
+            );
         }
     }
 }
