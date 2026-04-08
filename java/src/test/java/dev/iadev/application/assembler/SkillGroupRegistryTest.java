@@ -95,10 +95,10 @@ class SkillGroupRegistryTest {
         }
 
         @Test
-        @DisplayName("git-troubleshooting has 7 skills")
+        @DisplayName("git-troubleshooting has 8 skills")
         void register_whenCalled_gitTroubleshootingGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("git-troubleshooting")).hasSize(7);
+                    .get("git-troubleshooting")).hasSize(8);
         }
 
         @Test
