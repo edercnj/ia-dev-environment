@@ -4,6 +4,7 @@ description: "Generates a comprehensive architecture plan with component diagram
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[STORY-ID or feature-name]"
+context-budget: medium
 ---
 
 ## Global Output Policy

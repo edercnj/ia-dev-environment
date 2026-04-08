@@ -4,6 +4,7 @@ description: "Tech Lead holistic review with 45-point checklist covering Clean C
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[PR-number or STORY-ID]"
+context-budget: medium
 ---
 
 ## Global Output Policy

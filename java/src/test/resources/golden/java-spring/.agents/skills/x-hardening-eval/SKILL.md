@@ -4,6 +4,7 @@ description: "Evaluates application hardening posture against CIS and OWASP benc
 user-invocable: true
 allowed-tools: Read, Write, Bash, Grep, Glob, Agent
 argument-hint: "--target <url> [--scope all|headers|tls|cors|cookies|errors|limits|disclosure] [--benchmark cis|owasp] [--level L1|L2|L3]"
+context-budget: medium
 ---
 
 ## Global Output Policy

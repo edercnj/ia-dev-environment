@@ -4,6 +4,7 @@ description: "Reviews API gateway configuration for routing rules, authenticatio
 user-invocable: true
 allowed-tools: Read, Grep, Glob, Bash
 argument-hint: "[gateway config files or PR]"
+context-budget: light
 ---
 
 ## Global Output Policy

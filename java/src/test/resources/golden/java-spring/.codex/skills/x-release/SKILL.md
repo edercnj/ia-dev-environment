@@ -4,6 +4,7 @@ description: "Orchestrates complete release flow using Git Flow release branches
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent
 argument-hint: "[major|minor|patch|version] [--dry-run] [--skip-tests] [--no-publish] [--hotfix]"
+context-budget: medium
 ---
 
 ## Global Output Policy

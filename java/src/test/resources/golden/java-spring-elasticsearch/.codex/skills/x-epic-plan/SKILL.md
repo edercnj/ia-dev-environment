@@ -4,6 +4,7 @@ description: "Orchestrates multi-agent planning for all stories in an epic, resp
 user-invocable: true
 allowed-tools: "Read, Write, Edit, Bash, Grep, Glob, Agent, AskUserQuestion"
 argument-hint: "[EPIC-ID] [--resume] [--story story-XXXX-YYYY]"
+context-budget: heavy
 ---
 
 ## Global Output Policy

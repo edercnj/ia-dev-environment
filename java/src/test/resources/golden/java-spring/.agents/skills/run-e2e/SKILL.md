@@ -4,6 +4,7 @@ description: "Runs integration tests that validate the complete flow from reques
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[scenario: happy-path|error|timeout|persistent|all]"
+context-budget: light
 ---
 
 ## Global Output Policy
