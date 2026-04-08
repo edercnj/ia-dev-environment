@@ -10,6 +10,14 @@ import java.util.Map;
  * All fields are immutable; use the {@code with*} methods or
  * {@link CheckpointEngine} to create updated copies.</p>
  *
+ * <p>The {@code version} field supports schema evolution:
+ * <ul>
+ *   <li>{@code "1.0"} — original schema (no per-task tracking)</li>
+ *   <li>{@code "2.0"} — adds per-task tracking in StoryEntry</li>
+ * </ul>
+ * Backward compatibility: missing version defaults to "1.0".</p>
+ *
+ * @param version        schema version (default "1.0")
  * @param epicId         epic identifier (e.g., "EPIC-0006")
  * @param branch         Git branch for execution
  * @param startedAt      timestamp of execution start
@@ -20,6 +28,7 @@ import java.util.Map;
  * @param metrics        aggregate execution metrics
  */
 public record ExecutionState(
+        String version,
         String epicId,
         String branch,
         Instant startedAt,
@@ -30,6 +39,39 @@ public record ExecutionState(
         ExecutionMetrics metrics
 ) {
 
+    /** Schema version for original format (no task tracking). */
+    public static final String VERSION_1_0 = "1.0";
+
+    /** Schema version with per-task tracking support. */
+    public static final String VERSION_2_0 = "2.0";
+
+    /**
+     * Compact constructor that defaults version to "1.0" if null.
+     */
+    public ExecutionState {
+        version = version != null ? version : VERSION_1_0;
+    }
+
+    /**
+     * Backward-compatible constructor without version parameter.
+     *
+     * <p>Defaults version to "1.0" for existing code that does not
+     * specify a schema version.</p>
+     */
+    public ExecutionState(
+            String epicId,
+            String branch,
+            Instant startedAt,
+            int currentPhase,
+            ExecutionMode mode,
+            Map<String, StoryEntry> stories,
+            Map<String, IntegrityGateEntry> integrityGates,
+            ExecutionMetrics metrics) {
+        this(VERSION_1_0, epicId, branch, startedAt,
+                currentPhase, mode, stories,
+                integrityGates, metrics);
+    }
+
     /**
      * Returns a copy with the given story updated.
      *
@@ -39,11 +81,14 @@ public record ExecutionState(
      */
     public ExecutionState withStory(
             String storyId, StoryEntry entry) {
-        var updatedStories = new java.util.LinkedHashMap<>(stories);
+        var updatedStories =
+                new java.util.LinkedHashMap<>(stories);
         updatedStories.put(storyId, entry);
         return new ExecutionState(
-                epicId, branch, startedAt, currentPhase, mode,
-                Map.copyOf(updatedStories), integrityGates, metrics
+                version, epicId, branch, startedAt,
+                currentPhase, mode,
+                Map.copyOf(updatedStories),
+                integrityGates, metrics
         );
     }
 
@@ -53,10 +98,12 @@ public record ExecutionState(
      * @param newMetrics the recalculated metrics
      * @return a new ExecutionState with updated metrics
      */
-    public ExecutionState withMetrics(ExecutionMetrics newMetrics) {
+    public ExecutionState withMetrics(
+            ExecutionMetrics newMetrics) {
         return new ExecutionState(
-                epicId, branch, startedAt, currentPhase, mode,
-                stories, integrityGates, newMetrics
+                version, epicId, branch, startedAt,
+                currentPhase, mode, stories,
+                integrityGates, newMetrics
         );
     }
 
@@ -69,8 +116,10 @@ public record ExecutionState(
     public ExecutionState withStories(
             Map<String, StoryEntry> newStories) {
         return new ExecutionState(
-                epicId, branch, startedAt, currentPhase, mode,
-                Map.copyOf(newStories), integrityGates, metrics
+                version, epicId, branch, startedAt,
+                currentPhase, mode,
+                Map.copyOf(newStories),
+                integrityGates, metrics
         );
     }
 
@@ -87,8 +136,9 @@ public record ExecutionState(
                 new java.util.LinkedHashMap<>(integrityGates);
         updatedGates.put(gateName, gate);
         return new ExecutionState(
-                epicId, branch, startedAt, currentPhase, mode,
-                stories, Map.copyOf(updatedGates), metrics
+                version, epicId, branch, startedAt,
+                currentPhase, mode, stories,
+                Map.copyOf(updatedGates), metrics
         );
     }
 
@@ -100,8 +150,23 @@ public record ExecutionState(
      */
     public ExecutionState withCurrentPhase(int newPhase) {
         return new ExecutionState(
-                epicId, branch, startedAt, newPhase, mode,
-                stories, integrityGates, metrics
+                version, epicId, branch, startedAt,
+                newPhase, mode, stories,
+                integrityGates, metrics
+        );
+    }
+
+    /**
+     * Returns a copy with an updated version.
+     *
+     * @param newVersion the new schema version
+     * @return a new ExecutionState with updated version
+     */
+    public ExecutionState withVersion(String newVersion) {
+        return new ExecutionState(
+                newVersion, epicId, branch, startedAt,
+                currentPhase, mode, stories,
+                integrityGates, metrics
         );
     }
 }
