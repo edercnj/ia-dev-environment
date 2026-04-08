@@ -16,11 +16,17 @@ Provides comprehensive Site Reliability Engineering practices for {{LANGUAGE}} {
 
 ## Quick Reference (always in context)
 
-See `references/error-budget-calculator.md` for SLO targets, burn rate formulas, and budget exhaustion thresholds.
+See `references/error-budget-calculator.md` for SLO targets, burn rate formulas, and budget exhaustion thresholds. See `references/on-call-handbook.md` for on-call rotation, escalation procedures, and page response workflow. See `references/capacity-planning-template.md` for load testing methodology, growth projections, and resource sizing.
 
-See `references/on-call-handbook.md` for on-call rotation, escalation procedures, and page response workflow.
+## Detailed References
 
-See `references/capacity-planning-template.md` for load testing methodology, growth projections, and resource sizing.
+Read these files for comprehensive SRE guidance:
+
+| Reference | Content |
+|-----------|---------|
+| `references/error-budget-calculator.md` | SLO targets, burn rate formulas, budget exhaustion thresholds, and allocation strategies |
+| `references/on-call-handbook.md` | On-call rotation patterns, escalation procedures, page response workflow, and fatigue management |
+| `references/capacity-planning-template.md` | Load testing methodology, growth projections, resource sizing, and headroom targets |
 
 ## Error Budgets
 
@@ -247,3 +253,9 @@ Automatic rollback triggers:
 - **Deploy frequency**: Deployments per day (target: multiple per day)
 - **Change failure rate**: Percentage of deploys causing incidents (target: < 5%)
 - **MTTR**: Mean time to recover from failures (target: < 1 hour)
+
+## Related Knowledge Packs
+
+- `skills/observability/` — SLO/SLI framework, burn rate alerts, and alerting strategy
+- `skills/resilience/` — circuit breaker, rate limiting, and chaos engineering patterns
+- `skills/disaster-recovery/` — DR strategies, failover automation, and recovery procedures

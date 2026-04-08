@@ -1,6 +1,7 @@
 ---
 name: compliance
 description: "Compliance frameworks (conditionally included): GDPR, HIPAA, LGPD, PCI-DSS, SOX. Data classification, rights enforcement, processing records, international transfers, security measures, audit logging, and framework-specific requirements."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
@@ -30,3 +31,9 @@ Read these files for framework-specific compliance patterns:
 | `security/compliance/sox.md` | Financial data integrity controls, audit trail immutability, change management (segregation of duties), access controls (least privilege), system monitoring, compliance reporting and reconciliation, disaster recovery and business continuity |
 | `security/application-security.md` | OWASP Top 10 implementation (A01-A10), security headers, input validation framework, dependency security, CVE response policy, penetration testing readiness |
 | `security/cryptography.md` | Encryption in transit (TLS 1.3), encryption at rest (AES-256-GCM), hashing algorithms (argon2id for passwords, SHA-256 for integrity), key management (KMS, rotation), digital signatures, tokenization patterns |
+
+## Related Knowledge Packs
+
+- `skills/security/` — OWASP Top 10, security headers, cryptography, and pentest readiness
+- `skills/data-management/` — data governance, PII handling, and retention policies
+- `skills/observability/` — audit logging and correlation ID propagation for compliance trails

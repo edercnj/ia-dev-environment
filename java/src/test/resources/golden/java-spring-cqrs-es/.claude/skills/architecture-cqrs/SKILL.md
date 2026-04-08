@@ -1,6 +1,7 @@
 ---
 name: architecture-cqrs
-description: "CQRS/Event Sourcing knowledge pack: write/read model separation, command bus, event store interface, aggregate with event sourcing, projections and rebuild, snapshot policy, dead letter and error handling. All code examples are compilable {{LANGUAGE_NAME}} {{LANGUAGE_VERSION}}."
+description: "CQRS/Event Sourcing patterns: write/read model separation, command bus, event store, aggregate with event sourcing, projections, snapshot policy, and dead letter handling."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
@@ -11,11 +12,7 @@ allowed-tools:
 
 ## Purpose
 
-Provides comprehensive CQRS/Event Sourcing reference for projects using `architecture.style=cqrs`. Contains 7 specialized sections covering the complete CQRS/ES lifecycle with compilable code examples.
-
-## Condition
-
-This knowledge pack is included when `architecture.style` is `cqrs`. It complements the core architecture knowledge pack with CQRS-specific patterns.
+Provides comprehensive CQRS/Event Sourcing reference for projects using `architecture.style=cqrs`. Contains 7 specialized sections covering the complete CQRS/ES lifecycle with compilable code examples. Included when `architecture.style` is `cqrs`; complements the core architecture knowledge pack.
 
 ---
 
@@ -609,9 +606,11 @@ public abstract class IdempotentProjection
 
 ---
 
-## Cross-Reference
+## Related Knowledge Packs
 
-- Core architecture: `skills/architecture/SKILL.md`
-- Architecture patterns: `skills/architecture-patterns/SKILL.md` (CQRS and event sourcing references)
-- Resilience patterns: `skills/resilience/SKILL.md` (circuit breaker, retry, dead letter)
-- Testing: `skills/testing/SKILL.md` (aggregate and projection test patterns)
+| Pack | Relationship |
+|------|-------------|
+| `architecture` | Core architecture principles |
+| `architecture-patterns` | CQRS and event sourcing pattern references |
+| `resilience` | Circuit breaker, retry, dead letter patterns |
+| `testing` | Aggregate and projection test patterns |

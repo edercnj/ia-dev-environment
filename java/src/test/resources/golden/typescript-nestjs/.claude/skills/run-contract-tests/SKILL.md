@@ -1,24 +1,40 @@
 ---
 name: run-contract-tests
-description: "Skill: Contract Tests — Runs consumer-driven contract tests (Pact, Spring Cloud Contract) to verify API compatibility between services."
+description: "Runs consumer-driven contract tests (Pact, Spring Cloud Contract) to verify API compatibility between services."
+user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[--provider | --consumer | --all]"
 ---
 
 ## Global Output Policy
 
-- **Language**: English ONLY. (Ignore input language, always respond in English).
+- **Language**: English ONLY.
 - **Tone**: Technical, Direct, and Concise.
 - **Efficiency**: Remove all conversational fillers and greetings to save tokens.
-- **Preservation**: All existing technical constraints below must be followed strictly.
 
 # Skill: Contract Tests
 
-## Description
+## Purpose
 
-Runs consumer-driven contract tests to verify API compatibility between services. Supports both consumer-side (pact generation) and provider-side (pact verification) workflows using Pact or Spring Cloud Contract.
+Run consumer-driven contract tests to verify API compatibility between services. Support both consumer-side (pact generation) and provider-side (pact verification) workflows using Pact or Spring Cloud Contract.
 
-**Condition**: This skill applies when `testing.contract_tests == true`.
+## Activation Condition
+
+Include this skill when `testing.contract_tests == true` in the project configuration.
+
+## Triggers
+
+- `/run-contract-tests --consumer` -- generate pact files from consumer tests
+- `/run-contract-tests --provider` -- verify provider against published pacts
+- `/run-contract-tests --all` -- run both consumer generation and provider verification
+
+## Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `--consumer` | Flag | No | false | Generate pact files from consumer tests |
+| `--provider` | Flag | No | false | Verify provider against published pacts |
+| `--all` | Flag | No | false | Run both consumer generation and provider verification |
 
 ## Prerequisites
 
@@ -30,38 +46,30 @@ Runs consumer-driven contract tests to verify API compatibility between services
 - Consumer and/or provider test files exist
 - Build tool configured for contract test execution
 
-## Arguments
+## Workflow
 
-| Argument     | Description                                          |
-| ------------ | ---------------------------------------------------- |
-| `--consumer` | Generate pact files from consumer tests              |
-| `--provider` | Verify provider against published pacts              |
-| `--all`      | Run both consumer generation and provider verification |
-| (none)       | Shows usage/help                                     |
+### Step 1 — Verify Framework
 
-## Execution Flow
+Check contract testing framework installed:
+- Scan build file for Pact/Spring Cloud Contract dependencies
+- Verify framework version compatibility
 
-1. **Verify framework** — Check contract testing framework installed:
-   - Scan build file for Pact/Spring Cloud Contract dependencies
-   - Verify framework version compatibility
+### Step 2 — Determine Mode
 
-2. **Determine mode** — Based on argument:
-   - `--consumer`: generate pact files
-   - `--provider`: verify against pacts
-   - `--all`: both in sequence
+Based on argument:
+- `--consumer`: generate pact files
+- `--provider`: verify against pacts
+- `--all`: both in sequence
+- (none): show usage/help
 
-3. **Run tests** — Execute appropriate test suite
-
-4. **Report results** — Generate structured output
-
-## Consumer Side
+### Step 3 — Run Consumer Tests
 
 1. Discover consumer test files (scan for `@PactTest`, `Pact`, `pact.describe`)
 2. Run consumer tests: generate pact files (JSON contracts)
 3. Verify pact files generated in `target/pacts/` or `pacts/` directory
 4. Validate pact content: interactions defined, request/response match expectations
 
-## Provider Side
+### Step 4 — Run Provider Verification
 
 1. Discover provider verification configuration
 2. Start provider application (or use test server)
@@ -69,12 +77,25 @@ Runs consumer-driven contract tests to verify API compatibility between services
 4. Report: which interactions passed/failed
 5. Publish verification results (if pact broker configured)
 
-## Usage Examples
+### Step 5 — Report Results
+
+Generate structured output:
 
 ```
-/run-contract-tests --consumer     # Generate pact files
-/run-contract-tests --provider     # Verify against pacts
-/run-contract-tests --all          # Both consumer + provider
+## Contract Test Results — [Mode: Consumer/Provider]
+
+### Summary
+- Interactions tested: [N]
+- Passed: [N]
+- Failed: [N]
+
+### Failed Interactions
+1. [Consumer -> Provider: interaction description, expected vs actual]
+
+### Checklist Results
+[Items that passed / failed / not applicable]
+
+### Verdict: PASS / FAIL
 ```
 
 ## Contract Checklist (10 points)
@@ -90,37 +111,17 @@ Runs consumer-driven contract tests to verify API compatibility between services
 9. Consumer version tagged (branch, commit SHA)
 10. Can-I-Deploy check integrated in CI (if using Pact Broker)
 
-## Review Checklist
+## Error Handling
 
-- [ ] Contract testing framework configured
-- [ ] Consumer tests generate valid pact files
-- [ ] Provider verification passes all interactions
-- [ ] Pact files published to broker or committed
-- [ ] No sensitive data in pact files
-- [ ] Happy path and error responses covered
-- [ ] Can-I-Deploy integrated in CI pipeline
-- [ ] Breaking changes detected pre-deployment
-
-## Output Format
-
-```
-## Contract Test Results — [Mode: Consumer/Provider]
-
-### Summary
-- Interactions tested: [N]
-- Passed: [N]
-- Failed: [N]
-
-### Failed Interactions
-1. [Consumer → Provider: interaction description, expected vs actual]
-
-### Checklist Results
-[Items that passed / failed / not applicable]
-
-### Verdict: PASS / FAIL
-```
+| Scenario | Action |
+|----------|--------|
+| Contract framework not installed | Report missing dependency with install instructions for the detected language |
+| Consumer-provider interaction fails | Report failed interactions with expected vs actual details |
+| Pact broker unreachable | Warn and continue with local pact files |
+| Sensitive data detected in pact files | FAIL with file location and remediation guidance |
 
 ## Rules
+
 - FAIL if any consumer-provider interaction verification fails
 - FAIL if pact files contain sensitive data
 - Warn if pact broker not configured (local-only contracts are fragile)

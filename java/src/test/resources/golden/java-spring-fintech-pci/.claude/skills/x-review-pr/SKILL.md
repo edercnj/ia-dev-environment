@@ -1,6 +1,7 @@
 ---
 name: x-review-pr
 description: "Tech Lead holistic review with 64-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, TDD process, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge."
+user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[PR-number or STORY-ID]"
 ---
@@ -13,15 +14,15 @@ argument-hint: "[PR-number or STORY-ID]"
 
 # Skill: Review PR (Tech Lead Review)
 
-## Description
+## Purpose
 
-Senior-level holistic review with a 64-point rubric. This is the standalone version of Phase 6 from the x-dev-lifecycle. The Tech Lead reviews the consolidated PR diff for cross-file consistency and overall quality.
+Execute a senior-level holistic review with a 64-point rubric. This is the standalone version of Phase 6 from x-dev-lifecycle. The Tech Lead reviews the consolidated PR diff for cross-file consistency and overall quality.
 
 ## Triggers
 
-- `/x-review-pr` -- review current branch against main
-- `/x-review-pr NNN` -- review PR #NNN
-- `/x-review-pr STORY-ID` -- review by story ID
+- `/x-review-pr` — review current branch against main
+- `/x-review-pr NNN` — review PR #NNN
+- `/x-review-pr STORY-ID` — review by story ID
 
 ## Prerequisites
 
@@ -29,7 +30,7 @@ Senior-level holistic review with a 64-point rubric. This is the standalone vers
 - Branch should have changes relative to main
 - Ideally, specialist reviews (`/x-review`) have already been run
 
-## Execution Flow
+## Workflow
 
 ```
 0. PRE-CHECK   -> Idempotency: skip if report exists and code unchanged (inline)
@@ -43,7 +44,7 @@ Senior-level holistic review with a 64-point rubric. This is the standalone vers
 8. NO-GO       -> Handle NO-GO decision (inline)
 ```
 
-## Phase 0: Idempotency Pre-Check (RULE-002)
+### Step 0 — Idempotency Pre-Check (RULE-002 — Artifact reuse)
 
 Before executing the Tech Lead review, check if a report already exists and is still valid.
 
@@ -63,9 +64,15 @@ Before executing the Tech Lead review, check if a report already exists and is s
    - If code changed after report: proceed with full review
 5. If no report exists, proceed normally
 
-## Workflow
+**Idempotency Summary:**
 
-### Step 1 -- Detect Context
+| Aspect | Behavior |
+|--------|----------|
+| **Check** | Compare `mtime(report)` vs `mtime(latest commit)` |
+| **Skip** | Reuse existing report when `mtime(report) >= commit_date` |
+| **Override** | Proceed with full review when code changed after report |
+
+### Step 1 — Detect Context
 
 Determine what to review and set `[BASE_BRANCH]`:
 
@@ -79,7 +86,7 @@ git diff [BASE_BRANCH] --stat
 git diff [BASE_BRANCH] --name-only
 ```
 
-### Step 2 -- Gather Context
+### Step 2 — Gather Context
 
 Read knowledge packs to calibrate the review:
 - `skills/coding-standards/references/coding-conventions.md` — {{LANGUAGE}} naming, injection, mapper conventions
@@ -93,7 +100,7 @@ Check for existing artifacts (extract epic ID XXXX and story sequence YYYY from 
 - Test plan (`plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md`)
 - Common mistakes document
 
-### Step 3 -- Template Detection
+### Step 3 — Template Detection
 
 Before executing the review, check if the Tech Lead review template exists:
 
@@ -101,12 +108,12 @@ Before executing the review, check if the Tech Lead review template exists:
 test -f .claude/templates/_TEMPLATE-TECH-LEAD-REVIEW.md && echo "TL_TEMPLATE_AVAILABLE" || echo "TL_TEMPLATE_MISSING"
 ```
 
-- If `TL_TEMPLATE_AVAILABLE`: Read template at `.claude/templates/_TEMPLATE-TECH-LEAD-REVIEW.md` for required output format. Follow ALL sections defined in the template. The report MUST include a standardized header with Story ID, Date, Author (Tech Lead), and Template Version (RULE-011). Score MUST be in format `XX/64` with status `GO`/`NO-GO` (RULE-005).
-- If `TL_TEMPLATE_MISSING`: log warning `Template not found, using inline format` and use the inline format as fallback (RULE-012). Dashboard and remediation updates are skipped when template is absent.
+- If `TL_TEMPLATE_AVAILABLE`: Read template at `.claude/templates/_TEMPLATE-TECH-LEAD-REVIEW.md` for required output format. Follow ALL sections defined in the template. The report MUST include a standardized header with Story ID, Date, Author (Tech Lead), and Template Version (RULE-011 — Standardized artifact headers). Score MUST be in format `XX/64` with status `GO`/`NO-GO` (RULE-005 — Quality gates).
+- If `TL_TEMPLATE_MISSING`: log warning `Template not found, using inline format` and use the inline format as fallback (RULE-012 — Graceful template fallback). Dashboard and remediation updates are skipped when template is absent.
 
-> **Fallback (RULE-012):** When template is not available (pre-EPIC-0024 projects), the current inline format is used as fallback. Skip dashboard and remediation updates since they depend on template-based artifacts.
+> **Fallback (RULE-012 — Graceful template fallback):** When template is not available (pre-EPIC-0024 projects), the current inline format is used as fallback. Skip dashboard and remediation updates since they depend on template-based artifacts.
 
-### Step 4 -- Execute Tech Lead Review
+### Step 4 — Execute Tech Lead Review
 
 The Tech Lead review covers:
 
@@ -143,7 +150,7 @@ The Tech Lead review covers:
 | >= 54/64 + zero issues | GO              |
 | < 54/64 OR any issue   | NO-GO           |
 
-### Step 5 -- Update Consolidated Dashboard
+### Step 5 — Update Consolidated Dashboard
 
 After saving the Tech Lead report, update the consolidated dashboard (RULE-006).
 
@@ -171,7 +178,7 @@ The dashboard is **cumulative** (RULE-006): created by `/x-review` (specialist s
    - If template available: read template and create `plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md` with only the Tech Lead Score populated (specialist scores marked as `--` / `Pending`)
    - If template missing: skip dashboard creation with warning
 
-### Step 6 -- Update Remediation Tracking
+### Step 6 — Update Remediation Tracking
 
 After updating the dashboard, update the remediation tracking file.
 
@@ -197,11 +204,11 @@ After updating the dashboard, update the remediation tracking file.
    - If template available: read template and create `plans/epic-XXXX/reviews/remediation-story-XXXX-YYYY.md` with only findings from the Tech Lead review (all as `Open`)
    - If template missing: skip remediation creation with warning
 
-### Step 7 -- Process Result
+### Step 7 — Process Result
 
 ```
 ============================================================
- TECH LEAD REVIEW -- [STORY_ID]
+ TECH LEAD REVIEW — [STORY_ID]
 ============================================================
  Decision:  GO | NO-GO
  Score:     XX/64 (GO >= 54)
@@ -215,20 +222,30 @@ After updating the dashboard, update the remediation tracking file.
 ============================================================
 ```
 
-### Step 8 -- Handle NO-GO
+### Step 8 — Handle NO-GO
 
 If NO-GO, offer options:
 1. Fix critical issues now
 2. View the full report
-3. Skip -- handle manually
+3. Skip — handle manually
 
 If fixing: apply corrections, commit, re-run review (max 2 cycles).
 
 ## Output Artifacts
 
-- `plans/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md` -- Tech Lead review report
-- `plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md` -- Updated consolidated dashboard
-- `plans/epic-XXXX/reviews/remediation-story-XXXX-YYYY.md` -- Updated remediation tracking
+- `plans/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md` — Tech Lead review report
+- `plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md` — Updated consolidated dashboard
+- `plans/epic-XXXX/reviews/remediation-story-XXXX-YYYY.md` — Updated remediation tracking
+
+## Error Handling
+
+| Scenario | Action |
+|----------|--------|
+| No diff exists between branches | Abort with message: "No changes detected between current branch and base. Nothing to review." |
+| Template `_TEMPLATE-TECH-LEAD-REVIEW.md` missing | Log warning, use inline format as fallback (RULE-012 — Graceful template fallback). Skip dashboard and remediation updates. |
+| Specialist review reports not found | Proceed with Tech Lead review only; note absence in report |
+| Compilation or build failure | Record failure in report, deduct points from Framework & Infra section |
+| NO-GO after 2 retry cycles | Halt review loop; output final report with remaining issues |
 
 
 ### Section L -- Event-Driven Review (8 criteria)
@@ -261,11 +278,13 @@ If fixing: apply corrections, commit, re-run review (max 2 cycles).
 
 ## Integration Notes
 
-- This skill produces the SAME artifact as Phase 6 of `x-dev-lifecycle`
-- Recommended workflow: `/x-review` first (breadth), then `/x-review-pr` (depth)
-- `/x-review` = specialist engineers (7 agents, parallel) -- breadth
-- `/x-review-pr` = Tech Lead (1 agent, holistic) -- depth
-- Dashboard (Step 5) is **cumulative** -- created by `/x-review`, updated by `/x-review-pr` (RULE-006)
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| x-dev-lifecycle | called-by | Produces the same artifact as Phase 6 |
+| x-review | reads | Reads specialist review reports for cross-validation |
+| x-review | complements | `/x-review` = breadth (7 specialists), `/x-review-pr` = depth (1 Tech Lead) |
+
+- Dashboard (Step 5) is **cumulative** — created by `/x-review`, updated by `/x-review-pr` (RULE-006)
 - Remediation tracking (Step 6) enables FIXED status tracking after Tech Lead review
-- Templates in `.claude/templates/` are copied verbatim by `PlanTemplatesAssembler` -- not rendered by the engine
-- Fallback (RULE-012): When templates are absent (pre-EPIC-0024 projects), inline format is used and dashboard/remediation updates are skipped
+- Templates in `.claude/templates/` are copied verbatim by `PlanTemplatesAssembler` — not rendered by the engine
+- Fallback (RULE-012 — Graceful template fallback): When templates are absent (pre-EPIC-0024 projects), inline format is used and dashboard/remediation updates are skipped

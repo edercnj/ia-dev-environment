@@ -1,17 +1,22 @@
 ---
 name: k8s-deployment
-description: "Kubernetes deployment patterns reference covering workload types, pod specifications, resource sizing, probes, autoscaling, network policies, and security contexts. Internal reference for agents managing infrastructure."
+description: "Kubernetes deployment patterns: workload types, pod specifications, resource sizing, probes, autoscaling, network policies, and security contexts."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
   - Glob
 ---
 
-# Knowledge Pack: Kubernetes Deployment Patterns
+# Pattern: Kubernetes Deployment Patterns
 
 ## Purpose
 
-Provide production-grade Kubernetes deployment patterns, resource sizing guidelines, and security configurations for agents generating or reviewing Kubernetes manifests across multiple languages and workload types.
+Provides production-grade Kubernetes deployment patterns, resource sizing guidelines, and security configurations for agents generating or reviewing Kubernetes manifests across multiple languages and workload types.
+
+## Supplements
+
+Supplements `infrastructure` knowledge pack with Kubernetes deployment-specific patterns.
 
 ---
 

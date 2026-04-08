@@ -1,17 +1,22 @@
 ---
 name: k8s-kustomize
-description: "Kustomize patterns for environment management covering directory structure, patches, components, secret management, generators, and patch types. Internal reference for agents managing infrastructure."
+description: "Kustomize patterns: directory structure, patches, components, secret management, generators, and patch types for environment management."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
   - Glob
 ---
 
-# Knowledge Pack: Kustomize Patterns
+# Pattern: Kustomize Patterns
 
 ## Purpose
 
-Provide production-grade Kustomize patterns for managing Kubernetes manifests across multiple environments, enabling consistent configuration management without template engines.
+Provides production-grade Kustomize patterns for managing Kubernetes manifests across multiple environments, enabling consistent configuration management without template engines.
+
+## Supplements
+
+Supplements `infrastructure` knowledge pack with Kustomize-specific patterns.
 
 ---
 

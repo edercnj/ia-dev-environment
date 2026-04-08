@@ -1,6 +1,7 @@
 ---
 name: api-design
 description: "API design principles: {{LANGUAGE}}-specific patterns for REST/gRPC/GraphQL. URL structure, status codes, RFC 7807 errors, pagination, content negotiation, validation, request/response shaping, versioning strategies, and protocol conventions."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
@@ -129,3 +130,9 @@ Pattern: `Accept: application/vnd.api+json;version=2`
 | Internal / Microservices | Header versioning (`Accept-Version`) |
 | Prototyping / Internal tools | Query parameter (`?version=`) |
 | API-first / Strict REST | Content negotiation (`application/vnd.`) |
+
+## Related Knowledge Packs
+
+- `skills/protocols/` — protocol-specific conventions (REST, gRPC, GraphQL, WebSocket, event-driven)
+- `skills/security/` — API security headers, input validation, and authentication
+- `skills/coding-standards/` — naming conventions and code patterns for API handlers

@@ -1,8 +1,8 @@
 ---
 name: x-lib-audit-rules
 description: "Audits compliance of all project rules AND knowledge packs against source code. Launches parallel subagents (one per rule/knowledge-pack) for scanning, then aggregates into a unified report with severity classification and story suggestions."
+user-invocable: false
 allowed-tools: Read, Bash, Grep, Glob, Write
-argument-hint: "[--scope all|rules|patterns] [--rules 01,02,03] [--fix]"
 ---
 
 ## Global Output Policy
@@ -11,20 +11,28 @@ argument-hint: "[--scope all|rules|patterns] [--rules 01,02,03] [--fix]"
 - **Tone**: Technical, Direct, and Concise.
 - **Efficiency**: Remove all conversational fillers and greetings to save tokens.
 
-# Skill: Audit Rules & Patterns (Codebase Compliance Review)
+# Skill: Audit Rules (Library)
 
-## Input
+## Purpose
 
-**Arguments:** `$ARGUMENTS`
+Audit compliance of all project rules AND knowledge packs against source code. Launch parallel subagents (one per rule/knowledge-pack) for scanning, then aggregate into a unified report with severity classification and story suggestions.
 
-- `--scope all` (default): Review rules + knowledge packs
-- `--scope rules`: Review rules only
-- `--scope patterns`: Review knowledge packs only
-- `--rules all` (default when scope includes rules): Review all rules
-- `--rules 01,02,03`: Review specific rules only
-- `--fix`: After report, prompt user to create stories
+## When Called
 
-## Execution Flow (Orchestrator Pattern)
+| Caller Skill | Context |
+|-------------|---------|
+| x-codebase-audit | Full codebase compliance review |
+| (standalone) | Independent audit of rules and patterns |
+
+## Inputs
+
+| Input | Type | Default | Description |
+|-------|------|---------|-------------|
+| `--scope` | `all\|rules\|patterns` | `all` | Review rules + knowledge packs, rules only, or patterns only |
+| `--rules` | `all\|comma-separated` | `all` | Review all rules or specific rules only (e.g., `01,02,03`) |
+| `--fix` | boolean | `false` | After report, prompt user to create stories |
+
+## Procedure
 
 ```
 1. DISCOVER   -> List rules + knowledge packs (inline, lightweight)
@@ -32,9 +40,9 @@ argument-hint: "[--scope all|rules|patterns] [--rules 01,02,03] [--fix]"
 3. AGGREGATE  -> Collect results, deduplicate, generate report + stories (inline)
 ```
 
-## Phase 1: Discovery (Orchestrator — Inline)
+### Step 1 — Discovery (Orchestrator — Inline)
 
-### 1a. Discover Rules
+#### 1.1 — Discover Rules
 
 ```bash
 ls -1 .claude/rules/*.md
@@ -42,7 +50,7 @@ ls -1 .claude/rules/*.md
 
 Filter by `--rules` argument if provided. Parse each filename to extract rule number and name.
 
-### 1b. Discover Knowledge Packs
+#### 1.2 — Discover Knowledge Packs
 
 ```bash
 find .claude/skills/*/references -name "*.md" 2>/dev/null | sort
@@ -50,7 +58,7 @@ find .claude/skills/*/references -name "*.md" 2>/dev/null | sort
 
 Group by knowledge pack (parent directory). Skip packs with no reference files.
 
-### 1c. Build Scan Plan
+#### 1.3 — Build Scan Plan
 
 ```
 Scan Plan:
@@ -62,13 +70,13 @@ Scan Plan:
   Total subagents to launch: N
 ```
 
-## Phase 2: Parallel Scanning (Subagents via Task Tool)
+### Step 2 — Parallel Scanning (Subagents via Task Tool)
 
 **CRITICAL: ALL subagents MUST be launched in a SINGLE message for true parallelism.**
 
 Launch one `general-purpose` subagent per rule and one per knowledge pack, all in the same message.
 
-### Subagent: Rule Scanner
+#### 2.1 — Subagent: Rule Scanner
 
 **Launch:** One per rule file discovered in Phase 1a.
 **Type:** `general-purpose`
@@ -109,7 +117,7 @@ Launch one `general-purpose` subagent per rule and one per knowledge pack, all i
 > ```
 > If no violations, output STATUS: PASS and VIOLATIONS: 0.
 
-### Subagent: Knowledge Pack Scanner
+#### 2.2 — Subagent: Knowledge Pack Scanner
 
 **Launch:** One per knowledge pack with reference files, discovered in Phase 1b.
 **Type:** `general-purpose`
@@ -156,15 +164,15 @@ Launch one `general-purpose` subagent per rule and one per knowledge pack, all i
 > ```
 > If no violations, output STATUS: PASS and VIOLATIONS: 0.
 
-## Phase 3: Aggregation & Report (Orchestrator — Inline)
+### Step 3 — Aggregation and Report (Orchestrator — Inline)
 
-### 3a. Collect & Deduplicate
+#### 3.1 — Collect and Deduplicate
 
 1. Collect all subagent outputs
 2. Deduplicate: if same file:line appears in both rule and KP findings, keep the rule finding only
 3. Count totals per source, per severity
 
-### 3b. Generate Report
+#### 3.2 — Generate Report
 
 ```markdown
 # Codebase Compliance Report
@@ -193,7 +201,7 @@ Launch one `general-purpose` subagent per rule and one per knowledge pack, all i
 (group by source, estimate effort S/M/L)
 ```
 
-### 3c. Story Creation (if `--fix`)
+#### 3.3 — Story Creation (if `--fix`)
 
 When `--fix` and user approves:
 1. One story per source with CRITICAL/HIGH violations
@@ -201,7 +209,7 @@ When `--fix` and user approves:
 3. Max ~15 violations per story
 4. Tag: `[Rule]` or `[Pattern]`
 
-## Anti-Patterns
+### Anti-Patterns
 
 - Do NOT report false positives (read code carefully, understand context)
 - Do NOT flag test code for production rules (magic numbers in fixtures are OK)
@@ -211,9 +219,24 @@ When `--fix` and user approves:
 - Do NOT duplicate findings between rules and knowledge packs
 - Do NOT scan knowledge packs that have no reference files
 
+## Error Handling
+
+| Scenario | Action |
+|----------|--------|
+| No rules files found in `.claude/rules/` | Abort with message: "No rules found. Verify `.claude/rules/` directory." |
+| No knowledge packs with reference files found | Skip KP scanning, proceed with rules only (if scope allows) |
+| Subagent fails or times out | Log warning with failed rule/KP name, continue with remaining subagents |
+| `--fix` with zero CRITICAL/HIGH findings | Skip story creation, report clean results |
+| All subagents fail | Abort with message: "All scan subagents failed. Check system resources." |
+
 ## Integration Notes
 
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| x-codebase-audit | called-by | Invoked as part of full codebase compliance review |
+| x-review | complements | `/x-review` is diff-based; this skill scans the full codebase |
+| x-dev-lifecycle | produces-for | Generated stories can be implemented via lifecycle |
+| x-dev-implement | produces-for | Generated stories can be implemented directly |
+
 - Can be run independently of the feature lifecycle
-- Stories can be implemented via `x-dev-lifecycle` or `x-dev-implement`
-- Complements `/x-review` (diff-based) with full codebase scanning
-- Run `/x-lib-audit-rules --scope patterns` after adding new knowledge packs
+- Run with `--scope patterns` after adding new knowledge packs

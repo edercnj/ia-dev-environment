@@ -18,22 +18,25 @@ user-invocable: true
 
 Automates the complete cycle of addressing PR review comments across an entire epic for {{PROJECT_NAME}}. Instead of processing PRs one by one, this skill discovers all PRs from an epic's `execution-state.json`, fetches all review comments in batch, classifies them, generates a consolidated report, applies fixes, and creates a single correction PR.
 
-## When to Use
-
-- After completing an epic with `/x-dev-epic-implement` and receiving review comments on multiple PRs
-- When an epic has 5+ PRs with accumulated review comments that need batch correction
-- When you want a consolidated view of all review findings across an epic before fixing
-- When you need to fix review comments from automated reviewers (Copilot, CodeRabbit) across multiple PRs
-
 ## Triggers
 
-- `/x-fix-epic-pr-comments 0024` -- fix comments on all PRs from epic 0024
-- `/x-fix-epic-pr-comments 0024 --dry-run` -- generate report only, no fixes
-- `/x-fix-epic-pr-comments 0024 --prs 143,144,145` -- fix comments on specific PRs only
-- `/x-fix-epic-pr-comments 0024 --skip-replies` -- fix without replying to original comments
-- `/x-fix-epic-pr-comments 0024 --include-suggestions` -- also fix suggestion-type comments
+- `/x-fix-epic-pr-comments 0024` — fix comments on all PRs from epic 0024
+- `/x-fix-epic-pr-comments 0024 --dry-run` — generate report only, no fixes
+- `/x-fix-epic-pr-comments 0024 --prs 143,144,145` — fix comments on specific PRs only
+- `/x-fix-epic-pr-comments 0024 --skip-replies` — fix without replying to original comments
+- `/x-fix-epic-pr-comments 0024 --include-suggestions` — also fix suggestion-type comments
 
-## Workflow Overview
+## Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `EPIC-ID` | positional | (required) | 4-digit zero-padded epic identifier (e.g., `0024`) |
+| `--dry-run` | boolean | `false` | Generate consolidated report only, no fixes applied (RULE-007) |
+| `--prs` | `List<Integer>` | (none) | Explicit PR list, overrides checkpoint discovery (RULE-006) |
+| `--skip-replies` | boolean | `false` | Apply fixes without replying to original PR comments |
+| `--include-suggestions` | boolean | `false` | Include suggestion-type comments in fix scope |
+
+## Workflow
 
 ```
 1. PARSE       -> Parse epic ID and flags
@@ -53,7 +56,7 @@ Automates the complete cycle of addressing PR review comments across an entire e
 
 ---
 
-## Step 1 -- Input Parsing
+### Step 1 — Input Parsing
 
 ### Positional Argument (Required)
 
@@ -93,7 +96,7 @@ ERROR: Invalid epic ID format. Expected 4 digits (e.g., 0024). Got: {input}
 
 ---
 
-## Step 2 -- Prerequisite Checks
+### Step 2 — Prerequisite Checks
 
 Validate prerequisites in order. Abort on first failure.
 
@@ -160,7 +163,7 @@ Error code: `NO_VALID_PRS`
 
 ---
 
-## Step 3 -- PR Discovery (RULE-001)
+### Step 3 — PR Discovery (RULE-001)
 
 ### From Checkpoint (default)
 
@@ -224,7 +227,7 @@ PRs to process:
 
 ---
 
-## Step 4 -- Idempotency Check (RULE-010)
+### Step 4 — Idempotency Check (RULE-010)
 
 Before proceeding to comment fetching, check if a correction branch already exists.
 
@@ -251,7 +254,7 @@ git branch -a | grep "fix/epic-{epicId}-pr-comments"
 
 ---
 
-## Step 5 -- Batch Comment Fetching (RULE-002)
+### Step 5 — Batch Comment Fetching (RULE-002)
 
 For each PR discovered in Step 3, fetch all review comments in batch. Two API calls per PR are required: inline (line-level) comments and review-level comments.
 
@@ -339,7 +342,7 @@ Skipped PRs (error): {errorCount}
 
 ---
 
-## Step 6 -- Classification Engine (RULE-002)
+### Step 6 — Classification Engine (RULE-002)
 
 Classify each fetched comment using the heuristics from `/x-fix-pr-comments`. This engine applies deterministic rules in priority order to assign exactly one classification per comment.
 
@@ -377,7 +380,7 @@ Each rule is evaluated in priority order. The **first match wins** -- once a com
 **Priority 5 -- Praise:**
 - Body matches any of (case-insensitive): `"LGTM"`, `"nice"`, `"good"`, `"great"`, `"looks good"`, `"well done"`, `"clean"`
 
-**Fallback:** If no heuristic matches, classify as `suggestion` (conservative default -- ensures human review).
+**Fallback:** If no heuristic matches, classify as `suggestion` (conservative default — ensures human review).
 
 ### 6.3 Suggestion Block Extraction
 
@@ -412,7 +415,7 @@ Total comments classified: {total}
 
 ---
 
-## Step 6B -- Deduplication Cross-PR (RULE-005)
+### Step 6B — Deduplication Cross-PR (RULE-005)
 
 Comments that are identical or near-identical may appear across multiple PRs (e.g., when golden files are copied across profiles, or the same code pattern repeats in multiple stories). Deduplication prevents redundant fixes.
 
@@ -458,7 +461,7 @@ Top duplicate clusters:
 
 ---
 
-## Consolidated Data Structure
+### Consolidated Data Structure
 
 After Steps 5, 6, and 6B, the skill produces a single consolidated JSON structure used by all subsequent steps (report generation, fix application, reply engine).
 
@@ -546,9 +549,9 @@ Step 5 (Fetch) -> raw comments[] -> Step 6 (Classify) -> classified comments[]
 
 ---
 
-## Step 7 -- Consolidated Findings Report (RULE-004)
+### Step 7 — Consolidated Findings Report (RULE-004)
 
-After classification (Step 6) and deduplication (Step 6B), generate a markdown report consolidating all findings. This report is persisted BEFORE any corrections begin (RULE-004) and serves as an audit artifact. In `--dry-run` mode (RULE-007), the report is the final output -- no subsequent steps execute.
+After classification (Step 6) and deduplication (Step 6B), generate a markdown report consolidating all findings. This report is persisted BEFORE any corrections begin (RULE-004) and serves as an audit artifact. In `--dry-run` mode (RULE-007), the report is the final output — no subsequent steps execute.
 
 ### 7.1 Theme Detection
 
@@ -577,7 +580,7 @@ Before generating the report, assign a `theme` to each finding using determinist
 The report follows this exact structure:
 
 ````markdown
-# PR Review Comments -- Consolidated Report
+# PR Review Comments — Consolidated Report
 
 - **Epic:** EPIC-{epicId}
 - **Date:** {YYYY-MM-DD}
@@ -750,11 +753,11 @@ The report step produces the following output used by subsequent steps:
 |------------|-----------|---------|----------|
 | `REPORT_DIR_CREATE_FAILED` | Cannot create `reports/` directory | `Failed to create reports directory: {path}` | Check filesystem permissions |
 | `REPORT_WRITE_FAILED` | Cannot write report file | `Failed to write report to: {path}` | Check disk space and permissions |
-| `NO_FINDINGS_TO_REPORT` | Zero findings after dedup (not an error) | (no error -- generate empty report) | Normal flow continues |
+| `NO_FINDINGS_TO_REPORT` | Zero findings after dedup (not an error) | (no error — generate empty report) | Normal flow continues |
 
 ---
 
-## Step 8 -- Fix Orchestration Engine (RULE-003, RULE-010)
+### Step 8 — Fix Orchestration Engine (RULE-003, RULE-010)
 
 After the consolidated report is persisted (Step 7), apply corrections for all actionable findings. In `--dry-run` mode, this step is skipped entirely (execution stops after Step 7).
 
@@ -832,14 +835,14 @@ Mark finding as `fixStatus: "skipped"`, `fixReason: "file_not_found"`. Continue 
 
 Two correction strategies based on finding properties:
 
-**Strategy A -- Direct suggestion application** (when `hasSuggestion == true`):
+**Strategy A — Direct suggestion application** (when `hasSuggestion == true`):
 
 1. Read the target file.
 2. Locate the code region around `finding.line`.
 3. Replace the existing code with the content from `finding.suggestionCode`.
 4. This is a deterministic, mechanical replacement.
 
-**Strategy B -- Context-inferred correction** (when `hasSuggestion == false`):
+**Strategy B — Context-inferred correction** (when `hasSuggestion == false`):
 
 1. Read the target file.
 2. Read the finding's `body` to understand the requested change.
@@ -896,7 +899,7 @@ Total findings in scope: {totalInScope}
 
 ---
 
-## Step 9 -- Post-Correction Verification (RULE-009)
+### Step 9 — Post-Correction Verification (RULE-009)
 
 After ALL fixes are applied (Step 8 complete), run the full test suite to detect regressions that may not be caught by compilation alone.
 
@@ -982,7 +985,7 @@ Total commits: 2
 
 ---
 
-## Step 8-GF -- Golden File Handling
+### Step 8-GF — Golden File Handling
 
 When a fix targets a source template that generates golden files, special handling is required to propagate the fix across all profiles.
 
@@ -1040,7 +1043,7 @@ Golden file propagation: {sourceTemplate} -> {profileCount} profiles updated
 
 ---
 
-## Step 11 -- PR Creation (RULE-003)
+### Step 11 — PR Creation (RULE-003)
 
 After all fixes are committed (Step 9.3), create a single correction PR.
 
@@ -1127,7 +1130,7 @@ Findings failed: {failedCount}
 
 ---
 
-## Fix Result Data Contract
+### Fix Result Data Contract
 
 The fix engine (Steps 8-9, 11) produces the following output:
 
@@ -1220,7 +1223,7 @@ The fix engine (Steps 8-9, 11) produces the following output:
 | `RATE_LIMIT_EXCEEDED` | GitHub API rate limit hit after 3 retries | `Rate limit exceeded after 3 retries for PR #{prNumber}.` | Wait for rate limit reset or reduce PR count |
 | `FETCH_TIMEOUT` | PR comment fetch exceeded 30s | `Timeout fetching comments for PR #{prNumber}.` | PR is skipped; retry manually if needed |
 | `API_ERROR` | GitHub API returned non-200/non-429 status | `API error ({status}) fetching PR #{prNumber}: {message}` | Check GitHub token permissions |
-| `NO_ACTIONABLE_FINDINGS` | Zero actionable findings after classification (not an error) | `No actionable findings to fix. Skipping Steps 8-11.` | Normal flow -- no fixes needed |
+| `NO_ACTIONABLE_FINDINGS` | Zero actionable findings after classification (not an error) | `No actionable findings to fix. Skipping Steps 8-11.` | Normal flow — no fixes needed |
 | `BRANCH_CREATE_FAILED` | Cannot create correction branch | `Failed to create branch fix/epic-{epicId}-pr-comments: {error}` | Check git state and permissions |
 | `COMPILE_FAILED_AFTER_FIX` | Compilation failed after applying a fix | `Compilation failed after fix {finding.id}. Reverted.` | Finding marked as failed; loop continues |
 | `TEST_REGRESSION` | Tests failed after full batch; bisect identified offending fix | `Test regression caused by fix {finding.id}. Reverted.` | Offending fix reverted; remaining fixes retained |
@@ -1232,9 +1235,13 @@ The fix engine (Steps 8-9, 11) produces the following output:
 
 ## Integration Notes
 
-### Dependency on x-fix-pr-comments
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| x-fix-pr-comments | reads | Reuses classification heuristics (RULE-002 — Classification consistency) |
+| x-dev-epic-implement | called-after | Processes review comments from PRs created by epic implementation |
+| x-story-epic-full | depends-on | Requires epic directory and story files to exist |
 
-This skill reuses the classification heuristics from `/x-fix-pr-comments` (RULE-002). The classification categories are:
+### Classification Heuristics (from x-fix-pr-comments)
 
 | Type | Heuristic Keywords | Action |
 |------|-------------------|--------|

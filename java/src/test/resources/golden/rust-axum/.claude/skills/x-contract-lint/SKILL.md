@@ -1,6 +1,7 @@
 ---
 name: x-contract-lint
-description: "Validates API contracts (OpenAPI 3.1, AsyncAPI 2.6, Protobuf 3) against their specifications. Reports structural errors, missing fields, and spec violations before contract approval."
+description: "Validates API contracts (OpenAPI 3.1, AsyncAPI 2.6, Protobuf 3) against their specifications. Reports structural errors, missing fields, and spec violations."
+user-invocable: true
 allowed-tools: Read, Grep, Glob, Bash
 argument-hint: "[contract-file-path]"
 ---
@@ -13,13 +14,29 @@ argument-hint: "[contract-file-path]"
 
 # Skill: Contract Lint
 
-## When to Use
+## Purpose
 
-- Validate API contracts before approval in Phase 0.5
-- Check OpenAPI 3.1, AsyncAPI 2.6, or Protobuf 3 specs
-- Pre-PR contract validation
+Validate API contracts before approval. Check OpenAPI 3.1, AsyncAPI 2.6, or Protobuf 3 specs for structural errors, missing fields, and specification violations.
 
-## Contract Format Detection
+## Activation Condition
+
+Include this skill when the project uses API contracts (OpenAPI, AsyncAPI, or Protobuf).
+
+## Triggers
+
+- `/x-contract-lint path/to/contract-openapi.yaml` -- validate an OpenAPI contract
+- `/x-contract-lint path/to/service.proto` -- validate a Protobuf contract
+- `/x-contract-lint path/to/events-asyncapi.yaml` -- validate an AsyncAPI contract
+
+## Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `contract-file-path` | String | Yes | (none) | Path to the contract file to validate |
+
+## Workflow
+
+### Step 1 — Detect Contract Format
 
 Detect the contract format from the file extension and content:
 
@@ -29,9 +46,9 @@ Detect the contract format from the file extension and content:
 | `*.proto` | Protobuf | 3 |
 | `*-asyncapi.yaml` | AsyncAPI | 2.6 |
 
-## Validation Rules
+### Step 2 — Validate Contract
 
-### OpenAPI 3.1
+#### OpenAPI 3.1
 
 1. **Structure**: `openapi`, `info`, `paths`, `components` sections present
 2. **Info**: `title`, `version` fields populated
@@ -43,7 +60,7 @@ Detect the contract format from the file extension and content:
 8. **Servers**: At least one server entry with `url` and `description`
 9. **Tags**: Operations are tagged for grouping
 
-### AsyncAPI 2.6
+#### AsyncAPI 2.6
 
 1. **Structure**: `asyncapi`, `info`, `channels` sections present
 2. **Info**: `title`, `version` fields populated
@@ -53,7 +70,7 @@ Detect the contract format from the file extension and content:
 6. **Servers**: At least one server with `protocol` (kafka, amqp, etc.)
 7. **Components**: Reusable schemas defined in `components/schemas`
 
-### Protobuf 3
+#### Protobuf 3
 
 1. **Syntax**: `syntax = "proto3"` declaration present
 2. **Package**: `package` declaration present
@@ -62,7 +79,7 @@ Detect the contract format from the file extension and content:
 5. **Fields**: Fields have sequential numbering, no gaps
 6. **Options**: `java_package` or language-specific options present
 
-## Output Format
+### Step 3 — Generate Report
 
 ```
 CONTRACT LINT REPORT
@@ -81,8 +98,16 @@ Warnings ({count}):
 Summary: {count} errors, {count} warnings
 ```
 
-## Integration
+## Error Handling
 
-- Invoked by Phase 0.5 (Step 0.5.3) of `/x-dev-lifecycle`
-- Contract must pass validation before `CONTRACT PENDING APPROVAL`
-- Errors block contract approval; warnings are informational
+| Scenario | Action |
+|----------|--------|
+| Contract file not found | Report error with provided path |
+| Unrecognized file format | Report unsupported format with list of supported formats |
+| Validation errors found | Report INVALID status with all errors listed; errors block contract approval |
+
+## Integration Notes
+
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| x-dev-lifecycle | called-by | Invoked by Phase 0.5 (Step 0.5.3) for contract validation before approval |

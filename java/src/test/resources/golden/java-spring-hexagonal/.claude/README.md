@@ -63,7 +63,7 @@ CLAUDE.md                   <-- Executive summary (project root, loaded automati
 | N/A | MCP (`copilot-mcp.json`) | N/A | GitHub Copilot MCP server configuration |
 | N/A | Global instructions (`copilot-instructions.md`) | N/A | Loaded in every Copilot session |
 
-**Total .github/ artifacts: 125**
+**Total .github/ artifacts: 128**
 
 > Generated only when the corresponding platform is selected via `--platform`.
 
@@ -144,12 +144,12 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | Skill | Path | Description |
 |-------|------|-------------|
 | **patterns** | `/patterns` |  |
-| **run-e2e** | `/run-e2e` | Skill: End-to-End Tests — Runs integration tests that validate the complete flow from request through all application layers to response, using a real database. |
-| **run-smoke-api** | `/run-smoke-api` | Skill: REST API Smoke Tests — Runs automated smoke tests against the REST API using Newman/Postman. Supports local, container-orchestrated, and staging environments. |
+| **run-e2e** | `/run-e2e` | Runs integration tests that validate the complete flow from request through all application layers to response, using a real database. |
+| **run-smoke-api** | `/run-smoke-api` | Runs automated smoke tests against the REST API using Newman/Postman. Supports local, container-orchestrated, and staging environments. |
 | **x-changelog** | `/x-changelog` | Generates CHANGELOG.md from Conventional Commits history. Parses git log, groups by commit type, maps to Keep a Changelog sections (Added, Changed, Fixed, etc.), and performs incremental updates preserving existing entries. |
 | **x-ci-cd-generate** | `/x-ci-cd-generate` | Generate or update CI/CD pipelines based on project stack: detect language, analyze existing workflows, generate CI/CD/release/security pipelines, validate with actionlint, support monorepo triggers. |
 | **x-codebase-audit** | `/x-codebase-audit` | Full codebase review against all project standards. Launches parallel subagents per audit dimension (Clean Code, SOLID, Architecture, Tests, Security, Cross-file), consolidates findings into a severity-categorized report with score. Use for periodic quality validation. |
-| **x-contract-lint** | `/x-contract-lint` | Validates API contracts (OpenAPI 3.1, AsyncAPI 2.6, Protobuf 3) against their specifications. Reports structural errors, missing fields, and spec violations before contract approval. |
+| **x-contract-lint** | `/x-contract-lint` | Validates API contracts (OpenAPI 3.1, AsyncAPI 2.6, Protobuf 3) against their specifications. Reports structural errors, missing fields, and spec violations. |
 | **x-dependency-audit** | `/x-dependency-audit` | Checks project dependencies for vulnerabilities, outdated versions, and license issues. Detects build tool automatically, runs language-specific audit commands, and generates a severity-categorized report. |
 | **x-dev-adr-automation** | `/x-dev-adr-automation` | Automates ADR generation from architecture plan mini-ADRs: extracts inline decisions, expands to full ADR format, assigns sequential numbering, updates the ADR index, and adds cross-references. |
 | **x-dev-arch-update** | `/x-dev-arch-update` | Incrementally updates the service architecture document with changes from architecture plans. Adds new components, integrations, flows, and ADR references without rewriting existing content. Use after implementation to keep architecture documentation current. |
@@ -157,36 +157,38 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-dev-epic-implement** | `/x-dev-epic-implement` | Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents. |
 | **x-dev-implement** | `/x-dev-implement` | Implements a feature/story using TDD (Red-Green-Refactor) workflow. Delegates preparation to a subagent that reads architecture, coding, and test plan KPs, then implements test-first with Double-Loop TDD, layer-by-layer with compile checks after each cycle. |
 | **x-dev-lifecycle** | `/x-dev-lifecycle` | Orchestrates the complete feature implementation cycle: branch creation, planning, task decomposition, implementation, parallel review, fixes, PR creation, and final verification. Delegates heavy phases to subagents for context efficiency. |
+| **x-epic-plan** | `/x-epic-plan` | Orchestrates multi-agent planning for all stories in an epic, respecting dependency order, with checkpoint and resume support. |
 | **x-fix-epic-pr-comments** | `/x-fix-epic-pr-comments` | Discovers all PRs from an epic via execution-state.json, fetches and classifies review comments in batch, generates a consolidated findings report, applies fixes, and creates a single correction PR. Supports dry-run, explicit PR list fallback, and idempotent re-execution. |
 | **x-fix-pr-comments** | `/x-fix-pr-comments` | Reads PR review comments and fixes actionable ones automatically. Detects PR from argument or branch, classifies comments (actionable/suggestion/question/praise), implements fixes, and commits with proper conventional commit messages. |
 | **x-git-push** | `/x-git-push` | Git operations: branch creation, atomic commits (Conventional Commits), push, and PR creation. Use for any git workflow task including branching, committing, pushing, creating PRs, or managing version control. |
 | **x-hardening-eval** | `/x-hardening-eval` | Evaluates application hardening posture against CIS and OWASP benchmarks: HTTP security headers, TLS configuration, CORS policy, cookie security, error handling, input limits, and information disclosure. Produces SARIF output with weighted scoring. |
-| **x-jira-create-epic** | `/x-jira-create-epic` | > |
-| **x-jira-create-stories** | `/x-jira-create-stories` | > |
+| **x-jira-create-epic** | `/x-jira-create-epic` | Create a Jira Epic from an existing local epic markdown file. Read the epic file, map fields to Jira, create the issue via MCP, and sync the Jira key back to the local file. |
+| **x-jira-create-stories** | `/x-jira-create-stories` | Create Jira Stories from existing local story markdown files. Read all story files in an epic directory, map fields to Jira, create issues with parent epic link, create dependency links between stories, and sync Jira keys back to local files. |
 | **x-mcp-recommend** | `/x-mcp-recommend` | Analyzes project tech stack and recommends relevant MCP (Model Context Protocol) servers. Auto-detects language, framework, database, cache, and message broker from project config, then matches against a built-in catalog of MCP servers with installation instructions. |
 | **x-ops-incident** | `/x-ops-incident` | Guides incident response with severity-based checklists, communication templates, and postmortem triggers. Interactive guide for SEV1-SEV4 incidents covering classification, response coordination, and action item tracking. |
 | **x-ops-troubleshoot** | `/x-ops-troubleshoot` | Diagnoses errors, stacktraces, build failures, and unexpected behavior. Systematic approach: reproduce, locate, understand, fix, verify. Use whenever something fails: compilation errors, test failures, runtime exceptions, coverage gaps, or performance issues. |
 | **x-owasp-scan** | `/x-owasp-scan` | Automated OWASP Top 10 (2021) verification mapped to ASVS levels (L1/L2/L3). Checks all 10 categories (A01-A10) with per-category pass/fail, ASVS coverage percentage, score grading, SARIF 2.1.0 output, and CI integration. Delegates A06 to x-dependency-audit. |
-| **x-perf-profile** | `/x-perf-profile` | Automated profiling: detect language, select profiler, execute session, generate flamegraph, identify hotspots, suggest optimizations |
+| **x-perf-profile** | `/x-perf-profile` | Automated profiling: detect language/runtime, select appropriate profiler, execute session, generate flamegraph, identify hotspots, and suggest optimizations referencing the performance-engineering knowledge pack. |
 | **x-release** | `/x-release` | Orchestrates complete release flow using Git Flow release branches: version bump (auto-detect or explicit), release branch creation from develop, version file updates, changelog generation, release commit, dual merge (main + develop), git tag on main, and cleanup. Supports hotfix releases from main and dry-run mode. |
 | **x-review** | `/x-review` | Parallel code review with specialist engineers (Security, QA, Performance, Database, Observability, DevOps, API, Event). Launches parallel subagents, each reading their own knowledge pack, then consolidates into a scored report. Use for pre-PR quality validation. |
-| **x-review-api** | `/x-review-api` | Skill: REST API Design Review — Validates REST API endpoints for RFC 7807 error responses, pagination, URL versioning, OpenAPI documentation, status codes, and DTO patterns. |
+| **x-review-api** | `/x-review-api` | Validates REST API endpoints for RFC 7807 error responses, pagination, URL versioning, OpenAPI documentation, status codes, and DTO patterns. |
 | **x-review-pr** | `/x-review-pr` | Tech Lead holistic review with 45-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, TDD process, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge. |
-| **x-runtime-protection** | `/x-runtime-protection` | Evaluates runtime protection controls: rate limiting, WAF rules, bot protection, DDoS mitigation, account lockout, brute force protection, CSP enforcement, and permissions policy. Uses SARIF output and ASVS compliance mapping. |
+| **x-runtime-protection** | `/x-runtime-protection` | Evaluate runtime protection controls: rate limiting, WAF rules, bot protection, DDoS mitigation, account lockout, brute force protection, CSP enforcement, and permissions policy. Produce SARIF 2.1.0 output with ASVS compliance mapping and scored Markdown report. |
 | **x-security-dashboard** | `/x-security-dashboard` | Aggregates results from all security scanning skills into a unified posture view with score 0-100, trend tracking, OWASP risk heatmap, per-dimension breakdown, and remediation priority queue. Never executes scans — reads existing results only (RULE-011). |
-| **x-security-pipeline** | `/x-security-pipeline` | Generates CI/CD pipeline configurations with conditional security stages based on SecurityConfig flags. Supports GitHub Actions, GitLab CI, and Azure DevOps with minimal and full stage modes. |
-| **x-setup-dev-environment** | `/x-setup-dev-environment` | Validate and configure local development environment: detect stack, check prerequisites, verify versions, validate IDE config, test database connectivity, run initial build, and report status with fix suggestions |
+| **x-security-pipeline** | `/x-security-pipeline` | Generate CI/CD pipeline configurations with conditional security stages based on SecurityConfig flags. Support GitHub Actions, GitLab CI, and Azure DevOps with minimal and full stage modes, configurable severity thresholds, and SARIF artifact upload. |
+| **x-setup-dev-environment** | `/x-setup-dev-environment` | Validate and configure local development environment: detect stack, check prerequisites, verify versions, validate IDE config, test database connectivity, run initial build, and report status with fix suggestions. |
 | **x-spec-drift-check** | `/x-spec-drift-check` | Detects spec-code drift by comparing story data contracts, endpoints, and Gherkin scenarios against implemented code. Supports standalone mode (full report) and inline mode (compact output for TDD loop integration in x-dev-lifecycle Phase 2). |
-| **x-story-create** | `/x-story-create` | > |
-| **x-story-epic** | `/x-story-epic` | > |
+| **x-story-create** | `/x-story-create` | Generate detailed User Story files from an Epic and system specification with full data contracts, Gherkin acceptance criteria, Mermaid sequence diagrams, dependency declarations, tagged sub-tasks, quality gate validation, and optional Jira integration. |
+| **x-story-epic** | `/x-story-epic` | Generate an Epic document from a system specification file with cross-cutting business rules, global quality definitions (DoR/DoD), a complete story index with dependency declarations, and optional Jira integration. |
 | **x-story-epic-full** | `/x-story-epic-full` | Complete decomposition of a system specification into an Epic, individual Story files, and an Implementation Map with dependency graph and phased execution plan. Orchestrates spec analysis, rule extraction, story identification, and implementation planning. |
-| **x-story-map** | `/x-story-map` | > |
+| **x-story-map** | `/x-story-map` | Generate an Implementation Map from an Epic and its Stories with dependency matrix, phase computation, critical path analysis, ASCII phase diagrams, Mermaid dependency graphs, phase summary tables, and strategic observations. |
+| **x-story-plan** | `/x-story-plan` | Multi-agent story planning: launches 5 specialized agents (Architect, QA, Security, Tech Lead, Product Owner) in parallel to produce a consolidated task breakdown, individual task plans, planning report, and DoR validation for a story. |
 | **x-supply-chain-audit** | `/x-supply-chain-audit` | Enhanced supply chain security audit beyond x-dependency-audit. Analyzes maintainer risk, typosquatting detection, phantom dependencies, dependency age, EPSS scoring, and SLSA assessment. Produces SARIF 2.1.0 output with weighted risk scoring. |
 | **x-test-plan** | `/x-test-plan` | Generates a Double-Loop TDD test plan with TPP-ordered scenarios before implementation. Delegates KP reading to a context-gathering subagent, then produces structured Acceptance Tests (outer loop) and Unit Tests in Transformation Priority Premise order (inner loop). |
 | **x-test-run** | `/x-test-run` | Runs tests with coverage reporting and threshold validation. Use whenever writing, running, or analyzing tests. Triggers on: test, coverage, TDD, unit test, integration test, test failure, coverage gap, or Definition of Done validation. |
 | **x-threat-model** | `/x-threat-model` | Generate threat models using STRIDE analysis: identify components, map data flows, analyze threats per category, classify severity, suggest mitigations, and produce threat model document. |
 
-**Total: 65 skills**
+**Total: 67 skills**
 
 ### Usage Examples
 
@@ -319,22 +321,22 @@ See the files directly for current configuration.
 | Component | Count |
 |-----------|-------|
 | Rules (.claude) | 11 |
-| Skills (.claude) | 42 |
+| Skills (.claude) | 44 |
 | Knowledge Packs (.claude) | 23 |
 | Agents (.claude) | 11 |
 | Hooks (.claude) | 1 |
 | Settings (.claude) | 2 |
-| Plan Templates (.claude) | 13 |
+| Plan Templates (.claude) | 16 |
 | Instructions (.github) | 5 |
 | Skills (.github) | 64 |
 | Agents (.github) | 11 |
 | Prompts (.github) | 4 |
 | Hooks (.github) | 3 |
-| Plan Templates (.github) | 13 |
+| Plan Templates (.github) | 16 |
 | MCP (.github) | 0 |
 | AGENTS.md (root) | 1 |
 | AGENTS.override.md (root) | 1 |
-| Codex (.codex) | 140 |
-| Skills (.agents) | 138 |
+| Codex (.codex) | 143 |
+| Skills (.agents) | 141 |
 
 Generated by `ia-dev-env v0.1.0`.

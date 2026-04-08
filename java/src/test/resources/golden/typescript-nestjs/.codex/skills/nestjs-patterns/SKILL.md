@@ -1,17 +1,22 @@
 ---
 name: nestjs-patterns
-description: "NestJS-specific patterns: DI with @Injectable, Prisma/TypeORM data access, Controllers with Guards/Interceptors/Pipes, @nestjs/config, Testing module, Docker build. Internal reference for agents producing NestJS code."
+description: "NestJS patterns: DI with @Injectable, Prisma/TypeORM data access, Controllers with Guards/Interceptors/Pipes, @nestjs/config, and Testing module."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
   - Glob
 ---
 
-# Knowledge Pack: NestJS Patterns
+# Pattern: NestJS Patterns
 
 ## Purpose
 
 Provides NestJS-specific implementation patterns that supplement the generic layer templates. Agents reference this pack when generating code for a TypeScript + NestJS project.
+
+## Supplements
+
+Supplements `architecture` and `layer-templates` knowledge packs with NestJS-specific conventions.
 
 ---
 

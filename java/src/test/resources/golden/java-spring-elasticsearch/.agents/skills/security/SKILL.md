@@ -1,6 +1,7 @@
 ---
 name: security
 description: "Complete security reference: OWASP Top 10, security headers, secrets management, input validation, cryptography (TLS, hashing, key management), and pentest readiness checklist. Read during security reviews or when implementing security-sensitive features."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
@@ -12,6 +13,10 @@ allowed-tools:
 ## Purpose
 
 Provides comprehensive security guidelines covering application security, cryptography, and pentest readiness.
+
+## Quick Reference (always in context)
+
+See `rules/06-security-baseline.md` for secure defaults, forbidden patterns, and defensive coding requirements.
 
 ## Detailed References
 
@@ -168,3 +173,9 @@ Transitive dependencies are the hidden attack surface of modern software.
 - Use lock files to freeze the full dependency tree
 - Monitor dependency health metrics (maintainer count, update frequency, known vulnerabilities)
 - Prefer dependencies with active maintenance and security disclosure policies
+
+## Related Knowledge Packs
+
+- `skills/compliance/` — regulatory framework requirements (GDPR, HIPAA, PCI-DSS)
+- `skills/infrastructure/` — container security, Kubernetes security context
+- `skills/observability/` — security event logging and audit trail patterns

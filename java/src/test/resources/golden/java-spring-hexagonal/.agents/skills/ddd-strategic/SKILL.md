@@ -1,6 +1,6 @@
 ---
 name: ddd-strategic
-description: "DDD Strategic Design knowledge pack: bounded context identification, context map with 6 integration patterns, Anti-Corruption Layer template with compilable {{language_name}} code, and conditional /x-ddd-context-map skill for Mermaid diagram generation."
+description: "DDD Strategic Design: bounded context identification, context map with 6 integration patterns, Anti-Corruption Layer template, and /x-ddd-context-map skill."
 user-invocable: false
 allowed-tools:
   - Read
@@ -12,13 +12,7 @@ allowed-tools:
 
 ## Purpose
 
-Provides strategic Domain-Driven Design guidance for {{language_name}} {{language_version}} projects using {{architecture_style}} architecture. Covers bounded context identification, context mapping with integration patterns, Anti-Corruption Layer implementation, and automated context map generation via Mermaid diagrams.
-
-## Activation Conditions
-
-This knowledge pack is included when at least one condition is true:
-- `architecture.style` is `hexagonal` or `ddd`
-- `ddd.enabled` is `true`
+Provides strategic Domain-Driven Design guidance for {{language_name}} {{language_version}} projects using {{architecture_style}} architecture. Covers bounded context identification, context mapping with integration patterns, Anti-Corruption Layer implementation, and automated context map generation via Mermaid diagrams. Included when `architecture.style` is `hexagonal`/`ddd` or `ddd.enabled` is `true`.
 
 ---
 
@@ -324,6 +318,8 @@ flowchart LR
 
 ## Related Knowledge Packs
 
-- `skills/architecture/` — hexagonal architecture principles and package structure
-- `skills/layer-templates/` — code templates per architecture layer
-- `skills/architecture-patterns/` — detailed pattern implementations
+| Pack | Relationship |
+|------|-------------|
+| `architecture` | Hexagonal architecture principles and package structure |
+| `layer-templates` | Code templates per architecture layer |
+| `architecture-patterns` | Detailed pattern implementations |

@@ -1,13 +1,8 @@
 ---
 name: x-dev-adr-automation
 description: "Automates ADR generation from architecture plan mini-ADRs: extracts inline decisions, expands to full ADR format, assigns sequential numbering, updates the ADR index, and adds cross-references."
-allowed-tools:
-  - Read
-  - Write
-  - Edit
-  - Bash
-  - Grep
-  - Glob
+user-invocable: true
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[architecture-plan-path] [story-id]"
 ---
 
@@ -19,15 +14,25 @@ argument-hint: "[architecture-plan-path] [story-id]"
 
 # Skill: ADR Automation
 
+## Purpose
+
 Automates the generation of Architecture Decision Records (ADRs) from mini-ADRs embedded in architecture plans. Extracts inline decisions, expands them to full ADR format using a standard template, assigns sequential numbering, updates the ADR index, and inserts cross-references between stories, architecture plans, and ADRs.
 
-## When to Use
+## Triggers
 
+- `/x-dev-adr-automation [architecture-plan-path] [story-id]` — extract mini-ADRs from the specified architecture plan and generate full ADR files
 - After the architecture plan phase, when mini-ADRs exist inline in the plan document
 - When `x-dev-architecture-plan` has produced an architecture plan containing `### ADR:` markers
-- When architectural decisions need to be formally documented as standalone ADR files
+- When architectural decisions need formal documentation as standalone ADR files
 - When the `adr/` directory needs to be populated or updated with new decisions
 - Do NOT use if ADRs have already been manually created for the same decisions
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `architecture-plan-path` | String | Yes | Path to the architecture plan file (e.g., `plans/architecture-plan-STORY-0004-0006.md`) |
+| `story-id` | String | Yes | Story identifier for cross-referencing (e.g., `story-0004-0006`) |
 
 ## Input Format
 
@@ -48,10 +53,6 @@ The four fields of a mini-ADR are:
 | **context** | Yes | Problem statement or situation that prompted the decision |
 | **decision** | Yes | The specific decision that was made |
 | **rationale** | Yes | Justification explaining why this decision was chosen |
-
-The architecture plan path and story ID are provided as arguments:
-- `architecture-plan-path`: Path to the architecture plan file (e.g., `plans/architecture-plan-STORY-0004-0006.md`)
-- `story-id`: The story identifier for cross-referencing (e.g., `story-0004-0006`)
 
 ## Output Format
 
@@ -112,11 +113,9 @@ The output ADR sections are:
 | **Decision** | Expanded from mini-ADR `decision` field |
 | **Consequences** | Inferred from mini-ADR `rationale` field, split into Positive/Negative/Neutral |
 
-## Algorithm
+## Workflow
 
-Follow these steps in order:
-
-### Step 1: Parse Architecture Plan
+### Step 1 — Parse Architecture Plan
 
 1. Read the architecture plan file at `{architecture-plan-path}`
 2. Search for `### ADR:` markers to identify mini-ADRs
@@ -128,7 +127,7 @@ Follow these steps in order:
 grep -n "### ADR:" {architecture-plan-path}
 ```
 
-### Step 2: Scan Existing ADRs for Sequential Numbering
+### Step 2 — Scan Existing ADRs for Sequential Numbering
 
 1. List all existing ADR files in `adr/`
 2. Extract the numeric prefix from each filename (e.g., `0003` from `ADR-0003-use-postgresql.md`)
@@ -141,7 +140,7 @@ grep -n "### ADR:" {architecture-plan-path}
 ls adr/ADR-*.md 2>/dev/null | sort -t'-' -k2 -n | tail -1
 ```
 
-### Step 3: Check for Duplicates
+### Step 3 — Check for Duplicates
 
 For each mini-ADR, before creating a new ADR file:
 
@@ -153,7 +152,7 @@ For each mini-ADR, before creating a new ADR file:
    ```
 4. Do NOT overwrite existing ADRs
 
-### Step 4: Expand Mini-ADR to Full ADR
+### Step 4 — Expand Mini-ADR to Full ADR
 
 For each non-duplicate mini-ADR:
 
@@ -166,13 +165,13 @@ For each non-duplicate mini-ADR:
    - `## Consequences` section: inferred from rationale, split into Positive/Negative/Neutral
 3. Convert the title to kebab-case for the filename
 
-### Step 5: Write ADR Files
+### Step 5 — Write ADR Files
 
 1. Ensure `adr/` directory exists (create if needed)
 2. Write each ADR to `adr/ADR-NNNN-title-in-kebab-case.md`
 3. Verify the file was written successfully
 
-### Step 6: Update the Index
+### Step 6 — Update the Index
 
 1. Open `adr/README.md` (create if it does not exist)
 2. If the file does not exist, create it with a table header:
@@ -187,7 +186,7 @@ For each non-duplicate mini-ADR:
    | [ADR-NNNN](ADR-NNNN-title-in-kebab-case.md) | Title of the Decision | Accepted | YYYY-MM-DD |
    ```
 
-### Step 7: Add Cross-References
+### Step 7 — Add Cross-References
 
 1. In each generated ADR frontmatter, ensure `story-ref: {story-id}` is present
 2. Update the architecture plan file to add links to the generated ADRs:
@@ -285,7 +284,7 @@ The ADR index at `adr/README.md` serves as the master list of all ADRs:
 
 ## Examples
 
-### Example: Mini-ADR Input (from architecture plan)
+### Example — Mini-ADR Input (from architecture plan)
 
 ```markdown
 ### ADR: Use PostgreSQL for Persistence
@@ -294,7 +293,7 @@ The ADR index at `adr/README.md` serves as the master list of all ADRs:
 - **Rationale:** PostgreSQL provides strong ACID compliance, excellent JSON support via jsonb columns, mature tooling, and the team has operational experience. Alternatives like MySQL lack native JSON indexing; NoSQL options like MongoDB sacrifice transactional consistency.
 ```
 
-### Example: Full ADR Output (generated)
+### Example — Full ADR Output (generated)
 
 File: `adr/ADR-0004-use-postgresql-for-persistence.md`
 
@@ -340,13 +339,13 @@ Use PostgreSQL 15+ as the primary relational database for all transactional pers
 - Connection pooling (e.g., PgBouncer) recommended for high-concurrency scenarios
 ```
 
-### Example: Index Entry (appended to adr/README.md)
+### Example — Index Entry (appended to adr/README.md)
 
 ```markdown
 | [ADR-0004](ADR-0004-use-postgresql-for-persistence.md) | Use PostgreSQL for Persistence | Accepted | 2024-01-15 |
 ```
 
-### Example: Architecture Plan Cross-Reference (updated in plan)
+### Example — Architecture Plan Cross-Reference (updated in plan)
 
 ```markdown
 ### ADR: Use PostgreSQL for Persistence
@@ -356,10 +355,21 @@ Use PostgreSQL 15+ as the primary relational database for all transactional pers
 > Generated: [ADR-0004](../../adr/ADR-0004-use-postgresql-for-persistence.md)
 ```
 
+## Error Handling
+
+| Scenario | Action |
+|----------|--------|
+| Architecture plan file not found | Report error with path and exit |
+| No `### ADR:` markers found | Report "No mini-ADRs found in plan" and exit cleanly |
+| Duplicate ADR title detected | Emit warning, skip the duplicate, continue processing remaining |
+| `adr/` directory does not exist | Create it automatically |
+| `adr/README.md` does not exist | Create it with table header |
+| Write failure | Report error with file path and reason |
+
 ## Integration Notes
 
-- **Prerequisite:** Run `x-dev-architecture-plan` first to generate the architecture plan with inline mini-ADRs
-- **Template reference:** ADRs follow the standard ADR template format (story-0004-0001)
-- Works with any project — the `adr/` directory is created if it does not exist
-- Cross-references are bidirectional: story to ADR and ADR to story
-- The skill is idempotent: running it again skips duplicates and only adds new ADRs
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| `x-dev-architecture-plan` | called-by | Prerequisite: generates the architecture plan with inline mini-ADRs |
+| `x-dev-arch-update` | calls | Updates service architecture document Section 7 with new ADR references |
+| `x-dev-lifecycle` | called-by | Invoked during documentation phase to formalize architectural decisions |

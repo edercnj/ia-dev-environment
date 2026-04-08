@@ -1,17 +1,28 @@
 ---
 name: layer-templates
 description: "Reference code templates for each hexagonal architecture layer. Provides consistent patterns for domain model, ports, DTOs, mappers, entities, repositories, use cases, REST resources, exception mappers, migrations, and configuration. Uses {{LANGUAGE}}, {{FRAMEWORK}} placeholders."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
   - Glob
 ---
 
-# Knowledge Pack: Layer Templates (Hexagonal Architecture)
+# Knowledge Pack: Layer Templates
 
 ## Purpose
 
 Provides copy-and-adapt code templates for every hexagonal architecture layer. Agents use these templates to produce structurally consistent code across a project, regardless of the specific domain entity being implemented.
+
+## Quick Reference (always in context)
+
+See `rules/04-architecture-summary.md` for the architecture package structure and layer dependency rules that these templates follow.
+
+## Detailed References
+
+| Reference | Content |
+|-----------|---------|
+| Inline templates below | Domain model, ports, DTOs, mappers, entities, repositories, use cases, REST resources, exception mappers, migrations, configuration, MongoDB, Cassandra, and cache adapter templates |
 
 ## Template Catalog
 
@@ -590,3 +601,9 @@ public class {{EntityName}}CacheAdapter {
 12. Migration/schema evolution created
 13. Cache adapter (if cache enabled)
 14. Tests for each layer
+
+## Related Knowledge Packs
+
+- `skills/architecture/` — architecture principles and dependency rules these templates implement
+- `skills/coding-standards/` — Clean Code and SOLID rules that templates must follow
+- `skills/testing/` — test patterns and conventions for each template layer
