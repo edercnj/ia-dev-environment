@@ -63,7 +63,7 @@ CLAUDE.md                   <-- Executive summary (project root, loaded automati
 | N/A | MCP (`copilot-mcp.json`) | N/A | GitHub Copilot MCP server configuration |
 | N/A | Global instructions (`copilot-instructions.md`) | N/A | Loaded in every Copilot session |
 
-**Total .github/ artifacts: 129**
+**Total .github/ artifacts: 128**
 
 > Generated only when the corresponding platform is selected via `--platform`.
 
@@ -157,7 +157,6 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-dev-epic-implement** | `/x-dev-epic-implement` | Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents. |
 | **x-dev-implement** | `/x-dev-implement` | Implements a feature/story using TDD (Red-Green-Refactor) workflow. Delegates preparation to a subagent that reads architecture, coding, and test plan KPs, then implements test-first with Double-Loop TDD, layer-by-layer with compile checks after each cycle. |
 | **x-dev-lifecycle** | `/x-dev-lifecycle` | Orchestrates the complete feature implementation cycle: branch creation, planning, task decomposition, implementation, parallel review, fixes, PR creation, and final verification. Delegates heavy phases to subagents for context efficiency. |
-| **x-docs** | `/x-docs` | Documentation automation: detects documentation type needed (API, README, ADR, changelog) from code changes, delegates to specialized skills or generates inline. Single entry point for all documentation updates. |
 | **x-epic-plan** | `/x-epic-plan` | Orchestrates multi-agent planning for all stories in an epic, respecting dependency order, with checkpoint and resume support. |
 | **x-fix-epic-pr-comments** | `/x-fix-epic-pr-comments` | Discovers all PRs from an epic via execution-state.json, fetches and classifies review comments in batch, generates a consolidated findings report, applies fixes, and creates a single correction PR. Supports dry-run, explicit PR list fallback, and idempotent re-execution. |
 | **x-fix-pr-comments** | `/x-fix-pr-comments` | Reads PR review comments and fixes actionable ones automatically. Detects PR from argument or branch, classifies comments (actionable/suggestion/question/praise), implements fixes, and commits with proper conventional commit messages. |
@@ -170,11 +169,13 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-ops-troubleshoot** | `/x-ops-troubleshoot` | Diagnoses errors, stacktraces, build failures, and unexpected behavior. Systematic approach: reproduce, locate, understand, fix, verify. Use whenever something fails: compilation errors, test failures, runtime exceptions, coverage gaps, or performance issues. |
 | **x-owasp-scan** | `/x-owasp-scan` | Automated OWASP Top 10 (2021) verification mapped to ASVS levels (L1/L2/L3). Checks all 10 categories (A01-A10) with per-category pass/fail, ASVS coverage percentage, score grading, SARIF 2.1.0 output, and CI integration. Delegates A06 to x-dependency-audit. |
 | **x-perf-profile** | `/x-perf-profile` | Automated profiling: detect language/runtime, select appropriate profiler, execute session, generate flamegraph, identify hotspots, and suggest optimizations referencing the performance-engineering knowledge pack. |
-| **x-plan-task** | `/x-plan-task` | Generates a detailed implementation plan for an individual task with per-task TDD cycle mapping (TPP order), file impact analysis by architecture layer, security checklist by task type, and integration points. Reads the task definition from story Section 8 and produces a self-contained execution guide. |
 | **x-release** | `/x-release` | Orchestrates complete release flow using Git Flow release branches: version bump (auto-detect or explicit), release branch creation from develop, version file updates, changelog generation, release commit, dual merge (main + develop), git tag on main, and cleanup. Supports hotfix releases from main and dry-run mode. |
 | **x-review** | `/x-review` | Parallel code review with specialist engineers (Security, QA, Performance, Database, Observability, DevOps, API, Event). Launches parallel subagents, each reading their own knowledge pack, then consolidates into a scored report. Use for pre-PR quality validation. |
 | **x-review-api** | `/x-review-api` | Validates REST API endpoints for RFC 7807 error responses, pagination, URL versioning, OpenAPI documentation, status codes, and DTO patterns. |
+| **x-review-devops** | `/x-review-devops` | DevOps specialist review: validates Dockerfile, container security, CI/CD pipeline, resource limits, health probes, graceful shutdown, and deployment configuration. |
+| **x-review-perf** | `/x-review-perf` | Performance specialist review: validates N+1 queries, connection pools, async patterns, pagination, caching, timeouts, circuit breakers, and resource cleanup. |
 | **x-review-pr** | `/x-review-pr` | Tech Lead holistic review with 45-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, TDD process, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge. |
+| **x-review-qa** | `/x-review-qa` | QA specialist review: validates test coverage, TDD compliance, test naming, fixtures, parametrized tests, and acceptance criteria coverage. |
 | **x-runtime-protection** | `/x-runtime-protection` | Evaluate runtime protection controls: rate limiting, WAF rules, bot protection, DDoS mitigation, account lockout, brute force protection, CSP enforcement, and permissions policy. Produce SARIF 2.1.0 output with ASVS compliance mapping and scored Markdown report. |
 | **x-security-dashboard** | `/x-security-dashboard` | Aggregates results from all security scanning skills into a unified posture view with score 0-100, trend tracking, OWASP risk heatmap, per-dimension breakdown, and remediation priority queue. Never executes scans — reads existing results only (RULE-011). |
 | **x-security-pipeline** | `/x-security-pipeline` | Generate CI/CD pipeline configurations with conditional security stages based on SecurityConfig flags. Support GitHub Actions, GitLab CI, and Azure DevOps with minimal and full stage modes, configurable severity thresholds, and SARIF artifact upload. |
@@ -189,9 +190,8 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-test-plan** | `/x-test-plan` | Generates a Double-Loop TDD test plan with TPP-ordered scenarios before implementation. Delegates KP reading to a context-gathering subagent, then produces structured Acceptance Tests (outer loop) and Unit Tests in Transformation Priority Premise order (inner loop). |
 | **x-test-run** | `/x-test-run` | Runs tests with coverage reporting and threshold validation. Use whenever writing, running, or analyzing tests. Triggers on: test, coverage, TDD, unit test, integration test, test failure, coverage gap, or Definition of Done validation. |
 | **x-threat-model** | `/x-threat-model` | Generate threat models using STRIDE analysis: identify components, map data flows, analyze threats per category, classify severity, suggest mitigations, and produce threat model document. |
-| **x-worktree** | `/x-worktree` | Manages git worktrees for parallel task and story execution. Operations: create, list, remove, cleanup. Follows RULE-018 (Worktree Lifecycle) naming convention under .claude/worktrees/{identifier}/. |
 
-**Total: 66 skills**
+**Total: 68 skills**
 
 ### Usage Examples
 
@@ -322,14 +322,14 @@ See the files directly for current configuration.
 | Component | Count |
 |-----------|-------|
 | Rules (.claude) | 11 |
-| Skills (.claude) | 45 |
+| Skills (.claude) | 47 |
 | Knowledge Packs (.claude) | 21 |
 | Agents (.claude) | 11 |
 | Hooks (.claude) | 1 |
 | Settings (.claude) | 2 |
 | Plan Templates (.claude) | 16 |
 | Instructions (.github) | 5 |
-| Skills (.github) | 65 |
+| Skills (.github) | 64 |
 | Agents (.github) | 11 |
 | Prompts (.github) | 4 |
 | Hooks (.github) | 3 |
@@ -337,7 +337,7 @@ See the files directly for current configuration.
 | MCP (.github) | 0 |
 | AGENTS.md (root) | 1 |
 | AGENTS.override.md (root) | 1 |
-| Codex (.codex) | 153 |
-| Skills (.agents) | 151 |
+| Codex (.codex) | 155 |
+| Skills (.agents) | 153 |
 
 Generated by `ia-dev-env v0.1.0`.
