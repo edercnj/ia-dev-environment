@@ -4,6 +4,7 @@ import dev.iadev.domain.model.ProjectConfig;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -194,6 +195,33 @@ public final class SkillsSelection {
     }
 
     /**
+     * Selects review skills based on database, observability,
+     * container, and architecture config.
+     *
+     * @param config the project configuration
+     * @return list of conditional review skill names
+     */
+    public static List<String> selectReviewSkills(
+            ProjectConfig config) {
+        List<String> skills = new ArrayList<>();
+        if (!"none".equals(config.databaseName())) {
+            skills.add("x-review-db");
+        }
+        if (!"none".equals(config.observabilityTool())) {
+            skills.add("x-review-obs");
+        }
+        if (!"none".equals(
+                config.infrastructure().container())) {
+            skills.add("x-review-devops");
+        }
+        if (!"none".equals(config.databaseName())
+                && isHexagonalOrDdd(config)) {
+            skills.add("x-review-data-modeling");
+        }
+        return skills;
+    }
+
+    /**
      * Evaluates all feature gates and returns the aggregated
      * list of conditional skill names.
      *
@@ -210,6 +238,7 @@ public final class SkillsSelection {
         skills.addAll(selectSecurityScanningSkills(config));
         skills.addAll(selectComplianceSkills(config));
         skills.addAll(selectPentestSkills(config));
+        skills.addAll(selectReviewSkills(config));
         return skills;
     }
 
@@ -236,5 +265,21 @@ public final class SkillsSelection {
         Set<String> typeSet = Set.of(types);
         return config.interfaces().stream()
                 .anyMatch(i -> typeSet.contains(i.type()));
+    }
+
+    private static final Set<String> HEXAGONAL_DDD_STYLES =
+            Set.of("hexagonal", "ddd", "cqrs", "clean");
+
+    /**
+     * Checks if the architecture style supports
+     * DDD tactical patterns (hexagonal, ddd, cqrs, clean).
+     *
+     * @param config the project configuration
+     * @return true if architecture style is DDD-compatible
+     */
+    static boolean isHexagonalOrDdd(ProjectConfig config) {
+        String style = config.architecture().style()
+                .toLowerCase(Locale.ROOT);
+        return HEXAGONAL_DDD_STYLES.contains(style);
     }
 }
