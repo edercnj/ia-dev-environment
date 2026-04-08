@@ -37,8 +37,8 @@ class AssemblerTargetTest {
     }
 
     @Test
-    @DisplayName("has exactly 6 target values")
-    void values_whenCalled_containsSixEntries() {
+    @DisplayName("has exactly 5 target values")
+    void values_whenCalled_containsFiveEntries() {
         assertThat(AssemblerTarget.values()).hasSize(5);
     }
 
