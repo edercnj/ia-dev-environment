@@ -12,6 +12,16 @@ argument-hint: "[STORY-ID or feature-name] [--auto-approve-pr] [--task TASK-ID] 
 - **Tone**: Technical, Direct, and Concise.
 - **Efficiency**: Remove all conversational fillers and greetings to save tokens.
 
+## CONTEXT MANAGEMENT
+
+Do NOT read full files into context when partial data suffices.
+Use targeted reads (offset/limit) or grep for specific fields.
+
+- **Task results**: After each task completes via x-tdd, record only the compact result (status, commitSha, coverage). Do NOT accumulate full TDD cycle logs in the orchestrator context.
+- **Plan files**: When checking artifact staleness (Phase 0), use file metadata (mtime) not full content reads.
+- **Review outputs**: Reference review results by file path and score summary. Do NOT read full review content into orchestrator context.
+- **Story files**: Read story file once during Phase 0 and extract only required fields (acceptance criteria, dependencies, tasks). Do NOT re-read story files in later phases.
+
 # Skill: Feature Lifecycle (Task-Centric Orchestrator)
 
 ## Purpose
