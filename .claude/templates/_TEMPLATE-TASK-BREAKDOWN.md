@@ -30,13 +30,13 @@ graph TD
 
 | Task ID | Test Scenario Ref | TPP Level | Type | Phase | Layer | Components | Parallel | Depends On | Tier | Budget |
 |---------|------------------|-----------|------|-------|-------|-----------|----------|-----------|------|--------|
-| TASK-1 | {{TEST_REF}} | nil | UT | RED | {{LAYER}} | {{COMPONENTS}} | {{PARALLEL}} | -- | {{TIER}} | {{BUDGET}} |
-| TASK-2 | {{TEST_REF}} | nil | UT | GREEN | {{LAYER}} | {{COMPONENTS}} | {{PARALLEL}} | TASK-1 | {{TIER}} | {{BUDGET}} |
-| TASK-3 | {{TEST_REF}} | nil | UT | REFACTOR | {{LAYER}} | {{COMPONENTS}} | {{PARALLEL}} | TASK-2 | {{TIER}} | {{BUDGET}} |
-| TASK-4 | {{TEST_REF}} | constant | UT | RED | {{LAYER}} | {{COMPONENTS}} | {{PARALLEL}} | TASK-3 | {{TIER}} | {{BUDGET}} |
-| TASK-5 | {{TEST_REF}} | constant | UT | GREEN | {{LAYER}} | {{COMPONENTS}} | {{PARALLEL}} | TASK-4 | {{TIER}} | {{BUDGET}} |
-| TASK-6 | {{TEST_REF}} | constant | UT | REFACTOR | {{LAYER}} | {{COMPONENTS}} | {{PARALLEL}} | TASK-5 | {{TIER}} | {{BUDGET}} |
-| TASK-7 | {{TEST_REF}} | scalar | AT | RED | {{LAYER}} | {{COMPONENTS}} | {{PARALLEL}} | TASK-6 | {{TIER}} | {{BUDGET}} |
+| TASK-{{EPIC_ID}}-{{STORY_ID}}-001 | {{TEST_REF}} | nil | UT | RED | {{LAYER}} | {{COMPONENTS}} | {{PARALLEL}} | -- | {{TIER}} | {{BUDGET}} |
+| TASK-{{EPIC_ID}}-{{STORY_ID}}-002 | {{TEST_REF}} | nil | UT | GREEN | {{LAYER}} | {{COMPONENTS}} | {{PARALLEL}} | TASK-{{EPIC_ID}}-{{STORY_ID}}-001 | {{TIER}} | {{BUDGET}} |
+| TASK-{{EPIC_ID}}-{{STORY_ID}}-003 | {{TEST_REF}} | nil | UT | REFACTOR | {{LAYER}} | {{COMPONENTS}} | {{PARALLEL}} | TASK-{{EPIC_ID}}-{{STORY_ID}}-002 | {{TIER}} | {{BUDGET}} |
+| TASK-{{EPIC_ID}}-{{STORY_ID}}-004 | {{TEST_REF}} | constant | UT | RED | {{LAYER}} | {{COMPONENTS}} | {{PARALLEL}} | TASK-{{EPIC_ID}}-{{STORY_ID}}-003 | {{TIER}} | {{BUDGET}} |
+| TASK-{{EPIC_ID}}-{{STORY_ID}}-005 | {{TEST_REF}} | constant | UT | GREEN | {{LAYER}} | {{COMPONENTS}} | {{PARALLEL}} | TASK-{{EPIC_ID}}-{{STORY_ID}}-004 | {{TIER}} | {{BUDGET}} |
+| TASK-{{EPIC_ID}}-{{STORY_ID}}-006 | {{TEST_REF}} | constant | UT | REFACTOR | {{LAYER}} | {{COMPONENTS}} | {{PARALLEL}} | TASK-{{EPIC_ID}}-{{STORY_ID}}-005 | {{TIER}} | {{BUDGET}} |
+| TASK-{{EPIC_ID}}-{{STORY_ID}}-007 | {{TEST_REF}} | scalar | AT | RED | {{LAYER}} | {{COMPONENTS}} | {{PARALLEL}} | TASK-{{EPIC_ID}}-{{STORY_ID}}-006 | {{TIER}} | {{BUDGET}} |
 
 ## Escalation Notes
 
