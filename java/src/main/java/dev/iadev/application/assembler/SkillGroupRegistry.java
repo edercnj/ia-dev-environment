@@ -44,7 +44,8 @@ public final class SkillGroupRegistry {
         SKILL_GROUPS.put("story", List.of(
                 "x-story-epic", "x-story-create",
                 "x-story-map", "x-story-epic-full",
-                "x-story-plan", "x-epic-plan",
+                "x-story-plan", "x-plan-task",
+                "x-epic-plan",
                 "story-planning",
                 "x-jira-create-epic",
                 "x-jira-create-stories"));
