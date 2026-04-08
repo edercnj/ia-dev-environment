@@ -104,6 +104,13 @@ public final class CheckpointValidation {
             String taskId,
             TaskEntry taskEntry,
             List<String> errors) {
+        if (taskEntry == null) {
+            errors.add(
+                    "story '%s', task '%s': entry is null"
+                            .formatted(storyId, taskId)
+            );
+            return;
+        }
         if (taskEntry.status() == null) {
             errors.add(
                     "story '%s', task '%s': status is required"

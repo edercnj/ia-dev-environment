@@ -67,16 +67,16 @@ public final class SkillsSelection {
     public static List<String> selectInfraSkills(
             ProjectConfig config) {
         List<String> skills = new ArrayList<>();
-        if (!"none".equals(
+        if (!"none".equalsIgnoreCase(
                 config.infrastructure().observability()
                         .tool())) {
             skills.add("instrument-otel");
         }
-        if (!"none".equals(
+        if (!"none".equalsIgnoreCase(
                 config.infrastructure().orchestrator())) {
             skills.add("setup-environment");
         }
-        if (!"none".equals(
+        if (!"none".equalsIgnoreCase(
                 config.infrastructure().apiGateway())) {
             skills.add("x-review-gateway");
         }
@@ -152,7 +152,7 @@ public final class SkillsSelection {
         }
         var qgProvider =
                 config.security().qualityGate().provider();
-        if (!"none".equals(qgProvider)) {
+        if (!"none".equalsIgnoreCase(qgProvider)) {
             skills.add("x-sonar-gate");
         }
         return skills;
@@ -204,17 +204,18 @@ public final class SkillsSelection {
     public static List<String> selectReviewSkills(
             ProjectConfig config) {
         List<String> skills = new ArrayList<>();
-        if (!"none".equals(config.databaseName())) {
+        if (!"none".equalsIgnoreCase(config.databaseName())) {
             skills.add("x-review-db");
         }
-        if (!"none".equals(config.observabilityTool())) {
+        if (!"none".equalsIgnoreCase(
+                config.observabilityTool())) {
             skills.add("x-review-obs");
         }
-        if (!"none".equals(
+        if (!"none".equalsIgnoreCase(
                 config.infrastructure().container())) {
             skills.add("x-review-devops");
         }
-        if (!"none".equals(config.databaseName())
+        if (!"none".equalsIgnoreCase(config.databaseName())
                 && isHexagonalOrDdd(config)) {
             skills.add("x-review-data-modeling");
         }

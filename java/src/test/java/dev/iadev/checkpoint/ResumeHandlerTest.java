@@ -290,6 +290,111 @@ class ResumeHandlerTest {
     }
 
     @Test
+    void reclassifyTasks_inProgressTask_becomesPending() {
+        var tasks = Map.of(
+                "TASK-0001-0001-001",
+                TaskEntry.pending("TASK-0001-0001-001")
+                        .withStatus(TaskStatus.IN_PROGRESS)
+        );
+        var story = StoryEntry.pending(0).withTasks(tasks);
+
+        var result = ResumeHandler.reclassifyTasks(story);
+
+        assertThat(result.tasks()
+                .get("TASK-0001-0001-001").status())
+                .isEqualTo(TaskStatus.PENDING);
+    }
+
+    @Test
+    void reclassifyTasks_doneTask_remainsDone() {
+        var tasks = Map.of(
+                "TASK-0001-0001-001",
+                TaskEntry.pending("TASK-0001-0001-001")
+                        .withStatus(TaskStatus.DONE)
+        );
+        var story = StoryEntry.pending(0).withTasks(tasks);
+
+        var result = ResumeHandler.reclassifyTasks(story);
+
+        assertThat(result.tasks()
+                .get("TASK-0001-0001-001").status())
+                .isEqualTo(TaskStatus.DONE);
+    }
+
+    @Test
+    void reclassifyTasks_skippedTask_remainsSkipped() {
+        var tasks = Map.of(
+                "TASK-0001-0001-001",
+                TaskEntry.pending("TASK-0001-0001-001")
+                        .withStatus(TaskStatus.SKIPPED)
+        );
+        var story = StoryEntry.pending(0).withTasks(tasks);
+
+        var result = ResumeHandler.reclassifyTasks(story);
+
+        assertThat(result.tasks()
+                .get("TASK-0001-0001-001").status())
+                .isEqualTo(TaskStatus.SKIPPED);
+    }
+
+    @Test
+    void reclassifyTasks_pendingTask_remainsPending() {
+        var tasks = Map.of(
+                "TASK-0001-0001-001",
+                TaskEntry.pending("TASK-0001-0001-001")
+        );
+        var story = StoryEntry.pending(0).withTasks(tasks);
+
+        var result = ResumeHandler.reclassifyTasks(story);
+
+        assertThat(result.tasks()
+                .get("TASK-0001-0001-001").status())
+                .isEqualTo(TaskStatus.PENDING);
+    }
+
+    @Test
+    void reclassifyTasks_emptyTasks_returnsStoryUnchanged() {
+        var story = StoryEntry.pending(0);
+
+        var result = ResumeHandler.reclassifyTasks(story);
+
+        assertThat(result.tasks()).isEmpty();
+    }
+
+    @Test
+    void reclassifyTasks_blockedTask_remainsBlocked() {
+        var tasks = Map.of(
+                "TASK-0001-0001-001",
+                TaskEntry.pending("TASK-0001-0001-001")
+                        .withStatus(TaskStatus.BLOCKED)
+        );
+        var story = StoryEntry.pending(0).withTasks(tasks);
+
+        var result = ResumeHandler.reclassifyTasks(story);
+
+        assertThat(result.tasks()
+                .get("TASK-0001-0001-001").status())
+                .isEqualTo(TaskStatus.BLOCKED);
+    }
+
+    @Test
+    void reevaluateBlockedTasks_returnsDefensiveCopy() {
+        var tasks = Map.of(
+                "TASK-0001-0001-001",
+                TaskEntry.pending("TASK-0001-0001-001")
+                        .withStatus(TaskStatus.BLOCKED)
+        );
+        var story = StoryEntry.pending(0).withTasks(tasks);
+        var stories = Map.of("story-001", story);
+
+        var result =
+                ResumeHandler.reevaluateBlockedTasks(stories);
+
+        assertThat(result).isEqualTo(stories);
+        assertThat(result).isNotSameAs(stories);
+    }
+
+    @Test
     void reclassifyStories_whenCalled_preservesNonRetriableStatuses() {
         var stories = Map.of(
                 "s1",

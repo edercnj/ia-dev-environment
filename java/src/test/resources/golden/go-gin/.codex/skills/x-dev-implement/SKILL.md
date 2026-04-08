@@ -277,7 +277,7 @@ Check each criterion from the task's Definition of Done:
 ##### 5. Atomic Commit
 ```bash
 git add [test-file] [implementation-files]
-git commit -m "feat(scope): implement TASK-NNN [TDD:GREEN]"
+git commit -m "feat(TASK-XXXX-YYYY-NNN): implement TASK-XXXX-YYYY-NNN [TDD:GREEN]"
 ```
 
 ##### 6. Compile Check

@@ -114,16 +114,16 @@ Run the selected formatter command. Capture output for the report.
 After formatting, detect which previously staged files were modified by the formatter and re-stage them automatically:
 
 ```bash
-# Get list of staged files before formatting
-STAGED_BEFORE=$(git diff --cached --name-only)
+# Get list of staged files before formatting (NUL-delimited for safety)
+STAGED_BEFORE=$(git diff --cached --name-only -z)
 
 # After formatting, re-stage files that were already staged
-for file in $STAGED_BEFORE; do
-    if git diff --name-only | grep -q "^${file}$"; then
+while IFS= read -r -d '' file; do
+    if git diff --name-only -z | grep -zFx "$file" > /dev/null; then
         git add "$file"
         echo "Re-staged: $file"
     fi
-done
+done <<< "$STAGED_BEFORE"
 ```
 
 ### Step 6 -- Report

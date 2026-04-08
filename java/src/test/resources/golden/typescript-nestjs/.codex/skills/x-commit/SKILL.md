@@ -152,20 +152,20 @@ Unless `--skip-chain` is provided, execute the chain sequentially:
 Invoke `/x-format` to format all staged files. If x-format modifies any files that were staged, **re-stage them automatically**:
 
 ```bash
-# Record staged files before format
-STAGED_BEFORE=$(git diff --cached --name-only)
+# Record staged files before format (NUL-delimited for safety)
+STAGED_BEFORE=$(git diff --cached --name-only -z)
 
 # Run formatter (language-specific)
 # For {{LANGUAGE}}: {{COMPILE_COMMAND}} equivalent
 # See x-format skill for language-specific commands
 
 # Re-stage files that were staged and modified by formatter
-for file in $STAGED_BEFORE; do
-    if git diff --name-only | grep -q "^${file}$"; then
+while IFS= read -r -d '' file; do
+    if git diff --name-only -z | grep -zFx "$file" > /dev/null; then
         git add "$file"
         echo "Re-staged after format: $file"
     fi
-done
+done <<< "$STAGED_BEFORE"
 ```
 
 If format fails: **ABORT** with message `"Pre-commit chain failed at step 'x-format': {error output}"`.

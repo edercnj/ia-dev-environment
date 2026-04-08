@@ -19,9 +19,13 @@ import java.util.Map;
  * <p>Task-level reclassification (RULE-014):
  * <ul>
  *   <li>IN_PROGRESS -> PENDING (interrupted, restart)</li>
- *   <li>BLOCKED with resolved deps -> PENDING</li>
  *   <li>DONE, SKIPPED -> unchanged (terminal)</li>
  * </ul>
+ *
+ * <p>Note: task-level BLOCKED reevaluation is intentionally
+ * disabled because {@link TaskEntry} does not carry explicit
+ * dependency metadata. When dependency data becomes available,
+ * {@link #reevaluateBlockedTasks} will resolve BLOCKED tasks.</p>
  *
  * <p>After reclassification, metrics are recalculated via
  * {@link CheckpointEngine#updateMetrics}.</p>
@@ -107,7 +111,6 @@ public final class ResumeHandler {
      * <p>Task reclassification rules (RULE-014):
      * <ul>
      *   <li>IN_PROGRESS -> PENDING (interrupted)</li>
-     *   <li>BLOCKED -> reevaluate dependencies</li>
      *   <li>Terminal (DONE, SKIPPED) -> unchanged</li>
      * </ul>
      *
@@ -169,59 +172,18 @@ public final class ResumeHandler {
     }
 
     /**
-     * Re-evaluates BLOCKED tasks whose task dependencies
-     * may now be resolved.
+     * Task-level unblocking is currently disabled because task
+     * dependency metadata is not available in {@link TaskEntry}.
+     * Returning the input unchanged avoids implying that blocked
+     * tasks can be resumed when no dependency resolution can
+     * actually be performed.
      *
      * @param stories current stories map
-     * @return a new map with unblocked tasks set to PENDING
+     * @return a defensive copy of the input map, unchanged
      */
     static Map<String, StoryEntry> reevaluateBlockedTasks(
             Map<String, StoryEntry> stories) {
-        var allTasks = collectAllTasks(stories);
-        var result = new LinkedHashMap<>(stories);
-
-        for (var storyEntry : stories.entrySet()) {
-            var story = storyEntry.getValue();
-            if (story.tasks().isEmpty()) {
-                continue;
-            }
-            var updatedTasks = reevaluateBlockedTasksInStory(
-                    story.tasks(), allTasks);
-            if (!updatedTasks.equals(story.tasks())) {
-                result.put(
-                        storyEntry.getKey(),
-                        story.withTasks(updatedTasks)
-                );
-            }
-        }
-        return result;
-    }
-
-    private static Map<String, TaskEntry>
-            reevaluateBlockedTasksInStory(
-                    Map<String, TaskEntry> tasks,
-                    Map<String, TaskEntry> allTasks) {
-        var result = new LinkedHashMap<>(tasks);
-        for (var entry : tasks.entrySet()) {
-            var task = entry.getValue();
-            if (task.status() != TaskStatus.BLOCKED) {
-                continue;
-            }
-            // For blocked tasks, check if the task they depend on
-            // (by sequential order) is now DONE
-            // This is a simplified check; real dependency resolution
-            // would use explicit dependency declarations
-        }
-        return result;
-    }
-
-    private static Map<String, TaskEntry> collectAllTasks(
-            Map<String, StoryEntry> stories) {
-        var allTasks = new LinkedHashMap<String, TaskEntry>();
-        for (var story : stories.values()) {
-            allTasks.putAll(story.tasks());
-        }
-        return allTasks;
+        return new LinkedHashMap<>(stories);
     }
 
     private static boolean allDepsSucceeded(
