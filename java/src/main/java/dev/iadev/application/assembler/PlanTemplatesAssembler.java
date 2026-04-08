@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Copies the 12 planning and review templates to both
+ * Copies the 15 planning and review templates to both
  * {@code .claude/templates/} and {@code .github/templates/}
  * in the output directory.
  *
@@ -45,7 +45,7 @@ public final class PlanTemplatesAssembler
             ".github/templates";
 
     /** Number of templates this assembler manages. */
-    static final int TEMPLATE_COUNT = 12;
+    static final int TEMPLATE_COUNT = 15;
 
     /**
      * Template definitions: filename to mandatory
@@ -315,6 +315,39 @@ public final class PlanTemplatesAssembler
                         "Coverage Delta",
                         "Blockers Encountered",
                         "Next Phase Readiness"));
+
+        map.put("_TEMPLATE-TASK-PLAN.md",
+                List.of(
+                        "Header",
+                        "Objective",
+                        "Implementation Guide",
+                        "Definition of Done",
+                        "Dependencies",
+                        "Estimated Effort",
+                        "Risks"));
+
+        map.put("_TEMPLATE-STORY-PLANNING-REPORT.md",
+                List.of(
+                        "Header",
+                        "Planning Summary",
+                        "Architecture Assessment",
+                        "Test Strategy Summary",
+                        "Security Assessment Summary",
+                        "Implementation Approach",
+                        "Task Breakdown Summary",
+                        "Consolidated Risk Matrix",
+                        "DoR Status"));
+
+        map.put("_TEMPLATE-DOR-CHECKLIST.md",
+                List.of(
+                        "Header",
+                        "Architecture Readiness",
+                        "Test Readiness",
+                        "Security Readiness",
+                        "Implementation Readiness",
+                        "Task Decomposition Readiness",
+                        "Blockers and Open Questions",
+                        "Final Verdict"));
 
         return Collections.unmodifiableMap(map);
     }

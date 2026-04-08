@@ -11,7 +11,9 @@
     "XXXX-0001": {
       "status": "PENDING",
       "phase": 1,
-      "retries": 0
+      "retries": 0,
+      "planningStatus": "PENDING",
+      "tasks": {}
     }
   },
   "integrityGates": {
