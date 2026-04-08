@@ -309,6 +309,9 @@ Log `"Architecture plan not needed for this change scope"` and proceed to Step 1
 
 Launch a **single** `general-purpose` subagent with `model: opus` (RULE-009):
 
+> CONTEXT ISOLATION: You receive only metadata. Read all files yourself.
+> Do NOT expect source code, diffs, or knowledge pack content in this prompt.
+>
 > You are a **Senior Architect** planning feature implementation for {{PROJECT_NAME}}.
 >
 > **Step 1 -- Read context:**
@@ -378,6 +381,9 @@ The task decomposer auto-detects decomposition mode:
 ### 1D: Event Schema Design (if event_driven)
 Launch `general-purpose` subagent:
 
+> CONTEXT ISOLATION: You receive only metadata. Read all files yourself.
+> Do NOT expect source code, diffs, or knowledge pack content in this prompt.
+>
 > You are an **Event Engineer** designing event schemas.
 > Read `skills/protocols/references/event-driven-conventions.md` for standards.
 > Read the implementation plan at `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md`.
@@ -390,6 +396,9 @@ Launch `general-purpose` subagent:
 
 Launch `general-purpose` subagent:
 
+> CONTEXT ISOLATION: You receive only metadata. Read all files yourself.
+> Do NOT expect source code, diffs, or knowledge pack content in this prompt.
+>
 > You are a **Security Engineer** assessing security impact.
 > Read template at `.claude/templates/_TEMPLATE-SECURITY-ASSESSMENT.md` for required output format (RULE-007). If the template file does not exist, log `"WARNING: Template _TEMPLATE-SECURITY-ASSESSMENT.md not found, using inline format"` and use inline format as fallback (RULE-012).
 > Read `skills/security/SKILL.md` -> then read its references.
@@ -405,6 +414,9 @@ Launch `general-purpose` subagent:
 
 Launch `general-purpose` subagent:
 
+> CONTEXT ISOLATION: You receive only metadata. Read all files yourself.
+> Do NOT expect source code, diffs, or knowledge pack content in this prompt.
+>
 > You are a **Security Engineer** assessing compliance impact.
 > Read template at `.claude/templates/_TEMPLATE-COMPLIANCE-ASSESSMENT.md` for required output format (RULE-007). If the template file does not exist, log `"WARNING: Template _TEMPLATE-COMPLIANCE-ASSESSMENT.md not found, using inline format"` and use inline format as fallback (RULE-012).
 > Read `skills/compliance/SKILL.md` -> then read its references.

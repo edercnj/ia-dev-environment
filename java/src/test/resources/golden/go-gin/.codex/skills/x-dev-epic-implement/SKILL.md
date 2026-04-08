@@ -849,6 +849,9 @@ When `--sequential` flag is set, use sequential dispatch. For each executable st
 ```
 You are implementing story {storyId} for epic {epicId}.
 
+CONTEXT ISOLATION: You receive only metadata. Read all files yourself.
+Do NOT expect source code, diffs, or knowledge pack content in this prompt.
+
 Story file: plans/epic-{epicId}/story-{storyId}.md
 Branch: {branchName}
 Phase: {currentPhase}
@@ -950,6 +953,9 @@ a conflict resolution subagent is dispatched to resolve them automatically.
 **Prompt Template:**
 ```
 You are a Conflict Resolution Specialist resolving rebase conflicts.
+
+CONTEXT ISOLATION: You receive only metadata. Read all files yourself.
+Do NOT expect source code, diffs, or knowledge pack content in this prompt.
 
 Conflict type: rebase
 Story branch: {storyBranch}
@@ -1193,6 +1199,9 @@ PRs are not merged to `develop`. The integrity gate is **DEFERRED**:
 
 Launch a `general-purpose` subagent:
 
+> CONTEXT ISOLATION: You receive only metadata. Read all files yourself.
+> Do NOT expect source code, diffs, or knowledge pack content in this prompt.
+>
 > You are an **Integrity Gate Validator** for {{PROJECT_NAME}}.
 >
 > **Step 1 — Compile:** Run `{{COMPILE_COMMAND}}` (e.g., `tsc --noEmit`).
@@ -1328,7 +1337,7 @@ After the integrity gate passes (compile + test + coverage + smoke), run a
 cross-story consistency check on the `develop` diff for the phase:
 
 1. Compute diff: `git diff {mainShaBeforePhase[N]}..develop`
-2. Dispatch a consistency subagent with the diff for analysis
+2. Dispatch a consistency subagent with metadata only (CONTEXT ISOLATION: pass phase number, SHA range, and file list — the subagent runs `git diff` itself to read the actual diff)
 3. The subagent verifies:
    - Error handling patterns are uniform across classes of the same role
    - Constructor patterns and return types are consistent within modules
