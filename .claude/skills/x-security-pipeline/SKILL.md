@@ -1,9 +1,9 @@
 ---
 name: x-security-pipeline
-description: "Generates CI/CD pipeline configurations with conditional security stages based on SecurityConfig flags. Supports GitHub Actions, GitLab CI, and Azure DevOps with minimal and full stage modes."
+description: "Generate CI/CD pipeline configurations with conditional security stages based on SecurityConfig flags. Support GitHub Actions, GitLab CI, and Azure DevOps with minimal and full stage modes, configurable severity thresholds, and SARIF artifact upload."
 user-invocable: true
-argument-hint: "[--ci github|gitlab|azure] [--stages all|minimal] [--trigger push|pr|schedule] [--fail-on-findings true|false] [--severity-threshold CRITICAL|HIGH|MEDIUM]"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent
+argument-hint: "[--ci github|gitlab|azure] [--stages all|minimal] [--trigger push|pr|schedule] [--fail-on-findings true|false] [--severity-threshold CRITICAL|HIGH|MEDIUM]"
 ---
 
 ## Global Output Policy
@@ -16,41 +16,31 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent
 
 ## Purpose
 
-Generates CI/CD pipeline configuration files with conditional security stages for {{PROJECT_NAME}}. Each stage is included only when its corresponding SecurityConfig flag is enabled. Supports three CI platforms (GitHub Actions, GitLab CI, Azure DevOps), two stage modes (minimal, all), and three trigger types (push, pr, schedule). References atomic scanning skills (x-sast-scan, x-secret-scan, x-container-scan, x-dast-scan, x-owasp-scan, x-sonar-gate) instead of duplicating scan logic (RULE-011).
+Generate CI/CD pipeline configuration files with conditional security stages for {{PROJECT_NAME}}. Each stage is included only when its corresponding SecurityConfig flag is enabled. Support three CI platforms (GitHub Actions, GitLab CI, Azure DevOps), two stage modes (minimal, all), and three trigger types (push, pr, schedule). Reference atomic scanning skills (x-sast-scan, x-secret-scan, x-container-scan, x-dast-scan, x-owasp-scan, x-sonar-gate) instead of duplicating scan logic (RULE-011 — Composability).
 
 ## Triggers
 
-- `/x-security-pipeline` -- generate security pipeline (default: GitHub Actions, all stages, pr trigger)
-- `/x-security-pipeline --ci github` -- generate GitHub Actions security pipeline
-- `/x-security-pipeline --ci gitlab` -- generate GitLab CI security pipeline
-- `/x-security-pipeline --ci azure` -- generate Azure DevOps security pipeline
-- `/x-security-pipeline --stages minimal` -- generate minimal pipeline (SAST + secret scan + dependency audit)
-- `/x-security-pipeline --stages all` -- generate full pipeline with all 9 conditional stages
-- `/x-security-pipeline --trigger schedule` -- generate pipeline with scheduled trigger
+- `/x-security-pipeline` — generate security pipeline (default: GitHub Actions, all stages, pr trigger)
+- `/x-security-pipeline --ci github` — generate GitHub Actions security pipeline
+- `/x-security-pipeline --ci gitlab` — generate GitLab CI security pipeline
+- `/x-security-pipeline --ci azure` — generate Azure DevOps security pipeline
+- `/x-security-pipeline --stages minimal` — generate minimal pipeline (SAST + secret scan + dependency audit)
+- `/x-security-pipeline --stages all` — generate full pipeline with all 9 conditional stages
+- `/x-security-pipeline --trigger schedule` — generate pipeline with scheduled trigger
 
-## Arguments
+## Parameters
 
-| Argument | Type | Default | Description |
-|----------|------|---------|-------------|
-| `--ci` | Enum | `github` | CI platform: github, gitlab, azure |
-| `--stages` | Enum | `all` | Stage mode: all (9 stages), minimal (3 stages) |
-| `--trigger` | Enum | `pr` | Pipeline trigger: push, pr, schedule |
-| `--fail-on-findings` | Boolean | `true` | Fail pipeline on security findings |
-| `--severity-threshold` | Enum | `HIGH` | Minimum severity to fail: CRITICAL, HIGH, MEDIUM |
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `--ci` | Enum | No | `github` | CI platform: `github`, `gitlab`, `azure` |
+| `--stages` | Enum | No | `all` | Stage mode: `all` (9 stages), `minimal` (3 stages) |
+| `--trigger` | Enum | No | `pr` | Pipeline trigger: `push`, `pr`, `schedule` |
+| `--fail-on-findings` | Boolean | No | `true` | Fail pipeline on security findings |
+| `--severity-threshold` | Enum | No | `HIGH` | Minimum severity to fail: `CRITICAL`, `HIGH`, `MEDIUM` |
 
 ## Workflow
 
-```
-1. READ CONFIG  -> Read SecurityConfig flags and infrastructure settings
-2. EVALUATE     -> Evaluate stage conditions against config flags
-3. SELECT       -> Filter stages by mode (minimal/all) and conditions
-4. RENDER       -> Generate platform-specific YAML from stage definitions
-5. VALIDATE     -> Validate generated YAML structure
-6. WRITE        -> Write pipeline file to appropriate location
-7. REPORT       -> Summarize enabled/disabled stages
-```
-
-### Step 1 -- Read Configuration
+### Step 1 — Read Configuration
 
 Read project configuration to evaluate stage conditions:
 
@@ -64,9 +54,9 @@ Read project configuration to evaluate stage conditions:
 | `security.frameworks` | Enables OWASP Scan when contains "owasp" |
 | `infrastructure.container` | Enables Container Scan when != "none" |
 
-Cross-reference with `.claude/rules/01-project-identity.md` for authoritative stack information.
+Cross-reference with `.claude/rules/01-project-identity.md` (RULE-001 — Project Identity) for authoritative stack information.
 
-### Step 2 -- Evaluate Stage Conditions
+### Step 2 — Evaluate Stage Conditions
 
 Evaluate each stage condition and build the stage list:
 
@@ -86,7 +76,7 @@ Evaluate each stage condition and build the stage list:
 
 **All mode**: All 9 stages, each conditionally included based on its flag evaluation.
 
-### Step 3 -- Select Stages
+### Step 3 — Select Stages
 
 For each stage in the ordered list:
 
@@ -97,17 +87,17 @@ For each stage in the ordered list:
 
 **Note**: Dependency Audit (stage 3) is always enabled regardless of flags.
 
-### Step 4 -- Render Platform-Specific YAML
+### Step 4 — Render Platform-Specific YAML
 
 Generate pipeline YAML using the selected stages and platform-specific syntax.
 
-**Template placeholders** (RULE-015):
-- `{{LANGUAGE}}` -- project language (java, typescript, python, go, rust)
-- `{{BUILD_TOOL}}` -- build tool (maven, gradle, npm, pip, cargo, go)
-- `{{FRAMEWORK}}` -- framework name (spring, quarkus, nestjs, fastapi, gin, axum)
-- `{{PROJECT_NAME}}` -- project name
+**Template placeholders** (RULE-015 — Template Conventions):
+- `{{LANGUAGE}}` — project language (java, typescript, python, go, rust)
+- `{{BUILD_TOOL}}` — build tool (maven, gradle, npm, pip, cargo, go)
+- `{{FRAMEWORK}}` — framework name (spring, quarkus, nestjs, fastapi, gin, axum)
+- `{{PROJECT_NAME}}` — project name
 
-#### 4.1 -- GitHub Actions (`.github/workflows/security.yml`)
+#### 4.1 — GitHub Actions (`.github/workflows/security.yml`)
 
 ```yaml
 name: Security Pipeline
@@ -251,7 +241,7 @@ jobs:
           echo "All security stages passed"
 ```
 
-#### 4.2 -- GitLab CI (`.gitlab-ci-security.yml`)
+#### 4.2 — GitLab CI (`.gitlab-ci-security.yml`)
 
 ```yaml
 stages:
@@ -343,7 +333,7 @@ quality-gate:
   needs: [hardening-eval]
 ```
 
-#### 4.3 -- Azure DevOps (`azure-pipelines-security.yml`)
+#### 4.3 — Azure DevOps (`azure-pipelines-security.yml`)
 
 ```yaml
 trigger:
@@ -454,7 +444,7 @@ stages:
             displayName: 'Check quality gate'
 ```
 
-### Step 5 -- Validate Generated YAML
+### Step 5 — Validate Generated YAML
 
 Validate the generated YAML is structurally correct:
 
@@ -472,7 +462,7 @@ which yamllint 2>/dev/null && yamllint <generated-file>
 
 If validation tools are not installed, report a warning and continue (non-blocking).
 
-### Step 6 -- Write Pipeline File
+### Step 6 — Write Pipeline File
 
 Write the generated pipeline to the platform-specific path:
 
@@ -482,7 +472,7 @@ Write the generated pipeline to the platform-specific path:
 | GitLab CI | `.gitlab-ci-security.yml` |
 | Azure DevOps | `azure-pipelines-security.yml` |
 
-### Step 7 -- Report
+### Step 7 — Report
 
 Generate a summary of the pipeline generation:
 
@@ -534,7 +524,7 @@ Controls the minimum severity level that triggers a pipeline failure:
 
 Each scanning stage receives the threshold via environment variable `SEVERITY_THRESHOLD`.
 
-## Composability (RULE-011)
+## Composability (RULE-011 — Skill Composability)
 
 This skill **references** atomic scanning skills and never duplicates their scan logic:
 
@@ -566,11 +556,21 @@ To modify scan behavior (rules, exclusions, severity mappings), use the referenc
 
 ## Integration Notes
 
-- Uses `devops-engineer` agent for advanced pipeline customization via Agent tool
-- References CI/CD patterns KP (`skills/ci-cd-patterns/`) for caching and artifact strategies
-- Generated pipelines follow Conventional Commits for stage naming
-- Each stage includes appropriate caching for {{BUILD_TOOL}}
-- Artifacts are uploaded for all scanning stages (SARIF, JSON reports)
-- GitHub Actions pipelines support SARIF upload to Security tab
-- GitLab CI pipelines use native security report artifacts
-- Azure DevOps pipelines use standard test result publishing
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| x-secret-scan | references | Provides scan logic for Secret Scan stage |
+| x-sast-scan | references | Provides scan logic for SAST stage |
+| x-dependency-audit | references | Provides scan logic for Dependency Audit stage |
+| x-sonar-gate | references | Provides scan logic for SonarQube and Quality Gate stages |
+| x-container-scan | references | Provides scan logic for Container Scan stage |
+| x-dast-scan | references | Provides scan logic for DAST Passive stage |
+| x-owasp-scan | references | Provides scan logic for OWASP Scan stage |
+| x-hardening-eval | references | Provides scan logic for Hardening Eval stage |
+| x-ci-cd-generate | complements | Generates general CI/CD pipelines; this skill adds security stages |
+
+## Knowledge Pack References
+
+| Knowledge Pack | Usage |
+|----------------|-------|
+| security | SecurityConfig flags, severity classification |
+| ci-cd-patterns | Caching strategies, artifact management, pipeline structure |

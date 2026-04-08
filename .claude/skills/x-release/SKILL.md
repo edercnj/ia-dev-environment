@@ -2,8 +2,8 @@
 name: x-release
 description: "Orchestrates complete release flow using Git Flow release branches: version bump (auto-detect or explicit), release branch creation from develop, version file updates, changelog generation, release commit, dual merge (main + develop), git tag on main, and cleanup. Supports hotfix releases from main and dry-run mode."
 user-invocable: true
-argument-hint: "[major|minor|patch|version] [--dry-run] [--skip-tests] [--no-publish] [--hotfix]"
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent
+argument-hint: "[major|minor|patch|version] [--dry-run] [--skip-tests] [--no-publish] [--hotfix]"
 ---
 
 ## Global Output Policy
@@ -20,15 +20,25 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 
 ## Triggers
 
-- `/x-release` -- auto-detect version bump from Conventional Commits since last tag
-- `/x-release major` -- bump major version (breaking changes)
-- `/x-release minor` -- bump minor version (new features)
-- `/x-release patch` -- bump patch version (bug fixes)
-- `/x-release 2.1.0` -- set explicit version
-- `/x-release minor --dry-run` -- preview release plan without executing
-- `/x-release patch --skip-tests` -- skip test validation
-- `/x-release minor --no-publish` -- create release locally without pushing
-- `/x-release patch --hotfix` -- create hotfix release from `main`
+- `/x-release` — auto-detect version bump from Conventional Commits since last tag
+- `/x-release major` — bump major version (breaking changes)
+- `/x-release minor` — bump minor version (new features)
+- `/x-release patch` — bump patch version (bug fixes)
+- `/x-release 2.1.0` — set explicit version
+- `/x-release minor --dry-run` — preview release plan without executing
+- `/x-release patch --skip-tests` — skip test validation
+- `/x-release minor --no-publish` — create release locally without pushing
+- `/x-release patch --hotfix` — create hotfix release from `main`
+
+## Parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| Bump type or version | No | `major`, `minor`, `patch`, or explicit `X.Y.Z`. Auto-detect if omitted. |
+| `--dry-run` | No | Preview release plan without executing any changes |
+| `--skip-tests` | No | Skip test validation (displays warning) |
+| `--no-publish` | No | Create release locally without pushing to remote |
+| `--hotfix` | No | Create hotfix release from `main` instead of `develop` |
 
 ## Workflow
 
@@ -47,7 +57,7 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
     DRY-RUN      -> If --dry-run, show plan and exit (no changes)
 ```
 
-### Step 1 -- DETERMINE Version
+### Step 1 — Determine Version
 
 Parse the argument to determine the target version:
 
@@ -95,7 +105,7 @@ Decision order: if any commit triggers major, use major. Else if any triggers mi
 
 This follows Semantic Versioning (https://semver.org/spec/v2.0.0.html) rules.
 
-### Step 2 -- VALIDATE Pre-conditions
+### Step 2 — Validate Pre-conditions
 
 Before making any changes, validate:
 
@@ -130,7 +140,7 @@ If `--skip-tests` flag is present:
 - Hotfix release (`--hotfix`): MUST start from `main`
 - Starting from any other branch (e.g., `feature/*`) is a WARNING
 
-### Step 3 -- BRANCH Creation
+### Step 3 — Branch Creation
 
 Create a release branch from the appropriate source:
 
@@ -156,7 +166,7 @@ git pull origin main
 git checkout -b "hotfix/${DESCRIPTION}"
 ```
 
-### Step 4 -- UPDATE Version Files
+### Step 4 — Update Version Files
 
 Update version in the appropriate project files based on language/build tool.
 
@@ -207,7 +217,7 @@ elif [ -f "go.mod" ]; then
 fi
 ```
 
-### Step 5 -- CHANGELOG Generation
+### Step 5 — Changelog Generation
 
 Delegate changelog generation to the `x-changelog` skill:
 
@@ -221,7 +231,7 @@ The x-changelog skill will:
 
 Reference: `skills/x-changelog/SKILL.md`
 
-### Step 6 -- COMMIT Release
+### Step 6 — Commit Release
 
 Create a release commit on the release branch following Conventional Commits format:
 
@@ -233,9 +243,9 @@ git add -A
 git commit -m "release: v${VERSION}"
 ```
 
-The commit message format is `release: v{version}` -- this follows `x-git-push` Conventional Commits patterns.
+The commit message format is `release: v{version}` — this follows `x-git-push` Conventional Commits patterns.
 
-### Step 7 -- MERGE TO MAIN
+### Step 7 — Merge to Main
 
 Merge the release branch into `main` using a merge commit (no fast-forward):
 
@@ -251,7 +261,7 @@ git merge "release/${VERSION}" --no-ff \
 
 **Important:** The `--no-ff` flag ensures a merge commit is always created, preserving the release branch history in the commit graph.
 
-### Step 8 -- TAG Creation
+### Step 8 — Tag Creation
 
 Create an annotated git tag on `main` (after the merge):
 
@@ -264,7 +274,7 @@ $(git log $(git describe --tags --abbrev=0 HEAD~1 2>/dev/null)..HEAD~1 \
     --format='- %s' --no-merges)"
 ```
 
-### Step 9 -- MERGE BACK TO DEVELOP
+### Step 9 — Merge Back to Develop
 
 Merge the release branch back into `develop` to propagate any release fixes:
 
@@ -293,7 +303,7 @@ git add -A
 git commit -m "chore: advance develop to ${NEXT_SNAPSHOT}"
 ```
 
-### Step 10 -- PUBLISH
+### Step 10 — Publish
 
 If `--no-publish` flag is NOT present, push all branches and the tag:
 
@@ -310,7 +320,7 @@ If `--no-publish` flag IS present:
 - Skip push
 - Display: "Release created locally. Run 'git push origin main develop v{VERSION}' manually when ready."
 
-### Step 11 -- CLEANUP
+### Step 11 — Cleanup
 
 Delete the release branch after successful merge:
 
@@ -322,7 +332,7 @@ git branch -d "release/${VERSION}"
 git push origin --delete "release/${VERSION}" 2>/dev/null || true
 ```
 
-### DRY-RUN Mode
+### Dry-Run Mode
 
 If `--dry-run` flag is present, show the complete release plan without executing any changes:
 
@@ -409,14 +419,6 @@ Before executing the release, validate against the release-checklist template (`
 - [ ] CHANGELOG.md will be updated
 - [ ] No breaking changes without major bump
 
-## Integration Notes
-
-- **x-changelog**: Delegates changelog generation via Agent tool
-- **x-git-push**: Uses same Conventional Commits format for release commit
-- **release-management KP**: References SemVer rules, branching strategies, and registry patterns from `skills/release-management/SKILL.md`
-- **Release Checklist**: Validates against `_TEMPLATE-RELEASE-CHECKLIST.md` for completeness
-- **Rule 09 (Branching Model)**: Follows Git Flow branch types and merge direction rules
-
 ## Error Handling
 
 | Scenario | Action |
@@ -433,3 +435,14 @@ Before executing the release, validate against the release-checklist template (`
 | Merge conflict (main) | ABORT, resolve manually |
 | Merge conflict (develop) | Warning, resolve and continue |
 | Active release branch exists (hotfix) | Merge hotfix into release branch instead of develop |
+
+## Integration Notes
+
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| `x-changelog` | calls | Delegates changelog generation via Agent tool |
+| `x-git-push` | reads | Uses same Conventional Commits format for release commit |
+
+- **release-management KP**: References SemVer rules, branching strategies, and registry patterns from `skills/release-management/SKILL.md`
+- **Release Checklist**: Validates against `_TEMPLATE-RELEASE-CHECKLIST.md` for completeness
+- **Rule 09 (Branching Model)**: Follows Git Flow branch types and merge direction rules
