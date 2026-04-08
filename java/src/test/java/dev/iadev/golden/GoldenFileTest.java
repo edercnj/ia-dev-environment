@@ -224,6 +224,10 @@ class GoldenFileTest {
      * Collects all relative file paths under a directory,
      * sorted for deterministic comparison.
      *
+     * <p>Skips {@code platform-*} subdirectories since
+     * those are tested separately by
+     * {@link PlatformGoldenFileTest}.</p>
+     *
      * @param dir the root directory to scan
      * @return sorted set of relative paths as strings
      * @throws IOException if directory traversal fails
@@ -232,6 +236,18 @@ class GoldenFileTest {
             throws IOException {
         Set<String> paths = new TreeSet<>();
         Files.walkFileTree(dir, new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult preVisitDirectory(
+                    Path subDir,
+                    BasicFileAttributes attrs) {
+                String name = subDir.getFileName()
+                        .toString();
+                if (name.startsWith("platform-")) {
+                    return FileVisitResult.SKIP_SUBTREE;
+                }
+                return FileVisitResult.CONTINUE;
+            }
+
             @Override
             public FileVisitResult visitFile(
                     Path file,

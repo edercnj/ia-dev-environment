@@ -53,13 +53,16 @@ public final class SkillGroupRegistry {
                 "x-dev-epic-implement",
                 "x-dev-architecture-plan",
                 "x-dev-arch-update",
+                "x-docs",
                 "layer-templates",
                 "x-dev-adr-automation",
+                "x-format",
                 "x-mcp-recommend",
                 "x-perf-profile",
                 "x-setup-dev-environment",
                 "x-ci-cd-generate",
-                "x-security-pipeline"));
+                "x-security-pipeline",
+                "x-lint"));
         SKILL_GROUPS.put("review", List.of(
                 "x-review", "x-review-api", "x-review-pr",
                 "x-review-grpc", "x-review-events",
