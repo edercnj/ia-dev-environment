@@ -226,6 +226,54 @@ plans/
 
 **FORBIDDEN**: Saving epic/story/plan/review files at the project root, in flat directories, or in `plans/` / `plans/reviews/` outside the `epic-XXXX/` folder structure.
 
+## SD-12: Task Testability (Mandatory)
+
+Every task defined in Section 8 MUST be independently testable. Each task MUST follow one of the valid testability patterns:
+
+| Pattern | Content | Test Type |
+|---------|---------|-----------|
+| Domain + UnitTest | Entity/VO/Engine + unit test | Unit |
+| Port + Adapter + IT | Interface + implementation + integration test | Integration |
+| UseCase + AT | Use case + acceptance test | Acceptance |
+| Endpoint + APITest | Controller/Resource + API test | API |
+| Migration + Smoke | Migration script + smoke test | Smoke |
+| Config + VerificationTest | Configuration + verification test | Verification |
+
+**Task ID format:** `TASK-XXXX-YYYY-NNN` where XXXX = epic ID, YYYY = story ID, NNN = sequential 001-999.
+
+**Task block mandatory fields:**
+- ID, Title (imperative, max 80 chars), Layer, Test Type, Size (S/M/L), Dependencies, Branch, Testability pattern, Files, Acceptance Criteria
+
+**Sizing constraints (RULE-011):**
+- Minimum 3 tasks per story, maximum 8
+- Ideal size: M (50-150 LOC)
+- Tasks < 20 LOC MUST be combined with adjacent tasks
+- Tasks > 300 LOC MUST be split
+
+## SD-13: Non-Testable Task Anti-Patterns (Forbidden)
+
+Tasks that cannot be independently tested are **FORBIDDEN** as isolated units of delivery:
+
+- **Interface-only:** Port without Adapter — cannot be tested without an implementation
+- **DTO-only:** DTO without usage in endpoint or use case — no behavior to test
+- **Test-only:** Test without production code — except Layer 4 acceptance tests
+- **Config-only:** Configuration without verification test — no way to confirm correctness
+
+These anti-patterns MUST be combined with their complementary artifacts into a single task that follows a valid testability pattern from SD-12.
+
+**Example violations:**
+```
+// BAD — interface-only task
+TASK-0029-0001-001: Create PaymentPort interface
+  Layer: Port, Test Type: — (no test possible)
+
+// GOOD — combined into testable unit
+TASK-0029-0001-001: Implement payment persistence
+  Layer: Port + Adapter, Test Type: Integration
+  Files: PaymentPort.java, JpaPaymentAdapter.java,
+         JpaPaymentAdapterTest.java
+```
+
 ## Anti-Patterns (FORBIDDEN)
 
 - Story that says "implement X" without a data contract → **FORBIDDEN**

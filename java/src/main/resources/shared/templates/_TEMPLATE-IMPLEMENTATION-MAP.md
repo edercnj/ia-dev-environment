@@ -157,3 +157,46 @@ graph TD
 ### Marco de Validação Arquitetural
 
 <Qual história deve servir como checkpoint de validação antes de expandir o escopo. O que ela valida (patterns, pipeline, integração).>
+
+---
+
+## 8. Dependências entre Tasks (Cross-Story)
+
+> Esta seção é gerada automaticamente quando as histórias contêm tasks formais com IDs `TASK-XXXX-YYYY-NNN`. Se as histórias não possuem task IDs formais, esta seção é omitida.
+
+### 8.1 Dependências Cross-Story entre Tasks
+
+| Task | Depends On | Story Source | Story Target | Tipo |
+| :--- | :--- | :--- | :--- | :--- |
+| <TASK-XXXX-YYYY-NNN> | <TASK-XXXX-ZZZZ-MMM> | <story-XXXX-YYYY> | <story-XXXX-ZZZZ> | <data/interface/schema/config> |
+
+> **Validação RULE-012:** <Resultado da validação de consistência entre dependências de tasks e dependências de histórias. Erros e warnings listados aqui.>
+
+### 8.2 Ordem de Merge (Topological Sort)
+
+| Ordem | Task ID | Story | Parallelizável Com | Fase |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | <TASK-XXXX-YYYY-NNN> | <story-XXXX-YYYY> | <TASK IDs paralelos> | 0 |
+
+**Total: <N> tasks em <N> fases de execução.**
+
+### 8.3 Grafo de Dependências entre Tasks (Mermaid)
+
+```mermaid
+graph LR
+    subgraph story-XXXX-0001["Story 0001 (<Título>)"]
+        style story-XXXX-0001 fill:#e8f4fd
+        T001["TASK-XXXX-0001-001<br/><Descrição curta>"]
+        T002["TASK-XXXX-0001-002<br/><Descrição curta>"]
+        T001 --> T002
+    end
+
+    subgraph story-XXXX-0002["Story 0002 (<Título>)"]
+        style story-XXXX-0002 fill:#fde8e8
+        T003["TASK-XXXX-0002-001<br/><Descrição curta>"]
+        T004["TASK-XXXX-0002-002<br/><Descrição curta>"]
+        T003 --> T004
+    end
+
+    T002 -.->|cross-story| T003
+```
