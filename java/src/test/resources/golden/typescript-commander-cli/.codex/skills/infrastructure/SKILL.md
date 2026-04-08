@@ -1,6 +1,7 @@
 ---
 name: infrastructure
 description: "Infrastructure patterns: Docker multi-stage builds, Kubernetes manifests (cloud-agnostic), security context, 12-Factor App principles, graceful shutdown, resource management, and cloud-native design."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
@@ -31,3 +32,9 @@ Read these files for comprehensive infrastructure guidance:
 | `patterns/infrastructure/graceful-shutdown.md` | SIGTERM handling, drain in-flight requests, timeout budgets, preStop hooks, connection cleanup, database/broker disconnection, zero-downtime deployments |
 | `patterns/infrastructure/resource-management.md` | CPU/memory requests and limits, QoS classes (Guaranteed, Burstable, BestEffort), vertical pod autoscaling, horizontal pod autoscaling (HPA) configuration |
 | `patterns/infrastructure/cloud-native-principles.md` | 12-Factor App compliance checklist, statelessness verification, configuration externalization, backing services as resources, dev/prod parity, logs to stdout/stderr |
+
+## Related Knowledge Packs
+
+- `skills/observability/` — health checks, structured logging, and monitoring integration
+- `skills/security/` — container security, secrets management, and image scanning
+- `skills/resilience/` — graceful degradation and circuit breaker patterns for infrastructure

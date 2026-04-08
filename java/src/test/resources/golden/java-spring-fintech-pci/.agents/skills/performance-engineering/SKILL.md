@@ -14,6 +14,20 @@ allowed-tools:
 
 Provides comprehensive performance engineering patterns for {{LANGUAGE}} {{FRAMEWORK}} projects using {{BUILD_TOOL}}, enabling profiling, benchmarking, optimization, regression detection, and memory management. Covers profiling tools, benchmarking frameworks, performance anti-patterns, optimization strategies, load testing patterns, regression detection, and memory management.
 
+## Quick Reference (always in context)
+
+See `references/profiling-tools-matrix.md` for profiling tool recommendations by language/runtime, `references/load-testing-patterns.md` for load testing patterns with configuration examples, and `references/performance-metrics-guide.md` for performance metrics guide (latency, throughput, saturation).
+
+## Detailed References
+
+Read these files for comprehensive performance engineering guidance:
+
+| Reference | Content |
+|-----------|---------|
+| `references/profiling-tools-matrix.md` | Language x profiling tool x type (CPU/Memory/IO) x overhead matrix with recommended tools per runtime |
+| `references/load-testing-patterns.md` | Load testing patterns with configuration examples for k6, Gatling, and Locust including ramp-up, soak, and spike scenarios |
+| `references/performance-metrics-guide.md` | Performance metrics guide covering RED (Rate, Errors, Duration) and USE (Utilization, Saturation, Errors) methodologies |
+
 ## Profiling Tools & Patterns
 
 ### JFR (Java Flight Recorder)
@@ -301,16 +315,8 @@ Provides comprehensive performance engineering patterns for {{LANGUAGE}} {{FRAME
 - Tenuring threshold: adjust `-XX:MaxTenuringThreshold` based on object lifetimes
 - Allocation flamegraph: visualize allocation sites and rates
 
-## Quick Reference
+## Related Knowledge Packs
 
-See `references/profiling-tools-matrix.md` for profiling tool recommendations by language/runtime, `references/load-testing-patterns.md` for load testing patterns with configuration examples, and `references/performance-metrics-guide.md` for performance metrics guide (latency, throughput, saturation).
-
-## Detailed References
-
-Read these files for comprehensive performance engineering guidance:
-
-| Reference | Content |
-|-----------|---------|
-| `references/profiling-tools-matrix.md` | Language x profiling tool x type (CPU/Memory/IO) x overhead matrix with recommended tools per runtime |
-| `references/load-testing-patterns.md` | Load testing patterns with configuration examples for k6, Gatling, and Locust including ramp-up, soak, and spike scenarios |
-| `references/performance-metrics-guide.md` | Performance metrics guide covering RED (Rate, Errors, Duration) and USE (Utilization, Saturation, Errors) methodologies |
+- `skills/observability/` — metrics collection, distributed tracing, and SLO/SLI framework
+- `skills/resilience/` — timeout, circuit breaker, and rate limiting patterns that affect performance
+- `skills/sre-practices/` — capacity planning, load testing methodology, and error budgets

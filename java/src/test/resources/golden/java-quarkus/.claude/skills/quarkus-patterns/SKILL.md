@@ -1,17 +1,22 @@
 ---
 name: quarkus-patterns
-description: "Quarkus-specific patterns: CDI, @ConfigMapping, Panache Repository, RESTEasy Reactive, native build constraints, @RegisterForReflection. Internal reference for agents producing Quarkus code."
+description: "Quarkus patterns: CDI, @ConfigMapping, Panache Repository, RESTEasy Reactive, native build constraints, and @RegisterForReflection."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
   - Glob
 ---
 
-# Knowledge Pack: Quarkus Patterns
+# Pattern: Quarkus Patterns
 
 ## Purpose
 
 Provides Quarkus-specific implementation patterns that supplement the generic layer templates. Agents reference this pack when generating code for a Java 21 + Quarkus project.
+
+## Supplements
+
+Supplements `architecture` and `layer-templates` knowledge packs with Quarkus-specific conventions.
 
 ---
 

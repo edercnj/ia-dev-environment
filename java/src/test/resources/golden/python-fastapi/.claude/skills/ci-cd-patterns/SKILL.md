@@ -12,7 +12,21 @@ allowed-tools:
 
 ## Purpose
 
-Provides comprehensive CI/CD pipeline patterns for {LANGUAGE} {FRAMEWORK} projects using pip, enabling automated build, test, security scan, artifact management, and deployment workflows. Covers pipeline stages, language-specific optimizations, caching strategies, environment promotion, and approval gates.
+Provides comprehensive CI/CD pipeline patterns for {{LANGUAGE}} {{FRAMEWORK}} projects using {{BUILD_TOOL}}, enabling automated build, test, security scan, artifact management, and deployment workflows. Covers pipeline stages, language-specific optimizations, caching strategies, environment promotion, and approval gates.
+
+## Quick Reference (always in context)
+
+See `references/github-actions-patterns.md` for GitHub Actions workflow patterns, `references/pipeline-security.md` for pipeline security hardening, and `references/caching-strategies.md` for language-specific caching matrices.
+
+## Detailed References
+
+Read these files for comprehensive CI/CD guidance:
+
+| Reference | Content |
+|-----------|---------|
+| `references/github-actions-patterns.md` | GitHub Actions workflow structure, job dependencies, matrix builds, reusable workflows, composite actions, environment protection rules, concurrency control, and artifact handling |
+| `references/pipeline-security.md` | Pipeline security hardening (SLSA compliance, provenance generation, artifact signing, OIDC authentication, least-privilege permissions, dependency pinning, secret scanning) |
+| `references/caching-strategies.md` | Language-specific caching matrices for dependency and build caches, cache key strategies, cache invalidation patterns, and optimization techniques per build tool |
 
 ## Pipeline Stages
 
@@ -116,16 +130,8 @@ Provides comprehensive CI/CD pipeline patterns for {LANGUAGE} {FRAMEWORK} projec
 - Independent versioning per package
 - Coordinated release across packages
 
-## Quick Reference
+## Related Knowledge Packs
 
-See `references/github-actions-patterns.md` for GitHub Actions workflow patterns, `references/pipeline-security.md` for pipeline security hardening, and `references/caching-strategies.md` for language-specific caching matrices.
-
-## Detailed References
-
-Read these files for comprehensive CI/CD guidance:
-
-| Reference | Content |
-|-----------|---------|
-| `references/github-actions-patterns.md` | GitHub Actions workflow structure, job dependencies, matrix builds, reusable workflows, composite actions, environment protection rules, concurrency control, and artifact handling |
-| `references/pipeline-security.md` | Pipeline security hardening (SLSA compliance, provenance generation, artifact signing, OIDC authentication, least-privilege permissions, dependency pinning, secret scanning) |
-| `references/caching-strategies.md` | Language-specific caching matrices for dependency and build caches, cache key strategies, cache invalidation patterns, and optimization techniques per build tool |
+- `skills/release-management/` — versioning, artifact registry, and release signing
+- `skills/security/` — SAST, dependency scanning, and SBOM generation in pipelines
+- `skills/infrastructure/` — Docker multi-stage builds and container image optimization

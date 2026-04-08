@@ -1,6 +1,7 @@
 ---
 name: observability
 description: "Observability principles: distributed tracing (span trees, mandatory attributes), metrics naming conventions, structured logging with mandatory fields, health checks (liveness/readiness/startup), correlation IDs, and OpenTelemetry integration."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
@@ -138,3 +139,9 @@ Examples:
 | **Silencing** | Suppress known-noisy alerts during maintenance or known degradation |
 | **Flap Detection** | Suppress alerts that rapidly toggle between firing and resolved |
 | **Actionability Review** | Monthly review: every alert must have a runbook; remove alerts nobody acts on |
+
+## Related Knowledge Packs
+
+- `skills/resilience/` — resilience metrics and chaos engineering experiments
+- `skills/infrastructure/` — health probes and Kubernetes probe integration
+- `skills/sre-practices/` — error budgets, burn rate alerts, and incident management

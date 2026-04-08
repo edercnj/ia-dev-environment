@@ -1,24 +1,38 @@
 ---
 name: x-review-graphql
-description: "Skill: GraphQL Schema & Resolver Review — Validates GraphQL schema design, resolver implementation, security patterns, and observability."
+description: "Validates GraphQL schema design, resolver implementation, security patterns, and observability for compliance with best practices."
+user-invocable: true
 allowed-tools: Read, Grep, Glob, Bash
 argument-hint: "[schema-file or resolver-name]"
 ---
 
 ## Global Output Policy
 
-- **Language**: English ONLY. (Ignore input language, always respond in English).
+- **Language**: English ONLY.
 - **Tone**: Technical, Direct, and Concise.
 - **Efficiency**: Remove all conversational fillers and greetings to save tokens.
-- **Preservation**: All existing technical constraints below must be followed strictly.
 
 # Skill: GraphQL Schema & Resolver Review
 
-## Description
+## Purpose
 
-Reviews GraphQL schema design, resolver implementation, security patterns, and observability for compliance with best practices including Relay Connection spec, query complexity limiting, and N+1 prevention.
+Review GraphQL schema design, resolver implementation, security patterns, and observability for compliance with best practices including Relay Connection spec, query complexity limiting, and N+1 prevention.
 
-**Condition**: This skill applies when the project uses GraphQL protocol (`interfaces` contains `type: graphql`).
+## Activation Condition
+
+Include this skill when the project uses GraphQL protocol (`interfaces` contains `type: graphql`).
+
+## Triggers
+
+- `/x-review-graphql schema.graphqls` -- review a specific schema file
+- `/x-review-graphql TransactionResolver` -- review a specific resolver
+- `/x-review-graphql` -- review all GraphQL schemas and resolvers
+
+## Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `target` | String | No | (all) | Schema file path or resolver class name |
 
 ## Prerequisites
 
@@ -26,45 +40,49 @@ Reviews GraphQL schema design, resolver implementation, security patterns, and o
 - GraphQL framework dependency is configured
 - Resolver classes/functions are implemented
 
-## Execution Flow
+## Workflow
 
-1. **Discover schema files** — Scan for `*.graphqls`, `*.gql`, or code-first schema definitions:
-   - List all types, queries, mutations, and subscriptions
-   - Identify input types and custom scalars
+### Step 1 — Discover Schema Files
 
-2. **Discover resolvers** — Scan for resolver classes/functions:
-   - Map resolvers to schema types
-   - Identify DataLoader usage
+Scan for `*.graphqls`, `*.gql`, or code-first schema definitions:
+- List all types, queries, mutations, and subscriptions
+- Identify input types and custom scalars
 
-3. **Validate schema design** — Check each type/operation:
-   - Naming conventions (PascalCase types, camelCase fields, UPPER_SNAKE_CASE enums)
-   - Pagination patterns (Relay Connection spec)
-   - Mutation input/payload design
-   - Subscription lifecycle
+### Step 2 — Discover Resolvers
 
-4. **Validate resolver patterns** — Check implementation:
-   - DataLoader for N+1 prevention
-   - Complexity and depth limiting
-   - Field-level authorization
-   - Error handling
+Scan for resolver classes/functions:
+- Map resolvers to schema types
+- Identify DataLoader usage
 
-5. **Validate security** — Check security patterns:
-   - Authentication on entry points
-   - Introspection disabled in production
-   - No sensitive data in errors
+### Step 3 — Validate Schema Design
 
-6. **Generate report** — Summarize findings as checklist:
-   - List compliant items
-   - List violations with file paths and line numbers
-   - Suggest fixes for each violation
+Check each type/operation:
+- Naming conventions (PascalCase types, camelCase fields, UPPER_SNAKE_CASE enums)
+- Pagination patterns (Relay Connection spec)
+- Mutation input/payload design
+- Subscription lifecycle
 
-## Usage Examples
+### Step 4 — Validate Resolver Patterns
 
-```
-/x-review-graphql schema.graphqls
-/x-review-graphql TransactionResolver
-/x-review-graphql
-```
+Check implementation:
+- DataLoader for N+1 prevention
+- Complexity and depth limiting
+- Field-level authorization
+- Error handling
+
+### Step 5 — Validate Security
+
+Check security patterns:
+- Authentication on entry points
+- Introspection disabled in production
+- No sensitive data in errors
+
+### Step 6 — Generate Report
+
+Summarize findings as checklist:
+- List compliant items
+- List violations with file paths and line numbers
+- Suggest fixes for each violation
 
 ## Schema Design Checklist (14 points)
 
@@ -115,19 +133,6 @@ Reviews GraphQL schema design, resolver implementation, security patterns, and o
 27. Structured logging: operation name, variables (masked), duration
 28. No sensitive data in error messages, traces, or logs
 
-## Review Checklist
-
-- [ ] Types use PascalCase, fields use camelCase
-- [ ] Cursor-based pagination (Relay Connection spec)
-- [ ] Query depth and complexity limiting configured
-- [ ] DataLoader used for N+1 prevention
-- [ ] Mutations accept single input argument
-- [ ] Introspection disabled in production
-- [ ] Field-level authorization for sensitive data
-- [ ] Errors follow GraphQL spec
-- [ ] OTel trace spans per resolver
-- [ ] No sensitive data in error messages or logs
-
 ## Output Format
 
 ```
@@ -151,7 +156,16 @@ Reviews GraphQL schema design, resolver implementation, security patterns, and o
 ### Verdict: APPROVE / REQUEST CHANGES
 ```
 
+## Error Handling
+
+| Scenario | Action |
+|----------|--------|
+| No GraphQL schema files found | Report INFO: no GraphQL schemas discovered |
+| N+1 detected without DataLoader | REQUEST CHANGES with DataLoader example |
+| Introspection enabled in production | REQUEST CHANGES with configuration fix |
+
 ## Rules
+
 - REQUEST CHANGES if N+1 detected without DataLoader
 - REQUEST CHANGES if no query depth/complexity limiting
 - REQUEST CHANGES if introspection enabled in production config

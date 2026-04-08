@@ -1,6 +1,7 @@
 ---
 name: story-planning
 description: "Story decomposition and planning: layer-by-layer decomposition (foundation, core domain, extensions, compositions, cross-cutting), story self-containment (data contracts, acceptance criteria), dependency DAG, sizing rules, and phase computation."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
@@ -30,3 +31,9 @@ Read these files for comprehensive story planning guidance:
 | `patterns/story-planning/story-sizing.md` | Sizing metrics (endpoints per story: max 2, protocol flows: max 1, Gherkin scenarios: 2-8, sub-tasks: max 10), split signals ("AND" in title), merge signals ("Helper"/"Utility"), minimum testable scope |
 | `patterns/story-planning/phase-computation.md` | Automatic phase derivation from DAG, critical path identification (longest dependency chain), phase parallelization, schedule variance absorption, leaf story selection for risk distribution |
 | `patterns/story-planning/template-generation.md` | Reading templates from `.claude/templates/` at runtime, _TEMPLATE-EPIC.md, _TEMPLATE-STORY.md, _TEMPLATE-IMPLEMENTATION-MAP.md, forbidden hardcoding of template structure |
+
+## Related Knowledge Packs
+
+- `skills/architecture/` — architecture layer rules that drive layer-by-layer decomposition
+- `skills/testing/` — test categories and coverage requirements for story acceptance criteria
+- `skills/coding-standards/` — coding conventions that stories must reference

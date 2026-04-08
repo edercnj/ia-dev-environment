@@ -1,27 +1,34 @@
 ---
 name: x-jira-create-epic
-description: >
-  Creates a Jira Epic from an existing local epic markdown file. Reads the epic file,
-  maps fields to Jira, creates the issue, and syncs the Jira key back to the local file.
-  Use when the user has an existing epic file and wants to create it in Jira, or when
-  the user says "create this epic in Jira", "sync epic to Jira", or "push epic to Jira".
+description: "Create a Jira Epic from an existing local epic markdown file. Read the epic file, map fields to Jira, create the issue via MCP, and sync the Jira key back to the local file."
+user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion
 argument-hint: "[EPIC_FILE_PATH]"
 ---
 
 ## Global Output Policy
 
-- **Language**: English ONLY for technical output. User-facing content (including prompts, summaries, and reports) may use pt-BR.
+- **Language**: English ONLY.
 - **Tone**: Technical, Direct, and Concise.
 - **Efficiency**: Remove all conversational fillers and greetings to save tokens.
 
-# Skill: Create Jira Epic from Local File
+# Skill: Create Jira Epic
 
-## When to Use
+## Purpose
 
-- User has an existing `epic-XXXX.md` file and wants to create it in Jira
-- User says "create epic in Jira", "sync epic to Jira", "push epic to Jira"
+Create a Jira Epic issue from an existing local `epic-XXXX.md` file. Parse the epic markdown, map fields to Jira issue attributes, create the Epic via MCP, and sync the returned Jira key back to the local file for bidirectional traceability.
+
+## Triggers
+
+- `/x-jira-create-epic <epic_file_path>` — create Jira Epic from the specified file
+- User says "create epic in Jira", "sync epic to Jira", or "push epic to Jira"
 - After running `/x-story-epic` or `/x-story-epic-full` without Jira integration
+
+## Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `EPIC_FILE_PATH` | Path | No | — | Path to the epic markdown file (prompted if omitted) |
 
 ## Prerequisites
 
@@ -30,18 +37,18 @@ Read the field mapping reference before creating issues:
 
 ## Workflow
 
-### Step 1 — Input & Parse
+### Step 1 — Input and Parse
 
 1. Accept the epic file path as argument. If not provided, ask:
    ```
-   question: "Qual o caminho do arquivo do épico? (ex: plans/epic-0012/epic-0012.md)"
+   question: "Qual o caminho do arquivo do epico? (ex: plans/epic-0012/epic-0012.md)"
    header: "Epic File"
    ```
 2. Read the epic file completely
 3. Extract:
-   - **Title**: From `# Épico: <título>` (line 1)
+   - **Title**: From `# Epico: <titulo>` (line 1)
    - **Local ID**: From the directory name (`epic-XXXX`)
-   - **Overview**: From Section 1 (Visão Geral) — all text after `**Chave Jira:**` line until Section 2
+   - **Overview**: From Section 1 (Visao Geral) — all text after `**Chave Jira:**` line until Section 2
    - **Status**: From the header `**Status:**` field
    - **Existing Jira Key**: From `**Chave Jira:**` field
 
@@ -56,15 +63,15 @@ Read the field mapping reference before creating issues:
 
 2. Check existing Jira key. If `**Chave Jira:**` has a real value (not `<CHAVE-JIRA>` and not `—`):
    ```
-   question: "Este épico já tem chave Jira: {KEY}. O que deseja fazer?"
-   header: "Épico já vinculado ao Jira"
+   question: "Este epico ja tem chave Jira: {KEY}. O que deseja fazer?"
+   header: "Epico ja vinculado ao Jira"
    options:
-     - label: "Criar novo épico no Jira"
+     - label: "Criar novo epico no Jira"
        description: "Ignorar a chave existente e criar um novo issue"
      - label: "Pular — manter a chave existente"
-       description: "Não criar no Jira, manter o vínculo atual"
+       description: "Nao criar no Jira, manter o vinculo atual"
    ```
-   If "Pular": exit with message "Épico mantido com chave {KEY}."
+   If "Pular": exit with message "Epico mantido com chave {KEY}."
 
 ### Step 3 — Project Selection
 
@@ -78,7 +85,7 @@ Read the field mapping reference before creating issues:
 3. Call `mcp__atlassian__getVisibleJiraProjects` with the discovered `cloudId`
 4. Present the project list to the user:
    ```
-   question: "Selecione o projeto Jira para criar o épico:"
+   question: "Selecione o projeto Jira para criar o epico:"
    header: "Projeto Jira"
    options:
      - label: "{PROJECT_KEY} — my-fastapi-timescale"
@@ -93,8 +100,8 @@ Call `mcp__atlassian__createJiraIssue` with:
 - `cloudId`: discovered cloudId
 - `projectKey`: selected project key
 - `issueTypeName`: "Epic"
-- `summary`: epic title (extracted from `# Épico: <título>`)
-- `description`: Section 1 (Visão Geral) text content
+- `summary`: epic title (extracted from `# Epico: <titulo>`)
+- `description`: Section 1 (Visao Geral) text content
 - `contentFormat`: "markdown"
 - `additional_fields`:
   ```json
@@ -122,7 +129,7 @@ Where `epic-XXXX` is the local epic ID (e.g., `epic-0012`).
 
 Output:
 ```
-Épico criado no Jira: {JIRA_KEY}
+Epico criado no Jira: {JIRA_KEY}
 Projeto: {PROJECT_KEY}
 Arquivo local atualizado: {EPIC_FILE_PATH}
 Label de sync: epic-XXXX
@@ -130,14 +137,26 @@ Label de sync: epic-XXXX
 
 ## Error Handling
 
-- **MCP not available**: Abort with clear message
-- **No Atlassian sites**: Abort with credential check message
-- **Issue creation fails**: Report the error, do NOT update the local file
-- **File write fails**: Report the error, mention the Jira key was created but local file not updated
+| Scenario | Action |
+|----------|--------|
+| MCP tool not available | Abort with clear message about MCP configuration |
+| No Atlassian sites found | Abort with credential check message |
+| Issue creation fails | Report the error, do NOT update the local file |
+| File write fails | Report error, mention Jira key was created but local file not updated |
+| Epic file not found | Abort with message: "Epic file not found at {path}" |
+| Epic file unparseable | Abort with message: "Cannot parse epic file — verify format" |
+
+## Integration Notes
+
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| x-story-epic | reads | Reads the epic file generated by this skill |
+| x-story-epic-full | called-by | Orchestrator may invoke this in Phase B |
+| x-jira-create-stories | calls | Creates Jira stories linked to the epic |
 
 ## ID Synchronization Strategy
 
 Bidirectional lookup is enabled by:
-- **Local → Jira**: The local ID (`epic-XXXX`) is stored as a Jira label
-- **Jira → Local**: The Jira key (e.g., `PROJ-123`) is stored in the `**Chave Jira:**` field
+- **Local to Jira**: The local ID (`epic-XXXX`) is stored as a Jira label
+- **Jira to Local**: The Jira key (e.g., `PROJ-123`) is stored in the `**Chave Jira:**` field
 - **JQL Lookup**: `labels = "epic-XXXX" AND labels = "generated-by-ia-dev-env"`

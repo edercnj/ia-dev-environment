@@ -1,8 +1,11 @@
 ---
 name: pci-dss-requirements
-description: "PCI-DSS v4.0 requirements mapped to Java code practices for automated code review. Contains 12 requirements with prohibited/correct examples and reviewer checklists."
-version: 1.0
+description: "PCI-DSS v4.0 requirements mapped to code practices: 12 requirements with prohibited/correct examples and reviewer checklists."
 user-invocable: false
+allowed-tools:
+  - Read
+  - Grep
+  - Glob
 ---
 
 # Knowledge Pack: PCI-DSS v4.0 Requirements
@@ -467,3 +470,11 @@ Este requisito e organizacional e nao mapeia diretamente para codigo. An informa
 ### Nota
 
 This requirement addresses organizational governance: security policies, risk assessments, awareness training, incident response plans, and third-party service provider management. While not directly enforceable in code, reviewers should verify that code changes align with documented security policies and that security-critical decisions are properly documented (e.g., ADRs for cryptographic choices, access control models).
+
+## Related Knowledge Packs
+
+| Pack | Relationship |
+|------|-------------|
+| `security` | OWASP Top 10, security headers, secrets management |
+| `owasp-asvs` | OWASP ASVS 4.0.3 verification standard |
+| `compliance` | Compliance frameworks (GDPR, HIPAA, PCI-DSS) |

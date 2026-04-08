@@ -20,11 +20,19 @@ Provides an interactive incident response guide for {{PROJECT_NAME}} that walks 
 
 ## Triggers
 
-- `/x-ops-incident` -- start interactive severity classification
-- `/x-ops-incident SEV1` -- start SEV1 critical incident response
-- `/x-ops-incident SEV2 --postmortem` -- SEV2 incident with postmortem generation
-- `/x-ops-incident SEV3 --notify` -- SEV3 incident with communication templates
-- `/x-ops-incident SEV1 --postmortem --notify` -- full incident response workflow
+- `/x-ops-incident` — start interactive severity classification
+- `/x-ops-incident SEV1` — start SEV1 critical incident response
+- `/x-ops-incident SEV2 --postmortem` — SEV2 incident with postmortem generation
+- `/x-ops-incident SEV3 --notify` — SEV3 incident with communication templates
+- `/x-ops-incident SEV1 --postmortem --notify` — full incident response workflow
+
+## Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `severity` | positional | (interactive) | Severity level: `SEV1`, `SEV2`, `SEV3`, or `SEV4` |
+| `--postmortem` | boolean | `false` | Generate postmortem document (auto-enabled for SEV1/SEV2) |
+| `--notify` | boolean | `false` | Generate communication templates for all channels |
 
 ## Workflow
 
@@ -37,7 +45,7 @@ Provides an interactive incident response guide for {{PROJECT_NAME}} that walks 
 6. TRACK        -> Register action items with owners and deadlines
 ```
 
-### Step 1 -- CLASSIFY Severity
+### Step 1 — Classify Severity
 
 If severity is provided as argument, validate and use directly. If omitted, ask the user about the impact and suggest classification.
 
@@ -55,20 +63,20 @@ If severity is provided as argument, validate and use directly. If omitted, ask 
 - **Data Impact**: Is there data loss, corruption, or unauthorized access?
 - **Scope**: Is the issue isolated or widespread across regions/services?
 
-### Step 2 -- LOAD Checklist
+### Step 2 — Load Checklist
 
 Load the severity-specific checklist from the SRE Practices knowledge pack (`skills/sre-practices/`). Each severity level has different response requirements:
 
-**SEV1 -- Critical Checklist:**
+**SEV1 — Critical Checklist:**
 
 - [ ] Incident Commander assigned within 5 minutes
 - [ ] Response team assembled (engineering, on-call, management)
 - [ ] Communication channel created (war room / bridge call)
 - [ ] Initial status page update published
 - [ ] Executive stakeholders notified within 15 minutes
-- [ ] All hands on deck -- pull in additional engineers as needed
+- [ ] All hands on deck — pull in additional engineers as needed
 
-**SEV2 -- High Checklist:**
+**SEV2 — High Checklist:**
 
 - [ ] On-call engineer acknowledged within 10 minutes
 - [ ] Secondary engineer engaged if needed
@@ -76,20 +84,20 @@ Load the severity-specific checklist from the SRE Practices knowledge pack (`ski
 - [ ] Status page update published within 30 minutes
 - [ ] Engineering manager notified
 
-**SEV3 -- Medium Checklist:**
+**SEV3 — Medium Checklist:**
 
 - [ ] On-call engineer acknowledged within 1 hour
 - [ ] Workaround documented and communicated
 - [ ] Ticket created for permanent fix
 - [ ] Status page updated if user-facing
 
-**SEV4 -- Low Checklist:**
+**SEV4 — Low Checklist:**
 
 - [ ] Ticket created with appropriate priority
 - [ ] Assigned to next sprint or backlog
 - [ ] No immediate response required
 
-### Step 3 -- GUIDE Response
+### Step 3 — Guide Response
 
 Conduct the team through the incident response flow. Use the `sre-engineer` agent via Agent tool for reliability expertise and validation.
 
@@ -118,14 +126,14 @@ Conduct the team through the incident response flow. Use the `sre-engineer` agen
 - Confirm service restoration to normal operation
 - Update status page with resolution notice
 
-### Step 4 -- COMMUNICATE
+### Step 4 — Communicate
 
 Generate communication templates based on severity and channels. Frequency varies by severity level.
 
 #### Status Page Template
 
 ```markdown
-**[INVESTIGATING/IDENTIFIED/MONITORING/RESOLVED]** -- {{PROJECT_NAME}}
+**[INVESTIGATING/IDENTIFIED/MONITORING/RESOLVED]** — {{PROJECT_NAME}}
 
 **Impact:** [Description of user-facing impact]
 **Affected Services:** [List of affected services]
@@ -136,7 +144,7 @@ Generate communication templates based on severity and channels. Frequency varie
 #### Slack/Teams Internal Update Template
 
 ```markdown
-:rotating_light: **Incident Update -- [SEV level]**
+:rotating_light: **Incident Update — [SEV level]**
 **Service:** [affected service]
 **Impact:** [description]
 **Status:** [Investigating/Mitigating/Resolved]
@@ -150,7 +158,7 @@ Generate communication templates based on severity and channels. Frequency varie
 #### Email Stakeholder Notification Template
 
 ```markdown
-Subject: [SEV level] Incident -- [Brief description]
+Subject: [SEV level] Incident — [Brief description]
 
 Dear Stakeholders,
 
@@ -177,7 +185,7 @@ Best regards,
 | SEV3 | Every 4 hours | Status Page, Slack |
 | SEV4 | Daily | Slack |
 
-### Step 5 -- POSTMORTEM
+### Step 5 — Postmortem
 
 If `--postmortem` flag is provided, or severity is SEV1 or SEV2, generate a postmortem document from the `_TEMPLATE-POSTMORTEM.md` template.
 
@@ -198,7 +206,7 @@ If `--postmortem` flag is provided, or severity is SEV1 or SEV2, generate a post
 If the postmortem template is not available, generate an inline postmortem with the basic structure:
 
 ```markdown
-# Postmortem -- [Incident Title]
+# Postmortem — [Incident Title]
 
 ## Incident Summary
 | Field | Value |
@@ -221,7 +229,7 @@ If the postmortem template is not available, generate an inline postmortem with 
 [To be completed]
 ```
 
-### Step 6 -- TRACK Action Items
+### Step 6 — Track Action Items
 
 Register all action items identified during the incident response. Each action item includes:
 
@@ -270,9 +278,12 @@ See Step 4 above for complete templates per channel (Status Page, Slack/Teams, E
 
 ## Integration Notes
 
-- Uses `sre-engineer` agent for reliability expertise and checklist validation via Agent tool
-- References `sre-practices` knowledge pack (`skills/sre-practices/`) for incident management processes
-- Uses `_TEMPLATE-POSTMORTEM.md` for postmortem document generation
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| x-ops-troubleshoot | called-by | Escalates to this skill when an issue becomes a production incident |
+| sre-engineer (agent) | calls | Delegates reliability expertise and checklist validation via Agent tool |
+| sre-practices (KP) | reads | References `skills/sre-practices/` for incident management processes |
+
+- Uses `_TEMPLATE-POSTMORTEM.md` for postmortem document generation. Fallback: inline postmortem with basic structure when template is absent.
 - Uses `_TEMPLATE-INCIDENT-RESPONSE.md` for severity classification reference
 - Can be used standalone or as part of on-call response workflow
-- Referenced by `x-ops-troubleshoot` when an issue escalates to a production incident

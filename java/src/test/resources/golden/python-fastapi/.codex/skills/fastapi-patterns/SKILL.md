@@ -1,17 +1,22 @@
 ---
 name: fastapi-patterns
-description: "FastAPI-specific patterns: Depends() DI, SQLAlchemy/Tortoise ORM data access, Pydantic models, APIRouter, BaseSettings config, httpx async testing, uvicorn deployment. Internal reference for agents producing FastAPI code."
+description: "FastAPI patterns: Depends() DI, SQLAlchemy/Tortoise ORM, Pydantic models, APIRouter, BaseSettings config, and httpx async testing."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
   - Glob
 ---
 
-# Knowledge Pack: FastAPI Patterns
+# Pattern: FastAPI Patterns
 
 ## Purpose
 
 Provides FastAPI-specific implementation patterns that supplement the generic layer templates. Agents reference this pack when generating code for a Python + FastAPI project.
+
+## Supplements
+
+Supplements `architecture` and `layer-templates` knowledge packs with FastAPI-specific conventions.
 
 ---
 

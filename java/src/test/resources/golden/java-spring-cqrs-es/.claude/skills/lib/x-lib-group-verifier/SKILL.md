@@ -1,29 +1,39 @@
 ---
 name: x-lib-group-verifier
 description: "Build gate verification between parallelism groups. Compiles code, classifies errors, decides retry vs escalate, extracts outputs for next group. Used between each implementation group in Phase 2."
+user-invocable: false
 allowed-tools: Bash, Read, Grep, Glob
-argument-hint: "[G1|G2|G3|G4|G5|G6|G7]"
 ---
 
 ## Global Output Policy
 
 - **Language**: English ONLY.
 - **Tone**: Technical, Direct, and Concise.
+- **Efficiency**: Remove all conversational fillers and greetings to save tokens.
 
-# Skill: Group Verifier (Build Gate)
+# Skill: Group Verifier (Library)
 
 ## Purpose
 
 Runs between each parallelism group (G1-G7) during Phase 2 of the feature lifecycle. Compiles the code, classifies any errors, decides whether to retry or escalate, and extracts created file contents for the next group's dependency inputs.
 
-## When to Use
+## When Called
 
-- **Feature Lifecycle Phase 2**: After each group completes, BEFORE starting the next group
-- Callable via: `Skill(x-lib-group-verifier)` or inline by the orchestrator
+| Caller Skill | Phase | Context |
+|-------------|-------|---------|
+| x-dev-lifecycle | Phase 2 | After each group completes, BEFORE starting the next group |
+| x-dev-implement | Implementation | Inline build gate between layer groups |
+
+## Inputs
+
+| Input | Type | Description |
+|-------|------|-------------|
+| Group ID | `G1\|G2\|G3\|G4\|G5\|G6\|G7` | The parallelism group to verify |
+| Task outputs | File list | Files created/modified by tasks in the completed group |
 
 ## Procedure
 
-### STEP 1 -- COMPILE
+### Step 1 — Compile
 
 ```bash
 {{COMPILE_COMMAND}}
@@ -37,12 +47,12 @@ For G7 (Tests group), use the full build command instead:
 {{BUILD_COMMAND}}
 ```
 
-### STEP 2 -- ANALYZE
+### Step 2 — Analyze
 
 - If exit code = 0 -> Go to STEP 5 (success)
 - If exit code != 0 -> Parse error output, go to STEP 3
 
-### STEP 3 -- CLASSIFY ERRORS
+### Step 3 — Classify Errors
 
 Classify errors based on the {{LANGUAGE}} compiler/interpreter output. The patterns below are common across languages — adapt to the specific error messages produced by your toolchain:
 
@@ -57,7 +67,7 @@ Classify errors based on the {{LANGUAGE}} compiler/interpreter output. The patte
 | Unhandled error/exception                             | TASK_ERROR         | Missing error handling            |
 | Any other error                                       | UNKNOWN            | Needs investigation               |
 
-### STEP 4 -- DECIDE
+### Step 4 — Decide
 
 | Classification     | Attempt | Action                                            |
 | ------------------ | ------- | ------------------------------------------------- |
@@ -76,14 +86,14 @@ Classify errors based on the {{LANGUAGE}} compiler/interpreter output. The patte
 2. Add to the retry prompt: `## COMPILATION ERROR\n{error message}\n## FIX INSTRUCTIONS\nThe previous attempt produced this error. Fix it.`
 3. Re-launch with the same tier (or escalated tier)
 
-### STEP 5 -- EXTRACT OUTPUTS
+### Step 5 — Extract Outputs
 
 For each task in the completed group:
 1. Read all files listed in `task.files_created`
 2. Read all files listed in `task.files_modified`
 3. Store content for use as dependency inputs in subsequent groups
 
-### STEP 6 -- COMMIT
+### Step 6 — Commit
 
 After successful compilation:
 
@@ -105,7 +115,7 @@ Derive the `{scope}` from the architecture layer being committed. The scopes tab
 - G6: `feat(observability): add tracing and metrics for STORY-ID`
 - G7: `test: add tests for STORY-ID`
 
-### STEP 7 -- REPORT
+### Step 7 — Report
 
 ```
 Group G{N} verified: {PASS|FAIL}
@@ -132,8 +142,25 @@ If tests fail:
 - Retry the test task with the failure message
 - If test depends on production code from another task, check production code first
 
+## Error Handling
+
+| Scenario | Action |
+|----------|--------|
+| Compilation fails with TASK_ERROR (1st attempt) | Retry same tier with error message in prompt |
+| Compilation fails with TASK_ERROR (2nd attempt) | Retry same tier with both errors in prompt |
+| Compilation fails with TASK_ERROR (3rd attempt) | Escalate to next tier (Junior -> Mid -> Senior) |
+| MISSING_DEPENDENCY detected | Halt pipeline, flag previous group regression |
+| BUILD_ERROR (missing external dependency) | Halt pipeline, report missing dependency in build file |
+| UNKNOWN error (1st attempt) | Escalate immediately to next tier |
+| UNKNOWN error (2nd attempt) | Halt pipeline, flag for manual intervention |
+| Senior-tier escalation exhausted | Halt pipeline, flag for manual intervention |
+
 ## Integration Notes
 
-- Invoked by `x-dev-lifecycle` during Phase 2 after each group
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| x-dev-lifecycle | called-by | Invoked during Phase 2 after each group |
+| x-dev-implement | called-by | Build gate between layer groups during implementation |
+
 - Uses `{{COMPILE_COMMAND}}` for G1-G6, `{{BUILD_COMMAND}}` for G7
 - Produces atomic commits per group (rollback points)

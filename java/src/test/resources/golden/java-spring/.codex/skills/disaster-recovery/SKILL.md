@@ -16,8 +16,16 @@ Provides comprehensive disaster recovery patterns for {{LANGUAGE}} {{FRAMEWORK}}
 
 ## Quick Reference (always in context)
 
-See `references/dr-strategy-decision-tree.md` for DR strategy selection based on RPO/RTO requirements.
-See `references/rpo-rto-calculator.md` for RPO/RTO calculation based on SLA alignment.
+See `references/dr-strategy-decision-tree.md` for DR strategy selection based on RPO/RTO requirements. See `references/rpo-rto-calculator.md` for RPO/RTO calculation based on SLA alignment.
+
+## Detailed References
+
+Read these files for comprehensive disaster recovery guidance:
+
+| Reference | Content |
+|-----------|---------|
+| `references/dr-strategy-decision-tree.md` | DR strategy selection flowchart based on RPO/RTO requirements, cost constraints, and complexity tolerance |
+| `references/rpo-rto-calculator.md` | RPO/RTO calculation based on SLA alignment, business impact analysis, and cost justification |
 
 ## DR Strategies
 
@@ -201,3 +209,9 @@ Complete region failover with production traffic. Maximum confidence but highest
 - Partition recovery and rebalancing
 - Consumer group offset management
 - Message deduplication during replay
+
+## Related Knowledge Packs
+
+- `skills/sre-practices/` — incident management, error budgets, and change management
+- `skills/infrastructure/` — Kubernetes manifests, health probes, and graceful shutdown
+- `skills/data-management/` — backup/restore strategies and data replication patterns

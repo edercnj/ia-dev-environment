@@ -1,6 +1,6 @@
 ---
 name: x-setup-dev-environment
-description: "Validate and configure local development environment: detect stack, check prerequisites, verify versions, validate IDE config, test database connectivity, run initial build, and report status with fix suggestions"
+description: "Validate and configure local development environment: detect stack, check prerequisites, verify versions, validate IDE config, test database connectivity, run initial build, and report status with fix suggestions."
 user-invocable: true
 allowed-tools: Read, Bash, Glob, Grep, Write
 argument-hint: "[--check-only] [--fix]"
@@ -20,16 +20,16 @@ Validates and configures the local development environment for {{PROJECT_NAME}},
 
 ## Triggers
 
-- `/x-setup-dev-environment` -- check-only mode (default)
-- `/x-setup-dev-environment --check-only` -- explicitly report status without modifications
-- `/x-setup-dev-environment --fix` -- attempt to fix detected issues
+- `/x-setup-dev-environment` — check-only mode (default)
+- `/x-setup-dev-environment --check-only` — explicitly report status without modifications
+- `/x-setup-dev-environment --fix` — attempt to fix detected issues
 
-## Modes
+## Parameters
 
-| Mode | Description |
-|------|-------------|
-| `--check-only` | Reports status only, does not modify anything (default) |
-| `--fix` | Attempts to correct problems found (non-destructive, never overwrites existing files) |
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `--check-only` | Flag | true | Report status only, do not modify anything (default) |
+| `--fix` | Flag | false | Attempt to correct problems found (non-destructive, never overwrites existing files) |
 
 ## Workflow
 
@@ -43,7 +43,7 @@ Validates and configures the local development environment for {{PROJECT_NAME}},
 7. REPORT     -> Generate status report with PASS/FAIL/WARN per check
 ```
 
-### Step 1 -- Detect Project Stack
+### Step 1 — Detect Project Stack
 
 Analyze project root for config files to identify language, framework, and build tool:
 
@@ -61,9 +61,9 @@ Analyze project root for config files to identify language, framework, and build
 ls -la pom.xml package.json go.mod Cargo.toml pyproject.toml build.gradle.kts build.gradle setup.py 2>/dev/null
 ```
 
-Cross-reference with project identity in `.claude/rules/01-project-identity.md` if available.
+Cross-reference with project identity in `.claude/rules/01-project-identity.md` (RULE-001 — Project Identity) if available.
 
-### Step 2 -- Check Prerequisites
+### Step 2 — Check Prerequisites
 
 Verify presence of required tools based on detected stack:
 
@@ -134,7 +134,7 @@ mongosh --version 2>&1 || echo "FAIL: MongoDB shell not found"
 ```
 {% endif %}
 
-### Step 3 -- Verify Versions
+### Step 3 — Verify Versions
 
 Compare installed versions against project requirements:
 
@@ -159,7 +159,7 @@ fi
 ```
 {% endif %}
 
-### Step 4 -- Check IDE Configuration
+### Step 4 — Check IDE Configuration
 
 ```bash
 # Check .editorconfig
@@ -181,7 +181,7 @@ if [ -d .idea ]; then
 fi
 ```
 
-### Step 5 -- Verify Database Connectivity
+### Step 5 — Verify Database Connectivity
 
 {% if database_name != "none" %}
 ```bash
@@ -197,7 +197,7 @@ mongosh --eval "db.runCommand({ping:1})" 2>&1 || echo "FAIL: Cannot connect to M
 > Database check SKIPPED: no database configured for this project.
 {% endif %}
 
-### Step 6 -- Run Initial Build
+### Step 6 — Run Initial Build
 
 {% if build_tool == "maven" %}
 ```bash
@@ -230,7 +230,7 @@ echo "WARN: Unknown build tool, skipping build step"
 ```
 {% endif %}
 
-### Step 7 -- Generate Report
+### Step 7 — Generate Report
 
 ```
 ============================================

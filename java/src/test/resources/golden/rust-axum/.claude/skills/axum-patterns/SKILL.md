@@ -1,17 +1,22 @@
 ---
 name: axum-patterns
-description: "Axum-specific patterns: extractors, Router composition, Tower middleware, sqlx async data access, config crate layered config, tokio testing, IntoResponse error handling. Internal reference for agents producing Axum code."
+description: "Axum patterns: extractors, Router composition, Tower middleware, sqlx async data access, config crate, and IntoResponse error handling."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
   - Glob
 ---
 
-# Knowledge Pack: Axum Patterns
+# Pattern: Axum Patterns
 
 ## Purpose
 
 Provides Axum-specific implementation patterns that supplement the generic layer templates. Agents reference this pack when generating code for a Rust + Axum project.
+
+## Supplements
+
+Supplements `architecture` and `layer-templates` knowledge packs with Axum-specific conventions.
 
 ---
 

@@ -14,6 +14,20 @@ allowed-tools:
 
 Provides comprehensive release management practices for {{LANGUAGE}} {{FRAMEWORK}} projects using {{BUILD_TOOL}}, enabling consistent versioning, artifact publishing, release signing, hotfix management, and rollback procedures. Covers the full release lifecycle from initial development through end-of-life.
 
+## Quick Reference (always in context)
+
+See `references/release-branching-guide.md` for branching strategy decision matrix, `references/artifact-publishing-matrix.md` for registry commands per language, and `references/rollback-decision-tree.md` for rollback vs fix-forward decisions.
+
+## Detailed References
+
+Read these files for comprehensive release management guidance:
+
+| Reference | Content |
+|-----------|---------|
+| `references/release-branching-guide.md` | Decision matrix for selecting branching strategy based on team size, release frequency, and compliance requirements |
+| `references/artifact-publishing-matrix.md` | Registry configuration and publish commands per language with CI integration steps |
+| `references/rollback-decision-tree.md` | Flowchart for rollback vs fix-forward decision based on severity, blast radius, and time-to-fix |
+
 ## Semantic Versioning
 
 ### MAJOR.MINOR.PATCH Rules
@@ -259,16 +273,8 @@ See `references/rollback-decision-tree.md` for detailed decision flowchart.
 - Timeline: deprecation -> last supported version -> removal version
 - Support channel for migration questions
 
-## Quick Reference
+## Related Knowledge Packs
 
-See `references/release-branching-guide.md` for branching strategy decision matrix, `references/artifact-publishing-matrix.md` for registry commands per language, and `references/rollback-decision-tree.md` for rollback vs fix-forward decisions.
-
-## Detailed References
-
-Read these files for comprehensive release management guidance:
-
-| Reference | Content |
-|-----------|---------|
-| `references/release-branching-guide.md` | Decision matrix for selecting branching strategy based on team size, release frequency, and compliance requirements |
-| `references/artifact-publishing-matrix.md` | Registry configuration and publish commands per language with CI integration steps |
-| `references/rollback-decision-tree.md` | Flowchart for rollback vs fix-forward decision based on severity, blast radius, and time-to-fix |
+- `skills/ci-cd-patterns/` — CI/CD pipeline stages, artifact management, and environment promotion
+- `skills/protocols/` — release process conventions and branching strategies
+- `skills/security/` — release signing, SBOM generation, and supply chain security

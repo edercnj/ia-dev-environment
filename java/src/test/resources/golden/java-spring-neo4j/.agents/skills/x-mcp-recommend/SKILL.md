@@ -1,8 +1,9 @@
 ---
 name: x-mcp-recommend
 description: "Analyzes project tech stack and recommends relevant MCP (Model Context Protocol) servers. Auto-detects language, framework, database, cache, and message broker from project config, then matches against a built-in catalog of MCP servers with installation instructions."
+user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
-argument-hint: ""
+argument-hint: "[--install]"
 ---
 
 ## Global Output Policy
@@ -19,8 +20,14 @@ Analyzes the {{PROJECT_NAME}} tech stack and recommends MCP (Model Context Proto
 
 ## Triggers
 
-- `/x-mcp-recommend` -- analyze and recommend MCP servers
-- `/x-mcp-recommend --install` -- recommend and auto-configure
+- `/x-mcp-recommend` — analyze and recommend MCP servers
+- `/x-mcp-recommend --install` — recommend and auto-configure
+
+## Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `--install` | Flag | false | Auto-configure recommended MCP servers into config files |
 
 ## Workflow
 
@@ -31,7 +38,7 @@ Analyzes the {{PROJECT_NAME}} tech stack and recommends MCP (Model Context Proto
 4. CONFIGURE  -> Optionally update MCP config files
 ```
 
-### Step 1 -- Detect Tech Stack
+### Step 1 — Detect Tech Stack
 
 Read project configuration to identify:
 
@@ -64,7 +71,7 @@ ls .github/workflows/ 2>/dev/null
 ls Dockerfile 2>/dev/null
 ```
 
-### Step 2 -- Match Against MCP Catalog
+### Step 2 — Match Against MCP Catalog
 
 #### Database Servers
 
@@ -76,7 +83,7 @@ ls Dockerfile 2>/dev/null
 | SQLite | SQLite MCP | `@modelcontextprotocol/server-sqlite` | Local database operations |
 | Redis | Redis MCP | `redis-mcp-server` | Cache inspection, key management |
 
-#### DevOps & Infrastructure
+#### DevOps and Infrastructure
 
 | Tech Stack | MCP Server | Package | Use Case |
 |-----------|------------|---------|----------|
@@ -85,7 +92,7 @@ ls Dockerfile 2>/dev/null
 | AWS | AWS MCP | `aws-mcp-server` | AWS service interaction |
 | Terraform | Terraform MCP | `terraform-mcp-server` | Infrastructure state, plan preview |
 
-#### Productivity & Collaboration
+#### Productivity and Collaboration
 
 | Tech Stack | MCP Server | Package | Use Case |
 |-----------|------------|---------|----------|
@@ -111,7 +118,7 @@ ls Dockerfile 2>/dev/null
 | Datadog | Datadog MCP | `datadog-mcp-server` | Metrics, logs, traces |
 | Grafana | Grafana MCP | `grafana-mcp-server` | Dashboard queries, alerts |
 
-### Step 3 -- Generate Recommendations
+### Step 3 — Generate Recommendations
 
 For each matched MCP server, output:
 
@@ -171,7 +178,7 @@ Install (GitHub Copilot):
 - **Recommended:** Matches secondary tech (CI/CD, monitoring)
 - **Optional:** General productivity enhancement
 
-### Step 4 -- Configure (Optional)
+### Step 4 — Configure (Optional)
 
 If user requests `--install`:
 

@@ -14,6 +14,20 @@ allowed-tools:
 
 Provides comprehensive data management lifecycle patterns for {{LANGUAGE}} projects using {{DATABASE_TYPE}} with {{MIGRATION_TOOL}}. Covers zero-downtime migrations, expand/contract pattern, schema versioning, data governance, backup/restore strategies, partitioning, Change Data Capture (CDC), and data quality validation.
 
+## Quick Reference (always in context)
+
+See `references/migration-safety-checklist.md` for pre-flight checklist, `references/backup-strategy-matrix.md` for backup type decisions, and `references/partitioning-decision-tree.md` for partition strategy selection.
+
+## Detailed References
+
+Read these files for comprehensive data management guidance:
+
+| Reference | Content |
+|-----------|---------|
+| `references/migration-safety-checklist.md` | Pre-flight checklist for production migrations: schema review, backup verification, rollback plan, monitoring setup, communication plan |
+| `references/backup-strategy-matrix.md` | Backup type x database type x RTO/RPO matrix with recommended strategies per environment |
+| `references/partitioning-decision-tree.md` | Decision flowchart: data volume x query patterns x growth rate leading to partition strategy recommendation |
+
 ## Zero-Downtime Migrations
 
 ### Expand/Contract Pattern
@@ -238,16 +252,8 @@ Follow the migration tool conventions specific to your project stack. Key princi
 - Keep migrations small and focused
 - Include rollback script for every migration
 
-## Quick Reference
+## Related Knowledge Packs
 
-See `references/migration-safety-checklist.md` for pre-flight checklist, `references/backup-strategy-matrix.md` for backup type decisions, and `references/partitioning-decision-tree.md` for partition strategy selection.
-
-## Detailed References
-
-Read these files for comprehensive data management guidance:
-
-| Reference | Content |
-|-----------|---------|
-| `references/migration-safety-checklist.md` | Pre-flight checklist for production migrations: schema review, backup verification, rollback plan, monitoring setup, communication plan |
-| `references/backup-strategy-matrix.md` | Backup type x database type x RTO/RPO matrix with recommended strategies per environment |
-| `references/partitioning-decision-tree.md` | Decision flowchart: data volume x query patterns x growth rate leading to partition strategy recommendation |
+- `skills/compliance/` — data classification, PII handling, and retention policies
+- `skills/disaster-recovery/` — backup/restore strategies and RPO/RTO targets
+- `skills/infrastructure/` — database container configuration and resource management

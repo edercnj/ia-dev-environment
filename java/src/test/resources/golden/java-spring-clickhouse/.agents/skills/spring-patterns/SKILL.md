@@ -1,17 +1,22 @@
 ---
 name: spring-patterns
-description: "Spring Boot-specific patterns: Spring DI, @ConfigurationProperties, Spring Data JPA, @RestController, @ControllerAdvice, Spring AOT. Internal reference for agents producing Spring Boot code."
+description: "Spring Boot patterns: DI, @ConfigurationProperties, Spring Data JPA, @RestController, @ControllerAdvice, Spring AOT, and health checks."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
   - Glob
 ---
 
-# Knowledge Pack: Spring Boot Patterns
+# Pattern: Spring Boot Patterns
 
 ## Purpose
 
 Provides Spring Boot-specific implementation patterns that supplement the generic layer templates. Agents reference this pack when generating code for a Java 21 + Spring Boot project.
+
+## Supplements
+
+Supplements `architecture` and `layer-templates` knowledge packs with Spring Boot-specific conventions.
 
 ---
 

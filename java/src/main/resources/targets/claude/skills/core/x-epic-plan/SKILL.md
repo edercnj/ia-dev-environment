@@ -137,10 +137,10 @@ If `--resume` is set and `execution-state.json` exists, load it and apply reclas
 
 ### 0.7 Create Plans Directory
 
-Create `plans/epic-XXXX/plans/` if it does not exist:
+Create `{epicDir}/plans/` if it does not exist:
 
 ```bash
-mkdir -p plans/epic-XXXX/plans
+mkdir -p {epicDir}/plans
 ```
 
 Log: `"Created plans/ directory for EPIC-{epicId}"` if created. Skip silently if already exists.
@@ -153,23 +153,30 @@ Log: `"Created plans/ directory for EPIC-{epicId}"` if created. Skip silently if
 
 ### 1.1 Read Implementation Map
 
-Read `plans/epic-XXXX/IMPLEMENTATION-MAP.md` and extract:
+Read `{epicDir}/IMPLEMENTATION-MAP.md` and extract phases and dependencies from two sections:
 
-1. **Phase assignments**: Which stories belong to each phase (Phase 0, Phase 1, etc.)
-2. **Dependency declarations**: Which stories depend on which other stories
-3. **Total phases**: The number of distinct phases in the implementation map
-
-The implementation map contains a phase table in this format:
+1. **Dependency declarations** from **Section 1 — Dependency Matrix**:
 
 ```markdown
-| Phase | Stories | Dependencies |
-|-------|---------|--------------|
-| 0 | story-XXXX-0001 | -- |
-| 1 | story-XXXX-0002, story-XXXX-0003 | story-XXXX-0001 |
-| 2 | story-XXXX-0004 | story-XXXX-0002, story-XXXX-0003 |
+| Story | Título | Chave Jira | Blocked By | Blocks | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| story-XXXX-0001 | Title | KEY-1 | — | story-XXXX-0002 | Pendente |
+| story-XXXX-0002 | Title | KEY-2 | story-XXXX-0001 | — | Pendente |
 ```
 
-Parse this table to build the dependency graph.
+Parse the `Blocked By` and `Blocks` columns to build the dependency graph.
+
+2. **Phase assignments** from **Section 5 — Resumo por Fase**:
+
+```markdown
+| Fase | Histórias | Camada | Paralelismo | Pré-requisito |
+| :--- | :--- | :--- | :--- | :--- |
+| 0 | story-XXXX-0001 | Domain | 1 paralela | — |
+| 1 | story-XXXX-0002, story-XXXX-0003 | Application | 2 paralelas | Fase 0 concluída |
+| 2 | story-XXXX-0004 | Adapter | 1 paralela | Fase 1 concluída |
+```
+
+Parse the `Fase` and `Histórias` columns to determine phase grouping. Extract total phases from the number of distinct `Fase` values.
 
 ### 1.2 Order Stories by Phase
 
@@ -188,7 +195,7 @@ If `--story` flag is provided:
    ```
 3. Identify the story's dependencies from the implementation map
 4. Validate that all dependencies have `planningStatus == "READY"` in `execution-state.json`:
-   - If `execution-state.json` does not exist, check if dependency story files have existing planning artifacts (tasks file exists at `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`)
+   - If `execution-state.json` does not exist, check if dependency story files have existing planning artifacts (tasks file exists at `{epicDir}/plans/tasks-story-XXXX-YYYY.md`)
    - If any dependency is not satisfied, abort:
      ```
      ERROR: Dependencies not satisfied for {storyId}: [{unsatisfied deps list}]. Plan dependencies first.
@@ -197,15 +204,19 @@ If `--story` flag is provided:
 
 ### 1.4 Initialize Execution State
 
-If `execution-state.json` does not exist in `plans/epic-XXXX/`, create it:
+If `execution-state.json` does not exist in `{epicDir}/`, create it using the same top-level schema as `/x-dev-epic-implement`, adding planning-specific fields under each story entry:
 
 ```json
 {
   "epicId": "XXXX",
+  "baseBranch": "develop",
   "startedAt": "{ISO-8601 timestamp}",
-  "totalStories": {count},
   "totalPhases": {count},
-  "stories": {
+  "stories": [
+    {"id": "story-XXXX-0001", "phase": 0},
+    {"id": "story-XXXX-0002", "phase": 1}
+  ],
+  "storyEntries": {
     "story-XXXX-0001": {
       "id": "story-XXXX-0001",
       "phase": 0,
@@ -219,9 +230,11 @@ If `execution-state.json` does not exist in `plans/epic-XXXX/`, create it:
 }
 ```
 
-If `execution-state.json` already exists (either from `--resume` or prior partial run), preserve existing data and only add entries for stories not yet tracked.
+**Schema compatibility with `/x-dev-epic-implement`:** The `stories` array and `baseBranch` field match the schema expected by `/x-dev-epic-implement`. Planning-specific fields (`planningStatus`, `dorVerdict`, `artifacts`) are added under `storyEntries` alongside where `/x-dev-epic-implement` adds its own fields (`status`, `commitSha`, `prUrl`, etc.). Both skills read/write the same file without conflict.
 
-**Per-story planning fields in `execution-state.json`:**
+If `execution-state.json` already exists (either from `--resume` or prior partial run), preserve existing data and only add `storyEntries` for stories not yet tracked. Never overwrite fields owned by `/x-dev-epic-implement`.
+
+**Per-story planning fields in `storyEntries`:**
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -294,7 +307,7 @@ Stories within the same phase have no inter-dependencies, so they CAN be dispatc
 After each subagent completes, extract the DoR verdict from the output:
 
 1. Search the subagent output for the DoR verdict line: `Verdict: **READY**` or `Verdict: **NOT_READY**`
-2. If the verdict cannot be extracted, check for the existence of the DoR file at `plans/epic-XXXX/plans/dor-story-XXXX-YYYY.md` and read the verdict from it
+2. If the verdict cannot be extracted, check for the existence of the DoR file at `{epicDir}/plans/dor-story-XXXX-YYYY.md` and read the verdict from it
 3. If neither source provides a verdict, set `planningStatus = "NOT_READY"` and log a warning:
    ```
    WARNING: Could not extract DoR verdict for {storyId}. Marking as NOT_READY.
@@ -302,7 +315,7 @@ After each subagent completes, extract the DoR verdict from the output:
 
 ### 2.4 Update Execution State
 
-After each story planning completes:
+After each story planning completes, update the story's entry in `storyEntries`:
 
 ```json
 {
@@ -313,9 +326,9 @@ After each story planning completes:
   "planningCompletedAt": "2026-04-07T10:05:00Z",
   "dorVerdict": "READY",
   "artifacts": [
-    "plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md",
-    "plans/epic-XXXX/plans/planning-report-story-XXXX-YYYY.md",
-    "plans/epic-XXXX/plans/dor-story-XXXX-YYYY.md"
+    "{epicDir}/plans/tasks-story-XXXX-YYYY.md",
+    "{epicDir}/plans/planning-report-story-XXXX-YYYY.md",
+    "{epicDir}/plans/dor-story-XXXX-YYYY.md"
   ]
 }
 ```
@@ -384,7 +397,7 @@ Read the final `execution-state.json` and compute:
 
 ### 3.2 Update Epic File
 
-Read the epic file at `plans/epic-XXXX/EPIC-XXXX.md` (or `plans/epic-XXXX/epic-XXXX.md` -- case-insensitive glob).
+Read the epic file at `{epicDir}/EPIC-XXXX.md` (or `{epicDir}/epic-XXXX.md` -- case-insensitive glob).
 
 Locate the story index table in Section 5 (or the main story listing). Add or update a `Planning` column:
 
@@ -405,7 +418,7 @@ Locate the story index table in Section 5 (or the main story listing). Add or up
 
 ### 3.3 Generate Planning Report
 
-Write a planning summary to `plans/epic-XXXX/reports/epic-planning-report-XXXX.md`:
+Write a planning summary to `{epicDir}/reports/epic-planning-report-XXXX.md`:
 
 ```markdown
 # Epic Planning Report -- EPIC-{epicId}
@@ -447,7 +460,7 @@ Write a planning summary to `plans/epic-XXXX/reports/epic-planning-report-XXXX.m
 
 Before generating the planning report:
 
-1. Compute report path: `plans/epic-XXXX/reports/epic-planning-report-XXXX.md`
+1. Compute report path: `{epicDir}/reports/epic-planning-report-XXXX.md`
 2. Check if the report file exists:
    - If NOT found: generate new. Log: `"Generating planning report for EPIC-{epicId}"`
    - If found, compare modification times:
@@ -480,13 +493,13 @@ EPIC-{epicId}: {overall_status}
 
 ### Checkpoint Mechanism
 
-`execution-state.json` in `plans/epic-XXXX/` serves as the checkpoint file. It is updated atomically after each story completes planning.
+`execution-state.json` in `{epicDir}/` serves as the checkpoint file. It is updated atomically after each story completes planning.
 
 ### Resume Behavior (`--resume`)
 
 When `--resume` is set:
 
-1. Load `execution-state.json` from `plans/epic-XXXX/`
+1. Load `execution-state.json` from `{epicDir}/`
 2. Apply reclassification (see Phase 0.6)
 3. Stories with `planningStatus == "READY"` are **skipped** (artifacts already generated)
 4. Stories with `planningStatus == "IN_PROGRESS"` are **reset to PENDING** (interrupted work)
@@ -506,23 +519,23 @@ When `--resume` is set:
 
 | Artifact | Path | Produced By |
 |----------|------|-------------|
-| Execution state (checkpoint) | `plans/epic-XXXX/execution-state.json` | x-epic-plan (this skill) |
-| Epic planning report | `plans/epic-XXXX/reports/epic-planning-report-XXXX.md` | x-epic-plan Phase 3 |
-| Epic file update (Planning column) | `plans/epic-XXXX/EPIC-XXXX.md` | x-epic-plan Phase 3 |
-| Task breakdown (per story) | `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` | x-story-plan (subagent) |
-| Task plans (per task per story) | `plans/epic-XXXX/plans/task-plan-TASK-NNN-story-XXXX-YYYY.md` | x-story-plan (subagent) |
-| Planning report (per story) | `plans/epic-XXXX/plans/planning-report-story-XXXX-YYYY.md` | x-story-plan (subagent) |
-| DoR checklist (per story) | `plans/epic-XXXX/plans/dor-story-XXXX-YYYY.md` | x-story-plan (subagent) |
-| Story file update (Section 8) | `plans/epic-XXXX/story-XXXX-YYYY.md` | x-story-plan (subagent) |
+| Execution state (checkpoint) | `{epicDir}/execution-state.json` | x-epic-plan (this skill) |
+| Epic planning report | `{epicDir}/reports/epic-planning-report-XXXX.md` | x-epic-plan Phase 3 |
+| Epic file update (Planning column) | `{epicDir}/EPIC-XXXX.md` | x-epic-plan Phase 3 |
+| Task breakdown (per story) | `{epicDir}/plans/tasks-story-XXXX-YYYY.md` | x-story-plan (subagent) |
+| Task plans (per task per story) | `{epicDir}/plans/task-plan-TASK-NNN-story-XXXX-YYYY.md` | x-story-plan (subagent) |
+| Planning report (per story) | `{epicDir}/plans/planning-report-story-XXXX-YYYY.md` | x-story-plan (subagent) |
+| DoR checklist (per story) | `{epicDir}/plans/dor-story-XXXX-YYYY.md` | x-story-plan (subagent) |
+| Story file update (Section 8) | `{epicDir}/story-XXXX-YYYY.md` | x-story-plan (subagent) |
 
 ---
 
 ## Flat File Naming Convention (RULE-004)
 
-All output files follow the flat naming convention under `plans/epic-XXXX/plans/`:
+All output files follow the flat naming convention under `{epicDir}/plans/`:
 
 ```
-plans/epic-XXXX/
+{epicDir}/
   EPIC-XXXX.md
   IMPLEMENTATION-MAP.md
   story-XXXX-0001.md
@@ -561,14 +574,14 @@ plans/epic-XXXX/
 
 ## Integration with x-dev-epic-implement
 
-The `execution-state.json` produced by `/x-epic-plan` is compatible with `/x-dev-epic-implement`. The `planningStatus` field is a planning-specific extension that coexists with the `status` field used by the implementation orchestrator:
+The `execution-state.json` produced by `/x-epic-plan` uses the same top-level schema as `/x-dev-epic-implement` (including `baseBranch`, `stories` array, and `totalPhases`). Planning-specific fields are stored under `storyEntries` alongside implementation fields:
 
 | Field | Used By | Values |
 |-------|---------|--------|
 | `status` | x-dev-epic-implement | `PENDING`, `IN_PROGRESS`, `SUCCESS`, `FAILED`, `PARTIAL`, `BLOCKED` |
 | `planningStatus` | x-epic-plan | `PENDING`, `IN_PROGRESS`, `READY`, `NOT_READY` |
 
-Both fields can coexist on the same story entry. `/x-dev-epic-implement` can use `planningStatus == "READY"` as a pre-condition gate before dispatching a story for implementation.
+Both fields coexist on the same story entry in `storyEntries`. `/x-dev-epic-implement` can use `planningStatus == "READY"` as a pre-condition gate before dispatching a story for implementation. Neither skill overwrites fields owned by the other.
 
 ---
 
