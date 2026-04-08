@@ -264,4 +264,282 @@ class SkillsSelectionTest {
         }
     }
 
+    @Nested
+    @DisplayName("selectReviewSkills")
+    class SelectReviewSkills {
+
+        @Test
+        @DisplayName("database configured includes"
+                + " x-review-db")
+        void select_database_includesDbReview() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .database("postgresql", "16")
+                            .build();
+
+            List<String> skills =
+                    SkillsSelection.selectReviewSkills(
+                            config);
+
+            assertThat(skills).contains("x-review-db");
+        }
+
+        @Test
+        @DisplayName("database none excludes x-review-db")
+        void select_databaseNone_excludesDbReview() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .database("none", "")
+                            .build();
+
+            List<String> skills =
+                    SkillsSelection.selectReviewSkills(
+                            config);
+
+            assertThat(skills)
+                    .doesNotContain("x-review-db");
+        }
+
+        @Test
+        @DisplayName("observability configured includes"
+                + " x-review-obs")
+        void select_observability_includesObsReview() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .observabilityTool(
+                                    "opentelemetry")
+                            .build();
+
+            List<String> skills =
+                    SkillsSelection.selectReviewSkills(
+                            config);
+
+            assertThat(skills).contains("x-review-obs");
+        }
+
+        @Test
+        @DisplayName("observability none excludes"
+                + " x-review-obs")
+        void select_observabilityNone_excludesObsReview() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .observabilityTool("none")
+                            .build();
+
+            List<String> skills =
+                    SkillsSelection.selectReviewSkills(
+                            config);
+
+            assertThat(skills)
+                    .doesNotContain("x-review-obs");
+        }
+
+        @Test
+        @DisplayName("container configured includes"
+                + " x-review-devops")
+        void select_container_includesDevopsReview() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("docker")
+                            .build();
+
+            List<String> skills =
+                    SkillsSelection.selectReviewSkills(
+                            config);
+
+            assertThat(skills)
+                    .contains("x-review-devops");
+        }
+
+        @Test
+        @DisplayName("container none excludes"
+                + " x-review-devops")
+        void select_containerNone_excludesDevopsReview() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("none")
+                            .build();
+
+            List<String> skills =
+                    SkillsSelection.selectReviewSkills(
+                            config);
+
+            assertThat(skills)
+                    .doesNotContain("x-review-devops");
+        }
+
+        @Test
+        @DisplayName("database + hexagonal includes"
+                + " x-review-data-modeling")
+        void select_dbHexagonal_includesDataModeling() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .database("postgresql", "16")
+                            .archStyle("hexagonal")
+                            .build();
+
+            List<String> skills =
+                    SkillsSelection.selectReviewSkills(
+                            config);
+
+            assertThat(skills)
+                    .contains("x-review-data-modeling");
+        }
+
+        @Test
+        @DisplayName("database + ddd includes"
+                + " x-review-data-modeling")
+        void select_dbDdd_includesDataModeling() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .database("postgresql", "16")
+                            .archStyle("ddd")
+                            .build();
+
+            List<String> skills =
+                    SkillsSelection.selectReviewSkills(
+                            config);
+
+            assertThat(skills)
+                    .contains("x-review-data-modeling");
+        }
+
+        @Test
+        @DisplayName("database + cqrs includes"
+                + " x-review-data-modeling")
+        void select_dbCqrs_includesDataModeling() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .database("postgresql", "16")
+                            .archStyle("cqrs")
+                            .build();
+
+            List<String> skills =
+                    SkillsSelection.selectReviewSkills(
+                            config);
+
+            assertThat(skills)
+                    .contains("x-review-data-modeling");
+        }
+
+        @Test
+        @DisplayName("database + clean includes"
+                + " x-review-data-modeling")
+        void select_dbClean_includesDataModeling() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .database("postgresql", "16")
+                            .archStyle("clean")
+                            .build();
+
+            List<String> skills =
+                    SkillsSelection.selectReviewSkills(
+                            config);
+
+            assertThat(skills)
+                    .contains("x-review-data-modeling");
+        }
+
+        @Test
+        @DisplayName("database + monolith excludes"
+                + " x-review-data-modeling")
+        void select_dbMonolith_excludesDataModeling() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .database("postgresql", "16")
+                            .archStyle("monolith")
+                            .build();
+
+            List<String> skills =
+                    SkillsSelection.selectReviewSkills(
+                            config);
+
+            assertThat(skills)
+                    .doesNotContain(
+                            "x-review-data-modeling");
+        }
+
+        @Test
+        @DisplayName("no database excludes"
+                + " x-review-data-modeling even if"
+                + " hexagonal")
+        void select_noDbHexagonal_excludesDataModeling() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .database("none", "")
+                            .archStyle("hexagonal")
+                            .build();
+
+            List<String> skills =
+                    SkillsSelection.selectReviewSkills(
+                            config);
+
+            assertThat(skills)
+                    .doesNotContain(
+                            "x-review-data-modeling");
+        }
+
+        @Test
+        @DisplayName("all gates inactive returns"
+                + " empty list")
+        void select_allNone_returnsEmpty() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .database("none", "")
+                            .observabilityTool("none")
+                            .container("none")
+                            .archStyle("library")
+                            .build();
+
+            List<String> skills =
+                    SkillsSelection.selectReviewSkills(
+                            config);
+
+            assertThat(skills).isEmpty();
+        }
+
+        @Test
+        @DisplayName("review skills appear in"
+                + " selectConditionalSkills")
+        void select_reviewSkills_inConditional() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .database("postgresql", "16")
+                            .container("docker")
+                            .build();
+
+            List<String> skills =
+                    SkillsSelection
+                            .selectConditionalSkills(config);
+
+            assertThat(skills)
+                    .contains("x-review-db",
+                            "x-review-devops");
+        }
+
+        @Test
+        @DisplayName("review skills absent from"
+                + " selectConditionalSkills when"
+                + " gates inactive")
+        void select_noGates_notInConditional() {
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .database("none", "")
+                            .observabilityTool("none")
+                            .container("none")
+                            .build();
+
+            List<String> skills =
+                    SkillsSelection
+                            .selectConditionalSkills(config);
+
+            assertThat(skills)
+                    .doesNotContain(
+                            "x-review-db",
+                            "x-review-obs",
+                            "x-review-devops",
+                            "x-review-data-modeling");
+        }
+    }
+
 }

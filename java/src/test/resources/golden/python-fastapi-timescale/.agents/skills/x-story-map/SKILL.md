@@ -165,11 +165,105 @@ branches of the dependency tree. Identify convergence points.
 **Marco de Validacao Arquitetural**: Which story should serve as the architectural
 checkpoint before expanding scope? What does it validate (patterns, pipeline, integration)?
 
-### Step 8 — Save and Report
+### Step 8 — Task-Level Dependency Graph
+
+If stories contain a **Section 8 (Sub-tarefas / Tasks)** with formal task IDs
+(`TASK-XXXX-YYYY-NNN`), build a task-level dependency graph across all stories.
+
+#### 8A — Extract Cross-Story Task Dependencies
+
+For each story, read the task list (Section 8) and their `depends on` declarations.
+Identify cross-story task dependencies — tasks in one story that depend on tasks from
+a different story. Build a table:
+
+| Task | Depends On | Story Source | Story Target | Type |
+| :--- | :--- | :--- | :--- | :--- |
+| TASK-XXXX-YYYY-NNN | TASK-XXXX-ZZZZ-MMM | story-XXXX-YYYY | story-XXXX-ZZZZ | data/interface/schema/config |
+
+**Type** indicates the nature of the dependency:
+- `data` — depends on data model or entity from another story
+- `interface` — depends on a port/interface defined in another story
+- `schema` — depends on a DB schema or migration from another story
+- `config` — depends on configuration or infrastructure from another story
+
+#### 8B — Validate RULE-012 (Cross-Story Consistency)
+
+For every cross-story task dependency, validate that the corresponding story-level
+dependency exists:
+
+| Validation | Action |
+| :--- | :--- |
+| Cross-story task dep without story-level dep | **ERROR**: "TASK-X depends on TASK-Y but story-A does not depend on story-B" |
+| Cycle detected in task graph | **ERROR**: "Cycle detected: TASK-A -> TASK-B -> TASK-C -> TASK-A" |
+| Story-level dep without cross-story task dep | **WARNING**: "story-A depends on story-B but no cross-story task dependencies found" |
+
+If an ERROR is detected, **abort** generation and report the inconsistency.
+If only WARNINGs exist, proceed but include them in the output.
+
+#### 8C — Compute Merge Order via Topological Sort
+
+Apply topological sort to the full task dependency graph (intra-story + cross-story):
+
+1. Build the directed graph of all tasks across all stories
+2. Detect cycles — if found, abort with cycle description
+3. Compute topological order (deterministic: break ties by task ID)
+4. Group tasks into execution phases (phase N = tasks whose dependencies are all in phases 0..N-1)
+5. Tasks in the same phase with no dependencies between them are **parallelizable**
+
+Produce a merge order table:
+
+| Order | Task ID | Story | Parallelizable With | Phase |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | TASK-XXXX-YYYY-NNN | story-XXXX-YYYY | TASK-XXXX-ZZZZ-MMM | 0 |
+
+#### 8D — Generate Mermaid Task Dependency Graph
+
+Create a `graph LR` with tasks as nodes, colored by story:
+
+- **Subgraphs** group tasks by story, each with a distinct fill color
+- **Intra-story edges** use solid arrows (`-->`)
+- **Cross-story edges** use dashed arrows (`-.->`) with `|cross-story|` label
+- **Node labels** include task ID and short description
+
+Use these story colors (cycle through for more stories):
+```
+style story-1 fill:#e8f4fd
+style story-2 fill:#fde8e8
+style story-3 fill:#e8fde8
+style story-4 fill:#fdf8e8
+style story-5 fill:#f0e8fd
+style story-6 fill:#e8fdfa
+```
+
+Example:
+```mermaid
+graph LR
+    subgraph story-XXXX-0001["Story 0001 (Foundation)"]
+        style story-XXXX-0001 fill:#e8f4fd
+        T001["TASK-XXXX-0001-001<br/>Domain Model"]
+        T002["TASK-XXXX-0001-002<br/>Port Interface"]
+        T001 --> T002
+    end
+
+    subgraph story-XXXX-0002["Story 0002 (State)"]
+        style story-XXXX-0002 fill:#fde8e8
+        T003["TASK-XXXX-0002-001<br/>State Record"]
+        T004["TASK-XXXX-0002-002<br/>State Enum"]
+        T003 --> T004
+    end
+
+    T002 -.->|cross-story| T003
+```
+
+If stories do not contain formal task IDs, **skip this step entirely** and note:
+"Task-level dependency graph skipped — stories do not contain formal task definitions (TASK-XXXX-YYYY-NNN)."
+
+### Step 9 — Save and Report
 
 Save as `implementation-map-XXXX.md` in the same directory as the Epic and Stories (inside `plans/epic-XXXX/`).
 The XXXX is the epic number extracted from the Epic file.
 Report: total stories, phases, critical path length, maximum parallelism, main bottleneck.
+If task-level dependencies were computed, also report: total tasks, task phases, cross-story dependencies count.
 
 ## Error Handling
 
@@ -181,6 +275,9 @@ Report: total stories, phases, critical path length, maximum parallelism, main b
 | Circular dependency detected | Warn with cycle details; break the cycle and proceed |
 | Asymmetric dependency (A blocks B but B does not list A) | Fix automatically and note the correction |
 | No root stories (all have blockers) | Warn: "All stories have blockers — review for missing root stories" |
+| Cross-story task dep without story-level dep (RULE-012) | Abort with error listing the inconsistent dependencies |
+| Cycle in task dependency graph | Abort with cycle path: "Cycle detected: TASK-A -> TASK-B -> TASK-A" |
+| Stories without formal task IDs | Skip Section 8 with note; proceed with story-level map only |
 
 ## Common Mistakes
 

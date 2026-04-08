@@ -13,18 +13,19 @@ import java.nio.file.Path;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for story-0024-0010: x-review SKILL.md changes
- * for template references, dashboard, remediation, and
- * fallback behavior.
+ * Tests for x-review SKILL.md template integration.
  *
- * <p>Validates that the x-review SKILL.md source contains
- * all required sections for RULE-002 (idempotency),
- * RULE-005 (parseable scores), RULE-006 (cumulative
- * dashboard), RULE-007 (template instruction), and
- * RULE-012 (graceful fallback).</p>
+ * <p>Validates the x-review orchestrator SKILL.md source
+ * after story-0029-0012 refactoring: inline checklists
+ * and KP mapping removed, Phase 2 delegates to individual
+ * review skills via Skill tool, Specialist Reference Table
+ * added.</p>
+ *
+ * <p>Validates RULE-002 (idempotency), RULE-005 (parseable
+ * scores), RULE-006 (cumulative dashboard), and RULE-012
+ * (graceful fallback).</p>
  */
-@DisplayName("x-review SKILL.md template integration"
-        + " (story-0024-0010)")
+@DisplayName("x-review SKILL.md template integration")
 class XReviewSkillTemplateTest {
 
     private static final Path CLAUDE_SKILL_PATH =
@@ -44,7 +45,7 @@ class XReviewSkillTemplateTest {
             String content = readSkill(CLAUDE_SKILL_PATH);
 
             assertThat(content)
-                    .contains("## Phase 0 \u2014 Idempotency"
+                    .contains("## Phase 0 -- Idempotency"
                             + " Pre-Check");
         }
 
@@ -82,46 +83,64 @@ class XReviewSkillTemplateTest {
     }
 
     @Nested
-    @DisplayName("Phase 2: Template Reference"
-            + " (RULE-007)")
-    class TemplateReference {
+    @DisplayName("Phase 2: Skill Delegation"
+            + " (story-0029-0012)")
+    class SkillDelegation {
 
         @Test
-        @DisplayName("subagent prompt includes Step 1b"
-                + " to read template")
-        void subagentPrompt_includesStep1bTemplate() {
+        @DisplayName("Phase 2 invokes skills via"
+                + " Skill tool, not subagents")
+        void phase2_invokesSkillsViaSkillTool() {
             String content = readSkill(CLAUDE_SKILL_PATH);
 
             assertThat(content)
-                    .contains("Step 1b")
-                    .contains("Read Output Template")
-                    .contains("_TEMPLATE-SPECIALIST-REVIEW"
-                            + ".md");
+                    .contains("Skills via Skill Tool")
+                    .contains("SINGLE message for true"
+                            + " parallelism");
         }
 
         @Test
-        @DisplayName("template detection check before"
-                + " dispatching subagents")
-        void templateDetection_beforeDispatching() {
+        @DisplayName("Phase 2 references /x-review-qa"
+                + " skill invocation")
+        void phase2_referencesQaSkill() {
             String content = readSkill(CLAUDE_SKILL_PATH);
 
             assertThat(content)
-                    .contains("### Template Detection"
-                            + " (before dispatching"
-                            + " subagents)")
-                    .contains("TEMPLATE_AVAILABLE")
-                    .contains("TEMPLATE_MISSING");
+                    .contains("/x-review-qa {STORY_ID}");
         }
 
         @Test
-        @DisplayName("score format instruction includes"
-                + " XX/YY | Status pattern (RULE-005)")
-        void scoreFormat_includesParseablePattern() {
+        @DisplayName("Phase 2 references /x-review-perf"
+                + " skill invocation")
+        void phase2_referencesPerfSkill() {
             String content = readSkill(CLAUDE_SKILL_PATH);
 
             assertThat(content)
-                    .contains("XX/YY | Status: "
-                            + "Approved/Rejected/Partial");
+                    .contains("/x-review-perf {STORY_ID}");
+        }
+
+        @Test
+        @DisplayName("Phase 2 references conditional"
+                + " /x-review-db skill")
+        void phase2_referencesDbSkill() {
+            String content = readSkill(CLAUDE_SKILL_PATH);
+
+            assertThat(content)
+                    .contains("/x-review-db {STORY_ID}");
+        }
+
+        @Test
+        @DisplayName("output format includes standard"
+                + " ENGINEER/STORY/SCORE/STATUS")
+        void outputFormat_includesStandardFields() {
+            String content = readSkill(CLAUDE_SKILL_PATH);
+
+            assertThat(content)
+                    .contains("ENGINEER: {SPECIALIST}")
+                    .contains("STORY: {STORY_ID}")
+                    .contains("SCORE: XX/YY")
+                    .contains("STATUS: Approved |"
+                            + " Rejected | Partial");
         }
 
         @Test
@@ -132,6 +151,95 @@ class XReviewSkillTemplateTest {
 
             assertThat(content)
                     .contains("STATUS = Partial");
+        }
+    }
+
+    @Nested
+    @DisplayName("Specialist Reference Table"
+            + " (story-0029-0012)")
+    class SpecialistReferenceTable {
+
+        @Test
+        @DisplayName("table contains 9 specialist entries")
+        void table_contains9Entries() {
+            String content = readSkill(CLAUDE_SKILL_PATH);
+
+            assertThat(content)
+                    .contains("## Specialist Reference"
+                            + " Table")
+                    .contains("| QA |")
+                    .contains("| Performance |")
+                    .contains("| Database |")
+                    .contains("| Observability |")
+                    .contains("| DevOps |")
+                    .contains("| Data Modeling |")
+                    .contains("| Security |")
+                    .contains("| API |")
+                    .contains("| Event |");
+        }
+
+        @Test
+        @DisplayName("each entry has Specialist, Skill,"
+                + " Max Score, Condition columns")
+        void table_hasRequiredColumns() {
+            String content = readSkill(CLAUDE_SKILL_PATH);
+
+            assertThat(content)
+                    .contains("| Specialist | Skill |"
+                            + " Max Score | Condition |");
+        }
+
+        @Test
+        @DisplayName("core skills are always active")
+        void table_coreSkillsAlwaysActive() {
+            String content = readSkill(CLAUDE_SKILL_PATH);
+
+            assertThat(content)
+                    .contains("| QA | `/x-review-qa`"
+                            + " | /36 | Always |")
+                    .contains("| Performance |"
+                            + " `/x-review-perf`"
+                            + " | /26 | Always |");
+        }
+    }
+
+    @Nested
+    @DisplayName("No Inline Checklists"
+            + " (story-0029-0012)")
+    class NoInlineChecklists {
+
+        @Test
+        @DisplayName("SKILL.md does NOT contain"
+                + " Engineer Checklists section")
+        void skillMd_noEngineerChecklists() {
+            String content = readSkill(CLAUDE_SKILL_PATH);
+
+            assertThat(content)
+                    .doesNotContain(
+                            "### Engineer Checklists");
+        }
+
+        @Test
+        @DisplayName("SKILL.md does NOT contain"
+                + " Knowledge Pack Mapping section")
+        void skillMd_noKpMapping() {
+            String content = readSkill(CLAUDE_SKILL_PATH);
+
+            assertThat(content)
+                    .doesNotContain(
+                            "### Engineer \u2192 Knowledge"
+                                    + " Pack Mapping");
+        }
+
+        @Test
+        @DisplayName("SKILL.md does NOT contain"
+                + " subagent prompt template")
+        void skillMd_noSubagentPromptTemplate() {
+            String content = readSkill(CLAUDE_SKILL_PATH);
+
+            assertThat(content)
+                    .doesNotContain("{CHECKLIST}")
+                    .doesNotContain("{KP_PATHS}");
         }
     }
 
@@ -302,34 +410,36 @@ class XReviewSkillTemplateTest {
 
         @Test
         @DisplayName("SKILL.md documents RULE-012"
-                + " fallback for specialist template")
+                + " fallback for dashboard and"
+                + " remediation templates")
         void skillMd_documentsRule012Fallback() {
             String content = readSkill(CLAUDE_SKILL_PATH);
 
             assertThat(content)
-                    .contains("Fallback (RULE-012)")
+                    .contains("RULE-012")
                     .contains("pre-EPIC-0024 projects");
         }
 
         @Test
-        @DisplayName("fallback uses inline format"
-                + " when template absent")
-        void fallback_usesInlineFormatWhenAbsent() {
+        @DisplayName("fallback skips dashboard when"
+                + " template absent")
+        void fallback_skipsDashboardWhenAbsent() {
             String content = readSkill(CLAUDE_SKILL_PATH);
 
             assertThat(content)
-                    .contains("inline format");
+                    .contains("dashboard generation"
+                            + " skipped");
         }
 
         @Test
-        @DisplayName("fallback logs warning when"
-                + " template not found")
-        void fallback_logsWarningWhenNotFound() {
+        @DisplayName("fallback skips remediation when"
+                + " template absent")
+        void fallback_skipsRemediationWhenAbsent() {
             String content = readSkill(CLAUDE_SKILL_PATH);
 
             assertThat(content)
-                    .contains("Template not found,"
-                            + " using inline format");
+                    .contains("remediation tracking"
+                            + " skipped");
         }
 
         @Test
@@ -382,25 +492,28 @@ class XReviewSkillTemplateTest {
         }
 
         @Test
-        @DisplayName("GitHub skill contains template"
-                + " detection")
-        void githubSkill_containsTemplateDetection() {
+        @DisplayName("GitHub skill invokes review"
+                + " skills via Skill tool")
+        void githubSkill_invokesSkillsViaSkillTool() {
             String content = readSkill(GITHUB_SKILL_PATH);
 
             assertThat(content)
-                    .contains("Template Detection")
-                    .contains("TEMPLATE_AVAILABLE");
+                    .contains("Skills via Skill Tool")
+                    .contains("SINGLE message for true"
+                            + " parallelism");
         }
 
         @Test
-        @DisplayName("GitHub skill contains Step 1b"
-                + " template reference")
-        void githubSkill_containsStep1bTemplate() {
+        @DisplayName("GitHub skill contains Specialist"
+                + " Reference Table")
+        void githubSkill_containsReferenceTable() {
             String content = readSkill(GITHUB_SKILL_PATH);
 
             assertThat(content)
-                    .contains("Step 1b")
-                    .contains("Read Output Template");
+                    .contains("## Specialist Reference"
+                            + " Table")
+                    .contains("| QA |")
+                    .contains("| Performance |");
         }
     }
 

@@ -85,6 +85,35 @@ Add numbered subsections (3.1, 3.2, ...) for each distinct technical requirement
 protocol details, framing formats, concurrency requirements, timeout values — everything a
 developer needs.
 
+#### Section 3.5 — Value Delivery (Mandatory)
+
+Every story MUST contain a Section 3.5 with exactly 3 bullets articulating measurable business
+value. This answers: "What does the business gain when this story is done?"
+
+**Structure (exactly 3 bullets, all mandatory):**
+- **Valor Principal:** A single sentence — the measurable business outcome
+- **Metrica de Sucesso:** How to verify value was delivered (quantitative when possible)
+- **Impacto no Negocio:** Direct impact on users/stakeholders
+
+**Rules (Non-Negotiable):**
+- Value MUST be from the business/user perspective, NOT technical
+- FORBIDDEN: "Implementar repositorio" (infrastructure detail, no business value)
+- CORRECT: "Persistencia de transacoes garantida com integridade referencial, habilitando auditoria"
+- FORBIDDEN: "Codigo funciona" (non-measurable)
+- CORRECT: "100% dos endpoints respondem em < 200ms p95, validado por teste de carga"
+- Layer 0 (Foundation) stories express enablement value
+- Layer 4 (Cross-cutting) stories express risk reduction
+
+**Anti-Patterns for Value Articulation:**
+
+| Anti-Pattern | Example | Why It Fails |
+|:---|:---|:---|
+| Technical-only language | "Implementar repositorio" | No business value expressed |
+| Non-measurable metric | "Codigo funciona" | Cannot be objectively verified |
+| Vague impact | "Melhorar o sistema" | No quantifiable improvement |
+
+A story missing Section 3.5 or with purely technical language MUST be rejected by the quality gate.
+
 #### Section 4 — Local Quality Definitions
 
 **Local DoR**: Specific preconditions for this story. Use checkboxes `- [ ]`.
@@ -266,9 +295,53 @@ If the story has no naturally bounded inputs, boundary scenarios may be omitted 
 - Avoid overlapping scenarios — each tests a distinct behavior
 - Include field-level assertions ("o campo DE 39 deve ser '00'")
 
-#### Section 8 — Sub-tasks
+#### Section 8 — Formal Task Decomposition
 
-Break the story into granular tasks, each estimable at 2-4 hours:
+Section 8 decomposes each story into formal, testable tasks with unique IDs, testability
+patterns, and size constraints. Each task is the atomic unit of delivery — one PR per task.
+
+##### Task ID Format
+
+Every task receives a unique ID: `TASK-XXXX-YYYY-NNN` (epic-story-sequential).
+Example: `TASK-0029-0013-001`, `TASK-0029-0013-002`, ...
+
+##### Task Table Format
+
+| ID | Descricao | Camada | Dependencias | Tag | Padrao de Testabilidade | Estimativa LOC |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `TASK-XXXX-YYYY-001` | Concise task description | domain | — | [Dev] | Domain+UnitTest | 80 |
+| `TASK-XXXX-YYYY-002` | Concise task description | port | TASK-XXXX-YYYY-001 | [Dev] | Port+Adapter+IT | 60 |
+
+##### Valid Testability Patterns
+
+Every `[Dev]` task MUST follow one of these 6 patterns:
+
+| Pattern | Component | Expected Test |
+| :--- | :--- | :--- |
+| Domain+UnitTest | Entity, Value Object, Engine | Unit test of business logic |
+| Port+Adapter+IT | Interface + Implementation | Integration test with real dependency |
+| UseCase+AT | Application use case | Acceptance test end-to-end |
+| Endpoint+APITest | Controller/Resource | HTTP test with status/body/errors |
+| Migration+Smoke | Schema migration | Smoke test of connectivity |
+| Config+VerificationTest | Configuration | Verification test of loading |
+
+##### Anti-Patterns (Rejected)
+
+| Anti-Pattern | Detection Rule | Remediation |
+| :--- | :--- | :--- |
+| Interface-only | Port without adapter | Merge with adapter task |
+| DTO-only | DTO without endpoint/service usage | Merge with endpoint task |
+| Test-only (outside Layer 4) | Test without production code | Merge with [Dev] task |
+| Config-only without test | Configuration without verification | Add verification test |
+
+##### Sizing Constraints
+
+- Minimum: 3 tasks per story, Maximum: 8 tasks per story
+- LOC range: 20-300 per task (recommended 50-150)
+- Tasks below 20 LOC: merge with adjacent task in same layer
+- Tasks above 300 LOC: split into 2+ tasks
+
+##### Task Tags
 
 - `[Dev]` — Implementation tasks (handler, service, repository, migration)
 - `[Test]` — Test tasks (unit, integration, E2E, performance)
@@ -385,12 +458,14 @@ Evaluate each story against these dimensions (each scored 0-100, then weighted):
 
 | Dimension | Weight | What to Check |
 |:---|:---|:---|
-| Gherkin completeness | 25% | Minimum 4 scenarios, TPP ordering, degenerate cases present, concrete values (not abstractions) |
-| Data contract precision | 25% | All fields typed, M/O flags present, validation rules declared, error codes mapped (RFC 7807) |
-| Dependency consistency | 15% | Blocked By/Blocks cross-references match the Epic index bidirectionally |
-| Diagram coverage | 15% | Sequence diagram present for data-flow stories, deployment diagram for infra stories |
-| Value articulation | 10% | Section 3.5 present with business-perspective value (not technical tasks) |
-| Sub-task completeness | 10% | At least one `[Test]` sub-task, tasks estimable at 2-4h each |
+| Gherkin completeness | 20% | Minimum 4 scenarios, TPP ordering, degenerate cases present, concrete values (not abstractions) |
+| Data contract precision | 20% | All fields typed, M/O flags present, validation rules declared, error codes mapped (RFC 7807) |
+| Task testability | 20% | All [Dev] tasks follow one of 6 valid testability patterns; no anti-patterns (interface-only, DTO-only, test-only outside Layer 4, config-only without test) |
+| Task independence | 10% | Tasks can be implemented and tested independently; circular dependencies between tasks are forbidden; each task produces a verifiable artifact |
+| Dependency consistency | 10% | Blocked By/Blocks cross-references match the Epic index bidirectionally |
+| Diagram coverage | 10% | Sequence diagram present for data-flow stories, deployment diagram for infra stories |
+| Value articulation | 5% | Section 3.5 present with exactly 3 bullets (Valor Principal, Metrica de Sucesso, Impacto no Negocio) using business-perspective language (not technical tasks) |
+| Sub-task completeness | 5% | At least one `[Test]` task, task count between 3-8, all tasks within 20-300 LOC range |
 
 #### Evaluation Flow
 
@@ -413,6 +488,10 @@ When a story fails the quality gate:
    - Add boundary value triplets for bounded inputs
    - Add missing error code mappings
    - Fix dependency cross-references
+   - Reformulate tasks with anti-patterns (merge interface-only with adapter, etc.)
+   - Merge tasks below 20 LOC with adjacent tasks in same layer
+   - Split tasks above 300 LOC into smaller tasks
+   - Add Section 3.5 if missing, replace technical language with business value
 4. Re-evaluate the refined story
 5. If `score >= threshold`: save the file and report `"Story refined: oldScore -> newScore (attempt N)"`
 6. If still below threshold after attempt 1: repeat refinement (attempt 2)
@@ -428,20 +507,26 @@ When displaying a quality gate report (on rejection or after refinement), use th
 Quality Gate Report — story-XXXX-YYYY
 Score: N/100 (threshold: T)
 
-  Gherkin completeness:     NN/100 (weight 25%)
+  Gherkin completeness:     NN/100 (weight 20%)
     - [ACTION] Add degenerate scenario for null input
     - [ACTION] Reorder scenarios: degenerate before happy path
-  Data contract precision:  NN/100 (weight 25%)
+  Data contract precision:  NN/100 (weight 20%)
     - [ACTION] Field 'amount' missing type declaration
     - [OK] Error codes mapped for all endpoints
-  Dependency consistency:   NN/100 (weight 15%)
+  Task testability:         NN/100 (weight 20%)
+    - [ACTION] TASK-0029-0013-002 uses anti-pattern: interface-only
+    - [OK] 5 of 6 tasks follow valid testability patterns
+  Task independence:        NN/100 (weight 10%)
+    - [OK] No circular dependencies between tasks
+    - [ACTION] TASK-0029-0013-003 cannot be tested without TASK-0029-0013-005
+  Dependency consistency:   NN/100 (weight 10%)
     - [OK] All cross-references valid
-  Diagram coverage:         NN/100 (weight 15%)
+  Diagram coverage:         NN/100 (weight 10%)
     - [ACTION] Missing sequence diagram for REST flow
-  Value articulation:       NN/100 (weight 10%)
-    - [OK] Business value clearly stated
-  Sub-task completeness:    NN/100 (weight 10%)
-    - [ACTION] No [Test] sub-task found
+  Value articulation:       NN/100 (weight 5%)
+    - [OK] Section 3.5 present with 3 business-value bullets
+  Sub-task completeness:    NN/100 (weight 5%)
+    - [OK] 5 tasks within 3-8 range, all within 20-300 LOC
 
 Action items: K issue(s) to resolve
 ```
