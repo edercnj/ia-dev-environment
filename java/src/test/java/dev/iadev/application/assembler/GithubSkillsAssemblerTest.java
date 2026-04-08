@@ -53,12 +53,12 @@ class GithubSkillsAssemblerTest {
         }
 
         @Test
-        @DisplayName("story group has 9 skills")
+        @DisplayName("story group has 10 skills")
         void assemble_storyGroup_hasNineSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("story"))
-                    .hasSize(9);
+                    .hasSize(10);
         }
 
         @Test
