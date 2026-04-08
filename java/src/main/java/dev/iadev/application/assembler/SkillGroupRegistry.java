@@ -98,7 +98,8 @@ public final class SkillGroupRegistry {
                 "finops", "patterns-outbox",
                 "pci-dss-requirements"));
         SKILL_GROUPS.put("git-troubleshooting", List.of(
-                "x-git-push", "x-ops-troubleshoot",
+                "x-git-push", "x-pr-create",
+                "x-ops-troubleshoot",
                 "x-ops-incident",
                 "x-fix-pr-comments",
                 "x-fix-epic-pr-comments",
