@@ -4,6 +4,11 @@ import dev.iadev.config.ContextBuilder;
 import dev.iadev.domain.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
+import dev.iadev.domain.model.ContextBudget;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -180,7 +185,37 @@ public final class SkillsAssembler implements Assembler {
         CopyHelpers.copyDirectory(src, dest);
         CopyHelpers.replacePlaceholdersInDir(
                 dest, engine, context);
+        injectBudgetField(src, dest);
         return dest.toString();
+    }
+
+    private void injectBudgetField(
+            Path srcDir, Path destDir) {
+        Path srcSkill = srcDir.resolve("SKILL.md");
+        Path destSkill = destDir.resolve("SKILL.md");
+        if (!Files.exists(srcSkill)
+                || !Files.exists(destSkill)) {
+            return;
+        }
+        int lineCount = countLines(srcSkill);
+        ContextBudget budget =
+                ContextBudget.fromLineCount(lineCount);
+        String content = CopyHelpers.readFile(destSkill);
+        String injected =
+                FrontmatterInjector.injectContextBudget(
+                        content, budget);
+        CopyHelpers.writeFile(destSkill, injected);
+    }
+
+    private static int countLines(Path file) {
+        try {
+            return (int) Files.lines(
+                    file, StandardCharsets.UTF_8).count();
+        } catch (IOException e) {
+            throw new UncheckedIOException(
+                    "Failed to count lines: %s"
+                            .formatted(file), e);
+        }
     }
 
     private Optional<String> copyConditionalSkill(
@@ -201,6 +236,7 @@ public final class SkillsAssembler implements Assembler {
         CopyHelpers.copyDirectory(src, dest);
         CopyHelpers.replacePlaceholdersInDir(
                 dest, engine, context);
+        injectBudgetField(src, dest);
         return Optional.of(dest.toString());
     }
 
