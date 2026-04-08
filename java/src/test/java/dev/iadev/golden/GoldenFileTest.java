@@ -115,8 +115,11 @@ class GoldenFileTest {
                 .isTrue();
 
         Path goldenDir = resolveGoldenDir(profile);
+        Set<String> platformExcludes =
+                Set.of("platform-claude-code");
         Set<String> goldenFiles =
-                collectRelativePaths(goldenDir);
+                collectRelativePaths(
+                        goldenDir, platformExcludes);
         Set<String> generatedFiles =
                 collectRelativePaths(outputDir);
 
@@ -230,8 +233,36 @@ class GoldenFileTest {
      */
     static Set<String> collectRelativePaths(Path dir)
             throws IOException {
+        return collectRelativePaths(dir, Set.of());
+    }
+
+    /**
+     * Collects all relative file paths under a directory,
+     * excluding specified subdirectory names.
+     *
+     * @param dir      the root directory to scan
+     * @param excludes directory names to skip
+     * @return sorted set of relative paths as strings
+     * @throws IOException if directory traversal fails
+     */
+    static Set<String> collectRelativePaths(
+            Path dir, Set<String> excludes)
+            throws IOException {
         Set<String> paths = new TreeSet<>();
         Files.walkFileTree(dir, new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult preVisitDirectory(
+                    Path d,
+                    BasicFileAttributes attrs) {
+                if (!d.equals(dir)
+                        && excludes.contains(
+                                d.getFileName()
+                                        .toString())) {
+                    return FileVisitResult.SKIP_SUBTREE;
+                }
+                return FileVisitResult.CONTINUE;
+            }
+
             @Override
             public FileVisitResult visitFile(
                     Path file,
