@@ -364,6 +364,8 @@ Templates referenced by this skill follow RULE-012. When a template file does no
 - `_TEMPLATE-CONSOLIDATED-REVIEW-DASHBOARD.md` — dashboard generation skipped
 - `_TEMPLATE-REVIEW-REMEDIATION.md` — remediation tracking skipped
 
+When templates are absent, inline format is used and dashboard/remediation are skipped.
+
 ## Integration Notes
 
 | Skill | Relationship | Context |
