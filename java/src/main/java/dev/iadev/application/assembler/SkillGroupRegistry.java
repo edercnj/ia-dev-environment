@@ -54,6 +54,7 @@ public final class SkillGroupRegistry {
                 "x-dev-epic-implement",
                 "x-dev-architecture-plan",
                 "x-dev-arch-update",
+                "x-docs",
                 "layer-templates",
                 "x-dev-adr-automation",
                 "x-commit",

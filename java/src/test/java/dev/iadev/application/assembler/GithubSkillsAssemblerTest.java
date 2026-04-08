@@ -53,21 +53,21 @@ class GithubSkillsAssemblerTest {
         }
 
         @Test
-        @DisplayName("story group has 10 skills")
+        @DisplayName("story group has 9 skills")
         void assemble_storyGroup_hasNineSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("story"))
-                    .hasSize(10);
+                    .hasSize(9);
         }
 
         @Test
-        @DisplayName("dev group has 15 skills")
-        void assemble_devGroup_hasFifteenSkills() {
+        @DisplayName("dev group has 13 skills")
+        void assemble_devGroup_hasThirteenSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("dev"))
-                    .hasSize(15);
+                    .hasSize(13);
         }
 
         @Test
@@ -108,12 +108,12 @@ class GithubSkillsAssemblerTest {
 
         @Test
         @DisplayName("git-troubleshooting group"
-                + " has 8 skills")
-        void assemble_gitTroubleshootingGroup_hasEightSkills() {
+                + " has 7 skills")
+        void assemble_gitTroubleshootingGroup_hasSevenSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("git-troubleshooting"))
-                    .hasSize(8);
+                    .hasSize(7);
         }
 
         @Test
