@@ -90,6 +90,10 @@ If `--scope` provided, filter to listed specialists only.
 
 ## Phase 2 -- Parallel Reviews (Skills via Skill Tool)
 
+**CONTEXT ISOLATION: You receive only metadata. Read all files yourself.
+Do NOT expect source code, diffs, or knowledge pack content in this prompt.
+Each review skill reads its own knowledge pack and runs `git diff` independently.**
+
 **CRITICAL: ALL review skills MUST be invoked in a SINGLE message for true parallelism.**
 
 For each applicable specialist determined in Phase 1, invoke the corresponding review skill using the Skill tool. Pass the story ID as argument.
