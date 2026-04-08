@@ -296,6 +296,9 @@ public final class SmokeTestValidators {
                         .toList();
                 for (Path ref : refs) {
                     sb.append("\n\n");
+                    sb.append("<!-- ref: ")
+                            .append(ref.getFileName())
+                            .append(" -->\n");
                     sb.append(Files.readString(
                             ref, StandardCharsets.UTF_8));
                 }
