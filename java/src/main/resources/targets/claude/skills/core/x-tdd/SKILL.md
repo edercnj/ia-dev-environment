@@ -284,18 +284,19 @@ When x-tdd is invoked from within another skill (orchestrated execution via x-de
 **Compact format:**
 
 ```
-Cycle {cycleNumber}/{totalCycles}: RED {redStatus} GREEN {greenStatus} REFACTOR {refactorStatus} → {commitSha}
+Cycle {cycleNumber}/{totalCycles}: RED {testResult} GREEN {testResult} REFACTOR {refactorStatus} → {commitSha}
 ```
 
 Where:
-- `{redStatus}` and `{greenStatus}` are `✓` (pass) or `✗` (fail)
-- `{refactorStatus}` is `✓` (applied) or `skipped`
+- RED `{testResult}`: `FAIL_EXPECTED` (test fails as intended) or `FAIL_UNEXPECTED` (test passes prematurely — abort)
+- GREEN `{testResult}`: `PASS` (tests pass after implementation) or `FAIL` (tests still failing — retry)
+- `{refactorStatus}` is `PASS` (applied, tests still pass) or `skipped`
 - `{commitSha}` is the 7-char abbreviated SHA of the last commit in the cycle
 
 **Example:**
 
 ```
-Cycle 3/5: RED ✓ GREEN ✓ REFACTOR skipped → abc1234
+Cycle 3/5: RED FAIL_EXPECTED GREEN PASS REFACTOR skipped → abc1234
 ```
 
 Detection: if this skill was invoked via the `Skill` tool by another skill (not directly by the user), use the compact format. When invoked directly by the user (e.g., `/x-tdd TASK-001`), use the full multi-line format.
