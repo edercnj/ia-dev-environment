@@ -1,142 +1,211 @@
 package dev.iadev.golden;
 
+import dev.iadev.application.assembler.AssemblerDescriptor;
+import dev.iadev.application.assembler.AssemblerFactory;
 import dev.iadev.application.assembler.AssemblerPipeline;
 import dev.iadev.application.assembler.PipelineOptions;
 import dev.iadev.config.ConfigProfiles;
 import dev.iadev.domain.model.PipelineResult;
+import dev.iadev.domain.model.Platform;
 import dev.iadev.domain.model.ProjectConfig;
-import dev.iadev.smoke.SmokeProfiles;
 
 import java.io.IOException;
+import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
- * Regenerates golden files for all 17 bundled profiles
- * by running the full assembler pipeline and copying
- * output to the test resources golden directory.
+ * Regenerates golden files for all 17 profiles by running
+ * the pipeline and overwriting the golden directory.
  *
- * <p>Usage:
- * <pre>{@code
- * mvn exec:java \
- *   -Dexec.mainClass=
- *     "dev.iadev.golden.GoldenFileRegenerator" \
- *   -Dexec.classpathScope="test"
- * }</pre>
- * </p>
+ * <p>Usage: run via mvn exec:java with
+ * test classpath scope.</p>
  */
 public final class GoldenFileRegenerator {
 
-    private static final Path GOLDEN_DIR = Path.of(
-            "src/test/resources/golden");
+    private static final List<String> PLATFORM_PROFILES =
+            List.of("go-gin", "java-spring");
+
+    private static final String PLATFORM_SUBDIR =
+            "platform-claude-code";
+
+    private static final List<String> PROFILES = List.of(
+            "go-gin", "java-quarkus", "java-spring",
+            "java-spring-clickhouse",
+            "java-spring-cqrs-es",
+            "java-spring-elasticsearch",
+            "java-spring-event-driven",
+            "java-spring-fintech-pci",
+            "java-spring-hexagonal",
+            "java-spring-neo4j",
+            "kotlin-ktor", "python-click-cli",
+            "python-fastapi",
+            "python-fastapi-timescale",
+            "rust-axum",
+            "typescript-commander-cli",
+            "typescript-nestjs");
 
     private GoldenFileRegenerator() {
     }
 
     /**
-     * Regenerates golden files for all profiles.
+     * Regenerates golden files.
      *
-     * @param args optional: golden directory path
+     * @param args optional: golden base path
      * @throws IOException if file operations fail
      */
     public static void main(String[] args)
             throws IOException {
-        Path goldenRoot = args.length > 0
-                ? Path.of(args[0])
-                : GOLDEN_DIR;
+        String base = args.length > 0
+                ? args[0]
+                : "src/test/resources/golden";
+        Path goldenBase = Path.of(base);
 
-        for (String profile : SmokeProfiles.profileList()) {
-            regenerateProfile(profile, goldenRoot);
+        for (String profile : PROFILES) {
+            regenerateProfile(profile, goldenBase);
+        }
+        for (String profile : PLATFORM_PROFILES) {
+            regeneratePlatformProfile(
+                    profile, goldenBase);
+        }
+    }
+
+    private static void regeneratePlatformProfile(
+            String profile, Path goldenBase)
+            throws IOException {
+        Path tempDir = Files.createTempDirectory(
+                "golden-platform-regen-");
+        try {
+            Path outputDir = tempDir.resolve(profile);
+            Files.createDirectories(outputDir);
+
+            ProjectConfig config =
+                    ConfigProfiles.getStack(profile);
+            PipelineOptions options =
+                    new PipelineOptions(
+                            false, true, false, false,
+                            null,
+                            Set.of(Platform.CLAUDE_CODE));
+            List<AssemblerDescriptor> assemblers =
+                    AssemblerFactory.buildAssemblers(
+                            options);
+            AssemblerPipeline pipeline =
+                    new AssemblerPipeline(assemblers);
+
+            PipelineResult result =
+                    pipeline.runPipeline(
+                            config, outputDir, options);
+
+            if (!result.success()) {
+                System.err.println(
+                        "PLATFORM FAILED: " + profile);
+                return;
+            }
+
+            Path goldenDir = goldenBase.resolve(profile)
+                    .resolve(PLATFORM_SUBDIR);
+            deleteTree(goldenDir);
+            copyTree(outputDir, goldenDir);
+            System.out.println(
+                    "Regenerated platform: " + profile);
+        } finally {
+            deleteTree(tempDir);
         }
     }
 
     private static void regenerateProfile(
-            String profile, Path goldenRoot)
+            String profile, Path goldenBase)
             throws IOException {
-        Path goldenDir = goldenRoot.resolve(profile);
         Path tempDir = Files.createTempDirectory(
-                "golden-regen-" + profile + "-");
-
+                "golden-regen-");
         try {
+            Path outputDir = tempDir.resolve(profile);
+            Files.createDirectories(outputDir);
+
             ProjectConfig config =
                     ConfigProfiles.getStack(profile);
             AssemblerPipeline pipeline =
                     new AssemblerPipeline(
                             AssemblerPipeline
                                     .buildAssemblers());
-            PipelineOptions options = new PipelineOptions(
-                    false, true, false, null);
+            PipelineOptions options =
+                    new PipelineOptions(
+                            false, true, false, null);
 
-            PipelineResult result = pipeline.runPipeline(
-                    config, tempDir, options);
+            PipelineResult result =
+                    pipeline.runPipeline(
+                            config, outputDir, options);
 
             if (!result.success()) {
-                throw new IllegalStateException(
-                        "Pipeline failed for: " + profile);
+                System.err.println(
+                        "FAILED: " + profile);
+                return;
             }
 
-            List<Path> preserved =
-                    preservePlatformDirs(goldenDir);
-            deleteTree(goldenDir);
-            copyTree(tempDir, goldenDir);
-            restorePlatformDirs(preserved, goldenDir);
+            Path goldenDir = goldenBase.resolve(profile);
+            cleanGoldenDir(goldenDir);
+            copyTree(outputDir, goldenDir);
+            System.out.println("Regenerated: " + profile);
         } finally {
             deleteTree(tempDir);
         }
     }
 
-    private static List<Path> preservePlatformDirs(
-            Path goldenDir) throws IOException {
-        List<Path> preserved = new ArrayList<>();
-        if (!Files.exists(goldenDir)) {
-            return preserved;
-        }
-        try (var entries = Files.list(goldenDir)) {
-            entries.filter(Files::isDirectory)
-                    .filter(d -> d.getFileName()
-                            .toString()
-                            .startsWith("platform-"))
-                    .forEach(d -> {
-                        try {
-                            Path backup =
-                                    Files.createTempDirectory(
-                                            "golden-plat-");
-                            copyTree(d, backup);
-                            preserved.add(backup);
-                            preserved.add(d);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
-        }
-        return preserved;
-    }
-
-    private static void restorePlatformDirs(
-            List<Path> preserved, Path goldenDir)
+    private static void cleanGoldenDir(Path dir)
             throws IOException {
-        for (int i = 0; i < preserved.size(); i += 2) {
-            Path backup = preserved.get(i);
-            Path original = preserved.get(i + 1);
-            Path target = goldenDir.resolve(
-                    original.getFileName());
-            copyTree(backup, target);
-            deleteTree(backup);
+        if (!Files.exists(dir)) {
+            return;
         }
+        Files.walkFileTree(dir,
+                new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult visitFile(
+                    Path file,
+                    BasicFileAttributes attrs)
+                    throws IOException {
+                String rel = dir.relativize(file)
+                        .toString();
+                if (!rel.startsWith(
+                        "platform-claude-code")) {
+                    Files.delete(file);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(
+                    Path d, IOException exc)
+                    throws IOException {
+                String rel = dir.relativize(d).toString();
+                if (!rel.isEmpty()
+                        && !rel.startsWith(
+                        "platform-claude-code")) {
+                    try {
+                        Files.delete(d);
+                    } catch (
+                            DirectoryNotEmptyException e) {
+                        // OK
+                    }
+                }
+                return FileVisitResult.CONTINUE;
+            }
+        });
     }
 
     private static void copyTree(Path src, Path dest)
             throws IOException {
-        Files.walkFileTree(src, new SimpleFileVisitor<>() {
+        Files.walkFileTree(src,
+                new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult preVisitDirectory(
-                    Path dir, BasicFileAttributes attrs)
+                    Path dir,
+                    BasicFileAttributes attrs)
                     throws IOException {
                 Path target = dest.resolve(
                         src.relativize(dir));
@@ -146,10 +215,12 @@ public final class GoldenFileRegenerator {
 
             @Override
             public FileVisitResult visitFile(
-                    Path file, BasicFileAttributes attrs)
+                    Path file,
+                    BasicFileAttributes attrs)
                     throws IOException {
-                Files.copy(file,
-                        dest.resolve(src.relativize(file)),
+                Path target = dest.resolve(
+                        src.relativize(file));
+                Files.copy(file, target,
                         StandardCopyOption
                                 .REPLACE_EXISTING);
                 return FileVisitResult.CONTINUE;
@@ -162,10 +233,12 @@ public final class GoldenFileRegenerator {
         if (!Files.exists(dir)) {
             return;
         }
-        Files.walkFileTree(dir, new SimpleFileVisitor<>() {
+        Files.walkFileTree(dir,
+                new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult visitFile(
-                    Path file, BasicFileAttributes attrs)
+                    Path file,
+                    BasicFileAttributes attrs)
                     throws IOException {
                 Files.delete(file);
                 return FileVisitResult.CONTINUE;
@@ -173,9 +246,9 @@ public final class GoldenFileRegenerator {
 
             @Override
             public FileVisitResult postVisitDirectory(
-                    Path dir, IOException exc)
+                    Path d, IOException exc)
                     throws IOException {
-                Files.delete(dir);
+                Files.delete(d);
                 return FileVisitResult.CONTINUE;
             }
         });
