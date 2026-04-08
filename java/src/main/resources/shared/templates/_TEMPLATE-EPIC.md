@@ -47,8 +47,8 @@
 
 ## 5. Índice de Histórias
 
-| ID | Título | Dependências (Blocked By) | Entrega de Valor |
-| :--- | :--- | :--- | :--- |
-| [story-XXXX-0001](./story-XXXX-0001.md) | <Título da história> | - | <Valor mensurável de negócio> |
-| [story-XXXX-0002](./story-XXXX-0002.md) | <Título da história> | story-XXXX-0001 | <Valor mensurável de negócio> |
-| [story-XXXX-YYYY](./story-XXXX-YYYY.md) | <Título da história> | <Dependências separadas por vírgula> | <Valor mensurável de negócio> |
+| ID | Título | Dependências (Blocked By) | Entrega de Valor | Planejamento |
+| :--- | :--- | :--- | :--- | :--- |
+| [story-XXXX-0001](./story-XXXX-0001.md) | <Título da história> | - | <Valor mensurável de negócio> | {{PLANNING_STATUS}} |
+| [story-XXXX-0002](./story-XXXX-0002.md) | <Título da história> | story-XXXX-0001 | <Valor mensurável de negócio> | {{PLANNING_STATUS}} |
+| [story-XXXX-YYYY](./story-XXXX-YYYY.md) | <Título da história> | <Dependências separadas por vírgula> | <Valor mensurável de negócio> | {{PLANNING_STATUS}} |
