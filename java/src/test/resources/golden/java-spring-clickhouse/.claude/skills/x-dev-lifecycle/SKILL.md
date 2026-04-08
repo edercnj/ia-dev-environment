@@ -195,7 +195,7 @@ FOR each TASK-NNN where status != DONE and status != BLOCKED:
   2.2.2  Update execution-state: task.status = IN_PROGRESS
   2.2.3  Create task branch from parent (--auto-approve-pr) or develop
   2.2.4  Read task plan (if PRE_PLANNED mode)
-  2.2.5  Invoke /x-tdd TASK-XXXX-YYYY-NNN (delegates commits to /x-commit)
+  2.2.5  Invoke /x-tdd TASK-XXXX-YYYY-NNN: read only the "## Slim Mode" section of x-tdd, x-commit, x-format, x-lint for minimum context
   2.2.6  Push branch: git push -u origin feat/task-XXXX-YYYY-NNN-desc
   2.2.7  Invoke /x-pr-create TASK-XXXX-YYYY-NNN
   2.2.8  Update execution-state: task.status = PR_CREATED
@@ -268,11 +268,11 @@ Templates follow RULE-012 (graceful degradation):
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| `x-tdd` | Invokes (Phase 2, per task) | TDD execution for each task |
-| `x-commit` | Invoked by x-tdd | Atomic commits with TDD tags and pre-commit chain |
+| `x-tdd` | Invokes (Phase 2, per task) | TDD execution for each task (use Slim Mode for chain invocation) |
+| `x-commit` | Invoked by x-tdd | Atomic commits with TDD tags and pre-commit chain (use Slim Mode) |
 | `x-pr-create` | Invokes (Phase 2, per task) | Task-level PR creation |
-| `x-format` | Invoked by x-commit chain | Code formatting in pre-commit |
-| `x-lint` | Invoked by x-commit chain | Code linting in pre-commit |
+| `x-format` | Invoked by x-commit chain | Code formatting in pre-commit (use Slim Mode) |
+| `x-lint` | Invoked by x-commit chain | Code linting in pre-commit (use Slim Mode) |
 | `x-plan-task` | Invokes (Phase 1, per task) | Individual task planning |
 | `x-dev-architecture-plan` | Invokes (Phase 1, conditional) | Architecture planning |
 | `x-test-plan` | Invokes (Phase 1B) | Test plan as implementation roadmap |
