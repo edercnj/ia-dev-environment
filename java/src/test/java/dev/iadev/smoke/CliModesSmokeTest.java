@@ -294,7 +294,7 @@ class CliModesSmokeTest {
                     "-o", outputDir.toString());
 
             String output = sw.toString();
-            assertThat(output).contains("Running ");
+            assertThat(output).contains("INCLUDED:");
         }
 
         @Test

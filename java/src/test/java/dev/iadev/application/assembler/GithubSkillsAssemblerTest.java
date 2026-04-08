@@ -53,39 +53,39 @@ class GithubSkillsAssemblerTest {
         }
 
         @Test
-        @DisplayName("story group has 9 skills")
-        void assemble_storyGroup_hasNineSkills() {
+        @DisplayName("story group has 10 skills")
+        void assemble_storyGroup_hasTenSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("story"))
-                    .hasSize(9);
+                    .hasSize(10);
         }
 
         @Test
-        @DisplayName("dev group has 13 skills")
-        void assemble_devGroup_hasThirteenSkills() {
+        @DisplayName("dev group has 17 skills")
+        void assemble_devGroup_hasSeventeenSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("dev"))
-                    .hasSize(13);
+                    .hasSize(17);
         }
 
         @Test
-        @DisplayName("review group has 16 skills")
-        void assemble_reviewGroup_hasSixteenSkills() {
+        @DisplayName("review group has 18 skills")
+        void assemble_reviewGroup_hasEighteenSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("review"))
-                    .hasSize(16);
+                    .hasSize(18);
         }
 
         @Test
-        @DisplayName("testing group has 6 skills")
-        void assemble_testingGroup_hasSixSkills() {
+        @DisplayName("testing group has 7 skills")
+        void assemble_testingGroup_hasSevenSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("testing"))
-                    .hasSize(6);
+                    .hasSize(7);
         }
 
         @Test
@@ -108,12 +108,12 @@ class GithubSkillsAssemblerTest {
 
         @Test
         @DisplayName("git-troubleshooting group"
-                + " has 7 skills")
-        void assemble_gitTroubleshootingGroup_hasSevenSkills() {
+                + " has 8 skills")
+        void assemble_gitTroubleshootingGroup_hasEightSkills() {
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("git-troubleshooting"))
-                    .hasSize(7);
+                    .hasSize(8);
         }
 
         @Test

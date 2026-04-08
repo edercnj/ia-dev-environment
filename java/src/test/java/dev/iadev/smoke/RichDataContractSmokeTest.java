@@ -55,7 +55,7 @@ class RichDataContractSmokeTest extends SmokeTestBase {
                 assertThat(content)
                         .as("Request table in %s for %s",
                                 skillPath, profile)
-                        .contains("##### 5.1 Request Table")
+                        .contains("##### 2.6.1 — Request Table")
                         .contains("| Campo | Tipo | M/O "
                                 + "| Validacoes | Exemplo |");
             }
@@ -80,7 +80,7 @@ class RichDataContractSmokeTest extends SmokeTestBase {
                 assertThat(content)
                         .as("Response table in %s for %s",
                                 skillPath, profile)
-                        .contains("##### 5.2 Response Table")
+                        .contains("##### 2.6.2 — Response Table")
                         .contains("| Campo | Tipo "
                                 + "| Sempre presente "
                                 + "| Descricao |");
@@ -107,7 +107,7 @@ class RichDataContractSmokeTest extends SmokeTestBase {
                         .as("Error Codes in %s for %s",
                                 skillPath, profile)
                         .contains(
-                                "##### 5.3 Error Codes "
+                                "##### 2.6.3 — Error Codes "
                                 + "Mapeados")
                         .contains("| HTTP Status "
                                 + "| Error Code "
@@ -136,7 +136,7 @@ class RichDataContractSmokeTest extends SmokeTestBase {
                 assertThat(content)
                         .as("Event Schema in %s for %s",
                                 skillPath, profile)
-                        .contains("##### 5.4 Event Schema")
+                        .contains("##### 2.6.4 — Event Schema")
                         .contains("`eventVersion`")
                         .contains("Backward compatibility");
             }

@@ -44,24 +44,24 @@ class SkillGroupRegistryTest {
         }
 
         @Test
-        @DisplayName("story group has 9 skills")
+        @DisplayName("story group has 10 skills")
         void register_whenCalled_storyGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("story")).hasSize(9);
+                    .get("story")).hasSize(10);
         }
 
         @Test
-        @DisplayName("dev group has 13 skills")
+        @DisplayName("dev group has 17 skills")
         void register_whenCalled_devGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("dev")).hasSize(13);
+                    .get("dev")).hasSize(17);
         }
 
         @Test
-        @DisplayName("review group has 16 skills")
+        @DisplayName("review group has 18 skills")
         void register_whenCalled_reviewGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("review")).hasSize(16);
+                    .get("review")).hasSize(18);
         }
 
         @Test
@@ -74,10 +74,10 @@ class SkillGroupRegistryTest {
         }
 
         @Test
-        @DisplayName("testing group has 6 skills")
+        @DisplayName("testing group has 7 skills")
         void register_whenCalled_testingGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("testing")).hasSize(6);
+                    .get("testing")).hasSize(7);
         }
 
         @Test
@@ -95,10 +95,10 @@ class SkillGroupRegistryTest {
         }
 
         @Test
-        @DisplayName("git-troubleshooting has 7 skills")
+        @DisplayName("git-troubleshooting has 8 skills")
         void register_whenCalled_gitTroubleshootingGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("git-troubleshooting")).hasSize(7);
+                    .get("git-troubleshooting")).hasSize(8);
         }
 
         @Test

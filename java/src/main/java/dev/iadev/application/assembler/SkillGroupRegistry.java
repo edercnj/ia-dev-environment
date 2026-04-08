@@ -64,11 +64,13 @@ public final class SkillGroupRegistry {
                 "x-setup-dev-environment",
                 "x-ci-cd-generate",
                 "x-security-pipeline",
-                "x-lint"));
+                "x-lint",
+                "x-worktree"));
         SKILL_GROUPS.put("review", List.of(
                 "x-review", "x-review-api", "x-review-pr",
                 "x-review-grpc", "x-review-events",
                 "x-review-gateway",
+                "x-review-qa", "x-review-perf",
                 "x-codebase-audit",
                 "x-dependency-audit",
                 "x-supply-chain-audit",
@@ -80,7 +82,8 @@ public final class SkillGroupRegistry {
                 "x-security-dashboard",
                 "x-contract-lint"));
         SKILL_GROUPS.put("testing", List.of(
-                "x-test-plan", "x-test-run", "run-e2e",
+                "x-test-plan", "x-test-run", "x-tdd",
+                "run-e2e",
                 "run-smoke-api", "run-contract-tests",
                 "run-perf-test"));
         SKILL_GROUPS.put("infrastructure", List.of(
