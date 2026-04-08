@@ -1,4 +1,5 @@
 {
+  "version": "2.0",
   "epicId": "XXXX",
   "branch": "feat/epic-XXXX-full-implementation",
   "startedAt": "2024-01-01T00:00:00.000Z",
@@ -13,7 +14,20 @@
       "phase": 1,
       "retries": 0,
       "planningStatus": "PENDING",
-      "tasks": {}
+      "parentBranch": null,
+      "tasks": {
+        "TASK-XXXX-0001-001": {
+          "taskId": "TASK-XXXX-0001-001",
+          "status": "PENDING",
+          "prUrl": null,
+          "prNumber": null,
+          "branch": null,
+          "startedAt": null,
+          "completedAt": null,
+          "attempts": 0,
+          "failureReason": null
+        }
+      }
     }
   },
   "integrityGates": {
