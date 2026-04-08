@@ -44,17 +44,17 @@ class SkillGroupRegistryTest {
         }
 
         @Test
-        @DisplayName("story group has 9 skills")
+        @DisplayName("story group has 10 skills")
         void register_whenCalled_storyGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("story")).hasSize(9);
+                    .get("story")).hasSize(10);
         }
 
         @Test
-        @DisplayName("dev group has 12 skills")
+        @DisplayName("dev group has 15 skills")
         void register_whenCalled_devGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("dev")).hasSize(12);
+                    .get("dev")).hasSize(15);
         }
 
         @Test

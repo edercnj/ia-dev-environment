@@ -274,6 +274,22 @@ if story.prNumber exists and story.prMergeStatus != "MERGED":
 When a story is retried after failure, the lifecycle creates a new PR
 (the old PR was closed). The new `prUrl` and `prNumber` replace the old values.
 
+### Step 1b — Reclassify Task Statuses (Per-Task Resume)
+
+After story-level reclassification (Step 1), apply task-level reclassification for stories with task data:
+
+For each story that has a `tasks` object in `execution-state.json`:
+
+1. **IN_PROGRESS tasks -> PENDING** (interrupted work — task was executing when interruption occurred)
+2. **DONE tasks -> DONE** (preserved — completed tasks are never re-executed)
+3. **BLOCKED tasks**: if all task dependencies are DONE -> PENDING; otherwise keep BLOCKED
+4. **PENDING tasks -> PENDING** (no change)
+5. **SKIPPED tasks -> SKIPPED** (no change — terminal status)
+
+This enables resume at the task level: only incomplete tasks are re-executed, not the entire story. When a story resumes with some tasks DONE, the `x-dev-lifecycle` / `x-dev-implement` subagent receives the task state and skips DONE tasks automatically.
+
+**Backward Compatibility:** Stories without a `tasks` field in the checkpoint are unaffected by this step. The step is a no-op for stories executed in non-PRE_PLANNED mode.
+
 ### Step 2 — Reevaluate BLOCKED Stories
 
 After reclassification, evaluate each BLOCKED story:
@@ -491,6 +507,74 @@ The execution plan produced by Phase 0.5 is consumed by the Core Loop:
 |-------|------|----------|---------|-------------|
 | `baseBranch` | String | Yes | `"develop"` | Base branch for PRs, auto-rebase, and resume. Used by all stories in the epic. |
 
+### 1.1b DoR Pre-check (Before Story Dispatch)
+
+Before dispatching a story to `x-dev-lifecycle`, verify its Definition of Ready:
+
+1. Compute DoR path: `plans/epic-{epicId}/plans/dor-{storyId}.md`
+2. Check if the DoR file exists:
+   - **File does NOT exist:** Proceed without DoR check (backward compatible, RULE-001). Log: `"No DoR file found, proceeding without DoR check (backward compatible)"`
+   - **File exists:** Read the `## Final Verdict` section
+     - If verdict == `READY`: Proceed with implementation. Log: `"DoR check PASSED for {storyId}"`
+     - If verdict == `NOT_READY`: Mark story as BLOCKED with reason `"DoR not satisfied: {failed_checks}"`. Log: `"DoR check FAILED for {storyId}: {failed_checks}"`. Do NOT dispatch the subagent.
+
+This check is NON-BLOCKING when DoR files don't exist (backward compatibility with epics planned before `x-story-plan` / `x-epic-plan` existed).
+
+The DoR pre-check integrates into the Core Loop (Section 1.3) at step 6a, before `updateStoryStatus`:
+
+```
+6. For each dispatched story (parallel or sequential):
+   a0. Run DoR Pre-check (Section 1.1b):
+       - If DoR file missing: log and proceed
+       - If DoR verdict READY: log and proceed
+       - If DoR verdict NOT_READY: mark BLOCKED, skip dispatch, continue to next story
+   a. updateStoryStatus(epicDir, storyId, { status: "IN_PROGRESS" })
+   b. Dispatch subagent (see 1.4 or 1.4a)
+   c. Validate result (see 1.5)
+   d. Update checkpoint (see 1.6)
+```
+
+### 1.1c Per-Task Checkpoint
+
+When a story is being executed in PRE_PLANNED mode (tasks available from `plans/epic-{epicId}/plans/tasks-{storyId}.md`), the `execution-state.json` tracks individual task progress within each story entry:
+
+```json
+{
+  "stories": {
+    "story-XXXX-YYYY": {
+      "status": "IN_PROGRESS",
+      "tasks": {
+        "TASK-001": { "status": "DONE", "agent": "architect", "type": "DEV", "commitSha": "abc123", "duration": 45000 },
+        "TASK-002": { "status": "IN_PROGRESS", "agent": "qa-engineer", "type": "TEST" },
+        "TASK-003": { "status": "PENDING", "agent": "security-engineer", "type": "SEC" }
+      }
+    }
+  }
+}
+```
+
+**Task Status Values:**
+
+| Status | Meaning | Transitions |
+|--------|---------|------------|
+| PENDING | Task not started | -> IN_PROGRESS |
+| IN_PROGRESS | Task being executed | -> DONE, -> PENDING (on resume) |
+| DONE | Task completed with commit | Terminal |
+| BLOCKED | Task blocked by dependency | -> PENDING (when dep DONE) |
+| SKIPPED | Task not applicable | Terminal |
+
+**Per-Task Fields:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `status` | String (Enum) | Yes | `PENDING`, `IN_PROGRESS`, `DONE`, `BLOCKED`, `SKIPPED` |
+| `agent` | String | Yes | Agent persona executing the task (e.g., `architect`, `qa-engineer`) |
+| `type` | String | Yes | Task type from task breakdown (e.g., `DEV`, `TEST`, `SEC`, `REFACTOR`) |
+| `commitSha` | String | When DONE | Commit SHA produced by the task |
+| `duration` | Number | When DONE | Execution duration in milliseconds |
+
+**Backward Compatibility:** The `tasks` field is OPTIONAL in the `StoryEntry` schema. Stories executed without PRE_PLANNED mode (no task breakdown file) will not have this field. All existing checkpoint logic continues to work without `tasks`.
+
 ### 1.2 Branch Management
 
 The orchestrator does NOT create a branch. Each story creates its own branch via
@@ -535,6 +619,10 @@ For each phase in (0..totalPhases-1):
   5. After parallel batch completes, dispatch sequentialStories one at a time
      via sequential dispatch (Section 1.4), in critical path priority order
   6. For each dispatched story (parallel or sequential):
+     a0. Run DoR Pre-check (Section 1.1b):
+         - If DoR file missing: log and proceed
+         - If DoR verdict READY: log and proceed
+         - If DoR verdict NOT_READY: mark BLOCKED, skip dispatch, continue to next story
      a. updateStoryStatus(epicDir, storyId, { status: "IN_PROGRESS" })
      b. Dispatch subagent (see 1.4 or 1.4a)
      c. Validate result (see 1.5)
@@ -1490,6 +1578,7 @@ Templates referenced by this skill follow RULE-012. When a template file does no
 |-------|-------------|---------|
 | `x-dev-lifecycle` | Invokes (per story) | Story execution with PR creation, reviews in Phases 4/7 |
 | `x-fix-epic-pr-comments` | Invokes (Phase 4) | PR comment remediation; dry-run first, then apply with confirmation |
+| `x-epic-plan` | References | Produces DoR files (`dor-story-*.md`) consumed by DoR pre-check (Section 1.1b) |
 | `x-story-map` | References | Error guidance when map is missing |
 | `x-lib-version-bump` | Invokes (post-gate) | Version bump on `develop` after integrity gate PASS (RULE-013) |
 | `gh pr view` | Uses | PR merge status verification for dependency enforcement |
@@ -1516,3 +1605,6 @@ Templates referenced by this skill follow RULE-012. When a template file does no
 - Resume workflow respects `mergeMode` from checkpoint for consistent behavior; warns if mode changed on resume
 - Phase 4 (PR Comment Remediation) is optional, skipped with `--skip-pr-comments` or `--single-pr`
 - Phase 4 writes `prCommentRemediation` to `execution-state.json` with status `COMPLETE`, `SKIPPED`, or `DRY_RUN`
+- DoR pre-check (Section 1.1b) is NON-BLOCKING when DoR files don't exist — backward compatible with epics planned before `x-epic-plan` existed
+- Per-task checkpoint (Section 1.1c) tracks individual task progress within PRE_PLANNED stories; the `tasks` field is optional in the StoryEntry schema
+- Task-level resume (Step 1b) reclassifies IN_PROGRESS tasks to PENDING on `--resume`, preserving DONE tasks; enables granular resume without re-executing completed tasks
