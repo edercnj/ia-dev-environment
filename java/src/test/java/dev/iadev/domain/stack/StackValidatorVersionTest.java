@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * types.
  */
 @DisplayName("StackValidator — version validation")
-class StackValidatorVersionBaseTest {
+class StackValidatorVersionTest {
 
     @Nested
     @DisplayName("checkJavaFrameworkVersion()")

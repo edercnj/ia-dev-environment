@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * SKILL_GROUPS constant, renderSkill, and copyReferences.
  */
 @DisplayName("GithubSkillsAssembler — base")
-class GithubSkillsAssemblerBaseTest {
+class GithubSkillsAssemblerTest {
 
     @Nested
     @DisplayName("implements Assembler interface")

@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * route-to-KPs, context builder, and defaults.
  */
 @DisplayName("RulesAssembler — coverage base")
-class RulesAssemblerCoverageBaseTest {
+class RulesAssemblerCoverageTest {
 
     @Nested
     @DisplayName("copyCoreRules — edge cases")

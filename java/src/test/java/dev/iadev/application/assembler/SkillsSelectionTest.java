@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * interface, infra, testing, and security skills.
  */
 @DisplayName("SkillsSelection — base")
-class SkillsSelectionBaseTest {
+class SkillsSelectionTest {
 
     @Nested
     @DisplayName("selectInterfaceSkills")

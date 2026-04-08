@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * with baseBranch resolution from execution-state.</p>
  */
 @DisplayName("x-fix-epic-pr-comments — Develop Base")
-class FixEpicPrCommentsDevelopBaseTest {
+class FixEpicPrCommentsDevelopTest {
 
     @Nested
     @DisplayName("Claude SKILL.md — PR Base Branch")
