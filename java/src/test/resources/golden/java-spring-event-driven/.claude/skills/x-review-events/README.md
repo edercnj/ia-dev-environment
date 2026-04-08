@@ -17,7 +17,7 @@ This skill is generated when the project uses event-driven interfaces (event-con
 
 ## What It Does
 
-Reviews event-driven patterns including event schema design, producer/consumer implementation, error handling, dead letter topics, and operational readiness. Validates CloudEvents envelope compliance, schema registry integration, saga patterns, idempotency mechanisms, and consumer group configuration. Covers the full event lifecycle from producer publishing through consumer processing and error recovery.
+Review event-driven patterns including event schema design, producer/consumer implementation, error handling, dead letter topics, and operational readiness. Validate CloudEvents envelope compliance, schema registry integration, saga patterns, idempotency mechanisms, and consumer group configuration. Cover the full event lifecycle from producer publishing through consumer processing and error recovery.
 
 ## Usage
 
