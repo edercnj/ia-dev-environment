@@ -1,6 +1,7 @@
 ---
 name: x-review
 description: "Parallel code review with specialist engineers (Security, QA, Performance, Database, Observability, DevOps, API, Event). Launches parallel subagents, each reading their own knowledge pack, then consolidates into a scored report. Use for pre-PR quality validation."
+user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[STORY-ID or --scope reviewer1,reviewer2]"
 ---
@@ -11,15 +12,19 @@ argument-hint: "[STORY-ID or --scope reviewer1,reviewer2]"
 - **Tone**: Technical, Direct, and Concise.
 - **Efficiency**: Remove all conversational fillers and greetings to save tokens.
 
-# Skill: Review (Specialist Parallel Review)
+# Skill: Specialist Review (Orchestrator)
 
-## Triggers
+## Purpose
 
-- `/x-review` -- review current branch
-- `/x-review STORY-ID` -- review specific story
-- `/x-review --scope security,qa` -- run only specific reviewers
+Perform parallel specialist code reviews across multiple engineering dimensions (Security, QA, Performance, Database, Observability, DevOps, API, Event), consolidate findings into a scored dashboard, and optionally generate correction stories for critical findings.
 
-## Execution Flow (Orchestrator Pattern)
+## When to Use
+
+- `/x-review` — review current branch
+- `/x-review STORY-ID` — review specific story
+- `/x-review --scope security,qa` — run only specific reviewers
+
+## Workflow Overview
 
 ```
 0. PRE-CHECK   -> Idempotency: skip if reports exist and code unchanged (inline)
@@ -29,7 +34,7 @@ argument-hint: "[STORY-ID or --scope reviewer1,reviewer2]"
 4. STORY       -> If CRITICAL/MEDIUM findings: ask user, generate correction story (inline)
 ```
 
-## Phase 0: Idempotency Pre-Check (Orchestrator — Inline)
+## Phase 0 — Idempotency Pre-Check (Orchestrator — Inline)
 
 Before executing a review, check if reports already exist and are still valid.
 
@@ -49,7 +54,7 @@ Before executing a review, check if reports already exist and are still valid.
    - If code changed after reports: proceed with full review
 5. If no reports exist, proceed normally
 
-## Phase 1: Detect Context (Orchestrator — Inline)
+## Phase 1 — Detect Context (Orchestrator — Inline)
 
 1. Extract story ID from argument or branch name
 2. Get diff against main:
@@ -76,7 +81,7 @@ Before executing a review, check if reports already exist and are still valid.
 
 If `--scope` provided, filter to listed engineers only.
 
-## Phase 2: Parallel Reviews (Subagents via Task Tool)
+## Phase 2 — Parallel Reviews (Subagents via Task Tool)
 
 **CRITICAL: ALL review subagents MUST be launched in a SINGLE message for true parallelism.**
 
@@ -174,7 +179,7 @@ test -f .claude/templates/_TEMPLATE-SPECIALIST-REVIEW.md && echo "TEMPLATE_AVAIL
 
 **Event (14 items, /28):** Past tense event names, CloudEvents envelope, schema registered, idempotent consumer, dead letter topic, no sensitive data in payload, event after business op, trace context in headers, consumer lag monitored, graceful shutdown, outbox or at-least-once, offset commit after processing, deserialization error handling, processing timeout.
 
-## Phase 3: Consolidation (Orchestrator — Inline)
+## Phase 3 — Consolidation (Orchestrator — Inline)
 
 ### 3a. Collect & Score
 
@@ -284,7 +289,7 @@ After saving review artifacts, extract security findings from the Security Engin
 
 7. **Append Change History:** Add a new row with the current date, story reference, and summary of threats added or updated.
 
-## Phase 4: Story Generation for Findings (Orchestrator — Inline)
+## Phase 4 — Story Generation for Findings (Orchestrator — Inline)
 
 This phase runs ONLY when CRITICAL, HIGH, or MEDIUM findings exist.
 
@@ -340,13 +345,34 @@ If the user selects **"Sim"**, generate a correction story following these steps
 
 4. **Report** to the user: story file path, number of findings converted, and suggested next step (`/x-dev-implement` or manual fix).
 
+## Error Handling
+
+| Scenario | Action |
+|----------|--------|
+| No changes found relative to main | Abort with message: `No changes found relative to main.` |
+| Subagent returns invalid output (missing SCORE or STATUS) | Mark engineer as `FAILED`, score 0, continue with remaining engineers |
+| Template `_TEMPLATE-SPECIALIST-REVIEW.md` not found | Log warning, use inline format as fallback (RULE-012 — Template Fallback) |
+| Dashboard template not found | Log warning, skip dashboard generation, continue to next phase |
+| Remediation template not found | Log warning, skip remediation tracking generation, continue |
+| All engineers return FAILED | Overall status `REJECTED`, report saved with 0 scores |
+
+## Template Fallback
+
+Templates referenced by this skill follow RULE-012. When a template file does not exist (e.g., pre-EPIC-0024 projects), the skill degrades gracefully:
+
+- `_TEMPLATE-SPECIALIST-REVIEW.md` — inline format is used, Step 1b omitted from subagent prompt
+- `_TEMPLATE-CONSOLIDATED-REVIEW-DASHBOARD.md` — dashboard generation skipped
+- `_TEMPLATE-REVIEW-REMEDIATION.md` — remediation tracking skipped
+
 ## Integration Notes
 
-- Produces the SAME artifacts as Phase 3 of `x-dev-lifecycle`
-- If run standalone, Phase 3 of lifecycle can be skipped if reports exist and code unchanged
-- Recommended flow: `/x-review` → fix criticals → `/x-review-pr` for final holistic review
-- Phase 4 integrates with `/x-story-create` format — correction stories follow the same template and can be picked up by `/x-dev-implement`
-- Dashboard (Phase 3d) is **cumulative** — created by `/x-review`, updated by `/x-review-pr` (RULE-006)
-- Remediation tracking (Phase 3e) enables structured follow-up of findings across review rounds
-- Templates in `.claude/templates/` are copied verbatim by `PlanTemplatesAssembler` — not rendered by the engine
-- Fallback (RULE-012): When templates are absent (pre-EPIC-0024 projects), inline format is used and dashboard/remediation are skipped
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| `x-dev-lifecycle` | Called by (Phase 4) | Produces the same artifacts as lifecycle Phase 4 |
+| `x-review-pr` | Followed by | Recommended flow: `/x-review` then fix criticals then `/x-review-pr` |
+| `x-story-create` | Reads format | Correction stories (Phase 4) follow the story template |
+| `x-dev-implement` | Followed by | Correction stories can be picked up by `/x-dev-implement` |
+| `_TEMPLATE-SPECIALIST-REVIEW.md` | Reads | Output format for specialist reports (RULE-007) |
+| `_TEMPLATE-CONSOLIDATED-REVIEW-DASHBOARD.md` | Reads | Dashboard format, cumulative across rounds (RULE-006) |
+| `_TEMPLATE-REVIEW-REMEDIATION.md` | Reads | Remediation tracking format |
+| `PlanTemplatesAssembler` | Depends on | Templates copied verbatim — not rendered by the engine |

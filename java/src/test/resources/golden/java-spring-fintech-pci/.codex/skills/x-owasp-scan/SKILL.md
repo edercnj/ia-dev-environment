@@ -2,8 +2,8 @@
 name: x-owasp-scan
 description: "Automated OWASP Top 10 (2021) verification mapped to ASVS levels (L1/L2/L3). Checks all 10 categories (A01-A10) with per-category pass/fail, ASVS coverage percentage, score grading, SARIF 2.1.0 output, and CI integration. Delegates A06 to x-dependency-audit."
 user-invocable: true
-argument-hint: "[--level L1|L2|L3] [--category A01-A10|all] [--report-format markdown|sarif|both]"
 allowed-tools: Read, Write, Bash, Grep, Glob, Agent
+argument-hint: "[--level L1|L2|L3] [--category A01-A10|all] [--report-format markdown|sarif|both]"
 ---
 
 ## Global Output Policy
@@ -20,13 +20,13 @@ Verifies {{PROJECT_NAME}} against the OWASP Top 10 (2021) with verification item
 
 ## Triggers
 
-- `/x-owasp-scan` -- full L1 scan, all categories
-- `/x-owasp-scan --level L2` -- L2 scan (standard defense)
-- `/x-owasp-scan --level L3` -- L3 scan (advanced/critical apps)
-- `/x-owasp-scan --category A03` -- single category scan
-- `/x-owasp-scan --report-format sarif` -- SARIF output only
-- `/x-owasp-scan --report-format markdown` -- Markdown only
-- `/x-owasp-scan --report-format both` -- both formats (default)
+- `/x-owasp-scan` — full L1 scan, all categories
+- `/x-owasp-scan --level L2` — L2 scan (standard defense)
+- `/x-owasp-scan --level L3` — L3 scan (advanced/critical apps)
+- `/x-owasp-scan --category A03` — single category scan
+- `/x-owasp-scan --report-format sarif` — SARIF output only
+- `/x-owasp-scan --report-format markdown` — Markdown only
+- `/x-owasp-scan --report-format both` — both formats (default)
 
 ## Parameters
 
@@ -56,14 +56,14 @@ Verifies {{PROJECT_NAME}} against the OWASP Top 10 (2021) with verification item
 7. REPORT     -> Generate SARIF 2.1.0 + Markdown reports
 ```
 
-### Step 1 -- Parse Parameters
+### Step 1 — Parse Parameters
 
 Validate CLI arguments:
 - `--level` must be L1, L2, or L3 (default: L1)
 - `--category` must be A01-A10 or "all" (default: all)
 - `--report-format` must be markdown, sarif, or both (default: both)
 
-### Step 2 -- Load ASVS Verification Items
+### Step 2 — Load ASVS Verification Items
 
 Read the OWASP ASVS knowledge pack to load verification items per chapter and level:
 
@@ -78,7 +78,7 @@ Each verification item has:
 - Level (L1, L2, or L3)
 - Verification method (automated, manual, or both)
 
-### Step 3 -- MAP OWASP Top 10 to ASVS Chapters
+### Step 3 — Map OWASP Top 10 to ASVS Chapters
 
 | OWASP Category | ID | ASVS Chapter(s) | Focus Areas |
 |----------------|-----|-----------------|-------------|
@@ -87,17 +87,17 @@ Each verification item has:
 | Injection | A03 | V5 | Input validation, output encoding, parameterized queries, XSS |
 | Insecure Design | A04 | V1 | Threat modeling, secure architecture patterns, trust boundaries |
 | Security Misconfiguration | A05 | V14 | Default configs, error handling, hardening, unnecessary features |
-| Vulnerable Components | A06 | N/A | **DELEGATED** to `x-dependency-audit` (RULE-011) |
+| Vulnerable Components | A06 | N/A | **DELEGATED** to `x-dependency-audit` (RULE-011 — Skill Composability) |
 | Auth Failures | A07 | V2, V3 | Authentication mechanisms, session management, credential storage |
 | Software/Data Integrity | A08 | V10 | Code integrity, deserialization safety, CI/CD security |
 | Logging Failures | A09 | V7 | Logging completeness, monitoring, alerting, log injection |
 | SSRF | A10 | V5, V13 | URL validation, API security, server-side request handling |
 
-### Step 4 -- Execute Verification Checks
+### Step 4 — Execute Verification Checks
 
 For each category (except A06), execute verification checks at the requested ASVS level.
 
-#### A01 -- Broken Access Control (ASVS V4)
+#### 4.1 — A01 Broken Access Control (ASVS V4)
 
 **L1 Checks:**
 - Access control enforced at server side (not client only)
@@ -117,7 +117,7 @@ For each category (except A06), execute verification checks at the requested ASV
 - Multi-factor authorization for critical operations
 - Attribute-based access control with policy engine
 
-#### A02 -- Cryptographic Failures (ASVS V6, V9)
+#### 4.2 — A02 Cryptographic Failures (ASVS V6, V9)
 
 **L1 Checks:**
 - TLS 1.2+ enforced for all external communications
@@ -137,7 +137,7 @@ For each category (except A06), execute verification checks at the requested ASV
 - Quantum-resistant algorithm readiness assessment
 - Cryptographic agility (algorithm switchable without code change)
 
-#### A03 -- Injection (ASVS V5)
+#### 4.3 — A03 Injection (ASVS V5)
 
 **L1 Checks:**
 - Input validation on all user-supplied data
@@ -157,7 +157,7 @@ For each category (except A06), execute verification checks at the requested ASV
 - Template injection detection
 - LDAP/XML/XPath injection prevention
 
-#### A04 -- Insecure Design (ASVS V1)
+#### 4.4 — A04 Insecure Design (ASVS V1)
 
 **L1 Checks:**
 - Threat model exists or is referenced
@@ -174,7 +174,7 @@ For each category (except A06), execute verification checks at the requested ASV
 - Defense-in-depth layers verified
 - Formal security architecture review completed
 
-#### A05 -- Security Misconfiguration (ASVS V14)
+#### 4.5 — A05 Security Misconfiguration (ASVS V14)
 
 **L1 Checks:**
 - Default credentials removed or changed
@@ -194,7 +194,7 @@ For each category (except A06), execute verification checks at the requested ASV
 - Automated security configuration scanning in CI
 - Runtime configuration drift detection
 
-#### A07 -- Authentication Failures (ASVS V2, V3)
+#### 4.6 — A07 Authentication Failures (ASVS V2, V3)
 
 **L1 Checks:**
 - Password policy enforced (minimum length, complexity)
@@ -214,7 +214,7 @@ For each category (except A06), execute verification checks at the requested ASV
 - Session binding to device/IP fingerprint
 - Phishing-resistant authentication methods
 
-#### A08 -- Software/Data Integrity (ASVS V10)
+#### 4.7 — A08 Software/Data Integrity (ASVS V10)
 
 **L1 Checks:**
 - Deserialization uses safe/strict mode
@@ -231,7 +231,7 @@ For each category (except A06), execute verification checks at the requested ASV
 - Reproducible builds configured
 - Supply chain attack monitoring
 
-#### A09 -- Logging Failures (ASVS V7)
+#### 4.8 — A09 Logging Failures (ASVS V7)
 
 **L1 Checks:**
 - Security-relevant events logged (auth, access control, input validation failures)
@@ -248,7 +248,7 @@ For each category (except A06), execute verification checks at the requested ASV
 - Real-time security monitoring (SIEM integration)
 - Log retention policy meets compliance requirements
 
-#### A10 -- SSRF (ASVS V5, V13)
+#### 4.9 — A10 SSRF (ASVS V5, V13)
 
 **L1 Checks:**
 - URL validation on server-side requests
@@ -265,9 +265,9 @@ For each category (except A06), execute verification checks at the requested ASV
 - URL canonicalization before validation
 - Cloud metadata endpoint protection (169.254.169.254)
 
-### Step 5 -- Delegate A06 to x-dependency-audit
+### Step 5 — Delegate A06 to x-dependency-audit
 
-Per RULE-011 (Delegation to Specialized Skills), A06 (Vulnerable and Outdated Components) is delegated to `x-dependency-audit`:
+Per RULE-011 (Skill Composability), A06 (Vulnerable and Outdated Components) is delegated to `x-dependency-audit`:
 
 ```
 Invoke /x-dependency-audit --scope vulnerabilities
@@ -286,9 +286,9 @@ The delegation result is recorded as:
 }
 ```
 
-### Step 6 -- Calculate Scores
+### Step 6 — Calculate Scores
 
-#### Per-Category Score
+#### 6.1 — Per-Category Score
 
 For each category:
 ```
@@ -296,14 +296,14 @@ categoryScore = (passedChecks / totalChecks) * 100
 status = categoryScore >= 70 ? "PASS" : "FAIL"
 ```
 
-#### Overall Score
+#### 6.2 — Overall Score
 
 ```
 overallScore = sum(passedChecks for all categories)
              / sum(totalChecks for all categories) * 100
 ```
 
-#### Grade Mapping
+#### 6.3 — Grade Mapping
 
 | Score Range | Grade |
 |-------------|-------|
@@ -313,16 +313,16 @@ overallScore = sum(passedChecks for all categories)
 | 50-69 | D |
 | 0-49 | F |
 
-#### ASVS Coverage Percentage
+#### 6.4 — ASVS Coverage Percentage
 
 ```
 asvsCoverage = (verifiedItems at requested level)
              / (totalItems at requested level) * 100
 ```
 
-### Step 7 -- Generate Reports
+### Step 7 — Generate Reports
 
-#### SARIF 2.1.0 Output
+#### 7.1 — SARIF 2.1.0 Output
 
 Write to `results/security/owasp-scan-YYYY-MM-DD.sarif.json`:
 
@@ -376,12 +376,12 @@ Write to `results/security/owasp-scan-YYYY-MM-DD.sarif.json`:
 }
 ```
 
-#### Markdown Report
+#### 7.2 — Markdown Report
 
 Write to `results/security/owasp-scan-YYYY-MM-DD.md`:
 
 ```markdown
-# OWASP Top 10 Scan Report -- {{PROJECT_NAME}}
+# OWASP Top 10 Scan Report — {{PROJECT_NAME}}
 
 **Date:** YYYY-MM-DD
 **ASVS Level:** L1 | L2 | L3
@@ -405,7 +405,7 @@ Write to `results/security/owasp-scan-YYYY-MM-DD.md`:
 
 ## Per-Category Details
 
-### A01 -- Broken Access Control (V4)
+### A01 — Broken Access Control (V4)
 
 **Status:** PASS/FAIL | **Score:** NN/100 | **Level:** L1
 
@@ -421,7 +421,7 @@ Write to `results/security/owasp-scan-YYYY-MM-DD.md`:
   - **Severity:** HIGH
   - **Fix:** {fixRecommendation}
 
-### A06 -- Vulnerable Components (DELEGATED)
+### A06 — Vulnerable Components (DELEGATED)
 
 **Status:** DELEGATED to `x-dependency-audit`
 
@@ -460,9 +460,17 @@ When run in CI mode, the skill:
 | Partial scan (some categories fail to verify) | Report verified categories, mark others SKIPPED |
 | No source files found | Report "No source files found for verification" |
 
-## Cross-References
+## Knowledge Pack References
 
-- **Knowledge Pack:** `skills/security/` -- OWASP ASVS verification items
-- **Delegation:** `x-dependency-audit` -- A06 (RULE-011)
-- **Standards:** OWASP Top 10 2021, OWASP ASVS 4.0.3
-- **Output:** SARIF 2.1.0 (OASIS standard)
+| # | Knowledge Pack | Path | Purpose |
+|---|----------------|------|---------|
+| 1 | Security | `skills/security/SKILL.md` | OWASP ASVS verification items |
+| 2 | Security References | `skills/security/references/application-security.md` | Detailed ASVS chapter mappings |
+
+## Integration Notes
+
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| x-dependency-audit | Delegates to | A06 (Vulnerable Components) delegated per RULE-011 |
+| x-security-dashboard | Consumed by | SARIF output aggregated into security posture dashboard |
+| x-threat-model | Complements | Threat model informs A04 (Insecure Design) checks |

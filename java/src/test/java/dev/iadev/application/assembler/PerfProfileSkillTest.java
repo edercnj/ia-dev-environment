@@ -331,14 +331,14 @@ class PerfProfileSkillTest {
 
         @Test
         @DisplayName("extended run-perf-test contains"
-                + " Comparison Report section")
+                + " Regression Detection section")
         void assemble_runPerfTest_hasComparisonReport(
                 @TempDir Path tempDir)
                 throws IOException {
             String content =
                     generateRunPerfTestContent(tempDir);
             assertThat(content)
-                    .contains("Comparison Report");
+                    .contains("Regression Detection");
         }
 
         @Test
@@ -432,26 +432,26 @@ class PerfProfileSkillTest {
 
         @Test
         @DisplayName("extended run-perf-test preserves"
-                + " Test Scenarios section")
+                + " scenario definitions")
         void assemble_runPerfTest_preservesTestScenarios(
                 @TempDir Path tempDir)
                 throws IOException {
             String content =
                     generateRunPerfTestContent(tempDir);
             assertThat(content)
-                    .contains("Test Scenarios");
+                    .contains("Select and Run Scenario");
         }
 
         @Test
         @DisplayName("extended run-perf-test preserves"
-                + " Execution Flow section")
+                + " workflow section")
         void assemble_runPerfTest_preservesExecutionFlow(
                 @TempDir Path tempDir)
                 throws IOException {
             String content =
                     generateRunPerfTestContent(tempDir);
             assertThat(content)
-                    .contains("Execution Flow");
+                    .contains("## Workflow");
         }
 
         @Test

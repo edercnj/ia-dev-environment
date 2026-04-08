@@ -2,8 +2,8 @@
 name: x-security-dashboard
 description: "Aggregates results from all security scanning skills into a unified posture view with score 0-100, trend tracking, OWASP risk heatmap, per-dimension breakdown, and remediation priority queue. Never executes scans — reads existing results only (RULE-011)."
 user-invocable: true
-argument-hint: "[--period last-7d|last-30d|last-90d|all] [--format markdown|json] [--compare-previous]"
 allowed-tools: Read, Write, Bash, Grep, Glob
+argument-hint: "[--period last-7d|last-30d|last-90d|all] [--format markdown|json] [--compare-previous]"
 ---
 
 ## Global Output Policy
@@ -20,19 +20,13 @@ Generates a consolidated security posture dashboard for {{PROJECT_NAME}} by aggr
 
 **Critical constraint (RULE-011 — Skill Composability):** This skill NEVER executes scans. It reads existing scan results from `results/security/` and aggregates them. Each scanning dimension is owned by its atomic skill; the dashboard only consumes their output.
 
-## Knowledge Pack References
-
-Read these references before generating a dashboard:
-- `skills/security/references/security-scoring.md` -- scoring model and grade thresholds
-- `skills/security/references/security-skill-template.md` -- output conventions for scan results
-
 ## Triggers
 
-- `/x-security-dashboard` -- full dashboard with all available dimensions (period: all)
-- `/x-security-dashboard --period last-30d` -- dashboard for the last 30 days
-- `/x-security-dashboard --format json` -- JSON output instead of Markdown
-- `/x-security-dashboard --compare-previous` -- include trend comparison with previous period
-- `/x-security-dashboard --period last-7d --compare-previous` -- 7-day window with trend
+- `/x-security-dashboard` — full dashboard with all available dimensions (period: all)
+- `/x-security-dashboard --period last-30d` — dashboard for the last 30 days
+- `/x-security-dashboard --format json` — JSON output instead of Markdown
+- `/x-security-dashboard --compare-previous` — include trend comparison with previous period
+- `/x-security-dashboard --period last-7d --compare-previous` — 7-day window with trend
 
 ## Parameters
 
@@ -85,7 +79,7 @@ adjusted_weight[i] = base_weight[i] / sum(base_weight[available_dimensions])
 9. RENDER          -> Output dashboard in selected format
 ```
 
-### Step 1 -- Scan Results Directory
+### Step 1 — Scan Results Directory
 
 Read the `results/security/` directory. For each file, extract the scan type and timestamp from the filename:
 
@@ -95,7 +89,7 @@ results/security/{scan-type}-{YYYYMMDD}-{HHMMSS}.sarif.json
 
 Map each file to its dimension using the Results Pattern column from the dimensions table.
 
-### Step 2 -- Filter by Period
+### Step 2 — Filter by Period
 
 Apply the `--period` filter based on the timestamp extracted from filenames:
 
@@ -108,14 +102,14 @@ Apply the `--period` filter based on the timestamp extracted from filenames:
 
 For each dimension, use the **most recent** file within the period.
 
-### Step 3 -- Parse SARIF Results
+### Step 3 — Parse SARIF Results
 
 For each dimension's SARIF file, extract:
-- `runs[0].results[]` -- all findings
+- `runs[0].results[]` — all findings
 - Per finding: `ruleId`, `level`, `message.text`, `locations[].physicalLocation`, `properties.severity`, `properties.owasp-category`
 - Count findings by severity: CRITICAL, HIGH, MEDIUM, LOW, INFO
 
-### Step 4 -- Compute Scores
+### Step 4 — Compute Scores
 
 Per-dimension score uses the security scoring model:
 
@@ -152,7 +146,7 @@ overall_score = round(
 )
 ```
 
-### Step 5 -- Trend Analysis
+### Step 5 — Trend Analysis
 
 When `--compare-previous` is active, compute the previous period window:
 
@@ -172,7 +166,7 @@ Trend classification per dimension and overall:
 
 When no previous period data exists for a dimension, set trend to `null` (omit from output).
 
-### Step 6 -- Risk Heatmap
+### Step 6 — Risk Heatmap
 
 Build a matrix of OWASP Top 10 categories (rows) x severity levels (columns):
 
@@ -182,7 +176,7 @@ Build a matrix of OWASP Top 10 categories (rows) x severity levels (columns):
 
 Each cell contains the count of findings matching that category-severity pair across ALL dimensions.
 
-### Step 7 -- Top 10 Findings
+### Step 7 — Top 10 Findings
 
 Select the 10 highest-risk findings across all dimensions, ordered by:
 1. Severity (CRITICAL > HIGH > MEDIUM > LOW > INFO)
@@ -191,7 +185,7 @@ Select the 10 highest-risk findings across all dimensions, ordered by:
 
 For each finding, include: dimension, ruleId, severity, OWASP category, file location, message, and remediation recommendation.
 
-### Step 8 -- Remediation Priority Queue
+### Step 8 — Remediation Priority Queue
 
 Order ALL findings by remediation priority:
 
@@ -204,9 +198,9 @@ Where:
 - `owasp_priority_bonus`: A01-A03=0.5, A04-A06=0.3, A07-A10=0.1, CUSTOM=0.0
 - `estimated_effort`: based on fix complexity (default 1.0 when unknown)
 
-### Step 9 -- Render Output
+### Step 9 — Render Output
 
-#### Markdown Format
+#### 9.1 — Markdown Format
 
 ```markdown
 # Security Posture Dashboard
@@ -270,7 +264,7 @@ Where:
 | ... | ... | ... | ... | ... | ... |
 ```
 
-#### JSON Format
+#### 9.2 — JSON Format
 
 ```json
 {
@@ -333,39 +327,16 @@ Where:
 }
 ```
 
-## Graceful Handling
+## Error Handling
 
-### No Results Available
-
-When `results/security/` is empty or does not exist:
-- `dimensionsAvailable` = 0
-- `overallScore` = 0
-- `overallGrade` = "F"
-- `dimensionsMissing` lists all 10 dimension source skills
-- Report header shows "No scan results available"
-
-### Partial Results
-
-When some dimensions have results and others do not:
-- Score is computed from available dimensions only
-- Weights are redistributed proportionally
-- Missing dimensions are listed in `dimensionsMissing`
-- Each missing dimension row shows "N/A" in the per-dimension table
-
-### Malformed SARIF
-
-When a SARIF file cannot be parsed:
-- Log a warning with the filename and parse error
-- Exclude that dimension from scoring
-- Add dimension to `dimensionsMissing` with reason "parse error"
-- Continue processing other dimensions
-
-### No Previous Period Data
-
-When `--compare-previous` is active but no data exists for the previous period:
-- Set `overallTrend` to `null`
-- Per-dimension trend shows "--" (not available)
-- Include a note: "No previous period data available for trend analysis"
+| Scenario | Action |
+|----------|--------|
+| `results/security/` empty or missing | Set score to 0, grade to F, list all 10 dimensions as missing |
+| Partial results (some dimensions available) | Score from available dimensions, redistribute weights, list missing |
+| Malformed SARIF file | Log warning with filename and parse error, exclude dimension, continue |
+| No previous period data (with --compare-previous) | Set trend to null, note "No previous period data available" |
+| --compare-previous with --period all | Ignore the flag, omit trend data |
+| Invalid --period value | Error with valid options list |
 
 ## Idempotency
 
@@ -387,7 +358,7 @@ results/security/dashboard-{YYYYMMDD}-{HHMMSS}.json
 - SARIF file parsing uses streaming when files exceed 1MB
 - Dimension aggregation can be parallelized (no shared state between dimensions)
 
-## Composability (RULE-011)
+## Composability (RULE-011 — Skill Composability)
 
 This skill is an **aggregator**, not a scanner. It MUST:
 - NEVER invoke x-sast-scan, x-dast-scan, or any other scanning skill
@@ -396,4 +367,22 @@ This skill is an **aggregator**, not a scanner. It MUST:
 - Respect the SARIF 2.1.0 schema defined in `references/sarif-template.md`
 - Use the scoring model defined in `references/security-scoring.md`
 
-If a user needs fresh scan data, they should run the individual scanning skills first, then invoke this dashboard.
+If a user needs fresh scan data, run the individual scanning skills first, then invoke this dashboard.
+
+## Knowledge Pack References
+
+| # | Knowledge Pack | Path | Purpose |
+|---|----------------|------|---------|
+| 1 | Security Scoring | `skills/security/references/security-scoring.md` | Scoring model and grade thresholds |
+| 2 | Security Skill Template | `skills/security/references/security-skill-template.md` | Output conventions for scan results |
+
+## Integration Notes
+
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| x-sast-scan | Consumes output | Static analysis SARIF results (20% weight) |
+| x-dast-scan | Consumes output | Dynamic analysis SARIF results (15% weight) |
+| x-secret-scan | Consumes output | Secrets detection SARIF results (15% weight) |
+| x-owasp-scan | Consumes output | OWASP compliance SARIF results (10% weight) |
+| x-dependency-audit | Consumes output | Supply chain SARIF results (5% weight) |
+| x-supply-chain-audit | Consumes output | Supply chain SARIF results (5% weight) |

@@ -36,9 +36,9 @@ flowchart TD
         CAPTURE["Capture mainShaBeforePhase"] --> EXEC
 
         subgraph EXEC["Story Execution"]
-            GET[getExecutableStories] --> WAIT{Deps satisfied?}
-            WAIT -->|"Not yet<br/>(merge needed)"| MERGEDECISION["PR Merge Decision<br/>(auto/interactive/no-merge)"]
-            MERGEDECISION --> GET
+            GET[getExecutableStories] --> WAIT{Dependencies merged?}
+            WAIT -->|Not yet| MERGEWAIT["PR Merge Wait Loop"]
+            MERGEWAIT --> GET
             WAIT -->|Yes| DISPATCH{--sequential?}
             DISPATCH -->|Yes| SEQ["1.4: Sequential Dispatch"]
             DISPATCH -->|No| PAR["1.4a: Parallel Worktree Dispatch"]
@@ -71,8 +71,8 @@ flowchart TD
 
     subgraph P3["Phase 3 — Verification"]
         P3A[Run full test suite on main] --> P3B[DoD Checklist]
-        P3B --> P3C{All stories SUCCESS?}
-        P3C -->|"Yes + PRs merged<br/>(or --no-merge)"| COMPLETE([COMPLETE])
+        P3B --> P3C{All stories SUCCESS + PRs merged?}
+        P3C -->|Yes| COMPLETE([COMPLETE])
         P3C -->|Critical path OK| PARTIAL([PARTIAL])
         P3C -->|Critical path failed| FAILED([FAILED])
     end
@@ -141,8 +141,7 @@ flowchart TD
         end
     end
 
-    PH1 --> PH1G["Phase 1G — Commit planning artifacts [skip ci]"]
-    PH1G --> PH2
+    PH1 --> PH2
 
     subgraph PH2["Phase 2 — TDD Implementation"]
         PH2A["Write Acceptance Test (AT-N)"] --> PH2B
@@ -172,14 +171,9 @@ flowchart TD
 
     PH4 --> PH5["Phase 5 — Fix review findings"]
 
-    PH5 --> PH5C["Commit review + remediation artifacts [skip ci]"]
-    PH5C --> PH6
+    PH5 --> PH6
 
-    subgraph PH6["Phase 6 — Version Bump + PR Creation"]
-        PH6V{"Standalone mode?"}
-        PH6V -->|Yes| PH6BUMP["Version bump: analyze commits<br/>Update pom.xml"]
-        PH6V -->|No (epic)| PH6A
-        PH6BUMP --> PH6A
+    subgraph PH6["Phase 6 — PR Creation"]
         PH6A["git push -u origin feat/storyId-desc"]
         PH6A --> PH6B["gh pr create --base main"]
         PH6B --> PH6C["Body: 'Part of EPIC-{epicId}'"]
@@ -194,8 +188,7 @@ flowchart TD
         PH7C --> PH7A
     end
 
-    PH7 --> PH7D["Commit updated dashboard [skip ci]"]
-    PH7D --> PH8
+    PH7 --> PH8
 
     subgraph PH8["Phase 8 — Final Verification"]
         PH8A[Update IMPLEMENTATION-MAP status] --> PH8B
@@ -238,11 +231,9 @@ graph TD
     REVIEW -->|parallel| S8["Data Modeling Engineer"]
 
     EPIC -->|integrity gate| GATE["Integrity Gate Subagent<br/>(compile + test + coverage + smoke)"]
-    EPIC -->|version bump| VBUMP["x-lib-version-bump<br/>(post-gate on main)"]
     EPIC -->|conflict resolution| CONFLICT["Conflict Resolution Subagent<br/>(Section 1.4c)"]
     EPIC -->|report| REPORT["Epic Progress Report<br/>(Phase 2)"]
     EPIC -->|status sync| JIRA["Jira API<br/>(MCP Atlassian)"]
-    LIFE -->|Phase 6 standalone| VBUMP2["x-lib-version-bump<br/>(on story branch)"]
 
     classDef skill fill:#16213e,stroke:#0f3460,color:#fff
     classDef specialist fill:#533483,stroke:#e94560,color:#fff
@@ -267,10 +258,9 @@ flowchart TD
     F3 -->|Yes| STRICT["STRICT MODE<br/>Pre-flight partitions stories<br/>High-overlap → sequential queue<br/>Low-overlap → parallel batch"]
     F3 -->|No| ADVISORY["DEFAULT (ADVISORY)<br/>Pre-flight warns only<br/>All stories in parallel<br/>Auto-rebase resolves conflicts"]
 
-    FLAGS --> F4{Merge mode?}
-    F4 -->|--auto-merge| AUTO["AUTO-MERGE<br/>gh pr merge after approval<br/>Critical path order"]
-    F4 -->|--no-merge| NOMERGE["NO-MERGE<br/>PRs created but not merged<br/>Deps: SUCCESS only<br/>Gate: DEFERRED"]
-    F4 -->|default| INTERACTIVE["INTERACTIVE<br/>Prompt user per phase<br/>Merge all / Pause / Skip"]
+    FLAGS --> F4{--auto-merge?}
+    F4 -->|Yes| AUTO["AUTO-MERGE<br/>gh pr merge after approval<br/>Critical path order"]
+    F4 -->|No| POLL["POLLING<br/>Wait for manual merge<br/>60s interval, 24h timeout"]
 
     FLAGS --> F5{--skip-review?}
     F5 -->|Yes| NOREVIEW["SKIP REVIEWS<br/>x-dev-lifecycle skips<br/>Phases 4 and 7"]
@@ -290,9 +280,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    TRIGGER(["All phase stories complete<br/>+ All PRs merged"]) --> NOMERGECHECK{--no-merge?}
-    NOMERGECHECK -->|Yes| DEFERRED(["DEFERRED<br/>Per-story validation only<br/>Skip to phase report"])
-    NOMERGECHECK -->|No| PRE
+    TRIGGER(["All phase stories complete<br/>+ All PRs merged"]) --> PRE
 
     PRE["Preconditions:<br/>1. mainShaBeforePhase captured<br/>2. git checkout main && git pull"] --> S1
 
@@ -318,8 +306,7 @@ flowchart TD
 
     S5["Step 5: Smoke Tests<br/>{{SMOKE_COMMAND}}"] --> S5R{Pass?}
     S5R -->|No| SMOKEFAIL["Smoke Gate FAIL<br/>Correlate with phase stories"]
-    S5R -->|Yes| VBUMP["Version Bump (RULE-013)<br/>Analyze commits → bump pom.xml<br/>chore(version): bump to X.Y.Z-SNAPSHOT"]
-    VBUMP --> PASS(["PASS — advance to next phase"])
+    S5R -->|Yes| PASS(["PASS — advance to next phase"])
 
     SMOKEFAIL --> OPERATOR(["Operator decides:<br/>--resume after fix<br/>or --skip-smoke-gate"])
 
@@ -328,7 +315,6 @@ flowchart TD
     style FAIL3 fill:#e94560,color:#fff
     style PAUSE fill:#e9c46a,color:#000
     style SKIP fill:#533483,color:#fff
-    style DEFERRED fill:#e9c46a,color:#000
 ```
 
 ## 7. Auto-Rebase Flow (Section 1.4e)
@@ -409,7 +395,6 @@ flowchart TD
 | **Review** | `/x-review-pr` | Lifecycle Phase 7 | Tech Lead 40-point holistic review |
 | **Testing** | `/run-e2e` | Lifecycle Phase 8 | Smoke tests / post-deploy verification |
 | **Infra** | Integrity Gate | Epic orchestrator | Compile + test + coverage + smoke between phases |
-| **Infra** | Version Bump | Epic orchestrator (post-gate) | Semantic version bump on main via x-lib-version-bump |
 | **Infra** | Conflict Resolution | Epic orchestrator (1.4c) | Resolve rebase conflicts automatically |
 | **Infra** | Jira API | Epic orchestrator (1.6b) | Transition stories/epic to Done |
 
@@ -423,16 +408,13 @@ Orchestrator (main)          Story Subagent (worktree)          GitHub
                               │                                 
                               ├─ Phase 0: create branch         
                               ├─ Phase 1: plan                  
-                              ├─ Phase 1G: commit plans [skip ci]
                               ├─ Phase 2: implement (TDD)       
                               ├─ Phase 3: document              
                               ├─ Phase 4: /x-review ───────────► specialist reviews
                               ├─ Phase 5: fix findings          
-                              ├─ Phase 5+: commit reviews [skip ci]
                               ├─ Phase 6: gh pr create ────────► PR #N (→ main)
                               │           "Part of EPIC-{id}"   
                               ├─ Phase 7: /x-review-pr ────────► tech lead 40/40
-                              ├─ Phase 7+: commit dashboard [skip ci]
                               ├─ Phase 8: finalize              
                               │                                 
   ◄─── SubagentResult ──────  return {prUrl, prNumber, ...}     
@@ -441,18 +423,12 @@ Orchestrator (main)          Story Subagent (worktree)          GitHub
   ├─ update story markdown                                      
   ├─ update IMPLEMENTATION-MAP                                  
   │                                                             
-  ├─ merge decision (depends on mergeMode):                      
-  │  --auto-merge: gh pr merge ─────────────────────────────────► PR merged ✓
-  │  --no-merge:   skip merge (PR stays OPEN) ──────────────────► PR open (merge deferred)
-  │  interactive:  AskUserQuestion prompt ──────────────────────► user chooses
+  ├─ wait for PR merge ────────────────────────────────────────► PR merged ✓
+  │  (auto-merge or polling)                                    
   │                                                             
   ├─ auto-rebase other PRs                                      
   │  (Section 1.4e)                                             
   │                                                             
-  ├─ integrity gate                                             
-  │  (compile + test + coverage + smoke on main)                
-  │  --no-merge: gate DEFERRED                                  
-  │                                                             
-  └─ version bump (post-gate, RULE-013)                         
-     chore(version): bump to X.Y.Z-SNAPSHOT [phase-N]                
+  └─ integrity gate                                             
+     (compile + test + coverage + smoke on main)                
 ```

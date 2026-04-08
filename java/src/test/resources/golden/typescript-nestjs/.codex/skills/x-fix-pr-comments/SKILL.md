@@ -1,6 +1,7 @@
 ---
 name: x-fix-pr-comments
 description: "Reads PR review comments and fixes actionable ones automatically. Detects PR from argument or branch, classifies comments (actionable/suggestion/question/praise), implements fixes, and commits with proper conventional commit messages."
+user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[PR-number]"
 ---
@@ -19,8 +20,14 @@ Automates the process of addressing PR review comments for {{PROJECT_NAME}}. Rea
 
 ## Triggers
 
-- `/x-fix-pr-comments` -- fix comments on current branch's PR
-- `/x-fix-pr-comments 123` -- fix comments on PR #123
+- `/x-fix-pr-comments` — fix comments on current branch's PR
+- `/x-fix-pr-comments 123` — fix comments on PR #123
+
+## Parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `PR-number` | No | PR number to process. If omitted, detect from current branch. |
 
 ## Workflow
 
@@ -35,7 +42,7 @@ Automates the process of addressing PR review comments for {{PROJECT_NAME}}. Rea
 8. REPORT     -> Summarize actions taken
 ```
 
-### Step 1 -- Detect PR
+### Step 1 — Detect PR
 
 Determine which PR to process:
 
@@ -51,7 +58,7 @@ fi
 
 If no PR found, abort: `No PR found for current branch. Provide a PR number as argument.`
 
-### Step 2 -- Fetch Review Comments
+### Step 2 — Fetch Review Comments
 
 ```bash
 # Get all review comments (not issue comments)
@@ -63,7 +70,7 @@ gh api repos/{owner}/{repo}/pulls/{PR_NUMBER}/reviews \
   --jq '.[] | {id: .id, state: .state, body: .body, user: .user.login}'
 ```
 
-### Step 3 -- Classify Comments
+### Step 3 — Classify Comments
 
 For each comment, classify into one of:
 
@@ -76,13 +83,13 @@ For each comment, classify into one of:
 | **Resolved** | Already addressed or outdated | Skip |
 
 **Classification rules:**
-- Contains "please change", "should be", "must", "fix", "bug", "wrong" -> Actionable
-- Contains "consider", "maybe", "could", "suggestion", "nit" -> Suggestion
-- Contains "?", "why", "what", "how does" -> Question
-- Contains "LGTM", "nice", "good", "great" -> Praise
-- Thread is marked as resolved -> Resolved
+- Contains "please change", "should be", "must", "fix", "bug", "wrong" — Actionable
+- Contains "consider", "maybe", "could", "suggestion", "nit" — Suggestion
+- Contains "?", "why", "what", "how does" — Question
+- Contains "LGTM", "nice", "good", "great" — Praise
+- Thread is marked as resolved — Resolved
 
-### Step 4 -- Implement Fixes
+### Step 4 — Implement Fixes
 
 For each actionable/suggestion comment:
 
@@ -100,7 +107,7 @@ For each actionable/suggestion comment:
 
 **Ordering:** Process comments file-by-file to minimize context switching. Within a file, process top-to-bottom to avoid line number shifts.
 
-### Step 5 -- Verify
+### Step 5 — Verify
 
 After each fix (or batch of fixes per file):
 
@@ -112,7 +119,7 @@ After each fix (or batch of fixes per file):
 If compilation fails, revert the last change and try an alternative approach.
 If tests fail, analyze the failure and adjust the fix.
 
-### Step 6 -- Reply to Comments (PT-BR)
+### Step 6 — Reply to Comments (PT-BR)
 
 After each comment is processed (fixed, skipped, or rejected), reply to the review comment thread **in Portuguese (pt-BR)** explaining the action taken.
 
@@ -160,7 +167,7 @@ Comment doesn't make sense:
 Observacao analisada, mas nao faz sentido neste contexto. Motivo: o null check sugerido e desnecessario aqui — o parametro vem de um Optional.orElseThrow() na linha 42, garantindo que nunca sera null neste ponto.
 ```
 
-### Step 7 -- Commit
+### Step 7 — Commit
 
 After all fixes for a logical group are verified:
 
@@ -176,7 +183,7 @@ Addresses review comments on PR #{PR_NUMBER}"
 
 **Scope** should match the module/layer affected (e.g., `domain`, `api`, `config`).
 
-### Step 8 -- Report
+### Step 8 — Report
 
 Output a summary table:
 
@@ -210,3 +217,12 @@ Output a summary table:
 | Fix causes compilation failure | Revert and report as "Unable to fix automatically" |
 | Fix causes test failure | Revert and report as "Fix caused regression" |
 | API rate limit | Wait and retry (max 3 attempts) |
+
+## Integration Notes
+
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| `x-dev-lifecycle` | called-by | Invoked during Phase 4 (fix review comments) |
+| `x-fix-epic-pr-comments` | called-by | Batch mode processes multiple PRs from an epic |
+| `x-git-push` | calls | Uses Conventional Commits format for fix commits |
+| `x-review` | reads | Processes comments produced by specialist reviews |

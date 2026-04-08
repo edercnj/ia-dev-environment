@@ -185,7 +185,7 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-spec-drift-check** | `/x-spec-drift-check` | Detects spec-code drift by comparing story data contracts, endpoints, and Gherkin scenarios against implemented code. Supports standalone mode (full report) and inline mode (compact output for TDD loop integration in x-dev-lifecycle Phase 2). |
 | **x-story-create** | `/x-story-create` | > |
 | **x-story-epic** | `/x-story-epic` | > |
-| **x-story-epic-full** | `/x-story-epic-full` | > |
+| **x-story-epic-full** | `/x-story-epic-full` | Complete decomposition of a system specification into an Epic, individual Story files, and an Implementation Map with dependency graph and phased execution plan. Orchestrates spec analysis, rule extraction, story identification, and implementation planning. |
 | **x-story-map** | `/x-story-map` | > |
 | **x-supply-chain-audit** | `/x-supply-chain-audit` | Enhanced supply chain security audit beyond x-dependency-audit. Analyzes maintainer risk, typosquatting detection, phantom dependencies, dependency age, EPSS scoring, and SLSA assessment. Produces SARIF 2.1.0 output with weighted risk scoring. |
 | **x-test-plan** | `/x-test-plan` | Generates a Double-Loop TDD test plan with TPP-ordered scenarios before implementation. Delegates KP reading to a context-gathering subagent, then produces structured Acceptance Tests (outer loop) and Unit Tests in Transformation Priority Premise order (inner loop). |

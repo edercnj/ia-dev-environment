@@ -1,6 +1,7 @@
 ---
 name: x-test-plan
 description: "Generates a Double-Loop TDD test plan with TPP-ordered scenarios before implementation. Delegates KP reading to a context-gathering subagent, then produces structured Acceptance Tests (outer loop) and Unit Tests in Transformation Priority Premise order (inner loop)."
+user-invocable: true
 allowed-tools: Read, Grep, Glob
 argument-hint: "[STORY-ID]"
 ---
@@ -11,19 +12,32 @@ argument-hint: "[STORY-ID]"
 - **Tone**: Technical, Direct, and Concise.
 - **Efficiency**: Remove all conversational fillers and greetings to save tokens.
 
-# Skill: Plan Tests (Orchestrator)
+# Skill: Plan Tests
 
 ## Purpose
 
 Produces a Double-Loop TDD test plan that drives implementation order. With 95% line / 90% branch coverage enforced, the plan serves as the implementation roadmap — each test scenario maps to one Red-Green-Refactor cycle, ordered by Transformation Priority Premise (TPP).
 
-## Input
+## Triggers
 
-**Story to plan tests for:** `$ARGUMENTS`
+- `/x-test-plan STORY-ID` — generate test plan for a specific story
 
-If no story provided, ask which story to plan.
+## Parameters
 
-## Pre-Check: Idempotency (RULE-002)
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `STORY-ID` | Yes | Story identifier to plan tests for. If not provided, prompt for it. |
+
+## Workflow
+
+```
+0. PRE-CHECK       -> Verify existing plan freshness (mtime comparison)
+1. GATHER CONTEXT  -> Subagent (model: opus) reads testing + architecture KPs, story, template, existing code
+2. PLAN TESTS      -> Generate Double-Loop + TPP-ordered scenarios (inline)
+3. ESTIMATE        -> Estimate coverage and validate completeness (inline)
+```
+
+### Step 0 — Pre-Check: Idempotency (RULE-002 — Idempotency via Staleness Check)
 
 Before generating a test plan, verify whether a valid plan already exists:
 
@@ -34,21 +48,12 @@ Before generating a test plan, verify whether a valid plan already exists:
 2. **Check existence:** If the plan file does NOT exist, proceed to generation (Step 1).
 
 3. **Compare modification times:** If the plan file exists:
-   - If `mtime(story file) <= mtime(plan file)` → the plan is **fresh**. Log: `"Reusing existing test plan from {date}"` (where `{date}` is the plan file's last modified date). Return the existing plan. **Do NOT invoke any subagent.**
-   - If `mtime(story file) > mtime(plan file)` → the plan is **stale**. Log: `"Regenerating stale test plan for {story-id}"`. Proceed to generation (Step 1).
+   - If `mtime(story file) <= mtime(plan file)` — the plan is **fresh**. Log: `"Reusing existing test plan from {date}"` (where `{date}` is the plan file's last modified date). Return the existing plan. **Do NOT invoke any subagent.**
+   - If `mtime(story file) > mtime(plan file)` — the plan is **stale**. Log: `"Regenerating stale test plan for {story-id}"`. Proceed to generation (Step 1).
 
 4. **First generation:** If the plan file does not exist at all, log: `"Generating test plan for {story-id}"`. Proceed to generation (Step 1).
 
-## Execution Flow (Orchestrator Pattern)
-
-```
-0. PRE-CHECK       -> Verify existing plan freshness (mtime comparison)
-1. GATHER CONTEXT  -> Subagent (model: opus) reads testing + architecture KPs, story, template, existing code
-2. PLAN TESTS      -> Orchestrator generates Double-Loop + TPP-ordered scenarios (inline)
-3. ESTIMATE        -> Orchestrator estimates coverage and validates completeness (inline)
-```
-
-## Step 1: Gather Context (Subagent via Task — model: opus)
+### Step 1 — Gather Context (Subagent via Task, model: opus)
 
 Launch a **single** `general-purpose` subagent with `model: opus`:
 
@@ -56,7 +61,7 @@ Launch a **single** `general-purpose` subagent with `model: opus`:
 >
 > **Read the template for required output format (RULE-007):**
 > - Read template at `.claude/templates/_TEMPLATE-TEST-PLAN.md` for required output format.
-> - If the template file does NOT exist, log: `"Template not found, using inline format"` and continue without it (RULE-012: graceful fallback for projects without templates).
+> - If the template file does NOT exist, log: `"Template not found, using inline format"` and continue without it (RULE-012 — graceful fallback for projects without templates).
 >
 > **Read these knowledge packs:**
 > - `skills/testing/references/testing-philosophy.md` — 8 test categories, fixture patterns, data uniqueness, async handling, real vs in-memory DB decisions
@@ -87,12 +92,12 @@ Launch a **single** `general-purpose` subagent with `model: opus`:
 > 11. **Chaos tests applicable** (if testing.chaos_tests == true)
 > 12. **Template sections** — if template was found, list the 8 mandatory sections to populate
 
-## Step 2: Generate Test Scenarios (Orchestrator — Inline)
+### Step 2 — Generate Test Scenarios (Inline)
 
 Using the context returned by the subagent, generate a Double-Loop TDD test plan.
 Organize scenarios by implementation order (TPP), NOT by test category.
 
-### 2.1 Acceptance Tests (Outer Loop)
+#### 2.1 — Acceptance Tests (Outer Loop)
 
 For each Gherkin scenario in the story, generate an acceptance test entry:
 
@@ -106,32 +111,32 @@ For each Gherkin scenario in the story, generate an acceptance test entry:
 | Depends on | UT/IT IDs that must pass for this AT to go GREEN, or `--` |
 | Parallel | `yes` if independent of other ATs |
 
-### 2.2 Unit Tests (Inner Loop — TPP Order)
+#### 2.2 — Unit Tests (Inner Loop, TPP Order)
 
 Generate unit test scenarios in strict TPP order. Each scenario represents one
 Red-Green-Refactor cycle.
 
-#### TPP Level 1 — Degenerate Cases
-- Null, empty, zero inputs → return default/error
+##### TPP Level 1 — Degenerate Cases
+- Null, empty, zero inputs — return default/error
 - Transform: `{}→nil` or `nil→constant`
 
-#### TPP Level 2 — Unconditional Paths
-- Single valid input → direct output (no branching)
+##### TPP Level 2 — Unconditional Paths
+- Single valid input — direct output (no branching)
 - Transform: `constant→variable`
 
-#### TPP Level 3 — Simple Conditions
+##### TPP Level 3 — Simple Conditions
 - Single if/else branching
 - Transform: `unconditional→conditional`
 
-#### TPP Level 4 — Complex Conditions
+##### TPP Level 4 — Complex Conditions
 - Multiple branches, switch/match, compound boolean
 - Transform: deeper conditional logic
 
-#### TPP Level 5 — Iterations
+##### TPP Level 5 — Iterations
 - Collection processing, loops, map/filter/reduce
 - Transform: `scalar→collection`, `statement→recursion/iteration`
 
-#### TPP Level 6 — Edge Cases
+##### TPP Level 6 — Edge Cases
 - Boundary values (at-min, at-max, past-max)
 - Transform: `value→mutated value`
 
@@ -148,7 +153,7 @@ For each unit test entry, include:
 | Depends on | M | Previous test IDs that are prerequisites, or `--` |
 | Parallel | M | `yes` if independent of other tests at same level |
 
-### 2.3 Integration Tests (Cross-Component)
+#### 2.3 — Integration Tests (Cross-Component)
 
 Position AFTER the unit tests of the components involved.
 Include only when multiple components interact (DB, HTTP, messaging).
@@ -161,16 +166,16 @@ Include only when multiple components interact (DB, HTTP, messaging).
 | Depends on | M | UT IDs that must pass first |
 | Parallel | M | `yes`/`no` |
 
-### 2.4 CRUD-Only Story Optimization
+#### 2.4 — CRUD-Only Story Optimization
 
 When a story describes a purely CRUD operation without branching logic:
-- UTs should cover: degenerate (Level 1) → constant (Level 1) → variable (Level 2)
+- UTs should cover: degenerate (Level 1) — constant (Level 1) — variable (Level 2)
 - Do NOT generate conditional or iteration UTs unless the business rules demand them
 - Acceptance tests should focus on the full CRUD flow
 
-## Step 3: Estimate & Validate (Orchestrator — Inline)
+### Step 3 — Estimate and Validate (Inline)
 
-### Coverage Estimation Table
+#### 3.1 — Coverage Estimation Table
 
 | Class | Public Methods | Branches | Est. Tests | Line % | Branch % |
 |-------|---------------|----------|-----------|--------|----------|
@@ -178,7 +183,7 @@ When a story describes a purely CRUD operation without branching logic:
 
 Flag any class where estimated coverage < 95% line / 90% branch.
 
-### Quality Checks
+#### 3.2 — Quality Checks
 
 1. Every Gherkin scenario maps to ≥1 acceptance test (AT)
 2. Every acceptance criterion maps to ≥1 unit test chain (UT)
@@ -191,12 +196,12 @@ Flag any class where estimated coverage < 95% line / 90% branch.
 9. Test naming follows convention: `[method]_[scenario]_[expected]`
 10. No unnecessary UTs for CRUD-only stories (max Level 3 unless justified)
 
-## Output
+### Output
 
 Save to: `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md` (extract epic ID XXXX and story sequence YYYY from the story ID). Ensure directory exists: `mkdir -p plans/epic-XXXX/plans`.
 
 ```markdown
-# Test Plan -- STORY-ID: [Title]
+# Test Plan — STORY-ID: [Title]
 
 ## Summary
 - Acceptance tests: X (from Y Gherkin scenarios)
@@ -261,6 +266,17 @@ Save to: `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md` (extract epic ID XXXX 
 - Do NOT ignore existing test patterns
 - Do NOT create redundant tests covering the same branch
 
+## Error Handling
+
+| Scenario | Action |
+|----------|--------|
+| No story ID provided | Prompt user for story identifier |
+| Story file not found | Abort with file-not-found message |
+| Existing plan is fresh (RULE-002) | Return existing plan, skip generation |
+| Template not found (RULE-012) | Log warning, use inline format, continue |
+| No Gherkin scenarios in story | Generate tests from acceptance criteria text |
+| No acceptance criteria found | Abort with warning, request story refinement |
+
 ## Template Fallback (RULE-012)
 
 When `.claude/templates/_TEMPLATE-TEST-PLAN.md` is **not available** (projects predating EPIC-0024):
@@ -272,9 +288,22 @@ When `.claude/templates/_TEMPLATE-TEST-PLAN.md` is **not available** (projects p
 
 This ensures backward compatibility with projects that have not yet adopted template-based generation.
 
+## Knowledge Pack References
+
+| Pack | Files | Purpose |
+|------|-------|---------|
+| testing | `skills/testing/references/testing-philosophy.md` | 8 test categories, fixture patterns, data uniqueness |
+| testing | `skills/testing/references/testing-conventions.md` | {{LANGUAGE}}-specific test frameworks, naming, assertions |
+| testing | `skills/testing/SKILL.md` | {{LANGUAGE}}-specific test patterns |
+| architecture | `skills/architecture/references/architecture-principles.md` | Exception hierarchy, layer boundaries |
+
 ## Integration Notes
 
-- Invoked by `x-dev-lifecycle` during Phase 1B
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| `x-dev-lifecycle` | called-by | Invoked during Phase 1B |
+| `x-dev-implement` | reads | Output consumed as TDD roadmap |
+
 - Pre-check (RULE-002) prevents redundant regeneration when story has not changed
 - Template reference (RULE-007) ensures consistent 8-section output format when available
 - Subagent uses `model: opus` (RULE-009) for deep test planning quality

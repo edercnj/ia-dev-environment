@@ -1,6 +1,7 @@
 ---
 name: database-patterns
-description: "Database conventions for {{DB_TYPE}} + {{CACHE_TYPE}}: schema design, migrations ({{DB_MIGRATION}}), indexing, query optimization, caching patterns. References loaded from references/ based on project config."
+description: "Database conventions for {{DB_TYPE}} + {{CACHE_TYPE}}: schema design, migrations, indexing, query optimization, caching patterns, and connection pool management."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
@@ -11,15 +12,7 @@ allowed-tools:
 
 ## Purpose
 
-Provides database conventions for schema design, migration management, indexing strategies, query optimization, and caching patterns. All patterns are {{DB_TYPE}}-aware and use {{DB_MIGRATION}} for schema versioning. Cache patterns use {{CACHE_TYPE}}.
-
-## Condition
-
-This knowledge pack is relevant when `database != "none"` or `cache != "none"`.
-
-## How to Use
-
-This skill contains reference files specific to your project's database and cache stack. Read the relevant files from the `references/` directory within this skill's folder.
+Provides database conventions for schema design, migration management, indexing strategies, query optimization, and caching patterns. All patterns are {{DB_TYPE}}-aware and use {{DB_MIGRATION}} for schema versioning. Cache patterns use {{CACHE_TYPE}}. Included when `database != "none"` or `cache != "none"`.
 
 ### Database References
 
@@ -455,3 +448,11 @@ Backup strategy must match Recovery Time Objective (RTO) and Recovery Point Obje
 | Restore test | Weekly (production) | Full restore to isolated test environment |
 | PITR test | Monthly | Restore to specific timestamp and verify data |
 | Cross-region copy | Daily | Verify offsite backup exists and is readable |
+
+## Related Knowledge Packs
+
+| Pack | Relationship |
+|------|-------------|
+| `data-modeling` | Cross-cutting data modeling patterns (schema design, concurrency, test data) |
+| `data-management` | Data management lifecycle patterns |
+| `architecture` | Core architecture principles |

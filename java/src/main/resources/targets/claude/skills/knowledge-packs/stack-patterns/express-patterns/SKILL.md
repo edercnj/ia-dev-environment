@@ -1,17 +1,22 @@
 ---
 name: express-patterns
-description: "Express-specific patterns: middleware architecture, manual/tsyringe/inversify DI, Prisma/TypeORM/Knex data access, express.Router, centralized error handling, dotenv config, supertest testing. Internal reference for agents producing Express code."
+description: "Express patterns: middleware architecture, DI (manual/tsyringe/inversify), Prisma/TypeORM/Knex data access, express.Router, and centralized error handling."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
   - Glob
 ---
 
-# Knowledge Pack: Express Patterns
+# Pattern: Express Patterns
 
 ## Purpose
 
 Provides Express-specific implementation patterns that supplement the generic layer templates. Agents reference this pack when generating code for a TypeScript + Express project.
+
+## Supplements
+
+Supplements `architecture` and `layer-templates` knowledge packs with Express-specific conventions.
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: data-modeling
-description: "Cross-cutting data modeling patterns: schema design (soft delete, temporal tables, audit trails, multi-tenant, SCD), concurrency (optimistic/pessimistic locking, Saga), and test data management (factories, fixtures, anonymization)."
+description: "Cross-cutting data modeling patterns: schema design (soft delete, temporal tables, audit trails, multi-tenant, SCD), concurrency, and test data management."
 user-invocable: false
 allowed-tools:
   - Read
@@ -12,19 +12,11 @@ allowed-tools:
 
 ## Purpose
 
-Provides advanced cross-cutting data modeling patterns for projects using {{DB_TYPE}}. Covers schema design patterns (soft delete, temporal tables, audit trails, multi-tenant, Slowly Changing Dimensions), concurrency control patterns (optimistic locking, pessimistic locking, Saga), and test data management (factories, fixtures, anonymization, data builders).
+Provides advanced cross-cutting data modeling patterns for projects using {{DB_TYPE}}. Covers schema design patterns (soft delete, temporal tables, audit trails, multi-tenant, Slowly Changing Dimensions), concurrency control patterns (optimistic locking, pessimistic locking, Saga), and test data management (factories, fixtures, anonymization, data builders). Included when `database != "none"` or `cache != "none"`.
 
-> **Prerequisite knowledge:** This pack assumes familiarity with database fundamentals (ACID properties, normalization, CAP considerations) covered in `knowledge/core/11-database-principles.md`. It does NOT duplicate those foundations.
+> **Prerequisite knowledge:** This pack assumes familiarity with database fundamentals covered in `knowledge/core/11-database-principles.md`.
 
 > **Complementary pack:** For database-specific conventions (types, migrations, indexing, caching), see the `database-patterns` knowledge pack.
-
-## Condition
-
-This knowledge pack is included when `database != "none"` or `cache != "none"`.
-
-## How to Use
-
-Read the relevant reference files from the `references/` directory within this skill's folder.
 
 ## Schema Design Patterns
 
@@ -109,3 +101,10 @@ Structured Architecture Decision Record templates for common database decisions.
 | `references/concurrency-patterns.md` | Optimistic locking, pessimistic locking, Saga pattern, distributed locks |
 | `references/test-data-patterns.md` | Factories, fixtures, data builders, anonymization, database seeding |
 | `references/database-adr-templates.md` | ADR templates: SQL vs NoSQL, embedded vs referenced, partitioning, caching, read replicas, distributed transactions |
+
+## Related Knowledge Packs
+
+| Pack | Relationship |
+|------|-------------|
+| `database-patterns` | Database-specific conventions (types, migrations, indexing, caching) |
+| `architecture` | Core architecture principles |

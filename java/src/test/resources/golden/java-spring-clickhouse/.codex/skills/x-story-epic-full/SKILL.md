@@ -1,30 +1,31 @@
 ---
 name: x-story-epic-full
-description: >
-  Complete decomposition of a system specification into an Epic, individual Story files, and an
-  Implementation Map with dependency graph and phased execution plan. This is the orchestrator
-  skill that guides the full workflow: spec analysis, rule extraction, story identification,
-  and implementation planning. Use this skill whenever the user asks to decompose a spec into
-  stories and epic, break down a system document into implementable work items, generate a
-  complete project backlog from a specification, create epic stories and implementation plan
-  from a technical document, or any variation of "read this spec and create everything".
-  Also trigger when the user wants the full decomposition pipeline — epic + stories + map —
-  in a single pass, or mentions planning the complete implementation of a system from its
-  specification. Prefer this skill over the individual x-story-epic, x-story-create, or
-  x-story-map skills when the user wants all three deliverables.
+description: "Complete decomposition of a system specification into an Epic, individual Story files, and an Implementation Map with dependency graph and phased execution plan. Orchestrates spec analysis, rule extraction, story identification, and implementation planning."
+user-invocable: true
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion
+argument-hint: "[SPEC-FILE-PATH]"
 ---
 
-# Complete Spec-to-Stories Decomposition
+## Output Policy
 
-This skill orchestrates the full decomposition of a system specification into three
-deliverables: an **Epic**, individual **Stories**, and an **Implementation Map**. It
-coordinates the work of three focused skills, each handling one deliverable.
+- **Language**: Portuguese (pt-BR) for all content. English for technical terms (cache, timeout, handler, endpoint) and code identifiers.
+- **Tone**: Technical, Direct, and Concise.
+- **Efficiency**: Remove all conversational fillers and greetings to save tokens.
 
-## The Three Deliverables
+# Skill: Spec-to-Stories Decomposition (Orchestrator)
 
-1. **Epic** — Scope, cross-cutting rules, quality gates, story index
-2. **Stories** — One file per story with data contracts, Gherkin, diagrams, sub-tasks
-3. **Implementation Map** — Phases, critical path, dependency graph, strategic analysis
+## Purpose
+
+Orchestrate the full decomposition of a system specification into three deliverables: an **Epic**, individual **Stories**, and an **Implementation Map**. Coordinate the work of three focused skills, each handling one deliverable.
+
+## When to Use
+
+- Decompose a spec into stories and epic
+- Break down a system document into implementable work items
+- Generate a complete project backlog from a specification
+- Create epic, stories, and implementation plan from a technical document
+- Full decomposition pipeline (epic + stories + map) in a single pass
+- Prefer this skill over the individual `x-story-epic`, `x-story-create`, or `x-story-map` skills when all three deliverables are needed
 
 ## Prerequisites
 
@@ -39,6 +40,18 @@ Read these files before starting:
 - `references/decomposition-guide.md` (bundled with this skill)
 
 If any template is missing, stop and tell the user.
+
+## Workflow Overview
+
+```
+1. ANALYSIS      -> Read spec, identify rules, stories, dependencies, phases (inline)
+1.5. JIRA        -> Determine Jira integration mode (conditional, inline)
+2. EPIC          -> Generate Epic file with rules, story index, DoR/DoD (inline)
+3. STORIES       -> Generate one story file per story with contracts, Gherkin, sub-tasks (inline)
+4. MAP           -> Generate Implementation Map with dependency graph, phases, critical path (inline)
+4.5. JIRA LINKS  -> Create Jira dependency links (conditional, inline)
+5. REPORT        -> Save all files, validate quality, report summary (inline)
+```
 
 ## Decomposition Philosophy
 
@@ -57,9 +70,7 @@ The guide also covers:
 - Phase computation (DAG-based, parallel within phases)
 - Sizing heuristics (too big, too small, just right)
 
-## Complete Workflow
-
-### Phase A: Analysis
+## Phase 1 — Analysis
 
 1. Ask the user which spec file to process (or use the one they provided)
 2. Read the entire spec file
@@ -71,17 +82,17 @@ The guide also covers:
    - Compute phases from the dependency DAG
    - Identify the critical path
 
-### Phase A.5: Jira Integration Decision
+## Phase 1.5 — Jira Integration Decision
 
 Before generating any artifacts, determine if Jira integration is desired.
 
-#### A.5.1: Check MCP Availability
+### 1.5.1 — Check MCP Availability
 
 Verify that the Jira MCP tool (`mcp__atlassian__createJiraIssue`) is available.
 If the tool is NOT available, set `jiraContext = { enabled: false }` and skip to
-Phase B silently — do not warn the user.
+Phase 2 silently — do not warn the user.
 
-#### A.5.2: Ask the User
+### 1.5.2 — Ask the User
 
 Use the `AskUserQuestion` tool:
 
@@ -98,7 +109,7 @@ options:
 multiSelect: false
 ```
 
-#### A.5.3: Build jiraContext
+### 1.5.3 — Build jiraContext
 
 Based on user selection:
 
@@ -123,7 +134,7 @@ Based on user selection:
 
 The `jiraContext` is passed to all subsequent phases and used to control Jira issue creation.
 
-### Phase B: Generate the Epic
+## Phase 2 — Generate the Epic
 
 Follow the instructions in `.claude/skills/x-story-epic/SKILL.md`:
 
@@ -150,12 +161,12 @@ After generating the Epic markdown file:
 4. Replace `<CHAVE-JIRA>` in the generated Epic markdown with the actual Jira key
 5. If creation fails: warn the user, set `<CHAVE-JIRA>` to `EPIC-XXXX (Jira: falha na criação)`,
    leave `jiraContext.epicIssueKey` absent (do NOT set it to an empty string or invalid value),
-   and continue. In Phase C, stories will be created without a `parent` link when
+   and continue. In Phase 3, stories will be created without a `parent` link when
    `jiraContext.epicIssueKey` is absent, maintaining non-blocking behavior
 
 If `jiraContext.enabled == false`: replace `<CHAVE-JIRA>` with `—` in the Epic markdown.
 
-### Phase C: Generate the Stories
+## Phase 3 — Generate the Stories
 
 Follow the instructions in `.claude/skills/x-story-create/SKILL.md`:
 
@@ -190,9 +201,9 @@ Pass `jiraContext` to the story generation logic. For each generated story:
 If `jiraContext.cascadeToStories == false` or `jiraContext.enabled == false`:
 replace `<CHAVE-JIRA>` with `—` in all story markdowns.
 
-No additional `AskUserQuestion` is needed — the cascade decision was already made in Phase A.5.
+No additional `AskUserQuestion` is needed — the cascade decision was already made in Phase 1.5.
 
-### Phase D: Generate the Implementation Map
+## Phase 4 — Generate the Implementation Map
 
 Follow the instructions in `.claude/skills/x-story-map/SKILL.md`:
 
@@ -205,10 +216,10 @@ Follow the instructions in `.claude/skills/x-story-map/SKILL.md`:
 
 Generate `plans/epic-XXXX/implementation-map-XXXX.md` following `_TEMPLATE-IMPLEMENTATION-MAP.md`.
 
-If Jira keys are available (from Phase C), include them in the dependency matrix's
+If Jira keys are available (from Phase 3), include them in the dependency matrix's
 `Chave Jira` column.
 
-### Phase D.5: Jira Dependency Linking (if applicable)
+## Phase 4.5 — Jira Dependency Linking (if applicable)
 
 If `jiraContext.enabled == true` and `jiraContext.cascadeToStories == true`, and all
 stories have Jira keys:
@@ -224,7 +235,7 @@ stories have Jira keys:
 If linking fails for some stories, log warnings but do not fail the pipeline.
 This step is best-effort — Jira links are a convenience, not a hard requirement.
 
-### Phase E: Save and Report
+## Phase 5 — Save and Report
 
 All files are saved inside `plans/epic-XXXX/` (the epic's dedicated folder).
 
@@ -243,7 +254,7 @@ If Jira integration was active, also report:
 - Dependency links created: K
 - Failures: list any failed items
 
-### Quality Validation (before completing Phase E)
+### Quality Validation (before completing Phase 5)
 
 Before reporting, validate that all generated artifacts meet these quality gates:
 
@@ -266,6 +277,22 @@ If any story fails validation, fix it before saving. Do not skip validation.
 - Gherkin in Portuguese: `Cenario`, `DADO`, `QUANDO`, `ENTÃO`, `E`, `MAS`
 - IDs: RULE-NNN (English format), story-XXXX-YYYY (composite), epic-XXXX (kebab-case)
 
+## Error Handling
+
+| Scenario | Action |
+|----------|--------|
+| Spec file not found or empty | Abort with message: `Spec file not found or is empty. Provide a valid path.` |
+| Template file missing (`_TEMPLATE-EPIC.md`, `_TEMPLATE-STORY.md`, or `_TEMPLATE-IMPLEMENTATION-MAP.md`) | Stop and tell the user which template is missing |
+| Jira MCP tool unavailable | Set `jiraContext = { enabled: false }`, skip Jira integration silently |
+| Jira Epic creation fails | Warn the user, set `<CHAVE-JIRA>` to `EPIC-XXXX (Jira: falha na criacao)`, continue |
+| Jira Story creation fails for a story | Warn, set `<CHAVE-JIRA>` to `—` for that story, continue with remaining stories |
+| Circular dependency detected in story graph | Abort with message listing the cycle and affected stories |
+| Story fails quality validation (Phase 5) | Fix the story before saving — do not skip validation |
+
+## Template Fallback
+
+This skill requires all three templates (`_TEMPLATE-EPIC.md`, `_TEMPLATE-STORY.md`, `_TEMPLATE-IMPLEMENTATION-MAP.md`). Unlike other orchestrators, there is no graceful fallback — missing templates halt execution because the output format is strictly defined.
+
 ## Quality Checklist
 
 Before delivering, verify:
@@ -282,3 +309,19 @@ Before delivering, verify:
 - [ ] Boundary values use triplet pattern (at-min, at-max, past-max)
 - [ ] Implementation map observations are specific, not generic
 - [ ] All files follow their respective templates exactly
+
+## Integration Notes
+
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| `x-story-epic` | Delegates to | Phase 2 follows `x-story-epic/SKILL.md` instructions for Epic generation |
+| `x-story-create` | Delegates to | Phase 3 follows `x-story-create/SKILL.md` instructions for Story generation |
+| `x-story-map` | Delegates to | Phase 4 follows `x-story-map/SKILL.md` instructions for Implementation Map |
+| `x-dev-epic-implement` | Followed by | Generated artifacts are consumed by epic implementation |
+| `x-dev-implement` | Followed by | Individual stories can be implemented via `/x-dev-implement` |
+| `_TEMPLATE-EPIC.md` | Reads | Output format for Epic file |
+| `_TEMPLATE-STORY.md` | Reads | Output format for Story files |
+| `_TEMPLATE-IMPLEMENTATION-MAP.md` | Reads | Output format for Implementation Map |
+| `references/decomposition-guide.md` | Reads | Decomposition philosophy and layer-by-layer approach |
+| `mcp__atlassian__createJiraIssue` | Calls (conditional) | Jira Epic and Story creation when `jiraContext.enabled` |
+| `mcp__atlassian__createIssueLink` | Calls (conditional) | Jira dependency linking in Phase 4.5 |

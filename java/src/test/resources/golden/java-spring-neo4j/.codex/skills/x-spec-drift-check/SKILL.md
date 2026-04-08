@@ -23,21 +23,26 @@ Compares story specifications (data contracts, endpoints, Gherkin scenarios) aga
 
 ## Triggers
 
-- `/x-spec-drift-check STORY-ID` -- standalone mode (full report)
-- `/x-spec-drift-check STORY-ID --mode inline` -- inline mode (compact output)
+- `/x-spec-drift-check STORY-ID` — standalone mode (full report)
+- `/x-spec-drift-check STORY-ID --mode inline` — inline mode (compact output)
 
-## Mode Selection
+## Parameters
+
+| Parameter | Type | Default | Values | Description |
+|-----------|------|---------|--------|-------------|
+| `STORY-ID` | String | required | story identifier | Story to check for drift |
+| `--mode` | String | standalone | standalone, inline | Output mode |
+
+### Mode Selection
 
 | Mode | When to Use | Output |
 |------|-------------|--------|
 | `standalone` | Manual invocation before PR | Full itemized report |
 | `inline` | Automated call in x-dev-lifecycle Phase 2 | Single-line compact summary |
 
----
+## Workflow
 
-## Standalone Mode
-
-### Execution Flow
+### Standalone Mode
 
 ```
 1. PARSE    -> Read story file, extract data contracts + endpoints + Gherkin
@@ -46,7 +51,7 @@ Compares story specifications (data contracts, endpoints, Gherkin scenarios) aga
 4. REPORT   -> Generate itemized report with severity
 ```
 
-### Step 1: Parse Story
+#### Step 1 — Parse Story
 
 Read the story markdown file and extract:
 
@@ -55,7 +60,7 @@ Read the story markdown file and extract:
 3. **Gherkin Scenarios** (Section 7): IDs `@GK-N` and titles
 4. **Constitution reference**: Check if `CONSTITUTION.md` exists in project root
 
-### Step 2: Scan Source Code
+#### Step 2 — Scan Source Code
 
 For each extracted item, search the source tree:
 
@@ -64,7 +69,7 @@ For each extracted item, search the source tree:
 - **Gherkin Scenarios**: Search test files for acceptance test references to `@GK-N`
 - **Constitution**: If present, validate naming conventions against source
 
-### Step 3: Classify Drift
+#### Step 3 — Classify Drift
 
 | Check Type | Severity | Condition |
 |-----------|----------|-----------|
@@ -75,7 +80,7 @@ For each extracted item, search the source tree:
 | Scenario Uncovered | WARN | `@GK-N` without corresponding acceptance test |
 | Naming Violation | WARN | CONSTITUTION.md naming convention violated |
 
-### Step 4: Report
+#### Step 4 — Report
 
 Output follows itemized format with severity:
 
@@ -96,20 +101,16 @@ Constitution Compliance:
 Summary: N FAIL, M WARN — DRIFT DETECTED / NO DRIFT
 ```
 
-### Exit Code
+#### Exit Code
 
 - **0**: No FAIL results (only PASS and WARN)
 - **Non-zero**: At least one FAIL detected
 
----
-
-## Inline Mode (x-dev-lifecycle TDD Loop Integration)
-
-### Purpose
+### Inline Mode (x-dev-lifecycle TDD Loop Integration)
 
 Provides compact, non-blocking drift checks after each RED-GREEN-REFACTOR cycle in x-dev-lifecycle Phase 2. Designed for automated integration — not manual invocation.
 
-### Scope Restrictions
+#### Scope Restrictions
 
 Inline mode performs a **subset** of standalone checks:
 
@@ -122,29 +123,29 @@ Inline mode performs a **subset** of standalone checks:
 | Gherkin Coverage | **No** — reserved for standalone | Yes |
 | Constitution Compliance | **No** — reserved for standalone | Yes |
 
-### Compact Output Format
+#### Compact Output Format
 
 For non-critical results (PASS and WARN only):
 
 ```
-⚡ Drift Check (inline): N PASS, M WARN — details of first warning
+Drift Check (inline): N PASS, M WARN — details of first warning
 ```
 
 For critical drift (at least one FAIL):
 
 ```
-🚨 Drift Check (inline): CRITICAL — FieldName (Type, M) NOT FOUND in DTO
+Drift Check (inline): CRITICAL — FieldName (Type, M) NOT FOUND in DTO
    Continue TDD loop despite critical drift? (y/n)
 ```
 
-### Non-Blocking Behavior
+#### Non-Blocking Behavior
 
 - **WARN results** are displayed but do **not** interrupt the TDD loop. The non-blocking nature ensures development flow continues.
 - **FAIL results** (critical drift) pause the loop with a confirmation prompt
 - If the developer confirms: loop continues with FAIL logged
 - If the developer denies: loop pauses for correction
 
-### Integration Point
+#### TDD Loop Integration Point
 
 Called automatically by x-dev-lifecycle after each TDD cycle:
 
@@ -157,14 +158,14 @@ Phase 2 TDD Loop:
   2.5 COMMIT — atomic TDD commit
 ```
 
-### InlineDriftCheckConfig
+#### InlineDriftCheckConfig
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `enabled` | boolean | `true` | Activate inline drift check (auto-enabled when story has data contract) |
 | `blockOnCritical` | boolean | `true` | Pause TDD loop on critical FAIL |
 
-### InlineDriftResult
+#### InlineDriftResult
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -174,7 +175,7 @@ Phase 2 TDD Loop:
 | `summary` | String | Compact single-line message |
 | `criticalDetails` | List | Details of FAIL items (empty if none) |
 
-### Decision Logic
+#### Decision Logic
 
 ```
 if story has no data contract:
@@ -185,10 +186,10 @@ run data contract field checks (M and O)
 run endpoint checks
 
 if failCount > 0 and blockOnCritical:
-    emit 🚨 CRITICAL message
+    emit CRITICAL message
     prompt for confirmation
 else:
-    emit ⚡ summary message
+    emit summary message
     continue TDD loop
 ```
 
@@ -200,3 +201,11 @@ else:
 | No data contract in story | Standalone: report "No data contract defined" / Inline: skip silently |
 | Source root not accessible | Abort with "Source root not accessible: {path}" |
 | Malformed data contract | WARN with "Unable to parse data contract field: {line}" |
+
+## Integration Notes
+
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| x-dev-lifecycle | Called by | Invoked during Phase 2 TDD loop for inline drift detection |
+| x-dev-implement | Complements | Drift check validates that implementation matches story spec |
+| x-review-pr | Complements | Standalone drift check provides pre-PR validation of spec alignment |

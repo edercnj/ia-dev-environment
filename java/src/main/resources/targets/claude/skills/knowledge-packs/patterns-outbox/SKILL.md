@@ -1,6 +1,7 @@
 ---
 name: patterns-outbox
-description: "Transactional Outbox Pattern: reliable event publishing with polling publisher and CDC strategies. Covers the dual-write problem, outbox table design, SELECT FOR UPDATE SKIP LOCKED, Debezium CDC, and anti-patterns for event-driven {{ARCHITECTURE}} systems."
+description: "Transactional Outbox Pattern: reliable event publishing with polling publisher and CDC strategies, outbox table design, and anti-patterns."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
@@ -9,9 +10,9 @@ allowed-tools:
 
 # Knowledge Pack: Transactional Outbox Pattern
 
-## Condition
+## Purpose
 
-This knowledge pack is included when `architecture.outbox_pattern = true`. It provides structured guidance for implementing the Transactional Outbox Pattern, ensuring reliable event delivery in event-driven systems.
+Provides structured guidance for implementing the Transactional Outbox Pattern, ensuring reliable event delivery in event-driven systems. Covers the dual-write problem, outbox table design, SELECT FOR UPDATE SKIP LOCKED, Debezium CDC, and anti-patterns. Included when `architecture.outbox_pattern = true`.
 
 ---
 
@@ -333,10 +334,10 @@ if (publishFailed) {
 
 ---
 
-## Cross-Reference
+## Related Knowledge Packs
 
-- Pattern reference: `skills/patterns/references/microservice/outbox-pattern.md` — Outbox pattern overview with relay strategies and delivery guarantees
-- Saga pattern: `skills/patterns/references/microservice/saga-pattern.md` — Each saga step uses the outbox to publish completion events
-- Dead letter queue: `skills/patterns/references/resilience/dead-letter-queue.md` — Handling events that exceed max retries
-- Event sourcing: `skills/patterns/references/architectural/event-sourcing.md` — Alternative approach where the event store IS the outbox
-- Idempotency: `skills/patterns/references/microservice/idempotency.md` — Consumer-side deduplication required with at-least-once delivery
+| Pack | Relationship |
+|------|-------------|
+| `architecture-patterns` | Outbox, saga, dead letter queue, event sourcing, and idempotency pattern references |
+| `resilience` | Retry and dead letter handling patterns |
+| `architecture-cqrs` | Event sourcing as an alternative where the event store IS the outbox |

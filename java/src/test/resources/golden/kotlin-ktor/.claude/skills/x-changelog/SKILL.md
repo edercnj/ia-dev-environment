@@ -1,8 +1,9 @@
 ---
 name: x-changelog
 description: "Generates CHANGELOG.md from Conventional Commits history. Parses git log, groups by commit type, maps to Keep a Changelog sections (Added, Changed, Fixed, etc.), and performs incremental updates preserving existing entries."
+user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
-argument-hint: "[version-tag | --unreleased]"
+argument-hint: "[version-tag | --unreleased | --full]"
 ---
 
 ## Global Output Policy
@@ -19,10 +20,18 @@ Generates or updates `CHANGELOG.md` for {{PROJECT_NAME}} following the [Keep a C
 
 ## Triggers
 
-- `/x-changelog` -- generate changelog for unreleased changes
-- `/x-changelog v1.2.0` -- generate changelog for version v1.2.0
-- `/x-changelog --unreleased` -- only unreleased changes since last tag
-- `/x-changelog --full` -- regenerate entire changelog from all tags
+- `/x-changelog` — generate changelog for unreleased changes
+- `/x-changelog v1.2.0` — generate changelog for version v1.2.0
+- `/x-changelog --unreleased` — only unreleased changes since last tag
+- `/x-changelog --full` — regenerate entire changelog from all tags
+
+## Parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| Version tag | No | Target version (e.g., `v1.2.0`). Defaults to unreleased. |
+| `--unreleased` | No | Generate only unreleased changes since last tag |
+| `--full` | No | Regenerate entire changelog from all tags |
 
 ## Workflow
 
@@ -34,7 +43,7 @@ Generates or updates `CHANGELOG.md` for {{PROJECT_NAME}} following the [Keep a C
 5. REPORT     -> Summary of entries added
 ```
 
-### Step 1 -- Detect Version Range
+### Step 1 — Detect Version Range
 
 ```bash
 # List all version tags, sorted by version
@@ -53,7 +62,7 @@ Determine previous tag:
 git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "INITIAL"
 ```
 
-### Step 2 -- Parse Commits
+### Step 2 — Parse Commits
 
 ```bash
 # Extract commits in range with full metadata
@@ -72,7 +81,7 @@ Extract:
 - **breaking**: presence of `BREAKING CHANGE:` in body or `!` after type
 - **body**: additional context (multi-line)
 
-### Step 3 -- Map to Keep a Changelog Sections
+### Step 3 — Map to Keep a Changelog Sections
 
 | Commit Type | Changelog Section | Notes |
 |-------------|------------------|-------|
@@ -89,7 +98,7 @@ Extract:
 | `deprecate` | **Deprecated** | Deprecated features |
 | `revert` | **Removed** | Reverted features |
 
-### Step 4 -- Generate CHANGELOG.md
+### Step 4 — Generate CHANGELOG.md
 
 **If CHANGELOG.md does not exist**, create it:
 
@@ -131,10 +140,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ```
 
 **Grouping within version:**
-- Only include sections that have entries (don't add empty sections)
+- Only include sections that have entries (do not add empty sections)
 - Order: Breaking Changes > Added > Changed > Deprecated > Removed > Fixed > Security
 
-### Step 5 -- Report
+### Step 5 — Report
 
 ```
 CHANGELOG.md updated:
@@ -142,6 +151,16 @@ CHANGELOG.md updated:
   Entries: {count}
   Sections: Added ({n}), Changed ({n}), Fixed ({n})
   Range: {from_tag}..{to_ref}
+```
+
+## Version Link References
+
+At the bottom of the CHANGELOG, maintain comparison links:
+
+```markdown
+[unreleased]: https://github.com/{owner}/{repo}/compare/{latest_tag}...HEAD
+[1.2.0]: https://github.com/{owner}/{repo}/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/{owner}/{repo}/compare/v1.0.0...v1.1.0
 ```
 
 ## Error Handling
@@ -154,12 +173,9 @@ CHANGELOG.md updated:
 | CHANGELOG.md has unexpected format | Append new section at the end with warning |
 | Version tag already in CHANGELOG | Skip with "Version already documented" |
 
-## Version Link References
+## Integration Notes
 
-At the bottom of the CHANGELOG, maintain comparison links:
-
-```markdown
-[unreleased]: https://github.com/{owner}/{repo}/compare/{latest_tag}...HEAD
-[1.2.0]: https://github.com/{owner}/{repo}/compare/v1.1.0...v1.2.0
-[1.1.0]: https://github.com/{owner}/{repo}/compare/v1.0.0...v1.1.0
-```
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| `x-release` | called-by | Invoked during release Step 5 for changelog generation |
+| `x-git-push` | reads | Parses Conventional Commits format from git log |

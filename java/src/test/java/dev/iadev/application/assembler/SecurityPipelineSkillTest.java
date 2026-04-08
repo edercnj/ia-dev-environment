@@ -353,13 +353,13 @@ class SecurityPipelineSkillTest {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("READ CONFIG")
-                    .contains("EVALUATE")
-                    .contains("SELECT")
-                    .contains("RENDER")
-                    .contains("VALIDATE")
-                    .contains("WRITE")
-                    .contains("REPORT");
+                    .contains("Read Configuration")
+                    .contains("Evaluate Stage Conditions")
+                    .contains("Select Stages")
+                    .contains("Render Platform-Specific")
+                    .contains("Validate Generated YAML")
+                    .contains("Write Pipeline File")
+                    .contains("Report");
         }
 
         @Test
@@ -374,14 +374,14 @@ class SecurityPipelineSkillTest {
         }
 
         @Test
-        @DisplayName("references devops-engineer agent")
+        @DisplayName("references ci-cd-generate skill")
         void assemble_securityPipeline_refsDevopsAgent(
                 @TempDir Path tempDir)
                 throws IOException {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("devops-engineer");
+                    .contains("x-ci-cd-generate");
         }
     }
 

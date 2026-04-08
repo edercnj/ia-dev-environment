@@ -45,7 +45,7 @@ class XReviewPrSkillTemplateTest {
             String content = readSkill(CLAUDE_SKILL_PATH);
 
             assertThat(content)
-                    .contains("## Phase 0: Idempotency"
+                    .contains("### Step 0 \u2014 Idempotency"
                             + " Pre-Check");
         }
 
@@ -170,7 +170,7 @@ class XReviewPrSkillTemplateTest {
             String content = readSkill(CLAUDE_SKILL_PATH);
 
             assertThat(content)
-                    .contains("### Step 5 -- Update"
+                    .contains("### Step 5 \u2014 Update"
                             + " Consolidated Dashboard");
         }
 
@@ -266,7 +266,7 @@ class XReviewPrSkillTemplateTest {
             String content = readSkill(CLAUDE_SKILL_PATH);
 
             assertThat(content)
-                    .contains("### Step 6 -- Update"
+                    .contains("### Step 6 \u2014 Update"
                             + " Remediation Tracking");
         }
 
@@ -438,24 +438,24 @@ class XReviewPrSkillTemplateTest {
         void steps_orderedCorrectly() {
             String content = readSkill(CLAUDE_SKILL_PATH);
             int posStep1 = content.indexOf(
-                    "### Step 1 -- Detect Context");
+                    "### Step 1 \u2014 Detect Context");
             int posStep2 = content.indexOf(
-                    "### Step 2 -- Gather Context");
+                    "### Step 2 \u2014 Gather Context");
             int posStep3 = content.indexOf(
-                    "### Step 3 -- Template Detection");
+                    "### Step 3 \u2014 Template Detection");
             int posStep4 = content.indexOf(
-                    "### Step 4 -- Execute Tech Lead"
+                    "### Step 4 \u2014 Execute Tech Lead"
                             + " Review");
             int posStep5 = content.indexOf(
-                    "### Step 5 -- Update Consolidated"
+                    "### Step 5 \u2014 Update Consolidated"
                             + " Dashboard");
             int posStep6 = content.indexOf(
-                    "### Step 6 -- Update Remediation"
+                    "### Step 6 \u2014 Update Remediation"
                             + " Tracking");
             int posStep7 = content.indexOf(
-                    "### Step 7 -- Process Result");
+                    "### Step 7 \u2014 Process Result");
             int posStep8 = content.indexOf(
-                    "### Step 8 -- Handle NO-GO");
+                    "### Step 8 \u2014 Handle NO-GO");
 
             assertThat(posStep1)
                     .as("Step 1 must exist")

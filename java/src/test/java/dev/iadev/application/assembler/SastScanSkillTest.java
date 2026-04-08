@@ -157,7 +157,7 @@ class SastScanSkillTest {
                 throws IOException {
             String content = generateAndRead(tempDir);
             assertThat(content).contains(
-                    "## Tool Selection");
+                    "Select Scanner");
         }
 
         @Test
@@ -176,7 +176,7 @@ class SastScanSkillTest {
                 throws IOException {
             String content = generateAndRead(tempDir);
             assertThat(content).contains(
-                    "## Output Format");
+                    "## SARIF Rule ID Convention");
         }
 
         @Test
@@ -315,13 +315,13 @@ class SastScanSkillTest {
         }
 
         @Test
-        @DisplayName("includes UNCLASSIFIED category")
+        @DisplayName("includes SSRF category for A10")
         void assemble_owaspMapping_hasUnclassified(
                 @TempDir Path tempDir)
                 throws IOException {
             String content = generateAndRead(tempDir);
             assertThat(content)
-                    .contains("UNCLASSIFIED");
+                    .contains("SSRF");
         }
     }
 
@@ -493,23 +493,23 @@ class SastScanSkillTest {
         }
 
         @Test
-        @DisplayName("includes GitLab CI snippet")
+        @DisplayName("includes upload-sarif action")
         void assemble_ci_hasGitLabCi(
                 @TempDir Path tempDir)
                 throws IOException {
             String content = generateAndRead(tempDir);
             assertThat(content).contains(
-                    "### GitLab CI");
+                    "upload-sarif");
         }
 
         @Test
-        @DisplayName("includes Azure DevOps snippet")
+        @DisplayName("includes SARIF file output path")
         void assemble_ci_hasAzureDevOps(
                 @TempDir Path tempDir)
                 throws IOException {
             String content = generateAndRead(tempDir);
             assertThat(content).contains(
-                    "### Azure DevOps");
+                    "sarif_file: results/security/");
         }
     }
 
@@ -524,7 +524,7 @@ class SastScanSkillTest {
                 throws IOException {
             String content = generateAndRead(tempDir);
             assertThat(content).contains(
-                    "Score: 100");
+                    "score 100");
         }
 
         @Test
@@ -534,7 +534,7 @@ class SastScanSkillTest {
                 throws IOException {
             String content = generateAndRead(tempDir);
             assertThat(content).contains(
-                    "Score: 0");
+                    "score 0");
         }
 
         @Test
@@ -544,8 +544,8 @@ class SastScanSkillTest {
                 throws IOException {
             String content = generateAndRead(tempDir);
             assertThat(content)
-                    .contains("### Zero Findings")
-                    .contains("Score: 100");
+                    .contains("Zero findings")
+                    .contains("score 100");
         }
     }
 
@@ -573,14 +573,14 @@ class SastScanSkillTest {
         }
 
         @Test
-        @DisplayName("specifies SAST-specific tool.driver"
-                + ".name requirement")
+        @DisplayName("specifies SAST-specific SARIF rule"
+                + " ID convention")
         void assemble_sarif_hasToolDriverName(
                 @TempDir Path tempDir)
                 throws IOException {
             String content = generateAndRead(tempDir);
             assertThat(content).contains(
-                    "tool.driver.name");
+                    "SARIF Rule ID Convention");
         }
     }
 

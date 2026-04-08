@@ -1,6 +1,7 @@
 ---
 name: architecture-patterns
-description: "Architecture pattern references for {{ARCH_STYLE}} systems: microservice patterns (saga, outbox, bulkhead, idempotency, service discovery, strangler fig, API gateway), resilience patterns (circuit breaker, retry, timeout, dead letter queue), data patterns (cache-aside, event store, repository, unit of work), integration patterns (ACL, BFF, adapter), and architectural patterns (event sourcing, CQRS, modular monolith). Internal reference for agents and planning."
+description: "Architecture pattern references: microservice, resilience, data, integration, and architectural patterns (saga, outbox, circuit breaker, CQRS, event sourcing, and more)."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
@@ -11,20 +12,7 @@ allowed-tools:
 
 ## Purpose
 
-Provides detailed reference documentation for architecture patterns selected based on `architecture.style={{ARCH_STYLE}}`, `event_driven={{EVENT_DRIVEN}}`, and `domain_driven={{DOMAIN_DRIVEN}}`. These patterns complement the core hexagonal architecture rule (`skills/architecture/references/architecture-patterns.md`) with in-depth implementation guidance.
-
-## Condition
-
-This knowledge pack is relevant when implementing or reviewing:
-- Microservice integration patterns (saga, outbox, idempotency)
-- Resilience patterns (circuit breaker, retry, timeout, DLQ)
-- Data access patterns (cache-aside, event store, repository, unit of work)
-- Integration patterns (anti-corruption layer, BFF, adapter)
-- Architectural patterns (event sourcing, CQRS)
-
-## How to Use
-
-Read the relevant pattern files from the `references/` directory within this skill's folder. Each file covers one pattern with: intent, when to use, when NOT to use, structure, implementation guidelines, and relationship to other patterns.
+Provides detailed reference documentation for architecture patterns. Complements the core architecture knowledge pack with in-depth implementation guidance for microservice, resilience, data access, integration, and architectural patterns.
 
 ### Architectural Patterns
 
@@ -62,9 +50,11 @@ Read the relevant pattern files from the `references/` directory within this ski
 - `references/backend-for-frontend.md` — Per-client optimization, aggregation, versioning
 - `references/adapter-pattern.md` — Protocol bridging, resilience wrapping, auth handling
 
-## Cross-Reference
+## Related Knowledge Packs
 
-- Core architecture rule: `skills/architecture/references/architecture-patterns.md` (hexagonal architecture — always loaded)
-- Core resilience rule: `skills/resilience/references/resilience-principles.md`
-- Core API rule: `skills/api-design/references/api-design-principles.md`
-- Core database rule: `skills/database-patterns/references/database-principles.md`
+| Pack | Relationship |
+|------|-------------|
+| `architecture` | Core hexagonal architecture principles |
+| `resilience` | Resilience principles and patterns |
+| `api-design` | API design principles |
+| `database-patterns` | Database conventions and principles |

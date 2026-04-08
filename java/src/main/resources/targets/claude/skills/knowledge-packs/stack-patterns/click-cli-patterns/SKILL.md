@@ -1,17 +1,22 @@
 ---
 name: click-cli-patterns
-description: "Click CLI patterns: command groups, options/arguments, Jinja2 templating, atomic file operations, pyproject.toml packaging, CLI testing with CliRunner, structured logging for CLI."
+description: "Click CLI patterns: command groups, options/arguments, Jinja2 templating, atomic file operations, pyproject.toml packaging, and CliRunner testing."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
   - Glob
 ---
 
-# Knowledge Pack: Click CLI Patterns
+# Pattern: Click CLI Patterns
 
 ## Purpose
 
 Provides Click-based CLI implementation patterns for framework-less Python tools. Agents reference this pack when generating code for Python CLI applications using Click, Jinja2, and PyYAML. All examples target Python 3.9+ compatibility (`from __future__ import annotations` mandatory, no `match/case`, no `X | Y` at runtime).
+
+## Supplements
+
+Supplements `architecture` and `layer-templates` knowledge packs with Click CLI-specific conventions.
 
 ---
 

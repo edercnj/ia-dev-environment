@@ -1,8 +1,8 @@
 ---
 name: x-release
-description: "Orchestrates complete release flow: version bump (auto-detect or explicit), pre-condition validation, version file updates, changelog generation, release commit, git tag, and optional publish. Supports dry-run mode for safe previewing."
+description: "Orchestrates complete release flow using Git Flow release branches: version bump (auto-detect or explicit), release branch creation from develop, version file updates, changelog generation, release commit, dual merge (main + develop), git tag on main, and cleanup. Supports hotfix releases from main and dry-run mode."
 user-invocable: true
-argument-hint: "[major|minor|patch|version] [--dry-run] [--skip-tests] [--no-publish]"
+argument-hint: "[major|minor|patch|version] [--dry-run] [--skip-tests] [--no-publish] [--hotfix]"
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent
 ---
 
@@ -16,7 +16,7 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent
 
 ## Purpose
 
-Orchestrates the end-to-end release process for {{PROJECT_NAME}}, automating version bumps, changelog generation, commit creation, tagging, and publishing following Semantic Versioning and Conventional Commits standards.
+Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow release branches. Automates version bumps, release branch creation from `develop`, changelog generation, dual merge (to `main` and back to `develop`), tagging on `main`, and branch cleanup. Supports hotfix releases from `main` and dry-run mode for safe previewing.
 
 ## Triggers
 
@@ -28,18 +28,23 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}}, automating ver
 - `/x-release minor --dry-run` -- preview release plan without executing
 - `/x-release patch --skip-tests` -- skip test validation
 - `/x-release minor --no-publish` -- create release locally without pushing
+- `/x-release patch --hotfix` -- create hotfix release from `main`
 
 ## Workflow
 
 ```
-1. DETERMINE   -> Parse argument and calculate target version
-2. VALIDATE    -> Check pre-conditions (tests, branch, working directory)
-3. UPDATE      -> Update version in project-specific files
-4. CHANGELOG   -> Generate/update CHANGELOG.md via x-changelog
-5. COMMIT      -> Create release commit (Conventional Commits format)
-6. TAG         -> Create annotated git tag
-7. DRY-RUN     -> If --dry-run, show plan and exit (no changes)
-8. PUBLISH     -> Push commit and tag to remote (unless --no-publish)
+ 1. DETERMINE    -> Parse argument and calculate target version
+ 2. VALIDATE     -> Check pre-conditions (branch, working directory)
+ 3. BRANCH       -> Create release/X.Y.Z branch from develop (or hotfix/* from main)
+ 4. UPDATE       -> Update version in project-specific files (strip SNAPSHOT)
+ 5. CHANGELOG    -> Generate/update CHANGELOG.md via x-changelog
+ 6. COMMIT       -> Create release commit on release branch
+ 7. MERGE-MAIN   -> Merge release branch into main with --no-ff
+ 8. TAG          -> Create annotated git tag on main
+ 9. MERGE-BACK   -> Merge release branch back into develop with --no-ff
+10. PUBLISH      -> Push main, develop, and tag to remote (unless --no-publish)
+11. CLEANUP      -> Delete the release branch
+    DRY-RUN      -> If --dry-run, show plan and exit (no changes)
 ```
 
 ### Step 1 -- DETERMINE Version
@@ -72,31 +77,23 @@ Use the provided version directly after validating it follows Semantic Versionin
 
 **Option C: Auto-detect from Conventional Commits**
 
-When no argument is provided, delegate commit analysis to `x-lib-version-bump`:
+When no argument is provided, analyze commits since the last tag:
 
-1. Determine commit range: last tag to HEAD (or all commits if no tag exists)
-   ```bash
-   LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null)
-   RANGE="${LAST_TAG:-$(git rev-list --max-parents=0 HEAD)}..HEAD"
-   ```
-2. Invoke `x-lib-version-bump` logic with the range and `--dry-run` to get bump type and next version
-3. The bump decision table (from `x-lib-version-bump`):
+```bash
+# Get commits since last tag
+git log $(git describe --tags --abbrev=0 2>/dev/null)..HEAD \
+    --format="%s%n%b" --no-merges
+```
 
 | Commit Pattern | Version Bump |
 |---------------|-------------|
 | `BREAKING CHANGE:` in body or `!` after type | **major** |
 | `feat:` or `feat(scope):` | **minor** |
-| `fix:`, `refactor:`, `perf:` | **patch** |
-| Only `test:`, `docs:`, `chore:`, `build:`, `ci:` | **patch** (minimum for release) |
+| `fix:`, `refactor:`, `perf:`, `docs:`, etc. | **patch** |
 
 Decision order: if any commit triggers major, use major. Else if any triggers minor, use minor. Otherwise patch.
 
 This follows Semantic Versioning (https://semver.org/spec/v2.0.0.html) rules.
-
-**SNAPSHOT handling (Maven projects):** When the current pom.xml version is `X.Y.Z-SNAPSHOT`,
-strip the `-SNAPSHOT` suffix before applying the increment. The release version is `X.Y.Z`
-(no SNAPSHOT). After release, a post-release commit prepares the next development version
-(see Step 5.5).
 
 ### Step 2 -- VALIDATE Pre-conditions
 
@@ -109,11 +106,13 @@ if [ -n "$(git status --porcelain)" ]; then
   exit 1
 fi
 
-# 2. Current branch is main/master or release branch
+# 2. Current branch MUST be develop or release/* (NOT main)
 BRANCH=$(git branch --show-current)
-if [[ "$BRANCH" != "main" && "$BRANCH" != "master" && \
-      ! "$BRANCH" =~ ^release/ ]]; then
-  echo "WARNING: not on main/master/release branch"
+if [[ "$BRANCH" != "develop" && ! "$BRANCH" =~ ^release/ ]]; then
+  echo "WARNING: not on develop/release branch"
+  echo "Release workflow requires starting from 'develop'."
+  echo "Switch to develop before running /x-release."
+  # For hotfix mode, main is allowed (see Hotfix section)
 fi
 
 # 3. Run tests (unless --skip-tests)
@@ -126,30 +125,89 @@ If `--skip-tests` flag is present:
 - Display warning: "WARNING: Skipping test validation"
 - Continue with release
 
-### Step 3 -- UPDATE Version Files
+**Branch validation rules:**
+- Standard release: MUST start from `develop` or an existing `release/*` branch
+- Hotfix release (`--hotfix`): MUST start from `main`
+- Starting from any other branch (e.g., `feature/*`) is a WARNING
 
-Delegate version file update to `x-lib-version-bump` logic.
+### Step 3 -- BRANCH Creation
 
-The release version does NOT include `-SNAPSHOT` suffix. Pass `--snapshot false` to
-`x-lib-version-bump` to ensure the release version is clean (e.g., `2.1.0`, not `2.1.0-SNAPSHOT`).
+Create a release branch from the appropriate source:
 
-**Supported project types** (detected automatically by `x-lib-version-bump`):
+**Standard release (from develop):**
 
-| Language | File | Pattern |
-|----------|------|---------|
-| Java (Maven) | `pom.xml` | `<version>X.Y.Z</version>` |
-| Java (Gradle) | `build.gradle` | `version = 'X.Y.Z'` |
-| TypeScript/JavaScript | `package.json` | `"version": "X.Y.Z"` |
-| Python | `pyproject.toml` | `version = "X.Y.Z"` |
-| Rust | `Cargo.toml` | `version = "X.Y.Z"` |
-| Go | _(no version file)_ | Git tags only |
+```bash
+# Ensure develop is up to date
+git checkout develop
+git pull origin develop
 
-Invoke `x-lib-version-bump` with `--no-commit --snapshot false` to update the file without
-committing (the release commit is handled in Step 5). The `x-lib-version-bump` utility
-handles project type detection and version file update logic (only updating the project
-version, not dependency versions).
+# Create release branch
+git checkout -b "release/${VERSION}"
+```
 
-### Step 4 -- CHANGELOG Generation
+**Hotfix release (from main):**
+
+```bash
+# Ensure main is up to date
+git checkout main
+git pull origin main
+
+# Create hotfix branch
+git checkout -b "hotfix/${DESCRIPTION}"
+```
+
+### Step 4 -- UPDATE Version Files
+
+Update version in the appropriate project files based on language/build tool.
+
+**SNAPSHOT handling:**
+- On the release branch, **strip** the `-SNAPSHOT` suffix (e.g., `1.2.0-SNAPSHOT` becomes `1.2.0`)
+- After release, on `develop`, **advance** to the next `-SNAPSHOT` version (e.g., `1.3.0-SNAPSHOT`)
+
+| Language | File | Pattern | SNAPSHOT |
+|----------|------|---------|----------|
+| Java (Maven) | `pom.xml` | `<version>X.Y.Z</version>` | Strip `-SNAPSHOT` on release, add on develop |
+| Java (Gradle) | `build.gradle` | `version = 'X.Y.Z'` | Strip `-SNAPSHOT` on release, add on develop |
+| TypeScript/JavaScript | `package.json` | `"version": "X.Y.Z"` | N/A |
+| Python | `pyproject.toml` | `version = "X.Y.Z"` | N/A |
+| Rust | `Cargo.toml` | `version = "X.Y.Z"` | N/A |
+| Go | _(no version file)_ | Git tags only | N/A |
+
+**Detection strategy:**
+
+```bash
+# Detect project type and update version
+if [ -f "pom.xml" ]; then
+  # Maven: update <version> in pom.xml
+  # Only update the project version, not dependency versions
+  # Strip -SNAPSHOT suffix for release
+  sed -i '' '/<parent>/,/<\/parent>/!{
+    0,/<version>.*<\/version>/s/<version>.*<\/version>/<version>'"$VERSION"'<\/version>/
+  }' pom.xml
+
+elif [ -f "build.gradle" ]; then
+  # Gradle: update version property (strip -SNAPSHOT)
+  sed -i '' "s/version = '.*'/version = '$VERSION'/" build.gradle
+
+elif [ -f "package.json" ]; then
+  # npm/yarn: use npm version (no git tag)
+  npm version "$VERSION" --no-git-tag-version
+
+elif [ -f "pyproject.toml" ]; then
+  # Python: update version in pyproject.toml
+  sed -i '' "s/version = \".*\"/version = \"$VERSION\"/" pyproject.toml
+
+elif [ -f "Cargo.toml" ]; then
+  # Rust: update version in Cargo.toml
+  sed -i '' "s/^version = \".*\"/version = \"$VERSION\"/" Cargo.toml
+
+elif [ -f "go.mod" ]; then
+  # Go: no version file to update, tags only
+  echo "Go project: version managed via git tags only"
+fi
+```
+
+### Step 5 -- CHANGELOG Generation
 
 Delegate changelog generation to the `x-changelog` skill:
 
@@ -163,52 +221,108 @@ The x-changelog skill will:
 
 Reference: `skills/x-changelog/SKILL.md`
 
-### Step 5 -- COMMIT Release
+### Step 6 -- COMMIT Release
 
-Create a release commit following Conventional Commits format:
+Create a release commit on the release branch following Conventional Commits format:
 
 ```bash
 # Stage all version-related changes
 git add -A
 
-# Create release commit
+# Create release commit on release branch
 git commit -m "release: v${VERSION}"
 ```
 
-The commit message format is `release: v{version}` — this follows `x-git-push` Conventional Commits patterns.
+The commit message format is `release: v{version}` -- this follows `x-git-push` Conventional Commits patterns.
 
-### Step 5.5 -- Prepare Next Development Version (Maven/SNAPSHOT projects)
+### Step 7 -- MERGE TO MAIN
 
-For projects that use `-SNAPSHOT` convention (Maven), prepare the next development version
-after the release commit:
-
-1. Determine next development version: increment MINOR from release version, append `-SNAPSHOT`
-   - Example: released `2.1.0` → next development version is `2.2.0-SNAPSHOT`
-   - If released a PATCH (e.g., `2.1.1`) → next development version is `2.1.2-SNAPSHOT`
-2. Update pom.xml with the next development version (using `x-lib-version-bump` logic with `--no-commit`)
-3. Commit: `chore(version): prepare for next development iteration [X.Y.Z-SNAPSHOT]`
-
-This follows standard Maven release practice (similar to `maven-release-plugin`).
-The release tag points to the clean version (`v2.1.0`), and the next commit on `main`
-immediately restores the SNAPSHOT convention for ongoing development.
-
-> **Non-SNAPSHOT projects** (npm, Python, Rust, Go): This step is skipped. The version
-> in the build file remains at the released version until the next release.
-
-### Step 6 -- TAG Creation
-
-Create an annotated git tag with release notes:
+Merge the release branch into `main` using a merge commit (no fast-forward):
 
 ```bash
-# Create annotated tag
+# Switch to main
+git checkout main
+git pull origin main
+
+# Merge release branch with merge commit
+git merge "release/${VERSION}" --no-ff \
+    -m "release: merge release/${VERSION} into main"
+```
+
+**Important:** The `--no-ff` flag ensures a merge commit is always created, preserving the release branch history in the commit graph.
+
+### Step 8 -- TAG Creation
+
+Create an annotated git tag on `main` (after the merge):
+
+```bash
+# Create annotated tag on main
 git tag -a "v${VERSION}" -m "Release v${VERSION}
 
 Changes in this release:
-$(git log $(git describe --tags --abbrev=0 HEAD~1)..HEAD~1 \
+$(git log $(git describe --tags --abbrev=0 HEAD~1 2>/dev/null)..HEAD~1 \
     --format='- %s' --no-merges)"
 ```
 
-### Step 7 -- DRY-RUN Mode
+### Step 9 -- MERGE BACK TO DEVELOP
+
+Merge the release branch back into `develop` to propagate any release fixes:
+
+```bash
+# Switch to develop
+git checkout develop
+git pull origin develop
+
+# Merge release branch back into develop
+git merge "release/${VERSION}" --no-ff \
+    -m "release: merge release/${VERSION} back into develop"
+```
+
+**SNAPSHOT version advance (Java/Gradle only):**
+
+After merging back to `develop`, advance the version to the next SNAPSHOT:
+
+```bash
+# Example: if releasing 1.2.0, develop becomes 1.3.0-SNAPSHOT
+NEXT_MINOR=$((MINOR + 1))
+NEXT_SNAPSHOT="${MAJOR}.${NEXT_MINOR}.0-SNAPSHOT"
+
+# Update pom.xml or build.gradle with SNAPSHOT version
+# Commit the SNAPSHOT advance
+git add -A
+git commit -m "chore: advance develop to ${NEXT_SNAPSHOT}"
+```
+
+### Step 10 -- PUBLISH
+
+If `--no-publish` flag is NOT present, push all branches and the tag:
+
+```bash
+# Push main with the merge commit and tag
+git push origin main
+git push origin "v${VERSION}"
+
+# Push develop with the back-merge
+git push origin develop
+```
+
+If `--no-publish` flag IS present:
+- Skip push
+- Display: "Release created locally. Run 'git push origin main develop v{VERSION}' manually when ready."
+
+### Step 11 -- CLEANUP
+
+Delete the release branch after successful merge:
+
+```bash
+# Delete local release branch
+git branch -d "release/${VERSION}"
+
+# Delete remote release branch (if pushed)
+git push origin --delete "release/${VERSION}" 2>/dev/null || true
+```
+
+### DRY-RUN Mode
 
 If `--dry-run` flag is present, show the complete release plan without executing any changes:
 
@@ -218,42 +332,70 @@ If `--dry-run` flag is present, show the complete release plan without executing
 Current version:  1.2.3
 Target version:   1.3.0
 Bump type:        minor
+Source branch:    develop
 
-Files to update:
-  - pom.xml (version: 1.2.3 -> 1.3.0)
-
-Changelog preview:
-  ## [1.3.0] - 2024-01-15
-  ### Added
-  - feat(api): add pagination support
-  - feat(auth): add OAuth2 provider
-  ### Fixed
-  - fix(db): resolve connection pool leak
-
-Commit message:
-  release: v1.3.0
-
-Tag:
-  v1.3.0
+Steps:
+  1. Create branch:    release/1.3.0 (from develop)
+  2. Update version:   pom.xml (1.2.3-SNAPSHOT -> 1.3.0)
+  3. Generate:         CHANGELOG.md
+  4. Commit:           release: v1.3.0
+  5. Merge to main:    git merge release/1.3.0 --no-ff
+  6. Tag:              v1.3.0 (on main)
+  7. Merge to develop: git merge release/1.3.0 --no-ff
+  8. Advance develop:  1.4.0-SNAPSHOT
+  9. Push:             main, develop, v1.3.0
+ 10. Cleanup:          delete release/1.3.0
 
 === NO CHANGES MADE ===
 ```
 
-**Important:** In dry-run mode, Steps 2-6 are only simulated. No files are modified, no commits are created, no tags are made.
+**Important:** In dry-run mode, all steps are only simulated. No files are modified, no commits are created, no tags are made, no branches are created.
 
-### Step 8 -- PUBLISH
+## Hotfix Release
 
-If `--no-publish` flag is NOT present, push the release:
+Hotfix releases follow a similar workflow but branch from `main` instead of `develop`:
 
-```bash
-# Push commit and tag
-git push origin $(git branch --show-current)
-git push origin "v${VERSION}"
+### Hotfix Workflow
+
+```
+1. VALIDATE     -> Must be on main
+2. BRANCH       -> git checkout -b hotfix/description from main
+3. FIX          -> Apply minimal fix (PATCH version bump only)
+4. UPDATE       -> Update version files (PATCH increment only)
+5. CHANGELOG    -> Generate changelog
+6. COMMIT       -> Commit fix on hotfix branch
+7. MERGE-MAIN   -> git checkout main && git merge hotfix/description --no-ff
+8. TAG          -> git tag -a vX.Y.Z on main
+9. MERGE-BACK   -> git checkout develop && git merge hotfix/description --no-ff
+                   (or merge into active release/* branch if one exists)
+10. PUBLISH     -> Push main, develop (or release/*), and tag
+11. CLEANUP     -> git branch -d hotfix/description
 ```
 
-If `--no-publish` flag IS present:
-- Skip push
-- Display: "Release created locally. Run 'git push' manually when ready."
+### Hotfix Rules
+
+- **Origin branch:** Always `main` (never `develop`)
+- **Version bump:** PATCH only (e.g., `1.2.0` -> `1.2.1`)
+- **Merge targets:** `main` AND `develop` (or active `release/*` if one exists)
+- **Tag location:** `main` (after merge)
+- MAJOR or MINOR bumps are forbidden in hotfix releases
+
+### Hotfix Merge Target Selection
+
+```bash
+# Check if an active release branch exists
+RELEASE_BRANCH=$(git branch --list 'release/*' | head -1 | tr -d ' ')
+
+if [ -n "$RELEASE_BRANCH" ]; then
+  # Merge into active release branch instead of develop
+  git checkout "$RELEASE_BRANCH"
+  git merge "hotfix/${DESCRIPTION}" --no-ff
+else
+  # Merge into develop
+  git checkout develop
+  git merge "hotfix/${DESCRIPTION}" --no-ff
+fi
+```
 
 ## Pre-Release Validation Checklist
 
@@ -262,19 +404,18 @@ Before executing the release, validate against the release-checklist template (`
 - [ ] All tests passing (or --skip-tests acknowledged)
 - [ ] Coverage meets threshold
 - [ ] No uncommitted changes
-- [ ] On correct branch (main/master/release)
+- [ ] On correct branch (develop for release, main for hotfix)
 - [ ] Version follows SemVer
 - [ ] CHANGELOG.md will be updated
 - [ ] No breaking changes without major bump
 
 ## Integration Notes
 
-- **x-lib-version-bump**: Delegates commit analysis (Step 1 Option C) and version file update (Step 3) to the shared version bump utility
 - **x-changelog**: Delegates changelog generation via Agent tool
 - **x-git-push**: Uses same Conventional Commits format for release commit
 - **release-management KP**: References SemVer rules, branching strategies, and registry patterns from `skills/release-management/SKILL.md`
 - **Release Checklist**: Validates against `_TEMPLATE-RELEASE-CHECKLIST.md` for completeness
-- **SNAPSHOT lifecycle**: Step 3 strips SNAPSHOT for release; Step 5.5 re-adds SNAPSHOT for next development version (Maven projects only)
+- **Rule 09 (Branching Model)**: Follows Git Flow branch types and merge direction rules
 
 ## Error Handling
 
@@ -286,5 +427,9 @@ Before executing the release, validate against the release-checklist template (`
 | Invalid version format | ABORT with SemVer format hint |
 | No Conventional Commits found | Default to patch bump |
 | Already tagged version | ABORT with "version already released" |
-| Not on main/master | Warning, proceed if on release branch |
+| Not on develop (standard) | Warning, suggest switching to develop |
+| Not on main (hotfix) | ABORT, hotfix must start from main |
 | Push fails | Report error, release is local only |
+| Merge conflict (main) | ABORT, resolve manually |
+| Merge conflict (develop) | Warning, resolve and continue |
+| Active release branch exists (hotfix) | Merge hotfix into release branch instead of develop |

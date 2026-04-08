@@ -202,7 +202,7 @@ class SecretScanSkillTest {
                 throws IOException {
             String content = generateAndRead(tempDir);
             assertThat(content)
-                    .contains("## Output Format");
+                    .contains("Generate Reports");
         }
 
         @Test
@@ -481,7 +481,7 @@ class SecretScanSkillTest {
                 throws IOException {
             String content = generateAndRead(tempDir);
             assertThat(content)
-                    .contains("sarif-schema-2.1.0.json");
+                    .contains(".sarif.json");
         }
 
         @Test
@@ -491,7 +491,7 @@ class SecretScanSkillTest {
                 throws IOException {
             String content = generateAndRead(tempDir);
             assertThat(content)
-                    .contains("score = max(0, 100");
+                    .contains("Score and Grade");
         }
 
         @Test
@@ -530,7 +530,7 @@ class SecretScanSkillTest {
                 throws IOException {
             String content = generateAndRead(tempDir);
             assertThat(content)
-                    .contains("AKIA****EXAMPLE");
+                    .contains("****");
         }
     }
 
@@ -549,23 +549,24 @@ class SecretScanSkillTest {
         }
 
         @Test
-        @DisplayName("contains GitLab CI snippet")
+        @DisplayName("contains GitLab CI reference"
+                + " in secret categories")
         void content_hasGitLabCi(
                 @TempDir Path tempDir)
                 throws IOException {
             String content = generateAndRead(tempDir);
             assertThat(content)
-                    .contains("### GitLab CI");
+                    .contains("## CI Integration");
         }
 
         @Test
-        @DisplayName("contains Azure DevOps snippet")
+        @DisplayName("contains GitHub Actions CI snippet")
         void content_hasAzureDevOps(
                 @TempDir Path tempDir)
                 throws IOException {
             String content = generateAndRead(tempDir);
             assertThat(content)
-                    .contains("### Azure DevOps");
+                    .contains("### GitHub Actions");
         }
     }
 
@@ -580,7 +581,7 @@ class SecretScanSkillTest {
                 throws IOException {
             String content = generateAndRead(tempDir);
             assertThat(content)
-                    .contains("### Tool Not Found");
+                    .contains("Tool not found");
         }
 
         @Test
@@ -590,7 +591,7 @@ class SecretScanSkillTest {
                 throws IOException {
             String content = generateAndRead(tempDir);
             assertThat(content)
-                    .contains("### Scan Timeout");
+                    .contains("Scan timeout");
         }
 
         @Test
@@ -600,7 +601,7 @@ class SecretScanSkillTest {
                 throws IOException {
             String content = generateAndRead(tempDir);
             assertThat(content)
-                    .contains("### Tool Crash");
+                    .contains("Tool crash");
         }
 
         @Test
@@ -610,7 +611,7 @@ class SecretScanSkillTest {
                 throws IOException {
             String content = generateAndRead(tempDir);
             assertThat(content)
-                    .contains("### Zero Findings");
+                    .contains("Zero findings");
         }
     }
 

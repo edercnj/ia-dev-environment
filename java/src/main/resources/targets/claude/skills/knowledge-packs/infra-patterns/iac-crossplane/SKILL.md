@@ -1,17 +1,22 @@
 ---
 name: iac-crossplane
-description: "Crossplane patterns reference covering CompositeResourceDefinitions, Compositions, Claims, Provider configuration, and comparison with Terraform. Internal reference for agents managing infrastructure."
+description: "Crossplane patterns: CompositeResourceDefinitions, Compositions, Claims, Provider configuration, and comparison with Terraform."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
   - Glob
 ---
 
-# Knowledge Pack: Crossplane Patterns
+# Pattern: Crossplane Patterns
 
 ## Purpose
 
-Provide production-grade Crossplane patterns for managing cloud infrastructure using Kubernetes-native APIs, including Composite Resources, Claims, Provider configuration, and guidance on when to use Crossplane versus Terraform.
+Provides production-grade Crossplane patterns for managing cloud infrastructure using Kubernetes-native APIs, including Composite Resources, Claims, Provider configuration, and guidance on when to use Crossplane versus Terraform.
+
+## Supplements
+
+Supplements `infrastructure` knowledge pack with Crossplane-specific IaC patterns.
 
 ---
 

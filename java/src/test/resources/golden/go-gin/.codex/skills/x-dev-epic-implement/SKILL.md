@@ -1,6 +1,7 @@
 ---
 name: x-dev-epic-implement
 description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents."
+user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, AskUserQuestion
 argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr] [--auto-merge] [--no-merge] [--interactive-merge] [--strict-overlap] [--skip-pr-comments]"
 ---
@@ -11,7 +12,11 @@ argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] 
 - **Tone**: Technical, Direct, and Concise.
 - **Efficiency**: Remove all conversational fillers and greetings to save tokens.
 
-# Skill: Epic Implementation Orchestrator
+# Skill: Epic Implementation (Orchestrator)
+
+## Purpose
+
+Orchestrate the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parse epic ID and flags, validate prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), delegate story execution to `x-dev-lifecycle` subagents, manage checkpoints, integrity gates, retry/block propagation, resume, partial execution, dry-run, and progress reporting.
 
 ## When to Use
 
@@ -19,6 +24,17 @@ argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] 
 - Multi-story orchestration with dependency-aware execution order
 - Resumable epic execution after interruption
 - Parallel story execution via worktrees
+
+## Workflow Overview
+
+```
+Phase 0:   PREPARATION        -> Parse args, validate prerequisites, generate execution plan (inline)
+Phase 0.5: PRE-FLIGHT         -> Conflict analysis for parallel stories (conditional, inline)
+Phase 1:   EXECUTION LOOP     -> Dispatch stories via worktrees or sequential, integrity gates (inline)
+Phase 2:   PROGRESS REPORT    -> Consolidate results, generate epic execution report (inline)
+Phase 3:   VERIFICATION       -> Epic-level test suite, DoD checklist, final status (inline)
+Phase 4:   PR COMMENTS        -> Remediate PR review comments across all story PRs (optional, inline)
+```
 
 ## Input Parsing
 
@@ -186,7 +202,7 @@ that Product Owners and reviewers can inspect before authorizing execution.
 3. If template is NOT found (RULE-012 — graceful fallback): log `"WARNING: Template _TEMPLATE-EPIC-EXECUTION-PLAN.md not found, using inline format"` and generate the plan with the following inline format:
 
 ```markdown
-# Epic Execution Plan -- EPIC-{epicId}
+# Epic Execution Plan — EPIC-{epicId}
 
 > **Epic ID:** EPIC-{epicId}
 > **Date:** {currentDate}
@@ -1123,7 +1139,7 @@ human-readable record of the phase outcome saved alongside the execution plan.
 3. If template is NOT found (RULE-012 — graceful fallback): log `"WARNING: Template _TEMPLATE-PHASE-COMPLETION-REPORT.md not found, using inline format"` and generate the report with the following inline format:
 
 ```markdown
-# Phase Completion Report -- EPIC-{epicId} Phase {N}
+# Phase Completion Report — EPIC-{epicId} Phase {N}
 
 > **Epic ID:** EPIC-{epicId}
 > **Phase:** {N}
@@ -1437,44 +1453,66 @@ Merge mode: {auto|no-merge|interactive}
 > **`--single-pr` dry-run:** When `--single-pr` is set, the dry-run output shows
 > `Model: single-pr (legacy)` with the epic branch name instead of per-story branches.
 
+## Error Handling
+
+| Scenario | Action |
+|----------|--------|
+| Epic ID missing from arguments | Abort: `ERROR: Epic ID is required. Usage: /x-dev-epic-implement [EPIC-ID] [flags]` |
+| Epic directory not found | Abort: `ERROR: Directory plans/epic-{epicId}/ not found. Run /x-story-epic-full first.` |
+| IMPLEMENTATION-MAP.md missing | Abort: `ERROR: IMPLEMENTATION-MAP.md not found. Run /x-story-map first.` |
+| No story files found | Abort: `ERROR: No story files found matching story-{epicId}-*.md.` |
+| `--phase` and `--story` both provided | Abort: `ERROR: --phase and --story are mutually exclusive` |
+| Mutually exclusive merge flags | Abort: `ERROR: --auto-merge, --no-merge, and --interactive-merge are mutually exclusive. Use only one.` |
+| Subagent returns invalid result (missing required fields) | Mark story as FAILED with summary: `Invalid subagent result: missing {field} field` |
+| Integrity gate FAIL with identified regression | Revert commit, mark story FAILED, trigger block propagation for dependents |
+| Integrity gate FAIL without identified regression | Pause execution, report to user |
+| Rebase conflict resolution fails after MAX_REBASE_RETRIES (3) | Abort rebase, mark story FAILED, close PR, trigger block propagation |
+| Template file not found (RULE-012 — Template Fallback) | Log warning, use inline format as fallback |
+
+## Template Fallback
+
+Templates referenced by this skill follow RULE-012. When a template file does not exist, the skill degrades gracefully with a logged warning:
+
+- `_TEMPLATE-EPIC-EXECUTION-PLAN.md` — inline markdown format used for execution plan
+- `_TEMPLATE-PHASE-COMPLETION-REPORT.md` — inline markdown format used for phase reports
+- `_TEMPLATE-EPIC-EXECUTION-REPORT.md` — inline markdown format used for progress report
+
+## Idempotency (RULE-002)
+
+| Check | Skip Condition | Override |
+|-------|---------------|----------|
+| Execution plan | `mtime(IMPLEMENTATION-MAP.md) <= mtime(execution-plan)` | Regenerate when map is newer |
+| Resume checkpoint | `execution-state.json` exists with valid state | `--resume` flag loads checkpoint |
+
 ## Integration Notes
 
-- Invokes: `x-dev-lifecycle` (per-story execution with PR creation in Phase 6, reviews in Phases 4/7)
-- Invokes: `x-fix-epic-pr-comments` (Phase 4 — PR comment remediation; dry-run first, then apply with confirmation or `--auto-merge` bypass)
-- Invokes: `x-story-map` (if map missing, via error guidance)
-- Uses: `gh pr view` (PR merge status verification for dependency enforcement)
-- Uses: `gh pr merge` (auto-merge when `--auto-merge` is set)
-- Uses: `gh pr close` (failure handling — close PR on story failure)
-- Phase 2 generates an incremental progress report with `{{PR_LINKS_TABLE}}` per-story PR table
-- Reads: `_TEMPLATE-EPIC-EXECUTION-REPORT.md` (report template), `execution-state.json` (checkpoint data)
-- Reads: `_TEMPLATE-EPIC-EXECUTION-PLAN.md` (execution plan template, Phase 0 Step 9)
-- Reads: `_TEMPLATE-PHASE-COMPLETION-REPORT.md` (phase completion report template, Phase 1 Step 8)
-- Reads: `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (implementation plans for pre-flight conflict analysis, Phase 0.5)
-- Writes: `plans/epic-XXXX/reports/epic-execution-plan-{epicId}.md` (execution plan, Phase 0 Step 9)
-- Writes: `plans/epic-XXXX/reports/phase-{N}-completion-{epicId}.md` (phase completion report, Phase 1 Step 8)
-- Writes: `plans/epic-XXXX/plans/preflight-analysis-phase-N.md` (pre-flight analysis output for audit, Phase 0.5)
-- Creates: `plans/epic-XXXX/reports/` directory (Phase 0 Step 8)
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| `x-dev-lifecycle` | Invokes (per story) | Story execution with PR creation, reviews in Phases 4/7 |
+| `x-fix-epic-pr-comments` | Invokes (Phase 4) | PR comment remediation; dry-run first, then apply with confirmation |
+| `x-story-map` | References | Error guidance when map is missing |
+| `x-lib-version-bump` | Invokes (post-gate) | Version bump on `develop` after integrity gate PASS (RULE-013) |
+| `gh pr view` | Uses | PR merge status verification for dependency enforcement |
+| `gh pr merge` | Uses | Auto-merge when `--auto-merge` is set |
+| `gh pr close` | Uses | Close PR on story failure |
+| `_TEMPLATE-EPIC-EXECUTION-PLAN.md` | Reads | Execution plan format (Phase 0 Step 9) |
+| `_TEMPLATE-PHASE-COMPLETION-REPORT.md` | Reads | Phase completion report format (Phase 1 Step 8) |
+| `_TEMPLATE-EPIC-EXECUTION-REPORT.md` | Reads | Progress report template (Phase 2) |
+| `execution-state.json` | Reads/Writes | Checkpoint data for resume, status tracking |
+
+**Additional notes:**
 - Phase 0.5 is skipped when `--sequential` is set (no parallel dispatch means no conflict risk)
 - Phase 0.5 defaults to advisory mode (warnings only); use `--strict-overlap` for blocking partitioning
 - All `{{PLACEHOLDER}}` tokens are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
-- Execution plan uses idempotency pre-check (RULE-002): compares mtime of IMPLEMENTATION-MAP.md vs execution plan to avoid regeneration
-- Templates are referenced via RULE-007: "Read template at `.claude/templates/_TEMPLATE-{TYPE}.md` for required output format"
-- Graceful fallback (RULE-012): when templates are not available, inline format is used with logged warning
-- Integrity gate runs on `develop` after all phase PRs are merged (RULE-006); uses `mainShaBeforePhase` for diff
+- Integrity gate runs on `develop` after all phase PRs are merged (RULE-006 — Gate Enforcement); uses `mainShaBeforePhase` for diff
 - Integrity gate includes smoke tests (Step 5) as regression validation — runs `{{SMOKE_COMMAND}}`
 - Smoke gate is bypassed with `--skip-smoke-gate` flag; result recorded as `smokeGate.status = "SKIP"` in checkpoint
-- Per-story smoke tests run via `x-dev-lifecycle` Phase 2.5; integrity gate smoke tests are an additional cross-story regression check
 - Auto-rebase (Section 1.4e, RULE-011) triggers after each PR merge to keep remaining PRs up-to-date
 - Conflict resolution (Section 1.4c, RULE-012) dispatches subagent for automatic rebase conflict resolution
 - `--single-pr` preserves legacy flow: epic branch + single mega-PR (all per-story PR logic is skipped)
 - `--no-merge`, `--auto-merge`, and `--interactive-merge` are mutually exclusive; default is no-merge mode (RULE-003)
-- With `--no-merge` (default): dependency check relaxed to `status == SUCCESS` only (prMergeStatus not enforced); dependent stories merge dependency branches for code availability
-- With `--no-merge` (default): integrity gate is DEFERRED (per-story validation still runs via x-dev-lifecycle); version bump is skipped
-- Interactive mode (opt-in via `--interactive-merge`) uses `AskUserQuestion` to prompt user at phase boundaries with 3 options: merge all, pause for manual merge, or skip merge
+- With `--no-merge` (default): dependency check relaxed to `status == SUCCESS` only; integrity gate is DEFERRED; version bump is skipped
+- Interactive mode (opt-in via `--interactive-merge`) prompts user at phase boundaries with 3 options: merge all, pause for manual merge, or skip merge
 - Resume workflow respects `mergeMode` from checkpoint for consistent behavior; warns if mode changed on resume
-- Invokes: `x-lib-version-bump` (post-integrity-gate version bump on `develop` — RULE-013)
-- Version bump creates `chore(version):` commit directly on `develop` after integrity gate PASS; skipped when gate is DEFERRED or FAIL
-- Phase 4 (PR Comment Remediation) invokes `x-fix-epic-pr-comments` after Phase 3 verification; optional, skipped with `--skip-pr-comments` or `--single-pr`
-- Phase 4 uses dry-run first (RULE-007), then prompts user via `AskUserQuestion`; with `--auto-merge`, skips confirmation and applies fixes directly
+- Phase 4 (PR Comment Remediation) is optional, skipped with `--skip-pr-comments` or `--single-pr`
 - Phase 4 writes `prCommentRemediation` to `execution-state.json` with status `COMPLETE`, `SKIPPED`, or `DRY_RUN`
-- Writes: `plans/epic-{epicId}/reports/pr-comments-report.md` (Phase 4 findings report, generated by `x-fix-epic-pr-comments`)

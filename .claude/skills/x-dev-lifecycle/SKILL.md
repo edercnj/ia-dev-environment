@@ -1,6 +1,7 @@
 ---
 name: x-dev-lifecycle
 description: "Orchestrates the complete feature implementation cycle: branch creation, planning, task decomposition, implementation, parallel review, fixes, PR creation, and final verification. Delegates heavy phases to subagents for context efficiency."
+user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
 argument-hint: "[STORY-ID or feature-name]"
 ---
@@ -12,6 +13,10 @@ argument-hint: "[STORY-ID or feature-name]"
 - **Efficiency**: Remove all conversational fillers and greetings to save tokens.
 
 # Skill: Feature Lifecycle (Orchestrator)
+
+## Purpose
+
+Orchestrate the complete feature implementation cycle from planning through verification. Manage branch creation, architecture planning, TDD implementation, parallel specialist reviews, remediation, PR creation, Tech Lead review, and final DoD verification. Delegate heavy phases to subagents for context efficiency.
 
 ## When to Use
 
@@ -25,14 +30,13 @@ argument-hint: "[STORY-ID or feature-name]"
 After each phase 0–7: `>>> Phase N/8 completed. Proceeding to Phase N+1...`
 After Phase 8: `>>> Phase 8/8 completed. Lifecycle complete.`
 
-## Complete Flow
+## Workflow Overview
 
 ```
 Phase 0: Preparation           (orchestrator — inline, includes artifact pre-checks)
 {% if has_contract_interfaces == 'True' %}Phase 0.5: API-First Contract   (orchestrator — conditional, pauses for approval)
 {% endif %}Phase 1: Planning               (subagent — reads architecture KPs)
 Phase 1B-1F: Parallel Planning  (up to 5 subagents — SINGLE message, skips reusable artifacts)
-Phase 1G: Commit Artifacts      (orchestrator — inline, conditional on staged changes)
 Phase 2: Implementation         (subagent — reads coding + layer KPs)
 Phase 3: Documentation          (orchestrator — inline)
 Phase 4: Review + Dashboard     (invoke /x-review skill + consolidated dashboard)
@@ -325,24 +329,6 @@ Launch `general-purpose` subagent:
 > Produce compliance impact assessment: data classification, encryption requirements, audit logging needs, regulatory considerations.
 > Save to `plans/epic-XXXX/plans/compliance-story-XXXX-YYYY.md`.
 
-### 1G: Commit Planning Artifacts
-
-After all planning phases (1A-1F) complete, commit the generated artifacts to the story branch.
-This ensures planning documents are version-controlled and visible in the PR diff.
-
-1. Stage all planning artifacts for the current story:
-   ```
-   git add plans/epic-XXXX/plans/*-story-XXXX-YYYY.*
-   ```
-2. Check if there are staged changes (`git diff --cached --quiet`). If no changes are staged
-   (all artifacts were reused and unchanged), skip the commit with log:
-   `"No new planning artifacts to commit"`.
-3. Commit conditionally (only when staged changes exist):
-   ```
-   git diff --cached --quiet || git commit -m "docs(story-XXXX-YYYY): add planning artifacts [skip ci]"
-   ```
-   The `[skip ci]` tag prevents CI from triggering on documentation-only commits.
-
 ## Phase 2 — TDD Implementation (Subagent via Task)
 
 Launch a **single** `general-purpose` subagent for implementation:
@@ -438,7 +424,7 @@ Documentation output saved to `contracts/` with subdirectories per type:
 - Architecture docs → `steering/`
 
 **Changelog Entry:**
-- Read commits since branch point (`git log main..HEAD --oneline`)
+- Read commits since branch point (`git log develop..HEAD --oneline`)
 - Generate Conventional Commits summary by type (feat, fix, refactor, test, docs, chore)
 - Append to CHANGELOG.md
 
@@ -558,41 +544,16 @@ After collecting all specialist review results, generate a consolidated dashboar
 5. Run `{{COMPILE_COMMAND}}` + `{{TEST_COMMAND}}`
 6. Update common-mistakes document with newly found errors
 7. Update remediation tracking: mark fixed items as "Fixed" with commit reference.
-8. **Commit review artifacts:** Stage and commit the review dashboard and remediation tracking:
-   ```
-   git add plans/epic-XXXX/reviews/*-story-XXXX-YYYY.md
-   git diff --cached --quiet || git commit -m "docs(story-XXXX-YYYY): add review and remediation artifacts [skip ci]"
-   ```
-   This captures the specialist review dashboard (Phase 4) and remediation tracking (Phase 5)
-   in version control. The conditional commit (`||`) skips if no changes are staged.
 
 ## Phase 6 — Commit & PR (Orchestrator — Inline)
 
-1. **Version Bump (conditional — standalone mode only):**
-   a. If orchestrated by `x-dev-epic-implement` (subagent prompt contains "Version bump: DEFERRED"): **SKIP** version bump. The epic orchestrator handles version bumps at the integrity gate.
-   b. If standalone (invoked directly by user):
-      - Analyze commits on the story branch: `git log main..HEAD --format="%s%n%b" --no-merges`
-      - Determine bump type using Conventional Commits analysis (see `x-lib-version-bump`):
-        - `feat!:` or `BREAKING CHANGE:` → MAJOR
-        - `feat:` → MINOR
-        - `fix:`, `refactor:`, `perf:` → PATCH
-        - Only `test:`, `docs:`, `chore:`, `build:` → NONE (skip bump)
-      - If bump type is NONE: skip (no version-impacting changes)
-      - If bump type is MAJOR/MINOR/PATCH:
-        - Read current version from main: `git show main:pom.xml` (or equivalent build file)
-        - Strip `-SNAPSHOT` suffix for base calculation
-        - Calculate next version, re-add `-SNAPSHOT`
-        - Update pom.xml on the story branch
-        - Commit: `chore(version): bump to X.Y.Z-SNAPSHOT`
-2. Push: `git push -u origin feat/{STORY_ID}-description`
-3. Create PR via `gh pr create` with review summary in body, including TDD compliance:
+1. Push: `git push -u origin feat/{STORY_ID}-description`
+2. Create PR via `gh pr create --base develop` with review summary in body, including TDD compliance:
    - Number of TDD cycles completed
    - Test-first pattern verified
    - TPP progression in commit history
 
-> **Note:** PR merge is NOT handled by x-dev-lifecycle. When invoked by x-dev-epic-implement,
-> merge behavior is controlled by `--auto-merge`, `--no-merge`, or interactive prompt (default).
-> When invoked standalone, the user decides when to merge.
+> **Note:** Version bumps are NOT performed during feature branch flow. Version bumps belong to the release branch workflow (see `/x-release`).
 
 ## Phase 7 — Tech Lead Review
 
@@ -608,15 +569,6 @@ After the Tech Lead review completes, update the consolidated review dashboard:
 2. Append a new "Tech Lead Review" round with the Tech Lead's score, GO/NO-GO decision, and findings.
 3. Preserve the history of previous rounds (specialist reviews from Phase 4).
 4. Write the updated dashboard back to the same file.
-5. **Commit and push updated dashboard:** Stage, commit, and push the updated review dashboard so it appears in the remote branch / PR diff:
-   ```
-   git add plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md
-   if ! git diff --cached --quiet; then
-     git commit -m "docs(story-XXXX-YYYY): update review dashboard with tech lead scores [skip ci]"
-     git push
-   fi
-   ```
-   This captures the Tech Lead's GO/NO-GO decision and scores in version control and ensures the review artifact is visible in the PR diff.
 
 ## Phase 8 — Final Verification + Cleanup (Orchestrator — Inline)
 
@@ -671,7 +623,7 @@ After the Tech Lead review completes, update the consolidated review dashboard:
      - **SKIP**: testing.smoke_tests=false → "Verification skipped"
    - Non-blocking: emit result for human decision, do NOT auto-rollback
 9. Report PASS/FAIL/SKIP result
-10. `git checkout main && git pull origin main`
+10. `git checkout develop && git pull origin develop`
 
 **Phase 8 is the ONLY legitimate stopping point.**
 
@@ -685,8 +637,45 @@ After the Tech Lead review completes, update the consolidated review dashboard:
 | Specialist Reviews | Phase 4 | Adaptive (max task tier in domain) |
 | Tech Lead | Phase 7 | Adaptive (story max tier) |
 
+## Error Handling
+
+| Scenario | Action |
+|----------|--------|
+| Story file not found | Abort with message: `Story file not found at {path}` |
+| Dependency story not complete | Abort with message: `Dependency {storyId} not complete. Complete it first.` |
+| Compilation fails during Phase 2 | Fix errors before proceeding to next TDD cycle |
+| Coverage below thresholds (line < 95%, branch < 90%) | Fail Phase 2, add tests until thresholds are met |
+| Architecture plan skill (`x-dev-architecture-plan`) unavailable | Use inline fallback — expand Phase 1B subagent prompt with additional KP reads |
+| Template file not found (RULE-012 — Template Fallback) | Log warning, use inline format as fallback |
+| Review score below approval (Phase 4 or Phase 7) | Fix all failed items and re-review (max 2 cycles for Tech Lead) |
+| Phase 1B test plan produces no output | Phase 2 uses G1-G7 fallback mode with warning |
+
+## Template Fallback
+
+Templates referenced by this skill follow RULE-012. When a template file does not exist, the skill degrades gracefully with a logged warning:
+
+- `_TEMPLATE-IMPLEMENTATION-PLAN.md` — inline section list used in Step 1B subagent
+- `_TEMPLATE-TEST-PLAN.md` — test plan skill handles its own fallback
+- `_TEMPLATE-TASK-BREAKDOWN.md` — task decomposer handles its own fallback
+- `_TEMPLATE-SECURITY-ASSESSMENT.md` — inline format for security assessment
+- `_TEMPLATE-COMPLIANCE-ASSESSMENT.md` — inline format for compliance assessment
+- `_TEMPLATE-SPECIALIST-REVIEW.md` — inline format for specialist reports
+- `_TEMPLATE-CONSOLIDATED-REVIEW-DASHBOARD.md` — inline format for dashboard
+- `_TEMPLATE-REVIEW-REMEDIATION.md` — inline format for remediation tracking
+- `_TEMPLATE-TECH-LEAD-REVIEW.md` — inline format for Tech Lead review
+
 ## Integration Notes
 
-- Invokes: `x-dev-architecture-plan` (Phase 1, conditional), `x-test-plan`, `x-lib-task-decomposer`, `x-lib-group-verifier` (fallback only), `x-git-push`, `x-review`, `x-review-pr`
-- TDD commit format follows `x-git-push` conventions (`[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]` suffixes)
-- All `{{PLACEHOLDER}}` tokens (e.g. `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| `x-dev-architecture-plan` | Invokes (Phase 1, conditional) | Architecture planning for full/simplified scope |
+| `x-test-plan` | Invokes (Phase 1B) | Test plan as implementation roadmap |
+| `x-lib-task-decomposer` | Invokes (Phase 1C) | Task decomposition with TDD markers |
+| `x-lib-group-verifier` | Invokes (fallback only) | G1-G7 group verification fallback |
+| `x-git-push` | Invokes (Phase 6) | TDD commit format: `[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]` suffixes |
+| `x-review` | Invokes (Phase 4) | Parallel specialist reviews |
+| `x-review-pr` | Invokes (Phase 7) | Tech Lead holistic review |
+| `x-dev-arch-update` | Invokes (Phase 3, conditional) | Architecture document update |
+| `x-dev-epic-implement` | Called by | Epic orchestrator delegates story execution |
+
+All `{{PLACEHOLDER}}` tokens (e.g., `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation.

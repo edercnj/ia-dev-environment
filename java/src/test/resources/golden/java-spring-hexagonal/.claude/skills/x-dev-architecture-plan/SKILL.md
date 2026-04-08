@@ -1,6 +1,7 @@
 ---
 name: x-dev-architecture-plan
 description: "Generates a comprehensive architecture plan with component diagrams, sequence diagrams, deployment topology, mini-ADRs, NFRs, and resilience/observability strategies. Use before implementation to document design decisions."
+user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[STORY-ID or feature-name]"
 ---
@@ -13,11 +14,33 @@ argument-hint: "[STORY-ID or feature-name]"
 
 # Skill: Architecture Plan Generator
 
-## When to Use
+## Purpose
 
-Evaluate the change scope using this decision tree:
+Generates a comprehensive architecture plan for {{PROJECT_NAME}} with component diagrams, sequence diagrams, deployment topology, mini-ADRs, NFRs, and resilience/observability strategies. Use before implementation to document design decisions.
 
-### Full Architecture Plan
+## Triggers
+
+- `/x-dev-architecture-plan STORY-ID` — generate architecture plan from story
+- `/x-dev-architecture-plan "Feature Name"` — generate from feature description
+- `/x-dev-architecture-plan plans/epic-XXXX/story-XXXX-YYYY.md` — generate from story file path
+
+## Parameters
+
+| Parameter | Type | Default | Values | Description |
+|-----------|------|---------|--------|-------------|
+| `argument` | String | required | story ID, feature name, or file path | Source for architecture plan generation |
+
+### Decision Tree
+
+Evaluate the change scope to determine the plan level:
+
+| Condition | Plan Level |
+|-----------|-----------|
+| New service / new integration / contract change / infra change | **Full** |
+| New feature, no contract or infra change | **Simplified** |
+| Bug fix / refactor / docs-only | **Skip** |
+
+#### Full Architecture Plan
 
 Apply when **any** of these conditions is true:
 
@@ -26,14 +49,14 @@ Apply when **any** of these conditions is true:
 - Change to a public contract (REST API, gRPC proto, GraphQL schema, event schema)
 - Infrastructure topology change (new container, new deployment target, new network policy)
 
-### Simplified Architecture Plan
+#### Simplified Architecture Plan
 
 Apply when:
 
 - New feature in an existing service **without** contract or infrastructure changes
 - Only affected sections are generated (skip unrelated diagrams)
 
-### Skip Architecture Plan
+#### Skip Architecture Plan
 
 Apply when:
 
@@ -41,19 +64,24 @@ Apply when:
 - Internal refactoring (no public API or contract change)
 - Documentation-only change
 
-**Decision Tree Summary:**
+## Workflow
 
-| Condition | Plan Level |
-|-----------|-----------|
-| New service / new integration / contract change / infra change | **Full** |
-| New feature, no contract or infra change | **Simplified** |
-| Bug fix / refactor / docs-only | **Skip** |
+```
+1. PRE-CHECK  -> Verify idempotency (RULE-002)
+2. TEMPLATE   -> Load template or use inline fallback (RULE-007)
+3. READ       -> Read story/feature requirements
+4. EVALUATE   -> Determine plan level (Full/Simplified/Skip)
+5. CONTEXT    -> Read knowledge packs
+6. REVIEW     -> Review existing architecture
+7. GENERATE   -> Generate architecture plan document
+8. VALIDATE   -> Verify section completeness
+```
 
-## Idempotency Pre-Check (RULE-002)
+### Step 1 — Idempotency Pre-Check (RULE-002 — Idempotency)
 
 Before generating an architecture plan, check whether one already exists and is still fresh.
 
-### Pre-Check Algorithm
+#### Pre-Check Algorithm
 
 ```
 1. Resolve the expected output path:
@@ -75,7 +103,7 @@ Before generating an architecture plan, check whether one already exists and is 
       - Proceed to generation
 ```
 
-### Staleness Decision Table
+#### Staleness Decision Table
 
 | Condition | Action | Log Message |
 |-----------|--------|-------------|
@@ -83,11 +111,7 @@ Before generating an architecture plan, check whether one already exists and is 
 | Plan exists, story not modified | Reuse existing | `Reusing existing architecture plan from {date}` |
 | Plan exists, story modified after plan | Regenerate | `Regenerating stale architecture plan for {story}` |
 
-## Template Reference (RULE-007)
-
-When generating an architecture plan, the subagent MUST read the template for the required output format.
-
-### Template Loading
+### Step 2 — Template Loading (RULE-007 — Template Reference)
 
 ```
 1. Check if `.claude/templates/_TEMPLATE-ARCHITECTURE-PLAN.md` exists
@@ -101,7 +125,48 @@ When generating an architecture plan, the subagent MUST read the template for th
    - Execution continues normally — no interruption
 ```
 
-### Mandatory Sections (13)
+**Template Fallback:** When the template file is missing, the skill degrades gracefully to the inline Output Structure. No interruption occurs. A WARNING is logged.
+
+### Step 3 — Read Story/Feature Requirements
+
+Read the story file or feature description provided as argument. Extract: scope, acceptance criteria, integrations, NFRs, constraints.
+
+### Step 4 — Evaluate Decision Tree
+
+Determine if this requires a Full Plan, Simplified Plan, or Skip:
+- If Skip: report "Architecture plan not needed for this change" and stop
+- If Full or Simplified: proceed to knowledge pack reading
+
+### Step 5 — Read Knowledge Packs
+
+Read knowledge packs **in order** before generating the architecture plan. For Simplified Plan, read only Architecture KP + KPs relevant to affected sections.
+
+### Step 6 — Review Existing Architecture
+
+- Check for existing architecture documents in `steering/`
+- Review current codebase structure to understand the baseline
+- Identify what is new vs. what is changing
+
+### Step 7 — Generate Architecture Plan
+
+Launch a **single** `general-purpose` subagent with `model: opus` for deep architectural reasoning (RULE-009). Generate ALL mandatory sections.
+
+### Step 8 — Validate Sections Post-Generation
+
+```
+1. Parse the generated document for H2 headings (## Section Name)
+2. Count sections found vs. sections expected
+3. For each conditional section:
+   - IF capability is enabled AND section is missing -> WARNING
+   - IF capability is disabled AND section is absent -> OK (conditional skip)
+4. For each mandatory section:
+   - IF section is missing -> WARNING with instruction to complete
+5. Log checklist:
+   - All present: "Architecture plan: 13/13 sections present"
+   - Some missing: "Architecture plan: X/Y applicable sections present, Z conditional skipped"
+```
+
+## Mandatory Sections (13)
 
 | # | Section | Mandatory | Conditional |
 |---|---------|-----------|-------------|
@@ -125,46 +190,7 @@ When generating an architecture plan, the subagent MUST read the template for th
 - **Data Model**: Include when `database != none`. When not applicable, write `N/A - capability not enabled`.
 - **Event Schema**: Include when `eventDriven: true`. When not applicable, write `N/A - capability not enabled`.
 
-### Post-Generation Validation
-
-After generating the architecture plan, validate section completeness:
-
-```
-1. Parse the generated document for H2 headings (## Section Name)
-2. Count sections found vs. sections expected
-3. For each conditional section:
-   - IF capability is enabled AND section is missing → WARNING
-   - IF capability is disabled AND section is absent → OK (conditional skip)
-4. For each mandatory section:
-   - IF section is missing → WARNING with instruction to complete
-5. Log checklist:
-   - All present: "Architecture plan: 13/13 sections present"
-   - Some missing: "Architecture plan: X/Y applicable sections present, Z conditional skipped"
-```
-
-## Knowledge Packs
-
-Read these knowledge packs **in order** before generating the architecture plan:
-
-| # | Knowledge Pack | Path | Purpose |
-|---|---------------|------|---------|
-| 1 | Architecture | `skills/architecture/references/architecture-principles.md` | Layer structure, dependency direction, package conventions |
-| 2 | Architecture Patterns | `skills/architecture/references/architecture-patterns.md` | Design patterns, CQRS, event sourcing, saga |
-| 3 | Protocols | `skills/protocols/references/` | REST, gRPC, GraphQL, WebSocket, event-driven conventions |
-| 4 | Security | `skills/security/references/` | OWASP Top 10, security headers, secrets management |
-| 5 | Observability | `skills/observability/references/` | Tracing, metrics, logging, health checks |
-| 6 | Infrastructure | `skills/infrastructure/references/` | Docker, Kubernetes, 12-factor app |
-| 7 | Resilience | `skills/resilience/references/` | Circuit breaker, retry, fallback, bulkhead |
-| 8 | Compliance | `skills/compliance/references/` | GDPR, HIPAA, LGPD (if compliance is active) |
-
-**Minimum KPs for Full Plan:** 7 (all except Compliance, which is conditional).
-**Minimum KPs for Simplified Plan:** 1 (Architecture only; add others as relevant).
-
 ## Output Structure
-
-The architecture plan document MUST contain these sections. Mandatory sections are marked **(M)**, optional sections are marked **(O)**.
-
-### Section Checklist
 
 | # | Section | Type | Format | Description |
 |---|---------|------|--------|-------------|
@@ -293,29 +319,40 @@ Launch a **single** `general-purpose` subagent with `model: opus` for deep archi
 > - Tables use GitHub-flavored Markdown
 > - NFR targets must be measurable (e.g., "p99 latency < 200ms", not "fast")
 
-## Integration with x-dev-lifecycle
+## Knowledge Pack References
 
-When invoked from `x-dev-lifecycle` Phase 1:
+| # | Knowledge Pack | Path | Purpose |
+|---|----------------|------|---------|
+| 1 | Architecture | `skills/architecture/references/architecture-principles.md` | Layer structure, dependency direction, package conventions |
+| 2 | Architecture Patterns | `skills/architecture/references/architecture-patterns.md` | Design patterns, CQRS, event sourcing, saga |
+| 3 | Protocols | `skills/protocols/references/` | REST, gRPC, GraphQL, WebSocket, event-driven conventions |
+| 4 | Security | `skills/security/references/` | OWASP Top 10, security headers, secrets management |
+| 5 | Observability | `skills/observability/references/` | Tracing, metrics, logging, health checks |
+| 6 | Infrastructure | `skills/infrastructure/references/` | Docker, Kubernetes, 12-factor app |
+| 7 | Resilience | `skills/resilience/references/` | Circuit breaker, retry, fallback, bulkhead |
+| 8 | Compliance | `skills/compliance/references/` | GDPR, HIPAA, LGPD (if compliance is active) |
 
-1. The lifecycle orchestrator passes the story path as argument
-2. **Pre-check executes first** (RULE-002): if a fresh architecture plan exists, it is reused without invoking the subagent
-3. If generation is needed, the decision tree determines the plan level (Full/Simplified/Skip)
-4. The output path follows the standard convention: `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
-5. Phase 2 (Implementation) reads this document alongside the implementation plan
+**Minimum KPs for Full Plan:** 7 (all except Compliance, which is conditional).
+**Minimum KPs for Simplified Plan:** 1 (Architecture only; add others as relevant).
 
-When invoked standalone:
+## Error Handling
 
-```
-/x-dev-architecture-plan plans/epic-XXXX/story-XXXX-YYYY.md
-```
+| Scenario | Action |
+|----------|--------|
+| Story file not found | Abort with "Story file not found: {path}" |
+| Template not found | Log WARNING, fall back to inline Output Structure (RULE-012) |
+| Knowledge pack not found | Log WARNING, continue with available KPs |
+| Subagent fails | Abort with error details, suggest manual generation |
+| Post-validation finds missing mandatory section | Log WARNING with instruction to complete the section |
 
-Or with a feature name:
+## Integration Notes
 
-```
-/x-dev-architecture-plan "Payment Gateway Integration"
-```
-
-**Standalone idempotency:** When invoked directly (outside x-dev-lifecycle), the pre-check runs autonomously. The skill does not depend on the orchestrator for idempotency — it verifies existence and staleness independently.
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| x-dev-lifecycle | Called by | Invoked during Phase 1 for architecture planning; pre-check ensures idempotency |
+| x-threat-model | Complements | Architecture plan feeds threat model generation |
+| x-dev-implement | Consumed by | Implementation phase reads architecture plan alongside implementation plan |
+| x-dev-arch-update | Followed by | After implementation, architecture document is updated incrementally |
 
 ## Detailed References
 

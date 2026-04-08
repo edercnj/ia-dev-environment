@@ -469,12 +469,12 @@ class RuntimeProtectionSkillTest {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("VALIDATE")
-                    .contains("CONFIGURE")
-                    .contains("DISCOVER")
-                    .contains("EVALUATE")
-                    .contains("SCORE")
-                    .contains("REPORT");
+                    .contains("Validate Parameters")
+                    .contains("Configure Intensity")
+                    .contains("Discover Baseline")
+                    .contains("Evaluate Dimensions")
+                    .contains("Score Results")
+                    .contains("Generate Reports");
         }
 
         @Test
@@ -485,7 +485,7 @@ class RuntimeProtectionSkillTest {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("skills/security/");
+                    .contains("| security |");
         }
 
         @Test

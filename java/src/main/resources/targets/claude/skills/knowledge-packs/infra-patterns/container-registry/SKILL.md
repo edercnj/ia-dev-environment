@@ -1,17 +1,22 @@
 ---
 name: container-registry
-description: "Container registry management patterns covering tagging strategy, immutability, retention policies, vulnerability scanning, multi-arch builds, and CI/CD integration. Internal reference for agents managing infrastructure."
+description: "Container registry patterns: tagging strategy, immutability, retention policies, vulnerability scanning, multi-arch builds, and CI/CD integration."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
   - Glob
 ---
 
-# Knowledge Pack: Container Registry Management
+# Pattern: Container Registry Management
 
 ## Purpose
 
-Provide production-grade container registry management patterns for tagging, security scanning, retention, and CI/CD integration across major registry providers.
+Provides production-grade container registry management patterns for tagging, security scanning, retention, and CI/CD integration across major registry providers.
+
+## Supplements
+
+Supplements `infrastructure` knowledge pack with container registry management patterns.
 
 ---
 

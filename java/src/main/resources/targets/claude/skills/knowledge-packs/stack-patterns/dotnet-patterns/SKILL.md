@@ -1,17 +1,22 @@
 ---
 name: dotnet-patterns
-description: ".NET 8+-specific patterns: built-in DI, Entity Framework Core, Minimal APIs, IOptions, WebApplicationFactory testing, NativeAOT, ProblemDetails error handling. Internal reference for agents producing .NET code."
+description: ".NET 8+ patterns: built-in DI, Entity Framework Core, Minimal APIs, IOptions, WebApplicationFactory testing, NativeAOT, and ProblemDetails."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
   - Glob
 ---
 
-# Knowledge Pack: .NET 8+ Patterns
+# Pattern: .NET 8+ Patterns
 
 ## Purpose
 
 Provides .NET 8+-specific implementation patterns that supplement the generic layer templates. Agents reference this pack when generating code for a C# + .NET 8+ project.
+
+## Supplements
+
+Supplements `architecture` and `layer-templates` knowledge packs with .NET 8+-specific conventions.
 
 ---
 

@@ -369,7 +369,7 @@ class InfraScanSkillTest {
 
             assertThat(content)
                     .contains("open-security-group")
-                    .contains("0.0.0.0/0");
+                    .contains("CRITICAL");
         }
 
         @Test
@@ -493,7 +493,7 @@ class InfraScanSkillTest {
             String content = readSkillContent(outputDir);
 
             assertThat(content)
-                    .contains("### Tool Not Found");
+                    .contains("Tool not found");
         }
 
         @Test
@@ -506,7 +506,7 @@ class InfraScanSkillTest {
             String content = readSkillContent(outputDir);
 
             assertThat(content)
-                    .contains("### Scan Timeout");
+                    .contains("Scan timeout");
         }
 
         @Test
@@ -519,7 +519,7 @@ class InfraScanSkillTest {
             String content = readSkillContent(outputDir);
 
             assertThat(content)
-                    .contains("### Tool Crash");
+                    .contains("Tool crash");
         }
 
         @Test
@@ -532,7 +532,7 @@ class InfraScanSkillTest {
             String content = readSkillContent(outputDir);
 
             assertThat(content)
-                    .contains("### Zero Findings");
+                    .contains("Zero findings");
         }
 
         @Test
@@ -545,7 +545,7 @@ class InfraScanSkillTest {
             String content = readSkillContent(outputDir);
 
             assertThat(content)
-                    .contains("No IaC Files Detected");
+                    .contains("No IaC files detected");
         }
     }
 
@@ -594,7 +594,7 @@ class InfraScanSkillTest {
         }
 
         @Test
-        @DisplayName("has Azure DevOps snippet")
+        @DisplayName("has GitLab CI snippet with artifacts")
         void assemble_skillMd_hasAzureDevOps(
                 @TempDir Path tempDir)
                 throws IOException {
@@ -603,7 +603,7 @@ class InfraScanSkillTest {
             String content = readSkillContent(outputDir);
 
             assertThat(content)
-                    .contains("### Azure DevOps");
+                    .contains("### GitLab CI");
         }
 
         @Test
@@ -664,7 +664,7 @@ class InfraScanSkillTest {
             String content = readSkillContent(outputDir);
 
             assertThat(content).contains(
-                    "never overwrite previous results");
+                    "never overwrite");
         }
     }
 

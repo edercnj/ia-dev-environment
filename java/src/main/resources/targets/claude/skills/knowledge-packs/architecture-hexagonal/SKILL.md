@@ -289,6 +289,8 @@ When `architecture.validateWithArchUnit: true`, add to `pom.xml`:
 
 ## Related Knowledge Packs
 
-- `skills/architecture/` -- Generic architecture principles
-- `skills/layer-templates/` -- Code templates per architecture layer
-- `skills/coding-standards/` -- Language-specific coding conventions
+| Pack | Relationship |
+|------|-------------|
+| `architecture` | Generic architecture principles |
+| `layer-templates` | Code templates per architecture layer |
+| `coding-standards` | Language-specific coding conventions |

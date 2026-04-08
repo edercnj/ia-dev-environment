@@ -1,17 +1,22 @@
 ---
 name: k8s-helm
-description: "Helm chart patterns for application deployment covering chart structure, values templates, multi-environment configuration, dependencies, testing, GitOps integration, and Helmfile orchestration. Internal reference for agents managing infrastructure."
+description: "Helm chart patterns: chart structure, values templates, multi-environment configuration, dependencies, testing, GitOps integration, and Helmfile."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
   - Glob
 ---
 
-# Knowledge Pack: Helm Chart Patterns
+# Pattern: Helm Chart Patterns
 
 ## Purpose
 
-Provide production-grade Helm chart patterns for packaging, deploying, and managing Kubernetes applications across multiple environments with GitOps workflows.
+Provides production-grade Helm chart patterns for packaging, deploying, and managing Kubernetes applications across multiple environments with GitOps workflows.
+
+## Supplements
+
+Supplements `infrastructure` knowledge pack with Helm chart-specific patterns.
 
 ---
 

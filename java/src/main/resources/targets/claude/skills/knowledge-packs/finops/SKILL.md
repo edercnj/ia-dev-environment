@@ -100,3 +100,10 @@ Organizational practices for cloud financial management.
 - **Billing Console**: Cost breakdown, budgets, and alerts
 - **Recommender**: ML-based recommendations for VM right-sizing and idle resource cleanup
 - **Committed Use Discounts**: 1-year and 3-year commitments for compute and memory
+
+## Related Knowledge Packs
+
+| Pack | Relationship |
+|------|-------------|
+| `infrastructure` | Infrastructure patterns and 12-Factor App principles |
+| `observability` | Metrics and monitoring for cost-aware observability |

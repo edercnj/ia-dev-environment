@@ -1,17 +1,22 @@
 ---
 name: django-patterns
-description: "Django-specific patterns: ORM with QuerySet optimization, Class-Based Views, DRF serializers/viewsets, django-environ config, TestCase/APIClient testing, migrations, middleware. Internal reference for agents producing Django code."
+description: "Django patterns: ORM with QuerySet optimization, Class-Based Views, DRF serializers/viewsets, django-environ config, and TestCase/APIClient testing."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
   - Glob
 ---
 
-# Knowledge Pack: Django Patterns
+# Pattern: Django Patterns
 
 ## Purpose
 
 Provides Django-specific implementation patterns that supplement the generic layer templates. Agents reference this pack when generating code for a Python + Django project.
+
+## Supplements
+
+Supplements `architecture` and `layer-templates` knowledge packs with Django-specific conventions.
 
 ---
 

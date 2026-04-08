@@ -44,7 +44,7 @@ class XReviewSkillTemplateTest {
             String content = readSkill(CLAUDE_SKILL_PATH);
 
             assertThat(content)
-                    .contains("## Phase 0: Idempotency"
+                    .contains("## Phase 0 \u2014 Idempotency"
                             + " Pre-Check");
         }
 

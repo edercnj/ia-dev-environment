@@ -97,7 +97,8 @@ class GitFlowCrossCuttingValidationTest {
             String content = readSkill(
                     "x-git-push");
             assertThat(content)
-                    .contains("## Hotfix Workflow");
+                    .contains(
+                            "### Step 4 — Hotfix Workflow");
         }
     }
 

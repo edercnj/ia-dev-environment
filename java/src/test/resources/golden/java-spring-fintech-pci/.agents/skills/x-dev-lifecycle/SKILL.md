@@ -1,6 +1,7 @@
 ---
 name: x-dev-lifecycle
 description: "Orchestrates the complete feature implementation cycle: branch creation, planning, task decomposition, implementation, parallel review, fixes, PR creation, and final verification. Delegates heavy phases to subagents for context efficiency."
+user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
 argument-hint: "[STORY-ID or feature-name]"
 ---
@@ -12,6 +13,10 @@ argument-hint: "[STORY-ID or feature-name]"
 - **Efficiency**: Remove all conversational fillers and greetings to save tokens.
 
 # Skill: Feature Lifecycle (Orchestrator)
+
+## Purpose
+
+Orchestrate the complete feature implementation cycle from planning through verification. Manage branch creation, architecture planning, TDD implementation, parallel specialist reviews, remediation, PR creation, Tech Lead review, and final DoD verification. Delegate heavy phases to subagents for context efficiency.
 
 ## When to Use
 
@@ -25,7 +30,7 @@ argument-hint: "[STORY-ID or feature-name]"
 After each phase 0–7: `>>> Phase N/8 completed. Proceeding to Phase N+1...`
 After Phase 8: `>>> Phase 8/8 completed. Lifecycle complete.`
 
-## Complete Flow
+## Workflow Overview
 
 ```
 Phase 0: Preparation           (orchestrator — inline, includes artifact pre-checks)
@@ -632,8 +637,45 @@ After the Tech Lead review completes, update the consolidated review dashboard:
 | Specialist Reviews | Phase 4 | Adaptive (max task tier in domain) |
 | Tech Lead | Phase 7 | Adaptive (story max tier) |
 
+## Error Handling
+
+| Scenario | Action |
+|----------|--------|
+| Story file not found | Abort with message: `Story file not found at {path}` |
+| Dependency story not complete | Abort with message: `Dependency {storyId} not complete. Complete it first.` |
+| Compilation fails during Phase 2 | Fix errors before proceeding to next TDD cycle |
+| Coverage below thresholds (line < 95%, branch < 90%) | Fail Phase 2, add tests until thresholds are met |
+| Architecture plan skill (`x-dev-architecture-plan`) unavailable | Use inline fallback — expand Phase 1B subagent prompt with additional KP reads |
+| Template file not found (RULE-012 — Template Fallback) | Log warning, use inline format as fallback |
+| Review score below approval (Phase 4 or Phase 7) | Fix all failed items and re-review (max 2 cycles for Tech Lead) |
+| Phase 1B test plan produces no output | Phase 2 uses G1-G7 fallback mode with warning |
+
+## Template Fallback
+
+Templates referenced by this skill follow RULE-012. When a template file does not exist, the skill degrades gracefully with a logged warning:
+
+- `_TEMPLATE-IMPLEMENTATION-PLAN.md` — inline section list used in Step 1B subagent
+- `_TEMPLATE-TEST-PLAN.md` — test plan skill handles its own fallback
+- `_TEMPLATE-TASK-BREAKDOWN.md` — task decomposer handles its own fallback
+- `_TEMPLATE-SECURITY-ASSESSMENT.md` — inline format for security assessment
+- `_TEMPLATE-COMPLIANCE-ASSESSMENT.md` — inline format for compliance assessment
+- `_TEMPLATE-SPECIALIST-REVIEW.md` — inline format for specialist reports
+- `_TEMPLATE-CONSOLIDATED-REVIEW-DASHBOARD.md` — inline format for dashboard
+- `_TEMPLATE-REVIEW-REMEDIATION.md` — inline format for remediation tracking
+- `_TEMPLATE-TECH-LEAD-REVIEW.md` — inline format for Tech Lead review
+
 ## Integration Notes
 
-- Invokes: `x-dev-architecture-plan` (Phase 1, conditional), `x-test-plan`, `x-lib-task-decomposer`, `x-lib-group-verifier` (fallback only), `x-git-push`, `x-review`, `x-review-pr`
-- TDD commit format follows `x-git-push` conventions (`[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]` suffixes)
-- All `{{PLACEHOLDER}}` tokens (e.g. `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| `x-dev-architecture-plan` | Invokes (Phase 1, conditional) | Architecture planning for full/simplified scope |
+| `x-test-plan` | Invokes (Phase 1B) | Test plan as implementation roadmap |
+| `x-lib-task-decomposer` | Invokes (Phase 1C) | Task decomposition with TDD markers |
+| `x-lib-group-verifier` | Invokes (fallback only) | G1-G7 group verification fallback |
+| `x-git-push` | Invokes (Phase 6) | TDD commit format: `[TDD]`, `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]` suffixes |
+| `x-review` | Invokes (Phase 4) | Parallel specialist reviews |
+| `x-review-pr` | Invokes (Phase 7) | Tech Lead holistic review |
+| `x-dev-arch-update` | Invokes (Phase 3, conditional) | Architecture document update |
+| `x-dev-epic-implement` | Called by | Epic orchestrator delegates story execution |
+
+All `{{PLACEHOLDER}}` tokens (e.g., `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation.

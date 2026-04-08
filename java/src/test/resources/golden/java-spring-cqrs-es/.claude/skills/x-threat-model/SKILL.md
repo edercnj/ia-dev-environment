@@ -2,8 +2,8 @@
 name: x-threat-model
 description: "Generate threat models using STRIDE analysis: identify components, map data flows, analyze threats per category, classify severity, suggest mitigations, and produce threat model document."
 user-invocable: true
-argument-hint: "[architecture-plan-path] [--format stride|pasta|linddun] [--output results/security/]"
 allowed-tools: Read, Write, Glob, Grep, Agent
+argument-hint: "[architecture-plan-path] [--format stride|pasta|linddun] [--output results/security/]"
 ---
 
 ## Global Output Policy
@@ -20,12 +20,20 @@ Generates automated threat models for {{PROJECT_NAME}} using STRIDE analysis. Id
 
 ## Triggers
 
-- `/x-threat-model` -- analyze codebase and generate STRIDE threat model
-- `/x-threat-model steering/plan.md` -- generate from architecture plan
-- `/x-threat-model --format stride` -- STRIDE analysis (default)
-- `/x-threat-model --format pasta` -- PASTA analysis (risk-centric)
-- `/x-threat-model --format linddun` -- LINDDUN analysis (privacy-focused)
-- `/x-threat-model --output results/security/` -- specify output directory
+- `/x-threat-model` — analyze codebase and generate STRIDE threat model
+- `/x-threat-model steering/plan.md` — generate from architecture plan
+- `/x-threat-model --format stride` — STRIDE analysis (default)
+- `/x-threat-model --format pasta` — PASTA analysis (risk-centric)
+- `/x-threat-model --format linddun` — LINDDUN analysis (privacy-focused)
+- `/x-threat-model --output results/security/` — specify output directory
+
+## Parameters
+
+| Parameter | Type | Default | Values | Description |
+|-----------|------|---------|--------|-------------|
+| `path` | String | none | file path | Architecture plan path (optional) |
+| `--format` | String | stride | stride, pasta, linddun | Analysis methodology |
+| `--output` | String | results/security/ | directory path | Output directory for threat model |
 
 ## Workflow
 
@@ -39,7 +47,7 @@ Generates automated threat models for {{PROJECT_NAME}} using STRIDE analysis. Id
 7. GENERATE   -> Produce threat model document with Threat Matrix
 ```
 
-### Step 1 -- Read Architecture Plan
+### Step 1 — Read Architecture Plan
 
 If a path argument is provided, read the architecture plan directly:
 
@@ -63,12 +71,12 @@ When no architecture plan is available, analyze the codebase directly:
 - Identify external integrations from dependency declarations
 - Map communication protocols from adapter implementations
 
-### Step 2 -- IDENTIFY Components
+### Step 2 — Identify Components
 
 Extract all system components:
 
 | Component Type | Discovery Method |
-|---------------|-----------------|
+|----------------|------------------|
 | Services | Package structure, deployment configs |
 | Databases | Connection configs, ORM entities |
 | External APIs | HTTP client configurations, API specs |
@@ -78,7 +86,7 @@ Extract all system components:
 | Auth Service | Security configurations, OAuth/OIDC setup |
 | File Storage | S3/blob storage client configurations |
 
-### Step 3 -- MAP Data Flows and Trust Boundaries
+### Step 3 — Map Data Flows and Trust Boundaries
 
 For each component pair, identify:
 
@@ -91,19 +99,19 @@ Trust Boundary Categories:
 
 | Boundary | Description | Risk Level |
 |----------|-------------|------------|
-| External → Internal | Public internet to internal services | HIGH |
-| Internal → Internal | Service-to-service within trust zone | MEDIUM |
-| Internal → External | Outbound to third-party APIs | MEDIUM |
-| User → System | End-user interaction points | HIGH |
+| External to Internal | Public internet to internal services | HIGH |
+| Internal to Internal | Service-to-service within trust zone | MEDIUM |
+| Internal to External | Outbound to third-party APIs | MEDIUM |
+| User to System | End-user interaction points | HIGH |
 
-### Step 4 -- ANALYZE with STRIDE
+### Step 4 — Analyze with STRIDE
 
 Apply STRIDE analysis to each component. For every component, evaluate all 6 categories:
 
-#### S — Spoofing (Identity & Authentication)
+#### 4.1 — S (Spoofing — Identity and Authentication)
 
 | Threat | Example | Affected Components |
-|--------|---------|-------------------|
+|--------|---------|---------------------|
 | Token forgery | Forged JWT, stolen session | API Gateway, Auth Service |
 | Session hijacking | Cookie theft, session fixation | Web endpoints |
 | Identity impersonation | Spoofed service identity | Service-to-service calls |
@@ -111,10 +119,10 @@ Apply STRIDE analysis to each component. For every component, evaluate all 6 cat
 
 **Mitigations:** Strong authentication (OAuth 2.0/OIDC), mTLS for service-to-service, token rotation, rate limiting on auth endpoints.
 
-#### T — Tampering (Data Integrity)
+#### 4.2 — T (Tampering — Data Integrity)
 
 | Threat | Example | Affected Components |
-|--------|---------|-------------------|
+|--------|---------|---------------------|
 | SQL injection | Malicious SQL in input | Database adapters |
 | Request tampering | Modified request payload | API endpoints |
 | Man-in-the-middle | Intercepted unencrypted traffic | All network calls |
@@ -122,10 +130,10 @@ Apply STRIDE analysis to each component. For every component, evaluate all 6 cat
 
 **Mitigations:** Input validation, parameterized queries, TLS everywhere, request signing, integrity checksums.
 
-#### R — Repudiation (Audit & Traceability)
+#### 4.3 — R (Repudiation — Audit and Traceability)
 
 | Threat | Example | Affected Components |
-|--------|---------|-------------------|
+|--------|---------|---------------------|
 | Insufficient logging | Actions not recorded | All services |
 | Log tampering | Modified audit logs | Logging infrastructure |
 | Non-attributable actions | Actions without user identity | Background jobs, async |
@@ -133,10 +141,10 @@ Apply STRIDE analysis to each component. For every component, evaluate all 6 cat
 
 **Mitigations:** Structured logging with correlation IDs, immutable audit logs, distributed tracing, event sourcing for critical operations.
 
-#### I — Information Disclosure (Confidentiality)
+#### 4.4 — I (Information Disclosure — Confidentiality)
 
 | Threat | Example | Affected Components |
-|--------|---------|-------------------|
+|--------|---------|---------------------|
 | Data leakage | PII in logs, verbose errors | All services |
 | Excessive exposure | Over-fetching in API responses | API endpoints |
 | Cache poisoning | Sensitive data in shared cache | Cache layer |
@@ -144,10 +152,10 @@ Apply STRIDE analysis to each component. For every component, evaluate all 6 cat
 
 **Mitigations:** Data classification, field-level encryption, response filtering, error sanitization per security KP.
 
-#### D — Denial of Service (Availability)
+#### 4.5 — D (Denial of Service — Availability)
 
 | Threat | Example | Affected Components |
-|--------|---------|-------------------|
+|--------|---------|---------------------|
 | Resource exhaustion | Unbounded queries, large payloads | Database, API endpoints |
 | DDoS | Volumetric attacks on public endpoints | API Gateway |
 | Cascading failure | Uncontrolled retry storms | Service mesh |
@@ -155,10 +163,10 @@ Apply STRIDE analysis to each component. For every component, evaluate all 6 cat
 
 **Mitigations:** Rate limiting, circuit breakers, bulkheads, request size limits, connection pooling, auto-scaling.
 
-#### E — Elevation of Privilege (Authorization)
+#### 4.6 — E (Elevation of Privilege — Authorization)
 
 | Threat | Example | Affected Components |
-|--------|---------|-------------------|
+|--------|---------|---------------------|
 | Broken access control | IDOR, missing authz checks | API endpoints |
 | Privilege escalation | Regular user gaining admin | Auth Service, RBAC |
 | Insecure defaults | Overly permissive roles | Configuration |
@@ -166,12 +174,12 @@ Apply STRIDE analysis to each component. For every component, evaluate all 6 cat
 
 **Mitigations:** RBAC/ABAC enforcement, least privilege principle, authorization at every layer, claim validation.
 
-### Step 5 -- CLASSIFY Threat Severity
+### Step 5 — Classify Threat Severity
 
 Classify each identified threat using impact x probability:
 
 | Severity | Impact | Probability | Action Required |
-|----------|--------|-------------|----------------|
+|----------|--------|-------------|-----------------|
 | **CRITICAL** | High impact + high probability | Exploit known/easy | Fix before release |
 | **HIGH** | High impact or high probability | Exploit possible | Fix in current sprint |
 | **MEDIUM** | Moderate impact | Exploit requires effort | Fix in next sprint |
@@ -186,20 +194,20 @@ Classify each identified threat using impact x probability:
 | Blast radius | Multiple services affected | Single service | Single endpoint |
 | Regulatory | GDPR/SOX/PCI violation | Audit finding | Best practice gap |
 
-### Step 6 -- MITIGATE with Security KP References
+### Step 6 — Mitigate with Security KP References
 
 For each identified threat, suggest concrete mitigations referencing the security knowledge pack:
 
 | STRIDE Category | Security KP Section | Key Mitigations |
-|----------------|--------------------|--------------------|
-| Spoofing | Authentication & Identity | OAuth 2.0, mTLS, token rotation |
+|-----------------|---------------------|-----------------|
+| Spoofing | Authentication and Identity | OAuth 2.0, mTLS, token rotation |
 | Tampering | Input Validation | Parameterized queries, request signing |
-| Repudiation | Logging & Audit | Structured logging, distributed tracing |
+| Repudiation | Logging and Audit | Structured logging, distributed tracing |
 | Information Disclosure | Data Protection | Encryption at rest/transit, data masking |
 | Denial of Service | Resilience Patterns | Rate limiting, circuit breakers |
 | Elevation of Privilege | Authorization | RBAC, least privilege, claim validation |
 
-### Step 7 -- GENERATE Threat Model Document
+### Step 7 — Generate Threat Model Document
 
 Generate the threat model document at the specified output path (default: `results/security/threat-model.md`).
 
@@ -295,10 +303,17 @@ Privacy threat modeling covering:
 | Partial analysis | Generate partial threat model, note gaps |
 | Unknown format requested | Default to STRIDE, warn user |
 
+## Knowledge Pack References
+
+| # | Knowledge Pack | Path | Purpose |
+|---|----------------|------|---------|
+| 1 | Security | `skills/security/SKILL.md` | Mitigation recommendations and OWASP references |
+| 2 | Security References | `skills/security/references/application-security.md` | Detailed security controls and patterns |
+
 ## Integration Notes
 
-- Uses `security-engineer` agent for in-depth analysis via Agent tool
-- References security KP (`skills/security/`) for mitigation recommendations
-- Output follows threat model document structure
-- Works with or without architecture plan (fallback: codebase analysis)
-- Can be invoked as part of `/x-dev-architecture-plan` workflow
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| x-dev-architecture-plan | Invoked from | Threat model can be generated as part of architecture planning |
+| security-engineer agent | Delegates to | Uses security-engineer agent for in-depth analysis via Agent tool |
+| x-owasp-scan | Complements | Threat model informs A04 (Insecure Design) verification in OWASP scan |

@@ -1,8 +1,11 @@
 ---
 name: owasp-asvs
-description: "OWASP ASVS 4.0.3 verification standard with L1/L2/L3 levels, cross-reference tables (OWASP Top 10, CIS Controls, NIST CSF, SANS Top 25), and verification items for all 14 chapters (V1-V14)."
-version: 1.0
+description: "OWASP ASVS 4.0.3 verification standard with L1/L2/L3 levels, cross-reference tables, and verification items for all 14 chapters (V1-V14)."
 user-invocable: false
+allowed-tools:
+  - Read
+  - Grep
+  - Glob
 ---
 
 # Knowledge Pack: OWASP ASVS 4.0.3
@@ -127,3 +130,11 @@ Provides the OWASP Application Security Verification Standard (ASVS) 4.0.3 as a 
 | V12 | Files and Resources | File upload validation, file storage, path traversal prevention |
 | V13 | API and Web Service | REST/SOAP/GraphQL security, input validation, rate limiting |
 | V14 | Configuration | Build pipeline security, dependency management, HTTP security headers |
+
+## Related Knowledge Packs
+
+| Pack | Relationship |
+|------|-------------|
+| `security` | OWASP Top 10, security headers, secrets management |
+| `compliance` | Compliance frameworks (GDPR, HIPAA, PCI-DSS) |
+| `pci-dss-requirements` | PCI-DSS v4.0 requirements mapped to code practices |

@@ -89,8 +89,8 @@ class GitPushSkillContentTest {
             String content = generateSkillContent(tempDir);
             String featureSection = extractSection(
                     content,
-                    "## Workflow Per Story",
-                    "## Hotfix Workflow");
+                    "### Step 3 — Workflow Per Story",
+                    "### Step 4 — Hotfix Workflow");
             assertThat(featureSection)
                     .doesNotContain("checkout main");
         }
@@ -107,7 +107,8 @@ class GitPushSkillContentTest {
                 throws IOException {
             String content = generateSkillContent(tempDir);
             assertThat(content)
-                    .contains("## Hotfix Workflow");
+                    .contains(
+                            "### Step 4 — Hotfix Workflow");
         }
 
         @Test
@@ -118,8 +119,8 @@ class GitPushSkillContentTest {
             String content = generateSkillContent(tempDir);
             String hotfixSection = extractSection(
                     content,
-                    "## Hotfix Workflow",
-                    "## Pull Request");
+                    "### Step 4 — Hotfix Workflow",
+                    "### Step 5 — Pull Request");
             assertThat(hotfixSection)
                     .contains("git checkout main");
             assertThat(hotfixSection)
@@ -134,8 +135,8 @@ class GitPushSkillContentTest {
             String content = generateSkillContent(tempDir);
             String hotfixSection = extractSection(
                     content,
-                    "## Hotfix Workflow",
-                    "## Pull Request");
+                    "### Step 4 — Hotfix Workflow",
+                    "### Step 5 — Pull Request");
             assertThat(hotfixSection)
                     .contains("back-merge");
             assertThat(hotfixSection)
@@ -183,9 +184,9 @@ class GitPushSkillContentTest {
                     "## Integration Notes",
                     null);
             assertThat(notesSection)
-                    .contains("branch from `develop`");
+                    .contains("branch from develop");
             assertThat(notesSection)
-                    .contains("PR to `develop`");
+                    .contains("PR to develop");
         }
     }
 

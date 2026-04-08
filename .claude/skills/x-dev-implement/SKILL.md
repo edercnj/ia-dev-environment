@@ -1,6 +1,7 @@
 ---
 name: x-dev-implement
 description: "Implements a feature/story using TDD (Red-Green-Refactor) workflow. Delegates preparation to a subagent that reads architecture, coding, and test plan KPs, then implements test-first with Double-Loop TDD, layer-by-layer with compile checks after each cycle."
+user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[STORY-ID or feature-description]"
 ---
@@ -11,18 +12,41 @@ argument-hint: "[STORY-ID or feature-description]"
 - **Tone**: Technical, Direct, and Concise.
 - **Efficiency**: Remove all conversational fillers and greetings to save tokens.
 
-# Skill: Implement Story (Orchestrator)
+# Skill: Implement Story
 
-## When to Use This vs `/x-dev-lifecycle`
+## Purpose
+
+Implements a feature or story following TDD (Red-Green-Refactor) workflow for {{PROJECT_NAME}}. Delegates preparation to a subagent that reads architecture, coding, and test plan knowledge packs, then implements test-first with Double-Loop TDD, layer-by-layer with compile checks after each cycle.
 
 | Scenario | Use |
 |----------|-----|
 | Quick implementation (single class, small fix) | This skill |
 | Full story with multi-persona review | `/x-dev-lifecycle` |
 | Coding without the review phases | This skill |
-| Complete lifecycle: code → review → fix → PR | `/x-dev-lifecycle` |
+| Complete lifecycle: code, review, fix, PR | `/x-dev-lifecycle` |
 
-## Pre-Check: Plan Reuse (RULE-002 — Idempotency via Staleness Check)
+## Triggers
+
+- `/x-dev-implement STORY-ID` — implement a story by ID
+- `/x-dev-implement feature-description` — implement a feature from description
+
+## Parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `STORY-ID` or description | Yes | Story identifier or free-text feature description |
+
+## Workflow
+
+```
+0. PRE-CHECK             -> Verify existing plans (implementation, architecture, test)
+1. PREPARE + UNDERSTAND  -> Subagent reads KPs + available plans, produces TDD implementation plan
+2. TDD LOOP              -> For each scenario (TPP order): RED -> GREEN -> REFACTOR -> compile check
+3. VALIDATE              -> Coverage thresholds, all acceptance tests GREEN (inline)
+4. COMMIT                -> Atomic TDD commits: one per Red-Green-Refactor cycle (inline)
+```
+
+### Step 0 — Pre-Check: Plan Reuse (RULE-002 — Idempotency via Staleness Check)
 
 Before starting implementation, check for existing plans produced by `x-dev-lifecycle` or other planning skills. Reusing existing plans ensures consistency between the full lifecycle workflow and the simplified implement workflow.
 
@@ -41,8 +65,8 @@ Before starting implementation, check for existing plans produced by `x-dev-life
    | 3 | Test Plan | `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md` | "Use test plan at {path} for acceptance tests and unit test scenarios" |
 
 3. **Staleness check:** For each plan that exists:
-   - If `mtime(story file) <= mtime(plan file)` → plan is **fresh**. Log: `"Reusing existing {type} from {date}"`
-   - If `mtime(story file) > mtime(plan file)` → plan is **stale**. Log WARNING: `"Plan {type} may be stale (story modified after plan generation), using as context anyway"`
+   - If `mtime(story file) <= mtime(plan file)` — plan is **fresh**. Log: `"Reusing existing {type} from {date}"`
+   - If `mtime(story file) > mtime(plan file)` — plan is **stale**. Log WARNING: `"Plan {type} may be stale (story modified after plan generation), using as context anyway"`
    - Stale plans are still used as context — do NOT regenerate (regeneration is the responsibility of `x-dev-lifecycle`)
 
 4. **Context combination:** Log the combination of available plans:
@@ -60,17 +84,7 @@ Before starting implementation, check for existing plans produced by `x-dev-life
 
    No combination blocks execution — graceful degradation in all scenarios.
 
-## Execution Flow (Orchestrator Pattern)
-
-```
-0. PRE-CHECK             -> Verify existing plans (implementation, architecture, test)
-1. PREPARE + UNDERSTAND  -> Subagent reads KPs + available plans, produces TDD implementation plan
-2. TDD LOOP              -> For each scenario (TPP order): RED -> GREEN -> REFACTOR -> compile check
-3. VALIDATE              -> Coverage thresholds, all acceptance tests GREEN (inline)
-4. COMMIT                -> Atomic TDD commits: one per Red-Green-Refactor cycle (inline)
-```
-
-## Step 1: Prepare + Understand (Subagent via Task)
+### Step 1 — Prepare + Understand (Subagent via Task)
 
 Launch a **single** `general-purpose` subagent:
 
@@ -102,7 +116,7 @@ Launch a **single** `general-purpose` subagent:
 >
 > **Step 3.5 — Read template for implementation plan format (RULE-007):**
 > - Read template at `.claude/templates/_TEMPLATE-IMPLEMENTATION-PLAN.md` for required output format
-> - If the template file does NOT exist, log: `"Template not found, using inline format"` and continue without it (RULE-012: graceful fallback for projects without templates)
+> - If the template file does NOT exist, log: `"Template not found, using inline format"` and continue without it (RULE-012 — graceful fallback for projects without templates)
 >
 > **Step 4 — Review existing code** in the target packages to identify patterns to follow.
 >
@@ -126,13 +140,13 @@ Launch a **single** `general-purpose` subagent:
 > `WARNING: No test plan found. Run /x-test-plan first for optimal TDD workflow. Proceeding with implementation-first approach.`
 > In fallback mode, Step 2 reverts to the layer-by-layer implementation without strict TPP ordering. Tests are written alongside code (test-with) rather than test-first.
 
-## Step 2: TDD Loop — Red-Green-Refactor (Orchestrator — Inline)
+### Step 2 — TDD Loop: Red-Green-Refactor (Inline)
 
 Using the TDD implementation plan returned by the subagent, execute Red-Green-Refactor cycles.
 
 **Layer order is preserved WITHIN each cycle.** When a UT-N test touches domain, that cycle implements domain first, then adapters. Dependencies point inward (domain has no outward dependencies).
 
-### 2.0 Write Acceptance Test First (Double-Loop — Outer Loop)
+#### 2.0 — Write Acceptance Test First (Double-Loop Outer Loop)
 
 Before any unit test cycle, write the acceptance test(s) from the test plan (AT-N entries):
 
@@ -146,11 +160,11 @@ Before any unit test cycle, write the acceptance test(s) from the test plan (AT-
 # Expected: FAIL (RED)
 ```
 
-### 2.1 Inner Loop: Red-Green-Refactor per Unit Test (TPP Order)
+#### 2.1 — Inner Loop: Red-Green-Refactor per Unit Test (TPP Order)
 
 For each UT-N in the test plan (strict TPP order: degenerate first, edge cases last):
 
-#### RED — Write the Failing Test
+##### RED — Write the Failing Test
 1. Write the unit test for UT-N (test name follows `[method]_[scenario]_[expected]`)
 2. Run it — it MUST fail
 3. If the test passes without new code, the test is wrong or the scenario is already covered
@@ -160,7 +174,7 @@ For each UT-N in the test plan (strict TPP order: degenerate first, edge cases l
 # Expected: FAIL (RED)
 ```
 
-#### GREEN — Implement the Minimum
+##### GREEN — Implement the Minimum
 1. Write the MINIMUM production code to make UT-N pass
 2. Respect layer order: domain -> ports -> adapters -> application -> inbound
 3. Do NOT add code beyond what the test requires
@@ -172,7 +186,7 @@ For each UT-N in the test plan (strict TPP order: degenerate first, edge cases l
 # Expected: ALL PASS (GREEN)
 ```
 
-#### REFACTOR — Improve Design
+##### REFACTOR — Improve Design
 1. Look for: extract method (> 25 lines), duplicate code, unclear naming
 2. Refactoring NEVER adds behavior — if behavior changes, write a new failing test first
 3. Run all tests after refactoring — they MUST still pass
@@ -182,7 +196,7 @@ For each UT-N in the test plan (strict TPP order: degenerate first, edge cases l
 # Expected: ALL PASS (still GREEN)
 ```
 
-#### Compile Check
+##### Compile Check
 After each complete cycle (Red-Green-Refactor):
 
 ```bash
@@ -190,14 +204,14 @@ After each complete cycle (Red-Green-Refactor):
 # Expected: zero errors, zero warnings
 ```
 
-### 2.2 Cycle Completion
+#### 2.2 — Cycle Completion
 
 After all UT-N cycles for a given acceptance test (AT-N) are complete:
 1. Run the acceptance test — it should now be GREEN
 2. If still RED, identify missing unit test cycles and add them
 3. Proceed to the next AT-N
 
-### 2.3 Code Conventions (from subagent's plan)
+#### 2.3 — Code Conventions (from subagent's plan)
 
 - Named constants (never magic numbers/strings)
 - Methods ≤ 25 lines, classes ≤ 250 lines
@@ -206,7 +220,7 @@ After all UT-N cycles for a given acceptance test (AT-N) are complete:
 - Constructor/initializer injection
 - Immutable DTOs, value objects, events
 
-### 2.4 Fallback Mode (No Test Plan)
+#### 2.4 — Fallback Mode (No Test Plan)
 
 When operating in fallback mode (no test plan available from pre-check or direct lookup):
 - Implement layer-by-layer following the old approach
@@ -215,7 +229,7 @@ When operating in fallback mode (no test plan available from pre-check or direct
 - Log a reminder: `WARNING: Consider running /x-test-plan for future implementations`
 - If implementation plan or architecture plan were found in pre-check, still use them for guidance on layer order and class structure
 
-## Step 3: Validate (Orchestrator — Inline)
+### Step 3 — Validate (Inline)
 
 All TDD cycles are complete. Run final validation:
 
@@ -240,7 +254,7 @@ All TDD cycles are complete. Run final validation:
 | Automated test validates primary AC | At least 1 test validates the story's primary acceptance criterion |
 | Smoke test passes | `{{SMOKE_COMMAND}}` (if testing.smoke_tests == true) |
 
-## Step 4: Commit (Orchestrator — Inline)
+### Step 4 — Commit (Inline)
 
 Make atomic commits per TDD cycle. Each commit contains the test AND its implementation from one Red-Green-Refactor cycle:
 
@@ -271,22 +285,17 @@ git commit -m "test(scope): update acceptance test for [AT-N scenario] (GREEN)"
 2. Unit test + implementation commits (UT-1, UT-2, ...) — in TPP order
 3. Final commit when AT turns GREEN (if AT content changed)
 
-### Version Bump (Optional — Standalone Mode Only)
+## Error Handling
 
-After all TDD commits are complete, optionally bump the project version:
-
-1. If orchestrated by `x-dev-epic-implement` (subagent prompt contains "Version bump: DEFERRED"): **SKIP**. The epic orchestrator handles version bumps at the integrity gate.
-2. If standalone (invoked directly by user):
-   a. Analyze commits on the branch: `git log main..HEAD --format="%s%n%b" --no-merges`
-   b. Determine bump type (MAJOR/MINOR/PATCH/NONE) using Conventional Commits rules (see `x-lib-version-bump`)
-   c. If NONE: skip (no version-impacting changes)
-   d. If bump detected:
-      - Read current version from main: `git show main:pom.xml`
-      - Calculate next version (with `-SNAPSHOT` for Maven)
-      - Update pom.xml on the branch
-      - Commit: `chore(version): bump to X.Y.Z-SNAPSHOT`
-      - Log: `"Version bumped to X.Y.Z-SNAPSHOT (based on {bumpType} commits)"`
-3. Note: x-dev-implement does NOT push. The version bump is local-only. The developer pushes manually or uses `/x-git-push`.
+| Scenario | Action |
+|----------|--------|
+| No story ID or description provided | Prompt user for story identifier |
+| Test plan not found | Log warning, proceed in fallback mode (test-with) |
+| Compile failure after TDD cycle | Fix compilation error before proceeding to next cycle |
+| Test regression (previously passing test fails) | Revert last change, investigate root cause |
+| Coverage below threshold | Identify uncovered branches, add missing test scenarios |
+| Acceptance test still RED after all UTs | Identify missing unit test cycles and add them |
+| Template not found (RULE-012) | Log warning, use inline format, continue normally |
 
 ## Template Fallback (RULE-012)
 
@@ -299,14 +308,30 @@ When `.claude/templates/_TEMPLATE-IMPLEMENTATION-PLAN.md` is **not available** (
 
 This ensures backward compatibility with projects that have not yet adopted template-based generation.
 
+## Knowledge Pack References
+
+| Pack | Files | Purpose |
+|------|-------|---------|
+| architecture | `skills/architecture/references/architecture-principles.md` | Layer structure, dependency direction |
+| coding-standards | `skills/coding-standards/references/coding-conventions.md` | {{LANGUAGE}} coding conventions |
+| coding-standards | `skills/coding-standards/references/version-features.md` | {{LANGUAGE}} {{LANGUAGE_VERSION}} idioms |
+| layer-templates | `skills/layer-templates/SKILL.md` | Code templates per architecture layer |
+| testing | `skills/testing/SKILL.md` | Test frameworks and TDD patterns |
+
 ## Integration Notes
+
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| `x-test-plan` | reads | Consumes test plan for Double-Loop + TPP ordering |
+| `x-dev-lifecycle` | called-by | Invoked during Phase 2 of the full lifecycle |
+| `x-test-run` | calls | Invokes test execution and coverage validation patterns |
+| `x-git-push` | calls | Uses commit conventions for atomic TDD commits |
 
 - **Prerequisite:** Run `/x-test-plan` first to generate the test plan with Double-Loop + TPP ordering
 - **Plan reuse:** Pre-check (RULE-002) discovers existing plans from `x-dev-lifecycle` runs, ensuring consistency between full lifecycle and simplified implement workflows
 - **Template reference:** RULE-007 instructs subagent to read implementation plan template when available
 - **Graceful fallback:** RULE-012 ensures backward compatibility when templates are not available
 - For the full lifecycle with reviews, use `x-dev-lifecycle` instead
-- Invokes patterns from `x-test-run` and `x-git-push` skills
 - Works with any {{FRAMEWORK}} project following layered/hexagonal architecture
 - The developer agent (typescript-developer) already includes TDD workflow rules (story-0003-0006)
 - All `{{PLACEHOLDER}}` tokens (e.g. `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
