@@ -84,6 +84,21 @@ Before starting implementation, check for existing plans produced by `x-dev-life
 
    No combination blocks execution — graceful degradation in all scenarios.
 
+#### Additional Artifacts (Task-Aware Mode)
+
+In addition to the 3 plan types above, check for per-task plans produced by `x-dev-lifecycle` (multi-agent planning):
+
+   | # | Artifact Type | File Pattern | Context Injection Instruction |
+   |---|---------------|--------------|-------------------------------|
+   | 4 | Task Plans | `plans/epic-XXXX/plans/task-plan-TASK-*-story-XXXX-YYYY.md` | "Use per-task plans for implementation sequence and DoD criteria" |
+   | 5 | Task Breakdown | `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` | "Use task breakdown for execution order and parallelism markers" |
+
+5. **Mode determination:**
+   - If task plans AND task breakdown exist AND are fresh: use **Task-Aware Mode** (iterate TASK-NNN)
+   - Otherwise: use existing Mode A (test-driven via UT-N) or Mode B (layer-based fallback)
+
+   Log: `"Found {N} per-task plans, using task-aware mode"` or `"No per-task plans found, using {test-driven|layer-based} mode"`
+
 ### Step 1 — Prepare + Understand (Subagent via Task)
 
 Launch a **single** `general-purpose` subagent:
@@ -229,6 +244,50 @@ When operating in fallback mode (no test plan available from pre-check or direct
 - Log a reminder: `WARNING: Consider running /x-test-plan for future implementations`
 - If implementation plan or architecture plan were found in pre-check, still use them for guidance on layer order and class structure
 
+#### 2.5 — Task-Aware TDD Loop (when per-task plans exist)
+
+When per-task plans are detected in Step 0, Step 2 replaces the UT-N/layer-based iteration with TASK-NNN iteration:
+
+**Task Iteration Order:**
+1. Read `tasks-story-XXXX-YYYY.md` for ordered task list with dependencies
+2. Order tasks by: dependencies first (tasks with no deps before those that have deps), then TDD phase (RED->GREEN->REFACTOR for each component), then TPP level (nil->constant->scalar->collection)
+
+**For each TASK-NNN:**
+
+##### 1. Resume Check
+Verify if task is already DONE:
+- Check if the file/class from Implementation Guide exists
+- If exists, run tests for that component
+- If tests pass: log `"TASK-NNN: DONE (resume point verified)"` and skip
+- If tests fail or file doesn't exist: proceed with implementation
+
+##### 2. Read Task Plan
+Read `task-plan-TASK-NNN-story-XXXX-YYYY.md`
+- Extract: Objective, Implementation Guide, Definition of Done, Dependencies
+
+##### 3. Execute Implementation Guide
+Follow the step-by-step instructions in the task plan:
+- Respect layer order: domain -> ports -> adapters -> application -> inbound
+- Apply TDD: write test first (RED), implement (GREEN), refactor
+
+##### 4. Validate DoD
+Check each criterion from the task's Definition of Done:
+- If DoD fails: log which criteria failed, do NOT mark as DONE
+
+##### 5. Atomic Commit
+```bash
+git add [test-file] [implementation-files]
+git commit -m "feat(TASK-XXXX-YYYY-NNN): implement TASK-XXXX-YYYY-NNN [TDD:GREEN]"
+```
+
+##### 6. Compile Check
+```bash
+{{COMPILE_COMMAND}}
+# Must pass before next task
+```
+
+When per-task plans are NOT detected, Step 2 executes as currently defined (Mode A: test-driven via UT-N, or Mode B: layer-based fallback).
+
 ### Step 3 — Validate (Inline)
 
 All TDD cycles are complete. Run final validation:
@@ -295,6 +354,8 @@ git commit -m "test(scope): update acceptance test for [AT-N scenario] (GREEN)"
 | Test regression (previously passing test fails) | Revert last change, investigate root cause |
 | Coverage below threshold | Identify uncovered branches, add missing test scenarios |
 | Acceptance test still RED after all UTs | Identify missing unit test cycles and add them |
+| Task DoD validation fails | Log which criteria failed, do NOT mark task as DONE, attempt fix |
+| Task dependency not met | Skip task, log warning, process remaining independent tasks first |
 | Template not found (RULE-012) | Log warning, use inline format, continue normally |
 
 ## Template Fallback (RULE-012)
@@ -326,11 +387,13 @@ This ensures backward compatibility with projects that have not yet adopted temp
 | `x-dev-lifecycle` | called-by | Invoked during Phase 2 of the full lifecycle |
 | `x-test-run` | calls | Invokes test execution and coverage validation patterns |
 | `x-git-push` | calls | Uses commit conventions for atomic TDD commits |
+| `x-lib-task-decomposer` | reads | Consumes task breakdown and per-task plans for task-aware mode |
 
 - **Prerequisite:** Run `/x-test-plan` first to generate the test plan with Double-Loop + TPP ordering
 - **Plan reuse:** Pre-check (RULE-002) discovers existing plans from `x-dev-lifecycle` runs, ensuring consistency between full lifecycle and simplified implement workflows
 - **Template reference:** RULE-007 instructs subagent to read implementation plan template when available
 - **Graceful fallback:** RULE-012 ensures backward compatibility when templates are not available
+- **Task-aware mode:** When per-task plans from `x-lib-task-decomposer` exist, Step 2 iterates TASK-NNN instead of UT-N, with resume check, DoD validation, and atomic commits per task
 - For the full lifecycle with reviews, use `x-dev-lifecycle` instead
 - Works with any {{FRAMEWORK}} project following layered/hexagonal architecture
 - The developer agent (typescript-developer) already includes TDD workflow rules (story-0003-0006)
