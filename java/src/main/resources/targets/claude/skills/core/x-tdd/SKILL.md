@@ -372,14 +372,61 @@ Tests MUST progress from lower priority (simpler transformations) to higher prio
 - **Batch commits**: combining multiple phases into a single commit. Each phase (RED, GREEN, REFACTOR) gets its own atomic commit.
 - **Testing implementation details**: tests should verify behavior, not internal structure. Test the what, not the how.
 
+## Slim Mode
+
+> **When to use:** When this skill is invoked programmatically from another skill (e.g., x-dev-lifecycle Phase 2), read ONLY this section for minimum context.
+
+### Workflow
+
+```
+FOR each cycle in task plan (TPP order):
+  RED:      Write failing test -> verify FAIL -> commit [TDD:RED]
+  GREEN:    Minimum implementation -> compile -> verify PASS -> commit [TDD:GREEN]
+  REFACTOR: Improve design (optional) -> verify PASS -> commit [TDD:REFACTOR]
+END FOR
+```
+
+### Required Input
+
+- Task ID: `TASK-XXXX-YYYY-NNN`
+- Task plan at: `plans/epic-XXXX/plans/task-plan-XXXX-YYYY-NNN.md`
+
+### Commands
+
+```bash
+# Compile
+{{COMPILE_COMMAND}}
+
+# Run tests
+{{TEST_COMMAND}}
+
+# Coverage (optional, non-blocking warning)
+{{COVERAGE_COMMAND}}
+```
+
+### Commit Delegation
+
+Each phase delegates to `/x-commit`: read only the "## Slim Mode" section of x-commit for minimum context.
+
+- RED: `--type test --subject "add test for [desc]" --tdd RED`
+- GREEN: `--type feat --subject "implement [desc]" --tdd GREEN`
+- REFACTOR: `--type refactor --subject "[desc]" --tdd REFACTOR`
+
+### Error Handling
+
+- RED test passes -> ABORT (behavior already exists)
+- GREEN compile/test fails -> retry (max 3)
+- REFACTOR tests fail -> REVERT (`git checkout -- .`), skip commit
+- Coverage below threshold -> WARNING only (non-blocking)
+
 ## Integration with Other Skills
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
 | `x-plan-task` | reads from | Task plan provides the TDD cycle definitions |
-| `x-commit` | delegates to | Each phase produces an atomic commit via x-commit |
-| `x-format` | invoked by (via x-commit) | Code is formatted before each commit |
-| `x-lint` | invoked by (via x-commit) | Code is linted before each commit |
+| `x-commit` | delegates to | Each phase produces an atomic commit via x-commit (use Slim Mode for chain invocation) |
+| `x-format` | invoked by (via x-commit) | Code is formatted before each commit (use Slim Mode) |
+| `x-lint` | invoked by (via x-commit) | Code is linted before each commit (use Slim Mode) |
 | `x-test-run` | complementary | x-test-run provides coverage analysis; x-tdd uses {{TEST_COMMAND}} directly |
 | `x-dev-lifecycle` | orchestrated by | Lifecycle may invoke x-tdd for inner-loop TDD execution |
 | `x-dev-implement` | complementary | x-dev-implement handles full story implementation; x-tdd handles per-task TDD cycles |
