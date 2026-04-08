@@ -3,6 +3,7 @@ name: x-lib-task-decomposer
 description: "Decomposes an implementation plan into tasks. Primary mode: derives tasks from test scenarios (x-test-plan output) using TDD structure (RED/GREEN/REFACTOR). Fallback mode: uses Layer Task Catalog (G1-G7) when no test plan exists."
 user-invocable: false
 allowed-tools: Read, Write, Grep, Glob
+context-budget: medium
 ---
 
 ## Global Output Policy

@@ -4,6 +4,7 @@ description: "QA specialist review: validates test coverage, TDD compliance, tes
 user-invocable: true
 allowed-tools: Read, Grep, Glob, Bash
 argument-hint: "[PR number or file paths]"
+context-budget: light
 ---
 
 ## Global Output Policy

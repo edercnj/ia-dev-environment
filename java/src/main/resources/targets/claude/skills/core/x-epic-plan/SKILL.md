@@ -289,15 +289,20 @@ For each phase in (0..totalPhases-1):
 Do NOT expect source code, diffs, or knowledge pack content in this prompt.
 The subagent reads all story files, KPs, and references independently.**
 
-For each story to plan, invoke `/x-story-plan` via the Agent tool:
+For each story to plan, invoke `/x-story-plan` via the Skill tool:
 
-**Agent invocation:**
+**Skill invocation:**
 
+```
+Skill(skill: "x-story-plan", args: "{storyId}")
+```
+
+The skill executes all 6 phases of `/x-story-plan` (Input Resolution, Context Gathering, Parallel Planning, Consolidation, Artifact Generation, DoR Validation) and returns a result containing the DoR verdict.
+
+If `/x-story-plan` is unavailable via the Skill tool, fall back to the Agent tool:
 ```
 Agent(prompt: "/x-story-plan {storyId}")
 ```
-
-The subagent executes all 6 phases of `/x-story-plan` (Input Resolution, Context Gathering, Parallel Planning, Consolidation, Artifact Generation, DoR Validation) and returns a result containing the DoR verdict.
 
 **Parallel dispatch within a phase:**
 

@@ -4,6 +4,7 @@ description: "Performance specialist review: validates N+1 queries, connection p
 user-invocable: true
 allowed-tools: Read, Grep, Glob, Bash
 argument-hint: "[PR number or file paths]"
+context-budget: light
 ---
 
 ## Global Output Policy

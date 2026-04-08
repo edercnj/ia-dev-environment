@@ -91,7 +91,12 @@ Launch `general-purpose` subagent:
 
 **Skip condition:** If Phase 0 pre-check marked the security assessment as "Reuse", skip.
 
-Launch `general-purpose` subagent:
+Invoke skill `/x-threat-model` via the Skill tool:
+  Skill(skill: "x-threat-model", args: "{STORY_PATH}")
+
+Output: `plans/epic-XXXX/plans/security-story-XXXX-YYYY.md`
+
+If `/x-threat-model` is unavailable, fall back to `general-purpose` subagent:
 > Read template `_TEMPLATE-SECURITY-ASSESSMENT.md` (RULE-007, fallback RULE-012).
 > Read `skills/security/SKILL.md` -> then read its references.
 > Read implementation plan. Produce security assessment: threat model, OWASP Top 10 mapping, auth review, input validation, data protection, secrets management.

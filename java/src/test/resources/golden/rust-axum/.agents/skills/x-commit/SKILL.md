@@ -4,6 +4,7 @@ description: "Creates Conventional Commits with Task ID in scope and pre-commit 
 user-invocable: true
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit
 argument-hint: "--task TASK-XXXX-YYYY-NNN --type <type> --subject <subject> [--tdd RED|GREEN|REFACTOR] [--body <body>] [--skip-chain] [--amend]"
+context-budget: medium
 ---
 
 ## Global Output Policy

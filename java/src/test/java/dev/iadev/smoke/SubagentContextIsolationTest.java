@@ -66,11 +66,10 @@ class SubagentContextIsolationTest {
                 throws IOException {
             String content = readSkillContent(
                     "x-dev-epic-implement");
-            assertThat(content)
-                    .as("Section 1.4 sequential prompt"
-                            + " must include "
-                            + "CONTEXT ISOLATION")
-                    .contains(ISOLATION_MARKER);
+            assertPromptSectionContains(
+                    content,
+                    "Subagent Dispatch",
+                    ISOLATION_MARKER);
         }
 
         @Test
@@ -170,7 +169,7 @@ class SubagentContextIsolationTest {
                     "x-review");
             assertPromptSectionContains(
                     content,
-                    "Engineer",
+                    "Parallel Reviews",
                     ISOLATION_MARKER);
         }
     }
@@ -186,11 +185,63 @@ class SubagentContextIsolationTest {
                 throws IOException {
             String content = readSkillContent(
                     "x-epic-plan");
+            assertPromptSectionContains(
+                    content,
+                    "Subagent Dispatch",
+                    ISOLATION_MARKER);
+        }
+    }
+
+    @Nested
+    @DisplayName("Skill Invocation Enforcement")
+    class SkillInvocationEnforcement {
+
+        private static final String SKILL_INVOCATION_MARKER =
+                "Skill(skill:";
+
+        @Test
+        @DisplayName("x-dev-epic-implement prompt "
+                + "invokes x-dev-lifecycle via Skill tool")
+        void epicImplement_invokesLifecycleViaSkill()
+                throws IOException {
+            String content = readSkillContent(
+                    "x-dev-epic-implement");
             assertThat(content)
-                    .as("x-epic-plan subagent dispatch"
-                            + " must include "
-                            + "CONTEXT ISOLATION")
-                    .contains(ISOLATION_MARKER);
+                    .as("Subagent prompt must invoke "
+                            + "x-dev-lifecycle via Skill tool")
+                    .contains(
+                            "Skill(skill: \"x-dev-lifecycle\"");
+        }
+
+        @Test
+        @DisplayName("x-epic-plan prompt "
+                + "invokes x-story-plan via Skill tool")
+        void epicPlan_invokesStoryPlanViaSkill()
+                throws IOException {
+            String content = readSkillContent(
+                    "x-epic-plan");
+            assertThat(content)
+                    .as("Subagent dispatch must invoke "
+                            + "x-story-plan via Skill tool")
+                    .contains(
+                            "Skill(skill: \"x-story-plan\"");
+        }
+
+        @Test
+        @DisplayName("x-dev-lifecycle planning phases "
+                + "invoke x-threat-model via Skill tool")
+        void lifecycle_invokesThreatModelViaSkill()
+                throws IOException {
+            Path refPath = Path.of(SKILLS_DIR,
+                    "x-dev-lifecycle", "references",
+                    "planning-phases.md");
+            String content = Files.readString(
+                    refPath, StandardCharsets.UTF_8);
+            assertThat(content)
+                    .as("Phase 1E must invoke "
+                            + "x-threat-model via Skill tool")
+                    .contains(
+                            "Skill(skill: \"x-threat-model\"");
         }
     }
 
@@ -218,7 +269,8 @@ class SubagentContextIsolationTest {
     /**
      * Verifies that the section of the content
      * containing the given role also contains the
-     * isolation marker.
+     * isolation marker within the bounded section
+     * starting at the role marker.
      */
     private static void assertPromptSectionContains(
             String content,
@@ -229,8 +281,14 @@ class SubagentContextIsolationTest {
                 .as("Role '%s' must exist in template",
                         roleMarker)
                 .isGreaterThanOrEqualTo(0);
-        assertThat(content)
-                .as("Template with role '%s' must "
+        int nextSectionIndex = content.indexOf(
+                "\n## ", roleIndex + roleMarker.length());
+        String section = nextSectionIndex < 0
+                ? content.substring(roleIndex)
+                : content.substring(
+                        roleIndex, nextSectionIndex);
+        assertThat(section)
+                .as("Section with role '%s' must "
                                 + "contain '%s'",
                         roleMarker, expected)
                 .contains(expected);

@@ -845,15 +845,21 @@ Phase: {currentPhase}
 Skip review: {skipReview}
 Auto-approve PR: {autoApprovePr}
 
-Execute the x-dev-lifecycle workflow:
+CRITICAL: Invoke the /x-dev-lifecycle skill using the Skill tool:
+  Skill(skill: "x-dev-lifecycle", args: "{storyId}")
+
+The /x-dev-lifecycle skill orchestrates ALL phases: planning, TDD, reviews, commits, and PR creation.
+Do NOT manually perform these steps. Let the skill handle all orchestration.
+
+If /x-dev-lifecycle is unavailable (Skill tool error), fall back to manual execution:
 1. Read the story file for requirements
 2. Create implementation plan
 3. Implement following TDD (Red-Green-Refactor)
 4. Run tests and verify coverage
 5. Commit changes with Conventional Commits
-6. Create PR and run reviews (Phases 4-8 of x-dev-lifecycle)
+6. Create PR and run reviews
 
-The PR created by /x-dev-lifecycle Phase 6 MUST:
+The PR created by /x-dev-lifecycle MUST:
 - Target `develop` branch (or parent branch when --auto-approve-pr is set)
 - Include "Part of EPIC-{epicId}" in the PR body for traceability (RULE-008)
 
@@ -865,6 +871,7 @@ When --auto-approve-pr is set:
 
 Version bump: DEFERRED. Do NOT modify pom.xml version in Phase 6.
 The epic orchestrator handles version bumps at the integrity gate.
+CONTEXT ISOLATION: Pass only metadata to nested invocations, never source code or diffs.
 
 Include prUrl and prNumber in your SubagentResult JSON.
 

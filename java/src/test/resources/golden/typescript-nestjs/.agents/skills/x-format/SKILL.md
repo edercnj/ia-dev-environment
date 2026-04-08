@@ -4,6 +4,7 @@ description: "Formats source code using the appropriate formatter for {{LANGUAGE
 user-invocable: true
 allowed-tools: Bash, Read, Grep, Glob
 argument-hint: "[--check | --changed-only]"
+context-budget: medium
 ---
 
 ## Global Output Policy
