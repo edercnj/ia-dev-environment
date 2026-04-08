@@ -91,8 +91,8 @@ flowchart TD
 
 ## Prerequisites
 
-- Story file exists at `plans/epic-XXXX/story-XXXX-YYYY.md`
-- Epic directory exists: `plans/epic-XXXX/`
+- Story file exists at `<EPIC_DIR>/story-XXXX-YYYY.md`
+- Epic directory exists: `plans/epic-XXXX/` (also supports suffix variants like `plans/epic-XXXX-*`; resolved via glob in Phase 0)
 
 ## See Also
 

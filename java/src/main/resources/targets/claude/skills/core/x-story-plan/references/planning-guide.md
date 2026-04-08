@@ -13,7 +13,7 @@ Each agent produces proposals in a standardized format to enable deterministic c
 |-------|------|----------|-------------|
 | `source` | string | M | Agent name that produced this proposal (Architect, QA Engineer, Security Engineer, Tech Lead, Product Owner) |
 | `id` | string | M | Agent-scoped ID with prefix: `ARCH-NNN`, `QA-NNN`, `SEC-NNN`, `TL-NNN`, `PO-NNN` |
-| `type` | enum | M | Task type: `architecture`, `test`, `security`, `quality-gate`, `validation` |
+| `type` | enum | M | Task type: `architecture`, `implementation`, `test`, `security`, `quality-gate`, `validation` |
 | `description` | string | M | Clear description of what this task accomplishes |
 | `layer` | enum | M | Architecture layer: `domain`, `application`, `adapter.inbound`, `adapter.outbound`, `config`, `cross-cutting` |
 | `components` | list | M | Affected classes, interfaces, or modules |
@@ -27,7 +27,7 @@ Each agent produces proposals in a standardized format to enable deterministic c
 
 | Agent | Prefix | Typical Types |
 |-------|--------|---------------|
-| Architect | `ARCH-NNN` | architecture (component creation, layer setup) |
+| Architect | `ARCH-NNN` | architecture, implementation (component creation, layer setup) |
 | QA Engineer | `QA-NNN` | test (RED/GREEN pairs in TPP order) |
 | Security Engineer | `SEC-NNN` | security (controls, validations, assessments) |
 | Tech Lead | `TL-NNN` | quality-gate (compliance checks, thresholds) |
