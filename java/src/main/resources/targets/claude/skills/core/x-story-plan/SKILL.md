@@ -70,27 +70,41 @@ Extract epic ID (XXXX) and story sequence (YYYY) from the story ID argument.
 - Input: `story-0028-0002` -> epic ID = `0028`, story sequence = `0002`
 - If the argument does not match `story-XXXX-YYYY` format, abort with format error.
 
-### 0.2 Resolve Paths
+### 0.2 Resolve Epic Directory
 
-Compute all required paths:
+Resolve the actual epic directory before computing any other paths:
+
+1. Extract the epic ID from the story ID (`story-XXXX-YYYY` -> `epic-XXXX`)
+2. Resolve `EPIC_DIR` with a glob that supports both the exact directory and suffix variants:
+   - Exact match: `plans/epic-XXXX`
+   - Suffix variant: `plans/epic-XXXX-*`
+3. If exactly one directory matches, use that as `EPIC_DIR`
+4. If both exact and suffix matches exist, prefer the exact match `plans/epic-XXXX`
+5. If no directory matches, stop and report that the epic directory could not be resolved
+
+### 0.3 Resolve Paths
+
+Compute all required paths relative to `<EPIC_DIR>`:
 
 | Path | Pattern | Example |
 |------|---------|---------|
-| Story file | `plans/epic-XXXX/story-XXXX-YYYY.md` | `plans/epic-0028/story-0028-0002.md` |
-| Epic file | `plans/epic-XXXX/epic-XXXX.md` | `plans/epic-0028/epic-0028.md` |
-| Implementation map | `plans/epic-XXXX/IMPLEMENTATION-MAP.md` | `plans/epic-0028/IMPLEMENTATION-MAP.md` |
-| Output directory | `plans/epic-XXXX/plans/` | `plans/epic-0028/plans/` |
-| Tasks file | `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` | `plans/epic-0028/plans/tasks-story-0028-0002.md` |
-| Planning report | `plans/epic-XXXX/plans/planning-report-story-XXXX-YYYY.md` | `plans/epic-0028/plans/planning-report-story-0028-0002.md` |
-| DoR checklist | `plans/epic-XXXX/plans/dor-story-XXXX-YYYY.md` | `plans/epic-0028/plans/dor-story-0028-0002.md` |
+| Story file | `<EPIC_DIR>/story-XXXX-YYYY.md` | `plans/epic-0028/story-0028-0002.md` |
+| Epic file | `<EPIC_DIR>/epic-XXXX.md` | `plans/epic-0028/epic-0028.md` |
+| Implementation map | Resolve first existing match in `<EPIC_DIR>/` from: `IMPLEMENTATION-MAP.md`, `implementation-map-XXXX.md` | `plans/epic-0028/IMPLEMENTATION-MAP.md` or `plans/epic-0028/implementation-map-0028.md` |
+| Output directory | `<EPIC_DIR>/plans/` | `plans/epic-0028/plans/` |
+| Tasks file | `<EPIC_DIR>/plans/tasks-story-XXXX-YYYY.md` | `plans/epic-0028/plans/tasks-story-0028-0002.md` |
+| Planning report | `<EPIC_DIR>/plans/planning-report-story-XXXX-YYYY.md` | `plans/epic-0028/plans/planning-report-story-0028-0002.md` |
+| DoR checklist | `<EPIC_DIR>/plans/dor-story-XXXX-YYYY.md` | `plans/epic-0028/plans/dor-story-0028-0002.md` |
 
-Ensure output directory exists: `mkdir -p plans/epic-XXXX/plans`
+For the implementation map, check both supported naming conventions above and use the first file that exists. If neither exists, continue without implementation map context (logged as warning in Phase 1).
 
-### 0.3 Staleness Check (RULE-002 -- Idempotency via Staleness Check)
+Ensure output directory exists: `mkdir -p <EPIC_DIR>/plans`
+
+### 0.4 Staleness Check (RULE-002 -- Idempotency via Staleness Check)
 
 Unless `--force` is passed, check if planning artifacts already exist and are fresh:
 
-1. Check if the tasks file exists at `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`
+1. Check if the tasks file exists at `<EPIC_DIR>/plans/tasks-story-XXXX-YYYY.md`
 2. If it does NOT exist, proceed to Phase 1 (first generation).
 3. If it exists, compare modification times:
 
@@ -103,7 +117,7 @@ Unless `--force` is passed, check if planning artifacts already exist and are fr
 
 If reusing: read existing artifacts and skip directly to Phase 5 (DoR validation only). **Do NOT invoke any subagent.**
 
-### 0.4 Verify Story File Exists
+### 0.5 Verify Story File Exists
 
 ```bash
 test -f plans/epic-XXXX/story-XXXX-YYYY.md && echo "FOUND" || echo "NOT_FOUND"
@@ -182,7 +196,7 @@ test -f .claude/templates/_TEMPLATE-STORY-PLANNING-REPORT.md && echo "SPR_AVAILA
 test -f .claude/templates/_TEMPLATE-DOR-CHECKLIST.md && echo "DOR_AVAILABLE" || echo "DOR_MISSING"
 ```
 
-Log any missing templates with warning: `"WARNING: Template {name} not found, using inline format (RULE-012)"`
+Log any missing templates with warning: `"WARNING: Template {name} not found, using inline format"`
 
 ### TASK_PROPOSAL Format
 
@@ -192,7 +206,7 @@ Each subagent MUST return proposals in this format (one per task):
 TASK_PROPOSAL:
   source: {AGENT_NAME}
   id: {AGENT_PREFIX}-NNN
-  type: {architecture|test|security|quality-gate|validation}
+  type: {architecture|implementation|test|security|quality-gate|validation}
   description: {what this task accomplishes}
   layer: {domain|application|adapter.inbound|adapter.outbound|config|cross-cutting}
   components: [{list of affected components}]
@@ -279,8 +293,8 @@ Launch `general-purpose` subagent:
 > - TPP Level 1 (nil): Degenerate cases -- null, empty, zero
 > - TPP Level 2 (constant): Single valid input, direct output
 > - TPP Level 3 (scalar): Simple conditions, single if/else
-> - TPP Level 4 (conditional): Multiple branches, compound boolean
-> - TPP Level 5 (collection): Iterations, map/filter/reduce
+> - TPP Level 4 (collection): Iterations, map/filter/reduce
+> - TPP Level 5 (conditional): Multiple branches, compound boolean
 > - TPP Level 6 (iteration): Edge cases, boundary values
 >
 > **Integration Tests (IT-N):**
@@ -450,7 +464,15 @@ For every implementation task (from Architect) that touches a security-sensitive
 
 - Components handling user input, authentication, authorization, file I/O, network calls, or database queries
 - Add the relevant SEC-NNN DoD criteria to the implementation task
-- Do NOT remove the original SEC task -- it becomes a verification task
+- Do NOT remove the original SEC task -- retain it as a security verification task for the final plan
+
+Representation of retained SEC tasks after augmentation:
+
+- Keep `type: security`
+- Set `tdd_phase: VERIFY`
+- Do NOT represent the retained SEC task as `RED` or `GREEN` in the final consolidated task list
+- The retained SEC task verifies the augmented implementation task and MUST depend on that implementation task
+- Order retained SEC verification tasks after the implementation task they verify
 
 Security-sensitive detection keywords: `input`, `auth`, `password`, `token`, `file`, `path`, `query`, `sql`, `http`, `request`, `session`, `cookie`, `encrypt`, `decrypt`, `hash`, `secret`.
 
@@ -712,16 +734,16 @@ Run validation checks against the generated artifacts to determine if the story 
 
 | # | Check | How to Validate | Pass Criteria |
 |---|-------|-----------------|---------------|
-| 1 | Architecture plan exists | Check file at `plans/epic-XXXX/plans/` (architecture plan from Architect agent or existing `architecture-story-XXXX-YYYY.md`) | File exists with layer analysis |
-| 2 | Test plan with AT-N + UT-N in TPP order | Check QA agent output or existing `tests-story-XXXX-YYYY.md` | AT-N entries exist AND UT-N entries follow TPP level ordering (1 through 6) |
-| 3 | Security assessment | Check Security agent output or existing `security-story-XXXX-YYYY.md` | Assessment exists with OWASP mapping |
+| 1 | Architecture plan exists | Check Architecture Assessment section in `planning-report-story-XXXX-YYYY.md`; standalone `architecture-story-XXXX-YYYY.md` may be used as fallback evidence | Architecture content exists with layer analysis |
+| 2 | Test plan with AT-N + UT-N in TPP order | Check Test Strategy Summary section in `planning-report-story-XXXX-YYYY.md`; standalone `tests-story-XXXX-YYYY.md` may be used as fallback evidence | AT-N entries exist AND UT-N entries follow TPP level ordering (1 through 6) |
+| 3 | Security assessment | Check Security Assessment Summary section in `planning-report-story-XXXX-YYYY.md`; standalone `security-story-XXXX-YYYY.md` may be used as fallback evidence | Assessment exists with OWASP mapping |
 | 4 | Minimum 4 tasks | Count TASK-NNN entries in tasks file | `total_tasks >= 4` |
 | 5 | Each task has >= 1 DoD criterion | Scan tasks table DoD column | No task has empty DoD |
 | 6 | No circular task dependencies | Validate dependency DAG | DAG is acyclic |
 | 7 | Story Gherkin has >= 4 scenarios | Count `Scenario:` lines in story acceptance criteria | `scenario_count >= 4` |
 | 8 | Data contracts defined | Check story data contracts section | Request/response types with typed fields exist |
-| 9 | Implementation plan exists | Check Architect agent output or existing `plan-story-XXXX-YYYY.md` | File exists with component list |
-| 10 | Planning report exists | Check `planning-report-story-XXXX-YYYY.md` | File exists with all sections populated |
+| 9 | Implementation plan exists | Check Implementation Approach section in `planning-report-story-XXXX-YYYY.md`; standalone `plan-story-XXXX-YYYY.md` may be used as fallback evidence | Implementation content exists with component list |
+| 10 | Planning report exists | Check `planning-report-story-XXXX-YYYY.md` | File exists with all sections populated, including architecture, test plan, security, and implementation sections required by checks #1/#2/#3/#9 |
 
 ### 5.2 Conditional Checks (2)
 
