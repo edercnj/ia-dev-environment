@@ -130,7 +130,7 @@ This is the most critical section. Data contracts must be copy-paste precise.
 Rich data contracts eliminate ambiguity by providing explicit types, validations,
 examples, and error codes for every endpoint.
 
-##### 5.1 Request Table
+##### 2.6.1 — Request Table
 
 For REST-based stories, use the expanded Request format:
 
@@ -144,13 +144,13 @@ For protocol-based stories (binary protocols, gRPC, etc.), use the format:
 | :--- | :--- | :--- | :--- | :--- |
 | `field_name` | type format | M/O/- | M/O/- | Generate/Echo/Derive — description |
 
-##### 5.2 Response Table
+##### 2.6.2 — Response Table
 
 | Campo | Tipo | Sempre presente | Descricao |
 | :--- | :--- | :--- | :--- |
 | `field_name` | `UUID` / `String` / `BigDecimal` | Sim ou Nao | descricao do campo |
 
-##### 5.3 Error Codes Mapeados
+##### 2.6.3 — Error Codes Mapeados
 
 Every endpoint MUST declare its error codes following RFC 7807 (Problem Details for HTTP APIs):
 
@@ -163,7 +163,7 @@ Every endpoint MUST declare its error codes following RFC 7807 (Problem Details 
 
 Error codes follow RFC 7807 format with fields: `type`, `title`, `status`, `detail`, and `instance`.
 
-##### 5.4 Event Schema (event-driven stories)
+##### 2.6.4 — Event Schema (event-driven stories)
 
 For stories with `eventDriven: true`, include the Event Schema section:
 

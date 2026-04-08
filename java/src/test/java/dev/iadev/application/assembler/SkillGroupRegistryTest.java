@@ -51,17 +51,17 @@ class SkillGroupRegistryTest {
         }
 
         @Test
-        @DisplayName("dev group has 15 skills")
+        @DisplayName("dev group has 17 skills")
         void register_whenCalled_devGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("dev")).hasSize(15);
+                    .get("dev")).hasSize(17);
         }
 
         @Test
-        @DisplayName("review group has 16 skills")
+        @DisplayName("review group has 18 skills")
         void register_whenCalled_reviewGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("review")).hasSize(16);
+                    .get("review")).hasSize(18);
         }
 
         @Test
@@ -74,10 +74,10 @@ class SkillGroupRegistryTest {
         }
 
         @Test
-        @DisplayName("testing group has 6 skills")
+        @DisplayName("testing group has 7 skills")
         void register_whenCalled_testingGroupSize() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("testing")).hasSize(6);
+                    .get("testing")).hasSize(7);
         }
 
         @Test

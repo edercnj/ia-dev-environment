@@ -390,36 +390,41 @@ class Epic0023IntegrationTest {
     class ReviewChecklistExpansion {
 
         @Test
-        @DisplayName("Database checklist has 20 items")
+        @DisplayName("Database review skill delegated"
+                + " via table")
         void reviewSkill_databaseChecklist_has20Items()
                 throws IOException {
             String content = readReviewSkill();
 
             assertThat(content)
-                    .contains("Database (20 items, /40)");
+                    .contains("x-review-db")
+                    .contains("/40")
+                    .contains("database != none");
         }
 
         @Test
-        @DisplayName("Data Modeling specialist has "
-                + "10 items")
+        @DisplayName("Data Modeling review skill"
+                + " delegated via table")
         void reviewSkill_dataModeling_has10Items()
                 throws IOException {
             String content = readReviewSkill();
 
             assertThat(content)
-                    .contains(
-                            "Data Modeling (10 items, /20)");
+                    .contains("x-review-data-modeling")
+                    .contains("/20");
         }
 
         @Test
-        @DisplayName("Data Modeling activation condition "
-                + "present")
+        @DisplayName("Data Modeling activation condition"
+                + " present")
         void reviewSkill_dataModelingActivation()
                 throws IOException {
             String content = readReviewSkill();
 
             assertThat(content)
-                    .contains("Activation condition");
+                    .contains("database != none AND "
+                            + "architecture in "
+                            + "[hexagonal, ddd, cqrs]");
         }
 
         private String readReviewSkill()

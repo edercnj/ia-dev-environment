@@ -384,6 +384,8 @@ class ContentIntegritySmokeTest extends SmokeTestBase {
                 "author", "dep", "schema", "table_name",
                 "resource_path", "placeholders",
                 "events_per_snapshot",
+                "BUILD_TOOL_CMD",
+                "PR_LINKS_TABLE",
                 ".", "...");
 
         private static final Pattern PEBBLE =
