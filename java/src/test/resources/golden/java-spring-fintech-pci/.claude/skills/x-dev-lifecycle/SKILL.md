@@ -382,7 +382,8 @@ Launch `general-purpose` subagent:
 
 > You are a **Security Engineer** assessing security impact.
 > Read template at `.claude/templates/_TEMPLATE-SECURITY-ASSESSMENT.md` for required output format (RULE-007). If the template file does not exist, log `"WARNING: Template _TEMPLATE-SECURITY-ASSESSMENT.md not found, using inline format"` and use inline format as fallback (RULE-012).
-> Read `skills/security/SKILL.md` -> then read its references.
+> Read `skills/security/references/application-security.md` -- OWASP Top 10, security headers, dependency security
+> Read `skills/security/references/security-principles.md` -- data classification, input validation, secure error handling
 > Read the implementation plan at `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md`.
 > Produce security assessment: threat model, OWASP Top 10 mapping, authentication/authorization review, input validation, data protection, secrets management.
 > Save to `plans/epic-XXXX/plans/security-story-XXXX-YYYY.md`.
@@ -397,7 +398,8 @@ Launch `general-purpose` subagent:
 
 > You are a **Security Engineer** assessing compliance impact.
 > Read template at `.claude/templates/_TEMPLATE-COMPLIANCE-ASSESSMENT.md` for required output format (RULE-007). If the template file does not exist, log `"WARNING: Template _TEMPLATE-COMPLIANCE-ASSESSMENT.md not found, using inline format"` and use inline format as fallback (RULE-012).
-> Read `skills/compliance/SKILL.md` -> then read its references.
+> Read the project's active compliance reference under `skills/compliance/references/` (e.g., `gdpr.md`, `lgpd.md`, `pci-dss.md`, `hipaa.md`, or `sox.md` -- read only the one matching the project's compliance configuration).
+> Read `skills/security/references/security-principles.md` -- data classification, sensitive data handling
 > Read the implementation plan at `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md`.
 > Produce compliance impact assessment: data classification, encryption requirements, audit logging needs, regulatory considerations.
 > Save to `plans/epic-XXXX/plans/compliance-story-XXXX-YYYY.md`.

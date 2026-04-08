@@ -16,7 +16,7 @@ argument-hint: "[event-name or consumer/producer class]"
 
 ## Purpose
 
-Reviews event-driven patterns: event schema design, producer/consumer implementation, error handling, dead letter topics, and operational readiness. Covers CloudEvents envelope, schema registry integration, and saga patterns.
+Review event-driven patterns: event schema design, producer/consumer implementation, error handling, dead letter topics, and operational readiness. Cover CloudEvents envelope, schema registry integration, and saga patterns.
 
 ## Activation Condition
 
