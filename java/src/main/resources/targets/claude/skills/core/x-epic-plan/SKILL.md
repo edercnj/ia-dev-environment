@@ -8,7 +8,7 @@ argument-hint: "[EPIC-ID] [--resume] [--story story-XXXX-YYYY]"
 
 ## Global Output Policy
 
-- **Language**: English ONLY.
+- **Language**: Use English for orchestration text, status/checkpoint messages, and control-flow markers. Use pt-BR for user-facing planning report content when required by later rules (including RULE-006).
 - **Tone**: Technical, Direct, and Concise.
 - **Efficiency**: Remove all conversational fillers and greetings to save tokens.
 
@@ -85,13 +85,22 @@ Extract the 4-digit zero-padded epic ID from the positional argument.
 
 Check for `--resume` and `--story` flags. Validate mutual exclusivity.
 
-### 0.3 Validate Epic Directory
+### 0.3 Resolve Epic Directory
 
-Check that `plans/epic-XXXX/` exists.
+Resolve the epic directory using a glob to support suffix variants (e.g., `plans/epic-XXXX-title-slug/`):
+
+```bash
+# Resolve epic directory (exact match first, then suffix variant)
+epicDir=$(ls -d plans/epic-{epicId}/ plans/epic-{epicId}-*/ 2>/dev/null | head -1)
+```
+
+If no match is found, abort:
 
 ```
-ERROR: Directory plans/epic-{epicId}/ not found. Run /x-story-epic-full first.
+ERROR: Directory plans/epic-{epicId}/ (or suffix variant) not found. Run /x-story-epic-full first.
 ```
+
+Use the resolved `epicDir` path for ALL subsequent reads/writes (IMPLEMENTATION-MAP.md, stories, execution-state.json, reports).
 
 ### 0.4 Validate Implementation Map
 

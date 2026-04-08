@@ -511,7 +511,7 @@ The execution plan produced by Phase 0.5 is consumed by the Core Loop:
 
 Before dispatching a story to `x-dev-lifecycle`, verify its Definition of Ready:
 
-1. Compute DoR path: `plans/epic-{epicId}/plans/dor-story-{storyId}.md`
+1. Compute DoR path: `plans/epic-{epicId}/plans/dor-{storyId}.md`
 2. Check if the DoR file exists:
    - **File does NOT exist:** Proceed without DoR check (backward compatible, RULE-001). Log: `"No DoR file found, proceeding without DoR check (backward compatible)"`
    - **File exists:** Read the `## Final Verdict` section
@@ -536,7 +536,7 @@ The DoR pre-check integrates into the Core Loop (Section 1.3) at step 6a, before
 
 ### 1.1c Per-Task Checkpoint
 
-When a story is being executed in PRE_PLANNED mode (tasks available from `plans/epic-{epicId}/plans/tasks-story-{storyId}.md`), the `execution-state.json` tracks individual task progress within each story entry:
+When a story is being executed in PRE_PLANNED mode (tasks available from `plans/epic-{epicId}/plans/tasks-{storyId}.md`), the `execution-state.json` tracks individual task progress within each story entry:
 
 ```json
 {
@@ -619,6 +619,10 @@ For each phase in (0..totalPhases-1):
   5. After parallel batch completes, dispatch sequentialStories one at a time
      via sequential dispatch (Section 1.4), in critical path priority order
   6. For each dispatched story (parallel or sequential):
+     a0. Run DoR Pre-check (Section 1.1b):
+         - If DoR file missing: log and proceed
+         - If DoR verdict READY: log and proceed
+         - If DoR verdict NOT_READY: mark BLOCKED, skip dispatch, continue to next story
      a. updateStoryStatus(epicDir, storyId, { status: "IN_PROGRESS" })
      b. Dispatch subagent (see 1.4 or 1.4a)
      c. Validate result (see 1.5)
