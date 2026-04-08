@@ -44,7 +44,8 @@ public final class SkillGroupRegistry {
         SKILL_GROUPS.put("story", List.of(
                 "x-story-epic", "x-story-create",
                 "x-story-map", "x-story-epic-full",
-                "x-story-plan", "x-epic-plan",
+                "x-story-plan", "x-plan-task",
+                "x-epic-plan",
                 "story-planning",
                 "x-jira-create-epic",
                 "x-jira-create-stories"));
@@ -53,13 +54,17 @@ public final class SkillGroupRegistry {
                 "x-dev-epic-implement",
                 "x-dev-architecture-plan",
                 "x-dev-arch-update",
+                "x-docs",
                 "layer-templates",
                 "x-dev-adr-automation",
+                "x-commit",
+                "x-format",
                 "x-mcp-recommend",
                 "x-perf-profile",
                 "x-setup-dev-environment",
                 "x-ci-cd-generate",
-                "x-security-pipeline"));
+                "x-security-pipeline",
+                "x-lint"));
         SKILL_GROUPS.put("review", List.of(
                 "x-review", "x-review-api", "x-review-pr",
                 "x-review-grpc", "x-review-events",
