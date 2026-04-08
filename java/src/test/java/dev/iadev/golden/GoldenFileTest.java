@@ -54,6 +54,14 @@ class GoldenFileTest {
     private static final String GOLDEN_ROOT =
             "/golden/";
 
+    /**
+     * Directories excluded from golden file comparison.
+     * Platform-specific output is validated separately
+     * by {@link PlatformGoldenFileTest}.
+     */
+    private static final Set<String> EXCLUDED_DIRS =
+            Set.of("platform-claude-code");
+
     @TempDir
     Path tempDir;
 
@@ -115,11 +123,9 @@ class GoldenFileTest {
                 .isTrue();
 
         Path goldenDir = resolveGoldenDir(profile);
-        Set<String> platformExcludes =
-                Set.of("platform-claude-code");
         Set<String> goldenFiles =
                 collectRelativePaths(
-                        goldenDir, platformExcludes);
+                        goldenDir, EXCLUDED_DIRS);
         Set<String> generatedFiles =
                 collectRelativePaths(outputDir);
 
@@ -254,10 +260,10 @@ class GoldenFileTest {
             public FileVisitResult preVisitDirectory(
                     Path d,
                     BasicFileAttributes attrs) {
+                String name =
+                        d.getFileName().toString();
                 if (!d.equals(dir)
-                        && excludes.contains(
-                                d.getFileName()
-                                        .toString())) {
+                        && excludes.contains(name)) {
                     return FileVisitResult.SKIP_SUBTREE;
                 }
                 return FileVisitResult.CONTINUE;
