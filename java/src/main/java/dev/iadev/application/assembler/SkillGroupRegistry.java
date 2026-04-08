@@ -59,7 +59,8 @@ public final class SkillGroupRegistry {
                 "x-perf-profile",
                 "x-setup-dev-environment",
                 "x-ci-cd-generate",
-                "x-security-pipeline"));
+                "x-security-pipeline",
+                "x-lint"));
         SKILL_GROUPS.put("review", List.of(
                 "x-review", "x-review-api", "x-review-pr",
                 "x-review-grpc", "x-review-events",
