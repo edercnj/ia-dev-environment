@@ -56,6 +56,7 @@ public final class SkillGroupRegistry {
                 "x-docs",
                 "layer-templates",
                 "x-dev-adr-automation",
+                "x-commit",
                 "x-format",
                 "x-mcp-recommend",
                 "x-perf-profile",
