@@ -22,8 +22,7 @@ class AssemblerTargetTest {
             "CLAUDE, output/.claude",
             "GITHUB, output/.github",
             "CODEX, output/.codex",
-            "CODEX_AGENTS, output/.agents",
-            "DOCS, output/docs"
+            "CODEX_AGENTS, output/.agents"
     })
     @DisplayName("resolves target to correct physical path")
     void resolve_returnsCorrectPath(
@@ -40,7 +39,7 @@ class AssemblerTargetTest {
     @Test
     @DisplayName("has exactly 6 target values")
     void values_whenCalled_containsSixEntries() {
-        assertThat(AssemblerTarget.values()).hasSize(6);
+        assertThat(AssemblerTarget.values()).hasSize(5);
     }
 
     @Test
