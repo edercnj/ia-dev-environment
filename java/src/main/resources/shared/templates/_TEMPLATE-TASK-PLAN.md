@@ -24,7 +24,7 @@
 
 ## Definition of Done
 
-{{DOD_CRITERIA}}
+{{DOD}}
 
 ## Dependencies
 

@@ -35,4 +35,4 @@
 
 ## Final Verdict
 
-{{FINAL_VERDICT}}
+{{VERDICT_DETAIL}}
