@@ -1,6 +1,7 @@
 ---
 name: protocols
 description: "Protocol conventions: REST (OpenAPI 3.1), gRPC (Proto3), GraphQL, WebSocket, and event-driven messaging. URL structure, versioning, error handling per protocol, schema design, and integration patterns."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
@@ -31,3 +32,9 @@ Read these files for comprehensive protocol guidance:
 | `protocols/websocket/websocket-conventions.md` | Message framing and serialization, heartbeat/keep-alive mechanisms, reconnection logic with exponential backoff, connection draining (graceful close), error handling over persistent connections, flow control and backpressure, state management |
 | `protocols/event-driven/event-conventions.md` | CloudEvents envelope standard (specversion, id, source, type, time, datacontenttype), event naming (reverse domain + past tense), schema registry integration, event versioning (additive vs breaking), correlation ID and causation ID propagation, ordering guarantees per partition key |
 | `protocols/event-driven/broker-patterns.md` | Topic naming (domain.entity.event), partition strategies (by entity ID, tenant, region), consumer lag monitoring, producer acknowledgment levels (acks=0/1/all), retention policies per topic type, message schema evolution, compacted topics for state, dead letter topic configuration |
+
+## Related Knowledge Packs
+
+- `skills/api-design/` — universal API design principles, deprecation strategy, and versioning patterns
+- `skills/architecture/` — architecture layer rules for protocol adapter placement
+- `skills/resilience/` — timeout, retry, and circuit breaker patterns for protocol integrations

@@ -1,17 +1,22 @@
 ---
 name: dockerfile
-description: "Dockerfile patterns per language covering multi-stage builds, security hardening, .dockerignore templates, layer optimization, health checks, and OCI labels. Internal reference for agents managing infrastructure."
+description: "Dockerfile patterns: multi-stage builds, security hardening, .dockerignore templates, layer optimization, health checks, and OCI labels per language."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
   - Glob
 ---
 
-# Knowledge Pack: Dockerfile Patterns
+# Pattern: Dockerfile Patterns
 
 ## Purpose
 
-Provide production-grade, security-hardened Dockerfile templates for all major languages with multi-stage builds, minimal attack surface, and optimized layer caching.
+Provides production-grade, security-hardened Dockerfile templates for all major languages with multi-stage builds, minimal attack surface, and optimized layer caching.
+
+## Supplements
+
+Supplements `infrastructure` knowledge pack with Dockerfile-specific patterns and language-specific build templates.
 
 ---
 

@@ -1,17 +1,22 @@
 ---
 name: iac-terraform
-description: "Terraform patterns reference covering module structure, remote state, naming conventions, CI/CD workflows, drift detection, and common infrastructure modules. Internal reference for agents managing infrastructure."
+description: "Terraform patterns: module structure, remote state, naming conventions, CI/CD workflows, drift detection, and common infrastructure modules."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
   - Glob
 ---
 
-# Knowledge Pack: Terraform Patterns
+# Pattern: Terraform Patterns
 
 ## Purpose
 
-Provide production-grade Terraform patterns for infrastructure-as-code including project structure, state management, CI/CD integration, and reusable module design across AWS, GCP, and Azure.
+Provides production-grade Terraform patterns for infrastructure-as-code including project structure, state management, CI/CD integration, and reusable module design across AWS, GCP, and Azure.
+
+## Supplements
+
+Supplements `infrastructure` knowledge pack with Terraform-specific IaC patterns.
 
 ---
 

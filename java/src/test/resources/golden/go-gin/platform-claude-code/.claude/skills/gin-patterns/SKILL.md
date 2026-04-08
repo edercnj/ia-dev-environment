@@ -1,17 +1,22 @@
 ---
 name: gin-patterns
-description: "Gin-specific patterns: middleware chains, gin.Context, go-playground/validator, GORM/sqlx data access, viper config, httptest testing, centralized error handling. Internal reference for agents producing Gin code."
+description: "Gin patterns: middleware chains, gin.Context, go-playground/validator, GORM/sqlx data access, viper config, and httptest testing."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
   - Glob
 ---
 
-# Knowledge Pack: Gin Patterns
+# Pattern: Gin Patterns
 
 ## Purpose
 
 Provides Gin-specific implementation patterns that supplement the generic layer templates. Agents reference this pack when generating code for a Go + Gin project.
+
+## Supplements
+
+Supplements `architecture` and `layer-templates` knowledge packs with Gin-specific conventions.
 
 ---
 

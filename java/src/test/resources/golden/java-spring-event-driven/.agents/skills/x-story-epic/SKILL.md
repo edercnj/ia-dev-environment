@@ -1,28 +1,35 @@
 ---
 name: x-story-epic
-description: >
-  Generate an Epic document from a system specification file. This skill reads a technical spec
-  (following the _TEMPLATE.md format) and produces an Epic file with cross-cutting business rules,
-  global quality definitions (DoR/DoD), and a complete story index with dependency declarations.
-  Use this skill whenever the user asks to create an epic, generate an epic from a spec, extract
-  business rules from a system document, decompose a specification into an epic, build a story index,
-  or any variation of "read this spec and create an epic". Also trigger when the user mentions
-  extracting cross-cutting rules, defining quality gates for a project, or building a story backlog
-  from a technical document — even if they don't use the word "epic" explicitly.
+description: "Generate an Epic document from a system specification file with cross-cutting business rules, global quality definitions (DoR/DoD), a complete story index with dependency declarations, and optional Jira integration."
+user-invocable: true
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion
+argument-hint: "<SPEC_FILE> [--epic-id XXXX]"
 ---
 
-# Create Epic from System Specification
+## Output Policy
 
-This skill reads a system specification document and generates an Epic file — the top-level
-artifact that defines the scope, cross-cutting rules, quality criteria, and story index for
-a development effort.
+- **Language**: Portuguese (pt-BR) for all content. English for technical terms (cache, timeout, handler, endpoint) and code identifiers.
+- **Tone**: Technical, Direct, and Concise.
+- **Efficiency**: Remove all conversational fillers and greetings to save tokens.
 
-## Why This Matters
+# Skill: Epic Generator
 
-The Epic is the single source of truth for a decomposition. It captures rules that span multiple
-stories (so they don't get duplicated or contradicted), defines quality gates that every story
-must meet, and provides the complete story index with dependency relationships. Getting the Epic
-right makes story generation and implementation planning straightforward.
+## Purpose
+
+Read a system specification document and generate an Epic file — the top-level artifact that defines scope, cross-cutting rules, quality criteria, and story index for a development effort. The Epic is the single source of truth for a decomposition: it captures rules spanning multiple stories, defines quality gates, and provides the complete story index with dependency relationships.
+
+## Triggers
+
+- `/x-story-epic <spec_file>` — generate an epic from the specification
+- User asks to create an epic, generate an epic from a spec, or decompose a specification into an epic
+- User mentions extracting cross-cutting rules, defining quality gates, or building a story backlog from a technical document
+
+## Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `<SPEC_FILE>` | Path | Yes | — | Path to the system specification file |
+| `--epic-id` | String | No | auto | Epic number (auto-increments from existing epics in `plans/`) |
 
 ## Prerequisites
 
@@ -39,7 +46,7 @@ and must be read fresh from disk every time (never hardcode the structure).
 
 ## Workflow
 
-### Step 1: Read the Input Spec
+### Step 1 — Read the Input Spec
 
 Read the entire system specification file provided by the user. This file follows the `_TEMPLATE.md`
 format with sections like Overview, Business Rules, Platform Specs, Data Contracts, Journeys,
@@ -47,7 +54,7 @@ Sync Journeys, Dependencies, and Interfaces.
 
 Understand the full scope before starting extraction.
 
-### Step 2: Extract Cross-Cutting Business Rules
+### Step 2 — Extract Cross-Cutting Business Rules
 
 Scan the spec for business rules that apply to more than one journey or operation. These become
 the Epic's Rules table with unique IDs (RULE-001, RULE-002, ...).
@@ -72,7 +79,7 @@ When the spec describes a system that follows TDD practices, extract these as cr
 - **Atomic TDD Commits**: Each Red-Green-Refactor cycle produces atomic commits with Conventional Commits format
 - **Gherkin Completeness**: Every acceptance criterion must have corresponding Gherkin scenarios
 
-### Step 3: Identify Stories
+### Step 3 — Identify Stories
 
 Read the decomposition guide (`x-story-epic-full/references/decomposition-guide.md`) for
 the layer-by-layer approach. In summary:
@@ -91,7 +98,7 @@ For each story, determine:
 Validate the dependency graph: no circular dependencies, every extension depends on the core,
 compositions depend on their constituent extensions.
 
-### Step 4: Define Quality Criteria
+### Step 4 — Define Quality Criteria
 
 **Global Definition of Ready (DoR):**
 Extract from the spec's quality requirements, or derive sensible defaults:
@@ -109,16 +116,16 @@ Extract from the spec, or derive from the tech stack:
 - TDD Compliance: commits show test-first pattern (test precedes implementation in git log), explicit refactoring after green, tests are incremental (simple to complex via Transformation Priority Premise)
 - Double-Loop TDD: acceptance tests derived from Gherkin scenarios (outer loop), unit tests guided by Transformation Priority Premise (inner loop)
 
-### Step 5: Generate the Epic File
+### Step 5 — Generate the Epic File
 
 Write the Epic following the `_TEMPLATE-EPIC.md` structure exactly:
 
 1. **Header**: Title, author, date, version, status
-2. **Section 1 — Visão Geral**: Scope derived from the spec's Overview section
-3. **Section 2 — Anexos e Referências**: Links to the input spec and related documents
-4. **Section 3 — Definições de Qualidade Globais**: DoR and DoD from Step 4
-5. **Section 4 — Regras de Negócio Transversais**: Rules table from Step 2
-6. **Section 5 — Índice de Histórias**: Story index from Step 3, with links, dependencies, and **Entrega de Valor** column (measurable business value per story)
+2. **Section 1 — Visao Geral**: Scope derived from the spec's Overview section
+3. **Section 2 — Anexos e Referencias**: Links to the input spec and related documents
+4. **Section 3 — Definicoes de Qualidade Globais**: DoR and DoD from Step 4
+5. **Section 4 — Regras de Negocio Transversais**: Rules table from Step 2
+6. **Section 5 — Indice de Historias**: Story index from Step 3, with links, dependencies, and **Entrega de Valor** column (measurable business value per story)
 
 **Directory and file naming** (mandatory — see SD-09 in decomposition guide):
 1. Determine the epic number: scan `plans/` for existing `epic-XXXX` folders and use the next available number (default `0001` if none exist). Ask the user if unsure.
@@ -127,36 +134,36 @@ Write the Epic following the `_TEMPLATE-EPIC.md` structure exactly:
 4. Story IDs in the index use composite format: `story-XXXX-YYYY` (where XXXX = epic number, YYYY = story sequence)
 5. Story links in the index point to `./story-XXXX-YYYY.md` (relative to the epic folder)
 
-### Step 5.5: Optional Jira Integration
+### Step 6 — Optional Jira Integration
 
 After generating the Epic file content but before the final save, optionally create the
 Epic in Jira.
 
-#### 5.5.1: Check MCP Availability
+#### 6.1 — Check MCP Availability
 
 Verify that the Jira MCP tool (`mcp__atlassian__createJiraIssue`) is available.
-If not available, skip this entire step silently and proceed to Step 6.
+If not available, skip this entire step silently and proceed to Step 7.
 
-#### 5.5.2: Check Context
+#### 6.2 — Check Context
 
 If this skill was invoked by the orchestrator (`x-story-epic-full`) and a `jiraContext`
 was already provided, use that context directly (skip the user prompt — it was already
-asked in Phase A.5). If `jiraContext.enabled == true`, proceed to 5.5.4. If `false`, skip.
+asked in Phase A.5). If `jiraContext.enabled == true`, proceed to 6.4. If `false`, skip.
 
-If invoked standalone (no `jiraContext`), proceed to 5.5.3.
+If invoked standalone (no `jiraContext`), proceed to 6.3.
 
-#### 5.5.3: Ask the User (standalone invocation only)
+#### 6.3 — Ask the User (standalone invocation only)
 
 Use the `AskUserQuestion` tool:
 
 ```
-question: "Deseja criar este épico no Jira?"
+question: "Deseja criar este epico no Jira?"
 header: "Jira"
 options:
   - label: "Sim, criar no Jira"
-    description: "Criar o épico como issue no Jira via MCP e preencher a Chave Jira no markdown"
-  - label: "Não, apenas markdown"
-    description: "Gerar apenas o arquivo markdown sem integração com Jira"
+    description: "Criar o epico como issue no Jira via MCP e preencher a Chave Jira no markdown"
+  - label: "Nao, apenas markdown"
+    description: "Gerar apenas o arquivo markdown sem integracao com Jira"
 multiSelect: false
 ```
 
@@ -168,18 +175,18 @@ If "Sim":
    ```
 2. Discover the `cloudId` by calling `mcp__atlassian__getAccessibleAtlassianResources`.
    Use the first available site's `id` as the `cloudId`. If the call fails or returns
-   no sites, warn the user and skip to Step 6 (replace `<CHAVE-JIRA>` with `—`).
+   no sites, warn the user and skip to Step 7 (replace `<CHAVE-JIRA>` with `—`).
 
-If "Não": replace `<CHAVE-JIRA>` with `—` and proceed to Step 6.
+If "Nao": replace `<CHAVE-JIRA>` with `—` and proceed to Step 7.
 
-#### 5.5.4: Create Epic in Jira
+#### 6.4 — Create Epic in Jira
 
 Call `mcp__atlassian__createJiraIssue` to create an Epic issue:
 - `cloudId`: the discovered `cloudId` (or `jiraContext.cloudId`)
 - `projectKey`: the user-provided project key (or `jiraContext.projectKey`)
 - `issueTypeName`: "Epic"
 - `summary`: the Epic title from the generated header
-- `description`: the "Visão Geral" section text
+- `description`: the "Visao Geral" section text
 - `contentFormat`: "markdown"
 - `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }, { "name": "epic-XXXX" }] }`
 
@@ -187,36 +194,54 @@ Where `epic-XXXX` is the local epic ID (e.g., `epic-0012`) for bidirectional ID 
 
 Capture the returned Jira issue key (e.g., "PROJ-123").
 
-#### 5.5.5: Update Markdown
+#### 6.5 — Update Markdown
 
 Replace `<CHAVE-JIRA>` in the generated Epic markdown with the actual Jira key.
-Report: "Épico criado no Jira: PROJ-123"
+Report: "Epico criado no Jira: PROJ-123"
 
-#### 5.5.6: Error Handling
+#### 6.6 — Jira Error Handling
 
 If the Jira MCP tool call fails:
 1. Warn the user with the error message
-2. Replace `<CHAVE-JIRA>` with `EPIC-XXXX (Jira: falha na criação)`
-3. Continue to Step 6 — NEVER block Epic file generation due to Jira failures
+2. Replace `<CHAVE-JIRA>` with `EPIC-XXXX (Jira: falha na criacao)`
+3. Continue to Step 7 — NEVER block Epic file generation due to Jira failures
 
-### Step 6: Save and Report
+### Step 7 — Save and Report
 
 Save the file to `plans/epic-XXXX/epic-XXXX.md`.
 Report: number of rules extracted, number of stories identified, dependency structure summary.
 
-## Language Rules
+## Error Handling
 
-- All generated content must be in **Brazilian Portuguese (pt-BR)**
-- Technical terms that are industry-standard in English stay in English (cache, timeout, circuit breaker, handler, endpoint, state machine)
-- Code identifiers, field names, enum values stay in English
-- Rule IDs use the format RULE-NNN (English)
-- Story IDs use composite format: `story-XXXX-YYYY` (epic number + story sequence)
-- Epic IDs use kebab-case format: `epic-XXXX`
+| Scenario | Action |
+|----------|--------|
+| Template file missing | Abort with message: "Template _TEMPLATE-EPIC.md not found" |
+| Spec file missing or unparseable | Abort with message: "Specification file not found or invalid format" |
+| Circular dependency in story graph | Warn, list the cycle, suggest merging conflicting stories |
+| Story count too low (< 8 for complex spec) | Warn: "Possible over-bundling — review decomposition" |
+| Jira MCP unavailable | Skip Jira integration silently, replace `<CHAVE-JIRA>` with `—` |
+| Jira issue creation fails | Warn user, replace `<CHAVE-JIRA>` with failure message, continue |
 
 ## Common Mistakes
 
-- **Missing rules**: If a validation appears in 3+ journeys, it's cross-cutting — extract it
-- **Rules too vague**: "Validar entidade" is useless. "Entidade deve estar ativa (status=ACTIVE) no cache L1/L2 → DB. Se inativa, retornar 400 ENTITY_INACTIVE" is useful
+- **Missing rules**: If a validation appears in 3+ journeys, it is cross-cutting — extract it
+- **Rules too vague**: "Validar entidade" is useless. "Entidade deve estar ativa (status=ACTIVE) no cache L1/L2 -> DB. Se inativa, retornar 400 ENTITY_INACTIVE" is useful
 - **Dependency gaps**: If Story B uses a table created by Story A, declare the dependency
-- **Circular dependencies**: If A blocks B and B blocks A, they're probably one story
-- **Story count too low**: A spec with 8 journeys typically generates 12-20 stories (infrastructure + journeys + cross-cutting). If you have fewer than 8 stories, you're probably bundling too much
+- **Circular dependencies**: If A blocks B and B blocks A, they are probably one story
+- **Story count too low**: A spec with 8 journeys typically generates 12-20 stories (infrastructure + journeys + cross-cutting). Fewer than 8 stories suggests over-bundling
+
+## Integration Notes
+
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| x-story-epic-full | called-by | Orchestrator invokes x-story-epic in Phase B |
+| x-story-create | calls | Story Creator reads the generated Epic file |
+| x-story-map | calls | Implementation Map reads the Epic's story index |
+| x-jira-create-epic | calls | Creates Jira Epic from the generated file |
+| story-planning | reads | Reads decomposition guide for layer identification |
+
+## Knowledge Pack References
+
+| Knowledge Pack | Usage |
+|----------------|-------|
+| story-planning | Decomposition philosophy, layer identification, dependency validation |

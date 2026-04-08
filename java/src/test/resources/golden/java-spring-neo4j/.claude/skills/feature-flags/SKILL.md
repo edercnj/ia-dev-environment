@@ -14,6 +14,19 @@ allowed-tools:
 
 Provides comprehensive feature flag patterns for {{LANGUAGE}} {{FRAMEWORK}} projects, enabling progressive delivery, toggle lifecycle management, evaluation strategies, cleanup policies, and hexagonal architecture integration. Covers toggle types (release, experiment, ops, permission), flag lifecycle (creation through cleanup), server-side and client-side evaluation, framework recommendations (OpenFeature, Unleash, LaunchDarkly, Flagsmith), and anti-patterns.
 
+## Quick Reference (always in context)
+
+See `references/openfeature-setup.md` for OpenFeature setup guide with provider pattern and `references/progressive-delivery-patterns.md` for progressive delivery patterns with examples.
+
+## Detailed References
+
+Read these files for comprehensive feature flags guidance:
+
+| Reference | Content |
+|-----------|---------|
+| `references/openfeature-setup.md` | OpenFeature setup guide: provider pattern, SDK initialization, evaluation context, hooks, error handling, and testing strategies per language |
+| `references/progressive-delivery-patterns.md` | Progressive delivery patterns: canary deployment with flags, blue-green with instant rollback, ring deployments, dark launches, and monitoring gates |
+
 ## Toggle Types
 
 ### Release Toggles
@@ -251,15 +264,8 @@ Provides comprehensive feature flag patterns for {{LANGUAGE}} {{FRAMEWORK}} proj
 - Enforce naming via validation in flag management system
 - Reject non-conforming names in CI pipeline
 
-## Quick Reference
+## Related Knowledge Packs
 
-See `references/openfeature-setup.md` for OpenFeature setup guide with provider pattern and `references/progressive-delivery-patterns.md` for progressive delivery patterns with examples.
-
-## Detailed References
-
-Read these files for comprehensive feature flags guidance:
-
-| Reference | Content |
-|-----------|---------|
-| `references/openfeature-setup.md` | OpenFeature setup guide: provider pattern, SDK initialization, evaluation context, hooks, error handling, and testing strategies per language |
-| `references/progressive-delivery-patterns.md` | Progressive delivery patterns: canary deployment with flags, blue-green with instant rollback, ring deployments, dark launches, and monitoring gates |
+- `skills/architecture/` — hexagonal port pattern for feature flag integration
+- `skills/release-management/` — release branching and rollback strategies that use feature flags
+- `skills/ci-cd-patterns/` — CI/CD pipeline integration for flag lifecycle management

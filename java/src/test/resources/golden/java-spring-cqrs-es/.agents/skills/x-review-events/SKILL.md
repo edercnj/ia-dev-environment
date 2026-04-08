@@ -1,24 +1,44 @@
 ---
 name: x-review-events
-description: "Skill: Event-Driven Review — Validates event schemas, producer/consumer patterns, error handling, dead letter topics, and operational readiness."
+description: "Validates event schemas, producer/consumer patterns, error handling, dead letter topics, and operational readiness for event-driven architectures."
+user-invocable: true
 allowed-tools: Read, Grep, Glob, Bash
 argument-hint: "[event-name or consumer/producer class]"
 ---
 
 ## Global Output Policy
 
-- **Language**: English ONLY. (Ignore input language, always respond in English).
+- **Language**: English ONLY.
 - **Tone**: Technical, Direct, and Concise.
 - **Efficiency**: Remove all conversational fillers and greetings to save tokens.
-- **Preservation**: All existing technical constraints below must be followed strictly.
 
 # Skill: Event-Driven Review
 
-## Description
+## Purpose
 
-Reviews event-driven patterns: event schema design, producer/consumer implementation, error handling, dead letter topics, and operational readiness. Covers CloudEvents envelope, schema registry integration, and saga patterns.
+Review event-driven patterns: event schema design, producer/consumer implementation, error handling, dead letter topics, and operational readiness. Cover CloudEvents envelope, schema registry integration, and saga patterns.
 
-**Condition**: This skill applies when the project uses event-driven interfaces (`interfaces` contains `type: event-consumer` or `type: event-producer`).
+## Activation Condition
+
+Include this skill when the project uses event-driven interfaces (`interfaces` contains `type: event-consumer` or `type: event-producer`).
+
+## Triggers
+
+- `/x-review-events OrderCreated` -- review a specific event
+- `/x-review-events PaymentConsumer` -- review a consumer class
+- `/x-review-events` -- review all event-driven patterns
+
+## Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `target` | String | No | (all) | Event name, consumer/producer class name |
+
+## Knowledge Pack References
+
+| Pack | Files | Purpose |
+|------|-------|---------|
+| protocols | `skills/protocols/references/event-driven-conventions.md` | CloudEvents envelope, event naming, schema registry, ordering guarantees, broker patterns |
 
 ## Prerequisites
 
@@ -26,59 +46,62 @@ Reviews event-driven patterns: event schema design, producer/consumer implementa
 - Message broker dependency configured (Kafka, RabbitMQ, SQS, etc.)
 - Producer and/or consumer implementations exist
 
-## Knowledge Pack References
+## Workflow
 
-Before reviewing, read the event-driven conventions:
-- `skills/protocols/references/event-driven-conventions.md` — CloudEvents envelope, event naming, schema registry, ordering guarantees, broker patterns
+### Step 1 — Discover Event Definitions
 
-## Execution Flow
+Scan for event classes, schemas, Avro/Protobuf definitions:
+- List all event types with their schemas
+- Identify event envelope structure
 
-1. **Discover event definitions** — Scan for event classes, schemas, Avro/Protobuf definitions:
-   - List all event types with their schemas
-   - Identify event envelope structure
+### Step 2 — Discover Producers
 
-2. **Discover producers** — Scan for classes publishing events:
-   - Map producers to topics and event types
-   - Identify publishing patterns (outbox, direct)
+Scan for classes publishing events:
+- Map producers to topics and event types
+- Identify publishing patterns (outbox, direct)
 
-3. **Discover consumers** — Scan for classes consuming events:
-   - Map consumers to topics and consumer groups
-   - Identify idempotency mechanisms
+### Step 3 — Discover Consumers
 
-4. **Validate event design** — Check naming, envelope, versioning:
-   - Past tense event names
-   - CloudEvents spec compliance
-   - Schema registry integration
-   - Data minimization
+Scan for classes consuming events:
+- Map consumers to topics and consumer groups
+- Identify idempotency mechanisms
 
-5. **Validate producer patterns** — Check reliability:
-   - Outbox or at-least-once delivery
-   - Acknowledgment levels
-   - Error handling and retry
+### Step 4 — Validate Event Design
 
-6. **Validate consumer patterns** — Check processing:
-   - Idempotency implementation
-   - Offset commit strategy
-   - Dead letter topic configuration
-   - Graceful shutdown
+Check naming, envelope, versioning:
+- Past tense event names
+- CloudEvents spec compliance
+- Schema registry integration
+- Data minimization
 
-7. **Validate operational readiness** — Check monitoring:
-   - Consumer lag monitoring
-   - Dead letter topic alerts
-   - Schema registry health
+### Step 5 — Validate Producer Patterns
 
-8. **Generate report** — Summarize findings as checklist:
-   - List compliant items
-   - List violations with file paths and line numbers
-   - Suggest fixes for each violation
+Check reliability:
+- Outbox or at-least-once delivery
+- Acknowledgment levels
+- Error handling and retry
 
-## Usage Examples
+### Step 6 — Validate Consumer Patterns
 
-```
-/x-review-events OrderCreated
-/x-review-events PaymentConsumer
-/x-review-events
-```
+Check processing:
+- Idempotency implementation
+- Offset commit strategy
+- Dead letter topic configuration
+- Graceful shutdown
+
+### Step 7 — Validate Operational Readiness
+
+Check monitoring:
+- Consumer lag monitoring
+- Dead letter topic alerts
+- Schema registry health
+
+### Step 8 — Generate Report
+
+Summarize findings as checklist:
+- List compliant items
+- List violations with file paths and line numbers
+- Suggest fixes for each violation
 
 ## Event Design Checklist (10 points)
 
@@ -115,32 +138,19 @@ Before reviewing, read the event-driven conventions:
 20. Idempotency key stored and checked (event ID + consumer group, or business key)
 21. Consumer group ID follows convention: `{service}.{purpose}` (e.g., `billing.invoice-generator`)
 22. Offset commit strategy: commit after successful processing (not auto-commit)
-23. Error handling: failed processing → retry with backoff → dead letter topic after N retries
+23. Error handling: failed processing -> retry with backoff -> dead letter topic after N retries
 24. Dead letter topic monitored with alerts
 25. Consumer lag monitored (alert if lag exceeds threshold)
 26. Deserialization errors handled gracefully (poison pill protection)
 27. Processing timeout configured (prevent infinite blocking)
 28. Graceful shutdown: stop consuming, finish in-flight, commit offsets, then exit
 
-## Saga Pattern Checklist (conditional — if multi-step workflows)
+## Saga Pattern Checklist (conditional -- if multi-step workflows)
 
 29. Saga orchestrator or choreography pattern documented
 30. Compensation actions defined for each saga step
 31. Saga state persisted (recoverable after crash)
 32. Timeout on saga completion (trigger compensation if exceeded)
-
-## Review Checklist
-
-- [ ] Event names use past tense
-- [ ] CloudEvents envelope or project standard
-- [ ] Schema registered in registry
-- [ ] Consumer is idempotent
-- [ ] Dead letter topic configured and monitored
-- [ ] No sensitive data in event payload
-- [ ] Event published after business operation
-- [ ] Trace context propagated in headers
-- [ ] Consumer lag monitored
-- [ ] Graceful shutdown implemented
 
 ## Output Format
 
@@ -171,7 +181,16 @@ Before reviewing, read the event-driven conventions:
 ### Verdict: APPROVE / REQUEST CHANGES
 ```
 
+## Error Handling
+
+| Scenario | Action |
+|----------|--------|
+| No event definitions found | Report INFO: no event-driven code discovered |
+| Missing schema registry | REQUEST CHANGES with remediation guidance |
+| Consumer not idempotent | REQUEST CHANGES with idempotency pattern example |
+
 ## Rules
+
 - REQUEST CHANGES if consumer is not idempotent
 - REQUEST CHANGES if no dead letter topic configured
 - REQUEST CHANGES if sensitive data in event payload

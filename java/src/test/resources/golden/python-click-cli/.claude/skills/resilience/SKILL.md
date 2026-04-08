@@ -1,6 +1,7 @@
 ---
 name: resilience
 description: "Resilience patterns: circuit breaker, rate limiting, bulkhead isolation, timeout control, retry with exponential backoff + jitter, fallback/graceful degradation, backpressure, and resilience metrics."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
@@ -120,3 +121,9 @@ Proactive resilience validation through controlled fault injection for {{LANGUAG
 ### Action Items
 - [ ] [Fix/improvement with owner and deadline]
 ```
+
+## Related Knowledge Packs
+
+- `skills/observability/` — resilience metrics, alerting, and SLO/SLI framework
+- `skills/infrastructure/` — health probes and graceful shutdown patterns
+- `skills/sre-practices/` — error budgets, incident management, and change management

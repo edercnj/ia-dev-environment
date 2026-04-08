@@ -1,6 +1,7 @@
 ---
 name: x-supply-chain-audit
 description: "Enhanced supply chain security audit beyond x-dependency-audit. Analyzes maintainer risk, typosquatting detection, phantom dependencies, dependency age, EPSS scoring, and SLSA assessment. Produces SARIF 2.1.0 output with weighted risk scoring."
+user-invocable: true
 allowed-tools: Read, Write, Bash, Grep, Glob
 argument-hint: "[--depth shallow|deep] [--include-dev-deps] [--risk-threshold 0-100] [--focus all|maintainer|typosquatting|phantom|age|epss|slsa]"
 ---
@@ -37,23 +38,23 @@ Both skills can be executed independently. Results from both feed into the secur
 
 ## Triggers
 
-- `/x-supply-chain-audit` -- full supply chain audit (all 6 capabilities)
-- `/x-supply-chain-audit --depth deep` -- deep analysis including transitive dependencies
-- `/x-supply-chain-audit --focus maintainer` -- maintainer risk analysis only
-- `/x-supply-chain-audit --focus typosquatting` -- typosquatting detection only
-- `/x-supply-chain-audit --focus phantom` -- phantom dependency detection only
-- `/x-supply-chain-audit --focus age` -- dependency age analysis only
-- `/x-supply-chain-audit --focus epss` -- EPSS exploit prediction only
-- `/x-supply-chain-audit --focus slsa` -- SLSA level assessment only
-- `/x-supply-chain-audit --risk-threshold 50` -- filter findings below score 50
-- `/x-supply-chain-audit --include-dev-deps` -- include dev dependencies
+- `/x-supply-chain-audit` — full supply chain audit (all 6 capabilities)
+- `/x-supply-chain-audit --depth deep` — deep analysis including transitive dependencies
+- `/x-supply-chain-audit --focus maintainer` — maintainer risk analysis only
+- `/x-supply-chain-audit --focus typosquatting` — typosquatting detection only
+- `/x-supply-chain-audit --focus phantom` — phantom dependency detection only
+- `/x-supply-chain-audit --focus age` — dependency age analysis only
+- `/x-supply-chain-audit --focus epss` — EPSS exploit prediction only
+- `/x-supply-chain-audit --focus slsa` — SLSA level assessment only
+- `/x-supply-chain-audit --risk-threshold 50` — filter findings below score 50
+- `/x-supply-chain-audit --include-dev-deps` — include dev dependencies
 
 ## Parameters
 
 | Parameter | Type | Default | Validation | Description |
 |-----------|------|---------|------------|-------------|
 | `--depth` | String | shallow | enum: shallow, deep | shallow = direct deps only; deep = includes transitive |
-| `--include-dev-deps` | boolean | false | -- | Include development dependencies in analysis |
+| `--include-dev-deps` | boolean | false | — | Include development dependencies in analysis |
 | `--risk-threshold` | int | 0 | 0-100 | Exclude findings with risk score below this value |
 | `--focus` | String | all | enum: all, maintainer, typosquatting, phantom, age, epss, slsa | Analyze specific risk category only |
 
@@ -68,7 +69,7 @@ Both skills can be executed independently. Results from both feed into the secur
 6. REPORT      -> Generate SARIF 2.1.0 + Markdown report
 ```
 
-### Step 1 -- Detect Build Tool and Parse Manifest
+### Step 1 — Detect Build Tool and Parse Manifest
 
 The project uses **{{BUILD_TOOL}}** as its build tool. Parse the dependency manifest:
 
@@ -77,14 +78,14 @@ The project uses **{{BUILD_TOOL}}** as its build tool. Parse the dependency mani
 | npm | package.json | package-lock.json |
 | yarn | package.json | yarn.lock |
 | pnpm | package.json | pnpm-lock.yaml |
-| maven | pom.xml | -- |
+| maven | pom.xml | — |
 | gradle | build.gradle / build.gradle.kts | gradle.lockfile |
 | cargo | Cargo.toml | Cargo.lock |
 | pip | requirements.txt / pyproject.toml | requirements.txt |
 | poetry | pyproject.toml | poetry.lock |
 | go mod | go.mod | go.sum |
 
-### Step 2 -- Resolve Dependency Graph
+### Step 2 — Resolve Dependency Graph
 
 Build the full dependency graph distinguishing direct vs transitive:
 
@@ -98,9 +99,9 @@ Build the full dependency graph distinguishing direct vs transitive:
 | poetry | `poetry show --tree` |
 | go mod | `go mod graph` |
 
-### Step 3 -- Analysis Capabilities
+### Step 3 — Analysis Capabilities
 
-#### 3.1 Maintainer Risk Analysis
+#### 3.1 — Maintainer Risk Analysis
 
 Identify dependencies with single-maintainer risk (bus factor = 1):
 
@@ -110,14 +111,14 @@ Identify dependencies with single-maintainer risk (bus factor = 1):
 | Maven Central | `https://search.maven.org/solrsearch/select?q=a:{artifact}` | POM developers section |
 | PyPI | `https://pypi.org/pypi/{pkg}/json` | `info.maintainers[]` |
 | crates.io | `https://crates.io/api/v1/crates/{pkg}` | `crate.owners[]` |
-| Go | Module repository metadata | -- |
+| Go | Module repository metadata | — |
 
 **Scoring:**
 - 1 maintainer: risk = 100 (HIGH severity)
 - 2-3 maintainers: risk = 50 (MEDIUM severity)
 - 4+ maintainers: risk = 0 (no risk)
 
-#### 3.2 Typosquatting Detection
+#### 3.2 — Typosquatting Detection
 
 Detect dependency names suspiciously similar to popular packages using Levenshtein distance:
 
@@ -136,7 +137,7 @@ Detect dependency names suspiciously similar to popular packages using Levenshte
 - Levenshtein distance = 1: risk = 100 (CRITICAL severity)
 - Same name different scope/org: risk = 75 (HIGH severity)
 
-#### 3.3 Phantom Dependency Detection
+#### 3.3 — Phantom Dependency Detection
 
 Identify imports in source code that are not declared in the manifest:
 
@@ -156,7 +157,7 @@ Identify imports in source code that are not declared in the manifest:
 **Scoring:**
 - Phantom dependency found: risk = 75 (MEDIUM severity)
 
-#### 3.4 Dependency Age Analysis
+#### 3.4 — Dependency Age Analysis
 
 Check time since last release for each dependency:
 
@@ -173,7 +174,7 @@ Check time since last release for each dependency:
 - Last release 6-12 months: risk = 25 (LOW severity)
 - Last release < 6 months: risk = 0 (no risk)
 
-#### 3.5 EPSS Scoring (Exploit Prediction)
+#### 3.5 — EPSS Scoring (Exploit Prediction)
 
 Query FIRST.org EPSS API for exploit probability of known CVEs:
 
@@ -181,12 +182,12 @@ Query FIRST.org EPSS API for exploit probability of known CVEs:
 - **Response field:** `epss` (probability 0.0-1.0 of exploit within 30 days)
 
 **Scoring:**
-- EPSS >= 0.5: risk = 100 (CRITICAL severity -- high probability of exploit)
+- EPSS >= 0.5: risk = 100 (CRITICAL severity — high probability of exploit)
 - EPSS 0.1-0.49: risk = 75 (HIGH severity)
 - EPSS 0.01-0.09: risk = 50 (MEDIUM severity)
 - EPSS < 0.01: risk = 25 (LOW severity)
 
-#### 3.6 SLSA Assessment
+#### 3.6 — SLSA Assessment
 
 Evaluate Supply-chain Levels for Software Artifacts compliance:
 
@@ -203,7 +204,7 @@ Check for:
 - Build system documentation
 - Source-to-build mapping
 
-### Step 4 -- Risk Scoring
+### Step 4 — Risk Scoring
 
 Calculate weighted risk score for each dependency:
 
@@ -235,16 +236,16 @@ risk_score = (cve_severity * 0.40)
 | 20-39 | LOW |
 | 0-19 | INFO |
 
-### Step 5 -- Apply Filters
+### Step 5 — Apply Filters
 
 1. If `--focus` is not `all`, include only findings matching the specified `riskCategory`
 2. If `--risk-threshold` > 0, exclude findings with `riskScore` below the threshold
 3. If `--include-dev-deps` is false, exclude dev/test-scoped dependencies
 4. If `--depth` is `shallow`, exclude transitive dependencies
 
-### Step 6 -- Generate Reports
+### Step 6 — Generate Reports
 
-#### SARIF 2.1.0 Output
+#### 6.1 — SARIF 2.1.0 Output
 
 Write SARIF to `results/audits/supply-chain-audit-YYYY-MM-DD.sarif.json`:
 
@@ -259,12 +260,12 @@ Follow the SARIF template from `skills/security/references/sarif-template.md`. U
 | SCA-EPSS-001 | HighExploitProbability | epss |
 | SCA-SLSA-001 | LowSlsaLevel | slsa |
 
-#### Markdown Report
+#### 6.2 — Markdown Report
 
 Write report to `results/audits/supply-chain-audit-YYYY-MM-DD.md`:
 
 ```markdown
-# Supply Chain Audit Report -- {{PROJECT_NAME}}
+# Supply Chain Audit Report — {{PROJECT_NAME}}
 
 **Date:** YYYY-MM-DD
 **Build Tool:** {{BUILD_TOOL}}
@@ -343,10 +344,19 @@ Risk Score = (CVE Severity * 0.40) + (Depth * 0.20)
 | AST scan fails for language | Skip phantom detection, note unsupported language |
 | Rate limited by registry | Implement exponential backoff, partial results if timeout |
 
+## Integration Notes
+
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| `x-dependency-audit` | complementary | Handles CVEs, outdated versions, licenses, and SBOM generation |
+| `x-security-dashboard` | reads | Dashboard aggregates results from this skill |
+| `x-ci-cd-generate` | called-by | Security pipeline may invoke supply chain audit |
+
 ## Knowledge Pack References
 
-Read these before running the audit:
-- `skills/security/references/sarif-template.md` -- SARIF 2.1.0 output format
-- `skills/security/references/security-scoring.md` -- scoring model and grade scale
-- `skills/security/references/supply-chain-hardening.md` -- SLSA framework and hardening patterns
-- `skills/security/references/sbom-generation-guide.md` -- SBOM format reference
+| Pack | Files | Purpose |
+|------|-------|---------|
+| security | `skills/security/references/sarif-template.md` | SARIF 2.1.0 output format |
+| security | `skills/security/references/security-scoring.md` | Scoring model and grade scale |
+| security | `skills/security/references/supply-chain-hardening.md` | SLSA framework and hardening patterns |
+| security | `skills/security/references/sbom-generation-guide.md` | SBOM format reference |

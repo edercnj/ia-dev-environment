@@ -1,6 +1,7 @@
 ---
 name: coding-standards
 description: "Complete coding conventions: Clean Code rules (CC-01 to CC-10), SOLID principles, {{LANGUAGE}} {{LANGUAGE_VERSION}} idioms, naming patterns, constructor injection, mapper conventions, version-specific features, and approved libraries. Read before writing any code."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
@@ -29,3 +30,9 @@ Read these files for the full conventions:
 | `references/version-features.md` | {{LANGUAGE}} {{LANGUAGE_VERSION}}-specific features (records, sealed types, pattern matching, etc.) |
 | `references/libraries.md` | Mandatory, recommended, and prohibited libraries for {{LANGUAGE}} |
 | `references/testing-conventions.md` | {{LANGUAGE}}-specific testing frameworks, fixture patterns, directory structure |
+
+## Related Knowledge Packs
+
+- `skills/testing/` — test categories, coverage thresholds, and TDD practices
+- `skills/architecture/` — architecture rules that coding standards must align with
+- `skills/layer-templates/` — code templates per architecture layer following these standards

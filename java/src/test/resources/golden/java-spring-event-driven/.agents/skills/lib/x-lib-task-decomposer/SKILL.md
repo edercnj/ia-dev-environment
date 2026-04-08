@@ -1,35 +1,40 @@
 ---
 name: x-lib-task-decomposer
 description: "Decomposes an implementation plan into tasks. Primary mode: derives tasks from test scenarios (x-test-plan output) using TDD structure (RED/GREEN/REFACTOR). Fallback mode: uses Layer Task Catalog (G1-G7) when no test plan exists."
+user-invocable: false
 allowed-tools: Read, Write, Grep, Glob
-argument-hint: "[STORY-ID]"
 ---
 
 ## Global Output Policy
 
 - **Language**: English ONLY.
 - **Tone**: Technical, Direct, and Concise.
+- **Efficiency**: Remove all conversational fillers and greetings to save tokens.
 
-# Skill: Task Decomposer (Test-Driven + Layer Fallback)
+# Skill: Task Decomposer (Library)
 
 ## Purpose
 
 Decomposes an implementation plan into granular tasks. When a test plan exists (from `x-test-plan`), derives tasks from test scenarios using TDD structure (RED/GREEN/REFACTOR) with a per-task `Parallel` flag. Falls back to the Layer Task Catalog (G1-G7) when no test plan is available, where tasks are additionally assigned to parallelism groups. Each task is assigned a model tier (Junior/Mid/Senior) and context budget.
 
-## When to Use
+## When Called
 
-- **Feature Lifecycle Phase 1C**: After the Architect produces the plan, BEFORE implementation
-- **Standalone**: When you need to break down a plan into implementable tasks
+| Caller Skill | Phase | Context |
+|-------------|-------|---------|
+| x-dev-lifecycle | Phase 1C | After the Architect produces the plan, BEFORE implementation |
+| (standalone) | N/A | When breaking down a plan into implementable tasks |
 
-## Inputs Required
+## Inputs
 
-1. `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` -- Architect's design
-2. Story requirements file
-3. `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md` -- Test plan (from x-test-plan) [OPTIONAL]
+| Input | Path | Required |
+|-------|------|----------|
+| Architect's plan | `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` | Yes |
+| Story requirements | Story file | Yes |
+| Test plan (from x-test-plan) | `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md` | No |
 
 ## Procedure
 
-### STEP 0 -- Idempotency Pre-Check (RULE-002)
+### Step 0 — Idempotency Pre-Check (RULE-002 — Artifact reuse)
 
 Before any decomposition work, verify whether a valid task breakdown already exists:
 
@@ -43,7 +48,15 @@ Before any decomposition work, verify whether a valid task breakdown already exi
 
 > **Rationale**: Task breakdowns are expensive to generate (2-5 min, significant token cost). When a session is resumed after interruption, the existing breakdown should be reused if the story has not changed. This saves tokens and ensures continuity.
 
-### STEP 0.5 -- Read Architecture Context
+**Idempotency Summary:**
+
+| Aspect | Behavior |
+|--------|----------|
+| **Check** | Compare `mtime(story)` vs `mtime(tasks)` |
+| **Skip** | Reuse existing breakdown when `mtime(story) <= mtime(tasks)` |
+| **Override** | Regenerate when story is newer than existing breakdown |
+
+### Step 0.5 — Read Architecture Context
 
 Before decomposing, read the project's architecture and layer definitions:
 - `skills/architecture/references/architecture-principles.md` — layer structure, dependency direction, package organization
@@ -51,7 +64,7 @@ Before decomposing, read the project's architecture and layer definitions:
 
 These files define the available layers for YOUR project. The Layer Task Catalog below is derived from them.
 
-### STEP 1 -- Read Story Context and Template (RULE-007, RULE-012)
+### Step 1 — Read Story Context and Template (RULE-007, RULE-012)
 
 Read these files:
 - `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` (Architect's plan)
@@ -64,9 +77,9 @@ Read template at `.claude/templates/_TEMPLATE-TASK-BREAKDOWN.md` for required ou
 - **Template found**: Use the template's sections as the mandatory output structure. The template defines: Header (Story ID, Date, Author), Summary, Dependency Graph, Tasks Table, and Escalation Notes.
 - **Template NOT found (RULE-012 fallback)**: Log `"Template not found, using inline format"` and use the inline format defined in STEP 2A (test-driven) or STEP 2B (layer-based) of this skill. Execution continues normally without interruption.
 
-> **Note**: The template contains `{{PLACEHOLDER}}` markers. These are NOT rendered by the engine -- they are filled by the LLM at runtime based on the decomposition results.
+> **Note**: The template contains `{{PLACEHOLDER}}` markers. These are NOT rendered by the engine — they are filled by the LLM at runtime based on the decomposition results.
 
-### STEP 1.5 -- Detect Decomposition Mode
+### Step 1.5 — Detect Decomposition Mode
 
 Check if test plan exists at `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md`:
 
@@ -82,7 +95,7 @@ Check if test plan exists at `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md`:
    - Use **LAYER-BASED MODE** (proceed to STEP 2B)
    - Emit warning: "No test plan found. Falling back to layer-based decomposition (G1-G7)."
 
-### STEP 2A -- Test-Driven Decomposition (Primary Mode)
+### Step 2A — Test-Driven Decomposition (Primary Mode)
 
 > Used when a test plan with TPP markers is available at
 > `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md`.
@@ -107,7 +120,7 @@ Each generated task MUST contain:
 | GREEN | M | Minimum implementation to make test pass |
 | REFACTOR | O | Refactoring opportunities after green |
 | Layer Components | M | Which layers/classes are touched |
-| Parallel | M | yes/no -- can run concurrently with other tasks |
+| Parallel | M | yes/no — can run concurrently with other tasks |
 | Depends On | M | List of prerequisite TASK-N references |
 | Tier | M | Junior/Mid/Senior based on complexity |
 | Budget | M | S/M/L context budget |
@@ -147,7 +160,7 @@ When using test-driven mode, generate tasks in this format:
 - **Parallel:** yes | no
 - **Depends On:** TASK-N, TASK-M (or "none")
 
-**RED:** [What the test asserts -- expected behavior]
+**RED:** [What the test asserts — expected behavior]
 
 **GREEN:** [Minimum implementation steps]
 - Layer: component to create/modify
@@ -163,19 +176,19 @@ When using test-driven mode, generate tasks in this format:
 
 After generating all TDD tasks, proceed to STEP 5 (Generate Output).
 
-### STEP 2B -- Identify Affected Layers (Layer-Based Fallback)
+### Step 2B — Identify Affected Layers (Layer-Based Fallback)
 
 > Used when no test plan with TPP markers is available.
 
 For each section in the Architect's plan, check which architectural layers are involved. Mark each layer as active or inactive.
 
-### STEP 3B -- Apply the Layer Task Catalog (Layer-Based Fallback)
+### Step 3B — Apply the Layer Task Catalog (Layer-Based Fallback)
 
 > Used when no test plan with TPP markers is available.
 
 For each active layer, create ONE task using the fixed catalog below.
 
-### STEP 4B -- Variable Tier Decision (Layer-Based Fallback)
+### Step 4B — Variable Tier Decision (Layer-Based Fallback)
 
 > Used when no test plan with TPP markers is available.
 
@@ -183,7 +196,7 @@ For complex domain logic tasks, read the Architect's plan carefully:
 - **Simple mapping/lookup** (1 decision, no state) -> Mid tier
 - **Multi-branch logic** (type hierarchies with 3+ implementations, resilience patterns) -> Senior tier
 
-### STEP 5 -- Generate Output
+### Step 5 — Generate Output
 
 Save to: `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` (extract epic ID XXXX and story sequence YYYY from the story ID). Ensure directory exists: `mkdir -p plans/epic-XXXX/plans`.
 
@@ -236,13 +249,13 @@ Derive the task catalog from the **layer-templates knowledge pack** (`skills/lay
 The dependency direction follows the architecture rule: `adapter.inbound → application → domain ← adapter.outbound`. Groups are derived from this dependency chain:
 
 ```
-G1: FOUNDATION (Migration + Domain Models) -- PARALLEL
-G2: CONTRACTS (Ports + DTOs + Engine) -- PARALLEL, depends on G1
-G3: OUTBOUND ADAPTERS (Entity + Mapper + Repository) -- PARALLEL, depends on G1, G2
-G4: ORCHESTRATION (Use Case) -- SEQUENTIAL, depends on G2, G3
-G5: INBOUND ADAPTERS (Controllers + Protocol Handlers + Config) -- PARALLEL, depends on G4
-G6: OBSERVABILITY -- SEQUENTIAL, depends on G4, G5
-G7: TESTS -- PARALLEL (max 4 concurrent), depends on ALL previous
+G1: FOUNDATION (Migration + Domain Models) — PARALLEL
+G2: CONTRACTS (Ports + DTOs + Engine) — PARALLEL, depends on G1
+G3: OUTBOUND ADAPTERS (Entity + Mapper + Repository) — PARALLEL, depends on G1, G2
+G4: ORCHESTRATION (Use Case) — SEQUENTIAL, depends on G2, G3
+G5: INBOUND ADAPTERS (Controllers + Protocol Handlers + Config) — PARALLEL, depends on G4
+G6: OBSERVABILITY — SEQUENTIAL, depends on G4, G5
+G7: TESTS — PARALLEL (max 4 concurrent), depends on ALL previous
 ```
 
 > **Note:** Group contents may vary by project architecture. The principle is: **inner layers first, then outer layers**. Verify against `skills/architecture/references/architecture-principles.md` for your project.
@@ -280,14 +293,27 @@ When a task fails compilation after 2 retries at its assigned tier:
 
 Target: < 15% of tasks escalate.
 
+## Error Handling
+
+| Scenario | Action |
+|----------|--------|
+| Architect's plan not found | Abort with message: "Plan file not found at expected path. Run planning phase first." |
+| Story requirements file not found | Abort with message: "Story file not found. Verify story ID and epic directory." |
+| Template `_TEMPLATE-TASK-BREAKDOWN.md` missing | Log warning, use inline format as fallback (RULE-012 — Graceful template fallback) |
+| Test plan has no structured TPP markers | Fall back to layer-based decomposition (G1-G7) with warning |
+| Escalation threshold exceeded (>15% tasks escalate) | Flag in output report for manual review |
+
 ## Integration Notes
 
-- Invoked by `x-dev-lifecycle` during Phase 1C
-- Consumes test plan from `x-test-plan` (Phase 1B output) when available
-- Output consumed by Phase 2 (group-based or TDD-based implementation)
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| x-dev-lifecycle | called-by | Invoked during Phase 1C |
+| x-test-plan | reads | Consumes test plan (Phase 1B output) when available |
+| x-dev-lifecycle Phase 2 | produces-for | Output consumed by group-based or TDD-based implementation |
+
 - Works with any layered architecture (hexagonal, clean, onion) — layer names derived from project rules
 - When test plan present: generates TDD tasks with RED/GREEN/REFACTOR structure
 - When test plan absent: generates layer-based tasks using G1-G7 catalog (backward compatible)
-- **Idempotency (RULE-002)**: Checks `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` existence and staleness before regenerating. Second invocation with unchanged story reuses existing breakdown
+- **Idempotency (RULE-002 — Artifact reuse)**: Checks `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` existence and staleness before regenerating. Second invocation with unchanged story reuses existing breakdown.
 - **Template reference (RULE-007)**: Reads `.claude/templates/_TEMPLATE-TASK-BREAKDOWN.md` for standardized output format
-- **Graceful fallback (RULE-012)**: Functions without template (pre-EPIC-0024 projects). Logs warning and uses inline format when template absent
+- **Graceful fallback (RULE-012 — Graceful template fallback)**: Functions without template (pre-EPIC-0024 projects). Logs warning and uses inline format when template absent.

@@ -1,24 +1,44 @@
 ---
 name: x-review-grpc
-description: "Skill: gRPC Service Review — Validates gRPC service definitions, proto3 conventions, implementation patterns, and operational readiness."
+description: "Validates gRPC service definitions, proto3 conventions, implementation patterns, and operational readiness."
+user-invocable: true
 allowed-tools: Read, Grep, Glob, Bash
 argument-hint: "[service-name or proto-file]"
 ---
 
 ## Global Output Policy
 
-- **Language**: English ONLY. (Ignore input language, always respond in English).
+- **Language**: English ONLY.
 - **Tone**: Technical, Direct, and Concise.
 - **Efficiency**: Remove all conversational fillers and greetings to save tokens.
-- **Preservation**: All existing technical constraints below must be followed strictly.
 
 # Skill: gRPC Service Review
 
-## Description
+## Purpose
 
-Reviews gRPC service definitions, implementation patterns, and operational readiness for compliance with proto3 conventions, error handling standards, and observability requirements.
+Review gRPC service definitions, implementation patterns, and operational readiness for compliance with proto3 conventions, error handling standards, and observability requirements.
 
-**Condition**: This skill applies when the project uses gRPC protocol (`interfaces` contains `type: grpc`).
+## Activation Condition
+
+Include this skill when the project uses gRPC protocol (`interfaces` contains `type: grpc`).
+
+## Triggers
+
+- `/x-review-grpc TransactionService` -- review a specific service
+- `/x-review-grpc proto/transaction.proto` -- review a specific proto file
+- `/x-review-grpc` -- review all gRPC services and proto files
+
+## Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `target` | String | No | (all) | Service name or proto file path |
+
+## Knowledge Pack References
+
+| Pack | Files | Purpose |
+|------|-------|---------|
+| protocols | `skills/protocols/references/grpc-conventions.md` | Proto3 style guide, naming, streaming patterns, error codes, health checks |
 
 ## Prerequisites
 
@@ -26,51 +46,50 @@ Reviews gRPC service definitions, implementation patterns, and operational readi
 - gRPC framework dependency is configured
 - gRPC code generation plugin is configured in build tool
 
-## Knowledge Pack References
+## Workflow
 
-Before reviewing, read the gRPC conventions:
-- `skills/protocols/references/grpc-conventions.md` — Proto3 style guide, naming, streaming patterns, error codes, health checks
+### Step 1 — Discover Proto Files
 
-## Execution Flow
+Scan for `*.proto` in project:
+- List all proto files with their package declarations
+- Identify service definitions and message types
 
-1. **Discover proto files** — Scan for `*.proto` in project:
-   - List all proto files with their package declarations
-   - Identify service definitions and message types
+### Step 2 — Discover Service Implementations
 
-2. **Discover gRPC service implementations** — Scan for classes implementing generated stubs:
-   - Identify server-side service implementations
-   - Identify client-side stub usage
+Scan for classes implementing generated stubs:
+- Identify server-side service implementations
+- Identify client-side stub usage
 
-3. **Validate proto file conventions** — Check each proto file:
-   - Package naming follows reverse domain with version suffix
-   - Service, message, and field naming conventions
-   - Enum design with UNSPECIFIED=0
-   - Versioning and compatibility rules
+### Step 3 — Validate Proto File Conventions
 
-4. **Validate implementation patterns** — Check server and client code:
-   - Deadline/timeout propagation
-   - Error model usage
-   - Health checks and graceful shutdown
-   - Interceptor usage for cross-cutting concerns
+Check each proto file:
+- Package naming follows reverse domain with version suffix
+- Service, message, and field naming conventions
+- Enum design with UNSPECIFIED=0
+- Versioning and compatibility rules
 
-5. **Validate operational readiness** — Check observability:
-   - OpenTelemetry trace propagation
-   - Metrics per method
-   - Structured logging
-   - Sensitive data exclusion
+### Step 4 — Validate Implementation Patterns
 
-6. **Generate report** — Summarize findings as checklist:
-   - List compliant items
-   - List violations with file paths and line numbers
-   - Suggest fixes for each violation
+Check server and client code:
+- Deadline/timeout propagation
+- Error model usage
+- Health checks and graceful shutdown
+- Interceptor usage for cross-cutting concerns
 
-## Usage Examples
+### Step 5 — Validate Operational Readiness
 
-```
-/x-review-grpc TransactionService
-/x-review-grpc proto/transaction.proto
-/x-review-grpc
-```
+Check observability:
+- OpenTelemetry trace propagation
+- Metrics per method
+- Structured logging
+- Sensitive data exclusion
+
+### Step 6 — Generate Report
+
+Summarize findings as checklist:
+- List compliant items
+- List violations with file paths and line numbers
+- Suggest fixes for each violation
 
 ## Proto3 Style Checklist (12 points)
 
@@ -89,7 +108,7 @@ Before reviewing, read the gRPC conventions:
 10. `google.protobuf.FieldMask` used for partial updates
 
 ### Versioning & Compatibility (11-12)
-11. Breaking changes go in new package version (`v1` → `v2`), never modify existing
+11. Breaking changes go in new package version (`v1` -> `v2`), never modify existing
 12. Deprecated fields use `reserved` statement (field number AND name)
 
 ## Implementation Checklist (12 points)
@@ -119,19 +138,6 @@ Before reviewing, read the gRPC conventions:
 27. Structured logging includes: method name, status code, duration, trace_id
 28. No sensitive data in metadata, logs, or traces
 
-## Review Checklist
-
-- [ ] Package follows reverse domain with version suffix
-- [ ] Service/message/field naming follows proto3 conventions
-- [ ] Every enum has UNSPECIFIED=0
-- [ ] Breaking changes in new package version only
-- [ ] Deadline propagation on all client calls
-- [ ] Error model uses google.rpc.Status with details
-- [ ] Health check protocol implemented
-- [ ] Interceptors for auth, logging, tracing
-- [ ] OTel trace propagation configured
-- [ ] No sensitive data in metadata or logs
-
 ## Output Format
 
 ```
@@ -155,7 +161,16 @@ Before reviewing, read the gRPC conventions:
 ### Verdict: APPROVE / REQUEST CHANGES
 ```
 
+## Error Handling
+
+| Scenario | Action |
+|----------|--------|
+| No proto files found | Report INFO: no gRPC definitions discovered |
+| Enum missing UNSPECIFIED=0 | REQUEST CHANGES with proto3 convention reference |
+| Breaking change in existing version | REQUEST CHANGES with versioning guidance |
+
 ## Rules
+
 - REQUEST CHANGES if enum missing UNSPECIFIED=0
 - REQUEST CHANGES if breaking change in existing proto version
 - REQUEST CHANGES if no deadline set on client calls

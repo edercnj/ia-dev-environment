@@ -1,9 +1,9 @@
 ---
 name: x-perf-profile
-description: "Automated profiling: detect language, select profiler, execute session, generate flamegraph, identify hotspots, suggest optimizations"
+description: "Automated profiling: detect language/runtime, select appropriate profiler, execute session, generate flamegraph, identify hotspots, and suggest optimizations referencing the performance-engineering knowledge pack."
 user-invocable: true
-argument-hint: "[cpu|memory|io|all] [--duration 30s] [--output flamegraph]"
 allowed-tools: Read, Bash, Glob, Grep, Agent
+argument-hint: "[cpu|memory|io|all] [--duration 30s] [--output flamegraph|report|raw]"
 ---
 
 ## Global Output Policy
@@ -16,32 +16,30 @@ allowed-tools: Read, Bash, Glob, Grep, Agent
 
 ## Purpose
 
-Executes automated profiling sessions for {{PROJECT_NAME}}. Detects the project language/runtime, selects the appropriate profiler, configures and runs a profiling session, generates flamegraph or report output, identifies hotspots, and suggests optimizations referencing the performance-engineering knowledge pack.
+Execute automated profiling sessions for {{PROJECT_NAME}}. Detect the project language/runtime, select the appropriate profiler, configure and run a profiling session, generate flamegraph or report output, identify hotspots, and suggest optimizations referencing the performance-engineering knowledge pack.
 
 ## Triggers
 
-- `/x-perf-profile cpu` -- CPU profiling with default duration
-- `/x-perf-profile memory` -- Memory/heap profiling
-- `/x-perf-profile io` -- I/O profiling (disk, network)
-- `/x-perf-profile all` -- Combined profiling (CPU + memory + I/O)
-- `/x-perf-profile cpu --duration 60s` -- CPU profiling for 60 seconds
-- `/x-perf-profile cpu --output flamegraph` -- Generate flamegraph SVG
-- `/x-perf-profile cpu --output report` -- Generate Markdown report
-- `/x-perf-profile cpu --output raw` -- Output native profiler format
+- `/x-perf-profile cpu` — CPU profiling with default duration
+- `/x-perf-profile memory` — memory/heap profiling
+- `/x-perf-profile io` — I/O profiling (disk, network)
+- `/x-perf-profile all` — combined profiling (CPU + memory + I/O)
+- `/x-perf-profile cpu --duration 60s` — CPU profiling for 60 seconds
+- `/x-perf-profile cpu --output flamegraph` — generate flamegraph SVG
+- `/x-perf-profile cpu --output report` — generate Markdown report
+- `/x-perf-profile cpu --output raw` — output native profiler format
+
+## Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `type` | Enum | No | `cpu` | Profiling type: `cpu`, `memory`, `io`, `all` |
+| `--duration` | Duration | No | `30s` | Recording duration |
+| `--output` | Enum | No | `flamegraph` | Output format: `flamegraph`, `report`, `raw` |
 
 ## Workflow
 
-```
-1. DETECT     -> Detect language/runtime from project files
-2. SELECT     -> Select appropriate profiler for the stack
-3. CONFIGURE  -> Configure profiling session parameters
-4. EXECUTE    -> Execute profiler with configured parameters
-5. GENERATE   -> Generate flamegraph/report from profiler output
-6. IDENTIFY   -> Identify hotspots from profiling results
-7. SUGGEST    -> Suggest optimizations (ref: performance-engineering KP)
-```
-
-### Step 1 -- Detect Language/Runtime
+### Step 1 — Detect Language/Runtime
 
 Analyze project root for build/dependency files to identify the technology stack:
 
@@ -61,7 +59,7 @@ Analyze project root for build/dependency files to identify the technology stack
 ls -la pom.xml build.gradle* go.mod Cargo.toml pyproject.toml package.json 2>/dev/null
 ```
 
-### Step 2 -- Select Appropriate Profiler
+### Step 2 — Select Appropriate Profiler
 
 Based on detected language, select the best profiler:
 
@@ -74,7 +72,7 @@ Based on detected language, select the best profiler:
 | **Node.js** | clinic.js / 0x | --inspect + Chrome DevTools | clinic.js doctor |
 | **Other** | perf (Linux) / dtrace (macOS) | Valgrind massif | strace/perf |
 
-#### Java -- JFR Configuration
+#### 2.1 — Java JFR Configuration
 
 ```bash
 # Start JFR recording
@@ -87,7 +85,7 @@ java -XX:StartFlightRecording=duration=30s,filename=profile.jfr -jar app.jar
 jfr print --events jdk.CPULoad,jdk.ThreadAllocationStatistics profile.jfr
 ```
 
-#### Go -- pprof Configuration
+#### 2.2 — Go pprof Configuration
 
 ```bash
 # CPU profiling (requires net/http/pprof import)
@@ -100,7 +98,7 @@ go tool pprof http://localhost:6060/debug/pprof/heap
 go tool pprof -http=:8080 profile.pb.gz
 ```
 
-#### Python -- py-spy Configuration
+#### 2.3 — Python py-spy Configuration
 
 ```bash
 # CPU profiling with py-spy
@@ -114,7 +112,7 @@ memray flamegraph profile.bin -o flamegraph.html
 py-spy top --pid <pid>
 ```
 
-### Step 3 -- Configure Profiling Session
+### Step 3 — Configure Profiling Session
 
 Configure session parameters based on arguments:
 
@@ -125,7 +123,7 @@ Configure session parameters based on arguments:
 | `sampling-rate` | Profiler default | Sampling frequency (Hz) |
 | `output` | `flamegraph` | Output format: flamegraph, report, raw |
 
-**Session Configuration Checklist:**
+**Session configuration checklist:**
 
 - [ ] Profiler installed and accessible
 - [ ] Target application running and healthy
@@ -133,7 +131,7 @@ Configure session parameters based on arguments:
 - [ ] JVM flags configured (for Java: `-XX:+UnlockDiagnosticVMOptions`)
 - [ ] Profiling port accessible (for remote profiling)
 
-### Step 4 -- Execute Profiling
+### Step 4 — Execute Profiling
 
 Run the selected profiler with configured parameters. Monitor for:
 
@@ -142,9 +140,9 @@ Run the selected profiler with configured parameters. Monitor for:
 - Application stability during profiling
 - Recording completion without errors
 
-### Step 5 -- Generate Flamegraph/Report
+### Step 5 — Generate Flamegraph/Report
 
-#### Flamegraph Output (SVG/HTML)
+#### 5.1 — Flamegraph Output (SVG/HTML)
 
 Generate interactive flamegraph from profiler output:
 
@@ -153,12 +151,12 @@ Generate interactive flamegraph from profiler output:
 - **Python py-spy**: Direct SVG output with `--format flamegraph`
 - **Generic**: Use Brendan Gregg's FlameGraph scripts
 
-#### Markdown Report Output
+#### 5.2 — Markdown Report Output
 
 Generate structured report with:
 
 ```markdown
-# Profiling Report -- {{PROJECT_NAME}}
+# Profiling Report — {{PROJECT_NAME}}
 
 **Date:** YYYY-MM-DD
 **Duration:** Ns
@@ -180,14 +178,14 @@ Generate structured report with:
 [Optimization suggestions based on hotspots]
 ```
 
-#### Raw Output
+#### 5.3 — Raw Output
 
 Output the native profiler format without transformation:
 - JFR: `.jfr` file
 - pprof: `.pb.gz` file
 - py-spy: speedscope JSON
 
-### Step 6 -- Identify Hotspots
+### Step 6 — Identify Hotspots
 
 Analyze profiling results to identify performance hotspots:
 
@@ -206,9 +204,9 @@ Analyze profiling results to identify performance hotspots:
 - Excessive network round-trips
 - Unbuffered file operations
 
-### Step 7 -- Suggest Optimizations
+### Step 7 — Suggest Optimizations
 
-Reference the performance-engineering knowledge pack (`skills/performance-engineering/`) for contextualized optimization suggestions:
+Reference the performance-engineering knowledge pack for contextualized optimization suggestions:
 
 | Hotspot Type | Common Optimizations |
 |-------------|---------------------|
@@ -227,13 +225,19 @@ Reference the performance-engineering knowledge pack (`skills/performance-engine
 | Profiler not installed | Provide installation instructions for detected stack |
 | Application not running | Instruct user to start the application first |
 | Permission denied | Suggest running with appropriate privileges (sudo/ptrace) |
-| Recording failed | Check disk space, profiler compatibility, retry |
+| Recording failed | Check disk space, profiler compatibility, retry once |
 | Empty profiling data | Verify application is under load during profiling |
 
 ## Integration Notes
 
-- Uses `performance-engineer` agent for in-depth analysis of profiling results via Agent tool
-- References performance-engineering KP (`skills/performance-engineering/`) for optimization patterns
-- Output modes: `flamegraph` (SVG/HTML), `report` (Markdown), `raw` (profiler native format)
-- Can be invoked as part of performance investigation workflow
-- Results can feed into `run-perf-test --save-baseline` for baseline establishment
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| run-perf-test | complements | Performance tests generate load; profiling captures behavior |
+| x-ops-troubleshoot | calls | Troubleshooting may invoke profiling for performance issues |
+| x-review | called-by | Performance review specialist may reference profiling results |
+
+## Knowledge Pack References
+
+| Knowledge Pack | Usage |
+|----------------|-------|
+| performance-engineering | Optimization patterns, profiler selection, hotspot classification |

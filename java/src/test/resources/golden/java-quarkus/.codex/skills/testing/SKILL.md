@@ -1,6 +1,7 @@
 ---
 name: testing
 description: "Complete testing reference: testing philosophy, 8 test categories, coverage thresholds, fixture patterns, data uniqueness, async handling, database strategy, and {{LANGUAGE}}-specific test frameworks. Read before writing tests."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
@@ -23,3 +24,9 @@ See `rules/05-quality-gates.md` for coverage thresholds, test categories, merge 
 |-----------|---------|
 | `references/testing-philosophy.md` | 8 test categories, fixture patterns, data uniqueness, async handling, real vs in-memory DB decisions |
 | `references/testing-conventions.md` | {{LANGUAGE}}-specific test frameworks, directory structure, performance test configuration |
+
+## Related Knowledge Packs
+
+- `skills/coding-standards/` — coding conventions and Clean Code rules that tests must follow
+- `skills/architecture/` — architecture layer rules that determine test boundaries
+- `skills/security/` — security test scenarios and pentest readiness

@@ -1,8 +1,9 @@
 ---
 name: x-dependency-audit
 description: "Checks project dependencies for vulnerabilities, outdated versions, and license issues. Detects build tool automatically, runs language-specific audit commands, and generates a severity-categorized report."
+user-invocable: true
 allowed-tools: Read, Write, Bash, Grep, Glob
-argument-hint: "[--scope all|vulnerabilities|outdated|licenses]"
+argument-hint: "[--scope all|vulnerabilities|outdated|licenses|sbom|license-report|tree]"
 ---
 
 ## Global Output Policy
@@ -15,14 +16,23 @@ argument-hint: "[--scope all|vulnerabilities|outdated|licenses]"
 
 ## Purpose
 
-Audits all dependencies of {{PROJECT_NAME}} for security vulnerabilities, outdated versions, and license compliance. Generates a structured report with severity-categorized findings and remediation recommendations.
+Audits all dependencies of {{PROJECT_NAME}} for security vulnerabilities, outdated versions, and license compliance. Generates a structured report with severity-categorized findings and remediation recommendations. Also supports SBOM generation, license attribution reports, and dependency tree visualization.
 
 ## Triggers
 
-- `/x-dependency-audit` -- full audit (vulnerabilities + outdated + licenses)
-- `/x-dependency-audit --scope vulnerabilities` -- security vulnerabilities only
-- `/x-dependency-audit --scope outdated` -- outdated packages only
-- `/x-dependency-audit --scope licenses` -- license compliance only
+- `/x-dependency-audit` — full audit (vulnerabilities + outdated + licenses)
+- `/x-dependency-audit --scope vulnerabilities` — security vulnerabilities only
+- `/x-dependency-audit --scope outdated` — outdated packages only
+- `/x-dependency-audit --scope licenses` — license compliance only
+- `/x-dependency-audit --scope sbom` — generate CycloneDX SBOM only
+- `/x-dependency-audit --scope license-report` — generate license attribution report
+- `/x-dependency-audit --scope tree` — generate dependency tree visualization
+
+## Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `--scope` | Enum | `all` | Audit scope: all, vulnerabilities, outdated, licenses, sbom, license-report, tree |
 
 ## Workflow
 
@@ -34,7 +44,7 @@ Audits all dependencies of {{PROJECT_NAME}} for security vulnerabilities, outdat
 5. REPORT     -> Generate audit report
 ```
 
-### Step 1 -- Detect Build Tool
+### Step 1 — Detect Build Tool
 
 The project uses **{{BUILD_TOOL}}** as its build tool. Detect the package manager and lock files:
 
@@ -50,7 +60,7 @@ The project uses **{{BUILD_TOOL}}** as its build tool. Detect the package manage
 | poetry | poetry.lock | Python |
 | go mod | go.sum | Go |
 
-### Step 2 -- Run Audit Commands
+### Step 2 — Run Audit Commands
 
 #### Vulnerabilities
 
@@ -92,7 +102,7 @@ The project uses **{{BUILD_TOOL}}** as its build tool. Detect the package manage
 | pip | `pip-licenses --format json` |
 | go mod | `go-licenses report ./...` |
 
-### Step 3 -- Parse Results
+### Step 3 — Parse Results
 
 For each audit dimension, extract:
 
@@ -123,7 +133,7 @@ For each audit dimension, extract:
 - Copyleft risk
 ```
 
-### Step 4 -- Categorize Findings
+### Step 4 — Categorize Findings
 
 | Severity | Criteria |
 |----------|----------|
@@ -132,7 +142,7 @@ For each audit dimension, extract:
 | **MEDIUM** | CVE with CVSS 4.0-6.9, major version behind, LGPL license |
 | **LOW** | CVE with CVSS < 4.0, minor/patch version behind, permissive license issue |
 
-### Step 5 -- Generate Report
+### Step 5 — Generate Report
 
 Write report to `results/audits/dependency-audit-YYYY-MM-DD.md`:
 
@@ -180,23 +190,9 @@ Write report to `results/audits/dependency-audit-YYYY-MM-DD.md`:
 3. **Long-term:** Review license compliance strategy
 ```
 
-## Error Handling
-
-| Scenario | Action |
-|----------|--------|
-| Audit tool not installed | Suggest installation command, continue with available tools |
-| No lock file found | Warn and attempt audit without lock file |
-| Audit command fails | Report error, continue with other dimensions |
-| No dependencies found | Report "No dependencies found" |
-| Offline mode | Skip vulnerability check, proceed with outdated and license |
-
 ## SBOM Generation
 
 Generate a CycloneDX JSON Software Bill of Materials listing all direct and transitive dependencies.
-
-### Trigger
-
-- `/x-dependency-audit --scope sbom` -- generate SBOM only
 
 ### SBOM Workflow
 
@@ -232,7 +228,7 @@ Each component in the generated SBOM must include:
 - scope: required | optional | excluded
 ```
 
-### Output
+### SBOM Output
 
 Write CycloneDX JSON to `results/audits/sbom-YYYY-MM-DD.json` and generate a human-readable summary:
 
@@ -262,10 +258,6 @@ Write CycloneDX JSON to `results/audits/sbom-YYYY-MM-DD.json` and generate a hum
 
 Generate a comprehensive license attribution report for all dependencies, highlighting copyleft licenses that may impose obligations.
 
-### Trigger
-
-- `/x-dependency-audit --scope license-report` -- generate license attribution report
-
 ### License Report Workflow
 
 ```
@@ -275,7 +267,7 @@ Generate a comprehensive license attribution report for all dependencies, highli
 4. REPORT     -> Generate attribution report
 ```
 
-### Output
+### License Report Output
 
 Write report to `results/audits/license-attribution-YYYY-MM-DD.md`:
 
@@ -312,10 +304,6 @@ Write report to `results/audits/license-attribution-YYYY-MM-DD.md`:
 
 Generate a visual dependency tree showing transitive relationships and risk scores.
 
-### Trigger
-
-- `/x-dependency-audit --scope tree` -- generate dependency tree
-
 ### Tree Workflow
 
 ```
@@ -346,7 +334,7 @@ Generate a visual dependency tree showing transitive relationships and risk scor
 | License risk | 15% | Copyleft or unknown license |
 | Popularity | 10% | Download count, dependents (low = higher risk) |
 
-### Output
+### Tree Output
 
 Write tree to `results/audits/dependency-tree-YYYY-MM-DD.md`:
 
@@ -374,3 +362,21 @@ Write tree to `results/audits/dependency-tree-YYYY-MM-DD.md`:
 └── {dep-b}@{version} [risk: HIGH]
     └── {transitive-3}@{version} [risk: HIGH]
 ```
+
+## Error Handling
+
+| Scenario | Action |
+|----------|--------|
+| Audit tool not installed | Suggest installation command, continue with available tools |
+| No lock file found | Warn and attempt audit without lock file |
+| Audit command fails | Report error, continue with other dimensions |
+| No dependencies found | Report "No dependencies found" |
+| Offline mode | Skip vulnerability check, proceed with outdated and license |
+
+## Integration Notes
+
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| `x-supply-chain-audit` | complementary | Handles deeper supply chain risks (maintainer, typosquatting, SLSA) |
+| `x-ci-cd-generate` | called-by | Dependency audit pipeline references audit commands from this skill |
+| `x-security-dashboard` | reads | Dashboard aggregates results from this skill |

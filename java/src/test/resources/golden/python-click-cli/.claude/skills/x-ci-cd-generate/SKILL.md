@@ -2,8 +2,8 @@
 name: x-ci-cd-generate
 description: "Generate or update CI/CD pipelines based on project stack: detect language, analyze existing workflows, generate CI/CD/release/security pipelines, validate with actionlint, support monorepo triggers."
 user-invocable: true
-argument-hint: "[ci|cd|release|security|all] [--monorepo] [--force]"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent
+argument-hint: "[ci|cd|release|security|all] [--monorepo] [--force]"
 ---
 
 ## Global Output Policy
@@ -20,19 +20,19 @@ Generates or updates CI/CD pipeline configurations for {{PROJECT_NAME}} based on
 
 ## Triggers
 
-- `/x-ci-cd-generate` -- generate all pipelines (default: all)
-- `/x-ci-cd-generate ci` -- generate CI pipeline (build + test + security scan)
-- `/x-ci-cd-generate cd` -- generate CD pipeline (deploy staging + production + rollback)
-- `/x-ci-cd-generate release` -- generate release pipeline (semantic versioning + changelog)
-- `/x-ci-cd-generate security` -- generate security scan pipeline (scheduled SAST + dependency audit)
-- `/x-ci-cd-generate all` -- generate all pipeline types
-- `/x-ci-cd-generate ci --monorepo` -- generate with path-based triggers for monorepo
-- `/x-ci-cd-generate ci --force` -- overwrite existing workflows
+- `/x-ci-cd-generate` — generate all pipelines (default: all)
+- `/x-ci-cd-generate ci` — generate CI pipeline (build + test + security scan)
+- `/x-ci-cd-generate cd` — generate CD pipeline (deploy staging + production + rollback)
+- `/x-ci-cd-generate release` — generate release pipeline (semantic versioning + changelog)
+- `/x-ci-cd-generate security` — generate security scan pipeline (scheduled SAST + dependency audit)
+- `/x-ci-cd-generate all` — generate all pipeline types
+- `/x-ci-cd-generate ci --monorepo` — generate with path-based triggers for monorepo
+- `/x-ci-cd-generate ci --force` — overwrite existing workflows
 
-## Arguments
+## Parameters
 
-| Argument | Type | Default | Description |
-|----------|------|---------|-------------|
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
 | `type` | Enum | `all` | Pipeline type: ci, cd, release, security, all |
 | `--monorepo` | Flag | false | Activate path-based triggers for monorepo |
 | `--force` | Flag | false | Overwrite existing workflow files |
@@ -47,7 +47,7 @@ Generates or updates CI/CD pipeline configurations for {{PROJECT_NAME}} based on
 5. REPORT     -> Report generated/updated files and any validation issues
 ```
 
-### Step 1 -- Detect Stack
+### Step 1 — Detect Stack
 
 Analyze project root to identify language, build tool, and dependencies:
 
@@ -65,7 +65,7 @@ Analyze project root to identify language, build tool, and dependencies:
 ls -la pom.xml build.gradle* go.mod Cargo.toml pyproject.toml package.json 2>/dev/null
 ```
 
-Cross-reference with `.claude/rules/01-project-identity.md` if available for authoritative stack information.
+Cross-reference with `.claude/rules/01-project-identity.md` (RULE-001 — Project Identity) if available for authoritative stack information.
 
 Additionally detect:
 - **Dockerfile presence**: enables container build steps
@@ -73,7 +73,7 @@ Additionally detect:
 - **Helm charts / k8s manifests**: enables deployment steps
 - **Terraform / IaC**: enables infrastructure pipeline steps
 
-### Step 2 -- Analyze Existing Workflows
+### Step 2 — Analyze Existing Workflows
 
 Check `.github/workflows/` for existing pipeline files:
 
@@ -95,11 +95,11 @@ For each existing workflow:
 | File exists, different purpose | Skip (no conflict) | Skip (no conflict) |
 | File does not exist | Generate | Generate |
 
-### Step 3 -- Generate Workflows
+### Step 3 — Generate Workflows
 
 Reference the CI/CD patterns knowledge pack (`skills/ci-cd-patterns/`) for pipeline templates and best practices.
 
-#### 3.1 -- CI Pipeline (`ci.yml`)
+#### 3.1 — CI Pipeline (`ci.yml`)
 
 Generate continuous integration workflow:
 
@@ -143,7 +143,7 @@ jobs:
 | Rust | `dtolnay/rust-toolchain@stable` | `target/` | `cargo build` | `cargo test` |
 | Python | `setup-python@v5` | `~/.cache/pip` | `pip install -e .` | `pytest` |
 
-#### 3.2 -- CD Pipeline (`deploy-staging.yml`, `deploy-production.yml`, `rollback.yml`)
+#### 3.2 — CD Pipeline (`deploy-staging.yml`, `deploy-production.yml`, `rollback.yml`)
 
 Generate continuous deployment workflows:
 
@@ -167,7 +167,7 @@ Generate continuous deployment workflows:
 - Rolls back to specified previous version
 - Validates rollback health
 
-#### 3.3 -- Release Pipeline (`release.yml`)
+#### 3.3 — Release Pipeline (`release.yml`)
 
 Generate release workflow:
 
@@ -177,7 +177,7 @@ Generate release workflow:
 - Publishes artifacts to registry
 - Updates version references
 
-#### 3.4 -- Security Pipeline (`security-scan.yml`)
+#### 3.4 — Security Pipeline (`security-scan.yml`)
 
 Generate scheduled security scanning:
 
@@ -187,7 +187,7 @@ Generate scheduled security scanning:
 - Container image scanning (if Dockerfile present)
 - Results uploaded as SARIF to GitHub Security tab
 
-#### 3.5 -- Dependency Audit Pipeline (`dependency-audit.yml`)
+#### 3.5 — Dependency Audit Pipeline (`dependency-audit.yml`)
 
 Generate scheduled dependency audit:
 
@@ -196,7 +196,7 @@ Generate scheduled dependency audit:
 - Reports outdated dependencies
 - Creates issues for critical findings
 
-### Step 4 -- Validate with actionlint
+### Step 4 — Validate with actionlint
 
 If actionlint is available, validate all generated workflow files:
 
@@ -212,7 +212,7 @@ If actionlint is not installed, report:
 - "actionlint not found. Install with: brew install actionlint (macOS) or go install github.com/rhysd/actionlint/cmd/actionlint@latest"
 - Continue without validation (non-blocking)
 
-### Step 5 -- Report
+### Step 5 — Report
 
 Generate summary of actions taken:
 
@@ -281,10 +281,15 @@ Path detection strategy:
 
 ## Integration Notes
 
-- Uses `devops-engineer` agent for advanced pipeline customization via Agent tool
-- References CI/CD patterns KP (`skills/ci-cd-patterns/`) for pipeline templates and best practices
-- Output follows GitHub Actions workflow syntax
-- Works with any detected language stack (Java, TypeScript, Go, Rust, Python)
-- Can be invoked after initial project setup or to update existing pipelines
-- Generated workflows follow caching strategies from CI/CD patterns KP
-- Security scanning integrates with GitHub Security tab via SARIF uploads
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| `devops-engineer` agent | calls | Used for advanced pipeline customization via Agent tool |
+| `ci-cd-patterns` KP | reads | Pipeline templates and best practices |
+| `x-dependency-audit` | reads | Dependency audit pipeline references audit commands |
+| `x-security-pipeline` | reads | Security pipeline references scanning configurations |
+
+## Knowledge Pack References
+
+| Pack | Files | Purpose |
+|------|-------|---------|
+| ci-cd-patterns | `skills/ci-cd-patterns/SKILL.md` | Pipeline templates and best practices |

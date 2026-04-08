@@ -1,17 +1,22 @@
 ---
 name: ktor-patterns
-description: "Ktor-specific patterns: plugin installation, routing DSL, Exposed ORM, Koin DI, HOCON config, testApplication testing, StatusPages error handling. Internal reference for agents producing Ktor code."
+description: "Ktor patterns: plugin installation, routing DSL, Exposed ORM, Koin DI, HOCON config, testApplication testing, and StatusPages error handling."
+user-invocable: false
 allowed-tools:
   - Read
   - Grep
   - Glob
 ---
 
-# Knowledge Pack: Ktor Patterns
+# Pattern: Ktor Patterns
 
 ## Purpose
 
 Provides Ktor-specific implementation patterns that supplement the generic layer templates. Agents reference this pack when generating code for a Kotlin + Ktor project.
+
+## Supplements
+
+Supplements `architecture` and `layer-templates` knowledge packs with Ktor-specific conventions.
 
 ---
 

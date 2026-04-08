@@ -2,8 +2,8 @@
 name: x-hardening-eval
 description: "Evaluates application hardening posture against CIS and OWASP benchmarks: HTTP security headers, TLS configuration, CORS policy, cookie security, error handling, input limits, and information disclosure. Produces SARIF output with weighted scoring."
 user-invocable: true
-argument-hint: "--target <url> [--scope all|headers|tls|cors|cookies|errors|limits|disclosure] [--benchmark cis|owasp] [--level L1|L2|L3]"
 allowed-tools: Read, Write, Bash, Grep, Glob, Agent
+argument-hint: "--target <url> [--scope all|headers|tls|cors|cookies|errors|limits|disclosure] [--benchmark cis|owasp] [--level L1|L2|L3]"
 ---
 
 ## Global Output Policy
@@ -18,27 +18,19 @@ allowed-tools: Read, Write, Bash, Grep, Glob, Agent
 
 Evaluates the defensive posture of {{PROJECT_NAME}} against recognized benchmarks (CIS, OWASP). Analyzes 7 hardening dimensions with weighted scoring: HTTP security headers, TLS configuration, CORS policy, cookie security, error handling, input limits, and information disclosure. Produces SARIF 2.1.0 output and a Markdown report with per-dimension scores.
 
-## Knowledge Pack References
-
-Read these before starting the evaluation:
-
-- `skills/security/references/security-principles.md` -- data classification, input validation, fail-secure patterns
-- `skills/security/references/application-security.md` -- OWASP Top 10, security headers, secrets management
-- `skills/security/references/cryptography.md` -- TLS requirements, cipher suites, certificate management
-
 ## Triggers
 
-- `/x-hardening-eval --target <url>` -- full hardening evaluation (all dimensions, OWASP benchmark, L1)
-- `/x-hardening-eval --target <url> --scope headers` -- evaluate HTTP security headers only
-- `/x-hardening-eval --target <url> --scope tls` -- evaluate TLS configuration only
-- `/x-hardening-eval --target <url> --benchmark cis` -- evaluate against CIS benchmark
-- `/x-hardening-eval --target <url> --level L2` -- evaluate against ASVS Level 2
+- `/x-hardening-eval --target <url>` — full hardening evaluation (all dimensions, OWASP benchmark, L1)
+- `/x-hardening-eval --target <url> --scope headers` — evaluate HTTP security headers only
+- `/x-hardening-eval --target <url> --scope tls` — evaluate TLS configuration only
+- `/x-hardening-eval --target <url> --benchmark cis` — evaluate against CIS benchmark
+- `/x-hardening-eval --target <url> --level L2` — evaluate against ASVS Level 2
 
 ## Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `--target` | URL | Yes | -- | Target application URL (HTTP/HTTPS) |
+| `--target` | URL | Yes | — | Target application URL (HTTP/HTTPS) |
 | `--scope` | Enum | No | `all` | Dimension filter: all, headers, tls, cors, cookies, errors, limits, disclosure |
 | `--benchmark` | Enum | No | `owasp` | Benchmark: cis (infrastructure-focused) or owasp (application-focused) |
 | `--level` | Enum | No | `L1` | ASVS verification level: L1, L2, L3 |
@@ -54,7 +46,7 @@ Read these before starting the evaluation:
 6. REPORT     -> Generate SARIF 2.1.0 output + Markdown report
 ```
 
-### Step 1 -- Validate Parameters
+### Step 1 — Validate Parameters
 
 Validate all CLI parameters before proceeding:
 
@@ -63,7 +55,7 @@ Validate all CLI parameters before proceeding:
 - `--benchmark` must be one of: cis, owasp
 - `--level` must be one of: L1, L2, L3
 
-**Error: Target Unreachable**
+**Error — Target Unreachable:**
 
 If the target URL is unreachable (connection refused, DNS failure, timeout):
 
@@ -73,7 +65,7 @@ Reason: <connection error detail>
 No score calculated. Verify the URL and ensure the application is running.
 ```
 
-### Step 2 -- Configure Benchmark Checks
+### Step 2 — Configure Benchmark Checks
 
 Load the appropriate check set based on `--benchmark` and `--level`:
 
@@ -95,7 +87,7 @@ Checks derived from CIS Benchmarks for web servers (Apache, Nginx, IIS). Include
 
 Higher levels include all checks from lower levels plus additional requirements.
 
-### Step 3 -- Probe Target
+### Step 3 — Probe Target
 
 Send HTTP requests to collect security-relevant data:
 
@@ -117,11 +109,11 @@ openssl s_client -connect <host>:<port> \
 curl -s --max-time 10 <target-url>/nonexistent-path-404
 ```
 
-### Step 4 -- Evaluate Dimensions
+### Step 4 — Evaluate Dimensions
 
 Evaluate each dimension (filtered by `--scope`) against the configured benchmark checks.
 
-#### Dimension 1: HTTP Security Headers (Weight: 25%)
+#### 4.1 — HTTP Security Headers (Weight: 25%)
 
 | Header | CIS | OWASP | Check | Severity |
 |--------|-----|-------|-------|----------|
@@ -145,7 +137,7 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains
 Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'
 ```
 
-#### Dimension 2: TLS Configuration (Weight: 20%)
+#### 4.2 — TLS Configuration (Weight: 20%)
 
 | Check | CIS | OWASP | Requirement | Severity |
 |-------|-----|-------|-------------|----------|
@@ -155,7 +147,7 @@ Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'
 | Certificate Chain | Yes | Yes | Valid, not expired, correct hostname | HIGH |
 | HSTS Preload | No | Yes | Listed in HSTS preload list (L2+) | LOW |
 
-#### Dimension 3: CORS Policy (Weight: 15%)
+#### 4.3 — CORS Policy (Weight: 15%)
 
 | Check | CIS | OWASP | Requirement | Severity |
 |-------|-----|-------|-------------|----------|
@@ -165,7 +157,7 @@ Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'
 | Exposed Headers | No | Yes | Minimal set of exposed headers | MEDIUM |
 | Allowed Methods | Yes | Yes | Restrict to required HTTP methods only | MEDIUM |
 
-#### Dimension 4: Cookie Security (Weight: 15%)
+#### 4.4 — Cookie Security (Weight: 15%)
 
 | Check | CIS | OWASP | Requirement | Severity |
 |-------|-----|-------|-------------|----------|
@@ -175,7 +167,7 @@ Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'
 | Path Scope | No | Yes | Path restricted to application root | LOW |
 | Cookie Prefix | No | Yes | __Secure- or __Host- prefix (L2+) | LOW |
 
-#### Dimension 5: Error Handling (Weight: 10%)
+#### 4.5 — Error Handling (Weight: 10%)
 
 | Check | CIS | OWASP | Requirement | Severity |
 |-------|-----|-------|-------------|----------|
@@ -184,7 +176,7 @@ Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'
 | Custom Error Pages | Yes | Yes | Custom 404/500 pages without server info | MEDIUM |
 | Debug Mode | Yes | Yes | Debug mode disabled in production | CRITICAL |
 
-#### Dimension 6: Input Limits (Weight: 10%)
+#### 4.6 — Input Limits (Weight: 10%)
 
 | Check | CIS | OWASP | Requirement | Severity |
 |-------|-----|-------|-------------|----------|
@@ -194,7 +186,7 @@ Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'
 | Upload Limits | Yes | Yes | File upload size restricted | MEDIUM |
 | Rate Limiting | No | Yes | Rate limiting headers present (X-RateLimit-*) | HIGH |
 
-#### Dimension 7: Information Disclosure (Weight: 5%)
+#### 4.7 — Information Disclosure (Weight: 5%)
 
 | Check | CIS | OWASP | Requirement | Severity |
 |-------|-----|-------|-------------|----------|
@@ -203,7 +195,7 @@ Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'
 | Version Disclosure | Yes | Yes | No version numbers in headers or body | MEDIUM |
 | Directory Listing | Yes | No | Disabled | HIGH |
 
-### Step 5 -- Calculate Weighted Score
+### Step 5 — Calculate Weighted Score
 
 #### Dimension Weights
 
@@ -237,9 +229,9 @@ When `--scope` filters dimensions, only the applicable dimensions are included i
 | 60-69 | D |
 | 0-59 | F |
 
-### Step 6 -- Generate Reports
+### Step 6 — Generate Reports
 
-#### SARIF 2.1.0 Output
+#### 6.1 — SARIF 2.1.0 Output
 
 Write SARIF to `results/security/hardening-eval-YYYY-MM-DD.sarif.json`:
 
@@ -313,12 +305,12 @@ Write SARIF to `results/security/hardening-eval-YYYY-MM-DD.sarif.json`:
 | limits | HARDEN-LIM | HARDEN-LIM-001 |
 | disclosure | HARDEN-DIS | HARDEN-DIS-001 |
 
-#### Markdown Report
+#### 6.2 — Markdown Report
 
 Write report to `results/security/hardening-eval-YYYY-MM-DD.md`:
 
 ```markdown
-# Application Hardening Evaluation -- {{PROJECT_NAME}}
+# Application Hardening Evaluation — {{PROJECT_NAME}}
 
 **Date:** YYYY-MM-DD
 **Target:** <url>
@@ -397,8 +389,16 @@ hardening-eval:
 
 ## Integration Notes
 
-- Uses `security-engineer` agent for in-depth analysis via Agent tool
-- References security KP (`skills/security/`) for mitigation recommendations
-- SARIF output compatible with GitHub Advanced Security and GitLab SAST
-- Weighted scoring excludes non-evaluated dimensions from overall calculation
-- Output follows OWASP ASVS V14 structure for compliance mapping
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| `security-engineer` agent | calls | Used for in-depth analysis via Agent tool |
+| `x-security-dashboard` | reads | Dashboard aggregates results from this skill |
+| `x-owasp-scan` | complementary | OWASP scan covers application-level vulnerabilities; hardening covers infrastructure posture |
+
+## Knowledge Pack References
+
+| Pack | Files | Purpose |
+|------|-------|---------|
+| security | `skills/security/references/security-principles.md` | Data classification, input validation, fail-secure patterns |
+| security | `skills/security/references/application-security.md` | OWASP Top 10, security headers, secrets management |
+| security | `skills/security/references/cryptography.md` | TLS requirements, cipher suites, certificate management |
