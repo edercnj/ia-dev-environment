@@ -4,6 +4,7 @@ description: "Documentation automation: detects documentation type needed (API, 
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
 argument-hint: "[--type api|readme|adr|changelog|all] [--scope path] [--force]"
+context-budget: medium
 ---
 
 ## Global Output Policy

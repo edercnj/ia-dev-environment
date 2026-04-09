@@ -4,6 +4,7 @@ description: "Analyzes source code with the appropriate linter for {{LANGUAGE}}.
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[--fix | --changed-only | --strict]"
+context-budget: medium
 ---
 
 ## Global Output Policy
@@ -234,6 +235,37 @@ x-format --> x-lint --> compile --> commit
 | Linter command fails | Report error details; exit 1 |
 | `--changed-only` with no changes | Report "No modified files"; exit 0 |
 | `--fix` with unfixable errors | Report remaining errors after fix attempt |
+
+## Slim Mode
+
+> **When to use:** When this skill is invoked programmatically from another skill (e.g., x-commit pre-commit chain), read ONLY this section for minimum context.
+
+### Linter Commands
+
+| Language | Primary Linter | Lint Command | Fix Command |
+|----------|---------------|--------------|-------------|
+| java | checkstyle | `mvn checkstyle:check` | (manual) |
+| kotlin | ktlint | `ktlint` | `ktlint --format` |
+| typescript | eslint | `npx eslint .` | `npx eslint . --fix` |
+| python | ruff | `ruff check .` | `ruff check . --fix` |
+| go | golangci-lint | `golangci-lint run ./...` | `golangci-lint run --fix` |
+| rust | clippy | `cargo clippy -- -D warnings` | `cargo clippy --fix` |
+
+### Severity and Exit Codes
+
+| Condition | Exit Code |
+|-----------|-----------|
+| No findings / INFO only | 0 (PASS) |
+| WARNING only (no --strict) | 0 (PASS) |
+| WARNING with --strict | 1 (FAIL) |
+| Any ERROR | 1 (FAIL) |
+
+### Error Handling
+
+- Linter not installed -> exit 1 with install hint
+- No source files -> exit 0
+- Linter command fails -> exit 1 with details
+- `--fix`: re-stage corrected files via `git add`
 
 ## Integration Notes
 

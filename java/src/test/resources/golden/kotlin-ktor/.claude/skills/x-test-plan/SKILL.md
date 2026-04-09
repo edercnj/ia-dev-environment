@@ -4,6 +4,7 @@ description: "Generates a Double-Loop TDD test plan with TPP-ordered scenarios b
 user-invocable: true
 allowed-tools: Read, Grep, Glob
 argument-hint: "[STORY-ID]"
+context-budget: medium
 ---
 
 ## Global Output Policy

@@ -4,6 +4,7 @@ description: "Creates Conventional Commits with Task ID in scope and pre-commit 
 user-invocable: true
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit
 argument-hint: "--task TASK-XXXX-YYYY-NNN --type <type> --subject <subject> [--tdd RED|GREEN|REFACTOR] [--body <body>] [--skip-chain] [--amend]"
+context-budget: medium
 ---
 
 ## Global Output Policy
@@ -278,6 +279,55 @@ x-commit complete:
 | `x-git-push` | followed by | Push after commit is created |
 | `x-dev-lifecycle` | orchestrated by | Lifecycle invokes x-commit for each task |
 | `x-test-run` | precedes | Tests should pass before committing |
+
+## Slim Mode
+
+> **When to use:** When this skill is invoked programmatically from another skill (e.g., x-tdd, x-dev-lifecycle), read ONLY this section for minimum context.
+
+### Quick Reference
+
+**Commit format:** `<type>(<TASK-ID>): <subject> [TDD:TAG]`
+
+**Valid types:** `feat`, `fix`, `test`, `refactor`, `docs`, `chore`, `perf`
+
+**TDD tags:** `[TDD:RED]`, `[TDD:GREEN]`, `[TDD:REFACTOR]`, `[TDD]` (optional)
+
+### Pre-Commit Chain (RULE-007)
+
+```
+x-format -> x-lint -> compile -> commit
+```
+
+- Skip with `--skip-chain` (emergency only, emits WARNING)
+- Re-stage files modified by format/lint automatically
+
+### Required Parameters
+
+| Param | Format | Example |
+|-------|--------|---------|
+| `--task` | `TASK-XXXX-YYYY-NNN` | `TASK-0029-0005-001` |
+| `--type` | Conventional Commits | `feat` |
+| `--subject` | Imperative, <= 72 chars | `add detection logic` |
+
+### Error Handling
+
+- Invalid task ID / type / subject -> ABORT with hint
+- No staged files -> ABORT
+- Pre-commit chain failure -> ABORT at failed step
+- Non-imperative subject -> WARN (soft)
+
+### Commands
+
+```bash
+# Normal commit
+git commit -m "<type>(<TASK-ID>): <subject> [TDD:TAG]"
+
+# Amend
+git commit --amend -m "<type>(<TASK-ID>): <subject>"
+
+# Compile check
+{{COMPILE_COMMAND}}
+```
 
 ## Template Variables
 

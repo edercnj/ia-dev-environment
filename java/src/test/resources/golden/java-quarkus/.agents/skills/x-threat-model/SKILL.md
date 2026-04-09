@@ -4,6 +4,7 @@ description: "Generate threat models using STRIDE analysis: identify components,
 user-invocable: true
 allowed-tools: Read, Write, Glob, Grep, Agent
 argument-hint: "[architecture-plan-path] [--format stride|pasta|linddun] [--output results/security/]"
+context-budget: medium
 ---
 
 ## Global Output Policy

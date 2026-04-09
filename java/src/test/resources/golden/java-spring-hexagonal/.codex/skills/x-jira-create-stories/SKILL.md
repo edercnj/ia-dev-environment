@@ -4,6 +4,7 @@ description: "Create Jira Stories from existing local story markdown files. Read
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion
 argument-hint: "[EPIC_DIR_PATH or EPIC_ID]"
+context-budget: medium
 ---
 
 ## Global Output Policy

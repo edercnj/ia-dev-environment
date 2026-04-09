@@ -419,11 +419,8 @@ class GitFlowCrossCuttingValidationTest {
 
     private String readSkill(String skillName)
             throws IOException {
-        return Files.readString(
-                outputDir.resolve(
-                        ".claude/skills/" + skillName
-                                + "/SKILL.md"),
-                StandardCharsets.UTF_8);
+        return SmokeTestValidators.readSkillWithRefs(
+                outputDir, skillName);
     }
 
     private String readFile(String relativePath)

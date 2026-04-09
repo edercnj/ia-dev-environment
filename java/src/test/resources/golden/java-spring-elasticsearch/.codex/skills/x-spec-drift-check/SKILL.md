@@ -4,6 +4,7 @@ description: "Detects spec-code drift by comparing story data contracts, endpoin
 user-invocable: true
 allowed-tools: Read, Bash, Grep, Glob
 argument-hint: "[STORY-ID] [--mode standalone|inline]"
+context-budget: medium
 ---
 
 ## Global Output Policy

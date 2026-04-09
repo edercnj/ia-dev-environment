@@ -4,6 +4,9 @@ import dev.iadev.config.ContextBuilder;
 import dev.iadev.domain.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
+import dev.iadev.domain.model.ContextBudget;
+
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -180,8 +183,27 @@ public final class SkillsAssembler implements Assembler {
         CopyHelpers.copyDirectory(src, dest);
         CopyHelpers.replacePlaceholdersInDir(
                 dest, engine, context);
+        injectBudgetField(src, dest);
         return dest.toString();
     }
+
+    private void injectBudgetField(
+            Path srcDir, Path destDir) {
+        Path destSkill = destDir.resolve("SKILL.md");
+        if (!Files.exists(destSkill)) {
+            return;
+        }
+        String content = CopyHelpers.readFile(destSkill);
+        int lineCount =
+                (int) content.lines().count();
+        ContextBudget budget =
+                ContextBudget.fromLineCount(lineCount);
+        String injected =
+                FrontmatterInjector.injectContextBudget(
+                        content, budget);
+        CopyHelpers.writeFile(destSkill, injected);
+    }
+
 
     private Optional<String> copyConditionalSkill(
             String skillName,
@@ -201,6 +223,7 @@ public final class SkillsAssembler implements Assembler {
         CopyHelpers.copyDirectory(src, dest);
         CopyHelpers.replacePlaceholdersInDir(
                 dest, engine, context);
+        injectBudgetField(src, dest);
         return Optional.of(dest.toString());
     }
 

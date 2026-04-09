@@ -4,6 +4,7 @@ description: "Task-level PR creation with formatted title, automatic labels, str
 user-invocable: true
 allowed-tools: Bash, Read, Grep, Glob
 argument-hint: "TASK-XXXX-YYYY-NNN [--auto-approve-pr] [--draft] [--description \"short desc\"]"
+context-budget: medium
 ---
 
 ## Global Output Policy

@@ -4,6 +4,7 @@ description: "Runs consumer-driven contract tests (Pact, Spring Cloud Contract) 
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[--provider | --consumer | --all]"
+context-budget: light
 ---
 
 ## Global Output Policy

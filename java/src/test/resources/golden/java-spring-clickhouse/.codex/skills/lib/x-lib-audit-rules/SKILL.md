@@ -3,6 +3,7 @@ name: x-lib-audit-rules
 description: "Audits compliance of all project rules AND knowledge packs against source code. Launches parallel subagents (one per rule/knowledge-pack) for scanning, then aggregates into a unified report with severity classification and story suggestions."
 user-invocable: false
 allowed-tools: Read, Bash, Grep, Glob, Write
+context-budget: medium
 ---
 
 ## Global Output Policy

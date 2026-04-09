@@ -4,6 +4,7 @@ description: "Formats source code using the appropriate formatter for {{LANGUAGE
 user-invocable: true
 allowed-tools: Bash, Read, Grep, Glob
 argument-hint: "[--check | --changed-only]"
+context-budget: medium
 ---
 
 ## Global Output Policy
@@ -114,8 +115,9 @@ Run the selected formatter command. Capture output for the report.
 After formatting, detect which previously staged files were modified by the formatter and re-stage them automatically:
 
 ```bash
-# Get list of staged files before formatting (NUL-delimited for safety)
-STAGED_BEFORE=$(git diff --cached --name-only -z)
+# Record the currently staged paths in a temp file (NUL-delimited)
+STAGED_BEFORE="$(mktemp)"
+git diff --cached --name-only -z > "$STAGED_BEFORE"
 
 # After formatting, re-stage files that were already staged
 while IFS= read -r -d '' file; do
@@ -123,7 +125,9 @@ while IFS= read -r -d '' file; do
         git add "$file"
         echo "Re-staged: $file"
     fi
-done <<< "$STAGED_BEFORE"
+done < "$STAGED_BEFORE"
+
+rm -f "$STAGED_BEFORE"
 ```
 
 ### Step 6 -- Report
@@ -224,3 +228,40 @@ No configuration needed. `gofmt` uses the canonical Go style.
 edition = "2021"
 max_width = 120
 ```
+
+## Slim Mode
+
+> **When to use:** When this skill is invoked programmatically from another skill (e.g., x-commit pre-commit chain), read ONLY this section for minimum context.
+
+### Formatter Commands
+
+| Language | Format Command | Check Command |
+|----------|----------------|---------------|
+| java | `mvn spotless:apply` / `gradle spotlessApply` | `mvn spotless:check` |
+| typescript | `npx prettier --write .` | `npx prettier --check .` |
+| python | `ruff format .` | `ruff format --check .` |
+| go | `gofmt -w .` | `gofmt -l .` |
+| rust | `cargo fmt` | `cargo fmt --check` |
+| kotlin | `ktfmt --google-style .` | `ktfmt --dry-run .` |
+
+### Re-Stage After Format
+
+```bash
+# Record the currently staged paths in a temp file (NUL-delimited)
+STAGED_BEFORE="$(mktemp)"
+git diff --cached --name-only -z > "$STAGED_BEFORE"
+
+# After running the formatter, re-stage exactly those previously staged files
+if [ -s "$STAGED_BEFORE" ]; then
+  xargs -0 git add -- < "$STAGED_BEFORE"
+fi
+
+rm -f "$STAGED_BEFORE"
+```
+
+### Error Handling
+
+- Unsupported language -> exit 0 (do not block chain)
+- No formatter installed -> exit 1 with install hint
+- Formatter fails -> exit 1 with stderr
+- No files to format -> exit 0

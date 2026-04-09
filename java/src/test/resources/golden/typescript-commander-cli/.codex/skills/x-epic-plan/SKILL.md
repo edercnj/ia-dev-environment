@@ -4,6 +4,7 @@ description: "Orchestrates multi-agent planning for all stories in an epic, resp
 user-invocable: true
 allowed-tools: "Read, Write, Edit, Bash, Grep, Glob, Agent, AskUserQuestion"
 argument-hint: "[EPIC-ID] [--resume] [--story story-XXXX-YYYY]"
+context-budget: heavy
 ---
 
 ## Global Output Policy
@@ -284,6 +285,10 @@ For each phase in (0..totalPhases-1):
 ```
 
 ### 2.2 Subagent Dispatch
+
+**CONTEXT ISOLATION: You receive only metadata. Read all files yourself.
+Do NOT expect source code, diffs, or knowledge pack content in this prompt.
+The subagent reads all story files, KPs, and references independently.**
 
 For each story to plan, invoke `/x-story-plan` via the Skill tool:
 

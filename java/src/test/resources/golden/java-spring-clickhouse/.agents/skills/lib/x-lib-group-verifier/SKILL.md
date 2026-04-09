@@ -3,6 +3,7 @@ name: x-lib-group-verifier
 description: "Build gate verification between parallelism groups. Compiles code, classifies errors, decides retry vs escalate, extracts outputs for next group. Used between each implementation group in Phase 2."
 user-invocable: false
 allowed-tools: Bash, Read, Grep, Glob
+context-budget: light
 ---
 
 ## Global Output Policy

@@ -4,6 +4,7 @@ description: "Validate and configure local development environment: detect stack
 user-invocable: true
 allowed-tools: Read, Bash, Glob, Grep, Write
 argument-hint: "[--check-only] [--fix]"
+context-budget: medium
 ---
 
 ## Global Output Policy

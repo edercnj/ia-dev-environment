@@ -4,6 +4,7 @@ description: "Generates a detailed implementation plan for an individual task wi
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[STORY-ID] --task [TASK-ID] [--force]"
+context-budget: medium
 ---
 
 ## Global Output Policy

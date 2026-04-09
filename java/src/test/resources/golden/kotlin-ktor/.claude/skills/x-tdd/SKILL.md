@@ -4,6 +4,7 @@ description: "Executes systematic Red-Green-Refactor TDD cycles for a task. Read
 user-invocable: true
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob
 argument-hint: "TASK-XXXX-YYYY-NNN [--from-cycle N] [--dry-run]"
+context-budget: medium
 ---
 
 ## Global Output Policy
@@ -277,6 +278,30 @@ Cycle N/M complete:
   REFACTOR: refactor(TASK-...): [desc] [TDD:REFACTOR]           -> {sha} | skipped
 ```
 
+### Compact Cycle Log (Orchestrated Mode)
+
+When x-tdd is invoked from within another skill (orchestrated execution via x-dev-lifecycle or x-dev-epic-implement), emit a single-line compact log per cycle instead of the multi-line format above. This prevents TDD cycle details from accumulating in the orchestrator context.
+
+**Compact format:**
+
+```
+Cycle {cycleNumber}/{totalCycles}: RED {testResult} GREEN {testResult} REFACTOR {refactorStatus} → {commitSha}
+```
+
+Where:
+- RED `{testResult}`: `FAIL_EXPECTED` (test fails as intended) or `FAIL_UNEXPECTED` (test passes prematurely — abort)
+- GREEN `{testResult}`: `PASS` (tests pass after implementation) or `FAIL` (tests still failing — retry)
+- `{refactorStatus}` is `PASS` (applied, tests still pass) or `skipped`
+- `{commitSha}` is the 7-char abbreviated SHA of the last commit in the cycle
+
+**Example:**
+
+```
+Cycle 3/5: RED FAIL_EXPECTED GREEN PASS REFACTOR skipped → abc1234
+```
+
+Detection: if this skill was invoked via the `Skill` tool by another skill (not directly by the user), use the compact format. When invoked directly by the user (e.g., `/x-tdd TASK-001`), use the full multi-line format.
+
 ## Phase 4 -- Report
 
 After all cycles are complete, produce a summary:
@@ -372,14 +397,61 @@ Tests MUST progress from lower priority (simpler transformations) to higher prio
 - **Batch commits**: combining multiple phases into a single commit. Each phase (RED, GREEN, REFACTOR) gets its own atomic commit.
 - **Testing implementation details**: tests should verify behavior, not internal structure. Test the what, not the how.
 
+## Slim Mode
+
+> **When to use:** When this skill is invoked programmatically from another skill (e.g., x-dev-lifecycle Phase 2), read ONLY this section for minimum context.
+
+### Workflow
+
+```
+FOR each cycle in task plan (TPP order):
+  RED:      Write failing test -> verify FAIL -> commit [TDD:RED]
+  GREEN:    Minimum implementation -> compile -> verify PASS -> commit [TDD:GREEN]
+  REFACTOR: Improve design (optional) -> verify PASS -> commit [TDD:REFACTOR]
+END FOR
+```
+
+### Required Input
+
+- Task ID: `TASK-XXXX-YYYY-NNN`
+- Task plan at: `plans/epic-XXXX/plans/task-plan-XXXX-YYYY-NNN.md`
+
+### Commands
+
+```bash
+# Compile
+{{COMPILE_COMMAND}}
+
+# Run tests
+{{TEST_COMMAND}}
+
+# Coverage (optional, non-blocking warning)
+{{COVERAGE_COMMAND}}
+```
+
+### Commit Delegation
+
+Each phase delegates to `/x-commit`: read only the "## Slim Mode" section of x-commit for minimum context.
+
+- RED: `--type test --subject "add test for [desc]" --tdd RED`
+- GREEN: `--type feat --subject "implement [desc]" --tdd GREEN`
+- REFACTOR: `--type refactor --subject "[desc]" --tdd REFACTOR`
+
+### Error Handling
+
+- RED test passes -> ABORT (behavior already exists)
+- GREEN compile/test fails -> retry (max 3)
+- REFACTOR tests fail -> REVERT (`git checkout -- .`), skip commit
+- Coverage below threshold -> WARNING only (non-blocking)
+
 ## Integration with Other Skills
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
 | `x-plan-task` | reads from | Task plan provides the TDD cycle definitions |
-| `x-commit` | delegates to | Each phase produces an atomic commit via x-commit |
-| `x-format` | invoked by (via x-commit) | Code is formatted before each commit |
-| `x-lint` | invoked by (via x-commit) | Code is linted before each commit |
+| `x-commit` | delegates to | Each phase produces an atomic commit via x-commit (use Slim Mode for chain invocation) |
+| `x-format` | invoked by (via x-commit) | Code is formatted before each commit (use Slim Mode) |
+| `x-lint` | invoked by (via x-commit) | Code is linted before each commit (use Slim Mode) |
 | `x-test-run` | complementary | x-test-run provides coverage analysis; x-tdd uses {{TEST_COMMAND}} directly |
 | `x-dev-lifecycle` | orchestrated by | Lifecycle may invoke x-tdd for inner-loop TDD execution |
 | `x-dev-implement` | complementary | x-dev-implement handles full story implementation; x-tdd handles per-task TDD cycles |
