@@ -342,6 +342,63 @@ Skip when `--skip-pr-comments` or `--single-pr` is set. Otherwise:
 3. Ask for confirmation (bypass with `--auto-merge`)
 4. If approved: run `/x-fix-epic-pr-comments {epicId}` to apply fixes
 
+## Error Classification
+
+When any tool call, subagent dispatch, or external command fails during execution, classify the error before deciding on recovery action.
+
+### Error Categories
+
+Classify every error into exactly one category using case-insensitive substring matching against the error message:
+
+| Category | Detection Patterns (case-insensitive) | Action |
+|----------|---------------------------------------|--------|
+| **TRANSIENT** | `"overloaded"`, `"rate limit"`, `"429"`, `"503"`, `"504"`, `"timeout"`, `"ETIMEDOUT"`, `"capacity"`, `"502"` | Retry with exponential backoff |
+| **CONTEXT** | `"context"`, `"token limit"`, `"too long"`, `"exceeded"`, `"output too large"`, `"truncated"` | Graceful degradation (defer to story-0031-0004) |
+| **PERMANENT** | All errors not matching TRANSIENT or CONTEXT patterns | Fail immediately with contextual error message |
+
+**Classification priority:** Check TRANSIENT patterns first, then CONTEXT patterns. If no pattern matches, classify as PERMANENT.
+**Log format:** `"Error classified: {category} — Action: {action}"`
+
+### Retry with Exponential Backoff
+
+When a TRANSIENT error is detected, retry the failed operation using the following backoff schedule.
+
+**Tool call retry (max 3 retries):**
+
+| Retry | Delay |
+|-------|-------|
+| 1 | 2 seconds |
+| 2 | 4 seconds |
+| 3 | 8 seconds |
+| After 3 failures | Mark task/story as FAILED with `errorCode` |
+
+**Subagent dispatch retry (max 2 retries):**
+
+When a subagent returns `status: "FAILED"` with an error message matching TRANSIENT patterns, re-dispatch the subagent:
+
+| Retry | Delay |
+|-------|-------|
+| 1 | 2 seconds |
+| 2 | 4 seconds |
+| After 2 failures | Mark story as FAILED with `errorCode` |
+
+**PERMANENT errors MUST NOT be retried.** If an error matches the PERMANENT category, mark the task/story as FAILED immediately. NEVER retry permanent errors.
+
+**Retry log format:** On each retry attempt, log:
+```
+"Transient error detected: {error}. Retry {n}/{max} in {delay}s..."
+```
+
+On retry success, log:
+```
+"Retry {n}/{max} succeeded for {operation}"
+```
+
+On retry exhaustion, log:
+```
+"All {max} retries exhausted for {operation}. Marking as FAILED."
+```
+
 ## Error Handling
 
 | Scenario | Action |
