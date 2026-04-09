@@ -4,6 +4,7 @@ description: "Validates API contracts (OpenAPI 3.1, AsyncAPI 2.6, Protobuf 3) ag
 user-invocable: true
 allowed-tools: Read, Grep, Glob, Bash
 argument-hint: "[contract-file-path]"
+context-budget: light
 ---
 
 ## Global Output Policy

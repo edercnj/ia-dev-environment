@@ -4,6 +4,7 @@ description: "Incrementally updates the service architecture document with chang
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[STORY-ID or architecture-plan-path]"
+context-budget: light
 ---
 
 ## Global Output Policy

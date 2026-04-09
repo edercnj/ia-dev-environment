@@ -4,6 +4,7 @@ description: "Generate detailed User Story files from an Epic and system specifi
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion
 argument-hint: "<SPEC_FILE> <EPIC_FILE> [--quality-threshold 70]"
+context-budget: heavy
 ---
 
 ## Output Policy

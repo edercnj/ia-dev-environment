@@ -46,6 +46,20 @@ Phase 3:   VERIFICATION       -> Epic-level test suite, DoD checklist, final sta
 Phase 4:   PR COMMENTS        -> Remediate PR review comments across all story PRs (optional, inline)
 ```
 
+## Context Budget Decision Logic
+
+Before invoking any skill inline via the `Skill` tool, evaluate the accumulated context budget:
+
+1. Check the `context-budget` field in the target skill's frontmatter (light/medium/heavy)
+2. Track the accumulated budget of all skills loaded inline in the current conversation
+3. Apply the delegation rule:
+   - If the accumulated budget is `heavy` and the next skill is `medium` or `heavy`: delegate via `Agent` tool (subagent) instead of `Skill` tool (inline)
+   - If the accumulated budget is `medium` and the next skill is `heavy`: delegate via `Agent` tool
+   - Otherwise: invoke inline via `Skill` tool
+4. When delegating due to budget: log `"Context budget exceeded ({accumulated}). Delegating {skill-name} to subagent."`
+
+> **Note:** The `context-budget` field is informational only — it does not affect how Claude Code loads the skill. The delegation decision is made by this orchestrator.
+
 ## Input Parsing
 
 ### Positional Argument (Required)

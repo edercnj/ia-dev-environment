@@ -4,6 +4,7 @@ description: "Analyzes project tech stack and recommends relevant MCP (Model Con
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[--install]"
+context-budget: medium
 ---
 
 ## Global Output Policy
