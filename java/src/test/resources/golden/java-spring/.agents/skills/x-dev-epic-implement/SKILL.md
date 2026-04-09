@@ -202,10 +202,14 @@ Execute stories phase-by-phase in dependency order:
 
 ```
 For each phase in (0..totalPhases-1):
-  0. Read preflight analysis for this phase (Phase 0.5 output):
-     → Load preflight-analysis-phase-{N}.md if it exists
-     → Extract parallelBatch and sequentialQueue story lists
-     → If no preflight analysis exists, treat all stories as parallel-eligible
+  0a. Context pressure check (Section 1.7):
+      → Evaluate current pressure signals against thresholds
+      → If signals detected at level > currentLevel: advance ONE level, apply actions
+      → If currentLevel >= 3: save execution-state.json, log exit message, stop
+  0b. Read preflight analysis for this phase (Phase 0.5 output):
+      → Load preflight-analysis-phase-{N}.md if it exists
+      → Extract parallelBatch and sequentialQueue story lists
+      → If no preflight analysis exists, treat all stories as parallel-eligible
   1. Call getExecutableStories(parsedMap, executionState, mergeMode)
      → Returns stories sorted by critical path priority (RULE-007)
      → Only PENDING stories with all dependencies SUCCESS are returned
@@ -232,7 +236,8 @@ For each phase in (0..totalPhases-1):
      d. Update checkpoint (see 1.6)
   7. Read references/integrity-gate.md and run integrity gate between phases
   8. Generate phase completion report (Read references/phase-reports.md)
-  9. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
+  9. Increment contextPressure.phasesCompletedInConversation in checkpoint
+  10. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
 ```
 
 The loop ensures that:
@@ -325,6 +330,76 @@ After each story completes (success or failure), persist the result:
 
 After checkpoint update, propagate status to markdown files (story file, IMPLEMENTATION-MAP) and Jira (non-blocking). Status mapping: SUCCESS→Concluída, FAILED→Falha, PARTIAL→Parcial, IN_PROGRESS→Em Andamento, BLOCKED→Bloqueada, PENDING→Pendente. On all stories SUCCESS: update epic status to `Concluído`.
 
+### 1.7 Graceful Degradation
+
+When the context window approaches its limit during long-running epic executions, the orchestrator degrades progressively to preserve progress. Degradation MUST advance through levels sequentially — NEVER skip from Level 0 directly to Level 3.
+
+#### Pressure Signals
+
+| Level | Signal | Detection |
+|-------|--------|-----------|
+| Level 1 (Warning) | Output truncation, 3+ phases completed | Subagent returns truncated output; tool call returns "output too large"; `phasesCompletedInConversation >= 3` |
+| Level 2 (Critical) | Context compression, context errors | System compression detected (messages shortened); subagent fails with `ERR-CONTEXT-001`/`ERR-CONTEXT-002`; tool calls with token limit errors |
+| Level 3 (Emergency) | Multiple consecutive tool failures | 3+ consecutive tool calls failing; responses losing instructions; incoherent output |
+
+#### Degradation Actions
+
+| Level | Actions |
+|-------|---------|
+| Level 1 | Reduce log verbosity (status lines only); skip optional phases (Phase 0.5 pre-flight, Phase 4 PR comments); use slim mode for review skills |
+| Level 2 | Force ALL remaining work to subagents (delegate everything); skip Phase 3 reviews implicitly; add `"CONTEXT PRESSURE: minimize output"` to all subagent prompts |
+| Level 3 | Save `execution-state.json` immediately; log: `"CONTEXT PRESSURE Level 3: saving state and suggesting resume"`; suggest `--resume` in a new conversation; stop execution gracefully |
+
+#### Progressive Advancement Rule (CRITICAL)
+
+Degradation MUST be progressive. Even if Level 3 signals are detected while at Level 0, the orchestrator advances through Level 1 → Level 2 → Level 3 sequentially. Each level's actions MUST be applied before advancing to the next.
+
+```
+Level 0 (Normal) → detect any pressure signal → Level 1
+Level 1          → detect Level 2+ signal     → Level 2
+Level 2          → detect Level 3 signal      → Level 3
+```
+
+NEVER: Level 0 → Level 3 (forbidden, even if Level 3 signals are present).
+
+#### Context Pressure Check (Core Loop Integration)
+
+At the start of each phase iteration (before dispatching stories for phase N in Section 1.3), evaluate context pressure:
+
+```
+Before dispatching stories for phase N:
+  1. Evaluate current pressure signals
+  2. If new signals detected at level > currentLevel:
+     a. Advance to next level (currentLevel + 1, NOT directly to detected level)
+     b. Apply that level's actions
+     c. Update contextPressure in checkpoint
+     d. Log: "CONTEXT PRESSURE Level {N}: {actions_summary}"
+  3. If currentLevel >= 3: save state and exit gracefully
+  4. Increment phasesCompletedInConversation after phase completes
+```
+
+#### Checkpoint Integration
+
+The context pressure state is persisted in `execution-state.json` under the `contextPressure` field:
+
+```json
+"contextPressure": {
+  "currentLevel": 0,
+  "degradationActivatedAt": null,
+  "phasesCompletedInConversation": 0
+}
+```
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `currentLevel` | Integer | Yes | `0` | Current degradation level: `0` (normal), `1` (warning), `2` (critical), `3` (emergency) |
+| `degradationActivatedAt` | String (ISO-8601) | Optional | `null` | Timestamp when degradation first activated (Level 0 → Level 1) |
+| `phasesCompletedInConversation` | Integer | Yes | `0` | Number of phases completed in the current conversation (not persisted across resume) |
+
+**Backward Compatibility:** The `contextPressure` field is OPTIONAL. When not present, it is treated as default normal state (`{ "currentLevel": 0, "degradationActivatedAt": null, "phasesCompletedInConversation": 0 }`). Existing checkpoints without this field continue to work unchanged.
+
+> **Schema details:** See `references/checkpoint-schema.md` for the full `execution-state.json` schema including `contextPressure`.
+
 ## Phase 3 — Verification
 
 Final verification on `develop` after all story PRs are handled.
@@ -357,6 +432,9 @@ Skip when `--skip-pr-comments` or `--single-pr` is set. Otherwise:
 | Integrity gate FAIL with regression | Revert commit, mark story FAILED, trigger block propagation |
 | Integrity gate FAIL without regression | Pause execution, report to user |
 | Rebase conflict fails after MAX_REBASE_RETRIES | Abort rebase, mark story FAILED, close PR |
+| Context pressure Level 1 detected | Reduce log verbosity, skip optional phases, use slim mode for reviews (Section 1.7) |
+| Context pressure Level 2 detected | Force delegation to subagents, skip Phase 3 reviews, add pressure header to prompts (Section 1.7) |
+| Context pressure Level 3 detected | Save `execution-state.json` immediately, suggest `--resume`, stop execution gracefully (Section 1.7) |
 | Template file not found (RULE-012) | Log warning, use inline format as fallback |
 | Reference file not found (RULE-002) | Log warning, continue without reference |
 
@@ -404,3 +482,7 @@ Templates referenced by this skill follow RULE-012:
 - DoR pre-check is NON-BLOCKING when DoR files don't exist
 - Per-task checkpoint tracks individual task progress within PRE_PLANNED stories
 - Task-level resume reclassifies IN_PROGRESS tasks to PENDING on `--resume`
+- Graceful degradation (Section 1.7) activates progressively on context pressure: Level 1 (reduce verbosity) → Level 2 (force delegation) → Level 3 (save state and exit)
+- Context pressure check runs at the start of each phase iteration (step 0a in Core Loop)
+- Degradation NEVER skips levels — always advances one level at a time
+- `contextPressure` checkpoint field is OPTIONAL and backward compatible

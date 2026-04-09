@@ -243,6 +243,28 @@ If no TPP-marked test plan and no formal tasks: use legacy G1-G7 group-based imp
 | Specialist Reviews | Phase 3.4 | Adaptive |
 | Tech Lead | Phase 3.6 | Adaptive |
 
+## Graceful Degradation
+
+When invoked by `x-dev-epic-implement`, the lifecycle skill respects context pressure levels communicated via the subagent prompt. The epic orchestrator manages pressure detection and level advancement (see Section 1.7 in `x-dev-epic-implement`).
+
+### Pressure-Aware Behavior
+
+| Level | Lifecycle Behavior |
+|-------|--------------------|
+| Level 0 (Normal) | Full execution — all phases, full logging, reviews enabled |
+| Level 1 (Warning) | Reduce log output to status lines only; use slim mode when invoking review skills; skip non-essential documentation generation |
+| Level 2 (Critical) | Skip Phase 3 reviews (specialist + tech lead); minimize output in all tool calls; include `"CONTEXT PRESSURE: minimize output"` when delegating to nested skills |
+| Level 3 (Emergency) | Not applicable — epic orchestrator saves state and exits before dispatching at Level 3 |
+
+### Detection Within Lifecycle
+
+If the lifecycle skill detects pressure signals independently (e.g., tool calls returning "output too large", truncated responses), it MUST:
+
+1. Log: `"CONTEXT PRESSURE signal detected in x-dev-lifecycle for {storyId}"`
+2. Include `"contextPressureDetected": true` in the `SubagentResult` returned to the orchestrator
+3. Apply Level 1 actions locally (reduce verbosity, slim mode) as a defensive measure
+4. Continue execution — the orchestrator handles level advancement
+
 ## Error Handling
 
 | Scenario | Action |
@@ -258,6 +280,7 @@ If no TPP-marked test plan and no formal tasks: use legacy G1-G7 group-based imp
 | Review score below approval | Fix and re-review (max 2 cycles) |
 | Phase 1B produces no output | Phase 2 uses G1-G7 fallback |
 | Resume with corrupted state | Reinitialize from PR statuses via `gh pr view` |
+| Context pressure signal detected | Log warning, set `contextPressureDetected: true` in result, apply Level 1 actions locally |
 
 ## Template Fallback
 
