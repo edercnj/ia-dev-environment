@@ -277,6 +277,29 @@ Cycle N/M complete:
   REFACTOR: refactor(TASK-...): [desc] [TDD:REFACTOR]           -> {sha} | skipped
 ```
 
+### Compact Cycle Log (Orchestrated Mode)
+
+When x-tdd is invoked from within another skill (orchestrated execution via x-dev-lifecycle or x-dev-epic-implement), emit a single-line compact log per cycle instead of the multi-line format above. This prevents TDD cycle details from accumulating in the orchestrator context.
+
+**Compact format:**
+
+```
+Cycle {cycleNumber}/{totalCycles}: RED {redStatus} GREEN {greenStatus} REFACTOR {refactorStatus} → {commitSha}
+```
+
+Where:
+- `{redStatus}` and `{greenStatus}` are `✓` (pass) or `✗` (fail)
+- `{refactorStatus}` is `✓` (applied) or `skipped`
+- `{commitSha}` is the 7-char abbreviated SHA of the last commit in the cycle
+
+**Example:**
+
+```
+Cycle 3/5: RED ✓ GREEN ✓ REFACTOR skipped → abc1234
+```
+
+Detection: if this skill was invoked via the `Skill` tool by another skill (not directly by the user), use the compact format. When invoked directly by the user (e.g., `/x-tdd TASK-001`), use the full multi-line format.
+
 ## Phase 4 -- Report
 
 After all cycles are complete, produce a summary:

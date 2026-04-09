@@ -4,6 +4,7 @@ description: "Generates CHANGELOG.md from Conventional Commits history. Parses g
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[version-tag | --unreleased | --full]"
+context-budget: light
 ---
 
 ## Global Output Policy

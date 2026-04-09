@@ -4,6 +4,7 @@ description: "Validates gRPC service definitions, proto3 conventions, implementa
 user-invocable: true
 allowed-tools: Read, Grep, Glob, Bash
 argument-hint: "[service-name or proto-file]"
+context-budget: light
 ---
 
 ## Global Output Policy
