@@ -1,6 +1,6 @@
 ---
 name: x-dev-epic-implement
-description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents."
+description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-story-implement subagents."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, AskUserQuestion
 argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr] [--auto-merge] [--no-merge] [--interactive-merge] [--strict-overlap] [--skip-pr-comments]"
@@ -16,7 +16,7 @@ argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] 
 
 ## Purpose
 
-Orchestrate the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parse epic ID and flags, validate prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), delegate story execution to `x-dev-lifecycle` subagents, manage checkpoints, integrity gates, retry/block propagation, resume, partial execution, dry-run, and progress reporting.
+Orchestrate the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parse epic ID and flags, validate prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), delegate story execution to `x-dev-story-implement` subagents, manage checkpoints, integrity gates, retry/block propagation, resume, partial execution, dry-run, and progress reporting.
 
 ## When to Use
 
@@ -37,6 +37,7 @@ This skill uses a core + references architecture. Load references only when need
 | Between phases (integrity gate) | `references/integrity-gate.md` | Gate preconditions, subagent prompt, regression diagnosis, version bump |
 | Checkpoint schema details needed | `references/checkpoint-schema.md` | execution-state.json schema, per-task fields, story entry schema |
 | Phase completion or epic report | `references/phase-reports.md` | Phase completion report generation, epic progress report |
+| Error occurs during execution | `references/error-catalog.md` | Error codes, categories, detection patterns, prescribed actions |
 
 > **RULE-002 (Graceful Degradation):** If a reference file is not found, log `"WARNING: Reference {filename} not found"` and continue execution without that reference. The core workflow is self-sufficient for basic execution.
 
@@ -74,7 +75,7 @@ ERROR: Epic ID is required. Usage: /x-dev-epic-implement [EPIC-ID] [flags]
 |------|------|---------|-------------|
 | `--phase N` | number | (all phases) | Execute only phase N (0-4) |
 | `--story story-XXXX-YYYY` | string | (all stories) | Execute only a specific story by ID |
-| `--skip-review` | boolean | `false` | Skip review phases in x-dev-lifecycle subagents |
+| `--skip-review` | boolean | `false` | Skip review phases in x-dev-story-implement subagents |
 | `--dry-run` | boolean | `false` | Generate execution plan without executing |
 | `--resume` | boolean | `false` | Continue from last checkpoint (execution-state.json) |
 | `--sequential` | boolean | `false` | Disable parallel worktrees, execute stories one at a time |
@@ -129,7 +130,7 @@ Execute a single story. Validates all dependencies satisfied. No integrity gate.
 8. **Generate execution plan** (see Execution Plan Persistence below)
 9. **Dry-run exit**: If `--dry-run`, log plan path and stop
 10. **Resume handling**: If `--resume`, Read `references/resume-workflow.md` and execute Resume Workflow
-11. **Delegate**: For each story, invoke `/x-dev-lifecycle`. Each story creates its own branch targeting `develop`.
+11. **Delegate**: For each story, invoke `/x-dev-story-implement`. Each story creates its own branch targeting `develop`.
 
 ### Execution Plan Persistence
 
@@ -169,7 +170,7 @@ At the start of each phase N, before dispatching stories, perform pre-flight ana
 
 ### 1.1b DoR Pre-check (Before Story Dispatch)
 
-Before dispatching a story to `x-dev-lifecycle`, verify its Definition of Ready:
+Before dispatching a story to `x-dev-story-implement`, verify its Definition of Ready:
 
 1. Compute DoR path: `plans/epic-{epicId}/plans/dor-{storyId}.md`
 2. Check if the DoR file exists:
@@ -181,7 +182,7 @@ Before dispatching a story to `x-dev-lifecycle`, verify its Definition of Ready:
 ### 1.2 Branch Management
 
 The orchestrator does NOT create a branch. Each story creates its own branch via
-`x-dev-lifecycle` Phase 0, targeting `develop`. The orchestrator remains on `develop`
+`x-dev-story-implement` Phase 0, targeting `develop`. The orchestrator remains on `develop`
 and monitors story PRs.
 
 1. Ensure a clean starting point:
@@ -267,13 +268,13 @@ You are implementing story {storyId} for epic {epicId}.
 Story file: plans/epic-{epicId}/story-{storyId}.md
 Branch: {branchName} | Phase: {currentPhase} | Skip review: {skipReview}
 
-CRITICAL: Invoke the /x-dev-lifecycle skill using the Skill tool:
-  Skill(skill: "x-dev-lifecycle", args: "{storyId}")
+CRITICAL: Invoke the /x-dev-story-implement skill using the Skill tool:
+  Skill(skill: "x-dev-story-implement", args: "{storyId}")
 
-The /x-dev-lifecycle skill orchestrates ALL phases: planning, TDD, reviews, commits, and PR creation.
+The /x-dev-story-implement skill orchestrates ALL phases: planning, TDD, reviews, commits, and PR creation.
 Do NOT manually perform these steps. Let the skill handle all orchestration.
 
-If /x-dev-lifecycle is unavailable (Skill tool error), fall back to manual execution:
+If /x-dev-story-implement is unavailable (Skill tool error), fall back to manual execution:
 1. Read story -> 2. Plan -> 3. TDD (Red-Green-Refactor) -> 4. Test + coverage
 5. Commit (Conventional Commits) -> 6. Create PR targeting `develop`
 
@@ -338,9 +339,25 @@ Final verification on `develop` after all story PRs are handled.
 
 Skip when `--skip-pr-comments` or `--single-pr` is set. Otherwise:
 1. Scan story PRs for unresolved review comments
-2. Run `/x-fix-epic-pr-comments {epicId} --dry-run` first
+2. Run `/x-pr-fix-epic-comments {epicId} --dry-run` first
 3. Ask for confirmation (bypass with `--auto-merge`)
-4. If approved: run `/x-fix-epic-pr-comments {epicId}` to apply fixes
+4. If approved: run `/x-pr-fix-epic-comments {epicId}` to apply fixes
+
+## Error Classification
+
+When any tool call, subagent dispatch, or external command fails during execution, classify the error systematically:
+
+1. **Read** `references/error-catalog.md` to load the full error catalog
+2. **Match** the error message against catalog detection patterns (case-insensitive substring match)
+3. **Apply** the prescribed action for the matched error code:
+   - **TRANSIENT** (retryable): Retry the operation with exponential backoff (1s, 2s, 4s + jitter), up to the max retries specified in the catalog entry
+   - **CONTEXT**: Reduce scope (drop non-essential references, split task) and re-dispatch
+   - **PERMANENT**: Fail immediately, mark story as FAILED, include error details in summary
+   - **CIRCUIT**: Check consecutive/phase failure counters; pause (ERR-CIRCUIT-001) or abort phase (ERR-CIRCUIT-002)
+4. **Default**: If no pattern matches, classify as **PERMANENT** (conservative) and fail immediately
+5. **Log**: `"Error classified: {code} ({category}) — Action: {action}"`
+
+> **Fallback:** If `references/error-catalog.md` is not found, log `"WARNING: Error catalog not found, defaulting to PERMANENT"` and treat all errors as PERMANENT (no retry).
 
 ## Error Handling
 
@@ -378,8 +395,8 @@ Templates referenced by this skill follow RULE-012:
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| `x-dev-lifecycle` | Invokes (per story) | Story execution with PR creation, reviews in Phases 4/7 |
-| `x-fix-epic-pr-comments` | Invokes (Phase 4) | PR comment remediation |
+| `x-dev-story-implement` | Invokes (per story) | Story execution with PR creation, reviews in Phases 4/7 |
+| `x-pr-fix-epic-comments` | Invokes (Phase 4) | PR comment remediation |
 | `x-epic-plan` | References | Produces DoR files consumed by DoR pre-check |
 | `x-story-map` | References | Error guidance when map is missing |
 | `x-lib-version-bump` | Invokes (post-gate) | Version bump on `develop` after integrity gate PASS |
