@@ -3,7 +3,7 @@ name: x-dev-epic-implement
 description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-story-implement subagents."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, AskUserQuestion
-argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr] [--auto-merge] [--no-merge] [--interactive-merge] [--strict-overlap] [--skip-pr-comments]"
+argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--skip-gate] [--single-pr] [--auto-merge] [--no-merge] [--interactive-merge] [--strict-overlap] [--skip-pr-comments]"
 ---
 
 ## Global Output Policy
@@ -80,6 +80,7 @@ ERROR: Epic ID is required. Usage: /x-dev-epic-implement [EPIC-ID] [flags]
 | `--resume` | boolean | `false` | Continue from last checkpoint (execution-state.json) |
 | `--sequential` | boolean | `false` | Disable parallel worktrees, execute stories one at a time |
 | `--skip-smoke-gate` | boolean | `false` | Skip smoke tests in the integrity gate between phases |
+| `--skip-gate` | boolean | `false` | Skip the local integrity gate between phases. Gate is registered as `SKIPPED` (not `DEFERRED`). Use for trusted environments or when manual validation is preferred. |
 | `--single-pr` | boolean | `false` | Preserve legacy flow: epic branch + rebase-before-merge + single mega-PR (RULE-009) |
 | `--auto-merge` | boolean | `false` | Auto-merge story PRs via `gh pr merge` after reviews approve (RULE-004). Mutually exclusive with `--no-merge` and `--interactive-merge`. |
 | `--no-merge` | boolean | `false` | Explicit no-merge flag (same as default behavior). Create PRs but skip merge and merge-wait. Dependencies are satisfied by `status == SUCCESS` alone (PR merge not required). Mutually exclusive with `--auto-merge` and `--interactive-merge`. Use for repos with branch protection rules requiring multiple approvers. |
@@ -230,9 +231,10 @@ For each phase in (0..totalPhases-1):
      b. Dispatch subagent (see 1.4 or 1.4a)
      c. Validate result (see 1.5)
      d. Update checkpoint (see 1.6)
-  7. Read references/integrity-gate.md and run integrity gate between phases
-  8. Generate phase completion report (Read references/phase-reports.md)
-  9. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
+  7. Run integrity gate between phases (see Section 1.7 — Local Integrity Gate)
+  8. Post-gate prompt: present options to user (see Section 1.7b — Post-Gate Prompt)
+  9. Generate phase completion report (Read references/phase-reports.md)
+  10. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
 ```
 
 The loop ensures that:
@@ -324,6 +326,122 @@ After each story completes (success or failure), persist the result:
 ### 1.6b Markdown Status Sync
 
 After checkpoint update, propagate status to markdown files (story file, IMPLEMENTATION-MAP) and Jira (non-blocking). Status mapping: SUCCESS→Concluída, FAILED→Falha, PARTIAL→Parcial, IN_PROGRESS→Em Andamento, BLOCKED→Bloqueada, PENDING→Pendente. On all stories SUCCESS: update epic status to `Concluído`.
+
+### 1.7 Local Integrity Gate (RULE-006)
+
+> **Reference:** Read `references/integrity-gate.md` for gate subagent prompt, regression diagnosis, version bump, and checkpoint schema details. This section overrides the DEFERRED default for `--no-merge` mode described in that reference.
+
+The integrity gate MUST execute by default between phases — **never DEFERRED**. Even in `--no-merge` mode (the default), a local gate validates cross-story integration using a temporary branch.
+
+#### Gate Result Values
+
+| Value | Meaning |
+|-------|---------|
+| `PASS` | All compile, test, and coverage checks passed on the merged code |
+| `FAIL` | One or more checks failed (merge conflict, compilation error, test failure, coverage below threshold) |
+| `SKIPPED` | Gate explicitly skipped via `--skip-gate` flag (conscious opt-out) |
+
+> **`DEFERRED` is no longer a default outcome.** The `DEFERRED` value is removed from the default gate behavior. Gates always produce `PASS`, `FAIL`, or `SKIPPED`.
+
+#### Skip Gate (`--skip-gate`)
+
+When `--skip-gate` is set:
+1. Log: `"Integrity gate skipped (--skip-gate) for phase {N}"`
+2. Record: `integrityGate.status = "SKIPPED"` in checkpoint
+3. Skip directly to post-gate prompt (Section 1.7b)
+4. No temporary branch is created
+
+#### Local Gate Algorithm (No-Merge Mode)
+
+When `mergeMode == "no-merge"` (default) and `--skip-gate` is NOT set:
+
+```
+1. Filter stories: collect all stories in current phase with status == SUCCESS
+   - If no SUCCESS stories exist:
+     Log: "No SUCCESS stories in phase {N}, skipping gate"
+     Record: integrityGate.status = "SKIPPED"
+     Return early (proceed to post-gate prompt)
+
+2. Create temporary branch:
+   git checkout develop && git pull origin develop
+   git checkout -b temp/gate-phase-{N}-{timestamp}
+
+3. Merge story branches into temporary branch:
+   For each story with status SUCCESS in the current phase:
+     git merge origin/feat/{storyId} --no-edit
+     If merge conflict:
+       Log: "MERGE CONFLICT: story {storyId} conflicts on temp gate branch"
+       Log conflict file list: git diff --name-only --diff-filter=U
+       Record: integrityGate.status = "FAIL"
+       Record: integrityGate.failReason = "merge-conflict"
+       Record: integrityGate.conflictStory = storyId
+       Abort merge: git merge --abort
+       Jump to step 6 (cleanup)
+
+4. Run validation on temporary branch:
+   a. Compile: {{COMPILE_COMMAND}}
+   b. Test: {{TEST_COMMAND}}
+   c. Coverage: {{COVERAGE_COMMAND}}
+   d. Smoke tests (unless --skip-smoke-gate):
+      {{SMOKE_COMMAND}}
+
+5. Evaluate results:
+   - If compilation fails: integrityGate.status = "FAIL"
+   - If any tests fail: integrityGate.status = "FAIL", correlate with stories
+   - If line coverage < 95% or branch coverage < 90%: integrityGate.status = "FAIL"
+   - If smoke tests fail (and not --skip-smoke-gate): integrityGate.status = "FAIL"
+   - Otherwise: integrityGate.status = "PASS"
+
+6. Cleanup temporary branch (ALWAYS, even on failure):
+   git checkout develop
+   git branch -D temp/gate-phase-{N}-{timestamp}
+
+7. Record gate result in checkpoint via updateIntegrityGate()
+   (See references/integrity-gate.md for full schema)
+
+8. If FAIL: block next phase, present failure details to user
+   If PASS: proceed to post-gate prompt (Section 1.7b)
+```
+
+#### Gate in Non-No-Merge Modes
+
+When `mergeMode != "no-merge"` (auto or interactive with PRs already merged), the gate runs directly on `develop` as described in `references/integrity-gate.md` (PRs are already merged, so no temporary branch is needed). The same `PASS`/`FAIL`/`SKIPPED` result values apply — `DEFERRED` is never used.
+
+#### Gate Failure Handling
+
+On `integrityGate.status == "FAIL"`, present options to the user via `AskUserQuestion`:
+
+```
+Phase {N} integrity gate: FAIL
+Reason: {failReason} (merge-conflict | test-failure | coverage-below-threshold | compilation-error)
+Details: {details}
+
+Options:
+1. Fix and retry gate (re-run after manual fixes)
+2. Skip gate for this phase (--skip-gate)
+3. Abort epic execution
+```
+
+### 1.7b Post-Gate Prompt
+
+After a gate `PASS` (or `SKIPPED`), present options to the user via `AskUserQuestion`:
+
+```
+Phase {N} integrity gate: {PASS|SKIPPED}
+Stories completed: {successCount}/{totalCount}
+{if PASS: Coverage: {lineCoverage}% line, {branchCoverage}% branch}
+
+Options:
+1. Continue to Phase {N+1}
+2. Merge Phase {N} PRs now (manual)
+3. Pause for manual review
+```
+
+- **Option 1 (default):** Advance to the next phase immediately
+- **Option 2:** Pause execution so the user can manually merge story PRs before continuing. After user confirms merges are done, resume execution.
+- **Option 3:** Pause execution entirely. User resumes later with `--resume`.
+
+> **Auto-advance:** When `--auto-merge` is set, skip the prompt and auto-select option 1 (continue to next phase).
 
 ## Phase 3 — Verification
 
@@ -469,7 +587,9 @@ Templates referenced by this skill follow RULE-012:
 - Phase 0.5 is skipped when `--sequential` is set
 - Phase 0.5 defaults to advisory mode; use `--strict-overlap` for blocking partitioning
 - All `{{PLACEHOLDER}}` tokens are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
-- Integrity gate runs on `develop` after all phase PRs are merged (RULE-006)
+- Integrity gate runs between phases via local gate (Section 1.7) — never DEFERRED (RULE-006)
+- In no-merge mode, gate uses temporary branch to validate cross-story integration
+- `--skip-gate` skips the integrity gate (records SKIPPED, not DEFERRED)
 - Auto-rebase (Section 1.4e, RULE-011) triggers after each PR merge
 - `--single-pr` preserves legacy flow: epic branch + single mega-PR
 - `--no-merge`, `--auto-merge`, and `--interactive-merge` are mutually exclusive; default is no-merge mode
