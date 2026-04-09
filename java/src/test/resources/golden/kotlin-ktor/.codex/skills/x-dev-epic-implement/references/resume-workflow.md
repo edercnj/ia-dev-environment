@@ -92,6 +92,23 @@ After reclassification, evaluate each BLOCKED story:
 
 This is a **single-pass** evaluation (no cascade). Stories unblocked in this pass will not trigger further unblocking of stories that depend on them.
 
+<<<<<<< HEAD
+### Step 2b — Reset Circuit Breaker
+
+When `--resume` is used, fully reset the circuit breaker state to prevent stale failure counters from immediately triggering thresholds:
+
+```
+circuitBreaker.consecutiveFailures = 0
+circuitBreaker.totalFailuresInPhase = 0
+circuitBreaker.lastFailureAt = null
+circuitBreaker.lastFailurePattern = null
+circuitBreaker.status = "CLOSED"
+```
+
+This ensures the resumed execution starts with a clean circuit breaker, regardless of the failure state that existed before the interruption.
+
+||||||| ed34d6011
+=======
 ### Step 2b — Reset Circuit Breaker
 
 When `--resume` is used, fully reset the circuit breaker state to prevent stale failure counters from immediately triggering thresholds:
@@ -106,6 +123,7 @@ circuitBreaker.status = "CLOSED"
 
 This ensures the resumed execution starts with a clean circuit breaker, regardless of the failure state that existed before the interruption.
 
+>>>>>>> origin/develop
 ### Step 3 — Resume Execution
 
 After reclassification, PR verification, and circuit breaker reset, feed the updated state into `getExecutableStories()` to determine which stories are ready for execution. Only stories with status PENDING proceed to the execution loop. The orchestrator remains on `develop` during resume — no epic branch recovery is needed.

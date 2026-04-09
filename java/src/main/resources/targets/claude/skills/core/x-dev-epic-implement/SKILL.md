@@ -231,10 +231,25 @@ For each phase in (0..totalPhases-1):
      b. Dispatch subagent (see 1.4 or 1.4a)
      c. Validate result (see 1.5)
      d. Update checkpoint (see 1.6)
+<<<<<<< HEAD
+     e. Circuit breaker check (Section 1.7):
+        - If story SUCCESS: reset consecutiveFailures to 0, stay/return to CLOSED
+        - If story FAILED: increment consecutiveFailures and totalFailuresInPhase
+        - Run circuit breaker threshold check (Section 1.7)
+        - If threshold hit, execute corresponding action (WARNING / PAUSE / ABORT)
+  7. Read references/integrity-gate.md and run integrity gate between phases
+  8. Generate phase completion report (Read references/phase-reports.md)
+  9. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
+||||||| ed34d6011
+  7. Read references/integrity-gate.md and run integrity gate between phases
+  8. Generate phase completion report (Read references/phase-reports.md)
+  9. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
+=======
   7. Run integrity gate between phases (see Section 1.7 — Local Integrity Gate)
   8. Post-gate prompt: present options to user (see Section 1.7b — Post-Gate Prompt)
   9. Generate phase completion report (Read references/phase-reports.md)
   10. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
+>>>>>>> origin/develop
 ```
 
 The loop ensures that:
@@ -243,6 +258,7 @@ The loop ensures that:
 - Each phase completes before the next begins
 - Pre-flight conflict analysis partitions stories into parallel and sequential groups
 - Dependencies are verified at lifecycle level (SUCCESS) and optionally at PR level (MERGED) depending on `mergeMode`
+- Circuit breaker (Section 1.7) pauses execution on 3 consecutive failures and aborts the phase on 5 total failures
 
 #### `getExecutableStories()` Algorithm (RULE-003)
 
@@ -394,6 +410,104 @@ After each story completes (success or failure), persist the result:
 
 After checkpoint update, propagate status to markdown files (story file, IMPLEMENTATION-MAP) and Jira (non-blocking). Status mapping: SUCCESS→Concluída, FAILED→Falha, PARTIAL→Parcial, IN_PROGRESS→Em Andamento, BLOCKED→Bloqueada, PENDING→Pendente. On all stories SUCCESS: update epic status to `Concluído`.
 
+<<<<<<< HEAD
+### 1.7 Circuit Breaker
+
+The circuit breaker detects systemic failure patterns and escalates to the user before wasting resources on executions that are likely to fail. It is evaluated after every story completion (step 6e in the Core Loop).
+
+#### Thresholds
+
+| Consecutive Failures | Action |
+|---------------------|--------|
+| 1 | Log `"WARNING: 1 consecutive failure"`, continue execution |
+| 2 | Log `"WARNING: 2 consecutive failures. Pattern: {analysis}"` with pattern analysis (see below), continue |
+| 3 | **PAUSE**: `AskUserQuestion` — `"3 consecutive failures detected. Pattern: {analysis}. Options: Continue / Skip phase / Abort epic"` |
+| 5 total in phase | **ABORT** phase with diagnostic report: `"Circuit breaker OPEN: phase aborted (5 total failures)"` |
+
+#### State Machine
+
+The circuit breaker operates with three states:
+
+```
+CLOSED (normal) → 1-2 failures: stay CLOSED with WARNING
+CLOSED → 3 consecutive failures: transition to OPEN
+OPEN → User chooses "Continue": transition to HALF_OPEN
+OPEN → --resume flag: full reset to CLOSED
+HALF_OPEN → next story SUCCESS: transition to CLOSED (reset counters)
+HALF_OPEN → next story FAILED: transition back to OPEN
+```
+
+**State transitions:**
+
+| From | Event | To | Side Effects |
+|------|-------|----|--------------|
+| CLOSED | Story FAILED (consecutive < 3) | CLOSED | Increment counters, log WARNING |
+| CLOSED | Story FAILED (consecutive == 3) | OPEN | Pause execution, prompt user |
+| CLOSED | Story SUCCESS | CLOSED | Reset `consecutiveFailures` to 0 |
+| OPEN | User chooses "Continue" | HALF_OPEN | Reset `consecutiveFailures` to 0, keep `totalFailuresInPhase` |
+| OPEN | User chooses "Skip phase" | CLOSED | Skip remaining stories in phase, advance to next phase |
+| OPEN | User chooses "Abort epic" | CLOSED | Abort epic execution with diagnostic report |
+| OPEN | `--resume` flag | CLOSED | Full reset: `consecutiveFailures = 0`, `totalFailuresInPhase = 0` |
+| HALF_OPEN | Story SUCCESS | CLOSED | Reset all failure counters |
+| HALF_OPEN | Story FAILED | OPEN | Re-prompt user with updated failure count |
+
+#### Reset Conditions
+
+- **Story completes with SUCCESS**: `consecutiveFailures = 0`, stay/return to CLOSED
+- **`--resume` used**: Full reset of all counters (`consecutiveFailures = 0`, `totalFailuresInPhase = 0`, `status = CLOSED`)
+- **User chooses "Continue" at OPEN prompt**: Move to HALF_OPEN (`consecutiveFailures` reset to 0, `totalFailuresInPhase` preserved)
+- **New phase starts**: `consecutiveFailures = 0`, `totalFailuresInPhase = 0`, `status = CLOSED` (each phase has independent counters)
+
+#### Pattern Analysis
+
+At 2 or more consecutive failures, analyze the `errorType` from recent failed stories to determine if the issue is systemic:
+
+```
+If all recent failures have same errorType:
+  → "Systemic: repeated {errorType} failures"
+If errorTypes differ:
+  → "Intermittent: mixed failure types ({type1}, {type2})"
+If errorType is not available:
+  → "Unknown: error types not classified"
+```
+
+The pattern analysis result is stored in `lastFailurePattern` and included in the WARNING log and `AskUserQuestion` prompt.
+
+#### Phase Abort (5 Total Failures)
+
+When `totalFailuresInPhase` reaches 5 (regardless of consecutive count), abort the current phase:
+
+1. Log: `"Circuit breaker OPEN: phase aborted (5 total failures)"`
+2. Mark all remaining PENDING stories in the phase as BLOCKED with reason `"Phase aborted by circuit breaker"`
+3. Generate a diagnostic report summarizing all failures in the phase (story IDs, error types, error messages)
+4. Advance to the integrity gate (the gate will likely FAIL, triggering its own reporting)
+
+#### Checkpoint Integration
+
+The circuit breaker state is persisted in `execution-state.json` under the `circuitBreaker` field:
+
+```json
+"circuitBreaker": {
+  "consecutiveFailures": 0,
+  "totalFailuresInPhase": 0,
+  "lastFailureAt": null,
+  "lastFailurePattern": null,
+  "status": "CLOSED"
+}
+```
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `consecutiveFailures` | Integer | Yes | `0` | Counter of consecutive story failures (resets on SUCCESS) |
+| `totalFailuresInPhase` | Integer | Yes | `0` | Counter of total failures in current phase (resets per phase) |
+| `lastFailureAt` | String (ISO-8601) | Optional | `null` | Timestamp of most recent failure |
+| `lastFailurePattern` | String | Optional | `null` | Pattern analysis result: `"Systemic: ..."` or `"Intermittent: ..."` |
+| `status` | String (Enum) | Yes | `"CLOSED"` | Circuit breaker state: `CLOSED`, `OPEN`, `HALF_OPEN` |
+
+> **Schema details:** See `references/checkpoint-schema.md` for the full `execution-state.json` schema including `circuitBreaker`.
+
+||||||| ed34d6011
+=======
 ### 1.7 Local Integrity Gate (RULE-006)
 
 > **Reference:** Read `references/integrity-gate.md` for gate subagent prompt, regression diagnosis, version bump, and checkpoint schema details. This section overrides the DEFERRED default for `--no-merge` mode described in that reference.
@@ -510,6 +624,7 @@ Options:
 
 > **Auto-advance:** When `--auto-merge` is set, skip the prompt and auto-select option 1 (continue to next phase).
 
+>>>>>>> origin/develop
 ## Phase 3 — Verification
 
 Final verification on `develop` after all story PRs are handled.
@@ -618,6 +733,9 @@ On retry exhaustion, log:
 | Integrity gate FAIL with regression | Revert commit, mark story FAILED, trigger block propagation |
 | Integrity gate FAIL without regression | Pause execution, report to user |
 | Rebase conflict fails after MAX_REBASE_RETRIES | Abort rebase, mark story FAILED, close PR |
+| 3 consecutive story failures (circuit breaker) | Transition to OPEN, pause execution, `AskUserQuestion` with Continue/Skip phase/Abort options (Section 1.7) |
+| 5 total failures in phase (circuit breaker) | Abort phase, mark remaining PENDING stories as BLOCKED, generate diagnostic report (Section 1.7) |
+| Circuit breaker HALF_OPEN + story FAILED | Transition back to OPEN, re-prompt user (Section 1.7) |
 | Template file not found (RULE-012) | Log warning, use inline format as fallback |
 | Reference file not found (RULE-002) | Log warning, continue without reference |
 
@@ -667,6 +785,13 @@ Templates referenced by this skill follow RULE-012:
 - DoR pre-check is NON-BLOCKING when DoR files don't exist
 - Per-task checkpoint tracks individual task progress within PRE_PLANNED stories
 - Task-level resume reclassifies IN_PROGRESS tasks to PENDING on `--resume`
+<<<<<<< HEAD
+- Circuit breaker (Section 1.7) pauses on 3 consecutive failures and aborts phase on 5 total failures
+- Circuit breaker resets fully on `--resume` and per-phase (each phase starts with clean counters)
+- Circuit breaker state (`CLOSED`, `OPEN`, `HALF_OPEN`) is persisted in `execution-state.json`
+||||||| ed34d6011
+=======
 - Subagent recovery (Section 1.4b) applies error-type-based retry before marking stories as FAILED
 - `errorType`, `errorMessage`, `errorCode` are optional fields in SubagentResult, used only when `status == "FAILED"`
 - 3 consecutive subagent failures trigger user escalation regardless of error type
+>>>>>>> origin/develop
