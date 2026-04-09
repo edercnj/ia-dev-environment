@@ -33,10 +33,10 @@ For each story with a `prNumber`, verify the actual PR state:
 
 ```
 state = gh pr view {prNumber} --json state,mergedAt
-if state == "MERGED":
+if state === "MERGED":
   update prMergeStatus = "MERGED"
   reclassify to SUCCESS
-else if state == "OPEN":
+else if state === "OPEN":
   keep current status (PR_CREATED or PR_PENDING_REVIEW)
 else if PR not found (error):
   reclassify to FAILED with reason "PR not found"
@@ -47,7 +47,7 @@ else if PR not found (error):
 When a story transitions to FAILED and has an open PR:
 
 ```
-if story.prNumber exists and story.prMergeStatus != "MERGED":
+if story.prNumber exists and story.prMergeStatus !== "MERGED":
   run: gh pr close {prNumber} --comment "Story failed: {summary}"
   update: story.prMergeStatus = "CLOSED"
 ```
@@ -86,12 +86,44 @@ After reclassification, evaluate each BLOCKED story:
 
 - If `blockedBy` is **undefined** → keep BLOCKED (conservative: unknown dependencies)
 - If `blockedBy` is **empty array** → reclassify to PENDING (no dependencies = vacuously satisfied)
-- If `mergeMode == "no-merge"`: if **all** dependencies in `blockedBy` have `status == SUCCESS` → reclassify to PENDING (prMergeStatus not checked)
-- Otherwise: if **all** dependencies in `blockedBy` have status SUCCESS and `prMergeStatus == "MERGED"` → reclassify to PENDING
+- If `mergeMode === "no-merge"`: if **all** dependencies in `blockedBy` have `status === SUCCESS` → reclassify to PENDING (prMergeStatus not checked)
+- Otherwise: if **all** dependencies in `blockedBy` have status SUCCESS and `prMergeStatus === "MERGED"` → reclassify to PENDING
 - If **any** dependency is non-SUCCESS or missing from the stories map → keep BLOCKED
 
 This is a **single-pass** evaluation (no cascade). Stories unblocked in this pass will not trigger further unblocking of stories that depend on them.
 
+<<<<<<< HEAD
+### Step 2b — Reset Circuit Breaker
+
+When `--resume` is used, fully reset the circuit breaker state to prevent stale failure counters from immediately triggering thresholds:
+
+```
+circuitBreaker.consecutiveFailures = 0
+circuitBreaker.totalFailuresInPhase = 0
+circuitBreaker.lastFailureAt = null
+circuitBreaker.lastFailurePattern = null
+circuitBreaker.status = "CLOSED"
+```
+
+This ensures the resumed execution starts with a clean circuit breaker, regardless of the failure state that existed before the interruption.
+
+||||||| ed34d6011
+=======
+### Step 2b — Reset Circuit Breaker
+
+When `--resume` is used, fully reset the circuit breaker state to prevent stale failure counters from immediately triggering thresholds:
+
+```
+circuitBreaker.consecutiveFailures = 0
+circuitBreaker.totalFailuresInPhase = 0
+circuitBreaker.lastFailureAt = null (preserved for diagnostic reference, or reset)
+circuitBreaker.lastFailurePattern = null
+circuitBreaker.status = "CLOSED"
+```
+
+This ensures the resumed execution starts with a clean circuit breaker, regardless of the failure state that existed before the interruption.
+
+>>>>>>> origin/develop
 ### Step 3 — Resume Execution
 
-After reclassification and PR verification, feed the updated state into `getExecutableStories()` to determine which stories are ready for execution. Only stories with status PENDING proceed to the execution loop. The orchestrator remains on `develop` during resume — no epic branch recovery is needed.
+After reclassification, PR verification, and circuit breaker reset, feed the updated state into `getExecutableStories()` to determine which stories are ready for execution. Only stories with status PENDING proceed to the execution loop. The orchestrator remains on `develop` during resume — no epic branch recovery is needed.

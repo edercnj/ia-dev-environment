@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-04-09
+
+### Added
+- **Error Catalog & Standardized Error Responses (EPIC-0031):** New `references/error-catalog.md` with 13 standardized error codes across 4 categories (TRANSIENT, CONTEXT, PERMANENT, CIRCUIT). Detection patterns and prescribed actions for each code. Error Classification sections added to `x-dev-epic-implement` and `x-dev-story-implement`.
+- **Transient Error Retry with Exponential Backoff (EPIC-0031):** Automatic retry for transient errors (overloaded, rate limit, timeout) with exponential backoff (2s, 4s, 8s). Tool calls retry 3x, subagent dispatch retries 2x. Permanent errors fail immediately — never retried.
+- **Local Integrity Gate Between Phases (EPIC-0031):** Integrity gate now executes by default in `--no-merge` mode (never DEFERRED). Creates temp branch, merges SUCCESS stories, runs compile+test+coverage, deletes temp branch. New `--skip-gate` flag for explicit opt-out (SKIPPED, not DEFERRED). Post-gate AskUserQuestion prompt with 3 options.
+- **Subagent Failure Recovery (EPIC-0031):** SubagentResult expanded with `errorType`, `errorMessage`, `errorCode` fields. Recovery strategies by error type: TRANSIENT (2 retries), CONTEXT (1 retry with reduced prompt), TIMEOUT (1 retry with --skip-verification). Escalation after 3 consecutive failures.
+- **Circuit Breaker for Epic Execution (EPIC-0031):** 3-state machine (CLOSED/OPEN/HALF_OPEN) with threshold escalation: 1 failure = WARNING, 2 = pattern analysis, 3 consecutive = PAUSE with AskUserQuestion, 5 total in phase = ABORT. Resets on SUCCESS or `--resume`.
+- **Checkpoint Error History Schema v3.0 (EPIC-0031):** New top-level fields: `errorHistory` (array of error entries with timestamp, errorCode, resolution), `circuitBreaker` (state tracking), `contextPressure` (degradation level). Backward compatible with v2.0. Resume shows error summary.
+- **Graceful Degradation on Context Pressure (EPIC-0031):** 3-level progressive degradation: Level 1 (reduce verbosity, skip optional phases), Level 2 (force delegation to subagents), Level 3 (save state, suggest --resume). Progressive advancement rule — never skips levels.
+
+### Fixed
+- Standardized `===`/`!==` operators across all pseudocode in orchestrator skills (was inconsistent `==`/`===` mix).
+- Circuit breaker state transition table now includes "5 total failures → phase abort" row.
+- `circuitBreaker` and `contextPressure` checkpoint defaults now include all required fields.
+- `lastFailurePattern` uses clean enum values (TRANSIENT/CONTEXT/PERMANENT/MIXED) instead of template strings.
+- Local integrity gate scope clarified for `--no-merge` mode in reference documentation.
+
 ## [2.1.0] - 2026-04-09
 
 ### Added

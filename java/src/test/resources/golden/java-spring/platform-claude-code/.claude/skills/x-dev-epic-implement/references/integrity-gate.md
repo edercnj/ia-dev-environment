@@ -29,7 +29,7 @@ Before running the gate, verify all PRs from the phase are merged:
 
 ```
 for each story in currentPhase:
-  assert story.prMergeStatus == "MERGED"
+  assert story.prMergeStatus === "MERGED"
 ```
 
 Then checkout `develop` with latest merges:
@@ -37,15 +37,22 @@ Then checkout `develop` with latest merges:
 git checkout develop && git pull origin develop
 ```
 
-**When `mergeMode == "no-merge"`:**
+**When `mergeMode === "no-merge"` (Deferred Gate — no-merge mode only):**
 
-PRs are not merged to `develop`. The integrity gate is **DEFERRED**:
+> **Scope:** This subsection applies ONLY when `mergeMode === "no-merge"`. For `auto` and
+> `interactive` modes, the standard gate flow above applies.
+
+> **IMPORTANT:** The default behavior is now a **Local Integrity Gate** (see SKILL.md Section 1.7).
+> The gate creates a temporary branch, merges all SUCCESS story branches, runs compile + test + coverage,
+> then deletes the temporary branch. The gate result is `PASS`, `FAIL`, or `SKIPPED` — never `DEFERRED`.
+>
+> The `--skip-gate` flag allows conscious opt-out (records `SKIPPED`, not `DEFERRED`).
+> See SKILL.md Section 1.7 for the full Local Gate Algorithm.
+
+Legacy behavior (for reference only — no longer the default):
 1. Per-story validation already runs within `x-dev-lifecycle` (compile, test, coverage per story)
 2. Cross-story integration on `develop` cannot be validated (code not merged yet)
-3. Log: `"--no-merge: integrity gate deferred for phase {N}. Cross-story integration will be validated after PRs are merged."`
-4. Record: `integrityGate.status = "DEFERRED"` in checkpoint
-5. Auto-rebase (Section 1.4e) still executes to keep branches current against `origin/develop`
-6. Skip directly to phase completion report generation (no gate subagent dispatched)
+3. Auto-rebase (Section 1.4e) still executes to keep branches current against `origin/develop`
 
 ### Gate Subagent Prompt
 
@@ -94,7 +101,7 @@ If smoke tests fail (Step 5), the subagent:
 
 ```
 updateIntegrityGate(epicDir, phaseNumber, {
-  status: "PASS" | "FAIL" | "DEFERRED",
+  status: "PASS" | "FAIL" | "SKIPPED",
   testCount: number,
   coverage: number,        // line coverage %
   branchCoverage?: number, // branch coverage %
@@ -115,12 +122,24 @@ updateIntegrityGate(epicDir, phaseNumber, {
 - **FAIL + regression identified**: revert + mark FAILED + block propagation
 - **FAIL + regression unidentified**: pause execution, report to user
 - **FAIL (smoke gate)**: phase marked FAILED; operator uses `--resume` after fix or `--skip-smoke-gate` to bypass
+<<<<<<< HEAD
+- **DEFERRED** (when `mergeMode === "no-merge"`): skip gate, advance directly to phase completion report
+||||||| ed34d6011
 - **DEFERRED** (when `mergeMode == "no-merge"`): skip gate, advance directly to phase completion report
+=======
+- **SKIPPED** (when `--skip-gate` is set): skip gate with conscious opt-out, advance to post-gate prompt
+>>>>>>> origin/develop
 
 ### Version Bump (Post-Gate) (RULE-013)
 
 After the integrity gate **PASSES** for phase N, the orchestrator performs an automatic
+<<<<<<< HEAD
+semantic version bump on `develop`. This is skipped when `integrityGate.status === "DEFERRED"`.
+||||||| ed34d6011
 semantic version bump on `develop`. This is skipped when `integrityGate.status == "DEFERRED"`.
+=======
+semantic version bump on `develop`. This is skipped when `integrityGate.status == "SKIPPED"`.
+>>>>>>> origin/develop
 
 1. Determine commit range: `mainShaBeforePhase[N]..develop`
 2. Invoke `x-lib-version-bump` logic with the commit range:
@@ -175,6 +194,10 @@ The smoke gate within the integrity gate is also mandatory by default. It can on
 the `--skip-smoke-gate` flag, which records `smokeGate.status = "SKIP"` in the checkpoint. When
 `--skip-smoke-gate` is set, the integrity gate evaluates only Steps 1-4 (compile, test, coverage).
 When not set, the smoke gate (Step 5) must also pass for the overall integrity gate to pass.
+
+**SKIP vs no-execution clarification:**
+- `--skip-smoke-gate` opt-out → records `smokeGate.status = "SKIP"` (explicit user bypass)
+- No SUCCESS stories in phase → log warning `"No successful stories in phase {N} — skipping gate execution"` and do NOT record a gate result (gate is not executed, not "SKIPPED"). The phase proceeds without a gate entry in the checkpoint.
 
 > **Note:** Each story already executes its own smoke gate via `x-dev-lifecycle` (Phase 2.5).
 > The integrity gate smoke tests serve as an ADDITIONAL regression validation — they ensure
