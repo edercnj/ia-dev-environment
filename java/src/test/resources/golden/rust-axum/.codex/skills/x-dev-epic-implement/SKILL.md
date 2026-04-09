@@ -3,8 +3,16 @@ name: x-dev-epic-implement
 description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, AskUserQuestion
+<<<<<<< HEAD
+argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr] [--auto-merge] [--no-merge] [--interactive-merge] [--strict-overlap] [--skip-pr-comments]"
+context-budget: heavy
+||||||| ed34d6011
 argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr] [--auto-merge] [--no-merge] [--interactive-merge] [--strict-overlap] [--skip-pr-comments]"
 context-budget: medium
+=======
+argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--skip-gate] [--single-pr] [--auto-merge] [--no-merge] [--interactive-merge] [--strict-overlap] [--skip-pr-comments]"
+context-budget: heavy
+>>>>>>> origin/develop
 ---
 
 ## Global Output Policy
@@ -80,6 +88,7 @@ ERROR: Epic ID is required. Usage: /x-dev-epic-implement [EPIC-ID] [flags]
 | `--resume` | boolean | `false` | Continue from last checkpoint (execution-state.json) |
 | `--sequential` | boolean | `false` | Disable parallel worktrees, execute stories one at a time |
 | `--skip-smoke-gate` | boolean | `false` | Skip smoke tests in the integrity gate between phases |
+| `--skip-gate` | boolean | `false` | Skip the local integrity gate between phases. Gate is registered as `SKIPPED` (not `DEFERRED`). Use for trusted environments or when manual validation is preferred. |
 | `--single-pr` | boolean | `false` | Preserve legacy flow: epic branch + rebase-before-merge + single mega-PR (RULE-009) |
 | `--auto-merge` | boolean | `false` | Auto-merge story PRs via `gh pr merge` after reviews approve (RULE-004). Mutually exclusive with `--no-merge` and `--interactive-merge`. |
 | `--no-merge` | boolean | `false` | Explicit no-merge flag (same as default behavior). Create PRs but skip merge and merge-wait. Dependencies are satisfied by `status == SUCCESS` alone (PR merge not required). Mutually exclusive with `--auto-merge` and `--interactive-merge`. Use for repos with branch protection rules requiring multiple approvers. |
@@ -234,10 +243,32 @@ For each phase in (0..totalPhases-1):
      b. Dispatch subagent (see 1.4 or 1.4a)
      c. Validate result (see 1.5)
      d. Update checkpoint (see 1.6)
+<<<<<<< HEAD
+     e. Circuit breaker check (Section 1.7):
+        - If story SUCCESS: reset consecutiveFailures to 0, stay/return to CLOSED
+        - If story FAILED: increment consecutiveFailures and totalFailuresInPhase
+        - Run circuit breaker threshold check (Section 1.7)
+        - If threshold hit, execute corresponding action (WARNING / PAUSE / ABORT)
   7. Read references/integrity-gate.md and run integrity gate between phases
   8. Generate phase completion report (Read references/phase-reports.md)
+<<<<<<< HEAD
   9. Increment contextPressure.phasesCompletedInConversation in checkpoint
   10. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
+||||||| ed34d6011
+  9. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
+=======
+  9. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
+||||||| ed34d6011
+  7. Read references/integrity-gate.md and run integrity gate between phases
+  8. Generate phase completion report (Read references/phase-reports.md)
+  9. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
+=======
+  7. Run integrity gate between phases (see Section 1.7 — Local Integrity Gate)
+  8. Post-gate prompt: present options to user (see Section 1.7b — Post-Gate Prompt)
+  9. Generate phase completion report (Read references/phase-reports.md)
+  10. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
+>>>>>>> origin/develop
+>>>>>>> origin/develop
 ```
 
 The loop ensures that:
@@ -246,6 +277,7 @@ The loop ensures that:
 - Each phase completes before the next begins
 - Pre-flight conflict analysis partitions stories into parallel and sequential groups
 - Dependencies are verified at lifecycle level (SUCCESS) and optionally at PR level (MERGED) depending on `mergeMode`
+- Circuit breaker (Section 1.7) pauses execution on 3 consecutive failures and aborts the phase on 5 total failures
 
 #### `getExecutableStories()` Algorithm (RULE-003)
 
@@ -291,11 +323,67 @@ Return SubagentResult JSON:
 { "status": "SUCCESS"|"FAILED"|"PARTIAL", "commitSha": "...", "findingsCount": N,
   "summary": "...", "reviewsExecuted": { "specialist": true|false, "techLead": true|false },
   "reviewScores": { "specialist": "N/M", "techLead": "N/M" },
-  "coverageLine": N, "coverageBranch": N, "tddCycles": N, "prUrl": "...", "prNumber": N }
+  "coverageLine": N, "coverageBranch": N, "tddCycles": N, "prUrl": "...", "prNumber": N,
+  "errorType": "TRANSIENT"|"CONTEXT"|"PERMANENT"|"TIMEOUT"|"INVALID_RESULT",
+  "errorMessage": "...", "errorCode": "ERR-TRANSIENT-001" }
+
+Note: `errorType`, `errorMessage`, and `errorCode` are OPTIONAL fields.
+- `errorType`: Present when `status` is `FAILED`. Classifies the failure for recovery decisions.
+- `errorMessage`: Optional, max 500 characters. Human-readable description of the failure.
+- `errorCode`: Optional, pattern `ERR-[A-Z]+-[0-9]{3}`. References the error catalog for lookup.
 ```
 
 **Sequential mode** (`--sequential`): Dispatch one story at a time via `Agent` tool.
 **Parallel mode** (default): Launch ALL executable stories in a SINGLE message via `Agent` with `isolation: "worktree"`. Branch: `feat/{storyId}-short-description`. Legacy `--parallel` flag is silently ignored.
+
+### 1.4b Subagent Recovery
+
+When a subagent returns `SubagentResult` with `status == "FAILED"`, apply error-type-based recovery before marking the story as permanently failed.
+
+#### Recovery Strategy Table
+
+| errorType | Recovery Action | Max Retries | Prompt Modification |
+|-----------|----------------|-------------|---------------------|
+| `TRANSIENT` | Re-dispatch with same prompt | 2 | None |
+| `CONTEXT` | Re-dispatch with reduced prompt | 1 | Add `"CONTEXT PRESSURE: minimize output, skip optional sections"` |
+| `TIMEOUT` | Re-dispatch with `--skip-verification` | 1 | Add `"--skip-verification"` to args |
+| `PERMANENT` | No recovery, mark FAILED | 0 | N/A |
+| `INVALID_RESULT` | No recovery, mark FAILED | 0 | N/A |
+| No `errorType` | Treat as PERMANENT | 0 | N/A |
+
+#### Recovery Algorithm
+
+```
+After receiving SubagentResult with status FAILED:
+  1. Check if errorType is present
+     - If absent: treat as PERMANENT, mark FAILED, no retry
+  2. Look up recovery strategy from table above
+  3. If retryable and retryCount < maxRetries:
+     a. Log: "Subagent recovery: {errorType}. Retry {n}/{max} for {storyId}..."
+     b. Apply prompt modification if any
+     c. Re-dispatch subagent
+     d. Increment retryCount
+  4. If retryCount >= maxRetries:
+     a. Mark story as FAILED
+     b. Log: "Subagent recovery exhausted for {storyId}: {errorType}"
+```
+
+#### Escalation Rule
+
+If **3 consecutive** subagent dispatches fail (same or different stories), escalate to the user via `AskUserQuestion` with options:
+
+```
+3 consecutive subagent failures detected.
+Last error: {errorType} — {errorMessage}
+Affected stories: {storyId1}, {storyId2}, {storyId3}
+
+Options:
+1. Retry last failed story
+2. Skip failed story and continue
+3. Abort epic execution
+```
+
+The consecutive failure counter resets on any successful dispatch.
 
 ### 1.4c Conflict Resolution & Auto-Rebase
 
@@ -309,14 +397,25 @@ Return SubagentResult JSON:
 
 After receiving the subagent response, validate the `SubagentResult` contract:
 
+**Required fields (all statuses):**
+
 1. **`status` field**: MUST be present, MUST be one of: `SUCCESS`, `FAILED`, `PARTIAL`
 2. **`findingsCount` field**: MUST be present and be a number
 3. **`summary` field**: MUST be present and be a string
+
+**Conditional required fields (SUCCESS only):**
+
 4. **`commitSha` field**: If `status === "SUCCESS"`, MUST be present and be a string
 5. **`prUrl` field**: If `status === "SUCCESS"`, MUST be present and be a valid GitHub PR URL string
 6. **`prNumber` field**: If `status === "SUCCESS"`, MUST be present and be a positive integer
 
-**On validation failure:** Mark the story as FAILED. Set summary to: `"Invalid subagent result: missing {field} field"`
+**Optional fields (FAILED status -- used by recovery, Section 1.4b):**
+
+7. **`errorType` field**: Optional. If present, MUST be one of: `TRANSIENT`, `CONTEXT`, `PERMANENT`, `TIMEOUT`, `INVALID_RESULT`. Used by Section 1.4b to determine recovery strategy.
+8. **`errorMessage` field**: Optional. If present, MUST be a string with max 500 characters. Truncate if longer.
+9. **`errorCode` field**: Optional. If present, MUST match pattern `ERR-[A-Z]+-[0-9]{3}`. References the error catalog.
+
+**On validation failure:** Mark the story as FAILED. Set summary to: `"Invalid subagent result: missing {field} field"`. When `status` is `FAILED` and optional error fields are absent, proceed to recovery (Section 1.4b) with `errorType` treated as absent (i.e., PERMANENT -- no retry).
 
 ### 1.6 Checkpoint Update (RULE-002)
 
@@ -330,6 +429,7 @@ After each story completes (success or failure), persist the result:
 
 After checkpoint update, propagate status to markdown files (story file, IMPLEMENTATION-MAP) and Jira (non-blocking). Status mapping: SUCCESS→Concluída, FAILED→Falha, PARTIAL→Parcial, IN_PROGRESS→Em Andamento, BLOCKED→Bloqueada, PENDING→Pendente. On all stories SUCCESS: update epic status to `Concluído`.
 
+<<<<<<< HEAD
 ### 1.7 Graceful Degradation
 
 When the context window approaches its limit during long-running epic executions, the orchestrator degrades progressively to preserve progress. Degradation MUST advance through levels sequentially — NEVER skip from Level 0 directly to Level 3.
@@ -400,6 +500,224 @@ The context pressure state is persisted in `execution-state.json` under the `con
 
 > **Schema details:** See `references/checkpoint-schema.md` for the full `execution-state.json` schema including `contextPressure`.
 
+||||||| ed34d6011
+=======
+<<<<<<< HEAD
+### 1.7 Circuit Breaker
+
+The circuit breaker detects systemic failure patterns and escalates to the user before wasting resources on executions that are likely to fail. It is evaluated after every story completion (step 6e in the Core Loop).
+
+#### Thresholds
+
+| Consecutive Failures | Action |
+|---------------------|--------|
+| 1 | Log `"WARNING: 1 consecutive failure"`, continue execution |
+| 2 | Log `"WARNING: 2 consecutive failures. Pattern: {analysis}"` with pattern analysis (see below), continue |
+| 3 | **PAUSE**: `AskUserQuestion` — `"3 consecutive failures detected. Pattern: {analysis}. Options: Continue / Skip phase / Abort epic"` |
+| 5 total in phase | **ABORT** phase with diagnostic report: `"Circuit breaker OPEN: phase aborted (5 total failures)"` |
+
+#### State Machine
+
+The circuit breaker operates with three states:
+
+```
+CLOSED (normal) → 1-2 failures: stay CLOSED with WARNING
+CLOSED → 3 consecutive failures: transition to OPEN
+OPEN → User chooses "Continue": transition to HALF_OPEN
+OPEN → --resume flag: full reset to CLOSED
+HALF_OPEN → next story SUCCESS: transition to CLOSED (reset counters)
+HALF_OPEN → next story FAILED: transition back to OPEN
+```
+
+**State transitions:**
+
+| From | Event | To | Side Effects |
+|------|-------|----|--------------|
+| CLOSED | Story FAILED (consecutive < 3) | CLOSED | Increment counters, log WARNING |
+| CLOSED | Story FAILED (consecutive == 3) | OPEN | Pause execution, prompt user |
+| CLOSED | Story SUCCESS | CLOSED | Reset `consecutiveFailures` to 0 |
+| OPEN | User chooses "Continue" | HALF_OPEN | Reset `consecutiveFailures` to 0, keep `totalFailuresInPhase` |
+| OPEN | User chooses "Skip phase" | CLOSED | Skip remaining stories in phase, advance to next phase |
+| OPEN | User chooses "Abort epic" | CLOSED | Abort epic execution with diagnostic report |
+| OPEN | `--resume` flag | CLOSED | Full reset: `consecutiveFailures = 0`, `totalFailuresInPhase = 0` |
+| HALF_OPEN | Story SUCCESS | CLOSED | Reset all failure counters |
+| HALF_OPEN | Story FAILED | OPEN | Re-prompt user with updated failure count |
+
+#### Reset Conditions
+
+- **Story completes with SUCCESS**: `consecutiveFailures = 0`, stay/return to CLOSED
+- **`--resume` used**: Full reset of all counters (`consecutiveFailures = 0`, `totalFailuresInPhase = 0`, `status = CLOSED`)
+- **User chooses "Continue" at OPEN prompt**: Move to HALF_OPEN (`consecutiveFailures` reset to 0, `totalFailuresInPhase` preserved)
+- **New phase starts**: `consecutiveFailures = 0`, `totalFailuresInPhase = 0`, `status = CLOSED` (each phase has independent counters)
+
+#### Pattern Analysis
+
+At 2 or more consecutive failures, analyze the `errorType` from recent failed stories to determine if the issue is systemic:
+
+```
+If all recent failures have same errorType:
+  → "Systemic: repeated {errorType} failures"
+If errorTypes differ:
+  → "Intermittent: mixed failure types ({type1}, {type2})"
+If errorType is not available:
+  → "Unknown: error types not classified"
+```
+
+The pattern analysis result is stored in `lastFailurePattern` and included in the WARNING log and `AskUserQuestion` prompt.
+
+#### Phase Abort (5 Total Failures)
+
+When `totalFailuresInPhase` reaches 5 (regardless of consecutive count), abort the current phase:
+
+1. Log: `"Circuit breaker OPEN: phase aborted (5 total failures)"`
+2. Mark all remaining PENDING stories in the phase as BLOCKED with reason `"Phase aborted by circuit breaker"`
+3. Generate a diagnostic report summarizing all failures in the phase (story IDs, error types, error messages)
+4. Advance to the integrity gate (the gate will likely FAIL, triggering its own reporting)
+
+#### Checkpoint Integration
+
+The circuit breaker state is persisted in `execution-state.json` under the `circuitBreaker` field:
+
+```json
+"circuitBreaker": {
+  "consecutiveFailures": 0,
+  "totalFailuresInPhase": 0,
+  "lastFailureAt": null,
+  "lastFailurePattern": null,
+  "status": "CLOSED"
+}
+```
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `consecutiveFailures` | Integer | Yes | `0` | Counter of consecutive story failures (resets on SUCCESS) |
+| `totalFailuresInPhase` | Integer | Yes | `0` | Counter of total failures in current phase (resets per phase) |
+| `lastFailureAt` | String (ISO-8601) | Optional | `null` | Timestamp of most recent failure |
+| `lastFailurePattern` | String | Optional | `null` | Pattern analysis result: `"Systemic: ..."` or `"Intermittent: ..."` |
+| `status` | String (Enum) | Yes | `"CLOSED"` | Circuit breaker state: `CLOSED`, `OPEN`, `HALF_OPEN` |
+
+> **Schema details:** See `references/checkpoint-schema.md` for the full `execution-state.json` schema including `circuitBreaker`.
+
+||||||| ed34d6011
+=======
+### 1.7 Local Integrity Gate (RULE-006)
+
+> **Reference:** Read `references/integrity-gate.md` for gate subagent prompt, regression diagnosis, version bump, and checkpoint schema details. This section overrides the DEFERRED default for `--no-merge` mode described in that reference.
+
+The integrity gate MUST execute by default between phases — **never DEFERRED**. Even in `--no-merge` mode (the default), a local gate validates cross-story integration using a temporary branch.
+
+#### Gate Result Values
+
+| Value | Meaning |
+|-------|---------|
+| `PASS` | All compile, test, and coverage checks passed on the merged code |
+| `FAIL` | One or more checks failed (merge conflict, compilation error, test failure, coverage below threshold) |
+| `SKIPPED` | Gate explicitly skipped via `--skip-gate` flag (conscious opt-out) |
+
+> **`DEFERRED` is no longer a default outcome.** The `DEFERRED` value is removed from the default gate behavior. Gates always produce `PASS`, `FAIL`, or `SKIPPED`.
+
+#### Skip Gate (`--skip-gate`)
+
+When `--skip-gate` is set:
+1. Log: `"Integrity gate skipped (--skip-gate) for phase {N}"`
+2. Record: `integrityGate.status = "SKIPPED"` in checkpoint
+3. Skip directly to post-gate prompt (Section 1.7b)
+4. No temporary branch is created
+
+#### Local Gate Algorithm (No-Merge Mode)
+
+When `mergeMode == "no-merge"` (default) and `--skip-gate` is NOT set:
+
+```
+1. Filter stories: collect all stories in current phase with status == SUCCESS
+   - If no SUCCESS stories exist:
+     Log: "No SUCCESS stories in phase {N}, skipping gate"
+     Record: integrityGate.status = "SKIPPED"
+     Return early (proceed to post-gate prompt)
+
+2. Create temporary branch:
+   git checkout develop && git pull origin develop
+   git checkout -b temp/gate-phase-{N}-{timestamp}
+
+3. Merge story branches into temporary branch:
+   For each story with status SUCCESS in the current phase:
+     git merge origin/feat/{storyId} --no-edit
+     If merge conflict:
+       Log: "MERGE CONFLICT: story {storyId} conflicts on temp gate branch"
+       Log conflict file list: git diff --name-only --diff-filter=U
+       Record: integrityGate.status = "FAIL"
+       Record: integrityGate.failReason = "merge-conflict"
+       Record: integrityGate.conflictStory = storyId
+       Abort merge: git merge --abort
+       Jump to step 6 (cleanup)
+
+4. Run validation on temporary branch:
+   a. Compile: {{COMPILE_COMMAND}}
+   b. Test: {{TEST_COMMAND}}
+   c. Coverage: {{COVERAGE_COMMAND}}
+   d. Smoke tests (unless --skip-smoke-gate):
+      {{SMOKE_COMMAND}}
+
+5. Evaluate results:
+   - If compilation fails: integrityGate.status = "FAIL"
+   - If any tests fail: integrityGate.status = "FAIL", correlate with stories
+   - If line coverage < 95% or branch coverage < 90%: integrityGate.status = "FAIL"
+   - If smoke tests fail (and not --skip-smoke-gate): integrityGate.status = "FAIL"
+   - Otherwise: integrityGate.status = "PASS"
+
+6. Cleanup temporary branch (ALWAYS, even on failure):
+   git checkout develop
+   git branch -D temp/gate-phase-{N}-{timestamp}
+
+7. Record gate result in checkpoint via updateIntegrityGate()
+   (See references/integrity-gate.md for full schema)
+
+8. If FAIL: block next phase, present failure details to user
+   If PASS: proceed to post-gate prompt (Section 1.7b)
+```
+
+#### Gate in Non-No-Merge Modes
+
+When `mergeMode != "no-merge"` (auto or interactive with PRs already merged), the gate runs directly on `develop` as described in `references/integrity-gate.md` (PRs are already merged, so no temporary branch is needed). The same `PASS`/`FAIL`/`SKIPPED` result values apply — `DEFERRED` is never used.
+
+#### Gate Failure Handling
+
+On `integrityGate.status == "FAIL"`, present options to the user via `AskUserQuestion`:
+
+```
+Phase {N} integrity gate: FAIL
+Reason: {failReason} (merge-conflict | test-failure | coverage-below-threshold | compilation-error)
+Details: {details}
+
+Options:
+1. Fix and retry gate (re-run after manual fixes)
+2. Skip gate for this phase (--skip-gate)
+3. Abort epic execution
+```
+
+### 1.7b Post-Gate Prompt
+
+After a gate `PASS` (or `SKIPPED`), present options to the user via `AskUserQuestion`:
+
+```
+Phase {N} integrity gate: {PASS|SKIPPED}
+Stories completed: {successCount}/{totalCount}
+{if PASS: Coverage: {lineCoverage}% line, {branchCoverage}% branch}
+
+Options:
+1. Continue to Phase {N+1}
+2. Merge Phase {N} PRs now (manual)
+3. Pause for manual review
+```
+
+- **Option 1 (default):** Advance to the next phase immediately
+- **Option 2:** Pause execution so the user can manually merge story PRs before continuing. After user confirms merges are done, resume execution.
+- **Option 3:** Pause execution entirely. User resumes later with `--resume`.
+
+> **Auto-advance:** When `--auto-merge` is set, skip the prompt and auto-select option 1 (continue to next phase).
+
+>>>>>>> origin/develop
+>>>>>>> origin/develop
 ## Phase 3 — Verification
 
 Final verification on `develop` after all story PRs are handled.
@@ -418,6 +736,63 @@ Skip when `--skip-pr-comments` or `--single-pr` is set. Otherwise:
 3. Ask for confirmation (bypass with `--auto-merge`)
 4. If approved: run `/x-fix-epic-pr-comments {epicId}` to apply fixes
 
+## Error Classification
+
+When any tool call, subagent dispatch, or external command fails during execution, classify the error before deciding on recovery action.
+
+### Error Categories
+
+Classify every error into exactly one category using case-insensitive substring matching against the error message:
+
+| Category | Detection Patterns (case-insensitive) | Action |
+|----------|---------------------------------------|--------|
+| **TRANSIENT** | `"overloaded"`, `"rate limit"`, `"429"`, `"503"`, `"504"`, `"timeout"`, `"ETIMEDOUT"`, `"capacity"`, `"502"` | Retry with exponential backoff |
+| **CONTEXT** | `"context"`, `"token limit"`, `"too long"`, `"exceeded"`, `"output too large"`, `"truncated"` | Graceful degradation (defer to story-0031-0004) |
+| **PERMANENT** | All errors not matching TRANSIENT or CONTEXT patterns | Fail immediately with contextual error message |
+
+**Classification priority:** Check TRANSIENT patterns first, then CONTEXT patterns. If no pattern matches, classify as PERMANENT.
+**Log format:** `"Error classified: {category} — Action: {action}"`
+
+### Retry with Exponential Backoff
+
+When a TRANSIENT error is detected, retry the failed operation using the following backoff schedule.
+
+**Tool call retry (max 3 retries):**
+
+| Retry | Delay |
+|-------|-------|
+| 1 | 2 seconds |
+| 2 | 4 seconds |
+| 3 | 8 seconds |
+| After 3 failures | Mark task/story as FAILED with `errorCode` |
+
+**Subagent dispatch retry (max 2 retries):**
+
+When a subagent returns `status: "FAILED"` with an error message matching TRANSIENT patterns, re-dispatch the subagent:
+
+| Retry | Delay |
+|-------|-------|
+| 1 | 2 seconds |
+| 2 | 4 seconds |
+| After 2 failures | Mark story as FAILED with `errorCode` |
+
+**PERMANENT errors MUST NOT be retried.** If an error matches the PERMANENT category, mark the task/story as FAILED immediately. NEVER retry permanent errors.
+
+**Retry log format:** On each retry attempt, log:
+```
+"Transient error detected: {error}. Retry {n}/{max} in {delay}s..."
+```
+
+On retry success, log:
+```
+"Retry {n}/{max} succeeded for {operation}"
+```
+
+On retry exhaustion, log:
+```
+"All {max} retries exhausted for {operation}. Marking as FAILED."
+```
+
 ## Error Handling
 
 | Scenario | Action |
@@ -429,12 +804,22 @@ Skip when `--skip-pr-comments` or `--single-pr` is set. Otherwise:
 | `--phase` and `--story` both provided | Abort: `ERROR: --phase and --story are mutually exclusive` |
 | Mutually exclusive merge flags | Abort: `ERROR: --auto-merge, --no-merge, and --interactive-merge are mutually exclusive. Use only one.` |
 | Subagent returns invalid result | Mark story as FAILED with summary: `Invalid subagent result: missing {field} field` |
+| Subagent FAILED with retryable errorType | Apply recovery (Section 1.4b): re-dispatch with strategy from recovery table |
+| Subagent recovery exhausted | Mark story as FAILED, log: `Subagent recovery exhausted for {storyId}: {errorType}` |
+| 3 consecutive subagent failures | Escalate to user via `AskUserQuestion` with Retry/Skip/Abort options |
 | Integrity gate FAIL with regression | Revert commit, mark story FAILED, trigger block propagation |
 | Integrity gate FAIL without regression | Pause execution, report to user |
 | Rebase conflict fails after MAX_REBASE_RETRIES | Abort rebase, mark story FAILED, close PR |
+<<<<<<< HEAD
 | Context pressure Level 1 detected | Reduce log verbosity, skip optional phases, use slim mode for reviews (Section 1.7) |
 | Context pressure Level 2 detected | Force delegation to subagents, skip Phase 3 reviews, add pressure header to prompts (Section 1.7) |
 | Context pressure Level 3 detected | Save `execution-state.json` immediately, suggest `--resume`, stop execution gracefully (Section 1.7) |
+||||||| ed34d6011
+=======
+| 3 consecutive story failures (circuit breaker) | Transition to OPEN, pause execution, `AskUserQuestion` with Continue/Skip phase/Abort options (Section 1.7) |
+| 5 total failures in phase (circuit breaker) | Abort phase, mark remaining PENDING stories as BLOCKED, generate diagnostic report (Section 1.7) |
+| Circuit breaker HALF_OPEN + story FAILED | Transition back to OPEN, re-prompt user (Section 1.7) |
+>>>>>>> origin/develop
 | Template file not found (RULE-012) | Log warning, use inline format as fallback |
 | Reference file not found (RULE-002) | Log warning, continue without reference |
 
@@ -474,7 +859,9 @@ Templates referenced by this skill follow RULE-012:
 - Phase 0.5 is skipped when `--sequential` is set
 - Phase 0.5 defaults to advisory mode; use `--strict-overlap` for blocking partitioning
 - All `{{PLACEHOLDER}}` tokens are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
-- Integrity gate runs on `develop` after all phase PRs are merged (RULE-006)
+- Integrity gate runs between phases via local gate (Section 1.7) — never DEFERRED (RULE-006)
+- In no-merge mode, gate uses temporary branch to validate cross-story integration
+- `--skip-gate` skips the integrity gate (records SKIPPED, not DEFERRED)
 - Auto-rebase (Section 1.4e, RULE-011) triggers after each PR merge
 - `--single-pr` preserves legacy flow: epic branch + single mega-PR
 - `--no-merge`, `--auto-merge`, and `--interactive-merge` are mutually exclusive; default is no-merge mode
@@ -482,7 +869,21 @@ Templates referenced by this skill follow RULE-012:
 - DoR pre-check is NON-BLOCKING when DoR files don't exist
 - Per-task checkpoint tracks individual task progress within PRE_PLANNED stories
 - Task-level resume reclassifies IN_PROGRESS tasks to PENDING on `--resume`
+<<<<<<< HEAD
 - Graceful degradation (Section 1.7) activates progressively on context pressure: Level 1 (reduce verbosity) → Level 2 (force delegation) → Level 3 (save state and exit)
 - Context pressure check runs at the start of each phase iteration (step 0a in Core Loop)
 - Degradation NEVER skips levels — always advances one level at a time
 - `contextPressure` checkpoint field is OPTIONAL and backward compatible
+||||||| ed34d6011
+=======
+<<<<<<< HEAD
+- Circuit breaker (Section 1.7) pauses on 3 consecutive failures and aborts phase on 5 total failures
+- Circuit breaker resets fully on `--resume` and per-phase (each phase starts with clean counters)
+- Circuit breaker state (`CLOSED`, `OPEN`, `HALF_OPEN`) is persisted in `execution-state.json`
+||||||| ed34d6011
+=======
+- Subagent recovery (Section 1.4b) applies error-type-based retry before marking stories as FAILED
+- `errorType`, `errorMessage`, `errorCode` are optional fields in SubagentResult, used only when `status == "FAILED"`
+- 3 consecutive subagent failures trigger user escalation regardless of error type
+>>>>>>> origin/develop
+>>>>>>> origin/develop
