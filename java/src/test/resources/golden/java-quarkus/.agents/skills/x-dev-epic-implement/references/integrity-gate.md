@@ -122,24 +122,12 @@ updateIntegrityGate(epicDir, phaseNumber, {
 - **FAIL + regression identified**: revert + mark FAILED + block propagation
 - **FAIL + regression unidentified**: pause execution, report to user
 - **FAIL (smoke gate)**: phase marked FAILED; operator uses `--resume` after fix or `--skip-smoke-gate` to bypass
-<<<<<<< HEAD
-- **DEFERRED** (when `mergeMode === "no-merge"`): skip gate, advance directly to phase completion report
-||||||| ed34d6011
-- **DEFERRED** (when `mergeMode == "no-merge"`): skip gate, advance directly to phase completion report
-=======
 - **SKIPPED** (when `--skip-gate` is set): skip gate with conscious opt-out, advance to post-gate prompt
->>>>>>> origin/develop
 
 ### Version Bump (Post-Gate) (RULE-013)
 
 After the integrity gate **PASSES** for phase N, the orchestrator performs an automatic
-<<<<<<< HEAD
-semantic version bump on `develop`. This is skipped when `integrityGate.status === "DEFERRED"`.
-||||||| ed34d6011
-semantic version bump on `develop`. This is skipped when `integrityGate.status == "DEFERRED"`.
-=======
 semantic version bump on `develop`. This is skipped when `integrityGate.status == "SKIPPED"`.
->>>>>>> origin/develop
 
 1. Determine commit range: `mainShaBeforePhase[N]..develop`
 2. Invoke `x-lib-version-bump` logic with the commit range:
