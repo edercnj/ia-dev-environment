@@ -244,6 +244,36 @@ If no TPP-marked test plan and no formal tasks: use legacy G1-G7 group-based imp
 | Specialist Reviews | Phase 3.4 | Adaptive |
 | Tech Lead | Phase 3.6 | Adaptive |
 
+## Error Classification
+
+When a tool call or subagent fails, classify the error before deciding on recovery action:
+
+| Category | Detection Patterns (case-insensitive) | Action |
+|----------|---------------------------------------|--------|
+| **TRANSIENT** | `"overloaded"`, `"rate limit"`, `"429"`, `"503"`, `"504"`, `"timeout"`, `"ETIMEDOUT"`, `"capacity"`, `"502"` | Retry with exponential backoff |
+| **CONTEXT** | `"context"`, `"token limit"`, `"too long"`, `"exceeded"`, `"output too large"`, `"truncated"` | Graceful degradation (defer to story-0031-0004) |
+| **PERMANENT** | All errors not matching TRANSIENT or CONTEXT patterns | Fail immediately with contextual error message |
+
+**Default:** If no pattern matches, classify as **PERMANENT** and fail immediately.
+**Log:** `"Error classified: {category} — Action: {action}"`
+
+### Retry with Exponential Backoff (Tool Calls)
+
+When a tool call (Bash, Read, Write, etc.) returns an error matching TRANSIENT patterns, retry the same tool call:
+
+| Retry | Delay |
+|-------|-------|
+| 1 | 2 seconds |
+| 2 | 4 seconds |
+| 3 | 8 seconds |
+| After 3 failures | Mark task as FAILED |
+
+**PERMANENT errors MUST NOT be retried.** If an error matches the PERMANENT category, mark the task as FAILED immediately. NEVER retry permanent errors.
+
+**Retry log format:** `"Transient error detected: {error}. Retry {n}/{max} in {delay}s..."`
+
+> **Note:** Subagent dispatch retry (max 2 retries) is handled by the epic orchestrator (`x-dev-epic-implement`), not by this skill.
+
 ## Error Handling
 
 | Scenario | Action |
