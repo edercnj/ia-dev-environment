@@ -33,10 +33,10 @@ For each story with a `prNumber`, verify the actual PR state:
 
 ```
 state = gh pr view {prNumber} --json state,mergedAt
-if state == "MERGED":
+if state === "MERGED":
   update prMergeStatus = "MERGED"
   reclassify to SUCCESS
-else if state == "OPEN":
+else if state === "OPEN":
   keep current status (PR_CREATED or PR_PENDING_REVIEW)
 else if PR not found (error):
   reclassify to FAILED with reason "PR not found"
@@ -47,7 +47,7 @@ else if PR not found (error):
 When a story transitions to FAILED and has an open PR:
 
 ```
-if story.prNumber exists and story.prMergeStatus != "MERGED":
+if story.prNumber exists and story.prMergeStatus !== "MERGED":
   run: gh pr close {prNumber} --comment "Story failed: {summary}"
   update: story.prMergeStatus = "CLOSED"
 ```
@@ -86,8 +86,8 @@ After reclassification, evaluate each BLOCKED story:
 
 - If `blockedBy` is **undefined** → keep BLOCKED (conservative: unknown dependencies)
 - If `blockedBy` is **empty array** → reclassify to PENDING (no dependencies = vacuously satisfied)
-- If `mergeMode == "no-merge"`: if **all** dependencies in `blockedBy` have `status == SUCCESS` → reclassify to PENDING (prMergeStatus not checked)
-- Otherwise: if **all** dependencies in `blockedBy` have status SUCCESS and `prMergeStatus == "MERGED"` → reclassify to PENDING
+- If `mergeMode === "no-merge"`: if **all** dependencies in `blockedBy` have `status === SUCCESS` → reclassify to PENDING (prMergeStatus not checked)
+- Otherwise: if **all** dependencies in `blockedBy` have status SUCCESS and `prMergeStatus === "MERGED"` → reclassify to PENDING
 - If **any** dependency is non-SUCCESS or missing from the stories map → keep BLOCKED
 
 This is a **single-pass** evaluation (no cascade). Stories unblocked in this pass will not trigger further unblocking of stories that depend on them.

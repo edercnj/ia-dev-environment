@@ -104,3 +104,56 @@ The `prCommentRemediation` field is added to `execution-state.json` at the top l
 | `fixPrNumber` | Integer | When COMPLETE | GitHub PR number of the correction PR |
 | `fixesApplied` | Integer | Yes | Number of fixes applied (0 when SKIPPED or DRY_RUN) |
 | `reportPath` | String | When COMPLETE or DRY_RUN | Path to the generated findings report |
+
+## Circuit Breaker Schema
+
+The `circuitBreaker` field is a top-level field in `execution-state.json` that tracks failure patterns per phase:
+
+```json
+{
+  "circuitBreaker": {
+    "consecutiveFailures": 0,
+    "totalFailuresInPhase": 0,
+    "lastFailureAt": null,
+    "lastFailurePattern": null,
+    "status": "CLOSED"
+  }
+}
+```
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `consecutiveFailures` | Integer | Yes | `0` | Number of consecutive story failures without an intervening SUCCESS |
+| `totalFailuresInPhase` | Integer | Yes | `0` | Total number of story failures in the current phase |
+| `lastFailureAt` | String (ISO-8601) | No | `null` | Timestamp of the most recent failure |
+| `lastFailurePattern` | String (Enum) | No | `null` | `TRANSIENT`, `CONTEXT`, `PERMANENT`, `MIXED`, or `null` |
+| `status` | String (Enum) | Yes | `"CLOSED"` | `CLOSED` (normal), `OPEN` (tripped — execution paused or phase aborted) |
+
+**State transitions:**
+- Story SUCCESS → `consecutiveFailures = 0`, `status` remains `CLOSED`
+- Story FAILED → increment `consecutiveFailures` and `totalFailuresInPhase`
+- `consecutiveFailures >= 3` → `status = "OPEN"` (phase paused)
+- `totalFailuresInPhase >= 5` → `status = "OPEN"` (phase aborted)
+- `--resume` → reset `consecutiveFailures = 0`, `status = "CLOSED"`
+
+The circuit breaker resets at the start of each new phase (`consecutiveFailures = 0`, `totalFailuresInPhase = 0`, `status = "CLOSED"`).
+
+## Context Pressure Schema
+
+The `contextPressure` field is a top-level field in `execution-state.json` that tracks context window usage:
+
+```json
+{
+  "contextPressure": {
+    "currentLevel": 0,
+    "degradationActivatedAt": null,
+    "phasesCompletedInConversation": 0
+  }
+}
+```
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `currentLevel` | Integer | Yes | `0` | Current context pressure level (0 = none, 1 = low, 2 = medium, 3 = high) |
+| `degradationActivatedAt` | String (ISO-8601) | No | `null` | Timestamp when graceful degradation was activated (level >= 2) |
+| `phasesCompletedInConversation` | Integer | Yes | `0` | Number of phases completed in the current conversation (used to estimate remaining capacity) |
