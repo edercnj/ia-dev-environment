@@ -29,6 +29,48 @@
 | `version` | String | Yes | `"3.0"` | Schema version. New checkpoints use `"3.0"`. Existing `"2.0"` or absent version continues to work (backward compat). |
 | `baseBranch` | String | Yes | `"develop"` | Base branch for PRs, auto-rebase, and resume. Used by all stories in the epic. |
 <<<<<<< HEAD
+| `contextPressure` | Object | No | `{ "currentLevel": 0 }` | Context pressure degradation state tracking pressure level and phases completed. See Context Pressure State schema below. |
+
+## Context Pressure State
+
+Tracks context window pressure to enable progressive degradation (see Section 1.7 in SKILL.md):
+
+```json
+"contextPressure": {
+  "currentLevel": 0,
+  "degradationActivatedAt": null,
+  "phasesCompletedInConversation": 0
+}
+```
+
+| Field | Type | Required | Default | Validation | Description |
+|-------|------|----------|---------|------------|-------------|
+| `currentLevel` | Integer | Yes | `0` | `enum: [0, 1, 2, 3]` | Current degradation level: 0 (normal), 1 (warning), 2 (critical), 3 (emergency) |
+| `degradationActivatedAt` | String | No | `null` | ISO-8601 UTC | Timestamp when degradation first activated (Level 0 → Level 1) |
+| `phasesCompletedInConversation` | Integer | Yes | `0` | `>= 0` | Number of phases completed in the current conversation. Resets on `--resume` (new conversation). |
+
+**Context Pressure Level Values:**
+
+| Level | Name | Entry Condition | Actions |
+|-------|------|-----------------|---------|
+| 0 | Normal | Initial state; no pressure signals detected | Full execution, full logging |
+| 1 | Warning | Truncated output; "output too large"; `phasesCompletedInConversation >= 3` | Reduce verbosity; skip optional phases; slim mode for reviews |
+| 2 | Critical | System compression; `ERR-CONTEXT-001`/`ERR-CONTEXT-002`; token limit errors | Force delegation; skip reviews; pressure header in prompts |
+| 3 | Emergency | 3+ consecutive tool failures; incoherent output; lost instructions | Save state; suggest `--resume`; stop execution |
+
+**Progressive Advancement:** Levels MUST advance sequentially (0→1→2→3). Even if Level 3 signals are detected at Level 0, the orchestrator advances one level at a time, applying each level's actions before proceeding.
+
+**Reset Rules:**
+
+| Event | `currentLevel` | `phasesCompletedInConversation` | `degradationActivatedAt` |
+|-------|---------------|-------------------------------|-------------------------|
+| `--resume` (new conversation) | Preserved | Reset to 0 | Preserved |
+| Normal operation | Unchanged | Incremented per phase | Unchanged |
+
+**Backward Compatibility:** The `contextPressure` field is OPTIONAL. When not present, it is treated as default normal state (`{ "currentLevel": 0, "degradationActivatedAt": null, "phasesCompletedInConversation": 0 }`). Existing checkpoints without this field continue to work unchanged.
+||||||| ed34d6011
+=======
+<<<<<<< HEAD
 | `circuitBreaker` | Object | No | `{ "status": "CLOSED" }` | Circuit breaker state tracking consecutive and total failures per phase. See Circuit Breaker State schema below. |
 
 ## Circuit Breaker State
@@ -204,6 +246,7 @@ Files with `version` set to `"2.0"` or with the `version` field absent continue 
 3. **Missing `contextPressure`**: Treated as default no-pressure state (`{ "currentLevel": 0, "phasesCompletedInConversation": 0 }`).
 4. **Version is NOT auto-upgraded**: A `"2.0"` checkpoint remains `"2.0"` even after new fields are added during execution. Only new checkpoints are created with `"3.0"`.
 5. **All existing checkpoint logic** (story status, per-task tracking, rebase tracking, PR comment remediation) continues to work unchanged.
+>>>>>>> origin/develop
 >>>>>>> origin/develop
 
 ## Per-Task Checkpoint
