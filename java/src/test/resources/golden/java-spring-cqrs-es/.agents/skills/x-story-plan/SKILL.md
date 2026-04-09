@@ -318,8 +318,9 @@ Launch `general-purpose` subagent:
 > You are a **Security Engineer** assessing security impact for a story in {{PROJECT_NAME}}.
 >
 > **Step 1 -- Read Knowledge Packs:**
-> - Read `skills/security/SKILL.md` then read its references (application-security, cryptography)
-> - Read `skills/compliance/SKILL.md` if compliance is enabled in the project
+> - Read `skills/security/references/application-security.md` -- OWASP Top 10, security headers, dependency security
+> - Read `skills/security/references/security-principles.md` -- data classification, input validation, secure error handling
+> - If compliance is enabled, read the project's active compliance reference under `skills/compliance/references/` (e.g., `gdpr.md`, `lgpd.md`, `pci-dss.md`)
 >
 > **Step 2 -- Read Story Context:**
 > {STORY_CONTENT}
