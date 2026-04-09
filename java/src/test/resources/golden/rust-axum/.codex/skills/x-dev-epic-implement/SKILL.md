@@ -12,16 +12,6 @@ argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] 
 - **Tone**: Technical, Direct, and Concise.
 - **Efficiency**: Remove all conversational fillers and greetings to save tokens.
 
-## CONTEXT MANAGEMENT
-
-Do NOT read full files into context when partial data suffices.
-Use targeted reads (offset/limit) or grep for specific fields.
-
-- **Checkpoint reads**: Use selective checkpoint reads. When checking story status in `execution-state.json`, grep for the specific story ID and extract only `status` and `prMergeStatus` fields. Do NOT load the entire `execution-state.json` into context.
-- **Phase reports**: Delegate phase completion report generation to a dedicated subagent. The orchestrator receives only `{ "status": "GENERATED", "path": "plans/epic-{epicId}/reports/phase-{N}-completion-{epicId}.md" }`. Full report content stays in the subagent context and is written to file.
-- **Review dashboards**: Reference review outputs by file path, not by inline content. After a review skill completes, record only the path and score summary.
-- **Story results**: After each story dispatch, record only the SubagentResult JSON (status, commitSha, summary, prUrl, prNumber). Do NOT echo full implementation logs.
-
 # Skill: Epic Implementation (Orchestrator)
 
 ## Purpose
@@ -855,15 +845,21 @@ Phase: {currentPhase}
 Skip review: {skipReview}
 Auto-approve PR: {autoApprovePr}
 
-Execute the x-dev-lifecycle workflow:
+CRITICAL: Invoke the /x-dev-lifecycle skill using the Skill tool:
+  Skill(skill: "x-dev-lifecycle", args: "{storyId}")
+
+The /x-dev-lifecycle skill orchestrates ALL phases: planning, TDD, reviews, commits, and PR creation.
+Do NOT manually perform these steps. Let the skill handle all orchestration.
+
+If /x-dev-lifecycle is unavailable (Skill tool error), fall back to manual execution:
 1. Read the story file for requirements
 2. Create implementation plan
 3. Implement following TDD (Red-Green-Refactor)
 4. Run tests and verify coverage
 5. Commit changes with Conventional Commits
-6. Create PR and run reviews (Phases 4-8 of x-dev-lifecycle)
+6. Create PR and run reviews
 
-The PR created by /x-dev-lifecycle Phase 6 MUST:
+The PR created by /x-dev-lifecycle MUST:
 - Target `develop` branch (or parent branch when --auto-approve-pr is set)
 - Include "Part of EPIC-{epicId}" in the PR body for traceability (RULE-008)
 
@@ -875,6 +871,7 @@ When --auto-approve-pr is set:
 
 Version bump: DEFERRED. Do NOT modify pom.xml version in Phase 6.
 The epic orchestrator handles version bumps at the integrity gate.
+CONTEXT ISOLATION: Pass only metadata to nested invocations, never source code or diffs.
 
 Include prUrl and prNumber in your SubagentResult JSON.
 
@@ -1343,15 +1340,14 @@ cross-story consistency check on the `develop` diff for the phase:
 ### Phase Completion Reports
 
 After all stories in a phase complete (or reach terminal state) and the integrity
-gate finishes, the orchestrator delegates **phase completion report generation to a dedicated subagent**. This prevents the full report content from accumulating in the orchestrator context.
+gate finishes, the orchestrator generates a **phase completion report** — a
+human-readable record of the phase outcome saved alongside the execution plan.
 
-#### Report Generation (Subagent Delegation)
+#### Report Generation
 
-The orchestrator dispatches a subagent with metadata (epicId, phase number, story statuses, template path) to generate the report. The subagent:
-
-1. Reads template at `.claude/templates/_TEMPLATE-PHASE-COMPLETION-REPORT.md` for required output format (RULE-007)
-2. If template is found: generates the report following the template structure, filling all `{{PLACEHOLDER}}` tokens with real data from the checkpoint (story statuses, durations, findings, coverage, TDD metrics)
-3. If template is NOT found (RULE-012 — graceful fallback): logs `"WARNING: Template _TEMPLATE-PHASE-COMPLETION-REPORT.md not found, using inline format"` and generates the report with the following inline format:
+1. Read template at `.claude/templates/_TEMPLATE-PHASE-COMPLETION-REPORT.md` for required output format (RULE-007)
+2. If template is found: generate the report following the template structure, filling all `{{PLACEHOLDER}}` tokens with real data from the checkpoint (story statuses, durations, findings, coverage, TDD metrics)
+3. If template is NOT found (RULE-012 — graceful fallback): log `"WARNING: Template _TEMPLATE-PHASE-COMPLETION-REPORT.md not found, using inline format"` and generate the report with the following inline format:
 
 ```markdown
 # Phase Completion Report — EPIC-{epicId} Phase {N}
@@ -1375,11 +1371,8 @@ The orchestrator dispatches a subagent with metadata (epicId, phase number, stor
 - Phase duration: {duration}
 ```
 
-4. Writes the report to `plans/epic-{epicId}/reports/phase-{N}-completion-{epicId}.md`
+4. Write the report to `plans/epic-{epicId}/reports/phase-{N}-completion-{epicId}.md`
 5. The report header MUST include: Epic ID, Phase Number, Date, Author (role), Template Version (RULE-011)
-6. Returns to orchestrator: `{ "status": "GENERATED", "path": "plans/epic-{epicId}/reports/phase-{N}-completion-{epicId}.md" }`
-
-The orchestrator logs only the returned path and status. It does NOT read the generated report into its own context.
 
 #### Report Content
 

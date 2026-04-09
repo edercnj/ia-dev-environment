@@ -219,14 +219,18 @@ fi
 
 ### Step 5 — Changelog Generation
 
-Delegate changelog generation to the `x-changelog` skill:
+Delegate changelog generation to the `x-changelog` skill via the Skill tool:
 
 ```
-Use Agent tool to invoke x-changelog with the target version.
-The x-changelog skill will:
-1. Parse Conventional Commits since last tag
-2. Group by type (Added, Changed, Fixed, etc.)
-3. Generate or update CHANGELOG.md
+Skill(skill: "x-changelog", args: "{version}")
+```
+
+The skill handles: parsing Conventional Commits since last tag, grouping by type (Added, Changed, Fixed, etc.), and generating/updating CHANGELOG.md.
+Do NOT manually perform these steps. Let the skill handle all changelog generation.
+
+If `/x-changelog` is unavailable via the Skill tool, fall back to the Agent tool:
+```
+Agent(prompt: "/x-changelog {version}")
 ```
 
 Reference: `skills/x-changelog/SKILL.md`
