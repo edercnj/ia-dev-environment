@@ -224,3 +224,33 @@ No configuration needed. `gofmt` uses the canonical Go style.
 edition = "2021"
 max_width = 120
 ```
+
+## Slim Mode
+
+> **When to use:** When this skill is invoked programmatically from another skill (e.g., x-commit pre-commit chain), read ONLY this section for minimum context.
+
+### Formatter Commands
+
+| Language | Format Command | Check Command |
+|----------|----------------|---------------|
+| java | `mvn spotless:apply` / `gradle spotlessApply` | `mvn spotless:check` |
+| typescript | `npx prettier --write .` | `npx prettier --check .` |
+| python | `ruff format .` | `ruff format --check .` |
+| go | `gofmt -w .` | `gofmt -l .` |
+| rust | `cargo fmt` | `cargo fmt --check` |
+| kotlin | `ktfmt --google-style .` | `ktfmt --dry-run .` |
+
+### Re-Stage After Format
+
+```bash
+# Re-stage files modified by formatter
+STAGED_BEFORE=$(git diff --cached --name-only -z)
+# After format, re-stage changed staged files
+```
+
+### Error Handling
+
+- Unsupported language -> exit 0 (do not block chain)
+- No formatter installed -> exit 1 with install hint
+- Formatter fails -> exit 1 with stderr
+- No files to format -> exit 0
