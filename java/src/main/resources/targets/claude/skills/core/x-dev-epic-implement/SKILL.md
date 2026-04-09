@@ -83,7 +83,7 @@ ERROR: Epic ID is required. Usage: /x-dev-epic-implement [EPIC-ID] [flags]
 | `--skip-gate` | boolean | `false` | Skip the local integrity gate between phases. Gate is registered as `SKIPPED` (not `DEFERRED`). Use for trusted environments or when manual validation is preferred. |
 | `--single-pr` | boolean | `false` | Preserve legacy flow: epic branch + rebase-before-merge + single mega-PR (RULE-009) |
 | `--auto-merge` | boolean | `false` | Auto-merge story PRs via `gh pr merge` after reviews approve (RULE-004). Mutually exclusive with `--no-merge` and `--interactive-merge`. |
-| `--no-merge` | boolean | `false` | Explicit no-merge flag (same as default behavior). Create PRs but skip merge and merge-wait. Dependencies are satisfied by `status == SUCCESS` alone (PR merge not required). Mutually exclusive with `--auto-merge` and `--interactive-merge`. Use for repos with branch protection rules requiring multiple approvers. |
+| `--no-merge` | boolean | `false` | Explicit no-merge flag (same as default behavior). Create PRs but skip merge and merge-wait. Dependencies are satisfied by `status === SUCCESS` alone (PR merge not required). Mutually exclusive with `--auto-merge` and `--interactive-merge`. Use for repos with branch protection rules requiring multiple approvers. |
 | `--interactive-merge` | boolean | `false` | Opt-in to interactive merge mode: prompt the user at phase boundaries with 3 options (merge all, pause for manual merge, skip merge). Mutually exclusive with `--auto-merge` and `--no-merge`. |
 | `--strict-overlap` | boolean | `false` | When set, stories with `code-overlap-high` or `unpredictable` are demoted to sequential queue (original behavior). Without flag, pre-flight is advisory-only (RULE-005). |
 | `--skip-pr-comments` | boolean | `false` | Skip PR comment remediation phase (Phase 4). When set, Phase 4 is skipped entirely with log message. |
@@ -177,8 +177,8 @@ Before dispatching a story to `x-dev-story-implement`, verify its Definition of 
 2. Check if the DoR file exists:
    - **File does NOT exist:** Proceed without DoR check (backward compatible, RULE-001). Log: `"No DoR file found, proceeding without DoR check (backward compatible)"`
    - **File exists:** Read the `## Final Verdict` section
-     - If verdict == `READY`: Proceed with implementation. Log: `"DoR check PASSED for {storyId}"`
-     - If verdict == `NOT_READY`: Mark story as BLOCKED with reason `"DoR not satisfied: {failed_checks}"`. Log: `"DoR check FAILED for {storyId}: {failed_checks}"`. Do NOT dispatch the subagent.
+     - If verdict === `READY`: Proceed with implementation. Log: `"DoR check PASSED for {storyId}"`
+     - If verdict === `NOT_READY`: Mark story as BLOCKED with reason `"DoR not satisfied: {failed_checks}"`. Log: `"DoR check FAILED for {storyId}: {failed_checks}"`. Do NOT dispatch the subagent.
 
 ### 1.2 Branch Management
 
@@ -214,9 +214,9 @@ For each phase in (0..totalPhases-1):
   1. Call getExecutableStories(parsedMap, executionState, mergeMode)
      → Returns stories sorted by critical path priority (RULE-007)
      → Only PENDING stories with all dependencies SUCCESS are returned
-     → When mergeMode != "no-merge": also requires prMergeStatus == "MERGED" for dependencies
+     → When mergeMode !== "no-merge": also requires prMergeStatus === "MERGED" for dependencies
      → Stories without dependencies (phase 0) skip the PR merge check
-  1a. If stories have dependencies with status SUCCESS but prMergeStatus != "MERGED":
+  1a. If stories have dependencies with status SUCCESS but prMergeStatus !== "MERGED":
      → Read references/merge-modes.md for PR Merge Decision Mechanism based on mergeMode
   2. If no executable stories and some remain PENDING:
      → Phase is blocked; log warning and advance to next phase
@@ -277,12 +277,12 @@ The loop ensures that:
 function getExecutableStories(parsedMap, executionState, mergeMode):
   for each storyNode in parsedMap.stories:
     storyState = executionState.stories[storyNode.id]
-    if storyState.status != PENDING: continue
+    if storyState.status !== PENDING: continue
     for each dep in storyNode.dependencies:
       depState = executionState.stories[dep]
-      if depState.status != SUCCESS: skip story
-      if mergeMode != "no-merge":
-        if depState.prMergeStatus != "MERGED": skip story
+      if depState.status !== SUCCESS: skip story
+      if mergeMode !== "no-merge":
+        if depState.prMergeStatus !== "MERGED": skip story
     add storyNode to executableList
   return sortByCriticalPath(executableList)
 ```
@@ -315,6 +315,18 @@ Return SubagentResult JSON:
 { "status": "SUCCESS"|"FAILED"|"PARTIAL", "commitSha": "...", "findingsCount": N,
   "summary": "...", "reviewsExecuted": { "specialist": true|false, "techLead": true|false },
   "reviewScores": { "specialist": "N/M", "techLead": "N/M" },
+<<<<<<< HEAD
+  "coverageLine": N, "coverageBranch": N, "tddCycles": N, "prUrl": "...", "prNumber": N,
+  "contextPressureDetected": true|false }
+
+Optional fields (present only when status is FAILED):
+  "errorType": "TRANSIENT"|"CONTEXT"|"PERMANENT", "errorCode": "ERR-XXX-NNN"
+
+Optional field (present when story-level skill detected context window pressure):
+  "contextPressureDetected": boolean (defaults to false when absent)
+||||||| ed34d6011
+  "coverageLine": N, "coverageBranch": N, "tddCycles": N, "prUrl": "...", "prNumber": N }
+=======
   "coverageLine": N, "coverageBranch": N, "tddCycles": N, "prUrl": "...", "prNumber": N,
   "errorType": "TRANSIENT"|"CONTEXT"|"PERMANENT"|"TIMEOUT"|"INVALID_RESULT",
   "errorMessage": "...", "errorCode": "ERR-TRANSIENT-001" }
@@ -323,6 +335,7 @@ Note: `errorType`, `errorMessage`, and `errorCode` are OPTIONAL fields.
 - `errorType`: Present when `status` is `FAILED`. Classifies the failure for recovery decisions.
 - `errorMessage`: Optional, max 500 characters. Human-readable description of the failure.
 - `errorCode`: Optional, pattern `ERR-[A-Z]+-[0-9]{3}`. References the error catalog for lookup.
+>>>>>>> origin/develop
 ```
 
 **Sequential mode** (`--sequential`): Dispatch one story at a time via `Agent` tool.
@@ -830,6 +843,25 @@ On retry exhaustion, log:
 >>>>>>> origin/develop
 | Template file not found (RULE-012) | Log warning, use inline format as fallback |
 | Reference file not found (RULE-002) | Log warning, continue without reference |
+
+### Circuit Breaker (Phase-Level)
+
+The orchestrator tracks consecutive and total failures per phase to prevent runaway execution:
+
+| State | Condition | Action |
+|-------|-----------|--------|
+| CLOSED | consecutiveFailures < 3 | Continue dispatching stories normally |
+| OPEN | consecutiveFailures >= 3 | Pause phase, log warning, require `--resume` to continue |
+| OPEN | totalFailuresInPhase >= 5 | Abort phase entirely, advance to next phase or halt epic |
+
+**State transitions:**
+- Story SUCCESS → reset `consecutiveFailures` to 0 (totalFailuresInPhase unchanged)
+- Story FAILED → increment both `consecutiveFailures` and `totalFailuresInPhase`
+- 3 consecutive failures → circuit OPEN, phase paused
+- 5 total failures in phase → circuit OPEN, phase aborted
+- `--resume` after pause → circuit reset to CLOSED, execution continues
+
+> **Note:** `errorCode` from failed stories is stored in the story's `errorHistory` array (per story-0031-0007), not as a top-level story field in the checkpoint.
 
 ## Template Fallback
 
