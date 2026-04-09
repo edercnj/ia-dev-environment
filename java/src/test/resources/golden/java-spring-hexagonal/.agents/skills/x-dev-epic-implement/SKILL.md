@@ -4,7 +4,6 @@ description: "Orchestrates the implementation of an entire epic by executing sto
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, AskUserQuestion
 argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr] [--auto-merge] [--no-merge] [--interactive-merge] [--strict-overlap] [--skip-pr-comments]"
-context-budget: medium
 ---
 
 ## Global Output Policy
@@ -268,24 +267,13 @@ You are implementing story {storyId} for epic {epicId}.
 Story file: plans/epic-{epicId}/story-{storyId}.md
 Branch: {branchName} | Phase: {currentPhase} | Skip review: {skipReview}
 
-CRITICAL: Invoke the /x-dev-lifecycle skill using the Skill tool:
-  Skill(skill: "x-dev-lifecycle", args: "{storyId}")
-
-The /x-dev-lifecycle skill orchestrates ALL phases: planning, TDD, reviews, commits, and PR creation.
-Do NOT manually perform these steps. Let the skill handle all orchestration.
-
-If /x-dev-lifecycle is unavailable (Skill tool error), fall back to manual execution:
-1. Read story -> 2. Plan -> 3. TDD (Red-Green-Refactor) -> 4. Test + coverage
-5. Commit (Conventional Commits) -> 6. Create PR targeting `develop`
-
-PR MUST include "Part of EPIC-{epicId}" in body (RULE-008).
+Execute x-dev-lifecycle: read story → plan → TDD → test → commit → PR (Phases 4-8).
+PR MUST target `develop` and include "Part of EPIC-{epicId}" in body (RULE-008).
 Version bump: DEFERRED (orchestrator handles at integrity gate).
-CONTEXT ISOLATION: Pass only metadata to nested invocations, never source code or diffs.
 
 Return SubagentResult JSON:
 { "status": "SUCCESS"|"FAILED"|"PARTIAL", "commitSha": "...", "findingsCount": N,
-  "summary": "...", "reviewsExecuted": { "specialist": true|false, "techLead": true|false },
-  "reviewScores": { "specialist": "N/M", "techLead": "N/M" },
+  "summary": "...", "reviewsExecuted": {...}, "reviewScores": {...},
   "coverageLine": N, "coverageBranch": N, "tddCycles": N, "prUrl": "...", "prNumber": N }
 ```
 
