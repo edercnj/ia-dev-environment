@@ -1,21 +1,21 @@
-# IMPLEMENTATION-MAP — EPIC-0032: Fix Skill Delegation Chain and Subagent Observability
+# IMPLEMENTATION-MAP — EPIC-0033: Fix Skill Delegation Chain and Subagent Observability
 
 ## Dependency Matrix
 
 | Story | Depends On | Blocks |
 |-------|-----------|--------|
-| STORY-0032-0004 (Naming Consolidation) | — | STORY-0032-0001 |
-| STORY-0032-0001 (Skill Chain Fix) | STORY-0032-0004 | STORY-0032-0002 |
-| STORY-0032-0002 (TaskCreate Visibility) | STORY-0032-0001 | STORY-0032-0003 |
-| STORY-0032-0003 (Planning Subagent Visibility) | STORY-0032-0002 | — |
+| STORY-0033-0004 (Naming Consolidation) | — | STORY-0033-0001 |
+| STORY-0033-0001 (Skill Chain Fix) | STORY-0033-0004 | STORY-0033-0002 |
+| STORY-0033-0002 (TaskCreate Visibility) | STORY-0033-0001 | STORY-0033-0003 |
+| STORY-0033-0003 (Planning Subagent Visibility) | STORY-0033-0002 | — |
 
 ## Dependency Graph
 
 ```mermaid
 graph LR
-    S0004["STORY-0032-0004<br/>Naming Consolidation"] --> S0001["STORY-0032-0001<br/>Skill Chain Fix"]
-    S0001 --> S0002["STORY-0032-0002<br/>TaskCreate Visibility"]
-    S0002 --> S0003["STORY-0032-0003<br/>Planning Subagent<br/>Visibility"]
+    S0004["STORY-0033-0004<br/>Naming Consolidation"] --> S0001["STORY-0033-0001<br/>Skill Chain Fix"]
+    S0001 --> S0002["STORY-0033-0002<br/>TaskCreate Visibility"]
+    S0002 --> S0003["STORY-0033-0003<br/>Planning Subagent<br/>Visibility"]
 ```
 
 ## Phased Execution Plan
@@ -24,7 +24,7 @@ graph LR
 
 | Story | Title | Size | Parallel? |
 |-------|-------|------|-----------|
-| STORY-0032-0004 | Consolidate x-dev-lifecycle -> x-dev-story-implement | M | Solo |
+| STORY-0033-0004 | Consolidate x-dev-lifecycle -> x-dev-story-implement | M | Solo |
 
 **Rationale:** Must resolve naming before other stories can reference the correct skill name.
 
@@ -39,7 +39,7 @@ graph LR
 
 | Story | Title | Size | Parallel? |
 |-------|-------|------|-----------|
-| STORY-0032-0001 | Add Skill to allowed-tools and standardize delegation chain | M | Solo |
+| STORY-0033-0001 | Add Skill to allowed-tools and standardize delegation chain | M | Solo |
 
 **Rationale:** Fix the broken delegation chain so x-tdd can invoke x-commit and x-commit can invoke x-format/x-lint via Skill tool.
 
@@ -54,7 +54,7 @@ graph LR
 
 | Story | Title | Size | Parallel? |
 |-------|-------|------|-----------|
-| STORY-0032-0002 | Add TaskCreate/TaskUpdate for Level 2 visibility | L | Solo |
+| STORY-0033-0002 | Add TaskCreate/TaskUpdate for Level 2 visibility | L | Solo |
 
 **Rationale:** With correct naming and working delegation, add task tracking to make execution visible.
 
@@ -69,7 +69,7 @@ graph LR
 
 | Story | Title | Size | Parallel? |
 |-------|-------|------|-----------|
-| STORY-0032-0003 | Add task tracking to planning subagent prompts | M | Solo |
+| STORY-0033-0003 | Add task tracking to planning subagent prompts | M | Solo |
 
 **Rationale:** With the TaskCreate pattern established, extend to planning subagents.
 
@@ -83,7 +83,7 @@ graph LR
 ## Critical Path
 
 ```
-STORY-0032-0004 → STORY-0032-0001 → STORY-0032-0002 → STORY-0032-0003
+STORY-0033-0004 → STORY-0033-0001 → STORY-0033-0002 → STORY-0033-0003
      (Phase 1)        (Phase 2)         (Phase 3)          (Phase 4)
 ```
 
@@ -104,6 +104,6 @@ All stories are on the critical path — no parallelism possible due to linear d
 
 2. **Golden file regeneration:** Every story requires regenerating golden files. Consider batching golden file regeneration as a final step after all stories, or regenerating per-story if tests require it.
 
-3. **x-dev-lifecycle removal risk:** STORY-0032-0004 removes a skill that may be referenced in user projects already deployed. Consider a deprecation period with a redirect SKILL.md instead of immediate removal.
+3. **x-dev-lifecycle removal risk:** STORY-0033-0004 removes a skill that may be referenced in user projects already deployed. Consider a deprecation period with a redirect SKILL.md instead of immediate removal.
 
 4. **TaskCreate in subagents:** Subagents spawned via Agent tool (general-purpose type) have access to all tools including TaskCreate. However, skill-invoked subagents via `Skill()` tool use the skill's `allowed-tools` — verify that TaskCreate is included or accessible.
