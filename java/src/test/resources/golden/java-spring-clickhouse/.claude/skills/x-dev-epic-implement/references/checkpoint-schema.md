@@ -27,6 +27,57 @@
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
 | `baseBranch` | String | Yes | `"develop"` | Base branch for PRs, auto-rebase, and resume. Used by all stories in the epic. |
+| `circuitBreaker` | Object | No | `{ "status": "CLOSED" }` | Circuit breaker state tracking consecutive and total failures per phase. See Circuit Breaker State schema below. |
+
+## Circuit Breaker State
+
+Tracks failure patterns to enable threshold-based escalation (see Section 1.7 in SKILL.md):
+
+```json
+"circuitBreaker": {
+  "consecutiveFailures": 0,
+  "totalFailuresInPhase": 0,
+  "lastFailureAt": null,
+  "lastFailurePattern": null,
+  "status": "CLOSED"
+}
+```
+
+| Field | Type | Required | Default | Validation | Description |
+|-------|------|----------|---------|------------|-------------|
+| `consecutiveFailures` | Integer | Yes | `0` | `>= 0` | Number of consecutive failures without a success. Resets to 0 on any SUCCESS. |
+| `totalFailuresInPhase` | Integer | Yes | `0` | `>= 0` | Total failures in the current execution phase. Resets per phase and on `--resume`. |
+| `lastFailureAt` | String | No | `null` | ISO-8601 UTC | Timestamp of the most recent failure |
+| `lastFailurePattern` | String | No | `null` | See values below | Pattern analysis result from 2+ consecutive failures |
+| `status` | String | Yes | `"CLOSED"` | Enum | Circuit breaker status: `CLOSED`, `OPEN`, `HALF_OPEN` |
+
+**Circuit Breaker Status Values:**
+
+| Status | Meaning | Entry Condition |
+|--------|---------|-----------------|
+| `CLOSED` | Normal operation, errors tracked but threshold not reached | Initial state; SUCCESS after HALF_OPEN; `--resume`; user "Skip phase" |
+| `OPEN` | 3+ consecutive failures, execution paused for user decision | 3 consecutive failures from CLOSED; FAILED from HALF_OPEN |
+| `HALF_OPEN` | Testing recovery after user chose "Continue" | User chooses "Continue" from OPEN |
+
+**`lastFailurePattern` Values:**
+
+| Pattern | Meaning |
+|---------|---------|
+| `"Systemic: repeated {errorType} failures"` | All recent failures have the same `errorType` |
+| `"Intermittent: mixed failure types ({type1}, {type2})"` | Recent failures have different `errorType` values |
+| `"Unknown: error types not classified"` | `errorType` not available in the failure results |
+| `null` | No failures recorded yet |
+
+**Reset Rules:**
+
+| Event | `consecutiveFailures` | `totalFailuresInPhase` | `status` |
+|-------|----------------------|----------------------|----------|
+| Story SUCCESS | Reset to 0 | Unchanged | Stay/return to CLOSED |
+| `--resume` | Reset to 0 | Reset to 0 | Reset to CLOSED |
+| User "Continue" at OPEN | Reset to 0 | Unchanged | HALF_OPEN |
+| New phase starts | Reset to 0 | Reset to 0 | Reset to CLOSED |
+
+**Backward Compatibility:** The `circuitBreaker` field is OPTIONAL. When not present, it is treated as default closed state (`{ "status": "CLOSED", "consecutiveFailures": 0, "totalFailuresInPhase": 0 }`). Existing checkpoints without this field continue to work unchanged.
 
 ## Per-Task Checkpoint
 
