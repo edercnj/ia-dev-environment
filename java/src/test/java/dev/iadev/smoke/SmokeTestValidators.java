@@ -268,6 +268,42 @@ public final class SmokeTestValidators {
         }
     }
 
+    /**
+     * Reads a skill's SKILL.md plus all reference files,
+     * concatenated into a single string.
+     *
+     * @param outputDir the pipeline output directory
+     * @param skillName the skill directory name
+     * @return concatenated content of SKILL.md + references
+     * @throws IOException if file reading fails
+     */
+    public static String readSkillWithRefs(
+            Path outputDir, String skillName)
+            throws IOException {
+        Path skillDir = outputDir.resolve(
+                ".claude/skills/" + skillName);
+        StringBuilder sb = new StringBuilder();
+        sb.append(Files.readString(
+                skillDir.resolve("SKILL.md"),
+                StandardCharsets.UTF_8));
+        Path refsDir = skillDir.resolve("references");
+        if (Files.isDirectory(refsDir)) {
+            try (var stream = Files.list(refsDir)) {
+                List<Path> refs = stream
+                        .filter(p -> p.toString()
+                                .endsWith(".md"))
+                        .sorted()
+                        .toList();
+                for (Path ref : refs) {
+                    sb.append("\n\n");
+                    sb.append(Files.readString(
+                            ref, StandardCharsets.UTF_8));
+                }
+            }
+        }
+        return sb.toString();
+    }
+
     private static void scanFileForPlaceholders(
             Path file, Path outputDir,
             List<Pattern> compiled,
