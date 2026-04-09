@@ -39,7 +39,40 @@ final class FrontmatterInjector {
         }
         String budgetLine =
                 BUDGET_FIELD + budget.value();
+        if (hasExistingBudget(content)) {
+            return replaceExistingBudget(
+                    content, budgetLine);
+        }
         return insertInFrontmatter(content, budgetLine);
+    }
+
+    private static boolean hasExistingBudget(
+            String content) {
+        int closingIdx = content.indexOf(
+                "\n" + FRONTMATTER_DELIM, 3);
+        if (closingIdx < 0) {
+            return false;
+        }
+        String frontmatter =
+                content.substring(0, closingIdx);
+        return frontmatter.contains(BUDGET_FIELD);
+    }
+
+    private static String replaceExistingBudget(
+            String content, String budgetLine) {
+        String[] lines = content.split("\n", -1);
+        var sb = new StringBuilder();
+        for (int i = 0; i < lines.length; i++) {
+            if (lines[i].startsWith(BUDGET_FIELD)) {
+                sb.append(budgetLine);
+            } else {
+                sb.append(lines[i]);
+            }
+            if (i < lines.length - 1) {
+                sb.append('\n');
+            }
+        }
+        return sb.toString();
     }
 
     private static boolean hasFrontmatter(String content) {

@@ -115,8 +115,9 @@ Run the selected formatter command. Capture output for the report.
 After formatting, detect which previously staged files were modified by the formatter and re-stage them automatically:
 
 ```bash
-# Get list of staged files before formatting (NUL-delimited for safety)
-STAGED_BEFORE=$(git diff --cached --name-only -z)
+# Record the currently staged paths in a temp file (NUL-delimited)
+STAGED_BEFORE="$(mktemp)"
+git diff --cached --name-only -z > "$STAGED_BEFORE"
 
 # After formatting, re-stage files that were already staged
 while IFS= read -r -d '' file; do
@@ -124,7 +125,9 @@ while IFS= read -r -d '' file; do
         git add "$file"
         echo "Re-staged: $file"
     fi
-done <<< "$STAGED_BEFORE"
+done < "$STAGED_BEFORE"
+
+rm -f "$STAGED_BEFORE"
 ```
 
 ### Step 6 -- Report
@@ -244,9 +247,16 @@ max_width = 120
 ### Re-Stage After Format
 
 ```bash
-# Re-stage files modified by formatter
-STAGED_BEFORE=$(git diff --cached --name-only -z)
-# After format, re-stage changed staged files
+# Record the currently staged paths in a temp file (NUL-delimited)
+STAGED_BEFORE="$(mktemp)"
+git diff --cached --name-only -z > "$STAGED_BEFORE"
+
+# After running the formatter, re-stage exactly those previously staged files
+if [ -s "$STAGED_BEFORE" ]; then
+  xargs -0 git add -- < "$STAGED_BEFORE"
+fi
+
+rm -f "$STAGED_BEFORE"
 ```
 
 ### Error Handling
