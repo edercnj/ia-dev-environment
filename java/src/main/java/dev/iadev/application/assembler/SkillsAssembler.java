@@ -197,10 +197,11 @@ public final class SkillsAssembler implements Assembler {
                 || !Files.exists(destSkill)) {
             return;
         }
-        int lineCount = countLines(srcSkill);
+        String content = CopyHelpers.readFile(destSkill);
+        int lineCount = (int) content.lines().count();
         ContextBudget budget =
                 ContextBudget.fromLineCount(lineCount);
-        String content = CopyHelpers.readFile(destSkill);
+        
         String injected =
                 FrontmatterInjector.injectContextBudget(
                         content, budget);

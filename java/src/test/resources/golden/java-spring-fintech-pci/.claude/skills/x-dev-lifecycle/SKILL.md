@@ -4,6 +4,7 @@ description: "Orchestrates the complete feature implementation cycle with task-c
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
 argument-hint: "[STORY-ID or feature-name] [--auto-approve-pr] [--task TASK-ID] [--skip-verification] [--full-lifecycle]"
+context-budget: medium
 ---
 
 ## Global Output Policy

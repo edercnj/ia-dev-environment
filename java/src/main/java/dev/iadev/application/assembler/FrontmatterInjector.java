@@ -39,6 +39,10 @@ final class FrontmatterInjector {
         }
         String budgetLine =
                 BUDGET_FIELD + budget.value();
+        if (content.contains(BUDGET_FIELD)) {
+            return content.replaceFirst(
+                    BUDGET_FIELD + "\\S+", budgetLine);
+        }
         return insertInFrontmatter(content, budgetLine);
     }
 
