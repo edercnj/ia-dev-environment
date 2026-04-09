@@ -7,8 +7,6 @@ import dev.iadev.template.TemplateEngine;
 import dev.iadev.domain.model.ContextBudget;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -191,32 +189,21 @@ public final class SkillsAssembler implements Assembler {
 
     private void injectBudgetField(
             Path srcDir, Path destDir) {
-        Path srcSkill = srcDir.resolve("SKILL.md");
         Path destSkill = destDir.resolve("SKILL.md");
-        if (!Files.exists(srcSkill)
-                || !Files.exists(destSkill)) {
+        if (!Files.exists(destSkill)) {
             return;
         }
-        int lineCount = countLines(srcSkill);
+        String content = CopyHelpers.readFile(destSkill);
+        int lineCount =
+                (int) content.lines().count();
         ContextBudget budget =
                 ContextBudget.fromLineCount(lineCount);
-        String content = CopyHelpers.readFile(destSkill);
         String injected =
                 FrontmatterInjector.injectContextBudget(
                         content, budget);
         CopyHelpers.writeFile(destSkill, injected);
     }
 
-    private static int countLines(Path file) {
-        try (var lines = Files.lines(
-                file, StandardCharsets.UTF_8)) {
-            return (int) lines.count();
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to count lines: %s"
-                            .formatted(file), e);
-        }
-    }
 
     private Optional<String> copyConditionalSkill(
             String skillName,

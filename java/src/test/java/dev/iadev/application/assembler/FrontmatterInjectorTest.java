@@ -166,6 +166,34 @@ class FrontmatterInjectorTest {
         }
 
         @Test
+        @DisplayName("replaces existing context-budget"
+                + " instead of duplicating")
+        void inject_existingBudget_replacesValue() {
+            String content = """
+                    ---
+                    name: x-test
+                    argument-hint: "[id]"
+                    context-budget: light
+                    ---
+                    ## Body
+                    """;
+
+            String result =
+                    FrontmatterInjector.injectContextBudget(
+                            content, ContextBudget.HEAVY);
+
+            assertThat(result).contains(
+                    "context-budget: heavy");
+            assertThat(result)
+                    .doesNotContain("context-budget: light");
+            long count = result.lines()
+                    .filter(l -> l.contains(
+                            "context-budget:"))
+                    .count();
+            assertThat(count).isEqualTo(1);
+        }
+
+        @Test
         @DisplayName("preserves content after"
                 + " frontmatter unchanged")
         void inject_preservesBodyContent() {
