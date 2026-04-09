@@ -4,6 +4,7 @@ description: "Automated profiling: detect language/runtime, select appropriate p
 user-invocable: true
 allowed-tools: Read, Bash, Glob, Grep, Agent
 argument-hint: "[cpu|memory|io|all] [--duration 30s] [--output flamegraph|report|raw]"
+context-budget: medium
 ---
 
 ## Global Output Policy

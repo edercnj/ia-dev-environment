@@ -21,8 +21,13 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Regenerates golden files for all 17 profiles by running
+ * Regenerates golden files for all standard profiles by running
  * the pipeline and overwriting the golden directory.
+ *
+ * <p>Two passes are performed: first, all standard profiles
+ * ({@link #PROFILES}) are regenerated with the default pipeline;
+ * then, platform-specific output is regenerated for a subset of
+ * profiles ({@link #PLATFORM_PROFILES}).</p>
  *
  * <p>Usage: run via mvn exec:java with
  * test classpath scope.</p>

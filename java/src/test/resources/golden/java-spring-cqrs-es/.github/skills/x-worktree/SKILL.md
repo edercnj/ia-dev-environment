@@ -16,11 +16,11 @@ Manages git worktrees for {{PROJECT_NAME}} to enable parallel task and story exe
 
 ## Triggers
 
-- `/x-worktree create --branch feature/story-XXXX --base develop` -- create a worktree
+- `/x-worktree create --branch feat/story-XXXX --base develop` -- create a worktree
 - `/x-worktree list` -- list all active worktrees
 - `/x-worktree remove --id agent-abc123` -- remove a specific worktree
 - `/x-worktree cleanup` -- remove all stale worktrees
-- `/x-worktree create --branch feature/story-XXXX --dry-run` -- preview without creating
+- `/x-worktree create --branch feat/story-XXXX --dry-run` -- preview without creating
 
 ## Arguments
 

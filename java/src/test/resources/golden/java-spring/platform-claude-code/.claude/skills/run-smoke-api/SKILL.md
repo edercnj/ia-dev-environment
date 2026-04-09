@@ -4,6 +4,7 @@ description: "Runs automated smoke tests against the REST API using Newman/Postm
 user-invocable: true
 allowed-tools: Read, Bash
 argument-hint: "[--env local|k8s|staging] [--k8s]"
+context-budget: light
 ---
 
 ## Global Output Policy

@@ -4,6 +4,7 @@ description: "Implements a feature/story using TDD (Red-Green-Refactor) workflow
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[STORY-ID or feature-description]"
+context-budget: medium
 ---
 
 ## Global Output Policy
@@ -277,7 +278,7 @@ Check each criterion from the task's Definition of Done:
 ##### 5. Atomic Commit
 ```bash
 git add [test-file] [implementation-files]
-git commit -m "feat(scope): implement TASK-NNN [TDD:GREEN]"
+git commit -m "feat(TASK-XXXX-YYYY-NNN): implement TASK-XXXX-YYYY-NNN [TDD:GREEN]"
 ```
 
 ##### 6. Compile Check

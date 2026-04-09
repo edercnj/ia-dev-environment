@@ -4,6 +4,7 @@ description: "Parallel code review with specialist engineers (Security, QA, Perf
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
 argument-hint: "[STORY-ID or --scope reviewer1,reviewer2]"
+context-budget: medium
 ---
 
 ## Global Output Policy
@@ -89,6 +90,10 @@ If `--scope` provided, filter to listed specialists only.
 > Each individual skill contains its own checklist, knowledge pack references, and scoring logic. The orchestrator does NOT duplicate these -- it delegates entirely.
 
 ## Phase 2 -- Parallel Reviews (Skills via Skill Tool)
+
+**CONTEXT ISOLATION: You receive only metadata. Read all files yourself.
+Do NOT expect source code, diffs, or knowledge pack content in this prompt.
+Each review skill reads its own knowledge pack and runs `git diff` independently.**
 
 **CRITICAL: ALL review skills MUST be invoked in a SINGLE message for true parallelism.**
 

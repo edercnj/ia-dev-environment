@@ -10,7 +10,7 @@ description: >
 
 ## Description
 
-Review event-driven patterns: event schema design, producer/consumer implementation, error handling, dead letter topics, and operational readiness. Cover CloudEvents envelope, schema registry integration, and saga patterns.
+Reviews event-driven patterns: event schema design, producer/consumer implementation, error handling, dead letter topics, and operational readiness. Covers CloudEvents envelope, schema registry integration, and saga patterns.
 
 **Condition**: This skill applies when the project uses event-driven interfaces.
 

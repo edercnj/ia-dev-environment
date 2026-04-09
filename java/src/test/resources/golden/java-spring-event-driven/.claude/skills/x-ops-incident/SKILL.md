@@ -3,6 +3,7 @@ name: x-ops-incident
 description: "Guides incident response with severity-based checklists, communication templates, and postmortem triggers. Interactive guide for SEV1-SEV4 incidents covering classification, response coordination, and action item tracking."
 user-invocable: true
 argument-hint: "[severity SEV1|SEV2|SEV3|SEV4] [--postmortem] [--notify]"
+context-budget: medium
 allowed-tools: Read, Write, Bash, Grep, Glob, Agent
 ---
 

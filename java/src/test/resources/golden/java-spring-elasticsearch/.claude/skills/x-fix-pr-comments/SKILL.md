@@ -4,6 +4,7 @@ description: "Reads PR review comments and fixes actionable ones automatically. 
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[PR-number]"
+context-budget: medium
 ---
 
 ## Global Output Policy
