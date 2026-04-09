@@ -222,7 +222,7 @@ fi
 Delegate changelog generation to the `x-changelog` skill via the Skill tool:
 
 ```
-Skill(skill: "x-changelog", args: "${VERSION}")
+Skill(skill: "x-changelog", args: "{version}")
 ```
 
 The skill handles: parsing Conventional Commits since last tag, grouping by type (Added, Changed, Fixed, etc.), and generating/updating CHANGELOG.md.
@@ -230,7 +230,7 @@ Do NOT manually perform these steps. Let the skill handle all changelog generati
 
 If `/x-changelog` is unavailable via the Skill tool, fall back to the Agent tool:
 ```
-Agent(prompt: "/x-changelog ${VERSION}")
+Agent(prompt: "/x-changelog {version}")
 ```
 
 Reference: `skills/x-changelog/SKILL.md`
