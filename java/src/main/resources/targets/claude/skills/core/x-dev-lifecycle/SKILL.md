@@ -243,6 +243,62 @@ If no TPP-marked test plan and no formal tasks: use legacy G1-G7 group-based imp
 | Specialist Reviews | Phase 3.4 | Adaptive |
 | Tech Lead | Phase 3.6 | Adaptive |
 
+<<<<<<< HEAD
+## Graceful Degradation
+
+When invoked by `x-dev-epic-implement`, the lifecycle skill respects context pressure levels communicated via the subagent prompt. The epic orchestrator manages pressure detection and level advancement (see Section 1.7 in `x-dev-epic-implement`).
+
+### Pressure-Aware Behavior
+
+| Level | Lifecycle Behavior |
+|-------|--------------------|
+| Level 0 (Normal) | Full execution — all phases, full logging, reviews enabled |
+| Level 1 (Warning) | Reduce log output to status lines only; use slim mode when invoking review skills; skip non-essential documentation generation |
+| Level 2 (Critical) | Skip Phase 3 reviews (specialist + tech lead); minimize output in all tool calls; include `"CONTEXT PRESSURE: minimize output"` when delegating to nested skills |
+| Level 3 (Emergency) | Not applicable — epic orchestrator saves state and exits before dispatching at Level 3 |
+
+### Detection Within Lifecycle
+
+If the lifecycle skill detects pressure signals independently (e.g., tool calls returning "output too large", truncated responses), it MUST:
+
+1. Log: `"CONTEXT PRESSURE signal detected in x-dev-lifecycle for {storyId}"`
+2. Include `"contextPressureDetected": true` in the `SubagentResult` returned to the orchestrator
+3. Apply Level 1 actions locally (reduce verbosity, slim mode) as a defensive measure
+4. Continue execution — the orchestrator handles level advancement
+
+||||||| ed34d6011
+=======
+## Error Classification
+
+When a tool call or subagent fails, classify the error before deciding on recovery action:
+
+| Category | Detection Patterns (case-insensitive) | Action |
+|----------|---------------------------------------|--------|
+| **TRANSIENT** | `"overloaded"`, `"rate limit"`, `"429"`, `"503"`, `"504"`, `"timeout"`, `"ETIMEDOUT"`, `"capacity"`, `"502"` | Retry with exponential backoff |
+| **CONTEXT** | `"context"`, `"token limit"`, `"too long"`, `"exceeded"`, `"output too large"`, `"truncated"` | Graceful degradation (defer to story-0031-0004) |
+| **PERMANENT** | All errors not matching TRANSIENT or CONTEXT patterns | Fail immediately with contextual error message |
+
+**Default:** If no pattern matches, classify as **PERMANENT** and fail immediately.
+**Log:** `"Error classified: {category} — Action: {action}"`
+
+### Retry with Exponential Backoff (Tool Calls)
+
+When a tool call (Bash, Read, Write, etc.) returns an error matching TRANSIENT patterns, retry the same tool call:
+
+| Retry | Delay |
+|-------|-------|
+| 1 | 2 seconds |
+| 2 | 4 seconds |
+| 3 | 8 seconds |
+| After 3 failures | Mark task as FAILED |
+
+**PERMANENT errors MUST NOT be retried.** If an error matches the PERMANENT category, mark the task as FAILED immediately. NEVER retry permanent errors.
+
+**Retry log format:** `"Transient error detected: {error}. Retry {n}/{max} in {delay}s..."`
+
+> **Note:** Subagent dispatch retry (max 2 retries) is handled by the epic orchestrator (`x-dev-epic-implement`), not by this skill.
+
+>>>>>>> origin/develop
 ## Error Handling
 
 | Scenario | Action |
@@ -258,6 +314,9 @@ If no TPP-marked test plan and no formal tasks: use legacy G1-G7 group-based imp
 | Review score below approval | Fix and re-review (max 2 cycles) |
 | Phase 1B produces no output | Phase 2 uses G1-G7 fallback |
 | Resume with corrupted state | Reinitialize from PR statuses via `gh pr view` |
+| Context pressure signal detected | Log warning, set `contextPressureDetected: true` in result, apply Level 1 actions locally |
+
+**Error Reporting to Epic Orchestrator:** When `x-dev-lifecycle` is invoked as a subagent by `x-dev-epic-implement`, errors MUST be reported back via the `SubagentResult` JSON fields: `errorType` (transient, permanent, context, tooling), `errorMessage` (human-readable description), and `errorCode` (standardized code from the error catalog, e.g., `ERR-TRANSIENT-001`). The epic orchestrator uses these fields to record entries in the `errorHistory` array of `execution-state.json`. If no error occurred, omit these fields from the result.
 
 ## Template Fallback
 
