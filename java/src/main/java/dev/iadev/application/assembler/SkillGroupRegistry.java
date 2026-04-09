@@ -44,7 +44,8 @@ public final class SkillGroupRegistry {
         SKILL_GROUPS.put("story", List.of(
                 "x-story-epic", "x-story-create",
                 "x-story-map", "x-story-epic-full",
-                "x-story-plan", "x-epic-plan",
+                "x-story-plan", "x-plan-task",
+                "x-epic-plan",
                 "story-planning",
                 "x-jira-create-epic",
                 "x-jira-create-stories"));
@@ -53,17 +54,23 @@ public final class SkillGroupRegistry {
                 "x-dev-epic-implement",
                 "x-dev-architecture-plan",
                 "x-dev-arch-update",
+                "x-docs",
                 "layer-templates",
                 "x-dev-adr-automation",
+                "x-commit",
+                "x-format",
                 "x-mcp-recommend",
                 "x-perf-profile",
                 "x-setup-dev-environment",
                 "x-ci-cd-generate",
-                "x-security-pipeline"));
+                "x-security-pipeline",
+                "x-lint",
+                "x-worktree"));
         SKILL_GROUPS.put("review", List.of(
                 "x-review", "x-review-api", "x-review-pr",
                 "x-review-grpc", "x-review-events",
                 "x-review-gateway",
+                "x-review-qa", "x-review-perf",
                 "x-codebase-audit",
                 "x-dependency-audit",
                 "x-supply-chain-audit",
@@ -75,7 +82,8 @@ public final class SkillGroupRegistry {
                 "x-security-dashboard",
                 "x-contract-lint"));
         SKILL_GROUPS.put("testing", List.of(
-                "x-test-plan", "x-test-run", "run-e2e",
+                "x-test-plan", "x-test-run", "x-tdd",
+                "run-e2e",
                 "run-smoke-api", "run-contract-tests",
                 "run-perf-test"));
         SKILL_GROUPS.put("infrastructure", List.of(
@@ -93,7 +101,8 @@ public final class SkillGroupRegistry {
                 "finops", "patterns-outbox",
                 "pci-dss-requirements"));
         SKILL_GROUPS.put("git-troubleshooting", List.of(
-                "x-git-push", "x-ops-troubleshoot",
+                "x-git-push", "x-pr-create",
+                "x-ops-troubleshoot",
                 "x-ops-incident",
                 "x-fix-pr-comments",
                 "x-fix-epic-pr-comments",

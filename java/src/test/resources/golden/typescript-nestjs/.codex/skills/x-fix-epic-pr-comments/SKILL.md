@@ -572,7 +572,7 @@ Before generating the report, assign a `theme` to each finding using determinist
 - All keyword matches are **case-insensitive**.
 - `body` refers to the finding's `body` field (the original comment text).
 - `file` refers to the finding's `file` field (relative path from repo root).
-- The `{{` literal match for `placeholder` theme checks for double-brace template variables (e.g., `{{PROJECT_NAME}}`).
+- The double-brace literal match for `placeholder` theme checks for template variables (e.g., `PROJECT_NAME` wrapped in double braces).
 - When a finding matches both a `body`-based and a `file`-based heuristic, the `body`-based match wins (body heuristics have higher priority since they appear first in the evaluation order).
 - After theme detection, update each finding's `theme` field in the consolidated data structure (was `null` during fetch).
 

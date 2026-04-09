@@ -30,6 +30,9 @@ description: >
 | `--dry-run` | boolean | `false` | Generate plan without executing |
 | `--resume` | boolean | `false` | Continue from last checkpoint (execution-state.json) |
 | `--sequential` | boolean | `false` | Disable parallel worktrees, execute stories one at a time |
+| `--auto-approve-pr` | boolean | `false` | Propagate to x-dev-lifecycle: task PRs auto-merge into parent branches. Parent branches require human review. |
+| `--batch-approval` | boolean | `true` | Consolidate pending PRs from parallel stories into a single approval prompt (RULE-013). |
+| `--task-tracking` | boolean | `true` | Enable task-level tracking in execution-state.json with PR fields (prUrl, prNumber, branch). |
 
 Missing epic ID aborts with: `ERROR: Epic ID is required.`
 
@@ -133,6 +136,19 @@ When `--resume` is set, load `execution-state.json` and apply two-pass reclassif
 
 Checkout the branch from checkpoint: `git checkout {state.branch}`. If not found locally, try `git checkout -b {state.branch} origin/{state.branch}`.
 
+### Task-Level Reclassification (Step 1b — Per-Task Resume)
+
+After story-level reclassification, apply task-level reclassification for stories with task data:
+
+1. **IN_PROGRESS tasks -> PENDING** (interrupted work)
+2. **DONE tasks -> DONE** (preserved)
+3. **PR_CREATED/PR_APPROVED tasks**: verify via `gh pr view`: MERGED -> DONE; OPEN -> keep; not found -> FAILED
+4. **PR_MERGED tasks -> DONE**
+5. **BLOCKED tasks**: if all deps DONE -> PENDING; otherwise keep BLOCKED
+6. **FAILED tasks**: if retries < MAX_RETRIES -> PENDING; otherwise keep FAILED
+
+**Backward Compatibility:** Stories without `tasks` field are unaffected. No-op for legacy schema (`version` absent or `"1.0"`).
+
 ### BLOCKED Reevaluation
 
 After reclassification, reevaluate each BLOCKED story:
@@ -211,6 +227,14 @@ The Core Loop reads the preflight analysis and partitions stories:
 - For each dispatched story: mark `IN_PROGRESS`, dispatch subagent, validate result, update checkpoint
 - BLOCKED stories are never dispatched (filtered by `getExecutableStories`)
 - If no preflight analysis exists, all stories default to parallel dispatch
+
+### 1.3a Cross-Story Task Dependency Enforcement
+
+Before dispatching a story, verify that all cross-story task dependencies are satisfied. If story-B has a task depending on a specific task in story-A, that task must be DONE before story-B is dispatched. This is more granular than story-level dependencies.
+
+### 1.3b Batch Approval for Parallel Stories (RULE-013)
+
+When `--batch-approval` is enabled and multiple stories execute in parallel, consolidate pending task PRs into a single approval prompt: "N task PRs pending across M stories" with options: Approve all / Review individually / Pause all. Skipped when `--auto-approve-pr` is set (task PRs auto-merge).
 
 ### 1.4 Subagent Dispatch (Sequential Mode — When `--sequential` Is Set)
 
@@ -417,6 +441,26 @@ Final verification validates the epic as a whole before declaring completion.
 
 - Display: epic status, stories completed/failed/blocked, coverage, tech lead score, PR link, report path, elapsed time
 - Return to develop: `git checkout develop && git pull origin develop`
+
+## Auto-Approve PR Propagation
+
+When `--auto-approve-pr` is set:
+- Flag is propagated to each `x-dev-lifecycle` dispatch
+- Each story creates a parent branch `feat/story-XXXX-YYYY-desc` from develop
+- Task PRs target the parent branch (not develop)
+- Task PRs are auto-merged into the parent branch after CI passes
+- Parent branches are NEVER auto-merged to develop (require human review)
+- Completion output lists parent branches as "Pending human review"
+
+## Task-Level State Tracking
+
+When `--task-tracking` is enabled (default), execution-state.json includes:
+- `version: "2.0"` (schema version for backward compatibility)
+- Per-story `tasks` map with TaskEntry per task: `status`, `agent`, `type`, `commitSha`, `duration`, `prUrl`, `prNumber`, `branch`
+- Task statuses: PENDING, IN_PROGRESS, PR_CREATED, PR_APPROVED, PR_MERGED, DONE, BLOCKED, FAILED, SKIPPED
+- `parentBranch` per story (present only in auto-approve mode)
+
+**Backward Compatibility (RULE-010):** Epics with `version` absent or `"1.0"` use legacy schema without task-level tracking. The `tasks` field is optional.
 
 ## Integration Notes
 
