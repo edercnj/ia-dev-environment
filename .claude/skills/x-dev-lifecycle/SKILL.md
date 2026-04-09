@@ -378,7 +378,12 @@ Launch `general-purpose` subagent:
 
 **Skip condition:** If Phase 0 pre-check marked the security assessment as "Reuse", skip this step entirely and log `"Reusing existing security assessment from {date}"`.
 
-Launch `general-purpose` subagent:
+Invoke skill `/x-threat-model` via the Skill tool:
+  Skill(skill: "x-threat-model", args: "{STORY_PATH}")
+
+Output: `plans/epic-XXXX/plans/security-story-XXXX-YYYY.md`
+
+If `/x-threat-model` is unavailable, fall back to `general-purpose` subagent:
 
 > You are a **Security Engineer** assessing security impact.
 > Read template at `.claude/templates/_TEMPLATE-SECURITY-ASSESSMENT.md` for required output format (RULE-007). If the template file does not exist, log `"WARNING: Template _TEMPLATE-SECURITY-ASSESSMENT.md not found, using inline format"` and use inline format as fallback (RULE-012).

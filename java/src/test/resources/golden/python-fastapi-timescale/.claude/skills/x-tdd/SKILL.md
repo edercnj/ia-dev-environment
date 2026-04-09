@@ -4,6 +4,7 @@ description: "Executes systematic Red-Green-Refactor TDD cycles for a task. Read
 user-invocable: true
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob
 argument-hint: "TASK-XXXX-YYYY-NNN [--from-cycle N] [--dry-run]"
+context-budget: medium
 ---
 
 ## Global Output Policy

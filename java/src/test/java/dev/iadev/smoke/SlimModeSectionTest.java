@@ -7,9 +7,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -184,11 +181,8 @@ class SlimModeSectionTest extends SmokeTestBase {
     private String readSkillContent(
             String profile, String skillName)
             throws IOException {
-        Path skillFile = getOutputDir(profile)
-                .resolve(".claude/skills/"
-                        + skillName + "/SKILL.md");
-        return Files.readString(
-                skillFile, StandardCharsets.UTF_8);
+        return SmokeTestValidators.readSkillWithRefs(
+                getOutputDir(profile), skillName);
     }
 
     /**

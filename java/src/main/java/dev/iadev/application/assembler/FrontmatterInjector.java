@@ -59,8 +59,11 @@ final class FrontmatterInjector {
                 ARGUMENT_HINT);
         int insertPos;
         if (hintIdx >= 0 && hintIdx < closingIdx) {
-            insertPos = content.indexOf(
-                    '\n', hintIdx) + 1;
+            int newlineAfterHint = content.indexOf(
+                    '\n', hintIdx);
+            insertPos = newlineAfterHint < 0
+                    ? closingIdx + 1
+                    : newlineAfterHint + 1;
         } else {
             insertPos = closingIdx + 1;
         }

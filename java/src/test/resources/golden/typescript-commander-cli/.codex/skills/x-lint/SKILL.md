@@ -4,6 +4,7 @@ description: "Analyzes source code with the appropriate linter for {{LANGUAGE}}.
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[--fix | --changed-only | --strict]"
+context-budget: medium
 ---
 
 ## Global Output Policy
