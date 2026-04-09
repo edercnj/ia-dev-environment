@@ -285,11 +285,67 @@ Return SubagentResult JSON:
 { "status": "SUCCESS"|"FAILED"|"PARTIAL", "commitSha": "...", "findingsCount": N,
   "summary": "...", "reviewsExecuted": { "specialist": true|false, "techLead": true|false },
   "reviewScores": { "specialist": "N/M", "techLead": "N/M" },
-  "coverageLine": N, "coverageBranch": N, "tddCycles": N, "prUrl": "...", "prNumber": N }
+  "coverageLine": N, "coverageBranch": N, "tddCycles": N, "prUrl": "...", "prNumber": N,
+  "errorType": "TRANSIENT"|"CONTEXT"|"PERMANENT"|"TIMEOUT"|"INVALID_RESULT",
+  "errorMessage": "...", "errorCode": "ERR-TRANSIENT-001" }
+
+Note: `errorType`, `errorMessage`, and `errorCode` are OPTIONAL fields.
+- `errorType`: Present when `status` is `FAILED`. Classifies the failure for recovery decisions.
+- `errorMessage`: Optional, max 500 characters. Human-readable description of the failure.
+- `errorCode`: Optional, pattern `ERR-[A-Z]+-[0-9]{3}`. References the error catalog for lookup.
 ```
 
 **Sequential mode** (`--sequential`): Dispatch one story at a time via `Agent` tool.
 **Parallel mode** (default): Launch ALL executable stories in a SINGLE message via `Agent` with `isolation: "worktree"`. Branch: `feat/{storyId}-short-description`. Legacy `--parallel` flag is silently ignored.
+
+### 1.4b Subagent Recovery
+
+When a subagent returns `SubagentResult` with `status == "FAILED"`, apply error-type-based recovery before marking the story as permanently failed.
+
+#### Recovery Strategy Table
+
+| errorType | Recovery Action | Max Retries | Prompt Modification |
+|-----------|----------------|-------------|---------------------|
+| `TRANSIENT` | Re-dispatch with same prompt | 2 | None |
+| `CONTEXT` | Re-dispatch with reduced prompt | 1 | Add `"CONTEXT PRESSURE: minimize output, skip optional sections"` |
+| `TIMEOUT` | Re-dispatch with `--skip-verification` | 1 | Add `"--skip-verification"` to args |
+| `PERMANENT` | No recovery, mark FAILED | 0 | N/A |
+| `INVALID_RESULT` | No recovery, mark FAILED | 0 | N/A |
+| No `errorType` | Treat as PERMANENT | 0 | N/A |
+
+#### Recovery Algorithm
+
+```
+After receiving SubagentResult with status FAILED:
+  1. Check if errorType is present
+     - If absent: treat as PERMANENT, mark FAILED, no retry
+  2. Look up recovery strategy from table above
+  3. If retryable and retryCount < maxRetries:
+     a. Log: "Subagent recovery: {errorType}. Retry {n}/{max} for {storyId}..."
+     b. Apply prompt modification if any
+     c. Re-dispatch subagent
+     d. Increment retryCount
+  4. If retryCount >= maxRetries:
+     a. Mark story as FAILED
+     b. Log: "Subagent recovery exhausted for {storyId}: {errorType}"
+```
+
+#### Escalation Rule
+
+If **3 consecutive** subagent dispatches fail (same or different stories), escalate to the user via `AskUserQuestion` with options:
+
+```
+3 consecutive subagent failures detected.
+Last error: {errorType} — {errorMessage}
+Affected stories: {storyId1}, {storyId2}, {storyId3}
+
+Options:
+1. Retry last failed story
+2. Skip failed story and continue
+3. Abort epic execution
+```
+
+The consecutive failure counter resets on any successful dispatch.
 
 ### 1.4c Conflict Resolution & Auto-Rebase
 
@@ -303,14 +359,25 @@ Return SubagentResult JSON:
 
 After receiving the subagent response, validate the `SubagentResult` contract:
 
+**Required fields (all statuses):**
+
 1. **`status` field**: MUST be present, MUST be one of: `SUCCESS`, `FAILED`, `PARTIAL`
 2. **`findingsCount` field**: MUST be present and be a number
 3. **`summary` field**: MUST be present and be a string
+
+**Conditional required fields (SUCCESS only):**
+
 4. **`commitSha` field**: If `status === "SUCCESS"`, MUST be present and be a string
 5. **`prUrl` field**: If `status === "SUCCESS"`, MUST be present and be a valid GitHub PR URL string
 6. **`prNumber` field**: If `status === "SUCCESS"`, MUST be present and be a positive integer
 
-**On validation failure:** Mark the story as FAILED. Set summary to: `"Invalid subagent result: missing {field} field"`
+**Optional fields (FAILED status -- used by recovery, Section 1.4b):**
+
+7. **`errorType` field**: Optional. If present, MUST be one of: `TRANSIENT`, `CONTEXT`, `PERMANENT`, `TIMEOUT`, `INVALID_RESULT`. Used by Section 1.4b to determine recovery strategy.
+8. **`errorMessage` field**: Optional. If present, MUST be a string with max 500 characters. Truncate if longer.
+9. **`errorCode` field**: Optional. If present, MUST match pattern `ERR-[A-Z]+-[0-9]{3}`. References the error catalog.
+
+**On validation failure:** Mark the story as FAILED. Set summary to: `"Invalid subagent result: missing {field} field"`. When `status` is `FAILED` and optional error fields are absent, proceed to recovery (Section 1.4b) with `errorType` treated as absent (i.e., PERMANENT -- no retry).
 
 ### 1.6 Checkpoint Update (RULE-002)
 
@@ -353,6 +420,9 @@ Skip when `--skip-pr-comments` or `--single-pr` is set. Otherwise:
 | `--phase` and `--story` both provided | Abort: `ERROR: --phase and --story are mutually exclusive` |
 | Mutually exclusive merge flags | Abort: `ERROR: --auto-merge, --no-merge, and --interactive-merge are mutually exclusive. Use only one.` |
 | Subagent returns invalid result | Mark story as FAILED with summary: `Invalid subagent result: missing {field} field` |
+| Subagent FAILED with retryable errorType | Apply recovery (Section 1.4b): re-dispatch with strategy from recovery table |
+| Subagent recovery exhausted | Mark story as FAILED, log: `Subagent recovery exhausted for {storyId}: {errorType}` |
+| 3 consecutive subagent failures | Escalate to user via `AskUserQuestion` with Retry/Skip/Abort options |
 | Integrity gate FAIL with regression | Revert commit, mark story FAILED, trigger block propagation |
 | Integrity gate FAIL without regression | Pause execution, report to user |
 | Rebase conflict fails after MAX_REBASE_RETRIES | Abort rebase, mark story FAILED, close PR |
@@ -403,3 +473,6 @@ Templates referenced by this skill follow RULE-012:
 - DoR pre-check is NON-BLOCKING when DoR files don't exist
 - Per-task checkpoint tracks individual task progress within PRE_PLANNED stories
 - Task-level resume reclassifies IN_PROGRESS tasks to PENDING on `--resume`
+- Subagent recovery (Section 1.4b) applies error-type-based retry before marking stories as FAILED
+- `errorType`, `errorMessage`, `errorCode` are optional fields in SubagentResult, used only when `status == "FAILED"`
+- 3 consecutive subagent failures trigger user escalation regardless of error type
