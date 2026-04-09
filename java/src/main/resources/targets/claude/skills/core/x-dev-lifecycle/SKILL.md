@@ -289,6 +289,8 @@ When a tool call (Bash, Read, Write, etc.) returns an error matching TRANSIENT p
 | Phase 1B produces no output | Phase 2 uses G1-G7 fallback |
 | Resume with corrupted state | Reinitialize from PR statuses via `gh pr view` |
 
+**Error Reporting to Epic Orchestrator:** When `x-dev-lifecycle` is invoked as a subagent by `x-dev-epic-implement`, errors MUST be reported back via the `SubagentResult` JSON fields: `errorType` (transient, permanent, context, tooling), `errorMessage` (human-readable description), and `errorCode` (standardized code from the error catalog, e.g., `ERR-TRANSIENT-001`). The epic orchestrator uses these fields to record entries in the `errorHistory` array of `execution-state.json`. If no error occurred, omit these fields from the result.
+
 ## Template Fallback
 
 Templates follow RULE-012 (graceful degradation):
