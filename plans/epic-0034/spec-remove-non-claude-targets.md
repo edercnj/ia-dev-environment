@@ -300,7 +300,7 @@ Profiles afetados: go-gin, java-quarkus, java-spring (+7 variantes), kotlin-ktor
 
 **Escopo:**
 
-- Atualizar `/Users/edercnj/workspaces/ia-dev-environment/CLAUDE.md`:
+- Atualizar `CLAUDE.md` (raiz do repositório):
   - Remover seção `### .github/ (GitHub Copilot)`
   - Remover coluna `.github/` da tabela de mapeamento
   - Remover linhas `.codex/` e `.agents/` da tabela
