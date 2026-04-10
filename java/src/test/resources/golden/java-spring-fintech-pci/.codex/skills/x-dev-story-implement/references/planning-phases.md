@@ -42,7 +42,17 @@ If the skill invocation fails: emit WARNING, still call `TaskUpdate(id: archPlan
 
 **Skip condition:** If Phase 0 pre-check marked the implementation plan as "Reuse", skip (do NOT emit TaskCreate for skipped planners, per AC-4 of Story 0033-0003).
 
-Launch a **single** `general-purpose` subagent with `model: opus` (RULE-009). The subagent itself emits the TaskCreate/TaskUpdate for its own tracking task (per Story 0033-0003):
+Launch a single `general-purpose` subagent via the `Agent` tool (Rule 13 — SUBAGENT-GENERAL pattern). The subagent itself emits the TaskCreate/TaskUpdate for its own tracking task (per Story 0033-0003) and uses `model: opus` per RULE-009.
+
+**Canonical Agent invocation:**
+
+    Agent(
+      subagent_type: "general-purpose",
+      description: "Plan implementation for story {storyId}",
+      prompt: "<prompt content from the Senior Architect quote block below>"
+    )
+
+**Prompt content to pass as the `prompt` argument above:**
 
 > **FIRST ACTION (Story 0033-0003):** Create a tracking task to report progress to the parent orchestrator's task list:
 >
@@ -143,7 +153,17 @@ Auto-detects mode: test-driven tasks (if test plan exists) or G1-G7 layer-based 
 
 ### 1D: Event Schema Design (if event_driven)
 
-Launch `general-purpose` subagent. The subagent emits its own TaskCreate/TaskUpdate (per Story 0033-0003):
+Launch a `general-purpose` subagent via the `Agent` tool (Rule 13 — SUBAGENT-GENERAL pattern). The subagent emits its own TaskCreate/TaskUpdate (per Story 0033-0003).
+
+**Canonical Agent invocation:**
+
+    Agent(
+      subagent_type: "general-purpose",
+      description: "Design event schemas for story {storyId}",
+      prompt: "<prompt content from the Event Engineer quote block below>"
+    )
+
+**Prompt content to pass as the `prompt` argument above:**
 
 > **FIRST ACTION (Story 0033-0003):** Create a tracking task:
 >
@@ -185,7 +205,15 @@ If `x-threat-model` is unavailable, fall back to a `general-purpose` subagent. T
 
     TaskUpdate(id: securityTaskId, status: "completed")
 
-Then launch the fallback subagent:
+Then launch the fallback `general-purpose` subagent via the `Agent` tool (Rule 13 — SUBAGENT-GENERAL pattern):
+
+    Agent(
+      subagent_type: "general-purpose",
+      description: "Security assessment (fallback) for story {storyId}",
+      prompt: "<prompt content from the Security Engineer quote block below>"
+    )
+
+**Prompt content to pass as the `prompt` argument above:**
 
 > **FIRST ACTION (Story 0033-0003 fallback):** Create a tracking task:
 >
@@ -208,7 +236,17 @@ Then launch the fallback subagent:
 
 **Skip condition:** If Phase 0 pre-check marked the compliance assessment as "Reuse", skip (same rule).
 
-Launch `general-purpose` subagent. The subagent emits its own TaskCreate/TaskUpdate (per Story 0033-0003):
+Launch a `general-purpose` subagent via the `Agent` tool (Rule 13 — SUBAGENT-GENERAL pattern). The subagent emits its own TaskCreate/TaskUpdate (per Story 0033-0003).
+
+**Canonical Agent invocation:**
+
+    Agent(
+      subagent_type: "general-purpose",
+      description: "Compliance assessment for story {storyId}",
+      prompt: "<prompt content from the Security Engineer quote block below>"
+    )
+
+**Prompt content to pass as the `prompt` argument above:**
 
 > **FIRST ACTION (Story 0033-0003):** Create a tracking task:
 >
