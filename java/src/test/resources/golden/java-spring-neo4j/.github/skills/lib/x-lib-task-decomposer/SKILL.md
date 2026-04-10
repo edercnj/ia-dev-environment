@@ -234,7 +234,7 @@ G7: TESTS -- PARALLEL (max 4 concurrent), depends on ALL previous
 
 ## Integration Notes
 
-- Invoked by `x-dev-lifecycle` during Phase 1C
+- Invoked by `x-dev-story-implement` during Phase 1C
 - Consumes test plan from `x-test-plan` (Phase 1B output) when available
 - Output consumed by Phase 2 (group-based or TDD-based implementation)
 - Works with any layered architecture (hexagonal, clean, onion) — layer names derived from project rules

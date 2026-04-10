@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Category** | Knowledge Pack |
-| **Referenced by** | x-dev-implement, x-dev-lifecycle, x-review (API specialist), x-review-pr, architect agent |
+| **Referenced by** | x-dev-implement, x-dev-story-implement, x-review (API specialist), x-review-pr, architect agent |
 
 > **Full content**: See [SKILL.md](./SKILL.md) for the complete reference.
 

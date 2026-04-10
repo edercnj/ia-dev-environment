@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   <li>CONTEXT MANAGEMENT instruction in orchestrators</li>
  *   <li>Selective checkpoint reads in x-dev-epic-implement</li>
  *   <li>Phase report delegated to subagent</li>
- *   <li>Compact TDD log format in x-tdd</li>
+ *   <li>Compact TDD log format in x-test-tdd</li>
  * </ul>
  */
 @DisplayName("Output Compaction (story-0030-0004)")
@@ -65,8 +65,8 @@ class OutputCompactionTest {
                 .as("Pipeline must succeed")
                 .isTrue();
         epicContent = readSkill("x-dev-epic-implement");
-        lifecycleContent = readSkill("x-dev-lifecycle");
-        tddContent = readSkill("x-tdd");
+        lifecycleContent = readSkill("x-dev-story-implement");
+        tddContent = readSkill("x-test-tdd");
     }
 
     @Nested
@@ -82,7 +82,7 @@ class OutputCompactionTest {
         }
 
         @Test
-        @DisplayName("x-dev-lifecycle contains"
+        @DisplayName("x-dev-story-implement contains"
                 + " CONTEXT MANAGEMENT section")
         void lifecycle_containsContextMgmt() {
             assertThat(lifecycleContent)
@@ -181,7 +181,7 @@ class OutputCompactionTest {
     class CompactTddLog {
 
         @Test
-        @DisplayName("x-tdd contains compact log"
+        @DisplayName("x-test-tdd contains compact log"
                 + " instruction")
         void tdd_containsCompactLogInstruction() {
             assertThat(tddContent)
@@ -248,7 +248,7 @@ class OutputCompactionTest {
                 "dev.iadev.smoke"
                         + ".OutputCompactionTest"
                         + "#representativeProfiles")
-        @DisplayName("x-tdd contains compact log"
+        @DisplayName("x-test-tdd contains compact log"
                 + " format")
         void allProfiles_tddContainsCompactLog(
                 String profile) throws IOException {
@@ -256,11 +256,11 @@ class OutputCompactionTest {
             String content = Files.readString(
                     out.resolve(
                             ".claude/skills/"
-                                    + "x-tdd/"
+                                    + "x-test-tdd/"
                                     + "SKILL.md"),
                     StandardCharsets.UTF_8);
             assertThat(content)
-                    .as("[%s] x-tdd must contain"
+                    .as("[%s] x-test-tdd must contain"
                                     + " compact log format",
                             profile)
                     .contains("Compact");

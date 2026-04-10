@@ -37,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class LazyKpLoadingTest {
 
     @Nested
-    @DisplayName("x-dev-lifecycle — subagent prompts")
+    @DisplayName("x-dev-story-implement — subagent prompts")
     class LifecyclePrompts {
 
         @Test
@@ -124,7 +124,7 @@ class LazyKpLoadingTest {
                     new TemplateEngine(),
                     outputDir);
             Path lifecycle = outputDir.resolve(
-                    "skills/x-dev-lifecycle/SKILL.md");
+                    "skills/x-dev-story-implement/SKILL.md");
             return Files.readString(lifecycle);
         }
     }

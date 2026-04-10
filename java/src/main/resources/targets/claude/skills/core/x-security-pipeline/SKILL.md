@@ -16,7 +16,7 @@ argument-hint: "[--ci github|gitlab|azure] [--stages all|minimal] [--trigger pus
 
 ## Purpose
 
-Generate CI/CD pipeline configuration files with conditional security stages for {{PROJECT_NAME}}. Each stage is included only when its corresponding SecurityConfig flag is enabled. Support three CI platforms (GitHub Actions, GitLab CI, Azure DevOps), two stage modes (minimal, all), and three trigger types (push, pr, schedule). Reference atomic scanning skills (x-sast-scan, x-secret-scan, x-container-scan, x-dast-scan, x-owasp-scan, x-sonar-gate) instead of duplicating scan logic (RULE-011 — Composability).
+Generate CI/CD pipeline configuration files with conditional security stages for {{PROJECT_NAME}}. Each stage is included only when its corresponding SecurityConfig flag is enabled. Support three CI platforms (GitHub Actions, GitLab CI, Azure DevOps), two stage modes (minimal, all), and three trigger types (push, pr, schedule). Reference atomic scanning skills (x-security-sast, x-security-secret-scan, x-security-container, x-security-dast, x-owasp-scan, x-security-sonar) instead of duplicating scan logic (RULE-011 — Composability).
 
 ## Triggers
 
@@ -62,15 +62,15 @@ Evaluate each stage condition and build the stage list:
 
 | Order | Stage | Skill Reference | Phase | Condition | Minimal |
 |-------|-------|----------------|-------|-----------|---------|
-| 1 | Secret Scan | x-secret-scan | pre-commit | `security.scanning.secrets = true` | Yes |
-| 2 | SAST | x-sast-scan | build | `security.scanning.sast = true` | Yes |
+| 1 | Secret Scan | x-security-secret-scan | pre-commit | `security.scanning.secrets = true` | Yes |
+| 2 | SAST | x-security-sast | build | `security.scanning.sast = true` | Yes |
 | 3 | Dependency Audit | x-dependency-audit | build | Always enabled (baseline) | Yes |
-| 4 | SonarQube | x-sonar-gate | build | `security.scanning.sonar = true` | No |
-| 5 | Container Scan | x-container-scan | build | `infrastructure.container != "none"` | No |
-| 6 | DAST Passive | x-dast-scan | deploy-staging | `security.scanning.dast = true` | No |
+| 4 | SonarQube | x-security-sonar | build | `security.scanning.sonar = true` | No |
+| 5 | Container Scan | x-security-container | build | `infrastructure.container != "none"` | No |
+| 6 | DAST Passive | x-security-dast | deploy-staging | `security.scanning.dast = true` | No |
 | 7 | OWASP Scan | x-owasp-scan | deploy-staging | `security.frameworks contains "owasp"` | No |
 | 8 | Hardening Eval | x-hardening-eval | deploy-staging | `security.scanning.hardening = true` | No |
-| 9 | Quality Gate | x-sonar-gate | gate | `security.scanning.sonar = true` | No |
+| 9 | Quality Gate | x-security-sonar | gate | `security.scanning.sonar = true` | No |
 
 **Minimal mode**: Only stages 1-3 (Secret Scan, SAST, Dependency Audit). For teams starting with security.
 
@@ -122,10 +122,10 @@ jobs:
         with:
           fetch-depth: 0
       - name: Run secret scan
-        # Reference: x-secret-scan skill
+        # Reference: x-security-secret-scan skill
         run: |
           # Install and run gitleaks/trufflehog
-          # Configured via x-secret-scan
+          # Configured via x-security-secret-scan
         env:
           SEVERITY_THRESHOLD: HIGH
           FAIL_ON_FINDINGS: "true"
@@ -139,10 +139,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run SAST scan
-        # Reference: x-sast-scan skill
+        # Reference: x-security-sast skill
         run: |
           # Run semgrep/codeql for {{LANGUAGE}}
-          # Configured via x-sast-scan
+          # Configured via x-security-sast
 
   dependency-audit:
     name: Dependency Audit
@@ -163,10 +163,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run SonarQube scan
-        # Reference: x-sonar-gate skill
+        # Reference: x-security-sonar skill
         run: |
           # Run sonar-scanner
-          # Configured via x-sonar-gate
+          # Configured via x-security-sonar
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
@@ -179,10 +179,10 @@ jobs:
       - name: Build container image
         run: docker build -t {{PROJECT_NAME}}:scan .
       - name: Run container scan
-        # Reference: x-container-scan skill
+        # Reference: x-security-container skill
         run: |
           # Run trivy/grype on built image
-          # Configured via x-container-scan
+          # Configured via x-security-container
 
   # Phase: deploy-staging
   dast-passive:
@@ -192,10 +192,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run DAST passive scan
-        # Reference: x-dast-scan skill
+        # Reference: x-security-dast skill
         run: |
           # Run ZAP passive scan against staging
-          # Configured via x-dast-scan
+          # Configured via x-security-dast
         env:
           TARGET_URL: ${{ vars.STAGING_URL }}
 
@@ -230,10 +230,10 @@ jobs:
     needs: [hardening-eval]
     steps:
       - name: Check SonarQube quality gate
-        # Reference: x-sonar-gate skill
+        # Reference: x-security-sonar skill
         run: |
           # Poll SonarQube quality gate status
-          # Configured via x-sonar-gate
+          # Configured via x-security-sonar
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       - name: Aggregate security results
@@ -255,7 +255,7 @@ secret-scan:
   stage: pre-commit
   image: zricethezav/gitleaks:latest
   script:
-    # Reference: x-secret-scan skill
+    # Reference: x-security-secret-scan skill
     - gitleaks detect --source . --verbose
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
@@ -269,7 +269,7 @@ sast:
   stage: build
   image: returntocorp/semgrep:latest
   script:
-    # Reference: x-sast-scan skill
+    # Reference: x-security-sast skill
     - semgrep ci --config auto
   needs: [secret-scan]
   artifacts:
@@ -287,7 +287,7 @@ sonarqube:
   stage: build
   image: sonarsource/sonar-scanner-cli:latest
   script:
-    # Reference: x-sonar-gate skill
+    # Reference: x-security-sonar skill
     - sonar-scanner
   needs: [sast]
   variables:
@@ -297,7 +297,7 @@ container-scan:
   stage: build
   image: aquasec/trivy:latest
   script:
-    # Reference: x-container-scan skill
+    # Reference: x-security-container skill
     - trivy image {{PROJECT_NAME}}:$CI_COMMIT_SHA
   needs: [dependency-audit]
 
@@ -306,7 +306,7 @@ dast-passive:
   stage: deploy-staging
   image: ghcr.io/zaproxy/zaproxy:stable
   script:
-    # Reference: x-dast-scan skill
+    # Reference: x-security-dast skill
     - zap-baseline.py -t $STAGING_URL
   needs: [sonarqube, container-scan]
 
@@ -328,7 +328,7 @@ hardening-eval:
 quality-gate:
   stage: gate
   script:
-    # Reference: x-sonar-gate skill
+    # Reference: x-security-sonar skill
     - echo "Checking SonarQube quality gate"
   needs: [hardening-eval]
 ```
@@ -355,7 +355,7 @@ stages:
           - checkout: self
             fetchDepth: 0
           - script: |
-              # Reference: x-secret-scan skill
+              # Reference: x-security-secret-scan skill
               echo "Running secret scan"
             displayName: 'Run secret scan'
 
@@ -368,7 +368,7 @@ stages:
         steps:
           - checkout: self
           - script: |
-              # Reference: x-sast-scan skill
+              # Reference: x-security-sast skill
               echo "Running SAST for {{LANGUAGE}}"
             displayName: 'Run SAST scan'
 
@@ -387,7 +387,7 @@ stages:
         steps:
           - checkout: self
           - script: |
-              # Reference: x-sonar-gate skill
+              # Reference: x-security-sonar skill
               echo "Running SonarQube"
             displayName: 'Run SonarQube scan'
 
@@ -397,7 +397,7 @@ stages:
         steps:
           - checkout: self
           - script: |
-              # Reference: x-container-scan skill
+              # Reference: x-security-container skill
               docker build -t {{PROJECT_NAME}}:scan .
               echo "Running container scan"
             displayName: 'Run container scan'
@@ -410,7 +410,7 @@ stages:
         displayName: 'DAST Passive Scan'
         steps:
           - script: |
-              # Reference: x-dast-scan skill
+              # Reference: x-security-dast skill
               echo "Running DAST passive scan"
             displayName: 'Run DAST scan'
 
@@ -439,7 +439,7 @@ stages:
         displayName: 'Quality Gate Check'
         steps:
           - script: |
-              # Reference: x-sonar-gate skill
+              # Reference: x-security-sonar skill
               echo "Checking quality gate"
             displayName: 'Check quality gate'
 ```
@@ -530,15 +530,15 @@ This skill **references** atomic scanning skills and never duplicates their scan
 
 | Stage | References Skill | What This Skill Does |
 |-------|-----------------|---------------------|
-| Secret Scan | x-secret-scan | Provides CI stage wrapper (triggers, artifacts, caching) |
-| SAST | x-sast-scan | Provides CI stage wrapper |
+| Secret Scan | x-security-secret-scan | Provides CI stage wrapper (triggers, artifacts, caching) |
+| SAST | x-security-sast | Provides CI stage wrapper |
 | Dependency Audit | x-dependency-audit | Provides CI stage wrapper |
-| SonarQube | x-sonar-gate | Provides CI stage wrapper |
-| Container Scan | x-container-scan | Provides CI stage wrapper |
-| DAST Passive | x-dast-scan | Provides CI stage wrapper |
+| SonarQube | x-security-sonar | Provides CI stage wrapper |
+| Container Scan | x-security-container | Provides CI stage wrapper |
+| DAST Passive | x-security-dast | Provides CI stage wrapper |
 | OWASP Scan | x-owasp-scan | Provides CI stage wrapper |
 | Hardening Eval | x-hardening-eval | Provides CI stage wrapper |
-| Quality Gate | x-sonar-gate | Provides CI stage wrapper (gate polling) |
+| Quality Gate | x-security-sonar | Provides CI stage wrapper (gate polling) |
 
 To modify scan behavior (rules, exclusions, severity mappings), use the referenced atomic skill directly.
 
@@ -558,15 +558,15 @@ To modify scan behavior (rules, exclusions, severity mappings), use the referenc
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| x-secret-scan | references | Provides scan logic for Secret Scan stage |
-| x-sast-scan | references | Provides scan logic for SAST stage |
+| x-security-secret-scan | references | Provides scan logic for Secret Scan stage |
+| x-security-sast | references | Provides scan logic for SAST stage |
 | x-dependency-audit | references | Provides scan logic for Dependency Audit stage |
-| x-sonar-gate | references | Provides scan logic for SonarQube and Quality Gate stages |
-| x-container-scan | references | Provides scan logic for Container Scan stage |
-| x-dast-scan | references | Provides scan logic for DAST Passive stage |
+| x-security-sonar | references | Provides scan logic for SonarQube and Quality Gate stages |
+| x-security-container | references | Provides scan logic for Container Scan stage |
+| x-security-dast | references | Provides scan logic for DAST Passive stage |
 | x-owasp-scan | references | Provides scan logic for OWASP Scan stage |
 | x-hardening-eval | references | Provides scan logic for Hardening Eval stage |
-| x-ci-cd-generate | complements | Generates general CI/CD pipelines; this skill adds security stages |
+| x-ci-generate | complements | Generates general CI/CD pipelines; this skill adds security stages |
 
 ## Knowledge Pack References
 

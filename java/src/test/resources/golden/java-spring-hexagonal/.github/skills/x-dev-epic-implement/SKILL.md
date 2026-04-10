@@ -4,7 +4,7 @@ description: >
   Orchestrates the implementation of an entire epic by executing stories
   sequentially or in parallel via worktrees. Parses epic ID and flags,
   validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story
-  files), then delegates story execution to x-dev-lifecycle subagents.
+  files), then delegates story execution to x-dev-story-implement subagents.
 ---
 
 # Skill: Epic Implementation Orchestrator
@@ -30,7 +30,7 @@ description: >
 | `--dry-run` | boolean | `false` | Generate plan without executing |
 | `--resume` | boolean | `false` | Continue from last checkpoint (execution-state.json) |
 | `--sequential` | boolean | `false` | Disable parallel worktrees, execute stories one at a time |
-| `--auto-approve-pr` | boolean | `false` | Propagate to x-dev-lifecycle: task PRs auto-merge into parent branches. Parent branches require human review. |
+| `--auto-approve-pr` | boolean | `false` | Propagate to x-dev-story-implement: task PRs auto-merge into parent branches. Parent branches require human review. |
 | `--batch-approval` | boolean | `true` | Consolidate pending PRs from parallel stories into a single approval prompt (RULE-013). |
 | `--task-tracking` | boolean | `true` | Enable task-level tracking in execution-state.json with PR fields (prUrl, prNumber, branch). |
 
@@ -96,7 +96,7 @@ Execute a single story in isolation.
 8. Generate execution plan (see Execution Plan Persistence below)
 9. If `--dry-run`: execution plan was saved in step 8. Log: `"Dry-run: execution plan saved to {path}. No stories executed."` and stop
 10. If `--resume`: run the Resume Workflow (see below) before delegation
-11. Delegate per-story execution to x-dev-lifecycle
+11. Delegate per-story execution to x-dev-story-implement
 
 ### Execution Plan Persistence
 
@@ -240,7 +240,7 @@ When `--batch-approval` is enabled and multiple stories execute in parallel, con
 
 - When `--sequential` flag is set, use sequential dispatch
 - Use `Agent` tool to launch a clean context subagent (RULE-001 context isolation)
-- Subagent executes x-dev-lifecycle logic and returns `SubagentResult`
+- Subagent executes x-dev-story-implement logic and returns `SubagentResult`
 - Result fields: `status` (`SUCCESS`/`FAILED`/`PARTIAL`), `commitSha`, `findingsCount`, `summary`
 
 ### 1.4a Parallel Worktree Dispatch (Default Behavior)
@@ -445,7 +445,7 @@ Final verification validates the epic as a whole before declaring completion.
 ## Auto-Approve PR Propagation
 
 When `--auto-approve-pr` is set:
-- Flag is propagated to each `x-dev-lifecycle` dispatch
+- Flag is propagated to each `x-dev-story-implement` dispatch
 - Each story creates a parent branch `feat/story-XXXX-YYYY-desc` from develop
 - Task PRs target the parent branch (not develop)
 - Task PRs are auto-merged into the parent branch after CI passes
@@ -464,7 +464,7 @@ When `--task-tracking` is enabled (default), execution-state.json includes:
 
 ## Integration Notes
 
-- Invokes: `x-dev-lifecycle` (per-story), `x-story-map` (error guidance)
+- Invokes: `x-dev-story-implement` (per-story), `x-story-map` (error guidance)
 - Invokes: `x-review-pr` (tech lead review on full epic diff, Phase 2.1 — Wave 1 parallel)
 - Uses: `gh pr create` (PR creation with summary body, Phase 2.3 — Wave 2 sequential)
 - Phase 2 uses Two-Wave consolidation: Wave 1 dispatches 2.1 + 2.2 in parallel (SINGLE message, RULE-003); Wave 2 (2.3) runs after both complete

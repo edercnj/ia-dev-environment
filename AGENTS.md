@@ -3,6 +3,10 @@
 
 Describe your CLI tool purpose here
 
+> **CRITICAL — Source of Truth:**
+> A fonte verdade de skills, knowledge packs, agents, rules e templates é `java/src/main/resources/targets/`.
+> Os diretórios `.claude/`, `.github/`, `.codex/`, `.agents/` e `src/test/resources/golden/` são saídas geradas — NUNCA editar diretamente.
+
 ## Architecture
 
 - **Style:** library
@@ -190,16 +194,16 @@ Document business rules with unique identifiers (e.g., BR-001) for traceability.
 | security | Complete security reference: OWASP Top 10, security headers, secrets management, input validation, cryptography (TLS, hashing, key management), and pentest readiness checklist. Read during security reviews or when implementing security-sensitive features. |
 | story-planning | Story decomposition and planning: layer-by-layer decomposition (foundation, core domain, extensions, compositions, cross-cutting), story self-containment (data contracts, acceptance criteria), dependency DAG, sizing rules, and phase computation. |
 | testing | Complete testing reference: testing philosophy, 8 test categories, coverage thresholds, fixture patterns, data uniqueness, async handling, database strategy, and {{LANGUAGE}}-specific test frameworks. Read before writing tests. |
-| x-changelog | Generates CHANGELOG.md from Conventional Commits history. Parses git log, groups by commit type, maps to Keep a Changelog sections (Added, Changed, Fixed, etc.), and performs incremental updates preserving existing entries. |
-| x-codebase-audit | Full codebase review against all project standards. Launches parallel subagents per audit dimension (Clean Code, SOLID, Architecture, Tests, Security, Cross-file), consolidates findings into a severity-categorized report with score. Use for periodic quality validation. |
+| x-release-changelog | Generates CHANGELOG.md from Conventional Commits history. Parses git log, groups by commit type, maps to Keep a Changelog sections (Added, Changed, Fixed, etc.), and performs incremental updates preserving existing entries. |
+| x-code-audit | Full codebase review against all project standards. Launches parallel subagents per audit dimension (Clean Code, SOLID, Architecture, Tests, Security, Cross-file), consolidates findings into a severity-categorized report with score. Use for periodic quality validation. |
 | x-dependency-audit | Checks project dependencies for vulnerabilities, outdated versions, and license issues. Detects build tool automatically, runs language-specific audit commands, and generates a severity-categorized report. |
 | x-dev-adr-automation | Automates ADR generation from architecture plan mini-ADRs: extracts inline decisions, expands to full ADR format, assigns sequential numbering, updates the ADR index, and adds cross-references. |
 | x-dev-arch-update | Incrementally updates the service architecture document with changes from architecture plans. Adds new components, integrations, flows, and ADR references without rewriting existing content. Use after implementation to keep architecture documentation current. |
 | x-dev-architecture-plan | Generates a comprehensive architecture plan with component diagrams, sequence diagrams, deployment topology, mini-ADRs, NFRs, and resilience/observability strategies. Use before implementation to document design decisions. |
-| x-dev-epic-implement | Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents. |
+| x-dev-epic-implement | Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-story-implement subagents. |
 | x-dev-implement | Implements a feature/story using TDD (Red-Green-Refactor-Commit) workflow. Delegates preparation to a subagent that reads architecture, coding, and test plan KPs, then implements test-first with Double-Loop TDD, layer-by-layer with atomic commits and compile checks after each cycle. |
-| x-dev-lifecycle | Orchestrates the complete feature implementation cycle: branch creation, planning, task decomposition, implementation, parallel review, fixes, PR creation, and final verification. Delegates heavy phases to subagents for context efficiency. |
-| x-fix-pr-comments | Reads PR review comments and fixes actionable ones automatically. Detects PR from argument or branch, classifies comments (actionable/suggestion/question/praise), implements fixes, and commits with proper conventional commit messages. |
+| x-dev-story-implement | Orchestrates the complete feature implementation cycle: branch creation, planning, task decomposition, implementation, parallel review, fixes, PR creation, and final verification. Delegates heavy phases to subagents for context efficiency. |
+| x-pr-fix-comments | Reads PR review comments and fixes actionable ones automatically. Detects PR from argument or branch, classifies comments (actionable/suggestion/question/praise), implements fixes, and commits with proper conventional commit messages. |
 | x-git-push | Git operations: branch creation, atomic commits (Conventional Commits), push, and PR creation. Use for any git workflow task including branching, committing, pushing, creating PRs, or managing version control. |
 | x-jira-create-epic | Creates a Jira Epic from an existing local epic markdown file. Reads the epic file, maps fields to Jira, creates the issue, and syncs the Jira key back to the local file. Use when the user has an existing epic file and wants to create it in Jira, or when the user says "create this epic in Jira", "sync epic to Jira", or "push epic to Jira". |
 | x-jira-create-stories | Creates Jira Stories from existing local story markdown files. Reads all story files in an epic directory, maps fields to Jira, creates issues with parent epic link, creates dependency links between stories, and syncs Jira keys back to local files. Use when the user has existing story files and wants to create them in Jira, or when the user says "create stories in Jira", "sync stories to Jira", or "push stories to Jira". |

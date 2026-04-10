@@ -38,7 +38,7 @@ class SkillsSelectionScanningTest {
         }
 
         @Test
-        @DisplayName("sast enabled returns x-sast-scan")
+        @DisplayName("sast enabled returns x-security-sast")
         void select_sastEnabled_returnsSastScan() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -53,11 +53,11 @@ class SkillsSelectionScanningTest {
                                     config);
 
             assertThat(skills)
-                    .containsExactly("x-sast-scan");
+                    .containsExactly("x-security-sast");
         }
 
         @Test
-        @DisplayName("dast enabled returns x-dast-scan")
+        @DisplayName("dast enabled returns x-security-dast")
         void select_dastEnabled_returnsDastScan() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -72,12 +72,12 @@ class SkillsSelectionScanningTest {
                                     config);
 
             assertThat(skills)
-                    .containsExactly("x-dast-scan");
+                    .containsExactly("x-security-dast");
         }
 
         @Test
         @DisplayName("secretScan enabled returns"
-                + " x-secret-scan")
+                + " x-security-secret-scan")
         void select_secretScanEnabled_returnsSecretScan() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -92,12 +92,12 @@ class SkillsSelectionScanningTest {
                                     config);
 
             assertThat(skills)
-                    .containsExactly("x-secret-scan");
+                    .containsExactly("x-security-secret-scan");
         }
 
         @Test
         @DisplayName("containerScan enabled returns"
-                + " x-container-scan")
+                + " x-security-container")
         void select_containerScanEnabled_returnsContScan() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -112,12 +112,12 @@ class SkillsSelectionScanningTest {
                                     config);
 
             assertThat(skills)
-                    .containsExactly("x-container-scan");
+                    .containsExactly("x-security-container");
         }
 
         @Test
         @DisplayName("infraScan enabled returns"
-                + " x-infra-scan")
+                + " x-security-infra")
         void select_infraScanEnabled_returnsInfraScan() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -132,12 +132,12 @@ class SkillsSelectionScanningTest {
                                     config);
 
             assertThat(skills)
-                    .containsExactly("x-infra-scan");
+                    .containsExactly("x-security-infra");
         }
 
         @Test
         @DisplayName("pentest enabled does not add"
-                + " x-pentest to scanning skills"
+                + " x-security-pentest to scanning skills"
                 + " (delegated to selectPentestSkills)")
         void select_pentestEnabled_excludesPentest() {
             ProjectConfig config =
@@ -151,12 +151,12 @@ class SkillsSelectionScanningTest {
                                     config);
 
             assertThat(skills)
-                    .doesNotContain("x-pentest");
+                    .doesNotContain("x-security-pentest");
         }
 
         @Test
         @DisplayName("qualityGate sonarqube returns"
-                + " x-sonar-gate")
+                + " x-security-sonar")
         void select_sonarqubeProvider_returnsSonarGate() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -169,12 +169,12 @@ class SkillsSelectionScanningTest {
                                     config);
 
             assertThat(skills)
-                    .containsExactly("x-sonar-gate");
+                    .containsExactly("x-security-sonar");
         }
 
         @Test
         @DisplayName("qualityGate sonarcloud returns"
-                + " x-sonar-gate")
+                + " x-security-sonar")
         void select_sonarcloudProvider_returnsSonarGate() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -187,7 +187,7 @@ class SkillsSelectionScanningTest {
                                     config);
 
             assertThat(skills)
-                    .containsExactly("x-sonar-gate");
+                    .containsExactly("x-security-sonar");
         }
 
         @Test
@@ -224,12 +224,12 @@ class SkillsSelectionScanningTest {
                                     config);
 
             assertThat(skills).containsExactlyInAnyOrder(
-                    "x-sast-scan",
-                    "x-dast-scan",
-                    "x-secret-scan",
-                    "x-container-scan",
-                    "x-infra-scan",
-                    "x-sonar-gate");
+                    "x-security-sast",
+                    "x-security-dast",
+                    "x-security-secret-scan",
+                    "x-security-container",
+                    "x-security-infra",
+                    "x-security-sonar");
         }
 
         @Test
@@ -249,8 +249,8 @@ class SkillsSelectionScanningTest {
                                     config);
 
             assertThat(skills).containsExactlyInAnyOrder(
-                    "x-sast-scan",
-                    "x-secret-scan");
+                    "x-security-sast",
+                    "x-security-secret-scan");
         }
     }
 
@@ -275,7 +275,7 @@ class SkillsSelectionScanningTest {
                     SkillsSelection
                             .selectConditionalSkills(config);
 
-            assertThat(skills).contains("x-sast-scan");
+            assertThat(skills).contains("x-security-sast");
         }
 
         @Test
@@ -294,13 +294,13 @@ class SkillsSelectionScanningTest {
 
             assertThat(skills)
                     .doesNotContain(
-                            "x-sast-scan",
-                            "x-dast-scan",
-                            "x-secret-scan",
-                            "x-container-scan",
-                            "x-infra-scan",
-                            "x-pentest",
-                            "x-sonar-gate");
+                            "x-security-sast",
+                            "x-security-dast",
+                            "x-security-secret-scan",
+                            "x-security-container",
+                            "x-security-infra",
+                            "x-security-pentest",
+                            "x-security-sonar");
         }
     }
 }

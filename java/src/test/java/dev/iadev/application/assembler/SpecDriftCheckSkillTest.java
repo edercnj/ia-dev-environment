@@ -16,15 +16,15 @@ import java.nio.file.Path;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for story-0016-0004: x-spec-drift-check skill
+ * Tests for story-0016-0004: x-spec-drift skill
  * for standalone spec drift detection.
  *
- * <p>Validates that the x-spec-drift-check skill template
+ * <p>Validates that the x-spec-drift skill template
  * is generated correctly with proper frontmatter, drift
  * check categories, output format, and exit code
  * semantics.</p>
  */
-@DisplayName("x-spec-drift-check Skill")
+@DisplayName("x-spec-drift Skill")
 class SpecDriftCheckSkillTest {
 
     @Nested
@@ -32,27 +32,27 @@ class SpecDriftCheckSkillTest {
     class ClaudeFrontmatter {
 
         @Test
-        @DisplayName("x-spec-drift-check SKILL.md exists"
+        @DisplayName("x-spec-drift SKILL.md exists"
                 + " after assembly")
         void assemble_specDriftCheck_skillMdExists(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = generateOutput(tempDir);
             Path skillMd = outputDir.resolve(
-                    "skills/x-spec-drift-check/SKILL.md");
+                    "skills/x-spec-drift/SKILL.md");
             assertThat(skillMd).exists();
         }
 
         @Test
         @DisplayName("frontmatter contains name:"
-                + " x-spec-drift-check")
+                + " x-spec-drift")
         void assemble_specDriftCheck_hasName(
                 @TempDir Path tempDir)
                 throws IOException {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("name: x-spec-drift-check");
+                    .contains("name: x-spec-drift");
         }
 
         @Test
@@ -315,14 +315,14 @@ class SpecDriftCheckSkillTest {
     class GithubCopilotSkill {
 
         @Test
-        @DisplayName("x-spec-drift-check GitHub SKILL.md"
+        @DisplayName("x-spec-drift GitHub SKILL.md"
                 + " exists after assembly")
         void assemble_github_specDriftCheckExists(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = generateGithubOutput(tempDir);
             Path skillMd = outputDir.resolve(
-                    "skills/x-spec-drift-check/SKILL.md");
+                    "skills/x-spec-drift/SKILL.md");
             assertThat(skillMd).exists();
         }
 
@@ -340,14 +340,14 @@ class SpecDriftCheckSkillTest {
 
         @Test
         @DisplayName("GitHub skill contains name:"
-                + " x-spec-drift-check")
+                + " x-spec-drift")
         void assemble_github_specDriftCheckHasName(
                 @TempDir Path tempDir)
                 throws IOException {
             String content =
                     generateGithubContent(tempDir);
             assertThat(content)
-                    .contains("name: x-spec-drift-check");
+                    .contains("name: x-spec-drift");
         }
     }
 
@@ -357,11 +357,11 @@ class SpecDriftCheckSkillTest {
 
         @Test
         @DisplayName("review group contains"
-                + " x-spec-drift-check")
+                + " x-spec-drift")
         void register_reviewGroup_containsSpecDriftCheck() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
                     .get("review"))
-                    .contains("x-spec-drift-check");
+                    .contains("x-spec-drift");
         }
     }
 
@@ -382,7 +382,7 @@ class SpecDriftCheckSkillTest {
         Path outputDir = generateOutput(tempDir);
         return Files.readString(
                 outputDir.resolve(
-                        "skills/x-spec-drift-check"
+                        "skills/x-spec-drift"
                                 + "/SKILL.md"),
                 StandardCharsets.UTF_8);
     }
@@ -404,7 +404,7 @@ class SpecDriftCheckSkillTest {
         Path outputDir = generateGithubOutput(tempDir);
         return Files.readString(
                 outputDir.resolve(
-                        "skills/x-spec-drift-check"
+                        "skills/x-spec-drift"
                                 + "/SKILL.md"),
                 StandardCharsets.UTF_8);
     }

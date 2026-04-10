@@ -12,7 +12,7 @@ description: >
 ## When to Use
 
 - After a feature is implemented and an architecture plan exists
-- When Phase 3 (Documentation) of x-dev-lifecycle is executing
+- When Phase 3 (Documentation) of x-dev-story-implement is executing
 - Standalone: `/x-dev-arch-update [STORY-ID]`
 - SKIP when: no architecture plan exists for the feature
 
@@ -105,9 +105,9 @@ Launch a **single** `general-purpose` subagent:
 > - Mermaid syntax for all diagrams
 > - Incremental updates only — never full rewrite (RULE-008)
 
-## Integration with x-dev-lifecycle
+## Integration with x-dev-story-implement
 
-When invoked from `x-dev-lifecycle` Phase 3 (Documentation):
+When invoked from `x-dev-story-implement` Phase 3 (Documentation):
 
 1. Check if architecture plan exists at `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
 2. If exists: invoke this skill to update `steering/service-architecture.md`

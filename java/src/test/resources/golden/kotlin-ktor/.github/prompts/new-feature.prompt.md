@@ -18,10 +18,10 @@ Follow these steps to implement a new feature in **my-ktor-service**.
 
 ### Step 1 — Plan
 
-Use the **x-dev-lifecycle** skill to orchestrate the full cycle:
+Use the **x-dev-story-implement** skill to orchestrate the full cycle:
 
 ```
-/x-dev-lifecycle @plans/STORY-XXX.md
+/x-dev-story-implement @plans/STORY-XXX.md
 ```
 
 This skill handles: branch creation, architecture planning, task decomposition,

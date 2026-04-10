@@ -329,7 +329,7 @@ results/security/{scan_type}-{YYYYMMDD}-{HHMMSS}.sarif.json
 
 ```markdown
 ---
-name: x-sast-scan
+name: x-security-sast
 description: "Static Application Security Testing — scans source code for security vulnerabilities"
 argument-hint: "[target path]"
 allowed-tools:

@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * <p>Acceptance criteria:
  * <ul>
- *   <li>x-commit, x-format, x-lint, x-tdd have
+ *   <li>x-git-commit, x-code-format, x-code-lint, x-test-tdd have
  *       "## Slim Mode" section</li>
  *   <li>Each slim section is <= 50 lines</li>
  *   <li>Orchestrators reference slim mode when
@@ -37,10 +37,10 @@ class SlimModeSectionTest extends SmokeTestBase {
 
     private static final List<String> SLIM_SKILLS =
             List.of(
-                    "x-commit",
-                    "x-format",
-                    "x-lint",
-                    "x-tdd");
+                    "x-git-commit",
+                    "x-code-format",
+                    "x-code-lint",
+                    "x-test-tdd");
 
     static Stream<String> slimSkills() {
         return SLIM_SKILLS.stream();
@@ -128,7 +128,7 @@ class SlimModeSectionTest extends SmokeTestBase {
         @ParameterizedTest(
                 name = "[{0}] references slim mode")
         @ValueSource(strings = {
-                "x-dev-lifecycle", "x-tdd"})
+                "x-dev-story-implement", "x-test-tdd"})
         @DisplayName("orchestrator references slim"
                 + " mode when invoking chain skills")
         void orchestrator_referencesSlimMode(
@@ -154,14 +154,14 @@ class SlimModeSectionTest extends SmokeTestBase {
                         + ".SlimModeSectionTest"
                         + "#representativeProfiles")
         @DisplayName("all profiles have slim mode"
-                + " in x-commit")
+                + " in x-git-commit")
         void multiProfile_xCommitHasSlimMode(
                 String profile) throws IOException {
             runPipeline(profile);
             String content = readSkillContent(
-                    profile, "x-commit");
+                    profile, "x-git-commit");
             assertThat(content)
-                    .as("[%s] x-commit must contain"
+                    .as("[%s] x-git-commit must contain"
                                     + " '%s'",
                             profile, SLIM_HEADER)
                     .contains(SLIM_HEADER);

@@ -16,15 +16,15 @@ import java.nio.file.Path;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for story-0013-0005: x-ci-cd-generate skill for
+ * Tests for story-0013-0005: x-ci-generate skill for
  * interactive CI/CD pipeline generation.
  *
- * <p>Validates that the x-ci-cd-generate skill template is
+ * <p>Validates that the x-ci-generate skill template is
  * generated correctly with proper frontmatter, workflow
  * steps, stack detection, capabilities, and integration
  * notes referencing the ci-cd-patterns KP.</p>
  */
-@DisplayName("x-ci-cd-generate Skill")
+@DisplayName("x-ci-generate Skill")
 class CiCdGenerateSkillTest {
 
     @Nested
@@ -32,27 +32,27 @@ class CiCdGenerateSkillTest {
     class ClaudeFrontmatter {
 
         @Test
-        @DisplayName("x-ci-cd-generate SKILL.md exists"
+        @DisplayName("x-ci-generate SKILL.md exists"
                 + " after assembly")
         void assemble_ciCdGenerate_skillMdExists(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = generateOutput(tempDir);
             Path skillMd = outputDir.resolve(
-                    "skills/x-ci-cd-generate/SKILL.md");
+                    "skills/x-ci-generate/SKILL.md");
             assertThat(skillMd).exists();
         }
 
         @Test
         @DisplayName("frontmatter contains name:"
-                + " x-ci-cd-generate")
+                + " x-ci-generate")
         void assemble_ciCdGenerate_hasName(
                 @TempDir Path tempDir)
                 throws IOException {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("name: x-ci-cd-generate");
+                    .contains("name: x-ci-generate");
         }
 
         @Test
@@ -414,14 +414,14 @@ class CiCdGenerateSkillTest {
     class GithubCopilotSkill {
 
         @Test
-        @DisplayName("x-ci-cd-generate GitHub SKILL.md"
+        @DisplayName("x-ci-generate GitHub SKILL.md"
                 + " exists after assembly")
         void assemble_github_ciCdGenerateExists(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = generateGithubOutput(tempDir);
             Path skillMd = outputDir.resolve(
-                    "skills/x-ci-cd-generate/SKILL.md");
+                    "skills/x-ci-generate/SKILL.md");
             assertThat(skillMd).exists();
         }
 
@@ -439,14 +439,14 @@ class CiCdGenerateSkillTest {
 
         @Test
         @DisplayName("GitHub skill contains name:"
-                + " x-ci-cd-generate")
+                + " x-ci-generate")
         void assemble_github_ciCdGenerateHasName(
                 @TempDir Path tempDir)
                 throws IOException {
             String content =
                     generateGithubContent(tempDir);
             assertThat(content)
-                    .contains("name: x-ci-cd-generate");
+                    .contains("name: x-ci-generate");
         }
     }
 
@@ -456,11 +456,11 @@ class CiCdGenerateSkillTest {
 
         @Test
         @DisplayName("dev group contains"
-                + " x-ci-cd-generate")
+                + " x-ci-generate")
         void register_devGroup_containsCiCdGenerate() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
                     .get("dev"))
-                    .contains("x-ci-cd-generate");
+                    .contains("x-ci-generate");
         }
     }
 
@@ -481,7 +481,7 @@ class CiCdGenerateSkillTest {
         Path outputDir = generateOutput(tempDir);
         return Files.readString(
                 outputDir.resolve(
-                        "skills/x-ci-cd-generate/SKILL.md"),
+                        "skills/x-ci-generate/SKILL.md"),
                 StandardCharsets.UTF_8);
     }
 
@@ -502,7 +502,7 @@ class CiCdGenerateSkillTest {
         Path outputDir = generateGithubOutput(tempDir);
         return Files.readString(
                 outputDir.resolve(
-                        "skills/x-ci-cd-generate/SKILL.md"),
+                        "skills/x-ci-generate/SKILL.md"),
                 StandardCharsets.UTF_8);
     }
 }

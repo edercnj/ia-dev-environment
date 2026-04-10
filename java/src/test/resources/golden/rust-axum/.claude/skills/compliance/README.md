@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Category** | Knowledge Pack |
-| **Referenced by** | x-dev-lifecycle (Phase 1F), x-review (Security specialist), x-owasp-scan, x-security-dashboard, security-engineer agent |
+| **Referenced by** | x-dev-story-implement (Phase 1F), x-review (Security specialist), x-owasp-scan, x-security-dashboard, security-engineer agent |
 
 > **Full content**: See [SKILL.md](./SKILL.md) for the complete reference.
 

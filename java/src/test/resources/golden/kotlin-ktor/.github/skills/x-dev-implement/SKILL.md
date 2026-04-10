@@ -10,18 +10,18 @@ description: >
 
 # Skill: Implement Story (Orchestrator)
 
-## When to Use This vs `/x-dev-lifecycle`
+## When to Use This vs `/x-dev-story-implement`
 
 | Scenario | Use |
 |----------|-----|
 | Quick implementation (single class, small fix) | This skill |
-| Full story with multi-persona review | `/x-dev-lifecycle` |
+| Full story with multi-persona review | `/x-dev-story-implement` |
 | Coding without the review phases | This skill |
-| Complete lifecycle: code → review → fix → PR | `/x-dev-lifecycle` |
+| Complete lifecycle: code → review → fix → PR | `/x-dev-story-implement` |
 
 ## Pre-Check: Plan Reuse (RULE-002 — Idempotency via Staleness Check)
 
-Before starting implementation, check for existing plans produced by `x-dev-lifecycle` or other planning skills. Reusing existing plans ensures consistency between the full lifecycle workflow and the simplified implement workflow.
+Before starting implementation, check for existing plans produced by `x-dev-story-implement` or other planning skills. Reusing existing plans ensures consistency between the full lifecycle workflow and the simplified implement workflow.
 
 1. **Resolve paths:** Extract epic ID (XXXX) and story sequence (YYYY) from the story ID. Compute:
    - Story path: the story file provided as input
@@ -40,7 +40,7 @@ Before starting implementation, check for existing plans produced by `x-dev-life
 3. **Staleness check:** For each plan that exists:
    - If `mtime(story file) <= mtime(plan file)` → plan is **fresh**. Log: `"Reusing existing {type} from {date}"`
    - If `mtime(story file) > mtime(plan file)` → plan is **stale**. Log WARNING: `"Plan {type} may be stale (story modified after plan generation), using as context anyway"`
-   - Stale plans are still used as context — do NOT regenerate (regeneration is the responsibility of `x-dev-lifecycle`)
+   - Stale plans are still used as context — do NOT regenerate (regeneration is the responsibility of `x-dev-story-implement`)
 
 4. **Context combination:** Log the combination of available plans:
 
@@ -279,10 +279,10 @@ This ensures backward compatibility with projects that have not yet adopted temp
 ## Integration Notes
 
 - **Prerequisite:** Run `/x-test-plan` first to generate the test plan with Double-Loop + TPP ordering
-- **Plan reuse:** Pre-check (RULE-002) discovers existing plans from `x-dev-lifecycle` runs, ensuring consistency between full lifecycle and simplified implement workflows
+- **Plan reuse:** Pre-check (RULE-002) discovers existing plans from `x-dev-story-implement` runs, ensuring consistency between full lifecycle and simplified implement workflows
 - **Template reference:** RULE-007 instructs subagent to read implementation plan template when available
 - **Graceful fallback:** RULE-012 ensures backward compatibility when templates are not available
-- For the full lifecycle with reviews, use `x-dev-lifecycle` instead
+- For the full lifecycle with reviews, use `x-dev-story-implement` instead
 - Invokes patterns from `x-test-run` and `x-git-push` skills
 - Works with any {{FRAMEWORK}} project following layered/hexagonal architecture
 - The developer agent (typescript-developer) already includes TDD workflow rules (story-0003-0006)

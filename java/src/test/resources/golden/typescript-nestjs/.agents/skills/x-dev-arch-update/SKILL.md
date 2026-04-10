@@ -24,7 +24,7 @@ Incrementally updates the service architecture document (`steering/service-archi
 - `/x-dev-arch-update [STORY-ID]` — update architecture doc from the architecture plan for the given story
 - `/x-dev-arch-update [architecture-plan-path]` — update architecture doc from the specified plan file
 - After a feature is implemented and an architecture plan exists
-- When Phase 3 (Documentation) of `x-dev-lifecycle` is executing
+- When Phase 3 (Documentation) of `x-dev-story-implement` is executing
 - SKIP when no architecture plan exists for the feature
 
 ## Parameters
@@ -156,7 +156,7 @@ Launch a **single** `general-purpose` subagent:
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| `x-dev-lifecycle` | called-by | Invoked during Phase 3 (Documentation) to update architecture doc |
+| `x-dev-story-implement` | called-by | Invoked during Phase 3 (Documentation) to update architecture doc |
 | `x-dev-architecture-plan` | reads | Generates the input architecture plans consumed by this skill |
 | `x-dev-adr-automation` | calls | May trigger ADR generation for new architectural decisions |
 | `architecture` | reads | References architecture principles and patterns KP |

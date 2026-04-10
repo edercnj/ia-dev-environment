@@ -63,23 +63,23 @@ class SecurityIntegrationVerificationTest {
 
             assertThat(scanSkills)
                     .containsExactlyInAnyOrder(
-                            "x-sast-scan",
-                            "x-dast-scan",
-                            "x-secret-scan",
-                            "x-container-scan",
-                            "x-infra-scan",
-                            "x-sonar-gate");
+                            "x-security-sast",
+                            "x-security-dast",
+                            "x-security-secret-scan",
+                            "x-security-container",
+                            "x-security-infra",
+                            "x-security-sonar");
 
             List<String> pentestSkills =
                     SkillsSelection
                             .selectPentestSkills(config);
 
             assertThat(pentestSkills)
-                    .containsExactly("x-pentest");
+                    .containsExactly("x-security-pentest");
         }
 
         @Test
-        @DisplayName("selectPentestSkills returns x-pentest"
+        @DisplayName("selectPentestSkills returns x-security-pentest"
                 + " when pentest enabled")
         void select_pentestTrue_returnsPentestSkill() {
             ProjectConfig config =
@@ -92,7 +92,7 @@ class SecurityIntegrationVerificationTest {
                             config);
 
             assertThat(skills)
-                    .containsExactly("x-pentest");
+                    .containsExactly("x-security-pentest");
         }
 
         @Test
@@ -118,13 +118,13 @@ class SecurityIntegrationVerificationTest {
 
             assertThat(skills)
                     .contains(
-                            "x-sast-scan",
-                            "x-dast-scan",
-                            "x-secret-scan",
-                            "x-container-scan",
-                            "x-infra-scan",
-                            "x-pentest",
-                            "x-sonar-gate",
+                            "x-security-sast",
+                            "x-security-dast",
+                            "x-security-secret-scan",
+                            "x-security-container",
+                            "x-security-infra",
+                            "x-security-pentest",
+                            "x-security-sonar",
                             "x-review-security",
                             "x-review-compliance");
         }
@@ -160,15 +160,15 @@ class SecurityIntegrationVerificationTest {
 
             assertThat(skills)
                     .containsExactlyInAnyOrder(
-                            "x-sast-scan",
-                            "x-secret-scan");
+                            "x-security-sast",
+                            "x-security-secret-scan");
             assertThat(skills)
                     .doesNotContain(
-                            "x-dast-scan",
-                            "x-container-scan",
-                            "x-infra-scan",
-                            "x-pentest",
-                            "x-sonar-gate");
+                            "x-security-dast",
+                            "x-security-container",
+                            "x-security-infra",
+                            "x-security-pentest",
+                            "x-security-sonar");
         }
     }
 
@@ -390,13 +390,13 @@ class SecurityIntegrationVerificationTest {
             Path outputDir = runAndGetOutputDir(config);
 
             List<String> expectedSkills = List.of(
-                    "x-sast-scan",
-                    "x-dast-scan",
-                    "x-secret-scan",
-                    "x-container-scan",
-                    "x-infra-scan",
-                    "x-pentest",
-                    "x-sonar-gate");
+                    "x-security-sast",
+                    "x-security-dast",
+                    "x-security-secret-scan",
+                    "x-security-container",
+                    "x-security-infra",
+                    "x-security-pentest",
+                    "x-security-sonar");
 
             for (String skill : expectedSkills) {
                 Path skillDir = outputDir.resolve(
@@ -531,13 +531,13 @@ class SecurityIntegrationVerificationTest {
             Path outputDir = runAndGetOutputDir(config);
 
             List<String> conditionalScanSkills = List.of(
-                    "x-sast-scan",
-                    "x-dast-scan",
-                    "x-secret-scan",
-                    "x-container-scan",
-                    "x-infra-scan",
-                    "x-pentest",
-                    "x-sonar-gate");
+                    "x-security-sast",
+                    "x-security-dast",
+                    "x-security-secret-scan",
+                    "x-security-container",
+                    "x-security-infra",
+                    "x-security-pentest",
+                    "x-security-sonar");
 
             for (String skill : conditionalScanSkills) {
                 Path skillDir = outputDir.resolve(
@@ -598,25 +598,25 @@ class SecurityIntegrationVerificationTest {
             Path outputDir = runAndGetOutputDir(config);
 
             assertThat(outputDir.resolve(
-                    ".claude/skills/x-sast-scan"))
-                    .as("x-sast-scan must exist")
+                    ".claude/skills/x-security-sast"))
+                    .as("x-security-sast must exist")
                     .isDirectory();
             assertThat(outputDir.resolve(
-                    ".claude/skills/x-secret-scan"))
-                    .as("x-secret-scan must exist")
+                    ".claude/skills/x-security-secret-scan"))
+                    .as("x-security-secret-scan must exist")
                     .isDirectory();
 
             assertThat(outputDir.resolve(
-                    ".claude/skills/x-dast-scan"))
-                    .as("x-dast-scan must NOT exist")
+                    ".claude/skills/x-security-dast"))
+                    .as("x-security-dast must NOT exist")
                     .doesNotExist();
             assertThat(outputDir.resolve(
-                    ".claude/skills/x-container-scan"))
-                    .as("x-container-scan must NOT exist")
+                    ".claude/skills/x-security-container"))
+                    .as("x-security-container must NOT exist")
                     .doesNotExist();
             assertThat(outputDir.resolve(
-                    ".claude/skills/x-infra-scan"))
-                    .as("x-infra-scan must NOT exist")
+                    ".claude/skills/x-security-infra"))
+                    .as("x-security-infra must NOT exist")
                     .doesNotExist();
         }
 
@@ -635,8 +635,8 @@ class SecurityIntegrationVerificationTest {
             Path outputDir = runAndGetOutputDir(config);
 
             assertThat(outputDir.resolve(
-                    ".claude/skills/x-pentest"))
-                    .as("x-pentest skill must exist")
+                    ".claude/skills/x-security-pentest"))
+                    .as("x-security-pentest skill must exist")
                     .isDirectory();
             assertThat(outputDir.resolve(
                     ".claude/agents/"
@@ -659,12 +659,12 @@ class SecurityIntegrationVerificationTest {
             Path outputDir = runAndGetOutputDir(config);
 
             assertThat(outputDir.resolve(
-                    ".claude/skills/x-sonar-gate"))
-                    .as("x-sonar-gate must exist")
+                    ".claude/skills/x-security-sonar"))
+                    .as("x-security-sonar must exist")
                     .isDirectory();
             assertThat(outputDir.resolve(
-                    ".claude/skills/x-sast-scan"))
-                    .as("x-sast-scan must NOT exist")
+                    ".claude/skills/x-security-sast"))
+                    .as("x-security-sast must NOT exist")
                     .doesNotExist();
         }
 

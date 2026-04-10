@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- **Skill naming standardization (Epic-0032)**: 25 skills renamed in the source of truth (`java/src/main/resources/targets/`) to follow the `x-{category}-{action}` convention (RULE-001). 15 core skills: `x-dev-lifecycle` → `x-dev-story-implement` (consolidation), `x-commit` → `x-git-commit`, `x-tdd` → `x-test-tdd`, `x-format` → `x-code-format`, `x-lint` → `x-code-lint`, `x-changelog` → `x-release-changelog`, `x-docs` → `x-doc-generate`, `x-codebase-audit` → `x-code-audit`, `x-spec-drift-check` → `x-spec-drift`, `x-setup-dev-environment` → `x-setup-env`, `x-ci-cd-generate` → `x-ci-generate`, `x-worktree` → `x-git-worktree`, `x-plan-task` → `x-task-plan`, `x-fix-pr-comments` → `x-pr-fix-comments`, `x-fix-epic-pr-comments` → `x-pr-fix-epic-comments`. 10 conditional skills: `x-sast-scan`/`x-dast-scan`/`x-secret-scan`/`x-container-scan`/`x-infra-scan`/`x-sonar-gate` grouped under `x-security-*`, `x-pentest` → `x-security-pentest`, `x-contract-lint` → `x-test-contract-lint`, `setup-environment` → `x-setup-stack`, `instrument-otel` → `x-obs-instrument`. All cross-references, Java source (`SkillGroupRegistry`, `SkillsSelection`, `SecurityBaselineWriter`), and documentation updated. No backward compatibility for old names (RULE-004).
+- **Source of Truth rule (RULE-002)**: `CLAUDE.md` and `AGENTS.md` now explicitly declare `java/src/main/resources/targets/` as the authoritative location for skills, knowledge packs, agents, rules and templates. Direct edits to generated directories (`.claude/`, `.github/`, `.codex/`, `.agents/`, `src/test/resources/golden/`) are forbidden (story-0032-0001).
+
 ## [2.2.2] - 2026-04-10
 
 ### Fixed
@@ -19,9 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Resolve merge conflict markers committed to develop across 5 source templates and ~265 golden files. Conflicts between EPIC-0030 (context isolation, output compaction, lazy-kp loading) and EPIC-0031 (circuit breaker, error classification, graceful degradation) caused 27 test failures.
-- Restore EPIC-0030 content lost during EPIC-0031 merges: CONTEXT MANAGEMENT sections, CONTEXT ISOLATION markers, specific KP reference paths (`security/references/application-security.md`, `compliance/references/`), and subagent role prompts (Senior Architect, Event Engineer, Security Engineer) in `x-dev-lifecycle` and `x-dev-epic-implement`.
+- Restore EPIC-0030 content lost during EPIC-0031 merges: CONTEXT MANAGEMENT sections, CONTEXT ISOLATION markers, specific KP reference paths (`security/references/application-security.md`, `compliance/references/`), and subagent role prompts (Senior Architect, Event Engineer, Security Engineer) in `x-dev-story-implement` and `x-dev-epic-implement`.
 - Reposition CONTEXT ISOLATION markers after role names in subagent prompts to satisfy `assertPromptSectionContains` test assertions.
-- Fix `x-dev-epic-implement` subagent dispatch to use explicit `Skill(skill: "x-dev-lifecycle")` invocation instead of descriptive workflow steps.
+- Fix `x-dev-epic-implement` subagent dispatch to use explicit `Skill(skill: "x-dev-story-implement")` invocation instead of descriptive workflow steps.
 - Update expected-artifacts manifest to reflect restored orchestrator template structure.
 - Regenerate golden files for all 17 profiles + 2 platform-specific outputs.
 
@@ -47,7 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Skill Naming Standardization Epic (EPIC-0032):** Epic, 8 stories, and implementation map for renaming 25 skills to follow consistent `x-{category}-{action}` convention.
-- **Skill Delegation Fix Epic (EPIC-0033):** Epic, 4 stories, and implementation map addressing broken Skill tool chain, zero TaskCreate visibility, planning subagent black boxes, and x-dev-lifecycle/x-dev-story-implement naming inconsistency.
+- **Skill Delegation Fix Epic (EPIC-0033):** Epic, 4 stories, and implementation map addressing broken Skill tool chain, zero TaskCreate visibility, planning subagent black boxes, and x-dev-story-implement/x-dev-story-implement naming inconsistency.
 
 ## [Unreleased]
 
@@ -55,15 +61,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Platform filter (EPIC-0025)**: Add `--platform` flag to `generate` command for targeted AI platform generation (claude-code, copilot, codex, all). Supports YAML config via `platform:` section. Default: all (backward-compatible).
 - **Artifact Persistence & Standardization (EPIC-0024):** 12 new plan and review templates providing standardized output formats for all planning and review artifacts. Templates: Implementation Plan, Test Plan, Architecture Plan, Task Breakdown, Security Assessment, Compliance Assessment, Specialist Review, Tech Lead Review, Consolidated Review Dashboard, Review Remediation, Epic Execution Plan, and Phase Completion Report.
 - **PlanTemplatesAssembler (EPIC-0024):** New assembler that copies 12 templates verbatim to both `.claude/templates/` and `.github/templates/` with mandatory section validation (RULE-004 dual-target, RULE-010 validation).
-- **Pre-checks in 8 skills (EPIC-0024):** Idempotency pre-checks added to x-dev-lifecycle, x-test-plan, x-dev-architecture-plan, x-lib-task-decomposer, x-review, x-review-pr, x-dev-epic-implement, and x-dev-implement. Skills verify artifact staleness before regenerating (RULE-002).
+- **Pre-checks in 8 skills (EPIC-0024):** Idempotency pre-checks added to x-dev-story-implement, x-test-plan, x-dev-architecture-plan, x-lib-task-decomposer, x-review, x-review-pr, x-dev-epic-implement, and x-dev-implement. Skills verify artifact staleness before regenerating (RULE-002).
 - **Consolidated Review Dashboard (EPIC-0024):** Cumulative dashboard created by x-review and updated by x-review-pr with parseable scores (XX/YY format) and review history (RULE-005, RULE-006).
 - **Remediation Tracking (EPIC-0024):** Review remediation template with findings tracker, deferred justifications, and re-review results for systematic issue resolution.
 - **Epic Execution Plan (EPIC-0024):** Execution plan template saved before epic execution begins, enabling human audit of strategy, phase timeline, and resource requirements.
 - **Phase Completion Reports (EPIC-0024):** Per-phase reports documenting stories completed, integrity gate results, coverage delta, and next phase readiness.
 
 ### Changed
-- **x-dev-lifecycle (EPIC-0024):** Now produces 6 artifact types with pre-checks (previously 2). Generates implementation plan, test plan, architecture plan, task breakdown, security assessment, and compliance assessment with staleness verification.
-- **x-dev-implement (EPIC-0024):** Consumes existing plans as context when available, ensuring consistency between x-dev-lifecycle planning and x-dev-implement execution.
+- **x-dev-story-implement (EPIC-0024):** Now produces 6 artifact types with pre-checks (previously 2). Generates implementation plan, test plan, architecture plan, task breakdown, security assessment, and compliance assessment with staleness verification.
+- **x-dev-implement (EPIC-0024):** Consumes existing plans as context when available, ensuring consistency between x-dev-story-implement planning and x-dev-implement execution.
 - **x-review (EPIC-0024):** Generates consolidated review dashboard with parseable specialist scores. Dashboard is cumulative across review rounds.
 - **x-review-pr (EPIC-0024):** Updates consolidated review dashboard with Tech Lead review round, providing complete quality visibility in a single file.
 - Restructured project directories to adopt SDD (Spec-Driven Development) layout

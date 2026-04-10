@@ -378,5 +378,5 @@ Write tree to `results/audits/dependency-tree-YYYY-MM-DD.md`:
 | Skill | Relationship | Context |
 |-------|-------------|---------|
 | `x-supply-chain-audit` | complementary | Handles deeper supply chain risks (maintainer, typosquatting, SLSA) |
-| `x-ci-cd-generate` | called-by | Dependency audit pipeline references audit commands from this skill |
+| `x-ci-generate` | called-by | Dependency audit pipeline references audit commands from this skill |
 | `x-security-dashboard` | reads | Dashboard aggregates results from this skill |

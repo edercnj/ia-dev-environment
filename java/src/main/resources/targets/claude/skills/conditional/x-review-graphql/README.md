@@ -30,4 +30,4 @@ Reviews GraphQL schema design, resolver implementation, security patterns, and o
 
 - [x-review-api](../x-review-api/) -- REST API design review
 - [x-review-grpc](../x-review-grpc/) -- gRPC service definition review
-- [x-contract-lint](../x-contract-lint/) -- API contract validation
+- [x-test-contract-lint](../x-test-contract-lint/) -- API contract validation

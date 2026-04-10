@@ -180,7 +180,7 @@ For EPIC-ID, the matrix consolidates all stories in the epic with one section pe
 
 ## Integration Notes
 
-- Invoked by `x-dev-lifecycle` during Phase 2 (G7) and Phase 4
+- Invoked by `x-dev-story-implement` during Phase 2 (G7) and Phase 4
 - Invoked by `x-dev-implement` during Step 4
 - Coverage report consumed by `x-review` skill (QA engineer)
 - Thresholds enforced by `x-lib-group-verifier` in G7 verification

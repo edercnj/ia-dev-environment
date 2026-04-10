@@ -32,4 +32,4 @@ Standardizes the entire Git workflow following Git Flow conventions. Handles bra
 ## See Also
 
 - [x-release](../x-release/) -- Uses the same Conventional Commits format for release commits
-- [x-changelog](../x-changelog/) -- Parses commits created by this skill to generate changelogs
+- [x-release-changelog](../x-release-changelog/) -- Parses commits created by this skill to generate changelogs

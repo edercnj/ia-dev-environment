@@ -395,7 +395,7 @@ Write to `results/security/runtime-protection-{timestamp}-report.md`:
 |-------|-------------|---------|
 | x-security-dashboard | called-by | Dashboard aggregates runtime protection results |
 | x-hardening-eval | complements | Hardening evaluates static config; runtime evaluates live behavior |
-| x-dast-scan | complements | DAST tests vulnerabilities; runtime tests defensive controls |
+| x-security-dast | complements | DAST tests vulnerabilities; runtime tests defensive controls |
 
 ## Knowledge Pack References
 

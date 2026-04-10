@@ -10,7 +10,7 @@ description: >
 
 ## Description
 
-Senior-level holistic review with a {review_max_score}-point rubric. This is the standalone version of Phase 6 from the x-dev-lifecycle. The Tech Lead reviews the consolidated PR diff for cross-file consistency and overall quality.
+Senior-level holistic review with a {review_max_score}-point rubric. This is the standalone version of Phase 6 from the x-dev-story-implement. The Tech Lead reviews the consolidated PR diff for cross-file consistency and overall quality.
 
 ## Triggers
 
@@ -210,7 +210,7 @@ If fixing: apply corrections, commit, re-run review (max 2 cycles).
 {review_conditional_criteria}
 ## Integration Notes
 
-- This skill produces the SAME artifact as Phase 6 of `x-dev-lifecycle`
+- This skill produces the SAME artifact as Phase 6 of `x-dev-story-implement`
 - Recommended workflow: `/x-review` first (breadth), then `/x-review-pr` (depth)
 - Dashboard (Step 5) is **cumulative** -- created by `/x-review`, updated by `/x-review-pr` (RULE-006)
 - Remediation tracking (Step 6) enables FIXED status tracking after Tech Lead review

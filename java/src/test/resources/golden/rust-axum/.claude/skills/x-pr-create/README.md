@@ -68,6 +68,6 @@ Labels are auto-created via `gh label create` if they do not exist.
 
 ## See Also
 
-- [x-commit](../x-commit/) -- Creates commits with Task ID in scope
+- [x-git-commit](../x-git-commit/) -- Creates commits with Task ID in scope
 - [x-git-push](../x-git-push/) -- General git workflow (branch, commit, push, PR)
-- [x-dev-lifecycle](../x-dev-lifecycle/) -- Full feature lifecycle that delegates PR creation
+- [x-dev-story-implement](../x-dev-story-implement/) -- Full feature lifecycle that delegates PR creation
