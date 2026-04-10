@@ -255,7 +255,7 @@ Paralelismo: 0002 ‖ 0003 após 0001.
 ## Métricas de Sucesso (DoD do Épico)
 
 - [ ] `/x-release` funciona end-to-end em dogfood (release v2.4.0 ou equivalente)
-- [ ] `mvn verify -P all-tests` verde com golden files regenerados
+- [ ] `mvn verify -Pall-tests` verde com golden files regenerados
 - [ ] Coverage ≥ 95% / ≥ 90%
 - [ ] Zero `git merge` direto para main/develop
 - [ ] State file criado, lido e apagado em ciclo completo
