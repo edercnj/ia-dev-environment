@@ -192,7 +192,7 @@ For each cycle from `--from-cycle` (default 1) to the last cycle:
      3. The test assertion is wrong (tautology)
      Aborting to prevent invalid TDD cycle.
      ```
-6. Stage test files and delegate commit via the Skill tool (Rule 10 — INLINE-SKILL pattern):
+6. Stage test files and delegate commit via the Skill tool (Rule 13 — INLINE-SKILL pattern):
 
        Skill(skill: "x-git-commit", args: "--task TASK-XXXX-YYYY-NNN --type test --subject \"add test for [description]\" --tdd RED")
 
@@ -227,7 +227,7 @@ For each cycle from `--from-cycle` (default 1) to the last cycle:
      Proceeding -- coverage warning only (not blocking).
      ```
    - Coverage check is non-blocking (warning only)
-6. Stage implementation files and delegate commit via the Skill tool (Rule 10 — INLINE-SKILL pattern):
+6. Stage implementation files and delegate commit via the Skill tool (Rule 13 — INLINE-SKILL pattern):
 
        Skill(skill: "x-git-commit", args: "--task TASK-XXXX-YYYY-NNN --type feat --subject \"implement [description]\" --tdd GREEN")
 
@@ -259,7 +259,7 @@ For each cycle from `--from-cycle` (default 1) to the last cycle:
         The refactoring introduced a behavior change. Skipping REFACTOR commit.
         ```
         Skip the REFACTOR commit for this cycle (do NOT abort the entire execution)
-   d. Stage refactored files and delegate commit via the Skill tool (Rule 10 — INLINE-SKILL pattern):
+   d. Stage refactored files and delegate commit via the Skill tool (Rule 13 — INLINE-SKILL pattern):
 
           Skill(skill: "x-git-commit", args: "--task TASK-XXXX-YYYY-NNN --type refactor --subject \"[refactoring description]\" --tdd REFACTOR")
 
@@ -427,7 +427,7 @@ END FOR
 
 ### Commit Delegation
 
-Each phase delegates to `x-git-commit` via the Skill tool (`Skill(skill: "x-git-commit", args: "...")`) following Rule 10 — Skill Invocation Protocol (INLINE-SKILL pattern). Read only the "## Slim Mode" section of x-git-commit for minimum context.
+Each phase delegates to `x-git-commit` via the Skill tool (`Skill(skill: "x-git-commit", args: "...")`) following Rule 13 — Skill Invocation Protocol (INLINE-SKILL pattern). Read only the "## Slim Mode" section of x-git-commit for minimum context.
 
 - RED: `--type test --subject "add test for [desc]" --tdd RED`
 - GREEN: `--type feat --subject "implement [desc]" --tdd GREEN`

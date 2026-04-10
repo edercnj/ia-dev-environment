@@ -17,7 +17,7 @@ Evaluate change scope using the decision tree:
 | New feature, no contract or infra change | **Simplified** |
 | Bug fix / refactor / docs-only | **Skip** |
 
-**If Full or Simplified:** Invoke `x-dev-architecture-plan` via the Skill tool (Rule 10 — INLINE-SKILL pattern):
+**If Full or Simplified:** Invoke `x-dev-architecture-plan` via the Skill tool (Rule 13 — INLINE-SKILL pattern):
 
     Skill(skill: "x-dev-architecture-plan", args: "{STORY_PATH}")
 

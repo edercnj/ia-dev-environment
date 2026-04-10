@@ -129,8 +129,9 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 10 | `10-anti-patterns.md` | anti patterns |
 | 10 | `10-skill-invocation-protocol.md` | skill invocation protocol |
 | 12 | `12-security-anti-patterns.md` | security anti patterns |
+| 13 | `13-skill-invocation-protocol.md` | skill invocation protocol |
 
-**Total: 12 rules**
+**Total: 13 rules**
 
 ### Numbering
 
@@ -336,7 +337,7 @@ See the files directly for current configuration.
 
 | Component | Count |
 |-----------|-------|
-| Rules (.claude) | 12 |
+| Rules (.claude) | 13 |
 | Skills (.claude) | 60 |
 | Knowledge Packs (.claude) | 24 |
 | Agents (.claude) | 14 |

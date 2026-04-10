@@ -1590,7 +1590,7 @@ Scan all story PRs in the epic for unresolved review comments:
 
 ### 4.2 Dry-Run First
 
-When comments are found, invoke `x-pr-fix-epic-comments` in dry-run mode first via the Skill tool (Rule 10 — INLINE-SKILL pattern):
+When comments are found, invoke `x-pr-fix-epic-comments` in dry-run mode first via the Skill tool (Rule 13 — INLINE-SKILL pattern):
 
     Skill(skill: "x-pr-fix-epic-comments", args: "{epicId} --dry-run")
 
@@ -1620,7 +1620,7 @@ proceed directly to Step 4.4. Log: `"--auto-merge: applying PR comment fixes wit
 
 ### 4.4 Apply Fixes
 
-Invoke `x-pr-fix-epic-comments` via the Skill tool (Rule 10 — INLINE-SKILL pattern), without `--dry-run`, to apply fixes:
+Invoke `x-pr-fix-epic-comments` via the Skill tool (Rule 13 — INLINE-SKILL pattern), without `--dry-run`, to apply fixes:
 
     Skill(skill: "x-pr-fix-epic-comments", args: "{epicId}")
 

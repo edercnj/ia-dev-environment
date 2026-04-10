@@ -150,7 +150,7 @@ Unless `--skip-chain` is provided, execute the chain sequentially:
 
 #### 3a. Format (x-code-format)
 
-Invoke the `x-code-format` skill via the Skill tool (Rule 10 — INLINE-SKILL pattern):
+Invoke the `x-code-format` skill via the Skill tool (Rule 13 — INLINE-SKILL pattern):
 
     Skill(skill: "x-code-format", args: "")
 
@@ -177,7 +177,7 @@ If format fails: **ABORT** with message `"Pre-commit chain failed at step 'x-cod
 
 #### 3b. Lint (x-code-lint)
 
-Invoke the `x-code-lint` skill via the Skill tool (Rule 10 — INLINE-SKILL pattern):
+Invoke the `x-code-lint` skill via the Skill tool (Rule 13 — INLINE-SKILL pattern):
 
     Skill(skill: "x-code-lint", args: "")
 

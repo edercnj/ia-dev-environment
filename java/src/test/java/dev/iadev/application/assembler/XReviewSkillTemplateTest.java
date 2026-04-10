@@ -101,32 +101,41 @@ class XReviewSkillTemplateTest {
 
         @Test
         @DisplayName("Phase 2 references x-review-qa"
-                + " skill invocation via Skill tool")
+                + " skill invocation via Skill tool"
+                + " with STORY_ID args")
         void phase2_referencesQaSkill() {
             String content = readSkill(CLAUDE_SKILL_PATH);
 
             assertThat(content)
-                    .contains("Skill(skill: \"x-review-qa\",");
+                    .containsPattern(
+                            "Skill\\(skill: \"x-review-qa\","
+                                    + "\\s+args: \"\\{STORY_ID\\}\"\\)");
         }
 
         @Test
         @DisplayName("Phase 2 references x-review-perf"
-                + " skill invocation via Skill tool")
+                + " skill invocation via Skill tool"
+                + " with STORY_ID args")
         void phase2_referencesPerfSkill() {
             String content = readSkill(CLAUDE_SKILL_PATH);
 
             assertThat(content)
-                    .contains("Skill(skill: \"x-review-perf\",");
+                    .containsPattern(
+                            "Skill\\(skill: \"x-review-perf\","
+                                    + "\\s+args: \"\\{STORY_ID\\}\"\\)");
         }
 
         @Test
         @DisplayName("Phase 2 references conditional"
-                + " x-review-db skill via Skill tool")
+                + " x-review-db skill via Skill tool"
+                + " with STORY_ID args")
         void phase2_referencesDbSkill() {
             String content = readSkill(CLAUDE_SKILL_PATH);
 
             assertThat(content)
-                    .contains("Skill(skill: \"x-review-db\",");
+                    .containsPattern(
+                            "Skill\\(skill: \"x-review-db\","
+                                    + "\\s+args: \"\\{STORY_ID\\}\"\\)");
         }
 
         @Test

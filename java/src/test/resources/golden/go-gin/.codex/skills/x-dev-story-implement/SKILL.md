@@ -277,7 +277,7 @@ If validation errors are found:
 1. Fix the errors in the generated contract
 2. Re-run validation until the contract passes
 
-> **Note:** A dedicated `x-test-contract-lint` skill does not exist in `core/` at the time of writing (the reference was an orphan removed in EPIC-0033 / STORY-0033-0001). If `x-test-contract-lint` is added in the future, convert this step to `Skill(skill: "x-test-contract-lint", args: "{CONTRACT_PATH}")` following Rule 10 — Skill Invocation Protocol (INLINE-SKILL pattern).
+> **Note:** A dedicated `x-test-contract-lint` skill does not exist in `core/` at the time of writing (the reference was an orphan removed in EPIC-0033 / STORY-0033-0001). If `x-test-contract-lint` is added in the future, convert this step to `Skill(skill: "x-test-contract-lint", args: "{CONTRACT_PATH}")` following Rule 13 — Skill Invocation Protocol (INLINE-SKILL pattern).
 
 ### Step 0.5.4 -- Approval Gate
 
@@ -497,7 +497,7 @@ FOR each TASK-NNN where status != DONE and status != BLOCKED:
   2.2.4  Read task plan (if PRE_PLANNED mode):
          - Read plans/epic-XXXX/plans/task-plan-TASK-NNN-story-XXXX-YYYY.md
          - Use Implementation Guide and TDD cycles from the plan
-  2.2.5  Invoke `x-test-tdd` via the Skill tool (Rule 10 — INLINE-SKILL pattern):
+  2.2.5  Invoke `x-test-tdd` via the Skill tool (Rule 13 — INLINE-SKILL pattern):
 
              Skill(skill: "x-test-tdd", args: "TASK-XXXX-YYYY-NNN --orchestrated")
 
@@ -506,7 +506,7 @@ FOR each TASK-NNN where status != DONE and status != BLOCKED:
          - x-test-tdd delegates each commit to `x-git-commit` via the Skill tool with TDD tags.
          - x-git-commit runs pre-commit chain: x-code-format -> x-code-lint -> compile -> commit.
   2.2.6  Push branch: git push -u origin feat/task-XXXX-YYYY-NNN-desc
-  2.2.7  Invoke `x-pr-create` via the Skill tool (Rule 10 — INLINE-SKILL pattern):
+  2.2.7  Invoke `x-pr-create` via the Skill tool (Rule 13 — INLINE-SKILL pattern):
 
              Skill(skill: "x-pr-create", args: "TASK-XXXX-YYYY-NNN")
 
@@ -615,7 +615,7 @@ If no documentable interfaces configured: skip interface generators with log `"N
 
 **Architecture Document Update (Recommended):**
 If an architecture plan exists at `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`:
-1. Invoke `x-dev-arch-update` via the Skill tool (Rule 10 — INLINE-SKILL pattern):
+1. Invoke `x-dev-arch-update` via the Skill tool (Rule 13 — INLINE-SKILL pattern):
 
        Skill(skill: "x-dev-arch-update", args: "plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md")
 
@@ -625,7 +625,7 @@ If an architecture plan exists at `plans/epic-XXXX/plans/architecture-story-XXXX
 
 ### Step 3.4 -- Review (invoke x-review via Skill tool)
 
-Invoke the `x-review` skill via the Skill tool (Rule 10 — INLINE-SKILL pattern):
+Invoke the `x-review` skill via the Skill tool (Rule 13 — INLINE-SKILL pattern):
 
     Skill(skill: "x-review", args: "{STORY_ID}")
 

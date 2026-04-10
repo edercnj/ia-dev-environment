@@ -101,19 +101,31 @@ For each applicable specialist determined in Phase 1, invoke the corresponding r
 
 ### Invocation Pattern
 
-In a SINGLE message, emit one `Skill(...)` tool call per applicable specialist following Rule 10 — Skill Invocation Protocol (INLINE-SKILL pattern, parallel execution). ALL calls MUST be in the same message for true parallelism — the Claude runtime dispatches tool calls in parallel only when they are siblings in one assistant turn.
+In a SINGLE message, emit one `Skill(...)` tool call per applicable specialist following Rule 13 — Skill Invocation Protocol (INLINE-SKILL pattern, parallel execution). ALL calls MUST be in the same message for true parallelism — the Claude runtime dispatches tool calls in parallel only when they are siblings in one assistant turn.
+
+**Activation conditions — evaluate BEFORE emitting the call block. Only emit the calls whose condition is true for the current project profile. Never emit a placeholder call for inactive specialists.**
+
+- `x-review-qa` — always active.
+- `x-review-perf` — always active.
+- `x-review-db` — only if `database != none`.
+- `x-review-obs` — only if `observability != none`.
+- `x-review-devops` — only if `container != none`.
+- `x-review-data-modeling` — only if `database != none` AND `architecture` is one of `[hexagonal, ddd, cqrs]`.
+- `x-review-security` — only if security frameworks are configured.
+- `x-review-api` — only if a REST interface is present.
+- `x-review-events` — only if event interfaces are present.
+
+The tool-call block below is the canonical form (no trailing comments — each line is copy-safe):
 
     Skill(skill: "x-review-qa",            args: "{STORY_ID}")
     Skill(skill: "x-review-perf",          args: "{STORY_ID}")
-    Skill(skill: "x-review-db",            args: "{STORY_ID}")   # only if database != none
-    Skill(skill: "x-review-obs",           args: "{STORY_ID}")   # only if observability != none
-    Skill(skill: "x-review-devops",        args: "{STORY_ID}")   # only if container != none
-    Skill(skill: "x-review-data-modeling", args: "{STORY_ID}")   # only if database != none AND architecture in [hexagonal, ddd, cqrs]
-    Skill(skill: "x-review-security",      args: "{STORY_ID}")   # only if security frameworks configured
-    Skill(skill: "x-review-api",           args: "{STORY_ID}")   # only if REST interface present
-    Skill(skill: "x-review-events",        args: "{STORY_ID}")   # only if event interfaces present
-
-Emit ONLY the calls whose condition evaluates to true for the current project profile. Do NOT emit a placeholder call for inactive specialists.
+    Skill(skill: "x-review-db",            args: "{STORY_ID}")
+    Skill(skill: "x-review-obs",           args: "{STORY_ID}")
+    Skill(skill: "x-review-devops",        args: "{STORY_ID}")
+    Skill(skill: "x-review-data-modeling", args: "{STORY_ID}")
+    Skill(skill: "x-review-security",      args: "{STORY_ID}")
+    Skill(skill: "x-review-api",           args: "{STORY_ID}")
+    Skill(skill: "x-review-events",        args: "{STORY_ID}")
 
 Each skill produces output in the standard review format:
 

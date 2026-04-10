@@ -45,7 +45,7 @@ If no documentable interfaces configured: skip interface generators with log `"N
 
 **Architecture Document Update (Recommended):**
 If an architecture plan exists at `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`:
-1. Invoke `x-dev-arch-update` via the Skill tool (Rule 10 — INLINE-SKILL pattern):
+1. Invoke `x-dev-arch-update` via the Skill tool (Rule 13 — INLINE-SKILL pattern):
 
        Skill(skill: "x-dev-arch-update", args: "plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md")
 
@@ -55,7 +55,7 @@ If an architecture plan exists at `plans/epic-XXXX/plans/architecture-story-XXXX
 
 ### Step 3.4 -- Review (invoke x-review via Skill tool)
 
-Invoke the `x-review` skill via the Skill tool (Rule 10 — INLINE-SKILL pattern):
+Invoke the `x-review` skill via the Skill tool (Rule 13 — INLINE-SKILL pattern):
 
     Skill(skill: "x-review", args: "{STORY_ID}")
 
@@ -88,7 +88,7 @@ After collecting all specialist review results, generate a consolidated dashboar
 
 ### Step 3.6 -- Tech Lead Review
 
-Invoke the `x-review-pr` skill via the Skill tool (Rule 10 — INLINE-SKILL pattern):
+Invoke the `x-review-pr` skill via the Skill tool (Rule 13 — INLINE-SKILL pattern):
 
     Skill(skill: "x-review-pr", args: "{STORY_ID}")
 

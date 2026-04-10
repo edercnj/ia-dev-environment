@@ -1,4 +1,4 @@
-# Rule 10 — Skill Invocation Protocol
+# Rule 13 — Skill Invocation Protocol
 
 > **Related:** Rule 07 defines the order of the pre-commit chain. This rule defines the *syntax* for skill-to-skill invocations across **any** chain, not just pre-commit.
 
@@ -123,7 +123,7 @@ After EPIC-0033:
 | `Skill(skill: ...)` canonical | ≥ 13 |
 | `Invoke /x-foo` / bare-slash in delegation | 0 |
 
-Rule 10 was created as part of **STORY-0033-0001** (see `plans/epic-0033/`) to make the above invariant permanent. Any delegation added to a skill template after this epic MUST follow one of the 3 permitted patterns. CI audit (via the grep commands above) enforces the invariant going forward.
+Rule 13 was created as part of **STORY-0033-0001** (see `plans/epic-0033/`) to make the above invariant permanent. Any delegation added to a skill template after this epic MUST follow one of the 3 permitted patterns. CI audit (via the grep commands above) enforces the invariant going forward.
 
 ## Forbidden Additions
 
