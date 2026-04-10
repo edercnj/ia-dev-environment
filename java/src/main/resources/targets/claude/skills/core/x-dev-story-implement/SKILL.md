@@ -266,10 +266,17 @@ Ensure directory exists: `mkdir -p contracts/`
 
 ### Step 0.5.3 -- Contract Validation
 
-Invoke `/x-test-contract-lint {CONTRACT_PATH}` to validate the generated contract against
-its specification. If validation errors are found:
+Perform inline contract validation using the appropriate linter for `{CONTRACT_FORMAT}`:
+
+- **OpenAPI 3.1:** `npx @redocly/cli lint {CONTRACT_PATH}` or `spectral lint {CONTRACT_PATH}`
+- **Protobuf 3:** `protoc --lint_out=. {CONTRACT_PATH}` or `buf lint {CONTRACT_PATH}`
+- **AsyncAPI 2.6:** `npx @asyncapi/cli validate {CONTRACT_PATH}` or `spectral lint {CONTRACT_PATH}`
+
+If validation errors are found:
 1. Fix the errors in the generated contract
 2. Re-run validation until the contract passes
+
+> **Note:** A dedicated `x-test-contract-lint` skill does not exist in `core/` at the time of writing (the reference was an orphan removed in EPIC-0033 / STORY-0033-0001). If `x-test-contract-lint` is added in the future, convert this step to `Skill(skill: "x-test-contract-lint", args: "{CONTRACT_PATH}")` following Rule 10 — Skill Invocation Protocol (INLINE-SKILL pattern).
 
 ### Step 0.5.4 -- Approval Gate
 
@@ -489,12 +496,19 @@ FOR each TASK-NNN where status != DONE and status != BLOCKED:
   2.2.4  Read task plan (if PRE_PLANNED mode):
          - Read plans/epic-XXXX/plans/task-plan-TASK-NNN-story-XXXX-YYYY.md
          - Use Implementation Guide and TDD cycles from the plan
-  2.2.5  Invoke /x-test-tdd TASK-XXXX-YYYY-NNN:
-         - x-test-tdd reads the task plan, executes Red-Green-Refactor cycles
-         - x-test-tdd delegates each commit to /x-git-commit with TDD tags
-         - x-git-commit runs pre-commit chain: x-code-format -> x-code-lint -> compile -> commit
+  2.2.5  Invoke `x-test-tdd` via the Skill tool (Rule 10 — INLINE-SKILL pattern):
+
+             Skill(skill: "x-test-tdd", args: "TASK-XXXX-YYYY-NNN --orchestrated")
+
+         - The `--orchestrated` flag (see STORY-0033-0003) signals x-test-tdd to render in compact per-cycle log mode instead of full multi-line output.
+         - x-test-tdd reads the task plan, executes Red-Green-Refactor cycles.
+         - x-test-tdd delegates each commit to `x-git-commit` via the Skill tool with TDD tags.
+         - x-git-commit runs pre-commit chain: x-code-format -> x-code-lint -> compile -> commit.
   2.2.6  Push branch: git push -u origin feat/task-XXXX-YYYY-NNN-desc
-  2.2.7  Invoke /x-pr-create TASK-XXXX-YYYY-NNN:
+  2.2.7  Invoke `x-pr-create` via the Skill tool (Rule 10 — INLINE-SKILL pattern):
+
+             Skill(skill: "x-pr-create", args: "TASK-XXXX-YYYY-NNN")
+
          - If --auto-approve-pr: PR targets parent branch
          - If NOT --auto-approve-pr: PR targets develop
          - PR body includes task description, TDD cycle summary, coverage
@@ -600,13 +614,21 @@ If no documentable interfaces configured: skip interface generators with log `"N
 
 **Architecture Document Update (Recommended):**
 If an architecture plan exists at `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`:
-1. Invoke `x-dev-arch-update` to incrementally update `steering/service-architecture.md`
+1. Invoke `x-dev-arch-update` via the Skill tool (Rule 10 — INLINE-SKILL pattern):
+
+       Skill(skill: "x-dev-arch-update", args: "plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md")
+
+   This incrementally updates `steering/service-architecture.md`.
 2. New components, integrations, flows, and ADR references are added to the appropriate sections
 3. If `steering/service-architecture.md` does not exist, create it from the template
 
-### Step 3.4 -- Review (Invoke /x-review)
+### Step 3.4 -- Review (invoke x-review via Skill tool)
 
-Invoke skill `/x-review` for the current story. The review skill launches its own parallel subagents (one per specialist engineer), each reading their own knowledge pack.
+Invoke the `x-review` skill via the Skill tool (Rule 10 — INLINE-SKILL pattern):
+
+    Skill(skill: "x-review", args: "{STORY_ID}")
+
+The review skill launches its own parallel subagents (one per specialist engineer), each reading their own knowledge pack.
 
 **Template Reference (RULE-007):** Instruct each of the 8 specialist subagents: "Read template at `.claude/templates/_TEMPLATE-SPECIALIST-REVIEW.md` for required output format." If the template file does not exist, log `"WARNING: Template _TEMPLATE-SPECIALIST-REVIEW.md not found, using inline format"` and proceed with existing inline format as fallback (RULE-012).
 

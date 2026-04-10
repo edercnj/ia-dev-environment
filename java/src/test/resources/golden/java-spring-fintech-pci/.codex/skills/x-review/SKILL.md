@@ -101,19 +101,19 @@ For each applicable specialist determined in Phase 1, invoke the corresponding r
 
 ### Invocation Pattern
 
-In a SINGLE message, invoke all applicable skills:
+In a SINGLE message, emit one `Skill(...)` tool call per applicable specialist following Rule 10 — Skill Invocation Protocol (INLINE-SKILL pattern, parallel execution). ALL calls MUST be in the same message for true parallelism — the Claude runtime dispatches tool calls in parallel only when they are siblings in one assistant turn.
 
-```
-/x-review-qa {STORY_ID}
-/x-review-perf {STORY_ID}
-/x-review-db {STORY_ID}            (if database != none)
-/x-review-obs {STORY_ID}           (if observability != none)
-/x-review-devops {STORY_ID}        (if container != none)
-/x-review-data-modeling {STORY_ID}  (if database AND hex/ddd/cqrs)
-/x-review-security {STORY_ID}      (if security frameworks configured)
-/x-review-api {STORY_ID}           (if REST interface)
-/x-review-events {STORY_ID}        (if event interfaces)
-```
+    Skill(skill: "x-review-qa",            args: "{STORY_ID}")
+    Skill(skill: "x-review-perf",          args: "{STORY_ID}")
+    Skill(skill: "x-review-db",            args: "{STORY_ID}")   # only if database != none
+    Skill(skill: "x-review-obs",           args: "{STORY_ID}")   # only if observability != none
+    Skill(skill: "x-review-devops",        args: "{STORY_ID}")   # only if container != none
+    Skill(skill: "x-review-data-modeling", args: "{STORY_ID}")   # only if database != none AND architecture in [hexagonal, ddd, cqrs]
+    Skill(skill: "x-review-security",      args: "{STORY_ID}")   # only if security frameworks configured
+    Skill(skill: "x-review-api",           args: "{STORY_ID}")   # only if REST interface present
+    Skill(skill: "x-review-events",        args: "{STORY_ID}")   # only if event interfaces present
+
+Emit ONLY the calls whose condition evaluates to true for the current project profile. Do NOT emit a placeholder call for inactive specialists.
 
 Each skill produces output in the standard review format:
 

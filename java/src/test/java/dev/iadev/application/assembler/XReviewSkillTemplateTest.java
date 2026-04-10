@@ -100,33 +100,33 @@ class XReviewSkillTemplateTest {
         }
 
         @Test
-        @DisplayName("Phase 2 references /x-review-qa"
-                + " skill invocation")
+        @DisplayName("Phase 2 references x-review-qa"
+                + " skill invocation via Skill tool")
         void phase2_referencesQaSkill() {
             String content = readSkill(CLAUDE_SKILL_PATH);
 
             assertThat(content)
-                    .contains("/x-review-qa {STORY_ID}");
+                    .contains("Skill(skill: \"x-review-qa\",");
         }
 
         @Test
-        @DisplayName("Phase 2 references /x-review-perf"
-                + " skill invocation")
+        @DisplayName("Phase 2 references x-review-perf"
+                + " skill invocation via Skill tool")
         void phase2_referencesPerfSkill() {
             String content = readSkill(CLAUDE_SKILL_PATH);
 
             assertThat(content)
-                    .contains("/x-review-perf {STORY_ID}");
+                    .contains("Skill(skill: \"x-review-perf\",");
         }
 
         @Test
         @DisplayName("Phase 2 references conditional"
-                + " /x-review-db skill")
+                + " x-review-db skill via Skill tool")
         void phase2_referencesDbSkill() {
             String content = readSkill(CLAUDE_SKILL_PATH);
 
             assertThat(content)
-                    .contains("/x-review-db {STORY_ID}");
+                    .contains("Skill(skill: \"x-review-db\",");
         }
 
         @Test

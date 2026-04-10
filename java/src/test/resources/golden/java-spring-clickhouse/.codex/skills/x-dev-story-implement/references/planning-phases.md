@@ -17,7 +17,10 @@ Evaluate change scope using the decision tree:
 | New feature, no contract or infra change | **Simplified** |
 | Bug fix / refactor / docs-only | **Skip** |
 
-**If Full or Simplified:** Invoke skill `/x-dev-architecture-plan {STORY_PATH}`.
+**If Full or Simplified:** Invoke `x-dev-architecture-plan` via the Skill tool (Rule 10 — INLINE-SKILL pattern):
+
+    Skill(skill: "x-dev-architecture-plan", args: "{STORY_PATH}")
+
 Output: `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
 If the skill invocation fails: emit WARNING and proceed to Step 1B.
 

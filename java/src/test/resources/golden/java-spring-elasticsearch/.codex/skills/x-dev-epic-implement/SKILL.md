@@ -1590,11 +1590,9 @@ Scan all story PRs in the epic for unresolved review comments:
 
 ### 4.2 Dry-Run First
 
-When comments are found, invoke `/x-pr-fix-epic-comments` in dry-run mode first:
+When comments are found, invoke `x-pr-fix-epic-comments` in dry-run mode first via the Skill tool (Rule 10 — INLINE-SKILL pattern):
 
-```
-/x-pr-fix-epic-comments {epicId} --dry-run
-```
+    Skill(skill: "x-pr-fix-epic-comments", args: "{epicId} --dry-run")
 
 This generates a consolidated findings report at `plans/epic-{epicId}/reports/pr-comments-report.md`
 without applying any fixes. Record `prCommentRemediation.status = "DRY_RUN"`.
@@ -1622,11 +1620,9 @@ proceed directly to Step 4.4. Log: `"--auto-merge: applying PR comment fixes wit
 
 ### 4.4 Apply Fixes
 
-Invoke `/x-pr-fix-epic-comments` without `--dry-run` to apply fixes:
+Invoke `x-pr-fix-epic-comments` via the Skill tool (Rule 10 — INLINE-SKILL pattern), without `--dry-run`, to apply fixes:
 
-```
-/x-pr-fix-epic-comments {epicId}
-```
+    Skill(skill: "x-pr-fix-epic-comments", args: "{epicId}")
 
 The skill will:
 1. Classify all review comments (actionable/suggestion/question/praise)

@@ -81,8 +81,12 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 04 | `04-architecture-summary.md` | architecture summary |
 | 05 | `05-quality-gates.md` | quality gates |
 | 06 | `06-security-baseline.md` | security baseline |
+| 07 | `07-operations-baseline.md` | operations baseline |
+| 08 | `08-release-process.md` | release process |
+| 09 | `09-branching-model.md` | branching model (Git Flow) |
+| 10 | `10-skill-invocation-protocol.md` | skill invocation protocol (delegation syntax) |
 
-**Total: 6 rules**
+**Total: 10 rules**
 
 ### Numbering
 
