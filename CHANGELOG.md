@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.2] - 2026-04-10
+
+### Fixed
+- **Installer (`java/install.sh`) — version detection from `pom.xml`**: replaced the hardcoded `VERSION`/`JAR_NAME` constants with a `resolve_version()` step that parses the version from `java/pom.xml` at install time. Restores the documented `--jar=PATH` flow by deriving the version from the JAR filename pattern `ia-dev-env-VERSION.jar` (with `unknown` fallback) when a pre-built JAR is supplied, so the script no longer fails with "pom.xml not found" outside the source tree.
+- **Installer success banner — ANSI escape codes**: color variables migrated from `'\033[...]'` to bash ANSI-C quoting `$'\033[...]'` so the actual ESC byte is stored. Both the `cat <<EOF` heredocs in `print_success()` / `usage()` and the `printf`-based log helpers now render colors consistently — previously users saw raw `\033[0;32m` text in the success banner.
+- **Installer Quick Start — list every bundled stack**: a new `list_bundled_stacks()` helper introspects the installed fat JAR via the JDK `jar` tool (with `unzip` fallback), discovering every `shared/config-templates/setup-config.<name>.yaml` resource. The success banner now prints one `ia-dev-env generate --stack <name> --output my-project/` example per bundled stack instead of only `java-quarkus`, and stays in sync automatically as profiles are added or removed.
+- **CLI version single-sourced from `pom.xml` (`IaDevEnvApplication`)**: replaced the hardcoded `@Command(version = "2.0.0")` with `versionProvider = CliVersionProvider.class`. The new provider reads from `dev/iadev/version.properties`, a Maven-filtered resource seeded from `${project.version}` at build time, so `ia-dev-env --version` now reflects the actual `pom.xml` version (`ia-dev-env 2.2.2`).
+- **Dev wrapper (`java/bin/ia-dev-env`) — JAR discovery**: dropped the stale hardcoded `JAR_NAME="ia-dev-env-2.0.0-SNAPSHOT.jar"` (which no longer matched any built artifact) and replaced it with a glob over `target/ia-dev-env-*.jar` that picks the newest match. Removes the last `SNAPSHOT` reference from the dev tooling.
+- **Tests**: `IaDevEnvApplicationTest`, `DistributionTest`, and `WrapperScriptTest` updated to assert against a SemVer regex / glob pattern instead of pinning a specific version literal. New `CliVersionProviderTest` covers the happy path (single line, program name prefix, SemVer body, no `unknown` fallback, no leaked `${project.version}` placeholder).
+
 ## [2.2.1] - 2026-04-09
 
 ### Fixed
