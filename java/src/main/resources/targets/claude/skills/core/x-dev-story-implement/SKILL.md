@@ -414,6 +414,34 @@ This preserves the pre-integration behavior for projects that do not include the
 
 **CRITICAL: ALL planning subagents (except those skipped by pre-checks) MUST be launched in a SINGLE message.**
 
+**Parallelism + tracking batching (Story 0033-0003):** The per-planner instructions below LOOK sequential (TaskCreate → Skill/Agent → TaskUpdate), but to preserve SINGLE-message parallelism AND per-planner tracking, execute them in this 3-step batched pattern:
+
+1. **Batch A — First assistant message (all TaskCreate + all invocations together):**
+   - Emit every active planner's `TaskCreate(description: "Planning: {artifact} — Story {storyId}")` call
+   - Emit every active planner's `Skill(skill: "...", args: "...")` or `Agent(subagent_type: "general-purpose", ...)` launch
+   - Record the returned task IDs in an in-memory map indexed by planner name (e.g., `planningTasks[\"testPlan\"] = <id>`)
+   - All of these tool calls MUST be siblings in the SAME assistant message so the runtime dispatches them in parallel. Do NOT emit them across separate messages — that serializes execution and defeats the Phase 1B-1F parallelism.
+
+2. **Wait for all planners to return** (the runtime handles this — subsequent assistant messages only start after all parallel tool calls in Batch A complete).
+
+3. **Batch B — Second assistant message (all TaskUpdate together):**
+   - For each planner that was launched in Batch A, emit `TaskUpdate(id: planningTasks[\"...\"], status: "completed")`
+   - Again as siblings in ONE message so they commit in parallel
+   - Subagent-managed planners (1B Impl Plan, 1D Event Schema, 1E fallback, 1F Compliance) close their OWN tracking tasks from inside their prompts — the orchestrator does NOT emit TaskUpdate for those in Batch B (it would double-close)
+
+**Summary of who emits what:**
+
+| Planner | Strategy | Batch A | Batch B |
+|---|---|---|---|
+| 1B Implementation Plan | Subagent | Orchestrator launches Agent (subagent self-tracks via FIRST/LAST ACTION) | — |
+| 1B Test Plan | Skill-invoked | Orchestrator emits TaskCreate + Skill(x-test-plan) | Orchestrator emits TaskUpdate |
+| 1C Task Decomposition | Skill-invoked | Orchestrator emits TaskCreate + Skill(x-lib-task-decomposer) | Orchestrator emits TaskUpdate |
+| 1D Event Schema | Subagent | Orchestrator launches Agent (subagent self-tracks) | — |
+| 1E Security (primary) | Skill-invoked | Orchestrator emits TaskCreate + Skill(x-threat-model) | Orchestrator emits TaskUpdate (success) OR emits TaskUpdate pre-fallback then launches fallback subagent |
+| 1F Compliance | Subagent | Orchestrator launches Agent (subagent self-tracks) | — |
+
+The per-planner sections below describe the per-planner details — read them as "what goes into Batch A / Batch B for this planner", NOT as "execute sequentially one planner at a time".
+
 ### 1B: Test Planning (MANDATORY DRIVER for Phase 2)
 
 **Skip condition:** If Phase 0 pre-check marked the test plan as "Reuse", skip this step entirely and log `"Reusing existing test plan from {date}"` (do NOT emit TaskCreate for skipped planners, per AC-4 of Story 0033-0003).
@@ -492,13 +520,37 @@ Launch `general-purpose` subagent. The subagent emits its own TaskCreate/TaskUpd
 
 **Skip condition:** If Phase 0 pre-check marked the security assessment as "Reuse", skip this step entirely and log `"Reusing existing security assessment from {date}"` (do NOT emit TaskCreate for skipped planners, per AC-4 of Story 0033-0003).
 
-Launch `general-purpose` subagent. The subagent emits its own TaskCreate/TaskUpdate (per Story 0033-0003):
+**Primary path — `x-threat-model` via Skill tool (orchestrator-managed tracking):**
 
-> **FIRST ACTION (Story 0033-0003):** Create a tracking task:
+Create the tracking task and invoke the skill:
+
+    TaskCreate(description: "Planning: Security Assessment — Story {storyId}")
+
+Record the returned integer task ID as `securityTaskId` for the closing TaskUpdate.
+
+Invoke `x-threat-model` via the Skill tool (Rule 13 — INLINE-SKILL pattern):
+
+    Skill(skill: "x-threat-model", args: "{STORY_PATH}")
+
+After the skill returns, close the tracking task:
+
+    TaskUpdate(id: securityTaskId, status: "completed")
+
+Output: `plans/epic-XXXX/plans/security-story-XXXX-YYYY.md`
+
+**Fallback path — if `x-threat-model` is unavailable** (skill file not found in `core/`):
+
+The orchestrator's TaskCreate above already fired, so the orchestrator MUST close `securityTaskId` explicitly before launching the fallback subagent (otherwise the tracking task stays open forever):
+
+    TaskUpdate(id: securityTaskId, status: "completed")
+
+Then launch a `general-purpose` subagent. The fallback subagent emits its OWN independent TaskCreate/TaskUpdate pair (per Story 0033-0003):
+
+> **FIRST ACTION (Story 0033-0003 fallback):** Create a tracking task:
 >
->     TaskCreate(description: "Planning: Security Assessment — Story {storyId}")
+>     TaskCreate(description: "Planning: Security Assessment (fallback) — Story {storyId}")
 >
-> Record the returned integer ID as `securityTaskId` for the LAST ACTION below.
+> Record the returned integer ID as `securityFallbackTaskId` for the LAST ACTION below.
 >
 > You are a **Security Engineer** assessing security impact.
 >
@@ -511,9 +563,9 @@ Launch `general-purpose` subagent. The subagent emits its own TaskCreate/TaskUpd
 > Produce security assessment: threat model, OWASP Top 10 mapping, authentication/authorization review, input validation, data protection, secrets management.
 > Save to `plans/epic-XXXX/plans/security-story-XXXX-YYYY.md`.
 >
-> **LAST ACTION (Story 0033-0003):** Close the tracking task:
+> **LAST ACTION (Story 0033-0003 fallback):** Close the fallback tracking task:
 >
->     TaskUpdate(id: securityTaskId, status: "completed")
+>     TaskUpdate(id: securityFallbackTaskId, status: "completed")
 
 ### 1F: Compliance Assessment (CONDITIONAL -- if compliance active)
 

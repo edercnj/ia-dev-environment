@@ -87,6 +87,14 @@ If skill `x-dev-architecture-plan` is not available, expand Step 1B subagent pro
 
 **CRITICAL: ALL planning subagents (except those skipped) MUST be launched in a SINGLE message.**
 
+**Parallelism + tracking batching (Story 0033-0003):** The per-planner instructions below LOOK sequential (TaskCreate → Skill/Agent → TaskUpdate), but to preserve SINGLE-message parallelism AND per-planner tracking, execute them in this 3-step batched pattern:
+
+1. **Batch A — First assistant message:** all active planners' `TaskCreate` + their `Skill(...)`/`Agent(...)` invocations as sibling tool calls. Record returned task IDs in an in-memory map.
+2. **Wait for all planners to return** (runtime handles this).
+3. **Batch B — Second assistant message:** all orchestrator-managed `TaskUpdate` calls as sibling tool calls. Subagent-managed planners (1B Impl Plan, 1D Event Schema, 1E fallback, 1F Compliance) close their OWN tracking tasks from inside their prompts — the orchestrator does NOT emit TaskUpdate for those.
+
+Read the per-planner sections below as "what goes into Batch A / Batch B for this planner", NOT as "execute sequentially one planner at a time". See the corresponding section in `x-dev-story-implement/SKILL.md` for the full table of orchestrator-managed vs subagent-managed planners.
+
 ### 1B: Test Planning (MANDATORY DRIVER for Phase 2)
 
 **Skip condition:** If Phase 0 pre-check marked the test plan as "Reuse", skip (do NOT emit TaskCreate for skipped planners, per AC-4 of Story 0033-0003).
@@ -171,7 +179,13 @@ After the skill returns, close the tracking task:
 
 Output: `plans/epic-XXXX/plans/security-story-XXXX-YYYY.md`
 
-If `x-threat-model` is unavailable, fall back to a `general-purpose` subagent that emits its OWN TaskCreate/TaskUpdate (the orchestrator's TaskCreate above already fired, so close it with TaskUpdate first, then let the fallback subagent emit its own pair):
+If `x-threat-model` is unavailable, fall back to a `general-purpose` subagent. The orchestrator's `TaskCreate(description: "Planning: Security Assessment — ...")` above **already fired**, so the orchestrator MUST close `securityTaskId` explicitly before launching the fallback (otherwise the original tracking task stays open forever). The fallback subagent then emits its OWN independent TaskCreate/TaskUpdate pair:
+
+**Orchestrator action BEFORE launching the fallback subagent:**
+
+    TaskUpdate(id: securityTaskId, status: "completed")
+
+Then launch the fallback subagent:
 
 > **FIRST ACTION (Story 0033-0003 fallback):** Create a tracking task:
 >
