@@ -307,7 +307,9 @@ Please review the contract and respond with:
 
 **Last action of Phase 0 — Update the phase task (TaskUpdate):**
 
-    TaskUpdate(id: {phase0TaskId}, status: "completed")
+    TaskUpdate(id: phase0TaskId, status: "completed")
+
+Here `phase0TaskId` refers to the numeric task ID returned by the earlier `TaskCreate` call at the start of Phase 0 (substitute with the actual integer, do NOT pass the literal string `"phase0TaskId"`).
 
 ## Phase 1 -- Architecture Planning (Skill Invocation + Subagent Fallback)
 
@@ -467,7 +469,9 @@ Launch `general-purpose` subagent:
 
 **Last action of Phase 1 — Update the phase task (TaskUpdate):**
 
-    TaskUpdate(id: {phase1TaskId}, status: "completed")
+    TaskUpdate(id: phase1TaskId, status: "completed")
+
+Here `phase1TaskId` refers to the numeric task ID returned by the earlier `TaskCreate` call at the start of Phase 1 (substitute with the actual integer).
 
 ## Phase 2 -- Task Execution Loop (RULE-001: 1 Task = 1 Branch = 1 PR)
 
@@ -556,11 +560,17 @@ FOR each TASK-NNN where status != DONE and status != BLOCKED:
                         "Lifecycle paused at TASK-NNN. Resume later with /x-dev-story-implement {STORY_ID}"
   2.2.10 Update execution-state with final task status and completedAt timestamp
   2.2.11 Update the per-task tracking entry from step 2.2.1a via TaskUpdate:
-             TaskUpdate(id: {taskLevelTaskId}, status: "completed")
-         If the task ended in FAILED or BLOCKED, first TaskUpdate the description
-         to prefix "(FAILED) " so the failure surfaces in the Claude Code task list,
-         then mark it completed (execution-state.json remains the authoritative
-         record of SUCCESS/FAILED per CR-04 of EPIC-0033).
+             TaskUpdate(id: taskLevelTaskId, status: "completed")
+         Here `taskLevelTaskId` refers to the numeric task ID returned by the
+         TaskCreate call in step 2.2.1a (substitute with the actual integer).
+         If the task ended in FAILED, first TaskUpdate the description to prefix
+         "(FAILED) " so the failure surfaces in the Claude Code task list.
+         If the task ended in BLOCKED, first TaskUpdate the description to prefix
+         "(BLOCKED) " so the blocked state surfaces distinctly in the Claude Code
+         task list (BLOCKED is a separate terminal state from FAILED — the task
+         did not execute at all due to an unresolved dependency).
+         Then mark the task completed. execution-state.json remains the
+         authoritative record of SUCCESS/FAILED/BLOCKED per CR-04 of EPIC-0033.
 END FOR
 ```
 
@@ -610,7 +620,9 @@ Emit warning: `WARNING: No TDD test plan available. Using G1-G7 group-based impl
 
 **Last action of Phase 2 — Update the phase task (TaskUpdate):**
 
-    TaskUpdate(id: {phase2TaskId}, status: "completed")
+    TaskUpdate(id: phase2TaskId, status: "completed")
+
+Here `phase2TaskId` refers to the numeric task ID returned by the earlier `TaskCreate` call at the start of Phase 2 (substitute with the actual integer).
 
 ## Phase 3 -- Story-Level Verification (Absorbs Old Phases 3-8)
 
@@ -776,7 +788,9 @@ If NOT `--auto-approve-pr`: skip (individual task PRs already target develop).
 
 **Last action of Phase 3 — Update the phase task (TaskUpdate):**
 
-    TaskUpdate(id: {phase3TaskId}, status: "completed")
+    TaskUpdate(id: phase3TaskId, status: "completed")
+
+Here `phase3TaskId` refers to the numeric task ID returned by the earlier `TaskCreate` call at the start of Phase 3 (substitute with the actual integer).
 
 **Phase 3 is the ONLY legitimate stopping point.**
 
