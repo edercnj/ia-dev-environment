@@ -244,6 +244,20 @@ If no TPP-marked test plan and no formal tasks: use legacy G1-G7 group-based imp
 | Specialist Reviews | Phase 3.4 | Adaptive |
 | Tech Lead | Phase 3.6 | Adaptive |
 
+## Error Classification
+
+When a tool call or subagent fails, classify the error before deciding on recovery action:
+
+| Category | Detection Patterns (case-insensitive) | Action |
+|----------|---------------------------------------|--------|
+| **TRANSIENT** | `"overloaded"`, `"capacity"`, `"rate limit"`, `"429"`, `"timeout"`, `"ETIMEDOUT"`, `"503"`, `"504"`, `"502"` | Retry up to 3x with exponential backoff (1s, 2s, 4s + jitter). For timeouts, retry up to 2x. |
+| **CONTEXT** | `"context"`, `"token limit"`, `"output too large"`, `"truncated"` | Reduce scope: drop non-essential references, compress instructions, or split task. Re-dispatch with reduced context. |
+| **PERMANENT** | `"not found"`, `"no such file"`, `"invalid"`, `"malformed"`, `"compilation"`, `"compile error"`, `"test failure"`, `"assertion"`, `"permission denied"`, `"forbidden"` | Fail immediately. Mark task as FAILED. Include error details in summary. |
+| **CIRCUIT** | 3+ consecutive failures (same task) or 5+ total failures in story | Pause execution (3 consecutive) or abort remaining tasks (5 total). |
+
+**Default:** If no pattern matches, classify as **PERMANENT** and fail immediately.
+**Log:** `"Error classified: {category} — Action: {action}"`
+
 ## Error Handling
 
 | Scenario | Action |

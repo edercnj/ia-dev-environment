@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1] - 2026-04-09
+
+### Fixed
+- Resolve merge conflict markers committed to develop across 5 source templates and ~265 golden files. Conflicts between EPIC-0030 (context isolation, output compaction, lazy-kp loading) and EPIC-0031 (circuit breaker, error classification, graceful degradation) caused 27 test failures.
+- Restore EPIC-0030 content lost during EPIC-0031 merges: CONTEXT MANAGEMENT sections, CONTEXT ISOLATION markers, specific KP reference paths (`security/references/application-security.md`, `compliance/references/`), and subagent role prompts (Senior Architect, Event Engineer, Security Engineer) in `x-dev-lifecycle` and `x-dev-epic-implement`.
+- Reposition CONTEXT ISOLATION markers after role names in subagent prompts to satisfy `assertPromptSectionContains` test assertions.
+- Fix `x-dev-epic-implement` subagent dispatch to use explicit `Skill(skill: "x-dev-lifecycle")` invocation instead of descriptive workflow steps.
+- Update expected-artifacts manifest to reflect restored orchestrator template structure.
+- Regenerate golden files for all 17 profiles + 2 platform-specific outputs.
+
 ## [2.2.0] - 2026-04-09
 
 ### Added
