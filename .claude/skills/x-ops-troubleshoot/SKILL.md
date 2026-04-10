@@ -4,6 +4,7 @@ description: "Diagnoses errors, stacktraces, build failures, and unexpected beha
 user-invocable: true
 allowed-tools: Read, Bash, Grep, Glob
 argument-hint: "[error-description or test-name]"
+context-budget: light
 ---
 
 ## Global Output Policy
@@ -162,5 +163,5 @@ When troubleshooting within the feature lifecycle, classify errors for `x-lib-gr
 | Skill | Relationship | Context |
 |-------|-------------|---------|
 | x-lib-group-verifier | Referenced by | Invokes troubleshoot when compilation fails during group verification |
-| x-dev-lifecycle | Referenced by | Used during Phase 4 (fixes) for diagnosing test and build failures |
+| x-dev-story-implement | Referenced by | Used during Phase 4 (fixes) for diagnosing test and build failures |
 | x-test-run | Complements | Troubleshoot diagnoses failures that x-test-run reports |

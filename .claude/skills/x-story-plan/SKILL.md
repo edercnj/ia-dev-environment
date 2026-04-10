@@ -4,6 +4,7 @@ description: "Multi-agent story planning: launches 5 specialized agents (Archite
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[STORY-ID] [--force] [--skip-dor]"
+context-budget: heavy
 ---
 
 ## Global Output Policy
@@ -318,8 +319,9 @@ Launch `general-purpose` subagent:
 > You are a **Security Engineer** assessing security impact for a story in {{PROJECT_NAME}}.
 >
 > **Step 1 -- Read Knowledge Packs:**
-> - Read `skills/security/SKILL.md` then read its references (application-security, cryptography)
-> - Read `skills/compliance/SKILL.md` if compliance is enabled in the project
+> - Read `skills/security/references/application-security.md` -- OWASP Top 10, security headers, dependency security
+> - Read `skills/security/references/security-principles.md` -- data classification, input validation, secure error handling
+> - If compliance is enabled, read the project's active compliance reference under `skills/compliance/references/` (e.g., `gdpr.md`, `lgpd.md`, `pci-dss.md`)
 >
 > **Step 2 -- Read Story Context:**
 > {STORY_CONTENT}
@@ -889,7 +891,7 @@ This ensures backward compatibility with projects that have not yet adopted temp
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| `x-dev-lifecycle` | called-by | Can invoke x-story-plan in Phase 1 for multi-agent planning |
+| `x-dev-story-implement` | called-by | Can invoke x-story-plan in Phase 1 for multi-agent planning |
 | `x-test-plan` | complementary | QA agent produces similar output; x-story-plan adds multi-agent perspective |
 | `x-dev-architecture-plan` | complementary | Architect agent produces similar output with cross-agent consolidation |
 | `x-dev-implement` | downstream | Consumes task breakdown as implementation roadmap |
