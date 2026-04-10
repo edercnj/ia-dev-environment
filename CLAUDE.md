@@ -13,6 +13,12 @@ It includes coding rules, skills (slash commands), knowledge packs, agents, and 
 
 > The `CLAUDE.md` file at the project root provides an executive summary loaded automatically in EVERY conversation.
 
+> **In progress — EPIC-0036 (Skill Taxonomy Refactor).**
+> The source of truth for skills under `java/src/main/resources/targets/claude/skills/` is being reorganized into 10 category subfolders (`plan/`, `dev/`, `test/`, `review/`, `security/`, `code/`, `git/`, `pr/`, `ops/`, `jira/`), and ~19 skills will be renamed to a consistent `x-{subject}-{action}` scheme. The generated output `.claude/skills/` remains **flat** — user-facing invocation paths are preserved.
+> - Decision record: [`adr/ADR-0003-skill-taxonomy-and-naming.md`](adr/ADR-0003-skill-taxonomy-and-naming.md)
+> - Rename staging checklist: [`plans/epic-0036/skill-renames.md`](plans/epic-0036/skill-renames.md)
+> - Current skill names (e.g., `/x-story-epic`, `/x-dev-implement`, `/run-e2e`) remain valid until the corresponding rename story merges. Do not pre-emptively use the new names.
+
 ## Structure
 
 ### .claude/ (Claude Code)
