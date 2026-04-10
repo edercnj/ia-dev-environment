@@ -25,7 +25,7 @@ import picocli.CommandLine.Model.CommandSpec;
         description = "Generates .claude/ and .github/ boilerplate "
                 + "for AI-assisted development environments.",
         mixinStandardHelpOptions = true,
-        version = "2.0.0",
+        versionProvider = CliVersionProvider.class,
         subcommands = {
                 GenerateCommand.class,
                 ValidateCommand.class

@@ -123,11 +123,12 @@ class WrapperScriptTest {
     }
 
     @Test
-    void wrapperScript_whenCalled_containsJarName()
+    void wrapperScript_whenCalled_globsForJarByPattern()
             throws IOException {
         String content = Files.readString(SCRIPT_PATH);
         assertThat(content)
-                .contains("ia-dev-env-2.0.0-SNAPSHOT.jar");
+                .contains("ia-dev-env-*.jar")
+                .doesNotContain("SNAPSHOT");
     }
 
     @Test
