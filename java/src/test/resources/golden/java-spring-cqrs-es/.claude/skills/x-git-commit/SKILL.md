@@ -2,7 +2,7 @@
 name: x-git-commit
 description: "Creates Conventional Commits with Task ID in scope and pre-commit chain (format -> lint -> compile). Central commit point in the task-centric workflow with TDD tag support."
 user-invocable: true
-allowed-tools: Bash, Read, Grep, Glob, Write, Edit
+allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Skill
 argument-hint: "--task TASK-XXXX-YYYY-NNN --type <type> --subject <subject> [--tdd RED|GREEN|REFACTOR] [--body <body>] [--skip-chain] [--amend]"
 context-budget: medium
 ---
@@ -150,7 +150,11 @@ Unless `--skip-chain` is provided, execute the chain sequentially:
 
 #### 3a. Format (x-code-format)
 
-Invoke `/x-code-format` to format all staged files. If x-code-format modifies any files that were staged, **re-stage them automatically**:
+Invoke the `x-code-format` skill via the Skill tool (Rule 13 — INLINE-SKILL pattern):
+
+    Skill(skill: "x-code-format", args: "")
+
+If `x-code-format` modifies any files that were staged, **re-stage them automatically**:
 
 ```bash
 # Record staged files before format (NUL-delimited for safety)
@@ -173,7 +177,11 @@ If format fails: **ABORT** with message `"Pre-commit chain failed at step 'x-cod
 
 #### 3b. Lint (x-code-lint)
 
-Invoke `/x-code-lint` to analyze code for errors. Only ERROR-level findings block the commit.
+Invoke the `x-code-lint` skill via the Skill tool (Rule 13 — INLINE-SKILL pattern):
+
+    Skill(skill: "x-code-lint", args: "")
+
+Only ERROR-level findings block the commit.
 
 If lint finds ERRORs: **ABORT** with message `"Pre-commit chain failed at step 'x-code-lint': {error count} errors found"`.
 

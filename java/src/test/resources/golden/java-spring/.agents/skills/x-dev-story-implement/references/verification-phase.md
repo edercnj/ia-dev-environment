@@ -45,13 +45,21 @@ If no documentable interfaces configured: skip interface generators with log `"N
 
 **Architecture Document Update (Recommended):**
 If an architecture plan exists at `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`:
-1. Invoke `x-dev-arch-update` to incrementally update `steering/service-architecture.md`
+1. Invoke `x-dev-arch-update` via the Skill tool (Rule 13 — INLINE-SKILL pattern):
+
+       Skill(skill: "x-dev-arch-update", args: "plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md")
+
+   This incrementally updates `steering/service-architecture.md`.
 2. New components, integrations, flows, and ADR references are added to the appropriate sections
 3. If `steering/service-architecture.md` does not exist, create it from the template
 
-### Step 3.4 -- Review (Invoke /x-review)
+### Step 3.4 -- Review (invoke x-review via Skill tool)
 
-Invoke skill `/x-review` for the current story. The review skill launches its own parallel subagents (one per specialist engineer), each reading their own knowledge pack.
+Invoke the `x-review` skill via the Skill tool (Rule 13 — INLINE-SKILL pattern):
+
+    Skill(skill: "x-review", args: "{STORY_ID}")
+
+The review skill launches its own parallel subagents (one per specialist engineer), each reading their own knowledge pack.
 
 **Template Reference (RULE-007):** Instruct each of the 8 specialist subagents: "Read template at `.claude/templates/_TEMPLATE-SPECIALIST-REVIEW.md` for required output format." If the template file does not exist, log `"WARNING: Template _TEMPLATE-SPECIALIST-REVIEW.md not found, using inline format"` and proceed with existing inline format as fallback (RULE-012).
 
@@ -80,7 +88,11 @@ After collecting all specialist review results, generate a consolidated dashboar
 
 ### Step 3.6 -- Tech Lead Review
 
-Invoke skill `x-review-pr` for holistic review. Requires all items passing for GO. If NO-GO, fix all failed items and re-review (max 2 cycles).
+Invoke the `x-review-pr` skill via the Skill tool (Rule 13 — INLINE-SKILL pattern):
+
+    Skill(skill: "x-review-pr", args: "{STORY_ID}")
+
+Requires all items passing for GO. If NO-GO, fix all failed items and re-review (max 2 cycles).
 
 **Dashboard Update (RULE-006):**
 After the Tech Lead review completes, update the consolidated review dashboard at `plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md` with Tech Lead findings.

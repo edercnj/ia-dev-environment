@@ -82,10 +82,11 @@ class TaskCentricLifecycleTest {
         }
 
         @Test
-        @DisplayName("Phase 2 references x-test-tdd skill")
+        @DisplayName("Phase 2 references x-test-tdd skill"
+                + " via Skill tool")
         void phase2_referencesXTdd() {
             assertThat(lifecycleContent)
-                    .contains("/x-test-tdd");
+                    .contains("Skill(skill: \"x-test-tdd\",");
         }
 
         @Test
@@ -93,7 +94,7 @@ class TaskCentricLifecycleTest {
                 + " skill")
         void phase2_referencesXPrCreate() {
             assertThat(lifecycleContent)
-                    .contains("/x-pr-create");
+                    .contains("Skill(skill: \"x-pr-create\",");
         }
 
         @Test
@@ -165,7 +166,7 @@ class TaskCentricLifecycleTest {
                 + " invocation")
         void phase3_reviewInvocation() {
             assertThat(lifecycleContent)
-                    .contains("/x-review");
+                    .contains("Skill(skill: \"x-review\",");
         }
 
         @Test
