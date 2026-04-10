@@ -6,9 +6,9 @@
 
 | Story | Depends On | Blocks | Status |
 |-------|-----------|--------|--------|
-| STORY-0033-0001 (Skill Chain Fix, **expanded scope**) | — | STORY-0033-0002 | Pendente |
-| STORY-0033-0002 (TaskCreate Visibility) | STORY-0033-0001 | STORY-0033-0003 | Pendente |
-| STORY-0033-0003 (Planning Subagent Visibility + `--orchestrated` flag) | STORY-0033-0002 | — | Pendente |
+| STORY-0033-0001 (Skill Chain Fix, **expanded scope**) | — | STORY-0033-0002 | **Concluida** (PR #257) |
+| STORY-0033-0002 (TaskCreate Visibility) | STORY-0033-0001 | STORY-0033-0003 | **Concluida** (PR #258) |
+| STORY-0033-0003 (Planning Subagent Visibility + `--orchestrated` flag) | STORY-0033-0002 | — | **Concluida** (PR #259 + PR #261 audit hardening) |
 | STORY-0033-0004 (Naming Consolidation) | — | — | **VOID — done by EPIC-0032** |
 
 ## Dependency Graph
