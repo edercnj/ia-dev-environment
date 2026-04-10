@@ -144,13 +144,19 @@ class SkillsAssemblerContextBudgetTest {
     /**
      * Creates a skill template with the given number of
      * lines and standard YAML frontmatter.
+     *
+     * <p>Post EPIC-0036, skills live under
+     * {@code core/{category}/{skill-name}/}; this helper
+     * uses the {@code test/} category so fixtures match the
+     * two-layer walk performed by
+     * {@link SkillsAssembler#selectCoreSkills()}.</p>
      */
     private Path createSkillTemplate(
             Path tempDir,
             String skillName,
             int lineCount) throws IOException {
         Path skillDir = tempDir.resolve(
-                "targets/claude/skills/core/"
+                "targets/claude/skills/core/test/"
                         + skillName);
         Files.createDirectories(skillDir);
 

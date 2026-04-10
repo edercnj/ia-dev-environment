@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,17 +36,28 @@ class SubagentContextIsolationTest {
             "CONTEXT ISOLATION:";
 
     /**
-     * Skills that contain subagent dispatch prompts.
+     * Skills that contain subagent dispatch prompts,
+     * mapped to their category subdir (EPIC-0036).
      */
+    private static final Map<String, String>
+            ORCHESTRATOR_SKILL_CATEGORIES =
+            Map.of(
+                    "x-dev-epic-implement", "dev",
+                    "x-dev-story-implement", "dev",
+                    "x-review", "review",
+                    "x-epic-plan", "plan");
+
     private static final List<String> ORCHESTRATOR_SKILLS =
-            List.of(
-                    "x-dev-epic-implement",
-                    "x-dev-story-implement",
-                    "x-review",
-                    "x-epic-plan");
+            List.copyOf(
+                    ORCHESTRATOR_SKILL_CATEGORIES.keySet());
 
     private Path resolveSkillPath(String skillName) {
-        return Path.of(SKILLS_DIR, skillName, "SKILL.md");
+        String category =
+                ORCHESTRATOR_SKILL_CATEGORIES.get(
+                        skillName);
+        return Path.of(
+                SKILLS_DIR, category, skillName,
+                "SKILL.md");
     }
 
     private String readSkillContent(String skillName)
@@ -232,7 +244,7 @@ class SubagentContextIsolationTest {
                 + "invoke x-threat-model via Skill tool")
         void lifecycle_invokesThreatModelViaSkill()
                 throws IOException {
-            Path refPath = Path.of(SKILLS_DIR,
+            Path refPath = Path.of(SKILLS_DIR, "dev",
                     "x-dev-story-implement", "references",
                     "planning-phases.md");
             String content = Files.readString(
