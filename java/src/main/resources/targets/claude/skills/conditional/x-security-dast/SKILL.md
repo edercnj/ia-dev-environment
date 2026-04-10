@@ -1,5 +1,5 @@
 ---
-name: x-dast-scan
+name: x-security-dast
 description: "Dynamic Application Security Testing -- tests the running application for XSS, injection, misconfiguration, and information disclosure using OWASP ZAP or Nuclei."
 user-invocable: true
 allowed-tools: Read, Bash

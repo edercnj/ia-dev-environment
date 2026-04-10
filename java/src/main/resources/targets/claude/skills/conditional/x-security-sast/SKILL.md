@@ -1,5 +1,5 @@
 ---
-name: x-sast-scan
+name: x-security-sast
 description: "Static Application Security Testing -- scans source code for security vulnerabilities without executing the application. Produces SARIF output with OWASP mapping."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob

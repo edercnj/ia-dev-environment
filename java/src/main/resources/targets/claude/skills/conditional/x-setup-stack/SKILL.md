@@ -1,5 +1,5 @@
 ---
-name: setup-environment
+name: x-setup-stack
 description: "Sets up the local development environment including container orchestrator, database, and build tools."
 user-invocable: true
 allowed-tools: Bash, Read, Write

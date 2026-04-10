@@ -1,5 +1,5 @@
 ---
-name: x-infra-scan
+name: x-security-infra
 description: "Scans Kubernetes manifests, Terraform modules, Helm charts, and Docker Compose files for misconfigurations against CIS benchmarks."
 user-invocable: true
 allowed-tools: Bash, Read, Write, Glob, Grep

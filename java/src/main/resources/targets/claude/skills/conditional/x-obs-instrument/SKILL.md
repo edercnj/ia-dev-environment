@@ -1,5 +1,5 @@
 ---
-name: instrument-otel
+name: x-obs-instrument
 description: "Adds or reviews distributed tracing, metrics, and structured logging using OpenTelemetry SDK with OTLP export."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob

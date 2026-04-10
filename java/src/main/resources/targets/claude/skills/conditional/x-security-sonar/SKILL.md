@@ -1,5 +1,5 @@
 ---
-name: x-sonar-gate
+name: x-security-sonar
 description: "Integrates with SonarQube/SonarCloud for security hotspot tracking, quality gate enforcement, and SARIF output from findings."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob

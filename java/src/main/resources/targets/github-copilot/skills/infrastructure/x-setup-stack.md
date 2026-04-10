@@ -1,5 +1,5 @@
 ---
-name: setup-environment
+name: x-setup-stack
 description: >
   Skill: Dev Environment Setup -- Manages the local development environment
   lifecycle including starting/stopping the container orchestrator, provisioning
