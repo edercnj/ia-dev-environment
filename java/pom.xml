@@ -126,6 +126,16 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>false</filtering>
+                <excludes>
+                    <exclude>dev/iadev/version.properties</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>dev/iadev/version.properties</include>
+                </includes>
             </resource>
         </resources>
         <plugins>
