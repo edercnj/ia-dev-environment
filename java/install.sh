@@ -236,6 +236,24 @@ resolve_script_dir() {
 }
 
 resolve_version() {
+    if [ -n "$JAR_PATH" ]; then
+        local jar_basename
+        jar_basename=$(basename "$JAR_PATH")
+        case "$jar_basename" in
+            ia-dev-env-*.jar)
+                VERSION="${jar_basename#ia-dev-env-}"
+                VERSION="${VERSION%.jar}"
+                log_info "Detected version $VERSION from JAR filename"
+                ;;
+            *)
+                VERSION="unknown"
+                log_warn "Could not parse version from $jar_basename; using 'unknown'"
+                ;;
+        esac
+        JAR_NAME="$jar_basename"
+        return 0
+    fi
+
     local script_dir
     script_dir=$(resolve_script_dir)
     local pom_file="$script_dir/pom.xml"
