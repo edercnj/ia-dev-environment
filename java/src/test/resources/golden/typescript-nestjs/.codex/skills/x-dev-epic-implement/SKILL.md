@@ -2,7 +2,7 @@
 name: x-dev-epic-implement
 description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-story-implement subagents."
 user-invocable: true
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, AskUserQuestion
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, AskUserQuestion, TaskCreate, TaskUpdate
 argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr] [--auto-merge] [--no-merge] [--interactive-merge] [--strict-overlap] [--skip-pr-comments] [--auto-approve-pr] [--batch-approval] [--task-tracking]"
 context-budget: heavy
 ---
@@ -933,6 +933,11 @@ dispatch in Section 1.4 is used instead.
 
 1. Call `getExecutableStories(parsedMap, executionState)` to get all executable stories for the current phase
 2. For each executable story, mark `IN_PROGRESS` via `updateStoryStatus(epicDir, storyId, { status: "IN_PROGRESS" })`
+2.5 **Story-level tracking (Story 0033-0002, Level 2 visibility):** For each executable story, create a tracking task via TaskCreate. Store the returned IDs indexed by `storyId` in an in-memory map `storyTrackingTasks`:
+
+       TaskCreate(description: "Story {storyId}: {storyTitle}")
+
+    These tasks surface real-time story progress in the Claude Code task list. They are closed in step 4.5 via TaskUpdate after each subagent returns. execution-state.json remains the authoritative record of SUCCESS/FAILED per CR-04 of EPIC-0033.
 3. Launch ALL stories in a SINGLE message using the `Agent` tool with `isolation: "worktree"`:
 
 ```
@@ -956,6 +961,11 @@ branch, phase, flags). The `isolation: "worktree"` parameter ensures each subage
 works on an isolated copy of the repository.
 
 4. Wait for ALL subagents to complete
+4.5 **Close story-level tracking tasks (Story 0033-0002):** For each returned `SubagentResult`, update the corresponding tracking task created in step 2.5 via TaskUpdate:
+
+       TaskUpdate(id: storyTrackingTasks[storyId], status: "completed")
+
+    If the SubagentResult indicates FAILED, first call an additional TaskUpdate to prefix the description with "(FAILED) " so the failure surfaces in the Claude Code task list. The `status` field is always "completed" for visibility purposes — the authoritative SUCCESS/FAILED remains in execution-state.json (CR-04).
 5. Validate each `SubagentResult` using Section 1.5 rules
 6. Each story's PR targets `develop` directly — no merge into an epic branch is needed
 
