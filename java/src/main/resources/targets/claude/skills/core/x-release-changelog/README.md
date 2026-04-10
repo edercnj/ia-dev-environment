@@ -1,11 +1,11 @@
-# x-changelog
+# x-release-changelog
 
 > Generates CHANGELOG.md from Conventional Commits history. Parses git log, groups by commit type, maps to Keep a Changelog sections (Added, Changed, Fixed, etc.), and performs incremental updates preserving existing entries.
 
 | | |
 |---|---|
 | **Category** | Git/Release |
-| **Invocation** | `/x-changelog [version-tag \| --unreleased]` |
+| **Invocation** | `/x-release-changelog [version-tag \| --unreleased]` |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
 
@@ -16,10 +16,10 @@ Automates changelog generation by parsing the git history for Conventional Commi
 ## Usage
 
 ```
-/x-changelog
-/x-changelog v1.2.0
-/x-changelog --unreleased
-/x-changelog --full
+/x-release-changelog
+/x-release-changelog v1.2.0
+/x-release-changelog --unreleased
+/x-release-changelog --full
 ```
 
 ## Workflow

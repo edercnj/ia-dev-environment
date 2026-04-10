@@ -1,4 +1,4 @@
-# x-dast-scan
+# x-security-dast
 
 > Dynamic Application Security Testing -- tests the running application for XSS, injection, misconfiguration, and information disclosure vulnerabilities using OWASP ZAP or Nuclei.
 
@@ -6,7 +6,7 @@
 |---|---|
 | **Category** | Conditional |
 | **Condition** | `security.scanning.dast = true` |
-| **Invocation** | `/x-dast-scan --target <URL> [--env local\|dev\|homolog\|prod] [--mode passive\|active\|full]` |
+| **Invocation** | `/x-security-dast --target <URL> [--env local\|dev\|homolog\|prod] [--mode passive\|active\|full]` |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
 
@@ -21,13 +21,13 @@ Orchestrates Dynamic Application Security Testing against a running application,
 ## Usage
 
 ```
-/x-dast-scan --target http://localhost:8080
-/x-dast-scan --target https://app.staging.example.com --env homolog --mode passive
-/x-dast-scan --target http://localhost:8080 --openapi docs/openapi.yaml
+/x-security-dast --target http://localhost:8080
+/x-security-dast --target https://app.staging.example.com --env homolog --mode passive
+/x-security-dast --target http://localhost:8080 --openapi docs/openapi.yaml
 ```
 
 ## See Also
 
-- [x-sast-scan](../x-sast-scan/) -- Static code analysis for vulnerabilities
-- [x-pentest](../x-pentest/) -- Multi-phase penetration test orchestrator
+- [x-security-sast](../x-security-sast/) -- Static code analysis for vulnerabilities
+- [x-security-pentest](../x-security-pentest/) -- Multi-phase penetration test orchestrator
 - [run-smoke-api](../run-smoke-api/) -- REST API smoke tests against deployed environments

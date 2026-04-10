@@ -3,7 +3,7 @@ name: x-spec-drift
 description: >
   Detects spec-code drift by comparing story data contracts, endpoints, and Gherkin
   scenarios against implemented code. Supports standalone mode (full report) and inline
-  mode (compact output for TDD loop integration in x-dev-lifecycle Phase 2).
+  mode (compact output for TDD loop integration in x-dev-story-implement Phase 2).
 ---
 
 # Skill: Spec Drift Check
@@ -17,8 +17,8 @@ Compares story specifications (data contracts, endpoints, Gherkin scenarios) aga
 
 ## Triggers
 
-- `/x-spec-drift-check STORY-ID` -- standalone mode (full report)
-- `/x-spec-drift-check STORY-ID --mode inline` -- inline mode (compact output)
+- `/x-spec-drift STORY-ID` -- standalone mode (full report)
+- `/x-spec-drift STORY-ID --mode inline` -- inline mode (compact output)
 
 ## Workflow
 
@@ -44,7 +44,7 @@ Full itemized report covering:
 
 ## Inline Mode (TDD Loop Integration)
 
-Compact output for x-dev-lifecycle Phase 2. Checks only data contracts and endpoints (skips Gherkin coverage and Constitution compliance).
+Compact output for x-dev-story-implement Phase 2. Checks only data contracts and endpoints (skips Gherkin coverage and Constitution compliance).
 
 - **WARN**: Non-blocking, displayed but loop continues
 - **FAIL**: Critical drift, pauses loop for confirmation

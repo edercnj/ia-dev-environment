@@ -4,22 +4,22 @@ description: >
   Creates Conventional Commits with Task ID in scope and pre-commit chain
   (format -> lint -> compile). Central commit point in the task-centric
   workflow with TDD tag support.
-  Reference: `.github/skills/x-commit/SKILL.md`
+  Reference: `.github/skills/x-git-commit/SKILL.md`
 ---
 
 # Skill: Conventional Commit with Task ID
 
 ## Purpose
 
-Creates standardized commits for {{PROJECT_NAME}} with Task ID in the scope, enforces the complete pre-commit chain (RULE-007: `x-format -> x-lint -> compile -> commit`), and annotates commits with TDD tags (RULE-008). This skill is the central commit creation point in the task-centric workflow.
+Creates standardized commits for {{PROJECT_NAME}} with Task ID in the scope, enforces the complete pre-commit chain (RULE-007: `x-code-format -> x-code-lint -> compile -> commit`), and annotates commits with TDD tags (RULE-008). This skill is the central commit creation point in the task-centric workflow.
 
 ## Triggers
 
-- `/x-commit --task TASK-XXXX-YYYY-NNN --type feat --subject "add detection logic"` -- commit with task ID
-- `/x-commit --task TASK-XXXX-YYYY-NNN --type test --subject "add unit tests" --tdd RED` -- commit with TDD tag
-- `/x-commit --task TASK-XXXX-YYYY-NNN --type feat --subject "implement handler" --tdd GREEN` -- green phase commit
-- `/x-commit --task TASK-XXXX-YYYY-NNN --type refactor --subject "extract method" --tdd REFACTOR` -- refactor phase commit
-- `/x-commit --task TASK-XXXX-YYYY-NNN --type chore --subject "update config" --skip-chain` -- skip pre-commit chain
+- `/x-git-commit --task TASK-XXXX-YYYY-NNN --type feat --subject "add detection logic"` -- commit with task ID
+- `/x-git-commit --task TASK-XXXX-YYYY-NNN --type test --subject "add unit tests" --tdd RED` -- commit with TDD tag
+- `/x-git-commit --task TASK-XXXX-YYYY-NNN --type feat --subject "implement handler" --tdd GREEN` -- green phase commit
+- `/x-git-commit --task TASK-XXXX-YYYY-NNN --type refactor --subject "extract method" --tdd REFACTOR` -- refactor phase commit
+- `/x-git-commit --task TASK-XXXX-YYYY-NNN --type chore --subject "update config" --skip-chain` -- skip pre-commit chain
 
 ## Arguments
 
@@ -55,7 +55,7 @@ Creates standardized commits for {{PROJECT_NAME}} with Task ID in the scope, enf
 ```
 1. VALIDATE    -> Check parameters (task ID, type, subject, tdd tag)
 2. CHECK-STAGE -> Verify staged files exist
-3. PRE-COMMIT  -> Run chain: x-format -> x-lint -> compile (unless --skip-chain)
+3. PRE-COMMIT  -> Run chain: x-code-format -> x-code-lint -> compile (unless --skip-chain)
 4. BUILD-MSG   -> Construct commit message with task ID and TDD tag
 5. COMMIT      -> Execute git commit (or git commit --amend)
 6. REPORT      -> Output commit summary
@@ -63,8 +63,8 @@ Creates standardized commits for {{PROJECT_NAME}} with Task ID in the scope, enf
 
 ### Pre-Commit Chain (RULE-007)
 
-1. **x-format**: Format code, re-stage modified files
-2. **x-lint**: Analyze code, abort on ERRORs
+1. **x-code-format**: Format code, re-stage modified files
+2. **x-code-lint**: Analyze code, abort on ERRORs
 3. **compile**: Run `{{COMPILE_COMMAND}}`, abort on failure
 4. **commit**: Create commit with standardized message
 
@@ -88,7 +88,7 @@ Creates standardized commits for {{PROJECT_NAME}} with Task ID in the scope, enf
 
 ## Integration Notes
 
-- Invokes x-format and x-lint as pre-commit steps
-- Used by x-dev-lifecycle to create task-level commits
+- Invokes x-code-format and x-code-lint as pre-commit steps
+- Used by x-dev-story-implement to create task-level commits
 - Follows Conventional Commits for changelog generation
 - TDD tags enable TDD compliance auditing

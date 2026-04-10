@@ -1,29 +1,29 @@
-# x-docs
+# x-doc-generate
 
 > Documentation automation: detects documentation type needed (API, README, ADR, changelog) from code changes, delegates to specialized skills or generates inline. Single entry point for all documentation updates.
 
 | | |
 |---|---|
 | **Category** | Documentation |
-| **Invocation** | `/x-docs [--type api\|readme\|adr\|changelog\|all] [--scope path] [--force]` |
+| **Invocation** | `/x-doc-generate [--type api\|readme\|adr\|changelog\|all] [--scope path] [--force]` |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
 
 ## What It Does
 
-Serves as the single entry point for all documentation generation and updates. Analyzes code changes via `git diff` to auto-detect which documentation types need updating, then delegates to specialized skills (`/x-changelog`, `/x-dev-adr-automation`, `/x-dev-arch-update`) or generates API docs and README updates inline. Ensures documentation stays in sync with code changes.
+Serves as the single entry point for all documentation generation and updates. Analyzes code changes via `git diff` to auto-detect which documentation types need updating, then delegates to specialized skills (`/x-release-changelog`, `/x-dev-adr-automation`, `/x-dev-arch-update`) or generates API docs and README updates inline. Ensures documentation stays in sync with code changes.
 
 ## Usage
 
 ```
-/x-docs
-/x-docs --type api
-/x-docs --type readme
-/x-docs --type changelog
-/x-docs --type adr
-/x-docs --type all
-/x-docs --type all --force
-/x-docs --type api --scope src/main/java/com/example/api/
+/x-doc-generate
+/x-doc-generate --type api
+/x-doc-generate --type readme
+/x-doc-generate --type changelog
+/x-doc-generate --type adr
+/x-doc-generate --type all
+/x-doc-generate --type all --force
+/x-doc-generate --type api --scope src/main/java/com/example/api/
 ```
 
 ## Flags
@@ -49,7 +49,7 @@ When `--type` is omitted, the skill analyzes `git diff` to infer which documenta
 
 | Type | Delegated To | Method |
 |------|-------------|--------|
-| `changelog` | `/x-changelog` | Skill tool invocation |
+| `changelog` | `/x-release-changelog` | Skill tool invocation |
 | `adr` | `/x-dev-adr-automation` | Skill tool invocation |
 | Architecture | `/x-dev-arch-update` | Skill tool invocation |
 | `api` | Inline | Direct generation |
@@ -75,6 +75,6 @@ When `--type` is omitted, the skill analyzes `git diff` to infer which documenta
 
 ## See Also
 
-- [x-changelog](../x-changelog/) -- Changelog generation from Conventional Commits
+- [x-release-changelog](../x-release-changelog/) -- Changelog generation from Conventional Commits
 - [x-dev-adr-automation](../x-dev-adr-automation/) -- ADR generation from architecture plans
 - [x-dev-arch-update](../x-dev-arch-update/) -- Architecture document updates

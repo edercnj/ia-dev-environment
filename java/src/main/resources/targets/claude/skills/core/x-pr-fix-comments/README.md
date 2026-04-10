@@ -1,11 +1,11 @@
-# x-fix-pr-comments
+# x-pr-fix-comments
 
 > Reads PR review comments and fixes actionable ones automatically. Detects PR from argument or branch, classifies comments (actionable/suggestion/question/praise), implements fixes, and commits with proper conventional commit messages.
 
 | | |
 |---|---|
 | **Category** | Review |
-| **Invocation** | `/x-fix-pr-comments [PR-number]` |
+| **Invocation** | `/x-pr-fix-comments [PR-number]` |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
 
@@ -16,8 +16,8 @@ Automates the process of addressing PR review comments by fetching all review co
 ## Usage
 
 ```
-/x-fix-pr-comments
-/x-fix-pr-comments 123
+/x-pr-fix-comments
+/x-pr-fix-comments 123
 ```
 
 ## Workflow
@@ -32,6 +32,6 @@ Automates the process of addressing PR review comments by fetching all review co
 
 ## See Also
 
-- [x-fix-epic-pr-comments](../x-fix-epic-pr-comments/) -- Batch version for all PRs in an epic
+- [x-pr-fix-epic-comments](../x-pr-fix-epic-comments/) -- Batch version for all PRs in an epic
 - [x-review-pr](../x-review-pr/) -- Tech Lead review that may generate comments to fix
 - [x-review](../x-review/) -- Specialist reviews that may generate comments to fix

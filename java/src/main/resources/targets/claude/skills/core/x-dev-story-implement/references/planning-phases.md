@@ -1,7 +1,7 @@
 # Planning Phases Reference
 
 > **Context:** This reference details Phase 1A-1F planning subagents.
-> Part of x-dev-lifecycle skill.
+> Part of x-dev-story-implement skill.
 
 ## Phase 1 -- Architecture Planning (Skill Invocation + Subagent Fallback)
 

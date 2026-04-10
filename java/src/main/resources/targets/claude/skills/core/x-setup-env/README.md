@@ -1,11 +1,11 @@
-# x-setup-dev-environment
+# x-setup-env
 
 > Validate and configure local development environment: detect stack, check prerequisites, verify versions, validate IDE config, test database connectivity, run initial build, and report status with fix suggestions.
 
 | | |
 |---|---|
 | **Category** | Operations |
-| **Invocation** | `/x-setup-dev-environment [--check-only] [--fix]` |
+| **Invocation** | `/x-setup-env [--check-only] [--fix]` |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
 
@@ -16,9 +16,9 @@ Validates and configures the local development environment by detecting the proj
 ## Usage
 
 ```
-/x-setup-dev-environment
-/x-setup-dev-environment --check-only
-/x-setup-dev-environment --fix
+/x-setup-env
+/x-setup-env --check-only
+/x-setup-env --fix
 ```
 
 ## Workflow

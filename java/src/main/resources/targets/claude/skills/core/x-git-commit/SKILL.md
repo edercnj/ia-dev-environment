@@ -16,16 +16,16 @@ argument-hint: "--task TASK-XXXX-YYYY-NNN --type <type> --subject <subject> [--t
 
 ## Purpose
 
-Creates standardized commits for {{PROJECT_NAME}} with Task ID in the scope, enforces the complete pre-commit chain (RULE-007: `x-format -> x-lint -> compile -> commit`), and annotates commits with TDD tags (RULE-008). This skill is the central commit creation point in the task-centric workflow, ensuring every commit is traceable to its task, passes all quality gates, and documents the TDD cycle stage.
+Creates standardized commits for {{PROJECT_NAME}} with Task ID in the scope, enforces the complete pre-commit chain (RULE-007: `x-code-format -> x-code-lint -> compile -> commit`), and annotates commits with TDD tags (RULE-008). This skill is the central commit creation point in the task-centric workflow, ensuring every commit is traceable to its task, passes all quality gates, and documents the TDD cycle stage.
 
 ## Triggers
 
-- `/x-commit --task TASK-XXXX-YYYY-NNN --type feat --subject "add detection logic"` -- commit with task ID
-- `/x-commit --task TASK-XXXX-YYYY-NNN --type test --subject "add unit tests" --tdd RED` -- commit with TDD tag
-- `/x-commit --task TASK-XXXX-YYYY-NNN --type feat --subject "implement handler" --tdd GREEN` -- green phase commit
-- `/x-commit --task TASK-XXXX-YYYY-NNN --type refactor --subject "extract method" --tdd REFACTOR` -- refactor phase commit
-- `/x-commit --task TASK-XXXX-YYYY-NNN --type chore --subject "update config" --skip-chain` -- skip pre-commit chain
-- `/x-commit --task TASK-XXXX-YYYY-NNN --type fix --subject "fix null check" --amend` -- amend last commit
+- `/x-git-commit --task TASK-XXXX-YYYY-NNN --type feat --subject "add detection logic"` -- commit with task ID
+- `/x-git-commit --task TASK-XXXX-YYYY-NNN --type test --subject "add unit tests" --tdd RED` -- commit with TDD tag
+- `/x-git-commit --task TASK-XXXX-YYYY-NNN --type feat --subject "implement handler" --tdd GREEN` -- green phase commit
+- `/x-git-commit --task TASK-XXXX-YYYY-NNN --type refactor --subject "extract method" --tdd REFACTOR` -- refactor phase commit
+- `/x-git-commit --task TASK-XXXX-YYYY-NNN --type chore --subject "update config" --skip-chain` -- skip pre-commit chain
+- `/x-git-commit --task TASK-XXXX-YYYY-NNN --type fix --subject "fix null check" --amend` -- amend last commit
 
 ## Parameters
 
@@ -90,7 +90,7 @@ docs(TASK-0029-0005-004): update README with commit format
 ```
 1. VALIDATE    -> Check parameters (task ID, type, subject, tdd tag)
 2. CHECK-STAGE -> Verify staged files exist
-3. PRE-COMMIT  -> Run chain: x-format -> x-lint -> compile (unless --skip-chain)
+3. PRE-COMMIT  -> Run chain: x-code-format -> x-code-lint -> compile (unless --skip-chain)
 4. BUILD-MSG   -> Construct commit message with task ID and TDD tag
 5. COMMIT      -> Execute git commit (or git commit --amend)
 6. REPORT      -> Output commit summary
@@ -147,9 +147,9 @@ echo "Staged files: $(echo "$STAGED" | wc -l)"
 
 Unless `--skip-chain` is provided, execute the chain sequentially:
 
-#### 3a. Format (x-format)
+#### 3a. Format (x-code-format)
 
-Invoke `/x-format` to format all staged files. If x-format modifies any files that were staged, **re-stage them automatically**:
+Invoke `/x-code-format` to format all staged files. If x-code-format modifies any files that were staged, **re-stage them automatically**:
 
 ```bash
 # Record staged files before format (NUL-delimited for safety)
@@ -157,7 +157,7 @@ STAGED_BEFORE=$(git diff --cached --name-only -z)
 
 # Run formatter (language-specific)
 # For {{LANGUAGE}}: {{COMPILE_COMMAND}} equivalent
-# See x-format skill for language-specific commands
+# See x-code-format skill for language-specific commands
 
 # Re-stage files that were staged and modified by formatter
 while IFS= read -r -d '' file; do
@@ -168,13 +168,13 @@ while IFS= read -r -d '' file; do
 done <<< "$STAGED_BEFORE"
 ```
 
-If format fails: **ABORT** with message `"Pre-commit chain failed at step 'x-format': {error output}"`.
+If format fails: **ABORT** with message `"Pre-commit chain failed at step 'x-code-format': {error output}"`.
 
-#### 3b. Lint (x-lint)
+#### 3b. Lint (x-code-lint)
 
-Invoke `/x-lint` to analyze code for errors. Only ERROR-level findings block the commit.
+Invoke `/x-code-lint` to analyze code for errors. Only ERROR-level findings block the commit.
 
-If lint finds ERRORs: **ABORT** with message `"Pre-commit chain failed at step 'x-lint': {error count} errors found"`.
+If lint finds ERRORs: **ABORT** with message `"Pre-commit chain failed at step 'x-code-lint': {error count} errors found"`.
 
 #### 3c. Compile
 
@@ -244,7 +244,7 @@ NOTE: Amending last commit. Previous commit message will be replaced.
 ### Step 6 -- Report
 
 ```
-x-commit complete:
+x-git-commit complete:
   Task:     {task-id}
   Type:     {type}
   Subject:  {subject}
@@ -263,8 +263,8 @@ x-commit complete:
 | Invalid commit type | ABORT with valid types list |
 | Invalid TDD tag | ABORT with valid tags list |
 | No staged files | ABORT with "No staged files for commit" |
-| x-format fails | ABORT with "Pre-commit chain failed at step 'x-format'" |
-| x-lint finds ERRORs | ABORT with "Pre-commit chain failed at step 'x-lint'" |
+| x-code-format fails | ABORT with "Pre-commit chain failed at step 'x-code-format'" |
+| x-code-lint finds ERRORs | ABORT with "Pre-commit chain failed at step 'x-code-lint'" |
 | Compile fails | ABORT with "Pre-commit chain failed at step 'compile'" |
 | git commit fails | ABORT with git error message |
 | Non-imperative subject | WARN but proceed (soft validation) |
@@ -273,15 +273,15 @@ x-commit complete:
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| `x-format` | invoked by | First step of pre-commit chain |
-| `x-lint` | invoked by | Second step of pre-commit chain |
+| `x-code-format` | invoked by | First step of pre-commit chain |
+| `x-code-lint` | invoked by | Second step of pre-commit chain |
 | `x-git-push` | followed by | Push after commit is created |
-| `x-dev-lifecycle` | orchestrated by | Lifecycle invokes x-commit for each task |
+| `x-dev-story-implement` | orchestrated by | Lifecycle invokes x-git-commit for each task |
 | `x-test-run` | precedes | Tests should pass before committing |
 
 ## Slim Mode
 
-> **When to use:** When this skill is invoked programmatically from another skill (e.g., x-tdd, x-dev-lifecycle), read ONLY this section for minimum context.
+> **When to use:** When this skill is invoked programmatically from another skill (e.g., x-test-tdd, x-dev-story-implement), read ONLY this section for minimum context.
 
 ### Quick Reference
 
@@ -294,7 +294,7 @@ x-commit complete:
 ### Pre-Commit Chain (RULE-007)
 
 ```
-x-format -> x-lint -> compile -> commit
+x-code-format -> x-code-lint -> compile -> commit
 ```
 
 - Skip with `--skip-chain` (emergency only, emits WARNING)

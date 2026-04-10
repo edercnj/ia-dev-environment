@@ -5,7 +5,7 @@ description: >
   review comments in batch, generates a consolidated findings report, applies fixes,
   and creates a single correction PR. Supports dry-run, explicit PR list fallback,
   and idempotent re-execution.
-  Reference: `.github/skills/x-fix-epic-pr-comments/SKILL.md`
+  Reference: `.github/skills/x-pr-fix-epic-comments/SKILL.md`
 ---
 
 # Skill: Fix Epic PR Comments
@@ -16,11 +16,11 @@ Automates the complete cycle of addressing PR review comments across an entire e
 
 ## Triggers
 
-- `/x-fix-epic-pr-comments 0024` -- fix comments on all PRs from epic 0024
-- `/x-fix-epic-pr-comments 0024 --dry-run` -- generate report only, no fixes
-- `/x-fix-epic-pr-comments 0024 --prs 143,144,145` -- fix comments on specific PRs only
-- `/x-fix-epic-pr-comments 0024 --skip-replies` -- fix without replying to original comments
-- `/x-fix-epic-pr-comments 0024 --include-suggestions` -- also fix suggestion-type comments
+- `/x-pr-fix-epic-comments 0024` -- fix comments on all PRs from epic 0024
+- `/x-pr-fix-epic-comments 0024 --dry-run` -- generate report only, no fixes
+- `/x-pr-fix-epic-comments 0024 --prs 143,144,145` -- fix comments on specific PRs only
+- `/x-pr-fix-epic-comments 0024 --skip-replies` -- fix without replying to original comments
+- `/x-pr-fix-epic-comments 0024 --include-suggestions` -- also fix suggestion-type comments
 
 ## Workflow
 

@@ -1,11 +1,11 @@
-# x-dev-lifecycle
+# x-dev-story-implement
 
 > Orchestrates the complete feature implementation cycle: branch creation, planning, task decomposition, implementation, parallel review, fixes, PR creation, and final verification. Delegates heavy phases to subagents for context efficiency.
 
 | | |
 |---|---|
 | **Category** | Orchestrator |
-| **Invocation** | `/x-dev-lifecycle [STORY-ID or feature-name]` |
+| **Invocation** | `/x-dev-story-implement [STORY-ID or feature-name]` |
 | **Delegates to** | `x-dev-architecture-plan`, `x-test-plan`, `x-lib-task-decomposer`, `x-dev-implement`, `x-dev-arch-update`, `x-review`, `x-review-pr`, `x-git-push`, `run-e2e` |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
@@ -18,7 +18,7 @@ Runs the full 9-phase development lifecycle for a single story or feature: prepa
 
 ```mermaid
 flowchart TD
-    START(["/x-dev-lifecycle STORY-ID"]) --> P0["Phase 0: Preparation"]
+    START(["/x-dev-story-implement STORY-ID"]) --> P0["Phase 0: Preparation"]
     P0 --> SCOPE{Scope Tier?}
     SCOPE -->|SIMPLE| SKIP["Skip 1B-1E"]
     SCOPE -->|STANDARD| ALL["All phases"]
@@ -52,7 +52,7 @@ flowchart TD
 | # | Phase | Description | Delegated To |
 |---|-------|-------------|--------------|
 | 0 | Preparation | Read story, check dependencies, artifact staleness, create branch, scope assessment | Inline |
-| 0.5 | API Contract | Generate and validate API contracts (conditional: REST/gRPC/event interfaces) | Inline + `x-contract-lint` |
+| 0.5 | API Contract | Generate and validate API contracts (conditional: REST/gRPC/event interfaces) | Inline + `x-test-contract-lint` |
 | 1 | Architecture Planning | Evaluate change scope, generate architecture plan | `x-dev-architecture-plan` |
 | 1B-1F | Parallel Planning | Test plan, task decomposition, event schema, security, compliance (launched in single message) | `x-test-plan`, `x-lib-task-decomposer`, subagents |
 | 2 | TDD Implementation | Double-Loop TDD: acceptance tests (outer), unit tests in TPP order (inner), compile checks | `x-dev-implement` (subagent) |

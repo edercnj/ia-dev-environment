@@ -24,9 +24,9 @@ Include this skill when `security.qualityGate.provider` is not "none" in the pro
 
 ## Triggers
 
-- `/x-sonar-gate --server https://sonar.example.com --token squ_abc123...` -- default quality gate
-- `/x-sonar-gate --server https://sonar.example.com --token squ_abc123... --quality-gate strict` -- strict mode for release pipeline
-- `/x-sonar-gate --server https://sonar.example.com --token squ_abc123... --project-key my-service --branch release/1.0` -- custom project key and branch
+- `/x-security-sonar --server https://sonar.example.com --token squ_abc123...` -- default quality gate
+- `/x-security-sonar --server https://sonar.example.com --token squ_abc123... --quality-gate strict` -- strict mode for release pipeline
+- `/x-security-sonar --server https://sonar.example.com --token squ_abc123... --project-key my-service --branch release/1.0` -- custom project key and branch
 
 ## Parameters
 

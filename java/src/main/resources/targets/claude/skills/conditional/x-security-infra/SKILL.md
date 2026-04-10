@@ -24,10 +24,10 @@ Include this skill when `security.scanning.infraScan: true` in the project confi
 
 ## Triggers
 
-- `/x-infra-scan` -- scan all IaC types auto-detected in project
-- `/x-infra-scan --scope k8s` -- scan Kubernetes manifests only
-- `/x-infra-scan --scope terraform --benchmark cis-1.8` -- scan Terraform with specific benchmark
-- `/x-infra-scan --scope helm --target charts/myapp` -- scan a specific Helm chart
+- `/x-security-infra` -- scan all IaC types auto-detected in project
+- `/x-security-infra --scope k8s` -- scan Kubernetes manifests only
+- `/x-security-infra --scope terraform --benchmark cis-1.8` -- scan Terraform with specific benchmark
+- `/x-security-infra --scope helm --target charts/myapp` -- scan a specific Helm chart
 
 ## Parameters
 

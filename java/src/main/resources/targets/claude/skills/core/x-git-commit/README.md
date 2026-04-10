@@ -1,34 +1,34 @@
-# x-commit
+# x-git-commit
 
 > Creates Conventional Commits with Task ID in scope and pre-commit chain (format -> lint -> compile). Central commit point in the task-centric workflow with TDD tag support.
 
 | | |
 |---|---|
 | **Category** | Dev/Workflow |
-| **Invocation** | `/x-commit --task TASK-XXXX-YYYY-NNN --type <type> --subject <subject> [--tdd RED\|GREEN\|REFACTOR] [--body <body>] [--skip-chain] [--amend]` |
+| **Invocation** | `/x-git-commit --task TASK-XXXX-YYYY-NNN --type <type> --subject <subject> [--tdd RED\|GREEN\|REFACTOR] [--body <body>] [--skip-chain] [--amend]` |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
 
 ## What It Does
 
-Orchestrates the pre-commit quality chain (x-format -> x-lint -> compile) and creates standardized commits with Task ID in the scope (RULE-016), TDD tags in the subject (RULE-008), and Conventional Commits format. Every commit is traceable to its originating task, and code quality is enforced before each commit.
+Orchestrates the pre-commit quality chain (x-code-format -> x-code-lint -> compile) and creates standardized commits with Task ID in the scope (RULE-016), TDD tags in the subject (RULE-008), and Conventional Commits format. Every commit is traceable to its originating task, and code quality is enforced before each commit.
 
 ## Usage
 
 ```
-/x-commit --task TASK-0029-0005-001 --type feat --subject "add detection logic"
-/x-commit --task TASK-0029-0005-001 --type test --subject "add unit tests" --tdd RED
-/x-commit --task TASK-0029-0005-001 --type feat --subject "implement handler" --tdd GREEN
-/x-commit --task TASK-0029-0005-001 --type refactor --subject "extract method" --tdd REFACTOR
-/x-commit --task TASK-0029-0005-001 --type chore --subject "update config" --skip-chain
-/x-commit --task TASK-0029-0005-001 --type fix --subject "fix null check" --amend
+/x-git-commit --task TASK-0029-0005-001 --type feat --subject "add detection logic"
+/x-git-commit --task TASK-0029-0005-001 --type test --subject "add unit tests" --tdd RED
+/x-git-commit --task TASK-0029-0005-001 --type feat --subject "implement handler" --tdd GREEN
+/x-git-commit --task TASK-0029-0005-001 --type refactor --subject "extract method" --tdd REFACTOR
+/x-git-commit --task TASK-0029-0005-001 --type chore --subject "update config" --skip-chain
+/x-git-commit --task TASK-0029-0005-001 --type fix --subject "fix null check" --amend
 ```
 
 ## Workflow
 
 1. **Validate** -- Check task ID format, commit type, subject length, TDD tag
 2. **Check Stage** -- Verify staged files exist in the working tree
-3. **Pre-Commit Chain** -- Run x-format -> x-lint -> compile (unless `--skip-chain`)
+3. **Pre-Commit Chain** -- Run x-code-format -> x-code-lint -> compile (unless `--skip-chain`)
 4. **Build Message** -- Construct commit message with task ID and TDD tag
 5. **Commit** -- Execute `git commit` (or `git commit --amend`)
 6. **Report** -- Output commit summary with SHA and message
@@ -61,7 +61,7 @@ Orchestrates the pre-commit quality chain (x-format -> x-lint -> compile) and cr
 
 ## See Also
 
-- [x-format](../x-format/) -- First step of the pre-commit chain (code formatting)
-- [x-lint](../x-lint/) -- Second step of the pre-commit chain (static analysis)
+- [x-code-format](../x-code-format/) -- First step of the pre-commit chain (code formatting)
+- [x-code-lint](../x-code-lint/) -- Second step of the pre-commit chain (static analysis)
 - [x-git-push](../x-git-push/) -- Push commits and create PRs
-- [x-dev-lifecycle](../x-dev-lifecycle/) -- Orchestrates the full implementation cycle
+- [x-dev-story-implement](../x-dev-story-implement/) -- Orchestrates the full implementation cycle

@@ -1,7 +1,7 @@
 # Scope Assessment Reference
 
 > **Context:** This reference details SIMPLE/STANDARD/COMPLEX classification.
-> Part of x-dev-lifecycle skill.
+> Part of x-dev-story-implement skill.
 
 ## Scope Assessment
 

@@ -1,4 +1,4 @@
-# instrument-otel
+# x-obs-instrument
 
 > OpenTelemetry Instrumentation -- adds or reviews distributed tracing, metrics, and structured logging using OpenTelemetry SDK with OTLP export.
 
@@ -6,7 +6,7 @@
 |---|---|
 | **Category** | Conditional |
 | **Condition** | `observability != "none"` |
-| **Invocation** | `/instrument-otel [component-name or 'full']` |
+| **Invocation** | `/x-obs-instrument [component-name or 'full']` |
 | **Reads** | observability (references: observability-principles) |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
@@ -22,10 +22,10 @@ Adds or reviews OpenTelemetry instrumentation across the application, covering t
 ## Usage
 
 ```
-/instrument-otel
-/instrument-otel full
-/instrument-otel PaymentService
-/instrument-otel TransactionRepository
+/x-obs-instrument
+/x-obs-instrument full
+/x-obs-instrument PaymentService
+/x-obs-instrument TransactionRepository
 ```
 
 ## See Also

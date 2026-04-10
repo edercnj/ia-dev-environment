@@ -5,7 +5,7 @@ description: >
   Operations: create, list, remove, cleanup. Follows RULE-018
   (Worktree Lifecycle) naming convention under
   .claude/worktrees/{identifier}/.
-  Reference: `.github/skills/x-worktree/SKILL.md`
+  Reference: `.github/skills/x-git-worktree/SKILL.md`
 ---
 
 # Skill: Git Worktree Management
@@ -16,11 +16,11 @@ Manages git worktrees for {{PROJECT_NAME}} to enable parallel task and story exe
 
 ## Triggers
 
-- `/x-worktree create --branch feat/story-XXXX --base develop` -- create a worktree
-- `/x-worktree list` -- list all active worktrees
-- `/x-worktree remove --id agent-abc123` -- remove a specific worktree
-- `/x-worktree cleanup` -- remove all stale worktrees
-- `/x-worktree create --branch feat/story-XXXX --dry-run` -- preview without creating
+- `/x-git-worktree create --branch feat/story-XXXX --base develop` -- create a worktree
+- `/x-git-worktree list` -- list all active worktrees
+- `/x-git-worktree remove --id agent-abc123` -- remove a specific worktree
+- `/x-git-worktree cleanup` -- remove all stale worktrees
+- `/x-git-worktree create --branch feat/story-XXXX --dry-run` -- preview without creating
 
 ## Arguments
 
@@ -57,5 +57,5 @@ Worktrees are created under `.claude/worktrees/{identifier}/` where `{identifier
 ## Integration Notes
 
 - Used by x-dev-epic-implement for parallel story execution
-- Used by x-dev-lifecycle for isolated task implementation
+- Used by x-dev-story-implement for isolated task implementation
 - Follows Git Flow branching model (RULE-009)

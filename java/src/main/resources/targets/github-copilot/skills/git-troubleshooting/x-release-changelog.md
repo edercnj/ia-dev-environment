@@ -4,7 +4,7 @@ description: >
   Generates CHANGELOG.md from Conventional Commits history. Parses git log,
   groups by commit type, maps to Keep a Changelog sections (Added, Changed,
   Fixed, etc.), and performs incremental updates preserving existing entries.
-  Reference: `.github/skills/x-changelog/SKILL.md`
+  Reference: `.github/skills/x-release-changelog/SKILL.md`
 ---
 
 # Skill: Changelog Generator
@@ -15,10 +15,10 @@ Generates or updates `CHANGELOG.md` for {{PROJECT_NAME}} following the [Keep a C
 
 ## Triggers
 
-- `/x-changelog` -- generate changelog for unreleased changes
-- `/x-changelog v1.2.0` -- generate changelog for version v1.2.0
-- `/x-changelog --unreleased` -- only unreleased changes since last tag
-- `/x-changelog --full` -- regenerate entire changelog from all tags
+- `/x-release-changelog` -- generate changelog for unreleased changes
+- `/x-release-changelog v1.2.0` -- generate changelog for version v1.2.0
+- `/x-release-changelog --unreleased` -- only unreleased changes since last tag
+- `/x-release-changelog --full` -- regenerate entire changelog from all tags
 
 ## Workflow
 

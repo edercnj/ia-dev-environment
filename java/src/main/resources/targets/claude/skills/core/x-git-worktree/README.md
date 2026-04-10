@@ -1,11 +1,11 @@
-# x-worktree
+# x-git-worktree
 
 > Manages git worktrees for parallel task and story execution. Operations: create, list, remove, cleanup. Follows RULE-018 (Worktree Lifecycle) naming convention under .claude/worktrees/{identifier}/.
 
 | | |
 |---|---|
 | **Category** | Git/Workflow |
-| **Invocation** | `/x-worktree <create\|list\|remove\|cleanup> [options]` |
+| **Invocation** | `/x-git-worktree <create\|list\|remove\|cleanup> [options]` |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
 
@@ -16,11 +16,11 @@ Centralizes git worktree lifecycle management for parallel development workflows
 ## Usage
 
 ```
-/x-worktree create --branch feat/task-0029-0001-001-domain --base develop
-/x-worktree list
-/x-worktree remove --id task-0029-0001-001
-/x-worktree cleanup --dry-run
-/x-worktree cleanup
+/x-git-worktree create --branch feat/task-0029-0001-001-domain --base develop
+/x-git-worktree list
+/x-git-worktree remove --id task-0029-0001-001
+/x-git-worktree cleanup --dry-run
+/x-git-worktree cleanup
 ```
 
 ## Operations
@@ -33,5 +33,5 @@ Centralizes git worktree lifecycle management for parallel development workflows
 ## See Also
 
 - [x-dev-epic-implement](../x-dev-epic-implement/) -- Uses worktrees for parallel story execution
-- [x-dev-lifecycle](../x-dev-lifecycle/) -- Executes within worktree directories
+- [x-dev-story-implement](../x-dev-story-implement/) -- Executes within worktree directories
 - [x-git-push](../x-git-push/) -- Branch creation and push from within worktrees

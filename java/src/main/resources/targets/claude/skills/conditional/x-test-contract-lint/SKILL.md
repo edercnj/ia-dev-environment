@@ -24,9 +24,9 @@ Include this skill when the project uses API contracts (OpenAPI, AsyncAPI, or Pr
 
 ## Triggers
 
-- `/x-contract-lint path/to/contract-openapi.yaml` -- validate an OpenAPI contract
-- `/x-contract-lint path/to/service.proto` -- validate a Protobuf contract
-- `/x-contract-lint path/to/events-asyncapi.yaml` -- validate an AsyncAPI contract
+- `/x-test-contract-lint path/to/contract-openapi.yaml` -- validate an OpenAPI contract
+- `/x-test-contract-lint path/to/service.proto` -- validate a Protobuf contract
+- `/x-test-contract-lint path/to/events-asyncapi.yaml` -- validate an AsyncAPI contract
 
 ## Parameters
 
@@ -110,4 +110,4 @@ Summary: {count} errors, {count} warnings
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| x-dev-lifecycle | called-by | Invoked by Phase 0.5 (Step 0.5.3) for contract validation before approval |
+| x-dev-story-implement | called-by | Invoked by Phase 0.5 (Step 0.5.3) for contract validation before approval |

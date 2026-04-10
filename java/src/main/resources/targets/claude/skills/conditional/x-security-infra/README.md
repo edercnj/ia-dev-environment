@@ -1,4 +1,4 @@
-# x-infra-scan
+# x-security-infra
 
 > Infrastructure Security Scanner -- scans Kubernetes manifests, Terraform modules, Helm charts, and Docker Compose files for misconfigurations against CIS benchmarks.
 
@@ -6,7 +6,7 @@
 |---|---|
 | **Category** | Conditional |
 | **Condition** | `security.scanning.infraScan = true` |
-| **Invocation** | `/x-infra-scan [--scope k8s\|terraform\|helm\|compose\|all] [--benchmark cis-1.8\|cis-1.7\|custom]` |
+| **Invocation** | `/x-security-infra [--scope k8s\|terraform\|helm\|compose\|all] [--benchmark cis-1.8\|cis-1.7\|custom]` |
 | **Reads** | security (references: security-principles, security-skill-template, sarif-template, security-scoring) |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
@@ -22,14 +22,14 @@ Scans Infrastructure as Code (IaC) files for security misconfigurations against 
 ## Usage
 
 ```
-/x-infra-scan
-/x-infra-scan --scope k8s
-/x-infra-scan --scope terraform --benchmark cis-1.8
-/x-infra-scan --scope all
+/x-security-infra
+/x-security-infra --scope k8s
+/x-security-infra --scope terraform --benchmark cis-1.8
+/x-security-infra --scope all
 ```
 
 ## See Also
 
-- [x-container-scan](../x-container-scan/) -- Container image CVE scanning and Dockerfile linting
-- [x-sast-scan](../x-sast-scan/) -- Static application security testing
+- [x-security-container](../x-security-container/) -- Container image CVE scanning and Dockerfile linting
+- [x-security-sast](../x-security-sast/) -- Static application security testing
 - [setup-environment](../setup-environment/) -- Dev environment setup with orchestrator

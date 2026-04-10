@@ -26,10 +26,10 @@ Include this skill when `security.scanning.sast = true` in the project configura
 
 ## Triggers
 
-- `/x-sast-scan` -- full scan with all rules
-- `/x-sast-scan --scope owasp` -- OWASP Top 10 focused scan
-- `/x-sast-scan --scope custom-rules` -- project-specific rules only
-- `/x-sast-scan --severity-threshold HIGH` -- filter findings by severity
+- `/x-security-sast` -- full scan with all rules
+- `/x-security-sast --scope owasp` -- OWASP Top 10 focused scan
+- `/x-security-sast --scope custom-rules` -- project-specific rules only
+- `/x-security-sast --severity-threshold HIGH` -- filter findings by severity
 
 ## Parameters
 

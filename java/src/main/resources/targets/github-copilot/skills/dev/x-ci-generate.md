@@ -4,7 +4,7 @@ description: >
   Generate or update CI/CD pipelines based on project stack: detect language,
   analyze existing workflows, generate CI/CD/release/security pipelines,
   validate with actionlint, support monorepo triggers.
-  Reference: `.github/skills/x-ci-cd-generate/SKILL.md`
+  Reference: `.github/skills/x-ci-generate/SKILL.md`
 ---
 
 # Skill: CI/CD Pipeline Generation
@@ -15,14 +15,14 @@ Generates or updates CI/CD pipeline configurations for {{PROJECT_NAME}} based on
 
 ## Triggers
 
-- `/x-ci-cd-generate` -- generate all pipelines (default: all)
-- `/x-ci-cd-generate ci` -- generate CI pipeline (build + test + security scan)
-- `/x-ci-cd-generate cd` -- generate CD pipeline (deploy staging + production + rollback)
-- `/x-ci-cd-generate release` -- generate release pipeline (semantic versioning + changelog)
-- `/x-ci-cd-generate security` -- generate security scan pipeline (scheduled SAST + dependency audit)
-- `/x-ci-cd-generate all` -- generate all pipeline types
-- `/x-ci-cd-generate ci --monorepo` -- generate with path-based triggers for monorepo
-- `/x-ci-cd-generate ci --force` -- overwrite existing workflows
+- `/x-ci-generate` -- generate all pipelines (default: all)
+- `/x-ci-generate ci` -- generate CI pipeline (build + test + security scan)
+- `/x-ci-generate cd` -- generate CD pipeline (deploy staging + production + rollback)
+- `/x-ci-generate release` -- generate release pipeline (semantic versioning + changelog)
+- `/x-ci-generate security` -- generate security scan pipeline (scheduled SAST + dependency audit)
+- `/x-ci-generate all` -- generate all pipeline types
+- `/x-ci-generate ci --monorepo` -- generate with path-based triggers for monorepo
+- `/x-ci-generate ci --force` -- overwrite existing workflows
 
 ## Arguments
 

@@ -1,11 +1,11 @@
-# x-codebase-audit
+# x-code-audit
 
 > Full codebase review against all project standards. Launches parallel subagents per audit dimension (Clean Code, SOLID, Architecture, Tests, Security, Cross-file), consolidates findings into a severity-categorized report with score. Use for periodic quality validation.
 
 | | |
 |---|---|
 | **Category** | Review |
-| **Invocation** | `/x-codebase-audit [--scope all\|rules\|patterns\|architecture\|cross-file]` |
+| **Invocation** | `/x-code-audit [--scope all\|rules\|patterns\|architecture\|cross-file]` |
 | **Reads** | coding-standards, architecture, quality-gates |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
@@ -17,9 +17,9 @@ Performs a comprehensive audit of the entire codebase against project standards 
 ## Usage
 
 ```
-/x-codebase-audit
-/x-codebase-audit --scope architecture
-/x-codebase-audit --scope security
+/x-code-audit
+/x-code-audit --scope architecture
+/x-code-audit --scope security
 ```
 
 ## Workflow

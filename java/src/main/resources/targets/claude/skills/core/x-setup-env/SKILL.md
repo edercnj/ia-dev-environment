@@ -20,9 +20,9 @@ Validates and configures the local development environment for {{PROJECT_NAME}},
 
 ## Triggers
 
-- `/x-setup-dev-environment` — check-only mode (default)
-- `/x-setup-dev-environment --check-only` — explicitly report status without modifications
-- `/x-setup-dev-environment --fix` — attempt to fix detected issues
+- `/x-setup-env` — check-only mode (default)
+- `/x-setup-env --check-only` — explicitly report status without modifications
+- `/x-setup-env --fix` — attempt to fix detected issues
 
 ## Parameters
 

@@ -24,10 +24,10 @@ Include this skill when `security.scanning.dast = true` in the project configura
 
 ## Triggers
 
-- `/x-dast-scan --target http://localhost:8080` -- scan local app with default passive mode
-- `/x-dast-scan --target http://localhost:8080 --mode active` -- active scan in local
-- `/x-dast-scan --target https://app.staging.com --env homolog` -- scan homolog (auto-downgrades)
-- `/x-dast-scan --target https://app.example.com --env prod --confirm-prod` -- production passive scan
+- `/x-security-dast --target http://localhost:8080` -- scan local app with default passive mode
+- `/x-security-dast --target http://localhost:8080 --mode active` -- active scan in local
+- `/x-security-dast --target https://app.staging.com --env homolog` -- scan homolog (auto-downgrades)
+- `/x-security-dast --target https://app.example.com --env prod --confirm-prod` -- production passive scan
 
 ## Parameters
 
@@ -145,7 +145,7 @@ Produce Markdown summary report with configuration, environment guard, findings 
 # GitHub Actions example
 - name: DAST Scan
   run: |
-    /x-dast-scan \
+    /x-security-dast \
       --target ${{ env.APP_URL }} \
       --env ${{ env.ENVIRONMENT }} \
       --mode passive \

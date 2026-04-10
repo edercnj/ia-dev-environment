@@ -4,7 +4,7 @@ description: >
   Analyzes source code with the appropriate linter for {{LANGUAGE}}.
   Second step in the pre-commit chain (RULE-007: format -> lint -> compile -> commit).
   Supports --fix, --changed-only, and --strict modes.
-  Reference: `.github/skills/x-lint/SKILL.md`
+  Reference: `.github/skills/x-code-lint/SKILL.md`
 ---
 
 # Skill: Code Linting
@@ -15,11 +15,11 @@ Runs static analysis on {{PROJECT_NAME}} source code using the appropriate linte
 
 ## Triggers
 
-- `/x-lint` -- lint entire project, report errors and warnings
-- `/x-lint --fix` -- auto-fix violations where supported, re-stage corrected files
-- `/x-lint --changed-only` -- lint only modified files (staged + unstaged)
-- `/x-lint --strict` -- treat warnings as errors (exit code 1 on any warning)
-- `/x-lint --fix --changed-only` -- auto-fix only changed files
+- `/x-code-lint` -- lint entire project, report errors and warnings
+- `/x-code-lint --fix` -- auto-fix violations where supported, re-stage corrected files
+- `/x-code-lint --changed-only` -- lint only modified files (staged + unstaged)
+- `/x-code-lint --strict` -- treat warnings as errors (exit code 1 on any warning)
+- `/x-code-lint --fix --changed-only` -- auto-fix only changed files
 
 ## Arguments
 
@@ -90,6 +90,6 @@ Exit code 0 on pass, 1 on ERROR or WARNING with `--strict`.
 ## Integration Notes
 
 - Precedes compile step in pre-commit chain (RULE-007)
-- Follows x-format (code formatting must pass first)
+- Follows x-code-format (code formatting must pass first)
 - Works with any detected language stack (Java, Kotlin, TypeScript, Python, Go, Rust)
 - Re-staged files from --fix mode are included in the subsequent commit

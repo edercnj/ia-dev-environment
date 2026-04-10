@@ -1,11 +1,11 @@
-# x-plan-task
+# x-task-plan
 
 > Generates a detailed implementation plan for an individual task with per-task TDD cycle mapping (TPP order), file impact analysis by architecture layer, security checklist by task type, and integration points. Reads the task definition from story Section 8 and produces a self-contained execution guide.
 
 | | |
 |---|---|
 | **Category** | Planning |
-| **Invocation** | `/x-plan-task [STORY-ID] --task [TASK-ID] [--force]` |
+| **Invocation** | `/x-task-plan [STORY-ID] --task [TASK-ID] [--force]` |
 | **Reads** | testing, architecture, security, coding-standards |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
@@ -17,8 +17,8 @@ Produces a self-contained implementation plan for a single task extracted from a
 ## Usage
 
 ```
-/x-plan-task story-0029-0001 --task TASK-0029-0001-001
-/x-plan-task story-0029-0001 --task TASK-0029-0001-001 --force
+/x-task-plan story-0029-0001 --task TASK-0029-0001-001
+/x-task-plan story-0029-0001 --task TASK-0029-0001-001 --force
 ```
 
 ## Flags
@@ -71,6 +71,6 @@ Produces a self-contained implementation plan for a single task extracted from a
 ## See Also
 
 - [x-story-plan](../x-story-plan/) -- Multi-agent story planning (generates task breakdown consumed by this skill)
-- [x-dev-lifecycle](../x-dev-lifecycle/) -- Full lifecycle orchestrator (reads task plans in PRE_PLANNED mode)
+- [x-dev-story-implement](../x-dev-story-implement/) -- Full lifecycle orchestrator (reads task plans in PRE_PLANNED mode)
 - [x-dev-implement](../x-dev-implement/) -- Implementation skill (uses task plans as execution guides)
 - [x-test-plan](../x-test-plan/) -- Story-level test planning (complementary to per-task TDD cycles)

@@ -24,9 +24,9 @@ Include this skill when observability is not "none" in the project configuration
 
 ## Triggers
 
-- `/instrument-otel full` -- instrument all components
-- `/instrument-otel transaction-service` -- instrument a specific component
-- `/instrument-otel persistence-layer` -- instrument a specific layer
+- `/x-obs-instrument full` -- instrument all components
+- `/x-obs-instrument transaction-service` -- instrument a specific component
+- `/x-obs-instrument persistence-layer` -- instrument a specific layer
 
 ## Parameters
 

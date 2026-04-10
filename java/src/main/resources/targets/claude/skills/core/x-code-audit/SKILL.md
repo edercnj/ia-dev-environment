@@ -20,10 +20,10 @@ Performs a comprehensive audit of the entire {{PROJECT_NAME}} codebase against p
 
 ## When to Use
 
-- `/x-codebase-audit` — audit entire codebase (all dimensions)
-- `/x-codebase-audit --scope rules` — audit coding standards compliance only
-- `/x-codebase-audit --scope architecture` — audit architecture layer violations only
-- `/x-codebase-audit --scope security` — audit security patterns only
+- `/x-code-audit` — audit entire codebase (all dimensions)
+- `/x-code-audit --scope rules` — audit coding standards compliance only
+- `/x-code-audit --scope architecture` — audit architecture layer violations only
+- `/x-code-audit --scope security` — audit security patterns only
 
 ## Workflow Overview
 

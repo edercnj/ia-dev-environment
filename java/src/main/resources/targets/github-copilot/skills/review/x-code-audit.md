@@ -5,7 +5,7 @@ description: >
   per audit dimension (Clean Code, SOLID, Architecture, Tests, Security, Cross-file),
   consolidates findings into a severity-categorized report with score.
   Use for periodic quality validation.
-  Reference: `.github/skills/x-codebase-audit/SKILL.md`
+  Reference: `.github/skills/x-code-audit/SKILL.md`
 ---
 
 # Skill: Codebase Audit
@@ -16,10 +16,10 @@ Performs a comprehensive audit of the entire {{PROJECT_NAME}} codebase against p
 
 ## Triggers
 
-- `/x-codebase-audit` -- audit entire codebase
-- `/x-codebase-audit --scope rules` -- coding standards only
-- `/x-codebase-audit --scope architecture` -- architecture violations only
-- `/x-codebase-audit --scope security` -- security patterns only
+- `/x-code-audit` -- audit entire codebase
+- `/x-code-audit --scope rules` -- coding standards only
+- `/x-code-audit --scope architecture` -- architecture violations only
+- `/x-code-audit --scope security` -- security patterns only
 
 ## Execution Flow (Orchestrator Pattern)
 

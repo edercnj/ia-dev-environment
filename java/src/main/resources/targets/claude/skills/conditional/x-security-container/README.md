@@ -1,4 +1,4 @@
-# x-container-scan
+# x-security-container
 
 > Scans Docker images for CVEs and Dockerfile best practices violations. Uses Trivy, Grype, or Snyk Container for image vulnerability scanning and Dockerfile linting.
 
@@ -6,7 +6,7 @@
 |---|---|
 | **Category** | Conditional |
 | **Condition** | `security.scanning.containerScan = true` |
-| **Invocation** | `/x-container-scan [--image name:tag] [--dockerfile path] [--severity-threshold CRITICAL\|HIGH\|MEDIUM\|LOW]` |
+| **Invocation** | `/x-security-container [--image name:tag] [--dockerfile path] [--severity-threshold CRITICAL\|HIGH\|MEDIUM\|LOW]` |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
 
@@ -21,14 +21,14 @@ Scans Docker container images for known CVEs and analyzes Dockerfiles for securi
 ## Usage
 
 ```
-/x-container-scan --image myapp:1.0
-/x-container-scan --dockerfile ./Dockerfile
-/x-container-scan --image myapp:1.0 --dockerfile ./Dockerfile
-/x-container-scan --image myapp:1.0 --ignore-unfixed --severity-threshold HIGH
+/x-security-container --image myapp:1.0
+/x-security-container --dockerfile ./Dockerfile
+/x-security-container --image myapp:1.0 --dockerfile ./Dockerfile
+/x-security-container --image myapp:1.0 --ignore-unfixed --severity-threshold HIGH
 ```
 
 ## See Also
 
-- [x-infra-scan](../x-infra-scan/) -- Infrastructure-as-Code security scanning
-- [x-sast-scan](../x-sast-scan/) -- Static code analysis for vulnerabilities
-- [x-secret-scan](../x-secret-scan/) -- Secret detection in code and git history
+- [x-security-infra](../x-security-infra/) -- Infrastructure-as-Code security scanning
+- [x-security-sast](../x-security-sast/) -- Static code analysis for vulnerabilities
+- [x-security-secret-scan](../x-security-secret-scan/) -- Secret detection in code and git history

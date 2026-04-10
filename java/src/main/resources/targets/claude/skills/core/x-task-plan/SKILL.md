@@ -20,8 +20,8 @@ Produces a detailed implementation plan for a single task extracted from a story
 
 ## Triggers
 
-- `/x-plan-task STORY-ID --task TASK-ID` -- generate a task plan
-- `/x-plan-task STORY-ID --task TASK-ID --force` -- regenerate even if plan exists
+- `/x-task-plan STORY-ID --task TASK-ID` -- generate a task plan
+- `/x-task-plan STORY-ID --task TASK-ID --force` -- regenerate even if plan exists
 
 ## Parameters
 
@@ -294,7 +294,7 @@ After writing, log: `"Task plan generated: task-plan-XXXX-YYYY-NNN.md (N TDD cyc
 
 | Scenario | Action |
 |----------|--------|
-| No story ID provided | Prompt: `"Usage: /x-plan-task [STORY-ID] --task [TASK-ID] [--force]"` |
+| No story ID provided | Prompt: `"Usage: /x-task-plan [STORY-ID] --task [TASK-ID] [--force]"` |
 | No task ID provided | Abort: `"--task flag is required. Provide a TASK-XXXX-YYYY-NNN identifier."` |
 | Story file not found | Abort: `"Story file not found at {path}"` |
 | Section 8 not found | Abort: `"Section 8 (Tasks) not found in story {story-id}"` |
@@ -307,10 +307,10 @@ After writing, log: `"Task plan generated: task-plan-XXXX-YYYY-NNN.md (N TDD cyc
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| `x-story-plan` | complementary | x-story-plan generates task breakdown; x-plan-task generates per-task execution plans |
-| `x-dev-lifecycle` | called-by | Phase 2 (PRE_PLANNED mode) reads task plans to drive implementation |
+| `x-story-plan` | complementary | x-story-plan generates task breakdown; x-task-plan generates per-task execution plans |
+| `x-dev-story-implement` | called-by | Phase 2 (PRE_PLANNED mode) reads task plans to drive implementation |
 | `x-dev-implement` | consumed-by | Task plans serve as implementation guides for the developer |
-| `x-test-plan` | complementary | x-test-plan covers story-level tests; x-plan-task maps per-task TDD cycles |
+| `x-test-plan` | complementary | x-test-plan covers story-level tests; x-task-plan maps per-task TDD cycles |
 
 ## Knowledge Pack References
 

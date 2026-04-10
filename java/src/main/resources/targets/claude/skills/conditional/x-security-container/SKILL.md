@@ -24,10 +24,10 @@ Include this skill when container security scanning is required for the project.
 
 ## Triggers
 
-- `/x-container-scan --image myapp:1.0` -- scan image for vulnerabilities
-- `/x-container-scan --dockerfile ./Dockerfile` -- lint Dockerfile for best practices
-- `/x-container-scan --image myapp:1.0 --dockerfile ./Dockerfile` -- combined scan
-- `/x-container-scan --image myapp:1.0 --ignore-unfixed` -- exclude CVEs without available fix
+- `/x-security-container --image myapp:1.0` -- scan image for vulnerabilities
+- `/x-security-container --dockerfile ./Dockerfile` -- lint Dockerfile for best practices
+- `/x-security-container --image myapp:1.0 --dockerfile ./Dockerfile` -- combined scan
+- `/x-security-container --image myapp:1.0 --ignore-unfixed` -- exclude CVEs without available fix
 
 ## Parameters
 

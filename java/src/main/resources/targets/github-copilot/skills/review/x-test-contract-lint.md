@@ -78,6 +78,6 @@ Summary: {count} errors, {count} warnings
 
 ## Integration
 
-- Invoked by Phase 0.5 (Step 0.5.3) of `/x-dev-lifecycle`
+- Invoked by Phase 0.5 (Step 0.5.3) of `/x-dev-story-implement`
 - Contract must pass validation before `CONTRACT PENDING APPROVAL`
 - Errors block contract approval; warnings are informational

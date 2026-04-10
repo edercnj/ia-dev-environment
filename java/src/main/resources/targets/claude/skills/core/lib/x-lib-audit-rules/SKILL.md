@@ -21,7 +21,7 @@ Audit compliance of all project rules AND knowledge packs against source code. L
 
 | Caller Skill | Context |
 |-------------|---------|
-| x-codebase-audit | Full codebase compliance review |
+| x-code-audit | Full codebase compliance review |
 | (standalone) | Independent audit of rules and patterns |
 
 ## Inputs
@@ -233,9 +233,9 @@ When `--fix` and user approves:
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| x-codebase-audit | called-by | Invoked as part of full codebase compliance review |
+| x-code-audit | called-by | Invoked as part of full codebase compliance review |
 | x-review | complements | `/x-review` is diff-based; this skill scans the full codebase |
-| x-dev-lifecycle | produces-for | Generated stories can be implemented via lifecycle |
+| x-dev-story-implement | produces-for | Generated stories can be implemented via lifecycle |
 | x-dev-implement | produces-for | Generated stories can be implemented directly |
 
 - Can be run independently of the feature lifecycle

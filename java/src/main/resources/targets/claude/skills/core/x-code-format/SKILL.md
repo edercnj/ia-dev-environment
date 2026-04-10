@@ -16,13 +16,13 @@ argument-hint: "[--check | --changed-only]"
 
 ## Purpose
 
-Ensures all source code in {{PROJECT_NAME}} follows a consistent formatting style before commits. This skill is the first step of the pre-commit chain (RULE-007): `x-format -> x-lint -> compile -> commit`. It detects the project language via `{{LANGUAGE}}`, selects the appropriate formatter, executes it, and re-stages any modified files automatically.
+Ensures all source code in {{PROJECT_NAME}} follows a consistent formatting style before commits. This skill is the first step of the pre-commit chain (RULE-007): `x-code-format -> x-code-lint -> compile -> commit`. It detects the project language via `{{LANGUAGE}}`, selects the appropriate formatter, executes it, and re-stages any modified files automatically.
 
 ## Triggers
 
-- `/x-format` -- format all project files
-- `/x-format --check` -- verify formatting without modifying files (CI mode)
-- `/x-format --changed-only` -- format only modified files in the working tree
+- `/x-code-format` -- format all project files
+- `/x-code-format --check` -- verify formatting without modifying files (CI mode)
+- `/x-code-format --changed-only` -- format only modified files in the working tree
 
 ## Parameters
 
@@ -134,7 +134,7 @@ rm -f "$STAGED_BEFORE"
 Output a summary:
 
 ```
-x-format complete:
+x-code-format complete:
   Language:    {{LANGUAGE}}
   Formatter:   <formatter-used>
   Files checked: <count>
@@ -157,11 +157,11 @@ x-format complete:
 This skill is designed to be the first step in the chain:
 
 ```
-x-format -> x-lint -> compile -> commit
+x-code-format -> x-code-lint -> compile -> commit
 ```
 
-- If `x-format` succeeds (exit 0), the chain continues with reformatted files.
-- If `x-format --check` fails (exit 1), the chain stops with an error message listing files that need formatting.
+- If `x-code-format` succeeds (exit 0), the chain continues with reformatted files.
+- If `x-code-format --check` fails (exit 1), the chain stops with an error message listing files that need formatting.
 - The `--check` flag is used in CI/CD pipelines to enforce formatting without modifying files.
 
 ## Build Tool Integration
@@ -230,7 +230,7 @@ max_width = 120
 
 ## Slim Mode
 
-> **When to use:** When this skill is invoked programmatically from another skill (e.g., x-commit pre-commit chain), read ONLY this section for minimum context.
+> **When to use:** When this skill is invoked programmatically from another skill (e.g., x-git-commit pre-commit chain), read ONLY this section for minimum context.
 
 ### Formatter Commands
 

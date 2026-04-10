@@ -16,17 +16,17 @@ argument-hint: "[--type api|readme|adr|changelog|all] [--scope path] [--force]"
 
 ## Purpose
 
-Single entry point for generating and updating all project documentation for {{PROJECT_NAME}}. Detects the type of documentation needed from code changes, delegates to specialized skills (`/x-changelog`, `/x-dev-adr-automation`, `/x-dev-arch-update`), or generates API docs and README updates inline.
+Single entry point for generating and updating all project documentation for {{PROJECT_NAME}}. Detects the type of documentation needed from code changes, delegates to specialized skills (`/x-release-changelog`, `/x-dev-adr-automation`, `/x-dev-arch-update`), or generates API docs and README updates inline.
 
 ## Triggers
 
-- `/x-docs` — auto-detect documentation type from `git diff` and update accordingly
-- `/x-docs --type api` — generate or update API documentation (OpenAPI/endpoint docs)
-- `/x-docs --type readme` — update project README.md with new features/skills/configuration
-- `/x-docs --type adr` — delegate to `/x-dev-adr-automation` for ADR generation
-- `/x-docs --type changelog` — delegate to `/x-changelog` for changelog generation
-- `/x-docs --type all` — process all applicable documentation types
-- `/x-docs --type all --force` — regenerate all documentation regardless of change status
+- `/x-doc-generate` — auto-detect documentation type from `git diff` and update accordingly
+- `/x-doc-generate --type api` — generate or update API documentation (OpenAPI/endpoint docs)
+- `/x-doc-generate --type readme` — update project README.md with new features/skills/configuration
+- `/x-doc-generate --type adr` — delegate to `/x-dev-adr-automation` for ADR generation
+- `/x-doc-generate --type changelog` — delegate to `/x-release-changelog` for changelog generation
+- `/x-doc-generate --type all` — process all applicable documentation types
+- `/x-doc-generate --type all --force` — regenerate all documentation regardless of change status
 
 ## Parameters
 
@@ -86,13 +86,13 @@ LOG: "No documentation updates needed"
 
 #### 3A — Changelog (`--type changelog`)
 
-Delegate entirely to the `/x-changelog` skill:
+Delegate entirely to the `/x-release-changelog` skill:
 
 ```
-Invoke Skill: /x-changelog --unreleased
+Invoke Skill: /x-release-changelog --unreleased
 ```
 
-Do NOT generate changelog content inline. The `/x-changelog` skill handles all changelog logic.
+Do NOT generate changelog content inline. The `/x-release-changelog` skill handles all changelog logic.
 
 #### 3B — ADR (`--type adr`)
 
@@ -186,7 +186,7 @@ Documentation update complete:
     - {file_path_1} ({type})
     - {file_path_2} ({type})
   Delegated to:
-    - /x-changelog (changelog)
+    - /x-release-changelog (changelog)
     - /x-dev-adr-automation (adr)
   Skipped: {types skipped and reason}
   Duration: {time}
@@ -207,8 +207,8 @@ Documentation update complete:
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| `/x-changelog` | delegates-to | Changelog generation is fully delegated |
+| `/x-release-changelog` | delegates-to | Changelog generation is fully delegated |
 | `/x-dev-adr-automation` | delegates-to | ADR generation from architecture plans |
 | `/x-dev-arch-update` | delegates-to | Architecture document updates |
-| `/x-dev-lifecycle` | called-by | Phase 3 (Documentation) of the lifecycle |
+| `/x-dev-story-implement` | called-by | Phase 3 (Documentation) of the lifecycle |
 | `/x-git-push` | preceded-by | Run after code changes, before committing |

@@ -323,7 +323,7 @@ When templates are absent, dashboard/remediation are skipped.
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| `x-dev-lifecycle` | Called by (Phase 4) | Produces the same artifacts as lifecycle Phase 4 |
+| `x-dev-story-implement` | Called by (Phase 4) | Produces the same artifacts as lifecycle Phase 4 |
 | `x-review-pr` | Followed by | Recommended flow: `/x-review` then fix criticals then `/x-review-pr` |
 | `x-story-create` | Reads format | Correction stories (Phase 4) follow the story template |
 | `x-dev-implement` | Followed by | Correction stories can be picked up by `/x-dev-implement` |

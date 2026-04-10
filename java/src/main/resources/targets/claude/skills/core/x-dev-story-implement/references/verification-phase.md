@@ -1,7 +1,7 @@
 # Verification Phase Reference
 
 > **Context:** This reference details Phase 3 (Story-Level Verification).
-> Part of x-dev-lifecycle skill.
+> Part of x-dev-story-implement skill.
 
 ## Phase 3 -- Story-Level Verification (Absorbs Old Phases 3-8)
 
@@ -74,7 +74,7 @@ After collecting all specialist review results, generate a consolidated dashboar
    - Save to `plans/epic-XXXX/reviews/remediation-story-XXXX-YYYY.md`.
 2. Fix ALL failed items from review (every specialist must reach STATUS: Approved)
 3. For each fix, follow TDD discipline: write/update the test FIRST, then apply the fix
-4. Use atomic commits via `/x-commit` for fixes
+4. Use atomic commits via `/x-git-commit` for fixes
 5. Run `{{COMPILE_COMMAND}}` + `{{TEST_COMMAND}}`
 6. Update remediation tracking: mark fixed items as "Fixed" with commit reference.
 

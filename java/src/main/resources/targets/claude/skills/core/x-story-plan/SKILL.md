@@ -890,7 +890,7 @@ This ensures backward compatibility with projects that have not yet adopted temp
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| `x-dev-lifecycle` | called-by | Can invoke x-story-plan in Phase 1 for multi-agent planning |
+| `x-dev-story-implement` | called-by | Can invoke x-story-plan in Phase 1 for multi-agent planning |
 | `x-test-plan` | complementary | QA agent produces similar output; x-story-plan adds multi-agent perspective |
 | `x-dev-architecture-plan` | complementary | Architect agent produces similar output with cross-agent consolidation |
 | `x-dev-implement` | downstream | Consumes task breakdown as implementation roadmap |

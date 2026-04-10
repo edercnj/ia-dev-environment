@@ -4,20 +4,20 @@ description: >
   Formats source code using the appropriate formatter for {{LANGUAGE}}.
   First step of the pre-commit chain (format -> lint -> compile -> commit).
   Supports --check (dry-run) and --changed-only modes.
-  Reference: `.github/skills/x-format/SKILL.md`
+  Reference: `.github/skills/x-code-format/SKILL.md`
 ---
 
 # Skill: Format Code
 
 ## Purpose
 
-Ensures all source code in {{PROJECT_NAME}} follows a consistent formatting style before commits. This skill is the first step of the pre-commit chain (RULE-007): `x-format -> x-lint -> compile -> commit`. It detects the project language via `{{LANGUAGE}}`, selects the appropriate formatter, executes it, and re-stages any modified files automatically.
+Ensures all source code in {{PROJECT_NAME}} follows a consistent formatting style before commits. This skill is the first step of the pre-commit chain (RULE-007): `x-code-format -> x-code-lint -> compile -> commit`. It detects the project language via `{{LANGUAGE}}`, selects the appropriate formatter, executes it, and re-stages any modified files automatically.
 
 ## Triggers
 
-- `/x-format` -- format all project files
-- `/x-format --check` -- verify formatting without modifying files (CI mode)
-- `/x-format --changed-only` -- format only modified files in the working tree
+- `/x-code-format` -- format all project files
+- `/x-code-format --check` -- verify formatting without modifying files (CI mode)
+- `/x-code-format --changed-only` -- format only modified files in the working tree
 
 ## Parameters
 
@@ -112,8 +112,8 @@ Output a summary with language, formatter used, files checked, reformatted, and 
 ## Integration with Pre-Commit Chain
 
 ```
-x-format -> x-lint -> compile -> commit
+x-code-format -> x-code-lint -> compile -> commit
 ```
 
-- If `x-format` succeeds (exit 0), the chain continues with reformatted files.
-- If `x-format --check` fails (exit 1), the chain stops with an error.
+- If `x-code-format` succeeds (exit 0), the chain continues with reformatted files.
+- If `x-code-format --check` fails (exit 1), the chain stops with an error.

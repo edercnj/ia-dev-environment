@@ -4,24 +4,24 @@ description: >
   Documentation automation: detects documentation type needed (API, README,
   ADR, changelog) from code changes, delegates to specialized skills or
   generates inline. Single entry point for all documentation updates.
-  Reference: `.github/skills/x-docs/SKILL.md`
+  Reference: `.github/skills/x-doc-generate/SKILL.md`
 ---
 
 # Skill: Documentation Automation
 
 ## Purpose
 
-Single entry point for generating and updating all project documentation for {{PROJECT_NAME}}. Detects the type of documentation needed from code changes, delegates to specialized skills (`/x-changelog`, `/x-dev-adr-automation`, `/x-dev-arch-update`), or generates API docs and README updates inline.
+Single entry point for generating and updating all project documentation for {{PROJECT_NAME}}. Detects the type of documentation needed from code changes, delegates to specialized skills (`/x-release-changelog`, `/x-dev-adr-automation`, `/x-dev-arch-update`), or generates API docs and README updates inline.
 
 ## Triggers
 
-- `/x-docs` -- auto-detect documentation type from `git diff` and update accordingly
-- `/x-docs --type api` -- generate or update API documentation
-- `/x-docs --type readme` -- update project README.md
-- `/x-docs --type adr` -- delegate to `/x-dev-adr-automation`
-- `/x-docs --type changelog` -- delegate to `/x-changelog`
-- `/x-docs --type all` -- process all applicable documentation types
-- `/x-docs --type all --force` -- regenerate all documentation regardless of change status
+- `/x-doc-generate` -- auto-detect documentation type from `git diff` and update accordingly
+- `/x-doc-generate --type api` -- generate or update API documentation
+- `/x-doc-generate --type readme` -- update project README.md
+- `/x-doc-generate --type adr` -- delegate to `/x-dev-adr-automation`
+- `/x-doc-generate --type changelog` -- delegate to `/x-release-changelog`
+- `/x-doc-generate --type all` -- process all applicable documentation types
+- `/x-doc-generate --type all --force` -- regenerate all documentation regardless of change status
 
 ## Workflow
 
@@ -54,7 +54,7 @@ Single entry point for generating and updating all project documentation for {{P
 
 | Type | Delegated To | Method |
 |------|-------------|--------|
-| `changelog` | `/x-changelog` | Skill invocation |
+| `changelog` | `/x-release-changelog` | Skill invocation |
 | `adr` | `/x-dev-adr-automation` | Skill invocation |
 | Architecture | `/x-dev-arch-update` | Skill invocation |
 | `api` | Inline | Direct generation |

@@ -4,7 +4,7 @@ description: >
   Validates and configures local development environment: detects project stack,
   checks prerequisites, verifies versions, validates IDE config, tests database
   connectivity, runs initial build, and reports status with fix suggestions.
-  Reference: `.github/skills/x-setup-dev-environment/SKILL.md`
+  Reference: `.github/skills/x-setup-env/SKILL.md`
 ---
 
 # Skill: Setup Dev Environment

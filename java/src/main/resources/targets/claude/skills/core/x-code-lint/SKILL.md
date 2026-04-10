@@ -20,11 +20,11 @@ Runs static analysis on {{PROJECT_NAME}} source code using the appropriate linte
 
 ## Triggers
 
-- `/x-lint` -- lint entire project, report errors and warnings
-- `/x-lint --fix` -- auto-fix violations where supported, re-stage corrected files
-- `/x-lint --changed-only` -- lint only modified files (staged + unstaged)
-- `/x-lint --strict` -- treat warnings as errors (exit code 1 on any warning)
-- `/x-lint --fix --changed-only` -- auto-fix only changed files
+- `/x-code-lint` -- lint entire project, report errors and warnings
+- `/x-code-lint --fix` -- auto-fix violations where supported, re-stage corrected files
+- `/x-code-lint --changed-only` -- lint only modified files (staged + unstaged)
+- `/x-code-lint --strict` -- treat warnings as errors (exit code 1 on any warning)
+- `/x-code-lint --fix --changed-only` -- auto-fix only changed files
 
 ## Parameters
 
@@ -140,7 +140,7 @@ Classify each finding into one of three severity levels:
 **Output format:**
 
 ```
-== x-lint Report ==
+== x-code-lint Report ==
 
 Language:  {{LANGUAGE}}
 Linter(s): {primary} [+ {secondary}]
@@ -177,10 +177,10 @@ Result: {PASS | FAIL}
 This skill is the **second step** in the pre-commit chain:
 
 ```
-x-format --> x-lint --> compile --> commit
+x-code-format --> x-code-lint --> compile --> commit
 ```
 
-- **Precondition:** `x-format` has already ensured code style compliance
+- **Precondition:** `x-code-format` has already ensured code style compliance
 - **On FAIL (exit 1):** Chain is interrupted; commit is blocked with violation list
 - **On PASS (exit 0):** Chain continues to compile step
 - **With `--fix`:** Corrected files are re-staged and chain continues
@@ -237,7 +237,7 @@ x-format --> x-lint --> compile --> commit
 
 ## Slim Mode
 
-> **When to use:** When this skill is invoked programmatically from another skill (e.g., x-commit pre-commit chain), read ONLY this section for minimum context.
+> **When to use:** When this skill is invoked programmatically from another skill (e.g., x-git-commit pre-commit chain), read ONLY this section for minimum context.
 
 ### Linter Commands
 
@@ -270,7 +270,7 @@ x-format --> x-lint --> compile --> commit
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| `x-format` | precedes | Format runs before lint in pre-commit chain |
+| `x-code-format` | precedes | Format runs before lint in pre-commit chain |
 | `x-git-push` | follows | Commit runs after lint passes |
 | `x-review` | complementary | Review provides deeper analysis; lint catches basics |
-| `x-codebase-audit` | complementary | Audit runs lint as part of full codebase check |
+| `x-code-audit` | complementary | Audit runs lint as part of full codebase check |

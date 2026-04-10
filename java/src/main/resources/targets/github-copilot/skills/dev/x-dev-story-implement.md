@@ -4,7 +4,7 @@ description: >
   Orchestrates the complete feature implementation cycle with task-centric workflow:
   branch creation, planning, per-task TDD execution with individual PRs and approval
   gates, story-level verification, and final cleanup. Delegates implementation to
-  x-tdd, commits to x-commit, PRs to x-pr-create.
+  x-test-tdd, commits to x-git-commit, PRs to x-pr-create.
   Use for full story implementation with review.
 ---
 
@@ -41,7 +41,7 @@ Phase 0: Preparation             (orchestrator -- inline, includes resume detect
 {% if has_contract_interfaces == 'True' %}Phase 0.5: API-First Contract     (orchestrator -- conditional, pauses for approval)
 {% endif %}Phase 1: Planning                 (subagent -- reads architecture KPs)
 Phase 1B-1F: Parallel Planning    (up to 5 subagents -- SINGLE message)
-Phase 2: Task Execution Loop      (for each task: branch -> x-tdd -> x-pr-create -> approval gate)
+Phase 2: Task Execution Loop      (for each task: branch -> x-test-tdd -> x-pr-create -> approval gate)
 Phase 3: Story-Level Verification (coverage, cross-file consistency, review, final report)
 ```
 
@@ -51,12 +51,12 @@ Each task = 1 branch = 1 PR. The lifecycle orchestrates, individual skills imple
 
 | Concern | Skill |
 |---------|-------|
-| TDD implementation | `x-tdd` |
-| Atomic commits | `x-commit` |
+| TDD implementation | `x-test-tdd` |
+| Atomic commits | `x-git-commit` |
 | PR creation | `x-pr-create` |
-| Code formatting | `x-format` |
-| Code linting | `x-lint` |
-| Task planning | `x-plan-task` |
+| Code formatting | `x-code-format` |
+| Code linting | `x-code-lint` |
+| Task planning | `x-task-plan` |
 
 ---
 
@@ -157,7 +157,7 @@ Generate draft contract using data contracts from the story.
 
 ### Step 0.5.3 -- Contract Validation
 
-Invoke `/x-contract-lint {CONTRACT_PATH}` to validate.
+Invoke `/x-test-contract-lint {CONTRACT_PATH}` to validate.
 
 ### Step 0.5.4 -- Approval Gate
 
@@ -234,7 +234,7 @@ FOR each TASK-NNN where status != DONE and status != BLOCKED:
   2.2.2  Update execution-state: task.status = IN_PROGRESS
   2.2.3  Create task branch (from parent branch or develop)
   2.2.4  Read task plan (if PRE_PLANNED mode)
-  2.2.5  Invoke /x-tdd TASK-XXXX-YYYY-NNN
+  2.2.5  Invoke /x-test-tdd TASK-XXXX-YYYY-NNN
   2.2.6  Push branch
   2.2.7  Invoke /x-pr-create TASK-XXXX-YYYY-NNN
   2.2.8  Update execution-state: task.status = PR_CREATED
@@ -276,7 +276,7 @@ Generate documentation per configured interfaces. Always generate changelog entr
 Parallel specialist reviews with consolidated dashboard.
 
 ### Step 3.5 -- Fixes + Remediation
-Fix all review findings using TDD discipline with atomic commits via `/x-commit`.
+Fix all review findings using TDD discipline with atomic commits via `/x-git-commit`.
 
 ### Step 3.6 -- Tech Lead Review
 Invoke `x-review-pr` for holistic review.
@@ -291,13 +291,13 @@ Update IMPLEMENTATION-MAP, story status, execution-state, run DoD checklist.
 
 ## Integration Notes
 
-- Invokes: `x-tdd` (Phase 2), `x-commit` (via x-tdd), `x-pr-create` (Phase 2), `x-format`/`x-lint` (via x-commit chain), `x-plan-task` (Phase 1), `x-dev-architecture-plan` (Phase 1), `x-test-plan`, `x-lib-task-decomposer`, `x-review` (Phase 3), `x-review-pr` (Phase 3), `x-dev-arch-update` (Phase 3)
+- Invokes: `x-test-tdd` (Phase 2), `x-git-commit` (via x-test-tdd), `x-pr-create` (Phase 2), `x-code-format`/`x-code-lint` (via x-git-commit chain), `x-task-plan` (Phase 1), `x-dev-architecture-plan` (Phase 1), `x-test-plan`, `x-lib-task-decomposer`, `x-review` (Phase 3), `x-review-pr` (Phase 3), `x-dev-arch-update` (Phase 3)
 - All `{{PLACEHOLDER}}` tokens are runtime markers filled by the AI agent from project configuration
 
 ## Detailed References
 
 For in-depth guidance on the lifecycle phases, consult:
-- `.github/skills/x-dev-lifecycle/SKILL.md`
+- `.github/skills/x-dev-story-implement/SKILL.md`
 - `.github/skills/x-dev-implement/SKILL.md`
 - `.github/skills/x-review/SKILL.md`
 - `.github/skills/x-review-pr/SKILL.md`

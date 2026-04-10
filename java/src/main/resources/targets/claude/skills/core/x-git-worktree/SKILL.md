@@ -28,11 +28,11 @@ Centralizes all git worktree operations for {{PROJECT_NAME}}. Provides isolated 
 
 ## Triggers
 
-- `/x-worktree create --branch <name>` -- create a new worktree
-- `/x-worktree list` -- list all active worktrees with status
-- `/x-worktree remove --id <identifier>` -- remove a specific worktree
-- `/x-worktree cleanup` -- remove obsolete worktrees
-- `/x-worktree cleanup --dry-run` -- preview cleanup without removing
+- `/x-git-worktree create --branch <name>` -- create a new worktree
+- `/x-git-worktree list` -- list all active worktrees with status
+- `/x-git-worktree remove --id <identifier>` -- remove a specific worktree
+- `/x-git-worktree cleanup` -- remove obsolete worktrees
+- `/x-git-worktree cleanup --dry-run` -- preview cleanup without removing
 
 ## Worktree Base Directory
 
@@ -349,18 +349,18 @@ Attempting to create a worktree for `main` or `develop` results in an immediate 
 
 After a branch is merged via PR:
 1. The worktree becomes a cleanup candidate (status: `MERGED`)
-2. `/x-worktree cleanup` removes the worktree and deletes the local branch
+2. `/x-git-worktree cleanup` removes the worktree and deletes the local branch
 3. The remote branch is deleted by GitHub after PR merge (if configured)
 
 ## Integration with Epic Execution
 
-The `x-dev-epic-implement` orchestrator uses `x-worktree` for parallel story execution:
+The `x-dev-epic-implement` orchestrator uses `x-git-worktree` for parallel story execution:
 
 ```
-Orchestrator (main)              x-worktree                 Subagent
+Orchestrator (main)              x-git-worktree                 Subagent
 -----------------------          ----------                 --------
                                                             
-  dispatch story ──────────────► /x-worktree create         
+  dispatch story ──────────────► /x-git-worktree create         
                                    --branch feat/story-...  
                                    --base develop           
                           ◄────── path: .claude/worktrees/  
@@ -370,11 +370,11 @@ Orchestrator (main)              x-worktree                 Subagent
                                                             
   story complete ◄──────────────────────────────────────── SubagentResult
                                                             
-  after PR merge ──────────────► /x-worktree remove         
+  after PR merge ──────────────► /x-git-worktree remove         
                                    --id story-XXXX-YYYY     
                           ◄────── removed                   
                                                             
-  phase complete ──────────────► /x-worktree cleanup        
+  phase complete ──────────────► /x-git-worktree cleanup        
                           ◄────── N worktrees removed       
 ```
 
@@ -396,5 +396,5 @@ Orchestrator (main)              x-worktree                 Subagent
 | Skill | Relationship | Context |
 |-------|-------------|---------|
 | `x-dev-epic-implement` | called-by | Parallel story dispatch via worktrees (Phase 1) |
-| `x-dev-lifecycle` | called-by | Story execution within a worktree directory |
+| `x-dev-story-implement` | called-by | Story execution within a worktree directory |
 | `x-git-push` | related | Branch creation and push from within worktree |

@@ -4,7 +4,7 @@ description: >
   Reads PR review comments and fixes actionable ones automatically. Detects PR
   from argument or branch, classifies comments (actionable/suggestion/question/praise),
   implements fixes, and commits with proper conventional commit messages.
-  Reference: `.github/skills/x-fix-pr-comments/SKILL.md`
+  Reference: `.github/skills/x-pr-fix-comments/SKILL.md`
 ---
 
 # Skill: Fix PR Comments
@@ -15,8 +15,8 @@ Automates the process of addressing PR review comments for {{PROJECT_NAME}}. Rea
 
 ## Triggers
 
-- `/x-fix-pr-comments` -- fix comments on current branch's PR
-- `/x-fix-pr-comments 123` -- fix comments on PR #123
+- `/x-pr-fix-comments` -- fix comments on current branch's PR
+- `/x-pr-fix-comments 123` -- fix comments on PR #123
 
 ## Workflow
 
