@@ -3,6 +3,10 @@
 
 Describe your CLI tool purpose here
 
+> **CRITICAL — Source of Truth:**
+> A fonte verdade de skills, knowledge packs, agents, rules e templates é `java/src/main/resources/targets/`.
+> Os diretórios `.claude/`, `.github/`, `.codex/`, `.agents/` e `src/test/resources/golden/` são saídas geradas — NUNCA editar diretamente.
+
 ## Architecture
 
 - **Style:** library

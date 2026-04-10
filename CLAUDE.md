@@ -7,6 +7,10 @@ It includes coding rules, skills (slash commands), knowledge packs, agents, and 
 > The generator writes `.github/` artifacts under `github/` in the output directory; rename to `.github/` when placing in a project root.
 > Do not edit them manually -- regenerate instead.
 
+> **CRITICAL — Source of Truth:**
+> A fonte verdade de skills, knowledge packs, agents, rules e templates é `java/src/main/resources/targets/`.
+> Os diretórios `.claude/`, `.github/`, `.codex/`, `.agents/` e `src/test/resources/golden/` são saídas geradas — NUNCA editar diretamente.
+
 > The `CLAUDE.md` file at the project root provides an executive summary loaded automatically in EVERY conversation.
 
 ## Structure
