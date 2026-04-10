@@ -2,7 +2,7 @@
 name: x-dev-story-implement
 description: "Orchestrates the complete feature implementation cycle with task-centric workflow: branch creation, planning, per-task TDD execution with individual PRs and approval gates, story-level verification, and final cleanup. Delegates implementation to x-test-tdd, commits to x-git-commit, PRs to x-pr-create."
 user-invocable: true
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, TaskCreate, TaskUpdate
 argument-hint: "[STORY-ID or feature-name] [--auto-approve-pr] [--task TASK-ID] [--skip-verification] [--full-lifecycle]"
 context-budget: heavy
 ---
@@ -93,6 +93,12 @@ Before invoking any skill inline via the `Skill` tool, evaluate the accumulated 
 ---
 
 ## Phase 0 -- Preparation (Orchestrator -- Inline)
+
+**First action of Phase 0 — Create a tracking task (TaskCreate):**
+
+    TaskCreate(description: "Phase 0: Preparation — Story {storyId}")
+
+Record the returned task ID as `phase0TaskId` for the closing TaskUpdate call. This gives the user real-time visibility into Phase 0 progress in the Claude Code task list (Story 0033-0002, Level 2 visibility).
 
 1. Read story file and extract acceptance criteria, sub-tasks, dependencies
 2. Verify dependencies (predecessor stories complete)
@@ -299,7 +305,17 @@ Please review the contract and respond with:
 - **On REJECT:** Return to Step 0.5.2, incorporating user feedback into regeneration.
 {% endif %}
 
+**Last action of Phase 0 — Update the phase task (TaskUpdate):**
+
+    TaskUpdate(id: {phase0TaskId}, status: "completed")
+
 ## Phase 1 -- Architecture Planning (Skill Invocation + Subagent Fallback)
+
+**First action of Phase 1 — Create a tracking task (TaskCreate):**
+
+    TaskCreate(description: "Phase 1: Planning — Story {storyId}")
+
+Record the returned task ID as `phase1TaskId` for the closing TaskUpdate call. Planning subagents launched inside Phase 1 (architecture plan, test plan, task decomposer, etc.) will receive their own task entries in a later story (0033-0003).
 
 **If the architecture plan file already exists at `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md` (as checked in Phase 0), skip Step 1A and proceed directly to Step 1B, ensuring Step 1B reads the existing plan.**
 
@@ -449,7 +465,17 @@ Launch `general-purpose` subagent:
 
 ---
 
+**Last action of Phase 1 — Update the phase task (TaskUpdate):**
+
+    TaskUpdate(id: {phase1TaskId}, status: "completed")
+
 ## Phase 2 -- Task Execution Loop (RULE-001: 1 Task = 1 Branch = 1 PR)
+
+**First action of Phase 2 — Create a tracking task (TaskCreate):**
+
+    TaskCreate(description: "Phase 2: Task Execution Loop — {M} tasks")
+
+Record the returned task ID as `phase2TaskId` for the closing TaskUpdate call. `{M}` is the count of tasks parsed from Step 2.0. Individual task executions within the loop receive their own per-task entries (see Step 2.2).
 
 Phase 2 replaces the monolithic TDD implementation phase with a per-task execution loop. Each task is implemented independently with its own branch, TDD cycles, and PR.
 
@@ -489,6 +515,9 @@ For each task in dependency order (tasks with unresolved dependencies are BLOCKE
 ```
 FOR each TASK-NNN where status != DONE and status != BLOCKED:
   2.2.1  Check dependencies: if any dependency task is not DONE -> mark BLOCKED, skip
+  2.2.1a Create a per-task tracking entry via TaskCreate (Story 0033-0002, Level 2 visibility):
+             TaskCreate(description: "Task TASK-XXXX-YYYY-NNN: {description}")
+         Record the returned ID as `taskLevelTaskId` for the closing TaskUpdate in step 2.2.11.
   2.2.2  Update execution-state: task.status = IN_PROGRESS
   2.2.3  Create task branch:
          - If --auto-approve-pr: branch from parent branch (feat/story-XXXX-YYYY-desc)
@@ -526,6 +555,12 @@ FOR each TASK-NNN where status != DONE and status != BLOCKED:
              PAUSE   -> task.status = PR_CREATED, exit lifecycle:
                         "Lifecycle paused at TASK-NNN. Resume later with /x-dev-story-implement {STORY_ID}"
   2.2.10 Update execution-state with final task status and completedAt timestamp
+  2.2.11 Update the per-task tracking entry from step 2.2.1a via TaskUpdate:
+             TaskUpdate(id: {taskLevelTaskId}, status: "completed")
+         If the task ended in FAILED or BLOCKED, first TaskUpdate the description
+         to prefix "(FAILED) " so the failure surfaces in the Claude Code task list,
+         then mark it completed (execution-state.json remains the authoritative
+         record of SUCCESS/FAILED per CR-04 of EPIC-0033).
 END FOR
 ```
 
@@ -573,7 +608,17 @@ Emit warning: `WARNING: No TDD test plan available. Using G1-G7 group-based impl
 
 ---
 
+**Last action of Phase 2 — Update the phase task (TaskUpdate):**
+
+    TaskUpdate(id: {phase2TaskId}, status: "completed")
+
 ## Phase 3 -- Story-Level Verification (Absorbs Old Phases 3-8)
+
+**First action of Phase 3 — Create a tracking task (TaskCreate):**
+
+    TaskCreate(description: "Phase 3: Story-Level Verification — Story {storyId}")
+
+Record the returned task ID as `phase3TaskId` for the closing TaskUpdate call.
 
 Phase 3 executes after all tasks have approved/merged PRs. It consolidates verification across all task changes.
 
@@ -728,6 +773,10 @@ If NOT `--auto-approve-pr`: skip (individual task PRs already target develop).
    - Non-blocking: emit result for human decision, do NOT auto-rollback
 9. Report PASS/FAIL/SKIP result with task-level summary
 10. `git checkout develop && git pull origin develop`
+
+**Last action of Phase 3 — Update the phase task (TaskUpdate):**
+
+    TaskUpdate(id: {phase3TaskId}, status: "completed")
 
 **Phase 3 is the ONLY legitimate stopping point.**
 
