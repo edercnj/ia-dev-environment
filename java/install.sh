@@ -10,11 +10,13 @@
 
 set -euo pipefail
 
-readonly VERSION="2.0.0-SNAPSHOT"
-readonly JAR_NAME="ia-dev-env-${VERSION}.jar"
 readonly INSTALLED_JAR_NAME="ia-dev-env.jar"
 readonly REQUIRED_JAVA_VERSION=21
 readonly PROGRAM_NAME="ia-dev-env"
+
+# Resolved later from pom.xml
+VERSION=""
+JAR_NAME=""
 
 # --- Colors ---
 
@@ -231,6 +233,21 @@ resolve_script_dir() {
         [[ "$source" != /* ]] && source="$dir/$source"
     done
     cd -P "$(dirname "$source")" && pwd
+}
+
+resolve_version() {
+    local script_dir
+    script_dir=$(resolve_script_dir)
+    local pom_file="$script_dir/pom.xml"
+    if [ ! -f "$pom_file" ]; then
+        die "pom.xml not found in $script_dir. Cannot determine version."
+    fi
+    VERSION=$(sed -n '/<version>/{s/.*<version>\(.*\)<\/version>.*/\1/p;q;}' "$pom_file")
+    if [ -z "$VERSION" ]; then
+        die "Could not extract version from $pom_file"
+    fi
+    JAR_NAME="ia-dev-env-${VERSION}.jar"
+    log_info "Detected version $VERSION from pom.xml"
 }
 
 dev_regenerate() {
@@ -508,6 +525,7 @@ main() {
     resolve_dirs
     check_java
     check_maven
+    resolve_version
 
     if [ "$DEV_MODE" = true ]; then
         dev_regenerate
