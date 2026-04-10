@@ -17,21 +17,39 @@ Evaluate change scope using the decision tree:
 | New feature, no contract or infra change | **Simplified** |
 | Bug fix / refactor / docs-only | **Skip** |
 
-**If Full or Simplified:** Invoke `x-dev-architecture-plan` via the Skill tool (Rule 13 — INLINE-SKILL pattern):
+**If Full or Simplified:**
+
+**Orchestrator tracking (Story 0033-0003, planning subagent visibility):** Create a tracking task before invoking the skill:
+
+    TaskCreate(description: "Planning: Architecture Plan — Story {storyId}")
+
+Record the returned integer task ID as `archPlanTaskId` for the closing TaskUpdate.
+
+Invoke `x-dev-architecture-plan` via the Skill tool (Rule 13 — INLINE-SKILL pattern):
 
     Skill(skill: "x-dev-architecture-plan", args: "{STORY_PATH}")
 
+After the skill returns (success, failure, or WARNING fallback), close the tracking task:
+
+    TaskUpdate(id: archPlanTaskId, status: "completed")
+
 Output: `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
-If the skill invocation fails: emit WARNING and proceed to Step 1B.
+If the skill invocation fails: emit WARNING, still call `TaskUpdate(id: archPlanTaskId, status: "completed")`, and proceed to Step 1B.
 
 **If Skip:** Log `"Architecture plan not needed for this change scope"` and proceed to Step 1B.
 
 ### Step 1B: Implementation Plan (Subagent via Task)
 
-**Skip condition:** If Phase 0 pre-check marked the implementation plan as "Reuse", skip.
+**Skip condition:** If Phase 0 pre-check marked the implementation plan as "Reuse", skip (do NOT emit TaskCreate for skipped planners, per AC-4 of Story 0033-0003).
 
-Launch a **single** `general-purpose` subagent with `model: opus` (RULE-009):
+Launch a **single** `general-purpose` subagent with `model: opus` (RULE-009). The subagent itself emits the TaskCreate/TaskUpdate for its own tracking task (per Story 0033-0003):
 
+> **FIRST ACTION (Story 0033-0003):** Create a tracking task to report progress to the parent orchestrator's task list:
+>
+>     TaskCreate(description: "Planning: Implementation Plan — Story {storyId}")
+>
+> Record the returned integer ID as `implPlanTaskId` for the LAST ACTION below.
+>
 > You are a **Senior Architect** planning feature implementation for {{PROJECT_NAME}}.
 >
 > **Step 1 -- Read context:**
@@ -56,6 +74,10 @@ Launch a **single** `general-purpose` subagent with `model: opus` (RULE-009):
 > 11. Risk assessment
 >
 > Save to `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md`.
+>
+> **LAST ACTION (Story 0033-0003):** Close the tracking task created in the FIRST ACTION:
+>
+>     TaskUpdate(id: implPlanTaskId, status: "completed")
 
 ### Fallback: Inline Architecture Planning
 
@@ -67,9 +89,23 @@ If skill `x-dev-architecture-plan` is not available, expand Step 1B subagent pro
 
 ### 1B: Test Planning (MANDATORY DRIVER for Phase 2)
 
-**Skip condition:** If Phase 0 pre-check marked the test plan as "Reuse", skip.
+**Skip condition:** If Phase 0 pre-check marked the test plan as "Reuse", skip (do NOT emit TaskCreate for skipped planners, per AC-4 of Story 0033-0003).
 
-Invoke skill `x-test-plan` -> produces `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md`
+**Orchestrator tracking (Story 0033-0003):** Create a tracking task before invoking the skill:
+
+    TaskCreate(description: "Planning: Test Plan — Story {storyId}")
+
+Record the returned integer task ID as `testPlanTaskId` for the closing TaskUpdate.
+
+Invoke `x-test-plan` via the Skill tool (Rule 13 — INLINE-SKILL pattern):
+
+    Skill(skill: "x-test-plan", args: "{STORY_PATH}")
+
+After the skill returns, close the tracking task:
+
+    TaskUpdate(id: testPlanTaskId, status: "completed")
+
+Produces `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md`.
 
 The test plan produces: Acceptance tests (AT-N) as outer loop, Unit tests (UT-N) in TPP order as inner loop, Integration tests (IT-N), `Depends On: TASK-N` and `Parallel` markers.
 
@@ -77,42 +113,100 @@ The test plan produces: Acceptance tests (AT-N) as outer loop, Unit tests (UT-N)
 
 ### 1C: Task Decomposition
 
-**Skip condition:** If Phase 0 pre-check marked the task breakdown as "Reuse", skip.
+**Skip condition:** If Phase 0 pre-check marked the task breakdown as "Reuse", skip (do NOT emit TaskCreate for skipped planners, per AC-4 of Story 0033-0003).
 
-Invoke skill `x-lib-task-decomposer` -> produces `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`
+**Orchestrator tracking (Story 0033-0003):** Create a tracking task before invoking the skill:
+
+    TaskCreate(description: "Planning: Task Decomposition — Story {storyId}")
+
+Record the returned integer task ID as `taskDecompTaskId` for the closing TaskUpdate.
+
+Invoke `x-lib-task-decomposer` via the Skill tool (Rule 13 — INLINE-SKILL pattern):
+
+    Skill(skill: "x-lib-task-decomposer", args: "{STORY_PATH}")
+
+After the skill returns, close the tracking task:
+
+    TaskUpdate(id: taskDecompTaskId, status: "completed")
+
+Produces `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md`.
 
 Auto-detects mode: test-driven tasks (if test plan exists) or G1-G7 layer-based decomposition.
 
 ### 1D: Event Schema Design (if event_driven)
 
-Launch `general-purpose` subagent:
+Launch `general-purpose` subagent. The subagent emits its own TaskCreate/TaskUpdate (per Story 0033-0003):
+
+> **FIRST ACTION (Story 0033-0003):** Create a tracking task:
+>
+>     TaskCreate(description: "Planning: Event Schema — Story {storyId}")
+>
+> Record the returned integer ID as `eventSchemaTaskId` for the LAST ACTION below.
+>
 > Read `skills/protocols/references/event-driven-conventions.md`.
 > Read implementation plan. Produce event schema design: event names, CloudEvents envelope, topic naming, partition key, producer/consumer contracts.
 > Save to `plans/epic-XXXX/plans/events-story-XXXX-YYYY.md`.
+>
+> **LAST ACTION (Story 0033-0003):** Close the tracking task:
+>
+>     TaskUpdate(id: eventSchemaTaskId, status: "completed")
 
 ### 1E: Security Assessment (MANDATORY)
 
-**Skip condition:** If Phase 0 pre-check marked the security assessment as "Reuse", skip.
+**Skip condition:** If Phase 0 pre-check marked the security assessment as "Reuse", skip (do NOT emit TaskCreate for skipped planners, per AC-4 of Story 0033-0003).
 
-Invoke skill `/x-threat-model` via the Skill tool:
-  Skill(skill: "x-threat-model", args: "{STORY_PATH}")
+**Orchestrator tracking (Story 0033-0003):** Create a tracking task before invoking the skill:
+
+    TaskCreate(description: "Planning: Security Assessment — Story {storyId}")
+
+Record the returned integer task ID as `securityTaskId` for the closing TaskUpdate.
+
+Invoke `x-threat-model` via the Skill tool (Rule 13 — INLINE-SKILL pattern):
+
+    Skill(skill: "x-threat-model", args: "{STORY_PATH}")
+
+After the skill returns, close the tracking task:
+
+    TaskUpdate(id: securityTaskId, status: "completed")
 
 Output: `plans/epic-XXXX/plans/security-story-XXXX-YYYY.md`
 
-If `/x-threat-model` is unavailable, fall back to `general-purpose` subagent:
+If `x-threat-model` is unavailable, fall back to a `general-purpose` subagent that emits its OWN TaskCreate/TaskUpdate (the orchestrator's TaskCreate above already fired, so close it with TaskUpdate first, then let the fallback subagent emit its own pair):
+
+> **FIRST ACTION (Story 0033-0003 fallback):** Create a tracking task:
+>
+>     TaskCreate(description: "Planning: Security Assessment (fallback) — Story {storyId}")
+>
+> Record the returned integer ID as `securityFallbackTaskId` for the LAST ACTION below.
+>
 > Read template `_TEMPLATE-SECURITY-ASSESSMENT.md` (RULE-007, fallback RULE-012).
 > Read `skills/security/SKILL.md` -> then read its references.
 > Read implementation plan. Produce security assessment: threat model, OWASP Top 10 mapping, auth review, input validation, data protection, secrets management.
 > Save to `plans/epic-XXXX/plans/security-story-XXXX-YYYY.md`.
+>
+> **LAST ACTION (Story 0033-0003 fallback):** Close the tracking task:
+>
+>     TaskUpdate(id: securityFallbackTaskId, status: "completed")
 
 ### 1F: Compliance Assessment (CONDITIONAL -- if compliance active)
 
-**Activation:** Only when compliance is not "none". Otherwise skip.
+**Activation:** Only when compliance is not "none". Otherwise skip (do NOT emit TaskCreate for skipped planners, per AC-4 of Story 0033-0003).
 
-**Skip condition:** If Phase 0 pre-check marked the compliance assessment as "Reuse", skip.
+**Skip condition:** If Phase 0 pre-check marked the compliance assessment as "Reuse", skip (same rule).
 
-Launch `general-purpose` subagent:
+Launch `general-purpose` subagent. The subagent emits its own TaskCreate/TaskUpdate (per Story 0033-0003):
+
+> **FIRST ACTION (Story 0033-0003):** Create a tracking task:
+>
+>     TaskCreate(description: "Planning: Compliance Assessment — Story {storyId}")
+>
+> Record the returned integer ID as `complianceTaskId` for the LAST ACTION below.
+>
 > Read template `_TEMPLATE-COMPLIANCE-ASSESSMENT.md` (RULE-007, fallback RULE-012).
 > Read `skills/compliance/SKILL.md` -> then read its references.
 > Read implementation plan. Produce compliance impact assessment.
 > Save to `plans/epic-XXXX/plans/compliance-story-XXXX-YYYY.md`.
+>
+> **LAST ACTION (Story 0033-0003):** Close the tracking task:
+>
+>     TaskUpdate(id: complianceTaskId, status: "completed")

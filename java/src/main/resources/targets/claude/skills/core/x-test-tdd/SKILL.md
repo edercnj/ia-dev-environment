@@ -296,7 +296,18 @@ Where:
 Cycle 3/5: RED FAIL_EXPECTED GREEN PASS REFACTOR skipped → abc1234
 ```
 
-Detection: if this skill was invoked via the `Skill` tool by another skill (not directly by the user), use the compact format. When invoked directly by the user (e.g., `/x-test-tdd TASK-001`), use the full multi-line format.
+**Mode detection (Story 0033-0003, explicit `--orchestrated` flag):** If the `--orchestrated` flag is present in the invocation args (e.g., `x-test-tdd TASK-XXXX-YYYY-NNN --orchestrated`), render in **compact format** (single-line per cycle). If the flag is absent (e.g., the user typed `/x-test-tdd TASK-001` directly in chat), render in **full multi-line format**.
+
+This replaces the previous implicit detection ("if this skill was invoked via the Skill tool by another skill, use compact") because that check was fragile — a skill cannot reliably determine how it was invoked from inside its own execution context. The parent orchestrator now passes `--orchestrated` explicitly (see `x-dev-story-implement` Phase 2 step 2.2.5), making the compact-vs-full decision deterministic and testable.
+
+**Detection algorithm:**
+
+    if args.contains("--orchestrated"):
+        emit_format = "compact"
+    else:
+        emit_format = "full"
+
+Once `emit_format` is determined at the start of execution, apply it consistently to every cycle log, the Phase 4 report, and any intermediate status output.
 
 ## Phase 4 -- Report
 
