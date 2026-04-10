@@ -40,6 +40,6 @@ Implements a feature or story end-to-end using strict TDD discipline. It reuses 
 
 ## See Also
 
-- [x-dev-lifecycle](../x-dev-lifecycle/) — Full lifecycle: code, review, fix, PR
+- [x-dev-story-implement](../x-dev-story-implement/) — Full lifecycle: code, review, fix, PR
 - [x-test-plan](../x-test-plan/) — Generate test plan before implementation
 - [x-dev-architecture-plan](../x-dev-architecture-plan/) — Generate architecture plan before implementation

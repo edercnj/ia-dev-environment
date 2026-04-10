@@ -29,5 +29,5 @@ Reviews API gateway configuration against best practices defined in the project'
 ## See Also
 
 - [x-review-api](../x-review-api/) -- REST API design review
-- [x-infra-scan](../x-infra-scan/) -- Infrastructure-as-Code security scanning
-- [instrument-otel](../instrument-otel/) -- OpenTelemetry instrumentation for gateway tracing
+- [x-security-infra](../x-security-infra/) -- Infrastructure-as-Code security scanning
+- [x-obs-instrument](../x-obs-instrument/) -- OpenTelemetry instrumentation for gateway tracing

@@ -21,7 +21,7 @@ Decomposes an implementation plan into granular tasks. When a test plan exists (
 
 | Caller Skill | Phase | Context |
 |-------------|-------|---------|
-| x-dev-lifecycle | Phase 1C | After the Architect produces the plan, BEFORE implementation |
+| x-dev-story-implement | Phase 1C | After the Architect produces the plan, BEFORE implementation |
 | (standalone) | N/A | When breaking down a plan into implementable tasks |
 
 ## Inputs
@@ -307,9 +307,9 @@ Target: < 15% of tasks escalate.
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| x-dev-lifecycle | called-by | Invoked during Phase 1C |
+| x-dev-story-implement | called-by | Invoked during Phase 1C |
 | x-test-plan | reads | Consumes test plan (Phase 1B output) when available |
-| x-dev-lifecycle Phase 2 | produces-for | Output consumed by group-based or TDD-based implementation |
+| x-dev-story-implement Phase 2 | produces-for | Output consumed by group-based or TDD-based implementation |
 
 - Works with any layered architecture (hexagonal, clean, onion) — layer names derived from project rules
 - When test plan present: generates TDD tasks with RED/GREEN/REFACTOR structure

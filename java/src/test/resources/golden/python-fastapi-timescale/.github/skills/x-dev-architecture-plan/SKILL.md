@@ -156,9 +156,9 @@ Launch a **single** `general-purpose` subagent:
 >
 > **Step 6 — Save** to `plans/epic-XXXX/plans/architecture-story-XXXX-YYYY.md`
 
-## Integration with x-dev-lifecycle
+## Integration with x-dev-story-implement
 
-When invoked from `x-dev-lifecycle` Phase 1, the lifecycle orchestrator passes the story path.
+When invoked from `x-dev-story-implement` Phase 1, the lifecycle orchestrator passes the story path.
 When invoked standalone: `/x-dev-architecture-plan [STORY-ID or feature-name]`
 
 ## Detailed References

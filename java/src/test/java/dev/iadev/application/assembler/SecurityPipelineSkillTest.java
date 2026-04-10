@@ -305,12 +305,12 @@ class SecurityPipelineSkillTest {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("x-secret-scan")
-                    .contains("x-sast-scan")
+                    .contains("x-security-secret-scan")
+                    .contains("x-security-sast")
                     .contains("x-dependency-audit")
-                    .contains("x-sonar-gate")
-                    .contains("x-container-scan")
-                    .contains("x-dast-scan")
+                    .contains("x-security-sonar")
+                    .contains("x-security-container")
+                    .contains("x-security-dast")
                     .contains("x-owasp-scan")
                     .contains("x-hardening-eval");
         }
@@ -381,7 +381,7 @@ class SecurityPipelineSkillTest {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("x-ci-cd-generate");
+                    .contains("x-ci-generate");
         }
     }
 

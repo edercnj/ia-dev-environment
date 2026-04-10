@@ -43,5 +43,5 @@ Performs a senior-level holistic code review using a {review_max_score}-point ru
 ## See Also
 
 - [x-review](../x-review/) -- Parallel specialist reviews (breadth) that run before this skill
-- [x-fix-pr-comments](../x-fix-pr-comments/) -- Automates fixes for PR review comments
-- [x-dev-lifecycle](../x-dev-lifecycle/) -- Full development cycle that invokes this as Phase 6
+- [x-pr-fix-comments](../x-pr-fix-comments/) -- Automates fixes for PR review comments
+- [x-dev-story-implement](../x-dev-story-implement/) -- Full development cycle that invokes this as Phase 6

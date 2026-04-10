@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for API-First Phase (Phase 0.5) in the lifecycle
- * and x-contract-lint conditional skill generation.
+ * and x-test-contract-lint conditional skill generation.
  *
  * <p>Covers story-0017-0007 acceptance criteria:
  * <ul>
@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *       has_contract_interfaces=True</li>
  *   <li>GK-4: Lifecycle template contains Phase 0.5
  *       conditional with CONTRACT PENDING APPROVAL</li>
- *   <li>GK-5: x-contract-lint generated conditionally</li>
+ *   <li>GK-5: x-test-contract-lint generated conditionally</li>
  * </ul>
  */
 @DisplayName("API-First Phase (story-0017-0007)")
@@ -162,12 +162,12 @@ class ApiFirstPhaseTest {
     }
 
     @Nested
-    @DisplayName("SkillsSelection — x-contract-lint")
+    @DisplayName("SkillsSelection — x-test-contract-lint")
     class ContractLintSelection {
 
         @Test
         @DisplayName("REST interface includes"
-                + " x-contract-lint")
+                + " x-test-contract-lint")
         void select_rest_includesContractLint() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -180,12 +180,12 @@ class ApiFirstPhaseTest {
                             .selectInterfaceSkills(config);
 
             assertThat(skills)
-                    .contains("x-contract-lint");
+                    .contains("x-test-contract-lint");
         }
 
         @Test
         @DisplayName("gRPC interface includes"
-                + " x-contract-lint")
+                + " x-test-contract-lint")
         void select_grpc_includesContractLint() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -198,12 +198,12 @@ class ApiFirstPhaseTest {
                             .selectInterfaceSkills(config);
 
             assertThat(skills)
-                    .contains("x-contract-lint");
+                    .contains("x-test-contract-lint");
         }
 
         @Test
         @DisplayName("event-consumer includes"
-                + " x-contract-lint")
+                + " x-test-contract-lint")
         void select_eventConsumer_includesContractLint() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -216,12 +216,12 @@ class ApiFirstPhaseTest {
                             .selectInterfaceSkills(config);
 
             assertThat(skills)
-                    .contains("x-contract-lint");
+                    .contains("x-test-contract-lint");
         }
 
         @Test
         @DisplayName("event-producer includes"
-                + " x-contract-lint")
+                + " x-test-contract-lint")
         void select_eventProducer_includesContractLint() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -234,12 +234,12 @@ class ApiFirstPhaseTest {
                             .selectInterfaceSkills(config);
 
             assertThat(skills)
-                    .contains("x-contract-lint");
+                    .contains("x-test-contract-lint");
         }
 
         @Test
         @DisplayName("websocket includes"
-                + " x-contract-lint")
+                + " x-test-contract-lint")
         void select_websocket_includesContractLint() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -252,11 +252,11 @@ class ApiFirstPhaseTest {
                             .selectInterfaceSkills(config);
 
             assertThat(skills)
-                    .contains("x-contract-lint");
+                    .contains("x-test-contract-lint");
         }
 
         @Test
-        @DisplayName("CLI-only excludes x-contract-lint")
+        @DisplayName("CLI-only excludes x-test-contract-lint")
         void select_cliOnly_excludesContractLint() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -269,7 +269,7 @@ class ApiFirstPhaseTest {
                             .selectInterfaceSkills(config);
 
             assertThat(skills)
-                    .doesNotContain("x-contract-lint");
+                    .doesNotContain("x-test-contract-lint");
         }
     }
 
@@ -296,7 +296,7 @@ class ApiFirstPhaseTest {
                     config, new TemplateEngine(), outputDir);
 
             Path lifecycle = outputDir.resolve(
-                    "skills/x-dev-lifecycle/SKILL.md");
+                    "skills/x-dev-story-implement/SKILL.md");
             String content = Files.readString(lifecycle);
             assertThat(content)
                     .contains("Phase 0.5");
@@ -323,7 +323,7 @@ class ApiFirstPhaseTest {
                     config, new TemplateEngine(), outputDir);
 
             Path lifecycle = outputDir.resolve(
-                    "skills/x-dev-lifecycle/SKILL.md");
+                    "skills/x-dev-story-implement/SKILL.md");
             String content = Files.readString(lifecycle);
             assertThat(content)
                     .contains("CONTRACT PENDING APPROVAL");
@@ -348,7 +348,7 @@ class ApiFirstPhaseTest {
                     config, new TemplateEngine(), outputDir);
 
             Path lifecycle = outputDir.resolve(
-                    "skills/x-dev-lifecycle/SKILL.md");
+                    "skills/x-dev-story-implement/SKILL.md");
             String content = Files.readString(lifecycle);
             assertThat(content)
                     .contains("OpenAPI 3.1");
@@ -373,7 +373,7 @@ class ApiFirstPhaseTest {
                     config, new TemplateEngine(), outputDir);
 
             Path lifecycle = outputDir.resolve(
-                    "skills/x-dev-lifecycle/SKILL.md");
+                    "skills/x-dev-story-implement/SKILL.md");
             String content = Files.readString(lifecycle);
             assertThat(content)
                     .contains("AsyncAPI 2.6");
@@ -398,7 +398,7 @@ class ApiFirstPhaseTest {
                     config, new TemplateEngine(), outputDir);
 
             Path lifecycle = outputDir.resolve(
-                    "skills/x-dev-lifecycle/SKILL.md");
+                    "skills/x-dev-story-implement/SKILL.md");
             String content = Files.readString(lifecycle);
             assertThat(content)
                     .contains("Protobuf 3");
@@ -406,7 +406,7 @@ class ApiFirstPhaseTest {
 
         @Test
         @DisplayName("lifecycle template references"
-                + " x-contract-lint skill")
+                + " x-test-contract-lint skill")
         void assemble_lifecycle_referencesContractLint(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -423,20 +423,20 @@ class ApiFirstPhaseTest {
                     config, new TemplateEngine(), outputDir);
 
             Path lifecycle = outputDir.resolve(
-                    "skills/x-dev-lifecycle/SKILL.md");
+                    "skills/x-dev-story-implement/SKILL.md");
             String content = Files.readString(lifecycle);
             assertThat(content)
-                    .contains("x-contract-lint");
+                    .contains("x-test-contract-lint");
         }
     }
 
     @Nested
-    @DisplayName("x-contract-lint skill generation")
+    @DisplayName("x-test-contract-lint skill generation")
     class ContractLintSkillGeneration {
 
         @Test
         @DisplayName("REST config generates"
-                + " x-contract-lint skill")
+                + " x-test-contract-lint skill")
         void assemble_restConfig_generatesContractLint(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -453,13 +453,13 @@ class ApiFirstPhaseTest {
                     config, new TemplateEngine(), outputDir);
 
             assertThat(outputDir.resolve(
-                    "skills/x-contract-lint/SKILL.md"))
+                    "skills/x-test-contract-lint/SKILL.md"))
                     .exists();
         }
 
         @Test
         @DisplayName("CLI-only config does NOT generate"
-                + " x-contract-lint skill")
+                + " x-test-contract-lint skill")
         void assemble_cliOnly_excludesContractLint(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -476,12 +476,12 @@ class ApiFirstPhaseTest {
                     config, new TemplateEngine(), outputDir);
 
             assertThat(outputDir.resolve(
-                    "skills/x-contract-lint"))
+                    "skills/x-test-contract-lint"))
                     .doesNotExist();
         }
 
         @Test
-        @DisplayName("x-contract-lint skill contains"
+        @DisplayName("x-test-contract-lint skill contains"
                 + " contract validation content")
         void assemble_restConfig_contractLintHasContent(
                 @TempDir Path tempDir) throws IOException {
@@ -499,10 +499,10 @@ class ApiFirstPhaseTest {
                     config, new TemplateEngine(), outputDir);
 
             Path skillMd = outputDir.resolve(
-                    "skills/x-contract-lint/SKILL.md");
+                    "skills/x-test-contract-lint/SKILL.md");
             String content = Files.readString(skillMd);
             assertThat(content)
-                    .contains("x-contract-lint");
+                    .contains("x-test-contract-lint");
             assertThat(content)
                     .contains("OpenAPI 3.1");
             assertThat(content)

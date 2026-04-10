@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Category** | Knowledge Pack |
-| **Referenced by** | x-dev-implement, x-dev-lifecycle, x-dev-architecture-plan, x-review, x-review-pr, x-codebase-audit, architect agent |
+| **Referenced by** | x-dev-implement, x-dev-story-implement, x-dev-architecture-plan, x-review, x-review-pr, x-code-audit, architect agent |
 
 > **Full content**: See [SKILL.md](./SKILL.md) for the complete reference.
 

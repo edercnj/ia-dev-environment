@@ -7,6 +7,10 @@ It includes coding rules, skills (slash commands), knowledge packs, agents, and 
 > The generator writes `.github/` artifacts under `github/` in the output directory; rename to `.github/` when placing in a project root.
 > Do not edit them manually -- regenerate instead.
 
+> **CRITICAL — Source of Truth:**
+> The source of truth for skills, knowledge packs, agents, rules, and templates is `java/src/main/resources/targets/`.
+> The directories `.claude/`, `.github/`, `.codex/`, `.agents/`, and `src/test/resources/golden/` are generated outputs — NEVER edit them directly.
+
 > The `CLAUDE.md` file at the project root provides an executive summary loaded automatically in EVERY conversation.
 
 ## Structure
@@ -77,8 +81,12 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 04 | `04-architecture-summary.md` | architecture summary |
 | 05 | `05-quality-gates.md` | quality gates |
 | 06 | `06-security-baseline.md` | security baseline |
+| 07 | `07-operations-baseline.md` | operations baseline |
+| 08 | `08-release-process.md` | release process |
+| 09 | `09-branching-model.md` | branching model (Git Flow) |
+| 13 | `13-skill-invocation-protocol.md` | skill invocation protocol (delegation syntax) |
 
-**Total: 6 rules**
+**Total: 10 rules** (gaps at 10, 11, 12 reserved for conditional rules: `10-anti-patterns.*`, `11-security-pci`, `12-security-anti-patterns`)
 
 ### Numbering
 
@@ -96,7 +104,7 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **run-e2e** | `/run-e2e` | Skill: End-to-End Tests — Runs integration tests that validate the complete flow from request through all application layers to response, using a real database. |
 | **x-dev-epic-implement** | `/x-dev-epic-implement` | Orchestrates epic execution: parses implementation map, dispatches stories via subagents, manages checkpoints, integrity gates, retry/block propagation, resume, partial execution, dry-run, and progress reporting. |
 | **x-dev-implement** | `/x-dev-implement` | Implements a feature/story following project conventions. Delegates preparation to a subagent that reads architecture and coding KPs, then implements layer-by-layer with intermediate compilation checks. |
-| **x-dev-lifecycle** | `/x-dev-lifecycle` | Orchestrates the complete feature implementation cycle: branch creation, planning, task decomposition, implementation, parallel review, fixes, PR creation, and final verification. Delegates heavy phases to subagents for context efficiency. |
+| **x-dev-story-implement** | `/x-dev-story-implement` | Orchestrates the complete feature implementation cycle: branch creation, planning, task decomposition, implementation, parallel review, fixes, PR creation, and final verification. Delegates heavy phases to subagents for context efficiency. |
 | **x-git-push** | `/x-git-push` | Git operations: branch creation, atomic commits (Conventional Commits), push, and PR creation. Use for any git workflow task including branching, committing, pushing, creating PRs, or managing version control. |
 | **x-ops-troubleshoot** | `/x-ops-troubleshoot` | Diagnoses errors, stacktraces, build failures, and unexpected behavior. Systematic approach: reproduce, locate, understand, fix, verify. Use whenever something fails: compilation errors, test failures, runtime exceptions, coverage gaps, or performance issues. |
 | **x-review** | `/x-review` | Parallel code review with specialist engineers (Security, QA, Performance, Database, Observability, DevOps, API, Event). Launches parallel subagents, each reading their own knowledge pack, then consolidates into a scored report. Use for pre-PR quality validation. |
@@ -223,16 +231,16 @@ Content is copied verbatim by `PlanTemplatesAssembler` (RULE-003).
 
 | Template | Produced By | Saved To | Pre-Check |
 |----------|-------------|----------|-----------|
-| `_TEMPLATE-IMPLEMENTATION-PLAN.md` | x-dev-lifecycle (Phase 1B) | `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` | Yes |
+| `_TEMPLATE-IMPLEMENTATION-PLAN.md` | x-dev-story-implement (Phase 1B) | `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` | Yes |
 | `_TEMPLATE-TEST-PLAN.md` | x-test-plan | `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md` | Yes |
 | `_TEMPLATE-ARCHITECTURE-PLAN.md` | x-dev-architecture-plan | `plans/epic-XXXX/plans/arch-story-XXXX-YYYY.md` | Yes |
 | `_TEMPLATE-TASK-BREAKDOWN.md` | x-lib-task-decomposer | `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` | Yes |
-| `_TEMPLATE-SECURITY-ASSESSMENT.md` | x-dev-lifecycle (Phase 1E) | `plans/epic-XXXX/plans/security-story-XXXX-YYYY.md` | Yes |
-| `_TEMPLATE-COMPLIANCE-ASSESSMENT.md` | x-dev-lifecycle (Phase 1F) | `plans/epic-XXXX/plans/compliance-story-XXXX-YYYY.md` | Yes |
+| `_TEMPLATE-SECURITY-ASSESSMENT.md` | x-dev-story-implement (Phase 1E) | `plans/epic-XXXX/plans/security-story-XXXX-YYYY.md` | Yes |
+| `_TEMPLATE-COMPLIANCE-ASSESSMENT.md` | x-dev-story-implement (Phase 1F) | `plans/epic-XXXX/plans/compliance-story-XXXX-YYYY.md` | Yes |
 | `_TEMPLATE-SPECIALIST-REVIEW.md` | x-review | `plans/epic-XXXX/plans/review-story-XXXX-YYYY.md` | No |
 | `_TEMPLATE-TECH-LEAD-REVIEW.md` | x-review-pr | `plans/epic-XXXX/plans/techlead-review-story-XXXX-YYYY.md` | No |
 | `_TEMPLATE-CONSOLIDATED-REVIEW-DASHBOARD.md` | x-review | `plans/epic-XXXX/plans/review-dashboard-story-XXXX-YYYY.md` | No |
-| `_TEMPLATE-REVIEW-REMEDIATION.md` | x-dev-lifecycle (Phase 5) | `plans/epic-XXXX/plans/remediation-story-XXXX-YYYY.md` | No |
+| `_TEMPLATE-REVIEW-REMEDIATION.md` | x-dev-story-implement (Phase 5) | `plans/epic-XXXX/plans/remediation-story-XXXX-YYYY.md` | No |
 | `_TEMPLATE-EPIC-EXECUTION-PLAN.md` | x-dev-epic-implement | `plans/epic-XXXX/plans/execution-plan-epic-XXXX.md` | Yes |
 | `_TEMPLATE-PHASE-COMPLETION-REPORT.md` | x-dev-epic-implement | `plans/epic-XXXX/reports/phase-report-epic-XXXX.md` | No |
 

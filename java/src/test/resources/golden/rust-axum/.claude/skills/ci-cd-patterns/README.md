@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Category** | Knowledge Pack |
-| **Referenced by** | x-ci-cd-generate, x-security-pipeline, x-release, devops-engineer agent |
+| **Referenced by** | x-ci-generate, x-security-pipeline, x-release, devops-engineer agent |
 
 > **Full content**: See [SKILL.md](./SKILL.md) for the complete reference.
 

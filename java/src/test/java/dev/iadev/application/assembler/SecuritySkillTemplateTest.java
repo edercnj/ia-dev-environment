@@ -533,7 +533,7 @@ class SecuritySkillTemplateTest {
             generateSecurityOutput(tempDir);
             String content = readTemplateContent(tempDir);
             assertThat(content)
-                    .contains("x-sast-scan")
+                    .contains("x-security-sast")
                     .contains("SpotBugs")
                     .contains("Bandit")
                     .contains("gosec");

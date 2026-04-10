@@ -29,7 +29,7 @@ Reviews REST API design for compliance with best practices: RFC 7807 error respo
 
 ## See Also
 
-- [x-contract-lint](../x-contract-lint/) -- API contract validation (OpenAPI, AsyncAPI, Protobuf)
+- [x-test-contract-lint](../x-test-contract-lint/) -- API contract validation (OpenAPI, AsyncAPI, Protobuf)
 - [x-review-graphql](../x-review-graphql/) -- GraphQL schema and resolver review
 - [x-review-grpc](../x-review-grpc/) -- gRPC service definition review
 - [run-smoke-api](../run-smoke-api/) -- REST API smoke tests

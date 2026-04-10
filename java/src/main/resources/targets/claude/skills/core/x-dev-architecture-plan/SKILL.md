@@ -349,7 +349,7 @@ Launch a **single** `general-purpose` subagent with `model: opus` for deep archi
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| x-dev-lifecycle | Called by | Invoked during Phase 1 for architecture planning; pre-check ensures idempotency |
+| x-dev-story-implement | Called by | Invoked during Phase 1 for architecture planning; pre-check ensures idempotency |
 | x-threat-model | Complements | Architecture plan feeds threat model generation |
 | x-dev-implement | Consumed by | Implementation phase reads architecture plan alongside implementation plan |
 | x-dev-arch-update | Followed by | After implementation, architecture document is updated incrementally |

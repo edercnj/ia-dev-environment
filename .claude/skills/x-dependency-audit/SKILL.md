@@ -4,6 +4,7 @@ description: "Checks project dependencies for vulnerabilities, outdated versions
 user-invocable: true
 allowed-tools: Read, Write, Bash, Grep, Glob
 argument-hint: "[--scope all|vulnerabilities|outdated|licenses|sbom|license-report|tree]"
+context-budget: medium
 ---
 
 ## Global Output Policy
@@ -378,5 +379,5 @@ Write tree to `results/audits/dependency-tree-YYYY-MM-DD.md`:
 | Skill | Relationship | Context |
 |-------|-------------|---------|
 | `x-supply-chain-audit` | complementary | Handles deeper supply chain risks (maintainer, typosquatting, SLSA) |
-| `x-ci-cd-generate` | called-by | Dependency audit pipeline references audit commands from this skill |
+| `x-ci-generate` | called-by | Dependency audit pipeline references audit commands from this skill |
 | `x-security-dashboard` | reads | Dashboard aggregates results from this skill |

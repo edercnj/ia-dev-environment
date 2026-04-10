@@ -33,4 +33,4 @@ Provides a systematic approach to diagnose and fix issues across the project. Co
 
 - [x-ops-incident](../x-ops-incident/) -- Escalate to incident response when issues affect production
 - [x-test-run](../x-test-run/) -- Run tests with coverage after troubleshooting
-- [x-dev-lifecycle](../x-dev-lifecycle/) -- References this skill during Phase 4 (fixes)
+- [x-dev-story-implement](../x-dev-story-implement/) -- References this skill during Phase 4 (fixes)

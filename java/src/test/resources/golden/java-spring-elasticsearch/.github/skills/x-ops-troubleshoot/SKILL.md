@@ -127,6 +127,6 @@ When troubleshooting within the feature lifecycle, classify errors for the `x-li
 ## Integration Notes
 
 - Referenced by `x-lib-group-verifier` when compilation fails
-- Referenced by `x-dev-lifecycle` during Phase 4 (fixes)
+- Referenced by `x-dev-story-implement` during Phase 4 (fixes)
 - Can be used standalone for any debugging task
 - Reference: `.github/skills/x-ops-troubleshoot/SKILL.md`

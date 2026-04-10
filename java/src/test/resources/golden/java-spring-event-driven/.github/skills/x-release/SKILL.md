@@ -33,7 +33,7 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
  2. VALIDATE     -> Check pre-conditions (branch, working directory)
  3. BRANCH       -> Create release/X.Y.Z branch from develop (or hotfix/* from main)
  4. UPDATE       -> Update version in project-specific files (strip SNAPSHOT)
- 5. CHANGELOG    -> Generate/update CHANGELOG.md via x-changelog
+ 5. CHANGELOG    -> Generate/update CHANGELOG.md via x-release-changelog
  6. COMMIT       -> Create release commit on release branch
  7. MERGE-MAIN   -> Merge release branch into main with --no-ff
  8. TAG          -> Create annotated git tag on main
@@ -96,7 +96,7 @@ Update version and strip SNAPSHOT suffix on release branch:
 
 ### Step 5 -- CHANGELOG Generation
 
-Delegate changelog generation to the `x-changelog` skill to parse Conventional Commits and update CHANGELOG.md.
+Delegate changelog generation to the `x-release-changelog` skill to parse Conventional Commits and update CHANGELOG.md.
 
 ### Step 6 -- COMMIT Release
 
@@ -137,7 +137,7 @@ If `--dry-run` flag is present, show complete release plan (branch creation, ver
 
 ## Integration Notes
 
-- **x-changelog**: Delegates changelog generation
+- **x-release-changelog**: Delegates changelog generation
 - **x-git-push**: Uses same Conventional Commits format for release commit
 - **release-management KP**: References SemVer rules and branching strategies
 - **Release Checklist**: Validates against release-checklist template

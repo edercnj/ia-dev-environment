@@ -103,7 +103,7 @@ class GitFlowCrossCuttingValidationTest {
     }
 
     @Nested
-    @DisplayName("x-dev-lifecycle — develop references")
+    @DisplayName("x-dev-story-implement — develop references")
     class LifecycleDevelop {
 
         @Test
@@ -112,7 +112,7 @@ class GitFlowCrossCuttingValidationTest {
         void lifecycle_phase0_noBranchFromMain()
                 throws IOException {
             String content = readSkill(
-                    "x-dev-lifecycle");
+                    "x-dev-story-implement");
             String phase0 = extractSection(
                     content,
                     "## Phase 0",
@@ -126,7 +126,7 @@ class GitFlowCrossCuttingValidationTest {
         void lifecycle_phase6_prTargetsDevelop()
                 throws IOException {
             String content = readSkill(
-                    "x-dev-lifecycle");
+                    "x-dev-story-implement");
             assertThat(content).contains(
                     "gh pr create --base develop");
         }
@@ -136,7 +136,7 @@ class GitFlowCrossCuttingValidationTest {
         void lifecycle_review_readsDevelopCommits()
                 throws IOException {
             String content = readSkill(
-                    "x-dev-lifecycle");
+                    "x-dev-story-implement");
             assertThat(content).contains(
                     "git log develop..HEAD");
         }
@@ -219,7 +219,7 @@ class GitFlowCrossCuttingValidationTest {
     }
 
     @Nested
-    @DisplayName("x-ci-cd-generate"
+    @DisplayName("x-ci-generate"
             + " — multi-branch triggers")
     class CiCdTriggers {
 
@@ -257,7 +257,7 @@ class GitFlowCrossCuttingValidationTest {
     }
 
     @Nested
-    @DisplayName("x-fix-epic-pr-comments"
+    @DisplayName("x-pr-fix-epic-comments"
             + " — develop base")
     class FixEpicPrComments {
 
@@ -266,7 +266,7 @@ class GitFlowCrossCuttingValidationTest {
         void fixPr_prCreation_targetsDevelop()
                 throws IOException {
             String content = readSkill(
-                    "x-fix-epic-pr-comments");
+                    "x-pr-fix-epic-comments");
             assertThat(content)
                     .contains("--base develop");
         }
@@ -276,7 +276,7 @@ class GitFlowCrossCuttingValidationTest {
         void fixPr_branchSetup_usesDevelop()
                 throws IOException {
             String content = readSkill(
-                    "x-fix-epic-pr-comments");
+                    "x-pr-fix-epic-comments");
             assertThat(content)
                     .contains("git checkout develop");
         }

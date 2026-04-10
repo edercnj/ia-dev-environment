@@ -35,7 +35,7 @@ This ensures your story has access to dependency code that has not yet been merg
 ```
 
 > **Branch pattern:** `feat/{storyId}-short-description` — consistent with the subagent dispatch
-> branch naming in Section 1.4 of the main SKILL.md and x-dev-lifecycle Phase 0.
+> branch naming in Section 1.4 of the main SKILL.md and x-dev-story-implement Phase 0.
 
 **3. Interactive mode (`mergeMode === "interactive"`, via `--interactive-merge`):**
 

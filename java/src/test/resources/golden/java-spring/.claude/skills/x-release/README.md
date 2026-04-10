@@ -11,7 +11,7 @@
 
 ## What It Does
 
-Automates the end-to-end release process following Git Flow. Creates a release branch from `develop`, bumps the version (auto-detected from Conventional Commits or explicitly specified), updates version files, delegates changelog generation to `x-changelog`, performs dual merge into `main` and back to `develop`, creates an annotated git tag on `main`, and cleans up the release branch. Supports hotfix releases from `main` (PATCH only) and a dry-run mode for safe previewing.
+Automates the end-to-end release process following Git Flow. Creates a release branch from `develop`, bumps the version (auto-detected from Conventional Commits or explicitly specified), updates version files, delegates changelog generation to `x-release-changelog`, performs dual merge into `main` and back to `develop`, creates an annotated git tag on `main`, and cleans up the release branch. Supports hotfix releases from `main` (PATCH only) and a dry-run mode for safe previewing.
 
 ## Usage
 
@@ -29,7 +29,7 @@ Automates the end-to-end release process following Git Flow. Creates a release b
 2. **Validate** -- Check pre-conditions (clean working directory, correct branch, tests passing)
 3. **Branch** -- Create `release/X.Y.Z` from `develop` (or `hotfix/*` from `main`)
 4. **Update** -- Update version in project files (strip SNAPSHOT suffix for Java)
-5. **Changelog** -- Delegate to `x-changelog` for CHANGELOG.md generation
+5. **Changelog** -- Delegate to `x-release-changelog` for CHANGELOG.md generation
 6. **Merge + Tag** -- Merge to `main` with `--no-ff`, create annotated tag, merge back to `develop`
 7. **Publish + Cleanup** -- Push branches and tag to remote, delete release branch
 
@@ -43,5 +43,5 @@ Automates the end-to-end release process following Git Flow. Creates a release b
 
 ## See Also
 
-- [x-changelog](../x-changelog/) -- Changelog generation delegated during release
+- [x-release-changelog](../x-release-changelog/) -- Changelog generation delegated during release
 - [x-git-push](../x-git-push/) -- Conventional Commits format used for release commits

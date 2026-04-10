@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Category** | Knowledge Pack |
-| **Referenced by** | `x-review` (Observability specialist), `x-dev-lifecycle`, `x-ops-troubleshoot`, `devops-engineer` agent |
+| **Referenced by** | `x-review` (Observability specialist), `x-dev-story-implement`, `x-ops-troubleshoot`, `devops-engineer` agent |
 
 > **Full content**: See [SKILL.md](./SKILL.md) for the complete reference.
 

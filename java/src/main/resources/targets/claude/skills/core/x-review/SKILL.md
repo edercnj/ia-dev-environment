@@ -2,7 +2,7 @@
 name: x-review
 description: "Parallel code review with specialist engineers (Security, QA, Performance, Database, Observability, DevOps, API, Event). Invokes individual review skills in parallel via Skill tool, then consolidates into a scored report. Use for pre-PR quality validation."
 user-invocable: true
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, TaskCreate, TaskUpdate
 argument-hint: "[STORY-ID or --scope reviewer1,reviewer2]"
 ---
 
@@ -100,19 +100,59 @@ For each applicable specialist determined in Phase 1, invoke the corresponding r
 
 ### Invocation Pattern
 
-In a SINGLE message, invoke all applicable skills:
+Each specialist is invoked via `Skill(...)` (Rule 13 — INLINE-SKILL pattern, parallel execution) AND is tracked individually via a per-specialist TaskCreate/TaskUpdate pair (Story 0033-0003 Concern #3 — Level 3 tracking in x-review). ALL Skill calls and ALL TaskCreate calls in Batch A MUST be in the SAME assistant message for true parallelism — the Claude runtime dispatches tool calls in parallel only when they are siblings in one assistant turn.
 
-```
-/x-review-qa {STORY_ID}
-/x-review-perf {STORY_ID}
-/x-review-db {STORY_ID}            (if database != none)
-/x-review-obs {STORY_ID}           (if observability != none)
-/x-review-devops {STORY_ID}        (if container != none)
-/x-review-data-modeling {STORY_ID}  (if database AND hex/ddd/cqrs)
-/x-review-security {STORY_ID}      (if security frameworks configured)
-/x-review-api {STORY_ID}           (if REST interface)
-/x-review-events {STORY_ID}        (if event interfaces)
-```
+**Activation conditions — evaluate BEFORE emitting the batch. Only emit the (TaskCreate, Skill) pair for specialists whose condition is true for the current project profile. Never emit a placeholder pair for inactive specialists.**
+
+- `x-review-qa` — always active.
+- `x-review-perf` — always active.
+- `x-review-db` — only if `database != none`.
+- `x-review-obs` — only if `observability != none`.
+- `x-review-devops` — only if `container != none`.
+- `x-review-data-modeling` — only if `database != none` AND `architecture` is one of `[hexagonal, ddd, cqrs]`.
+- `x-review-security` — only if security frameworks are configured.
+- `x-review-api` — only if a REST interface is present.
+- `x-review-events` — only if event interfaces are present.
+
+**Batch A — First assistant message (all TaskCreate + all Skill calls as sibling tool calls):**
+
+    TaskCreate(description: "Review: QA — Story {STORY_ID}")
+    TaskCreate(description: "Review: Performance — Story {STORY_ID}")
+    TaskCreate(description: "Review: Database — Story {STORY_ID}")
+    TaskCreate(description: "Review: Observability — Story {STORY_ID}")
+    TaskCreate(description: "Review: DevOps — Story {STORY_ID}")
+    TaskCreate(description: "Review: Data Modeling — Story {STORY_ID}")
+    TaskCreate(description: "Review: Security — Story {STORY_ID}")
+    TaskCreate(description: "Review: API — Story {STORY_ID}")
+    TaskCreate(description: "Review: Events — Story {STORY_ID}")
+
+    Skill(skill: "x-review-qa",            args: "{STORY_ID}")
+    Skill(skill: "x-review-perf",          args: "{STORY_ID}")
+    Skill(skill: "x-review-db",            args: "{STORY_ID}")
+    Skill(skill: "x-review-obs",           args: "{STORY_ID}")
+    Skill(skill: "x-review-devops",        args: "{STORY_ID}")
+    Skill(skill: "x-review-data-modeling", args: "{STORY_ID}")
+    Skill(skill: "x-review-security",      args: "{STORY_ID}")
+    Skill(skill: "x-review-api",           args: "{STORY_ID}")
+    Skill(skill: "x-review-events",        args: "{STORY_ID}")
+
+Record the returned TaskCreate integer IDs in an in-memory map `reviewTasks` indexed by specialist short name (e.g., `reviewTasks["qa"] = <id>`, `reviewTasks["perf"] = <id>`, ...). The mapping is used in Batch B below.
+
+**Wait for all Skill calls to return.** The runtime handles this automatically — the next assistant message is only produced after every tool call in Batch A completes.
+
+**Batch B — Second assistant message (all TaskUpdate calls as sibling tool calls):**
+
+    TaskUpdate(id: reviewTasks["qa"],            status: "completed")
+    TaskUpdate(id: reviewTasks["perf"],          status: "completed")
+    TaskUpdate(id: reviewTasks["db"],            status: "completed")
+    TaskUpdate(id: reviewTasks["obs"],           status: "completed")
+    TaskUpdate(id: reviewTasks["devops"],        status: "completed")
+    TaskUpdate(id: reviewTasks["data-modeling"], status: "completed")
+    TaskUpdate(id: reviewTasks["security"],      status: "completed")
+    TaskUpdate(id: reviewTasks["api"],           status: "completed")
+    TaskUpdate(id: reviewTasks["events"],        status: "completed")
+
+Only emit `TaskUpdate` for specialists that were active in Batch A. If a specialist review returned STATUS = Rejected (score 0 on critical items), the TaskUpdate still uses `status: "completed"` for UI visibility — the authoritative Pass/Fail verdict lives in the consolidated dashboard (Step 4), not in the Claude Code task list (CR-04 of EPIC-0033).
 
 Each skill produces output in the standard review format:
 
@@ -323,7 +363,7 @@ When templates are absent, dashboard/remediation are skipped.
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| `x-dev-lifecycle` | Called by (Phase 4) | Produces the same artifacts as lifecycle Phase 4 |
+| `x-dev-story-implement` | Called by (Phase 4) | Produces the same artifacts as lifecycle Phase 4 |
 | `x-review-pr` | Followed by | Recommended flow: `/x-review` then fix criticals then `/x-review-pr` |
 | `x-story-create` | Reads format | Correction stories (Phase 4) follow the story template |
 | `x-dev-implement` | Followed by | Correction stories can be picked up by `/x-dev-implement` |

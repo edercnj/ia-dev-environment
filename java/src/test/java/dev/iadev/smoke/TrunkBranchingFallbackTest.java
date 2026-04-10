@@ -145,7 +145,7 @@ class TrunkBranchingFallbackTest {
                     .exists();
             assertThat(outputDir.resolve(
                     ".claude/skills/"
-                            + "x-dev-lifecycle/SKILL.md"))
+                            + "x-dev-story-implement/SKILL.md"))
                     .exists();
             assertThat(outputDir.resolve(
                     ".claude/skills/"
@@ -247,7 +247,7 @@ class TrunkBranchingFallbackTest {
                     "skills/x-git-push/SKILL.md"))
                     .exists();
             assertThat(outputDir.resolve(
-                    "skills/x-dev-lifecycle/SKILL.md"))
+                    "skills/x-dev-story-implement/SKILL.md"))
                     .exists();
         }
 
@@ -274,7 +274,7 @@ class TrunkBranchingFallbackTest {
                     "skills/x-git-push/SKILL.md"))
                     .exists();
             assertThat(outputDir.resolve(
-                    "skills/x-dev-lifecycle/SKILL.md"))
+                    "skills/x-dev-story-implement/SKILL.md"))
                     .exists();
         }
     }

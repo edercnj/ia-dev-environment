@@ -50,7 +50,7 @@ git checkout develop && git pull origin develop
 > See SKILL.md Section 1.7 for the full Local Gate Algorithm.
 
 Legacy behavior (for reference only — no longer the default):
-1. Per-story validation already runs within `x-dev-lifecycle` (compile, test, coverage per story)
+1. Per-story validation already runs within `x-dev-story-implement` (compile, test, coverage per story)
 2. Cross-story integration on `develop` cannot be validated (code not merged yet)
 3. Auto-rebase (Section 1.4e) still executes to keep branches current against `origin/develop`
 
@@ -187,7 +187,7 @@ When not set, the smoke gate (Step 5) must also pass for the overall integrity g
 - `--skip-smoke-gate` opt-out → records `smokeGate.status = "SKIP"` (explicit user bypass)
 - No SUCCESS stories in phase → log warning `"No successful stories in phase {N} — skipping gate execution"` and do NOT record a gate result (gate is not executed, not "SKIPPED"). The phase proceeds without a gate entry in the checkpoint.
 
-> **Note:** Each story already executes its own smoke gate via `x-dev-lifecycle` (Phase 2.5).
+> **Note:** Each story already executes its own smoke gate via `x-dev-story-implement` (Phase 2.5).
 > The integrity gate smoke tests serve as an ADDITIONAL regression validation — they ensure
 > that the combination of all stories in a phase did not break the overall smoke test suite.
 

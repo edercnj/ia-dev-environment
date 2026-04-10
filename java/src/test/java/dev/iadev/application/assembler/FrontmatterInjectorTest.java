@@ -69,7 +69,7 @@ class FrontmatterInjectorTest {
         void inject_heavyBudget_insertsHeavy() {
             String content = """
                     ---
-                    name: x-dev-lifecycle
+                    name: x-dev-story-implement
                     argument-hint: "[STORY-ID]"
                     ---
                     ## Body

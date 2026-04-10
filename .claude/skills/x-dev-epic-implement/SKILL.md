@@ -1,9 +1,10 @@
 ---
 name: x-dev-epic-implement
-description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-lifecycle subagents."
+description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-story-implement subagents."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, AskUserQuestion
 argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr] [--auto-merge] [--no-merge] [--interactive-merge] [--strict-overlap] [--skip-pr-comments] [--auto-approve-pr] [--batch-approval] [--task-tracking]"
+context-budget: heavy
 ---
 
 ## Global Output Policy
@@ -12,11 +13,21 @@ argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] 
 - **Tone**: Technical, Direct, and Concise.
 - **Efficiency**: Remove all conversational fillers and greetings to save tokens.
 
+## CONTEXT MANAGEMENT
+
+Do NOT read full files into context when partial data suffices.
+Use targeted reads (offset/limit) or grep for specific fields.
+
+- **Checkpoint reads**: Use selective checkpoint reads. When checking story status in `execution-state.json`, grep for the specific story ID and extract only `status` and `prMergeStatus` fields. Do NOT load the entire `execution-state.json` into context.
+- **Phase reports**: Delegate phase completion report generation to a dedicated subagent. The orchestrator receives only `{ "status": "GENERATED", "path": "plans/epic-{epicId}/reports/phase-{N}-completion-{epicId}.md" }`. Full report content stays in the subagent context and is written to file.
+- **Review dashboards**: Reference review outputs by file path, not by inline content. After a review skill completes, record only the path and score summary.
+- **Story results**: After each story dispatch, record only the SubagentResult JSON (status, commitSha, summary, prUrl, prNumber). Do NOT echo full implementation logs.
+
 # Skill: Epic Implementation (Orchestrator)
 
 ## Purpose
 
-Orchestrate the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parse epic ID and flags, validate prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), delegate story execution to `x-dev-lifecycle` subagents, manage checkpoints, integrity gates, retry/block propagation, resume, partial execution, dry-run, and progress reporting.
+Orchestrate the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parse epic ID and flags, validate prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), delegate story execution to `x-dev-story-implement` subagents, manage checkpoints, integrity gates, retry/block propagation, resume, partial execution, dry-run, and progress reporting.
 
 ## When to Use
 
@@ -35,6 +46,20 @@ Phase 2:   PROGRESS REPORT    -> Consolidate results, generate epic execution re
 Phase 3:   VERIFICATION       -> Epic-level test suite, DoD checklist, final status (inline)
 Phase 4:   PR COMMENTS        -> Remediate PR review comments across all story PRs (optional, inline)
 ```
+
+## Context Budget Decision Logic
+
+Before invoking any skill inline via the `Skill` tool, evaluate the accumulated context budget:
+
+1. Check the `context-budget` field in the target skill's frontmatter (light/medium/heavy)
+2. Track the accumulated budget of all skills loaded inline in the current conversation
+3. Apply the delegation rule:
+   - If the accumulated budget is `heavy` and the next skill is `medium` or `heavy`: delegate via `Agent` tool (subagent) instead of `Skill` tool (inline)
+   - If the accumulated budget is `medium` and the next skill is `heavy`: delegate via `Agent` tool
+   - Otherwise: invoke inline via `Skill` tool
+4. When delegating due to budget: log `"Context budget exceeded ({accumulated}). Delegating {skill-name} to subagent."`
+
+> **Note:** The `context-budget` field is informational only — it does not affect how Claude Code loads the skill. The delegation decision is made by this orchestrator.
 
 ## Input Parsing
 
@@ -56,7 +81,7 @@ ERROR: Epic ID is required. Usage: /x-dev-epic-implement [EPIC-ID] [flags]
 |------|------|---------|-------------|
 | `--phase N` | number | (all phases) | Execute only phase N (0-4) |
 | `--story story-XXXX-YYYY` | string | (all stories) | Execute only a specific story by ID |
-| `--skip-review` | boolean | `false` | Skip review phases in x-dev-lifecycle subagents |
+| `--skip-review` | boolean | `false` | Skip review phases in x-dev-story-implement subagents |
 | `--dry-run` | boolean | `false` | Generate execution plan without executing |
 | `--resume` | boolean | `false` | Continue from last checkpoint (execution-state.json) |
 | `--sequential` | boolean | `false` | Disable parallel worktrees, execute stories one at a time |
@@ -67,7 +92,7 @@ ERROR: Epic ID is required. Usage: /x-dev-epic-implement [EPIC-ID] [flags]
 | `--interactive-merge` | boolean | `false` | Opt-in to interactive merge mode: prompt the user at phase boundaries with 3 options (merge all, pause for manual merge, skip merge). Mutually exclusive with `--auto-merge` and `--no-merge`. |
 | `--strict-overlap` | boolean | `false` | When set, stories with `code-overlap-high` or `unpredictable` are demoted to sequential queue (original behavior). Without flag, pre-flight is advisory-only (RULE-005). |
 | `--skip-pr-comments` | boolean | `false` | Skip PR comment remediation phase (Phase 4). When set, Phase 4 is skipped entirely with log message. |
-| `--auto-approve-pr` | boolean | `false` | Propagate to x-dev-lifecycle dispatches. Each story creates a parent branch and task PRs auto-merge into it. Parent branches require human review before merging to develop (RULE-004). |
+| `--auto-approve-pr` | boolean | `false` | Propagate to x-dev-story-implement dispatches. Each story creates a parent branch and task PRs auto-merge into it. Parent branches require human review before merging to develop (RULE-004). |
 | `--batch-approval` | boolean | `true` | Enable/disable batch approval for parallel story task PRs (RULE-013). When enabled, consolidates pending PRs from parallel stories into a single approval prompt. |
 | `--task-tracking` | boolean | `true` | Enable/disable task-level tracking in execution-state.json. When enabled, individual task progress is tracked with PR fields (prUrl, prNumber, branch). |
 
@@ -173,7 +198,7 @@ Execute a single story in isolation.
     `"WARNING: --single-pr overrides merge mode flags. Per-story PR logic is skipped."`
 1c. **Auto-approve-pr propagation**: If `--auto-approve-pr` is set:
     - Record `autoApprovePr = true` in the execution state
-    - Each story dispatch will include `--auto-approve-pr` flag to `x-dev-lifecycle`
+    - Each story dispatch will include `--auto-approve-pr` flag to `x-dev-story-implement`
     - Each story creates a parent branch `feat/story-XXXX-YYYY-desc` from `develop`
     - Task PRs within each story target the parent branch (not `develop`)
     - Task PRs are auto-merged into the parent branch after passing CI
@@ -193,7 +218,7 @@ Execute a single story in isolation.
 9. **Generate execution plan**: Run the Execution Plan Persistence workflow (see below). This saves a human-readable execution plan to `plans/epic-{epicId}/reports/epic-execution-plan-{epicId}.md` BEFORE any story executes.
 10. **Dry-run exit**: If `--dry-run` is set, the execution plan was already saved in step 9. Log: `"Dry-run: execution plan saved to plans/epic-{epicId}/reports/epic-execution-plan-{epicId}.md. No stories executed."` and stop. No stories are dispatched.
 11. **Resume handling**: If `--resume` is set, run the Resume Workflow (see below) before delegation
-12. **Delegate**: For each story in execution order, invoke `/x-dev-lifecycle` with appropriate flags. Branching is delegated to `x-dev-lifecycle` — each story creates its own branch `feat/{storyId}-description` targeting `develop`. When `--auto-approve-pr` is set, propagate the flag to each `x-dev-lifecycle` dispatch so task PRs target the story's parent branch and auto-merge into it.
+12. **Delegate**: For each story in execution order, invoke `/x-dev-story-implement` with appropriate flags. Branching is delegated to `x-dev-story-implement` — each story creates its own branch `feat/{storyId}-description` targeting `develop`. When `--auto-approve-pr` is set, propagate the flag to each `x-dev-story-implement` dispatch so task PRs target the story's parent branch and auto-merge into it.
 
 ### Execution Plan Persistence
 
@@ -311,7 +336,7 @@ For each story that has a `tasks` object in `execution-state.json`:
 8. **PENDING tasks -> PENDING** (no change)
 9. **SKIPPED tasks -> SKIPPED** (no change — terminal status)
 
-This enables resume at the task level: only incomplete tasks are re-executed, not the entire story. When a story resumes with some tasks DONE, the `x-dev-lifecycle` / `x-dev-implement` subagent receives the task state and skips DONE tasks automatically.
+This enables resume at the task level: only incomplete tasks are re-executed, not the entire story. When a story resumes with some tasks DONE, the `x-dev-story-implement` / `x-dev-implement` subagent receives the task state and skips DONE tasks automatically.
 
 **Backward Compatibility:** Stories without a `tasks` field in the checkpoint are unaffected by this step. The step is a no-op for stories executed in non-PRE_PLANNED mode or when `version` is `"1.0"` or absent.
 
@@ -540,7 +565,7 @@ The execution plan produced by Phase 0.5 is consumed by the Core Loop:
 
 ### 1.1b DoR Pre-check (Before Story Dispatch)
 
-Before dispatching a story to `x-dev-lifecycle`, verify its Definition of Ready:
+Before dispatching a story to `x-dev-story-implement`, verify its Definition of Ready:
 
 1. Compute DoR path: `plans/epic-{epicId}/plans/dor-{storyId}.md`
 2. Check if the DoR file exists:
@@ -622,7 +647,7 @@ When a story is being executed in PRE_PLANNED mode (tasks available from `plans/
 ### 1.2 Branch Management
 
 The orchestrator does NOT create a branch. Each story creates its own branch via
-`x-dev-lifecycle` Phase 0, targeting `develop`. The orchestrator remains on `develop`
+`x-dev-story-implement` Phase 0, targeting `develop`. The orchestrator remains on `develop`
 and monitors story PRs.
 
 1. Ensure a clean starting point:
@@ -671,9 +696,13 @@ For each phase in (0..totalPhases-1):
      b. Dispatch subagent (see 1.4 or 1.4a)
      c. Validate result (see 1.5)
      d. Update checkpoint (see 1.6)
-  7. [Placeholder: integrity gate between phases — story-0005-0006]
-  8. Generate phase completion report (see Phase Completion Reports below)
-  9. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
+     e. Circuit breaker check (Section 1.7):
+        - If story SUCCESS: reset consecutiveFailures to 0
+        - If story FAILED: increment consecutiveFailures and totalFailuresInPhase
+  7. Run integrity gate between phases (Section 1.7 — Local Integrity Gate)
+  8. Post-gate prompt: present options to user (Section 1.7b)
+  9. Generate phase completion report (Read references/phase-reports.md)
+  10. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
 ```
 
 The loop ensures that:
@@ -684,7 +713,7 @@ The loop ensures that:
 - Dependencies are verified at lifecycle level (SUCCESS) and optionally at PR level (MERGED) depending on `mergeMode`
 - Cross-story task dependencies are enforced before dispatch (Section 1.3a)
 - Batch approval consolidates pending PRs from parallel stories (Section 1.3b)
-- [Placeholder: partial execution filter — story-0005-0009]
+- Circuit breaker (Section 1.7) pauses on 3 consecutive failures and aborts the phase on 5 total failures
 
 #### 1.3a Cross-Story Task Dependency Enforcement
 
@@ -839,29 +868,26 @@ When `--sequential` flag is set, use sequential dispatch. For each executable st
 ```
 You are implementing story {storyId} for epic {epicId}.
 
+CONTEXT ISOLATION: You receive only metadata. Read all files yourself.
+Do NOT expect source code, diffs, or knowledge pack content in this prompt.
+
 Story file: plans/epic-{epicId}/story-{storyId}.md
 Branch: {branchName}
 Phase: {currentPhase}
 Skip review: {skipReview}
 Auto-approve PR: {autoApprovePr}
 
-CRITICAL: Invoke the /x-dev-lifecycle skill using the Skill tool:
-  Skill(skill: "x-dev-lifecycle", args: "{storyId}")
+CRITICAL: Invoke the /x-dev-story-implement skill using the Skill tool:
+  Skill(skill: "x-dev-story-implement", args: "{storyId}")
 
-The /x-dev-lifecycle skill orchestrates ALL phases: planning, TDD, reviews, commits, and PR creation.
+The /x-dev-story-implement skill orchestrates ALL phases: planning, TDD, reviews, commits, and PR creation.
 Do NOT manually perform these steps. Let the skill handle all orchestration.
 
-If /x-dev-lifecycle is unavailable (Skill tool error), fall back to manual execution:
-1. Read the story file for requirements
-2. Create implementation plan
-3. Implement following TDD (Red-Green-Refactor)
-4. Run tests and verify coverage
-5. Commit changes with Conventional Commits
-6. Create PR and run reviews
+If /x-dev-story-implement is unavailable (Skill tool error), fall back to manual execution:
+1. Read story -> 2. Plan -> 3. TDD (Red-Green-Refactor) -> 4. Test + coverage
+5. Commit (Conventional Commits) -> 6. Create PR targeting `develop`
 
-The PR created by /x-dev-lifecycle MUST:
-- Target `develop` branch (or parent branch when --auto-approve-pr is set)
-- Include "Part of EPIC-{epicId}" in the PR body for traceability (RULE-008)
+PR MUST include "Part of EPIC-{epicId}" in body (RULE-008).
 
 When --auto-approve-pr is set:
 - Create a parent branch `feat/{storyId}-desc` from develop
@@ -871,7 +897,6 @@ When --auto-approve-pr is set:
 
 Version bump: DEFERRED. Do NOT modify pom.xml version in Phase 6.
 The epic orchestrator handles version bumps at the integrity gate.
-CONTEXT ISOLATION: Pass only metadata to nested invocations, never source code or diffs.
 
 Include prUrl and prNumber in your SubagentResult JSON.
 
@@ -923,7 +948,7 @@ Each worktree subagent uses the same prompt template as Section 1.4, including
 the PR creation instructions: PR targets `develop`, PR body includes
 "Part of EPIC-{epicId}" (RULE-008), and `SubagentResult` includes `prUrl` and `prNumber`.
 
-**Branch Naming:** Each worktree operates on branch `feat/{storyId}-short-description` (standard story branch pattern, matching `x-dev-lifecycle` Phase 0).
+**Branch Naming:** Each worktree operates on branch `feat/{storyId}-short-description` (standard story branch pattern, matching `x-dev-story-implement` Phase 0).
 
 **Context Isolation (RULE-001):** Each worktree subagent receives clean context,
 identical to sequential mode. The orchestrator passes ONLY metadata (story ID,
@@ -947,6 +972,9 @@ a conflict resolution subagent is dispatched to resolve them automatically.
 **Prompt Template:**
 ```
 You are a Conflict Resolution Specialist resolving rebase conflicts.
+
+CONTEXT ISOLATION: You receive only metadata. Read all files yourself.
+Do NOT expect source code, diffs, or knowledge pack content in this prompt.
 
 Conflict type: rebase
 Story branch: {storyBranch}
@@ -1139,7 +1167,7 @@ The following sections are placeholders for downstream stories:
 - [Placeholder: integrity gate between phases — story-0005-0006]
 - [Placeholder: retry + block propagation — story-0005-0007]
 - [Placeholder: resume from checkpoint — story-0005-0008]
-- [Placeholder: partial execution filter — story-0005-0009]
+- Circuit breaker (Section 1.7) pauses on 3 consecutive failures and aborts the phase on 5 total failures
 - [Placeholder: progress reporting — story-0005-0013]
 
 ### Integrity Gate (Between Phases) (RULE-006)
@@ -1179,7 +1207,7 @@ git checkout develop && git pull origin develop
 **When `mergeMode == "no-merge"`:**
 
 PRs are not merged to `develop`. The integrity gate is **DEFERRED**:
-1. Per-story validation already runs within `x-dev-lifecycle` (compile, test, coverage per story)
+1. Per-story validation already runs within `x-dev-story-implement` (compile, test, coverage per story)
 2. Cross-story integration on `develop` cannot be validated (code not merged yet)
 3. Log: `"--no-merge: integrity gate deferred for phase {N}. Cross-story integration will be validated after PRs are merged."`
 4. Record: `integrityGate.status = "DEFERRED"` in checkpoint
@@ -1190,6 +1218,9 @@ PRs are not merged to `develop`. The integrity gate is **DEFERRED**:
 
 Launch a `general-purpose` subagent:
 
+> CONTEXT ISOLATION: You receive only metadata. Read all files yourself.
+> Do NOT expect source code, diffs, or knowledge pack content in this prompt.
+>
 > You are an **Integrity Gate Validator** for {{PROJECT_NAME}}.
 >
 > **Step 1 — Compile:** Run `{{COMPILE_COMMAND}}` (e.g., `tsc --noEmit`).
@@ -1315,7 +1346,7 @@ the `--skip-smoke-gate` flag, which records `smokeGate.status = "SKIP"` in the c
 `--skip-smoke-gate` is set, the integrity gate evaluates only Steps 1-4 (compile, test, coverage).
 When not set, the smoke gate (Step 5) must also pass for the overall integrity gate to pass.
 
-> **Note:** Each story already executes its own smoke gate via `x-dev-lifecycle` (Phase 2.5).
+> **Note:** Each story already executes its own smoke gate via `x-dev-story-implement` (Phase 2.5).
 > The integrity gate smoke tests serve as an ADDITIONAL regression validation — they ensure
 > that the combination of all stories in a phase did not break the overall smoke test suite.
 
@@ -1325,7 +1356,7 @@ After the integrity gate passes (compile + test + coverage + smoke), run a
 cross-story consistency check on the `develop` diff for the phase:
 
 1. Compute diff: `git diff {mainShaBeforePhase[N]}..develop`
-2. Dispatch a consistency subagent with the diff for analysis
+2. Dispatch a consistency subagent with metadata only (CONTEXT ISOLATION: pass phase number, SHA range, and file list — the subagent runs `git diff` itself to read the actual diff)
 3. The subagent verifies:
    - Error handling patterns are uniform across classes of the same role
    - Constructor patterns and return types are consistent within modules
@@ -1340,14 +1371,15 @@ cross-story consistency check on the `develop` diff for the phase:
 ### Phase Completion Reports
 
 After all stories in a phase complete (or reach terminal state) and the integrity
-gate finishes, the orchestrator generates a **phase completion report** — a
-human-readable record of the phase outcome saved alongside the execution plan.
+gate finishes, the orchestrator delegates **phase completion report generation to a dedicated subagent**. This prevents the full report content from accumulating in the orchestrator context.
 
-#### Report Generation
+#### Report Generation (Subagent Delegation)
 
-1. Read template at `.claude/templates/_TEMPLATE-PHASE-COMPLETION-REPORT.md` for required output format (RULE-007)
-2. If template is found: generate the report following the template structure, filling all `{{PLACEHOLDER}}` tokens with real data from the checkpoint (story statuses, durations, findings, coverage, TDD metrics)
-3. If template is NOT found (RULE-012 — graceful fallback): log `"WARNING: Template _TEMPLATE-PHASE-COMPLETION-REPORT.md not found, using inline format"` and generate the report with the following inline format:
+The orchestrator dispatches a subagent with metadata (epicId, phase number, story statuses, template path) to generate the report. The subagent:
+
+1. Reads template at `.claude/templates/_TEMPLATE-PHASE-COMPLETION-REPORT.md` for required output format (RULE-007)
+2. If template is found: generates the report following the template structure, filling all `{{PLACEHOLDER}}` tokens with real data from the checkpoint (story statuses, durations, findings, coverage, TDD metrics)
+3. If template is NOT found (RULE-012 — graceful fallback): logs `"WARNING: Template _TEMPLATE-PHASE-COMPLETION-REPORT.md not found, using inline format"` and generates the report with the following inline format:
 
 ```markdown
 # Phase Completion Report — EPIC-{epicId} Phase {N}
@@ -1371,8 +1403,11 @@ human-readable record of the phase outcome saved alongside the execution plan.
 - Phase duration: {duration}
 ```
 
-4. Write the report to `plans/epic-{epicId}/reports/phase-{N}-completion-{epicId}.md`
+4. Writes the report to `plans/epic-{epicId}/reports/phase-{N}-completion-{epicId}.md`
 5. The report header MUST include: Epic ID, Phase Number, Date, Author (role), Template Version (RULE-011)
+6. Returns to orchestrator: `{ "status": "GENERATED", "path": "plans/epic-{epicId}/reports/phase-{N}-completion-{epicId}.md" }`
+
+The orchestrator logs only the returned path and status. It does NOT read the generated report into its own context.
 
 #### Report Content
 
@@ -1397,7 +1432,7 @@ artifact for the operator deciding whether to resume or abort.
 
 After all stories in a phase complete (or reach terminal state), the orchestrator
 generates a progress report. With per-story PRs, each story already has its own
-tech lead review (via `x-dev-lifecycle` Phase 7) and its own PR (via Phase 6).
+tech lead review (via `x-dev-story-implement` Phase 7) and its own PR (via Phase 6).
 Phase 2 consolidates this information into a single report.
 
 > **Note:** The legacy two-wave consolidation (tech lead review of full diff +
@@ -1483,7 +1518,7 @@ Verify the Definition of Done (DoD) for the epic:
 - [ ] Integrity gates passed for all phases (when `mergeMode == "no-merge"`: gates are DEFERRED — per-story validation still applies)
 - [ ] Coverage thresholds met (>=95% line, >=90% branch per-story)
 - [ ] Zero compiler/linter warnings (per-story, validated by lifecycle)
-- [ ] Per-story tech lead reviews executed (via `x-dev-lifecycle` Phase 7) or skipped via `--skip-review`
+- [ ] Per-story tech lead reviews executed (via `x-dev-story-implement` Phase 7) or skipped via `--skip-review`
 - [ ] Epic execution report generated with PR links table (Phase 2.1)
 - [ ] All findings with severity >= Medium addressed or documented
 
@@ -1534,7 +1569,7 @@ Elapsed: {totalElapsedTime}
 
 After Phase 3 (Verification) completes, the orchestrator offers automatic remediation
 of PR review comments across all story PRs in the epic. This phase invokes
-`/x-fix-epic-pr-comments` to discover, classify, and fix actionable review comments
+`/x-pr-fix-epic-comments` to discover, classify, and fix actionable review comments
 in a single correction PR.
 
 **Skip conditions:**
@@ -1555,10 +1590,10 @@ Scan all story PRs in the epic for unresolved review comments:
 
 ### 4.2 Dry-Run First
 
-When comments are found, invoke `/x-fix-epic-pr-comments` in dry-run mode first:
+When comments are found, invoke `/x-pr-fix-epic-comments` in dry-run mode first:
 
 ```
-/x-fix-epic-pr-comments {epicId} --dry-run
+/x-pr-fix-epic-comments {epicId} --dry-run
 ```
 
 This generates a consolidated findings report at `plans/epic-{epicId}/reports/pr-comments-report.md`
@@ -1573,7 +1608,7 @@ question: "PR comment report generated. {commentCount} actionable findings acros
 header: "PR Comment Remediation"
 options:
   - label: "Apply fixes"
-    description: "Invoke x-fix-epic-pr-comments to apply fixes and create a correction PR"
+    description: "Invoke x-pr-fix-epic-comments to apply fixes and create a correction PR"
   - label: "Skip"
     description: "Keep the report for review but do not apply fixes"
 multiSelect: false
@@ -1587,10 +1622,10 @@ proceed directly to Step 4.4. Log: `"--auto-merge: applying PR comment fixes wit
 
 ### 4.4 Apply Fixes
 
-Invoke `/x-fix-epic-pr-comments` without `--dry-run` to apply fixes:
+Invoke `/x-pr-fix-epic-comments` without `--dry-run` to apply fixes:
 
 ```
-/x-fix-epic-pr-comments {epicId}
+/x-pr-fix-epic-comments {epicId}
 ```
 
 The skill will:
@@ -1685,6 +1720,9 @@ Merge mode: {auto|no-merge|interactive}
 | Integrity gate FAIL with identified regression | Revert commit, mark story FAILED, trigger block propagation for dependents |
 | Integrity gate FAIL without identified regression | Pause execution, report to user |
 | Rebase conflict resolution fails after MAX_REBASE_RETRIES (3) | Abort rebase, mark story FAILED, close PR, trigger block propagation |
+| 3 consecutive story failures (circuit breaker) | Transition to OPEN, pause execution, AskUserQuestion |
+| 5 total failures in phase (circuit breaker) | Abort phase, mark remaining as BLOCKED |
+| Reference file not found (RULE-002) | Log warning, continue without reference |
 | Template file not found (RULE-012 — Template Fallback) | Log warning, use inline format as fallback |
 
 ## Template Fallback
@@ -1706,8 +1744,8 @@ Templates referenced by this skill follow RULE-012. When a template file does no
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| `x-dev-lifecycle` | Invokes (per story) | Story execution with PR creation, reviews in Phases 4/7 |
-| `x-fix-epic-pr-comments` | Invokes (Phase 4) | PR comment remediation; dry-run first, then apply with confirmation |
+| `x-dev-story-implement` | Invokes (per story) | Story execution with PR creation, reviews in Phases 4/7 |
+| `x-pr-fix-epic-comments` | Invokes (Phase 4) | PR comment remediation; dry-run first, then apply with confirmation |
 | `x-epic-plan` | References | Produces DoR files (`dor-story-*.md`) consumed by DoR pre-check (Section 1.1b) |
 | `x-story-map` | References | Error guidance when map is missing |
 | `x-lib-version-bump` | Invokes (post-gate) | Version bump on `develop` after integrity gate PASS (RULE-013) |
@@ -1730,7 +1768,7 @@ Templates referenced by this skill follow RULE-012. When a template file does no
 - Conflict resolution (Section 1.4c, RULE-012) dispatches subagent for automatic rebase conflict resolution
 - `--single-pr` preserves legacy flow: epic branch + single mega-PR (all per-story PR logic is skipped)
 - `--no-merge`, `--auto-merge`, and `--interactive-merge` are mutually exclusive; default is no-merge mode (RULE-003)
-- With `--no-merge` (default): dependency check relaxed to `status == SUCCESS` only; integrity gate is DEFERRED; version bump is skipped
+- With `--no-merge` (default): dependency check relaxed to `status == SUCCESS` only; integrity gate uses local gate; version bump is skipped
 - Interactive mode (opt-in via `--interactive-merge`) prompts user at phase boundaries with 3 options: merge all, pause for manual merge, or skip merge
 - Resume workflow respects `mergeMode` from checkpoint for consistent behavior; warns if mode changed on resume
 - Phase 4 (PR Comment Remediation) is optional, skipped with `--skip-pr-comments` or `--single-pr`

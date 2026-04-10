@@ -49,13 +49,13 @@ The dashboard aggregates results from 10 security dimensions. Each dimension map
 
 | Dimension | Source Skill(s) | Weight | Results Pattern |
 |-----------|----------------|--------|-----------------|
-| Static Analysis | x-sast-scan | 20% | `results/security/sast-*.sarif.json` |
-| Dynamic Analysis | x-dast-scan | 15% | `results/security/dast-*.sarif.json` |
-| Secrets | x-secret-scan | 15% | `results/security/secret-scan-*.sarif.json` |
-| Container Security | x-container-scan | 10% | `results/security/container-scan-*.sarif.json` |
-| Infrastructure | x-infra-scan | 10% | `results/security/infra-scan-*.sarif.json` |
+| Static Analysis | x-security-sast | 20% | `results/security/sast-*.sarif.json` |
+| Dynamic Analysis | x-security-dast | 15% | `results/security/dast-*.sarif.json` |
+| Secrets | x-security-secret-scan | 15% | `results/security/secret-scan-*.sarif.json` |
+| Container Security | x-security-container | 10% | `results/security/container-scan-*.sarif.json` |
+| Infrastructure | x-security-infra | 10% | `results/security/infra-scan-*.sarif.json` |
 | OWASP Compliance | x-owasp-scan | 10% | `results/security/owasp-scan-*.sarif.json` |
-| Code Quality (Security) | x-sonar-gate | 5% | `results/security/sonar-gate-*.sarif.json` |
+| Code Quality (Security) | x-security-sonar | 5% | `results/security/sonar-gate-*.sarif.json` |
 | Hardening | x-hardening-eval | 5% | `results/security/hardening-eval-*.sarif.json` |
 | Runtime Protection | x-runtime-protection | 5% | `results/security/runtime-protection-*.sarif.json` |
 | Supply Chain | x-supply-chain-audit + x-dependency-audit | 5% | `results/security/supply-chain-*.sarif.json`, `results/security/dependency-audit-*.sarif.json` |
@@ -228,8 +228,8 @@ Where:
 
 | Dimension | Source | Score | Grade | Trend | Findings | Critical | High |
 |-----------|--------|-------|-------|-------|----------|----------|------|
-| Static Analysis | x-sast-scan | {score} | {grade} | {trend} | {count} | {c} | {h} |
-| Dynamic Analysis | x-dast-scan | {score} | {grade} | {trend} | {count} | {c} | {h} |
+| Static Analysis | x-security-sast | {score} | {grade} | {trend} | {count} | {c} | {h} |
+| Dynamic Analysis | x-security-dast | {score} | {grade} | {trend} | {count} | {c} | {h} |
 | ... | ... | ... | ... | ... | ... | ... | ... |
 
 ### Missing Dimensions
@@ -277,11 +277,11 @@ Where:
   "overallTrend": "improving",
   "totalFindings": 87,
   "dimensionsAvailable": 8,
-  "dimensionsMissing": ["x-container-scan", "x-infra-scan"],
+  "dimensionsMissing": ["x-security-container", "x-security-infra"],
   "dimensions": [
     {
       "dimension": "Static Analysis",
-      "source": "x-sast-scan",
+      "source": "x-security-sast",
       "weight": 0.20,
       "score": 85,
       "grade": "B",
@@ -362,7 +362,7 @@ results/security/dashboard-{YYYYMMDD}-{HHMMSS}.json
 ## Composability (RULE-011 — Skill Composability)
 
 This skill is an **aggregator**, not a scanner. It MUST:
-- NEVER invoke x-sast-scan, x-dast-scan, or any other scanning skill
+- NEVER invoke x-security-sast, x-security-dast, or any other scanning skill
 - NEVER duplicate scanning logic from any atomic skill
 - Read ONLY from `results/security/` (the shared output directory)
 - Respect the SARIF 2.1.0 schema defined in `references/sarif-template.md`
@@ -381,9 +381,9 @@ If a user needs fresh scan data, run the individual scanning skills first, then 
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| x-sast-scan | Consumes output | Static analysis SARIF results (20% weight) |
-| x-dast-scan | Consumes output | Dynamic analysis SARIF results (15% weight) |
-| x-secret-scan | Consumes output | Secrets detection SARIF results (15% weight) |
+| x-security-sast | Consumes output | Static analysis SARIF results (20% weight) |
+| x-security-dast | Consumes output | Dynamic analysis SARIF results (15% weight) |
+| x-security-secret-scan | Consumes output | Secrets detection SARIF results (15% weight) |
 | x-owasp-scan | Consumes output | OWASP compliance SARIF results (10% weight) |
 | x-dependency-audit | Consumes output | Supply chain SARIF results (5% weight) |
 | x-supply-chain-audit | Consumes output | Supply chain SARIF results (5% weight) |
