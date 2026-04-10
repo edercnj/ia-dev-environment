@@ -22,9 +22,9 @@ Implements a feature or story following TDD (Red-Green-Refactor) workflow for {{
 | Scenario | Use |
 |----------|-----|
 | Quick implementation (single class, small fix) | This skill |
-| Full story with multi-persona review | `/x-dev-lifecycle` |
+| Full story with multi-persona review | `/x-dev-story-implement` |
 | Coding without the review phases | This skill |
-| Complete lifecycle: code, review, fix, PR | `/x-dev-lifecycle` |
+| Complete lifecycle: code, review, fix, PR | `/x-dev-story-implement` |
 
 ## Triggers
 
@@ -49,7 +49,7 @@ Implements a feature or story following TDD (Red-Green-Refactor) workflow for {{
 
 ### Step 0 — Pre-Check: Plan Reuse (RULE-002 — Idempotency via Staleness Check)
 
-Before starting implementation, check for existing plans produced by `x-dev-lifecycle` or other planning skills. Reusing existing plans ensures consistency between the full lifecycle workflow and the simplified implement workflow.
+Before starting implementation, check for existing plans produced by `x-dev-story-implement` or other planning skills. Reusing existing plans ensures consistency between the full lifecycle workflow and the simplified implement workflow.
 
 1. **Resolve paths:** Extract epic ID (XXXX) and story sequence (YYYY) from the story ID. Compute:
    - Story path: the story file provided as input
@@ -68,7 +68,7 @@ Before starting implementation, check for existing plans produced by `x-dev-life
 3. **Staleness check:** For each plan that exists:
    - If `mtime(story file) <= mtime(plan file)` — plan is **fresh**. Log: `"Reusing existing {type} from {date}"`
    - If `mtime(story file) > mtime(plan file)` — plan is **stale**. Log WARNING: `"Plan {type} may be stale (story modified after plan generation), using as context anyway"`
-   - Stale plans are still used as context — do NOT regenerate (regeneration is the responsibility of `x-dev-lifecycle`)
+   - Stale plans are still used as context — do NOT regenerate (regeneration is the responsibility of `x-dev-story-implement`)
 
 4. **Context combination:** Log the combination of available plans:
 
@@ -87,7 +87,7 @@ Before starting implementation, check for existing plans produced by `x-dev-life
 
 #### Additional Artifacts (Task-Aware Mode)
 
-In addition to the 3 plan types above, check for per-task plans produced by `x-dev-lifecycle` (multi-agent planning):
+In addition to the 3 plan types above, check for per-task plans produced by `x-dev-story-implement` (multi-agent planning):
 
    | # | Artifact Type | File Pattern | Context Injection Instruction |
    |---|---------------|--------------|-------------------------------|
@@ -385,17 +385,17 @@ This ensures backward compatibility with projects that have not yet adopted temp
 | Skill | Relationship | Context |
 |-------|-------------|---------|
 | `x-test-plan` | reads | Consumes test plan for Double-Loop + TPP ordering |
-| `x-dev-lifecycle` | called-by | Invoked during Phase 2 of the full lifecycle |
+| `x-dev-story-implement` | called-by | Invoked during Phase 2 of the full lifecycle |
 | `x-test-run` | calls | Invokes test execution and coverage validation patterns |
 | `x-git-push` | calls | Uses commit conventions for atomic TDD commits |
 | `x-lib-task-decomposer` | reads | Consumes task breakdown and per-task plans for task-aware mode |
 
 - **Prerequisite:** Run `/x-test-plan` first to generate the test plan with Double-Loop + TPP ordering
-- **Plan reuse:** Pre-check (RULE-002) discovers existing plans from `x-dev-lifecycle` runs, ensuring consistency between full lifecycle and simplified implement workflows
+- **Plan reuse:** Pre-check (RULE-002) discovers existing plans from `x-dev-story-implement` runs, ensuring consistency between full lifecycle and simplified implement workflows
 - **Template reference:** RULE-007 instructs subagent to read implementation plan template when available
 - **Graceful fallback:** RULE-012 ensures backward compatibility when templates are not available
 - **Task-aware mode:** When per-task plans from `x-lib-task-decomposer` exist, Step 2 iterates TASK-NNN instead of UT-N, with resume check, DoD validation, and atomic commits per task
-- For the full lifecycle with reviews, use `x-dev-lifecycle` instead
+- For the full lifecycle with reviews, use `x-dev-story-implement` instead
 - Works with any {{FRAMEWORK}} project following layered/hexagonal architecture
 - The developer agent (typescript-developer) already includes TDD workflow rules (story-0003-0006)
 - All `{{PLACEHOLDER}}` tokens (e.g. `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation

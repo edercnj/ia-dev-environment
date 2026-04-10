@@ -31,4 +31,4 @@ Runs or implements performance tests to validate the application meets latency S
 
 - [run-e2e](../run-e2e/) -- End-to-end integration tests
 - [run-smoke-api](../run-smoke-api/) -- REST API smoke tests
-- [instrument-otel](../instrument-otel/) -- OpenTelemetry instrumentation for performance metrics
+- [x-obs-instrument](../x-obs-instrument/) -- OpenTelemetry instrumentation for performance metrics

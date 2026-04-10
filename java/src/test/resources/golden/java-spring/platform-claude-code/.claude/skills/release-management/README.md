@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Category** | Knowledge Pack |
-| **Referenced by** | `x-release`, `x-git-push`, `x-changelog`, `tech-lead` agent |
+| **Referenced by** | `x-release`, `x-git-push`, `x-release-changelog`, `tech-lead` agent |
 
 > **Full content**: See [SKILL.md](./SKILL.md) for the complete reference.
 

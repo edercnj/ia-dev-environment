@@ -28,6 +28,6 @@ Runs consumer-driven contract tests to verify API compatibility between services
 
 ## See Also
 
-- [x-contract-lint](../x-contract-lint/) -- API contract validation (OpenAPI, AsyncAPI, Protobuf)
+- [x-test-contract-lint](../x-test-contract-lint/) -- API contract validation (OpenAPI, AsyncAPI, Protobuf)
 - [x-review-api](../x-review-api/) -- REST API design review
 - [run-e2e](../run-e2e/) -- End-to-end integration tests

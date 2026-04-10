@@ -34,13 +34,13 @@ Generates a consolidated security posture dashboard for {{PROJECT_NAME}} by aggr
 
 | Dimension | Source Skill(s) | Weight |
 |-----------|----------------|--------|
-| Static Analysis | x-sast-scan | 20% |
-| Dynamic Analysis | x-dast-scan | 15% |
-| Secrets | x-secret-scan | 15% |
-| Container Security | x-container-scan | 10% |
-| Infrastructure | x-infra-scan | 10% |
+| Static Analysis | x-security-sast | 20% |
+| Dynamic Analysis | x-security-dast | 15% |
+| Secrets | x-security-secret-scan | 15% |
+| Container Security | x-security-container | 10% |
+| Infrastructure | x-security-infra | 10% |
 | OWASP Compliance | x-owasp-scan | 10% |
-| Code Quality (Security) | x-sonar-gate | 5% |
+| Code Quality (Security) | x-security-sonar | 5% |
 | Hardening | x-hardening-eval | 5% |
 | Runtime Protection | x-runtime-protection | 5% |
 | Supply Chain | x-supply-chain-audit + x-dependency-audit | 5% |

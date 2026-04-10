@@ -29,4 +29,4 @@ Analyzes the project tech stack by reading project configuration and identity fi
 
 ## See Also
 
-- [x-setup-dev-environment](../x-setup-dev-environment/) -- Validates the local development environment
+- [x-setup-env](../x-setup-env/) -- Validates the local development environment

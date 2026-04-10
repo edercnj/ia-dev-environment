@@ -351,7 +351,7 @@ Risk Score = (CVE Severity * 0.40) + (Depth * 0.20)
 |-------|-------------|---------|
 | `x-dependency-audit` | complementary | Handles CVEs, outdated versions, licenses, and SBOM generation |
 | `x-security-dashboard` | reads | Dashboard aggregates results from this skill |
-| `x-ci-cd-generate` | called-by | Security pipeline may invoke supply chain audit |
+| `x-ci-generate` | called-by | Security pipeline may invoke supply chain audit |
 
 ## Knowledge Pack References
 

@@ -48,7 +48,7 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
  2. VALIDATE     -> Check pre-conditions (branch, working directory)
  3. BRANCH       -> Create release/X.Y.Z branch from develop (or hotfix/* from main)
  4. UPDATE       -> Update version in project-specific files (strip SNAPSHOT)
- 5. CHANGELOG    -> Generate/update CHANGELOG.md via x-changelog
+ 5. CHANGELOG    -> Generate/update CHANGELOG.md via x-release-changelog
  6. COMMIT       -> Create release commit on release branch
  7. MERGE-MAIN   -> Merge release branch into main with --no-ff
  8. TAG          -> Create annotated git tag on main
@@ -220,17 +220,17 @@ fi
 
 ### Step 5 — Changelog Generation
 
-Delegate changelog generation to the `x-changelog` skill:
+Delegate changelog generation to the `x-release-changelog` skill:
 
 ```
-Use Agent tool to invoke x-changelog with the target version.
-The x-changelog skill will:
+Use Agent tool to invoke x-release-changelog with the target version.
+The x-release-changelog skill will:
 1. Parse Conventional Commits since last tag
 2. Group by type (Added, Changed, Fixed, etc.)
 3. Generate or update CHANGELOG.md
 ```
 
-Reference: `skills/x-changelog/SKILL.md`
+Reference: `skills/x-release-changelog/SKILL.md`
 
 ### Step 6 — Commit Release
 
@@ -441,7 +441,7 @@ Before executing the release, validate against the release-checklist template (`
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| `x-changelog` | calls | Delegates changelog generation via Agent tool |
+| `x-release-changelog` | calls | Delegates changelog generation via Agent tool |
 | `x-git-push` | reads | Uses same Conventional Commits format for release commit |
 
 - **release-management KP**: References SemVer rules, branching strategies, and registry patterns from `skills/release-management/SKILL.md`

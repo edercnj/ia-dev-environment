@@ -92,7 +92,7 @@ flowchart LR
 
     subgraph SUB["Subagent (worktree or sequential)"]
         direction TB
-        INVOKE["/x-dev-lifecycle {storyId}"] --> LIFECYCLE
+        INVOKE["/x-dev-story-implement {storyId}"] --> LIFECYCLE
     end
 
     LIFECYCLE -->|SubagentResult JSON| ORCH
@@ -109,13 +109,13 @@ flowchart LR
     SUB -.-> RESULT
 ```
 
-## 3. x-dev-lifecycle — Per-Story Execution (9 Phases)
+## 3. x-dev-story-implement — Per-Story Execution (9 Phases)
 
 This is what happens **inside each subagent** when a story is dispatched.
 
 ```mermaid
 flowchart TD
-    ENTRY(["/x-dev-lifecycle {storyId}"]) --> PH0
+    ENTRY(["/x-dev-story-implement {storyId}"]) --> PH0
 
     subgraph PH0["Phase 0 — Preparation"]
         PH0A[Read story file] --> PH0B[Create branch: feat/storyId-desc]
@@ -209,7 +209,7 @@ flowchart TD
 
 ```mermaid
 graph TD
-    EPIC["/x-dev-epic-implement"] -->|per story| LIFE["/x-dev-lifecycle"]
+    EPIC["/x-dev-epic-implement"] -->|per story| LIFE["/x-dev-story-implement"]
 
     LIFE -->|Phase 1A| ARCH["/x-dev-architecture-plan"]
     LIFE -->|Phase 1B| TEST["/x-test-plan"]
@@ -263,7 +263,7 @@ flowchart TD
     F4 -->|No| POLL["POLLING<br/>Wait for manual merge<br/>60s interval, 24h timeout"]
 
     FLAGS --> F5{--skip-review?}
-    F5 -->|Yes| NOREVIEW["SKIP REVIEWS<br/>x-dev-lifecycle skips<br/>Phases 4 and 7"]
+    F5 -->|Yes| NOREVIEW["SKIP REVIEWS<br/>x-dev-story-implement skips<br/>Phases 4 and 7"]
     F5 -->|No| FULLREVIEW["FULL REVIEWS<br/>Specialist (Phase 4)<br/>Tech Lead (Phase 7)"]
 
     FLAGS --> F6{--skip-smoke-gate?}
@@ -385,7 +385,7 @@ flowchart TD
 | Layer | Skill | Invoked By | Purpose |
 |-------|-------|------------|---------|
 | **Orchestrator** | `/x-dev-epic-implement` | User | Epic-level orchestration, phase management |
-| **Per-Story** | `/x-dev-lifecycle` | Epic orchestrator subagent | Full 9-phase development cycle per story |
+| **Per-Story** | `/x-dev-story-implement` | Epic orchestrator subagent | Full 9-phase development cycle per story |
 | **Planning** | `/x-dev-architecture-plan` | Lifecycle Phase 1A | Architecture plan with diagrams + ADRs |
 | **Planning** | `/x-test-plan` | Lifecycle Phase 1B | Double-Loop TDD test plan with TPP |
 | **Planning** | `/x-lib-task-decomposer` | Lifecycle Phase 1C | Task breakdown from test plan |
@@ -404,7 +404,7 @@ flowchart TD
 Orchestrator (main)          Story Subagent (worktree)          GitHub
 ─────────────────           ──────────────────────────         ────────
                                                                 
-  dispatch story ──────────►  /x-dev-lifecycle                  
+  dispatch story ──────────►  /x-dev-story-implement                  
                               │                                 
                               ├─ Phase 0: create branch         
                               ├─ Phase 1: plan                  

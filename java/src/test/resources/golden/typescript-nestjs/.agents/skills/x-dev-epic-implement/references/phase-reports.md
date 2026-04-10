@@ -63,7 +63,7 @@ artifact for the operator deciding whether to resume or abort.
 
 After all stories in a phase complete (or reach terminal state), the orchestrator
 generates a progress report. With per-story PRs, each story already has its own
-tech lead review (via `x-dev-lifecycle` Phase 7) and its own PR (via Phase 6).
+tech lead review (via `x-dev-story-implement` Phase 7) and its own PR (via Phase 6).
 Phase 2 consolidates this information into a single report.
 
 > **Note:** The legacy two-wave consolidation (tech lead review of full diff +

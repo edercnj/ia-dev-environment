@@ -76,7 +76,7 @@ For each story that has a `tasks` object in `execution-state.json`:
 7. **PENDING tasks -> PENDING** (no change)
 8. **SKIPPED tasks -> SKIPPED** (no change — terminal status)
 
-This enables resume at the task level: only incomplete tasks are re-executed, not the entire story. When a story resumes with some tasks DONE, the `x-dev-lifecycle` / `x-dev-implement` subagent receives the task state and skips DONE tasks automatically.
+This enables resume at the task level: only incomplete tasks are re-executed, not the entire story. When a story resumes with some tasks DONE, the `x-dev-story-implement` / `x-dev-implement` subagent receives the task state and skips DONE tasks automatically.
 
 **Backward Compatibility:** Stories without a `tasks` field in the checkpoint are unaffected by this step. The step is a no-op for stories executed in non-PRE_PLANNED mode.
 

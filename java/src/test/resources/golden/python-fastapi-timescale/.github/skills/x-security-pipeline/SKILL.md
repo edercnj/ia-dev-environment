@@ -11,7 +11,7 @@ description: >
 
 ## Purpose
 
-Generates CI/CD pipeline configuration files with conditional security stages for {{PROJECT_NAME}}. Each stage is included only when its corresponding SecurityConfig flag is enabled. Supports three CI platforms (GitHub Actions, GitLab CI, Azure DevOps), two stage modes (minimal, all), and three trigger types (push, pr, schedule). References atomic scanning skills (x-sast-scan, x-secret-scan, x-container-scan, x-dast-scan, x-owasp-scan, x-sonar-gate) instead of duplicating scan logic (RULE-011).
+Generates CI/CD pipeline configuration files with conditional security stages for {{PROJECT_NAME}}. Each stage is included only when its corresponding SecurityConfig flag is enabled. Supports three CI platforms (GitHub Actions, GitLab CI, Azure DevOps), two stage modes (minimal, all), and three trigger types (push, pr, schedule). References atomic scanning skills (x-security-sast, x-security-secret-scan, x-security-container, x-security-dast, x-owasp-scan, x-security-sonar) instead of duplicating scan logic (RULE-011).
 
 ## Triggers
 
@@ -37,15 +37,15 @@ Generates CI/CD pipeline configuration files with conditional security stages fo
 
 | Order | Stage | Skill Reference | Phase | Condition | Minimal |
 |-------|-------|----------------|-------|-----------|---------|
-| 1 | Secret Scan | x-secret-scan | pre-commit | `security.scanning.secrets = true` | Yes |
-| 2 | SAST | x-sast-scan | build | `security.scanning.sast = true` | Yes |
+| 1 | Secret Scan | x-security-secret-scan | pre-commit | `security.scanning.secrets = true` | Yes |
+| 2 | SAST | x-security-sast | build | `security.scanning.sast = true` | Yes |
 | 3 | Dependency Audit | x-dependency-audit | build | Always enabled (baseline) | Yes |
-| 4 | SonarQube | x-sonar-gate | build | `security.scanning.sonar = true` | No |
-| 5 | Container Scan | x-container-scan | build | `infrastructure.container != "none"` | No |
-| 6 | DAST Passive | x-dast-scan | deploy-staging | `security.scanning.dast = true` | No |
+| 4 | SonarQube | x-security-sonar | build | `security.scanning.sonar = true` | No |
+| 5 | Container Scan | x-security-container | build | `infrastructure.container != "none"` | No |
+| 6 | DAST Passive | x-security-dast | deploy-staging | `security.scanning.dast = true` | No |
 | 7 | OWASP Scan | x-owasp-scan | deploy-staging | `security.frameworks contains "owasp"` | No |
 | 8 | Hardening Eval | x-hardening-eval | deploy-staging | `security.scanning.hardening = true` | No |
-| 9 | Quality Gate | x-sonar-gate | gate | `security.scanning.sonar = true` | No |
+| 9 | Quality Gate | x-security-sonar | gate | `security.scanning.sonar = true` | No |
 
 ## Workflow
 

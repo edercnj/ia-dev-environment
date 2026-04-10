@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Category** | Knowledge Pack |
-| **Referenced by** | `x-dev-implement`, `x-dev-lifecycle`, `x-review` (DevOps specialist), `devops-engineer` agent |
+| **Referenced by** | `x-dev-implement`, `x-dev-story-implement`, `x-review` (DevOps specialist), `devops-engineer` agent |
 
 > **Full content**: See [SKILL.md](./SKILL.md) for the complete reference.
 

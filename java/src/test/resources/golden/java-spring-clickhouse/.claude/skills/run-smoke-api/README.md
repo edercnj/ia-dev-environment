@@ -31,4 +31,4 @@ Orchestrates black-box smoke tests against the application's REST API using Newm
 
 - [run-smoke-socket](../run-smoke-socket/) -- TCP socket smoke tests
 - [run-e2e](../run-e2e/) -- End-to-end integration tests
-- [x-dast-scan](../x-dast-scan/) -- Dynamic application security testing against running app
+- [x-security-dast](../x-security-dast/) -- Dynamic application security testing against running app
