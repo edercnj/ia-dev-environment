@@ -6,7 +6,7 @@
 |---|---|
 | **Category** | Conditional |
 | **Condition** | `security.scanning.dast = true` |
-| **Invocation** | `/x-security-dast --target <URL> [--env local\|dev\|homolog\|prod] [--mode passive\|active\|full]` |
+| **Invocation** | `/x-security-dast --target <URL> [--env local\|dev\|homolog\|prod] [--mode passive\|active\|full] [--openapi <PATH>] [--confirm-prod] [--auth-token <TOKEN>]` |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
 

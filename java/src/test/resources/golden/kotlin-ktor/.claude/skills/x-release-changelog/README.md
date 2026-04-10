@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Category** | Git/Release |
-| **Invocation** | `/x-release-changelog [version-tag \| --unreleased]` |
+| **Invocation** | `/x-release-changelog [version-tag \| --unreleased \| --full]` |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
 
