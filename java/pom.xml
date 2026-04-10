@@ -6,7 +6,7 @@
 
     <groupId>dev.iadev</groupId>
     <artifactId>ia-dev-env</artifactId>
-    <version>2.2.1</version>
+    <version>2.2.2</version>
     <packaging>jar</packaging>
 
     <name>ia-dev-env</name>
@@ -126,6 +126,16 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>false</filtering>
+                <excludes>
+                    <exclude>dev/iadev/version.properties</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>dev/iadev/version.properties</include>
+                </includes>
             </resource>
         </resources>
         <plugins>

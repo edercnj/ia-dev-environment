@@ -50,7 +50,7 @@ class IaDevEnvApplicationTest {
     }
 
     @Test
-    void version_whenCalled_displays2dot0dot0() {
+    void version_whenCalled_displaysSemVerFromBuild() {
         var app = new IaDevEnvApplication();
         var cmd = new CommandLine(app);
         var sw = new java.io.StringWriter();
@@ -59,7 +59,9 @@ class IaDevEnvApplicationTest {
         int exitCode = cmd.execute("--version");
 
         assertThat(exitCode).isZero();
-        assertThat(sw.toString().trim()).contains("2.0.0");
+        assertThat(sw.toString().trim())
+                .startsWith("ia-dev-env ")
+                .matches("ia-dev-env \\d+\\.\\d+\\.\\d+.*");
     }
 
     @Test

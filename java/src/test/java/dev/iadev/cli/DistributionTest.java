@@ -67,10 +67,11 @@ class DistributionTest {
     class VersionOutput {
 
         @Test
-        void version_whenCalled_contains2dot0dot0() {
+        void version_whenCalled_matchesSemVerFromBuild() {
             StringWriter sw = execute("--version");
             assertThat(sw.toString().trim())
-                    .contains("2.0.0");
+                    .startsWith("ia-dev-env ")
+                    .matches("ia-dev-env \\d+\\.\\d+\\.\\d+.*");
         }
 
         @Test
