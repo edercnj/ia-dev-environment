@@ -6,7 +6,7 @@
 |---|---|
 | **Category** | Conditional |
 | **Condition** | `security.scanning.containerScan = true` |
-| **Invocation** | `/x-security-container [--image name:tag] [--dockerfile path] [--severity-threshold CRITICAL\|HIGH\|MEDIUM\|LOW]` |
+| **Invocation** | `/x-security-container [--image name:tag] [--dockerfile path] [--ignore-unfixed] [--severity-threshold CRITICAL\|HIGH\|MEDIUM\|LOW]` |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
 
