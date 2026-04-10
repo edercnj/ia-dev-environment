@@ -57,7 +57,7 @@ class SkillsCoreConditionalTest {
                     outputDir);
             Path skillsDir = outputDir.resolve("skills");
             assertThat(skillsDir.resolve(
-                    "x-dev-lifecycle/SKILL.md"))
+                    "x-dev-story-implement/SKILL.md"))
                     .exists();
             assertThat(skillsDir.resolve(
                     "x-dev-implement/SKILL.md"))
@@ -87,7 +87,7 @@ class SkillsCoreConditionalTest {
                     "x-jira-create-stories/SKILL.md"))
                     .exists();
             assertThat(skillsDir.resolve(
-                    "x-spec-drift-check/SKILL.md"))
+                    "x-spec-drift/SKILL.md"))
                     .exists();
         }
 
@@ -123,7 +123,7 @@ class SkillsCoreConditionalTest {
                     TestConfigBuilder.minimal(),
                     new TemplateEngine(), outputDir);
             assertThat(outputDir.resolve(
-                    "skills/x-dev-lifecycle/references"))
+                    "skills/x-dev-story-implement/references"))
                     .exists();
         }
 
@@ -242,7 +242,7 @@ class SkillsCoreConditionalTest {
 
         @Test
         @DisplayName("pentestReadiness true generates"
-                + " x-pentest")
+                + " x-security-pentest")
         void assemble_pentestTrue_generatesPentestSkill(
                 @TempDir Path tempDir)
                 throws IOException {
@@ -258,13 +258,13 @@ class SkillsCoreConditionalTest {
                     config, new TemplateEngine(),
                     outputDir);
             assertThat(outputDir.resolve(
-                    "skills/x-pentest/SKILL.md"))
+                    "skills/x-security-pentest/SKILL.md"))
                     .exists();
         }
 
         @Test
         @DisplayName("pentestReadiness false excludes"
-                + " x-pentest")
+                + " x-security-pentest")
         void assemble_pentestFalse_excludesPentestSkill(
                 @TempDir Path tempDir)
                 throws IOException {
@@ -280,7 +280,7 @@ class SkillsCoreConditionalTest {
                     config, new TemplateEngine(),
                     outputDir);
             assertThat(outputDir.resolve(
-                    "skills/x-pentest"))
+                    "skills/x-security-pentest"))
                     .doesNotExist();
         }
     }

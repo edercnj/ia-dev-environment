@@ -18,13 +18,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for story-0022-0008: Infrastructure Security
- * Scanner (x-infra-scan).
+ * Scanner (x-security-infra).
  *
- * <p>Validates that the x-infra-scan SKILL.md is generated
+ * <p>Validates that the x-security-infra SKILL.md is generated
  * when infraScan is enabled, follows the security skill
  * template, and contains all required sections.</p>
  */
-@DisplayName("x-infra-scan Skill")
+@DisplayName("x-security-infra Skill")
 class InfraScanSkillTest {
 
     @Nested
@@ -33,7 +33,7 @@ class InfraScanSkillTest {
 
         @Test
         @DisplayName("infraScan enabled generates"
-                + " x-infra-scan SKILL.md")
+                + " x-security-infra SKILL.md")
         void assemble_infraScanEnabled_generatesSkill(
                 @TempDir Path tempDir)
                 throws IOException {
@@ -41,13 +41,13 @@ class InfraScanSkillTest {
                     tempDir, true);
 
             assertThat(outputDir.resolve(
-                    "skills/x-infra-scan/SKILL.md"))
+                    "skills/x-security-infra/SKILL.md"))
                     .exists();
         }
 
         @Test
         @DisplayName("infraScan disabled excludes"
-                + " x-infra-scan")
+                + " x-security-infra")
         void assemble_infraScanDisabled_excludesSkill(
                 @TempDir Path tempDir)
                 throws IOException {
@@ -55,7 +55,7 @@ class InfraScanSkillTest {
                     tempDir, false);
 
             assertThat(outputDir.resolve(
-                    "skills/x-infra-scan"))
+                    "skills/x-security-infra"))
                     .doesNotExist();
         }
 
@@ -77,7 +77,7 @@ class InfraScanSkillTest {
     class Frontmatter {
 
         @Test
-        @DisplayName("contains name: x-infra-scan")
+        @DisplayName("contains name: x-security-infra")
         void assemble_skillMd_hasName(
                 @TempDir Path tempDir)
                 throws IOException {
@@ -86,7 +86,7 @@ class InfraScanSkillTest {
             String content = readSkillContent(outputDir);
 
             assertThat(content)
-                    .contains("name: x-infra-scan");
+                    .contains("name: x-security-infra");
         }
 
         @Test
@@ -695,7 +695,7 @@ class InfraScanSkillTest {
             throws IOException {
         return Files.readString(
                 outputDir.resolve(
-                        "skills/x-infra-scan/SKILL.md"),
+                        "skills/x-security-infra/SKILL.md"),
                 StandardCharsets.UTF_8);
     }
 }

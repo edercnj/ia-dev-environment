@@ -40,7 +40,7 @@ class SubagentContextIsolationTest {
     private static final List<String> ORCHESTRATOR_SKILLS =
             List.of(
                     "x-dev-epic-implement",
-                    "x-dev-lifecycle",
+                    "x-dev-story-implement",
                     "x-review",
                     "x-epic-plan");
 
@@ -100,7 +100,7 @@ class SubagentContextIsolationTest {
     }
 
     @Nested
-    @DisplayName("x-dev-lifecycle")
+    @DisplayName("x-dev-story-implement")
     class DevLifecycle {
 
         @Test
@@ -109,7 +109,7 @@ class SubagentContextIsolationTest {
         void implPlanPrompt_containsIsolation()
                 throws IOException {
             String content = readSkillContent(
-                    "x-dev-lifecycle");
+                    "x-dev-story-implement");
             assertPromptSectionContains(
                     content,
                     "Senior Architect",
@@ -122,7 +122,7 @@ class SubagentContextIsolationTest {
         void securityPrompt_containsIsolation()
                 throws IOException {
             String content = readSkillContent(
-                    "x-dev-lifecycle");
+                    "x-dev-story-implement");
             assertPromptSectionContains(
                     content,
                     "Security Engineer",
@@ -135,7 +135,7 @@ class SubagentContextIsolationTest {
         void eventSchemaPrompt_containsIsolation()
                 throws IOException {
             String content = readSkillContent(
-                    "x-dev-lifecycle");
+                    "x-dev-story-implement");
             assertPromptSectionContains(
                     content,
                     "Event Engineer",
@@ -148,7 +148,7 @@ class SubagentContextIsolationTest {
         void compliancePrompt_containsIsolation()
                 throws IOException {
             String content = readSkillContent(
-                    "x-dev-lifecycle");
+                    "x-dev-story-implement");
             assertPromptSectionContains(
                     content,
                     "compliance impact",
@@ -201,16 +201,16 @@ class SubagentContextIsolationTest {
 
         @Test
         @DisplayName("x-dev-epic-implement prompt "
-                + "invokes x-dev-lifecycle via Skill tool")
+                + "invokes x-dev-story-implement via Skill tool")
         void epicImplement_invokesLifecycleViaSkill()
                 throws IOException {
             String content = readSkillContent(
                     "x-dev-epic-implement");
             assertThat(content)
                     .as("Subagent prompt must invoke "
-                            + "x-dev-lifecycle via Skill tool")
+                            + "x-dev-story-implement via Skill tool")
                     .contains(
-                            "Skill(skill: \"x-dev-lifecycle\"");
+                            "Skill(skill: \"x-dev-story-implement\"");
         }
 
         @Test
@@ -228,12 +228,12 @@ class SubagentContextIsolationTest {
         }
 
         @Test
-        @DisplayName("x-dev-lifecycle planning phases "
+        @DisplayName("x-dev-story-implement planning phases "
                 + "invoke x-threat-model via Skill tool")
         void lifecycle_invokesThreatModelViaSkill()
                 throws IOException {
             Path refPath = Path.of(SKILLS_DIR,
-                    "x-dev-lifecycle", "references",
+                    "x-dev-story-implement", "references",
                     "planning-phases.md");
             String content = Files.readString(
                     refPath, StandardCharsets.UTF_8);

@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   <li>Phase 3 is Story-Level Verification</li>
  *   <li>--auto-approve-pr flag documented</li>
  *   <li>Resume per task with execution-state.json</li>
- *   <li>Delegation to x-tdd, x-pr-create, x-commit</li>
+ *   <li>Delegation to x-test-tdd, x-pr-create, x-git-commit</li>
  *   <li>Backward compatibility for stories without
  *       formal tasks</li>
  *   <li>RULE-001 (1 task = 1 branch = 1 PR)</li>
@@ -66,7 +66,7 @@ class TaskCentricLifecycleTest {
         assertThat(result.success())
                 .as("Pipeline must succeed")
                 .isTrue();
-        lifecycleContent = readSkill("x-dev-lifecycle");
+        lifecycleContent = readSkill("x-dev-story-implement");
     }
 
     @Nested
@@ -82,10 +82,10 @@ class TaskCentricLifecycleTest {
         }
 
         @Test
-        @DisplayName("Phase 2 references x-tdd skill")
+        @DisplayName("Phase 2 references x-test-tdd skill")
         void phase2_referencesXTdd() {
             assertThat(lifecycleContent)
-                    .contains("/x-tdd");
+                    .contains("/x-test-tdd");
         }
 
         @Test
@@ -97,10 +97,10 @@ class TaskCentricLifecycleTest {
         }
 
         @Test
-        @DisplayName("Phase 2 references x-commit skill")
+        @DisplayName("Phase 2 references x-git-commit skill")
         void phase2_referencesXCommit() {
             assertThat(lifecycleContent)
-                    .contains("x-commit");
+                    .contains("x-git-commit");
         }
 
         @Test
@@ -281,12 +281,12 @@ class TaskCentricLifecycleTest {
                 + " delegated skills")
         void delegation_integrationNotesComplete() {
             assertThat(lifecycleContent)
-                    .contains("x-tdd")
-                    .contains("x-commit")
+                    .contains("x-test-tdd")
+                    .contains("x-git-commit")
                     .contains("x-pr-create")
-                    .contains("x-format")
-                    .contains("x-lint")
-                    .contains("x-plan-task");
+                    .contains("x-code-format")
+                    .contains("x-code-lint")
+                    .contains("x-task-plan");
         }
     }
 
@@ -307,11 +307,11 @@ class TaskCentricLifecycleTest {
             String content = Files.readString(
                     out.resolve(
                             ".claude/skills/"
-                                    + "x-dev-lifecycle/"
+                                    + "x-dev-story-implement/"
                                     + "SKILL.md"),
                     StandardCharsets.UTF_8);
             assertThat(content)
-                    .as("[%s] x-dev-lifecycle must"
+                    .as("[%s] x-dev-story-implement must"
                                     + " contain Task"
                                     + " Execution Loop",
                             profile)
@@ -331,11 +331,11 @@ class TaskCentricLifecycleTest {
             String content = Files.readString(
                     out.resolve(
                             ".claude/skills/"
-                                    + "x-dev-lifecycle/"
+                                    + "x-dev-story-implement/"
                                     + "SKILL.md"),
                     StandardCharsets.UTF_8);
             assertThat(content)
-                    .as("[%s] x-dev-lifecycle must"
+                    .as("[%s] x-dev-story-implement must"
                                     + " contain"
                                     + " --auto-approve-pr",
                             profile)

@@ -66,11 +66,11 @@ class SkillGroupRegistryTest {
 
         @Test
         @DisplayName("review group contains"
-                + " x-spec-drift-check")
+                + " x-spec-drift")
         void register_reviewGroup_containsSpecDriftCheck() {
             assertThat(SkillGroupRegistry.SKILL_GROUPS
                     .get("review"))
-                    .contains("x-spec-drift-check");
+                    .contains("x-spec-drift");
         }
 
         @Test

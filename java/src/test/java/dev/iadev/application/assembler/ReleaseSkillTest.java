@@ -250,7 +250,7 @@ class ReleaseSkillTest {
         }
 
         @Test
-        @DisplayName("references x-changelog for"
+        @DisplayName("references x-release-changelog for"
                 + " changelog generation")
         void assemble_release_refsChangelog(
                 @TempDir Path tempDir)
@@ -258,7 +258,7 @@ class ReleaseSkillTest {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("x-changelog");
+                    .contains("x-release-changelog");
         }
 
         @Test

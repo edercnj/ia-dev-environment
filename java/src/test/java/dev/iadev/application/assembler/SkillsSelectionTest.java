@@ -124,7 +124,7 @@ class SkillsSelectionTest {
 
         @Test
         @DisplayName("observability tool not none includes"
-                + " instrument-otel")
+                + " x-obs-instrument")
         void select_observability_includesOtel() {
             ProjectConfig config = TestConfigBuilder.builder()
                     .observabilityTool("prometheus")
@@ -134,7 +134,7 @@ class SkillsSelectionTest {
                     SkillsSelection.selectInfraSkills(config);
 
             assertThat(skills)
-                    .contains("instrument-otel");
+                    .contains("x-obs-instrument");
         }
 
         @Test
@@ -186,7 +186,7 @@ class SkillsSelectionTest {
 
         @Test
         @DisplayName("pentestReadiness true includes"
-                + " x-pentest")
+                + " x-security-pentest")
         void select_pentestTrue_includesPentest() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -198,12 +198,12 @@ class SkillsSelectionTest {
                             config);
 
             assertThat(skills)
-                    .containsExactly("x-pentest");
+                    .containsExactly("x-security-pentest");
         }
 
         @Test
         @DisplayName("pentestReadiness false excludes"
-                + " x-pentest")
+                + " x-security-pentest")
         void select_pentestFalse_returnsEmpty() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -218,7 +218,7 @@ class SkillsSelectionTest {
         }
 
         @Test
-        @DisplayName("default config excludes x-pentest")
+        @DisplayName("default config excludes x-security-pentest")
         void select_defaultConfig_returnsEmpty() {
             ProjectConfig config =
                     TestConfigBuilder.minimal();
@@ -243,7 +243,7 @@ class SkillsSelectionTest {
                     SkillsSelection
                             .selectConditionalSkills(config);
 
-            assertThat(skills).contains("x-pentest");
+            assertThat(skills).contains("x-security-pentest");
         }
 
         @Test
@@ -260,7 +260,7 @@ class SkillsSelectionTest {
                             .selectConditionalSkills(config);
 
             assertThat(skills)
-                    .doesNotContain("x-pentest");
+                    .doesNotContain("x-security-pentest");
         }
     }
 

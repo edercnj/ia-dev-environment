@@ -17,14 +17,14 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for story-0022-0006: Secret Scanner (x-secret-scan).
+ * Tests for story-0022-0006: Secret Scanner (x-security-secret-scan).
  *
  * <p>Validates the conditional SKILL.md template is generated
  * when {@code security.scanning.secretScan = true}, contains
  * all required sections per security-skill-template, and
  * covers all 8 secret categories.</p>
  */
-@DisplayName("Secret Scanner (x-secret-scan)")
+@DisplayName("Secret Scanner (x-security-secret-scan)")
 class SecretScanSkillTest {
 
     @Nested
@@ -33,7 +33,7 @@ class SecretScanSkillTest {
 
         @Test
         @DisplayName("secretScan enabled generates"
-                + " x-secret-scan SKILL.md")
+                + " x-security-secret-scan SKILL.md")
         void assemble_secretScanEnabled_generatesSkill(
                 @TempDir Path tempDir)
                 throws IOException {
@@ -50,13 +50,13 @@ class SecretScanSkillTest {
                     new TemplateEngine(), outputDir);
 
             Path skill = outputDir.resolve(
-                    "skills/x-secret-scan/SKILL.md");
+                    "skills/x-security-secret-scan/SKILL.md");
             assertThat(skill).exists();
         }
 
         @Test
         @DisplayName("secretScan disabled does not generate"
-                + " x-secret-scan SKILL.md")
+                + " x-security-secret-scan SKILL.md")
         void assemble_secretScanDisabled_noSkill(
                 @TempDir Path tempDir)
                 throws IOException {
@@ -73,13 +73,13 @@ class SecretScanSkillTest {
                     new TemplateEngine(), outputDir);
 
             Path skill = outputDir.resolve(
-                    "skills/x-secret-scan/SKILL.md");
+                    "skills/x-security-secret-scan/SKILL.md");
             assertThat(skill).doesNotExist();
         }
 
         @Test
         @DisplayName("selectConditionalSkills includes"
-                + " x-secret-scan when flag enabled")
+                + " x-security-secret-scan when flag enabled")
         void select_secretScanEnabled_includesSkill() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -93,12 +93,12 @@ class SecretScanSkillTest {
                             .selectConditionalSkills(config);
 
             assertThat(skills)
-                    .contains("x-secret-scan");
+                    .contains("x-security-secret-scan");
         }
 
         @Test
         @DisplayName("selectConditionalSkills excludes"
-                + " x-secret-scan when flag disabled")
+                + " x-security-secret-scan when flag disabled")
         void select_secretScanDisabled_excludesSkill() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -112,7 +112,7 @@ class SecretScanSkillTest {
                             .selectConditionalSkills(config);
 
             assertThat(skills)
-                    .doesNotContain("x-secret-scan");
+                    .doesNotContain("x-security-secret-scan");
         }
     }
 
@@ -121,13 +121,13 @@ class SecretScanSkillTest {
     class Frontmatter {
 
         @Test
-        @DisplayName("contains name x-secret-scan")
+        @DisplayName("contains name x-security-secret-scan")
         void content_hasName(
                 @TempDir Path tempDir)
                 throws IOException {
             String content = generateAndRead(tempDir);
             assertThat(content)
-                    .contains("name: x-secret-scan");
+                    .contains("name: x-security-secret-scan");
         }
 
         @Test
@@ -665,7 +665,7 @@ class SecretScanSkillTest {
                 new TemplateEngine(), outputDir);
         return Files.readString(
                 outputDir.resolve(
-                        "skills/x-secret-scan/SKILL.md"),
+                        "skills/x-security-secret-scan/SKILL.md"),
                 StandardCharsets.UTF_8);
     }
 }

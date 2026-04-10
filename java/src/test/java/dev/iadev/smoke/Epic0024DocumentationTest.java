@@ -238,7 +238,7 @@ class Epic0024DocumentationTest {
                     readProjectFile("CHANGELOG.md");
 
             assertThat(content)
-                    .contains("x-dev-lifecycle (EPIC-0024)")
+                    .contains("x-dev-story-implement (EPIC-0024)")
                     .contains("x-dev-implement (EPIC-0024)")
                     .contains("x-review (EPIC-0024)")
                     .contains("x-review-pr (EPIC-0024)");

@@ -201,7 +201,7 @@ class GithubSkillsAssemblerIntegrationTest {
                     config, engine, outputDir);
 
             Path lifecycle = outputDir.resolve(
-                    "skills/x-dev-lifecycle/references");
+                    "skills/x-dev-story-implement/references");
             assertThat(lifecycle).exists();
         }
     }

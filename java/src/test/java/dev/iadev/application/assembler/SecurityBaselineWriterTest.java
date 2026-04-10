@@ -87,13 +87,13 @@ class SecurityBaselineWriterTest {
             assertThat(content)
                     .startsWith(BASELINE_CONTENT)
                     .contains("## Automated Verification")
-                    .contains("x-sast-scan")
+                    .contains("x-security-sast")
                     .contains("Input deserialization")
                     .contains("String escaping")
                     .contains("Path operations")
                     .contains("Crypto RNG")
                     .contains("Symlink following")
-                    .doesNotContain("x-secret-scan")
+                    .doesNotContain("x-security-secret-scan")
                     .doesNotContain("x-hardening-eval");
         }
 
@@ -126,9 +126,9 @@ class SecurityBaselineWriterTest {
             assertThat(content)
                     .startsWith(BASELINE_CONTENT)
                     .contains("## Automated Verification")
-                    .contains("x-secret-scan")
+                    .contains("x-security-secret-scan")
                     .contains("Hardcoded secrets")
-                    .doesNotContain("x-sast-scan")
+                    .doesNotContain("x-security-sast")
                     .doesNotContain("x-hardening-eval");
         }
 
@@ -164,8 +164,8 @@ class SecurityBaselineWriterTest {
                     .contains("x-hardening-eval")
                     .contains("HTTP security headers")
                     .contains("TLS configuration")
-                    .doesNotContain("x-sast-scan")
-                    .doesNotContain("x-secret-scan");
+                    .doesNotContain("x-security-sast")
+                    .doesNotContain("x-security-secret-scan");
         }
 
         @Test
@@ -196,8 +196,8 @@ class SecurityBaselineWriterTest {
             assertThat(content)
                     .startsWith(BASELINE_CONTENT)
                     .contains("## Automated Verification")
-                    .contains("x-sast-scan")
-                    .contains("x-secret-scan")
+                    .contains("x-security-sast")
+                    .contains("x-security-secret-scan")
                     .contains("x-hardening-eval");
 
             long dataRows = content.lines()
@@ -269,7 +269,7 @@ class SecurityBaselineWriterTest {
 
             assertThat(section)
                     .contains(
-                            "`/x-sast-scan --scope owasp`");
+                            "`/x-security-sast --scope owasp`");
         }
 
         @Test
@@ -286,7 +286,7 @@ class SecurityBaselineWriterTest {
                                     scanning);
 
             assertThat(section)
-                    .contains("`/x-secret-scan`");
+                    .contains("`/x-security-secret-scan`");
         }
 
         @Test
