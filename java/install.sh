@@ -10,21 +10,23 @@
 
 set -euo pipefail
 
-readonly VERSION="2.0.0-SNAPSHOT"
-readonly JAR_NAME="ia-dev-env-${VERSION}.jar"
 readonly INSTALLED_JAR_NAME="ia-dev-env.jar"
 readonly REQUIRED_JAVA_VERSION=21
 readonly PROGRAM_NAME="ia-dev-env"
 
+# Resolved later from pom.xml
+VERSION=""
+JAR_NAME=""
+
 # --- Colors ---
 
 if [ -t 1 ]; then
-    RED='\033[0;31m'
-    GREEN='\033[0;32m'
-    YELLOW='\033[1;33m'
-    BLUE='\033[0;34m'
-    BOLD='\033[1m'
-    NC='\033[0m'
+    RED=$'\033[0;31m'
+    GREEN=$'\033[0;32m'
+    YELLOW=$'\033[1;33m'
+    BLUE=$'\033[0;34m'
+    BOLD=$'\033[1m'
+    NC=$'\033[0m'
 else
     RED=''
     GREEN=''
@@ -42,6 +44,7 @@ JAR_PATH=""
 SKIP_BUILD=false
 UNINSTALL=false
 DEV_MODE=false
+JAVA_CMD=""
 
 # --- Functions ---
 
@@ -182,8 +185,7 @@ get_java_major_version() {
 
 check_java() {
     log_info "Checking Java installation..."
-    local java_cmd
-    if ! java_cmd=$(find_java); then
+    if ! JAVA_CMD=$(find_java); then
         cat >&2 <<'EOF'
 ERROR: Java not found.
 
@@ -199,12 +201,12 @@ EOF
     fi
 
     local major_version
-    major_version=$(get_java_major_version "$java_cmd")
+    major_version=$(get_java_major_version "$JAVA_CMD")
     if [ -z "$major_version" ] || [ "$major_version" -lt "$REQUIRED_JAVA_VERSION" ] 2>/dev/null; then
         die "Java $REQUIRED_JAVA_VERSION or later is required, but found Java ${major_version:-unknown}."
     fi
 
-    log_success "Found Java $major_version ($java_cmd)"
+    log_success "Found Java $major_version ($JAVA_CMD)"
 }
 
 check_maven() {
@@ -231,6 +233,39 @@ resolve_script_dir() {
         [[ "$source" != /* ]] && source="$dir/$source"
     done
     cd -P "$(dirname "$source")" && pwd
+}
+
+resolve_version() {
+    if [ -n "$JAR_PATH" ]; then
+        local jar_basename
+        jar_basename=$(basename "$JAR_PATH")
+        case "$jar_basename" in
+            ia-dev-env-*.jar)
+                VERSION="${jar_basename#ia-dev-env-}"
+                VERSION="${VERSION%.jar}"
+                log_info "Detected version $VERSION from JAR filename"
+                ;;
+            *)
+                VERSION="unknown"
+                log_warn "Could not parse version from $jar_basename; using 'unknown'"
+                ;;
+        esac
+        JAR_NAME="$jar_basename"
+        return 0
+    fi
+
+    local script_dir
+    script_dir=$(resolve_script_dir)
+    local pom_file="$script_dir/pom.xml"
+    if [ ! -f "$pom_file" ]; then
+        die "pom.xml not found in $script_dir. Cannot determine version."
+    fi
+    VERSION=$(sed -n '/<version>/{s/.*<version>\(.*\)<\/version>.*/\1/p;q;}' "$pom_file")
+    if [ -z "$VERSION" ]; then
+        die "Could not extract version from $pom_file"
+    fi
+    JAR_NAME="ia-dev-env-${VERSION}.jar"
+    log_info "Detected version $VERSION from pom.xml"
 }
 
 dev_regenerate() {
@@ -473,6 +508,31 @@ do_uninstall() {
     fi
 }
 
+list_bundled_stacks() {
+    local jar_file="$1"
+    local listing=""
+
+    if [ -n "$JAVA_CMD" ]; then
+        local jar_tool
+        jar_tool="$(dirname "$JAVA_CMD")/jar"
+        if [ -x "$jar_tool" ]; then
+            listing=$("$jar_tool" tf "$jar_file" 2>/dev/null) || listing=""
+        fi
+    fi
+
+    if [ -z "$listing" ] && command -v unzip >/dev/null 2>&1; then
+        listing=$(unzip -Z1 "$jar_file" 2>/dev/null) || listing=""
+    fi
+
+    if [ -z "$listing" ]; then
+        return 1
+    fi
+
+    printf '%s\n' "$listing" \
+        | sed -n 's|^shared/config-templates/setup-config\.\(.*\)\.yaml$|\1|p' \
+        | sort -u
+}
+
 print_success() {
     local jar_size
     jar_size=$(du -h "$APP_DIR/$INSTALLED_JAR_NAME" 2>/dev/null | cut -f1 | tr -d ' ')
@@ -487,7 +547,21 @@ ${GREEN}${BOLD}ia-dev-env installed successfully!${NC}
 
 ${BOLD}Quick start:${NC}
   $PROGRAM_NAME --version
-  $PROGRAM_NAME generate --stack java-quarkus --output my-project/
+  $PROGRAM_NAME --help
+EOF
+
+    local stacks
+    if stacks=$(list_bundled_stacks "$APP_DIR/$INSTALLED_JAR_NAME") \
+            && [ -n "$stacks" ]; then
+        printf '\n%sGenerate a project from a bundled stack profile:%s\n' \
+                "$BOLD" "$NC"
+        while IFS= read -r stack; do
+            printf '  %s generate --stack %s --output my-project/\n' \
+                    "$PROGRAM_NAME" "$stack"
+        done <<< "$stacks"
+    fi
+
+    cat <<EOF
 
 ${BOLD}Uninstall:${NC}
   bash install.sh --uninstall
@@ -508,6 +582,7 @@ main() {
     resolve_dirs
     check_java
     check_maven
+    resolve_version
 
     if [ "$DEV_MODE" = true ]; then
         dev_regenerate

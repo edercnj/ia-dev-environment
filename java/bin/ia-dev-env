@@ -9,7 +9,7 @@
 set -euo pipefail
 
 readonly REQUIRED_JAVA_VERSION=21
-readonly JAR_NAME="ia-dev-env-2.0.0-SNAPSHOT.jar"
+readonly JAR_GLOB="ia-dev-env-*.jar"
 
 # Resolve the directory where this script lives,
 # following symlinks.
@@ -109,10 +109,23 @@ main() {
     # 3. Resolve JAR path relative to this script
     local script_dir
     script_dir=$(resolve_script_dir)
-    local jar_path="$script_dir/../target/$JAR_NAME"
+    local target_dir="$script_dir/../target"
 
-    if [ ! -f "$jar_path" ]; then
-        echo "ERROR: JAR not found at $jar_path" >&2
+    # Pick the newest ia-dev-env-*.jar from target/ so the
+    # wrapper does not pin a specific version string.
+    local jar_path=""
+    local candidate
+    for candidate in "$target_dir"/$JAR_GLOB; do
+        if [ -f "$candidate" ]; then
+            if [ -z "$jar_path" ] \
+                    || [ "$candidate" -nt "$jar_path" ]; then
+                jar_path="$candidate"
+            fi
+        fi
+    done
+
+    if [ -z "$jar_path" ]; then
+        echo "ERROR: No $JAR_GLOB found in $target_dir" >&2
         echo "Run 'mvn package' first." >&2
         exit 1
     fi
