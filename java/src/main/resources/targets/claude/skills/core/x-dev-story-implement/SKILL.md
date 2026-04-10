@@ -2,7 +2,7 @@
 name: x-dev-story-implement
 description: "Orchestrates the complete feature implementation cycle with task-centric workflow: branch creation, planning, per-task TDD execution with individual PRs and approval gates, story-level verification, and final cleanup. Delegates implementation to x-test-tdd, commits to x-git-commit, PRs to x-pr-create."
 user-invocable: true
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, TaskCreate, TaskUpdate
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, Agent, TaskCreate, TaskUpdate
 argument-hint: "[STORY-ID or feature-name] [--auto-approve-pr] [--task TASK-ID] [--skip-verification] [--full-lifecycle]"
 ---
 
@@ -357,7 +357,17 @@ Log `"Architecture plan not needed for this change scope"` and proceed to Step 1
 
 **Skip condition:** If Phase 0 pre-check marked the implementation plan as "Reuse", skip this step entirely and log `"Reusing existing implementation plan from {date}"` (do NOT emit TaskCreate for skipped planners, per AC-4 of Story 0033-0003).
 
-Launch a **single** `general-purpose` subagent with `model: opus` (RULE-009). The subagent itself emits the TaskCreate/TaskUpdate for its own tracking task (per Story 0033-0003):
+Launch a single `general-purpose` subagent via the `Agent` tool (Rule 13 — SUBAGENT-GENERAL pattern). The subagent itself emits the TaskCreate/TaskUpdate for its own tracking task (per Story 0033-0003) and uses `model: opus` per RULE-009 (senior architect tier).
+
+**Canonical Agent invocation:**
+
+    Agent(
+      subagent_type: "general-purpose",
+      description: "Plan implementation for story {storyId}",
+      prompt: "<prompt content from the Senior Architect quote block below, with {{PROJECT_NAME}} and {storyId} substituted>"
+    )
+
+**Prompt content to pass as the `prompt` argument above** (runtime LLM assembles the literal string from the quoted block):
 
 > **FIRST ACTION (Story 0033-0003):** Create a tracking task to report progress to the parent orchestrator's task list:
 >
@@ -495,7 +505,18 @@ The task decomposer auto-detects decomposition mode:
 - If no test plan -> fallback to G1-G7 layer-based decomposition
 
 ### 1D: Event Schema Design (if event_driven)
-Launch `general-purpose` subagent. The subagent emits its own TaskCreate/TaskUpdate (per Story 0033-0003):
+
+Launch a `general-purpose` subagent via the `Agent` tool (Rule 13 — SUBAGENT-GENERAL pattern). The subagent emits its own TaskCreate/TaskUpdate (per Story 0033-0003).
+
+**Canonical Agent invocation:**
+
+    Agent(
+      subagent_type: "general-purpose",
+      description: "Design event schemas for story {storyId}",
+      prompt: "<prompt content from the Event Engineer quote block below>"
+    )
+
+**Prompt content to pass as the `prompt` argument above:**
 
 > **FIRST ACTION (Story 0033-0003):** Create a tracking task:
 >
@@ -544,7 +565,17 @@ The orchestrator's TaskCreate above already fired, so the orchestrator MUST clos
 
     TaskUpdate(id: securityTaskId, status: "completed")
 
-Then launch a `general-purpose` subagent. The fallback subagent emits its OWN independent TaskCreate/TaskUpdate pair (per Story 0033-0003):
+Then launch a `general-purpose` subagent via the `Agent` tool (Rule 13 — SUBAGENT-GENERAL pattern). The fallback subagent emits its OWN independent TaskCreate/TaskUpdate pair (per Story 0033-0003).
+
+**Canonical Agent invocation:**
+
+    Agent(
+      subagent_type: "general-purpose",
+      description: "Security assessment (fallback) for story {storyId}",
+      prompt: "<prompt content from the Security Engineer quote block below>"
+    )
+
+**Prompt content to pass as the `prompt` argument above:**
 
 > **FIRST ACTION (Story 0033-0003 fallback):** Create a tracking task:
 >
@@ -573,7 +604,17 @@ Then launch a `general-purpose` subagent. The fallback subagent emits its OWN in
 
 **Skip condition:** If Phase 0 pre-check marked the compliance assessment as "Reuse", skip this step entirely and log `"Reusing existing compliance assessment from {date}"` (same rule).
 
-Launch `general-purpose` subagent. The subagent emits its own TaskCreate/TaskUpdate (per Story 0033-0003):
+Launch a `general-purpose` subagent via the `Agent` tool (Rule 13 — SUBAGENT-GENERAL pattern). The subagent emits its own TaskCreate/TaskUpdate (per Story 0033-0003).
+
+**Canonical Agent invocation:**
+
+    Agent(
+      subagent_type: "general-purpose",
+      description: "Compliance assessment for story {storyId}",
+      prompt: "<prompt content from the Security Engineer quote block below>"
+    )
+
+**Prompt content to pass as the `prompt` argument above:**
 
 > **FIRST ACTION (Story 0033-0003):** Create a tracking task:
 >

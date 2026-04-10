@@ -20,21 +20,49 @@ Invoke the `x-foo` skill via the Skill tool:
 
 **Requirement:** the calling skill's `allowed-tools` frontmatter MUST include `Skill`. Failure to do so causes the runtime to refuse the call even if the body syntax is correct.
 
-### Pattern 2 — SUBAGENT-SKILL (isolated context with Skill call)
+### Pattern 2 — SUBAGENT-GENERAL (isolated general-purpose subagent)
 
-Use when the orchestrator wants to isolate context — e.g., spawn a subagent for parallel work or to avoid polluting the current conversation window. The subagent then invokes the target skill via the Skill tool from its own context.
+Use when the orchestrator wants to isolate context — e.g., spawn a subagent for parallel work, to avoid polluting the current conversation window, or to launch multiple independent workers in one message. The subagent may:
+
+- **(a) Invoke another skill** from its own context via `Skill(skill: "...", ...)`
+- **(b) Produce an artifact** (read files, write an output file, return a structured summary) without calling any skill
+- **(c) Perform complex analysis** and return a report
+
+All three use the same call shape. The distinguishing factor is what goes INSIDE the `prompt:` argument.
+
+**Required form:**
 
 ```markdown
-Launch an isolated subagent to invoke `x-foo`:
-
-    Agent(
-      subagent_type: "general-purpose",
-      description: "Run x-foo for {args}",
-      prompt: "Invoke the x-foo skill via the Skill tool: Skill(skill: \"x-foo\", args: \"...\"). Return the result as a structured summary."
-    )
+Agent(
+  subagent_type: "general-purpose",
+  description: "<short 3-7 word summary of the subagent's job>",
+  prompt: "<multi-line prompt: FIRST ACTION TaskCreate + task body + LAST ACTION TaskUpdate>"
+)
 ```
 
-**Requirement:** the parent's `allowed-tools` must include `Agent`. The subagent itself has access to all tools by default (general-purpose type).
+**Example (a) — subagent invokes another skill:**
+
+```markdown
+Agent(
+  subagent_type: "general-purpose",
+  description: "Run x-foo for {args}",
+  prompt: "FIRST ACTION: TaskCreate(...). Invoke x-foo via the Skill tool: Skill(skill: \"x-foo\", args: \"...\"). LAST ACTION: TaskUpdate(...)."
+)
+```
+
+**Example (b) — subagent produces an artifact (no Skill call):**
+
+```markdown
+Agent(
+  subagent_type: "general-purpose",
+  description: "Plan implementation for story X",
+  prompt: "FIRST ACTION: TaskCreate(...). You are a Senior Architect. Read context files. Produce implementation plan at plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md. LAST ACTION: TaskUpdate(...)."
+)
+```
+
+**Requirement:** the parent's `allowed-tools` MUST include `Agent`. The subagent itself has access to all tools (Read, Write, Edit, Skill, TaskCreate, TaskUpdate, etc.) by default — the `general-purpose` type inherits the full toolset.
+
+**Parallelism:** To launch multiple `general-purpose` subagents in parallel, emit all `Agent(...)` calls as SIBLING tool calls in the SAME assistant message. See `x-dev-story-implement` Phases 1B-1F "Parallelism + tracking batching" section for the canonical parallel dispatch pattern (Batch A = all TaskCreate + Agent launches as siblings; Batch B = all TaskUpdate as siblings after results return).
 
 ### Pattern 3 — SUBAGENT-RESEARCH (no Skill call, pure exploration)
 
