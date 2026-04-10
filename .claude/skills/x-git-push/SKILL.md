@@ -4,6 +4,7 @@ description: "Git operations: branch creation, atomic commits (Conventional Comm
 user-invocable: true
 allowed-tools: Bash, Read
 argument-hint: "[branch-name or commit-message]"
+context-budget: medium
 ---
 
 ## Global Output Policy
@@ -74,7 +75,7 @@ develop (integration, always green)
 **Rules:**
 - Maximum **60 characters** total
 - Created from `develop`; task branches are created from this parent
-- Used when `--auto-approve-pr` is active in `x-dev-lifecycle`
+- Used when `--auto-approve-pr` is active in `x-dev-story-implement`
 
 **Example:** `feat/story-0029-0015-lifecycle` (30 chars)
 
@@ -401,10 +402,10 @@ The git log should read as a **progression from the simplest case to the most co
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| `x-dev-lifecycle` | called-by | Phase 0 (branch from develop) and Phase 5 (push + PR to develop) |
+| `x-dev-story-implement` | called-by | Phase 0 (branch from develop) and Phase 5 (push + PR to develop) |
 | `x-dev-implement` | called-by | Atomic TDD commits during implementation |
 | `x-release` | called-by | Release commit and tag creation |
-| `x-commit` | delegates-to | Commit creation with task ID scope and TDD tags |
+| `x-git-commit` | delegates-to | Commit creation with task ID scope and TDD tags |
 | `x-pr-create` | delegates-to | PR creation with task references and body template |
 
 - Hotfix workflow branches from `main` and creates PRs targeting `main`, then back-merges to `develop`

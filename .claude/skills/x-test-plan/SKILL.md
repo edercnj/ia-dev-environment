@@ -4,6 +4,7 @@ description: "Generates a Double-Loop TDD test plan with TPP-ordered scenarios b
 user-invocable: true
 allowed-tools: Read, Grep, Glob
 argument-hint: "[STORY-ID]"
+context-budget: medium
 ---
 
 ## Global Output Policy
@@ -301,7 +302,7 @@ This ensures backward compatibility with projects that have not yet adopted temp
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| `x-dev-lifecycle` | called-by | Invoked during Phase 1B |
+| `x-dev-story-implement` | called-by | Invoked during Phase 1B |
 | `x-dev-implement` | reads | Output consumed as TDD roadmap |
 
 - Pre-check (RULE-002) prevents redundant regeneration when story has not changed

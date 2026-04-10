@@ -4,6 +4,7 @@ description: "Automates ADR generation from architecture plan mini-ADRs: extract
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[architecture-plan-path] [story-id]"
+context-budget: medium
 ---
 
 ## Global Output Policy
@@ -372,4 +373,4 @@ Use PostgreSQL 15+ as the primary relational database for all transactional pers
 |-------|-------------|---------|
 | `x-dev-architecture-plan` | called-by | Prerequisite: generates the architecture plan with inline mini-ADRs |
 | `x-dev-arch-update` | calls | Updates service architecture document Section 7 with new ADR references |
-| `x-dev-lifecycle` | called-by | Invoked during documentation phase to formalize architectural decisions |
+| `x-dev-story-implement` | called-by | Invoked during documentation phase to formalize architectural decisions |

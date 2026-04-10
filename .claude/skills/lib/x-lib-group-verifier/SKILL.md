@@ -3,6 +3,7 @@ name: x-lib-group-verifier
 description: "Build gate verification between parallelism groups. Compiles code, classifies errors, decides retry vs escalate, extracts outputs for next group. Used between each implementation group in Phase 2."
 user-invocable: false
 allowed-tools: Bash, Read, Grep, Glob
+context-budget: light
 ---
 
 ## Global Output Policy
@@ -21,7 +22,7 @@ Runs between each parallelism group (G1-G7) during Phase 2 of the feature lifecy
 
 | Caller Skill | Phase | Context |
 |-------------|-------|---------|
-| x-dev-lifecycle | Phase 2 | After each group completes, BEFORE starting the next group |
+| x-dev-story-implement | Phase 2 | After each group completes, BEFORE starting the next group |
 | x-dev-implement | Implementation | Inline build gate between layer groups |
 
 ## Inputs
@@ -159,7 +160,7 @@ If tests fail:
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| x-dev-lifecycle | called-by | Invoked during Phase 2 after each group |
+| x-dev-story-implement | called-by | Invoked during Phase 2 after each group |
 | x-dev-implement | called-by | Build gate between layer groups during implementation |
 
 - Uses `{{COMPILE_COMMAND}}` for G1-G6, `{{BUILD_COMMAND}}` for G7

@@ -4,6 +4,7 @@ description: "Enhanced supply chain security audit beyond x-dependency-audit. An
 user-invocable: true
 allowed-tools: Read, Write, Bash, Grep, Glob
 argument-hint: "[--depth shallow|deep] [--include-dev-deps] [--risk-threshold 0-100] [--focus all|maintainer|typosquatting|phantom|age|epss|slsa]"
+context-budget: medium
 ---
 
 ## Global Output Policy
@@ -350,7 +351,7 @@ Risk Score = (CVE Severity * 0.40) + (Depth * 0.20)
 |-------|-------------|---------|
 | `x-dependency-audit` | complementary | Handles CVEs, outdated versions, licenses, and SBOM generation |
 | `x-security-dashboard` | reads | Dashboard aggregates results from this skill |
-| `x-ci-cd-generate` | called-by | Security pipeline may invoke supply chain audit |
+| `x-ci-generate` | called-by | Security pipeline may invoke supply chain audit |
 
 ## Knowledge Pack References
 

@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Category** | Library (internal) |
-| **Called by** | x-dev-lifecycle |
+| **Called by** | x-dev-story-implement |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
 
@@ -17,7 +17,7 @@ Acts as a build gate between parallelism groups (G1-G7) during implementation. C
 
 | Caller | Context | Input | Output |
 |--------|---------|-------|--------|
-| x-dev-lifecycle | Phase 2, after each group completes | Group ID (G1-G7), files created/modified by the group | Verification report (PASS/FAIL), extracted file contents for next group, atomic git commit |
+| x-dev-story-implement | Phase 2, after each group completes | Group ID (G1-G7), files created/modified by the group | Verification report (PASS/FAIL), extracted file contents for next group, atomic git commit |
 
 ## Procedure
 
@@ -31,4 +31,4 @@ Acts as a build gate between parallelism groups (G1-G7) during implementation. C
 ## See Also
 
 - [x-lib-task-decomposer](../x-lib-task-decomposer/) -- produces the task breakdown and parallelism groups verified by this skill
-- [x-dev-lifecycle](../../x-dev-lifecycle/) -- orchestrator that invokes this skill after each implementation group
+- [x-dev-story-implement](../../x-dev-story-implement/) -- orchestrator that invokes this skill after each implementation group
