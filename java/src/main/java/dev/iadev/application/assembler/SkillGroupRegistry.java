@@ -44,45 +44,45 @@ public final class SkillGroupRegistry {
         SKILL_GROUPS.put("story", List.of(
                 "x-story-epic", "x-story-create",
                 "x-story-map", "x-story-epic-full",
-                "x-story-plan", "x-plan-task",
+                "x-story-plan", "x-task-plan",
                 "x-epic-plan",
                 "story-planning",
                 "x-jira-create-epic",
                 "x-jira-create-stories"));
         SKILL_GROUPS.put("dev", List.of(
-                "x-dev-implement", "x-dev-lifecycle",
+                "x-dev-implement", "x-dev-story-implement",
                 "x-dev-epic-implement",
                 "x-dev-architecture-plan",
                 "x-dev-arch-update",
-                "x-docs",
+                "x-doc-generate",
                 "layer-templates",
                 "x-dev-adr-automation",
-                "x-commit",
-                "x-format",
+                "x-git-commit",
+                "x-code-format",
                 "x-mcp-recommend",
                 "x-perf-profile",
-                "x-setup-dev-environment",
-                "x-ci-cd-generate",
+                "x-setup-env",
+                "x-ci-generate",
                 "x-security-pipeline",
-                "x-lint",
-                "x-worktree"));
+                "x-code-lint",
+                "x-git-worktree"));
         SKILL_GROUPS.put("review", List.of(
                 "x-review", "x-review-api", "x-review-pr",
                 "x-review-grpc", "x-review-events",
                 "x-review-gateway",
                 "x-review-qa", "x-review-perf",
-                "x-codebase-audit",
+                "x-code-audit",
                 "x-dependency-audit",
                 "x-supply-chain-audit",
                 "x-owasp-scan",
-                "x-spec-drift-check",
+                "x-spec-drift",
                 "x-threat-model",
                 "x-hardening-eval",
                 "x-runtime-protection",
                 "x-security-dashboard",
-                "x-contract-lint"));
+                "x-test-contract-lint"));
         SKILL_GROUPS.put("testing", List.of(
-                "x-test-plan", "x-test-run", "x-tdd",
+                "x-test-plan", "x-test-run", "x-test-tdd",
                 "run-e2e",
                 "run-smoke-api", "run-contract-tests",
                 "run-perf-test"));
@@ -104,9 +104,9 @@ public final class SkillGroupRegistry {
                 "x-git-push", "x-pr-create",
                 "x-ops-troubleshoot",
                 "x-ops-incident",
-                "x-fix-pr-comments",
-                "x-fix-epic-pr-comments",
-                "x-changelog",
+                "x-pr-fix-comments",
+                "x-pr-fix-epic-comments",
+                "x-release-changelog",
                 "x-release"));
         SKILL_GROUPS.put("lib", List.of(
                 "x-lib-task-decomposer",
@@ -211,7 +211,7 @@ public final class SkillGroupRegistry {
     static {
         REVIEW_SKILL_CONDITIONS = new LinkedHashMap<>();
         REVIEW_SKILL_CONDITIONS.put(
-                "x-contract-lint",
+                "x-test-contract-lint",
                 c -> c.interfaces().stream()
                         .anyMatch(i ->
                                 CONTRACT_TYPES.contains(

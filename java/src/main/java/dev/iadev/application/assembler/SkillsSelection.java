@@ -53,7 +53,7 @@ public final class SkillsSelection {
                 "rest", "grpc",
                 "event-consumer", "event-producer",
                 "websocket")) {
-            skills.add("x-contract-lint");
+            skills.add("x-test-contract-lint");
         }
         return skills;
     }
@@ -70,7 +70,7 @@ public final class SkillsSelection {
         if (!"none".equalsIgnoreCase(
                 config.infrastructure().observability()
                         .tool())) {
-            skills.add("instrument-otel");
+            skills.add("x-obs-instrument");
         }
         if (!"none".equalsIgnoreCase(
                 config.infrastructure().orchestrator())) {
@@ -136,24 +136,24 @@ public final class SkillsSelection {
         List<String> skills = new ArrayList<>();
         var scanning = config.security().scanning();
         if (scanning.sast()) {
-            skills.add("x-sast-scan");
+            skills.add("x-security-sast");
         }
         if (scanning.dast()) {
-            skills.add("x-dast-scan");
+            skills.add("x-security-dast");
         }
         if (scanning.secretScan()) {
-            skills.add("x-secret-scan");
+            skills.add("x-security-secret-scan");
         }
         if (scanning.containerScan()) {
-            skills.add("x-container-scan");
+            skills.add("x-security-container");
         }
         if (scanning.infraScan()) {
-            skills.add("x-infra-scan");
+            skills.add("x-security-infra");
         }
         var qgProvider =
                 config.security().qualityGate().provider();
         if (!"none".equalsIgnoreCase(qgProvider)) {
-            skills.add("x-sonar-gate");
+            skills.add("x-security-sonar");
         }
         return skills;
     }
@@ -179,7 +179,7 @@ public final class SkillsSelection {
     /**
      * Selects pentest skills based on security config.
      *
-     * <p>Includes {@code x-pentest} when
+     * <p>Includes {@code x-security-pentest} when
      * {@code pentest} is enabled in the security
      * configuration.</p>
      *
@@ -189,7 +189,7 @@ public final class SkillsSelection {
     public static List<String> selectPentestSkills(
             ProjectConfig config) {
         if (config.security().pentest()) {
-            return List.of("x-pentest");
+            return List.of("x-security-pentest");
         }
         return List.of();
     }
