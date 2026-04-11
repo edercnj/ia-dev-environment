@@ -29,7 +29,7 @@ class ExpectedArtifactsTest {
                   "totalFiles": 125,
                   "directories": [".claude", "docs", "k8s"],
                   "categories": {
-                    "codex-skills": 106,
+                    "claude-skills": 106,
                     "claude-rules": 6,
                     "docs": 5,
                     "k8s": 3
@@ -39,7 +39,7 @@ class ExpectedArtifactsTest {
                   "totalFiles": 149,
                   "directories": [".claude", "docs", "k8s"],
                   "categories": {
-                    "codex-skills": 98,
+                    "claude-skills": 98,
                     "docs": 5,
                     "k8s": 3
                   }
@@ -142,7 +142,7 @@ class ExpectedArtifactsTest {
             assertThat(profile.directories())
                     .contains(".claude", "docs", "k8s");
             assertThat(profile.getCategoryCount(
-                    "codex-skills")).isEqualTo(106);
+                    "claude-skills")).isEqualTo(106);
             assertThat(profile.getCategoryCount(
                     "claude-rules")).isEqualTo(6);
         }

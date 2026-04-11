@@ -19,8 +19,6 @@ class SummaryRowFilterTest {
     private static final Object[][] ALL_ROWS = {
             {"Rules (.claude)", 6},
             {"Skills (.claude)", 14},
-            {"AGENTS.md (root)", 1},
-            {"Skills (.agents)", 3},
     };
 
     @Nested

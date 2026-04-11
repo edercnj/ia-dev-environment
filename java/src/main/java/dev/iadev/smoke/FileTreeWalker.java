@@ -104,8 +104,6 @@ final class FileTreeWalker {
                 new LinkedHashMap<>();
 
         countCategory(categories, dir,
-                "codex-skills", ".agents/skills");
-        countCategory(categories, dir,
                 "claude-rules", ".claude/rules");
         countCategory(categories, dir,
                 "claude-skills", ".claude/skills");

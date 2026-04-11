@@ -93,15 +93,6 @@ class CliDisplayTest {
         }
 
         @Test
-        void agentsMdPath_whenCalled_classifiedCorrectly() {
-            Map<String, List<String>> result =
-                    CliDisplay.classifyFiles(
-                            List.of(".agents/skills/dev/SKILL.md"));
-
-            assertThat(result).containsKey("Agents MD");
-        }
-
-        @Test
         void adrPath_whenCalled_classifiedCorrectly() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(

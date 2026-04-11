@@ -38,16 +38,22 @@ class ReadmeDocsPlatformSelectionTest {
         }
 
         @Test
-        @DisplayName("contains platform values table")
-        void readmeTemplate_whenRead_containsPlatformValuesTable()
+        @DisplayName("platform selection table lists only claude-code")
+        void readmeTemplate_whenRead_tableListsOnlyClaudeCode()
                 throws IOException {
             String content = loadReadmeTemplate();
+            int tableStart = content.indexOf("## Platform Selection");
+            int tableEnd = content.indexOf("### CLI Examples");
+            assertThat(tableStart).isPositive();
+            assertThat(tableEnd).isGreaterThan(tableStart);
+            String tableSection = content.substring(
+                    tableStart, tableEnd);
 
-            assertThat(content)
-                    .contains("claude-code")
-                    .contains("copilot")
-                    .contains("codex")
-                    .contains("all");
+            assertThat(tableSection)
+                    .contains("| `claude-code` |")
+                    .doesNotContain("| `copilot` |")
+                    .doesNotContain("| `codex` |")
+                    .doesNotContain("| `all` |");
         }
 
         @Test
@@ -61,16 +67,6 @@ class ReadmeDocsPlatformSelectionTest {
         }
 
         @Test
-        @DisplayName("contains multi-value example")
-        void readmeTemplate_whenRead_containsMultiValueExample()
-                throws IOException {
-            String content = loadReadmeTemplate();
-
-            assertThat(content)
-                    .contains("-p claude-code,copilot");
-        }
-
-        @Test
         @DisplayName("contains YAML config example")
         void readmeTemplate_whenRead_containsYamlExample()
                 throws IOException {
@@ -81,14 +77,14 @@ class ReadmeDocsPlatformSelectionTest {
         }
 
         @Test
-        @DisplayName("contains backward compatibility note")
-        void readmeTemplate_whenRead_containsBackwardCompatNote()
+        @DisplayName("contains default behavior note")
+        void readmeTemplate_whenRead_containsDefaultBehaviorNote()
                 throws IOException {
             String content = loadReadmeTemplate();
 
             assertThat(content)
-                    .containsIgnoringCase("backward")
-                    .containsIgnoringCase("compatible");
+                    .containsIgnoringCase("default behavior")
+                    .containsIgnoringCase("claude-code");
         }
 
         private String loadReadmeTemplate()
