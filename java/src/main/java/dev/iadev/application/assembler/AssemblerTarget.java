@@ -15,7 +15,6 @@ import java.nio.file.Path;
  * <tr><th>Target</th><th>Physical Directory</th></tr>
  * <tr><td>ROOT</td><td>{@code outputDir}</td></tr>
  * <tr><td>CLAUDE</td><td>{@code outputDir/.claude}</td></tr>
- * <tr><td>CODEX_AGENTS</td><td>{@code outputDir/.agents}</td></tr>
  * </table>
  *
  * @see AssemblerDescriptor
@@ -26,10 +25,7 @@ public enum AssemblerTarget {
     ROOT(""),
 
     /** {@code .claude/} subdirectory. */
-    CLAUDE(".claude"),
-
-    /** {@code .agents/} subdirectory. */
-    CODEX_AGENTS(".agents");
+    CLAUDE(".claude");
 
     private final String subdir;
 
