@@ -276,7 +276,7 @@ Cycle N/M complete:
 
 ### Compact Cycle Log (Orchestrated Mode)
 
-When x-test-tdd is invoked from within another skill (orchestrated execution via x-dev-story-implement or x-dev-epic-implement), emit a single-line compact log per cycle instead of the multi-line format above. This prevents TDD cycle details from accumulating in the orchestrator context.
+When x-test-tdd is invoked from within another skill (orchestrated execution via x-story-implement or x-epic-implement), emit a single-line compact log per cycle instead of the multi-line format above. This prevents TDD cycle details from accumulating in the orchestrator context.
 
 **Compact format:**
 
@@ -298,7 +298,7 @@ Cycle 3/5: RED FAIL_EXPECTED GREEN PASS REFACTOR skipped → abc1234
 
 **Mode detection (Story 0033-0003, explicit `--orchestrated` flag):** If the `--orchestrated` flag is present in the invocation args (e.g., `x-test-tdd TASK-XXXX-YYYY-NNN --orchestrated`), render in **compact format** (single-line per cycle). If the flag is absent (e.g., the user typed `/x-test-tdd TASK-001` directly in chat), render in **full multi-line format**.
 
-This replaces the previous implicit detection ("if this skill was invoked via the Skill tool by another skill, use compact") because that check was fragile — a skill cannot reliably determine how it was invoked from inside its own execution context. The parent orchestrator now passes `--orchestrated` explicitly (see `x-dev-story-implement` Phase 2 step 2.2.5), making the compact-vs-full decision deterministic and testable.
+This replaces the previous implicit detection ("if this skill was invoked via the Skill tool by another skill, use compact") because that check was fragile — a skill cannot reliably determine how it was invoked from inside its own execution context. The parent orchestrator now passes `--orchestrated` explicitly (see `x-story-implement` Phase 2 step 2.2.5), making the compact-vs-full decision deterministic and testable.
 
 **Detection algorithm:**
 
@@ -342,7 +342,7 @@ All TDD cycles complete. Task TASK-XXXX-YYYY-NNN is done.
 This skill operates as the **inner loop** of Double-Loop TDD:
 
 ```
-OUTER LOOP (Acceptance Test -- driven by x-dev-story-implement):
+OUTER LOOP (Acceptance Test -- driven by x-story-implement):
   Write failing acceptance test (end-to-end scenario)
   |
   INNER LOOP (Unit Tests -- driven by x-test-tdd):
@@ -354,7 +354,7 @@ OUTER LOOP (Acceptance Test -- driven by x-dev-story-implement):
   Acceptance test passes (all unit behavior composes into acceptance)
 ```
 
-- The outer loop is managed by `x-dev-story-implement` or `x-dev-implement`
+- The outer loop is managed by `x-story-implement` or `x-task-implement`
 - This skill (`x-test-tdd`) drives the inner loop: systematic unit-level TDD cycles
 - Each cycle builds on the previous, following TPP ordering from simple to complex
 
@@ -406,7 +406,7 @@ Tests MUST progress from lower priority (simpler transformations) to higher prio
 
 ## Slim Mode
 
-> **When to use:** When this skill is invoked programmatically from another skill (e.g., x-dev-story-implement Phase 2), read ONLY this section for minimum context.
+> **When to use:** When this skill is invoked programmatically from another skill (e.g., x-story-implement Phase 2), read ONLY this section for minimum context.
 
 ### Workflow
 
@@ -460,8 +460,8 @@ Each phase delegates to `x-git-commit` via the Skill tool (`Skill(skill: "x-git-
 | `x-code-format` | invoked by (via x-git-commit) | Code is formatted before each commit (use Slim Mode) |
 | `x-code-lint` | invoked by (via x-git-commit) | Code is linted before each commit (use Slim Mode) |
 | `x-test-run` | complementary | x-test-run provides coverage analysis; x-test-tdd uses {{TEST_COMMAND}} directly |
-| `x-dev-story-implement` | orchestrated by | Lifecycle may invoke x-test-tdd for inner-loop TDD execution |
-| `x-dev-implement` | complementary | x-dev-implement handles full story implementation; x-test-tdd handles per-task TDD cycles |
+| `x-story-implement` | orchestrated by | Lifecycle may invoke x-test-tdd for inner-loop TDD execution |
+| `x-task-implement` | complementary | x-task-implement handles full story implementation; x-test-tdd handles per-task TDD cycles |
 
 ## Template Variables
 

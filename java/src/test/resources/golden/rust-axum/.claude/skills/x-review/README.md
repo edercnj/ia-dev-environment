@@ -117,6 +117,6 @@ Findings are classified by severity: `CRITICAL | HIGH | MEDIUM | LOW`. Any item 
 ## See Also
 
 - [x-review-pr](../x-review-pr/SKILL.md) -- Tech Lead holistic 45-point review (runs after x-review)
-- [x-dev-story-implement](../x-dev-story-implement/SKILL.md) -- Full development cycle (invokes x-review in Phase 4)
-- [x-dev-epic-implement](../x-dev-epic-implement/SKILL.md) -- Epic orchestrator (delegates stories to x-dev-story-implement)
+- [x-story-implement](../x-story-implement/SKILL.md) -- Full development cycle (invokes x-review in Phase 4)
+- [x-epic-implement](../x-epic-implement/SKILL.md) -- Epic orchestrator (delegates stories to x-story-implement)
 - [x-test-run](../x-test-run/SKILL.md) -- Coverage validation used during review verification

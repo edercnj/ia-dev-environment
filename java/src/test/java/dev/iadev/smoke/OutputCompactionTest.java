@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>Acceptance criteria:
  * <ul>
  *   <li>CONTEXT MANAGEMENT instruction in orchestrators</li>
- *   <li>Selective checkpoint reads in x-dev-epic-implement</li>
+ *   <li>Selective checkpoint reads in x-epic-implement</li>
  *   <li>Phase report delegated to subagent</li>
  *   <li>Compact TDD log format in x-test-tdd</li>
  * </ul>
@@ -64,8 +64,8 @@ class OutputCompactionTest {
         assertThat(result.success())
                 .as("Pipeline must succeed")
                 .isTrue();
-        epicContent = readSkill("x-dev-epic-implement");
-        lifecycleContent = readSkill("x-dev-story-implement");
+        epicContent = readSkill("x-epic-implement");
+        lifecycleContent = readSkill("x-story-implement");
         tddContent = readSkill("x-test-tdd");
     }
 
@@ -74,7 +74,7 @@ class OutputCompactionTest {
     class ContextManagement {
 
         @Test
-        @DisplayName("x-dev-epic-implement contains"
+        @DisplayName("x-epic-implement contains"
                 + " CONTEXT MANAGEMENT section")
         void epicImplement_containsContextMgmt() {
             assertThat(epicContent)
@@ -82,7 +82,7 @@ class OutputCompactionTest {
         }
 
         @Test
-        @DisplayName("x-dev-story-implement contains"
+        @DisplayName("x-story-implement contains"
                 + " CONTEXT MANAGEMENT section")
         void lifecycle_containsContextMgmt() {
             assertThat(lifecycleContent)
@@ -119,7 +119,7 @@ class OutputCompactionTest {
     class SelectiveCheckpoint {
 
         @Test
-        @DisplayName("x-dev-epic-implement instructs"
+        @DisplayName("x-epic-implement instructs"
                 + " selective checkpoint reads")
         void epicImplement_selectiveCheckpointReads() {
             assertThat(epicContent)
@@ -232,11 +232,11 @@ class OutputCompactionTest {
             String content = Files.readString(
                     out.resolve(
                             ".claude/skills/"
-                                    + "x-dev-epic-implement/"
+                                    + "x-epic-implement/"
                                     + "SKILL.md"),
                     StandardCharsets.UTF_8);
             assertThat(content)
-                    .as("[%s] x-dev-epic-implement must"
+                    .as("[%s] x-epic-implement must"
                                     + " contain CONTEXT"
                                     + " MANAGEMENT",
                             profile)

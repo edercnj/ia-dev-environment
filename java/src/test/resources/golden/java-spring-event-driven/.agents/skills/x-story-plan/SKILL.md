@@ -891,12 +891,12 @@ This ensures backward compatibility with projects that have not yet adopted temp
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| `x-dev-story-implement` | called-by | Can invoke x-story-plan in Phase 1 for multi-agent planning |
+| `x-story-implement` | called-by | Can invoke x-story-plan in Phase 1 for multi-agent planning |
 | `x-test-plan` | complementary | QA agent produces similar output; x-story-plan adds multi-agent perspective |
-| `x-dev-architecture-plan` | complementary | Architect agent produces similar output with cross-agent consolidation |
-| `x-dev-implement` | downstream | Consumes task breakdown as implementation roadmap |
+| `x-arch-plan` | complementary | Architect agent produces similar output with cross-agent consolidation |
+| `x-task-implement` | downstream | Consumes task breakdown as implementation roadmap |
 | `x-story-create` | upstream | Story files are the input to this skill |
-| `x-story-map` | upstream | Implementation map provides dependency context |
+| `x-epic-map` | upstream | Implementation map provides dependency context |
 
 - Pre-check (RULE-002) prevents redundant regeneration when story has not changed
 - Template reference (RULE-007) ensures consistent output format when templates are available

@@ -96,9 +96,9 @@ flowchart TD
 
 ## See Also
 
-- [x-dev-story-implement](../x-dev-story-implement/) -- Full lifecycle orchestrator that can invoke this skill
+- [x-story-implement](../x-story-implement/) -- Full lifecycle orchestrator that can invoke this skill
 - [x-test-plan](../x-test-plan/) -- Standalone test planning (QA agent provides similar output here)
-- [x-dev-architecture-plan](../x-dev-architecture-plan/) -- Standalone architecture planning
+- [x-arch-plan](../x-arch-plan/) -- Standalone architecture planning
 - [x-story-create](../x-story-create/) -- Generates story files consumed by this skill
-- [x-story-map](../x-story-map/) -- Generates implementation map for dependency context
+- [x-epic-map](../x-epic-map/) -- Generates implementation map for dependency context
 - [references/planning-guide.md](./references/planning-guide.md) -- Detailed TASK_PROPOSAL format and consolidation rules

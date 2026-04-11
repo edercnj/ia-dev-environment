@@ -338,7 +338,7 @@ If the user selects **"Sim"**, generate a correction story following these steps
 
 3. **Save the story** to `plans/epic-XXXX/reviews/correction-story-XXXX-YYYY.md`
 
-4. **Report** to the user: story file path, number of findings converted, and suggested next step (`/x-dev-implement` or manual fix).
+4. **Report** to the user: story file path, number of findings converted, and suggested next step (`/x-task-implement` or manual fix).
 
 ## Error Handling
 
@@ -363,10 +363,10 @@ When templates are absent, dashboard/remediation are skipped.
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| `x-dev-story-implement` | Called by (Phase 4) | Produces the same artifacts as lifecycle Phase 4 |
+| `x-story-implement` | Called by (Phase 4) | Produces the same artifacts as lifecycle Phase 4 |
 | `x-review-pr` | Followed by | Recommended flow: `/x-review` then fix criticals then `/x-review-pr` |
 | `x-story-create` | Reads format | Correction stories (Phase 4) follow the story template |
-| `x-dev-implement` | Followed by | Correction stories can be picked up by `/x-dev-implement` |
+| `x-task-implement` | Followed by | Correction stories can be picked up by `/x-task-implement` |
 | `_TEMPLATE-CONSOLIDATED-REVIEW-DASHBOARD.md` | Reads | Dashboard format, cumulative across rounds (RULE-006) |
 | `_TEMPLATE-REVIEW-REMEDIATION.md` | Reads | Remediation tracking format |
 | `PlanTemplatesAssembler` | Depends on | Templates copied verbatim -- not rendered by the engine |

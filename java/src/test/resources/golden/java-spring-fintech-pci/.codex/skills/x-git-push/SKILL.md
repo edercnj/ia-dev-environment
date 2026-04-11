@@ -75,7 +75,7 @@ develop (integration, always green)
 **Rules:**
 - Maximum **60 characters** total
 - Created from `develop`; task branches are created from this parent
-- Used when `--auto-approve-pr` is active in `x-dev-story-implement`
+- Used when `--auto-approve-pr` is active in `x-story-implement`
 
 **Example:** `feat/story-0029-0015-lifecycle` (30 chars)
 
@@ -402,8 +402,8 @@ The git log should read as a **progression from the simplest case to the most co
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| `x-dev-story-implement` | called-by | Phase 0 (branch from develop) and Phase 5 (push + PR to develop) |
-| `x-dev-implement` | called-by | Atomic TDD commits during implementation |
+| `x-story-implement` | called-by | Phase 0 (branch from develop) and Phase 5 (push + PR to develop) |
+| `x-task-implement` | called-by | Atomic TDD commits during implementation |
 | `x-release` | called-by | Release commit and tag creation |
 | `x-git-commit` | delegates-to | Commit creation with task ID scope and TDD tags |
 | `x-pr-create` | delegates-to | PR creation with task references and body template |

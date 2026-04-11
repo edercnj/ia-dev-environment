@@ -225,7 +225,7 @@ PR #42 created: https://github.com/owner/repo/pull/42
 |-------|-------------|---------|
 | `x-git-commit` | predecessor | Commits are created before PR |
 | `x-git-push` | alternative | x-git-push handles general git workflow; x-pr-create is task-specific |
-| `x-dev-story-implement` | called-by | Phase 5 (PR creation) delegates to this skill for task-level PRs |
+| `x-story-implement` | called-by | Phase 5 (PR creation) delegates to this skill for task-level PRs |
 | `x-test-run` | called-by | Phase 1 pre-check runs the test command |
 
 ## Examples

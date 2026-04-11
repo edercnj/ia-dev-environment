@@ -58,7 +58,7 @@ class GithubSkillsAssemblerTest {
             // Post EPIC-0036: SKILL_GROUPS is derived from
             // targets/github-copilot/skills/story/*.md. The
             // old hardcoded registry listed x-story-plan,
-            // x-task-plan, and x-epic-plan but these .md
+            // x-task-plan, and x-epic-orchestrate but these .md
             // files never existed on disk (silently dropped
             // at assembly time before this story).
             assertThat(

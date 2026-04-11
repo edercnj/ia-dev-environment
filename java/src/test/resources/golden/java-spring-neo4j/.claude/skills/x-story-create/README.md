@@ -37,6 +37,6 @@ Generates self-contained story files that developers can implement without refer
 
 ## See Also
 
-- [x-story-epic](../x-story-epic/) — Generate the Epic consumed by this skill
-- [x-story-map](../x-story-map/) — Compute implementation phases from story dependencies
-- [x-story-epic-full](../x-story-epic-full/) — Full orchestrator: epic + stories + implementation map
+- [x-epic-create](../x-epic-create/) — Generate the Epic consumed by this skill
+- [x-epic-map](../x-epic-map/) — Compute implementation phases from story dependencies
+- [x-epic-decompose](../x-epic-decompose/) — Full orchestrator: epic + stories + implementation map

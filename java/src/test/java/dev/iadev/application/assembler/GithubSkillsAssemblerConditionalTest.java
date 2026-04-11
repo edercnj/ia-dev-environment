@@ -31,7 +31,7 @@ class GithubSkillsAssemblerConditionalTest {
             ProjectConfig config =
                     TestConfigBuilder.minimal();
             List<String> skills = List.of(
-                    "x-story-epic", "x-story-create");
+                    "x-epic-create", "x-story-create");
 
             List<String> filtered =
                     assembler.filterSkills(
@@ -39,7 +39,7 @@ class GithubSkillsAssemblerConditionalTest {
 
             assertThat(filtered)
                     .containsExactly(
-                            "x-story-epic",
+                            "x-epic-create",
                             "x-story-create");
         }
     }

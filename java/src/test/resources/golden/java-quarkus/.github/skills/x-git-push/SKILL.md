@@ -302,7 +302,7 @@ The git log should read as a **progression from the simplest case to the most co
 
 ## Integration Notes
 
-- Used by `x-dev-story-implement` during Phase 0 (branch) and Phase 5 (push + PR)
+- Used by `x-story-implement` during Phase 0 (branch) and Phase 5 (push + PR)
 - Delegates to `x-git-commit` for commit creation with task ID scope and TDD tags
 - Delegates to `x-pr-create` for PR creation with task references and body template
 - Can be used standalone for any git workflow task

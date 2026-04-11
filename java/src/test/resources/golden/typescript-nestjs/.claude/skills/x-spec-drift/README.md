@@ -1,6 +1,6 @@
 # x-spec-drift
 
-> Detects spec-code drift by comparing story data contracts, endpoints, and Gherkin scenarios against implemented code. Supports standalone mode (full report) and inline mode (compact output for TDD loop integration in x-dev-story-implement Phase 2).
+> Detects spec-code drift by comparing story data contracts, endpoints, and Gherkin scenarios against implemented code. Supports standalone mode (full report) and inline mode (compact output for TDD loop integration in x-story-implement Phase 2).
 
 | | |
 |---|---|
@@ -11,7 +11,7 @@
 
 ## What It Does
 
-Compares story specifications against implemented source code to detect drift. Validates that mandatory data contract fields exist in DTOs, declared endpoints are present in controllers, and Gherkin scenarios have corresponding acceptance tests. Operates in standalone mode (full itemized report) or inline mode (compact single-line output integrated into the TDD loop of x-dev-story-implement Phase 2).
+Compares story specifications against implemented source code to detect drift. Validates that mandatory data contract fields exist in DTOs, declared endpoints are present in controllers, and Gherkin scenarios have corresponding acceptance tests. Operates in standalone mode (full itemized report) or inline mode (compact single-line output integrated into the TDD loop of x-story-implement Phase 2).
 
 ## Usage
 
@@ -30,4 +30,4 @@ Compares story specifications against implemented source code to detect drift. V
 ## See Also
 
 - [x-test-run](../x-test-run/) -- Runs tests and validates coverage thresholds
-- [x-dev-story-implement](../x-dev-story-implement/) -- Calls inline mode during Phase 2 TDD loop
+- [x-story-implement](../x-story-implement/) -- Calls inline mode during Phase 2 TDD loop

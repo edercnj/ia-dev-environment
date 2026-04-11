@@ -18,10 +18,10 @@ Follow these steps to implement a new feature in **my-nestjs-service**.
 
 ### Step 1 — Plan
 
-Use the **x-dev-story-implement** skill to orchestrate the full cycle:
+Use the **x-story-implement** skill to orchestrate the full cycle:
 
 ```
-/x-dev-story-implement @plans/STORY-XXX.md
+/x-story-implement @plans/STORY-XXX.md
 ```
 
 This skill handles: branch creation, architecture planning, task decomposition,
@@ -29,10 +29,10 @@ implementation, review, and PR creation.
 
 ### Step 2 — Implement
 
-If you prefer manual control, use **x-dev-implement** for the coding phase:
+If you prefer manual control, use **x-task-implement** for the coding phase:
 
 ```
-/x-dev-implement @plans/STORY-XXX.md
+/x-task-implement @plans/STORY-XXX.md
 ```
 
 This implements layer-by-layer following microservice architecture with
@@ -64,5 +64,5 @@ After review passes, push and create PR:
 ## Tips
 
 - Always run the full lifecycle for story-level work
-- Use x-dev-implement only for focused coding tasks
+- Use x-task-implement only for focused coding tasks
 - Review findings with CRITICAL severity must be fixed before merge

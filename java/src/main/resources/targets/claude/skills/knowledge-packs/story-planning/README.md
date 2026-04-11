@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Category** | Knowledge Pack |
-| **Referenced by** | `x-story-create`, `x-story-epic`, `x-story-epic-full`, `x-story-map`, `x-dev-story-implement`, `product-owner` agent |
+| **Referenced by** | `x-story-create`, `x-epic-create`, `x-epic-decompose`, `x-epic-map`, `x-story-implement`, `product-owner` agent |
 
 > **Full content**: See [SKILL.md](./SKILL.md) for the complete reference.
 

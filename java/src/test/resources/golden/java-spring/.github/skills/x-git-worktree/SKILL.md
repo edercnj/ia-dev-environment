@@ -56,6 +56,6 @@ Worktrees are created under `.claude/worktrees/{identifier}/` where `{identifier
 
 ## Integration Notes
 
-- Used by x-dev-epic-implement for parallel story execution
-- Used by x-dev-story-implement for isolated task implementation
+- Used by x-epic-implement for parallel story execution
+- Used by x-story-implement for isolated task implementation
 - Follows Git Flow branching model (RULE-009)

@@ -66,7 +66,7 @@ class TaskCentricLifecycleTest {
         assertThat(result.success())
                 .as("Pipeline must succeed")
                 .isTrue();
-        lifecycleContent = readSkill("x-dev-story-implement");
+        lifecycleContent = readSkill("x-story-implement");
     }
 
     @Nested
@@ -308,11 +308,11 @@ class TaskCentricLifecycleTest {
             String content = Files.readString(
                     out.resolve(
                             ".claude/skills/"
-                                    + "x-dev-story-implement/"
+                                    + "x-story-implement/"
                                     + "SKILL.md"),
                     StandardCharsets.UTF_8);
             assertThat(content)
-                    .as("[%s] x-dev-story-implement must"
+                    .as("[%s] x-story-implement must"
                                     + " contain Task"
                                     + " Execution Loop",
                             profile)
@@ -332,11 +332,11 @@ class TaskCentricLifecycleTest {
             String content = Files.readString(
                     out.resolve(
                             ".claude/skills/"
-                                    + "x-dev-story-implement/"
+                                    + "x-story-implement/"
                                     + "SKILL.md"),
                     StandardCharsets.UTF_8);
             assertThat(content)
-                    .as("[%s] x-dev-story-implement must"
+                    .as("[%s] x-story-implement must"
                                     + " contain"
                                     + " --auto-approve-pr",
                             profile)

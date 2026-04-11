@@ -89,6 +89,6 @@ Creates standardized commits for {{PROJECT_NAME}} with Task ID in the scope, enf
 ## Integration Notes
 
 - Invokes x-code-format and x-code-lint as pre-commit steps
-- Used by x-dev-story-implement to create task-level commits
+- Used by x-story-implement to create task-level commits
 - Follows Conventional Commits for changelog generation
 - TDD tags enable TDD compliance auditing

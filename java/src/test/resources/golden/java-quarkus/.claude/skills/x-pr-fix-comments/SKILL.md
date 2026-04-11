@@ -223,7 +223,7 @@ Output a summary table:
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| `x-dev-story-implement` | called-by | Invoked during Phase 4 (fix review comments) |
+| `x-story-implement` | called-by | Invoked during Phase 4 (fix review comments) |
 | `x-pr-fix-epic-comments` | called-by | Batch mode processes multiple PRs from an epic |
 | `x-git-push` | calls | Uses Conventional Commits format for fix commits |
 | `x-review` | reads | Processes comments produced by specialist reviews |

@@ -88,6 +88,6 @@ Additional checks for the test group:
 
 ## Integration Notes
 
-- Invoked by `x-dev-story-implement` during Phase 2 after each group
+- Invoked by `x-story-implement` during Phase 2 after each group
 - Uses `{{COMPILE_COMMAND}}` for G1-G6, `{{BUILD_COMMAND}}` for G7
 - Reference: `.github/skills/lib/x-lib-group-verifier/SKILL.md`

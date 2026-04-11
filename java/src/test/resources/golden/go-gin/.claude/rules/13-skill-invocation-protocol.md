@@ -62,7 +62,7 @@ Agent(
 
 **Requirement:** the parent's `allowed-tools` MUST include `Agent`. The subagent itself has access to all tools (Read, Write, Edit, Skill, TaskCreate, TaskUpdate, etc.) by default — the `general-purpose` type inherits the full toolset.
 
-**Parallelism:** To launch multiple `general-purpose` subagents in parallel, emit all `Agent(...)` calls as SIBLING tool calls in the SAME assistant message. See `x-dev-story-implement` Phases 1B-1F "Parallelism + tracking batching" section for the canonical parallel dispatch pattern (Batch A = all TaskCreate + Agent launches as siblings; Batch B = all TaskUpdate as siblings after results return).
+**Parallelism:** To launch multiple `general-purpose` subagents in parallel, emit all `Agent(...)` calls as SIBLING tool calls in the SAME assistant message. See `x-story-implement` Phases 1B-1F "Parallelism + tracking batching" section for the canonical parallel dispatch pattern (Batch A = all TaskCreate + Agent launches as siblings; Batch B = all TaskUpdate as siblings after results return).
 
 ### Pattern 3 — SUBAGENT-RESEARCH (no Skill call, pure exploration)
 
