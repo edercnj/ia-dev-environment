@@ -221,6 +221,38 @@ The generator produces **20 core skills** (always included) and up to **13 condi
 
 > **Note:** Skills are generated for both Claude Code (`.claude/skills/`) and GitHub Copilot (`.github/skills/`) with equivalent functionality. The descriptions below apply to both platforms.
 
+> **🚧 In progress — EPIC-0036 (Skill Taxonomy Refactor).**
+> The source of truth for skills under `java/src/main/resources/targets/claude/skills/` is being reorganized into 10 category subfolders (`plan/`, `dev/`, `test/`, `review/`, `security/`, `code/`, `git/`, `pr/`, `ops/`, `jira/`) and ~19 skills will be renamed to a consistent `x-{subject}-{action}` scheme. The generated output (`.claude/skills/`) remains **flat** — user-facing invocation paths stay `/{skill-name}` without a category prefix.
+>
+> - Decision record: [`adr/ADR-0003-skill-taxonomy-and-naming.md`](adr/ADR-0003-skill-taxonomy-and-naming.md)
+> - Rename checklist: [`plans/epic-0036/skill-renames.md`](plans/epic-0036/skill-renames.md)
+>
+> Planned renames (current names remain valid until the corresponding rename story merges):
+>
+> | Current                      | New                    | Story             |
+> |------------------------------|------------------------|-------------------|
+> | `x-story-epic`               | `x-epic-create`        | STORY-0036-0004   |
+> | `x-story-epic-full`          | `x-epic-decompose`     | STORY-0036-0004   |
+> | `x-story-map`                | `x-epic-map`           | STORY-0036-0004   |
+> | `x-epic-plan`                | `x-epic-orchestrate`   | STORY-0036-0004   |
+> | `x-dev-implement`            | `x-task-implement`     | STORY-0036-0004   |
+> | `x-dev-story-implement`      | `x-story-implement`    | STORY-0036-0004   |
+> | `x-dev-epic-implement`       | `x-epic-implement`     | STORY-0036-0004   |
+> | `x-dev-architecture-plan`    | `x-arch-plan`          | STORY-0036-0004   |
+> | `x-dev-arch-update`          | `x-arch-update`        | STORY-0036-0004   |
+> | `x-dev-adr-automation`       | `x-adr-generate`       | STORY-0036-0004   |
+> | `run-e2e`                    | `x-test-e2e`           | STORY-0036-0005   |
+> | `run-smoke-api`              | `x-test-smoke-api`     | STORY-0036-0005   |
+> | `run-smoke-socket`           | `x-test-smoke-socket`  | STORY-0036-0005   |
+> | `run-contract-tests`         | `x-test-contract`      | STORY-0036-0005   |
+> | `run-perf-test`              | `x-test-perf`          | STORY-0036-0005   |
+> | `x-pr-fix-comments`          | `x-pr-fix`             | STORY-0036-0005   |
+> | `x-pr-fix-epic-comments`     | `x-pr-fix-epic`        | STORY-0036-0005   |
+> | `x-runtime-protection`       | `x-runtime-eval`       | STORY-0036-0005   |
+> | `x-security-secret-scan`     | `x-security-secrets`   | STORY-0036-0005   |
+>
+> The sections below still reference current names; they will be updated as each rename story lands.
+
 ### Story Planning & Decomposition
 
 Skills for breaking down specifications into implementable work items.
