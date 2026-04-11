@@ -144,11 +144,11 @@ public final class PlanTemplatesAssembler
             return;
         }
 
-        copyToTargets(
+        copyToClaudeTemplates(
                 filename, content, outputDir, files);
     }
 
-    private void copyToTargets(
+    private void copyToClaudeTemplates(
             String filename,
             String content,
             Path outputDir,
