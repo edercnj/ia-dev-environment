@@ -86,6 +86,6 @@ Each phase produces an atomic commit via `/x-git-commit`:
 
 - [x-task-plan](../x-task-plan/) -- Generates the task plan consumed by this skill
 - [x-git-commit](../x-git-commit/) -- Creates atomic commits with TDD tags
-- [x-task-implement](../x-task-implement/) -- Story-level implementation (complementary)
+- [x-task-implement](../../dev/x-task-implement/) -- Task-level implementation (complementary)
 - [x-story-implement](../x-story-implement/) -- Full lifecycle orchestrator (outer loop)
 - [x-test-run](../x-test-run/) -- Test execution and coverage analysis

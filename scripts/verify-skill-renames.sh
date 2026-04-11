@@ -12,10 +12,13 @@
 # Exit codes:
 #   0  no forbidden names found
 #   1  at least one forbidden name found (build should fail)
-#   2  invoked from an unexpected directory
+#   2  invoked from an unexpected directory or the underlying
+#      scanner (rg/grep) failed for a reason other than
+#      "no matches"
 #
-# Wired into CI: invoked as a post-test step in the Maven
-# verify profile. See .github/workflows/ci.yml.
+# CI integration is intentionally deferred — invoke the script
+# manually or via a developer pre-push hook until a CI
+# workflow lands in a follow-up PR.
 
 set -euo pipefail
 
@@ -58,11 +61,19 @@ declare -a FORBIDDEN_NAMES=(
 
 # Paths allowed to mention old names. Three buckets:
 #   1. This script itself (stores the forbidden list).
-#   2. Authoritative migration record (ADR-0003 + staging doc).
-#   3. Frozen historical artifacts (past epic plans, specs,
-#      steering docs, execution reports). Renaming history
-#      would falsify the record of what was done at the time.
+#   2. Authoritative migration record (ADR-0003 + CHANGELOG +
+#      past epic plans / specs / steering / results) — frozen
+#      historical artifacts that document what was done at
+#      the time. Renaming history would falsify the record.
+#   3. Generated output subtrees that ship pre-rename names
+#      from older releases (e.g., legacy README listings).
 # Build outputs (.git, target/) are excluded for speed.
+#
+# IMPORTANT: do NOT exclude tracked source directories
+# wholesale. `.github/workflows/` and `.claude/rules/` ARE
+# tracked and the guard MUST catch regressions there. Use
+# the most specific subtree that contains generated content
+# rather than the platform root.
 declare -a ALLOWED_PATHS=(
     "scripts/verify-skill-renames.sh"
     "plans/"
@@ -74,10 +85,13 @@ declare -a ALLOWED_PATHS=(
     ".git/"
     "java/target/"
     "target/"
-    ".agents/"
-    ".claude/"
-    ".github/"
-    ".codex/"
+    # Generated skill assemblies (shipped from older releases
+    # may still ship pre-rename listings — these are output,
+    # not source).
+    ".agents/skills/"
+    ".claude/skills/"
+    ".github/skills/"
+    ".codex/skills/"
     # Example project templates that ship runnable scripts
     # literally named run-smoke-api.sh / run-smoke-socket.sh.
     # These are file paths, not pre-EPIC-0036 skill names.
@@ -94,28 +108,43 @@ is_allowed() {
     return 1
 }
 
-# Build ripgrep pattern alternation. Escape hyphens so the
-# regex engine treats them as literals.
-PATTERN="$(printf '%s|' "${FORBIDDEN_NAMES[@]}")"
-PATTERN="${PATTERN%|}"
-
 echo "Scanning repository for pre-EPIC-0036 skill names..."
 echo "  Patterns: ${#FORBIDDEN_NAMES[@]}"
 echo "  Repo root: ${REPO_ROOT}"
 
-# Prefer ripgrep when available (fast); fall back to POSIX grep.
+# Pass each forbidden name to the scanner as a fixed-string
+# search term; no regex alternation or escaping is needed.
+# Capture the scanner exit status separately so we can
+# distinguish "no matches" (exit 1, expected for clean repos)
+# from "scan failed" (exit 2+, must surface as a hard error).
+RAW_MATCHES=""
+scan_status=0
 if command -v rg >/dev/null 2>&1; then
+    set +e
     RAW_MATCHES="$(rg --fixed-strings --line-number \
         --no-heading --with-filename \
         --glob '!.git' --glob '!target' --glob '!**/target' \
         $(printf -- '-e %s ' "${FORBIDDEN_NAMES[@]}") \
-        . 2>/dev/null || true)"
+        .)"
+    scan_status=$?
+    set -e
+    if [[ "${scan_status}" -gt 1 ]]; then
+        echo "ERROR: ripgrep scan failed with exit code ${scan_status}" >&2
+        exit 2
+    fi
 else
+    set +e
     RAW_MATCHES="$(grep -rHn -F \
         --exclude-dir='.git' \
         --exclude-dir='target' \
         $(printf -- '-e %s ' "${FORBIDDEN_NAMES[@]}") \
-        . 2>/dev/null || true)"
+        .)"
+    scan_status=$?
+    set -e
+    if [[ "${scan_status}" -gt 1 ]]; then
+        echo "ERROR: grep scan failed with exit code ${scan_status}" >&2
+        exit 2
+    fi
 fi
 
 FORBIDDEN_HITS=0

@@ -45,12 +45,12 @@ If the user passes `--full-lifecycle`, force full execution regardless of tier:
 - Display: "Scope override: running full lifecycle as requested"
 
 **SIMPLE Execution Flow:**
-Phases 0 (Prepare) > 1A (Plan) > 2 (Task Execution Loop) > 3 (Verify) -- skips 1B, 1C, 1D, 1E
+Phases 0 (Prepare) > 1A (Architecture) > 2 (Task Execution Loop) > 3 (Documentation) > 6 (Commit + PR) > 8 (Final Verification). Skips 1B (Impl Plan), 1C (Task Decomposer), 1D (Event Schema), 1E (Security), and the heavyweight review pipeline (Phases 4, 5, 7).
 
 **COMPLEX Execution Flow:**
-All phases execute normally. After Phase 2, **pause** with:
-"Scope COMPLEX -- stakeholder review required. Review all task PRs and confirm to proceed with story-level verification."
-Wait for developer confirmation before executing Phase 3.
+All phases execute normally (0 through 8). After **Phase 4 (Specialist Review)**, **pause** with:
+"Scope COMPLEX -- stakeholder review required. Review all specialist findings and confirm to proceed with Phase 5 (Remediation), Phase 6 (PR), Phase 7 (Tech Lead Review), and Phase 8 (Final Verification)."
+Wait for developer confirmation before executing Phase 5.
 
 **Default Behavior:**
-If scope assessment cannot be performed (e.g., story content unavailable), default to STANDARD (all phases execute). No error is raised.
+If scope assessment cannot be performed (e.g., story content unavailable), default to STANDARD (all phases execute, no pause). No error is raised.

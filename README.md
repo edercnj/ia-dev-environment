@@ -309,7 +309,7 @@ Produces:
 
 Skills for implementing features from planning through PR creation.
 
-#### `/x-dev-lifecycle` -- Full Feature Lifecycle
+#### `/x-story-implement` -- Full Feature Lifecycle
 
 The main orchestrator skill. Takes a story from branch creation to merged PR in 9 phases.
 
@@ -343,12 +343,12 @@ The main orchestrator skill. Takes a story from branch creation to merged PR in 
 | **Input** | Story ID or feature description |
 | **Output** | TDD implementation with atomic commits |
 
-**How it differs from `/x-dev-lifecycle`:**
+**How it differs from `/x-story-implement`:**
 
 | Scenario | Use |
 |----------|-----|
 | Single class, small fix, coding without reviews | `/x-task-implement` |
-| Complete lifecycle: code → review → fix → PR | `/x-dev-lifecycle` |
+| Complete lifecycle: code → review → fix → PR | `/x-story-implement` |
 
 **Workflow:**
 1. **Prepare** -- Subagent reads architecture, coding standards, and test plan knowledge packs
@@ -379,7 +379,7 @@ The main orchestrator skill. Takes a story from branch creation to merged PR in 
 - Checkpoint system with resume capability
 - Integrity gates between phases
 - Parallel worktree support for independent stories
-- Per-story dispatch to `/x-dev-lifecycle`
+- Per-story dispatch to `/x-story-implement`
 - Epic-level Tech Lead review on full diff
 - Final status: COMPLETE / PARTIAL / FAILED
 
@@ -712,8 +712,8 @@ These skills are generated only when your project config includes the relevant t
 |-------|-----------|-------------|
 | `/x-test-e2e` | Always (if testing enabled) | End-to-end tests validating full flow with real database |
 | `/x-test-smoke-api` | REST interfaces | Black-box smoke tests against running API |
-| `/x-test-smoke-socket` | WebSocket interfaces | WebSocket connection and message validation |
-| `/x-test-contract` | Contract tests enabled | Parametrized business rule validation |
+| `/x-test-smoke-socket` | TCP socket interfaces (`tcp-custom`) | Black-box smoke tests against a running TCP socket service |
+| `/x-test-contract` | Contract tests enabled | Consumer-driven contract tests (e.g., Pact, Spring Cloud Contract) |
 | `/x-test-perf` | Performance tests enabled | Latency SLAs, throughput, resource usage |
 
 #### Review (conditional)
@@ -742,7 +742,7 @@ The following are **not** shown in the `/` menu. They are used internally by oth
 
 | Internal Skill | Used By |
 |---------------|---------|
-| `x-lib-task-decomposer` | `/x-dev-lifecycle` (Phase 1B) |
+| `x-lib-task-decomposer` | `/x-story-implement` (Phase 1B) |
 | `x-lib-audit-rules` | `/x-codebase-audit`, `/x-review-pr` |
 | `x-lib-group-verifier` | `/x-epic-implement` |
 
