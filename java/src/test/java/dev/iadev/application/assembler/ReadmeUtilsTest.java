@@ -272,41 +272,6 @@ class ReadmeUtilsTest {
     }
 
     @Nested
-    @DisplayName("countCodexAgentsFiles")
-    class CountCodexAgentsFiles {
-
-        @Test
-        @DisplayName("returns 0 when dir missing")
-        void create_whenMissing_zero(@TempDir Path tempDir) {
-            assertThat(ReadmeUtils.countCodexAgentsFiles(
-                    tempDir.resolve(".agents")))
-                    .isZero();
-        }
-
-        @Test
-        @DisplayName("counts files recursively")
-        void create_whenCalled_countsRecursive(@TempDir Path tempDir)
-                throws IOException {
-            Path agentsDir =
-                    Files.createDirectories(
-                            tempDir.resolve(".agents"));
-            Files.writeString(
-                    agentsDir.resolve("AGENTS.md"),
-                    "c", StandardCharsets.UTF_8);
-            Path subDir =
-                    Files.createDirectories(
-                            agentsDir.resolve("skills"));
-            Files.writeString(
-                    subDir.resolve("SKILL.md"),
-                    "c", StandardCharsets.UTF_8);
-
-            assertThat(ReadmeUtils.countCodexAgentsFiles(
-                    agentsDir))
-                    .isEqualTo(2);
-        }
-    }
-
-    @Nested
     @DisplayName("isKnowledgePack")
     class IsKnowledgePack {
 

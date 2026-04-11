@@ -9,11 +9,9 @@ import java.util.stream.Stream;
 /**
  * Counting utilities for README generation.
  *
- * <p>Extension counting: {@link ReadmeGithubCounter}.
- * Metadata extraction: {@link ReadmeMetadata}.</p>
+ * <p>Metadata extraction: {@link ReadmeMetadata}.</p>
  *
  * @see ReadmeAssembler
- * @see ReadmeGithubCounter
  * @see ReadmeMetadata
  */
 public final class ReadmeUtils {
@@ -98,13 +96,6 @@ public final class ReadmeUtils {
             count++;
         }
         return count;
-    }
-
-    /** Delegates to {@link ReadmeGithubCounter}. */
-    public static int countCodexAgentsFiles(
-            Path agentsDir) {
-        return ReadmeGithubCounter
-                .countCodexAgentsFiles(agentsDir);
     }
 
     /** Delegates to {@link ReadmeMetadata}. */
