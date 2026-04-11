@@ -291,27 +291,9 @@ class PipelineSmokeTest extends SmokeTestBase {
             case "claude-settings" ->
                     countTopLevelFiles(outputDir
                             .resolve(".claude"));
-            case "github-instructions" ->
+            case "github-workflows" ->
                     countFilesInSubDir(outputDir,
-                            ".github/instructions");
-            case "github-skills" ->
-                    countFilesInSubDir(outputDir,
-                            ".github/skills");
-            case "github-agents" ->
-                    countFilesInSubDir(outputDir,
-                            ".github/agents");
-            case "github-prompts" ->
-                    countFilesInSubDir(outputDir,
-                            ".github/prompts");
-            case "github-hooks" ->
-                    countFilesInSubDir(outputDir,
-                            ".github/hooks");
-            case "github-issue-templates" ->
-                    countFilesInSubDir(outputDir,
-                            ".github/ISSUE_TEMPLATE");
-            case "github-top" ->
-                    countTopLevelFiles(outputDir
-                            .resolve(".github"));
+                            ".github/workflows");
             case "steering" ->
                     countFilesInSubDir(outputDir,
                             "steering");

@@ -114,21 +114,8 @@ final class FileTreeWalker {
         countCategory(categories, dir,
                 "claude-settings", ".claude", true);
         countCategory(categories, dir,
-                "github-instructions",
-                ".github/instructions");
-        countCategory(categories, dir,
-                "github-skills", ".github/skills");
-        countCategory(categories, dir,
-                "github-agents", ".github/agents");
-        countCategory(categories, dir,
-                "github-prompts", ".github/prompts");
-        countCategory(categories, dir,
-                "github-hooks", ".github/hooks");
-        countCategory(categories, dir,
-                "github-issue-templates",
-                ".github/ISSUE_TEMPLATE");
-        countCategory(categories, dir,
-                "github-top", ".github", true);
+                "github-workflows",
+                ".github/workflows");
         countCategory(categories, dir,
                 "steering", "steering");
         countCategory(categories, dir,
