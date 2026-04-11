@@ -77,8 +77,14 @@ independentemente executável**. Stories agregam tasks em valor entregável.
 
 ### Fluxo alvo (planejamento)
 
+> **Nota:** nomes de skills refletem a convenção final definida por
+> **ADR-0003 / EPIC-0036** (Skill Taxonomy and Naming Refactor). Os nomes
+> atuais (`x-dev-implement`, `x-dev-story-implement`, `x-dev-epic-implement`,
+> `x-epic-plan`) serão renomeados pelo EPIC-0036 **antes** do EPIC-0038
+> iniciar execução (ver seção 7).
+
 ```
-Epic (x-epic-plan, agregador de stories + RULEs)
+Epic (x-epic-orchestrate, dispatcher multi-story)
   └── Story (x-story-plan, agregador de tasks + UoW entregável)
         └── Task (x-task-plan, unidade testável)
               ├── task-TASK-NNN.md        (DoD, I/O contracts, deps)
@@ -88,9 +94,9 @@ Epic (x-epic-plan, agregador de stories + RULEs)
 ### Fluxo alvo (execução)
 
 ```
-x-dev-epic-implement
-  └── x-dev-story-implement (per story, in phase order)
-        └── x-dev-task-implement (per task, in dependency order)
+x-epic-implement
+  └── x-story-implement (per story, in phase order)
+        └── x-task-implement (per task, in dependency order)
               └── TDD cycle (Red → Green → Refactor → atomic commit)
 ```
 
@@ -102,9 +108,9 @@ x-dev-epic-implement
 - Novo `task-implementation-map-STORY-XXXX-YYYY.md` por story (dependency graph)
 - Refactor de `x-task-plan` para ser callable skill (invocada por x-story-plan)
 - Refactor de `x-story-plan` para invocar `x-task-plan` per task
-- Novo skill `x-dev-task-implement` (substitui a lógica embedded no x-dev-story-implement)
-- Refactor de `x-dev-story-implement` para orquestrar tasks via dependency map
-- Simplificação de `x-dev-epic-implement` (só orquestra stories)
+- **Refactor de `x-task-implement`** (skill existente pós-EPIC-0036, atualmente chamada `x-dev-implement`) para ler `task-TASK-NNN.md` (contratos I/O), respeitar `task-implementation-map` e honrar dependências declaradas. ADR-0003 já confirma que a skill executa uma task individual; este épico formaliza o contrato.
+- Refactor de `x-story-implement` (pós-rename) para orquestrar tasks via dependency map
+- Simplificação de `x-epic-implement` (pós-rename) para apenas orquestrar stories em phase order
 - Template `_TEMPLATE-TASK.md`
 - Template `_TEMPLATE-TASK-IMPLEMENTATION-MAP.md`
 - 5 novas RULEs (TF-01 a TF-05) sobre testabilidade, contratos I/O, topological execution, atomic commits, backward compat
@@ -115,7 +121,8 @@ x-dev-epic-implement
 
 ### Excluído
 
-- **Skill rename** (outro épico — pré-requisito, deve shipar ANTES deste)
+- **Skill rename** — é o EPIC-0036 (pré-requisito explícito, deve shipar ANTES deste; ver seção 7)
+- **Criar `x-task-implement` como skill nova** — a skill já existe (atualmente `x-dev-implement`) e ADR-0003 §"Primary cluster" confirma que ela já executa "one task (TDD loop)". Este épico REFATORA, não cria.
 - **Task = PR stacked** (fica como v3 futuro — este épico usa task = commit)
 - **Migração retroativa** de epics 0025–0037 para o novo schema (backward-compat read-only)
 - **Dashboard / observability de tasks** (follow-up futuro)
@@ -215,10 +222,12 @@ Tasks que devem commit juntas por serem mutuamente recursivas:
 
 ### 5.3 Fluxo de planejamento
 
+Skills pós-rename por EPIC-0036 (ver ADR-0003 §D3):
+
 ```
-x-epic-plan epic-0038
+x-epic-orchestrate epic-0038           (was x-epic-plan, ADR-0003)
   └── (sequential, per story in implementation-map-XXXX.md)
-       x-story-plan story-XXXX-YYYY
+       x-story-plan story-XXXX-YYYY    (kept as-is per ADR-0003)
          ├── Phase 1: multi-agent consolidation (architect, qa, security, tl, po)
          ├── Phase 2: task breakdown into atomic units + I/O contracts
          ├── Phase 3: invoke x-task-plan per task (parallel subagents)
@@ -232,14 +241,16 @@ x-epic-plan epic-0038
 
 ### 5.4 Fluxo de execução
 
+Skills pós-rename por EPIC-0036 (ver ADR-0003 §D3):
+
 ```
-x-dev-epic-implement
+x-epic-implement                       (was x-dev-epic-implement)
   └── (sequential per phase, per dependency-map)
-       x-dev-story-implement story-XXXX-YYYY
+       x-story-implement story-XXXX-YYYY    (was x-dev-story-implement)
          ├── Read task-implementation-map-STORY-*.md
          ├── For each wave (parallelizable batch):
          │     For each task in wave:
-         │       x-dev-task-implement TASK-XXXX-YYYY-NNN
+         │       x-task-implement TASK-XXXX-YYYY-NNN  (was x-dev-implement)
          │         ├── Read task-TASK-NNN.md + plan-task-TASK-NNN.md
          │         ├── TDD cycle (Red → Green → Refactor)
          │         ├── Atomic commit (Conventional Commits)
@@ -271,23 +282,43 @@ dentro da PR da story**, não PRs próprias. Rationale:
 
 ## 7. Interação com o skill rename epic
 
-**Este épico depende do skill rename epic.** Ordem de execução:
+**Este épico depende do EPIC-0036 — Skill Taxonomy and Naming Refactor
+(ADR-0003).** Ordem de execução:
 
-1. Skill rename epic (outro épico a ser planejado) — renomeia todas as skills
-   para o schema final
-2. **Este épico (EPIC-0038)** — usa os nomes finais desde o início
+1. **EPIC-0036** — renomeia skills per ADR-0003 §D3 (19 renames total,
+   incluindo `x-dev-implement` → `x-task-implement`,
+   `x-dev-story-implement` → `x-story-implement`,
+   `x-dev-epic-implement` → `x-epic-implement`,
+   `x-epic-plan` → `x-epic-orchestrate`)
+2. **Este épico (EPIC-0038)** — usa os nomes finais desde o início e
+   refatora o comportamento de `x-task-implement` para honrar contratos
+   I/O e task-implementation-map
 
 Por que essa ordem:
-- Skill rename é mecânico (find-replace + tests)
-- Este refactor é arquitetural (novas skills, novo flow, migration path)
-- Fazer rename primeiro reduz churn ao escrever este épico (não precisamos
-  renomear `x-dev-task-implement` depois se a convenção mudar)
+- Skill rename é mecânico (find-replace + tests) e já está planejado
+  via ADR-0003 / staging doc `plans/epic-0036/skill-renames.md`
+- Este refactor é arquitetural (novos schemas, novo flow, migration path)
+- Fazer rename primeiro evita churn — todas as referências em EPIC-0038
+  (spec, epic, stories) já usam os nomes finais definidos pelo ADR-0003
 
-**Dependência explícita:** global DoR do EPIC-0038 inclui o check "skill
-rename epic mergeado em develop". Se o rename epic decidir nomes diferentes
-dos provisórios (`x-dev-task-implement`, `x-task-plan` refatorada), este
-épico é re-baselined: spec, epic file e stories são atualizados ANTES do
-start.
+**Fonte de verdade dos nomes:** ADR-0003 §D3 (Global rename to verbal
+scheme) + `plans/epic-0036/skill-renames.md` §2.1 (Primary cluster
+renames). Qualquer alteração no ADR-0003 obriga re-baseline deste épico.
+
+**Dependência explícita:** global DoR do EPIC-0038 inclui o check
+"EPIC-0036 stories 0001-0006 mergeadas em develop". Execução do
+EPIC-0038 fica bloqueada até EPIC-0036 completar.
+
+**Skills relevantes do EPIC-0038 (nomes finais pós-EPIC-0036):**
+
+| Papel | Nome atual (pré-rename) | Nome pós-EPIC-0036 | Ação do EPIC-0038 |
+| :--- | :--- | :--- | :--- |
+| Task plan (callable) | `x-task-plan` | `x-task-plan` (mantido) | Refactor para produzir `plan-task-TASK-NNN.md` |
+| Task impl (single-task TDD) | `x-dev-implement` | `x-task-implement` | Refactor para ler `task-TASK-NNN.md` + honrar `task-implementation-map` |
+| Story impl | `x-dev-story-implement` | `x-story-implement` | Refactor para dispachar tasks via map |
+| Epic impl | `x-dev-epic-implement` | `x-epic-implement` | Simplificação: só phase order |
+| Epic orchestrator | `x-epic-plan` | `x-epic-orchestrate` | Inalterado (este épico não toca) |
+| Story plan | `x-story-plan` | `x-story-plan` (mantido) | Refactor para invocar `x-task-plan` per task |
 
 ## 8. Migration path
 
@@ -310,37 +341,40 @@ start.
 
 O primeiro épico a usar o novo schema será **o próximo épico planejado após
 EPIC-0038 shipar** (dogfooding). EPIC-0038 permanece em v1 durante sua própria
-execução (para evitar bootstrap problem — o `x-task-plan` callable e o
-`x-dev-task-implement` só existem após story 0003 e 0005 shiparem).
+execução (para evitar bootstrap problem — o `x-task-plan` callable refatorado
+e o comportamento task-first de `x-task-implement` só existem após stories
+0003 e 0005 shiparem).
 
 ### 8.3 Matriz de compatibilidade
 
 | Épico | planning_schema_version | Flow | Skills usadas |
 | :--- | :--- | :--- | :--- |
-| epic-0025..0037 | "1.0" (ou ausente) | Legacy top-down | x-story-plan monolítica |
-| epic-0038 (este) | "1.0" | Legacy top-down | x-story-plan monolítica |
-| Próximo épico (pós-0038) | "2.0" | Task-first bottom-up | x-task-plan + x-dev-task-implement |
+| epic-0025..0037 | "1.0" (ou ausente) | Legacy top-down | `x-story-plan` monolítica |
+| epic-0036 (rename) | "1.0" | Legacy top-down | — (é o épico de rename, não usa task-first) |
+| epic-0038 (este) | "1.0" | Legacy top-down | `x-story-plan` monolítica |
+| Próximo épico (pós-0038) | "2.0" | Task-first bottom-up | `x-task-plan` + `x-task-implement` (pós-rename) |
 
 ## 9. Riscos e mitigações
 
 | Risco | Severidade | Mitigação |
 | :--- | :--- | :--- |
-| Refactor quebra x-dev-story-implement em execução de épicos em curso | Alta | planning_schema_version flag + backward-compat read |
-| x-task-plan multiplica subagent dispatch (N tasks × custo) | Média | Paralelização dentro de story; batch size limit |
+| Refactor quebra `x-story-implement` em execução de épicos em curso | Alta | planning_schema_version flag + backward-compat read |
+| `x-task-plan` multiplica subagent dispatch (N tasks × custo) | Média | Paralelização dentro de story; batch size limit |
 | Task = commit perde granularidade de review | Baixa | Conventional Commits + atomic boundaries suficientes para review |
 | Escopo infla com cada skill tocada | Alta | Escopo congelado às 10 stories deste épico; outros refactors são follow-up |
 | Dogfooding: primeiro épico pós-0038 expõe bugs tardios | Média | Integration test do fluxo completo (story 10) antes do primeiro dogfood |
-| Skill rename epic decide nomes diferentes dos provisórios | Média | Re-baseline explícito no global DoR (check "rename mergeado") |
+| ADR-0003 muda os nomes de skills antes do EPIC-0036 executar | Baixa | Re-baseline explícito deste épico no global DoR (check "EPIC-0036 stories 0001-0006 mergeadas em develop"); spec + epic + stories são atualizados quando ADR-0003 muda |
+| EPIC-0036 atrasa e bloqueia EPIC-0038 indefinidamente | Média | EPIC-0038 pode ser REPLANEJADO (não executado) enquanto EPIC-0036 está pendente — estrutura fica preservada, só os nomes precisam confirmation no merge |
 
 ## 10. Definition of Done do épico
 
 - [ ] Schema `task-TASK-NNN.md` implementado e documentado
 - [ ] Schema `task-implementation-map-STORY-*.md` implementado
-- [ ] `x-task-plan` refatorado como callable skill
+- [ ] `x-task-plan` refatorado como callable skill (produz `plan-task-TASK-NNN.md`)
 - [ ] `x-story-plan` invoca `x-task-plan` per task
-- [ ] `x-dev-task-implement` criada e testada
-- [ ] `x-dev-story-implement` orquestra via task map
-- [ ] `x-dev-epic-implement` simplificada (só phase order)
+- [ ] `x-task-implement` (pós-EPIC-0036 rename de `x-dev-implement`) refatorado para ler `task-TASK-NNN.md` + respeitar `task-implementation-map`
+- [ ] `x-story-implement` (pós-rename) orquestra tasks via task map
+- [ ] `x-epic-implement` (pós-rename) simplificada (só phase order)
 - [ ] Templates `_TEMPLATE-TASK.md` e `_TEMPLATE-TASK-IMPLEMENTATION-MAP.md` criados
 - [ ] 5 novas RULEs (TF-01..05) escritas, revisadas e indexadas em CLAUDE.md
 - [ ] `planning_schema_version` implementado com backward compat v1
