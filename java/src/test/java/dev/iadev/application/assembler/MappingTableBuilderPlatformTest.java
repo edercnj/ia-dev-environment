@@ -51,10 +51,10 @@ class MappingTableBuilderPlatformTest {
             String result = builder.build(
                     claudeDir,
                     Set.of(Platform.CLAUDE_CODE,
-                            Platform.COPILOT));
+                            Platform.CODEX));
 
             assertThat(result)
-                    .contains("| .claude/ | .github/");
+                    .contains("| .claude/ | .codex/");
         }
 
         @Test
@@ -68,7 +68,7 @@ class MappingTableBuilderPlatformTest {
                     claudeDir, Set.of());
 
             assertThat(result)
-                    .contains("| .claude/ | .github/");
+                    .contains("| .claude/ | .codex/");
         }
 
         @Test
@@ -83,19 +83,19 @@ class MappingTableBuilderPlatformTest {
                     Platform.allUserSelectable());
 
             assertThat(result)
-                    .contains("| .claude/ | .github/");
+                    .contains("| .claude/ | .codex/");
         }
 
         @Test
-        @DisplayName("copilot-only returns empty")
-        void build_copilotOnly_returnsEmpty(
+        @DisplayName("codex-only returns empty")
+        void build_codexOnly_returnsEmpty(
                 @TempDir Path tempDir)
                 throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
 
             String result = builder.build(
                     claudeDir,
-                    Set.of(Platform.COPILOT));
+                    Set.of(Platform.CODEX));
 
             assertThat(result).isEmpty();
         }
@@ -106,7 +106,7 @@ class MappingTableBuilderPlatformTest {
         Path claudeDir = Files.createDirectories(
                 tempDir.resolve(".claude"));
         Files.createDirectories(
-                tempDir.resolve(".github"));
+                tempDir.resolve(".codex"));
         return claudeDir;
     }
 }

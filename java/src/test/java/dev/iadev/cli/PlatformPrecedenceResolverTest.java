@@ -80,11 +80,11 @@ class PlatformPrecedenceResolverTest {
 
             var result =
                     PlatformPrecedenceResolver.resolve(
-                            List.of(Platform.COPILOT),
+                            List.of(Platform.CODEX),
                             config);
 
             assertThat(result)
-                    .containsExactly(Platform.COPILOT);
+                    .containsExactly(Platform.CODEX);
         }
 
         @Test
@@ -115,13 +115,13 @@ class PlatformPrecedenceResolverTest {
             var result =
                     PlatformPrecedenceResolver.resolve(
                             List.of(Platform.CLAUDE_CODE,
-                                    Platform.COPILOT),
+                                    Platform.CODEX),
                             config);
 
             assertThat(result)
                     .containsExactlyInAnyOrder(
                             Platform.CLAUDE_CODE,
-                            Platform.COPILOT);
+                            Platform.CODEX);
         }
     }
 
@@ -156,10 +156,10 @@ class PlatformPrecedenceResolverTest {
                     PlatformPrecedenceResolver
                             .buildPlatformSet(
                                     List.of(
-                                            Platform.COPILOT));
+                                            Platform.CODEX));
 
             assertThat(result)
-                    .containsExactly(Platform.COPILOT);
+                    .containsExactly(Platform.CODEX);
         }
 
         @Test

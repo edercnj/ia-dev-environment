@@ -15,9 +15,9 @@ import java.util.Set;
  * for README.md.
  *
  * <p>Generates component counts for all artifact types
- * across .claude/, .github/, .codex/, and .agents/
- * directories. Also provides the static settings
- * documentation section.</p>
+ * across .claude/, .codex/, and .agents/ directories.
+ * Also provides the static settings documentation
+ * section.</p>
  *
  * @see ReadmeTables
  * @see ReadmeUtils
@@ -53,9 +53,7 @@ public final class SummaryTableBuilder {
      */
     String buildGenerationSummary(
             Path outputDir, Set<Platform> platforms) {
-        Path githubDir = resolveGithubDir(outputDir);
-        Object[][] allRows =
-                buildSummaryRows(outputDir, githubDir);
+        Object[][] allRows = buildSummaryRows(outputDir);
         Object[][] rows = SummaryRowFilter.filter(
                 allRows, platforms);
         List<String> lines = new ArrayList<>();
@@ -97,10 +95,6 @@ public final class SummaryTableBuilder {
                 + " configuration.";
     }
 
-    static Path resolveGithubDir(Path outputDir) {
-        return outputDir.getParent().resolve(".github");
-    }
-
     private static Path resolveCodexDir(Path outputDir) {
         return outputDir.getParent().resolve(".codex");
     }
@@ -110,15 +104,12 @@ public final class SummaryTableBuilder {
     }
 
     private static Object[][] buildSummaryRows(
-            Path outputDir, Path githubDir) {
+            Path outputDir) {
         Object[][] claudeRows =
                 buildClaudeRows(outputDir);
-        Object[][] githubRows =
-                buildGithubRows(outputDir, githubDir);
         Object[][] extRows =
                 buildExtensionRows(outputDir);
-        return concatRows(
-                claudeRows, githubRows, extRows);
+        return concatRows(claudeRows, extRows);
     }
 
     private static Object[][] buildClaudeRows(
@@ -142,43 +133,6 @@ public final class SummaryTableBuilder {
                         countPlanTemplates(outputDir,
                                 "templates")},
         };
-    }
-
-    private static Object[][] buildGithubRows(
-            Path outputDir, Path githubDir) {
-        int ghGlobal = existsAsInt(
-                githubDir, "copilot-instructions.md");
-        int ghMcp = existsAsInt(
-                githubDir, "copilot-mcp.json");
-        return new Object[][]{
-                {"Instructions (.github)",
-                        ghComponent(githubDir,
-                                "instructions") + ghGlobal},
-                {"Skills (.github)",
-                        ReadmeUtils.countGithubSkills(
-                                githubDir)},
-                {"Agents (.github)",
-                        ghComponent(githubDir, "agents")},
-                {"Prompts (.github)",
-                        ghComponent(githubDir, "prompts")},
-                {"Hooks (.github)",
-                        ghComponent(githubDir, "hooks")},
-                {"Plan Templates (.github)",
-                        countPlanTemplates(githubDir,
-                                "templates")},
-                {"MCP (.github)", ghMcp},
-        };
-    }
-
-    private static int existsAsInt(
-            Path dir, String filename) {
-        return Files.exists(dir.resolve(filename)) ? 1 : 0;
-    }
-
-    private static int ghComponent(
-            Path githubDir, String name) {
-        return ReadmeUtils.countGithubComponent(
-                githubDir, name);
     }
 
     private static Object[][] buildExtensionRows(

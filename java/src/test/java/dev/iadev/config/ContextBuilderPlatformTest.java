@@ -23,14 +23,14 @@ class ContextBuilderPlatformTest {
     class BuildPlatformContext {
 
         @Test
-        @DisplayName("contains all five platform keys")
-        void build_anyPlatforms_containsFiveKeys() {
+        @DisplayName("contains all four platform keys")
+        void build_anyPlatforms_containsFourKeys() {
             Map<String, Object> ctx =
                     ContextBuilder.buildPlatformContext(
                             Set.of(Platform.CLAUDE_CODE));
 
             assertThat(ctx).containsKeys(
-                    "hasClaude", "hasCopilot", "hasCodex",
+                    "hasClaude", "hasCodex",
                     "isMultiPlatform", "platforms");
         }
 
@@ -43,8 +43,6 @@ class ContextBuilderPlatformTest {
 
             assertThat(ctx.get("hasClaude"))
                     .isEqualTo(true);
-            assertThat(ctx.get("hasCopilot"))
-                    .isEqualTo(false);
             assertThat(ctx.get("hasCodex"))
                     .isEqualTo(false);
             assertThat(ctx.get("isMultiPlatform"))
@@ -60,8 +58,6 @@ class ContextBuilderPlatformTest {
 
             assertThat(ctx.get("hasClaude"))
                     .isEqualTo(true);
-            assertThat(ctx.get("hasCopilot"))
-                    .isEqualTo(true);
             assertThat(ctx.get("hasCodex"))
                     .isEqualTo(true);
             assertThat(ctx.get("isMultiPlatform"))
@@ -74,14 +70,14 @@ class ContextBuilderPlatformTest {
             Map<String, Object> ctx =
                     ContextBuilder.buildPlatformContext(
                             Set.of(Platform.CLAUDE_CODE,
-                                    Platform.COPILOT));
+                                    Platform.CODEX));
 
             @SuppressWarnings("unchecked")
             List<String> platforms =
                     (List<String>) ctx.get("platforms");
             assertThat(platforms)
                     .containsExactlyInAnyOrder(
-                            "claude-code", "copilot");
+                            "claude-code", "codex");
         }
     }
 }

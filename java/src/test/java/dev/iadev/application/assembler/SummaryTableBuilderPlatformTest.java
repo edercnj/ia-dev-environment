@@ -55,28 +55,8 @@ class SummaryTableBuilderPlatformTest {
         }
 
         @Test
-        @DisplayName("copilot-only omits claude/codex rows")
-        void build_copilotOnly_omitsClaudeAndCodex(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path claudeDir = setupMinimalOutput(tempDir);
-
-            String summary =
-                    builder.buildGenerationSummary(
-                            claudeDir,
-                            Set.of(Platform.COPILOT));
-
-            assertThat(summary)
-                    .contains("(.github)")
-                    .doesNotContain("(.claude)")
-                    .doesNotContain("(.codex)")
-                    .doesNotContain("(.agents)")
-                    .doesNotContain("AGENTS.md (root)");
-        }
-
-        @Test
-        @DisplayName("codex-only omits claude/github rows")
-        void build_codexOnly_omitsClaudeAndGithub(
+        @DisplayName("codex-only omits claude rows")
+        void build_codexOnly_omitsClaude(
                 @TempDir Path tempDir)
                 throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
@@ -90,8 +70,7 @@ class SummaryTableBuilderPlatformTest {
                     .contains("AGENTS.md (root)")
                     .contains("(.codex)")
                     .contains("(.agents)")
-                    .doesNotContain("(.claude)")
-                    .doesNotContain("(.github)");
+                    .doesNotContain("(.claude)");
         }
 
         @Test
@@ -107,7 +86,6 @@ class SummaryTableBuilderPlatformTest {
 
             assertThat(summary)
                     .contains("(.claude)")
-                    .contains("(.github)")
                     .contains("(.codex)")
                     .contains("AGENTS.md (root)");
         }
@@ -126,28 +104,7 @@ class SummaryTableBuilderPlatformTest {
 
             assertThat(summary)
                     .contains("(.claude)")
-                    .contains("(.github)")
                     .contains("(.codex)");
-        }
-
-        @Test
-        @DisplayName("claude+copilot shows both, omits codex")
-        void build_claudeAndCopilot_showsBothOmitsCodex(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path claudeDir = setupMinimalOutput(tempDir);
-
-            String summary =
-                    builder.buildGenerationSummary(
-                            claudeDir,
-                            Set.of(Platform.CLAUDE_CODE,
-                                    Platform.COPILOT));
-
-            assertThat(summary)
-                    .contains("(.claude)")
-                    .contains("(.github)")
-                    .doesNotContain("(.codex)")
-                    .doesNotContain("AGENTS.md (root)");
         }
 
         @Test
@@ -172,7 +129,7 @@ class SummaryTableBuilderPlatformTest {
         Path claudeDir = Files.createDirectories(
                 tempDir.resolve(".claude"));
         Files.createDirectories(
-                tempDir.resolve(".github"));
+                tempDir.resolve(".codex"));
         return claudeDir;
     }
 }

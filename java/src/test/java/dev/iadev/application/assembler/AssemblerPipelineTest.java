@@ -486,8 +486,8 @@ class AssemblerPipelineTest {
                         Set.of(Platform.CLAUDE_CODE),
                         (c, e, p) -> List.of("a.md")),
                 new AssemblerDescriptor(
-                        "StubB", AssemblerTarget.GITHUB,
-                        Set.of(Platform.COPILOT),
+                        "StubB", AssemblerTarget.CODEX,
+                        Set.of(Platform.CODEX),
                         (c, e, p) -> List.of("b.md")));
     }
 

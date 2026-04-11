@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Smoke test validating that all 34 assemblers execute
+ * Smoke test validating that all 27 assemblers execute
  * and contribute output for every registered profile.
  *
  * <p>Detects assembler regressions:</p>
@@ -52,7 +52,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("AssemblerRegressionSmokeTest")
 class AssemblerRegressionSmokeTest extends SmokeTestBase {
 
-    static final int EXPECTED_ASSEMBLER_COUNT = 34;
+    static final int EXPECTED_ASSEMBLER_COUNT = 27;
 
     static final List<String> EXPECTED_ORDER = List.of(
             "ConstitutionAssembler",
@@ -63,13 +63,6 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
             "ProtocolsAssembler",
             "HooksAssembler",
             "SettingsAssembler",
-            "GithubInstructionsAssembler",
-            "GithubMcpAssembler",
-            "GithubSkillsAssembler",
-            "GithubAgentsAssembler",
-            "GithubHooksAssembler",
-            "GithubPromptsAssembler",
-            "PrIssueTemplateAssembler",
             "DocsAssembler",
             "GrpcDocsAssembler",
             "RunbookAssembler",
@@ -102,13 +95,6 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
             "rust-axum");
 
     /**
-     * Profiles that have MCP servers configured, activating
-     * GithubMcpAssembler.
-     */
-    static final Set<String> MCP_PROFILES = Set.of(
-            "java-quarkus");
-
-    /**
      * Output areas that every profile must produce files in.
      * Keyed by directory path relative to output root.
      */
@@ -120,16 +106,6 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
                             "SkillsAssembler"),
                     Map.entry(".claude/agents",
                             "AgentsAssembler"),
-                    Map.entry(".github/instructions",
-                            "GithubInstructionsAssembler"),
-                    Map.entry(".github/skills",
-                            "GithubSkillsAssembler"),
-                    Map.entry(".github/agents",
-                            "GithubAgentsAssembler"),
-                    Map.entry(".github/hooks",
-                            "GithubHooksAssembler"),
-                    Map.entry(".github/prompts",
-                            "GithubPromptsAssembler"),
                     Map.entry(".codex",
                             "CodexConfigAssembler"),
                     Map.entry(".agents/skills",
@@ -369,38 +345,6 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
         @ParameterizedTest
         @MethodSource("dev.iadev.smoke."
                 + "AssemblerRegressionSmokeTest#profiles")
-        @DisplayName("GithubMcpAssembler produces output "
-                + "only for MCP profiles")
-        void mcpAssembler_respectsCondition_forProfile(
-                String profile) {
-            ProjectConfig config =
-                    ConfigProfiles.getStack(profile);
-            TemplateEngine engine = new TemplateEngine();
-
-            int mcpFileCount =
-                    executeSingleAssembler(
-                            "GithubMcpAssembler", config,
-                            engine);
-
-            if (MCP_PROFILES.contains(profile)) {
-                assertThat(mcpFileCount)
-                        .as("GithubMcpAssembler should "
-                                + "produce output for MCP "
-                                + "profile: %s", profile)
-                        .isGreaterThan(0);
-            } else {
-                assertThat(mcpFileCount)
-                        .as("GithubMcpAssembler should "
-                                + "produce zero output for "
-                                + "non-MCP profile: %s",
-                                profile)
-                        .isZero();
-            }
-        }
-
-        @ParameterizedTest
-        @MethodSource("dev.iadev.smoke."
-                + "AssemblerRegressionSmokeTest#profiles")
         @DisplayName("conditional assembler skip is "
                 + "graceful")
         void conditionalSkip_isGraceful_forProfile(
@@ -410,8 +354,7 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
             TemplateEngine engine = new TemplateEngine();
 
             List<String> conditionalNames = List.of(
-                    "GrpcDocsAssembler",
-                    "GithubMcpAssembler");
+                    "GrpcDocsAssembler");
 
             List<AssemblerDescriptor> descriptors =
                     AssemblerPipeline.buildAssemblers();
@@ -549,12 +492,6 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
                     .isEqualTo(AssemblerTarget.CLAUDE);
             assertThat(nameToTarget.get("AgentsAssembler"))
                     .isEqualTo(AssemblerTarget.CLAUDE);
-            assertThat(nameToTarget.get(
-                    "GithubInstructionsAssembler"))
-                    .isEqualTo(AssemblerTarget.GITHUB);
-            assertThat(nameToTarget.get(
-                    "GithubSkillsAssembler"))
-                    .isEqualTo(AssemblerTarget.GITHUB);
             assertThat(nameToTarget.get("DocsAssembler"))
                     .isEqualTo(AssemblerTarget.ROOT);
             assertThat(nameToTarget.get(

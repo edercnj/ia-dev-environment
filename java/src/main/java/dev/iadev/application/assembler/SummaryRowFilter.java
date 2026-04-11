@@ -61,9 +61,6 @@ final class SummaryRowFilter {
             return platforms.contains(
                     Platform.CLAUDE_CODE);
         }
-        if (label.contains("(.github)")) {
-            return platforms.contains(Platform.COPILOT);
-        }
         if (label.contains("(.codex)")
                 || label.contains("(.agents)")
                 || label.contains("AGENTS.md")

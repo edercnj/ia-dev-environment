@@ -170,9 +170,9 @@ class VerbosePipelineRunnerTest {
                         Set.of(Platform.CLAUDE_CODE),
                         (c, e, p) -> List.of("a.md")),
                 new AssemblerDescriptor(
-                        "StubCopilot",
-                        AssemblerTarget.GITHUB,
-                        Set.of(Platform.COPILOT),
+                        "StubCodex",
+                        AssemblerTarget.CODEX,
+                        Set.of(Platform.CODEX),
                         (c, e, p) -> List.of("b.md")),
                 new AssemblerDescriptor(
                         "StubShared",

@@ -48,25 +48,6 @@ final class FileCategorizer {
         if (path.startsWith(".claude/settings")) {
             return "Settings";
         }
-        if (path.startsWith(".github/instructions/")) {
-            return "GitHub Instructions";
-        }
-        if (path.startsWith(".github/skills/")) {
-            return "GitHub Skills";
-        }
-        if (path.startsWith(".github/agents/")) {
-            return "GitHub Agents";
-        }
-        if (path.startsWith(".github/hooks/")) {
-            return "GitHub Hooks";
-        }
-        if (path.startsWith(".github/prompts/")) {
-            return "GitHub Prompts";
-        }
-        if (path.startsWith(".github/copilot-")
-                || path.startsWith(".github/copilot_")) {
-            return "GitHub Config";
-        }
         if (path.startsWith(".codex/")) {
             return "Codex";
         }

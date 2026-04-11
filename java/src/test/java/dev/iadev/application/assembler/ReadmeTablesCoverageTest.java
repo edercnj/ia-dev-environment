@@ -205,8 +205,6 @@ class ReadmeTablesCoverageTest {
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir = Files.createDirectories(
                     tempDir.resolve(".claude"));
-            Files.createDirectories(
-                    tempDir.resolve(".github"));
             Path codexDir = Files.createDirectories(
                     tempDir.resolve(".codex"));
             Files.writeString(
@@ -223,14 +221,6 @@ class ReadmeTablesCoverageTest {
             Files.writeString(
                     tempDir.resolve("AGENTS.override.md"),
                     "c", StandardCharsets.UTF_8);
-            Files.writeString(
-                    tempDir.resolve(
-                            ".github/copilot-instructions.md"),
-                    "c", StandardCharsets.UTF_8);
-            Files.writeString(
-                    tempDir.resolve(
-                            ".github/copilot-mcp.json"),
-                    "c", StandardCharsets.UTF_8);
 
             ProjectConfig config =
                     TestConfigBuilder.minimal();
@@ -243,59 +233,7 @@ class ReadmeTablesCoverageTest {
                     .contains("Codex (.codex)")
                     .contains("Skills (.agents)")
                     .contains("AGENTS.md (root)")
-                    .contains("AGENTS.override.md (root)")
-                    .contains("MCP (.github)");
-        }
-
-        @Test
-        @DisplayName("summary with github skills"
-                + " and instructions")
-        void buildGenerationSummary_whenCalled_summaryWithGithubSkills(
-                @TempDir Path tempDir) throws IOException {
-            Path claudeDir = Files.createDirectories(
-                    tempDir.resolve(".claude"));
-            Path githubDir = Files.createDirectories(
-                    tempDir.resolve(".github"));
-            Path ghSkills = Files.createDirectories(
-                    githubDir.resolve("skills/x-review"));
-            Files.writeString(
-                    ghSkills.resolve("SKILL.md"),
-                    "name: x-review",
-                    StandardCharsets.UTF_8);
-            Path ghInstr = Files.createDirectories(
-                    githubDir.resolve("instructions"));
-            Files.writeString(
-                    ghInstr.resolve("arch.md"),
-                    "c", StandardCharsets.UTF_8);
-            Path ghAgents = Files.createDirectories(
-                    githubDir.resolve("agents"));
-            Files.writeString(
-                    ghAgents.resolve("agent.md"),
-                    "c", StandardCharsets.UTF_8);
-            Path ghPrompts = Files.createDirectories(
-                    githubDir.resolve("prompts"));
-            Files.writeString(
-                    ghPrompts.resolve("prompt.md"),
-                    "c", StandardCharsets.UTF_8);
-            Path ghHooks = Files.createDirectories(
-                    githubDir.resolve("hooks"));
-            Files.writeString(
-                    ghHooks.resolve("hook.json"),
-                    "c", StandardCharsets.UTF_8);
-
-            ProjectConfig config =
-                    TestConfigBuilder.minimal();
-
-            String summary = ReadmeTables
-                    .buildGenerationSummary(
-                            claudeDir, config);
-
-            assertThat(summary)
-                    .contains("Skills (.github)")
-                    .contains("Instructions (.github)")
-                    .contains("Agents (.github)")
-                    .contains("Prompts (.github)")
-                    .contains("Hooks (.github)");
+                    .contains("AGENTS.override.md (root)");
         }
     }
 

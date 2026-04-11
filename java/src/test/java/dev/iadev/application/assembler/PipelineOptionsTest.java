@@ -113,18 +113,16 @@ class PipelineOptionsTest {
         @DisplayName("platforms is immutable defensive copy")
         void platforms_whenSet_isImmutableCopy() {
             var mutable = new java.util.HashSet<>(
-                    Set.of(Platform.COPILOT,
-                            Platform.CODEX));
+                    Set.of(Platform.CODEX));
             var opts = new PipelineOptions(
                     false, false, false, false,
                     null, mutable);
 
             mutable.add(Platform.CLAUDE_CODE);
 
-            assertThat(opts.platforms()).hasSize(2);
+            assertThat(opts.platforms()).hasSize(1);
             assertThat(opts.platforms())
-                    .contains(Platform.COPILOT,
-                            Platform.CODEX);
+                    .contains(Platform.CODEX);
             assertThat(opts.platforms())
                     .doesNotContain(Platform.CLAUDE_CODE);
             assertThatThrownBy(() ->

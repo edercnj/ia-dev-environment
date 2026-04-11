@@ -189,7 +189,7 @@ public final class ContextBuilder {
     /**
      * Builds platform-aware context variables.
      *
-     * <p>Produces flags (hasClaude, hasCopilot, hasCodex,
+     * <p>Produces flags (hasClaude, hasCodex,
      * isMultiPlatform) and a platforms list with CLI
      * names. Delegates to
      * {@link PlatformContextBuilder}.</p>

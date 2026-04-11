@@ -93,7 +93,7 @@ class StackValidatorPlatformTest {
                     .architectureStyle("microservice")
                     .platforms(Set.of(
                             Platform.CLAUDE_CODE,
-                            Platform.COPILOT))
+                            Platform.CODEX))
                     .build();
 
             var errors =
@@ -144,14 +144,14 @@ class StackValidatorPlatformTest {
         void yamlParsing_validList_noErrors() {
             var map = buildMinimalConfigMap();
             map.put("platform",
-                    List.of("claude-code", "copilot"));
+                    List.of("claude-code", "codex"));
 
             var config = ProjectConfig.fromMap(map);
 
             assertThat(config.platforms())
                     .containsExactlyInAnyOrder(
                             Platform.CLAUDE_CODE,
-                            Platform.COPILOT);
+                            Platform.CODEX);
         }
 
         @Test
