@@ -226,16 +226,26 @@ class ReleaseSkillTest {
         }
 
         @Test
-        @DisplayName("PUBLISH pushes main, develop,"
-                + " and tag")
-        void assemble_release_publishThreeBranches(
+        @DisplayName("PUBLISH pushes the release tag"
+                + " (main/develop go via PR flow)")
+        void assemble_release_publishPushesTag(
                 @TempDir Path tempDir)
                 throws IOException {
+            // story-0035-0003: Step 10 PUBLISH was
+            // narrowed to tag-only. `main` and `develop`
+            // are now updated exclusively through the
+            // release PR (Step 7) and the back-merge PR
+            // (Step 9, story-0035-0006).
             String content =
                     generateClaudeContent(tempDir);
-            assertThat(content)
-                    .contains("git push origin main")
-                    .contains("git push origin develop");
+            int stepTen = content.indexOf(
+                    "### Step 10 \u2014 Publish");
+            int stepEleven = content.indexOf(
+                    "### Step 11 \u2014 Cleanup");
+            String stepTenBody = content.substring(
+                    stepTen, stepEleven);
+            assertThat(stepTenBody).contains(
+                    "git push origin \"v${VERSION}\"");
         }
 
         @Test
