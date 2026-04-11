@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-04-11
+
+### Added
+
+- **EPIC-0037 plans (docs):** Epic plan, implementation map, and 10 story files for the upcoming "worktree-first branch creation policy" initiative. Planning artifacts only in this release; execution deferred to a future version.
+
 ### Removed
 
 - **BREAKING:** `Platform.COPILOT` enum value (generator no longer emits `.github/` Copilot artifacts). (EPIC-0034 / story-0034-0001)
