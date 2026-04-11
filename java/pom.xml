@@ -6,11 +6,11 @@
 
     <groupId>dev.iadev</groupId>
     <artifactId>ia-dev-env</artifactId>
-    <version>2.3.0</version>
+    <version>3.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>ia-dev-env</name>
-    <description>CLI tool that generates .claude/ and .github/ boilerplate for AI-assisted development environments</description>
+    <description>CLI tool that generates .claude/ boilerplate for AI-assisted development environments</description>
 
     <properties>
         <java.version>21</java.version>
