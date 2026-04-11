@@ -101,26 +101,6 @@ public final class ReadmeUtils {
     }
 
     /** Delegates to {@link ReadmeGithubCounter}. */
-    public static int countGithubFiles(Path githubDir) {
-        return ReadmeGithubCounter
-                .countGithubFiles(githubDir);
-    }
-
-    /** Delegates to {@link ReadmeGithubCounter}. */
-    public static int countGithubComponent(
-            Path githubDir, String component) {
-        return ReadmeGithubCounter
-                .countGithubComponent(
-                        githubDir, component);
-    }
-
-    /** Delegates to {@link ReadmeGithubCounter}. */
-    public static int countGithubSkills(Path githubDir) {
-        return ReadmeGithubCounter
-                .countGithubSkills(githubDir);
-    }
-
-    /** Delegates to {@link ReadmeGithubCounter}. */
     public static int countCodexFiles(Path codexDir) {
         return ReadmeGithubCounter
                 .countCodexFiles(codexDir);

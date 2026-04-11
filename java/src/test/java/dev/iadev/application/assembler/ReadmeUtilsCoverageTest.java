@@ -148,29 +148,6 @@ class ReadmeUtilsCoverageTest {
     }
 
     @Nested
-    @DisplayName("countGithubComponent — counts only"
-            + " regular files")
-    class CountGithubComponentEdge {
-
-        @Test
-        @DisplayName("ignores subdirectories")
-        void countGithubComponent_whenCalled_ignoresSubdirectories(@TempDir Path tempDir)
-                throws IOException {
-            Path compDir = Files.createDirectories(
-                    tempDir.resolve("agents"));
-            Files.writeString(
-                    compDir.resolve("agent.md"),
-                    "c", StandardCharsets.UTF_8);
-            Files.createDirectories(
-                    compDir.resolve("subdir"));
-
-            assertThat(ReadmeUtils.countGithubComponent(
-                    tempDir, "agents"))
-                    .isEqualTo(1);
-        }
-    }
-
-    @Nested
     @DisplayName("countCodexFiles — edge cases")
     class CountCodexFilesEdge {
 

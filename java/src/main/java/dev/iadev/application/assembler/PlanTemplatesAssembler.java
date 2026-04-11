@@ -12,9 +12,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Copies the 15 planning and review templates to both
- * {@code .claude/templates/} and {@code .github/templates/}
- * in the output directory.
+ * Copies the 15 planning and review templates to
+ * {@code .claude/templates/} in the output directory.
  *
  * <p>Templates contain {@code {{PLACEHOLDER}}} tokens
  * intended for runtime resolution by the LLM, NOT for
@@ -27,10 +26,6 @@ import java.util.Map;
  * found on the classpath produce a warning without
  * throwing an exception.</p>
  *
- * <p>This assembler writes to both {@code .claude/} and
- * {@code .github/} targets per RULE-004 (dual-target
- * copy).</p>
- *
  * @see Assembler
  * @see EpicReportAssembler
  */
@@ -41,8 +36,6 @@ public final class PlanTemplatesAssembler
             "shared/templates";
     private static final String CLAUDE_OUTPUT_SUBDIR =
             ".claude/templates";
-    private static final String GITHUB_OUTPUT_SUBDIR =
-            ".github/templates";
 
     /** Number of templates this assembler manages. */
     static final int TEMPLATE_COUNT = 15;
@@ -79,8 +72,7 @@ public final class PlanTemplatesAssembler
      * {@inheritDoc}
      *
      * <p>Copies validated templates verbatim to
-     * {@code .claude/templates/} and
-     * {@code .github/templates/}. Returns only paths
+     * {@code .claude/templates/}. Returns only paths
      * of successfully copied files.</p>
      */
     @Override
@@ -161,17 +153,11 @@ public final class PlanTemplatesAssembler
             String content,
             Path outputDir,
             List<String> files) {
-        List<String> targets = List.of(
-                CLAUDE_OUTPUT_SUBDIR,
-                GITHUB_OUTPUT_SUBDIR);
-
-        for (String target : targets) {
-            Path destDir = outputDir.resolve(target);
-            CopyHelpers.ensureDirectory(destDir);
-            Path destPath = destDir.resolve(filename);
-            CopyHelpers.writeFile(destPath, content);
-            files.add(destPath.toString());
-        }
+        Path destDir = outputDir.resolve(CLAUDE_OUTPUT_SUBDIR);
+        CopyHelpers.ensureDirectory(destDir);
+        Path destPath = destDir.resolve(filename);
+        CopyHelpers.writeFile(destPath, content);
+        files.add(destPath.toString());
     }
 
     private static Path resolveClasspathResources() {
