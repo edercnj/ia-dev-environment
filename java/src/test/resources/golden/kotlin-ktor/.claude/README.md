@@ -61,8 +61,8 @@ The `--platform` flag controls which AI platform artifacts are generated. By def
 |-------|-------------|-----------------------|
 | `claude-code` | Anthropic Claude Code | `.claude/` + docs |
 | `copilot` | GitHub Copilot | `.github/` + docs |
-| `codex` | OpenAI Codex | `.codex/`, `.agents/` + docs |
-| `all` | All platforms (default) | `.claude/`, `.github/`, `.codex/`, `.agents/` + docs |
+| `codex` | OpenAI Codex | `.codex/` + docs |
+| `all` | All platforms (default) | `.claude/`, `.github/`, `.codex/` + docs |
 
 ### CLI Examples
 

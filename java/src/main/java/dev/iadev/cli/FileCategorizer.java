@@ -48,9 +48,6 @@ final class FileCategorizer {
         if (path.startsWith(".claude/settings")) {
             return "Settings";
         }
-        if (path.startsWith(".agents/")) {
-            return "Agents MD";
-        }
         if (path.startsWith("steering/")) {
             return "Steering";
         }
