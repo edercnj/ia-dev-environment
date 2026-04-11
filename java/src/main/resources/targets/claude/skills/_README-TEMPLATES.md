@@ -5,13 +5,13 @@
 > READMEs complement SKILL.md (executable spec) with human-readable documentation.
 
 > **🚧 In progress — EPIC-0036 (Skill Taxonomy Refactor).**
-> The skills directory layout is being reorganized into category subfolders during EPIC-0036. Starting with STORY-0036-0002, skills under this directory will live as `core/{category}/{skill-name}/SKILL.md` where `{category}` is one of the 10 taxonomy buckets (`plan/`, `dev/`, `test/`, `review/`, `security/`, `code/`, `git/`, `pr/`, `ops/`, `jira/`). `core/lib/` and `knowledge-packs/` are unchanged.
+> As of STORY-0036-0002, the source-of-truth skills directory is reorganized into category subfolders. Skills live as `core/{category}/{skill-name}/SKILL.md` and `conditional/{category}/{skill-name}/SKILL.md` where `{category}` is one of the 10 taxonomy buckets (`plan/`, `dev/`, `test/`, `review/`, `security/`, `code/`, `git/`, `pr/`, `ops/`, `jira/`). `core/lib/` retains its legacy nested layout. `knowledge-packs/` remains flat.
 >
-> **Invocation is unaffected:** the generated output `.claude/skills/` remains flat, so users continue to invoke skills as `/{skill-name}` without a category prefix. Only the authoring layout changes.
+> **Invocation is unaffected:** the generated output `.claude/skills/` remains flat. `SkillsAssembler` flattens the hierarchy at assembly time, so users continue to invoke skills as `/{skill-name}` without a category prefix.
 >
-> **Name changes (see STORY-0036-0004 and STORY-0036-0005):** approximately 19 skills will be renamed to a consistent `x-{subject}-{action}` scheme. See [`adr/ADR-0003-skill-taxonomy-and-naming.md`](../../../../../../../adr/ADR-0003-skill-taxonomy-and-naming.md) for the authoritative mapping and [`plans/epic-0036/skill-renames.md`](../../../../../../../plans/epic-0036/skill-renames.md) for the execution checklist.
+> **Name changes (STORY-0036-0004 and STORY-0036-0005):** approximately 19 skills will be renamed in later stories to a consistent `x-{subject}-{action}` scheme. See [`adr/ADR-0003-skill-taxonomy-and-naming.md`](../../../../../../../adr/ADR-0003-skill-taxonomy-and-naming.md) for the authoritative mapping and [`plans/epic-0036/skill-renames.md`](../../../../../../../plans/epic-0036/skill-renames.md) for the execution checklist.
 >
-> When adding a **new** skill before the renames land: keep using flat placement under `core/` and current naming conventions. Do not pre-emptively move or rename.
+> **When adding a new skill:** place it under the matching category subfolder. Do not pre-emptively apply the planned renames until the corresponding rename story lands.
 
 ---
 

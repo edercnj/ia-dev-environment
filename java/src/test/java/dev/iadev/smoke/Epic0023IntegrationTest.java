@@ -429,11 +429,13 @@ class Epic0023IntegrationTest {
 
         private String readReviewSkill()
                 throws IOException {
+            // Post EPIC-0036: core skills live under
+            // category subdirs; x-review is in review/.
             var url = getClass().getClassLoader()
                     .getResource(
                             "targets/claude/skills/"
-                                    + "core/x-review/"
-                                    + "SKILL.md");
+                                    + "core/review/"
+                                    + "x-review/SKILL.md");
             assertThat(url)
                     .as("x-review SKILL.md on classpath")
                     .isNotNull();

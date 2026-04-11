@@ -67,10 +67,13 @@ class SkillsAssemblerCoverageTest {
                 throws IOException {
             Path core = tempDir.resolve(
                     "targets/claude/skills/core");
+            // Post EPIC-0036: skills live under a category
+            // subdir ({@code core/{category}/{skill}}).
+            // {@code lib/} keeps its legacy nested layout.
             Files.createDirectories(
                     core.resolve("lib/x-lib-tool"));
             Files.createDirectories(
-                    core.resolve("x-review"));
+                    core.resolve("review/x-review"));
 
             SkillsAssembler assembler =
                     new SkillsAssembler(tempDir);

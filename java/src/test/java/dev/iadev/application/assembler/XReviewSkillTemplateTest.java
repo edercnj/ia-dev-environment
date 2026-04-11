@@ -571,13 +571,17 @@ class XReviewSkillTemplateTest {
     }
 
     private static Path resolveClaudeSkillPath() {
+        // Post EPIC-0036: core skills live under category
+        // subdirs. x-review belongs to the {@code review/}
+        // category.
         Path path = Path.of(
                 "src/main/resources/targets/claude/"
-                        + "skills/core/x-review/SKILL.md");
+                        + "skills/core/review/x-review/"
+                        + "SKILL.md");
         if (!Files.exists(path)) {
             path = Path.of(
                     "java/src/main/resources/targets/"
-                            + "claude/skills/core/"
+                            + "claude/skills/core/review/"
                             + "x-review/SKILL.md");
         }
         return path;

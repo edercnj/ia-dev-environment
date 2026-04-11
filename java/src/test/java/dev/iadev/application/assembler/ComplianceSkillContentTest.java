@@ -29,9 +29,12 @@ class ComplianceSkillContentTest {
 
     @BeforeAll
     static void loadTemplates() throws IOException {
+        // Post EPIC-0036: conditional skills live under
+        // category subdirs. x-review-compliance is in
+        // review/.
         Path skillPath = Path.of(
                 "src/main/resources/targets/claude"
-                        + "/skills/conditional"
+                        + "/skills/conditional/review"
                         + "/x-review-compliance/SKILL.md");
         skillContent = Files.readString(
                 skillPath, StandardCharsets.UTF_8);
