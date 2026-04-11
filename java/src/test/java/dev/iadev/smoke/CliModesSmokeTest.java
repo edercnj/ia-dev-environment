@@ -150,17 +150,17 @@ class CliModesSmokeTest {
                     "generate", "-s", TEST_PROFILE,
                     "-o", outputDir.toString());
 
-            Path agentsMd =
-                    outputDir.resolve("AGENTS.md");
-            assertThat(agentsMd).exists();
+            Path readmeMd = outputDir.resolve(
+                    ".claude/README.md");
+            assertThat(readmeMd).exists();
             String originalContent =
-                    Files.readString(agentsMd,
+                    Files.readString(readmeMd,
                             StandardCharsets.UTF_8);
 
-            Files.writeString(agentsMd,
+            Files.writeString(readmeMd,
                     "MODIFIED_SENTINEL_CONTENT",
                     StandardCharsets.UTF_8);
-            assertThat(Files.readString(agentsMd,
+            assertThat(Files.readString(readmeMd,
                     StandardCharsets.UTF_8))
                     .isEqualTo("MODIFIED_SENTINEL_CONTENT");
 
@@ -175,7 +175,7 @@ class CliModesSmokeTest {
             assertThat(exitCode)
                     .isEqualTo(EXIT_SUCCESS);
             String afterForce =
-                    Files.readString(agentsMd,
+                    Files.readString(readmeMd,
                             StandardCharsets.UTF_8);
             assertThat(afterForce)
                     .isEqualTo(originalContent);

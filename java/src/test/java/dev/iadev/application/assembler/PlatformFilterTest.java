@@ -32,7 +32,7 @@ class PlatformFilterTest {
                     PlatformFilter.filter(
                             all, Set.of());
 
-            assertThat(result).hasSize(27);
+            assertThat(result).hasSize(22);
             assertThat(result).isEqualTo(all);
         }
 
@@ -45,10 +45,9 @@ class PlatformFilterTest {
 
             List<AssemblerDescriptor> result =
                     PlatformFilter.filter(all,
-                            Set.of(Platform.CLAUDE_CODE,
-                                    Platform.CODEX));
+                            Set.of(Platform.CLAUDE_CODE));
 
-            assertThat(result).hasSize(27);
+            assertThat(result).hasSize(22);
             assertThat(result).isEqualTo(all);
         }
     }
@@ -76,64 +75,6 @@ class PlatformFilterTest {
                             || d.platforms().contains(
                                     Platform.SHARED))
                             .isTrue());
-        }
-
-        @Test
-        @DisplayName("CODEX returns 19 assemblers "
-                + "(5 codex + 14 shared)")
-        void filter_codex_returns19() {
-            List<AssemblerDescriptor> all =
-                    AssemblerFactory.buildAssemblers();
-
-            List<AssemblerDescriptor> result =
-                    PlatformFilter.filter(all,
-                            Set.of(Platform.CODEX));
-
-            assertThat(result).hasSize(19);
-            assertThat(result).allSatisfy(d ->
-                    assertThat(
-                            d.platforms().contains(
-                                    Platform.CODEX)
-                            || d.platforms().contains(
-                                    Platform.SHARED))
-                            .isTrue());
-        }
-
-        @Test
-        @DisplayName("CLAUDE_CODE excludes CODEX "
-                + "exclusive assemblers")
-        void filter_claudeCode_excludesCodex() {
-            List<AssemblerDescriptor> all =
-                    AssemblerFactory.buildAssemblers();
-
-            List<AssemblerDescriptor> result =
-                    PlatformFilter.filter(all,
-                            Set.of(Platform.CLAUDE_CODE));
-
-            assertThat(result).noneMatch(d ->
-                    d.platforms().contains(Platform.CODEX)
-                    && !d.platforms().contains(
-                            Platform.SHARED));
-        }
-    }
-
-    @Nested
-    @DisplayName("multi-platform filter")
-    class MultiPlatform {
-
-        @Test
-        @DisplayName("CLAUDE_CODE + CODEX returns 27 "
-                + "assemblers (8 + 5 + 14)")
-        void filter_claudeAndCodex_returns27() {
-            List<AssemblerDescriptor> all =
-                    AssemblerFactory.buildAssemblers();
-
-            List<AssemblerDescriptor> result =
-                    PlatformFilter.filter(all,
-                            Set.of(Platform.CLAUDE_CODE,
-                                    Platform.CODEX));
-
-            assertThat(result).hasSize(27);
         }
     }
 
@@ -197,7 +138,7 @@ class PlatformFilterTest {
 
             List<AssemblerDescriptor> result =
                     PlatformFilter.filter(all,
-                            Set.of(Platform.CODEX));
+                            Set.of(Platform.CLAUDE_CODE));
             List<String> filteredNames = result.stream()
                     .map(AssemblerDescriptor::name)
                     .toList();
@@ -218,40 +159,20 @@ class PlatformFilterTest {
 
         @Test
         @DisplayName("ConstitutionAssembler before "
-                + "CodexConfigAssembler in CODEX filter")
-        void filter_codex_constitutionBeforeCodex() {
+                + "CicdAssembler in CLAUDE_CODE filter")
+        void filter_claude_constitutionBeforeCicd() {
             List<AssemblerDescriptor> all =
                     AssemblerFactory.buildAssemblers();
 
             List<AssemblerDescriptor> result =
                     PlatformFilter.filter(all,
-                            Set.of(Platform.CODEX));
+                            Set.of(Platform.CLAUDE_CODE));
             List<String> names = result.stream()
                     .map(AssemblerDescriptor::name)
                     .toList();
 
             assertThat(names.indexOf(
                     "ConstitutionAssembler"))
-                    .isLessThan(names.indexOf(
-                            "CodexConfigAssembler"));
-        }
-
-        @Test
-        @DisplayName("CodexConfigAssembler before "
-                + "CicdAssembler in CODEX filter")
-        void filter_codex_codexBeforeCicd() {
-            List<AssemblerDescriptor> all =
-                    AssemblerFactory.buildAssemblers();
-
-            List<AssemblerDescriptor> result =
-                    PlatformFilter.filter(all,
-                            Set.of(Platform.CODEX));
-            List<String> names = result.stream()
-                    .map(AssemblerDescriptor::name)
-                    .toList();
-
-            assertThat(names.indexOf(
-                    "CodexConfigAssembler"))
                     .isLessThan(names.indexOf(
                             "CicdAssembler"));
         }
@@ -280,23 +201,23 @@ class PlatformFilterTest {
 
         @Test
         @DisplayName("buildAssemblers with default "
-                + "options returns all 27")
+                + "options returns all 22")
         void buildAssemblers_defaults_returnsAll() {
             List<AssemblerDescriptor> result =
                     AssemblerFactory.buildAssemblers(
                             PipelineOptions.defaults());
 
-            assertThat(result).hasSize(27);
+            assertThat(result).hasSize(22);
         }
 
         @Test
         @DisplayName("buildAssemblers no-arg returns "
-                + "all 27")
+                + "all 22")
         void buildAssemblers_noArg_returnsAll() {
             List<AssemblerDescriptor> result =
                     AssemblerFactory.buildAssemblers();
 
-            assertThat(result).hasSize(27);
+            assertThat(result).hasSize(22);
         }
     }
 

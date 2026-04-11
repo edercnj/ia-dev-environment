@@ -148,22 +148,6 @@ class ReadmeUtilsCoverageTest {
     }
 
     @Nested
-    @DisplayName("countCodexFiles — edge cases")
-    class CountCodexFilesEdge {
-
-        @Test
-        @DisplayName("empty codex dir returns 0")
-        void countCodexFiles_emptyDir_returnsZero(@TempDir Path tempDir)
-                throws IOException {
-            Path codexDir = Files.createDirectories(
-                    tempDir.resolve(".codex"));
-
-            assertThat(ReadmeUtils.countCodexFiles(codexDir))
-                    .isZero();
-        }
-    }
-
-    @Nested
     @DisplayName("countFilesRecursive — edge cases")
     class CountFilesRecursiveEdge {
 

@@ -29,14 +29,6 @@ class AssemblerFactoryPlatformTest {
                     "SettingsAssembler",
                     "ReadmeAssembler");
 
-    private static final List<String> CODEX_NAMES =
-            List.of(
-                    "CodexAgentsMdAssembler",
-                    "CodexConfigAssembler",
-                    "CodexSkillsAssembler",
-                    "CodexRequirementsAssembler",
-                    "CodexOverrideAssembler");
-
     private static final List<String> SHARED_NAMES =
             List.of(
                     "ConstitutionAssembler",
@@ -59,12 +51,12 @@ class AssemblerFactoryPlatformTest {
     class PlatformCounts {
 
         @Test
-        @DisplayName("total assembler count is 27")
-        void buildAssemblers_totalCount_is27() {
+        @DisplayName("total assembler count is 22")
+        void buildAssemblers_totalCount_is22() {
             List<AssemblerDescriptor> descriptors =
                     AssemblerFactory.buildAssemblers();
 
-            assertThat(descriptors).hasSize(27);
+            assertThat(descriptors).hasSize(22);
         }
 
         @Test
@@ -79,19 +71,6 @@ class AssemblerFactoryPlatformTest {
                     .hasSize(8)
                     .containsExactlyInAnyOrderElementsOf(
                             CLAUDE_CODE_NAMES);
-        }
-
-        @Test
-        @DisplayName("5 assemblers have CODEX platform")
-        void buildAssemblers_codexCount_is5() {
-            List<String> codexNames =
-                    filterByPlatform(Platform.CODEX);
-
-            assertThat(codexNames)
-                    .as("CODEX assemblers")
-                    .hasSize(5)
-                    .containsExactlyInAnyOrderElementsOf(
-                            CODEX_NAMES);
         }
 
         @Test
@@ -113,14 +92,12 @@ class AssemblerFactoryPlatformTest {
             int claude =
                     filterByPlatform(Platform.CLAUDE_CODE)
                             .size();
-            int codex =
-                    filterByPlatform(Platform.CODEX).size();
             int shared =
                     filterByPlatform(Platform.SHARED).size();
 
-            assertThat(claude + codex + shared)
-                    .as("8 + 5 + 14 = 27")
-                    .isEqualTo(27);
+            assertThat(claude + shared)
+                    .as("8 + 14 = 22")
+                    .isEqualTo(22);
         }
     }
 

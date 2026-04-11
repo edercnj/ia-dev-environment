@@ -23,14 +23,14 @@ class ContextBuilderPlatformTest {
     class BuildPlatformContext {
 
         @Test
-        @DisplayName("contains all four platform keys")
-        void build_anyPlatforms_containsFourKeys() {
+        @DisplayName("contains platform keys")
+        void build_anyPlatforms_containsKeys() {
             Map<String, Object> ctx =
                     ContextBuilder.buildPlatformContext(
                             Set.of(Platform.CLAUDE_CODE));
 
             assertThat(ctx).containsKeys(
-                    "hasClaude", "hasCodex",
+                    "hasClaude",
                     "isMultiPlatform", "platforms");
         }
 
@@ -43,8 +43,6 @@ class ContextBuilderPlatformTest {
 
             assertThat(ctx.get("hasClaude"))
                     .isEqualTo(true);
-            assertThat(ctx.get("hasCodex"))
-                    .isEqualTo(false);
             assertThat(ctx.get("isMultiPlatform"))
                     .isEqualTo(false);
         }
@@ -58,26 +56,22 @@ class ContextBuilderPlatformTest {
 
             assertThat(ctx.get("hasClaude"))
                     .isEqualTo(true);
-            assertThat(ctx.get("hasCodex"))
-                    .isEqualTo(true);
             assertThat(ctx.get("isMultiPlatform"))
-                    .isEqualTo(true);
+                    .isEqualTo(false);
         }
 
         @Test
         @DisplayName("platforms list has cli names")
-        void build_twoPlatforms_cliNames() {
+        void build_singlePlatform_cliNames() {
             Map<String, Object> ctx =
                     ContextBuilder.buildPlatformContext(
-                            Set.of(Platform.CLAUDE_CODE,
-                                    Platform.CODEX));
+                            Set.of(Platform.CLAUDE_CODE));
 
             @SuppressWarnings("unchecked")
             List<String> platforms =
                     (List<String>) ctx.get("platforms");
             assertThat(platforms)
-                    .containsExactlyInAnyOrder(
-                            "claude-code", "codex");
+                    .containsExactly("claude-code");
         }
     }
 }

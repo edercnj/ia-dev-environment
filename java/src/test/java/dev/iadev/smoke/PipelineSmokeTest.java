@@ -276,9 +276,6 @@ class PipelineSmokeTest extends SmokeTestBase {
             Path outputDir, String category)
             throws IOException {
         return switch (category) {
-            case "codex-skills" ->
-                    countFilesInSubDir(outputDir,
-                            ".agents/skills");
             case "claude-rules" ->
                     countFilesInSubDir(outputDir,
                             ".claude/rules");
@@ -294,9 +291,6 @@ class PipelineSmokeTest extends SmokeTestBase {
             case "claude-settings" ->
                     countTopLevelFiles(outputDir
                             .resolve(".claude"));
-            case "codex-config" ->
-                    countFilesInSubDir(outputDir,
-                            ".codex");
             case "github-instructions" ->
                     countFilesInSubDir(outputDir,
                             ".github/instructions");

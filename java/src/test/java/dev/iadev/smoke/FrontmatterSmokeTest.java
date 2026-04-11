@@ -68,7 +68,7 @@ class FrontmatterSmokeTest extends SmokeTestBase {
                 String profile) throws IOException {
             runPipeline(profile);
             Path skillsDir = getOutputDir(profile)
-                    .resolve(".agents/skills");
+                    .resolve(".claude/skills");
 
             assertThat(skillsDir)
                     .as("Skills directory must exist for "
@@ -105,7 +105,7 @@ class FrontmatterSmokeTest extends SmokeTestBase {
                 String profile) throws IOException {
             runPipeline(profile);
             Path skillsDir = getOutputDir(profile)
-                    .resolve(".agents/skills");
+                    .resolve(".claude/skills");
 
             List<Path> skillFiles = findSkillFiles(skillsDir);
             List<String> emptyBodySkills = new ArrayList<>();
@@ -146,7 +146,7 @@ class FrontmatterSmokeTest extends SmokeTestBase {
                 String profile) throws IOException {
             runPipeline(profile);
             Path skillsDir = getOutputDir(profile)
-                    .resolve(".agents/skills");
+                    .resolve(".claude/skills");
 
             List<Path> skillFiles = findSkillFiles(skillsDir);
             List<String> violations = new ArrayList<>();
@@ -189,7 +189,7 @@ class FrontmatterSmokeTest extends SmokeTestBase {
                 String profile) throws IOException {
             runPipeline(profile);
             Path skillsDir = getOutputDir(profile)
-                    .resolve(".agents/skills");
+                    .resolve(".claude/skills");
 
             if (!Files.isDirectory(skillsDir)) {
                 return;
@@ -353,7 +353,7 @@ class FrontmatterSmokeTest extends SmokeTestBase {
             runPipeline(profile);
             Path patternsFile = getOutputDir(profile)
                     .resolve(
-                            ".agents/skills/patterns/SKILL.md");
+                            ".claude/skills/patterns/SKILL.md");
 
             assertThat(patternsFile)
                     .as("Patterns SKILL.md must exist "
@@ -381,7 +381,7 @@ class FrontmatterSmokeTest extends SmokeTestBase {
                 String profile) throws IOException {
             runPipeline(profile);
             Path skillsDir = getOutputDir(profile)
-                    .resolve(".agents/skills");
+                    .resolve(".claude/skills");
 
             List<Path> skillFiles = findSkillFiles(skillsDir);
             List<String> mismatches = new ArrayList<>();
@@ -484,9 +484,21 @@ class FrontmatterSmokeTest extends SmokeTestBase {
         return result;
     }
 
+    private static final java.util.Set<String>
+            KNOWLEDGE_PACK_DIRS = java.util.Set.of(
+                    "database-patterns",
+                    "knowledge-packs");
+
     private static void checkForOrphanDir(
             Path dir, Path skillsDir,
             List<String> orphanDirs) {
+        String dirName = dir.getFileName().toString();
+        if (KNOWLEDGE_PACK_DIRS.contains(dirName)) {
+            // Knowledge pack containers intentionally have
+            // no SKILL.md at their root — they hold
+            // reference material only.
+            return;
+        }
         boolean hasNestedSkills;
         try (Stream<Path> walk = Files.walk(dir)) {
             hasNestedSkills = walk

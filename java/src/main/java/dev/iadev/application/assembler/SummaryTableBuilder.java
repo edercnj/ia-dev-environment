@@ -15,9 +15,8 @@ import java.util.Set;
  * for README.md.
  *
  * <p>Generates component counts for all artifact types
- * across .claude/, .codex/, and .agents/ directories.
- * Also provides the static settings documentation
- * section.</p>
+ * under the .claude/ directory. Also provides the static
+ * settings documentation section.</p>
  *
  * @see ReadmeTables
  * @see ReadmeUtils
@@ -95,21 +94,9 @@ public final class SummaryTableBuilder {
                 + " configuration.";
     }
 
-    private static Path resolveCodexDir(Path outputDir) {
-        return outputDir.getParent().resolve(".codex");
-    }
-
-    private static Path resolveAgentsDir(Path outputDir) {
-        return outputDir.getParent().resolve(".agents");
-    }
-
     private static Object[][] buildSummaryRows(
             Path outputDir) {
-        Object[][] claudeRows =
-                buildClaudeRows(outputDir);
-        Object[][] extRows =
-                buildExtensionRows(outputDir);
-        return concatRows(claudeRows, extRows);
+        return buildClaudeRows(outputDir);
     }
 
     private static Object[][] buildClaudeRows(
@@ -135,28 +122,6 @@ public final class SummaryTableBuilder {
         };
     }
 
-    private static Object[][] buildExtensionRows(
-            Path outputDir) {
-        Path codexDir = resolveCodexDir(outputDir);
-        int codexCount =
-                ReadmeUtils.countCodexFiles(codexDir);
-        Path agentsDir = resolveAgentsDir(outputDir);
-        int agentsCount =
-                ReadmeUtils.countCodexAgentsFiles(agentsDir);
-        Path rootDir = outputDir.getParent();
-        int agentsMdCount = Files.exists(
-                rootDir.resolve("AGENTS.md")) ? 1 : 0;
-        int agentsOverrideCount = Files.exists(
-                rootDir.resolve("AGENTS.override.md")) ? 1 : 0;
-        return new Object[][]{
-                {"AGENTS.md (root)", agentsMdCount},
-                {"AGENTS.override.md (root)",
-                        agentsOverrideCount},
-                {"Codex (.codex)", codexCount},
-                {"Skills (.agents)", agentsCount},
-        };
-    }
-
     private static int countPlanTemplates(
             Path baseDir, String subdir) {
         Path templatesDir = baseDir.resolve(subdir);
@@ -175,21 +140,6 @@ public final class SummaryTableBuilder {
         } catch (IOException e) {
             return 0;
         }
-    }
-
-    private static Object[][] concatRows(
-            Object[][]... groups) {
-        int total = 0;
-        for (Object[][] g : groups) {
-            total += g.length;
-        }
-        Object[][] result = new Object[total][];
-        int idx = 0;
-        for (Object[][] g : groups) {
-            System.arraycopy(g, 0, result, idx, g.length);
-            idx += g.length;
-        }
-        return result;
     }
 
 }

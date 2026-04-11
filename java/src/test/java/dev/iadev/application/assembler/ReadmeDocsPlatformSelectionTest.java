@@ -112,9 +112,9 @@ class ReadmeDocsPlatformSelectionTest {
     class MappingTableConditionality {
 
         @Test
-        @DisplayName("multi-platform table includes"
-                + " conditionality note")
-        void build_multiPlatform_includesConditionalityNote(
+        @DisplayName("multi-platform table is empty"
+                + " after codex removal")
+        void build_multiPlatform_isEmpty(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = setupOutput(tempDir);
@@ -122,10 +122,7 @@ class ReadmeDocsPlatformSelectionTest {
             String table = ReadmeTables.buildMappingTable(
                     outputDir, Set.of());
 
-            assertThat(table)
-                    .contains("Generated only when the "
-                            + "corresponding platform is "
-                            + "selected");
+            assertThat(table).isEmpty();
         }
 
         @Test

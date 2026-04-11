@@ -37,8 +37,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>Tests run against 3 representative profiles
  * (java-spring, go-gin, python-fastapi) to ensure
  * platform filtering is profile-independent.</p>
- *
- * @see PlatformFilter
  */
 @DisplayName("Platform Directory Smoke Tests")
 class PlatformDirectorySmokeTest {
@@ -125,57 +123,6 @@ class PlatformDirectorySmokeTest {
     }
 
     @Nested
-    @DisplayName("codex — directories")
-    class Codex {
-
-        @ParameterizedTest(name = "{0}")
-        @MethodSource("dev.iadev.smoke."
-                + "PlatformDirectorySmokeTest"
-                + "#representativeProfiles")
-        @DisplayName(".codex/ exists with files")
-        void codex_codexDirHasContent(
-                String profile) throws IOException {
-            Path out = runForPlatform(
-                    profile, Set.of(Platform.CODEX));
-
-            assertThat(out.resolve(".codex"))
-                    .isDirectory();
-            assertThat(countFilesIn(
-                    out.resolve(".codex")))
-                    .as("codex dir should have files")
-                    .isPositive();
-        }
-
-        @ParameterizedTest(name = "{0}")
-        @MethodSource("dev.iadev.smoke."
-                + "PlatformDirectorySmokeTest"
-                + "#representativeProfiles")
-        @DisplayName("AGENTS.md root file exists")
-        void codex_agentsMdExists(String profile) {
-            Path out = runForPlatform(
-                    profile, Set.of(Platform.CODEX));
-
-            assertThat(out.resolve("AGENTS.md"))
-                    .isRegularFile();
-        }
-
-        @ParameterizedTest(name = "{0}")
-        @MethodSource("dev.iadev.smoke."
-                + "PlatformDirectorySmokeTest"
-                + "#representativeProfiles")
-        @DisplayName(".claude/rules/ does NOT exist "
-                + "(claude-specific)")
-        void codex_claudeRulesAbsent(String profile) {
-            Path out = runForPlatform(
-                    profile, Set.of(Platform.CODEX));
-
-            assertThat(out.resolve(".claude/rules"))
-                    .doesNotExist();
-        }
-
-    }
-
-    @Nested
     @DisplayName("shared directories always present")
     class SharedAlways {
 
@@ -187,19 +134,6 @@ class PlatformDirectorySmokeTest {
         void claude_adrPresent(String profile) {
             Path out = runForPlatform(
                     profile, Set.of(Platform.CLAUDE_CODE));
-
-            assertThat(out.resolve("adr"))
-                    .isDirectory();
-        }
-
-        @ParameterizedTest(name = "{0}")
-        @MethodSource("dev.iadev.smoke."
-                + "PlatformDirectorySmokeTest"
-                + "#representativeProfiles")
-        @DisplayName("adr/ present for CODEX")
-        void codex_adrPresent(String profile) {
-            Path out = runForPlatform(
-                    profile, Set.of(Platform.CODEX));
 
             assertThat(out.resolve("adr"))
                     .isDirectory();
