@@ -197,7 +197,9 @@
       "commitSha": "1821cb1cc91aedb815580118f8904ddd01dac899",
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/278",
       "prNumber": 278,
-      "prMergeStatus": "OPEN",
+      "prMergeStatus": "MERGED",
+      "prMergedAt": "2026-04-11T20:28:37Z",
+      "prMergeCommit": "99ff582960870df9dd5dc2b57c644b16679788ae",
       "coverageLine": 95.22,
       "coverageBranch": 90.00,
       "coverageLineDelta": 0.00,
@@ -244,7 +246,55 @@
         "plans/epic-0034/plans/planning-report-story-0034-0005.md",
         "plans/epic-0034/plans/dor-story-0034-0005.md"
       ],
-      "notes": "Closer story: 5 sequential verify/docs tasks. CRITICAL: CLAUDE.md root + .claude/rules/*.md are GENERATED outputs — must edit source under java/src/main/resources/targets/claude/ first, then regenerate (MEMORY.md hint: mvn process-resources before any regen). README.md ~L820 has canonical regen command. BREAKING CHANGE footer in TASK-002 commit. Rule 09 branching: PR targets develop. TASK-004 produces 9-scenario evidence matrix under reports/task-005-004/."
+      "notes": "Closer story: 5 sequential verify/docs tasks. CRITICAL: CLAUDE.md root + .claude/rules/*.md are GENERATED outputs — must edit source under java/src/main/resources/targets/claude/ first, then regenerate (MEMORY.md hint: mvn process-resources before any regen). README.md ~L820 has canonical regen command. BREAKING CHANGE footer in TASK-002 commit. Rule 09 branching: PR targets develop. TASK-004 produces 9-scenario evidence matrix under reports/task-005-004/. ⚠️ COVERAGE FLOOR: branch at EXACTLY 90.00% post-story-4 — avoid touching production code unless absolutely necessary. Focus on docs-only edits.",
+      "status": "SUCCESS",
+      "executionStartedAt": "2026-04-11T20:30:00Z",
+      "executionCompletedAt": "2026-04-11T20:54:00Z",
+      "duration": 1411,
+      "branch": "feat/story-0034-0005-docs-verify",
+      "worktree": ".claude/worktrees/story-0034-0005",
+      "commitSha": "9a738758ac384469de255350c362445ca03e19d1",
+      "commits": [
+        "5d25d0b85 docs(claude): reduce CLAUDE.md to claude-only scope",
+        "0201fc211 docs(changelog)!: document BREAKING removal of non-Claude targets",
+        "144d15f42 test(smoke): regenerate goldens and expected-artifacts.json for claude-only",
+        "9a738758a docs(epic-0034): archive task-004 verification evidence"
+      ],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/280",
+      "prNumber": 280,
+      "prMergeStatus": "OPEN",
+      "coverageLine": 95.21,
+      "coverageBranch": 90.00,
+      "coverageLineDelta": -0.01,
+      "coverageBranchDelta": 0.00,
+      "testsSurefire": 5359,
+      "testsFailsafe": 746,
+      "testsTotal": 6105,
+      "testFailures": 0,
+      "findingsCount": 0,
+      "breakingChange": true,
+      "versionBump": "2.3.0 -> 3.0.0-SNAPSHOT (MAJOR)",
+      "claudeMdLinesBefore": 289,
+      "claudeMdLinesAfter": 135,
+      "claudeMdLinesDelta": -154,
+      "grepSanityClean": true,
+      "ruleCompliance": {
+        "RULE-003": "PASS (95 .github/workflows/ files preserved)",
+        "RULE-004": "PASS (57 shared/templates/ files preserved)",
+        "RULE-002": "PASS (coverage 95.21%/90.00%, thresholds 95%/90%)",
+        "RULE-008": "PASS (BREAKING CHANGE footer in commit 0201fc211, MAJOR bump in pom.xml)"
+      },
+      "cliSmokeTests": "--platform copilot/codex/agents rejected with exit 2 (no stack trace leak, CWE-209 verified). --platform claude-code and default both succeed with 343 files for java-spring profile.",
+      "evidenceMatrixPath": "plans/epic-0034/reports/task-005-004/",
+      "scopeAdjustments": [
+        "CLAUDE.md target was delta >=150 / post <=130 lines; achieved post=135 because Plan & Review Templates section had to be restored to satisfy Epic0024DocumentationTest assertions (12-template catalog still applies under .claude/templates/)",
+        "Updated 2 assertions in Epic0024DocumentationTest.java to remove .github/templates and Plan Templates (.github) expectations (single-target now)",
+        "CHANGELOG language adjusted: --platform all still accepted as backward-compat alias (no-filter passthrough); rejected list is copilot/codex/agents",
+        "java-spring file count is 343, not planning estimate ~830 (pre-epic intermediate estimate was wrong)",
+        "MAPPING_TABLE placeholder removed from readme-template.md but ReadmeAssembler.replace call left in place as no-op (avoided touching production code with branch coverage at floor)",
+        "NO production code deletion except pom.xml version bump and Epic0024DocumentationTest assertion update"
+      ],
+      "summary": "Closer story complete. CLAUDE.md trimmed 289->135. CHANGELOG with BREAKING/Removed/Changed/Migration sections. Version 2.3.0->3.0.0-SNAPSHOT. 6105 tests green. 6 grep sanity checks clean. CLI smoke rejects legacy platforms with exit 2. Coverage 95.21/90.00 (branch at exact floor). Evidence matrix archived. PR #280 OPEN CLEAN MERGEABLE."
     }
   }
 }
