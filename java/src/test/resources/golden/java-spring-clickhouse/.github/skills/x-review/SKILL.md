@@ -235,7 +235,7 @@ If CRITICAL or MEDIUM findings exist, ask the user whether to generate a correct
 
 ## Integration Notes
 
-- Produces the SAME artifacts as Phase 3 of `x-dev-story-implement`
+- Produces the SAME artifacts as Phase 3 of `x-story-implement`
 - If run standalone, Phase 3 of lifecycle can be skipped if reports exist and code unchanged
 - Recommended flow: `/x-review` -> fix criticals -> `/x-review-pr` for final holistic review
 - Dashboard (Phase 3d) is **cumulative** -- created by `/x-review`, updated by `/x-review-pr` (RULE-006)

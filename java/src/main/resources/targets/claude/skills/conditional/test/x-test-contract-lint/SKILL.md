@@ -110,4 +110,4 @@ Summary: {count} errors, {count} warnings
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| x-dev-story-implement | called-by | Invoked by Phase 0.5 (Step 0.5.3) for contract validation before approval |
+| x-story-implement | called-by | Invoked by Phase 0.5 (Step 0.5.3) for contract validation before approval |

@@ -11,14 +11,14 @@ description: >
 
 ## Purpose
 
-Single entry point for generating and updating all project documentation for {{PROJECT_NAME}}. Detects the type of documentation needed from code changes, delegates to specialized skills (`/x-release-changelog`, `/x-dev-adr-automation`, `/x-dev-arch-update`), or generates API docs and README updates inline.
+Single entry point for generating and updating all project documentation for {{PROJECT_NAME}}. Detects the type of documentation needed from code changes, delegates to specialized skills (`/x-release-changelog`, `/x-adr-generate`, `/x-arch-update`), or generates API docs and README updates inline.
 
 ## Triggers
 
 - `/x-doc-generate` -- auto-detect documentation type from `git diff` and update accordingly
 - `/x-doc-generate --type api` -- generate or update API documentation
 - `/x-doc-generate --type readme` -- update project README.md
-- `/x-doc-generate --type adr` -- delegate to `/x-dev-adr-automation`
+- `/x-doc-generate --type adr` -- delegate to `/x-adr-generate`
 - `/x-doc-generate --type changelog` -- delegate to `/x-release-changelog`
 - `/x-doc-generate --type all` -- process all applicable documentation types
 - `/x-doc-generate --type all --force` -- regenerate all documentation regardless of change status
@@ -55,7 +55,7 @@ Single entry point for generating and updating all project documentation for {{P
 | Type | Delegated To | Method |
 |------|-------------|--------|
 | `changelog` | `/x-release-changelog` | Skill invocation |
-| `adr` | `/x-dev-adr-automation` | Skill invocation |
-| Architecture | `/x-dev-arch-update` | Skill invocation |
+| `adr` | `/x-adr-generate` | Skill invocation |
+| Architecture | `/x-arch-update` | Skill invocation |
 | `api` | Inline | Direct generation |
 | `readme` | Inline | Direct generation |

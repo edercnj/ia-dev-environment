@@ -162,5 +162,5 @@ When troubleshooting within the feature lifecycle, classify errors for `x-lib-gr
 | Skill | Relationship | Context |
 |-------|-------------|---------|
 | x-lib-group-verifier | Referenced by | Invokes troubleshoot when compilation fails during group verification |
-| x-dev-story-implement | Referenced by | Used during Phase 4 (fixes) for diagnosing test and build failures |
+| x-story-implement | Referenced by | Used during Phase 4 (fixes) for diagnosing test and build failures |
 | x-test-run | Complements | Troubleshoot diagnoses failures that x-test-run reports |

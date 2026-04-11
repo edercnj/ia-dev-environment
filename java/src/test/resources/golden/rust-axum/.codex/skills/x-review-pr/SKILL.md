@@ -17,7 +17,7 @@ context-budget: medium
 
 ## Purpose
 
-Execute a senior-level holistic review with a 57-point rubric. This is the standalone version of Phase 6 from x-dev-story-implement. The Tech Lead reviews the consolidated PR diff for cross-file consistency and overall quality.
+Execute a senior-level holistic review with a 57-point rubric. This is the standalone version of Phase 6 from x-story-implement. The Tech Lead reviews the consolidated PR diff for cross-file consistency and overall quality.
 
 ## Triggers
 
@@ -270,7 +270,7 @@ If fixing: apply corrections, commit, re-run review (max 2 cycles).
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| x-dev-story-implement | called-by | Produces the same artifact as Phase 6 |
+| x-story-implement | called-by | Produces the same artifact as Phase 6 |
 | x-review | reads | Reads specialist review reports for cross-validation |
 | x-review | complements | `/x-review` = breadth (7 specialists), `/x-review-pr` = depth (1 Tech Lead) |
 

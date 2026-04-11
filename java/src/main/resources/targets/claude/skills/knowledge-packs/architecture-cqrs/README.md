@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Category** | Knowledge Pack |
-| **Referenced by** | x-dev-implement, x-dev-architecture-plan, x-review, architect agent |
+| **Referenced by** | x-task-implement, x-arch-plan, x-review, architect agent |
 | **Condition** | Included when `architecture.style` is `cqrs` |
 
 > **Full content**: See [SKILL.md](./SKILL.md) for the complete reference.

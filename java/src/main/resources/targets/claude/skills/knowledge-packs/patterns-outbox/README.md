@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Category** | Knowledge Pack |
-| **Referenced by** | `x-dev-implement`, `x-review` (Database/Event specialists), `architect` agent |
+| **Referenced by** | `x-task-implement`, `x-review` (Database/Event specialists), `architect` agent |
 
 > **Full content**: See [SKILL.md](./SKILL.md) for the complete reference.
 

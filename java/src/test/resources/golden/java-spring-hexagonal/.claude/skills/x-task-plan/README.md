@@ -71,6 +71,6 @@ Produces a self-contained implementation plan for a single task extracted from a
 ## See Also
 
 - [x-story-plan](../x-story-plan/) -- Multi-agent story planning (generates task breakdown consumed by this skill)
-- [x-dev-story-implement](../x-dev-story-implement/) -- Full lifecycle orchestrator (reads task plans in PRE_PLANNED mode)
-- [x-dev-implement](../x-dev-implement/) -- Implementation skill (uses task plans as execution guides)
+- [x-story-implement](../x-story-implement/) -- Full lifecycle orchestrator (reads task plans in PRE_PLANNED mode)
+- [x-task-implement](../x-task-implement/) -- Implementation skill (uses task plans as execution guides)
 - [x-test-plan](../x-test-plan/) -- Story-level test planning (complementary to per-task TDD cycles)

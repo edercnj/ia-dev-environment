@@ -19,10 +19,10 @@ for **my-go-service**.
 
 ### Step 1 — Full Decomposition
 
-Use the **x-story-epic-full** skill for complete decomposition:
+Use the **x-epic-decompose** skill for complete decomposition:
 
 ```
-/x-story-epic-full @specs/my-feature-spec.md
+/x-epic-decompose @specs/my-feature-spec.md
 ```
 
 This produces three deliverables:

@@ -17,7 +17,7 @@ key back to the local file for bidirectional traceability.
 
 - User has an existing `epic-XXXX.md` file and wants to create it in Jira
 - User says "create epic in Jira", "sync epic to Jira", "push epic to Jira"
-- After running `/x-story-epic` or `/x-story-epic-full` without Jira integration
+- After running `/x-epic-create` or `/x-epic-decompose` without Jira integration
 
 ## Prerequisites
 

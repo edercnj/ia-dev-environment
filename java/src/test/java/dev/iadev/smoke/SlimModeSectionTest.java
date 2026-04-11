@@ -128,7 +128,7 @@ class SlimModeSectionTest extends SmokeTestBase {
         @ParameterizedTest(
                 name = "[{0}] references slim mode")
         @ValueSource(strings = {
-                "x-dev-story-implement", "x-test-tdd"})
+                "x-story-implement", "x-test-tdd"})
         @DisplayName("orchestrator references slim"
                 + " mode when invoking chain skills")
         void orchestrator_referencesSlimMode(

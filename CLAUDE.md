@@ -14,10 +14,11 @@ It includes coding rules, skills (slash commands), knowledge packs, agents, and 
 > The `CLAUDE.md` file at the project root provides an executive summary loaded automatically in EVERY conversation.
 
 > **In progress — EPIC-0036 (Skill Taxonomy Refactor).**
-> The source of truth for skills under `java/src/main/resources/targets/claude/skills/` is being reorganized into 10 category subfolders (`plan/`, `dev/`, `test/`, `review/`, `security/`, `code/`, `git/`, `pr/`, `ops/`, `jira/`), and ~19 skills will be renamed to a consistent `x-{subject}-{action}` scheme. The generated output `.claude/skills/` remains **flat** — user-facing invocation paths are preserved.
+> The source of truth for skills under `java/src/main/resources/targets/claude/skills/` has been reorganized into 10 category subfolders (`plan/`, `dev/`, `test/`, `review/`, `security/`, `code/`, `git/`, `pr/`, `ops/`, `jira/`), and ~19 skills are being renamed to a consistent `x-{subject}-{action}` scheme. The generated output `.claude/skills/` remains **flat** — user-facing invocation paths are preserved.
 > - Decision record: [`adr/ADR-0003-skill-taxonomy-and-naming.md`](adr/ADR-0003-skill-taxonomy-and-naming.md)
 > - Rename staging checklist: [`plans/epic-0036/skill-renames.md`](plans/epic-0036/skill-renames.md)
-> - Current skill names (e.g., `/x-story-epic`, `/x-dev-implement`, `/run-e2e`) remain valid until the corresponding rename story merges. Do not pre-emptively use the new names.
+> - Primary cluster renames landed (STORY-0036-0004): `x-story-epic`→`x-epic-create`, `x-story-epic-full`→`x-epic-decompose`, `x-story-map`→`x-epic-map`, `x-epic-plan`→`x-epic-orchestrate`, `x-dev-implement`→`x-task-implement`, `x-dev-story-implement`→`x-story-implement`, `x-dev-epic-implement`→`x-epic-implement`, `x-dev-architecture-plan`→`x-arch-plan`, `x-dev-arch-update`→`x-arch-update`, `x-dev-adr-automation`→`x-adr-generate`.
+> - Still pending (STORY-0036-0005): `run-*` → `x-test-*`, `x-pr-fix-comments`→`x-pr-fix`, `x-pr-fix-epic-comments`→`x-pr-fix-epic`, `x-runtime-protection`→`x-runtime-eval`, `x-security-secret-scan`→`x-security-secrets`.
 
 ## Structure
 
@@ -108,17 +109,17 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 |-------|------|-------------|
 | **patterns** | `/patterns` |  |
 | **run-e2e** | `/run-e2e` | Skill: End-to-End Tests — Runs integration tests that validate the complete flow from request through all application layers to response, using a real database. |
-| **x-dev-epic-implement** | `/x-dev-epic-implement` | Orchestrates epic execution: parses implementation map, dispatches stories via subagents, manages checkpoints, integrity gates, retry/block propagation, resume, partial execution, dry-run, and progress reporting. |
-| **x-dev-implement** | `/x-dev-implement` | Implements a feature/story following project conventions. Delegates preparation to a subagent that reads architecture and coding KPs, then implements layer-by-layer with intermediate compilation checks. |
-| **x-dev-story-implement** | `/x-dev-story-implement` | Orchestrates the complete feature implementation cycle: branch creation, planning, task decomposition, implementation, parallel review, fixes, PR creation, and final verification. Delegates heavy phases to subagents for context efficiency. |
+| **x-epic-implement** | `/x-epic-implement` | Orchestrates epic execution: parses implementation map, dispatches stories via subagents, manages checkpoints, integrity gates, retry/block propagation, resume, partial execution, dry-run, and progress reporting. |
+| **x-task-implement** | `/x-task-implement` | Implements a feature/story following project conventions. Delegates preparation to a subagent that reads architecture and coding KPs, then implements layer-by-layer with intermediate compilation checks. |
+| **x-story-implement** | `/x-story-implement` | Orchestrates the complete feature implementation cycle: branch creation, planning, task decomposition, implementation, parallel review, fixes, PR creation, and final verification. Delegates heavy phases to subagents for context efficiency. |
 | **x-git-push** | `/x-git-push` | Git operations: branch creation, atomic commits (Conventional Commits), push, and PR creation. Use for any git workflow task including branching, committing, pushing, creating PRs, or managing version control. |
 | **x-ops-troubleshoot** | `/x-ops-troubleshoot` | Diagnoses errors, stacktraces, build failures, and unexpected behavior. Systematic approach: reproduce, locate, understand, fix, verify. Use whenever something fails: compilation errors, test failures, runtime exceptions, coverage gaps, or performance issues. |
 | **x-review** | `/x-review` | Parallel code review with specialist engineers (Security, QA, Performance, Database, Observability, DevOps, API, Event). Launches parallel subagents, each reading their own knowledge pack, then consolidates into a scored report. Use for pre-PR quality validation. |
 | **x-review-pr** | `/x-review-pr` | Tech Lead holistic review with 40-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge. |
 | **x-story-create** | `/x-story-create` | > |
-| **x-story-epic** | `/x-story-epic` | > |
-| **x-story-epic-full** | `/x-story-epic-full` | > |
-| **x-story-map** | `/x-story-map` | > |
+| **x-epic-create** | `/x-epic-create` | > |
+| **x-epic-decompose** | `/x-epic-decompose` | > |
+| **x-epic-map** | `/x-epic-map` | > |
 | **x-test-plan** | `/x-test-plan` | Generates a comprehensive test plan before implementation. Delegates KP reading to a context-gathering subagent, then produces structured test scenarios covering unit, integration, API, E2E, contract, and performance tests. |
 | **x-test-run** | `/x-test-run` | Runs tests with coverage reporting and threshold validation. Use whenever writing, running, or analyzing tests. Triggers on: test, coverage, TDD, unit test, integration test, test failure, coverage gap, or Definition of Done validation. |
 
@@ -237,18 +238,18 @@ Content is copied verbatim by `PlanTemplatesAssembler` (RULE-003).
 
 | Template | Produced By | Saved To | Pre-Check |
 |----------|-------------|----------|-----------|
-| `_TEMPLATE-IMPLEMENTATION-PLAN.md` | x-dev-story-implement (Phase 1B) | `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` | Yes |
+| `_TEMPLATE-IMPLEMENTATION-PLAN.md` | x-story-implement (Phase 1B) | `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` | Yes |
 | `_TEMPLATE-TEST-PLAN.md` | x-test-plan | `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md` | Yes |
-| `_TEMPLATE-ARCHITECTURE-PLAN.md` | x-dev-architecture-plan | `plans/epic-XXXX/plans/arch-story-XXXX-YYYY.md` | Yes |
+| `_TEMPLATE-ARCHITECTURE-PLAN.md` | x-arch-plan | `plans/epic-XXXX/plans/arch-story-XXXX-YYYY.md` | Yes |
 | `_TEMPLATE-TASK-BREAKDOWN.md` | x-lib-task-decomposer | `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` | Yes |
-| `_TEMPLATE-SECURITY-ASSESSMENT.md` | x-dev-story-implement (Phase 1E) | `plans/epic-XXXX/plans/security-story-XXXX-YYYY.md` | Yes |
-| `_TEMPLATE-COMPLIANCE-ASSESSMENT.md` | x-dev-story-implement (Phase 1F) | `plans/epic-XXXX/plans/compliance-story-XXXX-YYYY.md` | Yes |
+| `_TEMPLATE-SECURITY-ASSESSMENT.md` | x-story-implement (Phase 1E) | `plans/epic-XXXX/plans/security-story-XXXX-YYYY.md` | Yes |
+| `_TEMPLATE-COMPLIANCE-ASSESSMENT.md` | x-story-implement (Phase 1F) | `plans/epic-XXXX/plans/compliance-story-XXXX-YYYY.md` | Yes |
 | `_TEMPLATE-SPECIALIST-REVIEW.md` | x-review | `plans/epic-XXXX/plans/review-story-XXXX-YYYY.md` | No |
 | `_TEMPLATE-TECH-LEAD-REVIEW.md` | x-review-pr | `plans/epic-XXXX/plans/techlead-review-story-XXXX-YYYY.md` | No |
 | `_TEMPLATE-CONSOLIDATED-REVIEW-DASHBOARD.md` | x-review | `plans/epic-XXXX/plans/review-dashboard-story-XXXX-YYYY.md` | No |
-| `_TEMPLATE-REVIEW-REMEDIATION.md` | x-dev-story-implement (Phase 5) | `plans/epic-XXXX/plans/remediation-story-XXXX-YYYY.md` | No |
-| `_TEMPLATE-EPIC-EXECUTION-PLAN.md` | x-dev-epic-implement | `plans/epic-XXXX/plans/execution-plan-epic-XXXX.md` | Yes |
-| `_TEMPLATE-PHASE-COMPLETION-REPORT.md` | x-dev-epic-implement | `plans/epic-XXXX/reports/phase-report-epic-XXXX.md` | No |
+| `_TEMPLATE-REVIEW-REMEDIATION.md` | x-story-implement (Phase 5) | `plans/epic-XXXX/plans/remediation-story-XXXX-YYYY.md` | No |
+| `_TEMPLATE-EPIC-EXECUTION-PLAN.md` | x-epic-implement | `plans/epic-XXXX/plans/execution-plan-epic-XXXX.md` | Yes |
+| `_TEMPLATE-PHASE-COMPLETION-REPORT.md` | x-epic-implement | `plans/epic-XXXX/reports/phase-report-epic-XXXX.md` | No |
 
 **Total: 12 plan & review templates** (copied to both `.claude/templates/` and `.github/templates/` = 24 files)
 

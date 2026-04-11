@@ -22,8 +22,8 @@ Runs between each parallelism group (G1-G7) during Phase 2 of the feature lifecy
 
 | Caller Skill | Phase | Context |
 |-------------|-------|---------|
-| x-dev-story-implement | Phase 2 | After each group completes, BEFORE starting the next group |
-| x-dev-implement | Implementation | Inline build gate between layer groups |
+| x-story-implement | Phase 2 | After each group completes, BEFORE starting the next group |
+| x-task-implement | Implementation | Inline build gate between layer groups |
 
 ## Inputs
 
@@ -160,8 +160,8 @@ If tests fail:
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| x-dev-story-implement | called-by | Invoked during Phase 2 after each group |
-| x-dev-implement | called-by | Build gate between layer groups during implementation |
+| x-story-implement | called-by | Invoked during Phase 2 after each group |
+| x-task-implement | called-by | Build gate between layer groups during implementation |
 
 - Uses `{{COMPILE_COMMAND}}` for G1-G6, `{{BUILD_COMMAND}}` for G7
 - Produces atomic commits per group (rollback points)

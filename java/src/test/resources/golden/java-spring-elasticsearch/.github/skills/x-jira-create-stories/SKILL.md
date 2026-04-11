@@ -19,7 +19,7 @@ to local files for bidirectional traceability.
 
 - User has existing `story-XXXX-YYYY.md` files and wants to create them in Jira
 - User says "create stories in Jira", "sync stories to Jira", "push stories to Jira"
-- After running `/x-story-create` or `/x-story-epic-full` without Jira integration
+- After running `/x-story-create` or `/x-epic-decompose` without Jira integration
 
 ## Prerequisites
 

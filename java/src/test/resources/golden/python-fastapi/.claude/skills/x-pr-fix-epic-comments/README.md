@@ -42,5 +42,5 @@ Automates addressing PR review comments across an entire epic in batch. Instead 
 ## See Also
 
 - [x-pr-fix-comments](../x-pr-fix-comments/) -- Single-PR version of this skill
-- [x-dev-epic-implement](../x-dev-epic-implement/) -- Epic orchestrator that produces the PRs this skill processes
+- [x-epic-implement](../x-epic-implement/) -- Epic orchestrator that produces the PRs this skill processes
 - [x-review](../x-review/) -- Specialist reviews that generate findings to fix
