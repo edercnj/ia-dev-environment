@@ -53,12 +53,18 @@ class GithubSkillsAssemblerTest {
         }
 
         @Test
-        @DisplayName("story group has 10 skills")
-        void assemble_storyGroup_hasTenSkills() {
+        @DisplayName("story group has 7 skills")
+        void assemble_storyGroup_hasSevenSkills() {
+            // Post EPIC-0036: SKILL_GROUPS is derived from
+            // targets/github-copilot/skills/story/*.md. The
+            // old hardcoded registry listed x-story-plan,
+            // x-task-plan, and x-epic-plan but these .md
+            // files never existed on disk (silently dropped
+            // at assembly time before this story).
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("story"))
-                    .hasSize(10);
+                    .hasSize(7);
         }
 
         @Test
@@ -89,21 +95,33 @@ class GithubSkillsAssemblerTest {
         }
 
         @Test
-        @DisplayName("infrastructure group has 5 skills")
-        void assemble_infraGroup_hasFiveSkills() {
+        @DisplayName("infrastructure group has 4 skills")
+        void assemble_infraGroup_hasFourSkills() {
+            // Post EPIC-0036: SKILL_GROUPS is derived from
+            // targets/github-copilot/skills/infrastructure.
+            // The old hardcoded registry listed
+            // setup-environment but the .md file never
+            // existed. An orphan x-setup-stack.md file was
+            // deleted as dead code. Net: 4 skills
+            // (dockerfile, iac-terraform, k8s-deployment,
+            // k8s-kustomize).
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("infrastructure"))
-                    .hasSize(5);
+                    .hasSize(4);
         }
 
         @Test
-        @DisplayName("knowledge-packs group has 18 skills")
-        void assemble_knowledgePacksGroup_hasEighteenSkills() {
+        @DisplayName("knowledge-packs group has 17 skills")
+        void assemble_knowledgePacksGroup_hasSeventeenSkills() {
+            // Post EPIC-0036: SKILL_GROUPS is derived from
+            // targets/github-copilot/skills/knowledge-packs.
+            // The old hardcoded registry listed
+            // patterns-outbox but no file exists on disk.
             assertThat(
                     GithubSkillsAssembler.SKILL_GROUPS
                             .get("knowledge-packs"))
-                    .hasSize(18);
+                    .hasSize(17);
         }
 
         @Test

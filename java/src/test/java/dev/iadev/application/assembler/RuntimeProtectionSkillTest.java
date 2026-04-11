@@ -612,14 +612,14 @@ class RuntimeProtectionSkillTest {
     }
 
     @Nested
-    @DisplayName("SkillGroupRegistry -- Review Group")
+    @DisplayName("GithubSkillsAssembler.SKILL_GROUPS -- Review Group")
     class RegistryReviewGroup {
 
         @Test
         @DisplayName("review group contains"
                 + " x-runtime-protection")
         void register_reviewGroup_containsRuntimeProtection() {
-            assertThat(SkillGroupRegistry.SKILL_GROUPS
+            assertThat(GithubSkillsAssembler.SKILL_GROUPS
                     .get("review"))
                     .contains("x-runtime-protection");
         }

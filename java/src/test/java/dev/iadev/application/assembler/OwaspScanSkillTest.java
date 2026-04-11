@@ -563,14 +563,14 @@ class OwaspScanSkillTest {
     }
 
     @Nested
-    @DisplayName("SkillGroupRegistry -- Review Group")
+    @DisplayName("GithubSkillsAssembler.SKILL_GROUPS -- Review Group")
     class RegistryReviewGroup {
 
         @Test
         @DisplayName("review group contains"
                 + " x-owasp-scan")
         void register_reviewGroup_containsOwaspScan() {
-            assertThat(SkillGroupRegistry.SKILL_GROUPS
+            assertThat(GithubSkillsAssembler.SKILL_GROUPS
                     .get("review"))
                     .contains("x-owasp-scan");
         }
@@ -580,7 +580,7 @@ class OwaspScanSkillTest {
                 + " (always included)")
         void register_owaspScan_noCondition() {
             assertThat(
-                    SkillGroupRegistry
+                    SkillGroupConditions
                             .REVIEW_SKILL_CONDITIONS
                             .containsKey("x-owasp-scan"))
                     .isFalse();
