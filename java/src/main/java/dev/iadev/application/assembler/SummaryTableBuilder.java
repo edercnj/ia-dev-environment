@@ -15,8 +15,11 @@ import java.util.Set;
  * for README.md.
  *
  * <p>Generates component counts for all artifact types
- * under the .claude/ directory. Also provides the static
- * settings documentation section.</p>
+ * under the {@code .claude/} directory. Also provides the
+ * static settings documentation section. Claude Code is the
+ * only user-selectable platform, so the legacy
+ * platform-filtering parameter is retained for API
+ * stability but every row is always emitted.</p>
  *
  * @see ReadmeTables
  * @see ReadmeUtils
@@ -29,7 +32,7 @@ public final class SummaryTableBuilder {
 
     /**
      * Builds the generation summary table with component
-     * counts (all platforms).
+     * counts.
      *
      * @param outputDir the .claude/ output directory
      * @return formatted generation summary
@@ -39,22 +42,20 @@ public final class SummaryTableBuilder {
     }
 
     /**
-     * Builds a platform-filtered generation summary table.
-     *
-     * <p>When platforms is empty or contains all
-     * user-selectable platforms, all rows are shown.
-     * Otherwise, only rows matching the requested
-     * platform(s) are included.</p>
+     * Builds the generation summary table with component
+     * counts. The {@code platforms} parameter is retained
+     * for backward-compatible callers but is ignored: the
+     * only user-selectable platform is
+     * {@link Platform#CLAUDE_CODE}, so every row is always
+     * included.
      *
      * @param outputDir the .claude/ output directory
-     * @param platforms the active platforms (empty = all)
+     * @param platforms ignored (retained for API stability)
      * @return formatted generation summary
      */
     String buildGenerationSummary(
             Path outputDir, Set<Platform> platforms) {
-        Object[][] allRows = buildSummaryRows(outputDir);
-        Object[][] rows = SummaryRowFilter.filter(
-                allRows, platforms);
+        Object[][] rows = buildSummaryRows(outputDir);
         List<String> lines = new ArrayList<>();
         lines.add("| Component | Count |");
         lines.add("|-----------|-------|");

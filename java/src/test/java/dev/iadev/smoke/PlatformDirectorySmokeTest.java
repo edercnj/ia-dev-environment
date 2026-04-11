@@ -79,47 +79,6 @@ class PlatformDirectorySmokeTest {
                     .isPositive();
         }
 
-        @ParameterizedTest(name = "{0}")
-        @MethodSource("dev.iadev.smoke."
-                + "PlatformDirectorySmokeTest"
-                + "#representativeProfiles")
-        @DisplayName(".github/instructions/ does NOT "
-                + "exist (copilot-specific)")
-        void claudeCode_githubInstructionsAbsent(
-                String profile) {
-            Path out = runForPlatform(
-                    profile, Set.of(Platform.CLAUDE_CODE));
-
-            assertThat(out.resolve(
-                    ".github/instructions"))
-                    .doesNotExist();
-        }
-
-        @ParameterizedTest(name = "{0}")
-        @MethodSource("dev.iadev.smoke."
-                + "PlatformDirectorySmokeTest"
-                + "#representativeProfiles")
-        @DisplayName(".codex/ does NOT exist")
-        void claudeCode_codexAbsent(String profile) {
-            Path out = runForPlatform(
-                    profile, Set.of(Platform.CLAUDE_CODE));
-
-            assertThat(out.resolve(".codex"))
-                    .doesNotExist();
-        }
-
-        @ParameterizedTest(name = "{0}")
-        @MethodSource("dev.iadev.smoke."
-                + "PlatformDirectorySmokeTest"
-                + "#representativeProfiles")
-        @DisplayName(".agents/ does NOT exist")
-        void claudeCode_agentsAbsent(String profile) {
-            Path out = runForPlatform(
-                    profile, Set.of(Platform.CLAUDE_CODE));
-
-            assertThat(out.resolve(".agents"))
-                    .doesNotExist();
-        }
     }
 
     @Nested

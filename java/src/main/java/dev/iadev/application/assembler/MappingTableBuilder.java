@@ -9,12 +9,12 @@ import java.util.Set;
  * Cross-platform mapping table builder.
  *
  * <p>Historically rendered a table documenting how
- * configuration maps between {@code .claude/} and
- * {@code .codex/}. With Codex target support removed,
- * the mapping is vacuous and this builder always returns
- * an empty string. Retained for README builder
- * compatibility until cross-platform support is
- * reintroduced.</p>
+ * configuration mapped across multiple AI tooling targets.
+ * After {@code EPIC-0034} collapsed the generator to a
+ * single Claude Code output, cross-platform mapping is no
+ * longer meaningful and this builder always returns an
+ * empty string. Retained for {@link ReadmeTables}
+ * compatibility in case a second target is reintroduced.</p>
  *
  * @see ReadmeTables
  * @see ReadmeUtils

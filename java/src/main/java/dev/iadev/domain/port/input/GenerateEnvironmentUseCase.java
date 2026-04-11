@@ -8,7 +8,7 @@ import dev.iadev.domain.model.GenerationResult;
  *
  * <p>This is the primary use case of the system. Given a
  * {@link GenerationContext} containing validated configuration and
- * output directory, produces all artifacts (.claude/, .github/,
+ * output directory, produces all artifacts ({@code .claude/},
  * Dockerfile, CI/CD, etc.) and returns a {@link GenerationResult}
  * summarizing the outcome.</p>
  *
