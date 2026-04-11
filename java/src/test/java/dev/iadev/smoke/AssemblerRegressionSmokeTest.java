@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Smoke test validating that all 27 assemblers execute
+ * Smoke test validating that all 22 assemblers execute
  * and contribute output for every registered profile.
  *
  * <p>Detects assembler regressions:</p>
@@ -52,7 +52,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("AssemblerRegressionSmokeTest")
 class AssemblerRegressionSmokeTest extends SmokeTestBase {
 
-    static final int EXPECTED_ASSEMBLER_COUNT = 27;
+    static final int EXPECTED_ASSEMBLER_COUNT = 22;
 
     static final List<String> EXPECTED_ORDER = List.of(
             "ConstitutionAssembler",
@@ -64,6 +64,7 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
             "HooksAssembler",
             "SettingsAssembler",
             "DocsAssembler",
+            "DocsAdrAssembler",
             "GrpcDocsAssembler",
             "RunbookAssembler",
             "IncidentTemplatesAssembler",
@@ -72,12 +73,6 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
             "SloSliTemplateAssembler",
             "DocsContributingAssembler",
             "DataMigrationPlanAssembler",
-            "CodexAgentsMdAssembler",
-            "CodexConfigAssembler",
-            "CodexSkillsAssembler",
-            "CodexRequirementsAssembler",
-            "CodexOverrideAssembler",
-            "DocsAdrAssembler",
             "CicdAssembler",
             "EpicReportAssembler",
             "PlanTemplatesAssembler",
@@ -106,10 +101,6 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
                             "SkillsAssembler"),
                     Map.entry(".claude/agents",
                             "AgentsAssembler"),
-                    Map.entry(".codex",
-                            "CodexConfigAssembler"),
-                    Map.entry(".agents/skills",
-                            "CodexSkillsAssembler"),
                     Map.entry("steering",
                             "DocsAssembler"),
                     Map.entry("adr",
@@ -128,7 +119,7 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
     class AssemblerRegistration {
 
         @Test
-        @DisplayName("factory returns exactly 34 "
+        @DisplayName("factory returns exactly 22 "
                 + "assemblers")
         void buildAssemblers_returnsExactCount() {
             List<AssemblerDescriptor> descriptors =

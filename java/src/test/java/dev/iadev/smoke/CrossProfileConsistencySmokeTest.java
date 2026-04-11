@@ -455,22 +455,6 @@ class CrossProfileConsistencySmokeTest {
         }
 
         @Test
-        @DisplayName("all profiles produce AGENTS.md "
-                + "at root")
-        void allProfiles_produceAgentsMd() {
-            for (var entry
-                    : profileOutputs.entrySet()) {
-                assertThat(
-                        entry.getValue()
-                                .resolve("AGENTS.md"))
-                        .as("AGENTS.md must exist for "
-                                + "profile: %s",
-                                entry.getKey())
-                        .isRegularFile();
-            }
-        }
-
-        @Test
         @DisplayName("skill directories follow "
                 + "kebab-case naming in all profiles")
         void skillDirs_kebabCase_allProfiles()
@@ -480,7 +464,7 @@ class CrossProfileConsistencySmokeTest {
             for (var entry
                     : profileOutputs.entrySet()) {
                 Path skillsDir = entry.getValue()
-                        .resolve(".agents/skills");
+                        .resolve(".claude/skills");
                 if (!Files.isDirectory(skillsDir)) {
                     continue;
                 }

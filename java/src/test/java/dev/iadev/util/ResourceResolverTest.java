@@ -317,7 +317,6 @@ class ResourceResolverTest {
                 "targets/claude/rules",
                 "targets/claude/agents",
                 "targets/claude/skills",
-                "targets/codex/templates",
                 "knowledge/core",
                 "knowledge/languages",
                 "knowledge/frameworks",
