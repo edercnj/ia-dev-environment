@@ -10,11 +10,11 @@ import java.util.Map;
  * shipped with the generator.
  *
  * <p>Extracted from {@link PlanTemplatesAssembler} to keep
- * both classes under the 250-line Rule-03 limit. The
+ * both classes under 250 lines per RULE-004. The
  * insertion-ordered map lists every template by filename
  * and the mandatory section headings that must be present
  * before it is copied to {@code .claude/templates/}
- * (Rule-10 validation).</p>
+ * (RULE-010 validation).</p>
  *
  * <p>Adding a template: append a new {@code map.put(...)}
  * entry in {@link #buildTemplateSections()} and bump
