@@ -30,8 +30,6 @@ class XReviewSkillTemplateTest {
 
     private static final Path CLAUDE_SKILL_PATH =
             resolveClaudeSkillPath();
-    private static final Path GITHUB_SKILL_PATH =
-            resolveGithubSkillPath();
 
     @Nested
     @DisplayName("Phase 0: Idempotency Pre-Check"
@@ -464,69 +462,6 @@ class XReviewSkillTemplateTest {
     }
 
     @Nested
-    @DisplayName("GitHub Copilot Variant Consistency")
-    class GithubVariantConsistency {
-
-        @Test
-        @DisplayName("GitHub skill also contains"
-                + " Phase 0 pre-check")
-        void githubSkill_containsPhase0PreCheck() {
-            String content = readSkill(GITHUB_SKILL_PATH);
-
-            assertThat(content)
-                    .contains("Phase 0: Idempotency"
-                            + " Pre-Check");
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains Phase 3d"
-                + " dashboard")
-        void githubSkill_containsPhase3dDashboard() {
-            String content = readSkill(GITHUB_SKILL_PATH);
-
-            assertThat(content)
-                    .contains("3d. Generate Consolidated"
-                            + " Dashboard");
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains Phase 3e"
-                + " remediation")
-        void githubSkill_containsPhase3eRemediation() {
-            String content = readSkill(GITHUB_SKILL_PATH);
-
-            assertThat(content)
-                    .contains("3e. Generate Remediation"
-                            + " Tracking");
-        }
-
-        @Test
-        @DisplayName("GitHub skill invokes review"
-                + " skills via Skill tool")
-        void githubSkill_invokesSkillsViaSkillTool() {
-            String content = readSkill(GITHUB_SKILL_PATH);
-
-            assertThat(content)
-                    .contains("Skills via Skill Tool")
-                    .contains("SINGLE message for true"
-                            + " parallelism");
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains Specialist"
-                + " Reference Table")
-        void githubSkill_containsReferenceTable() {
-            String content = readSkill(GITHUB_SKILL_PATH);
-
-            assertThat(content)
-                    .contains("## Specialist Reference"
-                            + " Table")
-                    .contains("| QA |")
-                    .contains("| Performance |");
-        }
-    }
-
-    @Nested
     @DisplayName("Phase Numbering Consistency")
     class PhaseNumberingConsistency {
 
@@ -579,20 +514,6 @@ class XReviewSkillTemplateTest {
                     "java/src/main/resources/targets/"
                             + "claude/skills/core/"
                             + "x-review/SKILL.md");
-        }
-        return path;
-    }
-
-    private static Path resolveGithubSkillPath() {
-        Path path = Path.of(
-                "src/main/resources/targets/"
-                        + "github-copilot/skills/"
-                        + "review/x-review.md");
-        if (!Files.exists(path)) {
-            path = Path.of(
-                    "java/src/main/resources/targets/"
-                            + "github-copilot/skills/"
-                            + "review/x-review.md");
         }
         return path;
     }
