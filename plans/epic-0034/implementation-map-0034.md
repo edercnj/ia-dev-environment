@@ -11,7 +11,7 @@
 | story-0034-0001 | Remover Suporte a GitHub Copilot | — | — | story-0034-0002 | Concluída |
 | story-0034-0002 | Remover Suporte a Codex | — | story-0034-0001 | story-0034-0003 | Concluída |
 | story-0034-0003 | Remover Target Agents Genérico | — | story-0034-0002 | story-0034-0004 | Concluída |
-| story-0034-0004 | Higienizar Classes Compartilhadas | — | story-0034-0003 | story-0034-0005 | Pendente |
+| story-0034-0004 | Higienizar Classes Compartilhadas | — | story-0034-0003 | story-0034-0005 | Concluída |
 | story-0034-0005 | Documentação e Verificação Final | — | story-0034-0004 | — | Pendente |
 
 > **Valores de Status:** `Pendente` (padrão) · `Em Andamento` · `Concluída` · `Falha` · `Bloqueada` · `Parcial`
