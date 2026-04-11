@@ -68,14 +68,16 @@ Logs: `cli-reject-copilot.log`, `cli-reject-codex.log`, `cli-reject-agents.log` 
 
 ### Accepted platforms
 
-| Command | Exit code | Files generated | Status |
-|---|---|---|---|
-| `generate --platform claude-code --stack java-spring --output /tmp/gen-test` | 0 | 343 | PASS |
-| `generate --stack java-spring --output /tmp/gen-default` (default flag) | 0 | 343 | PASS |
+| Command | Exit code | Files on disk (`find`) | CLI category summary total | Status |
+|---|---|---|---|---|
+| `generate --platform claude-code --stack java-spring --output /tmp/gen-test` | 0 | 343 | 219 | PASS |
+| `generate --stack java-spring --output /tmp/gen-default` (default flag) | 0 | 343 | 219 | PASS |
 
-Note on file count: the story DoR target was ~830 ± 5%, derived from a planning estimate. The actual claude-only output for `java-spring` is 343 files (matching the regenerated `expected-artifacts.json` manifest). The reduction from baseline (~9500) is approximately **96%**, exceeding the 91% projection.
+Note on the two file counts: the **343** value is the raw file count reported by `find /tmp/gen-* -type f | wc -l` — it walks the full output directory tree and counts every file, including per-file contents inside skill subdirectories (each skill has a `SKILL.md` plus multiple reference files under `references/`). The **219** value comes from the CLI's verbose summary, which groups files into 15 categories via `FileCategorizer` — the Skills category, for example, counts 149 logical entries that expand to many more files on disk. Both numbers are correct under their respective measurement methods; the CLI display is category-oriented (human-readable summary), while the `find` count is filesystem-oriented (manifest comparison).
 
-Logs: `cli-accept-explicit.log`, `cli-accept-default.log`.
+The story DoR target was ~830 ± 5%, derived from a pre-epic planning estimate. The actual claude-only output for `java-spring` is **343 files on disk** (matching the regenerated `expected-artifacts.json` manifest). The reduction from baseline (~9500) is approximately **96%**, exceeding the 91% projection.
+
+Logs: `cli-accept-explicit.log`, `cli-accept-default.log` (contain the 219 CLI category summary).
 
 ## Step 5 — RULE-003 workflows preservation
 

@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **BREAKING:** CLI `--platform` flag now accepts only `claude-code` (and the backward-compatibility keyword `all`, which is now functionally equivalent to `claude-code`). Previous values `copilot`, `codex`, and `agents` are rejected with a clear error message that lists accepted values. (EPIC-0034 / story-0034-0001)
 - **BREAKING:** Default value of `--platform` is now `claude-code` when the flag is omitted. Previously the default was `all`. (EPIC-0034 / story-0034-0001)
-- Generator output per profile reduced from ~9500 to ~830 artifacts (~91% fewer files). The `expected-artifacts.json` smoke manifest was regenerated to match. (EPIC-0034 / story-0034-0005)
+- Generator output per profile reduced substantially after retiring non-Claude targets (verified example: `java-spring` went from ~9500 manifest entries to 343 actual generated files). The `expected-artifacts.json` smoke manifest was regenerated to match the verified claude-only outputs. (EPIC-0034 / story-0034-0005)
 - `CLAUDE.md` at repo root reduced from 289 to ~115 lines by removing multi-target documentation sections. (EPIC-0034 / story-0034-0005)
 - `readme-template.md` cleaned of `.github/`, `.codex/`, and `.agents/` directory descriptions; artifact-conventions table now lists only Claude artifacts. (EPIC-0034 / story-0034-0005)
 - `README.md` at repo root updated: tagline, overview, CLI reference, "What's Generated" tree, and project-structure diagram all reflect single-target (Claude Code) scope. (EPIC-0034 / story-0034-0005)
@@ -43,7 +43,7 @@ This epic introduces no database migrations and no persistent state changes — 
 
 ### Security
 
-- CLI error messages for rejected platform values contain no class names, stack traces, or file paths (CWE-209 compliance verified via TASK-0034-0005-004 evidence).
+- CLI error messages for rejected platform values contain no class names, stack traces, or file paths (CWE-209 compliance verified via `plans/epic-0034/reports/task-005-004/` evidence).
 - `ReadmeGithubCounter` class and all GitHub-specific readme-generation paths removed (attack surface reduction).
 - `ExpectedArtifactsGenerator` output path verified as a compile-time constant (CWE-22 path traversal risk check, story-0034-0005).
 
