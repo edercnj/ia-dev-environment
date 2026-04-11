@@ -11,8 +11,8 @@ import java.util.List;
  *
  * <p>Implements RULE-012 (Overwrite Detection) by checking whether
  * the destination directory already contains directories that the
- * pipeline would generate: {@code .claude/}, {@code .github/},
- * {@code .codex/}, {@code .agents/}, and SDD directories
+ * pipeline would generate: {@code .claude/}, {@code .codex/},
+ * {@code .agents/}, and SDD directories
  * ({@code steering/}, {@code specs/}, {@code plans/},
  * {@code results/}, {@code contracts/}, {@code adr/}).
  *
@@ -36,7 +36,7 @@ import java.util.List;
 public final class OverwriteDetector {
 
     private static final List<String> ARTIFACT_DIRS = List.of(
-            ".claude", ".github", ".codex", ".agents",
+            ".claude", ".codex", ".agents",
             "steering", "specs", "plans", "results", "contracts", "adr"
     );
 

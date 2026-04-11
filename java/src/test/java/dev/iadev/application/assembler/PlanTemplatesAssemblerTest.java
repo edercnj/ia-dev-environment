@@ -19,8 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for PlanTemplatesAssembler -- copies 15 planning
- * and review templates to .claude/templates/ and
- * .github/templates/.
+ * and review templates to .claude/templates/.
  *
  * <p>TPP order: degenerate (empty source) -> constant
  * (single template) -> collection (all 15) -> conditional
@@ -145,9 +144,8 @@ class PlanTemplatesAssemblerTest {
     class HappyPath {
 
         @Test
-        @DisplayName("copies 15 templates to both targets"
-                + " producing 30 files")
-        void assemble_allValid_copies30Files(
+        @DisplayName("copies 15 templates to .claude/templates/")
+        void assemble_allValid_copies15Files(
                 @TempDir Path tempDir) throws IOException {
             Path resourcesDir =
                     setupAllTemplates(tempDir);
@@ -166,7 +164,7 @@ class PlanTemplatesAssemblerTest {
                             new TemplateEngine(),
                             outputDir);
 
-            assertThat(result.files()).hasSize(30);
+            assertThat(result.files()).hasSize(15);
             assertThat(result.warnings()).isEmpty();
         }
 
@@ -191,31 +189,6 @@ class PlanTemplatesAssemblerTest {
             for (String name : ALL_TEMPLATE_NAMES) {
                 assertThat(outputDir.resolve(
                         ".claude/templates/" + name))
-                        .exists();
-            }
-        }
-
-        @Test
-        @DisplayName("all 15 templates exist in"
-                + " .github/templates/")
-        void assemble_allValid_existsInGithub(
-                @TempDir Path tempDir) throws IOException {
-            Path resourcesDir =
-                    setupAllTemplates(tempDir);
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-
-            PlanTemplatesAssembler assembler =
-                    new PlanTemplatesAssembler(
-                            resourcesDir);
-            assembler.assembleWithResult(
-                    TestConfigBuilder.minimal(),
-                    new TemplateEngine(),
-                    outputDir);
-
-            for (String name : ALL_TEMPLATE_NAMES) {
-                assertThat(outputDir.resolve(
-                        ".github/templates/" + name))
                         .exists();
             }
         }
@@ -250,42 +223,6 @@ class PlanTemplatesAssemblerTest {
         }
 
         @Test
-        @DisplayName("claude and github copies are"
-                + " identical")
-        void assemble_content_bothCopiesIdentical(
-                @TempDir Path tempDir) throws IOException {
-            Path resourcesDir =
-                    setupAllTemplates(tempDir);
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-
-            PlanTemplatesAssembler assembler =
-                    new PlanTemplatesAssembler(
-                            resourcesDir);
-            assembler.assembleWithResult(
-                    TestConfigBuilder.minimal(),
-                    new TemplateEngine(),
-                    outputDir);
-
-            for (String name : ALL_TEMPLATE_NAMES) {
-                String claude = Files.readString(
-                        outputDir.resolve(
-                                ".claude/templates/"
-                                        + name),
-                        StandardCharsets.UTF_8);
-                String github = Files.readString(
-                        outputDir.resolve(
-                                ".github/templates/"
-                                        + name),
-                        StandardCharsets.UTF_8);
-                assertThat(claude)
-                        .as("Both copies of %s must"
-                                + " match", name)
-                        .isEqualTo(github);
-            }
-        }
-
-        @Test
         @DisplayName("output is byte-for-byte identical"
                 + " to source template")
         void assemble_content_byteForByteMatchesSource(
@@ -312,19 +249,9 @@ class PlanTemplatesAssemblerTest {
                         outputDir.resolve(
                                 ".claude/templates/"
                                         + name));
-                byte[] githubOut = Files.readAllBytes(
-                        outputDir.resolve(
-                                ".github/templates/"
-                                        + name));
 
                 assertThat(claudeOut)
                         .as(".claude copy of %s must"
-                                + " be byte-for-byte"
-                                + " identical to source",
-                                name)
-                        .isEqualTo(source);
-                assertThat(githubOut)
-                        .as(".github copy of %s must"
                                 + " be byte-for-byte"
                                 + " identical to source",
                                 name)
@@ -400,7 +327,7 @@ class PlanTemplatesAssemblerTest {
                             new TemplateEngine(),
                             outputDir);
 
-            assertThat(result.files()).hasSize(28);
+            assertThat(result.files()).hasSize(14);
             assertThat(result.warnings())
                     .anyMatch(w -> w.contains(
                             "_TEMPLATE-TEST-PLAN.md"))
@@ -409,10 +336,6 @@ class PlanTemplatesAssemblerTest {
 
             assertThat(outputDir.resolve(
                     ".claude/templates/"
-                            + "_TEMPLATE-TEST-PLAN.md"))
-                    .doesNotExist();
-            assertThat(outputDir.resolve(
-                    ".github/templates/"
                             + "_TEMPLATE-TEST-PLAN.md"))
                     .doesNotExist();
         }
@@ -445,7 +368,7 @@ class PlanTemplatesAssemblerTest {
                             new TemplateEngine(),
                             outputDir);
 
-            assertThat(result.files()).hasSize(28);
+            assertThat(result.files()).hasSize(14);
 
             assertThat(outputDir.resolve(
                     ".claude/templates/"
@@ -485,7 +408,7 @@ class PlanTemplatesAssemblerTest {
                             new TemplateEngine(),
                             outputDir);
 
-            assertThat(result.files()).hasSize(28);
+            assertThat(result.files()).hasSize(14);
             assertThat(result.warnings())
                     .anyMatch(w -> w.contains(
                             "Template not found"))
@@ -555,7 +478,7 @@ class PlanTemplatesAssemblerTest {
                             outputDir);
 
             assertThat(result).isNotNull();
-            assertThat(result.files()).hasSize(30);
+            assertThat(result.files()).hasSize(15);
             assertThat(result.warnings()).isEmpty();
         }
     }
@@ -565,8 +488,8 @@ class PlanTemplatesAssemblerTest {
     class AssembleFileList {
 
         @Test
-        @DisplayName("assemble returns 30 file paths")
-        void assemble_allValid_returns30Paths(
+        @DisplayName("assemble returns 15 file paths")
+        void assemble_allValid_returns15Paths(
                 @TempDir Path tempDir) throws IOException {
             Path resourcesDir =
                     setupAllTemplates(tempDir);
@@ -581,7 +504,7 @@ class PlanTemplatesAssemblerTest {
                     new TemplateEngine(),
                     outputDir);
 
-            assertThat(files).hasSize(30);
+            assertThat(files).hasSize(15);
         }
 
         @Test

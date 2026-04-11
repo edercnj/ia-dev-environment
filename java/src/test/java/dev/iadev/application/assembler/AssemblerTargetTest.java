@@ -20,7 +20,6 @@ class AssemblerTargetTest {
     @CsvSource({
             "ROOT, output",
             "CLAUDE, output/.claude",
-            "GITHUB, output/.github",
             "CODEX, output/.codex",
             "CODEX_AGENTS, output/.agents"
     })
@@ -37,9 +36,9 @@ class AssemblerTargetTest {
     }
 
     @Test
-    @DisplayName("has exactly 5 target values")
-    void values_whenCalled_containsFiveEntries() {
-        assertThat(AssemblerTarget.values()).hasSize(5);
+    @DisplayName("has exactly 4 target values")
+    void values_whenCalled_containsFourEntries() {
+        assertThat(AssemblerTarget.values()).hasSize(4);
     }
 
     @Test

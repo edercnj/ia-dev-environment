@@ -30,8 +30,6 @@ class XReviewPrSkillTemplateTest {
 
     private static final Path CLAUDE_SKILL_PATH =
             resolveClaudeSkillPath();
-    private static final Path GITHUB_SKILL_PATH =
-            resolveGithubSkillPath();
 
     @Nested
     @DisplayName("Phase 0: Idempotency Pre-Check"
@@ -367,67 +365,6 @@ class XReviewPrSkillTemplateTest {
     }
 
     @Nested
-    @DisplayName("GitHub Copilot Variant Consistency")
-    class GithubVariantConsistency {
-
-        @Test
-        @DisplayName("GitHub skill contains"
-                + " idempotency pre-check")
-        void githubSkill_containsIdempotencyPreCheck() {
-            String content = readSkill(GITHUB_SKILL_PATH);
-
-            assertThat(content)
-                    .contains("Phase 0: Idempotency"
-                            + " Pre-Check");
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains dashboard"
-                + " update step")
-        void githubSkill_containsDashboardUpdate() {
-            String content = readSkill(GITHUB_SKILL_PATH);
-
-            assertThat(content)
-                    .contains("Update Consolidated"
-                            + " Dashboard");
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains"
-                + " remediation update step")
-        void githubSkill_containsRemediationUpdate() {
-            String content = readSkill(GITHUB_SKILL_PATH);
-
-            assertThat(content)
-                    .contains("Update Remediation"
-                            + " Tracking");
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains template"
-                + " detection for Tech Lead")
-        void githubSkill_containsTemplateDetection() {
-            String content = readSkill(GITHUB_SKILL_PATH);
-
-            assertThat(content)
-                    .contains("_TEMPLATE-TECH-LEAD-REVIEW"
-                            + ".md")
-                    .contains("TL_TEMPLATE_AVAILABLE");
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains fallback"
-                + " behavior")
-        void githubSkill_containsFallbackBehavior() {
-            String content = readSkill(GITHUB_SKILL_PATH);
-
-            assertThat(content)
-                    .contains("Template not found,"
-                            + " using inline format");
-        }
-    }
-
-    @Nested
     @DisplayName("Step Ordering Consistency")
     class StepOrderingConsistency {
 
@@ -494,20 +431,6 @@ class XReviewPrSkillTemplateTest {
                     "java/src/main/resources/targets/"
                             + "claude/skills/core/"
                             + "x-review-pr/SKILL.md");
-        }
-        return path;
-    }
-
-    private static Path resolveGithubSkillPath() {
-        Path path = Path.of(
-                "src/main/resources/targets/"
-                        + "github-copilot/skills/"
-                        + "review/x-review-pr.md");
-        if (!Files.exists(path)) {
-            path = Path.of(
-                    "java/src/main/resources/targets/"
-                            + "github-copilot/skills/"
-                            + "review/x-review-pr.md");
         }
         return path;
     }

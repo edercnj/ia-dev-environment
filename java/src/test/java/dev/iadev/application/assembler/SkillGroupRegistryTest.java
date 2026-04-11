@@ -108,14 +108,6 @@ class SkillGroupRegistryTest {
                     .get("lib")).hasSize(3);
         }
 
-        @Test
-        @DisplayName("data matches GithubSkillsAssembler"
-                + " delegate")
-        void register_data_matchesDelegate() {
-            assertThat(GithubSkillsAssembler.SKILL_GROUPS)
-                    .isSameAs(
-                            SkillGroupRegistry.SKILL_GROUPS);
-        }
     }
 
     @Nested
@@ -207,15 +199,6 @@ class SkillGroupRegistryTest {
             assertThat(cond.test(none)).isFalse();
         }
 
-        @Test
-        @DisplayName("data matches GithubSkillsAssembler"
-                + " delegate")
-        void register_data_matchesDelegate() {
-            assertThat(GithubSkillsAssembler
-                    .INFRA_SKILL_CONDITIONS)
-                    .isSameAs(SkillGroupRegistry
-                            .INFRA_SKILL_CONDITIONS);
-        }
     }
 
     @Nested

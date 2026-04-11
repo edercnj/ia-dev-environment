@@ -12,10 +12,9 @@ import java.util.Set;
  * active platform set.
  *
  * <p>Produces boolean flags ({@code hasClaude},
- * {@code hasCopilot}, {@code hasCodex},
- * {@code isMultiPlatform}) and a {@code platforms} list
- * with CLI-friendly names for use in README/CLAUDE.md
- * template rendering.</p>
+ * {@code hasCodex}, {@code isMultiPlatform}) and a
+ * {@code platforms} list with CLI-friendly names for use
+ * in README/CLAUDE.md template rendering.</p>
  *
  * <p>When the platform set is empty or contains all
  * user-selectable platforms, all flags are true and the
@@ -38,8 +37,8 @@ public final class PlatformContextBuilder {
      *
      * @param platforms the active platforms; empty or all
      *     user-selectable means "all platforms"
-     * @return an ordered map with hasClaude, hasCopilot,
-     *     hasCodex, isMultiPlatform, and platforms
+     * @return an ordered map with hasClaude, hasCodex,
+     *     isMultiPlatform, and platforms
      */
     public static Map<String, Object> buildPlatformFlags(
             Set<Platform> platforms) {
@@ -50,17 +49,13 @@ public final class PlatformContextBuilder {
 
         boolean claude = effective.contains(
                 Platform.CLAUDE_CODE);
-        boolean copilot = effective.contains(
-                Platform.COPILOT);
         boolean codex = effective.contains(
                 Platform.CODEX);
 
         flags.put("hasClaude", claude);
-        flags.put("hasCopilot", copilot);
         flags.put("hasCodex", codex);
 
-        int activeCount = countActive(
-                claude, copilot, codex);
+        int activeCount = countActive(claude, codex);
         flags.put("isMultiPlatform", activeCount >= 2);
 
         List<String> cliNames = buildCliNames(effective);
@@ -81,13 +76,9 @@ public final class PlatformContextBuilder {
 
     private static int countActive(
             boolean claude,
-            boolean copilot,
             boolean codex) {
         int count = 0;
         if (claude) {
-            count++;
-        }
-        if (copilot) {
             count++;
         }
         if (codex) {

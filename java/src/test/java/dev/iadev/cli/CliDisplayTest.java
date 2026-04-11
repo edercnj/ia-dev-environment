@@ -93,61 +93,6 @@ class CliDisplayTest {
         }
 
         @Test
-        void githubInstructionsPath_whenCalled_classifiedCorrectly() {
-            Map<String, List<String>> result =
-                    CliDisplay.classifyFiles(List.of(
-                            ".github/instructions/coding.instructions.md"));
-
-            assertThat(result)
-                    .containsKey("GitHub Instructions");
-        }
-
-        @Test
-        void githubSkillsPath_whenCalled_classifiedCorrectly() {
-            Map<String, List<String>> result =
-                    CliDisplay.classifyFiles(List.of(
-                            ".github/skills/dev/SKILL.md"));
-
-            assertThat(result).containsKey("GitHub Skills");
-        }
-
-        @Test
-        void githubAgentsPath_whenCalled_classifiedCorrectly() {
-            Map<String, List<String>> result =
-                    CliDisplay.classifyFiles(List.of(
-                            ".github/agents/architect.agent.md"));
-
-            assertThat(result).containsKey("GitHub Agents");
-        }
-
-        @Test
-        void githubHooksPath_whenCalled_classifiedCorrectly() {
-            Map<String, List<String>> result =
-                    CliDisplay.classifyFiles(List.of(
-                            ".github/hooks/post-push.json"));
-
-            assertThat(result).containsKey("GitHub Hooks");
-        }
-
-        @Test
-        void githubPromptsPath_whenCalled_classifiedCorrectly() {
-            Map<String, List<String>> result =
-                    CliDisplay.classifyFiles(List.of(
-                            ".github/prompts/review.prompt.md"));
-
-            assertThat(result).containsKey("GitHub Prompts");
-        }
-
-        @Test
-        void githubCopilotConfig_whenCalled_classifiedCorrectly() {
-            Map<String, List<String>> result =
-                    CliDisplay.classifyFiles(List.of(
-                            ".github/copilot-instructions.md"));
-
-            assertThat(result).containsKey("GitHub Config");
-        }
-
-        @Test
         void codexPath_whenCalled_classifiedCorrectly() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(
@@ -253,12 +198,10 @@ class CliDisplayTest {
                             ".claude/rules/01-identity.md",
                             ".claude/rules/02-domain.md",
                             ".claude/skills/dev/SKILL.md",
-                            ".github/agents/arch.agent.md",
                             "CLAUDE.md"));
 
             assertThat(result.get("Rules")).hasSize(2);
             assertThat(result.get("Skills")).hasSize(1);
-            assertThat(result.get("GitHub Agents")).hasSize(1);
             assertThat(result.get("Root Files")).hasSize(1);
         }
     }

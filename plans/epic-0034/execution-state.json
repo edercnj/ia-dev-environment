@@ -31,7 +31,24 @@
         "plans/epic-0034/plans/planning-report-story-0034-0001.md",
         "plans/epic-0034/plans/dor-story-0034-0001.md"
       ],
-      "notes": "Story text reconciliations: 15 tests not 14, 18 YAMLs not 17, FileCategorizer workflows fall-through documented. RULE-003 mitigation explicit in TASK-005. BREAKING CHANGE commit in TASK-003."
+      "notes": "Story text reconciliations: 15 tests not 14, 18 YAMLs not 17, FileCategorizer workflows fall-through documented. RULE-003 mitigation explicit in TASK-005. BREAKING CHANGE commit in TASK-003.",
+      "status": "SUCCESS",
+      "executionStartedAt": "2026-04-11T00:00:00Z",
+      "executionCompletedAt": "2026-04-11T02:35:00Z",
+      "duration": 9307,
+      "commitSha": "92f40ce57703a1418f101f039626c552444549ad",
+      "branch": "feat/story-0034-0001-remove-github-copilot",
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/274",
+      "prNumber": 274,
+      "prMergeStatus": "OPEN",
+      "coverageLine": 95.47,
+      "coverageBranch": 90.44,
+      "testsUnit": 5499,
+      "testsIntegration": 775,
+      "testFailures": 0,
+      "assemblerCountAfter": 27,
+      "summary": "6 atomic commits. BREAKING CHANGE in 576a30383. 34→27 assemblers. 5 orphan helpers + 2 tests deleted to maintain coverage. PlanTemplates/EpicReport assemblers stopped dual-targeting .github/templates/. Goldens regenerated. 95 .github/workflows/ preserved (RULE-003). PR #274 OPEN awaiting review.",
+      "findingsCount": 0
     },
     "story-0034-0002": {
       "id": "story-0034-0002",

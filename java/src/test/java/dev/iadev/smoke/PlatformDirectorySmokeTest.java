@@ -125,64 +125,6 @@ class PlatformDirectorySmokeTest {
     }
 
     @Nested
-    @DisplayName("copilot — directories")
-    class Copilot {
-
-        @ParameterizedTest(name = "{0}")
-        @MethodSource("dev.iadev.smoke."
-                + "PlatformDirectorySmokeTest"
-                + "#representativeProfiles")
-        @DisplayName(".github/ exists with instructions, "
-                + "skills, agents")
-        void copilot_githubDirHasContent(
-                String profile) throws IOException {
-            Path out = runForPlatform(
-                    profile, Set.of(Platform.COPILOT));
-
-            assertThat(out.resolve(".github"))
-                    .isDirectory();
-            assertThat(out.resolve(
-                    ".github/instructions"))
-                    .isDirectory();
-            assertThat(out.resolve(".github/skills"))
-                    .isDirectory();
-            assertThat(out.resolve(".github/agents"))
-                    .isDirectory();
-            assertThat(countFilesIn(
-                    out.resolve(".github")))
-                    .as("github dir should have files")
-                    .isPositive();
-        }
-
-        @ParameterizedTest(name = "{0}")
-        @MethodSource("dev.iadev.smoke."
-                + "PlatformDirectorySmokeTest"
-                + "#representativeProfiles")
-        @DisplayName(".claude/rules/ does NOT exist "
-                + "(claude-specific)")
-        void copilot_claudeRulesAbsent(String profile) {
-            Path out = runForPlatform(
-                    profile, Set.of(Platform.COPILOT));
-
-            assertThat(out.resolve(".claude/rules"))
-                    .doesNotExist();
-        }
-
-        @ParameterizedTest(name = "{0}")
-        @MethodSource("dev.iadev.smoke."
-                + "PlatformDirectorySmokeTest"
-                + "#representativeProfiles")
-        @DisplayName(".codex/ does NOT exist")
-        void copilot_codexAbsent(String profile) {
-            Path out = runForPlatform(
-                    profile, Set.of(Platform.COPILOT));
-
-            assertThat(out.resolve(".codex"))
-                    .doesNotExist();
-        }
-    }
-
-    @Nested
     @DisplayName("codex — directories")
     class Codex {
 
@@ -231,21 +173,6 @@ class PlatformDirectorySmokeTest {
                     .doesNotExist();
         }
 
-        @ParameterizedTest(name = "{0}")
-        @MethodSource("dev.iadev.smoke."
-                + "PlatformDirectorySmokeTest"
-                + "#representativeProfiles")
-        @DisplayName(".github/instructions/ does NOT "
-                + "exist (copilot-specific)")
-        void codex_githubInstructionsAbsent(
-                String profile) {
-            Path out = runForPlatform(
-                    profile, Set.of(Platform.CODEX));
-
-            assertThat(out.resolve(
-                    ".github/instructions"))
-                    .doesNotExist();
-        }
     }
 
     @Nested
@@ -260,19 +187,6 @@ class PlatformDirectorySmokeTest {
         void claude_adrPresent(String profile) {
             Path out = runForPlatform(
                     profile, Set.of(Platform.CLAUDE_CODE));
-
-            assertThat(out.resolve("adr"))
-                    .isDirectory();
-        }
-
-        @ParameterizedTest(name = "{0}")
-        @MethodSource("dev.iadev.smoke."
-                + "PlatformDirectorySmokeTest"
-                + "#representativeProfiles")
-        @DisplayName("adr/ present for COPILOT")
-        void copilot_adrPresent(String profile) {
-            Path out = runForPlatform(
-                    profile, Set.of(Platform.COPILOT));
 
             assertThat(out.resolve("adr"))
                     .isDirectory();

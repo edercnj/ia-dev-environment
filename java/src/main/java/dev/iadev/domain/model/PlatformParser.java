@@ -24,7 +24,7 @@ import java.util.Set;
 final class PlatformParser {
 
     private static final String VALID_VALUES =
-            "claude-code, copilot, codex, all";
+            "claude-code, codex, all";
 
     private PlatformParser() {
         // utility class

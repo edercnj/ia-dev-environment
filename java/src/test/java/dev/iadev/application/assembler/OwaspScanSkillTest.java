@@ -496,73 +496,6 @@ class OwaspScanSkillTest {
     }
 
     @Nested
-    @DisplayName("GitHub Copilot SKILL.md")
-    class GithubCopilotSkill {
-
-        @Test
-        @DisplayName("GitHub SKILL.md exists"
-                + " after assembly")
-        void assemble_github_owaspScanExists(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir =
-                    generateGithubOutput(tempDir);
-            Path skillMd = outputDir.resolve(
-                    "skills/x-owasp-scan/SKILL.md");
-            assertThat(skillMd).exists();
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains OWASP"
-                + " reference")
-        void assemble_github_owaspScanHasOwasp(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .contains("OWASP");
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains name:"
-                + " x-owasp-scan")
-        void assemble_github_owaspScanHasName(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .contains("name: x-owasp-scan");
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains ASVS"
-                + " mapping")
-        void assemble_github_owaspScanHasAsvsMapping(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .contains("ASVS");
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains A06"
-                + " delegation")
-        void assemble_github_owaspScanHasDelegation(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .contains("DELEGATED")
-                    .contains("x-dependency-audit");
-        }
-    }
-
-    @Nested
     @DisplayName("SkillGroupRegistry -- Review Group")
     class RegistryReviewGroup {
 
@@ -608,24 +541,4 @@ class OwaspScanSkillTest {
                 StandardCharsets.UTF_8);
     }
 
-    private Path generateGithubOutput(Path tempDir)
-            throws IOException {
-        Path outputDir = tempDir.resolve("output");
-        Files.createDirectories(outputDir);
-        GithubSkillsAssembler assembler =
-                new GithubSkillsAssembler();
-        assembler.assemble(
-                TestConfigBuilder.minimal(),
-                new TemplateEngine(), outputDir);
-        return outputDir;
-    }
-
-    private String generateGithubContent(Path tempDir)
-            throws IOException {
-        Path outputDir = generateGithubOutput(tempDir);
-        return Files.readString(
-                outputDir.resolve(
-                        "skills/x-owasp-scan/SKILL.md"),
-                StandardCharsets.UTF_8);
-    }
 }

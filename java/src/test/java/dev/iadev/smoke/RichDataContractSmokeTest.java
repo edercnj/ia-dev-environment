@@ -34,8 +34,7 @@ class RichDataContractSmokeTest extends SmokeTestBase {
     private static final List<String> SKILL_PATHS = List.of(
             ".claude/skills/x-story-create/SKILL.md",
             ".codex/skills/x-story-create/SKILL.md",
-            ".agents/skills/x-story-create/SKILL.md",
-            ".github/skills/x-story-create/SKILL.md");
+            ".agents/skills/x-story-create/SKILL.md");
 
     @Nested
     @DisplayName("Request table format")

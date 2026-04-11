@@ -31,8 +31,6 @@ class PlatformContextBuilderTest {
 
             assertThat(flags.get("hasClaude"))
                     .isEqualTo(true);
-            assertThat(flags.get("hasCopilot"))
-                    .isEqualTo(true);
             assertThat(flags.get("hasCodex"))
                     .isEqualTo(true);
             assertThat(flags.get("isMultiPlatform"))
@@ -50,26 +48,6 @@ class PlatformContextBuilderTest {
 
             assertThat(flags.get("hasClaude"))
                     .isEqualTo(true);
-            assertThat(flags.get("hasCopilot"))
-                    .isEqualTo(false);
-            assertThat(flags.get("hasCodex"))
-                    .isEqualTo(false);
-            assertThat(flags.get("isMultiPlatform"))
-                    .isEqualTo(false);
-        }
-
-        @Test
-        @DisplayName("only copilot when copilot selected")
-        void buildFlags_copilotOnly_onlyCopilot() {
-            Map<String, Object> flags =
-                    PlatformContextBuilder
-                            .buildPlatformFlags(
-                                    Set.of(Platform.COPILOT));
-
-            assertThat(flags.get("hasClaude"))
-                    .isEqualTo(false);
-            assertThat(flags.get("hasCopilot"))
-                    .isEqualTo(true);
             assertThat(flags.get("hasCodex"))
                     .isEqualTo(false);
             assertThat(flags.get("isMultiPlatform"))
@@ -86,8 +64,6 @@ class PlatformContextBuilderTest {
 
             assertThat(flags.get("hasClaude"))
                     .isEqualTo(false);
-            assertThat(flags.get("hasCopilot"))
-                    .isEqualTo(false);
             assertThat(flags.get("hasCodex"))
                     .isEqualTo(true);
             assertThat(flags.get("isMultiPlatform"))
@@ -101,14 +77,12 @@ class PlatformContextBuilderTest {
                     PlatformContextBuilder
                             .buildPlatformFlags(
                                     Set.of(Platform.CLAUDE_CODE,
-                                            Platform.COPILOT));
+                                            Platform.CODEX));
 
             assertThat(flags.get("hasClaude"))
                     .isEqualTo(true);
-            assertThat(flags.get("hasCopilot"))
-                    .isEqualTo(true);
             assertThat(flags.get("hasCodex"))
-                    .isEqualTo(false);
+                    .isEqualTo(true);
             assertThat(flags.get("isMultiPlatform"))
                     .isEqualTo(true);
         }
@@ -124,8 +98,6 @@ class PlatformContextBuilderTest {
 
             assertThat(flags.get("hasClaude"))
                     .isEqualTo(true);
-            assertThat(flags.get("hasCopilot"))
-                    .isEqualTo(true);
             assertThat(flags.get("hasCodex"))
                     .isEqualTo(true);
             assertThat(flags.get("isMultiPlatform"))
@@ -139,14 +111,14 @@ class PlatformContextBuilderTest {
                     PlatformContextBuilder
                             .buildPlatformFlags(
                                     Set.of(Platform.CLAUDE_CODE,
-                                            Platform.COPILOT));
+                                            Platform.CODEX));
 
             @SuppressWarnings("unchecked")
             List<String> platforms =
                     (List<String>) flags.get("platforms");
             assertThat(platforms)
                     .containsExactlyInAnyOrder(
-                            "claude-code", "copilot");
+                            "claude-code", "codex");
         }
 
         @Test
@@ -161,7 +133,7 @@ class PlatformContextBuilderTest {
                     (List<String>) flags.get("platforms");
             assertThat(platforms)
                     .containsExactlyInAnyOrder(
-                            "claude-code", "copilot", "codex");
+                            "claude-code", "codex");
         }
     }
 }

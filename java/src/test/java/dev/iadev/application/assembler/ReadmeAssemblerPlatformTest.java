@@ -92,7 +92,7 @@ class ReadmeAssemblerPlatformTest {
                             Set.of());
 
             assertThat(content)
-                    .contains("| .claude/ | .github/");
+                    .contains("| .claude/ | .codex/");
         }
 
         @Test

@@ -315,8 +315,8 @@ class ReadmeTablesTest {
     class BuildMappingTable {
 
         @Test
-        @DisplayName("contains 9 mapping rows")
-        void create_whenCalled_containsNineMappingRows(
+        @DisplayName("contains 6 mapping rows")
+        void create_whenCalled_containsSixMappingRows(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir =
                     Files.createDirectories(
@@ -326,12 +326,11 @@ class ReadmeTablesTest {
                     .buildMappingTable(claudeDir);
 
             assertThat(table)
-                    .contains("| .claude/ | .github/"
-                            + " | .codex/ | Notes |");
+                    .contains("| .claude/ | .codex/"
+                            + " | Notes |");
             assertThat(table)
                     .contains("`.codex/requirements.toml`")
                     .contains("`AGENTS.override.md`");
-            // Header + separator + 9 rows
             String[] lines = table.split("\n");
             int dataRows = 0;
             for (String line : lines) {
@@ -341,7 +340,7 @@ class ReadmeTablesTest {
                     dataRows++;
                 }
             }
-            assertThat(dataRows).isEqualTo(9);
+            assertThat(dataRows).isEqualTo(6);
         }
 
         @Test
@@ -357,29 +356,6 @@ class ReadmeTablesTest {
 
             assertThat(table).contains("\u2192");
         }
-
-        @Test
-        @DisplayName("includes github total when dir"
-                + " exists")
-        void create_whenCalled_includesGithubTotal(@TempDir Path tempDir)
-                throws IOException {
-            Path claudeDir =
-                    Files.createDirectories(
-                            tempDir.resolve(".claude"));
-            Path githubDir =
-                    Files.createDirectories(
-                            tempDir.resolve(".github"));
-            Files.writeString(
-                    githubDir.resolve("copilot.md"),
-                    "c", StandardCharsets.UTF_8);
-
-            String table = ReadmeTables
-                    .buildMappingTable(claudeDir);
-
-            assertThat(table)
-                    .contains("**Total .github/"
-                            + " artifacts: 1**");
-        }
     }
 
     @Nested
@@ -387,8 +363,8 @@ class ReadmeTablesTest {
     class BuildGenerationSummary {
 
         @Test
-        @DisplayName("contains 18 component rows")
-        void create_whenCalled_containsEighteenComponents(
+        @DisplayName("contains 11 component rows")
+        void create_whenCalled_containsElevenComponents(
                 @TempDir Path tempDir)
                 throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
@@ -402,7 +378,6 @@ class ReadmeTablesTest {
             assertThat(summary)
                     .contains("| Component | Count |")
                     .contains("|-----------|-------|");
-            // Count data rows
             int dataRows = 0;
             for (String line : summary.split("\n")) {
                 if (line.startsWith("| ")
@@ -411,7 +386,7 @@ class ReadmeTablesTest {
                     dataRows++;
                 }
             }
-            assertThat(dataRows).isEqualTo(18);
+            assertThat(dataRows).isEqualTo(11);
         }
 
         @Test
@@ -450,12 +425,6 @@ class ReadmeTablesTest {
                     .contains("Agents (.claude)")
                     .contains("Hooks (.claude)")
                     .contains("Settings (.claude)")
-                    .contains("Instructions (.github)")
-                    .contains("Skills (.github)")
-                    .contains("Agents (.github)")
-                    .contains("Prompts (.github)")
-                    .contains("Hooks (.github)")
-                    .contains("MCP (.github)")
                     .contains("AGENTS.md (root)")
                     .contains("AGENTS.override.md (root)")
                     .contains("Codex (.codex)")
@@ -464,12 +433,8 @@ class ReadmeTablesTest {
 
         private Path setupMinimalOutput(Path tempDir)
                 throws IOException {
-            Path claudeDir =
-                    Files.createDirectories(
-                            tempDir.resolve(".claude"));
-            Files.createDirectories(
-                    tempDir.resolve(".github"));
-            return claudeDir;
+            return Files.createDirectories(
+                    tempDir.resolve(".claude"));
         }
     }
 

@@ -410,47 +410,6 @@ class CiCdGenerateSkillTest {
     }
 
     @Nested
-    @DisplayName("GitHub Copilot SKILL.md")
-    class GithubCopilotSkill {
-
-        @Test
-        @DisplayName("x-ci-generate GitHub SKILL.md"
-                + " exists after assembly")
-        void assemble_github_ciCdGenerateExists(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = generateGithubOutput(tempDir);
-            Path skillMd = outputDir.resolve(
-                    "skills/x-ci-generate/SKILL.md");
-            assertThat(skillMd).exists();
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains CI/CD"
-                + " reference")
-        void assemble_github_ciCdGenerateHasCiCd(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .contains("CI/CD");
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains name:"
-                + " x-ci-generate")
-        void assemble_github_ciCdGenerateHasName(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .contains("name: x-ci-generate");
-        }
-    }
-
-    @Nested
     @DisplayName("SkillGroupRegistry -- Dev Group")
     class RegistryDevGroup {
 
@@ -485,24 +444,4 @@ class CiCdGenerateSkillTest {
                 StandardCharsets.UTF_8);
     }
 
-    private Path generateGithubOutput(Path tempDir)
-            throws IOException {
-        Path outputDir = tempDir.resolve("output");
-        Files.createDirectories(outputDir);
-        GithubSkillsAssembler assembler =
-                new GithubSkillsAssembler();
-        assembler.assemble(
-                TestConfigBuilder.minimal(),
-                new TemplateEngine(), outputDir);
-        return outputDir;
-    }
-
-    private String generateGithubContent(Path tempDir)
-            throws IOException {
-        Path outputDir = generateGithubOutput(tempDir);
-        return Files.readString(
-                outputDir.resolve(
-                        "skills/x-ci-generate/SKILL.md"),
-                StandardCharsets.UTF_8);
-    }
 }

@@ -19,8 +19,6 @@ class SummaryRowFilterTest {
     private static final Object[][] ALL_ROWS = {
             {"Rules (.claude)", 6},
             {"Skills (.claude)", 14},
-            {"Instructions (.github)", 5},
-            {"Skills (.github)", 32},
             {"AGENTS.md (root)", 1},
             {"Codex (.codex)", 2},
             {"Skills (.agents)", 3},
@@ -63,18 +61,6 @@ class SummaryRowFilterTest {
                     .contains("(.claude)");
             assertThat((String) result[1][0])
                     .contains("(.claude)");
-        }
-
-        @Test
-        @DisplayName("copilot-only keeps only .github rows")
-        void filter_copilotOnly_keepsGithubRows() {
-            Object[][] result = SummaryRowFilter.filter(
-                    ALL_ROWS,
-                    Set.of(Platform.COPILOT));
-
-            assertThat(result.length).isEqualTo(2);
-            assertThat((String) result[0][0])
-                    .contains("(.github)");
         }
 
         @Test

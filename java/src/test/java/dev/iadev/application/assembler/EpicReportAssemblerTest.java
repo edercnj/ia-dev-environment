@@ -128,9 +128,8 @@ class EpicReportAssemblerTest {
     class Assemble {
 
         @Test
-        @DisplayName("copies template to .claude/templates/"
-                + " and .github/templates/")
-        void assemble_whenCalled_copiesToBothDestinations(
+        @DisplayName("copies template to .claude/templates/")
+        void assemble_whenCalled_copiesToClaude(
                 @TempDir Path tempDir) throws IOException {
             Path resourcesDir = setupResources(tempDir);
             Path outputDir = tempDir.resolve("output");
@@ -144,14 +143,9 @@ class EpicReportAssemblerTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).hasSize(2);
+            assertThat(files).hasSize(1);
             assertThat(outputDir.resolve(
                     ".claude/templates/"
-                            + "_TEMPLATE-EPIC-EXECUTION"
-                            + "-REPORT.md"))
-                    .exists();
-            assertThat(outputDir.resolve(
-                    ".github/templates/"
                             + "_TEMPLATE-EPIC-EXECUTION"
                             + "-REPORT.md"))
                     .exists();
@@ -258,7 +252,7 @@ class EpicReportAssemblerTest {
 
             String content = Files.readString(
                     outputDir.resolve(
-                            ".github/templates/"
+                            ".claude/templates/"
                                     + "_TEMPLATE-EPIC"
                                     + "-EXECUTION"
                                     + "-REPORT.md"),
@@ -268,41 +262,6 @@ class EpicReportAssemblerTest {
                     .contains("{{BRANCH}}")
                     .contains("{{STORIES_COMPLETED}}")
                     .contains("{{PR_LINK}}");
-        }
-
-        @Test
-        @DisplayName("both copies are identical")
-        void assemble_both_copiesIdentical(
-                @TempDir Path tempDir) throws IOException {
-            Path resourcesDir = setupResources(tempDir);
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-
-            EpicReportAssembler assembler =
-                    new EpicReportAssembler(resourcesDir);
-            ProjectConfig config =
-                    TestConfigBuilder.minimal();
-
-            assembler.assemble(
-                    config, new TemplateEngine(), outputDir);
-
-            String claudeContent = Files.readString(
-                    outputDir.resolve(
-                            ".claude/templates/"
-                                    + "_TEMPLATE-EPIC"
-                                    + "-EXECUTION"
-                                    + "-REPORT.md"),
-                    StandardCharsets.UTF_8);
-            String githubContent = Files.readString(
-                    outputDir.resolve(
-                            ".github/templates/"
-                                    + "_TEMPLATE-EPIC"
-                                    + "-EXECUTION"
-                                    + "-REPORT.md"),
-                    StandardCharsets.UTF_8);
-
-            assertThat(claudeContent)
-                    .isEqualTo(githubContent);
         }
 
         private Path setupResources(Path tempDir)
@@ -341,7 +300,7 @@ class EpicReportAssemblerTest {
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
-            assertThat(files).hasSize(2);
+            assertThat(files).hasSize(1);
 
             String golden = loadGolden(
                     "golden/kotlin-ktor/.claude/templates/"

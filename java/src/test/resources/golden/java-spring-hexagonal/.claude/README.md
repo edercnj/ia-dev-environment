@@ -51,19 +51,14 @@ CLAUDE.md                   <-- Executive summary (project root, loaded automati
 
 ### .claude/ <-> .github/ <-> .codex/ Mapping
 
-| .claude/ | .github/ | .codex/ | Notes |
-|----------|----------|---------|-------|
-| Rules (`rules/*.md`) | Instructions (`instructions/*.instructions.md`) | Sections in `AGENTS.md` | Rules → consolidated sections |
-| Skills (`skills/*/SKILL.md`) | Skills (`skills/*/SKILL.md`) | Skills (`.agents/skills/` + `.codex/skills/`) | Dual output with identical content |
-| Agents (`agents/*.md`) | Agents (`agents/*.agent.md`) | Sections (`[agents.*]`) in `config.toml` | Agents represented as TOML sections |
-| Hooks (`hooks/`) | Hooks (`hooks/*.json`) | Reference in `AGENTS.md` | Hooks influence approval_policy |
-| Settings (`settings*.json`) | N/A | `.codex/config.toml` + `.codex/requirements.toml` | Runtime and enforced policies |
-| N/A | N/A | `AGENTS.md` + `AGENTS.override.md` (root) | Base instructions + local override |
-| N/A | Prompts (`prompts/*.prompt.md`) | N/A | GitHub Copilot prompt templates |
-| N/A | MCP (`copilot-mcp.json`) | N/A | GitHub Copilot MCP server configuration |
-| N/A | Global instructions (`copilot-instructions.md`) | N/A | Loaded in every Copilot session |
-
-**Total .github/ artifacts: 137**
+| .claude/ | .codex/ | Notes |
+|----------|---------|-------|
+| Rules (`rules/*.md`) | Sections in `AGENTS.md` | Rules → consolidated sections |
+| Skills (`skills/*/SKILL.md`) | Skills (`.agents/skills/` + `.codex/skills/`) | Dual output with identical content |
+| Agents (`agents/*.md`) | Sections (`[agents.*]`) in `config.toml` | Agents represented as TOML sections |
+| Hooks (`hooks/`) | Reference in `AGENTS.md` | Hooks influence approval_policy |
+| Settings (`settings*.json`) | `.codex/config.toml` + `.codex/requirements.toml` | Runtime and enforced policies |
+| N/A | `AGENTS.md` + `AGENTS.override.md` (root) | Base instructions + local override |
 
 > Generated only when the corresponding platform is selected via `--platform`.
 
@@ -339,13 +334,6 @@ See the files directly for current configuration.
 | Hooks (.claude) | 1 |
 | Settings (.claude) | 2 |
 | Plan Templates (.claude) | 16 |
-| Instructions (.github) | 5 |
-| Skills (.github) | 73 |
-| Agents (.github) | 11 |
-| Prompts (.github) | 4 |
-| Hooks (.github) | 3 |
-| Plan Templates (.github) | 16 |
-| MCP (.github) | 0 |
 | AGENTS.md (root) | 1 |
 | AGENTS.override.md (root) | 1 |
 | Codex (.codex) | 164 |

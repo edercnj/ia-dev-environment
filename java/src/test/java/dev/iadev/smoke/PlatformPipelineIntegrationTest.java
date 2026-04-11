@@ -86,40 +86,6 @@ class PlatformPipelineIntegrationTest {
         }
 
         @Test
-        @DisplayName(".github/instructions/ is ABSENT "
-                + "(copilot-specific)")
-        void claudeCode_githubInstructionsAbsent() {
-            Path out = runWithPlatforms(
-                    Set.of(Platform.CLAUDE_CODE));
-
-            assertThat(out.resolve(
-                    ".github/instructions"))
-                    .doesNotExist();
-        }
-
-        @Test
-        @DisplayName(".github/skills/ is ABSENT "
-                + "(copilot-specific)")
-        void claudeCode_githubSkillsAbsent() {
-            Path out = runWithPlatforms(
-                    Set.of(Platform.CLAUDE_CODE));
-
-            assertThat(out.resolve(".github/skills"))
-                    .doesNotExist();
-        }
-
-        @Test
-        @DisplayName(".github/agents/ is ABSENT "
-                + "(copilot-specific)")
-        void claudeCode_githubAgentsAbsent() {
-            Path out = runWithPlatforms(
-                    Set.of(Platform.CLAUDE_CODE));
-
-            assertThat(out.resolve(".github/agents"))
-                    .doesNotExist();
-        }
-
-        @Test
         @DisplayName(".codex/ directory is ABSENT")
         void claudeCode_codexDirAbsent() {
             Path out = runWithPlatforms(
@@ -147,94 +113,6 @@ class PlatformPipelineIntegrationTest {
 
             assertThat(out.resolve("adr"))
                     .isDirectory();
-        }
-    }
-
-    @Nested
-    @DisplayName("COPILOT filter")
-    class CopilotFilter {
-
-        @Test
-        @DisplayName(".github/ directory is present")
-        void copilot_githubDirPresent() {
-            Path out = runWithPlatforms(
-                    Set.of(Platform.COPILOT));
-
-            assertThat(out.resolve(".github"))
-                    .isDirectory();
-        }
-
-        @Test
-        @DisplayName(".github/instructions/ exists")
-        void copilot_instructionsSubdirExists() {
-            Path out = runWithPlatforms(
-                    Set.of(Platform.COPILOT));
-
-            assertThat(out.resolve(
-                    ".github/instructions"))
-                    .isDirectory();
-        }
-
-        @Test
-        @DisplayName(".github/skills/ exists")
-        void copilot_skillsSubdirExists() {
-            Path out = runWithPlatforms(
-                    Set.of(Platform.COPILOT));
-
-            assertThat(out.resolve(".github/skills"))
-                    .isDirectory();
-        }
-
-        @Test
-        @DisplayName(".github/agents/ exists")
-        void copilot_agentsSubdirExists() {
-            Path out = runWithPlatforms(
-                    Set.of(Platform.COPILOT));
-
-            assertThat(out.resolve(".github/agents"))
-                    .isDirectory();
-        }
-
-        @Test
-        @DisplayName(".claude/rules/ is ABSENT "
-                + "(claude-specific)")
-        void copilot_claudeRulesAbsent() {
-            Path out = runWithPlatforms(
-                    Set.of(Platform.COPILOT));
-
-            assertThat(out.resolve(".claude/rules"))
-                    .doesNotExist();
-        }
-
-        @Test
-        @DisplayName(".claude/skills/ is ABSENT "
-                + "(claude-specific)")
-        void copilot_claudeSkillsAbsent() {
-            Path out = runWithPlatforms(
-                    Set.of(Platform.COPILOT));
-
-            assertThat(out.resolve(".claude/skills"))
-                    .doesNotExist();
-        }
-
-        @Test
-        @DisplayName(".codex/ directory is ABSENT")
-        void copilot_codexDirAbsent() {
-            Path out = runWithPlatforms(
-                    Set.of(Platform.COPILOT));
-
-            assertThat(out.resolve(".codex"))
-                    .doesNotExist();
-        }
-
-        @Test
-        @DisplayName(".agents/ directory is ABSENT")
-        void copilot_agentsDirAbsent() {
-            Path out = runWithPlatforms(
-                    Set.of(Platform.COPILOT));
-
-            assertThat(out.resolve(".agents"))
-                    .doesNotExist();
         }
     }
 
@@ -284,75 +162,40 @@ class PlatformPipelineIntegrationTest {
                     .doesNotExist();
         }
 
-        @Test
-        @DisplayName(".github/instructions/ is ABSENT "
-                + "(copilot-specific)")
-        void codex_githubInstructionsAbsent() {
-            Path out = runWithPlatforms(
-                    Set.of(Platform.CODEX));
-
-            assertThat(out.resolve(
-                    ".github/instructions"))
-                    .doesNotExist();
-        }
     }
 
     @Nested
-    @DisplayName("CLAUDE_CODE + COPILOT composition")
-    class ClaudeAndCopilot {
+    @DisplayName("CLAUDE_CODE + CODEX composition")
+    class ClaudeAndCodex {
 
         @Test
         @DisplayName(".claude/ directory is present")
-        void claudeAndCopilot_claudePresent() {
+        void claudeAndCodex_claudePresent() {
             Path out = runWithPlatforms(Set.of(
                     Platform.CLAUDE_CODE,
-                    Platform.COPILOT));
+                    Platform.CODEX));
 
             assertThat(out.resolve(".claude"))
                     .isDirectory();
         }
 
         @Test
-        @DisplayName(".github/ directory is present")
-        void claudeAndCopilot_githubPresent() {
+        @DisplayName(".codex/ directory is present")
+        void claudeAndCodex_codexPresent() {
             Path out = runWithPlatforms(Set.of(
                     Platform.CLAUDE_CODE,
-                    Platform.COPILOT));
+                    Platform.CODEX));
 
-            assertThat(out.resolve(".github"))
+            assertThat(out.resolve(".codex"))
                     .isDirectory();
         }
 
         @Test
-        @DisplayName(".codex/ config is ABSENT "
-                + "(codex-specific)")
-        void claudeAndCopilot_codexConfigAbsent() {
-            Path out = runWithPlatforms(Set.of(
-                    Platform.CLAUDE_CODE,
-                    Platform.COPILOT));
-
-            assertThat(out.resolve(".codex"))
-                    .doesNotExist();
-        }
-
-        @Test
-        @DisplayName(".agents/skills/ is ABSENT "
-                + "(codex-specific)")
-        void claudeAndCopilot_agentsSkillsAbsent() {
-            Path out = runWithPlatforms(Set.of(
-                    Platform.CLAUDE_CODE,
-                    Platform.COPILOT));
-
-            assertThat(out.resolve(".agents"))
-                    .doesNotExist();
-        }
-
-        @Test
         @DisplayName("shared adr/ directory is present")
-        void claudeAndCopilot_sharedPresent() {
+        void claudeAndCodex_sharedPresent() {
             Path out = runWithPlatforms(Set.of(
                     Platform.CLAUDE_CODE,
-                    Platform.COPILOT));
+                    Platform.CODEX));
 
             assertThat(out.resolve("adr"))
                     .isDirectory();
@@ -369,8 +212,6 @@ class PlatformPipelineIntegrationTest {
             Path out = runWithPlatforms(Set.of());
 
             assertThat(out.resolve(".claude"))
-                    .isDirectory();
-            assertThat(out.resolve(".github"))
                     .isDirectory();
             assertThat(out.resolve(".codex"))
                     .isDirectory();
@@ -403,10 +244,10 @@ class PlatformPipelineIntegrationTest {
     class CliOverridesYaml {
 
         @Test
-        @DisplayName("CLI copilot overrides YAML "
-                + "claude-code — .github/ present, "
+        @DisplayName("CLI codex overrides YAML "
+                + "claude-code — .codex/ present, "
                 + ".claude/ absent")
-        void cliOverridesYaml_copilotWins() {
+        void cliOverridesYaml_codexWins() {
             ProjectConfig yamlConfig =
                     ConfigProfiles.getStack(PROFILE);
             ProjectConfig configWithClaude =
@@ -426,16 +267,16 @@ class PlatformPipelineIntegrationTest {
                             yamlConfig.branchingModel());
 
             Set<Platform> cliPlatforms =
-                    Set.of(Platform.COPILOT);
+                    Set.of(Platform.CODEX);
             Path out = runWithConfigAndPlatforms(
                     configWithClaude, cliPlatforms);
 
-            assertThat(out.resolve(".github/instructions"))
-                    .as("CLI copilot wins: "
-                            + ".github/instructions present")
+            assertThat(out.resolve(".codex"))
+                    .as("CLI codex wins: "
+                            + ".codex present")
                     .isDirectory();
             assertThat(out.resolve(".claude/rules"))
-                    .as("CLI copilot wins: "
+                    .as("CLI codex wins: "
                             + ".claude/rules absent")
                     .doesNotExist();
         }

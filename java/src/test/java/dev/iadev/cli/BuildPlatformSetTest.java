@@ -103,11 +103,11 @@ class BuildPlatformSetTest {
             Set<Platform> result =
                     PlatformPrecedenceResolver.buildPlatformSet(
                             List.of(Platform.CLAUDE_CODE,
-                                    Platform.COPILOT));
+                                    Platform.CODEX));
 
             assertThat(result).containsExactlyInAnyOrder(
                     Platform.CLAUDE_CODE,
-                    Platform.COPILOT);
+                    Platform.CODEX);
         }
 
         @Test

@@ -27,8 +27,8 @@ class SummaryTableBuilderTest {
     class BuildGenerationSummary {
 
         @Test
-        @DisplayName("contains 18 component rows")
-        void build_whenCalled_containsEighteenComponents(
+        @DisplayName("contains 11 component rows")
+        void build_whenCalled_containsElevenComponents(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
 
@@ -47,7 +47,7 @@ class SummaryTableBuilderTest {
                     dataRows++;
                 }
             }
-            assertThat(dataRows).isEqualTo(18);
+            assertThat(dataRows).isEqualTo(11);
         }
 
         @Test
@@ -83,13 +83,6 @@ class SummaryTableBuilderTest {
                     .contains("Hooks (.claude)")
                     .contains("Settings (.claude)")
                     .contains("Plan Templates (.claude)")
-                    .contains("Instructions (.github)")
-                    .contains("Skills (.github)")
-                    .contains("Agents (.github)")
-                    .contains("Prompts (.github)")
-                    .contains("Hooks (.github)")
-                    .contains("Plan Templates (.github)")
-                    .contains("MCP (.github)")
                     .contains("AGENTS.md (root)")
                     .contains("AGENTS.override.md (root)")
                     .contains("Codex (.codex)")
@@ -104,19 +97,9 @@ class SummaryTableBuilderTest {
             Path claudeTemplates =
                     Files.createDirectories(
                             claudeDir.resolve("templates"));
-            Path githubTemplates =
-                    Files.createDirectories(
-                            tempDir.resolve(".github")
-                                    .resolve("templates"));
             for (int i = 1; i <= 12; i++) {
                 Files.writeString(
                         claudeTemplates.resolve(
-                                "_TEMPLATE-PLAN-" + i
-                                        + ".md"),
-                        "content",
-                        StandardCharsets.UTF_8);
-                Files.writeString(
-                        githubTemplates.resolve(
                                 "_TEMPLATE-PLAN-" + i
                                         + ".md"),
                         "content",
@@ -129,8 +112,6 @@ class SummaryTableBuilderTest {
 
             assertThat(summary)
                     .contains("Plan Templates (.claude)"
-                            + " | 12 |")
-                    .contains("Plan Templates (.github)"
                             + " | 12 |");
         }
 
@@ -172,12 +153,8 @@ class SummaryTableBuilderTest {
 
         private Path setupMinimalOutput(Path tempDir)
                 throws IOException {
-            Path claudeDir =
-                    Files.createDirectories(
-                            tempDir.resolve(".claude"));
-            Files.createDirectories(
-                    tempDir.resolve(".github"));
-            return claudeDir;
+            return Files.createDirectories(
+                    tempDir.resolve(".claude"));
         }
     }
 

@@ -55,7 +55,6 @@ class GenerateCommandPlatformTest {
 
             assertThat(sw.toString())
                     .contains("claude-code")
-                    .contains("copilot")
                     .contains("codex")
                     .contains("all");
         }
@@ -122,22 +121,6 @@ class GenerateCommandPlatformTest {
         }
 
         @Test
-        @DisplayName("-p copilot returns success")
-        void copilot_shortOption_returnsZero() {
-            var cmd = buildCommandLine();
-            var sw = new StringWriter();
-            cmd.setOut(new PrintWriter(sw));
-
-            int exitCode = cmd.execute(
-                    "generate", "-s", "java-quarkus",
-                    "-p", "copilot",
-                    "--dry-run",
-                    "-o", tempDir.toString());
-
-            assertThat(exitCode).isZero();
-        }
-
-        @Test
         @DisplayName("-p codex returns success")
         void codex_shortOption_returnsZero() {
             var cmd = buildCommandLine();
@@ -159,7 +142,7 @@ class GenerateCommandPlatformTest {
     class MultiplePlatforms {
 
         @Test
-        @DisplayName("--platform claude-code,copilot "
+        @DisplayName("--platform claude-code,codex "
                 + "returns success")
         void multiplePlatforms_dryRun_returnsZero() {
             var cmd = buildCommandLine();
@@ -168,7 +151,7 @@ class GenerateCommandPlatformTest {
 
             int exitCode = cmd.execute(
                     "generate", "-s", "java-quarkus",
-                    "--platform", "claude-code,copilot",
+                    "--platform", "claude-code,codex",
                     "--dry-run",
                     "-o", tempDir.toString());
 
@@ -337,7 +320,7 @@ class GenerateCommandPlatformTest {
             int exitCode = cmd.execute(
                     "generate", "-c",
                     configFile.toString(),
-                    "--platform", "copilot",
+                    "--platform", "codex",
                     "--dry-run",
                     "-o", tempDir.resolve("out2")
                             .toString());

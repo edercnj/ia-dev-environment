@@ -52,17 +52,6 @@ class OverwriteDetectorTest {
         }
 
         @Test
-        @DisplayName("detects .github/ directory")
-        void detect_whenCalled_detectsGithub(@TempDir Path tempDir) throws IOException {
-            Files.createDirectories(tempDir.resolve(".github"));
-
-            List<String> conflicts =
-                    OverwriteDetector.checkExistingArtifacts(tempDir);
-
-            assertThat(conflicts).containsExactly(".github/");
-        }
-
-        @Test
         @DisplayName("detects .codex/ directory")
         void detect_whenCalled_detectsCodex(@TempDir Path tempDir) throws IOException {
             Files.createDirectories(tempDir.resolve(".codex"));
@@ -144,20 +133,19 @@ class OverwriteDetectorTest {
         void multipleConflicts_whenCalled_detected(@TempDir Path tempDir)
                 throws IOException {
             Files.createDirectories(tempDir.resolve(".claude"));
-            Files.createDirectories(tempDir.resolve(".github"));
+            Files.createDirectories(tempDir.resolve(".codex"));
 
             List<String> conflicts =
                     OverwriteDetector.checkExistingArtifacts(tempDir);
 
             assertThat(conflicts)
-                    .containsExactlyInAnyOrder(".claude/", ".github/");
+                    .containsExactlyInAnyOrder(".claude/", ".codex/");
         }
 
         @Test
-        @DisplayName("detects all ten artifact directories")
-        void allTen_whenCalled_detected(@TempDir Path tempDir) throws IOException {
+        @DisplayName("detects all nine artifact directories")
+        void allNine_whenCalled_detected(@TempDir Path tempDir) throws IOException {
             Files.createDirectories(tempDir.resolve(".claude"));
-            Files.createDirectories(tempDir.resolve(".github"));
             Files.createDirectories(tempDir.resolve(".codex"));
             Files.createDirectories(tempDir.resolve(".agents"));
             Files.createDirectories(tempDir.resolve("steering"));
@@ -170,9 +158,9 @@ class OverwriteDetectorTest {
             List<String> conflicts =
                     OverwriteDetector.checkExistingArtifacts(tempDir);
 
-            assertThat(conflicts).hasSize(10);
+            assertThat(conflicts).hasSize(9);
             assertThat(conflicts).containsExactlyInAnyOrder(
-                    ".claude/", ".github/", ".codex/",
+                    ".claude/", ".codex/",
                     ".agents/", "steering/", "specs/",
                     "plans/", "results/", "contracts/", "adr/");
         }
@@ -231,10 +219,10 @@ class OverwriteDetectorTest {
         @DisplayName("formats multiple conflicts with all listed")
         void multipleConflicts_withAllListed_allListed() {
             String message = OverwriteDetector.formatConflictMessage(
-                    List.of(".claude/", ".github/"));
+                    List.of(".claude/", ".codex/"));
 
             assertThat(message).contains(".claude/");
-            assertThat(message).contains(".github/");
+            assertThat(message).contains(".codex/");
             assertThat(message).contains("--force");
         }
 
@@ -242,10 +230,10 @@ class OverwriteDetectorTest {
         @DisplayName("each conflict appears on its own line")
         void conflicts_whenCalled_eachOnOwnLine() {
             String message = OverwriteDetector.formatConflictMessage(
-                    List.of(".claude/", ".github/", "steering/"));
+                    List.of(".claude/", ".codex/", "steering/"));
 
             assertThat(message).contains("  - .claude/ (exists)");
-            assertThat(message).contains("  - .github/ (exists)");
+            assertThat(message).contains("  - .codex/ (exists)");
             assertThat(message).contains("  - steering/ (exists)");
         }
 

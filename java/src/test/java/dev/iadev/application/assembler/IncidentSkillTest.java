@@ -332,63 +332,6 @@ class IncidentSkillTest {
     }
 
     @Nested
-    @DisplayName("GitHub Copilot SKILL.md")
-    class GithubCopilotSkill {
-
-        @Test
-        @DisplayName("x-ops-incident GitHub SKILL.md"
-                + " exists after assembly")
-        void assemble_github_incidentExists(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir =
-                    generateGithubOutput(tempDir);
-            Path skillMd = outputDir.resolve(
-                    "skills/x-ops-incident/SKILL.md");
-            assertThat(skillMd).exists();
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains incident"
-                + " response reference")
-        void assemble_github_incidentHasReference(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .contains("incident");
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains name:"
-                + " x-ops-incident")
-        void assemble_github_incidentHasName(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .contains("name: x-ops-incident");
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains severity"
-                + " definitions")
-        void assemble_github_incidentHasSeverity(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .contains("SEV1")
-                    .contains("SEV2")
-                    .contains("SEV3")
-                    .contains("SEV4");
-        }
-    }
-
-    @Nested
     @DisplayName("SkillGroupRegistry —"
             + " git-troubleshooting Group")
     class RegistryGitTroubleshootingGroup {
@@ -424,24 +367,4 @@ class IncidentSkillTest {
                 StandardCharsets.UTF_8);
     }
 
-    private Path generateGithubOutput(Path tempDir)
-            throws IOException {
-        Path outputDir = tempDir.resolve("output");
-        Files.createDirectories(outputDir);
-        GithubSkillsAssembler assembler =
-                new GithubSkillsAssembler();
-        assembler.assemble(
-                TestConfigBuilder.minimal(),
-                new TemplateEngine(), outputDir);
-        return outputDir;
-    }
-
-    private String generateGithubContent(Path tempDir)
-            throws IOException {
-        Path outputDir = generateGithubOutput(tempDir);
-        return Files.readString(
-                outputDir.resolve(
-                        "skills/x-ops-incident/SKILL.md"),
-                StandardCharsets.UTF_8);
-    }
 }

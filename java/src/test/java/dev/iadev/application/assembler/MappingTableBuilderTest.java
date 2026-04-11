@@ -27,8 +27,8 @@ class MappingTableBuilderTest {
     class Build {
 
         @Test
-        @DisplayName("contains 9 mapping rows")
-        void build_whenCalled_containsNineMappingRows(
+        @DisplayName("contains 6 mapping rows")
+        void build_whenCalled_containsSixMappingRows(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir =
                     Files.createDirectories(
@@ -37,8 +37,8 @@ class MappingTableBuilderTest {
             String table = builder.build(claudeDir);
 
             assertThat(table)
-                    .contains("| .claude/ | .github/"
-                            + " | .codex/ | Notes |");
+                    .contains("| .claude/ | .codex/ "
+                            + "| Notes |");
             assertThat(table)
                     .contains("`.codex/requirements.toml`")
                     .contains("`AGENTS.override.md`");
@@ -50,7 +50,7 @@ class MappingTableBuilderTest {
                     dataRows++;
                 }
             }
-            assertThat(dataRows).isEqualTo(9);
+            assertThat(dataRows).isEqualTo(6);
         }
 
         @Test
@@ -64,41 +64,6 @@ class MappingTableBuilderTest {
             String table = builder.build(claudeDir);
 
             assertThat(table).contains("\u2192");
-        }
-
-        @Test
-        @DisplayName("includes github total when dir"
-                + " exists")
-        void build_whenCalled_includesGithubTotal(
-                @TempDir Path tempDir) throws IOException {
-            Path claudeDir =
-                    Files.createDirectories(
-                            tempDir.resolve(".claude"));
-            Path githubDir =
-                    Files.createDirectories(
-                            tempDir.resolve(".github"));
-            Files.writeString(
-                    githubDir.resolve("copilot.md"),
-                    "c", StandardCharsets.UTF_8);
-
-            String table = builder.build(claudeDir);
-
-            assertThat(table)
-                    .contains("**Total .github/"
-                            + " artifacts: 1**");
-        }
-
-        @Test
-        @DisplayName("no github dir omits total line")
-        void build_noGithubDirOmitsTotal_succeeds(
-                @TempDir Path tempDir) throws IOException {
-            Path claudeDir = Files.createDirectories(
-                    tempDir.resolve(".claude"));
-
-            String table = builder.build(claudeDir);
-
-            assertThat(table)
-                    .doesNotContain("**Total .github/");
         }
 
         @Test

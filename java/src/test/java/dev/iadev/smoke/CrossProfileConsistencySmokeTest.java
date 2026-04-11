@@ -60,11 +60,7 @@ class CrossProfileConsistencySmokeTest {
      * across all profiles.
      */
     static final Set<String> STRUCTURALLY_CONSISTENT_DIRS =
-            Set.of(
-                    ".claude/rules",
-                    ".github/instructions",
-                    ".github/hooks",
-                    ".github/prompts");
+            Set.of(".claude/rules");
 
     /**
      * Files that are legitimately different per profile
@@ -90,7 +86,6 @@ class CrossProfileConsistencySmokeTest {
             "claude-hooks",
             "contracts",
             "k8s",
-            "github-top",
             "root-files");
 
     /**
@@ -100,10 +95,6 @@ class CrossProfileConsistencySmokeTest {
     static final Set<String> UNIFORM_CATEGORIES = Set.of(
             "claude-rules",
             "claude-settings",
-            "github-hooks",
-            "github-instructions",
-            "github-issue-templates",
-            "github-prompts",
             "tests");
 
     @TempDir
@@ -141,30 +132,6 @@ class CrossProfileConsistencySmokeTest {
         void rulesDir_sameFileNames_allProfiles()
                 throws IOException {
             assertSameFileNames(".claude/rules");
-        }
-
-        @Test
-        @DisplayName("github instructions directory has "
-                + "same file names across all profiles")
-        void instructionsDir_sameFileNames_allProfiles()
-                throws IOException {
-            assertSameFileNames(".github/instructions");
-        }
-
-        @Test
-        @DisplayName("github hooks directory has same "
-                + "file names across all profiles")
-        void hooksDir_sameFileNames_allProfiles()
-                throws IOException {
-            assertSameFileNames(".github/hooks");
-        }
-
-        @Test
-        @DisplayName("github prompts directory has same "
-                + "file names across all profiles")
-        void promptsDir_sameFileNames_allProfiles()
-                throws IOException {
-            assertSameFileNames(".github/prompts");
         }
 
         @Test
@@ -238,21 +205,6 @@ class CrossProfileConsistencySmokeTest {
             assertSameFileNames(".claude/rules");
         }
 
-        @Test
-        @DisplayName("github agents file names are "
-                + "structurally consistent")
-        void githubAgentsNames_consistent_allProfiles()
-                throws IOException {
-            assertSubsetFileNames(".github/agents");
-        }
-
-        @Test
-        @DisplayName("github instructions content is "
-                + "structurally present in all profiles")
-        void githubInstructions_present_allProfiles()
-                throws IOException {
-            assertSameFileNames(".github/instructions");
-        }
     }
 
     @Nested
@@ -644,46 +596,6 @@ class CrossProfileConsistencySmokeTest {
                             String.join("\n",
                                     violations)));
         }
-    }
-
-    private static void assertSubsetFileNames(
-            String relativeDir) throws IOException {
-        Map<String, Set<String>> filesByProfile =
-                new TreeMap<>();
-
-        for (var entry : profileOutputs.entrySet()) {
-            Path dir = entry.getValue()
-                    .resolve(relativeDir);
-            Set<String> fileNames = new TreeSet<>();
-            if (Files.isDirectory(dir)) {
-                try (Stream<Path> list =
-                             Files.list(dir)) {
-                    list.filter(Files::isRegularFile)
-                            .forEach(f -> fileNames.add(
-                                    f.getFileName()
-                                            .toString()));
-                }
-            }
-            filesByProfile.put(
-                    entry.getKey(), fileNames);
-        }
-
-        Set<String> commonFiles = null;
-        for (Set<String> files
-                : filesByProfile.values()) {
-            if (commonFiles == null) {
-                commonFiles = new TreeSet<>(files);
-            } else {
-                commonFiles.retainAll(files);
-            }
-        }
-
-        assertThat(commonFiles)
-                .as("At least some files in '%s' must "
-                        + "be common across all profiles",
-                        relativeDir)
-                .isNotNull()
-                .isNotEmpty();
     }
 
     private static String formatCountViolation(

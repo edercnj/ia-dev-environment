@@ -317,8 +317,6 @@ class ResourceResolverTest {
                 "targets/claude/rules",
                 "targets/claude/agents",
                 "targets/claude/skills",
-                "targets/github-copilot/agents",
-                "targets/github-copilot/skills",
                 "targets/codex/templates",
                 "knowledge/core",
                 "knowledge/languages",

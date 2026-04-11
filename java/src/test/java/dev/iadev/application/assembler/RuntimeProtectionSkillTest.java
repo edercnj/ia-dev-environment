@@ -540,78 +540,6 @@ class RuntimeProtectionSkillTest {
     }
 
     @Nested
-    @DisplayName("GitHub Copilot SKILL.md")
-    class GithubCopilotSkill {
-
-        @Test
-        @DisplayName("x-runtime-protection GitHub SKILL.md"
-                + " exists after assembly")
-        void assemble_github_runtimeProtectionExists(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = generateGithubOutput(tempDir);
-            Path skillMd = outputDir.resolve(
-                    "skills/x-runtime-protection/SKILL.md");
-            assertThat(skillMd).exists();
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains runtime"
-                + " protection reference")
-        void assemble_github_hasRuntimeProtection(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .contains("Runtime Protection");
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains name:"
-                + " x-runtime-protection")
-        void assemble_github_hasName(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content).contains(
-                    "name: x-runtime-protection");
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains ASVS references")
-        void assemble_github_hasAsvsRefs(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .contains("V4.3")
-                    .contains("V5.1")
-                    .contains("V2.2");
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains 7 evaluation"
-                + " dimensions")
-        void assemble_github_hasAllDimensions(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .contains("Rate Limiting")
-                    .contains("WAF Rules")
-                    .contains("Bot Protection")
-                    .contains("Account Lockout")
-                    .contains("Brute Force")
-                    .contains("CSP Enforcement")
-                    .contains("Permissions Policy");
-        }
-    }
-
-    @Nested
     @DisplayName("SkillGroupRegistry -- Review Group")
     class RegistryReviewGroup {
 
@@ -647,25 +575,4 @@ class RuntimeProtectionSkillTest {
                 StandardCharsets.UTF_8);
     }
 
-    private Path generateGithubOutput(Path tempDir)
-            throws IOException {
-        Path outputDir = tempDir.resolve("output");
-        Files.createDirectories(outputDir);
-        GithubSkillsAssembler assembler =
-                new GithubSkillsAssembler();
-        assembler.assemble(
-                TestConfigBuilder.minimal(),
-                new TemplateEngine(), outputDir);
-        return outputDir;
-    }
-
-    private String generateGithubContent(Path tempDir)
-            throws IOException {
-        Path outputDir = generateGithubOutput(tempDir);
-        return Files.readString(
-                outputDir.resolve(
-                        "skills/x-runtime-protection"
-                                + "/SKILL.md"),
-                StandardCharsets.UTF_8);
-    }
 }
