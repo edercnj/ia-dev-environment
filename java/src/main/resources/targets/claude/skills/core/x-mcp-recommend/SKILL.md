@@ -151,19 +151,6 @@ Install (Claude Code):
 }
 ```
 
-Install (GitHub Copilot):
-```json
-// Add to .github/copilot-mcp.json
-{
-  "servers": {
-    "{server-name}": {
-      "command": "npx",
-      "args": ["-y", "{package_name}"]
-    }
-  }
-}
-```
-
 ### Summary
 
 | # | Server | Priority | Reason |
@@ -184,7 +171,6 @@ If user requests `--install`:
 
 1. Read existing MCP config:
    ```bash
-   cat .github/copilot-mcp.json 2>/dev/null
    cat .claude/settings.local.json 2>/dev/null
    ```
 
@@ -194,7 +180,6 @@ If user requests `--install`:
 
 4. Report changes:
    ```
-   Updated .github/copilot-mcp.json: added {N} servers
    Updated .claude/settings.local.json: added {N} servers
    ```
 

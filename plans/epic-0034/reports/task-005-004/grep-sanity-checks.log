@@ -1,0 +1,35 @@
+=== Check 1: Assembler classes (GithubInstructionsAssembler, CodexConfigAssembler, AgentsAssembler word boundary) ===
+java/src/main/java/dev/iadev/application/assembler/AgentsAssembler.java:28:public final class AgentsAssembler implements Assembler {
+java/src/main/java/dev/iadev/application/assembler/AgentsAssembler.java:43:     * Creates an AgentsAssembler using classpath resources.
+java/src/main/java/dev/iadev/application/assembler/AgentsAssembler.java:45:    public AgentsAssembler() {
+java/src/main/java/dev/iadev/application/assembler/AgentsAssembler.java:50:     * Creates an AgentsAssembler with an explicit resources
+java/src/main/java/dev/iadev/application/assembler/AgentsAssembler.java:55:    public AgentsAssembler(Path resourcesDir) {
+java/src/main/java/dev/iadev/application/assembler/ChecklistInjector.java:16: * <p>Extracted from {@link AgentsAssembler} to keep both
+java/src/main/java/dev/iadev/application/assembler/ChecklistInjector.java:19: * @see AgentsAssembler
+java/src/main/java/dev/iadev/application/assembler/ChecklistRulesBuilder.java:17: * @see AgentsAssembler
+java/src/main/java/dev/iadev/application/assembler/AssemblerFactory.java:111:                desc("AgentsAssembler",
+java/src/main/java/dev/iadev/application/assembler/AssemblerFactory.java:114:                        new AgentsAssembler()),
+java/src/main/java/dev/iadev/application/assembler/AgentsSelection.java:17: * @see AgentsAssembler
+---
+=== Check 2: Utility + flag references ===
+---
+=== Check 3: target path references ===
+---
+=== Check 4: Platform.java enum ===
+---
+=== Check 5: AssemblerTarget (file may or may not exist) ===
+[33m [36mjava/src/main/java/dev/iadev/application/assembler/[1;33mAssemblerTarget.java[0m
+---
+=== Check 6: PlatformConverter ACCEPTED_VALUES ===
+[33m [36mjava/src/main/java/dev/iadev/cli/[1;33mPlatformConverter.java[0m
+    private static final String ACCEPTED_VALUES =
+            Platform.allUserSelectable().stream()
+                    .map(Platform::cliName)
+                    .sorted()
+                    .collect(java.util.stream.Collectors
+                            .joining(", "))
+--
+                        value, ACCEPTED_VALUES);
+        return new TypeConversionException(message);
+    }
+}
