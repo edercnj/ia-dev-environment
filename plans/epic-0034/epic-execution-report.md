@@ -27,7 +27,7 @@ The epic executed as 5 sequential stories plus 2 infrastructure PRs (baseline fi
 | Java main classes | — | **−18** (8 Copilot + 7 Codex + 2 Agents + ReadmeGithubCounter) | |
 | Java test classes | — | **−~29 + 2 fixtures** (scope expanded to ~50+ via dependencies) | |
 | Resource files | — | **−146** (131 github-copilot/ + 15 codex/) | |
-| Golden files | 14285 | 6107 (approx) | **−~8178** |
+| Golden files | 14285 | 6073 (verified in `reports/task-005-004/verification-report.md` Step 7) | **−8212** |
 | `.github/workflows/` (protected) | 95 | 95 | **0** (RULE-003 preserved) |
 | `shared/templates/` (protected) | 57 | 57 | **0** (RULE-004 preserved) |
 | CLAUDE.md lines | 289 | 135 | **−154** |
@@ -63,8 +63,9 @@ Per Rule 08 (Semantic Versioning), the version bumps from `2.3.0` → `3.0.0-SNA
 
 **CLI contract change:**
 
-- `--platform claude-code` — accepted (default)
-- `--platform all` — accepted as backward-compatibility alias (resolves to claude-code only)
+- `--platform claude-code` — accepted
+- `--platform all` — accepted (declared as the CLI default in `GenerateCommand` `@Option` description; now effectively equivalent to `claude-code` because it is the only remaining platform)
+- `--platform` omitted — resolves to the `all` default, which currently produces `claude-code` output
 - `--platform copilot` — **REJECTED** with exit code 2
 - `--platform codex` — **REJECTED** with exit code 2
 - `--platform agents` — **REJECTED** with exit code 2
@@ -73,7 +74,7 @@ Error messages contain no class names, stack traces, or file paths (CWE-209 comp
 
 **Migration path for users:**
 
-1. Replace `--platform copilot|codex|agents` with `--platform claude-code`, or drop the flag (default is `claude-code`).
+1. Replace `--platform copilot|codex|agents` with `--platform claude-code`, or drop the flag (the CLI default is still `all`, which now produces `claude-code` output because it is the only remaining platform).
 2. Remove downstream tooling that consumes `.github/instructions/`, `.github/skills/`, `.github/prompts/`, `.codex/config.toml`, `.codex/requirements.toml`, or `.agents/skills/` artifacts.
 3. `.github/workflows/` in generated projects is unaffected — CI/CD pipelines continue to work (RULE-003).
 

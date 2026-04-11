@@ -127,7 +127,7 @@ Generate Options:
   -s, --stack <name>     Use a bundled stack profile (see profiles below)
   -o, --output <dir>     Output directory (default: current directory)
   -v, --verbose          Verbose logging
-  -p, --platform <value> Target AI platform: claude-code (default; `all` is also accepted as a backward-compatibility alias resolving to claude-code)
+  -p, --platform <value> Target AI platform: claude-code (only supported value; `all` is also accepted and now resolves to claude-code output since it is the only remaining platform)
   -f, --force            Overwrite existing files without prompting
   --dry-run              Preview what would be generated
 
