@@ -94,18 +94,18 @@ public final class SkillsSelection {
         List<String> skills = new ArrayList<>();
         if (config.testing().smokeTests()
                 && hasInterface(config, "rest")) {
-            skills.add("run-smoke-api");
+            skills.add("x-test-smoke-api");
         }
         if (config.testing().smokeTests()
                 && hasInterface(config, "tcp-custom")) {
-            skills.add("run-smoke-socket");
+            skills.add("x-test-smoke-socket");
         }
-        skills.add("run-e2e");
+        skills.add("x-test-e2e");
         if (config.testing().performanceTests()) {
-            skills.add("run-perf-test");
+            skills.add("x-test-perf");
         }
         if (config.testing().contractTests()) {
-            skills.add("run-contract-tests");
+            skills.add("x-test-contract");
         }
         return skills;
     }
@@ -142,7 +142,7 @@ public final class SkillsSelection {
             skills.add("x-security-dast");
         }
         if (scanning.secretScan()) {
-            skills.add("x-security-secret-scan");
+            skills.add("x-security-secrets");
         }
         if (scanning.containerScan()) {
             skills.add("x-security-container");

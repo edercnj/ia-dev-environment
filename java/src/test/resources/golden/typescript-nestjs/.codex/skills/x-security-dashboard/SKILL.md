@@ -51,13 +51,13 @@ The dashboard aggregates results from 10 security dimensions. Each dimension map
 |-----------|----------------|--------|-----------------|
 | Static Analysis | x-security-sast | 20% | `results/security/sast-*.sarif.json` |
 | Dynamic Analysis | x-security-dast | 15% | `results/security/dast-*.sarif.json` |
-| Secrets | x-security-secret-scan | 15% | `results/security/secret-scan-*.sarif.json` |
+| Secrets | x-security-secrets | 15% | `results/security/secret-scan-*.sarif.json` |
 | Container Security | x-security-container | 10% | `results/security/container-scan-*.sarif.json` |
 | Infrastructure | x-security-infra | 10% | `results/security/infra-scan-*.sarif.json` |
 | OWASP Compliance | x-owasp-scan | 10% | `results/security/owasp-scan-*.sarif.json` |
 | Code Quality (Security) | x-security-sonar | 5% | `results/security/sonar-gate-*.sarif.json` |
 | Hardening | x-hardening-eval | 5% | `results/security/hardening-eval-*.sarif.json` |
-| Runtime Protection | x-runtime-protection | 5% | `results/security/runtime-protection-*.sarif.json` |
+| Runtime Protection | x-runtime-eval | 5% | `results/security/runtime-protection-*.sarif.json` |
 | Supply Chain | x-supply-chain-audit + x-dependency-audit | 5% | `results/security/supply-chain-*.sarif.json`, `results/security/dependency-audit-*.sarif.json` |
 
 **Weight redistribution:** When a dimension has no results, its weight is redistributed proportionally among available dimensions. The formula:
@@ -383,7 +383,7 @@ If a user needs fresh scan data, run the individual scanning skills first, then 
 |-------|-------------|---------|
 | x-security-sast | Consumes output | Static analysis SARIF results (20% weight) |
 | x-security-dast | Consumes output | Dynamic analysis SARIF results (15% weight) |
-| x-security-secret-scan | Consumes output | Secrets detection SARIF results (15% weight) |
+| x-security-secrets | Consumes output | Secrets detection SARIF results (15% weight) |
 | x-owasp-scan | Consumes output | OWASP compliance SARIF results (10% weight) |
 | x-dependency-audit | Consumes output | Supply chain SARIF results (5% weight) |
 | x-supply-chain-audit | Consumes output | Supply chain SARIF results (5% weight) |

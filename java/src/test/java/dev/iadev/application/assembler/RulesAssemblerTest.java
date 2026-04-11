@@ -695,7 +695,7 @@ class RulesAssemblerTest {
             assertThat(content)
                     .contains("## Automated Verification")
                     .contains("x-security-sast")
-                    .contains("x-security-secret-scan")
+                    .contains("x-security-secrets")
                     .contains("x-hardening-eval");
         }
 

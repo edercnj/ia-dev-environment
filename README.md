@@ -739,11 +739,11 @@ These skills are generated only when your project config includes the relevant t
 
 | Skill | Condition | Description |
 |-------|-----------|-------------|
-| `/run-e2e` | Always (if testing enabled) | End-to-end tests validating full flow with real database |
-| `/run-smoke-api` | REST interfaces | Black-box smoke tests against running API |
-| `/run-smoke-socket` | WebSocket interfaces | WebSocket connection and message validation |
-| `/run-contract-tests` | Contract tests enabled | Parametrized business rule validation |
-| `/run-perf-test` | Performance tests enabled | Latency SLAs, throughput, resource usage |
+| `/x-test-e2e` | Always (if testing enabled) | End-to-end tests validating full flow with real database |
+| `/x-test-smoke-api` | REST interfaces | Black-box smoke tests against running API |
+| `/x-test-smoke-socket` | WebSocket interfaces | WebSocket connection and message validation |
+| `/x-test-contract` | Contract tests enabled | Parametrized business rule validation |
+| `/x-test-perf` | Performance tests enabled | Latency SLAs, throughput, resource usage |
 
 #### Review (conditional)
 

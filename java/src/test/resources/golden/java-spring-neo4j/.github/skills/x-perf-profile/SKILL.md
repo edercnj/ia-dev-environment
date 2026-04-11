@@ -85,7 +85,7 @@ Analyze results for CPU hotspots (>10% total time), memory allocation hotspots, 
 
 - Uses `performance-engineer` agent for in-depth analysis
 - References performance-engineering KP for optimization patterns
-- Results can feed into `run-perf-test --save-baseline`
+- Results can feed into `x-test-perf --save-baseline`
 
 ## Detailed References
 
