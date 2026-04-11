@@ -136,11 +136,7 @@ class ProfileGenerationCompletenessTest
                     ".claude",
                     ".claude/rules",
                     ".claude/skills",
-                    ".claude/agents",
-                    ".github",
-                    ".github/agents",
-                    ".github/instructions",
-                    ".github/skills");
+                    ".claude/agents");
 
             List<String> missing = mandatoryDirs.stream()
                     .filter(dir -> !Files.isDirectory(

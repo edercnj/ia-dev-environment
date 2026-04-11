@@ -568,75 +568,6 @@ class HardeningEvalSkillTest {
     }
 
     @Nested
-    @DisplayName("GitHub Copilot SKILL.md")
-    class GithubCopilotSkill {
-
-        @Test
-        @DisplayName("x-hardening-eval GitHub SKILL.md"
-                + " exists after assembly")
-        void assemble_github_hardeningEvalExists(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = generateGithubOutput(tempDir);
-            Path skillMd = outputDir.resolve(
-                    "skills/x-hardening-eval/SKILL.md");
-            assertThat(skillMd).exists();
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains hardening"
-                + " reference")
-        void assemble_github_hardeningEvalHasContent(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .contains("hardening");
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains name:"
-                + " x-hardening-eval")
-        void assemble_github_hardeningEvalHasName(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .contains("name: x-hardening-eval");
-        }
-
-        @Test
-        @DisplayName("GitHub skill references SARIF output")
-        void assemble_github_hardeningEvalHasSarif(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .contains("SARIF");
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains 7 dimensions")
-        void assemble_github_hardeningEvalHasDimensions(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .contains("HTTP Headers")
-                    .contains("TLS")
-                    .contains("CORS")
-                    .contains("Cookies")
-                    .contains("Error Handling")
-                    .contains("Input Limits")
-                    .contains("Info Disclosure");
-        }
-    }
-
-    @Nested
     @DisplayName("SkillGroupRegistry -- Review Group")
     class RegistryReviewGroup {
 
@@ -671,24 +602,4 @@ class HardeningEvalSkillTest {
                 StandardCharsets.UTF_8);
     }
 
-    private Path generateGithubOutput(Path tempDir)
-            throws IOException {
-        Path outputDir = tempDir.resolve("output");
-        Files.createDirectories(outputDir);
-        GithubSkillsAssembler assembler =
-                new GithubSkillsAssembler();
-        assembler.assemble(
-                TestConfigBuilder.minimal(),
-                new TemplateEngine(), outputDir);
-        return outputDir;
-    }
-
-    private String generateGithubContent(Path tempDir)
-            throws IOException {
-        Path outputDir = generateGithubOutput(tempDir);
-        return Files.readString(
-                outputDir.resolve(
-                        "skills/x-hardening-eval/SKILL.md"),
-                StandardCharsets.UTF_8);
-    }
 }

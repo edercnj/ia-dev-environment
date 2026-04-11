@@ -295,62 +295,6 @@ class ReleaseManagementGitFlowTest {
         }
     }
 
-    @Nested
-    @DisplayName("GitHub Copilot — Git Flow Default")
-    class GithubCopilotGitFlow {
-
-        @Test
-        @DisplayName("GitHub KP has GitFlow"
-                + " as recommended")
-        void assemble_github_gitFlowRecommended(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubKpContent(tempDir);
-            assertThat(content)
-                    .contains("GitFlow (Recommended)");
-        }
-
-        @Test
-        @DisplayName("GitHub KP has alternatives"
-                + " documented")
-        void assemble_github_alternativesDocumented(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubKpContent(tempDir);
-            assertThat(content)
-                    .contains("Trunk-based (Alternative)")
-                    .contains(
-                            "Release branches (Alternative)");
-        }
-
-        @Test
-        @DisplayName("GitHub KP cross-references"
-                + " Rule 09")
-        void assemble_github_crossRefsRule09(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubKpContent(tempDir);
-            assertThat(content)
-                    .contains("Rule 09")
-                    .contains("09-branching-model");
-        }
-
-        @Test
-        @DisplayName("GitHub KP has default for all"
-                + " projects statement")
-        void assemble_github_defaultForAllProjects(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubKpContent(tempDir);
-            assertThat(content).contains(
-                    "default for all projects");
-        }
-    }
-
     private Path generateClaudeOutput(Path tempDir)
             throws IOException {
         Path outputDir = tempDir.resolve("output");
@@ -385,25 +329,4 @@ class ReleaseManagementGitFlowTest {
                 StandardCharsets.UTF_8);
     }
 
-    private Path generateGithubOutput(Path tempDir)
-            throws IOException {
-        Path outputDir = tempDir.resolve("gh-output");
-        Files.createDirectories(outputDir);
-        GithubSkillsAssembler assembler =
-                new GithubSkillsAssembler();
-        assembler.assemble(
-                TestConfigBuilder.minimal(),
-                new TemplateEngine(), outputDir);
-        return outputDir;
-    }
-
-    private String generateGithubKpContent(Path tempDir)
-            throws IOException {
-        Path outputDir = generateGithubOutput(tempDir);
-        return Files.readString(
-                outputDir.resolve(
-                        "skills/release-management/"
-                                + "SKILL.md"),
-                StandardCharsets.UTF_8);
-    }
 }

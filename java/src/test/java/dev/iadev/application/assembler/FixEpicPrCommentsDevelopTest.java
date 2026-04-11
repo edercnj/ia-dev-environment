@@ -136,33 +136,6 @@ class FixEpicPrCommentsDevelopTest {
         }
     }
 
-    @Nested
-    @DisplayName("GitHub Copilot SKILL.md — PR Base")
-    class GithubCopilotPrBase {
-
-        @Test
-        @DisplayName("GitHub skill uses --base develop")
-        void assemble_github_fixEpicPr_baseDevelop(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .contains("--base develop");
-        }
-
-        @Test
-        @DisplayName("GitHub skill has no --base main")
-        void assemble_github_fixEpicPr_noBaseMain(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .doesNotContain("--base main");
-        }
-    }
-
     private Path generateOutput(Path tempDir)
             throws IOException {
         Path outputDir = tempDir.resolve("output");
@@ -185,25 +158,4 @@ class FixEpicPrCommentsDevelopTest {
                 StandardCharsets.UTF_8);
     }
 
-    private Path generateGithubOutput(Path tempDir)
-            throws IOException {
-        Path outputDir = tempDir.resolve("gh-output");
-        Files.createDirectories(outputDir);
-        GithubSkillsAssembler assembler =
-                new GithubSkillsAssembler();
-        assembler.assemble(
-                TestConfigBuilder.minimal(),
-                new TemplateEngine(), outputDir);
-        return outputDir;
-    }
-
-    private String generateGithubContent(Path tempDir)
-            throws IOException {
-        Path outputDir = generateGithubOutput(tempDir);
-        return Files.readString(
-                outputDir.resolve(
-                        "skills/x-pr-fix-epic-comments"
-                                + "/SKILL.md"),
-                StandardCharsets.UTF_8);
-    }
 }

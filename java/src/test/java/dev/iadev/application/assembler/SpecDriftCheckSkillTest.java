@@ -311,47 +311,6 @@ class SpecDriftCheckSkillTest {
     }
 
     @Nested
-    @DisplayName("GitHub Copilot SKILL.md")
-    class GithubCopilotSkill {
-
-        @Test
-        @DisplayName("x-spec-drift GitHub SKILL.md"
-                + " exists after assembly")
-        void assemble_github_specDriftCheckExists(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = generateGithubOutput(tempDir);
-            Path skillMd = outputDir.resolve(
-                    "skills/x-spec-drift/SKILL.md");
-            assertThat(skillMd).exists();
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains drift"
-                + " reference")
-        void assemble_github_specDriftCheckHasDrift(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .contains("drift");
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains name:"
-                + " x-spec-drift")
-        void assemble_github_specDriftCheckHasName(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .contains("name: x-spec-drift");
-        }
-    }
-
-    @Nested
     @DisplayName("SkillGroupRegistry — Review Group")
     class RegistryReviewGroup {
 
@@ -387,25 +346,4 @@ class SpecDriftCheckSkillTest {
                 StandardCharsets.UTF_8);
     }
 
-    private Path generateGithubOutput(Path tempDir)
-            throws IOException {
-        Path outputDir = tempDir.resolve("output");
-        Files.createDirectories(outputDir);
-        GithubSkillsAssembler assembler =
-                new GithubSkillsAssembler();
-        assembler.assemble(
-                TestConfigBuilder.minimal(),
-                new TemplateEngine(), outputDir);
-        return outputDir;
-    }
-
-    private String generateGithubContent(Path tempDir)
-            throws IOException {
-        Path outputDir = generateGithubOutput(tempDir);
-        return Files.readString(
-                outputDir.resolve(
-                        "skills/x-spec-drift"
-                                + "/SKILL.md"),
-                StandardCharsets.UTF_8);
-    }
 }
