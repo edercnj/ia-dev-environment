@@ -619,14 +619,14 @@ class SecurityPipelineSkillTest {
     }
 
     @Nested
-    @DisplayName("SkillGroupRegistry -- Dev Group")
+    @DisplayName("GithubSkillsAssembler.SKILL_GROUPS -- Dev Group")
     class RegistryDevGroup {
 
         @Test
         @DisplayName("dev group contains"
                 + " x-security-pipeline")
         void register_devGroup_containsSecPipeline() {
-            assertThat(SkillGroupRegistry.SKILL_GROUPS
+            assertThat(GithubSkillsAssembler.SKILL_GROUPS
                     .get("dev"))
                     .contains("x-security-pipeline");
         }

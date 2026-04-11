@@ -376,14 +376,14 @@ class SupplyChainAuditSkillTest {
     }
 
     @Nested
-    @DisplayName("SkillGroupRegistry Integration")
+    @DisplayName("GithubSkillsAssembler.SKILL_GROUPS Integration")
     class RegistryIntegration {
 
         @Test
         @DisplayName("review group contains"
                 + " x-supply-chain-audit")
         void registry_reviewGroup_containsSupplyChainAudit() {
-            assertThat(SkillGroupRegistry.SKILL_GROUPS
+            assertThat(GithubSkillsAssembler.SKILL_GROUPS
                     .get("review"))
                     .contains("x-supply-chain-audit");
         }
@@ -392,7 +392,7 @@ class SupplyChainAuditSkillTest {
         @DisplayName("review group contains both"
                 + " dependency-audit and supply-chain-audit")
         void registry_reviewGroup_containsBothAuditSkills() {
-            assertThat(SkillGroupRegistry.SKILL_GROUPS
+            assertThat(GithubSkillsAssembler.SKILL_GROUPS
                     .get("review"))
                     .contains("x-dependency-audit")
                     .contains("x-supply-chain-audit");

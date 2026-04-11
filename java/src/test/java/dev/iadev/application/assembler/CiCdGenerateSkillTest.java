@@ -451,14 +451,14 @@ class CiCdGenerateSkillTest {
     }
 
     @Nested
-    @DisplayName("SkillGroupRegistry -- Dev Group")
+    @DisplayName("GithubSkillsAssembler.SKILL_GROUPS -- Dev Group")
     class RegistryDevGroup {
 
         @Test
         @DisplayName("dev group contains"
                 + " x-ci-generate")
         void register_devGroup_containsCiCdGenerate() {
-            assertThat(SkillGroupRegistry.SKILL_GROUPS
+            assertThat(GithubSkillsAssembler.SKILL_GROUPS
                     .get("dev"))
                     .contains("x-ci-generate");
         }

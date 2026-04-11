@@ -4,23 +4,43 @@ import dev.iadev.config.ContextBuilder;
 import dev.iadev.domain.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * Assembles {@code .github/skills/} from templates for
  * GitHub Copilot, mirroring the Claude skills structure.
  *
- * <p>Generates skills in 8 groups with conditional
- * filtering for infrastructure and knowledge-packs.</p>
+ * <p>Post EPIC-0036 / ADR-0003: skill group membership is
+ * discovered by walking
+ * {@code targets/github-copilot/skills/{group}/*.md} at
+ * assembly time. The previous hardcoded registry
+ * ({@code SkillGroupRegistry}) was deleted to eliminate the
+ * dual source of truth between the filesystem and a Java
+ * map. Per-skill activation predicates live in
+ * {@link SkillGroupConditions}.</p>
+ *
+ * <p>The {@code SKILL_GROUPS} field is initialized eagerly
+ * from the classpath on class load and preserved in a
+ * {@link LinkedHashMap} so iteration order is stable.
+ * Within a group, skill names are sorted alphabetically
+ * so the assembly output is deterministic across
+ * platforms.</p>
  *
  * @see Assembler
+ * @see SkillGroupConditions
  */
 public final class GithubSkillsAssembler
         implements Assembler {
@@ -29,10 +49,9 @@ public final class GithubSkillsAssembler
             "targets/github-copilot/skills";
     private static final String SKILL_MD = "SKILL.md";
     private static final String SKILLS_OUTPUT = "skills";
-    private static final String INFRA_GROUP =
-            "infrastructure";
-    private static final String KP_GROUP =
-            "knowledge-packs";
+    private static final String MD_SUFFIX = ".md";
+    private static final String REFERENCES_DIR =
+            "references";
 
     /**
      * Groups whose skills are nested under a subdirectory
@@ -41,19 +60,31 @@ public final class GithubSkillsAssembler
     static final Set<String> NESTED_GROUPS =
             Set.of("lib");
 
-    /** @see SkillGroupRegistry#SKILL_GROUPS */
+    /**
+     * Explicit ordering used when the filesystem yields a
+     * group name. Unknown groups fall back to alphabetical
+     * order after the listed entries.
+     */
+    private static final List<String> GROUP_ORDER =
+            List.of(
+                    "story",
+                    "dev",
+                    "review",
+                    "testing",
+                    "infrastructure",
+                    "knowledge-packs",
+                    "git-troubleshooting",
+                    "lib");
+
+    /**
+     * Filesystem-derived skill groups. Keys are group
+     * names; values are alphabetically sorted skill names
+     * (without the {@code .md} suffix). Loaded once on
+     * class load using the classpath resources root.
+     */
     static final Map<String, List<String>> SKILL_GROUPS =
-            SkillGroupRegistry.SKILL_GROUPS;
-
-    /** @see SkillGroupRegistry#INFRA_SKILL_CONDITIONS */
-    static final Map<String, Predicate<ProjectConfig>>
-            INFRA_SKILL_CONDITIONS =
-            SkillGroupRegistry.INFRA_SKILL_CONDITIONS;
-
-    /** @see SkillGroupRegistry#KP_SKILL_CONDITIONS */
-    static final Map<String, Predicate<ProjectConfig>>
-            KP_SKILL_CONDITIONS =
-            SkillGroupRegistry.KP_SKILL_CONDITIONS;
+            discoverSkillGroups(
+                    resolveClasspathResources());
 
     private final Path resourcesDir;
 
@@ -78,10 +109,9 @@ public final class GithubSkillsAssembler
     /**
      * {@inheritDoc}
      *
-     * <p>Generates skill files from all 8 registered
-     * groups, applying feature gates for the
-     * infrastructure group and nesting for the lib
-     * group.</p>
+     * <p>Walks every discovered group, applying feature
+     * gates for infrastructure, knowledge-packs, and
+     * review and nesting for the lib group.</p>
      */
     @Override
     public List<String> assemble(
@@ -90,9 +120,11 @@ public final class GithubSkillsAssembler
             Path outputDir) {
         Map<String, Object> context =
                 ContextBuilder.buildContext(config);
+        Map<String, List<String>> groups =
+                discoverSkillGroups(resourcesDir);
         List<String> results = new ArrayList<>();
         for (Map.Entry<String, List<String>> entry
-                : SKILL_GROUPS.entrySet()) {
+                : groups.entrySet()) {
             String group = entry.getKey();
             List<String> skillNames = entry.getValue();
             List<String> filtered =
@@ -112,10 +144,78 @@ public final class GithubSkillsAssembler
     }
 
     /**
-     * Filters skills based on config conditions.
+     * Discovers skill groups by walking
+     * {@code targets/github-copilot/skills/*}.
      *
-     * <p>Only the infrastructure group is filtered; all
-     * other groups return the full list unchanged.</p>
+     * <p>Each top-level directory is a group. Each
+     * {@code .md} file inside (excluding
+     * {@code references/}) is a skill. Groups are emitted
+     * in {@link #GROUP_ORDER} order when known, then any
+     * remaining groups alphabetically.</p>
+     *
+     * @param resourcesDir the resources root
+     * @return the group → skill names map
+     */
+    static Map<String, List<String>> discoverSkillGroups(
+            Path resourcesDir) {
+        Path skillsDir = resourcesDir.resolve(TEMPLATES_DIR);
+        if (!Files.exists(skillsDir)
+                || !Files.isDirectory(skillsDir)) {
+            return Collections.emptyMap();
+        }
+        Map<String, List<String>> unordered = new TreeMap<>();
+        try (Stream<Path> stream = Files.list(skillsDir)) {
+            stream.filter(Files::isDirectory)
+                    .forEach(groupDir -> {
+                        String group = groupDir
+                                .getFileName().toString();
+                        unordered.put(
+                                group,
+                                listSkillsIn(groupDir));
+                    });
+        } catch (IOException e) {
+            throw new UncheckedIOException(
+                    "Failed to list github skills dir: "
+                            + skillsDir, e);
+        }
+        Map<String, List<String>> ordered =
+                new LinkedHashMap<>();
+        for (String known : GROUP_ORDER) {
+            List<String> skills = unordered.remove(known);
+            if (skills != null) {
+                ordered.put(known, skills);
+            }
+        }
+        ordered.putAll(unordered);
+        return Collections.unmodifiableMap(ordered);
+    }
+
+    private static List<String> listSkillsIn(Path groupDir) {
+        try (Stream<Path> stream = Files.list(groupDir)) {
+            List<String> names = new ArrayList<>();
+            stream.filter(Files::isRegularFile)
+                    .filter(p -> p.getFileName().toString()
+                            .endsWith(MD_SUFFIX))
+                    .map(p -> {
+                        String file =
+                                p.getFileName().toString();
+                        return file.substring(
+                                0,
+                                file.length()
+                                        - MD_SUFFIX.length());
+                    })
+                    .sorted()
+                    .forEach(names::add);
+            return Collections.unmodifiableList(names);
+        } catch (IOException e) {
+            throw new UncheckedIOException(
+                    "Failed to list group: " + groupDir, e);
+        }
+    }
+
+    /**
+     * Filters skills based on config predicates declared
+     * in {@link SkillGroupConditions}.
      *
      * @param config     the project configuration
      * @param group      the skill group name
@@ -127,7 +227,8 @@ public final class GithubSkillsAssembler
             String group,
             List<String> skillNames) {
         Map<String, Predicate<ProjectConfig>> conditions =
-                SkillGroupRegistry.conditionsForGroup(group);
+                SkillGroupConditions.conditionsForGroup(
+                        group);
         if (conditions.isEmpty()) {
             return new ArrayList<>(skillNames);
         }
@@ -161,10 +262,6 @@ public final class GithubSkillsAssembler
     /**
      * Renders a single skill template to output.
      *
-     * <p>Reads the template, applies placeholder
-     * replacement, creates the output directory, writes
-     * SKILL.md, and copies any references.</p>
-     *
      * @param engine the template engine
      * @param ctx    the skill render context
      * @param name   the skill name
@@ -175,7 +272,7 @@ public final class GithubSkillsAssembler
             TemplateEngine engine,
             SkillRenderContext ctx,
             String name) {
-        Path src = ctx.srcDir().resolve(name + ".md");
+        Path src = ctx.srcDir().resolve(name + MD_SUFFIX);
         if (!Files.exists(src)) {
             return Optional.empty();
         }
@@ -202,8 +299,8 @@ public final class GithubSkillsAssembler
 
     /**
      * Copies a references directory for a skill if it
-     * exists, applying placeholder replacement to all
-     * markdown files.
+     * exists, applying placeholder replacement to markdown
+     * files.
      *
      * @param ctx      the skill render context
      * @param engine   the template engine
@@ -216,11 +313,11 @@ public final class GithubSkillsAssembler
             Path skillDir,
             String name) {
         Path refsDir = ctx.srcDir().resolve(
-                "references/" + name);
+                REFERENCES_DIR + "/" + name);
         if (!Files.exists(refsDir)) {
             return;
         }
-        Path destRefs = skillDir.resolve("references");
+        Path destRefs = skillDir.resolve(REFERENCES_DIR);
         CopyHelpers.copyDirectory(refsDir, destRefs);
         CopyHelpers.replacePlaceholdersInDir(
                 destRefs, engine, ctx.context());

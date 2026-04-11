@@ -389,7 +389,7 @@ class IncidentSkillTest {
     }
 
     @Nested
-    @DisplayName("SkillGroupRegistry —"
+    @DisplayName("GithubSkillsAssembler.SKILL_GROUPS —"
             + " git-troubleshooting Group")
     class RegistryGitTroubleshootingGroup {
 
@@ -397,7 +397,7 @@ class IncidentSkillTest {
         @DisplayName("git-troubleshooting group"
                 + " contains x-ops-incident")
         void register_gitTroubleshooting_containsIncident() {
-            assertThat(SkillGroupRegistry.SKILL_GROUPS
+            assertThat(GithubSkillsAssembler.SKILL_GROUPS
                     .get("git-troubleshooting"))
                     .contains("x-ops-incident");
         }

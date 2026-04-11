@@ -567,13 +567,13 @@ class PerfProfileSkillTest {
     }
 
     @Nested
-    @DisplayName("SkillGroupRegistry -- Dev Group")
+    @DisplayName("GithubSkillsAssembler.SKILL_GROUPS -- Dev Group")
     class RegistryDevGroup {
 
         @Test
         @DisplayName("dev group contains x-perf-profile")
         void register_devGroup_containsPerfProfile() {
-            assertThat(SkillGroupRegistry.SKILL_GROUPS
+            assertThat(GithubSkillsAssembler.SKILL_GROUPS
                     .get("dev"))
                     .contains("x-perf-profile");
         }

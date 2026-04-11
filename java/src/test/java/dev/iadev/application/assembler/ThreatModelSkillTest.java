@@ -376,14 +376,14 @@ class ThreatModelSkillTest {
     }
 
     @Nested
-    @DisplayName("SkillGroupRegistry — Review Group")
+    @DisplayName("GithubSkillsAssembler.SKILL_GROUPS — Review Group")
     class RegistryReviewGroup {
 
         @Test
         @DisplayName("review group contains"
                 + " x-threat-model")
         void register_reviewGroup_containsThreatModel() {
-            assertThat(SkillGroupRegistry.SKILL_GROUPS
+            assertThat(GithubSkillsAssembler.SKILL_GROUPS
                     .get("review"))
                     .contains("x-threat-model");
         }
