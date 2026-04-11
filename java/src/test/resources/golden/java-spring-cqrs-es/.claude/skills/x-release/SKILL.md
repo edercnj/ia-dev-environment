@@ -1,9 +1,9 @@
 ---
 name: x-release
-description: "Orchestrates complete release flow using Git Flow release branches with approval gate, PR-flow (gh CLI) and deep validation: version bump (auto-detect or explicit), release branch creation from develop, deep validation (coverage, golden files, version consistency), version file updates, changelog generation, release commit, release PR via gh, human approval gate with persistent state file, tag on main after merged PR, back-merge PR to develop with conflict detection, and cleanup. Supports hotfix releases from main, dry-run mode, resume via --continue-after-merge, in-session pause via --interactive, GPG-signed tags, and custom state file path."
+description: "Orchestrates complete release flow using Git Flow release branches with approval gate, PR-flow (gh CLI) and deep validation: version bump (auto-detect or explicit), release branch creation from develop, deep validation (coverage, golden files, version consistency), version file updates, changelog generation, release commit, release PR via gh (optionally reviewed by x-review-pr), human approval gate with persistent state file, tag on main after merged PR, back-merge PR to develop with conflict detection, and cleanup. Supports hotfix releases from main, dry-run mode, resume via --continue-after-merge, in-session pause via --interactive, GPG-signed tags, skip-review opt-out, and custom state file path."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, Skill, AskUserQuestion
-argument-hint: "[major|minor|patch|version] [--dry-run] [--skip-tests] [--no-publish] [--hotfix] [--continue-after-merge] [--interactive] [--signed-tag] [--state-file <path>]"
+argument-hint: "[major|minor|patch|version] [--dry-run] [--skip-tests] [--no-publish] [--hotfix] [--continue-after-merge] [--interactive] [--signed-tag] [--skip-review] [--state-file <path>]"
 context-budget: heavy
 ---
 
@@ -43,24 +43,25 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 | `--continue-after-merge` | No | Resume flow from RESUME-AND-TAG after the release PR has been merged manually. Requires an existing state file with `phase: APPROVAL_PENDING`. |
 | `--interactive` | No | Activate in-session pause at APPROVAL-GATE via `AskUserQuestion` instead of exiting the skill. The state file is still persisted for defense in depth. |
 | `--signed-tag` | No | Create a GPG-signed git tag (`git tag -s`) instead of an annotated tag (`git tag -a`). |
+| `--skip-review` | No | Skip the fire-and-forget `x-review-pr` invocation at the end of Phase `OPEN-RELEASE-PR`. The release PR is still opened against `main`; only the automated specialist review is suppressed. |
 | `--state-file <path>` | No | Override the state file path (default: `plans/release-state-<X.Y.Z>.json`). |
 
 ## Workflow
 
 ```
- 0. RESUME-DETECT -> Verify gh/jq, load or create state file, detect resume mode
- 1. DETERMINE     -> Parse argument and calculate target version
- 2. VALIDATE      -> Check pre-conditions (branch, working directory)
- 3. BRANCH        -> Create release/X.Y.Z branch from develop (or hotfix/* from main)
- 4. UPDATE        -> Update version in project-specific files (strip SNAPSHOT)
- 5. CHANGELOG     -> Generate/update CHANGELOG.md via x-release-changelog
- 6. COMMIT        -> Create release commit on release branch
- 7. MERGE-MAIN    -> Merge release branch into main with --no-ff
- 8. TAG           -> Create annotated git tag on main
- 9. MERGE-BACK    -> Merge release branch back into develop with --no-ff
-10. PUBLISH       -> Push main, develop, and tag to remote (unless --no-publish)
-11. CLEANUP       -> Delete the release branch
-    DRY-RUN       -> If --dry-run, show plan and exit (no changes)
+ 0. RESUME-DETECT   -> Verify gh/jq, load or create state file, detect resume mode
+ 1. DETERMINE       -> Parse argument and calculate target version
+ 2. VALIDATE        -> Check pre-conditions (branch, working directory)
+ 3. BRANCH          -> Create release/X.Y.Z branch from develop (or hotfix/* from main)
+ 4. UPDATE          -> Update version in project-specific files (strip SNAPSHOT)
+ 5. CHANGELOG       -> Generate/update CHANGELOG.md via x-release-changelog
+ 6. COMMIT          -> Create release commit on release branch
+ 7. OPEN-RELEASE-PR -> Push release branch and open PR to main via gh pr create
+ 8. TAG             -> Create annotated/signed git tag on main (after merged PR)
+ 9. MERGE-BACK      -> Merge release branch back into develop with --no-ff
+10. PUBLISH         -> Push the release tag to remote (main/develop go via PR flow)
+11. CLEANUP         -> Delete the release branch
+    DRY-RUN         -> If --dry-run, show plan and exit (no changes)
 ```
 
 > **Note:** Step 0 (Resume Detection) is the new entry point introduced by
@@ -400,21 +401,187 @@ git commit -m "release: v${VERSION}"
 
 The commit message format is `release: v{version}` — this follows `x-git-push` Conventional Commits patterns.
 
-### Step 7 — Merge to Main
+### Step 7 — Open Release PR
 
-Merge the release branch into `main` using a merge commit (no fast-forward):
+> **RULE-001 (PR-Flow):** `main` MUST NOT receive a direct `git merge` from
+> the skill. This phase replaces the legacy Step 7 MERGE-MAIN with
+> **Phase OPEN-RELEASE-PR**, which pushes the release branch and opens a
+> pull request via `gh pr create --base main --head release/${VERSION}`.
+> The operator (or CI) is responsible for merging the PR once reviews
+> complete; the skill will then resume at Step 8 via
+> `--continue-after-merge` (wired by story-0035-0005).
+
+#### Step 7.1 — Honour --no-publish (Dry-Run for Remote)
+
+If `--no-publish` is set, OPEN-RELEASE-PR short-circuits: no remote push,
+no PR creation, no state mutation. Emit an informational block and exit
+the phase so that local state reflects `COMMITTED` and operators can push
+manually later.
 
 ```bash
-# Switch to main
-git checkout main
-git pull origin main
-
-# Merge release branch with merge commit
-git merge "release/${VERSION}" --no-ff \
-    -m "release: merge release/${VERSION} into main"
+if [ "$NO_PUBLISH" = "true" ]; then
+  echo "[OPEN-RELEASE-PR] --no-publish set: skipping git push and"
+  echo "                   gh pr create. Release state stays in"
+  echo "                   'COMMITTED'. Push manually with:"
+  echo "  git push -u origin \"release/${VERSION}\""
+  echo "  gh pr create --base main --head \"release/${VERSION}\" \\"
+  echo "    --title \"release: v${VERSION}\" --body \"\$(build_pr_body)\""
+  exit 0
+fi
 ```
 
-**Important:** The `--no-ff` flag ensures a merge commit is always created, preserving the release branch history in the commit graph.
+#### Step 7.2 — Push the Release Branch
+
+```bash
+# Push the release branch so the PR has a remote head to target.
+if ! git push -u origin "release/${VERSION}"; then
+  echo "ABORT [PR_PUSH_REJECTED]: push rejected for release/${VERSION}."
+  echo "Check branch protection and remote permissions, then retry."
+  exit 1
+fi
+```
+
+#### Step 7.3 — Extract the CHANGELOG Entry for this Version
+
+```bash
+# Capture the [X.Y.Z] block from CHANGELOG.md. awk prints lines from the
+# target header up to the next "## [" header (exclusive), and sed drops
+# the trailing delimiter line so only the current release body remains.
+CHANGELOG_ENTRY=$(awk "/^## \[${VERSION}\]/,/^## \[/" CHANGELOG.md \
+  | sed '$d')
+
+if [ -z "$CHANGELOG_ENTRY" ]; then
+  echo "ABORT [PR_NO_CHANGELOG_ENTRY]: no [${VERSION}] entry in"
+  echo "CHANGELOG.md. Re-run Step 5 (CHANGELOG) before OPEN-RELEASE-PR."
+  exit 1
+fi
+```
+
+#### Step 7.4 — Build the PR Body and Invoke `gh pr create`
+
+The PR body is the operator-facing snapshot of the release: it embeds the
+CHANGELOG entry, repeats the resume hint, and lists the VALIDATE-DEEP
+gates already cleared by Step 2.
+
+```bash
+build_pr_body() {
+  cat <<EOF
+## Release v${VERSION}
+
+${CHANGELOG_ENTRY}
+
+---
+
+**Release type:** ${BUMP_TYPE}
+**Previous version:** ${PREVIOUS_VERSION}
+
+## Approval Gate
+
+After merging this PR, re-run:
+
+\`\`\`
+/x-release ${VERSION} --continue-after-merge
+\`\`\`
+
+## Checklist (validated by VALIDATE-DEEP)
+
+- [x] Tests passing
+- [x] Coverage ≥ 95% line, ≥ 90% branch
+- [x] Golden files consistent
+- [x] CHANGELOG [${VERSION}] section populated
+- [x] No hardcoded version strings
+- [x] Cross-file version consistency
+EOF
+}
+
+PR_TITLE="release: v${VERSION}"
+PR_URL=$(gh pr create \
+  --base main \
+  --head "release/${VERSION}" \
+  --title "${PR_TITLE}" \
+  --body "$(build_pr_body)")
+
+if [ -z "$PR_URL" ]; then
+  echo "ABORT [PR_CREATE_FAILED]: could not capture PR URL from"
+  echo "gh pr create. Inspect the gh output above and retry."
+  exit 1
+fi
+
+# Derive the PR number from the URL returned by gh. This is deterministic
+# and avoids the ambiguity of `gh pr view` when multiple PRs reference
+# the same head branch.
+PR_NUMBER="${PR_URL##*/}"
+```
+
+#### Step 7.5 — Persist PR Metadata to the State File
+
+All writes use the atomic write-to-temp + rename protocol documented in
+`references/state-file-schema.md`. The fields persisted here
+(`prNumber`, `prUrl`, `prTitle`, `changelogEntry`) are the contract
+consumed by `APPROVAL-GATE`, `RESUME-AND-TAG`, and `BACK-MERGE-DEVELOP`
+in downstream stories.
+
+```bash
+TMP="${STATE_FILE}.tmp.$$"
+jq --arg url   "$PR_URL" \
+   --arg title "$PR_TITLE" \
+   --arg num   "$PR_NUMBER" \
+   --arg entry "$CHANGELOG_ENTRY" \
+   --arg ts    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  '.phase = "PR_OPENED"
+   | .prNumber = ($num | tonumber)
+   | .prUrl = $url
+   | .prTitle = $title
+   | .changelogEntry = $entry
+   | .lastPhaseCompletedAt = $ts
+   | .phasesCompleted += ["OPEN_RELEASE_PR"]' \
+  "$STATE_FILE" > "$TMP"
+mv "$TMP" "$STATE_FILE"
+```
+
+#### Step 7.6 — Optional Specialist Review via `x-review-pr`
+
+If `--skip-review` is absent AND the `x-review-pr` skill is available in
+the project, invoke it in fire-and-forget mode so that the specialists
+(Security, QA, Performance, …) post their findings to the release PR
+while the operator reviews it. The skill is invoked through the
+`Skill` tool so that the lifecycle orchestrator can propagate context
+without spawning a nested shell.
+
+```bash
+if [ "$SKIP_REVIEW" != "true" ] && \
+   [ -f ".claude/skills/x-review-pr/SKILL.md" ]; then
+  # Fire-and-forget — failures of x-review-pr MUST NOT block the release.
+  Skill("x-review-pr", "$PR_NUMBER") || \
+    echo "WARNING: x-review-pr invocation failed; continue manually."
+fi
+```
+
+If `--skip-review` is set, emit a single-line notice and skip the
+invocation entirely:
+
+```bash
+if [ "$SKIP_REVIEW" = "true" ]; then
+  echo "[OPEN-RELEASE-PR] --skip-review set: x-review-pr NOT invoked."
+fi
+```
+
+#### Step 7.7 — Error Catalog (local to OPEN-RELEASE-PR)
+
+| Condition | Code | Message template |
+|:---|:---|:---|
+| `git push` for the release branch is rejected | `PR_PUSH_REJECTED` | `Push rejected for release/${VERSION}. Check branch protection.` |
+| `awk` produces an empty CHANGELOG entry | `PR_NO_CHANGELOG_ENTRY` | `No [${VERSION}] entry in CHANGELOG.md` |
+| `gh pr create` returns a non-zero exit | `PR_CREATE_FAILED` | `Failed to create PR: <stderr captured from gh>` |
+
+The codes above extend the catalog in
+`references/state-file-schema.md`. Operators triage PR-flow failures
+using the same vocabulary as the rest of the skill.
+
+> **Behavior preserved (RULE-002):** The release commit (Step 6), the
+> release branch creation (Step 3), and the CHANGELOG generation
+> (Step 5) are untouched. Only the merge-to-main step is replaced — the
+> skill still produces the exact same local state up to `COMMITTED`.
 
 ### Step 8 — Tag Creation
 
@@ -460,20 +627,24 @@ git commit -m "chore: advance develop to ${NEXT_SNAPSHOT}"
 
 ### Step 10 — Publish
 
-If `--no-publish` flag is NOT present, push all branches and the tag:
+> **RULE-001 reminder:** `main` and `develop` MUST NOT receive a direct
+> `git push` from this phase. They are updated exclusively through the
+> release PR (Step 7, `OPEN-RELEASE-PR`) and the back-merge PR
+> (Step 9, introduced by story-0035-0006). The only remote mutation Step
+> 10 performs is pushing the release **tag**; the release branch push
+> lives inside `OPEN-RELEASE-PR` (Step 7.2).
+
+If `--no-publish` flag is NOT present, push the release tag to the
+remote:
 
 ```bash
-# Push main with the merge commit and tag
-git push origin main
+# Push the signed/annotated release tag created in Step 8.
 git push origin "v${VERSION}"
-
-# Push develop with the back-merge
-git push origin develop
 ```
 
 If `--no-publish` flag IS present:
-- Skip push
-- Display: "Release created locally. Run 'git push origin main develop v{VERSION}' manually when ready."
+- Skip the tag push
+- Display: "Release created locally. Run 'git push origin v${VERSION}' manually when ready."
 
 ### Step 11 — Cleanup
 
