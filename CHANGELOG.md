@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **BREAKING:** CLI `--platform` flag now accepts only `claude-code` (and the backward-compatibility keyword `all`, which is now functionally equivalent to `claude-code`). Previous values `copilot`, `codex`, and `agents` are rejected with a clear error message that lists accepted values. (EPIC-0034 / story-0034-0001)
-- **BREAKING:** Default value of `--platform` is now `claude-code` when the flag is omitted. Previously the default was `all`. (EPIC-0034 / story-0034-0001)
+- **BREAKING (effective):** The `--platform` CLI default string is still declared as `all` in `GenerateCommand`, but `all` now produces `claude-code` output because it is the only remaining platform. Users who previously relied on `--platform all` for multi-target generation now get a single-target claude-code build. (EPIC-0034 / story-0034-0001)
 - Generator output per profile reduced substantially after retiring non-Claude targets (verified example: `java-spring` went from ~9500 manifest entries to 343 actual generated files). The `expected-artifacts.json` smoke manifest was regenerated to match the verified claude-only outputs. (EPIC-0034 / story-0034-0005)
 - `CLAUDE.md` at repo root reduced from 289 to ~115 lines by removing multi-target documentation sections. (EPIC-0034 / story-0034-0005)
 - `readme-template.md` cleaned of `.github/`, `.codex/`, and `.agents/` directory descriptions; artifact-conventions table now lists only Claude artifacts. (EPIC-0034 / story-0034-0005)
@@ -31,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Users with automated scripts or CI pipelines invoking `ia-dev-env` must update as follows:
 
-- Replace `--platform copilot`, `--platform codex`, or `--platform agents` with `--platform claude-code`, **OR** drop the flag entirely (the new default is `claude-code`). `--platform all` remains accepted as a backward-compatibility alias and now means "generate claude-code only" (since `claude-code` is the only target).
+- Replace `--platform copilot`, `--platform codex`, or `--platform agents` with `--platform claude-code`, **OR** drop the flag entirely (the CLI default is still declared as `all`, which now produces `claude-code` output because it is the only remaining platform). `--platform all` remains accepted and now means "generate claude-code only".
 - Remove any downstream tooling that consumes `.github/instructions/`, `.github/skills/`, `.github/prompts/`, `.codex/config.toml`, `.codex/requirements.toml`, or `.agents/skills/` artifacts — these are no longer produced by the generator.
 - `.github/workflows/` files in generated projects are unaffected; CI/CD pipelines continue to work without changes (RULE-003).
 - Claude Code users with existing `.claude/` output: no action required. Regenerate with the same command you used before, minus any platform flag.
