@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
@@ -29,8 +28,9 @@ class SummaryTableBuilderPlatformTest {
     class FilteredSummary {
 
         @Test
-        @DisplayName("claude-only omits github/codex rows")
-        void build_claudeOnly_omitsGithubAndCodex(
+        @DisplayName("claude-only still shows agents"
+                + " (single user-selectable == no filter)")
+        void build_claudeOnly_showsAgentsAsAllMode(
                 @TempDir Path tempDir)
                 throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
@@ -40,6 +40,8 @@ class SummaryTableBuilderPlatformTest {
                             claudeDir,
                             Set.of(Platform.CLAUDE_CODE));
 
+            // With only CLAUDE_CODE selectable, specifying
+            // it is the same as "all" — no filter applied.
             assertThat(summary)
                     .contains("Rules (.claude)")
                     .contains("Skills (.claude)")
@@ -49,28 +51,7 @@ class SummaryTableBuilderPlatformTest {
                     .contains("Settings (.claude)")
                     .contains("Plan Templates (.claude)")
                     .doesNotContain("(.github)")
-                    .doesNotContain("(.codex)")
-                    .doesNotContain("(.agents)")
-                    .doesNotContain("AGENTS.md (root)");
-        }
-
-        @Test
-        @DisplayName("codex-only omits claude rows")
-        void build_codexOnly_omitsClaude(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path claudeDir = setupMinimalOutput(tempDir);
-
-            String summary =
-                    builder.buildGenerationSummary(
-                            claudeDir,
-                            Set.of(Platform.CODEX));
-
-            assertThat(summary)
-                    .contains("AGENTS.md (root)")
-                    .contains("(.codex)")
-                    .contains("(.agents)")
-                    .doesNotContain("(.claude)");
+                    .doesNotContain("(.codex)");
         }
 
         @Test
@@ -86,7 +67,6 @@ class SummaryTableBuilderPlatformTest {
 
             assertThat(summary)
                     .contains("(.claude)")
-                    .contains("(.codex)")
                     .contains("AGENTS.md (root)");
         }
 
@@ -103,8 +83,7 @@ class SummaryTableBuilderPlatformTest {
                             Platform.allUserSelectable());
 
             assertThat(summary)
-                    .contains("(.claude)")
-                    .contains("(.codex)");
+                    .contains("(.claude)");
         }
 
         @Test
@@ -128,8 +107,6 @@ class SummaryTableBuilderPlatformTest {
             throws IOException {
         Path claudeDir = Files.createDirectories(
                 tempDir.resolve(".claude"));
-        Files.createDirectories(
-                tempDir.resolve(".codex"));
         return claudeDir;
     }
 }

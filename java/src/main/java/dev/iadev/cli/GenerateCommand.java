@@ -95,7 +95,7 @@ public class GenerateCommand implements Callable<Integer> {
     @Option(names = {"-p", "--platform"},
             description = "Target AI platform(s) for "
                     + "artifact generation. Values: "
-                    + "claude-code, codex, all. "
+                    + "claude-code, all. "
                     + "Multiple values separated by comma. "
                     + "Default: all (generate for all "
                     + "platforms).",

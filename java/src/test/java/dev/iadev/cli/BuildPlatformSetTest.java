@@ -98,16 +98,14 @@ class BuildPlatformSetTest {
         }
 
         @Test
-        @DisplayName("multiple platforms returns EnumSet")
-        void buildPlatformSet_multiple_returnsEnumSet() {
+        @DisplayName("single platform returns EnumSet")
+        void buildPlatformSet_single_returnsEnumSet() {
             Set<Platform> result =
                     PlatformPrecedenceResolver.buildPlatformSet(
-                            List.of(Platform.CLAUDE_CODE,
-                                    Platform.CODEX));
+                            List.of(Platform.CLAUDE_CODE));
 
             assertThat(result).containsExactlyInAnyOrder(
-                    Platform.CLAUDE_CODE,
-                    Platform.CODEX);
+                    Platform.CLAUDE_CODE);
         }
 
         @Test
@@ -116,12 +114,12 @@ class BuildPlatformSetTest {
             Set<Platform> result =
                     PlatformPrecedenceResolver.buildPlatformSet(
                             Arrays.asList(
-                                    Platform.CODEX,
-                                    Platform.CODEX));
+                                    Platform.CLAUDE_CODE,
+                                    Platform.CLAUDE_CODE));
 
             assertThat(result)
                     .hasSize(1)
-                    .containsExactly(Platform.CODEX);
+                    .containsExactly(Platform.CLAUDE_CODE);
         }
     }
 }

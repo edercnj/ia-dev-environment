@@ -55,7 +55,6 @@ class GenerateCommandPlatformTest {
 
             assertThat(sw.toString())
                     .contains("claude-code")
-                    .contains("codex")
                     .contains("all");
         }
 
@@ -121,15 +120,15 @@ class GenerateCommandPlatformTest {
         }
 
         @Test
-        @DisplayName("-p codex returns success")
-        void codex_shortOption_returnsZero() {
+        @DisplayName("-p claude-code returns success")
+        void claudeCode_shortOption_returnsZero() {
             var cmd = buildCommandLine();
             var sw = new StringWriter();
             cmd.setOut(new PrintWriter(sw));
 
             int exitCode = cmd.execute(
                     "generate", "-s", "java-quarkus",
-                    "-p", "codex",
+                    "-p", "claude-code",
                     "--dry-run",
                     "-o", tempDir.toString());
 
@@ -142,7 +141,7 @@ class GenerateCommandPlatformTest {
     class MultiplePlatforms {
 
         @Test
-        @DisplayName("--platform claude-code,codex "
+        @DisplayName("--platform claude-code,all "
                 + "returns success")
         void multiplePlatforms_dryRun_returnsZero() {
             var cmd = buildCommandLine();
@@ -151,7 +150,7 @@ class GenerateCommandPlatformTest {
 
             int exitCode = cmd.execute(
                     "generate", "-s", "java-quarkus",
-                    "--platform", "claude-code,codex",
+                    "--platform", "claude-code,all",
                     "--dry-run",
                     "-o", tempDir.toString());
 
@@ -307,7 +306,7 @@ class GenerateCommandPlatformTest {
                       name: spring-boot
                       version: "3.4"
                       build_tool: maven
-                    platform: claude-code
+                    platform: all
                     """;
             Path configFile =
                     tempDir.resolve("config2.yaml");
@@ -320,7 +319,7 @@ class GenerateCommandPlatformTest {
             int exitCode = cmd.execute(
                     "generate", "-c",
                     configFile.toString(),
-                    "--platform", "codex",
+                    "--platform", "claude-code",
                     "--dry-run",
                     "-o", tempDir.resolve("out2")
                             .toString());

@@ -511,14 +511,13 @@ class ProjectConfigTest {
         void fromMap_platformList_parsedToSet() {
             var map = new HashMap<>(buildMinimalConfig());
             map.put("platform",
-                    List.of("claude-code", "codex"));
+                    List.of("claude-code"));
 
             var config = ProjectConfig.fromMap(map);
 
             assertThat(config.platforms())
                     .containsExactlyInAnyOrder(
-                            Platform.CLAUDE_CODE,
-                            Platform.CODEX);
+                            Platform.CLAUDE_CODE);
         }
 
         @Test
@@ -541,36 +540,9 @@ class ProjectConfigTest {
             var config = ProjectConfig.fromMap(map);
 
             assertThatThrownBy(() ->
-                    config.platforms().add(Platform.CODEX))
+                    config.platforms().add(Platform.SHARED))
                     .isInstanceOf(
                             UnsupportedOperationException.class);
-        }
-
-        @Test
-        @DisplayName("platform string 'codex' parsed")
-        void fromMap_platformCodex_parsedCorrectly() {
-            var map = new HashMap<>(buildMinimalConfig());
-            map.put("platform", "codex");
-
-            var config = ProjectConfig.fromMap(map);
-
-            assertThat(config.platforms())
-                    .containsExactly(Platform.CODEX);
-        }
-
-        @Test
-        @DisplayName("platform list with both values")
-        void fromMap_platformListBoth_parsedToSet() {
-            var map = new HashMap<>(buildMinimalConfig());
-            map.put("platform",
-                    List.of("claude-code", "codex"));
-
-            var config = ProjectConfig.fromMap(map);
-
-            assertThat(config.platforms())
-                    .containsExactlyInAnyOrder(
-                            Platform.CLAUDE_CODE,
-                            Platform.CODEX);
         }
 
         @Test

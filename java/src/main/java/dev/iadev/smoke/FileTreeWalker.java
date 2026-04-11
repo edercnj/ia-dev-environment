@@ -116,8 +116,6 @@ final class FileTreeWalker {
         countCategory(categories, dir,
                 "claude-settings", ".claude", true);
         countCategory(categories, dir,
-                "codex-config", ".codex");
-        countCategory(categories, dir,
                 "github-instructions",
                 ".github/instructions");
         countCategory(categories, dir,

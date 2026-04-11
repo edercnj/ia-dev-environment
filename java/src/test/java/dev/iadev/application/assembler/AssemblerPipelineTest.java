@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Tests for AssemblerPipeline — orchestrates 27 assemblers
+ * Tests for AssemblerPipeline — orchestrates 22 assemblers
  * per RULE-005.
  */
 @DisplayName("AssemblerPipeline")
@@ -37,6 +37,7 @@ class AssemblerPipelineTest {
             "HooksAssembler",
             "SettingsAssembler",
             "DocsAssembler",
+            "DocsAdrAssembler",
             "GrpcDocsAssembler",
             "RunbookAssembler",
             "IncidentTemplatesAssembler",
@@ -45,12 +46,6 @@ class AssemblerPipelineTest {
             "SloSliTemplateAssembler",
             "DocsContributingAssembler",
             "DataMigrationPlanAssembler",
-            "CodexAgentsMdAssembler",
-            "CodexConfigAssembler",
-            "CodexSkillsAssembler",
-            "CodexRequirementsAssembler",
-            "CodexOverrideAssembler",
-            "DocsAdrAssembler",
             "CicdAssembler",
             "EpicReportAssembler",
             "PlanTemplatesAssembler",
@@ -61,12 +56,12 @@ class AssemblerPipelineTest {
     class BuildAssemblers {
 
         @Test
-        @DisplayName("returns exactly 27 assembler descriptors")
-        void assemble_whenCalled_returnsExactly27() {
+        @DisplayName("returns exactly 22 assembler descriptors")
+        void assemble_whenCalled_returnsExactly22() {
             List<AssemblerDescriptor> descriptors =
                     AssemblerPipeline.buildAssemblers();
 
-            assertThat(descriptors).hasSize(27);
+            assertThat(descriptors).hasSize(22);
         }
 
         @Test
@@ -97,14 +92,8 @@ class AssemblerPipelineTest {
                     .isEqualTo(AssemblerTarget.ROOT);
             assertThat(descriptors.get(17).target())
                     .isEqualTo(AssemblerTarget.ROOT);
-            assertThat(descriptors.get(18).target())
-                    .isEqualTo(AssemblerTarget.CODEX);
-            assertThat(descriptors.get(19).target())
-                    .isEqualTo(AssemblerTarget.CODEX_AGENTS);
-            assertThat(descriptors.get(20).target())
-                    .isEqualTo(AssemblerTarget.CODEX);
             assertThat(descriptors.get(21).target())
-                    .isEqualTo(AssemblerTarget.ROOT);
+                    .isEqualTo(AssemblerTarget.CLAUDE);
         }
 
         @Test
@@ -486,8 +475,8 @@ class AssemblerPipelineTest {
                         Set.of(Platform.CLAUDE_CODE),
                         (c, e, p) -> List.of("a.md")),
                 new AssemblerDescriptor(
-                        "StubB", AssemblerTarget.CODEX,
-                        Set.of(Platform.CODEX),
+                        "StubB", AssemblerTarget.ROOT,
+                        Set.of(Platform.SHARED),
                         (c, e, p) -> List.of("b.md")));
     }
 

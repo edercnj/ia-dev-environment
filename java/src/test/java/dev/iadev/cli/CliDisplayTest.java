@@ -93,15 +93,6 @@ class CliDisplayTest {
         }
 
         @Test
-        void codexPath_whenCalled_classifiedCorrectly() {
-            Map<String, List<String>> result =
-                    CliDisplay.classifyFiles(
-                            List.of(".codex/config.toml"));
-
-            assertThat(result).containsKey("Codex");
-        }
-
-        @Test
         void agentsMdPath_whenCalled_classifiedCorrectly() {
             Map<String, List<String>> result =
                     CliDisplay.classifyFiles(

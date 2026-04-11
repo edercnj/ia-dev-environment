@@ -199,17 +199,11 @@ class ReadmeTablesCoverageTest {
     class BuildSummaryEdge {
 
         @Test
-        @DisplayName("summary with codex, agents,"
-                + " and AGENTS.md")
+        @DisplayName("summary with agents and AGENTS.md")
         void buildGenerationSummary_whenCalled_summaryWithAllExtras(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir = Files.createDirectories(
                     tempDir.resolve(".claude"));
-            Path codexDir = Files.createDirectories(
-                    tempDir.resolve(".codex"));
-            Files.writeString(
-                    codexDir.resolve("config.toml"),
-                    "c", StandardCharsets.UTF_8);
             Path agentsDir = Files.createDirectories(
                     tempDir.resolve(".agents"));
             Files.writeString(
@@ -230,10 +224,10 @@ class ReadmeTablesCoverageTest {
                             claudeDir, config);
 
             assertThat(summary)
-                    .contains("Codex (.codex)")
                     .contains("Skills (.agents)")
                     .contains("AGENTS.md (root)")
-                    .contains("AGENTS.override.md (root)");
+                    .contains("AGENTS.override.md (root)")
+                    .doesNotContain("Codex (.codex)");
         }
     }
 

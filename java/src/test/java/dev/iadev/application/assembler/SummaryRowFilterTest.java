@@ -20,7 +20,6 @@ class SummaryRowFilterTest {
             {"Rules (.claude)", 6},
             {"Skills (.claude)", 14},
             {"AGENTS.md (root)", 1},
-            {"Codex (.codex)", 2},
             {"Skills (.agents)", 3},
     };
 
@@ -50,33 +49,18 @@ class SummaryRowFilterTest {
         }
 
         @Test
-        @DisplayName("claude-only keeps only .claude rows")
-        void filter_claudeOnly_keepsClaudeRows() {
+        @DisplayName("claude-only treated as all"
+                + " (single user-selectable)")
+        void filter_claudeOnly_treatedAsAll() {
             Object[][] result = SummaryRowFilter.filter(
                     ALL_ROWS,
                     Set.of(Platform.CLAUDE_CODE));
 
-            assertThat(result.length).isEqualTo(2);
-            assertThat((String) result[0][0])
-                    .contains("(.claude)");
-            assertThat((String) result[1][0])
-                    .contains("(.claude)");
-        }
-
-        @Test
-        @DisplayName("codex-only keeps codex rows")
-        void filter_codexOnly_keepsCodexRows() {
-            Object[][] result = SummaryRowFilter.filter(
-                    ALL_ROWS,
-                    Set.of(Platform.CODEX));
-
-            assertThat(result.length).isEqualTo(3);
-            assertThat((String) result[0][0])
-                    .contains("AGENTS.md");
-            assertThat((String) result[1][0])
-                    .contains("(.codex)");
-            assertThat((String) result[2][0])
-                    .contains("(.agents)");
+            // Post-Codex-removal: CLAUDE_CODE is the only
+            // user-selectable platform, so shouldShowAll
+            // returns true and the filter is bypassed.
+            assertThat(result.length)
+                    .isEqualTo(ALL_ROWS.length);
         }
     }
 }

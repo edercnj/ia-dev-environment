@@ -27,8 +27,8 @@ class SummaryTableBuilderTest {
     class BuildGenerationSummary {
 
         @Test
-        @DisplayName("contains 11 component rows")
-        void build_whenCalled_containsElevenComponents(
+        @DisplayName("contains 10 component rows")
+        void build_whenCalled_containsTenComponents(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
 
@@ -47,7 +47,7 @@ class SummaryTableBuilderTest {
                     dataRows++;
                 }
             }
-            assertThat(dataRows).isEqualTo(11);
+            assertThat(dataRows).isEqualTo(10);
         }
 
         @Test
@@ -85,8 +85,8 @@ class SummaryTableBuilderTest {
                     .contains("Plan Templates (.claude)")
                     .contains("AGENTS.md (root)")
                     .contains("AGENTS.override.md (root)")
-                    .contains("Codex (.codex)")
-                    .contains("Skills (.agents)");
+                    .contains("Skills (.agents)")
+                    .doesNotContain("Codex (.codex)");
         }
 
         @Test
@@ -116,18 +116,13 @@ class SummaryTableBuilderTest {
         }
 
         @Test
-        @DisplayName("summary with codex and agents")
+        @DisplayName("summary with agents extras")
         void build_withAllExtras_summary(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir = Files.createDirectories(
                     tempDir.resolve(".claude"));
             Files.createDirectories(
                     tempDir.resolve(".github"));
-            Path codexDir = Files.createDirectories(
-                    tempDir.resolve(".codex"));
-            Files.writeString(
-                    codexDir.resolve("config.toml"),
-                    "c", StandardCharsets.UTF_8);
             Path agentsDir = Files.createDirectories(
                     tempDir.resolve(".agents"));
             Files.writeString(
@@ -145,10 +140,10 @@ class SummaryTableBuilderTest {
                             claudeDir);
 
             assertThat(summary)
-                    .contains("Codex (.codex)")
                     .contains("Skills (.agents)")
                     .contains("AGENTS.md (root)")
-                    .contains("AGENTS.override.md (root)");
+                    .contains("AGENTS.override.md (root)")
+                    .doesNotContain("Codex (.codex)");
         }
 
         private Path setupMinimalOutput(Path tempDir)

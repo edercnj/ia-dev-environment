@@ -52,17 +52,6 @@ class OverwriteDetectorTest {
         }
 
         @Test
-        @DisplayName("detects .codex/ directory")
-        void detect_whenCalled_detectsCodex(@TempDir Path tempDir) throws IOException {
-            Files.createDirectories(tempDir.resolve(".codex"));
-
-            List<String> conflicts =
-                    OverwriteDetector.checkExistingArtifacts(tempDir);
-
-            assertThat(conflicts).containsExactly(".codex/");
-        }
-
-        @Test
         @DisplayName("detects .agents/ directory")
         void detect_whenCalled_detectsAgents(@TempDir Path tempDir) throws IOException {
             Files.createDirectories(tempDir.resolve(".agents"));
@@ -133,20 +122,19 @@ class OverwriteDetectorTest {
         void multipleConflicts_whenCalled_detected(@TempDir Path tempDir)
                 throws IOException {
             Files.createDirectories(tempDir.resolve(".claude"));
-            Files.createDirectories(tempDir.resolve(".codex"));
+            Files.createDirectories(tempDir.resolve(".agents"));
 
             List<String> conflicts =
                     OverwriteDetector.checkExistingArtifacts(tempDir);
 
             assertThat(conflicts)
-                    .containsExactlyInAnyOrder(".claude/", ".codex/");
+                    .containsExactlyInAnyOrder(".claude/", ".agents/");
         }
 
         @Test
-        @DisplayName("detects all nine artifact directories")
-        void allNine_whenCalled_detected(@TempDir Path tempDir) throws IOException {
+        @DisplayName("detects all eight artifact directories")
+        void allEight_whenCalled_detected(@TempDir Path tempDir) throws IOException {
             Files.createDirectories(tempDir.resolve(".claude"));
-            Files.createDirectories(tempDir.resolve(".codex"));
             Files.createDirectories(tempDir.resolve(".agents"));
             Files.createDirectories(tempDir.resolve("steering"));
             Files.createDirectories(tempDir.resolve("specs"));
@@ -158,9 +146,9 @@ class OverwriteDetectorTest {
             List<String> conflicts =
                     OverwriteDetector.checkExistingArtifacts(tempDir);
 
-            assertThat(conflicts).hasSize(9);
+            assertThat(conflicts).hasSize(8);
             assertThat(conflicts).containsExactlyInAnyOrder(
-                    ".claude/", ".codex/",
+                    ".claude/",
                     ".agents/", "steering/", "specs/",
                     "plans/", "results/", "contracts/", "adr/");
         }

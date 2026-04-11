@@ -325,27 +325,14 @@ class ReadmeTablesTest {
             String table = ReadmeTables
                     .buildMappingTable(claudeDir);
 
-            assertThat(table)
-                    .contains("| .claude/ | .codex/"
-                            + " | Notes |");
-            assertThat(table)
-                    .contains("`.codex/requirements.toml`")
-                    .contains("`AGENTS.override.md`");
-            String[] lines = table.split("\n");
-            int dataRows = 0;
-            for (String line : lines) {
-                if (line.startsWith("| ")
-                        && !line.startsWith("| .claude/")
-                        && !line.startsWith("|---")) {
-                    dataRows++;
-                }
-            }
-            assertThat(dataRows).isEqualTo(6);
+            // After Codex removal the cross-platform
+            // mapping table is vacuous and renders empty.
+            assertThat(table).isEmpty();
         }
 
         @Test
-        @DisplayName("contains mapping arrow unicode")
-        void create_whenCalled_containsMappingArrow(@TempDir Path tempDir)
+        @DisplayName("empty result after codex removal")
+        void create_whenCalled_returnsEmpty(@TempDir Path tempDir)
                 throws IOException {
             Path claudeDir =
                     Files.createDirectories(
@@ -354,7 +341,7 @@ class ReadmeTablesTest {
             String table = ReadmeTables
                     .buildMappingTable(claudeDir);
 
-            assertThat(table).contains("\u2192");
+            assertThat(table).isEmpty();
         }
     }
 
@@ -363,8 +350,8 @@ class ReadmeTablesTest {
     class BuildGenerationSummary {
 
         @Test
-        @DisplayName("contains 11 component rows")
-        void create_whenCalled_containsElevenComponents(
+        @DisplayName("contains 10 component rows")
+        void create_whenCalled_containsTenComponents(
                 @TempDir Path tempDir)
                 throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
@@ -386,7 +373,7 @@ class ReadmeTablesTest {
                     dataRows++;
                 }
             }
-            assertThat(dataRows).isEqualTo(11);
+            assertThat(dataRows).isEqualTo(10);
         }
 
         @Test
@@ -427,8 +414,8 @@ class ReadmeTablesTest {
                     .contains("Settings (.claude)")
                     .contains("AGENTS.md (root)")
                     .contains("AGENTS.override.md (root)")
-                    .contains("Codex (.codex)")
-                    .contains("Skills (.agents)");
+                    .contains("Skills (.agents)")
+                    .doesNotContain("Codex (.codex)");
         }
 
         private Path setupMinimalOutput(Path tempDir)

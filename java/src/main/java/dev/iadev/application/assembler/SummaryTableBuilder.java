@@ -15,7 +15,7 @@ import java.util.Set;
  * for README.md.
  *
  * <p>Generates component counts for all artifact types
- * across .claude/, .codex/, and .agents/ directories.
+ * across .claude/ and .agents/ directories.
  * Also provides the static settings documentation
  * section.</p>
  *
@@ -95,10 +95,6 @@ public final class SummaryTableBuilder {
                 + " configuration.";
     }
 
-    private static Path resolveCodexDir(Path outputDir) {
-        return outputDir.getParent().resolve(".codex");
-    }
-
     private static Path resolveAgentsDir(Path outputDir) {
         return outputDir.getParent().resolve(".agents");
     }
@@ -137,9 +133,6 @@ public final class SummaryTableBuilder {
 
     private static Object[][] buildExtensionRows(
             Path outputDir) {
-        Path codexDir = resolveCodexDir(outputDir);
-        int codexCount =
-                ReadmeUtils.countCodexFiles(codexDir);
         Path agentsDir = resolveAgentsDir(outputDir);
         int agentsCount =
                 ReadmeUtils.countCodexAgentsFiles(agentsDir);
@@ -152,7 +145,6 @@ public final class SummaryTableBuilder {
                 {"AGENTS.md (root)", agentsMdCount},
                 {"AGENTS.override.md (root)",
                         agentsOverrideCount},
-                {"Codex (.codex)", codexCount},
                 {"Skills (.agents)", agentsCount},
         };
     }

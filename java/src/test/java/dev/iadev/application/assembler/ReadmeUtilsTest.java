@@ -272,40 +272,6 @@ class ReadmeUtilsTest {
     }
 
     @Nested
-    @DisplayName("countCodexFiles")
-    class CountCodexFiles {
-
-        @Test
-        @DisplayName("returns 0 when dir missing")
-        void create_whenMissing_zero(@TempDir Path tempDir) {
-            assertThat(ReadmeUtils.countCodexFiles(
-                    tempDir.resolve(".codex")))
-                    .isZero();
-        }
-
-        @Test
-        @DisplayName("counts files recursively")
-        void create_whenCalled_countsRecursive(@TempDir Path tempDir)
-                throws IOException {
-            Path codexDir =
-                    Files.createDirectories(
-                            tempDir.resolve(".codex"));
-            Files.writeString(
-                    codexDir.resolve("config.toml"),
-                    "c", StandardCharsets.UTF_8);
-            Files.createDirectories(
-                    codexDir.resolve("subdir"));
-            Files.writeString(
-                    codexDir.resolve("subdir/extra.toml"),
-                    "x", StandardCharsets.UTF_8);
-
-            assertThat(
-                    ReadmeUtils.countCodexFiles(codexDir))
-                    .isEqualTo(2);
-        }
-    }
-
-    @Nested
     @DisplayName("countCodexAgentsFiles")
     class CountCodexAgentsFiles {
 

@@ -61,11 +61,14 @@ final class SummaryRowFilter {
             return platforms.contains(
                     Platform.CLAUDE_CODE);
         }
-        if (label.contains("(.codex)")
-                || label.contains("(.agents)")
+        if (label.contains("(.agents)")
                 || label.contains("AGENTS.md")
                 || label.contains("AGENTS.override.md")) {
-            return platforms.contains(Platform.CODEX);
+            // Agents rows follow the same selection logic as
+            // .codex/.agents historically — they remain
+            // visible only when the default "all" selection
+            // is active (story 0034-0003 will remove them).
+            return false;
         }
         return true;
     }

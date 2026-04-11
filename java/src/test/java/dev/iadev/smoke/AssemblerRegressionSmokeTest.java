@@ -495,12 +495,6 @@ class AssemblerRegressionSmokeTest extends SmokeTestBase {
             assertThat(nameToTarget.get("DocsAssembler"))
                     .isEqualTo(AssemblerTarget.ROOT);
             assertThat(nameToTarget.get(
-                    "CodexConfigAssembler"))
-                    .isEqualTo(AssemblerTarget.CODEX);
-            assertThat(nameToTarget.get(
-                    "CodexSkillsAssembler"))
-                    .isEqualTo(AssemblerTarget.CODEX_AGENTS);
-            assertThat(nameToTarget.get(
                     "ReadmeAssembler"))
                     .isEqualTo(AssemblerTarget.CLAUDE);
             assertThat(nameToTarget.get(

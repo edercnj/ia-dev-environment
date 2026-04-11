@@ -2,7 +2,6 @@ package dev.iadev.application.assembler;
 
 import dev.iadev.testutil.TestConfigBuilder;
 
-import dev.iadev.domain.model.McpServerConfig;
 import dev.iadev.domain.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 import org.junit.jupiter.api.DisplayName;
@@ -25,123 +24,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @DisplayName("Assembler misc — coverage")
 class AssemblerMiscCoverageTest {
-
-    @Nested
-    @DisplayName("CodexConfigAssembler — MCP validation")
-    class CodexConfigMcp {
-
-        @Test
-        @DisplayName("MCP server with invalid TOML key"
-                + " runs through validation loop")
-        void assemble_whenCalled_invalidMcpServerIdRunsValidation(
-                @TempDir Path tempDir) throws IOException {
-            Path claudeDir = tempDir.resolve(".claude");
-            Files.createDirectories(claudeDir);
-            Path codexDir = tempDir.resolve(".codex");
-            Files.createDirectories(codexDir);
-
-            CodexConfigAssembler assembler =
-                    new CodexConfigAssembler();
-            McpServerConfig badServer =
-                    new McpServerConfig(
-                            "bad key!",
-                            "https://example.com",
-                            List.of(),
-                            Map.of());
-            ProjectConfig config = TestConfigBuilder
-                    .builder()
-                    .addMcpServer(badServer)
-                    .build();
-
-            List<String> files = assembler.assemble(
-                    config, new TemplateEngine(),
-                    codexDir);
-
-            assertThat(files).isNotEmpty();
-        }
-
-        @Test
-        @DisplayName("MCP server with valid key"
-                + " passes validation")
-        void assemble_whenCalled_validMcpServerPassesValidation(
-                @TempDir Path tempDir) throws IOException {
-            Path claudeDir = tempDir.resolve(".claude");
-            Files.createDirectories(claudeDir);
-            Path codexDir = tempDir.resolve(".codex");
-            Files.createDirectories(codexDir);
-
-            CodexConfigAssembler assembler =
-                    new CodexConfigAssembler();
-            McpServerConfig goodServer =
-                    new McpServerConfig(
-                            "valid-key",
-                            "https://example.com",
-                            List.of(),
-                            Map.of());
-            ProjectConfig config = TestConfigBuilder
-                    .builder()
-                    .addMcpServer(goodServer)
-                    .build();
-
-            List<String> files = assembler.assemble(
-                    config, new TemplateEngine(),
-                    codexDir);
-
-            assertThat(files).isNotEmpty();
-        }
-    }
-
-    @Nested
-    @DisplayName("CodexSkillsAssembler — edge cases")
-    class CodexSkillsEdge {
-
-        @Test
-        @DisplayName("skill without SKILL.md is skipped")
-        void assemble_whenCalled_skillWithoutSkillMdSkipped(
-                @TempDir Path tempDir) throws IOException {
-            Path emptySkill =
-                    tempDir.resolve("src/empty-skill");
-            Files.createDirectories(emptySkill);
-            Files.writeString(
-                    emptySkill.resolve("readme.txt"),
-                    "no SKILL.md here");
-
-            List<String> result =
-                    CodexSkillsAssembler.copySkill(
-                            emptySkill,
-                            tempDir.resolve(
-                                    "dest/empty-skill"));
-
-            assertThat(result).isEmpty();
-        }
-    }
-
-    @Nested
-    @DisplayName("CodexAgentsMdAssembler — edge cases")
-    class CodexAgentsMdEdge {
-
-        @Test
-        @DisplayName("assemble with no claude dir"
-                + " still generates output")
-        void assemble_noClaudeDir_generates(
-                @TempDir Path tempDir) throws IOException {
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-
-            CodexAgentsMdAssembler assembler =
-                    new CodexAgentsMdAssembler();
-            ProjectConfig config =
-                    TestConfigBuilder.minimal();
-
-            List<String> files = assembler.assemble(
-                    config, new TemplateEngine(),
-                    outputDir);
-
-            assertThat(files).isNotEmpty();
-            assertThat(files).anyMatch(
-                    f -> f.contains("AGENTS.md"));
-        }
-    }
 
     @Nested
     @DisplayName("PatternsAssembler — edge cases")

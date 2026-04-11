@@ -31,10 +31,8 @@ class PlatformContextBuilderTest {
 
             assertThat(flags.get("hasClaude"))
                     .isEqualTo(true);
-            assertThat(flags.get("hasCodex"))
-                    .isEqualTo(true);
             assertThat(flags.get("isMultiPlatform"))
-                    .isEqualTo(true);
+                    .isEqualTo(false);
         }
 
         @Test
@@ -48,43 +46,8 @@ class PlatformContextBuilderTest {
 
             assertThat(flags.get("hasClaude"))
                     .isEqualTo(true);
-            assertThat(flags.get("hasCodex"))
-                    .isEqualTo(false);
             assertThat(flags.get("isMultiPlatform"))
                     .isEqualTo(false);
-        }
-
-        @Test
-        @DisplayName("only codex when codex selected")
-        void buildFlags_codexOnly_onlyCodex() {
-            Map<String, Object> flags =
-                    PlatformContextBuilder
-                            .buildPlatformFlags(
-                                    Set.of(Platform.CODEX));
-
-            assertThat(flags.get("hasClaude"))
-                    .isEqualTo(false);
-            assertThat(flags.get("hasCodex"))
-                    .isEqualTo(true);
-            assertThat(flags.get("isMultiPlatform"))
-                    .isEqualTo(false);
-        }
-
-        @Test
-        @DisplayName("multi-platform when two selected")
-        void buildFlags_twoPlatforms_multiPlatformTrue() {
-            Map<String, Object> flags =
-                    PlatformContextBuilder
-                            .buildPlatformFlags(
-                                    Set.of(Platform.CLAUDE_CODE,
-                                            Platform.CODEX));
-
-            assertThat(flags.get("hasClaude"))
-                    .isEqualTo(true);
-            assertThat(flags.get("hasCodex"))
-                    .isEqualTo(true);
-            assertThat(flags.get("isMultiPlatform"))
-                    .isEqualTo(true);
         }
 
         @Test
@@ -98,27 +61,24 @@ class PlatformContextBuilderTest {
 
             assertThat(flags.get("hasClaude"))
                     .isEqualTo(true);
-            assertThat(flags.get("hasCodex"))
-                    .isEqualTo(true);
             assertThat(flags.get("isMultiPlatform"))
-                    .isEqualTo(true);
+                    .isEqualTo(false);
         }
 
         @Test
         @DisplayName("platforms list contains cli names")
-        void buildFlags_twoPlatforms_platformsList() {
+        void buildFlags_selected_platformsList() {
             Map<String, Object> flags =
                     PlatformContextBuilder
                             .buildPlatformFlags(
-                                    Set.of(Platform.CLAUDE_CODE,
-                                            Platform.CODEX));
+                                    Set.of(Platform
+                                            .CLAUDE_CODE));
 
             @SuppressWarnings("unchecked")
             List<String> platforms =
                     (List<String>) flags.get("platforms");
             assertThat(platforms)
-                    .containsExactlyInAnyOrder(
-                            "claude-code", "codex");
+                    .containsExactly("claude-code");
         }
 
         @Test
@@ -132,8 +92,7 @@ class PlatformContextBuilderTest {
             List<String> platforms =
                     (List<String>) flags.get("platforms");
             assertThat(platforms)
-                    .containsExactlyInAnyOrder(
-                            "claude-code", "codex");
+                    .containsExactly("claude-code");
         }
     }
 }

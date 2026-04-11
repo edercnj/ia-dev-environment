@@ -20,7 +20,6 @@ class AssemblerTargetTest {
     @CsvSource({
             "ROOT, output",
             "CLAUDE, output/.claude",
-            "CODEX, output/.codex",
             "CODEX_AGENTS, output/.agents"
     })
     @DisplayName("resolves target to correct physical path")
@@ -36,9 +35,9 @@ class AssemblerTargetTest {
     }
 
     @Test
-    @DisplayName("has exactly 4 target values")
-    void values_whenCalled_containsFourEntries() {
-        assertThat(AssemblerTarget.values()).hasSize(4);
+    @DisplayName("has exactly 3 target values")
+    void values_whenCalled_containsThreeEntries() {
+        assertThat(AssemblerTarget.values()).hasSize(3);
     }
 
     @Test
