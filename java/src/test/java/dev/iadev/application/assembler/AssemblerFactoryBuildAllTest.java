@@ -21,9 +21,9 @@ class AssemblerFactoryBuildAllTest {
     class UnfilteredList {
 
         @Test
-        @DisplayName("returns all 34 assemblers regardless "
+        @DisplayName("returns all 22 assemblers regardless "
                 + "of platform option")
-        void buildAllAssemblers_withClaudeFilter_returns34() {
+        void buildAllAssemblers_withClaudeFilter_returns22() {
             PipelineOptions options =
                     new PipelineOptions(
                             false, false, false,
@@ -34,12 +34,12 @@ class AssemblerFactoryBuildAllTest {
                     AssemblerFactory.buildAllAssemblers(
                             options);
 
-            assertThat(result).hasSize(34);
+            assertThat(result).hasSize(22);
         }
 
         @Test
-        @DisplayName("returns all 34 with empty platforms")
-        void buildAllAssemblers_emptyPlatforms_returns34() {
+        @DisplayName("returns all 22 with empty platforms")
+        void buildAllAssemblers_emptyPlatforms_returns22() {
             PipelineOptions options =
                     PipelineOptions.defaults();
 
@@ -47,7 +47,7 @@ class AssemblerFactoryBuildAllTest {
                     AssemblerFactory.buildAllAssemblers(
                             options);
 
-            assertThat(result).hasSize(34);
+            assertThat(result).hasSize(22);
         }
 
         @Test
@@ -61,7 +61,8 @@ class AssemblerFactoryBuildAllTest {
         }
 
         @Test
-        @DisplayName("contains all platform categories")
+        @DisplayName("contains all remaining platform "
+                + "categories")
         void buildAllAssemblers_containsAllPlatforms() {
             List<AssemblerDescriptor> result =
                     AssemblerFactory.buildAllAssemblers(
@@ -70,19 +71,11 @@ class AssemblerFactoryBuildAllTest {
             boolean hasClaude = result.stream()
                     .anyMatch(d -> d.platforms()
                             .contains(Platform.CLAUDE_CODE));
-            boolean hasCopilot = result.stream()
-                    .anyMatch(d -> d.platforms()
-                            .contains(Platform.COPILOT));
-            boolean hasCodex = result.stream()
-                    .anyMatch(d -> d.platforms()
-                            .contains(Platform.CODEX));
             boolean hasShared = result.stream()
                     .anyMatch(d -> d.platforms()
                             .contains(Platform.SHARED));
 
             assertThat(hasClaude).isTrue();
-            assertThat(hasCopilot).isTrue();
-            assertThat(hasCodex).isTrue();
             assertThat(hasShared).isTrue();
         }
     }

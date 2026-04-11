@@ -6,7 +6,6 @@ package dev.iadev.util;
  *
  * <p>Replaces duplicated {@code escapeJson} and
  * {@code indent} methods previously in
- * {@code GithubMcpAssembler} and
  * {@code SettingsAssembler}.</p>
  *
  * @see <a href="https://www.rfc-editor.org/rfc/rfc8259#section-7">

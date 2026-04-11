@@ -1,5 +1,0 @@
-blank_issues_enabled: false
-contact_links:
-  - name: Documentation
-    url: ./steering/
-    about: Check our project documentation before opening an issue

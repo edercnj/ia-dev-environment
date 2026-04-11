@@ -40,12 +40,15 @@ class PlatformVerboseFormatterTest {
         }
 
         @Test
-        void singlePlatform_whenCalled_showsPlatformCounts() {
+        void singlePlatformAll_whenCalled_showsAllLabel() {
             List<AssemblerDescriptor> all = allAssemblers();
             List<AssemblerDescriptor> filtered = List.of(
                     claudeDesc("RulesAssembler"),
                     sharedDesc("ConstitutionAssembler"));
 
+            // Post-Codex-removal: CLAUDE_CODE is the only
+            // user-selectable platform, so specifying it is
+            // semantically equivalent to "all" (no filter).
             String header =
                     PlatformVerboseFormatter
                             .formatFilterHeader(
@@ -55,33 +58,10 @@ class PlatformVerboseFormatterTest {
                                     filtered, all);
 
             assertThat(header).isEqualTo(
-                    "Platform filter: claude-code"
-                    + " -> 2 assemblers"
-                    + " (1 platform + 1 shared)");
-        }
-
-        @Test
-        void multiplePlatforms_whenCalled_showsCombinedNames() {
-            List<AssemblerDescriptor> all = allAssemblers();
-            List<AssemblerDescriptor> filtered = List.of(
-                    claudeDesc("RulesAssembler"),
-                    copilotDesc("GithubSkillsAssembler"),
-                    sharedDesc("ConstitutionAssembler"));
-
-            String header =
-                    PlatformVerboseFormatter
-                            .formatFilterHeader(
-                                    Set.of(
-                                            Platform.CLAUDE_CODE,
-                                            Platform.COPILOT),
-                                    filtered, all);
-
-            assertThat(header).contains(
-                    "Platform filter: claude-code, copilot");
-            assertThat(header).contains(
-                    "-> 3 assemblers");
-            assertThat(header).contains(
-                    "(2 platform + 1 shared)");
+                    "Platform filter: all"
+                    + " -> %d assemblers"
+                            .formatted(all.size())
+                    + " (no filter applied)");
         }
     }
 
@@ -123,31 +103,17 @@ class PlatformVerboseFormatterTest {
     class FormatSkipped {
 
         @Test
-        void copilotAssembler_whenCalled_showsCopilotPlatform() {
+        void claudeAssembler_whenCalled_showsClaudePlatform() {
             AssemblerDescriptor desc =
-                    copilotDesc("GithubSkillsAssembler");
+                    claudeDesc("RulesAssembler");
 
             String line =
                     PlatformVerboseFormatter
                             .formatSkipped(desc);
 
             assertThat(line).isEqualTo(
-                    "  SKIPPED: GithubSkillsAssembler"
-                    + " (platform: copilot)");
-        }
-
-        @Test
-        void codexAssembler_whenCalled_showsCodexPlatform() {
-            AssemblerDescriptor desc =
-                    codexDesc("CodexConfigAssembler");
-
-            String line =
-                    PlatformVerboseFormatter
-                            .formatSkipped(desc);
-
-            assertThat(line).isEqualTo(
-                    "  SKIPPED: CodexConfigAssembler"
-                    + " (platform: codex)");
+                    "  SKIPPED: RulesAssembler"
+                    + " (platform: claude-code)");
         }
     }
 
@@ -160,41 +126,30 @@ class PlatformVerboseFormatterTest {
             String warning =
                     PlatformVerboseFormatter
                             .formatDryRunWarning(
-                                    Set.of(), 34);
+                                    Set.of(), 22);
 
             assertThat(warning).isEqualTo(
                     "Dry run -- no files written."
-                    + " Platform: all (34 assemblers)");
+                    + " Platform: all (22 assemblers)");
         }
 
         @Test
-        void singlePlatform_whenCalled_showsPlatformName() {
+        void singlePlatform_whenCalled_showsAllLabel() {
             String warning =
                     PlatformVerboseFormatter
                             .formatDryRunWarning(
                                     Set.of(
-                                            Platform.CODEX),
-                                    19);
+                                            Platform
+                                                    .CLAUDE_CODE),
+                                    22);
 
+            // Post-Codex-removal: specifying the only
+            // user-selectable platform is equivalent to
+            // "all" (no filter).
             assertThat(warning).isEqualTo(
                     "Dry run -- no files written."
-                    + " Platform: codex (19 assemblers)");
-        }
-
-        @Test
-        void multiplePlatforms_whenCalled_showsJoinedNames() {
-            String warning =
-                    PlatformVerboseFormatter
-                            .formatDryRunWarning(
-                                    Set.of(
-                                            Platform.CLAUDE_CODE,
-                                            Platform.COPILOT),
-                                    29);
-
-            assertThat(warning).contains("Platform:");
-            assertThat(warning).contains("claude-code");
-            assertThat(warning).contains("copilot");
-            assertThat(warning).contains("29 assemblers");
+                    + " Platform: all"
+                    + " (22 assemblers)");
         }
     }
 
@@ -217,13 +172,13 @@ class PlatformVerboseFormatterTest {
         void withFilter_whenCalled_returnsExcludedItems() {
             List<AssemblerDescriptor> all = allAssemblers();
             List<AssemblerDescriptor> filtered = List.of(
-                    all.get(0), all.get(1));
+                    all.get(0));
 
             List<AssemblerDescriptor> skipped =
                     PlatformVerboseFormatter
                             .computeSkipped(filtered, all);
 
-            assertThat(skipped).hasSize(all.size() - 2);
+            assertThat(skipped).hasSize(all.size() - 1);
         }
     }
 
@@ -232,8 +187,6 @@ class PlatformVerboseFormatterTest {
     private static List<AssemblerDescriptor> allAssemblers() {
         return List.of(
                 claudeDesc("RulesAssembler"),
-                copilotDesc("GithubSkillsAssembler"),
-                codexDesc("CodexConfigAssembler"),
                 sharedDesc("ConstitutionAssembler"));
     }
 
@@ -242,22 +195,6 @@ class PlatformVerboseFormatterTest {
         return new AssemblerDescriptor(
                 name, AssemblerTarget.CLAUDE,
                 Set.of(Platform.CLAUDE_CODE),
-                (c, e, p) -> List.of());
-    }
-
-    private static AssemblerDescriptor copilotDesc(
-            String name) {
-        return new AssemblerDescriptor(
-                name, AssemblerTarget.GITHUB,
-                Set.of(Platform.COPILOT),
-                (c, e, p) -> List.of());
-    }
-
-    private static AssemblerDescriptor codexDesc(
-            String name) {
-        return new AssemblerDescriptor(
-                name, AssemblerTarget.CODEX,
-                Set.of(Platform.CODEX),
                 (c, e, p) -> List.of());
     }
 

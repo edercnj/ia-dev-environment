@@ -145,26 +145,29 @@ class Epic0024DocumentationTest {
         }
 
         @Test
-        @DisplayName("contains dual-target note")
-        void claudeMd_containsDualTargetNote()
+        @DisplayName("contains templates output location"
+                + " note")
+        void claudeMd_containsTemplatesLocationNote()
                 throws IOException {
             String content = readProjectFile("CLAUDE.md");
 
+            // EPIC-0034: generator is claude-only. Templates
+            // are written to .claude/templates/ only; the
+            // former .github/templates/ target was removed.
             assertThat(content).contains(
-                    ".claude/templates/")
-                    .contains(".github/templates/");
+                    ".claude/templates/");
         }
 
         @Test
         @DisplayName("Generation Summary includes Plan"
-                + " Templates counts")
+                + " Templates count")
         void claudeMd_summaryIncludesTemplates()
                 throws IOException {
             String content = readProjectFile("CLAUDE.md");
 
+            // EPIC-0034: single-target (.claude) only.
             assertThat(content)
-                    .contains("Plan Templates (.claude)")
-                    .contains("Plan Templates (.github)");
+                    .contains("Plan Templates (.claude)");
         }
     }
 

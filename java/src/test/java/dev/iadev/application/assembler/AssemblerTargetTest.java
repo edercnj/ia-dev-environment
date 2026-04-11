@@ -19,10 +19,7 @@ class AssemblerTargetTest {
     @ParameterizedTest
     @CsvSource({
             "ROOT, output",
-            "CLAUDE, output/.claude",
-            "GITHUB, output/.github",
-            "CODEX, output/.codex",
-            "CODEX_AGENTS, output/.agents"
+            "CLAUDE, output/.claude"
     })
     @DisplayName("resolves target to correct physical path")
     void resolve_returnsCorrectPath(
@@ -37,9 +34,9 @@ class AssemblerTargetTest {
     }
 
     @Test
-    @DisplayName("has exactly 5 target values")
-    void values_whenCalled_containsFiveEntries() {
-        assertThat(AssemblerTarget.values()).hasSize(5);
+    @DisplayName("has exactly 2 target values")
+    void values_whenCalled_containsTwoEntries() {
+        assertThat(AssemblerTarget.values()).hasSize(2);
     }
 
     @Test

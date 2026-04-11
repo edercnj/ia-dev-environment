@@ -550,75 +550,6 @@ class SecurityPipelineSkillTest {
     }
 
     @Nested
-    @DisplayName("GitHub Copilot SKILL.md")
-    class GithubCopilotSkill {
-
-        @Test
-        @DisplayName("x-security-pipeline GitHub"
-                + " SKILL.md exists after assembly")
-        void assemble_github_securityPipelineExists(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir =
-                    generateGithubOutput(tempDir);
-            Path skillMd = outputDir.resolve(
-                    "skills/x-security-pipeline/SKILL.md");
-            assertThat(skillMd).exists();
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains security"
-                + " pipeline reference")
-        void assemble_github_hasSecurityPipeline(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .contains("Security CI Pipeline");
-        }
-
-        @Test
-        @DisplayName("GitHub skill contains name:"
-                + " x-security-pipeline")
-        void assemble_github_hasName(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .contains(
-                            "name: x-security-pipeline");
-        }
-
-        @Test
-        @DisplayName("GitHub skill references all"
-                + " 3 CI platforms")
-        void assemble_github_hasAllPlatforms(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .contains("GitHub Actions")
-                    .contains("GitLab CI")
-                    .contains("Azure DevOps");
-        }
-
-        @Test
-        @DisplayName("GitHub skill references"
-                + " RULE-011 composability")
-        void assemble_github_hasRule011(
-                @TempDir Path tempDir)
-                throws IOException {
-            String content =
-                    generateGithubContent(tempDir);
-            assertThat(content)
-                    .contains("RULE-011");
-        }
-    }
-
-    @Nested
     @DisplayName("SkillGroupRegistry -- Dev Group")
     class RegistryDevGroup {
 
@@ -654,25 +585,4 @@ class SecurityPipelineSkillTest {
                 StandardCharsets.UTF_8);
     }
 
-    private Path generateGithubOutput(Path tempDir)
-            throws IOException {
-        Path outputDir = tempDir.resolve("output");
-        Files.createDirectories(outputDir);
-        GithubSkillsAssembler assembler =
-                new GithubSkillsAssembler();
-        assembler.assemble(
-                TestConfigBuilder.minimal(),
-                new TemplateEngine(), outputDir);
-        return outputDir;
-    }
-
-    private String generateGithubContent(Path tempDir)
-            throws IOException {
-        Path outputDir = generateGithubOutput(tempDir);
-        return Files.readString(
-                outputDir.resolve(
-                        "skills/x-security-pipeline"
-                                + "/SKILL.md"),
-                StandardCharsets.UTF_8);
-    }
 }

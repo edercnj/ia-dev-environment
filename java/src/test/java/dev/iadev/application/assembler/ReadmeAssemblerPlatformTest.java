@@ -75,8 +75,8 @@ class ReadmeAssemblerPlatformTest {
         }
 
         @Test
-        @DisplayName("all platforms shows mapping table")
-        void generate_allPlatforms_showsMappingTable(
+        @DisplayName("all platforms omits mapping table")
+        void generate_allPlatforms_omitsMappingTable(
                 @TempDir Path tempDir)
                 throws IOException {
             Path resourcesDir = setupResources(tempDir);
@@ -91,8 +91,10 @@ class ReadmeAssemblerPlatformTest {
                                     "readme-template.md"),
                             Set.of());
 
+            // After Codex removal cross-platform mapping
+            // is vacuous and no longer emitted.
             assertThat(content)
-                    .contains("| .claude/ | .github/");
+                    .doesNotContain("| .claude/ | .codex/");
         }
 
         @Test

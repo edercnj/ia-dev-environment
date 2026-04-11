@@ -80,11 +80,11 @@ class PlatformPrecedenceResolverTest {
 
             var result =
                     PlatformPrecedenceResolver.resolve(
-                            List.of(Platform.COPILOT),
+                            List.of(Platform.CLAUDE_CODE),
                             config);
 
             assertThat(result)
-                    .containsExactly(Platform.COPILOT);
+                    .containsExactly(Platform.CLAUDE_CODE);
         }
 
         @Test
@@ -103,25 +103,6 @@ class PlatformPrecedenceResolverTest {
                             allMarker, config);
 
             assertThat(result).isEmpty();
-        }
-
-        @Test
-        @DisplayName("CLI multiple overrides YAML")
-        void resolve_cliMultiple_overridesYaml() {
-            var config = TestConfigBuilder.builder()
-                    .platforms(Set.of(Platform.CODEX))
-                    .build();
-
-            var result =
-                    PlatformPrecedenceResolver.resolve(
-                            List.of(Platform.CLAUDE_CODE,
-                                    Platform.COPILOT),
-                            config);
-
-            assertThat(result)
-                    .containsExactlyInAnyOrder(
-                            Platform.CLAUDE_CODE,
-                            Platform.COPILOT);
         }
     }
 
@@ -156,10 +137,10 @@ class PlatformPrecedenceResolverTest {
                     PlatformPrecedenceResolver
                             .buildPlatformSet(
                                     List.of(
-                                            Platform.COPILOT));
+                                            Platform.CLAUDE_CODE));
 
             assertThat(result)
-                    .containsExactly(Platform.COPILOT);
+                    .containsExactly(Platform.CLAUDE_CODE);
         }
 
         @Test
@@ -173,22 +154,6 @@ class PlatformPrecedenceResolverTest {
                             .buildPlatformSet(list);
 
             assertThat(result).isEmpty();
-        }
-
-        @Test
-        @DisplayName("multiple platforms returns EnumSet")
-        void buildPlatformSet_multiple_returnsEnumSet() {
-            var result =
-                    PlatformPrecedenceResolver
-                            .buildPlatformSet(
-                                    List.of(
-                                            Platform.CLAUDE_CODE,
-                                            Platform.CODEX));
-
-            assertThat(result)
-                    .containsExactlyInAnyOrder(
-                            Platform.CLAUDE_CODE,
-                            Platform.CODEX);
         }
     }
 }

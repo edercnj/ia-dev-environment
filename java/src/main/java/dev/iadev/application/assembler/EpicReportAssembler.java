@@ -32,8 +32,6 @@ public final class EpicReportAssembler
             "shared/templates";
     private static final String CLAUDE_OUTPUT_SUBDIR =
             ".claude/templates";
-    private static final String GITHUB_OUTPUT_SUBDIR =
-            ".github/templates";
 
     /** The 9 mandatory sections that must be present. */
     static final List<String> MANDATORY_SECTIONS = List.of(
@@ -72,8 +70,7 @@ public final class EpicReportAssembler
      * {@inheritDoc}
      *
      * <p>Copies the epic report template verbatim to
-     * {@code .claude/templates/} and
-     * {@code .github/templates/}. Returns empty list if
+     * {@code .claude/templates/}. Returns empty list if
      * the template is missing or does not contain all 9
      * mandatory sections.</p>
      */
@@ -106,18 +103,11 @@ public final class EpicReportAssembler
     private List<String> copyToOutputDirs(
             String content, Path outputDir) {
         List<String> results = new ArrayList<>();
-        List<String> outputSubdirs = List.of(
-                CLAUDE_OUTPUT_SUBDIR,
-                GITHUB_OUTPUT_SUBDIR);
-
-        for (String subdir : outputSubdirs) {
-            Path destDir = outputDir.resolve(subdir);
-            CopyHelpers.ensureDirectory(destDir);
-            Path destPath =
-                    destDir.resolve(TEMPLATE_FILENAME);
-            CopyHelpers.writeFile(destPath, content);
-            results.add(destPath.toString());
-        }
+        Path destDir = outputDir.resolve(CLAUDE_OUTPUT_SUBDIR);
+        CopyHelpers.ensureDirectory(destDir);
+        Path destPath = destDir.resolve(TEMPLATE_FILENAME);
+        CopyHelpers.writeFile(destPath, content);
+        results.add(destPath.toString());
         return results;
     }
 

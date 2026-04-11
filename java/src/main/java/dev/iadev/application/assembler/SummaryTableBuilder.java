@@ -15,9 +15,11 @@ import java.util.Set;
  * for README.md.
  *
  * <p>Generates component counts for all artifact types
- * across .claude/, .github/, .codex/, and .agents/
- * directories. Also provides the static settings
- * documentation section.</p>
+ * under the {@code .claude/} directory. Also provides the
+ * static settings documentation section. Claude Code is the
+ * only user-selectable platform, so the legacy
+ * platform-filtering parameter is retained for API
+ * stability but every row is always emitted.</p>
  *
  * @see ReadmeTables
  * @see ReadmeUtils
@@ -30,7 +32,7 @@ public final class SummaryTableBuilder {
 
     /**
      * Builds the generation summary table with component
-     * counts (all platforms).
+     * counts.
      *
      * @param outputDir the .claude/ output directory
      * @return formatted generation summary
@@ -40,24 +42,20 @@ public final class SummaryTableBuilder {
     }
 
     /**
-     * Builds a platform-filtered generation summary table.
-     *
-     * <p>When platforms is empty or contains all
-     * user-selectable platforms, all rows are shown.
-     * Otherwise, only rows matching the requested
-     * platform(s) are included.</p>
+     * Builds the generation summary table with component
+     * counts. The {@code platforms} parameter is retained
+     * for backward-compatible callers but is ignored: the
+     * only user-selectable platform is
+     * {@link Platform#CLAUDE_CODE}, so every row is always
+     * included.
      *
      * @param outputDir the .claude/ output directory
-     * @param platforms the active platforms (empty = all)
+     * @param platforms ignored (retained for API stability)
      * @return formatted generation summary
      */
     String buildGenerationSummary(
             Path outputDir, Set<Platform> platforms) {
-        Path githubDir = resolveGithubDir(outputDir);
-        Object[][] allRows =
-                buildSummaryRows(outputDir, githubDir);
-        Object[][] rows = SummaryRowFilter.filter(
-                allRows, platforms);
+        Object[][] rows = buildSummaryRows(outputDir);
         List<String> lines = new ArrayList<>();
         lines.add("| Component | Count |");
         lines.add("|-----------|-------|");
@@ -97,28 +95,9 @@ public final class SummaryTableBuilder {
                 + " configuration.";
     }
 
-    static Path resolveGithubDir(Path outputDir) {
-        return outputDir.getParent().resolve(".github");
-    }
-
-    private static Path resolveCodexDir(Path outputDir) {
-        return outputDir.getParent().resolve(".codex");
-    }
-
-    private static Path resolveAgentsDir(Path outputDir) {
-        return outputDir.getParent().resolve(".agents");
-    }
-
     private static Object[][] buildSummaryRows(
-            Path outputDir, Path githubDir) {
-        Object[][] claudeRows =
-                buildClaudeRows(outputDir);
-        Object[][] githubRows =
-                buildGithubRows(outputDir, githubDir);
-        Object[][] extRows =
-                buildExtensionRows(outputDir);
-        return concatRows(
-                claudeRows, githubRows, extRows);
+            Path outputDir) {
+        return buildClaudeRows(outputDir);
     }
 
     private static Object[][] buildClaudeRows(
@@ -144,65 +123,6 @@ public final class SummaryTableBuilder {
         };
     }
 
-    private static Object[][] buildGithubRows(
-            Path outputDir, Path githubDir) {
-        int ghGlobal = existsAsInt(
-                githubDir, "copilot-instructions.md");
-        int ghMcp = existsAsInt(
-                githubDir, "copilot-mcp.json");
-        return new Object[][]{
-                {"Instructions (.github)",
-                        ghComponent(githubDir,
-                                "instructions") + ghGlobal},
-                {"Skills (.github)",
-                        ReadmeUtils.countGithubSkills(
-                                githubDir)},
-                {"Agents (.github)",
-                        ghComponent(githubDir, "agents")},
-                {"Prompts (.github)",
-                        ghComponent(githubDir, "prompts")},
-                {"Hooks (.github)",
-                        ghComponent(githubDir, "hooks")},
-                {"Plan Templates (.github)",
-                        countPlanTemplates(githubDir,
-                                "templates")},
-                {"MCP (.github)", ghMcp},
-        };
-    }
-
-    private static int existsAsInt(
-            Path dir, String filename) {
-        return Files.exists(dir.resolve(filename)) ? 1 : 0;
-    }
-
-    private static int ghComponent(
-            Path githubDir, String name) {
-        return ReadmeUtils.countGithubComponent(
-                githubDir, name);
-    }
-
-    private static Object[][] buildExtensionRows(
-            Path outputDir) {
-        Path codexDir = resolveCodexDir(outputDir);
-        int codexCount =
-                ReadmeUtils.countCodexFiles(codexDir);
-        Path agentsDir = resolveAgentsDir(outputDir);
-        int agentsCount =
-                ReadmeUtils.countCodexAgentsFiles(agentsDir);
-        Path rootDir = outputDir.getParent();
-        int agentsMdCount = Files.exists(
-                rootDir.resolve("AGENTS.md")) ? 1 : 0;
-        int agentsOverrideCount = Files.exists(
-                rootDir.resolve("AGENTS.override.md")) ? 1 : 0;
-        return new Object[][]{
-                {"AGENTS.md (root)", agentsMdCount},
-                {"AGENTS.override.md (root)",
-                        agentsOverrideCount},
-                {"Codex (.codex)", codexCount},
-                {"Skills (.agents)", agentsCount},
-        };
-    }
-
     private static int countPlanTemplates(
             Path baseDir, String subdir) {
         Path templatesDir = baseDir.resolve(subdir);
@@ -221,21 +141,6 @@ public final class SummaryTableBuilder {
         } catch (IOException e) {
             return 0;
         }
-    }
-
-    private static Object[][] concatRows(
-            Object[][]... groups) {
-        int total = 0;
-        for (Object[][] g : groups) {
-            total += g.length;
-        }
-        Object[][] result = new Object[total][];
-        int idx = 0;
-        for (Object[][] g : groups) {
-            System.arraycopy(g, 0, result, idx, g.length);
-            idx += g.length;
-        }
-        return result;
     }
 
 }

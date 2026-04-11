@@ -29,24 +29,6 @@ class AssemblerFactoryPlatformTest {
                     "SettingsAssembler",
                     "ReadmeAssembler");
 
-    private static final List<String> COPILOT_NAMES =
-            List.of(
-                    "GithubInstructionsAssembler",
-                    "GithubMcpAssembler",
-                    "GithubSkillsAssembler",
-                    "GithubAgentsAssembler",
-                    "GithubHooksAssembler",
-                    "GithubPromptsAssembler",
-                    "PrIssueTemplateAssembler");
-
-    private static final List<String> CODEX_NAMES =
-            List.of(
-                    "CodexAgentsMdAssembler",
-                    "CodexConfigAssembler",
-                    "CodexSkillsAssembler",
-                    "CodexRequirementsAssembler",
-                    "CodexOverrideAssembler");
-
     private static final List<String> SHARED_NAMES =
             List.of(
                     "ConstitutionAssembler",
@@ -69,12 +51,12 @@ class AssemblerFactoryPlatformTest {
     class PlatformCounts {
 
         @Test
-        @DisplayName("total assembler count is 34")
-        void buildAssemblers_totalCount_is34() {
+        @DisplayName("total assembler count is 22")
+        void buildAssemblers_totalCount_is22() {
             List<AssemblerDescriptor> descriptors =
                     AssemblerFactory.buildAssemblers();
 
-            assertThat(descriptors).hasSize(34);
+            assertThat(descriptors).hasSize(22);
         }
 
         @Test
@@ -89,32 +71,6 @@ class AssemblerFactoryPlatformTest {
                     .hasSize(8)
                     .containsExactlyInAnyOrderElementsOf(
                             CLAUDE_CODE_NAMES);
-        }
-
-        @Test
-        @DisplayName("7 assemblers have COPILOT platform")
-        void buildAssemblers_copilotCount_is7() {
-            List<String> copilotNames =
-                    filterByPlatform(Platform.COPILOT);
-
-            assertThat(copilotNames)
-                    .as("COPILOT assemblers")
-                    .hasSize(7)
-                    .containsExactlyInAnyOrderElementsOf(
-                            COPILOT_NAMES);
-        }
-
-        @Test
-        @DisplayName("5 assemblers have CODEX platform")
-        void buildAssemblers_codexCount_is5() {
-            List<String> codexNames =
-                    filterByPlatform(Platform.CODEX);
-
-            assertThat(codexNames)
-                    .as("CODEX assemblers")
-                    .hasSize(5)
-                    .containsExactlyInAnyOrderElementsOf(
-                            CODEX_NAMES);
         }
 
         @Test
@@ -136,17 +92,12 @@ class AssemblerFactoryPlatformTest {
             int claude =
                     filterByPlatform(Platform.CLAUDE_CODE)
                             .size();
-            int copilot =
-                    filterByPlatform(Platform.COPILOT)
-                            .size();
-            int codex =
-                    filterByPlatform(Platform.CODEX).size();
             int shared =
                     filterByPlatform(Platform.SHARED).size();
 
-            assertThat(claude + copilot + codex + shared)
-                    .as("8 + 7 + 5 + 14 = 34")
-                    .isEqualTo(34);
+            assertThat(claude + shared)
+                    .as("8 + 14 = 22")
+                    .isEqualTo(22);
         }
     }
 

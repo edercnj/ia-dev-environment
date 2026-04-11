@@ -6,8 +6,7 @@ import java.util.List;
  * Immutable result of an assembler operation.
  *
  * <p>Shared type replacing the duplicate inner records
- * previously defined in {@code GithubAgentsAssembler},
- * {@code GithubMcpAssembler}, and
+ * previously defined in
  * {@code AssemblerPipeline.NormalizedResult}.</p>
  *
  * @param files    list of generated file paths (never null)

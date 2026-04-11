@@ -10,10 +10,6 @@ import java.util.Optional;
  * <ul>
  *   <li>{@link #CLAUDE_CODE} — Anthropic Claude Code
  *       ({@code .claude/})</li>
- *   <li>{@link #COPILOT} — GitHub Copilot
- *       ({@code .github/})</li>
- *   <li>{@link #CODEX} — OpenAI Codex
- *       ({@code .codex/}, {@code .agents/})</li>
  *   <li>{@link #SHARED} — Platform-agnostic artifacts
  *       (docs, CI/CD, constitution)</li>
  * </ul>
@@ -28,12 +24,6 @@ public enum Platform {
 
     /** Anthropic Claude Code platform. */
     CLAUDE_CODE("claude-code"),
-
-    /** GitHub Copilot platform. */
-    COPILOT("copilot"),
-
-    /** OpenAI Codex platform. */
-    CODEX("codex"),
 
     /** Platform-agnostic shared artifacts. */
     SHARED("shared");
@@ -83,6 +73,6 @@ public enum Platform {
      *         except {@link #SHARED}
      */
     public static EnumSet<Platform> allUserSelectable() {
-        return EnumSet.of(CLAUDE_CODE, COPILOT, CODEX);
+        return EnumSet.of(CLAUDE_CODE);
     }
 }

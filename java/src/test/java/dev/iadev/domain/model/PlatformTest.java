@@ -24,20 +24,17 @@ class PlatformTest {
     class EnumValues {
 
         @Test
-        @DisplayName("has exactly 4 values")
-        void values_whenCalled_returnsExactlyFour() {
-            assertThat(Platform.values()).hasSize(4);
+        @DisplayName("has exactly 2 values")
+        void values_whenCalled_returnsExactlyTwo() {
+            assertThat(Platform.values()).hasSize(2);
         }
 
         @Test
-        @DisplayName("contains CLAUDE_CODE, COPILOT, "
-                + "CODEX, SHARED")
+        @DisplayName("contains CLAUDE_CODE, SHARED")
         void values_whenCalled_containsAllExpected() {
             assertThat(Platform.values())
                     .containsExactly(
                             Platform.CLAUDE_CODE,
-                            Platform.COPILOT,
-                            Platform.CODEX,
                             Platform.SHARED);
         }
     }
@@ -49,8 +46,6 @@ class PlatformTest {
         @ParameterizedTest
         @CsvSource({
                 "CLAUDE_CODE, claude-code",
-                "COPILOT,     copilot",
-                "CODEX,       codex",
                 "SHARED,      shared"
         })
         @DisplayName("returns kebab-case name")
@@ -68,8 +63,6 @@ class PlatformTest {
         @ParameterizedTest
         @CsvSource({
                 "claude-code, CLAUDE_CODE",
-                "copilot,     COPILOT",
-                "codex,       CODEX",
                 "shared,      SHARED"
         })
         @DisplayName("returns matching platform for "
@@ -86,7 +79,8 @@ class PlatformTest {
 
         @ParameterizedTest
         @ValueSource(strings = {
-                "invalid", "CLAUDE_CODE", "Claude-Code",
+                "invalid", "codex", "copilot",
+                "CLAUDE_CODE", "Claude-Code",
                 "unknown-platform"
         })
         @DisplayName("returns empty for invalid CLI name")
@@ -112,25 +106,22 @@ class PlatformTest {
     class AllUserSelectable {
 
         @Test
-        @DisplayName("returns exactly 3 platforms")
-        void allUserSelectable_returnsThree() {
+        @DisplayName("returns exactly 1 platform")
+        void allUserSelectable_returnsOne() {
             EnumSet<Platform> selectable =
                     Platform.allUserSelectable();
 
-            assertThat(selectable).hasSize(3);
+            assertThat(selectable).hasSize(1);
         }
 
         @Test
-        @DisplayName("contains CLAUDE_CODE, COPILOT, "
-                + "CODEX")
+        @DisplayName("contains CLAUDE_CODE")
         void allUserSelectable_containsExpected() {
             EnumSet<Platform> selectable =
                     Platform.allUserSelectable();
 
             assertThat(selectable).containsExactlyInAnyOrder(
-                    Platform.CLAUDE_CODE,
-                    Platform.COPILOT,
-                    Platform.CODEX);
+                    Platform.CLAUDE_CODE);
         }
 
         @Test

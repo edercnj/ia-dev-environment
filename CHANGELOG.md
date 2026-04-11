@@ -7,6 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-04-11
+
+### Added
+
+- **EPIC-0037 plans (docs):** Epic plan, implementation map, and 10 story files for the upcoming "worktree-first branch creation policy" initiative. Planning artifacts only in this release; execution deferred to a future version.
+
+### Removed
+
+- **BREAKING:** `Platform.COPILOT` enum value (generator no longer emits `.github/` Copilot artifacts). (EPIC-0034 / story-0034-0001)
+- **BREAKING:** `Platform.CODEX` enum value (generator no longer emits `.codex/` artifacts). (EPIC-0034 / story-0034-0002)
+- **BREAKING:** `AssemblerTarget.GITHUB` — `.github/` assembler target retired. (EPIC-0034 / story-0034-0001)
+- **BREAKING:** `AssemblerTarget.CODEX` — `.codex/` assembler target retired. (EPIC-0034 / story-0034-0002)
+- **BREAKING:** `AssemblerTarget.CODEX_AGENTS` — `.agents/` (shared Codex-agents) target retired. (EPIC-0034 / story-0034-0003)
+- **BREAKING:** 18 Java assembler classes deleted across three stories (8 Copilot + 7 Codex + 2 Agents + `ReadmeGithubCounter`), plus ~34 test classes and 2 test fixtures. (EPIC-0034 / stories 0034-0001..0004)
+- **BREAKING:** Golden file fixtures under `.github/` (non-workflows), `.codex/`, and `.agents/` — ~8178 files total. The `.github/workflows/` fixtures are **preserved** (RULE-003). (EPIC-0034 / stories 0034-0001..0003)
+- **BREAKING:** Resource directories `java/src/main/resources/targets/github-copilot/` (131 files) and `java/src/main/resources/targets/codex/` (15 files). `java/src/main/resources/shared/templates/` is preserved (RULE-004). (EPIC-0034 / stories 0034-0001..0002)
+
+### Changed
+
+- **BREAKING:** CLI `--platform` flag now accepts only `claude-code` (and the backward-compatibility keyword `all`, which is now functionally equivalent to `claude-code`). Previous values `copilot`, `codex`, and `agents` are rejected with a clear error message that lists accepted values. (EPIC-0034 / story-0034-0001)
+- **BREAKING (effective):** The `--platform` CLI default string is still declared as `all` in `GenerateCommand`, but `all` now produces `claude-code` output because it is the only remaining platform. Users who previously relied on `--platform all` for multi-target generation now get a single-target claude-code build. (EPIC-0034 / story-0034-0001)
+- Generator output per profile reduced substantially after retiring non-Claude targets (verified example: `java-spring` went from ~9500 manifest entries to 343 actual generated files). The `expected-artifacts.json` smoke manifest was regenerated to match the verified claude-only outputs. (EPIC-0034 / story-0034-0005)
+- `CLAUDE.md` at repo root reduced from 289 to ~115 lines by removing multi-target documentation sections. (EPIC-0034 / story-0034-0005)
+- `readme-template.md` cleaned of `.github/`, `.codex/`, and `.agents/` directory descriptions; artifact-conventions table now lists only Claude artifacts. (EPIC-0034 / story-0034-0005)
+- `README.md` at repo root updated: tagline, overview, CLI reference, "What's Generated" tree, and project-structure diagram all reflect single-target (Claude Code) scope. (EPIC-0034 / story-0034-0005)
+
+### Migration
+
+Users with automated scripts or CI pipelines invoking `ia-dev-env` must update as follows:
+
+- Replace `--platform copilot`, `--platform codex`, or `--platform agents` with `--platform claude-code`, **OR** drop the flag entirely (the CLI default is still declared as `all`, which now produces `claude-code` output because it is the only remaining platform). `--platform all` remains accepted and now means "generate claude-code only".
+- Remove any downstream tooling that consumes `.github/instructions/`, `.github/skills/`, `.github/prompts/`, `.codex/config.toml`, `.codex/requirements.toml`, or `.agents/skills/` artifacts — these are no longer produced by the generator.
+- `.github/workflows/` files in generated projects are unaffected; CI/CD pipelines continue to work without changes (RULE-003).
+- Claude Code users with existing `.claude/` output: no action required. Regenerate with the same command you used before, minus any platform flag.
+- Per Rule 08 Semantic Versioning, the next release of this tool is a **MAJOR version bump** (2.x → 3.0.0).
+
+### Rollback
+
+This epic introduces no database migrations and no persistent state changes — the generator is stateless. To roll back, revert the merge commit for EPIC-0034 on `develop` and rebuild. Prior multi-target behavior is restored atomically with no data migration needed.
+
+### Security
+
+- CLI error messages for rejected platform values contain no class names, stack traces, or file paths (CWE-209 compliance verified via `plans/epic-0034/reports/task-005-004/` evidence).
+- `ReadmeGithubCounter` class and all GitHub-specific readme-generation paths removed (attack surface reduction).
+- `ExpectedArtifactsGenerator` output path verified as a compile-time constant (CWE-22 path traversal risk check, story-0034-0005).
+
 ## [2.3.0] - 2026-04-10
 
 ### Added

@@ -9,8 +9,10 @@ import picocli.CommandLine.Model.CommandSpec;
  * Main entry point for the ia-dev-env CLI application.
  *
  * <p>Uses Picocli to define the root command with {@code generate} and
- * {@code validate} subcommands. The application generates {@code .claude/}
- * and {@code .github/} boilerplate for AI-assisted development environments.
+ * {@code validate} subcommands. The application generates Claude Code
+ * configuration under {@code .claude/} along with shared artifacts
+ * (CI/CD workflows in {@code .github/workflows/}, Dockerfile, ADRs,
+ * and documentation) for AI-assisted development environments.
  *
  * <p>Usage examples:
  * <pre>{@code
@@ -22,8 +24,9 @@ import picocli.CommandLine.Model.CommandSpec;
  */
 @Command(
         name = "ia-dev-env",
-        description = "Generates .claude/ and .github/ boilerplate "
-                + "for AI-assisted development environments.",
+        description = "Generates Claude Code configuration "
+                + "and shared DevEx artifacts for "
+                + "AI-assisted development environments.",
         mixinStandardHelpOptions = true,
         versionProvider = CliVersionProvider.class,
         subcommands = {

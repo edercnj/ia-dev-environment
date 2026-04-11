@@ -9,7 +9,6 @@ package dev.iadev.application.assembler;
  * of {@code buildSettingsJson(true)}.</p>
  *
  * @see SettingsAssembler#buildSettingsJson
- * @see CodexShared#deriveApprovalPolicy
  */
 public enum HookPresence {
 

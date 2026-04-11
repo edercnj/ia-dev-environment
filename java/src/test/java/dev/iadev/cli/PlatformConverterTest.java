@@ -28,9 +28,7 @@ class PlatformConverterTest {
 
         @ParameterizedTest
         @CsvSource({
-                "claude-code, CLAUDE_CODE",
-                "copilot,     COPILOT",
-                "codex,       CODEX"
+                "claude-code, CLAUDE_CODE"
         })
         @DisplayName("converts kebab-case to Platform enum")
         void convert_validName_returnsPlatform(
@@ -61,7 +59,8 @@ class PlatformConverterTest {
 
         @ParameterizedTest
         @ValueSource(strings = {
-                "invalid", "CLAUDE_CODE",
+                "invalid", "copilot", "codex",
+                "CLAUDE_CODE",
                 "Claude-Code", "shared",
                 "unknown"
         })
@@ -77,8 +76,6 @@ class PlatformConverterTest {
                             "Invalid platform:")
                     .hasMessageContaining(input)
                     .hasMessageContaining("claude-code")
-                    .hasMessageContaining("copilot")
-                    .hasMessageContaining("codex")
                     .hasMessageContaining("all");
         }
 
@@ -122,8 +119,6 @@ class PlatformConverterTest {
                     .hasMessageContaining(
                             "Valid values:")
                     .hasMessageContaining("claude-code")
-                    .hasMessageContaining("copilot")
-                    .hasMessageContaining("codex")
                     .hasMessageContaining("all");
         }
     }

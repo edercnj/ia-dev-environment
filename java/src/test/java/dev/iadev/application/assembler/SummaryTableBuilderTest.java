@@ -27,8 +27,8 @@ class SummaryTableBuilderTest {
     class BuildGenerationSummary {
 
         @Test
-        @DisplayName("contains 18 component rows")
-        void build_whenCalled_containsEighteenComponents(
+        @DisplayName("contains 7 component rows")
+        void build_whenCalled_containsSevenComponents(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
 
@@ -47,7 +47,7 @@ class SummaryTableBuilderTest {
                     dataRows++;
                 }
             }
-            assertThat(dataRows).isEqualTo(18);
+            assertThat(dataRows).isEqualTo(7);
         }
 
         @Test
@@ -83,17 +83,9 @@ class SummaryTableBuilderTest {
                     .contains("Hooks (.claude)")
                     .contains("Settings (.claude)")
                     .contains("Plan Templates (.claude)")
-                    .contains("Instructions (.github)")
-                    .contains("Skills (.github)")
-                    .contains("Agents (.github)")
-                    .contains("Prompts (.github)")
-                    .contains("Hooks (.github)")
-                    .contains("Plan Templates (.github)")
-                    .contains("MCP (.github)")
-                    .contains("AGENTS.md (root)")
-                    .contains("AGENTS.override.md (root)")
-                    .contains("Codex (.codex)")
-                    .contains("Skills (.agents)");
+                    .doesNotContain("AGENTS.md")
+                    .doesNotContain("Skills (.agents)")
+                    .doesNotContain("Codex (.codex)");
         }
 
         @Test
@@ -104,19 +96,9 @@ class SummaryTableBuilderTest {
             Path claudeTemplates =
                     Files.createDirectories(
                             claudeDir.resolve("templates"));
-            Path githubTemplates =
-                    Files.createDirectories(
-                            tempDir.resolve(".github")
-                                    .resolve("templates"));
             for (int i = 1; i <= 12; i++) {
                 Files.writeString(
                         claudeTemplates.resolve(
-                                "_TEMPLATE-PLAN-" + i
-                                        + ".md"),
-                        "content",
-                        StandardCharsets.UTF_8);
-                Files.writeString(
-                        githubTemplates.resolve(
                                 "_TEMPLATE-PLAN-" + i
                                         + ".md"),
                         "content",
@@ -129,55 +111,13 @@ class SummaryTableBuilderTest {
 
             assertThat(summary)
                     .contains("Plan Templates (.claude)"
-                            + " | 12 |")
-                    .contains("Plan Templates (.github)"
                             + " | 12 |");
-        }
-
-        @Test
-        @DisplayName("summary with codex and agents")
-        void build_withAllExtras_summary(
-                @TempDir Path tempDir) throws IOException {
-            Path claudeDir = Files.createDirectories(
-                    tempDir.resolve(".claude"));
-            Files.createDirectories(
-                    tempDir.resolve(".github"));
-            Path codexDir = Files.createDirectories(
-                    tempDir.resolve(".codex"));
-            Files.writeString(
-                    codexDir.resolve("config.toml"),
-                    "c", StandardCharsets.UTF_8);
-            Path agentsDir = Files.createDirectories(
-                    tempDir.resolve(".agents"));
-            Files.writeString(
-                    agentsDir.resolve("AGENTS.md"),
-                    "c", StandardCharsets.UTF_8);
-            Files.writeString(
-                    tempDir.resolve("AGENTS.md"),
-                    "c", StandardCharsets.UTF_8);
-            Files.writeString(
-                    tempDir.resolve("AGENTS.override.md"),
-                    "c", StandardCharsets.UTF_8);
-
-            String summary =
-                    builder.buildGenerationSummary(
-                            claudeDir);
-
-            assertThat(summary)
-                    .contains("Codex (.codex)")
-                    .contains("Skills (.agents)")
-                    .contains("AGENTS.md (root)")
-                    .contains("AGENTS.override.md (root)");
         }
 
         private Path setupMinimalOutput(Path tempDir)
                 throws IOException {
-            Path claudeDir =
-                    Files.createDirectories(
-                            tempDir.resolve(".claude"));
-            Files.createDirectories(
-                    tempDir.resolve(".github"));
-            return claudeDir;
+            return Files.createDirectories(
+                    tempDir.resolve(".claude"));
         }
     }
 

@@ -104,7 +104,7 @@ class VerbosePipelineRunnerTest {
                             "Dry run -- no files written"));
             assertThat(result.warnings())
                     .anyMatch(w -> w.contains(
-                            "claude-code"));
+                            "Platform: all"));
         }
 
         @Test
@@ -152,10 +152,10 @@ class VerbosePipelineRunnerTest {
             out.flush();
 
             String output = sw.toString();
+            // With only one user-selectable platform,
+            // specifying it is equivalent to "all".
             assertThat(output).contains(
-                    "Platform filter: claude-code");
-            assertThat(output).contains(
-                    "-> 2 assemblers");
+                    "Platform filter: all");
         }
     }
 
@@ -165,14 +165,14 @@ class VerbosePipelineRunnerTest {
             stubAssemblers() {
         return List.of(
                 new AssemblerDescriptor(
-                        "StubClaude",
+                        "StubClaudeA",
                         AssemblerTarget.CLAUDE,
                         Set.of(Platform.CLAUDE_CODE),
                         (c, e, p) -> List.of("a.md")),
                 new AssemblerDescriptor(
-                        "StubCopilot",
-                        AssemblerTarget.GITHUB,
-                        Set.of(Platform.COPILOT),
+                        "StubClaudeB",
+                        AssemblerTarget.CLAUDE,
+                        Set.of(Platform.CLAUDE_CODE),
                         (c, e, p) -> List.of("b.md")),
                 new AssemblerDescriptor(
                         "StubShared",

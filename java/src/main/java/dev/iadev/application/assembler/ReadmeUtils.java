@@ -9,11 +9,9 @@ import java.util.stream.Stream;
 /**
  * Counting utilities for README generation.
  *
- * <p>GitHub/Codex counting: {@link ReadmeGithubCounter}.
- * Metadata extraction: {@link ReadmeMetadata}.</p>
+ * <p>Metadata extraction: {@link ReadmeMetadata}.</p>
  *
  * @see ReadmeAssembler
- * @see ReadmeGithubCounter
  * @see ReadmeMetadata
  */
 public final class ReadmeUtils {
@@ -98,39 +96,6 @@ public final class ReadmeUtils {
             count++;
         }
         return count;
-    }
-
-    /** Delegates to {@link ReadmeGithubCounter}. */
-    public static int countGithubFiles(Path githubDir) {
-        return ReadmeGithubCounter
-                .countGithubFiles(githubDir);
-    }
-
-    /** Delegates to {@link ReadmeGithubCounter}. */
-    public static int countGithubComponent(
-            Path githubDir, String component) {
-        return ReadmeGithubCounter
-                .countGithubComponent(
-                        githubDir, component);
-    }
-
-    /** Delegates to {@link ReadmeGithubCounter}. */
-    public static int countGithubSkills(Path githubDir) {
-        return ReadmeGithubCounter
-                .countGithubSkills(githubDir);
-    }
-
-    /** Delegates to {@link ReadmeGithubCounter}. */
-    public static int countCodexFiles(Path codexDir) {
-        return ReadmeGithubCounter
-                .countCodexFiles(codexDir);
-    }
-
-    /** Delegates to {@link ReadmeGithubCounter}. */
-    public static int countCodexAgentsFiles(
-            Path agentsDir) {
-        return ReadmeGithubCounter
-                .countCodexAgentsFiles(agentsDir);
     }
 
     /** Delegates to {@link ReadmeMetadata}. */

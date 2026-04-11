@@ -1,6 +1,6 @@
 # ia-dev-environment
 
-A CLI tool that generates complete `.claude/`, `.github/`, `.codex/`, and `.agents/` boilerplate for AI-assisted development environments. Produces rules, skills, agents, hooks, settings, and documentation -- everything a Claude Code, GitHub Copilot, or OpenAI Codex project needs to enforce engineering standards from day one.
+A CLI tool that generates complete `.claude/` boilerplate for AI-assisted development environments. Produces rules, skills, agents, hooks, settings, and documentation -- everything a Claude Code project needs to enforce engineering standards from day one.
 
 ---
 
@@ -27,11 +27,9 @@ A CLI tool that generates complete `.claude/`, `.github/`, `.codex/`, and `.agen
 
 ## Overview
 
-`ia-dev-env` reads a YAML configuration file describing your project's tech stack (language, framework, database, infrastructure, etc.) and generates a complete set of AI assistant configurations:
+`ia-dev-env` reads a YAML configuration file describing your project's tech stack (language, framework, database, infrastructure, etc.) and generates a complete Claude Code configuration:
 
 - **Claude Code** (`.claude/`) -- rules, skills, agents, hooks, settings
-- **GitHub Copilot** (`.github/`) -- instructions, skills, agents, prompts, hooks
-- **OpenAI Codex** (`.codex/`, `.agents/`) -- config, agent instructions, shared skills
 - **Documentation** (`steering/`, `specs/`, `plans/`, `results/`, `contracts/`, `adr/`) -- architecture, specs, stories, runbooks, contracts, ADRs
 - **CI/CD** -- Dockerfile, docker-compose, GitHub Actions workflows, Kubernetes manifests
 
@@ -129,7 +127,7 @@ Generate Options:
   -s, --stack <name>     Use a bundled stack profile (see profiles below)
   -o, --output <dir>     Output directory (default: current directory)
   -v, --verbose          Verbose logging
-  -p, --platform <value> Target AI platform(s): claude-code, copilot, codex, all
+  -p, --platform <value> Target AI platform: claude-code (only supported value; `all` is also accepted and now resolves to claude-code output since it is the only remaining platform)
   -f, --force            Overwrite existing files without prompting
   --dry-run              Preview what would be generated
 
@@ -177,22 +175,6 @@ Each profile generates the complete set of skills, agents, and rules tailored to
 ├── templates/                    # 12 plan & review templates (EPIC-0024)
 └── hooks/                        # Automation scripts (post-compile, etc.)
 
-.github/                          # GitHub Copilot configuration
-├── copilot-instructions.md       # Global Copilot instructions
-├── instructions/                 # Contextual instructions
-├── skills/                       # Reusable Copilot skills
-├── agents/                       # Agent definitions (*.agent.md)
-├── prompts/                      # Prompt templates
-├── templates/                    # 12 plan & review templates (EPIC-0024)
-└── hooks/                        # Event hooks
-
-.codex/                           # OpenAI Codex configuration
-├── config.toml                   # Model, approval, sandbox settings
-└── (AGENTS.md at project root)   # Consolidated agent instructions
-
-.agents/                          # Shared skills (cross-platform)
-└── skills/                       # Mirrored skills for Codex agents
-
 steering/                         # Persistent project context
 ├── service-architecture.md       # Service architecture doc
 └── product.md, tech-stack.md...  # Project identity files
@@ -219,7 +201,39 @@ Plus CI/CD artifacts: `Dockerfile`, `docker-compose.yml`, `.github/workflows/ci.
 
 The generator produces **20 core skills** (always included) and up to **13 conditional skills** (based on your project config). Skills are invoked via `/skill-name` in the AI assistant chat. Each skill is self-contained -- the AI agent can execute it by reading only the SKILL.md file.
 
-> **Note:** Skills are generated for both Claude Code (`.claude/skills/`) and GitHub Copilot (`.github/skills/`) with equivalent functionality. The descriptions below apply to both platforms.
+> **Note:** Skills are generated for Claude Code (`.claude/skills/`).
+
+> **🚧 In progress — EPIC-0036 (Skill Taxonomy Refactor).**
+> The source of truth for skills under `java/src/main/resources/targets/claude/skills/` is being reorganized into 10 category subfolders (`plan/`, `dev/`, `test/`, `review/`, `security/`, `code/`, `git/`, `pr/`, `ops/`, `jira/`) and ~19 skills will be renamed to a consistent `x-{subject}-{action}` scheme. The generated output (`.claude/skills/`) remains **flat** — user-facing invocation paths stay `/{skill-name}` without a category prefix.
+>
+> - Decision record: [`adr/ADR-0003-skill-taxonomy-and-naming.md`](adr/ADR-0003-skill-taxonomy-and-naming.md)
+> - Rename checklist: [`plans/epic-0036/skill-renames.md`](plans/epic-0036/skill-renames.md)
+>
+> Planned renames (current names remain valid until the corresponding rename story merges):
+>
+> | Current                      | New                    | Story             |
+> |------------------------------|------------------------|-------------------|
+> | `x-story-epic`               | `x-epic-create`        | STORY-0036-0004   |
+> | `x-story-epic-full`          | `x-epic-decompose`     | STORY-0036-0004   |
+> | `x-story-map`                | `x-epic-map`           | STORY-0036-0004   |
+> | `x-epic-plan`                | `x-epic-orchestrate`   | STORY-0036-0004   |
+> | `x-dev-implement`            | `x-task-implement`     | STORY-0036-0004   |
+> | `x-dev-story-implement`      | `x-story-implement`    | STORY-0036-0004   |
+> | `x-dev-epic-implement`       | `x-epic-implement`     | STORY-0036-0004   |
+> | `x-dev-architecture-plan`    | `x-arch-plan`          | STORY-0036-0004   |
+> | `x-dev-arch-update`          | `x-arch-update`        | STORY-0036-0004   |
+> | `x-dev-adr-automation`       | `x-adr-generate`       | STORY-0036-0004   |
+> | `run-e2e`                    | `x-test-e2e`           | STORY-0036-0005   |
+> | `run-smoke-api`              | `x-test-smoke-api`     | STORY-0036-0005   |
+> | `run-smoke-socket`           | `x-test-smoke-socket`  | STORY-0036-0005   |
+> | `run-contract-tests`         | `x-test-contract`      | STORY-0036-0005   |
+> | `run-perf-test`              | `x-test-perf`          | STORY-0036-0005   |
+> | `x-pr-fix-comments`          | `x-pr-fix`             | STORY-0036-0005   |
+> | `x-pr-fix-epic-comments`     | `x-pr-fix-epic`        | STORY-0036-0005   |
+> | `x-runtime-protection`       | `x-runtime-eval`       | STORY-0036-0005   |
+> | `x-security-secret-scan`     | `x-security-secrets`   | STORY-0036-0005   |
+>
+> The sections below still reference current names; they will be updated as each rename story lands.
 
 ### Story Planning & Decomposition
 
@@ -695,7 +709,7 @@ Auto-detects your tech stack and matches against a built-in catalog of 20+ MCP s
 | Development | Puppeteer, Filesystem, Memory, Fetch |
 | Observability | Sentry, Datadog, Grafana |
 
-Each recommendation includes priority (Essential / Recommended / Optional), rationale, and installation instructions for both Claude Code and GitHub Copilot. With `--install`, auto-updates `.claude/settings.local.json` and `.github/copilot-mcp.json`.
+Each recommendation includes priority (Essential / Recommended / Optional), rationale, and installation instructions for Claude Code. With `--install`, auto-updates `.claude/settings.local.json`.
 
 ---
 
@@ -789,8 +803,8 @@ ia-dev-environment/
 │   │   ├── progress/             # Metrics and reporting
 │   │   ├── exception/            # 7 context-rich exceptions
 │   │   └── util/                 # I/O, path safety, resource discovery
-│   ├── src/main/resources/       # ~470 template files on classpath
-│   │   ├── targets/              # Target-specific resources (claude, github-copilot, codex)
+│   ├── src/main/resources/       # Template files on classpath
+│   │   ├── targets/claude/       # Claude Code target resources (rules, skills, agents, hooks, settings)
 │   │   ├── knowledge/            # Shared knowledge base (core, databases, frameworks, ...)
 │   │   ├── shared/               # Cross-cutting templates (config, cicd, docs, ...)
 │   │   └── readme-template.md    # README generation template
@@ -804,7 +818,6 @@ ia-dev-environment/
 ├── contracts/                    # API contracts and schemas
 ├── adr/                          # Architecture Decision Records
 ├── CLAUDE.md                     # Executive summary (auto-loaded by Claude Code)
-├── AGENTS.md                     # Codex agent instructions
 └── README.md                     # This file
 ```
 

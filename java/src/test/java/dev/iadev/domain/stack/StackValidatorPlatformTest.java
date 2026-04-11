@@ -84,16 +84,15 @@ class StackValidatorPlatformTest {
         }
 
         @Test
-        @DisplayName("multiple valid platforms no errors")
-        void validatePlatforms_multipleValid_noErrors() {
+        @DisplayName("single valid platform no errors")
+        void validatePlatforms_singleValid_noErrors() {
             var config = TestConfigBuilder.builder()
                     .language("java", "21")
                     .framework("quarkus", "3.17")
                     .buildTool("maven")
                     .architectureStyle("microservice")
                     .platforms(Set.of(
-                            Platform.CLAUDE_CODE,
-                            Platform.COPILOT))
+                            Platform.CLAUDE_CODE))
                     .build();
 
             var errors =
@@ -144,14 +143,13 @@ class StackValidatorPlatformTest {
         void yamlParsing_validList_noErrors() {
             var map = buildMinimalConfigMap();
             map.put("platform",
-                    List.of("claude-code", "copilot"));
+                    List.of("claude-code"));
 
             var config = ProjectConfig.fromMap(map);
 
             assertThat(config.platforms())
                     .containsExactlyInAnyOrder(
-                            Platform.CLAUDE_CODE,
-                            Platform.COPILOT);
+                            Platform.CLAUDE_CODE);
         }
 
         @Test

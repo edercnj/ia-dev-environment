@@ -496,18 +496,6 @@ class ProjectConfigTest {
         }
 
         @Test
-        @DisplayName("platform string 'copilot' parsed")
-        void fromMap_platformCopilot_parsedCorrectly() {
-            var map = new HashMap<>(buildMinimalConfig());
-            map.put("platform", "copilot");
-
-            var config = ProjectConfig.fromMap(map);
-
-            assertThat(config.platforms())
-                    .containsExactly(Platform.COPILOT);
-        }
-
-        @Test
         @DisplayName("platform string 'all' returns empty set")
         void fromMap_platformAll_returnsEmptySet() {
             var map = new HashMap<>(buildMinimalConfig());
@@ -523,14 +511,13 @@ class ProjectConfigTest {
         void fromMap_platformList_parsedToSet() {
             var map = new HashMap<>(buildMinimalConfig());
             map.put("platform",
-                    List.of("claude-code", "copilot"));
+                    List.of("claude-code"));
 
             var config = ProjectConfig.fromMap(map);
 
             assertThat(config.platforms())
                     .containsExactlyInAnyOrder(
-                            Platform.CLAUDE_CODE,
-                            Platform.COPILOT);
+                            Platform.CLAUDE_CODE);
         }
 
         @Test
@@ -553,38 +540,9 @@ class ProjectConfigTest {
             var config = ProjectConfig.fromMap(map);
 
             assertThatThrownBy(() ->
-                    config.platforms().add(Platform.COPILOT))
+                    config.platforms().add(Platform.SHARED))
                     .isInstanceOf(
                             UnsupportedOperationException.class);
-        }
-
-        @Test
-        @DisplayName("platform string 'codex' parsed")
-        void fromMap_platformCodex_parsedCorrectly() {
-            var map = new HashMap<>(buildMinimalConfig());
-            map.put("platform", "codex");
-
-            var config = ProjectConfig.fromMap(map);
-
-            assertThat(config.platforms())
-                    .containsExactly(Platform.CODEX);
-        }
-
-        @Test
-        @DisplayName("platform list with all three values")
-        void fromMap_platformListThree_parsedToSet() {
-            var map = new HashMap<>(buildMinimalConfig());
-            map.put("platform",
-                    List.of("claude-code", "copilot",
-                            "codex"));
-
-            var config = ProjectConfig.fromMap(map);
-
-            assertThat(config.platforms())
-                    .containsExactlyInAnyOrder(
-                            Platform.CLAUDE_CODE,
-                            Platform.COPILOT,
-                            Platform.CODEX);
         }
 
         @Test

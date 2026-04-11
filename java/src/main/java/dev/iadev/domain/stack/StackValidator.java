@@ -172,8 +172,7 @@ public final class StackValidator {
                         ("Invalid platform value:"
                                 + " '%s' in YAML config."
                                 + " Valid values:"
-                                + " claude-code, copilot,"
-                                + " codex, all")
+                                + " claude-code, all")
                                 .formatted(p.cliName()));
             }
         }

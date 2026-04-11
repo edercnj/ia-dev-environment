@@ -14,7 +14,7 @@ project:
 
 # ═════════════════════════════════════════════════
 # PLATFORM (AI target platforms)
-# Options: claude-code, copilot, codex, all
+# Options: claude-code, all
 # 'all' generates artifacts for every supported platform.
 # ═════════════════════════════════════════════════
 platform: all

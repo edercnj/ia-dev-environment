@@ -6,11 +6,11 @@
 
     <groupId>dev.iadev</groupId>
     <artifactId>ia-dev-env</artifactId>
-    <version>2.3.0</version>
+    <version>3.0.0</version>
     <packaging>jar</packaging>
 
     <name>ia-dev-env</name>
-    <description>CLI tool that generates .claude/ and .github/ boilerplate for AI-assisted development environments</description>
+    <description>CLI tool that generates Claude Code configuration (.claude/) and shared DevEx artifacts (.github/workflows/, Dockerfile, ADRs, docs) for AI-assisted development environments</description>
 
     <properties>
         <java.version>21</java.version>

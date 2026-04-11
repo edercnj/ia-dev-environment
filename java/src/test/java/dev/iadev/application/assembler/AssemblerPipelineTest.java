@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Tests for AssemblerPipeline — orchestrates 34 assemblers
+ * Tests for AssemblerPipeline — orchestrates 22 assemblers
  * per RULE-005.
  */
 @DisplayName("AssemblerPipeline")
@@ -36,14 +36,8 @@ class AssemblerPipelineTest {
             "ProtocolsAssembler",
             "HooksAssembler",
             "SettingsAssembler",
-            "GithubInstructionsAssembler",
-            "GithubMcpAssembler",
-            "GithubSkillsAssembler",
-            "GithubAgentsAssembler",
-            "GithubHooksAssembler",
-            "GithubPromptsAssembler",
-            "PrIssueTemplateAssembler",
             "DocsAssembler",
+            "DocsAdrAssembler",
             "GrpcDocsAssembler",
             "RunbookAssembler",
             "IncidentTemplatesAssembler",
@@ -52,12 +46,6 @@ class AssemblerPipelineTest {
             "SloSliTemplateAssembler",
             "DocsContributingAssembler",
             "DataMigrationPlanAssembler",
-            "CodexAgentsMdAssembler",
-            "CodexConfigAssembler",
-            "CodexSkillsAssembler",
-            "CodexRequirementsAssembler",
-            "CodexOverrideAssembler",
-            "DocsAdrAssembler",
             "CicdAssembler",
             "EpicReportAssembler",
             "PlanTemplatesAssembler",
@@ -68,12 +56,12 @@ class AssemblerPipelineTest {
     class BuildAssemblers {
 
         @Test
-        @DisplayName("returns exactly 34 assembler descriptors")
-        void assemble_whenCalled_returnsExactly34() {
+        @DisplayName("returns exactly 22 assembler descriptors")
+        void assemble_whenCalled_returnsExactly22() {
             List<AssemblerDescriptor> descriptors =
                     AssemblerPipeline.buildAssemblers();
 
-            assertThat(descriptors).hasSize(34);
+            assertThat(descriptors).hasSize(22);
         }
 
         @Test
@@ -101,33 +89,11 @@ class AssemblerPipelineTest {
             assertThat(descriptors.get(1).target())
                     .isEqualTo(AssemblerTarget.CLAUDE);
             assertThat(descriptors.get(8).target())
-                    .isEqualTo(AssemblerTarget.GITHUB);
-            assertThat(descriptors.get(14).target())
-                    .isEqualTo(AssemblerTarget.GITHUB);
-            assertThat(descriptors.get(15).target())
                     .isEqualTo(AssemblerTarget.ROOT);
             assertThat(descriptors.get(17).target())
                     .isEqualTo(AssemblerTarget.ROOT);
-            assertThat(descriptors.get(18).target())
-                    .isEqualTo(AssemblerTarget.ROOT);
-            assertThat(descriptors.get(19).target())
-                    .isEqualTo(AssemblerTarget.ROOT);
-            assertThat(descriptors.get(20).target())
-                    .isEqualTo(AssemblerTarget.ROOT);
             assertThat(descriptors.get(21).target())
-                    .isEqualTo(AssemblerTarget.ROOT);
-            assertThat(descriptors.get(22).target())
-                    .isEqualTo(AssemblerTarget.ROOT);
-            assertThat(descriptors.get(23).target())
-                    .isEqualTo(AssemblerTarget.ROOT);
-            assertThat(descriptors.get(25).target())
-                    .isEqualTo(AssemblerTarget.CODEX);
-            assertThat(descriptors.get(26).target())
-                    .isEqualTo(AssemblerTarget.CODEX_AGENTS);
-            assertThat(descriptors.get(27).target())
-                    .isEqualTo(AssemblerTarget.CODEX);
-            assertThat(descriptors.get(28).target())
-                    .isEqualTo(AssemblerTarget.ROOT);
+                    .isEqualTo(AssemblerTarget.CLAUDE);
         }
 
         @Test
@@ -509,8 +475,8 @@ class AssemblerPipelineTest {
                         Set.of(Platform.CLAUDE_CODE),
                         (c, e, p) -> List.of("a.md")),
                 new AssemblerDescriptor(
-                        "StubB", AssemblerTarget.GITHUB,
-                        Set.of(Platform.COPILOT),
+                        "StubB", AssemblerTarget.ROOT,
+                        Set.of(Platform.SHARED),
                         (c, e, p) -> List.of("b.md")));
     }
 

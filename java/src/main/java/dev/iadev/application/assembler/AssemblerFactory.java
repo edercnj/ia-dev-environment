@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Factory that instantiates the 34 assemblers in the
+ * Factory that instantiates the 22 assemblers in the
  * fixed order defined by RULE-005.
  *
  * <p>Extracted from {@link AssemblerPipeline} to keep
@@ -35,10 +35,10 @@ public final class AssemblerFactory {
     }
 
     /**
-     * Builds the ordered list of 34 assemblers per RULE-005.
+     * Builds the ordered list of 22 assemblers per RULE-005.
      *
      * <p>Delegates to group builders by category:
-     * constitution, core, github, docs, codex, cicd,
+     * constitution, core, docs, cicd,
      * and readme. The options parameter controls
      * constitution preservation behavior.</p>
      *
@@ -55,14 +55,14 @@ public final class AssemblerFactory {
     }
 
     /**
-     * Builds ALL 34 assemblers without platform filtering.
+     * Builds ALL 22 assemblers without platform filtering.
      *
      * <p>Use this when you need the complete list for
      * verbose/dry-run comparison against filtered list.</p>
      *
      * @param options pipeline options controlling assembler
      *                behavior (platforms field is ignored)
-     * @return immutable ordered list of all 34 assembler
+     * @return immutable ordered list of all 22 assembler
      *         descriptors
      */
     public static List<AssemblerDescriptor>
@@ -71,10 +71,7 @@ public final class AssemblerFactory {
         all.addAll(buildConstitutionAssemblers(options));
         all.addAll(buildClaudeRulesAssemblers());
         all.addAll(buildClaudeConfigAssemblers());
-        all.addAll(buildGithubInputAssemblers());
-        all.addAll(buildGithubOutputAssemblers());
         all.addAll(buildDocsAssemblers());
-        all.addAll(buildCodexAssemblers());
         all.addAll(buildCicdAssemblers());
         return List.copyOf(all);
     }
@@ -140,46 +137,6 @@ public final class AssemblerFactory {
     }
 
     private static List<AssemblerDescriptor>
-            buildGithubInputAssemblers() {
-        Set<Platform> copilot = Set.of(Platform.COPILOT);
-        return List.of(
-                desc("GithubInstructionsAssembler",
-                        AssemblerTarget.GITHUB,
-                        copilot,
-                        new GithubInstructionsAssembler()),
-                desc("GithubMcpAssembler",
-                        AssemblerTarget.GITHUB,
-                        copilot,
-                        new GithubMcpAssembler()),
-                desc("GithubSkillsAssembler",
-                        AssemblerTarget.GITHUB,
-                        copilot,
-                        new GithubSkillsAssembler()));
-    }
-
-    private static List<AssemblerDescriptor>
-            buildGithubOutputAssemblers() {
-        Set<Platform> copilot = Set.of(Platform.COPILOT);
-        return List.of(
-                desc("GithubAgentsAssembler",
-                        AssemblerTarget.GITHUB,
-                        copilot,
-                        new GithubAgentsAssembler()),
-                desc("GithubHooksAssembler",
-                        AssemblerTarget.GITHUB,
-                        copilot,
-                        new GithubHooksAssembler()),
-                desc("GithubPromptsAssembler",
-                        AssemblerTarget.GITHUB,
-                        copilot,
-                        new GithubPromptsAssembler()),
-                desc("PrIssueTemplateAssembler",
-                        AssemblerTarget.GITHUB,
-                        copilot,
-                        new PrIssueTemplateAssembler()));
-    }
-
-    private static List<AssemblerDescriptor>
             buildDocsAssemblers() {
         Set<Platform> shared = Set.of(Platform.SHARED);
         return List.of(
@@ -187,6 +144,10 @@ public final class AssemblerFactory {
                         AssemblerTarget.ROOT,
                         shared,
                         new DocsAssembler()),
+                desc("DocsAdrAssembler",
+                        AssemblerTarget.ROOT,
+                        shared,
+                        new DocsAdrAssembler()),
                 desc("GrpcDocsAssembler",
                         AssemblerTarget.ROOT,
                         shared,
@@ -219,37 +180,6 @@ public final class AssemblerFactory {
                         AssemblerTarget.ROOT,
                         shared,
                         new DataMigrationPlanAssembler()));
-    }
-
-    private static List<AssemblerDescriptor>
-            buildCodexAssemblers() {
-        Set<Platform> codex = Set.of(Platform.CODEX);
-        Set<Platform> shared = Set.of(Platform.SHARED);
-        return List.of(
-                desc("CodexAgentsMdAssembler",
-                        AssemblerTarget.ROOT,
-                        codex,
-                        new CodexAgentsMdAssembler()),
-                desc("CodexConfigAssembler",
-                        AssemblerTarget.CODEX,
-                        codex,
-                        new CodexConfigAssembler()),
-                desc("CodexSkillsAssembler",
-                        AssemblerTarget.CODEX_AGENTS,
-                        codex,
-                        new CodexSkillsAssembler()),
-                desc("CodexRequirementsAssembler",
-                        AssemblerTarget.CODEX,
-                        codex,
-                        new CodexRequirementsAssembler()),
-                desc("CodexOverrideAssembler",
-                        AssemblerTarget.ROOT,
-                        codex,
-                        new CodexOverrideAssembler()),
-                desc("DocsAdrAssembler",
-                        AssemblerTarget.ROOT,
-                        shared,
-                        new DocsAdrAssembler()));
     }
 
     private static List<AssemblerDescriptor>

@@ -14,8 +14,9 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for platform-filtered mapping table in
- * MappingTableBuilder.
+ * Tests for MappingTableBuilder. After Codex removal the
+ * mapping is vacuous — the builder always returns an
+ * empty string.
  */
 @DisplayName("MappingTableBuilder — platform filtering")
 class MappingTableBuilderPlatformTest {
@@ -24,12 +25,12 @@ class MappingTableBuilderPlatformTest {
             new MappingTableBuilder();
 
     @Nested
-    @DisplayName("build with platforms")
-    class FilteredMapping {
+    @DisplayName("build always returns empty")
+    class AlwaysEmpty {
 
         @Test
-        @DisplayName("empty string for single platform")
-        void build_singlePlatform_returnsEmpty(
+        @DisplayName("empty string for claude-code only")
+        void build_claudeOnly_returnsEmpty(
                 @TempDir Path tempDir)
                 throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
@@ -42,24 +43,8 @@ class MappingTableBuilderPlatformTest {
         }
 
         @Test
-        @DisplayName("shows table for multiple platforms")
-        void build_multiplePlatforms_showsTable(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path claudeDir = setupMinimalOutput(tempDir);
-
-            String result = builder.build(
-                    claudeDir,
-                    Set.of(Platform.CLAUDE_CODE,
-                            Platform.COPILOT));
-
-            assertThat(result)
-                    .contains("| .claude/ | .github/");
-        }
-
-        @Test
-        @DisplayName("shows table for empty platforms (all)")
-        void build_emptyPlatforms_showsTable(
+        @DisplayName("empty string for empty platforms")
+        void build_emptyPlatforms_returnsEmpty(
                 @TempDir Path tempDir)
                 throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
@@ -67,13 +52,12 @@ class MappingTableBuilderPlatformTest {
             String result = builder.build(
                     claudeDir, Set.of());
 
-            assertThat(result)
-                    .contains("| .claude/ | .github/");
+            assertThat(result).isEmpty();
         }
 
         @Test
-        @DisplayName("shows table for all selectable")
-        void build_allSelectable_showsTable(
+        @DisplayName("empty string for all selectable")
+        void build_allSelectable_returnsEmpty(
                 @TempDir Path tempDir)
                 throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
@@ -82,20 +66,17 @@ class MappingTableBuilderPlatformTest {
                     claudeDir,
                     Platform.allUserSelectable());
 
-            assertThat(result)
-                    .contains("| .claude/ | .github/");
+            assertThat(result).isEmpty();
         }
 
         @Test
-        @DisplayName("copilot-only returns empty")
-        void build_copilotOnly_returnsEmpty(
+        @DisplayName("empty string for single-arg build")
+        void build_singleArg_returnsEmpty(
                 @TempDir Path tempDir)
                 throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
 
-            String result = builder.build(
-                    claudeDir,
-                    Set.of(Platform.COPILOT));
+            String result = builder.build(claudeDir);
 
             assertThat(result).isEmpty();
         }
@@ -105,8 +86,6 @@ class MappingTableBuilderPlatformTest {
             throws IOException {
         Path claudeDir = Files.createDirectories(
                 tempDir.resolve(".claude"));
-        Files.createDirectories(
-                tempDir.resolve(".github"));
         return claudeDir;
     }
 }

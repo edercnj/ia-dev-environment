@@ -104,8 +104,6 @@ final class FileTreeWalker {
                 new LinkedHashMap<>();
 
         countCategory(categories, dir,
-                "codex-skills", ".agents/skills");
-        countCategory(categories, dir,
                 "claude-rules", ".claude/rules");
         countCategory(categories, dir,
                 "claude-skills", ".claude/skills");
@@ -116,23 +114,8 @@ final class FileTreeWalker {
         countCategory(categories, dir,
                 "claude-settings", ".claude", true);
         countCategory(categories, dir,
-                "codex-config", ".codex");
-        countCategory(categories, dir,
-                "github-instructions",
-                ".github/instructions");
-        countCategory(categories, dir,
-                "github-skills", ".github/skills");
-        countCategory(categories, dir,
-                "github-agents", ".github/agents");
-        countCategory(categories, dir,
-                "github-prompts", ".github/prompts");
-        countCategory(categories, dir,
-                "github-hooks", ".github/hooks");
-        countCategory(categories, dir,
-                "github-issue-templates",
-                ".github/ISSUE_TEMPLATE");
-        countCategory(categories, dir,
-                "github-top", ".github", true);
+                "github-workflows",
+                ".github/workflows");
         countCategory(categories, dir,
                 "steering", "steering");
         countCategory(categories, dir,

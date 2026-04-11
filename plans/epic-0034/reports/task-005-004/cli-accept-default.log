@@ -1,0 +1,24 @@
+Pipeline: Success (229ms)
+
+  Category              Count
+  ────────────────────  ─────
+  Root Files                1
+  Rules                    13
+  Skills                  149
+  Agents                   14
+  Hooks                     1
+  Settings                  2
+  Steering                  1
+  ADR                       2
+  Contracts                 1
+  Results                   4
+  Specs                     3
+  Other                     6
+  Infrastructure            2
+  Kubernetes                3
+  Tests                     1
+  Templates                16
+  ────────────────────  ─────
+  Total                   219
+
+Output: /tmp/gen-default
