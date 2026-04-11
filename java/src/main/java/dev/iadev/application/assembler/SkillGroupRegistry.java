@@ -12,16 +12,14 @@ import java.util.function.Predicate;
  * Registry of skill groups and infrastructure skill
  * conditions.
  *
- * <p>Extracted from {@link GithubSkillsAssembler} to reduce
- * class size and centralize skill group configuration in a
- * single dedicated location.</p>
+ * <p>Originally extracted to reduce class size and
+ * centralize skill group configuration in a single
+ * dedicated location.</p>
  *
  * <p>All maps are unmodifiable after initialization. The
  * insertion order of {@link #SKILL_GROUPS} is preserved
  * to match TypeScript output byte-for-byte
  * (RULE-001).</p>
- *
- * @see GithubSkillsAssembler
  */
 public final class SkillGroupRegistry {
 

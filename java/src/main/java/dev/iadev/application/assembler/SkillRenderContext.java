@@ -7,11 +7,8 @@ import java.util.Objects;
 /**
  * Immutable parameter object for skill rendering operations.
  *
- * <p>Groups the parameters needed by
- * {@link GithubSkillsAssembler#renderSkill},
- * {@link GithubSkillsAssembler#copyReferences}, and the
- * internal {@code generateGroup} method, reducing parameter
- * count from 5-6 to at most 4.</p>
+ * <p>Groups parameters needed by skill rendering helpers,
+ * reducing parameter count from 5-6 to at most 4.</p>
  *
  * @param srcDir   the source template directory
  * @param outputDir the output base directory

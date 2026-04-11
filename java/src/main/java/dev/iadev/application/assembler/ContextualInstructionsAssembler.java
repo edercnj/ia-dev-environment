@@ -12,18 +12,16 @@ import java.util.regex.Pattern;
 
 /**
  * Generates contextual instruction files under
- * {@code instructions/*.instructions.md} for GitHub Copilot.
+ * {@code instructions/*.instructions.md}.
  *
  * <p>Loads templates from
  * {@code targets/github-copilot/instructions/} and renders them
  * with single-brace placeholder replacement matching the
  * TypeScript implementation.</p>
  *
- * <p>Extracted from {@link GithubInstructionsAssembler}
- * per story-0008-0014 to satisfy the 250-line SRP
- * constraint.</p>
+ * <p>Originally extracted per story-0008-0014 to satisfy
+ * the 250-line SRP constraint.</p>
  *
- * @see GithubInstructionsAssembler
  * @see GlobalInstructionsAssembler
  */
 public final class ContextualInstructionsAssembler {

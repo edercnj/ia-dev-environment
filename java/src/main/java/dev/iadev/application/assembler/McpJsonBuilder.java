@@ -12,10 +12,8 @@ import java.util.TreeMap;
 /**
  * Builds copilot-mcp.json content from project config.
  *
- * <p>Extracted from {@link GithubMcpAssembler} to keep
- * both classes under 250 lines per RULE-004.</p>
- *
- * @see GithubMcpAssembler
+ * <p>Originally extracted to keep classes under 250 lines
+ * per RULE-004.</p>
  */
 final class McpJsonBuilder {
 

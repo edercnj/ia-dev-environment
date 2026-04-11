@@ -8,18 +8,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Generates the global {@code copilot-instructions.md} for
- * GitHub Copilot.
+ * Generates the global {@code copilot-instructions.md}
+ * file content.
  *
  * <p>Builds the file programmatically using string
  * concatenation for sections: Identity, Stack,
  * Constraints, and Contextual References.</p>
  *
- * <p>Extracted from {@link GithubInstructionsAssembler}
- * per story-0008-0014 to satisfy the 250-line SRP
- * constraint.</p>
+ * <p>Originally extracted per story-0008-0014 to satisfy
+ * the 250-line SRP constraint.</p>
  *
- * @see GithubInstructionsAssembler
  * @see ContextualInstructionsAssembler
  */
 public final class GlobalInstructionsAssembler {
