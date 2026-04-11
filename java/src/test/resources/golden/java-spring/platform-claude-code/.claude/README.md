@@ -3,15 +3,12 @@
 This directory contains all Claude Code configuration for the **my-spring-service** project.
 It includes coding rules, skills (slash commands), knowledge packs, agents, and hooks.
 
-> **Note:** Both `.claude/` and `.github/` directories are **generated outputs** produced by `ia-dev-env`.
-> The generator writes `.github/` artifacts under `github/` in the output directory; rename to `.github/` when placing in a project root.
-> Do not edit them manually -- regenerate instead.
+> **Note:** The `.claude/` directory is a **generated output** produced by `ia-dev-env`.
+> Do not edit it manually -- regenerate instead.
 
 > The `CLAUDE.md` file at the project root provides an executive summary loaded automatically in EVERY conversation.
 
 ## Structure
-
-### .claude/ (Claude Code)
 
 ```
 CLAUDE.md                   <-- Executive summary (project root, loaded automatically)
@@ -26,36 +23,9 @@ CLAUDE.md                   <-- Executive summary (project root, loaded automati
 +-- agents/                 <-- AI personas (used by skills and lifecycle)
 ```
 
-### .github/ (GitHub Copilot)
-
-```
-.github/
-|-- copilot-instructions.md     <-- Global instructions (loaded in every Copilot session)
-|-- copilot-mcp.json            <-- MCP server configuration for Copilot
-|-- instructions/               <-- Contextual instructions (*.instructions.md)
-|-- skills/                     <-- Reusable skills (*/SKILL.md)
-|-- agents/                     <-- Agent definitions (*.agent.md)
-|-- prompts/                    <-- Prompt templates (*.prompt.md)
-+-- hooks/                      <-- Event hooks (*.json)
-```
-
-### .codex/ (OpenAI Codex)
-
-```
-.codex/
-|-- AGENTS.md                   <-- Agent instructions (generated from .claude/ context)
-+-- config.toml                 <-- Codex configuration (model, approval, sandbox)
-+-- requirements.toml           <-- Enforced minimum policy constraints
-+-- skills/                     <-- Codex-native skills mirror
-```
-
-### .claude/ <-> .github/ <-> .codex/ Mapping
-
-
-
 ## Platform Selection
 
-The `--platform` flag controls which AI platform artifacts are generated. Currently only Claude Code is supported; support for `copilot`, `codex`, and the generic `agents` target was removed (see EPIC-0034). Legacy values are rejected by the CLI.
+The generator currently produces Claude Code artifacts only. Support for `copilot`, `codex`, and the generic `agents` target was removed (see EPIC-0034). Legacy `--platform` values are rejected by the CLI.
 
 | Value | Description | Directories Generated |
 |-------|-------------|-----------------------|
@@ -295,13 +265,8 @@ See the files directly for current configuration.
 |----------|-----------|--------|-------------|
 | Rules | `.md` | `NN-name.md` (numbered) | None |
 | Skills | `SKILL.md` | `skills/{name}/SKILL.md` | YAML (name, description) |
-| Agents (.claude) | `.md` | `{name}.md` | None |
-| Agents (.github) | `.agent.md` | `{name}.agent.md` | YAML (tools, disallowed-tools) |
-| Instructions | `.instructions.md` | `{topic}.instructions.md` | None |
-| Prompts | `.prompt.md` | `{name}.prompt.md` | YAML (optional) |
-| Hooks (.claude) | `.sh` / `.json` | Event-based naming | N/A |
-| Hooks (.github) | `.json` | Event-based naming | N/A (JSON) |
-| MCP | `.json` | `copilot-mcp.json` | N/A (JSON) |
+| Agents | `.md` | `{name}.md` | None |
+| Hooks | `.sh` / `.json` | Event-based naming | N/A |
 
 ---
 

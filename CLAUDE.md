@@ -102,6 +102,44 @@ A complete list of skills with descriptions is generated in `.claude/README.md` 
 
 ---
 
+## Plan & Review Templates
+
+Templates provide standardized output formats for planning and review artifacts produced by skills.
+They contain `{{PLACEHOLDER}}` tokens resolved at runtime by the LLM, not during generation.
+Content is copied verbatim by `PlanTemplatesAssembler` (RULE-003).
+
+> **Fallback:** Templates are optional -- skills degrade gracefully without them.
+> If a template is not found, skills use inline formatting as fallback and log a warning.
+
+> **Location:** Templates are written to `.claude/templates/` only. Multi-target output (e.g., `.github/templates/`) was removed in EPIC-0034.
+
+| Template | Produced By | Saved To | Pre-Check |
+|----------|-------------|----------|-----------|
+| `_TEMPLATE-IMPLEMENTATION-PLAN.md` | x-dev-story-implement (Phase 1B) | `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` | Yes |
+| `_TEMPLATE-TEST-PLAN.md` | x-test-plan | `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md` | Yes |
+| `_TEMPLATE-ARCHITECTURE-PLAN.md` | x-dev-architecture-plan | `plans/epic-XXXX/plans/arch-story-XXXX-YYYY.md` | Yes |
+| `_TEMPLATE-TASK-BREAKDOWN.md` | x-lib-task-decomposer | `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` | Yes |
+| `_TEMPLATE-SECURITY-ASSESSMENT.md` | x-dev-story-implement (Phase 1E) | `plans/epic-XXXX/plans/security-story-XXXX-YYYY.md` | Yes |
+| `_TEMPLATE-COMPLIANCE-ASSESSMENT.md` | x-dev-story-implement (Phase 1F) | `plans/epic-XXXX/plans/compliance-story-XXXX-YYYY.md` | Yes |
+| `_TEMPLATE-SPECIALIST-REVIEW.md` | x-review | `plans/epic-XXXX/plans/review-story-XXXX-YYYY.md` | No |
+| `_TEMPLATE-TECH-LEAD-REVIEW.md` | x-review-pr | `plans/epic-XXXX/plans/techlead-review-story-XXXX-YYYY.md` | No |
+| `_TEMPLATE-CONSOLIDATED-REVIEW-DASHBOARD.md` | x-review | `plans/epic-XXXX/plans/review-dashboard-story-XXXX-YYYY.md` | No |
+| `_TEMPLATE-REVIEW-REMEDIATION.md` | x-dev-story-implement (Phase 5) | `plans/epic-XXXX/plans/remediation-story-XXXX-YYYY.md` | No |
+| `_TEMPLATE-EPIC-EXECUTION-PLAN.md` | x-dev-epic-implement | `plans/epic-XXXX/plans/execution-plan-epic-XXXX.md` | Yes |
+| `_TEMPLATE-PHASE-COMPLETION-REPORT.md` | x-dev-epic-implement | `plans/epic-XXXX/reports/phase-report-epic-XXXX.md` | No |
+
+**Total: 12 plan & review templates** (copied to `.claude/templates/`)
+
+---
+
+## Generation Summary
+
+| Component | Count |
+|-----------|-------|
+| Plan Templates (.claude) | 12 |
+
+---
+
 ## Tips
 
 - Rules are always active -- no invocation needed.

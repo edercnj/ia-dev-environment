@@ -11,7 +11,7 @@
 
 ## What It Does
 
-Analyzes the project tech stack by reading project configuration and identity files, then matches detected technologies against a curated catalog of MCP servers across categories (database, DevOps, productivity, development tools, observability). Generates prioritized recommendations (Essential/Recommended/Optional) with installation instructions for both Claude Code and GitHub Copilot. Optionally auto-configures MCP settings files.
+Analyzes the project tech stack by reading project configuration and identity files, then matches detected technologies against a curated catalog of MCP servers across categories (database, DevOps, productivity, development tools, observability). Generates prioritized recommendations (Essential/Recommended/Optional) with installation instructions for Claude Code. Optionally auto-configures MCP settings files.
 
 ## Usage
 
