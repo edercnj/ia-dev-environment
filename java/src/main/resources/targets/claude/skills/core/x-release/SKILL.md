@@ -47,19 +47,169 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 ## Workflow
 
 ```
- 1. DETERMINE    -> Parse argument and calculate target version
- 2. VALIDATE     -> Check pre-conditions (branch, working directory)
- 3. BRANCH       -> Create release/X.Y.Z branch from develop (or hotfix/* from main)
- 4. UPDATE       -> Update version in project-specific files (strip SNAPSHOT)
- 5. CHANGELOG    -> Generate/update CHANGELOG.md via x-release-changelog
- 6. COMMIT       -> Create release commit on release branch
- 7. MERGE-MAIN   -> Merge release branch into main with --no-ff
- 8. TAG          -> Create annotated git tag on main
- 9. MERGE-BACK   -> Merge release branch back into develop with --no-ff
-10. PUBLISH      -> Push main, develop, and tag to remote (unless --no-publish)
-11. CLEANUP      -> Delete the release branch
-    DRY-RUN      -> If --dry-run, show plan and exit (no changes)
+ 0. RESUME-DETECT -> Verify gh/jq, load or create state file, detect resume mode
+ 1. DETERMINE     -> Parse argument and calculate target version
+ 2. VALIDATE      -> Check pre-conditions (branch, working directory)
+ 3. BRANCH        -> Create release/X.Y.Z branch from develop (or hotfix/* from main)
+ 4. UPDATE        -> Update version in project-specific files (strip SNAPSHOT)
+ 5. CHANGELOG     -> Generate/update CHANGELOG.md via x-release-changelog
+ 6. COMMIT        -> Create release commit on release branch
+ 7. MERGE-MAIN    -> Merge release branch into main with --no-ff
+ 8. TAG           -> Create annotated git tag on main
+ 9. MERGE-BACK    -> Merge release branch back into develop with --no-ff
+10. PUBLISH       -> Push main, develop, and tag to remote (unless --no-publish)
+11. CLEANUP       -> Delete the release branch
+    DRY-RUN       -> If --dry-run, show plan and exit (no changes)
 ```
+
+> **Note:** Step 0 (Resume Detection) is the new entry point introduced by
+> EPIC-0035. It MUST execute before Step 1 on every invocation. Downstream
+> stories (0002–0008) replace Steps 7–9 with PR-flow phases
+> (`OPEN-RELEASE-PR`, `APPROVAL-GATE`, `RESUME-AND-TAG`,
+> `BACK-MERGE-DEVELOP`). Steps 1, 3, 4, 5, 6 and 11 are preserved verbatim
+> per RULE-002 (behaviour preservation).
+
+### Step 0 — Resume Detection
+
+This step is the mandatory entry point for every invocation of the skill.
+It verifies external dependencies, decides whether the current run is a
+fresh start or a resume, and either creates or loads the state file. The
+full schema of the state file is documented in
+`references/state-file-schema.md` — read it before changing any code in
+this section.
+
+#### Step 0.1 — Verify External Dependencies (RULE-008)
+
+The extended workflow depends on `gh` CLI (>= 2.0) and `jq`. Abort
+immediately with an actionable error code if either is missing or if
+`gh` is not authenticated.
+
+```bash
+# 1. gh CLI must be installed
+if ! command -v gh >/dev/null 2>&1; then
+  echo "ABORT DEP_GH_MISSING: gh CLI not installed."
+  echo "See https://cli.github.com/ for installation."
+  exit 1
+fi
+
+# 2. jq must be installed (used to read/write the state file)
+if ! command -v jq >/dev/null 2>&1; then
+  echo "ABORT DEP_JQ_MISSING: jq not installed."
+  echo "Install via your package manager (brew install jq, apt install jq)."
+  exit 1
+fi
+
+# 3. gh must be authenticated
+if ! gh auth status >/dev/null 2>&1; then
+  echo "ABORT DEP_GH_AUTH: gh not authenticated."
+  echo "Run 'gh auth login' before executing /x-release."
+  exit 1
+fi
+```
+
+Error codes emitted here match the catalog in
+`references/state-file-schema.md` (section "Error Codes Emitted While
+Reading the State File").
+
+#### Step 0.2 — Resolve State File Path
+
+```bash
+# Default: plans/release-state-<X.Y.Z>.json
+# Override: --state-file <path>
+if [ -n "$STATE_FILE_OVERRIDE" ]; then
+  STATE_FILE="$STATE_FILE_OVERRIDE"
+else
+  # If the version was passed explicitly, use it directly.
+  # Otherwise defer to Step 1 to compute the version before re-entering
+  # this step — but only for fresh starts (no resume).
+  STATE_FILE="plans/release-state-${VERSION}.json"
+fi
+```
+
+The state file path is resolved **once** and cached for the rest of the
+invocation. Every phase that reads or writes state uses `$STATE_FILE`.
+
+#### Step 0.3 — Branch on Invocation Mode
+
+The decision tree below is the single source of truth for Step 0 outcomes.
+
+```
+if --continue-after-merge:
+    if state file missing:
+        ABORT RESUME_NO_STATE
+    if jq . "$STATE_FILE" fails:
+        ABORT STATE_INVALID_JSON
+    if .schemaVersion != 1:
+        ABORT STATE_SCHEMA_VERSION
+    if .phase != "APPROVAL_PENDING":
+        ABORT (invalid phase for resume — expected APPROVAL_PENDING)
+    MODE = RESUME
+    JUMP to Phase 9 (RESUME-AND-TAG, introduced by story-0035-0005)
+else:
+    if state file exists:
+        if jq . "$STATE_FILE" fails:
+            ABORT STATE_INVALID_JSON
+        if .schemaVersion != 1:
+            ABORT STATE_SCHEMA_VERSION
+        if .phase != "COMPLETED":
+            ABORT STATE_CONFLICT
+        # else: a previous run completed cleanly — proceed to overwrite
+    # Create fresh state file (atomic write)
+    TMP="${STATE_FILE}.tmp.$$"
+    jq -n \
+      --arg version "$VERSION" \
+      --arg branch  "$BRANCH" \
+      --arg base    "$BASE_BRANCH" \
+      --argjson hotfix     "$HOTFIX" \
+      --argjson dryRun     "$DRY_RUN" \
+      --argjson signedTag  "$SIGNED_TAG" \
+      --argjson interactive "$INTERACTIVE" \
+      --arg startedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+      '{
+         schemaVersion: 1,
+         version: $version,
+         phase: "INITIALIZED",
+         phasesCompleted: ["INITIALIZED"],
+         branch: $branch,
+         baseBranch: $base,
+         hotfix: $hotfix,
+         dryRun: $dryRun,
+         signedTag: $signedTag,
+         interactive: $interactive,
+         startedAt: $startedAt,
+         lastPhaseCompletedAt: $startedAt
+       }' > "$TMP"
+    mv "$TMP" "$STATE_FILE"
+    MODE = START
+    PROCEED to Step 1 (DETERMINE)
+```
+
+#### Step 0.4 — Error Catalog (summary)
+
+| Condition | Code | Source |
+|:---|:---|:---|
+| `gh` missing | `DEP_GH_MISSING` | Step 0.1 |
+| `jq` missing | `DEP_JQ_MISSING` | Step 0.1 |
+| `gh` unauthenticated | `DEP_GH_AUTH` | Step 0.1 |
+| State file invalid JSON | `STATE_INVALID_JSON` | Step 0.3 |
+| Unknown `schemaVersion` | `STATE_SCHEMA_VERSION` | Step 0.3 |
+| `--continue-after-merge` with no state | `RESUME_NO_STATE` | Step 0.3 |
+| State exists, `phase != COMPLETED` | `STATE_CONFLICT` | Step 0.3 |
+
+The full human-readable messages live in
+`references/state-file-schema.md`. All subsequent phases reuse the same
+error-code vocabulary so that operators can triage failures consistently.
+
+#### Step 0.5 — Fresh Start vs. Resume Summary
+
+| Scenario | State file before | `MODE` | Next step |
+|:---|:---|:---|:---|
+| Fresh invocation, no state | absent | `START` | Step 1 |
+| Fresh invocation, completed state | `phase: COMPLETED` | `START` | Step 1 (state overwritten) |
+| Fresh invocation, in-flight state | `phase != COMPLETED` | ABORT | `STATE_CONFLICT` |
+| `--continue-after-merge`, valid | `phase: APPROVAL_PENDING` | `RESUME` | Phase 9 (`RESUME-AND-TAG`) |
+| `--continue-after-merge`, missing | absent | ABORT | `RESUME_NO_STATE` |
+| `--continue-after-merge`, wrong phase | any other `phase` | ABORT | invalid phase error |
 
 ### Step 1 — Determine Version
 
