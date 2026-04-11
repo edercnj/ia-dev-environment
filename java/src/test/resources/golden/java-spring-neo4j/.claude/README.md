@@ -55,25 +55,19 @@ CLAUDE.md                   <-- Executive summary (project root, loaded automati
 
 ## Platform Selection
 
-The `--platform` flag controls which AI platform artifacts are generated. By default, all platforms are generated.
+The `--platform` flag controls which AI platform artifacts are generated. Currently only Claude Code is supported; support for `copilot`, `codex`, and the generic `agents` target was removed (see EPIC-0034). Legacy values are rejected by the CLI.
 
 | Value | Description | Directories Generated |
 |-------|-------------|-----------------------|
-| `claude-code` | Anthropic Claude Code | `.claude/` + docs |
-| `copilot` | GitHub Copilot | `.github/` + docs |
-| `codex` | OpenAI Codex | `.codex/` + docs |
-| `all` | All platforms (default) | `.claude/`, `.github/`, `.codex/` + docs |
+| `claude-code` | Anthropic Claude Code (only accepted value) | `.claude/` + docs |
 
 ### CLI Examples
 
 ```bash
-# Generate only Claude Code artifacts
+# Generate Claude Code artifacts (default behavior)
 ia-dev-env generate --platform claude-code --config my-config.yaml
 
-# Generate for multiple platforms
-ia-dev-env generate -p claude-code,copilot --config my-config.yaml
-
-# Generate for all platforms (default behavior)
+# Platform flag can be omitted — claude-code is the only supported target
 ia-dev-env generate --config my-config.yaml
 ```
 
@@ -85,9 +79,9 @@ You can also specify the platform in your YAML config file:
 platform: claude-code
 ```
 
-### Backward Compatibility
+### Default Behavior
 
-When no `--platform` flag is provided and no `platform:` key exists in the YAML config, the generator produces artifacts for **all platforms** (`all`). This is fully backward-compatible with existing configurations -- no changes are required to existing YAML files or CLI invocations.
+When no `--platform` flag is provided and no `platform:` key exists in the YAML config, the generator produces artifacts for `claude-code` (the only supported target). Any legacy value (`copilot`, `codex`, `agents`, `all`) is rejected with a clear error message.
 
 ### settings.json vs settings.local.json
 
