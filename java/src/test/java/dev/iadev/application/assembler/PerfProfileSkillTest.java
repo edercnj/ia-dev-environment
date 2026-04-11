@@ -17,15 +17,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for story-0013-0019: x-perf-profile skill and
- * run-perf-test extension with regression detection.
+ * x-test-perf extension with regression detection.
  *
  * <p>Validates that the x-perf-profile skill template is
  * generated correctly with proper frontmatter, workflow
  * steps, profiler selection, and output modes. Also
- * validates that run-perf-test is extended with regression
+ * validates that x-test-perf is extended with regression
  * detection while preserving existing content.</p>
  */
-@DisplayName("x-perf-profile Skill and run-perf-test Extension")
+@DisplayName("x-perf-profile Skill and x-test-perf Extension")
 class PerfProfileSkillTest {
 
     @Nested
@@ -289,12 +289,12 @@ class PerfProfileSkillTest {
     }
 
     @Nested
-    @DisplayName("run-perf-test Extension -- Regression"
+    @DisplayName("x-test-perf Extension -- Regression"
             + " Detection")
     class RunPerfTestRegression {
 
         @Test
-        @DisplayName("extended run-perf-test contains"
+        @DisplayName("extended x-test-perf contains"
                 + " Regression Detection section")
         void assemble_runPerfTest_hasRegressionDetection(
                 @TempDir Path tempDir)
@@ -306,7 +306,7 @@ class PerfProfileSkillTest {
         }
 
         @Test
-        @DisplayName("extended run-perf-test contains"
+        @DisplayName("extended x-test-perf contains"
                 + " Baseline Management section")
         void assemble_runPerfTest_hasBaselineManagement(
                 @TempDir Path tempDir)
@@ -318,7 +318,7 @@ class PerfProfileSkillTest {
         }
 
         @Test
-        @DisplayName("extended run-perf-test contains"
+        @DisplayName("extended x-test-perf contains"
                 + " Threshold Validation section")
         void assemble_runPerfTest_hasThresholdValidation(
                 @TempDir Path tempDir)
@@ -330,7 +330,7 @@ class PerfProfileSkillTest {
         }
 
         @Test
-        @DisplayName("extended run-perf-test contains"
+        @DisplayName("extended x-test-perf contains"
                 + " Regression Detection section")
         void assemble_runPerfTest_hasComparisonReport(
                 @TempDir Path tempDir)
@@ -342,7 +342,7 @@ class PerfProfileSkillTest {
         }
 
         @Test
-        @DisplayName("extended run-perf-test references"
+        @DisplayName("extended x-test-perf references"
                 + " baseline.json")
         void assemble_runPerfTest_hasBaselineJson(
                 @TempDir Path tempDir)
@@ -354,7 +354,7 @@ class PerfProfileSkillTest {
         }
 
         @Test
-        @DisplayName("extended run-perf-test contains"
+        @DisplayName("extended x-test-perf contains"
                 + " --save-baseline flag")
         void assemble_runPerfTest_hasSaveBaseline(
                 @TempDir Path tempDir)
@@ -366,7 +366,7 @@ class PerfProfileSkillTest {
         }
 
         @Test
-        @DisplayName("extended run-perf-test contains"
+        @DisplayName("extended x-test-perf contains"
                 + " --compare-baseline flag")
         void assemble_runPerfTest_hasCompareBaseline(
                 @TempDir Path tempDir)
@@ -378,7 +378,7 @@ class PerfProfileSkillTest {
         }
 
         @Test
-        @DisplayName("extended run-perf-test contains"
+        @DisplayName("extended x-test-perf contains"
                 + " p99 threshold reference")
         void assemble_runPerfTest_hasP99Threshold(
                 @TempDir Path tempDir)
@@ -390,7 +390,7 @@ class PerfProfileSkillTest {
         }
 
         @Test
-        @DisplayName("extended run-perf-test contains"
+        @DisplayName("extended x-test-perf contains"
                 + " throughput reference")
         void assemble_runPerfTest_hasThroughput(
                 @TempDir Path tempDir)
@@ -403,11 +403,11 @@ class PerfProfileSkillTest {
     }
 
     @Nested
-    @DisplayName("run-perf-test Extension -- Preservation")
+    @DisplayName("x-test-perf Extension -- Preservation")
     class RunPerfTestPreservation {
 
         @Test
-        @DisplayName("extended run-perf-test preserves"
+        @DisplayName("extended x-test-perf preserves"
                 + " original name in frontmatter")
         void assemble_runPerfTest_preservesName(
                 @TempDir Path tempDir)
@@ -415,11 +415,11 @@ class PerfProfileSkillTest {
             String content =
                     generateRunPerfTestContent(tempDir);
             assertThat(content)
-                    .contains("name: run-perf-test");
+                    .contains("name: x-test-perf");
         }
 
         @Test
-        @DisplayName("extended run-perf-test preserves"
+        @DisplayName("extended x-test-perf preserves"
                 + " SLA Targets section")
         void assemble_runPerfTest_preservesSlaTargets(
                 @TempDir Path tempDir)
@@ -431,7 +431,7 @@ class PerfProfileSkillTest {
         }
 
         @Test
-        @DisplayName("extended run-perf-test preserves"
+        @DisplayName("extended x-test-perf preserves"
                 + " scenario definitions")
         void assemble_runPerfTest_preservesTestScenarios(
                 @TempDir Path tempDir)
@@ -443,7 +443,7 @@ class PerfProfileSkillTest {
         }
 
         @Test
-        @DisplayName("extended run-perf-test preserves"
+        @DisplayName("extended x-test-perf preserves"
                 + " workflow section")
         void assemble_runPerfTest_preservesExecutionFlow(
                 @TempDir Path tempDir)
@@ -455,7 +455,7 @@ class PerfProfileSkillTest {
         }
 
         @Test
-        @DisplayName("extended run-perf-test preserves"
+        @DisplayName("extended x-test-perf preserves"
                 + " Review Checklist section")
         void assemble_runPerfTest_preservesReviewChecklist(
                 @TempDir Path tempDir)
@@ -467,7 +467,7 @@ class PerfProfileSkillTest {
         }
 
         @Test
-        @DisplayName("extended run-perf-test preserves"
+        @DisplayName("extended x-test-perf preserves"
                 + " Data Generation section")
         void assemble_runPerfTest_preservesDataGeneration(
                 @TempDir Path tempDir)
@@ -521,12 +521,12 @@ class PerfProfileSkillTest {
     }
 
     @Nested
-    @DisplayName("GitHub Copilot -- run-perf-test"
+    @DisplayName("GitHub Copilot -- x-test-perf"
             + " Extension")
     class GithubRunPerfTestExtension {
 
         @Test
-        @DisplayName("GitHub run-perf-test contains"
+        @DisplayName("GitHub x-test-perf contains"
                 + " Regression Detection")
         void assemble_github_runPerfTestHasRegression(
                 @TempDir Path tempDir)
@@ -539,7 +539,7 @@ class PerfProfileSkillTest {
         }
 
         @Test
-        @DisplayName("GitHub run-perf-test contains"
+        @DisplayName("GitHub x-test-perf contains"
                 + " baseline.json reference")
         void assemble_github_runPerfTestHasBaseline(
                 @TempDir Path tempDir)
@@ -552,7 +552,7 @@ class PerfProfileSkillTest {
         }
 
         @Test
-        @DisplayName("GitHub run-perf-test preserves"
+        @DisplayName("GitHub x-test-perf preserves"
                 + " original content")
         void assemble_github_runPerfTestPreserves(
                 @TempDir Path tempDir)
@@ -608,7 +608,7 @@ class PerfProfileSkillTest {
         Path outputDir = generateOutput(tempDir);
         return Files.readString(
                 outputDir.resolve(
-                        "skills/run-perf-test/SKILL.md"),
+                        "skills/x-test-perf/SKILL.md"),
                 StandardCharsets.UTF_8);
     }
 
@@ -641,7 +641,7 @@ class PerfProfileSkillTest {
         Path outputDir = generateGithubOutput(tempDir);
         return Files.readString(
                 outputDir.resolve(
-                        "skills/run-perf-test/SKILL.md"),
+                        "skills/x-test-perf/SKILL.md"),
                 StandardCharsets.UTF_8);
     }
 }

@@ -305,7 +305,7 @@ class SecurityPipelineSkillTest {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("x-security-secret-scan")
+                    .contains("x-security-secrets")
                     .contains("x-security-sast")
                     .contains("x-dependency-audit")
                     .contains("x-security-sonar")

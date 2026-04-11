@@ -22,7 +22,7 @@ class SkillsSelectionTestingTest {
     class SelectTestingSkills {
 
         @Test
-        @DisplayName("always includes run-e2e")
+        @DisplayName("always includes x-test-e2e")
         void select_always_includesRunE2e() {
             ProjectConfig config =
                     TestConfigBuilder.builder().build();
@@ -31,12 +31,12 @@ class SkillsSelectionTestingTest {
                     SkillsSelection.selectTestingSkills(
                             config);
 
-            assertThat(skills).contains("run-e2e");
+            assertThat(skills).contains("x-test-e2e");
         }
 
         @Test
         @DisplayName("smoke tests with REST includes"
-                + " run-smoke-api")
+                + " x-test-smoke-api")
         void select_smokeRest_includesSmokeApi() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -49,12 +49,12 @@ class SkillsSelectionTestingTest {
                     SkillsSelection.selectTestingSkills(
                             config);
 
-            assertThat(skills).contains("run-smoke-api");
+            assertThat(skills).contains("x-test-smoke-api");
         }
 
         @Test
         @DisplayName("smoke tests with tcp-custom"
-                + " includes run-smoke-socket")
+                + " includes x-test-smoke-socket")
         void select_smokeTcp_includesSmokeSocket() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -68,12 +68,12 @@ class SkillsSelectionTestingTest {
                             config);
 
             assertThat(skills)
-                    .contains("run-smoke-socket");
+                    .contains("x-test-smoke-socket");
         }
 
         @Test
         @DisplayName("performance tests includes"
-                + " run-perf-test")
+                + " x-test-perf")
         void select_performance_includesPerfTest() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -84,12 +84,12 @@ class SkillsSelectionTestingTest {
                     SkillsSelection.selectTestingSkills(
                             config);
 
-            assertThat(skills).contains("run-perf-test");
+            assertThat(skills).contains("x-test-perf");
         }
 
         @Test
         @DisplayName("contract tests includes"
-                + " run-contract-tests")
+                + " x-test-contract")
         void select_contract_includesContractTests() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -101,7 +101,7 @@ class SkillsSelectionTestingTest {
                             config);
 
             assertThat(skills)
-                    .contains("run-contract-tests");
+                    .contains("x-test-contract");
         }
     }
 }

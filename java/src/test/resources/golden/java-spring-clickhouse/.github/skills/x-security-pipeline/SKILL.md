@@ -11,7 +11,7 @@ description: >
 
 ## Purpose
 
-Generates CI/CD pipeline configuration files with conditional security stages for {{PROJECT_NAME}}. Each stage is included only when its corresponding SecurityConfig flag is enabled. Supports three CI platforms (GitHub Actions, GitLab CI, Azure DevOps), two stage modes (minimal, all), and three trigger types (push, pr, schedule). References atomic scanning skills (x-security-sast, x-security-secret-scan, x-security-container, x-security-dast, x-owasp-scan, x-security-sonar) instead of duplicating scan logic (RULE-011).
+Generates CI/CD pipeline configuration files with conditional security stages for {{PROJECT_NAME}}. Each stage is included only when its corresponding SecurityConfig flag is enabled. Supports three CI platforms (GitHub Actions, GitLab CI, Azure DevOps), two stage modes (minimal, all), and three trigger types (push, pr, schedule). References atomic scanning skills (x-security-sast, x-security-secrets, x-security-container, x-security-dast, x-owasp-scan, x-security-sonar) instead of duplicating scan logic (RULE-011).
 
 ## Triggers
 
@@ -37,7 +37,7 @@ Generates CI/CD pipeline configuration files with conditional security stages fo
 
 | Order | Stage | Skill Reference | Phase | Condition | Minimal |
 |-------|-------|----------------|-------|-----------|---------|
-| 1 | Secret Scan | x-security-secret-scan | pre-commit | `security.scanning.secrets = true` | Yes |
+| 1 | Secret Scan | x-security-secrets | pre-commit | `security.scanning.secrets = true` | Yes |
 | 2 | SAST | x-security-sast | build | `security.scanning.sast = true` | Yes |
 | 3 | Dependency Audit | x-dependency-audit | build | Always enabled (baseline) | Yes |
 | 4 | SonarQube | x-security-sonar | build | `security.scanning.sonar = true` | No |

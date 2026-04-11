@@ -219,7 +219,7 @@ graph TD
     LIFE -->|Phase 4| REVIEW["/x-review"]
     LIFE -->|Phase 6| PR["gh pr create<br/>(PR targeting main)"]
     LIFE -->|Phase 7| LTREVIEW["/x-review-pr"]
-    LIFE -->|Phase 8| E2E["/run-e2e<br/>(smoke tests)"]
+    LIFE -->|Phase 8| E2E["/x-test-e2e<br/>(smoke tests)"]
 
     REVIEW -->|parallel| S1["Security Engineer"]
     REVIEW -->|parallel| S2["QA Engineer"]
@@ -393,7 +393,7 @@ flowchart TD
 | **Documentation** | `/x-arch-update` | Lifecycle Phase 3 | Update architecture document |
 | **Review** | `/x-review` | Lifecycle Phase 4 | 8 specialist engineers in parallel |
 | **Review** | `/x-review-pr` | Lifecycle Phase 7 | Tech Lead 40-point holistic review |
-| **Testing** | `/run-e2e` | Lifecycle Phase 8 | Smoke tests / post-deploy verification |
+| **Testing** | `/x-test-e2e` | Lifecycle Phase 8 | Smoke tests / post-deploy verification |
 | **Infra** | Integrity Gate | Epic orchestrator | Compile + test + coverage + smoke between phases |
 | **Infra** | Conflict Resolution | Epic orchestrator (1.4c) | Resolve rebase conflicts automatically |
 | **Infra** | Jira API | Epic orchestrator (1.6b) | Transition stories/epic to Done |

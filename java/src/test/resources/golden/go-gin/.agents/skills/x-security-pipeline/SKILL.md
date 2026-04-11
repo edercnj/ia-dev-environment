@@ -17,7 +17,7 @@ context-budget: heavy
 
 ## Purpose
 
-Generate CI/CD pipeline configuration files with conditional security stages for {{PROJECT_NAME}}. Each stage is included only when its corresponding SecurityConfig flag is enabled. Support three CI platforms (GitHub Actions, GitLab CI, Azure DevOps), two stage modes (minimal, all), and three trigger types (push, pr, schedule). Reference atomic scanning skills (x-security-sast, x-security-secret-scan, x-security-container, x-security-dast, x-owasp-scan, x-security-sonar) instead of duplicating scan logic (RULE-011 — Composability).
+Generate CI/CD pipeline configuration files with conditional security stages for {{PROJECT_NAME}}. Each stage is included only when its corresponding SecurityConfig flag is enabled. Support three CI platforms (GitHub Actions, GitLab CI, Azure DevOps), two stage modes (minimal, all), and three trigger types (push, pr, schedule). Reference atomic scanning skills (x-security-sast, x-security-secrets, x-security-container, x-security-dast, x-owasp-scan, x-security-sonar) instead of duplicating scan logic (RULE-011 — Composability).
 
 ## Triggers
 
@@ -63,7 +63,7 @@ Evaluate each stage condition and build the stage list:
 
 | Order | Stage | Skill Reference | Phase | Condition | Minimal |
 |-------|-------|----------------|-------|-----------|---------|
-| 1 | Secret Scan | x-security-secret-scan | pre-commit | `security.scanning.secrets = true` | Yes |
+| 1 | Secret Scan | x-security-secrets | pre-commit | `security.scanning.secrets = true` | Yes |
 | 2 | SAST | x-security-sast | build | `security.scanning.sast = true` | Yes |
 | 3 | Dependency Audit | x-dependency-audit | build | Always enabled (baseline) | Yes |
 | 4 | SonarQube | x-security-sonar | build | `security.scanning.sonar = true` | No |
@@ -123,10 +123,10 @@ jobs:
         with:
           fetch-depth: 0
       - name: Run secret scan
-        # Reference: x-security-secret-scan skill
+        # Reference: x-security-secrets skill
         run: |
           # Install and run gitleaks/trufflehog
-          # Configured via x-security-secret-scan
+          # Configured via x-security-secrets
         env:
           SEVERITY_THRESHOLD: HIGH
           FAIL_ON_FINDINGS: "true"
@@ -256,7 +256,7 @@ secret-scan:
   stage: pre-commit
   image: zricethezav/gitleaks:latest
   script:
-    # Reference: x-security-secret-scan skill
+    # Reference: x-security-secrets skill
     - gitleaks detect --source . --verbose
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
@@ -356,7 +356,7 @@ stages:
           - checkout: self
             fetchDepth: 0
           - script: |
-              # Reference: x-security-secret-scan skill
+              # Reference: x-security-secrets skill
               echo "Running secret scan"
             displayName: 'Run secret scan'
 
@@ -531,7 +531,7 @@ This skill **references** atomic scanning skills and never duplicates their scan
 
 | Stage | References Skill | What This Skill Does |
 |-------|-----------------|---------------------|
-| Secret Scan | x-security-secret-scan | Provides CI stage wrapper (triggers, artifacts, caching) |
+| Secret Scan | x-security-secrets | Provides CI stage wrapper (triggers, artifacts, caching) |
 | SAST | x-security-sast | Provides CI stage wrapper |
 | Dependency Audit | x-dependency-audit | Provides CI stage wrapper |
 | SonarQube | x-security-sonar | Provides CI stage wrapper |
@@ -559,7 +559,7 @@ To modify scan behavior (rules, exclusions, severity mappings), use the referenc
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| x-security-secret-scan | references | Provides scan logic for Secret Scan stage |
+| x-security-secrets | references | Provides scan logic for Secret Scan stage |
 | x-security-sast | references | Provides scan logic for SAST stage |
 | x-dependency-audit | references | Provides scan logic for Dependency Audit stage |
 | x-security-sonar | references | Provides scan logic for SonarQube and Quality Gate stages |

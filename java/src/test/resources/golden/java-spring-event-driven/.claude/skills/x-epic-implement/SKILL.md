@@ -1579,7 +1579,7 @@ Elapsed: {totalElapsedTime}
 
 After Phase 3 (Verification) completes, the orchestrator offers automatic remediation
 of PR review comments across all story PRs in the epic. This phase invokes
-`/x-pr-fix-epic-comments` to discover, classify, and fix actionable review comments
+`/x-pr-fix-epic` to discover, classify, and fix actionable review comments
 in a single correction PR.
 
 **Skip conditions:**
@@ -1600,9 +1600,9 @@ Scan all story PRs in the epic for unresolved review comments:
 
 ### 4.2 Dry-Run First
 
-When comments are found, invoke `x-pr-fix-epic-comments` in dry-run mode first via the Skill tool (Rule 13 — INLINE-SKILL pattern):
+When comments are found, invoke `x-pr-fix-epic` in dry-run mode first via the Skill tool (Rule 13 — INLINE-SKILL pattern):
 
-    Skill(skill: "x-pr-fix-epic-comments", args: "{epicId} --dry-run")
+    Skill(skill: "x-pr-fix-epic", args: "{epicId} --dry-run")
 
 This generates a consolidated findings report at `plans/epic-{epicId}/reports/pr-comments-report.md`
 without applying any fixes. Record `prCommentRemediation.status = "DRY_RUN"`.
@@ -1616,7 +1616,7 @@ question: "PR comment report generated. {commentCount} actionable findings acros
 header: "PR Comment Remediation"
 options:
   - label: "Apply fixes"
-    description: "Invoke x-pr-fix-epic-comments to apply fixes and create a correction PR"
+    description: "Invoke x-pr-fix-epic to apply fixes and create a correction PR"
   - label: "Skip"
     description: "Keep the report for review but do not apply fixes"
 multiSelect: false
@@ -1630,9 +1630,9 @@ proceed directly to Step 4.4. Log: `"--auto-merge: applying PR comment fixes wit
 
 ### 4.4 Apply Fixes
 
-Invoke `x-pr-fix-epic-comments` via the Skill tool (Rule 13 — INLINE-SKILL pattern), without `--dry-run`, to apply fixes:
+Invoke `x-pr-fix-epic` via the Skill tool (Rule 13 — INLINE-SKILL pattern), without `--dry-run`, to apply fixes:
 
-    Skill(skill: "x-pr-fix-epic-comments", args: "{epicId}")
+    Skill(skill: "x-pr-fix-epic", args: "{epicId}")
 
 The skill will:
 1. Classify all review comments (actionable/suggestion/question/praise)
@@ -1751,7 +1751,7 @@ Templates referenced by this skill follow RULE-012. When a template file does no
 | Skill | Relationship | Context |
 |-------|-------------|---------|
 | `x-story-implement` | Invokes (per story) | Story execution with PR creation, reviews in Phases 4/7 |
-| `x-pr-fix-epic-comments` | Invokes (Phase 4) | PR comment remediation; dry-run first, then apply with confirmation |
+| `x-pr-fix-epic` | Invokes (Phase 4) | PR comment remediation; dry-run first, then apply with confirmation |
 | `x-epic-orchestrate` | References | Produces DoR files (`dor-story-*.md`) consumed by DoR pre-check (Section 1.1b) |
 | `x-epic-map` | References | Error guidance when map is missing |
 | `x-lib-version-bump` | Invokes (post-gate) | Version bump on `develop` after integrity gate PASS (RULE-013) |

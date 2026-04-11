@@ -77,7 +77,7 @@ class SkillsSelectionScanningTest {
 
         @Test
         @DisplayName("secretScan enabled returns"
-                + " x-security-secret-scan")
+                + " x-security-secrets")
         void select_secretScanEnabled_returnsSecretScan() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -92,7 +92,7 @@ class SkillsSelectionScanningTest {
                                     config);
 
             assertThat(skills)
-                    .containsExactly("x-security-secret-scan");
+                    .containsExactly("x-security-secrets");
         }
 
         @Test
@@ -226,7 +226,7 @@ class SkillsSelectionScanningTest {
             assertThat(skills).containsExactlyInAnyOrder(
                     "x-security-sast",
                     "x-security-dast",
-                    "x-security-secret-scan",
+                    "x-security-secrets",
                     "x-security-container",
                     "x-security-infra",
                     "x-security-sonar");
@@ -250,7 +250,7 @@ class SkillsSelectionScanningTest {
 
             assertThat(skills).containsExactlyInAnyOrder(
                     "x-security-sast",
-                    "x-security-secret-scan");
+                    "x-security-secrets");
         }
     }
 
@@ -296,7 +296,7 @@ class SkillsSelectionScanningTest {
                     .doesNotContain(
                             "x-security-sast",
                             "x-security-dast",
-                            "x-security-secret-scan",
+                            "x-security-secrets",
                             "x-security-container",
                             "x-security-infra",
                             "x-security-pentest",

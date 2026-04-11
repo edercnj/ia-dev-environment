@@ -45,5 +45,5 @@ Generates a consolidated security posture dashboard by aggregating SARIF results
 
 - [x-owasp-scan](../x-owasp-scan/) -- OWASP Top 10 verification (feeds into dashboard)
 - [x-hardening-eval](../x-hardening-eval/) -- Application hardening evaluation (feeds into dashboard)
-- [x-runtime-protection](../x-runtime-protection/) -- Runtime protection evaluation (feeds into dashboard)
+- [x-runtime-eval](../x-runtime-eval/) -- Runtime protection evaluation (feeds into dashboard)
 - [x-security-pipeline](../x-security-pipeline/) -- CI/CD pipeline generation with security stages

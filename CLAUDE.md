@@ -18,7 +18,7 @@ It includes coding rules, skills (slash commands), knowledge packs, agents, and 
 > - Decision record: [`adr/ADR-0003-skill-taxonomy-and-naming.md`](adr/ADR-0003-skill-taxonomy-and-naming.md)
 > - Rename staging checklist: [`plans/epic-0036/skill-renames.md`](plans/epic-0036/skill-renames.md)
 > - Primary cluster renames landed (STORY-0036-0004): `x-story-epic`→`x-epic-create`, `x-story-epic-full`→`x-epic-decompose`, `x-story-map`→`x-epic-map`, `x-epic-plan`→`x-epic-orchestrate`, `x-dev-implement`→`x-task-implement`, `x-dev-story-implement`→`x-story-implement`, `x-dev-epic-implement`→`x-epic-implement`, `x-dev-architecture-plan`→`x-arch-plan`, `x-dev-arch-update`→`x-arch-update`, `x-dev-adr-automation`→`x-adr-generate`.
-> - Still pending (STORY-0036-0005): `run-*` → `x-test-*`, `x-pr-fix-comments`→`x-pr-fix`, `x-pr-fix-epic-comments`→`x-pr-fix-epic`, `x-runtime-protection`→`x-runtime-eval`, `x-security-secret-scan`→`x-security-secrets`.
+> - Remaining renames landed (STORY-0036-0005): `run-e2e`→`x-test-e2e`, `run-smoke-api`→`x-test-smoke-api`, `run-smoke-socket`→`x-test-smoke-socket`, `run-contract-tests`→`x-test-contract`, `run-perf-test`→`x-test-perf`, `x-pr-fix-comments`→`x-pr-fix`, `x-pr-fix-epic-comments`→`x-pr-fix-epic`, `x-runtime-protection`→`x-runtime-eval`, `x-security-secret-scan`→`x-security-secrets`.
 
 ## Structure
 
@@ -108,7 +108,7 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | Skill | Path | Description |
 |-------|------|-------------|
 | **patterns** | `/patterns` |  |
-| **run-e2e** | `/run-e2e` | Skill: End-to-End Tests — Runs integration tests that validate the complete flow from request through all application layers to response, using a real database. |
+| **x-test-e2e** | `/x-test-e2e` | Skill: End-to-End Tests — Runs integration tests that validate the complete flow from request through all application layers to response, using a real database. |
 | **x-epic-implement** | `/x-epic-implement` | Orchestrates epic execution: parses implementation map, dispatches stories via subagents, manages checkpoints, integrity gates, retry/block propagation, resume, partial execution, dry-run, and progress reporting. |
 | **x-task-implement** | `/x-task-implement` | Implements a feature/story following project conventions. Delegates preparation to a subagent that reads architecture and coding KPs, then implements layer-by-layer with intermediate compilation checks. |
 | **x-story-implement** | `/x-story-implement` | Orchestrates the complete feature implementation cycle: branch creation, planning, task decomposition, implementation, parallel review, fixes, PR creation, and final verification. Delegates heavy phases to subagents for context efficiency. |
