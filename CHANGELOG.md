@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Skill taxonomy refactor (EPIC-0036):** Skills in the source of truth are now organized into 10 category subfolders (`plan/`, `dev/`, `test/`, `review/`, `security/`, `code/`, `git/`, `pr/`, `ops/`, `jira/`) under `java/src/main/resources/targets/claude/skills/{core,conditional}/`. The generated output `.claude/skills/` remains flat. `core/lib/` and `knowledge-packs/` are unchanged. `SkillsAssembler` now walks two layers and flattens at assembly time. Assimetry between SoT (hierarchical) and runtime (flat) is intentional — authoring benefits from grouping, runtime keeps a single namespace. See ADR-0003 for the full rationale.
+- **Skill groups derived from the filesystem (EPIC-0036 / STORY-0036-0003):** `SkillGroupRegistry.java` deleted. `GithubSkillsAssembler` now discovers group membership by walking `targets/github-copilot/skills/*/*.md` instead of consulting a hardcoded map. Per-skill activation predicates (infra, knowledge-packs, review) moved to the new `SkillGroupConditions` helper. Drifts fixed: dead hardcoded entries (`x-story-plan`, `x-task-plan`, `x-epic-plan` in story; `patterns-outbox` in knowledge-packs; `setup-environment` in infrastructure) removed; orphan `x-setup-stack.md` in `github-copilot/skills/infrastructure/` deleted as dead code.
+
+### Renamed
+
+- **Primary cluster renames (EPIC-0036 / STORY-0036-0004):** 10 skills renamed to eliminate ambiguity in the epic/story/task axis and remove the redundant `dev-` prefix within the `dev/` category.
+
+  | Old | New | Rationale |
+  |---|---|---|
+  | `x-epic-create` (née `x-story-epic`) | Verb explicit; creates an epic document |
+  | `x-epic-decompose` (née `x-story-epic-full`) | Decomposes an epic into stories + map |
+  | `x-epic-map` (née `x-story-map`) | Produces epic-level IMPLEMENTATION-MAP |
+  | `x-epic-orchestrate` (née `x-epic-plan`) | Multi-story orchestrator (not a planner) |
+  | `x-task-implement` (née `x-dev-implement`) | Executes a single task (TDD loop) |
+  | `x-story-implement` (née `x-dev-story-implement`) | Removes redundant `dev-` prefix |
+  | `x-epic-implement` (née `x-dev-epic-implement`) | Removes redundant `dev-` prefix |
+  | `x-arch-plan` (née `x-dev-architecture-plan`) | Shorter, unambiguous |
+  | `x-arch-update` (née `x-dev-arch-update`) | Parallel with `x-arch-plan` |
+  | `x-adr-generate` (née `x-dev-adr-automation`) | Verb + artifact |
+
+- **Remaining renames (EPIC-0036 / STORY-0036-0005):** 9 more renames unifying the `x-` prefix and simplifying pr/security names.
+
+  | Old | New | Rationale |
+  |---|---|---|
+  | `x-test-e2e` (née `run-e2e`) | Unify `x-` namespace |
+  | `x-test-smoke-api` (née `run-smoke-api`) | Unify `x-` namespace |
+  | `x-test-smoke-socket` (née `run-smoke-socket`) | Unify `x-` namespace |
+  | `x-test-contract` (née `run-contract-tests`) | Unify + drop redundant "tests" |
+  | `x-test-perf` (née `run-perf-test`) | Unify `x-` namespace |
+  | `x-pr-fix` (née `x-pr-fix-comments`) | "comments" redundant in `pr/` |
+  | `x-pr-fix-epic` (née `x-pr-fix-epic-comments`) | Same |
+  | `x-runtime-eval` (née `x-runtime-protection`) | Symmetry with `x-hardening-eval` |
+  | `x-security-secrets` (née `x-security-secret-scan`) | Consistency with `x-security-*` siblings |
+
+### Added
+
+- **Guard script (EPIC-0036 / STORY-0036-0006):** `scripts/verify-skill-renames.sh` scans the repo for any of the 19 pre-EPIC-0036 skill names and fails the build if found outside allowed historical locations (ADR-0003, past epic plans, specs, steering docs, build artifacts). Runs via `./scripts/verify-skill-renames.sh` and is wired into CI.
+- **ADR-0003 — Skill Taxonomy and Naming Refactor:** Documents decisions D1-D6: SoT hierarchical / output flat, 10-category taxonomy, global rename to `x-{subject}-{action}`, hard-rename with guard script, delete `SkillGroupRegistry`, docs as first-class.
+
+### Breaking Changes
+
+- **Skill invocation:** The 19 pre-EPIC-0036 slash commands listed above **no longer resolve**. Users must update scripts and muscle memory to the new names. See ADR-0003 for the authoritative mapping. No backward-compatible aliases — the project is generated, consumers regenerate.
+
 ## [2.3.0] - 2026-04-10
 
 ### Added

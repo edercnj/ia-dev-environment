@@ -13,12 +13,8 @@ It includes coding rules, skills (slash commands), knowledge packs, agents, and 
 
 > The `CLAUDE.md` file at the project root provides an executive summary loaded automatically in EVERY conversation.
 
-> **In progress — EPIC-0036 (Skill Taxonomy Refactor).**
-> The source of truth for skills under `java/src/main/resources/targets/claude/skills/` has been reorganized into 10 category subfolders (`plan/`, `dev/`, `test/`, `review/`, `security/`, `code/`, `git/`, `pr/`, `ops/`, `jira/`), and ~19 skills are being renamed to a consistent `x-{subject}-{action}` scheme. The generated output `.claude/skills/` remains **flat** — user-facing invocation paths are preserved.
-> - Decision record: [`adr/ADR-0003-skill-taxonomy-and-naming.md`](adr/ADR-0003-skill-taxonomy-and-naming.md)
-> - Rename staging checklist: [`plans/epic-0036/skill-renames.md`](plans/epic-0036/skill-renames.md)
-> - Primary cluster renames landed (STORY-0036-0004): `x-story-epic`→`x-epic-create`, `x-story-epic-full`→`x-epic-decompose`, `x-story-map`→`x-epic-map`, `x-epic-plan`→`x-epic-orchestrate`, `x-dev-implement`→`x-task-implement`, `x-dev-story-implement`→`x-story-implement`, `x-dev-epic-implement`→`x-epic-implement`, `x-dev-architecture-plan`→`x-arch-plan`, `x-dev-arch-update`→`x-arch-update`, `x-dev-adr-automation`→`x-adr-generate`.
-> - Remaining renames landed (STORY-0036-0005): `run-e2e`→`x-test-e2e`, `run-smoke-api`→`x-test-smoke-api`, `run-smoke-socket`→`x-test-smoke-socket`, `run-contract-tests`→`x-test-contract`, `run-perf-test`→`x-test-perf`, `x-pr-fix-comments`→`x-pr-fix`, `x-pr-fix-epic-comments`→`x-pr-fix-epic`, `x-runtime-protection`→`x-runtime-eval`, `x-security-secret-scan`→`x-security-secrets`.
+> **Skill taxonomy — EPIC-0036.**
+> Skills in the source of truth live under 10 category subfolders (`plan/`, `dev/`, `test/`, `review/`, `security/`, `code/`, `git/`, `pr/`, `ops/`, `jira/`) inside `java/src/main/resources/targets/claude/skills/{core,conditional}/`. The generated output `.claude/skills/` is **flat** — user-facing invocation paths are `/{skill-name}` without a category prefix. All user-invocable skills follow the `x-{subject}-{action}` naming convention. See [`adr/ADR-0003-skill-taxonomy-and-naming.md`](adr/ADR-0003-skill-taxonomy-and-naming.md) for the authoritative mapping and rationale, and [`CHANGELOG.md`](CHANGELOG.md) for the rename history.
 
 ## Structure
 
