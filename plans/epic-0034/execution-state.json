@@ -40,7 +40,9 @@
       "branch": "feat/story-0034-0001-remove-github-copilot",
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/274",
       "prNumber": 274,
-      "prMergeStatus": "OPEN",
+      "prMergeStatus": "MERGED",
+      "prMergedAt": "2026-04-11T10:44:33Z",
+      "prMergeCommit": "23d44da544e4cbef3da7298e3e801742ea65f56a",
       "coverageLine": 95.47,
       "coverageBranch": 90.44,
       "testsUnit": 5499,
@@ -69,7 +71,11 @@
         "plans/epic-0034/plans/planning-report-story-0034-0002.md",
         "plans/epic-0034/plans/dor-story-0034-0002.md"
       ],
-      "notes": "CRITICAL: DocsAdrAssembler (shared class) registered in buildCodexAssemblers — must relocate before deleting method (TASK-001 DoD). CODEX_AGENTS preservation: adjacent to CODEX in enum, owned by story 0003 (TASK-003 explicit grep). 17 additional test files reference Platform.CODEX/hasCodex beyond the 6 Codex-specific — may require coalescing TASK-002 and TASK-003 if test-compile breaks between them. Manifest regeneration deferred to TASK-006 or story 0005. Largest single-story golden deletion: 2944 files."
+      "notes": "CRITICAL: DocsAdrAssembler (shared class) registered in buildCodexAssemblers — must relocate before deleting method (TASK-001 DoD). CODEX_AGENTS preservation: adjacent to CODEX in enum, owned by story 0003 (TASK-003 explicit grep). 17 additional test files reference Platform.CODEX/hasCodex beyond the 6 Codex-specific — may require coalescing TASK-002 and TASK-003 if test-compile breaks between them. Manifest regeneration deferred to TASK-006 or story 0005. Largest single-story golden deletion: 2944 files.",
+      "status": "IN_PROGRESS",
+      "executionStartedAt": "2026-04-11T10:50:00Z",
+      "branch": "feat/story-0034-0002-remove-codex",
+      "worktree": ".claude/worktrees/story-0034-0002"
     },
     "story-0034-0003": {
       "id": "story-0034-0003",
