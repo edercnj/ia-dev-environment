@@ -1,0 +1,23 @@
+Invalid value for option '--platform' (<platforms>): Invalid platform: 'copilot'. Valid values: claude-code, all
+Usage: ia-dev-env generate [-fhvV] [--dry-run] [--overwrite-constitution]
+                           [-o=<outputDir>] [-s=<stack>] [-p=<platforms>[\s*,
+                           \s*<platforms>...]]... [-c=<configPath> | -i]
+Generate AI dev environment boilerplate from a YAML configuration or
+interactive prompts.
+  -c, --config=<configPath>  Path to the YAML configuration file.
+      --dry-run              Simulate without writing files.
+  -f, --force                Overwrite existing files.
+  -h, --help                 Show this help message and exit.
+  -i, --interactive          Enable interactive mode.
+  -o, --output=<outputDir>   Output directory.
+      --overwrite-constitution
+                             Regenerate CONSTITUTION.md even if it already
+                               exists.
+  -p, --platform=<platforms>[\s*,\s*<platforms>...]
+                             Target AI platform(s) for artifact generation.
+                               Values: claude-code, all. Multiple values
+                               separated by comma. Default: all (generate for
+                               all platforms).
+  -s, --stack=<stack>        Bundled stack profile name.
+  -v, --verbose              Enable verbose output.
+  -V, --version              Print version information and exit.

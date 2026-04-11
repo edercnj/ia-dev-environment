@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **BREAKING:** CLI `--platform` flag now accepts only `claude-code`. Previous values `copilot`, `codex`, `agents`, and `all` are rejected with a clear error message that lists accepted values. (EPIC-0034 / story-0034-0001)
+- **BREAKING:** CLI `--platform` flag now accepts only `claude-code` (and the backward-compatibility keyword `all`, which is now functionally equivalent to `claude-code`). Previous values `copilot`, `codex`, and `agents` are rejected with a clear error message that lists accepted values. (EPIC-0034 / story-0034-0001)
 - **BREAKING:** Default value of `--platform` is now `claude-code` when the flag is omitted. Previously the default was `all`. (EPIC-0034 / story-0034-0001)
 - Generator output per profile reduced from ~9500 to ~830 artifacts (~91% fewer files). The `expected-artifacts.json` smoke manifest was regenerated to match. (EPIC-0034 / story-0034-0005)
 - `CLAUDE.md` at repo root reduced from 289 to ~115 lines by removing multi-target documentation sections. (EPIC-0034 / story-0034-0005)
@@ -31,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Users with automated scripts or CI pipelines invoking `ia-dev-env` must update as follows:
 
-- Replace `--platform copilot`, `--platform codex`, `--platform agents`, or `--platform all` with `--platform claude-code`, **OR** drop the flag entirely (the new default is `claude-code`).
+- Replace `--platform copilot`, `--platform codex`, or `--platform agents` with `--platform claude-code`, **OR** drop the flag entirely (the new default is `claude-code`). `--platform all` remains accepted as a backward-compatibility alias and now means "generate claude-code only" (since `claude-code` is the only target).
 - Remove any downstream tooling that consumes `.github/instructions/`, `.github/skills/`, `.github/prompts/`, `.codex/config.toml`, `.codex/requirements.toml`, or `.agents/skills/` artifacts — these are no longer produced by the generator.
 - `.github/workflows/` files in generated projects are unaffected; CI/CD pipelines continue to work without changes (RULE-003).
 - Claude Code users with existing `.claude/` output: no action required. Regenerate with the same command you used before, minus any platform flag.
