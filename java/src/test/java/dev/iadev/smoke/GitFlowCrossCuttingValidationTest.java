@@ -259,7 +259,7 @@ class GitFlowCrossCuttingValidationTest {
     @Nested
     @DisplayName("x-pr-fix-epic"
             + " — develop base")
-    class FixEpicPrComments {
+    class XPrFixEpic {
 
         @Test
         @DisplayName("PR targets develop")

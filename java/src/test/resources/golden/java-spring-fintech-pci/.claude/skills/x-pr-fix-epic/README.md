@@ -36,7 +36,7 @@ Automates addressing PR review comments across an entire epic in batch. Instead 
 
 | Artifact | Path |
 |----------|------|
-| Findings report | `plans/epic-XXXX/reviews/epic-pr-comments-report.md` |
+| Findings report | `plans/epic-XXXX/reports/pr-comments-report.md` |
 | Correction PR | Created via `gh pr create` on correction branch |
 
 ## See Also

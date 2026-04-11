@@ -146,7 +146,7 @@ Every story in EPIC-0036 includes an explicit "Docs obligatórias" subsection en
 ### Positive
 
 - **Navigable source of truth.** New contributors can locate a skill by intent (`plan/`, `dev/`, `review/`, ...) rather than scanning a flat ~78-entry directory listing.
-- **Zero blast radius in consumer documentation.** Because the output remains flat (D1), the ~133 existing references to `skills/{name}/SKILL.md` continue to resolve without change. Only the ~25 renamed skills require textual updates.
+- **Zero blast radius in consumer documentation.** Because the output remains flat (D1), the ~133 existing references to `skills/{name}/SKILL.md` continue to resolve without change. Only the 19 renamed skills require textual updates.
 - **Unambiguous naming.** The `epic → story → task` axis becomes clear: `-create` produces a document, `-plan/-decompose/-map` produces a breakdown, `-implement/-orchestrate` executes code. The `x-story-map` → `x-epic-map` rename alone eliminates a recurring source of user confusion.
 - **Single source of truth for grouping.** `SkillGroupRegistry` is deleted; the filesystem is authoritative. No more hardcoded Java lists to keep in sync with the actual skill set.
 - **Unified invocation prefix.** Killing `run-*` in favor of `x-test-*` means users only ever type `/x-...` — no mental context switch between `run-` and `x-` skills.

@@ -46,10 +46,6 @@ final class SkillGroupConditions {
     static {
         INFRA_SKILL_CONDITIONS = new LinkedHashMap<>();
         INFRA_SKILL_CONDITIONS.put(
-                "setup-environment",
-                c -> !"none".equals(
-                        c.infrastructure().orchestrator()));
-        INFRA_SKILL_CONDITIONS.put(
                 "k8s-deployment",
                 c -> "kubernetes".equals(
                         c.infrastructure().orchestrator()));
@@ -92,9 +88,6 @@ final class SkillGroupConditions {
                     return p != null && !p.isBlank()
                             && !"none".equals(p);
                 });
-        KP_SKILL_CONDITIONS.put(
-                "patterns-outbox",
-                c -> c.architecture().outboxPattern());
         KP_SKILL_CONDITIONS.put(
                 "pci-dss-requirements",
                 c -> c.security().frameworks()

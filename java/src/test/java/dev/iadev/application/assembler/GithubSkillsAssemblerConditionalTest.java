@@ -60,8 +60,11 @@ class GithubSkillsAssemblerConditionalTest {
                             .container("docker")
                             .orchestrator("none")
                             .build();
+            // Post EPIC-0036 PR-fix: setup-environment removed
+            // from the predicate map (no .md template exists in
+            // targets/github-copilot/skills/infrastructure/),
+            // so it is no longer a candidate for filterSkills.
             List<String> skills = List.of(
-                    "setup-environment",
                     "k8s-deployment",
                     "k8s-kustomize",
                     "dockerfile",
@@ -74,7 +77,6 @@ class GithubSkillsAssemblerConditionalTest {
 
             assertThat(filtered)
                     .contains("dockerfile")
-                    .doesNotContain("setup-environment")
                     .doesNotContain("k8s-deployment");
         }
 
@@ -89,8 +91,11 @@ class GithubSkillsAssemblerConditionalTest {
                             .container("docker")
                             .orchestrator("kubernetes")
                             .build();
+            // Post EPIC-0036 PR-fix: setup-environment removed
+            // from the predicate map (no .md template exists in
+            // targets/github-copilot/skills/infrastructure/),
+            // so it is no longer a candidate for filterSkills.
             List<String> skills = List.of(
-                    "setup-environment",
                     "k8s-deployment",
                     "k8s-kustomize",
                     "dockerfile",
@@ -102,7 +107,6 @@ class GithubSkillsAssemblerConditionalTest {
                             skills);
 
             assertThat(filtered)
-                    .contains("setup-environment")
                     .contains("k8s-deployment")
                     .contains("k8s-kustomize")
                     .contains("dockerfile");
@@ -120,8 +124,11 @@ class GithubSkillsAssemblerConditionalTest {
                             .iac("none")
                             .templating("none")
                             .build();
+            // Post EPIC-0036 PR-fix: setup-environment removed
+            // from the predicate map (no .md template exists in
+            // targets/github-copilot/skills/infrastructure/),
+            // so it is no longer a candidate for filterSkills.
             List<String> skills = List.of(
-                    "setup-environment",
                     "k8s-deployment",
                     "k8s-kustomize",
                     "dockerfile",
@@ -148,8 +155,11 @@ class GithubSkillsAssemblerConditionalTest {
                             .iac("terraform")
                             .templating("none")
                             .build();
+            // Post EPIC-0036 PR-fix: setup-environment removed
+            // from the predicate map (no .md template exists in
+            // targets/github-copilot/skills/infrastructure/),
+            // so it is no longer a candidate for filterSkills.
             List<String> skills = List.of(
-                    "setup-environment",
                     "k8s-deployment",
                     "k8s-kustomize",
                     "dockerfile",

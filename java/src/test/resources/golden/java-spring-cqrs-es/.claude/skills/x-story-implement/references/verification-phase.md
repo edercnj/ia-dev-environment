@@ -1,13 +1,31 @@
 # Verification Phase Reference
 
-> **Context:** This reference details Phase 3 (Story-Level Verification).
-> Part of x-story-implement skill.
+> **Context:** This reference details Phases 3-8 of `x-story-implement`
+> (Documentation, Specialist Review, Remediation, Commit + PR, Tech Lead
+> Review, and Final Verification). Phase numbering in `x-story-implement`
+> follows the README: each phase is a distinct stage in the lifecycle.
+>
+> **Step numbering note:** historical step IDs in this file use `3.x`
+> prefixes from a consolidated-phase draft. They have been retained
+> verbatim to keep deep links stable; the table below maps each step
+> ID to the current phase it belongs to.
+>
+> | Step ID | Current Phase | Subject |
+> |---------|---------------|---------|
+> | 3.1 | Phase 8 (Final Verification) | Coverage Consolidation |
+> | 3.2 | Phase 8 (Final Verification) | Cross-File Consistency Check |
+> | 3.3 | Phase 3 (Documentation) | Documentation Update |
+> | 3.4 | Phase 4 (Specialist Review) | Specialist Review via x-review |
+> | 3.5 | Phase 5 (Remediation + Fixes) | Remediation tracking and fixes |
+> | 3.6 | Phase 7 (Tech Lead Review) | Tech Lead review via x-review-pr |
+> | 3.7 | Phase 6 (Commit + PR) | Story-level PR (auto-approve mode) |
+> | 3.8 | Phase 8 (Final Verification) | DoD checklist + cleanup |
 
-## Phase 3 -- Story-Level Verification (Absorbs Old Phases 3-8)
+## Phases 3-8 -- Documentation, Review, Remediation, PR, Tech Lead Review, Final Verification
 
-Phase 3 executes after all tasks have approved/merged PRs. It consolidates verification across all task changes.
+These phases execute after all tasks have approved/merged PRs.
 
-**Skip condition:** If `--skip-verification` is passed, skip Phase 3 entirely with log `"Phase 3 skipped (--skip-verification)"`.
+**Skip condition:** If `--skip-verification` is passed, skip the Phase 8 substeps (3.1, 3.2, 3.8 below) with log `"Phase 8 verification skipped (--skip-verification)"`. Phases 3-7 still execute.
 
 ### Step 3.1 -- Coverage Consolidation
 
@@ -131,4 +149,4 @@ If NOT `--auto-approve-pr`: skip (individual task PRs already target develop).
 9. Report PASS/FAIL/SKIP result with task-level summary
 10. `git checkout develop && git pull origin develop`
 
-**Phase 3 is the ONLY legitimate stopping point.**
+**Phase 8 is the ONLY legitimate stopping point** (after the DoD checklist passes and execution-state.json is updated to COMPLETE).
