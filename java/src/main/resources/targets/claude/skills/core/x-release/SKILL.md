@@ -1,9 +1,9 @@
 ---
 name: x-release
-description: "Orchestrates complete release flow using Git Flow release branches: version bump (auto-detect or explicit), release branch creation from develop, version file updates, changelog generation, release commit, dual merge (main + develop), git tag on main, and cleanup. Supports hotfix releases from main and dry-run mode."
+description: "Orchestrates complete release flow using Git Flow release branches with approval gate, PR-flow (gh CLI) and deep validation: version bump (auto-detect or explicit), release branch creation from develop, deep validation (coverage, golden files, version consistency), version file updates, changelog generation, release commit, release PR via gh, human approval gate with persistent state file, tag on main after merged PR, back-merge PR to develop with conflict detection, and cleanup. Supports hotfix releases from main, dry-run mode, resume via --continue-after-merge, in-session pause via --interactive, GPG-signed tags, and custom state file path."
 user-invocable: true
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent
-argument-hint: "[major|minor|patch|version] [--dry-run] [--skip-tests] [--no-publish] [--hotfix]"
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, Skill, AskUserQuestion
+argument-hint: "[major|minor|patch|version] [--dry-run] [--skip-tests] [--no-publish] [--hotfix] [--continue-after-merge] [--interactive] [--signed-tag] [--state-file <path>]"
 ---
 
 ## Global Output Policy
@@ -39,6 +39,10 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 | `--skip-tests` | No | Skip test validation (displays warning) |
 | `--no-publish` | No | Create release locally without pushing to remote |
 | `--hotfix` | No | Create hotfix release from `main` instead of `develop` |
+| `--continue-after-merge` | No | Resume flow from RESUME-AND-TAG after the release PR has been merged manually. Requires an existing state file with `phase: APPROVAL_PENDING`. |
+| `--interactive` | No | Activate in-session pause at APPROVAL-GATE via `AskUserQuestion` instead of exiting the skill. The state file is still persisted for defense in depth. |
+| `--signed-tag` | No | Create a GPG-signed git tag (`git tag -s`) instead of an annotated tag (`git tag -a`). |
+| `--state-file <path>` | No | Override the state file path (default: `plans/release-state-<X.Y.Z>.json`). |
 
 ## Workflow
 
