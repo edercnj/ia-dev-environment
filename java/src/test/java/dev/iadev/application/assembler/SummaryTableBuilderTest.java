@@ -27,8 +27,8 @@ class SummaryTableBuilderTest {
     class BuildGenerationSummary {
 
         @Test
-        @DisplayName("contains 10 component rows")
-        void build_whenCalled_containsTenComponents(
+        @DisplayName("contains 7 component rows")
+        void build_whenCalled_containsSevenComponents(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
 
@@ -47,7 +47,7 @@ class SummaryTableBuilderTest {
                     dataRows++;
                 }
             }
-            assertThat(dataRows).isEqualTo(10);
+            assertThat(dataRows).isEqualTo(7);
         }
 
         @Test
@@ -83,9 +83,8 @@ class SummaryTableBuilderTest {
                     .contains("Hooks (.claude)")
                     .contains("Settings (.claude)")
                     .contains("Plan Templates (.claude)")
-                    .contains("AGENTS.md (root)")
-                    .contains("AGENTS.override.md (root)")
-                    .contains("Skills (.agents)")
+                    .doesNotContain("AGENTS.md")
+                    .doesNotContain("Skills (.agents)")
                     .doesNotContain("Codex (.codex)");
         }
 
@@ -113,37 +112,6 @@ class SummaryTableBuilderTest {
             assertThat(summary)
                     .contains("Plan Templates (.claude)"
                             + " | 12 |");
-        }
-
-        @Test
-        @DisplayName("summary with agents extras")
-        void build_withAllExtras_summary(
-                @TempDir Path tempDir) throws IOException {
-            Path claudeDir = Files.createDirectories(
-                    tempDir.resolve(".claude"));
-            Files.createDirectories(
-                    tempDir.resolve(".github"));
-            Path agentsDir = Files.createDirectories(
-                    tempDir.resolve(".agents"));
-            Files.writeString(
-                    agentsDir.resolve("AGENTS.md"),
-                    "c", StandardCharsets.UTF_8);
-            Files.writeString(
-                    tempDir.resolve("AGENTS.md"),
-                    "c", StandardCharsets.UTF_8);
-            Files.writeString(
-                    tempDir.resolve("AGENTS.override.md"),
-                    "c", StandardCharsets.UTF_8);
-
-            String summary =
-                    builder.buildGenerationSummary(
-                            claudeDir);
-
-            assertThat(summary)
-                    .contains("Skills (.agents)")
-                    .contains("AGENTS.md (root)")
-                    .contains("AGENTS.override.md (root)")
-                    .doesNotContain("Codex (.codex)");
         }
 
         private Path setupMinimalOutput(Path tempDir)

@@ -350,8 +350,8 @@ class ReadmeTablesTest {
     class BuildGenerationSummary {
 
         @Test
-        @DisplayName("contains 10 component rows")
-        void create_whenCalled_containsTenComponents(
+        @DisplayName("contains 7 component rows")
+        void create_whenCalled_containsSevenComponents(
                 @TempDir Path tempDir)
                 throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
@@ -373,7 +373,7 @@ class ReadmeTablesTest {
                     dataRows++;
                 }
             }
-            assertThat(dataRows).isEqualTo(10);
+            assertThat(dataRows).isEqualTo(7);
         }
 
         @Test
@@ -412,9 +412,8 @@ class ReadmeTablesTest {
                     .contains("Agents (.claude)")
                     .contains("Hooks (.claude)")
                     .contains("Settings (.claude)")
-                    .contains("AGENTS.md (root)")
-                    .contains("AGENTS.override.md (root)")
-                    .contains("Skills (.agents)")
+                    .doesNotContain("AGENTS.md")
+                    .doesNotContain("Skills (.agents)")
                     .doesNotContain("Codex (.codex)");
         }
 

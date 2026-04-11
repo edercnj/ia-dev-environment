@@ -28,9 +28,9 @@ class SummaryTableBuilderPlatformTest {
     class FilteredSummary {
 
         @Test
-        @DisplayName("claude-only still shows agents"
+        @DisplayName("claude-only shows all claude rows"
                 + " (single user-selectable == no filter)")
-        void build_claudeOnly_showsAgentsAsAllMode(
+        void build_claudeOnly_showsAllClaudeRows(
                 @TempDir Path tempDir)
                 throws IOException {
             Path claudeDir = setupMinimalOutput(tempDir);
@@ -67,7 +67,8 @@ class SummaryTableBuilderPlatformTest {
 
             assertThat(summary)
                     .contains("(.claude)")
-                    .contains("AGENTS.md (root)");
+                    .doesNotContain("AGENTS.md")
+                    .doesNotContain("(.agents)");
         }
 
         @Test

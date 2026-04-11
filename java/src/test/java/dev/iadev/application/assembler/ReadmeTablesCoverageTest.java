@@ -199,22 +199,11 @@ class ReadmeTablesCoverageTest {
     class BuildSummaryEdge {
 
         @Test
-        @DisplayName("summary with agents and AGENTS.md")
-        void buildGenerationSummary_whenCalled_summaryWithAllExtras(
+        @DisplayName("summary contains claude rows only (no .agents or AGENTS.md)")
+        void buildGenerationSummary_whenCalled_containsClaudeRowsOnly(
                 @TempDir Path tempDir) throws IOException {
             Path claudeDir = Files.createDirectories(
                     tempDir.resolve(".claude"));
-            Path agentsDir = Files.createDirectories(
-                    tempDir.resolve(".agents"));
-            Files.writeString(
-                    agentsDir.resolve("AGENTS.md"),
-                    "c", StandardCharsets.UTF_8);
-            Files.writeString(
-                    tempDir.resolve("AGENTS.md"),
-                    "c", StandardCharsets.UTF_8);
-            Files.writeString(
-                    tempDir.resolve("AGENTS.override.md"),
-                    "c", StandardCharsets.UTF_8);
 
             ProjectConfig config =
                     TestConfigBuilder.minimal();
@@ -224,9 +213,10 @@ class ReadmeTablesCoverageTest {
                             claudeDir, config);
 
             assertThat(summary)
-                    .contains("Skills (.agents)")
-                    .contains("AGENTS.md (root)")
-                    .contains("AGENTS.override.md (root)")
+                    .contains("Rules (.claude)")
+                    .contains("Skills (.claude)")
+                    .doesNotContain("Skills (.agents)")
+                    .doesNotContain("AGENTS.md")
                     .doesNotContain("Codex (.codex)");
         }
     }

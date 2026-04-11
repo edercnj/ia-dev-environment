@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Factory that instantiates the 20 assemblers in the
+ * Factory that instantiates the 22 assemblers in the
  * fixed order defined by RULE-005.
  *
  * <p>Extracted from {@link AssemblerPipeline} to keep
@@ -35,7 +35,7 @@ public final class AssemblerFactory {
     }
 
     /**
-     * Builds the ordered list of 20 assemblers per RULE-005.
+     * Builds the ordered list of 22 assemblers per RULE-005.
      *
      * <p>Delegates to group builders by category:
      * constitution, core, docs, cicd,
@@ -55,14 +55,14 @@ public final class AssemblerFactory {
     }
 
     /**
-     * Builds ALL 20 assemblers without platform filtering.
+     * Builds ALL 22 assemblers without platform filtering.
      *
      * <p>Use this when you need the complete list for
      * verbose/dry-run comparison against filtered list.</p>
      *
      * @param options pipeline options controlling assembler
      *                behavior (platforms field is ignored)
-     * @return immutable ordered list of all 20 assembler
+     * @return immutable ordered list of all 22 assembler
      *         descriptors
      */
     public static List<AssemblerDescriptor>
