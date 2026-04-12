@@ -55,10 +55,15 @@ class ReleaseApprovalGateTest {
                 throws IOException {
             String content =
                     generateClaudeContent(tempDir);
+            // Search within the workflow box section
+            // (starts at "0. RESUME-DETECT")
+            int boxStart = content.indexOf(
+                    "0. RESUME-DETECT");
+            assertThat(boxStart).isPositive();
             int openPr = content.indexOf(
-                    "OPEN-RELEASE-PR");
+                    "OPEN-RELEASE-PR", boxStart);
             int gate = content.indexOf(
-                    "APPROVAL-GATE");
+                    "APPROVAL-GATE", openPr);
             assertThat(openPr).isPositive();
             assertThat(gate).isPositive();
             assertThat(gate).isGreaterThan(openPr);

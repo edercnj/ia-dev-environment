@@ -239,9 +239,9 @@ class ReleaseSkillTest {
             String content =
                     generateClaudeContent(tempDir);
             int stepTen = content.indexOf(
-                    "### Step 10 \u2014 Publish");
+                    "### Step 11 \u2014 Publish");
             int stepEleven = content.indexOf(
-                    "### Step 11 \u2014 Cleanup");
+                    "### Step 12 \u2014 Cleanup");
             String stepTenBody = content.substring(
                     stepTen, stepEleven);
             assertThat(stepTenBody).contains(
