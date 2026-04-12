@@ -94,15 +94,15 @@ class ReleaseApprovalGateTest {
         }
 
         @Test
-        @DisplayName("MERGE-BACK is renumbered to"
-                + " Step 10 in workflow box")
-        void workflowBox_mergeBackIsStepTen(
+        @DisplayName("BACK-MERGE-DEVELOP is Step 10"
+                + " in workflow box")
+        void workflowBox_backMergeDevelopIsStepTen(
                 @TempDir Path tempDir)
                 throws IOException {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("10. MERGE-BACK");
+                    .contains("10. BACK-MERGE-DEVELOP");
         }
 
         @Test
@@ -468,16 +468,16 @@ class ReleaseApprovalGateTest {
         }
 
         @Test
-        @DisplayName("Step 10 is now Merge Back"
-                + " to Develop")
-        void stepTen_mergeBack(
+        @DisplayName("Step 10 is now Back-Merge"
+                + " Develop (BACK-MERGE-DEVELOP)")
+        void stepTen_backMergeDevelop(
                 @TempDir Path tempDir)
                 throws IOException {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content).contains(
-                    "### Step 10 \u2014 Merge Back"
-                            + " to Develop");
+                    "### Step 10 \u2014 Back-Merge"
+                            + " Develop");
         }
 
         @Test

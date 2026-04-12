@@ -187,17 +187,17 @@ class ReleaseSkillTest {
         }
 
         @Test
-        @DisplayName("MERGE-MAIN merges release into main"
-                + " with --no-ff")
-        void assemble_release_mergeToMainNoFf(
+        @DisplayName("OPEN-RELEASE-PR opens PR to main"
+                + " via gh pr create (PR-flow)")
+        void assemble_release_openReleasePrToMain(
                 @TempDir Path tempDir)
                 throws IOException {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("git checkout main")
-                    .contains("git merge \"release/"
-                            + "${VERSION}\" --no-ff");
+                    .contains("gh pr create")
+                    .contains("--base main")
+                    .contains("OPEN-RELEASE-PR");
         }
 
         @Test
@@ -212,17 +212,17 @@ class ReleaseSkillTest {
         }
 
         @Test
-        @DisplayName("MERGE-BACK merges release into"
-                + " develop with --no-ff")
-        void assemble_release_mergeBackToDevelop(
+        @DisplayName("BACK-MERGE-DEVELOP opens PR to"
+                + " develop via gh pr create (PR-flow)")
+        void assemble_release_backMergeToDevelopPr(
                 @TempDir Path tempDir)
                 throws IOException {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("git checkout develop")
-                    .contains("git merge \"release/"
-                            + "${VERSION}\" --no-ff");
+                    .contains("gh pr create")
+                    .contains("--base develop")
+                    .contains("BACK-MERGE-DEVELOP");
         }
 
         @Test

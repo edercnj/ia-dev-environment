@@ -13,7 +13,7 @@
 | [story-0035-0003](./story-0035-0003.md) | Phase OPEN-RELEASE-PR (gh pr create para main) | — | 0001 | 0004, 0007, 0008 | Concluída |
 | [story-0035-0004](./story-0035-0004.md) | Phase APPROVAL-GATE (pausa humana + --interactive) | — | 0003 | 0005, 0007, 0008 | Concluída |
 | [story-0035-0005](./story-0035-0005.md) | Phase RESUME-AND-TAG (--continue-after-merge, tag main) | — | 0001, 0004 | 0006, 0007, 0008 | Concluída |
-| [story-0035-0006](./story-0035-0006.md) | Phase BACK-MERGE-DEVELOP (PR-flow + conflict detection) | — | 0005 | 0007, 0008 | Pendente |
+| [story-0035-0006](./story-0035-0006.md) | Phase BACK-MERGE-DEVELOP (PR-flow + conflict detection) | — | 0005 | 0007, 0008 | Concluída |
 | [story-0035-0007](./story-0035-0007.md) | Dry-run atualizado + Error Catalog + Hotfix PR-flow | — | 0001, 0002, 0003, 0004, 0005, 0006 | 0008 | Pendente |
 | [story-0035-0008](./story-0035-0008.md) | Golden files + testes Java + docs + CHANGELOG | — | 0001, 0002, 0003, 0004, 0005, 0006, 0007 | — | Pendente |
 
