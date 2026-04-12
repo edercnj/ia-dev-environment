@@ -44,7 +44,7 @@ Dry-run merge: git merge --no-commit --no-ff origin/main
   │    │
   │    ├─ Capture: git diff --name-only --diff-filter=U
   │    ├─ git merge --abort
-  │    ├─ git push -u origin main:refs/heads/$BACKMERGE_BRANCH
+  │    ├─ git push -u origin refs/remotes/origin/main:refs/heads/$BACKMERGE_BRANCH
   │    ├─ gh pr create --base develop (with conflict body)
   │    └─ state → BACKMERGE_CONFLICT + conflictFiles
   │
@@ -101,7 +101,9 @@ not the index validation. The strategy is:
 
 1. Capture the list of conflicting files via `git diff --name-only --diff-filter=U`
 2. Abort the merge to return to a clean working tree
-3. Push `origin/main` as-is to the backmerge branch
+3. Fetch latest main (`git fetch origin main`), then push the remote-tracking
+   ref `refs/remotes/origin/main` to the backmerge branch — this avoids
+   publishing a stale local `main`
 4. Open a PR where GitHub shows the conflict diff for inline resolution
 
 ### Conflict PR Body
