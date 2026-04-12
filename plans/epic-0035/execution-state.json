@@ -150,13 +150,22 @@
     "story-0035-0007": {
       "id": "story-0035-0007",
       "phase": 5,
-      "status": "PENDING",
+      "status": "SUCCESS",
       "title": "Dry-run atualizado + Error Catalog + Hotfix PR-flow",
       "dependencies": ["story-0035-0001", "story-0035-0002", "story-0035-0003", "story-0035-0004", "story-0035-0005", "story-0035-0006"],
       "criticalPath": true,
       "retries": 0,
       "findingsCount": 0,
-      "summary": ""
+      "summary": "Dry-run rewritten with 12 phases + halt markers. Error Catalog consolidated (25+ entries, 5 columns). Hotfix updated to PR-flow with active release/* detection + HOTFIX_INVALID_BUMP error. 3 new test classes (ReleaseDryRunTest, ReleaseErrorCatalogTest, ReleaseHotfixWorkflowTest). 653 tests green. Coverage 95.2/90.0. QA 30/36.",
+      "commitSha": "71c269e3d",
+      "branch": "feat/story-0035-0007-dryrun-errors-hotfix",
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/294",
+      "prNumber": 294,
+      "prMergeStatus": "OPEN",
+      "reviewScores": {"qa": "30/36"},
+      "coverageLine": 95.2,
+      "coverageBranch": 90.0,
+      "tddCycles": 1
     },
     "story-0035-0008": {
       "id": "story-0035-0008",
@@ -176,11 +185,11 @@
     "2": {"stories": ["story-0035-0004"], "status": "SUCCESS", "integrityGate": "DEFERRED (no-merge mode)"},
     "3": {"stories": ["story-0035-0005"], "status": "SUCCESS", "integrityGate": "DEFERRED (no-merge mode)"},
     "4": {"stories": ["story-0035-0006"], "status": "SUCCESS", "integrityGate": "DEFERRED (no-merge mode)"},
-    "5": {"stories": ["story-0035-0007"], "status": "PENDING"},
+    "5": {"stories": ["story-0035-0007"], "status": "SUCCESS", "integrityGate": "DEFERRED (no-merge mode)"},
     "6": {"stories": ["story-0035-0008"], "status": "PENDING"}
   },
   "metrics": {
-    "storiesCompleted": 6,
+    "storiesCompleted": 7,
     "storiesFailed": 0,
     "storiesBlocked": 0
   },
