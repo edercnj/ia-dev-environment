@@ -56,18 +56,19 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
  5. CHANGELOG       -> Generate/update CHANGELOG.md via x-release-changelog
  6. COMMIT          -> Create release commit on release branch
  7. OPEN-RELEASE-PR -> Push release branch and open PR to main via gh pr create
- 8. TAG             -> Create annotated/signed git tag on main (after merged PR)
- 9. MERGE-BACK      -> Merge release branch back into develop with --no-ff
-10. PUBLISH         -> Push the release tag to remote (main/develop go via PR flow)
-11. CLEANUP         -> Delete the release branch
+ 8. APPROVAL-GATE   -> Persist APPROVAL_PENDING, print instructions, halt (or interactive)
+ 9. TAG             -> Create annotated/signed git tag on main (after merged PR)
+10. MERGE-BACK      -> Merge release branch back into develop with --no-ff
+11. PUBLISH         -> Push the release tag to remote (main/develop go via PR flow)
+12. CLEANUP         -> Delete the release branch
     DRY-RUN         -> If --dry-run, show plan and exit (no changes)
 ```
 
 > **Note:** Step 0 (Resume Detection) is the new entry point introduced by
 > EPIC-0035. It MUST execute before Step 1 on every invocation. Downstream
-> stories (0002–0008) replace Steps 7–9 with PR-flow phases
+> stories (0002–0008) replace Steps 7–10 with PR-flow phases
 > (`OPEN-RELEASE-PR`, `APPROVAL-GATE`, `RESUME-AND-TAG`,
-> `BACK-MERGE-DEVELOP`). Steps 1, 3, 4, 5, 6 and 11 are preserved verbatim
+> `BACK-MERGE-DEVELOP`). Steps 1, 3, 4, 5, 6 and 12 are preserved verbatim
 > per RULE-002 (behaviour preservation).
 
 ### Step 0 — Resume Detection
@@ -769,7 +770,167 @@ using the same vocabulary as the rest of the skill.
 > (Step 5) are untouched. Only the merge-to-main step is replaced — the
 > skill still produces the exact same local state up to `COMMITTED`.
 
-### Step 8 — Tag Creation
+### Step 8 — Approval Gate
+
+> **RULE-003 (Idempotência via State File):** This phase writes
+> `APPROVAL_PENDING` to the state file and halts. Re-invocation without
+> `--continue-after-merge` detects the in-flight state in Step 0 and
+> aborts with `STATE_CONFLICT`, preventing double execution.
+
+> **Reference:** See `references/approval-gate-workflow.md` for the
+> complete workflow diagram, state transitions, and interactive mode
+> decision tree.
+
+The Approval Gate is the safety checkpoint between opening the release PR
+(Step 7) and applying irreversible actions (tag, back-merge). Nothing
+irreversible has happened yet — the operator can abort by closing the PR.
+
+#### Step 8.1 — Persist APPROVAL_PENDING State
+
+```bash
+# Atomic state update: PR_OPENED -> APPROVAL_PENDING
+TMP="${STATE_FILE}.tmp.$$"
+jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  '.phase = "APPROVAL_PENDING"
+   | .phasesCompleted += ["APPROVAL_GATE_REACHED"]
+   | .lastPhaseCompletedAt = $ts' \
+  "$STATE_FILE" > "$TMP"
+mv "$TMP" "$STATE_FILE"
+```
+
+#### Step 8.2 — Print Human-Readable Instructions
+
+```bash
+PR_URL=$(jq -r '.prUrl' "$STATE_FILE")
+PR_NUMBER=$(jq -r '.prNumber' "$STATE_FILE")
+
+cat <<EOF
+============================================================
+APPROVAL GATE — RELEASE v${VERSION}
+============================================================
+
+PR opened: ${PR_URL}
+PR number: #${PR_NUMBER}
+
+NEXT STEPS (MANUAL):
+  1. Open the PR in GitHub: ${PR_URL}
+  2. Ensure all CI checks pass
+  3. Collect required code review approvals
+  4. Merge the PR via GitHub UI (prefer merge commit)
+  5. Re-run this skill:
+     /x-release ${VERSION} --continue-after-merge
+
+State saved to: ${STATE_FILE}
+The skill will now exit. Nothing irreversible has happened yet.
+To cancel: close the PR and delete state file + release branch.
+============================================================
+EOF
+```
+
+#### Step 8.3 — Branch on `--interactive` Flag
+
+If `--interactive` is **not** set, the skill exits immediately:
+
+```bash
+if [ "$INTERACTIVE" != "true" ]; then
+  echo "Skill halted at APPROVAL GATE. Resume with --continue-after-merge."
+  exit 0
+fi
+```
+
+If `--interactive` **is** set, the skill uses `AskUserQuestion` with three
+options instead of exiting:
+
+```
+AskUserQuestion:
+  question: "Release v${VERSION} — PR #${PR_NUMBER} opened. Choose an action:"
+  options:
+    1. "PR merged, continue to tag (Recommended)"
+    2. "Halt — resume later with --continue-after-merge"
+    3. "Cancel release entirely"
+```
+
+##### Option 1 — Continue to Tag (Defense in Depth)
+
+Verify via `gh pr view` that the PR is actually merged before proceeding.
+This prevents the operator from accidentally claiming "merged" when the PR
+is still open.
+
+```bash
+PR_STATE=$(gh pr view "$PR_NUMBER" --json state --jq '.state')
+if [ "$PR_STATE" != "MERGED" ]; then
+  echo "ABORT [APPROVAL_PR_STILL_OPEN]: PR #${PR_NUMBER} is still ${PR_STATE}."
+  echo "Merge the PR first, then choose option 1 again."
+  # Re-present the 3 options (loop back to AskUserQuestion)
+  exit 1
+fi
+# PR confirmed merged — proceed to Step 9 (TAG) in-session
+```
+
+##### Option 2 — Halt
+
+Identical to the default (non-interactive) behavior:
+
+```bash
+echo "Halt selected. Resume later with:"
+echo "  /x-release ${VERSION} --continue-after-merge"
+exit 0
+```
+
+##### Option 3 — Cancel Release
+
+Requires double confirmation to prevent accidental cancellation:
+
+```
+AskUserQuestion:
+  question: "CONFIRM: Cancel release v${VERSION}? This will delete the state file.
+             The release PR and branch must be closed/deleted manually."
+  options:
+    1. "Yes, cancel the release"
+    2. "No, go back"
+```
+
+If confirmed:
+
+```bash
+# Delete the state file
+rm -f "$STATE_FILE"
+
+echo "============================================================"
+echo "RELEASE CANCELLED — v${VERSION}"
+echo "============================================================"
+echo ""
+echo "State file deleted: ${STATE_FILE}"
+echo ""
+echo "MANUAL CLEANUP REQUIRED:"
+echo "  gh pr close ${PR_NUMBER}"
+echo "  git push origin --delete release/${VERSION}"
+echo "  git branch -d release/${VERSION}"
+echo "============================================================"
+
+exit 2  # APPROVAL_CANCELLED
+```
+
+If not confirmed, loop back to the 3 options.
+
+#### Step 8.4 — Error Catalog (local to APPROVAL-GATE)
+
+| Condition | Code | Message template |
+|:---|:---|:---|
+| Interactive option 1 but PR state != MERGED | `APPROVAL_PR_STILL_OPEN` | `PR #${PR_NUMBER} is still ${PR_STATE}. Merge first.` |
+| Interactive option 3 confirmed | `APPROVAL_CANCELLED` | `Release cancelled by user.` (exit 2) |
+
+The codes above extend the catalog in
+`references/state-file-schema.md`. Operators triage approval-gate
+failures using the same vocabulary as the rest of the skill.
+
+> **Idempotency (RULE-003):** If the skill is re-invoked without
+> `--continue-after-merge` and the state file has `phase:
+> APPROVAL_PENDING`, Step 0 detects the in-flight state and aborts
+> with `STATE_CONFLICT`. The APPROVAL-GATE phase never executes
+> twice for the same release.
+
+### Step 9 — Tag Creation
 
 Create an annotated git tag on `main` (after the merge):
 
@@ -782,7 +943,7 @@ $(git log $(git describe --tags --abbrev=0 HEAD~1 2>/dev/null)..HEAD~1 \
     --format='- %s' --no-merges)"
 ```
 
-### Step 9 — Merge Back to Develop
+### Step 10 — Merge Back to Develop
 
 Merge the release branch back into `develop` to propagate any release fixes:
 
@@ -811,13 +972,13 @@ git add -A
 git commit -m "chore: advance develop to ${NEXT_SNAPSHOT}"
 ```
 
-### Step 10 — Publish
+### Step 11 — Publish
 
 > **RULE-001 reminder:** `main` and `develop` MUST NOT receive a direct
 > `git push` from this phase. They are updated exclusively through the
 > release PR (Step 7, `OPEN-RELEASE-PR`) and the back-merge PR
-> (Step 9, introduced by story-0035-0006). The only remote mutation Step
-> 10 performs is pushing the release **tag**; the release branch push
+> (Step 10, introduced by story-0035-0006). The only remote mutation Step
+> 11 performs is pushing the release **tag**; the release branch push
 > lives inside `OPEN-RELEASE-PR` (Step 7.2).
 
 If `--no-publish` flag is NOT present, push the release tag to the
@@ -832,7 +993,7 @@ If `--no-publish` flag IS present:
 - Skip the tag push
 - Display: "Release created locally. Run 'git push origin v${VERSION}' manually when ready."
 
-### Step 11 — Cleanup
+### Step 12 — Cleanup
 
 Delete the release branch after successful merge:
 

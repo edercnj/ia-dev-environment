@@ -202,7 +202,7 @@ class ReleaseOpenPrTest {
             int stepSeven = content.indexOf(
                     "### Step 7 \u2014 Open Release PR");
             int stepEight = content.indexOf(
-                    "### Step 8 \u2014 Tag Creation");
+                    "### Step 9 \u2014 Tag Creation");
             assertThat(stepSeven).isPositive();
             assertThat(stepEight).isPositive();
             String stepSevenBody = content.substring(
@@ -222,7 +222,7 @@ class ReleaseOpenPrTest {
             int stepSeven = content.indexOf(
                     "### Step 7 \u2014 Open Release PR");
             int stepEight = content.indexOf(
-                    "### Step 8 \u2014 Tag Creation");
+                    "### Step 9 \u2014 Tag Creation");
             String stepSevenBody = content.substring(
                     stepSeven, stepEight);
             assertThat(stepSevenBody)
@@ -239,7 +239,7 @@ class ReleaseOpenPrTest {
             int stepSeven = content.indexOf(
                     "### Step 7 \u2014 Open Release PR");
             int stepEight = content.indexOf(
-                    "### Step 8 \u2014 Tag Creation");
+                    "### Step 9 \u2014 Tag Creation");
             String stepSevenBody = content.substring(
                     stepSeven, stepEight);
             assertThat(stepSevenBody)
@@ -257,7 +257,7 @@ class ReleaseOpenPrTest {
             int stepSeven = content.indexOf(
                     "### Step 7 \u2014 Open Release PR");
             int stepEight = content.indexOf(
-                    "### Step 8 \u2014 Tag Creation");
+                    "### Step 9 \u2014 Tag Creation");
             String stepSevenBody = content.substring(
                     stepSeven, stepEight);
             assertThat(stepSevenBody)
@@ -317,9 +317,9 @@ class ReleaseOpenPrTest {
                 throws IOException {
             String content = generateClaudeContent(tempDir);
             int stepTen = content.indexOf(
-                    "### Step 10 \u2014 Publish");
+                    "### Step 11 \u2014 Publish");
             int stepEleven = content.indexOf(
-                    "### Step 11 \u2014 Cleanup");
+                    "### Step 12 \u2014 Cleanup");
             assertThat(stepTen).isPositive();
             assertThat(stepEleven).isPositive();
             String stepTenBody = content.substring(
@@ -338,9 +338,9 @@ class ReleaseOpenPrTest {
                 throws IOException {
             String content = generateClaudeContent(tempDir);
             int stepTen = content.indexOf(
-                    "### Step 10 \u2014 Publish");
+                    "### Step 11 \u2014 Publish");
             int stepEleven = content.indexOf(
-                    "### Step 11 \u2014 Cleanup");
+                    "### Step 12 \u2014 Cleanup");
             String stepTenBody = content.substring(
                     stepTen, stepEleven);
             assertThat(stepTenBody).contains(
@@ -390,7 +390,7 @@ class ReleaseOpenPrTest {
                             + " Generation")
                     .contains("### Step 6 \u2014 Commit"
                             + " Release")
-                    .contains("### Step 11 \u2014 Cleanup");
+                    .contains("### Step 12 \u2014 Cleanup");
         }
     }
 
