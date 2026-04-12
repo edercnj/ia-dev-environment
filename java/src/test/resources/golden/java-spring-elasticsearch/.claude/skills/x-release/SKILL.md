@@ -1,9 +1,9 @@
 ---
 name: x-release
-description: "Orchestrates complete release flow using Git Flow release branches with approval gate, PR-flow (gh CLI) and deep validation: version bump (auto-detect or explicit), release branch creation from develop, deep validation (coverage, golden files, version consistency), version file updates, changelog generation, release commit, release PR via gh, human approval gate with persistent state file, tag on main after merged PR, back-merge PR to develop with conflict detection, and cleanup. Supports hotfix releases from main, dry-run mode, resume via --continue-after-merge, in-session pause via --interactive, GPG-signed tags, and custom state file path."
+description: "Orchestrates complete release flow using Git Flow release branches with approval gate, PR-flow (gh CLI) and deep validation: version bump (auto-detect or explicit), release branch creation from develop, deep validation (coverage, golden files, version consistency), version file updates, changelog generation, release commit, release PR via gh (optionally reviewed by x-review-pr), human approval gate with persistent state file, tag on main after merged PR, back-merge PR to develop with conflict detection, and cleanup. Supports hotfix releases from main, dry-run mode, resume via --continue-after-merge, in-session pause via --interactive, GPG-signed tags, skip-review opt-out, and custom state file path."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, Skill, AskUserQuestion
-argument-hint: "[major|minor|patch|version] [--dry-run] [--skip-tests] [--no-publish] [--hotfix] [--continue-after-merge] [--interactive] [--signed-tag] [--state-file <path>]"
+argument-hint: "[major|minor|patch|version] [--dry-run] [--skip-tests] [--no-publish] [--hotfix] [--continue-after-merge] [--interactive] [--signed-tag] [--skip-review] [--state-file <path>]"
 context-budget: heavy
 ---
 
@@ -43,24 +43,25 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 | `--continue-after-merge` | No | Resume flow from RESUME-AND-TAG after the release PR has been merged manually. Requires an existing state file with `phase: APPROVAL_PENDING`. |
 | `--interactive` | No | Activate in-session pause at APPROVAL-GATE via `AskUserQuestion` instead of exiting the skill. The state file is still persisted for defense in depth. |
 | `--signed-tag` | No | Create a GPG-signed git tag (`git tag -s`) instead of an annotated tag (`git tag -a`). |
+| `--skip-review` | No | Skip the fire-and-forget `x-review-pr` invocation at the end of Phase `OPEN-RELEASE-PR`. The release PR is still opened against `main`; only the automated specialist review is suppressed. |
 | `--state-file <path>` | No | Override the state file path (default: `plans/release-state-<X.Y.Z>.json`). |
 
 ## Workflow
 
 ```
- 0. RESUME-DETECT -> Verify gh/jq, load or create state file, detect resume mode
- 1. DETERMINE     -> Parse argument and calculate target version
- 2. VALIDATE-DEEP -> Deep validation (8+1 checks: workdir, branch, changelog, build, coverage, golden, hardcoded, version consistency)
- 3. BRANCH        -> Create release/X.Y.Z branch from develop (or hotfix/* from main)
- 4. UPDATE        -> Update version in project-specific files (strip SNAPSHOT)
- 5. CHANGELOG     -> Generate/update CHANGELOG.md via x-release-changelog
- 6. COMMIT        -> Create release commit on release branch
- 7. MERGE-MAIN    -> Merge release branch into main with --no-ff
- 8. TAG           -> Create annotated git tag on main
- 9. MERGE-BACK    -> Merge release branch back into develop with --no-ff
-10. PUBLISH       -> Push main, develop, and tag to remote (unless --no-publish)
-11. CLEANUP       -> Delete the release branch
-    DRY-RUN       -> If --dry-run, show plan and exit (no changes)
+ 0. RESUME-DETECT   -> Verify gh/jq, load or create state file, detect resume mode
+ 1. DETERMINE       -> Parse argument and calculate target version
+ 2. VALIDATE        -> Check pre-conditions (branch, working directory)
+ 3. BRANCH          -> Create release/X.Y.Z branch from develop (or hotfix/* from main)
+ 4. UPDATE          -> Update version in project-specific files (strip SNAPSHOT)
+ 5. CHANGELOG       -> Generate/update CHANGELOG.md via x-release-changelog
+ 6. COMMIT          -> Create release commit on release branch
+ 7. OPEN-RELEASE-PR -> Push release branch and open PR to main via gh pr create
+ 8. TAG             -> Create annotated/signed git tag on main (after merged PR)
+ 9. MERGE-BACK      -> Merge release branch back into develop with --no-ff
+10. PUBLISH         -> Push the release tag to remote (main/develop go via PR flow)
+11. CLEANUP         -> Delete the release branch
+    DRY-RUN         -> If --dry-run, show plan and exit (no changes)
 ```
 
 > **Note:** Step 0 (Resume Detection) is the new entry point introduced by
@@ -260,227 +261,40 @@ Decision order: if any commit triggers major, use major. Else if any triggers mi
 
 This follows Semantic Versioning (https://semver.org/spec/v2.0.0.html) rules.
 
-### Step 2 — Phase VALIDATE-DEEP
+### Step 2 — Validate Pre-conditions
 
-Phase VALIDATE-DEEP replaces the former simple pre-condition check with 8
-mandatory checks plus 1 conditional check. Each check has a unique error
-code. Checks execute sequentially — the first failure aborts the release.
-
-On success, the state file advances to `phase: VALIDATED`.
-
-#### Check Execution Table
-
-| # | Check | Logic | Abort If | Error Code | Skippable |
-|---|-------|-------|----------|------------|-----------|
-| 1 | Working dir clean | `git status --porcelain` | output non-empty | `VALIDATE_DIRTY_WORKDIR` | No (always-mandatory) |
-| 2 | Correct branch | `git branch --show-current` | not develop/main(hotfix) | `VALIDATE_WRONG_BRANCH` | No (always-mandatory) |
-| 3 | `[Unreleased]` non-empty | parse CHANGELOG.md | section empty | `VALIDATE_EMPTY_UNRELEASED` | No (always-mandatory) |
-| 4 | Build + tests | `{{BUILD_COMMAND}}` | exit ≠ 0 | `VALIDATE_BUILD_FAILED` | Yes (`--skip-tests`) |
-| 5a | Line coverage threshold | parse coverage report | line < `{{COVERAGE_LINE_THRESHOLD}}`% | `VALIDATE_COVERAGE_LINE` | Yes (`--skip-tests`) |
-| 5b | Branch coverage threshold | parse coverage report | branch < `{{COVERAGE_BRANCH_THRESHOLD}}`% | `VALIDATE_COVERAGE_BRANCH` | Yes (`--skip-tests`) |
-| 6 | Golden file consistency | `{{GOLDEN_TEST_COMMAND}}` | exit ≠ 0 | `VALIDATE_GOLDEN_DRIFT` | Yes (`--skip-tests`) |
-| 7 | Hardcoded version strings | `grep -rn $CURRENT_VERSION` | matches outside allowed paths | `VALIDATE_HARDCODED_VERSION` | No (always-mandatory) |
-| 8 | Cross-file version consistency | pom ↔ target ↔ branch | mismatch | `VALIDATE_VERSION_MISMATCH` | No (always-mandatory) |
-| 9 | Generation dry-run (conditional) | `{{GENERATION_COMMAND}} --dry-run` | diff non-empty | `VALIDATE_GENERATION_DRIFT` | Conditional |
-
-#### `--skip-tests` Behavior
-
-When `--skip-tests` is passed, ONLY checks 4, 5, 6 are skipped. Checks 1,
-2, 3, 7, 8 are always-mandatory because they do not depend on running
-tests.
-
-```
-if --skip-tests:
-    echo "WARNING: --skip-tests skips checks 4, 5, 6 (build, coverage, golden files)"
-    # Checks 1, 2, 3, 7, 8 still execute
-```
-
-#### Check 1 — Working Directory Clean
+Before making any changes, validate:
 
 ```bash
+# 1. No uncommitted changes
 if [ -n "$(git status --porcelain)" ]; then
-  echo "ABORT VALIDATE_DIRTY_WORKDIR: Uncommitted changes in working directory"
-  # List dirty files for diagnosis
-  git status --short
+  echo "ABORT: uncommitted changes in working directory"
   exit 1
 fi
-```
 
-#### Check 2 — Correct Branch
-
-```bash
+# 2. Current branch MUST be develop or release/* (NOT main)
 BRANCH=$(git branch --show-current)
-if [ "$HOTFIX" = true ]; then
-  if [ "$BRANCH" != "main" ]; then
-    echo "ABORT VALIDATE_WRONG_BRANCH: Not on main (required for hotfix). Current: $BRANCH"
-    exit 1
-  fi
-else
-  if [[ "$BRANCH" != "develop" && ! "$BRANCH" =~ ^release/ ]]; then
-    echo "ABORT VALIDATE_WRONG_BRANCH: not on develop/release (or main for hotfix). Current: $BRANCH"
-    exit 1
-  fi
+if [[ "$BRANCH" != "develop" && ! "$BRANCH" =~ ^release/ ]]; then
+  echo "WARNING: not on develop/release branch"
+  echo "Release workflow requires starting from 'develop'."
+  echo "Switch to develop before running /x-release."
+  # For hotfix mode, main is allowed (see Hotfix section)
 fi
+
+# 3. Run tests (unless --skip-tests)
+# Use project's build command to run tests
+{{BUILD_COMMAND}}
 ```
 
-#### Check 3 — CHANGELOG [Unreleased] Non-Empty
-
-```bash
-# Parse CHANGELOG.md for [Unreleased] section content
-UNRELEASED=$(sed -n '/## \[Unreleased\]/,/## \[/p' CHANGELOG.md | sed '1d;$d' | grep -v '^$' | grep -v '^###')
-if [ -z "$UNRELEASED" ]; then
-  echo "ABORT VALIDATE_EMPTY_UNRELEASED: CHANGELOG [Unreleased] section empty"
-  echo "Add entries to the [Unreleased] section before releasing."
-  exit 1
-fi
-```
-
-#### Check 4 — Build + Tests (skippable via `--skip-tests`)
-
-```bash
-if [ "$SKIP_TESTS" != true ]; then
-  echo "Check 4: Running build + tests..."
-  if ! {{BUILD_COMMAND}}; then
-    echo "ABORT VALIDATE_BUILD_FAILED: Build or tests failed"
-    exit 1
-  fi
-else
-  echo "WARNING: Check 4 skipped (--skip-tests)"
-fi
-```
-
-#### Check 5 — Coverage Thresholds (skippable via `--skip-tests`)
-
-```bash
-if [ "$SKIP_TESTS" != true ]; then
-  echo "Check 5: Validating coverage thresholds..."
-  # Parse coverage report (e.g., jacoco.xml for Java)
-  LINE_COV=$(extract_line_coverage)   # project-specific
-  BRANCH_COV=$(extract_branch_coverage)
-
-  if (( $(echo "$LINE_COV < {{COVERAGE_LINE_THRESHOLD}}" | bc -l) )); then
-    echo "ABORT VALIDATE_COVERAGE_LINE: Line coverage ${LINE_COV}% below threshold {{COVERAGE_LINE_THRESHOLD}}%"
-    exit 1
-  fi
-
-  if (( $(echo "$BRANCH_COV < {{COVERAGE_BRANCH_THRESHOLD}}" | bc -l) )); then
-    echo "ABORT VALIDATE_COVERAGE_BRANCH: Branch coverage ${BRANCH_COV}% below threshold {{COVERAGE_BRANCH_THRESHOLD}}%"
-    exit 1
-  fi
-
-  echo "Coverage OK: line=${LINE_COV}%, branch=${BRANCH_COV}%"
-else
-  echo "WARNING: Check 5 skipped (--skip-tests)"
-fi
-```
-
-#### Check 6 — Golden File Consistency (skippable via `--skip-tests`)
-
-```bash
-if [ "$SKIP_TESTS" != true ]; then
-  if [ -n "{{GOLDEN_TEST_COMMAND}}" ]; then
-    echo "Check 6: Running golden file tests..."
-    if ! {{GOLDEN_TEST_COMMAND}}; then
-      echo "ABORT VALIDATE_GOLDEN_DRIFT: Golden files out of sync"
-      echo "Run golden file regeneration before releasing."
-      exit 1
-    fi
-  else
-    echo "Check 6: Skipped (no GOLDEN_TEST_COMMAND configured)"
-  fi
-else
-  echo "WARNING: Check 6 skipped (--skip-tests)"
-fi
-```
-
-#### Check 7 — Hardcoded Version Strings (always-mandatory)
-
-```bash
-echo "Check 7: Scanning for hardcoded version strings..."
-CURRENT_VERSION=$(get_current_version)  # from pom.xml, package.json, etc.
-
-# Allowed paths: version files, CHANGELOG, tags, state files
-ALLOWED_PATTERN="pom.xml|package.json|Cargo.toml|pyproject.toml|build.gradle|CHANGELOG.md|release-state-"
-
-MATCHES=$(grep -rn "$CURRENT_VERSION" . \
-  --include="*.sh" --include="*.md" --include="*.yaml" --include="*.yml" \
-  --include="*.properties" --include="*.env" \
-  | grep -v -E "$ALLOWED_PATTERN" \
-  | grep -v "node_modules" \
-  | grep -v ".git/")
-
-if [ -n "$MATCHES" ]; then
-  echo "ABORT VALIDATE_HARDCODED_VERSION: Hardcoded version string found"
-  echo "$MATCHES"
-  exit 1
-fi
-```
-
-#### Check 8 — Cross-File Version Consistency (always-mandatory)
-
-```bash
-echo "Check 8: Validating cross-file version consistency..."
-# Extract version from each source
-POM_VERSION=$(extract_pom_version)
-CHANGELOG_VERSION=$(extract_latest_changelog_version)
-BRANCH_VERSION=$(extract_branch_version)  # from release/X.Y.Z
-
-# Compare: all must match the target VERSION
-MISMATCH=""
-if [ "$POM_VERSION" != "$VERSION" ]; then
-  MISMATCH="$MISMATCH pom.xml=$POM_VERSION"
-fi
-if [ -n "$CHANGELOG_VERSION" ] && [ "$CHANGELOG_VERSION" != "$VERSION" ]; then
-  MISMATCH="$MISMATCH CHANGELOG=$CHANGELOG_VERSION"
-fi
-if [ -n "$BRANCH_VERSION" ] && [ "$BRANCH_VERSION" != "$VERSION" ]; then
-  MISMATCH="$MISMATCH branch=$BRANCH_VERSION"
-fi
-
-if [ -n "$MISMATCH" ]; then
-  echo "ABORT VALIDATE_VERSION_MISMATCH: pom.xml version mismatch"
-  echo "Expected: $VERSION, found:$MISMATCH"
-  exit 1
-fi
-```
-
-#### Check 9 — Generation Dry-Run (conditional)
-
-This check only executes when `{{GENERATION_COMMAND}}` is configured
-(non-empty). It runs the generator in dry-run mode and compares output
-against current files.
-
-```bash
-if [ -n "{{GENERATION_COMMAND}}" ]; then
-  echo "Check 9: Running generation dry-run..."
-  if ! {{GENERATION_COMMAND}} --dry-run; then
-    echo "ABORT VALIDATE_GENERATION_DRIFT: Generator output differs from baseline"
-    echo "Run the generator before releasing."
-    exit 1
-  fi
-else
-  echo "Check 9: Skipped (no GENERATION_COMMAND configured)"
-fi
-```
-
-#### State File Update on Success
-
-After all checks pass, update the state file to advance the phase:
-
-```bash
-jq '.phase = "VALIDATED"
-    | .phasesCompleted += ["VALIDATED"]
-    | .lastPhaseCompletedAt = now | todate' \
-  "$STATE_FILE" > "${STATE_FILE}.tmp.$$"
-mv "${STATE_FILE}.tmp.$$" "$STATE_FILE"
-
-echo "Phase VALIDATE-DEEP completed. All checks passed."
-```
+If `--skip-tests` flag is present:
+- Skip test execution
+- Display warning: "WARNING: Skipping test validation"
+- Continue with release
 
 **Branch validation rules:**
 - Standard release: MUST start from `develop` or an existing `release/*` branch
 - Hotfix release (`--hotfix`): MUST start from `main`
-- Starting from any other branch (e.g., `feature/*`) aborts with `VALIDATE_WRONG_BRANCH`
+- Starting from any other branch (e.g., `feature/*`) is a WARNING
 
 ### Step 3 — Branch Creation
 
@@ -587,21 +401,187 @@ git commit -m "release: v${VERSION}"
 
 The commit message format is `release: v{version}` — this follows `x-git-push` Conventional Commits patterns.
 
-### Step 7 — Merge to Main
+### Step 7 — Open Release PR
 
-Merge the release branch into `main` using a merge commit (no fast-forward):
+> **RULE-001 (PR-Flow):** `main` MUST NOT receive a direct `git merge` from
+> the skill. This phase replaces the legacy Step 7 MERGE-MAIN with
+> **Phase OPEN-RELEASE-PR**, which pushes the release branch and opens a
+> pull request via `gh pr create --base main --head release/${VERSION}`.
+> The operator (or CI) is responsible for merging the PR once reviews
+> complete; the skill will then resume at Step 8 via
+> `--continue-after-merge` (wired by story-0035-0005).
+
+#### Step 7.1 — Honour --no-publish (Dry-Run for Remote)
+
+If `--no-publish` is set, OPEN-RELEASE-PR short-circuits: no remote push,
+no PR creation, no state mutation. Emit an informational block and exit
+the phase so that local state reflects `COMMITTED` and operators can push
+manually later.
 
 ```bash
-# Switch to main
-git checkout main
-git pull origin main
-
-# Merge release branch with merge commit
-git merge "release/${VERSION}" --no-ff \
-    -m "release: merge release/${VERSION} into main"
+if [ "$NO_PUBLISH" = "true" ]; then
+  echo "[OPEN-RELEASE-PR] --no-publish set: skipping git push and"
+  echo "                   gh pr create. Release state stays in"
+  echo "                   'COMMITTED'. Push manually with:"
+  echo "  git push -u origin \"release/${VERSION}\""
+  echo "  gh pr create --base main --head \"release/${VERSION}\" \\"
+  echo "    --title \"release: v${VERSION}\" --body \"\$(build_pr_body)\""
+  exit 0
+fi
 ```
 
-**Important:** The `--no-ff` flag ensures a merge commit is always created, preserving the release branch history in the commit graph.
+#### Step 7.2 — Push the Release Branch
+
+```bash
+# Push the release branch so the PR has a remote head to target.
+if ! git push -u origin "release/${VERSION}"; then
+  echo "ABORT [PR_PUSH_REJECTED]: push rejected for release/${VERSION}."
+  echo "Check branch protection and remote permissions, then retry."
+  exit 1
+fi
+```
+
+#### Step 7.3 — Extract the CHANGELOG Entry for this Version
+
+```bash
+# Capture the [X.Y.Z] block from CHANGELOG.md. awk prints lines from the
+# target header up to the next "## [" header (exclusive), and sed drops
+# the trailing delimiter line so only the current release body remains.
+CHANGELOG_ENTRY=$(awk "/^## \[${VERSION}\]/,/^## \[/" CHANGELOG.md \
+  | sed '$d')
+
+if [ -z "$CHANGELOG_ENTRY" ]; then
+  echo "ABORT [PR_NO_CHANGELOG_ENTRY]: no [${VERSION}] entry in"
+  echo "CHANGELOG.md. Re-run Step 5 (CHANGELOG) before OPEN-RELEASE-PR."
+  exit 1
+fi
+```
+
+#### Step 7.4 — Build the PR Body and Invoke `gh pr create`
+
+The PR body is the operator-facing snapshot of the release: it embeds the
+CHANGELOG entry, repeats the resume hint, and lists the VALIDATE-DEEP
+gates already cleared by Step 2.
+
+```bash
+build_pr_body() {
+  cat <<EOF
+## Release v${VERSION}
+
+${CHANGELOG_ENTRY}
+
+---
+
+**Release type:** ${BUMP_TYPE}
+**Previous version:** ${PREVIOUS_VERSION}
+
+## Approval Gate
+
+After merging this PR, re-run:
+
+\`\`\`
+/x-release ${VERSION} --continue-after-merge
+\`\`\`
+
+## Checklist (validated by VALIDATE-DEEP)
+
+- [x] Tests passing
+- [x] Coverage ≥ 95% line, ≥ 90% branch
+- [x] Golden files consistent
+- [x] CHANGELOG [${VERSION}] section populated
+- [x] No hardcoded version strings
+- [x] Cross-file version consistency
+EOF
+}
+
+PR_TITLE="release: v${VERSION}"
+PR_URL=$(gh pr create \
+  --base main \
+  --head "release/${VERSION}" \
+  --title "${PR_TITLE}" \
+  --body "$(build_pr_body)")
+
+if [ -z "$PR_URL" ]; then
+  echo "ABORT [PR_CREATE_FAILED]: could not capture PR URL from"
+  echo "gh pr create. Inspect the gh output above and retry."
+  exit 1
+fi
+
+# Derive the PR number from the URL returned by gh. This is deterministic
+# and avoids the ambiguity of `gh pr view` when multiple PRs reference
+# the same head branch.
+PR_NUMBER="${PR_URL##*/}"
+```
+
+#### Step 7.5 — Persist PR Metadata to the State File
+
+All writes use the atomic write-to-temp + rename protocol documented in
+`references/state-file-schema.md`. The fields persisted here
+(`prNumber`, `prUrl`, `prTitle`, `changelogEntry`) are the contract
+consumed by `APPROVAL-GATE`, `RESUME-AND-TAG`, and `BACK-MERGE-DEVELOP`
+in downstream stories.
+
+```bash
+TMP="${STATE_FILE}.tmp.$$"
+jq --arg url   "$PR_URL" \
+   --arg title "$PR_TITLE" \
+   --arg num   "$PR_NUMBER" \
+   --arg entry "$CHANGELOG_ENTRY" \
+   --arg ts    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  '.phase = "PR_OPENED"
+   | .prNumber = ($num | tonumber)
+   | .prUrl = $url
+   | .prTitle = $title
+   | .changelogEntry = $entry
+   | .lastPhaseCompletedAt = $ts
+   | .phasesCompleted += ["OPEN_RELEASE_PR"]' \
+  "$STATE_FILE" > "$TMP"
+mv "$TMP" "$STATE_FILE"
+```
+
+#### Step 7.6 — Optional Specialist Review via `x-review-pr`
+
+If `--skip-review` is absent AND the `x-review-pr` skill is available in
+the project, invoke it in fire-and-forget mode so that the specialists
+(Security, QA, Performance, …) post their findings to the release PR
+while the operator reviews it. The skill is invoked through the
+`Skill` tool so that the lifecycle orchestrator can propagate context
+without spawning a nested shell.
+
+```bash
+if [ "$SKIP_REVIEW" != "true" ] && \
+   [ -f ".claude/skills/x-review-pr/SKILL.md" ]; then
+  # Fire-and-forget — failures of x-review-pr MUST NOT block the release.
+  Skill("x-review-pr", "$PR_NUMBER") || \
+    echo "WARNING: x-review-pr invocation failed; continue manually."
+fi
+```
+
+If `--skip-review` is set, emit a single-line notice and skip the
+invocation entirely:
+
+```bash
+if [ "$SKIP_REVIEW" = "true" ]; then
+  echo "[OPEN-RELEASE-PR] --skip-review set: x-review-pr NOT invoked."
+fi
+```
+
+#### Step 7.7 — Error Catalog (local to OPEN-RELEASE-PR)
+
+| Condition | Code | Message template |
+|:---|:---|:---|
+| `git push` for the release branch is rejected | `PR_PUSH_REJECTED` | `Push rejected for release/${VERSION}. Check branch protection.` |
+| `awk` produces an empty CHANGELOG entry | `PR_NO_CHANGELOG_ENTRY` | `No [${VERSION}] entry in CHANGELOG.md` |
+| `gh pr create` returns a non-zero exit | `PR_CREATE_FAILED` | `Failed to create PR: <stderr captured from gh>` |
+
+The codes above extend the catalog in
+`references/state-file-schema.md`. Operators triage PR-flow failures
+using the same vocabulary as the rest of the skill.
+
+> **Behavior preserved (RULE-002):** The release commit (Step 6), the
+> release branch creation (Step 3), and the CHANGELOG generation
+> (Step 5) are untouched. Only the merge-to-main step is replaced — the
+> skill still produces the exact same local state up to `COMMITTED`.
 
 ### Step 8 — Tag Creation
 
@@ -647,20 +627,24 @@ git commit -m "chore: advance develop to ${NEXT_SNAPSHOT}"
 
 ### Step 10 — Publish
 
-If `--no-publish` flag is NOT present, push all branches and the tag:
+> **RULE-001 reminder:** `main` and `develop` MUST NOT receive a direct
+> `git push` from this phase. They are updated exclusively through the
+> release PR (Step 7, `OPEN-RELEASE-PR`) and the back-merge PR
+> (Step 9, introduced by story-0035-0006). The only remote mutation Step
+> 10 performs is pushing the release **tag**; the release branch push
+> lives inside `OPEN-RELEASE-PR` (Step 7.2).
+
+If `--no-publish` flag is NOT present, push the release tag to the
+remote:
 
 ```bash
-# Push main with the merge commit and tag
-git push origin main
+# Push the signed/annotated release tag created in Step 8.
 git push origin "v${VERSION}"
-
-# Push develop with the back-merge
-git push origin develop
 ```
 
 If `--no-publish` flag IS present:
-- Skip push
-- Display: "Release created locally. Run 'git push origin main develop v{VERSION}' manually when ready."
+- Skip the tag push
+- Display: "Release created locally. Run 'git push origin v${VERSION}' manually when ready."
 
 ### Step 11 — Cleanup
 
@@ -763,27 +747,20 @@ Before executing the release, validate against the release-checklist template (`
 
 ## Error Handling
 
-| Scenario | Error Code | Action |
-|----------|------------|--------|
-| No tags found | — | Assume version 0.0.0, first release |
-| Uncommitted changes | `VALIDATE_DIRTY_WORKDIR` | ABORT: Uncommitted changes in working directory |
-| Wrong branch | `VALIDATE_WRONG_BRANCH` | ABORT: Not on develop/release (or main for hotfix) |
-| CHANGELOG [Unreleased] empty | `VALIDATE_EMPTY_UNRELEASED` | ABORT: CHANGELOG [Unreleased] section empty |
-| Build or tests fail | `VALIDATE_BUILD_FAILED` | ABORT: Build or tests failed |
-| Line coverage below threshold | `VALIDATE_COVERAGE_LINE` | ABORT: Line coverage below threshold |
-| Branch coverage below threshold | `VALIDATE_COVERAGE_BRANCH` | ABORT: Branch coverage below threshold |
-| Golden files out of sync | `VALIDATE_GOLDEN_DRIFT` | ABORT: Golden files out of sync |
-| Hardcoded version string found | `VALIDATE_HARDCODED_VERSION` | ABORT: Hardcoded version string found |
-| Version mismatch across files | `VALIDATE_VERSION_MISMATCH` | ABORT: pom.xml version mismatch |
-| Generator output differs | `VALIDATE_GENERATION_DRIFT` | ABORT: Generator output differs from baseline |
-| Invalid version format | — | ABORT with SemVer format hint |
-| No Conventional Commits found | — | Default to patch bump |
-| Already tagged version | — | ABORT with "version already released" |
-| Not on main (hotfix) | `VALIDATE_WRONG_BRANCH` | ABORT, hotfix must start from main |
-| Push fails | — | Report error, release is local only |
-| Merge conflict (main) | — | ABORT, resolve manually |
-| Merge conflict (develop) | — | Warning, resolve and continue |
-| Active release branch exists (hotfix) | — | Merge hotfix into release branch instead of develop |
+| Scenario | Action |
+|----------|--------|
+| No tags found | Assume version 0.0.0, first release |
+| Uncommitted changes | ABORT with error message |
+| Tests fail (no --skip-tests) | ABORT with test output |
+| Invalid version format | ABORT with SemVer format hint |
+| No Conventional Commits found | Default to patch bump |
+| Already tagged version | ABORT with "version already released" |
+| Not on develop (standard) | Warning, suggest switching to develop |
+| Not on main (hotfix) | ABORT, hotfix must start from main |
+| Push fails | Report error, release is local only |
+| Merge conflict (main) | ABORT, resolve manually |
+| Merge conflict (develop) | Warning, resolve and continue |
+| Active release branch exists (hotfix) | Merge hotfix into release branch instead of develop |
 
 ## Integration Notes
 
