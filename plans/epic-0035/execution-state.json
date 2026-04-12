@@ -49,13 +49,22 @@
     "story-0035-0002": {
       "id": "story-0035-0002",
       "phase": 1,
-      "status": "PENDING",
+      "status": "SUCCESS",
       "title": "Phase VALIDATE-DEEP (coverage, golden, consistency)",
       "dependencies": ["story-0035-0001"],
       "criticalPath": false,
       "retries": 0,
-      "findingsCount": 0,
-      "summary": ""
+      "findingsCount": 1,
+      "summary": "Step 2 replaced with VALIDATE-DEEP (8 checks: dirty workdir, branch, CHANGELOG, build, coverage, golden, hardcoded, consistency + conditional check 9). 4 ContextBuilder vars added. 10 error codes. ReleaseValidateDeepTest (27 tests). Golden files for 19 profiles. Reviews: QA 34/36, Perf 26/26, DevOps 20/20 = 80/82. 5399 tests green.",
+      "commitSha": "d63257c18",
+      "branch": "feat/story-0035-0002-validate-deep",
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/289",
+      "prNumber": 289,
+      "prMergeStatus": "OPEN",
+      "reviewScores": {"qa": "34/36", "performance": "26/26", "devops": "20/20", "overall": "80/82 (97.6%)"},
+      "tddCycles": 1,
+      "startedAt": "2026-04-11T01:30:00Z",
+      "completedAt": "2026-04-11T10:05:00Z"
     },
     "story-0035-0003": {
       "id": "story-0035-0003",
@@ -142,7 +151,7 @@
   },
   "phases": {
     "0": {"stories": ["story-0035-0001"], "status": "SUCCESS", "integrityGate": "DEFERRED (no-merge mode)"},
-    "1": {"stories": ["story-0035-0003", "story-0035-0002"], "status": "IN_PROGRESS"},
+    "1": {"stories": ["story-0035-0003", "story-0035-0002"], "status": "SUCCESS", "integrityGate": "DEFERRED (no-merge mode)"},
     "2": {"stories": ["story-0035-0004"], "status": "PENDING"},
     "3": {"stories": ["story-0035-0005"], "status": "PENDING"},
     "4": {"stories": ["story-0035-0006"], "status": "PENDING"},
@@ -150,7 +159,7 @@
     "6": {"stories": ["story-0035-0008"], "status": "PENDING"}
   },
   "metrics": {
-    "storiesCompleted": 2,
+    "storiesCompleted": 3,
     "storiesFailed": 0,
     "storiesBlocked": 0
   },
