@@ -652,6 +652,224 @@ class ReleaseSkillTest {
         }
     }
 
+    @Nested
+    @DisplayName("Claude SKILL.md -- EPIC-0035"
+            + " Foundation (story-0035-0001)")
+    class Epic0035Foundation {
+
+        @Test
+        @DisplayName("allowed-tools adds Skill and"
+                + " AskUserQuestion")
+        void assemble_release_allowedToolsAddsSkillAsk(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("allowed-tools:")
+                    .contains("Skill")
+                    .contains("AskUserQuestion");
+        }
+
+        @Test
+        @DisplayName("argument-hint declares the four"
+                + " new EPIC-0035 flags")
+        void assemble_release_argumentHintHasNewFlags(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("argument-hint:")
+                    .contains("--continue-after-merge")
+                    .contains("--interactive")
+                    .contains("--signed-tag")
+                    .contains("--state-file");
+        }
+
+        @Test
+        @DisplayName("description mentions approval gate,"
+                + " PR-flow and deep validation")
+        void assemble_release_descriptionMentionsEpic(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("approval gate")
+                    .contains("PR-flow")
+                    .contains("deep validation");
+        }
+
+        @Test
+        @DisplayName("Parameters table contains all four"
+                + " new EPIC-0035 flags")
+        void assemble_release_parametersTableHasNewFlags(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("| `--continue-after-merge`")
+                    .contains("| `--interactive`")
+                    .contains("| `--signed-tag`")
+                    .contains("| `--state-file <path>`");
+        }
+
+        @Test
+        @DisplayName("workflow box lists numbered"
+                + " RESUME-DETECT step")
+        void assemble_release_workflowBoxHasStepZero(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("0. RESUME-DETECT");
+        }
+
+        @Test
+        @DisplayName("Step 0 section is inserted before"
+                + " Step 1 Determine Version")
+        void assemble_release_stepZeroBeforeStepOne(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            int stepZero = content.indexOf(
+                    "### Step 0 \u2014 Resume Detection");
+            int stepOne = content.indexOf(
+                    "### Step 1 \u2014 Determine Version");
+            assertThat(stepZero).isPositive();
+            assertThat(stepOne).isPositive();
+            assertThat(stepZero).isLessThan(stepOne);
+        }
+
+        @Test
+        @DisplayName("Step 0 verifies gh, jq and gh auth"
+                + " status (RULE-008)")
+        void assemble_release_stepZeroChecksDependencies(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("command -v gh")
+                    .contains("command -v jq")
+                    .contains("gh auth status");
+        }
+
+        @Test
+        @DisplayName("Step 0 declares every resume-"
+                + "detection error code")
+        void assemble_release_stepZeroErrorCodes(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("DEP_GH_MISSING")
+                    .contains("DEP_JQ_MISSING")
+                    .contains("DEP_GH_AUTH")
+                    .contains("STATE_INVALID_JSON")
+                    .contains("STATE_SCHEMA_VERSION")
+                    .contains("RESUME_NO_STATE")
+                    .contains("STATE_CONFLICT");
+        }
+
+        @Test
+        @DisplayName("Step 0 documents --continue-after-"
+                + "merge resume branching")
+        void assemble_release_stepZeroDocumentsResume(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("--continue-after-merge")
+                    .contains("APPROVAL_PENDING")
+                    .contains("RESUME");
+        }
+
+        @Test
+        @DisplayName("state-file-schema reference file"
+                + " is assembled alongside SKILL.md")
+        void assemble_release_stateSchemaFileExists(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = generateOutput(tempDir);
+            Path schema = outputDir.resolve(
+                    "skills/x-release/references/"
+                            + "state-file-schema.md");
+            assertThat(schema).exists();
+        }
+
+        @Test
+        @DisplayName("state-file-schema declares schema"
+                + " version 1 and the 14-phase enum")
+        void assemble_release_stateSchemaHasEnum(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = generateOutput(tempDir);
+            String schema = Files.readString(
+                    outputDir.resolve(
+                            "skills/x-release/references/"
+                                    + "state-file-schema.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(schema)
+                    .contains("schemaVersion")
+                    .contains("`INITIALIZED`")
+                    .contains("`DETERMINED`")
+                    .contains("`VALIDATED`")
+                    .contains("`BRANCHED`")
+                    .contains("`UPDATED`")
+                    .contains("`CHANGELOG_DONE`")
+                    .contains("`COMMITTED`")
+                    .contains("`PR_OPENED`")
+                    .contains("`APPROVAL_PENDING`")
+                    .contains("`MERGED`")
+                    .contains("`TAGGED`")
+                    .contains("`BACKMERGE_OPENED`")
+                    .contains("`BACKMERGE_CONFLICT`")
+                    .contains("`COMPLETED`");
+        }
+
+        @Test
+        @DisplayName("state-file-schema documents atomic"
+                + " write protocol and error catalog")
+        void assemble_release_stateSchemaCatalog(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = generateOutput(tempDir);
+            String schema = Files.readString(
+                    outputDir.resolve(
+                            "skills/x-release/references/"
+                                    + "state-file-schema.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(schema)
+                    .contains("write-to-temp")
+                    .contains("DEP_GH_MISSING")
+                    .contains("STATE_INVALID_JSON")
+                    .contains("STATE_CONFLICT")
+                    .contains("RESUME_NO_STATE");
+        }
+
+        @Test
+        @DisplayName("RULE-002 preserved: existing flags"
+                + " still documented")
+        void assemble_release_preservesExistingFlags(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("--dry-run")
+                    .contains("--skip-tests")
+                    .contains("--no-publish")
+                    .contains("--hotfix");
+        }
+    }
+
     private Path generateOutput(Path tempDir)
             throws IOException {
         Path outputDir = tempDir.resolve("output");
