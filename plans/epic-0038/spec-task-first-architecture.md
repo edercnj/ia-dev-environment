@@ -364,7 +364,7 @@ e o comportamento task-first de `x-task-implement` só existem após stories
 | Escopo infla com cada skill tocada | Alta | Escopo congelado às 10 stories deste épico; outros refactors são follow-up |
 | Dogfooding: primeiro épico pós-0038 expõe bugs tardios | Média | Integration test do fluxo completo (story 10) antes do primeiro dogfood |
 | ADR-0003 muda os nomes de skills antes do EPIC-0036 executar | Baixa | Re-baseline explícito deste épico no global DoR (check "EPIC-0036 stories 0001-0006 mergeadas em develop"); spec + epic + stories são atualizados quando ADR-0003 muda |
-| EPIC-0036 atrasa e bloqueia EPIC-0038 indefinidamente | Média | EPIC-0038 pode ser REPLANEJADO (não executado) enquanto EPIC-0036 está pendente — estrutura fica preservada, só os nomes precisam confirmation no merge |
+| EPIC-0036 atrasa e bloqueia EPIC-0038 indefinidamente | Média | EPIC-0038 pode ser REPLANEJADO (não executado) enquanto EPIC-0036 está pendente — estrutura fica preservada, só os nomes precisam de confirmação no merge |
 
 ## 10. Definition of Done do épico
 
