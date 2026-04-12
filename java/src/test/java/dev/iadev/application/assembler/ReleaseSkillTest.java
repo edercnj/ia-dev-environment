@@ -187,17 +187,17 @@ class ReleaseSkillTest {
         }
 
         @Test
-        @DisplayName("MERGE-MAIN merges release into main"
-                + " with --no-ff")
-        void assemble_release_mergeToMainNoFf(
+        @DisplayName("OPEN-RELEASE-PR opens PR to main"
+                + " via gh pr create (PR-flow)")
+        void assemble_release_openReleasePrToMain(
                 @TempDir Path tempDir)
                 throws IOException {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("git checkout main")
-                    .contains("git merge \"release/"
-                            + "${VERSION}\" --no-ff");
+                    .contains("gh pr create")
+                    .contains("--base main")
+                    .contains("OPEN-RELEASE-PR");
         }
 
         @Test
@@ -212,17 +212,17 @@ class ReleaseSkillTest {
         }
 
         @Test
-        @DisplayName("MERGE-BACK merges release into"
-                + " develop with --no-ff")
-        void assemble_release_mergeBackToDevelop(
+        @DisplayName("BACK-MERGE-DEVELOP opens PR to"
+                + " develop via gh pr create (PR-flow)")
+        void assemble_release_backMergeToDevelopPr(
                 @TempDir Path tempDir)
                 throws IOException {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("git checkout develop")
-                    .contains("git merge \"release/"
-                            + "${VERSION}\" --no-ff");
+                    .contains("gh pr create")
+                    .contains("--base develop")
+                    .contains("BACK-MERGE-DEVELOP");
         }
 
         @Test
@@ -239,9 +239,9 @@ class ReleaseSkillTest {
             String content =
                     generateClaudeContent(tempDir);
             int stepTen = content.indexOf(
-                    "### Step 10 \u2014 Publish");
+                    "### Step 11 \u2014 Publish");
             int stepEleven = content.indexOf(
-                    "### Step 11 \u2014 Cleanup");
+                    "### Step 12 \u2014 Cleanup");
             String stepTenBody = content.substring(
                     stepTen, stepEleven);
             assertThat(stepTenBody).contains(
@@ -336,8 +336,8 @@ class ReleaseSkillTest {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("release branch instead"
-                            + " of develop");
+                    .contains("active release/")
+                    .contains("additional PR");
         }
     }
 
@@ -514,10 +514,10 @@ class ReleaseSkillTest {
             assertThat(content)
                     .contains("dry-run")
                     .contains("--dry-run")
-                    .contains("Create branch")
-                    .contains("Merge to main")
-                    .contains("Merge to develop")
-                    .contains("Cleanup");
+                    .contains("BRANCH")
+                    .contains("OPEN_RELEASE_PR")
+                    .contains("BACK_MERGE_DEVELOP")
+                    .contains("CLEANUP");
         }
 
         @Test
