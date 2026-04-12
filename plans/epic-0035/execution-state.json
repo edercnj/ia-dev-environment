@@ -96,13 +96,22 @@
     "story-0035-0004": {
       "id": "story-0035-0004",
       "phase": 2,
-      "status": "PENDING",
+      "status": "SUCCESS",
       "title": "Phase APPROVAL-GATE (pausa humana + --interactive)",
       "dependencies": ["story-0035-0003"],
       "criticalPath": true,
       "retries": 0,
       "findingsCount": 0,
-      "summary": ""
+      "summary": "Step 8 APPROVAL-GATE implemented between OPEN-RELEASE-PR and TAG. Default halts with APPROVAL_PENDING; interactive mode via AskUserQuestion (3 options). approval-gate-workflow.md reference created. Steps 8-12 renumbered. ReleaseApprovalGateTest (34 tests). Golden files for 19 profiles. Specialist 59/62, TechLead 45/45.",
+      "commitSha": "394ceda2149163892d5a2dfd11ba49b379569326",
+      "branch": "feat/story-0035-0004-approval-gate",
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/290",
+      "prNumber": 290,
+      "prMergeStatus": "OPEN",
+      "reviewScores": {"specialist": "59/62", "techLead": "45/45"},
+      "tddCycles": 1,
+      "startedAt": "2026-04-11T10:10:00Z",
+      "completedAt": "2026-04-11T11:23:00Z"
     },
     "story-0035-0005": {
       "id": "story-0035-0005",
@@ -152,14 +161,14 @@
   "phases": {
     "0": {"stories": ["story-0035-0001"], "status": "SUCCESS", "integrityGate": "DEFERRED (no-merge mode)"},
     "1": {"stories": ["story-0035-0003", "story-0035-0002"], "status": "SUCCESS", "integrityGate": "DEFERRED (no-merge mode)"},
-    "2": {"stories": ["story-0035-0004"], "status": "PENDING"},
+    "2": {"stories": ["story-0035-0004"], "status": "SUCCESS", "integrityGate": "DEFERRED (no-merge mode)"},
     "3": {"stories": ["story-0035-0005"], "status": "PENDING"},
     "4": {"stories": ["story-0035-0006"], "status": "PENDING"},
     "5": {"stories": ["story-0035-0007"], "status": "PENDING"},
     "6": {"stories": ["story-0035-0008"], "status": "PENDING"}
   },
   "metrics": {
-    "storiesCompleted": 3,
+    "storiesCompleted": 4,
     "storiesFailed": 0,
     "storiesBlocked": 0
   },
