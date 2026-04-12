@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
  * Builds a template context map from a
  * {@link ProjectConfig}.
  *
- * <p>Produces exactly 46 fields (was 44 before branching model) matching the TypeScript
+ * <p>Produces exactly 50 fields (was 46 before EPIC-0035) matching the TypeScript
  * {@code buildDefaultContext()} function (RULE-010).
  * Architecture and review checklist sections are
  * delegated to {@link ContextArchitectureBuilder}.</p>
@@ -40,7 +40,7 @@ public final class ContextBuilder {
     }
 
     /**
-     * Builds a context map with exactly 46 template fields.
+     * Builds a context map with exactly 50 template fields.
      *
      * @param config the project configuration
      * @return an ordered map with 44 template context entries
@@ -151,6 +151,12 @@ public final class ContextBuilder {
                 config.testing().coverageLine());
         ctx.put("coverage_branch",
                 config.testing().coverageBranch());
+        ctx.put("COVERAGE_LINE_THRESHOLD",
+                config.testing().coverageLine());
+        ctx.put("COVERAGE_BRANCH_THRESHOLD",
+                config.testing().coverageBranch());
+        ctx.put("GOLDEN_TEST_COMMAND", "");
+        ctx.put("GENERATION_COMMAND", "");
     }
 
     private static void buildInterfaces(

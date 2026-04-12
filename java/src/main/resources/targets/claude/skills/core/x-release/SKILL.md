@@ -50,7 +50,7 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 ```
  0. RESUME-DETECT   -> Verify gh/jq, load or create state file, detect resume mode
  1. DETERMINE       -> Parse argument and calculate target version
- 2. VALIDATE        -> Check pre-conditions (branch, working directory)
+ 2. VALIDATE-DEEP   -> Deep validation (8+1 checks: workdir, branch, changelog, build, coverage, golden, hardcoded, version consistency)
  3. BRANCH          -> Create release/X.Y.Z branch from develop (or hotfix/* from main)
  4. UPDATE          -> Update version in project-specific files (strip SNAPSHOT)
  5. CHANGELOG       -> Generate/update CHANGELOG.md via x-release-changelog
@@ -261,40 +261,227 @@ Decision order: if any commit triggers major, use major. Else if any triggers mi
 
 This follows Semantic Versioning (https://semver.org/spec/v2.0.0.html) rules.
 
-### Step 2 — Validate Pre-conditions
+### Step 2 — Phase VALIDATE-DEEP
 
-Before making any changes, validate:
+Phase VALIDATE-DEEP replaces the former simple pre-condition check with 8
+mandatory checks plus 1 conditional check. Each check has a unique error
+code. Checks execute sequentially — the first failure aborts the release.
 
-```bash
-# 1. No uncommitted changes
-if [ -n "$(git status --porcelain)" ]; then
-  echo "ABORT: uncommitted changes in working directory"
-  exit 1
-fi
+On success, the state file advances to `phase: VALIDATED`.
 
-# 2. Current branch MUST be develop or release/* (NOT main)
-BRANCH=$(git branch --show-current)
-if [[ "$BRANCH" != "develop" && ! "$BRANCH" =~ ^release/ ]]; then
-  echo "WARNING: not on develop/release branch"
-  echo "Release workflow requires starting from 'develop'."
-  echo "Switch to develop before running /x-release."
-  # For hotfix mode, main is allowed (see Hotfix section)
-fi
+#### Check Execution Table
 
-# 3. Run tests (unless --skip-tests)
-# Use project's build command to run tests
-{{BUILD_COMMAND}}
+| # | Check | Logic | Abort If | Error Code | Skippable |
+|---|-------|-------|----------|------------|-----------|
+| 1 | Working dir clean | `git status --porcelain` | output non-empty | `VALIDATE_DIRTY_WORKDIR` | No (always-mandatory) |
+| 2 | Correct branch | `git branch --show-current` | not develop/main(hotfix) | `VALIDATE_WRONG_BRANCH` | No (always-mandatory) |
+| 3 | `[Unreleased]` non-empty | parse CHANGELOG.md | section empty | `VALIDATE_EMPTY_UNRELEASED` | No (always-mandatory) |
+| 4 | Build + tests | `{{BUILD_COMMAND}}` | exit ≠ 0 | `VALIDATE_BUILD_FAILED` | Yes (`--skip-tests`) |
+| 5a | Line coverage threshold | parse coverage report | line < `{{COVERAGE_LINE_THRESHOLD}}`% | `VALIDATE_COVERAGE_LINE` | Yes (`--skip-tests`) |
+| 5b | Branch coverage threshold | parse coverage report | branch < `{{COVERAGE_BRANCH_THRESHOLD}}`% | `VALIDATE_COVERAGE_BRANCH` | Yes (`--skip-tests`) |
+| 6 | Golden file consistency | `{{GOLDEN_TEST_COMMAND}}` | exit ≠ 0 | `VALIDATE_GOLDEN_DRIFT` | Yes (`--skip-tests`) |
+| 7 | Hardcoded version strings | `grep -rn $CURRENT_VERSION` | matches outside allowed paths | `VALIDATE_HARDCODED_VERSION` | No (always-mandatory) |
+| 8 | Cross-file version consistency | pom ↔ target ↔ branch | mismatch | `VALIDATE_VERSION_MISMATCH` | No (always-mandatory) |
+| 9 | Generation dry-run (conditional) | `{{GENERATION_COMMAND}} --dry-run` | diff non-empty | `VALIDATE_GENERATION_DRIFT` | Conditional |
+
+#### `--skip-tests` Behavior
+
+When `--skip-tests` is passed, ONLY checks 4, 5, 6 are skipped. Checks 1,
+2, 3, 7, 8 are always-mandatory because they do not depend on running
+tests.
+
+```
+if --skip-tests:
+    echo "WARNING: --skip-tests skips checks 4, 5, 6 (build, coverage, golden files)"
+    # Checks 1, 2, 3, 7, 8 still execute
 ```
 
-If `--skip-tests` flag is present:
-- Skip test execution
-- Display warning: "WARNING: Skipping test validation"
-- Continue with release
+#### Check 1 — Working Directory Clean
+
+```bash
+if [ -n "$(git status --porcelain)" ]; then
+  echo "ABORT VALIDATE_DIRTY_WORKDIR: Uncommitted changes in working directory"
+  # List dirty files for diagnosis
+  git status --short
+  exit 1
+fi
+```
+
+#### Check 2 — Correct Branch
+
+```bash
+BRANCH=$(git branch --show-current)
+if [ "$HOTFIX" = true ]; then
+  if [ "$BRANCH" != "main" ]; then
+    echo "ABORT VALIDATE_WRONG_BRANCH: Not on main (required for hotfix). Current: $BRANCH"
+    exit 1
+  fi
+else
+  if [[ "$BRANCH" != "develop" && ! "$BRANCH" =~ ^release/ ]]; then
+    echo "ABORT VALIDATE_WRONG_BRANCH: not on develop/release (or main for hotfix). Current: $BRANCH"
+    exit 1
+  fi
+fi
+```
+
+#### Check 3 — CHANGELOG [Unreleased] Non-Empty
+
+```bash
+# Parse CHANGELOG.md for [Unreleased] section content
+UNRELEASED=$(sed -n '/## \[Unreleased\]/,/## \[/p' CHANGELOG.md | sed '1d;$d' | grep -v '^$' | grep -v '^###')
+if [ -z "$UNRELEASED" ]; then
+  echo "ABORT VALIDATE_EMPTY_UNRELEASED: CHANGELOG [Unreleased] section empty"
+  echo "Add entries to the [Unreleased] section before releasing."
+  exit 1
+fi
+```
+
+#### Check 4 — Build + Tests (skippable via `--skip-tests`)
+
+```bash
+if [ "$SKIP_TESTS" != true ]; then
+  echo "Check 4: Running build + tests..."
+  if ! {{BUILD_COMMAND}}; then
+    echo "ABORT VALIDATE_BUILD_FAILED: Build or tests failed"
+    exit 1
+  fi
+else
+  echo "WARNING: Check 4 skipped (--skip-tests)"
+fi
+```
+
+#### Check 5 — Coverage Thresholds (skippable via `--skip-tests`)
+
+```bash
+if [ "$SKIP_TESTS" != true ]; then
+  echo "Check 5: Validating coverage thresholds..."
+  # Parse coverage report (e.g., jacoco.xml for Java)
+  LINE_COV=$(extract_line_coverage)   # project-specific
+  BRANCH_COV=$(extract_branch_coverage)
+
+  if (( $(echo "$LINE_COV < {{COVERAGE_LINE_THRESHOLD}}" | bc -l) )); then
+    echo "ABORT VALIDATE_COVERAGE_LINE: Line coverage ${LINE_COV}% below threshold {{COVERAGE_LINE_THRESHOLD}}%"
+    exit 1
+  fi
+
+  if (( $(echo "$BRANCH_COV < {{COVERAGE_BRANCH_THRESHOLD}}" | bc -l) )); then
+    echo "ABORT VALIDATE_COVERAGE_BRANCH: Branch coverage ${BRANCH_COV}% below threshold {{COVERAGE_BRANCH_THRESHOLD}}%"
+    exit 1
+  fi
+
+  echo "Coverage OK: line=${LINE_COV}%, branch=${BRANCH_COV}%"
+else
+  echo "WARNING: Check 5 skipped (--skip-tests)"
+fi
+```
+
+#### Check 6 — Golden File Consistency (skippable via `--skip-tests`)
+
+```bash
+if [ "$SKIP_TESTS" != true ]; then
+  if [ -n "{{GOLDEN_TEST_COMMAND}}" ]; then
+    echo "Check 6: Running golden file tests..."
+    if ! {{GOLDEN_TEST_COMMAND}}; then
+      echo "ABORT VALIDATE_GOLDEN_DRIFT: Golden files out of sync"
+      echo "Run golden file regeneration before releasing."
+      exit 1
+    fi
+  else
+    echo "Check 6: Skipped (no GOLDEN_TEST_COMMAND configured)"
+  fi
+else
+  echo "WARNING: Check 6 skipped (--skip-tests)"
+fi
+```
+
+#### Check 7 — Hardcoded Version Strings (always-mandatory)
+
+```bash
+echo "Check 7: Scanning for hardcoded version strings..."
+CURRENT_VERSION=$(get_current_version)  # from pom.xml, package.json, etc.
+
+# Allowed paths: version files, CHANGELOG, tags, state files
+ALLOWED_PATTERN="pom.xml|package.json|Cargo.toml|pyproject.toml|build.gradle|CHANGELOG.md|release-state-"
+
+MATCHES=$(grep -rn "$CURRENT_VERSION" . \
+  --include="*.sh" --include="*.md" --include="*.yaml" --include="*.yml" \
+  --include="*.properties" --include="*.env" \
+  | grep -v -E "$ALLOWED_PATTERN" \
+  | grep -v "node_modules" \
+  | grep -v ".git/")
+
+if [ -n "$MATCHES" ]; then
+  echo "ABORT VALIDATE_HARDCODED_VERSION: Hardcoded version string found"
+  echo "$MATCHES"
+  exit 1
+fi
+```
+
+#### Check 8 — Cross-File Version Consistency (always-mandatory)
+
+```bash
+echo "Check 8: Validating cross-file version consistency..."
+# Extract version from each source
+POM_VERSION=$(extract_pom_version)
+CHANGELOG_VERSION=$(extract_latest_changelog_version)
+BRANCH_VERSION=$(extract_branch_version)  # from release/X.Y.Z
+
+# Compare: all must match the target VERSION
+MISMATCH=""
+if [ "$POM_VERSION" != "$VERSION" ]; then
+  MISMATCH="$MISMATCH pom.xml=$POM_VERSION"
+fi
+if [ -n "$CHANGELOG_VERSION" ] && [ "$CHANGELOG_VERSION" != "$VERSION" ]; then
+  MISMATCH="$MISMATCH CHANGELOG=$CHANGELOG_VERSION"
+fi
+if [ -n "$BRANCH_VERSION" ] && [ "$BRANCH_VERSION" != "$VERSION" ]; then
+  MISMATCH="$MISMATCH branch=$BRANCH_VERSION"
+fi
+
+if [ -n "$MISMATCH" ]; then
+  echo "ABORT VALIDATE_VERSION_MISMATCH: pom.xml version mismatch"
+  echo "Expected: $VERSION, found:$MISMATCH"
+  exit 1
+fi
+```
+
+#### Check 9 — Generation Dry-Run (conditional)
+
+This check only executes when `{{GENERATION_COMMAND}}` is configured
+(non-empty). It runs the generator in dry-run mode and compares output
+against current files.
+
+```bash
+if [ -n "{{GENERATION_COMMAND}}" ]; then
+  echo "Check 9: Running generation dry-run..."
+  if ! {{GENERATION_COMMAND}} --dry-run; then
+    echo "ABORT VALIDATE_GENERATION_DRIFT: Generator output differs from baseline"
+    echo "Run the generator before releasing."
+    exit 1
+  fi
+else
+  echo "Check 9: Skipped (no GENERATION_COMMAND configured)"
+fi
+```
+
+#### State File Update on Success
+
+After all checks pass, update the state file to advance the phase:
+
+```bash
+jq '.phase = "VALIDATED"
+    | .phasesCompleted += ["VALIDATED"]
+    | .lastPhaseCompletedAt = now | todate' \
+  "$STATE_FILE" > "${STATE_FILE}.tmp.$$"
+mv "${STATE_FILE}.tmp.$$" "$STATE_FILE"
+
+echo "Phase VALIDATE-DEEP completed. All checks passed."
+```
 
 **Branch validation rules:**
 - Standard release: MUST start from `develop` or an existing `release/*` branch
 - Hotfix release (`--hotfix`): MUST start from `main`
-- Starting from any other branch (e.g., `feature/*`) is a WARNING
+- Starting from any other branch (e.g., `feature/*`) aborts with `VALIDATE_WRONG_BRANCH`
 
 ### Step 3 — Branch Creation
 
