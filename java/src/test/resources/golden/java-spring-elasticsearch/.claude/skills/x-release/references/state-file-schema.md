@@ -29,9 +29,11 @@ progress. It enables:
 | Default | `plans/release-state-<X.Y.Z>.json` |
 | `--state-file <path>` | `<path>` (operator-provided absolute or relative path) |
 
-The file is created at the start of the first successful `DETERMINED`
-transition and removed (or moved to `plans/release-state-<X.Y.Z>.json.done`)
-after `COMPLETED` by the CLEANUP phase.
+The file is created during Step 0 (Resume Detection) with phase
+`INITIALIZED`, then advances to `DETERMINED` after Step 1 and through
+subsequent phases. It is removed (or moved to
+`plans/release-state-<X.Y.Z>.json.done`) after `COMPLETED` by the
+CLEANUP phase.
 
 ## Canonical JSON Example
 

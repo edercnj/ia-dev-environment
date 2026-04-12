@@ -47,7 +47,7 @@ Phase RESUME-AND-TAG (Step 9+)
 | Field | Before | After |
 |:---|:---|:---|
 | `phase` | `PR_OPENED` | `APPROVAL_PENDING` |
-| `phasesCompleted` | `[..., OPEN_RELEASE_PR]` | `[..., OPEN_RELEASE_PR, APPROVAL_GATE_REACHED]` |
+| `phasesCompleted` | `[..., PR_OPENED]` | `[..., PR_OPENED, APPROVAL_PENDING]` |
 
 ## Interactive Workflow (`--interactive`)
 
