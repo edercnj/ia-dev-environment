@@ -187,17 +187,17 @@ class ReleaseSkillTest {
         }
 
         @Test
-        @DisplayName("MERGE-MAIN merges release into main"
-                + " with --no-ff")
-        void assemble_release_mergeToMainNoFf(
+        @DisplayName("OPEN-RELEASE-PR opens PR to main"
+                + " via gh pr create (PR-flow)")
+        void assemble_release_openReleasePrToMain(
                 @TempDir Path tempDir)
                 throws IOException {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("git checkout main")
-                    .contains("git merge \"release/"
-                            + "${VERSION}\" --no-ff");
+                    .contains("gh pr create")
+                    .contains("--base main")
+                    .contains("OPEN-RELEASE-PR");
         }
 
         @Test
@@ -212,17 +212,17 @@ class ReleaseSkillTest {
         }
 
         @Test
-        @DisplayName("MERGE-BACK merges release into"
-                + " develop with --no-ff")
-        void assemble_release_mergeBackToDevelop(
+        @DisplayName("BACK-MERGE-DEVELOP opens PR to"
+                + " develop via gh pr create (PR-flow)")
+        void assemble_release_backMergeToDevelopPr(
                 @TempDir Path tempDir)
                 throws IOException {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("git checkout develop")
-                    .contains("git merge \"release/"
-                            + "${VERSION}\" --no-ff");
+                    .contains("gh pr create")
+                    .contains("--base develop")
+                    .contains("BACK-MERGE-DEVELOP");
         }
 
         @Test
@@ -238,13 +238,19 @@ class ReleaseSkillTest {
             // (Step 9, story-0035-0006).
             String content =
                     generateClaudeContent(tempDir);
-            int stepTen = content.indexOf(
-                    "### Step 10 \u2014 Publish");
-            int stepEleven = content.indexOf(
-                    "### Step 11 \u2014 Cleanup");
-            String stepTenBody = content.substring(
-                    stepTen, stepEleven);
-            assertThat(stepTenBody).contains(
+            int stepPublish = content.indexOf(
+                    "### Step 11 \u2014 Publish");
+            int stepCleanup = content.indexOf(
+                    "### Step 12 \u2014 Cleanup");
+            assertThat(stepPublish)
+                    .as("Step 11 Publish header not found")
+                    .isNotNegative();
+            assertThat(stepCleanup)
+                    .as("Step 12 Cleanup header not found")
+                    .isNotNegative();
+            String publishBody = content.substring(
+                    stepPublish, stepCleanup);
+            assertThat(publishBody).contains(
                     "git push origin \"v${VERSION}\"");
         }
 
@@ -336,8 +342,8 @@ class ReleaseSkillTest {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("release branch instead"
-                            + " of develop");
+                    .contains("active release/")
+                    .contains("additional PR");
         }
     }
 
@@ -514,10 +520,10 @@ class ReleaseSkillTest {
             assertThat(content)
                     .contains("dry-run")
                     .contains("--dry-run")
-                    .contains("Create branch")
-                    .contains("Merge to main")
-                    .contains("Merge to develop")
-                    .contains("Cleanup");
+                    .contains("BRANCH")
+                    .contains("OPEN_RELEASE_PR")
+                    .contains("BACK_MERGE_DEVELOP")
+                    .contains("CLEANUP");
         }
 
         @Test
