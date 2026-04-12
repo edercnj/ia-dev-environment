@@ -132,13 +132,20 @@
     "story-0035-0006": {
       "id": "story-0035-0006",
       "phase": 4,
-      "status": "PENDING",
+      "status": "SUCCESS",
       "title": "Phase BACK-MERGE-DEVELOP (PR-flow + conflict detection)",
       "dependencies": ["story-0035-0005"],
       "criticalPath": true,
       "retries": 0,
       "findingsCount": 0,
-      "summary": ""
+      "summary": "Step 10 BACK-MERGE-DEVELOP: dry-run merge, clean flow (SNAPSHOT advance + gh pr create --base develop), conflict flow (abort + explanatory PR + BACKMERGE_CONFLICT state). backmerge-strategies.md reference. 31 tests, 6100 total green. Specialist 60/62, TechLead 43/45.",
+      "commitSha": "7f9c20110",
+      "branch": "feat/story-0035-0006-back-merge-develop",
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/293",
+      "prNumber": 293,
+      "prMergeStatus": "OPEN",
+      "reviewScores": {"specialist": "60/62", "techLead": "43/45"},
+      "tddCycles": 3
     },
     "story-0035-0007": {
       "id": "story-0035-0007",
@@ -168,12 +175,12 @@
     "1": {"stories": ["story-0035-0003", "story-0035-0002"], "status": "SUCCESS", "integrityGate": "DEFERRED (no-merge mode)"},
     "2": {"stories": ["story-0035-0004"], "status": "SUCCESS", "integrityGate": "DEFERRED (no-merge mode)"},
     "3": {"stories": ["story-0035-0005"], "status": "SUCCESS", "integrityGate": "DEFERRED (no-merge mode)"},
-    "4": {"stories": ["story-0035-0006"], "status": "PENDING"},
+    "4": {"stories": ["story-0035-0006"], "status": "SUCCESS", "integrityGate": "DEFERRED (no-merge mode)"},
     "5": {"stories": ["story-0035-0007"], "status": "PENDING"},
     "6": {"stories": ["story-0035-0008"], "status": "PENDING"}
   },
   "metrics": {
-    "storiesCompleted": 5,
+    "storiesCompleted": 6,
     "storiesFailed": 0,
     "storiesBlocked": 0
   },
