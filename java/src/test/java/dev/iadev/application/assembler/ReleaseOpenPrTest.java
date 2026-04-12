@@ -215,7 +215,7 @@ class ReleaseOpenPrTest {
         @Test
         @DisplayName("Step 7 honours --no-publish by"
                 + " skipping gh pr create")
-        void stepSeven_honoursNoPublishDryRun(
+        void stepSeven_honoursNoPublish_skipsGhPrCreate(
                 @TempDir Path tempDir)
                 throws IOException {
             String content = generateClaudeContent(tempDir);
@@ -249,8 +249,8 @@ class ReleaseOpenPrTest {
 
         @Test
         @DisplayName("Step 7 body contains NO 'git merge"
-                + " main' command (RULE-001)")
-        void stepSeven_noGitMergeMain(
+                + " main' command (Rule-09)")
+        void stepSeven_noGitMergeMain_enforcesRule009(
                 @TempDir Path tempDir)
                 throws IOException {
             String content = generateClaudeContent(tempDir);

@@ -31,7 +31,7 @@ class RulesAssemblerCoverageContextTest {
 
         @Test
         @DisplayName("context contains all 46 expected keys")
-        void context_allFortyFourKeys_succeeds() {
+        void context_allExpectedKeys_succeeds() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
                             .projectName("ctx-full")

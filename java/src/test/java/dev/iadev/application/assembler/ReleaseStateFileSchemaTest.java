@@ -44,7 +44,7 @@ class ReleaseStateFileSchemaTest {
                     "BACKMERGE_CONFLICT", "COMPLETED");
 
     private static final List<String>
-            ALWAYS_PRESENT_FIELDS = List.of(
+            DOCUMENTED_FIELDS = List.of(
             "schemaVersion", "version", "phase",
             "branch", "baseBranch", "hotfix", "dryRun",
             "signedTag", "interactive", "startedAt",
@@ -88,7 +88,7 @@ class ReleaseStateFileSchemaTest {
             throws IOException {
         String content = Files.readString(
                 SCHEMA_DOC_PATH);
-        for (String field : ALWAYS_PRESENT_FIELDS) {
+        for (String field : DOCUMENTED_FIELDS) {
             assertThat(content)
                     .as("Schema doc must mention"
                             + " always-present field:"
@@ -130,7 +130,7 @@ class ReleaseStateFileSchemaTest {
                 .isEqualTo(1);
         assertThat(REQUIRED_PHASES)
                 .contains(node.get("phase").asText());
-        for (String field : ALWAYS_PRESENT_FIELDS) {
+        for (String field : DOCUMENTED_FIELDS) {
             assertThat(node.has(field))
                     .as("Example JSON missing"
                             + " always-present field:"
