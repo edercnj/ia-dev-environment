@@ -9,7 +9,7 @@
 | Story | Título | Chave Jira | Blocked By | Blocks | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | [story-0035-0001](./story-0035-0001.md) | Foundation: Schema de State File, Novas Flags, Resume Detection | — | — | 0002, 0003, 0004, 0005, 0006, 0007, 0008 | Concluida |
-| [story-0035-0002](./story-0035-0002.md) | Phase VALIDATE-DEEP (coverage, golden, consistency) | — | 0001 | 0007, 0008 | Pendente |
+| [story-0035-0002](./story-0035-0002.md) | Phase VALIDATE-DEEP (coverage, golden, consistency) | — | 0001 | 0007, 0008 | Concluida |
 | [story-0035-0003](./story-0035-0003.md) | Phase OPEN-RELEASE-PR (gh pr create para main) | — | 0001 | 0004, 0007, 0008 | Pendente |
 | [story-0035-0004](./story-0035-0004.md) | Phase APPROVAL-GATE (pausa humana + --interactive) | — | 0003 | 0005, 0007, 0008 | Pendente |
 | [story-0035-0005](./story-0035-0005.md) | Phase RESUME-AND-TAG (--continue-after-merge, tag main) | — | 0001, 0004 | 0006, 0007, 0008 | Pendente |
