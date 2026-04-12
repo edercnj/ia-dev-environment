@@ -336,8 +336,8 @@ class ReleaseSkillTest {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("release branch instead"
-                            + " of develop");
+                    .contains("active release/")
+                    .contains("additional PR");
         }
     }
 
@@ -514,10 +514,10 @@ class ReleaseSkillTest {
             assertThat(content)
                     .contains("dry-run")
                     .contains("--dry-run")
-                    .contains("Create branch")
-                    .contains("Merge to main")
-                    .contains("Merge to develop")
-                    .contains("Cleanup");
+                    .contains("BRANCH")
+                    .contains("OPEN_RELEASE_PR")
+                    .contains("BACK_MERGE_DEVELOP")
+                    .contains("CLEANUP");
         }
 
         @Test
