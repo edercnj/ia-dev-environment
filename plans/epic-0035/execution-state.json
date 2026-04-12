@@ -114,13 +114,20 @@
     "story-0035-0005": {
       "id": "story-0035-0005",
       "phase": 3,
-      "status": "PENDING",
+      "status": "SUCCESS",
       "title": "Phase RESUME-AND-TAG (--continue-after-merge, tag main)",
       "dependencies": ["story-0035-0001", "story-0035-0004"],
       "criticalPath": true,
       "retries": 0,
-      "findingsCount": 0,
-      "summary": ""
+      "findingsCount": 3,
+      "summary": "Step 9 RESUME-AND-TAG: defensive gh pr view verification, worktree-safe checkout, tag pre-existence check (local+remote), annotated/signed tags, push-with-warning, two-phase state transitions. 7 RESUME_* error codes. Fixed 3 stale step refs. 24 tests, 138 release tests, 5452 total green. Specialist 24/24, TechLead 40/40.",
+      "commitSha": "150f6918981588f7818a2dbd7fc2edbc466d3e34",
+      "branch": "feat/story-0035-0005-resume-and-tag",
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/292",
+      "prNumber": 292,
+      "prMergeStatus": "OPEN",
+      "reviewScores": {"specialist": "24/24", "techLead": "40/40"},
+      "tddCycles": 1
     },
     "story-0035-0006": {
       "id": "story-0035-0006",
@@ -160,13 +167,13 @@
     "0": {"stories": ["story-0035-0001"], "status": "SUCCESS", "integrityGate": "DEFERRED (no-merge mode)"},
     "1": {"stories": ["story-0035-0003", "story-0035-0002"], "status": "SUCCESS", "integrityGate": "DEFERRED (no-merge mode)"},
     "2": {"stories": ["story-0035-0004"], "status": "SUCCESS", "integrityGate": "DEFERRED (no-merge mode)"},
-    "3": {"stories": ["story-0035-0005"], "status": "PENDING"},
+    "3": {"stories": ["story-0035-0005"], "status": "SUCCESS", "integrityGate": "DEFERRED (no-merge mode)"},
     "4": {"stories": ["story-0035-0006"], "status": "PENDING"},
     "5": {"stories": ["story-0035-0007"], "status": "PENDING"},
     "6": {"stories": ["story-0035-0008"], "status": "PENDING"}
   },
   "metrics": {
-    "storiesCompleted": 4,
+    "storiesCompleted": 5,
     "storiesFailed": 0,
     "storiesBlocked": 0
   },
