@@ -59,7 +59,7 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
  7. OPEN-RELEASE-PR -> Push release branch and open PR to main via gh pr create
  8. APPROVAL-GATE   -> Persist APPROVAL_PENDING, print instructions, halt (or interactive)
  9. TAG             -> Create annotated/signed git tag on main (after merged PR)
-10. MERGE-BACK      -> Merge release branch back into develop with --no-ff
+10. BACK-MERGE-DEVELOP -> Open PR to develop with conflict detection (clean or conflict flow)
 11. PUBLISH         -> Push the release tag to remote (main/develop go via PR flow)
 12. CLEANUP         -> Delete the release branch
     DRY-RUN         -> If --dry-run, show plan and exit (no changes)
@@ -757,34 +757,176 @@ $(git log $(git describe --tags --abbrev=0 HEAD~1 2>/dev/null)..HEAD~1 \
     --format='- %s' --no-merges)"
 ```
 
-### Step 10 — Merge Back to Develop
+### Step 10 — Back-Merge Develop (Phase BACK-MERGE-DEVELOP)
 
-Merge the release branch back into `develop` to propagate any release fixes:
+> **RULE-001 (PR-Flow):** `develop` MUST NOT receive a direct `git merge` from
+> the skill. This phase replaces the legacy Step 10 MERGE-BACK with
+> **Phase BACK-MERGE-DEVELOP**, which detects conflicts via a dry-run merge,
+> then opens a PR via `gh pr create --base develop`. Clean merges include
+> Java SNAPSHOT advance; conflict merges produce an explanatory PR for human
+> resolution.
 
-```bash
-# Switch to develop
-git checkout develop
-git pull origin develop
+> **Reference:** See `references/backmerge-strategies.md` for the complete
+> workflow diagram and decision tree for both clean and conflict flows.
 
-# Merge release branch back into develop
-git merge "release/${VERSION}" --no-ff \
-    -m "release: merge release/${VERSION} back into develop"
-```
-
-**SNAPSHOT version advance (Java/Gradle only):**
-
-After merging back to `develop`, advance the version to the next SNAPSHOT:
+#### Step 10.1 — Verify Phase Prerequisite
 
 ```bash
-# Example: if releasing 1.2.0, develop becomes 1.3.0-SNAPSHOT
-NEXT_MINOR=$((MINOR + 1))
-NEXT_SNAPSHOT="${MAJOR}.${NEXT_MINOR}.0-SNAPSHOT"
-
-# Update pom.xml or build.gradle with SNAPSHOT version
-# Commit the SNAPSHOT advance
-git add -A
-git commit -m "chore: advance develop to ${NEXT_SNAPSHOT}"
+# Verify phase == TAGGED
+PHASE=$(jq -r .phase "$STATE_FILE")
+if [ "$PHASE" != "TAGGED" ]; then
+  echo "ABORT [BACKMERGE_WRONG_PHASE]: expected TAGGED, got $PHASE"
+  exit 1
+fi
 ```
+
+#### Step 10.2 — Create Backmerge Branch and Dry-Run Merge
+
+```bash
+BACKMERGE_BRANCH="chore/backmerge-v${VERSION}"
+
+# Create backmerge branch from develop
+git fetch origin develop
+git checkout -b "$BACKMERGE_BRANCH" origin/develop
+
+# Dry-run merge to detect conflicts
+git merge --no-commit --no-ff origin/main 2>/dev/null
+MERGE_EXIT=$?
+```
+
+#### Step 10.3 — Clean Merge Flow (exit 0)
+
+```bash
+if [ $MERGE_EXIT -eq 0 ]; then
+  # Preserve Java SNAPSHOT advance
+  if [ -f pom.xml ] && [ "$HOTFIX" != "true" ]; then
+    NEXT_MINOR=$((MINOR + 1))
+    NEXT_SNAPSHOT="${MAJOR}.${NEXT_MINOR}.0-SNAPSHOT"
+    sed -i '' '/<parent>/,/<\/parent>/!{
+      0,/<version>.*<\/version>/s|<version>.*</version>|<version>'"$NEXT_SNAPSHOT"'</version>|
+    }' pom.xml
+    git add pom.xml
+    git commit -m "chore: advance develop to ${NEXT_SNAPSHOT}"
+  else
+    git commit -m "release: merge v${VERSION} back into develop"
+  fi
+
+  git push -u origin "$BACKMERGE_BRANCH"
+
+  BACKMERGE_PR_URL=$(gh pr create \
+    --base develop \
+    --head "$BACKMERGE_BRANCH" \
+    --title "chore(release): back-merge v${VERSION} to develop" \
+    --body "Automated back-merge from main after v${VERSION} release. Clean merge.")
+
+  BACKMERGE_PR_NUMBER="${BACKMERGE_PR_URL##*/}"
+
+  # State: BACKMERGE_OPENED
+  TMP="${STATE_FILE}.tmp.$$"
+  jq --arg url "$BACKMERGE_PR_URL" \
+     --arg num "$BACKMERGE_PR_NUMBER" \
+     --arg ts  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    '.phase = "BACKMERGE_OPENED"
+     | .backmergePrUrl = $url
+     | .backmergePrNumber = ($num | tonumber)
+     | .lastPhaseCompletedAt = $ts
+     | .phasesCompleted += ["BACK_MERGE_DEVELOP"]' \
+    "$STATE_FILE" > "$TMP"
+  mv "$TMP" "$STATE_FILE"
+fi
+```
+
+#### Step 10.4 — Conflict Flow (exit 1)
+
+```bash
+if [ $MERGE_EXIT -eq 1 ]; then
+  # Git NEVER creates a commit while paths are unmerged, even with --no-verify.
+  # Strategy: capture conflicting files from the dry-run merge, ABORT the merge
+  # to return to a clean working tree, then push origin/main as-is to the backmerge
+  # branch and open a PR --base develop --head main. GitHub's PR view will surface
+  # the conflict and the reviewer resolves it in the PR UI (or locally).
+
+  CONFLICT_LIST=$(git diff --name-only --diff-filter=U | head -20)
+
+  # Return the working tree to a valid state — no commit with unmerged paths.
+  git merge --abort
+
+  # Push main's commit directly to the backmerge branch (no merge commit yet).
+  git push -u origin "main:refs/heads/${BACKMERGE_BRANCH}"
+
+  # Serialize conflict list into a JSON array for jq.
+  CONFLICTS_JSON=$(printf '%s\n' "$CONFLICT_LIST" \
+    | jq -R -s 'split("\n") | map(select(length > 0))')
+
+  BACKMERGE_PR_URL=$(gh pr create \
+    --base develop \
+    --head "$BACKMERGE_BRANCH" \
+    --title "chore(release): back-merge v${VERSION} (CONFLICTS)" \
+    --body "⚠️ CONFLICTS DETECTED during local dry-run merge.
+
+Conflicting files:
+\`\`\`
+${CONFLICT_LIST}
+\`\`\`
+
+Local merge was aborted because Git cannot create a commit with unmerged paths.
+Resolve the conflicts in this PR (via GitHub UI) before completing the back-merge.
+
+Java SNAPSHOT advance was NOT applied — add it manually during conflict resolution if needed.")
+
+  BACKMERGE_PR_NUMBER="${BACKMERGE_PR_URL##*/}"
+
+  # State: BACKMERGE_CONFLICT with conflictFiles captured
+  TMP="${STATE_FILE}.tmp.$$"
+  jq --argjson files "$CONFLICTS_JSON" \
+     --arg url "$BACKMERGE_PR_URL" \
+     --arg num "$BACKMERGE_PR_NUMBER" \
+     --arg ts  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    '.phase = "BACKMERGE_CONFLICT"
+     | .conflictFiles = $files
+     | .backmergePrUrl = $url
+     | .backmergePrNumber = ($num | tonumber)
+     | .lastPhaseCompletedAt = $ts
+     | .phasesCompleted += ["BACK_MERGE_DEVELOP_CONFLICT"]' \
+    "$STATE_FILE" > "$TMP"
+  mv "$TMP" "$STATE_FILE"
+fi
+```
+
+#### Step 10.5 — Unexpected Exit Code
+
+```bash
+if [ $MERGE_EXIT -ne 0 ] && [ $MERGE_EXIT -ne 1 ]; then
+  echo "ABORT [BACKMERGE_UNEXPECTED]: git merge returned unexpected exit code: $MERGE_EXIT"
+  git merge --abort 2>/dev/null || true
+  exit 1
+fi
+```
+
+#### Step 10.6 — Error Catalog (local to BACK-MERGE-DEVELOP)
+
+| Condition | Code | Message template |
+|:---|:---|:---|
+| Phase is not `TAGGED` | `BACKMERGE_WRONG_PHASE` | `Expected TAGGED, got ${phase}` |
+| `git merge` returns unexpected exit code | `BACKMERGE_UNEXPECTED` | `Unexpected exit code: ${code}` |
+
+The codes above extend the catalog in
+`references/state-file-schema.md`. Operators triage back-merge failures
+using the same vocabulary as the rest of the skill.
+
+#### Step 10.7 — Phase Completion Summary
+
+| Merge result | State after | PR title | SNAPSHOT advance |
+|:---|:---|:---|:---|
+| Clean (exit 0), Java, non-hotfix | `BACKMERGE_OPENED` | `chore(release): back-merge v${VERSION} to develop` | Yes |
+| Clean (exit 0), hotfix or non-Java | `BACKMERGE_OPENED` | `chore(release): back-merge v${VERSION} to develop` | No |
+| Conflict (exit 1) | `BACKMERGE_CONFLICT` | `chore(release): back-merge v${VERSION} (CONFLICTS)` | No (manual) |
+
+> **Behavior preserved (RULE-002):** The SNAPSHOT advance logic is
+> identical to the legacy Step 10 — only the delivery mechanism changes
+> from direct `git merge` to PR-flow. The sed command for pom.xml and
+> the commit message `chore: advance develop to ${NEXT_SNAPSHOT}` are
+> carried over verbatim.
 
 ### Step 11 — Publish
 
