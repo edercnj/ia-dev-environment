@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-04-13
+
+### Added
+- **CI guard against old skill names (EPIC-0036 / STORY-0036-0006):** New `scripts/check-old-skill-names.sh` scans the repository for any of the 19 OLD EPIC-0036 skill names and fails the build on an unexpected occurrence. Allow-list covers historical artifacts (`plans/`, `adr/`, `CHANGELOG.md`, `docs/release-notes/`), generated outputs (`.claude/`, `java/src/test/resources/golden/`), and build directories. Wired into `.github/workflows/skill-name-guard.yml`, which runs on every push and pull request to `develop` and `main`. Regression tests live in `tests/guard/test-skill-name-guard.sh`.
+- **Recursive traversal for hierarchical skills SoT (EPIC-0036):** `SkillsAssembler` now recursively walks the categorised skills directory tree (`targets/claude/skills/{category}/{skill}/`), enabling the new hierarchical SoT layout.
+- **Release notes for EPIC-0036 (`docs/release-notes/EPIC-0036-skill-renames.md`):** dedicated migration document with the complete 19-row old → new table, breaking-change notice, mechanical migration recipe, and references to ADR-0003 and the staging document.
+
 ### Changed
 - **Skill Taxonomy Refactor — Primary Cluster (EPIC-0036 / STORY-0036-0004):** 10 skills renamed to eliminate the `x-story-*` / `x-epic-*` / `x-task-*` / `x-dev-*` ambiguity. Mappings:
   - `x-story-epic` → `x-epic-create`
@@ -35,12 +42,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   Total renames across STORY-0036-0004 and STORY-0036-0005: **19**. All cross-references, golden files, and tests updated. No backward compatibility (RULE-005).
 
-### Added
-- **CI guard against old skill names (EPIC-0036 / STORY-0036-0006):** New `scripts/check-old-skill-names.sh` scans the repository for any of the 19 OLD EPIC-0036 skill names and fails the build on an unexpected occurrence. Allow-list covers historical artifacts (`plans/`, `adr/`, `CHANGELOG.md`, `docs/release-notes/`), generated outputs (`.claude/`, `java/src/test/resources/golden/`), and build directories. Wired into `.github/workflows/skill-name-guard.yml`, which runs on every push and pull request to `develop` and `main`. Regression tests live in `tests/guard/test-skill-name-guard.sh`.
-- **Release notes for EPIC-0036 (`docs/release-notes/EPIC-0036-skill-renames.md`):** dedicated migration document with the complete 19-row old → new table, breaking-change notice, mechanical migration recipe, and references to ADR-0003 and the staging document.
-
 ### Removed
 - **`SkillGroupRegistry.java` (EPIC-0036 / STORY-0036-0003):** the static skill-group registry was deleted; categorisation now lives in the directory layout (`targets/claude/skills/{category}/{skill}/`) under EPIC-0036.
+
+### Fixed
+- **Stale generated resources before `process-resources` (build):** Maven build now cleans stale generated outputs prior to the `process-resources` phase, preventing leftover files from previous runs from polluting the build.
 
 ## [3.1.0] - 2026-04-13
 
