@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-04-13
+
 ### Added
 - EPIC-0035: `x-release` skill extended with approval gate, PR-flow, and deep validation
   - New flags: `--continue-after-merge`, `--interactive`, `--signed-tag`, `--state-file`
