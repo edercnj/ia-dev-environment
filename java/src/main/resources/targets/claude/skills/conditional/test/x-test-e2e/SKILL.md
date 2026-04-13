@@ -1,5 +1,5 @@
 ---
-name: run-e2e
+name: x-test-e2e
 description: "Runs integration tests that validate the complete flow from request through all application layers to response, using a real database."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob

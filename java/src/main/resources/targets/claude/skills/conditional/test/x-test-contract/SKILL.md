@@ -1,5 +1,5 @@
 ---
-name: run-contract-tests
+name: x-test-contract
 description: "Runs consumer-driven contract tests (Pact, Spring Cloud Contract) to verify API compatibility between services."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob

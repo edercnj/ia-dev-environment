@@ -1,5 +1,5 @@
 ---
-name: run-smoke-socket
+name: x-test-smoke-socket
 description: "Runs automated smoke tests against the TCP socket server using a standalone Java client with message framing and protocol validation."
 user-invocable: true
 allowed-tools: Read, Bash

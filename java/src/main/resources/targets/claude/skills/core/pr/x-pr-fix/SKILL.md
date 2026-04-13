@@ -1,5 +1,5 @@
 ---
-name: x-pr-fix-comments
+name: x-pr-fix
 description: "Reads PR review comments and fixes actionable ones automatically. Detects PR from argument or branch, classifies comments (actionable/suggestion/question/praise), implements fixes, and commits with proper conventional commit messages."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob

@@ -1,5 +1,5 @@
 ---
-name: x-runtime-protection
+name: x-runtime-eval
 description: "Evaluate runtime protection controls: rate limiting, WAF rules, bot protection, DDoS mitigation, account lockout, brute force protection, CSP enforcement, and permissions policy. Produce SARIF 2.1.0 output with ASVS compliance mapping and scored Markdown report."
 user-invocable: true
 allowed-tools: Read, Write, Bash, Glob, Grep

@@ -1,5 +1,5 @@
 ---
-name: run-perf-test
+name: x-test-perf
 description: "Runs performance tests to validate latency SLAs, throughput targets, and resource stability under load. Supports baseline, normal, peak, and sustained scenarios."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob

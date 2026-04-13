@@ -1,5 +1,5 @@
 ---
-name: run-smoke-api
+name: x-test-smoke-api
 description: "Runs automated smoke tests against the REST API using Newman/Postman. Supports local, container-orchestrated, and staging environments."
 user-invocable: true
 allowed-tools: Read, Bash
