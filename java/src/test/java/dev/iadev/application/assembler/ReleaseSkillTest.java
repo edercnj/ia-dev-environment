@@ -238,13 +238,19 @@ class ReleaseSkillTest {
             // (Step 9, story-0035-0006).
             String content =
                     generateClaudeContent(tempDir);
-            int stepTen = content.indexOf(
+            int stepPublish = content.indexOf(
                     "### Step 11 \u2014 Publish");
-            int stepEleven = content.indexOf(
+            int stepCleanup = content.indexOf(
                     "### Step 12 \u2014 Cleanup");
-            String stepTenBody = content.substring(
-                    stepTen, stepEleven);
-            assertThat(stepTenBody).contains(
+            assertThat(stepPublish)
+                    .as("Step 11 Publish header not found")
+                    .isNotNegative();
+            assertThat(stepCleanup)
+                    .as("Step 12 Cleanup header not found")
+                    .isGreaterThan(stepPublish);
+            String publishBody = content.substring(
+                    stepPublish, stepCleanup);
+            assertThat(publishBody).contains(
                     "git push origin \"v${VERSION}\"");
         }
 
