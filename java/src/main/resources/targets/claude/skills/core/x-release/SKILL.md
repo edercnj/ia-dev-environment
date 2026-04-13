@@ -1154,72 +1154,137 @@ If `--dry-run` flag is present, show the complete release plan without executing
 ```
 === RELEASE PLAN (DRY-RUN) ===
 
-Current version:  1.2.3
-Target version:   1.3.0
+Current version:  2.2.2
+Target version:   2.3.0
 Bump type:        minor
 Source branch:    develop
+Mode:             standard (not hotfix)
+State file:       plans/release-state-2.3.0.json
 
-Steps:
-  1. Create branch:    release/1.3.0 (from develop)
-  2. Update version:   pom.xml (1.2.3-SNAPSHOT -> 1.3.0)
-  3. Generate:         CHANGELOG.md
-  4. Commit:           release: v1.3.0
-  5. Merge to main:    git merge release/1.3.0 --no-ff
-  6. Tag:              v1.3.0 (on main)
-  7. Merge to develop: git merge release/1.3.0 --no-ff
-  8. Advance develop:  1.4.0-SNAPSHOT
-  9. Push:             main, develop, v1.3.0
- 10. Cleanup:          delete release/1.3.0
+Phases:
+  0. RESUME_DETECTION  -> check state file, verify gh/jq
+                       -> will create new state with phase: INITIALIZED
+  1. DETERMINE         -> bump: minor, current: 2.2.2, target: 2.3.0
+  2. VALIDATE_DEEP     -> will run 8 checks:
+                          [1] working dir clean
+                          [2] on develop branch
+                          [3] CHANGELOG [Unreleased] populated
+                          [4] mvn clean verify -Pall-tests
+                          [5] coverage >= 95% line, 90% branch
+                          [6] golden file tests pass
+                          [7] no hardcoded version strings outside pom/CHANGELOG
+                          [8] cross-file version consistency
+                       -> skip tests (4-6) if --skip-tests
+  3. BRANCH            -> create release/2.3.0 from develop
+  4. UPDATE            -> pom.xml: 2.2.2-SNAPSHOT -> 2.3.0
+  5. CHANGELOG         -> invoke x-release-changelog skill
+                       -> moves [Unreleased] -> [2.3.0] - 2026-04-10
+  6. COMMIT            -> git commit -m "release: v2.3.0"
+  7. OPEN_RELEASE_PR   -> git push origin release/2.3.0
+                       -> gh pr create --base main --head release/2.3.0
+                       -> PR body from CHANGELOG entry
+                       -> save prNumber, prUrl to state
+                       -> skip review automation if --skip-review
+ ------------------------------------------------------------
+  8. APPROVAL_GATE     -> SKILL WILL HALT HERE
+                       -> phase: APPROVAL_PENDING persisted
+                       -> exit 0, waiting for manual PR merge
+                       -> with --interactive: AskUserQuestion pause instead
+ ------------------------------------------------------------
+ === HUMAN MUST MERGE PR IN GITHUB ===
+ ------------------------------------------------------------
+  9. RESUME_AND_TAG    -> requires --continue-after-merge flag
+                       -> gh pr view 262 --json state,mergedAt
+                       -> verify state == MERGED (defense in depth)
+                       -> git checkout main, pull
+                       -> git tag -a v2.3.0 (or -s if --signed-tag)
+                       -> git push origin v2.3.0
+ 10. BACK_MERGE_DEVELOP-> git checkout -b chore/backmerge-v2.3.0 origin/develop
+                       -> git merge --no-ff origin/main
+                       -> if clean: SNAPSHOT advance to 2.4.0-SNAPSHOT (Java only)
+                       -> gh pr create --base develop --head chore/backmerge-v2.3.0
+                       -> if conflict: PR body explains, state = BACKMERGE_CONFLICT
+ 11. CLEANUP           -> delete release/2.3.0 (local + remote)
+                       -> delete plans/release-state-2.3.0.json
+                       -> print final report
+
+Flags active: (none)
+Estimated duration:
+  Phases 0-7 (until halt):    ~5-10 min
+  Human wait (approval):      minutes to hours
+  Phases 9-11 (after resume): ~2-3 min
 
 === NO CHANGES MADE ===
 ```
 
-**Important:** In dry-run mode, all steps are only simulated. No files are modified, no commits are created, no tags are made, no branches are created.
-
-## Hotfix Release
-
-Hotfix releases follow a similar workflow but branch from `main` instead of `develop`:
-
-### Hotfix Workflow
-
+For hotfix mode (`--hotfix`), the dry-run shows:
 ```
-1. VALIDATE     -> Must be on main
-2. BRANCH       -> git checkout -b hotfix/description from main
-3. FIX          -> Apply minimal fix (PATCH version bump only)
-4. UPDATE       -> Update version files (PATCH increment only)
-5. CHANGELOG    -> Generate changelog
-6. COMMIT       -> Commit fix on hotfix branch
-7. MERGE-MAIN   -> git checkout main && git merge hotfix/description --no-ff
-8. TAG          -> git tag -a vX.Y.Z on main
-9. MERGE-BACK   -> git checkout develop && git merge hotfix/description --no-ff
-                   (or merge into active release/* branch if one exists)
-10. PUBLISH     -> Push main, develop (or release/*), and tag
-11. CLEANUP     -> git branch -d hotfix/description
+Source branch:    main (hotfix mode)
+Bump type:        patch (forced)
+Branch created:   hotfix/2.2.3 (from main)
 ```
+
+**Important:** In dry-run mode, all phases are only simulated. No files are modified, no commits are created, no tags are made, no branches are created, no PRs are opened.
+
+## Hotfix Release (with PR-Flow)
+
+Hotfix releases follow the same phase sequence as standard releases but with
+key differences. Per RULE-001, all merges use PR-flow via `gh pr create` —
+no direct `git merge` to `main` or `develop`.
+
+### Standard vs. Hotfix Differences
+
+| Difference | Standard | Hotfix |
+|---|---|---|
+| Branch base | develop | main |
+| Branch created | release/X.Y.Z | hotfix/X.Y.Z |
+| Bump type | major/minor/patch | PATCH only (MAJOR/MINOR forbidden) |
+| SNAPSHOT advance | Yes (X.(Y+1).0-SNAPSHOT) | No (skipped) |
+| Back-merge target | develop | develop AND active release/* (if exists) |
+
+### Phases Modified in Hotfix Mode
+
+- **Phase 1 (DETERMINE)**: Forces bump = patch. MAJOR/MINOR trigger error
+  `HOTFIX_INVALID_BUMP` with message: `Hotfix mode only allows patch bump. Got: <type>`.
+- **Phase 2 (VALIDATE_DEEP)**: Check [2] (correct branch) expects `main`, not `develop`.
+- **Phase 3 (BRANCH)**: Creates `hotfix/X.Y.Z` from `main` instead of `release/X.Y.Z`
+  from `develop`.
+- **Phase 7 (OPEN_RELEASE_PR)**: PR targets main via
+  `gh pr create --base main --head hotfix/X.Y.Z` with title `fix: v${VERSION} (hotfix)`.
+- **Phase 10 (BACK_MERGE_DEVELOP)**:
+  - Always: opens PR `--base develop --head chore/backmerge-v${VERSION}`
+  - If active `release/*` exists: opens additional PR to that branch
+  - SNAPSHOT advance is SKIPPED for hotfix mode
 
 ### Hotfix Rules
 
 - **Origin branch:** Always `main` (never `develop`)
 - **Version bump:** PATCH only (e.g., `1.2.0` -> `1.2.1`)
-- **Merge targets:** `main` AND `develop` (or active `release/*` if one exists)
-- **Tag location:** `main` (after merge)
-- MAJOR or MINOR bumps are forbidden in hotfix releases
+- **PR targets:** `main` (Phase 7) AND `develop` (Phase 10), plus active `release/*` if exists
+- **Tag location:** `main` (after PR merged, via Phase 9)
+- MAJOR or MINOR bumps are forbidden in hotfix releases — enforced by `HOTFIX_INVALID_BUMP`
 
-### Hotfix Merge Target Selection
+### Active Release Branch Detection (Phase 10, Hotfix Only)
 
 ```bash
-# Check if an active release branch exists
-RELEASE_BRANCH=$(git branch --list 'release/*' | head -1 | tr -d ' ')
+# Detect active release/* branch on remote
+RELEASE_BRANCH=$(git branch -r | grep -E 'origin/release/' | head -1 | sed 's|origin/||' | tr -d ' ')
 
 if [ -n "$RELEASE_BRANCH" ]; then
-  # Merge into active release branch instead of develop
-  git checkout "$RELEASE_BRANCH"
-  git merge "hotfix/${DESCRIPTION}" --no-ff
-else
-  # Merge into develop
-  git checkout develop
-  git merge "hotfix/${DESCRIPTION}" --no-ff
+  # Create additional PR from hotfix backmerge to active release
+  gh pr create \
+    --base "$RELEASE_BRANCH" \
+    --head "chore/backmerge-v${VERSION}" \
+    --title "chore(hotfix): merge hotfix v${VERSION} into ${RELEASE_BRANCH}" \
+    --body "Propagates hotfix v${VERSION} fixes to active release branch."
 fi
+
+# Always create PR to develop (standard back-merge)
+gh pr create \
+  --base develop \
+  --head "chore/backmerge-v${VERSION}" \
+  --title "chore(hotfix): back-merge v${VERSION} to develop" \
+  --body "Automated back-merge from main after hotfix v${VERSION}."
 ```
 
 ## Pre-Release Validation Checklist
@@ -1234,29 +1299,47 @@ Before executing the release, validate against the release-checklist template (`
 - [ ] CHANGELOG.md will be updated
 - [ ] No breaking changes without major bump
 
-## Error Handling
+## Consolidated Error Catalog
 
-| Scenario | Error Code | Action |
-|----------|------------|--------|
-| No tags found | — | Assume version 0.0.0, first release |
-| Uncommitted changes | `VALIDATE_DIRTY_WORKDIR` | ABORT: Uncommitted changes in working directory |
-| Wrong branch | `VALIDATE_WRONG_BRANCH` | ABORT: Not on develop/release (or main for hotfix) |
-| CHANGELOG [Unreleased] empty | `VALIDATE_EMPTY_UNRELEASED` | ABORT: CHANGELOG [Unreleased] section empty |
-| Build or tests fail | `VALIDATE_BUILD_FAILED` | ABORT: Build or tests failed |
-| Line coverage below threshold | `VALIDATE_COVERAGE_LINE` | ABORT: Line coverage below threshold |
-| Branch coverage below threshold | `VALIDATE_COVERAGE_BRANCH` | ABORT: Branch coverage below threshold |
-| Golden files out of sync | `VALIDATE_GOLDEN_DRIFT` | ABORT: Golden files out of sync |
-| Hardcoded version string found | `VALIDATE_HARDCODED_VERSION` | ABORT: Hardcoded version string found |
-| Version mismatch across files | `VALIDATE_VERSION_MISMATCH` | ABORT: pom.xml version mismatch |
-| Generator output differs | `VALIDATE_GENERATION_DRIFT` | ABORT: Generator output differs from baseline |
-| Invalid version format | — | ABORT with SemVer format hint |
-| No Conventional Commits found | — | Default to patch bump |
-| Already tagged version | — | ABORT with "version already released" |
-| Not on main (hotfix) | `VALIDATE_WRONG_BRANCH` | ABORT, hotfix must start from main |
-| Push fails | — | Report error, release is local only |
-| Merge conflict (main) | — | ABORT, resolve manually |
-| Merge conflict (develop) | — | Warning, resolve and continue |
-| Active release branch exists (hotfix) | — | Merge hotfix into release branch instead of develop |
+All error codes emitted by the release skill, organized by phase. Each code
+uses `UPPER_SNAKE_CASE` and is unique across the entire catalog. Operators
+triage failures using these codes; the full human-readable messages are
+printed at runtime.
+
+| Phase | Error Code | Condition | Message | Exit |
+| :--- | :--- | :--- | :--- | :--- |
+| 0 | `DEP_GH_MISSING` | `gh` CLI not installed | `gh CLI not installed. See https://cli.github.com/` | 1 |
+| 0 | `DEP_JQ_MISSING` | `jq` not installed | `jq not installed. Install via your package manager.` | 1 |
+| 0 | `DEP_GH_AUTH` | `gh` not authenticated | `gh not authenticated. Run 'gh auth login'.` | 1 |
+| 0 | `STATE_INVALID_JSON` | State file is corrupted JSON | `State file exists but is not valid JSON: <path>` | 1 |
+| 0 | `STATE_SCHEMA_VERSION` | Unknown `schemaVersion` | `Unknown schemaVersion: <n>. Expected: 1.` | 1 |
+| 0 | `RESUME_NO_STATE` | `--continue-after-merge` without state file | `No release in progress. Run /x-release <version> first.` | 1 |
+| 0 | `STATE_CONFLICT` | State file exists with `phase != COMPLETED` | `Release in progress for v<X.Y.Z>. Use --continue-after-merge or delete state.` | 1 |
+| 1 | `HOTFIX_INVALID_BUMP` | `--hotfix` with bump type != patch | `Hotfix mode only allows patch bump. Got: <type>` | 1 |
+| 2 | `VALIDATE_DIRTY_WORKDIR` | `git status --porcelain` non-empty | `Uncommitted changes in working directory` | 1 |
+| 2 | `VALIDATE_WRONG_BRANCH` | Not on expected branch (develop/main) | `Not on develop/release branch (or main for hotfix)` | 1 |
+| 2 | `VALIDATE_EMPTY_UNRELEASED` | CHANGELOG `[Unreleased]` section empty | `CHANGELOG [Unreleased] section empty or missing entries` | 1 |
+| 2 | `VALIDATE_BUILD_FAILED` | `mvn clean verify` exits non-zero | `Build or tests failed — see output above` | 1 |
+| 2 | `VALIDATE_COVERAGE_LINE` | Line coverage below threshold | `Line coverage <actual>% below threshold 95%` | 1 |
+| 2 | `VALIDATE_COVERAGE_BRANCH` | Branch coverage below threshold | `Branch coverage <actual>% below threshold 90%` | 1 |
+| 2 | `VALIDATE_GOLDEN_DRIFT` | Golden file tests fail | `Golden files out of sync. Run GoldenFileRegenerator.` | 1 |
+| 2 | `VALIDATE_HARDCODED_VERSION` | Version string in unexpected file | `Found hardcoded version <V> in: <files>` | 1 |
+| 2 | `VALIDATE_VERSION_MISMATCH` | pom.xml version != target version | `pom.xml version <pom> != target version <target>` | 1 |
+| 2 | `VALIDATE_GENERATION_DRIFT` | Generator output differs from golden | `Generator output differs from golden baseline` | 1 |
+| 7 | `PR_NO_CHANGELOG_ENTRY` | No `[X.Y.Z]` entry in CHANGELOG.md | `No [<V>] entry found in CHANGELOG.md. Ensure Step 5 completed.` | 1 |
+| 7 | `PR_PUSH_REJECTED` | `git push` rejected | `Push rejected. Check branch protection or network.` | 1 |
+| 7 | `PR_CREATE_FAILED` | `gh pr create` exits non-zero | `Failed to create PR: <stderr>` | 1 |
+| 8 | `APPROVAL_PR_STILL_OPEN` | Interactive option 1 but PR not merged | `PR is still OPEN. Merge first, then --continue-after-merge.` | 1 |
+| 8 | `APPROVAL_CANCELLED` | Interactive option 3 confirmed by user | `Release cancelled by user. Manual cleanup required.` | 2 |
+| 9 | `RESUME_GH_FAILED` | `gh pr view` command fails | `Failed to query PR #<n>. Check gh auth and network.` | 1 |
+| 9 | `RESUME_PR_NOT_MERGED` | PR state is not MERGED | `PR #<n> is <state>, not MERGED. Merge first.` | 1 |
+| 9 | `RESUME_PR_NO_MERGE_TIME` | `mergedAt` field is null | `PR state inconsistency — mergedAt is null.` | 1 |
+| 9 | `RESUME_TAG_LOCAL_EXISTS` | Tag already exists locally | `Tag v<V> already exists locally` | 1 |
+| 9 | `RESUME_TAG_REMOTE_EXISTS` | Tag already exists on remote | `Tag v<V> already exists on origin. Release already cut.` | 1 |
+| 9 | `RESUME_TAG_SIGN_FAILED` | `git tag -s` GPG failure | `Failed to create signed tag. Check GPG configuration.` | 1 |
+| 9 | `RESUME_TAG_PUSH_FAILED` | `git push` of tag fails (warning only) | `Tag created locally but push failed. Run 'git push origin v<V>' manually.` | — |
+| 10 | `BACKMERGE_WRONG_PHASE` | Phase is not TAGGED | `Expected phase TAGGED, got <phase>` | 1 |
+| 10 | `BACKMERGE_UNEXPECTED` | `git merge` returns unexpected exit code | `Unexpected git merge exit code: <n>` | 1 |
 
 ## Integration Notes
 
