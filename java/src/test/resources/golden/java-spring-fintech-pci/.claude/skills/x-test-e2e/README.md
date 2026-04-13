@@ -34,5 +34,5 @@ Runs or implements end-to-end tests that exercise the complete application flow:
 
 ## See Also
 
-- [x-test-run](../../core/x-test-run/) -- General test execution with coverage thresholds
-- [x-spec-drift](../../core/x-spec-drift/) -- Validates spec-code alignment before E2E runs
+- [x-test-run](../../../core/test/x-test-run/) -- General test execution with coverage thresholds
+- [x-spec-drift](../../../core/dev/x-spec-drift/) -- Validates spec-code alignment before E2E runs
