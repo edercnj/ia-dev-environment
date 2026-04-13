@@ -86,7 +86,7 @@
 ║           FASE 5 — Migration & Backward Compatibility                   ║
 ║                                                                        ║
 ║   ┌──────────────────────────────────────────────────────────┐         ║
-║   │  story-0038-0008  planning_schema_version + legacy load  │         ║
+║   │  story-0038-0008  planningSchemaVersion + legacy load  │         ║
 ║   │  (smoke test em épico v1; matriz de compat)              │         ║
 ║   └──────────────────────────┬───────────────────────────────┘         ║
 ╚══════════════════════════════╪═════════════════════════════════════════╝
@@ -277,7 +277,7 @@ graph TD
 
 | Story | Escopo Principal | Artefatos Chave |
 | :--- | :--- | :--- |
-| story-0038-0008 | Flag `planning_schema_version` em execution-state.json; legacy loader para "1.0"; matriz de compatibilidade | Schema versioning + branching nas 3 skills exec + smoke test em épico legacy |
+| story-0038-0008 | Flag `planningSchemaVersion` em execution-state.json; legacy loader para "1.0"; matriz de compatibilidade | Schema versioning + branching nas 3 skills exec + smoke test em épico legacy |
 
 **Entregas da Fase 5:**
 
@@ -347,7 +347,7 @@ Se 0006 funciona, o paradigma task-first está provado. Se 0006 falha, o problem
 
 ### Risco: Bootstrap Recursivo
 
-O épico é meta — refatora seu próprio fluxo de planejamento e execução. Mas **EPIC-0038 permanece em planning_schema_version v1 durante sua própria execução** (per spec §8.2). O dogfood real acontece em 0010 contra o **próximo** épico. Isso é intencional para evitar bootstrap problem (skills v2 não existem até 0003 e 0005 shiparem). Trate qualquer tentativa de "auto-hospedar" 0038 em v2 como bug, não feature.
+O épico é meta — refatora seu próprio fluxo de planejamento e execução. Mas **EPIC-0038 permanece em planningSchemaVersion v1 durante sua própria execução** (per spec §8.2). O dogfood real acontece em 0010 contra o **próximo** épico. Isso é intencional para evitar bootstrap problem (skills v2 não existem até 0003 e 0005 shiparem). Trate qualquer tentativa de "auto-hospedar" 0038 em v2 como bug, não feature.
 
 ---
 
