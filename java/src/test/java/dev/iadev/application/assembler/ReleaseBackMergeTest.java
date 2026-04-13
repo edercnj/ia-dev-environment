@@ -491,8 +491,8 @@ class ReleaseBackMergeTest {
             assertThat(content)
                     .contains("### Step 1 \u2014 Determine"
                             + " Version")
-                    .contains("### Step 2 \u2014 Validate"
-                            + " Pre-conditions")
+                    .contains("### Step 2 \u2014 Phase"
+                            + " VALIDATE-DEEP")
                     .contains("### Step 3 \u2014 Branch"
                             + " Creation")
                     .contains("### Step 4 \u2014 Update"
