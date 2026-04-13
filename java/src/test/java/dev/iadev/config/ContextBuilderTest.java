@@ -104,27 +104,27 @@ class ContextBuilderTest {
     }
 
     @Nested
-    @DisplayName("buildContext() produces exactly 46 fields")
+    @DisplayName("buildContext() produces exactly 50 fields")
     class FieldCount {
 
         @Test
-        @DisplayName("returns map with exactly 46 entries")
-        void buildContext_fullConfig_returns46Fields() {
+        @DisplayName("returns map with exactly 50 entries")
+        void buildContext_fullConfig_returns50Fields() {
             Map<String, Object> context =
                     ContextBuilder.buildContext(
                             buildFullConfig());
 
-            assertThat(context).hasSize(46);
+            assertThat(context).hasSize(50);
         }
 
         @Test
-        @DisplayName("returns map with 46 entries for minimal")
-        void buildContext_minimalConfig_returns46Fields() {
+        @DisplayName("returns map with 50 entries for minimal")
+        void buildContext_minimalConfig_returns50Fields() {
             Map<String, Object> context =
                     ContextBuilder.buildContext(
                             buildMinimalConfig());
 
-            assertThat(context).hasSize(46);
+            assertThat(context).hasSize(50);
         }
     }
 
@@ -478,11 +478,11 @@ class ContextBuilderTest {
     }
 
     @Nested
-    @DisplayName("exact 46 field names")
+    @DisplayName("exact 50 field names")
     class ExactFieldNames {
 
         @Test
-        @DisplayName("context contains all 46 expected keys")
+        @DisplayName("context contains all 50 expected keys")
         void buildContext_allExpectedKeys_present() {
             Map<String, Object> ctx =
                     ContextBuilder.buildContext(
@@ -534,7 +534,11 @@ class ContextBuilderTest {
                     "review_conditional_rubric",
                     "review_conditional_criteria",
                     "branching_model",
-                    "base_branch");
+                    "base_branch",
+                    "COVERAGE_LINE_THRESHOLD",
+                    "COVERAGE_BRANCH_THRESHOLD",
+                    "GOLDEN_TEST_COMMAND",
+                    "GENERATION_COMMAND");
         }
     }
 

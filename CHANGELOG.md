@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-04-13
+
+### Added
+- EPIC-0035: `x-release` skill extended with approval gate, PR-flow, and deep validation
+  - New flags: `--continue-after-merge`, `--interactive`, `--signed-tag`, `--state-file`
+  - State persistence in `plans/release-state-<X.Y.Z>.json` with versioned JSON schema
+  - New references: `approval-gate-workflow.md`, `state-file-schema.md`, `backmerge-strategies.md`
+
+### Changed
+- EPIC-0035: `x-release` Phase VALIDATE-DEEP now runs 8 checks (tests, coverage, golden files, hardcoded version strings, cross-file consistency) in addition to the basic build
+- EPIC-0035: `x-release` Phase OPEN-RELEASE-PR replaces direct `git merge` to main with `gh pr create --base main` + human approval gate
+- EPIC-0035: `x-release` Phase BACK-MERGE-DEVELOP replaces direct `git merge` to develop with `gh pr create --base develop` + conflict detection
+- EPIC-0035: Hotfix workflow updated to use PR-flow while preserving all existing semantics (patch only, back-merge to develop + active release/*)
+
+### Fixed
+- EPIC-0035: `x-release` no longer violates Rule 09 (Branching Model) -- all merges to `main` and `develop` now go through PRs
+
 ## [3.0.0] - 2026-04-11
 
 ### Added

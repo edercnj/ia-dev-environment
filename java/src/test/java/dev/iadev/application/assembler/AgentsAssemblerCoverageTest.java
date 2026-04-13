@@ -231,7 +231,7 @@ class AgentsAssemblerCoverageTest {
             Map<String, Object> context =
                     ContextBuilder.buildContext(config);
 
-            assertThat(context).hasSize(46);
+            assertThat(context).hasSize(50);
             assertThat(context)
                     .containsEntry("project_name",
                             "agent-test")
