@@ -6,7 +6,7 @@
 |---|---|
 | **Category** | Orchestrator |
 | **Invocation** | `/x-story-implement [STORY-ID or feature-name]` |
-| **Delegates to** | `x-arch-plan`, `x-test-plan`, `x-lib-task-decomposer`, `x-task-implement`, `x-arch-update`, `x-review`, `x-review-pr`, `x-git-push`, `run-e2e` |
+| **Delegates to** | `x-arch-plan`, `x-test-plan`, `x-lib-task-decomposer`, `x-task-implement`, `x-arch-update`, `x-review`, `x-review-pr`, `x-git-push`, `x-test-e2e` |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
 
@@ -61,7 +61,7 @@ flowchart TD
 | 5 | Remediation + Fixes | Fix all review findings with TDD discipline, update remediation tracker | Inline |
 | 6 | Commit + PR | Push branch, create PR targeting develop with review summary | `x-git-push` |
 | 7 | Tech Lead Review | 40-point holistic review, requires 40/40 GO (max 2 retry cycles) | `x-review-pr` |
-| 8 | Final Verification | Update status files, Jira sync, DoD checklist (24+ items), smoke tests | Inline + `run-e2e` |
+| 8 | Final Verification | Update status files, Jira sync, DoD checklist (24+ items), smoke tests | Inline + `x-test-e2e` |
 
 ## Flags
 
