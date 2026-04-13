@@ -37,14 +37,26 @@ final class SkillsHierarchyResolver {
 
     /**
      * Lists skill names under a root directory, supporting
-     * both flat and hierarchical layouts.
+     * flat layout and a single category level of nesting.
      *
-     * <p>The {@code lib/} subfolder is special-cased: its
-     * children are emitted with the {@code lib/} prefix
-     * preserved.</p>
+     * <p>Exactly two layouts are recognized:
+     * <ul>
+     *   <li>{@code rootDir/{skill}/SKILL.md} (flat)</li>
+     *   <li>{@code rootDir/{category}/{skill}/SKILL.md}
+     *       (one category level)</li>
+     * </ul>
+     * Deeper nesting (e.g.
+     * {@code rootDir/{category}/{sub}/{skill}/SKILL.md}) is
+     * NOT discovered. The {@code lib/} subfolder is
+     * special-cased: its immediate children that contain
+     * {@code SKILL.md} are emitted with the {@code lib/}
+     * prefix preserved.</p>
      *
      * @param rootDir the core or conditional root directory
-     * @return list of skill names, in scan order
+     * @return list of skill names, in scan order (top-level
+     *         directories are sorted by name; within each
+     *         category, skills are sorted by name; skills
+     *         are NOT globally sorted across categories)
      */
     static List<String> listSkillNames(Path rootDir) {
         List<String> skills = new ArrayList<>();
@@ -69,6 +81,9 @@ final class SkillsHierarchyResolver {
             Path libDir, List<String> skills) {
         for (Path sub :
                 SkillsCopyHelper.listDirsSorted(libDir)) {
+            if (!isSkillDirectory(sub)) {
+                continue;
+            }
             skills.add(LIB_DIR + "/"
                     + sub.getFileName().toString());
         }

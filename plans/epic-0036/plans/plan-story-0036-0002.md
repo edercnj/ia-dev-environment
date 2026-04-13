@@ -6,13 +6,13 @@ Reorganize `targets/claude/skills/core/**` and `conditional/**` into 10 category
 
 ## 2. Architectural Decisions
 
-### Recursive traversal with SKILL.md marker
+### Category-level traversal with SKILL.md marker
 
-`selectCoreSkills()` and `copyConditionalSkill()` must walk subdirectories recursively. A directory is considered a "skill directory" iff it contains a `SKILL.md` file. This marker-based approach:
+`selectCoreSkills()` and `copyConditionalSkill()` must walk subdirectories up to **one category level** (no deeper recursion). A directory is considered a "skill directory" iff it contains a `SKILL.md` file. This marker-based approach:
 
-- Tolerates arbitrary nesting (`core/plan/x-story-epic/SKILL.md` works)
+- Supports exactly one category level (`core/plan/x-story-epic/SKILL.md` works; `core/plan/sub/x-foo/SKILL.md` is NOT discovered)
 - Preserves legacy flat layout for tests (`core/x-review/SKILL.md` still works)
-- Preserves the `lib/` exception (stays at `core/lib/{name}` with `lib/` prefix)
+- Preserves the `lib/` exception (stays at `core/lib/{name}` with `lib/` prefix; `lib/` children also require the `SKILL.md` marker)
 - Ignores intermediate category directories that themselves have no `SKILL.md`
 
 ### Output path invariant

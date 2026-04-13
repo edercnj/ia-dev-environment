@@ -95,10 +95,14 @@ public final class SkillsAssembler implements Assembler {
      * its {@code lib/} prefix in the emitted name. Traversal
      * is delegated to {@link SkillsHierarchyResolver}, which
      * uses the {@code SKILL.md} marker rule to transparently
-     * support legacy flat layouts (backward-compatible) and
-     * arbitrary category nesting.</p>
+     * support legacy flat layouts (backward-compatible) plus
+     * exactly one category level of nesting. Deeper nesting
+     * (e.g. {@code core/{cat}/{sub}/{name}/SKILL.md}) is NOT
+     * discovered.</p>
      *
-     * @return sorted list of core skill names
+     * @return list of core skill names in scan order
+     *         (top-level dirs sorted, then per-category
+     *         sorted; NOT globally sorted across categories)
      */
     List<String> selectCoreSkills() {
         return SkillsHierarchyResolver.listSkillNames(
