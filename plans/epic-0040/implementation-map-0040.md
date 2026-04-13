@@ -200,7 +200,7 @@ graph TD
 
 **Total: 12 histórias em 7 fases.**
 
-> **Nota:** Paralelismo máximo é 3 (Fase 3). Sequencial no caminho crítico após Fase 3. Worktrees (Rule 18) são recomendados nas fases 1, 2 e 3 para evitar contenção de arquivos.
+> **Nota:** Paralelismo máximo é 3 (Fase 3). Sequencial no caminho crítico após Fase 3. O uso de worktrees é recomendado (não-normativo) nas fases 1, 2 e 3 para evitar contenção de arquivos entre desenvolvedores em paralelo.
 
 ---
 
