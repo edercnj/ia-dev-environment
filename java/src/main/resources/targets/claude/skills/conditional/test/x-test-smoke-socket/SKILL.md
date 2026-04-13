@@ -24,10 +24,10 @@ Include this skill when smoke_tests is enabled AND "tcp-custom" is in protocols.
 
 ## Triggers
 
-- `/run-smoke-socket` -- run all scenarios against local environment
-- `/run-smoke-socket --k8s` -- run with automatic port-forward (orchestrator)
-- `/run-smoke-socket --k8s --scenario echo` -- run specific scenario
-- `/run-smoke-socket --host 10.0.0.1 --port 8583` -- run against custom host/port
+- `/x-test-smoke-socket` -- run all scenarios against local environment
+- `/x-test-smoke-socket --k8s` -- run with automatic port-forward (orchestrator)
+- `/x-test-smoke-socket --k8s --scenario echo` -- run specific scenario
+- `/x-test-smoke-socket --host 10.0.0.1 --port 8583` -- run against custom host/port
 
 ## Parameters
 
@@ -100,7 +100,7 @@ Automatic via trap EXIT:
 |------|-------------|
 | `smoke-tests/socket/pom.xml` | Client build file (executable JAR) |
 | `smoke-tests/socket/src/` | Java client source code |
-| `smoke-tests/socket/run-smoke-socket.sh` | Execution script |
+| `smoke-tests/socket/x-test-smoke-socket.sh` | Execution script |
 
 ## Client Architecture
 

@@ -24,13 +24,13 @@ Include this skill for projects with performance testing requirements.
 
 ## Triggers
 
-- `/run-perf-test baseline` -- single user, sequential requests
-- `/run-perf-test normal` -- expected daily load
-- `/run-perf-test peak` -- maximum expected concurrent load
-- `/run-perf-test sustained` -- constant load over extended period (30 min+)
-- `/run-perf-test all` -- run all scenarios
-- `/run-perf-test normal --save-baseline` -- save results as baseline
-- `/run-perf-test normal --compare-baseline` -- compare against stored baseline
+- `/x-test-perf baseline` -- single user, sequential requests
+- `/x-test-perf normal` -- expected daily load
+- `/x-test-perf peak` -- maximum expected concurrent load
+- `/x-test-perf sustained` -- constant load over extended period (30 min+)
+- `/x-test-perf all` -- run all scenarios
+- `/x-test-perf normal --save-baseline` -- save results as baseline
+- `/x-test-perf normal --compare-baseline` -- compare against stored baseline
 
 ## Parameters
 

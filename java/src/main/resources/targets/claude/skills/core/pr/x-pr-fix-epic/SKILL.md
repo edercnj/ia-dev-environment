@@ -20,11 +20,11 @@ Automates the complete cycle of addressing PR review comments across an entire e
 
 ## Triggers
 
-- `/x-pr-fix-epic-comments 0024` — fix comments on all PRs from epic 0024
-- `/x-pr-fix-epic-comments 0024 --dry-run` — generate report only, no fixes
-- `/x-pr-fix-epic-comments 0024 --prs 143,144,145` — fix comments on specific PRs only
-- `/x-pr-fix-epic-comments 0024 --skip-replies` — fix without replying to original comments
-- `/x-pr-fix-epic-comments 0024 --include-suggestions` — also fix suggestion-type comments
+- `/x-pr-fix-epic 0024` — fix comments on all PRs from epic 0024
+- `/x-pr-fix-epic 0024 --dry-run` — generate report only, no fixes
+- `/x-pr-fix-epic 0024 --prs 143,144,145` — fix comments on specific PRs only
+- `/x-pr-fix-epic 0024 --skip-replies` — fix without replying to original comments
+- `/x-pr-fix-epic 0024 --include-suggestions` — also fix suggestion-type comments
 
 ## Parameters
 
@@ -44,7 +44,7 @@ Automates the complete cycle of addressing PR review comments across an entire e
 3. DISCOVER    -> Extract PR list from execution-state.json (or --prs)
 4. IDEMPOTENCY -> Check for existing correction branch (RULE-010)
 5. FETCH       -> Batch-fetch review comments from all discovered PRs (story-0026-0002)
-6. CLASSIFY    -> Classify each comment using x-pr-fix-comments heuristics (story-0026-0002)
+6. CLASSIFY    -> Classify each comment using x-pr-fix heuristics (story-0026-0002)
 7. REPORT      -> Generate consolidated findings report (story-0026-0003)
 8. FIX         -> Apply corrections for actionable comments (story-0026-0004)
 9. VERIFY      -> Compile + test after fixes (story-0026-0004)
@@ -67,7 +67,7 @@ Automates the complete cycle of addressing PR review comments across an entire e
 The epic ID is a required positional argument. If missing, abort immediately:
 
 ```
-ERROR: Epic ID is required. Usage: /x-pr-fix-epic-comments [EPIC-ID] [flags]
+ERROR: Epic ID is required. Usage: /x-pr-fix-epic [EPIC-ID] [flags]
 ```
 
 If the epic ID does not match `^\d{4}$`, abort:
@@ -344,7 +344,7 @@ Skipped PRs (error): {errorCount}
 
 ### Step 6 — Classification Engine (RULE-002)
 
-Classify each fetched comment using the heuristics from `/x-pr-fix-comments`. This engine applies deterministic rules in priority order to assign exactly one classification per comment.
+Classify each fetched comment using the heuristics from `/x-pr-fix`. This engine applies deterministic rules in priority order to assign exactly one classification per comment.
 
 ### 6.1 Classification Categories
 
@@ -1237,11 +1237,11 @@ The fix engine (Steps 8-9, 11) produces the following output:
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| x-pr-fix-comments | reads | Reuses classification heuristics (RULE-002 — Classification consistency) |
+| x-pr-fix | reads | Reuses classification heuristics (RULE-002 — Classification consistency) |
 | x-epic-implement | called-after | Processes review comments from PRs created by epic implementation |
 | x-epic-decompose | depends-on | Requires epic directory and story files to exist |
 
-### Classification Heuristics (from x-pr-fix-comments)
+### Classification Heuristics (from x-pr-fix)
 
 | Type | Heuristic Keywords | Action |
 |------|-------------------|--------|
@@ -1277,7 +1277,7 @@ Only entries with `prNumber != null` are included in PR discovery. Stories with 
 | Rule | Title | How This Skill Implements It |
 |------|-------|------------------------------|
 | RULE-001 | Checkpoint as PR source | Reads `execution-state.json` to discover PRs |
-| RULE-002 | Classification consistency | Reuses `/x-pr-fix-comments` heuristics with priority-ordered matching (Step 6) |
+| RULE-002 | Classification consistency | Reuses `/x-pr-fix` heuristics with priority-ordered matching (Step 6) |
 | RULE-003 | Single correction PR | Creates one PR consolidating all fixes with body referencing all source PRs (Step 11) |
 | RULE-004 | Report persisted before corrections | Generates and saves `pr-comments-report.md` BEFORE any fixes are applied (Step 7) |
 | RULE-005 | Deduplication cross-PR | SHA-256 fingerprint on normalized body + basename deduplicates across PRs (Step 6B) |

@@ -65,7 +65,7 @@ class SecurityIntegrationVerificationTest {
                     .containsExactlyInAnyOrder(
                             "x-security-sast",
                             "x-security-dast",
-                            "x-security-secret-scan",
+                            "x-security-secrets",
                             "x-security-container",
                             "x-security-infra",
                             "x-security-sonar");
@@ -120,7 +120,7 @@ class SecurityIntegrationVerificationTest {
                     .contains(
                             "x-security-sast",
                             "x-security-dast",
-                            "x-security-secret-scan",
+                            "x-security-secrets",
                             "x-security-container",
                             "x-security-infra",
                             "x-security-pentest",
@@ -161,7 +161,7 @@ class SecurityIntegrationVerificationTest {
             assertThat(skills)
                     .containsExactlyInAnyOrder(
                             "x-security-sast",
-                            "x-security-secret-scan");
+                            "x-security-secrets");
             assertThat(skills)
                     .doesNotContain(
                             "x-security-dast",
@@ -392,7 +392,7 @@ class SecurityIntegrationVerificationTest {
             List<String> expectedSkills = List.of(
                     "x-security-sast",
                     "x-security-dast",
-                    "x-security-secret-scan",
+                    "x-security-secrets",
                     "x-security-container",
                     "x-security-infra",
                     "x-security-pentest",
@@ -422,7 +422,7 @@ class SecurityIntegrationVerificationTest {
             List<String> coreSecSkills = List.of(
                     "x-owasp-scan",
                     "x-hardening-eval",
-                    "x-runtime-protection",
+                    "x-runtime-eval",
                     "x-supply-chain-audit",
                     "x-security-dashboard",
                     "x-security-pipeline");
@@ -533,7 +533,7 @@ class SecurityIntegrationVerificationTest {
             List<String> conditionalScanSkills = List.of(
                     "x-security-sast",
                     "x-security-dast",
-                    "x-security-secret-scan",
+                    "x-security-secrets",
                     "x-security-container",
                     "x-security-infra",
                     "x-security-pentest",
@@ -602,8 +602,8 @@ class SecurityIntegrationVerificationTest {
                     .as("x-security-sast must exist")
                     .isDirectory();
             assertThat(outputDir.resolve(
-                    ".claude/skills/x-security-secret-scan"))
-                    .as("x-security-secret-scan must exist")
+                    ".claude/skills/x-security-secrets"))
+                    .as("x-security-secrets must exist")
                     .isDirectory();
 
             assertThat(outputDir.resolve(

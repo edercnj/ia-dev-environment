@@ -1,4 +1,4 @@
-# run-contract-tests
+# x-test-contract
 
 > Runs consumer-driven contract tests (Pact, Spring Cloud Contract) to verify API compatibility between services.
 
@@ -6,7 +6,7 @@
 |---|---|
 | **Category** | Conditional |
 | **Condition** | `testing.contract_tests = true` |
-| **Invocation** | `/run-contract-tests [--provider \| --consumer \| --all]` |
+| **Invocation** | `/x-test-contract [--provider \| --consumer \| --all]` |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
 
@@ -21,13 +21,13 @@ Runs consumer-driven contract tests to verify API compatibility between services
 ## Usage
 
 ```
-/run-contract-tests --consumer
-/run-contract-tests --provider
-/run-contract-tests --all
+/x-test-contract --consumer
+/x-test-contract --provider
+/x-test-contract --all
 ```
 
 ## See Also
 
 - [x-test-contract-lint](../x-test-contract-lint/) -- API contract validation (OpenAPI, AsyncAPI, Protobuf)
 - [x-review-api](../x-review-api/) -- REST API design review
-- [run-e2e](../run-e2e/) -- End-to-end integration tests
+- [x-test-e2e](../x-test-e2e/) -- End-to-end integration tests

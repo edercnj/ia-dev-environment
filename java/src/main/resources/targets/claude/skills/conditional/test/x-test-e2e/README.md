@@ -1,11 +1,11 @@
-# run-e2e
+# x-test-e2e
 
 > Runs integration tests that validate the complete flow from request through all application layers to response, using a real database.
 
 | | |
 |---|---|
 | **Category** | Testing |
-| **Invocation** | `/run-e2e [scenario: happy-path\|error\|timeout\|persistent\|all]` |
+| **Invocation** | `/x-test-e2e [scenario: happy-path\|error\|timeout\|persistent\|all]` |
 | **Reads** | testing |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
@@ -19,10 +19,10 @@ Runs or implements end-to-end tests that exercise the complete application flow:
 ## Usage
 
 ```
-/run-e2e
-/run-e2e happy-path
-/run-e2e persistent
-/run-e2e all
+/x-test-e2e
+/x-test-e2e happy-path
+/x-test-e2e persistent
+/x-test-e2e all
 ```
 
 ## Workflow

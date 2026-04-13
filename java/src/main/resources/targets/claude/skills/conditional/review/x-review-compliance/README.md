@@ -31,4 +31,4 @@ Reviews code changes against PCI-DSS v4.0 requirements using a 20+ point checkli
 
 - [x-review-security](../x-review-security/) -- Multi-framework security compliance review
 - [x-security-sast](../x-security-sast/) -- Static application security testing
-- [x-security-secret-scan](../x-security-secret-scan/) -- Secret detection in code and git history
+- [x-security-secrets](../x-security-secrets/) -- Secret detection in code and git history

@@ -20,12 +20,12 @@ Evaluate runtime protection controls for {{PROJECT_NAME}} by analyzing active de
 
 ## Triggers
 
-- `/x-runtime-protection --target https://app.example.com` — evaluate all dimensions
-- `/x-runtime-protection --target https://app.example.com --scope rate-limit` — rate limiting only
-- `/x-runtime-protection --target https://app.example.com --scope waf` — WAF rules only
-- `/x-runtime-protection --target https://app.example.com --scope account-lockout --login-endpoint /api/auth/login` — account lockout
-- `/x-runtime-protection --target https://app.example.com --intensity passive` — observe headers only
-- `/x-runtime-protection --target https://app.example.com --intensity aggressive` — full volume testing (local/dev only)
+- `/x-runtime-eval --target https://app.example.com` — evaluate all dimensions
+- `/x-runtime-eval --target https://app.example.com --scope rate-limit` — rate limiting only
+- `/x-runtime-eval --target https://app.example.com --scope waf` — WAF rules only
+- `/x-runtime-eval --target https://app.example.com --scope account-lockout --login-endpoint /api/auth/login` — account lockout
+- `/x-runtime-eval --target https://app.example.com --intensity passive` — observe headers only
+- `/x-runtime-eval --target https://app.example.com --intensity aggressive` — full volume testing (local/dev only)
 
 ## Parameters
 
@@ -288,7 +288,7 @@ Write to `results/security/runtime-protection-{timestamp}.sarif.json`:
   "runs": [{
     "tool": {
       "driver": {
-        "name": "x-runtime-protection",
+        "name": "x-runtime-eval",
         "version": "1.0.0",
         "informationUri": "https://owasp.org/www-project-application-security-verification-standard/",
         "rules": [

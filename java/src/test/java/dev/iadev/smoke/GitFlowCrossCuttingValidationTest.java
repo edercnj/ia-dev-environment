@@ -257,7 +257,7 @@ class GitFlowCrossCuttingValidationTest {
     }
 
     @Nested
-    @DisplayName("x-pr-fix-epic-comments"
+    @DisplayName("x-pr-fix-epic"
             + " — develop base")
     class FixEpicPrComments {
 
@@ -266,7 +266,7 @@ class GitFlowCrossCuttingValidationTest {
         void fixPr_prCreation_targetsDevelop()
                 throws IOException {
             String content = readSkill(
-                    "x-pr-fix-epic-comments");
+                    "x-pr-fix-epic");
             assertThat(content)
                     .contains("--base develop");
         }
@@ -276,7 +276,7 @@ class GitFlowCrossCuttingValidationTest {
         void fixPr_branchSetup_usesDevelop()
                 throws IOException {
             String content = readSkill(
-                    "x-pr-fix-epic-comments");
+                    "x-pr-fix-epic");
             assertThat(content)
                     .contains("git checkout develop");
         }

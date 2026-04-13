@@ -24,9 +24,9 @@ Include this skill when `testing.contract_tests == true` in the project configur
 
 ## Triggers
 
-- `/run-contract-tests --consumer` -- generate pact files from consumer tests
-- `/run-contract-tests --provider` -- verify provider against published pacts
-- `/run-contract-tests --all` -- run both consumer generation and provider verification
+- `/x-test-contract --consumer` -- generate pact files from consumer tests
+- `/x-test-contract --provider` -- verify provider against published pacts
+- `/x-test-contract --all` -- run both consumer generation and provider verification
 
 ## Parameters
 

@@ -26,10 +26,10 @@ Include this skill when secret scanning is required for the project security pos
 
 ## Triggers
 
-- `/x-security-secret-scan` -- scan current working tree
-- `/x-security-secret-scan --scope history` -- scan git history
-- `/x-security-secret-scan --scope both` -- scan current tree and git history
-- `/x-security-secret-scan --scope both --baseline .security-baseline.json` -- scan with false positive exclusions
+- `/x-security-secrets` -- scan current working tree
+- `/x-security-secrets --scope history` -- scan git history
+- `/x-security-secrets --scope both` -- scan current tree and git history
+- `/x-security-secrets --scope both --baseline .security-baseline.json` -- scan with false positive exclusions
 
 ## Parameters
 

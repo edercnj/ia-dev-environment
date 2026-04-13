@@ -190,8 +190,8 @@ class SkillsAssemblerRecursiveTest {
                     "targets/claude/skills/conditional");
             writeSkillMd(
                     conditionalDir.resolve(
-                            "test/run-e2e"),
-                    "run-e2e");
+                            "test/x-test-e2e"),
+                    "x-test-e2e");
             Path coreDir = tempDir.resolve(
                     "targets/claude/skills/core");
             Files.createDirectories(coreDir);
@@ -211,7 +211,7 @@ class SkillsAssemblerRecursiveTest {
                     config, new TemplateEngine(), outputDir);
 
             assertThat(outputDir.resolve(
-                    "skills/run-e2e/SKILL.md")).exists();
+                    "skills/x-test-e2e/SKILL.md")).exists();
         }
     }
 

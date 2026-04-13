@@ -1,4 +1,4 @@
-# run-perf-test
+# x-test-perf
 
 > Runs performance tests to validate latency SLAs, throughput targets, and resource stability under load. Supports baseline, normal, peak, and sustained scenarios.
 
@@ -6,7 +6,7 @@
 |---|---|
 | **Category** | Conditional |
 | **Condition** | Performance testing requirements configured |
-| **Invocation** | `/run-perf-test [scenario: baseline\|normal\|peak\|sustained\|all]` |
+| **Invocation** | `/x-test-perf [scenario: baseline\|normal\|peak\|sustained\|all]` |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
 
@@ -21,14 +21,14 @@ Runs or implements performance tests to validate the application meets latency S
 ## Usage
 
 ```
-/run-perf-test
-/run-perf-test baseline
-/run-perf-test peak
-/run-perf-test all
+/x-test-perf
+/x-test-perf baseline
+/x-test-perf peak
+/x-test-perf all
 ```
 
 ## See Also
 
-- [run-e2e](../run-e2e/) -- End-to-end integration tests
-- [run-smoke-api](../run-smoke-api/) -- REST API smoke tests
+- [x-test-e2e](../x-test-e2e/) -- End-to-end integration tests
+- [x-test-smoke-api](../x-test-smoke-api/) -- REST API smoke tests
 - [x-obs-instrument](../x-obs-instrument/) -- OpenTelemetry instrumentation for performance metrics

@@ -20,8 +20,8 @@ Automates the process of addressing PR review comments for {{PROJECT_NAME}}. Rea
 
 ## Triggers
 
-- `/x-pr-fix-comments` — fix comments on current branch's PR
-- `/x-pr-fix-comments 123` — fix comments on PR #123
+- `/x-pr-fix` — fix comments on current branch's PR
+- `/x-pr-fix 123` — fix comments on PR #123
 
 ## Parameters
 
@@ -223,6 +223,6 @@ Output a summary table:
 | Skill | Relationship | Context |
 |-------|-------------|---------|
 | `x-story-implement` | called-by | Invoked during Phase 4 (fix review comments) |
-| `x-pr-fix-epic-comments` | called-by | Batch mode processes multiple PRs from an epic |
+| `x-pr-fix-epic` | called-by | Batch mode processes multiple PRs from an epic |
 | `x-git-push` | calls | Uses Conventional Commits format for fix commits |
 | `x-review` | reads | Processes comments produced by specialist reviews |

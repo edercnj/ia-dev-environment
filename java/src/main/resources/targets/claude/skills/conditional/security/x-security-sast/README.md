@@ -31,6 +31,6 @@ Analyzes source code to identify security vulnerabilities, coding errors, and co
 ## See Also
 
 - [x-security-dast](../x-security-dast/) -- Dynamic testing against a running application
-- [x-security-secret-scan](../x-security-secret-scan/) -- Scans for leaked credentials and API keys
+- [x-security-secrets](../x-security-secrets/) -- Scans for leaked credentials and API keys
 - [x-security-sonar](../x-security-sonar/) -- SonarQube quality gate enforcement
 - [x-security-pentest](../x-security-pentest/) -- Multi-phase penetration test orchestrator

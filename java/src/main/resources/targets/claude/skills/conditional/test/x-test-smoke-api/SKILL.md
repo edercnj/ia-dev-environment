@@ -24,9 +24,9 @@ Include this skill when smoke_tests is enabled AND "rest" is in protocols.
 
 ## Triggers
 
-- `/run-smoke-api` -- run against local environment (already running on default port)
-- `/run-smoke-api --k8s` -- run with automatic port-forward (orchestrator)
-- `/run-smoke-api --env staging` -- run against staging environment
+- `/x-test-smoke-api` -- run against local environment (already running on default port)
+- `/x-test-smoke-api --k8s` -- run with automatic port-forward (orchestrator)
+- `/x-test-smoke-api --env staging` -- run against staging environment
 
 ## Parameters
 
@@ -105,7 +105,7 @@ Automatic via trap EXIT:
 | `smoke-tests/api/*.postman_collection.json` | Newman test collection |
 | `smoke-tests/api/environment.local.json` | Local environment config |
 | `smoke-tests/api/environment.*.json` | Per-environment configs |
-| `smoke-tests/api/run-smoke-api.sh` | Execution script |
+| `smoke-tests/api/x-test-smoke-api.sh` | Execution script |
 
 ## Error Handling
 

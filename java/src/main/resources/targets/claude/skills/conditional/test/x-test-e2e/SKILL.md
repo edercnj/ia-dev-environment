@@ -24,10 +24,10 @@ Include this skill for all projects with integration test infrastructure.
 
 ## Triggers
 
-- `/run-e2e` -- run all E2E tests
-- `/run-e2e happy-path` -- run only happy path scenarios
-- `/run-e2e persistent` -- run persistent connection tests
-- `/run-e2e all` -- run all scenarios explicitly
+- `/x-test-e2e` -- run all E2E tests
+- `/x-test-e2e happy-path` -- run only happy path scenarios
+- `/x-test-e2e persistent` -- run persistent connection tests
+- `/x-test-e2e all` -- run all scenarios explicitly
 
 ## Parameters
 
