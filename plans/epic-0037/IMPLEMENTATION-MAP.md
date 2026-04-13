@@ -10,11 +10,11 @@
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | [story-0037-0001](./story-0037-0001.md) | Promover RULE-018 a Rule File `14-worktree-lifecycle.md` | — | — | 0002, 0003, 0004, 0005, 0006, 0007, 0010 | Pendente |
 | [story-0037-0002](./story-0037-0002.md) | Adicionar Operação `detect-context` a `x-git-worktree` | — | 0001 | 0003, 0004, 0005, 0006, 0007, 0008 | Pendente |
-| [story-0037-0003](./story-0037-0003.md) | Migrar `x-dev-epic-implement` para `/x-git-worktree` Explícito | — | 0001, 0002 | 0005, 0010 | Pendente |
+| [story-0037-0003](./story-0037-0003.md) | Migrar `x-epic-implement` para `/x-git-worktree` Explícito | — | 0001, 0002 | 0005, 0010 | Pendente |
 | [story-0037-0004](./story-0037-0004.md) | `x-git-push` Ganha Flag `--worktree` | — | 0002 | 0010 | Pendente |
-| [story-0037-0005](./story-0037-0005.md) | `x-dev-story-implement` Phase 0 Worktree-Aware | — | 0002, 0003 | 0006, 0010 | Pendente |
-| [story-0037-0006](./story-0037-0006.md) | `x-dev-implement` Worktree-Aware | — | 0002, 0005 | 0010 | Pendente |
-| [story-0037-0007](./story-0037-0007.md) | `x-pr-fix-epic-comments` Cria Worktree para Branch de Correção | — | 0002 | 0010 | Pendente |
+| [story-0037-0005](./story-0037-0005.md) | `x-story-implement` Phase 0 Worktree-Aware | — | 0002, 0003 | 0006, 0010 | Pendente |
+| [story-0037-0006](./story-0037-0006.md) | `x-task-implement` Worktree-Aware | — | 0002, 0005 | 0010 | Pendente |
+| [story-0037-0007](./story-0037-0007.md) | `x-pr-fix-epic` Cria Worktree para Branch de Correção | — | 0002 | 0010 | Pendente |
 | [story-0037-0008](./story-0037-0008.md) | `x-release` Worktree para Release/Hotfix ⚠️ | — | 0002, **EPIC-0035 completo** | (10b futuro) | Bloqueada |
 | [story-0037-0009](./story-0037-0009.md) | ADR-0004 — Worktree-First Branch Creation Policy | — | — | 0010 | Pendente |
 | [story-0037-0010](./story-0037-0010.md) | Regenerar Golden Files e Validar End-to-End | — | 0001, 0002, 0003, 0004, 0005, 0006, 0007, 0009 | — | Pendente |
@@ -23,7 +23,7 @@
 
 > **Nota crítica:** Story 0037-0008 está **Bloqueada** por EPIC-0035. Quando EPIC-0035 mergear todas as suas 8 stories, esta story será desbloqueada (`Bloqueada → Pendente`) e uma story `0037-0010b` (mini-regen post-EPIC-0035) será criada para fechar o ciclo. STORY 10 deste épico **NÃO** depende da STORY 8 — fecha o épico para as 9 stories executáveis (1-7, 9, 10).
 
-> **Nota sobre paralelismo:** STORIES 4, 7 são paralelizáveis após STORY 2. STORY 9 é totalmente independente (paralela a tudo). STORY 5 espera STORY 3 (sequência crítica). STORY 6 espera STORY 5 (sequência crítica). Sem essa sequência, x-dev-implement modificaria branch de criação assumindo padrões que ainda não existem em x-dev-story-implement.
+> **Nota sobre paralelismo:** STORIES 4, 7 são paralelizáveis após STORY 2. STORY 9 é totalmente independente (paralela a tudo). STORY 5 espera STORY 3 (sequência crítica). STORY 6 espera STORY 5 (sequência crítica). Sem essa sequência, x-task-implement modificaria branch de criação assumindo padrões que ainda não existem em x-story-implement.
 
 ---
 
@@ -138,11 +138,11 @@ Stories fora do caminho crítico (paralelizáveis): 4, 7, 9.
 graph LR
     S1[story-0037-0001<br/>Rule 14 / RULE-018]
     S2[story-0037-0002<br/>detect-context]
-    S3[story-0037-0003<br/>x-dev-epic-implement]
+    S3[story-0037-0003<br/>x-epic-implement]
     S4[story-0037-0004<br/>x-git-push --worktree]
-    S5[story-0037-0005<br/>x-dev-story-implement]
-    S6[story-0037-0006<br/>x-dev-implement]
-    S7[story-0037-0007<br/>x-pr-fix-epic-comments]
+    S5[story-0037-0005<br/>x-story-implement]
+    S6[story-0037-0006<br/>x-task-implement]
+    S7[story-0037-0007<br/>x-pr-fix-epic]
     S8[story-0037-0008<br/>x-release ⚠️ BLOCKED]
     S9[story-0037-0009<br/>ADR-0004]
     S10[story-0037-0010<br/>Golden Regen]
@@ -191,7 +191,7 @@ graph LR
 
 ## 6. Observações Estratégicas
 
-### 6.1 Por que migrar `x-dev-epic-implement` é a story mais arriscada
+### 6.1 Por que migrar `x-epic-implement` é a story mais arriscada
 
 STORY 3 é a **única** story do épico que muda comportamento real de execução (todas as outras adicionam capabilities opt-in ou só editam docs). Isso significa:
 
@@ -203,7 +203,7 @@ STORY 3 é a **única** story do épico que muda comportamento real de execuçã
 
 Tecnicamente STORIES 5 e 6 modificam skills diferentes e poderiam rodar em paralelo. Mas:
 
-- STORY 5 (`x-dev-story-implement`) estabelece o padrão `STORY_OWNS_WORKTREE` que STORY 6 (`x-dev-implement`) reusa.
+- STORY 5 (`x-story-implement`) estabelece o padrão `STORY_OWNS_WORKTREE` que STORY 6 (`x-task-implement`) reusa.
 - Mergir STORY 6 antes de STORY 5 cria documentação inconsistente: task-implement referenciaria padrões de story-implement que ainda não existem.
 - A sequência adiciona ~1-2 dias de wall-clock mas elimina churn.
 
