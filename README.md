@@ -213,16 +213,16 @@ The generator produces **20 core skills** (always included) and up to **13 condi
 >
 > | Current                      | New                    | Story             |
 > |------------------------------|------------------------|-------------------|
-> | `x-epic-create`               | `x-epic-create`        | STORY-0036-0004   |
-> | `x-epic-decompose`          | `x-epic-decompose`     | STORY-0036-0004   |
-> | `x-epic-map`                | `x-epic-map`           | STORY-0036-0004   |
-> | `x-epic-orchestrate`                | `x-epic-orchestrate`   | STORY-0036-0004   |
-> | `x-task-implement`            | `x-task-implement`     | STORY-0036-0004   |
-> | `x-story-implement`      | `x-story-implement`    | STORY-0036-0004   |
-> | `x-epic-implement`       | `x-epic-implement`     | STORY-0036-0004   |
-> | `x-arch-plan`    | `x-arch-plan`          | STORY-0036-0004   |
-> | `x-arch-update`          | `x-arch-update`        | STORY-0036-0004   |
-> | `x-adr-generate`       | `x-adr-generate`       | STORY-0036-0004   |
+> | `x-story-epic`               | `x-epic-create`        | STORY-0036-0004   |
+> | `x-story-epic-full`          | `x-epic-decompose`     | STORY-0036-0004   |
+> | `x-story-map`                | `x-epic-map`           | STORY-0036-0004   |
+> | `x-epic-plan`                | `x-epic-orchestrate`   | STORY-0036-0004   |
+> | `x-dev-implement`            | `x-task-implement`     | STORY-0036-0004   |
+> | `x-dev-story-implement`      | `x-story-implement`    | STORY-0036-0004   |
+> | `x-dev-epic-implement`       | `x-epic-implement`     | STORY-0036-0004   |
+> | `x-dev-architecture-plan`    | `x-arch-plan`          | STORY-0036-0004   |
+> | `x-dev-arch-update`          | `x-arch-update`        | STORY-0036-0004   |
+> | `x-dev-adr-automation`       | `x-adr-generate`       | STORY-0036-0004   |
 > | `run-e2e`                    | `x-test-e2e`           | STORY-0036-0005   |
 > | `run-smoke-api`              | `x-test-smoke-api`     | STORY-0036-0005   |
 > | `run-smoke-socket`           | `x-test-smoke-socket`  | STORY-0036-0005   |
@@ -354,12 +354,12 @@ The main orchestrator skill. Takes a story from branch creation to merged PR in 
 | **Input** | Story ID or feature description |
 | **Output** | TDD implementation with atomic commits |
 
-**How it differs from `/x-dev-lifecycle`:**
+**How it differs from `/x-story-implement`:**
 
 | Scenario | Use |
 |----------|-----|
 | Single class, small fix, coding without reviews | `/x-task-implement` |
-| Complete lifecycle: code → review → fix → PR | `/x-dev-lifecycle` |
+| Complete lifecycle: code → review → fix → PR | `/x-story-implement` |
 
 **Workflow:**
 1. **Prepare** -- Subagent reads architecture, coding standards, and test plan knowledge packs

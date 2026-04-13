@@ -22,7 +22,7 @@ flowchart TD
     P0 --> SCOPE{Scope Tier?}
     SCOPE -->|SIMPLE| SKIP["Skip 1B-1E"]
     SCOPE -->|STANDARD| ALL["All phases"]
-    SCOPE -->|COMPLEX| ALLPAUSE["All phases + pause after P4"]
+    SCOPE -->|COMPLEX| ALLPAUSE["All phases + pause after P2"]
     SKIP --> P1
     ALL --> P1
     ALLPAUSE --> P1
@@ -75,7 +75,7 @@ flowchart TD
 |------|----------|---------------|
 | SIMPLE | ≤1 component, 0 endpoints, 0 schema changes | Skips phases 1B, 1C, 1D, 1E |
 | STANDARD | 2-3 components or 1-2 new endpoints | All phases execute |
-| COMPLEX | ≥4 components, schema changes, or compliance | All phases + pause after Phase 4 for stakeholder review |
+| COMPLEX | ≥4 components, schema changes, or compliance | All phases + pause after Phase 2 for stakeholder review |
 
 ## Prerequisites
 

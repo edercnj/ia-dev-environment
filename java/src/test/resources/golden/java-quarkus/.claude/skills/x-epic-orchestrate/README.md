@@ -83,7 +83,7 @@ flowchart TD
 |----------|------|----------|
 | Execution state (checkpoint) | `plans/epic-XXXX/execution-state.json` | x-epic-orchestrate |
 | Epic planning report | `plans/epic-XXXX/reports/epic-planning-report-XXXX.md` | x-epic-orchestrate |
-| Epic file update (Planning column) | `plans/epic-XXXX/EPIC-XXXX.md` | x-epic-orchestrate |
+| Epic file update (Planning column) | `plans/epic-XXXX/epic-XXXX.md` | x-epic-orchestrate |
 | Task breakdown (per story) | `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` | x-story-plan |
 | Task plans (per task) | `plans/epic-XXXX/plans/task-plan-TASK-NNN-story-XXXX-YYYY.md` | x-story-plan |
 | Planning report (per story) | `plans/epic-XXXX/plans/planning-report-story-XXXX-YYYY.md` | x-story-plan |
@@ -99,7 +99,7 @@ flowchart TD
 ## Prerequisites
 
 - Epic directory exists: `plans/epic-XXXX/`
-- Implementation map exists: `plans/epic-XXXX/IMPLEMENTATION-MAP.md`
+- Implementation map exists: `plans/epic-XXXX/implementation-map-XXXX.md`
 - At least one story file: `plans/epic-XXXX/story-XXXX-*.md`
 
 ## See Also
