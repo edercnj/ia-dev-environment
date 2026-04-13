@@ -45,7 +45,41 @@ class SubagentContextIsolationTest {
                     "x-epic-plan");
 
     private Path resolveSkillPath(String skillName) {
-        return Path.of(SKILLS_DIR, skillName, "SKILL.md");
+        Path flat = Path.of(
+                SKILLS_DIR, skillName, "SKILL.md");
+        if (Files.exists(flat)) {
+            return flat;
+        }
+        // Hierarchical SoT (story-0036-0002): search
+        // category subfolders for a matching skill.
+        Path categoryMatch =
+                searchCategorySubfolders(skillName);
+        return categoryMatch != null ? categoryMatch : flat;
+    }
+
+    private Path searchCategorySubfolders(String skillName) {
+        Path core = Path.of(SKILLS_DIR);
+        if (!Files.isDirectory(core)) {
+            return null;
+        }
+        try (var stream = Files.list(core)) {
+            return stream
+                    .filter(Files::isDirectory)
+                    .map(p -> p.resolve(skillName)
+                            .resolve("SKILL.md"))
+                    .filter(Files::exists)
+                    .findFirst()
+                    .orElse(null);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    private Path resolveSkillReferencePath(
+            String skillName, String refFile) {
+        Path skillMd = resolveSkillPath(skillName);
+        return skillMd.getParent()
+                .resolve("references").resolve(refFile);
     }
 
     private String readSkillContent(String skillName)
@@ -232,8 +266,8 @@ class SubagentContextIsolationTest {
                 + "invoke x-threat-model via Skill tool")
         void lifecycle_invokesThreatModelViaSkill()
                 throws IOException {
-            Path refPath = Path.of(SKILLS_DIR,
-                    "x-dev-story-implement", "references",
+            Path refPath = resolveSkillReferencePath(
+                    "x-dev-story-implement",
                     "planning-phases.md");
             String content = Files.readString(
                     refPath, StandardCharsets.UTF_8);

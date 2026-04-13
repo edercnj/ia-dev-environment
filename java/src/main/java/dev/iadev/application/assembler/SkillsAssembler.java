@@ -85,33 +85,39 @@ public final class SkillsAssembler implements Assembler {
     /**
      * Scans core skills directory and returns skill names.
      *
-     * @return sorted list of core skill names
+     * <p><b>Source-of-truth is hierarchical (10 category
+     * subfolders), output is flat.</b> Skills physically live
+     * at {@code core/{category}/{name}/SKILL.md} (e.g.
+     * {@code core/plan/x-story-epic/SKILL.md}) but the
+     * generated output is always {@code .claude/skills/{name}/
+     * SKILL.md} — category subfolders are stripped.
+     * The {@code lib/} subtree is the one exception and keeps
+     * its {@code lib/} prefix in the emitted name. Traversal
+     * is delegated to {@link SkillsHierarchyResolver}, which
+     * uses the {@code SKILL.md} marker rule to transparently
+     * support legacy flat layouts (backward-compatible) plus
+     * exactly one category level of nesting. Deeper nesting
+     * (e.g. {@code core/{cat}/{sub}/{name}/SKILL.md}) is NOT
+     * discovered.</p>
+     *
+     * @return list of core skill names in scan order
+     *         (top-level dirs sorted, then per-category
+     *         sorted; NOT globally sorted across categories)
      */
     List<String> selectCoreSkills() {
-        Path corePath = resourcesDir.resolve(
+        return SkillsHierarchyResolver.listSkillNames(
+                corePath());
+    }
+
+    private Path corePath() {
+        return resourcesDir.resolve(
                 SKILLS_TEMPLATES_DIR + "/" + CORE_DIR);
-        if (!Files.exists(corePath)
-                || !Files.isDirectory(corePath)) {
-            return List.of();
-        }
-        List<String> skills = new ArrayList<>();
-        List<Path> entries =
-                SkillsCopyHelper.listDirsSorted(corePath);
-        for (Path entry : entries) {
-            String name = entry.getFileName().toString();
-            if (LIB_DIR.equals(name)) {
-                List<Path> subs =
-                        SkillsCopyHelper.listDirsSorted(
-                                entry);
-                for (Path sub : subs) {
-                    skills.add(LIB_DIR + "/"
-                            + sub.getFileName().toString());
-                }
-            } else {
-                skills.add(name);
-            }
-        }
-        return skills;
+    }
+
+    private Path conditionalPath() {
+        return resourcesDir.resolve(
+                SKILLS_TEMPLATES_DIR + "/"
+                        + CONDITIONAL_DIR);
     }
 
     private List<String> assembleCore(
@@ -175,9 +181,8 @@ public final class SkillsAssembler implements Assembler {
             Path outputDir,
             TemplateEngine engine,
             java.util.Map<String, Object> context) {
-        Path src = resourcesDir.resolve(
-                SKILLS_TEMPLATES_DIR + "/"
-                        + CORE_DIR + "/" + skillName);
+        Path src = SkillsHierarchyResolver.resolveSkillPath(
+                corePath(), skillName);
         Path dest = outputDir.resolve(
                 SKILLS_OUTPUT + "/" + skillName);
         CopyHelpers.copyDirectory(src, dest);
@@ -210,10 +215,8 @@ public final class SkillsAssembler implements Assembler {
             Path outputDir,
             TemplateEngine engine,
             java.util.Map<String, Object> context) {
-        Path src = resourcesDir.resolve(
-                SKILLS_TEMPLATES_DIR + "/"
-                        + CONDITIONAL_DIR + "/"
-                        + skillName);
+        Path src = SkillsHierarchyResolver.resolveSkillPath(
+                conditionalPath(), skillName);
         if (!Files.exists(src)
                 || !Files.isDirectory(src)) {
             return Optional.empty();

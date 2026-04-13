@@ -67,10 +67,24 @@ class SkillsAssemblerCoverageTest {
                 throws IOException {
             Path core = tempDir.resolve(
                     "targets/claude/skills/core");
-            Files.createDirectories(
-                    core.resolve("lib/x-lib-tool"));
-            Files.createDirectories(
-                    core.resolve("x-review"));
+            Path libSkill =
+                    core.resolve("lib/x-lib-tool");
+            Files.createDirectories(libSkill);
+            Files.writeString(
+                    libSkill.resolve("SKILL.md"),
+                    "---\nname: x-lib-tool\n---\n",
+                    java.nio.charset.StandardCharsets.UTF_8);
+            // Hierarchical SoT (story-0036-0002): skill
+            // directories are identified by a SKILL.md
+            // marker. A bare directory without SKILL.md is
+            // treated as a category subfolder.
+            Path reviewSkill =
+                    core.resolve("x-review");
+            Files.createDirectories(reviewSkill);
+            Files.writeString(
+                    reviewSkill.resolve("SKILL.md"),
+                    "---\nname: x-review\n---\n",
+                    java.nio.charset.StandardCharsets.UTF_8);
 
             SkillsAssembler assembler =
                     new SkillsAssembler(tempDir);

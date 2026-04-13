@@ -506,16 +506,32 @@ class XReviewSkillTemplateTest {
     }
 
     private static Path resolveClaudeSkillPath() {
-        Path path = Path.of(
-                "src/main/resources/targets/claude/"
-                        + "skills/core/x-review/SKILL.md");
-        if (!Files.exists(path)) {
-            path = Path.of(
-                    "java/src/main/resources/targets/"
-                            + "claude/skills/core/"
-                            + "x-review/SKILL.md");
+        // Hierarchical SoT (story-0036-0002): x-review
+        // lives under core/review/. Legacy flat path is
+        // retained as a fallback.
+        Path[] candidates = new Path[] {
+                Path.of(
+                        "src/main/resources/targets/claude/"
+                                + "skills/core/review/"
+                                + "x-review/SKILL.md"),
+                Path.of(
+                        "java/src/main/resources/targets/"
+                                + "claude/skills/core/review/"
+                                + "x-review/SKILL.md"),
+                Path.of(
+                        "src/main/resources/targets/claude/"
+                                + "skills/core/x-review/"
+                                + "SKILL.md"),
+                Path.of(
+                        "java/src/main/resources/targets/"
+                                + "claude/skills/core/"
+                                + "x-review/SKILL.md")};
+        for (Path c : candidates) {
+            if (Files.exists(c)) {
+                return c;
+            }
         }
-        return path;
+        return candidates[0];
     }
 
     private static String readSkill(Path path) {
