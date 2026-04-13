@@ -43,7 +43,7 @@ public final class ContextBuilder {
      * Builds a context map with exactly 50 template fields.
      *
      * @param config the project configuration
-     * @return an ordered map with 44 template context entries
+     * @return an ordered map with 50 template context entries
      */
     public static Map<String, Object> buildContext(
             ProjectConfig config) {

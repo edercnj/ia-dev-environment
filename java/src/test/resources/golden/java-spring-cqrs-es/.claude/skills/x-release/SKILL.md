@@ -1205,7 +1205,9 @@ Phases:
                        -> if clean: SNAPSHOT advance to 2.4.0-SNAPSHOT (Java only)
                        -> gh pr create --base develop --head chore/backmerge-v2.3.0
                        -> if conflict: PR body explains, state = BACKMERGE_CONFLICT
- 11. CLEANUP           -> delete release/2.3.0 (local + remote)
+ 11. PUBLISH           -> git push origin v2.3.0 (if not already pushed in phase 9)
+                       -> warn-only on push failure (tag exists locally)
+ 12. CLEANUP           -> delete release/2.3.0 (local + remote)
                        -> delete plans/release-state-2.3.0.json
                        -> print final report
 
@@ -1213,7 +1215,7 @@ Flags active: (none)
 Estimated duration:
   Phases 0-7 (until halt):    ~5-10 min
   Human wait (approval):      minutes to hours
-  Phases 9-11 (after resume): ~2-3 min
+  Phases 9-12 (after resume): ~2-3 min
 
 === NO CHANGES MADE ===
 ```
