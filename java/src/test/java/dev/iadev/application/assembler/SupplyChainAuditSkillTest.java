@@ -375,30 +375,6 @@ class SupplyChainAuditSkillTest {
         }
     }
 
-    @Nested
-    @DisplayName("SkillGroupRegistry Integration")
-    class RegistryIntegration {
-
-        @Test
-        @DisplayName("review group contains"
-                + " x-supply-chain-audit")
-        void registry_reviewGroup_containsSupplyChainAudit() {
-            assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("review"))
-                    .contains("x-supply-chain-audit");
-        }
-
-        @Test
-        @DisplayName("review group contains both"
-                + " dependency-audit and supply-chain-audit")
-        void registry_reviewGroup_containsBothAuditSkills() {
-            assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("review"))
-                    .contains("x-dependency-audit")
-                    .contains("x-supply-chain-audit");
-        }
-    }
-
     private String generateContent(Path tempDir)
             throws IOException {
         Path outputDir = tempDir.resolve("output");

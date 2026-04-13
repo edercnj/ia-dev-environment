@@ -16,7 +16,7 @@ It includes coding rules, skills (slash commands), knowledge packs, agents, and 
 > The source of truth for skills under `java/src/main/resources/targets/claude/skills/` is being reorganized into 10 category subfolders (`plan/`, `dev/`, `test/`, `review/`, `security/`, `code/`, `git/`, `pr/`, `ops/`, `jira/`), and ~19 skills will be renamed to a consistent `x-{subject}-{action}` scheme. The generated output `.claude/skills/` remains **flat** — user-facing invocation paths are preserved.
 > - Decision record: [`adr/ADR-0003-skill-taxonomy-and-naming.md`](adr/ADR-0003-skill-taxonomy-and-naming.md)
 > - Rename staging checklist: [`plans/epic-0036/skill-renames.md`](plans/epic-0036/skill-renames.md)
-> - Current skill names (e.g., `/x-story-epic`, `/x-dev-implement`, `/run-e2e`) remain valid until the corresponding rename story merges. Do not pre-emptively use the new names.
+> - Current skill names are the renamed forms (e.g., `/x-epic-create`, `/x-task-implement`, `/x-test-e2e`). Do not use the old pre-rename names.
 
 ## Structure
 
@@ -115,18 +115,18 @@ Content is copied verbatim by `PlanTemplatesAssembler` (RULE-003).
 
 | Template | Produced By | Saved To | Pre-Check |
 |----------|-------------|----------|-----------|
-| `_TEMPLATE-IMPLEMENTATION-PLAN.md` | x-dev-story-implement (Phase 1B) | `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` | Yes |
+| `_TEMPLATE-IMPLEMENTATION-PLAN.md` | x-story-implement (Phase 1B) | `plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md` | Yes |
 | `_TEMPLATE-TEST-PLAN.md` | x-test-plan | `plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md` | Yes |
-| `_TEMPLATE-ARCHITECTURE-PLAN.md` | x-dev-architecture-plan | `plans/epic-XXXX/plans/arch-story-XXXX-YYYY.md` | Yes |
+| `_TEMPLATE-ARCHITECTURE-PLAN.md` | x-arch-plan | `plans/epic-XXXX/plans/arch-story-XXXX-YYYY.md` | Yes |
 | `_TEMPLATE-TASK-BREAKDOWN.md` | x-lib-task-decomposer | `plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md` | Yes |
-| `_TEMPLATE-SECURITY-ASSESSMENT.md` | x-dev-story-implement (Phase 1E) | `plans/epic-XXXX/plans/security-story-XXXX-YYYY.md` | Yes |
-| `_TEMPLATE-COMPLIANCE-ASSESSMENT.md` | x-dev-story-implement (Phase 1F) | `plans/epic-XXXX/plans/compliance-story-XXXX-YYYY.md` | Yes |
+| `_TEMPLATE-SECURITY-ASSESSMENT.md` | x-story-implement (Phase 1E) | `plans/epic-XXXX/plans/security-story-XXXX-YYYY.md` | Yes |
+| `_TEMPLATE-COMPLIANCE-ASSESSMENT.md` | x-story-implement (Phase 1F) | `plans/epic-XXXX/plans/compliance-story-XXXX-YYYY.md` | Yes |
 | `_TEMPLATE-SPECIALIST-REVIEW.md` | x-review | `plans/epic-XXXX/plans/review-story-XXXX-YYYY.md` | No |
 | `_TEMPLATE-TECH-LEAD-REVIEW.md` | x-review-pr | `plans/epic-XXXX/plans/techlead-review-story-XXXX-YYYY.md` | No |
 | `_TEMPLATE-CONSOLIDATED-REVIEW-DASHBOARD.md` | x-review | `plans/epic-XXXX/plans/review-dashboard-story-XXXX-YYYY.md` | No |
-| `_TEMPLATE-REVIEW-REMEDIATION.md` | x-dev-story-implement (Phase 5) | `plans/epic-XXXX/plans/remediation-story-XXXX-YYYY.md` | No |
-| `_TEMPLATE-EPIC-EXECUTION-PLAN.md` | x-dev-epic-implement | `plans/epic-XXXX/plans/execution-plan-epic-XXXX.md` | Yes |
-| `_TEMPLATE-PHASE-COMPLETION-REPORT.md` | x-dev-epic-implement | `plans/epic-XXXX/reports/phase-report-epic-XXXX.md` | No |
+| `_TEMPLATE-REVIEW-REMEDIATION.md` | x-story-implement (Phase 5) | `plans/epic-XXXX/plans/remediation-story-XXXX-YYYY.md` | No |
+| `_TEMPLATE-EPIC-EXECUTION-PLAN.md` | x-epic-implement | `plans/epic-XXXX/plans/execution-plan-epic-XXXX.md` | Yes |
+| `_TEMPLATE-PHASE-COMPLETION-REPORT.md` | x-epic-implement | `plans/epic-XXXX/reports/phase-report-epic-XXXX.md` | No |
 
 **Total: 12 plan & review templates** (copied to `.claude/templates/`)
 

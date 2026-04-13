@@ -39,4 +39,4 @@ Executes project tests and enforces strict coverage thresholds (line >= 95%, bra
 ## See Also
 
 - [x-spec-drift](../x-spec-drift/) -- Detects drift between story specs and implemented code
-- [run-e2e](../../conditional/run-e2e/) -- End-to-end tests with real database
+- [x-test-e2e](../../conditional/x-test-e2e/) -- End-to-end tests with real database

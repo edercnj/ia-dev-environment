@@ -114,7 +114,7 @@ x-epic-implement
 - Template `_TEMPLATE-TASK.md`
 - Template `_TEMPLATE-TASK-IMPLEMENTATION-MAP.md`
 - 5 novas RULEs (TF-01 a TF-05) sobre testabilidade, contratos I/O, topological execution, atomic commits, backward compat
-- Migration path: `planning_schema_version` flag em execution-state.json (v1 legacy, v2 task-first)
+- Migration path: `planningSchemaVersion` flag em execution-state.json (v1 legacy, v2 task-first)
 - Atualização de CLAUDE.md, rules, docs
 - Testes de integração do novo fluxo end-to-end
 - Dogfood do próximo épico planejado após este shipar
@@ -278,7 +278,7 @@ dentro da PR da story**, não PRs próprias. Rationale:
 | **RULE-TF-02** | I/O Contracts Are Mandatory | Toda task DEVE declarar inputs (pré-condições) e outputs (pós-condições). Outputs são verificáveis via grep/assert/test. |
 | **RULE-TF-03** | Topological Execution | A ordem de execução de tasks dentro de uma story DEVE respeitar o task-implementation-map. Paralelismo é opt-in baseado em análise de dependências. |
 | **RULE-TF-04** | Task Commits Are Atomic | Cada task produz EXATAMENTE um commit. Coalesced groups produzem um commit com múltiplas tasks listadas no body. |
-| **RULE-TF-05** | Backward Compatibility | Épicos com `planning_schema_version == "1.0"` (ou ausente) DEVEM continuar executando sem erro via legacy loader. Novos épicos iniciados APÓS este épico mergeado DEVEM usar v2. |
+| **RULE-TF-05** | Backward Compatibility | Épicos com `planningSchemaVersion == "1.0"` (ou ausente) DEVEM continuar executando sem erro via legacy loader. Novos épicos iniciados APÓS este épico mergeado DEVEM usar v2. |
 
 ## 7. Interação com o skill rename epic
 
@@ -326,12 +326,12 @@ EPIC-0038 fica bloqueada até EPIC-0036 completar.
 
 - Épicos 0025–0037 (já planejados no formato atual) **não são migrados
   retroativamente**. Permanecem lendo `tasks-story-*.md` no formato v1.
-- Novo flag `planning_schema_version` em `execution-state.json`:
+- Novo flag `planningSchemaVersion` em `execution-state.json`:
   - `"1.0"` ou ausente → v1 flow (legacy, x-story-plan com tasks embedded)
   - `"2.0"` → v2 flow (task-first, x-story-plan invoca x-task-plan)
 - Skills de execução detectam a versão e ramificam:
   ```
-  if state.planning_schema_version == "2.0":
+  if state.planningSchemaVersion == "2.0":
       dispatch_tasks_via_task_implementation_map()
   else:
       dispatch_story_as_single_unit()  # legacy
@@ -347,7 +347,7 @@ e o comportamento task-first de `x-task-implement` só existem após stories
 
 ### 8.3 Matriz de compatibilidade
 
-| Épico | planning_schema_version | Flow | Skills usadas |
+| Épico | planningSchemaVersion | Flow | Skills usadas |
 | :--- | :--- | :--- | :--- |
 | epic-0025..0037 | "1.0" (ou ausente) | Legacy top-down | `x-story-plan` monolítica |
 | epic-0036 (rename) | "1.0" | Legacy top-down | — (é o épico de rename, não usa task-first) |
@@ -358,7 +358,7 @@ e o comportamento task-first de `x-task-implement` só existem após stories
 
 | Risco | Severidade | Mitigação |
 | :--- | :--- | :--- |
-| Refactor quebra `x-story-implement` em execução de épicos em curso | Alta | planning_schema_version flag + backward-compat read |
+| Refactor quebra `x-story-implement` em execução de épicos em curso | Alta | planningSchemaVersion flag + backward-compat read |
 | `x-task-plan` multiplica subagent dispatch (N tasks × custo) | Média | Paralelização dentro de story; batch size limit |
 | Task = commit perde granularidade de review | Baixa | Conventional Commits + atomic boundaries suficientes para review |
 | Escopo infla com cada skill tocada | Alta | Escopo congelado às 10 stories deste épico; outros refactors são follow-up |
@@ -377,7 +377,7 @@ e o comportamento task-first de `x-task-implement` só existem após stories
 - [ ] `x-epic-implement` (pós-rename) simplificada (só phase order)
 - [ ] Templates `_TEMPLATE-TASK.md` e `_TEMPLATE-TASK-IMPLEMENTATION-MAP.md` criados
 - [ ] 5 novas RULEs (TF-01..05) escritas, revisadas e indexadas em CLAUDE.md
-- [ ] `planning_schema_version` implementado com backward compat v1
+- [ ] `planningSchemaVersion` implementado com backward compat v1
 - [ ] CLAUDE.md atualizada com o novo fluxo
 - [ ] Testes de integração end-to-end do novo flow verdes
 - [ ] Dogfood: próximo épico (após este shipar) usa v2 com sucesso

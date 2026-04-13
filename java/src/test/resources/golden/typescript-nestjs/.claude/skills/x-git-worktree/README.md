@@ -32,6 +32,6 @@ Centralizes git worktree lifecycle management for parallel development workflows
 
 ## See Also
 
-- [x-dev-epic-implement](../x-dev-epic-implement/) -- Uses worktrees for parallel story execution
-- [x-dev-story-implement](../x-dev-story-implement/) -- Executes within worktree directories
+- [x-epic-implement](../x-epic-implement/) -- Uses worktrees for parallel story execution
+- [x-story-implement](../x-story-implement/) -- Executes within worktree directories
 - [x-git-push](../x-git-push/) -- Branch creation and push from within worktrees

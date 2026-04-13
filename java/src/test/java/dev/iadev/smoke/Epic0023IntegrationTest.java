@@ -429,11 +429,21 @@ class Epic0023IntegrationTest {
 
         private String readReviewSkill()
                 throws IOException {
+            // Hierarchical SoT (story-0036-0002): x-review
+            // lives under core/review/. Legacy flat path is
+            // retained as a fallback.
             var url = getClass().getClassLoader()
                     .getResource(
                             "targets/claude/skills/"
-                                    + "core/x-review/"
+                                    + "core/review/x-review/"
                                     + "SKILL.md");
+            if (url == null) {
+                url = getClass().getClassLoader()
+                        .getResource(
+                                "targets/claude/skills/"
+                                        + "core/x-review/"
+                                        + "SKILL.md");
+            }
             assertThat(url)
                     .as("x-review SKILL.md on classpath")
                     .isNotNull();

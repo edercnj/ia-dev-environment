@@ -305,7 +305,7 @@ class SecurityPipelineSkillTest {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content)
-                    .contains("x-security-secret-scan")
+                    .contains("x-security-secrets")
                     .contains("x-security-sast")
                     .contains("x-dependency-audit")
                     .contains("x-security-sonar")
@@ -546,20 +546,6 @@ class SecurityPipelineSkillTest {
                     generateClaudeContent(tempDir);
             assertThat(content)
                     .contains("No SecurityConfig flags");
-        }
-    }
-
-    @Nested
-    @DisplayName("SkillGroupRegistry -- Dev Group")
-    class RegistryDevGroup {
-
-        @Test
-        @DisplayName("dev group contains"
-                + " x-security-pipeline")
-        void register_devGroup_containsSecPipeline() {
-            assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("dev"))
-                    .contains("x-security-pipeline");
         }
     }
 

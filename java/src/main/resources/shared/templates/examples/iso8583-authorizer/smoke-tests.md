@@ -31,7 +31,7 @@ smoke-tests/
     ├── environment.local.json
     ├── environment.minikube.json
     ├── environment.staging.json
-    └── run-smoke-api.sh
+    └── x-test-smoke-api.sh
 ```
 
 ### Execution
@@ -39,13 +39,13 @@ smoke-tests/
 # Prerequisite: npm install -g newman
 
 # Run against local environment (already running on port 8080)
-./smoke-tests/api/run-smoke-api.sh
+./smoke-tests/api/x-test-smoke-api.sh
 
 # Run against Minikube with automatic port-forward
-./smoke-tests/api/run-smoke-api.sh --k8s
+./smoke-tests/api/x-test-smoke-api.sh --k8s
 
 # Run against staging
-./smoke-tests/api/run-smoke-api.sh --env staging
+./smoke-tests/api/x-test-smoke-api.sh --env staging
 ```
 
 ### Mandatory Scenarios (REST API)
@@ -82,7 +82,7 @@ smoke-tests/
 smoke-tests/
 └── socket/
     ├── pom.xml (or equivalent build file)
-    ├── run-smoke-socket.sh
+    ├── x-test-smoke-socket.sh
     └── src/
         ├── SmokeTestRunner          # Main: arg parsing, dispatch, results
         ├── SmokeSocketClient        # TCP client: 2-byte framing, send/receive
@@ -102,16 +102,16 @@ smoke-tests/
 ### Execution
 ```bash
 # Run against local environment (already running on ports 8080 and 8583)
-./smoke-tests/socket/run-smoke-socket.sh
+./smoke-tests/socket/x-test-smoke-socket.sh
 
 # Run against Minikube with automatic port-forward
-./smoke-tests/socket/run-smoke-socket.sh --k8s
+./smoke-tests/socket/x-test-smoke-socket.sh --k8s
 
 # Run specific scenario
-./smoke-tests/socket/run-smoke-socket.sh --k8s --scenario echo
+./smoke-tests/socket/x-test-smoke-socket.sh --k8s --scenario echo
 
 # Run against custom host/port
-./smoke-tests/socket/run-smoke-socket.sh --host 10.0.0.1 --port 8583
+./smoke-tests/socket/x-test-smoke-socket.sh --host 10.0.0.1 --port 8583
 ```
 
 ### Mandatory Scenarios (Socket)

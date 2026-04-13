@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Category** | Knowledge Pack |
-| **Referenced by** | `x-dev-implement`, `x-dev-story-implement`, `x-dev-epic-implement`, `typescript-developer` agent, `architect` agent |
+| **Referenced by** | `x-task-implement`, `x-story-implement`, `x-epic-implement`, `typescript-developer` agent, `architect` agent |
 
 > **Full content**: See [SKILL.md](./SKILL.md) for the complete reference.
 

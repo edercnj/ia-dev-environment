@@ -57,10 +57,10 @@ class SkillsCoreConditionalTest {
                     outputDir);
             Path skillsDir = outputDir.resolve("skills");
             assertThat(skillsDir.resolve(
-                    "x-dev-story-implement/SKILL.md"))
+                    "x-story-implement/SKILL.md"))
                     .exists();
             assertThat(skillsDir.resolve(
-                    "x-dev-implement/SKILL.md"))
+                    "x-task-implement/SKILL.md"))
                     .exists();
             assertThat(skillsDir.resolve(
                     "x-review/SKILL.md"))
@@ -123,7 +123,7 @@ class SkillsCoreConditionalTest {
                     TestConfigBuilder.minimal(),
                     new TemplateEngine(), outputDir);
             assertThat(outputDir.resolve(
-                    "skills/x-dev-story-implement/references"))
+                    "skills/x-story-implement/references"))
                     .exists();
         }
 

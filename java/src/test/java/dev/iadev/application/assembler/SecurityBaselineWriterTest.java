@@ -93,7 +93,7 @@ class SecurityBaselineWriterTest {
                     .contains("Path operations")
                     .contains("Crypto RNG")
                     .contains("Symlink following")
-                    .doesNotContain("x-security-secret-scan")
+                    .doesNotContain("x-security-secrets")
                     .doesNotContain("x-hardening-eval");
         }
 
@@ -126,7 +126,7 @@ class SecurityBaselineWriterTest {
             assertThat(content)
                     .startsWith(BASELINE_CONTENT)
                     .contains("## Automated Verification")
-                    .contains("x-security-secret-scan")
+                    .contains("x-security-secrets")
                     .contains("Hardcoded secrets")
                     .doesNotContain("x-security-sast")
                     .doesNotContain("x-hardening-eval");
@@ -165,7 +165,7 @@ class SecurityBaselineWriterTest {
                     .contains("HTTP security headers")
                     .contains("TLS configuration")
                     .doesNotContain("x-security-sast")
-                    .doesNotContain("x-security-secret-scan");
+                    .doesNotContain("x-security-secrets");
         }
 
         @Test
@@ -197,7 +197,7 @@ class SecurityBaselineWriterTest {
                     .startsWith(BASELINE_CONTENT)
                     .contains("## Automated Verification")
                     .contains("x-security-sast")
-                    .contains("x-security-secret-scan")
+                    .contains("x-security-secrets")
                     .contains("x-hardening-eval");
 
             long dataRows = content.lines()
@@ -286,7 +286,7 @@ class SecurityBaselineWriterTest {
                                     scanning);
 
             assertThat(section)
-                    .contains("`/x-security-secret-scan`");
+                    .contains("`/x-security-secrets`");
         }
 
         @Test

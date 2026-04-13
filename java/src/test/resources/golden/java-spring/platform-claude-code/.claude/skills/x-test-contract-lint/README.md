@@ -29,6 +29,6 @@ Validates API contract files against their respective specifications before appr
 
 ## See Also
 
-- [run-contract-tests](../run-contract-tests/) -- Consumer-driven contract test execution
+- [x-test-contract](../x-test-contract/) -- Consumer-driven contract test execution
 - [x-review-api](../x-review-api/) -- REST API design review
 - [x-review-grpc](../x-review-grpc/) -- gRPC service definition review

@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-04-13
+
+### Added
+- **CI guard against old skill names (EPIC-0036 / STORY-0036-0006):** New `scripts/check-old-skill-names.sh` scans the repository for any of the 19 OLD EPIC-0036 skill names and fails the build on an unexpected occurrence. Allow-list covers historical artifacts (`plans/`, `adr/`, `CHANGELOG.md`, `docs/release-notes/`), generated outputs (`.claude/`, `java/src/test/resources/golden/`), and build directories. Wired into `.github/workflows/skill-name-guard.yml`, which runs on every push and pull request to `develop` and `main`. Regression tests live in `tests/guard/test-skill-name-guard.sh`.
+- **Recursive traversal for hierarchical skills SoT (EPIC-0036):** `SkillsAssembler` now recursively walks the categorised skills directory tree (`targets/claude/skills/{category}/{skill}/`), enabling the new hierarchical SoT layout.
+- **Release notes for EPIC-0036 (`docs/release-notes/EPIC-0036-skill-renames.md`):** dedicated migration document with the complete 19-row old → new table, breaking-change notice, mechanical migration recipe, and references to ADR-0003 and the staging document.
+
+### Changed
+- **Skill Taxonomy Refactor — Primary Cluster (EPIC-0036 / STORY-0036-0004):** 10 skills renamed to eliminate the `x-story-*` / `x-epic-*` / `x-task-*` / `x-dev-*` ambiguity. Mappings:
+  - `x-story-epic` → `x-epic-create`
+  - `x-story-epic-full` → `x-epic-decompose`
+  - `x-story-map` → `x-epic-map`
+  - `x-epic-plan` → `x-epic-orchestrate`
+  - `x-dev-implement` → `x-task-implement`
+  - `x-dev-story-implement` → `x-story-implement`
+  - `x-dev-epic-implement` → `x-epic-implement`
+  - `x-dev-architecture-plan` → `x-arch-plan`
+  - `x-dev-arch-update` → `x-arch-update`
+  - `x-dev-adr-automation` → `x-adr-generate`
+
+  All cross-references, rules, templates, Java tests, and golden files updated. No backward compatibility for old names (RULE-005). See `adr/ADR-0003-skill-taxonomy-and-naming.md` for rationale.
+
+- **Skill Taxonomy Refactor — `run-*` Unification and Pointwise Renames (EPIC-0036 / STORY-0036-0005):** 9 additional skills renamed to complete the taxonomy. `run-*` skills moved to the `x-test-*` family; pointwise simplifications applied to PR and security categories. Mappings:
+  - `run-e2e` → `x-test-e2e`
+  - `run-smoke-api` → `x-test-smoke-api`
+  - `run-smoke-socket` → `x-test-smoke-socket`
+  - `run-contract-tests` → `x-test-contract`
+  - `run-perf-test` → `x-test-perf`
+  - `x-pr-fix-comments` → `x-pr-fix`
+  - `x-pr-fix-epic-comments` → `x-pr-fix-epic`
+  - `x-runtime-protection` → `x-runtime-eval`
+  - `x-security-secret-scan` → `x-security-secrets`
+
+  Total renames across STORY-0036-0004 and STORY-0036-0005: **19**. All cross-references, golden files, and tests updated. No backward compatibility (RULE-005).
+
+### Removed
+- **`SkillGroupRegistry.java` (EPIC-0036 / STORY-0036-0003):** the static skill-group registry was deleted; categorisation now lives in the directory layout (`targets/claude/skills/{category}/{skill}/`) under EPIC-0036.
+
+### Fixed
+- **Stale generated resources before `process-resources` (build):** Maven build now cleans stale generated outputs prior to the `process-resources` phase, preventing leftover files from previous runs from polluting the build.
+
 ## [3.1.0] - 2026-04-13
 
 ### Added
@@ -162,8 +203,8 @@ This epic introduces no database migrations and no persistent state changes — 
 - **Phase Completion Reports (EPIC-0024):** Per-phase reports documenting stories completed, integrity gate results, coverage delta, and next phase readiness.
 
 ### Changed
-- **x-dev-story-implement (EPIC-0024):** Now produces 6 artifact types with pre-checks (previously 2). Generates implementation plan, test plan, architecture plan, task breakdown, security assessment, and compliance assessment with staleness verification.
-- **x-dev-implement (EPIC-0024):** Consumes existing plans as context when available, ensuring consistency between x-dev-story-implement planning and x-dev-implement execution.
+- **x-story-implement (EPIC-0024):** Now produces 6 artifact types with pre-checks (previously 2). Generates implementation plan, test plan, architecture plan, task breakdown, security assessment, and compliance assessment with staleness verification. (Renamed from `x-dev-story-implement` in EPIC-0036.)
+- **x-task-implement (EPIC-0024):** Consumes existing plans as context when available, ensuring consistency between x-story-implement planning and x-task-implement execution. (Renamed from `x-dev-implement` in EPIC-0036.)
 - **x-review (EPIC-0024):** Generates consolidated review dashboard with parseable specialist scores. Dashboard is cumulative across review rounds.
 - **x-review-pr (EPIC-0024):** Updates consolidated review dashboard with Tech Lead review round, providing complete quality visibility in a single file.
 - Restructured project directories to adopt SDD (Spec-Driven Development) layout

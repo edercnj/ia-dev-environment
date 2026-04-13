@@ -40,6 +40,6 @@ Evaluates the defensive posture of a running application against CIS and OWASP b
 
 ## See Also
 
-- [x-runtime-protection](../x-runtime-protection/) -- Runtime protection controls (rate limiting, WAF, bot protection)
+- [x-runtime-eval](../x-runtime-eval/) -- Runtime protection controls (rate limiting, WAF, bot protection)
 - [x-owasp-scan](../x-owasp-scan/) -- OWASP Top 10 verification with ASVS mapping
 - [x-security-dashboard](../x-security-dashboard/) -- Aggregated security posture view from all scanning skills

@@ -315,6 +315,6 @@ Privacy threat modeling covering:
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| x-dev-architecture-plan | Invoked from | Threat model can be generated as part of architecture planning |
+| x-arch-plan | Invoked from | Threat model can be generated as part of architecture planning |
 | security-engineer agent | Delegates to | Uses security-engineer agent for in-depth analysis via Agent tool |
 | x-owasp-scan | Complements | Threat model informs A04 (Insecure Design) verification in OWASP scan |

@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Category** | Knowledge Pack |
-| **Referenced by** | `x-dev-implement`, `x-review` (API specialist), `x-dev-story-implement`, `architect` agent |
+| **Referenced by** | `x-task-implement`, `x-review` (API specialist), `x-story-implement`, `architect` agent |
 
 > **Full content**: See [SKILL.md](./SKILL.md) for the complete reference.
 

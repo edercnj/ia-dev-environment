@@ -24,13 +24,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("ReleaseStateFileSchemaTest")
 class ReleaseStateFileSchemaTest {
 
+    // Hierarchical SoT (story-0036-0002): x-release lives
+    // under core/ops/ per ADR-0003.
     private static final Path SKILL_PATH = Path.of(
             "src/main/resources/targets/claude/skills/"
-                    + "core/x-release/SKILL.md");
+                    + "core/ops/x-release/SKILL.md");
 
     private static final Path SCHEMA_DOC_PATH = Path.of(
             "src/main/resources/targets/claude/skills/"
-                    + "core/x-release/references/"
+                    + "core/ops/x-release/references/"
                     + "state-file-schema.md");
 
     private static final List<String> REQUIRED_PHASES =

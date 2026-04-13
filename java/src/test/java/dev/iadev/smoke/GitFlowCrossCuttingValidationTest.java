@@ -103,7 +103,7 @@ class GitFlowCrossCuttingValidationTest {
     }
 
     @Nested
-    @DisplayName("x-dev-story-implement — develop references")
+    @DisplayName("x-story-implement — develop references")
     class LifecycleDevelop {
 
         @Test
@@ -112,7 +112,7 @@ class GitFlowCrossCuttingValidationTest {
         void lifecycle_phase0_noBranchFromMain()
                 throws IOException {
             String content = readSkill(
-                    "x-dev-story-implement");
+                    "x-story-implement");
             String phase0 = extractSection(
                     content,
                     "## Phase 0",
@@ -126,7 +126,7 @@ class GitFlowCrossCuttingValidationTest {
         void lifecycle_phase6_prTargetsDevelop()
                 throws IOException {
             String content = readSkill(
-                    "x-dev-story-implement");
+                    "x-story-implement");
             assertThat(content).contains(
                     "gh pr create --base develop");
         }
@@ -136,14 +136,14 @@ class GitFlowCrossCuttingValidationTest {
         void lifecycle_review_readsDevelopCommits()
                 throws IOException {
             String content = readSkill(
-                    "x-dev-story-implement");
+                    "x-story-implement");
             assertThat(content).contains(
                     "git log develop..HEAD");
         }
     }
 
     @Nested
-    @DisplayName("x-dev-epic-implement"
+    @DisplayName("x-epic-implement"
             + " — develop references")
     class EpicImplementDevelop {
 
@@ -152,7 +152,7 @@ class GitFlowCrossCuttingValidationTest {
         void epicImplement_defaultMerge_isNoMerge()
                 throws IOException {
             String content = readSkill(
-                    "x-dev-epic-implement");
+                    "x-epic-implement");
             assertThat(content).contains(
                     "mergeMode = \"no-merge\"");
         }
@@ -162,7 +162,7 @@ class GitFlowCrossCuttingValidationTest {
         void epicImplement_baseBranch_defaultsDevelop()
                 throws IOException {
             String content = readSkill(
-                    "x-dev-epic-implement");
+                    "x-epic-implement");
             assertThat(content).contains(
                     "`baseBranch`: `\"develop\"`");
         }
@@ -172,7 +172,7 @@ class GitFlowCrossCuttingValidationTest {
         void epicImplement_autoRebase_refsDevelop()
                 throws IOException {
             String content = readSkill(
-                    "x-dev-epic-implement");
+                    "x-epic-implement");
             assertThat(content)
                     .contains("auto-rebase");
         }
@@ -182,7 +182,7 @@ class GitFlowCrossCuttingValidationTest {
         void epicImplement_orchestrator_staysDevelop()
                 throws IOException {
             String content = readSkill(
-                    "x-dev-epic-implement");
+                    "x-epic-implement");
             assertThat(content).contains(
                     "orchestrator stays on"
                             + " `develop`");
@@ -257,7 +257,7 @@ class GitFlowCrossCuttingValidationTest {
     }
 
     @Nested
-    @DisplayName("x-pr-fix-epic-comments"
+    @DisplayName("x-pr-fix-epic"
             + " — develop base")
     class FixEpicPrComments {
 
@@ -266,7 +266,7 @@ class GitFlowCrossCuttingValidationTest {
         void fixPr_prCreation_targetsDevelop()
                 throws IOException {
             String content = readSkill(
-                    "x-pr-fix-epic-comments");
+                    "x-pr-fix-epic");
             assertThat(content)
                     .contains("--base develop");
         }
@@ -276,7 +276,7 @@ class GitFlowCrossCuttingValidationTest {
         void fixPr_branchSetup_usesDevelop()
                 throws IOException {
             String content = readSkill(
-                    "x-pr-fix-epic-comments");
+                    "x-pr-fix-epic");
             assertThat(content)
                     .contains("git checkout develop");
         }

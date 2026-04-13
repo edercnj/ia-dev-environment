@@ -15,7 +15,7 @@ import java.nio.file.Path;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for story-0027-0007: x-pr-fix-epic-comments
+ * Tests for story-0027-0007: x-pr-fix-epic
  * correction PRs must target develop instead of main.
  *
  * <p>Validates that the generated SKILL.md uses
@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@code git checkout develop} for branch setup,
  * with baseBranch resolution from execution-state.</p>
  */
-@DisplayName("x-pr-fix-epic-comments — Develop Base")
+@DisplayName("x-pr-fix-epic — Develop Base")
 class FixEpicPrCommentsDevelopTest {
 
     @Nested
@@ -153,7 +153,7 @@ class FixEpicPrCommentsDevelopTest {
         Path outputDir = generateOutput(tempDir);
         return Files.readString(
                 outputDir.resolve(
-                        "skills/x-pr-fix-epic-comments"
+                        "skills/x-pr-fix-epic"
                                 + "/SKILL.md"),
                 StandardCharsets.UTF_8);
     }

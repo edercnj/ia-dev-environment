@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Category** | Knowledge Pack |
-| **Referenced by** | x-dev-implement, x-dev-story-implement, x-dev-architecture-plan, x-code-audit, x-review-pr, architect agent |
+| **Referenced by** | x-task-implement, x-story-implement, x-arch-plan, x-code-audit, x-review-pr, architect agent |
 | **Condition** | Included when `architecture.style` is `hexagonal` |
 
 > **Full content**: See [SKILL.md](./SKILL.md) for the complete reference.

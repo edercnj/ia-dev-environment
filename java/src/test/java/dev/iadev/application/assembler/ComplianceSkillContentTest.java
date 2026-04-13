@@ -29,9 +29,11 @@ class ComplianceSkillContentTest {
 
     @BeforeAll
     static void loadTemplates() throws IOException {
+        // Hierarchical SoT (story-0036-0002): x-review-compliance
+        // lives under conditional/review/ per ADR-0003.
         Path skillPath = Path.of(
                 "src/main/resources/targets/claude"
-                        + "/skills/conditional"
+                        + "/skills/conditional/review"
                         + "/x-review-compliance/SKILL.md");
         skillContent = Files.readString(
                 skillPath, StandardCharsets.UTF_8);
