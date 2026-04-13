@@ -29,6 +29,6 @@ Manages the local development environment lifecycle: starting and stopping the c
 
 ## See Also
 
-- [run-smoke-api](../run-smoke-api/) -- REST API smoke tests against deployed environment
-- [run-smoke-socket](../run-smoke-socket/) -- TCP socket smoke tests against deployed environment
+- [x-test-smoke-api](../x-test-smoke-api/) -- REST API smoke tests against deployed environment
+- [x-test-smoke-socket](../x-test-smoke-socket/) -- TCP socket smoke tests against deployed environment
 - [x-security-infra](../x-security-infra/) -- Infrastructure-as-Code security scanning

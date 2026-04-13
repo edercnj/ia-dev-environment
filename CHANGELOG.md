@@ -22,6 +22,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   All cross-references, rules, templates, Java tests, and golden files updated. No backward compatibility for old names (RULE-005). See `adr/ADR-0003-skill-taxonomy-and-naming.md` for rationale.
 
+- **Skill Taxonomy Refactor — `run-*` Unification and Pointwise Renames (EPIC-0036 / STORY-0036-0005):** 9 additional skills renamed to complete the taxonomy. `run-*` skills moved to the `x-test-*` family; pointwise simplifications applied to PR and security categories. Mappings:
+  - `run-e2e` → `x-test-e2e`
+  - `run-smoke-api` → `x-test-smoke-api`
+  - `run-smoke-socket` → `x-test-smoke-socket`
+  - `run-contract-tests` → `x-test-contract`
+  - `run-perf-test` → `x-test-perf`
+  - `x-pr-fix-comments` → `x-pr-fix`
+  - `x-pr-fix-epic-comments` → `x-pr-fix-epic`
+  - `x-runtime-protection` → `x-runtime-eval`
+  - `x-security-secret-scan` → `x-security-secrets`
+
+  Total renames across STORY-0036-0004 and STORY-0036-0005: **19**. All cross-references, golden files, and tests updated. No backward compatibility (RULE-005).
+
+### Added
+- **CI guard against old skill names (EPIC-0036 / STORY-0036-0006):** New `scripts/check-old-skill-names.sh` scans the repository for any of the 19 OLD EPIC-0036 skill names and fails the build on an unexpected occurrence. Allow-list covers historical artifacts (`plans/`, `adr/`, `CHANGELOG.md`, `docs/release-notes/`), generated outputs (`.claude/`, `java/src/test/resources/golden/`), and build directories. Wired into `.github/workflows/skill-name-guard.yml`, which runs on every push and pull request to `develop` and `main`. Regression tests live in `tests/guard/test-skill-name-guard.sh`.
+- **Release notes for EPIC-0036 (`docs/release-notes/EPIC-0036-skill-renames.md`):** dedicated migration document with the complete 19-row old → new table, breaking-change notice, mechanical migration recipe, and references to ADR-0003 and the staging document.
+
+### Removed
+- **`SkillGroupRegistry.java` (EPIC-0036 / STORY-0036-0003):** the static skill-group registry was deleted; categorisation now lives in the directory layout (`targets/claude/skills/{category}/{skill}/`) under EPIC-0036.
+
 ## [3.1.0] - 2026-04-13
 
 ### Added

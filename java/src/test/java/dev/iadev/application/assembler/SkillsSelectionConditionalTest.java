@@ -77,7 +77,7 @@ class SkillsSelectionConditionalTest {
                     .contains("x-review-api")
                     .contains("x-review-grpc")
                     .contains("setup-environment")
-                    .contains("run-perf-test")
+                    .contains("x-test-perf")
                     .contains("x-review-security");
         }
     }

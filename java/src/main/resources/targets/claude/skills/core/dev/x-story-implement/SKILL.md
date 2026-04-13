@@ -949,7 +949,7 @@ If NOT `--auto-approve-pr`: skip (individual task PRs already target develop).
    - Post-deploy verification passed or skipped (if testing.smoke_tests == true)
 8. Post-Deploy Verification (conditional: `testing.smoke_tests == true`):
    - If `testing.smoke_tests` is `false` -> SKIP with log: "Post-deploy verification skipped (testing.smoke_tests=false)"
-   - If `testing.smoke_tests` is `true`, execute checks (invoke `/run-e2e` or configured smoke test):
+   - If `testing.smoke_tests` is `true`, execute checks (invoke `/x-test-e2e` or configured smoke test):
      - **Health Check**: GET /health (or configured endpoint) -> 200 OK
      - **Critical Path**: Execute primary request flow -> valid response
      - **Response Time**: Verify p95 latency < configured SLO

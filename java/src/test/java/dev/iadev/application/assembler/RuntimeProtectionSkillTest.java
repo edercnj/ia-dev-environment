@@ -16,15 +16,15 @@ import java.nio.file.Path;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for story-0022-0013: x-runtime-protection skill
+ * Tests for story-0022-0013: x-runtime-eval skill
  * for runtime protection evaluation.
  *
- * <p>Validates that the x-runtime-protection skill template
+ * <p>Validates that the x-runtime-eval skill template
  * is generated correctly with proper frontmatter, 7
  * evaluation dimensions, 3 intensity levels, ASVS mapping,
  * SARIF output, and scoring model.</p>
  */
-@DisplayName("x-runtime-protection Skill")
+@DisplayName("x-runtime-eval Skill")
 class RuntimeProtectionSkillTest {
 
     @Nested
@@ -32,27 +32,27 @@ class RuntimeProtectionSkillTest {
     class ClaudeFrontmatter {
 
         @Test
-        @DisplayName("x-runtime-protection SKILL.md exists"
+        @DisplayName("x-runtime-eval SKILL.md exists"
                 + " after assembly")
         void assemble_runtimeProtection_skillMdExists(
                 @TempDir Path tempDir)
                 throws IOException {
             Path outputDir = generateOutput(tempDir);
             Path skillMd = outputDir.resolve(
-                    "skills/x-runtime-protection/SKILL.md");
+                    "skills/x-runtime-eval/SKILL.md");
             assertThat(skillMd).exists();
         }
 
         @Test
         @DisplayName("frontmatter contains name:"
-                + " x-runtime-protection")
+                + " x-runtime-eval")
         void assemble_runtimeProtection_hasName(
                 @TempDir Path tempDir)
                 throws IOException {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content).contains(
-                    "name: x-runtime-protection");
+                    "name: x-runtime-eval");
         }
 
         @Test
@@ -357,7 +357,7 @@ class RuntimeProtectionSkillTest {
             String content =
                     generateClaudeContent(tempDir);
             assertThat(content).contains(
-                    "\"name\": \"x-runtime-protection\"");
+                    "\"name\": \"x-runtime-eval\"");
         }
 
         @Test
@@ -556,7 +556,7 @@ class RuntimeProtectionSkillTest {
         Path outputDir = generateOutput(tempDir);
         return Files.readString(
                 outputDir.resolve(
-                        "skills/x-runtime-protection"
+                        "skills/x-runtime-eval"
                                 + "/SKILL.md"),
                 StandardCharsets.UTF_8);
     }

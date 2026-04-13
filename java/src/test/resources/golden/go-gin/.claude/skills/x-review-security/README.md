@@ -31,4 +31,4 @@ Reviews code changes against the compliance frameworks selected in the project c
 
 - [x-review-compliance](../x-review-compliance/) -- PCI-DSS specific compliance review
 - [x-security-sast](../x-security-sast/) -- Static application security testing
-- [x-security-secret-scan](../x-security-secret-scan/) -- Secret detection in code and git history
+- [x-security-secrets](../x-security-secrets/) -- Secret detection in code and git history

@@ -17,14 +17,14 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for story-0022-0006: Secret Scanner (x-security-secret-scan).
+ * Tests for story-0022-0006: Secret Scanner (x-security-secrets).
  *
  * <p>Validates the conditional SKILL.md template is generated
  * when {@code security.scanning.secretScan = true}, contains
  * all required sections per security-skill-template, and
  * covers all 8 secret categories.</p>
  */
-@DisplayName("Secret Scanner (x-security-secret-scan)")
+@DisplayName("Secret Scanner (x-security-secrets)")
 class SecretScanSkillTest {
 
     @Nested
@@ -33,7 +33,7 @@ class SecretScanSkillTest {
 
         @Test
         @DisplayName("secretScan enabled generates"
-                + " x-security-secret-scan SKILL.md")
+                + " x-security-secrets SKILL.md")
         void assemble_secretScanEnabled_generatesSkill(
                 @TempDir Path tempDir)
                 throws IOException {
@@ -50,13 +50,13 @@ class SecretScanSkillTest {
                     new TemplateEngine(), outputDir);
 
             Path skill = outputDir.resolve(
-                    "skills/x-security-secret-scan/SKILL.md");
+                    "skills/x-security-secrets/SKILL.md");
             assertThat(skill).exists();
         }
 
         @Test
         @DisplayName("secretScan disabled does not generate"
-                + " x-security-secret-scan SKILL.md")
+                + " x-security-secrets SKILL.md")
         void assemble_secretScanDisabled_noSkill(
                 @TempDir Path tempDir)
                 throws IOException {
@@ -73,13 +73,13 @@ class SecretScanSkillTest {
                     new TemplateEngine(), outputDir);
 
             Path skill = outputDir.resolve(
-                    "skills/x-security-secret-scan/SKILL.md");
+                    "skills/x-security-secrets/SKILL.md");
             assertThat(skill).doesNotExist();
         }
 
         @Test
         @DisplayName("selectConditionalSkills includes"
-                + " x-security-secret-scan when flag enabled")
+                + " x-security-secrets when flag enabled")
         void select_secretScanEnabled_includesSkill() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -93,12 +93,12 @@ class SecretScanSkillTest {
                             .selectConditionalSkills(config);
 
             assertThat(skills)
-                    .contains("x-security-secret-scan");
+                    .contains("x-security-secrets");
         }
 
         @Test
         @DisplayName("selectConditionalSkills excludes"
-                + " x-security-secret-scan when flag disabled")
+                + " x-security-secrets when flag disabled")
         void select_secretScanDisabled_excludesSkill() {
             ProjectConfig config =
                     TestConfigBuilder.builder()
@@ -112,7 +112,7 @@ class SecretScanSkillTest {
                             .selectConditionalSkills(config);
 
             assertThat(skills)
-                    .doesNotContain("x-security-secret-scan");
+                    .doesNotContain("x-security-secrets");
         }
     }
 
@@ -121,13 +121,13 @@ class SecretScanSkillTest {
     class Frontmatter {
 
         @Test
-        @DisplayName("contains name x-security-secret-scan")
+        @DisplayName("contains name x-security-secrets")
         void content_hasName(
                 @TempDir Path tempDir)
                 throws IOException {
             String content = generateAndRead(tempDir);
             assertThat(content)
-                    .contains("name: x-security-secret-scan");
+                    .contains("name: x-security-secrets");
         }
 
         @Test
@@ -665,7 +665,7 @@ class SecretScanSkillTest {
                 new TemplateEngine(), outputDir);
         return Files.readString(
                 outputDir.resolve(
-                        "skills/x-security-secret-scan/SKILL.md"),
+                        "skills/x-security-secrets/SKILL.md"),
                 StandardCharsets.UTF_8);
     }
 }

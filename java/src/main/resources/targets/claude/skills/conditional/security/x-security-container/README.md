@@ -31,4 +31,4 @@ Scans Docker container images for known CVEs and analyzes Dockerfiles for securi
 
 - [x-security-infra](../x-security-infra/) -- Infrastructure-as-Code security scanning
 - [x-security-sast](../x-security-sast/) -- Static code analysis for vulnerabilities
-- [x-security-secret-scan](../x-security-secret-scan/) -- Secret detection in code and git history
+- [x-security-secrets](../x-security-secrets/) -- Secret detection in code and git history

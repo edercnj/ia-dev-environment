@@ -1,28 +1,28 @@
 # Verification Phase Reference
 
-> **Context:** This reference details Phase 3 (Story-Level Verification).
+> **Context:** This reference details Phase 8 (Final Verification).
 > Part of x-story-implement skill.
 
-## Phase 3 -- Story-Level Verification (Absorbs Old Phases 3-8)
+## Phase 8 -- Final Verification
 
-Phase 3 executes after all tasks have approved/merged PRs. It consolidates verification across all task changes.
+Phase 8 executes after all tasks have approved/merged PRs. It consolidates verification across all task changes.
 
-**Skip condition:** If `--skip-verification` is passed, skip Phase 3 entirely with log `"Phase 3 skipped (--skip-verification)"`.
+**Skip condition:** If `--skip-verification` is passed, skip Phase 8 entirely with log `"Phase 8 skipped (--skip-verification)"`.
 
-### Step 3.1 -- Coverage Consolidation
+### Step 8.1 -- Coverage Consolidation
 
 1. Run `{{TEST_COMMAND}}` and `{{COVERAGE_COMMAND}}` across all story files
 2. Validate coverage thresholds: line >= 95%, branch >= 90%
 3. If below thresholds: identify gaps and emit WARNING with specific files/methods
 
-### Step 3.2 -- Cross-File Consistency Check
+### Step 8.2 -- Cross-File Consistency Check
 
 1. Verify error handling patterns are uniform across classes of the same role
 2. Verify constructor patterns, return types, and internal type definitions follow the same shape within a module
 3. Inconsistency across files of the same role is a MEDIUM-severity violation
 4. Report findings with file paths and specific inconsistencies
 
-### Step 3.3 -- Documentation Update
+### Step 8.3 -- Documentation Update
 
 Read the `interfaces` field from the project identity to determine which documentation generators to invoke.
 
@@ -53,7 +53,7 @@ If an architecture plan exists at `plans/epic-XXXX/plans/architecture-story-XXXX
 2. New components, integrations, flows, and ADR references are added to the appropriate sections
 3. If `steering/service-architecture.md` does not exist, create it from the template
 
-### Step 3.4 -- Review (invoke x-review via Skill tool)
+### Step 8.4 -- Review (invoke x-review via Skill tool)
 
 Invoke the `x-review` skill via the Skill tool (Rule 13 — INLINE-SKILL pattern):
 
@@ -73,7 +73,7 @@ After collecting all specialist review results, generate a consolidated dashboar
 2. Aggregate scores from all specialists into a single dashboard.
 3. Save to `plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md`.
 
-### Step 3.5 -- Fixes + Remediation
+### Step 8.5 -- Fixes + Remediation
 
 1. **Remediation Tracking (RULE-006):**
    - Read template at `.claude/templates/_TEMPLATE-REVIEW-REMEDIATION.md` for required output format (RULE-007). If not found, use inline format as fallback (RULE-012).
@@ -86,7 +86,7 @@ After collecting all specialist review results, generate a consolidated dashboar
 5. Run `{{COMPILE_COMMAND}}` + `{{TEST_COMMAND}}`
 6. Update remediation tracking: mark fixed items as "Fixed" with commit reference.
 
-### Step 3.6 -- Tech Lead Review
+### Step 8.6 -- Tech Lead Review
 
 Invoke the `x-review-pr` skill via the Skill tool (Rule 13 — INLINE-SKILL pattern):
 
@@ -97,7 +97,7 @@ Requires all items passing for GO. If NO-GO, fix all failed items and re-review 
 **Dashboard Update (RULE-006):**
 After the Tech Lead review completes, update the consolidated review dashboard at `plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md` with Tech Lead findings.
 
-### Step 3.7 -- Story-Level PR (Auto-Approve Mode Only)
+### Step 8.7 -- Story-Level PR (Auto-Approve Mode Only)
 
 If `--auto-approve-pr` is active:
 1. Push parent branch: `git push -u origin feat/story-XXXX-YYYY-desc`
@@ -108,7 +108,7 @@ If `--auto-approve-pr` is active:
 
 If NOT `--auto-approve-pr`: skip (individual task PRs already target develop).
 
-### Step 3.8 -- Final Verification + Cleanup
+### Step 8.8 -- Final Verification + Cleanup
 
 1. Update README if needed
 2. Update IMPLEMENTATION-MAP: find story row, update Status to `Concluida`
@@ -131,4 +131,4 @@ If NOT `--auto-approve-pr`: skip (individual task PRs already target develop).
 9. Report PASS/FAIL/SKIP result with task-level summary
 10. `git checkout develop && git pull origin develop`
 
-**Phase 3 is the ONLY legitimate stopping point.**
+**Phase 8 is the ONLY legitimate stopping point.**

@@ -30,4 +30,4 @@ Orchestrates Dynamic Application Security Testing against a running application,
 
 - [x-security-sast](../x-security-sast/) -- Static code analysis for vulnerabilities
 - [x-security-pentest](../x-security-pentest/) -- Multi-phase penetration test orchestrator
-- [run-smoke-api](../run-smoke-api/) -- REST API smoke tests against deployed environments
+- [x-test-smoke-api](../x-test-smoke-api/) -- REST API smoke tests against deployed environments

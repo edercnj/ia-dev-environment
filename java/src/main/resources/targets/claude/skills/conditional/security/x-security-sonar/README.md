@@ -30,5 +30,5 @@ Integrates with SonarQube or SonarCloud to generate `sonar-project.properties`, 
 ## See Also
 
 - [x-security-sast](../x-security-sast/) -- Static application security testing
-- [x-security-secret-scan](../x-security-secret-scan/) -- Secret detection in code and git history
+- [x-security-secrets](../x-security-secrets/) -- Secret detection in code and git history
 - [x-security-pentest](../x-security-pentest/) -- Multi-phase penetration test orchestrator

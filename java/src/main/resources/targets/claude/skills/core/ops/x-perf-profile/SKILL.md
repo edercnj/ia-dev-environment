@@ -232,7 +232,7 @@ Reference the performance-engineering knowledge pack for contextualized optimiza
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| run-perf-test | complements | Performance tests generate load; profiling captures behavior |
+| x-test-perf | complements | Performance tests generate load; profiling captures behavior |
 | x-ops-troubleshoot | calls | Troubleshooting may invoke profiling for performance issues |
 | x-review | called-by | Performance review specialist may reference profiling results |
 
