@@ -208,6 +208,7 @@ The generator produces **20 core skills** (always included) and up to **13 condi
 >
 > - Decision record: [`adr/ADR-0003-skill-taxonomy-and-naming.md`](adr/ADR-0003-skill-taxonomy-and-naming.md)
 > - Rename history: [`plans/epic-0036/skill-renames.md`](plans/epic-0036/skill-renames.md)
+> - Release notes (post-merge migration table): [`docs/release-notes/EPIC-0036-skill-renames.md`](docs/release-notes/EPIC-0036-skill-renames.md)
 
 ### Story Planning & Decomposition
 
@@ -328,12 +329,12 @@ The main orchestrator skill. Takes a story from branch creation to merged PR in 
 | **Input** | Story ID or feature description |
 | **Output** | TDD implementation with atomic commits |
 
-**How it differs from `/x-dev-lifecycle`:**
+**How it differs from `/x-story-implement`:**
 
 | Scenario | Use |
 |----------|-----|
 | Single class, small fix, coding without reviews | `/x-task-implement` |
-| Complete lifecycle: code → review → fix → PR | `/x-dev-lifecycle` |
+| Complete lifecycle: code → review → fix → PR | `/x-story-implement` |
 
 **Workflow:**
 1. **Prepare** -- Subagent reads architecture, coding standards, and test plan knowledge packs

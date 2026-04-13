@@ -1,0 +1,252 @@
+{
+  "epicId": "0037",
+  "baseBranch": "develop",
+  "startedAt": "2026-04-13T00:00:00Z",
+  "totalPhases": 6,
+  "stories": [
+    {
+      "id": "story-0037-0001",
+      "phase": 0
+    },
+    {
+      "id": "story-0037-0002",
+      "phase": 1
+    },
+    {
+      "id": "story-0037-0003",
+      "phase": 2
+    },
+    {
+      "id": "story-0037-0004",
+      "phase": 2
+    },
+    {
+      "id": "story-0037-0005",
+      "phase": 2
+    },
+    {
+      "id": "story-0037-0006",
+      "phase": 2
+    },
+    {
+      "id": "story-0037-0007",
+      "phase": 2
+    },
+    {
+      "id": "story-0037-0009",
+      "phase": 3
+    },
+    {
+      "id": "story-0037-0010",
+      "phase": 4
+    },
+    {
+      "id": "story-0037-0008",
+      "phase": 5
+    }
+  ],
+  "storyEntries": {
+    "story-0037-0001": {
+      "id": "story-0037-0001",
+      "phase": 0,
+      "planningStatus": "READY",
+      "planningStartedAt": "2026-04-13T00:01:00Z",
+      "planningCompletedAt": "2026-04-13T00:15:00Z",
+      "dorVerdict": "READY",
+      "artifacts": [
+        "plans/epic-0037/plans/tasks-story-0037-0001.md",
+        "plans/epic-0037/plans/planning-report-story-0037-0001.md",
+        "plans/epic-0037/plans/dor-story-0037-0001.md",
+        "plans/epic-0037/plans/task-plan-TASK-000-story-0037-0001.md",
+        "plans/epic-0037/plans/task-plan-TASK-001-story-0037-0001.md",
+        "plans/epic-0037/plans/task-plan-TASK-002-story-0037-0001.md",
+        "plans/epic-0037/plans/task-plan-TASK-003-story-0037-0001.md",
+        "plans/epic-0037/plans/task-plan-TASK-004-story-0037-0001.md",
+        "plans/epic-0037/plans/task-plan-TASK-005-story-0037-0001.md",
+        "plans/epic-0037/plans/task-plan-TASK-006-story-0037-0001.md"
+      ]
+    },
+    "story-0037-0002": {
+      "id": "story-0037-0002",
+      "phase": 1,
+      "planningStatus": "READY",
+      "planningStartedAt": "2026-04-13T00:16:00Z",
+      "planningCompletedAt": "2026-04-13T00:30:00Z",
+      "dorVerdict": "READY",
+      "artifacts": [
+        "plans/epic-0037/plans/tasks-story-0037-0002.md",
+        "plans/epic-0037/plans/planning-report-story-0037-0002.md",
+        "plans/epic-0037/plans/dor-story-0037-0002.md",
+        "plans/epic-0037/plans/task-plan-TASK-000-story-0037-0002.md",
+        "plans/epic-0037/plans/task-plan-TASK-001-story-0037-0002.md",
+        "plans/epic-0037/plans/task-plan-TASK-002-story-0037-0002.md",
+        "plans/epic-0037/plans/task-plan-TASK-003-story-0037-0002.md",
+        "plans/epic-0037/plans/task-plan-TASK-004-story-0037-0002.md",
+        "plans/epic-0037/plans/task-plan-TASK-005-story-0037-0002.md",
+        "plans/epic-0037/plans/task-plan-TASK-006-story-0037-0002.md",
+        "plans/epic-0037/plans/task-plan-TASK-007-story-0037-0002.md",
+        "plans/epic-0037/plans/task-plan-TASK-008-story-0037-0002.md"
+      ]
+    },
+    "story-0037-0003": {
+      "id": "story-0037-0003",
+      "phase": 2,
+      "planningStatus": "READY",
+      "planningStartedAt": "2026-04-13T00:31:00Z",
+      "planningCompletedAt": "2026-04-13T00:55:00Z",
+      "dorVerdict": "READY",
+      "artifactsCount": 13,
+      "artifacts": [
+        "plans/epic-0037/plans/dor-story-0037-0003.md",
+        "plans/epic-0037/plans/planning-report-story-0037-0003.md",
+        "plans/epic-0037/plans/task-plan-TASK-001-story-0037-0003.md",
+        "plans/epic-0037/plans/task-plan-TASK-002-story-0037-0003.md",
+        "plans/epic-0037/plans/task-plan-TASK-003-story-0037-0003.md",
+        "plans/epic-0037/plans/task-plan-TASK-004-story-0037-0003.md",
+        "plans/epic-0037/plans/task-plan-TASK-005-story-0037-0003.md",
+        "plans/epic-0037/plans/task-plan-TASK-006-story-0037-0003.md",
+        "plans/epic-0037/plans/task-plan-TASK-007-story-0037-0003.md",
+        "plans/epic-0037/plans/task-plan-TASK-008-story-0037-0003.md",
+        "plans/epic-0037/plans/task-plan-TASK-009-story-0037-0003.md",
+        "plans/epic-0037/plans/task-plan-TASK-010-story-0037-0003.md",
+        "plans/epic-0037/plans/tasks-story-0037-0003.md"
+      ]
+    },
+    "story-0037-0004": {
+      "id": "story-0037-0004",
+      "phase": 2,
+      "planningStatus": "READY",
+      "planningStartedAt": "2026-04-13T00:31:00Z",
+      "planningCompletedAt": "2026-04-13T00:55:00Z",
+      "dorVerdict": "READY",
+      "artifactsCount": 9,
+      "artifacts": [
+        "plans/epic-0037/plans/dor-story-0037-0004.md",
+        "plans/epic-0037/plans/planning-report-story-0037-0004.md",
+        "plans/epic-0037/plans/task-plan-TASK-001-story-0037-0004.md",
+        "plans/epic-0037/plans/task-plan-TASK-002-story-0037-0004.md",
+        "plans/epic-0037/plans/task-plan-TASK-003-story-0037-0004.md",
+        "plans/epic-0037/plans/task-plan-TASK-004-story-0037-0004.md",
+        "plans/epic-0037/plans/task-plan-TASK-005-story-0037-0004.md",
+        "plans/epic-0037/plans/task-plan-TASK-006-story-0037-0004.md",
+        "plans/epic-0037/plans/tasks-story-0037-0004.md"
+      ]
+    },
+    "story-0037-0005": {
+      "id": "story-0037-0005",
+      "phase": 2,
+      "planningStatus": "READY",
+      "planningStartedAt": "2026-04-13T00:56:00Z",
+      "planningCompletedAt": "2026-04-13T01:10:00Z",
+      "dorVerdict": "READY",
+      "artifactsCount": 10,
+      "artifacts": [
+        "plans/epic-0037/plans/dor-story-0037-0005.md",
+        "plans/epic-0037/plans/planning-report-story-0037-0005.md",
+        "plans/epic-0037/plans/task-plan-TASK-001-story-0037-0005.md",
+        "plans/epic-0037/plans/task-plan-TASK-002-story-0037-0005.md",
+        "plans/epic-0037/plans/task-plan-TASK-003-story-0037-0005.md",
+        "plans/epic-0037/plans/task-plan-TASK-004-story-0037-0005.md",
+        "plans/epic-0037/plans/task-plan-TASK-005-story-0037-0005.md",
+        "plans/epic-0037/plans/task-plan-TASK-006-story-0037-0005.md",
+        "plans/epic-0037/plans/task-plan-TASK-007-story-0037-0005.md",
+        "plans/epic-0037/plans/tasks-story-0037-0005.md"
+      ]
+    },
+    "story-0037-0006": {
+      "id": "story-0037-0006",
+      "phase": 2,
+      "planningStatus": "READY",
+      "planningStartedAt": "2026-04-13T00:56:00Z",
+      "planningCompletedAt": "2026-04-13T01:10:00Z",
+      "dorVerdict": "READY",
+      "artifactsCount": 10,
+      "artifacts": [
+        "plans/epic-0037/plans/dor-story-0037-0006.md",
+        "plans/epic-0037/plans/planning-report-story-0037-0006.md",
+        "plans/epic-0037/plans/task-plan-TASK-001-story-0037-0006.md",
+        "plans/epic-0037/plans/task-plan-TASK-002-story-0037-0006.md",
+        "plans/epic-0037/plans/task-plan-TASK-003-story-0037-0006.md",
+        "plans/epic-0037/plans/task-plan-TASK-004-story-0037-0006.md",
+        "plans/epic-0037/plans/task-plan-TASK-005-story-0037-0006.md",
+        "plans/epic-0037/plans/task-plan-TASK-006-story-0037-0006.md",
+        "plans/epic-0037/plans/task-plan-TASK-007-story-0037-0006.md",
+        "plans/epic-0037/plans/tasks-story-0037-0006.md"
+      ]
+    },
+    "story-0037-0007": {
+      "id": "story-0037-0007",
+      "phase": 2,
+      "planningStatus": "READY",
+      "planningStartedAt": "2026-04-13T00:31:00Z",
+      "planningCompletedAt": "2026-04-13T00:55:00Z",
+      "dorVerdict": "READY",
+      "artifactsCount": 12,
+      "artifacts": [
+        "plans/epic-0037/plans/dor-story-0037-0007.md",
+        "plans/epic-0037/plans/planning-report-story-0037-0007.md",
+        "plans/epic-0037/plans/task-plan-TASK-001-story-0037-0007.md",
+        "plans/epic-0037/plans/task-plan-TASK-002-story-0037-0007.md",
+        "plans/epic-0037/plans/task-plan-TASK-003-story-0037-0007.md",
+        "plans/epic-0037/plans/task-plan-TASK-004-story-0037-0007.md",
+        "plans/epic-0037/plans/task-plan-TASK-005-story-0037-0007.md",
+        "plans/epic-0037/plans/task-plan-TASK-006-story-0037-0007.md",
+        "plans/epic-0037/plans/task-plan-TASK-007-story-0037-0007.md",
+        "plans/epic-0037/plans/task-plan-TASK-008-story-0037-0007.md",
+        "plans/epic-0037/plans/task-plan-TASK-009-story-0037-0007.md",
+        "plans/epic-0037/plans/tasks-story-0037-0007.md"
+      ]
+    },
+    "story-0037-0009": {
+      "id": "story-0037-0009",
+      "phase": 3,
+      "planningStatus": "READY",
+      "planningStartedAt": "2026-04-13T01:11:00Z",
+      "planningCompletedAt": "2026-04-13T01:25:00Z",
+      "dorVerdict": "READY",
+      "artifactsCount": 9,
+      "artifacts": [
+        "plans/epic-0037/plans/dor-story-0037-0009.md",
+        "plans/epic-0037/plans/planning-report-story-0037-0009.md",
+        "plans/epic-0037/plans/task-plan-TASK-001-story-0037-0009.md",
+        "plans/epic-0037/plans/task-plan-TASK-002-story-0037-0009.md",
+        "plans/epic-0037/plans/task-plan-TASK-003-story-0037-0009.md",
+        "plans/epic-0037/plans/task-plan-TASK-004-story-0037-0009.md",
+        "plans/epic-0037/plans/task-plan-TASK-005-story-0037-0009.md",
+        "plans/epic-0037/plans/task-plan-TASK-006-story-0037-0009.md",
+        "plans/epic-0037/plans/tasks-story-0037-0009.md"
+      ]
+    },
+    "story-0037-0010": {
+      "id": "story-0037-0010",
+      "phase": 4,
+      "planningStatus": "READY",
+      "planningStartedAt": "2026-04-13T01:11:00Z",
+      "planningCompletedAt": "2026-04-13T01:25:00Z",
+      "dorVerdict": "READY",
+      "artifactsCount": 10,
+      "artifacts": [
+        "plans/epic-0037/plans/dor-story-0037-0010.md",
+        "plans/epic-0037/plans/planning-report-story-0037-0010.md",
+        "plans/epic-0037/plans/task-plan-TASK-001-story-0037-0010.md",
+        "plans/epic-0037/plans/task-plan-TASK-002-story-0037-0010.md",
+        "plans/epic-0037/plans/task-plan-TASK-003-story-0037-0010.md",
+        "plans/epic-0037/plans/task-plan-TASK-004-story-0037-0010.md",
+        "plans/epic-0037/plans/task-plan-TASK-005-story-0037-0010.md",
+        "plans/epic-0037/plans/task-plan-TASK-006-story-0037-0010.md",
+        "plans/epic-0037/plans/task-plan-TASK-007-story-0037-0010.md",
+        "plans/epic-0037/plans/tasks-story-0037-0010.md"
+      ]
+    },
+    "story-0037-0008": {
+      "id": "story-0037-0008",
+      "phase": 5,
+      "planningStatus": "PENDING",
+      "planningStartedAt": null,
+      "planningCompletedAt": null,
+      "dorVerdict": null,
+      "artifacts": [],
+      "note": "BLOCKED by EPIC-0035 \u2014 deferred"
+    }
+  }
+}
