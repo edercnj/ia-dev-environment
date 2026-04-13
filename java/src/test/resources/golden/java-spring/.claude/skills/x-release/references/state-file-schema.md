@@ -30,9 +30,10 @@ progress. It enables:
 | `--state-file <path>` | `<path>` (operator-provided absolute or relative path) |
 
 The file is created during Step 0 (Resume Detection) with phase
-`INITIALIZED`, then updated at each phase transition. It is removed
-(or moved to `plans/release-state-<X.Y.Z>.json.done`) after `COMPLETED`
-by the CLEANUP phase.
+`INITIALIZED`, then advances to `DETERMINED` after Step 1 and through
+subsequent phases. It is removed (or moved to
+`plans/release-state-<X.Y.Z>.json.done`) after `COMPLETED` by the
+CLEANUP phase.
 
 ## Canonical JSON Example
 
@@ -44,14 +45,14 @@ by the CLEANUP phase.
   "bumpType": "minor",
   "phase": "APPROVAL_PENDING",
   "phasesCompleted": [
+    "INITIALIZED",
     "DETERMINED",
     "VALIDATED",
     "BRANCHED",
     "UPDATED",
     "CHANGELOG_DONE",
     "COMMITTED",
-    "PR_OPENED",
-    "APPROVAL_PENDING"
+    "PR_OPENED"
   ],
   "branch": "release/2.3.0",
   "baseBranch": "develop",

@@ -247,7 +247,7 @@ class ReleaseSkillTest {
                     .isNotNegative();
             assertThat(stepCleanup)
                     .as("Step 12 Cleanup header not found")
-                    .isNotNegative();
+                    .isGreaterThan(stepPublish);
             String publishBody = content.substring(
                     stepPublish, stepCleanup);
             assertThat(publishBody).contains(
