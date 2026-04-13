@@ -9,13 +9,14 @@ import java.util.List;
  * Resolves skill directories under a hierarchical
  * source-of-truth layout while preserving a flat output.
  *
- * <p>Skills physically live under category subfolders
- * (e.g. {@code core/plan/x-story-epic/}) but their emitted
- * output path is always {@code .claude/skills/{name}/}.
- * The {@code lib/} subtree is the one exception and retains
- * its {@code lib/} prefix in the emitted name. A directory
- * qualifies as a skill directory iff it contains a
- * {@code SKILL.md} file.</p>
+ * <p>Skills physically live under <strong>single-level</strong>
+ * category subfolders (e.g. {@code core/plan/x-story-epic/})
+ * but their emitted output path is always
+ * {@code .claude/skills/{name}/}. Nested categories beyond one
+ * level are not scanned. The {@code lib/} subtree is the one
+ * exception and retains its {@code lib/} prefix in the emitted
+ * name. A directory qualifies as a skill directory iff it
+ * contains a {@code SKILL.md} file.</p>
  *
  * @see SkillsAssembler
  */
@@ -37,11 +38,12 @@ final class SkillsHierarchyResolver {
 
     /**
      * Lists skill names under a root directory, supporting
-     * both flat and hierarchical layouts.
+     * flat layout and a single level of category subfolders.
      *
      * <p>The {@code lib/} subfolder is special-cased: its
      * children are emitted with the {@code lib/} prefix
-     * preserved.</p>
+     * preserved. Nested categories beyond one level are not
+     * traversed.</p>
      *
      * @param rootDir the core or conditional root directory
      * @return list of skill names, in scan order
@@ -74,6 +76,11 @@ final class SkillsHierarchyResolver {
         }
     }
 
+    /**
+     * Adds direct child skills of a category directory.
+     * Only one level deep — nested category subfolders are
+     * intentionally not traversed.
+     */
     private static void addCategorySkills(
             Path categoryDir, List<String> skills) {
         for (Path sub :
