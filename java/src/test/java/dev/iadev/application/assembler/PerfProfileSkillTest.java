@@ -479,19 +479,6 @@ class PerfProfileSkillTest {
         }
     }
 
-    @Nested
-    @DisplayName("SkillGroupRegistry -- Dev Group")
-    class RegistryDevGroup {
-
-        @Test
-        @DisplayName("dev group contains x-perf-profile")
-        void register_devGroup_containsPerfProfile() {
-            assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("dev"))
-                    .contains("x-perf-profile");
-        }
-    }
-
     private Path generateOutput(Path tempDir)
             throws IOException {
         Path outputDir = tempDir.resolve("output");

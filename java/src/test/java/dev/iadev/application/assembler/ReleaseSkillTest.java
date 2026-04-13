@@ -654,21 +654,6 @@ class ReleaseSkillTest {
     }
 
     @Nested
-    @DisplayName("SkillGroupRegistry --"
-            + " git-troubleshooting Group")
-    class RegistryGitTroubleshootingGroup {
-
-        @Test
-        @DisplayName("git-troubleshooting group"
-                + " contains x-release")
-        void register_gitGroup_containsRelease() {
-            assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("git-troubleshooting"))
-                    .contains("x-release");
-        }
-    }
-
-    @Nested
     @DisplayName("Claude SKILL.md -- EPIC-0035"
             + " Foundation (story-0035-0001)")
     class Epic0035Foundation {

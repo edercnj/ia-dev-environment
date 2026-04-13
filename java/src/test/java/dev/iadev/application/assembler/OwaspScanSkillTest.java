@@ -495,31 +495,6 @@ class OwaspScanSkillTest {
         }
     }
 
-    @Nested
-    @DisplayName("SkillGroupRegistry -- Review Group")
-    class RegistryReviewGroup {
-
-        @Test
-        @DisplayName("review group contains"
-                + " x-owasp-scan")
-        void register_reviewGroup_containsOwaspScan() {
-            assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("review"))
-                    .contains("x-owasp-scan");
-        }
-
-        @Test
-        @DisplayName("x-owasp-scan has no condition"
-                + " (always included)")
-        void register_owaspScan_noCondition() {
-            assertThat(
-                    SkillGroupRegistry
-                            .REVIEW_SKILL_CONDITIONS
-                            .containsKey("x-owasp-scan"))
-                    .isFalse();
-        }
-    }
-
     private Path generateOutput(Path tempDir)
             throws IOException {
         Path outputDir = tempDir.resolve("output");

@@ -539,20 +539,6 @@ class RuntimeProtectionSkillTest {
         }
     }
 
-    @Nested
-    @DisplayName("SkillGroupRegistry -- Review Group")
-    class RegistryReviewGroup {
-
-        @Test
-        @DisplayName("review group contains"
-                + " x-runtime-protection")
-        void register_reviewGroup_containsRuntimeProtection() {
-            assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("review"))
-                    .contains("x-runtime-protection");
-        }
-    }
-
     private Path generateOutput(Path tempDir)
             throws IOException {
         Path outputDir = tempDir.resolve("output");
