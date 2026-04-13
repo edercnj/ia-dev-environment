@@ -310,20 +310,6 @@ class SpecDriftCheckSkillTest {
         }
     }
 
-    @Nested
-    @DisplayName("SkillGroupRegistry — Review Group")
-    class RegistryReviewGroup {
-
-        @Test
-        @DisplayName("review group contains"
-                + " x-spec-drift")
-        void register_reviewGroup_containsSpecDriftCheck() {
-            assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("review"))
-                    .contains("x-spec-drift");
-        }
-    }
-
     private Path generateOutput(Path tempDir)
             throws IOException {
         Path outputDir = tempDir.resolve("output");

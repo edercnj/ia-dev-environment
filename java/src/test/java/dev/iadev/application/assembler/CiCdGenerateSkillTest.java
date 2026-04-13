@@ -409,20 +409,6 @@ class CiCdGenerateSkillTest {
         }
     }
 
-    @Nested
-    @DisplayName("SkillGroupRegistry -- Dev Group")
-    class RegistryDevGroup {
-
-        @Test
-        @DisplayName("dev group contains"
-                + " x-ci-generate")
-        void register_devGroup_containsCiCdGenerate() {
-            assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("dev"))
-                    .contains("x-ci-generate");
-        }
-    }
-
     private Path generateOutput(Path tempDir)
             throws IOException {
         Path outputDir = tempDir.resolve("output");

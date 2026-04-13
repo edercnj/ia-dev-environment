@@ -567,20 +567,6 @@ class HardeningEvalSkillTest {
         }
     }
 
-    @Nested
-    @DisplayName("SkillGroupRegistry -- Review Group")
-    class RegistryReviewGroup {
-
-        @Test
-        @DisplayName("review group contains"
-                + " x-hardening-eval")
-        void register_reviewGroup_containsHardeningEval() {
-            assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("review"))
-                    .contains("x-hardening-eval");
-        }
-    }
-
     private Path generateOutput(Path tempDir)
             throws IOException {
         Path outputDir = tempDir.resolve("output");

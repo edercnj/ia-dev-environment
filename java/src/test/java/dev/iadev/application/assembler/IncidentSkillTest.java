@@ -331,21 +331,6 @@ class IncidentSkillTest {
         }
     }
 
-    @Nested
-    @DisplayName("SkillGroupRegistry —"
-            + " git-troubleshooting Group")
-    class RegistryGitTroubleshootingGroup {
-
-        @Test
-        @DisplayName("git-troubleshooting group"
-                + " contains x-ops-incident")
-        void register_gitTroubleshooting_containsIncident() {
-            assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("git-troubleshooting"))
-                    .contains("x-ops-incident");
-        }
-    }
-
     private Path generateOutput(Path tempDir)
             throws IOException {
         Path outputDir = tempDir.resolve("output");

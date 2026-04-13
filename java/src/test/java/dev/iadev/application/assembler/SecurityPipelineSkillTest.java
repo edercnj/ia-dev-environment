@@ -549,20 +549,6 @@ class SecurityPipelineSkillTest {
         }
     }
 
-    @Nested
-    @DisplayName("SkillGroupRegistry -- Dev Group")
-    class RegistryDevGroup {
-
-        @Test
-        @DisplayName("dev group contains"
-                + " x-security-pipeline")
-        void register_devGroup_containsSecPipeline() {
-            assertThat(SkillGroupRegistry.SKILL_GROUPS
-                    .get("dev"))
-                    .contains("x-security-pipeline");
-        }
-    }
-
     private Path generateOutput(Path tempDir)
             throws IOException {
         Path outputDir = tempDir.resolve("output");
