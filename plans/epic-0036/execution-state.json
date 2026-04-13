@@ -13,7 +13,7 @@
   "batchApproval": true,
   "taskTracking": true,
   "metrics": {
-    "storiesCompleted": 3,
+    "storiesCompleted": 6,
     "storiesFailed": 0,
     "storiesBlocked": 0,
     "storiesTotal": 6
@@ -61,34 +61,46 @@
     "story-0036-0004": {
       "id": "story-0036-0004",
       "phase": 2,
-      "status": "IN_PROGRESS",
+      "status": "SUCCESS",
+      "commitSha": "cca7b6c60",
       "findingsCount": 0,
-      "summary": "Retry after API 500 on first attempt. Fresh dispatch from clean develop (deps already merged).",
-      "retries": 1
+      "summary": "Renamed primary cluster (10 skills) per ADR-0003. Follow-up commits for cross-refs and golden regen.",
+      "retries": 1,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/304",
+      "prNumber": 304,
+      "prMergeStatus": "MERGED",
+      "branchName": "feat/story-0036-0004-rename-primary"
     },
     "story-0036-0005": {
       "id": "story-0036-0005",
       "phase": 3,
-      "status": "PENDING",
+      "status": "SUCCESS",
+      "commitSha": "741c0815c",
       "findingsCount": 0,
-      "summary": "",
-      "retries": 0
+      "summary": "Renamed 9 remaining skills + cross-refs + golden regen. Marked Concluida via 652051bec.",
+      "retries": 0,
+      "prMergeStatus": "MERGED"
     },
     "story-0036-0006": {
       "id": "story-0036-0006",
       "phase": 4,
-      "status": "PENDING",
+      "status": "SUCCESS",
+      "commitSha": "bc07630cf",
       "findingsCount": 0,
-      "summary": "",
-      "retries": 0
+      "summary": "CI guard script for old skill names + release notes + CHANGELOG update.",
+      "retries": 0,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/307",
+      "prNumber": 307,
+      "prMergeStatus": "MERGED",
+      "branchName": "feat/story-0036-0006-ci-guard"
     }
   },
   "phases": {
     "0": { "stories": ["story-0036-0001"], "status": "SUCCESS" },
     "1": { "stories": ["story-0036-0002"], "status": "SUCCESS" },
-    "2": { "stories": ["story-0036-0003", "story-0036-0004"], "status": "IN_PROGRESS" },
-    "3": { "stories": ["story-0036-0005"], "status": "PENDING" },
-    "4": { "stories": ["story-0036-0006"], "status": "PENDING" }
+    "2": { "stories": ["story-0036-0003", "story-0036-0004"], "status": "SUCCESS" },
+    "3": { "stories": ["story-0036-0005"], "status": "SUCCESS" },
+    "4": { "stories": ["story-0036-0006"], "status": "SUCCESS" }
   },
   "integrityGates": {
     "0": { "status": "DEFERRED", "reason": "mergeMode == no-merge; validation performed per-story" },
