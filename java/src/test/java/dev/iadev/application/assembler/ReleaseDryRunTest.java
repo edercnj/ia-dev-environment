@@ -51,7 +51,8 @@ class ReleaseDryRunTest {
                     .contains("8. APPROVAL_GATE")
                     .contains("9. RESUME_AND_TAG")
                     .contains("10. BACK_MERGE_DEVELOP")
-                    .contains("11. CLEANUP");
+                    .contains("11. PUBLISH")
+                    .contains("12. CLEANUP");
         }
 
         @Test
