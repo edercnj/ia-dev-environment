@@ -331,7 +331,7 @@ Stories S08, S11, S13, S14 reusam este pattern. Se S07 estabelece pattern errado
 | TASK-0039-0014-002 (Hotfix adaptations) | múltiplas tasks Fase 0/1/2 | story-0039-0014 | múltiplas | interface |
 | TASK-0039-0015-004 (Golden regen) | TODAS as TASKs `*-skill-*` | story-0039-0015 | todas | config |
 
-> **Validação RULE-012:** todas as dependências cross-story são consistentes com as dependências de stories declaradas em Section 1. Sem violações detectadas.
+> **Validação:** todas as dependências cross-story são consistentes com as dependências de stories declaradas em Section 1. Sem violações detectadas.
 
 ### 8.2 Ordem de Merge (Topological Sort — resumida)
 
