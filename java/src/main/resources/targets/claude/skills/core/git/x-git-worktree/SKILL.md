@@ -354,7 +354,7 @@ After a branch is merged via PR:
 
 ## Integration with Epic Execution
 
-The `x-dev-epic-implement` orchestrator uses `x-git-worktree` for parallel story execution:
+The `x-epic-implement` orchestrator uses `x-git-worktree` for parallel story execution:
 
 ```
 Orchestrator (main)              x-git-worktree                 Subagent
@@ -395,6 +395,6 @@ Orchestrator (main)              x-git-worktree                 Subagent
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| `x-dev-epic-implement` | called-by | Parallel story dispatch via worktrees (Phase 1) |
-| `x-dev-story-implement` | called-by | Story execution within a worktree directory |
+| `x-epic-implement` | called-by | Parallel story dispatch via worktrees (Phase 1) |
+| `x-story-implement` | called-by | Story execution within a worktree directory |
 | `x-git-push` | related | Branch creation and push from within worktree |

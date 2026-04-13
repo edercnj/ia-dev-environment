@@ -1296,7 +1296,7 @@ output/
 │   │   ├── security/
 │   │   ├── api-design/
 │   │   ├── observability/
-│   │   ├── x-dev-implement/
+│   │   ├── x-task-implement/
 │   │   ├── x-review/
 │   │   └── ...
 │   ├── agents/                   # AI personas (architect, qa, security, etc.)

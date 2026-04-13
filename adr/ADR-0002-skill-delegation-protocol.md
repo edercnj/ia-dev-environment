@@ -14,13 +14,13 @@ Accepted | 2026-04-10
 
 ## Context
 
-The `skills/core/` templates in `java/src/main/resources/targets/claude/` define an orchestration chain where one skill delegates work to another: `x-dev-epic-implement` → `x-dev-story-implement` → `x-test-tdd` → `x-git-commit` → `x-code-format`/`x-code-lint`, plus `x-dev-story-implement` → `x-review` → 9 parallel specialist reviewers, plus Phase 1 planners (`x-dev-architecture-plan`, `x-test-plan`, `x-lib-task-decomposer`, `x-threat-model`) and Phase 3 finishers (`x-dev-arch-update`, `x-review-pr`).
+The `skills/core/` templates in `java/src/main/resources/targets/claude/` define an orchestration chain where one skill delegates work to another: `x-epic-implement` → `x-story-implement` → `x-test-tdd` → `x-git-commit` → `x-code-format`/`x-code-lint`, plus `x-story-implement` → `x-review` → 9 parallel specialist reviewers, plus Phase 1 planners (`x-arch-plan`, `x-test-plan`, `x-lib-task-decomposer`, `x-threat-model`) and Phase 3 finishers (`x-arch-update`, `x-review-pr`).
 
 Before EPIC-0033, this chain used three incompatible conventions for delegation, often mixed within the same file:
 
 1. **Bare-slash text** — `Invoke /x-foo with args` or `/x-foo TASK-ID` inside a code block. The Claude runtime does NOT execute this as a tool call; the LLM has to guess whether to dispatch via the `Skill` tool or read-and-follow the referenced skill inline. This guessing caused silent delegation failures.
 2. **Imperative prose without explicit tool call** — `Invoke skill x-test-plan` or `Launch general-purpose subagent: > prompt`. The LLM had to translate prose into an actual `Skill(...)` or `Agent(...)` tool call at runtime, with no guarantee of consistency.
-3. **Missing `allowed-tools` entries** — `x-test-tdd` and `x-git-commit` lacked `Skill` in their `allowed-tools` frontmatter. Even if the body text had pointed to `Skill(...)`, the runtime would have rejected the call. Similarly, `x-dev-epic-implement` and `x-dev-story-implement` launched subagents via `Agent()` but lacked `Agent` in `allowed-tools`, relying on implicit availability.
+3. **Missing `allowed-tools` entries** — `x-test-tdd` and `x-git-commit` lacked `Skill` in their `allowed-tools` frontmatter. Even if the body text had pointed to `Skill(...)`, the runtime would have rejected the call. Similarly, `x-epic-implement` and `x-story-implement` launched subagents via `Agent()` but lacked `Agent` in `allowed-tools`, relying on implicit availability.
 
 A diagnostic audit during EPIC-0033 identified **13 logical delegation routes across 7 files (24 physical locations)** using the bare-slash anti-pattern, plus 4 additional routes using the imperative-prose variant, plus 1 orphan reference to a non-existent skill (`/x-test-contract-lint`). The audit also found that `x-test-tdd` relied on an **implicit "invoked via Skill tool" detection** to decide whether to emit compact-vs-full output — a check the skill cannot reliably perform from inside its own execution context.
 
@@ -78,7 +78,7 @@ The bare-slash form `Invoke /x-foo`, `/x-foo TASK-ID`, or bullet lists of slash 
 
 ### Parallelism + tracking batching
 
-To preserve SINGLE-message parallelism while tracking per-planner/per-specialist progress, use the Batch A / Batch B pattern (documented in `x-dev-story-implement` "Phases 1B-1F Parallel Planning" and `x-review` Phase 2):
+To preserve SINGLE-message parallelism while tracking per-planner/per-specialist progress, use the Batch A / Batch B pattern (documented in `x-story-implement` "Phases 1B-1F Parallel Planning" and `x-review` Phase 2):
 
 1. **Batch A — first assistant message:** emit all `TaskCreate(...)` calls + all `Skill(...)` or `Agent(...)` invocations as SIBLING tool calls in the same message. The runtime dispatches siblings in parallel. Record returned task IDs in an in-memory map indexed by planner/specialist name.
 2. **Wait for all tool calls to return** (runtime handles this).
@@ -86,9 +86,9 @@ To preserve SINGLE-message parallelism while tracking per-planner/per-specialist
 
 ### Observability via `TaskCreate`/`TaskUpdate`
 
-Level 2 visibility: `x-dev-epic-implement` creates one task per story dispatch; `x-dev-story-implement` creates one task per phase (0, 1, 2, 3) + one task per task-execution inside Phase 2.
+Level 2 visibility: `x-epic-implement` creates one task per story dispatch; `x-story-implement` creates one task per phase (0, 1, 2, 3) + one task per task-execution inside Phase 2.
 
-Level 3 visibility: `x-review` creates one task per active specialist (9 possible: qa, perf, db, obs, devops, data-modeling, security, api, events); `x-dev-story-implement` Phase 1 creates one task per planner (1A architecture, 1B impl plan, 1B test plan, 1C task decomposer, 1D event schema, 1E security + fallback, 1F compliance).
+Level 3 visibility: `x-review` creates one task per active specialist (9 possible: qa, perf, db, obs, devops, data-modeling, security, api, events); `x-story-implement` Phase 1 creates one task per planner (1A architecture, 1B impl plan, 1B test plan, 1C task decomposer, 1D event schema, 1E security + fallback, 1F compliance).
 
 Orchestrator-managed planners (invoked via `Skill(...)`): the parent orchestrator wraps the call with `TaskCreate` before + `TaskUpdate` after. Subagent-managed planners (launched via `Agent(...)`): the subagent prompt receives `FIRST ACTION` (emit `TaskCreate`) and `LAST ACTION` (emit `TaskUpdate`) instructions so it tracks its own lifecycle from inside.
 
@@ -105,7 +105,7 @@ else:
     emit_format = "full"
 ```
 
-`x-dev-story-implement` Phase 2 step 2.2.5 passes `--orchestrated`; direct user invocations (`/x-test-tdd TASK-ID`) omit the flag.
+`x-story-implement` Phase 2 step 2.2.5 passes `--orchestrated`; direct user invocations (`/x-test-tdd TASK-ID`) omit the flag.
 
 ### `TaskUpdate` convention
 
@@ -125,7 +125,7 @@ else:
 ### Negative
 
 - **Skill templates are more verbose.** Each delegation now includes the `Skill(...)` / `Agent(...)` call, the surrounding prose, and (where applicable) `TaskCreate`/`TaskUpdate` scaffolding. Rule 13 references add boilerplate.
-- **Two-file sync burden.** Several Phase 1 and Phase 3 instructions exist in both `x-dev-story-implement/SKILL.md` and its `references/*.md` includes. Changes to delegation syntax in one file must be mirrored in the other. Mitigated by auditing during EPIC-0033 (Story 0001 T-005h/i sync edits, Story 0003 drift fix for Step 1E).
+- **Two-file sync burden.** Several Phase 1 and Phase 3 instructions exist in both `x-story-implement/SKILL.md` and its `references/*.md` includes. Changes to delegation syntax in one file must be mirrored in the other. Mitigated by auditing during EPIC-0033 (Story 0001 T-005h/i sync edits, Story 0003 drift fix for Step 1E).
 - **Rule 13, not Rule 10.** Conditional rule slots 10 (`10-anti-patterns`), 11 (`11-security-pci`), and 12 (`12-security-anti-patterns`) were already in use by per-profile conditional rules, so the new rule took slot 13. The `CLAUDE.md` rules index carries a note explaining the gap.
 - **Discipline required when adding new skills.** A contributor writing a new skill MUST read Rule 13 before adding any delegation. The grep audit (`grep -rnE "Invoke\\s+\`?/?x-[a-z-]+" core/ --include=SKILL.md --include="*.md"`) should be added to CI to catch regressions.
 
@@ -147,4 +147,4 @@ else:
   - **STORY-0033-0002** — `TaskCreate`/`TaskUpdate` Level 2 visibility (PR #258)
   - **STORY-0033-0003** — Planning subagent visibility + explicit `--orchestrated` flag (PR #259)
   - **Audit concerns resolution** — `Agent` in `allowed-tools`, explicit `Agent(...)` calls for Phase 1 planners, per-specialist tracking in `x-review` (PR #261)
-  - **STORY-0033-0004** — Consolidate `x-dev-lifecycle` → `x-dev-story-implement` — **VOID** (done by EPIC-0032)
+  - **STORY-0033-0004** — Consolidate `x-dev-lifecycle` → `x-story-implement` — **VOID** (done by EPIC-0032)

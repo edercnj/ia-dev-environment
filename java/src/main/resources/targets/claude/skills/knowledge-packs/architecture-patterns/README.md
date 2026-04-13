@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Category** | Knowledge Pack |
-| **Referenced by** | x-dev-implement, x-dev-architecture-plan, x-review, x-code-audit, architect agent, tech-lead agent |
+| **Referenced by** | x-task-implement, x-arch-plan, x-review, x-code-audit, architect agent, tech-lead agent |
 
 > **Full content**: See [SKILL.md](./SKILL.md) for the complete reference.
 

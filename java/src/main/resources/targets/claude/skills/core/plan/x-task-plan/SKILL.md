@@ -308,8 +308,8 @@ After writing, log: `"Task plan generated: task-plan-XXXX-YYYY-NNN.md (N TDD cyc
 | Skill | Relationship | Context |
 |-------|-------------|---------|
 | `x-story-plan` | complementary | x-story-plan generates task breakdown; x-task-plan generates per-task execution plans |
-| `x-dev-story-implement` | called-by | Phase 2 (PRE_PLANNED mode) reads task plans to drive implementation |
-| `x-dev-implement` | consumed-by | Task plans serve as implementation guides for the developer |
+| `x-story-implement` | called-by | Phase 2 (PRE_PLANNED mode) reads task plans to drive implementation |
+| `x-task-implement` | consumed-by | Task plans serve as implementation guides for the developer |
 | `x-test-plan` | complementary | x-test-plan covers story-level tests; x-task-plan maps per-task TDD cycles |
 
 ## Knowledge Pack References

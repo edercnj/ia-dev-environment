@@ -41,8 +41,8 @@ class SkillsAssemblerRecursiveTest {
             Path coreDir = tempDir.resolve(
                     "targets/claude/skills/core");
             writeSkillMd(
-                    coreDir.resolve("plan/x-story-epic"),
-                    "x-story-epic");
+                    coreDir.resolve("plan/x-epic-create"),
+                    "x-epic-create");
 
             SkillsAssembler assembler =
                     new SkillsAssembler(tempDir);
@@ -50,7 +50,7 @@ class SkillsAssemblerRecursiveTest {
             List<String> skills = assembler.selectCoreSkills();
 
             assertThat(skills)
-                    .containsExactly("x-story-epic");
+                    .containsExactly("x-epic-create");
         }
 
         @Test
@@ -60,11 +60,11 @@ class SkillsAssemblerRecursiveTest {
             Path coreDir = tempDir.resolve(
                     "targets/claude/skills/core");
             writeSkillMd(
-                    coreDir.resolve("plan/x-story-epic"),
-                    "x-story-epic");
+                    coreDir.resolve("plan/x-epic-create"),
+                    "x-epic-create");
             writeSkillMd(
-                    coreDir.resolve("dev/x-dev-implement"),
-                    "x-dev-implement");
+                    coreDir.resolve("dev/x-task-implement"),
+                    "x-task-implement");
             writeSkillMd(
                     coreDir.resolve("review/x-review-pr"),
                     "x-review-pr");
@@ -75,8 +75,8 @@ class SkillsAssemblerRecursiveTest {
             List<String> skills = assembler.selectCoreSkills();
 
             assertThat(skills).containsExactlyInAnyOrder(
-                    "x-story-epic",
-                    "x-dev-implement",
+                    "x-epic-create",
+                    "x-task-implement",
                     "x-review-pr");
         }
 
@@ -156,8 +156,8 @@ class SkillsAssemblerRecursiveTest {
             Path coreDir = tempDir.resolve(
                     "targets/claude/skills/core");
             writeSkillMd(
-                    coreDir.resolve("plan/x-story-epic"),
-                    "x-story-epic");
+                    coreDir.resolve("plan/x-epic-create"),
+                    "x-epic-create");
 
             Path outputDir = tempDir.resolve("output");
             Files.createDirectories(outputDir);
@@ -170,9 +170,9 @@ class SkillsAssemblerRecursiveTest {
                     config, new TemplateEngine(), outputDir);
 
             assertThat(outputDir.resolve(
-                    "skills/x-story-epic/SKILL.md")).exists();
+                    "skills/x-epic-create/SKILL.md")).exists();
             assertThat(outputDir.resolve(
-                    "skills/plan/x-story-epic/SKILL.md"))
+                    "skills/plan/x-epic-create/SKILL.md"))
                     .doesNotExist();
         }
     }

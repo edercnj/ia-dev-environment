@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Category** | Knowledge Pack |
-| **Referenced by** | `x-test-plan`, `x-test-run`, `x-dev-implement`, `x-dev-story-implement`, `x-review` (QA specialist), `qa-engineer` agent |
+| **Referenced by** | `x-test-plan`, `x-test-run`, `x-task-implement`, `x-story-implement`, `x-review` (QA specialist), `qa-engineer` agent |
 
 > **Full content**: See [SKILL.md](./SKILL.md) for the complete reference.
 

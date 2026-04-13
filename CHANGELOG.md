@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Skill Taxonomy Refactor — Primary Cluster (EPIC-0036 / STORY-0036-0004):** 10 skills renamed to eliminate the `x-story-*` / `x-epic-*` / `x-task-*` / `x-dev-*` ambiguity. Mappings:
+  - `x-story-epic` → `x-epic-create`
+  - `x-story-epic-full` → `x-epic-decompose`
+  - `x-story-map` → `x-epic-map`
+  - `x-epic-plan` → `x-epic-orchestrate`
+  - `x-dev-implement` → `x-task-implement`
+  - `x-dev-story-implement` → `x-story-implement`
+  - `x-dev-epic-implement` → `x-epic-implement`
+  - `x-dev-architecture-plan` → `x-arch-plan`
+  - `x-dev-arch-update` → `x-arch-update`
+  - `x-dev-adr-automation` → `x-adr-generate`
+
+  All cross-references, rules, templates, Java tests, and golden files updated. No backward compatibility for old names (RULE-005). See `adr/ADR-0003-skill-taxonomy-and-naming.md` for rationale.
+
 ## [3.1.0] - 2026-04-13
 
 ### Added
@@ -162,8 +177,8 @@ This epic introduces no database migrations and no persistent state changes — 
 - **Phase Completion Reports (EPIC-0024):** Per-phase reports documenting stories completed, integrity gate results, coverage delta, and next phase readiness.
 
 ### Changed
-- **x-dev-story-implement (EPIC-0024):** Now produces 6 artifact types with pre-checks (previously 2). Generates implementation plan, test plan, architecture plan, task breakdown, security assessment, and compliance assessment with staleness verification.
-- **x-dev-implement (EPIC-0024):** Consumes existing plans as context when available, ensuring consistency between x-dev-story-implement planning and x-dev-implement execution.
+- **x-story-implement (EPIC-0024):** Now produces 6 artifact types with pre-checks (previously 2). Generates implementation plan, test plan, architecture plan, task breakdown, security assessment, and compliance assessment with staleness verification. (Renamed from `x-dev-story-implement` in EPIC-0036.)
+- **x-task-implement (EPIC-0024):** Consumes existing plans as context when available, ensuring consistency between x-story-implement planning and x-task-implement execution. (Renamed from `x-dev-implement` in EPIC-0036.)
 - **x-review (EPIC-0024):** Generates consolidated review dashboard with parseable specialist scores. Dashboard is cumulative across review rounds.
 - **x-review-pr (EPIC-0024):** Updates consolidated review dashboard with Tech Lead review round, providing complete quality visibility in a single file.
 - Restructured project directories to adopt SDD (Spec-Driven Development) layout

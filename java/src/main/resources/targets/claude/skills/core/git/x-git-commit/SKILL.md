@@ -284,12 +284,12 @@ x-git-commit complete:
 | `x-code-format` | invoked by | First step of pre-commit chain |
 | `x-code-lint` | invoked by | Second step of pre-commit chain |
 | `x-git-push` | followed by | Push after commit is created |
-| `x-dev-story-implement` | orchestrated by | Lifecycle invokes x-git-commit for each task |
+| `x-story-implement` | orchestrated by | Lifecycle invokes x-git-commit for each task |
 | `x-test-run` | precedes | Tests should pass before committing |
 
 ## Slim Mode
 
-> **When to use:** When this skill is invoked programmatically from another skill (e.g., x-test-tdd, x-dev-story-implement), read ONLY this section for minimum context.
+> **When to use:** When this skill is invoked programmatically from another skill (e.g., x-test-tdd, x-story-implement), read ONLY this section for minimum context.
 
 ### Quick Reference
 

@@ -33,5 +33,5 @@ Creates a Jira Epic from an existing local `epic-XXXX.md` file by extracting the
 ## See Also
 
 - [x-jira-create-stories](../x-jira-create-stories/) -- Creates Jira Stories linked to the epic
-- [x-story-epic](../x-story-epic/) -- Generates the local epic file from a spec
-- [x-story-epic-full](../x-story-epic-full/) -- Full decomposition including epic and stories
+- [x-epic-create](../x-epic-create/) -- Generates the local epic file from a spec
+- [x-epic-decompose](../x-epic-decompose/) -- Full decomposition including epic and stories

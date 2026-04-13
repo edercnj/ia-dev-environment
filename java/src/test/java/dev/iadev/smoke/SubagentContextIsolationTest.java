@@ -39,10 +39,10 @@ class SubagentContextIsolationTest {
      */
     private static final List<String> ORCHESTRATOR_SKILLS =
             List.of(
-                    "x-dev-epic-implement",
-                    "x-dev-story-implement",
+                    "x-epic-implement",
+                    "x-story-implement",
                     "x-review",
-                    "x-epic-plan");
+                    "x-epic-orchestrate");
 
     private Path resolveSkillPath(String skillName) {
         Path flat = Path.of(
@@ -90,7 +90,7 @@ class SubagentContextIsolationTest {
     }
 
     @Nested
-    @DisplayName("x-dev-epic-implement")
+    @DisplayName("x-epic-implement")
     class EpicImplement {
 
         @Test
@@ -99,7 +99,7 @@ class SubagentContextIsolationTest {
         void sequentialPrompt_containsIsolation()
                 throws IOException {
             String content = readSkillContent(
-                    "x-dev-epic-implement");
+                    "x-epic-implement");
             assertPromptSectionContains(
                     content,
                     "Subagent Dispatch",
@@ -112,7 +112,7 @@ class SubagentContextIsolationTest {
         void conflictResolutionPrompt_containsIsolation()
                 throws IOException {
             String content = readSkillContent(
-                    "x-dev-epic-implement");
+                    "x-epic-implement");
             assertPromptSectionContains(
                     content,
                     "Conflict Resolution Specialist",
@@ -125,7 +125,7 @@ class SubagentContextIsolationTest {
         void gatePrompt_containsIsolation()
                 throws IOException {
             String content = readSkillContent(
-                    "x-dev-epic-implement");
+                    "x-epic-implement");
             assertPromptSectionContains(
                     content,
                     "Integrity Gate Validator",
@@ -134,7 +134,7 @@ class SubagentContextIsolationTest {
     }
 
     @Nested
-    @DisplayName("x-dev-story-implement")
+    @DisplayName("x-story-implement")
     class DevLifecycle {
 
         @Test
@@ -143,7 +143,7 @@ class SubagentContextIsolationTest {
         void implPlanPrompt_containsIsolation()
                 throws IOException {
             String content = readSkillContent(
-                    "x-dev-story-implement");
+                    "x-story-implement");
             assertPromptSectionContains(
                     content,
                     "Senior Architect",
@@ -156,7 +156,7 @@ class SubagentContextIsolationTest {
         void securityPrompt_containsIsolation()
                 throws IOException {
             String content = readSkillContent(
-                    "x-dev-story-implement");
+                    "x-story-implement");
             assertPromptSectionContains(
                     content,
                     "Security Engineer",
@@ -169,7 +169,7 @@ class SubagentContextIsolationTest {
         void eventSchemaPrompt_containsIsolation()
                 throws IOException {
             String content = readSkillContent(
-                    "x-dev-story-implement");
+                    "x-story-implement");
             assertPromptSectionContains(
                     content,
                     "Event Engineer",
@@ -182,7 +182,7 @@ class SubagentContextIsolationTest {
         void compliancePrompt_containsIsolation()
                 throws IOException {
             String content = readSkillContent(
-                    "x-dev-story-implement");
+                    "x-story-implement");
             assertPromptSectionContains(
                     content,
                     "compliance impact",
@@ -209,7 +209,7 @@ class SubagentContextIsolationTest {
     }
 
     @Nested
-    @DisplayName("x-epic-plan")
+    @DisplayName("x-epic-orchestrate")
     class EpicPlan {
 
         @Test
@@ -218,7 +218,7 @@ class SubagentContextIsolationTest {
         void storyPlanPrompt_containsIsolation()
                 throws IOException {
             String content = readSkillContent(
-                    "x-epic-plan");
+                    "x-epic-orchestrate");
             assertPromptSectionContains(
                     content,
                     "Subagent Dispatch",
@@ -234,26 +234,26 @@ class SubagentContextIsolationTest {
                 "Skill(skill:";
 
         @Test
-        @DisplayName("x-dev-epic-implement prompt "
-                + "invokes x-dev-story-implement via Skill tool")
+        @DisplayName("x-epic-implement prompt "
+                + "invokes x-story-implement via Skill tool")
         void epicImplement_invokesLifecycleViaSkill()
                 throws IOException {
             String content = readSkillContent(
-                    "x-dev-epic-implement");
+                    "x-epic-implement");
             assertThat(content)
                     .as("Subagent prompt must invoke "
-                            + "x-dev-story-implement via Skill tool")
+                            + "x-story-implement via Skill tool")
                     .contains(
-                            "Skill(skill: \"x-dev-story-implement\"");
+                            "Skill(skill: \"x-story-implement\"");
         }
 
         @Test
-        @DisplayName("x-epic-plan prompt "
+        @DisplayName("x-epic-orchestrate prompt "
                 + "invokes x-story-plan via Skill tool")
         void epicPlan_invokesStoryPlanViaSkill()
                 throws IOException {
             String content = readSkillContent(
-                    "x-epic-plan");
+                    "x-epic-orchestrate");
             assertThat(content)
                     .as("Subagent dispatch must invoke "
                             + "x-story-plan via Skill tool")
@@ -262,12 +262,12 @@ class SubagentContextIsolationTest {
         }
 
         @Test
-        @DisplayName("x-dev-story-implement planning phases "
+        @DisplayName("x-story-implement planning phases "
                 + "invoke x-threat-model via Skill tool")
         void lifecycle_invokesThreatModelViaSkill()
                 throws IOException {
             Path refPath = resolveSkillReferencePath(
-                    "x-dev-story-implement",
+                    "x-story-implement",
                     "planning-phases.md");
             String content = Files.readString(
                     refPath, StandardCharsets.UTF_8);
