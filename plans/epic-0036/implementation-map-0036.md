@@ -8,7 +8,7 @@
 
 | Story | Título | Chave Jira | Blocked By | Blocks | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| story-0036-0001 | ADR-0003 e Taxonomia Aprovada | — | — | story-0036-0002 | Pendente |
+| story-0036-0001 | ADR-0003 e Taxonomia Aprovada | — | — | story-0036-0002 | Concluida |
 | story-0036-0002 | Reorganização Física do Source of Truth | — | story-0036-0001 | story-0036-0003, story-0036-0004 | Pendente |
 | story-0036-0003 | Exclusão do SkillGroupRegistry | — | story-0036-0002 | — | Pendente |
 | story-0036-0004 | Rename do Cluster Primário (10 skills) | — | story-0036-0002 | story-0036-0005, story-0036-0006 | Pendente |
