@@ -12,5 +12,5 @@ Full task spec in `tasks-story-0037-0007.md` row TASK-001. Implementer must read
 ## Implementation Notes
 - Open atomic commit per task (RULE-007).
 - Verify all DoD checklist items before marking complete.
-- Critical for TASK-002:  to main repo before  to avoid removing cwd.
-- Critical for TASK-004: validate  via regex `^[0-9]{4}$` BEFORE shell interpolation.
+- Critical for TASK-002: `cd` to main repo before `/x-git-worktree remove` to avoid removing cwd.
+- Critical for TASK-004: validate `${epicId}` via regex `^[0-9]{4}$` BEFORE shell interpolation.
