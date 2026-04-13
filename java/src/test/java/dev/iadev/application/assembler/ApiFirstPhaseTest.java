@@ -296,7 +296,7 @@ class ApiFirstPhaseTest {
                     config, new TemplateEngine(), outputDir);
 
             Path lifecycle = outputDir.resolve(
-                    "skills/x-dev-story-implement/SKILL.md");
+                    "skills/x-story-implement/SKILL.md");
             String content = Files.readString(lifecycle);
             assertThat(content)
                     .contains("Phase 0.5");
@@ -323,7 +323,7 @@ class ApiFirstPhaseTest {
                     config, new TemplateEngine(), outputDir);
 
             Path lifecycle = outputDir.resolve(
-                    "skills/x-dev-story-implement/SKILL.md");
+                    "skills/x-story-implement/SKILL.md");
             String content = Files.readString(lifecycle);
             assertThat(content)
                     .contains("CONTRACT PENDING APPROVAL");
@@ -348,7 +348,7 @@ class ApiFirstPhaseTest {
                     config, new TemplateEngine(), outputDir);
 
             Path lifecycle = outputDir.resolve(
-                    "skills/x-dev-story-implement/SKILL.md");
+                    "skills/x-story-implement/SKILL.md");
             String content = Files.readString(lifecycle);
             assertThat(content)
                     .contains("OpenAPI 3.1");
@@ -373,7 +373,7 @@ class ApiFirstPhaseTest {
                     config, new TemplateEngine(), outputDir);
 
             Path lifecycle = outputDir.resolve(
-                    "skills/x-dev-story-implement/SKILL.md");
+                    "skills/x-story-implement/SKILL.md");
             String content = Files.readString(lifecycle);
             assertThat(content)
                     .contains("AsyncAPI 2.6");
@@ -398,7 +398,7 @@ class ApiFirstPhaseTest {
                     config, new TemplateEngine(), outputDir);
 
             Path lifecycle = outputDir.resolve(
-                    "skills/x-dev-story-implement/SKILL.md");
+                    "skills/x-story-implement/SKILL.md");
             String content = Files.readString(lifecycle);
             assertThat(content)
                     .contains("Protobuf 3");
@@ -423,7 +423,7 @@ class ApiFirstPhaseTest {
                     config, new TemplateEngine(), outputDir);
 
             Path lifecycle = outputDir.resolve(
-                    "skills/x-dev-story-implement/SKILL.md");
+                    "skills/x-story-implement/SKILL.md");
             String content = Files.readString(lifecycle);
             assertThat(content)
                     .contains("x-test-contract-lint");

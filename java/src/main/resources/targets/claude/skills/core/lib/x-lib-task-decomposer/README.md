@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Category** | Library (internal) |
-| **Called by** | x-dev-story-implement |
+| **Called by** | x-story-implement |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
 
@@ -17,7 +17,7 @@ Breaks down an Architect's implementation plan into granular, implementable task
 
 | Caller | Context | Input | Output |
 |--------|---------|-------|--------|
-| x-dev-story-implement | Phase 1C, after Architect plan and before implementation | Architect plan (`plan-story-*.md`), story file, test plan (`tests-story-*.md`, optional) | Task breakdown file (`tasks-story-*.md`) with ordered tasks, tiers, budgets, and dependencies |
+| x-story-implement | Phase 1C, after Architect plan and before implementation | Architect plan (`plan-story-*.md`), story file, test plan (`tests-story-*.md`, optional) | Task breakdown file (`tasks-story-*.md`) with ordered tasks, tiers, budgets, and dependencies |
 
 ## Procedure
 
@@ -30,5 +30,5 @@ Breaks down an Architect's implementation plan into granular, implementable task
 ## See Also
 
 - [x-test-plan](../../x-test-plan/) -- generates the test plan consumed as primary input
-- [x-dev-story-implement](../../x-dev-story-implement/) -- orchestrator that invokes this skill during Phase 1C
+- [x-story-implement](../../x-story-implement/) -- orchestrator that invokes this skill during Phase 1C
 - [x-lib-group-verifier](../x-lib-group-verifier/) -- verifies build gates between the parallelism groups this skill defines

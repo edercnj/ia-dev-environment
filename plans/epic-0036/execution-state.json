@@ -1,0 +1,110 @@
+{
+  "version": "2.0",
+  "epicId": "0036",
+  "baseBranch": "develop",
+  "startedAt": "2026-04-13T00:00:00Z",
+  "mode": {
+    "parallel": true,
+    "skipReview": false,
+    "singlePr": false,
+    "mergeMode": "no-merge"
+  },
+  "autoApprovePr": false,
+  "batchApproval": true,
+  "taskTracking": true,
+  "metrics": {
+    "storiesCompleted": 3,
+    "storiesFailed": 0,
+    "storiesBlocked": 0,
+    "storiesTotal": 6
+  },
+  "stories": {
+    "story-0036-0001": {
+      "id": "story-0036-0001",
+      "phase": 0,
+      "status": "SUCCESS",
+      "commitSha": "660423e783b5119ab3ad0b677c03281864e48713",
+      "findingsCount": 0,
+      "summary": "Doc-only closure of ADR-0003 story.",
+      "retries": 0,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/300",
+      "prNumber": 300,
+      "prMergeStatus": "MERGED",
+      "branchName": "feat/story-0036-0001-adr-taxonomy"
+    },
+    "story-0036-0002": {
+      "id": "story-0036-0002",
+      "phase": 1,
+      "status": "SUCCESS",
+      "commitSha": "0b2099200",
+      "findingsCount": 0,
+      "summary": "Reorg ~78 skills into 10 category subfolders + SkillsHierarchyResolver recursive traversal. Golden files byte-identical.",
+      "retries": 0,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/302",
+      "prNumber": 302,
+      "prMergeStatus": "MERGED",
+      "branchName": "feat/story-0036-0002-reorg-sot"
+    },
+    "story-0036-0003": {
+      "id": "story-0036-0003",
+      "phase": 2,
+      "status": "SUCCESS",
+      "commitSha": "1d3785108",
+      "findingsCount": 0,
+      "summary": "Deleted SkillGroupRegistry.java (dead code). Removed 11 Registry* test classes. mvn verify PASS.",
+      "retries": 0,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/303",
+      "prNumber": 303,
+      "prMergeStatus": "MERGED",
+      "branchName": "feat/story-0036-0003-delete-registry"
+    },
+    "story-0036-0004": {
+      "id": "story-0036-0004",
+      "phase": 2,
+      "status": "IN_PROGRESS",
+      "findingsCount": 0,
+      "summary": "Retry after API 500 on first attempt. Fresh dispatch from clean develop (deps already merged).",
+      "retries": 1
+    },
+    "story-0036-0005": {
+      "id": "story-0036-0005",
+      "phase": 3,
+      "status": "PENDING",
+      "findingsCount": 0,
+      "summary": "",
+      "retries": 0
+    },
+    "story-0036-0006": {
+      "id": "story-0036-0006",
+      "phase": 4,
+      "status": "PENDING",
+      "findingsCount": 0,
+      "summary": "",
+      "retries": 0
+    }
+  },
+  "phases": {
+    "0": { "stories": ["story-0036-0001"], "status": "SUCCESS" },
+    "1": { "stories": ["story-0036-0002"], "status": "SUCCESS" },
+    "2": { "stories": ["story-0036-0003", "story-0036-0004"], "status": "IN_PROGRESS" },
+    "3": { "stories": ["story-0036-0005"], "status": "PENDING" },
+    "4": { "stories": ["story-0036-0006"], "status": "PENDING" }
+  },
+  "integrityGates": {
+    "0": { "status": "DEFERRED", "reason": "mergeMode == no-merge; validation performed per-story" },
+    "1": { "status": "DEFERRED", "reason": "mergeMode == no-merge; story 0002 mvn verify 6283 tests PASS" }
+  },
+  "mainShaBeforePhase": {
+    "0": "492c03d3e0b22ae882167e2484343fe205bf49a0",
+    "1": "492c03d3e0b22ae882167e2484343fe205bf49a0",
+    "2": "77f93f9bf0b0561f0038d54722c799680964a78b"
+  },
+  "incidents": [
+    {
+      "time": "2026-04-13T~15:30Z",
+      "story": "story-0036-0004",
+      "type": "API_500_ERROR",
+      "action": "Agent 0004 attempt 1 failed with API 500 after ~27min. Workspace leaked onto main repo branch. User chose option (2): discard wip + re-dispatch. Dependencies 0001/0002/0003 meanwhile merged to develop externally. Retry now branches from clean develop."
+    }
+  ]
+}

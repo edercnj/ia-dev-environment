@@ -38,5 +38,5 @@ Produces a test plan that serves as the implementation roadmap for TDD. It maps 
 
 ## See Also
 
-- [x-dev-implement](../x-dev-implement/) — Consumes the test plan to drive TDD implementation
-- [x-dev-story-implement](../x-dev-story-implement/) — Invokes this skill during Phase 1B
+- [x-task-implement](../x-task-implement/) — Consumes the test plan to drive TDD implementation
+- [x-story-implement](../x-story-implement/) — Invokes this skill during Phase 1B

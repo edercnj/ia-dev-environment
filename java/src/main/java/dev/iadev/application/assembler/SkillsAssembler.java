@@ -88,7 +88,7 @@ public final class SkillsAssembler implements Assembler {
      * <p><b>Source-of-truth is hierarchical (10 category
      * subfolders), output is flat.</b> Skills physically live
      * at {@code core/{category}/{name}/SKILL.md} (e.g.
-     * {@code core/plan/x-story-epic/SKILL.md}) but the
+     * {@code core/plan/x-epic-create/SKILL.md}) but the
      * generated output is always {@code .claude/skills/{name}/
      * SKILL.md} — category subfolders are stripped.
      * The {@code lib/} subtree is the one exception and keeps

@@ -115,7 +115,7 @@ ls -d plans/epic-{epicId}/ plans/epic-{epicId}-*/ 2>/dev/null | head -1
 If not found:
 
 ```
-ERROR: Directory plans/epic-{epicId}/ not found. Run /x-story-epic-full first.
+ERROR: Directory plans/epic-{epicId}/ not found. Run /x-epic-decompose first.
 ```
 
 Error code: `EPIC_DIR_NOT_FOUND`
@@ -1216,7 +1216,7 @@ The fix engine (Steps 8-9, 11) produces the following output:
 
 | Error Code | Condition | Message | Recovery |
 |------------|-----------|---------|----------|
-| `EPIC_DIR_NOT_FOUND` | Epic directory does not exist | `Directory plans/epic-{epicId}/ not found.` | Run `/x-story-epic-full` first |
+| `EPIC_DIR_NOT_FOUND` | Epic directory does not exist | `Directory plans/epic-{epicId}/ not found.` | Run `/x-epic-decompose` first |
 | `CHECKPOINT_NOT_FOUND` | execution-state.json missing and no `--prs` | `execution-state.json not found. Use --prs flag.` | Provide `--prs` flag |
 | `NO_VALID_PRS` | No PR in explicit list exists | `No valid PRs found in the provided list.` | Verify PR numbers |
 | `INVALID_EPIC_ID` | Epic ID not 4 digits | `Invalid epic ID format. Expected 4 digits.` | Provide valid 4-digit ID |
@@ -1239,8 +1239,8 @@ The fix engine (Steps 8-9, 11) produces the following output:
 | Skill | Relationship | Context |
 |-------|-------------|---------|
 | x-pr-fix-comments | reads | Reuses classification heuristics (RULE-002 — Classification consistency) |
-| x-dev-epic-implement | called-after | Processes review comments from PRs created by epic implementation |
-| x-story-epic-full | depends-on | Requires epic directory and story files to exist |
+| x-epic-implement | called-after | Processes review comments from PRs created by epic implementation |
+| x-epic-decompose | depends-on | Requires epic directory and story files to exist |
 
 ### Classification Heuristics (from x-pr-fix-comments)
 

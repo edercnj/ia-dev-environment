@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Category** | Knowledge Pack |
-| **Referenced by** | x-dev-architecture-plan, x-ops-incident, x-ops-troubleshoot, devops-engineer agent, architect agent |
+| **Referenced by** | x-arch-plan, x-ops-incident, x-ops-troubleshoot, devops-engineer agent, architect agent |
 
 > **Full content**: See [SKILL.md](./SKILL.md) for the complete reference.
 

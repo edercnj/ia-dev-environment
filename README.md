@@ -239,7 +239,7 @@ The generator produces **20 core skills** (always included) and up to **13 condi
 
 Skills for breaking down specifications into implementable work items.
 
-#### `/x-story-epic-full` -- Complete Spec Decomposition
+#### `/x-epic-decompose` -- Complete Spec Decomposition
 
 Orchestrates the full decomposition of a system specification into three deliverables: Epic, Stories, and Implementation Map.
 
@@ -262,11 +262,11 @@ Orchestrates the full decomposition of a system specification into three deliver
 - `story-XXXX-YYYY.md` -- per-story files with data contracts, Gherkin, diagrams, sub-tasks
 - `IMPLEMENTATION-MAP.md` -- dependency graph, phase diagram, critical path, bottleneck analysis
 
-Internally delegates to `/x-story-epic`, `/x-story-create`, and `/x-story-map`.
+Internally delegates to `/x-epic-create`, `/x-story-create`, and `/x-epic-map`.
 
 ---
 
-#### `/x-story-epic` -- Generate Epic from Spec
+#### `/x-epic-create` -- Generate Epic from Spec
 
 | | |
 |---|---|
@@ -298,7 +298,7 @@ Each generated story includes:
 
 ---
 
-#### `/x-story-map` -- Generate Implementation Map
+#### `/x-epic-map` -- Generate Implementation Map
 
 | | |
 |---|---|
@@ -335,7 +335,7 @@ The main orchestrator skill. Takes a story from branch creation to merged PR in 
 | Phase | Name | Description |
 |-------|------|-------------|
 | 0 | Preparation | Branch creation, dependency validation |
-| 1 | Architecture Planning | Component diagrams, ADRs, NFRs (via `/x-dev-architecture-plan`) |
+| 1 | Architecture Planning | Component diagrams, ADRs, NFRs (via `/x-arch-plan`) |
 | 1B-1E | Parallel Planning | Test plan, task decomposition, event schema, compliance (parallel subagents) |
 | 2 | TDD Implementation | Red-Green-Refactor cycles with compile checks (subagent) |
 | 3 | Documentation | API docs, changelogs, architecture updates |
@@ -346,7 +346,7 @@ The main orchestrator skill. Takes a story from branch creation to merged PR in 
 
 ---
 
-#### `/x-dev-implement` -- Quick TDD Implementation
+#### `/x-task-implement` -- Quick TDD Implementation
 
 | | |
 |---|---|
@@ -354,12 +354,12 @@ The main orchestrator skill. Takes a story from branch creation to merged PR in 
 | **Input** | Story ID or feature description |
 | **Output** | TDD implementation with atomic commits |
 
-**How it differs from `/x-dev-lifecycle`:**
+**How it differs from `/x-story-implement`:**
 
 | Scenario | Use |
 |----------|-----|
-| Single class, small fix, coding without reviews | `/x-dev-implement` |
-| Complete lifecycle: code → review → fix → PR | `/x-dev-lifecycle` |
+| Single class, small fix, coding without reviews | `/x-task-implement` |
+| Complete lifecycle: code → review → fix → PR | `/x-story-implement` |
 
 **Workflow:**
 1. **Prepare** -- Subagent reads architecture, coding standards, and test plan knowledge packs
@@ -369,7 +369,7 @@ The main orchestrator skill. Takes a story from branch creation to merged PR in 
 
 ---
 
-#### `/x-dev-epic-implement` -- Epic Orchestration
+#### `/x-epic-implement` -- Epic Orchestration
 
 | | |
 |---|---|
@@ -378,11 +378,11 @@ The main orchestrator skill. Takes a story from branch creation to merged PR in 
 | **Output** | All stories implemented, reviewed, and consolidated |
 
 ```
-/x-dev-epic-implement EPIC-0007
-/x-dev-epic-implement EPIC-0007 --story story-0007-0003    # single story
-/x-dev-epic-implement EPIC-0007 --resume                    # resume from checkpoint
-/x-dev-epic-implement EPIC-0007 --parallel                  # parallel worktrees
-/x-dev-epic-implement EPIC-0007 --dry-run                   # preview only
+/x-epic-implement EPIC-0007
+/x-epic-implement EPIC-0007 --story story-0007-0003    # single story
+/x-epic-implement EPIC-0007 --resume                    # resume from checkpoint
+/x-epic-implement EPIC-0007 --parallel                  # parallel worktrees
+/x-epic-implement EPIC-0007 --dry-run                   # preview only
 ```
 
 **Features:**
@@ -400,7 +400,7 @@ The main orchestrator skill. Takes a story from branch creation to merged PR in 
 
 Skills for architecture planning, documentation, and decision records.
 
-#### `/x-dev-architecture-plan` -- Architecture Plan
+#### `/x-arch-plan` -- Architecture Plan
 
 | | |
 |---|---|
@@ -422,7 +422,7 @@ Automatically evaluates scope (Full / Simplified / Skip) based on change impact.
 
 ---
 
-#### `/x-dev-arch-update` -- Update Architecture Docs
+#### `/x-arch-update` -- Update Architecture Docs
 
 | | |
 |---|---|
@@ -434,7 +434,7 @@ Reads the architecture plan and incrementally updates the service architecture d
 
 ---
 
-#### `/x-dev-adr-automation` -- ADR Generation
+#### `/x-adr-generate` -- ADR Generation
 
 | | |
 |---|---|
@@ -755,7 +755,7 @@ The following are **not** shown in the `/` menu. They are used internally by oth
 |---------------|---------|
 | `x-lib-task-decomposer` | `/x-dev-lifecycle` (Phase 1B) |
 | `x-lib-audit-rules` | `/x-codebase-audit`, `/x-review-pr` |
-| `x-lib-group-verifier` | `/x-dev-epic-implement` |
+| `x-lib-group-verifier` | `/x-epic-implement` |
 
 **Knowledge packs** (architecture, coding-standards, testing, security, etc.) are also internal -- they provide domain knowledge to agents during skill execution but are never invoked directly.
 

@@ -302,8 +302,8 @@ This ensures backward compatibility with projects that have not yet adopted temp
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| `x-dev-story-implement` | called-by | Invoked during Phase 1B |
-| `x-dev-implement` | reads | Output consumed as TDD roadmap |
+| `x-story-implement` | called-by | Invoked during Phase 1B |
+| `x-task-implement` | reads | Output consumed as TDD roadmap |
 
 - Pre-check (RULE-002) prevents redundant regeneration when story has not changed
 - Template reference (RULE-007) ensures consistent 8-section output format when available

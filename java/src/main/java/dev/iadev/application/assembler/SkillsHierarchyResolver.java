@@ -10,7 +10,7 @@ import java.util.List;
  * source-of-truth layout while preserving a flat output.
  *
  * <p>Skills physically live under <strong>single-level</strong>
- * category subfolders (e.g. {@code core/plan/x-story-epic/})
+ * category subfolders (e.g. {@code core/plan/x-epic-create/})
  * but their emitted output path is always
  * {@code .claude/skills/{name}/}. Nested categories beyond one
  * level are not scanned. The {@code lib/} subtree is the one

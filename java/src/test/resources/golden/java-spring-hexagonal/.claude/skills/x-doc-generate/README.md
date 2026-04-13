@@ -11,7 +11,7 @@
 
 ## What It Does
 
-Serves as the single entry point for all documentation generation and updates. Analyzes code changes via `git diff` to auto-detect which documentation types need updating, then delegates to specialized skills (`/x-release-changelog`, `/x-dev-adr-automation`, `/x-dev-arch-update`) or generates API docs and README updates inline. Ensures documentation stays in sync with code changes.
+Serves as the single entry point for all documentation generation and updates. Analyzes code changes via `git diff` to auto-detect which documentation types need updating, then delegates to specialized skills (`/x-release-changelog`, `/x-adr-generate`, `/x-arch-update`) or generates API docs and README updates inline. Ensures documentation stays in sync with code changes.
 
 ## Usage
 
@@ -50,8 +50,8 @@ When `--type` is omitted, the skill analyzes `git diff` to infer which documenta
 | Type | Delegated To | Method |
 |------|-------------|--------|
 | `changelog` | `/x-release-changelog` | Skill tool invocation |
-| `adr` | `/x-dev-adr-automation` | Skill tool invocation |
-| Architecture | `/x-dev-arch-update` | Skill tool invocation |
+| `adr` | `/x-adr-generate` | Skill tool invocation |
+| Architecture | `/x-arch-update` | Skill tool invocation |
 | `api` | Inline | Direct generation |
 | `readme` | Inline | Direct generation |
 
@@ -76,5 +76,5 @@ When `--type` is omitted, the skill analyzes `git diff` to infer which documenta
 ## See Also
 
 - [x-release-changelog](../x-release-changelog/) -- Changelog generation from Conventional Commits
-- [x-dev-adr-automation](../x-dev-adr-automation/) -- ADR generation from architecture plans
-- [x-dev-arch-update](../x-dev-arch-update/) -- Architecture document updates
+- [x-adr-generate](../x-adr-generate/) -- ADR generation from architecture plans
+- [x-arch-update](../x-arch-update/) -- Architecture document updates

@@ -16,14 +16,14 @@ argument-hint: "[--type api|readme|adr|changelog|all] [--scope path] [--force]"
 
 ## Purpose
 
-Single entry point for generating and updating all project documentation for {{PROJECT_NAME}}. Detects the type of documentation needed from code changes, delegates to specialized skills (`/x-release-changelog`, `/x-dev-adr-automation`, `/x-dev-arch-update`), or generates API docs and README updates inline.
+Single entry point for generating and updating all project documentation for {{PROJECT_NAME}}. Detects the type of documentation needed from code changes, delegates to specialized skills (`/x-release-changelog`, `/x-adr-generate`, `/x-arch-update`), or generates API docs and README updates inline.
 
 ## Triggers
 
 - `/x-doc-generate` — auto-detect documentation type from `git diff` and update accordingly
 - `/x-doc-generate --type api` — generate or update API documentation (OpenAPI/endpoint docs)
 - `/x-doc-generate --type readme` — update project README.md with new features/skills/configuration
-- `/x-doc-generate --type adr` — delegate to `/x-dev-adr-automation` for ADR generation
+- `/x-doc-generate --type adr` — delegate to `/x-adr-generate` for ADR generation
 - `/x-doc-generate --type changelog` — delegate to `/x-release-changelog` for changelog generation
 - `/x-doc-generate --type all` — process all applicable documentation types
 - `/x-doc-generate --type all --force` — regenerate all documentation regardless of change status
@@ -96,21 +96,21 @@ Do NOT generate changelog content inline. The `/x-release-changelog` skill handl
 
 #### 3B — ADR (`--type adr`)
 
-Delegate to `/x-dev-adr-automation`:
+Delegate to `/x-adr-generate`:
 
 1. Locate the most recent architecture plan in `plans/`
 2. If an architecture plan with mini-ADRs exists:
    ```
-   Invoke Skill: /x-dev-adr-automation [architecture-plan-path] [story-id]
+   Invoke Skill: /x-adr-generate [architecture-plan-path] [story-id]
    ```
 3. If no architecture plan exists, log: "No architecture plan found for ADR generation"
 
 #### 3C — Architecture Documentation
 
-When architectural changes are detected (new components, new integrations, infrastructure changes), delegate to `/x-dev-arch-update`:
+When architectural changes are detected (new components, new integrations, infrastructure changes), delegate to `/x-arch-update`:
 
 ```
-Invoke Skill: /x-dev-arch-update [story-id or plan-path]
+Invoke Skill: /x-arch-update [story-id or plan-path]
 ```
 
 This is triggered automatically when `--type all` is specified and architecture plans exist.
@@ -187,7 +187,7 @@ Documentation update complete:
     - {file_path_2} ({type})
   Delegated to:
     - /x-release-changelog (changelog)
-    - /x-dev-adr-automation (adr)
+    - /x-adr-generate (adr)
   Skipped: {types skipped and reason}
   Duration: {time}
 ```
@@ -208,7 +208,7 @@ Documentation update complete:
 | Skill | Relationship | Context |
 |-------|-------------|---------|
 | `/x-release-changelog` | delegates-to | Changelog generation is fully delegated |
-| `/x-dev-adr-automation` | delegates-to | ADR generation from architecture plans |
-| `/x-dev-arch-update` | delegates-to | Architecture document updates |
-| `/x-dev-story-implement` | called-by | Phase 3 (Documentation) of the lifecycle |
+| `/x-adr-generate` | delegates-to | ADR generation from architecture plans |
+| `/x-arch-update` | delegates-to | Architecture document updates |
+| `/x-story-implement` | called-by | Phase 3 (Documentation) of the lifecycle |
 | `/x-git-push` | preceded-by | Run after code changes, before committing |

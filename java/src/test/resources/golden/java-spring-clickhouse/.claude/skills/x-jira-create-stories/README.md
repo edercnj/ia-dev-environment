@@ -42,4 +42,4 @@ Creates Jira Stories from all local `story-XXXX-YYYY.md` files in an epic direct
 
 - [x-jira-create-epic](../x-jira-create-epic/) -- Creates the parent epic in Jira first
 - [x-story-create](../x-story-create/) -- Generates the local story files from an epic
-- [x-story-map](../x-story-map/) -- Generates the implementation map with dependency graph
+- [x-epic-map](../x-epic-map/) -- Generates the implementation map with dependency graph

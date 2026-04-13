@@ -64,4 +64,4 @@ Orchestrates the pre-commit quality chain (x-code-format -> x-code-lint -> compi
 - [x-code-format](../x-code-format/) -- First step of the pre-commit chain (code formatting)
 - [x-code-lint](../x-code-lint/) -- Second step of the pre-commit chain (static analysis)
 - [x-git-push](../x-git-push/) -- Push commits and create PRs
-- [x-dev-story-implement](../x-dev-story-implement/) -- Orchestrates the full implementation cycle
+- [x-story-implement](../x-story-implement/) -- Orchestrates the full implementation cycle

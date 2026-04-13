@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Category** | Knowledge Pack |
-| **Referenced by** | x-dev-implement, x-dev-story-implement, x-review (Database specialist), x-review-pr, x-code-audit, architect agent |
+| **Referenced by** | x-task-implement, x-story-implement, x-review (Database specialist), x-review-pr, x-code-audit, architect agent |
 | **Condition** | Included when `database` is not `none` or `cache` is not `none` |
 
 > **Full content**: See [SKILL.md](./SKILL.md) for the complete reference.
