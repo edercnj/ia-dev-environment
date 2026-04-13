@@ -67,8 +67,13 @@ class SkillsAssemblerCoverageTest {
                 throws IOException {
             Path core = tempDir.resolve(
                     "targets/claude/skills/core");
-            Files.createDirectories(
-                    core.resolve("lib/x-lib-tool"));
+            Path libSkill =
+                    core.resolve("lib/x-lib-tool");
+            Files.createDirectories(libSkill);
+            Files.writeString(
+                    libSkill.resolve("SKILL.md"),
+                    "---\nname: x-lib-tool\n---\n",
+                    java.nio.charset.StandardCharsets.UTF_8);
             // Hierarchical SoT (story-0036-0002): skill
             // directories are identified by a SKILL.md
             // marker. A bare directory without SKILL.md is
