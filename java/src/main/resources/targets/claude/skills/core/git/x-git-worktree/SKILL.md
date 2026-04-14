@@ -531,10 +531,13 @@ After a branch is merged via PR:
   delegation flow between x-epic-implement and x-git-worktree that did not exist
   pre-EPIC-0037. Rather than restore the diagram, we kept this skill's body focused
   on the 5 operations and documented the cross-skill flow from the orchestrator
-  side (see `x-epic-implement/SKILL.md` Section 1.4a step 2.6 and Section 1.4d).
+  side (see [`../x-epic-implement/SKILL.md`](../x-epic-implement/SKILL.md) Section
+  1.4a step 2.6 and Section 1.4d).
   EPIC-0037 landed the migration: `x-story-implement` (story-0037-0003),
   `x-task-implement` (story-0037-0004, story-0037-0006), and `x-epic-implement`
-  (story-0037-0007) now all use explicit x-git-worktree calls per Rule 14 §5.
+  (story-0037-0007) now all use explicit x-git-worktree calls per ADR-0004
+  (§D1 — Deprecation; §D2 — Standalone vs Orchestrator). Rule 14 §5
+  (Creator Owns Removal) governs the cleanup invariant.
 -->
 
 ## Error Handling
