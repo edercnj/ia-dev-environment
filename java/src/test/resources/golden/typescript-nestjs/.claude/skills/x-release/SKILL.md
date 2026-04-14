@@ -505,9 +505,15 @@ Abort with `WT_SLUG_INVALID` on mismatch:
 
 ```bash
 SLUG_REGEX='^[a-z0-9][a-z0-9-]{0,62}$'
-if [ "$HOTFIX_MODE" = "true" ] && ! printf '%s' "$HOTFIX_SLUG" | grep -Eq "$SLUG_REGEX"; then
-  echo "ABORT [WT_SLUG_INVALID]: hotfix slug must match $SLUG_REGEX (got length ${#HOTFIX_SLUG})"
-  exit 1
+if [ "$HOTFIX_MODE" = "true" ]; then
+  # Reject newlines/carriage returns explicitly: grep evaluates regex per
+  # line, so a value like `good\nbad` would otherwise pass on its first
+  # line. Use `grep -Eqx` for whole-string anchoring as defense in depth.
+  if printf '%s' "$HOTFIX_SLUG" | grep -q $'[\r\n]' \
+      || ! printf '%s' "$HOTFIX_SLUG" | grep -Eqx "$SLUG_REGEX"; then
+    echo "ABORT [WT_SLUG_INVALID]: hotfix slug must match $SLUG_REGEX (got length ${#HOTFIX_SLUG})"
+    exit 1
+  fi
 fi
 ```
 
