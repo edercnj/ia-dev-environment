@@ -145,11 +145,38 @@ public final class SkillsAssembler implements Assembler {
             stream
                     .filter(Files::isDirectory)
                     .filter(p -> !isRetained(p, expected))
-                    .forEach(CopyHelpers::deleteQuietly);
+                    .forEach(SkillsAssembler::deleteStrictly);
         } catch (IOException e) {
             throw new UncheckedIOException(
                     "Failed to prune stale skills in: %s"
                             .formatted(skillsDir), e);
+        }
+    }
+
+    /**
+     * Attempts to delete {@code path} recursively and raises
+     * an {@link UncheckedIOException} if the directory is still
+     * present afterwards.
+     *
+     * <p>Wraps {@code CopyHelpers.deleteQuietly} so that silent
+     * failures (insufficient permissions, open file handles on
+     * Windows, EBUSY, etc.) do not leave a half-pruned output.
+     * The stale directory surviving is a contract violation of
+     * the destructive prune and must surface to the operator.</p>
+     *
+     * @param path the directory to delete
+     * @throws UncheckedIOException if {@code path} exists after
+     *                              the delete attempt
+     */
+    private static void deleteStrictly(Path path) {
+        CopyHelpers.deleteQuietly(path);
+        if (Files.exists(path)) {
+            throw new UncheckedIOException(
+                    "Failed to prune stale skill directory: "
+                            + path,
+                    new IOException(
+                            "Directory still present after "
+                                    + "delete attempt"));
         }
     }
 

@@ -9,12 +9,21 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 /**
  * Verifies that SkillsAssembler prunes stale skill
@@ -215,6 +224,44 @@ class SkillsAssemblerPruneTest {
                     skillsRoot.resolve(name)))
                     .as("stale %s must be pruned", name)
                     .isFalse();
+        }
+    }
+
+    @Test
+    @DisabledOnOs(OS.WINDOWS)
+    @DisplayName("delete failure surfaces as"
+            + " UncheckedIOException, not silent skip")
+    void pruneStaleSkills_whenDeleteFails_throwsUnchecked(
+            @TempDir Path tempDir) throws IOException {
+        if (!FileSystems.getDefault().supportedFileAttributeViews()
+                .contains("posix")) {
+            return;
+        }
+        Path outputDir = tempDir.resolve("output");
+        Path skillsRoot = outputDir.resolve("skills");
+        Path stale = skillsRoot.resolve("x-stale");
+        Files.createDirectories(stale);
+        Files.writeString(stale.resolve("SKILL.md"),
+                "stale", StandardCharsets.UTF_8);
+
+        Set<PosixFilePermission> readOnly = EnumSet.of(
+                PosixFilePermission.OWNER_READ,
+                PosixFilePermission.OWNER_EXECUTE);
+        Files.setPosixFilePermissions(skillsRoot, readOnly);
+        SkillsAssembler assembler =
+                new SkillsAssembler(tempDir);
+        try {
+            assertThatThrownBy(() ->
+                    assembler.pruneStaleSkills(
+                            outputDir, List.of()))
+                    .isInstanceOf(UncheckedIOException.class)
+                    .hasMessageContaining("x-stale")
+                    .hasMessageContaining(
+                            "prune stale skill directory");
+        } finally {
+            Files.setPosixFilePermissions(skillsRoot,
+                    PosixFilePermissions.fromString(
+                            "rwxr-xr-x"));
         }
     }
 
