@@ -4,7 +4,7 @@
   "epicTitle": "Extensão do x-release com Approval Gate, PR-Flow e Deep Validation",
   "baseBranch": "develop",
   "startedAt": "2026-04-11T00:00:00Z",
-  "finishedAt": null,
+  "finishedAt": "2026-04-11T23:59:59Z",
   "mode": {
     "parallel": false,
     "skipReview": false,
@@ -116,59 +116,79 @@
     "story-0035-0005": {
       "id": "story-0035-0005",
       "phase": 3,
-      "status": "PENDING",
+      "status": "SUCCESS",
       "title": "Phase RESUME-AND-TAG (--continue-after-merge, tag main)",
       "dependencies": ["story-0035-0001", "story-0035-0004"],
       "criticalPath": true,
       "retries": 0,
       "findingsCount": 0,
-      "summary": ""
+      "summary": "Implemented via PR #292. Post-hoc reconciliation — merge SHA 977707533cf3bcd3545c60efa044c45d3b3c510c.",
+      "branch": "feat/story-0035-0005-resume-and-tag",
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/292",
+      "prNumber": 292,
+      "prMergeStatus": "MERGED",
+      "mergeCommitSha": "977707533cf3bcd3545c60efa044c45d3b3c510c"
     },
     "story-0035-0006": {
       "id": "story-0035-0006",
       "phase": 4,
-      "status": "PENDING",
+      "status": "SUCCESS",
       "title": "Phase BACK-MERGE-DEVELOP (PR-flow + conflict detection)",
       "dependencies": ["story-0035-0005"],
       "criticalPath": true,
       "retries": 0,
       "findingsCount": 0,
-      "summary": ""
+      "summary": "Implemented via PR #293. Post-hoc reconciliation — merge SHA e912b6c32c1bbb31e1b108d364c6a3dab618dad0.",
+      "branch": "feat/story-0035-0006-back-merge-develop",
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/293",
+      "prNumber": 293,
+      "prMergeStatus": "MERGED",
+      "mergeCommitSha": "e912b6c32c1bbb31e1b108d364c6a3dab618dad0"
     },
     "story-0035-0007": {
       "id": "story-0035-0007",
       "phase": 5,
-      "status": "PENDING",
+      "status": "SUCCESS",
       "title": "Dry-run atualizado + Error Catalog + Hotfix PR-flow",
       "dependencies": ["story-0035-0001", "story-0035-0002", "story-0035-0003", "story-0035-0004", "story-0035-0005", "story-0035-0006"],
       "criticalPath": true,
       "retries": 0,
       "findingsCount": 0,
-      "summary": ""
+      "summary": "Implemented via PR #294. Post-hoc reconciliation — merge SHA 46ecd2c0d8ccfda0957369d32a7841af3544f71f.",
+      "branch": "feat/story-0035-0007-dryrun-errors-hotfix",
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/294",
+      "prNumber": 294,
+      "prMergeStatus": "MERGED",
+      "mergeCommitSha": "46ecd2c0d8ccfda0957369d32a7841af3544f71f"
     },
     "story-0035-0008": {
       "id": "story-0035-0008",
       "phase": 6,
-      "status": "PENDING",
+      "status": "SUCCESS",
       "title": "Golden files + testes Java + docs + CHANGELOG",
       "dependencies": ["story-0035-0001", "story-0035-0002", "story-0035-0003", "story-0035-0004", "story-0035-0005", "story-0035-0006", "story-0035-0007"],
       "criticalPath": true,
       "retries": 0,
       "findingsCount": 0,
-      "summary": ""
+      "summary": "Implemented via PR #295. Post-hoc reconciliation — merge SHA b2861f345a67f113e70befdce6fc798a73abe6c9. Final epic checkpoint commit: 77585dde2.",
+      "branch": "feat/story-0035-0008-golden-tests-docs",
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/295",
+      "prNumber": 295,
+      "prMergeStatus": "MERGED",
+      "mergeCommitSha": "b2861f345a67f113e70befdce6fc798a73abe6c9"
     }
   },
   "phases": {
     "0": {"stories": ["story-0035-0001"], "status": "SUCCESS", "integrityGate": "DEFERRED (no-merge mode)"},
     "1": {"stories": ["story-0035-0003", "story-0035-0002"], "status": "SUCCESS", "integrityGate": "DEFERRED (no-merge mode)"},
     "2": {"stories": ["story-0035-0004"], "status": "SUCCESS", "integrityGate": "DEFERRED (no-merge mode)"},
-    "3": {"stories": ["story-0035-0005"], "status": "PENDING"},
-    "4": {"stories": ["story-0035-0006"], "status": "PENDING"},
-    "5": {"stories": ["story-0035-0007"], "status": "PENDING"},
-    "6": {"stories": ["story-0035-0008"], "status": "PENDING"}
+    "3": {"stories": ["story-0035-0005"], "status": "SUCCESS"},
+    "4": {"stories": ["story-0035-0006"], "status": "SUCCESS"},
+    "5": {"stories": ["story-0035-0007"], "status": "SUCCESS"},
+    "6": {"stories": ["story-0035-0008"], "status": "SUCCESS"}
   },
   "metrics": {
-    "storiesCompleted": 4,
+    "storiesCompleted": 8,
     "storiesFailed": 0,
     "storiesBlocked": 0
   },
@@ -183,6 +203,12 @@
       "story": "story-0035-0003",
       "type": "STATE_LOSS",
       "description": "Subagent for story-0035-0003 cleaned 2071 stale untracked files (epic-0036 leftovers) which also wiped orchestrator state files (execution-state.json, reports/). State reconstructed from conversation memory. ROOT CAUSE: orchestrator state stored as untracked files in working tree; subagents performing aggressive untracked-file cleanup remove them as collateral damage. MITIGATION OPTIONS: (a) commit state files; (b) move outside working tree; (c) explicit subagent prompt instructions to preserve plans/epic-*/execution-state.json and plans/epic-*/reports/."
+    },
+    {
+      "timestamp": "2026-04-13T00:00:00Z",
+      "story": "epic-0035",
+      "type": "TRACKING_DRIFT",
+      "description": "Post-hoc reconciliation: stories 0004-0008 were implemented and merged (PRs #290, #292, #293, #294, #295) but the execution-state.json and story Status headers were not updated during the execution. This entry records the catch-up sync. Merge SHAs and PR numbers were recovered from git log (Merge pull request #NNN) on 2026-04-13."
     }
   ]
 }

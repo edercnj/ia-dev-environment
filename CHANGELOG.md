@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-04-14
+
+### Added
+- **EPIC-0037 — Worktree-First Branch Creation Policy (9 stories merged: 0001–0007, 0009–0010; story 0008 deferred pending EPIC-0035-driven follow-up):**
+  - New rule file `.claude/rules/14-worktree-lifecycle.md` (Rule 14 — Worktree Lifecycle) — codifies naming convention, protected branches, non-nesting invariant, lifecycle, and the Creator-Owns-Removal matrix that all branch-creating skills MUST follow.
+  - New ADR-0004 — Worktree-First Branch Creation Policy (orthogonal but related to ADR-0003); accepted 2026-04-13. Five sub-decisions D1–D5 covering the deprecation of `Agent(isolation:"worktree")`, the standalone-vs-orchestrator opt-in matrix, the non-nesting invariant, Creator-Owns-Removal, and Rule 14 as first-class.
+  - New `x-git-worktree` Operation 5 (`detect-context`): read-only probe that returns `{inWorktree, worktreePath, mainRepoPath}` JSON. Used by every branch-creating skill to decide whether to REUSE an existing worktree or CREATE a new one. Includes CWE-116 hardening on JSON-emitted paths.
+  - `--worktree` opt-in flag added to `x-story-implement` and `x-task-implement` for standalone parallel use; `x-epic-implement` always provisions a worktree per dispatched story (orchestrator-automatic per ADR-0004 §D2).
+  - `STORY_OWNS_WORKTREE` and `TASK_OWNS_WORKTREE` boolean state bridges between Phase 0 (mode selection) and the late-phase cleanup steps; eliminates the prior coupling of "branch creation mode" and "removal decision".
+- **Destructive prune in `SkillsAssembler` (EPIC-0036 follow-up):** `SkillsAssembler.assemble()` now removes top-level directories under `{output}/skills/` that do not appear in the generated set, so renames or deletions in the source of truth (`java/src/main/resources/targets/claude/skills/`) are reflected in `.claude/skills/` on the next regeneration. `knowledge-packs/` and `database-patterns/` are explicitly protected because they are written by `RulesAssembler` earlier in the pipeline. Covered by `SkillsAssemblerPruneTest` (7 scenarios).
+
+### Changed
+- **EPIC-0037 — Branch creation across orchestrators and standalone skills migrated to explicit `Skill(skill: "x-git-worktree", ...)` calls (Rule 13 Pattern 1):**
+  - `x-epic-implement` parallel dispatch now provisions a worktree per story via `x-git-worktree create` BEFORE launching each subagent, and removes via `x-git-worktree remove` after PR merge (or after SUCCESS in `--no-merge` mode). Sequential mode follows the same cleanup criteria.
+  - `x-story-implement` Phase 0 Step 6 reorganised into substeps 6a–6e (detect-context → mode selection → execution → logging → record state); Phase 3 Step 10 is mode-aware per Rule 14 §2 (no `develop` checkout inside a worktree).
+  - `x-task-implement` Step 0.5 mirrors the same pattern at task level; new Step 0.5f resolves the `--base` argument from current HEAD (story branch when on `feat/story-XXXX-YYYY-...`, else `develop`); Step 5 is mode-aware.
+  - `x-git-worktree` SKILL.md error table now standardises `PROTECTED_BRANCH` exit code (Rule 14 §2 mandate); Integration Notes rewritten to reflect the post-EPIC-0037 reality (no more "Pending" entries).
+
+### Deprecated
+- **`Agent(isolation:"worktree")` harness parameter (EPIC-0037 / ADR-0004 §D1):** the harness-native worktree isolation is replaced by explicit `x-git-worktree create` / `remove` calls. Zero active uses remain in the source of truth (`java/src/main/resources/targets/`); remaining grep matches are anti-pattern notes documenting the deprecation.
+
+### Removed
+- **14 stale EPIC-0036 output directories from `.claude/skills/`:** `x-dev-implement`, `x-dev-story-implement`, `x-dev-epic-implement`, `x-dev-architecture-plan`, `x-dev-arch-update`, `x-dev-adr-automation`, `x-epic-plan`, `x-story-epic`, `x-story-epic-full`, `x-story-map`, `x-pr-fix-comments`, `x-pr-fix-epic-comments`, `x-runtime-protection`, `run-e2e`. These legacy directories were renamed in EPIC-0036 but persisted in the committed output because the previous assembler was additive-only. The new prune step prevents regressions.
+
 ## [3.2.0] - 2026-04-13
 
 ### Added

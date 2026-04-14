@@ -2,9 +2,9 @@
 name: x-task-implement
 description: "Implements a feature/story using TDD (Red-Green-Refactor) workflow. Delegates preparation to a subagent that reads architecture, coding, and test plan KPs, then implements test-first with Double-Loop TDD, layer-by-layer with compile checks after each cycle."
 user-invocable: true
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob
-argument-hint: "[STORY-ID or feature-description]"
-context-budget: medium
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
+argument-hint: "[TASK-ID (TASK-XXXX-YYYY-NNN) or STORY-ID or feature-description] [--worktree]"
+context-budget: heavy
 ---
 
 ## Global Output Policy
@@ -25,6 +25,7 @@ Implements a feature or story following TDD (Red-Green-Refactor) workflow for {{
 | Full story with multi-persona review | `/x-story-implement` |
 | Coding without the review phases | This skill |
 | Complete lifecycle: code, review, fix, PR | `/x-story-implement` |
+| Standalone task implementation with `--worktree` for isolation when running multiple tasks of different stories concurrently | This skill |
 
 ## Triggers
 
@@ -37,14 +38,22 @@ Implements a feature or story following TDD (Red-Green-Refactor) workflow for {{
 |-----------|----------|-------------|
 | `STORY-ID` or description | Yes | Story identifier or free-text feature description |
 
+## CLI Arguments
+
+| Argument | Type | Default | Description |
+|----------|------|---------|-------------|
+| `--worktree` | Boolean | false | Opt-in: create a dedicated worktree for the task branch (standalone mode). Ignored when the skill is already running inside a worktree (Rule 14 §3 — non-nesting invariant). See ADR-0004 §D2. |
+
 ## Workflow
 
 ```
-0. PRE-CHECK             -> Verify existing plans (implementation, architecture, test)
-1. PREPARE + UNDERSTAND  -> Subagent reads KPs + available plans, produces TDD implementation plan
-2. TDD LOOP              -> For each scenario (TPP order): RED -> GREEN -> REFACTOR -> compile check
-3. VALIDATE              -> Coverage thresholds, all acceptance tests GREEN (inline)
-4. COMMIT                -> Atomic TDD commits: one per Red-Green-Refactor cycle (inline)
+0.   PRE-CHECK                  -> Verify existing plans (implementation, architecture, test)
+0.5  WORKTREE-FIRST BRANCHING   -> detect-context + mode selection (REUSE / CREATE / LEGACY), Rule 14 + ADR-0004
+1.   PREPARE + UNDERSTAND       -> Subagent reads KPs + available plans, produces TDD implementation plan
+2.   TDD LOOP                   -> For each scenario (TPP order): RED -> GREEN -> REFACTOR -> compile check
+3.   VALIDATE                   -> Coverage thresholds, all acceptance tests GREEN (inline)
+4.   COMMIT                     -> Atomic TDD commits: one per Red-Green-Refactor cycle (inline)
+5.   MODE-AWARE CLEANUP         -> Remove worktree (Mode 2 success) + `git checkout develop && git pull` (Modes 2-success / 3)
 ```
 
 ### Step 0 — Pre-Check: Plan Reuse (RULE-002 — Idempotency via Staleness Check)
@@ -100,6 +109,87 @@ In addition to the 3 plan types above, check for per-task plans produced by `x-s
 
    Log: `"Found {N} per-task plans, using task-aware mode"` or `"No per-task plans found, using {test-driven|layer-based} mode"`
 
+### Step 0.5 — Worktree-First Branch Creation (Rule 14 + ADR-0004)
+
+Branch creation in `x-task-implement` follows the **worktree-first policy** defined in [ADR-0004 — Worktree-First Branch Creation Policy](../../../adr/ADR-0004-worktree-first-branch-creation-policy.md) and the normative invariants of [Rule 14 — Worktree Lifecycle](../../rules/14-worktree-lifecycle.md). The routine below is **mandatory** and MUST execute before any `git checkout -b` or `/x-git-worktree create` call (whether performed inline by this skill, by the Step 1 subagent's preparation bash block, or by any downstream task-level commit workflow).
+
+**Step 0.5a — Detect worktree context (Rule 14 §3 — Non-Nesting Invariant).** Invoke the `x-git-worktree` skill via the Skill tool to classify the current execution context (Rule 13 Pattern 1 — INLINE-SKILL):
+
+    Skill(skill: "x-git-worktree", args: "detect-context")
+
+The skill returns a JSON envelope of the form:
+
+```json
+{
+  "inWorktree": true,
+  "worktreePath": "/abs/path/to/.claude/worktrees/story-XXXX-YYYY",
+  "mainRepoPath": "/abs/path/to/repo"
+}
+```
+
+Record `inWorktree`, `worktreePath`, and `mainRepoPath` for use in the following steps and for the Step 5 / end-of-workflow mode-aware cleanup. This call is **mandatory** before any branch creation — skipping it risks creating a nested worktree (Rule 14 §3) or causing the harness to apply file operations in the wrong checkout, which can wipe sibling files outside the intended worktree (see Rule 14 §7 — Anti-Patterns and ADR-0004 Context §3 — Lack of operator visibility).
+
+**Step 0.5b — Select the branching mode.** Apply the three-way decision table below. This table is the single source of truth for branch creation in this skill:
+
+| # | Condition | Mode | Action |
+| :--- | :--- | :--- | :--- |
+| 1 | `inWorktree == true` | **REUSE (orchestrated)** | Reuse the current worktree. Do NOT invoke `/x-git-worktree create`. Do NOT create a nested worktree (Rule 14 §3). Task branches (`feat/task-XXXX-YYYY-NNN-description`) are created *inside* the reused worktree via `git checkout -b`. The creator of the outer worktree (typically `x-story-implement` or `x-epic-implement`) owns its removal (Rule 14 §5). |
+| 2 | `inWorktree == false` AND `--worktree` flag present | **CREATE (standalone opt-in)** | Provision a dedicated task-level worktree by invoking the `x-git-worktree` skill (see Step 0.5c, Mode 2, for the canonical `Skill(...)` call). This is the opt-in path documented in ADR-0004 §D2 for operators who run `x-task-implement` directly and want isolation. `x-task-implement` is the creator and owns removal (Rule 14 §5 — end of the workflow (Step 5) on success; preserved on failure per Rule 14 §4). |
+| 3 | `inWorktree == false` AND `--worktree` flag absent | **LEGACY (main checkout)** | Fall back to the legacy / interactive behavior: the task branch is created directly in the main working tree via `git checkout -b`. This preserves backward compatibility for developers who run `/x-task-implement` interactively without requesting isolation. |
+
+> **Orchestrator auto-path.** When this skill is dispatched by `x-story-implement` (Phase 2 task execution) or transitively by `x-epic-implement`, the parent has already placed the process inside a worktree and this invocation detects `inWorktree == true`, selecting Mode 1 (REUSE) automatically. No flag is required from the caller. This is the expected automatic path described in ADR-0004 §D2.
+
+> **Anti-pattern (DO NOT USE):** `Agent(isolation:"worktree")` is DEPRECATED (see ADR-0004 and Rule 14 §7). The harness-native isolation is replaced by explicit `/x-git-worktree create` calls from orchestrators so the worktree lifecycle is visible in logs and recoverable on failure.
+
+**Step 0.5c — Execute the selected branching mode.**
+
+- **Mode 1 (REUSE — orchestrated).** The parent orchestrator has already placed the process inside the worktree at `worktreePath`. Proceed with task branch creation *inside* that worktree:
+  - Create the task branch `feat/task-XXXX-YYYY-NNN-description` via `git checkout -b` from the appropriate base (parent story branch when `--auto-approve-pr` is active upstream, or `develop` otherwise).
+  - Do NOT call `Skill(skill: "x-git-worktree", args: "remove ...")` here or at Step 5. The orchestrator is the creator and owns removal (Rule 14 §5).
+
+- **Mode 2 (CREATE — standalone opt-in).** Invoke `x-git-worktree` via the Skill tool to provision the worktree (Rule 13 Pattern 1 — INLINE-SKILL). The `--base` argument is the value resolved in Step 0.5f (NOT hardcoded `develop`):
+
+      Skill(skill: "x-git-worktree", args: "create --branch feat/task-XXXX-YYYY-NNN-description --base {RESOLVED_BASE} --id task-XXXX-YYYY-NNN")
+
+  where `{RESOLVED_BASE}` is the value computed in Step 0.5f (the current story branch when HEAD is on `feat/story-XXXX-YYYY-...`, otherwise `develop`).
+
+  The operation creates `.claude/worktrees/task-XXXX-YYYY-NNN/` with `feat/task-XXXX-YYYY-NNN-description` checked out. Record the returned worktree path; subsequent steps (TDD loop, commits) execute with that path as their working directory.
+  - In standalone mode `x-task-implement` is the creator and MUST invoke `Skill(skill: "x-git-worktree", args: "remove --id task-XXXX-YYYY-NNN")` at Step 5 on success (Rule 13 Pattern 1 — INLINE-SKILL; NEVER use the bare-slash `/x-git-worktree ...` form in delegation). On failure, the worktree is preserved for diagnosis (Rule 14 §4).
+
+- **Mode 3 (LEGACY — main checkout).** Execute the pre-EPIC-0037 behavior unchanged, operating directly in the main working tree:
+
+      git checkout develop && git pull origin develop
+      git checkout -b feat/task-XXXX-YYYY-NNN-description
+
+  This replaces the legacy "Step 1 / Step 5 bash block" that created the branch from `main` inside the preparation subagent; branch creation now happens here, in the orchestrator, under Rule 14 + ADR-0004 control.
+
+**Step 0.5d — Logging.** After mode selection, log one of:
+
+- `"Branch creation mode: REUSE (inside worktree {worktreePath})"`
+- `"Branch creation mode: CREATE (standalone --worktree, provisioning worktree for task-XXXX-YYYY-NNN)"`
+- `"Branch creation mode: LEGACY (main checkout, no --worktree flag)"`
+
+These lines are required for operator diagnostics — Rule 14 §3 detection SHOULD be auditable from the log stream alone.
+
+**Step 0.5e — Record `TASK_OWNS_WORKTREE` state (Rule 14 §5 — Creator Owns Removal).** The three-mode table above maps to a single boolean state variable used by Step 5 to gate worktree removal. This is the bridge between the mode selected in Step 0.5b and the conditional cleanup in Step 5.
+
+| Mode selected in Step 0.5b | `TASK_OWNS_WORKTREE` | Cleanup behavior in Step 5 |
+| :--- | :--- | :--- |
+| Mode 1 (REUSE — orchestrated) | `false` | Skip worktree removal (parent orchestrator owns the worktree per Rule 14 §5) |
+| Mode 2 (CREATE — standalone opt-in) | `true` | Remove worktree on success; preserve on failure (Rule 14 §4) |
+| Mode 3 (LEGACY — main checkout) | `false` | No worktree was created; run `git checkout develop && git pull` in the main checkout |
+
+The state MUST be recorded before Step 1 begins so that Step 5 can make the correct cleanup decision without re-querying the detection result.
+
+**Step 0.5f — Base branch resolution (for Mode 2 `--base`).** When Mode 2 is selected, the `--base` argument passed to `Skill(skill: "x-git-worktree", args: "create --base <base> ...")` is resolved from the current HEAD (no user-facing flag is exposed for this resolution — keep the interface surface minimal):
+
+| Scenario | `--base` value |
+| :--- | :--- |
+| Current HEAD is already on a story branch (`feat/story-XXXX-YYYY-...`) | that story branch |
+| No story branch present | `develop` |
+
+Log the resolved base: `"Base branch resolved to {base} for task worktree creation"`. The Step 0.5c Mode 2 `create` call MUST use this resolved value (not a hardcoded `develop`). For Modes 1 and 3 this resolution does not apply (the branch base is the current checkout HEAD).
+
 ### Step 1 — Prepare + Understand (Subagent via Task)
 
 Launch a **single** `general-purpose` subagent:
@@ -145,11 +235,7 @@ Launch a **single** `general-purpose` subagent:
 > 5. Key conventions to follow (naming, immutability, injection style)
 > 6. Dependencies to verify before starting
 >
-> Also create feature branch if not already on one:
-> ```bash
-> git checkout main && git pull origin main
-> git checkout -b feat/STORY-ID-short-description
-> ```
+> **Branch creation is handled by the orchestrator in Step 0.5 (Worktree-First Branch Creation, Rule 14 + ADR-0004) and MUST NOT be performed by this subagent.** Do not run `git checkout -b`, `git worktree add`, or any other branch/worktree command; assume the correct task branch is already checked out inside the correct worktree (or main checkout, in LEGACY mode) when this subagent begins.
 
 > **Fallback Mode (no test plan):**
 > If no test plan file exists (neither from pre-check nor from direct lookup), log:
@@ -345,6 +431,25 @@ git commit -m "test(scope): update acceptance test for [AT-N scenario] (GREEN)"
 2. Unit test + implementation commits (UT-1, UT-2, ...) — in TPP order
 3. Final commit when AT turns GREEN (if AT content changed)
 
+### Step 5 — Mode-Aware Worktree Removal + Repository Sync (Rule 14 §2 + §5)
+
+Executed after all TDD cycles, validations, and commits for the task are complete. Rule 14 §2 forbids checking out `develop` (or any protected branch) inside a worktree; Rule 14 §5 assigns worktree removal to its creator. Apply the branch mode recorded in Step 0.5 — the gate is the `TASK_OWNS_WORKTREE` state from Step 0.5e:
+
+- **Mode 1 (REUSE — orchestrated).** Do NOT remove the worktree (the parent orchestrator — `x-story-implement` or `x-epic-implement` — is the creator and owns removal) and do NOT run `git checkout develop && git pull origin develop` here (would violate Rule 14 §2 by checking out a protected branch inside a worktree). Simply return control to the caller.
+
+- **Mode 2 (CREATE — standalone opt-in) AND the task completed successfully (all Definition of Done criteria in Step 3 satisfied):**
+  1. Remove the worktree first via the Skill tool (Rule 13 Pattern 1 — INLINE-SKILL):
+
+         Skill(skill: "x-git-worktree", args: "remove --id task-XXXX-YYYY-NNN")
+
+  2. After removal, switch execution context back to `mainRepoPath` (captured at Step 0.5a) and run:
+
+         git checkout develop && git pull origin develop
+
+- **Mode 2 (CREATE — standalone opt-in) AND the task FAILED or had unrecovered errors:** preserve the worktree for diagnosis (Rule 14 §4). Log the preserved path and instruct the operator to run `Skill(skill: "x-git-worktree", args: "remove --id task-XXXX-YYYY-NNN")` after triage (the `remove` operation internally uses `git worktree remove --force` — no user-facing `--force` flag is documented). Do NOT run `git checkout develop && git pull origin develop` while the worktree is preserved (same Rule 14 §2 protection).
+
+- **Mode 3 (LEGACY — main checkout).** No worktree was created. Run `git checkout develop && git pull origin develop` in the main checkout as before.
+
 ## Error Handling
 
 | Scenario | Action |
@@ -389,6 +494,7 @@ This ensures backward compatibility with projects that have not yet adopted temp
 | `x-test-run` | calls | Invokes test execution and coverage validation patterns |
 | `x-git-push` | calls | Uses commit conventions for atomic TDD commits |
 | `x-lib-task-decomposer` | reads | Consumes task breakdown and per-task plans for task-aware mode |
+| `x-git-worktree` | Invokes (Step 0.5 + Step 5) | Worktree context detection (mandatory pre-branch), standalone worktree creation (`--worktree` flag, Mode 2), and Creator-Owned removal at end of Step 5 (Rule 14 + ADR-0004) |
 
 - **Prerequisite:** Run `/x-test-plan` first to generate the test plan with Double-Loop + TPP ordering
 - **Plan reuse:** Pre-check (RULE-002) discovers existing plans from `x-story-implement` runs, ensuring consistency between full lifecycle and simplified implement workflows

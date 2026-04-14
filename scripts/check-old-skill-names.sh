@@ -68,6 +68,9 @@ EXCLUDED_PREFIXES=(
     "docs/release-notes/"
     "scripts/check-old-skill-names.sh"
     "CHANGELOG.md"
+    # Prune regression test literally references the old
+    # names to assert they get removed from output.
+    "java/src/test/java/dev/iadev/application/assembler/SkillsAssemblerPruneTest.java"
 )
 
 is_excluded() {

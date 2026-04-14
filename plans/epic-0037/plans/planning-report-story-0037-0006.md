@@ -1,34 +1,39 @@
 # Story Planning Report — story-0037-0006
 
-| Story ID | story-0037-0006 | Epic ID | 0037 | Date | 2026-04-13 |
-| Agents | Architect, QA, Security, TechLead, PO |
+| Field | Value |
+|-------|-------|
+| Story ID | story-0037-0006 |
+| Epic ID | 0037 |
+| Date | 2026-04-13 |
 
 ## Planning Summary
-Doc-only opt-in `--worktree` for `x-dev-implement`. Closes the LAST direct-branch-creation point in core implementation skills. Mirror of story-0037-0005 with TASK_OWNS_WORKTREE state. Critical: nested prevention when task invoked from inside story worktree (largest risk per epic risk table). Depends on stories 0002 + 0005. 6 Gherkin ATs. 7 consolidated tasks.
 
-## Architecture
-2 substeps (detect / decide+persist). 3-case parent branch resolution per story §5.3: explicit `--parent` flag → `<branch>`; detected `feature/story-XXXX-YYYY-*` → story branch; else `develop`. TASK_OWNS_WORKTREE state mirrors STORY_OWNS_WORKTREE pattern.
+Extends the story-0005 pattern to the task layer. Adds `--worktree` opt-in to `x-task-implement`; detection ensures task execution inside an existing worktree (story or epic) reuses that worktree (no nesting). Closes the last direct branch-creation point.
 
-## Test Strategy
-6 ATs (backward / standalone develop / standalone story / nested prevention / cleanup success / cleanup failure). Inner loop structural assertions on Step content + decision table cells. **Nested-prevention smoke is the critical blocker** — task invoked inside actual story worktree fixture must verify zero nested worktree created.
+## Architecture Assessment
 
-## Security
-- TASK_ID regex `^task-\d{4}-\d{4}-\d{3}$` validation BEFORE shell interpolation (CWE-78)
-- Parent branch from `git branch --show-current` treated as untrusted; same validation; quote all expansions
-- `--parent <missing>` validated via `git rev-parse --verify` before worktree create (fail-fast)
-- CWE-209: scrub paths from PRESERVED log (task ID only)
+Modifies `x-task-implement/SKILL.md` frontmatter, parameters table, and Branch Creation block (~line 150). Inlines `detect_worktree_context()`. 3-context decision table (standalone without flag, standalone with flag, orchestrated-inside-worktree). Uses `TASK_OWNS_WORKTREE` flag parallel to story-0005's `STORY_OWNS_WORKTREE`.
+
+## Test Strategy Summary
+
+4 smoke scenarios: standalone-legacy, standalone-worktree, orchestrated-inside-story-worktree, orchestrated-inside-epic-worktree. Each verifies branch creation, detection behavior, and cleanup ownership.
+
+## Security Assessment Summary
+
+Same risk profile as story-0005: nesting prevention is the critical invariant. Task worktree paths use `.claude/worktrees/task-XXXX-YYYY-NNN/` naming from RULE-018 Section 1.
 
 ## Implementation Approach
-TechLead: opt-in default (RULE-004), atomic commits, nested-prevention mandatory blocker, parent resolution deterministic. PO added: `--parent <missing>` error path, TASK_OWNS_WORKTREE state wording standardized.
+
+Sequential: frontmatter → branch-creation block → cleanup block → 4-scenario smoke → golden regen → PR.
 
 ## Risk Matrix
-| Risk | Sev | Likely | Mitigation |
-|------|-----|--------|-----------|
-| Task creates nested worktree inside story | **Critical** | Medium (largest epic risk) | TASK-006 nested-prevention smoke is mandatory blocker |
-| Parent branch detection wrong (uses develop when should use story) | Medium | Low | TASK-002 deterministic 3-case decision tree; smoke covers all |
-| `--parent <missing>` silent failure | High | Low | TASK-004 explicit `git rev-parse --verify` check |
-| TASK_ID injection | Medium | Low | TASK-004 regex validation |
-| RULE-004 violation | Critical | Low | TASK-006 backward-compat AT |
+
+| Risk | Severity | Likelihood | Mitigation |
+|------|----------|------------|------------|
+| Task creates worktree inside story worktree (nesting) | CRITICAL | Low | Detection mandatory; scenario 3 covers |
+| Task cleanup removes story worktree | HIGH | Low | `TASK_OWNS_WORKTREE` flag gates cleanup |
+| Backward-compat for direct invocations | HIGH | Low | Legacy scenario is TASK-004 first case |
 
 ## DoR Status
-**READY** — 10/10 mandatory pass. See `dor-story-0037-0006.md`.
+
+**READY** — see `dor-story-0037-0006.md`.

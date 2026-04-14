@@ -1,34 +1,40 @@
 # Story Planning Report — story-0037-0010
 
-| Story ID | story-0037-0010 | Epic ID | 0037 | Date | 2026-04-13 |
-| Agents | Architect, QA, Security, TechLead, PO |
+| Field | Value |
+|-------|-------|
+| Story ID | story-0037-0010 |
+| Epic ID | 0037 |
+| Date | 2026-04-13 |
 
 ## Planning Summary
-**Epic-closing sync barrier**. Depends on stories 0001-0007 + 0009 (NOT 0008, blocked by EPIC-0035). Verification + regen + smoke + CHANGELOG. No new SoT content. 5 Gherkin scenarios. 7 consolidated tasks.
 
-## Architecture
-17+ profile golden regen across 6 modified skills + 1 new rule file. Canonical sequence: `mvn process-resources` → `GoldenFileRegenerator` → `mvn test` (per memory `reference_golden_regen_command`). `expected-artifacts.json` schema update for Rule 14.
+Sync-barrier closeout story. Regenerates golden files for all modified skills (6) + new rule file (14-worktree-lifecycle.md), updates `expected-artifacts.json`, runs end-to-end smoke with 2-story parallel epic, verifies success criteria (zero `isolation.*worktree` hits, zero stale RULE-018 references), and updates CHANGELOG.
 
-## Test Strategy
-5 ATs (regen / expected-artifacts / smoke epic parallel / success criteria / CHANGELOG). Critical: smoke epic parallel must be reproducible (ephemeral test epic with 2 stories no deps; cleanup post-test mandatory). 4 success-criteria deterministic grep/ls checks.
+## Architecture Assessment
 
-## Security
-- Validation grep commands must be deterministic in CI (no false negatives)
-- Smoke fixture must clean up worktrees post-test (no `.claude/worktrees/` leakage)
-- No new attack surface; verification-only changes
+No code. Executes canonical regen sequence (see memory `reference_golden_regen_command`): `mvn compile test-compile` → `java -cp target/test-classes:target/classes dev.iadev.golden.GoldenFileRegenerator` → `mvn test`. Memory `feedback_mvn_process_resources_before_regen` reminds operator that `mvn process-resources` is required when running regenerator standalone.
+
+## Test Strategy Summary
+
+Verification-driven: smoke epic with 2 parallel stories end-to-end. Assertions on `.claude/worktrees/` state during and after execution. Success-criterion greps confirm epic-level invariants.
+
+## Security Assessment Summary
+
+- Smoke runs create real worktrees on disk. Test fixture uses ephemeral epic to avoid polluting production artifacts.
+- No new input surfaces. Risk level: **LOW**.
 
 ## Implementation Approach
-TechLead: this story IS the epic completion gate. All upstream stories MUST be merged first (TASK-001 verifies). Atomic commits per concern. PR body includes complete success-criteria checklist, smoke evidence, STORY 8 BLOCKED note, rollback procedure (PO addition).
+
+Strict sequential: regen → expected-artifacts update → smoke → success-criteria verifications → CHANGELOG + PR.
 
 ## Risk Matrix
-| Risk | Sev | Likely | Mitigation |
-|------|-----|--------|-----------|
-| Upstream story not merged → regen produces wrong baseline | Critical | Low | TASK-001 mandatory preflight check |
-| Regen produces noisy/spurious diffs | Medium | Medium | `git diff --stat` review; rollback path documented in PR |
-| Smoke leaves worktree leak in `.claude/worktrees/` | Medium | Low | Security DoD: explicit cleanup verification post-test |
-| STORY 8 accidentally pulled in despite BLOCKED status | Low | Low | TASK-001 verifies STORY 8 status snapshot |
-| Grep checks flaky (false positives or negatives) | Low | Low | Run twice; verify identical output |
-| CHANGELOG entry omits a deliverable | Low | Medium | TASK-006 DoD explicitly enumerates: 6 skills + Rule 14 + ADR-0004 + Operation 5 + deprecation |
+
+| Risk | Severity | Likelihood | Mitigation |
+|------|----------|------------|------------|
+| Golden regen conflicts with parallel epics in flight | Medium | Medium | Coordinate merge timing with other open epics (noted in map Section 6.4) |
+| Smoke epic fails revealing a hidden regression | HIGH | Low | Stories 1-7 carry their own smoke ACs; this story is the integration check |
+| `expected-artifacts.json` schema change breaks other tests | Medium | Low | Only additive change (new rule file entry) |
 
 ## DoR Status
-**READY** — 10/10 mandatory pass. Note: this story cannot START until upstream stories are READY in this planning run AND merged in develop at execution time. See `dor-story-0037-0010.md`.
+
+**READY** — see `dor-story-0037-0010.md`.

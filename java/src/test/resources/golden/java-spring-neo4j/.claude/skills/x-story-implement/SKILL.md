@@ -3,7 +3,7 @@ name: x-story-implement
 description: "Orchestrates the complete feature implementation cycle with task-centric workflow: branch creation, planning, per-task TDD execution with individual PRs and approval gates, story-level verification, and final cleanup. Delegates implementation to x-test-tdd, commits to x-git-commit, PRs to x-pr-create."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, Agent, TaskCreate, TaskUpdate
-argument-hint: "[STORY-ID or feature-name] [--auto-approve-pr] [--task TASK-ID] [--skip-verification] [--full-lifecycle]"
+argument-hint: "[STORY-ID or feature-name] [--auto-approve-pr] [--task TASK-ID] [--skip-verification] [--full-lifecycle] [--worktree]"
 context-budget: heavy
 ---
 
@@ -43,6 +43,7 @@ Orchestrate the complete feature implementation cycle using a task-centric workf
 | `--task` | String | -- | Execute only a specific task (TASK-XXXX-YYYY-NNN) |
 | `--skip-verification` | Boolean | false | Skip Phase 3 (story-level verification) |
 | `--full-lifecycle` | Boolean | false | Force full execution regardless of scope tier |
+| `--worktree` | Boolean | false | Opt-in: create a dedicated worktree for the story branch (standalone mode). Ignored when the skill is already running inside a worktree (Rule 14 §3 — non-nesting invariant). See ADR-0004 §D2. |
 
 ## CRITICAL EXECUTION RULE
 
@@ -127,9 +128,76 @@ Record the returned task ID as `phase0TaskId` for the closing TaskUpdate call. T
 
 4. Extract epic ID from story ID (e.g., `story-0001-0003` -> epic ID `0001`)
 5. Ensure directories exist: `mkdir -p plans/epic-XXXX/plans plans/epic-XXXX/reviews`
-6. **Branch Creation:**
-   - If `--auto-approve-pr`: create parent branch `feat/story-XXXX-YYYY-desc` from `develop`. All task branches will be created from and target this parent branch.
-   - If NOT `--auto-approve-pr`: no parent branch needed. Task branches will target `develop`.
+6. **Worktree-First Branch Creation (Rule 14 + ADR-0004):**
+
+   Branch creation in `x-story-implement` follows the **worktree-first policy** defined in [ADR-0004 — Worktree-First Branch Creation Policy](../../../adr/ADR-0004-worktree-first-branch-creation-policy.md) and the normative invariants of [Rule 14 — Worktree Lifecycle](../../rules/14-worktree-lifecycle.md). The routine below is **mandatory** and MUST execute before any `git checkout -b` or `/x-git-worktree create` call.
+
+   **Step 6a — Detect worktree context (Rule 14 §3 — Non-Nesting Invariant).** Invoke the `x-git-worktree` skill via the Skill tool to classify the current execution context (Rule 13 Pattern 1 — INLINE-SKILL):
+
+       Skill(skill: "x-git-worktree", args: "detect-context")
+
+   The skill returns a JSON envelope of the form:
+
+   ```json
+   {
+     "inWorktree": true,
+     "worktreePath": "/abs/path/to/.claude/worktrees/story-XXXX-YYYY",
+     "mainRepoPath": "/abs/path/to/repo"
+   }
+   ```
+
+   Record `inWorktree`, `worktreePath`, and `mainRepoPath` for use in the following steps. This call is **mandatory** before any branch creation — skipping it risks creating a nested worktree (Rule 14 §3) or causing the harness to apply file operations in the wrong checkout, which can wipe sibling files outside the intended worktree (see Rule 14 §7 — Anti-Patterns and ADR-0004 Context §3 — Lack of operator visibility).
+
+   **Step 6b — Select the branching mode.** Apply the three-way decision table below. This table is the single source of truth for branch creation in this skill:
+
+   | # | Condition | Mode | Action |
+   | :--- | :--- | :--- | :--- |
+   | 1 | `inWorktree == true` | **REUSE (orchestrated)** | Reuse the current worktree. Do NOT invoke `/x-git-worktree create`. Do NOT create a nested worktree (Rule 14 §3). Branch creation inside the reused worktree follows the `--auto-approve-pr` legacy behavior below (via `git checkout -b`). The creator of the outer worktree owns its removal (Rule 14 §5). |
+   | 2 | `inWorktree == false` AND `--worktree` flag present | **CREATE (standalone opt-in)** | Provision a dedicated worktree for the story branch by invoking the `x-git-worktree` skill (see Step 6c, Mode 2, for the canonical `Skill(...)` call). This is the opt-in path documented in ADR-0004 §D2 for operators who want isolation when running `x-story-implement` standalone. `x-story-implement` is the creator and owns removal (Rule 14 §5 — end of Phase 3 on success; preserved on failure per Rule 14 §4). |
+   | 3 | `inWorktree == false` AND `--worktree` flag absent | **LEGACY (main checkout)** | Fall back to the legacy / interactive behavior: branches are created directly in the main working tree via `git checkout -b`. This preserves backward compatibility for developers who run `/x-story-implement` interactively without requesting isolation. |
+
+   > **Orchestrator auto-path.** When this skill is dispatched by `x-epic-implement` (via `Skill(skill: "x-story-implement", ...)` or `Agent(...)`), the parent orchestrator creates the worktree **before** dispatching, and this invocation detects `inWorktree == true` and selects Mode 1 (REUSE) automatically. No flag is required from the caller. This is the expected automatic path described in ADR-0004 §D2.
+
+   > **Anti-pattern (DO NOT USE):** `Agent(isolation:"worktree")` is DEPRECATED (see ADR-0004 and Rule 14 §7). The harness-native isolation is replaced by explicit `/x-git-worktree create` calls from orchestrators so the worktree lifecycle is visible in logs and recoverable on failure.
+
+   **Step 6c — Execute the selected branching mode.**
+
+   - **Mode 1 (REUSE — orchestrated).** The parent orchestrator has already placed the process inside the worktree at `worktreePath`. Proceed with branch creation *inside* that worktree:
+     - If `--auto-approve-pr`: create parent branch `feat/story-XXXX-YYYY-desc` from `develop` via `git checkout -b`. All task branches are created from and target this parent branch.
+     - If NOT `--auto-approve-pr`: no parent branch is created at this stage. Task branches are created later (Phase 2) and target `develop` directly.
+     - Do NOT call `/x-git-worktree remove` here or at end of Phase 3. The orchestrator is the creator and owns removal (Rule 14 §5).
+
+   - **Mode 2 (CREATE — standalone opt-in).** Invoke `x-git-worktree` via the Skill tool to provision the worktree (Rule 13 Pattern 1 — INLINE-SKILL):
+
+         Skill(skill: "x-git-worktree", args: "create --branch feat/story-XXXX-YYYY-desc --base develop --id story-XXXX-YYYY")
+
+     The operation creates `.claude/worktrees/story-XXXX-YYYY/` with `feat/story-XXXX-YYYY-desc` checked out. In Mode 2, that branch always exists because it anchors the standalone worktree. Record the returned worktree path; subsequent phases execute with that path as their working directory.
+     - If `--auto-approve-pr`: the branch created by `/x-git-worktree create` IS the parent branch. All task branches are created from and target `feat/story-XXXX-YYYY-desc`.
+     - If NOT `--auto-approve-pr`: the branch created by `/x-git-worktree create` is an isolation branch only; it is **not** treated as the parent branch for task PR flow. No additional parent branch is created. Task branches are created later in Phase 2 from `develop` and target `develop` directly, even though execution remains inside the standalone worktree.
+     - In standalone mode `x-story-implement` is the creator and MUST invoke `/x-git-worktree remove --id story-XXXX-YYYY` at the end of Phase 3 on success. On failure, the worktree is preserved for diagnosis (Rule 14 §4).
+
+   - **Mode 3 (LEGACY — main checkout).** Execute the pre-EPIC-0037 behavior unchanged, operating directly in the main working tree:
+     - If `--auto-approve-pr`: `git checkout -b feat/story-XXXX-YYYY-desc develop` creates the parent branch. All task branches will be created from and target this parent branch.
+     - If NOT `--auto-approve-pr`: no parent branch is created at this stage. Task branches (Phase 2) target `develop` directly.
+
+   **Step 6d — Logging.** After mode selection, log one of:
+
+   - `"Branch creation mode: REUSE (inside worktree {worktreePath})"`
+   - `"Branch creation mode: CREATE (standalone --worktree, provisioning worktree for story-XXXX-YYYY)"`
+   - `"Branch creation mode: LEGACY (main checkout, no --worktree flag)"`
+
+   These lines are required for operator diagnostics — Rule 14 §3 detection SHOULD be auditable from the log stream alone.
+
+   **Step 6e — Record creator flag (`STORY_OWNS_WORKTREE`).** Derive and record the creator-ownership state variable for use by Phase 3 cleanup (Rule 14 §5 — Creator Owns Removal). Scope: single invocation, in-memory only (not persisted to disk):
+
+   | Selected Mode | `STORY_OWNS_WORKTREE` | Rationale |
+   | :--- | :--- | :--- |
+   | Mode 1 (REUSE — orchestrated) | `false` | The outer orchestrator (e.g., `x-epic-implement`) is the creator and owns removal. `x-story-implement` MUST NOT remove. |
+   | Mode 2 (CREATE — standalone opt-in) | `true` | `x-story-implement` is the creator in this invocation and MUST remove at end of Phase 3 on success (preserve on failure, per Rule 14 §4). |
+   | Mode 3 (LEGACY — main checkout) | `false` | No worktree was created; nothing to remove. |
+
+   Phase 3 Step 10 reads `STORY_OWNS_WORKTREE` to decide whether to invoke `Skill(skill: "x-git-worktree", args: "remove --id ...")`. The variable is the normative bridge between the Phase 0 branching-mode decision and the Phase 3 cleanup decision; its naming matches the state contract in the story spec (`STORY_OWNS_WORKTREE` — boolean, scope: single invocation, format: `true` | `false`). The `STORY_ID` segment used throughout (e.g., in `remove --id story-XXXX-YYYY`) MUST match the regex `story-\d{4}-\d{4}` (Rule 14 §1 — Naming Convention).
+
 7. **Scope Assessment** -- classify the story to determine lifecycle phase optimization:
 
 ### Scope Assessment
@@ -957,7 +1025,32 @@ If NOT `--auto-approve-pr`: skip (individual task PRs already target develop).
      - **Error Rate**: Verify error rate < 1% threshold
    - Non-blocking: emit result for human decision, do NOT auto-rollback
 9. Report PASS/FAIL/SKIP result with task-level summary
-10. `git checkout develop && git pull origin develop`
+10. **Mode-aware worktree removal + repository sync (Rule 14 §2 forbids `develop` checkout inside a worktree; Rule 14 §5 — Creator Owns Removal):**
+
+    Cleanup is gated by the `STORY_OWNS_WORKTREE` state variable set in Phase 0 Step 6e. The decision flow is:
+
+    | `STORY_OWNS_WORKTREE` | Phase 3 Verification | Cleanup Action |
+    | :--- | :--- | :--- |
+    | `false` | pass or fail | Skip worktree removal. Log `"[CLEANUP] Skipping worktree removal (STORY_OWNS_WORKTREE=false — not the creator, Rule 14 §5)"`. Mode 1 (REUSE) and Mode 3 (LEGACY) both fall here. |
+    | `true` | pass | Remove worktree, then switch back to `mainRepoPath` and sync `develop` (Mode 2 success path below). |
+    | `true` | fail | Preserve worktree for diagnosis (Rule 14 §4). Log `"[PRESERVED] Worktree story-XXXX-YYYY kept due to verification failure"` and emit manual recovery instructions. |
+
+    Concrete per-mode actions:
+
+    - If branch creation ran under **Mode 1 (REUSE — orchestrated)** (`STORY_OWNS_WORKTREE=false`): do NOT remove the worktree (the orchestrator `x-epic-implement` is the creator and owns removal) and do NOT run `git checkout develop && git pull origin develop` here (would violate Rule 14 §2 by checking out a protected branch inside a worktree).
+    - If branch creation ran under **Mode 2 (CREATE — standalone opt-in)** (`STORY_OWNS_WORKTREE=true`) AND the DoD checklist above passed:
+      1. Remove the worktree first via the Skill tool (Rule 13 Pattern 1 — INLINE-SKILL):
+
+             Skill(skill: "x-git-worktree", args: "remove --id story-XXXX-YYYY")
+
+      2. After removal, switch execution context back to `mainRepoPath` (captured at Step 6a) and run:
+
+             git checkout develop && git pull origin develop
+
+    - If branch creation ran under **Mode 2 (CREATE — standalone opt-in)** (`STORY_OWNS_WORKTREE=true`) AND the story FAILED or had unrecovered errors: preserve the worktree for diagnosis (Rule 14 §4). Log the preserved path and instruct the operator to run `Skill(skill: "x-git-worktree", args: "remove --force --id story-XXXX-YYYY")` after triage. Do NOT run `git checkout develop && git pull origin develop` while the worktree is preserved (same Rule 14 §2 protection).
+    - If branch creation ran under **Mode 3 (LEGACY — main checkout)** (`STORY_OWNS_WORKTREE=false`): no worktree was created. Run `git checkout develop && git pull origin develop` in the main checkout as before.
+
+    > **Anti-pattern (Rule 14 §5).** `x-story-implement` MUST NEVER call `/x-git-worktree remove` when `STORY_OWNS_WORKTREE=false`. Removal ownership belongs to the outer orchestrator (Mode 1) or is not applicable (Mode 3). Violating this invariant can wipe an actively-used worktree whose parent orchestrator still expects it.
 
 **Last action of Phase 3 — Update the phase task (TaskUpdate):**
 
@@ -1073,6 +1166,7 @@ Templates referenced by this skill follow RULE-012. When a template file does no
 | `x-review` | Invokes (Phase 3.4) | Parallel specialist reviews |
 | `x-review-pr` | Invokes (Phase 3.6) | Tech Lead holistic review |
 | `x-arch-update` | Invokes (Phase 3.3, conditional) | Architecture document update |
+| `x-git-worktree` | Invokes (Phase 0 Step 6a/6c, Phase 3 Step 3.8) | Worktree context detection (mandatory pre-branch), standalone worktree creation (`--worktree` flag, Mode 2), and Creator-Owned removal at end of Phase 3 (Rule 14 + ADR-0004) |
 | `x-epic-implement` | Called by | Epic orchestrator delegates story execution |
 | `x-git-push` | Invokes (Phase 2, branch creation) | Branch creation for tasks |
 

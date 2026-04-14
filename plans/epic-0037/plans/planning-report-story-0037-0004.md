@@ -2,52 +2,45 @@
 
 | Field | Value |
 |-------|-------|
-| Story ID | story-0037-0004 | Epic ID | 0037 | Date | 2026-04-13 |
-| Agents | Architect, QA, Security, TechLead, PO |
+| Story ID | story-0037-0004 |
+| Epic ID | 0037 |
+| Date | 2026-04-13 |
 
 ## Planning Summary
 
-Doc-only story adding opt-in `--worktree` flag to `x-git-push`. RULE-004 (backward compat) is mandatory blocker — without flag behavior MUST be byte-identical to baseline. 5 Gherkin scenarios. Pre-defined tasks 001-006 retained 1:1 with DoD criteria sharpened (slug sanitization, nested detection, jq fail-fast).
+Opt-in `--worktree` flag for `x-git-push`. Pure additive change; backward-compat default preserved (RULE-004). Docs-only.
 
 ## Architecture Assessment
 
-Insertion point: after current Step 1.2 where `git checkout -b` runs. Cross-reference to RULE-018 uses 4-level relative path. Slug derivation: regex `^[a-z]+/` strips prefix; multi-segment edge case needs spec clarification (e.g., `feature/sub/story`). Caller-owns-removal: skill does NOT auto-cleanup worktree. Mermaid decision tree from story §6.1 embedded.
+Single file modified: `x-git-push/SKILL.md`. Frontmatter, parameters table, Step 1.3 (worktree-aware branch creation), Backward Compatibility section, When-to-Use bullet. Inlines `detect_worktree_context()` snippet from story-0002's Operation 5. Caller-owns-cleanup (does not auto-remove after push).
 
 ## Test Strategy Summary
 
-5 ATs (backward compat / happy main / happy nested / error / boundary slug). Inner loop: structural assertions (frontmatter `[--worktree]`, parameters table row, Step 1.3 4-step flow, backward-compat section). Two manual smoke tests are mandatory: (a) backward-compat regression (byte-identical output without flag) — RULE-004 blocker; (b) with-flag end-to-end including nested detection, error fail-fast, boundary slug handling.
+5 Gherkin scenarios TPP-ordered: backward compat → happy main → happy nested (detection reuses) → error (create fails) → boundary (non-standard slug prefix). Regression smoke verifies byte-identical default behavior.
 
 ## Security Assessment Summary
 
-- **CWE-22 path traversal** via crafted branch name into slug → fold sanitization into Step 1.3 doc (regex `[a-z0-9-]+`, reject `..`, `/`, metachars)
-- **Drift risk**: inline-copied `detect_worktree_context()` may diverge from x-git-worktree canonical → drift note in Step 1.3 designates x-git-worktree as authoritative
-- **OWASP A05**: jq prereq must fail fast (consistent with story-0037-0002 inline-use pattern)
+- Slug sanitization regex strips type prefix; documented in Section 5.1.
+- No new input surfaces; flag-controlled branch path stays within `.claude/worktrees/`.
+- OWASP: N/A for docs; A01 considerations are documented via sanitization guidance.
+- Risk level: **LOW**.
 
 ## Implementation Approach
 
-TechLead enforces opt-in default (no behavior change without flag), atomic commits per concern (frontmatter / params / Step 1.3 / backward-compat smoke / worktree smoke / regen+PR), backward-compat regression as mandatory blocker. Standardize example slug as `story-0037-0003-foo` for cross-story consistency.
+Sequential: frontmatter → params → Step 1.3 → regression smoke (blocker) → flag smoke → golden regen + PR.
 
 ## Task Breakdown Summary
 
-| Metric | Value |
-|--------|-------|
-| Total tasks | 6 |
-| Architecture | merged into TASK-001..003 |
-| Test/Smoke | TASK-004 (regression), TASK-005 (worktree) |
-| Security | augmented into TASK-003 + TASK-005 |
-| Quality gate | TASK-006 |
-| Validation | merged into TASK-005 |
+6 tasks: 3 doc + 2 smoke + 1 quality-gate.
 
 ## Risk Matrix
 
-| Risk | Source | Sev | Likely | Mitigation |
-|------|--------|-----|--------|-----------|
-| Without-flag behavior diverges (RULE-004 violation) | TL | Critical | Low | TASK-004 byte-identical regression mandatory |
-| Slug `[a-z0-9-]` regex too restrictive for legit names | Architect | Low | Medium | Document multi-segment edge case; provide examples |
-| CWE-22 via crafted branch name | Security | High | Low | TASK-003 sanitization regex |
-| Drift between inline snippet and x-git-worktree canonical | Security | Medium | Medium | Drift note + drift-detection test in story-0037-0002 follow-up |
-| jq missing in CI environment | PO | Low | Medium | Fail-fast guard documented |
+| Risk | Severity | Likelihood | Mitigation |
+|------|----------|------------|------------|
+| Default behavior changes inadvertently | HIGH | Low | Regression smoke mandatory as TASK-004 |
+| Slug collision on `.claude/worktrees/` | Medium | Low | Slug derivation deterministic; caller responsible for unique branch |
+| Nested worktree accidentally created | High | Low | Detection check per Section 3.3 |
 
 ## DoR Status
 
-**READY** — 10/10 mandatory pass. See `dor-story-0037-0004.md`.
+**READY** — see `dor-story-0037-0004.md`.
