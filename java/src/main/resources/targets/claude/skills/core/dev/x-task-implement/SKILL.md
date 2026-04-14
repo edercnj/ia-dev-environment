@@ -146,9 +146,11 @@ Record `inWorktree`, `worktreePath`, and `mainRepoPath` for use in the following
   - Create the task branch `feat/task-XXXX-YYYY-NNN-description` via `git checkout -b` from the appropriate base (parent story branch when `--auto-approve-pr` is active upstream, or `develop` otherwise).
   - Do NOT call `Skill(skill: "x-git-worktree", args: "remove ...")` here or at Step 5. The orchestrator is the creator and owns removal (Rule 14 §5).
 
-- **Mode 2 (CREATE — standalone opt-in).** Invoke `x-git-worktree` via the Skill tool to provision the worktree (Rule 13 Pattern 1 — INLINE-SKILL):
+- **Mode 2 (CREATE — standalone opt-in).** Invoke `x-git-worktree` via the Skill tool to provision the worktree (Rule 13 Pattern 1 — INLINE-SKILL). The `--base` argument is the value resolved in Step 0.5f (NOT hardcoded `develop`):
 
-      Skill(skill: "x-git-worktree", args: "create --branch feat/task-XXXX-YYYY-NNN-description --base develop --id task-XXXX-YYYY-NNN")
+      Skill(skill: "x-git-worktree", args: "create --branch feat/task-XXXX-YYYY-NNN-description --base {RESOLVED_BASE} --id task-XXXX-YYYY-NNN")
+
+  where `{RESOLVED_BASE}` is the value computed in Step 0.5f (the current story branch when HEAD is on `feat/story-XXXX-YYYY-...`, otherwise `develop`).
 
   The operation creates `.claude/worktrees/task-XXXX-YYYY-NNN/` with `feat/task-XXXX-YYYY-NNN-description` checked out. Record the returned worktree path; subsequent steps (TDD loop, commits) execute with that path as their working directory.
   - In standalone mode `x-task-implement` is the creator and MUST invoke `Skill(skill: "x-git-worktree", args: "remove --id task-XXXX-YYYY-NNN")` at Step 5 on success (Rule 13 Pattern 1 — INLINE-SKILL; NEVER use the bare-slash `/x-git-worktree ...` form in delegation). On failure, the worktree is preserved for diagnosis (Rule 14 §4).
@@ -178,15 +180,14 @@ These lines are required for operator diagnostics — Rule 14 §3 detection SHOU
 
 The state MUST be recorded before Step 1 begins so that Step 5 can make the correct cleanup decision without re-querying the detection result.
 
-**Step 0.5f — Parent branch resolution (for Mode 2 `--base`).** When Mode 2 is selected, the `--base` argument passed to `Skill(skill: "x-git-worktree", args: "create --base <base> ...")` is resolved as follows:
+**Step 0.5f — Base branch resolution (for Mode 2 `--base`).** When Mode 2 is selected, the `--base` argument passed to `Skill(skill: "x-git-worktree", args: "create --base <base> ...")` is resolved from the current HEAD (no user-facing flag is exposed for this resolution — keep the interface surface minimal):
 
 | Scenario | `--base` value |
 | :--- | :--- |
-| `--parent <branch>` flag explicitly provided to `x-task-implement` | `<branch>` |
-| No explicit flag AND the current HEAD is already on a story branch (`feat/story-XXXX-YYYY-...`) | that story branch |
-| No explicit flag AND no story branch present | `develop` |
+| Current HEAD is already on a story branch (`feat/story-XXXX-YYYY-...`) | that story branch |
+| No story branch present | `develop` |
 
-Log the resolved base: `"Parent branch resolved to {base} for task worktree creation"`. For Modes 1 and 3 this resolution does not apply (the branch base is the current checkout HEAD).
+Log the resolved base: `"Base branch resolved to {base} for task worktree creation"`. The Step 0.5c Mode 2 `create` call MUST use this resolved value (not a hardcoded `develop`). For Modes 1 and 3 this resolution does not apply (the branch base is the current checkout HEAD).
 
 ### Step 1 — Prepare + Understand (Subagent via Task)
 
