@@ -176,14 +176,22 @@ class ReleaseSkillTest {
 
         @Test
         @DisplayName("BRANCH creates release/X.Y.Z from"
-                + " develop")
+                + " develop inside a worktree")
         void assemble_release_branchFromDevelop(
                 @TempDir Path tempDir)
                 throws IOException {
+            // story-0037-0008: Phase BRANCH is now
+            // worktree-first. The branch name is stored in
+            // BRANCH_NAME and the checkout is performed by
+            // x-git-worktree create (Rule 13 Pattern 1).
             String content =
                     generateClaudeContent(tempDir);
-            assertThat(content).contains(
-                    "git checkout -b \"release/${VERSION}\"");
+            assertThat(content)
+                    .contains(
+                            "BRANCH_NAME=\"release/${VERSION}\"")
+                    .contains("BASE_BRANCH=\"develop\"")
+                    .contains("WT_ID=\"release-${VERSION}\"")
+                    .contains("Worktree-Aware");
         }
 
         @Test

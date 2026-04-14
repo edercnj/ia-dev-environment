@@ -483,31 +483,161 @@ echo "Phase VALIDATE-DEEP completed. All checks passed."
 - Hotfix release (`--hotfix`): MUST start from `main`
 - Starting from any other branch (e.g., `feature/*`) aborts with `VALIDATE_WRONG_BRANCH`
 
-### Step 3 — Branch Creation
+### Step 3 — Phase BRANCH — Worktree-Aware Release/Hotfix Branch Creation
 
-Create a release branch from the appropriate source:
+> **Worktree-First Policy (Rule 14 + ADR-0004).** Release and hotfix
+> branches MUST be created inside a dedicated git worktree under
+> `.claude/worktrees/`. The release worktree persists through the
+> `APPROVAL-GATE` (which may last hours) and is removed only after the
+> tag is applied and the back-merge PR is opened. Rationale: the main
+> checkout stays free for concurrent development while the release is
+> in flight. See
+> [ADR-0004 — Worktree-First Branch Creation Policy](../../../adr/ADR-0004-worktree-first-branch-creation-policy.md)
+> §D2 and
+> [Rule 14 — Worktree Lifecycle](../../rules/14-worktree-lifecycle.md)
+> §3 (Non-Nesting Invariant) and §5 (Creator Owns Removal).
 
-**Standard release (from develop):**
+**Security — HOTFIX_SLUG validation.** When `--hotfix <slug>` is used, the
+slug is interpolated into a shell-visible worktree id and branch name.
+Before any interpolation, validate the slug against the following regex.
+Abort with `WT_SLUG_INVALID` on mismatch:
 
 ```bash
-# Ensure develop is up to date
-git checkout develop
-git pull origin develop
-
-# Create release branch
-git checkout -b "release/${VERSION}"
+SLUG_REGEX='^[a-z0-9][a-z0-9-]{0,62}$'
+if [ "$HOTFIX_MODE" = "true" ] && ! printf '%s' "$HOTFIX_SLUG" | grep -Eq "$SLUG_REGEX"; then
+  echo "ABORT [WT_SLUG_INVALID]: hotfix slug must match $SLUG_REGEX (got length ${#HOTFIX_SLUG})"
+  exit 1
+fi
 ```
 
-**Hotfix release (from main):**
+Version strings are already validated as SemVer in Step 1 (DETERMINE),
+so `release-${VERSION}` is safe to interpolate without additional checks.
+
+#### Step 3.1 — Detect worktree context (Rule 14 §3 — Non-Nesting Invariant)
+
+Invoke the `x-git-worktree` skill via the Skill tool to classify the
+current execution context (Rule 13 Pattern 1 — INLINE-SKILL):
+
+    Skill(skill: "x-git-worktree", args: "detect-context")
+
+The skill returns a JSON envelope of the form:
+
+```json
+{
+  "inWorktree": false,
+  "worktreePath": null,
+  "mainRepoPath": "/abs/path/to/repo"
+}
+```
+
+Record `IN_WT`, `WT_PATH_CURRENT`, and `MAIN_REPO_PATH` for use in the
+following substeps. This call is **mandatory** before any branch or
+worktree creation — skipping it risks creating a nested worktree
+(Rule 14 §3) or causing the harness to apply file operations in the
+wrong checkout.
+
+> **Anti-pattern (DO NOT USE):** `Agent(isolation:"worktree")` is
+> DEPRECATED (see ADR-0004 and Rule 14 §7). Explicit `x-git-worktree`
+> Skill invocations are the only supported mechanism.
+
+#### Step 3.2 — Idempotent worktree create (RULE-003)
+
+Compute the worktree id, branch name, and base branch from the release
+mode. Reuse an existing worktree if one is already checked out for this
+release (idempotent resume after APPROVAL-GATE):
 
 ```bash
-# Ensure main is up to date
-git checkout main
-git pull origin main
+if [ "$HOTFIX_MODE" = "true" ]; then
+  WT_ID="hotfix-${HOTFIX_SLUG}"
+  BRANCH_NAME="hotfix/${HOTFIX_SLUG}"
+  BASE_BRANCH="main"
+else
+  WT_ID="release-${VERSION}"
+  BRANCH_NAME="release/${VERSION}"
+  BASE_BRANCH="develop"
+fi
 
-# Create hotfix branch
-git checkout -b "hotfix/${DESCRIPTION}"
+if [ "$IN_WT" = "true" ]; then
+  # Unusual but allowed: x-release invoked from inside an existing
+  # worktree. Do NOT nest — reuse the current worktree and skip create.
+  echo "[WARNING] x-release invoked from inside a worktree; reusing cwd (Rule 14 §3)."
+  WT_PATH="$WT_PATH_CURRENT"
+elif [ -d ".claude/worktrees/${WT_ID}" ]; then
+  # Idempotent reuse on resume. Verify branch match before trusting the
+  # directory — a stale worktree left over from a prior, unrelated run
+  # must not be silently adopted.
+  WT_PATH=".claude/worktrees/${WT_ID}"
+  WT_PATH_ABS=$(cd "$WT_PATH" && pwd -P)
+  CURRENT_BRANCH=$(git -C "$WT_PATH_ABS" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+  if [ "$CURRENT_BRANCH" != "$BRANCH_NAME" ]; then
+    echo "ABORT [WT_RELEASE_BRANCH_MISMATCH]: worktree ${WT_ID} checked out '${CURRENT_BRANCH}', expected '${BRANCH_NAME}'"
+    exit 1
+  fi
+  echo "[IDEMPOTENT] Reusing existing release worktree ${WT_ID}"
+  WT_PATH="$WT_PATH_ABS"
+  cd "$WT_PATH"
+else
+  # Fresh create. Delegate to x-git-worktree (Rule 13 Pattern 1).
+  # On failure the skill returns non-zero and we surface
+  # WT_RELEASE_CREATE_FAILED without leaking absolute paths.
+  set +e
+  CREATE_OUTPUT=$(Skill_invoke_x_git_worktree_create \
+      --branch "$BRANCH_NAME" \
+      --base "$BASE_BRANCH" \
+      --id "$WT_ID" 2>&1)
+  CREATE_RC=$?
+  set -e
+  if [ $CREATE_RC -ne 0 ]; then
+    echo "ABORT [WT_RELEASE_CREATE_FAILED]: could not create worktree ${WT_ID} (see logs)"
+    exit 1
+  fi
+  WT_PATH=$(printf '%s\n' "$CREATE_OUTPUT" | tail -n1)
+  cd "$WT_PATH"
+fi
 ```
+
+> **Delegation note.** The pseudo-command `Skill_invoke_x_git_worktree_create`
+> above represents the following Skill-tool call (Rule 13 Pattern 1 —
+> INLINE-SKILL). The caller MUST make this call through the Skill tool,
+> not via a bare-slash `/x-git-worktree ...` in prose:
+>
+>     Skill(skill: "x-git-worktree", args: "create --branch <BRANCH_NAME> --base <BASE_BRANCH> --id <WT_ID>")
+
+#### Step 3.3 — Persist `worktreePath` in the state file (atomic write)
+
+Canonicalise the worktree path and assert it stays under the repository
+`.claude/worktrees/` prefix before persisting (defence in depth against
+symlink escape):
+
+```bash
+WT_PATH_CANON=$(cd "$WT_PATH" && pwd -P)
+REPO_ROOT=$(git rev-parse --show-toplevel)
+EXPECTED_PREFIX="${REPO_ROOT}/.claude/worktrees/"
+case "$WT_PATH_CANON/" in
+  "$EXPECTED_PREFIX"*) : ok ;;
+  *)
+    echo "ABORT [WT_RELEASE_CREATE_FAILED]: worktree path escaped expected prefix"
+    exit 1
+    ;;
+esac
+
+# Atomic state-file update (write-to-temp + rename, see
+# references/state-file-schema.md § Atomic Write Protocol).
+TMP="${STATE_FILE}.tmp.$$"
+jq --arg wt "$WT_PATH_CANON" \
+   --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+   '.worktreePath = $wt
+    | .phase = "BRANCHED"
+    | .lastPhaseCompletedAt = $ts
+    | .phasesCompleted += ["BRANCHED"]' \
+   "$STATE_FILE" > "$TMP"
+mv "$TMP" "$STATE_FILE"
+```
+
+Subsequent phases (`UPDATE`, `CHANGELOG`, `COMMIT`, `OPEN-RELEASE-PR`)
+execute with the current working directory inside the worktree. The
+worktree persists across the `APPROVAL-GATE` halt (so `--continue-after-merge`
+returns to the same isolated checkout).
 
 ### Step 4 — Update Version Files
 
@@ -1114,6 +1244,106 @@ using the same vocabulary as the rest of the skill.
 > the commit message `chore: advance develop to ${NEXT_SNAPSHOT}` are
 > carried over verbatim.
 
+### Step 10.5bis — Phase CLEANUP-WORKTREE (after BACK-MERGE-DEVELOP)
+
+> **When.** This phase runs after `RESUME-AND-TAG` (Step 9) has applied
+> the tag AND `BACK-MERGE-DEVELOP` (Step 10) has opened the back-merge
+> PR (state `BACKMERGE_OPENED` or `BACKMERGE_CONFLICT`). Because
+> EPIC-0035 replaced direct `git merge` with `gh pr create` (RULE-001),
+> the release worktree is no longer locking a local `git merge` step
+> and can safely persist through both merges — cleanup happens once
+> both PRs have been *opened* (not yet merged by operators; the back-merge
+> PR completes asynchronously).
+>
+> **Creator owns removal (Rule 14 §5).** `x-release` created the worktree
+> in Step 3.2 and is therefore responsible for removing it. Operators
+> MUST NOT remove `.claude/worktrees/release-*` manually.
+
+#### Step 10.5bis.1 — Return to the main repository
+
+Before invoking `x-git-worktree remove`, change the current working
+directory back to the main checkout. The `git worktree list --porcelain`
+output lists the main repository on the first `worktree` line:
+
+```bash
+MAIN_REPO_PATH=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
+cd "$MAIN_REPO_PATH"
+```
+
+If `cd` fails, abort with `WT_RELEASE_REMOVE_FAILED` and leave the
+worktree in place for manual inspection. The release itself is already
+`COMPLETED`-equivalent at this point (tag pushed, back-merge PR
+opened), so the failure is logged but non-fatal for release outcome.
+
+#### Step 10.5bis.2 — Invoke `x-git-worktree remove`
+
+Delegate to the `x-git-worktree` skill (Rule 13 Pattern 1 — INLINE-SKILL):
+
+    Skill(skill: "x-git-worktree", args: "remove --id <WT_ID>")
+
+The `<WT_ID>` value MUST be the id persisted in Step 3.2 (recovered
+from the state file if memory was lost across resume):
+
+```bash
+WT_ID=$(jq -r '.worktreePath // "" | split("/") | last' "$STATE_FILE")
+if [ -z "$WT_ID" ] || [ "$WT_ID" = "null" ]; then
+  echo "[CLEANUP] No worktreePath recorded in state; skipping remove"
+else
+  # Invoke x-git-worktree remove via the Skill tool (see above).
+  # On failure, log the error code and preserve the worktree.
+  set +e
+  REMOVE_RC=$(Skill_invoke_x_git_worktree_remove --id "$WT_ID")
+  set -e
+fi
+```
+
+> **Delegation note.** `Skill_invoke_x_git_worktree_remove` represents
+> `Skill(skill: "x-git-worktree", args: "remove --id ${WT_ID}")`. No
+> `--force` flag is used: `x-git-worktree remove` relies on its own
+> documented safety checks.
+
+#### Step 10.5bis.3 — Update state file
+
+**On success** — worktree removed, path cleared, phase advanced to
+`WORKTREE_CLEANED`:
+
+```bash
+TMP="${STATE_FILE}.tmp.$$"
+jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+   '.worktreePath = null
+    | .phase = "WORKTREE_CLEANED"
+    | .lastPhaseCompletedAt = $ts
+    | .phasesCompleted += ["WORKTREE_CLEANED"]' \
+   "$STATE_FILE" > "$TMP"
+mv "$TMP" "$STATE_FILE"
+```
+
+**On failure** — release outcome is preserved, worktree left for
+manual inspection, phase stays at `BACKMERGE_OPENED` (or
+`BACKMERGE_CONFLICT`):
+
+```bash
+echo "[WT_RELEASE_REMOVE_FAILED] worktree ${WT_ID} could not be removed; leaving in place"
+# No state file mutation — phase remains whatever BACK-MERGE-DEVELOP left.
+```
+
+Error messages emitted by this phase MUST NOT include absolute paths
+from the main repository; log only the worktree id and short phase
+name so the release summary stays portable across environments.
+
+#### Step 10.5bis.4 — Error Catalog (local to CLEANUP-WORKTREE)
+
+| Condition | Code | Message template |
+|:---|:---|:---|
+| Slug failed regex in Step 3 (carried through) | `WT_SLUG_INVALID` | `Hotfix slug must match ^[a-z0-9][a-z0-9-]{0,62}$` |
+| Reused worktree points at wrong branch | `WT_RELEASE_BRANCH_MISMATCH` | `Existing worktree <id> is on <actual>, expected <expected>` |
+| `x-git-worktree create` returned non-zero | `WT_RELEASE_CREATE_FAILED` | `Could not create release worktree <id>` |
+| `x-git-worktree remove` returned non-zero or `cd` back failed | `WT_RELEASE_REMOVE_FAILED` | `Could not remove release worktree <id>; left in place for inspection` |
+
+All four codes are documented in `references/state-file-schema.md`
+(Error Codes section) alongside the existing `DEP_*` and `STATE_*`
+vocabulary.
+
 ### Step 11 — Publish
 
 > **RULE-001 reminder:** `main` and `develop` MUST NOT receive a direct
@@ -1175,7 +1405,9 @@ Phases:
                           [7] no hardcoded version strings outside pom/CHANGELOG
                           [8] cross-file version consistency
                        -> skip tests (4-6) if --skip-tests
-  3. BRANCH            -> create release/2.3.0 from develop
+  3. BRANCH            -> detect-context, create worktree .claude/worktrees/release-2.3.0/
+                       -> branch release/2.3.0 from develop (inside worktree)
+                       -> persist worktreePath in state file
   4. UPDATE            -> pom.xml: 2.2.2-SNAPSHOT -> 2.3.0
   5. CHANGELOG         -> invoke x-release-changelog skill
                        -> moves [Unreleased] -> [2.3.0] - 2026-04-10
@@ -1204,6 +1436,10 @@ Phases:
                        -> if clean: SNAPSHOT advance to 2.4.0-SNAPSHOT (Java only)
                        -> gh pr create --base develop --head chore/backmerge-v2.3.0
                        -> if conflict: PR body explains, state = BACKMERGE_CONFLICT
+ 10bis. CLEANUP_WORKTREE -> cd back to main repo
+                       -> Skill(x-git-worktree, remove --id release-2.3.0)
+                       -> on success: phase = WORKTREE_CLEANED, worktreePath = null
+                       -> on failure: log WT_RELEASE_REMOVE_FAILED, preserve worktree
  11. PUBLISH           -> git push origin v2.3.0 (if not already pushed in phase 9)
                        -> warn-only on push failure (tag exists locally)
  12. CLEANUP           -> delete release/2.3.0 (local + remote)
@@ -1249,8 +1485,11 @@ no direct `git merge` to `main` or `develop`.
 - **Phase 1 (DETERMINE)**: Forces bump = patch. MAJOR/MINOR trigger error
   `HOTFIX_INVALID_BUMP` with message: `Hotfix mode only allows patch bump. Got: <type>`.
 - **Phase 2 (VALIDATE_DEEP)**: Check [2] (correct branch) expects `main`, not `develop`.
-- **Phase 3 (BRANCH)**: Creates `hotfix/X.Y.Z` from `main` instead of `release/X.Y.Z`
-  from `develop`.
+- **Phase 3 (BRANCH)**: Creates `hotfix/{slug}` inside worktree
+  `.claude/worktrees/hotfix-{slug}/` from `main` instead of `release/X.Y.Z`
+  from `develop`. The `HOTFIX_SLUG` value is validated against
+  `^[a-z0-9][a-z0-9-]{0,62}$` before any shell interpolation
+  (`WT_SLUG_INVALID`). See Step 3 — Phase BRANCH.
 - **Phase 7 (OPEN_RELEASE_PR)**: PR targets main via
   `gh pr create --base main --head hotfix/X.Y.Z` with title `fix: v${VERSION} (hotfix)`.
 - **Phase 10 (BACK_MERGE_DEVELOP)**:
@@ -1342,6 +1581,10 @@ printed at runtime.
 | 9 | `RESUME_TAG_PUSH_FAILED` | `git push` of tag fails (warning only) | `Tag created locally but push failed. Run 'git push origin v<V>' manually.` | — |
 | 10 | `BACKMERGE_WRONG_PHASE` | Phase is not TAGGED | `Expected phase TAGGED, got <phase>` | 1 |
 | 10 | `BACKMERGE_UNEXPECTED` | `git merge` returns unexpected exit code | `Unexpected git merge exit code: <n>` | 1 |
+| 3 | `WT_SLUG_INVALID` | Hotfix slug fails `^[a-z0-9][a-z0-9-]{0,62}$` | `Hotfix slug must match ^[a-z0-9][a-z0-9-]{0,62}$ (got length <n>)` | 1 |
+| 3 | `WT_RELEASE_BRANCH_MISMATCH` | Reused release worktree points at wrong branch | `Existing worktree <id> is on '<actual>', expected '<expected>'` | 1 |
+| 3 | `WT_RELEASE_CREATE_FAILED` | `x-git-worktree create` non-zero, or path escapes `.claude/worktrees/` prefix | `Could not create release worktree <id>` | 1 |
+| 10bis | `WT_RELEASE_REMOVE_FAILED` | `x-git-worktree remove` non-zero, or `cd` back to main repo failed | `Could not remove release worktree <id>; left in place for inspection` | — |
 
 ## Integration Notes
 
