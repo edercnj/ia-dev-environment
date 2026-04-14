@@ -187,7 +187,7 @@ Record the returned task ID as `phase0TaskId` for the closing TaskUpdate call. T
 
    These lines are required for operator diagnostics — Rule 14 §3 detection SHOULD be auditable from the log stream alone.
 
-   **Step 6e — Persist creator flag (`STORY_OWNS_WORKTREE`).** Derive and record the creator-ownership state variable for use by Phase 3 cleanup (Rule 14 §5 — Creator Owns Removal). Scope: single invocation, in-memory only (not persisted to disk):
+   **Step 6e — Record creator flag (`STORY_OWNS_WORKTREE`).** Derive and record the creator-ownership state variable for use by Phase 3 cleanup (Rule 14 §5 — Creator Owns Removal). Scope: single invocation, in-memory only (not persisted to disk):
 
    | Selected Mode | `STORY_OWNS_WORKTREE` | Rationale |
    | :--- | :--- | :--- |
@@ -195,7 +195,7 @@ Record the returned task ID as `phase0TaskId` for the closing TaskUpdate call. T
    | Mode 2 (CREATE — standalone opt-in) | `true` | `x-story-implement` is the creator in this invocation and MUST remove at end of Phase 3 on success (preserve on failure, per Rule 14 §4). |
    | Mode 3 (LEGACY — main checkout) | `false` | No worktree was created; nothing to remove. |
 
-   Phase 3 Step 10 reads `STORY_OWNS_WORKTREE` to decide whether to invoke `/x-git-worktree remove`. The variable is the normative bridge between the Phase 0 branching-mode decision and the Phase 3 cleanup decision; its naming matches the state contract in the story spec (`STORY_OWNS_WORKTREE` — boolean, scope: single invocation, format: `true` | `false`). The `STORY_ID` segment used throughout (e.g., in `remove --id story-XXXX-YYYY`) MUST match the regex `story-\d{4}-\d{4}` (Rule 14 §6 — Naming).
+   Phase 3 Step 10 reads `STORY_OWNS_WORKTREE` to decide whether to invoke `Skill(skill: "x-git-worktree", args: "remove --id ...")`. The variable is the normative bridge between the Phase 0 branching-mode decision and the Phase 3 cleanup decision; its naming matches the state contract in the story spec (`STORY_OWNS_WORKTREE` — boolean, scope: single invocation, format: `true` | `false`). The `STORY_ID` segment used throughout (e.g., in `remove --id story-XXXX-YYYY`) MUST match the regex `story-\d{4}-\d{4}` (Rule 14 §1 — Naming Convention).
 
 7. **Scope Assessment** -- classify the story to determine lifecycle phase optimization:
 
