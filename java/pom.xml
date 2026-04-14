@@ -19,7 +19,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Dependency versions -->
-        <picocli.version>4.7.6</picocli.version>
+        <picocli.version>4.7.7</picocli.version>
         <pebble.version>3.2.2</pebble.version>
         <snakeyaml.version>2.3</snakeyaml.version>
         <jackson.version>2.18.2</jackson.version>
