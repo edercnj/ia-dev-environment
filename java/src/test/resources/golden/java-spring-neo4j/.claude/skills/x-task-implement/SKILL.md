@@ -4,7 +4,7 @@ description: "Implements a feature/story using TDD (Red-Green-Refactor) workflow
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
 argument-hint: "[TASK-ID (TASK-XXXX-YYYY-NNN) or STORY-ID or feature-description] [--worktree]"
-context-budget: medium
+context-budget: heavy
 ---
 
 ## Global Output Policy
@@ -25,6 +25,7 @@ Implements a feature or story following TDD (Red-Green-Refactor) workflow for {{
 | Full story with multi-persona review | `/x-story-implement` |
 | Coding without the review phases | This skill |
 | Complete lifecycle: code, review, fix, PR | `/x-story-implement` |
+| Standalone task implementation with `--worktree` for isolation when running multiple tasks of different stories concurrently | This skill |
 
 ## Triggers
 
@@ -167,6 +168,26 @@ Record `inWorktree`, `worktreePath`, and `mainRepoPath` for use in the following
 - `"Branch creation mode: LEGACY (main checkout, no --worktree flag)"`
 
 These lines are required for operator diagnostics — Rule 14 §3 detection SHOULD be auditable from the log stream alone.
+
+**Step 0.5e — Record `TASK_OWNS_WORKTREE` state (Rule 14 §5 — Creator Owns Removal).** The three-mode table above maps to a single boolean state variable used by Step 5 to gate worktree removal. This is the bridge between the mode selected in Step 0.5b and the conditional cleanup in Step 5.
+
+| Mode selected in Step 0.5b | `TASK_OWNS_WORKTREE` | Cleanup behavior in Step 5 |
+| :--- | :--- | :--- |
+| Mode 1 (REUSE — orchestrated) | `false` | Skip worktree removal (parent orchestrator owns the worktree per Rule 14 §5) |
+| Mode 2 (CREATE — standalone opt-in) | `true` | Remove worktree on success; preserve on failure (Rule 14 §4) |
+| Mode 3 (LEGACY — main checkout) | `false` | No worktree was created; run `git checkout develop && git pull` in the main checkout |
+
+The state MUST be recorded before Step 1 begins so that Step 5 can make the correct cleanup decision without re-querying the detection result.
+
+**Step 0.5f — Parent branch resolution (for Mode 2 `--base`).** When Mode 2 is selected, the `--base` argument passed to `Skill(skill: "x-git-worktree", args: "create --base <base> ...")` is resolved as follows:
+
+| Scenario | `--base` value |
+| :--- | :--- |
+| `--parent <branch>` flag explicitly provided to `x-task-implement` | `<branch>` |
+| No explicit flag AND the current HEAD is already on a story branch (`feat/story-XXXX-YYYY-...`) | that story branch |
+| No explicit flag AND no story branch present | `develop` |
+
+Log the resolved base: `"Parent branch resolved to {base} for task worktree creation"`. For Modes 1 and 3 this resolution does not apply (the branch base is the current checkout HEAD).
 
 ### Step 1 — Prepare + Understand (Subagent via Task)
 
@@ -411,7 +432,7 @@ git commit -m "test(scope): update acceptance test for [AT-N scenario] (GREEN)"
 
 ### Step 5 — Mode-Aware Worktree Removal + Repository Sync (Rule 14 §2 + §5)
 
-Executed after all TDD cycles, validations, and commits for the task are complete. Rule 14 §2 forbids checking out `develop` (or any protected branch) inside a worktree; Rule 14 §5 assigns worktree removal to its creator. Apply the branch mode recorded in Step 0.5:
+Executed after all TDD cycles, validations, and commits for the task are complete. Rule 14 §2 forbids checking out `develop` (or any protected branch) inside a worktree; Rule 14 §5 assigns worktree removal to its creator. Apply the branch mode recorded in Step 0.5 — the gate is the `TASK_OWNS_WORKTREE` state from Step 0.5e:
 
 - **Mode 1 (REUSE — orchestrated).** Do NOT remove the worktree (the parent orchestrator — `x-story-implement` or `x-epic-implement` — is the creator and owns removal) and do NOT run `git checkout develop && git pull origin develop` here (would violate Rule 14 §2 by checking out a protected branch inside a worktree). Simply return control to the caller.
 
