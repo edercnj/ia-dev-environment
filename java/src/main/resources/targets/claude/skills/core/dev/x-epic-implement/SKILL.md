@@ -1,6 +1,6 @@
 ---
 name: x-epic-implement
-description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-story-implement subagents."
+description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via explicit git worktrees (per ADR-0004 §D2 and Rule 14). Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-story-implement subagents running inside orchestrator-provisioned worktrees."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, Agent, AskUserQuestion, TaskCreate, TaskUpdate
 argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr] [--auto-merge] [--no-merge] [--interactive-merge] [--strict-overlap] [--skip-pr-comments] [--auto-approve-pr] [--batch-approval] [--task-tracking]"
@@ -26,21 +26,23 @@ Use targeted reads (offset/limit) or grep for specific fields.
 
 ## Purpose
 
-Orchestrate the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parse epic ID and flags, validate prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), delegate story execution to `x-story-implement` subagents, manage checkpoints, integrity gates, retry/block propagation, resume, partial execution, dry-run, and progress reporting.
+Orchestrate the implementation of an entire epic by executing stories sequentially or in parallel via explicit git worktrees. Parse epic ID and flags, validate prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), delegate story execution to `x-story-implement` subagents running inside orchestrator-provisioned worktrees (per [ADR-0004](../../../adr/ADR-0004-worktree-first-branch-creation-policy.md) §D2 and [Rule 14](../../rules/14-worktree-lifecycle.md)), manage checkpoints, integrity gates, retry/block propagation, resume, partial execution, dry-run, and progress reporting.
+
+> **Branch Creation Policy (ADR-0004 + Rule 14).** For parallel story execution this skill creates an explicit git worktree per dispatched story via the `x-git-worktree` skill BEFORE launching the subagent. The dispatched subagent runs `x-story-implement`, whose Phase 0 Step 6a detects `inWorktree == true` and selects Mode 1 (REUSE) — no nested worktree is created (Rule 14 §3). The orchestrator is the creator and OWNS removal per Rule 14 §5. The legacy `Agent(isolation:"worktree")` harness parameter is DEPRECATED (ADR-0004 §D1) and MUST NOT be used anywhere in this skill.
 
 ## When to Use
 
 - Full epic implementation spanning multiple stories
 - Multi-story orchestration with dependency-aware execution order
 - Resumable epic execution after interruption
-- Parallel story execution via worktrees
+- Parallel story execution via explicit git worktrees (ADR-0004 §D2, Rule 14)
 
 ## Workflow Overview
 
 ```
 Phase 0:   PREPARATION        -> Parse args, validate prerequisites, generate execution plan (inline)
 Phase 0.5: PRE-FLIGHT         -> Conflict analysis for parallel stories (conditional, inline)
-Phase 1:   EXECUTION LOOP     -> Dispatch stories via worktrees or sequential, integrity gates (inline)
+Phase 1:   EXECUTION LOOP     -> Provision per-story worktrees (x-git-worktree create), dispatch subagents, auto-rebase, remove worktrees on merge (x-git-worktree remove); integrity gates (inline)
 Phase 2:   PROGRESS REPORT    -> Consolidate results, generate epic execution report (inline)
 Phase 3:   VERIFICATION       -> Epic-level test suite, DoD checklist, final status (inline)
 Phase 4:   PR COMMENTS        -> Remediate PR review comments across all story PRs (optional, inline)
@@ -862,6 +864,7 @@ When `--sequential` flag is set, use sequential dispatch. For each executable st
 - Context isolation (RULE-001): The orchestrator passes ONLY metadata to the subagent.
   Never pass source code, knowledge packs, or diffs. The subagent is born with
   clean context and dies after completion.
+- **Worktree policy (ADR-0004 §D2, Rule 14):** In sequential mode the orchestrator MAY provision a single worktree per dispatched story via `Skill(skill: "x-git-worktree", args: "create --branch feat/{storyId}-{shortDesc} --base develop --id {storyId}")` and pass the worktree path to the subagent prompt (same pattern as Section 1.4a step 2.6). This is OPTIONAL for `--sequential` — the default behavior is to let the subagent's `x-story-implement` run on the main checkout of the repository. If a worktree IS provisioned, the orchestrator MUST remove it via `Skill(skill: "x-git-worktree", args: "remove --id {storyId}")` after the story's PR is merged (Rule 14 §5). The deprecated `Agent(isolation:"worktree")` harness parameter MUST NOT be used (ADR-0004 §D1).
 
 **Prompt Template for Subagent:**
 ```
@@ -919,7 +922,9 @@ Return a JSON result with this exact structure (SubagentResult):
 ### 1.4a Parallel Worktree Dispatch (Default Behavior)
 
 Default behavior. When `--sequential` is NOT set, all executable stories in the
-current phase are launched concurrently via worktree dispatch in a SINGLE message.
+current phase are launched concurrently using **explicit git worktrees** provisioned
+via the `x-git-worktree` skill BEFORE each subagent dispatch. This implements the
+Worktree-First Branch Creation Policy (ADR-0004 §D2, Rule 14).
 
 **Activation:** Default behavior. Only when `--sequential` flag is set, the sequential
 dispatch in Section 1.4 is used instead.
@@ -927,6 +932,13 @@ dispatch in Section 1.4 is used instead.
 > **Legacy flag:** If `--parallel` is passed, it is silently ignored (no error). The
 > parallel behavior is already the default. This graceful handling ensures backward
 > compatibility for at least 1 version cycle.
+
+> **Anti-pattern (DO NOT USE):** `Agent(isolation:"worktree")` is DEPRECATED per
+> [ADR-0004](../../../adr/ADR-0004-worktree-first-branch-creation-policy.md) §D1 and
+> [Rule 14](../../rules/14-worktree-lifecycle.md) §7. The harness-native isolation
+> parameter has been replaced by explicit `x-git-worktree create` / `x-git-worktree remove`
+> calls so the worktree lifecycle is visible in logs, resilient to subagent failure, and
+> recoverable on partial execution. This skill MUST NOT use `isolation:"worktree"` anywhere.
 
 **Dispatch Algorithm:**
 
@@ -937,27 +949,36 @@ dispatch in Section 1.4 is used instead.
        TaskCreate(description: "Story {storyId}: {storyTitle}")
 
     These tasks surface real-time story progress in the Claude Code task list. They are closed in step 4.5 via TaskUpdate after each subagent returns. execution-state.json remains the authoritative record of SUCCESS/FAILED per CR-04 of EPIC-0033.
-3. Launch ALL stories in a SINGLE message using the `Agent` tool with `isolation: "worktree"`:
+2.6 **Provision per-story worktrees (Rule 14 §2 — Atomicity Invariant).** For each executable story, invoke the `x-git-worktree` skill via the Skill tool (Rule 13 Pattern 1 — INLINE-SKILL) to create a worktree + branch atomically BEFORE dispatching the subagent:
+
+       Skill(skill: "x-git-worktree", args: "create --branch feat/{storyId}-{shortDesc} --base develop --id {storyId}")
+
+    Capture the returned worktree path from the skill's structured result and store it in an in-memory map `storyWorktreePaths` indexed by `storyId`. On any provisioning failure, do NOT dispatch the subagent for that story — mark the story FAILED with reason `"Worktree provisioning failed"` and skip to the next story. The orchestrator is the creator of each worktree and OWNS its removal (Rule 14 §5).
+
+3. Launch ALL stories in a SINGLE message using the `Agent` tool WITHOUT `isolation`. Each subagent executes inside the worktree provisioned in step 2.6 (the path is passed in the prompt so `x-story-implement` Phase 0 Step 6a detects `inWorktree == true` and selects Mode 1 — REUSE):
 
 ```
 For each story in executableStories:
   Agent(
     subagent_type: "general-purpose",
-    isolation: "worktree",
-    prompt: "<same prompt template as Section 1.4, with story-specific metadata>"
+    description: "Implement story {storyId}",
+    prompt: "<same prompt template as Section 1.4, with story-specific metadata PLUS the worktree path from storyWorktreePaths[storyId]>"
   )
 ```
 
-Each worktree subagent uses the same prompt template as Section 1.4, including
-the PR creation instructions: PR targets `develop`, PR body includes
-"Part of EPIC-{epicId}" (RULE-008), and `SubagentResult` includes `prUrl` and `prNumber`.
+The subagent's prompt MUST include the following additional lines so the nested `x-story-implement` invocation resolves to REUSE (Mode 1) instead of creating a second worktree:
 
-**Branch Naming:** Each worktree operates on branch `feat/{storyId}-short-description` (standard story branch pattern, matching `x-story-implement` Phase 0).
+```
+Worktree path: {storyWorktreePaths[storyId]}
 
-**Context Isolation (RULE-001):** Each worktree subagent receives clean context,
-identical to sequential mode. The orchestrator passes ONLY metadata (story ID,
-branch, phase, flags). The `isolation: "worktree"` parameter ensures each subagent
-works on an isolated copy of the repository.
+CRITICAL: Before invoking /x-story-implement, change your working directory to the worktree path above (e.g., `cd {storyWorktreePaths[storyId]}`). All subsequent git operations and skill invocations MUST run from inside that worktree. x-story-implement Phase 0 Step 6a will detect the worktree context and REUSE it (Rule 14 §3 — Non-Nesting). Do NOT invoke `x-git-worktree create` again for this story.
+```
+
+Each subagent uses the same prompt template as Section 1.4, including the PR creation instructions: PR targets `develop`, PR body includes "Part of EPIC-{epicId}" (RULE-008), and `SubagentResult` includes `prUrl` and `prNumber`.
+
+**Branch Naming:** Each worktree operates on branch `feat/{storyId}-short-description` (standard story branch pattern, matching `x-story-implement` Phase 0). Branch + worktree are created atomically by `x-git-worktree create` (Rule 14 §2).
+
+**Context Isolation (RULE-001):** Each subagent receives clean context, identical to sequential mode. The orchestrator passes ONLY metadata (story ID, branch, phase, flags, worktree path). Filesystem isolation is provided by the explicit git worktree — not by the deprecated `isolation:"worktree"` harness parameter.
 
 4. Wait for ALL subagents to complete
 4.5 **Close story-level tracking tasks (Story 0033-0002):** For each returned `SubagentResult`, update the corresponding tracking task created in step 2.5 via TaskUpdate:
@@ -1015,15 +1036,23 @@ Steps:
 |----------|------|---------|-------------|
 | `MAX_REBASE_RETRIES` | Integer | 3 | Maximum conflict resolution attempts per story |
 
-### 1.4d Worktree Cleanup
+### 1.4d Worktree Cleanup (Creator Owns Removal — Rule 14 §5)
 
-After parallel dispatch completes and all SubagentResults are validated, clean up worktree resources:
+The orchestrator is the creator of every worktree provisioned in Section 1.4a step 2.6 and is therefore responsible for removing each one. Cleanup is explicit — invoked via the `x-git-worktree` skill — and occurs at well-defined lifecycle points:
 
-- **SUCCESS + merged:** Worktree is cleaned up automatically after successful merge
-- **FAILED stories:** Worktree is preserved for diagnostic investigation. The branch
-  and worktree path are logged for manual inspection
-- **No-change worktrees:** The `Agent` tool with `isolation: "worktree"` automatically
-  cleans up worktrees where no changes were made
+- **SUCCESS + PR merged (or `--no-merge` + SUCCESS + auto-rebase of remaining PRs in the phase completed):** Invoke `x-git-worktree` via the Skill tool (Rule 13 Pattern 1 — INLINE-SKILL) to remove the worktree:
+
+      Skill(skill: "x-git-worktree", args: "remove --id {storyId}")
+
+  Drop the entry for `{storyId}` from `storyWorktreePaths` after a successful removal. This call MUST happen AFTER any auto-rebase triggered by the merge (Section 1.4e) has finished for every other remaining PR in the phase, so the worktree remains available as a fallback working copy if a rebase needs to reinspect the story's history.
+
+- **FAILED stories (Rule 14 §4 — Failure Preservation):** Do NOT remove the worktree. Preserve it for diagnostic investigation. Log the preserved worktree path at WARN level so the operator can triage and, after triage, run `Skill(skill: "x-git-worktree", args: "remove --force --id {storyId}")` manually. The orchestrator's in-memory `storyWorktreePaths` entry is retained until the end of Phase 1 and then surfaced in the Phase 2 progress report.
+
+- **Worktree provisioning failure (Section 1.4a step 2.6):** No worktree exists — nothing to remove. The story is marked FAILED and cleanup is a no-op.
+
+- **Epic-level abort or user interrupt:** All still-registered entries in `storyWorktreePaths` are preserved (treat as FAILED for cleanup purposes). The operator is responsible for running `x-git-worktree cleanup` after triage.
+
+> **Anti-pattern (DO NOT USE):** Do NOT rely on the deprecated `Agent(isolation:"worktree")` harness mechanism to clean up worktrees automatically (ADR-0004 §D1). The orchestrator MUST invoke `x-git-worktree remove` explicitly as described above.
 
 ### 1.4e Auto-Rebase After PR Merge (RULE-011)
 
@@ -1750,6 +1779,7 @@ Templates referenced by this skill follow RULE-012. When a template file does no
 | Skill | Relationship | Context |
 |-------|-------------|---------|
 | `x-story-implement` | Invokes (per story) | Story execution with PR creation, reviews in Phases 4/7 |
+| `x-git-worktree` | Invokes (Section 1.4a steps 2.6 and 1.4d) | Per-story worktree provisioning (`create`) before subagent dispatch and explicit removal (`remove`) after PR merge + auto-rebase completes; implements ADR-0004 §D2 and Rule 14 §5 (Creator Owns Removal) |
 | `x-pr-fix-epic` | Invokes (Phase 4) | PR comment remediation; dry-run first, then apply with confirmation |
 | `x-epic-orchestrate` | References | Produces DoR files (`dor-story-*.md`) consumed by DoR pre-check (Section 1.1b) |
 | `x-epic-map` | References | Error guidance when map is missing |
