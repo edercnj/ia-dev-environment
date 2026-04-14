@@ -382,7 +382,9 @@ class ReleaseOpenPrTest {
                             + " Detection")
                     .contains("### Step 1 \u2014 Determine"
                             + " Version")
-                    .contains("### Step 3 \u2014 Branch"
+                    .contains("### Step 3 \u2014 Phase BRANCH"
+                            + " \u2014 Worktree-Aware"
+                            + " Release/Hotfix Branch"
                             + " Creation")
                     .contains("### Step 4 \u2014 Update"
                             + " Version Files")
