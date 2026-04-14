@@ -35,14 +35,14 @@ The canonical detection routine is exposed by `/x-git-worktree detect-context` (
 
 ```bash
 TOPLEVEL=$(git rev-parse --show-toplevel)
-if echo "$TOPLEVEL" | grep -q "/.claude/worktrees/"; then
+if printf '%s' "$TOPLEVEL" | grep -F -q "/.claude/worktrees/"; then
   IN_WORKTREE=true
 else
   IN_WORKTREE=false
 fi
-# Secondary verification against the porcelain list:
-git worktree list --porcelain | grep -q "^worktree $TOPLEVEL$"
 ```
+
+> **Fixed-string matching is required:** use `grep -F` so that `.` is treated literally (not as a regex metacharacter) and so that `$TOPLEVEL` is never interpreted as a pattern. Classification relies ONLY on this substring check — do NOT cross-reference `git worktree list` for classification. That matches the normative algorithm documented in `x-git-worktree/SKILL.md` Operation 5 (which uses `git worktree list --porcelain` only to resolve `mainRepoPath` when already classified as inside a worktree).
 
 When `IN_WORKTREE=true`, the caller MUST reuse the existing worktree instead of creating a nested one. Skills dispatched by an orchestrator (e.g., `x-story-implement` dispatched by `x-epic-implement`) MUST always call `detect-context` before any `git checkout -b` or `/x-git-worktree create`.
 

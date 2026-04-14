@@ -1,9 +1,9 @@
 ---
 name: x-git-worktree
-description: "Manages git worktrees for parallel task and story execution. Operations: create, list, remove, cleanup. Follows Rule 14 (Worktree Lifecycle) naming convention under .claude/worktrees/{identifier}/."
+description: "Manages git worktrees for parallel task and story execution. Operations: create, list, remove, cleanup, detect-context. Follows Rule 14 (Worktree Lifecycle) naming convention under .claude/worktrees/{identifier}/."
 user-invocable: true
 allowed-tools: Bash, Read
-argument-hint: "<create|list|remove|cleanup> [--branch <name>] [--base <base>] [--id <identifier>] [--dry-run]"
+argument-hint: "<create|list|remove|cleanup|detect-context> [--branch <name>] [--base <base>] [--id <identifier>] [--dry-run]"
 context-budget: heavy
 ---
 
@@ -49,7 +49,7 @@ All worktrees are created under `.claude/worktrees/` relative to the repository 
 
 ## Naming Convention
 
-> **See:** [Rule 14 — Worktree Lifecycle](../../../rules/14-worktree-lifecycle.md) for the naming convention, protected branches, non-nesting invariant, lifecycle, and creator-owns-removal matrix.
+> **See:** [Rule 14 — Worktree Lifecycle](../../rules/14-worktree-lifecycle.md) for the naming convention, protected branches, non-nesting invariant, lifecycle, and creator-owns-removal matrix.
 
 When `--id` is not provided, the identifier is derived from the branch name by stripping common prefixes (`feat/`, `feature/`, `fix/`, `hotfix/`, `refactor/`).
 
@@ -329,7 +329,7 @@ Cleanup results:
 
 Read-only operation that returns the current worktree context. Used by skills that need to decide whether to create a new worktree or reuse the existing one (Rule 14 — Worktree Lifecycle, Section 3 — Non-Nesting Invariant).
 
-> **See:** [Rule 14 — Worktree Lifecycle](../../../rules/14-worktree-lifecycle.md), Section 3 (Non-Nesting Invariant), for the normative rule this operation implements.
+> **See:** [Rule 14 — Worktree Lifecycle](../../rules/14-worktree-lifecycle.md), Section 3 (Non-Nesting Invariant), for the normative rule this operation implements.
 
 #### Parameters
 
@@ -397,8 +397,12 @@ detect_worktree_context() {
   if printf '%s' "$toplevel" | grep -q "/\.claude/worktrees/"; then
     in_wt="true"
     wt_path=$(json_escape "$toplevel")
-    main_repo=$(git worktree list --porcelain \
-                | awk '/^worktree/{print $2; exit}')
+    # Fallback: if `git worktree list` fails or returns no entry, trust
+    # $toplevel so mainRepoPath remains a valid non-empty string per contract.
+    if ! main_repo=$(git worktree list --porcelain 2>/dev/null \
+                | awk '/^worktree/{print $2; exit}') || [ -z "$main_repo" ]; then
+      main_repo="$toplevel"
+    fi
     main_repo=$(json_escape "$main_repo")
     printf '{"inWorktree":%s,"worktreePath":"%s","mainRepoPath":"%s"}\n' \
       "$in_wt" "$wt_path" "$main_repo"
@@ -470,8 +474,12 @@ detect_worktree_context() {
   if printf '%s' "$toplevel" | grep -q "/\.claude/worktrees/"; then
     in_wt="true"
     wt_path=$(json_escape "$toplevel")
-    main_repo=$(git worktree list --porcelain \
-                | awk '/^worktree/{print $2; exit}')
+    # Fallback: if `git worktree list` fails or returns no entry, trust
+    # $toplevel so mainRepoPath remains a valid non-empty string per contract.
+    if ! main_repo=$(git worktree list --porcelain 2>/dev/null \
+                | awk '/^worktree/{print $2; exit}') || [ -z "$main_repo" ]; then
+      main_repo="$toplevel"
+    fi
     main_repo=$(json_escape "$main_repo")
     printf '{"inWorktree":%s,"worktreePath":"%s","mainRepoPath":"%s"}\n' \
       "$in_wt" "$wt_path" "$main_repo"
