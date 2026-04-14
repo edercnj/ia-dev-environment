@@ -8,8 +8,11 @@ import dev.iadev.domain.model.ContextBudget;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -169,14 +172,32 @@ public final class SkillsAssembler implements Assembler {
      *                              the delete attempt
      */
     private static void deleteStrictly(Path path) {
-        CopyHelpers.deleteQuietly(path);
-        if (Files.exists(path)) {
+        try {
+            Files.walkFileTree(path, new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult visitFile(
+                        Path file, BasicFileAttributes attrs)
+                        throws IOException {
+                    Files.delete(file);
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult postVisitDirectory(
+                        Path dir, IOException exc)
+                        throws IOException {
+                    if (exc != null) {
+                        throw exc;
+                    }
+                    Files.delete(dir);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
             throw new UncheckedIOException(
                     "Failed to prune stale skill directory: "
                             + path,
-                    new IOException(
-                            "Directory still present after "
-                                    + "delete attempt"));
+                    e);
         }
     }
 
