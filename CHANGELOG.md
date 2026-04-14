@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-04-14
+
 ### Added
 - **EPIC-0037 — Worktree-First Branch Creation Policy (9 stories merged: 0001–0007, 0009–0010; story 0008 deferred pending EPIC-0035-driven follow-up):**
   - New rule file `.claude/rules/14-worktree-lifecycle.md` (Rule 14 — Worktree Lifecycle) — codifies naming convention, protected branches, non-nesting invariant, lifecycle, and the Creator-Owns-Removal matrix that all branch-creating skills MUST follow.
