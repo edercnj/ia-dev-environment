@@ -3,7 +3,7 @@ name: x-story-implement
 description: "Orchestrates the complete feature implementation cycle with task-centric workflow: branch creation, planning, per-task TDD execution with individual PRs and approval gates, story-level verification, and final cleanup. Delegates implementation to x-test-tdd, commits to x-git-commit, PRs to x-pr-create."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, Agent, TaskCreate, TaskUpdate
-argument-hint: "[STORY-ID or feature-name] [--auto-approve-pr] [--task TASK-ID] [--skip-verification] [--full-lifecycle]"
+argument-hint: "[STORY-ID or feature-name] [--auto-approve-pr] [--task TASK-ID] [--skip-verification] [--full-lifecycle] [--worktree]"
 ---
 
 ## Global Output Policy
@@ -129,7 +129,7 @@ Record the returned task ID as `phase0TaskId` for the closing TaskUpdate call. T
 5. Ensure directories exist: `mkdir -p plans/epic-XXXX/plans plans/epic-XXXX/reviews`
 6. **Worktree-First Branch Creation (Rule 14 + ADR-0004):**
 
-   Branch creation in `x-story-implement` follows the **worktree-first policy** defined in [ADR-0004 — Worktree-First Branch Creation Policy](../../../../../adr/ADR-0004-worktree-first-branch-creation-policy.md) and the normative invariants of [Rule 14 — Worktree Lifecycle](../../../../rules/14-worktree-lifecycle.md). The routine below is **mandatory** and MUST execute before any `git checkout -b` or `/x-git-worktree create` call.
+   Branch creation in `x-story-implement` follows the **worktree-first policy** defined in [ADR-0004 — Worktree-First Branch Creation Policy](../../../adr/ADR-0004-worktree-first-branch-creation-policy.md) and the normative invariants of [Rule 14 — Worktree Lifecycle](../../rules/14-worktree-lifecycle.md). The routine below is **mandatory** and MUST execute before any `git checkout -b` or `/x-git-worktree create` call.
 
    **Step 6a — Detect worktree context (Rule 14 §3 — Non-Nesting Invariant).** Invoke the `x-git-worktree` skill via the Skill tool to classify the current execution context (Rule 13 Pattern 1 — INLINE-SKILL):
 
@@ -145,7 +145,7 @@ Record the returned task ID as `phase0TaskId` for the closing TaskUpdate call. T
    }
    ```
 
-   Record `inWorktree`, `worktreePath`, and `mainRepoPath` for use in the following steps. This call is **mandatory** before any branch creation — skipping it risks creating a nested worktree (Rule 14 §3) or wiping sibling files via the harness-native isolation leak documented in project memory (`project_agent_worktree_isolation_leak`).
+   Record `inWorktree`, `worktreePath`, and `mainRepoPath` for use in the following steps. This call is **mandatory** before any branch creation — skipping it risks creating a nested worktree (Rule 14 §3) or causing the harness to apply file operations in the wrong checkout, which can wipe sibling files outside the intended worktree (see Rule 14 §7 — Anti-Patterns and ADR-0004 Context §3 — Lack of operator visibility).
 
    **Step 6b — Select the branching mode.** Apply the three-way decision table below. This table is the single source of truth for branch creation in this skill:
 
@@ -170,7 +170,10 @@ Record the returned task ID as `phase0TaskId` for the closing TaskUpdate call. T
 
          Skill(skill: "x-git-worktree", args: "create --branch feat/story-XXXX-YYYY-desc --base develop --id story-XXXX-YYYY")
 
-     The operation creates `.claude/worktrees/story-XXXX-YYYY/` with the new branch checked out. Record the returned worktree path; subsequent phases execute with that path as their working directory. If `--auto-approve-pr` is also present, the branch created by `/x-git-worktree create` IS the parent branch (`feat/story-XXXX-YYYY-desc`). In standalone mode `x-story-implement` is the creator and MUST invoke `/x-git-worktree remove --id story-XXXX-YYYY` at the end of Phase 3 on success. On failure, the worktree is preserved for diagnosis (Rule 14 §4).
+     The operation creates `.claude/worktrees/story-XXXX-YYYY/` with `feat/story-XXXX-YYYY-desc` checked out. In Mode 2, that branch always exists because it anchors the standalone worktree. Record the returned worktree path; subsequent phases execute with that path as their working directory.
+     - If `--auto-approve-pr`: the branch created by `/x-git-worktree create` IS the parent branch. All task branches are created from and target `feat/story-XXXX-YYYY-desc`.
+     - If NOT `--auto-approve-pr`: the branch created by `/x-git-worktree create` is an isolation branch only; it is **not** treated as the parent branch for task PR flow. No additional parent branch is created. Task branches are created later in Phase 2 from `develop` and target `develop` directly, even though execution remains inside the standalone worktree.
+     - In standalone mode `x-story-implement` is the creator and MUST invoke `/x-git-worktree remove --id story-XXXX-YYYY` at the end of Phase 3 on success. On failure, the worktree is preserved for diagnosis (Rule 14 §4).
 
    - **Mode 3 (LEGACY — main checkout).** Execute the pre-EPIC-0037 behavior unchanged, operating directly in the main working tree:
      - If `--auto-approve-pr`: `git checkout -b feat/story-XXXX-YYYY-desc develop` creates the parent branch. All task branches will be created from and target this parent branch.
@@ -1011,15 +1014,19 @@ If NOT `--auto-approve-pr`: skip (individual task PRs already target develop).
      - **Error Rate**: Verify error rate < 1% threshold
    - Non-blocking: emit result for human decision, do NOT auto-rollback
 9. Report PASS/FAIL/SKIP result with task-level summary
-10. `git checkout develop && git pull origin develop`
-11. **Worktree removal (Mode 2 — CREATE standalone opt-in only, Rule 14 §5 — Creator Owns Removal):**
-    - If branch creation ran under **Mode 1 (REUSE)**: do NOT remove the worktree. The orchestrator (`x-epic-implement`) is the creator and owns removal.
-    - If branch creation ran under **Mode 2 (CREATE standalone)** AND the DoD checklist above passed: invoke `x-git-worktree` via the Skill tool to remove the worktree (Rule 13 Pattern 1 — INLINE-SKILL):
+10. **Mode-aware worktree removal + repository sync (Rule 14 §2 forbids `develop` checkout inside a worktree; Rule 14 §5 — Creator Owns Removal):**
+    - If branch creation ran under **Mode 1 (REUSE — orchestrated)**: do NOT remove the worktree (the orchestrator `x-epic-implement` is the creator and owns removal) and do NOT run `git checkout develop && git pull origin develop` here (would violate Rule 14 §2 by checking out a protected branch inside a worktree).
+    - If branch creation ran under **Mode 2 (CREATE — standalone opt-in)** AND the DoD checklist above passed:
+      1. Remove the worktree first via the Skill tool (Rule 13 Pattern 1 — INLINE-SKILL):
 
-          Skill(skill: "x-git-worktree", args: "remove --id story-XXXX-YYYY")
+             Skill(skill: "x-git-worktree", args: "remove --id story-XXXX-YYYY")
 
-    - If branch creation ran under **Mode 2 (CREATE standalone)** AND the story FAILED or had unrecovered errors: preserve the worktree for diagnosis (Rule 14 §4). Log the preserved path and instruct the operator to run `Skill(skill: "x-git-worktree", args: "remove --force --id story-XXXX-YYYY")` after triage.
-    - If branch creation ran under **Mode 3 (LEGACY)**: no worktree was created; this step is a no-op.
+      2. After removal, switch execution context back to `mainRepoPath` (captured at Step 6a) and run:
+
+             git checkout develop && git pull origin develop
+
+    - If branch creation ran under **Mode 2 (CREATE — standalone opt-in)** AND the story FAILED or had unrecovered errors: preserve the worktree for diagnosis (Rule 14 §4). Log the preserved path and instruct the operator to run `Skill(skill: "x-git-worktree", args: "remove --force --id story-XXXX-YYYY")` after triage. Do NOT run `git checkout develop && git pull origin develop` while the worktree is preserved (same Rule 14 §2 protection).
+    - If branch creation ran under **Mode 3 (LEGACY — main checkout)**: no worktree was created. Run `git checkout develop && git pull origin develop` in the main checkout as before.
 
 **Last action of Phase 3 — Update the phase task (TaskUpdate):**
 
