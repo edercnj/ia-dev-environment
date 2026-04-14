@@ -7,11 +7,15 @@ import dev.iadev.template.TemplateEngine;
 import dev.iadev.domain.model.ContextBudget;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Assembles {@code .claude/skills/} from templates based on
@@ -42,6 +46,36 @@ public final class SkillsAssembler implements Assembler {
             "conditional";
     private static final String LIB_DIR = "lib";
     private static final String SKILLS_OUTPUT = "skills";
+
+    /**
+     * Top-level entries under {@code skills/} that are owned
+     * by other assemblers and MUST never be pruned by this
+     * class.
+     *
+     * <p>These directories are written by classes earlier in
+     * the pipeline (RulesAssembler / CoreRulesWriter):</p>
+     * <ul>
+     *   <li>{@code knowledge-packs/} — from
+     *       {@code RulesInfraConditionals} (cloud/k8s/container
+     *       reference files).</li>
+     *   <li>{@code database-patterns/} — from
+     *       {@code RulesConditionals.copyDatabaseRefs} and
+     *       {@code CoreKpRouting} (database KP is not in the
+     *       SkillRegistry 17-pack set; its content is sourced
+     *       from {@code knowledge/databases/} and
+     *       {@code knowledge/core/11-database-principles.md}).
+     *       </li>
+     * </ul>
+     *
+     * <p>Other directories written by {@code CoreKpRouting}
+     * (e.g., {@code architecture/}, {@code security/},
+     * {@code testing/}) are already part of
+     * {@link dev.iadev.domain.stack.SkillRegistry}
+     * {@code .CORE_KNOWLEDGE_PACKS}, so they appear in the
+     * generated set and do not need explicit protection.</p>
+     */
+    private static final Set<String> PROTECTED_NAMES =
+            Set.of("knowledge-packs", "database-patterns");
 
     private final Path resourcesDir;
 
@@ -79,7 +113,92 @@ public final class SkillsAssembler implements Assembler {
         generated.addAll(
                 assembleKnowledge(
                         config, outputDir, engine, context));
+        pruneStaleSkills(outputDir, generated);
         return generated;
+    }
+
+    /**
+     * Removes top-level directories under
+     * {@code outputDir/skills/} that are not present in
+     * {@code generatedPaths} and are not in
+     * {@link #PROTECTED_NAMES}.
+     *
+     * <p>Without this pass the output is additive-only:
+     * skills renamed or removed in the source of truth
+     * persist indefinitely as stale copies. Stray files
+     * at the skills root are never touched — only
+     * directories are candidates for removal.</p>
+     *
+     * @param outputDir       the root output directory
+     * @param generatedPaths  absolute paths of every skill
+     *                        written in this run
+     */
+    void pruneStaleSkills(
+            Path outputDir, List<String> generatedPaths) {
+        Path skillsDir = outputDir.resolve(SKILLS_OUTPUT);
+        if (!Files.isDirectory(skillsDir)) {
+            return;
+        }
+        Set<String> expected = expectedTopLevelNames(
+                generatedPaths, skillsDir);
+        try (Stream<Path> stream = Files.list(skillsDir)) {
+            stream
+                    .filter(Files::isDirectory)
+                    .filter(p -> !isRetained(p, expected))
+                    .forEach(SkillsAssembler::deleteStrictly);
+        } catch (IOException e) {
+            throw new UncheckedIOException(
+                    "Failed to prune stale skills in: %s"
+                            .formatted(skillsDir), e);
+        }
+    }
+
+    /**
+     * Attempts to delete {@code path} recursively and raises
+     * an {@link UncheckedIOException} if the directory is still
+     * present afterwards.
+     *
+     * <p>Wraps {@code CopyHelpers.deleteQuietly} so that silent
+     * failures (insufficient permissions, open file handles on
+     * Windows, EBUSY, etc.) do not leave a half-pruned output.
+     * The stale directory surviving is a contract violation of
+     * the destructive prune and must surface to the operator.</p>
+     *
+     * @param path the directory to delete
+     * @throws UncheckedIOException if {@code path} exists after
+     *                              the delete attempt
+     */
+    private static void deleteStrictly(Path path) {
+        CopyHelpers.deleteQuietly(path);
+        if (Files.exists(path)) {
+            throw new UncheckedIOException(
+                    "Failed to prune stale skill directory: "
+                            + path,
+                    new IOException(
+                            "Directory still present after "
+                                    + "delete attempt"));
+        }
+    }
+
+    private static boolean isRetained(
+            Path dir, Set<String> expected) {
+        String name = dir.getFileName().toString();
+        return PROTECTED_NAMES.contains(name)
+                || expected.contains(name);
+    }
+
+    private static Set<String> expectedTopLevelNames(
+            List<String> generatedPaths, Path skillsDir) {
+        Path root = skillsDir.toAbsolutePath().normalize();
+        return generatedPaths.stream()
+                .map(Path::of)
+                .map(Path::toAbsolutePath)
+                .map(Path::normalize)
+                .filter(p -> p.startsWith(root)
+                        && !p.equals(root))
+                .map(p -> root.relativize(p)
+                        .getName(0).toString())
+                .collect(Collectors.toSet());
     }
 
     /**
