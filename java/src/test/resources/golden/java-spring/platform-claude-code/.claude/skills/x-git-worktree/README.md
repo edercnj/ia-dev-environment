@@ -1,6 +1,6 @@
 # x-git-worktree
 
-> Manages git worktrees for parallel task and story execution. Operations: create, list, remove, cleanup. Follows RULE-018 (Worktree Lifecycle) naming convention under .claude/worktrees/{identifier}/.
+> Manages git worktrees for parallel task and story execution. Operations: create, list, remove, cleanup. Follows Rule 14 (Worktree Lifecycle) naming convention under .claude/worktrees/{identifier}/.
 
 | | |
 |---|---|

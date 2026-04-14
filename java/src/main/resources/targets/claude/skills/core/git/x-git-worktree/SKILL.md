@@ -1,6 +1,6 @@
 ---
 name: x-git-worktree
-description: "Manages git worktrees for parallel task and story execution. Operations: create, list, remove, cleanup. Follows RULE-018 (Worktree Lifecycle) naming convention under .claude/worktrees/{identifier}/."
+description: "Manages git worktrees for parallel task and story execution. Operations: create, list, remove, cleanup. Follows Rule 14 (Worktree Lifecycle) naming convention under .claude/worktrees/{identifier}/."
 user-invocable: true
 allowed-tools: Bash, Read
 argument-hint: "<create|list|remove|cleanup> [--branch <name>] [--base <base>] [--id <identifier>] [--dry-run]"
@@ -46,13 +46,9 @@ All worktrees are created under `.claude/worktrees/` relative to the repository 
     hotfix-auth/              # Custom worktree
 ```
 
-## Naming Convention (RULE-018)
+## Naming Convention
 
-| Context | Pattern | Example |
-|---------|---------|---------|
-| Task | `.claude/worktrees/task-XXXX-YYYY-NNN/` | `.claude/worktrees/task-0029-0001-001/` |
-| Story | `.claude/worktrees/story-XXXX-YYYY/` | `.claude/worktrees/story-0029-0001/` |
-| Custom | `.claude/worktrees/{identifier}/` | `.claude/worktrees/hotfix-auth/` |
+> **See:** [Rule 14 — Worktree Lifecycle](../../rules/14-worktree-lifecycle.md) for the naming convention, protected branches, non-nesting invariant, lifecycle, and creator-owns-removal matrix.
 
 When `--id` is not provided, the identifier is derived from the branch name by stripping common prefixes (`feat/`, `feature/`, `fix/`, `hotfix/`, `refactor/`).
 
@@ -352,38 +348,20 @@ After a branch is merged via PR:
 2. `/x-git-worktree cleanup` removes the worktree and deletes the local branch
 3. The remote branch is deleted by GitHub after PR merge (if configured)
 
-## Integration with Epic Execution
-
-The `x-epic-implement` orchestrator uses `x-git-worktree` for parallel story execution:
-
-```
-Orchestrator (main)              x-git-worktree                 Subagent
------------------------          ----------                 --------
-                                                            
-  dispatch story ──────────────► /x-git-worktree create         
-                                   --branch feat/story-...  
-                                   --base develop           
-                          ◄────── path: .claude/worktrees/  
-                                  story-XXXX-YYYY/          
-                                                            
-  launch subagent ────────────────────────────────────────► works in worktree
-                                                            
-  story complete ◄──────────────────────────────────────── SubagentResult
-                                                            
-  after PR merge ──────────────► /x-git-worktree remove         
-                                   --id story-XXXX-YYYY     
-                          ◄────── removed                   
-                                                            
-  phase complete ──────────────► /x-git-worktree cleanup        
-                          ◄────── N worktrees removed       
-```
+<!--
+  NOTE: The "Integration with Epic Execution" section was removed in EPIC-0037 / STORY-0037-0001.
+  It documented a delegation flow between x-epic-implement and x-git-worktree that does NOT
+  currently exist (x-epic-implement still uses the deprecated Agent(isolation:"worktree")).
+  STORY-0037-0003 will rewrite this section with an accurate diagram once the real migration
+  of x-epic-implement to /x-git-worktree is implemented.
+-->
 
 ## Error Handling
 
 | Scenario | Action |
 |----------|--------|
 | `--branch` not provided for create | Abort with usage message |
-| Branch is protected (main/develop) | Abort with protection error |
+| Branch is protected (main/develop) | Abort with error code `PROTECTED_BRANCH` (Rule 14 §2) and exit 1 |
 | Branch already an active worktree | Abort with conflict error |
 | Worktree directory already exists | Abort with existence error |
 | `--id` not found for remove | Abort with not-found error |
@@ -393,8 +371,10 @@ Orchestrator (main)              x-git-worktree                 Subagent
 
 ## Integration Notes
 
-| Skill | Relationship | Context |
-|-------|-------------|---------|
-| `x-epic-implement` | called-by | Parallel story dispatch via worktrees (Phase 1) |
-| `x-story-implement` | called-by | Story execution within a worktree directory |
-| `x-git-push` | related | Branch creation and push from within worktree |
+> **Note on current vs future state:** The `x-epic-implement` → `x-git-worktree` and `x-story-implement` → `x-git-worktree` delegations listed below describe the **target integration** introduced by EPIC-0037. Today, those orchestrators still use the deprecated `Agent(isolation:"worktree")` mechanism (see ADR-0003). The migration lands story-by-story: `x-story-implement` via `story-0037-0003`, `x-epic-implement` via `story-0037-0007`.
+
+| Skill | Relationship | Status | Context |
+|-------|-------------|--------|---------|
+| `x-epic-implement` | target caller | Pending (`story-0037-0007`) | Will replace `Agent(isolation:"worktree")` with explicit `/x-git-worktree create` before dispatching story subagents |
+| `x-story-implement` | target caller | Pending (`story-0037-0003`) | Will create the story worktree via this skill in Phase 0 |
+| `x-git-push` | related | Current | Branch creation and push from within a worktree directory |

@@ -79,8 +79,9 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 10 | `10-anti-patterns.md` | anti patterns |
 | 12 | `12-security-anti-patterns.md` | security anti patterns |
 | 13 | `13-skill-invocation-protocol.md` | skill invocation protocol |
+| 14 | `14-worktree-lifecycle.md` | worktree lifecycle |
 
-**Total: 12 rules**
+**Total: 13 rules**
 
 ### Numbering
 
@@ -111,7 +112,7 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-epic-orchestrate** | `/x-epic-orchestrate` | Orchestrates multi-agent planning for all stories in an epic, respecting dependency order, with checkpoint and resume support. |
 | **x-git-commit** | `/x-git-commit` | Creates Conventional Commits with Task ID in scope and pre-commit chain (format -> lint -> compile). Central commit point in the task-centric workflow with TDD tag support. |
 | **x-git-push** | `/x-git-push` | Git operations: branch creation, atomic commits (Conventional Commits), push, and PR creation. Use for any git workflow task including branching, committing, pushing, creating PRs, or managing version control. |
-| **x-git-worktree** | `/x-git-worktree` | Manages git worktrees for parallel task and story execution. Operations: create, list, remove, cleanup. Follows RULE-018 (Worktree Lifecycle) naming convention under .claude/worktrees/{identifier}/. |
+| **x-git-worktree** | `/x-git-worktree` | Manages git worktrees for parallel task and story execution. Operations: create, list, remove, cleanup. Follows Rule 14 (Worktree Lifecycle) naming convention under .claude/worktrees/{identifier}/. |
 | **x-hardening-eval** | `/x-hardening-eval` | Evaluates application hardening posture against CIS and OWASP benchmarks: HTTP security headers, TLS configuration, CORS policy, cookie security, error handling, input limits, and information disclosure. Produces SARIF output with weighted scoring. |
 | **x-jira-create-epic** | `/x-jira-create-epic` | Create a Jira Epic from an existing local epic markdown file. Read the epic file, map fields to Jira, create the issue via MCP, and sync the Jira key back to the local file. |
 | **x-jira-create-stories** | `/x-jira-create-stories` | Create Jira Stories from existing local story markdown files. Read all story files in an epic directory, map fields to Jira, create issues with parent epic link, create dependency links between stories, and sync Jira keys back to local files. |
@@ -277,7 +278,7 @@ See the files directly for current configuration.
 
 | Component | Count |
 |-----------|-------|
-| Rules (.claude) | 12 |
+| Rules (.claude) | 13 |
 | Skills (.claude) | 56 |
 | Knowledge Packs (.claude) | 21 |
 | Agents (.claude) | 12 |
