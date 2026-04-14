@@ -187,6 +187,16 @@ Record the returned task ID as `phase0TaskId` for the closing TaskUpdate call. T
 
    These lines are required for operator diagnostics — Rule 14 §3 detection SHOULD be auditable from the log stream alone.
 
+   **Step 6e — Record creator flag (`STORY_OWNS_WORKTREE`).** Derive and record the creator-ownership state variable for use by Phase 3 cleanup (Rule 14 §5 — Creator Owns Removal). Scope: single invocation, in-memory only (not persisted to disk):
+
+   | Selected Mode | `STORY_OWNS_WORKTREE` | Rationale |
+   | :--- | :--- | :--- |
+   | Mode 1 (REUSE — orchestrated) | `false` | The outer orchestrator (e.g., `x-epic-implement`) is the creator and owns removal. `x-story-implement` MUST NOT remove. |
+   | Mode 2 (CREATE — standalone opt-in) | `true` | `x-story-implement` is the creator in this invocation and MUST remove at end of Phase 3 on success (preserve on failure, per Rule 14 §4). |
+   | Mode 3 (LEGACY — main checkout) | `false` | No worktree was created; nothing to remove. |
+
+   Phase 3 Step 10 reads `STORY_OWNS_WORKTREE` to decide whether to invoke `Skill(skill: "x-git-worktree", args: "remove --id ...")`. The variable is the normative bridge between the Phase 0 branching-mode decision and the Phase 3 cleanup decision; its naming matches the state contract in the story spec (`STORY_OWNS_WORKTREE` — boolean, scope: single invocation, format: `true` | `false`). The `STORY_ID` segment used throughout (e.g., in `remove --id story-XXXX-YYYY`) MUST match the regex `story-\d{4}-\d{4}` (Rule 14 §1 — Naming Convention).
+
 7. **Scope Assessment** -- classify the story to determine lifecycle phase optimization:
 
 ### Scope Assessment
@@ -1015,8 +1025,19 @@ If NOT `--auto-approve-pr`: skip (individual task PRs already target develop).
    - Non-blocking: emit result for human decision, do NOT auto-rollback
 9. Report PASS/FAIL/SKIP result with task-level summary
 10. **Mode-aware worktree removal + repository sync (Rule 14 §2 forbids `develop` checkout inside a worktree; Rule 14 §5 — Creator Owns Removal):**
-    - If branch creation ran under **Mode 1 (REUSE — orchestrated)**: do NOT remove the worktree (the orchestrator `x-epic-implement` is the creator and owns removal) and do NOT run `git checkout develop && git pull origin develop` here (would violate Rule 14 §2 by checking out a protected branch inside a worktree).
-    - If branch creation ran under **Mode 2 (CREATE — standalone opt-in)** AND the DoD checklist above passed:
+
+    Cleanup is gated by the `STORY_OWNS_WORKTREE` state variable set in Phase 0 Step 6e. The decision flow is:
+
+    | `STORY_OWNS_WORKTREE` | Phase 3 Verification | Cleanup Action |
+    | :--- | :--- | :--- |
+    | `false` | pass or fail | Skip worktree removal. Log `"[CLEANUP] Skipping worktree removal (STORY_OWNS_WORKTREE=false — not the creator, Rule 14 §5)"`. Mode 1 (REUSE) and Mode 3 (LEGACY) both fall here. |
+    | `true` | pass | Remove worktree, then switch back to `mainRepoPath` and sync `develop` (Mode 2 success path below). |
+    | `true` | fail | Preserve worktree for diagnosis (Rule 14 §4). Log `"[PRESERVED] Worktree story-XXXX-YYYY kept due to verification failure"` and emit manual recovery instructions. |
+
+    Concrete per-mode actions:
+
+    - If branch creation ran under **Mode 1 (REUSE — orchestrated)** (`STORY_OWNS_WORKTREE=false`): do NOT remove the worktree (the orchestrator `x-epic-implement` is the creator and owns removal) and do NOT run `git checkout develop && git pull origin develop` here (would violate Rule 14 §2 by checking out a protected branch inside a worktree).
+    - If branch creation ran under **Mode 2 (CREATE — standalone opt-in)** (`STORY_OWNS_WORKTREE=true`) AND the DoD checklist above passed:
       1. Remove the worktree first via the Skill tool (Rule 13 Pattern 1 — INLINE-SKILL):
 
              Skill(skill: "x-git-worktree", args: "remove --id story-XXXX-YYYY")
@@ -1025,8 +1046,10 @@ If NOT `--auto-approve-pr`: skip (individual task PRs already target develop).
 
              git checkout develop && git pull origin develop
 
-    - If branch creation ran under **Mode 2 (CREATE — standalone opt-in)** AND the story FAILED or had unrecovered errors: preserve the worktree for diagnosis (Rule 14 §4). Log the preserved path and instruct the operator to run `Skill(skill: "x-git-worktree", args: "remove --force --id story-XXXX-YYYY")` after triage. Do NOT run `git checkout develop && git pull origin develop` while the worktree is preserved (same Rule 14 §2 protection).
-    - If branch creation ran under **Mode 3 (LEGACY — main checkout)**: no worktree was created. Run `git checkout develop && git pull origin develop` in the main checkout as before.
+    - If branch creation ran under **Mode 2 (CREATE — standalone opt-in)** (`STORY_OWNS_WORKTREE=true`) AND the story FAILED or had unrecovered errors: preserve the worktree for diagnosis (Rule 14 §4). Log the preserved path and instruct the operator to run `Skill(skill: "x-git-worktree", args: "remove --force --id story-XXXX-YYYY")` after triage. Do NOT run `git checkout develop && git pull origin develop` while the worktree is preserved (same Rule 14 §2 protection).
+    - If branch creation ran under **Mode 3 (LEGACY — main checkout)** (`STORY_OWNS_WORKTREE=false`): no worktree was created. Run `git checkout develop && git pull origin develop` in the main checkout as before.
+
+    > **Anti-pattern (Rule 14 §5).** `x-story-implement` MUST NEVER call `/x-git-worktree remove` when `STORY_OWNS_WORKTREE=false`. Removal ownership belongs to the outer orchestrator (Mode 1) or is not applicable (Mode 3). Violating this invariant can wipe an actively-used worktree whose parent orchestrator still expects it.
 
 **Last action of Phase 3 — Update the phase task (TaskUpdate):**
 
