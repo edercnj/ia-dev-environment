@@ -10,11 +10,16 @@ import org.junit.jupiter.api.Test;
 /**
  * Stability test: the migrated exemplar at
  * {@code plans/epic-0038/examples/task-TASK-0037-0001-001.md} must remain byte-for-byte
- * identical to its golden copy at
- * {@code java/src/test/resources/golden/epic-0038/examples/task-TASK-0037-0001-001.md}.
+ * identical to its reference copy at
+ * {@code java/src/test/resources/smoke/epic-0038/examples/task-TASK-0037-0001-001.md}.
  *
  * <p>Any intentional change to the exemplar MUST be accompanied by a matching update to
- * the golden file, keeping authors honest about schema-fixture drift.</p>
+ * the reference file, keeping authors honest about schema-fixture drift.</p>
+ *
+ * <p>The reference lives under {@code smoke/} (not {@code golden/}) because
+ * {@code golden/} is reserved for per-profile pipeline output and is validated by
+ * {@code GoldenFileCoverageTest} against {@code SmokeProfiles.profileList()} — a
+ * non-profile fixture there would be flagged as an orphan.</p>
  */
 class TaskExampleGoldenTest {
 
@@ -22,7 +27,7 @@ class TaskExampleGoldenTest {
             "..", "plans", "epic-0038", "examples", "task-TASK-0037-0001-001.md");
 
     private static final Path GOLDEN = Path.of(
-            "src", "test", "resources", "golden", "epic-0038",
+            "src", "test", "resources", "smoke", "epic-0038",
             "examples", "task-TASK-0037-0001-001.md");
 
     @Test
