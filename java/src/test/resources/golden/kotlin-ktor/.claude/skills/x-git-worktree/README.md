@@ -1,11 +1,11 @@
 # x-git-worktree
 
-> Manages git worktrees for parallel task and story execution. Operations: create, list, remove, cleanup. Follows Rule 14 (Worktree Lifecycle) naming convention under .claude/worktrees/{identifier}/.
+> Manages git worktrees for parallel task and story execution. Operations: create, list, remove, cleanup, detect-context. Follows Rule 14 (Worktree Lifecycle) naming convention under .claude/worktrees/{identifier}/.
 
 | | |
 |---|---|
 | **Category** | Git/Workflow |
-| **Invocation** | `/x-git-worktree <create\|list\|remove\|cleanup> [options]` |
+| **Invocation** | `/x-git-worktree <create\|list\|remove\|cleanup\|detect-context> [options]` |
 
 > **Spec**: See [SKILL.md](./SKILL.md) for the complete execution specification.
 
@@ -21,6 +21,7 @@ Centralizes git worktree lifecycle management for parallel development workflows
 /x-git-worktree remove --id task-0029-0001-001
 /x-git-worktree cleanup --dry-run
 /x-git-worktree cleanup
+/x-git-worktree detect-context
 ```
 
 ## Operations
@@ -29,6 +30,7 @@ Centralizes git worktree lifecycle management for parallel development workflows
 2. **list** -- Display all worktrees with ID, branch, status, last commit, and age
 3. **remove** -- Remove a specific worktree by identifier
 4. **cleanup** -- Remove obsolete worktrees (MERGED, STALE, ORPHAN) with optional dry-run
+5. **detect-context** -- Read-only probe that returns the current worktree context as JSON (`{inWorktree, worktreePath, mainRepoPath}`); used by skills that must decide whether to create a new worktree or reuse the current one (Rule 14 §3)
 
 ## See Also
 

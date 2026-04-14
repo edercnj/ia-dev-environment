@@ -1,9 +1,9 @@
 ---
 name: x-git-worktree
-description: "Manages git worktrees for parallel task and story execution. Operations: create, list, remove, cleanup. Follows Rule 14 (Worktree Lifecycle) naming convention under .claude/worktrees/{identifier}/."
+description: "Manages git worktrees for parallel task and story execution. Operations: create, list, remove, cleanup, detect-context. Follows Rule 14 (Worktree Lifecycle) naming convention under .claude/worktrees/{identifier}/."
 user-invocable: true
 allowed-tools: Bash, Read
-argument-hint: "<create|list|remove|cleanup> [--branch <name>] [--base <base>] [--id <identifier>] [--dry-run]"
+argument-hint: "<create|list|remove|cleanup|detect-context> [--branch <name>] [--base <base>] [--id <identifier>] [--dry-run]"
 ---
 
 ## Global Output Policy
@@ -323,6 +323,184 @@ Cleanup results:
 
 3 worktrees removed (1 MERGED, 1 STALE, 1 ORPHAN)
 ```
+
+### Operation 5: detect-context
+
+Read-only operation that returns the current worktree context. Used by skills that need to decide whether to create a new worktree or reuse the existing one (Rule 14 — Worktree Lifecycle, Section 3 — Non-Nesting Invariant).
+
+> **See:** [Rule 14 — Worktree Lifecycle](../../rules/14-worktree-lifecycle.md), Section 3 (Non-Nesting Invariant), for the normative rule this operation implements.
+
+#### Parameters
+
+(none)
+
+#### Output
+
+JSON to stdout:
+
+```json
+{
+  "inWorktree": true,
+  "worktreePath": "/abs/path/to/.claude/worktrees/story-0037-0003",
+  "mainRepoPath": "/abs/path/to/repo"
+}
+```
+
+#### Workflow
+
+```
+1. RESOLVE     -> git rev-parse --show-toplevel (current cwd top)
+2. CLASSIFY    -> If toplevel path contains /.claude/worktrees/, set
+                  inWorktree=true and worktreePath=toplevel; otherwise
+                  inWorktree=false and worktreePath=null.
+3. RESOLVE MAIN -> If inWorktree=true, use `git worktree list --porcelain`
+                  to resolve the main repo path (first `worktree` entry).
+                  Otherwise, mainRepoPath=toplevel.
+4. EMIT        -> Print JSON to stdout, exit 0.
+```
+
+> **Design note:** The classification is intentionally a simple substring check on `/.claude/worktrees/` because the project convention (Rule 14) anchors all managed worktrees under that path. We do NOT cross-check `git worktree list` for the classification itself — `list` is used only to resolve `mainRepoPath` when inside a worktree.
+
+#### Detection Flow
+
+```mermaid
+flowchart TD
+    Start([detect-context invoked]) --> RevParse{git rev-parse<br/>--show-toplevel}
+    RevParse -- fails --> Err1[exit 1<br/>NOT_A_REPO]
+    RevParse -- ok --> CheckPath{path contains<br/>/.claude/worktrees/?}
+    CheckPath -- no --> Main[inWorktree: false<br/>worktreePath: null]
+    CheckPath -- yes --> List[git worktree list<br/>--porcelain]
+    List --> Resolve[mainRepoPath =<br/>first entry]
+    Resolve --> WT[inWorktree: true<br/>worktreePath: toplevel]
+    Main --> Emit[Print JSON]
+    WT --> Emit
+    Emit --> End([exit 0])
+```
+
+#### Bash Snippet (canonical, copy-pasteable)
+
+```bash
+detect_worktree_context() {
+  local toplevel main_repo wt_path in_wt="false"
+  toplevel=$(git rev-parse --show-toplevel 2>/dev/null) || {
+    echo '{"error":"NOT_A_REPO"}' >&2
+    return 1
+  }
+
+  # Harden against JSON injection (CWE-116): escape backslash and double-quote
+  # in any path string that will be interpolated into the JSON output.
+  json_escape() {
+    printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
+  }
+
+  if printf '%s' "$toplevel" | grep -q "/\.claude/worktrees/"; then
+    in_wt="true"
+    wt_path=$(json_escape "$toplevel")
+    # Fallback: if `git worktree list` fails or returns no entry, trust
+    # $toplevel so mainRepoPath remains a valid non-empty string per contract.
+    if ! main_repo=$(git worktree list --porcelain 2>/dev/null \
+                | awk '/^worktree/{print $2; exit}') || [ -z "$main_repo" ]; then
+      main_repo="$toplevel"
+    fi
+    main_repo=$(json_escape "$main_repo")
+    printf '{"inWorktree":%s,"worktreePath":"%s","mainRepoPath":"%s"}\n' \
+      "$in_wt" "$wt_path" "$main_repo"
+  else
+    main_repo=$(json_escape "$toplevel")
+    printf '{"inWorktree":%s,"worktreePath":null,"mainRepoPath":"%s"}\n' \
+      "$in_wt" "$main_repo"
+  fi
+}
+```
+
+#### Sample Outputs
+
+**Case 1 — Main repo:**
+
+```json
+{"inWorktree":false,"worktreePath":null,"mainRepoPath":"/Users/dev/repo"}
+```
+
+**Case 2 — Inside a worktree:**
+
+```json
+{"inWorktree":true,"worktreePath":"/Users/dev/repo/.claude/worktrees/story-0037-0003","mainRepoPath":"/Users/dev/repo"}
+```
+
+**Case 3 — Detached HEAD inside main repo:**
+
+```json
+{"inWorktree":false,"worktreePath":null,"mainRepoPath":"/Users/dev/repo"}
+```
+
+#### Error Handling
+
+| Scenario | Behavior |
+| :--- | :--- |
+| Not a git repo | exit 1, JSON `{"error":"NOT_A_REPO"}` to stderr |
+| `git worktree list` fails | fallback: trust `git rev-parse --show-toplevel` only |
+| Path contains `"` or `\` | hardened via `json_escape()` (CWE-116) |
+
+#### Prerequisites
+
+- `git` (any version supporting `worktree list --porcelain`, i.e. >= 2.7)
+- `jq` is recommended for consumers parsing the output (not required by the snippet itself)
+- `awk`, `sed`, `grep`, `printf` — all POSIX standard
+
+#### Security Considerations
+
+- **CWE-209 (Information Exposure through Error Messages):** The JSON output includes absolute paths (`worktreePath`, `mainRepoPath`). Consumers that persist or transmit this JSON to shared logs MUST redact home-directory prefixes (e.g., replace `/Users/{name}` or `/home/{name}` with `~` or `<HOME>`) before logging, to avoid leaking usernames.
+- **CWE-116 (Improper Encoding or Escaping of Output):** The snippet uses `json_escape()` to escape backslashes and double-quotes in path strings before interpolating them into the JSON envelope. A path containing a literal `"` or `\` without escaping would break the JSON structure and could be exploited to inject fields.
+- **Symlink handling:** `git rev-parse --show-toplevel` returns the canonical (resolved) path. If a worktree is accessed via a symlink, the canonical path is what is classified — this is deterministic and matches the `/.claude/worktrees/` convention in Rule 14.
+
+#### Inline Use Pattern
+
+Consumer skills (e.g., `x-git-push`, `x-story-implement`) SHOULD inline the `detect_worktree_context()` snippet at the start of their workflow when they need to decide whether to create a new worktree or reuse the current one. Rationale: avoids an extra shell-out to `/x-git-worktree detect-context` (unnecessary cost in skills that run frequently). The snippet above is the canonical source of truth — any divergence is treated as a bug.
+
+Example use in `x-git-push`:
+
+```bash
+# Step 1.3 — Detect worktree context
+detect_worktree_context() {
+  local toplevel main_repo wt_path in_wt="false"
+  toplevel=$(git rev-parse --show-toplevel 2>/dev/null) || {
+    echo '{"error":"NOT_A_REPO"}' >&2
+    return 1
+  }
+  json_escape() {
+    printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
+  }
+  if printf '%s' "$toplevel" | grep -q "/\.claude/worktrees/"; then
+    in_wt="true"
+    wt_path=$(json_escape "$toplevel")
+    # Fallback: if `git worktree list` fails or returns no entry, trust
+    # $toplevel so mainRepoPath remains a valid non-empty string per contract.
+    if ! main_repo=$(git worktree list --porcelain 2>/dev/null \
+                | awk '/^worktree/{print $2; exit}') || [ -z "$main_repo" ]; then
+      main_repo="$toplevel"
+    fi
+    main_repo=$(json_escape "$main_repo")
+    printf '{"inWorktree":%s,"worktreePath":"%s","mainRepoPath":"%s"}\n' \
+      "$in_wt" "$wt_path" "$main_repo"
+  else
+    main_repo=$(json_escape "$toplevel")
+    printf '{"inWorktree":%s,"worktreePath":null,"mainRepoPath":"%s"}\n' \
+      "$in_wt" "$main_repo"
+  fi
+}
+
+CONTEXT_JSON=$(detect_worktree_context)
+IN_WT=$(printf '%s' "$CONTEXT_JSON" | jq -r '.inWorktree')
+
+if [ "$IN_WT" = "true" ]; then
+  echo "Already in worktree, reusing"
+else
+  # Create worktree via /x-git-worktree create
+  :
+fi
+```
+
+> **Heredoc safety:** When embedding the snippet inside an outer heredoc, use a quoted terminator (`<<'BASH'` rather than `<<BASH`) to prevent the outer shell from expanding `$toplevel`, `$main_repo`, etc. before the snippet runs.
 
 ## Git Flow Integration (RULE-005)
 
