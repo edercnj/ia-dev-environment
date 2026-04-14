@@ -4,6 +4,7 @@ import dev.iadev.domain.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 import dev.iadev.testutil.TestConfigBuilder;
 
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -233,10 +234,10 @@ class SkillsAssemblerPruneTest {
             + " UncheckedIOException, not silent skip")
     void pruneStaleSkills_whenDeleteFails_throwsUnchecked(
             @TempDir Path tempDir) throws IOException {
-        if (!FileSystems.getDefault().supportedFileAttributeViews()
-                .contains("posix")) {
-            return;
-        }
+        Assumptions.assumeTrue(
+                FileSystems.getDefault().supportedFileAttributeViews()
+                        .contains("posix"),
+                "POSIX file attributes are required for this test");
         Path outputDir = tempDir.resolve("output");
         Path skillsRoot = outputDir.resolve("skills");
         Path stale = skillsRoot.resolve("x-stale");

@@ -217,7 +217,7 @@ graph TD
     LIFE -->|Phase 2| IMPL["/x-task-implement<br/>(TDD implementation)"]
     LIFE -->|Phase 3| ARCHUP["/x-arch-update"]
     LIFE -->|Phase 4| REVIEW["/x-review"]
-    LIFE -->|Phase 6| PR["gh pr create<br/>(PR targeting main)"]
+    LIFE -->|Phase 6| PR["gh pr create<br/>(PR targeting develop)"]
     LIFE -->|Phase 7| LTREVIEW["/x-review-pr"]
     LIFE -->|Phase 8| E2E["/x-test-e2e<br/>(smoke tests)"]
 
