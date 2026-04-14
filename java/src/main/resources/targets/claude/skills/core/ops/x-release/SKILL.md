@@ -1272,11 +1272,23 @@ directory back to the main checkout. The `git worktree list --porcelain`
 output lists the main repository on the first `worktree` line:
 
 ```bash
-MAIN_REPO_PATH=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
-cd "$MAIN_REPO_PATH"
+# Defensive: `git worktree list --porcelain` can fail or return empty.
+# A subsequent `cd ""` would silently fall back to $HOME, which is the
+# wrong checkout — abort instead with WT_RELEASE_REMOVE_FAILED.
+if ! MAIN_REPO_PATH=$(git worktree list --porcelain \
+        | awk '/^worktree/{print $2; exit}') \
+        || [ -z "$MAIN_REPO_PATH" ]; then
+  echo "WT_RELEASE_REMOVE_FAILED: unable to determine main repository path"
+  exit 1
+fi
+
+if ! cd "$MAIN_REPO_PATH"; then
+  echo "WT_RELEASE_REMOVE_FAILED: unable to cd to main repository path: $MAIN_REPO_PATH"
+  exit 1
+fi
 ```
 
-If `cd` fails, abort with `WT_RELEASE_REMOVE_FAILED` and leave the
+If either step fails, abort with `WT_RELEASE_REMOVE_FAILED` and leave the
 worktree in place for manual inspection. The release itself is already
 `COMPLETED`-equivalent at this point (tag pushed, back-merge PR
 opened), so the failure is logged but non-fatal for release outcome.
@@ -1292,16 +1304,38 @@ from the state file if memory was lost across resume):
 
 ```bash
 WT_ID=$(jq -r '.worktreePath // "" | split("/") | last' "$STATE_FILE")
+REMOVE_EXIT_CODE=1
+REMOVE_SUCCEEDED=0
+
 if [ -z "$WT_ID" ] || [ "$WT_ID" = "null" ]; then
   echo "[CLEANUP] No worktreePath recorded in state; skipping remove"
 else
   # Invoke x-git-worktree remove via the Skill tool (see above).
-  # On failure, log the error code and preserve the worktree.
+  # IMPORTANT: capture stdout (REMOVE_OUTPUT) separately from the shell
+  # exit status (REMOVE_EXIT_CODE = $?). Earlier versions of this snippet
+  # captured `$(... )` into a single variable, which only stored stdout
+  # and never observed the failure status — the success branch below
+  # would then run even when remove had failed.
   set +e
-  REMOVE_RC=$(Skill_invoke_x_git_worktree_remove --id "$WT_ID")
+  REMOVE_OUTPUT=$(Skill_invoke_x_git_worktree_remove --id "$WT_ID")
+  REMOVE_EXIT_CODE=$?
   set -e
+
+  if [ "$REMOVE_EXIT_CODE" -eq 0 ]; then
+    REMOVE_SUCCEEDED=1
+  else
+    echo "WT_RELEASE_REMOVE_FAILED: x-git-worktree remove exited" \
+         "with code $REMOVE_EXIT_CODE for id '$WT_ID'"
+    [ -n "$REMOVE_OUTPUT" ] && echo "$REMOVE_OUTPUT"
+  fi
 fi
 ```
+
+> **Step 10.5bis.3 success-branch gating.** The success-only path in the
+> next step (state advance to `WORKTREE_CLEANED` + `worktreePath = null`)
+> MUST be guarded by `[ "$REMOVE_SUCCEEDED" -eq 1 ]`. Failure preserves
+> the worktree, leaves the state at `COMPLETED`-equivalent, and surfaces
+> `WT_RELEASE_REMOVE_FAILED` to the operator.
 
 > **Delegation note.** `Skill_invoke_x_git_worktree_remove` represents
 > `Skill(skill: "x-git-worktree", args: "remove --id ${WT_ID}")`. No
@@ -1311,26 +1345,32 @@ fi
 #### Step 10.5bis.3 — Update state file
 
 **On success** — worktree removed, path cleared, phase advanced to
-`WORKTREE_CLEANED`:
+`WORKTREE_CLEANED`. The success branch MUST be guarded by
+`REMOVE_SUCCEEDED` (set in Step 10.5bis.2) to avoid advancing state
+when remove failed:
 
 ```bash
-TMP="${STATE_FILE}.tmp.$$"
-jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-   '.worktreePath = null
-    | .phase = "WORKTREE_CLEANED"
-    | .lastPhaseCompletedAt = $ts
-    | .phasesCompleted += ["WORKTREE_CLEANED"]' \
-   "$STATE_FILE" > "$TMP"
-mv "$TMP" "$STATE_FILE"
+if [ "$REMOVE_SUCCEEDED" -eq 1 ]; then
+  TMP="${STATE_FILE}.tmp.$$"
+  jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+     '.worktreePath = null
+      | .phase = "WORKTREE_CLEANED"
+      | .lastPhaseCompletedAt = $ts
+      | .phasesCompleted += ["WORKTREE_CLEANED"]' \
+     "$STATE_FILE" > "$TMP"
+  mv "$TMP" "$STATE_FILE"
+fi
 ```
 
-**On failure** — release outcome is preserved, worktree left for
-manual inspection, phase stays at `BACKMERGE_OPENED` (or
-`BACKMERGE_CONFLICT`):
+**On failure** (`REMOVE_SUCCEEDED == 0`) — release outcome is preserved,
+worktree left for manual inspection, phase stays at `BACKMERGE_OPENED`
+(or `BACKMERGE_CONFLICT`):
 
 ```bash
-echo "[WT_RELEASE_REMOVE_FAILED] worktree ${WT_ID} could not be removed; leaving in place"
-# No state file mutation — phase remains whatever BACK-MERGE-DEVELOP left.
+if [ "$REMOVE_SUCCEEDED" -ne 1 ]; then
+  echo "[WT_RELEASE_REMOVE_FAILED] worktree ${WT_ID} could not be removed; leaving in place"
+  # No state file mutation — phase remains whatever BACK-MERGE-DEVELOP left.
+fi
 ```
 
 Error messages emitted by this phase MUST NOT include absolute paths
