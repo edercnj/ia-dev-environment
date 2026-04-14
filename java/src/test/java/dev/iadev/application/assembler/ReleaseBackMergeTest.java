@@ -493,7 +493,9 @@ class ReleaseBackMergeTest {
                             + " Version")
                     .contains("### Step 2 \u2014 Phase"
                             + " VALIDATE-DEEP")
-                    .contains("### Step 3 \u2014 Branch"
+                    .contains("### Step 3 \u2014 Phase BRANCH"
+                            + " \u2014 Worktree-Aware"
+                            + " Release/Hotfix Branch"
                             + " Creation")
                     .contains("### Step 4 \u2014 Update"
                             + " Version Files")

@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.4.0] - 2026-04-14
+
+### Added
+- **EPIC-0037 — Closing story 0037-0008 (`x-release` worktree-aware Phase BRANCH + Phase CLEANUP-WORKTREE):** the `x-release` skill now provisions a dedicated git worktree under `.claude/worktrees/release-X.Y.Z/` (or `hotfix-{slug}/`) for the entire release flow — created in Phase BRANCH (3 substeps: detect-context → idempotent create → persist `worktreePath` to state file) and removed in the new Phase CLEANUP-WORKTREE after `RESUME-AND-TAG`. Worktree persists through `APPROVAL-GATE` (which can take hours) so the main checkout stays free for concurrent work. Includes security hardening: `HOTFIX_SLUG` regex validation with explicit `\r\n` rejection + whole-string anchoring (`grep -Eqx`), branch-match check on idempotent reuse, and canonical path + prefix assertion. EPIC-0037 closes at 10/10 stories merged.
+
+### Changed
+- **State file schema (`x-release/references/state-file-schema.md`) extended additively (schemaVersion=1 unchanged):**
+  - New optional field `worktreePath` (string, abs path; populated in Phase BRANCH, cleared in Phase CLEANUP-WORKTREE)
+  - New `phase` enum value `WORKTREE_CLEANED`
+  - 4 new error codes: `WT_RELEASE_CREATE_FAILED`, `WT_RELEASE_REMOVE_FAILED`, `WT_SLUG_INVALID`, `WT_RELEASE_BRANCH_MISMATCH`
+  - 2 new validation rules (#11 — schema additivity audit; #12 — slug security validation)
+- **Dependency bumps (Dependabot):**
+  - `org.graalvm.buildtools:native-maven-plugin` → 1.0.0
+  - `org.jacoco:jacoco-maven-plugin` → 0.8.14
+  - `org.apache.maven.plugins:maven-surefire-plugin` → 3.5.5
+  - `jackson.version` → 2.21.2 (from 2.18.2)
+  - `picocli.version` → 4.7.7 (from 4.7.6)
+  - `actions/checkout` → 6 (from 4)
+
 ## [3.3.0] - 2026-04-14
 
 ### Added
