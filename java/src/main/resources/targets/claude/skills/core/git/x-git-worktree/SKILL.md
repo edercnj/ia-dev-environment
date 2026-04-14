@@ -48,7 +48,7 @@ All worktrees are created under `.claude/worktrees/` relative to the repository 
 
 ## Naming Convention
 
-> **See:** [Rule 14 — Worktree Lifecycle](../../../rules/14-worktree-lifecycle.md) for the naming convention, protected branches, non-nesting invariant, lifecycle, and creator-owns-removal matrix.
+> **See:** [Rule 14 — Worktree Lifecycle](../../rules/14-worktree-lifecycle.md) for the naming convention, protected branches, non-nesting invariant, lifecycle, and creator-owns-removal matrix.
 
 When `--id` is not provided, the identifier is derived from the branch name by stripping common prefixes (`feat/`, `feature/`, `fix/`, `hotfix/`, `refactor/`).
 
@@ -361,7 +361,7 @@ After a branch is merged via PR:
 | Scenario | Action |
 |----------|--------|
 | `--branch` not provided for create | Abort with usage message |
-| Branch is protected (main/develop) | Abort with protection error |
+| Branch is protected (main/develop) | Abort with error code `PROTECTED_BRANCH` (Rule 14 §2) and exit 1 |
 | Branch already an active worktree | Abort with conflict error |
 | Worktree directory already exists | Abort with existence error |
 | `--id` not found for remove | Abort with not-found error |
@@ -371,8 +371,10 @@ After a branch is merged via PR:
 
 ## Integration Notes
 
-| Skill | Relationship | Context |
-|-------|-------------|---------|
-| `x-epic-implement` | called-by | Parallel story dispatch via worktrees (Phase 1) |
-| `x-story-implement` | called-by | Story execution within a worktree directory |
-| `x-git-push` | related | Branch creation and push from within worktree |
+> **Note on current vs future state:** The `x-epic-implement` → `x-git-worktree` and `x-story-implement` → `x-git-worktree` delegations listed below describe the **target integration** introduced by EPIC-0037. Today, those orchestrators still use the deprecated `Agent(isolation:"worktree")` mechanism (see ADR-0003). The migration lands story-by-story: `x-story-implement` via `story-0037-0003`, `x-epic-implement` via `story-0037-0007`.
+
+| Skill | Relationship | Status | Context |
+|-------|-------------|--------|---------|
+| `x-epic-implement` | target caller | Pending (`story-0037-0007`) | Will replace `Agent(isolation:"worktree")` with explicit `/x-git-worktree create` before dispatching story subagents |
+| `x-story-implement` | target caller | Pending (`story-0037-0003`) | Will create the story worktree via this skill in Phase 0 |
+| `x-git-push` | related | Current | Branch creation and push from within a worktree directory |

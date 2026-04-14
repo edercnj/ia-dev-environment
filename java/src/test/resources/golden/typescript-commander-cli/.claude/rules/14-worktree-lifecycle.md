@@ -2,7 +2,7 @@
 
 > **Scope:** Every skill that creates branches via `git checkout -b` or that delegates to `/x-git-worktree`.
 > **Ownership:** Platform Team.
-> **Related:** Rule 09 (Branching Model / Git Flow), ADR-0004 (Worktree Ownership).
+> **Related:** Rule 09 (Branching Model / Git Flow). ADR-0004 (Worktree-First Branch Creation Policy) is introduced by a companion story (`story-0037-0009`); once merged, link it here.
 
 ## 1. Naming Convention
 
@@ -15,7 +15,7 @@
 | Hotfix | `.claude/worktrees/hotfix-{slug}/` | `.claude/worktrees/hotfix-auth-bug/` |
 | Custom | `.claude/worktrees/{identifier}/` | (any unambiguous label) |
 
-When a skill does not receive an explicit `--id`, the identifier MUST be derived from the branch name by stripping common prefixes (`feat/`, `feature/`, `fix/`, `hotfix/`, `refactor/`). The final directory name MUST match one of the patterns above.
+When a skill does not receive an explicit `--id`, the identifier MUST be derived from the branch name by normalizing supported branch prefixes (`feat/`, `feature/`, `fix/`, `hotfix/`, `refactor/`, `release/`) into path-safe identifiers. Prefixes that map directly to a documented pattern MUST be converted accordingly (for example, `release/2.4.0` → `release-2.4.0`, `hotfix/auth-bug` → `hotfix-auth-bug`), and any remaining `/` characters MUST be replaced with `-` so the derived identifier never creates nested directories. The final directory name MUST match one of the patterns above.
 
 ## 2. Protected Branches
 
@@ -25,13 +25,13 @@ When a skill does not receive an explicit `--id`, the identifier MUST be derived
 
 ## 3. Non-Nesting Invariant
 
-> **Rule:** No skill MUST create a worktree while it is already executing inside a worktree.
+> **Rule:** A skill MUST NOT create a worktree while it is already executing inside a worktree.
 
 Creating a worktree inside a worktree corrupts the `.git` directory layout, produces misleading `git worktree list` output, and leaks branches that the outer orchestrator believes it owns. Every branch-creating skill MUST detect the current context before invoking `/x-git-worktree create`.
 
 ### Canonical Detection Mechanism
 
-The canonical detection routine is exposed by `/x-git-worktree detect-context` (Operation 5 of the `x-git-worktree` skill). Its implementation is:
+The canonical detection routine is exposed by `/x-git-worktree detect-context` (Operation 5 of the `x-git-worktree` skill, added by `story-0037-0002`). Its implementation is:
 
 ```bash
 TOPLEVEL=$(git rev-parse --show-toplevel)
