@@ -528,11 +528,14 @@ After a branch is merged via PR:
 3. The remote branch is deleted by GitHub after PR merge (if configured)
 
 <!--
-  NOTE: The "Integration with Epic Execution" section was removed in EPIC-0037 / STORY-0037-0001.
-  It documented a delegation flow between x-epic-implement and x-git-worktree that does NOT
-  currently exist (x-epic-implement still uses the deprecated Agent(isolation:"worktree")).
-  STORY-0037-0003 will rewrite this section with an accurate diagram once the real migration
-  of x-epic-implement to /x-git-worktree is implemented.
+  HISTORICAL NOTE: A former "Integration with Epic Execution" diagram described a
+  delegation flow between x-epic-implement and x-git-worktree that did not exist
+  pre-EPIC-0037. Rather than restore the diagram, we kept this skill's body focused
+  on the 5 operations and documented the cross-skill flow from the orchestrator
+  side (see `x-epic-implement/SKILL.md` Section 1.4a step 2.6 and Section 1.4d).
+  EPIC-0037 landed the migration: `x-story-implement` (story-0037-0003),
+  `x-task-implement` (story-0037-0004, story-0037-0006), and `x-epic-implement`
+  (story-0037-0007) now all use explicit x-git-worktree calls per Rule 14 §5.
 -->
 
 ## Error Handling
@@ -550,10 +553,14 @@ After a branch is merged via PR:
 
 ## Integration Notes
 
-> **Note on current vs future state:** The `x-epic-implement` → `x-git-worktree` and `x-story-implement` → `x-git-worktree` delegations listed below describe the **target integration** introduced by EPIC-0037. Today, those orchestrators still use the deprecated `Agent(isolation:"worktree")` mechanism (see ADR-0003). The migration lands story-by-story: `x-story-implement` via `story-0037-0003`, `x-epic-implement` via `story-0037-0007`.
+EPIC-0037 migrated all branch-creating orchestrators from the deprecated harness-native
+`Agent(isolation:"worktree")` mechanism (see ADR-0004 §D1 — Deprecation) to explicit
+`Skill(skill: "x-git-worktree", args: "...")` calls (Rule 13 Pattern 1). Every caller
+listed below now invokes this skill directly; none relies on implicit harness isolation.
 
-| Skill | Relationship | Status | Context |
-|-------|-------------|--------|---------|
-| `x-epic-implement` | target caller | Pending (`story-0037-0007`) | Will replace `Agent(isolation:"worktree")` with explicit `/x-git-worktree create` before dispatching story subagents |
-| `x-story-implement` | target caller | Pending (`story-0037-0003`) | Will create the story worktree via this skill in Phase 0 |
-| `x-git-push` | related | Current | Branch creation and push from within a worktree directory |
+| Skill | Relationship | Context |
+|-------|-------------|---------|
+| `x-epic-implement` | caller (automatic) | Parallel and sequential story dispatch: explicit `create`/`remove` per story (Section 1.4a step 2.6 and 1.4d). Orchestrator owns removal (Rule 14 §5). Migrated via `story-0037-0007`. |
+| `x-story-implement` | caller (opt-in `--worktree` standalone; auto REUSE when dispatched) | Phase 0 Step 6 detect-context + three-way mode (REUSE / CREATE / LEGACY). STORY_OWNS_WORKTREE state gates Phase 3 cleanup. Migrated via `story-0037-0003` + `story-0037-0005`. |
+| `x-task-implement` | caller (opt-in `--worktree` standalone; auto REUSE when dispatched) | Step 0.5 detect-context + three-way mode. TASK_OWNS_WORKTREE state gates Step 5 cleanup. Base branch resolution from HEAD. Migrated via `story-0037-0004` + `story-0037-0006`. |
+| `x-git-push` | related | Branch creation and push from within a worktree directory. |
