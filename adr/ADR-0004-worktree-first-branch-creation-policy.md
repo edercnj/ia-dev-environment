@@ -26,7 +26,7 @@ This arrangement caused three distinct problems:
 
 We needed a unified policy that (a) eliminates the conflict risk for every branch-creating skill, (b) eliminates the documentation drift, (c) makes worktree lifecycle visible and operable, and (d) does not break backward compatibility for existing user invocations.
 
-This ADR is a prerequisite for the rest of EPIC-0037: Rule 14 codifies the normative invariants, and stories 0037-0001 through 0037-0008 implement the policy across the seven affected skills. ADR-0003 (Skill Taxonomy and Naming) is orthogonal but related — that refactor made the set of branch-creating skills easy to enumerate by category (`git/`, `dev/`, `pr/`, `ops/`).
+This ADR is a prerequisite for the rest of EPIC-0037: Rule 14 codifies the normative invariants, and stories `story-0037-0001` through `story-0037-0008` implement the policy across the six branch-creating skills (`x-story-implement`, `x-task-implement`, `x-epic-implement`, `x-pr-fix-epic`, `x-release`, `x-git-push`) plus `x-git-worktree` itself as the worktree manager. ADR-0003 (Skill Taxonomy and Naming) is orthogonal but related — that refactor made the set of branch-creating skills easy to enumerate by category (`git/`, `dev/`, `pr/`, `ops/`).
 
 ## Decision
 
@@ -34,7 +34,7 @@ We adopt a **Worktree-First Branch Creation Policy** composed of five sub-decisi
 
 ### D1 — Explicit `/x-git-worktree create|remove` calls; deprecate harness-native isolation
 
-All skills that create branches MUST use explicit calls to the `x-git-worktree` skill (or to its canonical `detect-context` inline snippet, Operation 5) for worktree management. The harness-native `Agent(isolation:"worktree")` parameter is **DEPRECATED** and is removed from `x-epic-implement` — its only previous user — as part of EPIC-0037 STORY 3.
+All skills that create branches MUST use explicit calls to the `x-git-worktree` skill (or to its canonical `detect-context` inline snippet, Operation 5) for worktree management. The harness-native `Agent(isolation:"worktree")` parameter is **DEPRECATED** and is removed from `x-epic-implement` — its only previous user — as part of `story-0037-0003`.
 
 **Rationale:** one mechanism, visible in logs, operable with `/x-git-worktree list` and `/x-git-worktree cleanup`. The harness feature's automatic cleanup is replaced by explicit `remove` calls plus a defensive `cleanup --dry-run` sweep at the end of orchestrator runs.
 
@@ -65,7 +65,7 @@ Whoever creates a worktree is responsible for removing it. Skills running as sub
 
 ### D5 — Rule 14 is first-class
 
-The normative invariants of this policy live in `.claude/rules/14-worktree-lifecycle.md` (slot 14; slots 10/11/12 are reserved for conditional rules and slot 13 is the skill invocation protocol). This rule file is loaded into every Claude Code session via the rules system, giving the policy global authority without requiring each skill body to restate it.
+The normative invariants of this policy live in `java/src/main/resources/targets/claude/rules/14-worktree-lifecycle.md` (source of truth; generated into `.claude/rules/14-worktree-lifecycle.md` for Claude Code sessions). Slot 14 is the target number; slots 10/11/12 are reserved for conditional rules and slot 13 is the skill invocation protocol. Contributors MUST edit only the source file under `java/src/main/resources/targets/`, never the generated output under `.claude/`. This rule file is loaded into every Claude Code session via the rules system, giving the policy global authority without requiring each skill body to restate it.
 
 **Rationale:** rules are the project's established mechanism for cross-cutting invariants (see Rules 03, 05, 06, 07, 09, 13). A rule is lighter-weight than a skill KP and is always loaded; it is therefore the correct home for a policy whose compliance is checked at every branch-creating step.
 
