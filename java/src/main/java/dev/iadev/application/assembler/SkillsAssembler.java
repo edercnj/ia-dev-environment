@@ -49,15 +49,33 @@ public final class SkillsAssembler implements Assembler {
 
     /**
      * Top-level entries under {@code skills/} that are owned
-     * by other assemblers (or are user-authored) and MUST
-     * never be pruned by this class.
+     * by other assemblers and MUST never be pruned by this
+     * class.
      *
-     * <p>{@code knowledge-packs/} is written by
-     * {@code RulesInfraConditionals} via
-     * {@code CoreRulesWriter} earlier in the pipeline.</p>
+     * <p>These directories are written by classes earlier in
+     * the pipeline (RulesAssembler / CoreRulesWriter):</p>
+     * <ul>
+     *   <li>{@code knowledge-packs/} — from
+     *       {@code RulesInfraConditionals} (cloud/k8s/container
+     *       reference files).</li>
+     *   <li>{@code database-patterns/} — from
+     *       {@code RulesConditionals.copyDatabaseRefs} and
+     *       {@code CoreKpRouting} (database KP is not in the
+     *       SkillRegistry 17-pack set; its content is sourced
+     *       from {@code knowledge/databases/} and
+     *       {@code knowledge/core/11-database-principles.md}).
+     *       </li>
+     * </ul>
+     *
+     * <p>Other directories written by {@code CoreKpRouting}
+     * (e.g., {@code architecture/}, {@code security/},
+     * {@code testing/}) are already part of
+     * {@link dev.iadev.domain.stack.SkillRegistry}
+     * {@code .CORE_KNOWLEDGE_PACKS}, so they appear in the
+     * generated set and do not need explicit protection.</p>
      */
     private static final Set<String> PROTECTED_NAMES =
-            Set.of("knowledge-packs");
+            Set.of("knowledge-packs", "database-patterns");
 
     private final Path resourcesDir;
 

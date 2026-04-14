@@ -60,6 +60,35 @@ class SkillsAssemblerPruneTest {
     }
 
     @Test
+    @DisplayName("database-patterns is protected"
+            + " (owned by RulesConditionals, not SkillsAssembler)")
+    void assemble_whenDatabasePatternsExists_preserved(
+            @TempDir Path tempDir) throws IOException {
+        Path core = tempDir.resolve(
+                "targets/claude/skills/core");
+        createSkillInSource(core, "x-task-implement");
+
+        Path outputDir = tempDir.resolve("output");
+        Path dbPatterns = outputDir.resolve(
+                "skills/database-patterns");
+        Path dbRefs = dbPatterns.resolve("references");
+        Files.createDirectories(dbRefs);
+        Path refFile = dbRefs.resolve(
+                "version-matrix.md");
+        Files.writeString(refFile, "preexisting",
+                StandardCharsets.UTF_8);
+
+        runAssemble(tempDir, outputDir);
+
+        assertThat(Files.exists(dbPatterns))
+                .as("database-patterns must survive prune")
+                .isTrue();
+        assertThat(Files.exists(refFile))
+                .as("references content must survive")
+                .isTrue();
+    }
+
+    @Test
     @DisplayName("knowledge-packs directory is protected"
             + " from prune")
     void assemble_whenKnowledgePacksDirExists_preserved(
