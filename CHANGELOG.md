@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Destructive prune in `SkillsAssembler` (EPIC-0036 follow-up):** `SkillsAssembler.assemble()` now removes top-level directories under `{output}/skills/` that do not appear in the generated set, so renames or deletions in the source of truth (`java/src/main/resources/targets/claude/skills/`) are reflected in `.claude/skills/` on the next regeneration. `knowledge-packs/` and `database-patterns/` are explicitly protected because they are written by `RulesAssembler` earlier in the pipeline. Covered by `SkillsAssemblerPruneTest` (7 scenarios).
+
+### Removed
+- **14 stale EPIC-0036 output directories from `.claude/skills/`:** `x-dev-implement`, `x-dev-story-implement`, `x-dev-epic-implement`, `x-dev-architecture-plan`, `x-dev-arch-update`, `x-dev-adr-automation`, `x-epic-plan`, `x-story-epic`, `x-story-epic-full`, `x-story-map`, `x-pr-fix-comments`, `x-pr-fix-epic-comments`, `x-runtime-protection`, `run-e2e`. These legacy directories were renamed in EPIC-0036 but persisted in the committed output because the previous assembler was additive-only. The new prune step prevents regressions.
+
 ## [3.2.0] - 2026-04-13
 
 ### Added

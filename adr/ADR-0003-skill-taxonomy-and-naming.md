@@ -180,3 +180,15 @@ Every story in EPIC-0036 includes an explicit "Docs obligatórias" subsection en
   - **STORY-0036-0004** — Rename the primary cluster (`x-story-*` / `x-epic-*` / `x-task-*` / `x-dev-*`)
   - **STORY-0036-0005** — Global rename remainder (`run-*` → `x-test-*`, `x-pr-fix-*`, security symmetry)
   - **STORY-0036-0006** — Guard script + release notes + final documentation pass
+
+## Follow-up — 2026-04-13 (post-merge cleanup)
+
+After the EPIC-0036 renames landed, 14 legacy output directories lingered under `.claude/skills/` (`x-dev-implement`, `x-dev-story-implement`, `x-dev-epic-implement`, `x-dev-architecture-plan`, `x-dev-arch-update`, `x-dev-adr-automation`, `x-epic-plan`, `x-story-epic`, `x-story-epic-full`, `x-story-map`, `x-pr-fix-comments`, `x-pr-fix-epic-comments`, `x-runtime-protection`, `run-e2e`). The source of truth was clean, but `SkillsAssembler` had been additive-only: it copied fresh skills over the output, never pruning directories absent from source. The obsolete commits survived every regen, and when `.claude/skills/` was cleaned manually, `git checkout` restored them.
+
+Resolution landed in the `fix/epic-0036-stale-skills-cleanup` branch:
+
+1. The 14 stale directories were removed from git and committed.
+2. `SkillsAssembler.assemble()` gained a `pruneStaleSkills()` step that deletes any top-level directory under `{output}/skills/` not present in the generated set. `knowledge-packs/` and `database-patterns/` are protected (owned by `RulesAssembler` / `CoreRulesWriter` earlier in the pipeline).
+3. The skill-name guard script (`scripts/check-old-skill-names.sh`) was extended with a single allow-list entry for `SkillsAssemblerPruneTest.java`, which by design references the legacy names as string literals to assert they get removed.
+
+This follow-up does not change the decision documented above; it completes the migration by making the pipeline destructive-by-default so future renames or removals propagate automatically to the committed output.
