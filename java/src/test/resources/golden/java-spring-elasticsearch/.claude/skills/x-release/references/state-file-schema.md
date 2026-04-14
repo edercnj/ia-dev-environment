@@ -209,7 +209,8 @@ truncated JSON, which subsequent invocations would reject with
     transition chain documented above.
 11. `worktreePath` (when present and non-null) MUST be an absolute path
     whose canonical form lies under `<repo>/.claude/worktrees/`. When
-    `phase == BRANCHED` and the state file was produced by EPIC-0037 or
-    later, `worktreePath` MUST be non-null; older state files are
-    accepted with `worktreePath` absent (backward-compat).
+    `phase == BRANCHED`, `worktreePath` MUST be non-null. State files
+    where `worktreePath` is absent (legacy / pre-EPIC-0037) are accepted
+    only for `phase` values that pre-date the BRANCHED introduction of
+    worktree provisioning.
 12. When `phase == WORKTREE_CLEANED`, `worktreePath` MUST be `null`.
