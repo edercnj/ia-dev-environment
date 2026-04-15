@@ -80,8 +80,13 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 12 | `12-security-anti-patterns.md` | security anti patterns |
 | 13 | `13-skill-invocation-protocol.md` | skill invocation protocol |
 | 14 | `14-worktree-lifecycle.md` | worktree lifecycle |
+| 15 | `15-task-testability.md` | task testability |
+| 16 | `16-task-io-contracts.md` | task io contracts |
+| 17 | `17-topological-execution.md` | topological execution |
+| 18 | `18-atomic-task-commits.md` | atomic task commits |
+| 19 | `19-backward-compatibility.md` | backward compatibility |
 
-**Total: 13 rules**
+**Total: 18 rules**
 
 ### Numbering
 
@@ -271,7 +276,7 @@ See the files directly for current configuration.
 
 | Component | Count |
 |-----------|-------|
-| Rules (.claude) | 13 |
+| Rules (.claude) | 18 |
 | Skills (.claude) | 55 |
 | Knowledge Packs (.claude) | 21 |
 | Agents (.claude) | 11 |
