@@ -26,7 +26,7 @@ import java.util.Map;
 final class PlanTemplateDefinitions {
 
     /** Number of templates currently managed. */
-    static final int TEMPLATE_COUNT = 15;
+    static final int TEMPLATE_COUNT = 17;
 
     /**
      * Template definitions: filename to mandatory sections
@@ -194,6 +194,21 @@ final class PlanTemplateDefinitions {
                         "Task Breakdown Summary",
                         "Consolidated Risk Matrix",
                         "DoR Status"));
+
+        map.put("_TEMPLATE-TASK.md",
+                List.of(
+                        "1. Objetivo",
+                        "2. Contratos I/O",
+                        "3. Definition of Done",
+                        "4. Dependências",
+                        "5. Plano de Implementação"));
+
+        map.put("_TEMPLATE-TASK-IMPLEMENTATION-MAP.md",
+                List.of(
+                        "Dependency Graph",
+                        "Execution Order",
+                        "Coalesced Groups",
+                        "Parallelism Analysis"));
 
         map.put("_TEMPLATE-DOR-CHECKLIST.md",
                 List.of(
