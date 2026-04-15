@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
  */
 final class VersionExtractor {
 
-    // First <version> child of the <project> root, tolerating whitespace.
+    // First <version> element found after the opening <project> tag, tolerating whitespace.
     private static final Pattern POM_VERSION = Pattern.compile(
             "(?s)<project[^>]*>.*?<version>\\s*([^<\\s]+)\\s*</version>");
 

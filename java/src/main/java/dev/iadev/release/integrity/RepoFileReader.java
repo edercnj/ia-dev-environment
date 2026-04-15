@@ -50,6 +50,7 @@ public final class RepoFileReader {
         if (!Files.exists(resolved)) {
             return Optional.empty();
         }
+        rejectSymlinkEscape(resolved, relativePath);
         try {
             return Optional.of(Files.readString(resolved, StandardCharsets.UTF_8));
         } catch (IOException e) {
@@ -79,5 +80,17 @@ public final class RepoFileReader {
             throw new SecurityException("Path traversal rejected: " + relativePath);
         }
         return candidate;
+    }
+
+    private void rejectSymlinkEscape(Path resolved, String relativePath) {
+        try {
+            Path realPath = resolved.toRealPath();
+            Path realRoot = repoRoot.toRealPath();
+            if (!realPath.startsWith(realRoot)) {
+                throw new SecurityException("Symlink traversal rejected: " + relativePath);
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to resolve real path of " + relativePath, e);
+        }
     }
 }

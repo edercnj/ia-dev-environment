@@ -2,8 +2,10 @@ package dev.iadev.release.integrity;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,14 +35,14 @@ final class DiffTodoScanner {
     static List<String> scan(String diff) {
         Map<Integer, String> fileByOffset = indexDiffSections(diff);
         Matcher tm = NEW_TODO.matcher(diff);
-        List<String> results = new ArrayList<>();
+        Set<String> results = new LinkedHashSet<>();
         while (tm.find()) {
             String path = fileAtOffset(fileByOffset, tm.start());
             if (path != null && matchesExtension(path) && !isTestPath(path)) {
                 results.add(path);
             }
         }
-        return results;
+        return new ArrayList<>(results);
     }
 
     private static Map<Integer, String> indexDiffSections(String diff) {
