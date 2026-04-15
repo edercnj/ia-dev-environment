@@ -116,13 +116,13 @@ public final class TaskImplementationMapGenerator {
         Path dir = output.toAbsolutePath().getParent();
         Path tmp = null;
         try {
-            tmp = Files.createTempFile(dir, ".task-map-", ".tmp");
+            tmp = Files.createTempFile(dir, ".task-map-", ".md.tmp");
             Files.writeString(tmp, content, StandardCharsets.UTF_8);
             try {
                 Files.move(tmp, output,
                         StandardCopyOption.ATOMIC_MOVE,
                         StandardCopyOption.REPLACE_EXISTING);
-            } catch (AtomicMoveNotSupportedException e) {
+            } catch (AtomicMoveNotSupportedException atomicUnsupported) {
                 Files.move(tmp, output, StandardCopyOption.REPLACE_EXISTING);
             }
             tmp = null;

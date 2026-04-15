@@ -49,7 +49,7 @@ class TaskMapExceptionsTest {
         void carriesTaskIdAndMessage() {
             SelfLoopException e = new SelfLoopException("T001");
             assertThat(e.taskId()).isEqualTo("T001");
-            assertThat(e.getMessage()).contains("T001").contains("inválido");
+            assertThat(e.getMessage()).contains("T001").contains("invalido");
         }
 
         @Test

@@ -15,16 +15,12 @@ public final class InvalidCoalescenceException extends TaskMapGenerationExceptio
     private final String partnerTaskId;
 
     public InvalidCoalescenceException(String declaringTaskId, String partnerTaskId) {
-        super(buildMessage(declaringTaskId, partnerTaskId));
-        this.declaringTaskId = declaringTaskId;
-        this.partnerTaskId = partnerTaskId;
-    }
-
-    private static String buildMessage(String declaringTaskId, String partnerTaskId) {
+        super(declaringTaskId + " declara coalescencia com " + partnerTaskId
+                + ", mas " + partnerTaskId + " nao declara reciproca");
         Objects.requireNonNull(declaringTaskId, "declaringTaskId");
         Objects.requireNonNull(partnerTaskId, "partnerTaskId");
-        return declaringTaskId + " declara coalescência com " + partnerTaskId
-                + ", mas " + partnerTaskId + " não declara recíproca";
+        this.declaringTaskId = declaringTaskId;
+        this.partnerTaskId = partnerTaskId;
     }
 
     public String declaringTaskId() {

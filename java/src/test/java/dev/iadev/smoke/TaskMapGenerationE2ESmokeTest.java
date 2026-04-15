@@ -57,8 +57,8 @@ class TaskMapGenerationE2ESmokeTest {
                 .isEqualTo(golden);
 
         assertThat(elapsedMs)
-                .as("generation must complete within 2000 ms (took %d ms)", elapsedMs)
-                .isLessThan(2000L);
+                .as("generation must complete within 200 ms (took %d ms)", elapsedMs)
+                .isLessThan(200L);
     }
 
     private static void copyFixture(Path src, Path dst) throws IOException {

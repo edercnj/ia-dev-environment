@@ -15,6 +15,10 @@ public final class CyclicDependencyException extends TaskMapGenerationException 
 
     public CyclicDependencyException(List<String> cyclePath) {
         super(buildMessage(cyclePath));
+        Objects.requireNonNull(cyclePath, "cyclePath");
+        if (cyclePath.isEmpty()) {
+            throw new IllegalArgumentException("cyclePath must not be empty");
+        }
         this.cyclePath = List.copyOf(cyclePath);
     }
 
@@ -23,10 +27,6 @@ public final class CyclicDependencyException extends TaskMapGenerationException 
     }
 
     private static String buildMessage(List<String> path) {
-        Objects.requireNonNull(path, "cyclePath");
-        if (path.isEmpty()) {
-            throw new IllegalArgumentException("cyclePath must not be empty");
-        }
         return "Ciclo detectado: " + String.join(" -> ", path)
                 + ". Declare COALESCED ou quebre dep.";
     }

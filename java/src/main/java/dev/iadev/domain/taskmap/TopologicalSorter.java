@@ -51,8 +51,7 @@ public final class TopologicalSorter {
         for (RawTask t : rawTasks) {
             if (idx.containsKey(t.taskId())) {
                 throw new IllegalArgumentException(
-                        "duplicate TASK-ID '" + t.taskId()
-                                + "' — each task must appear exactly once");
+                        "duplicate TASK-ID '" + t.taskId() + "' — each task must appear exactly once");
             }
             idx.put(t.taskId(), t);
         }
