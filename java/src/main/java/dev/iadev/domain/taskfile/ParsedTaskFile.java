@@ -18,6 +18,7 @@ import java.util.Optional;
  * @param inputs                  body of section "### 2.1 Inputs" (trimmed; possibly blank)
  * @param outputs                 body of section "### 2.2 Outputs" (trimmed; possibly blank)
  * @param testabilityCheckedKinds {@link TestabilityKind} values whose checkbox was checked
+ * @param testabilityCheckedTotal total checked checkbox lines under §2.3, including unrecognized ones
  * @param testabilityReferenceIds TASK-IDs cited on checked testability lines (REQUIRES_MOCK/COALESCED)
  * @param dodItems                lines matching {@code - [ ]} or {@code - [x]} under "## 3. Definition of Done"
  * @param dependencies            TASK-IDs referenced in the first column of "## 4. Dependências"
@@ -30,6 +31,7 @@ public record ParsedTaskFile(
         String inputs,
         String outputs,
         List<TestabilityKind> testabilityCheckedKinds,
+        int testabilityCheckedTotal,
         List<String> testabilityReferenceIds,
         List<String> dodItems,
         List<String> dependencies) {

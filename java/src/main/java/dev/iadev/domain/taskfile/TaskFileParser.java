@@ -2,7 +2,6 @@ package dev.iadev.domain.taskfile;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -93,7 +92,7 @@ public final class TaskFileParser {
         return new ParsedTaskFile(
                 headers.taskId, headers.storyId, headers.status,
                 objective, inputs, outputs,
-                test.kinds, test.references, dod, deps);
+                test.kinds, test.totalChecked, test.references, dod, deps);
     }
 
     private static String bodyBetween(String[] lines, int fromHeading, int toExclusive) {
@@ -120,6 +119,7 @@ public final class TaskFileParser {
             if (!m.matches() || !"x".equals(m.group(1))) {
                 continue;
             }
+            block.totalChecked++;
             String body = m.group(2);
             matchKind(body).ifPresent(block.kinds::add);
             extractTaskRefs(body, block.references);
@@ -128,7 +128,7 @@ public final class TaskFileParser {
     }
 
     private static Optional<TestabilityKind> matchKind(String line) {
-        String lower = line.toLowerCase(Locale.ROOT);
+        String lower = line.toLowerCase();
         if (lower.startsWith("independentemente testável")) {
             return Optional.of(TestabilityKind.INDEPENDENT);
         }
@@ -195,6 +195,7 @@ public final class TaskFileParser {
     private static final class TestabilityBlock {
         final List<TestabilityKind> kinds = new ArrayList<>();
         final List<String> references = new ArrayList<>();
+        int totalChecked = 0;
     }
 
     private static final class SectionIndex {
