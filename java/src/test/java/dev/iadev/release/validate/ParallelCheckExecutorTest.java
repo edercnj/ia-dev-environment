@@ -201,6 +201,23 @@ final class ParallelCheckExecutorTest {
                 .isEqualTo(Severity.FAIL);
         assertThat(result.firstFailureCode())
                 .isEqualTo("VALIDATE_BROKEN");
+        assertThat(result.results().get(0).detail()).isEqualTo("boom");
+    }
+
+    @Test
+    void execute_exceptionWithoutMessage_detailIsClassName() {
+        ParallelCheckExecutor executor = new ParallelCheckExecutor(4);
+        CheckSpec throwing = new CheckSpec(
+                "broken",
+                "VALIDATE_BROKEN",
+                () -> {
+                    throw new IllegalStateException();
+                });
+
+        AggregatedResult result = executor.execute(List.of(throwing));
+
+        assertThat(result.results().get(0).detail())
+                .isEqualTo("IllegalStateException");
     }
 
     private static void sleepMillis(long millis) {

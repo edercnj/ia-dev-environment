@@ -3,11 +3,9 @@ package dev.iadev.release.validate;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Dispatches independent validation checks in parallel.
@@ -28,7 +26,6 @@ public final class ParallelCheckExecutor {
 
     private static final int MIN_PARALLEL = 1;
     private static final int MAX_PARALLEL = 16;
-    private static final long WORKER_TIMEOUT_MINUTES = 30L;
 
     private final int maxParallel;
 
@@ -44,18 +41,6 @@ public final class ParallelCheckExecutor {
                             + MAX_PARALLEL + ", got " + maxParallel);
         }
         this.maxParallel = maxParallel;
-    }
-
-    /**
-     * Resolves the effective pool size from the CPU count and
-     * the configured cap, applying {@code min(CPU, cap)}.
-     *
-     * @param cap upper bound (1..16)
-     * @return effective pool size
-     */
-    public static int resolvePoolSize(int cap) {
-        int cpu = Runtime.getRuntime().availableProcessors();
-        return Math.max(MIN_PARALLEL, Math.min(cpu, cap));
     }
 
     /**
@@ -109,9 +94,10 @@ public final class ParallelCheckExecutor {
                     outcome.detail());
         } catch (Exception e) {
             Duration elapsed = Duration.ofNanos(System.nanoTime() - start);
-            String detail = e.getMessage() == null
-                    ? e.getClass().getSimpleName()
-                    : e.getMessage();
+            String message = e.getMessage();
+            String detail = message != null
+                    ? message
+                    : e.getClass().getSimpleName();
             return new CheckResult(
                     spec.name(),
                     spec.failCode(),
@@ -123,14 +109,15 @@ public final class ParallelCheckExecutor {
 
     private static CheckResult awaitResult(Future<CheckResult> future) {
         try {
-            return future.get(WORKER_TIMEOUT_MINUTES, TimeUnit.MINUTES);
-        } catch (InterruptedException e) {
+            // runOne catches every Exception, so future.get() never
+            // throws ExecutionException here; InterruptedException is
+            // only possible if the main thread is interrupted while
+            // waiting — fail fast with a clear signal.
+            return future.get();
+        } catch (Exception e) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException(
                     "Interrupted while awaiting check result", e);
-        } catch (ExecutionException | java.util.concurrent.TimeoutException e) {
-            throw new IllegalStateException(
-                    "Check execution failed or timed out", e);
         }
     }
 }
