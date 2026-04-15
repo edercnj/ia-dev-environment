@@ -3,15 +3,12 @@
 This directory contains all Claude Code configuration for the **my-java-cli** project.
 It includes coding rules, skills (slash commands), knowledge packs, agents, and hooks.
 
-> **Note:** Both `.claude/` and `.github/` directories are **generated outputs** produced by `ia-dev-env`.
-> The generator writes `.github/` artifacts under `github/` in the output directory; rename to `.github/` when placing in a project root.
-> Do not edit them manually -- regenerate instead.
+> **Note:** The `.claude/` directory is a **generated output** produced by `ia-dev-env`.
+> Do not edit it manually -- regenerate instead.
 
 > The `CLAUDE.md` file at the project root provides an executive summary loaded automatically in EVERY conversation.
 
 ## Structure
-
-### .claude/ (Claude Code)
 
 ```
 CLAUDE.md                   <-- Executive summary (project root, loaded automatically)
@@ -26,68 +23,21 @@ CLAUDE.md                   <-- Executive summary (project root, loaded automati
 +-- agents/                 <-- AI personas (used by skills and lifecycle)
 ```
 
-### .github/ (GitHub Copilot)
-
-```
-.github/
-|-- copilot-instructions.md     <-- Global instructions (loaded in every Copilot session)
-|-- copilot-mcp.json            <-- MCP server configuration for Copilot
-|-- instructions/               <-- Contextual instructions (*.instructions.md)
-|-- skills/                     <-- Reusable skills (*/SKILL.md)
-|-- agents/                     <-- Agent definitions (*.agent.md)
-|-- prompts/                    <-- Prompt templates (*.prompt.md)
-+-- hooks/                      <-- Event hooks (*.json)
-```
-
-### .codex/ (OpenAI Codex)
-
-```
-.codex/
-|-- AGENTS.md                   <-- Agent instructions (generated from .claude/ context)
-+-- config.toml                 <-- Codex configuration (model, approval, sandbox)
-+-- requirements.toml           <-- Enforced minimum policy constraints
-+-- skills/                     <-- Codex-native skills mirror
-```
-
-### .claude/ <-> .github/ <-> .codex/ Mapping
-
-| .claude/ | .github/ | .codex/ | Notes |
-|----------|----------|---------|-------|
-| Rules (`rules/*.md`) | Instructions (`instructions/*.instructions.md`) | Sections in `AGENTS.md` | Rules → consolidated sections |
-| Skills (`skills/*/SKILL.md`) | Skills (`skills/*/SKILL.md`) | Skills (`.agents/skills/` + `.codex/skills/`) | Dual output with identical content |
-| Agents (`agents/*.md`) | Agents (`agents/*.agent.md`) | Sections (`[agents.*]`) in `config.toml` | Agents represented as TOML sections |
-| Hooks (`hooks/`) | Hooks (`hooks/*.json`) | Reference in `AGENTS.md` | Hooks influence approval_policy |
-| Settings (`settings*.json`) | N/A | `.codex/config.toml` + `.codex/requirements.toml` | Runtime and enforced policies |
-| N/A | N/A | `AGENTS.md` + `AGENTS.override.md` (root) | Base instructions + local override |
-| N/A | Prompts (`prompts/*.prompt.md`) | N/A | GitHub Copilot prompt templates |
-| N/A | MCP (`copilot-mcp.json`) | N/A | GitHub Copilot MCP server configuration |
-| N/A | Global instructions (`copilot-instructions.md`) | N/A | Loaded in every Copilot session |
-
-**Total .github/ artifacts: 21**
-
-> Generated only when the corresponding platform is selected via `--platform`.
-
 ## Platform Selection
 
-The `--platform` flag controls which AI platform artifacts are generated. By default, all platforms are generated.
+The generator currently produces Claude Code artifacts only. Support for `copilot`, `codex`, and the generic `agents` target was removed (see EPIC-0034). Legacy `--platform` values are rejected by the CLI.
 
 | Value | Description | Directories Generated |
 |-------|-------------|-----------------------|
-| `claude-code` | Anthropic Claude Code | `.claude/` + docs |
-| `copilot` | GitHub Copilot | `.github/` + docs |
-| `codex` | OpenAI Codex | `.codex/`, `.agents/` + docs |
-| `all` | All platforms (default) | `.claude/`, `.github/`, `.codex/`, `.agents/` + docs |
+| `claude-code` | Anthropic Claude Code (only accepted value) | `.claude/` + docs |
 
 ### CLI Examples
 
 ```bash
-# Generate only Claude Code artifacts
+# Generate Claude Code artifacts (default behavior)
 ia-dev-env generate --platform claude-code --config my-config.yaml
 
-# Generate for multiple platforms
-ia-dev-env generate -p claude-code,copilot --config my-config.yaml
-
-# Generate for all platforms (default behavior)
+# Platform flag can be omitted — claude-code is the only supported target
 ia-dev-env generate --config my-config.yaml
 ```
 
@@ -99,9 +49,9 @@ You can also specify the platform in your YAML config file:
 platform: claude-code
 ```
 
-### Backward Compatibility
+### Default Behavior
 
-When no `--platform` flag is provided and no `platform:` key exists in the YAML config, the generator produces artifacts for **all platforms** (`all`). This is fully backward-compatible with existing configurations -- no changes are required to existing YAML files or CLI invocations.
+When no `--platform` flag is provided and no `platform:` key exists in the YAML config, the generator produces artifacts for `claude-code` (the only supported target). Any legacy value (`copilot`, `codex`, `agents`, `all`) is rejected with a clear error message.
 
 ### settings.json vs settings.local.json
 
@@ -127,8 +77,15 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 08 | `08-release-process.md` | release process |
 | 09 | `09-branching-model.md` | branching model |
 | 12 | `12-security-anti-patterns.md` | security anti patterns |
+| 13 | `13-skill-invocation-protocol.md` | skill invocation protocol |
+| 14 | `14-worktree-lifecycle.md` | worktree lifecycle |
+| 15 | `15-task-testability.md` | task testability |
+| 16 | `16-task-io-contracts.md` | task io contracts |
+| 17 | `17-topological-execution.md` | topological execution |
+| 18 | `18-atomic-task-commits.md` | atomic task commits |
+| 19 | `19-backward-compatibility.md` | backward compatibility |
 
-**Total: 10 rules**
+**Total: 17 rules**
 
 ### Numbering
 
@@ -143,23 +100,23 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | Skill | Path | Description |
 |-------|------|-------------|
 | **patterns** | `/patterns` |  |
-| **run-e2e** | `/run-e2e` | Runs integration tests that validate the complete flow from request through all application layers to response, using a real database. |
+| **x-adr-generate** | `/x-adr-generate` | Automates ADR generation from architecture plan mini-ADRs: extracts inline decisions, expands to full ADR format, assigns sequential numbering, updates the ADR index, and adds cross-references. |
+| **x-arch-plan** | `/x-arch-plan` | Generates a comprehensive architecture plan with component diagrams, sequence diagrams, deployment topology, mini-ADRs, NFRs, and resilience/observability strategies. Use before implementation to document design decisions. |
+| **x-arch-update** | `/x-arch-update` | Incrementally updates the service architecture document with changes from architecture plans. Adds new components, integrations, flows, and ADR references without rewriting existing content. Use after implementation to keep architecture documentation current. |
 | **x-ci-generate** | `/x-ci-generate` | Generate or update CI/CD pipelines based on project stack: detect language, analyze existing workflows, generate CI/CD/release/security pipelines, validate with actionlint, support monorepo triggers. |
 | **x-code-audit** | `/x-code-audit` | Full codebase review against all project standards. Launches parallel subagents per audit dimension (Clean Code, SOLID, Architecture, Tests, Security, Cross-file), consolidates findings into a severity-categorized report with score. Use for periodic quality validation. |
 | **x-code-format** | `/x-code-format` | Formats source code using the appropriate formatter for {{LANGUAGE}}. First step of the pre-commit chain (format -> lint -> compile -> commit). Supports --check (dry-run) and --changed-only modes. |
 | **x-code-lint** | `/x-code-lint` | Analyzes source code with the appropriate linter for {{LANGUAGE}}. Second step in the pre-commit chain (RULE-007: format -> lint -> compile -> commit). Supports --fix, --changed-only, and --strict modes. |
 | **x-dependency-audit** | `/x-dependency-audit` | Checks project dependencies for vulnerabilities, outdated versions, and license issues. Detects build tool automatically, runs language-specific audit commands, and generates a severity-categorized report. |
-| **x-dev-adr-automation** | `/x-dev-adr-automation` | Automates ADR generation from architecture plan mini-ADRs: extracts inline decisions, expands to full ADR format, assigns sequential numbering, updates the ADR index, and adds cross-references. |
-| **x-dev-arch-update** | `/x-dev-arch-update` | Incrementally updates the service architecture document with changes from architecture plans. Adds new components, integrations, flows, and ADR references without rewriting existing content. Use after implementation to keep architecture documentation current. |
-| **x-dev-architecture-plan** | `/x-dev-architecture-plan` | Generates a comprehensive architecture plan with component diagrams, sequence diagrams, deployment topology, mini-ADRs, NFRs, and resilience/observability strategies. Use before implementation to document design decisions. |
-| **x-dev-epic-implement** | `/x-dev-epic-implement` | Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via worktrees. Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-dev-story-implement subagents. |
-| **x-dev-implement** | `/x-dev-implement` | Implements a feature/story using TDD (Red-Green-Refactor) workflow. Delegates preparation to a subagent that reads architecture, coding, and test plan KPs, then implements test-first with Double-Loop TDD, layer-by-layer with compile checks after each cycle. |
-| **x-dev-story-implement** | `/x-dev-story-implement` | Orchestrates the complete feature implementation cycle with task-centric workflow: branch creation, planning, per-task TDD execution with individual PRs and approval gates, story-level verification, and final cleanup. Delegates implementation to x-test-tdd, commits to x-git-commit, PRs to x-pr-create. |
 | **x-doc-generate** | `/x-doc-generate` | Documentation automation: detects documentation type needed (API, README, ADR, changelog) from code changes, delegates to specialized skills or generates inline. Single entry point for all documentation updates. |
-| **x-epic-plan** | `/x-epic-plan` | Orchestrates multi-agent planning for all stories in an epic, respecting dependency order, with checkpoint and resume support. |
+| **x-epic-create** | `/x-epic-create` | Generate an Epic document from a system specification file with cross-cutting business rules, global quality definitions (DoR/DoD), a complete story index with dependency declarations, and optional Jira integration. |
+| **x-epic-decompose** | `/x-epic-decompose` | Complete decomposition of a system specification into an Epic, individual Story files, and an Implementation Map with dependency graph and phased execution plan. Orchestrates spec analysis, rule extraction, story identification, and implementation planning. |
+| **x-epic-implement** | `/x-epic-implement` | Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via explicit git worktrees (per ADR-0004 §D2 and Rule 14). Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-story-implement. EPIC-0038 simplification: epic orchestrator handles ONLY story-level concerns (phase order, story PR management, epic-level verification). Task management (TDD cycles, atomic commits per task, coalesced handling) is fully delegated to x-story-implement's v2 wave dispatcher. Tasks are invisible at the epic level. |
+| **x-epic-map** | `/x-epic-map` | Generate an Implementation Map from an Epic and its Stories with dependency matrix, phase computation, critical path analysis, ASCII phase diagrams, Mermaid dependency graphs, phase summary tables, and strategic observations. |
+| **x-epic-orchestrate** | `/x-epic-orchestrate` | Orchestrates multi-agent planning for all stories in an epic, respecting dependency order, with checkpoint and resume support. |
 | **x-git-commit** | `/x-git-commit` | Creates Conventional Commits with Task ID in scope and pre-commit chain (format -> lint -> compile). Central commit point in the task-centric workflow with TDD tag support. |
 | **x-git-push** | `/x-git-push` | Git operations: branch creation, atomic commits (Conventional Commits), push, and PR creation. Use for any git workflow task including branching, committing, pushing, creating PRs, or managing version control. |
-| **x-git-worktree** | `/x-git-worktree` | Manages git worktrees for parallel task and story execution. Operations: create, list, remove, cleanup. Follows RULE-018 (Worktree Lifecycle) naming convention under .claude/worktrees/{identifier}/. |
+| **x-git-worktree** | `/x-git-worktree` | Manages git worktrees for parallel task and story execution. Operations: create, list, remove, cleanup, detect-context. Follows Rule 14 (Worktree Lifecycle) naming convention under .claude/worktrees/{identifier}/. |
 | **x-hardening-eval** | `/x-hardening-eval` | Evaluates application hardening posture against CIS and OWASP benchmarks: HTTP security headers, TLS configuration, CORS policy, cookie security, error handling, input limits, and information disclosure. Produces SARIF output with weighted scoring. |
 | **x-jira-create-epic** | `/x-jira-create-epic` | Create a Jira Epic from an existing local epic markdown file. Read the epic file, map fields to Jira, create the issue via MCP, and sync the Jira key back to the local file. |
 | **x-jira-create-stories** | `/x-jira-create-stories` | Create Jira Stories from existing local story markdown files. Read all story files in an epic directory, map fields to Jira, create issues with parent epic link, create dependency links between stories, and sync Jira keys back to local files. |
@@ -169,27 +126,27 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-owasp-scan** | `/x-owasp-scan` | Automated OWASP Top 10 (2021) verification mapped to ASVS levels (L1/L2/L3). Checks all 10 categories (A01-A10) with per-category pass/fail, ASVS coverage percentage, score grading, SARIF 2.1.0 output, and CI integration. Delegates A06 to x-dependency-audit. |
 | **x-perf-profile** | `/x-perf-profile` | Automated profiling: detect language/runtime, select appropriate profiler, execute session, generate flamegraph, identify hotspots, and suggest optimizations referencing the performance-engineering knowledge pack. |
 | **x-pr-create** | `/x-pr-create` | Task-level PR creation with formatted title, automatic labels, structured body, and target branch logic. Creates standardized PRs for individual tasks with Task ID traceability. |
-| **x-pr-fix-comments** | `/x-pr-fix-comments` | Reads PR review comments and fixes actionable ones automatically. Detects PR from argument or branch, classifies comments (actionable/suggestion/question/praise), implements fixes, and commits with proper conventional commit messages. |
-| **x-pr-fix-epic-comments** | `/x-pr-fix-epic-comments` | Discovers all PRs from an epic via execution-state.json, fetches and classifies review comments in batch, generates a consolidated findings report, applies fixes, and creates a single correction PR. Supports dry-run, explicit PR list fallback, and idempotent re-execution. |
-| **x-release** | `/x-release` | Orchestrates complete release flow using Git Flow release branches: version bump (auto-detect or explicit), release branch creation from develop, version file updates, changelog generation, release commit, dual merge (main + develop), git tag on main, and cleanup. Supports hotfix releases from main and dry-run mode. |
+| **x-pr-fix** | `/x-pr-fix` | Reads PR review comments and fixes actionable ones automatically. Detects PR from argument or branch, classifies comments (actionable/suggestion/question/praise), implements fixes, and commits with proper conventional commit messages. |
+| **x-pr-fix-epic** | `/x-pr-fix-epic` | Discovers all PRs from an epic via execution-state.json, fetches and classifies review comments in batch, generates a consolidated findings report, applies fixes, and creates a single correction PR. Supports dry-run, explicit PR list fallback, and idempotent re-execution. |
+| **x-release** | `/x-release` | Orchestrates complete release flow using Git Flow release branches with approval gate, PR-flow (gh CLI) and deep validation: version bump (auto-detect or explicit), release branch creation from develop, deep validation (coverage, golden files, version consistency), version file updates, changelog generation, release commit, release PR via gh (optionally reviewed by x-review-pr), human approval gate with persistent state file, tag on main after merged PR, back-merge PR to develop with conflict detection, and cleanup. Supports hotfix releases from main, dry-run mode, resume via --continue-after-merge, in-session pause via --interactive, GPG-signed tags, skip-review opt-out, and custom state file path. |
 | **x-release-changelog** | `/x-release-changelog` | Generates CHANGELOG.md from Conventional Commits history. Parses git log, groups by commit type, maps to Keep a Changelog sections (Added, Changed, Fixed, etc.), and performs incremental updates preserving existing entries. |
 | **x-review** | `/x-review` | Parallel code review with specialist engineers (Security, QA, Performance, Database, Observability, DevOps, API, Event). Invokes individual review skills in parallel via Skill tool, then consolidates into a scored report. Use for pre-PR quality validation. |
 | **x-review-devops** | `/x-review-devops` | DevOps specialist review: validates Dockerfile, container security, CI/CD pipeline, resource limits, health probes, graceful shutdown, and deployment configuration. |
 | **x-review-perf** | `/x-review-perf` | Performance specialist review: validates N+1 queries, connection pools, async patterns, pagination, caching, timeouts, circuit breakers, and resource cleanup. |
 | **x-review-pr** | `/x-review-pr` | Tech Lead holistic review with 45-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, TDD process, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge. |
 | **x-review-qa** | `/x-review-qa` | QA specialist review: validates test coverage, TDD compliance, test naming, fixtures, parametrized tests, and acceptance criteria coverage. |
-| **x-runtime-protection** | `/x-runtime-protection` | Evaluate runtime protection controls: rate limiting, WAF rules, bot protection, DDoS mitigation, account lockout, brute force protection, CSP enforcement, and permissions policy. Produce SARIF 2.1.0 output with ASVS compliance mapping and scored Markdown report. |
+| **x-runtime-eval** | `/x-runtime-eval` | Evaluate runtime protection controls: rate limiting, WAF rules, bot protection, DDoS mitigation, account lockout, brute force protection, CSP enforcement, and permissions policy. Produce SARIF 2.1.0 output with ASVS compliance mapping and scored Markdown report. |
 | **x-security-dashboard** | `/x-security-dashboard` | Aggregates results from all security scanning skills into a unified posture view with score 0-100, trend tracking, OWASP risk heatmap, per-dimension breakdown, and remediation priority queue. Never executes scans — reads existing results only (RULE-011). |
 | **x-security-pipeline** | `/x-security-pipeline` | Generate CI/CD pipeline configurations with conditional security stages based on SecurityConfig flags. Support GitHub Actions, GitLab CI, and Azure DevOps with minimal and full stage modes, configurable severity thresholds, and SARIF artifact upload. |
 | **x-setup-env** | `/x-setup-env` | Validate and configure local development environment: detect stack, check prerequisites, verify versions, validate IDE config, test database connectivity, run initial build, and report status with fix suggestions. |
-| **x-spec-drift** | `/x-spec-drift` | Detects spec-code drift by comparing story data contracts, endpoints, and Gherkin scenarios against implemented code. Supports standalone mode (full report) and inline mode (compact output for TDD loop integration in x-dev-story-implement Phase 2). |
+| **x-spec-drift** | `/x-spec-drift` | Detects spec-code drift by comparing story data contracts, endpoints, and Gherkin scenarios against implemented code. Supports standalone mode (full report) and inline mode (compact output for TDD loop integration in x-story-implement Phase 2). |
 | **x-story-create** | `/x-story-create` | Generate detailed User Story files from an Epic and system specification with full data contracts, Gherkin acceptance criteria, Mermaid sequence diagrams, dependency declarations, tagged sub-tasks, quality gate validation, and optional Jira integration. |
-| **x-story-epic** | `/x-story-epic` | Generate an Epic document from a system specification file with cross-cutting business rules, global quality definitions (DoR/DoD), a complete story index with dependency declarations, and optional Jira integration. |
-| **x-story-epic-full** | `/x-story-epic-full` | Complete decomposition of a system specification into an Epic, individual Story files, and an Implementation Map with dependency graph and phased execution plan. Orchestrates spec analysis, rule extraction, story identification, and implementation planning. |
-| **x-story-map** | `/x-story-map` | Generate an Implementation Map from an Epic and its Stories with dependency matrix, phase computation, critical path analysis, ASCII phase diagrams, Mermaid dependency graphs, phase summary tables, and strategic observations. |
-| **x-story-plan** | `/x-story-plan` | Multi-agent story planning: launches 5 specialized agents (Architect, QA, Security, Tech Lead, Product Owner) in parallel to produce a consolidated task breakdown, individual task plans, planning report, and DoR validation for a story. |
+| **x-story-implement** | `/x-story-implement` | Orchestrates the complete feature implementation cycle with task-centric workflow: branch creation, planning, per-task TDD execution with individual PRs and approval gates, story-level verification, and final cleanup. Schema-aware: v1 (legacy) runs the monolithic coalesce-ad-hoc flow; v2 (EPIC-0038) reads task-implementation-map-STORY-*.md and dispatches x-task-implement in waves (declared parallelism) — ending the 'task embedded in story' anti-pattern. Delegates to x-test-tdd, x-git-commit, x-pr-create, and (v2) x-task-implement. |
+| **x-story-plan** | `/x-story-plan` | Multi-agent story planning: launches 5 specialized agents (Architect, QA, Security, Tech Lead, Product Owner) in parallel to produce a consolidated task breakdown, individual task plans, planning report, and DoR validation. Schema-aware: v1 (legacy) runs the original 6-phase flow; v2 (task-first, EPIC-0038) adds Phases 4a-4c that emit task-TASK-NNN.md + plan-task-TASK-NNN.md per task and a task-implementation-map-STORY-*.md, wiring every task through x-task-plan in parallel. |
 | **x-supply-chain-audit** | `/x-supply-chain-audit` | Enhanced supply chain security audit beyond x-dependency-audit. Analyzes maintainer risk, typosquatting detection, phantom dependencies, dependency age, EPSS scoring, and SLSA assessment. Produces SARIF 2.1.0 output with weighted risk scoring. |
-| **x-task-plan** | `/x-task-plan` | Generates a detailed implementation plan for an individual task with per-task TDD cycle mapping (TPP order), file impact analysis by architecture layer, security checklist by task type, and integration points. Reads the task definition from story Section 8 and produces a self-contained execution guide. |
+| **x-task-implement** | `/x-task-implement` | Implements a feature/story/task using TDD (Red-Green-Refactor) workflow. Schema-aware: v1 (legacy) runs the original Double-Loop TDD flow with story-section task extraction; v2 (task-first, EPIC-0038) reads task-TASK-XXXX-YYYY-NNN.md + plan-task-TASK-XXXX-YYYY-NNN.md, honours declared I/O contracts, respects task-implementation-map dependencies, verifies post-conditions via grep/assert, and produces a single atomic commit per task via x-git-commit. |
+| **x-task-plan** | `/x-task-plan` | Generates a detailed per-task implementation plan (plan-task-TASK-XXXX-YYYY-NNN.md) with TDD cycles in TPP order, file impact analysis by architecture layer, security checklist by task type, and exit criteria. Two invocation modes: task-file-first (--task-file) consumes a standalone task-TASK-XXXX-YYYY-NNN.md contract (EPIC-0038); story-scoped (STORY-ID --task TASK-ID) reads the task from story Section 8 (legacy). Invocable standalone OR via x-story-plan (future). |
+| **x-test-e2e** | `/x-test-e2e` | Runs integration tests that validate the complete flow from request through all application layers to response, using a real database. |
 | **x-test-plan** | `/x-test-plan` | Generates a Double-Loop TDD test plan with TPP-ordered scenarios before implementation. Delegates KP reading to a context-gathering subagent, then produces structured Acceptance Tests (outer loop) and Unit Tests in Transformation Priority Premise order (inner loop). |
 | **x-test-run** | `/x-test-run` | Runs tests with coverage reporting and threshold validation. Use whenever writing, running, or analyzing tests. Triggers on: test, coverage, TDD, unit test, integration test, test failure, coverage gap, or Definition of Done validation. |
 | **x-test-tdd** | `/x-test-tdd` | Executes systematic Red-Green-Refactor TDD cycles for a task. Reads the task plan generated by x-task-plan, runs each cycle in TPP order, validates RED/GREEN/REFACTOR phases, delegates atomic commits to x-git-commit with TDD tags, and supports resume and dry-run. |
@@ -296,13 +253,8 @@ See the files directly for current configuration.
 |----------|-----------|--------|-------------|
 | Rules | `.md` | `NN-name.md` (numbered) | None |
 | Skills | `SKILL.md` | `skills/{name}/SKILL.md` | YAML (name, description) |
-| Agents (.claude) | `.md` | `{name}.md` | None |
-| Agents (.github) | `.agent.md` | `{name}.agent.md` | YAML (tools, disallowed-tools) |
-| Instructions | `.instructions.md` | `{topic}.instructions.md` | None |
-| Prompts | `.prompt.md` | `{name}.prompt.md` | YAML (optional) |
-| Hooks (.claude) | `.sh` / `.json` | Event-based naming | N/A |
-| Hooks (.github) | `.json` | Event-based naming | N/A (JSON) |
-| MCP | `.json` | `copilot-mcp.json` | N/A (JSON) |
+| Agents | `.md` | `{name}.md` | None |
+| Hooks | `.sh` / `.json` | Event-based naming | N/A |
 
 ---
 
@@ -323,23 +275,12 @@ See the files directly for current configuration.
 
 | Component | Count |
 |-----------|-------|
-| Rules (.claude) | 10 |
+| Rules (.claude) | 17 |
 | Skills (.claude) | 52 |
 | Knowledge Packs (.claude) | 20 |
 | Agents (.claude) | 10 |
 | Hooks (.claude) | 1 |
 | Settings (.claude) | 2 |
-| Plan Templates (.claude) | 16 |
-| Instructions (.github) | 0 |
-| Skills (.github) | 0 |
-| Agents (.github) | 0 |
-| Prompts (.github) | 0 |
-| Hooks (.github) | 0 |
-| Plan Templates (.github) | 16 |
-| MCP (.github) | 0 |
-| AGENTS.md (root) | 0 |
-| AGENTS.override.md (root) | 0 |
-| Codex (.codex) | 0 |
-| Skills (.agents) | 0 |
+| Plan Templates (.claude) | 18 |
 
 Generated by `ia-dev-env v0.1.0`.

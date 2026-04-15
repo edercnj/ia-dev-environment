@@ -1,6 +1,6 @@
 ---
 name: x-story-plan
-description: "Multi-agent story planning: launches 5 specialized agents (Architect, QA, Security, Tech Lead, Product Owner) in parallel to produce a consolidated task breakdown, individual task plans, planning report, and DoR validation for a story."
+description: "Multi-agent story planning: launches 5 specialized agents (Architect, QA, Security, Tech Lead, Product Owner) in parallel to produce a consolidated task breakdown, individual task plans, planning report, and DoR validation. Schema-aware: v1 (legacy) runs the original 6-phase flow; v2 (task-first, EPIC-0038) adds Phases 4a-4c that emit task-TASK-NNN.md + plan-task-TASK-NNN.md per task and a task-implementation-map-STORY-*.md, wiring every task through x-task-plan in parallel."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[STORY-ID] [--force] [--skip-dor]"
@@ -35,13 +35,22 @@ After Phase 5: `>>> Phase 5/5 completed. Story planning complete.`
 ## Workflow Overview
 
 ```
-Phase 0: INPUT RESOLUTION     -> Parse argument, resolve paths, staleness check (inline)
-Phase 1: CONTEXT GATHERING    -> Read story, epic, implementation map (inline)
-Phase 2: PARALLEL PLANNING    -> Launch 5 subagents in SINGLE message (parallel)
-Phase 3: CONSOLIDATION        -> Merge TASK_PROPOSAL entries with deterministic rules (inline)
-Phase 4: ARTIFACT GENERATION  -> Write output files using templates (inline)
-Phase 5: DOR VALIDATION       -> Run 12 checks, emit verdict (inline)
+Phase 0: INPUT RESOLUTION       -> Parse argument, resolve paths, staleness check (inline)
+Phase 0b: SCHEMA VERSION DETECT -> Read execution-state.json; select v1 or v2 flow (inline)
+Phase 1: CONTEXT GATHERING      -> Read story, epic, implementation map (inline)
+Phase 2: PARALLEL PLANNING      -> Launch 5 subagents in SINGLE message (parallel)
+Phase 3: CONSOLIDATION          -> Merge TASK_PROPOSAL entries with deterministic rules (inline)
+Phase 4: ARTIFACT GENERATION    -> Write tasks-story-*.md + planning report (inline)
+Phase 4a: TASK BREAKDOWN (v2)   -> Emit task-TASK-NNN.md per atomic task with I/O contracts
+Phase 4b: PARALLEL TASK PLANS (v2) -> Invoke x-task-plan per task in parallel (batch=4)
+Phase 4c: TASK MAP (v2)         -> Generate task-implementation-map-STORY-*.md (topological sort)
+Phase 5: DOR VALIDATION         -> Run 12 checks + (v2 only) per-task READY checks
 ```
+
+> **v1 vs v2 gating.** Phases 4a-4c execute ONLY when Phase 0b resolves to
+> `planningSchemaVersion == "2.0"`. For v1 (legacy, including EPIC-0038 itself during
+> its own execution per the bootstrap rule in spec §8.2), the workflow ends after
+> Phase 4 and Phase 5 runs the legacy 12-check DoR without per-task extensions.
 
 ## Input Parsing
 
@@ -891,15 +900,107 @@ This ensures backward compatibility with projects that have not yet adopted temp
 
 | Skill | Relationship | Context |
 |-------|-------------|---------|
-| `x-dev-story-implement` | called-by | Can invoke x-story-plan in Phase 1 for multi-agent planning |
+| `x-story-implement` | called-by | Can invoke x-story-plan in Phase 1 for multi-agent planning |
 | `x-test-plan` | complementary | QA agent produces similar output; x-story-plan adds multi-agent perspective |
-| `x-dev-architecture-plan` | complementary | Architect agent produces similar output with cross-agent consolidation |
-| `x-dev-implement` | downstream | Consumes task breakdown as implementation roadmap |
+| `x-arch-plan` | complementary | Architect agent produces similar output with cross-agent consolidation |
+| `x-task-implement` | downstream | Consumes task breakdown as implementation roadmap |
 | `x-story-create` | upstream | Story files are the input to this skill |
-| `x-story-map` | upstream | Implementation map provides dependency context |
+| `x-epic-map` | upstream | Implementation map provides dependency context |
 
 - Pre-check (RULE-002) prevents redundant regeneration when story has not changed
 - Template reference (RULE-007) ensures consistent output format when templates are available
 - Embedded prompts (RULE-005) keep all agent instructions in this SKILL.md
 - Flat file naming (RULE-004) ensures all artifacts are in `plans/epic-XXXX/plans/`
 - Staleness uses mtime comparison for idempotent re-execution
+
+---
+
+## v2 Extensions (EPIC-0038 — Task-First Planning)
+
+This appendix documents the schema-aware behavior introduced by story-0038-0004. It
+layers three new phases (4a, 4b, 4c) on top of the legacy v1 flow documented above,
+plus a per-task DoR extension in Phase 5. v1 behavior is **unchanged**.
+
+### Phase 0b — Schema Version Detection
+
+After Phase 0 (input resolution) and before Phase 1 (context gathering):
+
+1. Read `plans/epic-XXXX/execution-state.json` if present.
+2. Resolve `planningSchemaVersion` via the shared resolver delivered by
+   story-0038-0008 (`SchemaVersionResolver`):
+   - Present and equal to `"2.0"` -> v2 flow (Phases 4a-4c execute; Phase 5 adds per-task DoR).
+   - Absent / `"1.0"` / malformed / unknown value -> v1 flow (legacy; skip 4a-4c).
+3. Emit a single-line log reporting the resolved version: `schema: v2` or `schema: v1`.
+4. Hard fail only when `execution-state.json` is present but not parseable JSON.
+
+> **Bootstrap note.** EPIC-0038 itself is executed in v1 per spec §8.2. The v2 flow
+> only activates for epics/stories that explicitly declare `planningSchemaVersion: "2.0"`
+> in their execution-state.json — the first dogfood happens in story-0038-0010.
+
+### Phase 4a — Task Breakdown with I/O Contracts (v2 only)
+
+After Phase 4 writes the consolidated `tasks-story-XXXX-YYYY.md`:
+
+1. For each task declared in Section 8 of the consolidated output, emit a standalone
+   `plans/epic-XXXX/plans/task-TASK-XXXX-YYYY-NNN.md` following the schema from
+   story-0038-0001 (`plans/epic-0038/schemas/task-schema.md`).
+2. Required sections per task file: header (ID + Story + Status), `## 1. Objetivo`,
+   `## 2. Contratos I/O` (Inputs, Outputs, Testabilidade), `## 3. Definition of Done`,
+   `## 4. Dependências`, `## 5. Plano de implementação` (placeholder — filled by 4b).
+3. Validation (reject the task and abort if any fails):
+   - RULE-TF-01 Testability: §2.3 has exactly one checked declaration
+     (INDEPENDENT / REQUIRES_MOCK / COALESCED).
+   - RULE-TF-02 Outputs: §2.2 is non-empty and lists at least one grep/assert/test
+     verifiable output.
+4. Until story-0038-0009 ships `_TEMPLATE-TASK.md`, the skill uses an inline template
+   identical in shape to the schema. Once the template lands, switch to it via the
+   standard `.claude/templates/` path.
+
+### Phase 4b — Per-Task Plan via x-task-plan (v2 only)
+
+For each `task-TASK-XXXX-YYYY-NNN.md` produced by 4a:
+
+1. Invoke `x-task-plan --task-file plans/epic-XXXX/plans/task-TASK-XXXX-YYYY-NNN.md`
+   via the Skill tool.
+2. Parallelism: fire invocations in batches of up to 4 concurrent subagents (single
+   assistant message with sibling Skill calls, per Rule 13 — INLINE-SKILL pattern).
+3. Each invocation writes `plan-task-TASK-XXXX-YYYY-NNN.md` next to the task file.
+4. A non-zero exit from any invocation aborts the story planning; collect every
+   failed task-id and emit a single consolidated error report.
+
+### Phase 4c — Task-Implementation-Map Generation (v2 only)
+
+Once all per-task plans exist:
+
+1. Invoke the `task-map-gen` CLI (story-0038-0002) with
+   `--story story-XXXX-YYYY --plans-dir plans/epic-XXXX/plans/`.
+2. The CLI reads each `task-TASK-NNN.md`, runs TopologicalSorter + MarkdownWriter,
+   and writes `task-implementation-map-STORY-XXXX-YYYY.md`.
+3. Propagate CLI exit code verbatim. On non-zero, abort with the stderr diagnostic
+   (the map CLI's error messages already contain TASK-IDs per story-0038-0002 §7).
+
+### Phase 5 — DoR (v2 extensions)
+
+The legacy 12-check story-level DoR runs unchanged. When the resolved schema is
+`"2.0"`, append:
+
+- **Task READY checks:** each task-TASK-NNN.md must be schema-valid per the TF-SCHEMA
+  rules (from story-0038-0001 §4) with zero ERROR-level violations.
+- **Plan presence:** every task must have a corresponding plan-task-TASK-NNN.md
+  produced in 4b.
+- **Map integrity:** task-implementation-map-STORY-*.md exists and topological sort
+  succeeded (presence alone is sufficient — CLI-level cycle detection already ran).
+
+Aggregated verdict:
+
+- **READY**: story-level DoR PASS AND all task READY checks PASS.
+- **NOT_READY**: any check fails — enumerate failures per task.
+
+### v2 Artifacts Summary
+
+In addition to the legacy outputs (tasks-story-*.md + planning report + consolidated
+agent file), a v2 run produces:
+
+- `task-TASK-XXXX-YYYY-NNN.md` × N  (one per task)
+- `plan-task-TASK-XXXX-YYYY-NNN.md` × N  (one per task)
+- `task-implementation-map-STORY-XXXX-YYYY.md` × 1
