@@ -2,6 +2,7 @@ package dev.iadev.domain.taskfile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -127,7 +128,7 @@ public final class TaskFileParser {
     }
 
     private static Optional<TestabilityKind> matchKind(String line) {
-        String lower = line.toLowerCase();
+        String lower = line.toLowerCase(Locale.ROOT);
         if (lower.startsWith("independentemente testável")) {
             return Optional.of(TestabilityKind.INDEPENDENT);
         }
