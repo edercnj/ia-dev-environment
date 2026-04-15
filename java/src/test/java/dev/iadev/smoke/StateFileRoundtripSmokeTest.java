@@ -109,7 +109,7 @@ class StateFileRoundtripSmokeTest {
                                 "/x-release"),
                         new NextAction(
                                 "Rodar fix-pr-comments",
-                                "/x-pr-fix-comments")),
+                                "/x-pr-fix")),
                 WaitingFor.PR_MERGE,
                 Map.of(
                         "VALIDATED", 142L,

@@ -62,7 +62,7 @@ class ReleaseStateTest {
                 "/x-release --continue-after-merge");
         NextAction fixAction = new NextAction(
                 "Rodar fix-pr-comments",
-                "/x-pr-fix-comments 297");
+                "/x-pr-fix 297");
 
         ReleaseState state = new ReleaseState(
                 2,

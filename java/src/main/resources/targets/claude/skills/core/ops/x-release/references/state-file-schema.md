@@ -71,7 +71,7 @@ CLEANUP phase.
   "lastPhaseCompletedAt": "2026-04-11T14:35:41Z",
   "nextActions": [
     {"label": "PR mergeado — continuar", "command": "/x-release --continue-after-merge"},
-    {"label": "Rodar fix-pr-comments", "command": "/x-pr-fix-comments 262"}
+    {"label": "Rodar fix-pr-comments", "command": "/x-pr-fix 262"}
   ],
   "waitingFor": "PR_MERGE",
   "phaseDurations": {
