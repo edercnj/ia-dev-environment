@@ -6,10 +6,10 @@
 
 ### AT-1 — Migrated example is valid (smoke / IT)
 - **Type:** Integration
-- **File:** `dev.iadev.taskfile.TaskExampleMigrationIT`
+- **File:** `dev.iadev.smoke.TaskExampleMigrationIT`
 - **Given:** `plans/epic-0038/examples/task-TASK-0037-0001-001.md` exists.
-- **When:** `TaskFileParser.parse(path)` is invoked.
-- **Then:** `result.valid() == true`, `result.testabilityKind() == INDEPENDENT`, `result.violations()` empty (or only WARN-level).
+- **When:** test reads the markdown and calls `TaskFileParser.parse(String)` -> `ParsedTaskFile`, then `TaskValidator.defaultValidator().validateAll(parsed, ctx)`.
+- **Then:** violations list is empty at ERROR severity (WARN allowed); `parsed.testabilityKind() == INDEPENDENT`.
 - **Maps to:** TASK-006
 
 ## Unit Tests (UT) — TPP Order
