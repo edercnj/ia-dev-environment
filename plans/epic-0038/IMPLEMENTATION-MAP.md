@@ -17,7 +17,7 @@
 | story-0038-0007 | `x-epic-implement` simplificado | — | story-0038-0006 | story-0038-0008 | Concluída |
 | story-0038-0008 | Migration path + backward compat | — | story-0038-0007 | story-0038-0009 | Concluída |
 | story-0038-0009 | Documentação, templates e 5 RULEs | — | story-0038-0008 | story-0038-0010 | Concluída |
-| story-0038-0010 | E2E integration tests + dogfood verification | — | story-0038-0009 | — | Pendente |
+| story-0038-0010 | E2E integration tests + dogfood verification | — | story-0038-0009 | — | Concluída |
 
 > **Valores de Status:** `Pendente` (padrão) · `Em Andamento` · `Concluída` · `Falha` · `Bloqueada` · `Parcial`
 
