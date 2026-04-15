@@ -4,19 +4,26 @@ This template is consumed by Phase 13 (SUMMARY) of the `x-release` skill. It
 is read verbatim and each placeholder is replaced with the corresponding
 value from the release state file (see `state-file-schema.md`). Substitution
 is **literal string replacement only** — placeholders MUST NOT be evaluated
-as any template language (security RULE-003: treat state data as untrusted
-input).
+as any template language; state-file values are treated as untrusted input.
 
-## Placeholders (exactly 6)
+## Placeholders (exactly 8)
 
 | Placeholder             | Source (state file)               | Fallback |
 | :---------------------- | :-------------------------------- | :------- |
+| `{{LAST_VERSION}}`      | `previousVersion` (raw `X.Y.Z`)   | `—`      |
+| `{{NEW_VERSION}}`       | `version` (raw `X.Y.Z`)           | `—`      |
 | `{{LAST_TAG}}`          | `previousVersion` (prefixed `v`)  | `—`      |
 | `{{NEW_TAG}}`           | `version` (prefixed `v`)          | `—`      |
 | `{{NEXT_SNAPSHOT}}`     | computed: next minor + `-SNAPSHOT`| `—`      |
 | `{{RELEASE_PR}}`        | `prNumber` (prefixed `#`)         | `—`      |
 | `{{BACKMERGE_PR}}`      | `backmergePrNumber` (prefixed `#`)| `—`      |
 | `{{GITHUB_RELEASE_URL}}`| `githubReleaseUrl`                | (omit block) |
+
+The distinction between `{{*_TAG}}` (prefixed `v`) and `{{*_VERSION}}` (raw
+`X.Y.Z`) exists because git tags are `v`-prefixed by convention but release
+branches (`release/X.Y.Z`) and snapshot strings (`X.Y.Z-SNAPSHOT`) are NOT.
+Using a single placeholder for both contexts would produce incorrect labels
+like `release/v3.2.0` or `v3.2.0-SNAPSHOT`.
 
 When a field is missing or `null`, the renderer substitutes the fallback
 symbol above (em-dash `—` for simple values). The `{{GITHUB_RELEASE_URL}}`
@@ -33,19 +40,19 @@ main:     {{LAST_TAG}} ──────────── {{NEW_TAG}} ──
                                           ↑
                                 (PR {{RELEASE_PR}} merged)
                                           │
-release:                          release/{{NEW_TAG}}
+release:                          release/{{NEW_VERSION}}
                                           │   ↓ back-merge
 develop:  ──●──●──●──●──●──●──●──●──●──●──●──●──
-            {{LAST_TAG}}-SNAPSHOT     {{NEXT_SNAPSHOT}}
+            {{LAST_VERSION}}-SNAPSHOT     {{NEXT_SNAPSHOT}}
 
-Por que main e develop divergem:
-  main    = última release publicada ({{NEW_TAG}})
-  develop = próxima release em desenvolvimento ({{NEXT_SNAPSHOT}})
-  Os back-merges ({{BACKMERGE_PR}}) propagam fixes de release para
-  develop, mas develop acumula novas features destinadas à próxima
-  release. Divergência é esperada e saudável no Git Flow.
+Why main and develop diverge:
+  main    = latest published release ({{NEW_TAG}})
+  develop = next release in development ({{NEXT_SNAPSHOT}})
+  Back-merges ({{BACKMERGE_PR}}) propagate release fixes to
+  develop, but develop accumulates new features for the next
+  release. Divergence is expected and healthy in Git Flow.
 
-Artefatos criados:
+Artifacts created:
   - Tag:             {{NEW_TAG}}
   - GitHub Release:  {{GITHUB_RELEASE_URL}}
   - Release PR:      {{RELEASE_PR}}

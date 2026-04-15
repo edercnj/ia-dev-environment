@@ -1446,19 +1446,26 @@ release is already complete at the end of Phase 12.
 
 ```bash
 TEMPLATE_PATH="references/git-flow-cycle-explainer.md"
-# Read state file fields (defaults when missing)
-LAST_TAG="v$(jq -r '.previousVersion // empty' "$STATE_FILE")"
-[ "$LAST_TAG" = "v" ] && LAST_TAG="—"
-NEW_TAG="v$(jq -r '.version // empty' "$STATE_FILE")"
-[ "$NEW_TAG" = "v" ] && NEW_TAG="—"
+# Read state file fields (defaults when missing).
+# Raw versions (X.Y.Z) are used for branch names and snapshot strings.
+# Tag versions (vX.Y.Z) are used only where git tag syntax is expected.
+LAST_VERSION="$(jq -r '.previousVersion // empty' "$STATE_FILE")"
+[ -z "$LAST_VERSION" ] && LAST_VERSION="—"
+NEW_VERSION="$(jq -r '.version // empty' "$STATE_FILE")"
+[ -z "$NEW_VERSION" ] && NEW_VERSION="—"
+LAST_TAG="$LAST_VERSION"
+[ "$LAST_VERSION" != "—" ] && LAST_TAG="v$LAST_VERSION"
+NEW_TAG="$NEW_VERSION"
+[ "$NEW_VERSION" != "—" ] && NEW_TAG="v$NEW_VERSION"
 RELEASE_PR="#$(jq -r '.prNumber // empty' "$STATE_FILE")"
 [ "$RELEASE_PR" = "#" ] && RELEASE_PR="—"
 BACKMERGE_PR="#$(jq -r '.backmergePrNumber // empty' "$STATE_FILE")"
 [ "$BACKMERGE_PR" = "#" ] && BACKMERGE_PR="—"
 GITHUB_RELEASE_URL="$(jq -r '.githubReleaseUrl // empty' "$STATE_FILE")"
-# NEXT_SNAPSHOT is derived from version: bump minor, append -SNAPSHOT
-# compute_next_snapshot bumps minor: v3.2.0 -> 3.3.0-SNAPSHOT
-NEXT_SNAPSHOT="$(compute_next_snapshot "$NEW_TAG")"
+# NEXT_SNAPSHOT is derived from version: bump minor, append -SNAPSHOT.
+# compute_next_snapshot operates on raw X.Y.Z: 3.2.0 -> 3.3.0-SNAPSHOT
+NEXT_SNAPSHOT=""
+[ "$NEW_VERSION" != "—" ] && NEXT_SNAPSHOT="$(compute_next_snapshot "$NEW_VERSION")"
 [ -z "$NEXT_SNAPSHOT" ] && NEXT_SNAPSHOT="—"
 ```
 
@@ -1473,18 +1480,18 @@ schema, the renderer degrades gracefully to `—` for
 
 Read the template at `references/git-flow-cycle-explainer.md` (see the
 canonical template for the full body). Apply literal string replacement
-for each of the six placeholders:
+for each of the eight placeholders:
 
-- `{{LAST_TAG}}`, `{{NEW_TAG}}`, `{{NEXT_SNAPSHOT}}`, `{{RELEASE_PR}}`,
-  `{{BACKMERGE_PR}}`, `{{GITHUB_RELEASE_URL}}`
+- `{{LAST_VERSION}}`, `{{NEW_VERSION}}`, `{{LAST_TAG}}`, `{{NEW_TAG}}`,
+  `{{NEXT_SNAPSHOT}}`, `{{RELEASE_PR}}`, `{{BACKMERGE_PR}}`,
+  `{{GITHUB_RELEASE_URL}}`
 
 Substitution is **literal only** — placeholders MUST NOT be evaluated as
-template language, shell command, or Markdown directive (security
-RULE-003: state-file values are treated as untrusted input). The output
-is printed to stdout.
+template language, shell command, or Markdown directive; state-file
+values are treated as untrusted input. The output is printed to stdout.
 
 When `githubReleaseUrl` is empty or `null`, the `GitHub Release:` line is
-omitted from the rendered output (the `Artefatos criados:` block
+omitted from the rendered output (the `Artifacts created:` block
 continues with the remaining three entries). This prevents a bare `—` on
 a URL line, which reads as a broken link.
 
