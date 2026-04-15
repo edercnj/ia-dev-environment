@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **EPIC-0039 story-0039-0003 — Pre-commit integrity checks in VALIDATE-DEEP.** New sub-check 10 (`VALIDATE_INTEGRITY_DRIFT`) detects cross-file drift before the release branch is created: empty `[Unreleased]` in CHANGELOG, version misalignment between `pom.xml` and `README.md`/`CLAUDE.md` badges, and new `TODO`/`FIXME`/`HACK`/`XXX` markers in the commit window (WARN only). New pure-domain `IntegrityChecker` (3 checks) + `IntegrityReport` aggregator + `DiffTodoScanner` + `VersionExtractor` (regex-based, no XML parser to avoid XXE) + `RepoFileReader` adapter (UTF-8, path-traversal rejected). Flags `--skip-integrity` (not recommended) and `--integrity-report <path>` documented in `x-release` SKILL.md source. 37 tests (unit + IT + smoke), all green.
+
 ## [3.5.0] - 2026-04-15
 
 ### Added
