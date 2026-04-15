@@ -3,7 +3,7 @@ name: x-release
 description: "Orchestrates complete release flow using Git Flow release branches with approval gate, PR-flow (gh CLI) and deep validation: version bump (auto-detect or explicit), release branch creation from develop, deep validation (coverage, golden files, version consistency), version file updates, changelog generation, release commit, release PR via gh (optionally reviewed by x-review-pr), human approval gate with persistent state file, tag on main after merged PR, back-merge PR to develop with conflict detection, and cleanup. Supports hotfix releases from main, dry-run mode, resume via --continue-after-merge, in-session pause via --interactive, GPG-signed tags, skip-review opt-out, and custom state file path."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, Skill, AskUserQuestion
-argument-hint: "[major|minor|patch|version] [--version X.Y.Z] [--last-tag <tag>] [--dry-run] [--skip-tests] [--no-publish] [--hotfix] [--continue-after-merge] [--interactive] [--signed-tag] [--skip-review] [--state-file <path>]"
+argument-hint: "[major|minor|patch|version] [--version X.Y.Z] [--last-tag <tag>] [--dry-run] [--skip-tests] [--no-publish] [--no-github-release] [--hotfix] [--continue-after-merge] [--interactive] [--signed-tag] [--skip-review] [--state-file <path>]"
 ---
 
 ## Global Output Policy
@@ -29,6 +29,7 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 - `/x-release patch --skip-tests` — skip test validation
 - `/x-release minor --no-publish` — create release locally without pushing
 - `/x-release patch --hotfix` — create hotfix release from `main`
+- `/x-release minor --continue-after-merge --no-github-release` — skip GitHub Release prompt (CI path, story-0039-0006)
 
 ## Parameters
 
@@ -40,6 +41,7 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 | `--dry-run` | No | Preview release plan without executing any changes |
 | `--skip-tests` | No | Skip test validation (displays warning) |
 | `--no-publish` | No | Create release locally without pushing to remote |
+| `--no-github-release` | No | Skip the GitHub Release creation prompt in Step 11.1 (CI path; story-0039-0006, RULE-007). There is **no** silent auto-create mode — when this flag is absent, the operator is always prompted via AskUserQuestion. |
 | `--hotfix` | No | Create hotfix release from `main` instead of `develop` |
 | `--continue-after-merge` | No | Resume flow from RESUME-AND-TAG after the release PR has been merged manually. Requires an existing state file with `phase: APPROVAL_PENDING`. |
 | `--interactive` | No | Activate in-session pause at APPROVAL-GATE via `AskUserQuestion` instead of exiting the skill. The state file is still persisted for defense in depth. |
@@ -62,7 +64,7 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
  8. APPROVAL-GATE   -> Persist APPROVAL_PENDING, print instructions, halt (or interactive)
  9. TAG             -> Create annotated/signed git tag on main (after merged PR)
 10. BACK-MERGE-DEVELOP -> Open PR to develop with conflict detection (clean or conflict flow)
-11. PUBLISH         -> Push the release tag to remote (main/develop go via PR flow)
+11. PUBLISH         -> Push the release tag to remote (main/develop go via PR flow); optionally create GitHub Release (story-0039-0006, RULE-007 confirmation)
 12. CLEANUP         -> Delete the release branch
 13. SUMMARY         -> Render Git Flow cycle explainer (read-only; skipped by --no-summary)
     DRY-RUN         -> If --dry-run, show plan and exit (no changes)
@@ -1443,6 +1445,116 @@ If `--no-publish` flag IS present:
 - Skip the tag push
 - Display: "Release created locally. Run 'git push origin v${VERSION}' manually when ready."
 
+#### Step 11.1 — GitHub Release (story-0039-0006)
+
+> **RULE-007 (Mandatory confirmation):** When GitHub Release creation is
+> enabled, the operator **MUST** be asked for explicit confirmation. There is
+> no silent auto-create mode. For fully automated CI pipelines, set
+> `--no-github-release` and create the GitHub Release in a subsequent
+> pipeline step with explicit audit logging.
+
+After the tag is pushed, optionally create a GitHub Release via `gh release create`.
+This is gated by `--no-github-release` and by an interactive prompt. The body is
+extracted from the `[X.Y.Z]` section of `CHANGELOG.md` by
+{@code dev.iadev.release.changelog.ChangelogBodyExtractor}.
+
+Flag mutex rules (recorded in the error catalog below):
+
+- `--no-github-release` — skip the step entirely without prompting (CI path).
+- Default (no flag) — prompt the operator via AskUserQuestion.
+
+The three execution paths are exhaustive:
+
+```bash
+# ---------- Path A: --no-github-release (CI / skip) ----------
+if [ "$NO_GITHUB_RELEASE" = "true" ]; then
+  echo "[PUBLISH] --no-github-release set: skipping GitHub Release creation."
+  # State: githubReleaseUrl stays null
+  jq '.githubReleaseUrl = null' "$STATE_FILE" > "$STATE_FILE.tmp" \
+    && mv "$STATE_FILE.tmp" "$STATE_FILE"
+  # Do not exit the skill here; skip this optional step and continue to
+  # later cleanup/finalization phases.
+else
+  # ---------- Extract CHANGELOG body ----------
+  # NEVER interpolate ${VERSION} into an awk/sed regex: SemVer contains
+  # '.' (regex-any-char) and may contain '+' / '-' (quantifier / range)
+  # which causes silent mismatch or wrong-section selection. Delegate to
+  # dev.iadev.release.changelog.ChangelogBodyExtractor which uses
+  # Pattern.quote(version) for literal matching (RULE-006 / ReDoS safe).
+  CHANGELOG_BODY="$(ChangelogBodyExtractor CHANGELOG.md "${VERSION}")"
+
+  if [ -z "$CHANGELOG_BODY" ]; then
+    echo "[PUBLISH] WARNING: no [${VERSION}] entry in CHANGELOG.md."
+    echo "          You may create the Release with a generic body or skip."
+  fi
+fi
+```
+
+The interactive prompt (Path B / Path C) **MUST** be an AskUserQuestion
+call with the three outcomes mutually exclusive. The skill MUST NOT
+create the Release without an explicit `yes` response.
+
+```text
+AskUserQuestion:
+  "Create GitHub Release v${VERSION}?"
+  options:
+    [Y] Yes, create now    -> Path B (gh release create)
+    [n] No, skip           -> Path C (skip, warn-only)
+```
+
+```bash
+# ---------- Path B: interactive Y (happy path) ----------
+if gh release create "v${VERSION}" \
+    --title "v${VERSION}" \
+    --notes "$CHANGELOG_BODY"; then
+  GH_RELEASE_URL=$(gh release view "v${VERSION}" --json url -q .url)
+  jq --arg url "$GH_RELEASE_URL" '.githubReleaseUrl = $url' "$STATE_FILE" \
+    > "$STATE_FILE.tmp" && mv "$STATE_FILE.tmp" "$STATE_FILE"
+  echo "[PUBLISH] GitHub Release created: ${GH_RELEASE_URL}"
+else
+  # Warn-only — tag is already pushed, release is usable without a
+  # GitHub Release object. Operator can create it later manually.
+  echo "[PUBLISH] WARNING [PUBLISH_GH_RELEASE_FAILED]: gh release create"
+  echo "          returned non-zero. The tag v${VERSION} is already"
+  echo "          published. Create the Release manually with:"
+  echo "            gh release create v${VERSION} --notes-file CHANGELOG-BODY.md"
+  jq '.githubReleaseUrl = null' "$STATE_FILE" > "$STATE_FILE.tmp" \
+    && mv "$STATE_FILE.tmp" "$STATE_FILE"
+fi
+
+# ---------- Path C: interactive n (skip) ----------
+# (taken when AskUserQuestion returns "no"; state.githubReleaseUrl = null)
+jq '.githubReleaseUrl = null' "$STATE_FILE" > "$STATE_FILE.tmp" \
+  && mv "$STATE_FILE.tmp" "$STATE_FILE"
+echo "[PUBLISH] Operator declined: GitHub Release not created."
+```
+
+**Security invariants (story-0039-0006 / RULE-006):**
+
+- `${VERSION}` and the CHANGELOG body are passed to `gh` via argv
+  (`--title`, `--notes`), **never** shell-interpolated into a larger
+  command string. This prevents command injection via crafted CHANGELOG
+  content.
+- `gh` CLI authentication failures and rate-limit responses are
+  **warn-only** — the release pipeline proceeds because the git tag is
+  already public. See error catalog row `PUBLISH_GH_RELEASE_FAILED`.
+- Unknown `PUBLISH`-scope flags are rejected with `PUBLISH_UNKNOWN_FLAG`
+  (defensive; exit 1) before any remote call.
+
+**State contract:** after Step 11.1 completes (any path), the release
+state file contains:
+
+```json
+{
+  "...": "...",
+  "githubReleaseUrl": "https://github.com/org/repo/releases/tag/v3.2.0"
+}
+```
+
+where `githubReleaseUrl` is a nullable `String`. Downstream phases
+(SUMMARY in S05) read this field to report whether a Release object was
+created.
+
 ### Step 12 — Cleanup
 
 Delete the release branch after successful merge:
@@ -1611,6 +1723,10 @@ Phases:
                        -> on failure: log WT_RELEASE_REMOVE_FAILED, preserve worktree
  11. PUBLISH           -> git push origin v2.3.0 (if not already pushed in phase 9)
                        -> warn-only on push failure (tag exists locally)
+                       -> unless --no-github-release: prompt operator (RULE-007)
+                       -> on Y: gh release create v2.3.0 --title / --notes (body from CHANGELOG [2.3.0])
+                       -> on n: skip (githubReleaseUrl=null)
+                       -> gh failure: warn-only (PUBLISH_GH_RELEASE_FAILED)
  12. CLEANUP           -> delete release/2.3.0 (local + remote)
                        -> delete plans/release-state-2.3.0.json
                        -> print final report
@@ -1756,6 +1872,8 @@ printed at runtime.
 | 3 | `WT_RELEASE_BRANCH_MISMATCH` | Reused release worktree points at wrong branch | `Existing worktree <id> is on '<actual>', expected '<expected>'` | 1 |
 | 3 | `WT_RELEASE_CREATE_FAILED` | `x-git-worktree create` non-zero, or path escapes `.claude/worktrees/` prefix | `Could not create release worktree <id>` | 1 |
 | 10bis | `WT_RELEASE_REMOVE_FAILED` | `x-git-worktree remove` non-zero, or `cd` back to main repo failed | `Could not remove release worktree <id>; left in place for inspection` | — |
+| 11 | `PUBLISH_GH_RELEASE_FAILED` | `gh release create` non-zero (auth, rate limit, API error) | `Failed to create GitHub Release v<V>. Tag v<V> is already published; create the Release manually.` | — |
+| 11 | `PUBLISH_UNKNOWN_FLAG` | Unknown flag passed to PUBLISH phase (defensive) | `Unknown flag in PUBLISH phase: <flag>. Expected --no-github-release or --no-publish.` | 1 |
 
 ## Integration Notes
 
