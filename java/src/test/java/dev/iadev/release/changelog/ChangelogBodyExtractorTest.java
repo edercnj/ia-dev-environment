@@ -202,5 +202,28 @@ class ChangelogBodyExtractorTest {
             assertThat(result).isPresent();
             assertThat(result.get()).contains("build body");
         }
+
+        @Test
+        void extract_bodyEndsWithWhitespaceOnlyLine_stripsTrailingBlanks() {
+            // The extracted section ends with "body\n  \n\t\n" — trailing
+            // whitespace-only lines must be trimmed per trimBlankLines contract.
+            String changelog = "## [1.0.0]\n\nbody\n  \n\t\n## [0.9.0]\n\nold\n";
+
+            Optional<String> result = ChangelogBodyExtractor.extract(changelog, "1.0.0");
+
+            assertThat(result).isPresent();
+            assertThat(result.get()).isEqualTo("body");
+        }
+
+        @Test
+        void extract_bodyEndsWithWhitespaceOnlyLineAtEof_stripsTrailingBlanks() {
+            // Last-section variant: whitespace-only line preceding EOF.
+            String changelog = "## [1.0.0]\n\nbody\n   \n\t\n";
+
+            Optional<String> result = ChangelogBodyExtractor.extract(changelog, "1.0.0");
+
+            assertThat(result).isPresent();
+            assertThat(result.get()).isEqualTo("body");
+        }
     }
 }

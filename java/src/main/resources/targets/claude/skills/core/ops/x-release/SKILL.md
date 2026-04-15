@@ -1447,7 +1447,7 @@ If `--no-publish` flag IS present:
 
 #### Step 11.1 — GitHub Release (story-0039-0006)
 
-> **RULE-007 (Confirmação obrigatória):** When GitHub Release creation is
+> **RULE-007 (Mandatory confirmation):** When GitHub Release creation is
 > enabled, the operator **MUST** be asked for explicit confirmation. There is
 > no silent auto-create mode. For fully automated CI pipelines, set
 > `--no-github-release` and create the GitHub Release in a subsequent
@@ -1472,16 +1472,21 @@ if [ "$NO_GITHUB_RELEASE" = "true" ]; then
   # State: githubReleaseUrl stays null
   jq '.githubReleaseUrl = null' "$STATE_FILE" > "$STATE_FILE.tmp" \
     && mv "$STATE_FILE.tmp" "$STATE_FILE"
-  exit 0
-fi
+  # Do not exit the skill here; skip this optional step and continue to
+  # later cleanup/finalization phases.
+else
+  # ---------- Extract CHANGELOG body ----------
+  # NEVER interpolate ${VERSION} into an awk/sed regex: SemVer contains
+  # '.' (regex-any-char) and may contain '+' / '-' (quantifier / range)
+  # which causes silent mismatch or wrong-section selection. Delegate to
+  # dev.iadev.release.changelog.ChangelogBodyExtractor which uses
+  # Pattern.quote(version) for literal matching (RULE-006 / ReDoS safe).
+  CHANGELOG_BODY="$(ChangelogBodyExtractor CHANGELOG.md "${VERSION}")"
 
-# ---------- Extract CHANGELOG body ---------- 
-CHANGELOG_BODY=$(awk "/^## \[${VERSION}\]/,/^## \[/" CHANGELOG.md \
-  | sed '1d;$d')
-
-if [ -z "$CHANGELOG_BODY" ]; then
-  echo "[PUBLISH] WARNING: no [${VERSION}] entry in CHANGELOG.md."
-  echo "          You may create the Release with a generic body or skip."
+  if [ -z "$CHANGELOG_BODY" ]; then
+    echo "[PUBLISH] WARNING: no [${VERSION}] entry in CHANGELOG.md."
+    echo "          You may create the Release with a generic body or skip."
+  fi
 fi
 ```
 

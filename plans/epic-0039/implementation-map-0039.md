@@ -13,7 +13,7 @@
 | story-0039-0003 | Pre-commit integrity checks | — | — | 0009 | Pendente |
 | story-0039-0004 | Paralelização de VALIDATE-DEEP | — | — | — | Pendente |
 | story-0039-0005 | Phase SUMMARY com diagrama Git Flow | — | — | 0014 | Pendente |
-| story-0039-0006 | GitHub Release auto com confirmação | — | — | — | Concluida |
+| story-0039-0006 | GitHub Release auto com confirmação | — | — | — | Concluída |
 | story-0039-0007 | Engine de prompts interativos | — | 0002 | 0011, 0013, 0014 | Pendente |
 | story-0039-0008 | Smart Resume | — | 0001, 0002 | 0014 | Pendente |
 | story-0039-0009 | Pre-flight dashboard | — | 0001, 0003 | 0013, 0014 | Pendente |

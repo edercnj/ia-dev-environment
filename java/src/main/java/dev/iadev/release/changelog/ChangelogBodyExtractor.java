@@ -65,19 +65,32 @@ public final class ChangelogBodyExtractor {
         int start = 0;
         int end = raw.length();
         while (start < end && isBlankAt(raw, start)) {
-            start = raw.indexOf('\n', start) + 1;
-            if (start == 0) {
+            int lineEnd = raw.indexOf('\n', start);
+            if (lineEnd < 0) {
                 return "";
             }
+            start = lineEnd + 1;
         }
-        while (end > start && raw.charAt(end - 1) == '\n') {
-            end--;
+        if (start >= end) {
+            return "";
         }
-        String trimmed = raw.substring(start, end);
-        while (!trimmed.isEmpty() && trimmed.charAt(trimmed.length() - 1) == '\n') {
-            trimmed = trimmed.substring(0, trimmed.length() - 1);
+
+        // Scan forward tracking the end of the last non-blank line. Trailing
+        // whitespace-only lines (spaces / tabs followed by '\n', or '\n\n')
+        // are excluded from the returned substring.
+        int scan = start;
+        int lastNonBlankEnd = start;
+        while (scan < end) {
+            int lineEnd = raw.indexOf('\n', scan);
+            if (lineEnd < 0) {
+                lineEnd = end;
+            }
+            if (!isBlankAt(raw, scan)) {
+                lastNonBlankEnd = lineEnd;
+            }
+            scan = (lineEnd < end) ? lineEnd + 1 : end;
         }
-        return trimmed;
+        return raw.substring(start, lastNonBlankEnd);
     }
 
     private static boolean isBlankAt(final String s, final int from) {

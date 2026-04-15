@@ -3,7 +3,7 @@ name: x-release
 description: "Orchestrates complete release flow using Git Flow release branches with approval gate, PR-flow (gh CLI) and deep validation: version bump (auto-detect or explicit), release branch creation from develop, deep validation (coverage, golden files, version consistency), version file updates, changelog generation, release commit, release PR via gh (optionally reviewed by x-review-pr), human approval gate with persistent state file, tag on main after merged PR, back-merge PR to develop with conflict detection, and cleanup. Supports hotfix releases from main, dry-run mode, resume via --continue-after-merge, in-session pause via --interactive, GPG-signed tags, skip-review opt-out, and custom state file path."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, Skill, AskUserQuestion
-argument-hint: "[major|minor|patch|version] [--version X.Y.Z] [--last-tag <tag>] [--dry-run] [--skip-tests] [--no-publish] [--hotfix] [--continue-after-merge] [--interactive] [--signed-tag] [--skip-review] [--state-file <path>]"
+argument-hint: "[major|minor|patch|version] [--version X.Y.Z] [--last-tag <tag>] [--dry-run] [--skip-tests] [--no-publish] [--no-github-release] [--hotfix] [--continue-after-merge] [--interactive] [--signed-tag] [--skip-review] [--state-file <path>]"
 context-budget: heavy
 ---
 
@@ -30,6 +30,7 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 - `/x-release patch --skip-tests` — skip test validation
 - `/x-release minor --no-publish` — create release locally without pushing
 - `/x-release patch --hotfix` — create hotfix release from `main`
+- `/x-release minor --continue-after-merge --no-github-release` — skip GitHub Release prompt (CI path, story-0039-0006)
 
 ## Parameters
 
@@ -41,12 +42,14 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 | `--dry-run` | No | Preview release plan without executing any changes |
 | `--skip-tests` | No | Skip test validation (displays warning) |
 | `--no-publish` | No | Create release locally without pushing to remote |
+| `--no-github-release` | No | Skip the GitHub Release creation prompt in Step 11.1 (CI path; story-0039-0006, RULE-007). There is **no** silent auto-create mode — when this flag is absent, the operator is always prompted via AskUserQuestion. |
 | `--hotfix` | No | Create hotfix release from `main` instead of `develop` |
 | `--continue-after-merge` | No | Resume flow from RESUME-AND-TAG after the release PR has been merged manually. Requires an existing state file with `phase: APPROVAL_PENDING`. |
 | `--interactive` | No | Activate in-session pause at APPROVAL-GATE via `AskUserQuestion` instead of exiting the skill. The state file is still persisted for defense in depth. |
 | `--signed-tag` | No | Create a GPG-signed git tag (`git tag -s`) instead of an annotated tag (`git tag -a`). |
 | `--skip-review` | No | Skip the fire-and-forget `x-review-pr` invocation at the end of Phase `OPEN-RELEASE-PR`. The release PR is still opened against `main`; only the automated specialist review is suppressed. |
 | `--state-file <path>` | No | Override the state file path (default: `plans/release-state-<X.Y.Z>.json`). |
+| `--no-summary` | No | Skip Phase 13 (SUMMARY). Intended for CI runs where the verbose Git Flow summary block is noise. Phase 13 is read-only, so skipping it never changes behaviour — only suppresses output. |
 
 ## Workflow
 
@@ -62,8 +65,9 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
  8. APPROVAL-GATE   -> Persist APPROVAL_PENDING, print instructions, halt (or interactive)
  9. TAG             -> Create annotated/signed git tag on main (after merged PR)
 10. BACK-MERGE-DEVELOP -> Open PR to develop with conflict detection (clean or conflict flow)
-11. PUBLISH         -> Push the release tag to remote (main/develop go via PR flow)
+11. PUBLISH         -> Push the release tag to remote (main/develop go via PR flow); optionally create GitHub Release (story-0039-0006, RULE-007 confirmation)
 12. CLEANUP         -> Delete the release branch
+13. SUMMARY         -> Render Git Flow cycle explainer (read-only; skipped by --no-summary)
     DRY-RUN         -> If --dry-run, show plan and exit (no changes)
 ```
 
@@ -1442,6 +1446,116 @@ If `--no-publish` flag IS present:
 - Skip the tag push
 - Display: "Release created locally. Run 'git push origin v${VERSION}' manually when ready."
 
+#### Step 11.1 — GitHub Release (story-0039-0006)
+
+> **RULE-007 (Mandatory confirmation):** When GitHub Release creation is
+> enabled, the operator **MUST** be asked for explicit confirmation. There is
+> no silent auto-create mode. For fully automated CI pipelines, set
+> `--no-github-release` and create the GitHub Release in a subsequent
+> pipeline step with explicit audit logging.
+
+After the tag is pushed, optionally create a GitHub Release via `gh release create`.
+This is gated by `--no-github-release` and by an interactive prompt. The body is
+extracted from the `[X.Y.Z]` section of `CHANGELOG.md` by
+{@code dev.iadev.release.changelog.ChangelogBodyExtractor}.
+
+Flag mutex rules (recorded in the error catalog below):
+
+- `--no-github-release` — skip the step entirely without prompting (CI path).
+- Default (no flag) — prompt the operator via AskUserQuestion.
+
+The three execution paths are exhaustive:
+
+```bash
+# ---------- Path A: --no-github-release (CI / skip) ----------
+if [ "$NO_GITHUB_RELEASE" = "true" ]; then
+  echo "[PUBLISH] --no-github-release set: skipping GitHub Release creation."
+  # State: githubReleaseUrl stays null
+  jq '.githubReleaseUrl = null' "$STATE_FILE" > "$STATE_FILE.tmp" \
+    && mv "$STATE_FILE.tmp" "$STATE_FILE"
+  # Do not exit the skill here; skip this optional step and continue to
+  # later cleanup/finalization phases.
+else
+  # ---------- Extract CHANGELOG body ----------
+  # NEVER interpolate ${VERSION} into an awk/sed regex: SemVer contains
+  # '.' (regex-any-char) and may contain '+' / '-' (quantifier / range)
+  # which causes silent mismatch or wrong-section selection. Delegate to
+  # dev.iadev.release.changelog.ChangelogBodyExtractor which uses
+  # Pattern.quote(version) for literal matching (RULE-006 / ReDoS safe).
+  CHANGELOG_BODY="$(ChangelogBodyExtractor CHANGELOG.md "${VERSION}")"
+
+  if [ -z "$CHANGELOG_BODY" ]; then
+    echo "[PUBLISH] WARNING: no [${VERSION}] entry in CHANGELOG.md."
+    echo "          You may create the Release with a generic body or skip."
+  fi
+fi
+```
+
+The interactive prompt (Path B / Path C) **MUST** be an AskUserQuestion
+call with the three outcomes mutually exclusive. The skill MUST NOT
+create the Release without an explicit `yes` response.
+
+```text
+AskUserQuestion:
+  "Create GitHub Release v${VERSION}?"
+  options:
+    [Y] Yes, create now    -> Path B (gh release create)
+    [n] No, skip           -> Path C (skip, warn-only)
+```
+
+```bash
+# ---------- Path B: interactive Y (happy path) ----------
+if gh release create "v${VERSION}" \
+    --title "v${VERSION}" \
+    --notes "$CHANGELOG_BODY"; then
+  GH_RELEASE_URL=$(gh release view "v${VERSION}" --json url -q .url)
+  jq --arg url "$GH_RELEASE_URL" '.githubReleaseUrl = $url' "$STATE_FILE" \
+    > "$STATE_FILE.tmp" && mv "$STATE_FILE.tmp" "$STATE_FILE"
+  echo "[PUBLISH] GitHub Release created: ${GH_RELEASE_URL}"
+else
+  # Warn-only — tag is already pushed, release is usable without a
+  # GitHub Release object. Operator can create it later manually.
+  echo "[PUBLISH] WARNING [PUBLISH_GH_RELEASE_FAILED]: gh release create"
+  echo "          returned non-zero. The tag v${VERSION} is already"
+  echo "          published. Create the Release manually with:"
+  echo "            gh release create v${VERSION} --notes-file CHANGELOG-BODY.md"
+  jq '.githubReleaseUrl = null' "$STATE_FILE" > "$STATE_FILE.tmp" \
+    && mv "$STATE_FILE.tmp" "$STATE_FILE"
+fi
+
+# ---------- Path C: interactive n (skip) ----------
+# (taken when AskUserQuestion returns "no"; state.githubReleaseUrl = null)
+jq '.githubReleaseUrl = null' "$STATE_FILE" > "$STATE_FILE.tmp" \
+  && mv "$STATE_FILE.tmp" "$STATE_FILE"
+echo "[PUBLISH] Operator declined: GitHub Release not created."
+```
+
+**Security invariants (story-0039-0006 / RULE-006):**
+
+- `${VERSION}` and the CHANGELOG body are passed to `gh` via argv
+  (`--title`, `--notes`), **never** shell-interpolated into a larger
+  command string. This prevents command injection via crafted CHANGELOG
+  content.
+- `gh` CLI authentication failures and rate-limit responses are
+  **warn-only** — the release pipeline proceeds because the git tag is
+  already public. See error catalog row `PUBLISH_GH_RELEASE_FAILED`.
+- Unknown `PUBLISH`-scope flags are rejected with `PUBLISH_UNKNOWN_FLAG`
+  (defensive; exit 1) before any remote call.
+
+**State contract:** after Step 11.1 completes (any path), the release
+state file contains:
+
+```json
+{
+  "...": "...",
+  "githubReleaseUrl": "https://github.com/org/repo/releases/tag/v3.2.0"
+}
+```
+
+where `githubReleaseUrl` is a nullable `String`. Downstream phases
+(SUMMARY in S05) read this field to report whether a Release object was
+created.
+
 ### Step 12 — Cleanup
 
 Delete the release branch after successful merge:
@@ -1453,6 +1567,97 @@ git branch -d "release/${VERSION}"
 # Delete remote release branch (if pushed)
 git push origin --delete "release/${VERSION}" 2>/dev/null || true
 ```
+
+### Step 13 — Summary (Git Flow Cycle Explainer)
+
+Phase 13 is a **read-only** closing step that renders a visual summary of
+the Git Flow cycle just completed. It eliminates the recurring operator
+question "why does `develop` have N commits more than `main`?" by showing
+the cycle graphically, with real versions and PR numbers read from the
+state file. Phase 13 has no side effects: no git operations, no network
+calls, no file writes. It is safe to re-run and safe to skip.
+
+#### Step 13.1 — Skip on `--no-summary` (CI)
+
+When `--no-summary` is passed, Phase 13 is skipped entirely with log
+`"[SUMMARY] Phase 13 skipped (--no-summary)"`. CI pipelines that harvest
+log output for machine parsing should use this flag to suppress the
+verbose block. Skipping Phase 13 never changes release semantics — the
+release is already complete at the end of Phase 12.
+
+#### Step 13.2 — Read template and state
+
+```bash
+TEMPLATE_PATH="references/git-flow-cycle-explainer.md"
+# Read state file fields (defaults when missing).
+# Raw versions (X.Y.Z) are used for branch names and snapshot strings.
+# Tag versions (vX.Y.Z) are used only where git tag syntax is expected.
+LAST_VERSION="$(jq -r '.previousVersion // empty' "$STATE_FILE")"
+[ -z "$LAST_VERSION" ] && LAST_VERSION="—"
+NEW_VERSION="$(jq -r '.version // empty' "$STATE_FILE")"
+[ -z "$NEW_VERSION" ] && NEW_VERSION="—"
+LAST_TAG="$LAST_VERSION"
+[ "$LAST_VERSION" != "—" ] && LAST_TAG="v$LAST_VERSION"
+NEW_TAG="$NEW_VERSION"
+[ "$NEW_VERSION" != "—" ] && NEW_TAG="v$NEW_VERSION"
+RELEASE_PR="#$(jq -r '.prNumber // empty' "$STATE_FILE")"
+[ "$RELEASE_PR" = "#" ] && RELEASE_PR="—"
+BACKMERGE_PR="#$(jq -r '.backmergePrNumber // empty' "$STATE_FILE")"
+[ "$BACKMERGE_PR" = "#" ] && BACKMERGE_PR="—"
+GITHUB_RELEASE_URL="$(jq -r '.githubReleaseUrl // empty' "$STATE_FILE")"
+# NEXT_SNAPSHOT is derived from version: bump minor, append -SNAPSHOT.
+# compute_next_snapshot operates on raw X.Y.Z: 3.2.0 -> 3.3.0-SNAPSHOT
+NEXT_SNAPSHOT=""
+[ "$NEW_VERSION" != "—" ] && NEXT_SNAPSHOT="$(compute_next_snapshot "$NEW_VERSION")"
+[ -z "$NEXT_SNAPSHOT" ] && NEXT_SNAPSHOT="—"
+```
+
+Fields `backmergePrNumber` and `githubReleaseUrl` are introduced by
+sibling stories (`story-0039-0002` schema v2, `story-0039-0006` GitHub
+release automation). When they are absent from the current state file
+schema, the renderer degrades gracefully to `—` for
+`backmergePrNumber` and **omits the GitHub Release line entirely** when
+`githubReleaseUrl` is empty (see template contract).
+
+#### Step 13.3 — Render template
+
+Read the template at `references/git-flow-cycle-explainer.md` (see the
+canonical template for the full body). Apply literal string replacement
+for each of the eight placeholders:
+
+- `{{LAST_VERSION}}`, `{{NEW_VERSION}}`, `{{LAST_TAG}}`, `{{NEW_TAG}}`,
+  `{{NEXT_SNAPSHOT}}`, `{{RELEASE_PR}}`, `{{BACKMERGE_PR}}`,
+  `{{GITHUB_RELEASE_URL}}`
+
+Substitution is **literal only** — placeholders MUST NOT be evaluated as
+template language, shell command, or Markdown directive; state-file
+values are treated as untrusted input. The output is printed to stdout.
+
+When `githubReleaseUrl` is empty or `null`, the `GitHub Release:` line is
+omitted from the rendered output (the `Artifacts created:` block
+continues with the remaining three entries). This prevents a bare `—` on
+a URL line, which reads as a broken link.
+
+#### Step 13.4 — Line-width invariant
+
+Every rendered line MUST fit in 80 columns on a standard terminal. The
+template is hand-authored to respect this invariant, and the smoke test
+for this phase (story-0039-0005 TASK-005) asserts it on every line of
+the rendered output. When a version string pushes a line over 80 cols
+(e.g., `v3.10.100-rc.42`), the renderer SHOULD truncate or wrap rather
+than overflow — the template uses short, centred labels to minimize risk.
+
+#### Step 13.5 — State file corruption fallback
+
+If the state file is missing, malformed, or locked, Phase 13 emits:
+
+```
+[SUMMARY] Unable to read state file; skipping Git Flow summary.
+```
+
+It does not abort the release (the release already succeeded at end of
+Phase 12); it only suppresses the visual block. This keeps Phase 13
+strictly non-disruptive.
 
 ### Dry-Run Mode
 
@@ -1519,15 +1724,21 @@ Phases:
                        -> on failure: log WT_RELEASE_REMOVE_FAILED, preserve worktree
  11. PUBLISH           -> git push origin v2.3.0 (if not already pushed in phase 9)
                        -> warn-only on push failure (tag exists locally)
+                       -> unless --no-github-release: prompt operator (RULE-007)
+                       -> on Y: gh release create v2.3.0 --title / --notes (body from CHANGELOG [2.3.0])
+                       -> on n: skip (githubReleaseUrl=null)
+                       -> gh failure: warn-only (PUBLISH_GH_RELEASE_FAILED)
  12. CLEANUP           -> delete release/2.3.0 (local + remote)
                        -> delete plans/release-state-2.3.0.json
                        -> print final report
+ 13. SUMMARY           -> render git-flow-cycle-explainer.md to stdout
+                       -> read-only; skipped by --no-summary (CI)
 
 Flags active: (none)
 Estimated duration:
   Phases 0-7 (until halt):    ~5-10 min
   Human wait (approval):      minutes to hours
-  Phases 9-12 (after resume): ~2-3 min
+  Phases 9-13 (after resume): ~2-3 min
 
 === NO CHANGES MADE ===
 ```
@@ -1662,6 +1873,8 @@ printed at runtime.
 | 3 | `WT_RELEASE_BRANCH_MISMATCH` | Reused release worktree points at wrong branch | `Existing worktree <id> is on '<actual>', expected '<expected>'` | 1 |
 | 3 | `WT_RELEASE_CREATE_FAILED` | `x-git-worktree create` non-zero, or path escapes `.claude/worktrees/` prefix | `Could not create release worktree <id>` | 1 |
 | 10bis | `WT_RELEASE_REMOVE_FAILED` | `x-git-worktree remove` non-zero, or `cd` back to main repo failed | `Could not remove release worktree <id>; left in place for inspection` | — |
+| 11 | `PUBLISH_GH_RELEASE_FAILED` | `gh release create` non-zero (auth, rate limit, API error) | `Failed to create GitHub Release v<V>. Tag v<V> is already published; create the Release manually.` | — |
+| 11 | `PUBLISH_UNKNOWN_FLAG` | Unknown flag passed to PUBLISH phase (defensive) | `Unknown flag in PUBLISH phase: <flag>. Expected --no-github-release or --no-publish.` | 1 |
 
 ## Integration Notes
 
