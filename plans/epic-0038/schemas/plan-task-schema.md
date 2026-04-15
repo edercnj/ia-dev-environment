@@ -13,7 +13,12 @@
 
 | Artifact | Pattern | Regex | Example |
 | :--- | :--- | :--- | :--- |
-| Plan | `plan-task-TASK-XXXX-YYYY-NNN.md` | `^plan-task-TASK-\d{4}-\d{4}-\d{3}\.md$` | `plan-task-TASK-0038-0003-EXAMPLE.md` |
+| Plan (production) | `plan-task-TASK-XXXX-YYYY-NNN.md` | `^plan-task-TASK-\d{4}-\d{4}-\d{3}\.md$` | `plan-task-TASK-0038-0003-001.md` |
+| Plan (documentation fixture) | `plan-task-TASK-XXXX-YYYY-EXAMPLE.md` | `^plan-task-TASK-\d{4}-\d{4}-(\d{3}\|EXAMPLE)\.md$` | `plan-task-TASK-0038-0003-EXAMPLE.md` |
+
+> Production plans MUST use the numeric `NNN` suffix. Documentation fixtures under
+> `plans/epic-XXXX/examples/` MAY use the literal `EXAMPLE` suffix to signal schema
+> demonstration files. The skill consumes and the validator checks only the numeric pattern.
 
 ## 2. Required Sections (Order Significant)
 
