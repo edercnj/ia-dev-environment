@@ -3,7 +3,7 @@ name: x-release
 description: "Orchestrates complete release flow using Git Flow release branches with approval gate, PR-flow (gh CLI) and deep validation: version bump (auto-detect or explicit), release branch creation from develop, deep validation (coverage, golden files, version consistency), version file updates, changelog generation, release commit, release PR via gh (optionally reviewed by x-review-pr), human approval gate with persistent state file, tag on main after merged PR, back-merge PR to develop with conflict detection, and cleanup. Supports hotfix releases from main, dry-run mode, resume via --continue-after-merge, in-session pause via --interactive, GPG-signed tags, skip-review opt-out, and custom state file path."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, Skill, AskUserQuestion
-argument-hint: "[major|minor|patch|version] [--version X.Y.Z] [--last-tag <tag>] [--dry-run] [--skip-tests] [--no-publish] [--no-github-release] [--hotfix] [--continue-after-merge] [--interactive] [--signed-tag] [--skip-review] [--state-file <path>]"
+argument-hint: "[major|minor|patch|version] [--version X.Y.Z] [--last-tag <tag>] [--dry-run] [--skip-tests] [--no-publish] [--no-github-release] [--hotfix] [--continue-after-merge] [--interactive] [--signed-tag] [--skip-review] [--state-file <path>] [--skip-integrity] [--integrity-report <path>]"
 ---
 
 ## Global Output Policy
@@ -49,13 +49,15 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 | `--skip-review` | No | Skip the fire-and-forget `x-review-pr` invocation at the end of Phase `OPEN-RELEASE-PR`. The release PR is still opened against `main`; only the automated specialist review is suppressed. |
 | `--state-file <path>` | No | Override the state file path (default: `plans/release-state-<X.Y.Z>.json`). |
 | `--no-summary` | No | Skip Phase 13 (SUMMARY). Intended for CI runs where the verbose Git Flow summary block is noise. Phase 13 is read-only, so skipping it never changes behaviour — only suppresses output. |
+| `--skip-integrity` | No | Skip sub-check 10 (cross-file integrity drift) in VALIDATE-DEEP. **Not recommended**; emits a loud warning in the release log. |
+| `--integrity-report <path>` | No | Write the structured JSON integrity report to `<path>` regardless of pass/fail. For CI parsers. |
 
 ## Workflow
 
 ```
  0. RESUME-DETECT   -> Verify gh/jq, load or create state file, detect resume mode
  1. DETERMINE       -> Parse argument and calculate target version
- 2. VALIDATE-DEEP   -> Deep validation (8+1 checks: workdir, branch, changelog, build, coverage, golden, hardcoded, version consistency)
+ 2. VALIDATE-DEEP   -> Deep validation (8+1+1 checks: workdir, branch, changelog, build, coverage, golden, hardcoded, version consistency, generation dry-run, integrity drift)
  3. BRANCH          -> Create release/X.Y.Z branch from develop (or hotfix/* from main)
  4. UPDATE          -> Update version in project-specific files (strip SNAPSHOT)
  5. CHANGELOG       -> Generate/update CHANGELOG.md via x-release-changelog
@@ -203,6 +205,7 @@ else:
 | Unknown `schemaVersion` | `STATE_SCHEMA_VERSION` | Step 0.3 |
 | `--continue-after-merge` with no state | `RESUME_NO_STATE` | Step 0.3 |
 | State exists, `phase != COMPLETED` | `STATE_CONFLICT` | Step 0.3 |
+| Cross-file integrity drift (CHANGELOG/pom/README/version) | `VALIDATE_INTEGRITY_DRIFT` | Step 2 — Sub-check 10 |
 
 The full human-readable messages live in
 `references/state-file-schema.md`. All subsequent phases reuse the same
@@ -298,8 +301,9 @@ This follows Semantic Versioning (https://semver.org/spec/v2.0.0.html) rules.
 ### Step 2 — Phase VALIDATE-DEEP
 
 Phase VALIDATE-DEEP replaces the former simple pre-condition check with 8
-mandatory checks plus 1 conditional check. Each check has a unique error
-code. Checks execute sequentially — the first failure aborts the release.
+mandatory checks plus 1 conditional check plus 1 integrity check
+(sub-check 10). Each check has a unique error code. Checks execute
+sequentially — the first failure aborts the release.
 
 On success, the state file advances to `phase: VALIDATED`.
 
@@ -317,6 +321,7 @@ On success, the state file advances to `phase: VALIDATED`.
 | 7 | Hardcoded version strings | `grep -rn $CURRENT_VERSION` | matches outside allowed paths | `VALIDATE_HARDCODED_VERSION` | No (always-mandatory) |
 | 8 | Cross-file version consistency | pom ↔ target ↔ branch | mismatch | `VALIDATE_VERSION_MISMATCH` | No (always-mandatory) |
 | 9 | Generation dry-run (conditional) | `{{GENERATION_COMMAND}} --dry-run` | diff non-empty | `VALIDATE_GENERATION_DRIFT` | Conditional |
+| 10 | Integrity drift (cross-file) | `IntegrityChecker.run(...)` over CHANGELOG + pom + README + CLAUDE + diff | any sub-check FAIL (WARN does not abort) | `VALIDATE_INTEGRITY_DRIFT` | Yes (`--skip-integrity` — NOT recommended) |
 
 #### `--skip-tests` Behavior
 
@@ -497,6 +502,63 @@ else
   echo "Check 9: Skipped (no GENERATION_COMMAND configured)"
 fi
 ```
+
+#### Sub-check 10 — Integrity Drift (Story 0039-0003)
+
+Cross-file integrity checks that catch structural drift missed by the
+single-file checks above. Backed by the pure-domain
+`dev.iadev.release.integrity.IntegrityChecker` class and the
+`dev.iadev.release.integrity.RepoFileReader` adapter (UTF-8 only,
+path-traversal rejected).
+
+Three internal sub-checks, aggregated into one report:
+
+| # | Sub-check | Severity | Notes |
+|---|-----------|----------|-------|
+| 10.a | `changelog_unreleased_non_empty` | FAIL | `[Unreleased]` section must contain at least one entry line |
+| 10.b | `version_alignment` | FAIL | version in `pom.xml` must match the first semver match in `README.md`, `CLAUDE.md`, and any other configured version-bearing file |
+| 10.c | `no_new_todos` | WARN | scans `git log <last-tag>..HEAD -p` for new `TODO`/`FIXME`/`HACK`/`XXX` in `.java`/`.md`/`.peb` (excludes `TODO(...)` and test paths); never aborts |
+
+Aggregation: `overallStatus = FAIL` if any sub-check is FAIL; WARN if
+only WARNs are present; PASS otherwise. Only FAIL aborts the release.
+The abort emits the single stable error code
+`VALIDATE_INTEGRITY_DRIFT` with the list of offending files in the
+JSON report (when `--integrity-report <path>` is passed).
+
+```bash
+if [ "$SKIP_INTEGRITY" = true ]; then
+  echo "WARNING: Check 10 skipped (--skip-integrity). Not recommended."
+else
+  echo "Check 10: Running integrity drift checks..."
+  if ! run_integrity_checks; then
+    echo "ABORT VALIDATE_INTEGRITY_DRIFT: cross-file integrity drift detected"
+    echo "Inspect the report for per-file divergences."
+    exit 1
+  fi
+fi
+```
+
+JSON report format (emitted when `--integrity-report <path>` is set):
+
+```json
+{
+  "checks": [
+    {"name": "changelog_unreleased_non_empty", "status": "PASS"},
+    {"name": "version_alignment", "status": "FAIL", "files": ["README.md:42", "CLAUDE.md:8"]},
+    {"name": "no_new_todos", "status": "WARN", "files": ["src/main/java/Foo.java"]}
+  ],
+  "overallStatus": "FAIL",
+  "errorCode": "VALIDATE_INTEGRITY_DRIFT"
+}
+```
+
+Flags:
+- `--skip-integrity` — bypasses check 10 entirely. Emits a loud WARN
+  banner in the release log. **NOT recommended**; kept only for
+  emergency cherry-pick releases where the drift is intentional and
+  will be fixed in a follow-up.
+- `--integrity-report <path>` — writes the structured JSON report to
+  `<path>` regardless of pass/fail, for CI parsers and dashboards.
 
 #### State File Update on Success
 
