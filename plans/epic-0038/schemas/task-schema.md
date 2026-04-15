@@ -2,11 +2,15 @@
 
 **Status:** Canonical (story-0038-0001)
 **Filename pattern:** `task-TASK-XXXX-YYYY-NNN.md`
-**Filename regex:** `^task-TASK-\d{4}-\d{4}-\d{3}\.md$`
+**Filename regex (production tasks):** `^task-TASK-\d{4}-\d{4}-\d{3}\.md$`
+**Filename regex (documentation fixtures):** `^task-TASK-\d{4}-\d{4}-(\d{3}|EXAMPLE)\.md$`
 **Derived plan filename:** `plan-task-TASK-XXXX-YYYY-NNN.md`
 
 > The shorthand `task-TASK-NNN.md` appears in prose as a documental abbreviation only.
-> The schema, parser, and examples always use the full pattern above.
+> Production task files MUST use the numeric `NNN` pattern. Documentation fixtures under
+> `plans/epic-XXXX/examples/` MAY use the literal suffix `EXAMPLE` (e.g.
+> `task-TASK-0038-0003-EXAMPLE.md`) to signal that the file is a schema demonstration, not
+> a real task. Parser/validator inputs (TF-SCHEMA-001) still require numeric NNN.
 
 This document defines the formal schema of a task file as introduced by EPIC-0038 (Task-First
 Planning & Execution Architecture). It is the source of truth for `TaskFileParser` and for
@@ -16,13 +20,13 @@ authors of new task files.
 
 | # | Section | Required | Format | Validation Rule |
 | :--- | :--- | :--- | :--- | :--- |
-| 1 | Title `# Task: {title}` | Yes | H1 markdown | Non-empty |
+| 1 | Title `# Task: {title}` | Yes | H1 markdown | — (author convention) |
 | 2 | `**ID:** TASK-XXXX-YYYY-NNN` | Yes | Bold + regex `TASK-\d{4}-\d{4}-\d{3}` | Matches filename (TF-SCHEMA-001) |
-| 3 | `**Story:** story-XXXX-YYYY` | Yes | Bold + regex `story-\d{4}-\d{4}` | Format check |
+| 3 | `**Story:** story-XXXX-YYYY` | Yes | Bold + regex `story-\d{4}-\d{4}` | — (author convention) |
 | 4 | `**Status:** <enum>` | Yes | Enum | TF-SCHEMA-002 |
-| 5 | `## 1. Objetivo` | Yes | Markdown body | Non-empty |
+| 5 | `## 1. Objetivo` | Yes | Markdown body | — (author convention) |
 | 6 | `## 2. Contratos I/O` | Yes | 3 subsections | All three present |
-| 6.1 | `### 2.1 Inputs` | Yes | List/text | Non-empty (preconditions) |
+| 6.1 | `### 2.1 Inputs` | Yes | List/text | — (author convention) |
 | 6.2 | `### 2.2 Outputs` | Yes | List/text | Non-empty (TF-SCHEMA-004) |
 | 6.3 | `### 2.3 Testabilidade` | Yes | Checklist with EXACTLY one `[x]` | TF-SCHEMA-003 |
 | 7 | `## 3. Definition of Done` | Yes | Checklist | ≥ 6 items (TF-SCHEMA-005 WARN otherwise) |

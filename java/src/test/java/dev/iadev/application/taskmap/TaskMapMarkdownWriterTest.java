@@ -56,8 +56,8 @@ class TaskMapMarkdownWriterTest {
         @Test
         void mermaidBlock_emitsOneNodePerTaskAndSortedEdges() {
             String md = TaskMapMarkdownWriter.write("story-0038-0002", linearGraph());
-            assertThat(md).contains("T001[\"T001\"]");
-            assertThat(md).contains("T002[\"T002\"]");
+            assertThat(md).contains("T001[\"T001<br/>alpha\"]");
+            assertThat(md).contains("T002[\"T002<br/>beta\"]");
             assertThat(md).contains("T001 --> T002");
         }
     }
@@ -70,6 +70,19 @@ class TaskMapMarkdownWriterTest {
             String md = TaskMapMarkdownWriter.write("story-0038-0002", linearGraph());
             assertThat(md).contains("| 1 | T001 | T002 |");
             assertThat(md).contains("| 2 | T002 | — |");
+        }
+
+        @Test
+        void coalescedSuperNode_rendersWithParensAndCombinedLabel() {
+            TaskGraph g = TopologicalSorter.sort(List.of(
+                    independent("T001", "a", List.of()),
+                    new RawTask("T002", "b", List.of("T001"),
+                            TestabilityKind.COALESCED, List.of("T003")),
+                    new RawTask("T003", "c", List.of("T001"),
+                            TestabilityKind.COALESCED, List.of("T002"))));
+            String md = TaskMapMarkdownWriter.write("story-0038-0002", g);
+            assertThat(md).contains("| 1 | T001 | (T002, T003) |");
+            assertThat(md).contains("| 2 | (T002, T003) | — |");
         }
     }
 

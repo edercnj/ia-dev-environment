@@ -12,8 +12,8 @@
 | Documentation | `plans/epic-0038/examples/task-TASK-0037-0001-001.md` | Create (migrated example) |
 | Domain (model) | `dev.iadev.domain.taskfile.*` | Create new sub-package |
 | Test (unit) | `dev.iadev.domain.taskfile.*Test` | Create unit tests |
-| Test (integration) | `dev.iadev.taskfile.TaskExampleMigrationIT` | Create IT |
-| Test (golden) | `java/src/test/resources/golden/epic-0038/examples/task-TASK-0037-0001-001.md` | Create golden file |
+| Test (integration) | `dev.iadev.smoke.TaskExampleMigrationIT` | Create IT |
+| Test (smoke fixture) | `java/src/test/resources/smoke/epic-0038/examples/task-TASK-0037-0001-001.md` | Create reference fixture |
 
 Pure additive change. Zero touch in existing classes.
 
@@ -49,8 +49,7 @@ None.
 
 ```java
 public final class TaskFileParser {
-    public TaskFileValidationResult parse(String filename, String markdownContent);
-    public TaskFileValidationResult parse(Path file) throws IOException; // convenience
+    public static ParsedTaskFile parse(String markdown); // no I/O; pure string -> VO
 }
 
 public interface ValidationRule {
@@ -64,6 +63,8 @@ public final class TaskValidator {
 }
 ```
 
+Validation is performed by `TaskValidator` (returns `List<ValidationViolation>`); `TaskFileValidationResult` is the aggregate VO produced by callers that combine parsing + validation.
+
 ## 5. Dependency Direction
 
 ```
@@ -71,7 +72,7 @@ test -> domain.taskfile (parser, validator, VOs)
 domain.taskfile -> standard library only (Path, regex, List)
 ```
 
-Domain purity respected (no Jackson, no I/O annotations). The `parse(Path)` overload uses `Files.readString` — kept in domain because it is a JDK call, not framework I/O. If reviewers flag this, move to an adapter; for foundation V1, JDK file read inside parser is acceptable per project precedent (see `dev.iadev.smoke.*`).
+Domain purity respected (no Jackson, no I/O annotations, no filesystem access). `TaskFileParser.parse(String)` is pure: it takes markdown content and returns `ParsedTaskFile`. Callers (tests, future skills) read the file outside the domain and pass the string in.
 
 ## 6. Integration Points
 
@@ -101,10 +102,10 @@ TASK-004 precedes TASK-003 in execution order: validator can be tested in isolat
 
 ## 10. Mini-ADR — Parser placement in domain
 
-**Context:** Schema parser reads files. Pure domain forbids I/O.
-**Decision:** Place `TaskFileParser` in `dev.iadev.domain.taskfile`. Public API takes `String` content. Provide `parse(Path)` overload using `Files.readString` for ergonomic CLI integration.
-**Rationale:** Project precedent (`dev.iadev.smoke` uses `Files.walk`); avoids over-engineering an outbound port for a single CLI tool with no framework injection. Story 0038-0005 may extract a port if the parser is invoked by a runtime skill.
-**Consequences:** Reviewers may request port extraction. Acceptable trade-off; documented here.
+**Context:** Schema parser must be in domain, which forbids I/O.
+**Decision:** Place `TaskFileParser` in `dev.iadev.domain.taskfile` with a single pure API: `parse(String markdown) -> ParsedTaskFile`. No filesystem access inside the parser.
+**Rationale:** Keeps the domain layer I/O-free and trivially unit-testable without temp files. File reading is the caller's responsibility (e.g., the IT reads the fixture and passes the string).
+**Consequences:** Callers must do their own `Files.readString`. Acceptable — validator/parser stay pure.
 
 ## 11. Risk Assessment
 
