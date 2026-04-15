@@ -1908,3 +1908,33 @@ inspects `waveCount`/`taskCount` beyond logging them in the phase report.
 - **Failure attribution**: a story-level failure in v2 is always a real story-level
   failure (e.g., a PR conflict on merge). Task-level failures are caught and
   diagnosed inside x-story-implement before escalating.
+
+### Compatibility Matrix — `planningSchemaVersion` (story-0038-0008)
+
+The flag lives at the root of `plans/epic-XXXX/execution-state.json` and gates the
+choice between legacy and task-first execution across the three execution skills
+(x-task-implement, x-story-implement, x-epic-implement). Resolution is performed by
+`dev.iadev.domain.schemaversion.SchemaVersionResolver` and the result (plus a
+fallback reason, if any) is logged at the start of orchestration.
+
+| Epic Range | `planningSchemaVersion` | Flow | Notes |
+|------------|------------------------|------|-------|
+| epic-0025..0037 | `"1.0"` or field absent | Legacy top-down | `x-story-plan` monolithic; tasks are story sub-sections |
+| epic-0036 (rename) | `"1.0"` | Legacy top-down | Primary concern was skill taxonomy, not planning paradigm |
+| epic-0038 (this) | `"1.0"` | Legacy top-down | Spec §8.2 bootstrap: the task-first epic itself runs in v1 |
+| epic-0039+ | `"2.0"` | Task-first bottom-up | First dogfood of task-first; uses x-task-plan + x-task-implement |
+
+Fallback semantics (RULE-TF-05 Backward Compatibility):
+
+| Condition | Result | Emitted log |
+|-----------|--------|-------------|
+| File absent | V1 | `SCHEMA_VERSION_FALLBACK_NO_FILE` |
+| Field absent | V1 | `SCHEMA_VERSION_FALLBACK_MISSING_FIELD` |
+| Field malformed (`"legacy"`, `"3.0"`) | V1 | `SCHEMA_VERSION_INVALID_VALUE` |
+| Field explicitly `"1.0"` | V1 | (no warning) |
+| Field explicitly `"2.0"` | V2 | (no warning) |
+| JSON unparseable | Hard fail (`UncheckedIOException`) | — |
+
+**Zero-regression guarantee:** legacy epics (pre-0038) that never write the field
+are treated exactly as before. The only new observable is a single-line
+`schema: v1 [NO_FILE]` log at the start of orchestration.
