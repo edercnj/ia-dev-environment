@@ -91,4 +91,26 @@ public record ReleaseState(
     public ReleaseState {
         // Canonical constructor for Jackson; immutable record.
     }
+
+    /**
+     * Copy-with helper producing a new record instance whose
+     * {@code nextActions} field is replaced. Used in tests and
+     * in the validator's programmatic update flow to avoid
+     * introducing a mutable builder for a record.
+     *
+     * @param replacement new nextActions list (may be {@code null})
+     * @return new ReleaseState with every other field preserved
+     */
+    public ReleaseState withNextActions(
+            List<NextAction> replacement) {
+        return new ReleaseState(
+                schemaVersion, version, phase, branch,
+                baseBranch, hotfix, dryRun, signedTag,
+                interactive, startedAt, lastPhaseCompletedAt,
+                phasesCompleted, targetVersion, previousVersion,
+                bumpType, prNumber, prUrl, prTitle,
+                changelogEntry, tagMessage, replacement,
+                waitingFor, phaseDurations,
+                lastPromptAnsweredAt, githubReleaseUrl);
+    }
 }
