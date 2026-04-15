@@ -5,8 +5,10 @@ import dev.iadev.domain.taskmap.TaskGraph;
 import dev.iadev.domain.taskmap.TaskNode;
 import dev.iadev.domain.taskmap.Wave;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -48,9 +50,9 @@ public final class TaskMapMarkdownWriter {
         sb.append("## Dependency Graph\n\n");
         sb.append("```mermaid\n");
         sb.append("graph TD\n");
-        for (TaskNode n : graph.nodes()) {
+        for (TaskNode n : nodesInTopologicalOrder(graph)) {
             sb.append("    ").append(nodeMermaidId(n))
-                    .append("[\"").append(escapeMermaidLabel(nodeLabel(n)))
+                    .append("[\"").append(escapeMermaidLabel(mermaidNodeLabel(n)))
                     .append("\"]\n");
         }
         for (Edge e : sortedEdges(graph.edges())) {
@@ -64,10 +66,13 @@ public final class TaskMapMarkdownWriter {
         sb.append("## Execution Order\n\n");
         sb.append("| Wave | Tasks (parallelisable) | Blocks |\n");
         sb.append("| :--- | :--- | :--- |\n");
+        Map<String, TaskNode> nodeByKey = nodeByPrimaryKey(graph);
         for (Wave w : graph.waves()) {
-            String tasks = w.nodes().stream().map(TaskMapMarkdownWriter::nodeLabel)
+            String tasks = w.nodes().stream()
+                    .sorted(Comparator.comparing(TaskMapMarkdownWriter::primaryKey))
+                    .map(TaskMapMarkdownWriter::nodeGroupLabel)
                     .collect(Collectors.joining(", "));
-            String blocks = blocksOf(w, graph);
+            String blocks = blocksOf(w, graph, nodeByKey);
             sb.append("| ").append(w.ordinal()).append(" | ")
                     .append(tasks).append(" | ").append(blocks).append(" |\n");
         }
@@ -97,12 +102,46 @@ public final class TaskMapMarkdownWriter {
                 .append(formatSpeedup(graph.estimatedSpeedup())).append("\n");
     }
 
-    private static String nodeLabel(TaskNode n) {
-        return n.taskIds().stream().sorted().collect(Collectors.joining(", "));
+    /**
+     * Per schema §3.2: single task -> bare ID; coalesced super-node -> {@code (A, B)}.
+     */
+    private static String nodeGroupLabel(TaskNode n) {
+        List<String> ids = n.taskIds().stream().sorted().toList();
+        if (ids.size() == 1) {
+            return ids.get(0);
+        }
+        return "(" + String.join(", ", ids) + ")";
+    }
+
+    /**
+     * Per schema §3.1: {@code TASK-ID<br/>title} for single tasks,
+     * {@code (A, B)<br/>title} for coalesced super-nodes.
+     */
+    private static String mermaidNodeLabel(TaskNode n) {
+        return nodeGroupLabel(n) + "<br/>" + n.title();
+    }
+
+    private static String primaryKey(TaskNode n) {
+        return n.taskIds().stream().sorted().findFirst().orElseThrow();
     }
 
     private static String nodeMermaidId(TaskNode n) {
-        return escapeMermaidId(n.taskIds().stream().sorted().findFirst().orElseThrow());
+        return escapeMermaidId(primaryKey(n));
+    }
+
+    private static List<TaskNode> nodesInTopologicalOrder(TaskGraph graph) {
+        return graph.waves().stream()
+                .flatMap(w -> w.nodes().stream()
+                        .sorted(Comparator.comparing(TaskMapMarkdownWriter::primaryKey)))
+                .toList();
+    }
+
+    private static Map<String, TaskNode> nodeByPrimaryKey(TaskGraph graph) {
+        Map<String, TaskNode> map = new HashMap<>();
+        for (TaskNode n : graph.nodes()) {
+            map.put(primaryKey(n), n);
+        }
+        return map;
     }
 
     private static String escapeMermaidId(String id) {
@@ -120,14 +159,16 @@ public final class TaskMapMarkdownWriter {
                 .toList();
     }
 
-    private static String blocksOf(Wave wave, TaskGraph graph) {
+    private static String blocksOf(Wave wave, TaskGraph graph, Map<String, TaskNode> nodeByKey) {
         Set<String> waveKeys = wave.nodes().stream()
-                .map(n -> n.taskIds().stream().sorted().findFirst().orElseThrow())
+                .map(TaskMapMarkdownWriter::primaryKey)
                 .collect(Collectors.toCollection(java.util.TreeSet::new));
         List<String> blocks = graph.edges().stream()
                 .filter(e -> waveKeys.contains(e.from()))
                 .map(Edge::to)
-                .distinct().sorted().toList();
+                .distinct().sorted()
+                .map(key -> nodeGroupLabel(nodeByKey.get(key)))
+                .toList();
         return blocks.isEmpty() ? "—" : String.join(", ", blocks);
     }
 
