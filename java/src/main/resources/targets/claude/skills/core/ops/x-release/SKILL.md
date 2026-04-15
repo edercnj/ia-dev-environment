@@ -3,7 +3,7 @@ name: x-release
 description: "Orchestrates complete release flow using Git Flow release branches with approval gate, PR-flow (gh CLI) and deep validation: version bump (auto-detect or explicit), release branch creation from develop, deep validation (coverage, golden files, version consistency), version file updates, changelog generation, release commit, release PR via gh (optionally reviewed by x-review-pr), human approval gate with persistent state file, tag on main after merged PR, back-merge PR to develop with conflict detection, and cleanup. Supports hotfix releases from main, dry-run mode, resume via --continue-after-merge, in-session pause via --interactive, GPG-signed tags, skip-review opt-out, and custom state file path."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, Skill, AskUserQuestion
-argument-hint: "[major|minor|patch|version] [--dry-run] [--skip-tests] [--no-publish] [--hotfix] [--continue-after-merge] [--interactive] [--signed-tag] [--skip-review] [--state-file <path>]"
+argument-hint: "[major|minor|patch|version] [--version X.Y.Z] [--last-tag <tag>] [--dry-run] [--skip-tests] [--no-publish] [--hotfix] [--continue-after-merge] [--interactive] [--signed-tag] [--skip-review] [--state-file <path>]"
 ---
 
 ## Global Output Policy
@@ -34,7 +34,9 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 
 | Parameter | Required | Description |
 |-----------|----------|-------------|
-| Bump type or version | No | `major`, `minor`, `patch`, or explicit `X.Y.Z`. Auto-detect if omitted. |
+| Bump type or version | No | `major`, `minor`, `patch`, or explicit `X.Y.Z`. Auto-detect from Conventional Commits if omitted. |
+| `--version X.Y.Z` | No | Explicit SemVer override; takes precedence over auto-detection (mutually exclusive with positional bump type). See `references/auto-version-detection.md`. |
+| `--last-tag <tag>` | No | Debug override for the "last tag" probe (skips `git describe`). Validated against `^v?\d+\.\d+\.\d+`. |
 | `--dry-run` | No | Preview release plan without executing any changes |
 | `--skip-tests` | No | Skip test validation (displays warning) |
 | `--no-publish` | No | Create release locally without pushing to remote |
@@ -243,23 +245,51 @@ IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
 
 Use the provided version directly after validating it follows Semantic Versioning format (`X.Y.Z`).
 
-**Option C: Auto-detect from Conventional Commits**
+**Option C: Auto-detect from Conventional Commits** (story-0039-0001)
 
-When no argument is provided, analyze commits since the last tag:
+When no positional argument and no `--version` flag are provided, the skill
+detects the next version from commits since the last `v*` tag. The detection
+algorithm lives in the `dev.iadev.release` package
+(`ConventionalCommitsParser` → `VersionBumper`, backed by `GitTagReader`).
 
 ```bash
-# Get commits since last tag
-git log $(git describe --tags --abbrev=0 2>/dev/null)..HEAD \
-    --format="%s%n%b" --no-merges
+# Last-tag probe (fixed argv — no shell expansion):
+git describe --tags --abbrev=0 --match 'v*'
+
+# Commit range (fixed argv; body included so BREAKING CHANGE: is scanned):
+git log <last-tag>..HEAD --no-merges --format=%s%n%b
 ```
 
-| Commit Pattern | Version Bump |
-|---------------|-------------|
-| `BREAKING CHANGE:` in body or `!` after type | **major** |
-| `feat:` or `feat(scope):` | **minor** |
-| `fix:`, `refactor:`, `perf:`, `docs:`, etc. | **patch** |
+| Commit Pattern | Classification | Bump |
+|----------------|----------------|------|
+| `feat!:` / `fix!:` / body contains `BREAKING CHANGE:` | breaking | **MAJOR** |
+| `feat:` / `feat(scope):` (no `!`) | feat | **MINOR** |
+| `fix:` / `perf:` | fix/perf | **PATCH** |
+| `docs:`, `chore:`, `test:`, `refactor:`, `style:`, `build:`, `ci:` | ignored | — |
 
-Decision order: if any commit triggers major, use major. Else if any triggers minor, use minor. Otherwise patch.
+Decision order: MAJOR > MINOR > PATCH. The highest-precedence bump observed
+wins. When the base version has no prior tag, `0.0.0` is used as the implicit
+baseline (first release → `0.1.0` MINOR, `0.0.1` PATCH, or `1.0.0` MAJOR).
+
+**Opening banner after detection:**
+
+```
+Próxima versão detectada: 3.2.0 (MINOR) — 7 feat, 2 fix, 0 breaking desde v3.1.0
+```
+
+**Override precedence:** `--version X.Y.Z` bypasses detection entirely; the
+banner reports `"Versão explícita: X.Y.Z"` and `bumpType = explicit`.
+
+**Error codes** (exit 1; see story-0039-0001 §5.3 and `InvalidBumpException.Code`):
+
+| Code | Condition |
+|------|-----------|
+| `VERSION_NO_BUMP_SIGNAL` | All commits since last tag are ignored types (docs/chore/test/...) |
+| `VERSION_NO_COMMITS` | `git log <tag>..HEAD` is empty |
+| `VERSION_INVALID_FORMAT` | `--version` does not match SemVer grammar |
+| `VERSION_TAG_NOT_FOUND` | `--last-tag` was supplied but does not resolve in the repo |
+
+Full algorithm, edge cases, and fixture table: `references/auto-version-detection.md`.
 
 This follows Semantic Versioning (https://semver.org/spec/v2.0.0.html) rules.
 
