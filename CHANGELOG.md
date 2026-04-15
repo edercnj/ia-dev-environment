@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.5.0] - 2026-04-15
+
+### Added
+- **EPIC-0038 — Task-First Planning & Execution Architecture (10 stories, 25 task PRs).** Inverts the planning paradigm from top-down (Epic → Story → Task-as-sub-section) to bottom-up (Task atomic & testable → Story as value aggregation → Epic as cross-cutting grouper). Tasks become first-class artifacts with own files, explicit I/O contracts, per-task DoD, formal testability declaration, and atomic commits.
+  - **story-0038-0001** (PR #345): `task-TASK-XXXX-YYYY-NNN.md` schema + `TaskFileParser` (99% line/96% branch) + `TaskValidator` with 6 SRP rules (TF-SCHEMA-001..006, 100% line/100% branch) + migrated exemplar + smoke + golden stability test.
+  - **story-0038-0002** (PR #353): `task-implementation-map-STORY-*.md` schema + domain model (`TaskGraph`, `TaskNode`, `Wave`, `Edge`) + `TopologicalSorter` (Kahn + coalesced collapse) + 4 exceptions + `TaskMapMarkdownWriter` + `TaskImplementationMapGenerator` use case + `task-map-gen` CLI (picocli) + 7-task golden fixture with byte-for-byte parity + wallclock < 200ms E2E.
+  - **story-0038-0003** (PR #355): `x-task-plan` refactored as dual-mode callable skill (task-file-first for EPIC-0038 + legacy story-scoped for epics 0025-0037). Dedicated 4-phase flow (Validate → Extract Contracts → Generate TDD Cycles → Write Plan) with 4 exit codes.
+  - **story-0038-0004** (PR #357): `x-story-plan` v2 extensions — schema-aware flow adding Phases 4a-4c (task breakdown with I/O contracts, parallel `x-task-plan` invocation, task-implementation-map generation) + per-task DoR extensions. v1 legacy flow preserved.
+  - **story-0038-0005** (PR #359): `x-task-implement` v2 extensions — task-first execution path reading task-file + plan + map; pre-execution gates (dependencies / testability / schema); per-cycle TDD loop in TPP order; post-execution output verification via grep/assert/test; atomic commit via `x-git-commit` with `task(TASK-NNN)` scope.
+  - **story-0038-0006** (PR #361): `x-story-implement` wave dispatcher — reads `task-implementation-map` and invokes `x-task-implement` per task, honouring declared parallelism; integration verification after each wave; coalesced wave handling; story-level aggregation report.
+  - **story-0038-0007** (PR #363): `x-epic-implement` simplification — scope reduction (task management fully delegated to `x-story-implement`); epic orchestrator retains only story-level concerns; execution-state task fields treated read-only from epic perspective.
+  - **story-0038-0008** (PR #365): `planningSchemaVersion` gate + `SchemaVersionResolver` (domain class) — soft-fallback matrix (NO_FILE / MISSING_FIELD / INVALID_VALUE → V1; `"1.0"` → V1 no fallback; `"2.0"` → V2; unparseable JSON → hard fail). Compatibility matrix documented in `x-epic-implement` SKILL.md.
+  - **story-0038-0009** (PR #367): Two new templates (`_TEMPLATE-TASK.md`, `_TEMPLATE-TASK-IMPLEMENTATION-MAP.md`) + 5 new rule files in slots 15-19 (RULE-TF-01 Task Testability; RULE-TF-02 I/O Contracts; RULE-TF-03 Topological Execution; RULE-TF-04 Atomic Task Commits; RULE-TF-05 Backward Compatibility). `expected-artifacts.json` bumped (claude-rules: 13 → 18).
+  - **story-0038-0010** (PR #369): `TaskFirstE2EIntegrationTest` exercising the full Java contract pipeline (schema resolver → parser → validator → generator → CLI) against a 3-task synthetic epic; anti-pattern grep sanity ensuring no rule file endorses the legacy "task embedded in story" shape.
+
+### Changed
+- **Golden files across 17 profiles + 2 platform variants regenerated** to reflect: 5 new rule files (15-19), `x-task-plan` / `x-story-plan` / `x-task-implement` / `x-story-implement` / `x-epic-implement` SKILL.md v2 appendices, and the two new task-first templates.
+- **`expected-artifacts.json`** updated: `claude-rules: 18`, `claude-templates: 18` (was 13 and 16 respectively).
+
+### Fixed
+- **PR #370 (post-merge fix):** `_TEMPLATE-TASK.md` and `_TEMPLATE-TASK-IMPLEMENTATION-MAP.md` were shipped in story-0038-0009 but never registered in `PlanTemplateDefinitions` — the generator silently skipped them. Now registered with mandatory sections; `TEMPLATE_COUNT` bumped 15 → 17. Verified byte-for-byte parity across 5 sampled profiles.
+
+### Quality gates
+- `mvn clean verify -P all-tests`: **770 tests, 0 failures, 0 errors, ~4m31s**
+- JaCoCo: **all coverage checks met** (≥95% line / ≥90% branch per project)
+- 318 classes analyzed
+- Byte-for-byte golden parity across 17 profiles
+
+### Backward compatibility
+EPIC-0038 itself runs in `planningSchemaVersion = "1.0"` per spec §8.2 bootstrap rule. Legacy epics (0025-0037) resolve to V1 with `NO_FILE` / `MISSING_FIELD` fallback and run unchanged — zero regression. The v2 task-first flow activates only when an epic explicitly declares `"2.0"`. First dogfood target is the next epic after EPIC-0038.
+
 ## [3.4.0] - 2026-04-14
 
 ### Added
