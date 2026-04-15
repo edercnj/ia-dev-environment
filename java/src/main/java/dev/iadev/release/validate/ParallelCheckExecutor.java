@@ -3,6 +3,7 @@ package dev.iadev.release.validate;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -109,15 +110,21 @@ public final class ParallelCheckExecutor {
 
     private static CheckResult awaitResult(Future<CheckResult> future) {
         try {
-            // runOne catches every Exception, so future.get() never
-            // throws ExecutionException here; InterruptedException is
-            // only possible if the main thread is interrupted while
-            // waiting — fail fast with a clear signal.
+            // runOne catches every Exception so ExecutionException is
+            // unexpected here, but we still distinguish the two cases:
+            // InterruptedException restores the interrupt flag; an
+            // ExecutionException (defensive branch) propagates without
+            // marking this thread as interrupted.
             return future.get();
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException(
                     "Interrupted while awaiting check result", e);
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            throw new IllegalStateException(
+                    "Check execution failed unexpectedly: "
+                            + cause.getMessage(), cause);
         }
     }
 }

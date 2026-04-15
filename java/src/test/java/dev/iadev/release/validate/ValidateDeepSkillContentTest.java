@@ -43,7 +43,7 @@ final class ValidateDeepSkillContentTest {
 
         // Marker block specific to story-0039-0004
         assertThat(content).contains(
-                "Parallel Dispatch of Checks 5-9 (story-0039-0004)");
+                "Parallel Dispatch of Checks 5-10 (story-0039-0004)");
         assertThat(content).contains("run_check");
         assertThat(content).contains("wait \"$pid\"");
     }
