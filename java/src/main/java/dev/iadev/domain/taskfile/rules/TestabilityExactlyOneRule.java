@@ -17,14 +17,13 @@ public final class TestabilityExactlyOneRule implements ValidationRule {
 
     @Override
     public List<ValidationViolation> validate(ParsedTaskFile parsed, ValidationContext ctx) {
-        int total = parsed.testabilityCheckedTotal();
-        int recognized = parsed.testabilityCheckedKinds().size();
-        if (total == 1 && recognized == 1) {
+        int count = parsed.testabilityCheckedKinds().size();
+        if (count == 1) {
             return List.of();
         }
         return List.of(new ValidationViolation(
                 RULE_ID, Severity.ERROR,
-                "testabilidade deve ter exatamente uma declaração marcada reconhecida (marcadas: "
-                        + total + ", reconhecidas: " + recognized + ")"));
+                "testabilidade deve ter exatamente uma declaração marcada (encontradas: "
+                        + count + ")"));
     }
 }

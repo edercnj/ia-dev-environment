@@ -17,35 +17,35 @@ public final class ParsedTaskFixtures {
         return new ParsedTaskFile(
                 Optional.empty(), Optional.empty(), Optional.empty(),
                 "", "", "",
-                List.of(), 0, List.of(), List.of(), List.of());
+                List.of(), List.of(), List.of(), List.of());
     }
 
     public static ParsedTaskFile withId(String id) {
         return new ParsedTaskFile(
                 Optional.of(id), Optional.empty(), Optional.empty(),
                 "", "", "",
-                List.of(), 0, List.of(), List.of(), List.of());
+                List.of(), List.of(), List.of(), List.of());
     }
 
     public static ParsedTaskFile withStatus(String status) {
         return new ParsedTaskFile(
                 Optional.empty(), Optional.empty(), Optional.of(status),
                 "", "", "",
-                List.of(), 0, List.of(), List.of(), List.of());
+                List.of(), List.of(), List.of(), List.of());
     }
 
     public static ParsedTaskFile withOutputs(String outputs) {
         return new ParsedTaskFile(
                 Optional.empty(), Optional.empty(), Optional.empty(),
                 "", "", outputs,
-                List.of(), 0, List.of(), List.of(), List.of());
+                List.of(), List.of(), List.of(), List.of());
     }
 
     public static ParsedTaskFile withTestability(List<TestabilityKind> kinds, List<String> refs) {
         return new ParsedTaskFile(
                 Optional.empty(), Optional.empty(), Optional.empty(),
                 "", "", "",
-                kinds, kinds.size(), refs, List.of(), List.of());
+                kinds, refs, List.of(), List.of());
     }
 
     public static ParsedTaskFile withDod(int itemCount) {
@@ -56,6 +56,6 @@ public final class ParsedTaskFixtures {
         return new ParsedTaskFile(
                 Optional.empty(), Optional.empty(), Optional.empty(),
                 "", "", "",
-                List.of(), 0, List.of(), List.copyOf(items), List.of());
+                List.of(), List.of(), List.copyOf(items), List.of());
     }
 }

@@ -28,7 +28,7 @@ class TaskValidatorTest {
                 Optional.of("story-0038-0001"),
                 Optional.of("Pendente"),
                 "objective", "inputs", "outputs are non-empty",
-                List.of(TestabilityKind.INDEPENDENT), 1, List.of(),
+                List.of(TestabilityKind.INDEPENDENT), List.of(),
                 List.of("- [ ] a", "- [ ] b", "- [ ] c", "- [ ] d", "- [ ] e", "- [ ] f"),
                 List.of());
         TaskValidator v = TaskValidator.defaultValidator();
