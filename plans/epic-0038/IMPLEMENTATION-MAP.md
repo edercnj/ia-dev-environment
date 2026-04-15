@@ -15,7 +15,7 @@
 | story-0038-0005 | `x-task-implement` refatorada (lê task contracts) | — | story-0038-0001, story-0038-0002 | story-0038-0006 | Concluída |
 | story-0038-0006 | `x-story-implement` orquestra tasks via map | — | story-0038-0005 | story-0038-0007 | Concluída |
 | story-0038-0007 | `x-epic-implement` simplificado | — | story-0038-0006 | story-0038-0008 | Concluída |
-| story-0038-0008 | Migration path + backward compat | — | story-0038-0007 | story-0038-0009 | Pendente |
+| story-0038-0008 | Migration path + backward compat | — | story-0038-0007 | story-0038-0009 | Concluída |
 | story-0038-0009 | Documentação, templates e 5 RULEs | — | story-0038-0008 | story-0038-0010 | Pendente |
 | story-0038-0010 | E2E integration tests + dogfood verification | — | story-0038-0009 | — | Pendente |
 
