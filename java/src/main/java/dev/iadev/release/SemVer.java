@@ -10,11 +10,13 @@ import java.util.regex.Pattern;
  * <p>Accepted grammar (subset of https://semver.org/spec/v2.0.0.html): three
  * dot-separated non-negative integers with no leading zeros, optionally
  * followed by a pre-release suffix prefixed with {@code -} and composed of
- * lowercase letters, digits, and dots. Build metadata is NOT supported
- * (intentional — release tags in this project do not carry it).</p>
+ * lowercase letters, digits, and dots. A single leading {@code v} is
+ * tolerated as a convenience for git-tag-style inputs and is stripped before
+ * matching. Build metadata is NOT supported (intentional — release tags in
+ * this project do not carry it).</p>
  *
  * <p>Examples accepted: {@code 0.0.0}, {@code 1.2.3}, {@code 3.1.0-rc.1},
- * {@code 10.20.30}. Examples rejected: {@code 1.2}, {@code v1.2.3},
+ * {@code 10.20.30}, {@code v1.2.3}. Examples rejected: {@code 1.2},
  * {@code 01.2.3}, {@code 1.2.3+build.1}.</p>
  */
 public record SemVer(int major, int minor, int patch, String preRelease) {

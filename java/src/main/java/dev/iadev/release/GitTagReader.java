@@ -8,7 +8,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -25,9 +24,15 @@ import java.util.regex.Pattern;
  *   <li>Repository path is canonicalised and validated to be an existing
  *       directory before any {@code git} call.</li>
  *   <li>Any {@code fromRef} argument passed to {@link #commitsSince(Optional)}
- *       is validated against a narrow regex before being forwarded to
- *       {@code git log}. Values containing shell metacharacters are
- *       rejected with {@link IllegalArgumentException}.</li>
+ *       is validated against {@link #SAFE_REF} — a character-class allow-list
+ *       of {@code [A-Za-z0-9._/\-]+} — before being forwarded to {@code git
+ *       log}. This accepts the broader git revision grammar the CLI needs
+ *       (tags like {@code v1.2.3}, refs like {@code refs/tags/v1.2.3},
+ *       relative specs like {@code HEAD~1}) while rejecting every shell
+ *       metacharacter ({@code ; & | ` $ ( ) < > " ' \\ space}). Rejected
+ *       values raise {@link IllegalArgumentException}. Note that this is
+ *       deliberately looser than the SemVer literal grammar enforced by
+ *       {@link SemVer#parse}, which governs {@code --version} arguments.</li>
  *   <li>{@code git} exit code 128 with stderr
  *       {@code fatal: No names found, cannot describe anything} is the
  *       documented signal for "no matching tag" and produces
@@ -115,20 +120,62 @@ public final class GitTagReader implements TagReader {
     }
 
     private ProcessResult run(List<String> argv) {
+        Process process = null;
         try {
             ProcessBuilder pb = new ProcessBuilder(argv)
                     .directory(repoDir.toFile())
                     .redirectErrorStream(false);
-            Process process = pb.start();
+            process = pb.start();
+            // Drain stdout and stderr concurrently to avoid the OS-pipe-buffer
+            // deadlock (git can write to stderr while we are still draining
+            // stdout; if the stderr pipe fills, git blocks on write and we
+            // block on read -> deadlock). A single background thread for
+            // stderr is sufficient — we keep stdout on the calling thread so
+            // no executor lifecycle is required.
+            Process finalProcess = process;
+            StreamCollector errCollector = new StreamCollector(finalProcess.getErrorStream());
+            Thread errThread = new Thread(errCollector, "git-stderr-reader");
+            errThread.setDaemon(true);
+            errThread.start();
+
             String stdout = readAll(process.getInputStream());
-            String stderr = readAll(process.getErrorStream());
             int exit = process.waitFor();
-            return new ProcessResult(exit, stdout, stderr);
+            errThread.join();
+            if (errCollector.failure != null) {
+                throw errCollector.failure;
+            }
+            return new ProcessResult(exit, stdout, errCollector.result);
         } catch (IOException e) {
             throw new UncheckedIOException("git invocation failed", e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            if (process != null) {
+                process.destroy();
+            }
             throw new UncheckedIOException(new IOException("git invocation interrupted", e));
+        }
+    }
+
+    /**
+     * Runnable that fully drains an {@link java.io.InputStream} into memory,
+     * capturing any {@link IOException} for the owning thread to rethrow.
+     */
+    private static final class StreamCollector implements Runnable {
+        private final java.io.InputStream stream;
+        private volatile String result = "";
+        private volatile IOException failure;
+
+        StreamCollector(java.io.InputStream stream) {
+            this.stream = stream;
+        }
+
+        @Override
+        public void run() {
+            try {
+                this.result = readAll(stream);
+            } catch (IOException e) {
+                this.failure = e;
+            }
         }
     }
 

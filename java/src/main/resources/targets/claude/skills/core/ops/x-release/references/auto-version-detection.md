@@ -60,18 +60,18 @@ append the suffix explicitly after `VersionBumper.bump` returns.
 ## 4. Banner Format
 
 ```
-Próxima versão detectada: <target> (<BUMP>) — <feat> feat, <fix> fix, <breaking> breaking desde <previous>
+Next version detected: <target> (<BUMP>) — <feat> feat, <fix> fix, <breaking> breaking since <previous>
 ```
 
 Examples:
 
-- `Próxima versão detectada: 3.2.0 (MINOR) — 7 feat, 2 fix, 0 breaking desde v3.1.0`
-- `Próxima versão detectada: 0.1.0 (MINOR) — 5 feat, 0 fix, 0 breaking desde 0.0.0 (no prior tag)`
+- `Next version detected: 3.2.0 (MINOR) — 7 feat, 2 fix, 0 breaking since v3.1.0`
+- `Next version detected: 0.1.0 (MINOR) — 5 feat, 0 fix, 0 breaking since 0.0.0 (no prior tag)`
 
 Override banner:
 
 ```
-Versão explícita: 4.0.0
+Explicit version: 4.0.0
 ```
 
 ## 5. Edge Cases

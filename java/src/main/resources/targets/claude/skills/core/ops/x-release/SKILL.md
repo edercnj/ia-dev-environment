@@ -274,11 +274,11 @@ baseline (first release → `0.1.0` MINOR, `0.0.1` PATCH, or `1.0.0` MAJOR).
 **Opening banner after detection:**
 
 ```
-Próxima versão detectada: 3.2.0 (MINOR) — 7 feat, 2 fix, 0 breaking desde v3.1.0
+Next version detected: 3.2.0 (MINOR) — 7 feat, 2 fix, 0 breaking since v3.1.0
 ```
 
 **Override precedence:** `--version X.Y.Z` bypasses detection entirely; the
-banner reports `"Versão explícita: X.Y.Z"` and `bumpType = explicit`.
+banner reports `"Explicit version: X.Y.Z"` and `bumpType = explicit`.
 
 **Error codes** (exit 1; see story-0039-0001 §5.3 and `InvalidBumpException.Code`):
 

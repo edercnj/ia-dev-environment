@@ -131,6 +131,23 @@ class ConventionalCommitsParserTest {
         }
 
         @Test
+        @DisplayName("classify_bangAndBreakingChangeFooter_countsBreakingOnceNotTwice")
+        void classify_bangAndBreakingChangeFooter_countsBreakingOnceNotTwice() {
+            // A single commit that uses BOTH the bang notation AND a
+            // BREAKING CHANGE: footer must be counted as exactly one
+            // breaking commit — not two. Double-counting would inflate
+            // banner metrics (PR #374 review comment).
+            String payload = "feat!: rework pricing\n\n"
+                    + "Body line one.\n"
+                    + "BREAKING CHANGE: old pricing endpoints removed.\n";
+
+            CommitCounts result = ConventionalCommitsParser.classify(List.of(payload));
+
+            assertThat(result.feat()).isEqualTo(1);
+            assertThat(result.breaking()).isEqualTo(1);
+        }
+
+        @Test
         @DisplayName("classify_unknownSubject_incrementsIgnored")
         void classify_unknownSubject_incrementsIgnored() {
             CommitCounts result = ConventionalCommitsParser.classify(

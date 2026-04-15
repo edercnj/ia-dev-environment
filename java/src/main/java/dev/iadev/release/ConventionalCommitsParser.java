@@ -53,6 +53,7 @@ public final class ConventionalCommitsParser {
 
             Matcher matcher = SUBJECT.matcher(subject);
             boolean recognisedType = false;
+            boolean isBreaking = false;
             if (matcher.matches()) {
                 String type = matcher.group(1);
                 boolean bang = "!".equals(matcher.group(2));
@@ -61,14 +62,14 @@ public final class ConventionalCommitsParser {
                         feat++;
                         recognisedType = true;
                         if (bang) {
-                            breaking++;
+                            isBreaking = true;
                         }
                     }
                     case "fix" -> {
                         fix++;
                         recognisedType = true;
                         if (bang) {
-                            breaking++;
+                            isBreaking = true;
                         }
                     }
                     case "perf" -> {
@@ -85,6 +86,9 @@ public final class ConventionalCommitsParser {
                 ignored++;
             }
             if (BREAKING_BODY.matcher(body).find()) {
+                isBreaking = true;
+            }
+            if (isBreaking) {
                 breaking++;
             }
         }
