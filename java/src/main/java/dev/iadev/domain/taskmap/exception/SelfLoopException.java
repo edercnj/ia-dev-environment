@@ -13,9 +13,13 @@ public final class SelfLoopException extends TaskMapGenerationException {
     private final String taskId;
 
     public SelfLoopException(String taskId) {
-        super(taskId + " depende de si mesma — invalido");
-        Objects.requireNonNull(taskId, "taskId");
+        super(buildMessage(taskId));
         this.taskId = taskId;
+    }
+
+    private static String buildMessage(String taskId) {
+        Objects.requireNonNull(taskId, "taskId");
+        return taskId + " depende de si mesma — inválido";
     }
 
     public String taskId() {

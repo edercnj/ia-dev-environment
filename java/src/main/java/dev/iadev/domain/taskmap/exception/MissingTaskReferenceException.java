@@ -14,11 +14,15 @@ public final class MissingTaskReferenceException extends TaskMapGenerationExcept
     private final String missingTaskId;
 
     public MissingTaskReferenceException(String referencingTaskId, String missingTaskId) {
-        super(referencingTaskId + " referencia " + missingTaskId + " inexistente");
-        Objects.requireNonNull(referencingTaskId, "referencingTaskId");
-        Objects.requireNonNull(missingTaskId, "missingTaskId");
+        super(buildMessage(referencingTaskId, missingTaskId));
         this.referencingTaskId = referencingTaskId;
         this.missingTaskId = missingTaskId;
+    }
+
+    private static String buildMessage(String referencingTaskId, String missingTaskId) {
+        Objects.requireNonNull(referencingTaskId, "referencingTaskId");
+        Objects.requireNonNull(missingTaskId, "missingTaskId");
+        return referencingTaskId + " referência " + missingTaskId + " inexistente";
     }
 
     public String referencingTaskId() {
