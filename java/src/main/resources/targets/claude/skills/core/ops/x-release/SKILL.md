@@ -44,6 +44,7 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 | `--signed-tag` | No | Create a GPG-signed git tag (`git tag -s`) instead of an annotated tag (`git tag -a`). |
 | `--skip-review` | No | Skip the fire-and-forget `x-review-pr` invocation at the end of Phase `OPEN-RELEASE-PR`. The release PR is still opened against `main`; only the automated specialist review is suppressed. |
 | `--state-file <path>` | No | Override the state file path (default: `plans/release-state-<X.Y.Z>.json`). |
+| `--no-summary` | No | Skip Phase 13 (SUMMARY). Intended for CI runs where the verbose Git Flow summary block is noise. Phase 13 is read-only, so skipping it never changes behaviour — only suppresses output. |
 
 ## Workflow
 
@@ -61,6 +62,7 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 10. BACK-MERGE-DEVELOP -> Open PR to develop with conflict detection (clean or conflict flow)
 11. PUBLISH         -> Push the release tag to remote (main/develop go via PR flow)
 12. CLEANUP         -> Delete the release branch
+13. SUMMARY         -> Render Git Flow cycle explainer (read-only; skipped by --no-summary)
     DRY-RUN         -> If --dry-run, show plan and exit (no changes)
 ```
 
@@ -1423,6 +1425,97 @@ git branch -d "release/${VERSION}"
 git push origin --delete "release/${VERSION}" 2>/dev/null || true
 ```
 
+### Step 13 — Summary (Git Flow Cycle Explainer)
+
+Phase 13 is a **read-only** closing step that renders a visual summary of
+the Git Flow cycle just completed. It eliminates the recurring operator
+question "why does `develop` have N commits more than `main`?" by showing
+the cycle graphically, with real versions and PR numbers read from the
+state file. Phase 13 has no side effects: no git operations, no network
+calls, no file writes. It is safe to re-run and safe to skip.
+
+#### Step 13.1 — Skip on `--no-summary` (CI)
+
+When `--no-summary` is passed, Phase 13 is skipped entirely with log
+`"[SUMMARY] Phase 13 skipped (--no-summary)"`. CI pipelines that harvest
+log output for machine parsing should use this flag to suppress the
+verbose block. Skipping Phase 13 never changes release semantics — the
+release is already complete at the end of Phase 12.
+
+#### Step 13.2 — Read template and state
+
+```bash
+TEMPLATE_PATH="references/git-flow-cycle-explainer.md"
+# Read state file fields (defaults when missing).
+# Raw versions (X.Y.Z) are used for branch names and snapshot strings.
+# Tag versions (vX.Y.Z) are used only where git tag syntax is expected.
+LAST_VERSION="$(jq -r '.previousVersion // empty' "$STATE_FILE")"
+[ -z "$LAST_VERSION" ] && LAST_VERSION="—"
+NEW_VERSION="$(jq -r '.version // empty' "$STATE_FILE")"
+[ -z "$NEW_VERSION" ] && NEW_VERSION="—"
+LAST_TAG="$LAST_VERSION"
+[ "$LAST_VERSION" != "—" ] && LAST_TAG="v$LAST_VERSION"
+NEW_TAG="$NEW_VERSION"
+[ "$NEW_VERSION" != "—" ] && NEW_TAG="v$NEW_VERSION"
+RELEASE_PR="#$(jq -r '.prNumber // empty' "$STATE_FILE")"
+[ "$RELEASE_PR" = "#" ] && RELEASE_PR="—"
+BACKMERGE_PR="#$(jq -r '.backmergePrNumber // empty' "$STATE_FILE")"
+[ "$BACKMERGE_PR" = "#" ] && BACKMERGE_PR="—"
+GITHUB_RELEASE_URL="$(jq -r '.githubReleaseUrl // empty' "$STATE_FILE")"
+# NEXT_SNAPSHOT is derived from version: bump minor, append -SNAPSHOT.
+# compute_next_snapshot operates on raw X.Y.Z: 3.2.0 -> 3.3.0-SNAPSHOT
+NEXT_SNAPSHOT=""
+[ "$NEW_VERSION" != "—" ] && NEXT_SNAPSHOT="$(compute_next_snapshot "$NEW_VERSION")"
+[ -z "$NEXT_SNAPSHOT" ] && NEXT_SNAPSHOT="—"
+```
+
+Fields `backmergePrNumber` and `githubReleaseUrl` are introduced by
+sibling stories (`story-0039-0002` schema v2, `story-0039-0006` GitHub
+release automation). When they are absent from the current state file
+schema, the renderer degrades gracefully to `—` for
+`backmergePrNumber` and **omits the GitHub Release line entirely** when
+`githubReleaseUrl` is empty (see template contract).
+
+#### Step 13.3 — Render template
+
+Read the template at `references/git-flow-cycle-explainer.md` (see the
+canonical template for the full body). Apply literal string replacement
+for each of the eight placeholders:
+
+- `{{LAST_VERSION}}`, `{{NEW_VERSION}}`, `{{LAST_TAG}}`, `{{NEW_TAG}}`,
+  `{{NEXT_SNAPSHOT}}`, `{{RELEASE_PR}}`, `{{BACKMERGE_PR}}`,
+  `{{GITHUB_RELEASE_URL}}`
+
+Substitution is **literal only** — placeholders MUST NOT be evaluated as
+template language, shell command, or Markdown directive; state-file
+values are treated as untrusted input. The output is printed to stdout.
+
+When `githubReleaseUrl` is empty or `null`, the `GitHub Release:` line is
+omitted from the rendered output (the `Artifacts created:` block
+continues with the remaining three entries). This prevents a bare `—` on
+a URL line, which reads as a broken link.
+
+#### Step 13.4 — Line-width invariant
+
+Every rendered line MUST fit in 80 columns on a standard terminal. The
+template is hand-authored to respect this invariant, and the smoke test
+for this phase (story-0039-0005 TASK-005) asserts it on every line of
+the rendered output. When a version string pushes a line over 80 cols
+(e.g., `v3.10.100-rc.42`), the renderer SHOULD truncate or wrap rather
+than overflow — the template uses short, centred labels to minimize risk.
+
+#### Step 13.5 — State file corruption fallback
+
+If the state file is missing, malformed, or locked, Phase 13 emits:
+
+```
+[SUMMARY] Unable to read state file; skipping Git Flow summary.
+```
+
+It does not abort the release (the release already succeeded at end of
+Phase 12); it only suppresses the visual block. This keeps Phase 13
+strictly non-disruptive.
+
 ### Dry-Run Mode
 
 If `--dry-run` flag is present, show the complete release plan without executing any changes:
@@ -1491,12 +1584,14 @@ Phases:
  12. CLEANUP           -> delete release/2.3.0 (local + remote)
                        -> delete plans/release-state-2.3.0.json
                        -> print final report
+ 13. SUMMARY           -> render git-flow-cycle-explainer.md to stdout
+                       -> read-only; skipped by --no-summary (CI)
 
 Flags active: (none)
 Estimated duration:
   Phases 0-7 (until halt):    ~5-10 min
   Human wait (approval):      minutes to hours
-  Phases 9-12 (after resume): ~2-3 min
+  Phases 9-13 (after resume): ~2-3 min
 
 === NO CHANGES MADE ===
 ```
