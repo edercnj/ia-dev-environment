@@ -8,9 +8,11 @@ import dev.iadev.domain.taskmap.TopologicalSorter;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -111,10 +113,29 @@ public final class TaskImplementationMapGenerator {
     }
 
     private static void writeAtomically(Path output, String content) {
+        Path dir = output.toAbsolutePath().getParent();
+        Path tmp = null;
         try {
-            Files.writeString(output, content, StandardCharsets.UTF_8);
+            tmp = Files.createTempFile(dir, ".task-map-", ".md.tmp");
+            Files.writeString(tmp, content, StandardCharsets.UTF_8);
+            try {
+                Files.move(tmp, output,
+                        StandardCopyOption.ATOMIC_MOVE,
+                        StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException atomicUnsupported) {
+                Files.move(tmp, output, StandardCopyOption.REPLACE_EXISTING);
+            }
+            tmp = null;
         } catch (IOException e) {
             throw new UncheckedIOException("failed to write " + output, e);
+        } finally {
+            if (tmp != null) {
+                try {
+                    Files.deleteIfExists(tmp);
+                } catch (IOException ignored) {
+                    // best-effort cleanup
+                }
+            }
         }
     }
 

@@ -39,7 +39,12 @@ public record TaskGraph(
     }
 
     public int largestWaveSize() {
-        return waves.stream().mapToInt(Wave::size).max().orElse(0);
+        return waves.stream()
+                .mapToInt(w -> w.nodes().stream()
+                        .mapToInt(n -> n.taskIds().size())
+                        .sum())
+                .max()
+                .orElse(0);
     }
 
     public double estimatedSpeedup() {

@@ -1,9 +1,9 @@
 ---
 name: x-task-plan
-description: "Generates a detailed implementation plan for an individual task with per-task TDD cycle mapping (TPP order), file impact analysis by architecture layer, security checklist by task type, and integration points. Reads the task definition from story Section 8 and produces a self-contained execution guide."
+description: "Generates a detailed per-task implementation plan (plan-task-TASK-XXXX-YYYY-NNN.md) with TDD cycles in TPP order, file impact analysis by architecture layer, security checklist by task type, and exit criteria. Two invocation modes: task-file-first (--task-file) consumes a standalone task-TASK-XXXX-YYYY-NNN.md contract (EPIC-0038); story-scoped (STORY-ID --task TASK-ID) reads the task from story Section 8 (legacy). Invocable standalone OR via x-story-plan (future)."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
-argument-hint: "[STORY-ID] --task [TASK-ID] [--force]"
+argument-hint: "--task-file <path> [--output-dir <dir>]  |  [STORY-ID] --task [TASK-ID] [--force]"
 context-budget: medium
 ---
 
@@ -21,14 +21,32 @@ Produces a detailed implementation plan for a single task extracted from a story
 
 ## Triggers
 
-- `/x-task-plan STORY-ID --task TASK-ID` -- generate a task plan
-- `/x-task-plan STORY-ID --task TASK-ID --force` -- regenerate even if plan exists
+- `/x-task-plan --task-file <path>` -- **task-file-first** (EPIC-0038): consume a standalone `task-TASK-XXXX-YYYY-NNN.md` contract, write the plan next to it.
+- `/x-task-plan --task-file <path> --output-dir <dir>` -- override output directory.
+- `/x-task-plan STORY-ID --task TASK-ID` -- **story-scoped (legacy)**: read task from story Section 8.
+- `/x-task-plan STORY-ID --task TASK-ID --force` -- regenerate even if plan exists.
+
+> **Invocation modes.** Task-file-first is the canonical path post-EPIC-0038: an
+> orchestrator (human or `x-story-plan` in the future) generates `task-TASK-NNN.md`
+> files and pipes each one through this skill. Story-scoped mode is retained for
+> backward compatibility with epics 0025-0037 that still declare tasks as sub-sections
+> of the story file.
 
 ## Parameters
 
+### Task-file-first mode (EPIC-0038)
+
 | Parameter | Required | Description |
 |-----------|----------|-------------|
-| `STORY-ID` | Yes | Story identifier (pattern: `story-XXXX-YYYY`). If not provided, prompt for it. |
+| `--task-file` | Yes | Path to a `task-TASK-XXXX-YYYY-NNN.md` file (schema: story-0038-0001). MUST pass `TaskFileParser` validation. |
+| `--output-dir` | No (default: same dir as `--task-file`) | Directory to write `plan-task-TASK-XXXX-YYYY-NNN.md`. |
+| `--force` | No | Regenerate plan even if a fresh one already exists. |
+
+### Story-scoped mode (legacy — epics 0025-0037)
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `STORY-ID` | Yes | Story identifier (pattern: `story-XXXX-YYYY`). |
 | `--task` | Yes | Task identifier (pattern: `TASK-XXXX-YYYY-NNN`). Must exist in story Section 8. |
 | `--force` | No | Regenerate plan even if a fresh one already exists. |
 
@@ -36,12 +54,16 @@ Produces a detailed implementation plan for a single task extracted from a story
 
 ```
 0. VALIDATE & PRE-CHECK  -> Parse arguments, resolve paths, staleness check
-1. EXTRACT TASK           -> Read story Section 8, extract task definition
+1. EXTRACT CONTRACTS      -> Read task source (task-file OR story Section 8)
 2. MAP TDD CYCLES         -> Generate TDD cycles in TPP order
 3. ANALYZE FILES          -> Identify affected files by architecture layer
 4. SECURITY CHECKLIST     -> Generate security items based on task type
-5. WRITE PLAN             -> Assemble and write task-plan-XXXX-YYYY-NNN.md
+5. WRITE PLAN             -> Assemble and write plan-task-TASK-XXXX-YYYY-NNN.md
 ```
+
+> **Phase 1 dispatch:** If `--task-file` is present, extract contracts from that file
+> via TaskFileParser semantics (story-0038-0001 schema). Otherwise, fall back to the
+> story-scoped reader that locates the task in `## 8. Tasks` of the story file.
 
 ### Phase 0 -- Validate and Pre-Check
 
@@ -88,7 +110,29 @@ Before generating, verify whether a valid plan already exists:
    - If `mtime(story file) <= mtime(plan file)` -- plan is **fresh**. Log: `"Task plan already exists and is up-to-date"`. Return existing plan. Stop.
    - If `mtime(story file) > mtime(plan file)` -- plan is **stale**. Log: `"Regenerating stale task plan for TASK-XXXX-YYYY-NNN"`. Proceed to Phase 1.
 
-### Phase 1 -- Extract Task Definition
+### Phase 1 -- Extract Contracts
+
+#### 1A. Task-file-first branch (EPIC-0038 — `--task-file` present)
+
+1. Read the file at `<task-file>`. Abort with exit code 1 if missing.
+2. Validate structure per story-0038-0001 schema (`plans/epic-0038/schemas/task-schema.md`):
+   - `**ID:** TASK-XXXX-YYYY-NNN` present and matches filename.
+   - `**Story:** story-XXXX-YYYY` present and well-formed.
+   - `**Status:**` in the allowed enum (`Pendente | Em Andamento | Concluída | Bloqueada | Falha`).
+   - `## 2. Contratos I/O` with subsections `### 2.1 Inputs`, `### 2.2 Outputs`, `### 2.3 Testabilidade` — all three present.
+   - `### 2.3 Testabilidade` has exactly one checked declaration (INDEPENDENT / REQUIRES_MOCK / COALESCED).
+   - `## 3. Definition of Done` present with ≥ 6 items (warn otherwise).
+3. If validation fails, abort with exit code 1 and message `Task file invalid: {violations}`.
+4. If testability is absent, abort with exit code 3: `Testability not declared (RULE-TF-01)`.
+5. Project extracted fields into the internal TaskContract:
+   - **Objective**: body of `## 1. Objetivo`.
+   - **Inputs**: body of `### 2.1 Inputs`.
+   - **Outputs**: body of `### 2.2 Outputs` (drives File Impact analysis in Phase 3).
+   - **TestabilityKind**: the single checked option (drives Phase 2 cycle shape).
+   - **TestabilityReferences**: TASK-IDs cited (REQUIRES_MOCK / COALESCED partners).
+   - **DependsOn**: TASK-IDs from the first column of `## 4. Dependências`.
+
+#### 1B. Story-scoped branch (legacy — no `--task-file`)
 
 1. Read the story file at the resolved path.
 2. Locate **Section 8** (heading `## 8.` or `## 8 `).
@@ -292,6 +336,19 @@ After writing, log: `"Task plan generated: task-plan-XXXX-YYYY-NNN.md (N TDD cyc
 - Do NOT generate cycles in non-TPP order (never start with complex cases)
 
 ## Error Handling
+
+### Task-file-first mode (EPIC-0038)
+
+| Scenario | Exit Code | Message |
+|----------|-----------|---------|
+| Task file missing or unreadable | 1 | `Task file invalid: file not found at {path}` |
+| Task file schema violations (story-0038-0001) | 1 | `Task file invalid: {violations}` |
+| Testability not declared (§2.3 empty / multiple checked) | 3 | `Testability not declared (RULE-TF-01). Declare Testability: Independent OR Requires Mock OR Coalesced` |
+| Output dir not writable | 2 | `Output dir not writable: {path}` |
+| Plan generated | 0 | `Plan written to {path}` |
+| Plan exists and fresh (no `--force`) | 0 | `Task plan already exists and is up-to-date` |
+
+### Story-scoped mode (legacy)
 
 | Scenario | Action |
 |----------|--------|
