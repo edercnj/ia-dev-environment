@@ -70,8 +70,8 @@ CLEANUP phase.
   "startedAt": "2026-04-11T14:22:07Z",
   "lastPhaseCompletedAt": "2026-04-11T14:35:41Z",
   "nextActions": [
-    {"label": "PR mergeado — continuar", "command": "/x-release --continue-after-merge"},
-    {"label": "Rodar fix-pr-comments", "command": "/x-pr-fix 262"}
+    {"label": "PR mergeado — continuar", "command": "/x-release"},
+    {"label": "Rodar fix-pr-comments", "command": "/x-pr-fix"}
   ],
   "waitingFor": "PR_MERGE",
   "phaseDurations": {
@@ -214,7 +214,7 @@ truncated JSON, which subsequent invocations would reject with
 | `jq` missing from `PATH` | `DEP_JQ_MISSING` | `jq not installed. Install via your package manager.` |
 | `gh auth status` non-zero | `DEP_GH_AUTH` | `gh not authenticated. Run 'gh auth login'.` |
 | File exists but `jq .` fails | `STATE_INVALID_JSON` | `State file exists but is not valid JSON: <path>` |
-| `schemaVersion` is unknown (includes legacy v1) | `STATE_SCHEMA_VERSION` | `State file v<N> nao eh mais suportado. Aborte a release ativa via /x-release --abort e inicie nova.` |
+| `schemaVersion` is unknown (includes legacy v1) | `STATE_SCHEMA_VERSION` | `State file v<N> is no longer supported. Abort the active release via /x-release --abort and start a new one.` |
 | `waitingFor` value is not one of the 6 enum values | `STATE_INVALID_ENUM` | `Unknown waitingFor value: <value>. Expected one of: NONE, PR_REVIEW, PR_MERGE, BACKMERGE_REVIEW, BACKMERGE_MERGE, USER_CONFIRMATION.` |
 | `nextActions[].command` does not match `^/[a-z\-]+` | `STATE_INVALID_ACTION` | `nextActions[].command must match ^/[a-z\-]+ (got: <value>)` |
 | `--continue-after-merge` with no state file | `RESUME_NO_STATE` | `No release in progress. Run /x-release <version> first.` |

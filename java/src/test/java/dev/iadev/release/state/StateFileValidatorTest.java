@@ -151,6 +151,7 @@ class StateFileValidatorTest {
                 List.of(),
                 "3.2.0", "3.1.0", "minor",
                 null, null, null, null, null,
+                null,
                 List.of(),
                 null,
                 Map.of(),

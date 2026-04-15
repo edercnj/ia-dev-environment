@@ -46,6 +46,7 @@ import java.util.Map;
         "prTitle",
         "changelogEntry",
         "tagMessage",
+        "worktreePath",
         "nextActions",
         "waitingFor",
         "phaseDurations",
@@ -77,6 +78,7 @@ public record ReleaseState(
         @JsonProperty("changelogEntry")
         String changelogEntry,
         @JsonProperty("tagMessage") String tagMessage,
+        @JsonProperty("worktreePath") String worktreePath,
         @JsonProperty("nextActions")
         List<NextAction> nextActions,
         @JsonProperty("waitingFor") WaitingFor waitingFor,
@@ -109,8 +111,8 @@ public record ReleaseState(
                 interactive, startedAt, lastPhaseCompletedAt,
                 phasesCompleted, targetVersion, previousVersion,
                 bumpType, prNumber, prUrl, prTitle,
-                changelogEntry, tagMessage, replacement,
-                waitingFor, phaseDurations,
+                changelogEntry, tagMessage, worktreePath,
+                replacement, waitingFor, phaseDurations,
                 lastPromptAnsweredAt, githubReleaseUrl);
     }
 }

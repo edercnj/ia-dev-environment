@@ -76,6 +76,10 @@ class StateFileRoundtripSmokeTest {
         assertThat(r.phasesCompleted())
                 .containsExactly("INITIALIZED", "DETERMINED");
         assertThat(r.prNumber()).isEqualTo(297);
+        assertThat(r.worktreePath())
+                .isEqualTo(
+                        "/Users/dev/repo/.claude/worktrees/"
+                                + "release-3.2.0");
         assertThat(r.nextActions()).hasSize(2);
         assertThat(r.waitingFor())
                 .isEqualTo(WaitingFor.PR_MERGE);
@@ -103,6 +107,7 @@ class StateFileRoundtripSmokeTest {
                 "Release v3.2.0",
                 "## [3.2.0] - 2026-04-13\n...",
                 "Release v3.2.0",
+                "/Users/dev/repo/.claude/worktrees/release-3.2.0",
                 List.of(
                         new NextAction(
                                 "PR mergeado — continuar",

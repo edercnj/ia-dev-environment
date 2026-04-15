@@ -236,4 +236,32 @@ class ReleaseStateFileSchemaTest {
                     .contains(transition);
         }
     }
+
+    @Test
+    @DisplayName("SKILL.md advertises schemaVersion 2"
+            + " (no stale v1 references)")
+    void skillMdAdvertisesSchemaVersionTwo()
+            throws IOException {
+        String content = Files.readString(SKILL_PATH);
+        assertThat(content)
+                .as("SKILL.md must reference the v2 check"
+                        + " '.schemaVersion != 2'")
+                .contains(".schemaVersion != 2");
+        assertThat(content)
+                .as("SKILL.md bootstrap snippet must write"
+                        + " 'schemaVersion: 2' (not 1)")
+                .contains("schemaVersion: 2");
+        assertThat(content)
+                .as("SKILL.md must not reference the legacy"
+                        + " v1 check '.schemaVersion != 1'")
+                .doesNotContain(".schemaVersion != 1");
+        assertThat(content)
+                .as("SKILL.md must not bootstrap with legacy"
+                        + " 'schemaVersion: 1'")
+                .doesNotContain("schemaVersion: 1,");
+        assertThat(content)
+                .as("SKILL.md error catalog must advertise"
+                        + " Expected: 2")
+                .contains("Expected: 2");
+    }
 }
