@@ -171,5 +171,36 @@ class ChangelogBodyExtractorTest {
             assertThat(result).isPresent();
             assertThat(result.get()).isEmpty();
         }
+
+        @Test
+        void extract_bodyWithOnlyBlankLines_returnsEmpty() {
+            String changelog = "## [1.0.0]\n\n   \n\t\n\n## [0.9.0]\nold\n";
+
+            Optional<String> result = ChangelogBodyExtractor.extract(changelog, "1.0.0");
+
+            assertThat(result).isPresent();
+            assertThat(result.get()).isEmpty();
+        }
+
+        @Test
+        void extract_bodyEndsWithTrailingNewlines_stripped() {
+            // exercise the second while-loop in trimBlankLines (end > start && '\n')
+            String changelog = "## [1.0.0]\n\nbody\n\n";
+
+            Optional<String> result = ChangelogBodyExtractor.extract(changelog, "1.0.0");
+
+            assertThat(result).isPresent();
+            assertThat(result.get()).isEqualTo("body");
+        }
+
+        @Test
+        void extract_versionWithBuildMetadata_matches() {
+            String changelog = "## [1.0.0+build.123]\n\nbuild body\n";
+
+            Optional<String> result = ChangelogBodyExtractor.extract(changelog, "1.0.0+build.123");
+
+            assertThat(result).isPresent();
+            assertThat(result.get()).contains("build body");
+        }
     }
 }
