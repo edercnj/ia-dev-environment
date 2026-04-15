@@ -1,6 +1,6 @@
 ---
 name: x-epic-implement
-description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via explicit git worktrees (per ADR-0004 §D2 and Rule 14). Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-story-implement subagents running inside orchestrator-provisioned worktrees."
+description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via explicit git worktrees (per ADR-0004 §D2 and Rule 14). Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-story-implement. EPIC-0038 simplification: epic orchestrator handles ONLY story-level concerns (phase order, story PR management, epic-level verification). Task management (TDD cycles, atomic commits per task, coalesced handling) is fully delegated to x-story-implement's v2 wave dispatcher. Tasks are invisible at the epic level."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, Agent, AskUserQuestion, TaskCreate, TaskUpdate
 argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr] [--auto-merge] [--no-merge] [--interactive-merge] [--strict-overlap] [--skip-pr-comments] [--auto-approve-pr] [--batch-approval] [--task-tracking]"
@@ -1812,3 +1812,129 @@ Templates referenced by this skill follow RULE-012. When a template file does no
 - DoR pre-check (Section 1.1b) is NON-BLOCKING when DoR files don't exist — backward compatible with epics planned before `x-epic-orchestrate` existed
 - Per-task checkpoint (Section 1.1c) tracks individual task progress within PRE_PLANNED stories; the `tasks` field is optional in the StoryEntry schema
 - Task-level resume (Step 1b) reclassifies IN_PROGRESS tasks to PENDING on `--resume`, preserving DONE tasks; enables granular resume without re-executing completed tasks
+
+---
+
+## v2 Simplification (EPIC-0038 — Task Management Delegated)
+
+This appendix documents the scope tightening introduced by story-0038-0007. The
+pre-0038 orchestrator duplicated task-level concerns (per-task tracking, per-task PR
+gates, cross-story task dependency enforcement) that properly belong to x-story-implement.
+EPIC-0038 moves those concerns down one level and keeps x-epic-implement focused on
+its natural scope: **stories as units of delivery**.
+
+### Scope Reduction Matrix
+
+| Concern | Pre-0038 (v1) | Post-0038 (v2) |
+|---------|---------------|----------------|
+| Parse epic, resolve stories | Epic orchestrator | Epic orchestrator (unchanged) |
+| Phase order dispatch | Epic orchestrator | Epic orchestrator (unchanged) |
+| Story-level PR management | Epic orchestrator | Epic orchestrator (unchanged) |
+| Cross-story dependency gate | Epic orchestrator | Epic orchestrator (status-only; no task-level deps) |
+| Epic integrity gate / smoke | Epic orchestrator | Epic orchestrator (unchanged) |
+| **Task-level tracking** | Epic orchestrator | **x-story-implement** |
+| **Per-task PR creation** | Epic orchestrator | **x-story-implement** (via x-test-tdd + x-pr-create) |
+| **Coalesced task bundling** | Epic orchestrator (ad-hoc) | **x-story-implement** (via task-map COALESCED) |
+| **Per-task TDD enforcement** | Epic orchestrator (best-effort) | **x-task-implement** (per-cycle RED assertion) |
+| **Batch approval for tasks** | Epic orchestrator | **x-story-implement** (single story-level approval gate) |
+
+### execution-state.json Projection (v2)
+
+In v2, the epic orchestrator still reads `execution-state.json` but operates ONLY on
+the story projection. Task-level fields (`tasks` map per story) are visible but
+treated as **read-only**: the epic orchestrator never mutates task entries.
+
+```json
+{
+  "version": "2.0",
+  "stories": {
+    "story-XXXX-YYYY": {
+      "status": "SUCCESS",                 // <- epic orchestrator reads/writes
+      "prNumber": 123,                      // <- epic orchestrator reads/writes
+      "tasks": { /* delegated */ }          // <- READ-ONLY from epic's perspective
+    }
+  }
+}
+```
+
+If a legacy epic still has task-level state (v1 execution-state), the orchestrator
+detects this during resume (`SchemaVersionResolver`) and reverts to the legacy
+task-aware code paths.
+
+### Argument Surface (unchanged)
+
+All CLI arguments continue to work; none is removed. The following flags were used in
+v1 to configure task-level behaviour and are now **delegated** to x-story-implement
+but kept for backward compatibility with scripts:
+
+- `--batch-approval` — passed through to x-story-implement; semantic identical.
+- `--task-tracking` — passed through; v2 always tracks tasks inside x-story-implement.
+- `--auto-approve-pr` — passed through; story-implement decides per-task merge policy.
+
+### Dispatcher Invocation Contract (v2)
+
+For each story in the resolved phase order, the orchestrator invokes:
+
+```
+Skill(skill: "x-story-implement", args: "<STORY-ID> [flags inherited from epic]")
+```
+
+and collects a `StoryResult`:
+
+```json
+{
+  "status": "SUCCESS" | "FAILED" | "PARTIAL",
+  "storyId": "story-XXXX-YYYY",
+  "prUrl": "...",
+  "prNumber": 123,
+  "coverageLine": 95.8,
+  "coverageBranch": 91.2,
+  "waveCount": N,      // new in v2 — number of waves x-story-implement dispatched
+  "taskCount": M       // new in v2 — total tasks within the story
+}
+```
+
+The orchestrator records `status` + `prNumber` + coverage deltas per story; never
+inspects `waveCount`/`taskCount` beyond logging them in the phase report.
+
+### v2 Benefits
+
+- **Reduced maintenance surface**: epic orchestrator SKILL.md drops task-tracking
+  tables and per-task PR flow from its phase bodies. When task semantics change
+  (new testability kind, new DoD item), only x-story-implement needs an update.
+- **Cleaner mental model**: the epic layer matches the domain layer in DDD — work
+  units composed of stories composed of tasks. Each layer manages only its own
+  concerns.
+- **Failure attribution**: a story-level failure in v2 is always a real story-level
+  failure (e.g., a PR conflict on merge). Task-level failures are caught and
+  diagnosed inside x-story-implement before escalating.
+
+### Compatibility Matrix — `planningSchemaVersion` (story-0038-0008)
+
+The flag lives at the root of `plans/epic-XXXX/execution-state.json` and gates the
+choice between legacy and task-first execution across the three execution skills
+(x-task-implement, x-story-implement, x-epic-implement). Resolution is performed by
+`dev.iadev.domain.schemaversion.SchemaVersionResolver` and the result (plus a
+fallback reason, if any) is logged at the start of orchestration.
+
+| Epic Range | `planningSchemaVersion` | Flow | Notes |
+|------------|------------------------|------|-------|
+| epic-0025..0037 | `"1.0"` or field absent | Legacy top-down | `x-story-plan` monolithic; tasks are story sub-sections |
+| epic-0036 (rename) | `"1.0"` | Legacy top-down | Primary concern was skill taxonomy, not planning paradigm |
+| epic-0038 (this) | `"1.0"` | Legacy top-down | Spec §8.2 bootstrap: the task-first epic itself runs in v1 |
+| epic-0039+ | `"2.0"` | Task-first bottom-up | First dogfood of task-first; uses x-task-plan + x-task-implement |
+
+Fallback semantics (RULE-TF-05 Backward Compatibility):
+
+| Condition | Result | Emitted log |
+|-----------|--------|-------------|
+| File absent | V1 | `SCHEMA_VERSION_FALLBACK_NO_FILE` |
+| Field absent | V1 | `SCHEMA_VERSION_FALLBACK_MISSING_FIELD` |
+| Field malformed (`"legacy"`, `"3.0"`) | V1 | `SCHEMA_VERSION_INVALID_VALUE` |
+| Field explicitly `"1.0"` | V1 | (no warning) |
+| Field explicitly `"2.0"` | V2 | (no warning) |
+| JSON unparseable | Hard fail (`UncheckedIOException`) | — |
+
+**Zero-regression guarantee:** legacy epics (pre-0038) that never write the field
+are treated exactly as before. The only new observable is a single-line
+`schema: v1 [NO_FILE]` log at the start of orchestration.

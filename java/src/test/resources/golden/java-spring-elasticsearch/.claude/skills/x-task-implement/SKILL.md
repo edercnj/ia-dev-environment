@@ -1,6 +1,6 @@
 ---
 name: x-task-implement
-description: "Implements a feature/story using TDD (Red-Green-Refactor) workflow. Delegates preparation to a subagent that reads architecture, coding, and test plan KPs, then implements test-first with Double-Loop TDD, layer-by-layer with compile checks after each cycle."
+description: "Implements a feature/story/task using TDD (Red-Green-Refactor) workflow. Schema-aware: v1 (legacy) runs the original Double-Loop TDD flow with story-section task extraction; v2 (task-first, EPIC-0038) reads task-TASK-XXXX-YYYY-NNN.md + plan-task-TASK-XXXX-YYYY-NNN.md, honours declared I/O contracts, respects task-implementation-map dependencies, verifies post-conditions via grep/assert, and produces a single atomic commit per task via x-git-commit."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
 argument-hint: "[TASK-ID (TASK-XXXX-YYYY-NNN) or STORY-ID or feature-description] [--worktree]"
@@ -505,3 +505,122 @@ This ensures backward compatibility with projects that have not yet adopted temp
 - Works with any {{FRAMEWORK}} project following layered/hexagonal architecture
 - The developer agent (typescript-developer) already includes TDD workflow rules (story-0003-0006)
 - All `{{PLACEHOLDER}}` tokens (e.g. `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
+
+---
+
+## v2 Extensions (EPIC-0038 — Task-First Execution)
+
+This appendix documents the schema-aware behaviour introduced by story-0038-0005.
+v1 flow is preserved **exactly**; v2 adds a task-file-first execution path that
+reads contracts from `task-TASK-NNN.md` and honours the wave dispatch from
+`task-implementation-map-STORY-*.md`. v1 callers (epics 0025-0037 and EPIC-0038
+itself per spec §8.2) are unaffected.
+
+### Phase 0c — Schema Version Detection
+
+Before standard Phase 0 (input resolution) runs, detect the schema:
+
+1. Read `plans/epic-XXXX/execution-state.json` using the shared
+   `SchemaVersionResolver` shipped by story-0038-0008.
+2. `planningSchemaVersion == "2.0"` -> v2 execution path (rest of this appendix).
+3. Absent / `"1.0"` / malformed -> v1 execution path (documented above).
+4. Single-line log: `schema: v2` or `schema: v1`. Hard fail only on unparseable JSON.
+
+### Phase 0d — Input Resolution (v2)
+
+Accepts `<task-id>` (e.g. `TASK-0039-0001-003`) and resolves three artifacts:
+
+| Artifact | Pattern |
+|----------|---------|
+| Task file | `plans/epic-XXXX/plans/task-TASK-XXXX-YYYY-NNN.md` |
+| Task plan | `plans/epic-XXXX/plans/plan-task-TASK-XXXX-YYYY-NNN.md` |
+| Map | `plans/epic-XXXX/plans/task-implementation-map-STORY-XXXX-YYYY.md` |
+
+Missing any -> abort with `TASK_ARTIFACT_NOT_FOUND {path}`.
+
+### Phase 0e — Pre-Execution Gates (v2)
+
+Parse `task-TASK-NNN.md` and validate:
+
+1. Dependencies: for each TASK-ID in `## 4. Dependências`, read `execution-state.json`
+   and verify `tasks[id].status == "DONE"`. Unmet dependency that is not mockable
+   aborts with `UNMET_DEPENDENCY {task-id}`.
+2. Testability:
+   - `INDEPENDENT` -> no pre-gate.
+   - `REQUIRES_MOCK` -> verify mock file cited in the plan exists.
+   - `COALESCED` -> verify the partner task-id is in the current invocation batch.
+3. Schema: task file must pass story-0038-0001 schema validation (zero ERROR-level
+   violations per the TF-SCHEMA rules).
+
+### Phase 2 (v2) — Per-Cycle TDD Loop
+
+Supersedes the legacy Double-Loop flow when v2 is active. For each cycle in
+`plan-task-TASK-NNN.md` §2, in TPP order:
+
+- **Red:** write the failing test named per the plan; run `{{TEST_COMMAND}}` and
+  assert failure with the expected assertion text.
+- **Green:** implement the minimum code from the plan's Green column; run
+  `{{COMPILE_COMMAND}}` then `{{TEST_COMMAND}}`; assert all tests pass.
+- **Refactor:** apply the plan's Refactor hint when present; tests stay GREEN.
+
+Each cycle's outcome is appended to `plans/epic-XXXX/reports/tdd-log-TASK-XXXX-YYYY-NNN.md`
+(Red status, Green status, refactor applied).
+
+### Phase 3 (v2) — Post-Execution Output Verification
+
+For each output declared in §2.2 of the task file, run the appropriate verification:
+
+| Output pattern | Verification |
+|----------------|--------------|
+| "class X created" | `grep -r "class X" java/src/main/java` returns 1+ matches |
+| "method Y exists" | `grep -r "void Y\|Y(" {file-scope}` matches |
+| "test Z passes" | `{{TEST_COMMAND}} -Dtest=Z` exits 0 |
+| "file F exists" | `test -f F` |
+| "build green" | `{{COMPILE_COMMAND}}` exits 0 |
+
+Any failure aborts before commit with `OUTPUT_CONTRACT_VIOLATION {output}`.
+
+### Phase 4 (v2) — Atomic Commit via x-git-commit (RULE-TF-04)
+
+Invoke `x-git-commit` via the Skill tool (Rule 13 INLINE-SKILL). Commit body:
+
+- **Scope:** `task(TASK-XXXX-YYYY-NNN)`.
+- **Type:** derived from the plan's dominant change type (`feat`, `fix`, `refactor`,
+  `test`, `docs`, `chore`).
+- **Body:** references the task artifact + one-line summary per TDD cycle.
+- **Coalesced groups:** single commit with footer
+  `Coalesces-with: TASK-AAAA-BBBB-CCC, TASK-DDDD-EEEE-FFF` listing partners
+  (sorted by TASK-ID).
+- **Pre-commit chain (RULE-007):** format -> lint -> compile -> commit.
+
+### Phase 5 (v2) — Status Report
+
+Update `execution-state.json`:
+
+- `tasks[TASK-ID].status = "DONE"`
+- `tasks[TASK-ID].commitSha = <SHA>`
+- `tasks[TASK-ID].completedAt = <ISO-8601>`
+
+Return to caller (x-story-implement) a structured result:
+
+```json
+{
+  "status": "DONE",
+  "taskId": "TASK-XXXX-YYYY-NNN",
+  "commitSha": "abc123...",
+  "cycleCount": N,
+  "coverageDelta": { "lineBefore": 95.1, "lineAfter": 95.3 },
+  "wallclockMs": 12340
+}
+```
+
+### Error Codes (v2)
+
+| Code | Condition |
+|------|-----------|
+| `TASK_ARTIFACT_NOT_FOUND` | task / plan / map file missing |
+| `UNMET_DEPENDENCY` | a declared `Depends on` TASK-ID is not DONE |
+| `SCHEMA_VIOLATION` | task file has ERROR-level violations |
+| `OUTPUT_CONTRACT_VIOLATION` | declared output failed post-exec verification |
+| `RED_NOT_OBSERVED` | RED phase test didn't fail as expected |
+| `REFACTOR_BROKE_TESTS` | refactor made previously-green tests fail |

@@ -8,16 +8,16 @@
 
 | Story | Título | Chave Jira | Blocked By | Blocks | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| [story-0037-0001](./story-0037-0001.md) | Promover RULE-018 a Rule File `14-worktree-lifecycle.md` | — | — | 0002, 0003, 0004, 0005, 0006, 0007, 0010 | Pendente |
-| [story-0037-0002](./story-0037-0002.md) | Adicionar Operação `detect-context` a `x-git-worktree` | — | 0001 | 0003, 0004, 0005, 0006, 0007, 0008 | Pendente |
-| [story-0037-0003](./story-0037-0003.md) | Migrar `x-epic-implement` para `/x-git-worktree` Explícito | — | 0001, 0002 | 0005, 0010 | Pendente |
-| [story-0037-0004](./story-0037-0004.md) | `x-git-push` Ganha Flag `--worktree` | — | 0002 | 0010 | Pendente |
-| [story-0037-0005](./story-0037-0005.md) | `x-story-implement` Phase 0 Worktree-Aware | — | 0002, 0003 | 0006, 0010 | Pendente |
-| [story-0037-0006](./story-0037-0006.md) | `x-task-implement` Worktree-Aware | — | 0002, 0005 | 0010 | Pendente |
-| [story-0037-0007](./story-0037-0007.md) | `x-pr-fix-epic` Cria Worktree para Branch de Correção | — | 0002 | 0010 | Pendente |
-| [story-0037-0008](./story-0037-0008.md) | `x-release` Worktree para Release/Hotfix ⚠️ | — | 0002, **EPIC-0035 completo** | (10b futuro) | Bloqueada |
-| [story-0037-0009](./story-0037-0009.md) | ADR-0004 — Worktree-First Branch Creation Policy | — | — | 0010 | Pendente |
-| [story-0037-0010](./story-0037-0010.md) | Regenerar Golden Files e Validar End-to-End | — | 0001, 0002, 0003, 0004, 0005, 0006, 0007, 0009 | — | Pendente |
+| [story-0037-0001](./story-0037-0001.md) | Promover RULE-018 a Rule File `14-worktree-lifecycle.md` | — | — | 0002, 0003, 0004, 0005, 0006, 0007, 0010 | Concluída |
+| [story-0037-0002](./story-0037-0002.md) | Adicionar Operação `detect-context` a `x-git-worktree` | — | 0001 | 0003, 0004, 0005, 0006, 0007, 0008 | Concluída |
+| [story-0037-0003](./story-0037-0003.md) | Migrar `x-epic-implement` para `/x-git-worktree` Explícito | — | 0001, 0002 | 0005, 0010 | Concluída |
+| [story-0037-0004](./story-0037-0004.md) | `x-git-push` Ganha Flag `--worktree` | — | 0002 | 0010 | Concluída |
+| [story-0037-0005](./story-0037-0005.md) | `x-story-implement` Phase 0 Worktree-Aware | — | 0002, 0003 | 0006, 0010 | Concluída |
+| [story-0037-0006](./story-0037-0006.md) | `x-task-implement` Worktree-Aware | — | 0002, 0005 | 0010 | Concluída |
+| [story-0037-0007](./story-0037-0007.md) | `x-pr-fix-epic` Cria Worktree para Branch de Correção | — | 0002 | 0010 | Concluída |
+| [story-0037-0008](./story-0037-0008.md) | `x-release` Worktree para Release/Hotfix | — | 0002, **EPIC-0035 completo** | — | Concluída |
+| [story-0037-0009](./story-0037-0009.md) | ADR-0004 — Worktree-First Branch Creation Policy | — | — | 0010 | Concluída |
+| [story-0037-0010](./story-0037-0010.md) | Regenerar Golden Files e Validar End-to-End | — | 0001, 0002, 0003, 0004, 0005, 0006, 0007, 0009 | — | Concluída |
 
 > **Valores de Status:** `Pendente` (padrão) · `Em Andamento` · `Concluída` · `Falha` · `Bloqueada` · `Parcial`
 

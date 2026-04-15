@@ -1,0 +1,281 @@
+{
+  "version": "2.0",
+  "epicId": "0038",
+  "baseBranch": "develop",
+  "startedAt": "2026-04-14T00:00:00Z",
+  "mode": {
+    "parallel": false,
+    "skipReview": false,
+    "singlePr": false,
+    "mergeMode": "no-merge",
+    "sequential": true,
+    "strictOverlap": false,
+    "autoApprovePr": true,
+    "batchApproval": true,
+    "taskTracking": true,
+    "skipSmokeGate": false,
+    "skipPrComments": false
+  },
+  "stories": {
+    "story-0038-0001": {
+      "id": "story-0038-0001",
+      "phase": 0,
+      "status": "SUCCESS",
+      "findingsCount": 0,
+      "summary": "All 7 tasks implemented (schema doc, VOs, parser, validator+6 rules, example, IT smoke, golden stability). Parent branch ready for human review PR to develop.",
+      "retries": 0,
+      "parentBranch": "feat/story-0038-0001-task-primary-artifact",
+      "scopeTier": "COMPLEX",
+      "tasks": {
+        "TASK-0038-0001-001": {
+          "status": "DONE",
+          "agent": "architect",
+          "type": "DOC"
+        },
+        "TASK-0038-0001-002": {
+          "status": "DONE",
+          "agent": "architect",
+          "type": "DEV"
+        },
+        "TASK-0038-0001-003": {
+          "status": "DONE",
+          "agent": "architect",
+          "type": "DEV",
+          "prNumber": 339
+        },
+        "TASK-0038-0001-004": {
+          "status": "DONE",
+          "agent": "architect",
+          "type": "DEV",
+          "prNumber": 340
+        },
+        "TASK-0038-0001-005": {
+          "status": "DONE",
+          "agent": "architect",
+          "type": "DOC",
+          "prNumber": 341
+        },
+        "TASK-0038-0001-006": {
+          "status": "DONE",
+          "agent": "qa-engineer",
+          "type": "TEST",
+          "prNumber": 342
+        },
+        "TASK-0038-0001-007": {
+          "status": "DONE",
+          "agent": "qa-engineer",
+          "type": "TEST",
+          "prNumber": 343
+        }
+      }
+    },
+    "story-0038-0002": {
+      "id": "story-0038-0002",
+      "phase": 1,
+      "status": "SUCCESS",
+      "findingsCount": 0,
+      "summary": "7 tasks merged: schema doc + domain model + sorter + writer + generator + CLI + E2E smoke. Pipeline functional end-to-end.",
+      "retries": 0,
+      "blockedBy": [
+        "story-0038-0001"
+      ],
+      "parentBranch": "feat/story-0038-0002-task-impl-map",
+      "tasks": {
+        "TASK-0038-0002-001": {
+          "status": "DONE",
+          "agent": "architect",
+          "type": "DOC",
+          "prNumber": 346
+        },
+        "TASK-0038-0002-002": {
+          "status": "DONE",
+          "agent": "architect",
+          "type": "DEV",
+          "prNumber": 347
+        },
+        "TASK-0038-0002-003": {
+          "status": "DONE",
+          "agent": "architect",
+          "type": "DEV",
+          "prNumber": 348
+        },
+        "TASK-0038-0002-004": {
+          "status": "DONE",
+          "agent": "architect",
+          "type": "DEV",
+          "prNumber": 349
+        },
+        "TASK-0038-0002-005": {
+          "status": "DONE",
+          "agent": "architect",
+          "type": "DEV",
+          "prNumber": 350
+        },
+        "TASK-0038-0002-006": {
+          "status": "DONE",
+          "agent": "architect",
+          "type": "DEV",
+          "prNumber": 351
+        },
+        "TASK-0038-0002-007": {
+          "status": "DONE",
+          "agent": "qa-engineer",
+          "type": "TEST",
+          "prNumber": 352
+        }
+      }
+    },
+    "story-0038-0003": {
+      "id": "story-0038-0003",
+      "phase": 1,
+      "status": "PENDING",
+      "findingsCount": 0,
+      "summary": "",
+      "retries": 0,
+      "blockedBy": [
+        "story-0038-0001"
+      ]
+    },
+    "story-0038-0004": {
+      "id": "story-0038-0004",
+      "phase": 2,
+      "status": "PENDING",
+      "findingsCount": 0,
+      "summary": "",
+      "retries": 0,
+      "blockedBy": [
+        "story-0038-0003"
+      ]
+    },
+    "story-0038-0005": {
+      "id": "story-0038-0005",
+      "phase": 2,
+      "status": "PENDING",
+      "findingsCount": 0,
+      "summary": "",
+      "retries": 0,
+      "blockedBy": [
+        "story-0038-0001",
+        "story-0038-0002"
+      ]
+    },
+    "story-0038-0006": {
+      "id": "story-0038-0006",
+      "phase": 3,
+      "status": "PENDING",
+      "findingsCount": 0,
+      "summary": "",
+      "retries": 0,
+      "blockedBy": [
+        "story-0038-0005"
+      ]
+    },
+    "story-0038-0007": {
+      "id": "story-0038-0007",
+      "phase": 4,
+      "status": "PENDING",
+      "findingsCount": 0,
+      "summary": "",
+      "retries": 0,
+      "blockedBy": [
+        "story-0038-0006"
+      ]
+    },
+    "story-0038-0008": {
+      "id": "story-0038-0008",
+      "phase": 5,
+      "status": "PENDING",
+      "findingsCount": 0,
+      "summary": "",
+      "retries": 0,
+      "blockedBy": [
+        "story-0038-0007"
+      ]
+    },
+    "story-0038-0009": {
+      "id": "story-0038-0009",
+      "phase": 6,
+      "status": "PENDING",
+      "findingsCount": 0,
+      "summary": "",
+      "retries": 0,
+      "blockedBy": [
+        "story-0038-0008"
+      ]
+    },
+    "story-0038-0010": {
+      "id": "story-0038-0010",
+      "phase": 7,
+      "status": "PENDING",
+      "findingsCount": 0,
+      "summary": "",
+      "retries": 0,
+      "blockedBy": [
+        "story-0038-0009"
+      ]
+    }
+  },
+  "phases": {
+    "0": {
+      "stories": [
+        "story-0038-0001"
+      ],
+      "status": "IN_PROGRESS"
+    },
+    "1": {
+      "stories": [
+        "story-0038-0002",
+        "story-0038-0003"
+      ],
+      "status": "PENDING"
+    },
+    "2": {
+      "stories": [
+        "story-0038-0004",
+        "story-0038-0005"
+      ],
+      "status": "PENDING"
+    },
+    "3": {
+      "stories": [
+        "story-0038-0006"
+      ],
+      "status": "PENDING"
+    },
+    "4": {
+      "stories": [
+        "story-0038-0007"
+      ],
+      "status": "PENDING"
+    },
+    "5": {
+      "stories": [
+        "story-0038-0008"
+      ],
+      "status": "PENDING"
+    },
+    "6": {
+      "stories": [
+        "story-0038-0009"
+      ],
+      "status": "PENDING"
+    },
+    "7": {
+      "stories": [
+        "story-0038-0010"
+      ],
+      "status": "PENDING"
+    }
+  },
+  "currentPhase": 0,
+  "mainShaBeforePhase": {
+    "0": "d2ea863690ee36ee43d86eba5689a815d8ac07e5"
+  },
+  "integrityGates": {},
+  "versionBumps": {},
+  "metrics": {
+    "storiesCompleted": 2,
+    "storiesFailed": 0,
+    "storiesBlocked": 0
+  }
+}

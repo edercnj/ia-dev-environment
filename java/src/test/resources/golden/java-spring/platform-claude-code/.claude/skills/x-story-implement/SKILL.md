@@ -1,6 +1,6 @@
 ---
 name: x-story-implement
-description: "Orchestrates the complete feature implementation cycle with task-centric workflow: branch creation, planning, per-task TDD execution with individual PRs and approval gates, story-level verification, and final cleanup. Delegates implementation to x-test-tdd, commits to x-git-commit, PRs to x-pr-create."
+description: "Orchestrates the complete feature implementation cycle with task-centric workflow: branch creation, planning, per-task TDD execution with individual PRs and approval gates, story-level verification, and final cleanup. Schema-aware: v1 (legacy) runs the monolithic coalesce-ad-hoc flow; v2 (EPIC-0038) reads task-implementation-map-STORY-*.md and dispatches x-task-implement in waves (declared parallelism) — ending the 'task embedded in story' anti-pattern. Delegates to x-test-tdd, x-git-commit, x-pr-create, and (v2) x-task-implement."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, Agent, TaskCreate, TaskUpdate
 argument-hint: "[STORY-ID or feature-name] [--auto-approve-pr] [--task TASK-ID] [--skip-verification] [--full-lifecycle] [--worktree]"
@@ -1171,3 +1171,92 @@ Templates referenced by this skill follow RULE-012. When a template file does no
 | `x-git-push` | Invokes (Phase 2, branch creation) | Branch creation for tasks |
 
 All `{{PLACEHOLDER}}` tokens (e.g., `{{BUILD_COMMAND}}`, `{{TEST_COMMAND}}`) are runtime markers filled by the AI agent from project configuration -- they are NOT resolved during generation.
+
+---
+
+## v2 Extensions (EPIC-0038 — Wave-Based Task Orchestration)
+
+This appendix documents the schema-aware orchestration introduced by story-0038-0006.
+The legacy monolithic flow (coalesce tasks ad-hoc, run Double-Loop TDD inside
+x-story-implement itself) is preserved for v1. In v2, x-story-implement becomes a
+**wave dispatcher** that reads `task-implementation-map-STORY-*.md` and invokes
+`x-task-implement` per task, honouring the declared parallelism.
+
+### Phase 0f — Schema Version Detection
+
+Same `SchemaVersionResolver` as x-story-plan (story-0038-0004). When
+`planningSchemaVersion == "2.0"`, activate the wave dispatcher. Otherwise fall
+through to the legacy task-centric flow documented above.
+
+### Phase 1 (v2) — Read Task Implementation Map
+
+1. Resolve `plans/epic-XXXX/plans/task-implementation-map-STORY-XXXX-YYYY.md`.
+2. If missing, abort with `MAP_NOT_FOUND {path}`. (The map should already exist
+   because x-story-plan v2 Phase 4c produced it; if not, the epic orchestrator
+   or operator should re-run planning.)
+3. Parse the Execution Order table to recover wave structure (Wave N ->
+   list of TASK-IDs). Coalesced super-nodes appear as `(TASK-A, TASK-B)` and
+   map to a single x-task-implement invocation (the skill's own Phase 0e
+   COALESCED check handles partner presence).
+
+### Phase 2 (v2) — Wave Dispatch Loop
+
+For each wave in topological order:
+
+1. **Dispatch:** for every TASK-ID in the wave, invoke
+   `x-task-implement <TASK-ID>` via the Skill tool. Emit all invocations as
+   sibling tool calls in a SINGLE assistant message (Rule 13 — INLINE-SKILL,
+   parallel dispatch).
+2. **Await:** wait for every invocation in the wave to return. The runtime
+   guarantees the next message only fires after all siblings complete.
+3. **Verify wave:** assert every TASK result has `status == "DONE"` and a
+   valid `commitSha`. Any FAILED task aborts the wave and the story.
+4. **Integration verification:** run `{{COMPILE_COMMAND}}` + `{{TEST_COMMAND}}`
+   on the aggregated state of develop + wave commits. A regression at this
+   boundary reports which TASK-ID introduced the failure (last-writer per
+   failing file).
+5. **Advance:** move to the next wave only after the current wave's
+   integration verification passes.
+
+### Phase 3 (v2) — Coalesced Wave Handling
+
+A wave row containing a coalesced super-node `(TASK-A, TASK-B)`:
+
+- Dispatch a SINGLE x-task-implement invocation, specifying both task IDs in the
+  `--coalesce <ID1,ID2>` flag.
+- x-task-implement's Phase 4 emits one commit with `Coalesces-with: TASK-B` footer
+  (RULE-TF-04). The other task's status is updated transitively — both IDs move
+  to `DONE` with the same `commitSha`.
+
+### Phase 4 (v2) — Story-Level Aggregation
+
+After the final wave:
+
+1. Aggregate per-task results into a story-level commit summary
+   (`plans/epic-XXXX/reports/story-implementation-report-STORY-XXXX-YYYY.md`):
+   - Table of TASK-ID -> commit SHA -> wallclock -> coverage delta.
+   - Wave execution timing.
+   - Any rebases / conflict-resolution events.
+2. Run the existing story-level verification phases (review, tech lead, story PR
+   creation) exactly as in v1 — the new work is entirely in Phase 2's dispatch
+   loop; downstream phases are unchanged.
+
+### v2 Benefits vs v1
+
+| Aspect | v1 (legacy) | v2 (wave dispatch) |
+|--------|-------------|--------------------|
+| Task coalescing | Ad-hoc; often silent | Declarative (only COALESCED-with-COALESCED pairs) |
+| Parallelism | Serial | Declared per wave; independent tasks run concurrently |
+| Review granularity | Story diff (hundreds of lines) | Per-task commit (tens of lines) |
+| Bisect-ability | Story-level checkpoint | Per-task atomic commits |
+| Failure attribution | Manual diff walk | Automatic (wave verification pinpoints TASK-ID) |
+| TDD honesty | Best-effort | Enforced per-task (RED_NOT_OBSERVED aborts) |
+
+### Error Codes (v2)
+
+| Code | Condition |
+|------|-----------|
+| `MAP_NOT_FOUND` | task-implementation-map-STORY-*.md missing for the story |
+| `WAVE_VERIFICATION_FAILED` | post-wave compile/test failure; includes offending TASK-ID |
+| `COALESCED_PARTNER_MISSING` | wave contains coalesced super-node but one partner isn't dispatchable |
+| `CROSS_WAVE_REGRESSION` | earlier wave's work broken by a later wave (rare; aborts story) |
