@@ -9,7 +9,7 @@
 | Story | Título | Chave Jira | Blocked By | Blocks | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | story-0039-0001 | Auto-detecção de versão (Conventional Commits) | — | — | 0008, 0009, 0014 | Pendente |
-| story-0039-0002 | State file schema v2 (breaking) | — | — | 0007, 0008, 0010, 0012 | Pendente |
+| story-0039-0002 | State file schema v2 (breaking) | — | — | 0007, 0008, 0010, 0012 | Concluida |
 | story-0039-0003 | Pre-commit integrity checks | — | — | 0009 | Pendente |
 | story-0039-0004 | Paralelização de VALIDATE-DEEP | — | — | — | Pendente |
 | story-0039-0005 | Phase SUMMARY com diagrama Git Flow | — | — | 0014 | Pendente |

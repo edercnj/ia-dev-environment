@@ -151,7 +151,7 @@ if --continue-after-merge:
         ABORT RESUME_NO_STATE
     if jq . "$STATE_FILE" fails:
         ABORT STATE_INVALID_JSON
-    if .schemaVersion != 1:
+    if .schemaVersion != 2:
         ABORT STATE_SCHEMA_VERSION
     if .phase != "APPROVAL_PENDING":
         ABORT (invalid phase for resume — expected APPROVAL_PENDING)
@@ -161,7 +161,7 @@ else:
     if state file exists:
         if jq . "$STATE_FILE" fails:
             ABORT STATE_INVALID_JSON
-        if .schemaVersion != 1:
+        if .schemaVersion != 2:
             ABORT STATE_SCHEMA_VERSION
         if .phase != "COMPLETED":
             ABORT STATE_CONFLICT
@@ -178,7 +178,7 @@ else:
       --argjson interactive "$INTERACTIVE" \
       --arg startedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
       '{
-         schemaVersion: 1,
+         schemaVersion: 2,
          version: $version,
          phase: "INITIALIZED",
          phasesCompleted: ["INITIALIZED"],
@@ -2062,7 +2062,7 @@ printed at runtime.
 | 0 | `DEP_JQ_MISSING` | `jq` not installed | `jq not installed. Install via your package manager.` | 1 |
 | 0 | `DEP_GH_AUTH` | `gh` not authenticated | `gh not authenticated. Run 'gh auth login'.` | 1 |
 | 0 | `STATE_INVALID_JSON` | State file is corrupted JSON | `State file exists but is not valid JSON: <path>` | 1 |
-| 0 | `STATE_SCHEMA_VERSION` | Unknown `schemaVersion` | `Unknown schemaVersion: <n>. Expected: 1.` | 1 |
+| 0 | `STATE_SCHEMA_VERSION` | Unknown `schemaVersion` | `Unknown schemaVersion: <n>. Expected: 2.` | 1 |
 | 0 | `RESUME_NO_STATE` | `--continue-after-merge` without state file | `No release in progress. Run /x-release <version> first.` | 1 |
 | 0 | `STATE_CONFLICT` | State file exists with `phase != COMPLETED` | `Release in progress for v<X.Y.Z>. Use --continue-after-merge or delete state.` | 1 |
 | 1 | `HOTFIX_INVALID_BUMP` | `--hotfix` with bump type != patch | `Hotfix mode only allows patch bump. Got: <type>` | 1 |
