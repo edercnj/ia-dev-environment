@@ -40,6 +40,21 @@ jobs:
           java-version: "21"
           cache: maven
 
+      # EPIC-0040: shellcheck the telemetry hook scripts.
+      # Ubuntu runners already ship shellcheck; -S warning mirrors the
+      # project convention in java/src/main/resources/targets/claude/hooks/.
+      - name: Shellcheck telemetry hooks
+        working-directory: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          SCRIPTS=(java/src/main/resources/targets/claude/hooks/telemetry-*.sh)
+          if (( ${#SCRIPTS[@]} == 0 )); then
+            echo "No telemetry-*.sh scripts found — skipping shellcheck"
+            exit 0
+          fi
+          shellcheck -S warning -e SC2034 "${SCRIPTS[@]}"
+
       - name: mvn -B verify
         run: mvn -B verify
 
