@@ -19,7 +19,7 @@
 | story-0039-0009 | Pre-flight dashboard | — | 0001, 0003 | 0013, 0014 | Pendente |
 | story-0039-0010 | --status / --abort | — | 0002 | — | Pendente |
 | story-0039-0011 | Handoff /x-pr-fix-comments | — | 0007 | — | Pendente |
-| story-0039-0012 | Telemetria por fase | — | 0002 | 0014 | Pendente |
+| story-0039-0012 | Telemetria por fase | — | 0002 | 0014 | Concluída |
 | story-0039-0013 | Interactive dry-run | — | 0007, 0009 | — | Pendente |
 | story-0039-0014 | Paridade hotfix | — | 0001, 0005, 0007, 0008, 0009, 0012 | 0015 | Pendente |
 | story-0039-0015 | Doc + golden regen final | — | 0001..0014 | — | Pendente |

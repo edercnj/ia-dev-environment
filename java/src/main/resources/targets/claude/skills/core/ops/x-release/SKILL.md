@@ -64,6 +64,7 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 | `--force` | No | Alias for `--yes`. Identical behavior. (story-0039-0010) |
 | `--no-preflight` | No | Skip Step 1.5 (PRE-FLIGHT dashboard) entirely; proceed directly to VALIDATE-DEEP. Intended for CI pipelines. (story-0039-0009) |
 | `--preflight-changelog-lines <N>` | No | Max CHANGELOG lines in the pre-flight dashboard preview (default: 10, range: 1-500). (story-0039-0009) |
+| `--telemetry <on\|off>` | No | Toggle per-phase telemetry writes to `plans/release-metrics.jsonl`. Default `on`. When `off`, the phase wrapper installs `NoopTelemetrySink` and no JSONL lines are appended — useful in CI privacy or debug contexts. Phase 13 SUMMARY Top-3 benchmark degrades gracefully when the JSONL is empty. (story-0039-0012) |
 
 ## Workflow
 
@@ -1949,6 +1950,67 @@ git branch -d "release/${VERSION}"
 git push origin --delete "release/${VERSION}" 2>/dev/null || true
 ```
 
+### Step 12.5 — Phase Telemetry (story-0039-0012)
+
+Every phase (Steps 0 through 13 except Step 13 itself, which reads the
+JSONL) emits one line to `plans/release-metrics.jsonl` describing the
+phase execution. The JSONL is committed to the repository per RULE-006
+(telemetry-in-repo) and enables Phase 13 SUMMARY (Step 13.6) to render
+a Top-3 slowest-phase benchmark vs. the mean of the last 5 releases.
+
+#### 12.5.1 — JSONL schema
+
+Each line is a single JSON object with these fields (schema §5.1 in
+story-0039-0012):
+
+| Field | Type | Always present | Description |
+|-------|------|----------------|-------------|
+| `releaseVersion` | `String` | Yes | semver of the release |
+| `releaseType` | `enum {release,hotfix}` | No (default `release`) | distinguishes standard vs. hotfix flow |
+| `phase` | `String` | Yes | SCREAMING_SNAKE_CASE phase name |
+| `startedAt` | `String` (ISO-8601 UTC) | Yes | phase start timestamp |
+| `endedAt` | `String` (ISO-8601 UTC) | Yes | phase end timestamp |
+| `durationSec` | `Integer` | Yes | `endedAt - startedAt` in seconds, `>= 0` |
+| `outcome` | `enum {SUCCESS,FAILED,SKIPPED}` | Yes | phase outcome |
+
+Example line:
+
+```json
+{"releaseVersion":"3.2.0","releaseType":"release","phase":"VALIDATED","startedAt":"2026-04-13T08:00:00Z","endedAt":"2026-04-13T08:02:22Z","durationSec":142,"outcome":"SUCCESS"}
+```
+
+#### 12.5.2 — Phase wrapper (bash)
+
+The skill wraps every phase block with two calls to the shell helper
+`emit_telemetry` (implemented by invoking the Java writer via
+`mvn exec` or by appending directly when the Java CLI is unavailable).
+The contract is:
+
+```bash
+# Enter a phase — record start.
+emit_telemetry "VALIDATED" start
+# ... do phase work ...
+# Exit phase — outcome is SUCCESS | FAILED | SKIPPED.
+emit_telemetry "VALIDATED" end SUCCESS
+```
+
+The wrapper delegates to
+`dev.iadev.infrastructure.adapter.output.telemetry.FileTelemetryWriter`
+which performs an atomic append under a `FileLock`. Writes are
+warn-only: any `IOException` is logged with code
+`TELEMETRY_WRITE_FAILED` and the release flow continues.
+
+#### 12.5.3 — `--telemetry off` (opt-out)
+
+When the operator passes `--telemetry off`:
+
+- The wrapper swaps `FileTelemetryWriter` for `NoopTelemetrySink`.
+- No lines are appended to `plans/release-metrics.jsonl`.
+- Phase 13 SUMMARY skips the Top-3 benchmark and prints
+  `[SUMMARY] Benchmark skipped (--telemetry off)`.
+
+Default is `on`.
+
 ### Step 13 — Summary (Git Flow Cycle Explainer)
 
 Phase 13 is a **read-only** closing step that renders a visual summary of
@@ -2039,6 +2101,33 @@ If the state file is missing, malformed, or locked, Phase 13 emits:
 It does not abort the release (the release already succeeded at end of
 Phase 12); it only suppresses the visual block. This keeps Phase 13
 strictly non-disruptive.
+
+#### Step 13.6 — Phase benchmark (story-0039-0012)
+
+After rendering the Git Flow cycle block, Phase 13 renders a Top-3
+slowest-phase benchmark by delegating to
+`dev.iadev.domain.telemetry.BenchmarkAnalyzer`:
+
+1. Read all lines of `plans/release-metrics.jsonl` through
+   `TelemetryJsonlReader` (streaming — domain stays pure).
+2. Invoke `BenchmarkAnalyzer.analyze(stream, currentVersion)`.
+3. Render one of:
+   - When at least `MIN_HISTORY` (= 5) historical releases exist,
+     render the three `PhaseBenchmark` entries, ranked by current
+     `durationSec` descending, formatted as:
+     ```
+     Top-3 fases mais lentas:
+       VALIDATED:    142s (+30% vs média 109s nas últimas 5 releases)
+       PR_OPENED:     12s (-25% vs média 16s)
+       CHANGELOG:      8s (+0% vs média 8s)
+     ```
+   - When fewer than `MIN_HISTORY` historical releases are observed,
+     print `histórico insuficiente para benchmark`.
+   - When `--telemetry off` was used for this run, print
+     `[SUMMARY] Benchmark skipped (--telemetry off)`.
+4. All three renderings are read-only and non-blocking — a parse
+   failure degrades to `[SUMMARY] Benchmark unavailable (JSONL
+   unreadable)` and never aborts the release.
 
 ### Dry-Run Mode
 
