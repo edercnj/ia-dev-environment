@@ -25,7 +25,7 @@
     },
     "timestamp": {
       "type": "string",
-      "description": "ISO-8601 UTC timestamp (YYYY-MM-DDTHH:mm:ss.sssZ).",
+      "description": "ISO-8601 UTC timestamp (YYYY-MM-DDTHH:mm:ssZ or YYYY-MM-DDTHH:mm:ss.<1-9 digits>Z). Fractional seconds are optional and, when present, must contain 1 to 9 digits.",
       "format": "date-time",
       "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?Z$"
     },

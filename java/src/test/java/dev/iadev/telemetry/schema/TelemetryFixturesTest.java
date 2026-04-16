@@ -11,9 +11,11 @@ import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -84,7 +86,7 @@ class TelemetryFixturesTest {
                 .isNotEmpty();
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     @DisplayName("invalidType_errorCitesTypeField")
     void invalidType_errorCitesTypeField() throws IOException {
         String payload = readFixture("invalid-type.json");
@@ -93,7 +95,7 @@ class TelemetryFixturesTest {
         assertThat(messages.toString()).contains("type");
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     @DisplayName("negativeDuration_errorCitesDurationField")
     void negativeDuration_errorCitesDurationField() throws IOException {
         String payload = readFixture("negative-duration.json");
@@ -109,7 +111,7 @@ class TelemetryFixturesTest {
             assertThat(in)
                     .as("Fixture must exist at classpath " + path)
                     .isNotNull();
-            return new String(in.readAllBytes());
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
         }
     }
 }
