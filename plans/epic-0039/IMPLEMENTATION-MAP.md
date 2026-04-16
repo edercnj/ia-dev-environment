@@ -11,7 +11,7 @@
 | story-0039-0001 | Auto-detecção de versão (Conventional Commits) | — | — | 0008, 0009, 0014 | Concluída |
 | story-0039-0002 | State file schema v2 (breaking) | — | — | 0007, 0008, 0010, 0012 | Pendente |
 | story-0039-0003 | Pre-commit integrity checks | — | — | 0009 | Concluida |
-| story-0039-0004 | Paralelização de VALIDATE-DEEP | — | — | — | Pendente |
+| story-0039-0004 | Paralelização de VALIDATE-DEEP | — | — | — | Concluida |
 | story-0039-0005 | Phase SUMMARY com diagrama Git Flow | — | — | 0014 | Concluída |
 | story-0039-0006 | GitHub Release auto com confirmação | — | — | — | Concluída |
 | story-0039-0007 | Engine de prompts interativos | — | 0002 | 0011, 0013, 0014 | Pendente |

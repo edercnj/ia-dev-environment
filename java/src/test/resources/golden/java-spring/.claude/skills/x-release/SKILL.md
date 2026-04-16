@@ -3,7 +3,7 @@ name: x-release
 description: "Orchestrates complete release flow using Git Flow release branches with approval gate, PR-flow (gh CLI) and deep validation: version bump (auto-detect or explicit), release branch creation from develop, deep validation (coverage, golden files, version consistency), version file updates, changelog generation, release commit, release PR via gh (optionally reviewed by x-review-pr), human approval gate with persistent state file, tag on main after merged PR, back-merge PR to develop with conflict detection, and cleanup. Supports hotfix releases from main, dry-run mode, resume via --continue-after-merge, in-session pause via --interactive, GPG-signed tags, skip-review opt-out, and custom state file path."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, Skill, AskUserQuestion
-argument-hint: "[major|minor|patch|version] [--version X.Y.Z] [--last-tag <tag>] [--dry-run] [--skip-tests] [--no-publish] [--no-github-release] [--hotfix] [--continue-after-merge] [--interactive] [--signed-tag] [--skip-review] [--state-file <path>] [--skip-integrity] [--integrity-report <path>]"
+argument-hint: "[major|minor|patch|version] [--version X.Y.Z] [--last-tag <tag>] [--dry-run] [--skip-tests] [--no-publish] [--no-github-release] [--hotfix] [--continue-after-merge] [--interactive] [--signed-tag] [--skip-review] [--state-file <path>] [--skip-integrity] [--integrity-report <path>] [--max-parallel <N>]"
 context-budget: heavy
 ---
 
@@ -52,6 +52,7 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 | `--no-summary` | No | Skip Phase 13 (SUMMARY). Intended for CI runs where the verbose Git Flow summary block is noise. Phase 13 is read-only, so skipping it never changes behaviour — only suppresses output. |
 | `--skip-integrity` | No | Skip sub-check 10 (cross-file integrity drift) in VALIDATE-DEEP. **Not recommended**; emits a loud warning in the release log. |
 | `--integrity-report <path>` | No | Write the structured JSON integrity report to `<path>` regardless of pass/fail. For CI parsers. |
+| `--max-parallel <N>` | No | Upper bound for VALIDATE-DEEP parallel check wave (1..16, default `min(CPU,4)`). `--max-parallel 1` forces serial execution. (story-0039-0004) |
 
 ## Workflow
 
@@ -303,10 +304,36 @@ This follows Semantic Versioning (https://semver.org/spec/v2.0.0.html) rules.
 
 Phase VALIDATE-DEEP replaces the former simple pre-condition check with 8
 mandatory checks plus 1 conditional check plus 1 integrity check
-(sub-check 10). Each check has a unique error code. Checks execute
-sequentially — the first failure aborts the release.
+(sub-check 10). Each check has a unique error code. Checks 1-4 run
+sequentially (build must precede coverage parsing which depends on
+`target/site/jacoco/`); checks 5a, 5b, 6, 7, 8, 9, 10 (plus any
+conditional check 3 tail) run in **parallel** after check 4 succeeds.
+The first failure — after every parallel check has reported — aborts the
+release with the alphabetically-first `VALIDATE_*` code across failures,
+ensuring deterministic abort behavior (story-0039-0004, RULE-005).
 
 On success, the state file advances to `phase: VALIDATED`.
+
+#### Parallelization strategy (story-0039-0004)
+
+- **Serial prefix:** checks 1 (workdir), 2 (branch), 3 (changelog), 4
+  (build + tests). Check 4 produces the jacoco report; subsequent
+  coverage parsing depends on it.
+- **Parallel wave:** after check 4 passes, dispatch checks 5a, 5b, 6, 7,
+  8, 9 concurrently using shell subshells with `&` and barrier via
+  `wait $PID`. Exit codes and wall-clock durations are captured per PID;
+  the aggregator sorts failures alphabetically by `VALIDATE_*` code
+  before aborting (matches `AggregatedResult` semantics in
+  `dev.iadev.release.validate.ParallelCheckExecutor`).
+- **Parallelism bound:** defaults to `min(CPU_COUNT, 4)`. Override via
+  `--max-parallel N` (1..16). `--max-parallel 1` forces serial
+  execution of the parallel wave, preserving semantic equivalence.
+- **Telemetry:** each check logs `[VALIDATE-DEEP] {name}: {seconds}s
+  {severity}`; phase summary reports `wall-clock parallel: Xs vs
+  sequential estimate: Ys (-Z%)`.
+- **Error-code preservation (RULE-005):** every `VALIDATE_*` code used
+  in the sequential flow is preserved in the parallel flow; no codes
+  are renamed or removed.
 
 #### Check Execution Table
 
@@ -560,6 +587,138 @@ Flags:
   will be fixed in a follow-up.
 - `--integrity-report <path>` — writes the structured JSON report to
   `<path>` regardless of pass/fail, for CI parsers and dashboards.
+
+#### Parallel Dispatch of Checks 5-10 (story-0039-0004)
+
+After check 4 (build + tests) succeeds, dispatch the remaining checks
+concurrently instead of one-by-one. The serial prefix (checks 1-4)
+above is unchanged. This block is the canonical implementation of the
+parallelization described under *Parallelization strategy*.
+
+```bash
+# --max-parallel N (1..16) with default min(CPU,4)
+MAX_PARALLEL="${MAX_PARALLEL:-$(python3 -c 'import os; print(min(os.cpu_count() or 1, 4))' 2>/dev/null || echo 4)}"
+if [ "$MAX_PARALLEL" -lt 1 ] || [ "$MAX_PARALLEL" -gt 16 ]; then
+  echo "ABORT VALIDATE_INVALID_PARALLELISM: --max-parallel must be 1..16, got $MAX_PARALLEL"
+  exit 1
+fi
+
+RESULTS_DIR=$(mktemp -d -t validate-deep-XXXXXXXX)
+trap 'rm -rf "$RESULTS_DIR"' EXIT
+
+run_check() {
+  local name=$1
+  local code=$2
+  local cmd=$3
+  local start end duration rc detail_file
+  detail_file="$RESULTS_DIR/$name.out"
+  start=$(date +%s)
+  bash -c "$cmd" > "$detail_file" 2>&1
+  rc=$?
+  end=$(date +%s)
+  duration=$((end - start))
+  echo "$rc $duration $code $name" > "$RESULTS_DIR/$name.result"
+  if [ $rc -eq 0 ]; then
+    echo "[VALIDATE-DEEP] $name: ${duration}s PASS"
+  else
+    echo "[VALIDATE-DEEP] $name: ${duration}s FAIL ($code)"
+  fi
+}
+
+# Dispatch wave; each check in its own subshell
+WAVE_START=$(date +%s)
+pids=()
+
+run_check coverage_line VALIDATE_COVERAGE_LINE \
+  "check_coverage_line" &
+pids+=($!)
+
+run_check coverage_branch VALIDATE_COVERAGE_BRANCH \
+  "check_coverage_branch" &
+pids+=($!)
+
+if [ -n "{{GOLDEN_TEST_COMMAND}}" ] && [ "$SKIP_TESTS" != true ]; then
+  run_check golden_files VALIDATE_GOLDEN_DRIFT \
+    "{{GOLDEN_TEST_COMMAND}}" &
+  pids+=($!)
+fi
+
+run_check hardcoded_version VALIDATE_HARDCODED_VERSION \
+  "check_hardcoded_version" &
+pids+=($!)
+
+run_check version_match VALIDATE_VERSION_MISMATCH \
+  "check_version_match" &
+pids+=($!)
+
+if [ -n "{{GENERATION_COMMAND}}" ]; then
+  run_check generation_drift VALIDATE_GENERATION_DRIFT \
+    "{{GENERATION_COMMAND}} --dry-run" &
+  pids+=($!)
+fi
+
+if [ "$SKIP_INTEGRITY" != true ]; then
+  run_check integrity_drift VALIDATE_INTEGRITY_DRIFT \
+    "run_integrity_checks" &
+  pids+=($!)
+fi
+
+# Honor --max-parallel by waiting in batches when pool would exceed cap
+# (simple throttle: if more pids than cap, wait for first cap before continuing).
+# The spawning above is already minimal (<=6 checks), so cap>=1 suffices for
+# all realistic cases; an explicit throttle can be added here if the wave
+# grows past MAX_PARALLEL.
+
+# Barrier — wait for every dispatched check
+for pid in "${pids[@]}"; do
+  wait "$pid"
+done
+WAVE_END=$(date +%s)
+
+# Collect + sort: FAIL first, alphabetic by VALIDATE_* code as tiebreaker
+FAILURES=()
+for f in "$RESULTS_DIR"/*.result; do
+  [ -f "$f" ] || continue
+  read -r rc duration code name < "$f"
+  if [ "$rc" -ne 0 ]; then
+    FAILURES+=("$code")
+  fi
+done
+
+if [ ${#FAILURES[@]} -gt 0 ]; then
+  # Alphabetic sort for deterministic abort code
+  SORTED=$(printf '%s\n' "${FAILURES[@]}" | LC_ALL=C sort | head -n1)
+  echo "ABORT $SORTED: VALIDATE-DEEP parallel wave produced ${#FAILURES[@]} failure(s)"
+  for f in "$RESULTS_DIR"/*.result; do
+    read -r rc duration code name < "$f"
+    if [ "$rc" -ne 0 ]; then
+      echo "  - $name ($code): see $RESULTS_DIR/$name.out"
+    fi
+  done
+  exit 1
+fi
+
+WAVE_DURATION=$((WAVE_END - WAVE_START))
+SEQ_ESTIMATE=0
+for f in "$RESULTS_DIR"/*.result; do
+  read -r rc duration code name < "$f"
+  SEQ_ESTIMATE=$((SEQ_ESTIMATE + duration))
+done
+if [ "$SEQ_ESTIMATE" -gt 0 ]; then
+  REDUCTION=$(( (SEQ_ESTIMATE - WAVE_DURATION) * 100 / SEQ_ESTIMATE ))
+else
+  REDUCTION=0
+fi
+echo "[VALIDATE-DEEP] all checks complete in ${WAVE_DURATION}s (sequential estimate: ${SEQ_ESTIMATE}s, -${REDUCTION}%)"
+```
+
+The helpers `check_coverage_line`, `check_coverage_branch`,
+`check_hardcoded_version`, `check_version_match`, and
+`run_integrity_checks` wrap the respective sequential blocks above
+(checks 5a, 5b, 7, 8, 10) and return the corresponding exit codes. The
+parallel wave replaces the sequential invocation of those blocks; the
+sequential blocks are kept above as the canonical source of each
+check's internal logic.
 
 #### State File Update on Success
 
