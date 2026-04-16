@@ -28,7 +28,7 @@ Nova skill `x-status-reconcile` em `core/ops/` (opt-in) que compara `execution-s
 | `SUCCESS` + `MERGED` | `Concluída` |
 | `IN_PROGRESS` | `Em Andamento` |
 | `PENDING` | `Pendente` |
-| `FAILED` | `Cancelada` |
+| `FAILED` | `Falha` |
 | outros | log WARN, skip |
 
 ## Test Strategy Summary

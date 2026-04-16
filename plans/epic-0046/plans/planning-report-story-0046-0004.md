@@ -35,7 +35,7 @@ Marco arquitetural do épico. Promove `x-story-implement` Phase 3 a obrigatória
 - L3 scalar: `phase5_whenAllStoriesConcluida_updatesEpicStatus`
 - L4 collection: `phase17_forEachStoryInWave_updatesStatus`
 - L5 cond: `epicImplement_whenV1_skipsPhase17And5`
-- L6 bound: `epicImplement_idempotent_whenRereuninAlreadyConcluido`
+- L6 bound: `epicImplement_idempotent_whenRerunningAlreadyConcluido`
 
 ## Security Assessment Summary
 

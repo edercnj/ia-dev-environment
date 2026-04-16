@@ -78,7 +78,7 @@ Fechar GAP-1 e GAP-2 com uma convenção formal (Rule 21), retrofit das skills a
 ### 4.1 Dentro de escopo
 
 - Nova Rule 21 em `java/src/main/resources/targets/claude/rules/21-lifecycle-integrity.md`.
-- Matriz de transição `Pendente → Planejada → Em Andamento → Concluída | Cancelada | Bloqueada` documentada no header dos templates `_TEMPLATE-TASK.md`, `_TEMPLATE-STORY.md`, `_TEMPLATE-EPIC.md`.
+- Matriz de transição `Pendente → Planejada → Em Andamento → Concluída | Falha | Bloqueada` documentada no header dos templates `_TEMPLATE-TASK.md`, `_TEMPLATE-STORY.md`, `_TEMPLATE-EPIC.md`.
 - Retrofits em SKILL.md das 7 skills de planejamento (O2).
 - Retrofit em `x-task-implement/SKILL.md` (O3).
 - Retrofit em `x-story-implement/SKILL.md` + `x-epic-implement/SKILL.md` (O4, O5).
@@ -131,8 +131,8 @@ Fechar GAP-1 e GAP-2 com uma convenção formal (Rule 21), retrofit das skills a
     "status": "APPLIED",
     "epicId": "0024",
     "divergences": [
-      {"artifact": "story-0024-0001.md", "from": "Pendente", "to": "Concluida"},
-      {"artifact": "IMPLEMENTATION-MAP.md:row-5", "from": "Pendente", "to": "Concluida"}
+      {"artifact": "story-0024-0001.md", "from": "Pendente", "to": "Concluída"},
+      {"artifact": "IMPLEMENTATION-MAP.md:row-5", "from": "Pendente", "to": "Concluída"}
     ],
     "commitSha": "abc1234"
   }
