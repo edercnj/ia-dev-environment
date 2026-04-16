@@ -198,6 +198,120 @@ class HandoffOrchestratorTest {
                 .hasMessageContaining("0");
     }
 
+    // -- Value-object normalization tests --
+
+    @Test
+    @DisplayName("prState_nullMergedAt_isNormalizedToEmptyOptional")
+    void prState_nullMergedAt_isNormalizedToEmptyOptional() {
+        PrState state = new PrState(
+                PrReviewState.OPEN, null,
+                PrReviewDecision.APPROVED);
+
+        assertThat(state.mergedAt()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("prState_nullReviewDecision"
+            + "_isNormalizedToReviewRequired")
+    void prState_nullReviewDecision_isNormalizedToReviewRequired() {
+        PrState state = new PrState(
+                PrReviewState.OPEN,
+                Optional.empty(),
+                null);
+
+        assertThat(state.reviewDecision())
+                .isEqualTo(PrReviewDecision.REVIEW_REQUIRED);
+    }
+
+    @Test
+    @DisplayName("prState_nullState_throwsIllegalArgument")
+    void prState_nullState_throwsIllegalArgument() {
+        assertThatThrownBy(() -> new PrState(
+                null, Optional.empty(),
+                PrReviewDecision.APPROVED))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("state");
+    }
+
+    @Test
+    @DisplayName("handoffResult_nullOptions"
+            + "_isNormalizedToEmptyList")
+    void handoffResult_nullOptions_isNormalizedToEmptyList() {
+        HandoffResult result = new HandoffResult(
+                null, null, 0);
+
+        assertThat(result.options()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("skillInvocationException_withCause"
+            + "_preservesCauseForDiagnosis")
+    void skillInvocationException_withCause_preservesCauseForDiagnosis() {
+        RuntimeException cause = new RuntimeException("root");
+        SkillInvocationException e =
+                new SkillInvocationException(
+                        "wrapper", cause);
+
+        assertThat(e.getCause()).isSameAs(cause);
+        assertThat(e).hasMessage("wrapper");
+    }
+
+    @Test
+    @DisplayName("prNotFoundException_exposesPrNumber")
+    void prNotFoundException_exposesPrNumber() {
+        PrNotFoundException e = new PrNotFoundException(42);
+
+        assertThat(e.prNumber()).isEqualTo(42);
+        assertThat(e).hasMessageContaining("42");
+    }
+
+    @Test
+    @DisplayName("handoffOrchestrator_nullSkillInvoker"
+            + "_rejectsAtConstruction")
+    void handoffOrchestrator_nullSkillInvoker_rejectsAtConstruction() {
+        assertThatThrownBy(() -> new HandoffOrchestrator(
+                null, StubGhCli.returning(null)))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("skillInvoker");
+    }
+
+    @Test
+    @DisplayName("handoffOrchestrator_nullGhCli"
+            + "_rejectsAtConstruction")
+    void handoffOrchestrator_nullGhCli_rejectsAtConstruction() {
+        assertThatThrownBy(() -> new HandoffOrchestrator(
+                new RecordingSkillInvoker(), null))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("ghCli");
+    }
+
+    @Test
+    @DisplayName("resolveOptions_nullState_rejectedByRequireNonNull")
+    void resolveOptions_nullState_rejectedByRequireNonNull() {
+        assertThatThrownBy(
+                () -> HandoffOrchestrator.resolveOptions(null))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("state");
+    }
+
+    @Test
+    @DisplayName("openWithChangesRequested"
+            + "_offersFixCommentsAgain")
+    void openWithChangesRequested_offersFixCommentsAgain() {
+        RecordingSkillInvoker skill = new RecordingSkillInvoker();
+        StubGhCli gh = StubGhCli.returning(
+                new PrState(PrReviewState.OPEN,
+                        Optional.empty(),
+                        PrReviewDecision.CHANGES_REQUESTED));
+        HandoffOrchestrator orchestrator =
+                new HandoffOrchestrator(skill, gh);
+
+        HandoffResult result = orchestrator.handoff(PR_NUMBER);
+
+        assertThat(result.options().get(0))
+                .isEqualTo("Rodar fix-comments novamente");
+    }
+
     // -- Test doubles --
 
     private static final class RecordingSkillInvoker

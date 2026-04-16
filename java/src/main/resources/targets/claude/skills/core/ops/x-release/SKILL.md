@@ -1356,6 +1356,21 @@ EOF
 > When `--no-prompt` is set, `PromptEngine.resolve(haltPoint, state, true)`
 > persists state and returns `EXIT` immediately without invoking
 > `AskUserQuestion` (RULE-004 non-interactive equivalent).
+>
+> **Handoff integration (story-0039-0011):** When the operator chooses
+> "Rodar /x-pr-fix PR#", `PromptEngine` returns `PromptAction.HANDOFF` and
+> the caller delegates to `HandoffOrchestrator`
+> (`dev.iadev.release.handoff.HandoffOrchestrator`). The orchestrator runs
+> the 5-step handoff sequence documented in story-0039-0011 §3.1:
+> (1) invoke `Skill(skill: "x-pr-fix", args: "<PR#>")` via
+> `SkillInvokerPort`; (2) wait for the skill to return; (3) re-run
+> `gh pr view <PR#> --json state,mergedAt,reviewDecision` via `GhCliPort`;
+> (4) map the response to `PrState`; (5) derive a fresh option set via
+> `HandoffOrchestrator.resolveOptions(PrState)` per the §5.3 decision
+> table. The caller then re-invokes `PromptEngine.resolve(...)` with the
+> refreshed state. On error, `HandoffOrchestrator` returns
+> `HANDOFF_SKILL_FAILED` (warn-only, exit 0) or `HANDOFF_PR_NOT_FOUND`
+> (exit 1). See `references/prompt-flow.md` §"Handoff Contract".
 
 If `--interactive` is **not** set (or `--no-prompt` **is** set), the skill exits immediately:
 
