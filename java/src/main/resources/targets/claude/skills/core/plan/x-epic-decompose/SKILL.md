@@ -233,7 +233,7 @@ Follow the instructions in `.claude/skills/x-epic-map/SKILL.md`:
 - Phase summary and detail tables
 - Strategic observations (bottleneck, leaves, parallelism, convergences, validation milestone)
 
-Generate `plans/epic-XXXX/implementation-map-XXXX.md` following `_TEMPLATE-IMPLEMENTATION-MAP.md`.
+Generate `plans/epic-XXXX/IMPLEMENTATION-MAP.md` following `_TEMPLATE-IMPLEMENTATION-MAP.md`.
 
 If Jira keys are available (from Phase 3), include them in the dependency matrix's
 `Chave Jira` column.
