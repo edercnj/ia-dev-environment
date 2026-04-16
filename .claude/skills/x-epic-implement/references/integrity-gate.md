@@ -68,8 +68,8 @@ Launch a `general-purpose` subagent:
 > - If any tests fail → correlate failed tests with commits from stories in the current phase
 > - If line coverage < 95% or branch coverage < 90% → FAIL with coverage details
 > - Otherwise → proceed to Step 5
-> **Step 5 — Smoke Gate:** Execute the full smoke test suite as a regression validation.
-> - If `--skip-smoke-gate` flag is set → log `"Integrity gate smoke tests skipped (--skip-smoke-gate)"` and record `smokeGate.status = "SKIP"` → proceed to PASS
+> **Step 5 — Smoke Gate (MANDATORY — EPIC-0042):** Execute the full smoke test suite as a regression validation.
+> - Smoke gate is ALWAYS mandatory when `{{SMOKE_COMMAND}}` is configured. There is no skip flag.
 > - Run: `{{SMOKE_COMMAND}}` (e.g., `cd java && mvn verify -P integration-tests`)
 > - This runs ALL smoke tests, not just those for stories in the current phase
 > - If all smoke tests pass → record `smokeGate.status = "PASS"` → overall gate is PASS
@@ -95,7 +95,7 @@ If smoke tests fail (Step 5), the subagent:
 3. Populates `smokeGate.suspectedStories` with the story IDs most likely responsible
 4. Logs: `"INTEGRITY GATE SMOKE FAILURE: Phase {N}. {count} test(s) failed. Suspected stories: [{list}]"`
 5. The phase is marked as FAILED in the checkpoint
-6. The operator decides: `--resume` to retry after manual fix, or `--skip-smoke-gate` to bypass
+6. The operator decides: `--resume` to retry after fixing the failing smoke tests
 
 ### Gate Result Registration
 
@@ -121,7 +121,7 @@ updateIntegrityGate(epicDir, phaseNumber, {
 - **PASS**: Advance to version bump (see below), then to next phase (requires both test gate and smoke gate to pass)
 - **FAIL + regression identified**: revert + mark FAILED + block propagation
 - **FAIL + regression unidentified**: pause execution, report to user
-- **FAIL (smoke gate)**: phase marked FAILED; operator uses `--resume` after fix or `--skip-smoke-gate` to bypass
+- **FAIL (smoke gate)**: phase marked FAILED; operator uses `--resume` after fixing the failing smoke tests (EPIC-0042: no bypass available)
 - **SKIPPED** (when `--skip-gate` is set): skip gate with conscious opt-out, advance to post-gate prompt
 
 ### Version Bump (Post-Gate) (RULE-013)
@@ -178,13 +178,11 @@ The `smokeGate` field is added to each phase entry in `execution-state.json`:
 The integrity gate is **mandatory** — there is no bypass. Every phase transition requires a PASS gate
 result. The gate runs after phase 0, 1, 2, and 3 — one gate per phase.
 
-The smoke gate within the integrity gate is also mandatory by default. It can only be bypassed with
-the `--skip-smoke-gate` flag, which records `smokeGate.status = "SKIP"` in the checkpoint. When
-`--skip-smoke-gate` is set, the integrity gate evaluates only Steps 1-4 (compile, test, coverage).
-When not set, the smoke gate (Step 5) must also pass for the overall integrity gate to pass.
+**EPIC-0042 change:** The `--skip-smoke-gate` flag has been removed. The smoke gate is now mandatory
+when `{{SMOKE_COMMAND}}` is configured. The integrity gate always evaluates all 5 steps (compile, test,
+coverage, smoke). Smoke failures must be fixed before the phase can advance — use `--resume` after fix.
 
-**SKIP vs no-execution clarification:**
-- `--skip-smoke-gate` opt-out → records `smokeGate.status = "SKIP"` (explicit user bypass)
+**No-execution clarification:**
 - No SUCCESS stories in phase → log warning `"No successful stories in phase {N} — skipping gate execution"` and do NOT record a gate result (gate is not executed, not "SKIPPED"). The phase proceeds without a gate entry in the checkpoint.
 
 > **Note:** Each story already executes its own smoke gate via `x-story-implement` (Phase 2.5).

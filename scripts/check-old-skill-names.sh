@@ -15,6 +15,7 @@
 #   1 — at least one old name was found in a non-allow-listed file
 #   2 — invocation error (missing dependency, etc.)
 
+
 set -u
 
 # Resolve repo root so the script works from any cwd.
