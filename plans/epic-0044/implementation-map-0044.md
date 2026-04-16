@@ -8,12 +8,12 @@
 
 | Story | Título | Chave Jira | Blocked By | Blocks | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| story-0044-0001 | Remover símbolos deprecated de `StackMapping` (4 símbolos, 2 arquivos de produção) | — | — | — | Pendente |
+| story-0044-0001 | Remover símbolos deprecated de `StackMapping` (4 símbolos, 1 arquivo de produção) | — | — | — | Pendente |
 | story-0044-0002 | Remover `ResourceResolver.resolveResourcesRoot(...)` deprecated (2 overloads, 23 assemblers) | — | — | — | Pendente |
 
 > **Valores de Status:** `Pendente` (padrão) · `Em Andamento` · `Concluída` · `Falha` · `Bloqueada` · `Parcial`
 
-> **Nota:** As duas histórias são estrutural e funcionalmente independentes — atuam em arquivos distintos (`StackMapping.java` vs `ResourceResolver.java`) e em callers disjuntos (`RulesConditionals`/`PermissionCollector` vs 23 assemblers). Não há dependência técnica entre elas, mas recomenda-se execução sequencial (0001 antes de 0002) para isolar diffs de review e validar o padrão de migração em menor escala antes de aplicá-lo aos 23 assemblers.
+> **Nota:** As duas histórias são estrutural e funcionalmente independentes — atuam em arquivos distintos (`StackMapping.java` vs `ResourceResolver.java`) e em callers disjuntos (`PermissionCollector` vs 23 assemblers). Não há dependência técnica entre elas, mas recomenda-se execução sequencial (0001 antes de 0002) para isolar diffs de review e validar o padrão de migração em menor escala antes de aplicá-lo aos 23 assemblers.
 
 ---
 
@@ -88,13 +88,13 @@ graph TD
 
 | Story | Escopo Principal | Artefatos Chave |
 | :--- | :--- | :--- |
-| story-0044-0001 | Migrar 2 callers de produção (`RulesConditionals`, `PermissionCollector`) e 9 arquivos de teste para `DatabaseSettingsMapping`. Remover 4 símbolos deprecated de `StackMapping.java`. | `StackMapping.java` (removal), `RulesConditionals.java` (migrated), `PermissionCollector.java` (migrated), `StackMappingDeprecatedRemovedTest.java` (new), `CHANGELOG.md` (updated) |
+| story-0044-0001 | Migrar 1 caller de produção (`PermissionCollector`) e 9 arquivos de teste para `DatabaseSettingsMapping` (`RulesConditionals` já está migrado — verificado). Remover 4 símbolos deprecated de `StackMapping.java`. | `StackMapping.java` (removal), `PermissionCollector.java` (migrated), `StackMappingDeprecatedRemovedTest.java` (new), `CHANGELOG.md` (updated) |
 | story-0044-0002 | Migrar 23 assemblers em 4 waves para `resolveResourceDir(String)`. Limpar 20+ referências em testes. Remover 2 overloads `resolveResourcesRoot` de `ResourceResolver.java`. | `ResourceResolver.java` (removal), 23 `*Assembler.java` (migrated), 20+ `*Test.java` (cleaned), `ResourceResolverDeprecatedRemovedTest.java` (new), golden files (unchanged or regenerated), `CHANGELOG.md` (updated) |
 
 **Entregas da Fase 0:**
 
 - 6 símbolos `@Deprecated(forRemoval=true)` removidos do código de produção.
-- 25 arquivos de produção migrados para APIs substitutas (2 + 23).
+- 24 arquivos de produção migrados para APIs substitutas (1 + 23).
 - 29+ arquivos de teste migrados ou limpos.
 - Zero warnings `[removal]` em `mvn clean compile`.
 - `CHANGELOG.md` atualizado com as 6 remoções (seção `Removed`).
@@ -130,7 +130,7 @@ Nenhuma dependência cruzada técnica entre as histórias. O único ponto de con
 2. Teste de reflexão (`*DeprecatedRemovedTest.java`) validando ausência do símbolo via `NoSuchFieldException` / `NoSuchMethodException`.
 3. `CHANGELOG.md` atualizado na seção `Removed`.
 4. PR com prefixo `refactor(story-0044-NNNN):` (Rule 08 / RULE-005).
-5. Branch `feature/epic-0044-story-0044-NNNN-<slug>` dentro de worktree `.claude/worktrees/story-0044-NNNN/` (Rule 14 / RULE-006).
+5. Branch `feat/story-0044-NNNN-<slug>` dentro de worktree `.claude/worktrees/story-0044-NNNN/` (Rule 14 / RULE-006).
 
 Se qualquer item falhar na 0001, o padrão DEVE ser corrigido antes de iniciar 0002 — aplicar um padrão quebrado a 23 assemblers multiplica o custo de correção.
 

@@ -19,7 +19,7 @@ Zero símbolos Java com `@Deprecated(forRemoval = true)` no código de produçã
 Métricas de sucesso:
 
 - **Símbolos removidos:** 6 (4 em `StackMapping.java`, 2 em `ResourceResolver.java`)
-- **Arquivos de produção migrados:** 25 (2 de `StackMapping`, 23 de `ResourceResolver`)
+- **Arquivos de produção migrados:** 24 (1 de `StackMapping`, 23 de `ResourceResolver`)
 - **Arquivos de teste migrados:** ≥ 29 (9 + 20)
 - **Warnings `[removal]`:** de 40+ para 0
 - **Testes:** 100% verde antes e depois
@@ -31,14 +31,15 @@ Métricas de sucesso:
 
 | Símbolo | Linha | Substituto | Callers prod | Callers teste |
 |---|---|---|---|---|
-| `DATABASE_SETTINGS_MAP` (field) | 207–211 | `DatabaseSettingsMapping.DATABASE_SETTINGS_MAP` | 1 (`RulesConditionals.java:90`) | 7 |
+| `DATABASE_SETTINGS_MAP` (field) | 207–211 | `DatabaseSettingsMapping.DATABASE_SETTINGS_MAP` | 0 | 7 |
 | `CACHE_SETTINGS_MAP` (field) | 213–217 | `DatabaseSettingsMapping.CACHE_SETTINGS_MAP` | 0 | compartilhado nos mesmos testes |
 | `getDatabaseSettingsKey(...)` (method) | — | `DatabaseSettingsMapping.getDatabaseSettingsKey(...)` | 1 (`PermissionCollector.java:122`) | 4 |
 | `getCacheSettingsKey(...)` (method) | — | `DatabaseSettingsMapping.getCacheSettingsKey(...)` | 1 (`PermissionCollector.java:128`) | 2 |
 
-Callers de produção (apenas 2 arquivos):
-- `java/src/main/java/dev/iadev/application/assembler/RulesConditionals.java:90`
+Callers de produção remanescentes (1 arquivo):
 - `java/src/main/java/dev/iadev/application/assembler/PermissionCollector.java:122,128`
+
+> Nota: `RulesConditionals.java:90` JÁ usa `DatabaseSettingsMapping.CACHE_SETTINGS_MAP` e NÃO requer migração nesta história. Os campos `DATABASE_SETTINGS_MAP` e `CACHE_SETTINGS_MAP` deprecated em `StackMapping` não têm mais consumidores em produção — apenas em testes.
 
 ### 2. `java/src/main/java/dev/iadev/util/ResourceResolver.java`
 
@@ -64,15 +65,15 @@ Responsabilidade atual: hospeda tabelas de mapeamento de database/cache settings
 
 Nenhuma alteração necessária. Já cobre 100% do escopo dos símbolos deprecated. A suite `DatabaseSettingsMapping*Test` já existe e está verde.
 
-### 3. `RulesConditionals` (application)
-**Arquivo:** `java/src/main/java/dev/iadev/application/assembler/RulesConditionals.java` (linha 90)
+### 3. `RulesConditionals` (application) — já migrado
+**Arquivo:** `java/src/main/java/dev/iadev/application/assembler/RulesConditionals.java`
 
-**Ação:** trocar referência `StackMapping.CACHE_SETTINGS_MAP` por `DatabaseSettingsMapping.CACHE_SETTINGS_MAP`. Import update.
+Nenhuma alteração necessária. O arquivo já consome `DatabaseSettingsMapping.CACHE_SETTINGS_MAP` (linha 90) desde uma migração anterior a este épico. Listado aqui apenas para registro de verificação.
 
 ### 4. `PermissionCollector` (application)
 **Arquivo:** `java/src/main/java/dev/iadev/application/assembler/PermissionCollector.java` (linhas 122, 128)
 
-**Ação:** trocar `StackMapping.getDatabaseSettingsKey(...)` e `StackMapping.getCacheSettingsKey(...)` por chamadas equivalentes em `DatabaseSettingsMapping`. Import update.
+**Ação:** trocar `StackMapping.getDatabaseSettingsKey(...)` e `StackMapping.getCacheSettingsKey(...)` por chamadas equivalentes em `DatabaseSettingsMapping`. Manter o import de `StackMapping` por causa da chamada não-deprecated em `PermissionCollector.java:79` (`StackMapping.getSettingsLangKey(...)`), que está fora do escopo deste épico.
 
 ### 5. `ResourceResolver` (util)
 **Arquivo:** `java/src/main/java/dev/iadev/util/ResourceResolver.java` (linhas 116–137)
@@ -109,7 +110,7 @@ Risco: um assembler que dependa de um `depth` diferente do natural pode apontar 
 - **TDD (Rule 05):** cada mudança obedece Red-Green-Refactor. Passo Green: compile green, tests green. Passo Refactor: elimina warnings `[removal]`.
 - **Coverage (Rule 05):** ≥ 95% linha / ≥ 90% branch antes e depois.
 - **Golden files:** qualquer alteração que afete output determinístico requer regeneração via `GoldenFileRegenerator`, precedida de `mvn process-resources` (memória do projeto).
-- **Git Flow (Rule 09):** histórias abrem branch `feature/epic-0044-...` a partir de `develop`, PR para `develop`.
+- **Git Flow (Rule 09):** histórias abrem branch `feat/story-0044-NNNN-<slug>` a partir de `develop`, PR para `develop`.
 - **Worktree (Rule 14):** orquestrador usa worktrees por história sob `.claude/worktrees/story-0044-NNNN/`.
 - **Conventional Commits (Rule 08):** prefixo `refactor:` para remoção de deprecated; escopo `story(0044-NNNN)`. Sem mudança de comportamento público → sem bump MINOR/MAJOR.
 - **Schema:** `planningSchemaVersion: "1.0"` (legacy v1). Remoção trivial não justifica o overhead task-first v2 de EPIC-0038. Histórias ficam exentas de Rules 15–18 (Rule 19).
@@ -120,13 +121,13 @@ Duas áreas independentes → duas histórias independentes. Podem executar em p
 
 ### STORY-0044-0001 — Remover deprecated de `StackMapping`
 
-**Escopo:** migrar `RulesConditionals.java:90`, `PermissionCollector.java:122,128` e 9 arquivos de teste para `DatabaseSettingsMapping`. Remover 4 símbolos deprecated em `StackMapping.java:207–217`.
+**Escopo:** migrar `PermissionCollector.java:122,128` e 9 arquivos de teste para `DatabaseSettingsMapping` (`RulesConditionals.java` já está migrado). Remover 4 símbolos deprecated em `StackMapping.java:207–217`.
 
 **Entrega de valor:** fonte única para o mapa de database/cache settings; elimina risco de drift entre `StackMapping` e `DatabaseSettingsMapping`.
 
 **Testabilidade:** INDEPENDENT. `DatabaseSettingsMappingTest` já cobre o substituto; `StackMappingTest` permanece verde após remoção dos 4 símbolos.
 
-**Estimativa:** XS (2 arquivos produção + 9 teste).
+**Estimativa:** XS (1 arquivo produção + 9 teste).
 
 ### STORY-0044-0002 — Remover deprecated de `ResourceResolver`
 
