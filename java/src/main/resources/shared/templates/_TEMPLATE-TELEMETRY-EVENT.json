@@ -135,7 +135,7 @@
         "object",
         "null"
       ],
-      "description": "Whitelisted structured attributes. Permitted keys are defined in RULE-003 of EPIC-0040 and enforced at write-time by hooks.",
+      "description": "Structured attributes for event-specific context. This schema permits arbitrary metadata keys; the normative whitelist defined in RULE-003 of EPIC-0040 is enforced outside schema validation at write-time by emitters/hooks.",
       "additionalProperties": true
     }
   }
