@@ -9,7 +9,7 @@
 | Story | Título | Chave Jira | Blocked By | Blocks | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | story-0044-0001 | Remover símbolos deprecated de `StackMapping` (4 símbolos, 1 arquivo de produção) | — | — | — | Concluida |
-| story-0044-0002 | Remover `ResourceResolver.resolveResourcesRoot(...)` deprecated (2 overloads, 23 assemblers) | — | — | — | Pendente |
+| story-0044-0002 | Remover `ResourceResolver.resolveResourcesRoot(...)` deprecated (2 overloads, 23 assemblers) | — | — | — | Concluida |
 
 > **Valores de Status:** `Pendente` (padrão) · `Em Andamento` · `Concluída` · `Falha` · `Bloqueada` · `Parcial`
 
