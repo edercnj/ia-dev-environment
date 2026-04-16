@@ -3,7 +3,7 @@ name: x-story-implement
 description: "Orchestrates the complete feature implementation cycle with task-centric workflow: branch creation, planning, per-task TDD execution with individual PRs and approval gates, story-level verification, and final cleanup. Schema-aware: v1 (legacy) runs the monolithic coalesce-ad-hoc flow; v2 (EPIC-0038) reads task-implementation-map-STORY-*.md and dispatches x-task-implement in waves (declared parallelism) — ending the 'task embedded in story' anti-pattern. Delegates to x-test-tdd, x-git-commit, x-pr-create, and (v2) x-task-implement."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, Agent, TaskCreate, TaskUpdate
-argument-hint: "[STORY-ID or feature-name] [--auto-approve-pr] [--task TASK-ID] [--skip-verification] [--full-lifecycle] [--worktree]"
+argument-hint: "[STORY-ID or feature-name] [--auto-approve-pr] [--task TASK-ID] [--skip-verification] [--skip-smoke] [--full-lifecycle] [--worktree]"
 ---
 
 ## Global Output Policy
@@ -1005,7 +1005,7 @@ If NOT `--auto-approve-pr`: skip (individual task PRs already target develop).
    - [ ] Story markdown file updated with Status: Concluida
    - [ ] IMPLEMENTATION-MAP Status column updated for this story
    - [ ] At least 1 automated test validates the story's primary acceptance criterion
-   - [ ] Smoke test passes (if testing.smoke_tests == true)
+   - [ ] Smoke test PASSES — **HARD GATE** (if testing.smoke_tests == true; override with `--skip-smoke`)
 7. Conditional DoD items:
    - Contract tests pass (if testing.contract_tests == true)
    - Event schemas registered (if event_driven)
@@ -1015,14 +1015,23 @@ If NOT `--auto-approve-pr`: skip (individual task PRs already target develop).
    - GraphQL schema backward compatible (if interfaces contain graphql)
    - [ ] Threat model updated (if security findings with severity >= Medium)
    - Post-deploy verification passed or skipped (if testing.smoke_tests == true)
-8. Post-Deploy Verification (conditional: `testing.smoke_tests == true`):
+8. Post-Deploy Verification — **SMOKE GATE** (conditional: `testing.smoke_tests == true`, EPIC-0042):
    - If `testing.smoke_tests` is `false` -> SKIP with log: "Post-deploy verification skipped (testing.smoke_tests=false)"
-   - If `testing.smoke_tests` is `true`, execute checks (invoke `/x-test-e2e` or configured smoke test):
+   - If `--skip-smoke` flag is present -> SKIP with log: "Smoke gate bypassed via --skip-smoke flag"
+   - If `testing.smoke_tests` is `true` AND `--skip-smoke` is NOT present, execute checks (invoke `/x-test-e2e` or configured smoke test):
      - **Health Check**: GET /health (or configured endpoint) -> 200 OK
      - **Critical Path**: Execute primary request flow -> valid response
-     - **Response Time**: Verify p95 latency < configured SLO
-     - **Error Rate**: Verify error rate < 1% threshold
-   - Non-blocking: emit result for human decision, do NOT auto-rollback
+     - **Response Time**: Verify p95 latency < configured SLO (advisory — WARNING only)
+     - **Error Rate**: Verify error rate < 1% threshold (advisory — WARNING only)
+   - **HARD GATE (EPIC-0042):** Health Check or Critical Path failure -> **FAIL Phase 3** immediately:
+     ```
+     SMOKE GATE FAILED (EPIC-0042):
+       Health Check: FAIL / PASS
+       Critical Path: FAIL / PASS
+     Phase 3 is FAILED. Fix the failing smoke tests and re-run.
+     Override: pass --skip-smoke to bypass the smoke gate.
+     ```
+   - Response Time and Error Rate remain advisory (WARNING only, do NOT fail Phase 3)
 9. Report PASS/FAIL/SKIP result with task-level summary
 10. **Mode-aware worktree removal + repository sync (Rule 14 §2 forbids `develop` checkout inside a worktree; Rule 14 §5 — Creator Owns Removal):**
 

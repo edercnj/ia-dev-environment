@@ -122,7 +122,25 @@ The Tech Lead review covers:
 3. For EACH source file, read FULL content and apply {review_max_score}-point checklist
 4. Focus on CROSS-FILE issues (inconsistencies, cross imports, repeated patterns)
 5. Compile and verify: `{{COMPILE_COMMAND}}` + `{{BUILD_COMMAND}}`
-6. If specialist reports exist, verify CRITICAL issues were fixed
+6. **Execute full test suite** (MANDATORY — EPIC-0042):
+   ```bash
+   {{TEST_COMMAND}}
+   ```
+   - If ANY test fails: record test failures in report AND set decision to **automatic NO-GO** (overrides rubric score)
+   - Log each failing test name and failure reason in the report under a dedicated **Test Execution Results** section
+7. **Execute coverage analysis** (MANDATORY — EPIC-0042):
+   ```bash
+   {{COVERAGE_COMMAND}}
+   ```
+   - If line coverage < 95% or branch coverage < 90%: record as CRITICAL finding in report
+   - Include coverage percentages in the **Test Execution Results** section
+8. **Execute smoke tests** (CONDITIONAL — EPIC-0042, only when `testing.smoke_tests == true`):
+   ```bash
+   {{SMOKE_COMMAND}}
+   ```
+   - If ANY smoke test fails: record as CRITICAL finding AND set decision to **automatic NO-GO**
+   - If `testing.smoke_tests == false`: log `"Smoke tests skipped (testing.smoke_tests=false)"` and proceed
+9. If specialist reports exist, verify CRITICAL issues were fixed
 
 ## {review_max_score}-Point Rubric
 
@@ -136,7 +154,7 @@ The Tech Lead review covers:
 | F. Error Handling        | 3      | Rich exceptions, no null returns, no generic catch                  |
 | G. Architecture          | 5      | SRP, DIP, architecture layer boundaries (per project rules), follows plan |
 | H. Framework & Infra     | 4      | DI, externalized config, native-compatible, observability           |
-| I. Tests                 | 3      | Coverage thresholds, scenarios covered, test quality                |
+| I. Tests & Execution     | 6      | ALL tests pass, coverage >= 95%/90%, smoke tests pass, test quality |
 | J. Security & Production | 1      | Sensitive data protected, thread-safe                               |
 | K. TDD Process           | 5      | Test-first commits, Double-Loop TDD, TPP progression, atomic cycles |
 {review_conditional_rubric}
@@ -146,6 +164,8 @@ The Tech Lead review covers:
 | -------------------------------------- | --------------- |
 | >= {review_go_threshold}/{review_max_score} + zero issues | GO              |
 | < {review_go_threshold}/{review_max_score} OR any issue   | NO-GO           |
+| ANY test failure (unit, integration, or smoke) | NO-GO (automatic, overrides score) |
+| Coverage below 95% line OR 90% branch  | NO-GO (automatic, overrides score) |
 
 ### Step 5 — Update Consolidated Dashboard
 
@@ -242,6 +262,9 @@ If fixing: apply corrections, commit, re-run review (max 2 cycles).
 | Template `_TEMPLATE-TECH-LEAD-REVIEW.md` missing | Log warning, use inline format as fallback (RULE-012 — Graceful template fallback). Skip dashboard and remediation updates. |
 | Specialist review reports not found | Proceed with Tech Lead review only; note absence in report |
 | Compilation or build failure | Record failure in report, deduct points from Framework & Infra section |
+| Test suite failure (unit/integration) | Automatic NO-GO regardless of rubric score; record all failing tests in report |
+| Coverage below threshold (< 95% line or < 90% branch) | Automatic NO-GO; record coverage gap as CRITICAL finding |
+| Smoke test failure | Automatic NO-GO; record failing smoke tests as CRITICAL finding |
 | NO-GO after 2 retry cycles | Halt review loop; output final report with remaining issues |
 
 {review_conditional_criteria}
