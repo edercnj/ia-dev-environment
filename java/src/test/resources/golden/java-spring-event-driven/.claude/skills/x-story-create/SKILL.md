@@ -3,7 +3,7 @@ name: x-story-create
 description: "Generate detailed User Story files from an Epic and system specification with full data contracts, Gherkin acceptance criteria, Mermaid sequence diagrams, dependency declarations, tagged sub-tasks, quality gate validation, and optional Jira integration."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion
-argument-hint: "<SPEC_FILE> <EPIC_FILE> [--quality-threshold 70]"
+argument-hint: "<SPEC_FILE> <EPIC_FILE> [--quality-threshold 70] [--jira <PROJECT_KEY>] [--no-jira]"
 context-budget: heavy
 ---
 
@@ -32,6 +32,8 @@ Generate individual story files from an Epic and system specification. Each stor
 | `<SPEC_FILE>` | Path | Yes | — | Path to the system specification file |
 | `<EPIC_FILE>` | Path | Yes | — | Path to the Epic file (with story index and rules table) |
 | `--quality-threshold` | int | No | 70 | Minimum score (0-100) required for a story to be saved |
+| `--jira` | String | No | — | Jira project key (e.g., PROJ). When provided, skip AskUserQuestion and create stories in Jira directly (EPIC-0042). |
+| `--no-jira` | Boolean | No | false | Skip Jira integration entirely, no prompting (EPIC-0042). |
 
 ## Prerequisites
 
@@ -432,14 +434,29 @@ For each story (no additional user prompting needed):
 If creation fails for a story: log a warning, set `<CHAVE-JIRA>` to `—`, continue
 with remaining stories.
 
-#### 3.2 — Standalone Invocation
+#### 3.2 — Standalone Invocation (EPIC-0042)
 
 If no `jiraContext` was provided (skill invoked directly, not via orchestrator):
 
 1. Check if `mcp__atlassian__createJiraIssue` is available. If not available, skip Jira
    integration entirely — replace all `<CHAVE-JIRA>` with `—`.
 
-2. Use `AskUserQuestion`:
+2. **Flag-based routing (EPIC-0042):**
+
+   - If `--no-jira` is present: skip Jira integration entirely. Replace all `<CHAVE-JIRA>`
+     with `—`. Log: `"Jira integration skipped (--no-jira, EPIC-0042)"`. Skip to Step 4.
+
+   - If `--jira <PROJECT_KEY>` is present: use the provided project key directly. Skip
+     AskUserQuestion. Discover the `cloudId` by calling
+     `mcp__atlassian__getAccessibleAtlassianResources`. Use the first available site's `id`
+     as the `cloudId`. If the call fails or returns no sites, warn the user and skip Jira
+     integration (replace all `<CHAVE-JIRA>` with `—`). Otherwise proceed to create stories
+     in Jira (step 3d below, using the flag-provided project key). Log:
+     `"Jira integration via --jira flag: project {PROJECT_KEY} (EPIC-0042)"`
+
+   - If neither flag is present: proceed to step 3 (backward-compatible interactive prompting).
+
+3. Use `AskUserQuestion`:
    ```
    question: "Deseja criar as historias no Jira?"
    header: "Jira"
@@ -451,7 +468,7 @@ If no `jiraContext` was provided (skill invoked directly, not via orchestrator):
    multiSelect: false
    ```
 
-3. If "Sim":
+3a. If "Sim":
    a. Ask for the Jira project key
    b. Discover the `cloudId` by calling `mcp__atlassian__getAccessibleAtlassianResources`.
       Use the first available site's `id` as the `cloudId`. If the call fails or returns
@@ -473,7 +490,7 @@ If no `jiraContext` was provided (skill invoked directly, not via orchestrator):
       - `parent` (optional): the epic key from step c, if provided
       - `additional_fields`: `{ "labels": [{ "name": "generated-by-ia-dev-env" }, { "name": "story-XXXX-YYYY" }] }` (where `story-XXXX-YYYY` is the local story ID for bidirectional sync)
 
-4. If "Nao": replace all `<CHAVE-JIRA>` with `—` and continue
+3b. If "Nao": replace all `<CHAVE-JIRA>` with `—` and continue
 
 #### 3.3 — Jira Dependency Linking (second pass)
 

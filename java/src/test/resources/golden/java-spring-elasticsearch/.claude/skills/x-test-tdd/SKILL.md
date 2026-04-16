@@ -220,14 +220,23 @@ For each cycle from `--from-cycle` (default 1) to the last cycle:
    {{COVERAGE_COMMAND}}
    ```
    - Parse coverage output
-   - If line coverage < 95% or branch coverage < 90%: emit **WARNING**:
-     ```
-     Coverage below threshold after GREEN:
-       Line:   XX% (threshold: 95%)
-       Branch: XX% (threshold: 90%)
-     Proceeding -- coverage warning only (not blocking).
-     ```
-   - Coverage check is non-blocking (warning only)
+   - If line coverage < 95% or branch coverage < 90%:
+     - If `--warn-only-coverage` flag is present: emit **WARNING** and proceed (legacy mode)
+     - Otherwise: emit **ERROR** and **BLOCK** the cycle:
+       ```
+       COVERAGE GATE FAILED after GREEN (EPIC-0042):
+         Line:   XX% (threshold: 95%)
+         Branch: XX% (threshold: 90%)
+       Uncovered lines/branches:
+         - [file:line] -- [description of uncovered branch]
+         - ...
+       Action required: add tests for uncovered branches before proceeding.
+       Override: pass --warn-only-coverage to proceed with warning only.
+       ```
+     - The cycle does NOT advance to REFACTOR until coverage thresholds are met
+     - Identify specific uncovered lines/branches from coverage report and list them
+     - Write additional tests to cover the gaps, then re-run `{{TEST_COMMAND}}` + `{{COVERAGE_COMMAND}}`
+     - Max 2 retry attempts to reach coverage; after 2 failures, ABORT the cycle
 6. Stage implementation files and delegate commit via the Skill tool (Rule 13 — INLINE-SKILL pattern):
 
        Skill(skill: "x-git-commit", args: "--task TASK-XXXX-YYYY-NNN --type feat --subject \"implement [description]\" --tdd GREEN")
@@ -394,7 +403,7 @@ Tests MUST progress from lower priority (simpler transformations) to higher prio
 | GREEN tests fail | Retry: adjust minimum implementation, re-attempt (max 3 retries) |
 | REFACTOR tests fail | REVERT: `git checkout -- .` and skip REFACTOR commit |
 | x-git-commit fails | ABORT: `"Commit failed at Cycle N, phase [RED|GREEN|REFACTOR]: {error}"` |
-| Coverage below threshold | WARNING only (non-blocking): log coverage gap |
+| Coverage below threshold | BLOCK: cycle does not advance to REFACTOR until coverage met (max 2 retries). Override with `--warn-only-coverage` for legacy warning-only mode |
 
 ## Anti-Patterns
 
@@ -404,6 +413,7 @@ Tests MUST progress from lower priority (simpler transformations) to higher prio
 - **Non-TPP ordering**: starting with complex cases (conditionals, collections) before degenerate cases violates TPP.
 - **Batch commits**: combining multiple phases into a single commit. Each phase (RED, GREEN, REFACTOR) gets its own atomic commit.
 - **Testing implementation details**: tests should verify behavior, not internal structure. Test the what, not the how.
+- **Deferring coverage gaps**: coverage below threshold MUST be addressed in the current cycle, not deferred to later cycles or post-implementation. Use `--warn-only-coverage` only for legacy migration scenarios.
 
 ## Slim Mode
 
@@ -433,7 +443,7 @@ END FOR
 # Run tests
 {{TEST_COMMAND}}
 
-# Coverage (optional, non-blocking warning)
+# Coverage (BLOCKING by default — EPIC-0042; use --warn-only-coverage to override)
 {{COVERAGE_COMMAND}}
 ```
 
@@ -450,7 +460,7 @@ Each phase delegates to `x-git-commit` via the Skill tool (`Skill(skill: "x-git-
 - RED test passes -> ABORT (behavior already exists)
 - GREEN compile/test fails -> retry (max 3)
 - REFACTOR tests fail -> REVERT (`git checkout -- .`), skip commit
-- Coverage below threshold -> WARNING only (non-blocking)
+- Coverage below threshold -> BLOCK (override with --warn-only-coverage)
 
 ## Integration with Other Skills
 
