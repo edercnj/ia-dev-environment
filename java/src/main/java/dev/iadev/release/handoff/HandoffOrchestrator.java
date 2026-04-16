@@ -68,7 +68,7 @@ public final class HandoffOrchestrator {
         try {
             skillInvoker.invoke(FIX_SKILL,
                     Integer.toString(prNumber));
-        } catch (SkillInvocationException e) {
+        } catch (RuntimeException e) {
             return HandoffResult.skillFailed(
                     skillFailedOptions());
         }

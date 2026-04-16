@@ -89,7 +89,7 @@ sequenceDiagram
         alt "PR mergeado"
             Engine-->>Skill: CONTINUE
             Skill->>Skill: proceed to RESUME_AND_TAG
-        else "Fix comments PR#"
+        else "Rodar /x-pr-fix PR#"
             Engine-->>Skill: HANDOFF
             Skill->>Skill: delegate to /x-pr-fix
         else "Sair"

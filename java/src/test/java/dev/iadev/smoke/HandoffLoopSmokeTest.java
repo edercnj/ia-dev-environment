@@ -22,9 +22,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Smoke test validating the full handoff loop:
- * prompt -> "Rodar fix-comments" -> mock SkillInvoker returns
- * success -> mock gh pr view returns MERGED -> next options
- * include "Continuar release" -> finalize.
+ * prompt -> "Rodar /x-pr-fix PR#" -> mock SkillInvoker runs
+ * "x-pr-fix" successfully -> mock gh pr view returns MERGED
+ * -> next options include "Continuar release" -> finalize.
  *
  * <p>Mocks {@link SkillInvokerPort} and {@link GhCliPort} to
  * avoid invoking the real sibling skill or shell commands in
