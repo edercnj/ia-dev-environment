@@ -171,7 +171,41 @@ else:
         if .schemaVersion != 2:
             ABORT STATE_SCHEMA_VERSION
         if .phase != "COMPLETED":
-            ABORT STATE_CONFLICT
+            # --- Smart Resume (story-0039-0008) ---
+            if --no-prompt:
+                ABORT STATE_CONFLICT          # legacy CI behavior preserved
+            # Interactive mode: detect state and prompt
+            STATE = read state file fields (version, phase, previousVersion, lastPhaseCompletedAt)
+            AGE   = now() - lastPhaseCompletedAt
+            HAS_NEW_COMMITS = git log "${STATE.previousVersion}..HEAD" --oneline | wc -l > 0
+
+            # Build prompt options
+            OPTIONS = [RESUME, ABORT]
+            if HAS_NEW_COMMITS:
+                OPTIONS += [START_NEW]
+
+            AskUserQuestion:
+              "Release in progress detected:
+                Version: ${STATE.version} (from ${STATE.previousVersion})
+                Phase: ${STATE.phase}
+                Stale for: ${formatAge(AGE)}
+
+              What would you like to do?
+                [1] Resume from ${STATE.phase}
+                [2] Abort release ${STATE.version} (full cleanup)
+                [3] Start new release (discard state)"    # only if HAS_NEW_COMMITS
+
+            CHOICE = user response
+            if CHOICE == RESUME:
+                MODE = RESUME
+                JUMP to Phase 9 (RESUME-AND-TAG)
+            if CHOICE == ABORT:
+                MODE = ABORT
+                EXIT 2 RESUME_USER_ABORT
+            if CHOICE == START_NEW:
+                rm "$STATE_FILE"
+                # fall through to fresh state creation below
+            # --- End Smart Resume ---
         # else: a previous run completed cleanly — proceed to overwrite
     # Create fresh state file (atomic write)
     TMP="${STATE_FILE}.tmp.$$"
@@ -213,7 +247,8 @@ else:
 | State file invalid JSON | `STATE_INVALID_JSON` | Step 0.3 |
 | Unknown `schemaVersion` | `STATE_SCHEMA_VERSION` | Step 0.3 |
 | `--continue-after-merge` with no state | `RESUME_NO_STATE` | Step 0.3 |
-| State exists, `phase != COMPLETED` | `STATE_CONFLICT` | Step 0.3 |
+| State exists, `phase != COMPLETED`, `--no-prompt` | `STATE_CONFLICT` | Step 0.3 (smart resume bypass for CI) |
+| User chose "Abort" in smart resume prompt | `RESUME_USER_ABORT` | Step 0.3 (exit 2) |
 | Cross-file integrity drift (CHANGELOG/pom/README/version) | `VALIDATE_INTEGRITY_DRIFT` | Step 2 — Sub-check 10 |
 | `--status` with corrupted state JSON | `STATUS_PARSE_FAILED` | --status (story-0039-0010) |
 | `--abort` with no active release | `ABORT_NO_RELEASE` | --abort (story-0039-0010) |
@@ -231,7 +266,8 @@ error-code vocabulary so that operators can triage failures consistently.
 |:---|:---|:---|:---|
 | Fresh invocation, no state | absent | `START` | Step 1 |
 | Fresh invocation, completed state | `phase: COMPLETED` | `START` | Step 1 (state overwritten) |
-| Fresh invocation, in-flight state | `phase != COMPLETED` | ABORT | `STATE_CONFLICT` |
+| Fresh invocation, in-flight state, `--no-prompt` | `phase != COMPLETED` | ABORT | `STATE_CONFLICT` |
+| Fresh invocation, in-flight state, interactive | `phase != COMPLETED` | `SMART_RESUME` | Step 0.3 smart resume prompt |
 | `--continue-after-merge`, valid | `phase: APPROVAL_PENDING` | `RESUME` | Phase 9 (`RESUME-AND-TAG`) |
 | `--continue-after-merge`, missing | absent | ABORT | `RESUME_NO_STATE` |
 | `--continue-after-merge`, wrong phase | any other `phase` | ABORT | invalid phase error |
