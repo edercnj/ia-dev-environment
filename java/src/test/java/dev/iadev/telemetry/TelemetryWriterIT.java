@@ -262,6 +262,40 @@ class TelemetryWriterIT {
     }
 
     @Test
+    void write_whenInterruptedDuringLockPoll_propagates()
+            throws Exception {
+        Path file = tmp.resolve("events.ndjson");
+        Files.createFile(file);
+
+        try (FileChannel externalChannel = FileChannel.open(
+                file,
+                StandardOpenOption.WRITE,
+                StandardOpenOption.APPEND);
+             FileLock ignored =
+                     externalChannel.lock();
+             TelemetryWriter writer =
+                     TelemetryWriter.open(file, 1000L)) {
+
+            TelemetryEvent event = sample(
+                    "11111111-1111-4111-8111-111111111111",
+                    EventType.SESSION_START);
+
+            Thread.currentThread().interrupt();
+            try {
+                assertThatThrownBy(() -> writer.write(event))
+                        .isInstanceOfAny(
+                                java.io.UncheckedIOException
+                                        .class,
+                                TelemetryWriteTimeoutException
+                                        .class);
+            } finally {
+                // clear the interrupted flag for subsequent tests
+                Thread.interrupted();
+            }
+        }
+    }
+
+    @Test
     void write_afterClose_raisesUncheckedIo() throws Exception {
         Path file = tmp.resolve("events.ndjson");
         TelemetryWriter writer = TelemetryWriter.open(file);
