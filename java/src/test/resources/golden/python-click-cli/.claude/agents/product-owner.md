@@ -52,7 +52,7 @@ Follow `.claude/templates/_TEMPLATE-STORY.md` structure. Save in the same epic f
 - Gherkin acceptance criteria in Portuguese (DADO/QUANDO/ENTÃO) with concrete values
 - Sub-tasks tagged [Dev]/[Test]/[Doc], estimable at 2-4 hours each
 
-### Deliverable 3: Implementation Map (plans/epic-XXXX/implementation-map-XXXX.md)
+### Deliverable 3: Implementation Map (plans/epic-XXXX/IMPLEMENTATION-MAP.md)
 
 Follow `.claude/templates/_TEMPLATE-IMPLEMENTATION-MAP.md` structure. Save in the same epic folder. Contains:
 - Full dependency matrix with validation

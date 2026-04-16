@@ -4,7 +4,6 @@ description: "Multi-agent story planning: launches 5 specialized agents (Archite
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "[STORY-ID] [--force] [--skip-dor]"
-context-budget: heavy
 ---
 
 ## Global Output Policy
@@ -100,7 +99,7 @@ Compute all required paths relative to `<EPIC_DIR>`:
 |------|---------|---------|
 | Story file | `<EPIC_DIR>/story-XXXX-YYYY.md` | `plans/epic-0028/story-0028-0002.md` |
 | Epic file | `<EPIC_DIR>/epic-XXXX.md` | `plans/epic-0028/epic-0028.md` |
-| Implementation map | Resolve first existing match in `<EPIC_DIR>/` from: `IMPLEMENTATION-MAP.md`, `implementation-map-XXXX.md` | `plans/epic-0028/IMPLEMENTATION-MAP.md` or `plans/epic-0028/implementation-map-0028.md` |
+| Implementation map | `<EPIC_DIR>/IMPLEMENTATION-MAP.md` | `plans/epic-0028/IMPLEMENTATION-MAP.md` |
 | Output directory | `<EPIC_DIR>/plans/` | `plans/epic-0028/plans/` |
 | Tasks file | `<EPIC_DIR>/plans/tasks-story-XXXX-YYYY.md` | `plans/epic-0028/plans/tasks-story-0028-0002.md` |
 | Planning report | `<EPIC_DIR>/plans/planning-report-story-XXXX-YYYY.md` | `plans/epic-0028/plans/planning-report-story-0028-0002.md` |

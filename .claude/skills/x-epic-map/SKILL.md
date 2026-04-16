@@ -4,7 +4,6 @@ description: "Generate an Implementation Map from an Epic and its Stories with d
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "<EPIC_FILE>"
-context-budget: medium
 ---
 
 ## Output Policy
@@ -261,8 +260,7 @@ If stories do not contain formal task IDs, **skip this step entirely** and note:
 
 ### Step 9 — Save and Report
 
-Save as `implementation-map-XXXX.md` in the same directory as the Epic and Stories (inside `plans/epic-XXXX/`).
-The XXXX is the epic number extracted from the Epic file.
+Save as `IMPLEMENTATION-MAP.md` in the same directory as the Epic and Stories (inside `plans/epic-XXXX/`).
 Report: total stories, phases, critical path length, maximum parallelism, main bottleneck.
 If task-level dependencies were computed, also report: total tasks, task phases, cross-story dependencies count.
 

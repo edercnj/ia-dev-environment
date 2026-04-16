@@ -4,7 +4,6 @@ description: "Complete decomposition of a system specification into an Epic, ind
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion
 argument-hint: "[SPEC-FILE-PATH] [--jira <PROJECT_KEY>] [--no-jira]"
-context-budget: medium
 ---
 
 ## Output Policy
@@ -234,7 +233,7 @@ Follow the instructions in `.claude/skills/x-epic-map/SKILL.md`:
 - Phase summary and detail tables
 - Strategic observations (bottleneck, leaves, parallelism, convergences, validation milestone)
 
-Generate `plans/epic-XXXX/implementation-map-XXXX.md` following `_TEMPLATE-IMPLEMENTATION-MAP.md`.
+Generate `plans/epic-XXXX/IMPLEMENTATION-MAP.md` following `_TEMPLATE-IMPLEMENTATION-MAP.md`.
 
 If Jira keys are available (from Phase 3), include them in the dependency matrix's
 `Chave Jira` column.
