@@ -115,15 +115,38 @@ public final class TelemetryWriter implements AutoCloseable {
                 while (buffer.hasRemaining()) {
                     channel.write(buffer);
                 }
-                channel.force(false);
                 // Explicit release so the compiler does not warn about the
-                // lock being unused; try-with-resources will no-op.
+                // lock being unused; try-with-resources will no-op. We do
+                // NOT fsync on every write — the story contract requires
+                // write p99 < 5ms per event (EPIC-0040 DoD) and fsync
+                // adds ~3ms per call on typical APFS/ext4. Close() will
+                // flush, and hooks write ndjson atomically via
+                // FileChannel APPEND + line-sized buffers (partial lines
+                // cannot occur).
                 lock.release();
             } catch (IOException e) {
                 throw new UncheckedIOException(
                         "failed to write telemetry event to "
                                 + path, e);
             }
+        }
+    }
+
+    /**
+     * Forces any buffered bytes to disk via {@link FileChannel#force(boolean)}.
+     *
+     * <p>Callers who need durability guarantees after a specific event
+     * (e.g. pre-shutdown flush) can invoke this explicitly. The per-write
+     * path intentionally skips {@code force} to keep p99 latency under
+     * the 5ms budget declared by EPIC-0040.</p>
+     */
+    public void flush() {
+        try {
+            channel.force(false);
+        } catch (IOException e) {
+            throw new UncheckedIOException(
+                    "failed to flush telemetry writer: "
+                            + path, e);
         }
     }
 
