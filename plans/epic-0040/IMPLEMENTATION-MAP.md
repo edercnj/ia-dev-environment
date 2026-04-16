@@ -287,7 +287,7 @@ graph TD
 **Entregas da Fase 6:**
 - ADR documentando a arquitetura de telemetria
 - Release 3.8.0 publicado no `main` com tag
-- `develop` bumped para `3.4.0-SNAPSHOT`
+- `develop` bumped para `3.9.0-SNAPSHOT`
 
 ---
 
