@@ -187,7 +187,7 @@ public final class AgentsAssembler implements Assembler {
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(
-                        AGENTS_TEMPLATES_DIR, 3);
+                .resolveResourceDir("shared")
+                .getParent();
     }
 }

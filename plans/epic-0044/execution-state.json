@@ -1,0 +1,33 @@
+{
+  "storyId": "story-0044-0001",
+  "storyStatus": "COMPLETE",
+  "mode": "MANUAL",
+  "schemaVersion": "1.0",
+  "parentBranch": null,
+  "tasks": {
+    "TASK-0044-0001-001": {
+      "status": "DONE",
+      "branch": "feat/story-0044-0001-remove-stackmapping-deprecated",
+      "commitSha": "2d77683d4",
+      "prNumber": null,
+      "prUrl": null,
+      "completedAt": "2026-04-16T17:04:00Z"
+    },
+    "TASK-0044-0001-002": {
+      "status": "DONE",
+      "branch": "feat/story-0044-0001-remove-stackmapping-deprecated",
+      "commitSha": "a0237482e",
+      "prNumber": null,
+      "prUrl": null,
+      "completedAt": "2026-04-16T17:04:30Z"
+    },
+    "TASK-0044-0001-003": {
+      "status": "DONE",
+      "branch": "feat/story-0044-0001-remove-stackmapping-deprecated",
+      "commitSha": "5a19703b1",
+      "prNumber": null,
+      "prUrl": null,
+      "completedAt": "2026-04-16T17:05:00Z"
+    }
+  }
+}

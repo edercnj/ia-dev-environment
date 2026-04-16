@@ -226,6 +226,7 @@ public final class ProtocolsAssembler implements Assembler {
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(PROTOCOLS_RES_DIR, 2);
+                .resolveResourceDir("shared")
+                .getParent();
     }
 }

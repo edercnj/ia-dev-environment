@@ -97,8 +97,8 @@ class SchemaSmokeTest {
     }
 
     private static String newUuidV4() {
-        // Java's UUID.randomUUID() emits a version-4 UUID (random, not
-        // deterministic), which satisfies the schema's eventId regex.
+        // Produce a random UUIDv4 string. Java's UUID.randomUUID() emits
+        // version-4 output so the pattern check in the schema is satisfied.
         return UUID.randomUUID().toString();
     }
 }

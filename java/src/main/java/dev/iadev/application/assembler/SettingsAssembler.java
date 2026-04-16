@@ -207,7 +207,7 @@ public final class SettingsAssembler implements Assembler {
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(
-                        SETTINGS_TEMPLATES_DIR, 3);
+                .resolveResourceDir("shared")
+                .getParent();
     }
 }
