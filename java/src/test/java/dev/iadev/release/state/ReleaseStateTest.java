@@ -71,6 +71,7 @@ class ReleaseStateTest {
                 "release/3.2.0",
                 "develop",
                 false, false, false, false,
+                false,
                 "2026-04-13T08:00:00Z",
                 "2026-04-13T08:12:34Z",
                 List.of("INITIALIZED"),
@@ -80,6 +81,8 @@ class ReleaseStateTest {
                 List.of(continueAction, fixAction),
                 WaitingFor.PR_MERGE,
                 Map.of(),
+                null,
+                null,
                 "2026-04-13T08:12:35Z",
                 null);
 
@@ -122,6 +125,7 @@ class ReleaseStateTest {
                 "release/3.2.0",
                 "develop",
                 false, false, false, false,
+                false,
                 "2026-04-13T08:00:00Z",
                 "2026-04-13T08:12:34Z",
                 List.of("INITIALIZED"),
@@ -131,6 +135,8 @@ class ReleaseStateTest {
                 List.of(),
                 null,
                 Map.of(),
+                null,
+                null,
                 null,
                 null);
     }

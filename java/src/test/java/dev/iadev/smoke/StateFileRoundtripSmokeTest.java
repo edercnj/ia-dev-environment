@@ -20,7 +20,8 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 /**
  * Smoke test that serializes a fully populated v2 release
  * state, deserializes it back, and asserts field-by-field
- * equality for all 25 fields including the 5 new v2 ones.
+ * equality for all schema fields including the v2 and CI-wait
+ * extensions.
  *
  * <p>Implements TASK-007 of story-0039-0002. Complements the
  * fine-grained {@code ReleaseStateTest} (record unit coverage)
@@ -73,6 +74,7 @@ class StateFileRoundtripSmokeTest {
         assertThat(r.branch()).isEqualTo("release/3.2.0");
         assertThat(r.baseBranch()).isEqualTo("develop");
         assertThat(r.interactive()).isTrue();
+        assertThat(r.noWaitCi()).isFalse();
         assertThat(r.phasesCompleted())
                 .containsExactly("INITIALIZED", "DETERMINED");
         assertThat(r.prNumber()).isEqualTo(297);
@@ -85,6 +87,9 @@ class StateFileRoundtripSmokeTest {
                 .isEqualTo(WaitingFor.PR_MERGE);
         assertThat(r.phaseDurations())
                 .containsEntry("VALIDATED", 142L);
+        assertThat(r.ciCheckedAt())
+                .isEqualTo("2026-04-13T08:10:01Z");
+        assertThat(r.ciStatus()).isEqualTo("PASS");
         assertThat(r.lastPromptAnsweredAt())
                 .isEqualTo("2026-04-13T08:12:35Z");
         assertThat(r.githubReleaseUrl()).isNull();
@@ -98,6 +103,7 @@ class StateFileRoundtripSmokeTest {
                 "release/3.2.0",
                 "develop",
                 false, false, false, true,
+                false,
                 "2026-04-13T08:00:00Z",
                 "2026-04-13T08:12:34Z",
                 List.of("INITIALIZED", "DETERMINED"),
@@ -119,6 +125,8 @@ class StateFileRoundtripSmokeTest {
                 Map.of(
                         "VALIDATED", 142L,
                         "BRANCHED", 3L),
+                "2026-04-13T08:10:01Z",
+                "PASS",
                 "2026-04-13T08:12:35Z",
                 null);
     }

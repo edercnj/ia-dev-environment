@@ -61,6 +61,7 @@ CLEANUP phase.
   "dryRun": false,
   "signedTag": false,
   "interactive": true,
+  "noWaitCi": false,
   "prNumber": 262,
   "prUrl": "https://github.com/acme/ia-dev-env/pull/262",
   "prTitle": "release: v2.3.0",
@@ -82,6 +83,8 @@ CLEANUP phase.
     "COMMITTED": 2,
     "PR_OPENED": 12
   },
+  "ciCheckedAt": "2026-04-11T14:35:10Z",
+  "ciStatus": "PASS",
   "lastPromptAnsweredAt": "2026-04-11T14:35:42Z",
   "githubReleaseUrl": null
 }
@@ -102,6 +105,7 @@ CLEANUP phase.
 | `dryRun` | boolean | — | `true` if the release is executing in dry-run mode (state file is still created for consistency, but no remote mutations occur). |
 | `signedTag` | boolean | — | `true` if `--signed-tag` was passed. |
 | `interactive` | boolean | — | `true` if `--interactive` was passed. |
+| `noWaitCi` | boolean \| null | — | `true` when `--no-wait-ci` was used (WAIT-CI skipped). Optional for backward compatibility. |
 | `startedAt` | string | ISO-8601 UTC (`YYYY-MM-DDTHH:MM:SSZ`) | Timestamp of the first `INITIALIZED` write. |
 | `lastPhaseCompletedAt` | string | ISO-8601 UTC | Timestamp of the most recent phase transition. |
 | `phasesCompleted` | array of strings | Ordered, no duplicates, subset of the 14 phases | Every phase name that has already been completed. Used for idempotency checks. |
@@ -132,6 +136,8 @@ canonical writer always emits every key.
 | `nextActions` | `Array<{label: String, command: String}>` \| null | skill orchestrator | Any halt phase | Ordered list of suggested slash-commands to present to the operator on the next prompt. `command` MUST match the allowlist regex `^/[a-z\-]+`. |
 | `waitingFor` | enum `{NONE, PR_REVIEW, PR_MERGE, BACKMERGE_REVIEW, BACKMERGE_MERGE, USER_CONFIRMATION}` \| null | skill orchestrator | Any halt phase | Classifies the current halt. `NONE` when the skill is actively executing. |
 | `phaseDurations` | `Map<String, Long>` \| null | skill orchestrator | Updated after each phase completes | Wall-clock duration in seconds per phase name. Empty map (`{}`) is valid (before the first phase completes). |
+| `ciCheckedAt` | ISO-8601 UTC string \| null | WAIT-CI | After PR checks reach terminal state | Timestamp of the latest WAIT-CI completion (PASS/FAIL/TIMEOUT). |
+| `ciStatus` | enum `{PASS, FAIL, TIMEOUT}` \| null | WAIT-CI | After PR checks reach terminal state | Terminal outcome of the most recent CI wait cycle. `null` when WAIT-CI was skipped. |
 | `lastPromptAnsweredAt` | ISO-8601 UTC string \| null | prompt handler | After every operator prompt | Telemetry capturing human-response time; used by downstream observability stories. |
 | `githubReleaseUrl` | string \| null | `PUBLISH` (S06) | After `gh release create` | URL of the GitHub Release created by the publish phase. Remains `null` until then. |
 
@@ -154,7 +160,7 @@ silent drift between the approved PR and the tag that is ultimately pushed.
 | `UPDATED` | Version files updated and staged | `CHANGELOG_DONE` |
 | `CHANGELOG_DONE` | `CHANGELOG.md` generated via `x-release-changelog` | `COMMITTED` |
 | `COMMITTED` | Release commit created on the release branch | `PR_OPENED` |
-| `PR_OPENED` | `OPEN-RELEASE-PR` complete — release PR opened via `gh pr create` | `APPROVAL_PENDING` |
+| `PR_OPENED` | `OPEN-RELEASE-PR` complete — release PR opened via `gh pr create` | `APPROVAL_PENDING` (WAIT-CI pass or `--no-wait-ci`) |
 | `APPROVAL_PENDING` | `APPROVAL-GATE` reached — skill paused waiting for the operator | `MERGED` (via `--continue-after-merge`) |
 | `MERGED` | Release PR confirmed `MERGED` by `gh pr view` | `TAGGED` |
 | `TAGGED` | Tag created on `main` (annotated or signed) and pushed | `BACKMERGE_OPENED` or `BACKMERGE_CONFLICT` |
@@ -179,7 +185,7 @@ INITIALIZED
     -> CHANGELOG_DONE
     -> COMMITTED
     -> PR_OPENED
-    -> APPROVAL_PENDING
+    -> APPROVAL_PENDING   (via WAIT-CI PASS or --no-wait-ci; FAIL/TIMEOUT stays in PR_OPENED)
     -> MERGED
     -> TAGGED
     -> { BACKMERGE_OPENED | BACKMERGE_CONFLICT }
@@ -249,3 +255,4 @@ truncated JSON, which subsequent invocations would reject with
 13. `nextActions` (when present and non-null) MUST be an array whose every entry has a non-null `command` matching `^/[a-z\-]+`. Violations emit `STATE_INVALID_ACTION`.
 14. `waitingFor` (when present and non-null) MUST be one of the 6 enum values declared in Schema v2 Fields. Unknown values emit `STATE_INVALID_ENUM`.
 15. `phaseDurations` (when present) MUST be a map of phase-name -> non-negative integer seconds. Empty map (`{}`) is valid.
+16. `ciStatus` (when present and non-null) MUST be one of `PASS`, `FAIL`, `TIMEOUT`.

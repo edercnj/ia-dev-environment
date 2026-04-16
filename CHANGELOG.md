@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- x-release: inserted Step 7.8 WAIT-CI between OPEN-RELEASE-PR and APPROVAL-GATE, with `--ci-timeout <minutes>` (default 30), `--no-wait-ci` opt-out, new `RELEASE_CI_FAILED`/`RELEASE_CI_TIMEOUT` codes, and state-file telemetry fields (`noWaitCi`, `ciCheckedAt`, `ciStatus`) plus smoke coverage (`XReleaseWaitCiSmokeTest`).
+
 ## [3.6.0] - 2026-04-16
 
 ### Added

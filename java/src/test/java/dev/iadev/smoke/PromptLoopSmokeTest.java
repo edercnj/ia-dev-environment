@@ -142,13 +142,15 @@ class PromptLoopSmokeTest {
                 2, "3.2.0", "APPROVAL_PENDING",
                 "release/3.2.0", "develop",
                 false, false, false, true,
+                false,
                 "2026-04-15T08:00:00Z",
                 "2026-04-15T09:00:00Z",
                 List.of("INITIALIZED"),
                 "3.2.0", "3.1.0", "minor",
                 42, "https://github.com/org/repo/pull/42",
                 null, null, null, null,
-                List.of(), null, Map.of(), null, null);
+                List.of(), null, Map.of(), null, null,
+                null, null);
     }
 
     private static ReleaseState recoverableState() {
@@ -156,12 +158,14 @@ class PromptLoopSmokeTest {
                 2, "3.2.0", "VALIDATE_DEEP",
                 "release/3.2.0", "develop",
                 false, false, false, true,
+                false,
                 "2026-04-15T08:00:00Z",
                 "2026-04-15T09:00:00Z",
                 List.of("INITIALIZED"),
                 "3.2.0", "3.1.0", "minor",
                 null, null, null, null, null, null,
-                List.of(), null, Map.of(), null, null);
+                List.of(), null, Map.of(), null, null,
+                null, null);
     }
 
     /** Returns answers sequentially from a queue. */

@@ -722,6 +722,8 @@ class ReleaseSkillTest {
                     .contains("| `--continue-after-merge`")
                     .contains("| `--interactive`")
                     .contains("| `--signed-tag`")
+                    .contains("| `--no-wait-ci`")
+                    .contains("| `--ci-timeout <minutes>`")
                     .contains("| `--state-file <path>`");
         }
 

@@ -7,10 +7,11 @@
 
 ## Overview
 
-The Approval Gate is the safety checkpoint between opening the release PR
-(Step 7 OPEN-RELEASE-PR) and applying irreversible actions (tag,
-back-merge). It ensures the human operator explicitly reviews and merges
-the release PR before the skill creates the git tag.
+The Approval Gate is the safety checkpoint after opening the release PR
+(Step 7 OPEN-RELEASE-PR) and validating CI terminal state (Step 7.8
+WAIT-CI), before irreversible actions (tag, back-merge). It ensures the
+human operator explicitly reviews and merges the release PR before the
+skill creates the git tag.
 
 ## Default Workflow (Non-Interactive)
 
@@ -18,7 +19,14 @@ the release PR before the skill creates the git tag.
 Step 7 completes (PR_OPENED)
           |
           v
-Step 8.1: Persist APPROVAL_PENDING in state file
+Step 7.8: WAIT-CI (gh pr checks --watch)
+          - PASS: phase -> APPROVAL_PENDING
+          - FAIL: abort RELEASE_CI_FAILED (phase remains PR_OPENED)
+          - TIMEOUT: abort RELEASE_CI_TIMEOUT (phase remains PR_OPENED)
+          - --no-wait-ci: skip wait, phase -> APPROVAL_PENDING
+          |
+          v
+Step 8.1: Validate APPROVAL_PENDING in state file
           |
           v
 Step 8.2: Print human-readable instructions
@@ -46,8 +54,9 @@ Phase RESUME-AND-TAG (Step 9+)
 
 | Field | Before | After |
 |:---|:---|:---|
-| `phase` | `PR_OPENED` | `APPROVAL_PENDING` |
-| `phasesCompleted` | `[..., PR_OPENED]` | `[..., PR_OPENED, APPROVAL_PENDING]` |
+| `phase` | `PR_OPENED` | `APPROVAL_PENDING` (PASS/no-wait) OR `PR_OPENED` (FAIL/TIMEOUT) |
+| `ciStatus` | `null` | `PASS`/`FAIL`/`TIMEOUT` (or `null` when `--no-wait-ci`) |
+| `ciCheckedAt` | `null` | ISO-8601 timestamp (PASS/FAIL/TIMEOUT) |
 
 ## Interactive Workflow (`--interactive`)
 
@@ -93,6 +102,8 @@ Step 8.3: AskUserQuestion with 3 options
 
 | Code | Condition | Message | Exit |
 |:---|:---|:---|:---|
+| `RELEASE_CI_FAILED` | WAIT-CI finished with failed checks | `Release PR checks failed.` | 1 |
+| `RELEASE_CI_TIMEOUT` | WAIT-CI exceeded timeout budget | `Release PR checks timed out.` | 1 |
 | `APPROVAL_PR_STILL_OPEN` | Interactive option 1, but `gh pr view` returns state != MERGED | `PR #N is still OPEN. Merge first.` | 1 |
 | `APPROVAL_CANCELLED` | Interactive option 3, confirmed | `Release cancelled by user.` | 2 |
 
@@ -131,6 +142,7 @@ When the operator cancels (Option 3):
 | Phase | Relationship |
 |:---|:---|
 | Step 7 (OPEN-RELEASE-PR) | Produces `PR_OPENED` state consumed by Step 8 |
-| Step 8 (APPROVAL-GATE) | Produces `APPROVAL_PENDING` state consumed by Step 0 on resume |
+| Step 7.8 (WAIT-CI) | Transitions `PR_OPENED` -> `APPROVAL_PENDING` on PASS/no-wait, or aborts while keeping `PR_OPENED` on FAIL/TIMEOUT |
+| Step 8 (APPROVAL-GATE) | Consumes `APPROVAL_PENDING`, prints halt guidance, and waits for operator merge |
 | Step 0 (RESUME-DETECT) | Detects `APPROVAL_PENDING` + `--continue-after-merge` to enter RESUME mode |
 | Step 9+ (RESUME-AND-TAG) | Consumes the MERGED PR state to create the git tag |

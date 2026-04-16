@@ -35,6 +35,7 @@ import java.util.Map;
         "dryRun",
         "signedTag",
         "interactive",
+        "noWaitCi",
         "startedAt",
         "lastPhaseCompletedAt",
         "phasesCompleted",
@@ -50,6 +51,8 @@ import java.util.Map;
         "nextActions",
         "waitingFor",
         "phaseDurations",
+        "ciCheckedAt",
+        "ciStatus",
         "lastPromptAnsweredAt",
         "githubReleaseUrl"
 })
@@ -63,6 +66,7 @@ public record ReleaseState(
         @JsonProperty("dryRun") boolean dryRun,
         @JsonProperty("signedTag") boolean signedTag,
         @JsonProperty("interactive") boolean interactive,
+        @JsonProperty("noWaitCi") Boolean noWaitCi,
         @JsonProperty("startedAt") String startedAt,
         @JsonProperty("lastPhaseCompletedAt")
         String lastPhaseCompletedAt,
@@ -84,6 +88,8 @@ public record ReleaseState(
         @JsonProperty("waitingFor") WaitingFor waitingFor,
         @JsonProperty("phaseDurations")
         Map<String, Long> phaseDurations,
+        @JsonProperty("ciCheckedAt") String ciCheckedAt,
+        @JsonProperty("ciStatus") String ciStatus,
         @JsonProperty("lastPromptAnsweredAt")
         String lastPromptAnsweredAt,
         @JsonProperty("githubReleaseUrl")
@@ -108,11 +114,12 @@ public record ReleaseState(
         return new ReleaseState(
                 schemaVersion, version, phase, branch,
                 baseBranch, hotfix, dryRun, signedTag,
-                interactive, startedAt, lastPhaseCompletedAt,
+                interactive, noWaitCi, startedAt, lastPhaseCompletedAt,
                 phasesCompleted, targetVersion, previousVersion,
                 bumpType, prNumber, prUrl, prTitle,
                 changelogEntry, tagMessage, worktreePath,
                 replacement, waitingFor, phaseDurations,
+                ciCheckedAt, ciStatus,
                 lastPromptAnsweredAt, githubReleaseUrl);
     }
 }

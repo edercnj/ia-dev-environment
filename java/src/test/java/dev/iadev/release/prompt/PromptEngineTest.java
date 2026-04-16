@@ -408,13 +408,15 @@ class PromptEngineTest {
                 2, "3.2.0", "APPROVAL_PENDING",
                 "release/3.2.0", "develop",
                 false, false, false, true,
+                false,
                 "2026-04-15T08:00:00Z",
                 "2026-04-15T09:00:00Z",
                 List.of("INITIALIZED"),
                 "3.2.0", "3.1.0", "minor",
                 PR_NUMBER, PR_URL, null, null, null,
                 null,
-                List.of(), null, Map.of(), null, null);
+                List.of(), null, Map.of(), null, null,
+                null, null);
     }
 
     private static ReleaseState backmergeState() {
@@ -422,13 +424,15 @@ class PromptEngineTest {
                 2, "3.2.0", "BACK_MERGE_DEVELOP",
                 "release/3.2.0", "develop",
                 false, false, false, true,
+                false,
                 "2026-04-15T08:00:00Z",
                 "2026-04-15T09:00:00Z",
                 List.of("INITIALIZED"),
                 "3.2.0", "3.1.0", "minor",
                 PR_NUMBER, PR_URL, null, null, null,
                 null,
-                List.of(), null, Map.of(), null, null);
+                List.of(), null, Map.of(), null, null,
+                null, null);
     }
 
     private static ReleaseState recoverableFailureState() {
@@ -436,13 +440,15 @@ class PromptEngineTest {
                 2, "3.2.0", "VALIDATE_DEEP",
                 "release/3.2.0", "develop",
                 false, false, false, true,
+                false,
                 "2026-04-15T08:00:00Z",
                 "2026-04-15T09:00:00Z",
                 List.of("INITIALIZED"),
                 "3.2.0", "3.1.0", "minor",
                 null, null, null, null, null,
                 null,
-                List.of(), null, Map.of(), null, null);
+                List.of(), null, Map.of(), null, null,
+                null, null);
     }
 
     /** Spy that counts invocations but returns no answer. */

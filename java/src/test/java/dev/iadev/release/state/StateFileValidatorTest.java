@@ -146,6 +146,7 @@ class StateFileValidatorTest {
                 "release/3.2.0",
                 "develop",
                 false, false, false, false,
+                false,
                 "2026-04-13T08:00:00Z",
                 "2026-04-13T08:12:34Z",
                 List.of(),
@@ -155,6 +156,8 @@ class StateFileValidatorTest {
                 List.of(),
                 null,
                 Map.of(),
+                null,
+                null,
                 null,
                 null);
     }

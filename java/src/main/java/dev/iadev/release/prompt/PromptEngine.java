@@ -192,6 +192,7 @@ public final class PromptEngine {
                 state.dryRun(),
                 state.signedTag(),
                 state.interactive(),
+                state.noWaitCi(),
                 state.startedAt(),
                 state.lastPhaseCompletedAt(),
                 state.phasesCompleted(),
@@ -207,6 +208,8 @@ public final class PromptEngine {
                 actions,
                 waiting,
                 state.phaseDurations(),
+                state.ciCheckedAt(),
+                state.ciStatus(),
                 lastPromptAnsweredAt,
                 state.githubReleaseUrl());
     }

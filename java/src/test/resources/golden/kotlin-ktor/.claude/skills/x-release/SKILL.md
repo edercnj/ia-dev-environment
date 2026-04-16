@@ -1,9 +1,9 @@
 ---
 name: x-release
-description: "Orchestrates complete release flow using Git Flow release branches with approval gate, PR-flow (gh CLI) and deep validation: version bump (auto-detect or explicit), release branch creation from develop, deep validation (coverage, golden files, version consistency), version file updates, changelog generation, release commit, release PR via gh (optionally reviewed by x-review-pr), human approval gate with persistent state file, tag on main after merged PR, back-merge PR to develop with conflict detection, and cleanup. Supports hotfix releases from main, dry-run mode, resume via --continue-after-merge, in-session pause via --interactive, GPG-signed tags, skip-review opt-out, and custom state file path."
+description: "Orchestrates complete release flow using Git Flow release branches with approval gate, PR-flow (gh CLI) and deep validation: version bump (auto-detect or explicit), release branch creation from develop, deep validation (coverage, golden files, version consistency), version file updates, changelog generation, release commit, release PR via gh (optionally reviewed by x-review-pr), CI gate wait between PR open and approval gate, human approval gate with persistent state file, tag on main after merged PR, back-merge PR to develop with conflict detection, and cleanup. Supports hotfix releases from main, dry-run mode, resume via --continue-after-merge, in-session pause via --interactive, GPG-signed tags, skip-review opt-out, custom CI wait timeout, no-wait opt-out, and custom state file path."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, Skill, AskUserQuestion
-argument-hint: "[major|minor|patch|version] [--version X.Y.Z] [--last-tag <tag>] [--dry-run] [--skip-tests] [--no-publish] [--no-github-release] [--hotfix] [--continue-after-merge] [--interactive] [--no-prompt] [--signed-tag] [--skip-review] [--state-file <path>] [--skip-integrity] [--integrity-report <path>] [--max-parallel <N>] [--status] [--abort] [--yes] [--force]"
+argument-hint: "[major|minor|patch|version] [--version X.Y.Z] [--last-tag <tag>] [--dry-run] [--skip-tests] [--no-publish] [--no-github-release] [--hotfix] [--continue-after-merge] [--interactive] [--no-prompt] [--signed-tag] [--skip-review] [--no-wait-ci] [--ci-timeout <minutes>] [--state-file <path>] [--skip-integrity] [--integrity-report <path>] [--max-parallel <N>] [--status] [--abort] [--yes] [--force]"
 context-budget: heavy
 ---
 
@@ -53,6 +53,8 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 | `--interactive` | No | Activate in-session pause at APPROVAL-GATE via `AskUserQuestion` instead of exiting the skill. The state file is still persisted for defense in depth. When combined with `--dry-run`, activates the interactive-dry-run sub-modality (story-0039-0013): the skill pauses before each of the 13 phases and records outcomes without invoking `git`, `mvn`, or `gh`. Passing `--interactive` WITHOUT `--dry-run` aborts with exit 1, error `INTERACTIVE_REQUIRES_DRYRUN`. |
 | `--signed-tag` | No | Create a GPG-signed git tag (`git tag -s`) instead of an annotated tag (`git tag -a`). |
 | `--skip-review` | No | Skip the fire-and-forget `x-review-pr` invocation at the end of Phase `OPEN-RELEASE-PR`. The release PR is still opened against `main`; only the automated specialist review is suppressed. |
+| `--no-wait-ci` | No | Skip WAIT-CI and halt immediately at APPROVAL-GATE after opening the release PR (legacy behavior). Persists `noWaitCi: true` in the state file for resume diagnostics. |
+| `--ci-timeout <minutes>` | No | Timeout for WAIT-CI (`gh pr checks --watch`) in minutes. Default `30`. On timeout aborts with `RELEASE_CI_TIMEOUT` and keeps `phase: PR_OPENED` for idempotent retry. |
 | `--state-file <path>` | No | Override the state file path (default: `plans/release-state-<X.Y.Z>.json`). |
 | `--no-summary` | No | Skip Phase 13 (SUMMARY). Intended for CI runs where the verbose Git Flow summary block is noise. Phase 13 is read-only, so skipping it never changes behaviour — only suppresses output. |
 | `--skip-integrity` | No | Skip sub-check 10 (cross-file integrity drift) in VALIDATE-DEEP. **Not recommended**; emits a loud warning in the release log. |
@@ -79,6 +81,7 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
  5. CHANGELOG       -> Generate/update CHANGELOG.md via x-release-changelog
  6. COMMIT          -> Create release commit on release branch
  7. OPEN-RELEASE-PR -> Push release branch and open PR to main via gh pr create
+ 7.8 WAIT-CI        -> Watch gh PR checks until PASS/FAIL/TIMEOUT (--no-wait-ci opt-out)
  8. APPROVAL-GATE   -> Persist APPROVAL_PENDING, print instructions, halt (or interactive)
  9. TAG             -> Create annotated/signed git tag on main (after merged PR)
 10. BACK-MERGE-DEVELOP -> Open PR to develop with conflict detection (clean or conflict flow)
@@ -1289,32 +1292,110 @@ using the same vocabulary as the rest of the skill.
 > (Step 5) are untouched. Only the merge-to-main step is replaced — the
 > skill still produces the exact same local state up to `COMMITTED`.
 
+#### Step 7.8 — WAIT-CI (release PR checks gate)
+
+After the release PR is opened, the skill waits for PR checks to reach a
+terminal state before entering the approval gate.
+
+- PASS (`gh pr checks` exit `0`) → transition `PR_OPENED -> APPROVAL_PENDING`
+- FAIL (`gh pr checks` exit `8`) → abort `RELEASE_CI_FAILED`, keep `PR_OPENED`
+- TIMEOUT (`timeout` exit `124`) → abort `RELEASE_CI_TIMEOUT`, keep `PR_OPENED`
+
+Retry is idempotent: re-running `/x-release ${VERSION}` reuses the same PR and
+re-runs WAIT-CI from the current head commit.
+
+```bash
+CI_TIMEOUT_MINUTES="${CI_TIMEOUT_MINUTES:-30}"
+NO_WAIT_CI="${NO_WAIT_CI:-false}"
+NOW_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+if [ "$NO_WAIT_CI" = "true" ]; then
+  TMP="${STATE_FILE}.tmp.$$"
+  jq --arg ts "$NOW_UTC" \
+     '.phase = "APPROVAL_PENDING"
+      | .phasesCompleted += ["WAIT_CI_SKIPPED", "APPROVAL_GATE_REACHED"]
+      | .noWaitCi = true
+      | .ciCheckedAt = null
+      | .ciStatus = null
+      | .lastPhaseCompletedAt = $ts' \
+    "$STATE_FILE" > "$TMP"
+  mv "$TMP" "$STATE_FILE"
+else
+  timeout "${CI_TIMEOUT_MINUTES}m" \
+    gh pr checks "$PR_NUMBER" --watch --interval 30
+  CI_EXIT=$?
+
+  TMP="${STATE_FILE}.tmp.$$"
+  case "$CI_EXIT" in
+    0)
+      jq --arg ts "$NOW_UTC" \
+         '.phase = "APPROVAL_PENDING"
+          | .phasesCompleted += ["WAIT_CI_PASSED", "APPROVAL_GATE_REACHED"]
+          | .noWaitCi = false
+          | .ciCheckedAt = $ts
+          | .ciStatus = "PASS"
+          | .lastPhaseCompletedAt = $ts' \
+        "$STATE_FILE" > "$TMP"
+      mv "$TMP" "$STATE_FILE"
+      ;;
+    8)
+      jq --arg ts "$NOW_UTC" \
+         '.phase = "PR_OPENED"
+          | .noWaitCi = false
+          | .ciCheckedAt = $ts
+          | .ciStatus = "FAIL"
+          | .lastPhaseCompletedAt = $ts' \
+        "$STATE_FILE" > "$TMP"
+      mv "$TMP" "$STATE_FILE"
+      echo "ABORT [RELEASE_CI_FAILED]: release PR checks failed."
+      echo "Fix the branch and re-run /x-release ${VERSION}."
+      exit 1
+      ;;
+    124)
+      jq --arg ts "$NOW_UTC" \
+         '.phase = "PR_OPENED"
+          | .noWaitCi = false
+          | .ciCheckedAt = $ts
+          | .ciStatus = "TIMEOUT"
+          | .lastPhaseCompletedAt = $ts' \
+        "$STATE_FILE" > "$TMP"
+      mv "$TMP" "$STATE_FILE"
+      echo "ABORT [RELEASE_CI_TIMEOUT]: CI checks did not finish within"
+      echo "${CI_TIMEOUT_MINUTES} minutes."
+      exit 1
+      ;;
+    *)
+      echo "ABORT [PR_CREATE_FAILED]: failed to query PR checks (exit=${CI_EXIT})."
+      exit 1
+      ;;
+  esac
+fi
+```
+
 ### Step 8 — Approval Gate
 
-> **RULE-003 (Idempotência via State File):** This phase writes
-> `APPROVAL_PENDING` to the state file and halts. Re-invocation without
-> `--continue-after-merge` detects the in-flight state in Step 0 and
-> aborts with `STATE_CONFLICT`, preventing double execution.
+> **RULE-003 (Idempotência via State File):** This phase expects
+ > `APPROVAL_PENDING` (set by WAIT-CI) and halts. Re-invocation without
+ > `--continue-after-merge` detects the in-flight state in Step 0 and
+ > aborts with `STATE_CONFLICT`, preventing double execution.
 
 > **Reference:** See `references/approval-gate-workflow.md` for the
 > complete workflow diagram, state transitions, and interactive mode
 > decision tree.
 
 The Approval Gate is the safety checkpoint between opening the release PR
-(Step 7) and applying irreversible actions (tag, back-merge). Nothing
+(Step 7 + WAIT-CI) and applying irreversible actions (tag, back-merge). Nothing
 irreversible has happened yet — the operator can abort by closing the PR.
 
-#### Step 8.1 — Persist APPROVAL_PENDING State
+#### Step 8.1 — Validate APPROVAL_PENDING State
 
 ```bash
-# Atomic state update: PR_OPENED -> APPROVAL_PENDING
-TMP="${STATE_FILE}.tmp.$$"
-jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-  '.phase = "APPROVAL_PENDING"
-   | .phasesCompleted += ["APPROVAL_GATE_REACHED"]
-   | .lastPhaseCompletedAt = $ts' \
-  "$STATE_FILE" > "$TMP"
-mv "$TMP" "$STATE_FILE"
+CURRENT_PHASE=$(jq -r '.phase' "$STATE_FILE")
+if [ "$CURRENT_PHASE" != "APPROVAL_PENDING" ]; then
+  echo "ABORT [STATE_CONFLICT]: expected APPROVAL_PENDING after WAIT-CI,"
+  echo "got ${CURRENT_PHASE}."
+  exit 1
+fi
 ```
 
 #### Step 8.2 — Print Human-Readable Instructions
@@ -2404,6 +2485,8 @@ printed at runtime.
 | 7 | `PR_NO_CHANGELOG_ENTRY` | No `[X.Y.Z]` entry in CHANGELOG.md | `No [<V>] entry found in CHANGELOG.md. Ensure Step 5 completed.` | 1 |
 | 7 | `PR_PUSH_REJECTED` | `git push` rejected | `Push rejected. Check branch protection or network.` | 1 |
 | 7 | `PR_CREATE_FAILED` | `gh pr create` exits non-zero | `Failed to create PR: <stderr>` | 1 |
+| 7.8 | `RELEASE_CI_FAILED` | `gh pr checks --watch` exits 8 (at least one failed check) | `Release PR CI failed. Fix commits and re-run /x-release <V>.` | 1 |
+| 7.8 | `RELEASE_CI_TIMEOUT` | `gh pr checks --watch` exceeds `--ci-timeout` | `Release PR CI did not complete within <minutes>m.` | 1 |
 | 8 | `APPROVAL_PR_STILL_OPEN` | Interactive option 1 but PR not merged | `PR is still OPEN. Merge first, then --continue-after-merge.` | 1 |
 | 8 | `APPROVAL_CANCELLED` | Interactive option 3 confirmed by user | `Release cancelled by user. Manual cleanup required.` | 2 |
 | 9 | `RESUME_GH_FAILED` | `gh pr view` command fails | `Failed to query PR #<n>. Check gh auth and network.` | 1 |

@@ -197,9 +197,9 @@ class ReleaseApprovalGateTest {
             String content =
                     generateClaudeContent(tempDir);
             int stepEight = content.indexOf(
-                    "### Step 8 \u2014 Approval Gate");
+                    "#### Step 7.8 \u2014 WAIT-CI");
             int stepNine = content.indexOf(
-                    "### Step 9 \u2014 Tag Creation");
+                    "### Step 8 \u2014 Approval Gate");
             String stepBody = content.substring(
                     stepEight, stepNine);
             assertThat(stepBody)
@@ -385,17 +385,17 @@ class ReleaseApprovalGateTest {
     class StateTransitions {
 
         @Test
-        @DisplayName("state file transitions from"
-                + " PR_OPENED to APPROVAL_PENDING")
-        void stepEight_prOpenedToApprovalPending(
+        @DisplayName("WAIT-CI section documents"
+                + " PR_OPENED to APPROVAL_PENDING transition")
+        void waitCi_prOpenedToApprovalPending(
                 @TempDir Path tempDir)
                 throws IOException {
             String content =
                     generateClaudeContent(tempDir);
             int stepEight = content.indexOf(
-                    "### Step 8 \u2014 Approval Gate");
+                    "#### Step 7.8 \u2014 WAIT-CI");
             int stepNine = content.indexOf(
-                    "### Step 9 \u2014 Tag Creation");
+                    "### Step 8 \u2014 Approval Gate");
             String stepBody = content.substring(
                     stepEight, stepNine);
             assertThat(stepBody)
@@ -412,9 +412,9 @@ class ReleaseApprovalGateTest {
             String content =
                     generateClaudeContent(tempDir);
             int stepEight = content.indexOf(
-                    "### Step 8 \u2014 Approval Gate");
+                    "#### Step 7.8 \u2014 WAIT-CI");
             int stepNine = content.indexOf(
-                    "### Step 9 \u2014 Tag Creation");
+                    "### Step 8 \u2014 Approval Gate");
             String stepBody = content.substring(
                     stepEight, stepNine);
             assertThat(stepBody)

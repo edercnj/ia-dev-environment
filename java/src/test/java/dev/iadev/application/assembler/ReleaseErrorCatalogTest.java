@@ -202,7 +202,9 @@ class ReleaseErrorCatalogTest {
             assertThat(content)
                     .contains("PR_PUSH_REJECTED")
                     .contains("PR_NO_CHANGELOG_ENTRY")
-                    .contains("PR_CREATE_FAILED");
+                    .contains("PR_CREATE_FAILED")
+                    .contains("RELEASE_CI_FAILED")
+                    .contains("RELEASE_CI_TIMEOUT");
         }
 
         @Test

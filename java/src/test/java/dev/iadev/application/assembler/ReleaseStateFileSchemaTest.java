@@ -66,6 +66,10 @@ class ReleaseStateFileSchemaTest {
             "phaseDurations", "lastPromptAnsweredAt",
             "githubReleaseUrl");
 
+    private static final List<String>
+            CI_WAIT_FIELDS = List.of(
+            "noWaitCi", "ciCheckedAt", "ciStatus");
+
     @Test
     @DisplayName("schema doc file exists on disk")
     void stateFileSchemaDocExists() {
@@ -109,6 +113,12 @@ class ReleaseStateFileSchemaTest {
                     .as("Schema doc must mention"
                             + " phase-dependent field:"
                             + " %s", field)
+                    .contains(field);
+        }
+        for (String field : CI_WAIT_FIELDS) {
+            assertThat(content)
+                    .as("Schema doc must mention"
+                            + " CI wait field: %s", field)
                     .contains(field);
         }
     }
@@ -215,6 +225,12 @@ class ReleaseStateFileSchemaTest {
                 .as("Example JSON waitingFor must use"
                         + " a declared enum value")
                 .contains(node.get("waitingFor").asText());
+        for (String field : CI_WAIT_FIELDS) {
+            assertThat(node.has(field))
+                    .as("Example JSON missing CI wait field:"
+                            + " %s", field)
+                    .isTrue();
+        }
     }
 
     @Test
