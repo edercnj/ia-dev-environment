@@ -1,5 +1,6 @@
 package dev.iadev.application.assembler;
 
+import dev.iadev.domain.stack.DatabaseSettingsMapping;
 import dev.iadev.domain.stack.StackMapping;
 import dev.iadev.domain.model.ProjectConfig;
 
@@ -119,14 +120,16 @@ public final class PermissionCollector {
             ProjectConfig config,
             Path templatesDir,
             List<String> result) {
-        String dbKey = StackMapping.getDatabaseSettingsKey(
-                config.data().database().name());
+        String dbKey =
+                DatabaseSettingsMapping.getDatabaseSettingsKey(
+                        config.data().database().name());
         if (!dbKey.isEmpty()) {
             result = mergeFile(
                     result, dbKey + ".json", templatesDir);
         }
-        String cacheKey = StackMapping.getCacheSettingsKey(
-                config.data().cache().name());
+        String cacheKey =
+                DatabaseSettingsMapping.getCacheSettingsKey(
+                        config.data().cache().name());
         if (!cacheKey.isEmpty()) {
             result = mergeFile(
                     result, cacheKey + ".json", templatesDir);

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **EPIC-0044 / story-0044-0001 — Removed 4 deprecated symbols from `StackMapping`** (`forRemoval = true`, originally introduced in EPIC-0023). All remaining consumers were migrated in this story (`PermissionCollector`); substitutes with identical signatures already exist in `DatabaseSettingsMapping`, so no API break for external callers.
+  - Removed `StackMapping.DATABASE_SETTINGS_MAP` — use `DatabaseSettingsMapping.DATABASE_SETTINGS_MAP`.
+  - Removed `StackMapping.CACHE_SETTINGS_MAP` — use `DatabaseSettingsMapping.CACHE_SETTINGS_MAP`.
+  - Removed `StackMapping.getDatabaseSettingsKey(String)` — use `DatabaseSettingsMapping.getDatabaseSettingsKey(String)`.
+  - Removed `StackMapping.getCacheSettingsKey(String)` — use `DatabaseSettingsMapping.getCacheSettingsKey(String)`.
+
 ## [3.6.0] - 2026-04-16
 
 ### Added
