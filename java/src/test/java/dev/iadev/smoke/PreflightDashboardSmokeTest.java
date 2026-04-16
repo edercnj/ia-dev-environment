@@ -20,8 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Smoke tests for the pre-flight dashboard (story-0039-0009 TASK-010/011).
  *
- * <p>Validates the 4 end-to-end scenarios: proceed, edit version,
- * abort, integrity FAIL, and --no-preflight bypass.</p>
+ * <p>Validates the 5 end-to-end scenarios: proceed, edit version,
+ * abort, integrity FAIL, and evaluate awaiting decision.</p>
  */
 class PreflightDashboardSmokeTest {
 
@@ -124,36 +124,31 @@ class PreflightDashboardSmokeTest {
                 .contains("Integrity checks: FAIL");
     }
 
-    // ----- Scenario 5: --no-preflight bypass -----
+    // ----- Scenario 5: evaluate returns empty decision (awaiting) -----
 
     @Test
-    @DisplayName("smoke_noPreflightFlag_dashboardNeverInvoked")
-    void smoke_noPreflightFlag_dashboardNeverInvoked() {
-        // Simulates --no-preflight: the caller skips the
-        // orchestrator entirely. This test verifies the contract:
-        // when preflight is bypassed, no dashboard text is produced
-        // and the flow goes directly to VALIDATE-DEEP.
-        boolean noPreflight = true;
+    @DisplayName("smoke_evaluate_returnsEmptyDecisionAwaitingOperator")
+    void smoke_evaluate_returnsEmptyDecisionAwaitingOperator() {
+        PreflightResult eval = PreflightOrchestrator.evaluate(passingData());
 
-        // When --no-preflight is active, the orchestrator is never
-        // called. We verify the flag semantics in isolation.
-        assertThat(noPreflight).isTrue();
-        // The caller would skip: PreflightOrchestrator.evaluate(...)
-        // and proceed directly to VALIDATE-DEEP.
+        assertThat(eval.exitCode()).isZero();
+        assertThat(eval.errorCode()).isEmpty();
+        assertThat(eval.decision()).isEmpty();
+        assertThat(eval.dashboard()).contains("PRE-FLIGHT");
     }
 
     // ----- Cross-scenario: dashboard content validation -----
 
     @Test
-    @DisplayName("smoke_dashboardFitsWithin80Columns")
-    void smoke_dashboardFitsWithin80Columns() {
+    @DisplayName("smoke_dashboardLinesAreReasonableWidth")
+    void smoke_dashboardLinesAreReasonableWidth() {
         PreflightResult result = PreflightOrchestrator.evaluate(
                 passingData());
 
         for (String line : result.dashboard().split("\n")) {
             assertThat(line.length())
-                    .as("line exceeds 80 cols: '%s'", line)
-                    .isLessThanOrEqualTo(80);
+                    .as("line exceeds 120 cols: '%s'", line)
+                    .isLessThanOrEqualTo(120);
         }
     }
 

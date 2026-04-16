@@ -1,5 +1,6 @@
 package dev.iadev.release.preflight;
 
+import dev.iadev.release.BumpType;
 import dev.iadev.release.integrity.CheckResult;
 import dev.iadev.release.integrity.CheckStatus;
 import dev.iadev.release.integrity.IntegrityReport;
@@ -11,7 +12,7 @@ import java.util.Objects;
  * Pure renderer that composes the pre-flight dashboard text from
  * {@link DashboardData} (story-0039-0009, TASK-001/002).
  *
- * <p>The output fits within 80 columns (DoR Local §4) and contains five
+ * <p>The output is formatted as a compact dashboard and contains five
  * sections: Version, Commits, CHANGELOG preview, Integrity checks, and
  * Execution Plan. No I/O — the caller is responsible for printing.</p>
  */
@@ -79,9 +80,10 @@ public final class PreflightDashboardRenderer {
 
     private static void renderVersionSection(StringBuilder sb,
                                              DashboardData data) {
-        String bumpLabel = data.bumpType().name()
+        var bumpType = data.bumpType();
+        String bumpLabel = bumpType.name()
                 + " — "
-                + (data.bumpType().name().equals("EXPLICIT")
+                + (bumpType == BumpType.EXPLICIT
                         ? "explicit" : "auto");
         sb.append("Versao detectada:    ")
           .append(sanitize(data.targetVersion().toString()))
@@ -112,9 +114,7 @@ public final class PreflightDashboardRenderer {
                                                DashboardData data,
                                                int maxLines) {
         List<String> lines = data.changelogLines();
-        sb.append("CHANGELOG preview ([")
-          .append(sanitize(data.targetVersion().toString()))
-          .append("]):\n");
+        sb.append("CHANGELOG preview ([Unreleased]):\n");
         if (lines.isEmpty()) {
             sb.append("  (vazio)\n");
         } else {

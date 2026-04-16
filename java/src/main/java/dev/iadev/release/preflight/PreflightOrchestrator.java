@@ -45,7 +45,7 @@ public final class PreflightOrchestrator {
         if (report.overallStatus() == CheckStatus.FAIL) {
             return PreflightResult.integrityFail(dashboard);
         }
-        return PreflightResult.proceed(dashboard);
+        return PreflightResult.awaitingDecision(dashboard);
     }
 
     /**

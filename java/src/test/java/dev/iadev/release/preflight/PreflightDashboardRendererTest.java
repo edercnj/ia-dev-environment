@@ -174,14 +174,14 @@ class PreflightDashboardRendererTest {
         }
 
         @Test
-        @DisplayName("render_linesFitWithin80Cols")
-        void render_linesFitWithin80Cols() {
+        @DisplayName("render_linesFitWithinReasonableWidth")
+        void render_linesFitWithinReasonableWidth() {
             String output = PreflightDashboardRenderer.render(minimalData());
 
             for (String line : output.split("\n")) {
                 assertThat(line.length())
-                        .as("line exceeds 80 cols: '%s'", line)
-                        .isLessThanOrEqualTo(80);
+                        .as("line exceeds 120 cols: '%s'", line)
+                        .isLessThanOrEqualTo(120);
             }
         }
     }

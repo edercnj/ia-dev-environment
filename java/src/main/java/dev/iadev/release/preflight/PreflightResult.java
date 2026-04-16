@@ -18,7 +18,7 @@ import java.util.Optional;
  *
  * @param exitCode  0 for clean exit, 1 for error/edit
  * @param errorCode machine-readable code (present only when exitCode == 1)
- * @param decision  operator decision (present only when prompt was shown)
+ * @param decision  operator decision (empty during evaluation, present after resolve)
  * @param dashboard rendered dashboard text (always present)
  */
 public record PreflightResult(
@@ -34,6 +34,19 @@ public record PreflightResult(
         Objects.requireNonNull(errorCode, "errorCode");
         Objects.requireNonNull(decision, "decision");
         Objects.requireNonNull(dashboard, "dashboard");
+
+        if (exitCode != 0 && exitCode != 1) {
+            throw new IllegalArgumentException(
+                    "exitCode must be 0 or 1");
+        }
+        if (exitCode == 0 && errorCode.isPresent()) {
+            throw new IllegalArgumentException(
+                    "errorCode must be empty when exitCode == 0");
+        }
+        if (exitCode == 1 && errorCode.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "errorCode must be present when exitCode == 1");
+        }
     }
 
     /** Integrity FAIL — dashboard rendered, no prompt, exit 1. */
@@ -58,5 +71,11 @@ public record PreflightResult(
     public static PreflightResult proceed(String dashboard) {
         return new PreflightResult(0, Optional.empty(),
                 Optional.of(PreflightDecision.PROCEED), dashboard);
+    }
+
+    /** Evaluation complete, awaiting operator decision (no decision yet). */
+    public static PreflightResult awaitingDecision(String dashboard) {
+        return new PreflightResult(0, Optional.empty(),
+                Optional.empty(), dashboard);
     }
 }

@@ -99,14 +99,13 @@ class PreflightOrchestratorTest {
     class IntegrityPassPath {
 
         @Test
-        @DisplayName("evaluate_integrityPass_returnsProceed")
-        void evaluate_integrityPass_returnsProceed() {
+        @DisplayName("evaluate_integrityPass_returnsAwaitingDecision")
+        void evaluate_integrityPass_returnsAwaitingDecision() {
             PreflightResult result = PreflightOrchestrator.evaluate(
                     passingData());
 
             assertThat(result.exitCode()).isZero();
-            assertThat(result.decision())
-                    .hasValue(PreflightDecision.PROCEED);
+            assertThat(result.decision()).isEmpty();
         }
 
         @Test
