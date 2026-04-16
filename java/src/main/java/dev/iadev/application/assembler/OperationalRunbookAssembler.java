@@ -100,6 +100,7 @@ public final class OperationalRunbookAssembler
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(TEMPLATE_PATH, 3);
+                .resolveResourceDir("shared")
+                .getParent();
     }
 }
