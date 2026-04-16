@@ -3,7 +3,7 @@ name: x-release
 description: "Orchestrates complete release flow using Git Flow release branches with approval gate, PR-flow (gh CLI) and deep validation: version bump (auto-detect or explicit), release branch creation from develop, deep validation (coverage, golden files, version consistency), version file updates, changelog generation, release commit, release PR via gh (optionally reviewed by x-review-pr), human approval gate with persistent state file, tag on main after merged PR, back-merge PR to develop with conflict detection, and cleanup. Supports hotfix releases from main, dry-run mode, resume via --continue-after-merge, in-session pause via --interactive, GPG-signed tags, skip-review opt-out, and custom state file path."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, Skill, AskUserQuestion
-argument-hint: "[major|minor|patch|version] [--version X.Y.Z] [--last-tag <tag>] [--dry-run] [--skip-tests] [--no-publish] [--no-github-release] [--hotfix] [--continue-after-merge] [--interactive] [--signed-tag] [--skip-review] [--state-file <path>] [--skip-integrity] [--integrity-report <path>] [--max-parallel <N>]"
+argument-hint: "[major|minor|patch|version] [--version X.Y.Z] [--last-tag <tag>] [--dry-run] [--skip-tests] [--no-publish] [--no-github-release] [--hotfix] [--continue-after-merge] [--interactive] [--signed-tag] [--skip-review] [--state-file <path>] [--skip-integrity] [--integrity-report <path>] [--max-parallel <N>] [--status] [--abort] [--yes] [--force]"
 ---
 
 ## Global Output Policy
@@ -30,6 +30,10 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 - `/x-release minor --no-publish` — create release locally without pushing
 - `/x-release patch --hotfix` — create hotfix release from `main`
 - `/x-release minor --continue-after-merge --no-github-release` — skip GitHub Release prompt (CI path, story-0039-0006)
+- `/x-release --status` — show current release status (read-only, no modifications)
+- `/x-release --abort` — abort active release with double confirmation and cleanup
+- `/x-release --abort --yes` — abort active release without confirmations (force mode, logs warning)
+- `/x-release --abort --force` — alias for `--abort --yes`
 
 ## Parameters
 
@@ -52,6 +56,10 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 | `--skip-integrity` | No | Skip sub-check 10 (cross-file integrity drift) in VALIDATE-DEEP. **Not recommended**; emits a loud warning in the release log. |
 | `--integrity-report <path>` | No | Write the structured JSON integrity report to `<path>` regardless of pass/fail. For CI parsers. |
 | `--max-parallel <N>` | No | Upper bound for VALIDATE-DEEP parallel check wave (1..16, default `min(CPU,4)`). `--max-parallel 1` forces serial execution. (story-0039-0004) |
+| `--status` | No | Show current release status (read-only). Displays version, phase, PR URLs, last activity timestamp, waiting-for state, and suggested next actions. Exits 0 when no active release. (story-0039-0010) |
+| `--abort` | No | Abort the active release with double confirmation. Closes open PRs, deletes local and remote release branches, removes state file. Individual cleanup failures are warn-only (exit 0). Exits 1 with `ABORT_NO_RELEASE` if no state file exists. Exits 2 with `ABORT_USER_CANCELLED` if user cancels. (story-0039-0010) |
+| `--yes` | No | Used with `--abort` to skip both confirmation prompts (force mode). Logs "FORCE MODE" warning. (story-0039-0010) |
+| `--force` | No | Alias for `--yes`. Identical behavior. (story-0039-0010) |
 
 ## Workflow
 
@@ -207,6 +215,11 @@ else:
 | `--continue-after-merge` with no state | `RESUME_NO_STATE` | Step 0.3 |
 | State exists, `phase != COMPLETED` | `STATE_CONFLICT` | Step 0.3 |
 | Cross-file integrity drift (CHANGELOG/pom/README/version) | `VALIDATE_INTEGRITY_DRIFT` | Step 2 — Sub-check 10 |
+| `--status` with corrupted state JSON | `STATUS_PARSE_FAILED` | --status (story-0039-0010) |
+| `--abort` with no active release | `ABORT_NO_RELEASE` | --abort (story-0039-0010) |
+| `--abort` user cancels any confirmation | `ABORT_USER_CANCELLED` | --abort (story-0039-0010) |
+| `--abort` gh pr close fails | `ABORT_PR_CLOSE_FAILED` | --abort cleanup (warn-only) |
+| `--abort` git branch delete fails | `ABORT_BRANCH_DELETE_FAILED` | --abort cleanup (warn-only) |
 
 The full human-readable messages live in
 `references/state-file-schema.md`. All subsequent phases reuse the same
@@ -2095,6 +2108,68 @@ printed at runtime.
 | 10bis | `WT_RELEASE_REMOVE_FAILED` | `x-git-worktree remove` non-zero, or `cd` back to main repo failed | `Could not remove release worktree <id>; left in place for inspection` | — |
 | 11 | `PUBLISH_GH_RELEASE_FAILED` | `gh release create` non-zero (auth, rate limit, API error) | `Failed to create GitHub Release v<V>. Tag v<V> is already published; create the Release manually.` | — |
 | 11 | `PUBLISH_UNKNOWN_FLAG` | Unknown flag passed to PUBLISH phase (defensive) | `Unknown flag in PUBLISH phase: <flag>. Expected --no-github-release or --no-publish.` | 1 |
+
+## Operational Commands (story-0039-0010)
+
+### `--status` — Release Status (read-only)
+
+Inspects the current release state file and produces a human-readable report.
+Never modifies state — safe to run from any branch.
+
+**Flow:**
+
+1. Locate state file (default: `plans/release-state-<V>.json`, overridden by `--state-file`).
+2. If absent: print "No release in progress." and exit 0.
+3. If present: parse JSON. On parse failure: exit 1 with `STATUS_PARSE_FAILED`.
+4. Render report: version (with previous), phase, branch, PR number and URL,
+   last activity timestamp with elapsed duration, waiting-for state, and
+   suggested next actions.
+
+**Output format (with state):**
+
+```
+Release in progress:
+  Version:         3.2.0 (from v3.1.0)
+  Phase:           APPROVAL_PENDING
+  Branch:          release/3.2.0
+  PR release:      #297 (https://github.com/owner/repo/pull/297)
+  Last action:     2h 14min ago
+  Waiting for:     PR_MERGE
+  Suggested next actions:
+    - PR merged — continue (/x-release)
+    - Run fix-pr-comments (/x-pr-fix)
+```
+
+### `--abort` — Release Abort (cleanup with double confirmation)
+
+Aborts the active release, cleaning up all associated resources.
+
+**Flow:**
+
+1. Locate state file. If absent: exit 1 with `ABORT_NO_RELEASE`.
+2. Parse state file and enumerate resources to remove (dry-run report):
+   - Open PR (will be closed via `gh pr close`)
+   - Local branch `release/<V>`
+   - Remote branch `origin/release/<V>`
+   - State file
+3. If `--yes` / `--force` is NOT present:
+   - First confirmation: "Confirm abort release v<V>? Resources above will be removed permanently."
+   - Second confirmation: "Are you absolutely sure? This operation is IRREVERSIBLE."
+   - Cancel at either prompt: exit 2 with `ABORT_USER_CANCELLED`, no resources touched.
+4. If `--yes` / `--force` IS present:
+   - Skip both confirmations. Log "FORCE MODE" warning.
+5. Execute cleanup steps (each independently, warn-only on failure):
+   - `gh pr close <N>` — warn `ABORT_PR_CLOSE_FAILED` on failure
+   - `git branch -D release/<V>` — warn `ABORT_BRANCH_DELETE_FAILED` on failure
+   - `git push --delete origin release/<V>` — warn `ABORT_BRANCH_DELETE_FAILED` on failure
+   - Delete state file
+6. Exit 0 with "Cleanup complete" message plus any accumulated warnings.
+
+**`--yes` / `--force` behavior:**
+- `--force` is a strict alias for `--yes` — identical behavior.
+- Both skip ALL confirmation prompts.
+- Both log a "FORCE MODE" warning.
+- Intended for non-interactive / CI usage. Use with caution.
 
 ## Integration Notes
 
