@@ -153,6 +153,87 @@ class PiiAuditSmokeIT {
     }
 
     @Test
+    @DisplayName("audit() with null reportSink produces"
+            + " the same finding list without error")
+    void audit_nullReportSink_suppressesOutput(
+            @TempDir Path root) throws IOException {
+        Path dirtyFile = root.resolve(
+                "telemetry/events.ndjson");
+        Files.createDirectories(dirtyFile.getParent());
+        Files.writeString(
+                dirtyFile,
+                line("AKIAAAAAAAAAAAAAAAAA"),
+                StandardCharsets.UTF_8);
+
+        List<PiiAudit.Finding> findings = new PiiAudit()
+                .audit(root, null);
+
+        assertThat(findings).hasSize(1);
+        assertThat(findings.get(0).category())
+                .isEqualTo("aws_access_key");
+    }
+
+    @Test
+    @DisplayName("Finding record validates its fields")
+    void finding_constructor_rejectsInvalidInputs() {
+        Path any = Path.of(".");
+        // line 0 is invalid.
+        assertThat(org.junit.jupiter.api.Assertions
+                .assertThrows(
+                        IllegalArgumentException.class,
+                        () -> new PiiAudit.Finding(
+                                any, 0, "cat", "x")))
+                .hasMessageContaining("lineNumber");
+
+        // null category is invalid.
+        org.junit.jupiter.api.Assertions.assertThrows(
+                NullPointerException.class,
+                () -> new PiiAudit.Finding(
+                        any, 1, null, "x"));
+    }
+
+    @Test
+    @DisplayName("Finding.format produces a grep-style"
+            + " FILE:LINE:CATEGORY:SNIPPET line")
+    void finding_format_isGrepStyle() {
+        PiiAudit.Finding f = new PiiAudit.Finding(
+                Path.of("/tmp/events.ndjson"),
+                5,
+                "email",
+                "user@example.com");
+
+        assertThat(f.format()).isEqualTo(
+                "/tmp/events.ndjson:5:email:"
+                        + "user@example.com");
+    }
+
+    @Test
+    @DisplayName("long snippet is truncated to 40 chars"
+            + " plus ellipsis")
+    void audit_longMatch_snippetTruncated(
+            @TempDir Path root) throws IOException {
+        Path dirtyFile = root.resolve(
+                "telemetry/events.ndjson");
+        Files.createDirectories(dirtyFile.getParent());
+        String longToken = "ghp_"
+                + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                + "aaaaaa";
+        Files.writeString(
+                dirtyFile,
+                line(longToken),
+                StandardCharsets.UTF_8);
+
+        StringWriter out = new StringWriter();
+        List<PiiAudit.Finding> findings = new PiiAudit()
+                .audit(root, new PrintWriter(out));
+
+        assertThat(findings).hasSize(1);
+        assertThat(findings.get(0).snippet())
+                .endsWith("...")
+                .hasSize(43);
+    }
+
+    @Test
     @DisplayName("missing root yields exit 2")
     void audit_missingRoot_returnsExitTwo(
             @TempDir Path parent) {

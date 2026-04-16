@@ -284,6 +284,40 @@ class TelemetryScrubberTest {
     }
 
     @Nested
+    @DisplayName("scrub — fail-open semantics")
+    class FailOpen {
+
+        @Test
+        @DisplayName("returns original event when a rule"
+                + " throws RuntimeException (invalid"
+                + " backreference in replacement)")
+        void scrub_ruleThrows_returnsOriginal() {
+            // A replacement referencing group 9 on a regex
+            // with no groups triggers
+            // IndexOutOfBoundsException in
+            // Matcher.replaceAll, exercising the
+            // fail-open path.
+            java.util.List<ScrubRule> failing =
+                    java.util.List.of(new ScrubRule(
+                            "bad",
+                            java.util.regex.Pattern
+                                    .compile("secret"),
+                            "$9"));
+            TelemetryScrubber brittle =
+                    new TelemetryScrubber(
+                            failing,
+                            new MetadataWhitelist());
+            TelemetryEvent event = base()
+                    .withFailureReason("secret input")
+                    .build();
+
+            TelemetryEvent result = brittle.scrub(event);
+
+            assertThat(result).isSameAs(event);
+        }
+    }
+
+    @Nested
     @DisplayName("scrub — pattern ordering")
     class PatternOrdering {
 
