@@ -8,8 +8,8 @@
 
 | Story | Título | Chave Jira | Blocked By | Blocks | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| story-0040-0001 | Event schema & storage spec | — | — | 0002, 0003, 0005 | Pendente |
-| story-0040-0002 | Java domain: TelemetryEvent types | — | 0001 | 0005, 0010 | Pendente |
+| story-0040-0001 | Event schema & storage spec | — | — | 0002, 0003, 0005 | Concluida |
+| story-0040-0002 | Java domain: TelemetryEvent types | — | 0001 | 0005, 0010 | Concluida |
 | story-0040-0003 | Telemetry hook scripts | — | 0001 | 0004 | Pendente |
 | story-0040-0004 | SettingsAssembler: injeta hooks | — | 0003 | 0006, 0007, 0008, 0010 | Pendente |
 | story-0040-0005 | PII scrubbing & privacy rule | — | 0001, 0002 | 0006, 0007, 0008 | Pendente |
