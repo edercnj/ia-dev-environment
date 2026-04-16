@@ -64,7 +64,7 @@ variables in this order:
 |---------|-------------|
 | `AKIA[0-9A-Z]{16}` | `AKIA***REDACTED***` |
 | `eyJ[A-Za-z0-9._-]{10,}` | `eyJ***REDACTED***` |
-| `([Bb]earer )[A-Za-z0-9._~+/-]+=*` | `$1 ***REDACTED***` |
+| `([Bb]earer )[A-Za-z0-9._~+/\-]+=*` | `$1 ***REDACTED***` |
 
 This is the shell-layer defence. Full PII scrubbing lives in
 `TelemetryScrubber` (story-0040-0005).
