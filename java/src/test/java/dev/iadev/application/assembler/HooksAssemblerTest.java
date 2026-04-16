@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Tests for HooksAssembler — the sixth assembler in the
@@ -60,6 +61,7 @@ class HooksAssemblerTest {
                             .language("kotlin", "2.0")
                             .framework("ktor", "")
                             .buildTool("gradle")
+                            .telemetryEnabled(false)
                             .build();
 
             List<String> files = assembler.assemble(
@@ -87,6 +89,7 @@ class HooksAssemblerTest {
                             .language("java", "21")
                             .framework("quarkus", "3.17")
                             .buildTool("maven")
+                            .telemetryEnabled(false)
                             .build();
 
             List<String> files = assembler.assemble(
@@ -114,6 +117,7 @@ class HooksAssemblerTest {
                             .language("typescript", "5")
                             .framework("nestjs", "10")
                             .buildTool("npm")
+                            .telemetryEnabled(false)
                             .build();
 
             List<String> files = assembler.assemble(
@@ -138,6 +142,7 @@ class HooksAssemblerTest {
                             .language("python", "3.12")
                             .framework("fastapi", "0.115")
                             .buildTool("pip")
+                            .telemetryEnabled(false)
                             .build();
 
             List<String> files = assembler.assemble(
@@ -341,6 +346,7 @@ class HooksAssemblerTest {
                             .language("kotlin", "2.0")
                             .framework("ktor", "")
                             .buildTool("gradle")
+                            .telemetryEnabled(false)
                             .build();
 
             List<String> files = assembler.assemble(
@@ -364,12 +370,191 @@ class HooksAssemblerTest {
                             .language("unknown", "1.0")
                             .framework("unknown", "1.0")
                             .buildTool("unknown")
+                            .telemetryEnabled(false)
                             .build();
 
             List<String> files = assembler.assemble(
                     config, new TemplateEngine(), outputDir);
 
             assertThat(files).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("assemble — telemetry hooks (story-0040-0004)")
+    class TelemetryHooks {
+
+        private static final String[] TELEMETRY_FILES = {
+                "telemetry-emit.sh",
+                "telemetry-lib.sh",
+                "telemetry-session.sh",
+                "telemetry-pretool.sh",
+                "telemetry-posttool.sh",
+                "telemetry-subagent.sh",
+                "telemetry-stop.sh"
+        };
+
+        @Test
+        @DisplayName("telemetryEnabled=true copies all 7"
+                + " telemetry scripts")
+        void assemble_telemetryEnabled_copiesAllScripts(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            HooksAssembler assembler =
+                    new HooksAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .language("python", "3.12")
+                            .framework("fastapi", "0.115")
+                            .buildTool("pip")
+                            .telemetryEnabled(true)
+                            .build();
+
+            assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            Path hooksDir = outputDir.resolve("hooks");
+            for (String name : TELEMETRY_FILES) {
+                Path f = hooksDir.resolve(name);
+                assertThat(f)
+                        .as("missing %s", name)
+                        .exists();
+            }
+        }
+
+        @Test
+        @DisplayName("telemetryEnabled=false copies zero"
+                + " telemetry scripts")
+        void assemble_telemetryDisabled_skipsScripts(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            HooksAssembler assembler =
+                    new HooksAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .language("python", "3.12")
+                            .framework("fastapi", "0.115")
+                            .buildTool("pip")
+                            .telemetryEnabled(false)
+                            .build();
+
+            assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            Path hooksDir = outputDir.resolve("hooks");
+            if (!Files.exists(hooksDir)) {
+                return;
+            }
+            for (String name : TELEMETRY_FILES) {
+                assertThat(hooksDir.resolve(name))
+                        .as("telemetry script %s must NOT"
+                                + " be copied when disabled",
+                                name)
+                        .doesNotExist();
+            }
+        }
+
+        @Test
+        @DisplayName("telemetry scripts are executable")
+        void assemble_telemetryEnabled_scriptsExecutable(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            HooksAssembler assembler =
+                    new HooksAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .language("python", "3.12")
+                            .framework("fastapi", "0.115")
+                            .buildTool("pip")
+                            .telemetryEnabled(true)
+                            .build();
+
+            assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            Path hooksDir = outputDir.resolve("hooks");
+            for (String name : TELEMETRY_FILES) {
+                Path f = hooksDir.resolve(name);
+                assertThat(Files.isExecutable(f))
+                        .as("%s must be executable", name)
+                        .isTrue();
+            }
+        }
+
+        @Test
+        @DisplayName("telemetry coexists with"
+                + " post-compile-check.sh")
+        void assemble_telemetryWithCompiledLang_coexist(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            HooksAssembler assembler =
+                    new HooksAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .language("java", "21")
+                            .framework("quarkus", "3.17")
+                            .buildTool("maven")
+                            .telemetryEnabled(true)
+                            .build();
+
+            List<String> files = assembler.assemble(
+                    config, new TemplateEngine(), outputDir);
+
+            Path hooksDir = outputDir.resolve("hooks");
+            assertThat(hooksDir.resolve(
+                    "post-compile-check.sh")).exists();
+            for (String name : TELEMETRY_FILES) {
+                assertThat(hooksDir.resolve(name))
+                        .as("missing %s", name).exists();
+            }
+            assertThat(files.size())
+                    .isGreaterThanOrEqualTo(
+                            TELEMETRY_FILES.length + 1);
+        }
+
+        @Test
+        @DisplayName("missing telemetry source aborts with"
+                + " AssemblerException citing path")
+        void assemble_missingTelemetryFile_throws(
+                @TempDir Path tempDir)
+                throws IOException {
+            // Resource dir with hooks/ folder but NO
+            // telemetry-*.sh files present.
+            Path resourceDir = tempDir.resolve("res");
+            Path hooksSrc = resourceDir.resolve(
+                    "targets/claude/hooks");
+            Files.createDirectories(hooksSrc);
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+
+            HooksAssembler assembler =
+                    new HooksAssembler(resourceDir);
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .language("python", "3.12")
+                            .framework("fastapi", "0.115")
+                            .buildTool("pip")
+                            .telemetryEnabled(true)
+                            .build();
+
+            assertThatThrownBy(() -> assembler.assemble(
+                    config, new TemplateEngine(),
+                    outputDir))
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessageContaining(
+                            "telemetry-emit.sh");
         }
     }
 

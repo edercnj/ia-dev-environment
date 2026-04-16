@@ -5,8 +5,10 @@ package dev.iadev.application.assembler;
  *
  * <p>Replaces opaque {@code boolean hasHooks} parameters
  * in method signatures. Call sites become self-documenting:
- * {@code buildSettingsJson(HookPresence.WITH_HOOKS)} instead
- * of {@code buildSettingsJson(true)}.</p>
+ * {@code buildSettingsJson(perms, HookPresence.WITH_HOOKS,
+ * telemetryEnabled)} instead of
+ * {@code buildSettingsJson(perms, true, telemetryEnabled)}.
+ * </p>
  *
  * @see SettingsAssembler#buildSettingsJson
  */

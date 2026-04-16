@@ -22,7 +22,8 @@ class HookConfigBuilderTest {
         void load_whenCalled_containsPostToolUse() {
             StringBuilder sb = new StringBuilder();
 
-            HookConfigBuilder.appendHooksSection(sb);
+            HookConfigBuilder.appendHooksSection(
+                    sb, true, false);
 
             String result = sb.toString();
             assertThat(result)
@@ -34,7 +35,8 @@ class HookConfigBuilderTest {
         void load_whenCalled_containsWriteEditMatcher() {
             StringBuilder sb = new StringBuilder();
 
-            HookConfigBuilder.appendHooksSection(sb);
+            HookConfigBuilder.appendHooksSection(
+                    sb, true, false);
 
             String result = sb.toString();
             assertThat(result)
@@ -46,7 +48,8 @@ class HookConfigBuilderTest {
         void load_whenCalled_containsPostCompileScript() {
             StringBuilder sb = new StringBuilder();
 
-            HookConfigBuilder.appendHooksSection(sb);
+            HookConfigBuilder.appendHooksSection(
+                    sb, true, false);
 
             String result = sb.toString();
             assertThat(result)
@@ -58,7 +61,8 @@ class HookConfigBuilderTest {
         void load_whenCalled_containsTimeout() {
             StringBuilder sb = new StringBuilder();
 
-            HookConfigBuilder.appendHooksSection(sb);
+            HookConfigBuilder.appendHooksSection(
+                    sb, true, false);
 
             String result = sb.toString();
             assertThat(result)
@@ -70,7 +74,8 @@ class HookConfigBuilderTest {
         void load_whenCalled_containsStatusMessage() {
             StringBuilder sb = new StringBuilder();
 
-            HookConfigBuilder.appendHooksSection(sb);
+            HookConfigBuilder.appendHooksSection(
+                    sb, true, false);
 
             String result = sb.toString();
             assertThat(result)
@@ -82,7 +87,8 @@ class HookConfigBuilderTest {
         void load_whenCalled_containsCommandType() {
             StringBuilder sb = new StringBuilder();
 
-            HookConfigBuilder.appendHooksSection(sb);
+            HookConfigBuilder.appendHooksSection(
+                    sb, true, false);
 
             String result = sb.toString();
             assertThat(result)
@@ -95,11 +101,70 @@ class HookConfigBuilderTest {
         void load_whenCalled_referencesProjectDir() {
             StringBuilder sb = new StringBuilder();
 
-            HookConfigBuilder.appendHooksSection(sb);
+            HookConfigBuilder.appendHooksSection(
+                    sb, true, false);
 
             String result = sb.toString();
             assertThat(result)
                     .contains("$CLAUDE_PROJECT_DIR");
+        }
+    }
+
+    @Nested
+    @DisplayName("appendHooksSection — telemetry variants"
+            + " (story-0040-0004)")
+    class TelemetryVariants {
+
+        @Test
+        @DisplayName("no legacy + no telemetry emits empty"
+                + " hooks block")
+        void noFlags_emitsEmptyHooksBlock() {
+            StringBuilder sb = new StringBuilder();
+
+            HookConfigBuilder.appendHooksSection(
+                    sb, false, false);
+
+            String result = sb.toString();
+            assertThat(result).contains("\"hooks\": {");
+            assertThat(result)
+                    .doesNotContain("PostToolUse");
+            assertThat(result)
+                    .doesNotContain("telemetry-");
+        }
+
+        @Test
+        @DisplayName("telemetry only emits 5 events")
+        void telemetryOnly_emitsFiveEvents() {
+            StringBuilder sb = new StringBuilder();
+
+            HookConfigBuilder.appendHooksSection(
+                    sb, false, true);
+
+            String result = sb.toString();
+            assertThat(result).contains("SessionStart");
+            assertThat(result).contains("PreToolUse");
+            assertThat(result).contains("PostToolUse");
+            assertThat(result).contains("SubagentStop");
+            assertThat(result).contains("Stop");
+            assertThat(result)
+                    .contains("telemetry-posttool.sh");
+        }
+
+        @Test
+        @DisplayName("both flags coexist in PostToolUse"
+                + " array")
+        void bothFlags_postToolUseHasTwoEntries() {
+            StringBuilder sb = new StringBuilder();
+
+            HookConfigBuilder.appendHooksSection(
+                    sb, true, true);
+
+            String result = sb.toString();
+            assertThat(result)
+                    .contains("post-compile-check.sh");
+            assertThat(result)
+                    .contains("telemetry-posttool.sh");
+            assertThat(result).contains("\"Write|Edit\"");
         }
     }
 }

@@ -23,15 +23,19 @@ public final class JsonSettingsBuilder {
 
     /**
      * Builds the settings.json content as a formatted JSON
-     * string.
+     * string with explicit telemetry control.
      *
-     * @param permissions  the list of allowed commands
-     * @param hookPresence whether to include hooks section
+     * @param permissions the list of allowed commands
+     * @param hookPresence whether the legacy
+     *     post-compile-check hook is present
+     * @param telemetryEnabled whether to emit the 5 telemetry
+     *     event entries (story-0040-0004)
      * @return formatted JSON string
      */
     String build(
             List<String> permissions,
-            HookPresence hookPresence) {
+            HookPresence hookPresence,
+            boolean telemetryEnabled) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\n");
         sb.append(JsonHelpers.indent(1))
@@ -40,10 +44,14 @@ public final class JsonSettingsBuilder {
                 .append("\"allow\": [\n");
         appendPermissions(sb, permissions);
         sb.append(JsonHelpers.indent(2)).append("]\n");
-        if (hookPresence.hasHooks()) {
+        boolean hasAnyHook =
+                hookPresence.hasHooks() || telemetryEnabled;
+        if (hasAnyHook) {
             sb.append(JsonHelpers.indent(1))
                     .append("},\n");
-            HookConfigBuilder.appendHooksSection(sb);
+            HookConfigBuilder.appendHooksSection(
+                    sb, hookPresence.hasHooks(),
+                    telemetryEnabled);
         } else {
             sb.append(JsonHelpers.indent(1))
                     .append("}\n");

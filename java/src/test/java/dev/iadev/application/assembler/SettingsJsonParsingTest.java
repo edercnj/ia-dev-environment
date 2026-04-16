@@ -27,7 +27,8 @@ class SettingsJsonParsingTest {
             String json = SettingsAssembler
                     .buildSettingsJson(
                             perms,
-                            HookPresence.WITHOUT_HOOKS);
+                            HookPresence.WITHOUT_HOOKS,
+                            false);
 
             assertThat(json)
                     .contains("\"permissions\"")
@@ -43,7 +44,8 @@ class SettingsJsonParsingTest {
             String json = SettingsAssembler
                     .buildSettingsJson(
                             perms,
-                            HookPresence.WITH_HOOKS);
+                            HookPresence.WITH_HOOKS,
+                            false);
 
             assertThat(json)
                     .contains("\"hooks\"")

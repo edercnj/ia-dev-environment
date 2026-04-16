@@ -289,7 +289,7 @@ See the files directly for current configuration.
 | Skills (.claude) | 56 |
 | Knowledge Packs (.claude) | 23 |
 | Agents (.claude) | 11 |
-| Hooks (.claude) | 1 |
+| Hooks (.claude) | 8 |
 | Settings (.claude) | 2 |
 | Plan Templates (.claude) | 21 |
 

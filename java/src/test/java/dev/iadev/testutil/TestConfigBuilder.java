@@ -90,6 +90,7 @@ public final class TestConfigBuilder {
     private Set<Platform> platforms = Set.of();
     private BranchingModel branchingModel =
             BranchingModel.GITFLOW;
+    private boolean telemetryEnabled = true;
 
     private TestConfigBuilder() {
         interfaces.add(
@@ -396,6 +397,12 @@ public final class TestConfigBuilder {
         return this;
     }
 
+    public TestConfigBuilder telemetryEnabled(
+            boolean enabled) {
+        this.telemetryEnabled = enabled;
+        return this;
+    }
+
     public TestConfigBuilder addMcpServer(
             McpServerConfig server) {
         this.mcpServers.add(server);
@@ -459,6 +466,7 @@ public final class TestConfigBuilder {
                 new McpConfig(mcpServers),
                 compliance,
                 platforms,
-                branchingModel);
+                branchingModel,
+                telemetryEnabled);
     }
 }
