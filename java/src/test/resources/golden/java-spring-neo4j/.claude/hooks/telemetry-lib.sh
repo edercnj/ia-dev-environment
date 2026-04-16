@@ -116,10 +116,11 @@ resolve_context() {
         fi
     fi
 
-    # (3) execution-state.json scan — pick the newest file whose currentPhase
-    # is non-null.
+    # (3) execution-state.json scan — pick the file with the most recent
+    # mtime whose currentPhase is non-null (RULE-005). Cross-platform mtime
+    # via BSD `stat -f %m` or GNU `stat -c %Y`.
     if command -v jq >/dev/null 2>&1 && [[ -n "${CLAUDE_PROJECT_DIR:-}" ]]; then
-        local state_file
+        local state_file newest_file="" mtime newest_mtime=0
         # shellcheck disable=SC2044
         for state_file in \
                 "${CLAUDE_PROJECT_DIR}"/plans/epic-*/execution-state.json; do
@@ -128,15 +129,24 @@ resolve_context() {
             cp="$(jq -r '.currentPhase // empty' "${state_file}" \
                 2>/dev/null)"
             [[ -z "${cp}" ]] && continue
-            # Derive epic id from the directory name.
+            mtime="$(stat -f %m "${state_file}" 2>/dev/null \
+                || stat -c %Y "${state_file}" 2>/dev/null \
+                || echo 0)"
+            if [[ "${mtime}" =~ ^[0-9]+$ ]] \
+                    && (( mtime > newest_mtime )); then
+                newest_mtime="${mtime}"
+                newest_file="${state_file}"
+            fi
+        done
+        if [[ -n "${newest_file}" ]]; then
             local dir name
-            dir="$(dirname "${state_file}")"
+            dir="$(dirname "${newest_file}")"
             name="$(basename "${dir}")"
             if [[ "${name}" =~ ^epic-([0-9]{4})$ ]]; then
                 TELEMETRY_EPIC_ID="EPIC-${BASH_REMATCH[1]}"
                 return 0
             fi
-        done
+        fi
     fi
 
     # (4) Fallback. Already set above.

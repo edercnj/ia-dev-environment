@@ -73,7 +73,7 @@ scrub_line() {
         's/eyJ[A-Za-z0-9._-]{10,}/eyJ***REDACTED***/g')"
     # Bearer tokens (common Authorization header shape).
     raw="$(printf '%s' "${raw}" | sed -E \
-        's/([Bb]earer )[A-Za-z0-9._~+/-]+=*/\1***REDACTED***/g')"
+        's/([Bb]earer )[A-Za-z0-9._~+/\-]+=*/\1***REDACTED***/g')"
     printf '%s' "${raw}"
 }
 
@@ -91,9 +91,9 @@ fi
 # Resolve storage path. epicId ("EPIC-NNNN" or "unknown") maps to
 # ${CLAUDE_PROJECT_DIR}/plans/epic-NNNN/telemetry/events.ndjson.
 # ---------------------------------------------------------------------------
-PROJECT_DIR="${CLAUDE_PROJECT_DIR:-${CLAUDE_TELEMETRY_DIR:-}}"
+PROJECT_DIR="${CLAUDE_TELEMETRY_DIR:-${CLAUDE_PROJECT_DIR:-}}"
 if [[ -z "${PROJECT_DIR}" ]]; then
-    echo "telemetry-emit: CLAUDE_PROJECT_DIR not set — event dropped" >&2
+    echo "telemetry-emit: neither CLAUDE_TELEMETRY_DIR nor CLAUDE_PROJECT_DIR is set — event dropped" >&2
     exit 0
 fi
 
