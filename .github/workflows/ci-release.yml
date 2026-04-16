@@ -1,8 +1,8 @@
 # CI + Release pipeline.
 #
-#   on PR (any branch)             -> test + dependency-review
-#   on push develop/main/release/* -> test
-#   on tag v*                      -> test + publish + release-assets + smoke
+#   on PR to develop/main/release/**   -> test + dependency-review
+#   on push to develop/main/release/** -> test
+#   on tag v*                          -> test + publish + release-assets + smoke
 #
 # Required repo secrets / settings:
 #   - CODECOV_TOKEN  (free for public repos; https://app.codecov.io)
