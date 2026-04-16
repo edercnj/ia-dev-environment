@@ -86,7 +86,8 @@ public final class SettingsAssembler implements Assembler {
 
         List<String> results = new ArrayList<>();
         results.add(writeSettings(
-                outputDir, permissions, hookPresence));
+                outputDir, permissions, hookPresence,
+                config.telemetryEnabled()));
         results.add(writeSettingsLocal(outputDir));
         return results;
     }
@@ -176,10 +177,12 @@ public final class SettingsAssembler implements Assembler {
     private String writeSettings(
             Path outputDir,
             List<String> permissions,
-            HookPresence hookPresence) {
+            HookPresence hookPresence,
+            boolean telemetryEnabled) {
         Path dest = outputDir.resolve(SETTINGS_FILENAME);
         String content = jsonSettingsBuilder.build(
-                permissions, hookPresence);
+                permissions, hookPresence,
+                telemetryEnabled);
         try {
             Files.writeString(
                     dest, content, StandardCharsets.UTF_8);
