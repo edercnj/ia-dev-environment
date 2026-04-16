@@ -85,30 +85,52 @@ fi
 
 This skill MUST run from the main repository. Running from inside a worktree would attempt to remove the host worktree while executing — unsafe.
 
-Inline the canonical `detect_worktree_context()` snippet from `x-git-worktree` (Rule 14, non-nesting invariant):
+This skill extends the canonical `detect_worktree_context()` check from `x-git-worktree` (Rule 14, non-nesting invariant). The canonical snippet only recognises worktrees under `.claude/worktrees/*`; because this skill enumerates and removes **all** non-main worktrees via `git worktree list --porcelain` (any path), the guard also compares `git rev-parse --show-toplevel` to the main worktree path and inspects `git rev-parse --git-dir` for a `worktrees/` suffix, so a linked worktree in any location triggers the abort.
 
 ```bash
 detect_worktree_context() {
-  local toplevel main_repo wt_path in_wt="false"
+  local toplevel git_dir main_repo wt_path in_wt="false"
   toplevel=$(git rev-parse --show-toplevel 2>/dev/null) || {
+    echo '{"error":"NOT_A_REPO"}' >&2
+    return 1
+  }
+  git_dir=$(git rev-parse --git-dir 2>/dev/null) || {
     echo '{"error":"NOT_A_REPO"}' >&2
     return 1
   }
   json_escape() {
     printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
   }
+
+  # Resolve main repo path (first `worktree` entry, stripping the
+  # `worktree ` prefix so paths containing spaces are preserved).
+  if ! main_repo=$(git worktree list --porcelain 2>/dev/null \
+              | sed -n 's/^worktree //p' | head -n 1) \
+       || [ -z "$main_repo" ]; then
+    main_repo="$toplevel"
+  fi
+
+  # Classifier 1 — Rule 14 non-nesting invariant (substring check).
   if printf '%s' "$toplevel" | grep -q "/\.claude/worktrees/"; then
     in_wt="true"
+  fi
+  # Classifier 2 — git-dir of a linked worktree lives under
+  # `<main>/.git/worktrees/<id>/`.
+  case "$git_dir" in
+    */worktrees/*|.git/worktrees/*) in_wt="true" ;;
+  esac
+  # Classifier 3 — toplevel differs from the main repo path.
+  if [ "$toplevel" != "$main_repo" ]; then
+    in_wt="true"
+  fi
+
+  if [ "$in_wt" = "true" ]; then
     wt_path=$(json_escape "$toplevel")
-    if ! main_repo=$(git worktree list --porcelain 2>/dev/null \
-                | awk '/^worktree/{print $2; exit}') || [ -z "$main_repo" ]; then
-      main_repo="$toplevel"
-    fi
     main_repo=$(json_escape "$main_repo")
     printf '{"inWorktree":%s,"worktreePath":"%s","mainRepoPath":"%s"}\n' \
       "$in_wt" "$wt_path" "$main_repo"
   else
-    main_repo=$(json_escape "$toplevel")
+    main_repo=$(json_escape "$main_repo")
     printf '{"inWorktree":%s,"worktreePath":null,"mainRepoPath":"%s"}\n' \
       "$in_wt" "$main_repo"
   fi
@@ -143,11 +165,11 @@ fi
 
 ### Step 5 — Enumerate Non-Main Worktrees
 
-The first `worktree <path>` entry in `git worktree list --porcelain` is always the main repository. All subsequent entries are removal candidates.
+The first `worktree <path>` entry in `git worktree list --porcelain` is always the main repository. All subsequent entries are removal candidates. Paths in that output can legally contain spaces, so extract them by stripping the literal `worktree ` prefix (nine characters) rather than by whitespace-splitting — `sed` preserves the full path.
 
 ```bash
 WORKTREE_CANDIDATES=$(git worktree list --porcelain \
-  | awk '/^worktree /{print $2}' \
+  | sed -n 's/^worktree //p' \
   | tail -n +2)
 ```
 
@@ -171,7 +193,12 @@ echo "Worktrees to remove (main worktree preserved):"
 if [ -z "$WORKTREE_CANDIDATES" ]; then
   echo "  (none)"
 else
-  printf '  - %s\n' $WORKTREE_CANDIDATES
+  while IFS= read -r wt; do
+    [ -n "$wt" ] || continue
+    printf '  - %s\n' "$wt"
+  done <<EOF
+$WORKTREE_CANDIDATES
+EOF
 fi
 
 echo ""
@@ -179,7 +206,12 @@ echo "Local branches to delete (protected: main, master, develop):"
 if [ -z "$BRANCH_CANDIDATES" ]; then
   echo "  (none)"
 else
-  printf '  - %s\n' $BRANCH_CANDIDATES
+  while IFS= read -r br; do
+    [ -n "$br" ] || continue
+    printf '  - %s\n' "$br"
+  done <<EOF
+$BRANCH_CANDIDATES
+EOF
 fi
 
 if [ -z "$WORKTREE_CANDIDATES" ] && [ -z "$BRANCH_CANDIDATES" ]; then
@@ -215,12 +247,15 @@ If the current branch is about to be deleted, git refuses `branch -D`. Switch to
 ```bash
 needs_switch=false
 if [ -n "$CURRENT_BRANCH" ]; then
-  for b in $BRANCH_CANDIDATES; do
+  while IFS= read -r b; do
+    [ -n "$b" ] || continue
     if [ "$b" = "$CURRENT_BRANCH" ]; then
       needs_switch=true
       break
     fi
-  done
+  done <<EOF
+$BRANCH_CANDIDATES
+EOF
 fi
 
 if [ "$needs_switch" = "true" ]; then
@@ -239,16 +274,21 @@ fi
 
 ### Step 10 — Remove Worktrees
 
+Iterate the candidate list with `while IFS= read -r` over a heredoc, so that worktree paths containing spaces (or glob metacharacters) are preserved as a single token. A plain `for` loop would word-split them.
+
 ```bash
 WT_REMOVED=0
-for wt in $WORKTREE_CANDIDATES; do
+while IFS= read -r wt; do
+  [ -n "$wt" ] || continue
   echo "→ git worktree remove --force $wt"
   if git worktree remove --force "$wt"; then
     WT_REMOVED=$((WT_REMOVED + 1))
   else
     echo "WARNING: failed to remove worktree: $wt" >&2
   fi
-done
+done <<EOF
+$WORKTREE_CANDIDATES
+EOF
 git worktree prune
 ```
 
@@ -258,14 +298,17 @@ git worktree prune
 
 ```bash
 BR_DELETED=0
-for br in $BRANCH_CANDIDATES; do
+while IFS= read -r br; do
+  [ -n "$br" ] || continue
   echo "→ git branch -D $br"
   if git branch -D "$br"; then
     BR_DELETED=$((BR_DELETED + 1))
   else
     echo "WARNING: failed to delete branch: $br" >&2
   fi
-done
+done <<EOF
+$BRANCH_CANDIDATES
+EOF
 ```
 
 ### Step 12 — Report Summary
@@ -284,7 +327,7 @@ exit 0
 |----------|--------|
 | `--dry-run` and `--yes` both set | Abort with exit 2 (usage error) |
 | Unknown flag passed | Abort with exit 2 (usage error) |
-| Running inside `.claude/worktrees/*` | Abort with `IN_WORKTREE_UNSAFE`, exit 1 |
+| Running inside any linked worktree (path anywhere, not just `.claude/worktrees/*`) | Abort with `IN_WORKTREE_UNSAFE`, exit 1 |
 | Not a git repo | Abort with `NOT_A_REPO` (from detect-context), exit 1 |
 | `origin` remote missing | Warn, skip fetch, continue |
 | HEAD is a candidate and neither `develop` nor `main` exists | Abort with `NO_SAFE_FALLBACK_BRANCH`, exit 1 |
