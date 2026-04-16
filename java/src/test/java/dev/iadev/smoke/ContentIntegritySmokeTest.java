@@ -390,6 +390,12 @@ class ContentIntegritySmokeTest extends SmokeTestBase {
                 "events_per_snapshot",
                 "BUILD_TOOL_CMD",
                 "PR_LINKS_TABLE",
+                "LAST_VERSION", "NEW_VERSION",
+                "LAST_TAG", "NEW_TAG",
+                "NEXT_SNAPSHOT",
+                "RELEASE_PR", "BACKMERGE_PR",
+                "GITHUB_RELEASE_URL",
+                "*_TAG", "*_VERSION",
                 ".", "...");
 
         private static final Pattern PEBBLE =
