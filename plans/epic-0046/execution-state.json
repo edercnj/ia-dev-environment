@@ -1,0 +1,82 @@
+{
+  "version": "2.0",
+  "epicId": "0046",
+  "branch": "feature/epic-0046-plan-lifecycle-integrity",
+  "baseBranch": "develop",
+  "startedAt": "2026-04-16T13:30:00Z",
+  "currentPhase": 0,
+  "mode": {
+    "parallel": false,
+    "skipReview": false,
+    "singlePr": false,
+    "mergeMode": "no-merge"
+  },
+  "autoApprovePr": false,
+  "batchApproval": false,
+  "taskTracking": true,
+  "stories": {
+    "story-0046-0001": {
+      "status": "PENDING",
+      "phase": 0,
+      "retries": 0,
+      "planningStatus": "READY",
+      "parentBranch": null,
+      "tasks": {}
+    },
+    "story-0046-0002": {
+      "status": "PENDING",
+      "phase": 1,
+      "retries": 0,
+      "planningStatus": "READY",
+      "parentBranch": null,
+      "tasks": {}
+    },
+    "story-0046-0003": {
+      "status": "PENDING",
+      "phase": 1,
+      "retries": 0,
+      "planningStatus": "READY",
+      "parentBranch": null,
+      "tasks": {}
+    },
+    "story-0046-0004": {
+      "status": "PENDING",
+      "phase": 1,
+      "retries": 0,
+      "planningStatus": "READY",
+      "parentBranch": null,
+      "tasks": {}
+    },
+    "story-0046-0005": {
+      "status": "PENDING",
+      "phase": 1,
+      "retries": 0,
+      "planningStatus": "READY",
+      "parentBranch": null,
+      "tasks": {}
+    },
+    "story-0046-0006": {
+      "status": "PENDING",
+      "phase": 1,
+      "retries": 0,
+      "planningStatus": "READY",
+      "parentBranch": null,
+      "tasks": {}
+    },
+    "story-0046-0007": {
+      "status": "PENDING",
+      "phase": 2,
+      "retries": 0,
+      "planningStatus": "READY",
+      "parentBranch": null,
+      "tasks": {}
+    }
+  },
+  "integrityGates": {},
+  "metrics": {
+    "storiesCompleted": 0,
+    "storiesFailed": 0,
+    "storiesBlocked": 0,
+    "storiesTotal": 7
+  }
+}
