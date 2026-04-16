@@ -3,7 +3,7 @@ name: x-review-pr
 description: "Tech Lead holistic review with {review_max_score}-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, TDD process, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
-argument-hint: "[PR-number or STORY-ID]"
+argument-hint: "[PR-number or STORY-ID] [--no-auto-remediation]"
 ---
 
 ## Global Output Policy
@@ -232,6 +232,11 @@ After updating the dashboard, update the remediation tracking file.
  Critical:  N issues
  Medium:    N issues
  Low:       N issues
+
+ Test Execution Results (EPIC-0042):
+ Test Suite:    PASS (XXX tests, X failures)
+ Coverage:      XX% line, XX% branch
+ Smoke Tests:   PASS/FAIL/SKIP (N tests)
 ------------------------------------------------------------
  Report:      plans/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md
  Dashboard:   plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md (updated)
@@ -239,14 +244,47 @@ After updating the dashboard, update the remediation tracking file.
 ============================================================
 ```
 
-### Step 8 — Handle NO-GO
+Replace "Test Suite", "Coverage", and "Smoke Tests" placeholders with actual values from Step 4 execution (Steps 4.6, 4.7, 4.8). If smoke tests were skipped (testing.smoke_tests=false), show `SKIP (0 tests)`.
 
-If NO-GO, offer options:
-1. Fix critical issues now
-2. View the full report
-3. Skip — handle manually
+### Step 8 — Handle NO-GO (Auto-Remediation — EPIC-0042)
 
-If fixing: apply corrections, commit, re-run review (max 2 cycles).
+When the review results in NO-GO, automatically dispatch remediation instead of waiting for manual input:
+
+1. **Classify NO-GO findings:**
+   - `TEST_FAILURE`: unit/integration/smoke test failures detected in Step 4.6-4.8
+   - `COVERAGE_GAP`: coverage below 95% line or 90% branch detected in Step 4.7
+   - `CODE_QUALITY`: rubric score below threshold (non-test issues)
+
+2. **Auto-remediate by classification:**
+
+   **For TEST_FAILURE:**
+   Dispatch a general-purpose agent to fix failing tests:
+   ```
+   Agent(
+     subagent_type: "general-purpose",
+     description: "Fix failing tests for NO-GO remediation",
+     prompt: "Read the failing test output from the review report at plans/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md. Identify the root cause of each failing test. Fix the IMPLEMENTATION (NOT the test) to make tests pass. Run {{TEST_COMMAND}} to verify the fix. Commit via Skill(skill: 'x-git-commit', args: '--type fix --subject \"fix failing tests from tech lead review\"')."
+   )
+   ```
+
+   **For COVERAGE_GAP:**
+   Dispatch a general-purpose agent to add missing test coverage:
+   ```
+   Agent(
+     subagent_type: "general-purpose",
+     description: "Add test coverage for NO-GO remediation",
+     prompt: "Read the coverage report. Identify uncovered lines/branches. Write tests for the uncovered code paths following TDD discipline (test first). Run {{TEST_COMMAND}} + {{COVERAGE_COMMAND}} to verify coverage meets 95% line / 90% branch. Commit via Skill(skill: 'x-git-commit', args: '--type test --subject \"add test coverage for uncovered branches\"')."
+   )
+   ```
+
+   **For CODE_QUALITY:**
+   Apply fixes inline following the remediation tracking file guidance.
+
+3. **Re-run review automatically** (max 2 cycles total):
+   - After remediation agent completes, re-execute Step 4 (full review)
+   - If still NO-GO after 2 cycles: halt with final report and remaining issues
+
+4. **Opt-out:** Pass `--no-auto-remediation` flag to force manual mode (original 3-option behavior).
 
 ## Output Artifacts
 
@@ -266,6 +304,7 @@ If fixing: apply corrections, commit, re-run review (max 2 cycles).
 | Coverage below threshold (< 95% line or < 90% branch) | Automatic NO-GO; record coverage gap as CRITICAL finding |
 | Smoke test failure | Automatic NO-GO; record failing smoke tests as CRITICAL finding |
 | NO-GO after 2 retry cycles | Halt review loop; output final report with remaining issues |
+| NO-GO with `--no-auto-remediation` | Offer manual options: fix now, view report, skip |
 
 {review_conditional_criteria}
 ## Integration Notes
