@@ -3,7 +3,7 @@ name: x-epic-implement
 description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via explicit git worktrees (per ADR-0004 §D2 and Rule 14). Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-story-implement. EPIC-0038 simplification: epic orchestrator handles ONLY story-level concerns (phase order, story PR management, epic-level verification). Task management (TDD cycles, atomic commits per task, coalesced handling) is fully delegated to x-story-implement's v2 wave dispatcher. Tasks are invisible at the epic level."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, Agent, AskUserQuestion, TaskCreate, TaskUpdate
-argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr] [--auto-merge] [--no-merge] [--interactive-merge] [--strict-overlap] [--skip-pr-comments] [--auto-approve-pr] [--batch-approval] [--task-tracking]"
+argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--single-pr] [--auto-merge] [--no-merge] [--interactive-merge] [--strict-overlap] [--skip-pr-comments] [--auto-approve-pr] [--batch-approval] [--task-tracking]"
 ---
 
 ## Global Output Policy
@@ -86,7 +86,7 @@ ERROR: Epic ID is required. Usage: /x-epic-implement [EPIC-ID] [flags]
 | `--dry-run` | boolean | `false` | Generate execution plan without executing |
 | `--resume` | boolean | `false` | Continue from last checkpoint (execution-state.json) |
 | `--sequential` | boolean | `false` | Disable parallel worktrees, execute stories one at a time |
-| `--skip-smoke-gate` | boolean | `false` | Skip smoke tests in the integrity gate between phases |
+| ~~`--skip-smoke-gate`~~ | — | — | **REMOVED (EPIC-0042).** Smoke gate is now mandatory when `{{SMOKE_COMMAND}}` is configured. Use `--resume` after fixing smoke failures. |
 | `--single-pr` | boolean | `false` | Preserve legacy flow: epic branch + rebase-before-merge + single mega-PR (RULE-009) |
 | `--auto-merge` | boolean | `false` | Auto-merge story PRs via `gh pr merge` after reviews approve (RULE-004). Mutually exclusive with `--no-merge` and `--interactive-merge`. |
 | `--no-merge` | boolean | `false` | Explicit no-merge flag (same as default behavior). Create PRs but skip merge and merge-wait. Dependencies are satisfied by `status == SUCCESS` alone (PR merge not required). Mutually exclusive with `--auto-merge` and `--interactive-merge`. Use for repos with branch protection rules requiring multiple approvers. |
@@ -1269,8 +1269,8 @@ Launch a `general-purpose` subagent:
 > - If any tests fail → correlate failed tests with commits from stories in the current phase
 > - If line coverage < 95% or branch coverage < 90% → FAIL with coverage details
 > - Otherwise → proceed to Step 5
-> **Step 5 — Smoke Gate:** Execute the full smoke test suite as a regression validation.
-> - If `--skip-smoke-gate` flag is set → log `"Integrity gate smoke tests skipped (--skip-smoke-gate)"` and record `smokeGate.status = "SKIP"` → proceed to PASS
+> **Step 5 — Smoke Gate (MANDATORY — EPIC-0042):** Execute the full smoke test suite as a regression validation.
+> - Smoke gate is ALWAYS mandatory when `{{SMOKE_COMMAND}}` is configured. There is no skip flag.
 > - Run: `{{SMOKE_COMMAND}}` (e.g., `cd java && mvn verify -P integration-tests`)
 > - This runs ALL smoke tests, not just those for stories in the current phase
 > - If all smoke tests pass → record `smokeGate.status = "PASS"` → overall gate is PASS
@@ -1296,7 +1296,7 @@ If smoke tests fail (Step 5), the subagent:
 3. Populates `smokeGate.suspectedStories` with the story IDs most likely responsible
 4. Logs: `"INTEGRITY GATE SMOKE FAILURE: Phase {N}. {count} test(s) failed. Suspected stories: [{list}]"`
 5. The phase is marked as FAILED in the checkpoint
-6. The operator decides: `--resume` to retry after manual fix, or `--skip-smoke-gate` to bypass
+6. The operator decides: `--resume` to retry after fixing the failing smoke tests
 
 #### Gate Result Registration
 
@@ -1322,7 +1322,7 @@ updateIntegrityGate(epicDir, phaseNumber, {
 - **PASS**: Advance to version bump (see below), then to next phase (requires both test gate and smoke gate to pass)
 - **FAIL + regression identified**: revert + mark FAILED + block propagation
 - **FAIL + regression unidentified**: pause execution, report to user
-- **FAIL (smoke gate)**: phase marked FAILED; operator uses `--resume` after fix or `--skip-smoke-gate` to bypass
+- **FAIL (smoke gate)**: phase marked FAILED; operator uses `--resume` after fixing the failing smoke tests (EPIC-0042: no bypass available)
 - **DEFERRED** (when `mergeMode == "no-merge"`): skip gate, advance directly to phase completion report
 
 #### Version Bump (Post-Gate) (RULE-013)
@@ -1380,8 +1380,8 @@ The integrity gate is **mandatory** — there is no bypass. Every phase transiti
 result. The gate runs after phase 0, 1, 2, and 3 — one gate per phase.
 
 The smoke gate within the integrity gate is also mandatory by default. It can only be bypassed with
-the `--skip-smoke-gate` flag, which records `smokeGate.status = "SKIP"` in the checkpoint. When
-`--skip-smoke-gate` is set, the integrity gate evaluates only Steps 1-4 (compile, test, coverage).
+**EPIC-0042 change:** The `--skip-smoke-gate` flag has been removed. Smoke gate is now mandatory
+when `{{SMOKE_COMMAND}}` is configured. The integrity gate always evaluates all 5 steps (compile, test, coverage, smoke).
 When not set, the smoke gate (Step 5) must also pass for the overall integrity gate to pass.
 
 > **Note:** Each story already executes its own smoke gate via `x-story-implement` (Phase 2.5).
@@ -1798,7 +1798,7 @@ Templates referenced by this skill follow RULE-012. When a template file does no
 - All `{{PLACEHOLDER}}` tokens are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
 - Integrity gate runs on `develop` after all phase PRs are merged (RULE-006 — Gate Enforcement); uses `mainShaBeforePhase` for diff
 - Integrity gate includes smoke tests (Step 5) as regression validation — runs `{{SMOKE_COMMAND}}`
-- Smoke gate is bypassed with `--skip-smoke-gate` flag; result recorded as `smokeGate.status = "SKIP"` in checkpoint
+- Smoke gate is MANDATORY (EPIC-0042); `--skip-smoke-gate` has been removed. Smoke failures must be fixed before advancing.
 - Auto-rebase (Section 1.4e, RULE-011) triggers after each PR merge to keep remaining PRs up-to-date
 - Conflict resolution (Section 1.4c, RULE-012) dispatches subagent for automatic rebase conflict resolution
 - `--single-pr` preserves legacy flow: epic branch + single mega-PR (all per-story PR logic is skipped)
