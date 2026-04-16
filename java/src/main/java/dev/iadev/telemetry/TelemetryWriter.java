@@ -121,9 +121,12 @@ public final class TelemetryWriter implements AutoCloseable {
                 // NOT fsync on every write — the story contract requires
                 // write p99 < 5ms per event (EPIC-0040 DoD) and fsync
                 // adds ~3ms per call on typical APFS/ext4. Close() will
-                // flush, and hooks write ndjson atomically via
-                // FileChannel APPEND + line-sized buffers (partial lines
-                // cannot occur).
+                // flush, and hooks append NDJSON records using
+                // FileChannel APPEND + line-sized buffers so coordinated
+                // writers do not interleave records during normal
+                // operation; however, abrupt termination can still leave
+                // a truncated/corrupt final line on disk, which
+                // TelemetryReader is designed to skip.
                 lock.release();
             } catch (IOException e) {
                 throw new UncheckedIOException(

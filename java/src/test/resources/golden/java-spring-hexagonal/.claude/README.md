@@ -85,8 +85,9 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 17 | `17-topological-execution.md` | topological execution |
 | 18 | `18-atomic-task-commits.md` | atomic task commits |
 | 19 | `19-backward-compatibility.md` | backward compatibility |
+| 20 | `20-telemetry-privacy.md` | telemetry privacy |
 
-**Total: 18 rules**
+**Total: 19 rules**
 
 ### Numbering
 
@@ -284,7 +285,7 @@ See the files directly for current configuration.
 
 | Component | Count |
 |-----------|-------|
-| Rules (.claude) | 18 |
+| Rules (.claude) | 19 |
 | Skills (.claude) | 56 |
 | Knowledge Packs (.claude) | 23 |
 | Agents (.claude) | 11 |
