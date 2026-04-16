@@ -8,21 +8,21 @@
 
 | Story | Título | Chave Jira | Blocked By | Blocks | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| story-0039-0001 | Auto-detecção de versão (Conventional Commits) | — | — | 0008, 0009, 0014 | Pendente |
-| story-0039-0002 | State file schema v2 (breaking) | — | — | 0007, 0008, 0010, 0012 | Concluida |
-| story-0039-0003 | Pre-commit integrity checks | — | — | 0009 | Pendente |
-| story-0039-0004 | Paralelização de VALIDATE-DEEP | — | — | — | Pendente |
-| story-0039-0005 | Phase SUMMARY com diagrama Git Flow | — | — | 0014 | Pendente |
+| story-0039-0001 | Auto-detecção de versão (Conventional Commits) | — | — | 0008, 0009, 0014 | Concluída |
+| story-0039-0002 | State file schema v2 (breaking) | — | — | 0007, 0008, 0010, 0012 | Concluída |
+| story-0039-0003 | Pre-commit integrity checks | — | — | 0009 | Concluída |
+| story-0039-0004 | Paralelização de VALIDATE-DEEP | — | — | — | Concluída |
+| story-0039-0005 | Phase SUMMARY com diagrama Git Flow | — | — | 0014 | Concluída |
 | story-0039-0006 | GitHub Release auto com confirmação | — | — | — | Concluída |
-| story-0039-0007 | Engine de prompts interativos | — | 0002 | 0011, 0013, 0014 | Pendente |
-| story-0039-0008 | Smart Resume | — | 0001, 0002 | 0014 | Pendente |
-| story-0039-0009 | Pre-flight dashboard | — | 0001, 0003 | 0013, 0014 | Pendente |
-| story-0039-0010 | --status / --abort | — | 0002 | — | Pendente |
-| story-0039-0011 | Handoff /x-pr-fix-comments | — | 0007 | — | Pendente |
-| story-0039-0012 | Telemetria por fase | — | 0002 | 0014 | Pendente |
-| story-0039-0013 | Interactive dry-run | — | 0007, 0009 | — | Pendente |
+| story-0039-0007 | Engine de prompts interativos | — | 0002 | 0011, 0013, 0014 | Concluída |
+| story-0039-0008 | Smart Resume | — | 0001, 0002 | 0014 | Concluída |
+| story-0039-0009 | Pre-flight dashboard | — | 0001, 0003 | 0013, 0014 | Concluída |
+| story-0039-0010 | --status / --abort | — | 0002 | — | Concluída |
+| story-0039-0011 | Handoff /x-pr-fix-comments | — | 0007 | — | Concluída |
+| story-0039-0012 | Telemetria por fase | — | 0002 | 0014 | Concluída |
+| story-0039-0013 | Interactive dry-run | — | 0007, 0009 | — | Concluída |
 | story-0039-0014 | Paridade hotfix | — | 0001, 0005, 0007, 0008, 0009, 0012 | 0015 | Concluída |
-| story-0039-0015 | Doc + golden regen final | — | 0001..0014 | — | Pendente |
+| story-0039-0015 | Doc + golden regen final | — | 0001..0014 | — | Concluída |
 
 > **Valores de Status:** `Pendente` (padrão) · `Em Andamento` · `Concluída` · `Falha` · `Bloqueada` · `Parcial`
 
