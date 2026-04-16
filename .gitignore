@@ -52,3 +52,7 @@ output/
 # Re-include Java source 'output' directories (hexagonal architecture ports/adapters)
 !java/src/**/output/
 .claude/worktrees/
+
+# x-release transient state files (created in Step 0, deleted in Step 12)
+/plans/release-state-*.json
+

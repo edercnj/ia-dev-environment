@@ -3,7 +3,7 @@ name: x-epic-decompose
 description: "Complete decomposition of a system specification into an Epic, individual Story files, and an Implementation Map with dependency graph and phased execution plan. Orchestrates spec analysis, rule extraction, story identification, and implementation planning."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion
-argument-hint: "[SPEC-FILE-PATH]"
+argument-hint: "[SPEC-FILE-PATH] [--jira <PROJECT_KEY>] [--no-jira]"
 ---
 
 ## Output Policy
@@ -92,7 +92,26 @@ Verify that the Jira MCP tool (`mcp__atlassian__createJiraIssue`) is available.
 If the tool is NOT available, set `jiraContext = { enabled: false }` and skip to
 Phase 2 silently — do not warn the user.
 
-### 1.5.2 — Ask the User
+### 1.5.1b — Roteamento por Flag (EPIC-0042)
+
+Antes de prompt ao usuario, verificar as flags de Jira:
+
+- Se `--no-jira` estiver presente: definir `jiraContext = { enabled: false }` e pular
+  para a Phase 2. Log: `"Jira integration skipped (--no-jira, EPIC-0042)"`
+
+- Se `--jira <PROJECT_KEY>` estiver presente: usar a chave de projeto fornecida
+  diretamente. Pular AskUserQuestion (Step 1.5.2). Descobrir o `cloudId` chamando
+  `mcp__atlassian__getAccessibleAtlassianResources`. Usar o `id` do primeiro site
+  disponivel como `cloudId`. Se a chamada falhar ou nao retornar sites, alertar o
+  usuario e definir `jiraContext = { enabled: false }`. Caso contrario, definir
+  `jiraContext = { enabled: true, cascadeToStories: true, projectKey: "<PROJECT_KEY>", cloudId: "<cloudId>" }`.
+  Log: `"Jira integration via --jira flag: project {PROJECT_KEY}, cascade to stories (EPIC-0042)"`
+  Pular para a Phase 2.
+
+- Se nenhuma flag estiver presente: prosseguir para o Step 1.5.2 (prompt interativo
+  compativel com a versao anterior).
+
+### 1.5.2 — Ask the User (no flags provided)
 
 Use the `AskUserQuestion` tool:
 

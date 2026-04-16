@@ -44,9 +44,13 @@ Review code changes for QA compliance: test coverage thresholds, TDD process adh
 |------|-------|---------|
 | testing | `skills/testing/SKILL.md` | Test categories, coverage thresholds, fixture patterns, TDD workflow |
 
-## Checklist (18 Items, Max Score: /36)
+## Checklist (20 Items, Max Score: /40 full scale; adjusted max excludes N/A items)
 
-Each item scores 0 (missing), 1 (partial), or 2 (fully compliant).
+Each applicable item scores 0 (missing), 1 (partial), or 2 (fully compliant). Items
+marked N/A are excluded from BOTH the earned score and the maximum possible score.
+When `testing.smoke_tests == false`, QA-19 and QA-20 are automatically marked N/A,
+so the adjusted maximum is /36 instead of /40. Report the adjusted max in the final
+score line (see Output Template below).
 
 ### Coverage & Criteria (QA-01 to QA-03)
 
@@ -86,6 +90,13 @@ Each item scores 0 (missing), 1 (partial), or 2 (fully compliant).
 | QA-17 | Acceptance tests validate end-to-end behavior | /2 |
 | QA-18 | TDD coverage thresholds maintained across all modules | /2 |
 
+### Smoke Test Verification (QA-19 to QA-20) — EPIC-0042
+
+| # | Item | Score |
+|---|------|-------|
+| QA-19 | Smoke tests exist and cover critical path (when `testing.smoke_tests == true`; N/A when false) | /2 |
+| QA-20 | ALL smoke tests pass — `{{SMOKE_COMMAND}}` executed with zero failures (when `testing.smoke_tests == true`; N/A when false) | /2 |
+
 ## Workflow
 
 ### Step 1 -- Gather Context
@@ -118,6 +129,23 @@ For each test file:
 - Check fixture centralization
 - Check unique test data
 
+### Step 6.5 -- Smoke Test Verification (EPIC-0042)
+
+Execute smoke test verification when `testing.smoke_tests == true`:
+
+1. Check if smoke test infrastructure exists:
+   - If `testing.smoke_tests == false`: mark QA-19 and QA-20 as **N/A** (not scored, excluded from max score)
+   - If `testing.smoke_tests == true`: proceed with smoke verification
+2. **QA-19 — Smoke test existence:** Verify smoke tests exist and cover at least the critical path (health check + primary flow)
+3. **QA-20 — Smoke test execution:** Run `{{SMOKE_COMMAND}}` and verify ALL smoke tests pass:
+   ```bash
+   {{SMOKE_COMMAND}}
+   ```
+   - If ALL smoke tests **PASS**: QA-20 scores 2/2
+   - If ANY smoke test **FAILS**: QA-20 scores 0/2 AND STATUS becomes **Rejected**
+   - Log each failing smoke test name and failure reason
+4. **Hard rule:** ALL unit + integration + smoke tests MUST pass for STATUS: Approved
+
 ### Step 7 -- Generate Report
 
 Produce the scored report.
@@ -127,7 +155,8 @@ Produce the scored report.
 ```
 ENGINEER: QA
 STORY: [story-id or change description]
-SCORE: XX/36
+SCORE: XX/40 (or XX/36 when QA-19 and QA-20 are N/A — use the adjusted max that
+       excludes N/A items; see Checklist header for the N/A rules)
 
 STATUS: PASS | FAIL | PARTIAL
 
@@ -151,3 +180,5 @@ STATUS: PASS | FAIL | PARTIAL
 | No test files found | Report INFO: no test code discovered |
 | Coverage tool not configured | Warn and skip QA-02, QA-03 |
 | Git log not available | Warn and skip QA-13, QA-14, QA-16 |
+| Smoke test failure (QA-20) | STATUS becomes Rejected regardless of other scores |
+| `testing.smoke_tests == false` | Mark QA-19, QA-20 as N/A (excluded from max score) |

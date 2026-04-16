@@ -59,6 +59,13 @@ class ReleaseStateFileSchemaTest {
             "prNumber", "prUrl", "prTitle",
             "changelogEntry", "tagMessage");
 
+    // Schema v2 fields introduced by EPIC-0039 story-0039-0002.
+    private static final List<String>
+            SCHEMA_V2_FIELDS = List.of(
+            "nextActions", "waitingFor",
+            "phaseDurations", "lastPromptAnsweredAt",
+            "githubReleaseUrl");
+
     @Test
     @DisplayName("schema doc file exists on disk")
     void stateFileSchemaDocExists() {
@@ -129,7 +136,7 @@ class ReleaseStateFileSchemaTest {
         JsonNode node = mapper.readTree(json);
 
         assertThat(node.get("schemaVersion").asInt())
-                .isEqualTo(1);
+                .isEqualTo(2);
         assertThat(REQUIRED_PHASES)
                 .contains(node.get("phase").asText());
         for (String field : FIELDS_IN_EXAMPLE_JSON) {
@@ -158,6 +165,59 @@ class ReleaseStateFileSchemaTest {
     }
 
     @Test
+    @DisplayName("schema doc mentions all 5 v2 fields"
+            + " (story-0039-0002)")
+    void schemaDocMentionsAllV2Fields()
+            throws IOException {
+        String content = Files.readString(
+                SCHEMA_DOC_PATH);
+        for (String field : SCHEMA_V2_FIELDS) {
+            assertThat(content)
+                    .as("Schema doc must mention v2 field:"
+                            + " %s", field)
+                    .contains(field);
+        }
+        assertThat(content)
+                .as("Schema doc must advertise v2 header")
+                .contains("schemaVersion: 2");
+        assertThat(content)
+                .as("Schema doc must include v2 Fields"
+                        + " section heading")
+                .contains("Schema v2 Fields");
+    }
+
+    @Test
+    @DisplayName("example JSON includes all 5 v2 fields"
+            + " and waitingFor uses a valid enum value")
+    void exampleJsonIncludesAllV2Fields()
+            throws IOException {
+        String content = Files.readString(
+                SCHEMA_DOC_PATH);
+        int start = content.indexOf("```json");
+        int end = content.indexOf("```", start + 7);
+        String json = content.substring(
+                start + 7, end).trim();
+
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode node = mapper.readTree(json);
+
+        for (String field : SCHEMA_V2_FIELDS) {
+            assertThat(node.has(field))
+                    .as("Example JSON missing v2 field:"
+                            + " %s", field)
+                    .isTrue();
+        }
+        List<String> validWaitingFor = List.of(
+                "NONE", "PR_REVIEW", "PR_MERGE",
+                "BACKMERGE_REVIEW", "BACKMERGE_MERGE",
+                "USER_CONFIRMATION");
+        assertThat(validWaitingFor)
+                .as("Example JSON waitingFor must use"
+                        + " a declared enum value")
+                .contains(node.get("waitingFor").asText());
+    }
+
+    @Test
     @DisplayName("SKILL.md defines all happy-path"
             + " phase transitions")
     void skillMdDefinesPhaseTransitions()
@@ -175,5 +235,33 @@ class ReleaseStateFileSchemaTest {
                             + " phase: %s", transition)
                     .contains(transition);
         }
+    }
+
+    @Test
+    @DisplayName("SKILL.md advertises schemaVersion 2"
+            + " (no stale v1 references)")
+    void skillMdAdvertisesSchemaVersionTwo()
+            throws IOException {
+        String content = Files.readString(SKILL_PATH);
+        assertThat(content)
+                .as("SKILL.md must reference the v2 check"
+                        + " '.schemaVersion != 2'")
+                .contains(".schemaVersion != 2");
+        assertThat(content)
+                .as("SKILL.md bootstrap snippet must write"
+                        + " 'schemaVersion: 2' (not 1)")
+                .contains("schemaVersion: 2");
+        assertThat(content)
+                .as("SKILL.md must not reference the legacy"
+                        + " v1 check '.schemaVersion != 1'")
+                .doesNotContain(".schemaVersion != 1");
+        assertThat(content)
+                .as("SKILL.md must not bootstrap with legacy"
+                        + " 'schemaVersion: 1'")
+                .doesNotContain("schemaVersion: 1,");
+        assertThat(content)
+                .as("SKILL.md error catalog must advertise"
+                        + " Expected: 2")
+                .contains("Expected: 2");
     }
 }

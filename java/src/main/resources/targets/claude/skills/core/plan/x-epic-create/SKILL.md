@@ -3,7 +3,7 @@ name: x-epic-create
 description: "Generate an Epic document from a system specification file with cross-cutting business rules, global quality definitions (DoR/DoD), a complete story index with dependency declarations, and optional Jira integration."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion
-argument-hint: "<SPEC_FILE> [--epic-id XXXX]"
+argument-hint: "<SPEC_FILE> [--epic-id XXXX] [--jira <PROJECT_KEY>] [--no-jira]"
 ---
 
 ## Output Policy
@@ -30,6 +30,8 @@ Read a system specification document and generate an Epic file — the top-level
 |-----------|------|----------|---------|-------------|
 | `<SPEC_FILE>` | Path | Yes | — | Path to the system specification file |
 | `--epic-id` | String | No | auto | Epic number (auto-increments from existing epics in `plans/`) |
+| `--jira` | String | No | — | Jira project key (e.g., PROJ). When provided, skip AskUserQuestion and create in Jira directly (EPIC-0042). |
+| `--no-jira` | Boolean | No | false | Skip Jira integration entirely, no prompting (EPIC-0042). |
 
 ## Prerequisites
 
@@ -144,15 +146,31 @@ Epic in Jira.
 Verify that the Jira MCP tool (`mcp__atlassian__createJiraIssue`) is available.
 If not available, skip this entire step silently and proceed to Step 7.
 
-#### 6.2 — Check Context
+#### 6.2 — Check Context and Flags (EPIC-0042)
 
-If this skill was invoked by the orchestrator (`x-epic-decompose`) and a `jiraContext`
-was already provided, use that context directly (skip the user prompt — it was already
-asked in Phase A.5). If `jiraContext.enabled == true`, proceed to 6.4. If `false`, skip.
+**Roteamento por flag (EPIC-0042):**
 
-If invoked standalone (no `jiraContext`), proceed to 6.3.
+- Se `--no-jira` estiver presente: pular a integracao com Jira completamente. Substituir
+  `<CHAVE-JIRA>` por `—` e prosseguir para o Step 7. Log:
+  `"Jira integration skipped (--no-jira, EPIC-0042)"`
 
-#### 6.3 — Ask the User (standalone invocation only)
+- Se `--jira <PROJECT_KEY>` estiver presente: usar a chave de projeto fornecida
+  diretamente. Pular AskUserQuestion. Descobrir o `cloudId` chamando
+  `mcp__atlassian__getAccessibleAtlassianResources`. Usar o `id` do primeiro site
+  disponivel como `cloudId`. Se a chamada falhar ou nao retornar sites, alertar o
+  usuario e pular para o Step 7 (substituir `<CHAVE-JIRA>` por `—`). Caso contrario,
+  prosseguir para 6.4. Log:
+  `"Jira integration via --jira flag: project {PROJECT_KEY} (EPIC-0042)"`
+
+- Se esta skill foi invocada pelo orquestrador (`x-epic-decompose`) e um `jiraContext`
+  ja foi fornecido, usar esse contexto diretamente (pular o prompt ao usuario — ja foi
+  perguntado na Phase A.5). Se `jiraContext.enabled == true`, prosseguir para 6.4. Se
+  `false`, pular.
+
+- Se invocada standalone (sem `jiraContext`, sem `--jira`, sem `--no-jira`), prosseguir
+  para 6.3 para o prompt interativo compativel com a versao anterior.
+
+#### 6.3 — Ask the User (standalone invocation only, no flags)
 
 Use the `AskUserQuestion` tool:
 

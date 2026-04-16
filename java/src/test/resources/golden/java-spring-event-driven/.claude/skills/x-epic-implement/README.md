@@ -266,9 +266,8 @@ flowchart TD
     F5 -->|Yes| NOREVIEW["SKIP REVIEWS<br/>x-story-implement skips<br/>Phases 4 and 7"]
     F5 -->|No| FULLREVIEW["FULL REVIEWS<br/>Specialist (Phase 4)<br/>Tech Lead (Phase 7)"]
 
-    FLAGS --> F6{--skip-smoke-gate?}
-    F6 -->|Yes| NOSMOKE["SKIP SMOKE<br/>Integrity gate runs<br/>Steps 1-4 only"]
-    F6 -->|No| FULLSMOKE["FULL GATE<br/>Steps 1-5<br/>Including smoke tests"]
+    FLAGS --> F6["SMOKE GATE<br/>(MANDATORY - EPIC-0042)<br/>--skip-smoke-gate REMOVED"]
+    F6 --> FULLSMOKE["FULL GATE<br/>Steps 1-5<br/>Including smoke tests"]
 
     style LEGACY fill:#e94560,color:#fff
     style ADVISORY fill:#2d6a4f,color:#fff
@@ -298,23 +297,18 @@ flowchart TD
 
     S3["Step 3: Coverage<br/>line >= 95%, branch >= 90%"] --> S3R{Pass?}
     S3R -->|No| FAIL3(["FAIL — coverage below threshold"])
-    S3R -->|Yes| S4
+    S3R -->|Yes| S5
 
-    S4{--skip-smoke-gate?}
-    S4 -->|Yes| SKIP(["SKIP — smokeGate.status = SKIP<br/>Gate: PASS"])
-    S4 -->|No| S5
-
-    S5["Step 5: Smoke Tests<br/>{{SMOKE_COMMAND}}"] --> S5R{Pass?}
+    S5["Step 5: Smoke Tests (MANDATORY)<br/>{{SMOKE_COMMAND}}"] --> S5R{Pass?}
     S5R -->|No| SMOKEFAIL["Smoke Gate FAIL<br/>Correlate with phase stories"]
     S5R -->|Yes| PASS(["PASS — advance to next phase"])
 
-    SMOKEFAIL --> OPERATOR(["Operator decides:<br/>--resume after fix<br/>or --skip-smoke-gate"])
+    SMOKEFAIL --> OPERATOR(["Operator: --resume after fix<br/>(no bypass - EPIC-0042)"])
 
     style PASS fill:#2d6a4f,color:#fff
     style FAIL1 fill:#e94560,color:#fff
     style FAIL3 fill:#e94560,color:#fff
     style PAUSE fill:#e9c46a,color:#000
-    style SKIP fill:#533483,color:#fff
 ```
 
 ## 7. Auto-Rebase Flow (Section 1.4e)

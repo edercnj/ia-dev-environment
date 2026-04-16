@@ -3,7 +3,7 @@ name: x-story-implement
 description: "Orchestrates the complete feature implementation cycle with task-centric workflow: branch creation, planning, per-task TDD execution with individual PRs and approval gates, story-level verification, and final cleanup. Schema-aware: v1 (legacy) runs the monolithic coalesce-ad-hoc flow; v2 (EPIC-0038) reads task-implementation-map-STORY-*.md and dispatches x-task-implement in waves (declared parallelism) — ending the 'task embedded in story' anti-pattern. Delegates to x-test-tdd, x-git-commit, x-pr-create, and (v2) x-task-implement."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, Agent, TaskCreate, TaskUpdate
-argument-hint: "[STORY-ID or feature-name] [--auto-approve-pr] [--task TASK-ID] [--skip-verification] [--full-lifecycle] [--worktree]"
+argument-hint: "[STORY-ID or feature-name] [--auto-approve-pr] [--task TASK-ID] [--skip-verification] [--skip-smoke] [--full-lifecycle] [--worktree] [--manual-contract-approval] [--manual-task-approval] [--no-auto-remediation]"
 context-budget: heavy
 ---
 
@@ -44,6 +44,8 @@ Orchestrate the complete feature implementation cycle using a task-centric workf
 | `--skip-verification` | Boolean | false | Skip Phase 3 (story-level verification) |
 | `--full-lifecycle` | Boolean | false | Force full execution regardless of scope tier |
 | `--worktree` | Boolean | false | Opt-in: create a dedicated worktree for the story branch (standalone mode). Ignored when the skill is already running inside a worktree (Rule 14 §3 — non-nesting invariant). See ADR-0004 §D2. |
+| `--manual-contract-approval` | Boolean | false | Force human review of API contracts before proceeding to Phase 1. Without this flag, contracts are auto-approved when validation passes (EPIC-0042). |
+| `--manual-task-approval` | Boolean | false | Require explicit human approval for each task PR. Without this flag, task PRs are auto-approved (EPIC-0042). |
 
 ## CRITICAL EXECUTION RULE
 
@@ -353,9 +355,15 @@ If validation errors are found:
 
 > **Note:** A dedicated `x-test-contract-lint` skill does not exist in `core/` at the time of writing (the reference was an orphan removed in EPIC-0033 / STORY-0033-0001). If `x-test-contract-lint` is added in the future, convert this step to `Skill(skill: "x-test-contract-lint", args: "{CONTRACT_PATH}")` following Rule 13 — Skill Invocation Protocol (INLINE-SKILL pattern).
 
-### Step 0.5.4 -- Approval Gate
+### Step 0.5.4 -- Approval Gate (EPIC-0042)
 
-Emit the following message and **pause the lifecycle**:
+**Default behavior (auto-approval):** When Step 0.5.3 validation passes successfully,
+auto-approve the contract and proceed to Phase 1 without pausing. Log:
+`"Contract auto-approved (validation passed, EPIC-0042): {CONTRACT_PATH}"`
+Set `contractStatus = APPROVED` and proceed to Phase 1.
+
+**Manual approval flag `--manual-contract-approval` (EPIC-0042):** When
+`--manual-contract-approval` is present, emit the following message and **pause the lifecycle**:
 
 ```
 CONTRACT PENDING APPROVAL
@@ -788,11 +796,13 @@ FOR each TASK-NNN where status != DONE and status != BLOCKED:
          - If NOT --auto-approve-pr: PR targets develop
          - PR body includes task description, TDD cycle summary, coverage
   2.2.8  Update execution-state: task.status = PR_CREATED, task.prNumber, task.prUrl
-  2.2.9  APPROVAL GATE:
-         - If --auto-approve-pr:
-           Auto-merge task PR into parent branch (gh pr merge --squash)
-           Update execution-state: task.status = PR_MERGED
-         - If NOT --auto-approve-pr:
+  2.2.9  APPROVAL GATE (EPIC-0042):
+         - Default behavior (auto-approve): Auto-merge task PR (gh pr merge --squash).
+           Update execution-state: task.status = PR_MERGED.
+           This applies both when --auto-approve-pr is set (targets parent branch)
+           and when neither --auto-approve-pr nor --manual-task-approval is set
+           (targets develop). Log: "Task PR auto-approved (EPIC-0042): #{prNumber}"
+         - If --manual-task-approval is present:
            Present AskUserQuestion with options:
              APPROVE -> task.status = PR_APPROVED, continue to next task
              REJECT  -> task.status = FAILED, abort lifecycle with message:
@@ -815,9 +825,12 @@ FOR each TASK-NNN where status != DONE and status != BLOCKED:
 END FOR
 ```
 
-### Step 2.3 -- Approval Gate Detail
+### Step 2.3 -- Approval Gate Detail (EPIC-0042)
 
-The approval gate per task ensures human oversight of every code change:
+**Default behavior:** Task PRs are auto-approved and auto-merged without human intervention.
+Log: `"Task PR auto-approved: #{prNumber} — TASK-XXXX-YYYY-NNN (EPIC-0042)"`
+
+**When `--manual-task-approval` is present:** The approval gate pauses for human oversight:
 
 ```
 TASK PR READY FOR REVIEW
@@ -876,6 +889,20 @@ Record the returned task ID as `phase3TaskId` for the closing TaskUpdate call.
 Phase 3 executes after all tasks have approved/merged PRs. It consolidates verification across all task changes.
 
 **Skip condition:** If `--skip-verification` is passed, skip Phase 3 entirely with log `"Phase 3 skipped (--skip-verification)"`.
+
+**Review Phase Progress (EPIC-0042):** Track review sub-steps via TodoWrite:
+
+    TodoWrite(todos: [
+      { content: "Run full test suite", status: "in_progress", activeForm: "Running full test suite" },
+      { content: "Run coverage analysis", status: "pending", activeForm: "Running coverage analysis" },
+      { content: "Run smoke tests", status: "pending", activeForm: "Running smoke tests" },
+      { content: "Execute specialist reviews (8 specialists)", status: "pending", activeForm: "Running specialist reviews" },
+      { content: "Apply remediation fixes", status: "pending", activeForm: "Applying remediation fixes" },
+      { content: "Execute Tech Lead review", status: "pending", activeForm: "Running Tech Lead review" },
+      { content: "Update dashboard and remediation files", status: "pending", activeForm: "Updating review artifacts" }
+    ])
+
+Update each item to "completed" as the corresponding step finishes. When `--skip-verification` is active, this tracker is not created.
 
 ### Step 3.1 -- Coverage Consolidation
 
@@ -954,6 +981,20 @@ After collecting all specialist review results, generate a consolidated dashboar
 5. Run `{{COMPILE_COMMAND}}` + `{{TEST_COMMAND}}`
 6. Update remediation tracking: mark fixed items as "Fixed" with commit reference.
 
+   **Agent-Assisted Remediation (EPIC-0042):**
+   When specialist review has CRITICAL or HIGH findings, auto-dispatch remediation agents:
+   1. For each CRITICAL/HIGH finding, dispatch a general-purpose agent:
+      ```
+      Agent(
+        subagent_type: "general-purpose",
+        description: "Fix review finding FIND-NNN",
+        prompt: "Read finding FIND-NNN from plans/epic-XXXX/reviews/remediation-story-XXXX-YYYY.md. Apply TDD discipline: write/update test FIRST for the finding, then fix implementation. Run {{TEST_COMMAND}} + {{COVERAGE_COMMAND}}. Commit via Skill(skill: 'x-git-commit', args: '--type fix --subject \"fix FIND-NNN: [description]\"'). Update remediation tracking: mark FIND-NNN as Fixed with commit SHA."
+      )
+      ```
+   2. After all finding agents complete, re-run `{{TEST_COMMAND}}` + `{{COVERAGE_COMMAND}}` for consolidated verification
+   3. Proceed to Step 3.6 (Tech Lead review) which will re-validate (max 2 cycles)
+   4. Opt-out: `--no-auto-remediation` skips agent dispatch, uses manual fix flow
+
 ### Step 3.6 -- Tech Lead Review
 
 Invoke skill `x-review-pr` for holistic review. Requires all items passing for GO. If NO-GO, fix all failed items and re-review (max 2 cycles).
@@ -1006,7 +1047,7 @@ If NOT `--auto-approve-pr`: skip (individual task PRs already target develop).
    - [ ] Story markdown file updated with Status: Concluida
    - [ ] IMPLEMENTATION-MAP Status column updated for this story
    - [ ] At least 1 automated test validates the story's primary acceptance criterion
-   - [ ] Smoke test passes (if testing.smoke_tests == true)
+   - [ ] Smoke test PASSES — **HARD GATE** (if testing.smoke_tests == true; override with `--skip-smoke`)
 7. Conditional DoD items:
    - Contract tests pass (if testing.contract_tests == true)
    - Event schemas registered (if event_driven)
@@ -1016,14 +1057,23 @@ If NOT `--auto-approve-pr`: skip (individual task PRs already target develop).
    - GraphQL schema backward compatible (if interfaces contain graphql)
    - [ ] Threat model updated (if security findings with severity >= Medium)
    - Post-deploy verification passed or skipped (if testing.smoke_tests == true)
-8. Post-Deploy Verification (conditional: `testing.smoke_tests == true`):
+8. Post-Deploy Verification — **SMOKE GATE** (conditional: `testing.smoke_tests == true`, EPIC-0042):
    - If `testing.smoke_tests` is `false` -> SKIP with log: "Post-deploy verification skipped (testing.smoke_tests=false)"
-   - If `testing.smoke_tests` is `true`, execute checks (invoke `/x-test-e2e` or configured smoke test):
+   - If `--skip-smoke` flag is present -> SKIP with log: "Smoke gate bypassed via --skip-smoke flag"
+   - If `testing.smoke_tests` is `true` AND `--skip-smoke` is NOT present, execute checks (invoke `/x-test-e2e` or configured smoke test):
      - **Health Check**: GET /health (or configured endpoint) -> 200 OK
      - **Critical Path**: Execute primary request flow -> valid response
-     - **Response Time**: Verify p95 latency < configured SLO
-     - **Error Rate**: Verify error rate < 1% threshold
-   - Non-blocking: emit result for human decision, do NOT auto-rollback
+     - **Response Time**: Verify p95 latency < configured SLO (advisory — WARNING only)
+     - **Error Rate**: Verify error rate < 1% threshold (advisory — WARNING only)
+   - **HARD GATE (EPIC-0042):** Health Check or Critical Path failure -> **FAIL Phase 3** immediately:
+     ```
+     SMOKE GATE FAILED (EPIC-0042):
+       Health Check: FAIL / PASS
+       Critical Path: FAIL / PASS
+     Phase 3 is FAILED. Fix the failing smoke tests and re-run.
+     Override: pass --skip-smoke to bypass the smoke gate.
+     ```
+   - Response Time and Error Rate remain advisory (WARNING only, do NOT fail Phase 3)
 9. Report PASS/FAIL/SKIP result with task-level summary
 10. **Mode-aware worktree removal + repository sync (Rule 14 §2 forbids `develop` checkout inside a worktree; Rule 14 §5 — Creator Owns Removal):**
 

@@ -18,11 +18,11 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for PlanTemplatesAssembler -- copies 17 planning
+ * Tests for PlanTemplatesAssembler -- copies 20 planning
  * and review templates to .claude/templates/.
  *
  * <p>TPP order: degenerate (empty source) -> constant
- * (single template) -> collection (all 17) -> conditional
+ * (single template) -> collection (all 20) -> conditional
  * (section validation) -> error (missing template).</p>
  */
 @DisplayName("PlanTemplatesAssembler")
@@ -46,7 +46,10 @@ class PlanTemplatesAssemblerTest {
                     "_TEMPLATE-STORY-PLANNING-REPORT.md",
                     "_TEMPLATE-TASK.md",
                     "_TEMPLATE-TASK-IMPLEMENTATION-MAP.md",
-                    "_TEMPLATE-DOR-CHECKLIST.md");
+                    "_TEMPLATE-DOR-CHECKLIST.md",
+                    "_TEMPLATE-EPIC.md",
+                    "_TEMPLATE-STORY.md",
+                    "_TEMPLATE-IMPLEMENTATION-MAP.md");
 
     @Nested
     @DisplayName("implements Assembler interface")
@@ -67,21 +70,21 @@ class PlanTemplatesAssemblerTest {
     class ConstantsValidation {
 
         @Test
-        @DisplayName("TEMPLATE_COUNT equals 17")
-        void templateCount_equals17() {
+        @DisplayName("TEMPLATE_COUNT equals 20")
+        void templateCount_equals20() {
             assertThat(
                     PlanTemplatesAssembler.TEMPLATE_COUNT)
-                    .isEqualTo(17);
+                    .isEqualTo(20);
         }
 
         @Test
-        @DisplayName("TEMPLATE_SECTIONS has exactly 17"
+        @DisplayName("TEMPLATE_SECTIONS has exactly 20"
                 + " entries")
-        void templateSections_has17Entries() {
+        void templateSections_has20Entries() {
             assertThat(
                     PlanTemplatesAssembler
                             .TEMPLATE_SECTIONS)
-                    .hasSize(17);
+                    .hasSize(20);
         }
 
         @Test
@@ -146,8 +149,8 @@ class PlanTemplatesAssemblerTest {
     class HappyPath {
 
         @Test
-        @DisplayName("copies 17 templates to .claude/templates/")
-        void assemble_allValid_copies17Files(
+        @DisplayName("copies 20 templates to .claude/templates/")
+        void assemble_allValid_copies20Files(
                 @TempDir Path tempDir) throws IOException {
             Path resourcesDir =
                     setupAllTemplates(tempDir);
@@ -166,12 +169,12 @@ class PlanTemplatesAssemblerTest {
                             new TemplateEngine(),
                             outputDir);
 
-            assertThat(result.files()).hasSize(17);
+            assertThat(result.files()).hasSize(20);
             assertThat(result.warnings()).isEmpty();
         }
 
         @Test
-        @DisplayName("all 17 templates exist in"
+        @DisplayName("all 20 templates exist in"
                 + " .claude/templates/")
         void assemble_allValid_existsInClaude(
                 @TempDir Path tempDir) throws IOException {
@@ -329,7 +332,7 @@ class PlanTemplatesAssemblerTest {
                             new TemplateEngine(),
                             outputDir);
 
-            assertThat(result.files()).hasSize(16);
+            assertThat(result.files()).hasSize(19);
             assertThat(result.warnings())
                     .anyMatch(w -> w.contains(
                             "_TEMPLATE-TEST-PLAN.md"))
@@ -370,7 +373,7 @@ class PlanTemplatesAssemblerTest {
                             new TemplateEngine(),
                             outputDir);
 
-            assertThat(result.files()).hasSize(16);
+            assertThat(result.files()).hasSize(19);
 
             assertThat(outputDir.resolve(
                     ".claude/templates/"
@@ -410,7 +413,7 @@ class PlanTemplatesAssemblerTest {
                             new TemplateEngine(),
                             outputDir);
 
-            assertThat(result.files()).hasSize(16);
+            assertThat(result.files()).hasSize(19);
             assertThat(result.warnings())
                     .anyMatch(w -> w.contains(
                             "Template not found"))
@@ -480,7 +483,7 @@ class PlanTemplatesAssemblerTest {
                             outputDir);
 
             assertThat(result).isNotNull();
-            assertThat(result.files()).hasSize(17);
+            assertThat(result.files()).hasSize(20);
             assertThat(result.warnings()).isEmpty();
         }
     }
@@ -490,8 +493,8 @@ class PlanTemplatesAssemblerTest {
     class AssembleFileList {
 
         @Test
-        @DisplayName("assemble returns 17 file paths")
-        void assemble_allValid_returns17Paths(
+        @DisplayName("assemble returns 20 file paths")
+        void assemble_allValid_returns20Paths(
                 @TempDir Path tempDir) throws IOException {
             Path resourcesDir =
                     setupAllTemplates(tempDir);
@@ -506,7 +509,7 @@ class PlanTemplatesAssemblerTest {
                     new TemplateEngine(),
                     outputDir);
 
-            assertThat(files).hasSize(17);
+            assertThat(files).hasSize(20);
         }
 
         @Test
@@ -535,7 +538,7 @@ class PlanTemplatesAssemblerTest {
     // -- Helpers ------------------------------------------------
 
     /**
-     * Creates all 17 templates with valid mandatory
+     * Creates all 20 templates with valid mandatory
      * sections in {tempDir}/res/shared/templates/.
      */
     private static Path setupAllTemplates(Path tempDir)
@@ -792,6 +795,53 @@ class PlanTemplatesAssemblerTest {
                                 "Blockers and Open"
                                         + " Questions",
                                 "Final Verdict"),
+                        false));
+
+        writeTemplate(templateDir,
+                "_TEMPLATE-EPIC.md",
+                buildContent(
+                        "Epic",
+                        List.of("1. Visão Geral",
+                                "2. Anexos e Referências",
+                                "3. Definições de Qualidade"
+                                        + " Globais",
+                                "4. Regras de Negócio"
+                                        + " Transversais"
+                                        + " (Source of Truth)",
+                                "5. Índice de Histórias"),
+                        false));
+
+        writeTemplate(templateDir,
+                "_TEMPLATE-STORY.md",
+                buildContent(
+                        "Story",
+                        List.of("1. Dependências",
+                                "2. Regras Transversais"
+                                        + " Aplicáveis",
+                                "3. Descrição",
+                                "3.5 Entrega de Valor",
+                                "4. Definições de Qualidade"
+                                        + " Locais",
+                                "5. Contratos de Dados"
+                                        + " (Data Contract)",
+                                "6. Diagramas",
+                                "7. Critérios de Aceite"
+                                        + " (Gherkin)",
+                                "8. Tasks"),
+                        false));
+
+        writeTemplate(templateDir,
+                "_TEMPLATE-IMPLEMENTATION-MAP.md",
+                buildContent(
+                        "Implementation Map",
+                        List.of("1. Matriz de Dependências",
+                                "2. Fases de Implementação",
+                                "3. Caminho Crítico",
+                                "4. Grafo de Dependências"
+                                        + " (Mermaid)",
+                                "5. Resumo por Fase",
+                                "6. Detalhamento por Fase",
+                                "7. Observações Estratégicas"),
                         false));
 
         return resourcesDir;

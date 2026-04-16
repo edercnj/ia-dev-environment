@@ -3,7 +3,7 @@ name: x-review
 description: "Parallel code review with specialist engineers (Security, QA, Performance, Database, Observability, DevOps, API, Event). Invokes individual review skills in parallel via Skill tool, then consolidates into a scored report. Use for pre-PR quality validation."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, TaskCreate, TaskUpdate
-argument-hint: "[STORY-ID or --scope reviewer1,reviewer2]"
+argument-hint: "[STORY-ID or --scope reviewer1,reviewer2] [--no-auto-fix-story]"
 ---
 
 ## Global Output Policy
@@ -114,6 +114,21 @@ Each specialist is invoked via `Skill(...)` (Rule 13 — INLINE-SKILL pattern, p
 - `x-review-api` — only if a REST interface is present.
 - `x-review-events` — only if event interfaces are present.
 
+**Progress Display (EPIC-0042):** Before dispatching specialist agents, create a progress tracker via TodoWrite:
+
+    TodoWrite(todos: [
+      { content: "QA Specialist Review", status: "in_progress", activeForm: "Running QA specialist review" },
+      { content: "Performance Review", status: "pending", activeForm: "Running performance review" },
+      { content: "Security Review", status: "pending", activeForm: "Running security review" },
+      { content: "Database Review", status: "pending", activeForm: "Running database review" },
+      { content: "Observability Review", status: "pending", activeForm: "Running observability review" },
+      { content: "DevOps Review", status: "pending", activeForm: "Running DevOps review" },
+      { content: "Data Modeling Review", status: "pending", activeForm: "Running data modeling review" },
+      { content: "API Review", status: "pending", activeForm: "Running API review" }
+    ])
+
+As each specialist agent completes, update its status to "completed" via TodoWrite. Only include entries for specialists whose activation condition is true (Phase 1).
+
 **Batch A — First assistant message (all TaskCreate + all Skill calls as sibling tool calls):**
 
     TaskCreate(description: "Review: QA — Story {STORY_ID}")
@@ -206,6 +221,12 @@ OVERALL: APPROVED only when every specialist has STATUS: Approved.
 
 Save each specialist's report to `plans/epic-XXXX/reviews/review-{specialist}-story-XXXX-YYYY.md` (extract epic ID XXXX and story sequence YYYY from the story ID). Ensure directory exists: `mkdir -p plans/epic-XXXX/reviews`.
 
+**Persistence (EPIC-0042):** Use the Write tool explicitly to save each specialist report:
+
+    Write(file_path: "plans/epic-XXXX/reviews/review-{specialist}-story-XXXX-YYYY.md", content: "{report_content}")
+
+Do NOT rely on generating report content in the conversation alone -- every report MUST be written to disk via the Write tool.
+
 ### 3d. Generate Consolidated Dashboard
 
 After saving all individual reports, generate a consolidated dashboard.
@@ -227,6 +248,12 @@ After saving all individual reports, generate a consolidated dashboard.
      - **Review History:** Record as Round N with date, scores, and status
    - Tech Lead Score section: leave as placeholder `--/{review_max_score} | Status: Pending` (updated by `x-review-pr`)
    - Dashboard is **cumulative** (RULE-006): if dashboard already exists, append a new round to Review History instead of overwriting
+
+   **Persistence (EPIC-0042):** Use the Write tool explicitly to save the dashboard:
+
+       Write(file_path: "plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md", content: "{dashboard_content}")
+
+   Do NOT rely on generating dashboard content in the conversation alone -- the dashboard MUST be written to disk via the Write tool.
 
 3. **If template missing:**
    - Log warning: `Dashboard template not found, skipping dashboard generation`
@@ -254,6 +281,12 @@ After generating the dashboard, create a remediation tracking file.
      - `Fix Commit SHA`: Empty (populated after fixes)
    - **Populate Remediation Summary:** Count of findings by status (all Open initially)
    - **Header:** Include total count: `{N} findings pending remediation`
+
+   **Persistence (EPIC-0042):** Use the Write tool explicitly to save the remediation file:
+
+       Write(file_path: "plans/epic-XXXX/reviews/remediation-story-XXXX-YYYY.md", content: "{remediation_content}")
+
+   Do NOT rely on generating remediation content in the conversation alone -- the remediation file MUST be written to disk via the Write tool.
 
 3. **If template missing:**
    - Log warning: `Remediation template not found, skipping remediation tracking generation`
@@ -284,6 +317,37 @@ After saving review artifacts, extract security findings from the Security speci
 
 7. **Append Change History:** Add a new row with the current date, story reference, and summary of threats added or updated.
 
+### 3g. Consolidated Summary Box (EPIC-0042)
+
+After ALL specialists complete and all artifacts (reports, dashboard, remediation) are saved, emit a formatted summary to the terminal:
+
+```
+============================================================
+ SPECIALIST REVIEW — [STORY_ID]
+============================================================
+ Overall Score:  XX/YYY (ZZ%)
+
+ | Specialist     | Score   | Status   |
+ |----------------|---------|----------|
+ | QA             | XX/36   | APPROVED/REJECTED |
+ | Performance    | XX/26   | APPROVED/REJECTED |
+ | Security       | XX/30   | APPROVED/REJECTED |
+ | Database       | XX/40   | APPROVED/REJECTED |
+ | Observability  | XX/18   | APPROVED/REJECTED |
+ | DevOps         | XX/20   | APPROVED/REJECTED |
+ | Data Modeling  | XX/20   | APPROVED/REJECTED |
+ | API            | XX/16   | APPROVED/REJECTED |
+
+ Critical Issues: N
+ Open Findings:   N
+------------------------------------------------------------
+ Dashboard:   plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md
+ Remediation: plans/epic-XXXX/reviews/remediation-story-XXXX-YYYY.md
+============================================================
+```
+
+Only include rows for specialists that were active in Phase 2. Replace placeholders with actual scores and statuses from the consolidation data.
+
 ## Phase 4 -- Story Generation for Findings (Orchestrator -- Inline)
 
 This phase runs ONLY when CRITICAL, HIGH, or MEDIUM findings exist.
@@ -293,9 +357,32 @@ This phase runs ONLY when CRITICAL, HIGH, or MEDIUM findings exist.
 After consolidation, evaluate if there are findings with severity CRITICAL, HIGH, or MEDIUM.
 If all findings are LOW or there are no findings, skip this phase entirely.
 
-### 4b. Ask User Confirmation
+### 4b. Auto-Generate Correction Story (EPIC-0042)
 
-If CRITICAL or MEDIUM findings exist, use the `AskUserQuestion` tool with the following configuration:
+**Default behavior (auto-execution):** When CRITICAL or HIGH findings exist, automatically
+generate a correction story WITHOUT asking the user. Log:
+`"Auto-generating correction story for {N} CRITICAL/HIGH findings (EPIC-0042)"`
+
+**Exception — CRITICAL security findings:** When ANY finding with severity CRITICAL originates
+from the Security specialist (`x-review-security`), pause for mandatory human confirmation
+before proceeding. Use `AskUserQuestion`:
+
+```
+question: "CRITICAL security finding detected. Review the finding and confirm correction story generation."
+header: "Security — Mandatory Human Review"
+options:
+  - label: "Generate correction story"
+    description: "Proceed with auto-generating correction story including the CRITICAL security finding"
+  - label: "Abort"
+    description: "Do not generate correction story. Manual remediation required."
+multiSelect: false
+```
+
+If "Abort", end the review process normally. Log:
+`"Correction story generation aborted by user (CRITICAL security finding)"`
+
+**Opt-out flag `--no-auto-fix-story` (EPIC-0042):** When `--no-auto-fix-story` is present,
+suppress automatic correction story generation. Instead, use `AskUserQuestion` to confirm:
 
 ```
 question: "Deseja criar uma historia para correcao dos problemas encontrados?"
@@ -308,11 +395,12 @@ options:
 multiSelect: false
 ```
 
-If the user selects **"Nao"**, end the review process normally.
+If "Nao", end the review process normally.
 
 ### 4c. Generate Correction Story
 
-If the user selects **"Sim"**, generate a correction story following these steps:
+When auto-generation proceeds (default) or user selects "Sim" (with `--no-auto-fix-story`),
+generate a correction story following these steps:
 
 1. **Read the story template:**
    ```
