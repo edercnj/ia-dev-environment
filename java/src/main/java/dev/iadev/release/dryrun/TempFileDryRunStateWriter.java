@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -37,6 +38,7 @@ public final class TempFileDryRunStateWriter
      */
     @Override
     public Path create(String version) {
+        Objects.requireNonNull(version, "version");
         try {
             Path path = createSecureTempFile();
             Files.writeString(path,
@@ -84,9 +86,6 @@ public final class TempFileDryRunStateWriter
     }
 
     private static String escape(String value) {
-        if (value == null) {
-            return "";
-        }
         StringBuilder escaped =
                 new StringBuilder(value.length());
         for (int i = 0; i < value.length(); i++) {
