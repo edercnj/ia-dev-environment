@@ -35,8 +35,9 @@ class TimeseriesKnowledgeTest {
     private static final int MAX_LINES = 300;
 
     private Path resolveResourceDir() {
-        return ResourceResolver.resolveResourcesRoot(
-                "knowledge/databases", 2);
+        return ResourceResolver
+                .resolveResourceDir("shared")
+                .getParent();
     }
 
     @Nested
