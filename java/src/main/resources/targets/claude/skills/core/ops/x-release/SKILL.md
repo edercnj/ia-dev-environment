@@ -61,12 +61,15 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 | `--abort` | No | Abort the active release with double confirmation. Closes open PRs, deletes local and remote release branches, removes state file. Individual cleanup failures are warn-only (exit 0). Exits 1 with `ABORT_NO_RELEASE` if no state file exists. Exits 2 with `ABORT_USER_CANCELLED` if user cancels. (story-0039-0010) |
 | `--yes` | No | Used with `--abort` to skip both confirmation prompts (force mode). Logs "FORCE MODE" warning. (story-0039-0010) |
 | `--force` | No | Alias for `--yes`. Identical behavior. (story-0039-0010) |
+| `--no-preflight` | No | Skip Step 1.5 (PRE-FLIGHT dashboard) entirely; proceed directly to VALIDATE-DEEP. Intended for CI pipelines. (story-0039-0009) |
+| `--preflight-changelog-lines <N>` | No | Max CHANGELOG lines in the pre-flight dashboard preview (default: 10, range: 1-500). (story-0039-0009) |
 
 ## Workflow
 
 ```
  0. RESUME-DETECT   -> Verify gh/jq, load or create state file, detect resume mode
  1. DETERMINE       -> Parse argument and calculate target version
+ 1.5. PRE-FLIGHT    -> Dashboard summary + operator confirmation (bypassable via --no-preflight)
  2. VALIDATE-DEEP   -> Deep validation (8+1+1 checks: workdir, branch, changelog, build, coverage, golden, hardcoded, version consistency, generation dry-run, integrity drift)
  3. BRANCH          -> Create release/X.Y.Z branch from develop (or hotfix/* from main)
  4. UPDATE          -> Update version in project-specific files (strip SNAPSHOT)
@@ -256,6 +259,8 @@ else:
 | `--abort` user cancels any confirmation | `ABORT_USER_CANCELLED` | --abort (story-0039-0010) |
 | `--abort` gh pr close fails | `ABORT_PR_CLOSE_FAILED` | --abort cleanup (warn-only) |
 | `--abort` git branch delete fails | `ABORT_BRANCH_DELETE_FAILED` | --abort cleanup (warn-only) |
+| Integrity FAIL at pre-flight (no prompt) | `PREFLIGHT_INTEGRITY_FAIL` | Step 1.5 |
+| Operator chose "Edit version" at pre-flight | `PREFLIGHT_EDIT_VERSION` | Step 1.5 |
 
 The full human-readable messages live in
 `references/state-file-schema.md`. All subsequent phases reuse the same
@@ -348,6 +353,76 @@ banner reports `"Explicit version: X.Y.Z"` and `bumpType = explicit`.
 Full algorithm, edge cases, and fixture table: `references/auto-version-detection.md`.
 
 This follows Semantic Versioning (https://semver.org/spec/v2.0.0.html) rules.
+
+### Step 1.5 — Phase PRE-FLIGHT (story-0039-0009)
+
+> **Position:** between Step 1 (DETERMINE) and Step 2 (VALIDATE-DEEP).
+> **Bypass:** `--no-preflight` skips this step entirely and proceeds
+> directly to Step 2 (VALIDATE-DEEP) with zero dashboard I/O.
+
+After Step 1 resolves the target version and commit classification, the
+skill aggregates all pre-release data into a single confirmation
+dashboard. The dashboard shows:
+
+1. **Version section** — target version, bump type, last tag and age
+2. **Commit counts** — feat / fix / breaking / ignored
+3. **CHANGELOG preview** — first N lines of `[Unreleased]` section,
+   truncated with `(X linhas omitidas)` indicator when total > N
+4. **Integrity checks** — result of S03 pre-commit integrity checks
+5. **Execution plan** — numbered list of release steps that will follow
+
+**CHANGELOG truncation:** default N = 10 lines. Override via
+`--preflight-changelog-lines <N>` (integer, clamped to [1..500] to
+prevent memory exhaustion; OWASP A03).
+
+**Terminal safety:** version strings and CHANGELOG body are sanitized
+to strip ANSI escape sequences (`\x1b[...`) and control characters
+before rendering (defense-in-depth, OWASP A05).
+
+#### Step 1.5.1 — Render Dashboard
+
+Invoke `PreflightDashboardRenderer.render(data, maxChangelog)` from the
+`dev.iadev.release.preflight` package. The renderer is a pure function
+over `DashboardData`; it performs no I/O.
+
+#### Step 1.5.2 — Integrity Gate
+
+If the `IntegrityReport.overallStatus()` is `FAIL`, the dashboard is
+printed and the skill aborts immediately with exit code 1 and error
+code `PREFLIGHT_INTEGRITY_FAIL`. **No prompt is shown** — the operator
+cannot override an integrity failure at the preflight stage.
+
+#### Step 1.5.3 — Operator Prompt
+
+When integrity is PASS (or WARN), present the dashboard and prompt the
+operator via `AskUserQuestion`:
+
+```
+Prosseguir com release v{VERSION}?
+  1. Sim, prosseguir       -> continue to Step 2 (VALIDATE-DEEP)
+  2. Editar versao (--version) -> exit 1 PREFLIGHT_EDIT_VERSION
+  3. Abortar                -> exit 0 (clean, no mutation)
+```
+
+| Choice | Exit Code | Error Code | Next Step |
+|:---|:---|:---|:---|
+| Prosseguir | 0 | — | Step 2 (VALIDATE-DEEP) |
+| Editar versao | 1 | `PREFLIGHT_EDIT_VERSION` | Abort; instruct rerun with `--version X.Y.Z` |
+| Abortar | 0 | — | Clean exit, no branch or state mutation |
+
+#### Step 1.5.4 — Error Catalog (local to PRE-FLIGHT)
+
+| Condition | Code | Exit |
+|:---|:---|:---|
+| Integrity FAIL (no prompt) | `PREFLIGHT_INTEGRITY_FAIL` | 1 |
+| Operator chose "Editar versao" | `PREFLIGHT_EDIT_VERSION` | 1 |
+
+#### Parameters (PRE-FLIGHT)
+
+| Parameter | Required | Description |
+|:---|:---|:---|
+| `--no-preflight` | No | Skip Step 1.5 entirely; proceed directly to VALIDATE-DEEP. Intended for CI pipelines. |
+| `--preflight-changelog-lines <N>` | No | Max CHANGELOG lines in dashboard preview (default: 10, range: 1-500). |
 
 ### Step 2 — Phase VALIDATE-DEEP
 
