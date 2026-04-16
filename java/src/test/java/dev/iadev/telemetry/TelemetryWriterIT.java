@@ -215,15 +215,10 @@ class TelemetryWriterIT {
         Path file = tmp.resolve("events.ndjson");
         TelemetryWriter writer = TelemetryWriter.open(file);
         writer.close();
-        // Second close() re-throws through the same path because the
-        // channel is already closed; the rethrow keeps the UncheckedIO
-        // contract. We just assert the call does not hang or throw
-        // something unexpected.
-        try {
-            writer.close();
-        } catch (RuntimeException expected) {
-            // acceptable — either no-op or UncheckedIOException
-        }
+        // FileChannel.close() is specified to be idempotent (subsequent
+        // calls are no-ops), so TelemetryWriter.close() must not throw on
+        // the second invocation.
+        writer.close();
     }
 
     @Test

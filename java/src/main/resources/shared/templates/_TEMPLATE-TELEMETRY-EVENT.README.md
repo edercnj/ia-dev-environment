@@ -23,7 +23,7 @@ that fail validation so that the data remains machine-processable.
 |-------|------|:----:|-------------|---------|
 | `schemaVersion` | string (SemVer) | **M** | regex `^\d+\.\d+\.\d+$` | `"1.0.0"` |
 | `eventId` | string (UUIDv4) | **M** | canonical UUIDv4 | `"a3b2..."` |
-| `timestamp` | string (ISO-8601) | **M** | `YYYY-MM-DDTHH:mm:ss.sssZ` | `"2026-04-13T12:34:56.789Z"` |
+| `timestamp` | string (ISO-8601) | **M** | `YYYY-MM-DDTHH:mm:ss[.s{1,9}]Z` (fractional seconds optional) | `"2026-04-13T12:34:56.789Z"` |
 | `sessionId` | string | **M** | 1..128 chars | `"claude-sess-abc123"` |
 | `epicId` | string \| null | O | `EPIC-NNNN` or `unknown` | `"EPIC-0040"` |
 | `storyId` | string \| null | O | `story-NNNN-NNNN` | `"story-0040-0001"` |
@@ -58,8 +58,10 @@ All other fields are optional and MAY be `null`.
 | `subagent.end` | Task/Agent return | terminal |
 | `error` | Unexpected failure | terminal |
 
-Terminal events SHOULD carry `durationMs` and `status`; start-style events
-SHOULD NOT set those fields.
+Terminal events SHOULD carry `durationMs` and `status`. Start-style /
+non-terminal events SHOULD NOT set those fields unless they represent an
+immediately known failure and no corresponding terminal event will be emitted
+(for example, a failed `tool.call` that never produces `tool.result`).
 
 ## 4. Storage Layout
 

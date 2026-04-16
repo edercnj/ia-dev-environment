@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.Instant;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -144,9 +146,13 @@ public record TelemetryEvent(
                     "failureReason exceeds "
                             + FAILURE_REASON_MAX + " chars");
         }
+        // Use LinkedHashMap + unmodifiableMap instead of Map.copyOf because
+        // the schema allows null JSON values inside metadata, and Map.copyOf
+        // rejects null values with NullPointerException.
         metadata = metadata == null
                 ? null
-                : Map.copyOf(metadata);
+                : Collections.unmodifiableMap(
+                        new LinkedHashMap<>(metadata));
     }
 
     /**
