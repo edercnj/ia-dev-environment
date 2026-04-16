@@ -104,7 +104,7 @@ class OutputPortArchitectureTest {
 
         @Test
         @DisplayName("Six output port interfaces should exist")
-        void fiveOutputPortsShouldExist() {
+        void sixOutputPortsShouldExist() {
             var outputPortClasses = importedClasses
                     .stream()
                     .filter(jc -> jc.getPackageName()

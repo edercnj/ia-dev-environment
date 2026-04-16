@@ -183,7 +183,7 @@ class HexagonalPackageStructureTest {
         @Test
         @DisplayName("infrastructure/adapter/output/ has "
             + "exactly 6 subdirectories")
-        void outputAdapterHasFiveSubdirs() throws IOException {
+        void outputAdapterHasSixSubdirs() throws IOException {
             Path outputAdapterPath = SRC_ROOT
                 .resolve("infrastructure/adapter/output");
 

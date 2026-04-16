@@ -4,9 +4,11 @@ import dev.iadev.domain.model.PhaseMetric;
 import dev.iadev.domain.model.PhaseOutcome;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,13 +26,21 @@ import java.util.stream.Stream;
  *
  * <h2>Algorithm</h2>
  * <ol>
- *   <li>Group metrics by {@code releaseVersion}.</li>
+ *   <li>Group metrics by {@code releaseVersion},
+ *       preserving the encounter order of the stream
+ *       (required so the "last N" window is
+ *       deterministic).</li>
  *   <li>If fewer than {@link #MIN_HISTORY} historical
  *       releases exist, return
  *       {@link BenchmarkResult.InsufficientHistory}.</li>
+ *   <li>Restrict the historical window to the
+ *       <strong>last {@link #MIN_HISTORY}</strong>
+ *       historical releases (by encounter order of the
+ *       input stream) — older releases are discarded to
+ *       keep the moving window bounded.</li>
  *   <li>For each phase in the current release, compute
- *       the mean duration across historical releases
- *       that contain the same phase.</li>
+ *       the mean duration across the windowed historical
+ *       releases that contain the same phase.</li>
  *   <li>Return the top-3 phases ranked by this release's
  *       {@code durationSec} descending, with the delta
  *       percentage vs. the historical mean.</li>
@@ -62,16 +72,7 @@ public final class BenchmarkAnalyzer {
     public BenchmarkResult analyze(
             Stream<PhaseMetric> metrics,
             String currentReleaseVersion) {
-        if (metrics == null) {
-            throw new IllegalArgumentException(
-                    "metrics must not be null");
-        }
-        if (currentReleaseVersion == null
-                || currentReleaseVersion.isBlank()) {
-            throw new IllegalArgumentException(
-                    "currentReleaseVersion must not be "
-                            + "null or blank");
-        }
+        validate(metrics, currentReleaseVersion);
 
         Map<String, List<PhaseMetric>> byRelease =
                 groupByRelease(metrics);
@@ -87,17 +88,34 @@ public final class BenchmarkAnalyzer {
                     historicalReleases.size());
         }
 
+        Collection<List<PhaseMetric>> window =
+                lastNReleases(byRelease, MIN_HISTORY);
         Map<String, Double> phaseMeans = computePhaseMeans(
-                byRelease.values());
+                window);
         List<PhaseBenchmark> ranked = rankTop(
                 currentMetrics, phaseMeans);
         return new BenchmarkResult.TopPhases(ranked);
     }
 
+    private void validate(
+            Stream<PhaseMetric> metrics,
+            String currentReleaseVersion) {
+        if (metrics == null) {
+            throw new IllegalArgumentException(
+                    "metrics must not be null");
+        }
+        if (currentReleaseVersion == null
+                || currentReleaseVersion.isBlank()) {
+            throw new IllegalArgumentException(
+                    "currentReleaseVersion must not be "
+                            + "null or blank");
+        }
+    }
+
     private Map<String, List<PhaseMetric>> groupByRelease(
             Stream<PhaseMetric> metrics) {
         Map<String, List<PhaseMetric>> byRelease =
-                new HashMap<>();
+                new LinkedHashMap<>();
         metrics.forEach(m -> byRelease
                 .computeIfAbsent(
                         m.releaseVersion(),
@@ -106,8 +124,20 @@ public final class BenchmarkAnalyzer {
         return byRelease;
     }
 
+    private Collection<List<PhaseMetric>> lastNReleases(
+            Map<String, List<PhaseMetric>> byRelease,
+            int n) {
+        List<List<PhaseMetric>> releases =
+                new ArrayList<>(byRelease.values());
+        int size = releases.size();
+        if (size <= n) {
+            return releases;
+        }
+        return releases.subList(size - n, size);
+    }
+
     private Map<String, Double> computePhaseMeans(
-            Iterable<List<PhaseMetric>> historical) {
+            Collection<List<PhaseMetric>> historical) {
         Map<String, Long> sum = new HashMap<>();
         Map<String, Integer> count = new HashMap<>();
         for (List<PhaseMetric> release : historical) {

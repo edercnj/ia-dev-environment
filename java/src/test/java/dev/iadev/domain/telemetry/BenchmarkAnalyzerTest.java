@@ -151,6 +151,48 @@ class BenchmarkAnalyzerTest {
         }
 
         @Test
+        @DisplayName("analyze_moreThanFiveReleases_"
+                + "usesOnlyLastFiveHistorical")
+        void analyze_moreThanFive_usesLastFiveWindow() {
+            List<PhaseMetric> metrics = new ArrayList<>();
+            // 3 OLD historical releases with materially
+            // slow VALIDATED (1000s) — MUST be excluded
+            // from the mean (they are older than the
+            // last-5 moving window).
+            for (int i = 0; i < 3; i++) {
+                metrics.add(historical(
+                        "3.0." + i, "VALIDATED", 1000L));
+            }
+            // 5 RECENT historical releases with fast
+            // VALIDATED (100s) — these are the only ones
+            // the analyzer must use for the mean.
+            for (int i = 0; i < 5; i++) {
+                metrics.add(historical(
+                        "3.1." + i, "VALIDATED", 100L));
+            }
+            // Current release.
+            metrics.add(current(
+                    "3.2.0", "VALIDATED", 130L));
+
+            BenchmarkResult result = analyzer.analyze(
+                    metrics.stream(), "3.2.0");
+
+            assertThat(result).isInstanceOf(
+                    BenchmarkResult.TopPhases.class);
+            List<PhaseBenchmark> top =
+                    ((BenchmarkResult.TopPhases) result)
+                            .entries();
+            assertThat(top).hasSize(1);
+            // Mean MUST be 100 (from the last 5) — NOT
+            // ~437 (which would happen if the 3 OLD
+            // 1000s releases were included).
+            assertThat(top.get(0).meanSec()).isEqualTo(100L);
+            // (130-100)/100 * 100 = +30
+            assertThat(top.get(0).deltaPercent())
+                    .isEqualTo(30);
+        }
+
+        @Test
         @DisplayName("analyze_skippedOutcome_excludedFromMean")
         void analyze_skippedOutcome_excludedFromMean() {
             List<PhaseMetric> metrics = new ArrayList<>();
