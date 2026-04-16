@@ -65,6 +65,14 @@ public final class PiiAudit implements Callable<Integer> {
                     + " the total count is printed.")
     boolean quiet;
 
+    @Option(
+            names = {"--follow-links"},
+            description = "Follow symbolic links during"
+                    + " traversal. Disabled by default to"
+                    + " prevent escaping the intended tree"
+                    + " or encountering cycles.")
+    boolean followLinks;
+
     @Spec
     CommandSpec spec;
 
@@ -136,8 +144,11 @@ public final class PiiAudit implements Callable<Integer> {
                     "root does not exist: " + root);
         }
         List<Finding> findings = new ArrayList<>();
-        try (Stream<Path> stream = Files.walk(
-                root, FileVisitOption.FOLLOW_LINKS)) {
+        FileVisitOption[] options = followLinks
+                ? new FileVisitOption[] {
+                        FileVisitOption.FOLLOW_LINKS}
+                : new FileVisitOption[0];
+        try (Stream<Path> stream = Files.walk(root, options)) {
             List<Path> files = stream
                     .filter(Files::isRegularFile)
                     .filter(p -> p.getFileName()
@@ -157,22 +168,25 @@ public final class PiiAudit implements Callable<Integer> {
             List<Finding> findings,
             PrintWriter reportSink)
             throws IOException {
-        List<String> lines = Files.readAllLines(
-                file, StandardCharsets.UTF_8);
-        for (int i = 0; i < lines.size(); i++) {
-            String line = lines.get(i);
-            for (ScrubRule rule : rules) {
-                Pattern pattern = rule.pattern();
-                var matcher = pattern.matcher(line);
-                if (matcher.find()) {
-                    Finding f = new Finding(
-                            file,
-                            i + 1,
-                            rule.category(),
-                            snippet(matcher.group()));
-                    findings.add(f);
-                    if (reportSink != null && !quiet) {
-                        reportSink.println(f.format());
+        try (var reader = Files.newBufferedReader(
+                file, StandardCharsets.UTF_8)) {
+            String line;
+            int lineNumber = 0;
+            while ((line = reader.readLine()) != null) {
+                lineNumber++;
+                for (ScrubRule rule : rules) {
+                    Pattern pattern = rule.pattern();
+                    var matcher = pattern.matcher(line);
+                    if (matcher.find()) {
+                        Finding f = new Finding(
+                                file,
+                                lineNumber,
+                                rule.category(),
+                                snippet(matcher.group()));
+                        findings.add(f);
+                        if (reportSink != null && !quiet) {
+                            reportSink.println(f.format());
+                        }
                     }
                 }
             }

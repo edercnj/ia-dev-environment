@@ -29,7 +29,7 @@ import java.util.Optional;
  * offers an {@link Optional} view for callers that prefer non-null
  * semantics. On the wire, the field is elided when null, so existing
  * {@code execution-state.json} files remain byte-identical after a
- * round-trip through the v3 persistence layer (EPIC-0040 RULE-001).</p>
+ * round-trip through the persistence layer (EPIC-0040 RULE-001).</p>
  *
  * @param version        schema version (default "1.0")
  * @param epicId         epic identifier (e.g., "EPIC-0006")
