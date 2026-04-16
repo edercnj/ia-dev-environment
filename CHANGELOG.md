@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed `StackMapping.CACHE_SETTINGS_MAP` — use `DatabaseSettingsMapping.CACHE_SETTINGS_MAP`.
   - Removed `StackMapping.getDatabaseSettingsKey(String)` — use `DatabaseSettingsMapping.getDatabaseSettingsKey(String)`.
   - Removed `StackMapping.getCacheSettingsKey(String)` — use `DatabaseSettingsMapping.getCacheSettingsKey(String)`.
+- **EPIC-0044 / story-0044-0002 — Removed 2 deprecated `resolveResourcesRoot` overloads from `ResourceResolver`** (`forRemoval = true`). All 23 assemblers + 9 test helpers migrated to depth-free `resolveResourceDir(String)`; `depth` parameter eliminated. Callers that need the resources root obtain it via `resolveResourceDir("shared").getParent()`.
+  - Removed `dev.iadev.util.ResourceResolver.resolveResourcesRoot(String)` — use `ResourceResolver.resolveResourceDir(String)`.
+  - Removed `dev.iadev.util.ResourceResolver.resolveResourcesRoot(String, int)` — use `ResourceResolver.resolveResourceDir(String)` (depth parameter eliminated).
 
 ## [3.6.0] - 2026-04-16
 
