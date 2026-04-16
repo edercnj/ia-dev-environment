@@ -3,7 +3,7 @@ name: x-epic-implement
 description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via explicit git worktrees (per ADR-0004 §D2 and Rule 14). Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-story-implement. EPIC-0038 simplification: epic orchestrator handles ONLY story-level concerns (phase order, story PR management, epic-level verification). Task management (TDD cycles, atomic commits per task, coalesced handling) is fully delegated to x-story-implement's v2 wave dispatcher. Tasks are invisible at the epic level."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, Agent, AskUserQuestion, TaskCreate, TaskUpdate
-argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--skip-smoke-gate] [--single-pr] [--auto-merge] [--no-merge] [--interactive-merge] [--strict-overlap] [--skip-pr-comments] [--auto-approve-pr] [--batch-approval] [--task-tracking]"
+argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--single-pr] [--auto-merge] [--no-merge] [--interactive-merge] [--strict-overlap] [--skip-pr-comments] [--auto-approve-pr] [--batch-approval] [--manual-batch-approval] [--task-tracking] [--dry-run-only-comments] [--revert-on-failure]"
 ---
 
 ## Global Output Policy
@@ -86,16 +86,19 @@ ERROR: Epic ID is required. Usage: /x-epic-implement [EPIC-ID] [flags]
 | `--dry-run` | boolean | `false` | Generate execution plan without executing |
 | `--resume` | boolean | `false` | Continue from last checkpoint (execution-state.json) |
 | `--sequential` | boolean | `false` | Disable parallel worktrees, execute stories one at a time |
-| `--skip-smoke-gate` | boolean | `false` | Skip smoke tests in the integrity gate between phases |
+| ~~`--skip-smoke-gate`~~ | — | — | **REMOVED (EPIC-0042).** Smoke gate is now mandatory when `{{SMOKE_COMMAND}}` is configured. Use `--resume` after fixing smoke failures. |
 | `--single-pr` | boolean | `false` | Preserve legacy flow: epic branch + rebase-before-merge + single mega-PR (RULE-009) |
-| `--auto-merge` | boolean | `false` | Auto-merge story PRs via `gh pr merge` after reviews approve (RULE-004). Mutually exclusive with `--no-merge` and `--interactive-merge`. |
-| `--no-merge` | boolean | `false` | Explicit no-merge flag (same as default behavior). Create PRs but skip merge and merge-wait. Dependencies are satisfied by `status == SUCCESS` alone (PR merge not required). Mutually exclusive with `--auto-merge` and `--interactive-merge`. Use for repos with branch protection rules requiring multiple approvers. |
+| `--auto-merge` | boolean | `true` | Auto-merge story PRs via `gh pr merge` after reviews approve (RULE-004). This is the DEFAULT behavior (EPIC-0042). Mutually exclusive with `--no-merge` and `--interactive-merge`. |
+| `--no-merge` | boolean | `false` | Explicit opt-out: create PRs but skip merge and merge-wait. Dependencies are satisfied by `status == SUCCESS` alone (PR merge not required). Mutually exclusive with `--auto-merge` and `--interactive-merge`. Use for repos with branch protection rules requiring multiple approvers. |
 | `--interactive-merge` | boolean | `false` | Opt-in to interactive merge mode: prompt the user at phase boundaries with 3 options (merge all, pause for manual merge, skip merge). Mutually exclusive with `--auto-merge` and `--no-merge`. |
 | `--strict-overlap` | boolean | `false` | When set, stories with `code-overlap-high` or `unpredictable` are demoted to sequential queue (original behavior). Without flag, pre-flight is advisory-only (RULE-005). |
 | `--skip-pr-comments` | boolean | `false` | Skip PR comment remediation phase (Phase 4). When set, Phase 4 is skipped entirely with log message. |
 | `--auto-approve-pr` | boolean | `false` | Propagate to x-story-implement dispatches. Each story creates a parent branch and task PRs auto-merge into it. Parent branches require human review before merging to develop (RULE-004). |
 | `--batch-approval` | boolean | `true` | Enable/disable batch approval for parallel story task PRs (RULE-013). When enabled, consolidates pending PRs from parallel stories into a single approval prompt. |
 | `--task-tracking` | boolean | `true` | Enable/disable task-level tracking in execution-state.json. When enabled, individual task progress is tracked with PR fields (prUrl, prNumber, branch). |
+| `--manual-batch-approval` | boolean | `false` | Force human gate for batch PR approval. Without this flag, PRs are auto-approved when no CRITICAL review findings exist (EPIC-0042). |
+| `--dry-run-only-comments` | boolean | `false` | Suppress auto-apply of PR comment fixes. When set, Phase 4 generates the dry-run report but does not apply fixes without confirmation (EPIC-0042). |
+| `--revert-on-failure` | boolean | `false` | Skip agent-assisted regression fix and revert directly on integrity gate failure (EPIC-0042). When set, the original revert behavior is used without attempting auto-remediation. |
 
 ## Prerequisites Check
 
@@ -190,11 +193,11 @@ Execute a single story in isolation.
     ```
     ERROR: --auto-merge, --no-merge, and --interactive-merge are mutually exclusive. Use only one.
     ```
-    Determine `mergeMode` from flags:
-    - `--auto-merge` → `mergeMode = "auto"`
+    Determine `mergeMode` from flags (EPIC-0042):
+    - `--auto-merge` → `mergeMode = "auto"` (this is the DEFAULT when no flag is specified)
     - `--interactive-merge` → `mergeMode = "interactive"`
-    - `--no-merge` → `mergeMode = "no-merge"` (same as default)
-    - Neither → `mergeMode = "no-merge"` (default — RULE-003)
+    - `--no-merge` → `mergeMode = "no-merge"` (explicit opt-out)
+    - Neither → `mergeMode = "auto"` (default — EPIC-0042, changed from "no-merge")
     If `--single-pr` is set with `--auto-merge`, `--no-merge`, or `--interactive-merge`, log warning:
     `"WARNING: --single-pr overrides merge mode flags. Per-story PR logic is skipped."`
 1c. **Auto-approve-pr propagation**: If `--auto-approve-pr` is set:
@@ -530,7 +533,7 @@ The execution plan produced by Phase 0.5 is consumed by the Core Loop:
    - `epicId`: The parsed epic ID
    - `stories`: Array of `{ id, phase }` from step 3
    - `baseBranch`: `"develop"` (default — RULE-004; used for PR targets, auto-rebase, and resume)
-   - `mode`: `{ parallel: true, skipReview: <from flags>, singlePr: <from flags>, mergeMode: "auto"|"no-merge"|"interactive" }` (default; `parallel` set to `false` when `--sequential` is passed; `mergeMode` derived from `--auto-merge`/`--interactive-merge` flags or defaults to `"no-merge"`)
+   - `mode`: `{ parallel: true, skipReview: <from flags>, singlePr: <from flags>, mergeMode: "auto"|"no-merge"|"interactive" }` (default; `parallel` set to `false` when `--sequential` is passed; `mergeMode` derived from `--auto-merge`/`--interactive-merge`/`--no-merge` flags or defaults to `"auto"` per EPIC-0042)
 5. The returned `ExecutionState` tracks all story statuses, metrics, and integrity gates
 
 **Per-story `StoryEntry` schema in `execution-state.json`:**
@@ -744,13 +747,27 @@ function checkCrossStoryTaskDeps(storyId, executionState):
 
 This enables fine-grained dependency management: story-B can start as soon as the specific task it depends on in story-A is DONE, without waiting for all of story-A to complete.
 
-#### 1.3b Batch Approval for Parallel Stories (RULE-013)
+#### 1.3b Batch Approval for Parallel Stories (RULE-013) (EPIC-0042)
 
-When `--batch-approval` is enabled (default: `true`) and multiple stories are executing in parallel via worktrees, the orchestrator consolidates pending task PRs into a single approval prompt instead of N individual prompts.
+**Default behavior (auto-approve):** When `--batch-approval` is enabled (default: `true`) and
+no CRITICAL review findings exist, auto-approve all pending PRs from parallel stories without
+prompting. For each pending PR, execute `gh pr merge {prNumber} --merge`. Update task status
+to `PR_MERGED` then `DONE`. Log:
+`"Batch auto-approve: {N} PRs across {M} stories (no CRITICAL findings, EPIC-0042)"`
+If any merge fails, log warning and retry once. If retry fails, mark the specific task as FAILED.
+
+**Exception — CRITICAL review findings:** When ANY story in the parallel batch has review
+findings with severity CRITICAL, fall through to the manual batch prompt below. Log:
+`"CRITICAL review findings detected — requiring manual batch approval"`
+
+**Manual batch approval flag `--manual-batch-approval` (EPIC-0042):** When
+`--manual-batch-approval` is present, always use the manual batch prompt regardless
+of review findings.
+
+**Manual batch prompt (via AskUserQuestion) — used when CRITICAL findings exist or
+`--manual-batch-approval` is present:**
 
 **Trigger:** After parallel story dispatch completes (Section 1.4a step 4), collect all task PRs with status `PR_CREATED` or `PR_APPROVED` across the parallel stories.
-
-**Batch Prompt (via AskUserQuestion):**
 
 ```
 question: "{N} task PRs pending approval across {M} stories"
@@ -1269,8 +1286,8 @@ Launch a `general-purpose` subagent:
 > - If any tests fail → correlate failed tests with commits from stories in the current phase
 > - If line coverage < 95% or branch coverage < 90% → FAIL with coverage details
 > - Otherwise → proceed to Step 5
-> **Step 5 — Smoke Gate:** Execute the full smoke test suite as a regression validation.
-> - If `--skip-smoke-gate` flag is set → log `"Integrity gate smoke tests skipped (--skip-smoke-gate)"` and record `smokeGate.status = "SKIP"` → proceed to PASS
+> **Step 5 — Smoke Gate (MANDATORY — EPIC-0042):** Execute the full smoke test suite as a regression validation.
+> - Smoke gate is ALWAYS mandatory when `{{SMOKE_COMMAND}}` is configured. There is no skip flag.
 > - Run: `{{SMOKE_COMMAND}}` (e.g., `cd java && mvn verify -P integration-tests`)
 > - This runs ALL smoke tests, not just those for stories in the current phase
 > - If all smoke tests pass → record `smokeGate.status = "PASS"` → overall gate is PASS
@@ -1284,7 +1301,22 @@ If tests fail, the subagent:
 1. Analyzes which tests broke (`failedTests` array)
 2. Correlates failed tests with commits from stories in the current phase (via `git log`)
 3. Identifies the most likely story as regression source (`regressionSource`)
-4. If identified: orchestrator executes `git revert <commitSha>` for that story
+
+   **Agent-Assisted Regression Fix (EPIC-0042):**
+   Before reverting, attempt to fix the regression via agent:
+   1. Dispatch a general-purpose agent with the failing tests and the diff of the suspected commit:
+      ```
+      Agent(
+        subagent_type: "general-purpose",
+        description: "Fix regression in integrity gate",
+        prompt: "Failing tests: [list]. Suspected commit: [sha]. Read the diff of the commit and the failing test output. Fix the implementation to make tests pass without breaking the commit's intended behavior. Run {{TEST_COMMAND}} to verify. Commit via Skill(skill: 'x-git-commit', args: '--type fix --subject \"fix regression from [sha]\"')."
+      )
+      ```
+   2. If agent fixes successfully (tests pass): commit fix, re-run gate
+   3. If agent fails: fallback to `git revert` (original behavior)
+   4. Opt-out: `--revert-on-failure` flag skips agent fix attempt and reverts directly
+
+4. If regression fix agent fails (or `--revert-on-failure`): orchestrator executes `git revert <commitSha>` for that story
 5. Story is marked FAILED with summary: `"Regression detected by integrity gate"`
 6. Block propagation is executed for dependents of the failed story
 
@@ -1296,7 +1328,7 @@ If smoke tests fail (Step 5), the subagent:
 3. Populates `smokeGate.suspectedStories` with the story IDs most likely responsible
 4. Logs: `"INTEGRITY GATE SMOKE FAILURE: Phase {N}. {count} test(s) failed. Suspected stories: [{list}]"`
 5. The phase is marked as FAILED in the checkpoint
-6. The operator decides: `--resume` to retry after manual fix, or `--skip-smoke-gate` to bypass
+6. The operator decides: `--resume` to retry after fixing the failing smoke tests
 
 #### Gate Result Registration
 
@@ -1322,7 +1354,7 @@ updateIntegrityGate(epicDir, phaseNumber, {
 - **PASS**: Advance to version bump (see below), then to next phase (requires both test gate and smoke gate to pass)
 - **FAIL + regression identified**: revert + mark FAILED + block propagation
 - **FAIL + regression unidentified**: pause execution, report to user
-- **FAIL (smoke gate)**: phase marked FAILED; operator uses `--resume` after fix or `--skip-smoke-gate` to bypass
+- **FAIL (smoke gate)**: phase marked FAILED; operator uses `--resume` after fixing the failing smoke tests (EPIC-0042: no bypass available)
 - **DEFERRED** (when `mergeMode == "no-merge"`): skip gate, advance directly to phase completion report
 
 #### Version Bump (Post-Gate) (RULE-013)
@@ -1380,8 +1412,8 @@ The integrity gate is **mandatory** — there is no bypass. Every phase transiti
 result. The gate runs after phase 0, 1, 2, and 3 — one gate per phase.
 
 The smoke gate within the integrity gate is also mandatory by default. It can only be bypassed with
-the `--skip-smoke-gate` flag, which records `smokeGate.status = "SKIP"` in the checkpoint. When
-`--skip-smoke-gate` is set, the integrity gate evaluates only Steps 1-4 (compile, test, coverage).
+**EPIC-0042 change:** The `--skip-smoke-gate` flag has been removed. Smoke gate is now mandatory
+when `{{SMOKE_COMMAND}}` is configured. The integrity gate always evaluates all 5 steps (compile, test, coverage, smoke).
 When not set, the smoke gate (Step 5) must also pass for the overall integrity gate to pass.
 
 > **Note:** Each story already executes its own smoke gate via `x-story-implement` (Phase 2.5).
@@ -1525,7 +1557,30 @@ The report is updated incrementally as each story completes, not only at the end
 2. At the end of all phases: generate the final version with all metrics resolved
 3. The incremental report allows real-time progress monitoring during epic execution
 
-### 2.3 Checkpoint Finalization
+### 2.3 Epic Review Summary (EPIC-0042)
+
+After all story reviews are collected and before checkpoint finalization, emit an aggregated review summary to the terminal:
+
+```
+============================================================
+ EPIC REVIEW SUMMARY — EPIC-XXXX
+============================================================
+
+ | Story          | Specialist | Tech Lead | Tests  | Smoke  | Status |
+ |----------------|------------|-----------|--------|--------|--------|
+ | STORY-XXXX-001 | XX/YYY     | XX/ZZZ    | PASS   | PASS   | GO     |
+ | STORY-XXXX-002 | XX/YYY     | XX/ZZZ    | PASS   | PASS   | GO     |
+ | ...            | ...        | ...       | ...    | ...    | ...    |
+
+ Overall: N/M GO | K NO-GO
+============================================================
+```
+
+Replace placeholders with actual values from each story's review dashboard and tech lead report. For stories that skipped reviews (via `--skip-review`), show `SKIPPED` in the Specialist and Tech Lead columns. For stories with status FAILED or BLOCKED, show `--` for review columns and the actual status in the Status column.
+
+This summary MUST also be included in the epic execution report saved at `plans/epic-{epicId}/epic-execution-report.md` as an "Epic Review Summary" section.
+
+### 2.4 Checkpoint Finalization
 
 After report generation completes, persist final state:
 
@@ -1626,18 +1681,24 @@ Scan all story PRs in the epic for unresolved review comments:
    - Record `prCommentRemediation.status = "SKIPPED"`, `fixesApplied = 0`
    - Skip to Completion Output
 
-### 4.2 Dry-Run First
+### 4.2 Dry-Run + Auto-Apply (EPIC-0042)
 
-When comments are found, invoke `x-pr-fix-epic` in dry-run mode first via the Skill tool (Rule 13 — INLINE-SKILL pattern):
+**Default behavior (auto-apply):** When comments are found, invoke `x-pr-fix-epic` in
+dry-run mode first via the Skill tool (Rule 13 — INLINE-SKILL pattern):
 
     Skill(skill: "x-pr-fix-epic", args: "{epicId} --dry-run")
 
-This generates a consolidated findings report at `plans/epic-{epicId}/reports/pr-comments-report.md`
-without applying any fixes. Record `prCommentRemediation.status = "DRY_RUN"`.
+This generates a consolidated findings report at `plans/epic-{epicId}/reports/pr-comments-report.md`.
+Log: `"PR comment dry-run complete: {commentCount} actionable findings across {prCount} PRs (EPIC-0042)"`
 
-### 4.3 User Confirmation
+Then automatically proceed to apply fixes (Step 4.4) without user confirmation. Log:
+`"Auto-applying PR comment fixes (EPIC-0042)"`
 
-Present the dry-run report to the user and ask for confirmation using `AskUserQuestion`:
+### 4.3 User Confirmation (only with `--dry-run-only-comments`) (EPIC-0042)
+
+**Opt-out flag `--dry-run-only-comments` (EPIC-0042):** When `--dry-run-only-comments` is
+present, the dry-run report is generated but fixes are NOT auto-applied. Instead, present
+the report to the user and ask for confirmation using `AskUserQuestion`:
 
 ```
 question: "PR comment report generated. {commentCount} actionable findings across {prCount} PRs. Apply fixes?"
@@ -1652,9 +1713,6 @@ multiSelect: false
 
 - **"Apply fixes"**: proceed to Step 4.4
 - **"Skip"**: Record `prCommentRemediation.status = "DRY_RUN"` (report saved, no fixes applied). Log: `"PR comment remediation: dry-run report saved, fixes not applied"`
-
-**Auto-merge bypass:** When `--auto-merge` is set, skip the user confirmation and
-proceed directly to Step 4.4. Log: `"--auto-merge: applying PR comment fixes without confirmation"`
 
 ### 4.4 Apply Fixes
 
@@ -1798,7 +1856,7 @@ Templates referenced by this skill follow RULE-012. When a template file does no
 - All `{{PLACEHOLDER}}` tokens are runtime markers filled by the AI agent from project configuration — they are NOT resolved during generation
 - Integrity gate runs on `develop` after all phase PRs are merged (RULE-006 — Gate Enforcement); uses `mainShaBeforePhase` for diff
 - Integrity gate includes smoke tests (Step 5) as regression validation — runs `{{SMOKE_COMMAND}}`
-- Smoke gate is bypassed with `--skip-smoke-gate` flag; result recorded as `smokeGate.status = "SKIP"` in checkpoint
+- Smoke gate is MANDATORY (EPIC-0042); `--skip-smoke-gate` has been removed. Smoke failures must be fixed before advancing.
 - Auto-rebase (Section 1.4e, RULE-011) triggers after each PR merge to keep remaining PRs up-to-date
 - Conflict resolution (Section 1.4c, RULE-012) dispatches subagent for automatic rebase conflict resolution
 - `--single-pr` preserves legacy flow: epic branch + single mega-PR (all per-story PR logic is skipped)
