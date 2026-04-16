@@ -1,5 +1,7 @@
 package dev.iadev.domain.model;
 
+import java.util.Locale;
+
 /**
  * Release flow classifier consumed by the telemetry
  * schema (story-0039-0012 §5.1) and by story-0039-0014
@@ -20,7 +22,7 @@ public enum ReleaseType {
      * @return {@code "release"} or {@code "hotfix"}
      */
     public String wireValue() {
-        return name().toLowerCase();
+        return name().toLowerCase(Locale.ROOT);
     }
 
     /**

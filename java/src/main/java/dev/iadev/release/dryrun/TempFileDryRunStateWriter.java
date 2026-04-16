@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -37,6 +38,7 @@ public final class TempFileDryRunStateWriter
      */
     @Override
     public Path create(String version) {
+        Objects.requireNonNull(version, "version");
         try {
             Path path = createSecureTempFile();
             Files.writeString(path,
@@ -84,7 +86,41 @@ public final class TempFileDryRunStateWriter
     }
 
     private static String escape(String value) {
-        return value.replace("\\", "\\\\")
-                .replace("\"", "\\\"");
+        StringBuilder escaped =
+                new StringBuilder(value.length());
+        for (int i = 0; i < value.length(); i++) {
+            char ch = value.charAt(i);
+            switch (ch) {
+                case '"':
+                    escaped.append("\\\"");
+                    break;
+                case '\\':
+                    escaped.append("\\\\");
+                    break;
+                case '\b':
+                    escaped.append("\\b");
+                    break;
+                case '\f':
+                    escaped.append("\\f");
+                    break;
+                case '\n':
+                    escaped.append("\\n");
+                    break;
+                case '\r':
+                    escaped.append("\\r");
+                    break;
+                case '\t':
+                    escaped.append("\\t");
+                    break;
+                default:
+                    if (ch < 0x20) {
+                        escaped.append(String.format(
+                                "\\u%04x", (int) ch));
+                    } else {
+                        escaped.append(ch);
+                    }
+            }
+        }
+        return escaped.toString();
     }
 }

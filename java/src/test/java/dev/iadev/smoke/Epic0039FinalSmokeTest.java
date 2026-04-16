@@ -173,19 +173,20 @@ class Epic0039FinalSmokeTest {
 
     @Test
     @DisplayName(
-            "CHANGELOG [Unreleased] narrates S01 + S03..S15")
+            "CHANGELOG ([Unreleased] or topmost [X.Y.Z]) "
+                    + "narrates S01 + S03..S15")
     void smoke_changelogCoversAllStories() {
         Path repoRoot = repoRoot();
         Path changelog = repoRoot.resolve("CHANGELOG.md");
         assertThat(changelog).exists().isRegularFile();
         String content = readUtf8(changelog);
-        String unreleased = extractUnreleasedSection(content);
-        assertThat(unreleased)
-                .as("CHANGELOG [Unreleased] section appears empty")
+        String window = extractCurrentReleaseWindow(content);
+        assertThat(window)
+                .as("CHANGELOG release window appears empty")
                 .isNotBlank();
         for (String marker : CHANGELOG_STORY_MARKERS) {
-            assertThat(unreleased)
-                    .as("CHANGELOG [Unreleased] missing %s", marker)
+            assertThat(window)
+                    .as("CHANGELOG release window missing %s", marker)
                     .contains(marker);
         }
     }
@@ -261,5 +262,33 @@ class Epic0039FinalSmokeTest {
             return content.substring(start);
         }
         return content.substring(start, next);
+    }
+
+    /**
+     * Returns the concatenation of the {@code [Unreleased]} block and
+     * the topmost versioned block ({@code [X.Y.Z]}).
+     *
+     * <p>Resilient to the release lifecycle: pre-cut the entries live in
+     * {@code [Unreleased]}; immediately after a release, the entries
+     * have been promoted to a {@code [X.Y.Z]} section while
+     * {@code [Unreleased]} is empty. Either layout satisfies the smoke
+     * goal of "stories are documented in the current release window".
+     */
+    private static String extractCurrentReleaseWindow(String content) {
+        String unreleased = extractUnreleasedSection(content);
+        int unreleasedStart = content.indexOf("## [Unreleased]");
+        int searchFrom = unreleasedStart < 0
+                ? 0
+                : content.indexOf("\n## [", unreleasedStart + 1);
+        if (searchFrom < 0) {
+            return unreleased;
+        }
+        int topVersionStart = searchFrom + 1;
+        int topVersionEnd = content.indexOf(
+                "\n## [", topVersionStart + 1);
+        String topVersion = topVersionEnd < 0
+                ? content.substring(topVersionStart)
+                : content.substring(topVersionStart, topVersionEnd);
+        return unreleased + "\n" + topVersion;
     }
 }

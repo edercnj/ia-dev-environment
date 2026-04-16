@@ -51,6 +51,25 @@ class VersionExtractorTest {
     }
 
     @Test
+    @DisplayName("extractPomVersionFromContent_parentVersionBeforeProjectVersion_returnsProjectVersion")
+    void extractPomVersionFromContent_parentVersionBeforeProjectVersion_returnsProjectVersion() {
+        String pom = "<project>"
+                + "<modelVersion>4.0.0</modelVersion>"
+                + "<parent>"
+                + "<groupId>dev.iadev</groupId>"
+                + "<artifactId>parent</artifactId>"
+                + "<version>1.0.0</version>"
+                + "</parent>"
+                + "<artifactId>child</artifactId>"
+                + "<version>2.5.0</version>"
+                + "</project>";
+
+        String v = VersionExtractor.extractPomVersionFromContent(pom);
+
+        assertThat(v).isEqualTo("2.5.0");
+    }
+
+    @Test
     @DisplayName("normalize_leadingVUppercase_stripped")
     void normalize_leadingVUppercase_stripped() {
         assertThat(VersionExtractor.normalize("V1.2.3")).isEqualTo("1.2.3");

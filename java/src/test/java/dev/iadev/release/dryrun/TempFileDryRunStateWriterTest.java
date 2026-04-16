@@ -1,11 +1,14 @@
 package dev.iadev.release.dryrun;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
@@ -13,6 +16,7 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Unit tests for {@link TempFileDryRunStateWriter}.
@@ -78,6 +82,46 @@ class TempFileDryRunStateWriterTest {
                             + System.nanoTime() + ".json");
 
             writer.delete(missing);
+        }
+    }
+
+    @Nested
+    @DisplayName("contract — escape correctness + null version")
+    class EscapeAndNullContract {
+
+        @Test
+        @DisplayName("create_versionWithSpecialChars"
+                + "_writesValidEscapedJson")
+        void create_versionWithSpecialChars_writesValidEscapedJson()
+                throws Exception {
+            TempFileDryRunStateWriter writer =
+                    new TempFileDryRunStateWriter();
+            String tricky = "1.0.0\"\\\b\f\n\r\t\u0001";
+            Path created = writer.create(tricky);
+
+            try {
+                String content = Files.readString(
+                        created, StandardCharsets.UTF_8);
+
+                JsonNode node = new ObjectMapper().readTree(content);
+                assertThat(node.get("dryRun").asBoolean()).isTrue();
+                assertThat(node.get("version").asText())
+                        .isEqualTo(tricky);
+            } finally {
+                writer.delete(created);
+            }
+        }
+
+        @Test
+        @DisplayName("create_nullVersion"
+                + "_throwsNullPointerException")
+        void create_nullVersion_throwsNullPointerException() {
+            TempFileDryRunStateWriter writer =
+                    new TempFileDryRunStateWriter();
+
+            assertThatThrownBy(() -> writer.create(null))
+                    .isInstanceOf(NullPointerException.class)
+                    .hasMessageContaining("version");
         }
     }
 
