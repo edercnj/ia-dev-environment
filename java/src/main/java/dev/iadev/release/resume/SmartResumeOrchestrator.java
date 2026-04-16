@@ -60,14 +60,18 @@ public final class SmartResumeOrchestrator {
      * Builds a user-facing display string matching the
      * format specified in story-0039-0008 §5.2.
      *
-     * @param state the detected in-flight state
+     * @param state         the detected in-flight state
+     * @param hasNewCommits whether new commits exist since
+     *                      the base tag (controls option [3])
      * @return formatted display string
      */
     public static String buildPromptDisplay(
-            DetectedState state) {
+            DetectedState state,
+            boolean hasNewCommits) {
         String age = StateFileDetector
                 .formatAge(state.staleDuration());
-        return """
+        StringBuilder sb = new StringBuilder();
+        sb.append("""
                 Release in progress detected:
                   Version: %s (from %s)
                   Phase: %s
@@ -75,15 +79,19 @@ public final class SmartResumeOrchestrator {
 
                 What would you like to do?
                   [1] Resume from %s
-                  [2] Abort release %s (full cleanup)
-                  [3] Start new release (discard state)\
+                  [2] Abort release %s (full cleanup)\
                 """.formatted(
                 state.version(),
                 state.previousVersion(),
                 state.phase(),
                 age,
                 state.phase(),
-                state.version());
+                state.version()));
+        if (hasNewCommits) {
+            sb.append("\n  [3] Start new release"
+                    + " (discard state)");
+        }
+        return sb.toString();
     }
 
     private ResumeDecision buildPromptDecision(

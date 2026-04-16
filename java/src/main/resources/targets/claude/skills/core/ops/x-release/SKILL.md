@@ -177,7 +177,7 @@ else:
             # Interactive mode: detect state and prompt
             STATE = read state file fields (version, phase, previousVersion, lastPhaseCompletedAt)
             AGE   = now() - lastPhaseCompletedAt
-            HAS_NEW_COMMITS = git log "${STATE.previousVersion}..HEAD" --oneline | wc -l > 0
+            HAS_NEW_COMMITS = (git log "${STATE.previousVersion}..HEAD" --oneline | wc -l) > 0
 
             # Build prompt options
             OPTIONS = [RESUME, ABORT]

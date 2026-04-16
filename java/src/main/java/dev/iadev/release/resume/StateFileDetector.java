@@ -10,7 +10,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -89,24 +91,36 @@ public final class StateFileDetector {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+        files.sort(Comparator.comparing(
+                p -> p.getFileName().toString()));
         return files;
     }
 
     private boolean isSafePath(Path file) {
-        Path normalized = file.normalize().toAbsolutePath();
-        Path base = plansDir.normalize().toAbsolutePath();
-        return normalized.startsWith(base);
+        try {
+            if (Files.isSymbolicLink(file)) {
+                return false;
+            }
+            Path base = plansDir.toRealPath();
+            Path realFile = file.toRealPath();
+            return realFile.startsWith(base);
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     private Optional<DetectedState> parse(Path file) {
         try {
             JsonNode root = MAPPER.readTree(file.toFile());
             String phase = textOrNull(root, "phase");
+            String version =
+                    textOrNull(root, "version");
+            if (phase == null || version == null) {
+                return Optional.empty();
+            }
             if (COMPLETED.equals(phase)) {
                 return Optional.empty();
             }
-            String version =
-                    textOrNull(root, "version");
             String previousVersion =
                     textOrNull(root, "previousVersion");
             String lastCompleted =
@@ -135,9 +149,14 @@ public final class StateFileDetector {
         if (isoTimestamp == null) {
             return Duration.ZERO;
         }
-        Instant lastCompleted =
-                Instant.parse(isoTimestamp);
-        return Duration.between(lastCompleted, Instant.now());
+        try {
+            Instant lastCompleted =
+                    Instant.parse(isoTimestamp);
+            return Duration.between(
+                    lastCompleted, Instant.now());
+        } catch (DateTimeParseException e) {
+            return Duration.ZERO;
+        }
     }
 
     private static String buildAgeString(

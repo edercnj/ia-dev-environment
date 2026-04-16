@@ -194,7 +194,8 @@ class SmartResumeSmokeTest {
 
         assertThat(detected).isPresent();
         String display = SmartResumeOrchestrator
-                .buildPromptDisplay(detected.get());
+                .buildPromptDisplay(
+                        detected.get(), true);
 
         assertThat(display).contains("3.2.0");
         assertThat(display).contains("v3.1.0");

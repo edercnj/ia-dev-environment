@@ -13,7 +13,7 @@ import java.time.Duration;
  * @param phase           the current phase (e.g. "APPROVAL_PENDING")
  * @param previousVersion the base tag (e.g. "v3.1.0")
  * @param staleDuration   time since {@code lastPhaseCompletedAt}
- * @param stateFilePath   absolute path to the state file
+ * @param stateFilePath   path to the state file (absolute or relative)
  */
 public record DetectedState(
         String version,

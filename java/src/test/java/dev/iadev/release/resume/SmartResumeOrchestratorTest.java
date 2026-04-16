@@ -162,7 +162,8 @@ class SmartResumeOrchestratorTest {
 
             String display =
                     SmartResumeOrchestrator
-                            .buildPromptDisplay(state);
+                            .buildPromptDisplay(
+                                    state, true);
 
             assertThat(display)
                     .contains("3.2.0")
@@ -179,12 +180,31 @@ class SmartResumeOrchestratorTest {
 
             String display =
                     SmartResumeOrchestrator
-                            .buildPromptDisplay(state);
+                            .buildPromptDisplay(
+                                    state, true);
 
             assertThat(display)
                     .contains("Resume")
                     .contains("Abort")
+                    .contains("Start new release")
                     .contains("APPROVAL_PENDING");
+        }
+
+        @Test
+        @DisplayName("displayHidesStartNew"
+                + " when noNewCommits")
+        void buildPromptDisplay_hidesStartNew() {
+            DetectedState state = activeState();
+
+            String display =
+                    SmartResumeOrchestrator
+                            .buildPromptDisplay(
+                                    state, false);
+
+            assertThat(display)
+                    .contains("Resume")
+                    .contains("Abort")
+                    .doesNotContain("Start new release");
         }
     }
 

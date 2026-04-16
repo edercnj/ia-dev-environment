@@ -13,7 +13,6 @@ import java.time.Instant;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Unit tests for {@link StateFileDetector}.
@@ -151,18 +150,28 @@ class StateFileDetectorTest {
         }
 
         @Test
-        @DisplayName("pathTraversal_rejected"
+        @DisplayName("symlinkStateFile_rejected"
                 + " (security — CWE-22)")
-        void detect_pathTraversalRejected()
+        void detect_symlinkStateFile_rejected()
                 throws IOException {
             Path plansDir = tempDir.resolve("plans");
             Files.createDirectories(plansDir);
-            // Create a file with traversal in name
-            Path malicious = plansDir.resolve(
-                    "release-state-../../etc/passwd.json");
-            // The detector should not follow traversal
-            // patterns — it only reads files matching
-            // the glob in the plans directory
+            // Create a real state file outside plansDir
+            Path outsideDir =
+                    tempDir.resolve("outside");
+            Files.createDirectories(outsideDir);
+            Path realFile = outsideDir.resolve(
+                    "release-state-3.2.0.json");
+            writeStateFile(outsideDir,
+                    "release-state-3.2.0.json",
+                    "APPROVAL_PENDING", "3.2.0",
+                    "v3.1.0",
+                    Instant.now().minusSeconds(3600));
+            // Create a symlink inside plansDir pointing
+            // to the file outside the safe base directory
+            Path symlink = plansDir.resolve(
+                    "release-state-3.2.0.json");
+            Files.createSymbolicLink(symlink, realFile);
 
             StateFileDetector detector =
                     new StateFileDetector(plansDir);
@@ -187,6 +196,62 @@ class StateFileDetectorTest {
                     detector.detect();
 
             assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("missingRequiredFields_returnsEmpty"
+                + " (boundary — null phase/version)")
+        void detect_missingRequiredFields_returnsEmpty()
+                throws IOException {
+            Path plansDir = tempDir.resolve("plans");
+            Files.createDirectories(plansDir);
+            // Write state file without phase or version
+            String json = """
+                    {
+                      "schemaVersion": 2,
+                      "branch": "release/3.2.0"
+                    }
+                    """;
+            Files.writeString(plansDir.resolve(
+                    "release-state-3.2.0.json"), json);
+
+            StateFileDetector detector =
+                    new StateFileDetector(plansDir);
+
+            Optional<DetectedState> result =
+                    detector.detect();
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("malformedTimestamp_fallsBackToZero"
+                + " (boundary — DateTimeParseException)")
+        void detect_malformedTimestamp_fallsBack()
+                throws IOException {
+            Path plansDir = tempDir.resolve("plans");
+            Files.createDirectories(plansDir);
+            String json = """
+                    {
+                      "schemaVersion": 2,
+                      "version": "3.2.0",
+                      "phase": "APPROVAL_PENDING",
+                      "previousVersion": "v3.1.0",
+                      "lastPhaseCompletedAt": "not-a-date"
+                    }
+                    """;
+            Files.writeString(plansDir.resolve(
+                    "release-state-3.2.0.json"), json);
+
+            StateFileDetector detector =
+                    new StateFileDetector(plansDir);
+
+            Optional<DetectedState> result =
+                    detector.detect();
+
+            assertThat(result).isPresent();
+            assertThat(result.get().staleDuration())
+                    .isEqualTo(Duration.ZERO);
         }
     }
 
