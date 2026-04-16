@@ -6,8 +6,9 @@ import java.nio.file.Path;
  * Port managing the dummy state file written during an
  * interactive dry-run (story-0039-0013 §3.1).
  *
- * <p>The state file lives under {@code /tmp} with POSIX
- * 0600 permissions and is always deleted in
+ * <p>The state file lives in the OS temporary directory
+ * with restrictive permissions such as {@code 0600}
+ * where supported, and is always deleted in
  * {@link #delete(Path)}, even when the simulation is
  * aborted.
  */

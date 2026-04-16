@@ -23,26 +23,26 @@ public final class DryRunSummaryFormatter {
         StringBuilder sb = new StringBuilder();
         sb.append("=== DRY-RUN SUMMARY ===\n");
         sb.append(String.format(
-                "Versao simulada:    %s%n",
+                "Simulated version:  %s%n",
                 summary.version()));
         sb.append(String.format(
-                "Fases simuladas:    %d / %d%n",
+                "Simulated phases:   %d / %d%n",
                 summary.simulatedCount(),
                 summary.totalPhases()));
         sb.append(String.format(
-                "Fases puladas:      %d%n",
+                "Skipped phases:     %d%n",
                 summary.skippedCount()));
         if (summary.aborted()) {
             sb.append(String.format(
-                    "Fases nao alcancadas: %d (aborted)%n",
+                    "Unreached phases:  %d (aborted)%n",
                     summary.notReachedCount()));
         }
         sb.append(String.format(
-                "Comandos previstos: %d (nenhum executado)%n",
+                "Predicted commands: %d (none executed)%n",
                 summary.predictedCommands()));
-        sb.append("\nMODO DRY-RUN — "
-                + "nenhum efeito colateral foi aplicado.\n");
-        sb.append("State dummy descartado.\n");
+        sb.append("\nDRY-RUN MODE — "
+                + "no side effects were applied.\n");
+        sb.append("Dummy state discarded.\n");
         return sb.toString();
     }
 }

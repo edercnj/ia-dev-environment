@@ -74,8 +74,9 @@ public final class DryRunInteractiveExecutor {
                 results.add(notReached(phase));
                 continue;
             }
-            DryRunPromptChoice choice = promptPort
-                    .promptForPhase(phase, i + 1, total);
+            DryRunPromptChoice choice = Objects.requireNonNull(
+                    promptPort.promptForPhase(phase, i + 1, total),
+                    "promptPort.promptForPhase(...) returned null");
             DryRunPhaseOutcome outcome = mapChoice(choice);
             results.add(new DryRunPhaseResult(
                     phase.name(), outcome, phase.commands()));
@@ -140,6 +141,7 @@ public final class DryRunInteractiveExecutor {
         for (int i = 0; i < results.size(); i++) {
             DryRunPhaseResult r = results.get(i);
             if (r.outcome() == DryRunPhaseOutcome.SIMULATED
+                    || r.outcome() == DryRunPhaseOutcome.SKIPPED
                     || r.outcome() == DryRunPhaseOutcome.ABORTED) {
                 sum += phases.get(i).commands().size();
             }

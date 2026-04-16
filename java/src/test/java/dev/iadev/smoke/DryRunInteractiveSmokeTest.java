@@ -91,8 +91,8 @@ class DryRunInteractiveSmokeTest {
             assertThat(summary.simulatedCount()).isEqualTo(13);
             assertThat(formatted).contains("13 / 13");
             assertThat(formatted).contains(
-                    "MODO DRY-RUN — "
-                            + "nenhum efeito colateral foi aplicado");
+                    "DRY-RUN MODE — "
+                            + "no side effects were applied");
             assertThat(observer.externalCalls).isEmpty();
         }
     }

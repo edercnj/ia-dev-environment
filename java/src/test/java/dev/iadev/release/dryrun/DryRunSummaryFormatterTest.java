@@ -28,8 +28,8 @@ class DryRunSummaryFormatterTest {
         assertThat(output).contains("13 / 13");
         assertThat(output).contains("47");
         assertThat(output).contains(
-                "MODO DRY-RUN — "
-                        + "nenhum efeito colateral foi aplicado");
+                "DRY-RUN MODE — "
+                        + "no side effects were applied");
     }
 
     @Test

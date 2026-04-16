@@ -2153,27 +2153,27 @@ with exit code 1 and error code `INTERACTIVE_REQUIRES_DRYRUN`
 **Per-phase prompt (3 options):**
 
 ```
-=== PROXIMA FASE: VALIDATED (3/13) ===
-Comandos que seriam executados:
+=== NEXT PHASE: VALIDATED (3/13) ===
+Commands that would be executed:
   - mvn clean verify -Pall-tests
   - parse coverage report
   - golden file tests
   - hardcoded version scan
   - cross-file version consistency
 
-Continuar simulacao?
-  1) Continuar
-  2) Pular fase
-  3) Abortar simulacao
+Continue simulation?
+  1) Continue
+  2) Skip phase
+  3) Abort simulation
 ```
 
 **Per-choice behavior:**
 
 | Choice | Outcome | Effect |
 | :--- | :--- | :--- |
-| `Continuar` | `SIMULATED` | advance to next phase |
-| `Pular fase` | `SKIPPED` | mark current phase SKIPPED, advance |
-| `Abortar simulacao` | `ABORTED` | stop loop, emit partial summary, exit 0 |
+| `Continue` | `SIMULATED` | advance to next phase |
+| `Skip phase` | `SKIPPED` | mark current phase SKIPPED, advance |
+| `Abort simulation` | `ABORTED` | stop loop, emit partial summary, exit 0 |
 
 **State file isolation:**
 
@@ -2194,13 +2194,13 @@ contract: see TASK-0039-0013-003.
 
 ```
 === DRY-RUN SUMMARY ===
-Versao simulada:    3.2.0
-Fases simuladas:    11 / 13
-Fases puladas:      2
-Comandos previstos: 47 (nenhum executado)
+Simulated version:  3.2.0
+Simulated phases:   11 / 13
+Skipped phases:     2
+Predicted commands: 47 (none executed)
 
-MODO DRY-RUN — nenhum efeito colateral foi aplicado.
-State dummy descartado.
+DRY-RUN MODE — no side effects were applied.
+Dummy state discarded.
 ```
 
 **Error:** `INTERACTIVE_REQUIRES_DRYRUN` (exit 1) — raised by
