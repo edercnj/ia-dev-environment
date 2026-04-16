@@ -56,7 +56,7 @@ public final class HooksAssembler implements Assembler {
      * (story-0040-0004). Sourced from
      * {@code targets/claude/hooks/telemetry-*.sh}.
      */
-    static final List<String> TELEMETRY_SCRIPTS = List.of(
+    public static final List<String> TELEMETRY_SCRIPTS = List.of(
             "telemetry-emit.sh",
             "telemetry-lib.sh",
             "telemetry-session.sh",
