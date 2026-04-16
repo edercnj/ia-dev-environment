@@ -139,19 +139,40 @@ Determine if this requires a Full Plan, Simplified Plan, or Skip:
 
 ### Step 5 — Read Knowledge Packs
 
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-arch-plan Phase-1-KP-Read`
+
 Read knowledge packs **in order** before generating the architecture plan. For Simplified Plan, read only Architecture KP + KPs relevant to affected sections.
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-arch-plan Phase-1-KP-Read ok`
+
 ### Step 6 — Review Existing Architecture
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-arch-plan Phase-2-Component-Diagram`
 
 - Check for existing architecture documents in `steering/`
 - Review current codebase structure to understand the baseline
 - Identify what is new vs. what is changing
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-arch-plan Phase-2-Component-Diagram ok`
+
 ### Step 7 — Generate Architecture Plan
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-arch-plan Phase-3-Sequence-Diagrams`
 
 Launch a **single** `general-purpose` subagent with `model: opus` for deep architectural reasoning (RULE-009). Generate ALL mandatory sections.
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-arch-plan Phase-3-Sequence-Diagrams ok`
+
 ### Step 8 — Validate Sections Post-Generation
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-arch-plan Phase-4-ADR-Mini`
 
 ```
 1. Parse the generated document for H2 headings (## Section Name)
@@ -165,6 +186,9 @@ Launch a **single** `general-purpose` subagent with `model: opus` for deep archi
    - All present: "Architecture plan: 13/13 sections present"
    - Some missing: "Architecture plan: X/Y applicable sections present, Z conditional skipped"
 ```
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-arch-plan Phase-4-ADR-Mini ok`
 
 ## Mandatory Sections (13)
 
