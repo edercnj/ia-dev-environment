@@ -671,4 +671,61 @@ class ProjectConfigTest {
                             explicitConfig.baseBranch());
         }
     }
+
+    @Nested
+    @DisplayName("telemetryEnabled field")
+    class TelemetryEnabledField {
+
+        @Test
+        @DisplayName("defaults to true when absent")
+        void fromMap_noTelemetry_defaultsToTrue() {
+            var config = ProjectConfig.fromMap(
+                    buildMinimalConfig());
+
+            assertThat(config.telemetryEnabled()).isTrue();
+        }
+
+        @Test
+        @DisplayName("explicit true resolves to true")
+        void fromMap_telemetryTrue_returnsTrue() {
+            var map = new HashMap<>(buildMinimalConfig());
+            map.put("telemetry", Map.of("enabled", true));
+
+            var config = ProjectConfig.fromMap(map);
+
+            assertThat(config.telemetryEnabled()).isTrue();
+        }
+
+        @Test
+        @DisplayName("explicit false resolves to false")
+        void fromMap_telemetryFalse_returnsFalse() {
+            var map = new HashMap<>(buildMinimalConfig());
+            map.put("telemetry", Map.of("enabled", false));
+
+            var config = ProjectConfig.fromMap(map);
+
+            assertThat(config.telemetryEnabled()).isFalse();
+        }
+
+        @Test
+        @DisplayName("telemetry section absent defaults to true")
+        void fromMap_telemetrySectionAbsent_defaultsToTrue() {
+            var map = new HashMap<>(buildFullConfig());
+
+            var config = ProjectConfig.fromMap(map);
+
+            assertThat(config.telemetryEnabled()).isTrue();
+        }
+
+        @Test
+        @DisplayName("enabled key absent defaults to true")
+        void fromMap_telemetryEnabledKeyAbsent_defaultsTrue() {
+            var map = new HashMap<>(buildMinimalConfig());
+            map.put("telemetry", Map.of());
+
+            var config = ProjectConfig.fromMap(map);
+
+            assertThat(config.telemetryEnabled()).isTrue();
+        }
+    }
 }
