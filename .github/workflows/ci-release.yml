@@ -1,0 +1,215 @@
+# CI + Release pipeline.
+#
+#   on PR to develop/main/release/**   -> test + dependency-review
+#   on push to develop/main/release/** -> test
+#   on tag v*                          -> test + publish + release-assets + smoke
+#
+# Required repo secrets / settings:
+#   - CODECOV_TOKEN  (free for public repos; https://app.codecov.io)
+#   - GitHub Packages must be enabled for the repo (default: yes)
+#   - All other tokens (GITHUB_TOKEN, id-token, attestations) are built-in.
+
+name: CI / Release
+
+on:
+  push:
+    branches: [develop, main, "release/**"]
+    tags: ["v*"]
+  pull_request:
+    branches: [develop, main, "release/**"]
+
+defaults:
+  run:
+    working-directory: java
+    shell: bash
+
+jobs:
+  test:
+    name: Build + verify (mvn -B verify)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 21 (Temurin) + Maven cache
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: mvn -B verify
+        run: mvn -B verify
+
+      - name: Upload JaCoCo report (artifact, retention 7d)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report-${{ github.run_id }}
+          path: java/target/site/jacoco/
+          retention-days: 7
+
+      - name: Upload coverage to Codecov
+        if: success()
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: java/target/site/jacoco/jacoco.xml
+          flags: unit
+          fail_ci_if_error: false
+
+  dependency-review:
+    name: Dependency review (PR only)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Review new dependencies for CVEs / license issues
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: on-failure
+
+  publish:
+    name: Publish to GitHub Packages (tag only)
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # server-id=github wires ~/.m2/settings.xml so `mvn deploy`
+      # authenticates to GitHub Packages with the workflow token.
+      - name: Setup JDK 21 + Maven settings (server-id=github)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          server-id: github
+          server-username: GITHUB_ACTOR
+          server-password: GITHUB_TOKEN
+
+      - name: mvn -B -DskipTests deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: mvn -B -DskipTests deploy
+
+      - name: Stash uber-jar + SBOM for downstream jobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts-${{ github.ref_name }}
+          path: |
+            java/target/ia-dev-env-*.jar
+            java/target/bom.json
+          retention-days: 1
+          if-no-files-found: error
+
+  release-assets:
+    name: Attach assets + provenance to GitHub Release (tag only)
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write       # create / upload to GitHub Release
+      id-token: write       # OIDC for SLSA + cosign keyless
+      attestations: write   # SLSA build provenance attestation
+    steps:
+      - name: Checkout (for default release notes)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-artifacts-${{ github.ref_name }}
+          path: artifacts/
+
+      - name: Generate SLSA build-provenance attestation
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: "artifacts/ia-dev-env-*.jar"
+
+      - name: Install cosign (Sigstore keyless)
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign uber-jar with cosign keyless (OIDC)
+        working-directory: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          JAR=$(ls artifacts/ia-dev-env-*.jar | head -1)
+          cosign sign-blob --yes \
+            --output-signature "${JAR}.sig" \
+            --output-certificate "${JAR}.crt" \
+            "${JAR}"
+
+      - name: Ensure GitHub Release exists for ${{ github.ref_name }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          if ! gh release view "${{ github.ref_name }}" >/dev/null 2>&1; then
+            gh release create "${{ github.ref_name }}" \
+              --title "${{ github.ref_name }}" \
+              --generate-notes \
+              --verify-tag
+          fi
+
+      - name: Upload uber-jar + SBOM + cosign artifacts to Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          gh release upload "${{ github.ref_name }}" \
+            artifacts/ia-dev-env-*.jar \
+            artifacts/ia-dev-env-*.jar.sig \
+            artifacts/ia-dev-env-*.jar.crt \
+            artifacts/bom.json \
+            --clobber
+
+  smoke:
+    name: Smoke test downloaded JAR (tag only)
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: release-assets
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Download uber-jar from GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          mkdir -p smoke
+          gh release download "${{ github.ref_name }}" \
+            --pattern 'ia-dev-env-*.jar' \
+            --dir smoke
+          ls -la smoke/
+
+      - name: Run --help on downloaded JAR
+        working-directory: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          JAR=$(ls smoke/ia-dev-env-*.jar | head -1)
+          java -jar "${JAR}" --help

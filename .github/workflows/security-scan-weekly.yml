@@ -1,0 +1,56 @@
+# Weekly security scan: filesystem + dependencies via Trivy.
+# Findings land in the GitHub Security tab as code scanning alerts.
+#
+# Why weekly + not blocking?
+#   - dependency-review-action already gates new CVEs at PR time
+#     (see ci-release.yml). Weekly catches transitive CVEs that
+#     surfaced AFTER merge in deps that didn't change.
+#   - Manual dispatch lets you re-run on demand.
+
+name: Weekly Security Scan
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"  # Mondays 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  trivy-fs:
+    name: Trivy filesystem scan (HIGH+CRITICAL)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write   # upload SARIF to Security tab
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 21 (so Trivy can resolve Maven deps)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Build target/ for scanning (no tests)
+        working-directory: java
+        run: mvn -B -DskipTests package
+
+      - name: Trivy scan (filesystem)
+        # 0.35.0 patches GHSA-69fq-xp46-6x23 (supply chain compromise
+        # affecting < 0.35.0). Do not downgrade.
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          scan-type: fs
+          scan-ref: java/
+          format: sarif
+          output: trivy.sarif
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true   # noise reduction: only actionable
+
+      - name: Upload SARIF to GitHub Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy.sarif
+          category: trivy-fs-weekly
