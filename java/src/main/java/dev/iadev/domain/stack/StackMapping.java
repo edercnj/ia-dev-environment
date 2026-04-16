@@ -204,18 +204,6 @@ public final class StackMapping {
             "csharp-dotnet", "csharp-dotnet"
     );
 
-    /** @deprecated Use {@link DatabaseSettingsMapping#DATABASE_SETTINGS_MAP} */
-    @Deprecated(forRemoval = true)
-    public static final Map<String, String>
-            DATABASE_SETTINGS_MAP =
-            DatabaseSettingsMapping.DATABASE_SETTINGS_MAP;
-
-    /** @deprecated Use {@link DatabaseSettingsMapping#CACHE_SETTINGS_MAP} */
-    @Deprecated(forRemoval = true)
-    public static final Map<String, String>
-            CACHE_SETTINGS_MAP =
-            DatabaseSettingsMapping.CACHE_SETTINGS_MAP;
-
     /** Returns hook template key, or empty string. */
     public static String getHookTemplateKey(
             String language, String buildTool) {
@@ -228,17 +216,5 @@ public final class StackMapping {
             String language, String buildTool) {
         return SETTINGS_LANG_MAP.getOrDefault(
                 language + "-" + buildTool, "");
-    }
-
-    /** @deprecated Use {@link DatabaseSettingsMapping#getDatabaseSettingsKey} */
-    @Deprecated(forRemoval = true)
-    public static String getDatabaseSettingsKey(String dbName) {
-        return DatabaseSettingsMapping.getDatabaseSettingsKey(dbName);
-    }
-
-    /** @deprecated Use {@link DatabaseSettingsMapping#getCacheSettingsKey} */
-    @Deprecated(forRemoval = true)
-    public static String getCacheSettingsKey(String cacheName) {
-        return DatabaseSettingsMapping.getCacheSettingsKey(cacheName);
     }
 }

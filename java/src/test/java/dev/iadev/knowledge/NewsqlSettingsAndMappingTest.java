@@ -3,7 +3,7 @@ package dev.iadev.knowledge;
 import dev.iadev.application.assembler.ConditionalCopyContext;
 import dev.iadev.application.assembler.RulesConditionals;
 import dev.iadev.domain.model.ProjectConfig;
-import dev.iadev.domain.stack.StackMapping;
+import dev.iadev.domain.stack.DatabaseSettingsMapping;
 import dev.iadev.template.TemplateEngine;
 import dev.iadev.testutil.TestConfigBuilder;
 
@@ -106,8 +106,8 @@ class NewsqlSettingsAndMappingTest {
     }
 
     @Nested
-    @DisplayName("StackMapping — NewSQL entries")
-    class StackMappingEntries {
+    @DisplayName("DatabaseSettingsMapping — NewSQL entries")
+    class DatabaseSettingsMappingEntries {
 
         @ParameterizedTest
         @CsvSource({
@@ -119,15 +119,16 @@ class NewsqlSettingsAndMappingTest {
         void getDatabaseSettingsKey_newsql_correct(
                 String dbName, String expected) {
             assertThat(
-                    StackMapping.getDatabaseSettingsKey(
-                            dbName))
+                    DatabaseSettingsMapping
+                            .getDatabaseSettingsKey(dbName))
                     .isEqualTo(expected);
         }
 
         @Test
         @DisplayName("DATABASE_SETTINGS_MAP has 17 entries")
         void databaseSettingsMap_hasSeventeenEntries() {
-            assertThat(StackMapping.DATABASE_SETTINGS_MAP)
+            assertThat(DatabaseSettingsMapping
+                    .DATABASE_SETTINGS_MAP)
                     .hasSize(17);
         }
     }

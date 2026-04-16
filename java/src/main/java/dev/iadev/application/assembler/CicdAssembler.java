@@ -237,6 +237,7 @@ public final class CicdAssembler implements Assembler {
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(CICD_TEMPLATES, 2);
+                .resolveResourceDir("shared")
+                .getParent();
     }
 }

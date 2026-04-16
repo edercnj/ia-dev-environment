@@ -39,7 +39,8 @@ class TelemetryContractDocsTest {
             assertThat(in)
                     .as("README must be packaged at " + README_CLASSPATH)
                     .isNotNull();
-            String body = new String(in.readAllBytes());
+            String body =
+                    new String(in.readAllBytes(), StandardCharsets.UTF_8);
             assertThat(body).isNotBlank();
         }
     }
@@ -91,33 +92,37 @@ class TelemetryContractDocsTest {
                 TelemetryContractDocsTest.class.getResourceAsStream(
                         README_CLASSPATH)) {
             assertThat(in).isNotNull();
-            return new String(in.readAllBytes());
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
         }
     }
 
     private static Path resolveRepoRoot() {
-        // Walk parents from the JVM cwd until a repository marker is found.
-        // Robust against IDE runs, Maven -f invocations, and Surefire
-        // working-directory overrides where cwd may be the repo root or a
-        // module subdirectory (e.g. java/).
         Path current =
                 Path.of(System.getProperty("user.dir"))
                         .toAbsolutePath()
                         .normalize();
-        while (current != null) {
-            if (isRepoRoot(current)) {
-                return current;
-            }
-            current = current.getParent();
-        }
-        throw new IllegalStateException(
-                "Could not locate repository root from user.dir="
-                        + System.getProperty("user.dir"));
-    }
 
-    private static boolean isRepoRoot(Path candidate) {
-        return Files.isRegularFile(candidate.resolve(".gitignore"))
-                && (Files.isDirectory(candidate.resolve("java"))
-                        || Files.isDirectory(candidate.resolve("shared")));
+        for (Path candidate = current;
+                candidate != null;
+                candidate = candidate.getParent()) {
+            if (Files.isRegularFile(candidate.resolve(".gitignore"))
+                    && Files.isDirectory(candidate.resolve("java"))) {
+                return candidate;
+            }
+
+            if ("java".equals(
+                    String.valueOf(candidate.getFileName()))) {
+                Path parent = candidate.getParent();
+                if (parent != null
+                        && Files.isRegularFile(
+                                parent.resolve(".gitignore"))) {
+                    return parent;
+                }
+            }
+        }
+
+        throw new IllegalStateException(
+                "Unable to locate repository root from user.dir="
+                        + System.getProperty("user.dir"));
     }
 }

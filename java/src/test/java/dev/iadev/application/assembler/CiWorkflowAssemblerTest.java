@@ -211,6 +211,7 @@ class CiWorkflowAssemblerTest {
 
     private static Path resolveResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot("shared/cicd-templates", 2);
+                .resolveResourceDir("shared")
+                .getParent();
     }
 }

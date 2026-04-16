@@ -4,7 +4,7 @@ import dev.iadev.application.assembler.RulesConditionals;
 import dev.iadev.application.assembler.ConditionalCopyContext;
 import dev.iadev.config.ContextBuilder;
 import dev.iadev.domain.model.ProjectConfig;
-import dev.iadev.domain.stack.StackMapping;
+import dev.iadev.domain.stack.DatabaseSettingsMapping;
 import dev.iadev.template.TemplateEngine;
 import dev.iadev.testutil.TestConfigBuilder;
 import dev.iadev.util.ResourceResolver;
@@ -35,8 +35,9 @@ class TimeseriesKnowledgeTest {
     private static final int MAX_LINES = 300;
 
     private Path resolveResourceDir() {
-        return ResourceResolver.resolveResourcesRoot(
-                "knowledge/databases", 2);
+        return ResourceResolver
+                .resolveResourceDir("shared")
+                .getParent();
     }
 
     @Nested
@@ -317,15 +318,15 @@ class TimeseriesKnowledgeTest {
     }
 
     @Nested
-    @DisplayName("StackMapping — timeseries DB entries")
-    class StackMappingEntries {
+    @DisplayName("DatabaseSettingsMapping — timeseries DB entries")
+    class DatabaseSettingsMappingEntries {
 
         @Test
         @DisplayName("DATABASE_SETTINGS_MAP contains"
                 + " influxdb entry")
         void databaseSettingsMap_influxdb_present() {
-            assertThat(StackMapping.getDatabaseSettingsKey(
-                    "influxdb"))
+            assertThat(DatabaseSettingsMapping
+                    .getDatabaseSettingsKey("influxdb"))
                     .isEqualTo("database-influxdb");
         }
 
@@ -333,8 +334,8 @@ class TimeseriesKnowledgeTest {
         @DisplayName("DATABASE_SETTINGS_MAP contains"
                 + " timescaledb entry")
         void databaseSettingsMap_timescaledb_present() {
-            assertThat(StackMapping.getDatabaseSettingsKey(
-                    "timescaledb"))
+            assertThat(DatabaseSettingsMapping
+                    .getDatabaseSettingsKey("timescaledb"))
                     .isEqualTo("database-timescaledb");
         }
 
@@ -342,7 +343,8 @@ class TimeseriesKnowledgeTest {
         @DisplayName("DATABASE_SETTINGS_MAP has 17 entries"
                 + " (all databases)")
         void databaseSettingsMap_size_seventeen() {
-            assertThat(StackMapping.DATABASE_SETTINGS_MAP)
+            assertThat(DatabaseSettingsMapping
+                    .DATABASE_SETTINGS_MAP)
                     .hasSize(17);
         }
     }

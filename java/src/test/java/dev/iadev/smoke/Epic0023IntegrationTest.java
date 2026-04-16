@@ -7,7 +7,7 @@ import dev.iadev.application.assembler.RulesConditionals;
 import dev.iadev.config.ConfigProfiles;
 import dev.iadev.domain.model.PipelineResult;
 import dev.iadev.domain.model.ProjectConfig;
-import dev.iadev.domain.stack.StackMapping;
+import dev.iadev.domain.stack.DatabaseSettingsMapping;
 import dev.iadev.testutil.TestConfigBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -39,8 +39,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class Epic0023IntegrationTest {
 
     @Nested
-    @DisplayName("StackMapping — 17 databases")
-    class StackMappingCompleteness {
+    @DisplayName("DatabaseSettingsMapping — 17 databases")
+    class DatabaseSettingsMappingCompleteness {
 
         private static final Set<String> ALL_DATABASES =
                 Set.of(
@@ -57,15 +57,16 @@ class Epic0023IntegrationTest {
         @Test
         @DisplayName("DATABASE_SETTINGS_MAP has 17 entries")
         void databaseSettingsMap_size_seventeen() {
-            assertThat(StackMapping.DATABASE_SETTINGS_MAP)
+            assertThat(DatabaseSettingsMapping
+                    .DATABASE_SETTINGS_MAP)
                     .hasSize(17);
         }
 
         @Test
         @DisplayName("all 17 databases are registered")
         void databaseSettingsMap_allRegistered() {
-            assertThat(StackMapping.DATABASE_SETTINGS_MAP
-                    .keySet())
+            assertThat(DatabaseSettingsMapping
+                    .DATABASE_SETTINGS_MAP.keySet())
                     .containsExactlyInAnyOrderElementsOf(
                             ALL_DATABASES);
         }
@@ -78,7 +79,8 @@ class Epic0023IntegrationTest {
         @DisplayName("original 5 databases preserved")
         void databaseSettingsMap_original5_preserved(
                 String db) {
-            assertThat(StackMapping.DATABASE_SETTINGS_MAP)
+            assertThat(DatabaseSettingsMapping
+                    .DATABASE_SETTINGS_MAP)
                     .containsKey(db);
         }
     }
