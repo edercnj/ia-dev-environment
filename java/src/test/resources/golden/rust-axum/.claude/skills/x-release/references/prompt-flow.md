@@ -113,7 +113,8 @@ sequenceDiagram
 When the operator chooses "Rodar /x-pr-fix PR#" at `APPROVAL_GATE` or
 `BACKMERGE_MERGE`, the `PromptEngine` returns `HANDOFF` and delegates to
 `HandoffOrchestrator` (`dev.iadev.release.handoff.HandoffOrchestrator`),
-which owns the handoff loop to the `/x-pr-fix` sibling skill (renamed by EPIC-0036).
+which owns the handoff loop to the `/x-pr-fix` sibling skill (renamed from
+`/x-pr-fix-comments` per EPIC-0036).
 
 ### Input (Skill tool invocation)
 

@@ -3,7 +3,7 @@ name: x-release
 description: "Orchestrates complete release flow using Git Flow release branches with approval gate, PR-flow (gh CLI) and deep validation: version bump (auto-detect or explicit), release branch creation from develop, deep validation (coverage, golden files, version consistency), version file updates, changelog generation, release commit, release PR via gh (optionally reviewed by x-review-pr), human approval gate with persistent state file, tag on main after merged PR, back-merge PR to develop with conflict detection, and cleanup. Supports hotfix releases from main, dry-run mode, resume via --continue-after-merge, in-session pause via --interactive, GPG-signed tags, skip-review opt-out, and custom state file path."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, Skill, AskUserQuestion
-argument-hint: "[major|minor|patch|version] [--version X.Y.Z] [--last-tag <tag>] [--dry-run] [--skip-tests] [--no-publish] [--no-github-release] [--hotfix] [--continue-after-merge] [--interactive] [--signed-tag] [--skip-review] [--state-file <path>] [--skip-integrity] [--integrity-report <path>] [--max-parallel <N>]"
+argument-hint: "[major|minor|patch|version] [--version X.Y.Z] [--last-tag <tag>] [--dry-run] [--skip-tests] [--no-publish] [--no-github-release] [--hotfix] [--continue-after-merge] [--interactive] [--no-prompt] [--signed-tag] [--skip-review] [--state-file <path>] [--skip-integrity] [--integrity-report <path>] [--max-parallel <N>] [--status] [--abort] [--yes] [--force]"
 context-budget: heavy
 ---
 
@@ -31,6 +31,10 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 - `/x-release minor --no-publish` — create release locally without pushing
 - `/x-release patch --hotfix` — create hotfix release from `main`
 - `/x-release minor --continue-after-merge --no-github-release` — skip GitHub Release prompt (CI path, story-0039-0006)
+- `/x-release --status` — show current release status (read-only, no modifications)
+- `/x-release --abort` — abort active release with double confirmation and cleanup
+- `/x-release --abort --yes` — abort active release without confirmations (force mode, logs warning)
+- `/x-release --abort --force` — alias for `--abort --yes`
 
 ## Parameters
 
@@ -53,12 +57,20 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 | `--skip-integrity` | No | Skip sub-check 10 (cross-file integrity drift) in VALIDATE-DEEP. **Not recommended**; emits a loud warning in the release log. |
 | `--integrity-report <path>` | No | Write the structured JSON integrity report to `<path>` regardless of pass/fail. For CI parsers. |
 | `--max-parallel <N>` | No | Upper bound for VALIDATE-DEEP parallel check wave (1..16, default `min(CPU,4)`). `--max-parallel 1` forces serial execution. (story-0039-0004) |
+| `--no-prompt` | No | Disable all interactive `AskUserQuestion` prompts (RULE-004 non-interactive equivalent). At halt points, the skill persists state (`waitingFor`, `nextActions`) and exits with textual resume instructions, identical to the default non-`--interactive` behavior. Mutually exclusive with `--interactive`. (story-0039-0007) |
+| `--status` | No | Show current release status (read-only). Displays version, phase, PR URLs, last activity timestamp, waiting-for state, and suggested next actions. Exits 0 when no active release. (story-0039-0010) |
+| `--abort` | No | Abort the active release with double confirmation. Closes open PRs, deletes local and remote release branches, removes state file. Individual cleanup failures are warn-only (exit 0). Exits 1 with `ABORT_NO_RELEASE` if no state file exists. Exits 2 with `ABORT_USER_CANCELLED` if user cancels. (story-0039-0010) |
+| `--yes` | No | Used with `--abort` to skip both confirmation prompts (force mode). Logs "FORCE MODE" warning. (story-0039-0010) |
+| `--force` | No | Alias for `--yes`. Identical behavior. (story-0039-0010) |
+| `--no-preflight` | No | Skip Step 1.5 (PRE-FLIGHT dashboard) entirely; proceed directly to VALIDATE-DEEP. Intended for CI pipelines. (story-0039-0009) |
+| `--preflight-changelog-lines <N>` | No | Max CHANGELOG lines in the pre-flight dashboard preview (default: 10, range: 1-500). (story-0039-0009) |
 
 ## Workflow
 
 ```
  0. RESUME-DETECT   -> Verify gh/jq, load or create state file, detect resume mode
  1. DETERMINE       -> Parse argument and calculate target version
+ 1.5. PRE-FLIGHT    -> Dashboard summary + operator confirmation (bypassable via --no-preflight)
  2. VALIDATE-DEEP   -> Deep validation (8+1+1 checks: workdir, branch, changelog, build, coverage, golden, hardcoded, version consistency, generation dry-run, integrity drift)
  3. BRANCH          -> Create release/X.Y.Z branch from develop (or hotfix/* from main)
  4. UPDATE          -> Update version in project-specific files (strip SNAPSHOT)
@@ -164,7 +176,41 @@ else:
         if .schemaVersion != 2:
             ABORT STATE_SCHEMA_VERSION
         if .phase != "COMPLETED":
-            ABORT STATE_CONFLICT
+            # --- Smart Resume (story-0039-0008) ---
+            if --no-prompt:
+                ABORT STATE_CONFLICT          # legacy CI behavior preserved
+            # Interactive mode: detect state and prompt
+            STATE = read state file fields (version, phase, previousVersion, lastPhaseCompletedAt)
+            AGE   = now() - lastPhaseCompletedAt
+            HAS_NEW_COMMITS = (git log "${STATE.previousVersion}..HEAD" --oneline | wc -l) > 0
+
+            # Build prompt options
+            OPTIONS = [RESUME, ABORT]
+            if HAS_NEW_COMMITS:
+                OPTIONS += [START_NEW]
+
+            AskUserQuestion:
+              "Release in progress detected:
+                Version: ${STATE.version} (from ${STATE.previousVersion})
+                Phase: ${STATE.phase}
+                Stale for: ${formatAge(AGE)}
+
+              What would you like to do?
+                [1] Resume from ${STATE.phase}
+                [2] Abort release ${STATE.version} (full cleanup)
+                [3] Start new release (discard state)"    # only if HAS_NEW_COMMITS
+
+            CHOICE = user response
+            if CHOICE == RESUME:
+                MODE = RESUME
+                JUMP to Phase 9 (RESUME-AND-TAG)
+            if CHOICE == ABORT:
+                MODE = ABORT
+                EXIT 2 RESUME_USER_ABORT
+            if CHOICE == START_NEW:
+                rm "$STATE_FILE"
+                # fall through to fresh state creation below
+            # --- End Smart Resume ---
         # else: a previous run completed cleanly — proceed to overwrite
     # Create fresh state file (atomic write)
     TMP="${STATE_FILE}.tmp.$$"
@@ -206,8 +252,16 @@ else:
 | State file invalid JSON | `STATE_INVALID_JSON` | Step 0.3 |
 | Unknown `schemaVersion` | `STATE_SCHEMA_VERSION` | Step 0.3 |
 | `--continue-after-merge` with no state | `RESUME_NO_STATE` | Step 0.3 |
-| State exists, `phase != COMPLETED` | `STATE_CONFLICT` | Step 0.3 |
+| State exists, `phase != COMPLETED`, `--no-prompt` | `STATE_CONFLICT` | Step 0.3 (smart resume bypass for CI) |
+| User chose "Abort" in smart resume prompt | `RESUME_USER_ABORT` | Step 0.3 (exit 2) |
 | Cross-file integrity drift (CHANGELOG/pom/README/version) | `VALIDATE_INTEGRITY_DRIFT` | Step 2 — Sub-check 10 |
+| `--status` with corrupted state JSON | `STATUS_PARSE_FAILED` | --status (story-0039-0010) |
+| `--abort` with no active release | `ABORT_NO_RELEASE` | --abort (story-0039-0010) |
+| `--abort` user cancels any confirmation | `ABORT_USER_CANCELLED` | --abort (story-0039-0010) |
+| `--abort` gh pr close fails | `ABORT_PR_CLOSE_FAILED` | --abort cleanup (warn-only) |
+| `--abort` git branch delete fails | `ABORT_BRANCH_DELETE_FAILED` | --abort cleanup (warn-only) |
+| Integrity FAIL at pre-flight (no prompt) | `PREFLIGHT_INTEGRITY_FAIL` | Step 1.5 |
+| Operator chose "Edit version" at pre-flight | `PREFLIGHT_EDIT_VERSION` | Step 1.5 |
 
 The full human-readable messages live in
 `references/state-file-schema.md`. All subsequent phases reuse the same
@@ -219,7 +273,8 @@ error-code vocabulary so that operators can triage failures consistently.
 |:---|:---|:---|:---|
 | Fresh invocation, no state | absent | `START` | Step 1 |
 | Fresh invocation, completed state | `phase: COMPLETED` | `START` | Step 1 (state overwritten) |
-| Fresh invocation, in-flight state | `phase != COMPLETED` | ABORT | `STATE_CONFLICT` |
+| Fresh invocation, in-flight state, `--no-prompt` | `phase != COMPLETED` | ABORT | `STATE_CONFLICT` |
+| Fresh invocation, in-flight state, interactive | `phase != COMPLETED` | `SMART_RESUME` | Step 0.3 smart resume prompt |
 | `--continue-after-merge`, valid | `phase: APPROVAL_PENDING` | `RESUME` | Phase 9 (`RESUME-AND-TAG`) |
 | `--continue-after-merge`, missing | absent | ABORT | `RESUME_NO_STATE` |
 | `--continue-after-merge`, wrong phase | any other `phase` | ABORT | invalid phase error |
@@ -299,6 +354,76 @@ banner reports `"Explicit version: X.Y.Z"` and `bumpType = explicit`.
 Full algorithm, edge cases, and fixture table: `references/auto-version-detection.md`.
 
 This follows Semantic Versioning (https://semver.org/spec/v2.0.0.html) rules.
+
+### Step 1.5 — Phase PRE-FLIGHT (story-0039-0009)
+
+> **Position:** between Step 1 (DETERMINE) and Step 2 (VALIDATE-DEEP).
+> **Bypass:** `--no-preflight` skips this step entirely and proceeds
+> directly to Step 2 (VALIDATE-DEEP) with zero dashboard I/O.
+
+After Step 1 resolves the target version and commit classification, the
+skill aggregates all pre-release data into a single confirmation
+dashboard. The dashboard shows:
+
+1. **Version section** — target version, bump type, last tag and age
+2. **Commit counts** — feat / fix / breaking / ignored
+3. **CHANGELOG preview** — first N lines of `[Unreleased]` section,
+   truncated with `(X linhas omitidas)` indicator when total > N
+4. **Integrity checks** — result of S03 pre-commit integrity checks
+5. **Execution plan** — numbered list of release steps that will follow
+
+**CHANGELOG truncation:** default N = 10 lines. Override via
+`--preflight-changelog-lines <N>` (integer, clamped to [1..500] to
+prevent memory exhaustion; OWASP A03).
+
+**Terminal safety:** version strings and CHANGELOG body are sanitized
+to strip ANSI escape sequences (`\x1b[...`) and control characters
+before rendering (defense-in-depth, OWASP A05).
+
+#### Step 1.5.1 — Render Dashboard
+
+Invoke `PreflightDashboardRenderer.render(data, maxChangelog)` from the
+`dev.iadev.release.preflight` package. The renderer is a pure function
+over `DashboardData`; it performs no I/O.
+
+#### Step 1.5.2 — Integrity Gate
+
+If the `IntegrityReport.overallStatus()` is `FAIL`, the dashboard is
+printed and the skill aborts immediately with exit code 1 and error
+code `PREFLIGHT_INTEGRITY_FAIL`. **No prompt is shown** — the operator
+cannot override an integrity failure at the preflight stage.
+
+#### Step 1.5.3 — Operator Prompt
+
+When integrity is PASS (or WARN), present the dashboard and prompt the
+operator via `AskUserQuestion`:
+
+```
+Prosseguir com release v{VERSION}?
+  1. Sim, prosseguir       -> continue to Step 2 (VALIDATE-DEEP)
+  2. Editar versao (--version) -> exit 1 PREFLIGHT_EDIT_VERSION
+  3. Abortar                -> exit 0 (clean, no mutation)
+```
+
+| Choice | Exit Code | Error Code | Next Step |
+|:---|:---|:---|:---|
+| Prosseguir | 0 | — | Step 2 (VALIDATE-DEEP) |
+| Editar versao | 1 | `PREFLIGHT_EDIT_VERSION` | Abort; instruct rerun with `--version X.Y.Z` |
+| Abortar | 0 | — | Clean exit, no branch or state mutation |
+
+#### Step 1.5.4 — Error Catalog (local to PRE-FLIGHT)
+
+| Condition | Code | Exit |
+|:---|:---|:---|
+| Integrity FAIL (no prompt) | `PREFLIGHT_INTEGRITY_FAIL` | 1 |
+| Operator chose "Editar versao" | `PREFLIGHT_EDIT_VERSION` | 1 |
+
+#### Parameters (PRE-FLIGHT)
+
+| Parameter | Required | Description |
+|:---|:---|:---|
+| `--no-preflight` | No | Skip Step 1.5 entirely; proceed directly to VALIDATE-DEEP. Intended for CI pipelines. |
+| `--preflight-changelog-lines <N>` | No | Max CHANGELOG lines in dashboard preview (default: 10, range: 1-500). |
 
 ### Step 2 — Phase VALIDATE-DEEP
 
@@ -1219,18 +1344,45 @@ To cancel: close the PR and delete state file + release branch.
 EOF
 ```
 
-#### Step 8.3 — Branch on `--interactive` Flag
+#### Step 8.3 — Branch on `--interactive` / `--no-prompt` Flags
 
-If `--interactive` is **not** set, the skill exits immediately:
+> **PromptEngine integration (story-0039-0007):** When `--interactive` is set
+> and `--no-prompt` is absent, the halt point is resolved by `PromptEngine`
+> (`dev.iadev.release.prompt.PromptEngine`). The engine persists `waitingFor`
+> and `nextActions` to the state file, presents the operator with a
+> `AskUserQuestion` prompt, records `lastPromptAnsweredAt` on response, and
+> dispatches the selected option to the appropriate action (`CONTINUE`,
+> `EXIT`, `HANDOFF`). See `references/prompt-flow.md` for the complete flow.
+>
+> When `--no-prompt` is set, `PromptEngine.resolve(haltPoint, state, true)`
+> persists state and returns `EXIT` immediately without invoking
+> `AskUserQuestion` (RULE-004 non-interactive equivalent).
+>
+> **Handoff integration (story-0039-0011):** When the operator chooses
+> "Rodar /x-pr-fix PR#", `PromptEngine` returns `PromptAction.HANDOFF` and
+> the caller delegates to `HandoffOrchestrator`
+> (`dev.iadev.release.handoff.HandoffOrchestrator`). The orchestrator runs
+> the 5-step handoff sequence documented in story-0039-0011 §3.1:
+> (1) invoke `Skill(skill: "x-pr-fix", args: "<PR#>")` via
+> `SkillInvokerPort`; (2) wait for the skill to return; (3) re-run
+> `gh pr view <PR#> --json state,mergedAt,reviewDecision` via `GhCliPort`;
+> (4) map the response to `PrState`; (5) derive a fresh option set via
+> `HandoffOrchestrator.resolveOptions(PrState)` per the §5.3 decision
+> table. The caller then re-invokes `PromptEngine.resolve(...)` with the
+> refreshed state. On error, `HandoffOrchestrator` returns
+> `HANDOFF_SKILL_FAILED` (warn-only, exit 0) or `HANDOFF_PR_NOT_FOUND`
+> (exit 1). See `references/prompt-flow.md` §"Handoff Contract".
+
+If `--interactive` is **not** set (or `--no-prompt` **is** set), the skill exits immediately:
 
 ```bash
-if [ "$INTERACTIVE" != "true" ]; then
+if [ "$INTERACTIVE" != "true" ] || [ "$NO_PROMPT" = "true" ]; then
   echo "Skill halted at APPROVAL GATE. Resume with --continue-after-merge."
   exit 0
 fi
 ```
 
-If `--interactive` **is** set, the skill uses `AskUserQuestion` with three
+If `--interactive` **is** set and `--no-prompt` is absent, the skill uses `AskUserQuestion` with three
 options instead of exiting:
 
 ```
@@ -1346,6 +1498,14 @@ $(git log $(git describe --tags --abbrev=0 HEAD~1 2>/dev/null)..HEAD~1 \
 
 > **Reference:** See `references/backmerge-strategies.md` for the complete
 > workflow diagram and decision tree for both clean and conflict flows.
+
+> **PromptEngine integration (story-0039-0007):** After the back-merge PR is
+> opened (Step 10.3 or 10.4), the halt point `BACKMERGE_MERGE` is resolved by
+> `PromptEngine` using the same 3-option AskUserQuestion pattern as Phase 8:
+> "PR mergeado — continuar" / "Rodar /x-pr-fix PR#" / "Sair e retomar
+> depois". State fields `waitingFor=BACKMERGE_MERGE` and `nextActions` are
+> persisted. When `--no-prompt` is set, the engine persists state and returns
+> `EXIT` without prompting (RULE-004). See `references/prompt-flow.md`.
 
 #### Step 10.1 — Verify Phase Prerequisite
 
@@ -2096,6 +2256,68 @@ printed at runtime.
 | 10bis | `WT_RELEASE_REMOVE_FAILED` | `x-git-worktree remove` non-zero, or `cd` back to main repo failed | `Could not remove release worktree <id>; left in place for inspection` | — |
 | 11 | `PUBLISH_GH_RELEASE_FAILED` | `gh release create` non-zero (auth, rate limit, API error) | `Failed to create GitHub Release v<V>. Tag v<V> is already published; create the Release manually.` | — |
 | 11 | `PUBLISH_UNKNOWN_FLAG` | Unknown flag passed to PUBLISH phase (defensive) | `Unknown flag in PUBLISH phase: <flag>. Expected --no-github-release or --no-publish.` | 1 |
+
+## Operational Commands (story-0039-0010)
+
+### `--status` — Release Status (read-only)
+
+Inspects the current release state file and produces a human-readable report.
+Never modifies state — safe to run from any branch.
+
+**Flow:**
+
+1. Locate state file (default: `plans/release-state-<V>.json`, overridden by `--state-file`).
+2. If absent: print "No release in progress." and exit 0.
+3. If present: parse JSON. On parse failure: exit 1 with `STATUS_PARSE_FAILED`.
+4. Render report: version (with previous), phase, branch, PR number and URL,
+   last activity timestamp with elapsed duration, waiting-for state, and
+   suggested next actions.
+
+**Output format (with state):**
+
+```
+Release in progress:
+  Version:         3.2.0 (from v3.1.0)
+  Phase:           APPROVAL_PENDING
+  Branch:          release/3.2.0
+  PR release:      #297 (https://github.com/owner/repo/pull/297)
+  Last action:     2h 14min ago
+  Waiting for:     PR_MERGE
+  Suggested next actions:
+    - PR merged — continue (/x-release)
+    - Run fix-pr-comments (/x-pr-fix)
+```
+
+### `--abort` — Release Abort (cleanup with double confirmation)
+
+Aborts the active release, cleaning up all associated resources.
+
+**Flow:**
+
+1. Locate state file. If absent: exit 1 with `ABORT_NO_RELEASE`.
+2. Parse state file and enumerate resources to remove (dry-run report):
+   - Open PR (will be closed via `gh pr close`)
+   - Local branch `release/<V>`
+   - Remote branch `origin/release/<V>`
+   - State file
+3. If `--yes` / `--force` is NOT present:
+   - First confirmation: "Confirm abort release v<V>? Resources above will be removed permanently."
+   - Second confirmation: "Are you absolutely sure? This operation is IRREVERSIBLE."
+   - Cancel at either prompt: exit 2 with `ABORT_USER_CANCELLED`, no resources touched.
+4. If `--yes` / `--force` IS present:
+   - Skip both confirmations. Log "FORCE MODE" warning.
+5. Execute cleanup steps (each independently, warn-only on failure):
+   - `gh pr close <N>` — warn `ABORT_PR_CLOSE_FAILED` on failure
+   - `git branch -D release/<V>` — warn `ABORT_BRANCH_DELETE_FAILED` on failure
+   - `git push --delete origin release/<V>` — warn `ABORT_BRANCH_DELETE_FAILED` on failure
+   - Delete state file
+6. Exit 0 with "Cleanup complete" message plus any accumulated warnings.
+
+**`--yes` / `--force` behavior:**
+- `--force` is a strict alias for `--yes` — identical behavior.
+- Both skip ALL confirmation prompts.
+- Both log a "FORCE MODE" warning.
+- Intended for non-interactive / CI usage. Use with caution.
 
 ## Integration Notes
 
