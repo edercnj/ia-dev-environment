@@ -2,9 +2,12 @@ package dev.iadev.smoke;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,7 +15,8 @@ import org.junit.jupiter.api.Test;
 /**
  * Final smoke test for EPIC-0039 story-0039-0015 — validates the
  * consolidated output of the golden regeneration pass across all 17
- * profiles after all 14 preceding stories merged.
+ * profiles (plus the two {@code platform-claude-code} variants) after
+ * all 14 preceding stories merged.
  *
  * <p>This smoke test exists to give EPIC-0039 a dedicated "canary" that
  * fails fast if any of the consolidated outputs drift, independently of
@@ -21,16 +25,23 @@ import org.junit.jupiter.api.Test;
  * acceptance criteria:</p>
  *
  * <ol>
- *   <li>All 17 profiles ship the new {@code x-release} references
- *       directory with {@code interactive-flow-walkthrough.md}.</li>
- *   <li>All 17 profiles ship the three new plan templates
- *       ({@code _TEMPLATE-EPIC.md}, {@code _TEMPLATE-STORY.md},
+ *   <li>All 17 profiles plus the {@code go-gin/platform-claude-code}
+ *       and {@code java-spring/platform-claude-code} variants ship the
+ *       new {@code x-release} references directory with
+ *       {@code interactive-flow-walkthrough.md}.</li>
+ *   <li>All covered profiles and variants ship the three new plan
+ *       templates ({@code _TEMPLATE-EPIC.md},
+ *       {@code _TEMPLATE-STORY.md},
  *       {@code _TEMPLATE-IMPLEMENTATION-MAP.md}).</li>
- *   <li>The {@code x-release} SKILL.md in every profile mentions all
- *       five epic-wide feature keywords (auto-detect, smart resume,
- *       telemetry / telemetria, Phase 13, pre-flight).</li>
+ *   <li>The {@code x-release} SKILL.md in every covered profile /
+ *       variant mentions all five epic-wide feature keywords
+ *       (auto-detect, smart resume, telemetry, Phase 13, pre-flight).</li>
  *   <li>The CHANGELOG {@code [Unreleased]} section narrates every
- *       story from story-0039-0001 through story-0039-0015.</li>
+ *       EPIC-0039 story that produced changelog-worthy changes —
+ *       {@code story-0039-0001} and {@code story-0039-0003} through
+ *       {@code story-0039-0015}. Story {@code story-0039-0002} is
+ *       intentionally absent: it was a non-functional refactor with
+ *       no user-visible surface (see CHANGELOG for rationale).</li>
  * </ol>
  *
  * <p>All reads use UTF-8 and strictly relative paths; no mutation is
@@ -58,6 +69,19 @@ class Epic0039FinalSmokeTest {
             "typescript-commander-cli",
             "typescript-nestjs");
 
+    private static final List<String> PLATFORM_CLAUDE_CODE_VARIANTS =
+            List.of(
+                    "go-gin/platform-claude-code",
+                    "java-spring/platform-claude-code");
+
+    private static List<String> allCoverageTargets() {
+        List<String> targets = new ArrayList<>(
+                PROFILES.size() + PLATFORM_CLAUDE_CODE_VARIANTS.size());
+        targets.addAll(PROFILES);
+        targets.addAll(PLATFORM_CLAUDE_CODE_VARIANTS);
+        return targets;
+    }
+
     private static final List<String> NEW_TEMPLATES = List.of(
             "_TEMPLATE-EPIC.md",
             "_TEMPLATE-STORY.md",
@@ -66,6 +90,7 @@ class Epic0039FinalSmokeTest {
     private static final List<String> SKILL_FEATURE_MARKERS = List.of(
             "auto-detect",
             "Smart Resume",
+            "telemetry",
             "Phase 13",
             "PRE-FLIGHT");
 
@@ -86,10 +111,11 @@ class Epic0039FinalSmokeTest {
             "story-0039-0015");
 
     @Test
-    @DisplayName("all 17 profiles ship x-release walkthrough reference")
+    @DisplayName(
+            "all 17 profiles + 2 variants ship x-release walkthrough")
     void smoke_allProfilesHaveWalkthroughReference() {
         Path goldenRoot = goldenRoot();
-        for (String profile : PROFILES) {
+        for (String profile : allCoverageTargets()) {
             Path walkthrough = goldenRoot.resolve(profile)
                     .resolve(".claude/skills/x-release/references"
                             + "/interactive-flow-walkthrough.md");
@@ -105,10 +131,11 @@ class Epic0039FinalSmokeTest {
     }
 
     @Test
-    @DisplayName("all 17 profiles ship 3 new plan templates")
+    @DisplayName(
+            "all 17 profiles + 2 variants ship 3 new plan templates")
     void smoke_allProfilesHaveNewTemplates() {
         Path goldenRoot = goldenRoot();
-        for (String profile : PROFILES) {
+        for (String profile : allCoverageTargets()) {
             for (String template : NEW_TEMPLATES) {
                 Path path = goldenRoot.resolve(profile)
                         .resolve(".claude/templates")
@@ -124,10 +151,11 @@ class Epic0039FinalSmokeTest {
 
     @Test
     @DisplayName(
-            "all 17 profiles x-release SKILL.md mention 4 features")
+            "all 17 profiles + 2 variants x-release SKILL.md "
+                    + "mention 5 features")
     void smoke_allProfilesSkillMentionFeatures() {
         Path goldenRoot = goldenRoot();
-        for (String profile : PROFILES) {
+        for (String profile : allCoverageTargets()) {
             Path skill = goldenRoot.resolve(profile)
                     .resolve(".claude/skills/x-release/SKILL.md");
             assertThat(skill)
@@ -145,7 +173,7 @@ class Epic0039FinalSmokeTest {
 
     @Test
     @DisplayName(
-            "CHANGELOG [Unreleased] narrates all 14 stories + S15")
+            "CHANGELOG [Unreleased] narrates S01 + S03..S15")
     void smoke_changelogCoversAllStories() {
         Path repoRoot = repoRoot();
         Path changelog = repoRoot.resolve("CHANGELOG.md");
@@ -167,7 +195,7 @@ class Epic0039FinalSmokeTest {
             "goldens ship 3 new templates via PlanTemplatesAssembler")
     void smoke_goldensShipNewTemplatesForEveryProfile() {
         Path goldenRoot = goldenRoot();
-        for (String profile : PROFILES) {
+        for (String profile : allCoverageTargets()) {
             Path templatesDir = goldenRoot.resolve(profile)
                     .resolve(".claude/templates");
             assertThat(templatesDir)
@@ -194,16 +222,12 @@ class Epic0039FinalSmokeTest {
     private static Path repoRoot() {
         Path workingDir = Path.of("").toAbsolutePath();
         Path candidate = workingDir;
-        for (int i = 0; i < 6; i++) {
+        while (candidate != null) {
             if (Files.isDirectory(candidate.resolve(
                     "java/src/test/resources/golden"))) {
                 return candidate;
             }
-            Path parent = candidate.getParent();
-            if (parent == null) {
-                break;
-            }
-            candidate = parent;
+            candidate = candidate.getParent();
         }
         throw new IllegalStateException(
                 "repo root not found from " + workingDir);
@@ -212,8 +236,8 @@ class Epic0039FinalSmokeTest {
     private static String readUtf8(Path path) {
         try {
             return Files.readString(path, StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            throw new IllegalStateException(
+        } catch (IOException e) {
+            throw new UncheckedIOException(
                     "cannot read " + path, e);
         }
     }
@@ -221,8 +245,8 @@ class Epic0039FinalSmokeTest {
     private static long sizeOf(Path path) {
         try {
             return Files.size(path);
-        } catch (Exception e) {
-            throw new IllegalStateException(
+        } catch (IOException e) {
+            throw new UncheckedIOException(
                     "cannot stat " + path, e);
         }
     }
