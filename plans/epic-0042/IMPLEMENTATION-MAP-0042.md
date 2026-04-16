@@ -241,20 +241,20 @@ Se qualquer uma dessas premissas falhar em 0042-0001, revisitar o design antes d
 graph LR
     subgraph story-0042-0001["Story 0001 (skeleton + discovery + validation)"]
         style story-0042-0001 fill:#e8f4fd
-        T001["TASK-001: header"]
-        T002["TASK-002: Phase 0"]
-        T003["TASK-003: Phase 1"]
-        T004["TASK-004: Phase 2"]
-        T005["TASK-005: AssemblerTest"]
+        T001["TASK-0042-0001-001<br/>skill header + frontmatter"]
+        T002["TASK-0042-0001-002<br/>Phase 0 Preparation"]
+        T003["TASK-0042-0001-003<br/>Phase 1 Discovery"]
+        T004["TASK-0042-0001-004<br/>Phase 2 Validation"]
+        T005["TASK-0042-0001-005<br/>SkillsAssemblerTest"]
         T001 --> T002 --> T003 --> T004
     end
 
     subgraph story-0042-0004["Story 0004 (hook x-pr-fix)"]
         style story-0042-0004 fill:#fde8e8
-        T401["TASK-001: Step 3.6.5"]
-        T402["TASK-002: Integration"]
-        T403["TASK-003: Error Handling"]
-        T404["TASK-004: Regen goldens"]
+        T401["TASK-0042-0004-001<br/>Step 3.6.5 section"]
+        T402["TASK-0042-0004-002<br/>Integration Notes row"]
+        T403["TASK-0042-0004-003<br/>Error Handling row"]
+        T404["TASK-0042-0004-004<br/>Regen goldens"]
         T401 --> T402
         T401 --> T403
         T402 --> T404
@@ -263,20 +263,20 @@ graph LR
 
     subgraph story-0042-0002["Story 0002 (merge + rebase)"]
         style story-0042-0002 fill:#e8fde8
-        T201["TASK-001: Phase 3"]
-        T202["TASK-002: Phase 4"]
-        T203["TASK-003: Canonical prompt"]
-        T204["TASK-004: Wave dispatcher"]
+        T201["TASK-0042-0002-001<br/>Phase 3 Sort + overlap"]
+        T202["TASK-0042-0002-002<br/>Phase 4 Base merge"]
+        T203["TASK-0042-0002-003<br/>Canonical rebase prompt"]
+        T204["TASK-0042-0002-004<br/>Wave dispatcher"]
         T201 --> T202 --> T203 --> T204
     end
 
     subgraph story-0042-0003["Story 0003 (verify + state + errors)"]
         style story-0042-0003 fill:#fdf8e8
-        T301["TASK-001: Phase 6"]
-        T302["TASK-002: Phase 7"]
-        T303["TASK-003: state.json"]
-        T304["TASK-004: Error table"]
-        T305["TASK-005: Examples"]
+        T301["TASK-0042-0003-001<br/>Phase 6 Verification"]
+        T302["TASK-0042-0003-002<br/>Phase 7 Report + Cleanup"]
+        T303["TASK-0042-0003-003<br/>state.json schema"]
+        T304["TASK-0042-0003-004<br/>Error table"]
+        T305["TASK-0042-0003-005<br/>Integration + Examples"]
         T301 --> T302 --> T303 --> T304 --> T305
     end
 
