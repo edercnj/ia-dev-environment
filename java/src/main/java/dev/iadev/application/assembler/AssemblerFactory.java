@@ -91,9 +91,8 @@ public final class AssemblerFactory {
 
     private static Path resolveConstitutionResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(
-                        "shared/templates/constitution/"
-                                + "CONSTITUTION.md", 4);
+                .resolveResourceDir("shared")
+                .getParent();
     }
 
     private static List<AssemblerDescriptor>

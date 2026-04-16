@@ -227,7 +227,8 @@ public final class PatternsAssembler implements Assembler {
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(PATTERNS_RES_DIR, 2);
+                .resolveResourceDir("shared")
+                .getParent();
     }
 
     /**
