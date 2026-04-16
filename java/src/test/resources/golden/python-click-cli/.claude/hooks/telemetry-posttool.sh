@@ -48,6 +48,9 @@ TOOL_NAME="$(printf '%s' "${HOOK_PAYLOAD}" \
     | jq -r '.tool_name // empty' 2>/dev/null)"
 TOOL_USE_ID="$(printf '%s' "${HOOK_PAYLOAD}" \
     | jq -r '.tool_use_id // .tool_name // empty' 2>/dev/null)"
+if [[ -z "${TOOL_USE_ID}" ]]; then
+    exit 0
+fi
 # is_error is the boolean carried by PostToolUse payloads when a tool errors.
 IS_ERROR="$(printf '%s' "${HOOK_PAYLOAD}" \
     | jq -r '.tool_response.is_error // false' 2>/dev/null)"
