@@ -11,6 +11,7 @@ import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -109,7 +110,8 @@ class TelemetryFixturesTest {
             assertThat(in)
                     .as("Fixture must exist at classpath " + path)
                     .isNotNull();
-            return new String(in.readAllBytes());
+            return new String(
+                    in.readAllBytes(), StandardCharsets.UTF_8);
         }
     }
 }

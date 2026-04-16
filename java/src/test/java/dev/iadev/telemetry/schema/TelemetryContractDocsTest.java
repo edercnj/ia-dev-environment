@@ -39,7 +39,8 @@ class TelemetryContractDocsTest {
             assertThat(in)
                     .as("README must be packaged at " + README_CLASSPATH)
                     .isNotNull();
-            String body = new String(in.readAllBytes());
+            String body = new String(
+                    in.readAllBytes(), StandardCharsets.UTF_8);
             assertThat(body).isNotBlank();
         }
     }
@@ -91,13 +92,23 @@ class TelemetryContractDocsTest {
                 TelemetryContractDocsTest.class.getResourceAsStream(
                         README_CLASSPATH)) {
             assertThat(in).isNotNull();
-            return new String(in.readAllBytes());
+            return new String(
+                    in.readAllBytes(), StandardCharsets.UTF_8);
         }
     }
 
     private static Path resolveRepoRoot() {
-        // src/test/java tests run with cwd = module root (java/). Repo root
-        // is the parent directory.
-        return Path.of(System.getProperty("user.dir")).getParent();
+        // Walk upwards from the current working directory until a `.git`
+        // marker is found. Avoids the user.dir fragility that broke this
+        // test when launched from an IDE or a custom cwd.
+        Path candidate = Path.of("").toAbsolutePath();
+        while (candidate != null) {
+            if (Files.exists(candidate.resolve(".git"))) {
+                return candidate;
+            }
+            candidate = candidate.getParent();
+        }
+        throw new IllegalStateException(
+                "repo root not found from " + Path.of("").toAbsolutePath());
     }
 }
