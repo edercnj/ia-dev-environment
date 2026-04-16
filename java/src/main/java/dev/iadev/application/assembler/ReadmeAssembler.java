@@ -229,7 +229,7 @@ public final class ReadmeAssembler implements Assembler {
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(
-                        "readme-template.md");
+                .resolveResourceDir("shared")
+                .getParent();
     }
 }
