@@ -142,17 +142,22 @@ public final class SettingsAssembler implements Assembler {
 
     /**
      * Builds the settings.json content as a formatted JSON
-     * string. Delegates to {@link JsonSettingsBuilder}.
+     * string with explicit telemetry control. Delegates to
+     * {@link JsonSettingsBuilder}.
      *
      * @param permissions  the list of allowed commands
      * @param hookPresence whether to include hooks section
+     * @param telemetryEnabled whether to emit telemetry hook
+     *     entries
      * @return formatted JSON string
      */
     static String buildSettingsJson(
             List<String> permissions,
-            HookPresence hookPresence) {
+            HookPresence hookPresence,
+            boolean telemetryEnabled) {
         return new JsonSettingsBuilder()
-                .build(permissions, hookPresence);
+                .build(permissions, hookPresence,
+                        telemetryEnabled);
     }
 
     /**
