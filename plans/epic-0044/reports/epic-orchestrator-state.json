@@ -1,4 +1,7 @@
 {
+  "_comment": "Final orchestrator state snapshot for EPIC-0044, captured after both PRs merged and integrity gate passed. Per-story `prMergeStatus` and `rebaseStatus` values reflect the terminal lifecycle state.",
+  "capturedAt": "2026-04-16T20:24:58Z",
+  "finalStatus": "COMPLETE",
   "version": "2.0",
   "epicId": "0044",
   "planningSchemaVersion": "1.0",
@@ -13,8 +16,8 @@
     "singlePr": false,
     "mergeMode": "auto"
   },
-  "startedAt": "2026-04-16T00:00:00Z",
-  "finishedAt": null,
+  "startedAt": "2026-04-16T19:00:00Z",
+  "finishedAt": "2026-04-16T20:24:58Z",
   "metrics": {
     "storiesCompleted": 2,
     "storiesFailed": 0,
@@ -23,6 +26,24 @@
   },
   "mainShaBeforePhase": {
     "0": "176847c9d82c0431e2abb25e3e6c882127440061"
+  },
+  "mainShaAfterPhase": {
+    "0": "e3c450a514e0b0ac4578af08b50fa26ca80d97cc"
+  },
+  "integrityGate": {
+    "phase": 0,
+    "status": "PASS",
+    "testCount": 859,
+    "testsFailed": 0,
+    "coverageLine": 95.21,
+    "coverageBranch": 90.25,
+    "removalWarnings": 0,
+    "smokeGate": { "status": "PASS", "timestamp": "2026-04-16T20:24:58Z" }
+  },
+  "versionBump": {
+    "phase": 0,
+    "bumpType": "NONE",
+    "reason": "All commits use `refactor:` prefix (RULE-005) — no version bump signal"
   },
   "circuitBreaker": {
     "consecutiveFailures": 0,
@@ -33,8 +54,10 @@
     "story-0044-0001": {
       "id": "story-0044-0001",
       "phase": 0,
-      "status": "PR_CREATED",
+      "status": "SUCCESS",
       "commitSha": "399e77bc13cb8259a83246f778f077df94dcfb17",
+      "mergeCommitSha": "0097ed975b21c078074405b95cd460e27af51412",
+      "mergedAt": "2026-04-16T20:15:56Z",
       "findingsCount": 0,
       "summary": "3 atomic commits + 1 meta; 4 deprecated StackMapping symbols removed; reflection test + CHANGELOG added; mvn clean verify green; coverage 95.21/90.40",
       "retries": 0,
@@ -42,8 +65,8 @@
       "blockedBy": [],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/407",
       "prNumber": 407,
-      "prMergeStatus": "OPEN",
-      "rebaseStatus": "PENDING",
+      "prMergeStatus": "MERGED",
+      "rebaseStatus": "NOT_REQUIRED",
       "lastRebaseSha": null,
       "rebaseAttempts": 0,
       "coverageLine": 95.21,
@@ -59,8 +82,10 @@
     "story-0044-0002": {
       "id": "story-0044-0002",
       "phase": 0,
-      "status": "PR_CREATED",
-      "commitSha": "eae5bf1c6a6a42d2a1ab50c60724030c52b5dfec",
+      "status": "SUCCESS",
+      "commitSha": "45d2fc1f1",
+      "mergeCommitSha": "e3c450a514e0b0ac4578af08b50fa26ca80d97cc",
+      "mergedAt": "2026-04-16T20:18:22Z",
       "findingsCount": 0,
       "summary": "6 atomic commits + 1 doc; 23 assemblers + 9 test helpers migrated, 2 deprecated overloads removed; CHANGELOG + reflection test added; mvn verify green; coverage 95.21/90.25; no golden regen",
       "retries": 0,
@@ -68,10 +93,10 @@
       "blockedBy": [],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/409",
       "prNumber": 409,
-      "prMergeStatus": "OPEN",
-      "rebaseStatus": "PENDING",
-      "lastRebaseSha": null,
-      "rebaseAttempts": 0,
+      "prMergeStatus": "MERGED",
+      "rebaseStatus": "REBASE_SUCCESS",
+      "lastRebaseSha": "0097ed975b21c078074405b95cd460e27af51412",
+      "rebaseAttempts": 1,
       "coverageLine": 95.21,
       "coverageBranch": 90.25,
       "tasksCompleted": 6,

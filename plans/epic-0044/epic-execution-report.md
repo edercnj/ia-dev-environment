@@ -6,7 +6,7 @@
 > **Finished:** 2026-04-16T20:24:58Z
 > **Mode:** parallel + auto-merge (EPIC-0042 default, user-confirmed as option "C")
 > **Schema:** planningSchemaVersion absent → V1 (legacy fallback per Rule 19); orchestrator used v2.0 projection for execution-state.json
-> **Template:** inline (RULE-012 fallback — `_TEMPLATE-EPIC-EXECUTION-REPORT.md` absent)
+> **Template:** inline (RULE-012 — Plan Templates Fallback from `x-epic-implement` SKILL; `_TEMPLATE-EPIC-EXECUTION-REPORT.md` absent under `.claude/templates/`)
 
 ## 1. Summary
 
@@ -72,7 +72,7 @@
 | `mvn clean verify` | **PASS** · 859 tests, 0 failures, 0 errors, 0 skipped |
 | Jacoco coverage check | **PASS** · all thresholds met (≥95% line, ≥90% branch per RULE-003) |
 | Smoke tests (failsafe integration) | **PASS** · included in `mvn verify` (`ProfilePlatformIntegritySmokeTest`, `PlatformPipelineIntegrationTest`, `AutoVersionDetectionSmokeTest`, golden file tests, etc.) |
-| `grep` residual symbol refs | **PASS** · only 2 references (both inside new `*DeprecatedRemovedTest.java`, expected) |
+| `grep` residual symbol refs | **PASS** · 2 test files contain references (`StackMappingDeprecatedRemovedTest.java`, `ResourceResolverDeprecatedRemovedTest.java` — expected, as they assert absence via reflection); **0 production references** |
 | Cross-story consistency | **PASS** · diff `176847c9d..e3c450a51` reviewed; no inconsistency between the two stories' patterns |
 
 ## 6. Version Bump
@@ -116,7 +116,7 @@ No lost commits; rebase preserved all 7 branch commits (6 atomic task + 1 meta d
 
 ### 8.4 execution-state.json Asymmetry
 
-Both subagents committed `plans/epic-0044/execution-state.json` in their branches (as status update artefact). After merge, `develop` ended up with story-0044-0001's view (which only tracks story-0001's tasks). The orchestrator's complete state is preserved in `plans/epic-0044/execution-state.orchestrator-local-backup.json` (untracked, local to this run). This is a minor housekeeping gap; not a blocker.
+Both subagents committed `plans/epic-0044/execution-state.json` in their branches (as status update artefact). After merge, `develop` ended up with story-0044-0001's view (which only tracks story-0001's tasks). The orchestrator's complete state (with final `MERGED` / `SUCCESS` values, merge commit SHAs, integrity gate outcome, and version bump decision) is preserved in `plans/epic-0044/reports/epic-orchestrator-state.json` (committed by this docs PR — the file has a top-level `capturedAt` field documenting that the values reflect the terminal lifecycle state). This is a minor housekeeping gap; not a blocker.
 
 ## 9. Unresolved Issues
 
@@ -156,7 +156,7 @@ None. All 6 deprecated symbols successfully removed, both PRs merged, integrity 
 | Epic execution plan | `plans/epic-0044/reports/epic-execution-plan-0044.md` |
 | Pre-flight analysis (Phase 0) | `plans/epic-0044/plans/preflight-analysis-phase-0.md` |
 | Execution state (committed to develop, story-0001 view) | `plans/epic-0044/execution-state.json` |
-| Execution state (orchestrator's complete view, local) | `plans/epic-0044/execution-state.orchestrator-local-backup.json` |
+| Execution state (orchestrator's complete view, final) | `plans/epic-0044/reports/epic-orchestrator-state.json` |
 | Epic execution report (this file) | `plans/epic-0044/epic-execution-report.md` |
 
 ## 13. Commit Trail on `develop`
