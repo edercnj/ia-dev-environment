@@ -7,8 +7,7 @@
  * supported halt point (operator chose "Rodar /x-pr-fix PR#"),
  * the
  * {@link dev.iadev.release.handoff.HandoffOrchestrator}
- * invokes the {@code x-pr-fix} skill (formerly
- * {@code x-pr-fix-comments}; renamed by EPIC-0036) via the
+ * invokes the {@code x-pr-fix} skill (renamed by EPIC-0036) via the
  * {@link dev.iadev.release.handoff.SkillInvokerPort},
  * re-checks the PR state via the
  * {@link dev.iadev.release.handoff.GhCliPort}, and derives a
