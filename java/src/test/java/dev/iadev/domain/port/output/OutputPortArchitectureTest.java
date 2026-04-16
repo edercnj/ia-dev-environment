@@ -103,7 +103,7 @@ class OutputPortArchitectureTest {
     class ExistenceVerification {
 
         @Test
-        @DisplayName("Five output port interfaces should exist")
+        @DisplayName("Six output port interfaces should exist")
         void fiveOutputPortsShouldExist() {
             var outputPortClasses = importedClasses
                     .stream()
@@ -115,14 +115,15 @@ class OutputPortArchitectureTest {
                     .toList();
 
             assertThat(outputPortClasses)
-                    .hasSize(5)
+                    .hasSize(6)
                     .extracting(jc -> jc.getSimpleName())
                     .containsExactlyInAnyOrder(
                             "StackProfileRepository",
                             "TemplateRenderer",
                             "FileSystemWriter",
                             "CheckpointStore",
-                            "ProgressReporter"
+                            "ProgressReporter",
+                            "TelemetrySink"
                     );
         }
     }

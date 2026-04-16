@@ -48,15 +48,18 @@ class HexagonalPackageStructureTest {
         "infrastructure/adapter/output/config",
         "infrastructure/adapter/output/checkpoint",
         "infrastructure/adapter/output/progress",
+        "infrastructure/adapter/output/telemetry",
         "infrastructure/config"
     );
 
     /**
      * Output adapter subdirectories that must exist under
      * infrastructure/adapter/output/.
+     * Extended in story-0039-0012 with the telemetry adapter.
      */
     private static final List<String> OUTPUT_ADAPTER_SUBDIRS = List.of(
-        "template", "filesystem", "config", "checkpoint", "progress"
+        "template", "filesystem", "config", "checkpoint", "progress",
+        "telemetry"
     );
 
     @Nested
@@ -179,7 +182,7 @@ class HexagonalPackageStructureTest {
 
         @Test
         @DisplayName("infrastructure/adapter/output/ has "
-            + "exactly 5 subdirectories")
+            + "exactly 6 subdirectories")
         void outputAdapterHasFiveSubdirs() throws IOException {
             Path outputAdapterPath = SRC_ROOT
                 .resolve("infrastructure/adapter/output");
