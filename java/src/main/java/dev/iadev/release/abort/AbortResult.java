@@ -1,6 +1,7 @@
 package dev.iadev.release.abort;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Result of a {@code --abort} command invocation.
@@ -17,6 +18,12 @@ public record AbortResult(
         String output,
         String errorCode,
         List<String> warnings) {
+
+    public AbortResult {
+        Objects.requireNonNull(output, "output");
+        Objects.requireNonNull(warnings, "warnings");
+        warnings = List.copyOf(warnings);
+    }
 
     /** Convenience factory for successful abort. */
     public static AbortResult success(

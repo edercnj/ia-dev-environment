@@ -1,5 +1,7 @@
 package dev.iadev.release.status;
 
+import java.util.Objects;
+
 /**
  * Result of a {@code --status} command invocation.
  *
@@ -11,6 +13,10 @@ public record StatusResult(
         int exitCode,
         String output,
         String errorCode) {
+
+    public StatusResult {
+        Objects.requireNonNull(output, "output");
+    }
 
     /** Convenience factory for successful results. */
     public static StatusResult success(String output) {

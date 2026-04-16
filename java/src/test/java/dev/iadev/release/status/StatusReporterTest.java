@@ -65,11 +65,14 @@ class StatusReporterTest {
     @DisplayName("when no state file exists")
     class NoStateFile {
 
+        @TempDir
+        Path tempDir;
+
         @Test
         @DisplayName("report_noStateFile_returnsNoReleaseMessage")
         void report_noStateFile_returnsNoReleaseMessage() {
-            Path nonExistent = Path.of(
-                    "/tmp/nonexistent-state-file.json");
+            Path nonExistent = tempDir.resolve(
+                    "nonexistent-state-file.json");
             StatusReporter reporter = new StatusReporter();
 
             StatusResult result = reporter.report(nonExistent);

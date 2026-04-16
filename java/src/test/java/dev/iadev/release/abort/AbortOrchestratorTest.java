@@ -57,12 +57,15 @@ class AbortOrchestratorTest {
     @DisplayName("when no state file exists")
     class NoStateFile {
 
+        @TempDir
+        Path tempDir;
+
         @Test
         @DisplayName(
                 "abort_noStateFile_returnsAbortNoRelease")
         void abort_noStateFile_returnsAbortNoRelease() {
-            Path nonExistent = Path.of(
-                    "/tmp/nonexistent-state.json");
+            Path nonExistent = tempDir.resolve(
+                    "nonexistent-state.json");
             AbortOrchestrator orchestrator =
                     new AbortOrchestrator(
                             msg -> true,

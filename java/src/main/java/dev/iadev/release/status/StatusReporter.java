@@ -133,8 +133,9 @@ public final class StatusReporter {
             StringBuilder sb,
             String label,
             String value) {
+        String displayValue = value == null ? "—" : value;
         sb.append(String.format("  %-16s %s%n",
-                label + ":", value));
+                label + ":", displayValue));
     }
 
     static String formatDuration(Duration duration) {

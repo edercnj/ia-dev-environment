@@ -111,12 +111,14 @@ public final class AbortOrchestrator {
                             + "(will be closed via gh pr close)%n",
                     state.prNumber()));
         }
-        sb.append(String.format(
-                "  Local branch:     %s%n",
-                state.branch()));
-        sb.append(String.format(
-                "  Remote branch:    origin/%s%n",
-                state.branch()));
+        if (state.branch() != null) {
+            sb.append(String.format(
+                    "  Local branch:     %s%n",
+                    state.branch()));
+            sb.append(String.format(
+                    "  Remote branch:    origin/%s%n",
+                    state.branch()));
+        }
         sb.append(String.format(
                 "  State file:       %s%n",
                 stateFilePath.getFileName()));
@@ -176,6 +178,9 @@ public final class AbortOrchestrator {
         try {
             cleanupPort.closePr(state.prNumber());
         } catch (CleanupException e) {
+            warnings.add(e.errorCode() + ": "
+                    + e.getMessage());
+        } catch (RuntimeException e) {
             warnings.add("ABORT_PR_CLOSE_FAILED: "
                     + e.getMessage());
         }
@@ -189,6 +194,9 @@ public final class AbortOrchestrator {
         try {
             cleanupPort.deleteLocalBranch(state.branch());
         } catch (CleanupException e) {
+            warnings.add(e.errorCode() + ": "
+                    + e.getMessage());
+        } catch (RuntimeException e) {
             warnings.add(
                     "ABORT_BRANCH_DELETE_FAILED: "
                             + e.getMessage());
@@ -203,6 +211,9 @@ public final class AbortOrchestrator {
         try {
             cleanupPort.deleteRemoteBranch(state.branch());
         } catch (CleanupException e) {
+            warnings.add(e.errorCode() + ": "
+                    + e.getMessage());
+        } catch (RuntimeException e) {
             warnings.add(
                     "ABORT_BRANCH_DELETE_FAILED: "
                             + e.getMessage());
@@ -214,7 +225,10 @@ public final class AbortOrchestrator {
         try {
             cleanupPort.deleteStateFile(stateFilePath);
         } catch (CleanupException e) {
-            warnings.add("State file deletion failed: "
+            warnings.add(e.errorCode() + ": "
+                    + e.getMessage());
+        } catch (RuntimeException e) {
+            warnings.add("ABORT_STATE_FILE_DELETE_FAILED: "
                     + e.getMessage());
         }
     }

@@ -3,6 +3,8 @@ package dev.iadev.release.abort;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -38,13 +40,5 @@ class CleanupExceptionTest {
         assertThat(ex.errorCode())
                 .isEqualTo("ABORT_BRANCH_DELETE_FAILED");
         assertThat(ex.getCause()).isSameAs(cause);
-    }
-
-    // IOException is needed for the test
-    private static final class IOException
-            extends Exception {
-        IOException(String message) {
-            super(message);
-        }
     }
 }
