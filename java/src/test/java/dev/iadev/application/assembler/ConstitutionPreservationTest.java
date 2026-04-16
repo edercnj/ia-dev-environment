@@ -285,9 +285,8 @@ class ConstitutionPreservationTest {
 
     private static Path resolveResourcesDir() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(
-                        "shared/templates/constitution/"
-                                + "CONSTITUTION.md", 4);
+                .resolveResourceDir("shared")
+                .getParent();
     }
 
     private static void createExistingConstitution(

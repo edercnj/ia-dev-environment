@@ -125,9 +125,7 @@ public final class EpicReportAssembler
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(
-                        TEMPLATES_SUBDIR + "/"
-                                + TEMPLATE_FILENAME,
-                        3);
+                .resolveResourceDir("shared")
+                .getParent();
     }
 }

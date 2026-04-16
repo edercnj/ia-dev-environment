@@ -142,7 +142,7 @@ public final class HooksAssembler implements Assembler {
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(
-                        HOOKS_TEMPLATES_DIR, 3);
+                .resolveResourceDir("shared")
+                .getParent();
     }
 }

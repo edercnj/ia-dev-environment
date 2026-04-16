@@ -95,6 +95,7 @@ public final class RunbookAssembler implements Assembler {
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(TEMPLATE_PATH, 3);
+                .resolveResourceDir("shared")
+                .getParent();
     }
 }

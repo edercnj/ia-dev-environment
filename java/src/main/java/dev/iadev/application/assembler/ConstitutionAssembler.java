@@ -189,6 +189,7 @@ public final class ConstitutionAssembler
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(TEMPLATE_PATH, 4);
+                .resolveResourceDir("shared")
+                .getParent();
     }
 }

@@ -186,7 +186,7 @@ public final class RulesAssembler implements Assembler {
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(
-                        "targets/claude/rules", 3);
+                .resolveResourceDir("shared")
+                .getParent();
     }
 }
