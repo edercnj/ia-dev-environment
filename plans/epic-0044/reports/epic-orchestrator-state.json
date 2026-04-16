@@ -1,0 +1,88 @@
+{
+  "version": "2.0",
+  "epicId": "0044",
+  "planningSchemaVersion": "1.0",
+  "schemaResolutionLog": "SCHEMA_VERSION_FALLBACK_NO_FILE -> V1 (legacy fallback per Rule 19; v2 task-first projection used by orchestrator for execution-state.json schema only)",
+  "baseBranch": "develop",
+  "autoApprovePr": false,
+  "batchApproval": true,
+  "taskTracking": true,
+  "mode": {
+    "parallel": true,
+    "skipReview": false,
+    "singlePr": false,
+    "mergeMode": "auto"
+  },
+  "startedAt": "2026-04-16T00:00:00Z",
+  "finishedAt": null,
+  "metrics": {
+    "storiesCompleted": 2,
+    "storiesFailed": 0,
+    "storiesBlocked": 0,
+    "storiesTotal": 2
+  },
+  "mainShaBeforePhase": {
+    "0": "176847c9d82c0431e2abb25e3e6c882127440061"
+  },
+  "circuitBreaker": {
+    "consecutiveFailures": 0,
+    "totalFailuresInPhase": 0,
+    "state": "CLOSED"
+  },
+  "stories": {
+    "story-0044-0001": {
+      "id": "story-0044-0001",
+      "phase": 0,
+      "status": "PR_CREATED",
+      "commitSha": "399e77bc13cb8259a83246f778f077df94dcfb17",
+      "findingsCount": 0,
+      "summary": "3 atomic commits + 1 meta; 4 deprecated StackMapping symbols removed; reflection test + CHANGELOG added; mvn clean verify green; coverage 95.21/90.40",
+      "retries": 0,
+      "duration": 1229.908,
+      "blockedBy": [],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/407",
+      "prNumber": 407,
+      "prMergeStatus": "OPEN",
+      "rebaseStatus": "PENDING",
+      "lastRebaseSha": null,
+      "rebaseAttempts": 0,
+      "coverageLine": 95.21,
+      "coverageBranch": 90.40,
+      "tasksCompleted": 3,
+      "filesChanged": 9,
+      "reviewsExecuted": { "specialist": false, "techLead": false },
+      "deviations": [
+        "Reviews (Phase 3.4/3.6) not executed — subagent cited auto merge_mode + deterministic refactor verified by mvn verify + reflection tests. Orchestrator Phase 1.5 may flag this in the final report.",
+        "execution-state.json and IMPLEMENTATION-MAP.md modified inside story branch (commit 399e77bc1) — will need reconciliation on develop post-merge."
+      ]
+    },
+    "story-0044-0002": {
+      "id": "story-0044-0002",
+      "phase": 0,
+      "status": "PR_CREATED",
+      "commitSha": "eae5bf1c6a6a42d2a1ab50c60724030c52b5dfec",
+      "findingsCount": 0,
+      "summary": "6 atomic commits + 1 doc; 23 assemblers + 9 test helpers migrated, 2 deprecated overloads removed; CHANGELOG + reflection test added; mvn verify green; coverage 95.21/90.25; no golden regen",
+      "retries": 0,
+      "duration": 1644.617,
+      "blockedBy": [],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/409",
+      "prNumber": 409,
+      "prMergeStatus": "OPEN",
+      "rebaseStatus": "PENDING",
+      "lastRebaseSha": null,
+      "rebaseAttempts": 0,
+      "coverageLine": 95.21,
+      "coverageBranch": 90.25,
+      "tasksCompleted": 6,
+      "filesChanged": 40,
+      "goldenFilesRegenerated": 0,
+      "reviewsExecuted": { "specialist": false, "techLead": false },
+      "deviations": [
+        "Reviews (Phase 3.4/3.6) not executed — subagent cited same reason as story-0001.",
+        "Migration pattern deviation from story §5.3: story recipe 'resolveResourceDir(TEMPLATE_PATH)' fails at runtime for callers using file paths (IllegalArgumentException when marker resolves to a file). Subagent adopted 'resolveResourceDir(\"shared\").getParent()' uniformly across 23 assemblers + 9 test helpers — preserves pre-existing resourcesDir=resources-root semantics. Golden files byte-identical and mvn verify green, so functionally equivalent. Documented in per-commit bodies and PR #409 body.",
+        "execution-state.json, IMPLEMENTATION-MAP.md, story-0044-0002.md modified inside story branch — will conflict with PR #407's changes to the same files (add/add + concurrent-edit conflict expected during auto-rebase)."
+      ]
+    }
+  }
+}
