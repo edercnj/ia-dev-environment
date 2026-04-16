@@ -2421,6 +2421,41 @@ printed at runtime.
 | 11 | `PUBLISH_GH_RELEASE_FAILED` | `gh release create` non-zero (auth, rate limit, API error) | `Failed to create GitHub Release v<V>. Tag v<V> is already published; create the Release manually.` | — |
 | 11 | `PUBLISH_UNKNOWN_FLAG` | Unknown flag passed to PUBLISH phase (defensive) | `Unknown flag in PUBLISH phase: <flag>. Expected --no-github-release or --no-publish.` | 1 |
 | — | `INTERACTIVE_REQUIRES_DRYRUN` | `--interactive` passed without `--dry-run` (story-0039-0013) | `--interactive requires --dry-run.` | 1 |
+| 1 | `HOTFIX_INVALID_COMMITS` | `--hotfix` auto-detect observes `feat` or breaking commits since the last tag (story-0039-0014) | `Hotfix flow rejects non-PATCH commits: feat=<n>, breaking=<n>. Only fix/perf commits are allowed.` | 1 |
+| 1 | `HOTFIX_VERSION_NOT_PATCH` | `--hotfix --version <X.Y.Z>` override is not a PATCH bump over the current version (story-0039-0014) | `Hotfix override must be PATCH only (current=<cur>, requested=<req>).` | 1 |
+
+## Hotfix Flow (Parity — story-0039-0014)
+
+The `--hotfix` flag runs the same interactive lifecycle as the standard release
+(auto-detect, prompts, smart resume, pre-flight dashboard, summary diagram,
+telemetry) with three parametric deviations driven by
+`ReleaseContext.forHotfix()`:
+
+| Aspect | Standard | Hotfix |
+|---|---|---|
+| Auto-detect restriction | any bump | PATCH only (feat/breaking → `HOTFIX_INVALID_COMMITS`) |
+| `--version` override guard | any SemVer accepted | must be `current.patch + 1` (else `HOTFIX_VERSION_NOT_PATCH`) |
+| Base branch | `develop` | `main` |
+| State-file naming | `plans/release-state-<V>.json` | `plans/release-state-hotfix-<V>.json` |
+| Pre-flight banner | (standard) | `modo HOTFIX, base=main, bump=PATCH` |
+| SUMMARY diagram | `release/X.Y.Z` off `develop` | `hotfix/X.Y.Z` off `main` with back-merge to `develop` |
+| Telemetry `releaseType` | `release` | `hotfix` (derived from `hotfix: true` flag; no new state-file field) |
+
+Decision flow:
+
+1. Parser flips `ReleaseContext` from `release()` to `forHotfix()` when `--hotfix` is present.
+2. `VersionDetector.detectBump(counts, ctx)` enforces the restriction; `validateOverride(current, requested, ctx)` checks explicit overrides.
+3. `StateFileDetector.resolveStatePath(plansDir, version, ctx)` chooses the hotfix-suffixed filename, preventing collisions with an in-flight normal release (§5.2).
+4. `PreflightDashboardRenderer.render(data, max, ctx)` prepends the HOTFIX banner when `ctx.hotfix()` is true.
+5. `SummaryRenderer.render(prev, next, prNumber, ctx)` emits the hotfix diagram variant.
+6. `ReleaseTelemetryWriter.format(phase, version, ts, ctx)` derives `releaseType` from the context — it does NOT write a redundant field to the state file; the existing `hotfix: true` flag in the v2 state-file schema (story-0039-0002) is the single source of truth.
+
+### Security (story-0039-0014 TASK-010)
+
+- Version strings are validated against `^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[a-z0-9.]+)?$` before any use in file paths (OWASP A03 / CWE-22 — prevents `../` traversal and shell metacharacters).
+- The state-file parent directory is hardcoded `plans/`; no user-controlled directory is interpolated.
+- Error codes never leak internal stack traces to the operator (Rule 06 / OWASP A09 — SLF4J WARN only).
+- `ReleaseContext` is an immutable record; its flag cannot be tampered with after construction.
 
 ## Operational Commands (story-0039-0010)
 

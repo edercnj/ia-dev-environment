@@ -1,6 +1,7 @@
 package dev.iadev.release.preflight;
 
 import dev.iadev.release.BumpType;
+import dev.iadev.release.ReleaseContext;
 import dev.iadev.release.integrity.CheckResult;
 import dev.iadev.release.integrity.CheckStatus;
 import dev.iadev.release.integrity.IntegrityReport;
@@ -38,7 +39,8 @@ public final class PreflightDashboardRenderer {
      * @return rendered dashboard text
      */
     public static String render(DashboardData data) {
-        return render(data, DEFAULT_CHANGELOG_LINES);
+        return render(data, DEFAULT_CHANGELOG_LINES,
+                ReleaseContext.release());
     }
 
     /**
@@ -50,10 +52,34 @@ public final class PreflightDashboardRenderer {
      * @return rendered dashboard text
      */
     public static String render(DashboardData data, int maxChangelog) {
+        return render(data, maxChangelog,
+                ReleaseContext.release());
+    }
+
+    /**
+     * Renders the pre-flight dashboard under the rules of
+     * {@code ctx} (story-0039-0014 TASK-009). When the
+     * context declares a hotfix flow, a one-line banner
+     * {@code "modo HOTFIX, base=main, bump=PATCH"} is
+     * rendered before the Version section so the operator
+     * can see the mode at a glance.
+     *
+     * @param data           dashboard data; never null
+     * @param maxChangelog   max CHANGELOG lines to show; clamped to
+     *                       [{@value MIN_CHANGELOG_LINES}..{@value MAX_CHANGELOG_LINES}]
+     * @param ctx            release context; never null
+     * @return rendered dashboard text
+     */
+    public static String render(
+            DashboardData data,
+            int maxChangelog,
+            ReleaseContext ctx) {
         Objects.requireNonNull(data, "data");
+        Objects.requireNonNull(ctx, "ctx");
         int clampedMax = clampChangelogLines(maxChangelog);
         var sb = new StringBuilder(512);
-        renderHeader(sb, data);
+        renderHeader(sb, data, ctx);
+        renderModeBanner(sb, ctx);
         renderVersionSection(sb, data);
         renderCommitSection(sb, data);
         renderChangelogSection(sb, data, clampedMax);
@@ -72,10 +98,25 @@ public final class PreflightDashboardRenderer {
         return requested;
     }
 
-    private static void renderHeader(StringBuilder sb, DashboardData data) {
-        sb.append("=== PRE-FLIGHT — release v")
+    private static void renderHeader(StringBuilder sb,
+                                     DashboardData data,
+                                     ReleaseContext ctx) {
+        String label = ctx.hotfix() ? "hotfix" : "release";
+        sb.append("=== PRE-FLIGHT — ")
+          .append(label)
+          .append(" v")
           .append(sanitize(data.targetVersion().toString()))
           .append(" ===\n\n");
+    }
+
+    private static void renderModeBanner(
+            StringBuilder sb, ReleaseContext ctx) {
+        if (!ctx.hotfix()) {
+            return;
+        }
+        sb.append("modo HOTFIX, base=")
+          .append(sanitize(ctx.baseBranch()))
+          .append(", bump=PATCH\n\n");
     }
 
     private static void renderVersionSection(StringBuilder sb,
