@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://iadev.dev/schemas/telemetry-event/1.0.0.json",
+  "title": "Telemetry Event",
+  "description": "Canonical schema for a single telemetry event emitted by Claude Code hooks, skills, and subagents. One event per NDJSON line. Versioned via schemaVersion (SemVer). See EPIC-0040 / story-0040-0001.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "eventId",
+    "timestamp",
+    "sessionId",
+    "type"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "description": "SemVer version of this event schema. MAJOR bumps on breaking change, MINOR on new optional field, PATCH on docs-only.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "eventId": {
+      "type": "string",
+      "description": "UUIDv4 identifying this event uniquely.",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "description": "ISO-8601 UTC timestamp (YYYY-MM-DDTHH:mm:ss.sssZ).",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?Z$"
+    },
+    "sessionId": {
+      "type": "string",
+      "description": "Opaque identifier of the Claude Code session that produced the event.",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "epicId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Epic identifier (EPIC-NNNN) or literal 'unknown' when unattributable.",
+      "pattern": "^(EPIC-\\d{4}|unknown)$"
+    },
+    "storyId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Story identifier in canonical form story-XXXX-YYYY.",
+      "pattern": "^story-\\d{4}-\\d{4}$"
+    },
+    "taskId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Task identifier in canonical form TASK-XXXX-YYYY-NNN.",
+      "pattern": "^TASK-\\d{4}-\\d{4}-\\d{3}$"
+    },
+    "type": {
+      "type": "string",
+      "description": "Discrete event kind. Closed enum; adding a value requires a MINOR bump.",
+      "enum": [
+        "skill.start",
+        "skill.end",
+        "phase.start",
+        "phase.end",
+        "tool.call",
+        "tool.result",
+        "session.start",
+        "session.end",
+        "subagent.start",
+        "subagent.end",
+        "error"
+      ]
+    },
+    "skill": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Canonical skill name, kebab-case (e.g., x-story-implement).",
+      "maxLength": 64,
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "phase": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Free-form phase label, bounded to avoid log bloat.",
+      "maxLength": 64
+    },
+    "tool": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Canonical Claude Code tool name (e.g., Bash, Read, Skill).",
+      "maxLength": 64
+    },
+    "durationMs": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "Non-negative duration in milliseconds for terminal events (*.end, tool.result).",
+      "minimum": 0
+    },
+    "status": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Terminal outcome flag for end-style events.",
+      "enum": [
+        "ok",
+        "failed",
+        "skipped",
+        null
+      ]
+    },
+    "failureReason": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Short, scrubbed description of the failure. Secrets must be redacted before emission.",
+      "maxLength": 256
+    },
+    "metadata": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Whitelisted structured attributes. Permitted keys are defined in RULE-003 of EPIC-0040 and enforced at write-time by hooks.",
+      "additionalProperties": true
+    }
+  }
+}
