@@ -2529,3 +2529,13 @@ Aborts the active release, cleaning up all associated resources.
 - **release-management KP**: References SemVer rules, branching strategies, and registry patterns from `skills/release-management/SKILL.md`
 - **Release Checklist**: Validates against `_TEMPLATE-RELEASE-CHECKLIST.md` for completeness
 - **Rule 09 (Branching Model)**: Follows Git Flow branch types and merge direction rules
+
+## Reference Documents
+
+- `references/auto-version-detection.md` — Conventional Commits → SemVer bump algorithm (story-0039-0001)
+- `references/state-file-schema.md` — `release-state-*.json` v2 schema and atomic write protocol
+- `references/approval-gate-workflow.md` — Phase 8 (APPROVAL-GATE) state machine
+- `references/prompt-flow.md` — `PromptEngine` halt points, Smart Resume prompt, `--no-prompt` fallback (story-0039-0007, story-0039-0008)
+- `references/backmerge-strategies.md` — Phase 10 clean vs conflict flow
+- `references/git-flow-cycle-explainer.md` — Phase 13 SUMMARY diagram renderer (story-0039-0005)
+- `references/interactive-flow-walkthrough.md` — end-to-end example sessions for normal release and hotfix (story-0039-0015)

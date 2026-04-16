@@ -26,7 +26,7 @@ import java.util.Map;
 final class PlanTemplateDefinitions {
 
     /** Number of templates currently managed. */
-    static final int TEMPLATE_COUNT = 17;
+    static final int TEMPLATE_COUNT = 20;
 
     /**
      * Template definitions: filename to mandatory sections
@@ -220,6 +220,38 @@ final class PlanTemplateDefinitions {
                         "Task Decomposition Readiness",
                         "Blockers and Open Questions",
                         "Final Verdict"));
+
+        map.put("_TEMPLATE-EPIC.md",
+                List.of(
+                        "1. Visão Geral",
+                        "2. Anexos e Referências",
+                        "3. Definições de Qualidade Globais",
+                        "4. Regras de Negócio Transversais"
+                                + " (Source of Truth)",
+                        "5. Índice de Histórias"));
+
+        map.put("_TEMPLATE-STORY.md",
+                List.of(
+                        "1. Dependências",
+                        "2. Regras Transversais Aplicáveis",
+                        "3. Descrição",
+                        "3.5 Entrega de Valor",
+                        "4. Definições de Qualidade Locais",
+                        "5. Contratos de Dados"
+                                + " (Data Contract)",
+                        "6. Diagramas",
+                        "7. Critérios de Aceite (Gherkin)",
+                        "8. Tasks"));
+
+        map.put("_TEMPLATE-IMPLEMENTATION-MAP.md",
+                List.of(
+                        "1. Matriz de Dependências",
+                        "2. Fases de Implementação",
+                        "3. Caminho Crítico",
+                        "4. Grafo de Dependências (Mermaid)",
+                        "5. Resumo por Fase",
+                        "6. Detalhamento por Fase",
+                        "7. Observações Estratégicas"));
 
         return Collections.unmodifiableMap(map);
     }
