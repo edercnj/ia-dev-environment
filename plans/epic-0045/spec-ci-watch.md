@@ -104,8 +104,8 @@ Introduzir uma skill dedicada `x-pr-watch-ci` em `core/pr/` que encapsule o poll
 | 10 | `CI_PENDING_PROCEED` | Checks green + timeout de Copilot estourou sem review. Orquestrador pode seguir, mas menu deve sinalizar. |
 | 20 | `CI_FAILED` | Algum check com `conclusion` ∈ {`failure`, `timed_out`, `cancelled`, `action_required`}. |
 | 30 | `TIMEOUT` | Timeout global estourado com checks ainda pendentes. |
-| 40 | `PR_ALREADY_MERGED` | Idempotência. Sai 0 imediatamente com warning. |
-| 50 | `NO_CI_CONFIGURED` | `gh pr checks` retornou vazio. Sai 0 com warning; Copilot ainda respeitado. |
+| 40 | `PR_ALREADY_MERGED` | Idempotência. Sai imediatamente com exit code 40 e warning. |
+| 50 | `NO_CI_CONFIGURED` | `gh pr checks` retornou vazio. Sai com exit code 50 e warning; Copilot ainda respeitado. |
 | 60 | `PR_CLOSED` | PR fechado sem merge. Aborta. |
 | 70 | `PR_NOT_FOUND` | PR inexistente ou sem permissão. Aborta. |
 
