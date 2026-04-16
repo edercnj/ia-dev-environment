@@ -3,7 +3,7 @@ name: x-release
 description: "Orchestrates complete release flow using Git Flow release branches with approval gate, PR-flow (gh CLI) and deep validation: version bump (auto-detect or explicit), release branch creation from develop, deep validation (coverage, golden files, version consistency), version file updates, changelog generation, release commit, release PR via gh (optionally reviewed by x-review-pr), human approval gate with persistent state file, tag on main after merged PR, back-merge PR to develop with conflict detection, and cleanup. Supports hotfix releases from main, dry-run mode, resume via --continue-after-merge, in-session pause via --interactive, GPG-signed tags, skip-review opt-out, and custom state file path."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, Skill, AskUserQuestion
-argument-hint: "[major|minor|patch|version] [--version X.Y.Z] [--last-tag <tag>] [--dry-run] [--skip-tests] [--no-publish] [--no-github-release] [--hotfix] [--continue-after-merge] [--interactive] [--signed-tag] [--skip-review] [--state-file <path>] [--skip-integrity] [--integrity-report <path>] [--max-parallel <N>] [--status] [--abort] [--yes] [--force]"
+argument-hint: "[major|minor|patch|version] [--version X.Y.Z] [--last-tag <tag>] [--dry-run] [--skip-tests] [--no-publish] [--no-github-release] [--hotfix] [--continue-after-merge] [--interactive] [--no-prompt] [--signed-tag] [--skip-review] [--state-file <path>] [--skip-integrity] [--integrity-report <path>] [--max-parallel <N>] [--status] [--abort] [--yes] [--force]"
 ---
 
 ## Global Output Policy
@@ -56,6 +56,7 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 | `--skip-integrity` | No | Skip sub-check 10 (cross-file integrity drift) in VALIDATE-DEEP. **Not recommended**; emits a loud warning in the release log. |
 | `--integrity-report <path>` | No | Write the structured JSON integrity report to `<path>` regardless of pass/fail. For CI parsers. |
 | `--max-parallel <N>` | No | Upper bound for VALIDATE-DEEP parallel check wave (1..16, default `min(CPU,4)`). `--max-parallel 1` forces serial execution. (story-0039-0004) |
+| `--no-prompt` | No | Disable all interactive `AskUserQuestion` prompts (RULE-004 non-interactive equivalent). At halt points, the skill persists state (`waitingFor`, `nextActions`) and exits with textual resume instructions, identical to the default non-`--interactive` behavior. Mutually exclusive with `--interactive`. (story-0039-0007) |
 | `--status` | No | Show current release status (read-only). Displays version, phase, PR URLs, last activity timestamp, waiting-for state, and suggested next actions. Exits 0 when no active release. (story-0039-0010) |
 | `--abort` | No | Abort the active release with double confirmation. Closes open PRs, deletes local and remote release branches, removes state file. Individual cleanup failures are warn-only (exit 0). Exits 1 with `ABORT_NO_RELEASE` if no state file exists. Exits 2 with `ABORT_USER_CANCELLED` if user cancels. (story-0039-0010) |
 | `--yes` | No | Used with `--abort` to skip both confirmation prompts (force mode). Logs "FORCE MODE" warning. (story-0039-0010) |
@@ -1267,18 +1268,30 @@ To cancel: close the PR and delete state file + release branch.
 EOF
 ```
 
-#### Step 8.3 — Branch on `--interactive` Flag
+#### Step 8.3 — Branch on `--interactive` / `--no-prompt` Flags
 
-If `--interactive` is **not** set, the skill exits immediately:
+> **PromptEngine integration (story-0039-0007):** When `--interactive` is set
+> and `--no-prompt` is absent, the halt point is resolved by `PromptEngine`
+> (`dev.iadev.release.prompt.PromptEngine`). The engine persists `waitingFor`
+> and `nextActions` to the state file, presents the operator with a
+> `AskUserQuestion` prompt, records `lastPromptAnsweredAt` on response, and
+> dispatches the selected option to the appropriate action (`CONTINUE`,
+> `EXIT`, `HANDOFF`). See `references/prompt-flow.md` for the complete flow.
+>
+> When `--no-prompt` is set, `PromptEngine.resolve(haltPoint, state, true)`
+> persists state and returns `EXIT` immediately without invoking
+> `AskUserQuestion` (RULE-004 non-interactive equivalent).
+
+If `--interactive` is **not** set (or `--no-prompt` **is** set), the skill exits immediately:
 
 ```bash
-if [ "$INTERACTIVE" != "true" ]; then
+if [ "$INTERACTIVE" != "true" ] || [ "$NO_PROMPT" = "true" ]; then
   echo "Skill halted at APPROVAL GATE. Resume with --continue-after-merge."
   exit 0
 fi
 ```
 
-If `--interactive` **is** set, the skill uses `AskUserQuestion` with three
+If `--interactive` **is** set and `--no-prompt` is absent, the skill uses `AskUserQuestion` with three
 options instead of exiting:
 
 ```
@@ -1394,6 +1407,14 @@ $(git log $(git describe --tags --abbrev=0 HEAD~1 2>/dev/null)..HEAD~1 \
 
 > **Reference:** See `references/backmerge-strategies.md` for the complete
 > workflow diagram and decision tree for both clean and conflict flows.
+
+> **PromptEngine integration (story-0039-0007):** After the back-merge PR is
+> opened (Step 10.3 or 10.4), the halt point `BACKMERGE_MERGE` is resolved by
+> `PromptEngine` using the same 3-option AskUserQuestion pattern as Phase 8:
+> "PR mergeado — continuar" / "Rodar /x-pr-fix PR#" / "Sair e retomar
+> depois". State fields `waitingFor=BACKMERGE_MERGE` and `nextActions` are
+> persisted. When `--no-prompt` is set, the engine persists state and returns
+> `EXIT` without prompting (RULE-004). See `references/prompt-flow.md`.
 
 #### Step 10.1 — Verify Phase Prerequisite
 
