@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Append-only NDJSON writer for {@link TelemetryEvent} streams, safe to share
@@ -144,12 +145,17 @@ public final class TelemetryWriter implements AutoCloseable {
      * the 5ms budget declared by EPIC-0040.</p>
      */
     public void flush() {
-        try {
-            channel.force(false);
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "failed to flush telemetry writer: "
-                            + path, e);
+        // Share the writeMonitor with write(): a concurrent write() must not
+        // interleave with force(), otherwise the "thread-safe" guarantee is
+        // broken and mid-write bytes could be forced to disk.
+        synchronized (writeMonitor) {
+            try {
+                channel.force(false);
+            } catch (IOException e) {
+                throw new UncheckedIOException(
+                        "failed to flush telemetry writer: "
+                                + path, e);
+            }
         }
     }
 
@@ -175,14 +181,18 @@ public final class TelemetryWriter implements AutoCloseable {
     }
 
     private FileLock acquireLock() throws IOException {
-        long deadline = System.currentTimeMillis()
-                + lockTimeoutMillis;
+        // Use nanoTime() (monotonic) instead of currentTimeMillis() to
+        // protect the timeout budget from wall-clock jumps (NTP skew,
+        // manual clock changes).
+        long startNanos = System.nanoTime();
+        long budgetNanos =
+                TimeUnit.MILLISECONDS.toNanos(lockTimeoutMillis);
         while (true) {
             FileLock lock = tryAcquireOnce();
             if (lock != null) {
                 return lock;
             }
-            if (System.currentTimeMillis() >= deadline) {
+            if (System.nanoTime() - startNanos >= budgetNanos) {
                 throw new TelemetryWriteTimeoutException(
                         path.toString(), lockTimeoutMillis);
             }

@@ -1,0 +1,56 @@
+{
+  "storyId": "story-0040-0003",
+  "mode": "MANUAL",
+  "parentBranch": null,
+  "tasks": {
+    "TASK-0040-0003-001": {
+      "status": "PR_CREATED",
+      "branch": "feat/story-0040-0003-telemetry-hook-scripts",
+      "prNumber": 410,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/410",
+      "commitSha": "a6de22a66",
+      "description": "telemetry-emit.sh helper + scrubbing + flock"
+    },
+    "TASK-0040-0003-002": {
+      "status": "PR_CREATED",
+      "branch": "feat/story-0040-0003-telemetry-hook-scripts",
+      "prNumber": 410,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/410",
+      "commitSha": "5dce5b0fd",
+      "description": "telemetry-session.sh + telemetry-stop.sh"
+    },
+    "TASK-0040-0003-003": {
+      "status": "PR_CREATED",
+      "branch": "feat/story-0040-0003-telemetry-hook-scripts",
+      "prNumber": 410,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/410",
+      "commitSha": "81a98267b",
+      "description": "telemetry-pretool.sh + telemetry-posttool.sh"
+    },
+    "TASK-0040-0003-004": {
+      "status": "PR_CREATED",
+      "branch": "feat/story-0040-0003-telemetry-hook-scripts",
+      "prNumber": 410,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/410",
+      "commitSha": "066aaff27,3404c14a3",
+      "description": "telemetry-lib.sh (resolve_context) + telemetry-subagent.sh"
+    },
+    "TASK-0040-0003-005": {
+      "status": "PR_CREATED",
+      "branch": "feat/story-0040-0003-telemetry-hook-scripts",
+      "prNumber": 410,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/410",
+      "commitSha": "405744f39",
+      "description": "TELEMETRY-README.md + CI shellcheck step"
+    },
+    "TASK-0040-0003-006": {
+      "status": "PR_CREATED",
+      "branch": "feat/story-0040-0003-telemetry-hook-scripts",
+      "prNumber": 410,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/410",
+      "commitSha": "4fc3b0c3b",
+      "description": "HooksSmokeIT end-to-end Java smoke test"
+    }
+  },
+  "storyStatus": "PR_CREATED"
+}
