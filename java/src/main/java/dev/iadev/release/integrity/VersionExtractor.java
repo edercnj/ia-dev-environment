@@ -16,6 +16,11 @@ final class VersionExtractor {
     private static final Pattern POM_VERSION = Pattern.compile(
             "(?s)<project[^>]*>.*?<version>\\s*([^<\\s]+)\\s*</version>");
 
+    // <parent>...</parent> block: stripped before matching POM_VERSION so the parent's
+    // own <version> does not shadow the project's <version> in inheritance scenarios.
+    private static final Pattern POM_PARENT_BLOCK = Pattern.compile(
+            "(?s)<parent>.*?</parent>");
+
     // Semantic version: X.Y.Z optionally prefixed by 'v', optionally suffixed.
     static final Pattern SEMVER = Pattern.compile(
             "\\bv?(\\d+\\.\\d+\\.\\d+)(?:-[A-Za-z0-9.]+)?\\b");
@@ -27,14 +32,18 @@ final class VersionExtractor {
     static String extractPomVersion(Map<String, String> files) {
         for (Map.Entry<String, String> e : files.entrySet()) {
             if (e.getKey() != null && e.getKey().endsWith("pom.xml") && e.getValue() != null) {
-                return extractPomVersionFromContent(e.getValue());
+                String version = extractPomVersionFromContent(e.getValue());
+                if (version != null) {
+                    return version;
+                }
             }
         }
         return null;
     }
 
     static String extractPomVersionFromContent(String pomContent) {
-        Matcher m = POM_VERSION.matcher(pomContent);
+        String stripped = POM_PARENT_BLOCK.matcher(pomContent).replaceAll("");
+        Matcher m = POM_VERSION.matcher(stripped);
         if (m.find()) {
             return m.group(1);
         }

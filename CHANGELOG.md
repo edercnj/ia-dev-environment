@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.6.0] - 2026-04-16
+
 ### Added
 - **EPIC-0042-A — Enforce Quality Gates, Auto-Remediation, and Continuous Execution (9 stories, ~209 golden files regenerated across 17 profiles + 2 platform variants).** Closes 9 critical gaps in the development lifecycle around test enforcement, smoke gate coverage, continuous execution, NO-GO auto-remediation, and review report visibility. _Note: renamed from EPIC-0042 to EPIC-0042-A to disambiguate from the in-flight `EPIC-0042 — Merge-Train Automation + Auto PR-Fix Hook` (under `plans/epic-0042/`); the nested story IDs were also renamed from `STORY-0042-*` to `story-0042-A-*` (lowercase, matching the EPIC-0039 / EPIC-0038 convention) as part of the same disambiguation; see `feature/epic-0042-merge-train-automation` branch._
   - **story-0042-A-0001 — Mandatory Test Execution in x-review-pr.** Tech Lead review (`x-review-pr`) now runs `{{TEST_COMMAND}}` + `{{COVERAGE_COMMAND}}` + `{{SMOKE_COMMAND}}` before emitting GO/NO-GO. Any test failure, coverage below 95% line / 90% branch, or smoke failure forces **automatic NO-GO** (overrides rubric score). Rubric section I (Tests & Execution) expanded from 3 to 6 points.
