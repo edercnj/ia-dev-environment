@@ -164,7 +164,7 @@ class HotfixInteractiveSmokeTest {
 
         assertThat(line)
                 .contains("\"releaseType\":\"hotfix\"")
-                .contains("\"version\":\"3.1.1\"")
+                .contains("\"releaseVersion\":\"3.1.1\"")
                 .contains("\"phase\":\"DETERMINE\"");
     }
 

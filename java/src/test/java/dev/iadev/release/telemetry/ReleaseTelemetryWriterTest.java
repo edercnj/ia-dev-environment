@@ -73,14 +73,14 @@ class ReleaseTelemetryWriterTest {
                     "2026-04-15T10:00:00Z",
                     ReleaseContext.forHotfix());
 
-            int ts = line.indexOf("timestamp");
-            int ph = line.indexOf("phase");
-            int ve = line.indexOf("version");
+            int ve = line.indexOf("releaseVersion");
             int rt = line.indexOf("releaseType");
+            int ph = line.indexOf("phase");
+            int ts = line.indexOf("startedAt");
 
-            assertThat(ts).isLessThan(ph);
-            assertThat(ph).isLessThan(ve);
             assertThat(ve).isLessThan(rt);
+            assertThat(rt).isLessThan(ph);
+            assertThat(ph).isLessThan(ts);
         }
 
         @Test

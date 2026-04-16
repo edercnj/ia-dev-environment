@@ -21,7 +21,7 @@
 | story-0039-0011 | Handoff /x-pr-fix-comments | — | 0007 | — | Pendente |
 | story-0039-0012 | Telemetria por fase | — | 0002 | 0014 | Concluída |
 | story-0039-0013 | Interactive dry-run | — | 0007, 0009 | — | Pendente |
-| story-0039-0014 | Paridade hotfix | — | 0001, 0005, 0007, 0008, 0009, 0012 | 0015 | Concluida |
+| story-0039-0014 | Paridade hotfix | — | 0001, 0005, 0007, 0008, 0009, 0012 | 0015 | Concluída |
 | story-0039-0015 | Doc + golden regen final | — | 0001..0014 | — | Pendente |
 
 > **Valores de Status:** `Pendente` (padrão) · `Em Andamento` · `Concluída` · `Falha` · `Bloqueada` · `Parcial`

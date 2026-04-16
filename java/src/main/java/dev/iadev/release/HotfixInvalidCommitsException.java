@@ -1,7 +1,5 @@
 package dev.iadev.release;
 
-import java.util.Objects;
-
 /**
  * Raised by {@link VersionDetector} when a hotfix flow
  * ({@link BumpRestriction#PATCH_ONLY}) observes one or more
@@ -51,7 +49,6 @@ public final class HotfixInvalidCommitsException
     }
 
     private static String buildMessage(int feat, int breaking) {
-        Objects.checkIndex(0, Integer.MAX_VALUE);
         return String.format(
                 "Hotfix flow rejects non-PATCH commits: "
                         + "feat=%d, breaking=%d. "

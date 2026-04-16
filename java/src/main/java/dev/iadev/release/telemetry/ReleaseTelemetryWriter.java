@@ -16,6 +16,18 @@ import java.util.Objects;
  * {@code "hotfix"} when the flow is a hotfix, {@code "release"}
  * otherwise.</p>
  *
+ * <p>Field names align with the canonical JSONL schema emitted by
+ * {@code dev.iadev.infrastructure.adapter.output.telemetry.FileTelemetryWriter}
+ * and the domain record
+ * {@code dev.iadev.domain.model.PhaseMetric} (story-0039-0012 §5.1):
+ * {@code releaseVersion}, {@code releaseType}, {@code phase},
+ * {@code startedAt}. The subset emitted here is intentionally
+ * minimal — the {@code endedAt}, {@code durationSec}, and
+ * {@code outcome} fields are populated by the full phase-wrapping
+ * writer; this lightweight formatter is used by the interactive
+ * flow for early-phase, pre-completion markers that share the same
+ * reader/benchmark path.</p>
+ *
  * <p>Output is canonical JSON: keys sorted by insertion order,
  * strings escaped per RFC 8259, no trailing whitespace. The
  * writer itself performs no I/O — the caller is responsible
@@ -33,10 +45,21 @@ public final class ReleaseTelemetryWriter {
     /**
      * Formats a telemetry event as a single JSONL line.
      *
+     * <p>Emitted keys (in canonical order): {@code releaseVersion},
+     * {@code releaseType}, {@code phase}, {@code startedAt}. This
+     * shape is a strict subset of the schema used by
+     * {@code FileTelemetryWriter}, so the same JSONL file can be
+     * consumed by {@code TelemetryJsonlReader} without special
+     * casing.</p>
+     *
      * @param phase         phase name (e.g.
      *                      {@code "DETERMINE"}); never null
-     * @param version       target version string; never null
-     * @param timestampIso  ISO-8601 UTC timestamp; never null
+     * @param version       target version string (mapped to the
+     *                      {@code releaseVersion} JSON field);
+     *                      never null
+     * @param timestampIso  ISO-8601 UTC timestamp (mapped to the
+     *                      {@code startedAt} JSON field);
+     *                      never null
      * @param ctx           release context; never null
      * @return JSON object encoded as a single line without a
      *         trailing newline
@@ -54,11 +77,11 @@ public final class ReleaseTelemetryWriter {
 
         Map<String, String> fields =
                 new LinkedHashMap<>();
-        fields.put("timestamp", timestampIso);
-        fields.put("phase", phase);
-        fields.put("version", version);
+        fields.put("releaseVersion", version);
         fields.put("releaseType",
                 ctx.hotfix() ? HOTFIX : RELEASE);
+        fields.put("phase", phase);
+        fields.put("startedAt", timestampIso);
 
         return encode(fields);
     }
