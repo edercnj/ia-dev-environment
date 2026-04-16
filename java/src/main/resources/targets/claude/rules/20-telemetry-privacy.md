@@ -34,7 +34,7 @@ count occurrences without recovering the secret.
 | 5 | GitHub token (`ghp_`, `gho_`, `ghu_`, `ghs_`, `ghr_`) | `gh[pousr]_[A-Za-z0-9]{36,}` | `GITHUB_TOKEN_REDACTED` |
 | 6 | Email address | `[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}` | `EMAIL_REDACTED` |
 | 7 | CPF (Brazilian ID, formatted) | `\d{3}\.\d{3}\.\d{3}-\d{2}` | `CPF_REDACTED` |
-| 8 | URL with embedded credentials | `://[^:/\s]+:[^@/\s]+@` | `://USER:PASS_REDACTED@` |
+| 8 | URL with embedded credentials (+ host) | `://[^:/\s]+:[^@/\s]+@[A-Za-z0-9.-]+` | `://USER:PASS_REDACTED@HOST` |
 
 Rules 1 through 8 are the **minimum set**. Implementations MAY add further
 patterns (e.g., RSA private key headers, Slack tokens) provided the mapping is

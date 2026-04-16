@@ -74,7 +74,7 @@ class RulesAssemblerTelemetryTest {
                 .contains("GITHUB_TOKEN_REDACTED")
                 .contains("EMAIL_REDACTED")
                 .contains("CPF_REDACTED")
-                .contains("USER:PASS_REDACTED");
+                .contains("USER:PASS_REDACTED@HOST");
 
         assertThat(content)
                 .contains("retryCount")
