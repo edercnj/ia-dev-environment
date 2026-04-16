@@ -96,8 +96,28 @@ class TelemetryContractDocsTest {
     }
 
     private static Path resolveRepoRoot() {
-        // src/test/java tests run with cwd = module root (java/). Repo root
-        // is the parent directory.
-        return Path.of(System.getProperty("user.dir")).getParent();
+        // Walk parents from the JVM cwd until a repository marker is found.
+        // Robust against IDE runs, Maven -f invocations, and Surefire
+        // working-directory overrides where cwd may be the repo root or a
+        // module subdirectory (e.g. java/).
+        Path current =
+                Path.of(System.getProperty("user.dir"))
+                        .toAbsolutePath()
+                        .normalize();
+        while (current != null) {
+            if (isRepoRoot(current)) {
+                return current;
+            }
+            current = current.getParent();
+        }
+        throw new IllegalStateException(
+                "Could not locate repository root from user.dir="
+                        + System.getProperty("user.dir"));
+    }
+
+    private static boolean isRepoRoot(Path candidate) {
+        return Files.isRegularFile(candidate.resolve(".gitignore"))
+                && (Files.isDirectory(candidate.resolve("java"))
+                        || Files.isDirectory(candidate.resolve("shared")));
     }
 }
