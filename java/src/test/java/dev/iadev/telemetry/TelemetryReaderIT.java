@@ -148,6 +148,110 @@ class TelemetryReaderIT {
                 .hasMessageContaining("path is required");
     }
 
+    @Test
+    void streamIterator_afterExhaustion_nextThrows()
+            throws Exception {
+        Path file = tmp.resolve("events.ndjson");
+        Files.writeString(file,
+                sample(EventType.SESSION_START).toJsonLine(),
+                StandardCharsets.UTF_8);
+
+        try (Stream<TelemetryEvent> stream =
+                     TelemetryReader.open(file).stream()) {
+            java.util.Iterator<TelemetryEvent> it =
+                    stream.iterator();
+            assertThat(it.hasNext()).isTrue();
+            it.next();
+            // Second hasNext() call goes through the exhausted
+            // branch (nextEvent == null).
+            assertThat(it.hasNext()).isFalse();
+            // And idempotent repeat still returns false.
+            assertThat(it.hasNext()).isFalse();
+            assertThatThrownBy(it::next)
+                    .isInstanceOf(
+                            java.util.NoSuchElementException
+                                    .class);
+        }
+    }
+
+    @Test
+    void streamIterator_hasNextCachesLookahead()
+            throws Exception {
+        Path file = tmp.resolve("events.ndjson");
+        String line = sample(EventType.SESSION_START)
+                .toJsonLine();
+        Files.writeString(file,
+                line + line,
+                StandardCharsets.UTF_8);
+
+        try (Stream<TelemetryEvent> stream =
+                     TelemetryReader.open(file).stream()) {
+            java.util.Iterator<TelemetryEvent> it =
+                    stream.iterator();
+            // Two hasNext() calls without next() — second hits the
+            // "nextEvent != null" branch.
+            assertThat(it.hasNext()).isTrue();
+            assertThat(it.hasNext()).isTrue();
+            it.next();
+            assertThat(it.hasNext()).isTrue();
+            it.next();
+            assertThat(it.hasNext()).isFalse();
+        }
+    }
+
+    @Test
+    void count_onInvalidPath_raisesUncheckedIo()
+            throws Exception {
+        // A path whose parent is a regular file triggers
+        // Files.lines() to fail (NoSuchFileException) — but we pass
+        // Files.exists() first so we need an existing-but-unreadable
+        // file. On POSIX we flip permissions; on Windows we skip.
+        Path file = tmp.resolve("unreadable.ndjson");
+        Files.writeString(file, "ignored");
+        boolean posix = file.getFileSystem()
+                .supportedFileAttributeViews()
+                .contains("posix");
+        if (!posix) {
+            return;
+        }
+        Files.setPosixFilePermissions(file,
+                java.util.EnumSet.noneOf(
+                        java.nio.file.attribute
+                                .PosixFilePermission.class));
+        try {
+            assertThatThrownBy(
+                    () -> TelemetryReader.open(file).count())
+                    .isInstanceOf(
+                            java.io.UncheckedIOException.class)
+                    .hasMessageContaining(
+                            "failed to count telemetry events");
+        } finally {
+            Files.setPosixFilePermissions(file,
+                    java.util.EnumSet.of(
+                            java.nio.file.attribute
+                                    .PosixFilePermission
+                                    .OWNER_READ,
+                            java.nio.file.attribute
+                                    .PosixFilePermission
+                                    .OWNER_WRITE));
+        }
+    }
+
+    @Test
+    void stream_skipsBlankLinesInMiddle() throws Exception {
+        Path file = tmp.resolve("events.ndjson");
+        String line = sample(EventType.SESSION_START)
+                .toJsonLine();
+        Files.writeString(file,
+                line + "\n\n  \n" + line,
+                StandardCharsets.UTF_8);
+
+        try (Stream<TelemetryEvent> stream =
+                     TelemetryReader.open(file).stream()) {
+            assertThat(stream.count()).isEqualTo(2L);
+        }
+    }
+
     private static TelemetryEvent sample(EventType type) {
         return new TelemetryEvent(
                 "1.0.0",

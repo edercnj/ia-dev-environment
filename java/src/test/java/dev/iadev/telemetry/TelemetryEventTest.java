@@ -278,6 +278,55 @@ class TelemetryEventTest {
                 .isInstanceOf(UnsupportedOperationException.class);
     }
 
+    @Test
+    void eventType_fromWireValue_null_throws() {
+        assertThatThrownBy(
+                () -> EventType.fromWireValue(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("wire value is required");
+    }
+
+    @Test
+    void eventType_fromWireValue_unknown_throws() {
+        assertThatThrownBy(
+                () -> EventType.fromWireValue("nope"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("unknown event type");
+    }
+
+    @Test
+    void eventType_fromWireValue_roundTripsAllValues() {
+        for (EventType value : EventType.values()) {
+            assertThat(EventType.fromWireValue(
+                    value.wireValue())).isEqualTo(value);
+        }
+    }
+
+    @Test
+    void eventStatus_fromWireValue_null_throws() {
+        assertThatThrownBy(
+                () -> EventStatus.fromWireValue(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("wire value is required");
+    }
+
+    @Test
+    void eventStatus_fromWireValue_unknown_throws() {
+        assertThatThrownBy(
+                () -> EventStatus.fromWireValue("nope"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining(
+                        "unknown event status");
+    }
+
+    @Test
+    void eventStatus_fromWireValue_roundTripsAllValues() {
+        for (EventStatus value : EventStatus.values()) {
+            assertThat(EventStatus.fromWireValue(
+                    value.wireValue())).isEqualTo(value);
+        }
+    }
+
     private static void validateAgainstSchema(String json)
             throws Exception {
         String schemaJson = Files.readString(Path.of(
