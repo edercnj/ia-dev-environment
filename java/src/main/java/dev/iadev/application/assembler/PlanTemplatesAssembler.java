@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Copies the 15 planning and review templates to
+ * Copies the 20 planning and review templates to
  * {@code .claude/templates/} in the output directory.
  *
  * <p>Templates contain {@code {{PLACEHOLDER}}} tokens
