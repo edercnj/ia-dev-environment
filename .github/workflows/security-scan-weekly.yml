@@ -37,7 +37,9 @@ jobs:
         run: mvn -B -DskipTests package
 
       - name: Trivy scan (filesystem)
-        uses: aquasecurity/trivy-action@0.24.0
+        # 0.35.0 patches GHSA-69fq-xp46-6x23 (supply chain compromise
+        # affecting < 0.35.0). Do not downgrade.
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           scan-type: fs
           scan-ref: java/
