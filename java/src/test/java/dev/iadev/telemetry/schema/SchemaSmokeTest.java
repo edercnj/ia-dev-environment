@@ -97,9 +97,8 @@ class SchemaSmokeTest {
     }
 
     private static String newUuidV4() {
-        // Produce a deterministic UUIDv4-shaped string. Java's UUID.randomUUID()
-        // emits version-4 output so the pattern check in the schema is
-        // satisfied.
+        // Java's UUID.randomUUID() emits a random version-4 UUID, which
+        // satisfies the schema's UUIDv4 pattern check.
         return UUID.randomUUID().toString();
     }
 }

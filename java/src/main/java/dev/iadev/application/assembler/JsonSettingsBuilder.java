@@ -23,24 +23,6 @@ public final class JsonSettingsBuilder {
 
     /**
      * Builds the settings.json content as a formatted JSON
-     * string.
-     *
-     * <p>Legacy overload kept for backward compatibility.
-     * Delegates to {@link #build(List, HookPresence, boolean)}
-     * with telemetry disabled.</p>
-     *
-     * @param permissions  the list of allowed commands
-     * @param hookPresence whether to include hooks section
-     * @return formatted JSON string
-     */
-    String build(
-            List<String> permissions,
-            HookPresence hookPresence) {
-        return build(permissions, hookPresence, false);
-    }
-
-    /**
-     * Builds the settings.json content as a formatted JSON
      * string with explicit telemetry control.
      *
      * @param permissions the list of allowed commands

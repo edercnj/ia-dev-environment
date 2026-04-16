@@ -195,7 +195,8 @@ class SettingsAssemblerCoverageTest {
                 + " empty allow array")
         void buildSettingsJson_emptyPermissions_succeeds() {
             String json = SettingsAssembler
-                    .buildSettingsJson(List.of(), HookPresence.WITHOUT_HOOKS);
+                    .buildSettingsJson(List.of(),
+                            HookPresence.WITHOUT_HOOKS, false);
 
             assertThat(json)
                     .contains("\"allow\": [\n")
@@ -211,7 +212,8 @@ class SettingsAssemblerCoverageTest {
                     "Bash(mvn *)",
                     "Bash(npm *)");
             String json = SettingsAssembler
-                    .buildSettingsJson(perms, HookPresence.WITHOUT_HOOKS);
+                    .buildSettingsJson(perms,
+                            HookPresence.WITHOUT_HOOKS, false);
 
             assertThat(json)
                     .contains("\"Bash(git *)\"")

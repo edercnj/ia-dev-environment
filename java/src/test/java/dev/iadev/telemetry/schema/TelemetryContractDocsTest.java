@@ -96,8 +96,21 @@ class TelemetryContractDocsTest {
     }
 
     private static Path resolveRepoRoot() {
-        // src/test/java tests run with cwd = module root (java/). Repo root
-        // is the parent directory.
-        return Path.of(System.getProperty("user.dir")).getParent();
+        // Walk up from the working directory until we find a directory that
+        // contains both .gitignore and the java/ module. This avoids
+        // assumptions about cwd across IDE runs, Surefire/Failsafe, and
+        // CI invocations from the repo root.
+        Path current = Path.of(System.getProperty("user.dir"))
+                .toAbsolutePath();
+        while (current != null) {
+            if (Files.exists(current.resolve(".gitignore"))
+                    && Files.isDirectory(current.resolve("java"))) {
+                return current;
+            }
+            current = current.getParent();
+        }
+        throw new IllegalStateException(
+                "Could not locate repo root from "
+                        + System.getProperty("user.dir"));
     }
 }
