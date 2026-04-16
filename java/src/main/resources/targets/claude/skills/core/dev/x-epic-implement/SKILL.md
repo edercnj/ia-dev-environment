@@ -520,6 +520,9 @@ The execution plan produced by Phase 0.5 is consumed by the Core Loop:
 
 ## Phase 1 — Execution Loop
 
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-implement Phase-1-Execution-Loop`
+
 ### 1.1 Initialize Execution State
 
 1. Read `IMPLEMENTATION-MAP.md` content from the epic directory
@@ -1498,7 +1501,13 @@ The phase completion report is generated AFTER the integrity gate completes
 If the gate fails, the report documents the failure and serves as a diagnostic
 artifact for the operator deciding whether to resume or abort.
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-implement Phase-1-Execution-Loop ok`
+
 ## Phase 2 — Epic Progress Report Generation
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-implement Phase-2-Progress-Report`
 
 After all stories in a phase complete (or reach terminal state), the orchestrator
 generates a progress report. With per-story PRs, each story already has its own
@@ -1588,7 +1597,13 @@ After report generation completes, persist final state:
 2. Set `finishedAt` timestamp
 3. Persist final `execution-state.json` with all metrics
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-implement Phase-2-Progress-Report ok`
+
 ## Phase 3 — Verification
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-implement Phase-3-Verification`
 
 Final verification validates the epic as a whole before declaring completion.
 All validations run on `develop` after all story PRs are merged.
@@ -1658,7 +1673,13 @@ Report: plans/epic-{epicId}/epic-execution-report.md
 Elapsed: {totalElapsedTime}
 ```
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-implement Phase-3-Verification ok`
+
 ## Phase 4 — PR Comment Remediation (Optional)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-implement Phase-4-Remediation`
 
 After Phase 3 (Verification) completes, the orchestrator offers automatic remediation
 of PR review comments across all story PRs in the epic. This phase invokes
@@ -1797,6 +1818,9 @@ Merge mode: {auto|no-merge|interactive}
 
 > **`--single-pr` dry-run:** When `--single-pr` is set, the dry-run output shows
 > `Model: single-pr (legacy)` with the epic branch name instead of per-story branches.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-implement Phase-4-Remediation ok`
 
 ## Error Handling
 
