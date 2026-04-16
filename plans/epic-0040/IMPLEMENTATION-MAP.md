@@ -19,7 +19,7 @@
 | story-0040-0009 | Template de instrumentação leve | — | 0006 | — | Pendente |
 | story-0040-0010 | Skill /x-telemetry-analyze | — | 0002, 0004, 0006 | 0011, 0012 | Pendente |
 | story-0040-0011 | Skill /x-telemetry-trend | — | 0010 | 0012 | Pendente |
-| story-0040-0012 | Documentação, ADR e release 3.3.0 | — | 0010, 0011 | — | Pendente |
+| story-0040-0012 | Documentação, ADR e release 3.8.0 | — | 0010, 0011 | — | Pendente |
 
 > **Valores de Status:** `Pendente` (padrão) · `Em Andamento` · `Concluída` · `Falha` · `Bloqueada` · `Parcial`
 
@@ -97,7 +97,7 @@
 ║              FASE 6 — Documentation & Release (1 story)                  ║
 ║                                                                          ║
 ║   ┌──────────────────────────────────────────────────────────┐           ║
-║   │  story-0040-0012  ADR-0004 + CHANGELOG + release 3.3.0   │           ║
+║   │  story-0040-0012  ADR-0004 + CHANGELOG + release 3.8.0   │           ║
 ║   └──────────────────────────────────────────────────────────┘           ║
 ╚══════════════════════════════════════════════════════════════════════════╝
 ```
@@ -134,7 +134,7 @@ graph TD
     S0009["story-0040-0009<br/>Template instrumentation"]
     S0010["story-0040-0010<br/>/x-telemetry-analyze"]
     S0011["story-0040-0011<br/>/x-telemetry-trend"]
-    S0012["story-0040-0012<br/>ADR + release 3.3.0"]
+    S0012["story-0040-0012<br/>ADR + release 3.8.0"]
 
     %% Fase 0 → 1
     S0001 --> S0002
@@ -282,11 +282,11 @@ graph TD
 
 | Story | Escopo Principal | Artefatos Chave |
 | :--- | :--- | :--- |
-| 0040-0012 | ADR-0004 + CLAUDE.md + CHANGELOG + release 3.3.0 via Git Flow | `docs/adr/ADR-0004-telemetry-architecture.md`, CLAUDE.md, `.claude/README.md`, CHANGELOG.md, tag `v3.3.0` |
+| 0040-0012 | ADR-0004 + CLAUDE.md + CHANGELOG + release 3.8.0 via Git Flow | `docs/adr/ADR-0004-telemetry-architecture.md`, CLAUDE.md, `.claude/README.md`, CHANGELOG.md, tag `v3.8.0` |
 
 **Entregas da Fase 6:**
 - ADR documentando a arquitetura de telemetria
-- Release 3.3.0 publicado no `main` com tag
+- Release 3.8.0 publicado no `main` com tag
 - `develop` bumped para `3.4.0-SNAPSHOT`
 
 ---
