@@ -26,6 +26,7 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 - `/x-release patch` — bump patch version (bug fixes)
 - `/x-release 2.1.0` — set explicit version
 - `/x-release minor --dry-run` — preview release plan without executing
+- `/x-release minor --dry-run --interactive` — interactive dry-run: pauses before each of the 13 phases, zero side effects (onboarding / skill validation, story-0039-0013)
 - `/x-release patch --skip-tests` — skip test validation
 - `/x-release minor --no-publish` — create release locally without pushing
 - `/x-release patch --hotfix` — create hotfix release from `main`
@@ -48,7 +49,7 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 | `--no-github-release` | No | Skip the GitHub Release creation prompt in Step 11.1 (CI path; story-0039-0006, RULE-007). There is **no** silent auto-create mode — when this flag is absent, the operator is always prompted via AskUserQuestion. |
 | `--hotfix` | No | Create hotfix release from `main` instead of `develop` |
 | `--continue-after-merge` | No | Resume flow from RESUME-AND-TAG after the release PR has been merged manually. Requires an existing state file with `phase: APPROVAL_PENDING`. |
-| `--interactive` | No | Activate in-session pause at APPROVAL-GATE via `AskUserQuestion` instead of exiting the skill. The state file is still persisted for defense in depth. |
+| `--interactive` | No | Activate in-session pause at APPROVAL-GATE via `AskUserQuestion` instead of exiting the skill. The state file is still persisted for defense in depth. When combined with `--dry-run`, activates the interactive-dry-run sub-modality (story-0039-0013): the skill pauses before each of the 13 phases and records outcomes without invoking `git`, `mvn`, or `gh`. Passing `--interactive` WITHOUT `--dry-run` aborts with exit 1, error `INTERACTIVE_REQUIRES_DRYRUN`. |
 | `--signed-tag` | No | Create a GPG-signed git tag (`git tag -s`) instead of an annotated tag (`git tag -a`). |
 | `--skip-review` | No | Skip the fire-and-forget `x-review-pr` invocation at the end of Phase `OPEN-RELEASE-PR`. The release PR is still opened against `main`; only the automated specialist review is suppressed. |
 | `--state-file <path>` | No | Override the state file path (default: `plans/release-state-<X.Y.Z>.json`). |
@@ -2132,6 +2133,81 @@ Branch created:   hotfix/2.2.3 (from main)
 
 **Important:** In dry-run mode, all phases are only simulated. No files are modified, no commits are created, no tags are made, no branches are created, no PRs are opened.
 
+### Interactive Dry-Run Mode (story-0039-0013)
+
+The sub-modality `--dry-run --interactive` pauses the simulation BEFORE each of
+the 13 phases and asks the operator how to proceed. It is intended for onboarding
+new operators and for validating changes to this skill without touching real
+state.
+
+**Invocation:**
+
+```
+/x-release minor --dry-run --interactive
+```
+
+The flags must be combined. Passing `--interactive` without `--dry-run` aborts
+with exit code 1 and error code `INTERACTIVE_REQUIRES_DRYRUN`
+(see Consolidated Error Catalog below).
+
+**Per-phase prompt (3 options):**
+
+```
+=== NEXT PHASE: VALIDATED (3/13) ===
+Commands that would be executed:
+  - mvn clean verify -Pall-tests
+  - parse coverage report
+  - golden file tests
+  - hardcoded version scan
+  - cross-file version consistency
+
+Continue simulation?
+  1) Continue
+  2) Skip phase
+  3) Abort simulation
+```
+
+**Per-choice behavior:**
+
+| Choice | Outcome | Effect |
+| :--- | :--- | :--- |
+| `Continue` | `SIMULATED` | advance to next phase |
+| `Skip phase` | `SKIPPED` | mark current phase SKIPPED, advance |
+| `Abort simulation` | `ABORTED` | stop loop, emit partial summary, exit 0 |
+
+**State file isolation:**
+
+A dummy state file `release-state-dryrun-<token>.json` is created via
+`Files.createTempFile` (POSIX `0600` where supported) under the OS temp
+directory at the start of the run and is ALWAYS deleted in a `finally` block,
+including on abort. The file is opaque and is never committed or merged.
+
+**Zero side effects (RULE-004 non-interactive equivalent):**
+
+The executor `dev.iadev.release.dryrun.DryRunInteractiveExecutor` depends only
+on ports: `PromptPort`, `DryRunStatePort`, `PhaseCatalogPort`. It NEVER invokes
+real `git`, `mvn`, or `gh`. CI smoke runs wire a scripted `PromptPort`
+(`dev.iadev.smoke.DryRunInteractiveSmokeTest`) that scripts answers, proving the
+contract: see TASK-0039-0013-003.
+
+**Final summary (matches story-0039-0013 §5.2):**
+
+```
+=== DRY-RUN SUMMARY ===
+Simulated version:  3.2.0
+Simulated phases:   11 / 13
+Skipped phases:     2
+Predicted commands: 47 (none executed)
+
+DRY-RUN MODE — no side effects were applied.
+Dummy state discarded.
+```
+
+**Error:** `INTERACTIVE_REQUIRES_DRYRUN` (exit 1) — raised by
+`InteractiveFlagValidator.validate(dryRun, interactive)` when
+`--interactive` is present without `--dry-run`. See the Consolidated Error
+Catalog below for the complete row.
+
 ## Hotfix Release (with PR-Flow)
 
 Hotfix releases follow the same phase sequence as standard releases but with
@@ -2255,6 +2331,7 @@ printed at runtime.
 | 10bis | `WT_RELEASE_REMOVE_FAILED` | `x-git-worktree remove` non-zero, or `cd` back to main repo failed | `Could not remove release worktree <id>; left in place for inspection` | — |
 | 11 | `PUBLISH_GH_RELEASE_FAILED` | `gh release create` non-zero (auth, rate limit, API error) | `Failed to create GitHub Release v<V>. Tag v<V> is already published; create the Release manually.` | — |
 | 11 | `PUBLISH_UNKNOWN_FLAG` | Unknown flag passed to PUBLISH phase (defensive) | `Unknown flag in PUBLISH phase: <flag>. Expected --no-github-release or --no-publish.` | 1 |
+| — | `INTERACTIVE_REQUIRES_DRYRUN` | `--interactive` passed without `--dry-run` (story-0039-0013) | `--interactive requires --dry-run.` | 1 |
 
 ## Operational Commands (story-0039-0010)
 
