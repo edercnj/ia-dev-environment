@@ -16,7 +16,7 @@ public enum HaltPoint {
      */
     APPROVAL_GATE(List.of(
             "PR mergeado — continuar",
-            "Rodar /x-pr-fix-comments PR#",
+            "Rodar /x-pr-fix PR#",
             "Sair e retomar depois")),
 
     /**
@@ -24,7 +24,7 @@ public enum HaltPoint {
      */
     BACKMERGE_MERGE(List.of(
             "PR mergeado — continuar",
-            "Rodar /x-pr-fix-comments PR#",
+            "Rodar /x-pr-fix PR#",
             "Sair e retomar depois")),
 
     /**

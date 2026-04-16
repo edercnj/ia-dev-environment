@@ -15,8 +15,8 @@ specific to the halt point.
 
 | Halt Point | Phase | `waitingFor` | Options |
 |:---|:---|:---|:---|
-| `APPROVAL_GATE` | Phase 8 | `PR_MERGE` | "PR mergeado — continuar", "Rodar /x-pr-fix-comments PR#", "Sair e retomar depois" |
-| `BACKMERGE_MERGE` | Phase 10 | `BACKMERGE_MERGE` | "PR mergeado — continuar", "Rodar /x-pr-fix-comments PR#", "Sair e retomar depois" |
+| `APPROVAL_GATE` | Phase 8 | `PR_MERGE` | "PR mergeado — continuar", "Rodar /x-pr-fix PR#", "Sair e retomar depois" |
+| `BACKMERGE_MERGE` | Phase 10 | `BACKMERGE_MERGE` | "PR mergeado — continuar", "Rodar /x-pr-fix PR#", "Sair e retomar depois" |
 | `RECOVERABLE_FAILURE` | Any | `USER_CONFIRMATION` | "Tentar novamente", "Pular esta etapa", "Abortar" |
 
 ## State Persistence
@@ -34,8 +34,8 @@ state file before prompting:
 
 | `waitingFor` | `nextActions` (labels) |
 |:---|:---|
-| `PR_MERGE` | "PR mergeado — continuar", "Rodar /x-pr-fix-comments PR#", "Sair e retomar depois" |
-| `BACKMERGE_MERGE` | "PR mergeado — continuar", "Rodar /x-pr-fix-comments PR#", "Sair e retomar depois" |
+| `PR_MERGE` | "PR mergeado — continuar", "Rodar /x-pr-fix PR#", "Sair e retomar depois" |
+| `BACKMERGE_MERGE` | "PR mergeado — continuar", "Rodar /x-pr-fix PR#", "Sair e retomar depois" |
 | `USER_CONFIRMATION` | "Tentar novamente", "Pular esta etapa", "Abortar" |
 
 ## Option Dispatch
@@ -45,7 +45,7 @@ state file before prompting:
 | Option | Action | Result |
 |:---|:---|:---|
 | "PR mergeado — continuar" | `CONTINUE` | Proceeds to next phase (RESUME_AND_TAG or cleanup) |
-| "Rodar /x-pr-fix-comments PR#" | `HANDOFF` | Delegates to `/x-pr-fix-comments` (story-0039-0011) |
+| "Rodar /x-pr-fix PR#" | `HANDOFF` | Delegates to `/x-pr-fix` (story-0039-0011) |
 | "Sair e retomar depois" | `EXIT` | Exits with state preserved; resume via `--continue-after-merge` |
 
 ### RECOVERABLE_FAILURE
@@ -91,7 +91,7 @@ sequenceDiagram
             Skill->>Skill: proceed to RESUME_AND_TAG
         else "Fix comments PR#"
             Engine-->>Skill: HANDOFF
-            Skill->>Skill: delegate to /x-pr-fix-comments
+            Skill->>Skill: delegate to /x-pr-fix
         else "Sair"
             Engine-->>Skill: EXIT
             Skill-->>Op: exit 0 with resume instruction

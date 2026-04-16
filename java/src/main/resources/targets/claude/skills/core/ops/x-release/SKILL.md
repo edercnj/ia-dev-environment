@@ -1411,7 +1411,7 @@ $(git log $(git describe --tags --abbrev=0 HEAD~1 2>/dev/null)..HEAD~1 \
 > **PromptEngine integration (story-0039-0007):** After the back-merge PR is
 > opened (Step 10.3 or 10.4), the halt point `BACKMERGE_MERGE` is resolved by
 > `PromptEngine` using the same 3-option AskUserQuestion pattern as Phase 8:
-> "PR mergeado — continuar" / "Rodar /x-pr-fix-comments PR#" / "Sair e retomar
+> "PR mergeado — continuar" / "Rodar /x-pr-fix PR#" / "Sair e retomar
 > depois". State fields `waitingFor=BACKMERGE_MERGE` and `nextActions` are
 > persisted. When `--no-prompt` is set, the engine persists state and returns
 > `EXIT` without prompting (RULE-004). See `references/prompt-flow.md`.

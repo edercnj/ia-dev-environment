@@ -170,7 +170,7 @@ class PromptEngineTest {
                 + "_returnsHandoff")
         void resolve_approvalGateFixComments_returnsHandoff() {
             var askPort = new StubAskUserQuestionPort(
-                    "Rodar /x-pr-fix-comments PR#");
+                    "Rodar /x-pr-fix PR#");
             var statePort = new SpyStatePort();
             var clockPort = fixedClock();
             var engine = new PromptEngine(
@@ -346,6 +346,55 @@ class PromptEngineTest {
                     .hasMessageContaining(
                             "PROMPT_INVALID_RESPONSE");
         }
+
+        @Test
+        @DisplayName("resolve_nullAnswer"
+                + "_throwsWithPromptInvalidResponse")
+        void resolve_nullAnswer_throwsWithPromptInvalidResponse() {
+            var askPort = new NullAskUserQuestionPort();
+            var statePort = new SpyStatePort();
+            var clockPort = fixedClock();
+            var engine = new PromptEngine(
+                    statePort, clockPort, askPort);
+
+            assertThatThrownBy(() -> engine.resolve(
+                    HaltPoint.APPROVAL_GATE,
+                    approvalPendingState(),
+                    false))
+                    .isInstanceOf(PromptInvalidResponseException.class)
+                    .hasMessageContaining(
+                            "PROMPT_INVALID_RESPONSE");
+        }
+    }
+
+    @Nested
+    @DisplayName("nextActions command mapping")
+    class NextActionsCommandMapping {
+
+        @Test
+        @DisplayName("resolve_approvalGate"
+                + "_handoffOptionMapsToXPrFix")
+        void resolve_approvalGate_handoffOptionMapsToXPrFix() {
+            var askPort = new StubAskUserQuestionPort(
+                    "PR mergeado — continuar");
+            var statePort = new SpyStatePort();
+            var clockPort = fixedClock();
+            var engine = new PromptEngine(
+                    statePort, clockPort, askPort);
+
+            engine.resolve(
+                    HaltPoint.APPROVAL_GATE,
+                    approvalPendingState(),
+                    false);
+
+            assertThat(statePort.lastUpdatedState.nextActions())
+                    .anyMatch(a -> a.label().startsWith("Rodar")
+                            && a.command().equals("/x-pr-fix"));
+            assertThat(statePort.lastUpdatedState.nextActions())
+                    .filteredOn(a -> !a.label().startsWith("Rodar"))
+                    .allMatch(a -> a.command()
+                            .equals("/x-release"));
+        }
     }
 
     // -- Test doubles --
@@ -426,6 +475,17 @@ class PromptEngineTest {
                           List<String> options) {
             invocationCount++;
             return answer;
+        }
+    }
+
+    /** Stub that returns null to simulate port returning null. */
+    private static final class NullAskUserQuestionPort
+            implements AskUserQuestionPort {
+
+        @Override
+        public String ask(String question,
+                          List<String> options) {
+            return null;
         }
     }
 

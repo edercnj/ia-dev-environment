@@ -21,6 +21,6 @@ public enum PromptAction {
     /** Abort the release with error code. */
     ABORT,
 
-    /** Hand off to another skill (e.g. /x-pr-fix-comments). */
+    /** Hand off to another skill (e.g. /x-pr-fix). */
     HANDOFF
 }

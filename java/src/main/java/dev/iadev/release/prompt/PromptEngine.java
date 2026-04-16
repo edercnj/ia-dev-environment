@@ -5,6 +5,7 @@ import dev.iadev.release.state.ReleaseState;
 import dev.iadev.release.state.WaitingFor;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Engine that resolves halt-point prompts in the
@@ -50,7 +51,8 @@ public final class PromptEngine {
         WaitingFor waiting = mapWaitingFor(haltPoint);
         List<NextAction> actions = buildNextActions(haltPoint);
         ReleaseState updated = withHaltState(
-                state, waiting, actions, null);
+                state, waiting, actions,
+                state.lastPromptAnsweredAt());
         statePort.update(updated);
 
         if (noPrompt) {
@@ -72,37 +74,54 @@ public final class PromptEngine {
                                   String answer) {
         return switch (haltPoint) {
             case APPROVAL_GATE, BACKMERGE_MERGE ->
-                    dispatchPrHalt(answer);
+                    dispatchPrHalt(haltPoint, answer);
             case RECOVERABLE_FAILURE ->
-                    dispatchRecoverable(answer);
+                    dispatchRecoverable(haltPoint, answer);
         };
     }
 
-    private PromptResult dispatchPrHalt(String answer) {
-        if (answer.startsWith("PR mergeado")) {
+    private PromptResult dispatchPrHalt(
+            HaltPoint haltPoint, String answer) {
+        validateAnswer(answer, haltPoint);
+        List<String> opts = haltPoint.options();
+        if (answer.equals(opts.get(0))) {
             return PromptResult.of(PromptAction.CONTINUE);
         }
-        if (answer.startsWith("Rodar")) {
+        if (answer.equals(opts.get(1))) {
             return PromptResult.of(PromptAction.HANDOFF);
         }
-        if (answer.startsWith("Sair")) {
+        if (answer.equals(opts.get(2))) {
             return PromptResult.of(PromptAction.EXIT);
         }
         throw new PromptInvalidResponseException(answer);
     }
 
-    private PromptResult dispatchRecoverable(String answer) {
-        if (answer.startsWith("Tentar")) {
+    private PromptResult dispatchRecoverable(
+            HaltPoint haltPoint, String answer) {
+        validateAnswer(answer, haltPoint);
+        List<String> opts = haltPoint.options();
+        if (answer.equals(opts.get(0))) {
             return PromptResult.of(PromptAction.RETRY);
         }
-        if (answer.startsWith("Pular")) {
+        if (answer.equals(opts.get(1))) {
             return PromptResult.of(PromptAction.SKIP);
         }
-        if (answer.startsWith("Abortar")) {
+        if (answer.equals(opts.get(2))) {
             return PromptResult.abort(
                     2, "PROMPT_USER_ABORT");
         }
         throw new PromptInvalidResponseException(answer);
+    }
+
+    private static void validateAnswer(
+            String answer, HaltPoint haltPoint) {
+        if (answer == null || answer.isBlank()) {
+            throw new PromptInvalidResponseException(
+                    Objects.toString(answer, "<null>"));
+        }
+        if (!haltPoint.options().contains(answer)) {
+            throw new PromptInvalidResponseException(answer);
+        }
     }
 
     private static WaitingFor mapWaitingFor(
@@ -120,8 +139,17 @@ public final class PromptEngine {
             HaltPoint haltPoint) {
         return haltPoint.options().stream()
                 .map(label -> new NextAction(
-                        label, "/x-release"))
+                        label, mapCommand(haltPoint, label)))
                 .toList();
+    }
+
+    private static String mapCommand(
+            HaltPoint haltPoint,
+            String label) {
+        if (label.startsWith("Rodar")) {
+            return "/x-pr-fix";
+        }
+        return "/x-release";
     }
 
     private static String buildQuestion(
@@ -129,10 +157,15 @@ public final class PromptEngine {
             ReleaseState state) {
         String version = state.version();
         return switch (haltPoint) {
-            case APPROVAL_GATE -> String.format(
-                    "Release v%s — PR #%d opened."
-                            + " Choose an action:",
-                    version, state.prNumber());
+            case APPROVAL_GATE -> {
+                Integer prNum = state.prNumber();
+                String prLabel = prNum != null
+                        ? "#" + prNum : "unknown";
+                yield String.format(
+                        "Release v%s — PR %s opened."
+                                + " Choose an action:",
+                        version, prLabel);
+            }
             case BACKMERGE_MERGE -> String.format(
                     "Release v%s — back-merge PR opened."
                             + " Choose an action:",
