@@ -92,23 +92,24 @@ Verify that the Jira MCP tool (`mcp__atlassian__createJiraIssue`) is available.
 If the tool is NOT available, set `jiraContext = { enabled: false }` and skip to
 Phase 2 silently — do not warn the user.
 
-### 1.5.1b — Flag-Based Routing (EPIC-0042)
+### 1.5.1b — Roteamento por Flag (EPIC-0042)
 
-Before prompting the user, check for Jira flags:
+Antes de prompt ao usuario, verificar as flags de Jira:
 
-- If `--no-jira` is present: set `jiraContext = { enabled: false }` and skip to Phase 2.
-  Log: `"Jira integration skipped (--no-jira, EPIC-0042)"`
+- Se `--no-jira` estiver presente: definir `jiraContext = { enabled: false }` e pular
+  para a Phase 2. Log: `"Jira integration skipped (--no-jira, EPIC-0042)"`
 
-- If `--jira <PROJECT_KEY>` is present: use the provided project key directly. Skip
-  AskUserQuestion (Step 1.5.2). Discover the `cloudId` by calling
-  `mcp__atlassian__getAccessibleAtlassianResources`. Use the first available site's `id`
-  as the `cloudId`. If the call fails or returns no sites, warn the user and set
-  `jiraContext = { enabled: false }`. Otherwise set
+- Se `--jira <PROJECT_KEY>` estiver presente: usar a chave de projeto fornecida
+  diretamente. Pular AskUserQuestion (Step 1.5.2). Descobrir o `cloudId` chamando
+  `mcp__atlassian__getAccessibleAtlassianResources`. Usar o `id` do primeiro site
+  disponivel como `cloudId`. Se a chamada falhar ou nao retornar sites, alertar o
+  usuario e definir `jiraContext = { enabled: false }`. Caso contrario, definir
   `jiraContext = { enabled: true, cascadeToStories: true, projectKey: "<PROJECT_KEY>", cloudId: "<cloudId>" }`.
   Log: `"Jira integration via --jira flag: project {PROJECT_KEY}, cascade to stories (EPIC-0042)"`
-  Skip to Phase 2.
+  Pular para a Phase 2.
 
-- If neither flag is present: proceed to Step 1.5.2 (backward-compatible interactive prompting).
+- Se nenhuma flag estiver presente: prosseguir para o Step 1.5.2 (prompt interativo
+  compativel com a versao anterior).
 
 ### 1.5.2 — Ask the User (no flags provided)
 

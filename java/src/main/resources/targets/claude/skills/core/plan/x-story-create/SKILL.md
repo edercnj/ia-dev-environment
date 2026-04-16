@@ -440,20 +440,23 @@ If no `jiraContext` was provided (skill invoked directly, not via orchestrator):
 1. Check if `mcp__atlassian__createJiraIssue` is available. If not available, skip Jira
    integration entirely — replace all `<CHAVE-JIRA>` with `—`.
 
-2. **Flag-based routing (EPIC-0042):**
+2. **Roteamento por flag (EPIC-0042):**
 
-   - If `--no-jira` is present: skip Jira integration entirely. Replace all `<CHAVE-JIRA>`
-     with `—`. Log: `"Jira integration skipped (--no-jira, EPIC-0042)"`. Skip to Step 4.
+   - Se `--no-jira` estiver presente: pular a integracao com Jira completamente.
+     Substituir todos os `<CHAVE-JIRA>` por `—`. Log:
+     `"Jira integration skipped (--no-jira, EPIC-0042)"`. Pular para o Step 4.
 
-   - If `--jira <PROJECT_KEY>` is present: use the provided project key directly. Skip
-     AskUserQuestion. Discover the `cloudId` by calling
-     `mcp__atlassian__getAccessibleAtlassianResources`. Use the first available site's `id`
-     as the `cloudId`. If the call fails or returns no sites, warn the user and skip Jira
-     integration (replace all `<CHAVE-JIRA>` with `—`). Otherwise proceed to create stories
-     in Jira (step 3d below, using the flag-provided project key). Log:
+   - Se `--jira <PROJECT_KEY>` estiver presente: usar a chave de projeto fornecida
+     diretamente. Pular AskUserQuestion. Descobrir o `cloudId` chamando
+     `mcp__atlassian__getAccessibleAtlassianResources`. Usar o `id` do primeiro site
+     disponivel como `cloudId`. Se a chamada falhar ou nao retornar sites, alertar o
+     usuario e pular a integracao com Jira (substituir todos os `<CHAVE-JIRA>` por `—`).
+     Caso contrario, prosseguir para criar as historias no Jira (step 3d abaixo, usando
+     a chave de projeto fornecida pela flag). Log:
      `"Jira integration via --jira flag: project {PROJECT_KEY} (EPIC-0042)"`
 
-   - If neither flag is present: proceed to step 3 (backward-compatible interactive prompting).
+   - Se nenhuma flag estiver presente: prosseguir para o step 3 (prompt interativo
+     compativel com a versao anterior).
 
 3. Use `AskUserQuestion`:
    ```

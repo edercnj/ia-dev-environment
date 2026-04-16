@@ -297,8 +297,6 @@ flowchart TD
 
     S3["Step 3: Coverage<br/>line >= 95%, branch >= 90%"] --> S3R{Pass?}
     S3R -->|No| FAIL3(["FAIL — coverage below threshold"])
-    S3R -->|Yes| S4
-
     S3R -->|Yes| S5
 
     S5["Step 5: Smoke Tests (MANDATORY)<br/>{{SMOKE_COMMAND}}"] --> S5R{Pass?}

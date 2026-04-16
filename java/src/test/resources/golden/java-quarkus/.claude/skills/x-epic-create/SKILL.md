@@ -149,24 +149,27 @@ If not available, skip this entire step silently and proceed to Step 7.
 
 #### 6.2 — Check Context and Flags (EPIC-0042)
 
-**Flag-based routing (EPIC-0042):**
+**Roteamento por flag (EPIC-0042):**
 
-- If `--no-jira` is present: skip Jira integration entirely. Replace `<CHAVE-JIRA>` with `—`
-  and proceed to Step 7. Log: `"Jira integration skipped (--no-jira, EPIC-0042)"`
+- Se `--no-jira` estiver presente: pular a integracao com Jira completamente. Substituir
+  `<CHAVE-JIRA>` por `—` e prosseguir para o Step 7. Log:
+  `"Jira integration skipped (--no-jira, EPIC-0042)"`
 
-- If `--jira <PROJECT_KEY>` is present: use the provided project key directly. Skip
-  AskUserQuestion. Discover the `cloudId` by calling
-  `mcp__atlassian__getAccessibleAtlassianResources`. Use the first available site's `id`
-  as the `cloudId`. If the call fails or returns no sites, warn the user and skip to
-  Step 7 (replace `<CHAVE-JIRA>` with `—`). Otherwise proceed to 6.4. Log:
+- Se `--jira <PROJECT_KEY>` estiver presente: usar a chave de projeto fornecida
+  diretamente. Pular AskUserQuestion. Descobrir o `cloudId` chamando
+  `mcp__atlassian__getAccessibleAtlassianResources`. Usar o `id` do primeiro site
+  disponivel como `cloudId`. Se a chamada falhar ou nao retornar sites, alertar o
+  usuario e pular para o Step 7 (substituir `<CHAVE-JIRA>` por `—`). Caso contrario,
+  prosseguir para 6.4. Log:
   `"Jira integration via --jira flag: project {PROJECT_KEY} (EPIC-0042)"`
 
-- If this skill was invoked by the orchestrator (`x-epic-decompose`) and a `jiraContext`
-  was already provided, use that context directly (skip the user prompt — it was already
-  asked in Phase A.5). If `jiraContext.enabled == true`, proceed to 6.4. If `false`, skip.
+- Se esta skill foi invocada pelo orquestrador (`x-epic-decompose`) e um `jiraContext`
+  ja foi fornecido, usar esse contexto diretamente (pular o prompt ao usuario — ja foi
+  perguntado na Phase A.5). Se `jiraContext.enabled == true`, prosseguir para 6.4. Se
+  `false`, pular.
 
-- If invoked standalone (no `jiraContext`, no `--jira`, no `--no-jira`), proceed to 6.3
-  for backward-compatible interactive prompting.
+- Se invocada standalone (sem `jiraContext`, sem `--jira`, sem `--no-jira`), prosseguir
+  para 6.3 para o prompt interativo compativel com a versao anterior.
 
 #### 6.3 — Ask the User (standalone invocation only, no flags)
 

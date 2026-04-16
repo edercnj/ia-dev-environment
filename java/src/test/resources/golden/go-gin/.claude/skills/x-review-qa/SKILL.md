@@ -44,9 +44,13 @@ Review code changes for QA compliance: test coverage thresholds, TDD process adh
 |------|-------|---------|
 | testing | `skills/testing/SKILL.md` | Test categories, coverage thresholds, fixture patterns, TDD workflow |
 
-## Checklist (20 Items, Max Score: /40)
+## Checklist (20 Items, Max Score: /40 full scale; adjusted max excludes N/A items)
 
-Each item scores 0 (missing), 1 (partial), or 2 (fully compliant).
+Each applicable item scores 0 (missing), 1 (partial), or 2 (fully compliant). Items
+marked N/A are excluded from BOTH the earned score and the maximum possible score.
+When `testing.smoke_tests == false`, QA-19 and QA-20 are automatically marked N/A,
+so the adjusted maximum is /36 instead of /40. Report the adjusted max in the final
+score line (see Output Template below).
 
 ### Coverage & Criteria (QA-01 to QA-03)
 
@@ -151,7 +155,8 @@ Produce the scored report.
 ```
 ENGINEER: QA
 STORY: [story-id or change description]
-SCORE: XX/40
+SCORE: XX/40 (or XX/36 when QA-19 and QA-20 are N/A — use the adjusted max that
+       excludes N/A items; see Checklist header for the N/A rules)
 
 STATUS: PASS | FAIL | PARTIAL
 
