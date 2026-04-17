@@ -388,6 +388,9 @@ Here `phase0TaskId` refers to the numeric task ID returned by the earlier `TaskC
 
 ## Phase 1 -- Architecture Planning (Skill Invocation + Subagent Fallback)
 
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-story-implement Phase-1-Plan`
+
 **First action of Phase 1 — Create a tracking task (TaskCreate):**
 
     TaskCreate(description: "Phase 1: Planning — Story {storyId}")
@@ -721,7 +724,13 @@ Launch a `general-purpose` subagent via the `Agent` tool (Rule 13 — SUBAGENT-G
 
 Here `phase1TaskId` refers to the numeric task ID returned by the earlier `TaskCreate` call at the start of Phase 1 (substitute with the actual integer).
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-implement Phase-1-Plan ok`
+
 ## Phase 2 -- Task Execution Loop (RULE-001: 1 Task = 1 Branch = 1 PR)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-story-implement Phase-2-Implement`
 
 **First action of Phase 2 — Create a tracking task (TaskCreate):**
 
@@ -877,6 +886,9 @@ Emit warning: `WARNING: No TDD test plan available. Using G1-G7 group-based impl
 
 Here `phase2TaskId` refers to the numeric task ID returned by the earlier `TaskCreate` call at the start of Phase 2 (substitute with the actual integer).
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-implement Phase-2-Implement ok`
+
 ## Phase 3 -- Story-Level Verification (Absorbs Old Phases 3-8)
 
 **First action of Phase 3 — Create a tracking task (TaskCreate):**
@@ -949,6 +961,9 @@ If an architecture plan exists at `plans/epic-XXXX/plans/architecture-story-XXXX
 
 ### Step 3.4 -- Review (invoke x-review via Skill tool)
 
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-story-implement Phase-3-Review`
+
 Invoke the `x-review` skill via the Skill tool (Rule 13 — INLINE-SKILL pattern):
 
     Skill(skill: "x-review", args: "{STORY_ID}")
@@ -967,7 +982,13 @@ After collecting all specialist review results, generate a consolidated dashboar
 2. Aggregate scores from all specialists into a single dashboard.
 3. Save to `plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md`.
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-implement Phase-3-Review ok`
+
 ### Step 3.5 -- Fixes + Remediation
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-story-implement Phase-4-Remediate`
 
 1. **Remediation Tracking (RULE-006):**
    - Read template at `.claude/templates/_TEMPLATE-REVIEW-REMEDIATION.md` for required output format (RULE-007). If not found, use inline format as fallback (RULE-012).
@@ -994,6 +1015,9 @@ After collecting all specialist review results, generate a consolidated dashboar
    3. Proceed to Step 3.6 (Tech Lead review) which will re-validate (max 2 cycles)
    4. Opt-out: `--no-auto-remediation` skips agent dispatch, uses manual fix flow
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-implement Phase-4-Remediate ok`
+
 ### Step 3.6 -- Tech Lead Review
 
 Invoke skill `x-review-pr` for holistic review. Requires all items passing for GO. If NO-GO, fix all failed items and re-review (max 2 cycles).
@@ -1002,6 +1026,9 @@ Invoke skill `x-review-pr` for holistic review. Requires all items passing for G
 After the Tech Lead review completes, update the consolidated review dashboard at `plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md` with Tech Lead findings.
 
 ### Step 3.7 -- Story-Level PR (Auto-Approve Mode Only)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-story-implement Phase-5-PR`
 
 If `--auto-approve-pr` is active:
 1. Push parent branch: `git push -u origin feat/story-XXXX-YYYY-desc`
@@ -1108,6 +1135,9 @@ If NOT `--auto-approve-pr`: skip (individual task PRs already target develop).
 Here `phase3TaskId` refers to the numeric task ID returned by the earlier `TaskCreate` call at the start of Phase 3 (substitute with the actual integer).
 
 **Phase 3 is the ONLY legitimate stopping point.**
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-implement Phase-5-PR ok`
 
 ## Roles and Models (Adaptive)
 
