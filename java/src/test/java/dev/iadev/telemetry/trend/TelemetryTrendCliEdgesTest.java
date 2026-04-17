@@ -1,17 +1,11 @@
 package dev.iadev.telemetry.trend;
 
+import static dev.iadev.telemetry.trend.TelemetryTrendTestFixtures.writeFixture;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import dev.iadev.telemetry.EventStatus;
-import dev.iadev.telemetry.EventType;
-import dev.iadev.telemetry.TelemetryEvent;
-import dev.iadev.telemetry.TelemetryWriter;
-
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
-import java.util.Map;
-import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -63,8 +57,7 @@ class TelemetryTrendCliEdgesTest {
                         tmp.resolve("idx.json").toString(),
                         "--out", outFile.toString());
         assertThat(code).isZero();
-        String md = Files.readString(outFile,
-                java.nio.charset.StandardCharsets.UTF_8);
+        String md = Files.readString(outFile, StandardCharsets.UTF_8);
         assertThat(md).contains("**Baseline:** mean");
     }
 
@@ -73,47 +66,5 @@ class TelemetryTrendCliEdgesTest {
         int code = new CommandLine(new TelemetryTrendCli())
                 .execute("--help");
         assertThat(code).isZero();
-    }
-
-    // --- helpers ---
-
-    private Path writeFixture(
-            Path base, String epicId, String skill,
-            int count, long baseDurationMs) throws Exception {
-        String suffix = epicId.substring("EPIC-".length());
-        Path events = base.resolve("epic-" + suffix)
-                .resolve("telemetry")
-                .resolve("events.ndjson");
-        Files.createDirectories(events.getParent());
-        try (TelemetryWriter writer = TelemetryWriter.open(events)) {
-            for (int i = 0; i < count; i++) {
-                writer.write(skillEnd(skill,
-                        baseDurationMs + i, epicId,
-                        Instant.parse("2026-04-16T12:00:00Z")
-                                .plusSeconds(i)));
-            }
-        }
-        return events;
-    }
-
-    private static TelemetryEvent skillEnd(
-            String skill, long durationMs, String epicId,
-            Instant ts) {
-        return new TelemetryEvent(
-                "1.0.0",
-                UUID.randomUUID(),
-                ts,
-                "session-abc",
-                epicId,
-                null,
-                null,
-                EventType.SKILL_END,
-                skill,
-                null,
-                null,
-                durationMs,
-                EventStatus.OK,
-                null,
-                Map.of());
     }
 }

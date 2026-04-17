@@ -1,17 +1,10 @@
 package dev.iadev.telemetry.trend;
 
+import static dev.iadev.telemetry.trend.TelemetryTrendTestFixtures.writeFixture;
 import static org.assertj.core.api.Assertions.assertThat;
-
-import dev.iadev.telemetry.EventStatus;
-import dev.iadev.telemetry.EventType;
-import dev.iadev.telemetry.TelemetryEvent;
-import dev.iadev.telemetry.TelemetryWriter;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
-import java.util.Map;
-import java.util.UUID;
 
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -40,7 +33,8 @@ class TelemetryTrendPerfIT {
         Path base = tmp.resolve("plans");
         for (int i = 1; i <= EPIC_COUNT; i++) {
             String epicId = "EPIC-000" + i;
-            prepare(base, epicId, EVENTS_PER_EPIC);
+            writeFixture(base, epicId, "x-story-implement",
+                    EVENTS_PER_EPIC, 100L);
         }
 
         Path outFile = tmp.resolve("perf.md");
@@ -61,45 +55,5 @@ class TelemetryTrendPerfIT {
                 .as("5x10k events must complete under 10s "
                         + "(actual: " + elapsedMs + "ms)")
                 .isLessThan(10_000L);
-    }
-
-    private void prepare(
-            Path base, String epicId, int count) throws Exception {
-        String suffix = epicId.substring("EPIC-".length());
-        Path events = base.resolve("epic-" + suffix)
-                .resolve("telemetry")
-                .resolve("events.ndjson");
-        Files.createDirectories(events.getParent());
-        try (TelemetryWriter writer = TelemetryWriter.open(events)) {
-            Instant base0 = Instant.parse("2026-04-16T12:00:00Z");
-            for (int i = 0; i < count; i++) {
-                writer.write(skillEnd(
-                        "x-story-implement",
-                        100L + (i % 100),
-                        epicId,
-                        base0.plusSeconds(i)));
-            }
-        }
-    }
-
-    private static TelemetryEvent skillEnd(
-            String skill, long durationMs, String epicId,
-            Instant ts) {
-        return new TelemetryEvent(
-                "1.0.0",
-                UUID.randomUUID(),
-                ts,
-                "session-abc",
-                epicId,
-                null,
-                null,
-                EventType.SKILL_END,
-                skill,
-                null,
-                null,
-                durationMs,
-                EventStatus.OK,
-                null,
-                Map.of());
     }
 }

@@ -12,7 +12,6 @@ import dev.iadev.telemetry.TelemetryReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -22,43 +21,28 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TreeMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
  * Builds and caches the per-skill per-epic P95 index consumed by
  * {@code /x-telemetry-trend}.
  *
- * <p>The builder scans {@code plans/epic-*\/telemetry/events.ndjson} under the
- * configured base directory, collapses each epic's {@code skill.end}
- * durations into per-skill P95 (Nearest-Rank) values, and persists the result
- * to {@code .claude/telemetry/index.json} (path overridable via
- * {@link #withIndexPath(Path)}). The index file is {@code .gitignore}d per
- * the repository policy: only the per-epic NDJSON logs are versioned.</p>
- *
- * <p>Invalidation is mtime-driven: if the on-disk index's recorded
+ * <p>Cache invalidation is mtime-driven: if the on-disk index's recorded
  * {@code epicMtimesEpochMs} map matches the current NDJSON mtimes exactly
  * (same set of epics and same mtime per epic), the cached index is reused;
- * otherwise it is rebuilt from scratch.</p>
+ * otherwise it is rebuilt from scratch. Directory scanning is delegated to
+ * {@link EpicDirectoryScanner} (Rule 03 — single responsibility).</p>
  */
 public final class TelemetryIndexBuilder {
 
-    private static final String SKILL_TELEMETRY_DIR = "telemetry";
-    private static final String EVENTS_FILENAME = "events.ndjson";
-    private static final Pattern EPIC_DIR_PATTERN =
-            Pattern.compile("^epic-(\\d{4})$");
-
     private final Path baseDir;
+    private final EpicDirectoryScanner scanner;
     private final Path indexPath;
     private final ObjectMapper mapper;
 
     /**
      * Creates a builder scanning {@code baseDir/epic-*} and caching to the
      * default index path {@code baseDir/../.claude/telemetry/index.json}.
-     * When {@code baseDir} is {@code plans}, the default resolves to
-     * {@code .claude/telemetry/index.json} as documented in the story.
      *
      * @param baseDir the directory containing the {@code epic-XXXX} folders
      */
@@ -77,11 +61,12 @@ public final class TelemetryIndexBuilder {
                 "baseDir is required");
         this.indexPath = Objects.requireNonNull(indexPath,
                 "indexPath is required");
+        this.scanner = new EpicDirectoryScanner(baseDir);
         this.mapper = buildMapper();
     }
 
     /**
-     * Returns a new builder with the given {@code indexPath}, preserving
+     * Returns a new builder with the given {@code indexPath}, preserving the
      * {@code baseDir}.
      *
      * @param newIndexPath the override path
@@ -98,7 +83,7 @@ public final class TelemetryIndexBuilder {
      * @return the telemetry index
      */
     public TelemetryIndex buildOrRefresh() {
-        Map<String, Long> currentMtimes = scanEpicMtimes();
+        Map<String, Long> currentMtimes = scanner.scanEpicMtimes();
         TelemetryIndex cached = readCached();
         if (cached != null
                 && cached.epicMtimesEpochMs().equals(currentMtimes)) {
@@ -115,7 +100,7 @@ public final class TelemetryIndexBuilder {
      * @return the freshly-built index
      */
     public TelemetryIndex rebuild() {
-        Map<String, Long> currentMtimes = scanEpicMtimes();
+        Map<String, Long> currentMtimes = scanner.scanEpicMtimes();
         TelemetryIndex fresh = build(currentMtimes);
         writeCache(fresh);
         return fresh;
@@ -127,33 +112,9 @@ public final class TelemetryIndexBuilder {
     }
 
     private TelemetryIndex build(Map<String, Long> mtimes) {
-        // For each epic, stream events.ndjson once and compute per-skill P95.
         List<EpicSkillP95> series = new ArrayList<>();
         for (String epicId : mtimes.keySet()) {
-            Path events = eventsPath(epicId);
-            Map<String, List<Long>> perSkill = new LinkedHashMap<>();
-            try (Stream<TelemetryEvent> stream =
-                    TelemetryReader.open(events)
-                            .streamSkippingInvalid()) {
-                stream.forEach(ev -> {
-                    if (ev.type() == EventType.SKILL_END
-                            && ev.skill() != null
-                            && ev.durationMs() != null) {
-                        perSkill.computeIfAbsent(ev.skill(),
-                                k -> new ArrayList<>())
-                                .add(ev.durationMs());
-                    }
-                });
-            }
-            for (Map.Entry<String, List<Long>> entry
-                    : perSkill.entrySet()) {
-                List<Long> samples = entry.getValue();
-                Collections.sort(samples);
-                long p95 = percentile(samples, 95);
-                series.add(new EpicSkillP95(
-                        epicId, entry.getKey(),
-                        p95, (long) samples.size()));
-            }
+            series.addAll(aggregateEpic(epicId));
         }
         return new TelemetryIndex(
                 TelemetryIndex.CURRENT_SCHEMA_VERSION,
@@ -162,45 +123,33 @@ public final class TelemetryIndexBuilder {
                 series);
     }
 
-    private Map<String, Long> scanEpicMtimes() {
-        Map<String, Long> out = new TreeMap<>();
-        if (!Files.exists(baseDir)) {
-            return out;
+    private List<EpicSkillP95> aggregateEpic(String epicId) {
+        Path events = scanner.eventsPath(epicId);
+        Map<String, List<Long>> perSkill = new LinkedHashMap<>();
+        try (Stream<TelemetryEvent> stream =
+                TelemetryReader.open(events)
+                        .streamSkippingInvalid()) {
+            stream.forEach(ev -> {
+                if (ev.type() == EventType.SKILL_END
+                        && ev.skill() != null
+                        && ev.durationMs() != null) {
+                    perSkill.computeIfAbsent(ev.skill(),
+                            k -> new ArrayList<>())
+                            .add(ev.durationMs());
+                }
+            });
         }
-        try (DirectoryStream<Path> epics = Files.newDirectoryStream(
-                baseDir, "epic-*")) {
-            for (Path dir : epics) {
-                if (!Files.isDirectory(dir)) {
-                    continue;
-                }
-                Matcher m = EPIC_DIR_PATTERN.matcher(
-                        dir.getFileName().toString());
-                if (!m.matches()) {
-                    continue;
-                }
-                Path events = dir.resolve(SKILL_TELEMETRY_DIR)
-                        .resolve(EVENTS_FILENAME);
-                if (!Files.isRegularFile(events)) {
-                    continue;
-                }
-                long mtime = Files.getLastModifiedTime(events)
-                        .toMillis();
-                out.put("EPIC-" + m.group(1), mtime);
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "failed to scan epic dirs under " + baseDir, e);
+        List<EpicSkillP95> out = new ArrayList<>(perSkill.size());
+        for (Map.Entry<String, List<Long>> entry
+                : perSkill.entrySet()) {
+            List<Long> samples = entry.getValue();
+            Collections.sort(samples);
+            long p95 = percentile(samples, 95);
+            out.add(new EpicSkillP95(
+                    epicId, entry.getKey(),
+                    p95, (long) samples.size()));
         }
         return out;
-    }
-
-    private Path eventsPath(String epicId) {
-        String suffix = epicId.startsWith("EPIC-")
-                ? epicId.substring("EPIC-".length())
-                : epicId;
-        return baseDir.resolve("epic-" + suffix)
-                .resolve(SKILL_TELEMETRY_DIR)
-                .resolve(EVENTS_FILENAME);
     }
 
     private TelemetryIndex readCached() {
