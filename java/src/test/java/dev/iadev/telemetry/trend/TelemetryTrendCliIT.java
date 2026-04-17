@@ -122,7 +122,7 @@ class TelemetryTrendCliIT {
                         "--out", outFile.toString());
         assertThat(code).isZero();
         String md = Files.readString(outFile, StandardCharsets.UTF_8);
-        assertThat(md).contains("Nenhuma regressão detectada");
+        assertThat(md).contains("No regressions detected");
     }
 
     @Test

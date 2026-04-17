@@ -27,7 +27,7 @@ class TrendMarkdownRendererTest {
                 .contains("**Threshold:** 20.0%")
                 .contains("**Baseline:** mean")
                 .contains("## Top-10 regressions")
-                .contains("Nenhuma regressão detectada")
+                .contains("No regressions detected")
                 .contains("## Top-10 slowest skills")
                 .contains("## Observations");
     }
@@ -62,7 +62,7 @@ class TrendMarkdownRendererTest {
         String md = renderer.render(report);
         assertThat(md)
                 .contains("x-story-implement")
-                .contains("Skill mais lenta (avg P95): "
+                .contains("Slowest skill (avg P95): "
                         + "x-story-implement");
     }
 }

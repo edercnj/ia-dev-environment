@@ -14,8 +14,9 @@ import java.util.Set;
  *
  * <p>Wires together {@link RegressionDetector} and
  * {@link SlowestSkillsAggregator} and restricts the input series to the most
- * recent {@code lastN} epics (natural ordering by epic ID — the storage layout
- * guarantees monotonically increasing IDs per RULE-007).</p>
+ * recent {@code lastN} epics (natural ordering by epic ID — epic IDs are
+ * zero-padded decimal strings like {@code epic-0001}, so lexicographic
+ * {@link String} ordering is equivalent to numeric ordering).</p>
  *
  * <p>Pure and stateless: no I/O, no hidden state. The caller feeds the index
  * in and receives the report.</p>

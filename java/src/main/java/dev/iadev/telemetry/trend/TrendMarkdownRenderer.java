@@ -50,7 +50,7 @@ public final class TrendMarkdownRenderer {
             StringBuilder out, TrendReport r) {
         out.append("## Top-10 regressions\n\n");
         if (r.regressions().isEmpty()) {
-            out.append("_Nenhuma regressão detectada._\n\n");
+            out.append("_No regressions detected._\n\n");
             return;
         }
         out.append("| Skill | Baseline P95 (ms) | Current P95 (ms) | "
@@ -91,7 +91,7 @@ public final class TrendMarkdownRenderer {
         out.append("## Observations\n\n");
         int n = r.regressions().size();
         if (n == 0) {
-            out.append("- Nenhuma regressão detectada acima de ")
+            out.append("- No regressions detected above ")
                     .append(r.thresholdPct()).append("%.\n");
         } else {
             String lastEpic = r.epicsAnalyzed().isEmpty()
@@ -102,11 +102,11 @@ public final class TrendMarkdownRenderer {
                     .append(" skill(s) regressed >= ")
                     .append(r.thresholdPct())
                     .append("% in ").append(lastEpic)
-                    .append(" — investigar.\n");
+                    .append(" — investigate.\n");
         }
         if (!r.slowest().isEmpty()) {
             SlowSkill top = r.slowest().get(0);
-            out.append("- Skill mais lenta (avg P95): ")
+            out.append("- Slowest skill (avg P95): ")
                     .append(top.skill())
                     .append(" (").append(top.avgP95Ms())
                     .append("ms).\n");

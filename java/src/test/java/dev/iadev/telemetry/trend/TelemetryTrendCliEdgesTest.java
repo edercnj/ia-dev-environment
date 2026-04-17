@@ -22,14 +22,17 @@ class TelemetryTrendCliEdgesTest {
     Path tmp;
 
     @Test
-    void call_writeToReadOnlyPath_returnsValidationError()
+    void call_outParentIsNotADirectory_returnsValidationError()
             throws Exception {
         Path base = tmp.resolve("plans");
         writeFixture(base, "EPIC-0001", "foo", 5, 100L);
         writeFixture(base, "EPIC-0002", "foo", 5, 110L);
 
-        // Point --out at a path whose parent cannot be created:
-        // a path containing a null byte is rejected by the filesystem.
+        // Point --out at a path whose parent chain cannot be created:
+        // /dev/null is a device node, not a directory, so any attempt
+        // to materialise /dev/null/cannot-create/sub/file.md fails with
+        // "Not a directory" and the CLI must surface EXIT_VALIDATION
+        // rather than crashing.
         Path badOut = Path.of("/dev/null/cannot-create/sub/file.md");
 
         int code = new CommandLine(new TelemetryTrendCli())
