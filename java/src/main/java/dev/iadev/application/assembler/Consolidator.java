@@ -99,8 +99,8 @@ public final class Consolidator {
 
     private static void writeConsolidatedOutput(
             Path outputPath, List<String> lines) {
+        CopyHelpers.ensureParent(outputPath);
         try {
-            Files.createDirectories(outputPath.getParent());
             Files.writeString(outputPath,
                     String.join("\n", lines),
                     StandardCharsets.UTF_8);

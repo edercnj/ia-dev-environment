@@ -46,8 +46,8 @@ public final class CopyHelpers {
             Path dest,
             TemplateEngine engine,
             Map<String, Object> context) {
+        ensureParent(dest);
         try {
-            Files.createDirectories(dest.getParent());
             String content = Files.readString(
                     src, StandardCharsets.UTF_8);
             String replaced = engine.replacePlaceholders(
@@ -93,8 +93,8 @@ public final class CopyHelpers {
      */
     public static String copyStaticFile(
             Path src, Path dest) {
+        ensureParent(dest);
         try {
-            Files.createDirectories(dest.getParent());
             Files.copy(src, dest,
                     StandardCopyOption.REPLACE_EXISTING);
             return dest.toString();
@@ -163,8 +163,8 @@ public final class CopyHelpers {
      */
     public static void writeFile(
             Path path, String content) {
+        ensureParent(path);
         try {
-            Files.createDirectories(path.getParent());
             Files.writeString(
                     path, content, StandardCharsets.UTF_8);
         } catch (IOException e) {
@@ -188,6 +188,29 @@ public final class CopyHelpers {
             throw new UncheckedIOException(
                     "Failed to read file: %s"
                             .formatted(path), e);
+        }
+    }
+
+    /**
+     * Creates the parent directory of {@code targetFile}
+     * if absent. No-op when the parent is null (target is
+     * a filesystem root).
+     *
+     * @param targetFile the file whose parent should be
+     *                   ensured
+     * @throws UncheckedIOException if parent creation fails
+     */
+    public static void ensureParent(Path targetFile) {
+        Path parent = targetFile.getParent();
+        if (parent == null) {
+            return;
+        }
+        try {
+            Files.createDirectories(parent);
+        } catch (IOException e) {
+            throw new UncheckedIOException(
+                    "Failed to create parent directory of: "
+                            + "%s".formatted(targetFile), e);
         }
     }
 
