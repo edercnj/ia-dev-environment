@@ -23,11 +23,11 @@
 | story-0049-0013 | x-internal-story-resume | — | story-0049-0005 | story-0049-0019 | Pendente |
 | story-0049-0014 | x-internal-story-verify | — | — | story-0049-0019 | Pendente |
 | story-0049-0015 | x-internal-story-report | — | story-0049-0006 | story-0049-0019 | Pendente |
-| story-0049-0016 | Estensão x-pr-create | — | story-0049-0003 | story-0049-0018, story-0049-0019 | Pendente |
-| story-0049-0017 | Estensão x-task-plan (--no-commit) | — | — | story-0049-0022 | Pendente |
+| story-0049-0016 | Extensão x-pr-create | — | story-0049-0003 | story-0049-0018, story-0049-0019 | Pendente |
+| story-0049-0017 | Extensão x-task-plan (--no-commit) | — | — | story-0049-0022 | Pendente |
 | story-0049-0018 | Refator x-epic-implement (CRÍTICA) | — | story-0049-0005, story-0049-0007, story-0049-0008, story-0049-0009, story-0049-0010, story-0049-0016 | — | Pendente |
 | story-0049-0019 | Refator x-story-implement (CRÍTICA) | — | story-0049-0005, story-0049-0007, story-0049-0011, story-0049-0012, story-0049-0013, story-0049-0014, story-0049-0015, story-0049-0016 | — | Pendente |
-| story-0049-0020 | Atualizar Rules 09/14/19 + criar Rules 20/21 | — | — | — | Pendente |
+| story-0049-0020 | Atualizar Rules 09/14/19 + criar Rules 21/22 | — | — | — | Pendente |
 | story-0049-0021 | Versionamento x-epic-create / -decompose / -map | — | story-0049-0004, story-0049-0008 | — | Pendente |
 | story-0049-0022 | Versionamento x-epic-orchestrate / -story-create / -story-plan / -task-plan | — | story-0049-0004, story-0049-0008, story-0049-0017 | — | Pendente |
 
@@ -250,7 +250,7 @@ graph TD
 - 4 skills públicas novas (Git/PR primitives)
 - 6 skills internas novas (estabelecem convenção `x-internal-*` via S5 piloto)
 - Goldens regenerados para os 17 stacks
-- Audit Rule 21 retorna 0 violações para as 6 internas
+- Audit Rule 22 retorna 0 violações para as 6 internas
 
 ### Fase 1 — Compostas + Extensões + Rules (8 stories paralelas)
 
@@ -261,9 +261,9 @@ graph TD
 | story-0049-0010 | 🔒 `x-internal-epic-integrity-gate` (depende S6) | `internal/plan/x-internal-epic-integrity-gate/SKILL.md` |
 | story-0049-0013 | 🔒 `x-internal-story-resume` (depende S5) | `internal/plan/x-internal-story-resume/SKILL.md` |
 | story-0049-0015 | 🔒 `x-internal-story-report` (depende S6) | `internal/plan/x-internal-story-report/SKILL.md` |
-| story-0049-0016 | Estensão `x-pr-create` (depende S3) | `pr/x-pr-create/SKILL.md` (modificada) |
-| story-0049-0017 | Estensão `x-task-plan --no-commit` | `plan/x-task-plan/SKILL.md` (modificada) |
-| story-0049-0020 | Rules 09/14/19 + 20/21 | `rules/20-epic-branch-model.md`, `rules/21-skill-visibility.md`, atualizações |
+| story-0049-0016 | Extensão `x-pr-create` (depende S3) | `pr/x-pr-create/SKILL.md` (modificada) |
+| story-0049-0017 | Extensão `x-task-plan --no-commit` | `plan/x-task-plan/SKILL.md` (modificada) |
+| story-0049-0020 | Rules 09/14/19 + 21/22 | `rules/21-epic-branch-model.md`, `rules/22-skill-visibility.md`, atualizações |
 
 **Entregas da Fase 1:**
 
@@ -320,7 +320,7 @@ S20 pode ser absorvida em paralelo com qualquer fase sem impacto no critical pat
 ### Otimização de Tempo
 
 - **Paralelismo máximo na Fase 0**: 10 stories paralelas. Capacidade da equipe é o limite, não dependências.
-- **S20 (Rules) pode começar dia 1**: documentação não bloqueia código. Permite review da Rule 21 (visibility) antes da S5 (piloto da convenção).
+- **S20 (Rules) pode começar dia 1**: documentação não bloqueia código. Permite review da Rule 22 (visibility) antes da S5 (piloto da convenção).
 - **S18 e S19 podem começar simultaneamente** assim que suas deps fecharem (ambas dependem de S5/S7/S16; S18 também precisa de S8/S9/S10; S19 também precisa de S11/S12/S13/S14/S15).
 - **Fase 3 (S21/S22) pode começar antes da Fase 2 terminar**, porque suas deps (S4/S8/S17) estão na Fase 0/1.
 
