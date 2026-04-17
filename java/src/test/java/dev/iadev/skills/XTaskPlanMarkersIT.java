@@ -60,6 +60,7 @@ class XTaskPlanMarkersIT {
     @Test
     @DisplayName("skillFile_passesTelemetryMarkerLint")
     void skillFile_passesTelemetryMarkerLint() {
+        assertThat(SKILL_FILE).exists();
         List<Finding> findings = TelemetryMarkerLint.lint(SKILL_FILE);
         assertThat(findings)
                 .as("x-task-plan SKILL.md must be marker-balanced")

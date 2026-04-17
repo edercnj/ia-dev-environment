@@ -73,6 +73,9 @@ The guide also covers:
 
 ## Phase 1 — Analysis
 
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-decompose Phase-1-Analysis`
+
 1. Ask the user which spec file to process (or use the one they provided)
 2. Read the entire spec file
 3. Read `references/decomposition-guide.md`
@@ -83,7 +86,13 @@ The guide also covers:
    - Compute phases from the dependency DAG
    - Identify the critical path
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-decompose Phase-1-Analysis ok`
+
 ## Phase 1.5 — Jira Integration Decision
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-decompose Phase-1_5-Jira-Decision`
 
 Before generating any artifacts, determine if Jira integration is desired.
 
@@ -154,7 +163,13 @@ Based on user selection:
 
 The `jiraContext` is passed to all subsequent phases and used to control Jira issue creation.
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-decompose Phase-1_5-Jira-Decision ok`
+
 ## Phase 2 — Generate the Epic
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-decompose Phase-2-Epic`
 
 Follow the instructions in `.claude/skills/x-epic-create/SKILL.md`:
 
@@ -186,7 +201,13 @@ After generating the Epic markdown file:
 
 If `jiraContext.enabled == false`: replace `<CHAVE-JIRA>` with `—` in the Epic markdown.
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-decompose Phase-2-Epic ok`
+
 ## Phase 3 — Generate the Stories
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-decompose Phase-3-Stories`
 
 Follow the instructions in `.claude/skills/x-story-create/SKILL.md`:
 
@@ -223,7 +244,13 @@ replace `<CHAVE-JIRA>` with `—` in all story markdowns.
 
 No additional `AskUserQuestion` is needed — the cascade decision was already made in Phase 1.5.
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-decompose Phase-3-Stories ok`
+
 ## Phase 4 — Generate the Implementation Map
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-decompose Phase-4-Map`
 
 Follow the instructions in `.claude/skills/x-epic-map/SKILL.md`:
 
@@ -239,7 +266,13 @@ Generate `plans/epic-XXXX/IMPLEMENTATION-MAP.md` following `_TEMPLATE-IMPLEMENTA
 If Jira keys are available (from Phase 3), include them in the dependency matrix's
 `Chave Jira` column.
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-decompose Phase-4-Map ok`
+
 ## Phase 4.5 — Jira Dependency Linking (if applicable)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-decompose Phase-4_5-Jira-Links`
 
 If `jiraContext.enabled == true` and `jiraContext.cascadeToStories == true`, and all
 stories have Jira keys:
@@ -255,7 +288,13 @@ stories have Jira keys:
 If linking fails for some stories, log warnings but do not fail the pipeline.
 This step is best-effort — Jira links are a convenience, not a hard requirement.
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-decompose Phase-4_5-Jira-Links ok`
+
 ## Phase 5 — Save and Report
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-decompose Phase-5-Report`
 
 All files are saved inside `plans/epic-XXXX/` (the epic's dedicated folder).
 
@@ -288,6 +327,9 @@ Before reporting, validate that all generated artifacts meet these quality gates
 - [ ] Story labels in Jira include local ID (e.g., `story-XXXX-YYYY`) for bidirectional sync
 
 If any story fails validation, fix it before saving. Do not skip validation.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-decompose Phase-5-Report ok`
 
 ## Language Rules
 

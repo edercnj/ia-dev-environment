@@ -54,6 +54,7 @@ class XStoryImplementMarkersIT {
     @Test
     @DisplayName("skillFile_passesTelemetryMarkerLint")
     void skillFile_passesTelemetryMarkerLint() {
+        assertThat(SKILL_FILE).exists();
         List<Finding> findings = TelemetryMarkerLint.lint(SKILL_FILE);
         assertThat(findings)
                 .as("x-story-implement SKILL.md must be marker-balanced")
