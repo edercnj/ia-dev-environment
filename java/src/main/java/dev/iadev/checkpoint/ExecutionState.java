@@ -2,6 +2,7 @@ package dev.iadev.checkpoint;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -43,6 +44,15 @@ import java.util.Optional;
  * @param telemetryPath  optional path to the per-epic NDJSON telemetry file
  *                       relative to the epic root (EPIC-0040);
  *                       {@code null} when the epic does not emit telemetry
+ * @param parallelismDowngrades optional log of parallelism downgrade
+ *                              decisions emitted by the RULE-005
+ *                              parallelism gate (EPIC-0041 /
+ *                              story-0041-0006). {@code null} or empty
+ *                              when the gate produced no downgrades.
+ *                              Legacy JSON without the field
+ *                              deserializes with {@code null} and
+ *                              serializes back byte-identically
+ *                              because of {@code NON_EMPTY} inclusion.
  */
 public record ExecutionState(
         String version,
@@ -55,7 +65,9 @@ public record ExecutionState(
         Map<String, IntegrityGateEntry> integrityGates,
         ExecutionMetrics metrics,
         @JsonInclude(JsonInclude.Include.NON_NULL)
-        String telemetryPath
+        String telemetryPath,
+        @JsonInclude(JsonInclude.Include.NON_EMPTY)
+        List<ParallelismDowngrade> parallelismDowngrades
 ) {
 
     /** Schema version for original format (no task tracking). */
@@ -73,6 +85,30 @@ public record ExecutionState(
      */
     public ExecutionState {
         version = version != null ? version : VERSION_1_0;
+        parallelismDowngrades = parallelismDowngrades == null
+                ? null
+                : List.copyOf(parallelismDowngrades);
+    }
+
+    /**
+     * Overload kept for callers that predate EPIC-0041 (adds
+     * {@code parallelismDowngrades = null}).
+     */
+    public ExecutionState(
+            String version,
+            String epicId,
+            String branch,
+            Instant startedAt,
+            int currentPhase,
+            ExecutionMode mode,
+            Map<String, StoryEntry> stories,
+            Map<String, IntegrityGateEntry> integrityGates,
+            ExecutionMetrics metrics,
+            String telemetryPath) {
+        this(version, epicId, branch, startedAt,
+                currentPhase, mode, stories,
+                integrityGates, metrics, telemetryPath,
+                null);
     }
 
     /**
@@ -91,7 +127,7 @@ public record ExecutionState(
             ExecutionMetrics metrics) {
         this(version, epicId, branch, startedAt,
                 currentPhase, mode, stories,
-                integrityGates, metrics, null);
+                integrityGates, metrics, null, null);
     }
 
     /**
@@ -111,7 +147,7 @@ public record ExecutionState(
             ExecutionMetrics metrics) {
         this(VERSION_1_0, epicId, branch, startedAt,
                 currentPhase, mode, stories,
-                integrityGates, metrics, null);
+                integrityGates, metrics, null, null);
     }
 
     /**
@@ -138,7 +174,8 @@ public record ExecutionState(
                 version, epicId, branch, startedAt,
                 currentPhase, mode,
                 Map.copyOf(updatedStories),
-                integrityGates, metrics, telemetryPath
+                integrityGates, metrics, telemetryPath,
+                parallelismDowngrades
         );
     }
 
@@ -169,7 +206,8 @@ public record ExecutionState(
                 version, epicId, branch, startedAt,
                 currentPhase, mode,
                 Map.copyOf(newStories),
-                integrityGates, metrics, telemetryPath
+                integrityGates, metrics, telemetryPath,
+                parallelismDowngrades
         );
     }
 
@@ -203,7 +241,8 @@ public record ExecutionState(
         return new ExecutionState(
                 version, epicId, branch, startedAt,
                 newPhase, mode, stories,
-                integrityGates, metrics, telemetryPath
+                integrityGates, metrics, telemetryPath,
+                parallelismDowngrades
         );
     }
 
@@ -217,7 +256,8 @@ public record ExecutionState(
         return new ExecutionState(
                 newVersion, epicId, branch, startedAt,
                 currentPhase, mode, stories,
-                integrityGates, metrics, telemetryPath
+                integrityGates, metrics, telemetryPath,
+                parallelismDowngrades
         );
     }
 
@@ -233,7 +273,41 @@ public record ExecutionState(
         return new ExecutionState(
                 version, epicId, branch, startedAt,
                 currentPhase, mode, stories,
-                integrityGates, metrics, path
+                integrityGates, metrics, path,
+                parallelismDowngrades
         );
+    }
+
+    /**
+     * Returns a copy with the given parallelism-downgrade log.
+     * Pass {@code null} or an empty list to clear. Introduced by
+     * EPIC-0041 / story-0041-0006.
+     *
+     * @param downgrades the new list of downgrade decisions, or
+     *                   {@code null} / empty to indicate "no downgrades"
+     * @return a new ExecutionState with the updated downgrade log
+     */
+    public ExecutionState withParallelismDowngrades(
+            List<ParallelismDowngrade> downgrades) {
+        return new ExecutionState(
+                version, epicId, branch, startedAt,
+                currentPhase, mode, stories,
+                integrityGates, metrics, telemetryPath,
+                downgrades
+        );
+    }
+
+    /**
+     * @return the downgrade log as an {@link Optional}; empty both when
+     *         the field is {@code null} and when the list is empty
+     *         (EPIC-0041 / story-0041-0006).
+     */
+    public Optional<List<ParallelismDowngrade>>
+            parallelismDowngradesOptional() {
+        if (parallelismDowngrades == null
+                || parallelismDowngrades.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(parallelismDowngrades);
     }
 }

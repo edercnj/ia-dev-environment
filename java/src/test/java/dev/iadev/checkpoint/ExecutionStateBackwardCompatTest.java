@@ -206,6 +206,108 @@ class ExecutionStateBackwardCompatTest {
         assertThat(opt).isEmpty();
     }
 
+    // ------------------------------------------------------------
+    // EPIC-0041 / story-0041-0006 — parallelismDowngrades guards
+    // ------------------------------------------------------------
+
+    @Test
+    void loadsLegacyV1_withoutParallelismDowngrades()
+            throws Exception {
+        String legacyJson = """
+                {
+                  "version": "1.0",
+                  "epicId": "EPIC-0041",
+                  "branch": "feat/epic-0041",
+                  "startedAt": "2026-04-16T12:34:56Z",
+                  "currentPhase": 0,
+                  "mode": "FULL",
+                  "stories": {},
+                  "integrityGates": {},
+                  "metrics": {
+                    "storiesCompleted": 0,
+                    "storiesTotal": 0,
+                    "storiesFailed": 0,
+                    "storiesBlocked": 0,
+                    "estimatedRemainingMinutes": 0.0,
+                    "elapsedMs": 0,
+                    "averageStoryDurationMs": 0.0,
+                    "storyDurations": {},
+                    "phaseDurations": {}
+                  }
+                }
+                """;
+        Path file = tmp.resolve("execution-state.json");
+        Files.writeString(file, legacyJson);
+
+        ExecutionState state =
+                new JacksonCheckpointPersistence().load(file);
+
+        assertThat(state.parallelismDowngrades()).isNull();
+        assertThat(state.parallelismDowngradesOptional())
+                .isEmpty();
+    }
+
+    @Test
+    void serializing_withoutParallelismDowngrades_omitsField()
+            throws Exception {
+        ExecutionState state = new ExecutionState(
+                "EPIC-0041", "feat/epic-0041", STARTED_AT,
+                0, ExecutionMode.FULL,
+                Map.of(), Map.of(),
+                emptyMetrics());
+
+        String json = configuredMapper()
+                .writeValueAsString(state);
+
+        assertThat(json).doesNotContain("parallelismDowngrades");
+    }
+
+    @Test
+    void serializing_withEmptyDowngrades_omitsField()
+            throws Exception {
+        ExecutionState state = new ExecutionState(
+                "EPIC-0041", "feat/epic-0041", STARTED_AT,
+                0, ExecutionMode.FULL,
+                Map.of(), Map.of(),
+                emptyMetrics())
+                .withParallelismDowngrades(java.util.List.of());
+
+        String json = configuredMapper()
+                .writeValueAsString(state);
+
+        assertThat(json).doesNotContain("parallelismDowngrades");
+    }
+
+    @Test
+    void roundTrip_withParallelismDowngrades_preservesData()
+            throws Exception {
+        var downgrade = new ParallelismDowngrade(
+                3,
+                java.util.List.of("story-0041-0006",
+                        "story-0041-0007"),
+                java.util.List.of(
+                        java.util.List.of("story-0041-0006"),
+                        java.util.List.of("story-0041-0007")),
+                "hard conflict on SettingsAssembler.java",
+                Instant.parse("2026-04-17T10:00:00Z"));
+        ExecutionState state = new ExecutionState(
+                "EPIC-0041", "feat/epic-0041", STARTED_AT,
+                0, ExecutionMode.FULL,
+                Map.of(), Map.of(),
+                emptyMetrics())
+                .withParallelismDowngrades(
+                        java.util.List.of(downgrade));
+
+        String json = configuredMapper()
+                .writeValueAsString(state);
+        ExecutionState restored = configuredMapper()
+                .readValue(json, ExecutionState.class);
+
+        assertThat(json).contains("parallelismDowngrades");
+        assertThat(restored.parallelismDowngrades())
+                .containsExactly(downgrade);
+    }
+
     private static ExecutionMetrics emptyMetrics() {
         return ExecutionMetrics.initial(0);
     }
