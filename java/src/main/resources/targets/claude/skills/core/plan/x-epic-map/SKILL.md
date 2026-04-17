@@ -282,6 +282,54 @@ graph LR
 If stories do not contain formal task IDs, **skip this step entirely** and note:
 "Task-level dependency graph skipped — stories do not contain formal task definitions (TASK-XXXX-YYYY-NNN)."
 
+### Step 8.5 — Parallelism Conflict Analysis (EPIC-0041)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-map Phase-8-5-Parallelism-Eval`
+
+Invoke `/x-parallel-eval --scope=epic` against the epic under analysis to detect file-level collision risks between stories that Step 2 placed in the same phase. The output feeds the "## 8.5 Restrições de Paralelismo" section of the map.
+
+**Fail-open behavior (RULE-005 / RULE-006):** If the `x-parallel-eval` skill is not available in the project (skill file missing under `.claude/skills/x-parallel-eval/` or `java/src/main/resources/targets/claude/skills/core/plan/x-parallel-eval/`) OR the invocation returns a non-zero exit code, DO NOT abort the map generation. Instead, emit section 8.5 with the following body:
+
+```markdown
+## 8.5 Restrições de Paralelismo
+
+> análise pulada — /x-parallel-eval não disponível (RULE-006 fail-open)
+```
+
+and continue to Step 9. Log a WARNING with the reason (skill missing, exit code N, etc.) for operator diagnostics.
+
+**Happy-path output** (skill available and returned successfully):
+
+```markdown
+## 8.5 Restrições de Paralelismo
+
+> Análise gerada por /x-parallel-eval em <timestamp omitido para determinismo>.
+
+**Conflitos detectados:** <H> hard, <R> regen, <S> soft
+
+### 8.5.1 Pares Serializados Dentro da Fase
+
+| Fase | A | B | Categoria | Motivo |
+| :--- | :--- | :--- | :--- | :--- |
+| <Phase N> | <story-A> | <story-B> | <hard|regen|soft> | <file shared or regen collision> |
+
+### 8.5.2 Recomendação de Reagrupamento
+
+<Para cada fase com conflitos, descrever a nova ordem após serialização forçada.>
+```
+
+**Determinism (RULE-008):** The section MUST be byte-identical across re-runs EXCEPT for the timestamp comment on the header line. The same input epic + story set MUST produce the same collision matrix ordering (sort pairs by Phase ASC → Story-A lexicographic → Story-B lexicographic).
+
+**Invocation shape:** Invoke via the Skill tool (Rule 13 — INLINE-SKILL pattern):
+
+    Skill(skill: "x-parallel-eval", args: "--scope=epic --epic <EPIC_FILE>")
+
+**Degenerate case:** If no conflicts are detected (`0 hard, 0 regen, 0 soft`), emit section 8.5 with "Conflitos detectados: 0" and omit subsections 8.5.1 / 8.5.2.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-map Phase-8-5-Parallelism-Eval ok`
+
 ### Step 9 — Save and Report
 
 Save as `IMPLEMENTATION-MAP.md` in the same directory as the Epic and Stories (inside `plans/epic-XXXX/`).
@@ -301,6 +349,7 @@ If task-level dependencies were computed, also report: total tasks, task phases,
 | Cross-story task dep without story-level dep (RULE-012) | Abort with error listing the inconsistent dependencies |
 | Cycle in task dependency graph | Abort with cycle path: "Cycle detected: TASK-A -> TASK-B -> TASK-A" |
 | Stories without formal task IDs | Skip Section 8 with note; proceed with story-level map only |
+| `/x-parallel-eval` skill missing or exit code ≥ 1 (Step 8.5) | Fail-open: emit section 8.5 with "análise pulada — /x-parallel-eval não disponível" (RULE-005 / RULE-006); log WARNING; continue to Step 9 |
 
 ## Common Mistakes
 
@@ -324,3 +373,4 @@ If task-level dependencies were computed, also report: total tasks, task phases,
 | Knowledge Pack | Usage |
 |----------------|-------|
 | story-planning | Phase computation, dependency DAG, critical path analysis |
+| parallelism-heuristics | Step 8.5 collision categories (hard/regen/soft) consumed from `/x-parallel-eval` output |
