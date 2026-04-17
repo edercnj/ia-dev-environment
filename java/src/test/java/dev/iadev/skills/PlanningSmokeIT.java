@@ -53,7 +53,7 @@ class PlanningSmokeIT {
                     new PhaseSpec(
                             SKILLS_ROOT.resolve(
                                     "plan/x-story-plan/SKILL.md"),
-                            4, true),
+                            5, true),
             "x-arch-plan",
                     new PhaseSpec(
                             SKILLS_ROOT.resolve(
@@ -68,7 +68,7 @@ class PlanningSmokeIT {
                     new PhaseSpec(
                             SKILLS_ROOT.resolve(
                                     "plan/x-epic-map/SKILL.md"),
-                            4, false));
+                            5, false));
 
     @Test
     @DisplayName("allFivePlanningSkills_emitExpectedPhaseMarkerContract")
