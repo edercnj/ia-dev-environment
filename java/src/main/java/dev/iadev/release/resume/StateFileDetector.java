@@ -172,46 +172,44 @@ public final class StateFileDetector {
     private Optional<DetectedState> parse(Path file) {
         try {
             JsonNode root = MAPPER.readTree(file.toFile());
-            String phase = textOrNull(root, "phase");
-            String version =
-                    textOrNull(root, "version");
-            if (phase == null || version == null) {
+            Optional<String> phase = textField(root, "phase");
+            Optional<String> version = textField(root, "version");
+            if (phase.isEmpty() || version.isEmpty()) {
                 return Optional.empty();
             }
-            if (COMPLETED.equals(phase)) {
+            if (COMPLETED.equals(phase.get())) {
                 return Optional.empty();
             }
             String previousVersion =
-                    textOrNull(root, "previousVersion");
-            String lastCompleted =
-                    textOrNull(root, "lastPhaseCompletedAt");
-            Duration staleDuration =
-                    calculateStaleDuration(lastCompleted);
+                    textField(root, "previousVersion")
+                            .orElse(null);
+            Duration staleDuration = calculateStaleDuration(
+                    textField(root, "lastPhaseCompletedAt"));
             return Optional.of(new DetectedState(
-                    version, phase, previousVersion,
+                    version.get(), phase.get(), previousVersion,
                     staleDuration, file));
         } catch (IOException e) {
             return Optional.empty();
         }
     }
 
-    private static String textOrNull(
+    private static Optional<String> textField(
             JsonNode root, String field) {
         JsonNode node = root.get(field);
         if (node == null || node.isNull()) {
-            return null;
+            return Optional.empty();
         }
-        return node.asText();
+        return Optional.of(node.asText());
     }
 
     private static Duration calculateStaleDuration(
-            String isoTimestamp) {
-        if (isoTimestamp == null) {
+            Optional<String> isoTimestamp) {
+        if (isoTimestamp.isEmpty()) {
             return Duration.ZERO;
         }
         try {
             Instant lastCompleted =
-                    Instant.parse(isoTimestamp);
+                    Instant.parse(isoTimestamp.get());
             return Duration.between(
                     lastCompleted, Instant.now());
         } catch (DateTimeParseException e) {

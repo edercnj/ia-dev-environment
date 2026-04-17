@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
@@ -61,22 +62,23 @@ public final class AbortOrchestrator {
 
     private AbortResult executeAbort(
             Path stateFilePath, boolean forceMode) {
-        ReleaseState state = readState(stateFilePath);
-        if (state == null) {
+        Optional<ReleaseState> stateOpt = readState(stateFilePath);
+        if (stateOpt.isEmpty()) {
             return AbortResult.error(
                     "Failed to parse state file.",
                     "STATUS_PARSE_FAILED");
         }
+        ReleaseState state = stateOpt.get();
 
         String dryRunReport = buildDryRunReport(
                 state, stateFilePath);
 
         if (!forceMode) {
-            AbortResult cancelResult =
+            Optional<AbortResult> cancelResult =
                     requestDoubleConfirmation(
                             state, dryRunReport);
-            if (cancelResult != null) {
-                return cancelResult;
+            if (cancelResult.isPresent()) {
+                return cancelResult.get();
             }
         } else {
             LOG.warning("FORCE MODE: skipping "
@@ -87,13 +89,13 @@ public final class AbortOrchestrator {
         return executeCleanup(state, stateFilePath);
     }
 
-    private ReleaseState readState(Path stateFilePath) {
+    private Optional<ReleaseState> readState(Path stateFilePath) {
         try {
             String json = Files.readString(stateFilePath);
-            return MAPPER.readValue(
-                    json, ReleaseState.class);
+            return Optional.of(MAPPER.readValue(
+                    json, ReleaseState.class));
         } catch (IOException e) {
-            return null;
+            return Optional.empty();
         }
     }
 
@@ -125,7 +127,7 @@ public final class AbortOrchestrator {
         return sb.toString();
     }
 
-    private AbortResult requestDoubleConfirmation(
+    private Optional<AbortResult> requestDoubleConfirmation(
             ReleaseState state, String dryRunReport) {
         String firstPrompt = dryRunReport
                 + String.format(
@@ -135,8 +137,8 @@ public final class AbortOrchestrator {
                 state.targetVersion());
 
         if (!confirmationPort.confirm(firstPrompt)) {
-            return AbortResult.cancelled(
-                    "Abort cancelled by user.");
+            return Optional.of(AbortResult.cancelled(
+                    "Abort cancelled by user."));
         }
 
         String secondPrompt = String.format(
@@ -146,11 +148,11 @@ public final class AbortOrchestrator {
                 state.targetVersion());
 
         if (!confirmationPort.confirm(secondPrompt)) {
-            return AbortResult.cancelled(
-                    "Abort cancelled by user.");
+            return Optional.of(AbortResult.cancelled(
+                    "Abort cancelled by user."));
         }
 
-        return null;
+        return Optional.empty();
     }
 
     private AbortResult executeCleanup(
