@@ -1,0 +1,27 @@
+{
+  "version": "1.0",
+  "epicId": "0041",
+  "branch": "feat/epic-0041-full-implementation",
+  "baseBranch": "feat/epic-0041-full-implementation",
+  "mode": {
+    "parallel": false,
+    "sequential": true,
+    "skipReview": false,
+    "singlePr": false,
+    "mergeMode": "auto",
+    "hybridIntegrationBranch": true
+  },
+  "startedAt": "2026-04-17T00:00:00Z",
+  "stories": {
+    "story-0041-0001": { "id": "story-0041-0001", "phase": 0, "status": "PENDING", "retries": 0, "findingsCount": 0, "summary": "" },
+    "story-0041-0002": { "id": "story-0041-0002", "phase": 1, "status": "PENDING", "retries": 0, "findingsCount": 0, "summary": "" },
+    "story-0041-0003": { "id": "story-0041-0003", "phase": 2, "status": "PENDING", "retries": 0, "findingsCount": 0, "summary": "" },
+    "story-0041-0004": { "id": "story-0041-0004", "phase": 3, "status": "PENDING", "retries": 0, "findingsCount": 0, "summary": "" },
+    "story-0041-0005": { "id": "story-0041-0005", "phase": 4, "status": "PENDING", "retries": 0, "findingsCount": 0, "summary": "" },
+    "story-0041-0006": { "id": "story-0041-0006", "phase": 5, "status": "PENDING", "retries": 0, "findingsCount": 0, "summary": "" },
+    "story-0041-0007": { "id": "story-0041-0007", "phase": 5, "status": "PENDING", "retries": 0, "findingsCount": 0, "summary": "" },
+    "story-0041-0008": { "id": "story-0041-0008", "phase": 6, "status": "PENDING", "retries": 0, "findingsCount": 0, "summary": "" }
+  },
+  "circuitBreaker": { "consecutiveFailures": 0, "totalFailuresInPhase": 0, "state": "CLOSED" },
+  "metrics": { "storiesCompleted": 0, "storiesFailed": 0, "storiesBlocked": 0 }
+}
