@@ -208,6 +208,7 @@
                         <exclude>**/*GoldenTest.java</exclude>
                         <exclude>**/*GoldenFileTest.java</exclude>
                         <exclude>**/*SmokeTest.java</exclude>
+                        <exclude>**/smoke/**/*.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
@@ -222,6 +223,7 @@
                         <include>**/*GoldenTest.java</include>
                         <include>**/*GoldenFileTest.java</include>
                         <include>**/*SmokeTest.java</include>
+                        <include>**/smoke/**/*.java</include>
                     </includes>
                     <classesDirectory>${project.build.outputDirectory}</classesDirectory>
                 </configuration>
