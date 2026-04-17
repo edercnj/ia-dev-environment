@@ -20,7 +20,8 @@ import org.junit.jupiter.api.Test;
  *
  * <p>The story treats x-arch-plan and x-test-plan as degenerate skills
  * with no parallel agent dispatch — they emit only phase markers, no
- * subagent markers.
+ * subagent markers. (Story text uses pre-EPIC-0036 skill names; the
+ * renamed forms are authoritative here.)
  */
 class PlanningSkillsMarkersIT {
 
