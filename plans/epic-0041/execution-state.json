@@ -13,7 +13,7 @@
   },
   "startedAt": "2026-04-17T00:00:00Z",
   "stories": {
-    "story-0041-0001": { "id": "story-0041-0001", "phase": 0, "status": "PENDING", "retries": 0, "findingsCount": 0, "summary": "" },
+    "story-0041-0001": { "id": "story-0041-0001", "phase": 0, "status": "SUCCESS", "retries": 0, "findingsCount": 0, "summary": "KP parallelism-heuristics + golden test", "commitSha": "ceaea9938c7764d774330fad7a6a1df3238639b7", "prNumber": 430, "prMergeStatus": "MERGED" },
     "story-0041-0002": { "id": "story-0041-0002", "phase": 1, "status": "PENDING", "retries": 0, "findingsCount": 0, "summary": "" },
     "story-0041-0003": { "id": "story-0041-0003", "phase": 2, "status": "PENDING", "retries": 0, "findingsCount": 0, "summary": "" },
     "story-0041-0004": { "id": "story-0041-0004", "phase": 3, "status": "PENDING", "retries": 0, "findingsCount": 0, "summary": "" },
