@@ -18,9 +18,10 @@ import org.junit.jupiter.api.Test;
  * {@code x-test-plan/SKILL.md} are instrumented with 4 telemetry phase
  * marker pairs each (story-0040-0007, TASK-0040-0007-004).
  *
- * <p>The story treats x-arch-plan (referred to as x-dev-architecture-plan
- * in the story text) and x-test-plan as degenerate skills with no parallel
- * agent dispatch — they emit only phase markers, no subagent markers.
+ * <p>The story treats x-arch-plan and x-test-plan as degenerate skills
+ * with no parallel agent dispatch — they emit only phase markers, no
+ * subagent markers. (Story text uses pre-EPIC-0036 skill names; the
+ * renamed forms are authoritative here.)
  */
 class PlanningSkillsMarkersIT {
 
