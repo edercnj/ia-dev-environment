@@ -10,16 +10,16 @@
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | story-0040-0001 | Event schema & storage spec | — | — | 0002, 0003, 0005 | Concluída |
 | story-0040-0002 | Java domain: TelemetryEvent types | — | 0001 | 0005, 0010 | Concluída |
-| story-0040-0003 | Telemetry hook scripts | — | 0001 | 0004 | Pendente |
+| story-0040-0003 | Telemetry hook scripts | — | 0001 | 0004 | Concluída |
 | story-0040-0004 | SettingsAssembler: injeta hooks | — | 0003 | 0006, 0007, 0008, 0010 | Concluída |
-| story-0040-0005 | PII scrubbing & privacy rule | — | 0001, 0002 | 0006, 0007, 0008 | Pendente |
-| story-0040-0006 | Instrumentar skills de implementação | — | 0004, 0005 | 0009, 0010 | Pendente |
-| story-0040-0007 | Instrumentar skills de planejamento | — | 0004, 0005 | — | Pendente |
-| story-0040-0008 | Instrumentar skills de criação | — | 0004, 0005 | — | Pendente |
-| story-0040-0009 | Template de instrumentação leve | — | 0006 | — | Pendente |
-| story-0040-0010 | Skill /x-telemetry-analyze | — | 0002, 0004, 0006 | 0011, 0012 | Pendente |
-| story-0040-0011 | Skill /x-telemetry-trend | — | 0010 | 0012 | Pendente |
-| story-0040-0012 | Documentação, ADR e release 3.8.0 | — | 0010, 0011 | — | Pendente |
+| story-0040-0005 | PII scrubbing & privacy rule | — | 0001, 0002 | 0006, 0007, 0008 | Concluída |
+| story-0040-0006 | Instrumentar skills de implementação | — | 0004, 0005 | 0009, 0010 | Concluída |
+| story-0040-0007 | Instrumentar skills de planejamento | — | 0004, 0005 | — | Concluída |
+| story-0040-0008 | Instrumentar skills de criação | — | 0004, 0005 | — | Concluída |
+| story-0040-0009 | Template de instrumentação leve | — | 0006 | — | Concluída |
+| story-0040-0010 | Skill /x-telemetry-analyze | — | 0002, 0004, 0006 | 0011, 0012 | Concluída |
+| story-0040-0011 | Skill /x-telemetry-trend | — | 0010 | 0012 | Concluída |
+| story-0040-0012 | Documentação, ADR e release 3.8.0 | — | 0010, 0011 | — | Concluída |
 
 > **Valores de Status:** `Pendente` (padrão) · `Em Andamento` · `Concluída` · `Falha` · `Bloqueada` · `Parcial`
 
