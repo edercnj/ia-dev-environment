@@ -29,7 +29,7 @@ class JsonSettingsBuilderTest {
             List<String> perms = List.of("Bash(git *)");
 
             String json = builder.build(
-                    perms, HookPresence.WITHOUT_HOOKS);
+                    perms, HookPresence.WITHOUT_HOOKS, false);
 
             assertThat(json)
                     .contains("\"permissions\"")
@@ -44,7 +44,7 @@ class JsonSettingsBuilderTest {
             List<String> perms = List.of("Bash(git *)");
 
             String json = builder.build(
-                    perms, HookPresence.WITH_HOOKS);
+                    perms, HookPresence.WITH_HOOKS, false);
 
             assertThat(json)
                     .contains("\"hooks\"")
@@ -60,7 +60,8 @@ class JsonSettingsBuilderTest {
                 + " allow array")
         void build_emptyPermissions_succeeds() {
             String json = builder.build(
-                    List.of(), HookPresence.WITHOUT_HOOKS);
+                    List.of(), HookPresence.WITHOUT_HOOKS,
+                    false);
 
             assertThat(json)
                     .contains("\"allow\": [\n")
@@ -77,7 +78,7 @@ class JsonSettingsBuilderTest {
                     "Bash(npm *)");
 
             String json = builder.build(
-                    perms, HookPresence.WITHOUT_HOOKS);
+                    perms, HookPresence.WITHOUT_HOOKS, false);
 
             assertThat(json)
                     .contains("\"Bash(git *)\"")
@@ -94,7 +95,7 @@ class JsonSettingsBuilderTest {
         void build_validJsonStructure_succeeds() {
             String json = builder.build(
                     List.of("Bash(git *)"),
-                    HookPresence.WITHOUT_HOOKS);
+                    HookPresence.WITHOUT_HOOKS, false);
 
             assertThat(json.trim()).startsWith("{");
             assertThat(json.trim()).endsWith("}");

@@ -134,8 +134,11 @@ public final class TelemetryScrubber {
         } catch (RuntimeException e) {
             LOG.warn(
                     "telemetry.scrub.failure falling back to"
-                            + " original event: {}",
-                    e.getMessage());
+                            + " original event for eventId={}"
+                            + " type={}",
+                    event.eventId(),
+                    event.type(),
+                    e);
             return event;
         }
     }

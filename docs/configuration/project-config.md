@@ -13,7 +13,7 @@ EPIC-0040 (story-0040-0004).
 
 Controls whether the SkillTelemetry hooks are injected into the
 generated `.claude/settings.json`. When enabled (default), the
-pipeline writes the 5 hook entries listed below and copies the 7
+pipeline writes the 5 hook entries listed below and copies the 8
 supporting shell scripts into `.claude/hooks/` with `0755`
 permissions.
 
@@ -38,6 +38,7 @@ Scripts copied to `.claude/hooks/`:
 
 - `telemetry-emit.sh` (shared emit helper)
 - `telemetry-lib.sh` (common helpers)
+- `telemetry-phase.sh` (skill-phase markers, EPIC-0040 story-0040-0006)
 - `telemetry-session.sh`
 - `telemetry-pretool.sh`
 - `telemetry-posttool.sh`
