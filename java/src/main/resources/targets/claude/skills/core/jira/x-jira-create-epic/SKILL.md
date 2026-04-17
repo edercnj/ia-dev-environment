@@ -39,6 +39,9 @@ Read the field mapping reference before creating issues:
 
 ### Step 1 — Input and Parse
 
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-jira-create-epic Phase-1-Read-Markdown`
+
 1. Accept the epic file path as argument. If not provided, ask:
    ```
    question: "Qual o caminho do arquivo do epico? (ex: plans/epic-0012/epic-0012.md)"
@@ -94,7 +97,20 @@ Read the field mapping reference before creating issues:
    ```
 5. Capture the selected `projectKey`
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-jira-create-epic Phase-1-Read-Markdown ok`
+
 ### Step 4 — Create Epic in Jira
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-jira-create-epic Phase-2-MCP-Call`
+
+Wrap the Jira MCP call with mcp-start / mcp-end markers (story-0040-0008
+§3.2) so the `tool.call` event carries `tool=mcp__atlassian__createJiraIssue`
+and a measured `durationMs`:
+
+<!-- TELEMETRY: tool.call mcp-start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh mcp-start x-jira-create-epic createJiraIssue`
 
 Call `mcp__atlassian__createJiraIssue` with:
 - `cloudId`: discovered cloudId
@@ -115,7 +131,19 @@ Call `mcp__atlassian__createJiraIssue` with:
 
 Where `epic-XXXX` is the local epic ID (e.g., `epic-0012`).
 
+<!-- TELEMETRY: tool.call mcp-end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh mcp-end x-jira-create-epic createJiraIssue ok`
+
+(On MCP failure, invoke the mcp-end marker with status `failed` instead of
+`ok` so the telemetry record reflects the real outcome — §5.3.)
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-jira-create-epic Phase-2-MCP-Call ok`
+
 ### Step 5 — Sync Jira Key Back to Local File
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-jira-create-epic Phase-3-Sync-Back`
 
 1. Capture the returned Jira issue key (e.g., `PROJ-123`)
 2. Read the epic markdown file
@@ -134,6 +162,9 @@ Projeto: {PROJECT_KEY}
 Arquivo local atualizado: {EPIC_FILE_PATH}
 Label de sync: epic-XXXX
 ```
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-jira-create-epic Phase-3-Sync-Back ok`
 
 ## Error Handling
 

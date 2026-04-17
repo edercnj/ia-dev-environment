@@ -41,6 +41,9 @@ Read the field mapping reference before creating issues:
 
 ### Step 1 — Input and Discovery
 
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-jira-create-stories Phase-1-Read-Markdowns`
+
 1. Accept the epic directory path or epic ID as argument. If not provided, ask:
    ```
    question: "Informe o caminho do diretorio do epico ou o ID (ex: plans/epic-0012 ou 0012)"
@@ -140,7 +143,13 @@ For each story file, extract:
    ```
 5. Capture the selected `projectKey`
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-jira-create-stories Phase-1-Read-Markdowns ok`
+
 ### Step 6 — Create Stories in Jira
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-jira-create-stories Phase-2-MCP-Loop`
 
 Process stories in dependency order (stories with no dependencies first, then those that depend
 on already-created stories). This ensures parent epic links and dependency links can be created.
@@ -166,6 +175,14 @@ Concatenate for Jira:
 
 #### 6.2 — Create Issue
 
+Wrap each per-story MCP call with mcp-start / mcp-end markers (story-0040-0008
+§3.2) so every `tool.call` event carries `tool=mcp__atlassian__createJiraIssue`
+and a measured `durationMs` — yielding N tool.call events for N stories and
+enabling per-skill aggregation of "tempo gasto no Jira" vs "tempo local":
+
+<!-- TELEMETRY: tool.call mcp-start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh mcp-start x-jira-create-stories createJiraIssue`
+
 Call `mcp__atlassian__createJiraIssue`:
 - `cloudId`: discovered cloudId
 - `projectKey`: selected project key
@@ -184,6 +201,12 @@ Call `mcp__atlassian__createJiraIssue`:
   }
   ```
 
+<!-- TELEMETRY: tool.call mcp-end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh mcp-end x-jira-create-stories createJiraIssue ok`
+
+(On MCP failure in 6.5, pass status `failed` instead of `ok` to the mcp-end
+marker so the telemetry record reflects the real outcome.)
+
 #### 6.3 — Capture and Store
 
 Capture the returned Jira key. Store mapping: `storyIdToJiraKey[storyId] = jiraKey`.
@@ -196,7 +219,13 @@ Replace `**Chave Jira:** <CHAVE-JIRA>` or `**Chave Jira:** —` with `**Chave Ji
 
 Log warning, set `<CHAVE-JIRA>` to `—`, continue with next story.
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-jira-create-stories Phase-2-MCP-Loop ok`
+
 ### Step 7 — Dependency Linking (Second Pass)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-jira-create-stories Phase-3-Dependency-Links`
 
 After ALL stories are created and have Jira keys, perform a second pass to create
 dependency links:
@@ -204,12 +233,24 @@ dependency links:
 For each story's "Blocked By" list:
 1. Look up the blocker's Jira key in `storyIdToJiraKey` (or from the story file if pre-existing)
 2. If both the current story and the blocker have Jira keys:
+   - Wrap the MCP call with mcp-start / mcp-end markers so every dependency
+     link emits its own `tool.call` event with
+     `tool=mcp__atlassian__createIssueLink`:
+
+     <!-- TELEMETRY: tool.call mcp-start -->
+     Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh mcp-start x-jira-create-stories createIssueLink`
+
    - Call `mcp__atlassian__createIssueLink`:
      - `cloudId`: discovered cloudId
      - `type`: "Blocks"
      - `inwardIssue`: blocker's Jira key (the issue that blocks)
      - `outwardIssue`: current story's Jira key (the issue that is blocked)
-3. If linking fails: log warning, continue (non-blocking, best-effort)
+
+     <!-- TELEMETRY: tool.call mcp-end -->
+     Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh mcp-end x-jira-create-stories createIssueLink ok`
+
+3. If linking fails: log warning, continue (non-blocking, best-effort). Pass
+   status `failed` to the mcp-end marker on such failures.
 
 ### Step 8 — Update Implementation Map
 
@@ -237,6 +278,9 @@ Output summary:
 - Falhas: {failure_count}
 - Implementation Map atualizado: {yes/no}
 ```
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-jira-create-stories Phase-3-Dependency-Links ok`
 
 ## Error Handling
 

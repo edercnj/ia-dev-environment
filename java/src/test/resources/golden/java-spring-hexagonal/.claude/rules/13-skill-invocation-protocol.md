@@ -197,12 +197,35 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end <skill-n
 
 | Argument | Kind | Values |
 | :--- | :--- | :--- |
-| `$1` | required | `start` \| `end` |
+| `$1` | required | `start` \| `end` \| `subagent-start` \| `subagent-end` |
 | `$2` | required | skill identifier (kebab-case, e.g., `x-story-implement`) |
-| `$3` | required | phase identifier (max 64 chars, e.g., `Phase-2-Implement`) |
-| `$4` | required on `end` | `ok` \| `failed` \| `skipped` (defaults to `ok` if missing) |
+| `$3` | required | phase identifier for `start`/`end` (max 64 chars, e.g., `Phase-2-Implement`) OR role identifier for `subagent-start`/`subagent-end` (max 64 chars, e.g., `Architect`) |
+| `$4` | required on `end` / `subagent-end` | `ok` \| `failed` \| `skipped` (defaults to `ok` if missing) |
 
 Fail-open contract: invalid arguments, missing peer helpers, or `CLAUDE_TELEMETRY_DISABLED=1` cause the helper to log on stderr and exit 0 — skills never abort because telemetry broke.
+
+### Subagent Markers (story-0040-0007)
+
+Planning skills that dispatch parallel subagents (e.g., `x-story-plan` with its
+5-agent Architect/QA/Security/TechLead/PO wave, or `x-epic-orchestrate` with
+its per-story loop) MUST emit `subagent.start` / `subagent.end` markers around
+each parallel dispatch so the `/x-telemetry-analyze` report can compute the
+overlap window and flag slow agents that bottleneck the wave.
+
+```markdown
+<!-- TELEMETRY: subagent.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh subagent-start x-story-plan Architect`
+
+... subagent dispatch ...
+
+<!-- TELEMETRY: subagent.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh subagent-end x-story-plan Architect ok`
+```
+
+The role argument (position 3) is persisted under `metadata.role` of the
+telemetry event. Degenerate planning skills (no parallel dispatch, e.g.,
+`x-arch-plan`, `x-test-plan`, `x-epic-map`) MUST emit ZERO subagent markers —
+this is validated by the `PlanningSmokeIT` acceptance test.
 
 ### CI Enforcement
 
