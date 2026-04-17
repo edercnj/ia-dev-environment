@@ -105,7 +105,7 @@ Every `ia-dev-env`-generated project ships with telemetry capture enabled by def
 
 Capture happens through two cooperating layers:
 
-- **Hook-based (automatic).** Six Bash scripts under `.claude/hooks/` are registered in `settings.json` and fire on `SessionStart`, `PreToolUse`, `PostToolUse`, `SubagentStop`, and `Stop`. No per-skill code is required.
+- **Hook-based (automatic).** Five Bash entrypoint scripts under `.claude/hooks/` are registered in `settings.json` and fire on `SessionStart`, `PreToolUse`, `PostToolUse`, `SubagentStop`, and `Stop`. Additional helper scripts in `.claude/hooks/` (e.g., `telemetry-emit.sh`, `telemetry-lib.sh`, `telemetry-phase.sh`) are copied alongside them but are not registered as hook events. No per-skill code is required.
 - **In-skill phase markers.** Implementation, planning, and creation skills call `telemetry-phase.sh start|end` around each numbered phase; the `_TEMPLATE-SKILL.md` authoring template includes a copy-paste-ready "Telemetry (Optional)" section.
 
 Two skills consume the NDJSON:

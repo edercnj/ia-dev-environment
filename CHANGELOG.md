@@ -30,12 +30,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **story-0040-0006 (PR #415):** Phase markers in implementation skills (`x-epic-implement`, `x-story-implement`, `x-task-implement`).
   - **story-0040-0007 (PR #416):** Phase + subagent markers in planning skills (`x-task-plan`, `x-story-plan`, `x-arch-plan`, `x-epic-map`, `x-test-plan`).
   - **story-0040-0008 (PR #418):** Phase + MCP markers in creation skills (`x-epic-create`, `x-story-create`, `x-epic-decompose`, `x-jira-create-epic`, `x-jira-create-stories`).
-  - **story-0040-0009 (PR #419):** `_TEMPLATE-SKILL.md` gained a "Telemetry (Optional)" section with copy-paste-ready `telemetry-phase.sh start|end`, `telemetry-subagent.sh start|end`, and `telemetry-mcp.sh start|end` snippets.
+  - **story-0040-0009 (PR #419):** `_TEMPLATE-SKILL.md` gained a "Telemetry (Optional)" section with copy-paste-ready `telemetry-phase.sh start|end`, `telemetry-phase.sh subagent-start|subagent-end`, and `telemetry-phase.sh mcp-start|mcp-end` snippets.
   - **story-0040-0010 (PR #420):** New skill `/x-telemetry-analyze` — point-in-time report with per-skill / phase / tool aggregates, Mermaid Gantt timeline, and optional JSON/CSV export (`ops/` category).
   - **story-0040-0011 (PR #422):** New skill `/x-telemetry-trend` — cross-epic P95 regression detector with top-10 slowest skills ranking; single-responsibility partner of `/x-telemetry-analyze`.
   - **story-0040-0012 (this story, docs):** ADR-0005 publication, `CLAUDE.md` + `readme-template.md` "Telemetry" section, and this CHANGELOG entry. Release tasks 004-006 (version bump, release branch, tag `v3.8.0`, back-merge to `develop` with `3.9.0-SNAPSHOT` bump) are delivered by a follow-up `/x-release 3.8.0` invocation per Rule 09 (Git Flow).
 - **Storage layout:** `plans/epic-XXXX/telemetry/events.ndjson` (per-epic, committed) and `.claude/telemetry/index.json` (cross-epic cache, gitignored).
-- **Rule 20 — Telemetry Privacy (`rules/20-telemetry-privacy.md`).** Mandates scrubbing through `TelemetryScrubber` (or the shell regex chain) before any write to `events.ndjson`. Committed NDJSON is safe to republish by policy.
+- **Rule 20 — Telemetry Privacy (`.claude/rules/20-telemetry-privacy.md`).** Mandates scrubbing through `TelemetryScrubber` (or the shell regex chain) before any write to `events.ndjson`. Committed NDJSON is safe to republish by policy.
 
 ### Changed
 - **`ExecutionState`** gained optional `telemetryPath` field pointing to the active `events.ndjson` location for the current epic.

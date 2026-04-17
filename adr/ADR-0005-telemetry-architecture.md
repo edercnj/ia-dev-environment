@@ -60,20 +60,25 @@ layers:
 
 ### D1. Hook-based automatic capture (outside-in)
 
-Six Bash hook scripts shipped under
-`java/src/main/resources/targets/claude/hooks/` (source of truth) are copied
-to `.claude/hooks/` by `HooksAssembler` and registered in `settings.json`
-by `SettingsAssembler`. They cover the Claude Code lifecycle without any
-per-skill code change:
+Five telemetry hook entries are registered in `settings.json` by
+`SettingsAssembler` for the Claude Code lifecycle events, while
+`HooksAssembler` copies eight shell files from
+`java/src/main/resources/targets/claude/hooks/` (source of truth) into
+`.claude/hooks/`. The copied files include both the registered event hooks
+and shared helper/support scripts used by those hooks, so no per-skill code
+change is required:
 
-| Hook event    | Script                    | Event emitted     |
-| :-----------  | :------------------------ | :---------------- |
-| `SessionStart`| `telemetry-session.sh`    | `session.start`   |
-| `PreToolUse`  | `telemetry-pretool.sh`    | (start file only) |
-| `PostToolUse` | `telemetry-posttool.sh`   | `tool.call`       |
-| `SubagentStop`| `telemetry-subagent.sh`   | `subagent.end`    |
-| `Stop`        | `telemetry-stop.sh`       | `session.end`     |
-| helper        | `telemetry-emit.sh`       | — (append/scrub)  |
+| Hook event     | Registered script         | Event emitted     |
+| :------------- | :------------------------ | :---------------- |
+| `SessionStart` | `telemetry-session.sh`    | `session.start`   |
+| `PreToolUse`   | `telemetry-pretool.sh`    | (start file only) |
+| `PostToolUse`  | `telemetry-posttool.sh`   | `tool.call`       |
+| `SubagentStop` | `telemetry-subagent.sh`   | `subagent.end`    |
+| `Stop`         | `telemetry-stop.sh`       | `session.end`     |
+
+Additional copied shell files are support/helpers rather than registered
+hook entries, including `telemetry-emit.sh`, `telemetry-lib.sh`, and
+`telemetry-phase.sh`.
 
 All scripts use `set +e` (fail-open per RULE-004), enforce a 5 s stdin
 timeout when `timeout(1)` is available, and append to NDJSON via `flock(1)`
@@ -82,16 +87,17 @@ or an `mkdir`-based advisory lock. Full design recorded in
 
 ### D2. In-skill phase markers (inside-out)
 
-Canonical phase wrappers (`telemetry-phase.sh start|end`,
-`telemetry-subagent.sh start|end`, `telemetry-mcp.sh start|end`) are
-invoked at the top and bottom of each numbered phase / subagent / MCP call
-inside instrumented skills. Markers produce `phase.start` / `phase.end`
-events with the same context-resolution rules as the hooks (so events merge
-cleanly in the NDJSON stream). The authoring template
-`_TEMPLATE-SKILL.md` gained a dedicated "Telemetry (Optional)" section
-(story-0040-0009) documenting the contract. Implementation, planning, and
-creation skills were instrumented in stories 0040-0006, 0040-0007, and
-0040-0008.
+Canonical in-skill markers are emitted via `telemetry-phase.sh`
+subcommands: `start|end` for numbered phases,
+`subagent-start|subagent-end` for subagent calls, and
+`mcp-start|mcp-end` for MCP calls. These are invoked at the top and
+bottom of each numbered phase / subagent / MCP call inside instrumented
+skills. Markers produce `phase.start` / `phase.end` events with the same
+context-resolution rules as the hooks (so events merge cleanly in the
+NDJSON stream). The authoring template `_TEMPLATE-SKILL.md` gained a
+dedicated "Telemetry (Optional)" section (story-0040-0009) documenting the
+contract. Implementation, planning, and creation skills were instrumented
+in stories 0040-0006, 0040-0007, and 0040-0008.
 
 ### D3. Java domain types (library)
 
@@ -138,7 +144,7 @@ Two single-responsibility skills consume the NDJSON:
 
 ### D6. Privacy
 
-Rule 20 (`rules/20-telemetry-privacy.md`) is the normative contract: every
+Rule 20 ([20-telemetry-privacy.md](../java/src/main/resources/targets/claude/rules/20-telemetry-privacy.md)) is the normative contract: every
 value written to `events.ndjson` MUST have passed through
 `TelemetryScrubber` (or the equivalent shell regex chain in
 `telemetry-emit.sh`). Committed NDJSON is, by policy, safe to republish.
