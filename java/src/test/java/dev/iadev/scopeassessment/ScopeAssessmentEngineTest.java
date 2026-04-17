@@ -1,5 +1,6 @@
 package dev.iadev.scopeassessment;
 
+import dev.iadev.domain.scopeassessment.AssessmentFlags;
 import dev.iadev.domain.scopeassessment.LifecyclePhaseConfig;
 import dev.iadev.domain.scopeassessment.ScopeAssessmentEngine;
 import dev.iadev.domain.scopeassessment.ScopeAssessmentResult;
@@ -278,7 +279,9 @@ class ScopeAssessmentEngineTest {
 
             LifecyclePhaseConfig config =
                     ScopeAssessmentEngine
-                            .buildPhaseConfig(result, false);
+                            .buildPhaseConfig(
+                                    result,
+                                    AssessmentFlags.none());
 
             assertThat(config.tier())
                     .isEqualTo(ScopeAssessmentTier.SIMPLE);
@@ -301,7 +304,9 @@ class ScopeAssessmentEngineTest {
 
             LifecyclePhaseConfig config =
                     ScopeAssessmentEngine
-                            .buildPhaseConfig(result, false);
+                            .buildPhaseConfig(
+                                    result,
+                                    AssessmentFlags.none());
 
             assertThat(config.tier())
                     .isEqualTo(ScopeAssessmentTier.STANDARD);
@@ -323,7 +328,9 @@ class ScopeAssessmentEngineTest {
 
             LifecyclePhaseConfig config =
                     ScopeAssessmentEngine
-                            .buildPhaseConfig(result, false);
+                            .buildPhaseConfig(
+                                    result,
+                                    AssessmentFlags.none());
 
             assertThat(config.tier())
                     .isEqualTo(ScopeAssessmentTier.COMPLEX);
@@ -343,7 +350,11 @@ class ScopeAssessmentEngineTest {
 
             LifecyclePhaseConfig config =
                     ScopeAssessmentEngine
-                            .buildPhaseConfig(result, true);
+                            .buildPhaseConfig(
+                                    result,
+                                    AssessmentFlags.of(
+                                            false, false,
+                                            true));
 
             assertThat(config.overrideActive()).isTrue();
             assertThat(config.skippedPhases()).isEmpty();
