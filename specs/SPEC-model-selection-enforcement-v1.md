@@ -78,7 +78,7 @@ de qualidade.
 
 ## Regras de Negócio Transversais (Cross-Cutting Rules)
 
-**RULE-001**: Toda skill identificada como "orquestrador" (disparara múltiplos `Agent()` ou
+**RULE-001**: Toda skill identificada como "orquestrador" (disparar múltiplos `Agent()` ou
 `Skill()`) DEVE declarar `model:` no frontmatter. O valor default para orquestradores é `sonnet`
 (não-planejamento), exceto quando a skill é dedicada a design arquitetural profundo (`x-arch-plan`,
 subagent Architect em `x-story-plan`), onde `opus` é apropriado.
@@ -140,8 +140,9 @@ aplicar essa decisão tecnicamente (frontmatter, Agent param, Skill param). A RU
 
 **Escopo de implementação**:
 
-1. Criar rule normativa com numeração livre (sugestão: slot 10, reservado para rules
-   condicionais, OU próximo livre após 22 no EPIC-0049). Nome: `model-selection-strategy.md`.
+1. Criar rule normativa **Rule 23** (próximo slot livre após Rule 22 do EPIC-0049).
+   Nome: `model-selection-strategy.md`. Numeração consistente com todos os demais artefatos
+   deste épico (stories, IMPLEMENTATION-MAP).
 
 2. Seções obrigatórias do arquivo:
    - **Purpose** — justifica o trade-off Opus/Sonnet/Haiku.
@@ -157,8 +158,8 @@ aplicar essa decisão tecnicamente (frontmatter, Agent param, Skill param). A RU
    - **Exceptions** — lista explícita (ex: user-invoked skills não precisam de `model:` no
      frontmatter).
 
-3. Arquivo source-of-truth: `java/src/main/resources/targets/claude/rules/{NN}-model-selection.md`.
-   Output gerado em `.claude/rules/{NN}-model-selection.md`.
+3. Arquivo source-of-truth: `java/src/main/resources/targets/claude/rules/23-model-selection.md`.
+   Output gerado em `.claude/rules/23-model-selection.md`.
 
 4. Atualizar `CLAUDE.md` e `.claude/rules/README.md` para referenciar a nova rule no índice.
 
@@ -177,9 +178,9 @@ aplicar essa decisão tecnicamente (frontmatter, Agent param, Skill param). A RU
 Feature: Rule de model selection strategy
 
   Scenario: Rule é gerada no output para stack java-picocli
-    Given o template da rule em targets/claude/rules/{NN}-model-selection.md
+    Given o template da rule em targets/claude/rules/23-model-selection.md
     When o assembler gera o profile "java-picocli"
-    Then o output contém ".claude/rules/{NN}-model-selection.md"
+    Then o output contém ".claude/rules/23-model-selection.md"
     And a rule contém a seção "## Matrix"
     And a rule contém a seção "## Enforcement points"
 
@@ -541,7 +542,7 @@ Feature: Orquestradores propagam model em Skill() calls
 
 **Contexto técnico**:
 Em `.claude/agents/*.md`, 8 dos 10 agents declaram `Recommended Model: Adaptive` — placeholder
-que não resolve determinísticamente e na prática cai em Opus. O `product-owner` declara
+que não resolve deterministicamente e na prática cai em Opus. O `product-owner` declara
 `Recommended Model: Opus` mas a tarefa dele (validação de DoR, decomposição de spec) não requer
 raciocínio premium — deve ser Sonnet.
 
