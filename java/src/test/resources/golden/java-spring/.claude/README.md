@@ -254,6 +254,29 @@ Configured in `settings.json` under the `hooks` key.
 
 ---
 
+## Telemetry
+
+Skill executions are captured as NDJSON under `plans/epic-*/telemetry/events.ndjson`, giving operators an auditable timeline of phase durations, subagent lifecycles, and tool calls. The architecture is documented in [ADR-0005 — Telemetry Architecture](../adr/ADR-0005-telemetry-architecture.md); the privacy contract lives in [Rule 20 — Telemetry Privacy](rules/20-telemetry-privacy.md).
+
+Capture happens on two layers:
+
+- **Hook-based (automatic).** Bash scripts under `hooks/` fire on `SessionStart`, `PreToolUse`, `PostToolUse`, `SubagentStop`, and `Stop`. Registration is handled by `SettingsAssembler`.
+- **In-skill phase markers.** Instrumented skills call `telemetry-phase.sh start|end` around each numbered phase. The authoring template `_TEMPLATE-SKILL.md` includes a "Telemetry (Optional)" section ready to copy.
+
+Analysis skills:
+
+```bash
+# Point-in-time report (aggregates + Mermaid Gantt)
+/x-telemetry-analyze --epic EPIC-0040
+
+# Cross-epic P95 regression detector
+/x-telemetry-trend --last 5 --threshold-pct 20
+```
+
+Opt out with `CLAUDE_TELEMETRY_DISABLED=1` (per-session) or `telemetryEnabled: false` in the generator YAML (per-project, requires regeneration). EPIC-0040 shipped this stack in release 3.8.0.
+
+---
+
 ## Settings
 
 ### settings.json
