@@ -51,101 +51,146 @@ public final class TelemetryAggregator {
         Objects.requireNonNull(events, "events is required");
         Objects.requireNonNull(epics, "epics is required");
 
-        Map<String, List<Long>> skillDurations =
-                new LinkedHashMap<>();
-        Map<String, List<Long>> phaseDurations =
-                new LinkedHashMap<>();
-        Map<String, List<Long>> toolDurations =
-                new LinkedHashMap<>();
-        Map<String, List<String>> skillEpics = new HashMap<>();
-        Map<String, List<String>> phaseEpics = new HashMap<>();
-        Map<String, List<String>> toolEpics = new HashMap<>();
-        Map<String, Instant> phaseStarts = new HashMap<>();
-        List<PhaseTimeline> timeline = new ArrayList<>();
-        long totalEvents = 0L;
-        long totalDuration = 0L;
-
+        AggregationState state = new AggregationState();
         for (TelemetryEvent event :
                 (Iterable<TelemetryEvent>) events::iterator) {
-            totalEvents++;
-            EventType type = event.type();
-            if (type == EventType.SKILL_END
-                    && event.skill() != null
-                    && event.durationMs() != null) {
-                long d = event.durationMs();
-                totalDuration += d;
-                skillDurations
-                        .computeIfAbsent(event.skill(),
-                                k -> new ArrayList<>())
-                        .add(d);
-                accumulateEpic(skillEpics, event.skill(),
-                        event.epicId());
-            } else if (type == EventType.PHASE_END
-                    && event.skill() != null
-                    && event.phase() != null
-                    && event.durationMs() != null) {
-                long d = event.durationMs();
-                String key = event.skill() + "/" + event.phase();
-                phaseDurations
-                        .computeIfAbsent(key,
-                                k -> new ArrayList<>())
-                        .add(d);
-                accumulateEpic(phaseEpics, key, event.epicId());
-                Instant start = phaseStarts.remove(key);
-                if (start == null) {
-                    start = event.timestamp();
-                }
-                timeline.add(new PhaseTimeline(
-                        event.skill(), event.phase(),
-                        start, event.timestamp(), d));
-            } else if (type == EventType.PHASE_START
-                    && event.skill() != null
-                    && event.phase() != null) {
-                String key = event.skill() + "/" + event.phase();
-                phaseStarts.put(key, event.timestamp());
-            } else if (type == EventType.TOOL_RESULT
-                    && event.tool() != null
-                    && event.durationMs() != null) {
-                long d = event.durationMs();
-                toolDurations
-                        .computeIfAbsent(event.tool(),
-                                k -> new ArrayList<>())
-                        .add(d);
-                accumulateEpic(toolEpics, event.tool(),
-                        event.epicId());
-            }
+            state.totalEvents++;
+            dispatchEvent(event, state);
         }
+        synthesizePendingTimeline(state);
+        return buildReport(state, epics);
+    }
 
-        // Unmatched phase.starts → synthesize zero-duration rows so the
-        // Gantt shows the occurrence without inflating duration totals.
+    private static AnalysisReport buildReport(
+            AggregationState state, List<String> epics) {
+        List<PhaseTimeline> sortedTimeline =
+                new ArrayList<>(state.timeline);
+        sortedTimeline.sort(Comparator
+                .comparing(PhaseTimeline::startInstant));
+        return new AnalysisReport(
+                Instant.now(),
+                epics,
+                state.totalEvents,
+                state.totalDuration,
+                toStats(state.skillDurations, state.skillEpics),
+                toStats(state.phaseDurations, state.phaseEpics),
+                toStats(state.toolDurations, state.toolEpics),
+                sortedTimeline,
+                List.of());
+    }
+
+    private static void dispatchEvent(
+            TelemetryEvent event, AggregationState state) {
+        EventType type = event.type();
+        if (type == EventType.SKILL_END) {
+            accumulateSkill(event, state);
+        } else if (type == EventType.PHASE_END) {
+            accumulatePhaseEnd(event, state);
+        } else if (type == EventType.PHASE_START) {
+            accumulatePhaseStart(event, state);
+        } else if (type == EventType.TOOL_RESULT) {
+            accumulateTool(event, state);
+        }
+    }
+
+    private static void accumulateSkill(
+            TelemetryEvent event, AggregationState state) {
+        if (event.skill() == null || event.durationMs() == null) {
+            return;
+        }
+        long d = event.durationMs();
+        state.totalDuration += d;
+        state.skillDurations
+                .computeIfAbsent(event.skill(),
+                        k -> new ArrayList<>())
+                .add(d);
+        accumulateEpic(state.skillEpics, event.skill(),
+                event.epicId());
+    }
+
+    private static void accumulatePhaseEnd(
+            TelemetryEvent event, AggregationState state) {
+        if (event.skill() == null || event.phase() == null
+                || event.durationMs() == null) {
+            return;
+        }
+        long d = event.durationMs();
+        String key = event.skill() + "/" + event.phase();
+        state.phaseDurations
+                .computeIfAbsent(key, k -> new ArrayList<>())
+                .add(d);
+        accumulateEpic(state.phaseEpics, key, event.epicId());
+        Instant start = state.phaseStarts.remove(key);
+        if (start == null) {
+            start = event.timestamp();
+        }
+        state.timeline.add(new PhaseTimeline(
+                event.skill(), event.phase(),
+                start, event.timestamp(), d));
+    }
+
+    private static void accumulatePhaseStart(
+            TelemetryEvent event, AggregationState state) {
+        if (event.skill() == null || event.phase() == null) {
+            return;
+        }
+        String key = event.skill() + "/" + event.phase();
+        state.phaseStarts.put(key, event.timestamp());
+    }
+
+    private static void accumulateTool(
+            TelemetryEvent event, AggregationState state) {
+        if (event.tool() == null || event.durationMs() == null) {
+            return;
+        }
+        long d = event.durationMs();
+        state.toolDurations
+                .computeIfAbsent(event.tool(),
+                        k -> new ArrayList<>())
+                .add(d);
+        accumulateEpic(state.toolEpics, event.tool(),
+                event.epicId());
+    }
+
+    /**
+     * Synthesizes zero-duration timeline rows for
+     * {@code phase.start} events that had no matching
+     * {@code phase.end} — the Gantt still shows the
+     * occurrence without inflating totals.
+     */
+    private static void synthesizePendingTimeline(
+            AggregationState state) {
         for (Map.Entry<String, Instant> pending
-                : phaseStarts.entrySet()) {
+                : state.phaseStarts.entrySet()) {
             String key = pending.getKey();
             int sep = key.indexOf('/');
             String skill = key.substring(0, sep);
             String phase = key.substring(sep + 1);
             Instant ts = pending.getValue();
-            timeline.add(new PhaseTimeline(skill, phase, ts, ts, 0L));
+            state.timeline.add(new PhaseTimeline(
+                    skill, phase, ts, ts, 0L));
         }
+    }
 
-        List<Stat> skillStats = toStats(skillDurations, skillEpics);
-        List<Stat> phaseStats = toStats(phaseDurations, phaseEpics);
-        List<Stat> toolStats = toStats(toolDurations, toolEpics);
-
-        List<PhaseTimeline> sortedTimeline = new ArrayList<>(timeline);
-        sortedTimeline.sort(Comparator
-                .comparing(PhaseTimeline::startInstant));
-
-        return new AnalysisReport(
-                Instant.now(),
-                epics,
-                totalEvents,
-                totalDuration,
-                skillStats,
-                phaseStats,
-                toolStats,
-                sortedTimeline,
-                List.of());
+    /** Mutable per-aggregation state. */
+    private static final class AggregationState {
+        final Map<String, List<Long>> skillDurations =
+                new LinkedHashMap<>();
+        final Map<String, List<Long>> phaseDurations =
+                new LinkedHashMap<>();
+        final Map<String, List<Long>> toolDurations =
+                new LinkedHashMap<>();
+        final Map<String, List<String>> skillEpics =
+                new HashMap<>();
+        final Map<String, List<String>> phaseEpics =
+                new HashMap<>();
+        final Map<String, List<String>> toolEpics =
+                new HashMap<>();
+        final Map<String, Instant> phaseStarts =
+                new HashMap<>();
+        final List<PhaseTimeline> timeline = new ArrayList<>();
+        long totalEvents;
+        long totalDuration;
     }
 
     private static void accumulateEpic(

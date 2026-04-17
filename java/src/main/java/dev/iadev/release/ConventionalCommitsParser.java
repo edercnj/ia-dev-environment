@@ -40,58 +40,79 @@ public final class ConventionalCommitsParser {
      */
     public static CommitCounts classify(List<String> commits) {
         Objects.requireNonNull(commits, "commits");
-        int feat = 0;
-        int fix = 0;
-        int perf = 0;
-        int breaking = 0;
-        int ignored = 0;
+        Counts counts = new Counts();
         for (String payload : commits) {
-            String safe = payload == null ? "" : payload;
-            int nl = safe.indexOf('\n');
-            String subject = nl < 0 ? safe : safe.substring(0, nl);
-            String body = nl < 0 ? "" : safe.substring(nl + 1);
+            classifyOne(payload, counts);
+        }
+        return new CommitCounts(
+                counts.feat, counts.fix, counts.perf,
+                counts.breaking, counts.ignored);
+    }
 
-            Matcher matcher = SUBJECT.matcher(subject);
-            boolean recognisedType = false;
-            boolean isBreaking = false;
-            if (matcher.matches()) {
-                String type = matcher.group(1);
-                boolean bang = "!".equals(matcher.group(2));
-                switch (type) {
-                    case "feat" -> {
-                        feat++;
-                        recognisedType = true;
-                        if (bang) {
-                            isBreaking = true;
-                        }
-                    }
-                    case "fix" -> {
-                        fix++;
-                        recognisedType = true;
-                        if (bang) {
-                            isBreaking = true;
-                        }
-                    }
-                    case "perf" -> {
-                        perf++;
-                        recognisedType = true;
-                    }
-                    default -> {
-                        ignored++;
-                        recognisedType = true;
-                    }
-                }
+    /**
+     * Classifies a single commit payload into {@code counts}.
+     * Mirrors the original per-iteration logic with the same
+     * branching semantics.
+     */
+    private static void classifyOne(
+            String payload, Counts counts) {
+        String safe = payload == null ? "" : payload;
+        int nl = safe.indexOf('\n');
+        String subject = nl < 0 ? safe : safe.substring(0, nl);
+        String body = nl < 0 ? "" : safe.substring(nl + 1);
+
+        Matcher matcher = SUBJECT.matcher(subject);
+        boolean recognisedType = false;
+        boolean isBreaking = false;
+        if (matcher.matches()) {
+            String type = matcher.group(1);
+            boolean bang = "!".equals(matcher.group(2));
+            isBreaking = applyType(type, bang, counts);
+            recognisedType = true;
+        }
+        if (!recognisedType) {
+            counts.ignored++;
+        }
+        if (BREAKING_BODY.matcher(body).find()) {
+            isBreaking = true;
+        }
+        if (isBreaking) {
+            counts.breaking++;
+        }
+    }
+
+    /**
+     * Increments the counter for {@code type} and returns
+     * whether the commit is breaking by bang.
+     */
+    private static boolean applyType(
+            String type, boolean bang, Counts counts) {
+        switch (type) {
+            case "feat" -> {
+                counts.feat++;
+                return bang;
             }
-            if (!recognisedType) {
-                ignored++;
+            case "fix" -> {
+                counts.fix++;
+                return bang;
             }
-            if (BREAKING_BODY.matcher(body).find()) {
-                isBreaking = true;
+            case "perf" -> {
+                counts.perf++;
+                return false;
             }
-            if (isBreaking) {
-                breaking++;
+            default -> {
+                counts.ignored++;
+                return false;
             }
         }
-        return new CommitCounts(feat, fix, perf, breaking, ignored);
+    }
+
+    /** Mutable per-classification accumulator. */
+    private static final class Counts {
+        int feat;
+        int fix;
+        int perf;
+        int breaking;
+        int ignored;
     }
 }
