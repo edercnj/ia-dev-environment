@@ -18,6 +18,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed `dev.iadev.util.ResourceResolver.resolveResourcesRoot(String)` — use `ResourceResolver.resolveResourceDir(String)`.
   - Removed `dev.iadev.util.ResourceResolver.resolveResourcesRoot(String, int)` — use `ResourceResolver.resolveResourceDir(String)` (depth parameter eliminated).
 
+## [3.8.0] - 2026-04-17
+
+### Added
+- **EPIC-0040 — Telemetria de Execução de Skills (11 implementation stories + docs story).** Hybrid telemetry architecture that captures skill executions, phase boundaries, subagent lifecycles, and tool calls as NDJSON under `plans/epic-*/telemetry/events.ndjson`. Enabled by default; opt-out via `CLAUDE_TELEMETRY_DISABLED=1` or `telemetryEnabled: false`. Architecture recorded in [ADR-0005](adr/ADR-0005-telemetry-architecture.md); privacy contract in [Rule 20 — Telemetry Privacy](.claude/rules/20-telemetry-privacy.md).
+  - **story-0040-0001 (PR #408):** NDJSON event schema + storage spec. New reference `_TEMPLATE-TELEMETRY-EVENT.json` documents the canonical event shape shared by the shell and Java layers.
+  - **story-0040-0002 (PR #411):** Java domain package `dev.iadev.telemetry` — `TelemetryEvent` record, `TelemetryWriter` (append-only NDJSON with `flock`/mkdir lock), `TelemetryReader` (streaming parser tolerant of partial lines), zero-framework imports (Rule 04).
+  - **story-0040-0003 (PR #410):** Six Bash hook scripts under `java/src/main/resources/targets/claude/hooks/` — `telemetry-session.sh`, `telemetry-pretool.sh`, `telemetry-posttool.sh`, `telemetry-subagent.sh`, `telemetry-stop.sh`, and the helper `telemetry-emit.sh`. Fail-open (`set +e`), 5 s stdin timeout, scrubbing on the write path.
+  - **story-0040-0004 (PR #414):** `SettingsAssembler` injects telemetry hook registrations into the generated `settings.json`; `HooksAssembler` copies the source-of-truth scripts to `.claude/hooks/`. Zero-touch adoption for projects regenerated on 3.8.0.
+  - **story-0040-0005 (PR #413):** `TelemetryScrubber` (PII / secret scrubbing) + Rule 20 — Telemetry Privacy. Scrubber is on the Java writer's write path; shell scripts share the same regex subset in `telemetry-emit.sh`.
+  - **story-0040-0006 (PR #415):** Phase markers in implementation skills (`x-epic-implement`, `x-story-implement`, `x-task-implement`).
+  - **story-0040-0007 (PR #416):** Phase + subagent markers in planning skills (`x-task-plan`, `x-story-plan`, `x-arch-plan`, `x-epic-map`, `x-test-plan`).
+  - **story-0040-0008 (PR #418):** Phase + MCP markers in creation skills (`x-epic-create`, `x-story-create`, `x-epic-decompose`, `x-jira-create-epic`, `x-jira-create-stories`).
+  - **story-0040-0009 (PR #419):** `_TEMPLATE-SKILL.md` gained a "Telemetry (Optional)" section with copy-paste-ready `telemetry-phase.sh start|end`, `telemetry-subagent.sh start|end`, and `telemetry-mcp.sh start|end` snippets.
+  - **story-0040-0010 (PR #420):** New skill `/x-telemetry-analyze` — point-in-time report with per-skill / phase / tool aggregates, Mermaid Gantt timeline, and optional JSON/CSV export (`ops/` category).
+  - **story-0040-0011 (PR #422):** New skill `/x-telemetry-trend` — cross-epic P95 regression detector with top-10 slowest skills ranking; single-responsibility partner of `/x-telemetry-analyze`.
+  - **story-0040-0012 (this story, docs):** ADR-0005 publication, `CLAUDE.md` + `readme-template.md` "Telemetry" section, and this CHANGELOG entry. Release tasks 004-006 (version bump, release branch, tag `v3.8.0`, back-merge to `develop` with `3.9.0-SNAPSHOT` bump) are delivered by a follow-up `/x-release 3.8.0` invocation per Rule 09 (Git Flow).
+- **Storage layout:** `plans/epic-XXXX/telemetry/events.ndjson` (per-epic, committed) and `.claude/telemetry/index.json` (cross-epic cache, gitignored).
+- **Rule 20 — Telemetry Privacy (`rules/20-telemetry-privacy.md`).** Mandates scrubbing through `TelemetryScrubber` (or the shell regex chain) before any write to `events.ndjson`. Committed NDJSON is safe to republish by policy.
+
+### Changed
+- **`ExecutionState`** gained optional `telemetryPath` field pointing to the active `events.ndjson` location for the current epic.
+- **`_TEMPLATE-SKILL.md`** gained a "Telemetry (Optional)" section (story-0040-0009) with plug-and-play phase / subagent / MCP helper calls to keep new skills instrumented without hand-rolling the wiring.
+- **`ProjectConfig.telemetryEnabled`** — new boolean field (default `true`); when set to `false`, `SettingsAssembler` omits the telemetry hook registrations from the generated `settings.json`.
+- **Root `CLAUDE.md` and `readme-template.md`** gained a "Telemetry" executive-summary section with links to ADR-0005, Rule 20, `/x-telemetry-analyze`, and `/x-telemetry-trend`.
+
+### Security
+- **Rule 20 (Telemetry Privacy)** introduces the scrubber-on-write-path invariant. Pattern catalog covers AWS access keys, JWT-shaped tokens, and `Bearer` authorization headers (shell layer); the Java `TelemetryScrubber` extends the catalog with additional PII / secret patterns.
+
 ## [3.6.0] - 2026-04-16
 
 ### Added
