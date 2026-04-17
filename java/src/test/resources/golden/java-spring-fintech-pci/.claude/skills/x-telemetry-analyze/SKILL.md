@@ -66,9 +66,9 @@ writes exactly one output artifact.
 
 | Code | Meaning |
 | :--- | :--- |
-| 0 | Success. |
+| 0 | Success. Malformed NDJSON lines are silently skipped (warnings go to stderr via SLF4J). |
 | 2 | Epic has no `events.ndjson` — message cites the expected path. |
-| 3 | NDJSON parse error — message cites the offending line. |
+| 3 | Reserved for catastrophic parse failure (I/O error during the pre-flight probe). In the default append-only NDJSON mode, single malformed lines are skipped rather than aborting the run — the rationale is that telemetry is append-only and a mid-file corruption should not prevent aggregation of the remaining `N-1` events. |
 | 4 | `--export` set without `--out`. |
 
 ## Performance Contract

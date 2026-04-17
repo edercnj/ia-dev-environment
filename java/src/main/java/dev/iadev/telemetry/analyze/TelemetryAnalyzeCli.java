@@ -176,29 +176,48 @@ public class TelemetryAnalyzeCli implements Callable<Integer> {
     private AnalysisReport aggregateEpics(
             List<String> epicIds, Path base, Instant sinceInstant) {
         TelemetryAggregator aggregator = new TelemetryAggregator();
-        List<TelemetryEvent> merged = new ArrayList<>();
-        for (String epicId : epicIds) {
-            Path events = base
-                    .resolve("epic-" + extractEpicSuffix(epicId))
-                    .resolve("telemetry")
-                    .resolve("events.ndjson");
-            if (!Files.exists(events)) {
-                throw new NoTelemetryException(
-                        "Epic " + epicId
-                                + " has no telemetry data at "
-                                + events);
+        // Streaming pass per epic — never buffer the full event set.
+        // Each epic's stream is resolved lazily and closed by the
+        // aggregator's iterator drain. The running list keeps track of
+        // opened streams so we can close them once the aggregation is done
+        // (for-each above auto-closes on normal termination; we mirror
+        // that guarantee with an explicit finally).
+        List<Stream<TelemetryEvent>> opened =
+                new ArrayList<>(epicIds.size());
+        try {
+            Stream<TelemetryEvent> unified = Stream.empty();
+            for (String epicId : epicIds) {
+                Path events = base
+                        .resolve("epic-" + extractEpicSuffix(epicId))
+                        .resolve("telemetry")
+                        .resolve("events.ndjson");
+                if (!Files.exists(events)) {
+                    throw new NoTelemetryException(
+                            "Epic " + epicId
+                                    + " has no telemetry data at "
+                                    + events);
+                }
+                Stream<TelemetryEvent> perEpic =
+                        TelemetryReader.open(events)
+                                .streamSkippingInvalid()
+                                .filter(e -> sinceInstant == null
+                                        || !e.timestamp()
+                                                .isBefore(
+                                                        sinceInstant));
+                opened.add(perEpic);
+                unified = Stream.concat(unified, perEpic);
             }
-            try (Stream<TelemetryEvent> stream =
-                         TelemetryReader.open(events)
-                                 .streamSkippingInvalid()) {
-                stream
-                        .filter(e -> sinceInstant == null
-                                || !e.timestamp()
-                                        .isBefore(sinceInstant))
-                        .forEach(merged::add);
+            return aggregator.aggregate(unified, epicIds);
+        } finally {
+            for (Stream<TelemetryEvent> s : opened) {
+                try {
+                    s.close();
+                } catch (RuntimeException ignored) {
+                    // Fail-open: closing a telemetry stream must never
+                    // abort the caller.
+                }
             }
         }
-        return aggregator.aggregate(merged.stream(), epicIds);
     }
 
     private static String extractEpicSuffix(String epicId) {
