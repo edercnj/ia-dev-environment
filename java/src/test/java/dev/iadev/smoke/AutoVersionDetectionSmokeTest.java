@@ -126,12 +126,11 @@ class AutoVersionDetectionSmokeTest {
                     "git log range is empty");
         }
         CommitCounts counts = ConventionalCommitsParser.classify(commits);
-        BumpType type = BumpType.from(counts);
-        if (type == null) {
-            throw new InvalidBumpException(
-                    InvalidBumpException.Code.VERSION_NO_BUMP_SIGNAL,
-                    "no feat/fix/perf/breaking commits since " + lastTag.orElse("0.0.0"));
-        }
+        BumpType type = BumpType.from(counts)
+                .orElseThrow(() -> new InvalidBumpException(
+                        InvalidBumpException.Code.VERSION_NO_BUMP_SIGNAL,
+                        "no feat/fix/perf/breaking commits since "
+                                + lastTag.orElse("0.0.0")));
         return VersionBumper.bump(baseline, type);
     }
 
