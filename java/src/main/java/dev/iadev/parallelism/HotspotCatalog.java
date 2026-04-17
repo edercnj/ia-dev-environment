@@ -2,6 +2,7 @@ package dev.iadev.parallelism;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Catalog of high-contention "hotspot" paths extracted from
@@ -55,21 +56,21 @@ public final class HotspotCatalog {
 
     /**
      * Returns the first hotspot pattern that matches the
-     * given path, or {@code null} if none match.
+     * given path, or {@link Optional#empty()} if none match.
      *
      * @param path repository-relative path to test
-     * @return matching pattern, or {@code null}
+     * @return matching pattern, or empty
      */
-    public String matchHotspot(String path) {
+    public Optional<String> matchHotspot(String path) {
         if (path == null) {
-            return null;
+            return Optional.empty();
         }
         for (String pattern : patterns) {
             if (matches(pattern, path)) {
-                return pattern;
+                return Optional.of(pattern);
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     private static boolean matches(

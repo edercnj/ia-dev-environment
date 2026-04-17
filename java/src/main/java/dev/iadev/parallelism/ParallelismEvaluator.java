@@ -392,13 +392,11 @@ public final class ParallelismEvaluator {
             paths.addAll(n.footprint.writes());
             paths.addAll(n.footprint.regens());
             for (String path : paths) {
-                String hit = catalog.matchHotspot(path);
-                if (hit == null) {
-                    continue;
-                }
-                acc.computeIfAbsent(hit,
-                                k -> new TreeSet<>())
-                        .add(n.id);
+                catalog.matchHotspot(path)
+                        .ifPresent(hit -> acc.computeIfAbsent(
+                                        hit,
+                                        k -> new TreeSet<>())
+                                .add(n.id));
             }
         }
         Map<String, List<String>> out = new TreeMap<>();

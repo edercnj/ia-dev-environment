@@ -3,6 +3,7 @@ package dev.iadev.domain.traceability;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -62,15 +63,16 @@ public final class TestCorrelator {
             }
 
             var atId = req.acceptanceTestId().get();
-            var matched = findMatchingMethod(
+            Optional<TestMethod> matched = findMatchingMethod(
                     atId, testMethods, matchedMethodIndices);
 
-            if (matched != null) {
+            if (matched.isPresent()) {
+                TestMethod m = matched.get();
                 entries.add(TraceabilityEntry.mapped(
                         req.gherkinId(),
                         atId,
-                        matched.className(),
-                        matched.methodName()));
+                        m.className(),
+                        m.methodName()));
             } else {
                 entries.add(
                         TraceabilityEntry.unmappedRequirement(
@@ -79,7 +81,7 @@ public final class TestCorrelator {
         }
     }
 
-    private static TestMethod findMatchingMethod(
+    private static Optional<TestMethod> findMatchingMethod(
             String atId,
             List<TestMethod> testMethods,
             Set<Integer> matchedMethodIndices) {
@@ -91,10 +93,10 @@ public final class TestCorrelator {
             if (method.linkedAtId().isPresent()
                     && method.linkedAtId().get().equals(atId)) {
                 matchedMethodIndices.add(i);
-                return method;
+                return Optional.of(method);
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     private static void collectUnmappedTests(
