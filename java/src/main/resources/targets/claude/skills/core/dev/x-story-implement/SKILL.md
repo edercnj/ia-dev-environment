@@ -727,6 +727,105 @@ Here `phase1TaskId` refers to the numeric task ID returned by the earlier `TaskC
 <!-- TELEMETRY: phase.end -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-implement Phase-1-Plan ok`
 
+## Phase 1.5 -- Parallelism Gate via `/x-parallel-eval` (EPIC-0041 / story-0041-0006)
+
+Before Phase 2 dispatches tasks in parallel (v2 wave dispatch or v1 ad-hoc
+coalescing), this skill runs a **task-scoped parallelism gate** that mirrors the
+epic-level gate at `x-epic-implement` Phase 0.5.0. The gate consumes the File
+Footprint declarations of the story's tasks (EPIC-0041) via
+`/x-parallel-eval --scope=task` and applies the RULE-005 degrade-with-warning
+policy: execution never aborts; it only adjusts per-wave parallelism and persists
+the decision in `execution-state.json`.
+
+**Skip conditions:**
+
+- When the story declares zero tasks that would run in parallel (i.e., a single
+  task or a strictly serial task DAG), the gate is skipped with log
+  `"[parallelism-gate] gate pulado — sem paralelismo de tasks nesta story"`.
+- When `--task TASK-XXXX-YYYY-NNN` is set (single-task mode from CLI), the gate
+  is skipped — no parallel dispatch will happen.
+
+### 1.5.1 Invocation
+
+Invoke `x-parallel-eval` via the Skill tool (Rule 13 — INLINE-SKILL pattern):
+
+    Skill(skill: "x-parallel-eval", args: "--scope=task --story <STORY_PATH>")
+
+Log the invocation line before the call:
+
+```
+[parallelism-gate] /x-parallel-eval --scope=task --story plans/epic-XXXX/story-XXXX-YYYY.md exit=<code>
+```
+
+### 1.5.2 Exit Code → Action Table
+
+| Exit Code | Classification | Orchestrator Action |
+| :--- | :--- | :--- |
+| `0` | No conflicts | Proceed with the planned wave parallelism (v2) or ad-hoc coalescing (v1). No entry added to `parallelismDowngrades`. |
+| `1` | Warnings — footprint missing / legacy task | Proceed with the planned parallelism. Log `"[parallelism-gate] WARNING: footprint incompleto, risco residual"`. No entry added. |
+| `2` | Hard / regen conflicts between tasks in the same wave | **Downgrade the affected wave to serial.** Serialize the conflicting tasks (see 1.5.3), log a visible warning with the conflict pair table, and append an entry to `execution-state.json` field `parallelismDowngrades`. |
+| Other (3+) | Unexpected | Treat as exit `1` (fail-open) — log WARNING and proceed. |
+
+**Fail-open contract:** If the `x-parallel-eval` skill is unavailable (file missing
+under `.claude/skills/x-parallel-eval/`) OR the invocation raises before returning
+an exit code, log `"[parallelism-gate] gate pulado — /x-parallel-eval indisponível"`
+and proceed with the planned parallelism (RULE-005 / RULE-006).
+
+### 1.5.3 Downgrade Algorithm (exit code 2)
+
+For each hard-conflict or regen-conflict pair `(taskA, taskB)` reported within the
+same wave `W`:
+
+1. Remove `taskA` and `taskB` from the parallel batch of wave `W`.
+2. Append them at the end of wave `W` as a sequential sub-queue, preserving the
+   topological order of wave `W` (the task with more downstream dependents first).
+3. Other tasks in wave `W` without conflicts remain in the parallel batch.
+4. The `adjustedSequence` persisted is the list of batches produced — each batch is
+   itself a list of TASK-IDs that run together; outer list is serialized.
+
+Log the decision verbatim:
+
+```
+[parallelism-gate] WARNING: <N> hard conflict(s) detected. Wave <W> downgraded from parallel to serial.
+[parallelism-gate] Affected pair: TASK-XXXX-YYYY-AAA ↔ TASK-XXXX-YYYY-BBB (shared write: <file>)
+[parallelism-gate] Continuing execution with adjusted plan.
+```
+
+### 1.5.4 Persistence in `execution-state.json`
+
+Append one entry per wave-level downgrade to the top-level array
+`parallelismDowngrades`. Legacy state files without the field MUST still parse
+(RULE-006 backward compatibility — see `ExecutionState.java`). The entry shape is
+identical to the epic-level variant except that the `phase` field represents the
+wave number within the story's task DAG (instead of the epic phase):
+
+```json
+{
+  "parallelismDowngrades": [
+    {
+      "phase": 1,
+      "originalGroup": ["TASK-0041-0006-003", "TASK-0041-0006-004"],
+      "adjustedSequence": [["TASK-0041-0006-003"], ["TASK-0041-0006-004"]],
+      "reason": "hard conflict on ExecutionState.java",
+      "evaluatedAt": "2026-04-17T10:00:00Z"
+    }
+  ]
+}
+```
+
+When both the epic orchestrator and the story orchestrator run the gate in the same
+run, the `parallelismDowngrades` array accumulates entries from both scopes; each
+entry's `phase` field disambiguates whether it describes an epic phase or a story
+wave by context of the enclosing execution-state file (epic-level state vs per-story
+state).
+
+### 1.5.5 Relation to Phase 2
+
+The adjusted plan produced by 1.5.3 replaces the wave structure that Phase 2 would
+otherwise dispatch (v2) or the parallel task set that Phase 2 would coalesce (v1).
+Downstream Phase 2 logic consumes the adjusted plan — the gate is authoritative for
+a given run.
+
 ## Phase 2 -- Task Execution Loop (RULE-001: 1 Task = 1 Branch = 1 PR)
 
 <!-- TELEMETRY: phase.start -->
