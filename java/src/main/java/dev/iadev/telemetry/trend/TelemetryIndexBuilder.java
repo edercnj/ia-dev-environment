@@ -21,6 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -84,10 +85,11 @@ public final class TelemetryIndexBuilder {
      */
     public TelemetryIndex buildOrRefresh() {
         Map<String, Long> currentMtimes = scanner.scanEpicMtimes();
-        TelemetryIndex cached = readCached();
-        if (cached != null
-                && cached.epicMtimesEpochMs().equals(currentMtimes)) {
-            return cached;
+        Optional<TelemetryIndex> cached = readCached();
+        if (cached.isPresent()
+                && cached.get().epicMtimesEpochMs()
+                        .equals(currentMtimes)) {
+            return cached.get();
         }
         TelemetryIndex fresh = build(currentMtimes);
         writeCache(fresh);
@@ -152,17 +154,18 @@ public final class TelemetryIndexBuilder {
         return out;
     }
 
-    private TelemetryIndex readCached() {
+    private Optional<TelemetryIndex> readCached() {
         if (!Files.isRegularFile(indexPath)) {
-            return null;
+            return Optional.empty();
         }
         try {
             String json = Files.readString(indexPath,
                     StandardCharsets.UTF_8);
-            return mapper.readValue(json, TelemetryIndex.class);
+            return Optional.of(
+                    mapper.readValue(json, TelemetryIndex.class));
         } catch (IOException e) {
             // Corrupt / unreadable cache → rebuild from scratch.
-            return null;
+            return Optional.empty();
         }
     }
 
