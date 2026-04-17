@@ -1,0 +1,18 @@
+--- a/plans/epic-0040/IMPLEMENTATION-MAP.md
++++ b/plans/epic-0040/IMPLEMENTATION-MAP.md
+@@ Dependency Matrix (HARD conflict on telemetry-phase.sh) @@
+-| story-0040-0006 | Telemetry phase markers          | — |                    | — |
+-| story-0040-0007 | Subagent telemetry markers       | — |                    | — |
+-| story-0040-0008 | MCP telemetry markers            | — |                    | — |
++| story-0040-0006 | Telemetry phase markers          | — |                    | story-0040-0007 |
++| story-0040-0007 | Subagent telemetry markers       | — | story-0040-0006    | story-0040-0008 |
++| story-0040-0008 | MCP telemetry markers            | — | story-0040-0007    | — |
+@@ Phase 3 — Parallel block @@
+-Phase 3: {0040-0006, 0040-0007, 0040-0008}   # all parallel — CONFLICT
++Phase 3a: 0040-0006
++Phase 3b: 0040-0007  (after 3a merges)
++Phase 3c: 0040-0008  (after 3b merges)
+@@ Rationale @@
++Serialized because all three stories write to telemetry-phase.sh central
++dispatch block and to x-story-implement SKILL.md marker sections. See
++plans/epic-0041/migrations/parallel-eval-0040.md §"HARD" for the evidence.
