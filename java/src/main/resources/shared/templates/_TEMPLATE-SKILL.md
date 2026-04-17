@@ -48,27 +48,54 @@ argument-hint: "{{ARGUMENT_HINT}}"
 
 ## Telemetry (Optional)
 
-If this skill has numbered phases, emit phase markers via the shared helper.
-Insert at the start AND end of each phase:
+Use the canonical marker shape below — an HTML comment discriminator (so the
+orchestrator can grep balanced pairs) immediately followed by the `Bash
+command:` line that invokes the shared helper. The `*end` variants MUST carry
+a status argument (`ok` | `failed` | `skipped`) so the emitted event records
+the real outcome of the phase.
 
-```bash
-$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start {{SKILL_NAME}} <phase-name>
-$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end {{SKILL_NAME}} <phase-name>
+If this skill has numbered phases, wrap each phase with a start/end pair:
+
+```markdown
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start {{SKILL_NAME}} <phase-name>`
+
+... phase body ...
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end {{SKILL_NAME}} <phase-name> ok`
 ```
 
-For parallel subagents, use `subagent-start` / `subagent-end`:
+For parallel subagent dispatch, wrap each agent with `subagent.start` /
+`subagent.end` markers:
 
-```bash
-$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh subagent-start {{SKILL_NAME}} <subagent-name>
-$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh subagent-end {{SKILL_NAME}} <subagent-name>
+```markdown
+<!-- TELEMETRY: subagent.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh subagent-start {{SKILL_NAME}} <role>`
+
+... agent work ...
+
+<!-- TELEMETRY: subagent.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh subagent-end {{SKILL_NAME}} <role> ok`
 ```
 
-For MCP calls, use `mcp-start` / `mcp-end`:
+For MCP tool calls, wrap the call with `tool.call` markers and pass the MCP
+method name as the third positional argument:
 
-```bash
-$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh mcp-start {{SKILL_NAME}} <mcp-operation>
-$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh mcp-end {{SKILL_NAME}} <mcp-operation>
+```markdown
+<!-- TELEMETRY: tool.call mcp-start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh mcp-start {{SKILL_NAME}} <mcpMethod>`
+
+... MCP call ...
+
+<!-- TELEMETRY: tool.call mcp-end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh mcp-end {{SKILL_NAME}} <mcpMethod> ok`
 ```
+
+On failure, set the final status to `failed` (or `skipped` when the phase /
+subagent / MCP call was deliberately bypassed) so downstream telemetry
+reflects the real outcome. Do NOT omit the status argument — the `*end`
+helpers default to `ok` only as a last-resort fail-open.
 
 Reference: `.claude/rules/13-skill-invocation-protocol.md` (section "Telemetry Markers").
-Canonical example: `x-dev-story-implement` (see its phase markers for a working reference).
+Canonical example: `x-story-implement` (see its phase markers for a working reference).

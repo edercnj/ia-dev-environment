@@ -55,9 +55,19 @@ class TemplateStructureTest {
         String body = Files.readString(TEMPLATE_PATH, StandardCharsets.UTF_8);
 
         assertThat(body)
+                .as("Telemetry section must include the canonical phase.start "
+                        + "HTML marker so grep-based pair balancing works")
+                .contains("<!-- TELEMETRY: phase.start -->")
+                .contains("<!-- TELEMETRY: phase.end -->");
+        assertThat(body)
                 .as("Telemetry section must include the phase-start helper call")
                 .contains("telemetry-phase.sh start")
                 .contains("telemetry-phase.sh end");
+        assertThat(body)
+                .as("phase.end example must pass an explicit status argument "
+                        + "(ok|failed|skipped) so authors don't ship incomplete "
+                        + "instrumentation")
+                .contains("telemetry-phase.sh end {{SKILL_NAME}} <phase-name> ok");
     }
 
     @Test
@@ -66,13 +76,27 @@ class TemplateStructureTest {
         String body = Files.readString(TEMPLATE_PATH, StandardCharsets.UTF_8);
 
         assertThat(body)
-                .as("Telemetry section must document subagent-start/end markers")
+                .as("Telemetry section must include canonical subagent HTML markers")
+                .contains("<!-- TELEMETRY: subagent.start -->")
+                .contains("<!-- TELEMETRY: subagent.end -->");
+        assertThat(body)
+                .as("Telemetry section must document subagent-start/end helper calls")
                 .contains("subagent-start")
                 .contains("subagent-end");
         assertThat(body)
-                .as("Telemetry section must document mcp-start/end markers")
+                .as("subagent-end example must carry an explicit status argument")
+                .contains("telemetry-phase.sh subagent-end {{SKILL_NAME}} <role> ok");
+        assertThat(body)
+                .as("Telemetry section must include canonical MCP tool.call HTML markers")
+                .contains("<!-- TELEMETRY: tool.call mcp-start -->")
+                .contains("<!-- TELEMETRY: tool.call mcp-end -->");
+        assertThat(body)
+                .as("Telemetry section must document mcp-start/end helper calls")
                 .contains("mcp-start")
                 .contains("mcp-end");
+        assertThat(body)
+                .as("mcp-end example must carry an explicit status argument")
+                .contains("telemetry-phase.sh mcp-end {{SKILL_NAME}} <mcpMethod> ok");
     }
 
     @Test
