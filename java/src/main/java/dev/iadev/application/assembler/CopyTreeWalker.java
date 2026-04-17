@@ -12,7 +12,6 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
  * File tree walking operations for copying and
@@ -89,20 +88,14 @@ public final class CopyTreeWalker {
      * @return sorted list of .md file paths; empty list
      *         if directory contains no .md files
      * @throws UncheckedIOException if I/O fails
+     * @deprecated call
+     *         {@link MarkdownFileScanner#listMarkdownFilesSorted(Path)}
+     *         directly
      */
+    @Deprecated
     public static List<Path> listMdFilesSorted(Path dir) {
-        try (Stream<Path> stream = Files.list(dir)) {
-            return stream
-                    .filter(f -> f.toString()
-                            .endsWith(".md"))
-                    .filter(Files::isRegularFile)
-                    .sorted()
-                    .toList();
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to list directory: %s"
-                            .formatted(dir), e);
-        }
+        return MarkdownFileScanner
+                .listMarkdownFilesSorted(dir);
     }
 
     /**

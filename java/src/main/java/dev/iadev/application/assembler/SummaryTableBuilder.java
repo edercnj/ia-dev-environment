@@ -3,8 +3,6 @@ package dev.iadev.application.assembler;
 import dev.iadev.domain.model.Platform;
 import dev.iadev.domain.model.ProjectFoundation;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -126,21 +124,11 @@ public final class SummaryTableBuilder {
     private static int countPlanTemplates(
             Path baseDir, String subdir) {
         Path templatesDir = baseDir.resolve(subdir);
-        if (!Files.isDirectory(templatesDir)) {
-            return 0;
-        }
-        try (var stream = Files.list(templatesDir)) {
-            return (int) stream
-                    .filter(p -> p.getFileName()
-                            .toString()
-                            .startsWith("_TEMPLATE-"))
-                    .filter(p -> p.getFileName()
-                            .toString()
-                            .endsWith(".md"))
-                    .count();
-        } catch (IOException e) {
-            return 0;
-        }
+        return (int) MarkdownFileScanner
+                .listMarkdownFiles(templatesDir).stream()
+                .filter(p -> p.getFileName().toString()
+                        .startsWith("_TEMPLATE-"))
+                .count();
     }
 
 }

@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 
 /** Consolidates source files into merged outputs with generated headers and separators. */
 public final class Consolidator {
@@ -137,16 +136,8 @@ public final class Consolidator {
 
     private static List<Path> listMarkdownFiles(
             Path sourceDir) {
-        try (Stream<Path> stream = Files.list(sourceDir)) {
-            return stream
-                    .filter(f -> f.toString().endsWith(".md"))
-                    .sorted()
-                    .toList();
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to list directory: %s"
-                            .formatted(sourceDir), e);
-        }
+        return MarkdownFileScanner
+                .listMarkdownFilesSorted(sourceDir);
     }
 
     private static List<String> consolidateByCategory(

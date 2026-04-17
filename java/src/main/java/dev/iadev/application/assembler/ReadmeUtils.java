@@ -136,15 +136,8 @@ public final class ReadmeUtils {
     }
 
     private static int countMdFiles(Path dir) {
-        try (Stream<Path> entries = Files.list(dir)) {
-            return (int) entries
-                    .filter(p -> p.toString()
-                            .endsWith(".md"))
-                    .count();
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to list directory: " + dir, e);
-        }
+        return MarkdownFileScanner
+                .listMarkdownFiles(dir).size();
     }
 
     private static int countSkillMdFiles(
