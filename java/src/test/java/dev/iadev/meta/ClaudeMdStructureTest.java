@@ -59,8 +59,8 @@ class ClaudeMdStructureTest {
         String body = Files.readString(CLAUDE_MD, StandardCharsets.UTF_8);
 
         assertThat(body)
-                .as("CLAUDE.md must point at x-dev-story-implement as the canonical "
+                .as("CLAUDE.md must point at x-story-implement as the canonical "
                         + "instrumented example (story-0040-0009 §3.3)")
-                .contains("x-dev-story-implement");
+                .contains("x-story-implement");
     }
 }

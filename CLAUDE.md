@@ -76,7 +76,7 @@ A complete list of skills with descriptions is generated in `.claude/README.md` 
 
 - Start from `java/src/main/resources/shared/templates/_TEMPLATE-SKILL.md` (authoring template for SKILL.md files).
 - The template includes a "## Telemetry (Optional)" section with plug-and-play helper calls (`telemetry-phase.sh start/end`, `subagent-start/end`, `mcp-start/end`). Copy-paste into numbered phases of the new skill to keep telemetry coverage close to 100% as the catalog grows (EPIC-0040).
-- Canonical example: `x-dev-story-implement` — review its phase markers for a working reference.
+- Canonical example: `x-story-implement` — review its phase markers for a working reference.
 - See `.claude/rules/13-skill-invocation-protocol.md` for the markers contract.
 
 ### Usage Examples
