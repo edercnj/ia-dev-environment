@@ -8,7 +8,7 @@
 
 ## 1. Overview
 
-O gerador `ia-dev-env` em `/Users/edercnj/workspaces/ia-dev-environment` suporta hoje 6 linguagens de programação (java, python, go, kotlin, typescript, rust) com suporte parcial a csharp/.NET. Na prática 100% do uso é Java e a manutenção multi-linguagem gera custo constante: ~2.835 arquivos golden não-Java, 25+ smoke tests parametrizados por 17 perfis, duplicação de agents/hooks/rules/knowledge-packs por linguagem e débito técnico acumulado (`csharp-dotnet` leftover em `StackMapping` sem perfil/golden).
+O gerador `ia-dev-env` neste repositório (`<repo-root>`) suporta hoje 6 linguagens de programação (java, python, go, kotlin, typescript, rust) com suporte parcial a csharp/.NET. Na prática 100% do uso é Java e a manutenção multi-linguagem gera custo constante: ~2.835 arquivos golden não-Java, 25+ smoke tests parametrizados por 17 perfis, duplicação de agents/hooks/rules/knowledge-packs por linguagem e débito técnico acumulado (`csharp-dotnet` leftover em `StackMapping` sem perfil/golden).
 
 Simultaneamente, dois bugs foram identificados:
 
@@ -174,7 +174,7 @@ Toda story com bug fix (0048-0009, 0048-0011) executa RED-first: teste que repro
 | STORY-0048-0004 | Limpar StackMapping + StackResolver + StackValidator (inclui csharp leftover) | 0003 | M (7h) | med | Remove branches mortas em mapeamentos de domínio |
 | STORY-0048-0005 | Remover templates targets/claude/{agents,hooks,settings} não-Java | 0003 | M (5h) | med | ~17 arquivos/dirs deletados |
 | STORY-0048-0006 | Remover skills, rules, anti-patterns, security-anti-patterns não-Java | 0003 | M (6h) | med | 15+ arquivos removidos |
-| STORY-0048-0007 | Remover 8 goldens + 9 YAMLs setup-config não-Java | 0003,0005,0006 | L (10h) | high | 2.835 arquivos golden deletados |
+| STORY-0048-0007 | Remover 8 goldens + 8 YAMLs setup-config não-Java | 0003,0005,0006 | L (10h) | high | 2.835 arquivos golden deletados |
 | STORY-0048-0008 | Atualizar testes parametrizados: SmokeProfiles, GoldenFileTest, ConfigProfiles, simetria tests, expected-artifacts.json | 0007 | M (8h) | med | Matrizes reduzidas para 9 perfis; zero skipped |
 | STORY-0048-0009 | Bug A — OutputDirectoryIntegrityTest (RED) → fix CopyHelpers + pruneEmptyDirs → regen 9 goldens | 0008 | M (8h) | high | Zero empty dirs invariante enforced |
 | STORY-0048-0010 | Template Pebble shared/templates/CLAUDE.md + ClaudeMdTemplateSyntaxTest | 0002 | S (3h) | low | Template-fonte pronto para consumo |
