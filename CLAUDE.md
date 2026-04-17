@@ -118,7 +118,14 @@ Two skills consume the NDJSON:
 /x-telemetry-trend --last 5 --threshold-pct 20
 ```
 
-Opt out globally with `CLAUDE_TELEMETRY_DISABLED=1`, or per-project with `telemetryEnabled: false` in the generator YAML (requires regeneration).
+Opt out globally with `CLAUDE_TELEMETRY_DISABLED=1`, or per-project by adding the nested YAML block below to the generator YAML (requires regeneration):
+
+```yaml
+telemetry:
+  enabled: false
+```
+
+(The parser `ProjectConfig.parseTelemetryEnabled` expects the nested key; a flat `telemetryEnabled` line is ignored.)
 
 EPIC-0040 shipped this stack in release 3.8.0 — see the [CHANGELOG](CHANGELOG.md#380---2026-04-17).
 

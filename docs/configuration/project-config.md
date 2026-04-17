@@ -55,9 +55,12 @@ telemetry:
 ```
 
 When disabled, `SettingsAssembler` skips the 5 hook entries and
-`HooksAssembler` skips copying the 7 telemetry scripts. The
-resulting `.claude/settings.json` contains no `telemetry-*` string
-and the `.claude/hooks/` directory contains no telemetry files.
+`HooksAssembler` skips copying the 8 telemetry scripts (the 5
+entrypoints — `telemetry-session`, `telemetry-pretool`,
+`telemetry-posttool`, `telemetry-subagent`, `telemetry-stop` — plus
+`telemetry-emit.sh`, `telemetry-lib.sh`, and `telemetry-phase.sh`).
+The resulting `.claude/settings.json` contains no `telemetry-*`
+string and the `.claude/hooks/` directory contains no telemetry files.
 
 ### Coexistence with `post-compile-check.sh`
 
