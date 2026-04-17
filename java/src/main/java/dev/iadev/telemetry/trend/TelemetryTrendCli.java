@@ -92,40 +92,14 @@ public class TelemetryTrendCli implements Callable<Integer> {
 
     @Override
     public Integer call() {
-        if (thresholdPct < 0) {
-            spec.commandLine().getErr().println(
-                    "--threshold-pct must be >= 0");
-            return EXIT_THRESHOLD_NEGATIVE;
+        Integer validationCode = validateArgs();
+        if (validationCode != null) {
+            return validationCode;
         }
-        if (last < 1) {
-            spec.commandLine().getErr().println(
-                    "--last must be >= 1");
-            return EXIT_VALIDATION;
-        }
-        BaselineStrategy strategy;
-        try {
-            strategy = BaselineStrategy.parse(baseline);
-        } catch (IllegalArgumentException e) {
-            spec.commandLine().getErr().println(e.getMessage());
-            return EXIT_VALIDATION;
-        }
-        String fmt = format == null
-                ? "md" : format.trim().toLowerCase();
-        if (!"md".equals(fmt) && !"json".equals(fmt)) {
-            spec.commandLine().getErr().println(
-                    "--format must be 'md' or 'json', got '"
-                            + format + "'");
-            return EXIT_VALIDATION;
-        }
+        BaselineStrategy strategy = BaselineStrategy.parse(baseline);
+        String fmt = normalizedFormat();
 
-        Path base = baseDir != null ? baseDir : Path.of("plans");
-        TelemetryIndexBuilder builder = indexPath != null
-                ? new TelemetryIndexBuilder(base, indexPath)
-                : new TelemetryIndexBuilder(base);
-        TelemetryIndex index = rebuildIndex
-                ? builder.rebuild()
-                : builder.buildOrRefresh();
-
+        TelemetryIndex index = loadIndex();
         TelemetryTrendAnalyzer analyzer = new TelemetryTrendAnalyzer();
         int epicCount = analyzer.epicCount(index);
         if (epicCount < 2) {
@@ -140,28 +114,75 @@ public class TelemetryTrendCli implements Callable<Integer> {
         String rendered = "json".equals(fmt)
                 ? new TrendJsonRenderer().render(report)
                 : new TrendMarkdownRenderer().render(report);
+        return emitReport(rendered);
+    }
 
+    /**
+     * Pure argument validation. Returns a non-null exit code when an
+     * argument is invalid, null otherwise.
+     */
+    private Integer validateArgs() {
+        if (thresholdPct < 0) {
+            spec.commandLine().getErr().println(
+                    "--threshold-pct must be >= 0");
+            return EXIT_THRESHOLD_NEGATIVE;
+        }
+        if (last < 1) {
+            spec.commandLine().getErr().println(
+                    "--last must be >= 1");
+            return EXIT_VALIDATION;
+        }
+        try {
+            BaselineStrategy.parse(baseline);
+        } catch (IllegalArgumentException e) {
+            spec.commandLine().getErr().println(e.getMessage());
+            return EXIT_VALIDATION;
+        }
+        String fmt = normalizedFormat();
+        if (!"md".equals(fmt) && !"json".equals(fmt)) {
+            spec.commandLine().getErr().println(
+                    "--format must be 'md' or 'json', got '"
+                            + format + "'");
+            return EXIT_VALIDATION;
+        }
+        return null;
+    }
+
+    private String normalizedFormat() {
+        return format == null ? "md" : format.trim().toLowerCase();
+    }
+
+    private TelemetryIndex loadIndex() {
+        Path base = baseDir != null ? baseDir : Path.of("plans");
+        TelemetryIndexBuilder builder = indexPath != null
+                ? new TelemetryIndexBuilder(base, indexPath)
+                : new TelemetryIndexBuilder(base);
+        return rebuildIndex
+                ? builder.rebuild()
+                : builder.buildOrRefresh();
+    }
+
+    private Integer emitReport(String rendered) {
         if (out == null) {
             PrintWriter writer = spec.commandLine().getOut();
             writer.println(rendered);
             writer.flush();
-        } else {
-            try {
-                Path parent = out.getParent();
-                if (parent != null) {
-                    Files.createDirectories(parent);
-                }
-                Files.writeString(out, rendered,
-                        StandardCharsets.UTF_8);
-            } catch (java.io.IOException e) {
-                spec.commandLine().getErr().println(
-                        "Failed to write report: "
-                                + e.getMessage());
-                return EXIT_VALIDATION;
-            }
-            spec.commandLine().getOut().println(
-                    "Report written to " + out);
+            return 0;
         }
+        try {
+            Path parent = out.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
+            Files.writeString(out, rendered,
+                    StandardCharsets.UTF_8);
+        } catch (java.io.IOException e) {
+            spec.commandLine().getErr().println(
+                    "Failed to write report: " + e.getMessage());
+            return EXIT_VALIDATION;
+        }
+        spec.commandLine().getOut().println(
+                "Report written to " + out);
         return 0;
     }
 

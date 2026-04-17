@@ -52,39 +52,48 @@ public final class RegressionDetector {
             return List.of();
         }
         String currentEpic = epicOrder.get(epicOrder.size() - 1);
-
         Map<String, Map<String, Long>> skillToEpicP95 =
                 groupBySkill(series);
 
         List<Regression> out = new ArrayList<>();
         for (Map.Entry<String, Map<String, Long>> entry
                 : skillToEpicP95.entrySet()) {
-            String skill = entry.getKey();
-            Map<String, Long> byEpic = entry.getValue();
-            Long current = byEpic.get(currentEpic);
-            if (current == null) {
-                continue; // skill absent in current epic — skip
-            }
-            List<Long> historical = collectHistorical(
-                    epicOrder, byEpic, currentEpic);
-            if (historical.isEmpty()) {
-                continue;
-            }
-            long baseline = aggregate(historical, strategy);
-            if (baseline <= 0L) {
-                continue; // divide-by-zero guard
-            }
-            double delta = ((double) (current - baseline)
-                    / (double) baseline) * 100.0;
-            if (delta >= thresholdPct) {
-                out.add(new Regression(
-                        skill, baseline, current, round2(delta),
-                        List.copyOf(epicOrder)));
-            }
+            addIfRegression(out, entry, epicOrder,
+                    currentEpic, strategy, thresholdPct);
         }
         out.sort(Comparator.comparingDouble(Regression::deltaPct)
                 .reversed());
         return out;
+    }
+
+    private static void addIfRegression(
+            List<Regression> out,
+            Map.Entry<String, Map<String, Long>> entry,
+            List<String> epicOrder,
+            String currentEpic,
+            BaselineStrategy strategy,
+            double thresholdPct) {
+        Map<String, Long> byEpic = entry.getValue();
+        Long current = byEpic.get(currentEpic);
+        if (current == null) {
+            return; // skill absent in current epic — skip
+        }
+        List<Long> historical = collectHistorical(
+                epicOrder, byEpic, currentEpic);
+        if (historical.isEmpty()) {
+            return;
+        }
+        long baseline = aggregate(historical, strategy);
+        if (baseline <= 0L) {
+            return; // divide-by-zero guard
+        }
+        double delta = ((double) (current - baseline)
+                / (double) baseline) * 100.0;
+        if (delta >= thresholdPct) {
+            out.add(new Regression(
+                    entry.getKey(), baseline, current,
+                    round2(delta), List.copyOf(epicOrder)));
+        }
     }
 
     private static Map<String, Map<String, Long>> groupBySkill(
