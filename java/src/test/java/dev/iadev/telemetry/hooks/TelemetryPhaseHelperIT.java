@@ -76,9 +76,9 @@ class TelemetryPhaseHelperIT {
         assumeHooksDirExists();
 
         runPhaseHelper(projectDir,
-                "start", "x-dev-story-implement", "Phase-1-Plan");
+                "start", "x-story-implement", "Phase-1-Plan");
         runPhaseHelper(projectDir,
-                "end", "x-dev-story-implement", "Phase-1-Plan", "ok");
+                "end", "x-story-implement", "Phase-1-Plan", "ok");
 
         Path ndjson = projectDir.resolve(
                 "plans/epic-0040/telemetry/events.ndjson");
@@ -104,7 +104,7 @@ class TelemetryPhaseHelperIT {
         assertThat(startEvent.get("type").asText())
                 .isEqualTo("phase.start");
         assertThat(startEvent.get("skill").asText())
-                .isEqualTo("x-dev-story-implement");
+                .isEqualTo("x-story-implement");
         assertThat(startEvent.get("phase").asText())
                 .isEqualTo("Phase-1-Plan");
         assertThat(startEvent.has("status")).isFalse();
@@ -113,7 +113,7 @@ class TelemetryPhaseHelperIT {
         assertThat(endEvent.get("type").asText())
                 .isEqualTo("phase.end");
         assertThat(endEvent.get("skill").asText())
-                .isEqualTo("x-dev-story-implement");
+                .isEqualTo("x-story-implement");
         assertThat(endEvent.get("phase").asText())
                 .isEqualTo("Phase-1-Plan");
         assertThat(endEvent.get("status").asText()).isEqualTo("ok");
@@ -128,7 +128,7 @@ class TelemetryPhaseHelperIT {
         assumeHooksDirExists();
 
         runPhaseHelper(projectDir,
-                "end", "x-dev-story-implement", "Phase-3-Review",
+                "end", "x-story-implement", "Phase-3-Review",
                 "failed");
 
         List<String> lines = readNdjson(projectDir);
@@ -147,7 +147,7 @@ class TelemetryPhaseHelperIT {
         assumeHooksDirExists();
 
         int exit = runHelperProcess(projectDir,
-                "bogus", "x-dev-story-implement", "Phase-1-Plan");
+                "bogus", "x-story-implement", "Phase-1-Plan");
         assertThat(exit)
                 .as("Must exit 0 (fail-open) even on bad first arg")
                 .isZero();
@@ -171,7 +171,7 @@ class TelemetryPhaseHelperIT {
                 "bash",
                 HOOKS_DIR.resolve("telemetry-phase.sh")
                         .toAbsolutePath().toString(),
-                "start", "x-dev-story-implement", "Phase-1-Plan");
+                "start", "x-story-implement", "Phase-1-Plan");
         pb.environment().put("CLAUDE_TELEMETRY_DISABLED", "1");
         pb.environment().put("CLAUDE_PROJECT_DIR",
                 projectDir.toAbsolutePath().toString());
@@ -214,7 +214,7 @@ class TelemetryPhaseHelperIT {
                 "bash",
                 sandboxHooks.resolve("telemetry-phase.sh")
                         .toAbsolutePath().toString(),
-                "start", "x-dev-story-implement", "Phase-1-Plan");
+                "start", "x-story-implement", "Phase-1-Plan");
         pb.environment().put("CLAUDE_PROJECT_DIR",
                 projectDir.toAbsolutePath().toString());
         pb.environment().put("CLAUDE_TELEMETRY_CONTEXT",
