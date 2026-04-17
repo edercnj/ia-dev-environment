@@ -45,6 +45,8 @@ public final class JsonReportRenderer {
         root.put("skills", toStatNodes(report.skills()));
         root.put("phases", toStatNodes(report.phases()));
         root.put("tools", toStatNodes(report.tools()));
+        root.put("timeline", toTimelineNodes(report.timeline()));
+        root.put("observations", report.observations());
         try {
             return MAPPER.writeValueAsString(root);
         } catch (JsonProcessingException e) {
@@ -65,6 +67,22 @@ public final class JsonReportRenderer {
             node.put("p50Ms", s.p50Ms());
             node.put("p95Ms", s.p95Ms());
             node.put("epicIds", s.epicIds());
+            out.add(node);
+        }
+        return out;
+    }
+
+    private static List<Map<String, Object>> toTimelineNodes(
+            List<PhaseTimeline> timeline) {
+        List<Map<String, Object>> out =
+                new ArrayList<>(timeline.size());
+        for (PhaseTimeline t : timeline) {
+            Map<String, Object> node = new LinkedHashMap<>();
+            node.put("skill", t.skill());
+            node.put("phase", t.phase());
+            node.put("startInstant", t.startInstant().toString());
+            node.put("endInstant", t.endInstant().toString());
+            node.put("durationMs", t.durationMs());
             out.add(node);
         }
         return out;

@@ -24,8 +24,9 @@ public record PhaseTimeline(
     /**
      * Canonical constructor applying fail-fast validation.
      *
-     * @throws IllegalArgumentException when skill/phase/instant fields are
-     *                                  null or duration is negative
+     * @throws NullPointerException     when skill, phase, startInstant, or
+     *                                  endInstant is null
+     * @throws IllegalArgumentException when duration is negative
      */
     public PhaseTimeline {
         Objects.requireNonNull(skill, "skill is required");
