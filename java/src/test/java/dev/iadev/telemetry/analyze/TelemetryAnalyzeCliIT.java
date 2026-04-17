@@ -78,7 +78,7 @@ class TelemetryAnalyzeCliIT {
                 .contains("## Por fase")
                 .contains("## Por tool")
                 .contains("## Gantt")
-                .contains("## Observacoes");
+                .contains("## Observações");
     }
 
     @Test

@@ -91,7 +91,7 @@ story-0040-0010 §3.2:
 4. Por fase (same columns, keyed by `skill/phase`).
 5. Por tool (invocations / duration per tool — Bash, Write, Edit, Skill, Agent, MCPs).
 6. Mermaid Gantt timeline (capped at 50 rows).
-7. Observacoes (outliers, truncation notes).
+7. Observações (outliers, truncation notes).
 
 The JSON export follows the schema in §5.1; the CSV export follows the
 layout in §5.2 with RFC 4180 quoting.

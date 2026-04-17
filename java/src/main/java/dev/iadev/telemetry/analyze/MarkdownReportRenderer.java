@@ -9,7 +9,7 @@ import java.util.List;
  *
  * <p>Output contains the seven canonical sections required by
  * story-0040-0010 §3.2: Header, Resumo geral, Por skill, Por fase, Por
- * tool, Gantt, Observacoes. Numeric values are integer-formatted (no
+ * tool, Gantt, Observações. Numeric values are integer-formatted (no
  * decimals — durations are already integer milliseconds).</p>
  *
  * <p>The Mermaid Gantt is capped at 50 rows (per story §3.2 item 6) so the
@@ -169,7 +169,7 @@ public final class MarkdownReportRenderer {
 
     private void appendObservations(
             StringBuilder sb, AnalysisReport report) {
-        sb.append("## Observacoes\n\n");
+        sb.append("## Observações\n\n");
         int truncated = report.timeline().size() - MAX_GANTT_ROWS;
         if (truncated > 0) {
             sb.append("- Gantt truncated: ")

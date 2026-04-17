@@ -13,8 +13,8 @@ import java.util.List;
  *
  * <p>Quoting rules (RFC 4180 §2):
  * <ul>
- *   <li>A field that contains {@code ,}, {@code "}, or {@code \n} is
- *       enclosed in double quotes.</li>
+ *   <li>A field that contains {@code ,}, {@code "}, {@code \n}, or
+ *       {@code \r} is enclosed in double quotes.</li>
  *   <li>Literal {@code "} inside a quoted field is doubled ({@code ""}).
  *       </li>
  * </ul>
@@ -63,7 +63,8 @@ public final class CsvReportRenderer {
         }
         boolean needsQuote = value.indexOf(',') >= 0
                 || value.indexOf('"') >= 0
-                || value.indexOf('\n') >= 0;
+                || value.indexOf('\n') >= 0
+                || value.indexOf('\r') >= 0;
         if (!needsQuote) {
             return value;
         }

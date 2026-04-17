@@ -35,6 +35,6 @@
 
 {{GANTT}}
 
-## Observacoes
+## Observações
 
 {{OBSERVATIONS}}
