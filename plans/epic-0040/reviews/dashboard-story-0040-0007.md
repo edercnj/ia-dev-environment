@@ -13,7 +13,7 @@
 | :--- | :--- | :--- | :--- | :--- |
 | QA | 36 | 36 | Approved | [review-qa-story-0040-0007.md](review-qa-story-0040-0007.md) |
 | Performance | 26 | 26 | Approved | [review-perf-story-0040-0007.md](review-perf-story-0040-0007.md) |
-| Tech Lead | -- | 45 | Pending | (to be updated by `x-review-pr`) |
+| Tech Lead | 43 | 45 | GO | [review-tech-lead-story-0040-0007.md](review-tech-lead-story-0040-0007.md) |
 
 **Active specialists for this story:** QA + Performance only. The other specialists (Database, Observability, DevOps, Data Modeling, Security, API, Events) were **deactivated** because the story does not touch their surfaces:
 
@@ -31,7 +31,8 @@
 
 - **Score (specialist):** 62 / 62 (100%)
 - **Status (specialist):** **APPROVED**
-- **Overall (incl. Tech Lead):** Pending Tech Lead pass
+- **Tech Lead:** 43 / 45 (GO)
+- **Overall:** 105 / 107 (98.1%) — **GO (Approved)**
 
 ## Critical Issues
 
@@ -44,13 +45,13 @@ _None._
 | Critical | 0 |
 | High | 0 |
 | Medium | 0 |
-| Low | 0 |
+| Low | 2 (both informational, pre-existing / not attributable to this story) |
 
 ## Review History
 
 | Round | Date | Specialist Score | Tech Lead | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| 1 | 2026-04-16 | 62/62 (100%) | pending | Approved (specialist) |
+| 1 | 2026-04-16 | 62/62 (100%) | 43/45 GO | Approved (specialist + Tech Lead) |
 
 ## Files Reviewed (0007 scope only)
 
