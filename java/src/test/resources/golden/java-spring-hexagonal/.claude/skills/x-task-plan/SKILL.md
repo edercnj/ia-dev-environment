@@ -112,6 +112,9 @@ Before generating, verify whether a valid plan already exists:
 
 ### Phase 1 -- Extract Contracts
 
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-task-plan Phase-1-Context-Gathering`
+
 #### 1A. Task-file-first branch (EPIC-0038 — `--task-file` present)
 
 1. Read the file at `<task-file>`. Abort with exit code 1 if missing.
@@ -148,7 +151,13 @@ Before generating, verify whether a valid plan already exists:
    - **Acceptance Criteria**: list of criteria
 5. If the task ID is NOT found in Section 8, abort: `"Task TASK-XXXX-YYYY-NNN not found in story-XXXX-YYYY Section 8"`
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-plan Phase-1-Context-Gathering ok`
+
 ### Phase 2 -- Map TDD Cycles (TPP Order)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-task-plan Phase-2-Task-Breakdown`
 
 Generate TDD cycles based on the task's layer, test type, and acceptance criteria. Cycles MUST follow strict **Transformation Priority Premise** order:
 
@@ -195,6 +204,9 @@ Each TDD cycle MUST contain:
 #### Minimum Cycles
 
 Every task plan MUST contain at least 3 TDD cycles. The first cycle MUST always be a degenerate case (TPP Level 1). For domain logic tasks, target 4-6 cycles. For simple config/doc tasks, 3 cycles suffice.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-plan Phase-2-Task-Breakdown ok`
 
 ### Phase 3 -- Analyze Affected Files by Layer
 
@@ -243,6 +255,9 @@ For each applicable security item, generate a checklist entry with:
 - Reference: CWE identifier or OWASP category where applicable
 
 ### Phase 5 -- Write Plan
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-task-plan Phase-3-Validation`
 
 #### 5.1 Ensure Output Directory
 
@@ -324,6 +339,9 @@ Write the plan to `<EPIC_DIR>/plans/task-plan-XXXX-YYYY-NNN.md` with the followi
 #### 5.3 Report
 
 After writing, log: `"Task plan generated: task-plan-XXXX-YYYY-NNN.md (N TDD cycles, M affected files)"`.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-plan Phase-3-Validation ok`
 
 ## Anti-Patterns
 

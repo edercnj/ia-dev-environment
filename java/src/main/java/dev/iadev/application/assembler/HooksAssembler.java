@@ -59,6 +59,7 @@ public final class HooksAssembler implements Assembler {
     public static final List<String> TELEMETRY_SCRIPTS = List.of(
             "telemetry-emit.sh",
             "telemetry-lib.sh",
+            "telemetry-phase.sh",
             "telemetry-session.sh",
             "telemetry-pretool.sh",
             "telemetry-posttool.sh",
