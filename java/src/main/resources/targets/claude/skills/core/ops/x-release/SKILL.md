@@ -597,7 +597,7 @@ CURRENT_VERSION=$(get_current_version)  # from pom.xml, package.json, etc.
 # docs, ADRs, release notes, other worktrees, golden fixtures, specs, smoke
 # tests. Broad by intent — Check 7 is meant to flag stray version strings
 # in PRODUCTION source, not in historical / generated / documentation assets.
-ALLOWED_PATTERN="pom\.xml|package\.json|Cargo\.toml|pyproject\.toml|build\.gradle|CHANGELOG\.md|release-state-|/plans/|/adr/|/docs/release-notes/|/\.claude/worktrees/|/\.claude/skills/|/java/src/test/resources/golden/|/specs/|/results/|/tests/guard/"
+ALLOWED_PATTERN="pom\.xml|package\.json|Cargo\.toml|pyproject\.toml|build\.gradle|CHANGELOG\.md|release-state-|/plans/|/adr/|/docs/release-notes/|/\.claude/worktrees/|/\.claude/skills/|/java/src/test/resources/golden/|/java/src/main/resources/|/target/|/specs/|/results/|/tests/guard/"
 
 MATCHES=$(grep -rn "$CURRENT_VERSION" . \
   --include="*.sh" --include="*.md" --include="*.yaml" --include="*.yml" \
