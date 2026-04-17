@@ -151,6 +151,9 @@ Log: `"Created plans/ directory for EPIC-{epicId}"` if created. Skip silently if
 
 ## Phase 1 -- Dependency Order (Orchestrator -- Inline)
 
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-orchestrate Phase-1-Discovery`
+
 ### 1.1 Read Implementation Map
 
 Read `{epicDir}/IMPLEMENTATION-MAP.md` and extract phases and dependencies from two sections:
@@ -259,11 +262,17 @@ Execution order:
   Phase 2: story-XXXX-0004
 ```
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-orchestrate Phase-1-Discovery ok`
+
 >>> Phase 1/3 completed. Proceeding to Phase 2...
 
 ---
 
 ## Phase 2 -- Plan Loop (Orchestrator -- Dispatches Subagents)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-orchestrate Phase-2-Story-Orchestration`
 
 Execute planning for each story in dependency order, phase by phase.
 
@@ -289,13 +298,25 @@ For each phase in (0..totalPhases-1):
 Do NOT expect source code, diffs, or knowledge pack content in this prompt.
 The subagent reads all story files, KPs, and references independently.**
 
-For each story to plan, invoke `/x-story-plan` via the Skill tool:
+For each story to plan, invoke `/x-story-plan` via the Skill tool.
+
+**Telemetry around per-story dispatch (story-0040-0007 §3.2):** Before each
+subagent invocation emit a `subagent.start` marker with the story ID as the
+role; after the subagent returns emit a `subagent.end` marker carrying the
+outcome status. The role value is the full story ID (e.g., `story-0028-0001`)
+so the telemetry analysis can group per-story planning latency:
+
+<!-- TELEMETRY: subagent.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh subagent-start x-epic-orchestrate {storyId}`
 
 **Skill invocation:**
 
 ```
 Skill(skill: "x-story-plan", args: "{storyId}")
 ```
+
+<!-- TELEMETRY: subagent.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh subagent-end x-epic-orchestrate {storyId} ok`
 
 The skill executes all 6 phases of `/x-story-plan` (Input Resolution, Context Gathering, Parallel Planning, Consolidation, Artifact Generation, DoR Validation) and returns a result containing the DoR verdict.
 
@@ -377,11 +398,17 @@ If a subagent fails (throws error, times out, or returns no output):
 
 Stories in subsequent phases that depend on a `NOT_READY` story are still planned (planning is about generating artifacts, not about runtime dependencies). The `NOT_READY` status is informational -- it indicates the story may need attention before implementation begins.
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-orchestrate Phase-2-Story-Orchestration ok`
+
 >>> Phase 2/3 completed. Proceeding to Phase 3...
 
 ---
 
 ## Phase 3 -- Report (Orchestrator -- Inline)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-orchestrate Phase-3-Consolidation`
 
 ### 3.1 Generate Readiness Summary
 
@@ -493,6 +520,9 @@ EPIC-{epicId}: {overall_status}
   Report: plans/epic-{epicId}/reports/epic-planning-report-{epicId}.md
   State:  plans/epic-{epicId}/execution-state.json
 ```
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-orchestrate Phase-3-Consolidation ok`
 
 >>> Phase 3/3 completed. Epic planning complete.
 

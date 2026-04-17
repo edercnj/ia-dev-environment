@@ -55,6 +55,9 @@ Before generating a test plan, verify whether a valid plan already exists:
 
 ### Step 1 — Gather Context (Subagent via Task, model: opus)
 
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-test-plan Phase-1-KP-Read`
+
 Launch a **single** `general-purpose` subagent with `model: opus`:
 
 > You are a **Test Planning Assistant** gathering context for test plan generation.
@@ -92,10 +95,16 @@ Launch a **single** `general-purpose` subagent with `model: opus`:
 > 11. **Chaos tests applicable** (if testing.chaos_tests == true)
 > 12. **Template sections** — if template was found, list the 8 mandatory sections to populate
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-test-plan Phase-1-KP-Read ok`
+
 ### Step 2 — Generate Test Scenarios (Inline)
 
 Using the context returned by the subagent, generate a Double-Loop TDD test plan.
 Organize scenarios by implementation order (TPP), NOT by test category.
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-test-plan Phase-2-Acceptance-Tests`
 
 #### 2.1 — Acceptance Tests (Outer Loop)
 
@@ -111,7 +120,13 @@ For each Gherkin scenario in the story, generate an acceptance test entry:
 | Depends on | UT/IT IDs that must pass for this AT to go GREEN, or `--` |
 | Parallel | `yes` if independent of other ATs |
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-test-plan Phase-2-Acceptance-Tests ok`
+
 #### 2.2 — Unit Tests (Inner Loop, TPP Order)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-test-plan Phase-3-Unit-Tests-TPP`
 
 Generate unit test scenarios in strict TPP order. Each scenario represents one
 Red-Green-Refactor cycle.
@@ -173,7 +188,13 @@ When a story describes a purely CRUD operation without branching logic:
 - Do NOT generate conditional or iteration UTs unless the business rules demand them
 - Acceptance tests should focus on the full CRUD flow
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-test-plan Phase-3-Unit-Tests-TPP ok`
+
 ### Step 3 — Estimate and Validate (Inline)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-test-plan Phase-4-Report`
 
 #### 3.1 — Coverage Estimation Table
 
@@ -195,6 +216,9 @@ Flag any class where estimated coverage < 95% line / 90% branch.
 8. Estimated coverage meets thresholds (≥ 95% line, ≥ 90% branch)
 9. Test naming follows convention: `[method]_[scenario]_[expected]`
 10. No unnecessary UTs for CRUD-only stories (max Level 3 unless justified)
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-test-plan Phase-4-Report ok`
 
 ### Output
 
