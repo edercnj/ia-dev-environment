@@ -375,6 +375,110 @@ consumes when deciding per-story parallel vs sequential scheduling.
 `"Pre-flight analysis skipped (sequential mode)"` and proceed directly to Phase 1.
 In sequential mode there is no parallel dispatch, so conflict analysis adds no value.
 
+### 0.5.0 Parallelism Gate via `/x-parallel-eval` (EPIC-0041 / story-0041-0006)
+
+Before the plan-file-based overlap matrix below runs, the orchestrator executes the
+**parallelism gate** powered by `/x-parallel-eval --scope=epic`. This gate consumes the
+File Footprint section of every story (EPIC-0041 / story-0041-0001) to detect collision
+pairs at the granularity of declared write / regen sets, which is strictly more accurate
+than the implementation-plan heuristic of subsections 0.5.1–0.5.4. The gate follows the
+**degrade-with-warning** semantics of RULE-005: execution never aborts; it only adjusts
+parallelism per phase and persists the decision in `execution-state.json`.
+
+**Skip condition:** When `--sequential` is set, the gate is skipped alongside the rest
+of Phase 0.5 (same outer gate above).
+
+#### 0.5.0.a Invocation
+
+Invoke `x-parallel-eval` via the Skill tool (Rule 13 — INLINE-SKILL pattern):
+
+    Skill(skill: "x-parallel-eval", args: "--scope=epic --epic <EPIC_FILE>")
+
+The skill returns an exit code plus a Markdown report. Log the invocation line before
+the call:
+
+```
+[parallelism-gate] /x-parallel-eval --scope=epic --epic plans/epic-XXXX exit=<code>
+```
+
+#### 0.5.0.b Exit Code → Action Table
+
+| Exit Code | Classification | Orchestrator Action |
+| :--- | :--- | :--- |
+| `0` | No conflicts | Proceed with the planned parallelism. No changes to the phase execution plan. No entry added to `parallelismDowngrades`. |
+| `1` | Warnings — footprint missing / legacy story | Proceed with the planned parallelism. Log `"[parallelism-gate] WARNING: footprint incompleto, risco residual"`. No entry added to `parallelismDowngrades` (advisory only). |
+| `2` | Hard / regen conflicts | **Downgrade the affected phase to serial.** Serialize the conflicting stories (see 0.5.0.c), log a visible warning with the conflict pair table, and append an entry to `execution-state.json` field `parallelismDowngrades` (see 0.5.0.d). |
+| Other (3+) | Unexpected | Treat as exit `1` (fail-open) — log WARNING and proceed. Never abort the epic on gate output. |
+
+**Fail-open contract:** If the `x-parallel-eval` skill is not available in the project
+(skill file missing under `.claude/skills/x-parallel-eval/` or the invocation errors
+out before returning an exit code), log `"[parallelism-gate] gate pulado — /x-parallel-eval indisponível"`
+and proceed with the planned parallelism (RULE-005 / RULE-006).
+
+#### 0.5.0.c Downgrade Algorithm (exit code 2)
+
+For each hard-conflict or regen-conflict pair `(storyA, storyB)` reported by
+`/x-parallel-eval` inside the current phase `N`:
+
+1. Remove `storyA` and `storyB` from the parallel batch of phase `N`.
+2. Append them to a sequential queue at the end of phase `N`, preserving the critical
+   path ordering of phase `N` (the story with more dependents first).
+3. Every other story in phase `N` that has zero conflicts remains in the parallel batch.
+4. The `adjustedSequence` persisted in `execution-state.json` is the list of batches
+   produced — each batch is itself a list of story IDs that run together.
+
+Log the decision verbatim (human-readable block):
+
+```
+[parallelism-gate] WARNING: <N> hard conflict(s) detected. Phase <N> downgraded from parallel to serial.
+[parallelism-gate] Affected pair: story-XXXX-AAAA ↔ story-XXXX-BBBB (shared write: <file>)
+[parallelism-gate] Continuing execution with adjusted plan.
+```
+
+#### 0.5.0.d Persistence in `execution-state.json`
+
+Append one entry per phase-level downgrade to the top-level array
+`parallelismDowngrades`. Legacy state files (without the field) MUST still parse — the
+field is optional (backward compatibility, RULE-006 — see `ExecutionState.java`).
+
+```json
+{
+  "parallelismDowngrades": [
+    {
+      "phase": 3,
+      "originalGroup": ["story-XXXX-0006", "story-XXXX-0007", "story-XXXX-0008"],
+      "adjustedSequence": [["story-XXXX-0008"], ["story-XXXX-0006"], ["story-XXXX-0007"]],
+      "reason": "hard conflict on SettingsAssembler.java",
+      "evaluatedAt": "2026-04-17T10:00:00Z"
+    }
+  ]
+}
+```
+
+Fields:
+
+| Field | Type | Meaning |
+| :--- | :--- | :--- |
+| `phase` | integer | Phase number whose parallelism was downgraded |
+| `originalGroup` | list[string] | Story IDs that were originally in the parallel batch |
+| `adjustedSequence` | list[list[string]] | Sequence of batches produced by the downgrade (each inner list runs in parallel; outer list is serialized) |
+| `reason` | string | Short human-readable cause (e.g., `"hard conflict on SettingsAssembler.java"`) |
+| `evaluatedAt` | ISO-8601 timestamp | When the gate ran |
+
+#### 0.5.0.e Relation to Subsections 0.5.1–0.5.5
+
+The gate above runs **first**. After the gate adjusts the phase execution plan, the
+existing subsections 0.5.1–0.5.5 still execute, but now operate on the **post-gate**
+story set for phase `N`. The two mechanisms are complementary:
+
+- **Gate (0.5.0):** authoritative; based on declared File Footprints; produces
+  downgrade decisions.
+- **Plan-file matrix (0.5.1–0.5.4):** advisory fallback; based on implementation-plan
+  content parsing; produces warnings for stories whose File Footprint was incomplete.
+
+When the gate already downgrades a pair, the plan-file matrix's `code-overlap-high`
+classification for the same pair is redundant — it remains informational.
+
 ### 0.5.1 Read Implementation Plans
 
 For each story in the current phase N, attempt to read its implementation plan:
