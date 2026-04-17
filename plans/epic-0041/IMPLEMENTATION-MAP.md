@@ -10,7 +10,7 @@
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | story-0041-0001 | KP `parallelism-heuristics` | — | — | story-0041-0002, story-0041-0004 | Pendente |
 | story-0041-0002 | `x-task-plan`: emitir File Footprint | — | story-0041-0001 | story-0041-0003 | Pendente |
-| story-0041-0003 | `x-story-plan`: agregar Story File Footprint | — | story-0041-0002 | story-0041-0004 | Pendente |
+| story-0041-0003 | `x-story-plan`: agregar Story File Footprint | — | story-0041-0002 | story-0041-0004 | Concluída |
 | story-0041-0004 | Skill `/x-parallel-eval` (Java + SKILL.md) | — | story-0041-0001, story-0041-0003 | story-0041-0005 | Pendente |
 | story-0041-0005 | `x-epic-map`: Step 8.5 invoca `/x-parallel-eval` | — | story-0041-0004 | story-0041-0006, story-0041-0007 | Pendente |
 | story-0041-0006 | Gate em `x-dev-epic-implement` e `x-dev-story-implement` | — | story-0041-0005 | story-0041-0008 | Pendente |
