@@ -635,7 +635,16 @@ BRANCH_VERSION=$(extract_branch_version)  # from release/X.Y.Z
 MISMATCH=""
 POM_BASE="${POM_VERSION%-SNAPSHOT}"
 if [ "$POM_BASE" != "$POM_VERSION" ]; then
-  echo "WARNING: Check 8 pom comparison skipped — pom.xml is SNAPSHOT ($POM_VERSION); Step 4 will normalize to $VERSION"
+  # SNAPSHOT on current branch. Compare POM_BASE against VERSION so a
+  # gross mismatch (e.g., pom=5.0.0-SNAPSHOT while releasing 3.8.0) is
+  # surfaced instead of silently skipped. Small gaps (pom=3.7.0-SNAPSHOT
+  # while releasing 3.8.0 because an intermediate snapshot was skipped)
+  # remain WARN-only since Step 4 will normalize pom to VERSION.
+  if [ "$POM_BASE" != "$VERSION" ]; then
+    echo "WARNING: Check 8 — pom base ($POM_BASE) differs from target ($VERSION). Step 4 will still normalize pom to $VERSION; verify this is intentional."
+  else
+    echo "WARNING: Check 8 pom comparison skipped — pom.xml is SNAPSHOT ($POM_VERSION); Step 4 will normalize to $VERSION"
+  fi
 elif [ "$POM_VERSION" != "$VERSION" ]; then
   MISMATCH="$MISMATCH pom.xml=$POM_VERSION"
 fi
