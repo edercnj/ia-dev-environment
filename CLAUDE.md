@@ -99,6 +99,31 @@ A complete list of skills with descriptions is generated in `.claude/README.md` 
 
 ---
 
+## Telemetry
+
+Every `ia-dev-env`-generated project ships with telemetry capture enabled by default. Skill executions, phase boundaries, subagent lifecycles, and tool calls are recorded as NDJSON under `plans/epic-*/telemetry/events.ndjson`, producing an auditable timeline of how long each part of an epic / story / task actually took. The design is documented in [`adr/ADR-0005-telemetry-architecture.md`](adr/ADR-0005-telemetry-architecture.md); the privacy contract is enforced by [Rule 20 — Telemetry Privacy](.claude/rules/20-telemetry-privacy.md) and the scrubber at `dev.iadev.telemetry.TelemetryScrubber`.
+
+Capture happens through two cooperating layers:
+
+- **Hook-based (automatic).** Six Bash scripts under `.claude/hooks/` are registered in `settings.json` and fire on `SessionStart`, `PreToolUse`, `PostToolUse`, `SubagentStop`, and `Stop`. No per-skill code is required.
+- **In-skill phase markers.** Implementation, planning, and creation skills call `telemetry-phase.sh start|end` around each numbered phase; the `_TEMPLATE-SKILL.md` authoring template includes a copy-paste-ready "Telemetry (Optional)" section.
+
+Two skills consume the NDJSON:
+
+```bash
+# Point-in-time report for one or more epics (Mermaid Gantt + aggregates)
+/x-telemetry-analyze --epic EPIC-0040
+
+# Cross-epic P95 regression detector (top-10 slowest skills)
+/x-telemetry-trend --last 5 --threshold-pct 20
+```
+
+Opt out globally with `CLAUDE_TELEMETRY_DISABLED=1`, or per-project with `telemetryEnabled: false` in the generator YAML (requires regeneration).
+
+EPIC-0040 shipped this stack in release 3.8.0 — see the [CHANGELOG](CHANGELOG.md#380---2026-04-17).
+
+---
+
 ## Settings & Artifact Conventions
 
 - `settings.json` (committed): team permissions and hooks.
