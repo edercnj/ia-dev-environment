@@ -23,5 +23,7 @@
     "story-0041-0008": { "id": "story-0041-0008", "phase": 6, "status": "SUCCESS", "retries": 0, "findingsCount": 0, "summary": "ADR-0006 (slot 0005 taken by telemetry) + CLAUDE.md EPIC-0041 note + CHANGELOG [Unreleased] Added block. Release deferred to operator." }
   },
   "circuitBreaker": { "consecutiveFailures": 0, "totalFailuresInPhase": 0, "state": "CLOSED" },
-  "metrics": { "storiesCompleted": 0, "storiesFailed": 0, "storiesBlocked": 0 }
+  "metrics": { "storiesCompleted": 8, "storiesFailed": 0, "storiesBlocked": 0 },
+  "finishedAt": "2026-04-17T18:30:00Z",
+  "finalStatus": "COMPLETE"
 }
