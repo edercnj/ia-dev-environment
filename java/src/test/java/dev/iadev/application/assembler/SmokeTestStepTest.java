@@ -17,11 +17,11 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for SmokeTestAssembler — generates smoke test
+ * Tests for SmokeTestStep — generates smoke test
  * config conditionally.
  */
-@DisplayName("SmokeTestAssembler")
-class SmokeTestAssemblerTest {
+@DisplayName("SmokeTestStep")
+class SmokeTestStepTest {
 
     @Nested
     @DisplayName("assemble — smokeTests=true")
@@ -31,8 +31,8 @@ class SmokeTestAssemblerTest {
         @DisplayName("generates smoke-config.md")
         void assemble_whenCalled_generatesSmokeConfig(
                 @TempDir Path tempDir) {
-            SmokeTestAssembler assembler =
-                    new SmokeTestAssembler();
+            SmokeTestStep assembler =
+                    new SmokeTestStep();
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .smokeTests(true)
@@ -53,8 +53,8 @@ class SmokeTestAssemblerTest {
         @Test
         @DisplayName("smoke-config.md exists on disk")
         void assemble_whenCalled_fileExistsOnDisk(@TempDir Path tempDir) {
-            SmokeTestAssembler assembler =
-                    new SmokeTestAssembler();
+            SmokeTestStep assembler =
+                    new SmokeTestStep();
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .smokeTests(true)
@@ -80,8 +80,8 @@ class SmokeTestAssemblerTest {
         @DisplayName("skips smoke-config.md when"
                 + " smokeTests=false")
         void assemble_whenCalled_skipsSmokeConfig(@TempDir Path tempDir) {
-            SmokeTestAssembler assembler =
-                    new SmokeTestAssembler();
+            SmokeTestStep assembler =
+                    new SmokeTestStep();
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .smokeTests(false)
@@ -110,8 +110,8 @@ class SmokeTestAssemblerTest {
         void assemble_emptyWhenSourceMissing_succeeds(
                 @TempDir Path tempDir)
                 throws IOException {
-            SmokeTestAssembler assembler =
-                    new SmokeTestAssembler();
+            SmokeTestStep assembler =
+                    new SmokeTestStep();
             Path resDir = tempDir.resolve("res");
             Files.createDirectories(
                     resDir.resolve("shared/cicd-templates"));

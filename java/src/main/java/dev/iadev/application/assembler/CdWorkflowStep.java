@@ -17,9 +17,9 @@ import java.util.Optional;
  * {@code container == "docker"}.</p>
  *
  * @see CicdAssembler
- * @see CiWorkflowAssembler
+ * @see CiWorkflowStep
  */
-final class CdWorkflowAssembler {
+final class CdWorkflowStep {
 
     private static final String CICD_TEMPLATES =
             "shared/cicd-templates";

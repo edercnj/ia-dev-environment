@@ -17,11 +17,11 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for DockerfileAssembler — generates Dockerfile
+ * Tests for DockerfileStep — generates Dockerfile
  * conditionally.
  */
-@DisplayName("DockerfileAssembler")
-class DockerfileAssemblerTest {
+@DisplayName("DockerfileStep")
+class DockerfileStepTest {
 
     @Nested
     @DisplayName("assemble — container=docker")
@@ -31,8 +31,8 @@ class DockerfileAssemblerTest {
         @DisplayName("generates Dockerfile for"
                 + " java-maven")
         void assemble_whenCalled_generatesDockerfile(@TempDir Path tempDir) {
-            DockerfileAssembler assembler =
-                    new DockerfileAssembler();
+            DockerfileStep assembler =
+                    new DockerfileStep();
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .container("docker")
@@ -54,8 +54,8 @@ class DockerfileAssemblerTest {
         @DisplayName("Dockerfile exists on disk")
         void assemble_whenCalled_dockerfileExistsOnDisk(
                 @TempDir Path tempDir) {
-            DockerfileAssembler assembler =
-                    new DockerfileAssembler();
+            DockerfileStep assembler =
+                    new DockerfileStep();
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .container("docker")
@@ -80,8 +80,8 @@ class DockerfileAssemblerTest {
         @DisplayName("skips Dockerfile when"
                 + " container=none")
         void assemble_whenCalled_skipsDockerfile(@TempDir Path tempDir) {
-            DockerfileAssembler assembler =
-                    new DockerfileAssembler();
+            DockerfileStep assembler =
+                    new DockerfileStep();
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .container("none")
@@ -107,8 +107,8 @@ class DockerfileAssemblerTest {
                 + " for unknown stack")
         void assemble_whenCalled_warnsForUnknownStack(@TempDir Path tempDir)
                 throws IOException {
-            DockerfileAssembler assembler =
-                    new DockerfileAssembler();
+            DockerfileStep assembler =
+                    new DockerfileStep();
             Path resDir = tempDir.resolve("res");
             Files.createDirectories(
                     resDir.resolve("shared/cicd-templates"));

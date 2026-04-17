@@ -4,42 +4,37 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
- * Generates docker-compose.yml conditionally based on
- * {@code container == "docker"}.
+ * Generates CI workflow artifacts ({@code .github/workflows/ci.yml}).
+ *
+ * <p>CI workflow is always generated regardless of project
+ * configuration flags.</p>
  *
  * @see CicdAssembler
  */
-final class DockerComposeAssembler {
+final class CiWorkflowStep {
 
     private static final String CICD_TEMPLATES =
             "shared/cicd-templates";
-    private static final String COMPOSE_TEMPLATE =
-            "docker-compose/docker-compose.yml.njk";
-    private static final String DOCKER_CONDITION =
-            "docker";
+    private static final String CI_TEMPLATE =
+            "ci-workflow/ci.yml.njk";
 
     /**
-     * Generates docker-compose.yml if container is docker.
+     * Generates the CI workflow file.
      *
      * @param cicdCtx the CI/CD context
      * @return the generation result
      */
     CicdResult assemble(CicdContext cicdCtx) {
-        if (!DOCKER_CONDITION.equals(
-                cicdCtx.config().infrastructure()
-                        .container())) {
-            return new CicdResult(
-                    List.of(),
-                    List.of("Docker Compose skipped:"
-                            + " container is not docker"));
-        }
         Path dest = cicdCtx.outputDir()
-                .resolve("docker-compose.yml");
+                .resolve(".github")
+                .resolve("workflows")
+                .resolve("ci.yml");
         Optional<String> err = renderAndWrite(
-                cicdCtx, COMPOSE_TEMPLATE, dest);
+                cicdCtx, CI_TEMPLATE, dest);
         if (err.isEmpty()) {
             return new CicdResult(
                     List.of(dest.toString()),

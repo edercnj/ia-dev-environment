@@ -13,7 +13,7 @@ import java.util.List;
  *
  * @see CicdAssembler
  */
-final class SmokeTestAssembler {
+final class SmokeTestStep {
 
     private static final String CICD_TEMPLATES =
             "shared/cicd-templates";

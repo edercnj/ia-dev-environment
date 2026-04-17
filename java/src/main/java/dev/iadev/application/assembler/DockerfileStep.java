@@ -15,7 +15,7 @@ import java.util.Optional;
  *
  * @see CicdAssembler
  */
-final class DockerfileAssembler {
+final class DockerfileStep {
 
     private static final String CICD_TEMPLATES =
             "shared/cicd-templates";
