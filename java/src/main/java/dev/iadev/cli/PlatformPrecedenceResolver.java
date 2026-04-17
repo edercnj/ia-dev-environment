@@ -20,8 +20,8 @@ import java.util.Set;
  *
  * <p>CLI platforms arrive as typed {@link Platform} values
  * via {@link PlatformConverter}. The special "all" keyword
- * is represented as a {@code null} element in the list
- * (per PlatformConverter contract).</p>
+ * is represented by the {@link Platform#ALL} sentinel in
+ * the list (per PlatformConverter contract).</p>
  *
  * @see GenerateCommand
  * @see PlatformConverter
@@ -52,10 +52,10 @@ final class PlatformPrecedenceResolver {
     /**
      * Converts the CLI platform list to a Set.
      *
-     * <p>Null list or list containing null (from "all"
-     * converter result) produces empty set (no filter).
-     * Otherwise produces an EnumSet of the specified
-     * platforms.</p>
+     * <p>Null list or list containing the {@link Platform#ALL}
+     * sentinel (from the "all" converter result) produces an
+     * empty set (no filter). Otherwise produces an EnumSet of
+     * the specified platforms.</p>
      *
      * @param platformList the parsed platform list
      * @return immutable set of platforms, empty = no filter
@@ -68,7 +68,7 @@ final class PlatformPrecedenceResolver {
         }
         boolean containsAllMarker = false;
         for (Platform p : platformList) {
-            if (p == null) {
+            if (p == Platform.ALL) {
                 containsAllMarker = true;
                 break;
             }

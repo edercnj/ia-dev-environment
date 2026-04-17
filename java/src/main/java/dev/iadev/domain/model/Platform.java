@@ -12,6 +12,11 @@ import java.util.Optional;
  *       ({@code .claude/})</li>
  *   <li>{@link #SHARED} — Platform-agnostic artifacts
  *       (docs, CI/CD, constitution)</li>
+ *   <li>{@link #ALL} — Sentinel value produced ONLY by
+ *       {@code PlatformConverter} when the user types
+ *       {@code --platform all}. Never user-selectable via
+ *       {@link #fromCliName(String)} and excluded from
+ *       {@link #allUserSelectable()}.</li>
  * </ul>
  *
  * <p>{@link #SHARED} is never user-selectable via CLI;
@@ -26,7 +31,15 @@ public enum Platform {
     CLAUDE_CODE("claude-code"),
 
     /** Platform-agnostic shared artifacts. */
-    SHARED("shared");
+    SHARED("shared"),
+
+    /**
+     * Sentinel meaning "all platforms — no filter". Produced
+     * by the CLI type converter when the user types "all".
+     * Rule 03 (never return null) forbids the previous
+     * {@code null} representation of this intent.
+     */
+    ALL("__all__");
 
     private final String cliName;
 
@@ -46,6 +59,11 @@ public enum Platform {
     /**
      * Resolves a platform from its CLI name.
      *
+     * <p>The {@link #ALL} sentinel is never resolvable via
+     * this method — its synthetic cliName ({@code __all__})
+     * is an internal marker, and the {@code "all"} keyword is
+     * handled exclusively by {@code PlatformConverter}.</p>
+     *
      * @param cliName the kebab-case CLI name, may be null
      * @return the matching platform, or empty if not found
      */
@@ -55,6 +73,9 @@ public enum Platform {
             return Optional.empty();
         }
         for (Platform p : values()) {
+            if (p == ALL) {
+                continue;
+            }
             if (p.cliName.equals(cliName)) {
                 return Optional.of(p);
             }

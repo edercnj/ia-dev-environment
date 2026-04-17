@@ -9,8 +9,9 @@ import picocli.CommandLine.TypeConversionException;
  *
  * <p>Converts kebab-case CLI input (e.g., "claude-code")
  * to the corresponding {@link Platform} enum constant.
- * The special value "all" returns {@code null} to signal
- * that no platform filter should be applied.</p>
+ * The special value "all" returns the
+ * {@link Platform#ALL} sentinel to signal that no platform
+ * filter should be applied (Rule 03 — never return null).</p>
  *
  * <p>Invalid values produce a
  * {@link TypeConversionException} with a message listing
@@ -39,7 +40,7 @@ public final class PlatformConverter
      *
      * @param value the CLI input string
      * @return the matching {@link Platform}, or
-     *         {@code null} when value equals "all"
+     *         {@link Platform#ALL} when value equals "all"
      * @throws TypeConversionException if the value does
      *         not match any user-selectable platform
      */
@@ -47,7 +48,7 @@ public final class PlatformConverter
     public Platform convert(String value) {
         String normalized = value.trim();
         if (ALL_KEYWORD.equals(normalized)) {
-            return null;
+            return Platform.ALL;
         }
         return Platform.fromCliName(normalized)
                 .filter(Platform.allUserSelectable()::contains)

@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Stream;
@@ -150,7 +151,8 @@ public final class TelemetryReader {
         private final BufferedReader reader;
         private final boolean skipInvalid;
         private final Path path;
-        private TelemetryEvent nextEvent;
+        private Optional<TelemetryEvent> pendingEvent =
+                Optional.empty();
         private boolean exhausted;
 
         EventIterator(
@@ -164,14 +166,14 @@ public final class TelemetryReader {
 
         @Override
         public boolean hasNext() {
-            if (nextEvent != null) {
+            if (pendingEvent.isPresent()) {
                 return true;
             }
             if (exhausted) {
                 return false;
             }
-            nextEvent = advance();
-            if (nextEvent == null) {
+            pendingEvent = advance();
+            if (pendingEvent.isEmpty()) {
                 exhausted = true;
                 return false;
             }
@@ -185,12 +187,12 @@ public final class TelemetryReader {
                         "no more telemetry events in "
                                 + path);
             }
-            TelemetryEvent current = nextEvent;
-            nextEvent = null;
+            TelemetryEvent current = pendingEvent.get();
+            pendingEvent = Optional.empty();
             return current;
         }
 
-        private TelemetryEvent advance() {
+        private Optional<TelemetryEvent> advance() {
             try {
                 String line;
                 while ((line = reader.readLine()) != null) {
@@ -198,8 +200,9 @@ public final class TelemetryReader {
                         continue;
                     }
                     try {
-                        return TelemetryEvent.fromJsonLine(
-                                line);
+                        return Optional.of(
+                                TelemetryEvent.fromJsonLine(
+                                        line));
                     } catch (IllegalArgumentException e) {
                         if (!skipInvalid) {
                             throw e;
@@ -210,7 +213,7 @@ public final class TelemetryReader {
                                 path, e.getMessage());
                     }
                 }
-                return null;
+                return Optional.empty();
             } catch (IOException e) {
                 throw new UncheckedIOException(
                         "failed to read telemetry line from "
