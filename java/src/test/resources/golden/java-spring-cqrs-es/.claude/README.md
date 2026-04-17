@@ -265,7 +265,14 @@ Analysis skills:
 /x-telemetry-trend --last 5 --threshold-pct 20
 ```
 
-Opt out with `CLAUDE_TELEMETRY_DISABLED=1` (per-session) or `telemetryEnabled: false` in the generator YAML (per-project, requires regeneration). EPIC-0040 shipped this stack in release 3.8.0.
+Opt out with `CLAUDE_TELEMETRY_DISABLED=1` (per-session) or by adding the nested YAML block below to the generator YAML (per-project, requires regeneration):
+
+```yaml
+telemetry:
+  enabled: false
+```
+
+EPIC-0040 shipped this stack in release 3.8.0.
 
 ---
 
