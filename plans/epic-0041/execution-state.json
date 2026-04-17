@@ -15,7 +15,7 @@
   "stories": {
     "story-0041-0001": { "id": "story-0041-0001", "phase": 0, "status": "SUCCESS", "retries": 0, "findingsCount": 0, "summary": "KP parallelism-heuristics + golden test", "commitSha": "ceaea9938c7764d774330fad7a6a1df3238639b7", "prNumber": 430, "prMergeStatus": "MERGED" },
     "story-0041-0002": { "id": "story-0041-0002", "phase": 1, "status": "SUCCESS", "retries": 0, "findingsCount": 0, "summary": "x-task-plan File Footprint + parser + fixtures", "commitSha": "82a713188", "prNumber": 431, "prMergeStatus": "MERGED" },
-    "story-0041-0003": { "id": "story-0041-0003", "phase": 2, "status": "PENDING", "retries": 0, "findingsCount": 0, "summary": "" },
+    "story-0041-0003": { "id": "story-0041-0003", "phase": 2, "status": "SUCCESS", "retries": 0, "findingsCount": 0, "summary": "x-story-plan Phase 6 aggregate footprint + StoryFootprintAggregator", "commitSha": "30f077472", "prNumber": 432, "prMergeStatus": "MERGED" },
     "story-0041-0004": { "id": "story-0041-0004", "phase": 3, "status": "PENDING", "retries": 0, "findingsCount": 0, "summary": "" },
     "story-0041-0005": { "id": "story-0041-0005", "phase": 4, "status": "PENDING", "retries": 0, "findingsCount": 0, "summary": "" },
     "story-0041-0006": { "id": "story-0041-0006", "phase": 5, "status": "PENDING", "retries": 0, "findingsCount": 0, "summary": "" },
