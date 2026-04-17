@@ -103,36 +103,37 @@ final class FileTreeWalker {
         Map<String, Integer> categories =
                 new LinkedHashMap<>();
 
-        countCategory(categories, dir,
+        countCategoryRecursive(categories, dir,
                 "claude-rules", ".claude/rules");
-        countCategory(categories, dir,
+        countCategoryRecursive(categories, dir,
                 "claude-skills", ".claude/skills");
-        countCategory(categories, dir,
+        countCategoryRecursive(categories, dir,
                 "claude-agents", ".claude/agents");
-        countCategory(categories, dir,
+        countCategoryRecursive(categories, dir,
                 "claude-hooks", ".claude/hooks");
-        countCategory(categories, dir,
-                "claude-settings", ".claude", true);
-        countCategory(categories, dir,
+        countCategoryTopLevel(categories, dir,
+                "claude-settings", ".claude");
+        countCategoryRecursive(categories, dir,
                 "github-workflows",
                 ".github/workflows");
-        countCategory(categories, dir,
+        countCategoryRecursive(categories, dir,
                 "steering", "steering");
-        countCategory(categories, dir,
+        countCategoryRecursive(categories, dir,
                 "adr", "adr");
-        countCategory(categories, dir,
+        countCategoryRecursive(categories, dir,
                 "contracts", "contracts");
-        countCategory(categories, dir,
+        countCategoryRecursive(categories, dir,
                 "results", "results");
-        countCategory(categories, dir,
+        countCategoryRecursive(categories, dir,
                 "specs", "specs");
-        countCategory(categories, dir,
+        countCategoryRecursive(categories, dir,
                 "plans", "plans");
-        countCategory(categories, dir, "k8s", "k8s");
-        countCategory(categories, dir,
+        countCategoryRecursive(categories, dir,
+                "k8s", "k8s");
+        countCategoryRecursive(categories, dir,
                 "tests", "tests");
-        countCategory(categories, dir,
-                "root-files", "", true);
+        countCategoryTopLevel(categories, dir,
+                "root-files", "");
 
         categories.entrySet()
                 .removeIf(e -> e.getValue() == 0);
@@ -140,35 +141,40 @@ final class FileTreeWalker {
         return categories;
     }
 
-    private static void countCategory(
+    private static void countCategoryRecursive(
             Map<String, Integer> categories,
             Path baseDir,
             String categoryName,
             String subPath) throws IOException {
-        countCategory(categories, baseDir,
-                categoryName, subPath, false);
+        Path targetDir = resolveCategoryDir(baseDir, subPath);
+        if (targetDir == null) {
+            return;
+        }
+        categories.put(categoryName, countFiles(targetDir));
     }
 
-    private static void countCategory(
+    private static void countCategoryTopLevel(
             Map<String, Integer> categories,
             Path baseDir,
             String categoryName,
-            String subPath,
-            boolean topLevelOnly) throws IOException {
+            String subPath) throws IOException {
+        Path targetDir = resolveCategoryDir(baseDir, subPath);
+        if (targetDir == null) {
+            return;
+        }
+        categories.put(
+                categoryName,
+                countTopLevelFiles(targetDir));
+    }
+
+    private static Path resolveCategoryDir(
+            Path baseDir, String subPath) {
         Path targetDir = subPath.isEmpty()
                 ? baseDir
                 : baseDir.resolve(subPath);
-        if (!Files.isDirectory(targetDir)) {
-            return;
-        }
-
-        int count;
-        if (topLevelOnly) {
-            count = countTopLevelFiles(targetDir);
-        } else {
-            count = countFiles(targetDir);
-        }
-        categories.put(categoryName, count);
+        return Files.isDirectory(targetDir)
+                ? targetDir
+                : null;
     }
 
     private static int countTopLevelFiles(Path dir)

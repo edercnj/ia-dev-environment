@@ -48,24 +48,26 @@ public final class CollisionDetector {
     /**
      * Classifies the pairwise overlap between two units.
      *
-     * @param idA        identifier of the first unit
-     * @param fpA        footprint of the first unit
-     * @param idB        identifier of the second unit
-     * @param fpB        footprint of the second unit
-     * @param includeSoft if {@code true}, soft (read-only)
-     *                   overlaps are returned;
-     *                   if {@code false}, they are filtered.
+     * @param idA    identifier of the first unit
+     * @param fpA    footprint of the first unit
+     * @param idB    identifier of the second unit
+     * @param fpB    footprint of the second unit
+     * @param policy whether to include SOFT (read-only)
+     *               overlaps ({@link CollisionPolicy#INCLUDE_SOFT})
+     *               or filter them out
+     *               ({@link CollisionPolicy#EXCLUDE_SOFT})
      * @return the strongest collision detected, or empty
      *         when units are independent
      */
     public Optional<Collision> detect(
             String idA, FileFootprint fpA,
             String idB, FileFootprint fpB,
-            boolean includeSoft) {
+            CollisionPolicy policy) {
         Objects.requireNonNull(idA, "idA");
         Objects.requireNonNull(idB, "idB");
         Objects.requireNonNull(fpA, "fpA");
         Objects.requireNonNull(fpB, "fpB");
+        Objects.requireNonNull(policy, "policy");
         if (idA.equals(idB)) {
             return Optional.empty();
         }
@@ -101,7 +103,7 @@ public final class CollisionDetector {
                     regenShared, null));
         }
 
-        if (includeSoft) {
+        if (policy.includesSoft()) {
             TreeSet<String> softShared = intersect(
                     lfp.reads(), rfp.reads());
             if (!softShared.isEmpty()) {

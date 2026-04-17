@@ -139,7 +139,13 @@ public class GenerateCommand implements Callable<Integer> {
     private int executeGeneration(PrintWriter out) {
         Optional<ProjectConfig> configOpt =
                 ConfigSourceLoader.loadConfig(
-                        stack, configSource, verbose, out);
+                        stack,
+                        configSource,
+                        verbose
+                                ? out::println
+                                : ConfigSourceLoader
+                                        .SILENT_DEBUG,
+                        out);
         if (configOpt.isEmpty()) {
             return EXIT_VALIDATION;
         }

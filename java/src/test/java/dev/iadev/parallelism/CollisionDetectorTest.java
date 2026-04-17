@@ -19,7 +19,7 @@ class CollisionDetectorTest {
         FileFootprint b = FileFootprint.ofWrites(
                 Set.of("b.java"));
         assertThat(detector.detect(
-                "task-A", a, "task-B", b, false))
+                "task-A", a, "task-B", b, CollisionPolicy.EXCLUDE_SOFT))
                 .isEmpty();
     }
 
@@ -30,7 +30,8 @@ class CollisionDetectorTest {
         FileFootprint b = FileFootprint.ofWrites(
                 Set.of("shared.java", "b.java"));
         Optional<Collision> out = detector.detect(
-                "task-A", a, "task-B", b, false);
+                "task-A", a, "task-B", b,
+                CollisionPolicy.EXCLUDE_SOFT);
         assertThat(out).isPresent();
         Collision c = out.get();
         assertThat(c.category())
@@ -53,7 +54,7 @@ class CollisionDetectorTest {
                 Set.of("java/src/main/resources/"
                         + "targets/claude/rules/21.md"));
         Optional<Collision> out = detector.detect(
-                "A", a, "B", b, false);
+                "A", a, "B", b, CollisionPolicy.EXCLUDE_SOFT);
         assertThat(out).isPresent();
         assertThat(out.get().category())
                 .isEqualTo(CollisionCategory.REGEN);
@@ -70,7 +71,9 @@ class CollisionDetectorTest {
                 Set.of(),
                 Set.of(".claude/skills/x/SKILL.md"));
         assertThat(detector.detect(
-                "A", a, "B", b, false).get().category())
+                "A", a, "B", b,
+                CollisionPolicy.EXCLUDE_SOFT)
+                .get().category())
                 .isEqualTo(CollisionCategory.REGEN);
     }
 
@@ -85,7 +88,7 @@ class CollisionDetectorTest {
                 Set.of("common.md"),
                 Set.of());
         Optional<Collision> out = detector.detect(
-                "A", a, "B", b, true);
+                "A", a, "B", b, CollisionPolicy.INCLUDE_SOFT);
         assertThat(out).isPresent();
         assertThat(out.get().category())
                 .isEqualTo(CollisionCategory.SOFT);
@@ -102,7 +105,7 @@ class CollisionDetectorTest {
                 Set.of("common.md"),
                 Set.of());
         assertThat(detector.detect(
-                "A", a, "B", b, false)).isEmpty();
+                "A", a, "B", b, CollisionPolicy.EXCLUDE_SOFT)).isEmpty();
     }
 
     @Test
@@ -114,7 +117,8 @@ class CollisionDetectorTest {
                 Set.of("pom.xml"));
         FileFootprint b = FileFootprint.ofWrites(
                 Set.of("pom.xml"));
-        Collision c = d.detect("A", a, "B", b, false)
+        Collision c = d.detect("A", a, "B", b,
+                CollisionPolicy.EXCLUDE_SOFT)
                 .orElseThrow();
         assertThat(c.category())
                 .isEqualTo(CollisionCategory.HARD);
@@ -137,7 +141,8 @@ class CollisionDetectorTest {
                 Set.of(),
                 Set.of("java/src/test/resources/"
                         + "golden/b/file.yml"));
-        Collision c = d.detect("A", a, "B", b, false)
+        Collision c = d.detect("A", a, "B", b,
+                CollisionPolicy.EXCLUDE_SOFT)
                 .orElseThrow();
         assertThat(c.category())
                 .isEqualTo(CollisionCategory.HARD);
@@ -150,7 +155,7 @@ class CollisionDetectorTest {
         FileFootprint fp = FileFootprint.ofWrites(
                 Set.of("a.java"));
         assertThat(detector.detect(
-                "A", fp, "A", fp, false)).isEmpty();
+                "A", fp, "A", fp, CollisionPolicy.EXCLUDE_SOFT)).isEmpty();
     }
 
     @Test
@@ -160,10 +165,12 @@ class CollisionDetectorTest {
         FileFootprint b = FileFootprint.ofWrites(
                 Set.of("shared.java"));
         Collision ab = detector.detect(
-                "taskA", a, "taskB", b, false)
+                "taskA", a, "taskB", b,
+                CollisionPolicy.EXCLUDE_SOFT)
                 .orElseThrow();
         Collision ba = detector.detect(
-                "taskB", b, "taskA", a, false)
+                "taskB", b, "taskA", a,
+                CollisionPolicy.EXCLUDE_SOFT)
                 .orElseThrow();
         assertThat(ab).isEqualTo(ba);
     }
