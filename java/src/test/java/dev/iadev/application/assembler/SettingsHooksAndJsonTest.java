@@ -65,7 +65,7 @@ class SettingsHooksAndJsonTest {
 
         @Test
         @DisplayName("settings.json does NOT contain"
-                + " hooks for python (no compile)")
+                + " hooks for python when telemetry off")
         void assemble_noHooksForPython_succeeds(
                 @TempDir Path tempDir)
                 throws IOException {
@@ -79,6 +79,7 @@ class SettingsHooksAndJsonTest {
                             .language("python", "3.12")
                             .framework("fastapi", "0.115")
                             .buildTool("pip")
+                            .telemetryEnabled(false)
                             .build();
 
             assembler.assemble(

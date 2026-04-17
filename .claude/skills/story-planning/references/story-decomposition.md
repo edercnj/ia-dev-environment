@@ -181,7 +181,7 @@ plans/
     ├── story-XXXX-0001.md                  ← First story of this epic
     ├── story-XXXX-0002.md                  ← Second story
     ├── story-XXXX-YYYY.md                  ← Nth story
-    ├── implementation-map-XXXX.md          ← Implementation map for this epic
+    ├── IMPLEMENTATION-MAP.md               ← Implementation map for this epic
     ├── plans/                              ← Planning artifacts for this epic's stories
     │   ├── plan-story-XXXX-YYYY.md         ← Architecture implementation plan
     │   ├── tasks-story-XXXX-YYYY.md        ← Task decomposition
@@ -204,7 +204,7 @@ plans/
 **Naming rules:**
 - Epic IDs use 4-digit zero-padded format: `epic-0001`, `epic-0002`, ...
 - Story IDs carry their parent epic ID: `story-XXXX-YYYY` where `XXXX` = epic number, `YYYY` = story sequence within that epic
-- Implementation map carries its epic ID: `implementation-map-XXXX`
+- Implementation map uses the canonical filename `IMPLEMENTATION-MAP.md` within each epic directory
 - Planning artifacts use prefix `{type}-story-XXXX-YYYY.md` (e.g., `plan-story-0001-0003.md`, `tasks-story-0001-0003.md`)
 - Review artifacts use prefix `review-{engineer}-story-XXXX-YYYY.md` (e.g., `review-security-story-0001-0003.md`)
 - Correction stories use `correction-story-XXXX-YYYY.md`

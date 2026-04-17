@@ -85,8 +85,9 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 17 | `17-topological-execution.md` | topological execution |
 | 18 | `18-atomic-task-commits.md` | atomic task commits |
 | 19 | `19-backward-compatibility.md` | backward compatibility |
+| 20 | `20-telemetry-privacy.md` | telemetry privacy |
 
-**Total: 18 rules**
+**Total: 19 rules**
 
 ### Numbering
 
@@ -115,6 +116,7 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-epic-implement** | `/x-epic-implement` | Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via explicit git worktrees (per ADR-0004 §D2 and Rule 14). Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-story-implement. EPIC-0038 simplification: epic orchestrator handles ONLY story-level concerns (phase order, story PR management, epic-level verification). Task management (TDD cycles, atomic commits per task, coalesced handling) is fully delegated to x-story-implement's v2 wave dispatcher. Tasks are invisible at the epic level. |
 | **x-epic-map** | `/x-epic-map` | Generate an Implementation Map from an Epic and its Stories with dependency matrix, phase computation, critical path analysis, ASCII phase diagrams, Mermaid dependency graphs, phase summary tables, and strategic observations. |
 | **x-epic-orchestrate** | `/x-epic-orchestrate` | Orchestrates multi-agent planning for all stories in an epic, respecting dependency order, with checkpoint and resume support. |
+| **x-git-cleanup-branches** | `/x-git-cleanup-branches` | Cleans local git state in one pass: fetches origin with prune, removes all non-main worktrees (any path), and deletes all local branches except main/master/develop. Destructive by default with an interactive y/N confirmation gate; supports --dry-run (preview) and --yes (non-interactive). |
 | **x-git-commit** | `/x-git-commit` | Creates Conventional Commits with Task ID in scope and pre-commit chain (format -> lint -> compile). Central commit point in the task-centric workflow with TDD tag support. |
 | **x-git-push** | `/x-git-push` | Git operations: branch creation, atomic commits (Conventional Commits), push, and PR creation. Use for any git workflow task including branching, committing, pushing, creating PRs, or managing version control. |
 | **x-git-worktree** | `/x-git-worktree` | Manages git worktrees for parallel task and story execution. Operations: create, list, remove, cleanup, detect-context. Follows Rule 14 (Worktree Lifecycle) naming convention under .claude/worktrees/{identifier}/. |
@@ -147,13 +149,15 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 | **x-supply-chain-audit** | `/x-supply-chain-audit` | Enhanced supply chain security audit beyond x-dependency-audit. Analyzes maintainer risk, typosquatting detection, phantom dependencies, dependency age, EPSS scoring, and SLSA assessment. Produces SARIF 2.1.0 output with weighted risk scoring. |
 | **x-task-implement** | `/x-task-implement` | Implements a feature/story/task using TDD (Red-Green-Refactor) workflow. Schema-aware: v1 (legacy) runs the original Double-Loop TDD flow with story-section task extraction; v2 (task-first, EPIC-0038) reads task-TASK-XXXX-YYYY-NNN.md + plan-task-TASK-XXXX-YYYY-NNN.md, honours declared I/O contracts, respects task-implementation-map dependencies, verifies post-conditions via grep/assert, and produces a single atomic commit per task via x-git-commit. |
 | **x-task-plan** | `/x-task-plan` | Generates a detailed per-task implementation plan (plan-task-TASK-XXXX-YYYY-NNN.md) with TDD cycles in TPP order, file impact analysis by architecture layer, security checklist by task type, and exit criteria. Two invocation modes: task-file-first (--task-file) consumes a standalone task-TASK-XXXX-YYYY-NNN.md contract (EPIC-0038); story-scoped (STORY-ID --task TASK-ID) reads the task from story Section 8 (legacy). Invocable standalone OR via x-story-plan (future). |
+| **x-telemetry-analyze** | `/x-telemetry-analyze` | Analyze telemetry NDJSON for one or more epics and produce a Markdown report with skill/phase/tool aggregates, Mermaid Gantt timeline, and optional JSON/CSV exports. Use to answer 'which phase is the bottleneck?' and 'is skill X getting slower?' questions for operator visibility. |
+| **x-telemetry-trend** | `/x-telemetry-trend` | Detect cross-epic P95 regressions (>= threshold %) and rank top-10 slowest skills from the global telemetry index. Single-responsibility partner of /x-telemetry-analyze focused on trend detection, not point-in-time reporting. Use to answer 'is skill X getting slower over the last N epics?' with evidence. |
 | **x-test-e2e** | `/x-test-e2e` | Runs integration tests that validate the complete flow from request through all application layers to response, using a real database. |
 | **x-test-plan** | `/x-test-plan` | Generates a Double-Loop TDD test plan with TPP-ordered scenarios before implementation. Delegates KP reading to a context-gathering subagent, then produces structured Acceptance Tests (outer loop) and Unit Tests in Transformation Priority Premise order (inner loop). |
 | **x-test-run** | `/x-test-run` | Runs tests with coverage reporting and threshold validation. Use whenever writing, running, or analyzing tests. Triggers on: test, coverage, TDD, unit test, integration test, test failure, coverage gap, or Definition of Done validation. |
 | **x-test-tdd** | `/x-test-tdd` | Executes systematic Red-Green-Refactor TDD cycles for a task. Reads the task plan generated by x-task-plan, runs each cycle in TPP order, validates RED/GREEN/REFACTOR phases, delegates atomic commits to x-git-commit with TDD tags, and supports resume and dry-run. |
 | **x-threat-model** | `/x-threat-model` | Generate threat models using STRIDE analysis: identify components, map data flows, analyze threats per category, classify severity, suggest mitigations, and produce threat model document. |
 
-**Total: 72 skills**
+**Total: 75 skills**
 
 ### Usage Examples
 
@@ -233,6 +237,36 @@ Configured in `settings.json` under the `hooks` key.
 
 ---
 
+## Telemetry
+
+Skill executions are captured as NDJSON under `plans/epic-*/telemetry/events.ndjson`, giving operators an auditable timeline of phase durations, subagent lifecycles, and tool calls. The architecture is documented in [ADR-0005 — Telemetry Architecture](../adr/ADR-0005-telemetry-architecture.md); the privacy contract lives in [Rule 20 — Telemetry Privacy](rules/20-telemetry-privacy.md).
+
+Capture happens on two layers:
+
+- **Hook-based (automatic).** Bash scripts under `hooks/` fire on `SessionStart`, `PreToolUse`, `PostToolUse`, `SubagentStop`, and `Stop`. Registration is handled by `SettingsAssembler`.
+- **In-skill phase markers.** Instrumented skills call `telemetry-phase.sh start|end` around each numbered phase. The authoring template `_TEMPLATE-SKILL.md` includes a "Telemetry (Optional)" section ready to copy.
+
+Analysis skills:
+
+```bash
+# Point-in-time report (aggregates + Mermaid Gantt)
+/x-telemetry-analyze --epic EPIC-0040
+
+# Cross-epic P95 regression detector
+/x-telemetry-trend --last 5 --threshold-pct 20
+```
+
+Opt out with `CLAUDE_TELEMETRY_DISABLED=1` (per-session) or by adding the nested YAML block below to the generator YAML (per-project, requires regeneration):
+
+```yaml
+telemetry:
+  enabled: false
+```
+
+EPIC-0040 shipped this stack in release 3.8.0.
+
+---
+
 ## Settings
 
 ### settings.json
@@ -276,11 +310,11 @@ See the files directly for current configuration.
 
 | Component | Count |
 |-----------|-------|
-| Rules (.claude) | 18 |
-| Skills (.claude) | 52 |
+| Rules (.claude) | 19 |
+| Skills (.claude) | 55 |
 | Knowledge Packs (.claude) | 20 |
 | Agents (.claude) | 10 |
-| Hooks (.claude) | 1 |
+| Hooks (.claude) | 9 |
 | Settings (.claude) | 2 |
 | Plan Templates (.claude) | 21 |
 

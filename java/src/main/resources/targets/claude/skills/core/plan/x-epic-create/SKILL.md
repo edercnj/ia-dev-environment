@@ -50,13 +50,22 @@ and must be read fresh from disk every time (never hardcode the structure).
 
 ### Step 1 — Read the Input Spec
 
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-create Phase-1-Spec-Analysis`
+
 Read the entire system specification file provided by the user. This file follows the `_TEMPLATE.md`
 format with sections like Overview, Business Rules, Platform Specs, Data Contracts, Journeys,
 Sync Journeys, Dependencies, and Interfaces.
 
 Understand the full scope before starting extraction.
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-create Phase-1-Spec-Analysis ok`
+
 ### Step 2 — Extract Cross-Cutting Business Rules
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-create Phase-2-Rules-Extraction`
 
 Scan the spec for business rules that apply to more than one journey or operation. These become
 the Epic's Rules table with unique IDs (RULE-001, RULE-002, ...).
@@ -81,7 +90,13 @@ When the spec describes a system that follows TDD practices, extract these as cr
 - **Atomic TDD Commits**: Each Red-Green-Refactor cycle produces atomic commits with Conventional Commits format
 - **Gherkin Completeness**: Every acceptance criterion must have corresponding Gherkin scenarios
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-create Phase-2-Rules-Extraction ok`
+
 ### Step 3 — Identify Stories
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-create Phase-3-Story-Index`
 
 Read the decomposition guide (`x-epic-decompose/references/decomposition-guide.md`) for
 the layer-by-layer approach. In summary:
@@ -100,7 +115,13 @@ For each story, determine:
 Validate the dependency graph: no circular dependencies, every extension depends on the core,
 compositions depend on their constituent extensions.
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-create Phase-3-Story-Index ok`
+
 ### Step 4 — Define Quality Criteria
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-create Phase-4-Epic-Generation`
 
 **Global Definition of Ready (DoR):**
 Extract from the spec's quality requirements, or derive sensible defaults:
@@ -228,6 +249,9 @@ If the Jira MCP tool call fails:
 
 Save the file to `plans/epic-XXXX/epic-XXXX.md`.
 Report: number of rules extracted, number of stories identified, dependency structure summary.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-create Phase-4-Epic-Generation ok`
 
 ## Error Handling
 

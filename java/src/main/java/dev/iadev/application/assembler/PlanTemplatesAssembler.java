@@ -165,10 +165,7 @@ public final class PlanTemplatesAssembler
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(
-                        TEMPLATES_SUBDIR + "/"
-                                + "_TEMPLATE-IMPLEMENTATION"
-                                + "-PLAN.md",
-                        3);
+                .resolveResourceDir("shared")
+                .getParent();
     }
 }

@@ -86,7 +86,8 @@ public final class SettingsAssembler implements Assembler {
 
         List<String> results = new ArrayList<>();
         results.add(writeSettings(
-                outputDir, permissions, hookPresence));
+                outputDir, permissions, hookPresence,
+                config.telemetryEnabled()));
         results.add(writeSettingsLocal(outputDir));
         return results;
     }
@@ -141,17 +142,22 @@ public final class SettingsAssembler implements Assembler {
 
     /**
      * Builds the settings.json content as a formatted JSON
-     * string. Delegates to {@link JsonSettingsBuilder}.
+     * string with explicit telemetry control. Delegates to
+     * {@link JsonSettingsBuilder}.
      *
      * @param permissions  the list of allowed commands
      * @param hookPresence whether to include hooks section
+     * @param telemetryEnabled whether to emit telemetry hook
+     *     entries
      * @return formatted JSON string
      */
     static String buildSettingsJson(
             List<String> permissions,
-            HookPresence hookPresence) {
+            HookPresence hookPresence,
+            boolean telemetryEnabled) {
         return new JsonSettingsBuilder()
-                .build(permissions, hookPresence);
+                .build(permissions, hookPresence,
+                        telemetryEnabled);
     }
 
     /**
@@ -176,10 +182,12 @@ public final class SettingsAssembler implements Assembler {
     private String writeSettings(
             Path outputDir,
             List<String> permissions,
-            HookPresence hookPresence) {
+            HookPresence hookPresence,
+            boolean telemetryEnabled) {
         Path dest = outputDir.resolve(SETTINGS_FILENAME);
         String content = jsonSettingsBuilder.build(
-                permissions, hookPresence);
+                permissions, hookPresence,
+                telemetryEnabled);
         try {
             Files.writeString(
                     dest, content, StandardCharsets.UTF_8);
@@ -207,7 +215,7 @@ public final class SettingsAssembler implements Assembler {
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(
-                        SETTINGS_TEMPLATES_DIR, 3);
+                .resolveResourceDir("shared")
+                .getParent();
     }
 }

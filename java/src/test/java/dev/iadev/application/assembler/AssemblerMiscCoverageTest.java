@@ -125,6 +125,7 @@ class AssemblerMiscCoverageTest {
                             .language("python", "3.12")
                             .framework("fastapi", "0.115")
                             .buildTool("pip")
+                            .telemetryEnabled(false)
                             .build();
 
             List<String> files = assembler.assemble(

@@ -154,9 +154,7 @@ public final class IncidentTemplatesAssembler
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(
-                        TEMPLATES_SUBDIR + "/"
-                                + IR_FILENAME,
-                        3);
+                .resolveResourceDir("shared")
+                .getParent();
     }
 }

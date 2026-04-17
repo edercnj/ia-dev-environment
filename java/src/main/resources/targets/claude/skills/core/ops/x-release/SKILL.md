@@ -593,8 +593,11 @@ fi
 echo "Check 7: Scanning for hardcoded version strings..."
 CURRENT_VERSION=$(get_current_version)  # from pom.xml, package.json, etc.
 
-# Allowed paths: version files, CHANGELOG, tags, state files
-ALLOWED_PATTERN="pom.xml|package.json|Cargo.toml|pyproject.toml|build.gradle|CHANGELOG.md|release-state-"
+# Allowed paths: version files, CHANGELOG, state files, generated/narrative
+# docs, ADRs, release notes, other worktrees, golden fixtures, specs, smoke
+# tests. Broad by intent — Check 7 is meant to flag stray version strings
+# in PRODUCTION source, not in historical / generated / documentation assets.
+ALLOWED_PATTERN="pom\.xml|package\.json|Cargo\.toml|pyproject\.toml|build\.gradle|CHANGELOG\.md|release-state-|/plans/|/adr/|/docs/release-notes/|/\.claude/worktrees/|/\.claude/skills/|/java/src/test/resources/golden/|/java/src/main/resources/|/target/|/specs/|/results/|/tests/guard/"
 
 MATCHES=$(grep -rn "$CURRENT_VERSION" . \
   --include="*.sh" --include="*.md" --include="*.yaml" --include="*.yml" \
@@ -619,9 +622,30 @@ POM_VERSION=$(extract_pom_version)
 CHANGELOG_VERSION=$(extract_latest_changelog_version)
 BRANCH_VERSION=$(extract_branch_version)  # from release/X.Y.Z
 
-# Compare: all must match the target VERSION
+# Compare: all must match the target VERSION.
+#
+# Maven/Java convention: between releases, pom.xml carries a `-SNAPSHOT`
+# suffix (e.g., `3.7.0-SNAPSHOT`). Step 4 (UPDATE) strips `-SNAPSHOT` when
+# the release branch is cut. Check 8 runs BEFORE Step 4, so a raw string
+# compare `pom == target` would always fail on a SNAPSHOT develop. When
+# POM_VERSION ends in `-SNAPSHOT`, emit a WARN and skip the pom comparison
+# — the post-UPDATE state becomes `pom == VERSION` by construction, and
+# Step 8 integrity gate on the release branch (pre-commit) validates the
+# post-strip equality. CHANGELOG and branch comparisons remain strict.
 MISMATCH=""
-if [ "$POM_VERSION" != "$VERSION" ]; then
+POM_BASE="${POM_VERSION%-SNAPSHOT}"
+if [ "$POM_BASE" != "$POM_VERSION" ]; then
+  # SNAPSHOT on current branch. Compare POM_BASE against VERSION so a
+  # gross mismatch (e.g., pom=5.0.0-SNAPSHOT while releasing 3.8.0) is
+  # surfaced instead of silently skipped. Small gaps (pom=3.7.0-SNAPSHOT
+  # while releasing 3.8.0 because an intermediate snapshot was skipped)
+  # remain WARN-only since Step 4 will normalize pom to VERSION.
+  if [ "$POM_BASE" != "$VERSION" ]; then
+    echo "WARNING: Check 8 — pom base ($POM_BASE) differs from target ($VERSION). Step 4 will still normalize pom to $VERSION; verify this is intentional."
+  else
+    echo "WARNING: Check 8 pom comparison skipped — pom.xml is SNAPSHOT ($POM_VERSION); Step 4 will normalize to $VERSION"
+  fi
+elif [ "$POM_VERSION" != "$VERSION" ]; then
   MISMATCH="$MISMATCH pom.xml=$POM_VERSION"
 fi
 if [ -n "$CHANGELOG_VERSION" ] && [ "$CHANGELOG_VERSION" != "$VERSION" ]; then

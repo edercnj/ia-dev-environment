@@ -161,3 +161,88 @@ Do NOT add any of the following to a skill body:
 - Prose like "then run `/x-foo` to do X" — rewrite as "then invoke `x-foo` via the Skill tool: `Skill(skill: \"x-foo\", args: \"...\")`"
 - Subagent prompts that tell the subagent to "run /x-foo" — rewrite as "invoke the `x-foo` skill via the Skill tool"
 - Bullet lists of slash commands intended as parallel delegation — rewrite as a single block of parallel `Skill(...)` calls (Pattern 1, multiple calls in one message)
+
+## Telemetry Markers (story-0040-0006)
+
+Skills that participate in the implementation workflow (`x-epic-implement`, `x-story-implement`, `x-task-implement`, `x-task-plan`, and future siblings) MUST emit `phase.start` / `phase.end` telemetry markers around every numbered phase. Markers let operators analyse "which workflow phase is the bottleneck" without touching skill code — the signal is semantic, not just mechanical (passive hooks capture `tool.call` but not "which phase this call belongs to").
+
+### When to Emit
+
+| Situation | Emit? |
+| :--- | :--- |
+| Numbered phase of an implementation skill (Phase 1, Phase 2, ...) | Yes — one `phase.start` at entry + one `phase.end` at exit |
+| TDD sub-phase of `x-task-implement` (Red / Green / Refactor) | Yes — one pair per sub-phase |
+| Non-numbered prose sections (Integration Notes, Glossary) | No — captured passively by hooks |
+| Skill with zero numbered phases | No markers (zero pairs is a valid state) |
+| Phase aborts on error | Emit `phase.end` with `status=failed` |
+| Phase skipped by a flag / condition | Emit `phase.end` with `status=skipped` |
+
+### Canonical Shape
+
+Each numbered phase receives one HTML comment + one Bash invocation at entry, and the mirrored pair at exit:
+
+```markdown
+## Phase N — <Phase Name>
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start <skill-name> Phase-N-<Name>`
+
+... phase body ...
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end <skill-name> Phase-N-<Name> ok`
+```
+
+### Helper Contract (`telemetry-phase.sh`)
+
+| Argument | Kind | Values |
+| :--- | :--- | :--- |
+| `$1` | required | `start` \| `end` \| `subagent-start` \| `subagent-end` |
+| `$2` | required | skill identifier (kebab-case, e.g., `x-story-implement`) |
+| `$3` | required | phase identifier for `start`/`end` (max 64 chars, e.g., `Phase-2-Implement`) OR role identifier for `subagent-start`/`subagent-end` (max 64 chars, e.g., `Architect`) |
+| `$4` | required on `end` / `subagent-end` | `ok` \| `failed` \| `skipped` (defaults to `ok` if missing) |
+
+Fail-open contract: invalid arguments, missing peer helpers, or `CLAUDE_TELEMETRY_DISABLED=1` cause the helper to log on stderr and exit 0 — skills never abort because telemetry broke.
+
+### Subagent Markers (story-0040-0007)
+
+Planning skills that dispatch parallel subagents (e.g., `x-story-plan` with its
+5-agent Architect/QA/Security/TechLead/PO wave, or `x-epic-orchestrate` with
+its per-story loop) MUST emit `subagent.start` / `subagent.end` markers around
+each parallel dispatch so the `/x-telemetry-analyze` report can compute the
+overlap window and flag slow agents that bottleneck the wave.
+
+```markdown
+<!-- TELEMETRY: subagent.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh subagent-start x-story-plan Architect`
+
+... subagent dispatch ...
+
+<!-- TELEMETRY: subagent.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh subagent-end x-story-plan Architect ok`
+```
+
+The role argument (position 3) is persisted under `metadata.role` of the
+telemetry event. Degenerate planning skills (no parallel dispatch, e.g.,
+`x-arch-plan`, `x-test-plan`, `x-epic-map`) MUST emit ZERO subagent markers —
+this is validated by the `PlanningSmokeIT` acceptance test.
+
+### CI Enforcement
+
+`dev.iadev.ci.TelemetryMarkerLint` scans every SKILL.md for balance violations:
+
+| Violation | Meaning |
+| :--- | :--- |
+| `DUPLICATE_START` | Two consecutive `phase.start` for the same `(skill, phase)` |
+| `DUPLICATE_END` | Two consecutive `phase.end` for the same `(skill, phase)` |
+| `DANGLING_END` | `phase.end` with no preceding `phase.start` |
+| `UNCLOSED_START` | `phase.start` with no matching `phase.end` before EOF |
+
+The linter runs as part of the CI build via the per-skill acceptance tests under `dev.iadev.skills.X*MarkersIT`. Any violation fails the build.
+
+### Forbidden
+
+- Emitting `phase.start` from inside a loop body — a loop iteration is NOT a phase; emit one pair around the loop, not one pair per iteration.
+- Emitting a marker from a non-implementation skill (e.g., review, lint, format) — passive hooks already capture their activity.
+- Hand-rolling the JSON payload instead of calling `telemetry-phase.sh` — bypasses the scrubber and fail-open contract.
+- Using dotted case (`phase.1.plan`) instead of kebab case (`Phase-1-Plan`) in `$3` — consumers join on the exact string.

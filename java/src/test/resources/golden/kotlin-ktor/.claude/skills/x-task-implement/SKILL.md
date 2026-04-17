@@ -267,6 +267,10 @@ Before any unit test cycle, write the acceptance test(s) from the test plan (AT-
 For each UT-N in the test plan (strict TPP order: degenerate first, edge cases last):
 
 ##### RED — Write the Failing Test
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-task-implement Red-Phase`
+
 1. Write the unit test for UT-N (test name follows `[method]_[scenario]_[expected]`)
 2. Run it — it MUST fail
 3. If the test passes without new code, the test is wrong or the scenario is already covered
@@ -276,7 +280,13 @@ For each UT-N in the test plan (strict TPP order: degenerate first, edge cases l
 # Expected: FAIL (RED)
 ```
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-implement Red-Phase ok`
+
 ##### GREEN — Implement the Minimum
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-task-implement Green-Phase`
 1. Write the MINIMUM production code to make UT-N pass
 2. Respect layer order: domain -> ports -> adapters -> application -> inbound
 3. Do NOT add code beyond what the test requires
@@ -288,7 +298,14 @@ For each UT-N in the test plan (strict TPP order: degenerate first, edge cases l
 # Expected: ALL PASS (GREEN)
 ```
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-implement Green-Phase ok`
+
 ##### REFACTOR — Improve Design
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-task-implement Refactor-Phase`
+
 1. Look for: extract method (> 25 lines), duplicate code, unclear naming
 2. Refactoring NEVER adds behavior — if behavior changes, write a new failing test first
 3. Run all tests after refactoring — they MUST still pass
@@ -297,6 +314,9 @@ For each UT-N in the test plan (strict TPP order: degenerate first, edge cases l
 {{TEST_COMMAND}}
 # Expected: ALL PASS (still GREEN)
 ```
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-implement Refactor-Phase ok`
 
 ##### Compile Check
 After each complete cycle (Red-Green-Refactor):

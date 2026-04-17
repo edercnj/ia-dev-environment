@@ -6,11 +6,19 @@
 
     <groupId>dev.iadev</groupId>
     <artifactId>ia-dev-env</artifactId>
-    <version>3.6.0</version>
+    <version>3.8.0</version>
     <packaging>jar</packaging>
 
     <name>ia-dev-env</name>
     <description>CLI tool that generates Claude Code configuration (.claude/) and shared DevEx artifacts (.github/workflows/, Dockerfile, ADRs, docs) for AI-assisted development environments</description>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages — edercnj/ia-dev-environment</name>
+            <url>https://maven.pkg.github.com/edercnj/ia-dev-environment</url>
+        </repository>
+    </distributionManagement>
 
     <properties>
         <java.version>21</java.version>
@@ -31,6 +39,8 @@
         <mockito.version>5.14.2</mockito.version>
         <archunit.version>1.3.0</archunit.version>
         <jacoco.version>0.8.14</jacoco.version>
+        <cyclonedx.version>2.8.2</cyclonedx.version>
+        <json-schema-validator.version>1.5.8</json-schema-validator.version>
     </properties>
 
     <dependencies>
@@ -117,6 +127,14 @@
             <groupId>com.tngtech.archunit</groupId>
             <artifactId>archunit-junit5</artifactId>
             <version>${archunit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- JSON Schema validation (Draft 2020-12) — used by telemetry schema tests -->
+        <dependency>
+            <groupId>com.networknt</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <version>${json-schema-validator.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -246,6 +264,31 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.cyclonedx</groupId>
+                <artifactId>cyclonedx-maven-plugin</artifactId>
+                <version>${cyclonedx.version}</version>
+                <executions>
+                    <execution>
+                        <id>build-sbom</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>makeAggregateBom</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <outputName>bom</outputName>
+                    <outputFormat>json</outputFormat>
+                    <schemaVersion>1.5</schemaVersion>
+                    <includeBomSerialNumber>true</includeBomSerialNumber>
+                    <includeCompileScope>true</includeCompileScope>
+                    <includeProvidedScope>true</includeProvidedScope>
+                    <includeRuntimeScope>true</includeRuntimeScope>
+                    <includeSystemScope>false</includeSystemScope>
+                    <includeTestScope>false</includeTestScope>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>

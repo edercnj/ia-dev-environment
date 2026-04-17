@@ -72,6 +72,13 @@ Skills are invoked by the user via `/name` in chat. They are lazy-loaded (only l
 
 A complete list of skills with descriptions is generated in `.claude/README.md` by the `ia-dev-env` generator.
 
+### Authoring a New Skill
+
+- Start from `java/src/main/resources/shared/templates/_TEMPLATE-SKILL.md` (authoring template for SKILL.md files).
+- The template includes a "## Telemetry (Optional)" section with plug-and-play helper calls (`telemetry-phase.sh start/end`, `subagent-start/end`, `mcp-start/end`). Copy-paste into numbered phases of the new skill to keep telemetry coverage close to 100% as the catalog grows (EPIC-0040).
+- Canonical example: `x-story-implement` — review its phase markers for a working reference.
+- See `.claude/rules/13-skill-invocation-protocol.md` for the markers contract.
+
 ### Usage Examples
 
 ```bash
@@ -89,6 +96,38 @@ A complete list of skills with descriptions is generated in `.claude/README.md` 
 - **Knowledge Packs** (`user-invocable: false`): referenced internally by agents and skills; do not appear in the `/` menu.
 - **Agents**: system prompts defining specialized personas; used by skills via Task tool, not invoked directly.
 - **Hooks**: scripts executed on Claude Code events, configured in `settings.json` under `hooks`.
+
+---
+
+## Telemetry
+
+Every `ia-dev-env`-generated project ships with telemetry capture enabled by default. Skill executions, phase boundaries, subagent lifecycles, and tool calls are recorded as NDJSON under `plans/epic-*/telemetry/events.ndjson`, producing an auditable timeline of how long each part of an epic / story / task actually took. The design is documented in [`adr/ADR-0005-telemetry-architecture.md`](adr/ADR-0005-telemetry-architecture.md); the privacy contract is enforced by [Rule 20 — Telemetry Privacy](.claude/rules/20-telemetry-privacy.md) and the scrubber at `dev.iadev.telemetry.TelemetryScrubber`.
+
+Capture happens through two cooperating layers:
+
+- **Hook-based (automatic).** Five Bash entrypoint scripts under `.claude/hooks/` are registered in `settings.json` and fire on `SessionStart`, `PreToolUse`, `PostToolUse`, `SubagentStop`, and `Stop`. Additional helper scripts in `.claude/hooks/` (e.g., `telemetry-emit.sh`, `telemetry-lib.sh`, `telemetry-phase.sh`) are copied alongside them but are not registered as hook events. No per-skill code is required.
+- **In-skill phase markers.** Implementation, planning, and creation skills call `telemetry-phase.sh start|end` around each numbered phase; the `_TEMPLATE-SKILL.md` authoring template includes a copy-paste-ready "Telemetry (Optional)" section.
+
+Two skills consume the NDJSON:
+
+```bash
+# Point-in-time report for one or more epics (Mermaid Gantt + aggregates)
+/x-telemetry-analyze --epic EPIC-0040
+
+# Cross-epic P95 regression detector (top-10 slowest skills)
+/x-telemetry-trend --last 5 --threshold-pct 20
+```
+
+Opt out globally with `CLAUDE_TELEMETRY_DISABLED=1`, or per-project by adding the nested YAML block below to the generator YAML (requires regeneration):
+
+```yaml
+telemetry:
+  enabled: false
+```
+
+(The parser `ProjectConfig.parseTelemetryEnabled` expects the nested key; a flat `telemetryEnabled` line is ignored.)
+
+EPIC-0040 shipped this stack in release 3.8.0 — see the [CHANGELOG](CHANGELOG.md#380---2026-04-17).
 
 ---
 

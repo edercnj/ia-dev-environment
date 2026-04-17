@@ -35,6 +35,9 @@ import java.util.Set;
  *     empty = all, immutable)
  * @param branchingModel the branching strategy (optional,
  *     default GITFLOW)
+ * @param telemetryEnabled whether telemetry hooks are injected
+ *     (optional, default true). Maps to YAML
+ *     {@code telemetry.enabled} (story-0040-0004)
  */
 public record ProjectConfig(
         ProjectIdentity project,
@@ -49,7 +52,8 @@ public record ProjectConfig(
         McpConfig mcp,
         String compliance,
         Set<Platform> platforms,
-        BranchingModel branchingModel) {
+        BranchingModel branchingModel,
+        boolean telemetryEnabled) {
 
     private static final String DEFAULT_COMPLIANCE = "none";
 
@@ -68,6 +72,32 @@ public record ProjectConfig(
         branchingModel = branchingModel == null
                 ? BranchingModel.GITFLOW
                 : branchingModel;
+    }
+
+    /**
+     * Backward-compatible convenience constructor for
+     * pre-EPIC-0040 call sites that did not specify
+     * {@code telemetryEnabled}. Defaults the flag to
+     * {@code true}.
+     */
+    public ProjectConfig(
+            ProjectIdentity project,
+            ArchitectureConfig architecture,
+            List<InterfaceConfig> interfaces,
+            LanguageConfig language,
+            FrameworkConfig framework,
+            DataConfig data,
+            InfraConfig infrastructure,
+            SecurityConfig security,
+            TestingConfig testing,
+            McpConfig mcp,
+            String compliance,
+            Set<Platform> platforms,
+            BranchingModel branchingModel) {
+        this(project, architecture, interfaces, language,
+                framework, data, infrastructure, security,
+                testing, mcp, compliance, platforms,
+                branchingModel, true);
     }
 
     // --- Convenience accessors (Law of Demeter) ---
@@ -184,6 +214,7 @@ public record ProjectConfig(
         Set<Platform> platforms = parsePlatforms(map);
         BranchingModel branchingModel =
                 parseBranchingModel(map);
+        boolean telemetryEnabled = parseTelemetryEnabled(map);
         return new ProjectConfig(
                 ProjectIdentity.fromMap(MapHelper
                         .requireMap(map, "project",
@@ -211,7 +242,28 @@ public record ProjectConfig(
                         .optionalMap(map, "mcp")),
                 compliance,
                 platforms,
-                branchingModel);
+                branchingModel,
+                telemetryEnabled);
+    }
+
+    /**
+     * Parses the optional {@code telemetry.enabled} field.
+     *
+     * <p>Defaults to {@code true} when the {@code telemetry}
+     * section is absent or when the {@code enabled} key inside
+     * the section is absent. Introduced by story-0040-0004 to
+     * gate the injection of telemetry hooks.</p>
+     *
+     * @param map the root config map
+     * @return {@code true} unless {@code telemetry.enabled}
+     *     is explicitly set to {@code false}
+     */
+    private static boolean parseTelemetryEnabled(
+            Map<String, Object> map) {
+        Map<String, Object> telemetry = MapHelper
+                .optionalMap(map, "telemetry");
+        return MapHelper.optionalBoolean(
+                telemetry, "enabled", true);
     }
 
     private static String parseCompliance(

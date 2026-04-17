@@ -45,6 +45,9 @@ Read the following files before starting:
 
 ### Step 1 — Build the Dependency Matrix
 
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-map Phase-1-DAG-Build`
+
 Read every story's Section 1 (Dependencias) and the Epic's story index. Also read each
 story's `**Chave Jira:**` field (if present). Build a complete matrix:
 
@@ -66,7 +69,13 @@ Add a `> **Nota:**` block for any implicit dependencies not declared in the stor
 functionally required (e.g., "story-0001-0009 provides configuration data that story-0001-0002 needs even
 though story-0001-0002 does not explicitly declare it").
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-map Phase-1-DAG-Build ok`
+
 ### Step 2 — Compute Phases
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-map Phase-2-Phase-Computation`
 
 Group stories into phases using the dependency DAG:
 
@@ -83,7 +92,13 @@ the template — `+=+`, `|`, `+=+` for phase boxes, `+-+`, `|`, `+-+` for story 
 Each story box shows: ID + short scope description (max ~20 chars).
 Each phase box shows: phase number + name + "(paralelo)" if multiple stories.
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-map Phase-2-Phase-Computation ok`
+
 ### Step 3 — Identify the Critical Path
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-map Phase-3-Critical-Path`
 
 The critical path is the longest chain of dependencies from any root to any leaf.
 Count phases, not individual stories.
@@ -100,7 +115,13 @@ story-0001-0009 -+                              +---> story-0001-0011
 State: **N phases in the critical path, M stories in the longest chain**.
 Explain the impact: any delay in a critical path story directly delays the final delivery.
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-map Phase-3-Critical-Path ok`
+
 ### Step 4 — Generate the Mermaid Dependency Graph
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-epic-map Phase-4-Mermaid`
 
 Create a full `graph TD` with all stories and their dependency edges.
 
@@ -121,6 +142,9 @@ classDef faseCR fill:#6c5ce7,stroke:#a29bfe,color:#fff
 ```
 
 Assign classDef by phase. Group edges by phase transition (comment with `%% Fase N -> N+1`).
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-map Phase-4-Mermaid ok`
 
 ### Step 5 — Create the Phase Summary Table
 
@@ -260,8 +284,7 @@ If stories do not contain formal task IDs, **skip this step entirely** and note:
 
 ### Step 9 — Save and Report
 
-Save as `implementation-map-XXXX.md` in the same directory as the Epic and Stories (inside `plans/epic-XXXX/`).
-The XXXX is the epic number extracted from the Epic file.
+Save as `IMPLEMENTATION-MAP.md` in the same directory as the Epic and Stories (inside `plans/epic-XXXX/`).
 Report: total stories, phases, critical path length, maximum parallelism, main bottleneck.
 If task-level dependencies were computed, also report: total tasks, task phases, cross-story dependencies count.
 

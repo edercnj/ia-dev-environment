@@ -23,15 +23,49 @@ public final class JsonSettingsBuilder {
 
     /**
      * Builds the settings.json content as a formatted JSON
-     * string.
+     * string with telemetry explicitly disabled.
+     *
+     * <p><b>Legacy/no-telemetry helper.</b> This overload
+     * hard-codes {@code telemetryEnabled=false} and is preserved
+     * only for pre-EPIC-0040 test scenarios that assert the
+     * legacy (no-telemetry) output shape. Production call sites
+     * MUST use {@link #build(List, HookPresence, boolean)}
+     * directly so the {@code telemetryEnabled} intent — which
+     * defaults to {@code true} at the
+     * {@link dev.iadev.domain.model.ProjectConfig} level — is
+     * explicit at the call site.</p>
      *
      * @param permissions  the list of allowed commands
      * @param hookPresence whether to include hooks section
+     * @return formatted JSON string (telemetry disabled)
+     * @deprecated Use
+     *     {@link #build(List, HookPresence, boolean)} and pass
+     *     the resolved {@code telemetryEnabled} explicitly. This
+     *     overload silently disables telemetry even when the
+     *     project config opts into it.
+     */
+    @Deprecated
+    String build(
+            List<String> permissions,
+            HookPresence hookPresence) {
+        return build(permissions, hookPresence, false);
+    }
+
+    /**
+     * Builds the settings.json content as a formatted JSON
+     * string with explicit telemetry control.
+     *
+     * @param permissions the list of allowed commands
+     * @param hookPresence whether the legacy
+     *     post-compile-check hook is present
+     * @param telemetryEnabled whether to emit the 5 telemetry
+     *     event entries (story-0040-0004)
      * @return formatted JSON string
      */
     String build(
             List<String> permissions,
-            HookPresence hookPresence) {
+            HookPresence hookPresence,
+            boolean telemetryEnabled) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\n");
         sb.append(JsonHelpers.indent(1))
@@ -40,10 +74,14 @@ public final class JsonSettingsBuilder {
                 .append("\"allow\": [\n");
         appendPermissions(sb, permissions);
         sb.append(JsonHelpers.indent(2)).append("]\n");
-        if (hookPresence.hasHooks()) {
+        boolean hasAnyHook =
+                hookPresence.hasHooks() || telemetryEnabled;
+        if (hasAnyHook) {
             sb.append(JsonHelpers.indent(1))
                     .append("},\n");
-            HookConfigBuilder.appendHooksSection(sb);
+            HookConfigBuilder.appendHooksSection(
+                    sb, hookPresence.hasHooks(),
+                    telemetryEnabled);
         } else {
             sb.append(JsonHelpers.indent(1))
                     .append("}\n");

@@ -62,7 +62,7 @@ flowchart TD
     subgraph PD["Phase D -- Generate Implementation Map"]
         PD1["Delegate to /x-epic-map"] --> PD2[Dependency matrix + phase diagram]
         PD2 --> PD3[Critical path analysis]
-        PD3 --> PD4[Generate implementation-map-XXXX.md]
+        PD3 --> PD4[Generate IMPLEMENTATION-MAP.md]
     end
 
     PD --> PD5
@@ -118,7 +118,7 @@ flowchart TD
 |----------|------|-------------|
 | Epic | `plans/epic-XXXX/epic-XXXX.md` | Scope, cross-cutting rules, story index, DoR/DoD |
 | Stories | `plans/epic-XXXX/story-XXXX-YYYY.md` | One file per story with contracts, Gherkin, diagrams, sub-tasks |
-| Implementation Map | `plans/epic-XXXX/implementation-map-XXXX.md` | Phases, critical path, dependency graph, strategic analysis |
+| Implementation Map | `plans/epic-XXXX/IMPLEMENTATION-MAP.md` | Phases, critical path, dependency graph, strategic analysis |
 | Jira Issues | Jira project (remote) | Epic and Story issues with parent links and dependency links (optional) |
 
 ## Decomposition Layers

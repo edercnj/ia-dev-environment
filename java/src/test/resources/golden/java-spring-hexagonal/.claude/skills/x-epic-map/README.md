@@ -35,7 +35,7 @@ Computes the optimal implementation order from the story dependency graph. It gr
 
 | Artifact | Path |
 |----------|------|
-| Implementation map | `plans/epic-XXXX/implementation-map-XXXX.md` |
+| Implementation map | `plans/epic-XXXX/IMPLEMENTATION-MAP.md` |
 
 ## See Also
 

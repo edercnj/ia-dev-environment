@@ -50,6 +50,22 @@ public final class HooksAssembler implements Assembler {
     private static final String HOOKS_TEMPLATES_DIR =
             "targets/claude/hooks";
 
+    /**
+     * Telemetry scripts copied when
+     * {@link ProjectConfig#telemetryEnabled()} is {@code true}
+     * (story-0040-0004). Sourced from
+     * {@code targets/claude/hooks/telemetry-*.sh}.
+     */
+    public static final List<String> TELEMETRY_SCRIPTS = List.of(
+            "telemetry-emit.sh",
+            "telemetry-lib.sh",
+            "telemetry-phase.sh",
+            "telemetry-session.sh",
+            "telemetry-pretool.sh",
+            "telemetry-posttool.sh",
+            "telemetry-subagent.sh",
+            "telemetry-stop.sh");
+
     private final Path resourcesDir;
 
     /**
@@ -81,6 +97,17 @@ public final class HooksAssembler implements Assembler {
             ProjectConfig config,
             TemplateEngine engine,
             Path outputDir) {
+        List<String> written = new java.util.ArrayList<>();
+        written.addAll(copyPostCompileHook(
+                config, outputDir));
+        if (config.telemetryEnabled()) {
+            written.addAll(copyTelemetryScripts(outputDir));
+        }
+        return List.copyOf(written);
+    }
+
+    private List<String> copyPostCompileHook(
+            ProjectConfig config, Path outputDir) {
         String key = StackMapping.getHookTemplateKey(
                 config.language().name(),
                 config.framework().buildTool());
@@ -94,6 +121,35 @@ public final class HooksAssembler implements Assembler {
             return List.of();
         }
         return copyHook(hookSrc, outputDir);
+    }
+
+    private List<String> copyTelemetryScripts(
+            Path outputDir) {
+        Path hooksDir = outputDir.resolve(HOOKS_DIR);
+        CopyHelpers.ensureDirectory(hooksDir);
+        List<String> copied = new java.util.ArrayList<>();
+        for (String name : TELEMETRY_SCRIPTS) {
+            Path src = resourcesDir.resolve(
+                    HOOKS_TEMPLATES_DIR + "/" + name);
+            if (!Files.exists(src)) {
+                throw new UncheckedIOException(
+                        new IOException(
+                                "Telemetry hook source not"
+                                        + " found: " + src));
+            }
+            Path dest = hooksDir.resolve(name);
+            try {
+                Files.copy(src, dest,
+                        StandardCopyOption.REPLACE_EXISTING);
+                makeExecutable(dest);
+            } catch (IOException e) {
+                throw new UncheckedIOException(
+                        "Failed to copy telemetry hook: %s"
+                                .formatted(src), e);
+            }
+            copied.add(dest.toString());
+        }
+        return copied;
     }
 
     private List<String> copyHook(
@@ -142,7 +198,7 @@ public final class HooksAssembler implements Assembler {
 
     private static Path resolveClasspathResources() {
         return dev.iadev.util.ResourceResolver
-                .resolveResourcesRoot(
-                        HOOKS_TEMPLATES_DIR, 3);
+                .resolveResourceDir("shared")
+                .getParent();
     }
 }

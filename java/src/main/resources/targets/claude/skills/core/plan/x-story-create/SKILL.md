@@ -55,6 +55,9 @@ Read the following files before starting:
 
 ### Step 1 — Read the Epic and Spec
 
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-story-create Phase-1-Context-Gathering`
+
 Read both files completely. From the Epic, extract:
 - The story index (IDs, titles, dependencies)
 - The rules table (RULE-001..N) — stories reference these by ID
@@ -63,7 +66,13 @@ Read both files completely. From the Epic, extract:
 From the spec, understand the full technical context: journeys, data contracts, protocol
 mappings, state machines, error codes, metrics.
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-create Phase-1-Context-Gathering ok`
+
 ### Step 2 — Generate Each Story
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-story-create Phase-2-Generation-Loop`
 
 For each story in the Epic's index, create a file following `_TEMPLATE-STORY.md`. Process
 stories in dependency order (foundations first, then core, then extensions).
@@ -509,7 +518,13 @@ For each story's "Blocked By" list:
 
 This step is best-effort. Report: "N dependency links criados no Jira"
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-create Phase-2-Generation-Loop ok`
+
 ### Step 4 — Quality Gate Validation (pre-write check)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-story-create Phase-3-Validation`
 
 Before writing any story file to disk, run a quality gate evaluation on the generated
 markdown content. This step ensures that low-quality stories do not reach the backlog
@@ -613,6 +628,9 @@ If Jira integration was active, also report:
 - Stories created in Jira: N of M
 - Dependency links created: K
 - Failures: list any failed items
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-create Phase-3-Validation ok`
 
 ## Sizing Heuristics
 
