@@ -110,6 +110,12 @@ final class ValidateDeepBenchmarkTest {
         return checks;
     }
 
+    // intentional workload simulation for timing test; not a sync
+    // primitive. Each check's `Thread.sleep(millis)` models a fixed
+    // per-check latency so the benchmark can measure parallel-vs-
+    // serial wall-clock reduction (≥ 40% threshold). Replacing the
+    // sleep with Awaitility would defeat the purpose — we WANT the
+    // thread to block for a known duration, not wait for a signal.
     private static Callable<CheckOutcome> sleepingRunner(long millis) {
         return () -> {
             try {

@@ -95,8 +95,10 @@ class TelemetryIndexBuilderIT {
                 base, indexPath);
 
         TelemetryIndex first = builder.buildOrRefresh();
-        // Sleep briefly so the new Instant.now() is strictly > first
-        Thread.sleep(10);
+        // No sleep: the assertion `isAfterOrEqualTo` accepts identical
+        // Instants, so a same-nanosecond rebuild is valid. Dropped a
+        // 10 ms Thread.sleep that violated Rule 05 (no sleep for async
+        // sync) and added no correctness value.
         TelemetryIndex second = builder.rebuild();
         assertThat(second.generatedAt())
                 .isAfterOrEqualTo(first.generatedAt());

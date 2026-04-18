@@ -31,6 +31,15 @@ final class ProjectConfigFactory {
     private static final Set<String> ARCHUNIT_STYLES =
             Set.of("hexagonal", "clean");
 
+    private static final String NONE = "none";
+    private static final String DEFAULT_CONTAINER = "docker";
+    private static final String DEFAULT_MANIFEST_TOOL = "kustomize";
+    private static final String DEFAULT_CQRS_EVENT_STORE =
+            "eventstoredb";
+    private static final String DEFAULT_ROLLOUT_STRATEGY = "none";
+    private static final int MIN_LINE_COVERAGE_PCT = 95;
+    private static final int MIN_BRANCH_COVERAGE_PCT = 90;
+
     private ProjectConfigFactory() {
         // utility class
     }
@@ -43,59 +52,97 @@ final class ProjectConfigFactory {
      * @return a new ProjectConfig
      */
     static ProjectConfig buildConfig(ProjectSummary ps) {
-        var project = new ProjectIdentity(
-                ps.name(), ps.purpose());
-        String effectiveStyle =
-                resolveEffectiveStyle(ps);
-        boolean archUnit =
-                ps.validateArchUnit()
-                        && ARCHUNIT_STYLES.contains(
-                        ps.archPatternStyle());
-        var architecture = new ArchitectureConfig(
-                effectiveStyle, false, false,
-                archUnit, "",
-                new ArchitectureConfig.CqrsConfig(
-                        "eventstoredb",
-                        ArchitectureConfig
-                                .DEFAULT_EVENTS_PER_SNAPSHOT,
-                        "", false, ""),
-                false);
         var interfaceList = ps.interfaces().stream()
                 .map(type ->
                         new InterfaceConfig(type, "", ""))
                 .toList();
+        return new ProjectConfig(
+                new ProjectIdentity(
+                        ps.name(), ps.purpose()),
+                buildArchitecture(ps),
+                interfaceList,
+                buildLanguage(ps),
+                buildFramework(ps),
+                buildData(ps),
+                DefaultInfraConfig.of(),
+                new SecurityConfig(ps.compliance()),
+                buildTesting(),
+                new McpConfig(List.of()),
+                DEFAULT_ROLLOUT_STRATEGY,
+                java.util.Set.of(),
+                null);
+    }
+
+    private static DataConfig buildData(ProjectSummary ps) {
+        return new DataConfig(
+                buildTechComponent(ps.database()),
+                new TechComponent(NONE, ""),
+                buildTechComponent(ps.cache()));
+    }
+
+    private static TestingConfig buildTesting() {
+        return new TestingConfig(
+                true, false, true,
+                MIN_LINE_COVERAGE_PCT,
+                MIN_BRANCH_COVERAGE_PCT);
+    }
+
+    private static ArchitectureConfig buildArchitecture(
+            ProjectSummary ps) {
+        String effectiveStyle = resolveEffectiveStyle(ps);
+        boolean archUnit =
+                ps.validateArchUnit()
+                        && ARCHUNIT_STYLES.contains(
+                        ps.archPatternStyle());
+        return new ArchitectureConfig(
+                effectiveStyle, false, false,
+                archUnit, "",
+                new ArchitectureConfig.CqrsConfig(
+                        DEFAULT_CQRS_EVENT_STORE,
+                        ArchitectureConfig
+                                .DEFAULT_EVENTS_PER_SNAPSHOT,
+                        "", false, ""),
+                false);
+    }
+
+    private static LanguageConfig buildLanguage(
+            ProjectSummary ps) {
         String langVersion =
                 LanguageFrameworkMapping
                         .defaultVersionFor(ps.language());
-        var lang = new LanguageConfig(
+        return new LanguageConfig(
                 ps.language(), langVersion);
+    }
+
+    private static FrameworkConfig buildFramework(
+            ProjectSummary ps) {
         String fwVersion =
                 LanguageFrameworkMapping
                         .frameworkVersionFor(
                                 ps.framework());
-        var fw = new FrameworkConfig(
+        return new FrameworkConfig(
                 ps.framework(), fwVersion,
                 ps.buildTool(), false);
-        var data = new DataConfig(
-                buildTechComponent(ps.database()),
-                new TechComponent("none", ""),
-                buildTechComponent(ps.cache()));
-        var infra = new InfraConfig(
-                "docker", "none", "kustomize", "none",
-                "none", "none", "none", "none",
-                new ObservabilityConfig(
-                        "none", "none", "none"));
-        var security = new SecurityConfig(
-                ps.compliance());
-        var testing = new TestingConfig(
-                true, false, true, 95, 90);
-        var mcp = new McpConfig(List.of());
+    }
 
-        return new ProjectConfig(
-                project, architecture, interfaceList,
-                lang, fw, data, infra, security,
-                testing, mcp, "none",
-                java.util.Set.of(), null);
+    /**
+     * Hard-coded default infrastructure config as a typed
+     * carrier. Values previously appeared as magic literals
+     * inside {@link #buildConfig(ProjectSummary)}.
+     */
+    private static final class DefaultInfraConfig {
+        private DefaultInfraConfig() {
+            // utility
+        }
+
+        static InfraConfig of() {
+            return new InfraConfig(
+                    DEFAULT_CONTAINER, NONE,
+                    DEFAULT_MANIFEST_TOOL, NONE,
+                    NONE, NONE, NONE, NONE,
+                    new ObservabilityConfig(
+                            NONE, NONE, NONE));
+        }
     }
 
     private static String resolveEffectiveStyle(

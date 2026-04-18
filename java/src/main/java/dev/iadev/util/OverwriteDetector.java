@@ -12,8 +12,8 @@ import java.util.List;
  * <p>Implements RULE-012 (Overwrite Detection) by checking whether
  * the destination directory already contains directories that the
  * pipeline would generate: {@code .claude/},
- * {@code .github/workflows/} (CI/CD via CiWorkflowAssembler +
- * CdWorkflowAssembler), and SDD directories ({@code steering/},
+ * {@code .github/workflows/} (CI/CD via CiWorkflowStep +
+ * CdWorkflowStep), and SDD directories ({@code steering/},
  * {@code specs/}, {@code plans/}, {@code results/},
  * {@code contracts/}, {@code adr/}).
  *

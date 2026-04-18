@@ -19,12 +19,12 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for CdWorkflowAssembler — generates CD workflow
+ * Tests for CdWorkflowStep — generates CD workflow
  * artifacts (release, deploy-staging, deploy-production,
  * rollback).
  */
-@DisplayName("CdWorkflowAssembler")
-class CdWorkflowAssemblerTest {
+@DisplayName("CdWorkflowStep")
+class CdWorkflowStepTest {
 
     @Nested
     @DisplayName("release workflow — always generated")
@@ -35,8 +35,8 @@ class CdWorkflowAssemblerTest {
                 + " .github/workflows")
         void assemble_always_generatesReleaseYml(
                 @TempDir Path tempDir) {
-            CdWorkflowAssembler assembler =
-                    new CdWorkflowAssembler();
+            CdWorkflowStep assembler =
+                    new CdWorkflowStep();
             CicdContext cicdCtx = buildContext(
                     tempDir, "none", "java", "maven");
 
@@ -55,8 +55,8 @@ class CdWorkflowAssemblerTest {
                 + " when container=none")
         void assemble_noContainer_noDockerStep(
                 @TempDir Path tempDir) throws Exception {
-            CdWorkflowAssembler assembler =
-                    new CdWorkflowAssembler();
+            CdWorkflowStep assembler =
+                    new CdWorkflowStep();
             CicdContext cicdCtx = buildContext(
                     tempDir, "none", "java", "maven");
 
@@ -76,8 +76,8 @@ class CdWorkflowAssemblerTest {
                 + " for java/maven")
         void assemble_javaMaven_containsSetupJava(
                 @TempDir Path tempDir) throws Exception {
-            CdWorkflowAssembler assembler =
-                    new CdWorkflowAssembler();
+            CdWorkflowStep assembler =
+                    new CdWorkflowStep();
             CicdContext cicdCtx = buildContext(
                     tempDir, "docker", "java", "maven");
 
@@ -97,8 +97,8 @@ class CdWorkflowAssemblerTest {
                 + " step when container=docker")
         void assemble_docker_containsDockerStep(
                 @TempDir Path tempDir) throws Exception {
-            CdWorkflowAssembler assembler =
-                    new CdWorkflowAssembler();
+            CdWorkflowStep assembler =
+                    new CdWorkflowStep();
             CicdContext cicdCtx = buildContext(
                     tempDir, "docker", "java", "maven");
 
@@ -121,8 +121,8 @@ class CdWorkflowAssemblerTest {
         @DisplayName("generated when container=docker")
         void assemble_docker_generatesStagingYml(
                 @TempDir Path tempDir) {
-            CdWorkflowAssembler assembler =
-                    new CdWorkflowAssembler();
+            CdWorkflowStep assembler =
+                    new CdWorkflowStep();
             CicdContext cicdCtx = buildContext(
                     tempDir, "docker", "java", "maven");
 
@@ -140,8 +140,8 @@ class CdWorkflowAssemblerTest {
         @DisplayName("skipped when container=none")
         void assemble_noContainer_skipsStagingYml(
                 @TempDir Path tempDir) {
-            CdWorkflowAssembler assembler =
-                    new CdWorkflowAssembler();
+            CdWorkflowStep assembler =
+                    new CdWorkflowStep();
             CicdContext cicdCtx = buildContext(
                     tempDir, "none", "java", "maven");
 
@@ -161,8 +161,8 @@ class CdWorkflowAssemblerTest {
         @DisplayName("generated when container=docker")
         void assemble_docker_generatesProductionYml(
                 @TempDir Path tempDir) {
-            CdWorkflowAssembler assembler =
-                    new CdWorkflowAssembler();
+            CdWorkflowStep assembler =
+                    new CdWorkflowStep();
             CicdContext cicdCtx = buildContext(
                     tempDir, "docker", "java", "maven");
 
@@ -181,8 +181,8 @@ class CdWorkflowAssemblerTest {
         @DisplayName("contains workflow_dispatch trigger")
         void assemble_docker_hasWorkflowDispatch(
                 @TempDir Path tempDir) throws Exception {
-            CdWorkflowAssembler assembler =
-                    new CdWorkflowAssembler();
+            CdWorkflowStep assembler =
+                    new CdWorkflowStep();
             CicdContext cicdCtx = buildContext(
                     tempDir, "docker", "java", "maven");
 
@@ -201,8 +201,8 @@ class CdWorkflowAssemblerTest {
         @DisplayName("contains version input")
         void assemble_docker_hasVersionInput(
                 @TempDir Path tempDir) throws Exception {
-            CdWorkflowAssembler assembler =
-                    new CdWorkflowAssembler();
+            CdWorkflowStep assembler =
+                    new CdWorkflowStep();
             CicdContext cicdCtx = buildContext(
                     tempDir, "docker", "java", "maven");
 
@@ -220,8 +220,8 @@ class CdWorkflowAssemblerTest {
         @DisplayName("skipped when container=none")
         void assemble_noContainer_skipsProductionYml(
                 @TempDir Path tempDir) {
-            CdWorkflowAssembler assembler =
-                    new CdWorkflowAssembler();
+            CdWorkflowStep assembler =
+                    new CdWorkflowStep();
             CicdContext cicdCtx = buildContext(
                     tempDir, "none", "java", "maven");
 
@@ -241,8 +241,8 @@ class CdWorkflowAssemblerTest {
         @DisplayName("generated when container=docker")
         void assemble_docker_generatesRollbackYml(
                 @TempDir Path tempDir) {
-            CdWorkflowAssembler assembler =
-                    new CdWorkflowAssembler();
+            CdWorkflowStep assembler =
+                    new CdWorkflowStep();
             CicdContext cicdCtx = buildContext(
                     tempDir, "docker", "java", "maven");
 
@@ -260,8 +260,8 @@ class CdWorkflowAssemblerTest {
         @DisplayName("contains version input")
         void assemble_docker_hasVersionInput(
                 @TempDir Path tempDir) throws Exception {
-            CdWorkflowAssembler assembler =
-                    new CdWorkflowAssembler();
+            CdWorkflowStep assembler =
+                    new CdWorkflowStep();
             CicdContext cicdCtx = buildContext(
                     tempDir, "docker", "java", "maven");
 
@@ -278,8 +278,8 @@ class CdWorkflowAssemblerTest {
         @DisplayName("contains environment choices")
         void assemble_docker_hasEnvironmentChoices(
                 @TempDir Path tempDir) throws Exception {
-            CdWorkflowAssembler assembler =
-                    new CdWorkflowAssembler();
+            CdWorkflowStep assembler =
+                    new CdWorkflowStep();
             CicdContext cicdCtx = buildContext(
                     tempDir, "docker", "java", "maven");
 
@@ -298,8 +298,8 @@ class CdWorkflowAssemblerTest {
         @DisplayName("skipped when container=none")
         void assemble_noContainer_skipsRollbackYml(
                 @TempDir Path tempDir) {
-            CdWorkflowAssembler assembler =
-                    new CdWorkflowAssembler();
+            CdWorkflowStep assembler =
+                    new CdWorkflowStep();
             CicdContext cicdCtx = buildContext(
                     tempDir, "none", "java", "maven");
 
@@ -319,8 +319,8 @@ class CdWorkflowAssemblerTest {
         @DisplayName("staging triggers on develop only")
         void assemble_staging_triggersOnDevelop(
                 @TempDir Path tempDir) throws Exception {
-            CdWorkflowAssembler assembler =
-                    new CdWorkflowAssembler();
+            CdWorkflowStep assembler =
+                    new CdWorkflowStep();
             CicdContext cicdCtx = buildContext(
                     tempDir, "docker", "java", "maven");
 
@@ -341,8 +341,8 @@ class CdWorkflowAssemblerTest {
         @DisplayName("staging contains Git Flow comment")
         void assemble_staging_hasGitFlowComment(
                 @TempDir Path tempDir) throws Exception {
-            CdWorkflowAssembler assembler =
-                    new CdWorkflowAssembler();
+            CdWorkflowStep assembler =
+                    new CdWorkflowStep();
             CicdContext cicdCtx = buildContext(
                     tempDir, "docker", "java", "maven");
 
@@ -362,8 +362,8 @@ class CdWorkflowAssemblerTest {
                 + " and version tags")
         void assemble_production_triggersOnMainAndTags(
                 @TempDir Path tempDir) throws Exception {
-            CdWorkflowAssembler assembler =
-                    new CdWorkflowAssembler();
+            CdWorkflowStep assembler =
+                    new CdWorkflowStep();
             CicdContext cicdCtx = buildContext(
                     tempDir, "docker", "java", "maven");
 
@@ -385,8 +385,8 @@ class CdWorkflowAssemblerTest {
                 + " comment")
         void assemble_production_hasGitFlowComment(
                 @TempDir Path tempDir) throws Exception {
-            CdWorkflowAssembler assembler =
-                    new CdWorkflowAssembler();
+            CdWorkflowStep assembler =
+                    new CdWorkflowStep();
             CicdContext cicdCtx = buildContext(
                     tempDir, "docker", "java", "maven");
 
@@ -406,8 +406,8 @@ class CdWorkflowAssemblerTest {
                 + " on develop")
         void assemble_production_excludesDevelop(
                 @TempDir Path tempDir) throws Exception {
-            CdWorkflowAssembler assembler =
-                    new CdWorkflowAssembler();
+            CdWorkflowStep assembler =
+                    new CdWorkflowStep();
             CicdContext cicdCtx = buildContext(
                     tempDir, "docker", "java", "maven");
 
@@ -444,8 +444,8 @@ class CdWorkflowAssemblerTest {
                 + " container=docker")
         void assemble_docker_generatesFourFiles(
                 @TempDir Path tempDir) {
-            CdWorkflowAssembler assembler =
-                    new CdWorkflowAssembler();
+            CdWorkflowStep assembler =
+                    new CdWorkflowStep();
             CicdContext cicdCtx = buildContext(
                     tempDir, "docker", "java", "maven");
 
@@ -459,8 +459,8 @@ class CdWorkflowAssemblerTest {
                 + " container=none")
         void assemble_noContainer_generatesOneFile(
                 @TempDir Path tempDir) {
-            CdWorkflowAssembler assembler =
-                    new CdWorkflowAssembler();
+            CdWorkflowStep assembler =
+                    new CdWorkflowStep();
             CicdContext cicdCtx = buildContext(
                     tempDir, "none", "java", "maven");
 

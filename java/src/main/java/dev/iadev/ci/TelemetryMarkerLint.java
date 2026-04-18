@@ -108,54 +108,15 @@ public final class TelemetryMarkerLint {
         Path file = null;
         for (Marker marker : markers) {
             file = marker.file();
-            String key = marker.skill() + "::" + marker.phase();
-            String kind = marker.kind();
-
-            if ("start".equals(kind)) {
-                if (openStart.containsKey(key)) {
-                    findings.add(new Finding(
-                            marker.file(),
-                            marker.line(),
-                            FindingType.DUPLICATE_START,
-                            marker.skill(),
-                            marker.phase(),
-                            "Consecutive phase.start without"
-                                    + " a matching phase.end"));
-                } else {
-                    openStart.put(key, marker.line());
-                }
-                lastKind.put(key, kind);
-                continue;
-            }
-
-            // kind == "end"
-            if (!openStart.containsKey(key)) {
-                if ("end".equals(lastKind.get(key))) {
-                    findings.add(new Finding(
-                            marker.file(),
-                            marker.line(),
-                            FindingType.DUPLICATE_END,
-                            marker.skill(),
-                            marker.phase(),
-                            "Consecutive phase.end without"
-                                    + " a matching phase.start"));
-                } else {
-                    findings.add(new Finding(
-                            marker.file(),
-                            marker.line(),
-                            FindingType.DANGLING_END,
-                            marker.skill(),
-                            marker.phase(),
-                            "phase.end with no preceding"
-                                    + " phase.start"));
-                }
-            } else {
-                openStart.remove(key);
-            }
-            lastKind.put(key, kind);
+            handleMarker(marker, openStart, lastKind, findings);
         }
+        reportUnclosedStarts(file, openStart, findings);
+    }
 
-        // Any remaining open starts are UNCLOSED.
+    private static void reportUnclosedStarts(
+            Path file,
+            java.util.Map<String, Integer> openStart,
+            List<Finding> findings) {
         for (var entry : openStart.entrySet()) {
             String[] parts = entry.getKey().split("::", 2);
             findings.add(new Finding(
@@ -167,6 +128,55 @@ public final class TelemetryMarkerLint {
                     "phase.start with no matching phase.end"
                             + " before end of file"));
         }
+    }
+
+    private static void handleMarker(
+            Marker marker,
+            java.util.Map<String, Integer> openStart,
+            java.util.Map<String, String> lastKind,
+            List<Finding> findings) {
+        String key = marker.skill() + "::" + marker.phase();
+        String kind = marker.kind();
+
+        if ("start".equals(kind)) {
+            if (openStart.containsKey(key)) {
+                findings.add(new Finding(
+                        marker.file(),
+                        marker.line(),
+                        FindingType.DUPLICATE_START,
+                        marker.skill(),
+                        marker.phase(),
+                        "Consecutive phase.start without"
+                                + " a matching phase.end"));
+            } else {
+                openStart.put(key, marker.line());
+            }
+            lastKind.put(key, kind);
+            return;
+        }
+
+        // kind == "end"
+        if (!openStart.containsKey(key)) {
+            FindingType endType =
+                    "end".equals(lastKind.get(key))
+                            ? FindingType.DUPLICATE_END
+                            : FindingType.DANGLING_END;
+            String message = endType == FindingType.DUPLICATE_END
+                    ? "Consecutive phase.end without"
+                            + " a matching phase.start"
+                    : "phase.end with no preceding"
+                            + " phase.start";
+            findings.add(new Finding(
+                    marker.file(),
+                    marker.line(),
+                    endType,
+                    marker.skill(),
+                    marker.phase(),
+                    message));
+        } else {
+            openStart.remove(key);
+        }
+        lastKind.put(key, kind);
     }
 
     /** Kind of violation reported by the linter. */

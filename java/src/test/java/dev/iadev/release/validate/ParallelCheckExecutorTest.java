@@ -220,6 +220,12 @@ final class ParallelCheckExecutorTest {
                 .isEqualTo("IllegalStateException");
     }
 
+    // intentional workload simulation for timing test; not a sync
+    // primitive. Used by `execute_wallClockLowerThanSumOfDurations_
+    // whenParallel` to verify that N slow checks run concurrently
+    // rather than serially. The sleep models per-check latency so the
+    // wall-clock vs sum-of-durations inequality is observable; there
+    // is no shared state to await on.
     private static void sleepMillis(long millis) {
         try {
             Thread.sleep(millis);

@@ -14,7 +14,7 @@ import java.util.Optional;
  *
  * @see CicdAssembler
  */
-final class K8sManifestAssembler {
+final class K8sManifestStep {
 
     private static final String CICD_TEMPLATES =
             "shared/cicd-templates";

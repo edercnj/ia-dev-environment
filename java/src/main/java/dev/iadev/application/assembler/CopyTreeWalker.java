@@ -12,7 +12,8 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * File tree walking operations for copying and
@@ -24,6 +25,9 @@ import java.util.stream.Stream;
  * @see CopyHelpers
  */
 public final class CopyTreeWalker {
+
+    private static final Logger LOG =
+            Logger.getLogger(CopyTreeWalker.class.getName());
 
     private CopyTreeWalker() {
         // utility class
@@ -85,32 +89,55 @@ public final class CopyTreeWalker {
      * <p>Only regular files are included; subdirectories
      * whose names end in {@code .md} are excluded.</p>
      *
+     * <p>Missing or non-directory input paths yield an empty
+     * list (no exception) per
+     * {@link MarkdownFileScanner#listMarkdownFilesSorted(Path)}
+     * contract, to make codegen resilient to absent
+     * optional directories.</p>
+     *
      * @param dir directory to scan
      * @return sorted list of .md file paths; empty list
-     *         if directory contains no .md files
-     * @throws UncheckedIOException if I/O fails
+     *         if directory is missing, is not a directory, or
+     *         contains no .md files
+     * @throws UncheckedIOException if listing fails for
+     *         reasons other than absence
+     * @deprecated call
+     *         {@link MarkdownFileScanner#listMarkdownFilesSorted(Path)}
+     *         directly
      */
+    @Deprecated
     public static List<Path> listMdFilesSorted(Path dir) {
-        try (Stream<Path> stream = Files.list(dir)) {
-            return stream
-                    .filter(f -> f.toString()
-                            .endsWith(".md"))
-                    .filter(Files::isRegularFile)
-                    .sorted()
-                    .toList();
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to list directory: %s"
-                            .formatted(dir), e);
-        }
+        return MarkdownFileScanner
+                .listMarkdownFilesSorted(dir);
     }
 
     /**
-     * Deletes a file or directory without throwing
+     * Deletes a file or directory without propagating
      * exceptions. For directories, deletes recursively.
      *
+     * <p>This method is intended for cleanup / rollback
+     * paths (e.g., {@code finally} blocks after a failed
+     * copy, shutdown hooks, {@code --dry-run} teardown)
+     * where raising an exception would obscure the real
+     * failure or prevent orderly shutdown. The
+     * {@code "Quietly"} suffix signals this contract:
+     * callers accept that a failed deletion is observable
+     * only via the return value.</p>
+     *
+     * <p>Quiet does NOT mean silent: I/O failures
+     * ({@link IOException} and its subtypes, including
+     * {@code AccessDeniedException}) are logged at
+     * {@link Level#WARNING} via
+     * {@link java.util.logging.Logger} so operators can
+     * diagnose leaked temp files or permission problems
+     * in ops telemetry. Only the exception is suppressed
+     * — never the signal.</p>
+     *
      * @param path path to delete
-     * @return true if deleted successfully, false otherwise
+     * @return {@code true} if the path existed and was
+     *         deleted successfully; {@code false} if the
+     *         path did not exist or if deletion failed
+     *         (in the latter case, a WARNING is logged)
      */
     public static boolean deleteQuietly(Path path) {
         try {
@@ -124,6 +151,10 @@ public final class CopyTreeWalker {
             }
             return true;
         } catch (IOException e) {
+            LOG.log(Level.WARNING,
+                    e,
+                    () -> "deleteQuietly failed for path: "
+                            + path);
             return false;
         }
     }

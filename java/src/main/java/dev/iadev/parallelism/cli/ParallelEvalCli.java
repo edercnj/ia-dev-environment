@@ -86,7 +86,10 @@ public final class ParallelEvalCli implements Callable<Integer> {
                 new ParallelismEvaluator(
                         new dev.iadev.parallelism
                                 .CollisionDetector(),
-                        includeSoft);
+                        dev.iadev.parallelism
+                                .CollisionPolicy
+                                .fromIncludeSoftFlag(
+                                        includeSoft));
         Report report;
         String scopeLabel;
         switch (scope) {
@@ -154,7 +157,11 @@ public final class ParallelEvalCli implements Callable<Integer> {
         java.util.List<dev.iadev.parallelism.Collision>
                 collisions = new java.util.ArrayList<>();
         new dev.iadev.parallelism.CollisionDetector()
-                .detect(taskA, fpA, taskB, fpB, includeSoft)
+                .detect(taskA, fpA, taskB, fpB,
+                        dev.iadev.parallelism
+                                .CollisionPolicy
+                                .fromIncludeSoftFlag(
+                                        includeSoft))
                 .ifPresent(collisions::add);
         java.util.List<String> warnings =
                 new java.util.ArrayList<>();

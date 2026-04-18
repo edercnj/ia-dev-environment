@@ -88,7 +88,10 @@ class HooksSmokeIT {
                         + "\"tool_use_id\":\"use-1\"}",
                 projectDir, tmpDir);
 
-        Thread.sleep(50);
+        // No sleep needed here: the downstream assertion on durationMs
+        // (line ~144) accepts `isGreaterThanOrEqualTo(0)`, so a zero
+        // diff between pretool/posttool is valid. Removed a 50 ms
+        // Thread.sleep that violated Rule 05 (no sleep for async sync).
 
         runHook("telemetry-posttool.sh",
                 "{\"session_id\":\"sess-abc\","

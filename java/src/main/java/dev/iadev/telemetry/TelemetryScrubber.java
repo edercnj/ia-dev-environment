@@ -4,6 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -144,11 +145,14 @@ public final class TelemetryScrubber {
     }
 
     private TelemetryEvent scrubUnchecked(TelemetryEvent event) {
-        String scrubbedFailure = scrubString(
-                event.failureReason());
-        String scrubbedPhase = scrubString(event.phase());
-        String scrubbedTool = scrubString(event.tool());
-        String scrubbedSkill = scrubString(event.skill());
+        String scrubbedFailure = scrubNullable(
+                event.failureReason()).orElse(null);
+        String scrubbedPhase = scrubNullable(
+                event.phase()).orElse(null);
+        String scrubbedTool = scrubNullable(
+                event.tool()).orElse(null);
+        String scrubbedSkill = scrubNullable(
+                event.skill()).orElse(null);
         Map<String, Object> scrubbedMetadata =
                 scrubMetadata(event.metadata());
 
@@ -173,19 +177,40 @@ public final class TelemetryScrubber {
     /**
      * Applies every rule to {@code value} in order.
      *
-     * @param value the text to scrub; may be null
-     * @return scrubbed text, or {@code null} when {@code value}
-     *         is null
+     * <p>Callers that need to scrub nullable record fields
+     * (e.g., {@link TelemetryEvent#failureReason()}) MUST use
+     * {@link #scrubNullable(String)} instead — this overload
+     * rejects null input per Rule 03 (never return null).</p>
+     *
+     * @param value the text to scrub; must not be null
+     * @return the scrubbed text
+     * @throws NullPointerException when {@code value} is null
      */
     public String scrubString(String value) {
-        if (value == null) {
-            return null;
-        }
+        Objects.requireNonNull(value, "value");
         String current = value;
         for (ScrubRule rule : rules) {
             current = rule.apply(current);
         }
         return current;
+    }
+
+    /**
+     * Optional-returning overload for callers that feed nullable
+     * sources (record fields, map values, etc.). Delegates to
+     * {@link #scrubString(String)} for the non-null case and
+     * returns {@link Optional#empty()} when {@code value} is
+     * null.
+     *
+     * @param value the text to scrub; may be null
+     * @return an {@link Optional} holding the scrubbed text, or
+     *         empty when {@code value} is null
+     */
+    public Optional<String> scrubNullable(String value) {
+        if (value == null) {
+            return Optional.empty();
+        }
+        return Optional.of(scrubString(value));
     }
 
     private Map<String, Object> scrubMetadata(
@@ -205,7 +230,7 @@ public final class TelemetryScrubber {
             }
             Object value = entry.getValue();
             if (value instanceof String s) {
-                out.put(key, scrubString(s));
+                out.put(key, scrubNullable(s).orElse(null));
             } else {
                 out.put(key, value);
             }

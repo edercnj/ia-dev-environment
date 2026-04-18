@@ -218,7 +218,10 @@ class PebbleTemplateRendererTest {
             String result = renderer.render(
                     "templates/simple.md.j2", Map.of());
 
-            assertThat(result).isNotNull();
+            assertThat(result)
+                    .contains("#")
+                    .doesNotContain("{{")
+                    .doesNotContain("}}");
         }
 
         @Test

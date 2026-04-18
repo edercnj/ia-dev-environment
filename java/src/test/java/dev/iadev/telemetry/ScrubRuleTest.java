@@ -13,7 +13,8 @@ import org.junit.jupiter.api.Test;
  * Unit tests for {@link ScrubRule} covering the canonical
  * constructor contract, the {@link ScrubRule#of(String,
  * String, String)} factory, and {@link ScrubRule#apply(String)}
- * including the null-pass-through case.
+ * including the null-rejection contract (Rule 03 — never return
+ * null).
  */
 @DisplayName("ScrubRule")
 class ScrubRuleTest {
@@ -104,12 +105,16 @@ class ScrubRuleTest {
     class Apply {
 
         @Test
-        @DisplayName("returns null when input is null")
-        void null_input_returnsNull() {
+        @DisplayName("throws NPE when input is null (Rule 03"
+                + " — never return null)")
+        void null_input_throwsNpe() {
             ScrubRule rule = ScrubRule.of(
                     "cat", "secret", "REDACTED");
 
-            assertThat(rule.apply(null)).isNull();
+            assertThatThrownBy(() -> rule.apply(null))
+                    .isInstanceOf(
+                            NullPointerException.class)
+                    .hasMessageContaining("input");
         }
 
         @Test

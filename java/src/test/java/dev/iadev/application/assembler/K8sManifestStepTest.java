@@ -19,11 +19,11 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for K8sManifestAssembler — generates Kubernetes
+ * Tests for K8sManifestStep — generates Kubernetes
  * manifests conditionally.
  */
-@DisplayName("K8sManifestAssembler")
-class K8sManifestAssemblerTest {
+@DisplayName("K8sManifestStep")
+class K8sManifestStepTest {
 
     @Nested
     @DisplayName("assemble — orchestrator=kubernetes")
@@ -33,8 +33,8 @@ class K8sManifestAssemblerTest {
         @DisplayName("generates 3 K8s manifests")
         void assemble_k8s_generatesManifests(
                 @TempDir Path tempDir) {
-            K8sManifestAssembler assembler =
-                    new K8sManifestAssembler();
+            K8sManifestStep assembler =
+                    new K8sManifestStep();
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .container("docker")
@@ -63,8 +63,8 @@ class K8sManifestAssemblerTest {
         @DisplayName("K8s files exist on disk")
         void assemble_k8s_filesExist(
                 @TempDir Path tempDir) {
-            K8sManifestAssembler assembler =
-                    new K8sManifestAssembler();
+            K8sManifestStep assembler =
+                    new K8sManifestStep();
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .container("docker")
@@ -95,8 +95,8 @@ class K8sManifestAssemblerTest {
                 + " orchestrator=none")
         void assemble_none_skipsManifests(
                 @TempDir Path tempDir) {
-            K8sManifestAssembler assembler =
-                    new K8sManifestAssembler();
+            K8sManifestStep assembler =
+                    new K8sManifestStep();
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .orchestrator("none")
@@ -123,8 +123,8 @@ class K8sManifestAssemblerTest {
                 + " EventStoreDB when style=cqrs")
         void assemble_cqrsK8s_generatesStatefulSet(
                 @TempDir Path tempDir) {
-            K8sManifestAssembler assembler =
-                    new K8sManifestAssembler();
+            K8sManifestStep assembler =
+                    new K8sManifestStep();
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .container("docker")
@@ -150,8 +150,8 @@ class K8sManifestAssemblerTest {
         void assemble_cqrsK8s_hasVolumeClaimTemplate(
                 @TempDir Path tempDir)
                 throws Exception {
-            K8sManifestAssembler assembler =
-                    new K8sManifestAssembler();
+            K8sManifestStep assembler =
+                    new K8sManifestStep();
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .container("docker")
@@ -183,8 +183,8 @@ class K8sManifestAssemblerTest {
                 + " not cqrs")
         void assemble_notCqrsK8s_noStatefulSet(
                 @TempDir Path tempDir) {
-            K8sManifestAssembler assembler =
-                    new K8sManifestAssembler();
+            K8sManifestStep assembler =
+                    new K8sManifestStep();
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .container("docker")

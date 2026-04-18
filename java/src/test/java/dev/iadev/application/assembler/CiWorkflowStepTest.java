@@ -19,11 +19,11 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for CiWorkflowAssembler — generates CI workflow
+ * Tests for CiWorkflowStep — generates CI workflow
  * artifacts.
  */
-@DisplayName("CiWorkflowAssembler")
-class CiWorkflowAssemblerTest {
+@DisplayName("CiWorkflowStep")
+class CiWorkflowStepTest {
 
     @Nested
     @DisplayName("assemble — always generates ci.yml")
@@ -33,8 +33,8 @@ class CiWorkflowAssemblerTest {
         @DisplayName("generates ci.yml in"
                 + " .github/workflows")
         void assemble_whenCalled_generatesCiYml(@TempDir Path tempDir) {
-            CiWorkflowAssembler assembler =
-                    new CiWorkflowAssembler();
+            CiWorkflowStep assembler =
+                    new CiWorkflowStep();
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .container("none")
@@ -59,8 +59,8 @@ class CiWorkflowAssemblerTest {
         @Test
         @DisplayName("ci.yml file exists on disk")
         void assemble_whenCalled_ciYmlExistsOnDisk(@TempDir Path tempDir) {
-            CiWorkflowAssembler assembler =
-                    new CiWorkflowAssembler();
+            CiWorkflowStep assembler =
+                    new CiWorkflowStep();
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .language("java", "21")
@@ -90,8 +90,8 @@ class CiWorkflowAssemblerTest {
                 + " release/**, hotfix/**")
         void assemble_gitFlow_pushTriggersMultiBranch(
                 @TempDir Path tempDir) throws Exception {
-            CiWorkflowAssembler assembler =
-                    new CiWorkflowAssembler();
+            CiWorkflowStep assembler =
+                    new CiWorkflowStep();
             CicdContext cicdCtx = buildFullContext(
                     tempDir, "java", "maven");
 
@@ -111,8 +111,8 @@ class CiWorkflowAssemblerTest {
         @DisplayName("push triggers do not include main")
         void assemble_gitFlow_pushExcludesMain(
                 @TempDir Path tempDir) throws Exception {
-            CiWorkflowAssembler assembler =
-                    new CiWorkflowAssembler();
+            CiWorkflowStep assembler =
+                    new CiWorkflowStep();
             CicdContext cicdCtx = buildFullContext(
                     tempDir, "java", "maven");
 
@@ -133,8 +133,8 @@ class CiWorkflowAssemblerTest {
                 + " main")
         void assemble_gitFlow_prTriggersBothBranches(
                 @TempDir Path tempDir) throws Exception {
-            CiWorkflowAssembler assembler =
-                    new CiWorkflowAssembler();
+            CiWorkflowStep assembler =
+                    new CiWorkflowStep();
             CicdContext cicdCtx = buildFullContext(
                     tempDir, "java", "maven");
 
@@ -155,8 +155,8 @@ class CiWorkflowAssemblerTest {
         @DisplayName("contains Git Flow YAML comment")
         void assemble_gitFlow_containsComment(
                 @TempDir Path tempDir) throws Exception {
-            CiWorkflowAssembler assembler =
-                    new CiWorkflowAssembler();
+            CiWorkflowStep assembler =
+                    new CiWorkflowStep();
             CicdContext cicdCtx = buildFullContext(
                     tempDir, "java", "maven");
 

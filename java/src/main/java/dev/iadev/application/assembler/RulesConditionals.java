@@ -3,8 +3,6 @@ package dev.iadev.application.assembler;
 import dev.iadev.domain.model.ProjectConfig;
 import dev.iadev.domain.stack.DatabaseSettingsMapping;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -173,30 +171,15 @@ public final class RulesConditionals {
 
     static List<String> copyMdDir(
             Path sourceDir, Path target) {
-        if (!Files.exists(sourceDir)
-                || !Files.isDirectory(sourceDir)) {
-            return List.of();
-        }
+        List<Path> entries = MarkdownFileScanner
+                .listMarkdownFilesSorted(sourceDir);
         List<String> generated = new ArrayList<>();
-        try (var stream = Files.list(sourceDir)) {
-            List<Path> entries = stream
-                    .filter(f -> f.toString().endsWith(".md"))
-                    .sorted()
-                    .toList();
-            for (Path entry : entries) {
-                if (!Files.isRegularFile(entry)) {
-                    continue;
-                }
-                Path dest = target.resolve(
-                        entry.getFileName().toString());
-                generated.add(
-                        CopyHelpers.copyStaticFile(
-                                entry, dest));
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to list directory: "
-                            + sourceDir, e);
+        for (Path entry : entries) {
+            Path dest = target.resolve(
+                    entry.getFileName().toString());
+            generated.add(
+                    CopyHelpers.copyStaticFile(
+                            entry, dest));
         }
         return generated;
     }

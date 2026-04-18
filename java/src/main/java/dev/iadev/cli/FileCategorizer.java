@@ -1,5 +1,9 @@
 package dev.iadev.cli;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.Predicate;
+
 /**
  * Categorizes file paths into display categories based on
  * path prefixes.
@@ -10,6 +14,15 @@ package dev.iadev.cli;
  * @see CliDisplay
  */
 final class FileCategorizer {
+
+    /**
+     * Ordered rule table mapping path predicates to their
+     * display category. Iterated in insertion order so the
+     * first matching predicate wins — matching the original
+     * if/else ladder semantics.
+     */
+    private static final Map<Predicate<String>, String>
+            CATEGORY_RULES = buildCategoryRules();
 
     private FileCategorizer() {
         // utility class
@@ -33,55 +46,41 @@ final class FileCategorizer {
      * @return the category name
      */
     static String categorize(String path) {
-        if (path.startsWith(".claude/rules/")) {
-            return "Rules";
-        }
-        if (path.startsWith(".claude/skills/")) {
-            return "Skills";
-        }
-        if (path.startsWith(".claude/agents/")) {
-            return "Agents";
-        }
-        if (path.startsWith(".claude/hooks/")) {
-            return "Hooks";
-        }
-        if (path.startsWith(".claude/settings")) {
-            return "Settings";
-        }
-        if (path.startsWith("steering/")) {
-            return "Steering";
-        }
-        if (path.startsWith("specs/")) {
-            return "Specs";
-        }
-        if (path.startsWith("results/")) {
-            return "Results";
-        }
-        if (path.startsWith("contracts/")) {
-            return "Contracts";
-        }
-        if (path.startsWith("adr/")) {
-            return "ADR";
-        }
-        if (path.startsWith("plans/")) {
-            return "Plans";
-        }
-        if (path.startsWith("k8s/")) {
-            return "Kubernetes";
-        }
-        if (path.startsWith("tests/")) {
-            return "Tests";
-        }
-        if (path.startsWith(".claude/templates/")) {
-            return "Templates";
-        }
-        if (isRootFile(path)) {
-            return "Root Files";
-        }
-        if (isInfraFile(path)) {
-            return "Infrastructure";
+        for (Map.Entry<Predicate<String>, String> entry
+                : CATEGORY_RULES.entrySet()) {
+            if (entry.getKey().test(path)) {
+                return entry.getValue();
+            }
         }
         return "Other";
+    }
+
+    private static Map<Predicate<String>, String>
+            buildCategoryRules() {
+        Map<Predicate<String>, String> rules =
+                new LinkedHashMap<>();
+        rules.put(prefix(".claude/rules/"), "Rules");
+        rules.put(prefix(".claude/skills/"), "Skills");
+        rules.put(prefix(".claude/agents/"), "Agents");
+        rules.put(prefix(".claude/hooks/"), "Hooks");
+        rules.put(prefix(".claude/settings"), "Settings");
+        rules.put(prefix("steering/"), "Steering");
+        rules.put(prefix("specs/"), "Specs");
+        rules.put(prefix("results/"), "Results");
+        rules.put(prefix("contracts/"), "Contracts");
+        rules.put(prefix("adr/"), "ADR");
+        rules.put(prefix("plans/"), "Plans");
+        rules.put(prefix("k8s/"), "Kubernetes");
+        rules.put(prefix("tests/"), "Tests");
+        rules.put(prefix(".claude/templates/"), "Templates");
+        rules.put(FileCategorizer::isRootFile, "Root Files");
+        rules.put(FileCategorizer::isInfraFile,
+                "Infrastructure");
+        return rules;
+    }
+
+    private static Predicate<String> prefix(String p) {
+        return path -> path.startsWith(p);
     }
 
     private static boolean isRootFile(String path) {

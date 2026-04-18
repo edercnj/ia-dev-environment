@@ -421,16 +421,16 @@ class CopyHelpersTest {
         }
 
         @Test
-        @DisplayName("throws UncheckedIOException for"
-                + " nonexistent directory")
-        void listMdFilesSorted_noDir_throwsUncheckedIO(
+        @DisplayName("returns empty list for nonexistent"
+                + " directory")
+        void listMdFilesSorted_noDir_returnsEmpty(
                 @TempDir Path tempDir) {
             Path noSuch = tempDir.resolve("nonexistent");
 
-            assertThatThrownBy(
-                    () -> CopyHelpers
-                            .listMdFilesSorted(noSuch))
-                    .isInstanceOf(UncheckedIOException.class);
+            List<Path> result =
+                    CopyHelpers.listMdFilesSorted(noSuch);
+
+            assertThat(result).isEmpty();
         }
     }
 

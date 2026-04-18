@@ -44,6 +44,17 @@
 ### SOLID / parameter object
 - [M-008] `checkpoint/ExecutionState.java:96` — record with **12 params**. Group `metrics`, `parallelism`, `stories` into sub-records.
 - [M-009] `telemetry/TelemetryEvent.java:49` — record with **16 params**. Group into `Identity`/`Timing`/`Metadata`.
+
+> **Closed via ADR-0009** (2026-04-17): both M-008 and M-009 accepted as
+> intentional exemptions from Rule 03's ≤ 4-parameter constraint. Both
+> records are bound to committed external file schemas (Rule 19 for
+> `ExecutionState`'s legacy epic-state JSON; Rule 20 + NDJSON + fuzz corpus
+> for `TelemetryEvent`), and Jackson's `@JsonUnwrapped` does not round-trip
+> cleanly on records (jackson-databind #1467) — custom serializer pairs
+> would be a bigger anti-pattern than the wide constructor. See
+> `adr/ADR-0009-wide-records-bound-to-external-schemas.md` for the
+> enumerated exemption scope and the field-addition process.
+
 - [M-010] `cli/ProjectSummary.java:28` — record with **12 params**.
 - [M-011] Boolean flag parameters (Rule 03 forbidden): `ParallelismEvaluator.java:61`, `CollisionDetector.java:64`, `FileTreeWalker.java:157`, `ConfigSourceLoader.java:38-89`. Replace with enum/strategy or split methods.
 - [M-012] `domain/scopeassessment/ScopeAssessmentEngine.java:73-152` — three boolean flags threaded through 4 methods. Introduce `AssessmentFlags` record.
@@ -91,6 +102,11 @@
 - [L-010] Three writer classes for telemetry NDJSON (`telemetry/TelemetryWriter`, `release/telemetry/ReleaseTelemetryWriter`, `infrastructure/adapter/output/telemetry/FileTelemetryWriter`). Verify no scrubber bypass (Rule 20) and consider consolidation.
 - [L-011] `application/assembler/AgentInfo.java` — orphan candidate (no incoming references in main/test). Verify not reflection-loaded before deletion.
 - [L-012] Naming collision risk: `dev.iadev.telemetry.*` (flat CLI + scrubber) vs `dev.iadev.domain.telemetry.*`.
+
+> **Closed via ADR-0008 amendment** (2026-04-17): the two telemetry
+> packages serve distinct domains (execution events vs release-phase
+> benchmarks). Rename would be less accurate. See ADR-0008
+> "Naming — Two Telemetry Packages".
 
 ---
 

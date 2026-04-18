@@ -36,70 +36,71 @@ final class VerbosePipelineRunner {
      * Runs the pipeline in verbose mode with platform
      * filter awareness.
      *
-     * @param config     the project configuration
-     * @param destPath   the output directory
-     * @param options    pipeline options
-     * @param assemblers the filtered assembler descriptors
-     * @param all        the complete assembler descriptors
-     * @param out        the print writer for output
+     * @param config   the project configuration
+     * @param destPath the output directory
+     * @param ctx      pipeline run context (options +
+     *                 filtered/all assembler descriptors)
+     * @param out      the print writer for output
      * @return the pipeline result
      */
     static PipelineResult runVerbose(
-            ProjectConfig config,
-            Path destPath,
-            PipelineOptions options,
-            List<AssemblerDescriptor> assemblers,
-            List<AssemblerDescriptor> all,
-            PrintWriter out) {
+            ProjectConfig config, Path destPath,
+            VerboseRunContext ctx, PrintWriter out) {
+        PipelineOptions options = ctx.options();
+        List<AssemblerDescriptor> assemblers = ctx.assemblers();
         printFilterHeader(options.platforms(),
-                assemblers, all, out);
-        printIncludedAndSkipped(assemblers, all, out);
+                assemblers, ctx.all(), out);
+        printIncludedAndSkipped(assemblers, ctx.all(), out);
 
         long start = System.nanoTime();
-
-        AssemblerPipeline pipeline =
-                new AssemblerPipeline(assemblers);
         Map<String, AssemblerResult> perAssembler =
-                pipeline.runPipelinePerAssembler(
-                        config, destPath, options);
-
+                new AssemblerPipeline(assemblers)
+                        .runPipelinePerAssembler(
+                                config, destPath, options);
         long durationMs =
                 (System.nanoTime() - start) / 1_000_000;
-
         List<String> allFiles = new ArrayList<>();
-        List<String> allWarnings = new ArrayList<>();
-        int assemblerCount = perAssembler.size();
-        long avgDuration = assemblerCount > 0
-                ? durationMs / assemblerCount : 0;
+        List<String> allWarnings = collectResults(
+                perAssembler, durationMs, allFiles, out);
+        appendDryRunWarning(options,
+                assemblers.size(), allWarnings);
+        return new PipelineResult(true,
+                destPath.toString(),
+                allFiles, allWarnings, durationMs);
+    }
 
+    private static List<String> collectResults(
+            Map<String, AssemblerResult> perAssembler,
+            long durationMs,
+            List<String> allFiles,
+            PrintWriter out) {
+        List<String> allWarnings = new ArrayList<>();
+        int count = perAssembler.size();
+        long avg = count > 0 ? durationMs / count : 0;
         for (Map.Entry<String, AssemblerResult> entry
                 : perAssembler.entrySet()) {
             AssemblerResult result = entry.getValue();
             allFiles.addAll(result.files());
             allWarnings.addAll(result.warnings());
-
             out.println(
                     CliDisplay.formatAssemblerVerbose(
                             entry.getKey(),
-                            result.files().size(),
-                            avgDuration));
+                            result.files().size(), avg));
         }
+        return allWarnings;
+    }
 
+    private static void appendDryRunWarning(
+            PipelineOptions options,
+            int assemblersSize,
+            List<String> allWarnings) {
         if (options.dryRun()) {
-            String dryRunWarning =
+            allWarnings.add(
                     PlatformVerboseFormatter
                             .formatDryRunWarning(
                                     options.platforms(),
-                                    assemblers.size());
-            allWarnings.add(dryRunWarning);
+                                    assemblersSize));
         }
-
-        return new PipelineResult(
-                true,
-                destPath.toString(),
-                allFiles,
-                allWarnings,
-                durationMs);
     }
 
     private static void printFilterHeader(

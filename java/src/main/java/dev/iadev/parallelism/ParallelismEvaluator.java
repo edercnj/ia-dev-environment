@@ -50,18 +50,20 @@ public final class ParallelismEvaluator {
                     "^##\\s+1\\.?\\s*Depend[eê]ncias\\s*$");
 
     private final CollisionDetector detector;
-    private final boolean includeSoft;
+    private final CollisionPolicy policy;
 
     public ParallelismEvaluator() {
-        this(new CollisionDetector(), false);
+        this(new CollisionDetector(),
+                CollisionPolicy.EXCLUDE_SOFT);
     }
 
     public ParallelismEvaluator(
             CollisionDetector detector,
-            boolean includeSoft) {
+            CollisionPolicy policy) {
         this.detector = Objects.requireNonNull(
                 detector, "detector");
-        this.includeSoft = includeSoft;
+        this.policy = Objects.requireNonNull(
+                policy, "policy");
     }
 
     /** Immutable result of an evaluation invocation. */
@@ -156,7 +158,7 @@ public final class ParallelismEvaluator {
                     detector.detect(
                                     a, stories.get(a).footprint,
                                     b, stories.get(b).footprint,
-                                    includeSoft)
+                                    policy)
                             .ifPresent(collisions::add);
                 }
             }
@@ -205,7 +207,7 @@ public final class ParallelismEvaluator {
             warnings.add("footprint missing for " + idB);
         }
         detector.detect(idA, a.footprint,
-                        idB, b.footprint, includeSoft)
+                        idB, b.footprint, policy)
                 .ifPresent(collisions::add);
         Map<String, List<String>> hotspotTouches =
                 collectHotspotTouches(Map.of(idA, a, idB, b));
@@ -415,6 +417,6 @@ public final class ParallelismEvaluator {
             String idA, FileFootprint fpA,
             String idB, FileFootprint fpB) {
         return detector.detect(
-                idA, fpA, idB, fpB, includeSoft);
+                idA, fpA, idB, fpB, policy);
     }
 }

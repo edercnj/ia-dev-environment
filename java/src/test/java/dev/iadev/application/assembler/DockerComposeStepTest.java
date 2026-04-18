@@ -19,11 +19,11 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for DockerComposeAssembler — generates
+ * Tests for DockerComposeStep — generates
  * docker-compose.yml conditionally.
  */
-@DisplayName("DockerComposeAssembler")
-class DockerComposeAssemblerTest {
+@DisplayName("DockerComposeStep")
+class DockerComposeStepTest {
 
     @Nested
     @DisplayName("assemble — container=docker")
@@ -33,8 +33,8 @@ class DockerComposeAssemblerTest {
         @DisplayName("generates docker-compose.yml")
         void assemble_containerDocker_generatesFile(
                 @TempDir Path tempDir) {
-            DockerComposeAssembler assembler =
-                    new DockerComposeAssembler();
+            DockerComposeStep assembler =
+                    new DockerComposeStep();
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .container("docker")
@@ -57,8 +57,8 @@ class DockerComposeAssemblerTest {
         @DisplayName("docker-compose.yml exists on disk")
         void assemble_containerDocker_fileExists(
                 @TempDir Path tempDir) {
-            DockerComposeAssembler assembler =
-                    new DockerComposeAssembler();
+            DockerComposeStep assembler =
+                    new DockerComposeStep();
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .container("docker")
@@ -85,8 +85,8 @@ class DockerComposeAssemblerTest {
                 + " container=none")
         void assemble_containerNone_skips(
                 @TempDir Path tempDir) {
-            DockerComposeAssembler assembler =
-                    new DockerComposeAssembler();
+            DockerComposeStep assembler =
+                    new DockerComposeStep();
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .container("none")
@@ -113,8 +113,8 @@ class DockerComposeAssemblerTest {
                 + " style=cqrs")
         void assemble_styleCqrs_containsEventstore(
                 @TempDir Path tempDir) throws Exception {
-            DockerComposeAssembler assembler =
-                    new DockerComposeAssembler();
+            DockerComposeStep assembler =
+                    new DockerComposeStep();
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .container("docker")
@@ -148,8 +148,8 @@ class DockerComposeAssemblerTest {
                 + " eventstore")
         void assemble_styleCqrs_hasHealthcheck(
                 @TempDir Path tempDir) throws Exception {
-            DockerComposeAssembler assembler =
-                    new DockerComposeAssembler();
+            DockerComposeStep assembler =
+                    new DockerComposeStep();
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .container("docker")
@@ -176,8 +176,8 @@ class DockerComposeAssemblerTest {
                 + " is not cqrs")
         void assemble_styleNotCqrs_excludesEventstore(
                 @TempDir Path tempDir) throws Exception {
-            DockerComposeAssembler assembler =
-                    new DockerComposeAssembler();
+            DockerComposeStep assembler =
+                    new DockerComposeStep();
             ProjectConfig config = TestConfigBuilder
                     .builder()
                     .container("docker")
