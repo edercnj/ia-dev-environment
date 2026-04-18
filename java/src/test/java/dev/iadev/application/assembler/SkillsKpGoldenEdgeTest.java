@@ -25,8 +25,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SkillsKpGoldenEdgeTest {
 
     @Nested
-    @DisplayName("assemble — knowledge packs")
-    class KnowledgePacks {
+    @DisplayName("assemble — core knowledge packs")
+    class CoreKnowledgePacks {
 
         @Test
         @DisplayName("generates all core KPs")
@@ -74,81 +74,6 @@ class SkillsKpGoldenEdgeTest {
                     .exists();
             assertThat(s.resolve(
                     "layer-templates/SKILL.md")).exists();
-        }
-
-        @Test
-        @DisplayName("ci-cd-patterns has reference files")
-        void assemble_ciCdPatterns_hasReferenceFiles(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-            SkillsAssembler assembler =
-                    new SkillsAssembler();
-            assembler.assemble(
-                    TestConfigBuilder.minimal(),
-                    new TemplateEngine(), outputDir);
-            Path kp = outputDir.resolve(
-                    "skills/ci-cd-patterns");
-            assertThat(kp.resolve("references/"
-                    + "github-actions-patterns.md"))
-                    .exists();
-            assertThat(kp.resolve("references/"
-                    + "pipeline-security.md"))
-                    .exists();
-            assertThat(kp.resolve("references/"
-                    + "caching-strategies.md"))
-                    .exists();
-        }
-
-        @Test
-        @DisplayName("ci-cd-patterns SKILL.md has valid"
-                + " frontmatter")
-        void assemble_ciCdPatterns_hasValidFrontmatter(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-            SkillsAssembler assembler =
-                    new SkillsAssembler();
-            assembler.assemble(
-                    TestConfigBuilder.minimal(),
-                    new TemplateEngine(), outputDir);
-            String content = Files.readString(
-                    outputDir.resolve(
-                            "skills/ci-cd-patterns/"
-                                    + "SKILL.md"),
-                    StandardCharsets.UTF_8);
-            assertThat(content)
-                    .contains("name: ci-cd-patterns")
-                    .contains("user-invocable: false");
-        }
-
-        @Test
-        @DisplayName("ci-cd-patterns contains pipeline"
-                + " patterns section")
-        void assemble_ciCdPatterns_hasPipelinePatterns(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-            SkillsAssembler assembler =
-                    new SkillsAssembler();
-            assembler.assemble(
-                    TestConfigBuilder.builder()
-                            .language("java", "21")
-                            .buildTool("maven")
-                            .container("docker")
-                            .build(),
-                    new TemplateEngine(), outputDir);
-            String content = Files.readString(
-                    outputDir.resolve(
-                            "skills/ci-cd-patterns/"
-                                    + "SKILL.md"),
-                    StandardCharsets.UTF_8);
-            assertThat(content)
-                    .contains("Pipeline Stages")
-                    .contains("Cross-Cutting Patterns");
         }
 
         @Test
@@ -232,6 +157,109 @@ class SkillsKpGoldenEdgeTest {
                     "skills/database-patterns/SKILL.md"))
                     .exists();
         }
+
+        @Test
+        @DisplayName("database-patterns excluded"
+                + " without database")
+        void assemble_whenCalled_dbPatternsExcluded(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            assembler.assemble(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(), outputDir);
+            assertThat(outputDir.resolve(
+                    "skills/database-patterns"))
+                    .doesNotExist();
+        }
+    }
+
+    @Nested
+    @DisplayName("assemble — ci-cd-patterns KP")
+    class CiCdPatternsKp {
+
+        @Test
+        @DisplayName("ci-cd-patterns has reference files")
+        void assemble_ciCdPatterns_hasReferenceFiles(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            assembler.assemble(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(), outputDir);
+            Path kp = outputDir.resolve(
+                    "skills/ci-cd-patterns");
+            assertThat(kp.resolve("references/"
+                    + "github-actions-patterns.md"))
+                    .exists();
+            assertThat(kp.resolve("references/"
+                    + "pipeline-security.md"))
+                    .exists();
+            assertThat(kp.resolve("references/"
+                    + "caching-strategies.md"))
+                    .exists();
+        }
+
+        @Test
+        @DisplayName("ci-cd-patterns SKILL.md has valid"
+                + " frontmatter")
+        void assemble_ciCdPatterns_hasValidFrontmatter(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            assembler.assemble(
+                    TestConfigBuilder.minimal(),
+                    new TemplateEngine(), outputDir);
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "skills/ci-cd-patterns/"
+                                    + "SKILL.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("name: ci-cd-patterns")
+                    .contains("user-invocable: false");
+        }
+
+        @Test
+        @DisplayName("ci-cd-patterns contains pipeline"
+                + " patterns section")
+        void assemble_ciCdPatterns_hasPipelinePatterns(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            assembler.assemble(
+                    TestConfigBuilder.builder()
+                            .language("java", "21")
+                            .buildTool("maven")
+                            .container("docker")
+                            .build(),
+                    new TemplateEngine(), outputDir);
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "skills/ci-cd-patterns/"
+                                    + "SKILL.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("Pipeline Stages")
+                    .contains("Cross-Cutting Patterns");
+        }
+    }
+
+    @Nested
+    @DisplayName("assemble — release-management KP")
+    class ReleaseManagementKp {
 
         @Test
         @DisplayName("release-management has valid"
@@ -341,6 +369,11 @@ class SkillsKpGoldenEdgeTest {
             assertThat(content)
                     .doesNotContain("Test Stage");
         }
+    }
+
+    @Nested
+    @DisplayName("assemble — performance-engineering KP")
+    class PerformanceEngineeringKp {
 
         @Test
         @DisplayName("performance-engineering has valid"
@@ -455,24 +488,11 @@ class SkillsKpGoldenEdgeTest {
             assertThat(content)
                     .doesNotContain("Retry Pattern");
         }
+    }
 
-        @Test
-        @DisplayName("database-patterns excluded"
-                + " without database")
-        void assemble_whenCalled_dbPatternsExcluded(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-            SkillsAssembler assembler =
-                    new SkillsAssembler();
-            assembler.assemble(
-                    TestConfigBuilder.minimal(),
-                    new TemplateEngine(), outputDir);
-            assertThat(outputDir.resolve(
-                    "skills/database-patterns"))
-                    .doesNotExist();
-        }
+    @Nested
+    @DisplayName("assemble — sre-practices KP")
+    class SrePracticesKp {
 
         @Test
         @DisplayName("sre-practices has user-invocable false")
@@ -570,6 +590,11 @@ class SkillsKpGoldenEdgeTest {
             assertThat(sreContent)
                     .doesNotContain("structured logging");
         }
+    }
+
+    @Nested
+    @DisplayName("assemble — disaster-recovery KP")
+    class DisasterRecoveryKp {
 
         @Test
         @DisplayName("disaster-recovery generated"
@@ -643,6 +668,76 @@ class SkillsKpGoldenEdgeTest {
                     "skills/disaster-recovery"))
                     .doesNotExist();
         }
+
+        @Test
+        @DisplayName("disaster-recovery SKILL.md"
+                + " contains required sections")
+        void assemble_dr_containsRequiredSections(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("docker")
+                            .build();
+            assembler.assemble(
+                    config, new TemplateEngine(),
+                    outputDir);
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "skills/disaster-recovery/"
+                            + "SKILL.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("## DR Strategies");
+            assertThat(content)
+                    .contains("## RPO/RTO Definitions");
+            assertThat(content)
+                    .contains("## Failover Automation");
+            assertThat(content)
+                    .contains("## DR Testing Cadence");
+            assertThat(content)
+                    .contains("## Multi-Region Patterns");
+            assertThat(content)
+                    .contains("## Recovery Procedures"
+                            + " per Component");
+        }
+
+        @Test
+        @DisplayName("disaster-recovery SKILL.md has"
+                + " valid frontmatter")
+        void assemble_dr_hasValidFrontmatter(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = tempDir.resolve("output");
+            Files.createDirectories(outputDir);
+            SkillsAssembler assembler =
+                    new SkillsAssembler();
+            ProjectConfig config =
+                    TestConfigBuilder.builder()
+                            .container("docker")
+                            .build();
+            assembler.assemble(
+                    config, new TemplateEngine(),
+                    outputDir);
+            String content = Files.readString(
+                    outputDir.resolve(
+                            "skills/disaster-recovery/"
+                            + "SKILL.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(content)
+                    .contains("name: disaster-recovery");
+            assertThat(content)
+                    .contains("user-invocable: false");
+        }
+    }
+
+    @Nested
+    @DisplayName("assemble — resilience KP")
+    class ResilienceKp {
 
         @Test
         @DisplayName("resilience KP contains chaos"
@@ -728,71 +823,6 @@ class SkillsKpGoldenEdgeTest {
                     "skills/resilience/references/"
                     + "chaos-engineering-experiments.md"))
                     .exists();
-        }
-
-        @Test
-        @DisplayName("disaster-recovery SKILL.md"
-                + " contains required sections")
-        void assemble_dr_containsRequiredSections(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-            SkillsAssembler assembler =
-                    new SkillsAssembler();
-            ProjectConfig config =
-                    TestConfigBuilder.builder()
-                            .container("docker")
-                            .build();
-            assembler.assemble(
-                    config, new TemplateEngine(),
-                    outputDir);
-            String content = Files.readString(
-                    outputDir.resolve(
-                            "skills/disaster-recovery/"
-                            + "SKILL.md"),
-                    StandardCharsets.UTF_8);
-            assertThat(content)
-                    .contains("## DR Strategies");
-            assertThat(content)
-                    .contains("## RPO/RTO Definitions");
-            assertThat(content)
-                    .contains("## Failover Automation");
-            assertThat(content)
-                    .contains("## DR Testing Cadence");
-            assertThat(content)
-                    .contains("## Multi-Region Patterns");
-            assertThat(content)
-                    .contains("## Recovery Procedures"
-                            + " per Component");
-        }
-
-        @Test
-        @DisplayName("disaster-recovery SKILL.md has"
-                + " valid frontmatter")
-        void assemble_dr_hasValidFrontmatter(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-            SkillsAssembler assembler =
-                    new SkillsAssembler();
-            ProjectConfig config =
-                    TestConfigBuilder.builder()
-                            .container("docker")
-                            .build();
-            assembler.assemble(
-                    config, new TemplateEngine(),
-                    outputDir);
-            String content = Files.readString(
-                    outputDir.resolve(
-                            "skills/disaster-recovery/"
-                            + "SKILL.md"),
-                    StandardCharsets.UTF_8);
-            assertThat(content)
-                    .contains("name: disaster-recovery");
-            assertThat(content)
-                    .contains("user-invocable: false");
         }
     }
 
