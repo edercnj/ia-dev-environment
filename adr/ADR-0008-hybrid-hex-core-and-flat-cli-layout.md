@@ -95,6 +95,48 @@ clearest, subject to the usual coding-standards rules.
 This list IS the contract. If the list is wrong, the fix is to update this
 ADR; it is not to silently add or remove members.
 
+### Naming — Two Telemetry Packages
+
+The codebase intentionally hosts TWO packages whose leaf name is
+`telemetry`. They serve distinct domains and their coexistence is
+documented at the package level via `package-info.java`:
+
+| Package | Domain | Key types | Zone |
+| :--- | :--- | :--- | :--- |
+| `dev.iadev.telemetry` | Claude Code skill / phase / tool **execution events** (EPIC-0040). Owns the immutable event model, the Rule 20 PII scrubber, and the NDJSON writer/reader for `plans/epic-*/telemetry/events.ndjson`. | `TelemetryEvent`, `TelemetryScrubber`, `TelemetryWriter`, `TelemetryReader`, `EventType`, `EventStatus`, `PiiAudit`, `analyze/`, `trend/` | Flat Zone |
+| `dev.iadev.domain.telemetry` | Release-phase **benchmark analytics** (story-0039-0012). Pure domain services that analyse `PhaseMetric` streams produced during `x-release`; zero framework imports, zero file I/O. | `BenchmarkAnalyzer`, `BenchmarkResult`, `PhaseBenchmark` | Hex Zone (domain) |
+
+The coexistence is **intentional**. The two packages are not competing
+names for the same concept — they model two unrelated subjects that
+both happen to be called "telemetry" in the product vocabulary
+(execution events vs release-phase profiling). Renaming either
+package to disambiguate would be *less* accurate than the current
+layout:
+
+- Renaming `dev.iadev.telemetry` to `dev.iadev.cli.telemetry` would
+  misclassify its contents — `TelemetryEvent`, `TelemetryScrubber`,
+  `TelemetryWriter`, and `TelemetryReader` are the execution-event
+  model, not CLI-layer concerns. The `analyze/` and `trend/` CLIs are
+  *consumers* of that model, not its defining subject.
+- Renaming `dev.iadev.domain.telemetry` would separate
+  `BenchmarkAnalyzer` from its natural home inside the hex zone —
+  `BenchmarkResult` is not an execution-event concern and does not
+  belong anywhere near `TelemetryEvent`.
+
+Each package's `package-info.java` carries the javadoc that
+discriminates the two domains. `dev.iadev.telemetry` additionally
+documents the separation-of-concerns table covering the three NDJSON
+writers (`TelemetryWriter`, `ReleaseTelemetryWriter`,
+`FileTelemetryWriter`) that operate in the same neighbourhood.
+
+**Forward-looking rule.** Any NEW top-level or nested package whose
+leaf segment is `telemetry` MUST either (a) amend this ADR with an
+additional row in the table above, or (b) ship a `package-info.java`
+whose javadoc declares its distinct domain and its relationship to the
+two packages above. Silently introducing a third `telemetry` package
+without either artefact is a violation of this decision and SHOULD be
+blocked in code review.
+
 ### Default for new packages
 
 **New top-level packages default to the Hex Zone.** A new package MUST either
@@ -172,7 +214,10 @@ supersedes it.
 
 - audit-2026-04-17 finding I-003 (this ADR)
 - audit-2026-04-17 finding I-002 (evidence that hex core is clean)
+- audit-2026-04-17 finding L-012 (closed via the "Naming — Two
+  Telemetry Packages" subsection in this ADR)
 
 ## Audit Reference
 
-- `results/audits/codebase-audit-2026-04-17.md` — findings I-002, I-003
+- `results/audits/codebase-audit-2026-04-17.md` — findings I-002,
+  I-003, L-012

@@ -103,6 +103,11 @@
 - [L-011] `application/assembler/AgentInfo.java` — orphan candidate (no incoming references in main/test). Verify not reflection-loaded before deletion.
 - [L-012] Naming collision risk: `dev.iadev.telemetry.*` (flat CLI + scrubber) vs `dev.iadev.domain.telemetry.*`.
 
+> **Closed via ADR-0008 amendment** (2026-04-17): the two telemetry
+> packages serve distinct domains (execution events vs release-phase
+> benchmarks). Rename would be less accurate. See ADR-0008
+> "Naming — Two Telemetry Packages".
+
 ---
 
 ## INFO / Suggestions
