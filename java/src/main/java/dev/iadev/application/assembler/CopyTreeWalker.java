@@ -89,10 +89,18 @@ public final class CopyTreeWalker {
      * <p>Only regular files are included; subdirectories
      * whose names end in {@code .md} are excluded.</p>
      *
+     * <p>Missing or non-directory input paths yield an empty
+     * list (no exception) per
+     * {@link MarkdownFileScanner#listMarkdownFilesSorted(Path)}
+     * contract, to make codegen resilient to absent
+     * optional directories.</p>
+     *
      * @param dir directory to scan
      * @return sorted list of .md file paths; empty list
-     *         if directory contains no .md files
-     * @throws UncheckedIOException if I/O fails
+     *         if directory is missing, is not a directory, or
+     *         contains no .md files
+     * @throws UncheckedIOException if listing fails for
+     *         reasons other than absence
      * @deprecated call
      *         {@link MarkdownFileScanner#listMarkdownFilesSorted(Path)}
      *         directly

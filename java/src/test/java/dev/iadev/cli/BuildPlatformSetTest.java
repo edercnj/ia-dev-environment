@@ -50,15 +50,15 @@ class BuildPlatformSetTest {
     }
 
     @Nested
-    @DisplayName("All keyword (null in list)")
+    @DisplayName("All keyword (Platform.ALL sentinel)")
     class AllKeyword {
 
         @Test
-        @DisplayName("list with null returns empty set "
-                + "(all = no filter)")
-        void buildPlatformSet_containsNull_returnsEmpty() {
+        @DisplayName("list with Platform.ALL returns empty "
+                + "set (all = no filter)")
+        void buildPlatformSet_containsAll_returnsEmpty() {
             List<Platform> list = new ArrayList<>();
-            list.add(null);
+            list.add(Platform.ALL);
 
             Set<Platform> result =
                     PlatformPrecedenceResolver.buildPlatformSet(list);
@@ -67,12 +67,12 @@ class BuildPlatformSetTest {
         }
 
         @Test
-        @DisplayName("list with platform and null returns "
-                + "empty set (all prevails)")
-        void buildPlatformSet_mixedWithNull_returnsEmpty() {
+        @DisplayName("list with platform and Platform.ALL "
+                + "returns empty set (all prevails)")
+        void buildPlatformSet_mixedWithAll_returnsEmpty() {
             List<Platform> list = new ArrayList<>();
             list.add(Platform.CLAUDE_CODE);
-            list.add(null);
+            list.add(Platform.ALL);
 
             Set<Platform> result =
                     PlatformPrecedenceResolver.buildPlatformSet(list);
