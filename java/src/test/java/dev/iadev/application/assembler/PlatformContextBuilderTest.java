@@ -94,5 +94,35 @@ class PlatformContextBuilderTest {
             assertThat(platforms)
                     .containsExactly("claude-code");
         }
+
+        @Test
+        @DisplayName(
+                "buildFlags_onlyShared_hasClaudeFalse")
+        void buildFlags_onlyShared_hasClaudeFalse() {
+            Map<String, Object> flags =
+                    PlatformContextBuilder
+                            .buildPlatformFlags(
+                                    Set.of(Platform.SHARED));
+
+            assertThat(flags.get("hasClaude"))
+                    .isEqualTo(false);
+            assertThat(flags.get("isMultiPlatform"))
+                    .isEqualTo(false);
+        }
+
+        @Test
+        @DisplayName(
+                "buildFlags_onlyShared_cliNamesExcludeShared")
+        void buildFlags_onlyShared_cliNamesExcludeShared() {
+            Map<String, Object> flags =
+                    PlatformContextBuilder
+                            .buildPlatformFlags(
+                                    Set.of(Platform.SHARED));
+
+            @SuppressWarnings("unchecked")
+            List<String> platforms =
+                    (List<String>) flags.get("platforms");
+            assertThat(platforms).isEmpty();
+        }
     }
 }

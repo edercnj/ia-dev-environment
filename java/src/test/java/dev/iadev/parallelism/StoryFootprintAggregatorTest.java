@@ -158,4 +158,13 @@ class StoryFootprintAggregatorTest {
                 UnsupportedOperationException.class,
                 () -> r.warnings().add("boom"));
     }
+
+    @Test
+    void resultConstructor_nullWarnings_defaultsToEmptyList() {
+        Result r = new Result(
+                FileFootprint.EMPTY, null, 0);
+
+        assertThat(r.warnings()).isEmpty();
+        assertThat(r.taskCount()).isZero();
+    }
 }
