@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -188,9 +189,9 @@ public final class TelemetryWriter implements AutoCloseable {
         long budgetNanos =
                 TimeUnit.MILLISECONDS.toNanos(lockTimeoutMillis);
         while (true) {
-            FileLock lock = tryAcquireOnce();
-            if (lock != null) {
-                return lock;
+            Optional<FileLock> lock = tryAcquireOnce();
+            if (lock.isPresent()) {
+                return lock.get();
             }
             if (System.nanoTime() - startNanos >= budgetNanos) {
                 throw new TelemetryWriteTimeoutException(
@@ -208,13 +209,13 @@ public final class TelemetryWriter implements AutoCloseable {
         }
     }
 
-    private FileLock tryAcquireOnce() throws IOException {
+    private Optional<FileLock> tryAcquireOnce() throws IOException {
         try {
-            return channel.tryLock();
+            return Optional.ofNullable(channel.tryLock());
         } catch (OverlappingFileLockException e) {
             // Another thread/channel in THIS JVM already holds the lock on
             // the same region — treat as contended and retry.
-            return null;
+            return Optional.empty();
         } catch (ClosedChannelException e) {
             throw e;
         }

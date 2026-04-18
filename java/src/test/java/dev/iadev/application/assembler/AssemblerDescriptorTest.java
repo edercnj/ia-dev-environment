@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Tests for the AssemblerDescriptor record.
@@ -68,6 +69,29 @@ class AssemblerDescriptorTest {
 
         assertThat(d1).isEqualTo(d2);
         assertThat(d1.hashCode()).isEqualTo(d2.hashCode());
+    }
+
+    @Test
+    @DisplayName("constructor_nullPlatforms_throws")
+    void constructor_nullPlatforms_throws() {
+        Assembler a = (c, e, p) -> List.of();
+
+        assertThatThrownBy(() -> new AssemblerDescriptor(
+                "X", AssemblerTarget.CLAUDE, null, a))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("platforms");
+    }
+
+    @Test
+    @DisplayName("constructor_emptyPlatforms_throws")
+    void constructor_emptyPlatforms_throws() {
+        Assembler a = (c, e, p) -> List.of();
+
+        assertThatThrownBy(() -> new AssemblerDescriptor(
+                "X", AssemblerTarget.CLAUDE,
+                Set.of(), a))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("platforms");
     }
 
     @Test

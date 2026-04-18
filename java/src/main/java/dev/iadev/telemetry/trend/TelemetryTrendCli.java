@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 
 import picocli.CommandLine;
@@ -92,9 +93,9 @@ public class TelemetryTrendCli implements Callable<Integer> {
 
     @Override
     public Integer call() {
-        Integer validationCode = validateArgs();
-        if (validationCode != null) {
-            return validationCode;
+        Optional<Integer> validationCode = validateArgs();
+        if (validationCode.isPresent()) {
+            return validationCode.get();
         }
         BaselineStrategy strategy = BaselineStrategy.parse(baseline);
         String fmt = normalizedFormat();
@@ -118,34 +119,34 @@ public class TelemetryTrendCli implements Callable<Integer> {
     }
 
     /**
-     * Pure argument validation. Returns a non-null exit code when an
-     * argument is invalid, null otherwise.
+     * Pure argument validation. Returns a non-empty exit code when an
+     * argument is invalid, empty otherwise.
      */
-    private Integer validateArgs() {
+    private Optional<Integer> validateArgs() {
         if (thresholdPct < 0) {
             spec.commandLine().getErr().println(
                     "--threshold-pct must be >= 0");
-            return EXIT_THRESHOLD_NEGATIVE;
+            return Optional.of(EXIT_THRESHOLD_NEGATIVE);
         }
         if (last < 1) {
             spec.commandLine().getErr().println(
                     "--last must be >= 1");
-            return EXIT_VALIDATION;
+            return Optional.of(EXIT_VALIDATION);
         }
         try {
             BaselineStrategy.parse(baseline);
         } catch (IllegalArgumentException e) {
             spec.commandLine().getErr().println(e.getMessage());
-            return EXIT_VALIDATION;
+            return Optional.of(EXIT_VALIDATION);
         }
         String fmt = normalizedFormat();
         if (!"md".equals(fmt) && !"json".equals(fmt)) {
             spec.commandLine().getErr().println(
                     "--format must be 'md' or 'json', got '"
                             + format + "'");
-            return EXIT_VALIDATION;
+            return Optional.of(EXIT_VALIDATION);
         }
-        return null;
+        return Optional.empty();
     }
 
     private String normalizedFormat() {

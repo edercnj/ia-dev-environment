@@ -2,6 +2,7 @@ package dev.iadev.parallelism;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -85,16 +86,15 @@ public final class FileFootprintParser {
             if (isNextTopLevelHeader(trimmed)) {
                 break;
             }
-            Section maybeSub = classifySubHeader(trimmed);
-            if (maybeSub != null) {
-                current = maybeSub;
+            if (trimmed.startsWith(SUB_HEADER_PREFIX)) {
+                current = classifySubHeader(trimmed);
                 continue;
             }
-            String path = extractBulletPath(trimmed);
-            if (path == null || current == Section.NONE) {
+            Optional<String> path = extractBulletPath(trimmed);
+            if (path.isEmpty() || current == Section.NONE) {
                 continue;
             }
-            appendPath(writes, reads, regens, current, path);
+            appendPath(writes, reads, regens, current, path.get());
         }
         return new FileFootprint(writes, reads, regens);
     }
@@ -104,9 +104,6 @@ public final class FileFootprintParser {
     }
 
     private static Section classifySubHeader(String trimmed) {
-        if (!trimmed.startsWith(SUB_HEADER_PREFIX)) {
-            return null;
-        }
         String label = trimmed.substring(SUB_HEADER_PREFIX.length())
                 .replace(":", "").trim().toLowerCase();
         return switch (label) {
@@ -117,15 +114,15 @@ public final class FileFootprintParser {
         };
     }
 
-    private static String extractBulletPath(String trimmed) {
+    private static Optional<String> extractBulletPath(String trimmed) {
         if (!trimmed.startsWith("- ")) {
-            return null;
+            return Optional.empty();
         }
         String body = trimmed.substring(2).trim();
         if (body.startsWith("`") && body.endsWith("`") && body.length() >= 2) {
             body = body.substring(1, body.length() - 1).trim();
         }
-        return body.isEmpty() ? null : body;
+        return body.isEmpty() ? Optional.empty() : Optional.of(body);
     }
 
     private static void appendPath(

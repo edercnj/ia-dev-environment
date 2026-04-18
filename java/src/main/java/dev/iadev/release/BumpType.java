@@ -1,6 +1,7 @@
 package dev.iadev.release;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Enumerates how the next version was derived.
@@ -15,9 +16,9 @@ import java.util.Objects;
  *       (auto-detection was bypassed)</li>
  * </ul>
  *
- * <p>{@link #from(CommitCounts)} returns {@code null} when no commit justifies a
- * bump (all commits were ignored types). Callers MUST map {@code null} to the
- * {@code VERSION_NO_BUMP_SIGNAL} error code before aborting.</p>
+ * <p>{@link #from(CommitCounts)} returns {@link Optional#empty()} when no commit
+ * justifies a bump (all commits were ignored types). Callers MUST map the empty
+ * result to the {@code VERSION_NO_BUMP_SIGNAL} error code before aborting.</p>
  */
 public enum BumpType {
     MAJOR,
@@ -30,19 +31,19 @@ public enum BumpType {
      *
      * @return {@link #MAJOR} if {@code breaking > 0}, {@link #MINOR} if
      *         {@code feat > 0}, {@link #PATCH} if {@code fix + perf > 0},
-     *         {@code null} otherwise.
+     *         {@link Optional#empty()} otherwise.
      */
-    public static BumpType from(CommitCounts counts) {
+    public static Optional<BumpType> from(CommitCounts counts) {
         Objects.requireNonNull(counts, "counts");
         if (counts.breaking() > 0) {
-            return MAJOR;
+            return Optional.of(MAJOR);
         }
         if (counts.feat() > 0) {
-            return MINOR;
+            return Optional.of(MINOR);
         }
         if (counts.fix() + counts.perf() > 0) {
-            return PATCH;
+            return Optional.of(PATCH);
         }
-        return null;
+        return Optional.empty();
     }
 }

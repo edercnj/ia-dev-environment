@@ -126,19 +126,21 @@ public final class CollisionDetector {
         rTouches.addAll(rfp.regens());
 
         for (String lp : lTouches) {
-            String lhit = catalog.matchHotspot(lp);
-            if (lhit == null) {
+            Optional<String> lhit = catalog.matchHotspot(lp);
+            if (lhit.isEmpty()) {
                 continue;
             }
+            String lPattern = lhit.get();
             for (String rp : rTouches) {
-                String rhit = catalog.matchHotspot(rp);
-                if (rhit != null && rhit.equals(lhit)) {
+                Optional<String> rhit = catalog.matchHotspot(rp);
+                if (rhit.isPresent()
+                        && rhit.get().equals(lPattern)) {
                     return Optional.of(new Collision(
                             left, right,
                             CollisionCategory.HARD,
                             new TreeSet<>(java.util.List.of(
                                     lp, rp)),
-                            "hotspot: " + lhit));
+                            "hotspot: " + lPattern));
                 }
             }
         }

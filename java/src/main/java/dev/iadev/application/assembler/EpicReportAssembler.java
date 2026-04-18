@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Copies the epic execution report template to two output
@@ -79,25 +80,23 @@ public final class EpicReportAssembler
             ProjectConfig config,
             TemplateEngine engine,
             Path outputDir) {
-        String content = loadValidatedTemplate();
-        if (content == null) {
-            return List.of();
-        }
-        return copyToOutputDirs(content, outputDir);
+        return loadValidatedTemplate()
+                .map(content -> copyToOutputDirs(content, outputDir))
+                .orElseGet(List::of);
     }
 
-    private String loadValidatedTemplate() {
+    private Optional<String> loadValidatedTemplate() {
         Path templatePath = resourcesDir
                 .resolve(TEMPLATES_SUBDIR)
                 .resolve(TEMPLATE_FILENAME);
 
         if (!Files.exists(templatePath)) {
-            return null;
+            return Optional.empty();
         }
         String content =
                 CopyHelpers.readFile(templatePath);
         return hasAllMandatorySections(content)
-                ? content : null;
+                ? Optional.of(content) : Optional.empty();
     }
 
     private List<String> copyToOutputDirs(

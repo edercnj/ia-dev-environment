@@ -12,6 +12,7 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
@@ -120,7 +121,7 @@ public class TelemetryAnalyzeCli implements Callable<Integer> {
                     "--export requires --out <path>");
             return EXIT_EXPORT_MISSING_OUT;
         }
-        Instant sinceInstant;
+        Optional<Instant> sinceInstant;
         try {
             sinceInstant = parseSince(since);
         } catch (DateTimeParseException e) {
@@ -161,20 +162,21 @@ public class TelemetryAnalyzeCli implements Callable<Integer> {
         return new ArrayList<>(out);
     }
 
-    private Instant parseSince(String value) {
+    private Optional<Instant> parseSince(String value) {
         if (value == null || value.isBlank()) {
-            return null;
+            return Optional.empty();
         }
         // Accept pure date (YYYY-MM-DD) -> midnight UTC.
         if (value.length() == 10 && value.charAt(4) == '-'
                 && value.charAt(7) == '-') {
-            return Instant.parse(value + "T00:00:00Z");
+            return Optional.of(Instant.parse(value + "T00:00:00Z"));
         }
-        return Instant.parse(value);
+        return Optional.of(Instant.parse(value));
     }
 
     private AnalysisReport aggregateEpics(
-            List<String> epicIds, Path base, Instant sinceInstant) {
+            List<String> epicIds, Path base,
+            Optional<Instant> sinceInstant) {
         TelemetryAggregator aggregator = new TelemetryAggregator();
         // Streaming pass per epic — never buffer the full event set.
         // Each epic's stream is resolved lazily and closed by the
@@ -200,10 +202,11 @@ public class TelemetryAnalyzeCli implements Callable<Integer> {
                 Stream<TelemetryEvent> perEpic =
                         TelemetryReader.open(events)
                                 .streamSkippingInvalid()
-                                .filter(e -> sinceInstant == null
+                                .filter(e -> sinceInstant.isEmpty()
                                         || !e.timestamp()
                                                 .isBefore(
-                                                        sinceInstant));
+                                                        sinceInstant
+                                                                .get()));
                 opened.add(perEpic);
                 unified = Stream.concat(unified, perEpic);
             }

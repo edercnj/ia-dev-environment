@@ -1,6 +1,7 @@
 package dev.iadev.release.integrity;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,25 +30,25 @@ final class VersionExtractor {
         throw new AssertionError("no instances");
     }
 
-    static String extractPomVersion(Map<String, String> files) {
+    static Optional<String> extractPomVersion(Map<String, String> files) {
         for (Map.Entry<String, String> e : files.entrySet()) {
             if (e.getKey() != null && e.getKey().endsWith("pom.xml") && e.getValue() != null) {
-                String version = extractPomVersionFromContent(e.getValue());
-                if (version != null) {
+                Optional<String> version = extractPomVersionFromContent(e.getValue());
+                if (version.isPresent()) {
                     return version;
                 }
             }
         }
-        return null;
+        return Optional.empty();
     }
 
-    static String extractPomVersionFromContent(String pomContent) {
+    static Optional<String> extractPomVersionFromContent(String pomContent) {
         String stripped = POM_PARENT_BLOCK.matcher(pomContent).replaceAll("");
         Matcher m = POM_VERSION.matcher(stripped);
         if (m.find()) {
-            return m.group(1);
+            return Optional.of(m.group(1));
         }
-        return null;
+        return Optional.empty();
     }
 
     /**
