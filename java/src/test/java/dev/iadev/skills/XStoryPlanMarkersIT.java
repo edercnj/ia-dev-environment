@@ -21,8 +21,9 @@ import org.junit.jupiter.api.Test;
  *
  * <p>Contract:
  * <ul>
- *   <li>Exactly 4 {@code phase.start} / {@code phase.end} pairs (Context,
- *       Parallel-Planning, Consolidation, DoR-Validation).</li>
+ *   <li>Exactly 5 {@code phase.start} / {@code phase.end} pairs (Context,
+ *       Parallel-Planning, Consolidation, DoR-Validation,
+ *       Aggregate-Footprint).</li>
  *   <li>Exactly 5 {@code subagent-start} and 5 {@code subagent-end}
  *       markers on the parallel planning phase.</li>
  *   <li>Each of the 5 roles (Architect, QA, Security, TechLead, PO)
@@ -37,8 +38,8 @@ class XStoryPlanMarkersIT {
                     + "x-story-plan/SKILL.md");
 
     @Test
-    @DisplayName("skillFile_containsExactlyFourPhaseMarkerPairs")
-    void skillFile_containsExactlyFourPhaseMarkerPairs()
+    @DisplayName("skillFile_containsExactlyFivePhaseMarkerPairs")
+    void skillFile_containsExactlyFivePhaseMarkerPairs()
             throws IOException {
         assertThat(SKILL_FILE).exists();
         String body = Files.readString(SKILL_FILE, StandardCharsets.UTF_8);
@@ -53,11 +54,11 @@ class XStoryPlanMarkersIT {
                 .count();
 
         assertThat(startCount)
-                .as("x-story-plan must emit 4 phase.start markers")
-                .isEqualTo(4);
+                .as("x-story-plan must emit 5 phase.start markers")
+                .isEqualTo(5);
         assertThat(endCount)
-                .as("x-story-plan must emit 4 phase.end markers")
-                .isEqualTo(4);
+                .as("x-story-plan must emit 5 phase.end markers")
+                .isEqualTo(5);
     }
 
     @Test

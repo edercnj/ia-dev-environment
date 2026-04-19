@@ -44,12 +44,13 @@ class PlatformConverterTest {
     class AllKeyword {
 
         @Test
-        @DisplayName("returns null for 'all' to signal "
-                + "no filter")
-        void convert_all_returnsNull() {
+        @DisplayName("returns Platform.ALL for 'all' to "
+                + "signal no filter (Rule 03 — never return "
+                + "null)")
+        void convert_all_returnsAllSentinel() {
             Platform result = converter.convert("all");
 
-            assertThat(result).isNull();
+            assertThat(result).isEqualTo(Platform.ALL);
         }
     }
 

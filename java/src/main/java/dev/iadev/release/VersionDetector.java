@@ -61,14 +61,11 @@ public final class VersionDetector {
             return BumpType.PATCH;
         }
 
-        BumpType type = BumpType.from(counts);
-        if (type == null) {
-            throw new InvalidBumpException(
-                    InvalidBumpException.Code
-                            .VERSION_NO_BUMP_SIGNAL,
-                    "No commit justifies a release bump");
-        }
-        return type;
+        return BumpType.from(counts)
+                .orElseThrow(() -> new InvalidBumpException(
+                        InvalidBumpException.Code
+                                .VERSION_NO_BUMP_SIGNAL,
+                        "No commit justifies a release bump"));
     }
 
     /**

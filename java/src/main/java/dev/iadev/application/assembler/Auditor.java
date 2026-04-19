@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
  * Rules directory auditor -- counts files and bytes, checks
@@ -69,19 +68,10 @@ public final class Auditor {
 
     private static List<Map.Entry<String, Long>>
     collectFileSizes(Path rulesDir) {
-        List<String> entries;
-        try (Stream<Path> paths = Files.list(rulesDir)) {
-            entries = paths
-                    .filter(Files::isRegularFile)
-                    .map(p -> p.getFileName().toString())
-                    .filter(f -> f.endsWith(".md"))
-                    .sorted()
-                    .toList();
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to list rules: %s"
-                            .formatted(rulesDir), e);
-        }
+        List<String> entries = MarkdownFileScanner
+                .listMarkdownFilesSorted(rulesDir).stream()
+                .map(p -> p.getFileName().toString())
+                .toList();
 
         List<Map.Entry<String, Long>> sizes =
                 new ArrayList<>();

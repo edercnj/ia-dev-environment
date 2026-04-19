@@ -36,9 +36,22 @@ import java.util.stream.Stream;
  *       stack-specific and infrastructure patterns</li>
  * </ol>
  *
+ * <p>Policy and path-resolution responsibilities are
+ * delegated to cohesive helpers (audit M-002):</p>
+ * <ul>
+ *   <li>{@link ProtectedNamePolicy} — owns the reserved
+ *       top-level names set used by the prune pass.</li>
+ *   <li>{@link SkillCategoryResolver} — owns skill-name to
+ *       source-path resolution across the EPIC-0036
+ *       category-aware layout (flat output, hierarchical
+ *       source).</li>
+ * </ul>
+ *
  * @see Assembler
  * @see SkillsSelection
  * @see SkillsCopyHelper
+ * @see ProtectedNamePolicy
+ * @see SkillCategoryResolver
  */
 public final class SkillsAssembler implements Assembler {
 
@@ -47,38 +60,7 @@ public final class SkillsAssembler implements Assembler {
     private static final String CORE_DIR = "core";
     private static final String CONDITIONAL_DIR =
             "conditional";
-    private static final String LIB_DIR = "lib";
     private static final String SKILLS_OUTPUT = "skills";
-
-    /**
-     * Top-level entries under {@code skills/} that are owned
-     * by other assemblers and MUST never be pruned by this
-     * class.
-     *
-     * <p>These directories are written by classes earlier in
-     * the pipeline (RulesAssembler / CoreRulesWriter):</p>
-     * <ul>
-     *   <li>{@code knowledge-packs/} — from
-     *       {@code RulesInfraConditionals} (cloud/k8s/container
-     *       reference files).</li>
-     *   <li>{@code database-patterns/} — from
-     *       {@code RulesConditionals.copyDatabaseRefs} and
-     *       {@code CoreKpRouting} (database KP is not in the
-     *       SkillRegistry 17-pack set; its content is sourced
-     *       from {@code knowledge/databases/} and
-     *       {@code knowledge/core/11-database-principles.md}).
-     *       </li>
-     * </ul>
-     *
-     * <p>Other directories written by {@code CoreKpRouting}
-     * (e.g., {@code architecture/}, {@code security/},
-     * {@code testing/}) are already part of
-     * {@link dev.iadev.domain.stack.SkillRegistry}
-     * {@code .CORE_KNOWLEDGE_PACKS}, so they appear in the
-     * generated set and do not need explicit protection.</p>
-     */
-    private static final Set<String> PROTECTED_NAMES =
-            Set.of("knowledge-packs", "database-patterns");
 
     private final Path resourcesDir;
 
@@ -123,8 +105,8 @@ public final class SkillsAssembler implements Assembler {
     /**
      * Removes top-level directories under
      * {@code outputDir/skills/} that are not present in
-     * {@code generatedPaths} and are not in
-     * {@link #PROTECTED_NAMES}.
+     * {@code generatedPaths} and are not reserved by
+     * {@link ProtectedNamePolicy}.
      *
      * <p>Without this pass the output is additive-only:
      * skills renamed or removed in the source of truth
@@ -204,7 +186,7 @@ public final class SkillsAssembler implements Assembler {
     private static boolean isRetained(
             Path dir, Set<String> expected) {
         String name = dir.getFileName().toString();
-        return PROTECTED_NAMES.contains(name)
+        return ProtectedNamePolicy.isProtected(name)
                 || expected.contains(name);
     }
 
@@ -223,30 +205,18 @@ public final class SkillsAssembler implements Assembler {
     }
 
     /**
-     * Scans core skills directory and returns skill names.
+     * Scans the core skills directory and returns skill names.
      *
-     * <p><b>Source-of-truth is hierarchical (10 category
-     * subfolders), output is flat.</b> Skills physically live
-     * at {@code core/{category}/{name}/SKILL.md} (e.g.
-     * {@code core/plan/x-epic-create/SKILL.md}) but the
-     * generated output is always {@code .claude/skills/{name}/
-     * SKILL.md} — category subfolders are stripped.
-     * The {@code lib/} subtree is the one exception and keeps
-     * its {@code lib/} prefix in the emitted name. Traversal
-     * is delegated to {@link SkillsHierarchyResolver}, which
-     * uses the {@code SKILL.md} marker rule to transparently
-     * support legacy flat layouts (backward-compatible) plus
-     * exactly one category level of nesting. Deeper nesting
-     * (e.g. {@code core/{cat}/{sub}/{name}/SKILL.md}) is NOT
-     * discovered.</p>
+     * <p>Delegates to {@link SkillCategoryResolver} so the
+     * hierarchical-source / flat-output mapping is owned by a
+     * single helper. See
+     * {@link SkillCategoryResolver#listSkills(Path)} for scan
+     * order and sort contract.</p>
      *
      * @return list of core skill names in scan order
-     *         (top-level dirs sorted, then per-category
-     *         sorted; NOT globally sorted across categories)
      */
     List<String> selectCoreSkills() {
-        return SkillsHierarchyResolver.listSkillNames(
-                corePath());
+        return SkillCategoryResolver.listSkills(corePath());
     }
 
     private Path corePath() {
@@ -321,7 +291,7 @@ public final class SkillsAssembler implements Assembler {
             Path outputDir,
             TemplateEngine engine,
             java.util.Map<String, Object> context) {
-        Path src = SkillsHierarchyResolver.resolveSkillPath(
+        Path src = SkillCategoryResolver.resolveSourcePath(
                 corePath(), skillName);
         Path dest = outputDir.resolve(
                 SKILLS_OUTPUT + "/" + skillName);
@@ -355,7 +325,7 @@ public final class SkillsAssembler implements Assembler {
             Path outputDir,
             TemplateEngine engine,
             java.util.Map<String, Object> context) {
-        Path src = SkillsHierarchyResolver.resolveSkillPath(
+        Path src = SkillCategoryResolver.resolveSourcePath(
                 conditionalPath(), skillName);
         if (!Files.exists(src)
                 || !Files.isDirectory(src)) {

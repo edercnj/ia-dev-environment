@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -55,7 +56,9 @@ public final class IntegrityChecker {
         Objects.requireNonNull(versionedFiles, "versionedFiles");
         List<CheckResult> results = new ArrayList<>(3);
         results.add(checkChangelogUnreleased(changelogContent));
-        String targetVersion = VersionExtractor.extractPomVersion(versionedFiles);
+        String targetVersion = VersionExtractor
+                .extractPomVersion(versionedFiles)
+                .orElse(null);
         results.add(checkVersionAlignment(targetVersion, versionedFiles));
         results.add(checkNoNewTodos(diffContent == null ? "" : diffContent));
         return IntegrityReport.aggregate(results);
@@ -132,23 +135,21 @@ public final class IntegrityChecker {
             if (content == null || content.isBlank()) {
                 continue;
             }
-            String divergenceRef = firstDivergentSemver(normalizedTarget, path, content);
-            if (divergenceRef != null) {
-                divergent.add(divergenceRef);
-            }
+            firstDivergentSemver(normalizedTarget, path, content)
+                    .ifPresent(divergent::add);
         }
         return divergent;
     }
 
-    private static String firstDivergentSemver(String normalizedTarget, String path, String content) {
+    private static Optional<String> firstDivergentSemver(String normalizedTarget, String path, String content) {
         Matcher m = VersionExtractor.SEMVER.matcher(content);
         if (m.find()) {
             String found = m.group(1);
             if (!found.equals(normalizedTarget)) {
                 int line = VersionExtractor.lineNumberOfOffset(content, m.start());
-                return path + ":" + line;
+                return Optional.of(path + ":" + line);
             }
         }
-        return null;
+        return Optional.empty();
     }
 }

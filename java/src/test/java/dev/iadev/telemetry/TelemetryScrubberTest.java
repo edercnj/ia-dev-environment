@@ -67,6 +67,38 @@ class TelemetryScrubberTest {
             assertThatThrownBy(() -> scrubber.scrub(null))
                     .isInstanceOf(NullPointerException.class);
         }
+
+        @Test
+        @DisplayName("scrubString throws NPE on null input"
+                + " (Rule 03 — never return null)")
+        void scrubString_null_throwsNpe() {
+            assertThatThrownBy(
+                    () -> scrubber.scrubString(null))
+                    .isInstanceOf(
+                            NullPointerException.class)
+                    .hasMessageContaining("value");
+        }
+
+        @Test
+        @DisplayName("scrubNullable returns empty for null"
+                + " input")
+        void scrubNullable_null_returnsEmpty() {
+            assertThat(scrubber.scrubNullable(null))
+                    .isEmpty();
+        }
+
+        @Test
+        @DisplayName("scrubNullable delegates to scrubString"
+                + " for non-null input")
+        void scrubNullable_withSecret_delegates() {
+            assertThat(scrubber.scrubNullable(
+                    "leaked AKIAIOSFODNN7EXAMPLE"))
+                    .isPresent()
+                    .get()
+                    .asString()
+                    .contains("AWS_KEY_REDACTED")
+                    .doesNotContain("AKIAIOSFODNN7EXAMPLE");
+        }
     }
 
     @Nested

@@ -16,6 +16,11 @@ import dev.iadev.domain.port.output.ProgressReporter;
  *   <li>Complete: {@code [DONE] taskName}</li>
  *   <li>Error: {@code [ERROR] taskName: errorMessage}</li>
  * </ul>
+ *
+ * <p>This class is intentionally exempted from Rule 03's ban on
+ * {@code System.out} / {@code System.err} because stdout/stderr
+ * is its transport contract as the canonical CLI-output adapter.
+ * See {@code adr/ADR-0007-console-progress-reporter-stdout-contract.md}.</p>
  */
 public final class ConsoleProgressReporter
         implements ProgressReporter {

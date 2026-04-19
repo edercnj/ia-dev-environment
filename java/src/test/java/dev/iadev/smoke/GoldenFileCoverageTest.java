@@ -36,6 +36,19 @@ class GoldenFileCoverageTest {
             "java-picocli-cli";
 
     /**
+     * Golden directory names that are NOT stack profiles
+     * (e.g., knowledge packs, skill goldens) and therefore
+     * MUST NOT appear in {@link SmokeProfiles}. Maintained
+     * alongside new non-profile goldens under
+     * {@code /golden/}.
+     */
+    private static final Set<String>
+            NON_PROFILE_GOLDEN_DIRS = Set.of(
+            "parallelism-heuristics",
+            "x-parallel-eval"
+    );
+
+    /**
      * Profiles registered in STACK_KEYS that are not
      * yet smoke-testable. These are excluded from the
      * registration-coverage check until golden files
@@ -67,6 +80,7 @@ class GoldenFileCoverageTest {
             Set<String> orphanGolden =
                     new TreeSet<>(goldenDirs);
             orphanGolden.removeAll(smokeProfiles);
+            orphanGolden.removeAll(NON_PROFILE_GOLDEN_DIRS);
 
             assertThat(orphanGolden)
                     .as("Golden file directories without "

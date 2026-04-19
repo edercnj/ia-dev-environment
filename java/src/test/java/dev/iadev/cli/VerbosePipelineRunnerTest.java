@@ -43,8 +43,10 @@ class VerbosePipelineRunnerTest {
 
             VerbosePipelineRunner.runVerbose(
                     TestConfigBuilder.minimal(),
-                    tempDir, options,
-                    all, all, out);
+                    tempDir,
+                    new VerboseRunContext(
+                            options, all, all),
+                    out);
             out.flush();
 
             String output = sw.toString();
@@ -69,8 +71,10 @@ class VerbosePipelineRunnerTest {
 
             VerbosePipelineRunner.runVerbose(
                     TestConfigBuilder.minimal(),
-                    tempDir, options,
-                    filtered, all, out);
+                    tempDir,
+                    new VerboseRunContext(
+                            options, filtered, all),
+                    out);
             out.flush();
 
             String output = sw.toString();
@@ -96,8 +100,10 @@ class VerbosePipelineRunnerTest {
             PipelineResult result =
                     VerbosePipelineRunner.runVerbose(
                             TestConfigBuilder.minimal(),
-                            tempDir, options,
-                            filtered, all, out);
+                            tempDir,
+                            new VerboseRunContext(
+                                    options, filtered, all),
+                            out);
 
             assertThat(result.warnings())
                     .anyMatch(w -> w.contains(
@@ -122,8 +128,10 @@ class VerbosePipelineRunnerTest {
             PipelineResult result =
                     VerbosePipelineRunner.runVerbose(
                             TestConfigBuilder.minimal(),
-                            tempDir, options,
-                            all, all, out);
+                            tempDir,
+                            new VerboseRunContext(
+                                    options, all, all),
+                            out);
 
             assertThat(result.warnings())
                     .anyMatch(w -> w.contains(
@@ -147,8 +155,10 @@ class VerbosePipelineRunnerTest {
 
             VerbosePipelineRunner.runVerbose(
                     TestConfigBuilder.minimal(),
-                    tempDir, options,
-                    filtered, all, out);
+                    tempDir,
+                    new VerboseRunContext(
+                            options, filtered, all),
+                    out);
             out.flush();
 
             String output = sw.toString();

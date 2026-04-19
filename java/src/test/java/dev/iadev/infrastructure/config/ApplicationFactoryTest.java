@@ -40,11 +40,14 @@ class ApplicationFactoryTest {
             var factory = new ApplicationFactory();
 
             assertThat(factory.generateUseCase())
-                    .isNotNull();
+                    .isInstanceOf(
+                            GenerateEnvironmentUseCase.class);
             assertThat(factory.validateUseCase())
-                    .isNotNull();
+                    .isInstanceOf(
+                            ValidateConfigUseCase.class);
             assertThat(factory.listProfilesUseCase())
-                    .isNotNull();
+                    .isInstanceOf(
+                            ListStackProfilesUseCase.class);
         }
 
         @Test
@@ -110,11 +113,14 @@ class ApplicationFactoryTest {
                     new ApplicationFactory(checkpointDir);
 
             assertThat(factory.generateUseCase())
-                    .isNotNull();
+                    .isInstanceOf(
+                            GenerateEnvironmentUseCase.class);
             assertThat(factory.validateUseCase())
-                    .isNotNull();
+                    .isInstanceOf(
+                            ValidateConfigUseCase.class);
             assertThat(factory.listProfilesUseCase())
-                    .isNotNull();
+                    .isInstanceOf(
+                            ListStackProfilesUseCase.class);
         }
 
         @Test
@@ -143,7 +149,8 @@ class ApplicationFactoryTest {
             Object instance = factory.create(
                     ApplicationFactory.class);
 
-            assertThat(instance).isNotNull();
+            assertThat(instance)
+                    .isInstanceOf(ApplicationFactory.class);
         }
     }
 }

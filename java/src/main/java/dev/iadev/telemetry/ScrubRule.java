@@ -72,14 +72,18 @@ public record ScrubRule(
      * Applies this rule to {@code input}, replacing every match
      * with {@link #replacement}.
      *
-     * @param input the text to scrub; may be null
-     * @return the scrubbed text, or {@code null} when
-     *         {@code input} is null
+     * <p>Callers MUST guard against null before invoking this
+     * method (Rule 03 — never return null). The scrubber pipeline
+     * in {@link TelemetryScrubber#scrubString(String)} applies
+     * the outer null check once, so every rule call receives a
+     * non-null string.</p>
+     *
+     * @param input the text to scrub; must not be null
+     * @return the scrubbed text
+     * @throws NullPointerException when {@code input} is null
      */
     public String apply(String input) {
-        if (input == null) {
-            return null;
-        }
+        Objects.requireNonNull(input, "input");
         return pattern.matcher(input).replaceAll(replacement);
     }
 }

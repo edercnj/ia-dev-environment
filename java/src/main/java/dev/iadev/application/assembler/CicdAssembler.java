@@ -18,16 +18,16 @@ import java.util.Map;
  * <p>This assembler is registered in the pipeline
  * (position 23 of 32 per RULE-005). It delegates to:
  * <ol>
- *   <li>{@link CiWorkflowAssembler} — always generated</li>
- *   <li>{@link CdWorkflowAssembler} — release always,
+ *   <li>{@link CiWorkflowStep} — always generated</li>
+ *   <li>{@link CdWorkflowStep} — release always,
  *       deploy/rollback conditional on container</li>
- *   <li>{@link DockerfileAssembler} — conditional on
+ *   <li>{@link DockerfileStep} — conditional on
  *       {@code container == "docker"}</li>
- *   <li>{@link DockerComposeAssembler} — conditional on
+ *   <li>{@link DockerComposeStep} — conditional on
  *       {@code container == "docker"}</li>
- *   <li>{@link K8sManifestAssembler} — conditional on
+ *   <li>{@link K8sManifestStep} — conditional on
  *       {@code orchestrator == "kubernetes"}</li>
- *   <li>{@link SmokeTestAssembler} — conditional on
+ *   <li>{@link SmokeTestStep} — conditional on
  *       {@code smokeTests == true}</li>
  * </ol>
  *
@@ -70,12 +70,12 @@ public final class CicdAssembler implements Assembler {
     private static final int INITIAL_CICD_MAP_CAPACITY = 16;
 
     private final Path resourcesDir;
-    private final CiWorkflowAssembler ciWorkflow;
-    private final CdWorkflowAssembler cdWorkflow;
-    private final DockerfileAssembler dockerfile;
-    private final DockerComposeAssembler dockerCompose;
-    private final K8sManifestAssembler k8sManifest;
-    private final SmokeTestAssembler smokeTest;
+    private final CiWorkflowStep ciWorkflow;
+    private final CdWorkflowStep cdWorkflow;
+    private final DockerfileStep dockerfile;
+    private final DockerComposeStep dockerCompose;
+    private final K8sManifestStep k8sManifest;
+    private final SmokeTestStep smokeTest;
 
     /**
      * Creates a CicdAssembler using classpath resources.
@@ -92,12 +92,12 @@ public final class CicdAssembler implements Assembler {
      */
     public CicdAssembler(Path resourcesDir) {
         this.resourcesDir = resourcesDir;
-        this.ciWorkflow = new CiWorkflowAssembler();
-        this.cdWorkflow = new CdWorkflowAssembler();
-        this.dockerfile = new DockerfileAssembler();
-        this.dockerCompose = new DockerComposeAssembler();
-        this.k8sManifest = new K8sManifestAssembler();
-        this.smokeTest = new SmokeTestAssembler();
+        this.ciWorkflow = new CiWorkflowStep();
+        this.cdWorkflow = new CdWorkflowStep();
+        this.dockerfile = new DockerfileStep();
+        this.dockerCompose = new DockerComposeStep();
+        this.k8sManifest = new K8sManifestStep();
+        this.smokeTest = new SmokeTestStep();
     }
 
     /**

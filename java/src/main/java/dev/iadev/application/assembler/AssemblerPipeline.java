@@ -5,11 +5,7 @@ import dev.iadev.domain.model.PipelineResult;
 import dev.iadev.domain.model.ProjectConfig;
 import dev.iadev.template.TemplateEngine;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,11 +14,16 @@ import java.util.Map;
  * Orchestrates the execution of 34 assemblers in the fixed
  * order defined by RULE-005.
  *
- * <p>Assembler construction is delegated to
- * {@link AssemblerFactory}.</p>
+ * <p>Per-descriptor filtering, execution, and output
+ * shaping are delegated to {@link
+ * AssemblerFilterStrategy}; elapsed-time measurement is
+ * delegated to {@link PipelineTimer}. Assembler
+ * construction is delegated to {@link AssemblerFactory}.</p>
  *
  * @see Assembler
  * @see AssemblerFactory
+ * @see AssemblerFilterStrategy
+ * @see PipelineTimer
  * @see PipelineOptions
  */
 public final class AssemblerPipeline {
@@ -57,7 +58,8 @@ public final class AssemblerPipeline {
 
     /**
      * Executes assemblers sequentially, aggregating files
-     * and warnings.
+     * and warnings. Retained as a static entry point for
+     * call-sites that do not hold a pipeline instance.
      *
      * @param descriptors the ordered assembler descriptors
      * @param config      the project configuration
@@ -71,44 +73,9 @@ public final class AssemblerPipeline {
             ProjectConfig config,
             Path outputDir,
             TemplateEngine engine) {
-        List<String> files = new ArrayList<>();
-        List<String> warnings = new ArrayList<>();
-
-        for (AssemblerDescriptor desc : descriptors) {
-            executeSingleAssembler(
-                    desc, config, outputDir, engine,
-                    files, warnings);
-        }
-
-        return AssemblerResult.of(files, warnings);
-    }
-
-    private static void executeSingleAssembler(
-            AssemblerDescriptor desc,
-            ProjectConfig config,
-            Path outputDir, TemplateEngine engine,
-            List<String> files,
-            List<String> warnings) {
-        try {
-            Path targetDir =
-                    desc.target().resolve(outputDir);
-            AssemblerResult result =
-                    desc.assembler().assembleWithResult(
-                            config, engine, targetDir);
-            files.addAll(result.files());
-            for (String w : result.warnings()) {
-                warnings.add("[WARN] %s: %s"
-                        .formatted(desc.name(), w));
-            }
-        } catch (PipelineException pe) {
-            throw pe;
-        } catch (Exception e) {
-            throw new PipelineException(
-                    "Pipeline failed at %s: %s"
-                            .formatted(desc.name(),
-                                    e.getMessage()),
-                    desc.name(), e);
-        }
+        return new AssemblerFilterStrategy(
+                        config, PipelineOptions.defaults())
+                .executeAll(descriptors, outputDir, engine);
     }
 
     /**
@@ -124,19 +91,17 @@ public final class AssemblerPipeline {
             ProjectConfig config,
             Path outputDir,
             PipelineOptions options) {
-        long start = System.nanoTime();
-
         TemplateEngine engine = createEngine(options);
-
-        AssemblerResult result;
-        if (options.dryRun()) {
-            result = runDry(config, engine);
-        } else {
-            result = runReal(config, outputDir, engine);
-        }
-
-        long durationMs =
-                (System.nanoTime() - start) / 1_000_000;
+        AssemblerFilterStrategy strategy =
+                new AssemblerFilterStrategy(
+                        config, options);
+        PipelineTimer timer = new PipelineTimer();
+        long start = timer.start();
+        AssemblerResult result = options.dryRun()
+                ? strategy.runDry(descriptors, engine)
+                : strategy.runReal(
+                        descriptors, outputDir, engine);
+        long durationMs = timer.stop(start);
 
         return new PipelineResult(
                 true,
@@ -162,99 +127,36 @@ public final class AssemblerPipeline {
                     Path outputDir,
                     PipelineOptions options) {
         TemplateEngine engine = createEngine(options);
+        AssemblerFilterStrategy strategy =
+                new AssemblerFilterStrategy(
+                        config, options);
         Path baseDir = options.dryRun()
-                ? createTempDir() : outputDir;
+                ? AssemblerFilterStrategy.createTempDir()
+                : outputDir;
         Map<String, AssemblerResult> results =
                 new LinkedHashMap<>();
 
         try {
             for (AssemblerDescriptor desc : descriptors) {
-                Path targetDir =
-                        desc.target().resolve(baseDir);
-                AssemblerResult result =
-                        desc.assembler()
-                                .assembleWithResult(
-                                        config, engine,
-                                        targetDir);
+                if (!strategy.shouldRun(desc)) {
+                    continue;
+                }
                 results.put(desc.name(),
-                        relativizeResult(
-                                result, baseDir));
+                        strategy.executeAndRelativize(
+                                desc, baseDir, engine));
             }
         } finally {
             if (options.dryRun()) {
                 CopyHelpers.deleteQuietly(baseDir);
             }
         }
-
         return results;
-    }
-
-    private static AssemblerResult relativizeResult(
-            AssemblerResult result, Path baseDir) {
-        List<String> relative = relativizePaths(
-                result.files(), baseDir);
-        return AssemblerResult.of(
-                relative, result.warnings());
     }
 
     static List<String> relativizePaths(
             List<String> paths, Path baseDir) {
-        return paths.stream()
-                .map(p -> {
-                    Path filePath = Path.of(p);
-                    if (filePath.isAbsolute()
-                            && filePath.startsWith(
-                                    baseDir)) {
-                        return baseDir.relativize(
-                                filePath).toString();
-                    }
-                    return p;
-                })
-                .toList();
-    }
-
-    private AssemblerResult runDry(
-            ProjectConfig config,
-            TemplateEngine engine) {
-        Path tempDir = createTempDir();
-
-        try {
-            AssemblerResult result = executeAssemblers(
-                    descriptors, config, tempDir, engine);
-            List<String> relativePaths =
-                    relativizePaths(
-                            result.files(), tempDir);
-            List<String> warnings =
-                    new ArrayList<>(result.warnings());
-            warnings.add(DRY_RUN_WARNING);
-            return AssemblerResult.of(
-                    relativePaths, warnings);
-        } finally {
-            CopyHelpers.deleteQuietly(tempDir);
-        }
-    }
-
-    private AssemblerResult runReal(
-            ProjectConfig config,
-            Path outputDir,
-            TemplateEngine engine) {
-        AssemblerResult result = executeAssemblers(
-                descriptors, config, outputDir, engine);
-        List<String> relativePaths =
-                relativizePaths(
-                        result.files(), outputDir);
-        return AssemblerResult.of(
-                relativePaths, result.warnings());
-    }
-
-    private static Path createTempDir() {
-        try {
-            return Files.createTempDirectory(
-                    "ia-dev-env-dry-");
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to create temp directory", e);
-        }
+        return AssemblerFilterStrategy.relativizePaths(
+                paths, baseDir);
     }
 
     private TemplateEngine createEngine(

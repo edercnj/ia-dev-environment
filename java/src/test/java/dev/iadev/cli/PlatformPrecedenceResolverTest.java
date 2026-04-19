@@ -19,7 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * <p>CLI platforms arrive as typed {@link Platform} values
  * via {@link PlatformConverter}. The "all" keyword is
- * represented as a null element in the list.</p>
+ * represented by the {@link Platform#ALL} sentinel in the
+ * list (Rule 03 — never return null).</p>
  */
 @DisplayName("PlatformPrecedenceResolver")
 class PlatformPrecedenceResolverTest {
@@ -88,15 +89,15 @@ class PlatformPrecedenceResolverTest {
         }
 
         @Test
-        @DisplayName("CLI 'all' (null marker) overrides "
-                + "YAML specific")
+        @DisplayName("CLI 'all' (Platform.ALL sentinel) "
+                + "overrides YAML specific")
         void resolve_cliAllOverridesYaml_returnsEmpty() {
             var config = TestConfigBuilder.builder()
                     .platforms(Set.of(
                             Platform.CLAUDE_CODE))
                     .build();
             List<Platform> allMarker = new ArrayList<>();
-            allMarker.add(null);
+            allMarker.add(Platform.ALL);
 
             var result =
                     PlatformPrecedenceResolver.resolve(
@@ -144,10 +145,11 @@ class PlatformPrecedenceResolverTest {
         }
 
         @Test
-        @DisplayName("null marker (all) returns empty set")
+        @DisplayName("Platform.ALL sentinel returns empty"
+                + " set")
         void buildPlatformSet_allMarker_returnsEmpty() {
             List<Platform> list = new ArrayList<>();
-            list.add(null);
+            list.add(Platform.ALL);
 
             var result =
                     PlatformPrecedenceResolver

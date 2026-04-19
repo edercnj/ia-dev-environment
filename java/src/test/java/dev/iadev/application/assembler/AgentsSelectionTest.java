@@ -20,8 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AgentsSelectionTest {
 
     @Nested
-    @DisplayName("selectConditionalAgents")
-    class SelectConditionalAgents {
+    @DisplayName("selectConditionalAgents — database-engineer")
+    class ConditionalDatabaseEngineer {
 
         @Test
         @DisplayName("config with database includes"
@@ -53,6 +53,11 @@ class AgentsSelectionTest {
             assertThat(agents)
                     .doesNotContain("database-engineer.md");
         }
+    }
+
+    @Nested
+    @DisplayName("selectConditionalAgents — observability-engineer")
+    class ConditionalObservabilityEngineer {
 
         @Test
         @DisplayName("config with observability includes"
@@ -85,6 +90,11 @@ class AgentsSelectionTest {
                     .doesNotContain(
                             "observability-engineer.md");
         }
+    }
+
+    @Nested
+    @DisplayName("selectConditionalAgents — devops-engineer")
+    class ConditionalDevopsEngineer {
 
         @Test
         @DisplayName("config with container includes"
@@ -156,6 +166,11 @@ class AgentsSelectionTest {
             assertThat(agents)
                     .doesNotContain("devops-engineer.md");
         }
+    }
+
+    @Nested
+    @DisplayName("selectConditionalAgents — devsecops-engineer")
+    class ConditionalDevsecopsEngineer {
 
         @Test
         @DisplayName("config with container includes"
@@ -230,6 +245,11 @@ class AgentsSelectionTest {
                     .doesNotContain(
                             "devsecops-engineer.md");
         }
+    }
+
+    @Nested
+    @DisplayName("selectConditionalAgents — api-engineer")
+    class ConditionalApiEngineer {
 
         @Test
         @DisplayName("config with REST includes"
@@ -298,6 +318,11 @@ class AgentsSelectionTest {
             assertThat(agents)
                     .doesNotContain("api-engineer.md");
         }
+    }
+
+    @Nested
+    @DisplayName("selectConditionalAgents — event-engineer")
+    class ConditionalEventEngineer {
 
         @Test
         @DisplayName("config with eventDriven includes"
@@ -370,6 +395,11 @@ class AgentsSelectionTest {
             assertThat(agents)
                     .doesNotContain("event-engineer.md");
         }
+    }
+
+    @Nested
+    @DisplayName("selectConditionalAgents — appsec-engineer")
+    class ConditionalAppsecEngineer {
 
         @Test
         @DisplayName("config with security frameworks"
@@ -418,6 +448,11 @@ class AgentsSelectionTest {
             assertThat(agents)
                     .doesNotContain("appsec-engineer.md");
         }
+    }
+
+    @Nested
+    @DisplayName("selectConditionalAgents — compliance-auditor")
+    class ConditionalComplianceAuditor {
 
         @Test
         @DisplayName("config with security frameworks"
@@ -468,6 +503,11 @@ class AgentsSelectionTest {
                     .doesNotContain(
                             "compliance-auditor.md");
         }
+    }
+
+    @Nested
+    @DisplayName("selectConditionalAgents — pentest-engineer")
+    class ConditionalPentestEngineer {
 
         @Test
         @DisplayName("config with pentest=true includes"
@@ -515,6 +555,11 @@ class AgentsSelectionTest {
             assertThat(agents)
                     .doesNotContain("pentest-engineer.md");
         }
+    }
+
+    @Nested
+    @DisplayName("selectConditionalAgents — aggregation")
+    class ConditionalAggregation {
 
         @Test
         @DisplayName("aggregates all conditional agents"

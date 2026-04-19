@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.9.0] - 2026-04-19
+
+### Added
+
+- **EPIC-0041 — File-Conflict-Aware Parallelism Analysis (8 stories).** Introduces planning-time detection of hotspot collisions between stories/tasks scheduled in the same wave, ending the "topological-only parallelism" anti-pattern that produced merge conflicts on `SettingsAssembler.java`, `HooksAssembler.java`, `CLAUDE.md`, `CHANGELOG.md`, `pom.xml`, and the golden-file tree across EPIC-0036..EPIC-0040. Architecture recorded in [ADR-0006](adr/ADR-0006-file-conflict-aware-parallelism.md). _Slot ADR-0005 was taken by telemetry (EPIC-0040) before this epic shipped, hence ADR-0006._
+  - **story-0041-0001:** New knowledge pack `parallelism-heuristics` — catalogues collision categories (hard / regen / soft), hotspot list, and degrade-with-warning policy. Single reference for every downstream planning skill.
+  - **story-0041-0002:** `x-task-plan` now emits a mandatory `## File Footprint` block (`### write:` / `### read:` / `### regen:`) on every `plan-task-TASK-*.md`. New `FileFootprintParser` rejects unknown headings to keep parsing deterministic.
+  - **story-0041-0003:** `x-story-plan` Phase 6 aggregates task footprints into a canonical `## Story File Footprint` on each `plan-story-*.md`. New `StoryFootprintAggregator` unions the sub-sections with alphabetic deduplication.
+  - **story-0041-0004:** New skill `/x-parallel-eval --scope=epic|story|task` (Java domain + CLI + SKILL.md). Emits a deterministic collision matrix and a reagrupment recommendation; backed by `dev.iadev.parallelism.*` (23 tests). Output ordering is alphabetic so `GoldenFileCoverageTest` can pin the shape.
+  - **story-0041-0005:** `x-epic-map` Step 8.5 invokes `/x-parallel-eval --scope=epic` and renders a new "8.5 Restrições de Paralelismo" section on the Implementation Map; `_TEMPLATE-IMPLEMENTATION-MAP.md` gains the matching placeholder. `EpicMapStep85IT` covers the happy path + zero-collision fallback.
+  - **story-0041-0006:** Parallelism gate in `x-epic-implement` Phase 0.5.0 and `x-story-implement` Phase 1.5. On collision, the executor **degrades the wave to serial and logs a visible warning** listing the conflicting pairs — never aborts (RULE-005). Downgrades persisted on `ExecutionState.parallelismDowngrades` for audit.
+  - **story-0041-0007:** Retroactive `/x-parallel-eval` reports + `.diff` patches for epics 0036..0040 under `plans/epic-0041/migrations/`. No map was auto-edited (human-review gate). EPIC-0040 flagged HIGH — hard conflict on `telemetry-phase.sh`.
+  - **story-0041-0008 (this story, docs):** ADR-0006 publication, `CLAUDE.md` executive-summary note for EPIC-0041, and this CHANGELOG entry. Release tasks (version bump + Git Flow release branch + tag) are delivered by a follow-up `/x-release` invocation per Rule 09.
+
+### Changed
+
+- **`ExecutionState`** gained optional `parallelismDowngrades` field capturing every wave demoted from parallel to serial by the new gate (pair of plan IDs + hotspot path + timestamp) — lets post-mortems answer "did parallelism degrade today, and on which pair?" without re-running the analysis.
+- **Planning skill contracts** — `x-task-plan` and `x-story-plan` now require the new footprint sections; legacy plans without a footprint are handled as "unknown" (warn, do not block) per RULE-006.
+- **Root `CLAUDE.md`** gained an "EPIC-0041 (Concluded)" executive-summary block with links to ADR-0006, the migrations directory, and `/x-parallel-eval`.
+
 ### Removed
 
 - **EPIC-0044 / story-0044-0001 — Removed 4 deprecated symbols from `StackMapping`** (`forRemoval = true`, originally introduced in EPIC-0023). All remaining consumers were migrated in this story (`PermissionCollector`); substitutes with identical signatures already exist in `DatabaseSettingsMapping`, so no API break for external callers.

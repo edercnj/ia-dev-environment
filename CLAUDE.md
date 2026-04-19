@@ -12,6 +12,12 @@ It includes coding rules, skills (slash commands), knowledge packs, agents, and 
 
 > The `CLAUDE.md` file at the project root provides an executive summary loaded automatically in EVERY conversation.
 
+> **Concluded — EPIC-0041 (File-Conflict-Aware Parallelism Analysis).**
+> Planning now emits a structured `## File Footprint` / `## Story File Footprint` block on every task/story plan (`write:` / `read:` / `regen:`). The new skill `/x-parallel-eval --scope=epic|story|task` consumes those footprints, produces a collision matrix (hard / regen / soft), and recommends demotions to serial when two plans touch the same hotspot. `x-epic-map` Step 8.5 annotates the Implementation Map with "Restrições de Paralelismo"; `x-epic-implement` Phase 0.5.0 and `x-story-implement` Phase 1.5 run the gate and **degrade waves to serial with a visible warning** when a collision is detected (`ExecutionState.parallelismDowngrades`). Hotspots catalogued in RULE-004 (`SettingsAssembler.java`, `HooksAssembler.java`, `CLAUDE.md`, `CHANGELOG.md`, `pom.xml`, `.gitignore`, `src/test/resources/golden/**`). Plans predating this epic are treated as "footprint unknown" — warn, do not block (RULE-006).
+> - Decision record: [`adr/ADR-0006-file-conflict-aware-parallelism.md`](adr/ADR-0006-file-conflict-aware-parallelism.md)
+> - Retroactive diff patches for epics 0036–0040: [`plans/epic-0041/migrations/`](plans/epic-0041/migrations/) (EPIC-0040 flagged HIGH — hard conflict on `telemetry-phase.sh`).
+> - Skill inventory gained `/x-parallel-eval` (category `plan/`).
+
 > **In progress — EPIC-0036 (Skill Taxonomy Refactor).**
 > The source of truth for skills under `java/src/main/resources/targets/claude/skills/` is being reorganized into 10 category subfolders (`plan/`, `dev/`, `test/`, `review/`, `security/`, `code/`, `git/`, `pr/`, `ops/`, `jira/`), and ~19 skills will be renamed to a consistent `x-{subject}-{action}` scheme. The generated output `.claude/skills/` remains **flat** — user-facing invocation paths are preserved.
 > - Decision record: [`adr/ADR-0003-skill-taxonomy-and-naming.md`](adr/ADR-0003-skill-taxonomy-and-naming.md)
@@ -127,7 +133,7 @@ telemetry:
 
 (The parser `ProjectConfig.parseTelemetryEnabled` expects the nested key; a flat `telemetryEnabled` line is ignored.)
 
-EPIC-0040 shipped this stack in release 3.8.0 — see the [CHANGELOG](CHANGELOG.md#380---2026-04-17).
+EPIC-0040 shipped this stack — see the [CHANGELOG](CHANGELOG.md#380---2026-04-17) for the full release notes.
 
 ---
 

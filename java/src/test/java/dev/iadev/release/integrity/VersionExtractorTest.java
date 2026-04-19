@@ -10,13 +10,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 class VersionExtractorTest {
 
     @Test
-    @DisplayName("extractPomVersion_noPomInMap_returnsNull")
-    void extractPomVersion_noPomInMap_returnsNull() {
+    @DisplayName("extractPomVersion_noPomInMap_returnsEmpty")
+    void extractPomVersion_noPomInMap_returnsEmpty() {
         Map<String, String> files = Map.of("README.md", "v1.0.0");
 
-        String v = VersionExtractor.extractPomVersion(files);
-
-        assertThat(v).isNull();
+        assertThat(VersionExtractor.extractPomVersion(files)).isEmpty();
     }
 
     @Test
@@ -25,19 +23,15 @@ class VersionExtractorTest {
         Map<String, String> files = new LinkedHashMap<>();
         files.put("pom.xml", null);
 
-        String v = VersionExtractor.extractPomVersion(files);
-
-        assertThat(v).isNull();
+        assertThat(VersionExtractor.extractPomVersion(files)).isEmpty();
     }
 
     @Test
-    @DisplayName("extractPomVersionFromContent_noVersionTag_returnsNull")
-    void extractPomVersionFromContent_noVersionTag_returnsNull() {
+    @DisplayName("extractPomVersionFromContent_noVersionTag_returnsEmpty")
+    void extractPomVersionFromContent_noVersionTag_returnsEmpty() {
         String pom = "<project><groupId>x</groupId></project>";
 
-        String v = VersionExtractor.extractPomVersionFromContent(pom);
-
-        assertThat(v).isNull();
+        assertThat(VersionExtractor.extractPomVersionFromContent(pom)).isEmpty();
     }
 
     @Test
@@ -45,9 +39,8 @@ class VersionExtractorTest {
     void extractPomVersionFromContent_validVersion_returnsValue() {
         String pom = "<project><version>2.5.0</version></project>";
 
-        String v = VersionExtractor.extractPomVersionFromContent(pom);
-
-        assertThat(v).isEqualTo("2.5.0");
+        assertThat(VersionExtractor.extractPomVersionFromContent(pom))
+                .contains("2.5.0");
     }
 
     @Test
@@ -64,9 +57,8 @@ class VersionExtractorTest {
                 + "<version>2.5.0</version>"
                 + "</project>";
 
-        String v = VersionExtractor.extractPomVersionFromContent(pom);
-
-        assertThat(v).isEqualTo("2.5.0");
+        assertThat(VersionExtractor.extractPomVersionFromContent(pom))
+                .contains("2.5.0");
     }
 
     @Test

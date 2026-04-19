@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -131,5 +132,82 @@ class ExecutionStateTest {
 
         assertThat(state.stories()).isEqualTo(originalStories);
         assertThat(state.stories()).hasSize(2);
+    }
+
+    // ------------------------------------------------------------
+    // EPIC-0041 / story-0041-0006: parallelismDowngrades field
+    // ------------------------------------------------------------
+
+    @Test
+    void constructor_whenDowngradesAbsent_defaultsToNull() {
+        var state = createSampleState();
+
+        assertThat(state.parallelismDowngrades()).isNull();
+        assertThat(state.parallelismDowngradesOptional())
+                .isEmpty();
+    }
+
+    @Test
+    void withParallelismDowngrades_whenCalled_storesTheList() {
+        var state = createSampleState();
+        var downgrade = new ParallelismDowngrade(
+                3,
+                List.of("story-A", "story-B"),
+                List.of(List.of("story-A"), List.of("story-B")),
+                "hard conflict on Foo.java",
+                Instant.parse("2026-04-17T10:00:00Z"));
+
+        var updated = state.withParallelismDowngrades(
+                List.of(downgrade));
+
+        assertThat(updated.parallelismDowngrades())
+                .containsExactly(downgrade);
+        assertThat(updated.parallelismDowngradesOptional())
+                .isPresent();
+        assertThat(state.parallelismDowngrades()).isNull();
+    }
+
+    @Test
+    void withParallelismDowngrades_whenEmptyList_optionalEmpty() {
+        var state = createSampleState()
+                .withParallelismDowngrades(List.of());
+
+        assertThat(state.parallelismDowngradesOptional())
+                .isEmpty();
+    }
+
+    @Test
+    void withParallelismDowngrades_whenNull_clearsTheField() {
+        var downgrade = new ParallelismDowngrade(
+                1,
+                List.of("TASK-A"),
+                List.of(List.of("TASK-A")),
+                "regen conflict",
+                Instant.parse("2026-04-17T10:00:00Z"));
+        var state = createSampleState()
+                .withParallelismDowngrades(List.of(downgrade));
+
+        var cleared = state.withParallelismDowngrades(null);
+
+        assertThat(cleared.parallelismDowngrades()).isNull();
+        assertThat(cleared.parallelismDowngradesOptional())
+                .isEmpty();
+    }
+
+    @Test
+    void immutability_downgradesList_defensivelyCopied() {
+        var mutable = new java.util.ArrayList<ParallelismDowngrade>();
+        mutable.add(new ParallelismDowngrade(
+                1,
+                List.of("TASK-X"),
+                List.of(List.of("TASK-X")),
+                "regen",
+                Instant.parse("2026-04-17T10:00:00Z")));
+        var state = createSampleState()
+                .withParallelismDowngrades(mutable);
+
+        mutable.clear();
+
+        assertThat(state.parallelismDowngrades()).hasSize(1);
     }
 }

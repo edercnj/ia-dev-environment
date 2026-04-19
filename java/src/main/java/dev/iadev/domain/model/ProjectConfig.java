@@ -7,11 +7,19 @@ import java.util.Set;
 /**
  * Root aggregate containing the complete project configuration.
  *
- * <p>This is the primary configuration object parsed from YAML. It delegates
- * to sub-config {@code fromMap()} methods for each section. Required sections
- * (project, architecture, interfaces, language, framework) throw
- * {@link ConfigValidationException} if missing. Optional sections
- * (data, security, observability, infrastructure, testing, mcp) use defaults.</p>
+ * <p>Assembled from three cohesive sub-records: {@link CoreStack}
+ * (required sections), {@link TechStack} (optional sections) and
+ * {@link Governance} (policy / meta fields). Every legacy
+ * accessor ({@link #project()}, {@link #architecture()}, ...,
+ * {@link #telemetryEnabled()}) is preserved as a one-line
+ * delegator so no caller needed to change when EPIC-0044 /
+ * audit finding M-003 split the aggregate.</p>
+ *
+ * <p>Parsing is driven by {@link #fromMap(Map)}, which delegates
+ * to each sub-record's {@code fromMap()} factory. Required
+ * sections (project, architecture, interfaces, language,
+ * framework) throw {@link ConfigValidationException} if missing;
+ * optional sections use the sub-record defaults.</p>
  *
  * <p>Example fromMap usage:
  * <pre>{@code
@@ -20,40 +28,17 @@ import java.util.Set;
  * }</pre>
  * </p>
  *
- * @param project the project identity (required)
- * @param architecture the architecture config (required)
- * @param interfaces the list of interface configs (required, immutable)
- * @param language the language config (required)
- * @param framework the framework config (required)
- * @param data the data layer config (optional, defaults to empty)
- * @param infrastructure the infrastructure config (optional, defaults)
- * @param security the security config (optional, defaults to empty)
- * @param testing the testing config (optional, defaults: 95/90)
- * @param mcp the MCP config (optional, defaults to empty)
- * @param compliance the compliance type (optional, default "none")
- * @param platforms the target platforms from YAML (optional,
- *     empty = all, immutable)
- * @param branchingModel the branching strategy (optional,
- *     default GITFLOW)
- * @param telemetryEnabled whether telemetry hooks are injected
- *     (optional, default true). Maps to YAML
- *     {@code telemetry.enabled} (story-0040-0004)
+ * @param core the required core stack (project, architecture,
+ *     interfaces, language, framework)
+ * @param tech the optional technical stack (data,
+ *     infrastructure, security, testing, mcp)
+ * @param governance the policy / meta block (compliance,
+ *     platforms, branching model, telemetry flag)
  */
 public record ProjectConfig(
-        ProjectIdentity project,
-        ArchitectureConfig architecture,
-        List<InterfaceConfig> interfaces,
-        LanguageConfig language,
-        FrameworkConfig framework,
-        DataConfig data,
-        InfraConfig infrastructure,
-        SecurityConfig security,
-        TestingConfig testing,
-        McpConfig mcp,
-        String compliance,
-        Set<Platform> platforms,
-        BranchingModel branchingModel,
-        boolean telemetryEnabled) {
+        CoreStack core,
+        TechStack tech,
+        Governance governance) {
 
     private static final String DEFAULT_COMPLIANCE = "none";
 
@@ -61,17 +46,31 @@ public record ProjectConfig(
             Set.of("none", "pci-dss");
 
     /**
-     * Compact constructor enforcing immutability of the
-     * interfaces list and platforms set.
+     * Backward-compatible 14-argument constructor. Delegates to
+     * the canonical 3-component form by grouping fields into the
+     * three sub-records.
      */
-    public ProjectConfig {
-        interfaces = List.copyOf(interfaces);
-        platforms = platforms == null
-                ? Set.of()
-                : Set.copyOf(platforms);
-        branchingModel = branchingModel == null
-                ? BranchingModel.GITFLOW
-                : branchingModel;
+    public ProjectConfig(
+            ProjectIdentity project,
+            ArchitectureConfig architecture,
+            List<InterfaceConfig> interfaces,
+            LanguageConfig language,
+            FrameworkConfig framework,
+            DataConfig data,
+            InfraConfig infrastructure,
+            SecurityConfig security,
+            TestingConfig testing,
+            McpConfig mcp,
+            String compliance,
+            Set<Platform> platforms,
+            BranchingModel branchingModel,
+            boolean telemetryEnabled) {
+        this(new CoreStack(project, architecture, interfaces,
+                        language, framework),
+                new TechStack(data, infrastructure, security,
+                        testing, mcp),
+                new Governance(compliance, platforms,
+                        branchingModel, telemetryEnabled));
     }
 
     /**
@@ -99,6 +98,23 @@ public record ProjectConfig(
                 testing, mcp, compliance, platforms,
                 branchingModel, true);
     }
+
+    // --- Delegating accessors (zero caller impact) ---
+
+    public ProjectIdentity project() { return core.project(); }
+    public ArchitectureConfig architecture() { return core.architecture(); }
+    public List<InterfaceConfig> interfaces() { return core.interfaces(); }
+    public LanguageConfig language() { return core.language(); }
+    public FrameworkConfig framework() { return core.framework(); }
+    public DataConfig data() { return tech.data(); }
+    public InfraConfig infrastructure() { return tech.infrastructure(); }
+    public SecurityConfig security() { return tech.security(); }
+    public TestingConfig testing() { return tech.testing(); }
+    public McpConfig mcp() { return tech.mcp(); }
+    public String compliance() { return governance.compliance(); }
+    public Set<Platform> platforms() { return governance.platforms(); }
+    public BranchingModel branchingModel() { return governance.branchingModel(); }
+    public boolean telemetryEnabled() { return governance.telemetryEnabled(); }
 
     // --- Convenience accessors (Law of Demeter) ---
 
@@ -177,19 +193,23 @@ public record ProjectConfig(
     /**
      * Creates a ProjectConfig from a YAML-parsed map.
      *
-     * <p>Delegates to each sub-config's {@code fromMap()} method.
-     * Required sections throw if absent; optional sections use defaults.</p>
+     * <p>Delegates to each sub-record's {@code fromMap()} factory.
+     * Required sections throw if absent; optional sections use
+     * defaults.</p>
      *
      * @param map the root map from YAML deserialization
      * @return a new ProjectConfig instance
-     * @throws ConfigValidationException if required sections are missing
+     * @throws ConfigValidationException if required sections are
+     *     missing
      */
-    @SuppressWarnings("unchecked")
     public static ProjectConfig fromMap(
             Map<String, Object> map) {
         List<InterfaceConfig> interfaceList =
                 parseInterfaces(map);
-        return buildFromMap(map, interfaceList);
+        return new ProjectConfig(
+                CoreStack.fromMap(map, interfaceList),
+                TechStack.fromMap(map),
+                Governance.fromMap(map));
     }
 
     @SuppressWarnings("unchecked")
@@ -207,45 +227,6 @@ public record ProjectConfig(
                 "interfaces", "List", "ProjectConfig");
     }
 
-    private static ProjectConfig buildFromMap(
-            Map<String, Object> map,
-            List<InterfaceConfig> interfaceList) {
-        String compliance = parseCompliance(map);
-        Set<Platform> platforms = parsePlatforms(map);
-        BranchingModel branchingModel =
-                parseBranchingModel(map);
-        boolean telemetryEnabled = parseTelemetryEnabled(map);
-        return new ProjectConfig(
-                ProjectIdentity.fromMap(MapHelper
-                        .requireMap(map, "project",
-                                "ProjectConfig")),
-                ArchitectureConfig.fromMap(MapHelper
-                        .requireMap(map, "architecture",
-                                "ProjectConfig")),
-                interfaceList,
-                LanguageConfig.fromMap(MapHelper
-                        .requireMap(map, "language",
-                                "ProjectConfig")),
-                FrameworkConfig.fromMap(MapHelper
-                        .requireMap(map, "framework",
-                                "ProjectConfig")),
-                DataConfig.fromMap(MapHelper
-                        .optionalMap(map, "data")),
-                InfraConfig.fromMap(MapHelper
-                        .optionalMap(map,
-                                "infrastructure")),
-                SecurityConfig.fromMap(MapHelper
-                        .optionalMap(map, "security")),
-                TestingConfig.fromMap(MapHelper
-                        .optionalMap(map, "testing")),
-                McpConfig.fromMap(MapHelper
-                        .optionalMap(map, "mcp")),
-                compliance,
-                platforms,
-                branchingModel,
-                telemetryEnabled);
-    }
-
     /**
      * Parses the optional {@code telemetry.enabled} field.
      *
@@ -258,7 +239,7 @@ public record ProjectConfig(
      * @return {@code true} unless {@code telemetry.enabled}
      *     is explicitly set to {@code false}
      */
-    private static boolean parseTelemetryEnabled(
+    static boolean parseTelemetryEnabled(
             Map<String, Object> map) {
         Map<String, Object> telemetry = MapHelper
                 .optionalMap(map, "telemetry");
@@ -266,8 +247,7 @@ public record ProjectConfig(
                 telemetry, "enabled", true);
     }
 
-    private static String parseCompliance(
-            Map<String, Object> map) {
+    static String parseCompliance(Map<String, Object> map) {
         String value = MapHelper.optionalString(
                 map, "compliance", DEFAULT_COMPLIANCE);
         if (!SUPPORTED_COMPLIANCE.contains(value)) {
@@ -285,7 +265,7 @@ public record ProjectConfig(
      * <p>Defaults to {@link BranchingModel#GITFLOW} when
      * the field is absent. Case-insensitive matching.</p>
      */
-    private static BranchingModel parseBranchingModel(
+    static BranchingModel parseBranchingModel(
             Map<String, Object> map) {
         String value = MapHelper.optionalString(
                 map, "branching-model", null);

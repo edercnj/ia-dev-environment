@@ -1,27 +1,65 @@
 package dev.iadev.application.assembler;
 
+import dev.iadev.application.assembler.gates.ComplianceGate;
+import dev.iadev.application.assembler.gates.InfraGate;
+import dev.iadev.application.assembler.gates.InterfaceGate;
+import dev.iadev.application.assembler.gates.PentestGate;
+import dev.iadev.application.assembler.gates.ReviewGate;
+import dev.iadev.application.assembler.gates.SecurityGate;
+import dev.iadev.application.assembler.gates.SecurityScanningGate;
+import dev.iadev.application.assembler.gates.SkillGateEvaluator;
+import dev.iadev.application.assembler.gates.TestingGate;
 import dev.iadev.domain.model.ProjectConfig;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-import java.util.Set;
 
 /**
  * Pure skill selection functions based on project config
  * feature gates.
  *
- * <p>These functions evaluate config conditions and return
- * skill names. No file I/O — consumed by
- * {@link SkillsAssembler} for assembly decisions.</p>
+ * <p>Delegates each feature-gate decision to a dedicated
+ * {@link SkillGateEvaluator} under the
+ * {@code application.assembler.gates} package. Adding a new
+ * feature = creating a new evaluator class and registering
+ * it in {@link #EVALUATORS} — no edits to existing branching
+ * logic (OCP).</p>
  *
  * <p>Knowledge-pack selection is delegated to
  * {@link KnowledgePackSelection}.</p>
  *
  * @see SkillsAssembler
  * @see KnowledgePackSelection
+ * @see SkillGateEvaluator
  */
 public final class SkillsSelection {
+
+    private static final InterfaceGate INTERFACE_GATE =
+            new InterfaceGate();
+    private static final InfraGate INFRA_GATE = new InfraGate();
+    private static final TestingGate TESTING_GATE =
+            new TestingGate();
+    private static final SecurityGate SECURITY_GATE =
+            new SecurityGate();
+    private static final SecurityScanningGate SCANNING_GATE =
+            new SecurityScanningGate();
+    private static final ComplianceGate COMPLIANCE_GATE =
+            new ComplianceGate();
+    private static final PentestGate PENTEST_GATE =
+            new PentestGate();
+    private static final ReviewGate REVIEW_GATE =
+            new ReviewGate();
+
+    private static final List<SkillGateEvaluator> EVALUATORS =
+            List.of(
+                    INTERFACE_GATE,
+                    INFRA_GATE,
+                    TESTING_GATE,
+                    SECURITY_GATE,
+                    SCANNING_GATE,
+                    COMPLIANCE_GATE,
+                    PENTEST_GATE,
+                    REVIEW_GATE);
 
     private SkillsSelection() {
         // utility class
@@ -35,27 +73,7 @@ public final class SkillsSelection {
      */
     public static List<String> selectInterfaceSkills(
             ProjectConfig config) {
-        List<String> skills = new ArrayList<>();
-        if (hasInterface(config, "rest")) {
-            skills.add("x-review-api");
-        }
-        if (hasInterface(config, "grpc")) {
-            skills.add("x-review-grpc");
-        }
-        if (hasInterface(config, "graphql")) {
-            skills.add("x-review-graphql");
-        }
-        if (hasAnyInterface(config,
-                "event-consumer", "event-producer")) {
-            skills.add("x-review-events");
-        }
-        if (hasAnyInterface(config,
-                "rest", "grpc",
-                "event-consumer", "event-producer",
-                "websocket")) {
-            skills.add("x-test-contract-lint");
-        }
-        return skills;
+        return INTERFACE_GATE.evaluate(config);
     }
 
     /**
@@ -66,21 +84,7 @@ public final class SkillsSelection {
      */
     public static List<String> selectInfraSkills(
             ProjectConfig config) {
-        List<String> skills = new ArrayList<>();
-        if (!"none".equalsIgnoreCase(
-                config.infrastructure().observability()
-                        .tool())) {
-            skills.add("x-obs-instrument");
-        }
-        if (!"none".equalsIgnoreCase(
-                config.infrastructure().orchestrator())) {
-            skills.add("setup-environment");
-        }
-        if (!"none".equalsIgnoreCase(
-                config.infrastructure().apiGateway())) {
-            skills.add("x-review-gateway");
-        }
-        return skills;
+        return INFRA_GATE.evaluate(config);
     }
 
     /**
@@ -91,23 +95,7 @@ public final class SkillsSelection {
      */
     public static List<String> selectTestingSkills(
             ProjectConfig config) {
-        List<String> skills = new ArrayList<>();
-        if (config.testing().smokeTests()
-                && hasInterface(config, "rest")) {
-            skills.add("x-test-smoke-api");
-        }
-        if (config.testing().smokeTests()
-                && hasInterface(config, "tcp-custom")) {
-            skills.add("x-test-smoke-socket");
-        }
-        skills.add("x-test-e2e");
-        if (config.testing().performanceTests()) {
-            skills.add("x-test-perf");
-        }
-        if (config.testing().contractTests()) {
-            skills.add("x-test-contract");
-        }
-        return skills;
+        return TESTING_GATE.evaluate(config);
     }
 
     /**
@@ -118,10 +106,7 @@ public final class SkillsSelection {
      */
     public static List<String> selectSecuritySkills(
             ProjectConfig config) {
-        if (!config.security().frameworks().isEmpty()) {
-            return List.of("x-review-security");
-        }
-        return List.of();
+        return SECURITY_GATE.evaluate(config);
     }
 
     /**
@@ -133,65 +118,29 @@ public final class SkillsSelection {
      */
     public static List<String> selectSecurityScanningSkills(
             ProjectConfig config) {
-        List<String> skills = new ArrayList<>();
-        var scanning = config.security().scanning();
-        if (scanning.sast()) {
-            skills.add("x-security-sast");
-        }
-        if (scanning.dast()) {
-            skills.add("x-security-dast");
-        }
-        if (scanning.secretScan()) {
-            skills.add("x-security-secrets");
-        }
-        if (scanning.containerScan()) {
-            skills.add("x-security-container");
-        }
-        if (scanning.infraScan()) {
-            skills.add("x-security-infra");
-        }
-        var qgProvider =
-                config.security().qualityGate().provider();
-        if (!"none".equalsIgnoreCase(qgProvider)) {
-            skills.add("x-security-sonar");
-        }
-        return skills;
+        return SCANNING_GATE.evaluate(config);
     }
 
     /**
      * Selects skills based on compliance frameworks.
-     *
-     * <p>Includes {@code x-review-compliance} when
-     * {@code pci-dss} is present in the security
-     * compliance frameworks list.</p>
      *
      * @param config the project configuration
      * @return list of conditional compliance skill names
      */
     public static List<String> selectComplianceSkills(
             ProjectConfig config) {
-        if (config.compliance().contains("pci-dss")) {
-            return List.of("x-review-compliance");
-        }
-        return List.of();
+        return COMPLIANCE_GATE.evaluate(config);
     }
 
     /**
      * Selects pentest skills based on security config.
-     *
-     * <p>Includes {@code x-security-pentest} when
-     * {@code pentest} is enabled in the security
-     * configuration.</p>
      *
      * @param config the project configuration
      * @return list of conditional pentest skill names
      */
     public static List<String> selectPentestSkills(
             ProjectConfig config) {
-        if (config.security().pentest()) {
-            return List.of("x-security-pentest");
-        }
-        return List.of();
+        return PENTEST_GATE.evaluate(config);
     }
 
     /**
@@ -203,28 +152,14 @@ public final class SkillsSelection {
      */
     public static List<String> selectReviewSkills(
             ProjectConfig config) {
-        List<String> skills = new ArrayList<>();
-        if (!"none".equalsIgnoreCase(config.databaseName())) {
-            skills.add("x-review-db");
-        }
-        if (!"none".equalsIgnoreCase(
-                config.observabilityTool())) {
-            skills.add("x-review-obs");
-        }
-        if (!"none".equalsIgnoreCase(
-                config.infrastructure().container())) {
-            skills.add("x-review-devops");
-        }
-        if (!"none".equalsIgnoreCase(config.databaseName())
-                && isHexagonalOrDdd(config)) {
-            skills.add("x-review-data-modeling");
-        }
-        return skills;
+        return REVIEW_GATE.evaluate(config);
     }
 
     /**
-     * Evaluates all feature gates and returns the aggregated
-     * list of conditional skill names.
+     * Evaluates every registered {@link SkillGateEvaluator}
+     * and returns the aggregated list of conditional skill
+     * names. Order follows the registry in {@link #EVALUATORS}
+     * (iteration order is stable).
      *
      * @param config the project configuration
      * @return aggregated list of all conditional skill names
@@ -232,14 +167,9 @@ public final class SkillsSelection {
     public static List<String> selectConditionalSkills(
             ProjectConfig config) {
         List<String> skills = new ArrayList<>();
-        skills.addAll(selectInterfaceSkills(config));
-        skills.addAll(selectInfraSkills(config));
-        skills.addAll(selectTestingSkills(config));
-        skills.addAll(selectSecuritySkills(config));
-        skills.addAll(selectSecurityScanningSkills(config));
-        skills.addAll(selectComplianceSkills(config));
-        skills.addAll(selectPentestSkills(config));
-        skills.addAll(selectReviewSkills(config));
+        for (SkillGateEvaluator evaluator : EVALUATORS) {
+            skills.addAll(evaluator.evaluate(config));
+        }
         return skills;
     }
 
@@ -255,32 +185,14 @@ public final class SkillsSelection {
                 .selectKnowledgePacks(config);
     }
 
-    private static boolean hasInterface(
-            ProjectConfig config, String type) {
-        return config.interfaces().stream()
-                .anyMatch(i -> type.equals(i.type()));
-    }
-
-    private static boolean hasAnyInterface(
-            ProjectConfig config, String... types) {
-        Set<String> typeSet = Set.of(types);
-        return config.interfaces().stream()
-                .anyMatch(i -> typeSet.contains(i.type()));
-    }
-
-    private static final Set<String> HEXAGONAL_DDD_STYLES =
-            Set.of("hexagonal", "ddd", "cqrs", "clean");
-
     /**
-     * Checks if the architecture style supports
-     * DDD tactical patterns (hexagonal, ddd, cqrs, clean).
+     * Checks if the architecture style supports DDD tactical
+     * patterns (hexagonal, ddd, cqrs, clean).
      *
      * @param config the project configuration
      * @return true if architecture style is DDD-compatible
      */
     static boolean isHexagonalOrDdd(ProjectConfig config) {
-        String style = config.architecture().style()
-                .toLowerCase(Locale.ROOT);
-        return HEXAGONAL_DDD_STYLES.contains(style);
+        return ReviewGate.isHexagonalOrDdd(config);
     }
 }

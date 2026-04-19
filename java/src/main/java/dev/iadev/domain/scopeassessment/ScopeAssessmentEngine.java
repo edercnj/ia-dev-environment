@@ -10,6 +10,7 @@ import java.util.List;
  * @see ContentAnalyzer
  * @see ScopeAssessmentTier
  * @see ScopeAssessmentResult
+ * @see AssessmentFlags
  */
 public final class ScopeAssessmentEngine {
 
@@ -44,34 +45,33 @@ public final class ScopeAssessmentEngine {
                 .countComponents(storyContent);
         int endpoints = ContentAnalyzer
                 .countEndpoints(storyContent);
-        boolean schema = ContentAnalyzer
-                .hasSchemaChanges(storyContent);
-        boolean compliance = ContentAnalyzer
-                .hasCompliance(storyContent);
+        AssessmentFlags flags = AssessmentFlags.of(
+                ContentAnalyzer
+                        .hasSchemaChanges(storyContent),
+                ContentAnalyzer.hasCompliance(storyContent),
+                false);
 
-        var tier = classify(
-                components, endpoints,
-                schema, compliance);
+        var tier = classify(components, endpoints, flags);
         var rationale = buildRationale(
-                tier, components, endpoints,
-                schema, compliance);
+                tier, components, endpoints, flags);
 
         return buildResult(tier, components, endpoints,
-                schema, compliance,
-                dependentCount, rationale);
+                flags, dependentCount, rationale);
     }
 
     /**
      * Builds lifecycle phase config from assessment result.
      *
-     * @param result       the assessment result
-     * @param fullOverride true if --full-lifecycle was used
+     * @param result the assessment result
+     * @param flags  assessment flags; only
+     *               {@link AssessmentFlags#fullOverride()} is
+     *               consumed here
      * @return the lifecycle phase configuration
      */
     public static LifecyclePhaseConfig buildPhaseConfig(
             ScopeAssessmentResult result,
-            boolean fullOverride) {
-        if (fullOverride) {
+            AssessmentFlags flags) {
+        if (flags.fullOverride()) {
             return new LifecyclePhaseConfig(
                     ALL_PHASES, List.of(), List.of(),
                     result.tier(), true);
@@ -91,8 +91,8 @@ public final class ScopeAssessmentEngine {
 
     private static ScopeAssessmentTier classify(
             int components, int endpoints,
-            boolean schema, boolean compliance) {
-        if (compliance || schema) {
+            AssessmentFlags flags) {
+        if (flags.compliance() || flags.schema()) {
             return ScopeAssessmentTier.COMPLEX;
         }
         if (components >= COMPLEX_COMPONENT_THRESHOLD) {
@@ -109,12 +109,12 @@ public final class ScopeAssessmentEngine {
     private static String buildRationale(
             ScopeAssessmentTier tier,
             int components, int endpoints,
-            boolean schema, boolean compliance) {
+            AssessmentFlags flags) {
         var parts = new ArrayList<String>();
-        if (compliance) {
+        if (flags.compliance()) {
             parts.add("compliance requirement detected");
         }
-        if (schema) {
+        if (flags.schema()) {
             parts.add("schema changes detected");
         }
         addComponentRationale(parts, tier, components);
@@ -149,7 +149,7 @@ public final class ScopeAssessmentEngine {
     private static ScopeAssessmentResult buildResult(
             ScopeAssessmentTier tier,
             int components, int endpoints,
-            boolean schema, boolean compliance,
+            AssessmentFlags flags,
             int dependentCount, String rationale) {
         List<String> skip =
                 tier == ScopeAssessmentTier.SIMPLE
@@ -159,7 +159,7 @@ public final class ScopeAssessmentEngine {
                         ? COMPLEX_EXTRA : List.of();
         return new ScopeAssessmentResult(
                 tier, components, endpoints,
-                schema, compliance,
+                flags.schema(), flags.compliance(),
                 dependentCount, rationale, skip, extra);
     }
 }

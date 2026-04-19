@@ -24,18 +24,20 @@ class PlatformTest {
     class EnumValues {
 
         @Test
-        @DisplayName("has exactly 2 values")
-        void values_whenCalled_returnsExactlyTwo() {
-            assertThat(Platform.values()).hasSize(2);
+        @DisplayName("has exactly 3 values "
+                + "(CLAUDE_CODE, SHARED, ALL)")
+        void values_whenCalled_returnsExactlyThree() {
+            assertThat(Platform.values()).hasSize(3);
         }
 
         @Test
-        @DisplayName("contains CLAUDE_CODE, SHARED")
+        @DisplayName("contains CLAUDE_CODE, SHARED, ALL")
         void values_whenCalled_containsAllExpected() {
             assertThat(Platform.values())
                     .containsExactly(
                             Platform.CLAUDE_CODE,
-                            Platform.SHARED);
+                            Platform.SHARED,
+                            Platform.ALL);
         }
     }
 

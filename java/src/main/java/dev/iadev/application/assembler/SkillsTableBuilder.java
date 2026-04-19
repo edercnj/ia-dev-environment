@@ -192,18 +192,10 @@ public final class SkillsTableBuilder {
     }
 
     private static List<String> listMdFilesSorted(Path dir) {
-        try (Stream<Path> entries = Files.list(dir)) {
-            return entries
-                    .filter(p -> p.getFileName().toString()
-                            .endsWith(".md"))
-                    .map(p -> p.getFileName().toString())
-                    .sorted()
-                    .toList();
-        } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to list directory: %s"
-                            .formatted(dir), e);
-        }
+        return MarkdownFileScanner
+                .listMarkdownFilesSorted(dir).stream()
+                .map(p -> p.getFileName().toString())
+                .toList();
     }
 
     private static List<String> listDirsSorted(Path dir) {

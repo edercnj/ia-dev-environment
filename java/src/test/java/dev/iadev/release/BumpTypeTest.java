@@ -13,7 +13,7 @@ class BumpTypeTest {
     void from_breakingPresent_returnsMajor() {
         CommitCounts counts = new CommitCounts(3, 1, 0, 1, 2);
 
-        assertThat(BumpType.from(counts)).isEqualTo(BumpType.MAJOR);
+        assertThat(BumpType.from(counts)).contains(BumpType.MAJOR);
     }
 
     @Test
@@ -21,7 +21,7 @@ class BumpTypeTest {
     void from_featOnly_returnsMinor() {
         CommitCounts counts = new CommitCounts(5, 0, 0, 0, 2);
 
-        assertThat(BumpType.from(counts)).isEqualTo(BumpType.MINOR);
+        assertThat(BumpType.from(counts)).contains(BumpType.MINOR);
     }
 
     @Test
@@ -30,21 +30,21 @@ class BumpTypeTest {
         CommitCounts fixOnly = new CommitCounts(0, 2, 0, 0, 1);
         CommitCounts perfOnly = new CommitCounts(0, 0, 1, 0, 0);
 
-        assertThat(BumpType.from(fixOnly)).isEqualTo(BumpType.PATCH);
-        assertThat(BumpType.from(perfOnly)).isEqualTo(BumpType.PATCH);
+        assertThat(BumpType.from(fixOnly)).contains(BumpType.PATCH);
+        assertThat(BumpType.from(perfOnly)).contains(BumpType.PATCH);
     }
 
     @Test
-    @DisplayName("from_onlyIgnored_returnsNull")
-    void from_onlyIgnored_returnsNull() {
+    @DisplayName("from_onlyIgnored_returnsEmpty")
+    void from_onlyIgnored_returnsEmpty() {
         CommitCounts counts = new CommitCounts(0, 0, 0, 0, 5);
 
-        assertThat(BumpType.from(counts)).isNull();
+        assertThat(BumpType.from(counts)).isEmpty();
     }
 
     @Test
-    @DisplayName("from_zero_returnsNull")
-    void from_zero_returnsNull() {
-        assertThat(BumpType.from(CommitCounts.ZERO)).isNull();
+    @DisplayName("from_zero_returnsEmpty")
+    void from_zero_returnsEmpty() {
+        assertThat(BumpType.from(CommitCounts.ZERO)).isEmpty();
     }
 }

@@ -139,7 +139,13 @@ public class GenerateCommand implements Callable<Integer> {
     private int executeGeneration(PrintWriter out) {
         Optional<ProjectConfig> configOpt =
                 ConfigSourceLoader.loadConfig(
-                        stack, configSource, verbose, out);
+                        stack,
+                        configSource,
+                        verbose
+                                ? out::println
+                                : ConfigSourceLoader
+                                        .SILENT_DEBUG,
+                        out);
         if (configOpt.isEmpty()) {
             return EXIT_VALIDATION;
         }
@@ -222,8 +228,10 @@ public class GenerateCommand implements Callable<Integer> {
                     AssemblerFactory.buildAllAssemblers(
                             options);
             return VerbosePipelineRunner.runVerbose(
-                    config, destPath, options,
-                    assemblers, all, out);
+                    config, destPath,
+                    new VerboseRunContext(
+                            options, assemblers, all),
+                    out);
         }
         AssemblerPipeline pipeline =
                 new AssemblerPipeline(assemblers);

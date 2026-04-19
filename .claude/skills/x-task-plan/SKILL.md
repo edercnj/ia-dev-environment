@@ -4,7 +4,6 @@ description: "Generates a detailed per-task implementation plan (plan-task-TASK-
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 argument-hint: "--task-file <path> [--output-dir <dir>]  |  [STORY-ID] --task [TASK-ID] [--force]"
-context-budget: medium
 ---
 
 ## Global Output Policy
@@ -57,6 +56,7 @@ Produces a detailed implementation plan for a single task extracted from a story
 1. EXTRACT CONTRACTS      -> Read task source (task-file OR story Section 8)
 2. MAP TDD CYCLES         -> Generate TDD cycles in TPP order
 3. ANALYZE FILES          -> Identify affected files by architecture layer
+3.5 COMPUTE FOOTPRINT     -> Emit structured File Footprint (write/read/regen)
 4. SECURITY CHECKLIST     -> Generate security items based on task type
 5. WRITE PLAN             -> Assemble and write plan-task-TASK-XXXX-YYYY-NNN.md
 ```
@@ -112,6 +112,9 @@ Before generating, verify whether a valid plan already exists:
 
 ### Phase 1 -- Extract Contracts
 
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-task-plan Phase-1-Context-Gathering`
+
 #### 1A. Task-file-first branch (EPIC-0038 — `--task-file` present)
 
 1. Read the file at `<task-file>`. Abort with exit code 1 if missing.
@@ -148,7 +151,13 @@ Before generating, verify whether a valid plan already exists:
    - **Acceptance Criteria**: list of criteria
 5. If the task ID is NOT found in Section 8, abort: `"Task TASK-XXXX-YYYY-NNN not found in story-XXXX-YYYY Section 8"`
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-plan Phase-1-Context-Gathering ok`
+
 ### Phase 2 -- Map TDD Cycles (TPP Order)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-task-plan Phase-2-Task-Breakdown`
 
 Generate TDD cycles based on the task's layer, test type, and acceptance criteria. Cycles MUST follow strict **Transformation Priority Premise** order:
 
@@ -196,6 +205,9 @@ Each TDD cycle MUST contain:
 
 Every task plan MUST contain at least 3 TDD cycles. The first cycle MUST always be a degenerate case (TPP Level 1). For domain logic tasks, target 4-6 cycles. For simple config/doc tasks, 3 cycles suffice.
 
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-plan Phase-2-Task-Breakdown ok`
+
 ### Phase 3 -- Analyze Affected Files by Layer
 
 Organize all affected files by architecture layer following the {{ARCHITECTURE}} structure. For each file, indicate whether it is **new** (to be created) or **modified** (existing).
@@ -242,7 +254,50 @@ For each applicable security item, generate a checklist entry with:
 - Severity: CRITICAL / HIGH / MEDIUM
 - Reference: CWE identifier or OWASP category where applicable
 
+### Phase 4.5 -- Compute File Footprint
+
+Emit a structured machine-readable footprint so downstream tooling (e.g., `/x-parallel-eval`) can detect write-conflicts deterministically, without relying on prose parsing of "Affected Files".
+
+#### Inference Rules
+
+For each path in the task's `Files:` list (Section 8 of the story):
+
+| Rule | Condition | Target sub-section |
+|------|-----------|--------------------|
+| R1 (default) | Any path declared on the task | `write:` |
+| R2 (golden regen — pom) | Path ends in `pom.xml` | Add `regen:` entry for corresponding artifacts |
+| R3 (golden regen — skill source) | Path matches `java/src/main/resources/targets/claude/**/SKILL.md` | Add `regen:` entry in `.claude/skills/**` at mirror path |
+| R4 (golden regen — targets tree) | Path under `java/src/main/resources/targets/claude/` (non-SKILL.md) | Add matching `regen:` entry in `.claude/` or `src/test/resources/golden/` |
+| R5 (reads) | Path listed in task's `Dependencies -> reads` section | `read:` |
+
+Empty sub-sections MUST be omitted from the plan output. Paths within each sub-section MUST be sorted alphabetically for determinism (RULE-008).
+
+#### Output Layout
+
+Inject a `## File Footprint` section into the plan document, immediately BEFORE `## Definition of Done`:
+
+```markdown
+## File Footprint
+
+### write:
+- path/to/writeA
+- path/to/writeB
+
+### read:
+- path/to/readA
+
+### regen:
+- path/to/regenA
+```
+
+#### Knowledge Pack Reference
+
+The inference rules above are the working contract documented in the `parallelism-heuristics` knowledge pack (`skills/knowledge-packs/parallelism-heuristics/SKILL.md`). Read that KP when extending the rules (e.g., adding new regen patterns) to keep consumer tooling in sync.
+
 ### Phase 5 -- Write Plan
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-task-plan Phase-3-Validation`
 
 #### 5.1 Ensure Output Directory
 
@@ -310,6 +365,10 @@ Write the plan to `<EPIC_DIR>/plans/task-plan-XXXX-YYYY-NNN.md` with the followi
 |------------|--------|
 | [TASK ID or cross-story reference] | [Why this dependency exists] |
 
+## File Footprint
+
+[Generated block from Phase 4.5 — sub-sections `write:`, `read:`, `regen:` with alphabetically-sorted paths. Empty sub-sections omitted.]
+
 ## Definition of Done
 
 - [ ] All TDD cycles completed (RED -> GREEN -> REFACTOR)
@@ -324,6 +383,9 @@ Write the plan to `<EPIC_DIR>/plans/task-plan-XXXX-YYYY-NNN.md` with the followi
 #### 5.3 Report
 
 After writing, log: `"Task plan generated: task-plan-XXXX-YYYY-NNN.md (N TDD cycles, M affected files)"`.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-plan Phase-3-Validation ok`
 
 ## Anti-Patterns
 
@@ -377,4 +439,5 @@ After writing, log: `"Task plan generated: task-plan-XXXX-YYYY-NNN.md (N TDD cyc
 | testing | `skills/testing/SKILL.md` | TDD patterns, TPP levels, test naming conventions |
 | architecture | `skills/architecture/SKILL.md` | Layer definitions, package structure, dependency rules |
 | security | `skills/security/SKILL.md` | OWASP Top 10, security checklist items |
+| parallelism-heuristics | `skills/knowledge-packs/parallelism-heuristics/SKILL.md` | File Footprint semantics (write/read/regen sub-sections) consumed by Phase 4.5 |
 | coding-standards | `skills/coding-standards/SKILL.md` | {{LANGUAGE}} conventions, naming, SOLID principles |

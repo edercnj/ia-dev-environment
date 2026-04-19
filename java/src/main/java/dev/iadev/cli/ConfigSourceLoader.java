@@ -7,6 +7,7 @@ import dev.iadev.domain.model.ProjectConfig;
 
 import java.io.PrintWriter;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * Loads project configuration from the specified source
@@ -19,6 +20,14 @@ import java.util.Optional;
  */
 final class ConfigSourceLoader {
 
+    /**
+     * Debug sink that discards all messages. Callers that
+     * do not want verbose output pass this (or any other
+     * no-op {@link Consumer}) instead of the prior
+     * {@code boolean verbose = false} argument.
+     */
+    static final Consumer<String> SILENT_DEBUG = s -> { };
+
     private ConfigSourceLoader() {
         // utility class
     }
@@ -28,17 +37,20 @@ final class ConfigSourceLoader {
      *
      * @param stack        the stack profile name
      * @param configSource the config source options
-     * @param verbose      whether to log verbose output
-     * @param out          the print writer
+     * @param debugSink    receives verbose debug messages;
+     *                     pass {@link #SILENT_DEBUG} to
+     *                     suppress them
+     * @param out          the print writer for user-facing
+     *                     errors
      * @return the loaded config, or empty if missing
      */
     static Optional<ProjectConfig> loadConfig(
             String stack,
             GenerateCommand.ConfigSource configSource,
-            boolean verbose,
+            Consumer<String> debugSink,
             PrintWriter out) {
         if (stack != null && !stack.isEmpty()) {
-            logVerbose(verbose, out,
+            debugSink.accept(
                     "Loading bundled stack profile: "
                             + stack);
             return Optional.of(
@@ -52,10 +64,10 @@ final class ConfigSourceLoader {
         }
         if (configSource.interactive) {
             return Optional.of(
-                    loadInteractive(verbose, out));
+                    loadInteractive(debugSink));
         }
         if (configSource.configPath != null) {
-            logVerbose(verbose, out,
+            debugSink.accept(
                     "Loading config: "
                             + configSource.configPath);
             return Optional.of(
@@ -69,9 +81,8 @@ final class ConfigSourceLoader {
     }
 
     private static ProjectConfig loadInteractive(
-            boolean verbose, PrintWriter out) {
-        logVerbose(verbose, out,
-                "Starting interactive mode...");
+            Consumer<String> debugSink) {
+        debugSink.accept("Starting interactive mode...");
         try {
             InteractivePrompter prompter =
                     new InteractivePrompter(
@@ -82,14 +93,6 @@ final class ConfigSourceLoader {
                     "Failed to initialize terminal: "
                             + e.getMessage(),
                     GenerateCommand.EXIT_EXECUTION);
-        }
-    }
-
-    private static void logVerbose(
-            boolean verbose,
-            PrintWriter out, String message) {
-        if (verbose) {
-            out.println(message);
         }
     }
 }

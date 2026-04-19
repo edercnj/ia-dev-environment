@@ -77,8 +77,13 @@ class TelemetryMcpHelperIT {
 
         runPhaseHelper(projectDir,
                 "mcp-start", "x-jira-create-stories", "createJiraIssue");
-        // Sleep to guarantee a positive duration regardless of timer
-        // granularity (millis on GNU, seconds on BSD).
+        // intentional workload simulation for timing test; not a sync
+        // primitive. The shell helper uses `date +%s` on BSD (macOS),
+        // which has second-level granularity, so two invocations within
+        // the same wall-clock second produce durationMs=0 and fail the
+        // `isGreaterThan(0)` assertion below. Forcing ≥1.1s of wall
+        // clock is the only way to guarantee a strictly positive diff
+        // across GNU (millis) and BSD (seconds) timer backends.
         Thread.sleep(1100);
         runPhaseHelper(projectDir,
                 "mcp-end", "x-jira-create-stories", "createJiraIssue", "ok");

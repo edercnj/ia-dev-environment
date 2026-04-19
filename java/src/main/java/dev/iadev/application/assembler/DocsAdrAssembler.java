@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -112,26 +113,23 @@ public final class DocsAdrAssembler implements Assembler {
             ProjectConfig config,
             TemplateEngine engine,
             Path outputDir) {
-        String templateContent =
-                loadValidatedTemplate();
-        if (templateContent == null) {
-            return List.of();
-        }
-        return writeAdrFiles(
-                config, outputDir, templateContent);
+        return loadValidatedTemplate()
+                .map(content -> writeAdrFiles(
+                        config, outputDir, content))
+                .orElseGet(List::of);
     }
 
-    private String loadValidatedTemplate() {
+    private Optional<String> loadValidatedTemplate() {
         Path templatePath = resourcesDir
                 .resolve(TEMPLATES_SUBDIR)
                 .resolve(TEMPLATE_FILENAME);
         if (!Files.exists(templatePath)) {
-            return null;
+            return Optional.empty();
         }
         String content =
                 CopyHelpers.readFile(templatePath);
         return hasAllMandatorySections(content)
-                ? content : null;
+                ? Optional.of(content) : Optional.empty();
     }
 
     private List<String> writeAdrFiles(
