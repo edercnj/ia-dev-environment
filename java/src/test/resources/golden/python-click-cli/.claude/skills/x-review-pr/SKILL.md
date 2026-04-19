@@ -2,8 +2,8 @@
 name: x-review-pr
 description: "Tech Lead holistic review with 45-point checklist covering Clean Code, SOLID, architecture, framework conventions, tests, TDD process, security, and cross-file consistency. Produces GO/NO-GO decision. Use for final review before merge."
 user-invocable: true
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob
-argument-hint: "[PR-number or STORY-ID] [--no-auto-remediation]"
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, AskUserQuestion, Skill
+argument-hint: "[PR-number or STORY-ID] [--no-auto-remediation] [--non-interactive] [--resume-review <pr>]"
 context-budget: medium
 ---
 
@@ -283,15 +283,145 @@ When the review results in NO-GO, automatically dispatch remediation instead of 
 
 3. **Re-run review automatically** (max 2 cycles total):
    - After remediation agent completes, re-execute Step 4 (full review)
-   - If still NO-GO after 2 cycles: halt with final report and remaining issues
+   - If still NO-GO after 2 cycles: proceed to Step 8.4 (Exhausted-Retry Gate)
 
-4. **Opt-out:** Pass `--no-auto-remediation` flag to force manual mode (original 3-option behavior).
+4. **Opt-out:** Pass `--no-auto-remediation` flag to force manual mode (skips auto-remediation agents; proceeds directly to Step 8.4 on NO-GO).
+
+#### Step 8.4 — Exhausted-Retry Gate (Rule 20 Interactive Gate)
+
+Reached when auto-remediation cycles are exhausted (2 retries without convergence) or when `--no-auto-remediation` is set and the review returns NO-GO.
+
+**Non-interactive path (`--non-interactive` present):**
+Skip `AskUserQuestion`. Print legacy HALT text and return NO-GO:
+```
+REVIEW NO-GO: Auto-remediation exhausted without convergence. Remaining issues recorded in report.
+Run with --resume-review <pr> to re-enter the gate interactively.
+```
+Exit with NO-GO. No state file written.
+
+**Interactive path (default — `--non-interactive` absent):**
+
+Initialize `gateAttempts = 0`.
+
+**Gate loop:**
+
+```
+WHILE gateAttempts < 3:
+  Present AskUserQuestion:
+    question: "Auto-remediation exhausted after 2 retry cycles. The Tech Lead review returned NO-GO. How would you like to proceed?"
+    options:
+      - { header: "Proceed", label: "Continue (Recommended)", description: "Re-dispatch auto-remediation (+2 loops). If the review converges to GO, the gate closes and the skill exits normally." }
+      - { header: "Fix PR", label: "Run x-pr-fix and retry", description: "Invokes x-pr-fix on the current PR; reapresents this menu on return." }
+      - { header: "Abort", label: "Cancel the operation", description: "Terminates the skill with REVIEW_REMEDIATION_EXHAUSTED. No further remediation is attempted." }
+
+  On PROCEED (slot 1):
+    gateAttempts++
+    Re-dispatch auto-remediation agents (same classification logic as Step 8 sub-steps 1-3, with 2 new retry cycles)
+    Re-execute Step 4 (full review)
+    IF review returns GO:
+      Exit gate with GO — skill completes normally
+    ELSE:
+      IF gateAttempts >= 3:
+        Emit REVIEW_FIX_LOOP_EXCEEDED and terminate (see below)
+      ELSE:
+        Continue loop (reapresent menu)
+
+  On FIX-PR (slot 2):
+    gateAttempts++
+    Write/update state file at plans/review/<pr>/state.json (opt-in persistence):
+      phase: "GATE_FIX_PR"
+      lastPhaseCompletedAt: <ISO-8601 UTC now>
+      lastGateDecision: "FIX_PR"
+      fixAttempts: [... previous ..., { at: <now>, delegateSkill: "x-pr-fix", prNumber: <PR>, outcome: "pending" }]
+      schemaVersion: "1.0"
+    Invoke x-pr-fix via Rule 13 Pattern 1 INLINE-SKILL:
+
+        Skill(skill: "x-pr-fix", args: "<PR>")
+
+    Update last fixAttempt.outcome to "applied" (or appropriate outcome)
+    Update state file: lastGateDecision = "FIX_PR", lastPhaseCompletedAt = <now>
+    IF gateAttempts >= 3:
+      Emit REVIEW_FIX_LOOP_EXCEEDED and terminate (see below)
+    ELSE:
+      Continue loop (reapresent menu)
+
+  On ABORT (slot 3):
+    Emit: "Review NO-GO final: operator aborted after ${gateAttempts} remediation attempt(s) on PR ${PR}"
+    Exit with code REVIEW_REMEDIATION_EXHAUSTED
+```
+
+**Guard-rail — `REVIEW_FIX_LOOP_EXCEEDED` (3 consecutive PROCEED or FIX-PR without convergence):**
+
+When `gateAttempts >= 3` without converging to GO, terminate the gate automatically:
+```
+REVIEW_FIX_LOOP_EXCEEDED: Loop de fix excedeu 3 tentativas no review do PR ${PR};
+gate encerrado com ABORT automático.
+Retomar via --resume-review ${PR} com --non-interactive ou intervenção manual.
+```
+No 4th option is offered. The gate terminates immediately. The menu was presented exactly 3 times (RULE-002 invariant: total option count remains 3 at all previous presentations).
+
+## State File (opt-in)
+
+Written only when the operator selects **FIX-PR** (slot 2) in Step 8.4. Enables resume via `--resume-review <pr>`.
+
+**Path:** `plans/review/<pr-number>/state.json`
+
+**Schema (Rule 20 §State File Schema — version 1.0):**
+
+```json
+{
+  "phase": "GATE_FIX_PR",
+  "lastPhaseCompletedAt": "<ISO-8601 UTC>",
+  "lastGateDecision": "<PROCEED|FIX_PR|ABORT|null>",
+  "fixAttempts": [
+    {
+      "at": "<ISO-8601 UTC>",
+      "delegateSkill": "x-pr-fix",
+      "prNumber": 123,
+      "outcome": "applied"
+    }
+  ],
+  "schemaVersion": "1.0"
+}
+```
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `phase` | String | Yes | Always `"GATE_FIX_PR"` for this skill |
+| `lastPhaseCompletedAt` | String (ISO-8601 UTC) | Yes | Updated on each write |
+| `lastGateDecision` | String \| null | Yes | One of `PROCEED`, `FIX_PR`, `ABORT`, or `null` before first interaction |
+| `fixAttempts` | Array | Yes | Always present; `[]` before first fix; max 3 items |
+| `schemaVersion` | String | Yes | Literal `"1.0"` |
+
+**`fixAttempts` entry fields:** `at` (ISO-8601 UTC), `delegateSkill` (always `"x-pr-fix"`), `prNumber` (PR number), `outcome` (`applied` \| `no_comments` \| `compile_regression` \| `aborted`).
+
+**Lifecycle:**
+- Written atomically (write to `<path>.tmp`, rename) when slot 2 (FIX-PR) is selected
+- Not written for PROCEED or ABORT selections
+- Not written on `--non-interactive` path
+
+**`--resume-review <pr>` flag:**
+
+When present, reads the state file at `plans/review/<pr>/state.json` and restores `gateAttempts` from `fixAttempts.size()`. If the state file satisfies the schema (Rule 20), the gate loop resumes from the last decision point. If the state file is absent or invalid, the gate starts fresh (gateAttempts = 0) with a warning:
+```
+WARNING: State file not found at plans/review/<pr>/state.json. Starting gate from scratch.
+```
+If the state file fails schema validation, emit `GATE_SCHEMA_INVALID` with the path and the missing/malformed field name.
+
+## Error Codes
+
+| Code | Condition | Message |
+|------|-----------|---------|
+| `REVIEW_REMEDIATION_EXHAUSTED` | Operator selected ABORT in Step 8.4 gate | `"Review NO-GO final: operador abortou após ${N} tentativas de remediation no PR ${PR}"` |
+| `REVIEW_FIX_LOOP_EXCEEDED` | 3 consecutive PROCEED or FIX-PR attempts without converging to GO | `"Loop de fix excedeu 3 tentativas no review do PR ${PR}; gate encerrado com ABORT automático. Retomar via --resume-review ${PR} com --non-interactive ou intervenção manual."` |
+| `GATE_SCHEMA_INVALID` | State file at `plans/review/<pr>/state.json` fails Rule 20 schema validation | `"State file inválido para gate em {path}: {campo} ausente ou mal-formado"` |
 
 ## Output Artifacts
 
 - `plans/epic-XXXX/reviews/review-tech-lead-story-XXXX-YYYY.md` — Tech Lead review report
 - `plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md` — Updated consolidated dashboard
 - `plans/epic-XXXX/reviews/remediation-story-XXXX-YYYY.md` — Updated remediation tracking
+- `plans/review/<pr-number>/state.json` — Gate state (opt-in, written only on FIX-PR selection)
 
 ## Error Handling
 
@@ -304,8 +434,11 @@ When the review results in NO-GO, automatically dispatch remediation instead of 
 | Test suite failure (unit/integration) | Automatic NO-GO regardless of rubric score; record all failing tests in report |
 | Coverage below threshold (< 95% line or < 90% branch) | Automatic NO-GO; record coverage gap as CRITICAL finding |
 | Smoke test failure | Automatic NO-GO; record failing smoke tests as CRITICAL finding |
-| NO-GO after 2 retry cycles | Halt review loop; output final report with remaining issues |
-| NO-GO with `--no-auto-remediation` | Offer manual options: fix now, view report, skip |
+| NO-GO after 2 retry cycles | Route to Step 8.4 Exhausted-Retry Gate |
+| NO-GO with `--no-auto-remediation` | Route directly to Step 8.4 Exhausted-Retry Gate |
+| `--non-interactive` after retry exhausted | Skip gate; emit legacy HALT text; return NO-GO |
+| State file missing on `--resume-review` | Start gate fresh; emit warning |
+| State file schema invalid | Emit `GATE_SCHEMA_INVALID`; start gate fresh |
 
 
 ## Integration Notes
