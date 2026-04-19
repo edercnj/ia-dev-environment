@@ -879,6 +879,7 @@ Create or update `plans/epic-XXXX/execution-state.json` with task-level tracking
   "storyId": "story-XXXX-YYYY",
   "mode": "MANUAL|AUTO_APPROVE",
   "parentBranch": "feat/story-XXXX-YYYY-desc|null",
+  "schemaVersion": "1.0",
   "tasks": {
     "TASK-XXXX-YYYY-001": {
       "status": "PENDING|IN_PROGRESS|PR_CREATED|PR_APPROVED|PR_MERGED|DONE|FAILED|BLOCKED",
@@ -886,11 +887,26 @@ Create or update `plans/epic-XXXX/execution-state.json` with task-level tracking
       "prNumber": null,
       "prUrl": null,
       "startedAt": null,
-      "completedAt": null
+      "completedAt": null,
+      "lastGateDecision": null,
+      "fixAttempts": []
     }
   }
 }
 ```
+
+**New fields (EPIC-0043):**
+
+| Field | Type | Required | Notes |
+| :--- | :--- | :--- | :--- |
+| `tasks[TASK-ID].lastGateDecision` | `String \| null` | Yes (new) | Always present after first write; `null` before first interaction; one of `PROCEED`, `FIX_PR`, `ABORT` |
+| `tasks[TASK-ID].fixAttempts` | `Array<FixAttempt>` | Yes (new) | Default `[]`; capped at 3 items; each entry per Rule 20 §State File Schema |
+| `schemaVersion` | `String` | Yes (new) | Literal `"1.0"` per Rule 20 §State File Schema |
+
+**Legacy migration:** state files without `lastGateDecision` / `fixAttempts` / `schemaVersion`
+are read as `null` / `[]` / `"legacy"` respectively. On next write, the file is silently migrated
+to schema `"1.0"` and the new fields are added. Log on first migration:
+`"STORY_STATE_SCHEMA_LEGACY: execution-state.json com schema legacy; migrando para 1.0 em próxima escrita"`
 
 ### Step 2.2 -- Task Execution Loop
 
