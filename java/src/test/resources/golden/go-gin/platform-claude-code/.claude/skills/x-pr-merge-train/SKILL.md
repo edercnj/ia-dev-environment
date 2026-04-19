@@ -51,12 +51,9 @@ Phase 2: Validation               — validate each PR against 6 VETO criteria; 
 Phase 3: Sort + File-Overlap Precheck — reorder by createdAt, detect file overlap, set MAX_PARALLEL
 Phase 4: Base PR Merge            — merge BASE_PR with auto-merge + 60s poll; emit MERGE_POLL_TIMEOUT on timeout
 Phase 5: Parallel Tail Orchestration — dispatch TAIL[] as sibling Agent() waves; serial merge after each wave
-Phase 6: Verification             — post-merge CI check + state.json finalization (story-0042-0003)
-Phase 7: Cleanup                  — remove train worktree if TRAIN_OWNS_WORKTREE=true (story-0042-0003)
-Phase 8: Report                   — emit final summary with merge SHAs and timings (story-0042-0003)
+Phase 6: Final Verification       — git fetch + pull + mvn compile + mvn test after all merges
+Phase 7: Report + Cleanup         — emit report.md, conditional worktree removal, state.phase=COMPLETED
 ```
-
-> Phases 6–8 are implemented in story-0042-0003.
 
 ## Phase 0 — Preparation
 
@@ -548,4 +545,330 @@ When `TAIL[]` is empty and all merges succeeded:
 
 1. Update `state.json`: `phase = "TAIL_MERGED_DONE"`.
 2. Log: `"[Phase 5] All {count} tail PR(s) rebased and merged. Proceeding to Phase 6."`
+
+## Phase 6 — Final Verification
+
+### Step 6.1 — Update state.json
+
+Update `state.json`: set `phase = "VERIFYING"`.
+
+### Step 6.2 — Fetch and Update develop
+
+```bash
+git fetch origin develop
+git checkout develop
+git pull --ff-only
+```
+
+### Step 6.3 — Compile Check
+
+```bash
+cd java && mvn compile
+```
+
+Expect exit code `0`. On failure:
+
+1. Update `state.json`: `phase = "FAILED"`, `reason = "SMOKE_TEST_FAILED"`.
+2. Log: `"[Phase 6] SMOKE_TEST_FAILED — mvn compile failed after all merges. Worktree preserved."`
+3. Preserve worktree for diagnosis (Rule 14 §4 — failed tasks must not be auto-removed).
+4. Abort — do NOT proceed to Phase 7.
+
+### Step 6.4 — Test Check
+
+```bash
+mvn test
+```
+
+Expect exit code `0`. On failure:
+
+1. Update `state.json`: `phase = "FAILED"`, `reason = "SMOKE_TEST_FAILED"`.
+2. Log: `"[Phase 6] SMOKE_TEST_FAILED — mvn test failed after all merges. Worktree preserved at plans/merge-train/<trainId>/"`
+3. Preserve worktree for diagnosis (Rule 14 §4).
+4. Abort — do NOT proceed to Phase 7.
+
+### Step 6.5 — PR State Assertion
+
+For each PR in `prsMergedOk[]`, assert that GitHub reports the PR as merged:
+
+```bash
+gh pr view <pr> --json state --jq '.state'
+```
+
+Assert the output equals `"MERGED"`. Any mismatch logs a WARNING but does NOT abort:
+
+```
+[Phase 6] WARNING: PR #<N> expected MERGED but got <state>
+```
+
+### Step 6.6 — Finalize Phase
+
+Update `state.json`:
+
+```json
+{
+  "phase": "VERIFYING_DONE",
+  "lastPhaseCompletedAt": "<now ISO-8601>"
+}
+```
+
+Log: `"[Phase 6] Final verification complete. develop is GREEN. Proceeding to Phase 7."`
+
+## Phase 7 — Report + Cleanup
+
+### Step 7.1 — Update state.json
+
+Update `state.json`: `phase = "REPORTING"`.
+
+### Step 7.2 — Write report.md
+
+Write `plans/merge-train/<trainId>/report.md` with the following sections:
+
+```
+# Merge Train Report — <trainId>
+
+**Started:** <startedAt>
+**Ended:** <now>
+**Duration:** <elapsed human-readable>
+
+## PRs Merged
+
+| PR # | Role | Wave | Duration | Merge SHA |
+| :--- | :--- | :--- | :--- | :--- |
+| 374 | BASE | — | 42s | abc1234 |
+| 375 | TAIL | 1 | 87s | def5678 |
+| 376 | TAIL | 1 | 91s | ghi9012 |
+
+## Waves
+
+| Wave | PRs | Dispatched | Returned | Workers |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | #375, #376 | 2026-04-19T14:32:00Z | 2026-04-19T14:33:31Z | 2 |
+
+## Errors Observed
+
+| Code | PR # | Message |
+| :--- | :--- | :--- |
+| (none) | — | — |
+
+## Final Phase
+
+COMPLETED
+```
+
+If no errors occurred, the Errors Observed table contains a single `(none)` row.
+If errors occurred, each entry from `prsFailed[]` is listed.
+
+### Step 7.3 — Conditional Worktree Cleanup
+
+**Case A — TRAIN_OWNS_WORKTREE and phase != "FAILED":**
+
+Invoke the `x-git-worktree` skill via the Skill tool (Rule 13 Pattern 1 — INLINE-SKILL):
+
+    Skill(skill: "x-git-worktree", args: "remove --id <trainId>")
+
+Log: `"[Phase 7] Worktree removed for trainId <trainId>."`
+
+**Case B — phase == "FAILED":**
+
+Do NOT remove the worktree. Preserve it for diagnosis (Rule 14 §4 — failed tasks must not be auto-removed).
+
+Log: `"[Phase 7] Train FAILED — worktree preserved at .claude/worktrees/<trainId> for diagnosis."`
+
+**Case C — worktreeOwnership == "REUSE_PARENT":**
+
+Skip cleanup. The orchestrator (parent skill) owns the worktree and is responsible for removal (Rule 14 §5 — creator owns removal).
+
+Log: `"[Phase 7] REUSE_PARENT — worktree cleanup skipped (orchestrator owns the worktree)."`
+
+### Step 7.4 — Finalize state.json
+
+Update `state.json`:
+
+```json
+{
+  "phase": "COMPLETED",
+  "lastPhaseCompletedAt": "<now ISO-8601>"
+}
+```
+
+Log: `"[Phase 7] Train <trainId> complete. Report: plans/merge-train/<trainId>/report.md"`
+
+## state.json — Complete Schema
+
+All fields are persisted throughout the train lifecycle. Every update uses the atomic-write pattern (see below).
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `schemaVersion` | `String` | M | Literal `"1.0"` |
+| `trainId` | `String` | M | `epic-NNNN-TIMESTAMP` or `manual-TIMESTAMP` |
+| `startedAt` | `String` (ISO-8601) | M | UTC timestamp of train start |
+| `lastPhaseCompletedAt` | `String` (ISO-8601) | M | UTC; updated at end of each phase |
+| `phase` | `Enum` | M | One of: `PREPARATION`, `DISCOVERY`, `VALIDATION`, `SORTING`, `MERGING_BASE`, `MERGING_BASE_DONE`, `WAVE_N_DISPATCHED`, `WAVE_N_RETURNED`, `VERIFYING`, `VERIFYING_DONE`, `REPORTING`, `CLEANUP`, `COMPLETED`, `FAILED` |
+| `worktreeOwnership` | `Enum` | M | `TRAIN_OWNS_WORKTREE` or `REUSE_PARENT` |
+| `neuteredParallel` | `Boolean` | M | `true` if Phase 3 forced MAX_PARALLEL=1 |
+| `maxParallel` | `Integer` | M | Effective max-parallel value |
+| `dryRun` | `Boolean` | M | Whether `--dry-run` was passed |
+| `prs` | `List<PrEntry>` | M | Per-PR state including `number`, `headRefName`, `baseRefName`, `validationStatus`, `role` (`BASE`/`TAIL`) |
+| `prsMergedOk` | `List<Integer>` | M | Append-only list of successfully merged PR numbers |
+| `prsFailed` | `List<{pr, reason}>` | M | Failed PRs with error code |
+| `waves` | `List<WaveEntry>` | M | Wave history: `{index, prs, dispatchedAt, returnedAt}` |
+
+**Full JSON example:**
+
+```json
+{
+  "schemaVersion": "1.0",
+  "trainId": "epic-0042-20260419T1430",
+  "startedAt": "2026-04-19T14:30:00Z",
+  "lastPhaseCompletedAt": "2026-04-19T14:38:55Z",
+  "phase": "COMPLETED",
+  "worktreeOwnership": "TRAIN_OWNS_WORKTREE",
+  "neuteredParallel": false,
+  "maxParallel": 3,
+  "dryRun": false,
+  "prs": [
+    {
+      "number": 374,
+      "headRefName": "feat/task-0042-0001-001",
+      "baseRefName": "develop",
+      "mergeable": "MERGEABLE",
+      "reviewDecision": "APPROVED",
+      "isDraft": false,
+      "state": "MERGED",
+      "validationStatus": "VALID",
+      "role": "BASE"
+    },
+    {
+      "number": 375,
+      "headRefName": "feat/task-0042-0001-002",
+      "baseRefName": "develop",
+      "mergeable": "MERGEABLE",
+      "reviewDecision": "APPROVED",
+      "isDraft": false,
+      "state": "MERGED",
+      "validationStatus": "VALID",
+      "role": "TAIL"
+    }
+  ],
+  "prsMergedOk": [374, 375],
+  "prsFailed": [],
+  "waves": [
+    {
+      "index": 1,
+      "prs": [375],
+      "dispatchedAt": "2026-04-19T14:32:00Z",
+      "returnedAt": "2026-04-19T14:33:31Z"
+    }
+  ]
+}
+```
+
+## Atomic State Writes
+
+All writes to `state.json` MUST use the `.tmp` + `rename` pattern to prevent corruption on SIGKILL mid-write:
+
+1. Write updated content to `state.json.tmp` (same directory).
+2. Attempt a JSON parse of `state.json.tmp` to validate structure.
+   - If the parse fails: log the error, discard `state.json.tmp`, keep the existing `state.json` unchanged.
+   - If the parse succeeds: proceed to step 3.
+3. Execute `mv state.json.tmp state.json` (atomic rename on POSIX systems).
+
+This ensures `state.json` is always a complete, valid JSON document. A partial write (due to SIGKILL or OOM) leaves the `.tmp` file in place but does not corrupt the last-known-good `state.json`.
+
+## Resume Entry Logic (`--resume`)
+
+### Prerequisites
+
+- `--resume` requires an existing `plans/merge-train/<trainId>/state.json`.
+- If no `state.json` exists: abort with `STATE_CONFLICT`:
+  `"No state.json found. Start fresh (omit --resume) or provide --train-id."`
+- When multiple `plans/merge-train/*/state.json` files exist: `--train-id` is mandatory:
+  ```
+  # user types in Claude Code chat:
+  # /x-pr-merge-train --resume --train-id epic-0042-20260415-143022
+  ```
+  If `--train-id` is omitted and multiple state files exist: abort with `STATE_CONFLICT`:
+  `"Multiple train state files found. Provide --train-id to disambiguate."`
+
+### Resume Behaviour
+
+1. Load `state.json` from `plans/merge-train/<trainId>/`.
+2. Determine the last completed phase from `lastPhaseCompletedAt` and `phase`.
+3. Skip all phases already completed (those with `lastPhaseCompletedAt` set before the resume timestamp).
+4. Re-enter the next incomplete phase, preserving existing `prsMergedOk[]` and `waves[]` intact — do NOT re-merge already-merged PRs.
+5. If the train was aborted due to `CODE_CONFLICT_NEEDS_HUMAN`:
+   - Human resolves the conflict manually: `git rebase --continue` + push.
+   - Then: `--resume` continues from `WAVE_N_DISPATCHED` for the next pending wave.
+6. If `phase == "FAILED"` with reason `SMOKE_TEST_FAILED`: diagnose the build failure, fix it, then `--resume` re-runs Phase 6.
+
+## Error Handling
+
+All error codes emitted by the skill are listed below. Each entry identifies the phase that emits it, the triggering condition, and the recommended remediation.
+
+| Code | Phase | Condition | Remediation |
+| :--- | :--- | :--- | :--- |
+| `MODE_AMBIGUOUS` | Phase 1 | 0 or 2+ of `--prs`/`--epic`/`--pattern` provided | Provide exactly one discovery mode flag |
+| `EPIC_STATE_MISSING` | Phase 1 | `--epic N` but `plans/epic-N/execution-state.json` absent | Use `--prs` or `--pattern` instead |
+| `PR_CLOSED` | Phase 2 | `state != "OPEN"` | Remove from train or reopen the PR |
+| `PR_DRAFT` | Phase 2 | `isDraft == true` | Mark the PR as Ready for review |
+| `PR_BASE_MISMATCH` | Phase 2 | `baseRefName != "develop"` | Rebase or open a new PR against develop |
+| `PR_NOT_APPROVED` | Phase 2 | `reviewDecision != "APPROVED"` | Request review from a code owner |
+| `PR_CI_FAILING` | Phase 2 | CI contains `FAILURE` or `ERROR` check | Fix CI before retrying |
+| `PR_MERGE_CONFLICT` | Phase 2 | `mergeable == "CONFLICTING"` | Rebase manually, then re-run |
+| `NEUTERED_PARALLEL` | Phase 3 | File overlap outside `golden/**` detected (informational) | Accept serial execution, or refactor tasks to avoid overlap |
+| `MERGE_REJECTED_BY_PROTECTION` | Phase 4 or 5 | Branch protection blocks merge | Adjust protection rules or use admin override |
+| `MERGE_POLL_TIMEOUT` | Phase 4 or 5 | PR did not reach `MERGED` within timeout | Increase `--merge-timeout-seconds` or investigate CI |
+| `CODE_CONFLICT_NEEDS_HUMAN` | Phase 5 | Rebase conflict in non-golden file | Resolve manually → `git rebase --continue` → push → `--resume` |
+| `PUSH_LEASE_REJECTED` | Phase 5 | `--force-with-lease` rejected after retry | Fetch + rebase manually → `--resume` |
+| `GOLDENS_REGEN_FAILED` | Phase 5 | `GoldenFileRegenerator` exits non-zero | Diagnose build failure; see worker log |
+| `SMOKE_TEST_FAILED` | Phase 6 | `mvn test` fails after all merges | Diagnose; worktree preserved at `plans/merge-train/<trainId>/` |
+| `STATE_CONFLICT` | `--resume` | `--resume` with no existing `state.json` or ambiguous train ID | Start fresh (omit `--resume`) or provide `--train-id` |
+
+> `NEUTERED_PARALLEL` is informational — it does not abort the train. All other codes result in train abort unless specified as WARNING.
+
+## Integration Notes
+
+| Skill | Relationship | When |
+| :--- | :--- | :--- |
+| `x-git-worktree` | Called (INLINE-SKILL, Phase 7) | Cleanup when `TRAIN_OWNS_WORKTREE` and `phase != FAILED` |
+| `x-git-commit` | Not called directly | Commits are made by rebase-worker subagents via git CLI |
+| `x-pr-fix-epic` | Manual invocation by operator | After `--resume` following `CODE_CONFLICT_NEEDS_HUMAN`, to fix any PR review comments |
+| `x-story-implement` | Does not call and is not called by | Orthogonal concerns; merge-train operates on already-open PRs |
+
+## Examples
+
+```
+# Explicit PR list — 3 PRs, max 2 parallel workers
+# Use when you know the exact PR numbers to merge in order
+/x-pr-merge-train --prs 374,375,376 --max-parallel 2
+```
+
+Expected output: Phase 0-2 validation, Phase 3 overlap check, Phase 4 base merge (#374), Phase 5 parallel rebase+merge of #375 and #376. Final: `[Phase 7] Train manual-XXXXXXXX complete. Report: plans/merge-train/manual-XXXXXXXX/report.md`
+
+```
+# Auto-discover all task PRs from EPIC-0042 execution state
+# Use when all PRs were created by x-epic-implement and you want to merge the full set
+/x-pr-merge-train --epic 0042
+```
+
+Expected output: Reads `plans/epic-0042/execution-state.json`, discovers all PR numbers, runs full validation and merge. Preserves task order from the epic.
+
+```
+# Dry-run: validate and show plan without merging
+# Use before a real merge to audit VETO status of all PRs
+/x-pr-merge-train --epic 0042 --dry-run
+```
+
+Expected output: Prints `DRY-RUN PLAN` with VALID/VETO codes for each PR and the merge order. Exits without merging anything.
+
+```
+# Resume an interrupted train after manually resolving a code conflict
+# Use after: git rebase --continue && git push --force-with-lease origin <HEAD>
+/x-pr-merge-train --resume --train-id epic-0042-20260415-143022
+```
+
+Expected output: Loads `plans/merge-train/epic-0042-20260415-143022/state.json`, skips already-merged PRs, resumes the interrupted wave. `prsMergedOk[]` and `waves[]` are preserved from the previous run.
+
+> **Rule 13 note:** The bare-slash `/x-pr-merge-train` form in this Examples section is PERMITTED — these are user-facing invocation examples typed into the Claude Code chat input. The bare-slash form is NOT permitted in delegation body text (Rule 13 §Forbidden).
+
 

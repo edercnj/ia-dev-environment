@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **story-0042-0003 (EPIC-0042):** `x-pr-merge-train` skill completed with Phases 6–7, full state.json schema, atomic-write pattern, `--resume` entry logic, 16-code Error Handling table, Integration Notes, and ≥ 4 Examples.
+  - **Phase 6 — Final Verification:** fetches + pulls `develop`, runs `mvn compile` + `mvn test` smoke checks after all merges, and asserts each merged PR reached `MERGED` state via GitHub API. Any test failure sets `phase = FAILED` with `reason = SMOKE_TEST_FAILED` and preserves the worktree for diagnosis (Rule 14 §4).
+  - **Phase 7 — Report + Cleanup:** writes `plans/merge-train/<trainId>/report.md` (PRs Merged, Waves, Errors Observed tables), conditionally removes the worktree via `x-git-worktree` INLINE-SKILL (Rule 13 Pattern 1) when `TRAIN_OWNS_WORKTREE && phase != FAILED`, and finalizes `state.json` with `phase = COMPLETED`.
+  - **state.json Complete Schema:** documents all 13 fields including `schemaVersion`, `lastPhaseCompletedAt`, `neuteredParallel`, `waves[]`, and all 14 `phase` enum values, with a full JSON example.
+  - **Atomic State Writes:** `.tmp` + `mv` rename pattern documented to prevent `state.json` corruption on SIGKILL mid-write.
+  - **`--resume` Entry Logic:** `STATE_CONFLICT` abort when no `state.json` exists; `--train-id` mandatory when multiple state files exist; resumes from next incomplete phase preserving `prsMergedOk[]` and `waves[]`.
+  - **Error Handling Table:** 16 error codes with Phase, Condition, and Remediation columns covering all failure modes from `MODE_AMBIGUOUS` through `STATE_CONFLICT`.
+  - **Integration Notes Table:** 4 rows documenting relationships with `x-git-worktree`, `x-git-commit`, `x-pr-fix-epic`, and `x-story-implement`.
+  - **Examples:** 4 invocations with context (explicit `--prs`, `--epic` auto-discover, `--dry-run` audit, `--resume --train-id` post-conflict recovery).
+  - Four TDD test classes added: `MergeTrainSkillPhase6Test` (×2), `MergeTrainSkillSchemaTest` (×1), `MergeTrainSkillErrorHandlingTest` (×1), `MergeTrainSkillExamplesTest` (×1).
+
 - **story-0042-0002 (EPIC-0042):** `x-pr-merge-train` gains Phases 3, 4, and 5 — merge orchestration and parallel rebase subagents.
   - **Phase 3 — Sort + File-Overlap Precheck:** reorders the validated PR list by `createdAt` ascending (or preserves explicit `--prs` order), then computes file-set intersections for every PR pair via `gh pr view --json files`. Any overlap outside `golden/**` forces `MAX_PARALLEL=1` and logs `NEUTERED_PARALLEL` to `state.json` (telemetry only, not an error). The first PR becomes `BASE_PR`; the rest form `TAIL[]`.
   - **Phase 4 — Base PR Merge:** triggers `gh pr merge <BASE_PR> --squash --auto --delete-branch` and polls every 60 s until `state == MERGED` (default 30-minute timeout). Aborts with `MERGE_POLL_TIMEOUT` on timeout or `MERGE_REJECTED_BY_PROTECTION` on branch-protection rejection. Updates `state.json` fields `phase`, `prsMergedOk[]`, and `prsFailed[]`.
