@@ -19,7 +19,7 @@
       "blockedBy": [],
       "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/451",
       "prNumber": 451,
-      "prMergeStatus": "OPEN"
+      "prMergeStatus": "MERGED"
     },
     "story-0042-0004": {
       "id": "story-0042-0004",
@@ -37,25 +37,33 @@
     "story-0042-0002": {
       "id": "story-0042-0002",
       "phase": 1,
-      "status": "PENDING",
+      "status": "SUCCESS",
+      "commitSha": "822a9bacaeb44078cc9f2019717b9866dd24cb07",
       "findingsCount": 0,
-      "summary": "",
+      "summary": "Added Phases 3 (Sort + File-Overlap Precheck), 4 (Base PR Merge), and 5 (Parallel Tail Orchestration with canonical rebase subagent prompt and wave dispatcher) to x-pr-merge-train/SKILL.md. 4 TDD tests (RED→GREEN). 18 golden profiles regenerated. Rule 13 audit clean.",
       "retries": 0,
-      "blockedBy": ["story-0042-0001"]
+      "blockedBy": [],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/457",
+      "prNumber": 457,
+      "prMergeStatus": "MERGED"
     },
     "story-0042-0003": {
       "id": "story-0042-0003",
       "phase": 2,
-      "status": "PENDING",
+      "status": "SUCCESS",
+      "commitSha": "a2d5f956da3f8908698946f13ab4e575cd93fe41",
       "findingsCount": 0,
-      "summary": "",
+      "summary": "Added Phase 6 (Final Verification), Phase 7 (Report + Cleanup), state.json complete schema, atomic-write pattern, --resume entry logic, 16 error codes with remediation, Integration Notes table, 4+ executable Examples. 5 TDD tests (RED→GREEN). All goldens regenerated. 6063 tests GREEN.",
       "retries": 0,
-      "blockedBy": ["story-0042-0002"]
+      "blockedBy": [],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/458",
+      "prNumber": 458,
+      "prMergeStatus": "MERGED"
     }
   },
   "mainShaBeforePhase": {"0": "1c5e9a9696d06540733bcfff2fc484c80b7cc26a"},
-  "integrityGates": {},
+  "integrityGates": {"phase-0": {"status": "PASS", "tests": 6053, "failures": 0, "timestamp": "2026-04-19T13:00:00Z"}, "phase-1": {"status": "PASS", "tests": 6058, "failures": 0, "timestamp": "2026-04-19T13:20:00Z"}, "phase-2": {"status": "PASS", "tests": 6063, "failures": 0, "timestamp": "2026-04-19T14:10:00Z"}},
   "versionBumps": [],
-  "reportPath": null,
-  "finalStatus": null
+  "reportPath": "plans/epic-0042/reports/epic-completion-report-0042.md",
+  "finalStatus": "SUCCESS"
 }
