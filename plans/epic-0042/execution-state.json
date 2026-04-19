@@ -1,0 +1,61 @@
+{
+  "version": "2.0",
+  "epicId": "0042",
+  "baseBranch": "develop",
+  "mergeMode": "auto",
+  "autoApprovePr": false,
+  "batchApproval": true,
+  "taskTracking": true,
+  "startedAt": "2026-04-19T00:00:00Z",
+  "stories": {
+    "story-0042-0001": {
+      "id": "story-0042-0001",
+      "phase": 0,
+      "status": "SUCCESS",
+      "commitSha": "b8214bdb329f9eceae7e46e1ce80ec37efb7c1a5",
+      "findingsCount": 0,
+      "summary": "Created x-pr-merge-train SKILL.md with Phases 0-2 (Preparation, Discovery, Validation). Added SkillsAssemblerTest.listCoreSkills_includesMergeTrain (TDD RED→GREEN). 5 atomic tasks. Golden files regenerated. Rule 13 audit clean.",
+      "retries": 0,
+      "blockedBy": [],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/451",
+      "prNumber": 451,
+      "prMergeStatus": "OPEN"
+    },
+    "story-0042-0004": {
+      "id": "story-0042-0004",
+      "phase": 3,
+      "status": "SUCCESS",
+      "commitSha": "17b9cd8f37e71a2ef975184da4cbfa7acc25a9a5",
+      "findingsCount": 0,
+      "summary": "Inserted Step 3.6.5 (auto-fix task PR comments post-TL GO) into x-story-implement/SKILL.md. Added Integration Notes and Error Handling rows. Regenerated 19 golden files. GoldenFileDiffReporterTest GREEN. Rule 13 audit CLEAN. 4 atomic tasks merged via PRs #452-455.",
+      "retries": 0,
+      "blockedBy": [],
+      "prUrl": null,
+      "prNumber": null,
+      "prMergeStatus": "MERGED"
+    },
+    "story-0042-0002": {
+      "id": "story-0042-0002",
+      "phase": 1,
+      "status": "PENDING",
+      "findingsCount": 0,
+      "summary": "",
+      "retries": 0,
+      "blockedBy": ["story-0042-0001"]
+    },
+    "story-0042-0003": {
+      "id": "story-0042-0003",
+      "phase": 2,
+      "status": "PENDING",
+      "findingsCount": 0,
+      "summary": "",
+      "retries": 0,
+      "blockedBy": ["story-0042-0002"]
+    }
+  },
+  "mainShaBeforePhase": {"0": "1c5e9a9696d06540733bcfff2fc484c80b7cc26a"},
+  "integrityGates": {},
+  "versionBumps": [],
+  "reportPath": null,
+  "finalStatus": null
+}

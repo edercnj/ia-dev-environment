@@ -8,10 +8,10 @@
 
 | Story | Título | Chave Jira | Blocked By | Blocks | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| [story-0042-0001](./story-0042-0001.md) | Skill `x-pr-merge-train` — skeleton + discovery + validation | — | — | story-0042-0002, story-0042-0003 | Pendente |
+| [story-0042-0001](./story-0042-0001.md) | Skill `x-pr-merge-train` — skeleton + discovery + validation | — | — | story-0042-0002, story-0042-0003 | Concluída |
 | [story-0042-0002](./story-0042-0002.md) | Merge orchestration + parallel rebase subagents | — | story-0042-0001 | story-0042-0003 | Pendente |
 | [story-0042-0003](./story-0042-0003.md) | Verification + state.json + error handling + examples | — | story-0042-0002 | — | Pendente |
-| [story-0042-0004](./story-0042-0004.md) | Hook `x-pr-fix` após TL GO em `x-story-implement` | — | — | — | Pendente |
+| [story-0042-0004](./story-0042-0004.md) | Hook `x-pr-fix` após TL GO em `x-story-implement` | — | — | — | Concluída |
 
 > **Valores de Status:** `Pendente` (padrão) · `Em Andamento` · `Concluída` · `Falha` · `Bloqueada` · `Parcial`
 
