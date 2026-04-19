@@ -58,21 +58,19 @@ ALLOWED_SECTIONS_PATTERN="^(## Triggers|## Examples)"
 # then check if AskUserQuestion appears within 30 lines before or after.
 HALT_PATTERN="(HALT|Skill pausada|paused\.)"
 
-# Regex 2 patterns (tokenised end-of-token check via ERE):
-#   Use ([^a-zA-Z0-9_-]|$) — "not followed by alphanumeric, underscore or
-#   hyphen" — to ensure we match the exact flag and NOT suffixed variants.
-#   For example: --interactive-merge ends with [a-z] so the pattern does NOT
-#   match; --interactive" (in a Skill call) ends with " which IS non-word.
+# Regex 2 patterns (tokenised with end-of-token lookahead via ERE):
+#   The lookahead character class [[:space:]\]},.:;!?] covers the common
+#   terminators. We also anchor on end-of-line ($) to catch line-final tokens.
 #   The patterns use ERE (-E flag to grep).
 #
 #   --interactive (but NOT --interactive-merge or --interactive-*)
-DEPRECATED_FLAG_INTERACTIVE='--interactive([^a-zA-Z0-9_-]|$)'
+DEPRECATED_FLAG_INTERACTIVE='--interactive([[:space:]][[:space:]]*|\]|\)|}|,|\.|:|;|!|\?|$)'
 #   --manual-task-approval
-DEPRECATED_FLAG_MANUAL_TASK='--manual-task-approval([^a-zA-Z0-9_-]|$)'
+DEPRECATED_FLAG_MANUAL_TASK='--manual-task-approval([[:space:]][[:space:]]*|\]|\)|}|,|\.|:|;|!|\?|$)'
 #   --manual-contract-approval
-DEPRECATED_FLAG_MANUAL_CONTRACT='--manual-contract-approval([^a-zA-Z0-9_-]|$)'
+DEPRECATED_FLAG_MANUAL_CONTRACT='--manual-contract-approval([[:space:]][[:space:]]*|\]|\)|}|,|\.|:|;|!|\?|$)'
 #   --manual-batch-approval
-DEPRECATED_FLAG_MANUAL_BATCH='--manual-batch-approval([^a-zA-Z0-9_-]|$)'
+DEPRECATED_FLAG_MANUAL_BATCH='--manual-batch-approval([[:space:]][[:space:]]*|\]|\)|}|,|\.|:|;|!|\?|$)'
 
 # Combined deprecated-flag pattern (alternation)
 DEPRECATED_FLAGS_PATTERN="(${DEPRECATED_FLAG_INTERACTIVE}|${DEPRECATED_FLAG_MANUAL_TASK}|${DEPRECATED_FLAG_MANUAL_CONTRACT}|${DEPRECATED_FLAG_MANUAL_BATCH})"
@@ -87,8 +85,8 @@ REFERENCES_EXEC_PATTERN='^[[:space:]]*(Skill\(|Invoke|\$[[:space:]]|\* .*(Skill\
 # ---------------------------------------------------------------------------
 
 USE_BASELINE=false
-# Violations are written to a temp file to survive subshell boundaries.
-VIOLATIONS_FILE=""
+VIOLATIONS=0
+VIOLATION_LINES=()
 
 # ---------------------------------------------------------------------------
 # Usage
@@ -222,6 +220,8 @@ audit_halt() {
 
 scan_halt_violations() {
     local file="$1"
+    local is_reference=false
+    [[ "${file}" == */references/*.md ]] && is_reference=true
 
     local lineno=0
     local line
@@ -237,8 +237,8 @@ scan_halt_violations() {
         if printf '%s' "${line}" | grep -qE "${HALT_PATTERN}"; then
             if audit_halt "${file}" "${lineno}"; then
                 local rel="${file#"${REPO_ROOT}/"}"
-                printf '  %s:%d: HALT without AskUserQuestion in same block\n' \
-                    "${rel}" "${lineno}" >> "${VIOLATIONS_FILE}"
+                VIOLATION_LINES+=("  ${rel}:${lineno}: HALT without AskUserQuestion in same block")
+                (( VIOLATIONS++ )) || true
             fi
         fi
     done < "${file}"
@@ -287,13 +287,10 @@ scan_deprecated_flag_violations() {
                 continue
             fi
             local rel="${file#"${REPO_ROOT}/"}"
-            # Extract only the flag name (without the trailing terminator char).
             local matched
-            matched=$(printf '%s' "${line}" \
-                | grep -oE '(--interactive|--manual-task-approval|--manual-contract-approval|--manual-batch-approval)' \
-                | head -1)
-            printf '  %s:%d: deprecated flag %s in delegation context\n' \
-                "${rel}" "${lineno}" "${matched}" >> "${VIOLATIONS_FILE}"
+            matched=$(printf '%s' "${line}" | grep -oE "${DEPRECATED_FLAGS_PATTERN}" | head -1)
+            VIOLATION_LINES+=("  ${rel}:${lineno}: deprecated flag ${matched} in delegation context")
+            (( VIOLATIONS++ )) || true
         fi
     done < "${file}"
 }
@@ -318,8 +315,7 @@ scan_file() {
 # ---------------------------------------------------------------------------
 
 scan_all() {
-    local files_scanned_file="$1"
-    local count=0
+    local files_scanned=0
     local d
 
     for d in "${SCOPE_DIRS[@]}"; do
@@ -330,18 +326,18 @@ scan_all() {
             # Exclude core/lib explicitly (not in SCOPE_DIRS, but defensive).
             [[ "${f}" == */core/lib/* ]] && continue
             scan_file "${f}"
-            (( count++ )) || true
+            (( files_scanned++ )) || true
         done < <(find "${d}" -name "SKILL.md" -print0 2>/dev/null)
 
         # Find references/*.md files (differentiated audit).
         while IFS= read -r -d '' f; do
             [[ "${f}" == */core/lib/* ]] && continue
             scan_file "${f}"
-            (( count++ )) || true
+            (( files_scanned++ )) || true
         done < <(find "${d}" -path "*/references/*.md" -print0 2>/dev/null)
     done
 
-    printf '%d' "${count}" > "${files_scanned_file}"
+    printf '%d' "${files_scanned}"
 }
 
 # ---------------------------------------------------------------------------
@@ -350,19 +346,7 @@ scan_all() {
 
 main() {
     local arg
-    local next_is_skills_dir=false
     for arg in "$@"; do
-        if "${next_is_skills_dir}"; then
-            # Override SKILLS_DIR and rebuild SCOPE_DIRS.
-            SKILLS_DIR="${arg}"
-            SCOPE_DIRS=(
-                "${SKILLS_DIR}/core/ops"
-                "${SKILLS_DIR}/core/dev"
-                "${SKILLS_DIR}/core/review"
-            )
-            next_is_skills_dir=false
-            continue
-        fi
         case "${arg}" in
             --help|-h)
                 usage
@@ -370,17 +354,6 @@ main() {
                 ;;
             --baseline)
                 USE_BASELINE=true
-                ;;
-            --skills-dir)
-                next_is_skills_dir=true
-                ;;
-            --skills-dir=*)
-                SKILLS_DIR="${arg#--skills-dir=}"
-                SCOPE_DIRS=(
-                    "${SKILLS_DIR}/core/ops"
-                    "${SKILLS_DIR}/core/dev"
-                    "${SKILLS_DIR}/core/review"
-                )
                 ;;
             *)
                 printf 'audit-interactive-gates: unknown argument: %s\n' \
@@ -397,28 +370,19 @@ main() {
         load_baseline
     fi
 
-    # Use temp files so violation data survives subshell boundaries.
-    VIOLATIONS_FILE="$(mktemp -t audit-violations.XXXXXX)"
-    local files_scanned_file
-    files_scanned_file="$(mktemp -t audit-scanned.XXXXXX)"
-    trap 'rm -f "${VIOLATIONS_FILE}" "${files_scanned_file}"' EXIT
-
-    : > "${VIOLATIONS_FILE}"
-    scan_all "${files_scanned_file}"
-
     local files_scanned
-    files_scanned="$(cat "${files_scanned_file}")"
+    files_scanned=$(scan_all)
 
-    local violation_count
-    violation_count="$(wc -l < "${VIOLATIONS_FILE}" | tr -d ' ')"
-
-    if [[ "${violation_count}" -eq 0 ]]; then
+    if [[ "${VIOLATIONS}" -eq 0 ]]; then
         printf 'AUDIT PASSED: %d files scanned, 0 violations\n' \
             "${files_scanned}"
         exit 0
     else
-        printf 'AUDIT FAILED: %d violation(s)\n' "${violation_count}"
-        cat "${VIOLATIONS_FILE}"
+        printf 'AUDIT FAILED: %d violation(s)\n' "${VIOLATIONS}"
+        local v
+        for v in "${VIOLATION_LINES[@]}"; do
+            printf '%s\n' "${v}"
+        done
         exit 1
     fi
 }
