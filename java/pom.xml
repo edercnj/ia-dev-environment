@@ -202,6 +202,17 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.5</version>
                 <configuration>
+                    <!--
+                        CI audit gates included in *Test.java (run by Surefire):
+                        ~ TelemetryMarkerLintTest   : Rule 13 Telemetry Markers
+                        ~ InteractiveGatesAuditTest : Rule 20 Interactive Gates (EPIC-0043)
+                            Runs scripts/audit-interactive-gates.sh via ProcessBuilder.
+                            Baseline mode (baseline flag) is active during the EPIC-0043
+                            migration period while audits/interactive-gates-baseline.txt
+                            lists files pending retrofit (stories 0043-0002 to 0043-0005).
+                            audit_strictMode_returnsZero is auto-skipped until the baseline
+                            file is empty; no manual flag removal needed in pom.xml.
+                    -->
                     <excludes>
                         <exclude>**/*IT.java</exclude>
                         <exclude>**/*IntegrationTest.java</exclude>
