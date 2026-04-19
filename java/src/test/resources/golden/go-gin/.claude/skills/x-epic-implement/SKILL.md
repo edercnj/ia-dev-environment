@@ -931,11 +931,38 @@ The top-level `execution-state.json` gains a `batchGate` sub-object:
 {
   "batchGate": {
     "lastGateDecision": null,
-    "fixAttempts": [],
+    "fixAttempts": [
+      {
+        "attemptNumber": 1,
+        "delegateSkill": "x-pr-fix-epic",
+        "invokedAt": "2026-04-19T12:00:00Z",
+        "outcome": "applied"
+      }
+    ],
+    "waveIndex": 2,
     "schemaVersion": "1.0"
   }
 }
 ```
+
+**Field reference:**
+
+| Field | Type | M/O | Description |
+| :--- | :--- | :--- | :--- |
+| `batchGate.lastGateDecision` | `Enum \| null` | M | `null` before first interaction; then `PROCEED` \| `FIX_PR` \| `ABORT` |
+| `batchGate.fixAttempts` | `List<FixAttempt>` | O (default `[]`) | Each FIX-PR selection appends one entry; max 3 |
+| `batchGate.fixAttempts[].attemptNumber` | `Integer` | M | 1-based attempt counter |
+| `batchGate.fixAttempts[].delegateSkill` | `String` | M | Always `"x-pr-fix-epic"` |
+| `batchGate.fixAttempts[].invokedAt` | `ISO-8601` | M | Timestamp of the invocation |
+| `batchGate.fixAttempts[].outcome` | `String` | M | `"applied"` \| `"no-op"` \| `"error"` |
+| `batchGate.waveIndex` | `Integer \| null` | O (≥ 0) | Wave of the epic at which the gate was reached; `null` when not wave-partitioned |
+| `batchGate.schemaVersion` | `String` | M | `"1.0"` |
+
+**Error code:**
+
+| Code | Condition | Message |
+| :--- | :--- | :--- |
+| `EPIC_BATCH_FIX_LOOP_EXCEEDED` | 3 consecutive FIX-PR attempts at the batch gate | `"Loop de fix excedeu 3 tentativas no epic {EPIC_ID} wave {WAVE}; gate encerrado automaticamente. Retomar via --resume com --non-interactive ou edição manual do state file."` |
 
 Legacy files (without `batchGate`) are read as `null` and initialized on first write. Log on first
 migration: `"EPIC_BATCH_GATE_SCHEMA_LEGACY: execution-state.json sem batchGate; inicializando"`
@@ -1987,6 +2014,7 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-i
 | Rebase conflict resolution fails after MAX_REBASE_RETRIES (3) | Abort rebase, mark story FAILED, close PR, trigger block propagation |
 | 3 consecutive story failures (circuit breaker) | Transition to OPEN, pause execution, AskUserQuestion |
 | 5 total failures in phase (circuit breaker) | Abort phase, mark remaining as BLOCKED |
+| `EPIC_BATCH_FIX_LOOP_EXCEEDED` — 3 consecutive FIX-PR at batch gate | Auto-terminate gate, log error code + manual resume instructions, exit skill |
 | Reference file not found (RULE-002) | Log warning, continue without reference |
 | Template file not found (RULE-012 — Template Fallback) | Log warning, use inline format as fallback |
 
