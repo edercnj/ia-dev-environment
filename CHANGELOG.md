@@ -26,6 +26,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `RulesAssemblerInteractiveGatesTest` (3 tests) verifies rule is copied, has ≥ 10
     sections, and contains canonical slot labels and state schema fields.
 
+- **story-0043-0002 (EPIC-0043):** Retrofit `x-release` Phase 8 APPROVAL-GATE — default interactive menu.
+  Phase 8 now **always** opens the canonical 3-option gate menu (`PROCEED` / `FIX-PR` / `ABORT`) by default,
+  without any flag. `--non-interactive` is the new CI/automation opt-out (prints the legacy HALT text + exits 0).
+  `--interactive` (without `--dry-run`) is deprecated as gate opt-in; emits a deprecation warning and is a no-op.
+  `--interactive --dry-run` interactive dry-run sub-modality is **preserved unchanged**.
+  - **FIX-PR loop-back:** option 2 invokes `Skill(skill: "x-pr-fix", args: "<PR_NUMBER>")` via Rule 13 Pattern 1
+    INLINE-SKILL, records the attempt in `fixAttempts[]`, and re-presents the menu on return.
+  - **Guard-rail:** 3 consecutive FIX-PR attempts trigger `RELEASE_FIX_LOOP_EXCEEDED` (exit 1, state preserved).
+  - **State file extension:** `lastGateDecision` (String|null) and `fixAttempts[]` (Array<FixAttempt>) added to
+    `plans/release-state-{VERSION}.json`. Silent migration for legacy state files (≤3.6.0) that lack these fields:
+    emits `WARN [RELEASE_STATE_SCHEMA_LEGACY]` and initializes fields to `null`/`[]` on first write.
+  - **Reference docs updated:** `references/approval-gate-workflow.md` completely rewritten with Mermaid sequence
+    diagram, FIX-PR loop-back decision tree, and Historical Behavior (pre-EPIC-0043) section.
+    `references/state-file-schema.md` gains a "Gate Fields (EPIC-0043)" section.
+  - Golden files regenerated for all 18 profiles. `ReleaseApprovalGateTest.stepEight_optionTwoFixPr` validates
+    the new option 2 semantics (was `stepEight_optionTwoHalt` for the pre-EPIC-0043 menu).
+
 - **story-0042-0003 (EPIC-0042):** `x-pr-merge-train` skill completed with Phases 6–7, full state.json schema, atomic-write pattern, `--resume` entry logic, 16-code Error Handling table, Integration Notes, and ≥ 4 Examples.
   - **Phase 6 — Final Verification:** fetches + pulls `develop`, runs `mvn compile` + `mvn test` smoke checks after all merges, and asserts each merged PR reached `MERGED` state via GitHub API. Any test failure sets `phase = FAILED` with `reason = SMOKE_TEST_FAILED` and preserves the worktree for diagnosis (Rule 14 §4).
   - **Phase 7 — Report + Cleanup:** writes `plans/merge-train/<trainId>/report.md` (PRs Merged, Waves, Errors Observed tables), conditionally removes the worktree via `x-git-worktree` INLINE-SKILL (Rule 13 Pattern 1) when `TRAIN_OWNS_WORKTREE && phase != FAILED`, and finalizes `state.json` with `phase = COMPLETED`.
