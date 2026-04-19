@@ -19,13 +19,15 @@
 # Story: story-0043-0006 (EPIC-0043)
 #
 # Usage:
-#   audit-interactive-gates.sh [--baseline] [--help]
+#   audit-interactive-gates.sh [--baseline] [--skills-dir <path>] [--help]
 #
 # Flags:
-#   --baseline   Read audits/interactive-gates-baseline.txt and ignore
-#                matches in files listed there (allows CI green during
-#                migration).
-#   --help       Print this usage and exit 0.
+#   --baseline          Read audits/interactive-gates-baseline.txt and ignore
+#                       matches in files listed there (allows CI green during
+#                       migration).
+#   --skills-dir <path> Override the default skills directory (useful for test
+#                       isolation with synthetic fixture trees).
+#   --help              Print this usage and exit 0.
 #
 # Exit codes:
 #   0  AUDIT PASSED (zero violations outside baseline)
@@ -64,13 +66,13 @@ HALT_PATTERN="(HALT|Skill pausada|paused\.)"
 #   The patterns use ERE (-E flag to grep).
 #
 #   --interactive (but NOT --interactive-merge or --interactive-*)
-DEPRECATED_FLAG_INTERACTIVE='--interactive([[:space:]][[:space:]]*|\]|\)|}|,|\.|:|;|!|\?|$)'
+DEPRECATED_FLAG_INTERACTIVE='--interactive([[:space:]][[:space:]]*|"|\]|\)|}|,|\.|:|;|!|\?|$)'
 #   --manual-task-approval
-DEPRECATED_FLAG_MANUAL_TASK='--manual-task-approval([[:space:]][[:space:]]*|\]|\)|}|,|\.|:|;|!|\?|$)'
+DEPRECATED_FLAG_MANUAL_TASK='--manual-task-approval([[:space:]][[:space:]]*|"|\]|\)|}|,|\.|:|;|!|\?|$)'
 #   --manual-contract-approval
-DEPRECATED_FLAG_MANUAL_CONTRACT='--manual-contract-approval([[:space:]][[:space:]]*|\]|\)|}|,|\.|:|;|!|\?|$)'
+DEPRECATED_FLAG_MANUAL_CONTRACT='--manual-contract-approval([[:space:]][[:space:]]*|"|\]|\)|}|,|\.|:|;|!|\?|$)'
 #   --manual-batch-approval
-DEPRECATED_FLAG_MANUAL_BATCH='--manual-batch-approval([[:space:]][[:space:]]*|\]|\)|}|,|\.|:|;|!|\?|$)'
+DEPRECATED_FLAG_MANUAL_BATCH='--manual-batch-approval([[:space:]][[:space:]]*|"|\]|\)|}|,|\.|:|;|!|\?|$)'
 
 # Combined deprecated-flag pattern (alternation)
 DEPRECATED_FLAGS_PATTERN="(${DEPRECATED_FLAG_INTERACTIVE}|${DEPRECATED_FLAG_MANUAL_TASK}|${DEPRECATED_FLAG_MANUAL_CONTRACT}|${DEPRECATED_FLAG_MANUAL_BATCH})"
@@ -87,6 +89,7 @@ REFERENCES_EXEC_PATTERN='^[[:space:]]*(Skill\(|Invoke|\$[[:space:]]|\* .*(Skill\
 USE_BASELINE=false
 VIOLATIONS=0
 VIOLATION_LINES=()
+FILES_SCANNED=0
 
 # ---------------------------------------------------------------------------
 # Usage
@@ -225,11 +228,38 @@ scan_halt_violations() {
 
     local lineno=0
     local line
+    local in_frontmatter=false
+    local in_code_fence=false
+
     while IFS= read -r line; do
         (( lineno++ )) || true
 
+        # Skip YAML frontmatter (first ---...--- block at file start).
+        if [[ "${lineno}" -eq 1 && "${line}" == "---" ]]; then
+            in_frontmatter=true
+            continue
+        fi
+        if "${in_frontmatter}"; then
+            if [[ "${line}" == "---" ]]; then
+                in_frontmatter=false
+            fi
+            continue
+        fi
+
+        # Track code fences; skip their content.
+        if [[ "${line}" =~ ^[[:space:]]*\`\`\` ]]; then
+            if "${in_code_fence}"; then in_code_fence=false; else in_code_fence=true; fi
+            continue
+        fi
+        if "${in_code_fence}"; then continue; fi
+
         # Skip allowlisted sections.
         if is_in_allowlisted_section "${file}" "${lineno}"; then
+            continue
+        fi
+
+        # Skip documentation lines that describe the legacy HALT output text.
+        if printf '%s' "${line}" | grep -qF "HALT text"; then
             continue
         fi
 
@@ -265,8 +295,30 @@ scan_deprecated_flag_violations() {
 
     local lineno=0
     local line
+    local in_frontmatter=false
+    local in_code_fence=false
+
     while IFS= read -r line; do
         (( lineno++ )) || true
+
+        # Skip YAML frontmatter (first ---...--- block at file start).
+        if [[ "${lineno}" -eq 1 && "${line}" == "---" ]]; then
+            in_frontmatter=true
+            continue
+        fi
+        if "${in_frontmatter}"; then
+            if [[ "${line}" == "---" ]]; then
+                in_frontmatter=false
+            fi
+            continue
+        fi
+
+        # Track code fences; skip their content.
+        if [[ "${line}" =~ ^[[:space:]]*\`\`\` ]]; then
+            if "${in_code_fence}"; then in_code_fence=false; else in_code_fence=true; fi
+            continue
+        fi
+        if "${in_code_fence}"; then continue; fi
 
         # Skip allowlisted sections.
         if is_in_allowlisted_section "${file}" "${lineno}"; then
@@ -282,8 +334,8 @@ scan_deprecated_flag_violations() {
 
         # Check Regex 2 (deprecated flags).
         if printf '%s' "${line}" | grep -qE "${DEPRECATED_FLAGS_PATTERN}"; then
-            # Exclude lines that are documenting the deprecation itself.
-            if printf '%s' "${line}" | grep -qE "DEPRECATED|deprecated|no longer needed"; then
+            # Exclude lines that are documenting the deprecation itself (case-insensitive).
+            if printf '%s' "${line}" | grep -iqE "deprecated|no longer needed"; then
                 continue
             fi
             local rel="${file#"${REPO_ROOT}/"}"
@@ -315,7 +367,6 @@ scan_file() {
 # ---------------------------------------------------------------------------
 
 scan_all() {
-    local files_scanned=0
     local d
 
     for d in "${SCOPE_DIRS[@]}"; do
@@ -326,18 +377,16 @@ scan_all() {
             # Exclude core/lib explicitly (not in SCOPE_DIRS, but defensive).
             [[ "${f}" == */core/lib/* ]] && continue
             scan_file "${f}"
-            (( files_scanned++ )) || true
+            (( FILES_SCANNED++ )) || true
         done < <(find "${d}" -name "SKILL.md" -print0 2>/dev/null)
 
         # Find references/*.md files (differentiated audit).
         while IFS= read -r -d '' f; do
             [[ "${f}" == */core/lib/* ]] && continue
             scan_file "${f}"
-            (( files_scanned++ )) || true
+            (( FILES_SCANNED++ )) || true
         done < <(find "${d}" -path "*/references/*.md" -print0 2>/dev/null)
     done
-
-    printf '%d' "${files_scanned}"
 }
 
 # ---------------------------------------------------------------------------
@@ -345,19 +394,40 @@ scan_all() {
 # ---------------------------------------------------------------------------
 
 main() {
-    local arg
-    for arg in "$@"; do
-        case "${arg}" in
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
             --help|-h)
                 usage
                 exit 0
                 ;;
             --baseline)
                 USE_BASELINE=true
+                shift
+                ;;
+            --skills-dir)
+                if [[ $# -lt 2 ]]; then
+                    printf 'audit-interactive-gates: --skills-dir requires a path argument\n' >&2
+                    exit 2
+                fi
+                SKILLS_DIR="$2"
+                SCOPE_DIRS=(
+                    "${SKILLS_DIR}/core/ops"
+                    "${SKILLS_DIR}/core/dev"
+                    "${SKILLS_DIR}/core/review"
+                )
+                shift 2
+                ;;
+            --skills-dir=*)
+                SKILLS_DIR="${1#--skills-dir=}"
+                SCOPE_DIRS=(
+                    "${SKILLS_DIR}/core/ops"
+                    "${SKILLS_DIR}/core/dev"
+                    "${SKILLS_DIR}/core/review"
+                )
+                shift
                 ;;
             *)
-                printf 'audit-interactive-gates: unknown argument: %s\n' \
-                    "${arg}" >&2
+                printf 'audit-interactive-gates: unknown argument: %s\n' "$1" >&2
                 exit 2
                 ;;
         esac
@@ -370,12 +440,11 @@ main() {
         load_baseline
     fi
 
-    local files_scanned
-    files_scanned=$(scan_all)
+    scan_all
 
     if [[ "${VIOLATIONS}" -eq 0 ]]; then
         printf 'AUDIT PASSED: %d files scanned, 0 violations\n' \
-            "${files_scanned}"
+            "${FILES_SCANNED}"
         exit 0
     else
         printf 'AUDIT FAILED: %d violation(s)\n' "${VIOLATIONS}"
