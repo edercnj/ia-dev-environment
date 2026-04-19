@@ -1,9 +1,9 @@
 # audits/interactive-gates-baseline.txt
 #
-# Purpose: Lists SKILL.md files that are known to contain HALT text or
-#          deprecated flags from before EPIC-0043 retrofits. These files
-#          are ignored by audit-interactive-gates.sh --baseline during the
-#          migration period to keep CI green.
+# Purpose: Lists source SKILL.md files that are known to contain HALT text
+#          or deprecated flag documentation from before EPIC-0043 retrofits.
+#          These files are ignored by audit-interactive-gates.sh --baseline
+#          during the migration period to keep CI green.
 #
 # Paths are relative to:
 #   java/src/main/resources/targets/claude/skills/
@@ -12,18 +12,15 @@
 # Story: story-0043-0006
 # Created: 2026-04-19
 #
-# Process: Each retrofit PR (stories 0043-0002 through 0043-0005) removes
-#          the corresponding entry after its golden diff is green.
-#          When this file is empty (no non-comment lines), all retrofits
-#          are complete and CI runs in strict mode (--baseline can be removed).
+# Process: Each source-cleanup PR (following stories 0043-0002 to 0043-0005)
+#          removes the corresponding entry here after the source SKILL.md no
+#          longer documents deprecated patterns in prose/arg-tables/flags.
+#          When this file has no active entries, CI runs in strict mode
+#          (--baseline flag can be removed from the test invocation).
 #
-# Current status: All 5 retrofits complete (stories 0043-0002 to 0043-0005).
-#                 Entries below are retained for historical reference only.
-#                 The file is effectively empty from an audit perspective.
-#
-# Retrofitted (remove comment when clearing):
-# core/ops/x-release/SKILL.md                              # DONE: story-0043-0002
-# core/ops/x-release/references/approval-gate-workflow.md # DONE: story-0043-0002
-# core/dev/x-story-implement/SKILL.md                      # DONE: story-0043-0003
-# core/dev/x-epic-implement/SKILL.md                       # DONE: story-0043-0004
-# core/review/x-review-pr/SKILL.md                         # DONE: story-0043-0005
+# Skills with known deprecated-pattern documentation (pending source cleanup):
+core/ops/x-release/SKILL.md
+core/ops/x-release/references/approval-gate-workflow.md
+core/dev/x-story-implement/SKILL.md
+core/dev/x-epic-implement/SKILL.md
+core/review/x-review-pr/SKILL.md
