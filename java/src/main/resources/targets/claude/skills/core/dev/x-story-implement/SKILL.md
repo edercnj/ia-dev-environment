@@ -2,8 +2,8 @@
 name: x-story-implement
 description: "Orchestrates the complete feature implementation cycle with task-centric workflow: branch creation, planning, per-task TDD execution with individual PRs and approval gates, story-level verification, and final cleanup. Schema-aware: v1 (legacy) runs the monolithic coalesce-ad-hoc flow; v2 (EPIC-0038) reads task-implementation-map-STORY-*.md and dispatches x-task-implement in waves (declared parallelism) — ending the 'task embedded in story' anti-pattern. Delegates to x-test-tdd, x-git-commit, x-pr-create, and (v2) x-task-implement."
 user-invocable: true
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, Agent, TaskCreate, TaskUpdate
-argument-hint: "[STORY-ID or feature-name] [--auto-approve-pr] [--task TASK-ID] [--skip-verification] [--skip-smoke] [--full-lifecycle] [--worktree] [--manual-contract-approval] [--manual-task-approval] [--no-auto-remediation]"
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, Agent, TaskCreate, TaskUpdate, AskUserQuestion
+argument-hint: "[STORY-ID or feature-name] [--auto-approve-pr] [--task TASK-ID] [--skip-verification] [--skip-smoke] [--full-lifecycle] [--worktree] [--non-interactive] [--manual-contract-approval] [--manual-task-approval] [--no-auto-remediation]"
 ---
 
 ## Global Output Policy
@@ -43,8 +43,9 @@ Orchestrate the complete feature implementation cycle using a task-centric workf
 | `--skip-verification` | Boolean | false | Skip Phase 3 (story-level verification) |
 | `--full-lifecycle` | Boolean | false | Force full execution regardless of scope tier |
 | `--worktree` | Boolean | false | Opt-in: create a dedicated worktree for the story branch (standalone mode). Ignored when the skill is already running inside a worktree (Rule 14 §3 — non-nesting invariant). See ADR-0004 §D2. |
-| `--manual-contract-approval` | Boolean | false | Force human review of API contracts before proceeding to Phase 1. Without this flag, contracts are auto-approved when validation passes (EPIC-0042). |
-| `--manual-task-approval` | Boolean | false | Require explicit human approval for each task PR. Without this flag, task PRs are auto-approved (EPIC-0042). |
+| `--non-interactive` | Boolean | false | Skip all interactive gates (AskUserQuestion menus) and auto-approve. For CI/automation and orchestrated calls from `x-epic-implement`. Overrides menu default behavior. |
+| `--manual-contract-approval` | Boolean | false | **DEPRECATED (EPIC-0043).** No-op — the gate menu is now the default. Emits one-time warning: `"[DEPRECATED] --manual-contract-approval is no longer needed; the gate menu is now the default."` |
+| `--manual-task-approval` | Boolean | false | **DEPRECATED (EPIC-0043).** No-op — the gate menu is now the default. Emits one-time warning: `"[DEPRECATED] --manual-task-approval is no longer needed; the gate menu is now the default."` |
 
 ## CRITICAL EXECUTION RULE
 
@@ -354,30 +355,53 @@ If validation errors are found:
 
 > **Note:** A dedicated `x-test-contract-lint` skill does not exist in `core/` at the time of writing (the reference was an orphan removed in EPIC-0033 / STORY-0033-0001). If `x-test-contract-lint` is added in the future, convert this step to `Skill(skill: "x-test-contract-lint", args: "{CONTRACT_PATH}")` following Rule 13 — Skill Invocation Protocol (INLINE-SKILL pattern).
 
-### Step 0.5.4 -- Approval Gate (EPIC-0042)
+### Step 0.5.4 -- Approval Gate (EPIC-0043)
 
-**Default behavior (auto-approval):** When Step 0.5.3 validation passes successfully,
-auto-approve the contract and proceed to Phase 1 without pausing. Log:
-`"Contract auto-approved (validation passed, EPIC-0042): {CONTRACT_PATH}"`
+**Deprecated flags:** If `--manual-contract-approval` is present, emit one-time warning
+`"[DEPRECATED] --manual-contract-approval is no longer needed; the gate menu is now the default."`
+and continue — the flag is a no-op.
+
+**`--non-interactive` mode:** When `--non-interactive` is present AND Step 0.5.3 validation
+passes successfully, auto-approve the contract and proceed to Phase 1 without pausing. Log:
+`"Contract auto-approved (--non-interactive, validation passed): {CONTRACT_PATH}"`
 Set `contractStatus = APPROVED` and proceed to Phase 1.
 
-**Manual approval flag `--manual-contract-approval` (EPIC-0042):** When
-`--manual-contract-approval` is present, emit the following message and **pause the lifecycle**:
+**Default behavior (interactive menu):** When execution reaches this gate WITHOUT `--non-interactive`,
+present the operator with `AskUserQuestion` (Rule 20 — Canonical Option Menu, no-PR variant):
 
+```markdown
+AskUserQuestion(
+  question: "Contract generated at {CONTRACT_PATH}. Format: {CONTRACT_FORMAT}. Review the contract and choose an action.",
+  options: [
+    {
+      header: "Proceed",
+      label: "Continue (Recommended)",
+      description: "Approve the contract and proceed to Phase 1 (Architecture Planning)."
+    },
+    {
+      header: "Reject",
+      label: "Regenerate and retry",
+      description: "Returns to Step 0.5.2 with feedback to regenerate the contract; reapresents this menu on return. Use when the generated contract has errors or missing endpoints."
+    },
+    {
+      header: "Abort",
+      label: "Cancel the operation",
+      description: "Terminates the skill. The contract file is preserved for inspection."
+    }
+  ]
+)
 ```
-CONTRACT PENDING APPROVAL
 
-Contract generated: {CONTRACT_PATH}
-Format: {CONTRACT_FORMAT}
-Status: PENDING_APPROVAL
+**On PROCEED:** Set `contractStatus = APPROVED` and proceed to Phase 1.
 
-Please review the contract and respond with:
-  - APPROVE: Proceed to Phase 1 (Architecture Planning)
-  - REJECT: Return to Step 0.5.2 for regeneration with feedback
-```
+**On REJECT:** Prompt for feedback: `"Describe what is wrong with the contract:"`. Return
+to Step 0.5.2, incorporating the feedback into regeneration. On return from regeneration,
+reapresent this gate menu (loop-back). Apply the FIX/REJECT guard-rail from Rule 20
+§FIX-PR Loop-Back: track each REJECT in `fixAttempts[]`; if `fixAttempts.size() == 3`,
+emit `GATE_FIX_LOOP_EXCEEDED` and terminate automatically (no 4th option).
 
-- **On APPROVE:** Set `contractStatus = APPROVED` and proceed to Phase 1.
-- **On REJECT:** Return to Step 0.5.2, incorporating user feedback into regeneration.
+**On ABORT:** Log `"Contract gate aborted by operator."` and terminate the skill. The
+contract file is preserved at `{CONTRACT_PATH}` for inspection.
 {% endif %}
 
 **Last action of Phase 0 — Update the phase task (TaskUpdate):**
