@@ -784,7 +784,8 @@ This ensures `state.json` is always a complete, valid JSON document. A partial w
   `"No state.json found. Start fresh (omit --resume) or provide --train-id."`
 - When multiple `plans/merge-train/*/state.json` files exist: `--train-id` is mandatory:
   ```
-  /x-pr-merge-train --resume --train-id epic-0042-20260415-143022
+  # user types in Claude Code chat:
+  # /x-pr-merge-train --resume --train-id epic-0042-20260415-143022
   ```
   If `--train-id` is omitted and multiple state files exist: abort with `STATE_CONFLICT`:
   `"Multiple train state files found. Provide --train-id to disambiguate."`
