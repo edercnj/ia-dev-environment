@@ -306,7 +306,7 @@ class ApiFirstPhaseTest {
 
         @Test
         @DisplayName("lifecycle template contains"
-                + " CONTRACT PENDING APPROVAL message")
+                + " AskUserQuestion contract gate (EPIC-0043)")
         void assemble_lifecycle_containsPendingApproval(
                 @TempDir Path tempDir) throws IOException {
             Path outputDir = tempDir.resolve("output");
@@ -325,8 +325,12 @@ class ApiFirstPhaseTest {
             Path lifecycle = outputDir.resolve(
                     "skills/x-story-implement/SKILL.md");
             String content = Files.readString(lifecycle);
+            // EPIC-0043 replaced the old "CONTRACT PENDING APPROVAL" text
+            // with an interactive AskUserQuestion gate (Rule 20 canonical
+            // option menu). Verify the gate mechanism is present.
             assertThat(content)
-                    .contains("CONTRACT PENDING APPROVAL");
+                    .contains("AskUserQuestion")
+                    .contains("Step 0.5.4");
         }
 
         @Test
