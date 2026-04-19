@@ -112,3 +112,79 @@ Create directory `plans/merge-train/{trainId}/` and write a stub `state.json`:
 
 Log: `"[Phase 0] state.json initialized at plans/merge-train/{trainId}/state.json"`
 
+## Phase 1 — Discovery
+
+### Step 1.0 — Mode Validation
+
+Exactly one of `--prs`, `--epic`, or `--pattern` must be provided. Count the number of mode flags present:
+
+| Count | Action |
+| :--- | :--- |
+| 0 | Abort with `MODE_AMBIGUOUS`: `"Informe exatamente um de --prs, --epic ou --pattern."` |
+| 1 | Continue to Step 1.1 |
+| 2+ | Abort with `MODE_AMBIGUOUS`: `"Informe exatamente um de --prs, --epic ou --pattern."` |
+
+Update `state.json`: set `phase = "DISCOVERY"`.
+
+### Step 1.1 — Mode Dispatch
+
+Dispatch exclusively to the matching mode handler:
+
+#### Mode A: `--prs N,M,...`
+
+1. Parse the comma-separated string into a list of positive integers.
+   - Validation: every token must be a positive integer; non-integer tokens abort with `MODE_AMBIGUOUS`.
+2. Preserve the declared order — do NOT sort.
+3. Assign `discoveredPrs = [N, M, ...]`.
+
+Log: `"[Phase 1] --prs mode: discovered {count} PR(s): {list}"`
+
+#### Mode B: `--epic ID`
+
+1. Resolve path: `plans/epic-{ID}/execution-state.json`.
+2. If the file does not exist, abort with `EPIC_STATE_MISSING`:
+   `"execution-state.json de epic-{ID} não encontrado. Use --prs ou --pattern."`
+3. Parse the JSON. Traverse `stories[storyId].tasks[TASK-ID].prNumber` for every entry where `prNumber` is non-null and non-zero.
+4. Sort the collected PR numbers deterministically:
+   - Primary sort: `storyId` ascending (lexicographic).
+   - Secondary sort: `TASK-ID` ascending (lexicographic).
+5. Assign `discoveredPrs = [sorted list]`.
+
+Log: `"[Phase 1] --epic mode: resolved {count} PR(s) from epic-{ID} execution-state"`
+
+#### Mode C: `--pattern regex`
+
+1. Execute: `gh pr list --search "{pattern}" --state open --json number,createdAt --jq '.[] | [.number, .createdAt] | @csv'`
+2. Parse output into `(number, createdAt)` pairs.
+3. Sort by `createdAt` ascending (oldest first).
+4. Assign `discoveredPrs = [sorted list of numbers]`.
+
+Log: `"[Phase 1] --pattern mode: discovered {count} open PR(s) matching \"{pattern}\""`
+
+### Step 1.2 — Update state.json
+
+Persist the discovered list to `state.json` with stub per-PR entries:
+
+```json
+{
+  "schemaVersion": "1.0",
+  "trainId": "{trainId}",
+  "phase": "DISCOVERY",
+  "worktreeOwnership": "{value}",
+  "prs": [
+    {
+      "number": 374,
+      "headRefName": null,
+      "baseRefName": null,
+      "mergeable": null,
+      "reviewDecision": null,
+      "isDraft": null,
+      "state": null,
+      "validationStatus": "PENDING"
+    }
+  ]
+}
+```
+
+Log: `"[Phase 1] Discovery complete. {count} PR(s) queued for validation."`
+
