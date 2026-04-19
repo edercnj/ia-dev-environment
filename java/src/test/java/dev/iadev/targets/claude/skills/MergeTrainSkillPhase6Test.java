@@ -49,7 +49,8 @@ class MergeTrainSkillPhase6Test {
 
     @Test
     @DisplayName("phase7_section_present_in_golden_skillmd: "
-            + "golden SKILL.md contains Phase 7 with report.md generation")
+            + "golden SKILL.md contains Phase 7 with report.md generation, "
+            + "TRAIN_OWNS_WORKTREE cleanup, and failure preservation")
     void phase7_section_present_in_golden_skillmd() throws IOException {
         Path javaModuleDir = Path.of(System.getProperty("user.dir"));
         Path goldenFile = javaModuleDir.resolve(GOLDEN_RELATIVE_PATH);
@@ -67,5 +68,17 @@ class MergeTrainSkillPhase6Test {
         assertThat(content)
                 .as("Golden SKILL.md Phase 7 must reference report.md generation")
                 .contains("report.md");
+
+        assertThat(content)
+                .as("Golden SKILL.md Phase 7 must document TRAIN_OWNS_WORKTREE cleanup condition")
+                .contains("TRAIN_OWNS_WORKTREE");
+
+        assertThat(content)
+                .as("Golden SKILL.md Phase 7 must document failure preservation (Rule 14 §4)")
+                .contains("REUSE_PARENT");
+
+        assertThat(content)
+                .as("Golden SKILL.md Phase 7 must document worktree cleanup via Skill tool (Rule 13)")
+                .contains("x-git-worktree");
     }
 }
