@@ -264,7 +264,7 @@ telemetry:
   enabled: false
 ```
 
-EPIC-0040 shipped this stack in release 3.8.0.
+EPIC-0040 shipped this stack — see the [CHANGELOG](../CHANGELOG.md) for the release it landed in.
 
 ---
 

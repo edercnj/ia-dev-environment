@@ -133,7 +133,7 @@ telemetry:
 
 (The parser `ProjectConfig.parseTelemetryEnabled` expects the nested key; a flat `telemetryEnabled` line is ignored.)
 
-EPIC-0040 shipped this stack in release 3.8.0 — see the [CHANGELOG](CHANGELOG.md#380---2026-04-17).
+EPIC-0040 shipped this stack — see the [CHANGELOG](CHANGELOG.md#380---2026-04-17) for the full release notes.
 
 ---
 
