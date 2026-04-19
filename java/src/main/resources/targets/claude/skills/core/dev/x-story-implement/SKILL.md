@@ -1355,6 +1355,7 @@ When a tool call or subagent fails, classify the error before deciding on recove
 | Resume with corrupted execution-state | Reinitialize state from PR statuses via `gh pr view` |
 | Context pressure signal detected | Log warning, set `contextPressureDetected: true` in result, apply Level 1 actions locally |
 | Reference file not found (RULE-002) | Log warning, continue without reference |
+| x-pr-fix returns compile regression | Abort Step 3.6.5 with `PR_FIX_COMPILE_REGRESSION`; do NOT proceed to Step 3.7 |
 
 **Error Reporting to Epic Orchestrator:** When `x-story-implement` is invoked as a subagent by `x-epic-implement`, errors MUST be reported back via the `SubagentResult` JSON fields: `errorType`, `errorMessage`, and `errorCode`.
 
