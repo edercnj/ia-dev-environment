@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.9.0] - 2026-04-19
+
 ### Added
 
 - **EPIC-0041 — File-Conflict-Aware Parallelism Analysis (8 stories).** Introduces planning-time detection of hotspot collisions between stories/tasks scheduled in the same wave, ending the "topological-only parallelism" anti-pattern that produced merge conflicts on `SettingsAssembler.java`, `HooksAssembler.java`, `CLAUDE.md`, `CHANGELOG.md`, `pom.xml`, and the golden-file tree across EPIC-0036..EPIC-0040. Architecture recorded in [ADR-0006](adr/ADR-0006-file-conflict-aware-parallelism.md). _Slot ADR-0005 was taken by telemetry (EPIC-0040) before this epic shipped, hence ADR-0006._
