@@ -80,16 +80,21 @@
     "story-0043-0005": {
       "id": "story-0043-0005",
       "phase": 1,
-      "status": "PENDING",
-      "commitSha": null,
+      "status": "SUCCESS",
+      "commitSha": "955abb35e",
       "findingsCount": 0,
-      "summary": "",
+      "summary": "Retrofit x-review-pr exhausted-retry gate: Step 8.4 with canonical 3-option menu (PROCEED/FIX-PR/ABORT), --non-interactive bypass, state file opt-in plans/review/<pr>/state.json, --resume-review flag, error codes REVIEW_REMEDIATION_EXHAUSTED + REVIEW_FIX_LOOP_EXCEEDED. Golden files regenerated for all 19 profiles. All 6066 tests green. PRs #481-483 merged.",
       "retries": 0,
       "duration": null,
       "blockedBy": ["story-0043-0001"],
-      "prUrl": null,
-      "prNumber": null,
-      "prMergeStatus": null
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/483",
+      "prNumber": 483,
+      "prMergeStatus": "MERGED",
+      "tasks": {
+        "TASK-0043-0005-001": { "status": "DONE", "branch": "feat/task-0043-0005-001-exhausted-gate", "prNumber": 481, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/481", "commitSha": "282e8d722" },
+        "TASK-0043-0005-002": { "status": "DONE", "branch": "feat/task-0043-0005-002-state-resume", "prNumber": 482, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/482", "commitSha": "3c1bd1139" },
+        "TASK-0043-0005-003": { "status": "DONE", "branch": "feat/task-0043-0005-003-regen-golden", "prNumber": 483, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/483", "commitSha": "42de1b115" }
+      }
     },
     "story-0043-0006": {
       "id": "story-0043-0006",

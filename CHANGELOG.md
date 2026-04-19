@@ -26,6 +26,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `RulesAssemblerInteractiveGatesTest` (3 tests) verifies rule is copied, has ≥ 10
     sections, and contains canonical slot labels and state schema fields.
 
+- **story-0043-0005 (EPIC-0043):** Retrofit `x-review-pr` exhausted-retry gate — default interactive menu after auto-remediation exhaustion.
+  When the Tech Lead review returns NO-GO and all 2 auto-remediation retry cycles exhaust without convergence, `x-review-pr` now
+  presents the canonical 3-option gate menu (`PROCEED` / `FIX-PR` / `ABORT`) by default instead of silently returning NO-GO.
+  `--non-interactive` is the CI/automation opt-out (preserves legacy HALT text + exit 0).
+  - **PROCEED (slot 1):** re-dispatches auto-remediation agents (+2 loops); description contextualises the action per Rule 20 note on `x-review-pr`.
+  - **FIX-PR loop-back (slot 2):** invokes `Skill(skill: "x-pr-fix", args: "<PR>")` via Rule 13 Pattern 1 INLINE-SKILL; re-presents menu on return.
+  - **Guard-rail:** 3 consecutive PROCEED/FIX-PR attempts without converging to GO trigger `REVIEW_FIX_LOOP_EXCEEDED` auto-terminate.
+  - **State file (opt-in):** `plans/review/<pr>/state.json` written only on FIX-PR selection (Rule 20 §5.1 schema); enables `--resume-review <pr>` re-entry.
+  - **New error codes:** `REVIEW_REMEDIATION_EXHAUSTED` (ABORT selection), `REVIEW_FIX_LOOP_EXCEEDED` (guard-rail), `GATE_SCHEMA_INVALID` (corrupt state file).
+  - **`allowed-tools` updated:** `AskUserQuestion`, `Skill` added per Rule 20 Forbidden clause.
+  - Golden files regenerated for all 19 profiles. Rule 13 audit: zero bare-slash violations. All 6066 tests pass.
+  - TASK-0043-0005-001 (PR #481), TASK-0043-0005-002 (PR #482), TASK-0043-0005-003 (PR #483).
+
 - **story-0043-0004 (EPIC-0043):** Retrofit `x-epic-implement` batch PR consolidation gate — default interactive menu.
   The batch consolidation gate (§1.3b) now **always** opens the canonical 3-option menu (`PROCEED` / `FIX-PR` / `ABORT`) by default.
   `--non-interactive` is the CI/automation opt-out (auto-approves without prompting). `--manual-batch-approval` is deprecated (no-op, one-time warning).
