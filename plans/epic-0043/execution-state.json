@@ -94,16 +94,23 @@
     "story-0043-0006": {
       "id": "story-0043-0006",
       "phase": 1,
-      "status": "PENDING",
-      "commitSha": null,
+      "status": "SUCCESS",
+      "commitSha": "cfcefea92",
       "findingsCount": 0,
-      "summary": "",
+      "summary": "CI audit guard: scripts/audit-interactive-gates.sh (Regex 1 HALT + Regex 2 deprecated flags, tokenized lookahead, --baseline mode). 5-entry baseline for source SKILL.md files pending retrofit. InteractiveGatesAuditTest (8 scenarios, 7 pass, 1 auto-skipped until baseline empty). Rule 20 §Audit Command updated. pom.xml documents baseline mode. PRs #485-488.",
       "retries": 0,
       "duration": null,
       "blockedBy": ["story-0043-0001"],
-      "prUrl": null,
-      "prNumber": null,
-      "prMergeStatus": null
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/488",
+      "prNumber": 488,
+      "prMergeStatus": "OPEN",
+      "tasks": {
+        "TASK-0043-0006-001": { "status": "DONE", "branch": "feat/task-0043-0006-001-audit-script", "prNumber": 485, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/485", "commitSha": "cfcefea92", "note": "Merged: audit script + baseline file (task 002 combined)" },
+        "TASK-0043-0006-002": { "status": "DONE", "branch": "feat/task-0043-0006-001-audit-script", "prNumber": 485, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/485", "commitSha": "cfcefea92", "note": "Combined with TASK-001 — baseline file created alongside script" },
+        "TASK-0043-0006-003": { "status": "DONE", "branch": "feat/task-0043-0006-003-audit-test", "prNumber": 486, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/486", "commitSha": "7a2ef692a" },
+        "TASK-0043-0006-004": { "status": "DONE", "branch": "feat/task-0043-0006-004-rule20-audit-cmd", "prNumber": 487, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/487", "commitSha": "ba62064ce" },
+        "TASK-0043-0006-005": { "status": "DONE", "branch": "feat/task-0043-0006-005-pipeline", "prNumber": 488, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/488", "commitSha": "3b85f21dc" }
+      }
     }
   },
   "phases": {
