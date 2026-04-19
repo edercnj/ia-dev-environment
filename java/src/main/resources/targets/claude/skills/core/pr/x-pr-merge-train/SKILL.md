@@ -799,3 +799,29 @@ This ensures `state.json` is always a complete, valid JSON document. A partial w
    - Then: `--resume` continues from `WAVE_N_DISPATCHED` for the next pending wave.
 6. If `phase == "FAILED"` with reason `SMOKE_TEST_FAILED`: diagnose the build failure, fix it, then `--resume` re-runs Phase 6.
 
+## Error Handling
+
+All error codes emitted by the skill are listed below. Each entry identifies the phase that emits it, the triggering condition, and the recommended remediation.
+
+| Code | Phase | Condition | Remediation |
+| :--- | :--- | :--- | :--- |
+| `MODE_AMBIGUOUS` | Phase 1 | 0 or 2+ of `--prs`/`--epic`/`--pattern` provided | Provide exactly one discovery mode flag |
+| `EPIC_STATE_MISSING` | Phase 1 | `--epic N` but `plans/epic-N/execution-state.json` absent | Use `--prs` or `--pattern` instead |
+| `PR_CLOSED` | Phase 2 | `state != "OPEN"` | Remove from train or reopen the PR |
+| `PR_DRAFT` | Phase 2 | `isDraft == true` | Mark the PR as Ready for review |
+| `PR_BASE_MISMATCH` | Phase 2 | `baseRefName != "develop"` | Rebase or open a new PR against develop |
+| `PR_NOT_APPROVED` | Phase 2 | `reviewDecision != "APPROVED"` | Request review from a code owner |
+| `PR_CI_FAILING` | Phase 2 | CI contains `FAILURE` or `ERROR` check | Fix CI before retrying |
+| `PR_MERGE_CONFLICT` | Phase 2 | `mergeable == "CONFLICTING"` | Rebase manually, then re-run |
+| `NEUTERED_PARALLEL` | Phase 3 | File overlap outside `golden/**` detected (informational) | Accept serial execution, or refactor tasks to avoid overlap |
+| `MERGE_REJECTED_BY_PROTECTION` | Phase 4 or 5 | Branch protection blocks merge | Adjust protection rules or use admin override |
+| `MERGE_POLL_TIMEOUT` | Phase 4 or 5 | PR did not reach `MERGED` within timeout | Increase `--merge-timeout-seconds` or investigate CI |
+| `CODE_CONFLICT_NEEDS_HUMAN` | Phase 5 | Rebase conflict in non-golden file | Resolve manually → `git rebase --continue` → push → `--resume` |
+| `PUSH_LEASE_REJECTED` | Phase 5 | `--force-with-lease` rejected after retry | Fetch + rebase manually → `--resume` |
+| `GOLDENS_REGEN_FAILED` | Phase 5 | `GoldenFileRegenerator` exits non-zero | Diagnose build failure; see worker log |
+| `SMOKE_TEST_FAILED` | Phase 6 | `mvn test` fails after all merges | Diagnose; worktree preserved at `plans/merge-train/<trainId>/` |
+| `STATE_CONFLICT` | `--resume` | `--resume` with no existing `state.json` or ambiguous train ID | Start fresh (omit `--resume`) or provide `--train-id` |
+
+> `NEUTERED_PARALLEL` is informational — it does not abort the train. All other codes result in train abort unless specified as WARNING.
+
+
