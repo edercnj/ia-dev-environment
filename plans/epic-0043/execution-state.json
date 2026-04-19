@@ -1,5 +1,5 @@
 {
-  "storyId": "story-0043-0001",
+  "storyId": "story-0043-0002",
   "planningSchemaVersion": "1.0",
   "mode": "MANUAL",
   "parentBranch": null,
@@ -49,6 +49,51 @@
       "startedAt": "2026-04-19T16:45:00Z",
       "completedAt": "2026-04-19T17:00:00Z",
       "commitSha": "cd8ed442c"
+    },
+    "TASK-0043-0002-001": {
+      "status": "DONE",
+      "branch": "feat/task-0043-0002-001-phase-8-menu",
+      "prNumber": 467,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/467",
+      "startedAt": "2026-04-19T17:00:00Z",
+      "completedAt": "2026-04-19T18:00:00Z",
+      "commitSha": "d2a4dd508"
+    },
+    "TASK-0043-0002-002": {
+      "status": "DONE",
+      "branch": "feat/task-0043-0002-002-approval-gate-docs",
+      "prNumber": 468,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/468",
+      "startedAt": "2026-04-19T18:00:00Z",
+      "completedAt": "2026-04-19T18:30:00Z",
+      "commitSha": "9361ced78"
+    },
+    "TASK-0043-0002-003": {
+      "status": "DONE",
+      "branch": "feat/task-0043-0002-003-state-schema",
+      "prNumber": 469,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/469",
+      "startedAt": "2026-04-19T18:30:00Z",
+      "completedAt": "2026-04-19T19:00:00Z",
+      "commitSha": "2a39613ce"
+    },
+    "TASK-0043-0002-004": {
+      "status": "DONE",
+      "branch": "feat/task-0043-0002-004-regen-goldens",
+      "prNumber": 470,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/470",
+      "startedAt": "2026-04-19T19:00:00Z",
+      "completedAt": "2026-04-19T19:30:00Z",
+      "commitSha": "8cbcea608"
+    },
+    "TASK-0043-0002-005": {
+      "status": "DONE",
+      "branch": "feat/task-0043-0002-005-fix-approval-gate-test",
+      "prNumber": 471,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/471",
+      "startedAt": "2026-04-19T19:30:00Z",
+      "completedAt": "2026-04-19T20:00:00Z",
+      "commitSha": "780760d30"
     }
   }
 }
