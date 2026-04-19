@@ -1387,6 +1387,7 @@ Templates referenced by this skill follow RULE-012. When a template file does no
 | `x-lib-task-decomposer` | Invokes (Phase 1C) | Task decomposition with TDD markers |
 | `x-review` | Invokes (Phase 3.4) | Parallel specialist reviews |
 | `x-review-pr` | Invokes (Phase 3.6) | Tech Lead holistic review |
+| `x-pr-fix` | Invokes (Step 3.6.5, on TL GO) | Per-task PR comment auto-fix after Tech Lead approval |
 | `x-arch-update` | Invokes (Phase 3.3, conditional) | Architecture document update |
 | `x-git-worktree` | Invokes (Phase 0 Step 6a/6c, Phase 3 Step 3.8) | Worktree context detection (mandatory pre-branch), standalone worktree creation (`--worktree` flag, Mode 2), and Creator-Owned removal at end of Phase 3 (Rule 14 + ADR-0004) |
 | `x-epic-implement` | Called by | Epic orchestrator delegates story execution |
