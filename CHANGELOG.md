@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **story-0042-0002 (EPIC-0042):** `x-pr-merge-train` gains Phases 3, 4, and 5 — merge orchestration and parallel rebase subagents.
+  - **Phase 3 — Sort + File-Overlap Precheck:** reorders the validated PR list by `createdAt` ascending (or preserves explicit `--prs` order), then computes file-set intersections for every PR pair via `gh pr view --json files`. Any overlap outside `golden/**` forces `MAX_PARALLEL=1` and logs `NEUTERED_PARALLEL` to `state.json` (telemetry only, not an error). The first PR becomes `BASE_PR`; the rest form `TAIL[]`.
+  - **Phase 4 — Base PR Merge:** triggers `gh pr merge <BASE_PR> --squash --auto --delete-branch` and polls every 60 s until `state == MERGED` (default 30-minute timeout). Aborts with `MERGE_POLL_TIMEOUT` on timeout or `MERGE_REJECTED_BY_PROTECTION` on branch-protection rejection. Updates `state.json` fields `phase`, `prsMergedOk[]`, and `prsFailed[]`.
+  - **Phase 5 — Parallel Tail Orchestration:** wave dispatcher loop dispatches up to `MAX_PARALLEL` rebase workers per wave as sibling `Agent(subagent_type: "general-purpose", ...)` calls in a single assistant message (Rule 13 Pattern 2). Each worker executes the canonical rebase subagent prompt, which embeds the golden-regen block verbatim from `README.md:810-818` (RULE-005), resolves golden conflicts with `--ours` + regen (RULE-004), and aborts with `CODE_CONFLICT_NEEDS_HUMAN` on code conflicts. Workers write structured `worker-<pr>.log` JSON. After all workers in a wave return, OK PRs are merged serially; any `CODE_CONFLICT_NEEDS_HUMAN` or `PUSH_LEASE_REJECTED` failure aborts the train with worktree preserved for diagnosis.
+  - `state.json` extended with `neuteredParallel`, `prsMergedOk[]`, `prsFailed[]`, and `waves[]` fields.
+  - Four TDD tests added: `MergeTrainSkillPhase3Test`, `MergeTrainSkillPhase4Test` (×1), `MergeTrainSkillPhase5Test` (×2).
+
 - **story-0042-0004 (EPIC-0042):** `x-story-implement` now auto-fixes task PR review comments after Tech Lead GO. New Step 3.6.5 gates on `decision=GO`, discovers task PRs from `execution-state.json`, checks per-PR review comment count via `gh api`, and invokes `Skill(skill: "x-pr-fix", ...)` for each PR with comments. Compile-regression guard aborts with `PR_FIX_COMPILE_REGRESSION` if a fix breaks the build, skipping Step 3.7 without auto-retry (RULE-007 single-pass). Integration Notes and Error Handling tables updated accordingly.
 
 ## [3.9.0] - 2026-04-19
