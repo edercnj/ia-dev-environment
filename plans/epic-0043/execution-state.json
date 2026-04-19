@@ -1,99 +1,119 @@
 {
-  "storyId": "story-0043-0002",
-  "planningSchemaVersion": "1.0",
-  "mode": "MANUAL",
-  "parentBranch": null,
-  "storyStatus": "COMPLETE",
-  "tasks": {
-    "TASK-0043-0001-001": {
-      "status": "DONE",
-      "branch": "feat/task-0043-0001-001-adr-0010",
-      "prNumber": 461,
-      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/461",
-      "startedAt": "2026-04-19T16:00:00Z",
-      "completedAt": "2026-04-19T16:10:00Z",
-      "commitSha": "50f2120d0"
+  "version": "2.0",
+  "epicId": "0043",
+  "baseBranch": "develop",
+  "mergeMode": "auto",
+  "autoApprovePr": false,
+  "batchApproval": true,
+  "taskTracking": true,
+  "sequential": true,
+  "startedAt": "2026-04-19T00:00:00Z",
+  "stories": {
+    "story-0043-0001": {
+      "id": "story-0043-0001",
+      "phase": 0,
+      "status": "SUCCESS",
+      "commitSha": "2822d50bf486efd06707dfa47f91af2ce3a1ad40",
+      "findingsCount": 0,
+      "summary": "Published ADR-0010 + Rule 20 (20-interactive-gates.md). RulesAssemblerInteractiveGatesTest added. Golden files regenerated for 18 profiles. PRs #461-466 merged.",
+      "retries": 0,
+      "duration": null,
+      "blockedBy": [],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/466",
+      "prNumber": 466,
+      "prMergeStatus": "MERGED"
     },
-    "TASK-0043-0001-002": {
-      "status": "DONE",
-      "branch": "feat/task-0043-0001-002-rule-20",
-      "prNumber": 462,
-      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/462",
-      "startedAt": "2026-04-19T16:10:00Z",
-      "completedAt": "2026-04-19T16:20:00Z",
-      "commitSha": "1d3b56446"
+    "story-0043-0002": {
+      "id": "story-0043-0002",
+      "phase": 1,
+      "status": "SUCCESS",
+      "commitSha": "295af2714",
+      "findingsCount": 0,
+      "summary": "Retrofit x-release Phase 8 APPROVAL-GATE: default interactive menu, --non-interactive opt-out, FIX-PR loop-back, guard-rail 3 attempts, state schema extended. PRs #467-473 merged.",
+      "retries": 0,
+      "duration": null,
+      "blockedBy": ["story-0043-0001"],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/473",
+      "prNumber": 473,
+      "prMergeStatus": "MERGED"
     },
-    "TASK-0043-0001-003": {
-      "status": "DONE",
-      "branch": "feat/task-0043-0001-003-regen-rule-20",
-      "prNumber": 463,
-      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/463",
-      "startedAt": "2026-04-19T16:20:00Z",
-      "completedAt": "2026-04-19T16:35:00Z",
-      "commitSha": "4b8db15f3"
+    "story-0043-0003": {
+      "id": "story-0043-0003",
+      "phase": 1,
+      "status": "SUCCESS",
+      "commitSha": "8fa262ff0",
+      "findingsCount": 0,
+      "summary": "Retrofit x-story-implement: Phase 0.5 + Phase 2.2.9 interactive gate menus default-on, --non-interactive opt-out, COALESCED TASK-0043-0003-004 pass-through to x-epic-implement, golden files regenerated. PRs #474-478 merged.",
+      "retries": 0,
+      "duration": null,
+      "blockedBy": ["story-0043-0001"],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/478",
+      "prNumber": 478,
+      "prMergeStatus": "MERGED",
+      "tasks": {
+        "TASK-0043-0003-001": { "status": "DONE", "branch": "feat/task-0043-0003-001-phase-0-5-menu", "prNumber": 474, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/474", "commitSha": "1b807995d" },
+        "TASK-0043-0003-002": { "status": "DONE", "branch": "feat/task-0043-0003-002-phase-2-2-9-menu", "prNumber": 475, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/475", "commitSha": "e2a0ee53c" },
+        "TASK-0043-0003-003": { "status": "DONE", "branch": "feat/task-0043-0003-003-state-schema", "prNumber": 476, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/476", "commitSha": "c3e4e48e1" },
+        "TASK-0043-0003-004": { "status": "DONE", "branch": "feat/task-0043-0003-004-epic-calls-non-interactive", "prNumber": 477, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/477", "commitSha": "f69cb0eb2" },
+        "TASK-0043-0003-005": { "status": "DONE", "branch": "feat/task-0043-0003-005-regen-goldens", "prNumber": 478, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/478", "commitSha": "4c4feaa2a" }
+      }
     },
-    "TASK-0043-0001-004": {
-      "status": "DONE",
-      "branch": "feat/task-0043-0001-004-rule-assembler-test",
-      "prNumber": 464,
-      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/464",
-      "startedAt": "2026-04-19T16:35:00Z",
-      "completedAt": "2026-04-19T16:45:00Z",
-      "commitSha": "baa3764bd"
+    "story-0043-0004": {
+      "id": "story-0043-0004",
+      "phase": 1,
+      "status": "SUCCESS",
+      "commitSha": "6d87bbac4",
+      "findingsCount": 0,
+      "summary": "Retrofit x-epic-implement batch PR gate: TASK-0043-0004-001 COALESCED with TASK-0043-0003-004 (PR #477). TASK-0043-0004-002: batchGate schema extended with waveIndex, fixAttempts shape, delegateSkill, EPIC_BATCH_FIX_LOOP_EXCEEDED error code (PR #479). TASK-0043-0004-003: golden regen + ApiFirstPhaseTest fix (PR #480). All 6066 tests green.",
+      "retries": 0,
+      "duration": null,
+      "blockedBy": ["story-0043-0001"],
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/480",
+      "prNumber": 480,
+      "prMergeStatus": "MERGED",
+      "tasks": {
+        "TASK-0043-0004-001": { "status": "DONE", "branch": "feat/task-0043-0003-004-epic-calls-non-interactive", "prNumber": 477, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/477", "commitSha": "f69cb0eb2", "note": "COALESCED with TASK-0043-0003-004" },
+        "TASK-0043-0004-002": { "status": "DONE", "branch": "feat/task-0043-0004-002-state-batch-gate", "prNumber": 479, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/479", "commitSha": "00d79337d" },
+        "TASK-0043-0004-003": { "status": "DONE", "branch": "feat/task-0043-0004-003-regen-golden", "prNumber": 480, "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/480", "commitSha": "9ddb00eb2" }
+      }
     },
-    "TASK-0043-0001-005": {
-      "status": "DONE",
-      "branch": "feat/task-0043-0001-005-docs-updates",
-      "prNumber": 465,
-      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/465",
-      "startedAt": "2026-04-19T16:45:00Z",
-      "completedAt": "2026-04-19T17:00:00Z",
-      "commitSha": "cd8ed442c"
+    "story-0043-0005": {
+      "id": "story-0043-0005",
+      "phase": 1,
+      "status": "PENDING",
+      "commitSha": null,
+      "findingsCount": 0,
+      "summary": "",
+      "retries": 0,
+      "duration": null,
+      "blockedBy": ["story-0043-0001"],
+      "prUrl": null,
+      "prNumber": null,
+      "prMergeStatus": null
     },
-    "TASK-0043-0002-001": {
-      "status": "DONE",
-      "branch": "feat/task-0043-0002-001-phase-8-menu",
-      "prNumber": 467,
-      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/467",
-      "startedAt": "2026-04-19T17:00:00Z",
-      "completedAt": "2026-04-19T18:00:00Z",
-      "commitSha": "d2a4dd508"
-    },
-    "TASK-0043-0002-002": {
-      "status": "DONE",
-      "branch": "feat/task-0043-0002-002-approval-gate-docs",
-      "prNumber": 468,
-      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/468",
-      "startedAt": "2026-04-19T18:00:00Z",
-      "completedAt": "2026-04-19T18:30:00Z",
-      "commitSha": "9361ced78"
-    },
-    "TASK-0043-0002-003": {
-      "status": "DONE",
-      "branch": "feat/task-0043-0002-003-state-schema",
-      "prNumber": 469,
-      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/469",
-      "startedAt": "2026-04-19T18:30:00Z",
-      "completedAt": "2026-04-19T19:00:00Z",
-      "commitSha": "2a39613ce"
-    },
-    "TASK-0043-0002-004": {
-      "status": "DONE",
-      "branch": "feat/task-0043-0002-004-regen-goldens",
-      "prNumber": 470,
-      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/470",
-      "startedAt": "2026-04-19T19:00:00Z",
-      "completedAt": "2026-04-19T19:30:00Z",
-      "commitSha": "8cbcea608"
-    },
-    "TASK-0043-0002-005": {
-      "status": "DONE",
-      "branch": "feat/task-0043-0002-005-fix-approval-gate-test",
-      "prNumber": 471,
-      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/471",
-      "startedAt": "2026-04-19T19:30:00Z",
-      "completedAt": "2026-04-19T20:00:00Z",
-      "commitSha": "780760d30"
+    "story-0043-0006": {
+      "id": "story-0043-0006",
+      "phase": 1,
+      "status": "PENDING",
+      "commitSha": null,
+      "findingsCount": 0,
+      "summary": "",
+      "retries": 0,
+      "duration": null,
+      "blockedBy": ["story-0043-0001"],
+      "prUrl": null,
+      "prNumber": null,
+      "prMergeStatus": null
     }
-  }
+  },
+  "phases": {
+    "0": { "status": "SUCCESS", "startedAt": "2026-04-19T00:00:00Z", "completedAt": "2026-04-19T17:00:00Z" },
+    "1": { "status": "IN_PROGRESS", "startedAt": "2026-04-19T17:00:00Z", "completedAt": null }
+  },
+  "mainShaBeforePhase": {
+    "0": "98f094a521f53fae1881b41baa61c1d9768f591f",
+    "1": "ad71476b0"
+  },
+  "integrityGates": {},
+  "versionBumps": []
 }

@@ -26,6 +26,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `RulesAssemblerInteractiveGatesTest` (3 tests) verifies rule is copied, has ≥ 10
     sections, and contains canonical slot labels and state schema fields.
 
+- **story-0043-0004 (EPIC-0043):** Retrofit `x-epic-implement` batch PR consolidation gate — default interactive menu.
+  The batch consolidation gate (§1.3b) now **always** opens the canonical 3-option menu (`PROCEED` / `FIX-PR` / `ABORT`) by default.
+  `--non-interactive` is the CI/automation opt-out (auto-approves without prompting). `--manual-batch-approval` is deprecated (no-op, one-time warning).
+  - **FIX-PR loop-back:** option 2 invokes `Skill(skill: "x-pr-fix-epic", args: "--epic {EPIC_ID}")` via Rule 13 Pattern 1 INLINE-SKILL,
+    records the attempt in `batchGate.fixAttempts[]`, and re-presents the menu on return.
+  - **Guard-rail:** 3 consecutive FIX-PR attempts trigger `EPIC_BATCH_FIX_LOOP_EXCEEDED` (auto-terminate, state preserved for `--resume`).
+  - **State file extension:** `batchGate` sub-object added to `plans/epic-<ID>/execution-state.json` with fields
+    `lastGateDecision` (Enum|null), `fixAttempts[]` (with `attemptNumber`, `delegateSkill`, `invokedAt`, `outcome`),
+    `waveIndex` (Integer|null, which wave triggered the gate), and `schemaVersion`. Silent migration for legacy state files.
+  - **Golden files** regenerated for all 19 profiles. `ApiFirstPhaseTest` updated to check for new AskUserQuestion gate.
+  - TASK-0043-0004-001 was COALESCED with TASK-0043-0003-004 (PR #477); TASK-0043-0004-002 (PR #479); TASK-0043-0004-003 (PR #480).
+
 - **story-0043-0002 (EPIC-0043):** Retrofit `x-release` Phase 8 APPROVAL-GATE — default interactive menu.
   Phase 8 now **always** opens the canonical 3-option gate menu (`PROCEED` / `FIX-PR` / `ABORT`) by default,
   without any flag. `--non-interactive` is the new CI/automation opt-out (prints the legacy HALT text + exits 0).
