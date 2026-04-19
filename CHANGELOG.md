@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **story-0043-0001 (EPIC-0043):** Convention — Interactive Gates (ADR-0010 + Rule 20).
+  Establishes the canonical 3-option gate menu (`PROCEED` / `FIX-PR` / `ABORT`) as the
+  default behavior for all orchestrating skills that pause for human approval
+  (`x-release`, `x-story-implement`, `x-epic-implement`, `x-review-pr`).
+  - [ADR-0010 — Interactive Gates Convention](adr/ADR-0010-interactive-gates-convention.md):
+    documents decision rationale, FIX-PR loop-back with 3-attempt guard-rail, uniform
+    state file schema, deprecation of opt-in flags, and grep-based audit enforcement.
+  - [Rule 20 — Interactive Gates](`.claude/rules/20-interactive-gates.md`):
+    normative rule with 10 mandatory sections — Scope, Canonical Option Menu, State File
+    Schema, Default Behavior, FIX-PR Loop-Back, Deprecation of Opt-In Flags, Forbidden,
+    Audit Command, Rationale. Source at
+    `java/src/main/resources/targets/claude/rules/20-interactive-gates.md`.
+  - Golden files regenerated for all 18 profiles; `20-interactive-gates.md` present in
+    every golden `.claude/rules/` output.
+  - `RulesAssemblerInteractiveGatesTest` (3 tests) verifies rule is copied, has ≥ 10
+    sections, and contains canonical slot labels and state schema fields.
+
 - **story-0042-0003 (EPIC-0042):** `x-pr-merge-train` skill completed with Phases 6–7, full state.json schema, atomic-write pattern, `--resume` entry logic, 16-code Error Handling table, Integration Notes, and ≥ 4 Examples.
   - **Phase 6 — Final Verification:** fetches + pulls `develop`, runs `mvn compile` + `mvn test` smoke checks after all merges, and asserts each merged PR reached `MERGED` state via GitHub API. Any test failure sets `phase = FAILED` with `reason = SMOKE_TEST_FAILED` and preserves the worktree for diagnosis (Rule 14 §4).
   - **Phase 7 — Report + Cleanup:** writes `plans/merge-train/<trainId>/report.md` (PRs Merged, Waves, Errors Observed tables), conditionally removes the worktree via `x-git-worktree` INLINE-SKILL (Rule 13 Pattern 1) when `TRAIN_OWNS_WORKTREE && phase != FAILED`, and finalizes `state.json` with `phase = COMPLETED`.

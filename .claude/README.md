@@ -85,8 +85,9 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 18 | `18-atomic-task-commits.md` | atomic task commits |
 | 19 | `19-backward-compatibility.md` | backward compatibility |
 | 20 | `20-telemetry-privacy.md` | telemetry privacy |
+| 20 | `20-interactive-gates.md` | interactive gates |
 
-**Total: 18 rules**
+**Total: 19 rules**
 
 ### Numbering
 

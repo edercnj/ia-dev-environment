@@ -18,6 +18,11 @@ It includes coding rules, skills (slash commands), knowledge packs, agents, and 
 > - Retroactive diff patches for epics 0036–0040: [`plans/epic-0041/migrations/`](plans/epic-0041/migrations/) (EPIC-0040 flagged HIGH — hard conflict on `telemetry-phase.sh`).
 > - Skill inventory gained `/x-parallel-eval` (category `plan/`).
 
+> **In progress — EPIC-0043 (Interactive Gates Convention).**
+> Standardizes interactive decision gates across orchestrating skills (`x-release`, `x-story-implement`, `x-epic-implement`, `x-review-pr`) with a fixed 3-option menu (PROCEED / FIX-PR / ABORT) as the default behavior. Menu is now default; `--non-interactive` replaces the patchwork of opt-in flags for CI/automation. FIX-PR slot invokes `x-pr-fix`/`x-pr-fix-epic` via Rule 13 INLINE-SKILL and loops back to the same menu. Guard-rail caps 3 consecutive fix attempts with `GATE_FIX_LOOP_EXCEEDED`. Rule 20 + ADR-0010 published in story-0043-0001; retrofits follow in stories 0043-0002 through 0043-0006.
+> - Decision record: [`adr/ADR-0010-interactive-gates-convention.md`](adr/ADR-0010-interactive-gates-convention.md)
+> - Story index: [`plans/epic-0043/`](plans/epic-0043/)
+
 > **In progress — EPIC-0036 (Skill Taxonomy Refactor).**
 > The source of truth for skills under `java/src/main/resources/targets/claude/skills/` is being reorganized into 10 category subfolders (`plan/`, `dev/`, `test/`, `review/`, `security/`, `code/`, `git/`, `pr/`, `ops/`, `jira/`), and ~19 skills will be renamed to a consistent `x-{subject}-{action}` scheme. The generated output `.claude/skills/` remains **flat** — user-facing invocation paths are preserved.
 > - Decision record: [`adr/ADR-0003-skill-taxonomy-and-naming.md`](adr/ADR-0003-skill-taxonomy-and-naming.md)
