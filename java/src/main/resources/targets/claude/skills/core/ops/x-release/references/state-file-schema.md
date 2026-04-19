@@ -52,7 +52,8 @@ CLEANUP phase.
     "UPDATED",
     "CHANGELOG_DONE",
     "COMMITTED",
-    "PR_OPENED"
+    "PR_OPENED",
+    "APPROVAL_GATE_REACHED"
   ],
   "branch": "release/2.3.0",
   "baseBranch": "develop",
@@ -60,7 +61,7 @@ CLEANUP phase.
   "hotfix": false,
   "dryRun": false,
   "signedTag": false,
-  "interactive": true,
+  "interactive": false,
   "prNumber": 262,
   "prUrl": "https://github.com/acme/ia-dev-env/pull/262",
   "prTitle": "release: v2.3.0",
@@ -70,8 +71,8 @@ CLEANUP phase.
   "startedAt": "2026-04-11T14:22:07Z",
   "lastPhaseCompletedAt": "2026-04-11T14:35:41Z",
   "nextActions": [
-    {"label": "PR mergeado — continuar", "command": "/x-release"},
-    {"label": "Rodar fix-pr-comments", "command": "/x-pr-fix"}
+    {"label": "PR merged, continue to tag", "command": "/x-release"},
+    {"label": "Run fix-pr-comments", "command": "/x-pr-fix"}
   ],
   "waitingFor": "PR_MERGE",
   "phaseDurations": {
@@ -83,7 +84,9 @@ CLEANUP phase.
     "PR_OPENED": 12
   },
   "lastPromptAnsweredAt": "2026-04-11T14:35:42Z",
-  "githubReleaseUrl": null
+  "githubReleaseUrl": null,
+  "lastGateDecision": null,
+  "fixAttempts": []
 }
 ```
 
@@ -134,6 +137,42 @@ canonical writer always emits every key.
 | `phaseDurations` | `Map<String, Long>` \| null | skill orchestrator | Updated after each phase completes | Wall-clock duration in seconds per phase name. Empty map (`{}`) is valid (before the first phase completes). |
 | `lastPromptAnsweredAt` | ISO-8601 UTC string \| null | prompt handler | After every operator prompt | Telemetry capturing human-response time; used by downstream observability stories. |
 | `githubReleaseUrl` | string \| null | `PUBLISH` (S06) | After `gh release create` | URL of the GitHub Release created by the publish phase. Remains `null` until then. |
+
+### Gate Fields (EPIC-0043)
+
+Introduced by EPIC-0043 story-0043-0002 to support the canonical 3-option
+interactive gate (Rule 20). These fields are written by Phase 8 (APPROVAL-GATE)
+on the first write after EPIC-0043. Absent fields from legacy state files
+(releases <=3.6.0) are read as `null` / `[]` — backward-compatible defaults.
+
+| Field | Type | Required | Default | Description |
+|:---|:---|:---|:---|:---|
+| `lastGateDecision` | `String \| null` | Yes (always present after Phase 8 first write) | `null` | The last decision made at the APPROVAL-GATE. `null` before first interaction. One of `PROCEED`, `FIX_PR`, `ABORT` after. |
+| `fixAttempts` | `Array<FixAttempt>` | Yes (always present after Phase 8 first write) | `[]` | List of FIX-PR attempts. Empty before first fix attempt. Maximum 3 items (guard-rail fires `RELEASE_FIX_LOOP_EXCEEDED` at 3). |
+
+**`FixAttempt` sub-object:**
+
+| Field | Type | Required | Description |
+|:---|:---|:---|:---|
+| `at` | `String` (ISO-8601 UTC) | Yes | Timestamp of the fix attempt |
+| `delegateSkill` | `String` | Yes | `"x-pr-fix"` |
+| `prNumber` | `Integer` | Yes | PR number passed to the fix skill |
+| `outcome` | `String` | Yes | One of `applied`, `no_comments`, `compile_regression`, `aborted`, `pending` |
+
+**Backward compatibility (RELEASE_STATE_SCHEMA_LEGACY):**
+State files from releases <=3.6.0 do not contain `lastGateDecision` or
+`fixAttempts`. When Phase 8 detects a state file without these fields, it:
+1. Emits `WARN [RELEASE_STATE_SCHEMA_LEGACY]: State file <path> has no schemaVersion; assuming legacy (<=3.6.0); migrating to 1.0 on next write.`
+2. Treats `lastGateDecision` as `null` and `fixAttempts` as `[]`
+3. Writes these fields with their default values on the next atomic write
+4. Does NOT abort or fail — migration is transparent and silent
+
+> **Note on `schemaVersion` field:** The outer `schemaVersion: 2` is the main
+> state file format version (set during initialization in Phase 0). The
+> `schemaVersion: "1.0"` written by Phase 8 in the gate context is the
+> **gate-specific schema version** per the Rule 20 contract — it coexists
+> with the outer integer version because the gate fields are an additive
+> extension, not a format replacement.
 
 ### Field Preservation After Resume
 
