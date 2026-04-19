@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **story-0042-0004 (EPIC-0042):** `x-story-implement` now auto-fixes task PR review comments after Tech Lead GO. New Step 3.6.5 gates on `decision=GO`, discovers task PRs from `execution-state.json`, checks per-PR review comment count via `gh api`, and invokes `Skill(skill: "x-pr-fix", ...)` for each PR with comments. Compile-regression guard aborts with `PR_FIX_COMPILE_REGRESSION` if a fix breaks the build, skipping Step 3.7 without auto-retry (RULE-007 single-pass). Integration Notes and Error Handling tables updated accordingly.
+
 ## [3.9.0] - 2026-04-19
 
 ### Added
