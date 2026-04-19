@@ -3,7 +3,7 @@ name: x-release
 description: "Orchestrates complete release flow using Git Flow release branches with approval gate, PR-flow (gh CLI) and deep validation: version bump (auto-detect or explicit), release branch creation from develop, deep validation (coverage, golden files, version consistency), version file updates, changelog generation, release commit, release PR via gh (optionally reviewed by x-review-pr), human approval gate with persistent state file, tag on main after merged PR, back-merge PR to develop with conflict detection, and cleanup. Supports hotfix releases from main, dry-run mode, resume via --continue-after-merge, in-session pause via --interactive, GPG-signed tags, skip-review opt-out, and custom state file path."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, Skill, AskUserQuestion
-argument-hint: "[major|minor|patch|version] [--version X.Y.Z] [--last-tag <tag>] [--dry-run] [--skip-tests] [--no-publish] [--no-github-release] [--hotfix] [--continue-after-merge] [--interactive] [--no-prompt] [--signed-tag] [--skip-review] [--state-file <path>] [--skip-integrity] [--integrity-report <path>] [--max-parallel <N>] [--status] [--abort] [--yes] [--force]"
+argument-hint: "[major|minor|patch|version] [--version X.Y.Z] [--last-tag <tag>] [--dry-run] [--skip-tests] [--no-publish] [--no-github-release] [--hotfix] [--continue-after-merge] [--interactive] [--non-interactive] [--no-prompt] [--signed-tag] [--skip-review] [--state-file <path>] [--skip-integrity] [--integrity-report <path>] [--max-parallel <N>] [--status] [--abort] [--yes] [--force]"
 ---
 
 ## Global Output Policy
@@ -48,8 +48,9 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 | `--no-publish` | No | Create release locally without pushing to remote |
 | `--no-github-release` | No | Skip the GitHub Release creation prompt in Step 11.1 (CI path; story-0039-0006, RULE-007). There is **no** silent auto-create mode — when this flag is absent, the operator is always prompted via AskUserQuestion. |
 | `--hotfix` | No | Create hotfix release from `main` instead of `develop` |
-| `--continue-after-merge` | No | Resume flow from RESUME-AND-TAG after the release PR has been merged manually. Requires an existing state file with `phase: APPROVAL_PENDING`. |
-| `--interactive` | No | Activate in-session pause at APPROVAL-GATE via `AskUserQuestion` instead of exiting the skill. The state file is still persisted for defense in depth. When combined with `--dry-run`, activates the interactive-dry-run sub-modality (story-0039-0013): the skill pauses before each of the 13 phases and records outcomes without invoking `git`, `mvn`, or `gh`. Passing `--interactive` WITHOUT `--dry-run` aborts with exit 1, error `INTERACTIVE_REQUIRES_DRYRUN`. |
+| `--continue-after-merge` | No | Resume flow from RESUME-AND-TAG after the release PR has been merged manually. Requires an existing state file with `phase: APPROVAL_PENDING`. Semantics as of EPIC-0043: equivalent to selecting PROCEED in the menu — advances directly to Phase 9 without re-opening the gate. |
+| `--interactive` | No | **Flag with split semantics — read carefully.** (1) Without `--dry-run`: **[DEPRECATED as of EPIC-0043]** — emits a one-time deprecation warning `"[DEPRECATED] --interactive is no longer needed; the gate menu is now the default. Use --non-interactive to suppress it."` and is a no-op (the default interactive menu fires anyway). Passing `--interactive` WITHOUT `--dry-run` previously aborted with `INTERACTIVE_REQUIRES_DRYRUN`; that behaviour is now superseded — the flag is ignored with a deprecation warning. (2) With `--dry-run`: **PRESERVED** — activates the interactive-dry-run sub-modality (story-0039-0013): the skill pauses before each of the 13 phases and records outcomes without invoking `git`, `mvn`, or `gh`. This dry-run semantic is NOT deprecated and is NOT affected by EPIC-0043. See `--non-interactive` for the CI opt-out. |
+| `--non-interactive` | No | **New flag (EPIC-0043).** Opt-out of the default interactive gate menu at APPROVAL-GATE. Prints the legacy HALT text (identical to pre-EPIC-0043 default behavior) and exits 0. Intended for CI/automation scripts that expect the old textual output. Equivalent to the old default (no `--interactive`) behavior. Supersedes the old `--no-prompt` flag in gate contexts (though `--no-prompt` still works for other prompt points). |
 | `--signed-tag` | No | Create a GPG-signed git tag (`git tag -s`) instead of an annotated tag (`git tag -a`). |
 | `--skip-review` | No | Skip the fire-and-forget `x-review-pr` invocation at the end of Phase `OPEN-RELEASE-PR`. The release PR is still opened against `main`; only the automated specialist review is suppressed. |
 | `--state-file <path>` | No | Override the state file path (default: `plans/release-state-<X.Y.Z>.json`). |
@@ -57,7 +58,7 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 | `--skip-integrity` | No | Skip sub-check 10 (cross-file integrity drift) in VALIDATE-DEEP. **Not recommended**; emits a loud warning in the release log. |
 | `--integrity-report <path>` | No | Write the structured JSON integrity report to `<path>` regardless of pass/fail. For CI parsers. |
 | `--max-parallel <N>` | No | Upper bound for VALIDATE-DEEP parallel check wave (1..16, default `min(CPU,4)`). `--max-parallel 1` forces serial execution. (story-0039-0004) |
-| `--no-prompt` | No | Disable all interactive `AskUserQuestion` prompts (RULE-004 non-interactive equivalent). At halt points, the skill persists state (`waitingFor`, `nextActions`) and exits with textual resume instructions, identical to the default non-`--interactive` behavior. Mutually exclusive with `--interactive`. (story-0039-0007) |
+| `--no-prompt` | No | Disable all interactive `AskUserQuestion` prompts at non-gate prompt points (RULE-004 non-interactive equivalent for PromptEngine-managed points). At halt points that are NOT the Phase 8 APPROVAL-GATE, the skill persists state and exits with textual resume instructions. For Phase 8 specifically, prefer `--non-interactive` (introduced in EPIC-0043). Mutually exclusive with `--interactive` in dry-run mode. (story-0039-0007) |
 | `--status` | No | Show current release status (read-only). Displays version, phase, PR URLs, last activity timestamp, waiting-for state, and suggested next actions. Exits 0 when no active release. (story-0039-0010) |
 | `--abort` | No | Abort the active release with double confirmation. Closes open PRs, deletes local and remote release branches, removes state file. Individual cleanup failures are warn-only (exit 0). Exits 1 with `ABORT_NO_RELEASE` if no state file exists. Exits 2 with `ABORT_USER_CANCELLED` if user cancels. (story-0039-0010) |
 | `--yes` | No | Used with `--abort` to skip both confirmation prompts (force mode). Logs "FORCE MODE" warning. (story-0039-0010) |
@@ -1314,39 +1315,74 @@ using the same vocabulary as the rest of the skill.
 
 ### Step 8 — Approval Gate
 
+> **Rule 20 (Interactive Gates Convention — EPIC-0043):** As of EPIC-0043
+> the gate menu is the **default** behavior — it fires without any flag.
+> The only opt-out is `--non-interactive` (new flag, for CI/automation).
+> See `references/approval-gate-workflow.md` for the complete workflow
+> diagram, state transitions, and decision tree.
+
 > **RULE-003 (Idempotência via State File):** This phase writes
-> `APPROVAL_PENDING` to the state file and halts. Re-invocation without
+> `APPROVAL_PENDING` to the state file. Re-invocation without
 > `--continue-after-merge` detects the in-flight state in Step 0 and
 > aborts with `STATE_CONFLICT`, preventing double execution.
 
-> **Reference:** See `references/approval-gate-workflow.md` for the
-> complete workflow diagram, state transitions, and interactive mode
-> decision tree.
+> **`--interactive` flag note:** `--interactive` is **deprecated** for
+> gate control as of EPIC-0043 (see §Deprecation in Rule 20). When
+> `--interactive` is present WITHOUT `--dry-run`, the skill emits a
+> one-time deprecation warning and proceeds with the default menu (the
+> `INTERACTIVE_REQUIRES_DRYRUN` abort is no longer raised for this
+> combination; that constraint only applied when `--interactive` was
+> the sole gate opt-in). When `--interactive` is paired with `--dry-run`,
+> the interactive-dry-run sub-modality is **preserved unchanged** — this
+> semantic is NOT deprecated and is NOT affected by EPIC-0043.
+> See `--non-interactive` for the CI opt-out.
 
 The Approval Gate is the safety checkpoint between opening the release PR
 (Step 7) and applying irreversible actions (tag, back-merge). Nothing
 irreversible has happened yet — the operator can abort by closing the PR.
 
-#### Step 8.1 — Persist APPROVAL_PENDING State
+#### Step 8.1 — Persist APPROVAL_PENDING State and Initialize Gate Fields
 
 ```bash
 # Atomic state update: PR_OPENED -> APPROVAL_PENDING
+# Also initializes new gate fields (EPIC-0043) with backward-compatible defaults.
+PR_URL=$(jq -r '.prUrl' "$STATE_FILE")
+PR_NUMBER=$(jq -r '.prNumber' "$STATE_FILE")
+
+# Detect legacy state file (no schemaVersion or schemaVersion != "1.0")
+SCHEMA_VER=$(jq -r '.schemaVersion // "legacy"' "$STATE_FILE")
+if [ "$SCHEMA_VER" = "legacy" ]; then
+  echo "WARN [RELEASE_STATE_SCHEMA_LEGACY]: State file ${STATE_FILE} has no schemaVersion;" \
+       "assuming legacy (≤3.6.0); migrating to 1.0 on next write."
+fi
+
 TMP="${STATE_FILE}.tmp.$$"
 jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
   '.phase = "APPROVAL_PENDING"
    | .phasesCompleted += ["APPROVAL_GATE_REACHED"]
-   | .lastPhaseCompletedAt = $ts' \
+   | .lastPhaseCompletedAt = $ts
+   | .schemaVersion = "1.0"
+   | .lastGateDecision = (.lastGateDecision // null)
+   | .fixAttempts = (.fixAttempts // [])' \
   "$STATE_FILE" > "$TMP"
 mv "$TMP" "$STATE_FILE"
 ```
 
-#### Step 8.2 — Print Human-Readable Instructions
+#### Step 8.2 — Evaluate `--non-interactive` Opt-Out
+
+> **Separation of flags (EPIC-0043):**
+> - `--non-interactive` → CI opt-out; prints legacy HALT text and exits 0.
+> - `--interactive` (without `--dry-run`) → deprecated; ignored with a
+>   deprecation warning; gate opens normally.
+> - `--interactive` (with `--dry-run`) → interactive-dry-run sub-modality;
+>   **not** deprecated; gate still opens but in dry-run context.
+> - No flag → default interactive gate (since EPIC-0043).
+
+If `--non-interactive` **is** set, emit the legacy HALT text and exit:
 
 ```bash
-PR_URL=$(jq -r '.prUrl' "$STATE_FILE")
-PR_NUMBER=$(jq -r '.prNumber' "$STATE_FILE")
-
-cat <<EOF
+if [ "$NON_INTERACTIVE" = "true" ]; then
+  cat <<EOF
 ============================================================
 APPROVAL GATE — RELEASE v${VERSION}
 ============================================================
@@ -1367,102 +1403,156 @@ The skill will now exit. Nothing irreversible has happened yet.
 To cancel: close the PR and delete state file + release branch.
 ============================================================
 EOF
-```
-
-#### Step 8.3 — Branch on `--interactive` / `--no-prompt` Flags
-
-> **PromptEngine integration (story-0039-0007):** When `--interactive` is set
-> and `--no-prompt` is absent, the halt point is resolved by `PromptEngine`
-> (`dev.iadev.release.prompt.PromptEngine`). The engine persists `waitingFor`
-> and `nextActions` to the state file, presents the operator with a
-> `AskUserQuestion` prompt, records `lastPromptAnsweredAt` on response, and
-> dispatches the selected option to the appropriate action (`CONTINUE`,
-> `EXIT`, `HANDOFF`). See `references/prompt-flow.md` for the complete flow.
->
-> When `--no-prompt` is set, `PromptEngine.resolve(haltPoint, state, true)`
-> persists state and returns `EXIT` immediately without invoking
-> `AskUserQuestion` (RULE-004 non-interactive equivalent).
->
-> **Handoff integration (story-0039-0011):** When the operator chooses
-> "Rodar /x-pr-fix PR#", `PromptEngine` returns `PromptAction.HANDOFF` and
-> the caller delegates to `HandoffOrchestrator`
-> (`dev.iadev.release.handoff.HandoffOrchestrator`). The orchestrator runs
-> the 5-step handoff sequence documented in story-0039-0011 §3.1:
-> (1) invoke `Skill(skill: "x-pr-fix", args: "<PR#>")` via
-> `SkillInvokerPort`; (2) wait for the skill to return; (3) re-run
-> `gh pr view <PR#> --json state,mergedAt,reviewDecision` via `GhCliPort`;
-> (4) map the response to `PrState`; (5) derive a fresh option set via
-> `HandoffOrchestrator.resolveOptions(PrState)` per the §5.3 decision
-> table. The caller then re-invokes `PromptEngine.resolve(...)` with the
-> refreshed state. On error, `HandoffOrchestrator` returns
-> `HANDOFF_SKILL_FAILED` (warn-only, exit 0) or `HANDOFF_PR_NOT_FOUND`
-> (exit 1). See `references/prompt-flow.md` §"Handoff Contract".
-
-If `--interactive` is **not** set (or `--no-prompt` **is** set), the skill exits immediately:
-
-```bash
-if [ "$INTERACTIVE" != "true" ] || [ "$NO_PROMPT" = "true" ]; then
-  echo "Skill halted at APPROVAL GATE. Resume with --continue-after-merge."
   exit 0
 fi
 ```
 
-If `--interactive` **is** set and `--no-prompt` is absent, the skill uses `AskUserQuestion` with three
-options instead of exiting:
-
-```
-AskUserQuestion:
-  question: "Release v${VERSION} — PR #${PR_NUMBER} opened. Choose an action:"
-  options:
-    1. "PR merged, continue to tag (Recommended)"
-    2. "Halt — resume later with --continue-after-merge"
-    3. "Cancel release entirely"
-```
-
-##### Option 1 — Continue to Tag (Defense in Depth)
-
-Verify via `gh pr view` that the PR is actually merged before proceeding.
-This prevents the operator from accidentally claiming "merged" when the PR
-is still open.
+If `--interactive` is set WITHOUT `--dry-run`, emit the deprecation warning
+(per Rule 20 §Deprecation) and fall through to the interactive gate below:
 
 ```bash
+if [ "$INTERACTIVE" = "true" ] && [ "$DRY_RUN" != "true" ]; then
+  echo "[DEPRECATED] --interactive is no longer needed; the gate menu is now the default." \
+       "Use --non-interactive to suppress it."
+  # Fall through — menu opens normally
+fi
+```
+
+#### Step 8.3 — Default Interactive Gate (Rule 20 Canonical Menu)
+
+> **FIX-PR loop-back:** selecting slot 2 invokes `x-pr-fix` via Rule 13
+> Pattern 1 INLINE-SKILL and reapresents this menu on return. Consecutive
+> FIX-PR attempts are capped at 3; the guard-rail fires `RELEASE_FIX_LOOP_EXCEEDED`
+> and terminates the gate automatically without adding a 4th menu option (Rule 20
+> RULE-002).
+
+Present the canonical 3-option menu (Rule 20 §Canonical Option Menu):
+
+```
+AskUserQuestion(
+  question: "Release v${VERSION} — PR #${PR_NUMBER} is open. What would you like to do?",
+  options: [
+    {
+      header: "Proceed",
+      label: "Continue (Recommended)",
+      description: "Verify the PR is merged and proceed to tag v${VERSION} on main."
+    },
+    {
+      header: "Fix PR",
+      label: "Run x-pr-fix and retry",
+      description: "Invokes x-pr-fix on PR #${PR_NUMBER}; reapresents this menu on return."
+    },
+    {
+      header: "Abort",
+      label: "Cancel the operation",
+      description: "Cancel the release. Requires double confirmation. Cleans up state file."
+    }
+  ]
+)
+```
+
+##### Slot 1 — Proceed (Defense in Depth)
+
+Update `lastGateDecision` in the state file and verify the PR is merged before
+advancing. This prevents accidental tagging when the PR is still open.
+
+```bash
+TMP="${STATE_FILE}.tmp.$$"
+jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  '.lastGateDecision = "PROCEED" | .lastPhaseCompletedAt = $ts' \
+  "$STATE_FILE" > "$TMP"
+mv "$TMP" "$STATE_FILE"
+
 PR_STATE=$(gh pr view "$PR_NUMBER" --json state --jq '.state')
 if [ "$PR_STATE" != "MERGED" ]; then
   echo "ABORT [APPROVAL_PR_STILL_OPEN]: PR #${PR_NUMBER} is still ${PR_STATE}."
-  echo "Merge the PR first, then choose option 1 again."
-  # Re-present the 3 options (loop back to AskUserQuestion)
-  exit 1
+  echo "Merge the PR first, then select Proceed again."
+  # Re-present the 3-option menu (loop back to Step 8.3)
 fi
 # PR confirmed merged — proceed to Step 9 (TAG) in-session
 ```
 
-##### Option 2 — Halt
+##### Slot 2 — Fix PR (INLINE-SKILL loop-back)
 
-Identical to the default (non-interactive) behavior:
+Check the guard-rail first. If `fixAttempts.size()` is already 3, do NOT
+invoke the skill — emit `RELEASE_FIX_LOOP_EXCEEDED` and terminate:
 
 ```bash
-echo "Halt selected. Resume later with:"
-echo "  /x-release ${VERSION} --continue-after-merge"
-exit 0
+FIX_COUNT=$(jq '.fixAttempts | length' "$STATE_FILE")
+if [ "$FIX_COUNT" -ge 3 ]; then
+  cat <<EOF
+RELEASE_FIX_LOOP_EXCEEDED: 3 consecutive fix attempts did not resolve the gate.
+Gate terminated automatically. To recover:
+  1. Inspect PR #${PR_NUMBER} manually and apply a direct fix.
+  2. Resume the skill with --non-interactive to skip this gate.
+  3. Or edit ${STATE_FILE} directly: reset fixAttempts to [] and
+     set lastGateDecision to null.
+EOF
+  exit 1  # RELEASE_FIX_LOOP_EXCEEDED
+fi
 ```
 
-##### Option 3 — Cancel Release
+When the guard-rail passes (fewer than 3 attempts), record the attempt
+and invoke the fix skill via Rule 13 Pattern 1 INLINE-SKILL:
+
+```bash
+# Record attempt (outcome will be updated on return)
+TMP="${STATE_FILE}.tmp.$$"
+jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+   --argjson pr "$PR_NUMBER" \
+  '.lastGateDecision = "FIX_PR"
+   | .lastPhaseCompletedAt = $ts
+   | .fixAttempts += [{
+       "at": $ts,
+       "delegateSkill": "x-pr-fix",
+       "prNumber": $pr,
+       "outcome": "pending"
+     }]' \
+  "$STATE_FILE" > "$TMP"
+mv "$TMP" "$STATE_FILE"
+```
+
+Invoke `x-pr-fix` via the Skill tool (Rule 13 Pattern 1 — INLINE-SKILL):
+
+    Skill(skill: "x-pr-fix", args: "${PR_NUMBER}")
+
+On return, update the last `FixAttempt` outcome in the state file and
+**reapresent the full gate menu** (loop back to Step 8.3 unconditionally):
+
+```bash
+# outcome is the result from x-pr-fix (applied | no_comments | compile_regression | aborted)
+TMP="${STATE_FILE}.tmp.$$"
+jq --arg outcome "${FIX_OUTCOME}" \
+  '.fixAttempts[-1].outcome = $outcome' \
+  "$STATE_FILE" > "$TMP"
+mv "$TMP" "$STATE_FILE"
+# Re-present the 3-option menu (loop back to Step 8.3)
+```
+
+##### Slot 3 — Abort (Double Confirmation)
 
 Requires double confirmation to prevent accidental cancellation:
 
 ```
-AskUserQuestion:
+AskUserQuestion(
   question: "CONFIRM: Cancel release v${VERSION}? This will delete the state file.
-             The release PR and branch must be closed/deleted manually."
-  options:
-    1. "Yes, cancel the release"
-    2. "No, go back"
+             The release PR and branch must be closed/deleted manually.",
+  options: [
+    { header: "Confirm", label: "Yes, cancel the release", description: "Deletes state file and exits." },
+    { header: "Back",    label: "No, go back",             description: "Returns to the gate menu." }
+  ]
+)
 ```
 
-If confirmed:
+If confirmed, update state and clean up:
 
 ```bash
-# Delete the state file
+TMP="${STATE_FILE}.tmp.$$"
+jq --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  '.lastGateDecision = "ABORT" | .lastPhaseCompletedAt = $ts' \
+  "$STATE_FILE" > "$TMP"
+mv "$TMP" "$STATE_FILE"
+
 rm -f "$STATE_FILE"
 
 echo "============================================================"
@@ -1480,14 +1570,16 @@ echo "============================================================"
 exit 2  # APPROVAL_CANCELLED
 ```
 
-If not confirmed, loop back to the 3 options.
+If not confirmed, loop back to the 3-option gate menu (Step 8.3).
 
 #### Step 8.4 — Error Catalog (local to APPROVAL-GATE)
 
-| Condition | Code | Message template |
-|:---|:---|:---|
-| Interactive option 1 but PR state != MERGED | `APPROVAL_PR_STILL_OPEN` | `PR #${PR_NUMBER} is still ${PR_STATE}. Merge first.` |
-| Interactive option 3 confirmed | `APPROVAL_CANCELLED` | `Release cancelled by user.` (exit 2) |
+| Condition | Code | Message template | Exit |
+|:---|:---|:---|:---|
+| Slot 1 selected but PR state != MERGED | `APPROVAL_PR_STILL_OPEN` | `PR #${PR_NUMBER} is still ${PR_STATE}. Merge first.` | 1 (re-present menu) |
+| Slot 3 confirmed | `APPROVAL_CANCELLED` | `Release cancelled by user.` | 2 |
+| 3rd FIX-PR selected when `fixAttempts.size == 3` | `RELEASE_FIX_LOOP_EXCEEDED` | `3 consecutive fix attempts did not resolve the gate.` | 1 |
+| State file without `schemaVersion` | `RELEASE_STATE_SCHEMA_LEGACY` | `State file ${PATH} has no schemaVersion; assuming legacy (≤3.6.0); migrating to 1.0 on next write.` | warn only |
 
 The codes above extend the catalog in
 `references/state-file-schema.md`. Operators triage approval-gate
@@ -2259,9 +2351,19 @@ state.
 /x-release minor --dry-run --interactive
 ```
 
-The flags must be combined. Passing `--interactive` without `--dry-run` aborts
-with exit code 1 and error code `INTERACTIVE_REQUIRES_DRYRUN`
-(see Consolidated Error Catalog below).
+The flags must be combined. As of EPIC-0043, passing `--interactive` without
+`--dry-run` no longer aborts with `INTERACTIVE_REQUIRES_DRYRUN`; instead it
+emits a deprecation warning and is a no-op (the default gate menu fires for
+the APPROVAL-GATE). The `INTERACTIVE_REQUIRES_DRYRUN` error code is retained
+in the Consolidated Error Catalog for external tooling compatibility but is
+no longer raised at runtime.
+
+> **Flag separation (EPIC-0043):** `--interactive` (dry-run semantic, NOT
+> deprecated) and `--non-interactive` (gate opt-out, new) serve different
+> purposes. `--non-interactive` suppresses the APPROVAL-GATE menu and prints
+> legacy HALT text for CI/automation. `--interactive` controls the dry-run
+> simulation mode. Never use `--interactive` as the gate opt-in — use
+> `--non-interactive` instead.
 
 **Per-phase prompt (3 options):**
 
@@ -2316,10 +2418,12 @@ DRY-RUN MODE — no side effects were applied.
 Dummy state discarded.
 ```
 
-**Error:** `INTERACTIVE_REQUIRES_DRYRUN` (exit 1) — raised by
-`InteractiveFlagValidator.validate(dryRun, interactive)` when
-`--interactive` is present without `--dry-run`. See the Consolidated Error
-Catalog below for the complete row.
+**Error:** `INTERACTIVE_REQUIRES_DRYRUN` — **[DEPRECATED as of EPIC-0043]**.
+Previously raised by `InteractiveFlagValidator.validate(dryRun, interactive)`
+when `--interactive` is present without `--dry-run`. As of EPIC-0043 this
+error is no longer raised at runtime; instead a deprecation warning is emitted
+and the skill proceeds with the default gate menu. The error code is preserved
+in the Consolidated Error Catalog for external tooling compatibility.
 
 ## Hotfix Release (with PR-Flow)
 
@@ -2427,8 +2531,10 @@ printed at runtime.
 | 7 | `PR_NO_CHANGELOG_ENTRY` | No `[X.Y.Z]` entry in CHANGELOG.md | `No [<V>] entry found in CHANGELOG.md. Ensure Step 5 completed.` | 1 |
 | 7 | `PR_PUSH_REJECTED` | `git push` rejected | `Push rejected. Check branch protection or network.` | 1 |
 | 7 | `PR_CREATE_FAILED` | `gh pr create` exits non-zero | `Failed to create PR: <stderr>` | 1 |
-| 8 | `APPROVAL_PR_STILL_OPEN` | Interactive option 1 but PR not merged | `PR is still OPEN. Merge first, then --continue-after-merge.` | 1 |
-| 8 | `APPROVAL_CANCELLED` | Interactive option 3 confirmed by user | `Release cancelled by user. Manual cleanup required.` | 2 |
+| 8 | `APPROVAL_PR_STILL_OPEN` | Slot 1 (Proceed) selected but PR not merged | `PR #N is still <state>. Merge the PR first, then select Proceed again.` | 1 (re-present menu) |
+| 8 | `APPROVAL_CANCELLED` | Slot 3 (Abort) confirmed by user | `Release cancelled by user. Manual cleanup required.` | 2 |
+| 8 | `RELEASE_FIX_LOOP_EXCEEDED` | 3 FIX-PR attempts without PROCEED; slot 2 selected again | `3 consecutive fix attempts did not resolve the gate. Gate terminated automatically.` | 1 |
+| 8 | `RELEASE_STATE_SCHEMA_LEGACY` | State file missing `schemaVersion` field | `State file <path> has no schemaVersion; assuming legacy (≤3.6.0); migrating to 1.0 on next write.` | warn only |
 | 9 | `RESUME_GH_FAILED` | `gh pr view` command fails | `Failed to query PR #<n>. Check gh auth and network.` | 1 |
 | 9 | `RESUME_PR_NOT_MERGED` | PR state is not MERGED | `PR #<n> is <state>, not MERGED. Merge first.` | 1 |
 | 9 | `RESUME_PR_NO_MERGE_TIME` | `mergedAt` field is null | `PR state inconsistency — mergedAt is null.` | 1 |
@@ -2444,7 +2550,7 @@ printed at runtime.
 | 10bis | `WT_RELEASE_REMOVE_FAILED` | `x-git-worktree remove` non-zero, or `cd` back to main repo failed | `Could not remove release worktree <id>; left in place for inspection` | — |
 | 11 | `PUBLISH_GH_RELEASE_FAILED` | `gh release create` non-zero (auth, rate limit, API error) | `Failed to create GitHub Release v<V>. Tag v<V> is already published; create the Release manually.` | — |
 | 11 | `PUBLISH_UNKNOWN_FLAG` | Unknown flag passed to PUBLISH phase (defensive) | `Unknown flag in PUBLISH phase: <flag>. Expected --no-github-release or --no-publish.` | 1 |
-| — | `INTERACTIVE_REQUIRES_DRYRUN` | `--interactive` passed without `--dry-run` (story-0039-0013) | `--interactive requires --dry-run.` | 1 |
+| — | `INTERACTIVE_REQUIRES_DRYRUN` | **[DEPRECATED as of EPIC-0043]** — was raised when `--interactive` was passed without `--dry-run` (story-0039-0013). As of EPIC-0043 this error is no longer raised; `--interactive` without `--dry-run` emits a deprecation warning and is a no-op (the default gate menu fires). The code is retained in the catalog for backward-compatibility with external tooling that parses release logs. | 1 |
 | 1 | `HOTFIX_INVALID_COMMITS` | `--hotfix` auto-detect observes `feat` or breaking commits since the last tag (story-0039-0014) | `Hotfix flow rejects non-PATCH commits: feat=<n>, breaking=<n>. Only fix/perf commits are allowed.` | 1 |
 | 1 | `HOTFIX_VERSION_NOT_PATCH` | `--hotfix --version <X.Y.Z>` override is not a PATCH bump over the current version (story-0039-0014) | `Hotfix override must be PATCH only (current=<cur>, requested=<req>).` | 1 |
 
