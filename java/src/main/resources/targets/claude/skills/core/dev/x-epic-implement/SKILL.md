@@ -3,7 +3,7 @@ name: x-epic-implement
 description: "Orchestrates the implementation of an entire epic by executing stories sequentially or in parallel via explicit git worktrees (per ADR-0004 §D2 and Rule 14). Parses epic ID and flags, validates prerequisites (epic directory, IMPLEMENTATION-MAP.md, story files), then delegates story execution to x-story-implement. EPIC-0038 simplification: epic orchestrator handles ONLY story-level concerns (phase order, story PR management, epic-level verification). Task management (TDD cycles, atomic commits per task, coalesced handling) is fully delegated to x-story-implement's v2 wave dispatcher. Tasks are invisible at the epic level."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, Agent, AskUserQuestion, TaskCreate, TaskUpdate
-argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--single-pr] [--auto-merge] [--no-merge] [--interactive-merge] [--strict-overlap] [--skip-pr-comments] [--auto-approve-pr] [--batch-approval] [--manual-batch-approval] [--task-tracking] [--dry-run-only-comments] [--revert-on-failure]"
+argument-hint: "[EPIC-ID] [--phase N] [--story story-XXXX-YYYY] [--skip-review] [--dry-run] [--resume] [--sequential] [--single-pr] [--auto-merge] [--no-merge] [--interactive-merge] [--strict-overlap] [--skip-pr-comments] [--auto-approve-pr] [--batch-approval] [--manual-batch-approval] [--non-interactive] [--task-tracking] [--dry-run-only-comments] [--revert-on-failure]"
 ---
 
 ## Global Output Policy
@@ -96,7 +96,8 @@ ERROR: Epic ID is required. Usage: /x-epic-implement [EPIC-ID] [flags]
 | `--auto-approve-pr` | boolean | `false` | Propagate to x-story-implement dispatches. Each story creates a parent branch and task PRs auto-merge into it. Parent branches require human review before merging to develop (RULE-004). |
 | `--batch-approval` | boolean | `true` | Enable/disable batch approval for parallel story task PRs (RULE-013). When enabled, consolidates pending PRs from parallel stories into a single approval prompt. |
 | `--task-tracking` | boolean | `true` | Enable/disable task-level tracking in execution-state.json. When enabled, individual task progress is tracked with PR fields (prUrl, prNumber, branch). |
-| `--manual-batch-approval` | boolean | `false` | Force human gate for batch PR approval. Without this flag, PRs are auto-approved when no CRITICAL review findings exist (EPIC-0042). |
+| `--non-interactive` | boolean | `false` | Skip all interactive gates (AskUserQuestion menus). Auto-approves batch PR gate and passes `--non-interactive` to all `x-story-implement` dispatches. For CI/automation. |
+| `--manual-batch-approval` | boolean | `false` | **DEPRECATED (EPIC-0043).** No-op — the gate menu is now the default. Emits one-time warning: `"[DEPRECATED] --manual-batch-approval is no longer needed; the gate menu is now the default."` |
 | `--dry-run-only-comments` | boolean | `false` | Suppress auto-apply of PR comment fixes. When set, Phase 4 generates the dry-run report but does not apply fixes without confirmation (EPIC-0042). |
 | `--revert-on-failure` | boolean | `false` | Skip agent-assisted regression fix and revert directly on integrity gate failure (EPIC-0042). When set, the original revert behavior is used without attempting auto-remediation. |
 
@@ -854,53 +855,93 @@ function checkCrossStoryTaskDeps(storyId, executionState):
 
 This enables fine-grained dependency management: story-B can start as soon as the specific task it depends on in story-A is DONE, without waiting for all of story-A to complete.
 
-#### 1.3b Batch Approval for Parallel Stories (RULE-013) (EPIC-0042)
+#### 1.3b Batch Approval for Parallel Stories (RULE-013) (EPIC-0043)
 
-**Default behavior (auto-approve):** When `--batch-approval` is enabled (default: `true`) and
-no CRITICAL review findings exist, auto-approve all pending PRs from parallel stories without
-prompting. For each pending PR, execute `gh pr merge {prNumber} --merge`. Update task status
-to `PR_MERGED` then `DONE`. Log:
-`"Batch auto-approve: {N} PRs across {M} stories (no CRITICAL findings, EPIC-0042)"`
+**Deprecated flag:** If `--manual-batch-approval` is present, emit one-time warning
+`"[DEPRECATED] --manual-batch-approval is no longer needed; the gate menu is now the default."`
+and continue (no-op).
+
+**Trigger:** After parallel story dispatch completes (Section 1.4a step 4), collect all task PRs
+with status `PR_CREATED` or `PR_APPROVED` across the parallel stories.
+
+**`--non-interactive` mode (auto-approve):** When `--non-interactive` is present, auto-approve
+all pending PRs without prompting. For each pending PR, execute `gh pr merge {prNumber} --merge`.
+Update task status to `PR_MERGED` then `DONE`. Log:
+`"Batch auto-approve (--non-interactive): {N} PRs across {M} stories"`
 If any merge fails, log warning and retry once. If retry fails, mark the specific task as FAILED.
 
-**Exception — CRITICAL review findings:** When ANY story in the parallel batch has review
-findings with severity CRITICAL, fall through to the manual batch prompt below. Log:
-`"CRITICAL review findings detected — requiring manual batch approval"`
-
-**Manual batch approval flag `--manual-batch-approval` (EPIC-0042):** When
-`--manual-batch-approval` is present, always use the manual batch prompt regardless
-of review findings.
-
-**Manual batch prompt (via AskUserQuestion) — used when CRITICAL findings exist or
-`--manual-batch-approval` is present:**
-
-**Trigger:** After parallel story dispatch completes (Section 1.4a step 4), collect all task PRs with status `PR_CREATED` or `PR_APPROVED` across the parallel stories.
-
-```
-question: "{N} task PRs pending approval across {M} stories"
-header: "Batch PR Approval"
-options:
-  - label: "Approve all {N} PRs"
-    description: "Approve and merge all pending task PRs into their parent branches"
-  - label: "Review individually"
-    description: "Present each PR one at a time for individual review/approval/rejection"
-  - label: "Pause all"
-    description: "Save state and pause execution. Resume with --resume after manual review."
-multiSelect: false
-```
+**Default behavior (interactive menu):** When execution reaches this gate WITHOUT `--non-interactive`,
+present the operator with `AskUserQuestion` (Rule 20 — Canonical Option Menu, PR variant).
+Display the PR List Table before the menu.
 
 **PR List Table (displayed before options):**
 
 | Story ID | Task ID | PR # | PR URL | Title | Changed Files |
 |----------|---------|------|--------|-------|---------------|
 
-**Response Handling:**
+**AskUserQuestion call shape:**
 
-- **"Approve all N PRs"**: For each pending PR, execute `gh pr merge {prNumber} --merge`. Update task status to `PR_MERGED` then `DONE`. If any merge fails, log warning and fall back to "Review individually" for that specific PR.
-- **"Review individually"**: Present each PR sequentially. For each, offer: Approve / Reject / Skip. Update task status accordingly.
-- **"Pause all"**: Save execution state and exit. User runs `--resume` after manual review.
+```markdown
+AskUserQuestion(
+  question: "{N} task PRs pending across {M} stories. Review and choose an action.",
+  options: [
+    {
+      header: "Proceed",
+      label: "Continue (Recommended)",
+      description: "Merge all {N} pending task PRs and continue epic execution."
+    },
+    {
+      header: "Fix PR",
+      label: "Run x-pr-fix-epic and retry",
+      description: "Invokes x-pr-fix-epic on all epic PRs; reapresents this menu on return."
+    },
+    {
+      header: "Abort",
+      label: "Cancel the operation",
+      description: "Save execution state and exit. Resume with --resume after manual review."
+    }
+  ]
+)
+```
 
-**Skip condition:** When `--batch-approval=false` or `--auto-approve-pr` is set (task PRs auto-merge), skip batch approval entirely. When `--sequential` is set, there are no parallel PRs to consolidate.
+**On PROCEED:** For each pending PR, execute `gh pr merge {prNumber} --merge`. Update task status
+to `PR_MERGED` then `DONE`. If any merge fails, log warning and fall back to individual retry.
+
+**On FIX-PR:** Record the attempt in `batchGate.fixAttempts[]` (see schema below). Invoke fix skill
+via Rule 13 INLINE-SKILL:
+
+    Skill(skill: "x-pr-fix-epic", args: "--epic {EPIC_ID}")
+
+On return: update `outcome` in the last `FixAttempt`. Reapresent the full gate menu (loop-back).
+Guard-rail: if `batchGate.fixAttempts.size() == 3` before selecting FIX-PR, emit
+`EPIC_BATCH_FIX_LOOP_EXCEEDED` and terminate automatically:
+`"Loop de fix excedeu 3 tentativas no epic {EPIC_ID}; gate encerrado automaticamente.
+  Retomar via --resume com --non-interactive ou edição manual do state file."`
+No 4th option is presented (total option count remains exactly 3, per RULE-002).
+
+**On ABORT:** Save execution state. Set `batchGate.lastGateDecision = "ABORT"`. Exit the skill.
+Resume with `--resume` after manual review.
+
+**`execution-state.json` schema extension (EPIC-0043):**
+
+The top-level `execution-state.json` gains a `batchGate` sub-object:
+
+```json
+{
+  "batchGate": {
+    "lastGateDecision": null,
+    "fixAttempts": [],
+    "schemaVersion": "1.0"
+  }
+}
+```
+
+Legacy files (without `batchGate`) are read as `null` and initialized on first write. Log on first
+migration: `"EPIC_BATCH_GATE_SCHEMA_LEGACY: execution-state.json sem batchGate; inicializando"`
+
+**Skip condition:** When `--batch-approval=false` or `--auto-approve-pr` is set (task PRs
+auto-merge into parent branches), skip batch approval entirely. When `--sequential` is set,
+there are no parallel PRs to consolidate.
 
 #### `getExecutableStories()` Algorithm (RULE-003)
 
@@ -1004,10 +1045,13 @@ Skip review: {skipReview}
 Auto-approve PR: {autoApprovePr}
 
 CRITICAL: Invoke the /x-story-implement skill using the Skill tool:
-  Skill(skill: "x-story-implement", args: "{storyId}")
+  Skill(skill: "x-story-implement", args: "{storyId} --non-interactive")
 
 The /x-story-implement skill orchestrates ALL phases: planning, TDD, reviews, commits, and PR creation.
 Do NOT manually perform these steps. Let the skill handle all orchestration.
+Note: --non-interactive is always passed by x-epic-implement so x-story-implement's interactive
+gates (Phase 0.5, Phase 2.2.9) auto-approve without pausing (Rule 20 — EPIC-0043).
+When x-epic-implement itself is called with --non-interactive, also propagate to x-story-implement dispatches.
 
 If /x-story-implement is unavailable (Skill tool error), fall back to manual execution:
 1. Read story -> 2. Plan -> 3. TDD (Red-Green-Refactor) -> 4. Test + coverage
