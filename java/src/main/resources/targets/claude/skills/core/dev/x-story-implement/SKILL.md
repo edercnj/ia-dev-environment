@@ -927,19 +927,37 @@ FOR each TASK-NNN where status != DONE and status != BLOCKED:
          - If NOT --auto-approve-pr: PR targets develop
          - PR body includes task description, TDD cycle summary, coverage
   2.2.8  Update execution-state: task.status = PR_CREATED, task.prNumber, task.prUrl
-  2.2.9  APPROVAL GATE (EPIC-0042):
-         - Default behavior (auto-approve): Auto-merge task PR (gh pr merge --squash).
+  2.2.9  APPROVAL GATE (EPIC-0043):
+         Deprecated flags: if --manual-task-approval is present, emit one-time warning
+         "[DEPRECATED] --manual-task-approval is no longer needed; the gate menu is now the default."
+         and continue (no-op).
+         - If --non-interactive is present: Auto-merge task PR (gh pr merge --squash).
            Update execution-state: task.status = PR_MERGED.
-           This applies both when --auto-approve-pr is set (targets parent branch)
-           and when neither --auto-approve-pr nor --manual-task-approval is set
-           (targets develop). Log: "Task PR auto-approved (EPIC-0042): #{prNumber}"
-         - If --manual-task-approval is present:
-           Present AskUserQuestion with options:
-             APPROVE -> task.status = PR_APPROVED, continue to next task
-             REJECT  -> task.status = FAILED, abort lifecycle with message:
-                        "Task TASK-NNN rejected. Fix issues and resume with /x-story-implement --task TASK-NNN"
-             PAUSE   -> task.status = PR_CREATED, exit lifecycle:
-                        "Lifecycle paused at TASK-NNN. Resume later with /x-story-implement {STORY_ID}"
+           Log: "Task PR auto-approved (--non-interactive): #{prNumber}"
+         - Default behavior (interactive menu): Present AskUserQuestion (Rule 20 — Canonical
+           Option Menu, PR variant):
+
+           AskUserQuestion(
+             question: "Task PR #{prNumber} is ready for review. Task: TASK-XXXX-YYYY-NNN. PR: {prUrl}. TDD Cycles: {count}. Coverage: line {linePercent}%, branch {branchPercent}%.",
+             options: [
+               { header: "Proceed", label: "Continue (Recommended)", description: "Merge the task PR and mark task as approved. Proceeds to the next task." },
+               { header: "Fix PR", label: "Run x-pr-fix and retry", description: "Invokes x-pr-fix on this task PR; reapresents this menu on return." },
+               { header: "Abort", label: "Cancel the operation", description: "Stops the lifecycle. Task status is preserved as PR_CREATED for resume via --task TASK-ID." }
+             ]
+           )
+
+           On PROCEED: merge PR (gh pr merge --squash). task.status = PR_MERGED. Continue to next task.
+           On FIX-PR: record fixAttempt (delegateSkill="x-pr-fix", prNumber). Invoke fix skill
+             via Rule 13 INLINE-SKILL: Skill(skill: "x-pr-fix", args: "{prNumber}")
+             On return: update fixAttempt outcome. Reapresent this menu (loop-back).
+             Guard-rail: if fixAttempts.size() == 3 before selecting FIX-PR, emit
+             STORY_TASK_FIX_LOOP_EXCEEDED error and terminate:
+             "Loop de fix excedeu 3 tentativas na task ${TASK_ID}; gate encerrado com ABORT automático.
+              Retomar via --task ${TASK_ID} com --non-interactive ou edição manual do state file."
+           On ABORT: task.status = PR_CREATED (NOT FAILED — resume-able). Persist state.
+             Log: "Lifecycle aborted at TASK-XXXX-YYYY-NNN. Resume later with:
+             /x-story-implement {STORY_ID} --task TASK-XXXX-YYYY-NNN"
+             Exit the lifecycle.
   2.2.10 Update execution-state with final task status and completedAt timestamp
   2.2.11 Update the per-task tracking entry from step 2.2.1a via TaskUpdate:
              TaskUpdate(id: taskLevelTaskId, status: "completed")
@@ -956,27 +974,27 @@ FOR each TASK-NNN where status != DONE and status != BLOCKED:
 END FOR
 ```
 
-### Step 2.3 -- Approval Gate Detail (EPIC-0042)
+### Step 2.3 -- Approval Gate Detail (EPIC-0043)
 
-**Default behavior:** Task PRs are auto-approved and auto-merged without human intervention.
-Log: `"Task PR auto-approved: #{prNumber} — TASK-XXXX-YYYY-NNN (EPIC-0042)"`
+**Default behavior (interactive menu):** Task PR gate fires an `AskUserQuestion` with 3 options
+(PROCEED / FIX-PR / ABORT) per Rule 20 — Canonical Option Menu (PR variant). No flag required.
 
-**When `--manual-task-approval` is present:** The approval gate pauses for human oversight:
+**`--non-interactive` mode:** Task PRs are auto-merged without human intervention.
+Log: `"Task PR auto-approved (--non-interactive): #{prNumber} — TASK-XXXX-YYYY-NNN"`
 
+**`--manual-task-approval` is deprecated:** No-op. Emits one-time warning on first encounter.
+
+**ABORT semantics (EPIC-0043):** The legacy PAUSE option is absorbed into ABORT. When the
+operator selects ABORT, `task.status` is set to `PR_CREATED` (NOT `FAILED`) so the task is
+resume-able. The lifecycle saves state and exits. To resume:
+
+```bash
+/x-story-implement {STORY_ID} --task TASK-XXXX-YYYY-NNN
 ```
-TASK PR READY FOR REVIEW
 
-Task: TASK-XXXX-YYYY-NNN — {task description}
-PR: #{prNumber} — {prUrl}
-Branch: feat/task-XXXX-YYYY-NNN-desc
-TDD Cycles: {count} completed
-Coverage: line {linePercent}%, branch {branchPercent}%
-
-Please review the PR and respond with:
-  - APPROVE: Mark task as approved, proceed to next task
-  - REJECT: Mark task as failed, abort lifecycle (fix and resume later)
-  - PAUSE: Save state and exit lifecycle (resume later)
-```
+**FIX-PR loop-back and guard-rail:** see Rule 20 §FIX-PR Loop-Back. Each fix attempt is
+recorded in `tasks[TASK-ID].fixAttempts[]`. After 3 consecutive FIX-PR selections without
+PROCEED, the gate auto-terminates with `STORY_TASK_FIX_LOOP_EXCEEDED`.
 
 ### Auto-Approve Mode (--auto-approve-pr, RULE-004)
 
