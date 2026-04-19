@@ -1124,6 +1124,50 @@ Invoke skill `x-review-pr` for holistic review. Requires all items passing for G
 **Dashboard Update (RULE-006):**
 After the Tech Lead review completes, update the consolidated review dashboard at `plans/epic-XXXX/reviews/dashboard-story-XXXX-YYYY.md` with Tech Lead findings.
 
+### Step 3.6.5 -- Auto-Fix Task PR Comments (post-TL GO)
+
+**Gate:** Execute this step ONLY when the Tech Lead review (Step 3.6) returned `decision=GO`. If the decision is `NO-GO`, skip this step entirely and re-enter Step 3.5 for remediation. The gate prevents auto-fixing against an unchecked baseline.
+
+**Idempotency (RULE-007 — single-pass):** This step runs EXACTLY ONCE per story cycle. A re-entry from Step 3.5 after `NO-GO` followed by a subsequent `GO` re-triggers Step 3.6.5 only because Step 3.6 was re-executed. There is no automatic retry loop within Step 3.6.5 itself.
+
+**Discovery:** Read `plans/epic-XXXX/execution-state.json` and collect all task `prNumber` values:
+
+```bash
+cat plans/epic-XXXX/execution-state.json | jq '[.tasks | to_entries[] | select(.value.prNumber != null) | .value.prNumber]'
+```
+
+Tasks with `prNumber = null` are logged as `SKIP/NO_PR` and excluded from the loop.
+
+**Per-PR loop (serial):** For each task PR with a non-null `prNumber`:
+
+1. Count review comments via `gh api`:
+
+   ```bash
+   COMMENT_COUNT=$(gh api repos/{owner}/{repo}/pulls/{prNumber}/comments | jq '. | length')
+   ```
+
+2. If `COMMENT_COUNT == 0`: log `SKIP pr=#{prNumber} (no review comments)` and continue to the next PR.
+
+3. If `COMMENT_COUNT > 0`: invoke `x-pr-fix` via the Skill tool (Rule 13 Pattern 1 — INLINE-SKILL):
+
+       Skill(skill: "x-pr-fix", args: "<prNumber>")
+
+   Collect the returned dashboard (`applied`, `failed`, `failures[]`).
+
+**Compile-regression guard:** If any `x-pr-fix` invocation reports `failed > 0` with a reason indicating a compile regression (e.g., `"compile regression"` in the `failures[].reason` field, or if running `{{COMPILE_COMMAND}}` after the invocation exits with a non-zero code):
+
+1. Abort Step 3.6.5 immediately with error code `PR_FIX_COMPILE_REGRESSION`:
+
+   ```
+   PR_FIX_COMPILE_REGRESSION
+   PR #<prNumber>: automated fix broke compilation. Step 3.7 aborted. Manual intervention required.
+   ```
+
+2. Do NOT proceed to Step 3.7.
+3. Return control to the operator. There is no automatic retry (RULE-007: single-pass).
+
+**Consolidated log:** After the loop completes without regression, emit a consolidated summary of all PR fix actions (per-PR: `prNumber`, `applied`, `failed`, `commitSha` if applicable).
+
 ### Step 3.7 -- Story-Level PR (Auto-Approve Mode Only)
 
 <!-- TELEMETRY: phase.start -->
