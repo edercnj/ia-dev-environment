@@ -253,7 +253,6 @@ else:
 | `gh` unauthenticated | `DEP_GH_AUTH` | Step 0.1 |
 | State file invalid JSON | `STATE_INVALID_JSON` | Step 0.3 |
 | Unknown `schemaVersion` | `STATE_SCHEMA_VERSION` | Step 0.3 |
-| State file missing gate fields (`lastGateDecision`, `fixAttempts`) | `RELEASE_STATE_SCHEMA_LEGACY` | Step 8.1 (warn only — not Step 0) |
 | `--continue-after-merge` with no state | `RESUME_NO_STATE` | Step 0.3 |
 | State exists, `phase != COMPLETED`, `--no-prompt` | `STATE_CONFLICT` | Step 0.3 (smart resume bypass for CI) |
 | User chose "Abort" in smart resume prompt | `RESUME_USER_ABORT` | Step 0.3 (exit 2) |
@@ -281,25 +280,6 @@ error-code vocabulary so that operators can triage failures consistently.
 | `--continue-after-merge`, valid | `phase: APPROVAL_PENDING` | `RESUME` | Phase 9 (`RESUME-AND-TAG`) |
 | `--continue-after-merge`, missing | absent | ABORT | `RESUME_NO_STATE` |
 | `--continue-after-merge`, wrong phase | any other `phase` | ABORT | invalid phase error |
-
-#### Step 0.6 — Legacy State File Gate Fields (EPIC-0043 Backward Compatibility)
-
-> **Context:** State files created before EPIC-0043 (releases <=3.6.0) do NOT contain
-> the gate fields `lastGateDecision` and `fixAttempts` added in story-0043-0002.
-> Phase 0 reads state files **tolerantly** for these fields.
-
-When reading an existing state file at any point in Phase 0:
-
-1. If `lastGateDecision` is absent: treat as `null` (equivalent to no gate decision yet).
-2. If `fixAttempts` is absent: treat as `[]` (no FIX-PR attempts yet).
-3. These defaults are NOT written to the state file in Phase 0 — they are only initialized
-   by Phase 8 (APPROVAL-GATE) on its first write (see Step 8.1).
-4. The `RELEASE_STATE_SCHEMA_LEGACY` warning is emitted by Phase 8, NOT by Phase 0.
-   Phase 0 proceeds silently when these fields are absent.
-
-This ensures `--continue-after-merge` works correctly for releases 3.4.x/3.5.x/3.6.x
-state files that were created before EPIC-0043. The gate logic in Phase 8 handles
-the migration transparently on the next write.
 
 ### Step 1 — Determine Version
 
