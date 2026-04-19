@@ -2,8 +2,8 @@
 name: x-story-implement
 description: "Orchestrates the complete feature implementation cycle with task-centric workflow: branch creation, planning, per-task TDD execution with individual PRs and approval gates, story-level verification, and final cleanup. Schema-aware: v1 (legacy) runs the monolithic coalesce-ad-hoc flow; v2 (EPIC-0038) reads task-implementation-map-STORY-*.md and dispatches x-task-implement in waves (declared parallelism) — ending the 'task embedded in story' anti-pattern. Delegates to x-test-tdd, x-git-commit, x-pr-create, and (v2) x-task-implement."
 user-invocable: true
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, Agent, TaskCreate, TaskUpdate
-argument-hint: "[STORY-ID or feature-name] [--auto-approve-pr] [--task TASK-ID] [--skip-verification] [--skip-smoke] [--full-lifecycle] [--worktree] [--manual-contract-approval] [--manual-task-approval] [--no-auto-remediation]"
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, Agent, TaskCreate, TaskUpdate, AskUserQuestion
+argument-hint: "[STORY-ID or feature-name] [--auto-approve-pr] [--task TASK-ID] [--skip-verification] [--skip-smoke] [--full-lifecycle] [--worktree] [--non-interactive] [--manual-contract-approval] [--manual-task-approval] [--no-auto-remediation]"
 context-budget: heavy
 ---
 
@@ -44,8 +44,9 @@ Orchestrate the complete feature implementation cycle using a task-centric workf
 | `--skip-verification` | Boolean | false | Skip Phase 3 (story-level verification) |
 | `--full-lifecycle` | Boolean | false | Force full execution regardless of scope tier |
 | `--worktree` | Boolean | false | Opt-in: create a dedicated worktree for the story branch (standalone mode). Ignored when the skill is already running inside a worktree (Rule 14 §3 — non-nesting invariant). See ADR-0004 §D2. |
-| `--manual-contract-approval` | Boolean | false | Force human review of API contracts before proceeding to Phase 1. Without this flag, contracts are auto-approved when validation passes (EPIC-0042). |
-| `--manual-task-approval` | Boolean | false | Require explicit human approval for each task PR. Without this flag, task PRs are auto-approved (EPIC-0042). |
+| `--non-interactive` | Boolean | false | Skip all interactive gates (AskUserQuestion menus) and auto-approve. For CI/automation and orchestrated calls from `x-epic-implement`. Overrides menu default behavior. |
+| `--manual-contract-approval` | Boolean | false | **DEPRECATED (EPIC-0043).** No-op — the gate menu is now the default. Emits one-time warning: `"[DEPRECATED] --manual-contract-approval is no longer needed; the gate menu is now the default."` |
+| `--manual-task-approval` | Boolean | false | **DEPRECATED (EPIC-0043).** No-op — the gate menu is now the default. Emits one-time warning: `"[DEPRECATED] --manual-task-approval is no longer needed; the gate menu is now the default."` |
 
 ## CRITICAL EXECUTION RULE
 
@@ -355,30 +356,53 @@ If validation errors are found:
 
 > **Note:** A dedicated `x-test-contract-lint` skill does not exist in `core/` at the time of writing (the reference was an orphan removed in EPIC-0033 / STORY-0033-0001). If `x-test-contract-lint` is added in the future, convert this step to `Skill(skill: "x-test-contract-lint", args: "{CONTRACT_PATH}")` following Rule 13 — Skill Invocation Protocol (INLINE-SKILL pattern).
 
-### Step 0.5.4 -- Approval Gate (EPIC-0042)
+### Step 0.5.4 -- Approval Gate (EPIC-0043)
 
-**Default behavior (auto-approval):** When Step 0.5.3 validation passes successfully,
-auto-approve the contract and proceed to Phase 1 without pausing. Log:
-`"Contract auto-approved (validation passed, EPIC-0042): {CONTRACT_PATH}"`
+**Deprecated flags:** If `--manual-contract-approval` is present, emit one-time warning
+`"[DEPRECATED] --manual-contract-approval is no longer needed; the gate menu is now the default."`
+and continue — the flag is a no-op.
+
+**`--non-interactive` mode:** When `--non-interactive` is present AND Step 0.5.3 validation
+passes successfully, auto-approve the contract and proceed to Phase 1 without pausing. Log:
+`"Contract auto-approved (--non-interactive, validation passed): {CONTRACT_PATH}"`
 Set `contractStatus = APPROVED` and proceed to Phase 1.
 
-**Manual approval flag `--manual-contract-approval` (EPIC-0042):** When
-`--manual-contract-approval` is present, emit the following message and **pause the lifecycle**:
+**Default behavior (interactive menu):** When execution reaches this gate WITHOUT `--non-interactive`,
+present the operator with `AskUserQuestion` (Rule 20 — Canonical Option Menu, no-PR variant):
 
+```markdown
+AskUserQuestion(
+  question: "Contract generated at {CONTRACT_PATH}. Format: {CONTRACT_FORMAT}. Review the contract and choose an action.",
+  options: [
+    {
+      header: "Proceed",
+      label: "Continue (Recommended)",
+      description: "Approve the contract and proceed to Phase 1 (Architecture Planning)."
+    },
+    {
+      header: "Reject",
+      label: "Regenerate and retry",
+      description: "Returns to Step 0.5.2 with feedback to regenerate the contract; reapresents this menu on return. Use when the generated contract has errors or missing endpoints."
+    },
+    {
+      header: "Abort",
+      label: "Cancel the operation",
+      description: "Terminates the skill. The contract file is preserved for inspection."
+    }
+  ]
+)
 ```
-CONTRACT PENDING APPROVAL
 
-Contract generated: {CONTRACT_PATH}
-Format: {CONTRACT_FORMAT}
-Status: PENDING_APPROVAL
+**On PROCEED:** Set `contractStatus = APPROVED` and proceed to Phase 1.
 
-Please review the contract and respond with:
-  - APPROVE: Proceed to Phase 1 (Architecture Planning)
-  - REJECT: Return to Step 0.5.2 for regeneration with feedback
-```
+**On REJECT:** Prompt for feedback: `"Describe what is wrong with the contract:"`. Return
+to Step 0.5.2, incorporating the feedback into regeneration. On return from regeneration,
+reapresent this gate menu (loop-back). Apply the FIX/REJECT guard-rail from Rule 20
+§FIX-PR Loop-Back: track each REJECT in `fixAttempts[]`; if `fixAttempts.size() == 3`,
+emit `GATE_FIX_LOOP_EXCEEDED` and terminate automatically (no 4th option).
 
-- **On APPROVE:** Set `contractStatus = APPROVED` and proceed to Phase 1.
-- **On REJECT:** Return to Step 0.5.2, incorporating user feedback into regeneration.
+**On ABORT:** Log `"Contract gate aborted by operator."` and terminate the skill. The
+contract file is preserved at `{CONTRACT_PATH}` for inspection.
 {% endif %}
 
 **Last action of Phase 0 — Update the phase task (TaskUpdate):**
@@ -856,6 +880,7 @@ Create or update `plans/epic-XXXX/execution-state.json` with task-level tracking
   "storyId": "story-XXXX-YYYY",
   "mode": "MANUAL|AUTO_APPROVE",
   "parentBranch": "feat/story-XXXX-YYYY-desc|null",
+  "schemaVersion": "1.0",
   "tasks": {
     "TASK-XXXX-YYYY-001": {
       "status": "PENDING|IN_PROGRESS|PR_CREATED|PR_APPROVED|PR_MERGED|DONE|FAILED|BLOCKED",
@@ -863,11 +888,26 @@ Create or update `plans/epic-XXXX/execution-state.json` with task-level tracking
       "prNumber": null,
       "prUrl": null,
       "startedAt": null,
-      "completedAt": null
+      "completedAt": null,
+      "lastGateDecision": null,
+      "fixAttempts": []
     }
   }
 }
 ```
+
+**New fields (EPIC-0043):**
+
+| Field | Type | Required | Notes |
+| :--- | :--- | :--- | :--- |
+| `tasks[TASK-ID].lastGateDecision` | `String \| null` | Yes (new) | Always present after first write; `null` before first interaction; one of `PROCEED`, `FIX_PR`, `ABORT` |
+| `tasks[TASK-ID].fixAttempts` | `Array<FixAttempt>` | Yes (new) | Default `[]`; capped at 3 items; each entry per Rule 20 §State File Schema |
+| `schemaVersion` | `String` | Yes (new) | Literal `"1.0"` per Rule 20 §State File Schema |
+
+**Legacy migration:** state files without `lastGateDecision` / `fixAttempts` / `schemaVersion`
+are read as `null` / `[]` / `"legacy"` respectively. On next write, the file is silently migrated
+to schema `"1.0"` and the new fields are added. Log on first migration:
+`"STORY_STATE_SCHEMA_LEGACY: execution-state.json com schema legacy; migrando para 1.0 em próxima escrita"`
 
 ### Step 2.2 -- Task Execution Loop
 
@@ -904,19 +944,37 @@ FOR each TASK-NNN where status != DONE and status != BLOCKED:
          - If NOT --auto-approve-pr: PR targets develop
          - PR body includes task description, TDD cycle summary, coverage
   2.2.8  Update execution-state: task.status = PR_CREATED, task.prNumber, task.prUrl
-  2.2.9  APPROVAL GATE (EPIC-0042):
-         - Default behavior (auto-approve): Auto-merge task PR (gh pr merge --squash).
+  2.2.9  APPROVAL GATE (EPIC-0043):
+         Deprecated flags: if --manual-task-approval is present, emit one-time warning
+         "[DEPRECATED] --manual-task-approval is no longer needed; the gate menu is now the default."
+         and continue (no-op).
+         - If --non-interactive is present: Auto-merge task PR (gh pr merge --squash).
            Update execution-state: task.status = PR_MERGED.
-           This applies both when --auto-approve-pr is set (targets parent branch)
-           and when neither --auto-approve-pr nor --manual-task-approval is set
-           (targets develop). Log: "Task PR auto-approved (EPIC-0042): #{prNumber}"
-         - If --manual-task-approval is present:
-           Present AskUserQuestion with options:
-             APPROVE -> task.status = PR_APPROVED, continue to next task
-             REJECT  -> task.status = FAILED, abort lifecycle with message:
-                        "Task TASK-NNN rejected. Fix issues and resume with /x-story-implement --task TASK-NNN"
-             PAUSE   -> task.status = PR_CREATED, exit lifecycle:
-                        "Lifecycle paused at TASK-NNN. Resume later with /x-story-implement {STORY_ID}"
+           Log: "Task PR auto-approved (--non-interactive): #{prNumber}"
+         - Default behavior (interactive menu): Present AskUserQuestion (Rule 20 — Canonical
+           Option Menu, PR variant):
+
+           AskUserQuestion(
+             question: "Task PR #{prNumber} is ready for review. Task: TASK-XXXX-YYYY-NNN. PR: {prUrl}. TDD Cycles: {count}. Coverage: line {linePercent}%, branch {branchPercent}%.",
+             options: [
+               { header: "Proceed", label: "Continue (Recommended)", description: "Merge the task PR and mark task as approved. Proceeds to the next task." },
+               { header: "Fix PR", label: "Run x-pr-fix and retry", description: "Invokes x-pr-fix on this task PR; reapresents this menu on return." },
+               { header: "Abort", label: "Cancel the operation", description: "Stops the lifecycle. Task status is preserved as PR_CREATED for resume via --task TASK-ID." }
+             ]
+           )
+
+           On PROCEED: merge PR (gh pr merge --squash). task.status = PR_MERGED. Continue to next task.
+           On FIX-PR: record fixAttempt (delegateSkill="x-pr-fix", prNumber). Invoke fix skill
+             via Rule 13 INLINE-SKILL: Skill(skill: "x-pr-fix", args: "{prNumber}")
+             On return: update fixAttempt outcome. Reapresent this menu (loop-back).
+             Guard-rail: if fixAttempts.size() == 3 before selecting FIX-PR, emit
+             STORY_TASK_FIX_LOOP_EXCEEDED error and terminate:
+             "Loop de fix excedeu 3 tentativas na task ${TASK_ID}; gate encerrado com ABORT automático.
+              Retomar via --task ${TASK_ID} com --non-interactive ou edição manual do state file."
+           On ABORT: task.status = PR_CREATED (NOT FAILED — resume-able). Persist state.
+             Log: "Lifecycle aborted at TASK-XXXX-YYYY-NNN. Resume later with:
+             /x-story-implement {STORY_ID} --task TASK-XXXX-YYYY-NNN"
+             Exit the lifecycle.
   2.2.10 Update execution-state with final task status and completedAt timestamp
   2.2.11 Update the per-task tracking entry from step 2.2.1a via TaskUpdate:
              TaskUpdate(id: taskLevelTaskId, status: "completed")
@@ -933,27 +991,27 @@ FOR each TASK-NNN where status != DONE and status != BLOCKED:
 END FOR
 ```
 
-### Step 2.3 -- Approval Gate Detail (EPIC-0042)
+### Step 2.3 -- Approval Gate Detail (EPIC-0043)
 
-**Default behavior:** Task PRs are auto-approved and auto-merged without human intervention.
-Log: `"Task PR auto-approved: #{prNumber} — TASK-XXXX-YYYY-NNN (EPIC-0042)"`
+**Default behavior (interactive menu):** Task PR gate fires an `AskUserQuestion` with 3 options
+(PROCEED / FIX-PR / ABORT) per Rule 20 — Canonical Option Menu (PR variant). No flag required.
 
-**When `--manual-task-approval` is present:** The approval gate pauses for human oversight:
+**`--non-interactive` mode:** Task PRs are auto-merged without human intervention.
+Log: `"Task PR auto-approved (--non-interactive): #{prNumber} — TASK-XXXX-YYYY-NNN"`
 
+**`--manual-task-approval` is deprecated:** No-op. Emits one-time warning on first encounter.
+
+**ABORT semantics (EPIC-0043):** The legacy PAUSE option is absorbed into ABORT. When the
+operator selects ABORT, `task.status` is set to `PR_CREATED` (NOT `FAILED`) so the task is
+resume-able. The lifecycle saves state and exits. To resume:
+
+```bash
+/x-story-implement {STORY_ID} --task TASK-XXXX-YYYY-NNN
 ```
-TASK PR READY FOR REVIEW
 
-Task: TASK-XXXX-YYYY-NNN — {task description}
-PR: #{prNumber} — {prUrl}
-Branch: feat/task-XXXX-YYYY-NNN-desc
-TDD Cycles: {count} completed
-Coverage: line {linePercent}%, branch {branchPercent}%
-
-Please review the PR and respond with:
-  - APPROVE: Mark task as approved, proceed to next task
-  - REJECT: Mark task as failed, abort lifecycle (fix and resume later)
-  - PAUSE: Save state and exit lifecycle (resume later)
-```
+**FIX-PR loop-back and guard-rail:** see Rule 20 §FIX-PR Loop-Back. Each fix attempt is
+recorded in `tasks[TASK-ID].fixAttempts[]`. After 3 consecutive FIX-PR selections without
+PROCEED, the gate auto-terminates with `STORY_TASK_FIX_LOOP_EXCEEDED`.
 
 ### Auto-Approve Mode (--auto-approve-pr, RULE-004)
 
