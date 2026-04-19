@@ -208,35 +208,53 @@ regardless of their presence. Hard removal is deferred to a future epic.
 
 ## Audit Command
 
-Run after all retrofits (story-0043-0006) to verify zero regressions:
+The canonical CI guard is `scripts/audit-interactive-gates.sh` (story-0043-0006).
+Run it directly to verify the production codebase:
 
 ```bash
-# Audit 1: HALT text in SKILL.md without AskUserQuestion in the same file
-grep -rlE "(Skill pausada|paused\.|HALT)" \
-    java/src/main/resources/targets/claude/skills/core/ \
-    --include=SKILL.md \
-  | xargs -I{} bash -c \
-    'grep -qE "AskUserQuestion" "{}" || echo "VIOLATION: {}"'
+# Standard run during migration (suppresses baseline-listed files):
+scripts/audit-interactive-gates.sh --baseline
+
+# Strict run (fails if ANY file has violations, including baseline files):
+scripts/audit-interactive-gates.sh
 ```
 
-**Expected result during migration (stories 0043-0001 to 0043-0005):** may
-return matches. Expected result after story-0043-0006 merges: 0 violations.
+**Exit codes:** 0 = AUDIT PASSED, 1 = AUDIT FAILED, 2 = execution error.
 
-```bash
-# Audit 2: deprecated flags in code-path sections (not Triggers/Examples)
-grep -rnE "\-\-(interactive|manual-task-approval|manual-contract-approval|manual-batch-approval)" \
-    java/src/main/resources/targets/claude/skills/core/ \
-    --include=SKILL.md \
-  | grep -v "## Triggers" \
-  | grep -v "## Examples" \
-  | grep -v "DEPRECATED"
-```
+The script enforces two rules simultaneously:
 
-**Expected result after story-0043-0006:** 0 matches.
+- **Regex 1** — HALT text (`HALT`, `Skill pausada`, `paused.`) without
+  `AskUserQuestion` in the same ±30-line window.
+- **Regex 2** — Deprecated flags (`--interactive`, `--manual-task-approval`,
+  `--manual-contract-approval`, `--manual-batch-approval`) outside the
+  allowlisted `## Triggers` and `## Examples` sections. Uses a tokenised
+  end-of-token lookahead `([^a-zA-Z0-9_-]|$)` so that `--interactive-merge`
+  is **not** a false positive.
 
-> **Baseline note:** during the migration period this audit is run with
-> `--baseline` mode (reports without blocking CI). It switches to blocking
-> mode in story-0043-0006.
+**Migration mode:** `audits/interactive-gates-baseline.txt` lists the source
+SKILL.md files pending retrofit (stories 0043-0002 to 0043-0005). Once all
+retrofits complete and the baseline file is empty, the `--baseline` flag can
+be removed from the `mvn test` invocation to switch CI to strict mode.
+
+**Scope:** `java/src/main/resources/targets/claude/skills/core/{ops,dev,review}/**`
+`core/lib/**` is explicitly excluded (utility skills, not interactive gates).
+
+> **Legacy manual commands** (pre-story-0043-0006, kept for reference only):
+>
+> ```bash
+> # Audit 1 (manual fallback):
+> grep -rlE "(Skill pausada|paused\.|HALT)" \
+>     java/src/main/resources/targets/claude/skills/core/ \
+>     --include=SKILL.md \
+>   | xargs -I{} bash -c \
+>     'grep -qE "AskUserQuestion" "{}" || echo "VIOLATION: {}"'
+>
+> # Audit 2 (manual fallback):
+> grep -rnE "\-\-(interactive|manual-task-approval|manual-contract-approval|manual-batch-approval)" \
+>     java/src/main/resources/targets/claude/skills/core/ \
+>     --include=SKILL.md \
+>   | grep -v "## Triggers" | grep -v "## Examples" | grep -v "DEPRECATED"
+> ```
 
 ## Rationale
 

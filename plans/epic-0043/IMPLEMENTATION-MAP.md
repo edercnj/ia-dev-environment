@@ -12,7 +12,7 @@
 | [story-0043-0002](./story-0043-0002.md) | Retrofit `x-release` Phase 8 | — | story-0043-0001 | — | Concluída |
 | [story-0043-0003](./story-0043-0003.md) | Retrofit `x-story-implement` | — | story-0043-0001 | — | Concluída |
 | [story-0043-0004](./story-0043-0004.md) | Retrofit `x-epic-implement` | — | story-0043-0001 | — | Concluída |
-| [story-0043-0005](./story-0043-0005.md) | Retrofit `x-review-pr` | — | story-0043-0001 | — | Pendente |
+| [story-0043-0005](./story-0043-0005.md) | Retrofit `x-review-pr` | — | story-0043-0001 | — | Concluída |
 | [story-0043-0006](./story-0043-0006.md) | CI audit Rule 20 | — | story-0043-0001 | — | Concluída |
 
 > **Valores de Status:** `Pendente` (padrão) · `Em Andamento` · `Concluída` · `Falha` · `Bloqueada` · `Parcial`
