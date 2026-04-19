@@ -825,4 +825,49 @@ All error codes emitted by the skill are listed below. Each entry identifies the
 
 > `NEUTERED_PARALLEL` is informational — it does not abort the train. All other codes result in train abort unless specified as WARNING.
 
+## Integration Notes
+
+| Skill | Relationship | When |
+| :--- | :--- | :--- |
+| `x-git-worktree` | Called (INLINE-SKILL, Phase 7) | Cleanup when `TRAIN_OWNS_WORKTREE` and `phase != FAILED` |
+| `x-git-commit` | Not called directly | Commits are made by rebase-worker subagents via git CLI |
+| `x-pr-fix-epic` | Manual invocation by operator | After `--resume` following `CODE_CONFLICT_NEEDS_HUMAN`, to fix any PR review comments |
+| `x-story-implement` | Does not call and is not called by | Orthogonal concerns; merge-train operates on already-open PRs |
+
+## Examples
+
+```
+# Explicit PR list — 3 PRs, max 2 parallel workers
+# Use when you know the exact PR numbers to merge in order
+/x-pr-merge-train --prs 374,375,376 --max-parallel 2
+```
+
+Expected output: Phase 0-2 validation, Phase 3 overlap check, Phase 4 base merge (#374), Phase 5 parallel rebase+merge of #375 and #376. Final: `[Phase 7] Train manual-XXXXXXXX complete. Report: plans/merge-train/manual-XXXXXXXX/report.md`
+
+```
+# Auto-discover all task PRs from EPIC-0042 execution state
+# Use when all PRs were created by x-epic-implement and you want to merge the full set
+/x-pr-merge-train --epic 0042
+```
+
+Expected output: Reads `plans/epic-0042/execution-state.json`, discovers all PR numbers, runs full validation and merge. Preserves task order from the epic.
+
+```
+# Dry-run: validate and show plan without merging
+# Use before a real merge to audit VETO status of all PRs
+/x-pr-merge-train --epic 0042 --dry-run
+```
+
+Expected output: Prints `DRY-RUN PLAN` with VALID/VETO codes for each PR and the merge order. Exits without merging anything.
+
+```
+# Resume an interrupted train after manually resolving a code conflict
+# Use after: git rebase --continue && git push --force-with-lease origin <HEAD>
+/x-pr-merge-train --resume --train-id epic-0042-20260415-143022
+```
+
+Expected output: Loads `plans/merge-train/epic-0042-20260415-143022/state.json`, skips already-merged PRs, resumes the interrupted wave. `prsMergedOk[]` and `waves[]` are preserved from the previous run.
+
+> **Rule 13 note:** The bare-slash `/x-pr-merge-train` form in this Examples section is PERMITTED — these are user-facing invocation examples typed into the Claude Code chat input. The bare-slash form is NOT permitted in delegation body text (Rule 13 §Forbidden).
+
 
