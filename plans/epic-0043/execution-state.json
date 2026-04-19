@@ -1,0 +1,54 @@
+{
+  "storyId": "story-0043-0001",
+  "planningSchemaVersion": "1.0",
+  "mode": "MANUAL",
+  "parentBranch": null,
+  "storyStatus": "COMPLETE",
+  "tasks": {
+    "TASK-0043-0001-001": {
+      "status": "DONE",
+      "branch": "feat/task-0043-0001-001-adr-0010",
+      "prNumber": 461,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/461",
+      "startedAt": "2026-04-19T16:00:00Z",
+      "completedAt": "2026-04-19T16:10:00Z",
+      "commitSha": "50f2120d0"
+    },
+    "TASK-0043-0001-002": {
+      "status": "DONE",
+      "branch": "feat/task-0043-0001-002-rule-20",
+      "prNumber": 462,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/462",
+      "startedAt": "2026-04-19T16:10:00Z",
+      "completedAt": "2026-04-19T16:20:00Z",
+      "commitSha": "1d3b56446"
+    },
+    "TASK-0043-0001-003": {
+      "status": "DONE",
+      "branch": "feat/task-0043-0001-003-regen-rule-20",
+      "prNumber": 463,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/463",
+      "startedAt": "2026-04-19T16:20:00Z",
+      "completedAt": "2026-04-19T16:35:00Z",
+      "commitSha": "4b8db15f3"
+    },
+    "TASK-0043-0001-004": {
+      "status": "DONE",
+      "branch": "feat/task-0043-0001-004-rule-assembler-test",
+      "prNumber": 464,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/464",
+      "startedAt": "2026-04-19T16:35:00Z",
+      "completedAt": "2026-04-19T16:45:00Z",
+      "commitSha": "baa3764bd"
+    },
+    "TASK-0043-0001-005": {
+      "status": "DONE",
+      "branch": "feat/task-0043-0001-005-docs-updates",
+      "prNumber": 465,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/465",
+      "startedAt": "2026-04-19T16:45:00Z",
+      "completedAt": "2026-04-19T17:00:00Z",
+      "commitSha": "cd8ed442c"
+    }
+  }
+}
