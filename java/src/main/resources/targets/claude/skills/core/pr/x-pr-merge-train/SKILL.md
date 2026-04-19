@@ -187,3 +187,77 @@ Persist the discovered list to `state.json` with stub per-PR entries:
 
 Log: `"[Phase 1] Discovery complete. {count} PR(s) queued for validation."`
 
+## Phase 2 — Validation
+
+### Step 2.0 — Iterate Over Discovered PRs
+
+Update `state.json`: set `phase = "VALIDATION"`.
+
+For each PR number in `discoveredPrs` (in order), fetch its metadata:
+
+```bash
+gh pr view <pr> --json state,mergeable,isDraft,reviewDecision,baseRefName,headRefName,statusCheckRollup
+```
+
+### Step 2.1 — VETO Evaluation
+
+Apply the following six VETO checks **in order** for each PR. Stop at the first VETO:
+
+| Code | Condition | Message |
+| :--- | :--- | :--- |
+| `PR_CLOSED` | `state != "OPEN"` | `PR #N não está aberto.` |
+| `PR_DRAFT` | `isDraft == true` | `PR #N está em draft.` |
+| `PR_BASE_MISMATCH` | `baseRefName != "develop"` | `PR #N não tem base develop.` |
+| `PR_NOT_APPROVED` | `reviewDecision != "APPROVED"` | `PR #N não foi aprovado.` |
+| `PR_CI_FAILING` | `statusCheckRollup` contains any entry with `state == "FAILURE"` or `state == "ERROR"` | `PR #N tem CI vermelha.` |
+| `PR_MERGE_CONFLICT` | `mergeable == "CONFLICTING"` | `PR #N tem conflitos de merge pendentes.` |
+
+Update the matching PR entry in `state.json`:
+- `headRefName`, `baseRefName`, `mergeable`, `reviewDecision`, `isDraft`, `state` — set from API response
+- `validationStatus` — set to `"VALID"` if no VETO; set to the VETO code string if vetoed (e.g., `"PR_DRAFT"`)
+
+Log each result: `"[Phase 2] PR #{N}: {VALID|VETO_CODE}"`
+
+### Step 2.2 — VETO Handling
+
+After evaluating all PRs, apply the mode-specific VETO policy:
+
+#### Normal mode (no `--dry-run`)
+
+If **any** PR has a VETO:
+1. Update `state.json`: persist all VETO codes.
+2. Emit a summary of all VETOs:
+   ```
+   TRAIN ABORTED — validation failed:
+     PR #374: PR_DRAFT — PR #374 está em draft.
+     PR #376: PR_CI_FAILING — PR #376 tem CI vermelha.
+   Fix the above issues and re-run x-pr-merge-train.
+   ```
+3. Exit — do NOT proceed to Phase 3.
+
+If **no** PRs have VETOs:
+1. Update `state.json`: all PRs have `validationStatus = "VALID"`.
+2. Log: `"[Phase 2] Validation complete. All {count} PR(s) passed. Ready for Phase 3."`
+3. Proceed to Phase 3 (implemented in story-0042-0002).
+
+#### Dry-run mode (`--dry-run`)
+
+Regardless of VETO presence:
+1. Update `state.json`: persist all validation results.
+2. Emit a full audit plan:
+   ```
+   DRY-RUN PLAN — x-pr-merge-train
+   trainId: {trainId}
+
+   PR Validation Results:
+     PR #374 [feat/task-0042-0001-001]: VALID
+     PR #375 [feat/task-0042-0001-002]: PR_DRAFT (would abort in normal mode)
+     PR #376 [feat/task-0042-0001-003]: VALID
+
+   Merge order (if all valid): #374 → #375 → #376
+   VETOs detected: 1 (would abort before Phase 3 in normal mode)
+   ```
+3. Exit — do NOT proceed to Phase 3 in dry-run mode.
+
+Log: `"[Phase 2] Dry-run complete. {vetoed} VETO(s) detected across {count} PR(s)."`
+
