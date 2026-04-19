@@ -693,4 +693,110 @@ Update `state.json`:
 
 Log: `"[Phase 7] Train <trainId> complete. Report: plans/merge-train/<trainId>/report.md"`
 
+## state.json — Complete Schema
+
+All fields are persisted throughout the train lifecycle. Every update uses the atomic-write pattern (see below).
+
+| Field | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `schemaVersion` | `String` | M | Literal `"1.0"` |
+| `trainId` | `String` | M | `epic-NNNN-TIMESTAMP` or `manual-TIMESTAMP` |
+| `startedAt` | `String` (ISO-8601) | M | UTC timestamp of train start |
+| `lastPhaseCompletedAt` | `String` (ISO-8601) | M | UTC; updated at end of each phase |
+| `phase` | `Enum` | M | One of: `PREPARATION`, `DISCOVERY`, `VALIDATION`, `SORTING`, `MERGING_BASE`, `MERGING_BASE_DONE`, `WAVE_N_DISPATCHED`, `WAVE_N_RETURNED`, `VERIFYING`, `VERIFYING_DONE`, `REPORTING`, `CLEANUP`, `COMPLETED`, `FAILED` |
+| `worktreeOwnership` | `Enum` | M | `TRAIN_OWNS_WORKTREE` or `REUSE_PARENT` |
+| `neuteredParallel` | `Boolean` | M | `true` if Phase 3 forced MAX_PARALLEL=1 |
+| `maxParallel` | `Integer` | M | Effective max-parallel value |
+| `dryRun` | `Boolean` | M | Whether `--dry-run` was passed |
+| `prs` | `List<PrEntry>` | M | Per-PR state including `number`, `headRefName`, `baseRefName`, `validationStatus`, `role` (`BASE`/`TAIL`) |
+| `prsMergedOk` | `List<Integer>` | M | Append-only list of successfully merged PR numbers |
+| `prsFailed` | `List<{pr, reason}>` | M | Failed PRs with error code |
+| `waves` | `List<WaveEntry>` | M | Wave history: `{index, prs, dispatchedAt, returnedAt}` |
+
+**Full JSON example:**
+
+```json
+{
+  "schemaVersion": "1.0",
+  "trainId": "epic-0042-20260419T1430",
+  "startedAt": "2026-04-19T14:30:00Z",
+  "lastPhaseCompletedAt": "2026-04-19T14:38:55Z",
+  "phase": "COMPLETED",
+  "worktreeOwnership": "TRAIN_OWNS_WORKTREE",
+  "neuteredParallel": false,
+  "maxParallel": 3,
+  "dryRun": false,
+  "prs": [
+    {
+      "number": 374,
+      "headRefName": "feat/task-0042-0001-001",
+      "baseRefName": "develop",
+      "mergeable": "MERGEABLE",
+      "reviewDecision": "APPROVED",
+      "isDraft": false,
+      "state": "MERGED",
+      "validationStatus": "VALID",
+      "role": "BASE"
+    },
+    {
+      "number": 375,
+      "headRefName": "feat/task-0042-0001-002",
+      "baseRefName": "develop",
+      "mergeable": "MERGEABLE",
+      "reviewDecision": "APPROVED",
+      "isDraft": false,
+      "state": "MERGED",
+      "validationStatus": "VALID",
+      "role": "TAIL"
+    }
+  ],
+  "prsMergedOk": [374, 375],
+  "prsFailed": [],
+  "waves": [
+    {
+      "index": 1,
+      "prs": [375],
+      "dispatchedAt": "2026-04-19T14:32:00Z",
+      "returnedAt": "2026-04-19T14:33:31Z"
+    }
+  ]
+}
+```
+
+## Atomic State Writes
+
+All writes to `state.json` MUST use the `.tmp` + `rename` pattern to prevent corruption on SIGKILL mid-write:
+
+1. Write updated content to `state.json.tmp` (same directory).
+2. Attempt a JSON parse of `state.json.tmp` to validate structure.
+   - If the parse fails: log the error, discard `state.json.tmp`, keep the existing `state.json` unchanged.
+   - If the parse succeeds: proceed to step 3.
+3. Execute `mv state.json.tmp state.json` (atomic rename on POSIX systems).
+
+This ensures `state.json` is always a complete, valid JSON document. A partial write (due to SIGKILL or OOM) leaves the `.tmp` file in place but does not corrupt the last-known-good `state.json`.
+
+## Resume Entry Logic (`--resume`)
+
+### Prerequisites
+
+- `--resume` requires an existing `plans/merge-train/<trainId>/state.json`.
+- If no `state.json` exists: abort with `STATE_CONFLICT`:
+  `"No state.json found. Start fresh (omit --resume) or provide --train-id."`
+- When multiple `plans/merge-train/*/state.json` files exist: `--train-id` is mandatory:
+  ```
+  /x-pr-merge-train --resume --train-id epic-0042-20260415-143022
+  ```
+  If `--train-id` is omitted and multiple state files exist: abort with `STATE_CONFLICT`:
+  `"Multiple train state files found. Provide --train-id to disambiguate."`
+
+### Resume Behaviour
+
+1. Load `state.json` from `plans/merge-train/<trainId>/`.
+2. Determine the last completed phase from `lastPhaseCompletedAt` and `phase`.
+3. Skip all phases already completed (those with `lastPhaseCompletedAt` set before the resume timestamp).
+4. Re-enter the next incomplete phase, preserving existing `prsMergedOk[]` and `waves[]` intact — do NOT re-merge already-merged PRs.
+5. If the train was aborted due to `CODE_CONFLICT_NEEDS_HUMAN`:
+   - Human resolves the conflict manually: `git rebase --continue` + push.
+   - Then: `--resume` continues from `WAVE_N_DISPATCHED` for the next pending wave.
+6. If `phase == "FAILED"` with reason `SMOKE_TEST_FAILED`: diagnose the build failure, fix it, then `--resume` re-runs Phase 6.
 
