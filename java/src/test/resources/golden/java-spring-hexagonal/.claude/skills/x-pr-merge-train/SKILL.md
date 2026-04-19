@@ -51,12 +51,9 @@ Phase 2: Validation               — validate each PR against 6 VETO criteria; 
 Phase 3: Sort + File-Overlap Precheck — reorder by createdAt, detect file overlap, set MAX_PARALLEL
 Phase 4: Base PR Merge            — merge BASE_PR with auto-merge + 60s poll; emit MERGE_POLL_TIMEOUT on timeout
 Phase 5: Parallel Tail Orchestration — dispatch TAIL[] as sibling Agent() waves; serial merge after each wave
-Phase 6: Verification             — post-merge CI check + state.json finalization (story-0042-0003)
-Phase 7: Cleanup                  — remove train worktree if TRAIN_OWNS_WORKTREE=true (story-0042-0003)
-Phase 8: Report                   — emit final summary with merge SHAs and timings (story-0042-0003)
+Phase 6: Final Verification       — git fetch + pull + mvn compile + mvn test after all merges
+Phase 7: Report + Cleanup         — emit report.md, conditional worktree removal, state.phase=COMPLETED
 ```
-
-> Phases 6–8 are implemented in story-0042-0003.
 
 ## Phase 0 — Preparation
 
@@ -548,4 +545,152 @@ When `TAIL[]` is empty and all merges succeeded:
 
 1. Update `state.json`: `phase = "TAIL_MERGED_DONE"`.
 2. Log: `"[Phase 5] All {count} tail PR(s) rebased and merged. Proceeding to Phase 6."`
+
+## Phase 6 — Final Verification
+
+### Step 6.1 — Update state.json
+
+Update `state.json`: set `phase = "VERIFYING"`.
+
+### Step 6.2 — Fetch and Update develop
+
+```bash
+git fetch origin develop
+git checkout develop
+git pull --ff-only
+```
+
+### Step 6.3 — Compile Check
+
+```bash
+cd java && mvn compile
+```
+
+Expect exit code `0`. On failure:
+
+1. Update `state.json`: `phase = "FAILED"`, `reason = "SMOKE_TEST_FAILED"`.
+2. Log: `"[Phase 6] SMOKE_TEST_FAILED — mvn compile failed after all merges. Worktree preserved."`
+3. Preserve worktree for diagnosis (Rule 14 §4 — failed tasks must not be auto-removed).
+4. Abort — do NOT proceed to Phase 7.
+
+### Step 6.4 — Test Check
+
+```bash
+mvn test
+```
+
+Expect exit code `0`. On failure:
+
+1. Update `state.json`: `phase = "FAILED"`, `reason = "SMOKE_TEST_FAILED"`.
+2. Log: `"[Phase 6] SMOKE_TEST_FAILED — mvn test failed after all merges. Worktree preserved at plans/merge-train/<trainId>/"`
+3. Preserve worktree for diagnosis (Rule 14 §4).
+4. Abort — do NOT proceed to Phase 7.
+
+### Step 6.5 — PR State Assertion
+
+For each PR in `prsMergedOk[]`, assert that GitHub reports the PR as merged:
+
+```bash
+gh pr view <pr> --json state --jq '.state'
+```
+
+Assert the output equals `"MERGED"`. Any mismatch logs a WARNING but does NOT abort:
+
+```
+[Phase 6] WARNING: PR #<N> expected MERGED but got <state>
+```
+
+### Step 6.6 — Finalize Phase
+
+Update `state.json`:
+
+```json
+{
+  "phase": "VERIFYING_DONE",
+  "lastPhaseCompletedAt": "<now ISO-8601>"
+}
+```
+
+Log: `"[Phase 6] Final verification complete. develop is GREEN. Proceeding to Phase 7."`
+
+## Phase 7 — Report + Cleanup
+
+### Step 7.1 — Update state.json
+
+Update `state.json`: `phase = "REPORTING"`.
+
+### Step 7.2 — Write report.md
+
+Write `plans/merge-train/<trainId>/report.md` with the following sections:
+
+```
+# Merge Train Report — <trainId>
+
+**Started:** <startedAt>
+**Ended:** <now>
+**Duration:** <elapsed human-readable>
+
+## PRs Merged
+
+| PR # | Role | Wave | Duration | Merge SHA |
+| :--- | :--- | :--- | :--- | :--- |
+| 374 | BASE | — | 42s | abc1234 |
+| 375 | TAIL | 1 | 87s | def5678 |
+| 376 | TAIL | 1 | 91s | ghi9012 |
+
+## Waves
+
+| Wave | PRs | Dispatched | Returned | Workers |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | #375, #376 | 2026-04-19T14:32:00Z | 2026-04-19T14:33:31Z | 2 |
+
+## Errors Observed
+
+| Code | PR # | Message |
+| :--- | :--- | :--- |
+| (none) | — | — |
+
+## Final Phase
+
+COMPLETED
+```
+
+If no errors occurred, the Errors Observed table contains a single `(none)` row.
+If errors occurred, each entry from `prsFailed[]` is listed.
+
+### Step 7.3 — Conditional Worktree Cleanup
+
+**Case A — TRAIN_OWNS_WORKTREE and phase != "FAILED":**
+
+Invoke the `x-git-worktree` skill via the Skill tool (Rule 13 Pattern 1 — INLINE-SKILL):
+
+    Skill(skill: "x-git-worktree", args: "remove --id <trainId>")
+
+Log: `"[Phase 7] Worktree removed for trainId <trainId>."`
+
+**Case B — phase == "FAILED":**
+
+Do NOT remove the worktree. Preserve it for diagnosis (Rule 14 §4 — failed tasks must not be auto-removed).
+
+Log: `"[Phase 7] Train FAILED — worktree preserved at .claude/worktrees/<trainId> for diagnosis."`
+
+**Case C — worktreeOwnership == "REUSE_PARENT":**
+
+Skip cleanup. The orchestrator (parent skill) owns the worktree and is responsible for removal (Rule 14 §5 — creator owns removal).
+
+Log: `"[Phase 7] REUSE_PARENT — worktree cleanup skipped (orchestrator owns the worktree)."`
+
+### Step 7.4 — Finalize state.json
+
+Update `state.json`:
+
+```json
+{
+  "phase": "COMPLETED",
+  "lastPhaseCompletedAt": "<now ISO-8601>"
+}
+```
+
+Log: `"[Phase 7] Train <trainId> complete. Report: plans/merge-train/<trainId>/report.md"`
+
 
