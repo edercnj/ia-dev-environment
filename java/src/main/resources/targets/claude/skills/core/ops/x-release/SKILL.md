@@ -3,7 +3,7 @@ name: x-release
 description: "Orchestrates complete release flow using Git Flow release branches with approval gate, PR-flow (gh CLI) and deep validation: version bump (auto-detect or explicit), release branch creation from develop, deep validation (coverage, golden files, version consistency), version file updates, changelog generation, release commit, release PR via gh (optionally reviewed by x-review-pr), human approval gate with persistent state file, tag on main after merged PR, back-merge PR to develop with conflict detection, and cleanup. Supports hotfix releases from main, dry-run mode, resume via --continue-after-merge, in-session pause via --interactive, GPG-signed tags, skip-review opt-out, and custom state file path."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent, Skill, AskUserQuestion
-argument-hint: "[major|minor|patch|version] [--version X.Y.Z] [--last-tag <tag>] [--dry-run] [--skip-tests] [--no-publish] [--no-github-release] [--hotfix] [--continue-after-merge] [--interactive] [--non-interactive] [--no-prompt] [--signed-tag] [--skip-review] [--state-file <path>] [--skip-integrity] [--integrity-report <path>] [--max-parallel <N>] [--status] [--abort] [--yes] [--force]"
+argument-hint: "[major|minor|patch|version] [--version X.Y.Z] [--last-tag <tag>] [--dry-run] [--skip-tests] [--no-publish] [--no-github-release] [--hotfix] [--continue-after-merge] [--interactive] [--non-interactive] [--no-prompt] [--signed-tag] [--skip-review] [--ci-watch] [--state-file <path>] [--skip-integrity] [--integrity-report <path>] [--max-parallel <N>] [--status] [--abort] [--yes] [--force]"
 ---
 
 ## Global Output Policy
@@ -53,6 +53,7 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
 | `--non-interactive` | No | **New flag (EPIC-0043).** Opt-out of the default interactive gate menu at APPROVAL-GATE. Prints the legacy HALT text (identical to pre-EPIC-0043 default behavior) and exits 0. Intended for CI/automation scripts that expect the old textual output. Equivalent to the old default (no `--interactive`) behavior. Supersedes the old `--no-prompt` flag in gate contexts (though `--no-prompt` still works for other prompt points). |
 | `--signed-tag` | No | Create a GPG-signed git tag (`git tag -s`) instead of an annotated tag (`git tag -a`). |
 | `--skip-review` | No | Skip the fire-and-forget `x-review-pr` invocation at the end of Phase `OPEN-RELEASE-PR`. The release PR is still opened against `main`; only the automated specialist review is suppressed. |
+| `--ci-watch` | No | **Opt-in:** wait for CI checks to complete on the release PR before entering APPROVAL-GATE. When absent, the skill proceeds directly from `OPEN-RELEASE-PR` to `APPROVAL-GATE` (current default behavior is unchanged). When present, inserts a `CI-WATCH` phase that polls via `x-pr-watch-ci`; on CI failure (exit 20) or timeout (exit 30) the release is **aborted** without creating a tag. Orthogonal to `--interactive`, `--dry-run`, and `--continue-after-merge`. |
 | `--state-file <path>` | No | Override the state file path (default: `plans/release-state-<X.Y.Z>.json`). |
 | `--no-summary` | No | Skip Phase 13 (SUMMARY). Intended for CI runs where the verbose Git Flow summary block is noise. Phase 13 is read-only, so skipping it never changes behaviour — only suppresses output. |
 | `--skip-integrity` | No | Skip sub-check 10 (cross-file integrity drift) in VALIDATE-DEEP. **Not recommended**; emits a loud warning in the release log. |
@@ -79,6 +80,7 @@ Orchestrates the end-to-end release process for {{PROJECT_NAME}} using Git Flow 
  5. CHANGELOG       -> Generate/update CHANGELOG.md via x-release-changelog
  6. COMMIT          -> Create release commit on release branch
  7. OPEN-RELEASE-PR -> Push release branch and open PR to main via gh pr create
+ 7.5. CI-WATCH      -> (opt-in via --ci-watch) Poll CI checks on release PR; abort on failure
  8. APPROVAL-GATE   -> Persist APPROVAL_PENDING, print instructions, halt (or interactive)
  9. TAG             -> Create annotated/signed git tag on main (after merged PR)
 10. BACK-MERGE-DEVELOP -> Open PR to develop with conflict detection (clean or conflict flow)
@@ -1313,6 +1315,142 @@ using the same vocabulary as the rest of the skill.
 > (Step 5) are untouched. Only the merge-to-main step is replaced — the
 > skill still produces the exact same local state up to `COMMITTED`.
 
+### Step 7.5 — CI-WATCH (opt-in via --ci-watch)
+
+> **RULE-045-01 (Opt-In Only):** This phase executes **only** when `--ci-watch`
+> is explicitly passed. When the flag is absent the skill transitions directly
+> from `OPEN-RELEASE-PR` to `APPROVAL-GATE`, preserving the current default
+> behavior (backward-compatible).
+
+> **RULE-045-03 (State-file atomic writes):** All state-file updates in this
+> phase use the canonical write-to-temp + rename protocol documented in
+> `references/state-file-schema.md`.
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-release Phase-CI-Watch`
+
+#### Step 7.5.0 — Guard: Skip if --ci-watch Absent
+
+```bash
+if [ "$CI_WATCH" != "true" ]; then
+  # --ci-watch not passed — proceed directly to APPROVAL-GATE (default behavior)
+  echo "[CI-WATCH] Skipped (--ci-watch not set). Proceeding to APPROVAL-GATE."
+  # TELEMETRY: skip
+  $CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-release Phase-CI-Watch skipped
+  # fall through to Step 8
+fi
+```
+
+#### Step 7.5.1 — Idempotency Check
+
+If the state file already has `phase = CI_WATCH_COMPLETE`, this phase is
+already done. Skip and continue to `APPROVAL-GATE` without re-invoking
+`x-pr-watch-ci`.
+
+```bash
+CURRENT_PHASE=$(jq -r '.phase' "$STATE_FILE")
+if [ "$CURRENT_PHASE" = "CI_WATCH_COMPLETE" ]; then
+  echo "[CI-WATCH] Already complete (idempotent skip). Proceeding to APPROVAL-GATE."
+  $CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-release Phase-CI-Watch skipped
+  # fall through to Step 8
+fi
+```
+
+#### Step 7.5.2 — Transition to CI_WATCH_PENDING
+
+Update the state file atomically:
+
+```bash
+PR_NUMBER=$(jq -r '.prNumber' "$STATE_FILE")
+TMP="${STATE_FILE}.tmp.$$"
+jq --arg phase "CI_WATCH_PENDING" \
+   --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+   '.phase = $phase | .lastPhaseCompletedAt = $ts
+    | .phasesCompleted += ["CI_WATCH_PENDING"]' \
+   "$STATE_FILE" > "$TMP"
+mv "$TMP" "$STATE_FILE"
+echo "[CI-WATCH] State → CI_WATCH_PENDING (PR #${PR_NUMBER})"
+```
+
+#### Step 7.5.3 — Poll CI via x-pr-watch-ci
+
+Invoke the `x-pr-watch-ci` skill via the Skill tool:
+
+    Skill(skill: "x-pr-watch-ci", args: "--pr-number {releasePrNumber} --require-copilot-review=false --poll-interval-seconds 60 --timeout-minutes 30")
+
+Where `{releasePrNumber}` is `prNumber` read from the state file.
+
+**Note:** `--require-copilot-review=false` is intentional for release PRs — the
+human APPROVAL-GATE is the authoritative checkpoint. Copilot review is
+orthogonal and is NOT required before the tag is created.
+
+#### Step 7.5.4 — Handle Return Code
+
+On return from `x-pr-watch-ci`, read the exit code and act as follows:
+
+**Exit 0 (`SUCCESS`) or Exit 10 (`CI_PENDING_PROCEED`):**
+
+```bash
+# CI green (or Copilot timed out but checks passed) — proceed
+TMP="${STATE_FILE}.tmp.$$"
+jq --arg phase "CI_WATCH_COMPLETE" \
+   --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+   --argjson ciResult '{"status":"'"${EXIT_CODE_NAME}"'","exitCode":'"${EXIT_CODE}"',"releaseVersion":"'"${VERSION}"'","checks":[],"copilotReview":null,"elapsedSeconds":'"${ELAPSED}"'}' \
+   '.phase = $phase | .lastPhaseCompletedAt = $ts
+    | .phasesCompleted += ["CI_WATCH_COMPLETE"]
+    | .ciWatchResult = $ciResult' \
+   "$STATE_FILE" > "$TMP"
+mv "$TMP" "$STATE_FILE"
+echo "[CI-WATCH] Complete (exit ${EXIT_CODE}). Proceeding to APPROVAL-GATE."
+# Continue to Step 8
+```
+
+**Exit 20 (`CI_FAILED`) or Exit 30 (`TIMEOUT`):**
+
+```bash
+# CI failed or timed out — abort the release (no tag will be created)
+TMP="${STATE_FILE}.tmp.$$"
+jq --arg phase "RELEASE_ABORTED" \
+   --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+   --argjson ciResult '{"status":"'"${EXIT_CODE_NAME}"'","exitCode":'"${EXIT_CODE}"',"releaseVersion":"'"${VERSION}"'","checks":[],"copilotReview":null,"elapsedSeconds":'"${ELAPSED}"'}' \
+   '.phase = $phase | .lastPhaseCompletedAt = $ts
+    | .phasesCompleted += ["RELEASE_ABORTED"]
+    | .ciWatchResult = $ciResult' \
+   "$STATE_FILE" > "$TMP"
+mv "$TMP" "$STATE_FILE"
+
+FAILURE_REASON="failed"
+if [ "$EXIT_CODE" = "30" ]; then FAILURE_REASON="timed out"; fi
+
+echo "RELEASE ABORTED"
+echo "Reason: CI ${FAILURE_REASON} on release PR #${PR_NUMBER}"
+echo "CI-Watch result: ${EXIT_CODE} (${EXIT_CODE_NAME})"
+echo "To retry: fix CI issues on the release branch, then re-run x-release."
+# Exit with error — no tag will be created
+exit 1
+```
+
+**Exit 40 (`PR_ALREADY_MERGED`), Exit 50 (`NO_CI_CONFIGURED`), Exit 60 (`PR_CLOSED`), Exit 70 (`PR_NOT_FOUND`):**
+
+```bash
+# Warn-only — proceed to APPROVAL-GATE with a note in the release log
+echo "[CI-WATCH] WARNING: x-pr-watch-ci exited ${EXIT_CODE} (${EXIT_CODE_NAME})."
+echo "[CI-WATCH] Proceeding to APPROVAL-GATE. Check CI status manually."
+TMP="${STATE_FILE}.tmp.$$"
+jq --arg phase "CI_WATCH_COMPLETE" \
+   --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+   --argjson ciResult '{"status":"'"${EXIT_CODE_NAME}"'","exitCode":'"${EXIT_CODE}"',"releaseVersion":"'"${VERSION}"'","checks":[],"copilotReview":null,"elapsedSeconds":'"${ELAPSED}"'}' \
+   '.phase = $phase | .lastPhaseCompletedAt = $ts
+    | .phasesCompleted += ["CI_WATCH_COMPLETE"]
+    | .ciWatchResult = $ciResult' \
+   "$STATE_FILE" > "$TMP"
+mv "$TMP" "$STATE_FILE"
+# Continue to Step 8
+```
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-release Phase-CI-Watch ok`
+
 ### Step 8 — Approval Gate
 
 > **Rule 20 (Interactive Gates Convention — EPIC-0043):** As of EPIC-0043
@@ -2531,6 +2669,8 @@ printed at runtime.
 | 7 | `PR_NO_CHANGELOG_ENTRY` | No `[X.Y.Z]` entry in CHANGELOG.md | `No [<V>] entry found in CHANGELOG.md. Ensure Step 5 completed.` | 1 |
 | 7 | `PR_PUSH_REJECTED` | `git push` rejected | `Push rejected. Check branch protection or network.` | 1 |
 | 7 | `PR_CREATE_FAILED` | `gh pr create` exits non-zero | `Failed to create PR: <stderr>` | 1 |
+| 7.5 | `CI_WATCH_ABORTED_FAILED` | `x-pr-watch-ci` exits 20 (`CI_FAILED`) | `RELEASE ABORTED — CI failed on release PR #<N>. Fix CI issues then re-run x-release.` | 1 |
+| 7.5 | `CI_WATCH_ABORTED_TIMEOUT` | `x-pr-watch-ci` exits 30 (`TIMEOUT`) | `RELEASE ABORTED — CI timed out on release PR #<N>. Fix CI issues then re-run x-release.` | 1 |
 | 8 | `APPROVAL_PR_STILL_OPEN` | Slot 1 (Proceed) selected but PR not merged | `PR #N is still <state>. Merge the PR first, then select Proceed again.` | 1 (re-present menu) |
 | 8 | `APPROVAL_CANCELLED` | Slot 3 (Abort) confirmed by user | `Release cancelled by user. Manual cleanup required.` | 2 |
 | 8 | `RELEASE_FIX_LOOP_EXCEEDED` | 3 FIX-PR attempts without PROCEED; slot 2 selected again | `3 consecutive fix attempts did not resolve the gate. Gate terminated automatically.` | 1 |
