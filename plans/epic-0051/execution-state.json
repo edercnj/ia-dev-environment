@@ -1,0 +1,52 @@
+{
+  "version": "2.0",
+  "epicId": "EPIC-0051",
+  "branch": "feat/epic-0051-knowledge-packs-dir",
+  "startedAt": "2026-04-20T00:00:00Z",
+  "currentPhase": 0,
+  "mode": "FULL",
+  "stories": {
+    "story-0051-0001": {
+      "id": "story-0051-0001",
+      "phase": 0,
+      "status": "PENDING",
+      "planningStatus": "READY"
+    },
+    "story-0051-0002": {
+      "id": "story-0051-0002",
+      "phase": 1,
+      "status": "PENDING",
+      "planningStatus": "READY"
+    },
+    "story-0051-0003": {
+      "id": "story-0051-0003",
+      "phase": 2,
+      "status": "PENDING",
+      "planningStatus": "READY"
+    },
+    "story-0051-0004": {
+      "id": "story-0051-0004",
+      "phase": 2,
+      "status": "PENDING",
+      "planningStatus": "READY"
+    },
+    "story-0051-0005": {
+      "id": "story-0051-0005",
+      "phase": 3,
+      "status": "PENDING",
+      "planningStatus": "READY"
+    },
+    "story-0051-0006": {
+      "id": "story-0051-0006",
+      "phase": 4,
+      "status": "PENDING",
+      "planningStatus": "READY"
+    }
+  },
+  "integrityGates": {},
+  "metrics": {
+    "totalStories": 6,
+    "completedStories": 0,
+    "failedStories": 0
+  }
+}
