@@ -1,8 +1,13 @@
 {
   "epicId": "0045",
   "baseBranch": "develop",
-  "startedAt": "2026-04-20T00:00:00Z",
+  "startedAt": "2026-04-20T14:00:00Z",
+  "completedAt": "2026-04-20T19:57:25Z",
   "totalPhases": 3,
+  "version": "2.0",
+  "mergeMode": "auto",
+  "skipReview": false,
+  "epicStatus": "SUCCESS",
   "stories": [
     {"id": "story-0045-0001", "phase": 0},
     {"id": "story-0045-0002", "phase": 0},
@@ -15,80 +20,104 @@
     "story-0045-0001": {
       "id": "story-0045-0001",
       "phase": 0,
+      "status": "SUCCESS",
+      "commitSha": "fb74bf4b8",
+      "findingsCount": 11,
+      "summary": "Created x-pr-watch-ci skill with 8 exit codes, PrWatchStatusClassifier, unit tests, goldens",
+      "retries": 0,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/506",
+      "prNumber": 506,
+      "prMergeStatus": "MERGED",
+      "coverageLine": 98,
+      "coverageBranch": 93,
+      "reviewsExecuted": { "specialist": true, "techLead": true },
+      "reviewScores": { "specialist": "70/82", "techLead": "42/45" },
+      "tddCycles": 11,
       "planningStatus": "READY",
-      "planningStartedAt": "2026-04-20T00:00:00Z",
-      "planningCompletedAt": "2026-04-20T00:05:00Z",
-      "dorVerdict": "READY",
-      "artifacts": [
-        "plans/epic-0045/plans/tasks-story-0045-0001.md",
-        "plans/epic-0045/plans/planning-report-story-0045-0001.md",
-        "plans/epic-0045/plans/dor-story-0045-0001.md"
-      ]
+      "dorVerdict": "READY"
     },
     "story-0045-0002": {
       "id": "story-0045-0002",
       "phase": 0,
+      "status": "SUCCESS",
+      "commitSha": "564556cde",
+      "findingsCount": 5,
+      "summary": "Added Rule 21 CI-Watch, scripts/audit-rule-20.sh, RulesAssemblerCiWatchTest, Rule21AuditTest, goldens",
+      "retries": 0,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/507",
+      "prNumber": 507,
+      "prMergeStatus": "MERGED",
+      "coverageLine": 95,
+      "coverageBranch": 90,
+      "reviewsExecuted": { "specialist": true, "techLead": true },
+      "reviewScores": { "specialist": "75/82", "techLead": "44/45" },
+      "tddCycles": 3,
       "planningStatus": "READY",
-      "planningStartedAt": "2026-04-20T00:05:00Z",
-      "planningCompletedAt": "2026-04-20T00:10:00Z",
-      "dorVerdict": "READY",
-      "artifacts": [
-        "plans/epic-0045/plans/tasks-story-0045-0002.md",
-        "plans/epic-0045/plans/planning-report-story-0045-0002.md",
-        "plans/epic-0045/plans/dor-story-0045-0002.md"
-      ]
+      "dorVerdict": "READY"
     },
     "story-0045-0003": {
       "id": "story-0045-0003",
       "phase": 1,
+      "status": "SUCCESS",
+      "commitSha": "b4bb5e23a",
+      "findingsCount": 2,
+      "summary": "Inserted Step 2.2.8.5 CI-Watch into x-story-implement/SKILL.md; --no-ci-watch flag; CI fail guard; AskUserQuestion context; non-interactive docs; 17+2 goldens regenerated",
+      "retries": 0,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/508",
+      "prNumber": 508,
+      "prMergeStatus": "MERGED",
+      "reviewsExecuted": { "specialist": true, "techLead": true },
+      "reviewScores": { "specialist": "75/82", "techLead": "41/45" },
       "planningStatus": "READY",
-      "planningStartedAt": "2026-04-20T00:10:00Z",
-      "planningCompletedAt": "2026-04-20T00:20:00Z",
-      "dorVerdict": "READY",
-      "artifacts": [
-        "plans/epic-0045/plans/tasks-story-0045-0003.md",
-        "plans/epic-0045/plans/planning-report-story-0045-0003.md",
-        "plans/epic-0045/plans/dor-story-0045-0003.md"
-      ]
+      "dorVerdict": "READY"
     },
     "story-0045-0004": {
       "id": "story-0045-0004",
       "phase": 1,
+      "status": "SUCCESS",
+      "commitSha": "31df26113",
+      "findingsCount": 4,
+      "summary": "Added Step 4.5 CI-Watch to x-task-implement; detect-context orchestrator skip; --no-ci-watch; state-file schema v1.0; 17+2 goldens regenerated",
+      "retries": 0,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/510",
+      "prNumber": 510,
+      "prMergeStatus": "MERGED",
+      "reviewsExecuted": { "specialist": true, "techLead": true },
+      "reviewScores": { "specialist": "80/82", "techLead": "43/45" },
       "planningStatus": "READY",
-      "planningStartedAt": "2026-04-20T00:10:00Z",
-      "planningCompletedAt": "2026-04-20T00:20:00Z",
-      "dorVerdict": "READY",
-      "artifacts": [
-        "plans/epic-0045/plans/tasks-story-0045-0004.md",
-        "plans/epic-0045/plans/planning-report-story-0045-0004.md",
-        "plans/epic-0045/plans/dor-story-0045-0004.md"
-      ]
+      "dorVerdict": "READY"
     },
     "story-0045-0005": {
       "id": "story-0045-0005",
       "phase": 1,
+      "status": "SUCCESS",
+      "commitSha": "b965976d5",
+      "findingsCount": 1,
+      "summary": "Added opt-in CI-WATCH Phase 7.5 to x-release; --ci-watch flag; state-file ciWatchResult; RELEASE_ABORTED on exit 20/30; 9 ReleaseSkillTest tests; 17+2 goldens regenerated",
+      "retries": 0,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/509",
+      "prNumber": 509,
+      "prMergeStatus": "MERGED",
+      "reviewsExecuted": { "specialist": true, "techLead": true },
+      "reviewScores": { "specialist": "99/100", "techLead": "50/50" },
       "planningStatus": "READY",
-      "planningStartedAt": "2026-04-20T00:10:00Z",
-      "planningCompletedAt": "2026-04-20T00:20:00Z",
-      "dorVerdict": "READY",
-      "artifacts": [
-        "plans/epic-0045/plans/tasks-story-0045-0005.md",
-        "plans/epic-0045/plans/planning-report-story-0045-0005.md",
-        "plans/epic-0045/plans/dor-story-0045-0005.md"
-      ]
+      "dorVerdict": "READY"
     },
     "story-0045-0006": {
       "id": "story-0045-0006",
       "phase": 2,
+      "status": "SUCCESS",
+      "commitSha": "9a099b473",
+      "findingsCount": 0,
+      "summary": "Epic0045SmokeTest (31 tests, 5 nested classes); CHANGELOG updated with 6 EPIC-0045 entries; epic-0045.md status → Concluído; CLAUDE.md → Concluded",
+      "retries": 0,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/514",
+      "prNumber": 514,
+      "prMergeStatus": "MERGED",
+      "reviewsExecuted": { "specialist": true, "techLead": true },
+      "reviewScores": { "specialist": "85/90", "techLead": "47/50" },
       "planningStatus": "READY",
-      "planningStartedAt": "2026-04-20T00:20:00Z",
-      "planningCompletedAt": "2026-04-20T00:25:00Z",
-      "dorVerdict": "READY",
-      "artifacts": [
-        "plans/epic-0045/plans/tasks-story-0045-0006.md",
-        "plans/epic-0045/plans/planning-report-story-0045-0006.md",
-        "plans/epic-0045/plans/dor-story-0045-0006.md"
-      ]
+      "dorVerdict": "READY"
     }
   }
 }
