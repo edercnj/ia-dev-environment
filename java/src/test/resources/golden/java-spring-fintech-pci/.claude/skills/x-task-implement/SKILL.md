@@ -3,7 +3,7 @@ name: x-task-implement
 description: "Implements a feature/story/task using TDD (Red-Green-Refactor) workflow. Schema-aware: v1 (legacy) runs the original Double-Loop TDD flow with story-section task extraction; v2 (task-first, EPIC-0038) reads task-TASK-XXXX-YYYY-NNN.md + plan-task-TASK-XXXX-YYYY-NNN.md, honours declared I/O contracts, respects task-implementation-map dependencies, verifies post-conditions via grep/assert, and produces a single atomic commit per task via x-git-commit."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill
-argument-hint: "[TASK-ID (TASK-XXXX-YYYY-NNN) or STORY-ID or feature-description] [--worktree]"
+argument-hint: "[TASK-ID (TASK-XXXX-YYYY-NNN) or STORY-ID or feature-description] [--worktree] [--no-ci-watch]"
 context-budget: heavy
 ---
 
@@ -43,6 +43,7 @@ Implements a feature or story following TDD (Red-Green-Refactor) workflow for {{
 | Argument | Type | Default | Description |
 |----------|------|---------|-------------|
 | `--worktree` | Boolean | false | Opt-in: create a dedicated worktree for the task branch (standalone mode). Ignored when the skill is already running inside a worktree (Rule 14 §3 — non-nesting invariant). See ADR-0004 §D2. |
+| `--no-ci-watch` | boolean | `false` | Skip CI-Watch step 4.5. For CI/automation. |
 
 ## Workflow
 
@@ -53,6 +54,7 @@ Implements a feature or story following TDD (Red-Green-Refactor) workflow for {{
 2.   TDD LOOP                   -> For each scenario (TPP order): RED -> GREEN -> REFACTOR -> compile check
 3.   VALIDATE                   -> Coverage thresholds, all acceptance tests GREEN (inline)
 4.   COMMIT                     -> Atomic TDD commits: one per Red-Green-Refactor cycle (inline)
+4.5  CI-WATCH                   -> (standalone + schema v2 + --worktree + orchestrator=none) Poll PR checks via x-pr-watch-ci
 5.   MODE-AWARE CLEANUP         -> Remove worktree (Mode 2 success) + `git checkout develop && git pull` (Modes 2-success / 3)
 ```
 
@@ -451,6 +453,86 @@ git commit -m "test(scope): update acceptance test for [AT-N scenario] (GREEN)"
 2. Unit test + implementation commits (UT-1, UT-2, ...) — in TPP order
 3. Final commit when AT turns GREEN (if AT content changed)
 
+### Step 4.5 — CI-Watch (standalone worktree, schema v2 only)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-task-implement Phase-4-5-CI-Watch`
+
+Preconditions (ALL must be true to invoke CI-Watch):
+- `planningSchemaVersion == "2.0"` (SchemaVersionResolver resolves V2)
+- `--worktree` flag is present (standalone execution)
+- `--no-ci-watch` flag is NOT present
+- detect-context returns `orchestrator=none` (not invoked by parent orchestrator)
+
+The simplest heuristic for the last precondition: if Step 0.5 detected `inWorktree == true`
+(Mode 1 — REUSE), a parent orchestrator provisioned the worktree. Skip CI-Watch and let the
+parent handle it. This maps to the following decision table:
+
+| `inWorktree` at Step 0.5 | `--worktree` flag | `--no-ci-watch` flag | Schema | CI-Watch fires? |
+| :--- | :--- | :--- | :--- | :--- |
+| `true` (Mode 1 — REUSE) | any | any | any | No — "CI-Watch delegated to parent orchestrator" |
+| `false` | absent (Mode 3 — LEGACY) | any | any | No — "CI-Watch skipped: no --worktree" |
+| `false` | present (Mode 2 — CREATE) | present | any | No — "CI-Watch skipped: --no-ci-watch" |
+| `false` | present (Mode 2 — CREATE) | absent | v1 | No — "CI-Watch skipped: schema v1" |
+| `false` | present (Mode 2 — CREATE) | absent | v2 | **Yes** |
+
+**When all preconditions are met:**
+
+  Detect orchestrator context (re-confirm using worktree context captured in Step 0.5a):
+
+      If `inWorktree == true` AND the branch pattern matches a parent story/epic worktree
+      (e.g., `feat/story-*` or `feat/task-*` with a different story ID):
+        Log: "CI-Watch delegated to parent orchestrator (x-story-implement/x-epic-implement)"
+        Skip to Step 5.
+
+      Else (standalone):
+        Resolve `{prNumber}`: read the PR number from the most recent `gh pr list --head $(git rev-parse --abbrev-ref HEAD) --json number --jq '.[0].number'` call, or from the PR created in Step 4 if the skill invoked `x-pr-create`.
+
+        Invoke the `x-pr-watch-ci` skill via the Skill tool:
+
+            Skill(skill: "x-pr-watch-ci", args: "--pr-number {prNumber} --poll-interval-seconds 60 --timeout-minutes 30 --require-copilot-review=false")
+
+        Store result in `.claude/state/task-watch-{TASK-ID}.json` (see State-File Schema below).
+        Atomic write: write to `{path}.tmp`, then rename to `{path}`.
+
+**When preconditions are not met:**
+  Log reason: e.g., `"CI-Watch skipped: schema v1"`, `"CI-Watch skipped: parent orchestrator"`,
+  `"CI-Watch skipped: --no-ci-watch"`, `"CI-Watch skipped: no --worktree"`.
+
+#### State-File Schema (RULE-045-03)
+
+State-file: `.claude/state/task-watch-{TASK-ID}.json`
+
+Schema v1.0:
+
+```json
+{
+  "prNumber": "<N>",
+  "startedAt": "<ISO-8601 UTC>",
+  "lastPollAt": "<ISO-8601 UTC>",
+  "pollCount": "<N>",
+  "checksSnapshot": [{"name": "...", "conclusion": "..."}],
+  "copilotReview": null,
+  "schemaVersion": "1.0"
+}
+```
+
+| Field | Type | Required | Notes |
+| :--- | :--- | :--- | :--- |
+| `prNumber` | `Integer` | Yes | PR number passed to `x-pr-watch-ci` |
+| `startedAt` | `String` (ISO-8601 UTC) | Yes | Timestamp when CI-Watch started |
+| `lastPollAt` | `String` (ISO-8601 UTC) | Yes | Timestamp of the last status poll |
+| `pollCount` | `Integer` | Yes | Number of polls completed |
+| `checksSnapshot` | `Array<{name, conclusion}>` | Yes | Last observed check state; empty `[]` before first poll |
+| `copilotReview` | `String \| null` | Yes | `null` when `--require-copilot-review=false` |
+| `schemaVersion` | `String` | Yes | Literal `"1.0"` |
+
+Write protocol: write to `{path}.tmp` first, then atomically rename to `{path}`. This guarantees
+the reader never observes a partial JSON file.
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-implement Phase-4-5-CI-Watch ok`
+
 ### Step 5 — Mode-Aware Worktree Removal + Repository Sync (Rule 14 §2 + §5)
 
 Executed after all TDD cycles, validations, and commits for the task are complete. Rule 14 §2 forbids checking out `develop` (or any protected branch) inside a worktree; Rule 14 §5 assigns worktree removal to its creator. Apply the branch mode recorded in Step 0.5 — the gate is the `TASK_OWNS_WORKTREE` state from Step 0.5e:
@@ -515,6 +597,7 @@ This ensures backward compatibility with projects that have not yet adopted temp
 | `x-git-push` | calls | Uses commit conventions for atomic TDD commits |
 | `x-lib-task-decomposer` | reads | Consumes task breakdown and per-task plans for task-aware mode |
 | `x-git-worktree` | Invokes (Step 0.5 + Step 5) | Worktree context detection (mandatory pre-branch), standalone worktree creation (`--worktree` flag, Mode 2), and Creator-Owned removal at end of Step 5 (Rule 14 + ADR-0004) |
+| `x-pr-watch-ci` | calls (Step 4.5) | Polls PR CI checks and Copilot review in standalone worktree mode (schema v2, `--worktree` present, orchestrator=none) |
 
 - **Prerequisite:** Run `/x-test-plan` first to generate the test plan with Double-Loop + TPP ordering
 - **Plan reuse:** Pre-check (RULE-002) discovers existing plans from `x-story-implement` runs, ensuring consistency between full lifecycle and simplified implement workflows
