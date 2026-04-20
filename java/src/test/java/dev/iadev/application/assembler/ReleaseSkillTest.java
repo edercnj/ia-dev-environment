@@ -879,6 +879,159 @@ class ReleaseSkillTest {
         }
     }
 
+    @Nested
+    @DisplayName("Claude SKILL.md -- CI-Watch"
+            + " Phase (story-0045-0005)")
+    class CiWatchPhase {
+
+        @Test
+        @DisplayName("--ci-watch flag present in"
+                + " argument-hint and Parameters table")
+        void assemble_release_ciWatchFlagDocumented(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("--ci-watch")
+                    .contains("| `--ci-watch`");
+        }
+
+        @Test
+        @DisplayName("CI-WATCH phase inserted between"
+                + " OPEN-RELEASE-PR and APPROVAL-GATE"
+                + " in workflow box")
+        void assemble_release_ciWatchInWorkflowBox(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            // Locate the workflow box (```...```) to
+            // search within it only
+            int boxStart = content.indexOf(
+                    "7. OPEN-RELEASE-PR");
+            int boxEnd = content.indexOf(
+                    "9. TAG", boxStart);
+            assertThat(boxStart).isPositive();
+            assertThat(boxEnd).isPositive();
+            String workflowBox = content.substring(
+                    boxStart, boxEnd);
+            assertThat(workflowBox)
+                    .contains("CI-WATCH")
+                    .contains("APPROVAL-GATE");
+            int ciWatch = workflowBox.indexOf(
+                    "CI-WATCH");
+            int approvalGate = workflowBox.indexOf(
+                    "APPROVAL-GATE");
+            assertThat(ciWatch).isLessThan(
+                    approvalGate);
+        }
+
+        @Test
+        @DisplayName("CI-WATCH phase invokes x-pr-watch-ci"
+                + " via Rule 13 INLINE-SKILL")
+        void assemble_release_ciWatchUsesInlineSkill(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains(
+                            "Skill(skill:"
+                                    + " \"x-pr-watch-ci\"");
+        }
+
+        @Test
+        @DisplayName("exit 20 transitions phase to"
+                + " RELEASE_ABORTED (no tag created)")
+        void assemble_release_exit20AbortsRelease(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("RELEASE_ABORTED")
+                    .contains("CI_FAILED")
+                    .contains("no tag");
+        }
+
+        @Test
+        @DisplayName("exit 30 (TIMEOUT) also aborts"
+                + " release")
+        void assemble_release_exit30AbortsRelease(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("TIMEOUT")
+                    .contains("RELEASE_ABORTED");
+        }
+
+        @Test
+        @DisplayName("ciWatchResult field documented"
+                + " in state-file-schema")
+        void assemble_release_ciWatchResultInSchema(
+                @TempDir Path tempDir)
+                throws IOException {
+            Path outputDir = generateOutput(tempDir);
+            String schema = Files.readString(
+                    outputDir.resolve(
+                            "skills/x-release/references/"
+                                    + "state-file-schema.md"),
+                    StandardCharsets.UTF_8);
+            assertThat(schema)
+                    .contains("ciWatchResult")
+                    .contains("CI_WATCH_PENDING")
+                    .contains("CI_WATCH_COMPLETE")
+                    .contains("RELEASE_ABORTED");
+        }
+
+        @Test
+        @DisplayName("idempotency: CI_WATCH_COMPLETE"
+                + " skips re-invocation")
+        void assemble_release_ciWatchIdempotent(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("CI_WATCH_COMPLETE")
+                    .contains("idempotent");
+        }
+
+        @Test
+        @DisplayName("--ci-watch is opt-in: absent ="
+                + " current default behavior preserved")
+        void assemble_release_ciWatchOptIn(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("opt-in")
+                    .contains(
+                            "--ci-watch not set");
+        }
+
+        @Test
+        @DisplayName("telemetry markers present for"
+                + " CI-WATCH phase")
+        void assemble_release_ciWatchTelemetry(
+                @TempDir Path tempDir)
+                throws IOException {
+            String content =
+                    generateClaudeContent(tempDir);
+            assertThat(content)
+                    .contains("telemetry-phase.sh"
+                            + " start x-release"
+                            + " Phase-CI-Watch")
+                    .contains("telemetry-phase.sh"
+                            + " end x-release"
+                            + " Phase-CI-Watch");
+        }
+    }
+
     private Path generateOutput(Path tempDir)
             throws IOException {
         Path outputDir = tempDir.resolve("output");
