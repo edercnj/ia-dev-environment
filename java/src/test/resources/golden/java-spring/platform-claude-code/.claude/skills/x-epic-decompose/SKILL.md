@@ -387,3 +387,31 @@ Before delivering, verify:
 | `references/decomposition-guide.md` | Reads | Decomposition philosophy and layer-by-layer approach |
 | `mcp__atlassian__createJiraIssue` | Calls (conditional) | Jira Epic and Story creation when `jiraContext.enabled` |
 | `mcp__atlassian__createIssueLink` | Calls (conditional) | Jira dependency linking in Phase 4.5 |
+
+## Planning Status Propagation (Rule 22 / EPIC-0046)
+
+> V2-gated: only runs when the decomposed epic declares `planningSchemaVersion: "2.0"` (seeded into the generated `execution-state.json`). For v1 epics: skip silently (Rule 19).
+
+`x-epic-decompose` produces (a) the epic, (b) N story files, and (c) the `implementation-map-XXXX.md`. Lifecycle semantics:
+
+- **Epic:** transitions from `Em Refinamento` → `Pendente` at the end of decomposition (decomposition is complete, ready for planning).
+- **Stories:** created with `**Status:** Pendente` (they start unplanned).
+- **implementation-map:** the `Planejamento` column is populated with the literal value `Pendente` for every story row (template token `{{PLANNING_STATUS}}` resolved at render-time to the real string `Pendente`).
+
+**Steps (final phase of decomposition, before the commit):**
+
+1. Detect v2 via the epic's seeded `execution-state.json`. If v1: skip.
+2. For the epic file, transition its status:
+   ```bash
+   java -cp $CLAUDE_PROJECT_DIR/java/target/classes \
+       dev.iadev.adapter.inbound.cli.StatusFieldParserCli \
+       write plans/epic-XXXX/epic-XXXX.md Pendente
+   ```
+   Note: `LifecycleTransitionMatrix` does NOT currently list `Em Refinamento` (it is a pre-lifecycle marker). If the CLI returns exit 40 because the current status is `Em Refinamento` (not in the 6-value enum), treat that as the accepted initial state and proceed: re-invoke with a direct file edit fallback (sed-replace the line) when and only when the current literal is `Em Refinamento`. Otherwise respect exit 40 and abort.
+3. For each generated story file, verify the literal `**Status:** Pendente` is present (`StatusFieldParserCli read` returns `Pendente`). Exit 0 required per story; exit 20 on any story aborts the decomposition.
+4. In the `implementation-map-XXXX.md` template, replace every `{{PLANNING_STATUS}}` placeholder with `Pendente`.
+5. Stage the epic, all stories, and the implementation map; commit with `x-git-commit`:
+
+       Skill(skill: "x-git-commit", args: "docs(epic-XXXX): decompose — epic Pendente, N stories, implementation map")
+
+**Fail-loud:** any story missing or malformed → abort (RULE-046-08).
