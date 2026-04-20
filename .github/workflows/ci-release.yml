@@ -153,7 +153,7 @@ jobs:
           path: artifacts/
 
       - name: Generate SLSA build-provenance attestation
-        uses: actions/attest-build-provenance@v1
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: "artifacts/ia-dev-env-*.jar"
 
