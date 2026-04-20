@@ -4,6 +4,15 @@
 **Chave Jira:** <CHAVE-JIRA>
 **Status:** Pendente
 
+> **Status Transitions (Rule 22 — lifecycle-integrity):**
+> valores permitidos `Pendente | Planejada | Em Andamento | Concluída | Falha | Bloqueada`.
+> Transições válidas: `Pendente → Planejada | Em Andamento | Falha | Bloqueada`;
+> `Planejada → Em Andamento | Falha | Bloqueada`;
+> `Em Andamento → Concluída | Falha | Bloqueada`;
+> reabertura `Concluída → Em Andamento` (via `x-status-reconcile --apply`) e
+> `Falha → Pendente`; `Bloqueada → Pendente | Planejada | Em Andamento | Falha`.
+> Ver [`../rules/22-lifecycle-integrity.md`](../rules/22-lifecycle-integrity.md).
+
 ## 1. Dependências
 
 | Blocked By | Blocks |

@@ -682,6 +682,94 @@ For each output declared in §2.2 of the task file, run the appropriate verifica
 
 Any failure aborts before commit with `OUTPUT_CONTRACT_VIOLATION {output}`.
 
+### Phase 3.5 (v2) — Task-Level Status Transition (RULE-046-03)
+
+> **Gating.** This phase is v2-only. When `planningSchemaVersion == "1.0"`
+> (or the field is absent), skip Phase 3.5 entirely — v1 epics have no
+> separate `task-TASK-*.md` artifacts; the status lives inside the story's
+> Section 8 and is updated by `x-story-implement` instead.
+
+Between the output-contract verification (Phase 3) and the single atomic commit
+(Phase 4), transition the task's lifecycle status to `Concluída` and update the
+implementation-map row that mirrors it. Both writes are staged alongside the
+TDD artefacts so Phase 4's `x-git-commit` produces exactly ONE commit
+(Rule 18 — Atomic Task Commits preserved).
+
+**Step 3.5.1 — Read current status.** Invoke the JVM helper (v2 classpath must
+include `dev.iadev.application.lifecycle.StatusFieldParser`) or its CLI wrapper.
+Canonical form via the Skill tool (Rule 13 Pattern 1 — INLINE-SKILL) is not
+applicable here because the parser is a Java library, not a skill; read the
+status programmatically or via a Bash invocation of the project's JAR:
+
+```
+java -cp target/ia-dev-env.jar \
+    dev.iadev.cli.TaskMapRowUpdaterCli --help
+```
+
+Skills running in generator projects may substitute any equivalent parser as
+long as the six-value enum (`Pendente`, `Planejada`, `Em Andamento`,
+`Concluída`, `Falha`, `Bloqueada`) and the `**Status:**` header contract are
+honoured (Rule 22).
+
+**Step 3.5.2 — Validate transition via `LifecycleTransitionMatrix`.** Allowed
+entries into `Concluída` per Rule 22: from `Em Andamento` only. If the current
+status is `Planejada` the orchestrator MUST first transition to `Em Andamento`
+(implicit at Phase 2 start; otherwise emit `STATUS_TRANSITION_INVALID`). Any
+other source status aborts Phase 3.5 with exit code `STATUS_SYNC_FAILED`.
+
+**Step 3.5.3 — Write new status atomically to task file.**
+`StatusFieldParser.writeStatus(taskFile, CONCLUIDA)` replaces the `**Status:**`
+line via temp-file + `ATOMIC_MOVE`. On I/O failure the helper throws
+`StatusSyncException` with code `STATUS_SYNC_FAILED`; the skill MUST propagate
+the error and abort (no silent retry).
+
+**Step 3.5.4 — Update the task-implementation-map row.** Invoke the CLI:
+
+```
+java -cp target/ia-dev-env.jar \
+    dev.iadev.cli.TaskMapRowUpdaterCli \
+    plans/epic-XXXX/plans/task-implementation-map-STORY-XXXX-YYYY.md \
+    TASK-XXXX-YYYY-NNN \
+    Concluída
+```
+
+Exit codes (RULE-045-05-style contract):
+
+| Exit | Meaning |
+|------|---------|
+| `0`  | Row updated (or idempotent no-op) |
+| `20` | `STATUS_SYNC_FAILED` — row absent, I/O error, atomic rename failed |
+| `40` | `INVALID_ARGS` — missing/blank TASK-ID or unknown status label |
+
+Non-zero exits abort Phase 3.5 before commit.
+
+**Step 3.5.5 — Stage the artefacts.** Add `task-TASK-XXXX-YYYY-NNN.md` and
+`task-implementation-map-STORY-XXXX-YYYY.md` to the git index so they become
+part of Phase 4's single commit:
+
+```
+git add plans/epic-XXXX/plans/task-TASK-XXXX-YYYY-NNN.md \
+        plans/epic-XXXX/plans/task-implementation-map-STORY-XXXX-YYYY.md
+```
+
+**Step 3.5.6 — Coalesced pairs (Rule 15 + Rule 18).** When the task is the
+leader of a COALESCED super-node `(TASK-A, TASK-B)`, repeat Steps 3.5.1–3.5.5
+for BOTH partner task files and BOTH corresponding map rows. The work remains
+in ONE commit; the footer `Coalesces-with: TASK-B` (Rule 18) already encodes
+the dual ownership.
+
+**Step 3.5.7 — Fail-loud contract (RULE-046-08).** If the task file has been
+deleted between Phase 2 and Phase 3.5, the map row is missing, or the
+transition is invalid, the skill MUST exit with `STATUS_SYNC_FAILED` and emit
+the offending path to stderr. No partial-state writes survive — the atomic
+rename contract of Step 3.5.3 guarantees readers see either the old or new
+status, never a truncated file.
+
+**Rule 18 invariant.** Phase 3.5 does NOT call `x-git-commit`. The stage
+operations in Step 3.5.5 pile onto the TDD index; Phase 4's single
+`x-git-commit` invocation bundles the code, the task status, and the map row
+into a single atomic commit. A separate "status only" commit is forbidden.
+
 ### Phase 4 (v2) — Atomic Commit via x-git-commit (RULE-TF-04)
 
 Invoke `x-git-commit` via the Skill tool (Rule 13 INLINE-SKILL). Commit body:
@@ -690,6 +778,9 @@ Invoke `x-git-commit` via the Skill tool (Rule 13 INLINE-SKILL). Commit body:
 - **Type:** derived from the plan's dominant change type (`feat`, `fix`, `refactor`,
   `test`, `docs`, `chore`).
 - **Body:** references the task artifact + one-line summary per TDD cycle.
+  When Phase 3.5 ran (v2), append a `Status: Em Andamento -> Concluída` line
+  and a `Map row updated: task-implementation-map-STORY-XXXX-YYYY.md` line so
+  `git show <sha>` reveals the lifecycle transition alongside the TDD diff.
 - **Coalesced groups:** single commit with footer
   `Coalesces-with: TASK-AAAA-BBBB-CCC, TASK-DDDD-EEEE-FFF` listing partners
   (sorted by TASK-ID).
@@ -726,3 +817,5 @@ Return to caller (x-story-implement) a structured result:
 | `OUTPUT_CONTRACT_VIOLATION` | declared output failed post-exec verification |
 | `RED_NOT_OBSERVED` | RED phase test didn't fail as expected |
 | `REFACTOR_BROKE_TESTS` | refactor made previously-green tests fail |
+| `STATUS_SYNC_FAILED` | Phase 3.5 failed to read/write `**Status:**` header or map row (Rule 22 + story-0046-0003) |
+| `STATUS_TRANSITION_INVALID` | Phase 3.5 rejected an out-of-matrix transition (Rule 22 + Rule 046-04) |

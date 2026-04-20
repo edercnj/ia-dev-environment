@@ -5,6 +5,18 @@
 **Versão:** <Versão do documento>
 **Status:** <Em Refinamento | Pronto | Em Andamento | Concluído>
 
+> **Status Transitions (Rule 22 — lifecycle-integrity):**
+> artifacts lifecycle-controlados (Story/Task) usam o enum canônico
+> `Pendente | Planejada | Em Andamento | Concluída | Falha | Bloqueada`.
+> O campo Status do Épico aqui é documental e reflete o estado
+> agregado das histórias filhas. Transições permitidas do enum:
+> `Pendente → Planejada | Em Andamento | Falha | Bloqueada`;
+> `Planejada → Em Andamento | Falha | Bloqueada`;
+> `Em Andamento → Concluída | Falha | Bloqueada`;
+> reabertura `Concluída → Em Andamento` (via `x-status-reconcile --apply`) e
+> `Falha → Pendente`; `Bloqueada → Pendente | Planejada | Em Andamento | Falha`.
+> Ver [`../rules/22-lifecycle-integrity.md`](../rules/22-lifecycle-integrity.md).
+
 ## 1. Visão Geral
 
 **Chave Jira:** <CHAVE-JIRA>
