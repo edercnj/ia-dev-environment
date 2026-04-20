@@ -88,6 +88,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **story-0042-0004 (EPIC-0042):** `x-story-implement` now auto-fixes task PR review comments after Tech Lead GO. New Step 3.6.5 gates on `decision=GO`, discovers task PRs from `execution-state.json`, checks per-PR review comment count via `gh api`, and invokes `Skill(skill: "x-pr-fix", ...)` for each PR with comments. Compile-regression guard aborts with `PR_FIX_COMPILE_REGRESSION` if a fix breaks the build, skipping Step 3.7 without auto-retry (RULE-007 single-pass). Integration Notes and Error Handling tables updated accordingly.
 
+- **story-0045-0002 (EPIC-0045):** Rule 21 — CI-Watch (RULE-045-01) + `scripts/audit-rule-20.sh` regression guard.
+  Introduces the normative rule for the CI-Watch requirement: skills that invoke `x-pr-create` via
+  `Skill(skill: "x-pr-create", ...)` MUST also invoke `Skill(skill: "x-pr-watch-ci", ...)` immediately after,
+  unless the caller declares `--no-ci-watch` as the sole opt-out token.
+  - **Fallback Matrix (3 rows):** V1 no-op (`planningSchemaVersion` absent or `"1.0"` — Rule 19 backward compat),
+    V2 active (default for `"2.0"`), V2 skipped (`--no-ci-watch` opt-out).
+  - **`scripts/audit-rule-20.sh`:** grep-based CI guard; scans every `SKILL.md` under the skills source tree,
+    exits 0 (PASS) when all files invoking `x-pr-create` also invoke `x-pr-watch-ci` or declare `--no-ci-watch`;
+    exits 1 (FAIL) with per-file violation messages otherwise. Supports `--skills-dir <path>` for test isolation.
+    Fixed macOS `grep -F` flag-parsing bug: opt-out pattern matched via `grep -qE -- '--no-ci-watch'`.
+  - **`RulesAssemblerCiWatchTest`** (3 tests): verifies `21-ci-watch.md` is copied into assembled output,
+    has all 5 mandatory sections, and contains canonical identifiers (`RULE-045-01`, fallback variants,
+    `x-pr-watch-ci`, `x-pr-create`, `audit-rule-20.sh`).
+  - **`Rule20AuditTest`** (5 tests via `ProcessBuilder`): compliant SKILL.md exits 0; `--no-ci-watch`
+    opt-out exits 0; missing CI-Watch exits 1 with mention of `x-pr-create`; no `x-pr-create` exits 0;
+    prose-only mention exits 0.
+  - Golden files regenerated for all 19 profiles; rule count 20 → 21; `21-ci-watch.md` entry added to
+    every `.claude/README.md` golden output.
+  - `CLAUDE.md` updated with EPIC-0045 "In progress" block.
+
 ## [3.9.0] - 2026-04-19
 
 ### Added
