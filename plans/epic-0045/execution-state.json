@@ -1,0 +1,94 @@
+{
+  "epicId": "0045",
+  "baseBranch": "develop",
+  "startedAt": "2026-04-20T00:00:00Z",
+  "totalPhases": 3,
+  "stories": [
+    {"id": "story-0045-0001", "phase": 0},
+    {"id": "story-0045-0002", "phase": 0},
+    {"id": "story-0045-0003", "phase": 1},
+    {"id": "story-0045-0004", "phase": 1},
+    {"id": "story-0045-0005", "phase": 1},
+    {"id": "story-0045-0006", "phase": 2}
+  ],
+  "storyEntries": {
+    "story-0045-0001": {
+      "id": "story-0045-0001",
+      "phase": 0,
+      "planningStatus": "READY",
+      "planningStartedAt": "2026-04-20T00:00:00Z",
+      "planningCompletedAt": "2026-04-20T00:05:00Z",
+      "dorVerdict": "READY",
+      "artifacts": [
+        "plans/epic-0045/plans/tasks-story-0045-0001.md",
+        "plans/epic-0045/plans/planning-report-story-0045-0001.md",
+        "plans/epic-0045/plans/dor-story-0045-0001.md"
+      ]
+    },
+    "story-0045-0002": {
+      "id": "story-0045-0002",
+      "phase": 0,
+      "planningStatus": "READY",
+      "planningStartedAt": "2026-04-20T00:05:00Z",
+      "planningCompletedAt": "2026-04-20T00:10:00Z",
+      "dorVerdict": "READY",
+      "artifacts": [
+        "plans/epic-0045/plans/tasks-story-0045-0002.md",
+        "plans/epic-0045/plans/planning-report-story-0045-0002.md",
+        "plans/epic-0045/plans/dor-story-0045-0002.md"
+      ]
+    },
+    "story-0045-0003": {
+      "id": "story-0045-0003",
+      "phase": 1,
+      "planningStatus": "READY",
+      "planningStartedAt": "2026-04-20T00:10:00Z",
+      "planningCompletedAt": "2026-04-20T00:20:00Z",
+      "dorVerdict": "READY",
+      "artifacts": [
+        "plans/epic-0045/plans/tasks-story-0045-0003.md",
+        "plans/epic-0045/plans/planning-report-story-0045-0003.md",
+        "plans/epic-0045/plans/dor-story-0045-0003.md"
+      ]
+    },
+    "story-0045-0004": {
+      "id": "story-0045-0004",
+      "phase": 1,
+      "planningStatus": "READY",
+      "planningStartedAt": "2026-04-20T00:10:00Z",
+      "planningCompletedAt": "2026-04-20T00:20:00Z",
+      "dorVerdict": "READY",
+      "artifacts": [
+        "plans/epic-0045/plans/tasks-story-0045-0004.md",
+        "plans/epic-0045/plans/planning-report-story-0045-0004.md",
+        "plans/epic-0045/plans/dor-story-0045-0004.md"
+      ]
+    },
+    "story-0045-0005": {
+      "id": "story-0045-0005",
+      "phase": 1,
+      "planningStatus": "READY",
+      "planningStartedAt": "2026-04-20T00:10:00Z",
+      "planningCompletedAt": "2026-04-20T00:20:00Z",
+      "dorVerdict": "READY",
+      "artifacts": [
+        "plans/epic-0045/plans/tasks-story-0045-0005.md",
+        "plans/epic-0045/plans/planning-report-story-0045-0005.md",
+        "plans/epic-0045/plans/dor-story-0045-0005.md"
+      ]
+    },
+    "story-0045-0006": {
+      "id": "story-0045-0006",
+      "phase": 2,
+      "planningStatus": "READY",
+      "planningStartedAt": "2026-04-20T00:20:00Z",
+      "planningCompletedAt": "2026-04-20T00:25:00Z",
+      "dorVerdict": "READY",
+      "artifacts": [
+        "plans/epic-0045/plans/tasks-story-0045-0006.md",
+        "plans/epic-0045/plans/planning-report-story-0045-0006.md",
+        "plans/epic-0045/plans/dor-story-0045-0006.md"
+      ]
+    }
+  }
+}
