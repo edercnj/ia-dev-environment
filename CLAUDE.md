@@ -18,8 +18,8 @@ It includes coding rules, skills (slash commands), knowledge packs, agents, and 
 > - Retroactive diff patches for epics 0036–0040: [`plans/epic-0041/migrations/`](plans/epic-0041/migrations/) (EPIC-0040 flagged HIGH — hard conflict on `telemetry-phase.sh`).
 > - Skill inventory gained `/x-parallel-eval` (category `plan/`).
 
-> **In progress — EPIC-0045 (CI Watch no Fluxo de PR).**
-> Adds `x-pr-watch-ci` skill (CI polling + Copilot review detection) and formalizes CI-Watch as the default for schema v2 orchestrators. Introduces Rule 21 (CI-Watch, RULE-045-01) with fallback matrix, opt-out via `--no-ci-watch`, and regression audit script. Retrofits `x-story-implement`, `x-task-implement --worktree`, and `x-release`.
+> **Concluded — EPIC-0045 (CI Watch no Fluxo de PR).**
+> Delivered `x-pr-watch-ci` skill (CI polling + Copilot review detection, 8 stable exit codes — RULE-045-05), Rule 21 (CI-Watch, RULE-045-01) with fallback matrix and opt-out via `--no-ci-watch`, and retrofits to `x-story-implement` (Phase 2.2.8.5), `x-task-implement --worktree` (Step 4.5), and `x-release` (flag `--ci-watch`). `Epic0045SmokeTest` validates end-to-end contract. `PrWatchStatusClassifier` + `PrWatchExitCode` (zero-I/O, fully testable). All 6 stories merged to develop.
 > - Story index: [`plans/epic-0045/`](plans/epic-0045/)
 
 > **In progress — EPIC-0043 (Interactive Gates Convention).**
