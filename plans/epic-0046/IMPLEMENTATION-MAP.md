@@ -8,7 +8,7 @@
 
 | Story | Título | Chave Jira | Blocked By | Blocks | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| story-0046-0001 | Rule 21 lifecycle-integrity + matriz de transição nos templates + helpers Java base | — | — | story-0046-0002, story-0046-0003, story-0046-0004, story-0046-0005, story-0046-0006, story-0046-0007 | Pendente |
+| story-0046-0001 | Rule 22 lifecycle-integrity + matriz de transição nos templates + helpers Java base | — | — | story-0046-0002, story-0046-0003, story-0046-0004, story-0046-0005, story-0046-0006, story-0046-0007 | Pendente |
 | story-0046-0002 | Planning status propagation nas 7 skills de planejamento | — | story-0046-0001 | story-0046-0007 | Pendente |
 | story-0046-0003 | Task-level end-of-life status em x-task-implement | — | story-0046-0001 | story-0046-0007 | Pendente |
 | story-0046-0004 | Story/Epic end-of-life status — Phase 3 unskippable + Phase 1.7 cabeada | — | story-0046-0001 | story-0046-0007 | Pendente |
@@ -31,7 +31,7 @@
 ║                   FASE 0 — Fundação (Rule + Helpers)                    ║
 ║                                                                        ║
 ║   ┌────────────────────────────────────────────────────┐              ║
-║   │  story-0046-0001  Rule 21 + matrix + helpers       │              ║
+║   │  story-0046-0001  Rule 22 + matrix + helpers       │              ║
 ║   └──────────────────────────┬─────────────────────────┘              ║
 ╚══════════════════════════════╪═════════════════════════════════════════╝
                                │
@@ -85,7 +85,7 @@ Atrasos em `story-0046-0001` impactam TODAS as fases subsequentes (único item d
 
 ```mermaid
 graph TD
-    S0001["story-0046-0001<br/>Rule 21 + helpers"]
+    S0001["story-0046-0001<br/>Rule 22 + helpers"]
     S0002["story-0046-0002<br/>Planning status (7)"]
     S0003["story-0046-0003<br/>Task EOL x-task-impl"]
     S0004["story-0046-0004<br/>Story/Epic EOL"]
@@ -143,11 +143,11 @@ graph TD
 
 | Story | Escopo Principal | Artefatos Chave |
 | :--- | :--- | :--- |
-| story-0046-0001 | Rule 21 publicada; matriz de transição nos 3 templates principais; helpers Java (`StatusFieldParser`, `LifecycleTransitionMatrix`, `LifecycleAuditRunner` skeleton) | `rules/21-lifecycle-integrity.md`; `_TEMPLATE-{TASK,STORY,EPIC}.md` atualizados; `dev.iadev.application.lifecycle.*`; `dev.iadev.domain.lifecycle.LifecycleStatus` |
+| story-0046-0001 | Rule 22 publicada; matriz de transição nos 3 templates principais; helpers Java (`StatusFieldParser`, `LifecycleTransitionMatrix`, `LifecycleAuditRunner` skeleton) | `rules/22-lifecycle-integrity.md`; `_TEMPLATE-{TASK,STORY,EPIC}.md` atualizados; `dev.iadev.application.lifecycle.*`; `dev.iadev.domain.lifecycle.LifecycleStatus` |
 
 **Entregas da Fase 0:**
 
-- Rule 21 formalizada e carregada pelo `RuleAssembler`
+- Rule 22 formalizada e carregada pelo `RuleAssembler`
 - `StatusFieldParser` com regex + escrita atômica `.tmp`+rename (≥ 95% cobertura)
 - `LifecycleTransitionMatrix` com matriz completa (≥ 95% cobertura)
 - `LifecycleAuditRunner` skeleton (contrato `List<Violation>`; implementação real na Fase 2)
@@ -194,7 +194,7 @@ graph TD
 
 ### Gargalo Principal
 
-**story-0046-0001 (Rule 21 + helpers)** é o maior gargalo. Bloqueia 6 outras histórias (todas as demais). Investir em review acelerado da 0001 reduz o tempo-calendário de todo o épico. Também é a story mais "fundacional" — a qualidade dos helpers (`StatusFieldParser` regex tolerante, escrita atômica, matriz de transição) determina a qualidade dos 6 retrofits subsequentes.
+**story-0046-0001 (Rule 22 + helpers)** é o maior gargalo. Bloqueia 6 outras histórias (todas as demais). Investir em review acelerado da 0001 reduz o tempo-calendário de todo o épico. Também é a story mais "fundacional" — a qualidade dos helpers (`StatusFieldParser` regex tolerante, escrita atômica, matriz de transição) determina a qualidade dos 6 retrofits subsequentes.
 
 ### Histórias Folha (sem dependentes)
 
@@ -219,7 +219,7 @@ graph TD
 - Rule 19 (V2-gating) funciona corretamente em fluxos complexos
 - Clean-workdir invariant é mantido em fluxos de múltiplas waves
 
-Se 0004 passar smoke end-to-end (épico toy v2 → Status Concluído propagado + clean workdir), a convenção Rule 21 está validada para o caso mais complexo do épico.
+Se 0004 passar smoke end-to-end (épico toy v2 → Status Concluído propagado + clean workdir), a convenção Rule 22 está validada para o caso mais complexo do épico.
 
 ---
 
@@ -244,7 +244,7 @@ Se 0004 passar smoke end-to-end (épico toy v2 → Status Concluído propagado +
 
 | Ordem | Task ID | Story | Parallelizável Com | Fase |
 | :--- | :--- | :--- | :--- | :--- |
-| 1 | TASK-0046-0001-001 (Rule 21) | story-0046-0001 | — | 0 |
+| 1 | TASK-0046-0001-001 (Rule 22) | story-0046-0001 | — | 0 |
 | 2 | TASK-0046-0001-003 (Matrix) | story-0046-0001 | TASK-0046-0001-005 | 0 |
 | 3 | TASK-0046-0001-004 (Parser) | story-0046-0001 | — | 0 |
 | 4 | TASK-0046-0001-002 (Templates), TASK-0046-0001-005 (Audit skeleton), TASK-0046-0001-006 (Smoke) | story-0046-0001 | entre si | 0 |
@@ -261,7 +261,7 @@ Se 0004 passar smoke end-to-end (épico toy v2 → Status Concluído propagado +
 graph LR
     subgraph s01["story-0046-0001 (Foundation)"]
         style s01 fill:#e8f4fd
-        T0101["TASK-0046-0001-001<br/>Rule 21"]
+        T0101["TASK-0046-0001-001<br/>Rule 22"]
         T0103["TASK-0046-0001-003<br/>Matrix"]
         T0104["TASK-0046-0001-004<br/>Parser"]
         T0102["TASK-0046-0001-002<br/>Templates"]
@@ -309,7 +309,7 @@ graph LR
 
 ### 9.1 Pré-condições duras
 
-- Slot Rule 21 disponível (confirmado: rules atuais 01-19 + 20 reservado pelo EPIC-0045 ci-watch).
+- Slot Rule 22 disponível (confirmado: rules atuais 01-19 + 20 reservado pelo EPIC-0045 ci-watch).
 - Templates `_TEMPLATE-{TASK,STORY,EPIC}.md` existem em `java/src/main/resources/targets/claude/templates/` OU em `java/src/test/resources/golden/{scenario}/.claude/templates/` como source-of-truth reusável.
 - `SchemaVersionResolver` (EPIC-0038 story-0038-0008) disponível em `dev.iadev.domain.schemaversion.SchemaVersionResolver`.
 
@@ -317,7 +317,7 @@ graph LR
 
 - **Paradoxo auto-planejamento:** este épico MODIFICA as skills de planejamento que ele mesmo usa (0046-0002 retrofita `x-epic-decompose`, `x-story-plan`, `x-task-plan`). O planejamento atual (este map) foi gerado com as skills pre-fix — esperado e documentado.
 - **Rule 19 compat:** status sync é V2-gated. Audit da 0046-0007 deve provar que épicos v1 permanecem inalterados.
-- **EPIC-0045 (ci-watch) conflict:** slot Rule 20 consumido. Este épico usa Rule 21. Nenhum outro conflito esperado; merge order: EPIC-0045 pode fundir antes ou depois, sem impacto.
+- **EPIC-0045 (ci-watch) conflict:** slot Rule 21 consumido. Este épico usa Rule 22. Nenhum outro conflito esperado; merge order: EPIC-0045 pode fundir antes ou depois, sem impacto.
 
 ---
 
@@ -328,4 +328,4 @@ graph LR
 | M0 (Fase 0 verde) | 0046-0001 | Convenção + infraestrutura pronta; sem mudança comportamental ainda |
 | M1 (Fase 1 verde — crítica) | 0046-0001..0005 | Novos épicos v2 têm ciclo de vida íntegro (status sincronizado, reports commitados). Bug EPIC-0024 eliminado para frente |
 | M1' (folha) | + 0046-0006 | Débito técnico de épicos legados endereçável via `x-status-reconcile --apply` |
-| M2 (Fase 2 verde — épico fechado) | + 0046-0007 | CI bloqueia regressões; convenção Rule 21 enforcível. Épico fechado com `**Status:** Concluído` (via Phase 5 de `x-epic-implement` retrofitado, consumindo sua própria convenção) |
+| M2 (Fase 2 verde — épico fechado) | + 0046-0007 | CI bloqueia regressões; convenção Rule 22 enforcível. Épico fechado com `**Status:** Concluído` (via Phase 5 de `x-epic-implement` retrofitado, consumindo sua própria convenção) |

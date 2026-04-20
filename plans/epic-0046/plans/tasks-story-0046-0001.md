@@ -24,7 +24,7 @@
 
 ```mermaid
 graph TD
-    T001["TASK-001<br/>Rule 21"]
+    T001["TASK-001<br/>Rule 22"]
     T002["TASK-002<br/>Templates"]
     T003["TASK-003<br/>Matrix+Enum"]
     T004["TASK-004<br/>Parser"]
@@ -39,7 +39,7 @@ graph TD
 
 | Task ID | Source Agent | Type | TDD Phase | TPP Level | Layer | Components | Parallel | Depends On | Estimated Effort | DoD |
 |---------|-------------|------|-----------|-----------|-------|-----------|----------|-----------|-----------------|-----|
-| TASK-0046-0001-001 | merged(ARCH,TL) | implementation | VERIFY | N/A | Doc | rules/21-lifecycle-integrity.md | Yes | — | S | Rule 21 existe; RuleAssemblerTest verde; golden regen OK |
+| TASK-0046-0001-001 | merged(ARCH,TL) | implementation | VERIFY | N/A | Doc | rules/22-lifecycle-integrity.md | Yes | — | S | Rule 22 existe; RuleAssemblerTest verde; golden regen OK |
 | TASK-0046-0001-002 | ARCH | implementation | VERIFY | N/A | Doc | templates/_TEMPLATE-TASK, STORY, EPIC | No | TASK-001 | S | 3 templates atualizados com matriz; golden regen OK |
 | TASK-0046-0001-003 | merged(ARCH,QA) | implementation+test | GREEN | scalar | Domain | LifecycleStatus enum, LifecycleTransitionMatrix | Yes | — | M | 100% matriz coberta; validateOrThrow lança com contexto; ≥95% cov |
 | TASK-0046-0001-004 | merged(ARCH,QA,SEC) | implementation+test | GREEN | collection | Application | StatusFieldParser, StatusSyncException | No | TASK-003 | M | Regex MULTILINE tolerante; ATOMIC_MOVE; fail-loud STATUS_SYNC_FAILED; ≥95% cov |
