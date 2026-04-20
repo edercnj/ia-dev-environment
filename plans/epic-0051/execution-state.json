@@ -1,0 +1,15 @@
+{
+  "epicId": "EPIC-0051",
+  "planningSchemaVersion": "2.0",
+  "status": "PLANNED",
+  "createdAt": "2026-04-20T00:00:00Z",
+  "stories": [
+    { "id": "story-0051-0001", "status": "PENDING" },
+    { "id": "story-0051-0002", "status": "PENDING" },
+    { "id": "story-0051-0003", "status": "PENDING" },
+    { "id": "story-0051-0004", "status": "PENDING" },
+    { "id": "story-0051-0005", "status": "PENDING" },
+    { "id": "story-0051-0006", "status": "PENDING" }
+  ],
+  "parallelismDowngrades": []
+}
