@@ -334,7 +334,8 @@ See the files directly for current configuration.
 | Component | Count |
 |-----------|-------|
 | Rules (.claude) | 21 |
-| Skills (.claude) | 67 || Knowledge Packs (.claude) | 25 |
+| Skills (.claude) | 67 |
+| Knowledge Packs (.claude) | 25 |
 | Agents (.claude) | 14 |
 | Hooks (.claude) | 9 |
 | Settings (.claude) | 2 |
