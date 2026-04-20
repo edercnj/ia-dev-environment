@@ -26,8 +26,9 @@ cria três problemas:
 
 ## 2. Escopo
 
-Mover Knowledge Packs para um diretório irmão dedicado, `/Users/edercnj/workspaces/ia-dev-environment/.claude/knowledge/`, e ajustar toda a cadeia (source-of-truth, assembler, skills
-consumidoras, rules, goldens) para refletir o novo path.
+Mover Knowledge Packs para um diretório irmão dedicado, `.claude/knowledge/`
+(relativo à raiz do repositório), e ajustar toda a cadeia (source-of-truth,
+assembler, skills consumidoras, rules, goldens) para refletir o novo path.
 
 ### 2.1 Fora de escopo
 
@@ -151,9 +152,9 @@ que futuros epics que mexam em assemblers sigam as regras de paralelismo.
 
 ## 7. Alternativas consideradas e rejeitadas
 
-Registradas integralmente em
-`/Users/edercnj/.claude/plans/porque-nossos-patterns-estao-crispy-giraffe.md`
-(contexto de descoberta do problema). Resumo:
+Registradas integralmente em [`discovery-note.md`](./discovery-note.md)
+(contexto de descoberta do problema, committed in-repo para archaeology).
+Resumo:
 
 - **A (status quo + higienização)** — não resolve o problema semântico.
 - **B (subpasta `_kp/` dentro de `skills/`)** — ainda é SKILL.md; Claude Code
@@ -206,7 +207,7 @@ de `skills/` e `rules/`.
 
 ## 11. Referências
 
-- Plano de descoberta: `/Users/edercnj/.claude/plans/porque-nossos-patterns-estao-crispy-giraffe.md`
+- Nota de descoberta: [`discovery-note.md`](./discovery-note.md)
 - Rule 04: `.claude/rules/04-architecture-summary.md`
 - Rule 13: `.claude/rules/13-skill-invocation-protocol.md`
 - EPIC-0041 (hotspots de paralelismo): `plans/epic-0041/`

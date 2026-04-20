@@ -179,7 +179,7 @@ graph TD
 
 | Arquivo | Stories que escrevem | Tipo de conflito | Mitigação |
 | :--- | :--- | :--- | :--- |
-| `KnowledgeAssembler.java` | 0001, 0006 | Serial natural (fases distintas) | — |
+| `KnowledgeAssembler.java` | 0001 | Sem conflito (única escrita no épico) | — |
 | `CLAUDE.md` | 0006 | Sem conflito (sozinho) | — |
 | `CHANGELOG.md` | 0006 | Sem conflito (sozinho) | — |
 | `src/test/resources/golden/**` | 0005 (único commit) | Regen concentrado | RULE-051-08 |
