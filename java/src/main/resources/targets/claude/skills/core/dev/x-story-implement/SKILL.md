@@ -3,7 +3,7 @@ name: x-story-implement
 description: "Orchestrates the complete feature implementation cycle with task-centric workflow: branch creation, planning, per-task TDD execution with individual PRs and approval gates, story-level verification, and final cleanup. Schema-aware: v1 (legacy) runs the monolithic coalesce-ad-hoc flow; v2 (EPIC-0038) reads task-implementation-map-STORY-*.md and dispatches x-task-implement in waves (declared parallelism) — ending the 'task embedded in story' anti-pattern. Delegates to x-test-tdd, x-git-commit, x-pr-create, and (v2) x-task-implement."
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Skill, Agent, TaskCreate, TaskUpdate, AskUserQuestion
-argument-hint: "[STORY-ID or feature-name] [--auto-approve-pr] [--task TASK-ID] [--skip-verification] [--skip-smoke] [--full-lifecycle] [--worktree] [--non-interactive] [--manual-contract-approval] [--manual-task-approval] [--no-auto-remediation]"
+argument-hint: "[STORY-ID or feature-name] [--auto-approve-pr] [--task TASK-ID] [--skip-verification] [--skip-smoke] [--full-lifecycle] [--worktree] [--non-interactive] [--manual-contract-approval] [--manual-task-approval] [--no-auto-remediation] [--no-ci-watch]"
 ---
 
 ## Global Output Policy
@@ -46,6 +46,7 @@ Orchestrate the complete feature implementation cycle using a task-centric workf
 | `--non-interactive` | Boolean | false | Skip all interactive gates (AskUserQuestion menus) and auto-approve. For CI/automation and orchestrated calls from `x-epic-implement`. Overrides menu default behavior. |
 | `--manual-contract-approval` | Boolean | false | **DEPRECATED (EPIC-0043).** No-op — the gate menu is now the default. Emits one-time warning: `"[DEPRECATED] --manual-contract-approval is no longer needed; the gate menu is now the default."` |
 | `--manual-task-approval` | Boolean | false | **DEPRECATED (EPIC-0043).** No-op — the gate menu is now the default. Emits one-time warning: `"[DEPRECATED] --manual-task-approval is no longer needed; the gate menu is now the default."` |
+| `--no-ci-watch` | boolean | `false` | Skip CI-Watch step (2.2.8.5). For CI/automation or when CI is not configured. |
 
 ## CRITICAL EXECUTION RULE
 
@@ -943,20 +944,60 @@ FOR each TASK-NNN where status != DONE and status != BLOCKED:
          - If NOT --auto-approve-pr: PR targets develop
          - PR body includes task description, TDD cycle summary, coverage
   2.2.8  Update execution-state: task.status = PR_CREATED, task.prNumber, task.prUrl
+
+### Step 2.2.8.5 — CI-Watch (schema v2 only)
+
+<!-- TELEMETRY: phase.start -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh start x-story-implement Phase-2-2-8-5-CI-Watch`
+
+If `planningSchemaVersion == "2.0"` AND `--no-ci-watch` flag is NOT present:
+
+  Invoke the `x-pr-watch-ci` skill via the Skill tool:
+
+      Skill(skill: "x-pr-watch-ci", args: "--pr-number {task.prNumber} --poll-interval-seconds 60 --timeout-minutes 30")
+
+  Capture exit code and JSON result. Persist to execution-state.json:
+
+      task.ciWatchResult = {
+        "status": "<exit_code_name>",
+        "exitCode": <0|10|20|30|40|50|60|70>,
+        "checks": [...],
+        "copilotReview": { "present": <true|false> },
+        "elapsedSeconds": <N>
+      }
+
+If `planningSchemaVersion != "2.0"` OR `--no-ci-watch` is present:
+  Skip this step (RULE-045-02). Log: "CI-Watch skipped (schema v1 or --no-ci-watch)".
+
+<!-- TELEMETRY: phase.end -->
+Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-story-implement Phase-2-2-8-5-CI-Watch ok`
+
   2.2.9  APPROVAL GATE (EPIC-0043):
          Deprecated flags: if --manual-task-approval is present, emit one-time warning
          "[DEPRECATED] --manual-task-approval is no longer needed; the gate menu is now the default."
          and continue (no-op).
-         - If --non-interactive is present: Auto-merge task PR (gh pr merge --squash).
+
+         CI failure guard: if task.ciWatchResult is present AND (task.ciWatchResult.exitCode == 20 OR
+         task.ciWatchResult.exitCode == 30):
+           - Force interactive menu regardless of --non-interactive or --auto-approve-pr.
+           - Suppress any auto-merge. Log: "Auto-merge suppressed: CI failed/timed out (exit
+             {task.ciWatchResult.exitCode}). Interactive gate forced."
+
+         - If --non-interactive is present AND CI failure guard is NOT triggered: Auto-merge task
+           PR (gh pr merge --squash).
            Update execution-state: task.status = PR_MERGED.
            Log: "Task PR auto-approved (--non-interactive): #{prNumber}"
          - Default behavior (interactive menu): Present AskUserQuestion (Rule 20 — Canonical
            Option Menu, PR variant):
 
+           Build ciStatusLine from task.ciWatchResult (if present):
+             "CI Status: {task.ciWatchResult.checks.passed} passed / {task.ciWatchResult.checks.failed} failed / {task.ciWatchResult.checks.pending} pending\nCopilot review: {present | absent (timeout)}"
+           If CI failure guard triggered, prepend: "⚠️  CI FAILED — FIX-PR recommended\n"
+
            AskUserQuestion(
              question: "Task PR #{prNumber} is ready for review. Task: TASK-XXXX-YYYY-NNN. PR: {prUrl}. TDD Cycles: {count}. Coverage: line {linePercent}%, branch {branchPercent}%.",
              options: [
-               { header: "Proceed", label: "Continue (Recommended)", description: "Merge the task PR and mark task as approved. Proceeds to the next task." },
+               { header: "Proceed", label: "Continue (Recommended)", description: "Merge the task PR and mark task as approved. Proceeds to the next task.\n{ciStatusLine}" },
                { header: "Fix PR", label: "Run x-pr-fix and retry", description: "Invokes x-pr-fix on this task PR; reapresents this menu on return." },
                { header: "Abort", label: "Cancel the operation", description: "Stops the lifecycle. Task status is preserved as PR_CREATED for resume via --task TASK-ID." }
              ]
@@ -997,6 +1038,16 @@ END FOR
 
 **`--non-interactive` mode:** Task PRs are auto-merged without human intervention.
 Log: `"Task PR auto-approved (--non-interactive): #{prNumber} — TASK-XXXX-YYYY-NNN"`
+
+**Auto-merge suppression (CI failure guard):** When `task.ciWatchResult.exitCode` is 20 or 30,
+auto-merge is suppressed regardless of `--non-interactive` or `--auto-approve-pr`. The interactive
+gate is forced with a `⚠️  CI FAILED — FIX-PR recommended` prefix. Log:
+`"Auto-merge suppressed: CI failed/timed out (exit {exitCode}). Interactive gate forced."`
+
+**`--non-interactive` + `--no-ci-watch` interaction:** When `--non-interactive` is set alongside
+`--no-ci-watch`, CI-Watch is skipped as normal. When `--non-interactive` is set WITHOUT
+`--no-ci-watch`, CI-Watch still runs but the interactive gate is skipped (auto-approve or
+auto-fail based on exit code — see CI failure guard above which forces interactive on exit 20/30).
 
 **`--manual-task-approval` is deprecated:** No-op. Emits one-time warning on first encounter.
 
