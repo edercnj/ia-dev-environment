@@ -114,7 +114,7 @@ public final class StatusFieldParser {
             // template contract (every artifact carries the
             // Status header).
             updated = replacement
-                    + System.lineSeparator() + content;
+                    + "\n" + content;
         }
         Path tmp = file.resolveSibling(
                 file.getFileName().toString() + ".tmp");
