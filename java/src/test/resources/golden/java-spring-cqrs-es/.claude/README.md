@@ -87,8 +87,9 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 19 | `19-backward-compatibility.md` | backward compatibility |
 | 20 | `20-interactive-gates.md` | interactive gates |
 | 20 | `20-telemetry-privacy.md` | telemetry privacy |
+| 21 | `21-ci-watch.md` | ci watch |
 
-**Total: 20 rules**
+**Total: 21 rules**
 
 ### Numbering
 
@@ -323,9 +324,8 @@ See the files directly for current configuration.
 
 | Component | Count |
 |-----------|-------|
-| Rules (.claude) | 20 |
-| Skills (.claude) | 63 |
-| Knowledge Packs (.claude) | 22 |
+| Rules (.claude) | 21 |
+| Skills (.claude) | 63 || Knowledge Packs (.claude) | 22 |
 | Agents (.claude) | 12 |
 | Hooks (.claude) | 9 |
 | Settings (.claude) | 2 |
