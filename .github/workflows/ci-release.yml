@@ -31,7 +31,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup JDK 21 (Temurin) + Maven cache
         uses: actions/setup-java@v4
@@ -84,7 +84,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Review new dependencies for CVEs / license issues
         uses: actions/dependency-review-action@v4
@@ -102,7 +102,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # server-id=github wires ~/.m2/settings.xml so `mvn deploy`
       # authenticates to GitHub Packages with the workflow token.
@@ -142,7 +142,7 @@ jobs:
       attestations: write   # SLSA build provenance attestation
     steps:
       - name: Checkout (for default release notes)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
