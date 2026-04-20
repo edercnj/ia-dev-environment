@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **story-0045-0001 (EPIC-0045):** New skill `x-pr-watch-ci` for polling PR CI checks + Copilot review detection with 8 stable exit codes (`SUCCESS/0`, `CI_PENDING_PROCEED/10`, `CI_FAILED/20`, `TIMEOUT/30`, `PR_ALREADY_MERGED/40`, `NO_CI_CONFIGURED/50`, `PR_CLOSED/60`, `PR_NOT_FOUND/70`). Encapsulates the `gh pr checks` / `statusCheckRollup` polling loop with configurable global timeout (default 1800s), Copilot-specific sub-timeout (default 900s), and atomic state-file for session resume. Introduced `PrWatchExitCode` enum and `PrWatchStatusClassifier` (zero-I/O, fully testable, covers all 8 codes via `@ParameterizedTest`).
+- **story-0045-0002 (EPIC-0045):** Rule 21 (CI-Watch) formalizes `x-pr-watch-ci` as the default CI gate in schema v2 orchestrators; no-op in schema v1 (Rule 19 backward-compat). Specifies opt-out via `--no-ci-watch`, fallback matrix (V1 no-op / V2 active / V2 skipped), and regression audit script `scripts/audit-rule-20.sh`. Adds `RulesAssemblerCiWatchTest` (3 tests) verifying rule is copied, has mandatory sections, and contains canonical identifiers. Golden files regenerated for all profiles.
+- **story-0045-0005 (EPIC-0045):** `x-release --ci-watch` flag enables opt-in CI gate between `x-pr-create` and the Phase 8 APPROVAL-GATE. When enabled, invokes `x-pr-watch-ci` via Rule 13 Pattern 1 INLINE-SKILL; aborts on `CI_FAILED` or `TIMEOUT`, proceeds on `SUCCESS` / `CI_PENDING_PROCEED` / `PR_ALREADY_MERGED` / `NO_CI_CONFIGURED`. `ReleaseSkillTest` gains 9 tests covering the `--ci-watch` phase block.
+- **story-0045-0006 (EPIC-0045):** `Epic0045SmokeTest` validates the end-to-end CI-Watch integration contract: 8 stable exit codes (RULE-045-05), `PrWatchStatusClassifier` coverage of all 8 codes, `x-pr-watch-ci` SKILL.md existence and content, golden file regeneration, and `SkillsAssembler` discoverability. SMOKE_E2E=true path creates a live PR and exercises the full flow.
+
+### Changed
+
+- **story-0045-0003 (EPIC-0045):** `x-story-implement` Phase 2.2.8.5: new step between PR_CREATED and the interactive APPROVAL GATE. Invokes `x-pr-watch-ci` via Rule 13 INLINE-SKILL and waits for CI checks + Copilot review to complete before presenting the gate menu. Forces the interactive menu (instead of auto-proceed) on `CI_FAILED` or `TIMEOUT`; proceeds transparently on `SUCCESS` / `CI_PENDING_PROCEED`. Skipped when `planningSchemaVersion == "1.0"` (Rule 19) or `--no-ci-watch` flag present.
+- **story-0045-0004 (EPIC-0045):** `x-task-implement --worktree` Step 4.5: waits for CI checks via `x-pr-watch-ci` before the approval gate when running standalone (non-orchestrated). Skipped when invoked by a parent orchestrator (`x-story-implement`, `x-epic-implement`) to avoid double-waiting; skipped when `--no-ci-watch` flag present.
+
 - **story-0043-0001 (EPIC-0043):** Convention — Interactive Gates (ADR-0010 + Rule 20).
   Establishes the canonical 3-option gate menu (`PROCEED` / `FIX-PR` / `ABORT`) as the
   default behavior for all orchestrating skills that pause for human approval
