@@ -223,6 +223,69 @@ public final class LifecycleReconciler {
         };
     }
 
+    /**
+     * Applies the given divergences to disk via
+     * {@link StatusFieldParser#writeStatus(Path,
+     * LifecycleStatus)}.
+     *
+     * <p>Every divergence is first validated against
+     * {@link LifecycleTransitionMatrix}. A forbidden
+     * transition (e.g. markdown=Concluída but
+     * state.json=PENDING — the matrix allows CONCLUIDA→
+     * EM_ANDAMENTO but not CONCLUIDA→PENDENTE) aborts the
+     * apply BEFORE any write, so either all valid divergences
+     * apply or none do. The first invalid divergence throws
+     * {@link StatusTransitionInvalidException} (exit 40).</p>
+     *
+     * <p>Null {@code from} (markdown has no Status header) is
+     * special-cased as ALLOWED for any target — Rule 22
+     * permits re-establishing the invariant by prepending the
+     * Status line. This matches
+     * {@link StatusFieldParser#writeStatus} behaviour.</p>
+     *
+     * <p>Rule 19 — callers must check
+     * {@link #isLegacyV1(Path)} FIRST and short-circuit; this
+     * method does NOT inspect the epic directory.</p>
+     *
+     * <p>RULE-046-07 — never writes to
+     * {@code execution-state.json}. The markdown is the
+     * single source of truth; the state file is telemetry.</p>
+     *
+     * @param divergences the divergences to apply (no-op when
+     *     empty)
+     * @return the list of files actually rewritten (each
+     *     appears at most once — {@code IMPLEMENTATION-MAP.md}
+     *     would be deduplicated if multiple row-level
+     *     divergences targeted it; currently per-story
+     *     divergences do not touch the map)
+     */
+    public List<Path> apply(List<Divergence> divergences) {
+        if (divergences == null || divergences.isEmpty()) {
+            return Collections.emptyList();
+        }
+        // Pre-validate every transition BEFORE any write.
+        for (Divergence d : divergences) {
+            validateTransition(d);
+        }
+        List<Path> written = new ArrayList<>();
+        for (Divergence d : divergences) {
+            StatusFieldParser.writeStatus(d.file(), d.to());
+            if (!written.contains(d.file())) {
+                written.add(d.file());
+            }
+        }
+        return written;
+    }
+
+    private static void validateTransition(Divergence d) {
+        if (d.from() == null) {
+            // Re-establishing the invariant is always valid.
+            return;
+        }
+        LifecycleTransitionMatrix.validateOrThrow(
+                d.from(), d.to());
+    }
+
     static Path resolveStateFile(Path epicDir) {
         return epicDir.resolve(EXEC_STATE_FILE);
     }
