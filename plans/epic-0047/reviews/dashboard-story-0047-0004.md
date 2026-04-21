@@ -15,10 +15,10 @@
 | Performance | 26 | 26 | **Approved** | [`review-perf-story-0047-0004.md`](review-perf-story-0047-0004.md) |
 | DevOps | 20 | 20 | **Approved** | [`review-devops-story-0047-0004.md`](review-devops-story-0047-0004.md) |
 | **Specialists total** | **80** | **82** | **Approved** | — |
-| Tech Lead | — | 45 | Pending (Phase 3.6) | — |
+| Tech Lead | 43 | 45 | **GO** | [`review-tech-lead-story-0047-0004.md`](review-tech-lead-story-0047-0004.md) |
 
-**Overall Score (specialists only): 80/82 = 97.6%**
-**Overall Status: APPROVED**
+**Overall Score (specialists + Tech Lead): 123/127 = 96.9%**
+**Overall Status: APPROVED (GO)**
 
 Not-applicable specialists (skipped — conditions not met): Database (no DB), Observability (none), Data Modeling (no DB), Security (no security-surface change — doc only; auditable file set has no code, crypto, auth, or input handling), API (no REST surface touched), Events (event_driven=false).
 
@@ -29,7 +29,7 @@ Not-applicable specialists (skipped — conditions not met): Database (no DB), O
 | CRITICAL | 0 |
 | HIGH | 0 |
 | MEDIUM | 0 |
-| LOW | 2 (QA-18a, QA-18b — both deferred; not blocking merge) |
+| LOW | 3 (QA-18a, QA-18b — both deferred; TL-Low-01 — DisplayName-vs-assertion threshold cosmetic mismatch, non-blocking) |
 
 ## Critical / High Issues Summary
 
@@ -49,3 +49,4 @@ None. All findings are LOW and explicitly marked as optional future enhancements
 | Round | Date | Specialists | Score | Status | Notes |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | 1 | 2026-04-21 | QA, Performance, DevOps | 80/82 (97.6%) | Approved | Inline mode (doc-refactor scope); Tech Lead (Phase 3.6) pending. |
+| 2 | 2026-04-21 | Tech Lead (post-hoc, independent) | 43/45 (95.6%) | GO | Post-hoc review dispatched by epic orchestrator after implementing subagent exited mid-lifecycle. Full test suite 4237/4237 local. −2 pts Section K (no per-task atomic commits — recovery-event single commit; sanctioned by story plan §7.3 as test-after-no-new-code for doc refactor). −1 pt Section I (`DisplayName` on `smoke_kpsHaveCarvedExamples` says ≤ 250 lines but assertion uses HARD_LIMIT=500 — cosmetic; actual values 46-64 satisfy both). Recommendation: **AUTO_MERGE** after CI green. |
