@@ -47,12 +47,12 @@ class XTaskImplementMarkersIT {
                 .count();
 
         assertThat(startCount)
-                .as("x-task-implement must emit 3 phase.start markers "
-                        + "(Red, Green, Refactor)")
-                .isEqualTo(3);
+                .as("x-task-implement must emit 4 phase.start markers "
+                        + "(Red, Green, Refactor, CI-Watch)")
+                .isEqualTo(4);
         assertThat(endCount)
-                .as("x-task-implement must emit 3 phase.end markers")
-                .isEqualTo(3);
+                .as("x-task-implement must emit 4 phase.end markers")
+                .isEqualTo(4);
     }
 
     @Test
