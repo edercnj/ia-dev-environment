@@ -228,14 +228,16 @@ public final class LifecycleReconciler {
      * {@link StatusFieldParser#writeStatus(Path,
      * LifecycleStatus)}.
      *
-     * <p>Every divergence is first validated against
-     * {@link LifecycleTransitionMatrix}. A forbidden
-     * transition (e.g. markdown=Concluída but
-     * state.json=PENDING — the matrix allows CONCLUIDA→
-     * EM_ANDAMENTO but not CONCLUIDA→PENDENTE) aborts the
-     * apply BEFORE any write, so either all valid divergences
-     * apply or none do. The first invalid divergence throws
-     * {@link StatusTransitionInvalidException} (exit 40).</p>
+     * <p>Every divergence is pre-validated for regression: a
+     * target whose lifecycle rank is strictly lower than the
+     * source's rank is a semantic regression (e.g. markdown=
+     * Concluída but state.json=PENDING) and aborts the apply
+     * BEFORE any write, throwing
+     * {@link StatusTransitionInvalidException} (exit 40, per
+     * story §3.3). Forward backfill transitions (e.g.
+     * PENDENTE → CONCLUIDA) are ALWAYS allowed — that is
+     * precisely the legacy-epic recovery the skill exists to
+     * support.</p>
      *
      * <p>Null {@code from} (markdown has no Status header) is
      * special-cased as ALLOWED for any target — Rule 22
@@ -282,8 +284,32 @@ public final class LifecycleReconciler {
             // Re-establishing the invariant is always valid.
             return;
         }
-        LifecycleTransitionMatrix.validateOrThrow(
-                d.from(), d.to());
+        // Reconciliation is a retroactive sync: markdown is
+        // catching up to state.json (telemetry). Forward
+        // backfill (e.g. PENDENTE → CONCLUIDA, Em Andamento →
+        // Concluída) is ALWAYS allowed because it restores the
+        // Rule 22 invariant that got out of sync. The matrix
+        // is consulted only to detect the suspicious case —
+        // markdown CONCLUIDA with state.json=PENDING — which
+        // is semantically a regression and must abort loudly
+        // (story §3.3). The rank ordering below codifies the
+        // forward lifecycle direction; a target whose rank is
+        // lower than the source's rank is a regression.
+        if (rank(d.to()) < rank(d.from())) {
+            throw new StatusTransitionInvalidException(
+                    d.from(), d.to());
+        }
+    }
+
+    private static int rank(LifecycleStatus s) {
+        return switch (s) {
+            case PENDENTE -> 0;
+            case PLANEJADA -> 1;
+            case EM_ANDAMENTO -> 2;
+            case BLOQUEADA -> 3;
+            case FALHA -> 4;
+            case CONCLUIDA -> 5;
+        };
     }
 
     static Path resolveStateFile(Path epicDir) {
