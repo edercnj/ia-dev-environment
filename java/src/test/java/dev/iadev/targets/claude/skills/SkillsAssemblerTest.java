@@ -51,4 +51,30 @@ class SkillsAssemblerTest {
                         + "x-pr-merge-train/SKILL.md exists")
                 .exists();
     }
+
+    @Test
+    @DisplayName("listSkills includes x-status-reconcile "
+            + "(EPIC-0046 story-0006)")
+    void listSkills_includesStatusReconcile(
+            @TempDir Path tempDir) throws IOException {
+        Path outputDir = tempDir.resolve("output");
+        Files.createDirectories(outputDir);
+
+        new SkillsAssembler().assemble(
+                TestConfigBuilder.minimal(),
+                new TemplateEngine(),
+                outputDir);
+
+        assertThat(
+                outputDir.resolve(
+                        "skills/x-status-reconcile/"
+                                + "SKILL.md"))
+                .as("x-status-reconcile must be "
+                        + "discoverable in the core skill "
+                        + "catalog — check that "
+                        + "targets/claude/skills/core/ops/"
+                        + "x-status-reconcile/SKILL.md "
+                        + "exists")
+                .exists();
+    }
 }
