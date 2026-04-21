@@ -844,13 +844,23 @@ For each phase in (0..totalPhases-1):
      b. Dispatch subagent (see 1.4 or 1.4a)
      c. Validate result (see 1.5)
      d. Update checkpoint (see 1.6)
-     e. Circuit breaker check (Section 1.7):
+     e. Markdown Status Sync (Phase 1.7 — see Section 1.7 below): propagate the
+        updated status to `story-XXXX-YYYY.md` and to the IMPLEMENTATION-MAP row
+        via the helpers from story-0046-0001 / story-0046-0004. V2-gated and
+        unskippable on the happy path (Rule 22 RULE-046-04 — non-skippable
+        status transition). Failure aborts the loop with exit STATUS_SYNC_FAILED.
+     f. Circuit breaker check (Section 1.7b):
         - If story SUCCESS: reset consecutiveFailures to 0
         - If story FAILED: increment consecutiveFailures and totalFailuresInPhase
-  7. Run integrity gate between phases (Section 1.7 — Local Integrity Gate)
-  8. Post-gate prompt: present options to user (Section 1.7b)
+  7. Run integrity gate between phases (Section 1.7c — Local Integrity Gate)
+  8. Post-gate prompt: present options to user (Section 1.7d)
   9. Generate phase completion report (Read references/phase-reports.md)
   10. Re-read checkpoint via readCheckpoint(epicDir) for next iteration
+
+After the Core Loop finishes (last phase completes and all stories are SUCCESS),
+the orchestrator enters Phase 5 — Epic Finalization (see Section 5 below) to
+transition the epic Status to `Concluído` and atomically commit the epic-closing
+diff. Phase 5 is V2-gated and fail-loud (Rule 22 RULE-046-08).
 ```
 
 The loop ensures that:
@@ -1370,7 +1380,26 @@ After each story completes (success or failure), persist the result:
 3. The checkpoint is persisted atomically to `execution-state.json` via the checkpoint engine
 4. Between story completions, the checkpoint always reflects the current execution state
 
-### 1.6b Markdown Status Sync
+### 1.7 Phase 1.7 — Markdown Status Sync (was Section 1.6b, promoted to Phase 1.7 by story-0046-0004)
+
+Phase 1.7 is cabled explicitly into the Core Loop step 6e (Section 1.3). It runs
+after every story checkpoint update and is the single source of truth for
+propagating a story's end-of-life status from `execution-state.json` to the
+markdown artifacts (`story-XXXX-YYYY.md` + IMPLEMENTATION-MAP row). V2-gated:
+when `planningSchemaVersion == "2.0"`, Phase 1.7 is unskippable on the happy
+path (Rule 22 RULE-046-04). Each helper call is fail-loud — any
+`StatusSyncException` exits the orchestrator with code `STATUS_SYNC_FAILED` and
+stderr carrying the offending path (Rule 22 RULE-046-08). V1 epics retain the
+legacy in-place rewrite below (Rule 19 — backward compatibility).
+
+Implementation uses the helpers shipped by story-0046-0001 and story-0046-0004:
+
+- `StatusFieldParser.readStatus(path)` / `.writeStatus(path, status)` — atomic
+  Status header read/write for story and epic markdown files.
+- `LifecycleTransitionMatrix.validateOrThrow(current, target)` — rejects illegal
+  transitions (e.g., PENDENTE → CONCLUIDA without passing EM_ANDAMENTO).
+- `EpicMapRowUpdater.updateRow(mapFile, storyId, newStatus)` — atomic rewrite of
+  the Status cell of a single row in `IMPLEMENTATION-MAP.md`.
 
 After updating the execution-state.json checkpoint (Section 1.6), propagate the status
 change to markdown files. This is executed by the orchestrator (not the subagent) to ensure
@@ -1417,10 +1446,14 @@ consistency across local files and external systems.
 | BLOCKED | Bloqueada | — |
 | PENDING | Pendente | — |
 
-**Epic-level completion check:**
+**Epic-level completion check (legacy inline shortcut — v1 only):**
+
+Retained for backward compatibility with schema v1 epics (Rule 19). When
+`planningSchemaVersion == "2.0"`, epic finalization is handled by **Phase 5 —
+Epic Finalization** (Section 5 below), which is the normative path.
 
 After updating story status to SUCCESS, check if ALL stories in the epic have status SUCCESS
-in the checkpoint. If yes:
+in the checkpoint. If yes (v1 only):
 1. Read `plans/epic-{epicId}/EPIC-{epicId}.md`
 2. Update the `**Status:**` field from `Em Andamento` to `Concluído`
 3. If the epic has a Jira key (not `—` or `<CHAVE-JIRA>`):
@@ -1428,6 +1461,71 @@ in the checkpoint. If yes:
    - Find the transition to "Done"
    - Call `mcp__atlassian__transitionJiraIssue`
    - If transition fails: log warning, continue (non-blocking)
+
+### 5. Phase 5 — Epic Finalization (V2-gated, added by story-0046-0004)
+
+Phase 5 is the end-of-epic status-finalize block. It executes **once**, after
+the Core Loop finishes the last phase with all stories reaching SUCCESS, and
+before the orchestrator returns to the caller. V2-gated — only active when
+`planningSchemaVersion == "2.0"`. For v1 epics, the legacy inline shortcut
+above is used instead (Rule 19 fallback).
+
+**Preconditions.** Every story in `execution-state.json` MUST be in `SUCCESS`
+state. If any story is still `PENDING`, `IN_PROGRESS`, `FAILED`, `PARTIAL`, or
+`BLOCKED`, Phase 5 is a no-op and the orchestrator returns with the existing
+mixed state (Rule 22 — source-of-truth invariant — prevents false epic
+closure).
+
+**Sub-steps (all fail-loud — any failure exits STATUS_SYNC_FAILED per
+Rule 22 RULE-046-08).**
+
+1. **Read epic Status.** Call `StatusFieldParser.readStatus(epicFilePath)`
+   where `epicFilePath = plans/epic-{epicId}/epic-{epicId}.md`. The expected
+   current value is `EM_ANDAMENTO` or `EM_REFINAMENTO` (legacy label —
+   tolerated by Rule 22 matrix, treated as EM_ANDAMENTO for transition
+   purposes). If the file is missing: exit `STATUS_SYNC_FAILED` with the path
+   in stderr (fail-loud scenario covered by story-0046-0004 AC).
+
+2. **Validate transition.** `LifecycleTransitionMatrix.validateOrThrow(current,
+   CONCLUIDA)`. Rejection → exit `STATUS_SYNC_FAILED`.
+
+3. **Write epic Status = Concluído.** `StatusFieldParser.writeStatus(
+   epicFilePath, LifecycleStatus.CONCLUIDA)`. Atomic write via
+   temp-file-plus-rename. IOException → `StatusSyncException` → exit
+   `STATUS_SYNC_FAILED`.
+
+4. **Atomic commit.** Stage exactly the epic file and invoke x-git-commit via
+   the Skill tool (Rule 13 Pattern 1 — INLINE-SKILL):
+
+       Skill(skill: "x-git-commit", args: "--type chore --scope epic-{epicId} --subject \"finalize status to Concluído\" --body \"Epic Status: Em Andamento → Concluído. Implementation map columns updated for all stories.\"")
+
+   The pre-commit chain (format → lint → compile) MUST succeed.
+
+5. **Idempotency.** If Step 1 reads `CONCLUIDA`, log
+   `"Phase 5: epic {epicId} already Concluído — no-op"` and return. No commit
+   is created (Rule 22 RULE-046-06 — clean workdir invariant after re-run).
+
+6. **Clean-workdir verification.** After the commit (or no-op return), assert
+   `git status --porcelain` is empty. A dirty workdir exits
+   `STATUS_SYNC_FAILED` — this catches orphan `*.tmp` files from a partially
+   failed atomic move (Rule 22 RULE-046-06).
+
+7. **Jira epic transition (optional, non-blocking).** If the epic has a Jira
+   key, call `mcp__atlassian__transitionJiraIssue` to move the epic to Done.
+   Failures log a warning and continue — Jira is an external system outside
+   the Rule 22 fail-loud contract.
+
+**Gherkin contract.** Phase 5 satisfies the following acceptance criteria from
+story-0046-0004 §7:
+
+- "Épico v2 happy path — story e epic concluídos" — 3 commits exist: 2
+  story-finalize (Phase 3.8.5) + 1 epic-finalize (this phase).
+- "Falha de status update no epic-finalize (fail loud)" — deleting the epic
+  file before Phase 5 triggers exit `STATUS_SYNC_FAILED` with the path in
+  stderr.
+- "Clean workdir após x-epic-implement" — Step 6 assertion.
+- "Idempotência — re-rodar x-epic-implement em épico já concluído" — Step 5
+  short-circuit.
 
 ### 1.7 Extension Points
 
