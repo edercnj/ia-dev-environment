@@ -268,6 +268,41 @@ that Product Owners and reviewers can inspect before authorizing execution.
 4. Write the plan to `plans/epic-{epicId}/reports/epic-execution-plan-{epicId}.md`
 5. The plan header MUST include: Epic ID, Date, Author (role), Template Version (RULE-011)
 
+#### Atomic Commit — Execution Plan (V2-gated, story-0046-0005)
+
+After the execution-plan file has been written (or confirmed reused) and
+BEFORE entering the wave loop, orchestrators running a v2 epic
+(`planningSchemaVersion == "2.0"`) MUST commit the report atomically so that
+the working tree stays clean for downstream tools (RULE-046-05, RULE-046-06).
+
+Fallback matrix (Rule 19 — Backward Compatibility):
+
+| `planningSchemaVersion` | Action |
+| :--- | :--- |
+| absent / `"1.0"` / invalid | **V1 no-op.** Skip the commit block entirely. Reports remain optional and uncommitted (legacy behavior). |
+| `"2.0"` | **V2 active.** Execute the 3-step block below. |
+
+Three-step block (V2 only):
+
+1. **Stage**: `git add plans/{epicId}/reports/epic-execution-plan-{epicId}.md`
+   (idempotent — adding an already-tracked file with no diff is a no-op and
+   keeps the block safe across resume).
+2. **Build message** via `ReportCommitMessageBuilder.executionPlan(epicId,
+   waves, stories)` — produces the canonical subject `docs(epic-{epicId}):
+   add execution plan` plus body with wave count, story count, schema tag,
+   and `Refs:` line.
+3. **Commit** via Rule 13 Pattern 1 INLINE-SKILL:
+
+       Skill(skill: "x-git-commit", args: "--message \"<built message>\"")
+
+   On non-zero exit, abort the epic with exit code
+   `REPORT_COMMIT_FAILED` (21) and stream the hook's stderr so the operator
+   can diagnose (RULE-046-08 — fail loud). Do NOT fall back to `--no-verify`.
+
+Idempotence: if staging produces no diff (file already committed on a prior
+run of the epic), skip the `Skill(x-git-commit)` call with log
+`"Reusing committed execution plan for EPIC-{epicId}"` and proceed.
+
 ## Resume Workflow
 
 When `--resume` is set, the orchestrator loads `execution-state.json` and applies a two-pass reclassification before re-entering the execution loop.
@@ -1676,6 +1711,53 @@ The phase completion report is generated AFTER the integrity gate completes
 (whether PASS or FAIL). This ensures the gate results are included in the report.
 If the gate fails, the report documents the failure and serves as a diagnostic
 artifact for the operator deciding whether to resume or abort.
+
+#### Atomic Commit — Phase Report (V2-gated, story-0046-0005)
+
+After the phase-report subagent returns with the generated path, the
+orchestrator MUST commit the report atomically before advancing to the next
+wave (RULE-046-05 — reports atomically committed, RULE-046-06 — clean
+workdir invariant). This eliminates the window where reports are orphaned on
+the working tree and prevents false positives in
+`x-release VALIDATE_DIRTY_WORKDIR`.
+
+Fallback matrix (Rule 19 — Backward Compatibility):
+
+| `planningSchemaVersion` | Action |
+| :--- | :--- |
+| absent / `"1.0"` / invalid | **V1 no-op.** Skip the commit block entirely. Phase reports remain optional and uncommitted. |
+| `"2.0"` | **V2 active.** Execute the 3-step block below once per wave, immediately after Phase 1.7 (per-wave status sync from story-0046-0004). |
+
+Three-step block (V2 only, one per wave):
+
+1. **Stage** the phase-report path returned by the subagent:
+   `git add plans/{epicId}/reports/phase-{N}-completion-{epicId}.md`
+   (idempotent; no-op when no diff).
+2. **Build message** via `ReportCommitMessageBuilder.phaseReport(epicId,
+   waveNumber, storyCount, commitCount)` — produces subject
+   `docs(epic-{epicId}): add phase-{N} report` plus body summarising the
+   wave outcome.
+3. **Commit** via Rule 13 Pattern 1 INLINE-SKILL:
+
+       Skill(skill: "x-git-commit", args: "--message \"<built message>\"")
+
+   On non-zero exit, abort with exit code `REPORT_COMMIT_FAILED` (21) and
+   stream the hook's stderr (RULE-046-08 — fail loud).
+   Do NOT fall back to `--no-verify`.
+
+Canonical v2 ordering (see story-0046-0005 §3.4):
+
+```
+Wave N executes
+ → Phase 1.7 (per-story status sync — story 0046-0004) → commit docs(story-*)
+ → Phase 1.8 (NEW: phase-report write + commit — this story) → commit docs(epic-*)
+ → advance to Wave N+1
+...
+Phase 5 (epic finalize — story 0046-0004) → commit chore(epic-*)
+```
+
+Idempotence: if staging produces no diff, skip the commit with log
+`"Reusing committed phase-{N} report for EPIC-{epicId}"` and proceed.
 
 <!-- TELEMETRY: phase.end -->
 Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-implement Phase-1-Execution-Loop ok`

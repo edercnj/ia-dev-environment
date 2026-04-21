@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **story-0046-0005 (EPIC-0046):** `ReportCommitMessageBuilder` — canonical
+  builder of Conventional Commit messages for atomic epic report commits
+  (`docs(epic-XXXX): add execution plan` and `docs(epic-XXXX): add phase-N
+  report`). V2-gated retrofit of `x-epic-implement/SKILL.md` wires
+  `Skill(skill: "x-git-commit", ...)` via Rule 13 Pattern 1 INLINE-SKILL
+  immediately after each write to `plans/epic-XXXX/reports/`, closing the
+  window where reports were orphaned on the working tree and triggered
+  false positives in `x-release` `VALIDATE_DIRTY_WORKDIR`. Fails loudly
+  with exit `REPORT_COMMIT_FAILED` (21) on commit rejection (RULE-046-08);
+  forbids `--no-verify` fallback. Rule 19 backward compatibility preserved
+  — v1 epics remain untouched. New tests: `ReportCommitMessageBuilderTest`
+  (12), `ExecutionPlanCommitSmokeTest` (6), `PhaseReportCommitsSmokeTest`
+  (6), `EpicImplementReleaseCompatTest` (3), `ReportCommitFailLoudTest`
+  (3), `EpicV1NoReportCommitTest` (4).
+
 - **story-0045-0001 (EPIC-0045):** New skill `x-pr-watch-ci` for polling PR CI checks + Copilot review detection with 8 stable exit codes (`SUCCESS/0`, `CI_PENDING_PROCEED/10`, `CI_FAILED/20`, `TIMEOUT/30`, `PR_ALREADY_MERGED/40`, `NO_CI_CONFIGURED/50`, `PR_CLOSED/60`, `PR_NOT_FOUND/70`). Encapsulates the `gh pr checks` / `statusCheckRollup` polling loop with configurable global timeout (default 1800s), Copilot-specific sub-timeout (default 900s), and atomic state-file for session resume. Introduced `PrWatchExitCode` enum and `PrWatchStatusClassifier` (zero-I/O, fully testable, covers all 8 codes via `@ParameterizedTest`).
 - **story-0045-0002 (EPIC-0045):** Rule 21 (CI-Watch) formalizes `x-pr-watch-ci` as the default CI gate in schema v2 orchestrators; no-op in schema v1 (Rule 19 backward-compat). Specifies opt-out via `--no-ci-watch`, fallback matrix (V1 no-op / V2 active / V2 skipped), and regression audit script `scripts/audit-rule-20.sh`. Adds `RulesAssemblerCiWatchTest` (3 tests) verifying rule is copied, has mandatory sections, and contains canonical identifiers. Golden files regenerated for all profiles.
 - **story-0045-0005 (EPIC-0045):** `x-release --ci-watch` flag enables opt-in CI gate between `x-pr-create` and the Phase 8 APPROVAL-GATE. When enabled, invokes `x-pr-watch-ci` via Rule 13 Pattern 1 INLINE-SKILL; aborts on `CI_FAILED` or `TIMEOUT`, proceeds on `SUCCESS` / `CI_PENDING_PROCEED` / `PR_ALREADY_MERGED` / `NO_CI_CONFIGURED`. `ReleaseSkillTest` gains 9 tests covering the `--ci-watch` phase block.
