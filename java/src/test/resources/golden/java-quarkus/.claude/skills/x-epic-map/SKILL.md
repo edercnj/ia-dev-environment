@@ -375,3 +375,34 @@ If task-level dependencies were computed, also report: total tasks, task phases,
 |----------------|-------|
 | story-planning | Phase computation, dependency DAG, critical path analysis |
 | parallelism-heuristics | Step 8.5 collision categories (hard/regen/soft) consumed from `/x-parallel-eval` output |
+
+## Planning Status Propagation (Rule 22 / EPIC-0046)
+
+> V2-gated: only runs when the epic declares `planningSchemaVersion: "2.0"` in its `execution-state.json`. For v1 epics: skip silently (Rule 19).
+
+`x-epic-map` reads story files (it does NOT write to them) and emits/refreshes `plans/epic-XXXX/IMPLEMENTATION-MAP.md` with two lifecycle columns:
+
+- **Planejamento** — mirrors the current `**Status:**` of each story (values: `Pendente`, `Planejada`, `Em Andamento`, `Concluída`, `Falha`, `Bloqueada`).
+- **Status** — the execution lifecycle status (same six values; driven by `x-story-implement` / `x-epic-implement` downstream).
+
+Both columns are populated by reading the story files in situ via the CLI. `x-epic-map` never transitions any story — it is a read-only skill with respect to lifecycle status. The `{{PLANNING_STATUS}}` token in the implementation-map template is resolved at render-time by reading each story.
+
+**Steps (end of map generation, BEFORE the final commit):**
+
+1. Detect v2 via `execution-state.json`. If v1: leave legacy columns untouched (skip this block).
+2. For each story row being rendered into the map:
+   ```bash
+   STATUS=$(java -cp $CLAUDE_PROJECT_DIR/java/target/classes \
+       dev.iadev.adapter.inbound.cli.StatusFieldParserCli \
+       read plans/epic-XXXX/story-XXXX-YYYY.md)
+   ```
+   Use `$STATUS` to fill the `Planejamento` column for that row. Exit code 20 for any story → abort map generation (source-of-truth invariant RULE-046-01 must hold).
+3. The `Status` (execution) column is filled from `execution-state.json` (not from the story file) — the story's `**Status:**` line is authoritative for planning only in v2.
+4. Stage and commit the updated map:
+   ```bash
+   git add plans/epic-XXXX/IMPLEMENTATION-MAP.md
+   ```
+
+       Skill(skill: "x-git-commit", args: "docs(epic-XXXX): refresh implementation map with lifecycle columns")
+
+**Fail-loud:** CLI exit 20 on any story aborts map generation (RULE-046-08). `x-epic-map` never calls `write` on a story — the skill only reads.
