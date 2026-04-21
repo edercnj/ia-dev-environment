@@ -1156,3 +1156,45 @@ agent file), a v2 run produces:
 - `task-TASK-XXXX-YYYY-NNN.md` × N  (one per task)
 - `plan-task-TASK-XXXX-YYYY-NNN.md` × N  (one per task)
 - `task-implementation-map-STORY-XXXX-YYYY.md` × 1
+
+## Planning Status Propagation (Rule 22 / EPIC-0046)
+
+> V2-gated: only runs when `SchemaVersionResolver.resolve(plans/epic-XXXX/execution-state.json) == V2`. v1 epics: skip silently (Rule 19 backward compatibility).
+
+After writing every plan artefact produced by this skill (Implementation Plan, Task Breakdown, DoR report), propagate the source-artifact lifecycle status from `Pendente` to `Planejada` in the SAME commit as the plan artefact. See RULE-046-02 (Planning updates status) and RULE-046-06 (clean-workdir invariant).
+
+**Steps (appended at the end of the planning phase, BEFORE the final commit):**
+
+1. Resolve planning schema version:
+   ```bash
+   SCHEMA=$(java -cp $CLAUDE_PROJECT_DIR/java/target/classes \
+       dev.iadev.adapter.inbound.cli.StatusFieldParserCli \
+       read plans/epic-XXXX/execution-state.json 2>/dev/null || echo "V1")
+   ```
+   If the execution-state.json is v1 (or absent), skip the remainder of this section.
+
+2. For the source story file `plans/epic-XXXX/story-XXXX-YYYY.md`, read current status:
+   ```bash
+   CURRENT=$(java -cp $CLAUDE_PROJECT_DIR/java/target/classes \
+       dev.iadev.adapter.inbound.cli.StatusFieldParserCli \
+       read plans/epic-XXXX/story-XXXX-YYYY.md)
+   ```
+
+3. If `CURRENT == "Pendente"`, transition to `Planejada`:
+   ```bash
+   java -cp $CLAUDE_PROJECT_DIR/java/target/classes \
+       dev.iadev.adapter.inbound.cli.StatusFieldParserCli \
+       write plans/epic-XXXX/story-XXXX-YYYY.md Planejada
+   ```
+   Exit codes: `0` OK, `20` STATUS_SYNC_FAILED (abort skill), `40` STATUS_TRANSITION_INVALID (abort skill). If `CURRENT == "Planejada"`, skip write (idempotent re-run).
+
+4. Stage the source artifact alongside the plan artefacts:
+   ```bash
+   git add plans/epic-XXXX/story-XXXX-YYYY.md plans/epic-XXXX/plans/plan-story-XXXX-YYYY.md plans/epic-XXXX/plans/tasks-story-XXXX-YYYY.md
+   ```
+
+5. Invoke `x-git-commit` via the Skill tool (Rule 13 Pattern 1 INLINE-SKILL) with both files already staged:
+
+       Skill(skill: "x-git-commit", args: "docs(story-XXXX-YYYY): add plan + update status to Planejada")
+
+**Fail-loud:** any non-zero exit from `StatusFieldParserCli` aborts the skill with the same exit code (RULE-046-08). Do NOT commit the plan without the status update.
