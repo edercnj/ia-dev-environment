@@ -120,9 +120,9 @@ tables or code blocks are ignored.
 mvn -pl java test -Dtest=LifecycleIntegrityAuditTest
 
 # Scan a directory of skills / artifacts (story-0046-0007):
-# CLI entry-point will be added by story-0046-0007 (StatusFieldParserCli).
-# Until then, invoke the runner programmatically via tests:
-mvn -pl java test -Dtest=LifecycleAuditRunnerTest
+java -cp java/target/classes:java/target/test-classes \
+    dev.iadev.application.lifecycle.LifecycleAuditRunner \
+    java/src/main/resources/targets/claude/skills
 ```
 
 **Exit codes:** 0 = AUDIT PASSED, 1 = AUDIT FAILED (violations
