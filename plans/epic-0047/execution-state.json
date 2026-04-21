@@ -1,0 +1,66 @@
+{
+  "epicId": "0047",
+  "baseBranch": "develop",
+  "startedAt": "2026-04-21T00:00:00Z",
+  "totalPhases": 2,
+  "stories": [
+    {"id": "story-0047-0001", "phase": 0},
+    {"id": "story-0047-0003", "phase": 0},
+    {"id": "story-0047-0002", "phase": 1},
+    {"id": "story-0047-0004", "phase": 1}
+  ],
+  "storyEntries": {
+    "story-0047-0001": {
+      "id": "story-0047-0001",
+      "phase": 0,
+      "planningStatus": "READY",
+      "planningStartedAt": "2026-04-21T15:10:39Z",
+      "planningCompletedAt": "2026-04-21T15:11:00Z",
+      "dorVerdict": "READY",
+      "artifacts": [
+        "plans/epic-0047/plans/tasks-story-0047-0001.md",
+        "plans/epic-0047/plans/planning-report-story-0047-0001.md",
+        "plans/epic-0047/plans/dor-story-0047-0001.md"
+      ]
+    },
+    "story-0047-0003": {
+      "id": "story-0047-0003",
+      "phase": 0,
+      "planningStatus": "READY",
+      "planningStartedAt": "2026-04-21T15:10:39Z",
+      "planningCompletedAt": "2026-04-21T15:11:00Z",
+      "dorVerdict": "READY",
+      "artifacts": [
+        "plans/epic-0047/plans/tasks-story-0047-0003.md",
+        "plans/epic-0047/plans/planning-report-story-0047-0003.md",
+        "plans/epic-0047/plans/dor-story-0047-0003.md"
+      ]
+    },
+    "story-0047-0002": {
+      "id": "story-0047-0002",
+      "phase": 1,
+      "planningStatus": "READY",
+      "planningStartedAt": "2026-04-21T15:11:00Z",
+      "planningCompletedAt": "2026-04-21T15:12:00Z",
+      "dorVerdict": "READY",
+      "artifacts": [
+        "plans/epic-0047/plans/tasks-story-0047-0002.md",
+        "plans/epic-0047/plans/planning-report-story-0047-0002.md",
+        "plans/epic-0047/plans/dor-story-0047-0002.md"
+      ]
+    },
+    "story-0047-0004": {
+      "id": "story-0047-0004",
+      "phase": 1,
+      "planningStatus": "READY",
+      "planningStartedAt": "2026-04-21T15:11:00Z",
+      "planningCompletedAt": "2026-04-21T15:12:00Z",
+      "dorVerdict": "READY",
+      "artifacts": [
+        "plans/epic-0047/plans/tasks-story-0047-0004.md",
+        "plans/epic-0047/plans/planning-report-story-0047-0004.md",
+        "plans/epic-0047/plans/dor-story-0047-0004.md"
+      ]
+    }
+  }
+}
