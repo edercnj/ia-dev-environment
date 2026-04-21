@@ -11,29 +11,13 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Verifies the hexagonal package structure scaffolding
- * required by story-0015-0002.
- *
- * <p>Tests validate:
- * <ul>
- *   <li>All 14 hexagonal directories exist</li>
- *   <li>Each directory contains a package-info.java</li>
- *   <li>Each package-info.java has Javadoc documentation</li>
- *   <li>Existing packages are not modified</li>
- * </ul>
- */
-@DisplayName("Hexagonal Package Structure (story-0015-0002)")
+@DisplayName("Hexagonal Package Structure")
 class HexagonalPackageStructureTest {
 
     private static final Path SRC_ROOT = Path.of(
         "src/main/java/dev/iadev"
     );
 
-    /**
-     * All hexagonal leaf packages that must exist with
-     * package-info.java files.
-     */
     private static final List<String> HEXAGONAL_PACKAGES = List.of(
         "domain/model",
         "domain/port/input",
@@ -46,24 +30,16 @@ class HexagonalPackageStructureTest {
         "infrastructure/adapter/output/template",
         "infrastructure/adapter/output/filesystem",
         "infrastructure/adapter/output/config",
-        "infrastructure/adapter/output/checkpoint",
         "infrastructure/adapter/output/progress",
-        "infrastructure/adapter/output/telemetry",
         "infrastructure/config"
     );
 
-    /**
-     * Output adapter subdirectories that must exist under
-     * infrastructure/adapter/output/.
-     * Extended in story-0039-0012 with the telemetry adapter.
-     */
     private static final List<String> OUTPUT_ADAPTER_SUBDIRS = List.of(
-        "template", "filesystem", "config", "checkpoint", "progress",
-        "telemetry"
+        "template", "filesystem", "config", "progress"
     );
 
     @Nested
-    @DisplayName("GK-2: Scaffolding completo criado com sucesso")
+    @DisplayName("Scaffolding completo criado com sucesso")
     class ScaffoldingCreated {
 
         @Test
@@ -84,15 +60,14 @@ class HexagonalPackageStructureTest {
     }
 
     @Nested
-    @DisplayName("GK-3: Scaffolding nao altera pacotes existentes")
+    @DisplayName("Scaffolding nao altera pacotes existentes")
     class ExistingPackagesPreserved {
 
         private static final List<String> EXISTING_PACKAGES = List.of(
             "cli", "config", "domain",
-            "domain/implementationmap", "domain/stack",
+            "domain/stack",
             "application/assembler", "template",
-            "checkpoint", "progress",
-            "exception", "util", "smoke"
+            "exception", "util"
         );
 
         @Test
@@ -113,20 +88,21 @@ class HexagonalPackageStructureTest {
     }
 
     @Nested
-    @DisplayName("GK-4: Todos os package-info.java seguem "
+    @DisplayName("Todos os package-info.java seguem "
         + "convencao de documentacao")
     class PackageInfoDocumentation {
 
         @Test
         @DisplayName("All hexagonal package-info.java files "
-            + "contain Javadoc with responsibility description")
+            + "contain Javadoc")
         void allPackageInfosHaveJavadoc() throws IOException {
             for (String pkg : HEXAGONAL_PACKAGES) {
                 Path packageInfoPath = SRC_ROOT
                     .resolve(pkg)
                     .resolve("package-info.java");
 
-                String content = Files.readString(packageInfoPath);
+                String content =
+                        Files.readString(packageInfoPath);
 
                 assertThat(content)
                     .as("Javadoc in %s/package-info.java", pkg)
@@ -136,22 +112,23 @@ class HexagonalPackageStructureTest {
         }
 
         @Test
-        @DisplayName("No package-info.java is empty or has "
-            + "only the package declaration")
+        @DisplayName("No package-info.java is empty")
         void noPackageInfoIsEmpty() throws IOException {
             for (String pkg : HEXAGONAL_PACKAGES) {
                 Path packageInfoPath = SRC_ROOT
                     .resolve(pkg)
                     .resolve("package-info.java");
 
-                String content = Files.readString(packageInfoPath);
+                String content =
+                        Files.readString(packageInfoPath);
                 String withoutPackageDecl = content
-                    .replaceAll("package\\s+[\\w.]+;", "")
+                    .replaceAll(
+                            "package\\s+[\\w.]+;", "")
                     .trim();
 
                 assertThat(withoutPackageDecl)
-                    .as("Content beyond package declaration in %s",
-                        pkg)
+                    .as("Content beyond package declaration "
+                            + "in %s", pkg)
                     .isNotEmpty();
             }
         }
@@ -159,31 +136,34 @@ class HexagonalPackageStructureTest {
         @Test
         @DisplayName("All hexagonal package-info.java files "
             + "reference a RULE")
-        void allPackageInfosReferenceRule() throws IOException {
+        void allPackageInfosReferenceRule()
+                throws IOException {
             for (String pkg : HEXAGONAL_PACKAGES) {
                 Path packageInfoPath = SRC_ROOT
                     .resolve(pkg)
                     .resolve("package-info.java");
 
-                String content = Files.readString(packageInfoPath);
+                String content =
+                        Files.readString(packageInfoPath);
 
                 assertThat(content)
-                    .as("RULE reference in %s/package-info.java",
-                        pkg)
+                    .as("RULE reference in "
+                            + "%s/package-info.java", pkg)
                     .containsPattern("RULE-\\d+");
             }
         }
     }
 
     @Nested
-    @DisplayName("GK-5: Estrutura de subdiretorios de output "
+    @DisplayName("Estrutura de subdiretorios de output "
         + "adapters esta completa")
     class OutputAdapterSubdirectories {
 
         @Test
         @DisplayName("infrastructure/adapter/output/ has "
-            + "exactly 6 subdirectories")
-        void outputAdapterHasSixSubdirs() throws IOException {
+            + "exactly 4 subdirectories")
+        void outputAdapterHasFourSubdirs()
+                throws IOException {
             Path outputAdapterPath = SRC_ROOT
                 .resolve("infrastructure/adapter/output");
 
@@ -192,15 +172,18 @@ class HexagonalPackageStructureTest {
                 .isDirectory();
 
             for (String subdir : OUTPUT_ADAPTER_SUBDIRS) {
-                Path subdirPath = outputAdapterPath.resolve(subdir);
+                Path subdirPath =
+                        outputAdapterPath.resolve(subdir);
                 assertThat(subdirPath)
-                    .as("Output adapter subdirectory: %s", subdir)
+                    .as("Output adapter subdirectory: %s",
+                            subdir)
                     .exists()
                     .isDirectory();
             }
 
             long actualCount;
-            try (var stream = Files.list(outputAdapterPath)) {
+            try (var stream =
+                    Files.list(outputAdapterPath)) {
                 actualCount = stream
                     .filter(Files::isDirectory)
                     .count();
@@ -208,7 +191,8 @@ class HexagonalPackageStructureTest {
             assertThat(actualCount)
                 .as("Exact number of output adapter "
                     + "subdirectories")
-                .isEqualTo(OUTPUT_ADAPTER_SUBDIRS.size());
+                .isEqualTo(
+                        OUTPUT_ADAPTER_SUBDIRS.size());
         }
 
         @Test
@@ -217,12 +201,14 @@ class HexagonalPackageStructureTest {
         void eachOutputAdapterSubdirHasPackageInfo() {
             for (String subdir : OUTPUT_ADAPTER_SUBDIRS) {
                 Path packageInfoPath = SRC_ROOT
-                    .resolve("infrastructure/adapter/output")
+                    .resolve(
+                            "infrastructure/adapter/output")
                     .resolve(subdir)
                     .resolve("package-info.java");
 
                 assertThat(packageInfoPath)
-                    .as("package-info.java in output/%s", subdir)
+                    .as("package-info.java in output/%s",
+                            subdir)
                     .exists()
                     .isRegularFile();
             }

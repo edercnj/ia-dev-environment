@@ -3,7 +3,6 @@ package dev.iadev.infrastructure.config;
 import dev.iadev.domain.port.input.GenerateEnvironmentUseCase;
 import dev.iadev.domain.port.input.ListStackProfilesUseCase;
 import dev.iadev.domain.port.input.ValidateConfigUseCase;
-import dev.iadev.domain.port.output.CheckpointStore;
 import dev.iadev.domain.port.output.FileSystemWriter;
 import dev.iadev.domain.port.output.ProgressReporter;
 import dev.iadev.domain.port.output.StackProfileRepository;
@@ -11,8 +10,6 @@ import dev.iadev.domain.port.output.TemplateRenderer;
 import dev.iadev.domain.service.GenerateEnvironmentService;
 import dev.iadev.domain.service.ListStackProfilesService;
 import dev.iadev.domain.service.ValidateConfigService;
-import dev.iadev.infrastructure.adapter.output.checkpoint
-        .FileCheckpointStore;
 import dev.iadev.infrastructure.adapter.output.config
         .YamlStackProfileRepository;
 import dev.iadev.infrastructure.adapter.output.filesystem
@@ -22,9 +19,6 @@ import dev.iadev.infrastructure.adapter.output.progress
 import dev.iadev.infrastructure.adapter.output.template
         .PebbleTemplateRenderer;
 import picocli.CommandLine;
-
-import java.nio.file.Path;
-import java.util.Objects;
 
 /**
  * Composition Root — single point of manual dependency wiring.
@@ -51,14 +45,10 @@ import java.util.Objects;
 public final class ApplicationFactory
         implements CommandLine.IFactory {
 
-    private static final String DEFAULT_CHECKPOINT_DIR =
-            ".ia-dev-env/checkpoints";
-
     // Output Adapters
     private final StackProfileRepository profileRepository;
     private final TemplateRenderer templateRenderer;
     private final FileSystemWriter fileSystemWriter;
-    private final CheckpointStore checkpointStore;
     private final ProgressReporter progressReporter;
 
     // Domain Services (exposed as Input Ports)
@@ -68,25 +58,10 @@ public final class ApplicationFactory
             listProfilesUseCase;
 
     /**
-     * Creates the application factory with the default
-     * checkpoint directory ({@code .ia-dev-env/checkpoints}
-     * relative to the current working directory).
+     * Creates the application factory wiring all adapters
+     * and domain services.
      */
     public ApplicationFactory() {
-        this(defaultCheckpointDir());
-    }
-
-    /**
-     * Creates the application factory with a custom
-     * checkpoint directory.
-     *
-     * @param checkpointDir directory for checkpoint files
-     * @throws NullPointerException if checkpointDir is null
-     */
-    public ApplicationFactory(Path checkpointDir) {
-        Objects.requireNonNull(checkpointDir,
-                "checkpointDir must not be null");
-
         // 1. Create Output Adapters
         this.profileRepository =
                 new YamlStackProfileRepository();
@@ -94,8 +69,6 @@ public final class ApplicationFactory
                 new PebbleTemplateRenderer();
         this.fileSystemWriter =
                 new FileSystemWriterAdapter();
-        this.checkpointStore =
-                new FileCheckpointStore(checkpointDir);
         this.progressReporter =
                 new ConsoleProgressReporter();
 
@@ -105,7 +78,6 @@ public final class ApplicationFactory
                         profileRepository,
                         templateRenderer,
                         fileSystemWriter,
-                        checkpointStore,
                         progressReporter);
         this.validateUseCase =
                 new ValidateConfigService(
@@ -148,14 +120,6 @@ public final class ApplicationFactory
      * Picocli to instantiate commands that do not require
      * constructor injection.
      *
-     * <p><strong>Note:</strong> This delegates to the default
-     * factory, which only supports no-arg constructors. The
-     * new hexagonal CLI commands (CliGenerateCommand,
-     * CliValidateCommand, CliListStackProfilesCommand) require
-     * manual instantiation via the factory's use case
-     * accessors. This is a known limitation pending full CLI
-     * migration.</p>
-     *
      * @param cls the class to instantiate
      * @param <K> the type parameter
      * @return a new instance of the given class
@@ -164,10 +128,5 @@ public final class ApplicationFactory
     @Override
     public <K> K create(Class<K> cls) throws Exception {
         return CommandLine.defaultFactory().create(cls);
-    }
-
-    private static Path defaultCheckpointDir() {
-        return Path.of(System.getProperty("user.home"))
-                .resolve(DEFAULT_CHECKPOINT_DIR);
     }
 }

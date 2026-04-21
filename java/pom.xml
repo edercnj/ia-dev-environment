@@ -40,7 +40,6 @@
         <archunit.version>1.4.2</archunit.version>
         <jacoco.version>0.8.14</jacoco.version>
         <cyclonedx.version>2.9.1</cyclonedx.version>
-        <json-schema-validator.version>1.5.8</json-schema-validator.version>
     </properties>
 
     <dependencies>
@@ -130,13 +129,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- JSON Schema validation (Draft 2020-12) — used by telemetry schema tests -->
-        <dependency>
-            <groupId>com.networknt</groupId>
-            <artifactId>json-schema-validator</artifactId>
-            <version>${json-schema-validator.version}</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
