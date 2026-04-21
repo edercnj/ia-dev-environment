@@ -62,7 +62,7 @@ public final class ReportCommitMessageBuilder {
                 "- Waves: %d%n- Stories: %d%n- Schema: %s",
                 waves, stories, SCHEMA_VERSION);
         String ref = String.format(
-                "Refs: plans/epic-%s/reports/epic-execution-plan-%s.md",
+                "Refs: plans/epic-%s/reports/execution-plan-epic-%s.md",
                 epicId, epicId);
         return subject + "\n\n" + body + "\n\n" + ref + "\n";
     }
@@ -117,8 +117,8 @@ public final class ReportCommitMessageBuilder {
                 wave, storyCount, commitCount);
         String ref = String.format(
                 "Refs: plans/epic-%s/reports/"
-                        + "phase-%d-completion-%s.md",
-                epicId, wave, epicId);
+                        + "phase-report-epic-%s-wave%d.md",
+                epicId, epicId, wave);
         return subject + "\n\n" + body + "\n\n" + ref + "\n";
     }
 
@@ -126,11 +126,6 @@ public final class ReportCommitMessageBuilder {
         if (epicId == null || epicId.isBlank()) {
             throw new IllegalArgumentException(
                     "epicId must be non-blank");
-        }
-        if (!epicId.matches("\\d{4}")) {
-            throw new IllegalArgumentException(
-                    "epicId must be exactly 4 digits: "
-                            + epicId);
         }
     }
 }

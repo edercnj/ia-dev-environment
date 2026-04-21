@@ -444,7 +444,7 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-task-p
 
 ## Planning Status Propagation (Rule 22 / EPIC-0046)
 
-> V2-gated: only runs when `SchemaVersionResolver.resolve(plans/epic-XXXX).version() == V2`. v1 epics: skip silently (Rule 19).
+> V2-gated: only runs when `SchemaVersionResolver.resolve(plans/epic-XXXX/execution-state.json) == V2`. v1 epics: skip silently (Rule 19).
 
 After writing `plan-task-TASK-XXXX-YYYY-NNN.md`, propagate the lifecycle status of the source task artifact (`task-TASK-XXXX-YYYY-NNN.md` in v2, or the Section 8 task entry in v1) from `Pendente` to `Planejada` in the SAME commit as the plan artefact.
 

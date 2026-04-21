@@ -104,14 +104,9 @@ public final class TaskMapRowUpdater {
         try {
             Files.writeString(tmp, updated,
                     StandardCharsets.UTF_8);
-            try {
-                Files.move(tmp, mapFile,
-                        StandardCopyOption.ATOMIC_MOVE,
-                        StandardCopyOption.REPLACE_EXISTING);
-            } catch (java.nio.file.AtomicMoveNotSupportedException amns) {
-                Files.move(tmp, mapFile,
-                        StandardCopyOption.REPLACE_EXISTING);
-            }
+            Files.move(tmp, mapFile,
+                    StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             try {
                 Files.deleteIfExists(tmp);

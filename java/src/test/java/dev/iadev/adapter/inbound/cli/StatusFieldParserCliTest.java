@@ -39,7 +39,7 @@ class StatusFieldParserCliTest {
     }
 
     @Test
-    void run_readFileWithoutStatusLine_exitsStatusSyncFailed(
+    void run_readFileWithoutStatusLine_printsNoneExitsZero(
             @TempDir Path dir) throws Exception {
         Path file = dir.resolve("plain.md");
         Files.writeString(file, "# Title\n",
@@ -50,9 +50,8 @@ class StatusFieldParserCliTest {
                 new String[] {"read", file.toString()},
                 cs.out(), cs.err());
 
-        assertEquals(20, exit);
-        assertTrue(cs.stderr().contains("STATUS_SYNC_FAILED"),
-                cs.stderr());
+        assertEquals(0, exit);
+        assertEquals("NONE", cs.stdout().trim());
     }
 
     @Test

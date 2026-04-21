@@ -1158,7 +1158,7 @@ agent file), a v2 run produces:
 
 ## Planning Status Propagation (Rule 22 / EPIC-0046)
 
-> V2-gated: only runs when `SchemaVersionResolver.resolve(plans/epic-XXXX).version() == V2`. v1 epics: skip silently (Rule 19 backward compatibility).
+> V2-gated: only runs when `SchemaVersionResolver.resolve(plans/epic-XXXX/execution-state.json) == V2`. v1 epics: skip silently (Rule 19 backward compatibility).
 
 After writing every plan artefact produced by this skill (Implementation Plan, Task Breakdown, DoR report), propagate the source-artifact lifecycle status from `Pendente` to `Planejada` in the SAME commit as the plan artefact. See RULE-046-02 (Planning updates status) and RULE-046-06 (clean-workdir invariant).
 

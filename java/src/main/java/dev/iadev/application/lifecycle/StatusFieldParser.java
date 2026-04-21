@@ -121,14 +121,9 @@ public final class StatusFieldParser {
         try {
             Files.writeString(tmp, updated,
                     StandardCharsets.UTF_8);
-            try {
-                Files.move(tmp, file,
-                        StandardCopyOption.ATOMIC_MOVE,
-                        StandardCopyOption.REPLACE_EXISTING);
-            } catch (java.nio.file.AtomicMoveNotSupportedException amns) {
-                Files.move(tmp, file,
-                        StandardCopyOption.REPLACE_EXISTING);
-            }
+            Files.move(tmp, file,
+                    StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             // Best-effort cleanup of the .tmp remnant.
             try {

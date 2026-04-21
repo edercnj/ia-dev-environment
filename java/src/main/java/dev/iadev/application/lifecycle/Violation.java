@@ -8,13 +8,13 @@ import java.nio.file.Path;
  * (per Rule 22 and story-0046-0007) are:
  *
  * <ul>
- *   <li>{@code ORPHAN_PHASE} — a {@code phase.start}
+ *   <li>{@code ORPHAN_PHASE_MARKER} — a {@code phase.start}
  *       marker without a matching {@code phase.end} in the
  *       same skill.</li>
- *   <li>{@code WRITE_WITHOUT_COMMIT} — a planning or
+ *   <li>{@code REPORT_WITHOUT_COMMIT} — a planning or
  *       implementation report was written but no corresponding
  *       git commit was produced.</li>
- *   <li>{@code SKIP_IN_HAPPY_PATH} — a production skill
+ *   <li>{@code SKIP_FLAG_ON_HAPPY_PATH} — a production skill
  *       references a {@code --skip-*} flag on the happy path,
  *       violating RULE-046-04.</li>
  * </ul>

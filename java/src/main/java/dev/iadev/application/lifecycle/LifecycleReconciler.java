@@ -168,17 +168,10 @@ public final class LifecycleReconciler {
         if (!allDone) {
             return;
         }
-        String normId = epicId.replaceFirst("^(?i)epic-", "");
         Path epicMd = epicDir.resolve(
-                "epic-" + normId + ".md");
+                "epic-" + epicId + ".md");
         if (!Files.exists(epicMd)) {
-            Path alt = epicDir.resolve(
-                    "EPIC-" + normId + ".md");
-            if (Files.exists(alt)) {
-                epicMd = alt;
-            } else {
-                return;
-            }
+            return;
         }
         Optional<LifecycleStatus> current =
                 StatusFieldParser.readStatus(epicMd);
@@ -186,7 +179,7 @@ public final class LifecycleReconciler {
         if (from == LifecycleStatus.CONCLUIDA) {
             return;
         }
-        out.add(new Divergence("epic-" + normId, epicMd,
+        out.add(new Divergence("epic-" + epicId, epicMd,
                 from, LifecycleStatus.CONCLUIDA));
     }
 
@@ -302,24 +295,10 @@ public final class LifecycleReconciler {
         // (story §3.3). The rank ordering below codifies the
         // forward lifecycle direction; a target whose rank is
         // lower than the source's rank is a regression.
-        // Rule 22 allows rank-decreasing transitions that are
-        // legitimate reopen / regression paths (for example,
-        // CONCLUIDA -> EM_ANDAMENTO and BLOQUEADA -> PENDENTE).
-        // Reject only the truly suspicious case — rolling a
-        // completed item all the way back to pending.
-        if (isSuspiciousRegression(d.from(), d.to())) {
+        if (rank(d.to()) < rank(d.from())) {
             throw new StatusTransitionInvalidException(
                     d.from(), d.to());
         }
-    }
-
-    private static boolean isSuspiciousRegression(
-            LifecycleStatus from, LifecycleStatus to) {
-        if (rank(to) >= rank(from)) {
-            return false;
-        }
-        return from == LifecycleStatus.CONCLUIDA
-                && to == LifecycleStatus.PENDENTE;
     }
 
     private static int rank(LifecycleStatus s) {

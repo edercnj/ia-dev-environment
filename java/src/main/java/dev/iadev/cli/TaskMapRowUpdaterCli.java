@@ -92,13 +92,6 @@ public final class TaskMapRowUpdaterCli
         } catch (StatusSyncException e) {
             System.err.println(e.getMessage());
             return EXIT_STATUS_SYNC_FAILED;
-        } catch (RuntimeException e) {
-            System.err.println(
-                    "STATUS_SYNC_FAILED: unexpected error "
-                            + "while updating task map row: "
-                            + e.getMessage());
-            e.printStackTrace(System.err);
-            return EXIT_STATUS_SYNC_FAILED;
         }
     }
 
@@ -106,16 +99,8 @@ public final class TaskMapRowUpdaterCli
      * Entry point for direct CLI invocation.
      */
     public static void main(String[] args) {
-        CommandLine commandLine =
-                new CommandLine(new TaskMapRowUpdaterCli());
-        commandLine.setParameterExceptionHandler(
-                (ex, parseResult) -> {
-                    CommandLine cmd = ex.getCommandLine();
-                    cmd.getErr().println(ex.getMessage());
-                    cmd.usage(cmd.getErr());
-                    return EXIT_INVALID_ARGS;
-                });
-        int exit = commandLine.execute(args);
+        int exit = new CommandLine(new TaskMapRowUpdaterCli())
+                .execute(args);
         System.exit(exit);
     }
 }

@@ -18,8 +18,8 @@ import org.junit.jupiter.api.Test;
  * correctly instrumented with telemetry phase markers (story-0040-0006,
  * TASK-0040-0006-003).
  *
- * <p>Expected: 5 {@code phase.start} + 5 {@code phase.end} pairs (Plan,
- * Implement, Review, Remediate, PR), zero lint violations.
+ * <p>Expected: 6 {@code phase.start} + 6 {@code phase.end} pairs (Plan,
+ * Implement, CI-Watch, Review, Remediate, PR), zero lint violations.
  */
 class XStoryImplementMarkersIT {
 
@@ -44,11 +44,11 @@ class XStoryImplementMarkersIT {
                 .count();
 
         assertThat(startCount)
-                .as("x-story-implement must emit 5 phase.start markers")
-                .isEqualTo(5);
+                .as("x-story-implement must emit 6 phase.start markers")
+                .isEqualTo(6);
         assertThat(endCount)
-                .as("x-story-implement must emit 5 phase.end markers")
-                .isEqualTo(5);
+                .as("x-story-implement must emit 6 phase.end markers")
+                .isEqualTo(6);
     }
 
     @Test
