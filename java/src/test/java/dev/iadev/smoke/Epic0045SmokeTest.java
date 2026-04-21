@@ -10,7 +10,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
@@ -45,7 +44,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * </ol>
  *
  * <p>The {@code SMOKE_E2E=true} path (BeforeAll/AfterAll + real PR) is
- * guarded by {@link EnabledIfEnvironmentVariable} so it is only activated
+ * guarded by a {@code System.getenv("SMOKE_E2E")} check so it is only activated
  * when a live GitHub environment is available. Without the variable,
  * the four structural tests run unconditionally on every build.</p>
  *
@@ -73,9 +72,11 @@ class Epic0045SmokeTest {
      * <p>Only executed when {@code SMOKE_E2E=true}.</p>
      */
     @BeforeAll
-    @EnabledIfEnvironmentVariable(
-            named = "SMOKE_E2E", matches = "true")
     static void setUp() throws Exception {
+        if (!"true".equals(
+                System.getenv("SMOKE_E2E"))) {
+            return;
+        }
         ensureGitIdentity();
 
         ProcessBuilder createBranch = new ProcessBuilder(
@@ -144,9 +145,11 @@ class Epic0045SmokeTest {
      * Safe to call even if {@link #setUp()} was skipped.
      */
     @AfterAll
-    @EnabledIfEnvironmentVariable(
-            named = "SMOKE_E2E", matches = "true")
     static void tearDown() throws Exception {
+        if (!"true".equals(
+                System.getenv("SMOKE_E2E"))) {
+            return;
+        }
         if (smokePrNumber != null) {
             new ProcessBuilder(
                     "gh", "pr", "close", smokePrNumber,

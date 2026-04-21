@@ -396,6 +396,7 @@ class ContentIntegritySmokeTest extends SmokeTestBase {
                 "RELEASE_PR", "BACKMERGE_PR",
                 "GITHUB_RELEASE_URL",
                 "*_TAG", "*_VERSION",
+                "PLANNING_STATUS",
                 ".", "...");
 
         private static final Pattern PEBBLE =
