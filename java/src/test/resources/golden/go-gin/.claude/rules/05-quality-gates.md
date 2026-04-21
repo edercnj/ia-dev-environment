@@ -6,8 +6,8 @@
 
 | Metric | Minimum |
 |--------|---------|
-| Line Coverage | ≥ 95% |
-| Branch Coverage | ≥ 90% |
+| Line Coverage | ≥ 85% |
+| Branch Coverage | ≥ 80% |
 
 ## Test Categories
 
@@ -37,7 +37,7 @@
 ## Merge Checklist
 
 - [ ] All tests passing
-- [ ] Coverage ≥ 95% line, ≥ 90% branch
+- [ ] Coverage ≥ 85% line, ≥ 80% branch
 - [ ] Zero compiler/linter warnings
 - [ ] DB migration applied and tested (if applicable)
 - [ ] Security review for sensitive changes

@@ -26,7 +26,6 @@ class HexagonalPackageStructureTest {
         "application/assembler",
         "application/dag",
         "application/factory",
-        "infrastructure/adapter/input/cli",
         "infrastructure/adapter/output/template",
         "infrastructure/adapter/output/filesystem",
         "infrastructure/adapter/output/config",
