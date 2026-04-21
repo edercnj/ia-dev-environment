@@ -1,7 +1,6 @@
 package dev.iadev.domain.service;
 
 import dev.iadev.domain.model.ArchitectureConfig;
-import dev.iadev.domain.model.CheckpointState;
 import dev.iadev.domain.model.DataConfig;
 import dev.iadev.domain.model.FrameworkConfig;
 import dev.iadev.domain.model.GenerationContext;
@@ -16,7 +15,6 @@ import dev.iadev.domain.model.ProjectIdentity;
 import dev.iadev.domain.model.SecurityConfig;
 import dev.iadev.domain.model.StackProfile;
 import dev.iadev.domain.model.TestingConfig;
-import dev.iadev.domain.port.output.CheckpointStore;
 import dev.iadev.domain.port.output.FileSystemWriter;
 import dev.iadev.domain.port.output.ProgressReporter;
 import dev.iadev.domain.port.output.StackProfileRepository;
@@ -30,27 +28,20 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions
+        .assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Unit tests for {@link GenerateEnvironmentService}.
- *
- * <p>Tests use mocked Output Ports to validate business logic
- * in isolation from infrastructure.</p>
- */
 @ExtendWith(MockitoExtension.class)
 class GenerateEnvironmentServiceTest {
 
@@ -64,9 +55,6 @@ class GenerateEnvironmentServiceTest {
     private FileSystemWriter fileSystemWriter;
 
     @Mock
-    private CheckpointStore checkpointStore;
-
-    @Mock
     private ProgressReporter progressReporter;
 
     private GenerateEnvironmentService service;
@@ -77,7 +65,6 @@ class GenerateEnvironmentServiceTest {
                 profileRepository,
                 templateRenderer,
                 fileSystemWriter,
-                checkpointStore,
                 progressReporter);
     }
 
@@ -86,14 +73,11 @@ class GenerateEnvironmentServiceTest {
     class ConstructorValidation {
 
         @Test
-        @DisplayName("constructor_nullProfileRepository"
-                + "_throwsNullPointerException")
         void constructor_nullProfileRepository_throwsNpe() {
             assertThatThrownBy(
                     () -> new GenerateEnvironmentService(
                             null, templateRenderer,
                             fileSystemWriter,
-                            checkpointStore,
                             progressReporter))
                     .isInstanceOf(NullPointerException.class)
                     .hasMessageContaining(
@@ -101,14 +85,11 @@ class GenerateEnvironmentServiceTest {
         }
 
         @Test
-        @DisplayName("constructor_nullTemplateRenderer"
-                + "_throwsNullPointerException")
         void constructor_nullTemplateRenderer_throwsNpe() {
             assertThatThrownBy(
                     () -> new GenerateEnvironmentService(
                             profileRepository, null,
                             fileSystemWriter,
-                            checkpointStore,
                             progressReporter))
                     .isInstanceOf(NullPointerException.class)
                     .hasMessageContaining(
@@ -116,14 +97,11 @@ class GenerateEnvironmentServiceTest {
         }
 
         @Test
-        @DisplayName("constructor_nullFileSystemWriter"
-                + "_throwsNullPointerException")
         void constructor_nullFileSystemWriter_throwsNpe() {
             assertThatThrownBy(
                     () -> new GenerateEnvironmentService(
                             profileRepository,
                             templateRenderer, null,
-                            checkpointStore,
                             progressReporter))
                     .isInstanceOf(NullPointerException.class)
                     .hasMessageContaining(
@@ -131,30 +109,12 @@ class GenerateEnvironmentServiceTest {
         }
 
         @Test
-        @DisplayName("constructor_nullCheckpointStore"
-                + "_throwsNullPointerException")
-        void constructor_nullCheckpointStore_throwsNpe() {
-            assertThatThrownBy(
-                    () -> new GenerateEnvironmentService(
-                            profileRepository,
-                            templateRenderer,
-                            fileSystemWriter, null,
-                            progressReporter))
-                    .isInstanceOf(NullPointerException.class)
-                    .hasMessageContaining(
-                            "checkpointStore");
-        }
-
-        @Test
-        @DisplayName("constructor_nullProgressReporter"
-                + "_throwsNullPointerException")
         void constructor_nullProgressReporter_throwsNpe() {
             assertThatThrownBy(
                     () -> new GenerateEnvironmentService(
                             profileRepository,
                             templateRenderer,
-                            fileSystemWriter,
-                            checkpointStore, null))
+                            fileSystemWriter, null))
                     .isInstanceOf(NullPointerException.class)
                     .hasMessageContaining(
                             "progressReporter");
@@ -166,14 +126,10 @@ class GenerateEnvironmentServiceTest {
     class GenerateHappyPath {
 
         @Test
-        @DisplayName("generate_validContext"
-                + "_returnsSuccessResult")
         void generate_validContext_returnsSuccessResult() {
             GenerationContext context = buildValidContext();
             when(profileRepository.findByName(anyString()))
                     .thenReturn(Optional.of(buildProfile()));
-            when(checkpointStore.load(anyString()))
-                    .thenReturn(Optional.empty());
 
             GenerationResult result =
                     service.generate(context);
@@ -183,14 +139,10 @@ class GenerateEnvironmentServiceTest {
         }
 
         @Test
-        @DisplayName("generate_validContext"
-                + "_reportsProgressComplete")
         void generate_validContext_reportsProgressComplete() {
             GenerationContext context = buildValidContext();
             when(profileRepository.findByName(anyString()))
                     .thenReturn(Optional.of(buildProfile()));
-            when(checkpointStore.load(anyString()))
-                    .thenReturn(Optional.empty());
 
             service.generate(context);
 
@@ -199,22 +151,6 @@ class GenerateEnvironmentServiceTest {
             verify(progressReporter)
                     .reportComplete(anyString());
         }
-
-        @Test
-        @DisplayName("generate_validContext"
-                + "_savesCheckpoint")
-        void generate_validContext_savesCheckpoint() {
-            GenerationContext context = buildValidContext();
-            when(profileRepository.findByName(anyString()))
-                    .thenReturn(Optional.of(buildProfile()));
-            when(checkpointStore.load(anyString()))
-                    .thenReturn(Optional.empty());
-
-            service.generate(context);
-
-            verify(checkpointStore)
-                    .save(any(CheckpointState.class));
-        }
     }
 
     @Nested
@@ -222,8 +158,6 @@ class GenerateEnvironmentServiceTest {
     class GenerateErrorPaths {
 
         @Test
-        @DisplayName("generate_nullContext"
-                + "_throwsNullPointerException")
         void generate_nullContext_throwsNpe() {
             assertThatThrownBy(
                     () -> service.generate(null))
@@ -232,8 +166,6 @@ class GenerateEnvironmentServiceTest {
         }
 
         @Test
-        @DisplayName("generate_profileNotFound"
-                + "_returnsErrorResult")
         void generate_profileNotFound_returnsErrorResult() {
             GenerationContext context =
                     buildContextWithProfile("nonexistent");
@@ -249,8 +181,6 @@ class GenerateEnvironmentServiceTest {
         }
 
         @Test
-        @DisplayName("generate_profileNotFound"
-                + "_doesNotWriteFiles")
         void generate_profileNotFound_doesNotWriteFiles() {
             GenerationContext context =
                     buildContextWithProfile("nonexistent");
@@ -264,8 +194,6 @@ class GenerateEnvironmentServiceTest {
         }
 
         @Test
-        @DisplayName("generate_profileNotFound"
-                + "_reportsError")
         void generate_profileNotFound_reportsError() {
             GenerationContext context =
                     buildContextWithProfile("nonexistent");
@@ -280,37 +208,10 @@ class GenerateEnvironmentServiceTest {
     }
 
     @Nested
-    @DisplayName("generate — checkpoint resume")
-    class GenerateCheckpointResume {
-
-        @Test
-        @DisplayName("generate_existingCheckpoint"
-                + "_loadsCheckpoint")
-        void generate_existingCheckpoint_loadsCheckpoint() {
-            GenerationContext context = buildValidContext();
-            when(profileRepository.findByName(anyString()))
-                    .thenReturn(Optional.of(buildProfile()));
-            CheckpointState existing = new CheckpointState(
-                    "test-exec", Instant.now(), Instant.now(),
-                    Map.of("step1", "done"), Map.of());
-            when(checkpointStore.load(anyString()))
-                    .thenReturn(Optional.of(existing));
-
-            GenerationResult result =
-                    service.generate(context);
-
-            assertThat(result.success()).isTrue();
-            verify(checkpointStore).load(anyString());
-        }
-    }
-
-    @Nested
     @DisplayName("Interface implementation")
     class InterfaceImplementation {
 
         @Test
-        @DisplayName("service_implementsGenerateEnvironment"
-                + "UseCase")
         void service_implementsGenerateEnvironmentUseCase() {
             assertThat(service)
                     .isInstanceOf(
@@ -319,8 +220,6 @@ class GenerateEnvironmentServiceTest {
                                     .class);
         }
     }
-
-    // --- Test fixture builders ---
 
     private GenerationContext buildValidContext() {
         return new GenerationContext(

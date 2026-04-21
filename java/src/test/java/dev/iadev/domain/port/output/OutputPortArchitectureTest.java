@@ -103,8 +103,8 @@ class OutputPortArchitectureTest {
     class ExistenceVerification {
 
         @Test
-        @DisplayName("Six output port interfaces should exist")
-        void sixOutputPortsShouldExist() {
+        @DisplayName("Four output port interfaces should exist")
+        void fourOutputPortsShouldExist() {
             var outputPortClasses = importedClasses
                     .stream()
                     .filter(jc -> jc.getPackageName()
@@ -115,15 +115,13 @@ class OutputPortArchitectureTest {
                     .toList();
 
             assertThat(outputPortClasses)
-                    .hasSize(6)
+                    .hasSize(4)
                     .extracting(jc -> jc.getSimpleName())
                     .containsExactlyInAnyOrder(
                             "StackProfileRepository",
                             "TemplateRenderer",
                             "FileSystemWriter",
-                            "CheckpointStore",
-                            "ProgressReporter",
-                            "TelemetrySink"
+                            "ProgressReporter"
                     );
         }
     }
@@ -161,16 +159,6 @@ class OutputPortArchitectureTest {
             assertThat(methods).containsExactlyInAnyOrder(
                     "writeFile", "createDirectory",
                     "exists", "copyResource");
-        }
-
-        @Test
-        @DisplayName("CheckpointStore covers save, load, clear")
-        void checkpointStore_methodSignatures() {
-            var methods = getInterfaceMethodNames(
-                    CheckpointStore.class);
-
-            assertThat(methods).containsExactlyInAnyOrder(
-                    "save", "load", "clear");
         }
 
         @Test

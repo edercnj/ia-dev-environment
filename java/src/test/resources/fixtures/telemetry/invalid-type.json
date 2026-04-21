@@ -1,7 +1,0 @@
-{
-  "schemaVersion": "1.0.0",
-  "eventId": "44444444-4444-4444-8444-444444444444",
-  "timestamp": "2026-04-16T12:38:00.000Z",
-  "sessionId": "claude-sess-abc123",
-  "type": "foo.bar"
-}
