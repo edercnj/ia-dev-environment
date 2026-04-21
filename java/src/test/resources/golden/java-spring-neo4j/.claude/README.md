@@ -88,8 +88,9 @@ They define mandatory standards that Claude MUST follow when generating code.
 | 20 | `20-interactive-gates.md` | interactive gates |
 | 20 | `20-telemetry-privacy.md` | telemetry privacy |
 | 21 | `21-ci-watch.md` | ci watch |
+| 22 | `22-lifecycle-integrity.md` | lifecycle integrity |
 
-**Total: 21 rules**
+**Total: 22 rules**
 
 ### Numbering
 
@@ -320,7 +321,7 @@ See the files directly for current configuration.
 
 | Component | Count |
 |-----------|-------|
-| Rules (.claude) | 21 |
+| Rules (.claude) | 22 |
 | Skills (.claude) | 61 |
 | Knowledge Packs (.claude) | 21 |
 | Agents (.claude) | 11 |

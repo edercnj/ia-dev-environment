@@ -287,3 +287,31 @@ Bash command: `$CLAUDE_PROJECT_DIR/.claude/hooks/telemetry-phase.sh end x-epic-c
 | Knowledge Pack | Usage |
 |----------------|-------|
 | story-planning | Decomposition philosophy, layer identification, dependency validation |
+
+## Planning Status Propagation (Rule 22 / EPIC-0046)
+
+> V2-gated: only runs when the newly-created epic declares `planningSchemaVersion: "2.0"` in its front matter / execution-state seed. For v1 epics (or epics with no version declaration): skip silently (Rule 19).
+
+`x-epic-create` produces a fresh `plans/epic-XXXX/epic-XXXX.md` from a spec. The epic's initial lifecycle status is `Em Refinamento` (per Rule 22 — an epic starts in refinement, not `Pendente`). There is NO transition at creation time; the skill simply writes `**Status:** Em Refinamento` in the generated artifact.
+
+**Steps (while materialising the epic file template):**
+
+1. Ensure the epic template contains the literal line:
+
+   ```markdown
+   **Status:** Em Refinamento
+   ```
+
+   immediately after the `**ID:**` and `**Chave Jira:**` metadata block.
+
+2. After writing the epic file, validate the Status line is parseable by the CLI (sanity check, NOT a transition):
+   ```bash
+   java -cp $CLAUDE_PROJECT_DIR/java/target/classes \
+       dev.iadev.adapter.inbound.cli.StatusFieldParserCli \
+       read plans/epic-XXXX/epic-XXXX.md
+   ```
+   Exit code 0 required. Exit 20 → abort skill (epic template is malformed).
+
+3. No separate commit is needed — the Status line is part of the initial epic file, committed with the rest of the epic creation.
+
+**Fail-loud:** validation read failure (exit 20) aborts the skill (RULE-046-08). Subsequent transitions out of `Em Refinamento` are owned by `x-epic-decompose` (to `Pendente` when decomposition completes) and `x-story-implement`/`x-epic-implement` (to `Em Andamento`, `Concluída`, etc.).

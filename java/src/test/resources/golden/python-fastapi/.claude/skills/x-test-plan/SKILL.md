@@ -335,3 +335,28 @@ This ensures backward compatibility with projects that have not yet adopted temp
 - Output uses Double-Loop TDD format with TPP-ordered scenarios
 - Output consumed by Phase 2 (developers) and Phase 3 (QA engineer validates coverage)
 - Can be used standalone before any implementation task
+
+## Planning Status Propagation (Rule 22 / EPIC-0046)
+
+> V2-gated: only runs when `SchemaVersionResolver.resolve(plans/epic-XXXX/execution-state.json) == V2`. v1 epics: skip silently (Rule 19).
+
+After writing `tests-story-XXXX-YYYY.md`, check the associated story's lifecycle status. The test plan, like the architecture plan, is a secondary writer — the primary transition `Pendente → Planejada` is owned by `x-story-plan`. When `x-test-plan` runs standalone (without `x-story-plan`), it promotes the story from `Pendente` to `Planejada` so the source artifact reflects that the test plan is in place.
+
+**Steps (end of test-plan generation, BEFORE the final commit):**
+
+1. Detect v2 via SchemaVersionResolver. If v1: skip.
+2. Read current story status:
+   ```bash
+   CURRENT=$(java -cp $CLAUDE_PROJECT_DIR/java/target/classes \
+       dev.iadev.adapter.inbound.cli.StatusFieldParserCli \
+       read plans/epic-XXXX/story-XXXX-YYYY.md)
+   ```
+3. If `CURRENT == "Pendente"` → `write Planejada`. Idempotent when already `Planejada`.
+4. Stage and commit:
+   ```bash
+   git add plans/epic-XXXX/story-XXXX-YYYY.md plans/epic-XXXX/plans/tests-story-XXXX-YYYY.md
+   ```
+
+       Skill(skill: "x-git-commit", args: "docs(story-XXXX-YYYY): add test plan + update status to Planejada")
+
+**Fail-loud:** non-zero CLI exit aborts the skill (RULE-046-08).
