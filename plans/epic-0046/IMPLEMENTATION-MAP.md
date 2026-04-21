@@ -14,7 +14,7 @@
 | story-0046-0004 | Story/Epic end-of-life status — Phase 3 unskippable + Phase 1.7 cabeada | — | story-0046-0001 | story-0046-0007 | Concluída |
 | story-0046-0005 | Atomic commit dos reports de épico em x-epic-implement | — | story-0046-0001 | story-0046-0007 | Concluída |
 | story-0046-0006 | Nova skill x-status-reconcile (opt-in diagnose + apply) | — | story-0046-0001 | — | Pendente |
-| story-0046-0007 | Enforcement CI audit LifecycleIntegrityAuditTest | — | story-0046-0002, story-0046-0003, story-0046-0004, story-0046-0005 | — | Pendente |
+| story-0046-0007 | Enforcement CI audit LifecycleIntegrityAuditTest | — | story-0046-0002, story-0046-0003, story-0046-0004, story-0046-0005 | — | Concluida |
 
 > **Valores de Status:** `Pendente` (padrão) · `Em Andamento` · `Concluída` · `Falha` · `Bloqueada` · `Parcial`
 
