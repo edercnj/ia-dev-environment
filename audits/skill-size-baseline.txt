@@ -1,0 +1,49 @@
+# SkillSizeLinter baseline exemption list
+#
+# Purpose: each entry below is a SKILL.md (relative to
+# java/src/main/resources/targets/claude/skills/) that exceeds
+# 500 lines without a non-empty references/ sibling AT THE TIME
+# STORY-0047-0003 LANDED on develop.
+#
+# The SkillSizeLinterAcceptanceTest tolerates ONLY these files.
+# Any NEW skill exceeding 500 lines without references/ fails CI
+# with SKILL_SIZE_REGRESSION, forcing the author to either:
+#   1. Carve out detail to references/full-protocol.md (ADR-0007)
+#   2. Carve out shared content to _shared/ (ADR-0011)
+#   3. Split into multiple skills
+#
+# Entries are removed from this file (NOT added) as EPIC-0047
+# stories 0002/0004 carve out existing offenders. When this
+# file is empty, the brownfield phase is complete and the test
+# switches to pure green-field enforcement.
+#
+# Format: one relative path per line; blank lines and lines
+# starting with "#" are ignored.
+#
+# Generated: 2026-04-21 (story-0047-0003)
+# Initial count: 25 entries
+core/dev/x-task-implement/SKILL.md
+core/git/x-git-worktree/SKILL.md
+core/plan/x-epic-orchestrate/SKILL.md
+core/plan/x-story-create/SKILL.md
+core/pr/x-pr-fix-epic/SKILL.md
+core/pr/x-pr-merge-train/SKILL.md
+core/security/x-security-pipeline/SKILL.md
+knowledge-packs/architecture-cqrs/SKILL.md
+knowledge-packs/infra-patterns/container-registry/SKILL.md
+knowledge-packs/infra-patterns/dockerfile/SKILL.md
+knowledge-packs/infra-patterns/iac-crossplane/SKILL.md
+knowledge-packs/infra-patterns/iac-terraform/SKILL.md
+knowledge-packs/infra-patterns/k8s-deployment/SKILL.md
+knowledge-packs/infra-patterns/k8s-helm/SKILL.md
+knowledge-packs/infra-patterns/k8s-kustomize/SKILL.md
+knowledge-packs/layer-templates/SKILL.md
+knowledge-packs/stack-patterns/axum-patterns/SKILL.md
+knowledge-packs/stack-patterns/click-cli-patterns/SKILL.md
+knowledge-packs/stack-patterns/django-patterns/SKILL.md
+knowledge-packs/stack-patterns/dotnet-patterns/SKILL.md
+knowledge-packs/stack-patterns/express-patterns/SKILL.md
+knowledge-packs/stack-patterns/fastapi-patterns/SKILL.md
+knowledge-packs/stack-patterns/gin-patterns/SKILL.md
+knowledge-packs/stack-patterns/ktor-patterns/SKILL.md
+knowledge-packs/stack-patterns/nestjs-patterns/SKILL.md
