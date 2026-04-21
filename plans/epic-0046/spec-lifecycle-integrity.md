@@ -60,11 +60,11 @@ Duas causas estruturais:
 
 ## 3. Objetivo
 
-Fechar GAP-1 e GAP-2 com uma convenção formal (Rule 21), retrofit das skills afetadas, skill opt-in para reconciliação de legados, e CI audit que impede regressão.
+Fechar GAP-1 e GAP-2 com uma convenção formal (Rule 22), retrofit das skills afetadas, skill opt-in para reconciliação de legados, e CI audit que impede regressão.
 
 ### Objetivos específicos
 
-- **O1** — Formalizar Rule 21 `lifecycle-integrity` cobrindo atualização de `**Status:**`, commit de reports e invariante de clean-workdir.
+- **O1** — Formalizar Rule 22 `lifecycle-integrity` cobrindo atualização de `**Status:**`, commit de reports e invariante de clean-workdir.
 - **O2** — Retrofit de cada skill de planejamento (`x-story-plan`, `x-task-plan`, `x-epic-create`, `x-epic-decompose`, `x-epic-map`, `x-arch-plan`, `x-test-plan`) para atualizar `**Status:** Pendente → Planejada` no MESMO commit em que grava o plan artefact.
 - **O3** — Retrofit de `x-task-implement` para atualizar `**Status:** Pendente → Concluída` + coluna Status do map no commit atômico final da task.
 - **O4** — Promover `x-story-implement` Phase 3 (status sync + final verification) para não-skippable e cabear `x-epic-implement` Section 1.6b ao Core Loop como `Phase 1.7`.
@@ -77,7 +77,7 @@ Fechar GAP-1 e GAP-2 com uma convenção formal (Rule 21), retrofit das skills a
 
 ### 4.1 Dentro de escopo
 
-- Nova Rule 21 em `java/src/main/resources/targets/claude/rules/21-lifecycle-integrity.md`.
+- Nova Rule 22 em `java/src/main/resources/targets/claude/rules/22-lifecycle-integrity.md`.
 - Matriz de transição `Pendente → Planejada → Em Andamento → Concluída | Falha | Bloqueada` documentada no header dos templates `_TEMPLATE-TASK.md`, `_TEMPLATE-STORY.md`, `_TEMPLATE-EPIC.md`.
 - Retrofits em SKILL.md das 7 skills de planejamento (O2).
 - Retrofit em `x-task-implement/SKILL.md` (O3).
@@ -169,7 +169,7 @@ Fechar GAP-1 e GAP-2 com uma convenção formal (Rule 21), retrofit das skills a
 - Rule 13 invocation patterns respeitados: retrofits que delegam a `x-git-commit` ou outras skills usam Pattern 1 INLINE-SKILL; bare-slash proibido fora de `## Triggers` e `## Examples`.
 - Frontmatter `allowed-tools` de cada skill retrofitada inclui `Skill` (se ainda não incluir).
 - `execution-state.json` do épico declara `planningSchemaVersion: "2.0"`.
-- Próximo slot de rule identificado: `21-lifecycle-integrity.md` (slot 20 consumido por EPIC-0045 ci-watch; slots 10/11/12 reservados para condicionais).
+- Próximo slot de rule identificado: `22-lifecycle-integrity.md` (slot 21 consumido por EPIC-0045 ci-watch; slots 10/11/12 reservados para condicionais).
 - Precondição dura: EPIC-0045 (ci-watch) não precisa estar mergeado — não há dependência direta, apenas reserva do slot de rule.
 
 ## 8. Definition of Done (Global)
@@ -179,24 +179,24 @@ Fechar GAP-1 e GAP-2 com uma convenção formal (Rule 21), retrofit das skills a
   - Unit tests do `StatusFieldParser` cobrindo regex tolerante a whitespace + valores inválidos + arquivo ausente.
   - Unit tests do `LifecycleTransitionMatrix` cobrindo matriz completa (permitidas + proibidas).
   - `LifecycleIntegrityAuditTest` (CI-blocking) — 3 dimensões de audit (O8).
-  - Golden diff obrigatório para: nova Rule 21; retrofits em 10 SKILL.md (7 planning + 3 implementation); `x-status-reconcile/SKILL.md` novo; templates atualizados.
+  - Golden diff obrigatório para: nova Rule 22; retrofits em 10 SKILL.md (7 planning + 3 implementation); `x-status-reconcile/SKILL.md` novo; templates atualizados.
   - Smoke test `Epic0046SmokeTest.java` em sandbox git: planning + implementation toy → `git status --porcelain` vazio + `**Status:** Concluída` no markdown + `execution-state.json` alinhado.
   - **Fail-loud test por story:** cada story DEVE ter pelo menos 1 teste que injete falha na atualização de status (arquivo renomeado, regex quebrado, commit rejeitado) e assert exit 20 (`STATUS_SYNC_FAILED`). Silêncio é bug.
   - **Clean-workdir integration test por skill retrofitada:** roda a skill em sandbox, checa `git status --porcelain` vazio no retorno.
 - **Smoke Tests:** `mvn process-resources && mvn test` verde; `SkillsAssemblerTest`, `RuleAssemblerTest`, `TemplatesAssemblerTest` não regridem; novo `RuleAssemblerTest.listRules_includesLifecycleIntegrity` obrigatório.
 - **Relatório de Cobertura:** JaCoCo agregado no Maven report padrão.
-- **Documentação:** Rule 21 criada; CLAUDE.md atualizado no bloco "In progress" referenciando o épico enquanto não concluído; CHANGELOG seção Unreleased com uma entrada por story. `.claude/skills/**`, `.claude/rules/**`, `.claude/templates/**` apenas regenerados via `mvn process-resources`.
+- **Documentação:** Rule 22 criada; CLAUDE.md atualizado no bloco "In progress" referenciando o épico enquanto não concluído; CHANGELOG seção Unreleased com uma entrada por story. `.claude/skills/**`, `.claude/rules/**`, `.claude/templates/**` apenas regenerados via `mvn process-resources`.
 - **Backward Compatibility:** Rule 19 respeitada — status sync é V2-gated via `SchemaVersionResolver.resolve() == V2`. Épicos v1 não executam as novas fases. Smoke test adicional prova que um épico v1 toy termina com behaviour legado (sem status update).
 - **TDD Compliance:** commits mostram test-first — unit tests dos helpers Java precedem implementação; golden diff precede ou acompanha cada diff de SKILL.md. Tasks em ordem TPP.
 - **Double-Loop TDD:** acceptance tests derivados dos cenários Gherkin das stories (outer loop); unit tests dos helpers guiados por TPP (inner loop).
 - **Rule 13 Audit:** grep padrão Rule 13 continua retornando 0 matches em `java/src/main/resources/targets/claude/skills/core/` após retrofits.
-- **Rule 21 Audit (novo):** `LifecycleIntegrityAuditTest` retorna 0 violations.
+- **Rule 22 Audit (novo):** `LifecycleIntegrityAuditTest` retorna 0 violations.
 
 ## 9. Índice de Histórias
 
 | ID | Título | Depende de | Valor entregue |
 | :--- | :--- | :--- | :--- |
-| **STORY-0046-0001** | Rule 21 `lifecycle-integrity` + matriz de transição nos templates + helpers Java base | — | Formalização da convenção; `StatusFieldParser` + `LifecycleTransitionMatrix` prontos para consumo. |
+| **STORY-0046-0001** | Rule 22 `lifecycle-integrity` + matriz de transição nos templates + helpers Java base | — | Formalização da convenção; `StatusFieldParser` + `LifecycleTransitionMatrix` prontos para consumo. |
 | **STORY-0046-0002** | Planning status propagation (7 skills) | 0046-0001 | Plan skills passam a atualizar `**Status:** Pendente → Planejada` no commit do plan artefact + coluna Planejamento do map. |
 | **STORY-0046-0003** | Task-level end-of-life status em `x-task-implement` | 0046-0001 | Task transita para `Concluída` no commit atômico final + row do implementation-map atualizada. |
 | **STORY-0046-0004** | Story/Epic end-of-life status — Phase 3 unskippable + Phase 1.7 cabeada | 0046-0001 | `x-story-implement` Phase 3 always-on; `x-epic-implement` Core Loop passa por 1.7 em toda wave. |
@@ -274,4 +274,4 @@ Operador renomeou um story file durante a execução → `x-story-implement` Pha
 - [EPIC-0024 — Artifact Persistence](../epic-0024-artifact-persistence/) — evidência empírica do GAP-1.
 - [EPIC-0038 — Task-First Architecture](../epic-0038/) — schema v2.0 reference + `SchemaVersionResolver`.
 - [EPIC-0043 — Interactive Gates](../epic-0043/) — gate interativo reusado por `x-status-reconcile --apply`.
-- [EPIC-0045 — CI Watch](../epic-0045/) — ocupa Rule 20; este épico usa Rule 21.
+- [EPIC-0045 — CI Watch](../epic-0045/) — ocupa Rule 21; este épico usa Rule 22.
