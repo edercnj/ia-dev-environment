@@ -32,7 +32,7 @@ required, no external commands, total runtime well under 1 s):
 
 | Test class | Purpose |
 | :--- | :--- |
-| `SkillSizeLinterTest` | 22 unit scenarios with `@TempDir` (TPP-ordered: nil → constant → scalar → collection → conditional → iteration; 3 boundary scenarios at 250, 500, 501; `_shared/` exclusion). |
+| `SkillSizeLinterTest` | 17 unit scenarios with `@TempDir` (TPP-ordered: nil → constant → scalar → collection → conditional → iteration; 3 boundary scenarios at 250, 500, 501; `_shared/` exclusion). |
 | `LintFindingTest` | 5 unit scenarios for the record + enum contract. |
 | `SkillSizeLinterAcceptanceTest` | Runs against the real source-of-truth tree; fails on **new** violations only. Tolerates entries in `audits/skill-size-baseline.txt`. |
 | `SkillCorpusSizeAudit` | Corpus-wide aggregate check against RULE-047-07 (30,000-line cap). Soft-warn by default; hard-fail via `-Dskill.corpus.audit.enforce=true`. |
