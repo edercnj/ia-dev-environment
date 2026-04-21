@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **story-0047-0004 (EPIC-0047):** Compression sweep across the 5 largest
+  knowledge packs — `click-cli-patterns`, `k8s-helm`, `axum-patterns`,
+  `iac-terraform`, `dotnet-patterns`. Each `SKILL.md` was rewritten as a
+  slim narrative + Patterns Index pointing to
+  `references/examples-<pattern>.md` companions (one file per carved
+  numbered section), per RULE-047-02 / RULE-047-05. Combined hot-path
+  reduction: **4,729 → 275 lines (−94.2% across the 5 KPs)**; individual
+  SKILL.md line counts are now 64 (click-cli, was 1222), 47 (k8s-helm, was
+  944), 59 (axum, was 888), 46 (iac-terraform, was 861), 59 (dotnet, was
+  814) — all ≤ 250-line story-0047-0004 target. Thirty-three new
+  `references/examples-*.md` files (7 + 7 + 7 + 6 + 6) hold the complete
+  code samples byte-identical to the original inline blocks. The post-
+  sweep corpus (SKILL.md hot-path only) stands at **45,743 lines**
+  (−8.9% vs v3.9.0 baseline of 50,191); remaining gap to the −40%
+  epic target (< 30,115 lines) stays assigned to stories 0047-0002 (Slim
+  Mode retirement + flipped orientation) and Bucket C. Goldens regenerated
+  across the profile matrix; `audits/skill-size-baseline.txt` updated to
+  remove the 5 now-compliant entries (25 → 20 brownfield exemptions).
+  `Epic0047CompressionSmokeTest.smoke_kpsHaveCarvedExamples` validates
+  `SKILL.md ≤ 250 lines + references/examples-*.md present` across every
+  generated profile (stack-gated: missing KP on a profile skips silently).
+  Epic §6 updated with the post-sweep delta row.
+
 ### Added
 
 - **story-0047-0003 (EPIC-0047):** `SkillSizeLinter` guard-rail enforcing

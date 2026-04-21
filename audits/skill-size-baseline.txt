@@ -22,6 +22,9 @@
 #
 # Generated: 2026-04-21 (story-0047-0003)
 # Initial count: 25 entries
+# Updated: 2026-04-21 (story-0047-0004) — 5 KPs carved out
+#   (click-cli-patterns, k8s-helm, axum-patterns, iac-terraform,
+#   dotnet-patterns); now 20 entries remain
 core/dev/x-task-implement/SKILL.md
 core/git/x-git-worktree/SKILL.md
 core/plan/x-epic-orchestrate/SKILL.md
@@ -33,15 +36,10 @@ knowledge-packs/architecture-cqrs/SKILL.md
 knowledge-packs/infra-patterns/container-registry/SKILL.md
 knowledge-packs/infra-patterns/dockerfile/SKILL.md
 knowledge-packs/infra-patterns/iac-crossplane/SKILL.md
-knowledge-packs/infra-patterns/iac-terraform/SKILL.md
 knowledge-packs/infra-patterns/k8s-deployment/SKILL.md
-knowledge-packs/infra-patterns/k8s-helm/SKILL.md
 knowledge-packs/infra-patterns/k8s-kustomize/SKILL.md
 knowledge-packs/layer-templates/SKILL.md
-knowledge-packs/stack-patterns/axum-patterns/SKILL.md
-knowledge-packs/stack-patterns/click-cli-patterns/SKILL.md
 knowledge-packs/stack-patterns/django-patterns/SKILL.md
-knowledge-packs/stack-patterns/dotnet-patterns/SKILL.md
 knowledge-packs/stack-patterns/express-patterns/SKILL.md
 knowledge-packs/stack-patterns/fastapi-patterns/SKILL.md
 knowledge-packs/stack-patterns/gin-patterns/SKILL.md

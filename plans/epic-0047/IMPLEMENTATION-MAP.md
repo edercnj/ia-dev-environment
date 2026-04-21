@@ -11,7 +11,7 @@
 | story-0047-0001 | Diretório `_shared/` + ADR-0006 (estratégia de inclusão) | — | Bucket A mergeado + Sprint 2 medição | story-0047-0002, story-0047-0004 | Concluída |
 | story-0047-0002 | Retirar pattern Slim Mode + ADR-0007 (flipped orientation) | — | story-0047-0001 | — | Pendente |
 | story-0047-0003 | CI lint `SkillSizeLinter` (limite 500 LoC + `references/` sibling) | — | Bucket A mergeado | — | Concluída |
-| story-0047-0004 | Sweep de compressão dos 5 maiores knowledge packs | — | story-0047-0001 | — | Pendente |
+| story-0047-0004 | Sweep de compressão dos 5 maiores knowledge packs | — | story-0047-0001 | — | Concluída |
 
 > **Valores de Status:** `Pendente` (padrão) · `Em Andamento` · `Concluída` · `Falha` · `Bloqueada` · `Parcial`
 
