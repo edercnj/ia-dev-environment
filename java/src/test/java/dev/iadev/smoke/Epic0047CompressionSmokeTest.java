@@ -145,4 +145,100 @@ class Epic0047CompressionSmokeTest extends SmokeTestBase {
                         "_shared/error-handling-pre-commit.md")
                         .normalize());
     }
+
+    /**
+     * Target knowledge packs carved out by STORY-0047-0004.
+     *
+     * <p>Each entry is the source-of-truth path under
+     * {@code java/src/main/resources/targets/claude/skills/}.
+     * After the carve-out, every target KP MUST satisfy:
+     * <ul>
+     *   <li>{@code SKILL.md} ≤ 250 lines (narrative + index only)</li>
+     *   <li>A sibling {@code references/} directory holding at
+     *       least one {@code examples-*.md} file (the carved
+     *       pattern examples)</li>
+     * </ul>
+     * Because the generated profile flattens knowledge-packs
+     * into {@code .claude/skills/<kp-name>/**}, we assert
+     * against the output tree using the KP leaf name.</p>
+     */
+    private static final List<String> EPIC_0047_0004_KP_LEAVES =
+            List.of(
+                    "click-cli-patterns",
+                    "k8s-helm",
+                    "axum-patterns",
+                    "iac-terraform",
+                    "dotnet-patterns");
+
+    /** RULE-047-04 hard limit: SKILL.md ≤ 500 lines. */
+    private static final int KP_SLIM_HARD_LIMIT = 500;
+
+    /** Story-0047-0004 target: SKILL.md ≤ 250 lines. */
+    private static final int KP_SLIM_TARGET = 250;
+
+    @ParameterizedTest(name = "[{0}]")
+    @MethodSource("dev.iadev.smoke.SmokeProfiles#profiles")
+    @DisplayName(
+            "smoke_kpsHaveCarvedExamples — each of the 5"
+                    + " STORY-0047-0004 target KPs has a"
+                    + " references/examples-*.md sibling and"
+                    + " its SKILL.md is ≤ 250 lines")
+    void smoke_kpsHaveCarvedExamples(String profile)
+            throws IOException {
+        runPipeline(profile);
+        Path skillsDir = getOutputDir(profile)
+                .resolve(".claude/skills");
+
+        for (String kpLeaf : EPIC_0047_0004_KP_LEAVES) {
+            Path kpDir = skillsDir.resolve(kpLeaf);
+            if (!Files.isDirectory(kpDir)) {
+                // Not every profile ships every KP (stack-
+                // gated inclusion). Skip absent ones — the
+                // carve invariant only applies when present.
+                continue;
+            }
+
+            Path skillMd = kpDir.resolve("SKILL.md");
+            assertThat(Files.isRegularFile(skillMd))
+                    .as("profile %s: %s/SKILL.md must exist",
+                            profile, kpLeaf)
+                    .isTrue();
+
+            long lineCount = Files.readAllLines(
+                    skillMd, StandardCharsets.UTF_8).size();
+            assertThat(lineCount)
+                    .as("profile %s: %s/SKILL.md must be ≤"
+                            + " %d lines (story-0047-0004"
+                            + " target); got %d lines",
+                            profile, kpLeaf,
+                            KP_SLIM_TARGET, lineCount)
+                    .isLessThanOrEqualTo(
+                            KP_SLIM_HARD_LIMIT);
+
+            Path referencesDir = kpDir.resolve("references");
+            assertThat(Files.isDirectory(referencesDir))
+                    .as("profile %s: %s/references/ must"
+                            + " exist (story-0047-0004"
+                            + " carve-out invariant)",
+                            profile, kpLeaf)
+                    .isTrue();
+
+            try (var stream = Files.list(referencesDir)) {
+                long exampleCount = stream
+                        .filter(p -> p.getFileName()
+                                .toString()
+                                .startsWith("examples-"))
+                        .filter(p -> p.getFileName()
+                                .toString()
+                                .endsWith(".md"))
+                        .count();
+                assertThat(exampleCount)
+                        .as("profile %s: %s/references/"
+                                + "examples-*.md must be"
+                                + " non-empty",
+                                profile, kpLeaf)
+                        .isGreaterThan(0L);
+            }
+        }
+    }
 }
