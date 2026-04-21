@@ -1,18 +1,185 @@
 {
+  "schemaVersion": "2.0",
+  "planningSchemaVersion": "2.0",
   "epicId": "0047",
+  "epicTitle": "Skill Body Compression Framework",
   "baseBranch": "develop",
   "startedAt": "2026-04-21T00:00:00Z",
+  "implementationStartedAt": "2026-04-21T20:00:00Z",
   "totalPhases": 2,
-  "stories": [
-    {"id": "story-0047-0001", "phase": 0},
-    {"id": "story-0047-0003", "phase": 0},
-    {"id": "story-0047-0002", "phase": 1},
-    {"id": "story-0047-0004", "phase": 1}
-  ],
-  "storyEntries": {
+  "mode": {
+    "parallel": false,
+    "sequential": true,
+    "skipReview": false,
+    "singlePr": false,
+    "mergeMode": "auto",
+    "autoApprovePr": false,
+    "batchApproval": true,
+    "taskTracking": true,
+    "strictOverlap": false,
+    "skipPrComments": false,
+    "nonInteractive": false,
+    "dryRun": false
+  },
+  "mainShaBeforePhase": {
+    "0": "83f637f5914c3f209407b75b07d0a14c93a668f0"
+  },
+  "mainShaBeforePhaseHistory": {
+    "0": {
+      "initial": "6b2470212f05f4de2c5064176f0ce9a6cda1cef1",
+      "adjusted": "83f637f5914c3f209407b75b07d0a14c93a668f0",
+      "adjustedAt": "2026-04-21T20:34:01Z",
+      "adjustedReason": "Chore PR #534 merged post-dispatch; rebased phase-0 diff baseline forward so integrity gate excludes chore commits (docs only)."
+    }
+  },
+  "stories": {
     "story-0047-0001": {
       "id": "story-0047-0001",
       "phase": 0,
+      "status": "SUCCESS",
+      "prMergeStatus": "MERGED",
+      "mergedAt": "2026-04-21T21:17:53Z",
+      "mergeCommit": "f76b089a3988870e1706445f8903aa54594e220a",
+      "reviewArtifactCommit": "099e8fd14",
+      "followUpsMedium": [
+        "SkillsAssembler.java grew to 396 lines (pre-existing 250-line violation worsened) — extract SkillsAssemblerPipeline in follow-up",
+        "ADR-0011 §Consequences/Neutral self-contradicts delivered impl (says _shared/ NOT copied to output, but assembleShared() does copy) — doc fix needed",
+        "Story Gherkin Cenario 2 supersession should be annotated for audit clarity"
+      ],
+      "retries": 0,
+      "findingsCount": 0,
+      "summary": "Created _shared/ dir with 3 initial snippets + README, authored ADR-0011 (link-based shared-snippets strategy — slot 0006 taken by EPIC-0041), extended SkillsAssembler.assembleShared(), piloted pre-commit cluster carve-out, regen 17 profile goldens + 2 platform variants, added SharedSnippetsAssemblerTest (5 TPP) + Epic0047CompressionSmokeTest (51 params). mvn verify green: 4212 surefire + 810 failsafe + JaCoCo. Note: Specialist Review (Phase 4) and Tech Lead Review (Phase 7) SKIPPED by subagent (protocol deviation — x-epic-implement dispatching a post-hoc review subagent).",
+      "commitSha": "3fb3ea24ab427739b8c498d17fbdfad52c9a7636",
+      "coverageLine": 85.0,
+      "coverageBranch": 80.0,
+      "tddCycles": 1,
+      "waveCount": 1,
+      "taskCount": 5,
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/535",
+      "prNumber": 535,
+      "reviewsExecuted": { "specialist": false, "techLead": false, "postHocReviewDispatchedAt": "2026-04-21T20:58:00Z" },
+      "reviewScores": { "specialist": "PENDING", "techLead": "PENDING" },
+      "criticalPath": true,
+      "estimatedEffort": "L",
+      "dorFile": "plans/epic-0047/plans/dor-story-0047-0001.md",
+      "worktreePath": "/Users/edercnj/workspaces/ia-dev-environment/.claude/worktrees/story-0047-0001",
+      "branch": "feat/story-0047-0001-shared-dir-adr-0006",
+      "trackingTaskId": 1,
+      "dispatchedAt": "2026-04-21T20:00:00Z",
+      "completedAt": "2026-04-21T20:27:38Z",
+      "durationMs": 1659383
+    },
+    "story-0047-0003": {
+      "id": "story-0047-0003",
+      "phase": 0,
+      "status": "SUCCESS",
+      "prMergeStatus": "MERGED",
+      "mergedAt": "2026-04-21T21:56:41Z",
+      "mergeCommit": "4b34abc0d698654c9bbfe3e19f9410df3af539aa",
+      "retries": 0,
+      "findingsCount": 6,
+      "summary": "SkillSizeLinter (RULE-047-04) CI guard-rail shipped with baseline-exemption (25 existing oversized SKILL.md tolerated via audits/skill-size-baseline.txt). SkillCorpusSizeAudit (RULE-047-07) soft-warn default; hard-fail opt-in via -Dskill.corpus.audit.enforce=true after 0002/0004 close the 20,197-line gap. 5 TDD cycles, 8 atomic commits, mvn verify green.",
+      "commitSha": "62b891ddd56815fe78f7ad91cd873bde88cb2ad3",
+      "coverageLine": 91.0,
+      "coverageBranch": 94.0,
+      "coverageNote": "Line 91% below story DoD 95% (gap = 6 defensive UncheckedIOException catches; not triggerable without mock NIO). Global Rule 05 threshold (85/80) satisfied.",
+      "tddCycles": 5,
+      "waveCount": 3,
+      "taskCount": 5,
+      "brownfieldApproach": "baseline-exemption",
+      "existingSkillsLintStatus": "baselined",
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/536",
+      "prNumber": 536,
+      "reviewsExecuted": { "specialist": true, "techLead": true },
+      "reviewScores": { "specialist": "9.3/10", "techLead": "41/45" },
+      "reviewMode": "inline-RULE-012-graceful-degradation (Agent tool unavailable in subagent session; less independent than PR #535's out-of-session post-hoc review)",
+      "followUpsHigh": [
+        "Rule 14 tension: SkillSizeLinter.java (and SkillCorpusSizeAudit) placed in src/main/java/ violates Rule 14 (CI validation gates forbidden in Java production code). Rule 14 landed same day as story dispatch in commit 6b2470212 (epic base). Tech Lead GO (41/45) treated as non-blocking follow-up. Fix options: (X) relocate to src/test/java/ following HexagonalArchitectureBaselineAudit precedent; (Y) carve quality/ exception into Rule 14. User decision at PR #536 merge time: AUTO_MERGE — follow-up PR will address relocation."
+      ],
+      "followUpsMedium": [
+        "Coverage line 91% misses story DoD 95% target (gap is defensive catches); consider refactoring error handling to be mockable in follow-up",
+        "Review was inline (RULE-012 graceful degradation) rather than via independent post-hoc subagent — consider dispatching one for parity with PR #535 quality signal"
+      ],
+      "criticalPath": false,
+      "estimatedEffort": "M",
+      "dorFile": "plans/epic-0047/plans/dor-story-0047-0003.md",
+      "blockedBy": [],
+      "worktreePath": "/Users/edercnj/workspaces/ia-dev-environment/.claude/worktrees/story-0047-0003",
+      "branch": "feat/story-0047-0003-skill-size-linter",
+      "trackingTaskId": 4,
+      "dispatchedAt": "2026-04-21T21:20:00Z",
+      "completedAt": "2026-04-21T21:38:45Z",
+      "durationMs": 1125145
+    },
+    "story-0047-0002": {
+      "id": "story-0047-0002",
+      "phase": 1,
+      "status": "PENDING",
+      "retries": 0,
+      "findingsCount": 0,
+      "summary": "",
+      "criticalPath": true,
+      "estimatedEffort": "XL",
+      "dorFile": "plans/epic-0047/plans/dor-story-0047-0002.md",
+      "blockedBy": ["story-0047-0001"],
+      "sprintTwoGateActive": true,
+      "sprintTwoGateNote": "dor-story-0047-0002.md Verdict is manually set to NOT_READY (Sprint 2 measurement guard). The DoR pre-check in Section 1.1b will mark this story BLOCKED on dispatch. Unblock procedure documented in the file's Blockers section."
+    },
+    "story-0047-0004": {
+      "id": "story-0047-0004",
+      "phase": 1,
+      "status": "SUCCESS",
+      "prMergeStatus": "MERGED",
+      "mergedAt": "2026-04-21T23:11:40Z",
+      "mergeCommit": "a62556b167b82a56b4a7589f4c75adb7479c7bca",
+      "commitSha": "a0277a44d",
+      "reviewArtifactCommit": "41a604bf8",
+      "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/537",
+      "prNumber": 537,
+      "reviewsExecuted": { "specialist": true, "techLead": true, "techLeadMode": "post-hoc-independent" },
+      "reviewScores": { "specialist": "80/82 (97.6%)", "techLead": "43/45 (95.6%)", "combined": "123/127 (96.9%)" },
+      "techLeadDecision": "GO",
+      "techLeadDeductions": [
+        "Section K (TDD Process) −2pts: single consolidated commit (orchestrator recovery after subagent mid-lifecycle exit) vs ideal per-task atomic commits. Spirit met because story plan §7.3 pre-authorized test-after-no-new-code for doc-heavy refactor; letter not met. Not a NO-GO."
+      ],
+      "recoveryPlaybookRecommendation": "Tech Lead recommendation for future: add 'force atomic per-task commits when recovering from subagent exit' to the recovery playbook (applies only to non-doc stories; doc-heavy refactors remain exempt per plan pre-authorization).",
+      "reviewMode": "specialist-inline-RULE-012 + techlead-post-hoc-independent",
+      "specialistBreakdown": { "qa": "34/36", "performance": "26/26", "devops": "20/20" },
+      "findingsByseverity": { "critical": 0, "high": 0, "medium": 0, "low": 2 },
+      "compressionDelta": {
+        "kpsModified": 5,
+        "skillMdLinesBefore": 4615,
+        "skillMdLinesAfter": 275,
+        "deltaLines": -4340,
+        "deltaPct": -94,
+        "corpusBefore": 50191,
+        "corpusAfter": 45851,
+        "corpusTarget": 30115,
+        "corpusGapRemaining": 15736,
+        "gapGatedOn": "story-0047-0002 (BLOCKED by Sprint 2 guard)"
+      },
+      "baselineExemptionUpdates": {
+        "entriesRemoved": ["click-cli-patterns/SKILL.md", "k8s-helm/SKILL.md", "axum-patterns/SKILL.md", "iac-terraform/SKILL.md", "dotnet-patterns/SKILL.md"],
+        "entriesKept": "20 remaining (core/** SKILL.md files > 500 lines that are not in this story's scope)"
+      },
+      "protocolDeviation": "Implementing subagent exited after Phase 4 specialist review without performing Phase 6 (commit+PR) or Phase 7 (Tech Lead review). Epic orchestrator finalized commit+push+PR creation (commit a0277a44d on feat/story-0047-0004-kp-compression-sweep); Tech Lead review delegated to an independent post-hoc subagent. Similar pattern used successfully for story-0047-0001 post-hoc review (PR #535).",
+      "retries": 0,
+      "findingsCount": 0,
+      "summary": "Dispatched at 2026-04-21T21:58:00Z — worktree at .claude/worktrees/story-0047-0004, branch feat/story-0047-0004-kp-compression-sweep, base origin/develop at 4b34abc0d (post-phase-0 with _shared/ + SkillSizeLinter live)",
+      "criticalPath": false,
+      "estimatedEffort": "XL",
+      "dorFile": "plans/epic-0047/plans/dor-story-0047-0004.md",
+      "blockedBy": ["story-0047-0001"],
+      "blockedByResolved": true,
+      "blockedByResolvedAt": "2026-04-21T21:56:41Z",
+      "worktreePath": "/Users/edercnj/workspaces/ia-dev-environment/.claude/worktrees/story-0047-0004",
+      "branch": "feat/story-0047-0004-kp-compression-sweep",
+      "trackingTaskId": 5,
+      "dispatchedAt": "2026-04-21T21:58:00Z"
+    }
+  },
+  "planning": {
+    "story-0047-0001": {
       "planningStatus": "READY",
       "planningStartedAt": "2026-04-21T15:10:39Z",
       "planningCompletedAt": "2026-04-21T15:11:00Z",
@@ -24,8 +191,6 @@
       ]
     },
     "story-0047-0003": {
-      "id": "story-0047-0003",
-      "phase": 0,
       "planningStatus": "READY",
       "planningStartedAt": "2026-04-21T15:10:39Z",
       "planningCompletedAt": "2026-04-21T15:11:00Z",
@@ -37,12 +202,10 @@
       ]
     },
     "story-0047-0002": {
-      "id": "story-0047-0002",
-      "phase": 1,
       "planningStatus": "READY",
       "planningStartedAt": "2026-04-21T15:11:00Z",
       "planningCompletedAt": "2026-04-21T15:12:00Z",
-      "dorVerdict": "READY",
+      "dorVerdict": "READY_REVERTED_TO_NOT_READY_BY_OPERATOR",
       "artifacts": [
         "plans/epic-0047/plans/tasks-story-0047-0002.md",
         "plans/epic-0047/plans/planning-report-story-0047-0002.md",
@@ -50,8 +213,6 @@
       ]
     },
     "story-0047-0004": {
-      "id": "story-0047-0004",
-      "phase": 1,
       "planningStatus": "READY",
       "planningStartedAt": "2026-04-21T15:11:00Z",
       "planningCompletedAt": "2026-04-21T15:12:00Z",
@@ -62,5 +223,139 @@
         "plans/epic-0047/plans/dor-story-0047-0004.md"
       ]
     }
+  },
+  "worktrees": {},
+  "worktreesRemoved": {
+    "story-0047-0001": {
+      "path": "/Users/edercnj/workspaces/ia-dev-environment/.claude/worktrees/story-0047-0001",
+      "removedAt": "2026-04-21T21:19:00Z",
+      "reason": "SUCCESS + PR merged (Rule 14 §5 — Creator Owns Removal)"
+    },
+    "story-0047-0003": {
+      "path": "/Users/edercnj/workspaces/ia-dev-environment/.claude/worktrees/story-0047-0003",
+      "removedAt": "2026-04-21T21:40:00Z",
+      "reason": "SUCCESS + PR merged (Rule 14 §5 — Creator Owns Removal)"
+    },
+    "story-0047-0004": {
+      "path": "/Users/edercnj/workspaces/ia-dev-environment/.claude/worktrees/story-0047-0004",
+      "removedAt": "2026-04-21T23:13:00Z",
+      "reason": "SUCCESS + PR merged (Rule 14 §5 — Creator Owns Removal)"
+    }
+  },
+  "preLaunchChorePr": {
+    "prNumber": 534,
+    "prUrl": "https://github.com/edercnj/ia-dev-environment/pull/534",
+    "branch": "chore/pre-launch-epic-0047-docs",
+    "contents": "4 commits: rebaseline DoR v3.9.0 + Sprint 2 guard + 2 telemetry batches",
+    "opened": "2026-04-21T20:00:00Z",
+    "mergedAt": "2026-04-21T20:34:01Z",
+    "mergeCommit": "83f637f5914c3f209407b75b07d0a14c93a668f0",
+    "status": "MERGED"
+  },
+  "batchGate": {
+    "lastGateDecision": null,
+    "fixAttempts": [],
+    "waveIndex": null,
+    "schemaVersion": "1.0"
+  },
+  "integrityGates": {
+    "1": {
+      "status": "PASS",
+      "mode": "CI-EVIDENCE-BASED",
+      "rationale": "GitHub auto-merge on PR #537 only fires after all required checks pass. origin/develop at a62556b16 is the post-PR-537-merge state; its CI run (Build+verify + CodeQL) completed green before auto-merge triggered at 23:11:40Z. Local mvn verify on Tech Lead review dispatch separately confirmed 4237/4237 tests pass. Story 0047-0002 remained BLOCKED by Sprint 2 guard throughout Phase 1 (expected — orchestrator honored the NOT_READY DoR verdict in dor-story-0047-0002.md).",
+      "shaRange": "4b34abc0d698654c9bbfe3e19f9410df3af539aa..a62556b167b82a56b4a7589f4c75adb7479c7bca",
+      "commitsInRange": [
+        "a62556b16 feat(story-0047-0004): compress 5 largest knowledge packs (#537)"
+      ],
+      "storiesCompletedInPhase": 1,
+      "storiesBlockedInPhase": 1,
+      "blockedStories": ["story-0047-0002 (Sprint 2 measurement guard active)"],
+      "evaluatedAt": "2026-04-21T23:12:00Z",
+      "testCount": 4237,
+      "smokeGate": {
+        "status": "PASS",
+        "source": "GitHub CI Build+verify on merge commit a62556b16 + local Tech Lead review verify",
+        "timestamp": "2026-04-21T23:11:00Z"
+      }
+    },
+    "0": {
+      "status": "PASS",
+      "mode": "CI-EVIDENCE-BASED",
+      "rationale": "GitHub auto-merge on PR #536 only fires after mvn verify + CodeQL complete SUCCESS on the proposed merge commit. origin/develop at 4b34abc0d is the post-PR-536-merge state; its CI run (Build+verify mvn -B verify) passed before auto-merge triggered at 21:56:41Z. Local re-execution of mvn verify would be redundant. PR #535's CI also passed for its post-merge state (f76b089a3). Cross-story consistency check deferred to Phase 2 epic progress report.",
+      "shaRange": "83f637f5914c3f209407b75b07d0a14c93a668f0..4b34abc0d698654c9bbfe3e19f9410df3af539aa",
+      "commitsInRange": [
+        "f76b089a3 feat(story-0047-0001): _shared/ dir + ADR-0011 inclusion strategy (#535)",
+        "4b34abc0d feat(story-0047-0003): SkillSizeLinter CI lint guard-rail (#536)"
+      ],
+      "evaluatedAt": "2026-04-21T21:57:00Z",
+      "testCount": 5022,
+      "coverageLine": 94.83,
+      "coverageBranch": 89.54,
+      "coverageNote": "Latest full verify ran on PR #536 merge commit; numbers from PR #535's JaCoCo are the authoritative global baseline (PR #536's incremental run is a superset)",
+      "smokeGate": {
+        "status": "PASS",
+        "testsRun": 810,
+        "testsFailed": 0,
+        "source": "GitHub CI Build+verify job on merge commit 4b34abc0d (mvn -B verify includes integration-tests profile)",
+        "timestamp": "2026-04-21T21:56:00Z"
+      }
+    }
+  },
+  "versionBump": {
+    "1": {
+      "status": "DEFERRED",
+      "reason": "Same rationale as Phase 0: deferred to /x-release-time to avoid per-phase PR overhead. Bump type for this phase's single merged story (0047-0004): MINOR (feat: commit).",
+      "bumpType": "MINOR"
+    },
+    "0": {
+      "status": "DEFERRED",
+      "reason": "Version bump deferred to epic completion (after Phase 1) per operator decision. Per-phase bump adds PR overhead (branch protection requires PR for any develop update) without release-time value. Bump will process the full epic range at /x-release time.",
+      "bumpType": "MINOR",
+      "bumpTypeRationale": "feat: commits in phase 0 (stories 0001 + 0003)"
+    }
+  },
+  "phaseCompletion": {
+    "1": {
+      "completedAt": "2026-04-21T23:12:00Z",
+      "storiesCompleted": 1,
+      "storiesFailed": 0,
+      "storiesBlocked": 1,
+      "storiesSuccess": ["story-0047-0004"],
+      "storiesBlockedList": ["story-0047-0002 (Sprint 2 guard — unblock by flipping dor-story-0047-0002.md Verdict back to READY after Sprint 2 runs, then --resume)"],
+      "reportPath": "plans/epic-0047/epic-execution-report.md"
+    },
+    "0": {
+      "completedAt": "2026-04-21T21:57:00Z",
+      "storiesCompleted": 2,
+      "storiesFailed": 0,
+      "storiesBlocked": 0,
+      "storiesSuccess": ["story-0047-0001", "story-0047-0003"],
+      "durationMs": 6420000,
+      "reportPath": "DEFERRED — epic progress report (Phase 2) will include phase-0 rollup"
+    }
+  },
+  "parallelismDowngrades": [],
+  "notes": "Sequential mode. Phase 0.5 pre-flight skipped. Chore PR #534 runs in parallel (option B) with story 0001 dispatch — chore PR does not block story 0001 because subagent branches from origin/develop and DoR pre-check reads dor-story-0047-0001.md (READY on origin). Auto-rebase will bring story branches current when chore PR merges.",
+  "finalStatus": "PARTIAL",
+  "finishedAt": "2026-04-21T23:15:00Z",
+  "reportPath": "plans/epic-0047/epic-execution-report.md",
+  "finalSummary": {
+    "storiesMerged": 3,
+    "storiesBlocked": 1,
+    "storiesTotal": 4,
+    "corpusBefore": 50191,
+    "corpusAfter": 45743,
+    "corpusDeltaLines": -4448,
+    "corpusDeltaPct": -8.86,
+    "corpusTarget": 30115,
+    "corpusGapRemaining": 15628,
+    "gapGatedOn": "story-0047-0002 (Sprint 2 measurement + flipped orientation on 5 top orchestrator skills)",
+    "prsOpened": 4,
+    "prsMerged": 4,
+    "phase4PrComments": "SKIPPED — no unresolved actionable Copilot/human comments across PRs #535, #536, #537",
+    "protocolDeviationsRecovered": 2,
+    "followUpsHigh": 1,
+    "followUpsMedium": 5,
+    "followUpsLow": 7
   }
 }
