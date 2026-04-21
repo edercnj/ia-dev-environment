@@ -40,7 +40,7 @@ Orchestrate the complete feature implementation cycle using a task-centric workf
 |----------|------|---------|-------------|
 | `--auto-approve-pr` | Boolean | false | Activate auto-approve mode with parent branch (RULE-004) |
 | `--task` | String | -- | Execute only a specific task (TASK-XXXX-YYYY-NNN) |
-| `--skip-verification` | Boolean | false | Skip Phase 3 (story-level verification) |
+| `--skip-verification` | Boolean | false | **Recovery-only — NEVER use in happy path.** Skips Phase 3 including the status-finalize sub-steps (3.8.1–3.8.5). Using this flag in the happy Core Loop violates Rule 22 (lifecycle-integrity, RULE-046-04 — status transition is non-skippable) and is flagged by LifecycleIntegrityAuditTest. Retained only for `--dry-run` and manual recovery. |
 | `--full-lifecycle` | Boolean | false | Force full execution regardless of scope tier |
 | `--worktree` | Boolean | false | Opt-in: create a dedicated worktree for the story branch (standalone mode). Ignored when the skill is already running inside a worktree (Rule 14 §3 — non-nesting invariant). See ADR-0004 §D2. |
 | `--non-interactive` | Boolean | false | Skip all interactive gates (AskUserQuestion menus) and auto-approve. For CI/automation and orchestrated calls from `x-epic-implement`. Overrides menu default behavior. |
@@ -1107,7 +1107,9 @@ Record the returned task ID as `phase3TaskId` for the closing TaskUpdate call.
 
 Phase 3 executes after all tasks have approved/merged PRs. It consolidates verification across all task changes.
 
-**Skip condition:** If `--skip-verification` is passed, skip Phase 3 entirely with log `"Phase 3 skipped (--skip-verification)"`.
+**Skip condition (Recovery-only, Rule 22):** If `--skip-verification` is passed, skip Phase 3 entirely with log `"WARNING: Phase 3 skipped via --skip-verification — RECOVERY ONLY. This flag MUST NOT be used in the happy path. Rule 22 (lifecycle-integrity, RULE-046-04) requires the status transition to be non-skippable; LifecycleIntegrityAuditTest (story-0046-0007) flags happy-path usage as SKIP_IN_HAPPY_PATH."`.
+
+When executing the happy path (no `--skip-verification`), the status-finalize sub-steps (3.8.1–3.8.5) are unskippable and each one fail-loud with exit code `STATUS_SYNC_FAILED` when any file operation, transition validation, or commit step fails (Rule 22 RULE-046-08 — fail loud on status update failure). V2-gated: when `planningSchemaVersion == "2.0"`, the finalize block is mandatory; v1 epics retain legacy behaviour (Rule 19).
 
 **Review Phase Progress (EPIC-0042):** Track review sub-steps via TodoWrite:
 
@@ -1294,16 +1296,26 @@ If NOT `--auto-approve-pr`: skip (individual task PRs already target develop).
 ### Step 3.8 -- Final Verification + Cleanup
 
 1. Update README if needed
-2. Update IMPLEMENTATION-MAP:
-   a. Read `plans/epic-XXXX/IMPLEMENTATION-MAP.md`
-   b. Find the current story's row in the dependency matrix
-   c. Update the Status column: replace current value with `Concluida`
-   d. Write the updated file
-3. Update Story File Status:
+
+**Status finalize block (V2-gated, unskippable in happy path — Rule 22 RULE-046-04).** Sub-steps 3.8.1–3.8.5 MUST execute in order when `planningSchemaVersion == "2.0"`. Each step is fail-loud: any error aborts Phase 3 with exit code `STATUS_SYNC_FAILED` and stderr identifying the offending path (RULE-046-08). For v1 epics (legacy), use the legacy sub-steps below the finalize block.
+
+2. Status finalize block (Story/Map, v2 happy path):
+   - **Step 3.8.1 — Read story Status.** Read `plans/epic-XXXX/story-XXXX-YYYY.md` and extract the current `**Status:**` value via `dev.iadev.application.lifecycle.StatusFieldParser.readStatus(path)`. If the file is missing or unreadable: exit `STATUS_SYNC_FAILED` with the story path in stderr.
+   - **Step 3.8.2 — Validate transition.** Call `LifecycleTransitionMatrix.validateTransition(current, CONCLUIDA)`. The only valid predecessor is `EM_ANDAMENTO`. If the transition is rejected: exit `STATUS_SYNC_FAILED` with the invalid `{current -> CONCLUIDA}` pair in stderr (Rule 22 RULE-046-04).
+   - **Step 3.8.3 — Write story Status = Concluída.** Call `StatusFieldParser.writeStatus(storyPath, LifecycleStatus.CONCLUIDA)`. Atomic write via temp-file-plus-rename. Any `IOException` is re-thrown as `StatusSyncException` → exit `STATUS_SYNC_FAILED`. Additionally, in Section 8 (Sub-tarefas) of the story file, mark completed sub-tasks by changing `- [ ]` to `- [x]`.
+   - **Step 3.8.4 — Update IMPLEMENTATION-MAP row.** Call `EpicMapRowUpdater.updateRow(mapPath, storyId, LifecycleStatus.CONCLUIDA)`. Atomic write. If the row is not found (orphan story) or the file is missing: exit `STATUS_SYNC_FAILED` with `row not found for storyId={id}` in stderr.
+   - **Step 3.8.5 — Atomic commit of the finalize diff.** Stage exactly the two modified artifacts (story file + IMPLEMENTATION-MAP.md) and invoke x-git-commit via the Skill tool (Rule 13 Pattern 1 — INLINE-SKILL):
+
+         Skill(skill: "x-git-commit", args: "--type docs --scope story-XXXX-YYYY --subject \"finalize Status to Concluída\" --body \"Status transition: Em Andamento → Concluída. IMPLEMENTATION-MAP.md row updated.\"")
+
+     The pre-commit chain (format → lint → compile) MUST succeed; any failure exits `STATUS_SYNC_FAILED`. After the commit, verify `git status --porcelain` is empty (RULE-046-06 — clean workdir invariant). The commit message schema mirrors Data Contract §5.2 of the story-0046-0004 spec.
+
+3. Legacy story file update (v1 only — Rule 19 fallback when `planningSchemaVersion` is absent or `"1.0"`):
    a. Read `plans/epic-XXXX/story-XXXX-YYYY.md`
    b. Update the `**Status:**` line from `Pendente` to `Concluida`
    c. In Section 8 (Sub-tarefas), mark completed sub-tasks: change `- [ ]` to `- [x]`
    d. Write the updated file
+   e. Update IMPLEMENTATION-MAP Status column in-place (no fail-loud, no atomic commit; legacy behaviour preserved).
 4. Jira Status Sync (conditional):
    a. Read the story file's `**Chave Jira:**` field
    b. If the value is not `-` and not `<CHAVE-JIRA>` (i.e., has a real Jira key):
