@@ -144,6 +144,8 @@ x-code-format complete:
 
 ## Error Handling
 
+> **Chain-wide error matrix.** For the canonical `format -> lint -> compile -> commit` chain error rows (exit codes, soft-vs-hard classification) see [`_shared/error-handling-pre-commit.md`](../_shared/error-handling-pre-commit.md). The rows below cover `x-code-format`-specific scenarios only.
+
 | Scenario | Behavior |
 |----------|----------|
 | Unsupported language | Report warning, exit 0 (do not block chain) |

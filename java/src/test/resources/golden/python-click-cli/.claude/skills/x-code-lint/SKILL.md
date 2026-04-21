@@ -227,6 +227,8 @@ x-code-format --> x-code-lint --> compile --> commit
 
 ## Error Handling
 
+> **Chain-wide error matrix.** For the canonical `format -> lint -> compile -> commit` chain error rows (exit codes, soft-vs-hard classification) see [`_shared/error-handling-pre-commit.md`](../_shared/error-handling-pre-commit.md). The rows below cover `x-code-lint`-specific scenarios only.
+
 | Scenario | Action |
 |----------|--------|
 | Linter not installed | Suggest installation command; exit 1 |

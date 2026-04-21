@@ -264,6 +264,8 @@ x-git-commit complete:
 
 ## Error Handling
 
+> **Chain-wide error matrix.** For the canonical `format -> lint -> compile -> commit` chain error rows (exit codes, soft-vs-hard classification) see [`_shared/error-handling-pre-commit.md`](../_shared/error-handling-pre-commit.md). The rows below cover `x-git-commit`-specific scenarios only.
+
 | Scenario | Behavior |
 |----------|----------|
 | Invalid task ID format | ABORT with format hint |

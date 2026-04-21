@@ -487,14 +487,16 @@ class FrontmatterSmokeTest extends SmokeTestBase {
     private static final java.util.Set<String>
             KNOWLEDGE_PACK_DIRS = java.util.Set.of(
                     "database-patterns",
-                    "knowledge-packs");
+                    "knowledge-packs",
+                    "_shared");
 
     private static void checkForOrphanDir(
             Path dir, Path skillsDir,
             List<String> orphanDirs) {
         String dirName = dir.getFileName().toString();
         if (KNOWLEDGE_PACK_DIRS.contains(dirName)) {
-            // Knowledge pack containers intentionally have
+            // Knowledge pack containers and the _shared/
+            // directory (story-0047-0001) intentionally have
             // no SKILL.md at their root — they hold
             // reference material only.
             return;
