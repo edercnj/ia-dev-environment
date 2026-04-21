@@ -15,7 +15,7 @@
 > `Em Andamento → Concluída | Falha | Bloqueada`;
 > reabertura `Concluída → Em Andamento` (via `x-status-reconcile --apply`) e
 > `Falha → Pendente`; `Bloqueada → Pendente | Planejada | Em Andamento | Falha`.
-> Ver [`../rules/22-lifecycle-integrity.md`](../rules/22-lifecycle-integrity.md).
+> Ver [`.claude/rules/22-lifecycle-integrity.md`](../rules/22-lifecycle-integrity.md).
 
 ## 1. Visão Geral
 

@@ -33,7 +33,8 @@ class EpicFinalizeFailLoudTest {
         assertThatThrownBy(() ->
                 StatusFieldParser.readStatus(epic))
                 .isInstanceOf(StatusSyncException.class)
-                .hasMessageContaining("failed to read");
+                .hasMessageContaining(StatusSyncException.CODE)
+                .hasMessageContaining(epic.toString());
     }
 
     @Test

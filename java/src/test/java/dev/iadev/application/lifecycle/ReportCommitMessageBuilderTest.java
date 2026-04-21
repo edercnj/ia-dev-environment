@@ -62,7 +62,7 @@ class ReportCommitMessageBuilderTest {
         assertThat(msg).contains("- Stories: 7");
         assertThat(msg).contains("- Schema: v2.0");
         assertThat(msg).contains(
-                "Refs: plans/epic-0046/reports/execution-plan-epic-0046.md");
+                "Refs: plans/epic-0046/reports/epic-execution-plan-0046.md");
     }
 
     @Test
@@ -102,7 +102,7 @@ class ReportCommitMessageBuilderTest {
         assertThat(msg).contains("- Wave 2 complete: 5 stories DONE");
         assertThat(msg).contains("- Commits: 5 story-finalize");
         assertThat(msg).contains(
-                "Refs: plans/epic-0046/reports/phase-report-epic-0046-wave2.md");
+                "Refs: plans/epic-0046/reports/phase-2-completion-0046.md");
     }
 
     @Test
@@ -110,6 +110,6 @@ class ReportCommitMessageBuilderTest {
         String msg = ReportCommitMessageBuilder.phaseReport("0099", 1, 3, 3);
         assertThat(msg).startsWith("docs(epic-0099): add phase-1 report");
         assertThat(msg).contains(
-                "Refs: plans/epic-0099/reports/phase-report-epic-0099-wave1.md");
+                "Refs: plans/epic-0099/reports/phase-1-completion-0099.md");
     }
 }

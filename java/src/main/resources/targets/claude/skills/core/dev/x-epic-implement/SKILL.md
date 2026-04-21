@@ -283,7 +283,7 @@ Fallback matrix (Rule 19 — Backward Compatibility):
 
 Three-step block (V2 only):
 
-1. **Stage**: `git add plans/{epicId}/reports/epic-execution-plan-{epicId}.md`
+1. **Stage**: `git add plans/epic-{epicId}/reports/epic-execution-plan-{epicId}.md`
    (idempotent — adding an already-tracked file with no diff is a no-op and
    keeps the block safe across resume).
 2. **Build message** via `ReportCommitMessageBuilder.executionPlan(epicId,
@@ -1828,7 +1828,7 @@ Fallback matrix (Rule 19 — Backward Compatibility):
 Three-step block (V2 only, one per wave):
 
 1. **Stage** the phase-report path returned by the subagent:
-   `git add plans/{epicId}/reports/phase-{N}-completion-{epicId}.md`
+   `git add plans/epic-{epicId}/reports/phase-{N}-completion-{epicId}.md`
    (idempotent; no-op when no diff).
 2. **Build message** via `ReportCommitMessageBuilder.phaseReport(epicId,
    waveNumber, storyCount, commitCount)` — produces subject

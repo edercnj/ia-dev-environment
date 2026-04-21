@@ -58,6 +58,7 @@ audit commit.
 | 30 | STATE_FILE_INVALID | `execution-state.json` missing or malformed |
 | 40 | STATUS_TRANSITION_INVALID | Suspicious transition (e.g., CONCLUIDA→PENDENTE) |
 | 50 | USER_ABORTED | Operator chose ABORT at gate |
+| 2 | USAGE_ERROR | Invalid / conflicting CLI arguments (picocli) |
 
 ## Workflow
 
@@ -65,7 +66,7 @@ audit commit.
 
 1. Extract epic id from `--epic XXXX` or parse story id from `--story`.
 2. Resolve `plans/epic-XXXX/execution-state.json`.
-3. If the file is absent → exit 30 with stderr explanation.
+3. If the epic directory itself is missing → exit 30; absence of `execution-state.json` is treated as legacy v1 (Phase 1) — exit 0 silently (Rule 19).
 
 ### Phase 1 — Rule 19 check
 

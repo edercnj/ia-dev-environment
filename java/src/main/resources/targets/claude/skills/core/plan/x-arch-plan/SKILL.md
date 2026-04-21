@@ -390,7 +390,7 @@ For in-depth guidance on architecture patterns, consult:
 
 ## Planning Status Propagation (Rule 22 / EPIC-0046)
 
-> V2-gated: only runs when `SchemaVersionResolver.resolve(plans/epic-XXXX/execution-state.json) == V2`. v1 epics: skip silently (Rule 19).
+> V2-gated: only runs when `SchemaVersionResolver.resolve(plans/epic-XXXX).version() == V2`. v1 epics: skip silently (Rule 19).
 
 After writing `arch-story-XXXX-YYYY.md`, this skill checks the associated story's lifecycle status. The architecture plan does NOT itself drive the `Pendente → Planejada` transition — that is owned by `x-story-plan` (Rule 22 single-writer invariant). If the story is still `Pendente` when the architecture plan is generated standalone (i.e. `x-arch-plan` invoked directly without `x-story-plan`), transition it to `Planejada` here (idempotent if already `Planejada`).
 

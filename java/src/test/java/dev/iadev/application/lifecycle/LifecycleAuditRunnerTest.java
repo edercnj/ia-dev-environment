@@ -22,8 +22,8 @@ class LifecycleAuditRunnerTest {
 
     @Test
     @DisplayName("scan returns empty list for a real "
-            + "directory (skeleton contract)")
-    void scan_realDirectory_returnsEmptyList(
+            + "directory with no source files")
+    void scan_emptyDirectory_returnsEmptyList(
             @TempDir Path dir) {
         LifecycleAuditRunner runner =
                 new LifecycleAuditRunner();
@@ -50,11 +50,11 @@ class LifecycleAuditRunnerTest {
     void violation_recordExposesFields(@TempDir Path dir) {
         Path file = dir.resolve("skill.md");
         Violation v = new Violation(
-                "ORPHAN_PHASE_MARKER", file, 42,
+                LifecycleAuditRunner.DIM_ORPHAN_PHASE, file, 42,
                 "phase.start without phase.end");
 
         assertThat(v.dimension())
-                .isEqualTo("ORPHAN_PHASE_MARKER");
+                .isEqualTo(LifecycleAuditRunner.DIM_ORPHAN_PHASE);
         assertThat(v.file()).isEqualTo(file);
         assertThat(v.line()).isEqualTo(42);
         assertThat(v.detail())

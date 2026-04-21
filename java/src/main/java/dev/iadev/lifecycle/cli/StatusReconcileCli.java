@@ -72,12 +72,25 @@ public final class StatusReconcileCli {
      * a temp dir.
      */
     public int run(Options o, Path plansRoot) {
-        if ((o.epicId == null || o.epicId.isBlank())
-                && (o.storyId == null
-                        || o.storyId.isBlank())) {
+        boolean epicProvided = o.epicId != null
+                && !o.epicId.isBlank();
+        boolean storyProvided = o.storyId != null
+                && !o.storyId.isBlank();
+        if (!epicProvided && !storyProvided) {
             err.println("ERROR: must provide --epic or "
                     + "--story");
             return USAGE_ERROR;
+        }
+        if (epicProvided && storyProvided) {
+            String storyEpic = o.storyId
+                    .replaceFirst("^story-", "")
+                    .replaceFirst("-\\d+$", "");
+            if (!storyEpic.equals(o.epicId)) {
+                err.println("ERROR: --epic (" + o.epicId
+                        + ") does not match --story epic "
+                        + "segment (" + storyEpic + ")");
+                return USAGE_ERROR;
+            }
         }
         String epicId = resolveEpicId(o);
         Path epicDir = plansRoot.resolve(

@@ -81,9 +81,13 @@ public final class StatusFieldParserCli {
         try {
             Optional<LifecycleStatus> status =
                     StatusFieldParser.readStatus(file);
-            out.println(
-                    status.map(LifecycleStatus::label)
-                            .orElse("NONE"));
+            if (status.isEmpty()) {
+                err.println("STATUS_SYNC_FAILED: "
+                        + "no parseable **Status:** line in "
+                        + file);
+                return EXIT_STATUS_SYNC_FAILED;
+            }
+            out.println(status.get().label());
             return EXIT_OK;
         } catch (StatusSyncException e) {
             err.println("STATUS_SYNC_FAILED: "

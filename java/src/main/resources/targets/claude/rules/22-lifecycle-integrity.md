@@ -14,7 +14,9 @@ file is the single source of truth (SoT). Every state transition —
 planning → in-progress → done — MUST be written atomically to the
 Markdown, then optionally mirrored to `execution-state.json` which
 serves strictly as orchestrator telemetry. When the two diverge, the
-Markdown wins and the JSON is rewritten.
+Markdown wins; reconciliation tooling (`x-status-reconcile`) updates
+only the Markdown artifact and never writes `execution-state.json`
+(RULE-046-07).
 
 The canonical enum is `dev.iadev.domain.lifecycle.LifecycleStatus`
 with six values: `Pendente`, `Planejada`, `Em Andamento`,
@@ -120,8 +122,9 @@ tables or code blocks are ignored.
 mvn -pl java test -Dtest=LifecycleIntegrityAuditTest
 
 # Scan a directory of skills / artifacts (story-0046-0007):
-# CLI entry-point will be added by story-0046-0007 (StatusFieldParserCli).
-# Until then, invoke the runner programmatically via tests:
+java -cp java/target/classes dev.iadev.adapter.inbound.cli.LifecycleAuditCli \
+    --skills-root .claude/skills/
+# Or programmatically via test suite:
 mvn -pl java test -Dtest=LifecycleAuditRunnerTest
 ```
 
