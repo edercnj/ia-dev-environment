@@ -76,6 +76,8 @@ class Epic0045SmokeTest {
     @EnabledIfEnvironmentVariable(
             named = "SMOKE_E2E", matches = "true")
     static void setUp() throws Exception {
+        ensureGitIdentity();
+
         ProcessBuilder createBranch = new ProcessBuilder(
                 "git", "checkout", "-b", SMOKE_BRANCH)
                 .inheritIO();
@@ -651,6 +653,23 @@ class Epic0045SmokeTest {
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────
+
+    private static void ensureGitIdentity()
+            throws IOException, InterruptedException {
+        ProcessBuilder name = new ProcessBuilder(
+                "git", "config", "user.name")
+                .redirectErrorStream(true);
+        Process p = name.start();
+        int exit = p.waitFor();
+        if (exit != 0) {
+            new ProcessBuilder("git", "config",
+                    "user.name", "CI Smoke Test")
+                    .inheritIO().start().waitFor();
+            new ProcessBuilder("git", "config",
+                    "user.email", "smoke@test.local")
+                    .inheritIO().start().waitFor();
+        }
+    }
 
     private static void assertProcessSuccess(
             Process proc, String description)
