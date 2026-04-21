@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **story-0047-0003 (EPIC-0047):** `SkillSizeLinter` guard-rail enforcing
+  RULE-047-04 (500-line cap per `SKILL.md` without a non-empty
+  `references/` sibling). New classes under
+  `java/src/main/java/dev/iadev/quality/`: `LintFinding` record (6-field
+  data contract per story §5.1), `Severity` enum (INFO / WARN / ERROR
+  tiers per §5.2), and `SkillSizeLinter` static helper exposing
+  `lint(Path)` and `errorFindings(List)`. Brownfield-safe rollout: new
+  test `SkillSizeLinterAcceptanceTest` runs in `mvn test` default scope
+  against the real source-of-truth tree and fails ONLY on NEW offenders;
+  the 25 existing oversized SKILL.md files at the time this story landed
+  are enumerated in `audits/skill-size-baseline.txt` and will be carved
+  out by stories 0047-0002 (flipped orientation) and 0047-0004 (KP
+  sweep). Companion test `SkillCorpusSizeAudit` asserts the corpus
+  total stays below the RULE-047-07 cap (30,000 lines) with a soft-warn
+  default and opt-in hard-fail via `-Dskill.corpus.audit.enforce=true`.
+  Unit coverage: `LintFindingTest` (5 tests), `SkillSizeLinterTest` (17
+  tests including 3 boundary scenarios and `_shared/` exclusion). Full
+  lint + audit suite completes in < 1 s over ~130 SKILL.md.
 - **story-0046-0007 (EPIC-0046):** CI enforcement — `LifecycleIntegrityAuditTest` (Maven CI-blocking) scans every `SKILL.md` under `java/src/main/resources/targets/claude/skills/` and detects regressions across three Rule 22 dimensions: `ORPHAN_PHASE` (documented numbered sub-section not referenced elsewhere in the skill), `WRITE_WITHOUT_COMMIT` (write to `plans/epic-*/reports/` not followed within 20 lines by `x-git-commit`), and `SKIP_IN_HAPPY_PATH` (`--skip-verification`/`--skip-status-sync` used outside `## Recovery` / `## Error Handling` sections). Audit respects `<!-- audit-exempt -->` escape hatch, YAML frontmatter, and inline "Recovery-only" markers. Baseline file at `audits/lifecycle-integrity-baseline.txt` tolerates currently-accepted TOC-style sub-sections; any NEW violation fails the build with `LIFECYCLE_AUDIT_REGRESSION`. New classes: `LifecycleAuditRunner` (production detection logic replacing the story-0046-0001 skeleton), `LifecycleAuditCli` (standalone CLI, exit 0 / 11 / 2). 19 new tests: 9 unit detection tests (`LifecycleAuditRunnerDetectionTest`), 4 CLI tests (`LifecycleAuditCliTest`), 2 E2E smoke (`LifecycleAuditRegressionSmokeTest` — injects 3 synthetic regressions), 1 CI audit integration (`LifecycleIntegrityAuditTest`, < 2s over ~130 SKILL.md), plus existing skeleton contract tests. Performance budget: ≤ 2s over 40+ SKILL.md.
 - **story-0046-0005 (EPIC-0046):** `ReportCommitMessageBuilder` — canonical
   builder of Conventional Commit messages for atomic epic report commits
