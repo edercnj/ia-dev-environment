@@ -123,32 +123,9 @@ class PebbleTemplateRendererTest {
         }
     }
 
-    @Nested
-    @DisplayName("render() — Python-bool filter (@GK-5)")
-    class PythonBoolFilter {
-
-        @Test
-        @DisplayName("true renders as 'True' (Python-style)")
-        void render_boolTrue_rendersPythonTrue() {
-            String result = renderer.render(
-                    "templates/python-bool-test.peb",
-                    Map.of("value", true));
-
-            assertThat(result).contains("True");
-            assertThat(result).doesNotContain("true");
-        }
-
-        @Test
-        @DisplayName("false renders as 'False' (Python-style)")
-        void render_boolFalse_rendersPythonFalse() {
-            String result = renderer.render(
-                    "templates/python-bool-test.peb",
-                    Map.of("value", false));
-
-            assertThat(result).contains("False");
-            assertThat(result).doesNotContain("false");
-        }
-    }
+    // PythonBoolFilter test class removed in EPIC-0048 full cleanup —
+    // the Pebble `| python_bool` filter was dead code (no surviving
+    // template referenced it).
 
     @Nested
     @DisplayName("templateExists()")

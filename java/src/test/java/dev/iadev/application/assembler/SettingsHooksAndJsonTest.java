@@ -43,9 +43,9 @@ class SettingsHooksAndJsonTest {
                     new SettingsAssembler();
             ProjectConfig config =
                     TestConfigBuilder.builder()
-                            .language("kotlin", "2.0")
-                            .framework("ktor", "")
-                            .buildTool("gradle")
+                            .language("java", "21")
+                            .framework("quarkus", "3.17")
+                            .buildTool("maven")
                             .build();
 
             assembler.assemble(

@@ -20,7 +20,6 @@ class InteractivePrompterFlowTest {
                 .addReadLine(
                         "A microservice for user management")
                 .addSelect("microservice")
-                .addSelect("java")
                 .addSelect("quarkus")
                 .addSelect("maven")
                 .addMultiSelect(List.of("rest", "grpc"))
@@ -93,10 +92,12 @@ class InteractivePrompterFlowTest {
                     .addReadLine(
                             "A simple application for testing")
                     .addSelect("library")
-                    .addSelect("go")
+                    .addSelect("quarkus")
+                    .addSelect("maven")
                     .addMultiSelect(List.of("cli"))
                     .addReadLine("")
                     .addReadLine("")
+                    .addSelect("layered")
                     .addMultiSelect(List.of("none"))
                     .addConfirm(true);
             var prompter = new InteractivePrompter(mock);
@@ -119,119 +120,13 @@ class InteractivePrompterFlowTest {
     }
 
     @Nested
-    @DisplayName("Language filters frameworks")
+    @DisplayName("Language filters frameworks (Java-only since EPIC-0048)")
     class LanguageFrameworkFiltering {
 
-        @Test
-        @DisplayName("python uses python frameworks")
-        void prompt_pythonSelected() {
-            var mock = new MockTerminalProvider()
-                    .addReadLine("py-project")
-                    .addReadLine(
-                            "A python service for data "
-                                    + "processing")
-                    .addSelect("microservice")
-                    .addSelect("python")
-                    .addSelect("fastapi")
-                    .addSelect("pip")
-                    .addMultiSelect(List.of("rest"))
-                    .addReadLine("")
-                    .addReadLine("")
-                    .addMultiSelect(List.of("none"))
-                    .addConfirm(true);
-            var prompter = new InteractivePrompter(mock);
-            ProjectConfig config = prompter.prompt();
-            assertThat(config.language().name())
-                    .isEqualTo("python");
-            assertThat(config.framework().name())
-                    .isEqualTo("fastapi");
-        }
-
-        @Test
-        @DisplayName("go auto-selects framework")
-        void prompt_goSelected() {
-            var mock = new MockTerminalProvider()
-                    .addReadLine("go-service")
-                    .addReadLine(
-                            "A go service for API gateway")
-                    .addSelect("microservice")
-                    .addSelect("go")
-                    .addMultiSelect(List.of("rest"))
-                    .addReadLine("")
-                    .addReadLine("")
-                    .addMultiSelect(List.of("none"))
-                    .addConfirm(true);
-            var prompter = new InteractivePrompter(mock);
-            ProjectConfig config = prompter.prompt();
-            assertThat(config.framework().name())
-                    .isEqualTo("gin");
-            assertThat(config.framework().buildTool())
-                    .isEqualTo("go");
-        }
-
-        @Test
-        @DisplayName("rust auto-selects axum")
-        void prompt_rustSelected() {
-            var mock = new MockTerminalProvider()
-                    .addReadLine("rust-svc")
-                    .addReadLine(
-                            "A rust service for high "
-                                    + "performance")
-                    .addSelect("microservice")
-                    .addSelect("rust")
-                    .addMultiSelect(List.of("rest"))
-                    .addReadLine("")
-                    .addReadLine("")
-                    .addMultiSelect(List.of("none"))
-                    .addConfirm(true);
-            var prompter = new InteractivePrompter(mock);
-            ProjectConfig config = prompter.prompt();
-            assertThat(config.framework().name())
-                    .isEqualTo("axum");
-        }
-
-        @Test
-        @DisplayName("kotlin auto-selects ktor")
-        void prompt_kotlinSelected() {
-            var mock = new MockTerminalProvider()
-                    .addReadLine("kt-service")
-                    .addReadLine(
-                            "A kotlin service for mobile "
-                                    + "backend")
-                    .addSelect("monolith")
-                    .addSelect("kotlin")
-                    .addMultiSelect(List.of("rest"))
-                    .addReadLine("")
-                    .addReadLine("")
-                    .addSelect("layered")
-                    .addMultiSelect(List.of("none"))
-                    .addConfirm(true);
-            var prompter = new InteractivePrompter(mock);
-            ProjectConfig config = prompter.prompt();
-            assertThat(config.framework().name())
-                    .isEqualTo("ktor");
-        }
-
-        @Test
-        @DisplayName("typescript auto-selects nestjs")
-        void prompt_typescriptSelected() {
-            var mock = new MockTerminalProvider()
-                    .addReadLine("ts-service")
-                    .addReadLine(
-                            "A typescript service for "
-                                    + "frontend API")
-                    .addSelect("microservice")
-                    .addSelect("typescript")
-                    .addMultiSelect(List.of("rest"))
-                    .addReadLine("")
-                    .addReadLine("")
-                    .addMultiSelect(List.of("none"))
-                    .addConfirm(true);
-            var prompter = new InteractivePrompter(mock);
-            ProjectConfig config = prompter.prompt();
-            assertThat(config.framework().name())
-                    .isEqualTo("nestjs");
-        }
+        // Non-Java language selection tests removed in EPIC-0048 full cleanup:
+        // prompt_pythonSelected, prompt_goSelected, prompt_rustSelected,
+        // prompt_kotlinSelected, prompt_typescriptSelected — the languages
+        // they exercised are no longer supported.
 
         @Test
         @DisplayName("java spring-boot alternative")
@@ -242,7 +137,6 @@ class InteractivePrompterFlowTest {
                             "A spring boot service for "
                                     + "backend")
                     .addSelect("microservice")
-                    .addSelect("java")
                     .addSelect("spring-boot")
                     .addSelect("gradle")
                     .addMultiSelect(
@@ -305,7 +199,6 @@ class InteractivePrompterFlowTest {
                             "A microservice for user "
                                     + "management")
                     .addSelect("microservice")
-                    .addSelect("java")
                     .addSelect("quarkus")
                     .addSelect("maven")
                     .addMultiSelect(List.of("rest"))

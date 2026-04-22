@@ -47,34 +47,6 @@ class HooksAssemblerTest {
 
         @Test
         @DisplayName("generates post-compile-check.sh"
-                + " for kotlin-gradle")
-        void assemble_whenCalled_generatesHookForKotlin(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-
-            HooksAssembler assembler =
-                    new HooksAssembler();
-            ProjectConfig config =
-                    TestConfigBuilder.builder()
-                            .language("kotlin", "2.0")
-                            .framework("ktor", "")
-                            .buildTool("gradle")
-                            .telemetryEnabled(false)
-                            .build();
-
-            List<String> files = assembler.assemble(
-                    config, new TemplateEngine(), outputDir);
-
-            assertThat(files).hasSize(1);
-            Path hookFile = outputDir.resolve(
-                    "hooks/post-compile-check.sh");
-            assertThat(hookFile).exists();
-        }
-
-        @Test
-        @DisplayName("generates post-compile-check.sh"
                 + " for java-maven")
         void assemble_whenCalled_generatesHookForJavaMaven(
                 @TempDir Path tempDir)
@@ -101,55 +73,8 @@ class HooksAssemblerTest {
             assertThat(hookFile).exists();
         }
 
-        @Test
-        @DisplayName("generates post-compile-check.sh"
-                + " for typescript-npm")
-        void assemble_whenCalled_generatesHookForTypescript(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-
-            HooksAssembler assembler =
-                    new HooksAssembler();
-            ProjectConfig config =
-                    TestConfigBuilder.builder()
-                            .language("typescript", "5")
-                            .framework("nestjs", "10")
-                            .buildTool("npm")
-                            .telemetryEnabled(false)
-                            .build();
-
-            List<String> files = assembler.assemble(
-                    config, new TemplateEngine(), outputDir);
-
-            assertThat(files).hasSize(1);
-        }
-
-        @Test
-        @DisplayName("returns empty list for python"
-                + " (no hook template)")
-        void assemble_whenCalled_returnsEmptyForPython(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-
-            HooksAssembler assembler =
-                    new HooksAssembler();
-            ProjectConfig config =
-                    TestConfigBuilder.builder()
-                            .language("python", "3.12")
-                            .framework("fastapi", "0.115")
-                            .buildTool("pip")
-                            .telemetryEnabled(false)
-                            .build();
-
-            List<String> files = assembler.assemble(
-                    config, new TemplateEngine(), outputDir);
-
-            assertThat(files).isEmpty();
-        }
+        // Non-Java hook generation tests removed in EPIC-0048 full
+        // cleanup (typescript, python, kotlin paths).
     }
 
     @Nested
@@ -168,9 +93,9 @@ class HooksAssemblerTest {
                     new HooksAssembler();
             ProjectConfig config =
                     TestConfigBuilder.builder()
-                            .language("kotlin", "2.0")
-                            .framework("ktor", "")
-                            .buildTool("gradle")
+                            .language("java", "21")
+                            .framework("quarkus", "3.17")
+                            .buildTool("maven")
                             .build();
 
             assembler.assemble(
@@ -196,9 +121,9 @@ class HooksAssemblerTest {
                     new HooksAssembler();
             ProjectConfig config =
                     TestConfigBuilder.builder()
-                            .language("kotlin", "2.0")
-                            .framework("ktor", "")
-                            .buildTool("gradle")
+                            .language("java", "21")
+                            .framework("quarkus", "3.17")
+                            .buildTool("maven")
                             .build();
 
             assembler.assemble(
@@ -210,34 +135,8 @@ class HooksAssemblerTest {
                     .isTrue();
         }
 
-        @Test
-        @DisplayName("kotlin hook contains compileKotlin"
-                + " command")
-        void assemble_kotlinHook_containsCompileKotlin(
-                @TempDir Path tempDir)
-                throws IOException {
-            Path outputDir = tempDir.resolve("output");
-            Files.createDirectories(outputDir);
-
-            HooksAssembler assembler =
-                    new HooksAssembler();
-            ProjectConfig config =
-                    TestConfigBuilder.builder()
-                            .language("kotlin", "2.0")
-                            .framework("ktor", "")
-                            .buildTool("gradle")
-                            .build();
-
-            assembler.assemble(
-                    config, new TemplateEngine(), outputDir);
-
-            Path hookFile = outputDir.resolve(
-                    "hooks/post-compile-check.sh");
-            String content = Files.readString(
-                    hookFile, StandardCharsets.UTF_8);
-            assertThat(content)
-                    .contains("compileKotlin");
-        }
+        // assemble_kotlinHook_containsCompileKotlin removed
+        // in EPIC-0048 full cleanup (kotlin no longer supported).
 
         @Test
         @DisplayName("java-maven hook contains mvn compile")

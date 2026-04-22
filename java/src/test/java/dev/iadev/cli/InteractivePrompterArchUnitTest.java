@@ -92,61 +92,8 @@ class InteractivePrompterArchUnitTest {
             assertThat(result).isFalse();
         }
 
-        @Test
-        @DisplayName("kotlin hexagonal shows archunit")
-        void prompt_kotlinHexagonal_showsArchUnit() {
-            var mock = new MockTerminalProvider()
-                    .addReadLine("kt-hex-svc")
-                    .addReadLine(
-                            "A kotlin hexagonal service")
-                    .addSelect("microservice")
-                    .addSelect("kotlin")
-                    .addMultiSelect(List.of("rest"))
-                    .addReadLine("")
-                    .addReadLine("")
-                    .addSelect("hexagonal")
-                    .addConfirm(true)
-                    .addMultiSelect(List.of("none"))
-                    .addConfirm(true);
-            var prompter =
-                    new InteractivePrompter(mock);
-            ProjectConfig config = prompter.prompt();
-            assertThat(
-                    config.architecture().style())
-                    .isEqualTo("hexagonal");
-            assertThat(config
-                    .architecture()
-                    .validateWithArchUnit())
-                    .isTrue();
-        }
-
-        @Test
-        @DisplayName("kotlin layered no archunit prompt")
-        void prompt_kotlinLayered_noArchUnit() {
-            var mock = new MockTerminalProvider()
-                    .addReadLine("kt-lay-svc")
-                    .addReadLine(
-                            "A kotlin layered service "
-                                    + "testing")
-                    .addSelect("microservice")
-                    .addSelect("kotlin")
-                    .addMultiSelect(List.of("rest"))
-                    .addReadLine("")
-                    .addReadLine("")
-                    .addSelect("layered")
-                    .addMultiSelect(List.of("none"))
-                    .addConfirm(true);
-            var prompter =
-                    new InteractivePrompter(mock);
-            ProjectConfig config = prompter.prompt();
-            assertThat(
-                    config.architecture().style())
-                    .isEqualTo("layered");
-            assertThat(config
-                    .architecture()
-                    .validateWithArchUnit())
-                    .isFalse();
-        }
+        // Kotlin flow tests removed in EPIC-0048 full cleanup —
+        // kotlin no longer selectable.
     }
 
     @Nested
